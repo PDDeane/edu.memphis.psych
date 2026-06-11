@@ -1,6 +1,19 @@
 Contributors
 ============
 
+Course
+======
+
+The course team is Mollie Blair Anderson, Randy Floyd, Emily N
+Srisarajivakul, and Kara Watkins, who are the authors of the source
+content.
+
+Adaptations of the content to a digital format was initially performed
+principally by Paul Deane, with later adaptations by Piotr Mitros.
+
+Platform
+========
+
 This platform, as well as the Learning Observer project it is part of,
 and the Open edX platform they are based on, were originally conceived
 of and created by Piotr Mitros.
@@ -37,8 +50,9 @@ grant R305A210297, and IES grant R305T240021.
 Copyright
 =========
 
-Everyone who contributed to this system holds copyright to portions of
-the platform, mutually cross-licensed under the AGPL.
+Everyone who contributed to both the course content and the system
+holds copyright to portions of the work, mutually cross-licensed under
+the AGPL.
 
 Please be mindful of the license. One organization has already had
 their rights under the AGPL revoked due to a pattern of egregious and
