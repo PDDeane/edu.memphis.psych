@@ -576,7 +576,7 @@ icon.
 </Markdown>
 
 
-<PDFViewer src="documents/PIIS0890856718319804.pdf" popout="fullscreen" />
+<PDFViewer id="psych_sba_article_pdf" src="https://scispace.com/pdf/meta-analyses-key-parenting-program-components-for-4jrngddii3.pdf" />
 </Vertical>
 
 <HH> ============= Screen: Article excerpt =================== </HH>
