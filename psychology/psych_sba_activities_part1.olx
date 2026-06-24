@@ -14,7 +14,7 @@ authors:
 license: AGPL
 ---
 -->
-<Vertical id="psych_sba_activities_part1" title="Psychology Study Group: 1. Sleep Refusal (Activities)" launchable="true">
+<Vertical id="psych_sba_activities_part1" title="Psychology Study Group: 1. Sleep Refusal (Activities)" launchable="internal">
 
 <HH> ============= Screen: Introduction ======================== </HH>
 
