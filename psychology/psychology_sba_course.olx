@@ -15,7 +15,7 @@ license: AGPL
 ---
 -->
 
-<Course id="psych_course" title="Psychology Study Group" launchable="true">
+<Course id="psych_course" title="Psychology Study Group" launchable="course">
   <Use ref="psych_irb_consent_form" />
   <!-- Note: As of this authoring, when is not support in Course, and is aspirational.
 

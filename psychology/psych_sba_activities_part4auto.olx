@@ -14,7 +14,7 @@ authors:
 license: AGPL
 ---
 -->
-<Vertical id="psych_sba_activities_part4auto" title="Psychology Study Group: 4 Auto. Progress Monitoring (Activities)" launchable="true">
+<Vertical id="psych_sba_activities_part4auto" title="Psychology Study Group: 4 Auto. Progress Monitoring (Activities)" launchable="internal">
 
 <ActionButton id="print_psych_part4auto_btn" label="Export as PDF">
 <PrintAction id="print_psych_part4auto" />

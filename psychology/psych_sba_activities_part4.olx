@@ -2,7 +2,7 @@
 ---
 description: Activities for Psychology SBA Part 4 - Implementation Fidelity. This is not an independent activity, but is shown to support content editing.
 category: psychology
-index: 53
+index: 54
 lang: en-Latn-US
 authors:
   - Mollie Blair Anderson
@@ -14,7 +14,7 @@ authors:
 license: AGPL
 ---
 -->
-<Vertical id="psych_sba_part4_activities" title="Psychology Study Group: 4. Implementation Fidelity" launchable="true">
+<Vertical id="psych_sba_part4_activities" title="Psychology Study Group: 4. Implementation Fidelity" launchable="internal">
 
 
   <ActionButton id="print_psych_part4_btn" label="Export as PDF">
