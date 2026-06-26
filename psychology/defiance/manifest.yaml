@@ -1,0 +1,19 @@
+# manifest.yaml — Memphis psychology "child defiance" content collection.
+#
+# A sub-namespace (edu.memphis.psych.defiance) living parallel to the general
+# edu.memphis.psych content. The `namespace:` field also governs content sync —
+# every block under this directory gets keys in the `edu.memphis.psych.defiance/`
+# namespace (see FileStorageProvider.namespaceFor).
+#
+title: Psychology Study Group - Child Defiance
+namespace: edu.memphis.psych.defiance
+classes:
+  - no-translanguaging
+content_notice: >
+  Course content Copyright &copy; 2026 by Mollie Blair Anderson, Randy Floyd,
+  Emily N Srisarajivakul, Sanchari Banerjee, and Kara Watkins, with contributions
+  from Piotr Mitros, Paul Deane, and Ben Pierce. Licensed under
+  [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html). Source available on
+  [GitHub](https://github.com/olxhub/edu.memphis.psych/tree/main/psychology/defiance).
+routes:
+  /: edu.memphis.psych.defiance/psych_course

@@ -1,0 +1,275 @@
+title: Psychology Study Group, Task 1
+authors: "TODO -- fill this in"
+
+~~~~
+
+Introduction
+------------
+
+Sierra: Hey, sorry I'm late. I was talking to my sister about a problem. [id=start]
+
+::bedtime_problem_introduction [display=target:psych_sba_sidebar label="Introduction"]
+
+Krish: What's going on? Is it something you can tell us?
+
+psych_sba_sidebar <- bedtime_problem_clear_screen_1
+
+Sierra: Oh, yeah, it's not a secret. My sister has been having a hard time with her kid -- Logan, he's six. Logan will be playing with his toys, and when my sister tells him it's time to clean up -- like before dinner -- he just ignores her. And then when he gets told again, he'll say "no" or even throw something.
+
+Lin: What does your sister do in the moment?
+
+Sierra: She's tried pretty much everything. Talking to him, setting expectations, giving ultimatums, trying to let him figure it out on his own -- but it's almost like nothing will work. She's really frustrated and thinks she should just let him do whatever he wants and hope he'll grow out of it. I told her I was meeting with you all and we would try to come up with something to help, using what we've been learning in our psychology class.
+
+::bedtime_scenario_image [display=target:psych_sba_sidebar label="The clean-up problem"]
+
+Lin: Hey! I read in our textbook that a good way to learn something is to actually use it to solve
+a problem. We should be able to use what we're learning from psych to come up with a solution
+for your sister, Sierra. We'll also be studying while we're helping!
+
+Sierra: That sounds like a win-win, to me.
+
+Brainstorming
+-------------
+
+Krish: Let's brainstorm some ideas for her. I don't have any kids myself, but I have a younger sister.
+
+Lin: And I've got little cousins.
+
+Sierra: Thanks for helping out. She's really stressing about it.
+OK, what do YOU think she should do to get Logan to clean up when he's told?
+
+// [Results/feedback from group - no activity, just text]
+Sierra: Try setting a hard and fast rule: "I know you're having fun, but the rule is we clean up before dinner. You can do it yourself or I can help." And once he does, he gets a small sweet treat.
+
+Krish: Tell him that if he doesn't clean up, the toys get taken away and he won't be able to play with them the next day.
+
+Lin: I'm with the "do nothing" crowd. She shouldn't do anything at all. At some point he'll get frustrated with the mess himself because he can't find something. That'll teach him quick!
+
+// [activity: constructed response]
+::student_suggestion [display=target:psych_sba_sidebar label="Make a suggestion of your own."]
+
+--- wait @initial_suggestion.value.length > 10 ---
+
+You: Here's what I wrote:
+
+::
+<Markdown>{{@initial_suggestion.value}}</Markdown>
+::
+
+Sierra: Haha, we are all over the place with our ideas!
+
+Krish: We really do have different approaches! Why don't we rank these from best to worst and see what we think?
+
+::brainstorm_sorting  [display=target:psych_sba_sidebar label="Rank the suggestions from best to worst."]
+
+--- wait @bedtime_strategy_grader.submitCount > 0 ---
+
+Lin: Interesting rankings! It looks like the choices are between using behavioral techniques, like we're learning about in class, or doing nothing. My suggestion was to do nothing, but now I'm not sure. I'm going to ask the AI
+assistant if there's evidence for that.
+
+psych_sba_sidebar <- bedtime_problem_clear_screen_2
+
+Sierra: Hang on, before we jump in and ask AI, we ought to think about the problem a bit first. What do we already know? We may need to use that knowledge to find the right questions to ask.
+
+Krish: My mom’s a Pediatrician, and I have heard her say that this kind of defiance is pretty normal at this age, and that the "doing nothing" parenting style is called "no-rules parenting." In Gen Psych, we have been reading about the "permissive" parenting style; "no-rules parenting" seems like an example of that.
+
+Sierra: That is definitely NOT how I was raised.
+
+Krish: Same!
+
+Lin: Nope! But we can use "no-rules parenting" and "defiance" in the AI prompt.
+
+Krish: That's a good point. I use AI a lot, and I end up spending a lot of time trying to get my question to it right...otherwise, I get all kinds of weird answers.
+
+Lin: Yeah, I've had that happen too. We should figure out a good way to write the question to get the info we want
+
+Krish: OK, so if we want to find out about defiance...no-rules parenting...and other ways to get a young child to clean up when asked ... what prompt could we write for the AI?
+
+::student_ai_suggestion [display=target:psych_sba_sidebar label="Write a prompt for the AI."]
+
+--- wait @initial_ai_suggestion.value.length > 10 ---
+
+You: Here's what I wrote:
+
+::
+<Markdown>{{@initial_ai_suggestion.value}}</Markdown>
+::
+
+Sierra: Hmmm...yeah, these are pretty good. Let's rank them.
+
+::brainstorm_ai_sorting [display=target:psych_sba_sidebar label="Rank the prompts from best to worst."]
+
+--- wait @ai_prompt_grader.submitCount > 0 ---
+
+Lin: Ok, we've discussed the different prompts, and it looks like most of us like this one: "What is the evidence for no-rules parenting and any alternatives for addressing a young child's defiance?" So let's see what it gives us.
+
+::ai_info [display=target:psych_sba_sidebar label="Run the AI prompt."]
+
+--- wait @ai_feedback.value ---
+
+Lin: Wow, that's a lot.
+
+Krish: Yeah, but also, I asked the question multiple times, and the answer changed.
+
+Sierra: That happened to me too! It didn’t change _much_ between searches, but
+it changed enough for me to notice. What worries me more is sometimes it gave sources,
+but sometimes it didn’t. Then when I tried to look up the sources I was provided, I couldn't
+find them all the time!
+
+Krish: One time when I ran it, it gave me evidence AGAINST no-rules parenting,
+but it listed it as evidence FOR no-rules parenting.
+
+Lin: I recently read an article that says these are called 'hallucinations'.
+They happen because the AI doesn't actually understand what it's saying,
+the way a human does. It's more like a parrot than a person. It's just producing
+sequences of words it has been trained to produce, in an order determined by a math
+formula to look like human speech. It can take wrong turns, and those wrong turns
+can spin out of control!
+
+Sierra: That means we can't just take the AI summary at face value. We had better
+check what it says against the textbook and other sources we can actually
+find. You know what, I'll look all of this up and verify everything, then
+I'll send you a summary of where I've gotten rid of anything I can't verify.
+Then we can go over it together.
+
+Krish: Thanks, Sierra! This sounds like a lot of work, but I guess we need to do it
+if we want to help your sister!
+
+::vetted_info_part1 [display=target:psych_sba_sidebar label="Sierra's summary. (Part 1)"]
+
+Lin: Good job, Sierra! That's a lot of content. I guess we had better each go over it before we discuss it.
+
+Krish: This research is amazing!
+
+::vetted_info_part2 [display=target:psych_sba_sidebar label="Sierra's summary. (Part 2)"]
+
+Sierra: It is a lot. I actually had to ask the question several different ways to get all of the information I found. Sometimes small differences in the way I asked the question got me a very different answer.
+
+::vetted_info_part3 [display=target:psych_sba_sidebar label="Sierra's summary. (Part 3)"]
+
+Krish: So much for "do nothing" lol. It seems like there's a lot more evidence against no-rules parenting than for it.
+
+Lin: I agree with Krish. Sierra, since your sister is about ready to give up, maybe we should put together an email that explains why giving up and going with no-rules parenting would be a bad idea.
+
+Sierra: All right. Once we write that, we can look into what we have learned about effective methods to get Logan to cooperate, and add that to our email.
+
+::draft_email [display=target:psych_sba_sidebar label="Write an email to Sierra's sister"]
+
+--- wait @email_draft.value.length > 10 ---
+
+Sierra: To make sure that our email is really good, let's get some feedback from AI. If we need to improve our email, we can go back and change the text, then get more feedback.
+
+Lin: Here's the prompt I wrote for us to try to get feedback from AI. It took a bit of work to make it precise enough to give us targeted feedback:
+
+_Here is an email I wrote to explain to a friend why they need to avoid a no-rules parenting approach and find a good strategy to get a six-year-old to cooperate when asked to clean up._
+
+_Briefly, in no more than two or three sentences, evaluate how well I have used evidence from psychology to support this argument (but restricting that feedback to feedback that is appropriate given the purpose of the email)._
+
+::revise_email_draft [display=target:psych_sba_sidebar label="Revise your draft."]
+
+--- wait @ai_email_feedback.value ---
+
+Sierra: All right, I think we've covered no-rules parenting. But our email really needs to give my sister a practical solution -- one we know will work, because there's good psychological evidence for it. So I also dug into information about strategies we could suggest to her, so she can address Logan's defiance!
+
+There’s only one issue. I have seven different ideas for how to handle the defiance. Which is a lot!
+
+Lin: Well, I know which one I like! Why don't we take a poll and see which of these choices we think we should recommend?
+
+::strategy_poll [display=target:psych_sba_sidebar label="Take a poll."]
+
+--- wait @strategy_poll.value ---
+
+Sierra: Well ... since it seems like we can’t agree on what to recommend, maybe we should take a closer look at the notes I put together about each strategy.
+
+::strategy_notes_1 [display=target:psych_sba_sidebar label="Sierra's notes (Part 1)."]
+
+::strategy_notes_2 [display=target:psych_sba_sidebar label="Sierra's notes (Part 2)."]
+
+Krish: Hey Sierra, do you know if Logan gets frustrated or upset when it's time to stop playing? I hadn't even thought about the need for empathy and emotional support.
+
+Sierra: I don't know. I'll have to ask her.
+
+::strategy_notes_3 [display=target:psych_sba_sidebar label="Sierra's notes (Part 3)."]
+
+Krish: Woah! There’s honestly a lot of good strategies she could try, and we haven’t even covered them all yet.
+
+
+::strategy_notes_4 [display=target:psych_sba_sidebar label="Sierra's notes (Part 4)."]
+
+Sierra: Yeah. I think we're going to have to figure out which of these is the best thing for her to try and explain that!
+
+Krish: Well, not all of the strategies will apply to a six-year-old. We should eliminate any that seem unlikely to work with younger children.
+
+Sierra: Also, some of the strategies work better for quick results, and some are more of a long-term project. We need a strategy my sister can actually keep up.
+
+Lin: There's another thing to think about. My sister needs results she can sustain! We shouldn't advise her to try anything that would take a long time, or only make small changes to the behavior.
+
+Sierra: That makes sense! So let's take it step by step, and see which of the strategies we can eliminate using one of these criteria.
+
+Let's start by checking whether any of these strategies aren't likely to work on younger children. Even if we only eliminate one of the seven, it'll be a start.
+
+::eliminate_age_inappropriate_strategies [display=target:psych_sba_sidebar label="Decide which strategies are not age appropriate."]
+
+--- wait @ai_not_for_6_year_old_feedback.value ---
+
+Lin: So the next thing we agreed to check on was which of these strategies my sister could actually keep up for the long run, not just for quick short-term results.
+
+::select_babysitter_feasible_strategies [display=target:psych_sba_sidebar label="Decide which strategies the mom can keep up."]
+
+--- wait @ai_the_babysitter_can_implement_feedback.value ---
+
+Sierra: OK, I've put together this table to show what we decided for each strategy based on the majority of our votes.
+
+::chart_image [display=target:psych_sba_sidebar label="Review the strategy table."]
+
+
+Krish: That means we've narrowed down our choices to three --
+
+    1. Positive Reinforcement
+    2. Address the Underlying Emotion
+    3. Stay Calm and Model Regulation
+
+Lin: Well, I guess we need to figure out which of these techniques works best. I remember from my psychology course that these strategies are called "parenting techniques", and if you want to know how effective they are, you look into their "effect size".
+
+Sierra: Let's take a break then, and each of us do some research. Let's see what we can come up with!
+
+Krish: I asked ChatGPT, "What are the short-term effect sizes for the following parenting techniques: positive reinforcement, addressing the underlying emotion, and staying calm and modeling regulation?"
+
+When I ran it a few times, it consistently said positive reinforcement has moderate to large  effect sizes, addressing the underlying emotion has moderate effect sizes, and staying calm and modeling regulation has small to moderate effect sizes.
+
+If we're going with this, we should probably recommend that Sierra's sister try positive reinforcement to address Logan's defiance.
+
+Lin: Well, when I tried to get sources from the AI, they weren't helpful. So I went to Google Scholar instead because that's a great place to look for research articles. At first a lot of the results were irrelevant, but I finally had some luck when I typed in the following search --
+
+What are the effect sizes for parenting techniques?
+
+Look at the article that was at the top of the search!
+
+::psych_sba_article_view [display=target:psych_sba_sidebar label="Read the research article."]
+
+Lin: It actually looks at both long-term and short-term effects. When I dug into the details, I found a table that showed a larger absolute effect size for positive reinforcement reducing problem behaviors than for the other techniques!
+
+Sierra: I thought I would go old-school and simply use the subject index at the back of the textbook!
+
+At first, the results were frustrating. The entries for "positive reinforcement" didn't say anything about how effective it was, compared to anything else. Looking up emotion didn't lead me to anything useful, and I couldn't even find "modeling regulation" in the index.
+
+::psych_sba_article_excerpt [display=target:psych_sba_sidebar label="Read the textbook excerpt."]
+
+Sierra: But then I looked for "parenting techniques". I found a section labeled, "Parent-child relationship", and under that there was an entry, "operant conditioning, and". The "operant conditioning, and" part really means, "operant conditioning and the parent-child relationship". I remembered from when we were studying operant conditioning that it works through positive (and also negative reinforcement), so I figured it was a good place to look, especially since I couldn't find anything else that was relevant. Here's what the textbook says, on page 243 --
+
+Sierra: Since operant conditioning (and hence positive and negative reinforcement) is pretty much the only advice the book gives about childhood misbehavior, I think that confirms it. **Positive reinforcement** is what we should recommend!
+
+Lin: And we are done!
+
+Krish: We learned a lot in this exercise.
+
+
+Sierra: So we did!
+
+::psych_sba_part_1_completion_page [display=target:psych_sba_sidebar label="Confirm you are done."]
+
+--- wait @psych_sba_part_1_completion_page.value ---
+
+::psych_sba_part1_review [display=target:psych_sba_sidebar label="Review all your answers."]
+
+Lianne: Now you're done, you can review all your answers to the right. Use the "Export as PDF" button to save a copy of your answers and upload it to our course system.
