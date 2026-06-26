@@ -1,0 +1,10 @@
+# lo.yaml — repository metadata for the author catalog (read by get_repositories).
+#
+# Git conventions come first: the catalog takes the description from README.md
+# and licensing/attribution from LICENSE.TXT / CONTRIBUTORS.TXT. This file is
+# ONLY for fields those conventions don't cover.
+#
+# NOT a deployment manifest — routes/namespace live in psychology/manifest.yaml.
+
+title: Memphis Introductory Psychology
+discipline: Psychology
