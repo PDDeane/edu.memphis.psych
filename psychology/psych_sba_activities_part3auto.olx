@@ -179,7 +179,11 @@ The function always refers to a type of **reinforcement** — either positive or
 For each scenario, identify the type of operant conditioning at work. You need to get 3 correct in a row to move on. If you get one wrong, the streak resets — correct your answer and keep going.
 </Markdown>
 
-<MasteryBank id="fba2_reinforcement_mastery" goal="3" mode="shuffle" src="operant-questions.idlistpeg" />
+<LiquidTemplate id="fba2_reinforcement_mastery_bank" data="operant-questions.json"><![CDATA[
+<MasteryBank id="fba2_reinforcement_mastery" goal="3" mode="shuffle">
+{% for q in items %}{{ prefix }}_{{ forloop.index | padStart: 3, '0' }}_{{ q.key | slugify }}{% unless forloop.last %}, {% endunless %}{% endfor %}
+</MasteryBank>
+]]></LiquidTemplate>
 
 </Vertical>
 
@@ -514,7 +518,11 @@ the behavior serves:
 You need to get **6 correct in a row** to move on. If you get one wrong, your streak resets — correct your answer, then keep going.
 </Markdown>
 
-<MasteryBank id="fba2_function_mastery" goal="6" mode="shuffle" src="function-questions.idlistpeg" />
+<LiquidTemplate id="fba2_function_mastery_bank" data="function-questions.json"><![CDATA[
+<MasteryBank id="fba2_function_mastery" goal="6" mode="shuffle">
+{% for q in items %}{{ prefix }}_{{ forloop.index | padStart: 3, '0' }}_{{ q.key | slugify }}{% unless forloop.last %}, {% endunless %}{% endfor %}
+</MasteryBank>
+]]></LiquidTemplate>
 
 </Vertical>
 
