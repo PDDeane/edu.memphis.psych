@@ -35,6 +35,10 @@ Pay attention to:
 2. Was something **added** or **removed**?
   </Markdown>
 
-  <MasteryBank id="operant_mastery" goal="6" src="operant-questions.idlistpeg" />
+  <LiquidTemplate id="operant_mastery_bank" data="operant-questions.json"><![CDATA[
+  <MasteryBank id="operant_mastery" goal="6">
+{% for q in items %}{{ prefix }}_{{ forloop.index | padStart: 3, '0' }}_{{ q.key | slugify }}{% unless forloop.last %}, {% endunless %}{% endfor %}
+  </MasteryBank>
+  ]]></LiquidTemplate>
 
 </Vertical>
