@@ -15,7 +15,7 @@ license: AGPL
 ---
 -->
 <!-- Operant Conditioning Mastery Quiz -->
-<!-- Uses problems from operant-questions.auto.olx -->
+<!-- Uses problems from operant-questions.olx (generated via LiquidTemplate) -->
 
 <Vertical id="operant_mastery_quiz" title="Operant Conditioning Mastery Quiz" launchable="true">
 
@@ -35,6 +35,6 @@ Pay attention to:
 2. Was something **added** or **removed**?
   </Markdown>
 
-  <MasteryBank id="operant_mastery" goal="6" src="operant-questions.auto.idlistpeg" />
+  <MasteryBank id="operant_mastery" goal="6" src="operant-questions.idlistpeg" />
 
 </Vertical>

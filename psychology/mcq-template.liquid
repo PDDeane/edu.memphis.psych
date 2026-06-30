@@ -1,0 +1,17 @@
+{% for q in items %}
+<CapaProblem id="{{ prefix }}_{{ forloop.index | padStart: 3, '0' }}_{{ q.key | slugify }}" title="{{ q.title }}">
+  <KeyGrader id="{{ prefix }}_{{ forloop.index | padStart: 3, '0' }}_{{ q.key | slugify }}_grader">
+    <p>{{ q.stem }}</p>
+    <ChoiceInput id="{{ prefix }}_{{ forloop.index | padStart: 3, '0' }}_{{ q.key | slugify }}_input">
+      {% for opt in options %}
+        {% if opt == q.key %}
+      <Key id="{{ prefix }}_{{ forloop.index | padStart: 3, '0' }}_{{ q.key | slugify }}_{{ opt | slugify }}">{{ opt | titleCase }}</Key>
+        {% else %}
+      <Distractor id="{{ prefix }}_{{ forloop.index | padStart: 3, '0' }}_{{ q.key | slugify }}_{{ opt | slugify }}">{{ opt | titleCase }}</Distractor>
+        {% endif %}
+      {% endfor %}
+    </ChoiceInput>
+    <Explanation showWhen="answered">{{ q.explanation }}</Explanation>
+  </KeyGrader>
+</CapaProblem>
+{% endfor %}

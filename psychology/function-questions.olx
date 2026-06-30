@@ -1,0 +1,11 @@
+<!--
+---
+description: "Question bank for behavioral function assessment. Generated at parse time from function-questions.json via LiquidTemplate."
+category: psychology
+lang: en-Latn-US
+generated:
+  method: template
+  source_file: function-questions.json
+---
+-->
+<LiquidTemplate id="function_problems" data="function-questions.json" src="mcq-template.liquid" />

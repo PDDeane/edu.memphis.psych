@@ -1,0 +1,11 @@
+<!--
+---
+description: "Question bank for operant conditioning mastery assessment. Generated at parse time from operant-questions.json via LiquidTemplate."
+category: psychology
+lang: en-Latn-US
+generated:
+  method: template
+  source_file: operant-questions.json
+---
+-->
+<LiquidTemplate id="operant_problems" data="operant-questions.json" src="mcq-template.liquid" />
