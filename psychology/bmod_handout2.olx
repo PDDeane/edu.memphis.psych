@@ -1,0 +1,1746 @@
+<!--
+---
+# Where the referenced spans live. The build resolves this file's corpus
+# references against it, and refuses rather than render an unresolved one.
+# (The marker syntax is deliberately not written out here: a comment
+#  containing it reads as a reference to anything scanning by substring.)
+corpus_data: $MOLLY_DATA/corpus_refs.json
+description: Behavior Modification Assignment Handout 2 - learning the four types of operant conditioning and applying them to a personal behavior change plan
+category: psychology
+index: 11
+lang: en-Latn-US
+authors:
+  - Mollie Blair Anderson
+  - Randy Floyd
+  - Emily N Srisarajivakul
+  - Kara Watkins
+  - Paul Deane
+license: AGPL
+---
+-->
+
+<!--
+Behavior Modification Assignment, Handout 2 of 3.
+
+Two halves, matching the paper handout:
+
+  1. Twenty scenarios to classify as PR / NR / PP / NP. On paper these are done
+     by hand in Small Group and are NOT recorded in the scoring workbook — the
+     typed submissions omit them entirely. Here they are graded, so they become
+     gradeable for the first time.
+
+     The questions live in bmod_h2_scenarios.olx and are pulled in by ID, the
+     same arrangement as psych_sba_part2_quiz_questions.olx. Each is a
+     CapaProblem with its own ChoiceInput, Check button, hints and Explanation,
+     and each occupies its own step in this sequence with free navigation. See
+     that file for the answer key's provenance.
+
+  2. The applied section: four worked examples, then two chosen types with a
+     definition and a daily and weekly example each. These twelve items ARE the
+     scored ones in the workbook.
+
+EVERY <LLMAction> PROMPT BODY IN THIS FILE IS GENERATED from `rubric_h2.py` in
+~/code/molly_scoring/scorer, following `score.py:build_prompt`'s skeleton so
+that the web and the CLI scorer run the SAME rubric. Do not hand-edit one — the
+next `--write` overwrites it, and `--check` fails in the meantime:
+
+  ~/code/molly_scoring/scorer/olx_prompts.py --check   # are they current?
+  ~/code/molly_scoring/scorer/olx_prompts.py --write   # regenerate
+
+To change what a prompt says, change the rubric. Every difference that remains
+between the two implementations is listed, with its reason, in
+scorer/EQUIVALENCE.md.
+
+FEEDBACK GRANULARITY. There is one LLM check per scored item — ten in all: the
+four type examples, then a definition, a daily example and a weekly example for
+each of the two chosen types. The two type CHOICES need none, because they are
+closed ChoiceInputs and cannot be anything but one of the four.
+
+This deliberately does not bundle. The item-by-item scorer in
+~/code/molly_scoring makes one call per rubric item because each item has its
+own point ledger and its own feedback cell, and each of these ten has its own
+characteristic failure mode: PR and NP turn on naming a contingency at all, NR
+on accepting a removed obligation as a real reinforcer, the daily/weekly pairs
+on cadence. Four verdicts sharing one call share one call's attention.
+
+Two rules stop the feedback being harsher than the graders were. Both now
+arrive from the rubric's own criteria sheet rather than from prose written
+here, so do not restate them in the .olx:
+
+  * An arrangement phrased by what is AVOIDED ("so I don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87:shape=S0-0a20202020}} it") is a valid contingency. Suggest the direct phrasing;
+    never tell the student it is wrong. On the paper corpus this phrasing was
+    marked zero twice for what was really a wording problem. This is criterion
+    7, `avoidance_frame`, which flags the answer and never changes a verdict.
+
+  * "Withhold X until B" is genuinely dual-describable — as adding X once B
+    happens, and as withholding X while B is absent. Both readings are correct,
+    so credit whichever type the student named rather than reporting a mismatch.
+    This is the DUAL DESCRIPTIONS paragraph under criterion 6.
+
+Canonical wording in each prompt is the scoring dictionary's own phrasing, so a
+student who fixes what the LLM flagged meets the same words if the same gap is
+graded later. The prompt carries the point values because the rubric does; it
+forbids the model from repeating them to the student.
+
+The eight EXAMPLE items also declare a `slots` sheet, so the definitional checks
+become required properties of a strict JSON schema. The order matters and is
+deliberate: `observed_type` is answered before `matches_chosen_type` (or before
+the type-specific check on the four example items), because the failure the
+scorer kept finding was crediting an example as the requested type without ever
+working out what it actually was. On the four example items the expected type is
+listed FIRST in that slot's verdict set, so a correct example ticks and a
+wrong-type example shows what it really is instead. The two DEFINITION items are
+left as prose — they are two straightforward components, and the scorer does not
+derive them structurally either.
+
+EVERY CRITERION THE PROMPT WALKS THROUGH MUST HAVE A CHECK, IN THE SAME ORDER.
+The generated prompt tells the model to answer the rubric's numbered criteria
+"in order"; the schema then generates the checks in the sheet's order. When the
+two disagree the model is given one procedure and made to execute another, and
+when a criterion has no check at all it is told to answer something it cannot
+report. The four cadence items used to do both — `avoidance_frame` and
+`named_type` were missing, and `targets_own_behavior` came before the cadence
+gate — while the four type items were coherent. Measured: the coherent four
+scored 100/89/100/100, the incoherent four 78/83/61/89. Both checks are unscored
+and exist to be answered, not to cost points. `equivalence.py` does not catch
+this — it audits arithmetic, and this is a prompt/schema mismatch — so keep the
+orders aligned by hand when editing a sheet.
+
+That ordering is also load-bearing for the SCORE on the four example items, not
+just for the reasoning. `observed_type` and `targets_*` are both worth 2, and
+they carry the two halves of one deduction: the rubric's WRONG_TYPE is charged
+once whether the example is the wrong type OR the right type aimed at the wrong
+behaviour (score.py:derive_oc_ledger uses `elif`). Two scored checks could
+charge it twice, so `targets_*` is answered second and is told to report `yes`
+whenever `observed_type` has already recorded a mismatch. Do not reorder them,
+and do not drop that instruction — without it a wrong-type example that also
+aims at the wrong behaviour scores 0 where the paper rubric gives 2.
+-->
+
+<Sequential id="bmod_handout2" title="BMod Handout 2: Operant Conditioning" launchable="true">
+
+  <!-- ============= Screen: The three-question method ====================== -->
+
+  <Vertical id="bmod_h2_intro" title="The four types">
+    <Markdown id="bmod_h2_intro_text">
+# Handout 2: Learning Operant Conditioning
+
+Operant conditioning changes how often a behavior happens by what follows it.
+There are exactly four types, decided by two questions.
+
+**The three-question method.** For any scenario:
+
+1. **What behavior is being changed?** It must be an action someone takes.
+2. **Will it happen more often or less often in the future?**
+   More often → *Reinforcement*. Less often → *Punishment*.
+3. **Is something being added or taken away, after the behavior?**
+   Added → *Positive*. Taken away → *Negative*.
+
+| | Added (+) | Taken away (−) |
+|---|---|---|
+| **More often (↑)** | Positive Reinforcement | Negative Reinforcement |
+| **Less often (↓)** | Positive Punishment | Negative Punishment |
+
+Two things to watch for:
+
+* *Positive* and *negative* do **not** mean good and bad. They mean added and
+  taken away.
+* The behavior cannot also be the thing added or taken away. If the behavior is
+  "scoring a goal", then scoring the goal is not also the reward.
+    </Markdown>
+  </Vertical>
+
+  <!-- ============= Screen: Worked examples ================================= -->
+
+  <Vertical id="bmod_h2_worked" title="Two worked examples">
+    <Markdown id="bmod_h2_worked_text">
+## Worked through together
+
+**"Johnny scores a goal, and his friends congratulate him."**
+
+1. Behavior: *scoring a goal* — an action Johnny takes.
+2. More often, next time he plays.  ↑ → Reinforcement
+3. Congratulations are **added** afterwards.  + → Positive
+
+**Positive Reinforcement.**
+
+---
+
+**"I put on sunscreen to avoid a sunburn."**
+
+1. Behavior: *putting on sunscreen*. Note that "getting a sunburn" is not the
+   behavior — it is the result of inaction, not something you do.
+2. More often, next time you go out in the sun.  ↑ → Reinforcement
+3. The pain of a sunburn is **taken away** — avoided.  − → Negative
+
+**Negative Reinforcement.**
+    </Markdown>
+  </Vertical>
+
+  <!-- ============= Screens: the twenty scenarios, one per step ============
+       Each scenario is its own step in this sequence. Navigation is free —
+       Previous and Next move between them in either direction, and a student
+       can answer them in any order, skip one and come back, or revise an
+       earlier answer.
+
+       The questions themselves live in bmod_h2_scenarios.olx and are pulled in
+       by ID, the same arrangement as psych_sba_part2_quiz_questions.olx. The
+       results screen after scenario 20 reports them all with {{@id.correct}}
+       so a student can see at a glance which ones to revisit.
+       ==================================================================== -->
+
+
+  <Vertical id="bmod_h2_q01" title="Scenario 1: Congratulations">
+    <Markdown id="bmod_h2_q01_intro">
+## Classify each scenario
+
+Twenty scenarios, one per screen. Work each one with the three-question method.
+
+Use **Next** and **Previous** to move between them — you can answer in any
+order, skip one and come back, or change an earlier answer. Each scenario has
+hints if you get stuck, and an explanation once you answer. A summary of all
+twenty follows the last one.
+    </Markdown>
+
+    <Use ref="bmod_h2_scenario_01" />
+  </Vertical>
+  <Vertical id="bmod_h2_q02" title="Scenario 2: Sunscreen">
+    <Use ref="bmod_h2_scenario_02" />
+  </Vertical>
+  <Vertical id="bmod_h2_q03" title="Scenario 3: Flame">
+    <Use ref="bmod_h2_scenario_03" />
+  </Vertical>
+  <Vertical id="bmod_h2_q04" title="Scenario 4: Late Paper">
+    <Use ref="bmod_h2_scenario_04" />
+  </Vertical>
+  <Vertical id="bmod_h2_q05" title="Scenario 5: Spanking">
+    <Use ref="bmod_h2_scenario_05" />
+  </Vertical>
+  <Vertical id="bmod_h2_q06" title="Scenario 6: Demotion">
+    <Use ref="bmod_h2_scenario_06" />
+  </Vertical>
+  <Vertical id="bmod_h2_q07" title="Scenario 7: Aspirin">
+    <Use ref="bmod_h2_scenario_07" />
+  </Vertical>
+  <Vertical id="bmod_h2_q08" title="Scenario 8: Walking the Dog">
+    <Use ref="bmod_h2_scenario_08" />
+  </Vertical>
+  <Vertical id="bmod_h2_q09" title="Scenario 9: TikTok">
+    <Use ref="bmod_h2_scenario_09" />
+  </Vertical>
+  <Vertical id="bmod_h2_q10" title="Scenario 10: Balcony">
+    <Use ref="bmod_h2_scenario_10" />
+  </Vertical>
+  <Vertical id="bmod_h2_q11" title="Scenario 11: Curfew">
+    <Use ref="bmod_h2_scenario_11" />
+  </Vertical>
+  <Vertical id="bmod_h2_q12" title="Scenario 12: Paycheck">
+    <Use ref="bmod_h2_scenario_12" />
+  </Vertical>
+  <Vertical id="bmod_h2_q13" title="Scenario 13: Bike Helmet">
+    <Use ref="bmod_h2_scenario_13" />
+  </Vertical>
+  <Vertical id="bmod_h2_q14" title="Scenario 14: Texting in Class">
+    <Use ref="bmod_h2_scenario_14" />
+  </Vertical>
+  <Vertical id="bmod_h2_q15" title="Scenario 15: Plagiarism">
+    <Use ref="bmod_h2_scenario_15" />
+  </Vertical>
+  <Vertical id="bmod_h2_q16" title="Scenario 16: Asleep in the Sun">
+    <Use ref="bmod_h2_scenario_16" />
+  </Vertical>
+  <Vertical id="bmod_h2_q17" title="Scenario 17: Lever and Shock">
+    <Use ref="bmod_h2_scenario_17" />
+  </Vertical>
+  <Vertical id="bmod_h2_q18" title="Scenario 18: Deodorant">
+    <Use ref="bmod_h2_scenario_18" />
+  </Vertical>
+  <Vertical id="bmod_h2_q19" title="Scenario 19: Studying">
+    <Use ref="bmod_h2_scenario_19" />
+  </Vertical>
+  <Vertical id="bmod_h2_q20" title="Scenario 20: Squirrel">
+    <Use ref="bmod_h2_scenario_20" />
+  </Vertical>
+
+  <!-- ============= Screen: Scenario results ============================== -->
+
+  <Vertical id="bmod_h2_scenarios_results" title="How you did">
+    <Markdown id="bmod_h2_scenarios_results_text">
+## Your scenario answers
+
+If any answer below is marked *incorrect*, use Previous to go back to that
+scenario and try it again. The explanation on each question walks through the
+three-question method.
+
+**Tries** counts how many times you pressed *Check* on that scenario, so one you
+got right the first time reads 1. A high count is not a mark against you — it
+shows which of the four types are still worth reviewing.
+
+| # | Result | Tries |
+|---|--------|-------|
+| 1 | {{@bmod_h2_scenario_01.correct}} | {{@bmod_h2_scenario_01.submitCount}} |
+| 2 | {{@bmod_h2_scenario_02.correct}} | {{@bmod_h2_scenario_02.submitCount}} |
+| 3 | {{@bmod_h2_scenario_03.correct}} | {{@bmod_h2_scenario_03.submitCount}} |
+| 4 | {{@bmod_h2_scenario_04.correct}} | {{@bmod_h2_scenario_04.submitCount}} |
+| 5 | {{@bmod_h2_scenario_05.correct}} | {{@bmod_h2_scenario_05.submitCount}} |
+| 6 | {{@bmod_h2_scenario_06.correct}} | {{@bmod_h2_scenario_06.submitCount}} |
+| 7 | {{@bmod_h2_scenario_07.correct}} | {{@bmod_h2_scenario_07.submitCount}} |
+| 8 | {{@bmod_h2_scenario_08.correct}} | {{@bmod_h2_scenario_08.submitCount}} |
+| 9 | {{@bmod_h2_scenario_09.correct}} | {{@bmod_h2_scenario_09.submitCount}} |
+| 10 | {{@bmod_h2_scenario_10.correct}} | {{@bmod_h2_scenario_10.submitCount}} |
+| 11 | {{@bmod_h2_scenario_11.correct}} | {{@bmod_h2_scenario_11.submitCount}} |
+| 12 | {{@bmod_h2_scenario_12.correct}} | {{@bmod_h2_scenario_12.submitCount}} |
+| 13 | {{@bmod_h2_scenario_13.correct}} | {{@bmod_h2_scenario_13.submitCount}} |
+| 14 | {{@bmod_h2_scenario_14.correct}} | {{@bmod_h2_scenario_14.submitCount}} |
+| 15 | {{@bmod_h2_scenario_15.correct}} | {{@bmod_h2_scenario_15.submitCount}} |
+| 16 | {{@bmod_h2_scenario_16.correct}} | {{@bmod_h2_scenario_16.submitCount}} |
+| 17 | {{@bmod_h2_scenario_17.correct}} | {{@bmod_h2_scenario_17.submitCount}} |
+| 18 | {{@bmod_h2_scenario_18.correct}} | {{@bmod_h2_scenario_18.submitCount}} |
+| 19 | {{@bmod_h2_scenario_19.correct}} | {{@bmod_h2_scenario_19.submitCount}} |
+| 20 | {{@bmod_h2_scenario_20.correct}} | {{@bmod_h2_scenario_20.submitCount}} |
+    </Markdown>
+  </Vertical>
+
+  <!-- ============= Screen: Applying it to your own behavior =============== -->
+
+  <Vertical id="bmod_h2_apply_intro" title="Applying it to your plan">
+    <Markdown id="bmod_h2_apply_text">
+## Applying Operant Conditioning to your own behavior change
+
+Last week you chose an unwanted target behavior and a wanted goal behavior.
+Now you will plan how to change it using operant conditioning.
+
+* For **reinforcement** examples, you are trying to *increase* your wanted goal
+  behavior.
+* For **punishment** examples, you are trying to *decrease* your unwanted
+  target behavior.
+
+One rule matters more than any other here, and it is where most people lose
+credit: **whatever you add or take away has to be an outside thing you
+control, and it has to happen after the behavior.** "{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=S3-0a}} body" does not work — feeling rested is just what sleeping
+does. "If I {{corpus:DAY2/p1:day2:12:52:sha=9df5f8a9befc:shape=S4-20}} reward myself with ice
+cream" does.
+    </Markdown>
+
+    <Markdown id="bmod_h2_recall">
+From Handout 1:
+
+**Your unwanted target behavior:** {{@bmod_h1_utb.value}}
+
+**Your wanted goal behavior:** {{@bmod_h1_q2_response.value}}
+    </Markdown>
+  </Vertical>
+
+  <!-- ============= Screen: Four examples ================================== -->
+
+  <Vertical id="bmod_h2_four" title="One example of each type">
+    <Markdown id="bmod_h2_four_prompt">
+## Write one example of each type
+
+Each should be something you could actually use on your own behavior.
+    </Markdown>
+
+    <!-- One LLM check per example rather than one for all four. Each of these
+         is a separate scored item on the paper version with its own feedback
+         cell, and the item-by-item scorer in ~/code/molly_scoring is built the
+         same way for the same reason: four verdicts sharing one call share one
+         call's attention, and each type has its own characteristic failure. -->
+
+    <Markdown id="bmod_h2_pr_label">**Positive Reinforcement** — add something desirable to increase your goal behavior</Markdown>
+    <TextArea id="bmod_h2_pr" rows="3" placeholder="{{corpus:NR/p1:nr:0:25:sha=4ae499f0c7c6}}..." />
+
+    <LLMFeedback id="bmod_h2_pr_feedback" />
+    <ActionButton id="bmod_h2_pr_btn" label="Check my Positive Reinforcement example">
+      <LLMAction id="bmod_h2_pr_llm" target="bmod_h2_pr_feedback"
+                 verdicts="yes,no,unclear"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement you were unsure about:no/yes"
+                 onlyif="targets_goal_behavior:observed_type"
+                 max="4">
+You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item PR — 4 points
+
+## Question asked of the student
+Write an example of Positive Reinforcement that you could use to attempt to change your behavior. (Positive Reinforcement = {{corpus:D1/p9:d1:0:38:sha=73aaf2022862}} a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.
+
+## How to judge this item
+Do NOT output a score or a deduction list. Fill in the criteria sheet; the score is computed from it.
+
+Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is changed by a CONSEQUENCE that is contingent on it. Answer these in order and answer them literally about what the student wrote:
+1. `behavior` — quote the voluntary behaviour of the student that the plan acts on. If the answer names no behaviour of theirs, leave this an empty string.
+2. `stimulus` — quote the thing being added or taken away. Empty string if none is named.
+3. `contingent` — is the stimulus delivered BECAUSE of that behaviour (or its absence)? A statement of something the student will just do, with no link to performing the behaviour, is not contingent.
+4. `follows_behavior` — does the CONSEQUENCE EVENT (gaining or losing the thing) occur after the behaviour? Judge the delivery, not the wording. "I am not allowed X until I do B" DOES satisfy this: X is delivered once B happens, which is the ordinary shape of a reinforcement contingency. It fails only when nothing is ever delivered contingent on the behaviour — the plan is purely to remove a temptation or set up the environment in advance, which is an antecedent manipulation rather than a consequence.
+5. `stimulus_is_arranged` — is the consequence something the student arranges, as opposed to the behaviour's own automatic result? Removing an obligation or chore IS arranged; '{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=C1}} body' is not.
+6. `observed_type` — given increase-or-decrease and add-or-remove, which of PR/NR/PP/NP is it actually? Use `none` only if 1-4 fail.
+   DUAL DESCRIPTIONS: an arrangement of the form "I am not allowed X until I do B" is genuinely describable two ways — as PR of B (X is granted once B happens) and as NP of not-B (X is withheld while B is absent). Both are correct readings. When the arrangement admits both and one of them is the type under discussion, report that one; do not mark it a mismatch.
+7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED when the behaviour occurs ("so I don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87}} it") rather than by what is added or removed after it. This never changes the score; it flags the answer for a phrasing comment. It is the ONLY criterion that judges this phrasing — no other check may deduct for it.
+
+
+## Deduction codes — the course's canonical wording for each gap
+- `NOT_OC` (-4): This example is not Operant Conditioning.
+- `WRONG_TYPE` (-2): This is not Positive Reinforcement. Remember, Positive Reinforcement involves {{corpus:D1/p9:d1:0:38:sha=73aaf2022862}} a behavior. (Correct example of one of the four types, just not PR.)
+- `NOT_EXTERNAL_STIMULUS` (-4): Remember that what you add or take away after your behavior has to be easily controlled by you and be an outside stimulus.
+- `BLANK` (-4): did not answer
+
+## Grading guidance
+- Operant conditioning has exactly four types, defined by two questions: is the target behaviour being INCREASED (reinforcement) or DECREASED (punishment), and is a stimulus being ADDED (positive) or TAKEN AWAY (negative)?
+  - Positive Reinforcement: add something desirable to increase a behaviour.
+  - Negative Reinforcement: take away something undesirable to increase a behaviour.
+  - Positive Punishment: {{corpus:D1/p8:d1:32:60:sha=60e5588ab7ff}} decrease a behaviour.
+  - Negative Punishment: take away something desirable to decrease a behaviour.
+- TEST 1 — IS THERE AN EXPLICIT CONTINGENCY? This is the primary test and it is about FORM. A creditable answer links the behaviour to the consequence conditionally: "If I [do / fail to do the behaviour], I will [gain / lose Y]". An answer that names a reward without tying it to the behaviour fails even though a reward is present — "{{corpus:PR/p10:pr:0:31:sha=d8e6b017bfed:shape=R31-0-20}}{{corpus:PR/p10:pr:32:35:sha=e326cff641fb}} {{corpus:PR/p10:pr:52:97:sha=3cdef347ee1d}} weeks" scored 0, with the grader asking the student to "state what the exact behavior you are trying to increase is and what you are adding after that behavior is exhibited". A bare prediction with no plan at all ("{{corpus:NP/p1:np:0:17:sha=868176d33c58:shape=R17-0-20}}{{corpus:NP/p1:np:18:29:sha=88dbce75bea2}} tired") also scores 0.
+- TEST 2 — DOES THE CONSEQUENCE ARRIVE AFTER THE BEHAVIOUR? "Remember that what you take away or add has to happen after the behavior is exhibited." Judge the DELIVERY, not the wording. "{{corpus:NP/p14:np:0:31:sha=ad86a1265c58:shape=R31-0-20}}{{corpus:NP/p14:np:32:65:sha=ba6ec09787a0}} goal" passes: the outing is delivered once the goal is met, which is the ordinary shape of a reinforcement contingency, and the graders credited it. What fails is a plan where nothing is ever delivered contingent on the behaviour — "{{corpus:DAY1/p6:day1:0:10:sha=85ea7f191b92:shape=R10-0-20}}{{corpus:DAY1/p6:day1:11:32:sha=0e832a9eac69}}" or "{{corpus:WK1/p13:wk1:0:45:sha=20eb7e2cf18e:shape=R45-0-20}}{{corpus:WK1/p13:wk1:46:51:sha=cd7ac4c61fd8}}" are antecedent manipulations that remove a temptation in advance and never tie anything to performing the behaviour.
+- TEST 3 — WHICH OF THE FOUR TYPES IS IT? Before crediting a type, answer the two questions explicitly: is the behaviour being INCREASED or DECREASED, and is something being ADDED or TAKEN AWAY? Then compare with the type under discussion. Well-formed contingencies of the WRONG type are the most commonly missed deduction on this handout — "{{corpus:NR/p15:nr:57:86:sha=76296a38201e:shape=R29-0-20}}{{corpus:NR/p15:nr:87:119:sha=0fdcea55153c:shape=A9}} studying" is PR, not NR (-2); "{{corpus:WK2/p15:wk2:0:9:sha=11b990983ce7:shape=R9-0-20}}{{corpus:WK2/p15:wk2:10:58:sha=f37b5aff32de}}" is NP (-2); "{{corpus:NR/p14:nr:46:51:sha=9cb0dea67a72:shape=R5-0-20}}{{corpus:NR/p14:nr:52:83:sha=658c91c9eff0}} exercise" is not NR (-2).
+- WHAT COUNTS AS THE ADDED OR REMOVED THING — BE BROAD. It does not have to be a physical object. Removing an unpleasant OBLIGATION, chore, or requirement is a perfectly good negative reinforcer, and the graders gave full credit for all of these: "{{corpus:NR/p7:nr:0:38:sha=b15b136396fe}} 10pm {{corpus:NR/p7:nr:45:103:sha=04d046dff05b}} procrastinated"; "{{corpus:NR/p20:nr:0:54:sha=4b832e36ef1b:shape=R54-0-20}}{{corpus:NR/p20:nr:55:75:sha=d85dba6461b2}} tired"; "{{corpus:DAY1/p1:day1:0:43:sha=cbf992b9e213:shape=R43-0-20}}{{corpus:DAY1/p1:day1:44:65:sha=e00a2d5c84ce:shape=S1-20}}". Do NOT deduct these as intrinsic outcomes.
+- NOT_EXTERNAL_STIMULUS is reserved for the narrow case where the named consequence is simply the behaviour's own automatic result AND no conditional plan is stated — the canonical zero is "{{corpus:PR/p1:pr:0:18:sha=04923497e5d4:shape=R18-0-20}}{{corpus:PR/p1:pr:19:42:sha=d177395a37c4}} body". If the answer is phrased as an if/then arrangement the student sets up, this code does not apply; judge it on tests 2 and 3 instead.
+- SAFETY: flag, but do not deduct for, any example that withholds food, sleep, or medical care, or that punishes with exercise in a way that could harm the student. The graders wrote notes like "Please change this example to remove something not related to meals. It is important to us that you are safe and healthy throughout this behavior modification!" while leaving the score at full.
+- Award the two credit components separately: a valid contingency that names the wrong type keeps its first 2 points and loses the second (WRONG_TYPE). Something that is not a contingency at all loses all 4 (NOT_OC or NOT_EXTERNAL_STIMULUS — use whichever the grader would have written).
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `observed_type` — `PR`/`NR`/`PP`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
+- `targets_goal_behavior` — `yes`/`no`: is the plan aimed at INCREASING their wanted goal behavior, rather than reinforcing the unwanted one? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
+- `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### _utb
+<Ref id="bmod_h2_pr_ref_utb" target="bmod_h1_utb" />
+
+### _wgb
+<Ref id="bmod_h2_pr_ref_wgb" target="bmod_h1_q2_response" />
+
+## Student response to grade (item PR)
+<Ref id="bmod_h2_pr_ref" target="bmod_h2_pr" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes. Costs and the item
+           total live on the sheet; this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h2_pr_grader" target="bmod_h2_pr_feedback" />
+    </ActionButton>
+
+    <Markdown id="bmod_h2_nr_label">**Negative Reinforcement** — take away something undesirable to increase your goal behavior</Markdown>
+    <TextArea id="bmod_h2_nr" rows="3" placeholder="If {{corpus:NR/p1:nr:3:29:sha=bc0a8e9a0c24}} have to..." />
+
+    <LLMFeedback id="bmod_h2_nr_feedback" />
+    <ActionButton id="bmod_h2_nr_btn" label="Check my Negative Reinforcement example">
+      <LLMAction id="bmod_h2_nr_llm" target="bmod_h2_nr_feedback"
+                 verdicts="yes,no,unclear"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:NR/PR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement you were unsure about:no/yes"
+                 onlyif="targets_goal_behavior:observed_type"
+                 max="4">
+You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item NR — 4 points
+
+## Question asked of the student
+Write an example of Negative Reinforcement that you could use to attempt to change your behavior. (Negative Reinforcement = taking away something undesirable to increase a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.
+
+## How to judge this item
+Do NOT output a score or a deduction list. Fill in the criteria sheet; the score is computed from it.
+
+Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is changed by a CONSEQUENCE that is contingent on it. Answer these in order and answer them literally about what the student wrote:
+1. `behavior` — quote the voluntary behaviour of the student that the plan acts on. If the answer names no behaviour of theirs, leave this an empty string.
+2. `stimulus` — quote the thing being added or taken away. Empty string if none is named.
+3. `contingent` — is the stimulus delivered BECAUSE of that behaviour (or its absence)? A statement of something the student will just do, with no link to performing the behaviour, is not contingent.
+4. `follows_behavior` — does the CONSEQUENCE EVENT (gaining or losing the thing) occur after the behaviour? Judge the delivery, not the wording. "I am not allowed X until I do B" DOES satisfy this: X is delivered once B happens, which is the ordinary shape of a reinforcement contingency. It fails only when nothing is ever delivered contingent on the behaviour — the plan is purely to remove a temptation or set up the environment in advance, which is an antecedent manipulation rather than a consequence.
+5. `stimulus_is_arranged` — is the consequence something the student arranges, as opposed to the behaviour's own automatic result? Removing an obligation or chore IS arranged; '{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=C1}} body' is not.
+6. `observed_type` — given increase-or-decrease and add-or-remove, which of PR/NR/PP/NP is it actually? Use `none` only if 1-4 fail.
+   DUAL DESCRIPTIONS: an arrangement of the form "I am not allowed X until I do B" is genuinely describable two ways — as PR of B (X is granted once B happens) and as NP of not-B (X is withheld while B is absent). Both are correct readings. When the arrangement admits both and one of them is the type under discussion, report that one; do not mark it a mismatch.
+7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED when the behaviour occurs ("so I don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87}} it") rather than by what is added or removed after it. This never changes the score; it flags the answer for a phrasing comment. It is the ONLY criterion that judges this phrasing — no other check may deduct for it.
+
+
+## Deduction codes — the course's canonical wording for each gap
+- `NOT_OC` (-4): This example is not Operant Conditioning.
+- `WRONG_TYPE` (-2): This is not Negative Reinforcement. Remember, Negative Reinforcement involves taking away something undesirable to increase a behavior. (Correct example of one of the four types, just not NR.)
+- `NOT_EXTERNAL_STIMULUS` (-4): Remember that what you add or take away after your behavior has to be easily controlled by you and be an outside stimulus.
+- `BLANK` (-4): did not answer
+
+## Grading guidance
+- Operant conditioning has exactly four types, defined by two questions: is the target behaviour being INCREASED (reinforcement) or DECREASED (punishment), and is a stimulus being ADDED (positive) or TAKEN AWAY (negative)?
+  - Positive Reinforcement: add something desirable to increase a behaviour.
+  - Negative Reinforcement: take away something undesirable to increase a behaviour.
+  - Positive Punishment: {{corpus:D1/p8:d1:32:60:sha=60e5588ab7ff}} decrease a behaviour.
+  - Negative Punishment: take away something desirable to decrease a behaviour.
+- TEST 1 — IS THERE AN EXPLICIT CONTINGENCY? This is the primary test and it is about FORM. A creditable answer links the behaviour to the consequence conditionally: "If I [do / fail to do the behaviour], I will [gain / lose Y]". An answer that names a reward without tying it to the behaviour fails even though a reward is present — "{{corpus:PR/p10:pr:0:31:sha=d8e6b017bfed:shape=R31-0-20}}{{corpus:PR/p10:pr:32:35:sha=e326cff641fb}} {{corpus:PR/p10:pr:52:97:sha=3cdef347ee1d}} weeks" scored 0, with the grader asking the student to "state what the exact behavior you are trying to increase is and what you are adding after that behavior is exhibited". A bare prediction with no plan at all ("{{corpus:NP/p1:np:0:17:sha=868176d33c58:shape=R17-0-20}}{{corpus:NP/p1:np:18:29:sha=88dbce75bea2}} tired") also scores 0.
+- TEST 2 — DOES THE CONSEQUENCE ARRIVE AFTER THE BEHAVIOUR? "Remember that what you take away or add has to happen after the behavior is exhibited." Judge the DELIVERY, not the wording. "{{corpus:NP/p14:np:0:31:sha=ad86a1265c58:shape=R31-0-20}}{{corpus:NP/p14:np:32:65:sha=ba6ec09787a0}} goal" passes: the outing is delivered once the goal is met, which is the ordinary shape of a reinforcement contingency, and the graders credited it. What fails is a plan where nothing is ever delivered contingent on the behaviour — "{{corpus:DAY1/p6:day1:0:10:sha=85ea7f191b92:shape=R10-0-20}}{{corpus:DAY1/p6:day1:11:32:sha=0e832a9eac69}}" or "{{corpus:WK1/p13:wk1:0:45:sha=20eb7e2cf18e:shape=R45-0-20}}{{corpus:WK1/p13:wk1:46:51:sha=cd7ac4c61fd8}}" are antecedent manipulations that remove a temptation in advance and never tie anything to performing the behaviour.
+- TEST 3 — WHICH OF THE FOUR TYPES IS IT? Before crediting a type, answer the two questions explicitly: is the behaviour being INCREASED or DECREASED, and is something being ADDED or TAKEN AWAY? Then compare with the type under discussion. Well-formed contingencies of the WRONG type are the most commonly missed deduction on this handout — "{{corpus:NR/p15:nr:57:86:sha=76296a38201e:shape=R29-0-20}}{{corpus:NR/p15:nr:87:119:sha=0fdcea55153c:shape=A9}} studying" is PR, not NR (-2); "{{corpus:WK2/p15:wk2:0:9:sha=11b990983ce7:shape=R9-0-20}}{{corpus:WK2/p15:wk2:10:58:sha=f37b5aff32de}}" is NP (-2); "{{corpus:NR/p14:nr:46:51:sha=9cb0dea67a72:shape=R5-0-20}}{{corpus:NR/p14:nr:52:83:sha=658c91c9eff0}} exercise" is not NR (-2).
+- WHAT COUNTS AS THE ADDED OR REMOVED THING — BE BROAD. It does not have to be a physical object. Removing an unpleasant OBLIGATION, chore, or requirement is a perfectly good negative reinforcer, and the graders gave full credit for all of these: "{{corpus:NR/p7:nr:0:38:sha=b15b136396fe}} 10pm {{corpus:NR/p7:nr:45:103:sha=04d046dff05b}} procrastinated"; "{{corpus:NR/p20:nr:0:54:sha=4b832e36ef1b:shape=R54-0-20}}{{corpus:NR/p20:nr:55:75:sha=d85dba6461b2}} tired"; "{{corpus:DAY1/p1:day1:0:43:sha=cbf992b9e213:shape=R43-0-20}}{{corpus:DAY1/p1:day1:44:65:sha=e00a2d5c84ce:shape=S1-20}}". Do NOT deduct these as intrinsic outcomes.
+- NOT_EXTERNAL_STIMULUS is reserved for the narrow case where the named consequence is simply the behaviour's own automatic result AND no conditional plan is stated — the canonical zero is "{{corpus:PR/p1:pr:0:18:sha=04923497e5d4:shape=R18-0-20}}{{corpus:PR/p1:pr:19:42:sha=d177395a37c4}} body". If the answer is phrased as an if/then arrangement the student sets up, this code does not apply; judge it on tests 2 and 3 instead.
+- SAFETY: flag, but do not deduct for, any example that withholds food, sleep, or medical care, or that punishes with exercise in a way that could harm the student. The graders wrote notes like "Please change this example to remove something not related to meals. It is important to us that you are safe and healthy throughout this behavior modification!" while leaving the score at full.
+- Award the two credit components separately: a valid contingency that names the wrong type keeps its first 2 points and loses the second (WRONG_TYPE). Something that is not a contingency at all loses all 4 (NOT_OC or NOT_EXTERNAL_STIMULUS — use whichever the grader would have written).
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `observed_type` — `NR`/`PR`/`PP`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
+- `targets_goal_behavior` — `yes`/`no`: is the plan aimed at INCREASING their wanted goal behavior, rather than reinforcing the unwanted one? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
+- `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### _utb
+<Ref id="bmod_h2_nr_ref_utb" target="bmod_h1_utb" />
+
+### _wgb
+<Ref id="bmod_h2_nr_ref_wgb" target="bmod_h1_q2_response" />
+
+## Student response to grade (item NR)
+<Ref id="bmod_h2_nr_ref" target="bmod_h2_nr" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes. Costs and the item
+           total live on the sheet; this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h2_nr_grader" target="bmod_h2_nr_feedback" />
+    </ActionButton>
+
+    <Markdown id="bmod_h2_pp_label">**Positive Punishment** — {{corpus:D1/p8:d1:32:60:sha=60e5588ab7ff}} decrease your unwanted behavior</Markdown>
+    <TextArea id="bmod_h2_pp" rows="3" placeholder="If {{corpus:PP/p1:pp:3:37:sha=b866c7811827}} to..." />
+
+    <LLMFeedback id="bmod_h2_pp_feedback" />
+    <ActionButton id="bmod_h2_pp_btn" label="Check my Positive Punishment example">
+      <LLMAction id="bmod_h2_pp_llm" target="bmod_h2_pp_feedback"
+                 verdicts="yes,no,unclear"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PP/PR/NR/NP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement you were unsure about:no/yes"
+                 onlyif="targets_unwanted_behavior:observed_type"
+                 max="4">
+You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item PP — 4 points
+
+## Question asked of the student
+Write an example of Positive Punishment that you could use to attempt to change your behavior. (Positive Punishment = adding something undesirable to decrease a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.
+
+## How to judge this item
+Do NOT output a score or a deduction list. Fill in the criteria sheet; the score is computed from it.
+
+Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is changed by a CONSEQUENCE that is contingent on it. Answer these in order and answer them literally about what the student wrote:
+1. `behavior` — quote the voluntary behaviour of the student that the plan acts on. If the answer names no behaviour of theirs, leave this an empty string.
+2. `stimulus` — quote the thing being added or taken away. Empty string if none is named.
+3. `contingent` — is the stimulus delivered BECAUSE of that behaviour (or its absence)? A statement of something the student will just do, with no link to performing the behaviour, is not contingent.
+4. `follows_behavior` — does the CONSEQUENCE EVENT (gaining or losing the thing) occur after the behaviour? Judge the delivery, not the wording. "I am not allowed X until I do B" DOES satisfy this: X is delivered once B happens, which is the ordinary shape of a reinforcement contingency. It fails only when nothing is ever delivered contingent on the behaviour — the plan is purely to remove a temptation or set up the environment in advance, which is an antecedent manipulation rather than a consequence.
+5. `stimulus_is_arranged` — is the consequence something the student arranges, as opposed to the behaviour's own automatic result? Removing an obligation or chore IS arranged; '{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=C1}} body' is not.
+6. `observed_type` — given increase-or-decrease and add-or-remove, which of PR/NR/PP/NP is it actually? Use `none` only if 1-4 fail.
+   DUAL DESCRIPTIONS: an arrangement of the form "I am not allowed X until I do B" is genuinely describable two ways — as PR of B (X is granted once B happens) and as NP of not-B (X is withheld while B is absent). Both are correct readings. When the arrangement admits both and one of them is the type under discussion, report that one; do not mark it a mismatch.
+7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED when the behaviour occurs ("so I don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87}} it") rather than by what is added or removed after it. This never changes the score; it flags the answer for a phrasing comment. It is the ONLY criterion that judges this phrasing — no other check may deduct for it.
+
+
+## Deduction codes — the course's canonical wording for each gap
+- `NOT_OC` (-4): This example is not Operant Conditioning.
+- `WRONG_TYPE` (-2): This is not Positive Punishment. Remember, Positive Punishment involves adding something undesirable to decrease a behavior. (Correct example of one of the four types, just not PP.)
+- `NOT_EXTERNAL_STIMULUS` (-4): Remember that what you add or take away after your behavior has to be easily controlled by you and be an outside stimulus.
+- `BLANK` (-4): did not answer
+
+## Grading guidance
+- Operant conditioning has exactly four types, defined by two questions: is the target behaviour being INCREASED (reinforcement) or DECREASED (punishment), and is a stimulus being ADDED (positive) or TAKEN AWAY (negative)?
+  - Positive Reinforcement: add something desirable to increase a behaviour.
+  - Negative Reinforcement: take away something undesirable to increase a behaviour.
+  - Positive Punishment: {{corpus:D1/p8:d1:32:60:sha=60e5588ab7ff}} decrease a behaviour.
+  - Negative Punishment: take away something desirable to decrease a behaviour.
+- TEST 1 — IS THERE AN EXPLICIT CONTINGENCY? This is the primary test and it is about FORM. A creditable answer links the behaviour to the consequence conditionally: "If I [do / fail to do the behaviour], I will [gain / lose Y]". An answer that names a reward without tying it to the behaviour fails even though a reward is present — "{{corpus:PR/p10:pr:0:31:sha=d8e6b017bfed:shape=R31-0-20}}{{corpus:PR/p10:pr:32:35:sha=e326cff641fb}} {{corpus:PR/p10:pr:52:97:sha=3cdef347ee1d}} weeks" scored 0, with the grader asking the student to "state what the exact behavior you are trying to increase is and what you are adding after that behavior is exhibited". A bare prediction with no plan at all ("{{corpus:NP/p1:np:0:17:sha=868176d33c58:shape=R17-0-20}}{{corpus:NP/p1:np:18:29:sha=88dbce75bea2}} tired") also scores 0.
+- TEST 2 — DOES THE CONSEQUENCE ARRIVE AFTER THE BEHAVIOUR? "Remember that what you take away or add has to happen after the behavior is exhibited." Judge the DELIVERY, not the wording. "{{corpus:NP/p14:np:0:31:sha=ad86a1265c58:shape=R31-0-20}}{{corpus:NP/p14:np:32:65:sha=ba6ec09787a0}} goal" passes: the outing is delivered once the goal is met, which is the ordinary shape of a reinforcement contingency, and the graders credited it. What fails is a plan where nothing is ever delivered contingent on the behaviour — "{{corpus:DAY1/p6:day1:0:10:sha=85ea7f191b92:shape=R10-0-20}}{{corpus:DAY1/p6:day1:11:32:sha=0e832a9eac69}}" or "{{corpus:WK1/p13:wk1:0:45:sha=20eb7e2cf18e:shape=R45-0-20}}{{corpus:WK1/p13:wk1:46:51:sha=cd7ac4c61fd8}}" are antecedent manipulations that remove a temptation in advance and never tie anything to performing the behaviour.
+- TEST 3 — WHICH OF THE FOUR TYPES IS IT? Before crediting a type, answer the two questions explicitly: is the behaviour being INCREASED or DECREASED, and is something being ADDED or TAKEN AWAY? Then compare with the type under discussion. Well-formed contingencies of the WRONG type are the most commonly missed deduction on this handout — "{{corpus:NR/p15:nr:57:86:sha=76296a38201e:shape=R29-0-20}}{{corpus:NR/p15:nr:87:119:sha=0fdcea55153c:shape=A9}} studying" is PR, not NR (-2); "{{corpus:WK2/p15:wk2:0:9:sha=11b990983ce7:shape=R9-0-20}}{{corpus:WK2/p15:wk2:10:58:sha=f37b5aff32de}}" is NP (-2); "{{corpus:NR/p14:nr:46:51:sha=9cb0dea67a72:shape=R5-0-20}}{{corpus:NR/p14:nr:52:83:sha=658c91c9eff0}} exercise" is not NR (-2).
+- WHAT COUNTS AS THE ADDED OR REMOVED THING — BE BROAD. It does not have to be a physical object. Removing an unpleasant OBLIGATION, chore, or requirement is a perfectly good negative reinforcer, and the graders gave full credit for all of these: "{{corpus:NR/p7:nr:0:38:sha=b15b136396fe}} 10pm {{corpus:NR/p7:nr:45:103:sha=04d046dff05b}} procrastinated"; "{{corpus:NR/p20:nr:0:54:sha=4b832e36ef1b:shape=R54-0-20}}{{corpus:NR/p20:nr:55:75:sha=d85dba6461b2}} tired"; "{{corpus:DAY1/p1:day1:0:43:sha=cbf992b9e213:shape=R43-0-20}}{{corpus:DAY1/p1:day1:44:65:sha=e00a2d5c84ce:shape=S1-20}}". Do NOT deduct these as intrinsic outcomes.
+- NOT_EXTERNAL_STIMULUS is reserved for the narrow case where the named consequence is simply the behaviour's own automatic result AND no conditional plan is stated — the canonical zero is "{{corpus:PR/p1:pr:0:18:sha=04923497e5d4:shape=R18-0-20}}{{corpus:PR/p1:pr:19:42:sha=d177395a37c4}} body". If the answer is phrased as an if/then arrangement the student sets up, this code does not apply; judge it on tests 2 and 3 instead.
+- SAFETY: flag, but do not deduct for, any example that withholds food, sleep, or medical care, or that punishes with exercise in a way that could harm the student. The graders wrote notes like "Please change this example to remove something not related to meals. It is important to us that you are safe and healthy throughout this behavior modification!" while leaving the score at full.
+- Award the two credit components separately: a valid contingency that names the wrong type keeps its first 2 points and loses the second (WRONG_TYPE). Something that is not a contingency at all loses all 4 (NOT_OC or NOT_EXTERNAL_STIMULUS — use whichever the grader would have written).
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `observed_type` — `PP`/`PR`/`NR`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
+- `targets_unwanted_behavior` — `yes`/`no`: is the plan aimed at DECREASING their unwanted target behavior, rather than the wrong behaviour? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
+- `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### _utb
+<Ref id="bmod_h2_pp_ref_utb" target="bmod_h1_utb" />
+
+### _wgb
+<Ref id="bmod_h2_pp_ref_wgb" target="bmod_h1_q2_response" />
+
+## Student response to grade (item PP)
+<Ref id="bmod_h2_pp_ref" target="bmod_h2_pp" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes. Costs and the item
+           total live on the sheet; this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h2_pp_grader" target="bmod_h2_pp_feedback" />
+    </ActionButton>
+
+    <Markdown id="bmod_h2_np_label">**Negative Punishment** — take away something desirable to decrease your unwanted behavior</Markdown>
+    <TextArea id="bmod_h2_np" rows="3" placeholder="If {{corpus:PP/p1:pp:3:32:sha=4ec7854c78f9}} lose..." />
+
+    <LLMFeedback id="bmod_h2_np_feedback" />
+    <ActionButton id="bmod_h2_np_btn" label="Check my Negative Punishment example">
+      <LLMAction id="bmod_h2_np_llm" target="bmod_h2_np_feedback"
+                 verdicts="yes,no,unclear"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:NP/PR/NR/PP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement you were unsure about:no/yes"
+                 onlyif="targets_unwanted_behavior:observed_type"
+                 max="4">
+You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item NP — 4 points
+
+## Question asked of the student
+Write an example of Negative Punishment that you could use to attempt to change your behavior. (Negative Punishment = taking away something desirable to decrease a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.
+
+## How to judge this item
+Do NOT output a score or a deduction list. Fill in the criteria sheet; the score is computed from it.
+
+Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is changed by a CONSEQUENCE that is contingent on it. Answer these in order and answer them literally about what the student wrote:
+1. `behavior` — quote the voluntary behaviour of the student that the plan acts on. If the answer names no behaviour of theirs, leave this an empty string.
+2. `stimulus` — quote the thing being added or taken away. Empty string if none is named.
+3. `contingent` — is the stimulus delivered BECAUSE of that behaviour (or its absence)? A statement of something the student will just do, with no link to performing the behaviour, is not contingent.
+4. `follows_behavior` — does the CONSEQUENCE EVENT (gaining or losing the thing) occur after the behaviour? Judge the delivery, not the wording. "I am not allowed X until I do B" DOES satisfy this: X is delivered once B happens, which is the ordinary shape of a reinforcement contingency. It fails only when nothing is ever delivered contingent on the behaviour — the plan is purely to remove a temptation or set up the environment in advance, which is an antecedent manipulation rather than a consequence.
+5. `stimulus_is_arranged` — is the consequence something the student arranges, as opposed to the behaviour's own automatic result? Removing an obligation or chore IS arranged; '{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=C1}} body' is not.
+6. `observed_type` — given increase-or-decrease and add-or-remove, which of PR/NR/PP/NP is it actually? Use `none` only if 1-4 fail.
+   DUAL DESCRIPTIONS: an arrangement of the form "I am not allowed X until I do B" is genuinely describable two ways — as PR of B (X is granted once B happens) and as NP of not-B (X is withheld while B is absent). Both are correct readings. When the arrangement admits both and one of them is the type under discussion, report that one; do not mark it a mismatch.
+7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED when the behaviour occurs ("so I don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87}} it") rather than by what is added or removed after it. This never changes the score; it flags the answer for a phrasing comment. It is the ONLY criterion that judges this phrasing — no other check may deduct for it.
+
+
+## Deduction codes — the course's canonical wording for each gap
+- `NOT_OC` (-4): This example is not Operant Conditioning.
+- `WRONG_TYPE` (-2): This is not Negative Punishment. Remember, Negative Punishment involves taking away something desirable to decrease a behavior. (Correct example of one of the four types, just not NP.)
+- `NOT_EXTERNAL_STIMULUS` (-4): Remember that what you add or take away after your behavior has to be easily controlled by you and be an outside stimulus.
+- `BLANK` (-4): did not answer
+
+## Grading guidance
+- Operant conditioning has exactly four types, defined by two questions: is the target behaviour being INCREASED (reinforcement) or DECREASED (punishment), and is a stimulus being ADDED (positive) or TAKEN AWAY (negative)?
+  - Positive Reinforcement: add something desirable to increase a behaviour.
+  - Negative Reinforcement: take away something undesirable to increase a behaviour.
+  - Positive Punishment: {{corpus:D1/p8:d1:32:60:sha=60e5588ab7ff}} decrease a behaviour.
+  - Negative Punishment: take away something desirable to decrease a behaviour.
+- TEST 1 — IS THERE AN EXPLICIT CONTINGENCY? This is the primary test and it is about FORM. A creditable answer links the behaviour to the consequence conditionally: "If I [do / fail to do the behaviour], I will [gain / lose Y]". An answer that names a reward without tying it to the behaviour fails even though a reward is present — "{{corpus:PR/p10:pr:0:31:sha=d8e6b017bfed:shape=R31-0-20}}{{corpus:PR/p10:pr:32:35:sha=e326cff641fb}} {{corpus:PR/p10:pr:52:97:sha=3cdef347ee1d}} weeks" scored 0, with the grader asking the student to "state what the exact behavior you are trying to increase is and what you are adding after that behavior is exhibited". A bare prediction with no plan at all ("{{corpus:NP/p1:np:0:17:sha=868176d33c58:shape=R17-0-20}}{{corpus:NP/p1:np:18:29:sha=88dbce75bea2}} tired") also scores 0.
+- TEST 2 — DOES THE CONSEQUENCE ARRIVE AFTER THE BEHAVIOUR? "Remember that what you take away or add has to happen after the behavior is exhibited." Judge the DELIVERY, not the wording. "{{corpus:NP/p14:np:0:31:sha=ad86a1265c58:shape=R31-0-20}}{{corpus:NP/p14:np:32:65:sha=ba6ec09787a0}} goal" passes: the outing is delivered once the goal is met, which is the ordinary shape of a reinforcement contingency, and the graders credited it. What fails is a plan where nothing is ever delivered contingent on the behaviour — "{{corpus:DAY1/p6:day1:0:10:sha=85ea7f191b92:shape=R10-0-20}}{{corpus:DAY1/p6:day1:11:32:sha=0e832a9eac69}}" or "{{corpus:WK1/p13:wk1:0:45:sha=20eb7e2cf18e:shape=R45-0-20}}{{corpus:WK1/p13:wk1:46:51:sha=cd7ac4c61fd8}}" are antecedent manipulations that remove a temptation in advance and never tie anything to performing the behaviour.
+- TEST 3 — WHICH OF THE FOUR TYPES IS IT? Before crediting a type, answer the two questions explicitly: is the behaviour being INCREASED or DECREASED, and is something being ADDED or TAKEN AWAY? Then compare with the type under discussion. Well-formed contingencies of the WRONG type are the most commonly missed deduction on this handout — "{{corpus:NR/p15:nr:57:86:sha=76296a38201e:shape=R29-0-20}}{{corpus:NR/p15:nr:87:119:sha=0fdcea55153c:shape=A9}} studying" is PR, not NR (-2); "{{corpus:WK2/p15:wk2:0:9:sha=11b990983ce7:shape=R9-0-20}}{{corpus:WK2/p15:wk2:10:58:sha=f37b5aff32de}}" is NP (-2); "{{corpus:NR/p14:nr:46:51:sha=9cb0dea67a72:shape=R5-0-20}}{{corpus:NR/p14:nr:52:83:sha=658c91c9eff0}} exercise" is not NR (-2).
+- WHAT COUNTS AS THE ADDED OR REMOVED THING — BE BROAD. It does not have to be a physical object. Removing an unpleasant OBLIGATION, chore, or requirement is a perfectly good negative reinforcer, and the graders gave full credit for all of these: "{{corpus:NR/p7:nr:0:38:sha=b15b136396fe}} 10pm {{corpus:NR/p7:nr:45:103:sha=04d046dff05b}} procrastinated"; "{{corpus:NR/p20:nr:0:54:sha=4b832e36ef1b:shape=R54-0-20}}{{corpus:NR/p20:nr:55:75:sha=d85dba6461b2}} tired"; "{{corpus:DAY1/p1:day1:0:43:sha=cbf992b9e213:shape=R43-0-20}}{{corpus:DAY1/p1:day1:44:65:sha=e00a2d5c84ce:shape=S1-20}}". Do NOT deduct these as intrinsic outcomes.
+- NOT_EXTERNAL_STIMULUS is reserved for the narrow case where the named consequence is simply the behaviour's own automatic result AND no conditional plan is stated — the canonical zero is "{{corpus:PR/p1:pr:0:18:sha=04923497e5d4:shape=R18-0-20}}{{corpus:PR/p1:pr:19:42:sha=d177395a37c4}} body". If the answer is phrased as an if/then arrangement the student sets up, this code does not apply; judge it on tests 2 and 3 instead.
+- SAFETY: flag, but do not deduct for, any example that withholds food, sleep, or medical care, or that punishes with exercise in a way that could harm the student. The graders wrote notes like "Please change this example to remove something not related to meals. It is important to us that you are safe and healthy throughout this behavior modification!" while leaving the score at full.
+- Award the two credit components separately: a valid contingency that names the wrong type keeps its first 2 points and loses the second (WRONG_TYPE). Something that is not a contingency at all loses all 4 (NOT_OC or NOT_EXTERNAL_STIMULUS — use whichever the grader would have written).
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `observed_type` — `NP`/`PR`/`NR`/`PP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
+- `targets_unwanted_behavior` — `yes`/`no`: is the plan aimed at DECREASING their unwanted target behavior, rather than the wrong behaviour? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
+- `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### _utb
+<Ref id="bmod_h2_np_ref_utb" target="bmod_h1_utb" />
+
+### _wgb
+<Ref id="bmod_h2_np_ref_wgb" target="bmod_h1_q2_response" />
+
+## Student response to grade (item NP)
+<Ref id="bmod_h2_np_ref" target="bmod_h2_np" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes. Costs and the item
+           total live on the sheet; this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h2_np_grader" target="bmod_h2_np_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: First chosen type ============================== -->
+
+  <Vertical id="bmod_h2_first" title="Your first type">
+    <Markdown id="bmod_h2_first_prompt">
+## The first type you will actually use
+
+Choose two different types of operant conditioning for your real intervention.
+Start with the first.
+    </Markdown>
+
+    <CapaProblem id="bmod_h2_t1_problem" title="First type" showanswer="never">
+      <CorrectGrader id="bmod_h2_t1_grader">
+        <Markdown id="bmod_h2_t1_prompt">Which type will you use first?</Markdown>
+        <ChoiceInput id="bmod_h2_t1">
+        <Key id="bmod_h2_t1_pr" value="Positive Reinforcement">Positive
+        Reinforcement</Key>
+        <Key id="bmod_h2_t1_nr" value="Negative Reinforcement">Negative
+        Reinforcement</Key>
+          <Key id="bmod_h2_t1_pp" value="Positive Punishment">Positive Punishment</Key>
+          <Key id="bmod_h2_t1_np" value="Negative Punishment">Negative Punishment</Key>
+        </ChoiceInput>
+      </CorrectGrader>
+    </CapaProblem>
+
+    <!-- Scored here rather than by the CapaProblem above it. CorrectGrader is the
+         always-correct grader — it captures the choice and marks any submission
+         correct — so nothing was assessing this item, while the CLI scores it 2.
+         The rubric's other failure, NOT_A_TYPE, cannot happen against a closed
+         list of the four types (declared in SCORING_DIVERGENCES), which leaves
+         only "did they answer": a `present` check over the choice field. -->
+    <DerivedChecks id="bmod_h2_t1_checks"
+                   verdicts="met,absent"
+                   slots="type_stated:Names the first type you will use@2"
+                   derived="type_stated:present:bmod_h2_t1"
+                   max="2" />
+    <SlotSheetGrader id="bmod_h2_t1_sheet_grader" target="bmod_h2_t1_checks" />
+    <OnChange id="bmod_h2_t1_regrade"
+              watch="@bmod_h2_t1_checks.checks"
+              target="bmod_h2_t1_sheet_grader" />
+
+    <Markdown id="bmod_h2_d1_label">
+**Define it.** A complete definition says whether something is being *added* or
+*taken away*, **and** whether the behavior is *increasing* or *decreasing*.
+    </Markdown>
+    <TextArea id="bmod_h2_d1" rows="3" placeholder="I will use ___, which is..." />
+
+    <LLMFeedback id="bmod_h2_d1_feedback" />
+    <ActionButton id="bmod_h2_d1_btn" label="Check my definition">
+      <LLMAction id="bmod_h2_d1_llm" target="bmod_h2_d1_feedback"
+                 equals="matches_chosen_type:defines_type,named_type:unclear"
+                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose:met/absent|add_or_remove:Says whether something is added or taken away@1|increase_or_decrease:Says whether the behavior increases or decreases@1|uncertain:Any judgement you were unsure about:no/yes">
+You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item D1 — 2 points
+
+## Question asked of the student
+Define the first type of Operant Conditioning you chose. A complete definition says whether something is being ADDED or TAKEN AWAY, and whether the behaviour is being INCREASED or DECREASED.
+
+## Credit components
+- `defines_type`: Which of the four types this DEFINITION describes, judged on its content alone: something added or removed, behaviour increased or decreased
+- `named_type`: Which of the four the student CHOSE, read from T1 in the context below; `unclear` only if it is blank or unreadable
+- `matches_chosen_type` **GATE**: The definition describes the type the student named in T1. A definition that is correct for a DIFFERENT type than the one they chose is WRONG_DEFINITION (-2), not merely incomplete
+- `add_or_remove` (1 pt): States whether something is added or taken away
+- `increase_or_decrease` (1 pt): States whether the behaviour increases or decreases
+
+## Deduction codes — the course's canonical wording for each gap
+- `BLANK` (-2): did not answer
+- `WRONG_DEFINITION` (-2): This is not the correct definition for the Operant Conditioning type you chose.
+- `INCOMPLETE_DEFINITION` (-1): -1 point: Did not provide the entire definition (Is something being added or taken away? Is the behavior increasing or decreasing?)
+
+## Grading guidance
+- Operant conditioning has exactly four types, defined by two questions: is the target behaviour being INCREASED (reinforcement) or DECREASED (punishment), and is a stimulus being ADDED (positive) or TAKEN AWAY (negative)?
+  - Positive Reinforcement: add something desirable to increase a behaviour.
+  - Negative Reinforcement: take away something undesirable to increase a behaviour.
+  - Positive Punishment: {{corpus:D1/p8:d1:32:60:sha=60e5588ab7ff}} decrease a behaviour.
+  - Negative Punishment: take away something desirable to decrease a behaviour.
+- INCOMPLETE_DEFINITION is for a definition that is right as far as it goes but omits one of the two halves — e.g. says something is removed but never says the behaviour decreases.
+- IMPLICIT (from gold): graders accepted textbook phrasing and the student's own words equally. "{{corpus:D2/p9:d2:0:55:sha=ce88cb4261ac:shape=R55-0-20}}{{corpus:D2/p9:d2:56:58:sha=fa51fd49abf6}} exhibited" earned full credit. Do not require the course's exact wording.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `defines_type` — `PR`/`NR`/`PP`/`NP`/`unclear`: which of the four types this DEFINITION describes, judged on its content alone: something added or removed, behaviour increased or decreased. Do not look at what they chose — that is the other check, and the grader does the comparison
+- `named_type` — `PR`/`NR`/`PP`/`NP`/`unclear`: which of the four the student chose, read from the type slot in the context below. `unclear` only if it is blank or unreadable
+- `add_or_remove` — `met`/`absent`/`unclear`: States whether something is added or taken away
+- `increase_or_decrease` — `met`/`absent`/`unclear`: States whether the behaviour increases or decreases
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+DO NOT ANSWER `matches_chosen_type` **GATE**. The grader computes it by comparing `defines_type` with `named_type` — the two checks above that you DO answer. It is not in your schema, and the comparison is not a judgement you can make more accurately than the arithmetic can. Where either is `unclear`, no mismatch is established and nothing is charged.
+
+A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### _utb
+<Ref id="bmod_h2_d1_ref_utb" target="bmod_h1_utb" />
+
+### _wgb
+<Ref id="bmod_h2_d1_ref_q2_response" target="bmod_h1_q2_response" />
+
+### T1
+<Ref id="bmod_h2_d1_ref_t" target="bmod_h2_t1" />
+
+## Student response to grade (item D1)
+<Ref id="bmod_h2_d1_ref" target="bmod_h2_d1" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes. Costs and the item
+           total live on the sheet; this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h2_d1_grader" target="bmod_h2_d1_feedback" />
+    </ActionButton>
+
+    <Markdown id="bmod_h2_day1_label">**Daily example** — how will you use it each day?</Markdown>
+    <TextArea id="bmod_h2_day1" rows="3" />
+
+    <LLMFeedback id="bmod_h2_day1_feedback" />
+    <ActionButton id="bmod_h2_day1_btn" label="Check my daily example">
+      <LLMAction id="bmod_h2_day1_llm" target="bmod_h2_day1_feedback"
+                 verdicts="yes,no,unclear"
+                 equals="matches_chosen_type:observed_type,named_type:unclear"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_daily:Checked each day rather than against the week:yes/no|matches_chosen_type:Matches your first chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement you were unsure about:no/yes"
+                 max="4">
+You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item DAY1 — 4 points
+
+## Question asked of the student
+Give a daily example of how you will use your first chosen type of Operant Conditioning during your intervention.
+
+## How to judge this item
+Do NOT output a score or a deduction list. Fill in the criteria sheet; the score is computed from it.
+
+Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is changed by a CONSEQUENCE that is contingent on it. Answer these in order and answer them literally about what the student wrote:
+1. `behavior` — quote the voluntary behaviour of the student that the plan acts on. If the answer names no behaviour of theirs, leave this an empty string.
+2. `stimulus` — quote the thing being added or taken away. Empty string if none is named.
+3. `contingent` — is the stimulus delivered BECAUSE of that behaviour (or its absence)? A statement of something the student will just do, with no link to performing the behaviour, is not contingent.
+4. `follows_behavior` — does the CONSEQUENCE EVENT (gaining or losing the thing) occur after the behaviour? Judge the delivery, not the wording. "I am not allowed X until I do B" DOES satisfy this: X is delivered once B happens, which is the ordinary shape of a reinforcement contingency. It fails only when nothing is ever delivered contingent on the behaviour — the plan is purely to remove a temptation or set up the environment in advance, which is an antecedent manipulation rather than a consequence.
+5. `stimulus_is_arranged` — is the consequence something the student arranges, as opposed to the behaviour's own automatic result? Removing an obligation or chore IS arranged; '{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=C1}} body' is not.
+6. `observed_type` — given increase-or-decrease and add-or-remove, which of PR/NR/PP/NP is it actually? Use `none` only if 1-4 fail.
+   DUAL DESCRIPTIONS: an arrangement of the form "I am not allowed X until I do B" is genuinely describable two ways — as PR of B (X is granted once B happens) and as NP of not-B (X is withheld while B is absent). Both are correct readings. When the arrangement admits both and one of them is the type under discussion, report that one; do not mark it a mismatch.
+7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED when the behaviour occurs ("so I don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87}} it") rather than by what is added or removed after it. This never changes the score; it flags the answer for a phrasing comment. It is the ONLY criterion that judges this phrasing — no other check may deduct for it.
+
+8. `named_type` — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly ("{{corpus:D2/p15:d2:28:41:sha=561e03f6a586:shape=R13-0-20}}{{corpus:D2/p15:d2:42:110:sha=bd23c4b2e196}}" is Positive Punishment). Use `unclear` only when neither says.
+9. `cadence_ok` — is the TRIGGER evaluated daily? Judge only how often the behaviour is checked, not how long the consequence lasts: a daily trigger whose reward runs to the end of the week is still daily. Set this false only when the contingency is plainly settled on the other schedule — e.g. a daily slot answered with a whole-week tally.
+10. `targets_own_behavior` — is it aimed at this student's own UTB/WGB rather than some clearly different behaviour?
+
+
+## Deduction codes — the course's canonical wording for each gap
+- `BLANK` (-4): did not answer
+- `NOT_OC` (-4): This example is not Operant Conditioning.
+- `NOT_EXTERNAL_STIMULUS` (-4): Remember that what you add or take away after your behavior has to be easily controlled by you and be an outside stimulus.
+- `TYPE_MISMATCH` (-2): Your daily example does not match the type of Operant Conditioning that you previously chose.
+- `WRONG_BEHAVIOR` (-1): The behavior you target in this example is not your chosen behavior.
+- `CADENCE_MISMATCH` (-4): This is a weekly example.
+- `LINK_NOT_ASSERTED` (-1): Say that the consequence happens BECAUSE of the behavior, and make it something you add or take away — not just the absence of a penalty you would otherwise apply.
+
+## Grading guidance
+- Operant conditioning has exactly four types, defined by two questions: is the target behaviour being INCREASED (reinforcement) or DECREASED (punishment), and is a stimulus being ADDED (positive) or TAKEN AWAY (negative)?
+  - Positive Reinforcement: add something desirable to increase a behaviour.
+  - Negative Reinforcement: take away something undesirable to increase a behaviour.
+  - Positive Punishment: {{corpus:D1/p8:d1:32:60:sha=60e5588ab7ff}} decrease a behaviour.
+  - Negative Punishment: take away something desirable to decrease a behaviour.
+- TEST 1 — IS THERE AN EXPLICIT CONTINGENCY? This is the primary test and it is about FORM. A creditable answer links the behaviour to the consequence conditionally: "If I [do / fail to do the behaviour], I will [gain / lose Y]". An answer that names a reward without tying it to the behaviour fails even though a reward is present — "{{corpus:PR/p10:pr:0:31:sha=d8e6b017bfed:shape=R31-0-20}}{{corpus:PR/p10:pr:32:35:sha=e326cff641fb}} {{corpus:PR/p10:pr:52:97:sha=3cdef347ee1d}} weeks" scored 0, with the grader asking the student to "state what the exact behavior you are trying to increase is and what you are adding after that behavior is exhibited". A bare prediction with no plan at all ("{{corpus:NP/p1:np:0:17:sha=868176d33c58:shape=R17-0-20}}{{corpus:NP/p1:np:18:29:sha=88dbce75bea2}} tired") also scores 0.
+- TEST 2 — DOES THE CONSEQUENCE ARRIVE AFTER THE BEHAVIOUR? "Remember that what you take away or add has to happen after the behavior is exhibited." Judge the DELIVERY, not the wording. "{{corpus:NP/p14:np:0:31:sha=ad86a1265c58:shape=R31-0-20}}{{corpus:NP/p14:np:32:65:sha=ba6ec09787a0}} goal" passes: the outing is delivered once the goal is met, which is the ordinary shape of a reinforcement contingency, and the graders credited it. What fails is a plan where nothing is ever delivered contingent on the behaviour — "{{corpus:DAY1/p6:day1:0:10:sha=85ea7f191b92:shape=R10-0-20}}{{corpus:DAY1/p6:day1:11:32:sha=0e832a9eac69}}" or "{{corpus:WK1/p13:wk1:0:45:sha=20eb7e2cf18e:shape=R45-0-20}}{{corpus:WK1/p13:wk1:46:51:sha=cd7ac4c61fd8}}" are antecedent manipulations that remove a temptation in advance and never tie anything to performing the behaviour.
+- TEST 3 — WHICH OF THE FOUR TYPES IS IT? Before crediting a type, answer the two questions explicitly: is the behaviour being INCREASED or DECREASED, and is something being ADDED or TAKEN AWAY? Then compare with the type under discussion. Well-formed contingencies of the WRONG type are the most commonly missed deduction on this handout — "{{corpus:NR/p15:nr:57:86:sha=76296a38201e:shape=R29-0-20}}{{corpus:NR/p15:nr:87:119:sha=0fdcea55153c:shape=A9}} studying" is PR, not NR (-2); "{{corpus:WK2/p15:wk2:0:9:sha=11b990983ce7:shape=R9-0-20}}{{corpus:WK2/p15:wk2:10:58:sha=f37b5aff32de}}" is NP (-2); "{{corpus:NR/p14:nr:46:51:sha=9cb0dea67a72:shape=R5-0-20}}{{corpus:NR/p14:nr:52:83:sha=658c91c9eff0}} exercise" is not NR (-2).
+- WHAT COUNTS AS THE ADDED OR REMOVED THING — BE BROAD. It does not have to be a physical object. Removing an unpleasant OBLIGATION, chore, or requirement is a perfectly good negative reinforcer, and the graders gave full credit for all of these: "{{corpus:NR/p7:nr:0:38:sha=b15b136396fe}} 10pm {{corpus:NR/p7:nr:45:103:sha=04d046dff05b}} procrastinated"; "{{corpus:NR/p20:nr:0:54:sha=4b832e36ef1b:shape=R54-0-20}}{{corpus:NR/p20:nr:55:75:sha=d85dba6461b2}} tired"; "{{corpus:DAY1/p1:day1:0:43:sha=cbf992b9e213:shape=R43-0-20}}{{corpus:DAY1/p1:day1:44:65:sha=e00a2d5c84ce:shape=S1-20}}". Do NOT deduct these as intrinsic outcomes.
+- NOT_EXTERNAL_STIMULUS is reserved for the narrow case where the named consequence is simply the behaviour's own automatic result AND no conditional plan is stated — the canonical zero is "{{corpus:PR/p1:pr:0:18:sha=04923497e5d4:shape=R18-0-20}}{{corpus:PR/p1:pr:19:42:sha=d177395a37c4}} body". If the answer is phrased as an if/then arrangement the student sets up, this code does not apply; judge it on tests 2 and 3 instead.
+- SAFETY: flag, but do not deduct for, any example that withholds food, sleep, or medical care, or that punishes with exercise in a way that could harm the student. The graders wrote notes like "Please change this example to remove something not related to meals. It is important to us that you are safe and healthy throughout this behavior modification!" while leaving the score at full.
+- The example must match the type named in T1. A correct example of a DIFFERENT one of the four types is TYPE_MISMATCH (-2), not NOT_OC. Apply test 3 above before crediting the match — do not assume the student's example is the type they named.
+- CADENCE: this item asks for a daily example, and answering it at the wrong cadence voids it. A daily slot answered with a week-long contingency scored 0, the grader writing only "This is a weekly example." Check that the contingency actually operates daily.
+- WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour from the student's UTB/WGB — a plan about procrastination when the UTB is {{corpus:Q1/p15:response:49:53:sha=336074805fc8:shape=R4-0-20}}{{corpus:Q1/p15:response:54:76:sha=019d6dc324ea}} Do not deduct it merely because the phrasing is loose or the link is indirect: "{{corpus:DAY1/p15:day1:40:90:sha=67f07d606067:shape=R50-0-20}}{{corpus:DAY1/p15:day1:91:108:sha=05e50f4b87e6}} assignments" earned full credit against a screen-time goal. It stacks with TYPE_MISMATCH when both are true.
+- IMPLICIT (from gold): advisory notes without deduction are common on these items — "I suggest changing your punisher to something not related to exercise" was written on a 4.0. Put that kind of remark in advisory_note.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `observed_type` — `PR`/`NR`/`PP`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
+- `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
+- `named_type` — `PR`/`NR`/`PP`/`NP`/`unclear`: criterion 8 (`named_type`) — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly. `unclear` only when neither says. Reported, never scored — but the grader compares it against the type the example actually is, so report it accurately rather than helpfully
+- `cadence_is_daily` **GATE** — `yes`/`no`: criterion 9 (`cadence_ok`). Judge how often the BEHAVIOUR IS CHECKED, not how long the consequence lasts — a daily trigger whose reward runs to the end of the week is still daily. This gate takes the whole item, so answer `no` only when the contingency is plainly settled on the weekly schedule, e.g. a daily slot answered with a whole-week tally. When it could be read either way, it is daily
+- `targets_own_behavior` — `yes`/`no`: criterion 10 (`targets_own_behavior`)
+- `consequence_asserted` — `yes`/`no`: one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. "{{corpus:DAY2/p13:day2:0:12:sha=88f25a1bfa3a:shape=R12-0-20}}{{corpus:DAY2/p13:day2:13:82:sha=b5e079f14be7:shape=C380000}}" is `no`, while "{{corpus:DAY1/p16:day1:0:58:sha=d9d8f7292ea6:shape=C180000}} TV" is `yes` — the same two facts, but the second asserts the link. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded, and it never changes the score
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+DO NOT ANSWER `matches_chosen_type`. The grader computes it by comparing `observed_type` with `named_type` — the two checks above that you DO answer. It is not in your schema, and the comparison is not a judgement you can make more accurately than the arithmetic can. Where either is `unclear`, no mismatch is established and nothing is charged.
+
+A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### _utb
+<Ref id="bmod_h2_day1_ref_utb" target="bmod_h1_utb" />
+
+### _wgb
+<Ref id="bmod_h2_day1_ref_wgb" target="bmod_h1_q2_response" />
+
+### T1
+<Ref id="bmod_h2_day1_ref_t" target="bmod_h2_t1" />
+
+### D1
+<Ref id="bmod_h2_day1_ref_d" target="bmod_h2_d1" />
+
+## Student response to grade (item DAY1)
+<Ref id="bmod_h2_day1_ref" target="bmod_h2_day1" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes. Costs and the item
+           total live on the sheet; this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h2_day1_grader" target="bmod_h2_day1_feedback" />
+    </ActionButton>
+
+    <Markdown id="bmod_h2_wk1_label">**Weekly example** — how will you use it across a week?</Markdown>
+    <TextArea id="bmod_h2_wk1" rows="3" />
+
+    <LLMFeedback id="bmod_h2_wk1_feedback" />
+    <ActionButton id="bmod_h2_wk1_btn" label="Check my weekly example">
+      <LLMAction id="bmod_h2_wk1_llm" target="bmod_h2_wk1_feedback"
+                 verdicts="yes,no,unclear"
+                 equals="matches_chosen_type:observed_type,named_type:unclear"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_weekly:Checked against the week rather than each day:yes/no|matches_chosen_type:Matches your first chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement you were unsure about:no/yes"
+                 max="4">
+You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item WK1 — 4 points
+
+## Question asked of the student
+Give a weekly example of how you will use your first chosen type of Operant Conditioning during your intervention.
+
+## How to judge this item
+Do NOT output a score or a deduction list. Fill in the criteria sheet; the score is computed from it.
+
+Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is changed by a CONSEQUENCE that is contingent on it. Answer these in order and answer them literally about what the student wrote:
+1. `behavior` — quote the voluntary behaviour of the student that the plan acts on. If the answer names no behaviour of theirs, leave this an empty string.
+2. `stimulus` — quote the thing being added or taken away. Empty string if none is named.
+3. `contingent` — is the stimulus delivered BECAUSE of that behaviour (or its absence)? A statement of something the student will just do, with no link to performing the behaviour, is not contingent.
+4. `follows_behavior` — does the CONSEQUENCE EVENT (gaining or losing the thing) occur after the behaviour? Judge the delivery, not the wording. "I am not allowed X until I do B" DOES satisfy this: X is delivered once B happens, which is the ordinary shape of a reinforcement contingency. It fails only when nothing is ever delivered contingent on the behaviour — the plan is purely to remove a temptation or set up the environment in advance, which is an antecedent manipulation rather than a consequence.
+5. `stimulus_is_arranged` — is the consequence something the student arranges, as opposed to the behaviour's own automatic result? Removing an obligation or chore IS arranged; '{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=C1}} body' is not.
+6. `observed_type` — given increase-or-decrease and add-or-remove, which of PR/NR/PP/NP is it actually? Use `none` only if 1-4 fail.
+   DUAL DESCRIPTIONS: an arrangement of the form "I am not allowed X until I do B" is genuinely describable two ways — as PR of B (X is granted once B happens) and as NP of not-B (X is withheld while B is absent). Both are correct readings. When the arrangement admits both and one of them is the type under discussion, report that one; do not mark it a mismatch.
+7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED when the behaviour occurs ("so I don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87}} it") rather than by what is added or removed after it. This never changes the score; it flags the answer for a phrasing comment. It is the ONLY criterion that judges this phrasing — no other check may deduct for it.
+
+8. `named_type` — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly ("{{corpus:D2/p15:d2:28:41:sha=561e03f6a586:shape=R13-0-20}}{{corpus:D2/p15:d2:42:110:sha=bd23c4b2e196}}" is Positive Punishment). Use `unclear` only when neither says.
+9. `cadence_ok` — is the TRIGGER evaluated weekly? Judge only how often the behaviour is checked, not how long the consequence lasts: a daily trigger whose reward runs to the end of the week is still daily. Set this false only when the contingency is plainly settled on the other schedule — e.g. a daily slot answered with a whole-week tally.
+10. `targets_own_behavior` — is it aimed at this student's own UTB/WGB rather than some clearly different behaviour?
+
+
+## Deduction codes — the course's canonical wording for each gap
+- `BLANK` (-4): did not answer
+- `NOT_OC` (-4): This example is not Operant Conditioning.
+- `NOT_EXTERNAL_STIMULUS` (-4): Remember that what you add or take away after your behavior has to be easily controlled by you and be an outside stimulus.
+- `TYPE_MISMATCH` (-2): Your weekly example does not match the type of Operant Conditioning that you previously chose.
+- `WRONG_BEHAVIOR` (-1): The behavior you target in this example is not your chosen behavior.
+- `CADENCE_MISMATCH` (-4): This is a daily example.
+- `LINK_NOT_ASSERTED` (-1): Say that the consequence happens BECAUSE of the behavior, and make it something you add or take away — not just the absence of a penalty you would otherwise apply.
+
+## Grading guidance
+- Operant conditioning has exactly four types, defined by two questions: is the target behaviour being INCREASED (reinforcement) or DECREASED (punishment), and is a stimulus being ADDED (positive) or TAKEN AWAY (negative)?
+  - Positive Reinforcement: add something desirable to increase a behaviour.
+  - Negative Reinforcement: take away something undesirable to increase a behaviour.
+  - Positive Punishment: {{corpus:D1/p8:d1:32:60:sha=60e5588ab7ff}} decrease a behaviour.
+  - Negative Punishment: take away something desirable to decrease a behaviour.
+- TEST 1 — IS THERE AN EXPLICIT CONTINGENCY? This is the primary test and it is about FORM. A creditable answer links the behaviour to the consequence conditionally: "If I [do / fail to do the behaviour], I will [gain / lose Y]". An answer that names a reward without tying it to the behaviour fails even though a reward is present — "{{corpus:PR/p10:pr:0:31:sha=d8e6b017bfed:shape=R31-0-20}}{{corpus:PR/p10:pr:32:35:sha=e326cff641fb}} {{corpus:PR/p10:pr:52:97:sha=3cdef347ee1d}} weeks" scored 0, with the grader asking the student to "state what the exact behavior you are trying to increase is and what you are adding after that behavior is exhibited". A bare prediction with no plan at all ("{{corpus:NP/p1:np:0:17:sha=868176d33c58:shape=R17-0-20}}{{corpus:NP/p1:np:18:29:sha=88dbce75bea2}} tired") also scores 0.
+- TEST 2 — DOES THE CONSEQUENCE ARRIVE AFTER THE BEHAVIOUR? "Remember that what you take away or add has to happen after the behavior is exhibited." Judge the DELIVERY, not the wording. "{{corpus:NP/p14:np:0:31:sha=ad86a1265c58:shape=R31-0-20}}{{corpus:NP/p14:np:32:65:sha=ba6ec09787a0}} goal" passes: the outing is delivered once the goal is met, which is the ordinary shape of a reinforcement contingency, and the graders credited it. What fails is a plan where nothing is ever delivered contingent on the behaviour — "{{corpus:DAY1/p6:day1:0:10:sha=85ea7f191b92:shape=R10-0-20}}{{corpus:DAY1/p6:day1:11:32:sha=0e832a9eac69}}" or "{{corpus:WK1/p13:wk1:0:45:sha=20eb7e2cf18e:shape=R45-0-20}}{{corpus:WK1/p13:wk1:46:51:sha=cd7ac4c61fd8}}" are antecedent manipulations that remove a temptation in advance and never tie anything to performing the behaviour.
+- TEST 3 — WHICH OF THE FOUR TYPES IS IT? Before crediting a type, answer the two questions explicitly: is the behaviour being INCREASED or DECREASED, and is something being ADDED or TAKEN AWAY? Then compare with the type under discussion. Well-formed contingencies of the WRONG type are the most commonly missed deduction on this handout — "{{corpus:NR/p15:nr:57:86:sha=76296a38201e:shape=R29-0-20}}{{corpus:NR/p15:nr:87:119:sha=0fdcea55153c:shape=A9}} studying" is PR, not NR (-2); "{{corpus:WK2/p15:wk2:0:9:sha=11b990983ce7:shape=R9-0-20}}{{corpus:WK2/p15:wk2:10:58:sha=f37b5aff32de}}" is NP (-2); "{{corpus:NR/p14:nr:46:51:sha=9cb0dea67a72:shape=R5-0-20}}{{corpus:NR/p14:nr:52:83:sha=658c91c9eff0}} exercise" is not NR (-2).
+- WHAT COUNTS AS THE ADDED OR REMOVED THING — BE BROAD. It does not have to be a physical object. Removing an unpleasant OBLIGATION, chore, or requirement is a perfectly good negative reinforcer, and the graders gave full credit for all of these: "{{corpus:NR/p7:nr:0:38:sha=b15b136396fe}} 10pm {{corpus:NR/p7:nr:45:103:sha=04d046dff05b}} procrastinated"; "{{corpus:NR/p20:nr:0:54:sha=4b832e36ef1b:shape=R54-0-20}}{{corpus:NR/p20:nr:55:75:sha=d85dba6461b2}} tired"; "{{corpus:DAY1/p1:day1:0:43:sha=cbf992b9e213:shape=R43-0-20}}{{corpus:DAY1/p1:day1:44:65:sha=e00a2d5c84ce:shape=S1-20}}". Do NOT deduct these as intrinsic outcomes.
+- NOT_EXTERNAL_STIMULUS is reserved for the narrow case where the named consequence is simply the behaviour's own automatic result AND no conditional plan is stated — the canonical zero is "{{corpus:PR/p1:pr:0:18:sha=04923497e5d4:shape=R18-0-20}}{{corpus:PR/p1:pr:19:42:sha=d177395a37c4}} body". If the answer is phrased as an if/then arrangement the student sets up, this code does not apply; judge it on tests 2 and 3 instead.
+- SAFETY: flag, but do not deduct for, any example that withholds food, sleep, or medical care, or that punishes with exercise in a way that could harm the student. The graders wrote notes like "Please change this example to remove something not related to meals. It is important to us that you are safe and healthy throughout this behavior modification!" while leaving the score at full.
+- The example must match the type named in T1. A correct example of a DIFFERENT one of the four types is TYPE_MISMATCH (-2), not NOT_OC. Apply test 3 above before crediting the match — do not assume the student's example is the type they named.
+- CADENCE: this item asks for a weekly example, and answering it at the wrong cadence voids it. A daily slot answered with a week-long contingency scored 0, the grader writing only "This is a weekly example." Check that the contingency actually operates weekly.
+- WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour from the student's UTB/WGB — a plan about procrastination when the UTB is {{corpus:Q1/p15:response:49:53:sha=336074805fc8:shape=R4-0-20}}{{corpus:Q1/p15:response:54:76:sha=019d6dc324ea}} Do not deduct it merely because the phrasing is loose or the link is indirect: "{{corpus:DAY1/p15:day1:40:90:sha=67f07d606067:shape=R50-0-20}}{{corpus:DAY1/p15:day1:91:108:sha=05e50f4b87e6}} assignments" earned full credit against a screen-time goal. It stacks with TYPE_MISMATCH when both are true.
+- IMPLICIT (from gold): advisory notes without deduction are common on these items — "I suggest changing your punisher to something not related to exercise" was written on a 4.0. Put that kind of remark in advisory_note.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `observed_type` — `PR`/`NR`/`PP`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
+- `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
+- `named_type` — `PR`/`NR`/`PP`/`NP`/`unclear`: criterion 8 (`named_type`) — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly. `unclear` only when neither says. Reported, never scored — but the grader compares it against the type the example actually is, so report it accurately rather than helpfully
+- `cadence_is_weekly` **GATE** — `yes`/`no`: criterion 9 (`cadence_ok`). Judge how often the BEHAVIOUR IS CHECKED, not how long the consequence lasts. This gate takes the whole item, so answer `no` only when the contingency is plainly settled on the daily schedule. When it could be read either way, it is weekly
+- `targets_own_behavior` — `yes`/`no`: criterion 10 (`targets_own_behavior`)
+- `consequence_asserted` — `yes`/`no`: one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. "{{corpus:DAY2/p13:day2:0:12:sha=88f25a1bfa3a:shape=R12-0-20}}{{corpus:DAY2/p13:day2:13:82:sha=b5e079f14be7:shape=C380000}}" is `no`, while "{{corpus:DAY1/p16:day1:0:58:sha=d9d8f7292ea6:shape=C180000}} TV" is `yes` — the same two facts, but the second asserts the link. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded, and it never changes the score
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+DO NOT ANSWER `matches_chosen_type`. The grader computes it by comparing `observed_type` with `named_type` — the two checks above that you DO answer. It is not in your schema, and the comparison is not a judgement you can make more accurately than the arithmetic can. Where either is `unclear`, no mismatch is established and nothing is charged.
+
+A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### _utb
+<Ref id="bmod_h2_wk1_ref_utb" target="bmod_h1_utb" />
+
+### _wgb
+<Ref id="bmod_h2_wk1_ref_wgb" target="bmod_h1_q2_response" />
+
+### T1
+<Ref id="bmod_h2_wk1_ref_t" target="bmod_h2_t1" />
+
+### D1
+<Ref id="bmod_h2_wk1_ref_d" target="bmod_h2_d1" />
+
+## Student response to grade (item WK1)
+<Ref id="bmod_h2_wk1_ref" target="bmod_h2_wk1" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes. Costs and the item
+           total live on the sheet; this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h2_wk1_grader" target="bmod_h2_wk1_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: Second chosen type ============================= -->
+
+  <Vertical id="bmod_h2_second" title="Your second type">
+    <Markdown id="bmod_h2_second_prompt">
+## The second type you will use
+
+This must be **different** from your first choice.
+
+Your first choice was: **{{@bmod_h2_t1.value}}**
+    </Markdown>
+
+    <CapaProblem id="bmod_h2_t2_problem" title="Second type" showanswer="never">
+      <CorrectGrader id="bmod_h2_t2_grader">
+        <Markdown id="bmod_h2_t2_prompt">Which type will you use second?</Markdown>
+        <ChoiceInput id="bmod_h2_t2">
+        <Key id="bmod_h2_t2_pr" value="Positive Reinforcement">Positive
+        Reinforcement</Key>
+        <Key id="bmod_h2_t2_nr" value="Negative Reinforcement">Negative
+        Reinforcement</Key>
+          <Key id="bmod_h2_t2_pp" value="Positive Punishment">Positive Punishment</Key>
+          <Key id="bmod_h2_t2_np" value="Negative Punishment">Negative Punishment</Key>
+        </ChoiceInput>
+      </CorrectGrader>
+    </CapaProblem>
+
+    <DerivedChecks id="bmod_h2_t2_checks"
+                   verdicts="met,absent"
+                   slots="type_stated:Names the second type you will use@2"
+                   derived="type_stated:present:bmod_h2_t2"
+                   max="2" />
+    <SlotSheetGrader id="bmod_h2_t2_sheet_grader" target="bmod_h2_t2_checks" />
+    <OnChange id="bmod_h2_t2_regrade"
+              watch="@bmod_h2_t2_checks.checks"
+              target="bmod_h2_t2_sheet_grader" />
+
+    <Markdown id="bmod_h2_d2_label">**Define it.**</Markdown>
+    <TextArea id="bmod_h2_d2" rows="3" placeholder="I will use ___, which is..." />
+
+    <LLMFeedback id="bmod_h2_d2_feedback" />
+    <ActionButton id="bmod_h2_d2_btn" label="Check my definition">
+      <LLMAction id="bmod_h2_d2_llm" target="bmod_h2_d2_feedback"
+                 equals="matches_chosen_type:defines_type,named_type:unclear"
+                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose:met/absent|add_or_remove:Says whether something is added or taken away@1|increase_or_decrease:Says whether the behavior increases or decreases@1|uncertain:Any judgement you were unsure about:no/yes">
+You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item D2 — 2 points
+
+## Question asked of the student
+Define the second type of Operant Conditioning you chose. A complete definition says whether something is being ADDED or TAKEN AWAY, and whether the behaviour is being INCREASED or DECREASED.
+
+## Credit components
+- `defines_type`: Which of the four types this DEFINITION describes, judged on its content alone: something added or removed, behaviour increased or decreased
+- `named_type`: Which of the four the student CHOSE, read from T2 in the context below; `unclear` only if it is blank or unreadable
+- `matches_chosen_type` **GATE**: The definition describes the type the student named in T2. A definition that is correct for a DIFFERENT type than the one they chose is WRONG_DEFINITION (-2), not merely incomplete
+- `add_or_remove` (1 pt): States whether something is added or taken away
+- `increase_or_decrease` (1 pt): States whether the behaviour increases or decreases
+
+## Deduction codes — the course's canonical wording for each gap
+- `BLANK` (-2): did not answer
+- `WRONG_DEFINITION` (-2): This is not the correct definition for the Operant Conditioning type you chose.
+- `INCOMPLETE_DEFINITION` (-1): -1 point: Did not provide the entire definition (Is something being added or taken away? Is the behavior increasing or decreasing?)
+
+## Grading guidance
+- Operant conditioning has exactly four types, defined by two questions: is the target behaviour being INCREASED (reinforcement) or DECREASED (punishment), and is a stimulus being ADDED (positive) or TAKEN AWAY (negative)?
+  - Positive Reinforcement: add something desirable to increase a behaviour.
+  - Negative Reinforcement: take away something undesirable to increase a behaviour.
+  - Positive Punishment: {{corpus:D1/p8:d1:32:60:sha=60e5588ab7ff}} decrease a behaviour.
+  - Negative Punishment: take away something desirable to decrease a behaviour.
+- INCOMPLETE_DEFINITION is for a definition that is right as far as it goes but omits one of the two halves — e.g. says something is removed but never says the behaviour decreases.
+- IMPLICIT (from gold): graders accepted textbook phrasing and the student's own words equally. "{{corpus:D2/p9:d2:0:55:sha=ce88cb4261ac:shape=R55-0-20}}{{corpus:D2/p9:d2:56:58:sha=fa51fd49abf6}} exhibited" earned full credit. Do not require the course's exact wording.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `defines_type` — `PR`/`NR`/`PP`/`NP`/`unclear`: which of the four types this DEFINITION describes, judged on its content alone: something added or removed, behaviour increased or decreased. Do not look at what they chose — that is the other check, and the grader does the comparison
+- `named_type` — `PR`/`NR`/`PP`/`NP`/`unclear`: which of the four the student chose, read from the type slot in the context below. `unclear` only if it is blank or unreadable
+- `add_or_remove` — `met`/`absent`/`unclear`: States whether something is added or taken away
+- `increase_or_decrease` — `met`/`absent`/`unclear`: States whether the behaviour increases or decreases
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+DO NOT ANSWER `matches_chosen_type` **GATE**. The grader computes it by comparing `defines_type` with `named_type` — the two checks above that you DO answer. It is not in your schema, and the comparison is not a judgement you can make more accurately than the arithmetic can. Where either is `unclear`, no mismatch is established and nothing is charged.
+
+A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### _utb
+<Ref id="bmod_h2_d2_ref_utb" target="bmod_h1_utb" />
+
+### _wgb
+<Ref id="bmod_h2_d2_ref_q2_response" target="bmod_h1_q2_response" />
+
+### T2
+<Ref id="bmod_h2_d2_ref_t" target="bmod_h2_t2" />
+
+## Student response to grade (item D2)
+<Ref id="bmod_h2_d2_ref" target="bmod_h2_d2" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes. Costs and the item
+           total live on the sheet; this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h2_d2_grader" target="bmod_h2_d2_feedback" />
+    </ActionButton>
+
+    <Markdown id="bmod_h2_day2_label">**Daily example**</Markdown>
+    <TextArea id="bmod_h2_day2" rows="3" />
+
+    <LLMFeedback id="bmod_h2_day2_feedback" />
+    <ActionButton id="bmod_h2_day2_btn" label="Check my daily example">
+      <LLMAction id="bmod_h2_day2_llm" target="bmod_h2_day2_feedback"
+                 verdicts="yes,no,unclear"
+                 equals="matches_chosen_type:observed_type,named_type:unclear"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_daily:Checked each day rather than against the week:yes/no|matches_chosen_type:Matches your second chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement you were unsure about:no/yes"
+                 max="4">
+You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item DAY2 — 4 points
+
+## Question asked of the student
+Give a daily example of how you will use your second chosen type of Operant Conditioning during your intervention.
+
+## How to judge this item
+Do NOT output a score or a deduction list. Fill in the criteria sheet; the score is computed from it.
+
+Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is changed by a CONSEQUENCE that is contingent on it. Answer these in order and answer them literally about what the student wrote:
+1. `behavior` — quote the voluntary behaviour of the student that the plan acts on. If the answer names no behaviour of theirs, leave this an empty string.
+2. `stimulus` — quote the thing being added or taken away. Empty string if none is named.
+3. `contingent` — is the stimulus delivered BECAUSE of that behaviour (or its absence)? A statement of something the student will just do, with no link to performing the behaviour, is not contingent.
+4. `follows_behavior` — does the CONSEQUENCE EVENT (gaining or losing the thing) occur after the behaviour? Judge the delivery, not the wording. "I am not allowed X until I do B" DOES satisfy this: X is delivered once B happens, which is the ordinary shape of a reinforcement contingency. It fails only when nothing is ever delivered contingent on the behaviour — the plan is purely to remove a temptation or set up the environment in advance, which is an antecedent manipulation rather than a consequence.
+5. `stimulus_is_arranged` — is the consequence something the student arranges, as opposed to the behaviour's own automatic result? Removing an obligation or chore IS arranged; '{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=C1}} body' is not.
+6. `observed_type` — given increase-or-decrease and add-or-remove, which of PR/NR/PP/NP is it actually? Use `none` only if 1-4 fail.
+   DUAL DESCRIPTIONS: an arrangement of the form "I am not allowed X until I do B" is genuinely describable two ways — as PR of B (X is granted once B happens) and as NP of not-B (X is withheld while B is absent). Both are correct readings. When the arrangement admits both and one of them is the type under discussion, report that one; do not mark it a mismatch.
+7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED when the behaviour occurs ("so I don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87}} it") rather than by what is added or removed after it. This never changes the score; it flags the answer for a phrasing comment. It is the ONLY criterion that judges this phrasing — no other check may deduct for it.
+
+8. `named_type` — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly ("{{corpus:D2/p15:d2:28:41:sha=561e03f6a586:shape=R13-0-20}}{{corpus:D2/p15:d2:42:110:sha=bd23c4b2e196}}" is Positive Punishment). Use `unclear` only when neither says.
+9. `cadence_ok` — is the TRIGGER evaluated daily? Judge only how often the behaviour is checked, not how long the consequence lasts: a daily trigger whose reward runs to the end of the week is still daily. Set this false only when the contingency is plainly settled on the other schedule — e.g. a daily slot answered with a whole-week tally.
+10. `targets_own_behavior` — is it aimed at this student's own UTB/WGB rather than some clearly different behaviour?
+
+
+## Deduction codes — the course's canonical wording for each gap
+- `BLANK` (-4): did not answer
+- `NOT_OC` (-4): This example is not Operant Conditioning.
+- `NOT_EXTERNAL_STIMULUS` (-4): Remember that what you add or take away after your behavior has to be easily controlled by you and be an outside stimulus.
+- `TYPE_MISMATCH` (-2): Your daily example does not match the type of Operant Conditioning that you previously chose.
+- `WRONG_BEHAVIOR` (-1): The behavior you target in this example is not your chosen behavior.
+- `CADENCE_MISMATCH` (-4): This is a weekly example.
+- `LINK_NOT_ASSERTED` (-1): Say that the consequence happens BECAUSE of the behavior, and make it something you add or take away — not just the absence of a penalty you would otherwise apply.
+
+## Grading guidance
+- Operant conditioning has exactly four types, defined by two questions: is the target behaviour being INCREASED (reinforcement) or DECREASED (punishment), and is a stimulus being ADDED (positive) or TAKEN AWAY (negative)?
+  - Positive Reinforcement: add something desirable to increase a behaviour.
+  - Negative Reinforcement: take away something undesirable to increase a behaviour.
+  - Positive Punishment: {{corpus:D1/p8:d1:32:60:sha=60e5588ab7ff}} decrease a behaviour.
+  - Negative Punishment: take away something desirable to decrease a behaviour.
+- TEST 1 — IS THERE AN EXPLICIT CONTINGENCY? This is the primary test and it is about FORM. A creditable answer links the behaviour to the consequence conditionally: "If I [do / fail to do the behaviour], I will [gain / lose Y]". An answer that names a reward without tying it to the behaviour fails even though a reward is present — "{{corpus:PR/p10:pr:0:31:sha=d8e6b017bfed:shape=R31-0-20}}{{corpus:PR/p10:pr:32:35:sha=e326cff641fb}} {{corpus:PR/p10:pr:52:97:sha=3cdef347ee1d}} weeks" scored 0, with the grader asking the student to "state what the exact behavior you are trying to increase is and what you are adding after that behavior is exhibited". A bare prediction with no plan at all ("{{corpus:NP/p1:np:0:17:sha=868176d33c58:shape=R17-0-20}}{{corpus:NP/p1:np:18:29:sha=88dbce75bea2}} tired") also scores 0.
+- TEST 2 — DOES THE CONSEQUENCE ARRIVE AFTER THE BEHAVIOUR? "Remember that what you take away or add has to happen after the behavior is exhibited." Judge the DELIVERY, not the wording. "{{corpus:NP/p14:np:0:31:sha=ad86a1265c58:shape=R31-0-20}}{{corpus:NP/p14:np:32:65:sha=ba6ec09787a0}} goal" passes: the outing is delivered once the goal is met, which is the ordinary shape of a reinforcement contingency, and the graders credited it. What fails is a plan where nothing is ever delivered contingent on the behaviour — "{{corpus:DAY1/p6:day1:0:10:sha=85ea7f191b92:shape=R10-0-20}}{{corpus:DAY1/p6:day1:11:32:sha=0e832a9eac69}}" or "{{corpus:WK1/p13:wk1:0:45:sha=20eb7e2cf18e:shape=R45-0-20}}{{corpus:WK1/p13:wk1:46:51:sha=cd7ac4c61fd8}}" are antecedent manipulations that remove a temptation in advance and never tie anything to performing the behaviour.
+- TEST 3 — WHICH OF THE FOUR TYPES IS IT? Before crediting a type, answer the two questions explicitly: is the behaviour being INCREASED or DECREASED, and is something being ADDED or TAKEN AWAY? Then compare with the type under discussion. Well-formed contingencies of the WRONG type are the most commonly missed deduction on this handout — "{{corpus:NR/p15:nr:57:86:sha=76296a38201e:shape=R29-0-20}}{{corpus:NR/p15:nr:87:119:sha=0fdcea55153c:shape=A9}} studying" is PR, not NR (-2); "{{corpus:WK2/p15:wk2:0:9:sha=11b990983ce7:shape=R9-0-20}}{{corpus:WK2/p15:wk2:10:58:sha=f37b5aff32de}}" is NP (-2); "{{corpus:NR/p14:nr:46:51:sha=9cb0dea67a72:shape=R5-0-20}}{{corpus:NR/p14:nr:52:83:sha=658c91c9eff0}} exercise" is not NR (-2).
+- WHAT COUNTS AS THE ADDED OR REMOVED THING — BE BROAD. It does not have to be a physical object. Removing an unpleasant OBLIGATION, chore, or requirement is a perfectly good negative reinforcer, and the graders gave full credit for all of these: "{{corpus:NR/p7:nr:0:38:sha=b15b136396fe}} 10pm {{corpus:NR/p7:nr:45:103:sha=04d046dff05b}} procrastinated"; "{{corpus:NR/p20:nr:0:54:sha=4b832e36ef1b:shape=R54-0-20}}{{corpus:NR/p20:nr:55:75:sha=d85dba6461b2}} tired"; "{{corpus:DAY1/p1:day1:0:43:sha=cbf992b9e213:shape=R43-0-20}}{{corpus:DAY1/p1:day1:44:65:sha=e00a2d5c84ce:shape=S1-20}}". Do NOT deduct these as intrinsic outcomes.
+- NOT_EXTERNAL_STIMULUS is reserved for the narrow case where the named consequence is simply the behaviour's own automatic result AND no conditional plan is stated — the canonical zero is "{{corpus:PR/p1:pr:0:18:sha=04923497e5d4:shape=R18-0-20}}{{corpus:PR/p1:pr:19:42:sha=d177395a37c4}} body". If the answer is phrased as an if/then arrangement the student sets up, this code does not apply; judge it on tests 2 and 3 instead.
+- SAFETY: flag, but do not deduct for, any example that withholds food, sleep, or medical care, or that punishes with exercise in a way that could harm the student. The graders wrote notes like "Please change this example to remove something not related to meals. It is important to us that you are safe and healthy throughout this behavior modification!" while leaving the score at full.
+- The example must match the type named in T2. A correct example of a DIFFERENT one of the four types is TYPE_MISMATCH (-2), not NOT_OC. Apply test 3 above before crediting the match — do not assume the student's example is the type they named.
+- CADENCE: this item asks for a daily example, and answering it at the wrong cadence voids it. A daily slot answered with a week-long contingency scored 0, the grader writing only "This is a weekly example." Check that the contingency actually operates daily.
+- WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour from the student's UTB/WGB — a plan about procrastination when the UTB is {{corpus:Q1/p15:response:49:53:sha=336074805fc8:shape=R4-0-20}}{{corpus:Q1/p15:response:54:76:sha=019d6dc324ea}} Do not deduct it merely because the phrasing is loose or the link is indirect: "{{corpus:DAY1/p15:day1:40:90:sha=67f07d606067:shape=R50-0-20}}{{corpus:DAY1/p15:day1:91:108:sha=05e50f4b87e6}} assignments" earned full credit against a screen-time goal. It stacks with TYPE_MISMATCH when both are true.
+- IMPLICIT (from gold): advisory notes without deduction are common on these items — "I suggest changing your punisher to something not related to exercise" was written on a 4.0. Put that kind of remark in advisory_note.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `observed_type` — `PR`/`NR`/`PP`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
+- `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
+- `named_type` — `PR`/`NR`/`PP`/`NP`/`unclear`: criterion 8 (`named_type`) — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly. `unclear` only when neither says. Reported, never scored — but the grader compares it against the type the example actually is, so report it accurately rather than helpfully
+- `cadence_is_daily` **GATE** — `yes`/`no`: criterion 9 (`cadence_ok`). Judge how often the BEHAVIOUR IS CHECKED, not how long the consequence lasts — a daily trigger whose reward runs to the end of the week is still daily. This gate takes the whole item, so answer `no` only when the contingency is plainly settled on the weekly schedule, e.g. a daily slot answered with a whole-week tally. When it could be read either way, it is daily
+- `targets_own_behavior` — `yes`/`no`: criterion 10 (`targets_own_behavior`)
+- `consequence_asserted` — `yes`/`no`: one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. "{{corpus:DAY2/p13:day2:0:12:sha=88f25a1bfa3a:shape=R12-0-20}}{{corpus:DAY2/p13:day2:13:82:sha=b5e079f14be7:shape=C380000}}" is `no`, while "{{corpus:DAY1/p16:day1:0:58:sha=d9d8f7292ea6:shape=C180000}} TV" is `yes` — the same two facts, but the second asserts the link. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded, and it never changes the score
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+DO NOT ANSWER `matches_chosen_type`. The grader computes it by comparing `observed_type` with `named_type` — the two checks above that you DO answer. It is not in your schema, and the comparison is not a judgement you can make more accurately than the arithmetic can. Where either is `unclear`, no mismatch is established and nothing is charged.
+
+A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### _utb
+<Ref id="bmod_h2_day2_ref_utb" target="bmod_h1_utb" />
+
+### _wgb
+<Ref id="bmod_h2_day2_ref_wgb" target="bmod_h1_q2_response" />
+
+### T2
+<Ref id="bmod_h2_day2_ref_t" target="bmod_h2_t2" />
+
+### D2
+<Ref id="bmod_h2_day2_ref_d" target="bmod_h2_d2" />
+
+## Student response to grade (item DAY2)
+<Ref id="bmod_h2_day2_ref" target="bmod_h2_day2" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes. Costs and the item
+           total live on the sheet; this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h2_day2_grader" target="bmod_h2_day2_feedback" />
+    </ActionButton>
+
+    <Markdown id="bmod_h2_wk2_label">**Weekly example**</Markdown>
+    <TextArea id="bmod_h2_wk2" rows="3" />
+
+    <LLMFeedback id="bmod_h2_wk2_feedback" />
+    <ActionButton id="bmod_h2_wk2_btn" label="Check my weekly example">
+      <LLMAction id="bmod_h2_wk2_llm" target="bmod_h2_wk2_feedback"
+                 verdicts="yes,no,unclear"
+                 equals="matches_chosen_type:observed_type,named_type:unclear"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_weekly:Checked against the week rather than each day:yes/no|matches_chosen_type:Matches your second chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement you were unsure about:no/yes"
+                 max="4">
+You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item WK2 — 4 points
+
+## Question asked of the student
+Give a weekly example of how you will use your second chosen type of Operant Conditioning during your intervention.
+
+## How to judge this item
+Do NOT output a score or a deduction list. Fill in the criteria sheet; the score is computed from it.
+
+Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is changed by a CONSEQUENCE that is contingent on it. Answer these in order and answer them literally about what the student wrote:
+1. `behavior` — quote the voluntary behaviour of the student that the plan acts on. If the answer names no behaviour of theirs, leave this an empty string.
+2. `stimulus` — quote the thing being added or taken away. Empty string if none is named.
+3. `contingent` — is the stimulus delivered BECAUSE of that behaviour (or its absence)? A statement of something the student will just do, with no link to performing the behaviour, is not contingent.
+4. `follows_behavior` — does the CONSEQUENCE EVENT (gaining or losing the thing) occur after the behaviour? Judge the delivery, not the wording. "I am not allowed X until I do B" DOES satisfy this: X is delivered once B happens, which is the ordinary shape of a reinforcement contingency. It fails only when nothing is ever delivered contingent on the behaviour — the plan is purely to remove a temptation or set up the environment in advance, which is an antecedent manipulation rather than a consequence.
+5. `stimulus_is_arranged` — is the consequence something the student arranges, as opposed to the behaviour's own automatic result? Removing an obligation or chore IS arranged; '{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=C1}} body' is not.
+6. `observed_type` — given increase-or-decrease and add-or-remove, which of PR/NR/PP/NP is it actually? Use `none` only if 1-4 fail.
+   DUAL DESCRIPTIONS: an arrangement of the form "I am not allowed X until I do B" is genuinely describable two ways — as PR of B (X is granted once B happens) and as NP of not-B (X is withheld while B is absent). Both are correct readings. When the arrangement admits both and one of them is the type under discussion, report that one; do not mark it a mismatch.
+7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED when the behaviour occurs ("so I don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87}} it") rather than by what is added or removed after it. This never changes the score; it flags the answer for a phrasing comment. It is the ONLY criterion that judges this phrasing — no other check may deduct for it.
+
+8. `named_type` — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly ("{{corpus:D2/p15:d2:28:41:sha=561e03f6a586:shape=R13-0-20}}{{corpus:D2/p15:d2:42:110:sha=bd23c4b2e196}}" is Positive Punishment). Use `unclear` only when neither says.
+9. `cadence_ok` — is the TRIGGER evaluated weekly? Judge only how often the behaviour is checked, not how long the consequence lasts: a daily trigger whose reward runs to the end of the week is still daily. Set this false only when the contingency is plainly settled on the other schedule — e.g. a daily slot answered with a whole-week tally.
+10. `targets_own_behavior` — is it aimed at this student's own UTB/WGB rather than some clearly different behaviour?
+
+
+## Deduction codes — the course's canonical wording for each gap
+- `BLANK` (-4): did not answer
+- `NOT_OC` (-4): This example is not Operant Conditioning.
+- `NOT_EXTERNAL_STIMULUS` (-4): Remember that what you add or take away after your behavior has to be easily controlled by you and be an outside stimulus.
+- `TYPE_MISMATCH` (-2): Your weekly example does not match the type of Operant Conditioning that you previously chose.
+- `WRONG_BEHAVIOR` (-1): The behavior you target in this example is not your chosen behavior.
+- `CADENCE_MISMATCH` (-4): This is a daily example.
+- `LINK_NOT_ASSERTED` (-1): Say that the consequence happens BECAUSE of the behavior, and make it something you add or take away — not just the absence of a penalty you would otherwise apply.
+
+## Grading guidance
+- Operant conditioning has exactly four types, defined by two questions: is the target behaviour being INCREASED (reinforcement) or DECREASED (punishment), and is a stimulus being ADDED (positive) or TAKEN AWAY (negative)?
+  - Positive Reinforcement: add something desirable to increase a behaviour.
+  - Negative Reinforcement: take away something undesirable to increase a behaviour.
+  - Positive Punishment: {{corpus:D1/p8:d1:32:60:sha=60e5588ab7ff}} decrease a behaviour.
+  - Negative Punishment: take away something desirable to decrease a behaviour.
+- TEST 1 — IS THERE AN EXPLICIT CONTINGENCY? This is the primary test and it is about FORM. A creditable answer links the behaviour to the consequence conditionally: "If I [do / fail to do the behaviour], I will [gain / lose Y]". An answer that names a reward without tying it to the behaviour fails even though a reward is present — "{{corpus:PR/p10:pr:0:31:sha=d8e6b017bfed:shape=R31-0-20}}{{corpus:PR/p10:pr:32:35:sha=e326cff641fb}} {{corpus:PR/p10:pr:52:97:sha=3cdef347ee1d}} weeks" scored 0, with the grader asking the student to "state what the exact behavior you are trying to increase is and what you are adding after that behavior is exhibited". A bare prediction with no plan at all ("{{corpus:NP/p1:np:0:17:sha=868176d33c58:shape=R17-0-20}}{{corpus:NP/p1:np:18:29:sha=88dbce75bea2}} tired") also scores 0.
+- TEST 2 — DOES THE CONSEQUENCE ARRIVE AFTER THE BEHAVIOUR? "Remember that what you take away or add has to happen after the behavior is exhibited." Judge the DELIVERY, not the wording. "{{corpus:NP/p14:np:0:31:sha=ad86a1265c58:shape=R31-0-20}}{{corpus:NP/p14:np:32:65:sha=ba6ec09787a0}} goal" passes: the outing is delivered once the goal is met, which is the ordinary shape of a reinforcement contingency, and the graders credited it. What fails is a plan where nothing is ever delivered contingent on the behaviour — "{{corpus:DAY1/p6:day1:0:10:sha=85ea7f191b92:shape=R10-0-20}}{{corpus:DAY1/p6:day1:11:32:sha=0e832a9eac69}}" or "{{corpus:WK1/p13:wk1:0:45:sha=20eb7e2cf18e:shape=R45-0-20}}{{corpus:WK1/p13:wk1:46:51:sha=cd7ac4c61fd8}}" are antecedent manipulations that remove a temptation in advance and never tie anything to performing the behaviour.
+- TEST 3 — WHICH OF THE FOUR TYPES IS IT? Before crediting a type, answer the two questions explicitly: is the behaviour being INCREASED or DECREASED, and is something being ADDED or TAKEN AWAY? Then compare with the type under discussion. Well-formed contingencies of the WRONG type are the most commonly missed deduction on this handout — "{{corpus:NR/p15:nr:57:86:sha=76296a38201e:shape=R29-0-20}}{{corpus:NR/p15:nr:87:119:sha=0fdcea55153c:shape=A9}} studying" is PR, not NR (-2); "{{corpus:WK2/p15:wk2:0:9:sha=11b990983ce7:shape=R9-0-20}}{{corpus:WK2/p15:wk2:10:58:sha=f37b5aff32de}}" is NP (-2); "{{corpus:NR/p14:nr:46:51:sha=9cb0dea67a72:shape=R5-0-20}}{{corpus:NR/p14:nr:52:83:sha=658c91c9eff0}} exercise" is not NR (-2).
+- WHAT COUNTS AS THE ADDED OR REMOVED THING — BE BROAD. It does not have to be a physical object. Removing an unpleasant OBLIGATION, chore, or requirement is a perfectly good negative reinforcer, and the graders gave full credit for all of these: "{{corpus:NR/p7:nr:0:38:sha=b15b136396fe}} 10pm {{corpus:NR/p7:nr:45:103:sha=04d046dff05b}} procrastinated"; "{{corpus:NR/p20:nr:0:54:sha=4b832e36ef1b:shape=R54-0-20}}{{corpus:NR/p20:nr:55:75:sha=d85dba6461b2}} tired"; "{{corpus:DAY1/p1:day1:0:43:sha=cbf992b9e213:shape=R43-0-20}}{{corpus:DAY1/p1:day1:44:65:sha=e00a2d5c84ce:shape=S1-20}}". Do NOT deduct these as intrinsic outcomes.
+- NOT_EXTERNAL_STIMULUS is reserved for the narrow case where the named consequence is simply the behaviour's own automatic result AND no conditional plan is stated — the canonical zero is "{{corpus:PR/p1:pr:0:18:sha=04923497e5d4:shape=R18-0-20}}{{corpus:PR/p1:pr:19:42:sha=d177395a37c4}} body". If the answer is phrased as an if/then arrangement the student sets up, this code does not apply; judge it on tests 2 and 3 instead.
+- SAFETY: flag, but do not deduct for, any example that withholds food, sleep, or medical care, or that punishes with exercise in a way that could harm the student. The graders wrote notes like "Please change this example to remove something not related to meals. It is important to us that you are safe and healthy throughout this behavior modification!" while leaving the score at full.
+- The example must match the type named in T2. A correct example of a DIFFERENT one of the four types is TYPE_MISMATCH (-2), not NOT_OC. Apply test 3 above before crediting the match — do not assume the student's example is the type they named.
+- CADENCE: this item asks for a weekly example, and answering it at the wrong cadence voids it. A daily slot answered with a week-long contingency scored 0, the grader writing only "This is a weekly example." Check that the contingency actually operates weekly.
+- WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour from the student's UTB/WGB — a plan about procrastination when the UTB is {{corpus:Q1/p15:response:49:53:sha=336074805fc8:shape=R4-0-20}}{{corpus:Q1/p15:response:54:76:sha=019d6dc324ea}} Do not deduct it merely because the phrasing is loose or the link is indirect: "{{corpus:DAY1/p15:day1:40:90:sha=67f07d606067:shape=R50-0-20}}{{corpus:DAY1/p15:day1:91:108:sha=05e50f4b87e6}} assignments" earned full credit against a screen-time goal. It stacks with TYPE_MISMATCH when both are true.
+- IMPLICIT (from gold): advisory notes without deduction are common on these items — "I suggest changing your punisher to something not related to exercise" was written on a 4.0. Put that kind of remark in advisory_note.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `observed_type` — `PR`/`NR`/`PP`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
+- `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
+- `named_type` — `PR`/`NR`/`PP`/`NP`/`unclear`: criterion 8 (`named_type`) — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly. `unclear` only when neither says. Reported, never scored — but the grader compares it against the type the example actually is, so report it accurately rather than helpfully
+- `cadence_is_weekly` **GATE** — `yes`/`no`: criterion 9 (`cadence_ok`). Judge how often the BEHAVIOUR IS CHECKED, not how long the consequence lasts. This gate takes the whole item, so answer `no` only when the contingency is plainly settled on the daily schedule. When it could be read either way, it is weekly
+- `targets_own_behavior` — `yes`/`no`: criterion 10 (`targets_own_behavior`)
+- `consequence_asserted` — `yes`/`no`: one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. "{{corpus:DAY2/p13:day2:0:12:sha=88f25a1bfa3a:shape=R12-0-20}}{{corpus:DAY2/p13:day2:13:82:sha=b5e079f14be7:shape=C380000}}" is `no`, while "{{corpus:DAY1/p16:day1:0:58:sha=d9d8f7292ea6:shape=C180000}} TV" is `yes` — the same two facts, but the second asserts the link. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded, and it never changes the score
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+DO NOT ANSWER `matches_chosen_type`. The grader computes it by comparing `observed_type` with `named_type` — the two checks above that you DO answer. It is not in your schema, and the comparison is not a judgement you can make more accurately than the arithmetic can. Where either is `unclear`, no mismatch is established and nothing is charged.
+
+A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### _utb
+<Ref id="bmod_h2_wk2_ref_utb" target="bmod_h1_utb" />
+
+### _wgb
+<Ref id="bmod_h2_wk2_ref_wgb" target="bmod_h1_q2_response" />
+
+### T2
+<Ref id="bmod_h2_wk2_ref_t" target="bmod_h2_t2" />
+
+### D2
+<Ref id="bmod_h2_wk2_ref_d" target="bmod_h2_d2" />
+
+## Student response to grade (item WK2)
+<Ref id="bmod_h2_wk2_ref" target="bmod_h2_wk2" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes. Costs and the item
+           total live on the sheet; this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h2_wk2_grader" target="bmod_h2_wk2_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: Review ========================================= -->
+
+  <Vertical id="bmod_h2_review" title="Review and submit">
+    <Markdown id="bmod_h2_submission">
+## Your Handout 2
+
+### Examples of each type
+**Positive Reinforcement:** {{@bmod_h2_pr.value}}
+
+**Negative Reinforcement:** {{@bmod_h2_nr.value}}
+
+**Positive Punishment:** {{@bmod_h2_pp.value}}
+
+**Negative Punishment:** {{@bmod_h2_np.value}}
+
+### First type: {{@bmod_h2_t1.value}}
+**Definition:** {{@bmod_h2_d1.value}}
+
+**Daily:** {{@bmod_h2_day1.value}}
+
+**Weekly:** {{@bmod_h2_wk1.value}}
+
+### Second type: {{@bmod_h2_t2.value}}
+**Definition:** {{@bmod_h2_d2.value}}
+
+**Daily:** {{@bmod_h2_day2.value}}
+
+**Weekly:** {{@bmod_h2_wk2.value}}
+    </Markdown>
+
+    <Markdown id="bmod_h2_next">
+Start collecting your **baseline** data now. You will need one week of baseline
+plus three weeks of intervention data for Handout 3.
+    </Markdown>
+
+    <ActionButton id="bmod_h2_print_btn" label="Print or save as PDF">
+      <PrintAction id="bmod_h2_print" />
+    </ActionButton>
+  </Vertical>
+
+</Sequential>

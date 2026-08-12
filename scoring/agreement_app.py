@@ -1,0 +1,1366 @@
+"""Measure the lo-blocks prompts by driving the app, not by imitating it.
+
+This supersedes agreement.py, which called the model itself and carried its own
+copy of the scoring rules. Everything substantive now lives where it belongs:
+
+  the prompt and its schema   -> the LLMAction in the .olx
+  the call                    -> the app's own LLM client
+  the scoring rule            -> SlotSheetGrader / scoreSlotSheet in lo-blocks
+
+What is left here is the two things a harness should do: prepare fixtures from
+the paper corpus, and compare the app's output against the graders' rows.
+
+The only arithmetic performed here is turning the grader's fraction into points
+(fraction x the sheet's own total). That is arithmetic over what the app
+published, not a rule about what anything is worth.
+
+Run:
+    python3 agreement_app.py --item Q6                 # all participants
+    python3 agreement_app.py --item Q6 --participants 1 5 8
+
+Requires the dev server on 8888. Only items whose slot sheet carries point
+values (@n) are gradeable; --list shows which.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import statistics
+import subprocess
+import sys
+import tempfile
+
+import simulate_h3
+from handouts import config, exemplar_drops, find_submissions, suspect
+from segment import repair_orphans, segment, utb_hint
+import paths
+
+# Ordinal cues the students actually use.
+_SECOND = re.compile(r"\b(my\s+)?(second|2nd|another|other)\b|\b2\s*[).:]", re.I)
+
+
+def split_two(text: str) -> tuple[str, str, str]:
+    """Split one paper answer into the two entries the web version asks for.
+
+    The paper corpus holds each answer as a single block; the web version gives
+    the student two boxes. Putting the whole block in the first box and leaving
+    the second empty is not neutral — it biases exactly the "is the second one
+    there" slots this measures — so the block is split.
+
+    Returns (first, second, how). `how` is reported rather than discarded,
+    because the three methods are not equally trustworthy: an explicit "2)" is
+    the student's own boundary, one-entry-per-line is nearly as good, and a
+    sentence midpoint is a guess that can cut one entry's discussion in half.
+    """
+    t = (text or "").strip()
+    if not t:
+        return "", "", "empty"
+    m2 = _SECOND.search(t, 1)
+    if m2 and m2.start() > 20:
+        return t[:m2.start()].strip(), t[m2.start():].strip(), "ordinal"
+    lines = [l.strip() for l in t.split("\n") if l.strip()]
+    if len(lines) >= 2:
+        half = (len(lines) + 1) // 2
+        return " ".join(lines[:half]), " ".join(lines[half:]), "lines"
+    # No ordinal marker and no line break means the student wrote ONE entry.
+    # Splitting at a sentence midpoint invents a second one, which is worse than
+    # leaving it empty: an empty second box is a real state the graders penalise
+    # ("missing second antecedent"), whereas a fabricated entry is student work
+    # that does not exist. Both p9 and p17 were mis-scored this way.
+    return t, "", "single"
+
+# How much of the consensus vote must agree on a slot's verdict before the frozen
+# span is treated as a reading rather than a coin toss. 0.8 is set just under the
+# observed floor: on the current table 158 of 160 slots sit at 1.0 and the other
+# two at 0.5, so this separates the real gap without being tuned to it.
+CONSENSUS_MIN_SHARE = 0.8
+
+# Cells with no stable ground truth to compare against, per item. Unlike
+# handouts.suspect() — which drops a PARTICIPANT from a whole handout because its
+# submission cannot be trusted at all — these are single cells where the
+# comparison itself is not defined. handouts.exemplar_drops() is a third kind:
+# per-item, because self-grading follows the prompt. Passing --exclude explicitly
+# overrides all of them.
+PER_ITEM_EXCLUDE = {
+    "Q6": {
+        9: "the CLI split 5/5 on state_c2 and affect_c2 across ten runs, so the "
+           "consensus fixture had to break a tie; also one of the four "
+           "documented gold divergences (A_MISMATCH on state_a1)",
+    },
+    "Q4c": {
+        16: "gold 3.0 for \"did not say if this behavior is a good choice for you "
+            "modify and why\" — but the handout asks that under 4b (\"explain if "
+            "your unwanted target behavior is a good choice for you to modify AND "
+            "why\", with its own `Modify:` field), and Q4b carries "
+            "modify_stated/modify_why for 3 of its 5 points. 4c asks only for two "
+            "consequences plus the keyword. The deduction is misfiled: p16's Q4b "
+            "row is a clean 5.0, so the point came off the wrong item. No correct "
+            "4c scorer can reach 3.0, and both systems return 5.0. Mirrored in "
+            "agreement.py's PER_ITEM_EXCLUDE — drop it on one side only and the "
+            "item's two columns stop being a comparison.",
+    },
+    "1c": {
+        4: "no graph on paper (gold 0, \"Did not provide a graph\") but all four weeks "
+           "of data supplied — on the web that data DRAWS the chart, so the paper "
+           "failure is unreachable rather than missed",
+        19: "the same: gold 0 for no graph, four complete weeks of data",
+        20: "the same failure in its third form: p20 supplied a written DESCRIPTION "
+            "of a graph, which the rubric names as this item's 'did not include' "
+            "(\"Participant 20 wrote exactly that\"). On the web a description IS the "
+            "answer — the labels are typed into fields and the chart is drawn from "
+            "their four complete weeks — so there is nothing left to fail. p15 and "
+            "p18 are NOT excluded: their data is incomplete and the completeness "
+            "gate catches both.",
+    },
+}
+
+LO = str(paths.lo_root())
+RUNNER = paths.RUNNER
+
+# Which screen carries each item, and which paper section feeds each field.
+# Fixtures only — no judgement about what anything is worth.
+JOBS = {
+    # Handout 1. `_utb_choice` resolves the closed ChoiceInput; a "split" pair is
+    # fed from one paper block, which holds both entries the web version asks for.
+    "Q1": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q1", "ns": paths.NS,
+        "button": "Check my answer",
+        "feedback": "bmod_h1_q1_feedback", "grader": "bmod_h1_q1_grader",
+        "fields": {
+                   "bmod_h1_utb": "_utb_choice",
+                   "bmod_h1_q1_response": "Q1",
+        },
+        "split": {
+
+        },
+    },
+    "Q2": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q2", "ns": paths.NS,
+        "button": "Check my answer",
+        "feedback": "bmod_h1_q2_feedback", "grader": "bmod_h1_q2_grader",
+        "fields": {
+                   "bmod_h1_utb": "_utb_choice",
+                   "bmod_h1_q2_response": "Q2",
+        },
+        "split": {
+
+        },
+    },
+    "Q4a": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q4a", "ns": paths.NS,
+        "button": "Check my antecedents",
+        "feedback": "bmod_h1_q4a_feedback", "grader": "bmod_h1_q4a_grader",
+        "fields": {"bmod_h1_utb": "_utb_choice"},
+        "from_scorer": {"bmod_h1_q4a_first": "antecedent_1",
+                        "bmod_h1_q4a_second": "antecedent_2"},
+    },
+    "Q4c": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q4c", "ns": paths.NS,
+        "button": "Check my consequences",
+        "feedback": "bmod_h1_q4c_feedback", "grader": "bmod_h1_q4c_grader",
+        "fields": {"bmod_h1_utb": "_utb_choice"},
+        "from_scorer": {"bmod_h1_q4c_first": "consequence_1",
+                        "bmod_h1_q4c_second": "consequence_2"},
+    },
+    "Q5": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q5", "ns": paths.NS,
+        "button": "Check my answer",
+        "feedback": "bmod_h1_q5_feedback", "grader": "bmod_h1_q5_grader",
+        "fields": {"bmod_h1_utb": "_utb_choice"},
+        "from_scorer": {"bmod_h1_q5_first": "example_1",
+                        "bmod_h1_q5_second": "example_2",
+                        "bmod_h1_q4c_first": "consequence_1",
+                        "bmod_h1_q4c_second": "consequence_2"},
+    },
+    "Q6": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q6", "ns": paths.NS,
+        "button": "Check my answer",
+        "feedback": "bmod_h1_q6_feedback", "grader": "bmod_h1_q6_grader",
+        "fields": {"bmod_h1_utb": "_utb_choice"},
+        # The spans come from a CONSENSUS of ten CLI runs, frozen in a file, not
+        # from whatever the last rescore happened to quote. The CLI's verdicts are
+        # near-deterministic (156 of 160 slots unanimous across ten runs) but its
+        # quotations are not (47% of spans move per rerun), and the fixture IS the
+        # spans — so before this, two web runs one rescore apart were not
+        # comparable. See q6_consensus.py for how the vote works and why the
+        # slots are allowed to overlap.
+        "consensus": "out/q6_consensus/consensus.json",
+        # Eight components, eight boxes, NO splitting — and do not "fix" the
+        # overlap between siblings. 36 of 117 filled boxes share text with a
+        # sibling (`state_c1` and `affect_c1` are often one sentence, or one
+        # inside the other) and that is FAITHFUL: a single sentence can both
+        # name the consequence and say how it is affected, which is exactly what
+        # this item's guidance tells the grader to allow ("PRESENCE IS NOT
+        # WORDING"). Switching to the anchored split to remove the overlap
+        # slices those sentences into fragments — p9's `affect_c1` became "With
+        # this" — and took the item from 11/17 to 3/17, bias -0.13 to -0.94.
+        # anchored_split's docstring was right: here the quote IS the answer.
+        "from_scorer": {
+            "bmod_h1_q6_state_a1": "state_a1", "bmod_h1_q6_change_a1": "change_a1",
+            "bmod_h1_q6_state_c1": "state_c1", "bmod_h1_q6_affect_c1": "affect_c1",
+            "bmod_h1_q6_state_a2": "state_a2", "bmod_h1_q6_change_a2": "change_a2",
+            "bmod_h1_q6_state_c2": "state_c2", "bmod_h1_q6_affect_c2": "affect_c2",
+        },
+    },
+
+    # Handout 2. Every item declares the same fallback: 7 of 20 transcriptions
+    # leave this handout's restatement of the behaviour and goal empty, and
+    # without them the model judges a contingency against a goal it cannot see.
+    "PR": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_four", "ns": paths.NS,
+        "button": "Check my Positive Reinforcement example",
+        "feedback": "bmod_h2_pr_feedback", "grader": "bmod_h2_pr_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_pr": "PR"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "NR": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_four", "ns": paths.NS,
+        "button": "Check my Negative Reinforcement example",
+        "feedback": "bmod_h2_nr_feedback", "grader": "bmod_h2_nr_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_nr": "NR"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "PP": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_four", "ns": paths.NS,
+        "button": "Check my Positive Punishment example",
+        "feedback": "bmod_h2_pp_feedback", "grader": "bmod_h2_pp_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_pp": "PP"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "NP": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_four", "ns": paths.NS,
+        "button": "Check my Negative Punishment example",
+        "feedback": "bmod_h2_np_feedback", "grader": "bmod_h2_np_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_np": "NP"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "D1": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_first", "ns": paths.NS,
+        "button": "Check my definition",
+        "feedback": "bmod_h2_d1_feedback", "grader": "bmod_h2_d1_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_t1": "T1", "bmod_h2_t1": "T1",
+                   "bmod_h2_d1": "D1"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "DAY1": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_first", "ns": paths.NS,
+        "button": "Check my daily example",
+        "feedback": "bmod_h2_day1_feedback", "grader": "bmod_h2_day1_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_t1": "T1", "bmod_h2_d1": "D1",
+                   "bmod_h2_day1": "DAY1"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "WK1": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_first", "ns": paths.NS,
+        "button": "Check my weekly example",
+        "feedback": "bmod_h2_wk1_feedback", "grader": "bmod_h2_wk1_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_t1": "T1", "bmod_h2_d1": "D1",
+                   "bmod_h2_wk1": "WK1"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "D2": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_second", "ns": paths.NS,
+        "button": "Check my definition",
+        "feedback": "bmod_h2_d2_feedback", "grader": "bmod_h2_d2_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_t2": "T2", "bmod_h2_t2": "T2",
+                   "bmod_h2_d2": "D2"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "DAY2": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_second", "ns": paths.NS,
+        "button": "Check my daily example",
+        "feedback": "bmod_h2_day2_feedback", "grader": "bmod_h2_day2_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_t2": "T2", "bmod_h2_d2": "D2",
+                   "bmod_h2_day2": "DAY2"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "WK2": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_second", "ns": paths.NS,
+        "button": "Check my weekly example",
+        "feedback": "bmod_h2_wk2_feedback", "grader": "bmod_h2_wk2_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_t2": "T2", "bmod_h2_d2": "D2",
+                   "bmod_h2_wk2": "WK2"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+
+    # ---- the last seven, each needing a split the two-way one cannot do ----
+    "Q3": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q3", "ns": paths.NS,
+        "button": "Check my SMART goal",
+        "feedback": "bmod_h1_q3_feedback", "grader": "bmod_h1_q3_grader",
+        "fields": {"bmod_h1_utb": "_utb_choice", "bmod_h1_q2_response": "Q2"},
+        "from_scorer": {
+            "bmod_h1_q3_specific": "specific",
+            "bmod_h1_q3_measurable": "measurable",
+            "bmod_h1_q3_action": "action_oriented",
+            "bmod_h1_q3_realistic": "realistic",
+            "bmod_h1_q3_timebound": "time_bound",
+        },
+        # Q3's aspects are discursive: the evidence quote is one sentence of a
+        # longer answer, so it anchors a slice rather than replacing it.
+        "anchored": True,
+    },
+    "Q4b": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q4b", "ns": paths.NS,
+        "button": "Check my answer",
+        "feedback": "bmod_h1_q4b_feedback", "grader": "bmod_h1_q4b_grader",
+        "fields": {"bmod_h1_utb": "_utb_choice", "bmod_h1_q2_response": "Q2"},
+        "split": {"Q4a": ("bmod_h1_q4a_first", "bmod_h1_q4a_second")},
+        "handsplit": "handsplit/Q4b.json",
+    },
+    "1a": {
+        "handout": 3, "screen": f"{paths.NS}/bmod_h3_overview", "ns": paths.NS,
+        "button": "Check my overview",
+        "feedback": "bmod_h3_overview_feedback", "grader": "bmod_h3_overview_grader",
+        "fields": {"bmod_h3_overview_response": "1a"},
+        # The four weekly boxes come from simulate_h3, which recovers what the
+        # student would have typed from the chart they submitted.
+        "sim": {"bmod_h3_baseline": "baseline", "bmod_h3_wk1": "week_1",
+                "bmod_h3_wk2": "week_2", "bmod_h3_wk3": "week_3"},
+    },
+    "1c": {
+        "handout": 3, "screen": f"{paths.NS}/bmod_h3_graph", "ns": paths.NS,
+        "button": "Check my labelling",
+        "feedback": "bmod_h3_graph_feedback", "grader": "bmod_h3_graph_grader",
+        "fields": {},
+        "fallback": {"_wgb": (1, "Q2")},
+        # The four data fields are seeded as well as the three labels. 1c's sheet
+        # gates on `has_own_graph`, which the web asks of the DATA — no numbers,
+        # no chart — rather than of a submitted file. Leave them unseeded and
+        # every cell gates to zero, which would read as a prompt collapse and is
+        # not one. p18 (all four weeks absent) and p15 (baseline and week 3) are
+        # the corpus rows where this actually fires; both are gold 0.
+        # The legend comes from the reconstruction, not from `from_scorer`: the
+        # scorer's `legend` evidence is a verdict in prose ("Legend element
+        # present: True") for the chart-part rows, not the series names a
+        # student would have typed. simulate_h3 recovers those literally.
+        "sim": {"bmod_h3_baseline": "baseline", "bmod_h3_wk1": "week_1",
+                "bmod_h3_wk2": "week_2", "bmod_h3_wk3": "week_3",
+                "bmod_h3_graph_series": "graph_series"},
+        "from_scorer": {"bmod_h3_graph_title": "title",
+                        "bmod_h3_graph_x": "x_axis_label",
+                        "bmod_h3_graph_y": "y_axis_label"},
+    },
+    "2a": {
+        "handout": 3, "screen": f"{paths.NS}/bmod_h3_success", "ns": paths.NS,
+        "button": "Check my answer",
+        "feedback": "bmod_h3_success_feedback", "grader": "bmod_h3_success_grader",
+        "fields": {"bmod_h3_overview_response": "1a"},
+        "from_scorer": {"bmod_h3_success_verdict": "verdict",
+                        "bmod_h3_success_how1": "how_1",
+                        "bmod_h3_success_how2": "how_2"},
+    },
+    "2b": {
+        "handout": 3, "screen": f"{paths.NS}/bmod_h3_assessment", "ns": paths.NS,
+        "button": "Check my assessment",
+        "feedback": "bmod_h3_assessment_feedback", "grader": "bmod_h3_assessment_grader",
+        "fields": {"bmod_h3_assessment_response": "2b",
+                   "bmod_h2_t1": "_t1", "bmod_h2_t2": "_t2"},
+        # The types the student chose are in Handout 2, which this item asks them
+        # to reflect on; `_t1`/`_t2` exist only to be filled from there.
+        "fallback": {"_t1": (2, "T1"), "_t2": (2, "T2")},
+    },
+    # Three items whose every verdict is DERIVED from the student's fields, so
+    # there is no prompt, no button and no LLM call: DerivedChecks publishes the
+    # sheet as soon as the fields are seeded and SlotSheetGrader scores it. They
+    # are deterministic, which is why they are worth having in the corpus —
+    # whatever they measure, they measure the same way every run.
+    #
+    # All three were scored on the CLI and by nothing on the web until now.
+    "T1": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_first", "ns": paths.NS,
+        "feedback": "bmod_h2_t1_checks", "grader": "bmod_h2_t1_sheet_grader",
+        "fields": {"bmod_h2_t1": "_type_choice:T1"},
+    },
+    "T2": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_second", "ns": paths.NS,
+        "feedback": "bmod_h2_t2_checks", "grader": "bmod_h2_t2_sheet_grader",
+        "fields": {"bmod_h2_t2": "_type_choice:T2"},
+    },
+    # The same four data fields 1c seeds, from the same reconstruction — 1b scores
+    # their presence and 1c gates on whether they plot at all.
+    "1b": {
+        "handout": 3, "screen": f"{paths.NS}/bmod_h3_data", "ns": paths.NS,
+        "feedback": "bmod_h3_data_checks", "grader": "bmod_h3_data_grader",
+        "fields": {},
+        "sim": {"bmod_h3_baseline": "baseline", "bmod_h3_wk1": "week_1",
+                "bmod_h3_wk2": "week_2", "bmod_h3_wk3": "week_3"},
+    },
+    "3": {
+        "handout": 3, "screen": f"{paths.NS}/bmod_h3_improve", "ns": paths.NS,
+        "button": "Check my answer",
+        "feedback": "bmod_h3_improve_feedback", "grader": "bmod_h3_improve_grader",
+        "fields": {},
+        "from_scorer": {"bmod_h3_improve_first": "example_1",
+                        "bmod_h3_improve_second": "example_2"},
+    },
+}
+
+# The web version asks for the unwanted behaviour as a closed choice, so the
+# fixture has to carry one of its four values — not the paper student's prose,
+# which is an input the block cannot hold.
+UTB_CHOICES = {
+    "lack of sleep": ("sleep",),
+    "lack of exercise": ("exercis", "gym", "workout", "work out"),
+    "{{corpus:Q1/p12:response:31:69:sha=67aefa440274}} vegetables": ("fruit", "vegetable", "veggie"),
+    "spending too much time on electronic devices": (
+        "electronic", "phone", "screen", "device", "social media", "tiktok", "video game"),
+}
+
+
+def detect_utb(path: str, q1: str) -> str:
+    """Which of the four choices this student picked.
+
+    Prefers the formatting the handout asked for (underline the choice), which
+    survives in only some transcriptions, and otherwise reads it from the prose
+    the same way the scorer does.
+    """
+    hint = utb_hint(path)
+    if hint:
+        return hint
+    low = (q1 or "").lower()
+    best, score = "", 0
+    for value, cues in UTB_CHOICES.items():
+        n = sum(low.count(c) for c in cues)
+        if n > score:
+            best, score = value, n
+    return best
+
+
+SCORER_OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+
+
+_ANNOTATED = re.compile(r'^\s*["“](?P<q>.+?)["”]\s*(?:[—–]|--)\s*\S')
+
+
+def _quoted_span(ev: str) -> str:
+    """A quote the scorer annotated, reduced to the quote.
+
+    Matches only `"…" — prose`: an em/en dash AFTER a closing quote mark. A
+    hyphen inside the student's own words, or a dash with no quotes around the
+    span, is left alone — the aim is to drop the scorer's commentary, not to
+    reformat what the student wrote.
+    """
+    m = _ANNOTATED.match(ev or "")
+    return m.group("q").strip() if m else (ev or "").strip()
+
+
+def counted_members(handout: int, item: str) -> dict[str, tuple[str, list[str]]]:
+    """{member component: (count slot, all members)} for this item's counted groups.
+
+    Read from the rubric rather than listed here, so adding a counted group cannot
+    silently bypass the guard below.
+    """
+    from handouts import config
+    spec = config(handout)["rubric"].BY_ID.get(item) or {}
+    out: dict[str, tuple[str, list[str]]] = {}
+    for cr in spec.get("counts", []) or []:
+        for m in cr["slots"]:
+            out[m] = (cr["key"], list(cr["slots"]))
+    return out
+
+
+def scorer_verdict(handout: int, pid: int, item: str, comp: str) -> str:
+    """One component's stored verdict, for reading a counted group's count."""
+    path = os.path.join(SCORER_OUT, f"h{handout}", f"participant_{pid:03d}.json")
+    if not os.path.exists(path):
+        return ""
+    with open(path) as fh:
+        rec = json.load(fh)
+    for it in rec.get("items", []):
+        if it.get("item_id") == item:
+            for c in it.get("credit_checks", []):
+                if re.split(r"\s*\(", c.get("what", ""))[0].strip() == comp:
+                    return str(c.get("verdict") or "")
+    return ""
+
+
+PLACEHOLDER_EV = re.compile(r"^\d+ found$")
+
+
+def distribute_counted(block: str, claimed: list[str], fields: list[str], n: int) -> dict[str, str]:
+    """Deal a block across the first `n` of a counted group's member fields.
+
+    A counted group's members are DERIVED: score.py records the count in the
+    group's own slot and writes a placeholder as each member's evidence
+    ("2 found"), because there is no per-member quote to record. Feeding that
+    placeholder into the field put the literal string "2 found" into the
+    student's box — 2a fell from 90% to 5% and item 3 from 95% to 10%, on both
+    shipped scorers, and the model's own feedback named it ("both are just
+    '2 found'"). The paper scorer was unaffected because it reads the .docx.
+    stale_check.py could not see it either: the records match the rubric
+    exactly, since a placeholder IS correct evidence for a derived member.
+
+    Before the `counts` refactor score.py asked for each member separately and
+    did record a span per member, which is what this reconstruction was built
+    on; stale predictions masked the change until they were refreshed.
+
+    So the members are filled mechanically instead: strip whatever a
+    non-counted field already claimed, then deal the remaining sentences into
+    the first `n` boxes as contiguous runs. That reproduces what the count
+    grades — how many separate things the student said — without depending on
+    an evidence format that varies cell to cell ("(1) ... (2) ...", "HOW #1:
+    ...", or free prose, all three of which occur).
+    """
+    text = " ".join((block or "").split())
+    for c in claimed:
+        c = " ".join((c or "").split())
+        if c and c in text:
+            text = text.replace(c, " ", 1)
+    text = " ".join(text.split())
+    out = {f: "" for f in fields}
+    if n <= 0 or not text:
+        return out
+    sents = [x.strip() for x in re.split(r"(?<=[.!?])\s+", text) if x.strip()]
+    if not sents:
+        return out
+    n = min(n, len(fields))
+    per = max(1, len(sents) // n)
+    for i in range(n):
+        chunk = sents[i * per:] if i == n - 1 else sents[i * per:(i + 1) * per]
+        out[fields[i]] = " ".join(chunk).strip()
+    return out
+
+
+def scorer_evidence(handout: int, pid: int, item: str) -> dict[str, str]:
+    """The per-component spans score.py already extracted for this cell.
+
+    The item-by-item scorer quotes, for every credit component, the span of the
+    student's response that earns it — and it has done that for all 20
+    participants of all three handouts, with its agreement against the graders
+    measured. That is exactly the decomposition the web version's separate
+    fields need, and it was on disk in out/hN the whole time: two regex
+    splitters and a hand-read table went into rediscovering it.
+
+    An unmet component sometimes carries a note about what was looked for
+    instead of a quote ("Looked for any mention of 4c's other consequence ...").
+    Those are dropped — an empty field is the right fixture for something the
+    student did not write, and a description of an absence is not their words.
+
+    It also sometimes annotates a real quote: `"{{corpus:Q6/p9:affect_c1:10:55:sha=c168024a17ed:shape=S5-0a20202020,A12}} health" — loosely worded, but this is the 4c
+    consequence`. The commentary is the scorer's reasoning, not the student's
+    words, so only the quoted span is kept. Leaving it in put the CLI's own
+    analysis into the student's box on 10 of Q6's 117 filled fields, and the
+    leading quote mark also stopped `anchored_split` locating the span at all,
+    which sent it down the fallback path that keeps the annotation verbatim.
+    """
+    path = os.path.join(SCORER_OUT, f"h{handout}", f"participant_{pid:03d}.json")
+    if not os.path.exists(path):
+        return {}
+    with open(path) as fh:
+        rec = json.load(fh)
+    for it in rec.get("items", []):
+        if it.get("item_id") != item:
+            continue
+        out = {}
+        for c in it.get("credit_checks", []):
+            name = re.split(r"\s*\(", c.get("what", ""))[0].strip()
+            ev = (c.get("evidence") or "").strip()
+            # Where the scorer recorded a VERDICT, trust it: only `absent` means
+            # the student wrote nothing, so only `absent` earns an empty box. A
+            # `mismatch` or `not_described` is their words and belongs in the
+            # field — emptying it made the web's `mismatch` verdict unreachable,
+            # which is this item's most common deduction. Plain-path items carry
+            # no verdict, so they keep the prose heuristic.
+            verdict = c.get("verdict")
+            if verdict is not None:
+                if verdict == "absent":
+                    ev = ""
+            elif not c.get("met") and re.match(
+                    r"(looked for|no |nothing|not |absent|none)", ev, re.I):
+                ev = ""
+            out[name] = _quoted_span(ev)
+        return out
+    return {}
+
+
+def anchored_split(raw: str, spans: list[tuple[str, str]]) -> dict[str, str]:
+    """Partition a block using the scorer's evidence quotes as ANCHORS.
+
+    `credit_checks[].evidence` is a justification, not a segmentation. Where a
+    component maps to a discrete answer — one of Q6's eight slots, one of Q4a's
+    two antecedents — the quote is the whole answer and can be used directly.
+    Where it maps to a stretch of discursive prose, the quote is only the
+    sentence that earned the point, and using it as the field value throws the
+    rest away: Q3 lost over 20% of the student's words on 7 of 20 cells, up to
+    41%, and its three discursive aspects carry every disagreement with the CLI
+    scorer while its one crisp aspect carries none.
+
+    So locate each quote in the original and slice from one anchor to the next.
+    The boundaries come from the scorer's own extraction rather than a pattern
+    guessing where an aspect begins, which is what made the earlier splitters
+    unreliable, and nothing the student wrote is dropped.
+    """
+    text = raw or ""
+    low = text.lower()
+    hits = []
+    for field, quote in spans:
+        q = " ".join((quote or "").split())
+        if not q:
+            continue
+        at = low.find(q[:40].lower())
+        if at < 0:                      # quote reworded or absent: fall back to it
+            hits.append((None, field, q))
+        else:
+            hits.append((at, field, None))
+    located = sorted([h for h in hits if h[0] is not None])
+    out = {field: "" for field, _ in spans}
+    for i, (start, field, _) in enumerate(located):
+        end = located[i + 1][0] if i + 1 < len(located) else len(text)
+        out[field] = text[start:end].strip()
+    for start, field, q in hits:        # unlocated quotes keep the quote itself
+        if start is None:
+            out[field] = q
+    return out
+
+
+def gold_labels_1c(feedback: str) -> dict[str, bool]:
+    """The grader's verdict on all five of 1c's slots, from their comment.
+
+    Includes the graph gate, and no longer returns None for a row that zeroed on
+    it. The previous version dropped all five zero rows on the grounds that they
+    "state no labelling verdicts" — but its own reasoning said the web can reach
+    zero "where the data is absent", and p15 and p18 are exactly that: their 1b
+    data is incomplete, the `has_own_graph` gate fires on it, and both systems
+    score them 0.00 against a gold of 0.00. Excluding them threw away two cells
+    the comparison can use, and left 1c measured over 15 cells on this side
+    against 17 on the CLI's.
+
+    The three rows that genuinely cannot fail here — data complete, no figure on
+    paper — are p4, p19 and p20, and they are dropped upstream by
+    PER_ITEM_EXCLUDE["1c"], which never puts them in the work list at all. This
+    function no longer needs to know about them.
+
+    Mirrors gold_slots_1c in agreement.py. The two must agree: a row scored on
+    one side and dropped on the other is not a comparison.
+    """
+    f = (feedback or "").lower()
+    no_graph = "did not include" in f or "did not provide a graph" in f
+    return {
+        "has_own_graph": not no_graph,
+        "title": not no_graph and "missing graph title" not in f,
+        "x": not no_graph and "missing x-axis" not in f,
+        # The dictionary text is "missing the legend"; the graders wrote
+        # "missing legend". Match either.
+        "y": not no_graph and "missing y-axis" not in f,
+        "legend": not no_graph and re.search(r"missing (the )?legend", f) is None,
+    }
+
+
+def rebuild_gold_1c(gold: dict) -> tuple[dict, list[int]]:
+    """Restate gold's 1c from its labelling verdicts, on the same 10 points.
+
+    The paper item is 10: having a graph, a title, two axis labels and a legend,
+    2 each. The web sheet now carries all five, so the totals agree and this no
+    longer rescales anything — a row that states labelling verdicts is scored
+    10 minus 2 per element the grader faulted.
+
+    It still exists because p11's gold carries an improvised "-1 pt: missing
+    baseline data week" that no slot on either side scores; rebuilding from the
+    verdicts drops it cleanly, where subtracting from the raw score would not.
+    (p11's row does not self-reconcile anyway: it itemises -2/-2/-1 against a
+    score of 7.0.) It no longer drops anything — a gate failure is a score of
+    zero, not an absent gold — and the rows that cannot fail on the web are held
+    out upstream by PER_ITEM_EXCLUDE["1c"].
+    """
+    # Nulled as well as held out of the work list, matching agreement.py: the
+    # work-list drop stops the call, and nulling the gold stops the row counting
+    # if that drop is bypassed — which `--exclude` with explicit values does.
+    # Read off PER_ITEM_EXCLUDE so the two drops cannot disagree.
+    unreachable = set(PER_ITEM_EXCLUDE.get("1c", {}))
+    dropped: list[int] = []
+    for pid, items in gold.items():
+        cell = items.get("1c")
+        if not cell:
+            continue
+        if pid in unreachable:
+            items["1c"] = {"score": None, "feedback": cell.get("feedback", "")}
+            dropped.append(pid)
+            continue
+        labels = gold_labels_1c(cell.get("feedback"))
+        # The gate takes the whole item, exactly as scoreSlotSheet computes it.
+        score = 0.0 if not labels["has_own_graph"] else \
+            10.0 - 2.0 * sum(1 for ok in labels.values() if not ok)
+        items["1c"] = {"score": score, "feedback": cell.get("feedback", "")}
+    return gold, sorted(dropped)
+
+
+def sections_for(handout: int, pid: int) -> dict[str, str]:
+    """The paper sections, repaired the same way score.py repairs them.
+
+    `repair_orphans` moves a block the segmenter filed under the wrong heading to
+    the item it belongs to. score.py has always applied it; this did not, so the two
+    systems read DIFFERENT INPUT wherever it fires — which makes the comparison for
+    that cell meaningless rather than merely wrong. H2 p19 is the only case in the
+    corpus: its DAY2 answer was filed under D2, so the web scored DAY2 with an empty
+    box (correctly reporting nothing, and gating to 0 against a gold of 4) while the
+    CLI read the 82 characters the student wrote.
+    """
+    cfg = config(handout)
+    path = dict(find_submissions(handout, [pid]))[pid]
+    sec = segment(path, cfg["template"], cfg["markers"], cfg["capture_tail"],
+                  cfg.get("join_aware", False))
+    if cfg.get("repair_orphans"):
+        sec, _ = repair_orphans(sec, [i["id"] for i in cfg["rubric"].ITEMS])
+    return sec
+
+
+_MODIFY = re.compile(r"^\s*modify\s*[:.]", re.I | re.M)
+
+
+def split_labelled(text: str, labels: list[tuple[str, str]]) -> dict[str, str]:
+    """Cut one block into its labelled parts, LINE BY LINE.
+
+    Students write these two ways, and both are common. Some label explicitly
+    ("Specific: my goal is..."); others put one aspect per line as prose ("{{corpus:Q3/p1:specific:10:29:sha=ce92eedf2d96:shape=S0-0a20202020}} because..."). An earlier version required a colon after the
+    aspect word and so found nothing in the prose form — which left four of five
+    fields empty for 12 of 20 participants, while a greedy pattern quietly
+    assigned one aspect's line to the previous field.
+
+    So: walk the lines, and whichever aspect word a line mentions first claims
+    that line. Lines before any aspect word attach to nothing; lines after one
+    attach to it, which keeps a wrapped answer with its own aspect.
+    """
+    out: dict[str, str] = {field: [] for field, _ in labels}
+    current: str | None = None
+    for raw in (text or "").split("\n"):
+        line = raw.strip()
+        if not line:
+            continue
+        hit, at = None, len(line) + 1
+        for field, pattern in labels:
+            m = re.search(pattern, line, re.I)
+            if m and m.start() < at:
+                hit, at = field, m.start()
+        if hit:
+            current = hit
+            # keep the whole line: "{{corpus:Q3/p1:specific:10:37:sha=32a1b1a0f56c}} X" is the answer,
+            # not just the tail after the word
+            out[current].append(line)
+        elif current:
+            out[current].append(line)
+    return {k: " ".join(v).strip() for k, v in out.items()}
+
+
+def split_modify(text: str) -> tuple[str, str, str]:
+    """Separate Q4b's two behaviours from its "is this a good choice" statement.
+
+    Most students label it ("Modify: ..."), and where they do the boundary is
+    theirs. Eight of twenty do not, and returning the whole block as the
+    behaviours then feeds their good-choice statement in as a second behaviour —
+    which the model correctly rejects, costing a slot for a fixture error. They
+    did write the statement; it is simply unlabelled and last.
+
+    So without a label, take the trailing sentence when it reads like the
+    statement — it argues about whether the behaviour is worth changing, rather
+    than describing what they do instead. Position alone is not enough, because a
+    student who never wrote one at all must still come back empty.
+    """
+    t = (text or "").strip()
+    m = _MODIFY.search(t)
+    if m:
+        return t[:m.start()].strip(), t[m.end():].strip(" :\n\t"), "labelled"
+
+    # The statement argues about the choice; a behaviour describes an activity.
+    cues = ("good choice", "good behavior", "good behaviour", "great behavior",
+            "great behaviour", "worth modif", "to modify", "modify because",
+            "change because", "good to change", "good one to",
+            # the other way students argue it: that the behaviour is theirs to
+            # change, which is the criterion the item actually asks about
+            "under my control", "in my control", "i can choose", "i can control",
+            "is an issue for me", "genuinely an issue")
+    pieces = [x.strip() for x in re.split(r"(?<=[.!?])\s+|\n", t) if x.strip()]
+    if len(pieces) >= 2:
+        low = pieces[-1].lower()
+        if any(c in low for c in cues):
+            # a mid-line "Modify:" that the line-anchored pattern missed, and
+            # any list bullet the transcription left in front of it
+            tail = re.sub(r"^[\s\-o•*]*modify\s*[:.]\s*", "", pieces[-1], flags=re.I)
+            return " ".join(pieces[:-1]).strip(), tail.strip(" -o•*\t"), "recovered"
+    return t, "", "none"
+
+
+def split_n(text: str, n: int) -> list[str]:
+    """Cut a block into n parts on the student's own line breaks, else sentences.
+
+    Returns fewer non-empty parts than asked for when the student wrote fewer —
+    an empty box is a real state the graders score, so it is never padded.
+    """
+    t = (text or "").strip()
+    if not t:
+        return [""] * n
+    parts = [x.strip() for x in t.split("\n") if x.strip()]
+    if len(parts) < 2:
+        parts = [x.strip() for x in re.split(r"(?<=[.!?])\s+", t) if x.strip()]
+    if len(parts) <= n:
+        return parts + [""] * (n - len(parts))
+    # more pieces than boxes: distribute, keeping order
+    per = (len(parts) + n - 1) // n
+    return [" ".join(parts[i * per:(i + 1) * per]) for i in range(n)]
+
+
+def fallback_from(spec: dict, pid: int, section: str) -> str:
+    """A section this handout left empty, taken from another handout's submission.
+
+    Handout 2 asks students to restate their behaviour and goal at the top, and
+    7 of 20 transcriptions have those lines empty. Their answers are not lost —
+    they are in Handout 1 — and without them the model is asked to judge a
+    contingency against a goal it cannot see. Every such cell failed for that
+    reason and not because anything was wrong with the prompt.
+    """
+    src = spec.get("fallback", {}).get(section)
+    if not src:
+        return ""
+    handout, other = src
+    found = dict(find_submissions(handout, [pid]))
+    if pid not in found:
+        return ""
+    cfg = config(handout)
+    sec = segment(found[pid], cfg["template"], cfg["markers"], cfg["capture_tail"],
+                  cfg.get("join_aware", False))
+    return (sec.get(other) or "").strip()
+
+
+# Where each context component's text comes from in the paper corpus.
+#   ("section", name)          the paper answer, whole
+#   ("scorer", item, comp)     one component the scorer already separated
+# Keyed by web component id, so it is stated once however many prompts use it.
+CONTEXT_SOURCE = {
+    "bmod_h1_q1_response":      ("section", "Q1"),
+    "bmod_h1_q2_response":      ("section", "Q2"),
+    "bmod_h1_q4a_first":        ("scorer", "Q4a", "antecedent_1"),
+    "bmod_h1_q4a_second":       ("scorer", "Q4a", "antecedent_2"),
+    "bmod_h1_q4b_first":        ("scorer", "Q4b", "behavior_1"),
+    "bmod_h1_q4b_second":       ("scorer", "Q4b", "behavior_2"),
+    "bmod_h1_q4c_first":        ("scorer", "Q4c", "consequence_1"),
+    "bmod_h1_q4c_second":       ("scorer", "Q4c", "consequence_2"),
+    "bmod_h2_t1":               ("section", "T1"),
+    "bmod_h2_d1":               ("section", "D1"),
+    "bmod_h2_t2":               ("section", "T2"),
+    "bmod_h2_d2":               ("section", "D2"),
+    "bmod_h3_overview_response": ("section", "1a"),
+    "bmod_h3_success_verdict":  ("scorer", "2a", "verdict"),
+    "bmod_h3_success_how1":     ("scorer", "2a", "how_1"),
+    "bmod_h3_success_how2":     ("scorer", "2a", "how_2"),
+    "bmod_h3_assessment_response": ("section", "2b"),
+}
+
+
+def context_targets(item: str) -> list[str]:
+    """The components this item's prompt reads as cross-item context."""
+    import olx_prompts
+    h = olx_prompts.HANDOUT[item]
+    rub = config(h)["rubric"].BY_ID[item]
+    out = []
+    for key in rub["context"]:
+        for _, target in olx_prompts.CONTEXT.get(key, ()):
+            out.append(target)
+    return out
+
+
+def context_value(handout: int, pid: int, sec: dict, target: str) -> str:
+    src = CONTEXT_SOURCE.get(target)
+    if src is None:
+        return ""
+    if src[0] == "section":
+        return (sec.get(src[1]) or "").strip()
+    _, other, comp = src
+    # A counted member's evidence is a placeholder, not the student's words, so it
+    # must not be seeded here either — that is how "2 found" reached items 3 and
+    # 2b, which read 2a's boxes as read-only context. Empty is also wrong (an
+    # unseeded ref reads as an EMPTY answer), so fall back to the whole source
+    # section: context needs the student's words, not per-box fidelity.
+    if comp in counted_members(handout, other):
+        return (sec.get(other) or "").strip()
+    return scorer_evidence(handout, pid, other).get(comp, "").strip()
+
+
+# The four options of H2's type ChoiceInput, exactly as authored.
+TYPE_CHOICES = ["Positive Reinforcement", "Negative Reinforcement",
+                "Positive Punishment", "Negative Punishment"]
+
+
+def detect_type(text: str) -> str:
+    """Which of the four types this student wrote, as the option's own value.
+
+    The paper form is a stem the student completes — "I plan to use: positive
+    reinforcement" — so the stem itself names no type and cannot produce a false
+    positive. An unfinished stem is an unanswered item, which is exactly the three
+    zeros in gold (p10, p15, p18 on both T1 and T2). Transcriptions carry the
+    underline as a stray leading underscore and vary in case; neither changes
+    which type was named.
+    """
+    # Not \b: the underline survives transcription as a stray leading underscore
+    # ("_Positive Reinforcement"), and `_` is a word character, so \b would find
+    # no boundary and read p20 as unanswered.
+    m = re.search(r"(?<![A-Za-z])(positive|negative)\s+(reinforcement|punishment)"
+                  r"(?![A-Za-z])", text or "", re.I)
+    if not m:
+        return ""
+    return f"{m.group(1).capitalize()} {m.group(2).capitalize()}"
+
+
+def build_jobs(item: str, pids: list[int]) -> list[dict]:
+    spec = JOBS[item]
+    jobs = []
+    for pid in pids:
+        sec = sections_for(spec["handout"], pid)
+        path = dict(find_submissions(spec["handout"], [pid]))[pid]
+        fixture, fell_back = {}, []
+        for field, section in spec.get("fields", {}).items():
+            if section == "_utb_choice":
+                fixture[field] = detect_utb(path, sec.get("Q1", ""))
+                continue
+            if section.startswith("_type_choice:"):
+                fixture[field] = detect_type(sec.get(section.split(":", 1)[1], ""))
+                continue
+            value = (sec.get(section) or "").strip()
+            if not value:
+                value = fallback_from(spec, pid, section)
+                if value:
+                    fell_back.append(section)
+            fixture[field] = value
+        how = {}
+        for section, labels in spec.get("labelled", {}).items():
+            parts = split_labelled(sec.get(section, ""), labels)
+            fixture.update(parts)
+            how[section] = "labelled" if any(parts.values()) else "empty"
+        for section, (f1, f2, fmod) in spec.get("modify", {}).items():
+            head, mod, prov = split_modify(sec.get(section, ""))
+            a, b, method = split_two(head)
+            fixture[f1], fixture[f2], fixture[fmod] = a, b, mod
+            how[section] = f"{method}, modify {prov}"
+        for section, (n, fields) in spec.get("splitn", {}).items():
+            for field, part in zip(fields, split_n(sec.get(section, ""), n)):
+                fixture[field] = part
+            how[section] = f"{n}-way"
+        # A hand-read fixture beats any rule. Q4b asks for three things and most
+        # students wrote them as continuous prose; three heuristic passes each
+        # traded one error for another, so its 20 cells were read by hand once.
+        # Recorded as data next to the code, so what was measured is inspectable.
+        # Components the scorer already separated, one per field. A tuple joins
+        # several into one field, for the rare box that holds more than one
+        # judgement.
+        fs = spec.get("from_scorer")
+        if fs and spec.get("anchored"):
+            ev = scorer_evidence(spec["handout"], pid, item)
+            raw_block = (sec.get(item) or "")
+            parts = anchored_split(raw_block, [(f, ev.get(c, "")) for f, c in fs.items()])
+            fixture.update(parts)
+            how["_anchored"] = item
+        elif fs:
+            ev = scorer_evidence(spec["handout"], pid, item)
+            # A counted group's member evidence is a placeholder, never a span —
+            # see distribute_counted(). Those fields are dealt from the block.
+            cm = counted_members(spec["handout"], item)
+            plain = {f: c for f, c in fs.items()
+                     if isinstance(c, tuple) or c not in cm}
+            for field, comp in plain.items():
+                if isinstance(comp, tuple):
+                    fixture[field] = " ".join(
+                        x for x in (ev.get(c, "").strip() for c in comp) if x)
+                else:
+                    fixture[field] = ev.get(comp, "").strip()
+            grouped: dict[str, list[tuple[str, str]]] = {}
+            for field, comp in fs.items():
+                if not isinstance(comp, tuple) and comp in cm:
+                    grouped.setdefault(cm[comp][0], []).append((field, comp))
+            for count_key, pairs in grouped.items():
+                order = cm[pairs[0][1]][1]
+                pairs.sort(key=lambda fc: order.index(fc[1]))
+                raw_n = scorer_verdict(spec["handout"], pid, item, count_key)
+                try:
+                    n = int(raw_n)
+                except ValueError:
+                    n = 0
+                member_fields = [f for f, _ in pairs]
+                # score.py stores the model's quoted span per member now, so the
+                # ordinary evidence lookup is right whenever it produced one. It
+                # still writes "N found" where the model quoted nothing (item 3's
+                # evidence is free prose in every cell), and that must never
+                # reach a field — hence the placeholder test and the fallback.
+                vals = [ev.get(c, "").strip() for _, c in pairs]
+                usable = [v for v in vals if v and not PLACEHOLDER_EV.match(v)]
+                if len(usable) == len(vals) and vals:
+                    for f, v in zip(member_fields, vals):
+                        fixture[f] = v
+                    how[f"_counted:{count_key}"] = f"{n}-way from scorer spans"
+                else:
+                    fixture.update(distribute_counted(
+                        sec.get(item) or "",
+                        [fixture[f] for f in plain],
+                        member_fields, n))
+                    how[f"_counted:{count_key}"] = f"{n}-way dealt"
+            how["_from_scorer"] = item
+        # Cross-item context. Every prompt is passed the neighbouring answers its
+        # rubric record names in `context`, so those components have to be seeded
+        # too — an unseeded ref is not "no context", it is an EMPTY answer, and
+        # the model reads it as one. Q6 is the cautionary case: its prompt says
+        # to check each stated antecedent against 4a before crediting the slot,
+        # so with 4a blank every state slot came back `mismatch` and the item
+        # measured 24%. Derived from olx_prompts.CONTEXT rather than listed per
+        # item, so adding a context ref to a prompt cannot silently go unfed.
+        for target in context_targets(item):
+            if (fixture.get(target) or "").strip():
+                continue                       # already seeded by `fields` etc.
+            fixture[target] = context_value(spec["handout"], pid, sec, target)
+        # A frozen consensus table overrides the single-run spans it was built
+        # from. Keyed by rubric component, so it is mapped back through
+        # `from_scorer` rather than duplicating the field names.
+        cons = spec.get("consensus")
+        if cons:
+            path_c = os.path.join(os.path.dirname(os.path.abspath(__file__)), cons)
+            with open(path_c) as fh:
+                table = json.load(fh)
+            row = table["participants"].get(str(pid))
+            if row is None:
+                raise SystemExit(f"{cons} has no entry for p{pid}; "
+                                 f"run q6_consensus.py --build")
+            for field, comp in spec["from_scorer"].items():
+                if comp in row["fields"]:
+                    fixture[field] = row["fields"][comp]
+            n_runs = table["n_runs"].get(str(pid)) or 0
+            how["_consensus"] = f"{n_runs} runs"
+
+            # A vote can be reproducible and still be arbitrary. Freezing the
+            # table made every fixture byte-identical run to run, which is what
+            # the churn described in q6_consensus.py needed — but it does not
+            # make a 5/5 split MEAN anything, it just means the same coin lands
+            # the same way every time. Audited over the current table, 158 of 160
+            # slots agree on at least 80% of runs; the two that do not are p9's
+            # state_c2 and affect_c2, tied 5/5, and p9 is declared in
+            # PER_ITEM_EXCLUDE. So the invariant holds today by virtue of a good
+            # build, and nothing was checking it. A rebuild with fewer runs, or a
+            # new participant whose answer splits the vote, would be measured as
+            # solid and silently decide points before the model reads anything —
+            # p9's tie-break fixes 2 of 8 slots, 2.5 of 10 marks.
+            #
+            # So: a weak cell must be DECLARED, exactly as an unreachable
+            # deduction code must be. Warn rather than raise, because the right
+            # response is a judgement (exclude it, or hand-split it as Q4b is),
+            # and a hard failure here would block a run over a cell that may
+            # already be excluded downstream.
+            weak = []
+            for comp, det in (row.get("detail") or {}).items():
+                votes = (det or {}).get("verdicts") or {}
+                if not votes or not n_runs:
+                    continue
+                share = max(votes.values()) / n_runs
+                if share < CONSENSUS_MIN_SHARE:
+                    weak.append((comp, dict(votes), round(share, 2)))
+            if weak and pid not in PER_ITEM_EXCLUDE.get(item, {}):
+                print(f"*** p{pid}/{item}: consensus fixture is WEAK on "
+                      f"{len(weak)} slot(s) and this cell is not declared in "
+                      f"PER_ITEM_EXCLUDE — the split, and the points that follow "
+                      f"from it, are close to arbitrary:", file=sys.stderr)
+                for comp, votes, share in weak:
+                    print(f"      {comp}: {votes} (top share {share:.2f} < "
+                          f"{CONSENSUS_MIN_SHARE})", file=sys.stderr)
+                print(f"    Exclude it, hand-split it, or rebuild with more runs.",
+                      file=sys.stderr)
+
+        hs = spec.get("handsplit")
+        if hs:
+            path_hs = os.path.join(os.path.dirname(os.path.abspath(__file__)), hs)
+            with open(path_hs) as fh:
+                table = json.load(fh)
+            row = table.get(str(pid))
+            if row is None:
+                raise SystemExit(f"{hs} has no entry for p{pid}")
+            fixture.update(row)
+            how["_handsplit"] = os.path.basename(hs)
+        if spec.get("sim"):
+            simrec = simulate_h3.load_all().get(pid)
+            if simrec is None:
+                raise SystemExit(f"no Handout 3 reconstruction for p{pid}; "
+                                 f"run simulate_h3.py first")
+            prov = simrec.get("provenance") or {}
+            for field, key in spec["sim"].items():
+                fixture[field] = (simrec["fields"].get(key) or "").strip()
+            how["_reconstructed"] = simrec["graph_source"]
+            # WHERE each seeded value came from, not just whether one exists.
+            # `spread_total` turns a weekly total into seven daily values that sum
+            # to it — arithmetic, not evidence — and the result is indistinguishable
+            # from a student who logged seven numbers unless the provenance is read.
+            # Uniform-looking reconstructed data is exactly what invites a
+            # conclusion about the students that is really a conclusion about the
+            # reconstruction, so the sources are reported with the rates.
+            for field, key in spec["sim"].items():
+                src = prov.get(key)
+                if src:
+                    how[f"_prov:{field}"] = src
+        for section, (f1, f2) in spec.get("split", {}).items():
+            a, b, method = split_two(sec.get(section, ""))
+            fixture[f1], fixture[f2] = a, b
+            how[section] = method
+        jobs.append({
+            "cell": f"p{pid}/{item}",
+            "screen": spec["screen"], "ns": spec["ns"],
+            **({"button": spec["button"]} if spec.get("button") else {}),
+            "feedback": spec["feedback"], "grader": spec["grader"],
+            "fixture": fixture, "split_how": how, "fell_back": fell_back,
+        })
+    return jobs
+
+
+def run_jobs(jobs: list[dict], idmap: str) -> list[dict]:
+    tmp = tempfile.mkdtemp(prefix="agreement_app_")
+    jf, rf = os.path.join(tmp, "jobs.json"), os.path.join(tmp, "results.json")
+    with open(jf, "w") as fh:
+        json.dump(jobs, fh)
+    env = {
+        **os.environ, "RUN_LLM_RUNNER": "1",
+        "JOBS_JSON": jf, "RESULTS_JSON": rf, "IDMAP_JSON": idmap,
+    }
+    print(f"driving {len(jobs)} cell(s) through the app", file=sys.stderr)
+    proc = subprocess.run(
+        ["npx", "vitest", "run", "--reporter=dot", RUNNER],
+        cwd=LO, env=env, capture_output=True, text=True,
+    )
+    for line in proc.stdout.splitlines():
+        if "[runner]" in line:
+            print("  " + line.strip(), file=sys.stderr)
+    if not os.path.exists(rf):
+        print(proc.stdout[-2000:], file=sys.stderr)
+        raise SystemExit("runner produced no results")
+    with open(rf) as fh:
+        return json.load(fh)
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("Run:")[0],
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--item", default="Q6", choices=sorted(JOBS))
+    ap.add_argument("--participants", type=int, nargs="*", default=None)
+    ap.add_argument("--idmap", default=None, help="Cached /api/olxjson?id=all dump.")
+    ap.add_argument("--exclude", type=int, nargs="*", default=None,
+                    help="Participants to drop. Omit for this handout's defaults "
+                         "(exemplar and mis-transcribed rows); pass with no values "
+                         "to include everyone — the exemplar exclusion is specific "
+                         "to Q6's prompt and does not apply to other items.")
+    ap.add_argument("--out", default=None, help="Write per-cell JSON here.")
+    ap.add_argument("--runs", type=int, default=3,
+                    help="How many times to drive the item (default 3). One run is "
+                         "not a measurement on this side: Q3 measured 16/20, 12/20 "
+                         "and 15/20 over three runs — a 4-cell spread, against a "
+                         "5-point apparent gap to the CLI that turned out to be 0.3 "
+                         "cells. `--runs 1` is available for a quick look but its "
+                         "number should not be quoted.")
+    ap.add_argument("--list", action="store_true")
+    args = ap.parse_args()
+    if args.runs < 1:
+        raise SystemExit("--runs must be at least 1")
+
+    if args.list:
+        for k, v in JOBS.items():
+            print(f"{k}: screen={v['screen']} grader={v['grader']}")
+        return 0
+
+    spec = JOBS[args.item]
+    handout = spec["handout"]
+    drop = set(suspect(handout) if args.exclude is None else args.exclude)
+    per_item = dict(PER_ITEM_EXCLUDE.get(args.item, {})) if args.exclude is None else {}
+    if args.exclude is None:
+        # Exemplar participants are dropped from the items whose prompt embeds
+        # them, not from the whole handout — see exemplar_drops().
+        for pid in exemplar_drops(handout).get(args.item, []):
+            per_item.setdefault(pid, "their response is a few-shot exemplar in THIS "
+                                     "item's prompt, so scoring it would be self-grading")
+    drop |= set(per_item)
+    pids = [p for p, _ in find_submissions(handout, args.participants) if p not in drop]
+    if drop:
+        print(f"(excluding {sorted(drop)})", file=sys.stderr)
+    for pid, why in sorted(per_item.items()):
+        print(f"(excluding p{pid} from {args.item}: {why})", file=sys.stderr)
+
+    idmap = args.idmap
+    if not idmap:
+        raise SystemExit("--idmap is required: curl the dev server's "
+                         "/api/olxjson?id=all to a file and pass it")
+
+    jobs = build_jobs(args.item, pids)
+    how_by_cell = {j["cell"]: j["split_how"] for j in jobs}
+    fb_by_cell = {j["cell"]: j["fell_back"] for j in jobs if j["fell_back"]}
+    results = run_jobs(jobs, idmap)
+    # --out is written AFTER the median is chosen, further down. It used to be
+    # written here, from run 1, while the table below reported the median — so the
+    # two disagreed whenever the median was not run 1, and anything reading the
+    # .json for per-slot verdicts was reading a different run than the scores it
+    # was being compared against.
+    gold = config(handout)["gold"]()
+    dropped_1c: list[int] = []
+    if args.item == "1c":
+        gold, dropped_1c = rebuild_gold_1c(gold)
+        print("(item 1c is compared on all five slots, 10 points — the graph gate, "
+              "the title, both axis labels and the legend. It was once a 3-slot "
+              "6-point subtotal on the reasoning that the web cannot fail "
+              "has_own_graph or legend; it can, and does)", file=sys.stderr)
+        if dropped_1c:
+            print(f"(excluding {dropped_1c} from 1c — gold 0 for no graph, but four "
+                  f"complete weeks of data, which on the web DRAWS the chart, so the "
+                  f"failure is unreachable rather than missed. p15 and p18 are KEPT: "
+                  f"their data is incomplete and the gate does fire)", file=sys.stderr)
+
+    def tabulate(res):
+        rows, failures = [], []
+        for r in res:
+            pid = int(re.match(r"p(\d+)/", r["cell"]).group(1))
+            if pid in dropped_1c:
+                continue          # excluded above, not a failure
+            if not r["ok"]:
+                failures.append((pid, r["status"],
+                                 (r.get("error") or r["feedback"])[:120]))
+                continue
+            g = gold.get(pid, {}).get(args.item, {}).get("score")
+            frac = (r.get("grader") or {}).get("score")
+            if g is None or frac is None:
+                failures.append((pid, "no score", f"gold={g} grader={frac}"))
+                continue
+            pred = round(float(frac) * float(r["sheet_max"]), 2)
+            rows.append((pid, g, pred, r["verdicts"]))
+        return rows, failures
+
+    # Runs 2..N. The FIRST run is `results`, already driven above so that a
+    # fixture or server failure surfaces before spending on repeats.
+    all_runs = [tabulate(results)]
+    all_results = [results]
+    for i in range(2, args.runs + 1):
+        print(f"(run {i} of {args.runs})", file=sys.stderr)
+        extra = run_jobs(jobs, idmap)
+        all_results.append(extra)
+        all_runs.append(tabulate(extra))
+
+    def exact_of(rows):
+        return sum(1 for _, g, p, _ in rows if abs(p - g) < 1e-9)
+
+    # MEDIAN by exact count, ties to the lowest run index. Fixed here, in code,
+    # deliberately: choosing which run to publish after seeing the numbers is how
+    # a best-of-three got promoted into a report earlier and read as a real
+    # 6-point difference between the two implementations.
+    order = sorted(range(len(all_runs)), key=lambda i: (exact_of(all_runs[i][0]), i))
+    pick = order[len(order) // 2]
+    rows, failures = all_runs[pick]
+    results = all_results[pick]
+
+    if args.runs > 1:
+        counts = [exact_of(r) for r, _ in all_runs]
+        sizes = [len(r) for r, _ in all_runs]
+        per_run = ", ".join(f"{c}/{s}" for c, s in zip(counts, sizes))
+        spread = max(counts) - min(counts)
+        print(f"\n{args.runs} runs — exact {per_run}   mean {statistics.fmean(counts):.1f}"
+              f"   spread {spread} cell(s)")
+        print(f"publishing run {pick + 1} (median by exact count, ties to lowest index)")
+        if spread and sizes[0]:
+            print(f"read the table below as +/-{spread} cell(s) "
+                  f"({100 * spread / sizes[0]:.0f} points): a single run of this item "
+                  f"cannot resolve a difference smaller than that")
+
+    if args.out:
+        with open(args.out, "w") as fh:
+            json.dump({"item": args.item, "results": results}, fh, indent=2)
+        print(f"wrote {args.out}", file=sys.stderr)
+        # EVERY run, not just the published one. Keeping only the median made the
+        # two sides incomparable at the verdict level: the CLI stores one file per
+        # run, so its firing rates could be counted over 5 or 8 runs, while this
+        # side offered a single median and its siblings were discarded. A "3 of 3"
+        # on the web therefore hid six unrecorded runs, and the web-vs-CLI gap on
+        # Q2's `wgb_is_counterpart` could not be told from sampling for want of a
+        # denominator.
+        if args.runs > 1:
+            side = args.out[:-5] if args.out.endswith(".json") else args.out
+            path = f"{side}.runs.json"
+            with open(path, "w") as fh:
+                json.dump({
+                    "item": args.item,
+                    "rule": "median by exact count, ties to lowest index",
+                    "published": pick + 1,
+                    "runs": [{"run": i + 1,
+                              "exact": exact_of(all_runs[i][0]),
+                              "n": len(all_runs[i][0]),
+                              "results": all_results[i]}
+                             for i in range(len(all_results))],
+                }, fh, indent=2)
+            print(f"wrote {path} ({len(all_results)} runs)", file=sys.stderr)
+
+    print(f"\nlo-blocks {args.item} via the app — {len(rows)} cell(s)\n")
+    print(f"{'pid':>4} {'gold':>6} {'pred':>6} {'diff':>6}")
+    print("-" * 26)
+    for pid, g, pred, _ in sorted(rows):
+        print(f"{pid:>4} {g:>6.2f} {pred:>6.2f} {pred-g:>+6.2f}")
+    if rows:
+        errs = [p - g for _, g, p, _ in rows]
+        exact = sum(1 for e in errs if abs(e) < 1e-9)
+        print("-" * 26)
+        print(f"exact {exact}/{len(errs)} ({exact/len(errs):.0%})  "
+              f"MAE {statistics.mean(map(abs, errs)):.2f}  "
+              f"bias {statistics.mean(errs):+.2f}")
+
+    if fb_by_cell:
+        print("\ncells where a field this handout left empty was taken from another "
+              "handout's submission by the same student:")
+        for cell, secs in sorted(fb_by_cell.items()):
+            print(f"      {cell}: {', '.join(secs)}")
+
+    from collections import Counter
+    methods = Counter(m for k, c in how_by_cell.items() for kk, m in c.items()
+                      if not kk.startswith("_prov:"))
+    print(f"\nfixture reconstruction: {dict(methods)}")
+
+    # Provenance of every reconstructed field this item was seeded from. A source
+    # that is COMPUTED rather than recorded is named separately: the rate above is
+    # then partly a measurement of arithmetic, and that belongs next to it.
+    SYNTHESISED = ("weekly_total_spread",)
+    prov = Counter(m for c in how_by_cell.values()
+                   for k, m in c.items() if k.startswith("_prov:"))
+    if prov:
+        print(f"reconstructed field provenance: {dict(prov)}")
+        # simulate_h3's own trust ordering, worth restating where the numbers are
+        # read: `chart_xml` is literal recorded values, `model` is a reading of the
+        # student's data table or image (transcription, so fallible), and anything
+        # in SYNTHESISED was computed from something they wrote rather than read.
+        print("  trust: chart_xml (literal) > model (transcribed) > "
+              "weekly_total_spread (computed)")
+        synth = {c: sorted(m for k, m in h.items()
+                           if k.startswith("_prov:") and m in SYNTHESISED)
+                 for c, h in how_by_cell.items()}
+        synth = {c: v for c, v in synth.items() if v}
+        if synth:
+            n = sum(len(v) for v in synth.values())
+            print(f"*** {n} field(s) across {len(synth)} cell(s) are SYNTHESISED, not "
+                  f"recorded — those cells score computed values:")
+            for c, v in sorted(synth.items()):
+                print(f"      {c}: {Counter(v)}")
+        else:
+            print("  every reconstructed field is a recorded value, none computed")
+    weak = sorted(c for c, h in how_by_cell.items()
+                  if any(m in ("single", "empty")
+                         for k, m in h.items() if not k.startswith("_prov:")))
+    if weak:
+        print("cells where a paper answer held one entry, so the second field is "
+              f"empty (a state the graders score): {weak}")
+
+    if failures:
+        print(f"\n*** {len(failures)} cell(s) did not produce a score — the rates "
+              f"above cover a biased subset:")
+        for pid, why, detail in failures:
+            print(f"      p{pid}: {why} — {detail}")
+        return 1
+    print("\nfailed cells: 0")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
