@@ -1,0 +1,602 @@
+#!/usr/bin/env python3
+"""Compare what the CLI and the web ENFORCE, by exercising both.
+
+The gap this closes. `equivalence.py` has two modes and neither can see an
+enforcement rule: `--prompts` compares prompt elements verbatim, `--scoring`
+compares item totals and reachable costs. Q6's distinctness rule sat between
+them — the web refused to credit two boxes naming the same 4a item, the CLI
+credited both, and nothing failed. It was found by hand. This is the mode that
+would have found it.
+
+Method: probe, do not mirror. Where a rule is data on both sides (`cover`) it is
+compared directly. Where one side keeps it in Python — `derive_oc_ledger`
+computes its type comparison and uses `elif` for charge-once — the rule is
+inferred from BEHAVIOUR: flip one input at a time, then in pairs, and read the
+rules off the losses. A hand-maintained table of "what the code does" would rot
+exactly the way index-keyed guidance omissions did.
+
+Two facts are read per item, per side:
+
+  gates        an input whose failure alone costs the whole item
+  charge-once  two inputs that together cost less than they do apart
+  computed     a check the model is not asked for, because code derives it
+
+Run via `equivalence.py --enforcement`, which drives the web half through
+probe.test.ts and diffs the two.
+"""
+from __future__ import annotations
+
+import re
+import sys
+
+sys.path.insert(0, __file__.rsplit("/", 1)[0])
+
+from handouts import config
+from score import build_schema, derive_ledger, derive_oc_ledger
+
+# ---------------------------------------------------------------------------
+# The criteria sheet's inputs, and what makes each one fail.
+#
+# This is the one place the audit names the CLI's internals, and it is guarded:
+# `check_criteria_table_is_complete` asserts it covers EXACTLY the schema's
+# required properties, so adding an oc_analysis field without deciding how it
+# fails breaks the audit instead of being silently unprobed.
+_PASS = {
+    "behavior": "walking to class",
+    "stimulus": "a coffee",
+    "contingent": True,
+    "follows_behavior": True,
+    "stimulus_is_arranged": True,
+    "avoidance_frame": False,
+    "cadence_ok": True,
+    "targets_own_behavior": True,
+    "targets_intended_behavior": True,
+    "consequence_asserted": True,
+}
+_FAIL = {
+    "behavior": "",
+    "stimulus": "",
+    "contingent": False,
+    "follows_behavior": False,
+    "stimulus_is_arranged": False,
+    "avoidance_frame": True,          # advisory only; must show zero loss
+    "cadence_ok": False,
+    "targets_own_behavior": False,
+    "targets_intended_behavior": False,
+    "consequence_asserted": False,
+}
+# The two type fields are handled separately: their failing value depends on the
+# other one, and a naive flip can make them agree again.
+_TYPE_FIELDS = ("observed_type", "named_type")
+
+# The same rule wears different names on the two sides. Kept explicit and small;
+# an unmapped key is REPORTED, never assumed equivalent.
+ALIAS = {
+    "behavior": "names_behavior",
+    "stimulus": "names_stimulus",
+    "stimulus_is_arranged": "you_arrange_it",
+    "targets_intended_behavior": ("targets_goal_behavior", "targets_unwanted_behavior"),
+    "cadence_ok": ("cadence_is_daily", "cadence_is_weekly"),
+}
+
+
+def web_name(cli_key: str, web_keys: set[str]) -> str | None:
+    """The web check corresponding to a CLI input, or None if unmatched."""
+    if cli_key in web_keys:
+        return cli_key
+    a = ALIAS.get(cli_key)
+    if isinstance(a, tuple):
+        for cand in a:
+            if cand in web_keys:
+                return cand
+        return None
+    return a if a in web_keys else None
+
+
+def check_criteria_table_is_complete(items: list[dict]) -> list[str]:
+    """Every oc_analysis property must have a pass and a fail value."""
+    problems = []
+    known = set(_PASS) | set(_TYPE_FIELDS)
+    for it in items:
+        if not it.get("derive_from_criteria"):
+            continue
+        req = set(build_schema(it)["properties"]["oc_analysis"]["required"])
+        for extra in sorted(req - known):
+            problems.append(f"{it['id']}: oc_analysis has `{extra}`, not in the probe table")
+        for stale in sorted(known - req):
+            if stale in ("targets_intended_behavior", "cadence_ok",
+                         "targets_own_behavior", "named_type"):
+                continue          # path-specific: present on one path only
+            problems.append(f"{it['id']}: probe table has `{stale}`, not in oc_analysis")
+    return problems
+
+
+def check_slot_codes_exist(items: list[dict]) -> list[str]:
+    """Every code a slot maps a verdict to must be in that item's deduction list.
+
+    Nothing checked this. `derive_ledger` puts whatever the map says straight into
+    the ledger, so a typo'd code name would be emitted, carry a slot's points, and
+    reach the student's feedback with no wording behind it — a misspelling
+    presenting as a rubric finding. It also checks `blank_code`, which the collapse
+    now depends on entirely.
+    """
+    problems = []
+    for it in items:
+        valid = {d["code"] for d in it["deductions"]}
+        for c in it.get("credit", []):
+            for verdict, code in (c.get("codes") or {}).items():
+                if code not in valid:
+                    problems.append(f"{it['id']}: `{c['what']}`/{verdict} -> `{code}`, "
+                                    f"which is not one of its deduction codes")
+        want = it.get("blank_code")
+        if want and want not in valid:
+            problems.append(f"{it['id']}: blank_code `{want}` is not one of its "
+                            f"deduction codes")
+        for cr in it.get("counts", []):
+            names = {c["what"] for c in it.get("credit", [])}
+            for k in [cr["key"], *cr["slots"]]:
+                if k not in names:
+                    problems.append(f"{it['id']}: counts names `{k}`, which is not a "
+                                    f"credit component")
+        for r in it.get("onlyif", []):
+            names = {c["what"] for c in it.get("credit", [])}
+            for k in (r["key"], r["cond"]):
+                if k not in names:
+                    problems.append(f"{it['id']}: onlyif names `{k}`, which is not a "
+                                    f"credit component")
+    return problems
+
+
+def check_codes_reachable(items: list[dict]) -> list[str]:
+    """Every deduction code must be producible, or declared unreachable.
+
+    The conversion silently retired live codes. Q4a's slots were given only
+    met/absent/unclear, so "present but not an antecedent" — A_NOT_ANTECEDENT,
+    emitted 6 times before — became `absent` under A_ONLY_ONE. Same points, so no
+    accuracy number moved; the student was simply told the wrong thing, and Q6 then
+    lost its 4a context because `scorer_evidence` empties a box on `absent`.
+
+    A code with no path to it is either a bug or a decision. This makes it say
+    which.
+    """
+    problems = []
+    for it in items:
+        if not it.get("derive_from_credit"):
+            continue
+        reach = {it.get("blank_code")} | set(it.get("unreachable_codes") or [])
+        for c in it.get("credit", []):
+            reach |= set((c.get("codes") or {}).values())
+        for d in it["deductions"]:
+            if d["code"] not in reach:
+                problems.append(f"{it['id']}: `{d['code']}` (-{d['pts']:g}) can be "
+                                f"produced by no slot verdict, and is not declared "
+                                f"in unreachable_codes")
+        for code in it.get("unreachable_codes") or []:
+            if code not in {d["code"] for d in it["deductions"]}:
+                problems.append(f"{it['id']}: unreachable_codes names `{code}`, which "
+                                f"is not one of its deduction codes")
+    return problems
+
+
+# Repeated families that are countable in shape but must NOT be converted, with
+# the reason, because an unexplained exemption is how the inconsistency below got
+# in. Keyed by (item, family stem).
+COUNTABLE_EXEMPT = {
+    ("1a", "week"): "the weeks are NAMED, not interchangeable. The guidance deducts "
+                    "only when a period is 'clearly and specifically absent' and names "
+                    "the observed case — an answer that opens at the intervention and "
+                    "never mentions baseline. `3 of 4` cannot say which is missing.",
+}
+
+
+def check_countable_families_converted(items: list[dict]) -> list[str]:
+    """Do items with the SAME repeated-slot shape use the same primitive?
+
+    `primitives.json` says what each primitive is; nothing said which items should
+    use one. So `counts` landed on Q1 and not on Q2 — the same item with a
+    different noun, same three interchangeable `reason_N@1` slots, same
+    REASON_MISSING — and no audit noticed for as long as it took someone to ask.
+
+    Countable means the family's members share ONE code: they are instances, so a
+    number expresses everything a per-slot verdict would. Two codes means they do
+    not — Q4a's `A_ONLY_ONE` and `A_NOT_ANTECEDENT` are different findings with
+    different feedback, and a count cannot tell "gave one" from "gave two, one of
+    them not an antecedent". Both directions are checked: an unconverted countable
+    family, and a `counts` rule over members that carry more than one code — the
+    second being the shape that silently retired live codes once already.
+    """
+    problems = []
+    for it in items:
+        if not it.get("derive_from_credit"):
+            continue
+        counted = {k for cr in it.get("counts", []) for k in cr["slots"]}
+        fams: dict[str, list[dict]] = {}
+        for c in it.get("credit", []):
+            m = re.match(r"(.+?)_(\d+)$", c["what"])
+            if m:
+                fams.setdefault(m.group(1), []).append(c)
+        for stem, members in fams.items():
+            if len(members) < 2:
+                continue
+            codes = set()
+            for c in members:
+                codes |= set((c.get("codes") or {}).values())
+            covered = {c["what"] for c in members} <= counted
+            if len(codes) == 1 and not covered:
+                if (it["id"], stem) in COUNTABLE_EXEMPT:
+                    continue
+                problems.append(
+                    f"{it['id']}: `{stem}_*` is {len(members)} interchangeable slots "
+                    f"sharing one code ({codes.pop()}), so the model is asked for "
+                    f"{len(members)} judgements where a count would do. Convert it to "
+                    f"`counts`, or add ({it['id']}, {stem}) to COUNTABLE_EXEMPT with "
+                    f"the reason")
+            if len(codes) > 1 and covered:
+                problems.append(
+                    f"{it['id']}: `{stem}_*` is counted, but its slots carry "
+                    f"{len(codes)} codes ({', '.join(sorted(codes))}). A count cannot "
+                    f"express which one applies, so converting it retires all but one")
+            if (it["id"], stem) in COUNTABLE_EXEMPT and covered:
+                problems.append(
+                    f"{it['id']}: `{stem}_*` is in COUNTABLE_EXEMPT and also counted — "
+                    f"the exemption is stale, remove it")
+    return problems
+
+
+def check_primitive_conformance() -> list[str]:
+    """Does the PROMPT honour every schema-excluding primitive on every live sheet?
+
+    Checked empirically, not by trusting the registry. For each primitive whose keys
+    leave the response schema, the generated body must (a) not list those keys in the
+    checklist the model fills, and (b) carry a line telling it not to answer them.
+
+    This is the check that was missing twice. `derived` shipped, and later `counts`,
+    with their keys still in the web checklist while the schema refused them — the
+    model asked for answers it could not return, alongside the thing that replaced
+    them. Neither showed up in any score, because the grader ignored the surplus.
+    """
+    import re as _re
+    from olx_prompts import (ACTION, HANDOUT, SHEET_ONLY, sheet_id, _sheet_tag,
+                             build_web_prompt, primitive_attrs, primitives)
+
+    problems = []
+    excluding = primitive_attrs(excluding_keys=True)
+    excludes = {p["attr"]: p.get("excludes") for p in primitives()["primitives"]}
+    for item in sorted({**ACTION, **SHEET_ONLY}):
+        h = HANDOUT[item]
+        tag = _sheet_tag(h, sheet_id(item))
+        keys: list[str] = []
+        for attr in excluding:
+            m = _re.search(r'\b%s="([^"]*)"' % attr, tag)
+            if not m:
+                continue
+            for entry in m.group(1).split("|"):
+                parts = [x.strip() for x in entry.split(":")]
+                if not parts or not parts[0]:
+                    continue
+                # Which keys leave the schema is the registry's to say — this
+                # was `if attr == "counts"` in two files, and agreement.py's copy
+                # was one of the three ways it drifted.
+                keys += ([x.strip() for x in parts[1].split(",") if x.strip()]
+                         if excludes.get(attr) == "members" and len(parts) > 1
+                         else [parts[0]])
+        if not keys:
+            continue
+        if item not in ACTION:
+            continue          # no prompt at all; nothing to conform to
+        body = build_web_prompt(item)
+        head, _, checklist = body.partition("## The checklist to return")
+        for k in keys:
+            if _re.search(r"^- `%s`" % _re.escape(k), checklist, _re.M):
+                problems.append(f"{item}: `{k}` is excluded from the schema but still "
+                                f"listed in the checklist the model fills")
+            if f"DO NOT ANSWER" not in checklist or k not in checklist:
+                problems.append(f"{item}: `{k}` is excluded from the schema and the "
+                                f"prompt never tells the model not to answer it")
+    return problems
+
+
+def check_harness_schema_conformance() -> list[str]:
+    """Does the SCHEMA the measurement harness sends honour the same exclusions?
+
+    The prompt check above passes on a prompt that is generated correctly. It says
+    nothing about the JSON schema agreement.py pairs with that prompt, and for a
+    long time the two disagreed: the body said "DO NOT ANSWER `matches_chosen_type`"
+    while the schema made it required, across 27 keys and 14 items. A model resolves
+    that in the schema's favour, so the instruction was simply overridden.
+
+    Probed, not read: this builds the real schema from the real sheet and looks in
+    it, because the last three versions of "agreement.py mirrors the web" were all
+    wrong while claiming otherwise in a docstring.
+    """
+    import agreement as AG
+    from olx_prompts import ACTION, HANDOUT, SHEET_ONLY, sheet_id
+
+    problems = []
+    for item in sorted({**ACTION, **SHEET_ONLY}):
+        if item not in ACTION:
+            continue          # a DerivedChecks sheet: no model call, so no schema
+        try:
+            action = AG.load_action(f"bmod_handout{HANDOUT[item]}.olx", sheet_id(item))
+        except SystemExit as e:
+            problems.append(f"{item}: the harness cannot read its own sheet — {e}")
+            continue
+        schema = AG.build_schema(action["slots"], action["excluded"])
+        asked = set(schema["properties"]["checks"]["properties"])
+        for k in sorted(action["excluded"] & asked):
+            problems.append(f"{item}: `{k}` is excluded from the web's schema but the "
+                            f"harness still requires it, so the model answers what the "
+                            f"prompt forbids")
+        for slot in action["slots"]:
+            for opt in slot["options"]:
+                if "@" in opt:
+                    problems.append(f"{item}: `{slot['key']}` offers `{opt}` as a legal "
+                                    f"verdict — the @pts suffix was not stripped")
+    return problems
+
+
+def check_derived_fields_resolve() -> list[str]:
+    """Does every `derived` rule name a field the harness can actually read?
+
+    A `derived` check reads a FIELD id; the harness's texts are keyed by SECTION,
+    and the two are joined through the item's refs map. Look the field up directly
+    and every lookup misses — and the miss is silent, because an unresolvable field
+    is indistinguishable from an empty one. Both mean "no text", both score the
+    check unmet, and the run still prints a table.
+
+    That cost `utb_stated` on all 17 of Q1's cells: 2 points each, an item that
+    measures 76% reporting 6%. Nothing failed, nothing was skipped, and the number
+    was simply wrong. The harness now raises on an unresolvable field; this makes
+    the same mistake fail the audit before a sweep is spent on it.
+    """
+    import agreement as AG
+    from olx_prompts import ACTION, HANDOUT, sheet_id
+
+    problems = []
+    for item, aid in sorted(ACTION.items()):
+        spec = (AG.BLOCKS.get(HANDOUT[item]) or {}).get(aid)
+        if spec is None:
+            problems.append(f"{item}: no BLOCKS entry, so the harness cannot run it")
+            continue
+        try:
+            action = AG.load_action(spec["olx"], sheet_id(item))
+        except SystemExit as e:
+            problems.append(f"{item}: {e}")
+            continue
+        for rule in action["derived"]:
+            for f in rule["fields"]:
+                if f not in spec["refs"]:
+                    problems.append(
+                        f"{item}: derived `{rule['key']}` reads field `{f}`, which is "
+                        f"not in this item's refs — it would score unmet on every cell")
+    return problems
+
+
+def check_ref_targets_resolve() -> list[str]:
+    """Does every <Ref> in a measured prompt point at a field the harness can fill?
+
+    `build_prompt` substitutes an unmapped target with "(not collected on the paper
+    version)" — a sentence that reads like a deliberate statement about the corpus
+    and is in fact a lookup that missed. The model then reports, accurately, that
+    the box is empty; the item scores 0; the run prints a full table with no
+    failures. Q6 measured 6% that way, on all 17 cells, because its sheet was
+    rewritten into eight boxes (`q6_state_a1`, `q6_change_a1`, ...) and the _CTX
+    map still named the two it used to have.
+
+    Third instance today of one shape: a lookup that misses and returns something
+    innocuous. The other two — a derived field read against the wrong key space,
+    and a prose mention of <LLMAction> swallowing a real element — cost an item's
+    entire score and an item's measurability respectively, and neither raised.
+    """
+    import re as _re
+    import agreement as AG
+    from olx_prompts import ACTION, HANDOUT, sheet_id
+
+    import agreement_app as AA
+    from handouts import find_submissions
+
+    problems = []
+    for item, aid in sorted(ACTION.items()):
+        spec = (AG.BLOCKS.get(HANDOUT[item]) or {}).get(aid)
+        if spec is None:
+            continue          # reported by check_derived_fields_resolve
+        try:
+            action = AG.load_action(spec["olx"], sheet_id(item))
+        except SystemExit:
+            continue
+        # Checked against the RECONSTRUCTION, which is what fills the prompt now,
+        # on a real participant rather than a declared map — the map said Q6 was
+        # fine while the sheet had grown six boxes past it.
+        pids = [p for p, _ in find_submissions(AA.JOBS[item]["handout"], None)]
+        if not pids:
+            continue
+        try:
+            fixture = AA.build_jobs(item, pids[:1])[0]["fixture"]
+        except SystemExit as e:
+            problems.append(f"{item}: cannot build a reconstruction — {e}")
+            continue
+        targets = dict.fromkeys(
+            _re.findall(r'<Ref\b[^>]*target="([^"]*)"', action["body"]))
+        for t in targets:
+            if t not in fixture:
+                problems.append(
+                    f"{item}: <Ref target=\"{t}\"> has no reconstructed value, so the "
+                    f"check scores unmet on every cell")
+    return problems
+
+
+def all_items() -> list[dict]:
+    return [it for h in (1, 2, 3) for it in config(h)["rubric"].ITEMS]
+
+
+# ---------------------------------------------------------------------------
+def _oc_baseline(item: dict) -> dict:
+    """An analysis that earns full marks."""
+    req = set(build_schema(item)["properties"]["oc_analysis"]["required"])
+    a = {k: v for k, v in _PASS.items() if k in req}
+    if item.get("cadence"):
+        a["observed_type"] = "PR"
+        a["named_type"] = "PR"          # agreeing, so no mismatch
+    else:
+        a["observed_type"] = item["expected_type"]
+    return a
+
+
+def _oc_fail(item: dict, a: dict, key: str, other: str = "") -> dict:
+    """`a` with `key` failing. Type fields fail to a value that stays wrong."""
+    a = dict(a)
+    if key in _TYPE_FIELDS:
+        # Pick a type that differs from the one the item wants AND from whatever
+        # the co-field was flipped to, so flipping both does not re-agree.
+        wrong = [t for t in ("PR", "NR", "PP", "NP")
+                 if t != a.get("observed_type") and t != a.get("named_type")]
+        a[key] = wrong[1] if (other in _TYPE_FIELDS and len(wrong) > 1) else wrong[0]
+    else:
+        a[key] = _FAIL[key]
+    return a
+
+
+def _score(item: dict, raw: dict) -> float:
+    if item.get("derive_from_criteria"):
+        ledger, *_ = derive_oc_ledger(item, raw)
+    else:
+        ledger, *_ = derive_ledger(item, raw)
+    off = sum(d["pts"] for d in ledger)
+    return round(max(0.0, min(item["max"], item["max"] - off)), 4)
+
+
+def _credit_baseline(item: dict) -> dict:
+    """A slot sheet that earns full marks, honouring any cover group.
+
+    A grouped slot's verdict IS its identity, so labels are handed out one per
+    slot PER GROUP — reusing one would leave a duplicate, and the all-satisfied
+    baseline would silently stop being full marks.
+    """
+    claimed: dict[int, list[str]] = {}
+    slots = {}
+    for c in item["credit"]:
+        k = c["what"]
+        lab = None
+        for gi, g in enumerate(item.get("cover", [])):
+            if k in g["keys"]:
+                taken = claimed.setdefault(gi, [])
+                free = [l for l in g["labels"] if l not in taken]
+                lab = free[0] if free else g["labels"][0]
+                taken.append(lab)
+        # The slot's OWN first verdict is the passing one. Defaulting to "met"
+        # made a counted slot read `met`, which parses as a count of zero — every
+        # member came back absent and the all-pass baseline was not full marks.
+        vocab = c.get("verdicts")
+        slots[k] = {"verdict": lab or (vocab[0] if vocab else "met"), "evidence": "e"}
+    return {"slots": slots}
+
+
+def _credit_fail(item: dict, base: dict, key: str, avoid: str = "") -> dict:
+    """`base` with `key` failing, in that slot's OWN vocabulary.
+
+    A slot whose verdicts are the four OC types has no "absent": forcing that
+    string made two flipped operands both read `absent`, so a computed comparison
+    between them came back EQUAL and the rule it expresses looked absent from the
+    CLI. `avoid` keeps a second flip off the value the first one took.
+    """
+    raw = {"slots": {k: dict(v) for k, v in base["slots"].items()}}
+    comp = next(c for c in item["credit"] if c["what"] == key)
+    vocab = comp.get("verdicts")
+    if vocab:
+        now = raw["slots"][key]["verdict"]
+        alt = [v for v in vocab if v != now and v != avoid] or [v for v in vocab if v != now]
+        raw["slots"][key]["verdict"] = alt[0]
+    else:
+        raw["slots"][key]["verdict"] = "absent"
+    return raw
+
+
+def signature(item: dict) -> dict:
+    """What this item enforces, read off its behaviour."""
+    criteria = bool(item.get("derive_from_criteria"))
+    if criteria:
+        base = _oc_baseline(item)
+        inputs = sorted(build_schema(item)["properties"]["oc_analysis"]["required"])
+        mk_base = lambda: {"oc_analysis": base}
+        mk_one = lambda k: {"oc_analysis": _oc_fail(item, base, k)}
+
+        def mk_two(a, b):
+            x = _oc_fail(item, base, a, other=b)
+            return {"oc_analysis": _oc_fail(item, x, b, other=a)}
+    else:
+        base = _credit_baseline(item)
+        # A computed slot is NOT a model input — it is excluded from the schema, so
+        # counting it as one made the audit report the CLI as still asking for it.
+        computed = {r["key"] for r in item.get("equals", [])}
+        # Counted members are derived from the count, so they are not asked either.
+        for cr in item.get("counts", []):
+            computed |= set(cr["slots"])
+        inputs = [c["what"] for c in item["credit"] if c["what"] not in computed]
+        mk_base = lambda: base
+        mk_one = lambda k: _credit_fail(item, base, k)
+
+        def mk_two(a, b):
+            first = _credit_fail(item, base, a)
+            took = first["slots"][a]["verdict"]
+            return _credit_fail(item, first, b, avoid=took)
+
+    mx = item["max"]
+    full = _score(item, mk_base())
+    single = {k: round(mx - _score(item, mk_one(k)), 4) for k in inputs}
+
+    gates = sorted(k for k, v in single.items() if v >= mx)
+    ignored = sorted(k for k, v in single.items() if v == 0)
+    plain = [k for k in inputs if k not in gates and k not in ignored]
+
+    charge_once = []
+    for i, a in enumerate(plain):
+        for b in plain[i + 1:]:
+            both = round(mx - _score(item, mk_two(a, b)), 4)
+            if both + 1e-9 < single[a] + single[b] and both < mx:
+                charge_once.append(tuple(sorted((a, b))))
+
+    return {
+        "item": item["id"],
+        "max": mx,
+        "baseline_is_full": abs(full - mx) < 1e-9,
+        "inputs": inputs,
+        "gates": gates,
+        "ignored": ignored,
+        "charge_once": sorted(charge_once),
+        "single_loss": single,
+        "cover": [{"keys": g["keys"], "labels": g["labels"]} for g in item.get("cover", [])],
+        # The verdict vocabulary a grouped slot accepts. Both sides declare one
+        # now, so a drift in it is comparable rather than invisible.
+        "cover_vocab": {k: g["verdicts"]
+                        for g in item.get("cover", []) for k in g["keys"]},
+        # Declared as DATA on the credit path, the way the web declares it. The
+        # criteria path still keeps its comparison in `derive_oc_ledger`, so there
+        # it stays something to infer from behaviour rather than to read off.
+        # What the CLI derives rather than asks — the mirror of the web's `computed`,
+        # without which "the CLI computes it and the web asks" was invisible.
+        "derived_keys": sorted({r["key"] for r in item.get("equals", [])}
+                               | {k for cr in item.get("counts", []) for k in cr["slots"]}),
+        "equals": [{"key": r["key"], "operands": [r["left"], r["right"]],
+                    "lenient": r.get("lenient") or []}
+                   for r in item.get("equals", [])],
+    }
+
+
+def cli_signatures() -> dict[str, dict]:
+    """Every item whose score the CLI derives from checks."""
+    out = {}
+    for h in (1, 2, 3):
+        for it in config(h)["rubric"].ITEMS:
+            if it.get("derive_from_criteria") or it.get("derive_from_credit"):
+                out[it["id"]] = signature(it)
+    return out
+
+
+def all_derive_items() -> list[dict]:
+    return [it for h in (1, 2, 3) for it in config(h)["rubric"].ITEMS
+            if it.get("derive_from_criteria") or it.get("derive_from_credit")]
+
+
+if __name__ == "__main__":
+    import json
+    print(json.dumps(cli_signatures(), indent=1))

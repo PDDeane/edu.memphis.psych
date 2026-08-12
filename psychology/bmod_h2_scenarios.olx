@@ -1,0 +1,446 @@
+<!--
+---
+description: "Question bank for Behavior Modification Handout 2: the twenty operant conditioning scenarios. Not an independent activity -- the questions are referenced by ID from bmod_handout2.olx; this file exists so the bank can be edited and reviewed directly."
+category: psychology
+lang: en-Latn-US
+authors:
+  - Mollie Blair Anderson
+  - Randy Floyd
+  - Emily N Srisarajivakul
+  - Kara Watkins
+  - Paul Deane
+license: AGPL
+---
+-->
+
+<!--
+PROVENANCE OF THE ANSWER KEY
+
+There is no answer key in the course materials. This one was reconstructed from
+the Handout 2 PowerPoint, and the confidence behind each item is not uniform.
+Three tiers:
+
+  CONFIRMED BY THE DECK (scenarios 1, 2).
+    Slides 33-45 work these two through with the answer boxed, and the speaker
+    notes state them outright: "something desirable is being added - ...
+    Positive Reinforcement" (slide 38) and "Avoid sunburn = take away pain ...
+    it would be Negative Reinforcement" (slide 45).
+
+  DETERMINATE UNDER THE COURSE'S OWN RULES (scenarios 4, 5, 7, 8, 9, 11, 12,
+  13, 14, 15, 17, 18, 19, 20, and 16).
+    These follow from the three-question method plus two rules the speaker
+    notes state explicitly: "the behavior cannot also be the
+    reinforcer/punisher" (slides 34, 41), and "getting a sunburn is not an
+    action, it is the result of inaction" (slide 41). Question 3 asks what
+    happens AFTER the behavior (slide 30). Two get independent corroboration:
+    the notes name spanking as the canonical PP example (slide 25) and
+    grounding-from-the-car as the canonical NP example (slide 27), which are
+    scenarios 5 and 11.
+
+  WORTH A SECOND OPINION (scenarios 3, 6, 10, 16).
+    Flagged individually at each question below. Scenario 6 is a genuine
+    coin-flip; 3, 10 and 16 are a single issue seen three times.
+
+Distribution is PR 4 / NR 6 / PP 6 / NP 4, matching the handout's note that
+"there are not equal numbers of each type". Note that the distribution does NOT
+disambiguate scenario 6: keying it PP would give PR 4 / NR 6 / PP 7 / NP 3,
+which is equally unequal.
+
+These questions are auto-graded here, whereas on paper they were discussed in
+Small Group and never recorded in the scoring workbook. A wrong key now costs a
+student marks silently, so the flagged items deserve a decision rather than a
+default.
+-->
+
+<Vertical id="bmod_h2_scenario_bank" title="Handout 2 scenario bank">
+
+  <CapaProblem id="bmod_h2_scenario_01" title="1. Congratulations" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_01_grader">
+      <p>Johnny scores a goal, and his friends congratulate him.</p>
+      <ChoiceInput id="bmod_h2_scenario_01_input">
+        <Key id="bmod_h2_scenario_01_pr">Positive Reinforcement</Key>
+        <Distractor id="bmod_h2_scenario_01_nr">Negative Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_01_pp">Positive Punishment</Distractor>
+        <Distractor id="bmod_h2_scenario_01_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *scoring a goal*. Johnny will try to score more often (increase), and his friends' congratulations are **added** afterwards.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_01_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_02" title="2. Sunscreen" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_02_grader">
+      <p>I put on sunscreen to avoid a sunburn.</p>
+      <ChoiceInput id="bmod_h2_scenario_02_input">
+        <Distractor id="bmod_h2_scenario_02_pr">Positive Reinforcement</Distractor>
+        <Key id="bmod_h2_scenario_02_nr">Negative Reinforcement</Key>
+        <Distractor id="bmod_h2_scenario_02_pp">Positive Punishment</Distractor>
+        <Distractor id="bmod_h2_scenario_02_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *putting on sunscreen* — note that getting a sunburn is not an action, it is the result of inaction. You will do it more often (increase), and the pain of a sunburn is **taken away** by being avoided.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_02_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <!-- REVIEW (natural consequence). Keyed PP: sticking your hand in a flame
+       decreases, and a painful burn is added. Right within the course's
+       framing, but strictly this is a NATURAL consequence - nobody arranges
+       it - and behavior analysis distinguishes that from arranged punishment.
+       Same issue as scenarios 10 and 16. The handout plainly treats all three
+       as punishment, so that is what is keyed here. -->
+  <CapaProblem id="bmod_h2_scenario_03" title="3. Flame" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_03_grader">
+      <p>You stick your hand in a flame and you get a painful burn.</p>
+      <ChoiceInput id="bmod_h2_scenario_03_input">
+        <Distractor id="bmod_h2_scenario_03_pr">Positive Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_03_nr">Negative Reinforcement</Distractor>
+        <Key id="bmod_h2_scenario_03_pp">Positive Punishment</Key>
+        <Distractor id="bmod_h2_scenario_03_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *sticking your hand in a flame*. You will do it less often (decrease), and a painful burn is **added** afterwards.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_03_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_04" title="4. Late Paper" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_04_grader">
+      <p>Willow turns in their paper two days late, so they automatically get 20 points off.</p>
+      <ChoiceInput id="bmod_h2_scenario_04_input">
+        <Distractor id="bmod_h2_scenario_04_pr">Positive Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_04_nr">Negative Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_04_pp">Positive Punishment</Distractor>
+        <Key id="bmod_h2_scenario_04_np">Negative Punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *turning the paper in late*. Willow will do it less often (decrease), and 20 points are **taken away**.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_04_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_05" title="5. Spanking" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_05_grader">
+      <p>A child misbehaves and gets a spanking.</p>
+      <ChoiceInput id="bmod_h2_scenario_05_input">
+        <Distractor id="bmod_h2_scenario_05_pr">Positive Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_05_nr">Negative Reinforcement</Distractor>
+        <Key id="bmod_h2_scenario_05_pp">Positive Punishment</Key>
+        <Distractor id="bmod_h2_scenario_05_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *misbehaving*. The child should misbehave less often (decrease), and a spanking is **added** afterwards.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_05_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <!-- REVIEW (genuine coin-flip). Keyed NP on the reading that a demotion
+       REMOVES rank and pay, which makes it parallel to Willow's lost points
+       (4), Julie's lost car (11) and Brandon's lost lab membership (15) - all
+       "you lose something you had".
+
+       The case for PP: a demotion can equally be read as ADDING an aversive
+       condition (lower status, worse duties).
+
+       Nothing in the deck settles it and the distribution does not either.
+       This is the single item most likely to be keyed wrong. -->
+  <CapaProblem id="bmod_h2_scenario_06" title="6. Demotion" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_06_grader">
+      <p>You come to work late regularly, and you get demoted.</p>
+      <ChoiceInput id="bmod_h2_scenario_06_input">
+        <Distractor id="bmod_h2_scenario_06_pr">Positive Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_06_nr">Negative Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_06_pp">Positive Punishment</Distractor>
+        <Key id="bmod_h2_scenario_06_np">Negative Punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *coming to work late*. You will do it less often (decrease), and your rank and pay are **taken away**. Compare this with Willow's lost points and Julie's lost car — all three remove something you had.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_06_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_07" title="7. Aspirin" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_07_grader">
+      <p>You take an aspirin to eliminate a headache.</p>
+      <ChoiceInput id="bmod_h2_scenario_07_input">
+        <Distractor id="bmod_h2_scenario_07_pr">Positive Reinforcement</Distractor>
+        <Key id="bmod_h2_scenario_07_nr">Negative Reinforcement</Key>
+        <Distractor id="bmod_h2_scenario_07_pp">Positive Punishment</Distractor>
+        <Distractor id="bmod_h2_scenario_07_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *taking an aspirin*. You will do it more often (increase), and the headache is **taken away**.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_07_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_08" title="8. Walking the Dog" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_08_grader">
+      <p>You walk the dog to avoid having dog poop in the house.</p>
+      <ChoiceInput id="bmod_h2_scenario_08_input">
+        <Distractor id="bmod_h2_scenario_08_pr">Positive Reinforcement</Distractor>
+        <Key id="bmod_h2_scenario_08_nr">Negative Reinforcement</Key>
+        <Distractor id="bmod_h2_scenario_08_pp">Positive Punishment</Distractor>
+        <Distractor id="bmod_h2_scenario_08_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *walking the dog*. You will do it more often (increase), and an unpleasant mess is **taken away** by being avoided.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_08_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_09" title="9. TikTok" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_09_grader">
+      <p>Taylor makes a dance TikTok, and it gets 50,000 likes.</p>
+      <ChoiceInput id="bmod_h2_scenario_09_input">
+        <Key id="bmod_h2_scenario_09_pr">Positive Reinforcement</Key>
+        <Distractor id="bmod_h2_scenario_09_nr">Negative Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_09_pp">Positive Punishment</Distractor>
+        <Distractor id="bmod_h2_scenario_09_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *making a TikTok*. Taylor will make more of them (increase), and 50,000 likes are **added**.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_09_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <!-- REVIEW (natural consequence). Keyed PP, same issue as scenario 3: the
+       fall is not arranged by anyone. Kept as PP for consistency with the
+       course's treatment. -->
+  <CapaProblem id="bmod_h2_scenario_10" title="10. Balcony" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_10_grader">
+      <p>You climb on a railing of a balcony and fall.</p>
+      <ChoiceInput id="bmod_h2_scenario_10_input">
+        <Distractor id="bmod_h2_scenario_10_pr">Positive Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_10_nr">Negative Reinforcement</Distractor>
+        <Key id="bmod_h2_scenario_10_pp">Positive Punishment</Key>
+        <Distractor id="bmod_h2_scenario_10_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *climbing on the railing*. You will do it less often (decrease), and a painful fall is **added**.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_10_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_11" title="11. Curfew" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_11_grader">
+      <p>Julie stays out past her curfew and now does not get to use the car for a week.</p>
+      <ChoiceInput id="bmod_h2_scenario_11_input">
+        <Distractor id="bmod_h2_scenario_11_pr">Positive Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_11_nr">Negative Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_11_pp">Positive Punishment</Distractor>
+        <Key id="bmod_h2_scenario_11_np">Negative Punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *staying out past curfew*. Julie will do it less often (decrease), and the car is **taken away**.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_11_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_12" title="12. Paycheck" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_12_grader">
+      <p>Robert goes to work every day and gets a paycheck.</p>
+      <ChoiceInput id="bmod_h2_scenario_12_input">
+        <Key id="bmod_h2_scenario_12_pr">Positive Reinforcement</Key>
+        <Distractor id="bmod_h2_scenario_12_nr">Negative Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_12_pp">Positive Punishment</Distractor>
+        <Distractor id="bmod_h2_scenario_12_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *going to work*. Robert keeps doing it (increase), and a paycheck is **added**.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_12_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_13" title="13. Bike Helmet" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_13_grader">
+      <p>Sue wears a bike helmet to avoid a head injury.</p>
+      <ChoiceInput id="bmod_h2_scenario_13_input">
+        <Distractor id="bmod_h2_scenario_13_pr">Positive Reinforcement</Distractor>
+        <Key id="bmod_h2_scenario_13_nr">Negative Reinforcement</Key>
+        <Distractor id="bmod_h2_scenario_13_pp">Positive Punishment</Distractor>
+        <Distractor id="bmod_h2_scenario_13_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *wearing a helmet*. Sue will do it more often (increase), and the risk of a head injury is **taken away** by being avoided.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_13_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_14" title="14. Texting in Class" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_14_grader">
+      <p>Tim thinks he is sneaky and tries to text in class. He is caught and given a long, boring book to read.</p>
+      <ChoiceInput id="bmod_h2_scenario_14_input">
+        <Distractor id="bmod_h2_scenario_14_pr">Positive Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_14_nr">Negative Reinforcement</Distractor>
+        <Key id="bmod_h2_scenario_14_pp">Positive Punishment</Key>
+        <Distractor id="bmod_h2_scenario_14_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *texting in class*. Tim will do it less often (decrease), and a long, boring book is **added**.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_14_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_15" title="15. Plagiarism" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_15_grader">
+      <p>Brandon plagiarizes on an assignment and loses his research-lab membership for the semester.</p>
+      <ChoiceInput id="bmod_h2_scenario_15_input">
+        <Distractor id="bmod_h2_scenario_15_pr">Positive Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_15_nr">Negative Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_15_pp">Positive Punishment</Distractor>
+        <Key id="bmod_h2_scenario_15_np">Negative Punishment</Key>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *plagiarizing*. Brandon will do it less often (decrease), and his lab membership is **taken away**.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_15_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <!-- REVIEW (natural consequence) and CONTRAST PAIR with scenario 2.
+       Deliberately the same sunburn as scenario 2 with the opposite answer.
+       The difference is which behavior is in play: in 2 the action is putting
+       on sunscreen (sunburn avoided -> NR), while here the action is falling
+       asleep in the sun (sunburn added -> PP). Slide 41's note that "getting a
+       sunburn is not an action, it is the result of inaction" is what forces
+       that reading, and the explanation on this question points students back
+       to scenario 2.
+
+       Also a natural consequence, as with 3 and 10. -->
+  <CapaProblem id="bmod_h2_scenario_16" title="16. Asleep in the Sun" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_16_grader">
+      <p>Sara falls asleep under the sun and gets a sunburn.</p>
+      <ChoiceInput id="bmod_h2_scenario_16_input">
+        <Distractor id="bmod_h2_scenario_16_pr">Positive Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_16_nr">Negative Reinforcement</Distractor>
+        <Key id="bmod_h2_scenario_16_pp">Positive Punishment</Key>
+        <Distractor id="bmod_h2_scenario_16_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *falling asleep in the sun* — this time the sunburn follows an action Sara took, so it is the consequence, not the behavior. She will do it less often (decrease), and a sunburn is **added**. Contrast this with the sunscreen scenario.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_16_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_17" title="17. Lever and Shock" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_17_grader">
+      <p>A rat presses a lever and gets a shock.</p>
+      <ChoiceInput id="bmod_h2_scenario_17_input">
+        <Distractor id="bmod_h2_scenario_17_pr">Positive Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_17_nr">Negative Reinforcement</Distractor>
+        <Key id="bmod_h2_scenario_17_pp">Positive Punishment</Key>
+        <Distractor id="bmod_h2_scenario_17_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *pressing the lever*. The rat will press it less often (decrease), and a shock is **added**.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_17_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_18" title="18. Deodorant" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_18_grader">
+      <p>Joe puts on deodorant to avoid having body odor.</p>
+      <ChoiceInput id="bmod_h2_scenario_18_input">
+        <Distractor id="bmod_h2_scenario_18_pr">Positive Reinforcement</Distractor>
+        <Key id="bmod_h2_scenario_18_nr">Negative Reinforcement</Key>
+        <Distractor id="bmod_h2_scenario_18_pp">Positive Punishment</Distractor>
+        <Distractor id="bmod_h2_scenario_18_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *putting on deodorant*. Joe will do it more often (increase), and body odor is **taken away** by being avoided.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_18_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_19" title="19. Studying" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_19_grader">
+      <p>Marco studies a lot and gets a good grade.</p>
+      <ChoiceInput id="bmod_h2_scenario_19_input">
+        <Key id="bmod_h2_scenario_19_pr">Positive Reinforcement</Key>
+        <Distractor id="bmod_h2_scenario_19_nr">Negative Reinforcement</Distractor>
+        <Distractor id="bmod_h2_scenario_19_pp">Positive Punishment</Distractor>
+        <Distractor id="bmod_h2_scenario_19_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *studying*. Marco will study more (increase), and a good grade is **added**.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_19_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+  <CapaProblem id="bmod_h2_scenario_20" title="20. Squirrel" showanswer="never">
+    <KeyGrader id="bmod_h2_scenario_20_grader">
+      <p>The squirrel runs up a tree to escape a predator.</p>
+      <ChoiceInput id="bmod_h2_scenario_20_input">
+        <Distractor id="bmod_h2_scenario_20_pr">Positive Reinforcement</Distractor>
+        <Key id="bmod_h2_scenario_20_nr">Negative Reinforcement</Key>
+        <Distractor id="bmod_h2_scenario_20_pp">Positive Punishment</Distractor>
+        <Distractor id="bmod_h2_scenario_20_np">Negative Punishment</Distractor>
+      </ChoiceInput>
+      <Explanation showWhen="answered"><Markdown>Behavior: *running up the tree*. The squirrel will do it more often (increase), and the threat of the predator is **taken away** by being escaped.</Markdown></Explanation>
+    </KeyGrader>
+    <DemandHints id="bmod_h2_scenario_20_hints">
+      <Hint>Question 1: what is the behavior? It has to be an action the person takes, not something that happens to them.</Hint>
+      <Hint>Question 2: will they do it MORE often or LESS often in future? More often is reinforcement; less often is punishment.</Hint>
+      <Hint>Question 3: after the behavior, is something ADDED or TAKEN AWAY? Added is positive; taken away is negative — including something unpleasant that is avoided or escaped.</Hint>
+    </DemandHints>
+  </CapaProblem>
+
+</Vertical>

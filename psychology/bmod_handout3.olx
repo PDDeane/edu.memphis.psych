@@ -1,0 +1,1021 @@
+<!--
+---
+# Where the referenced spans live. The build resolves this file's corpus
+# references against it, and refuses rather than render an unresolved one.
+# (The marker syntax is deliberately not written out here: a comment
+#  containing it reads as a reference to anything scanning by substring.)
+corpus_data: $COURSE_DATA/corpus_refs.json
+description: Behavior Modification Assignment Handout 3 - presenting and graphing intervention data, and analysing whether the behavior was successfully modified
+category: psychology
+index: 12
+lang: en-Latn-US
+authors:
+  - Mollie Blair Anderson
+  - Randy Floyd
+  - Emily N Srisarajivakul
+  - Kara Watkins
+  - Paul Deane
+license: AGPL
+---
+-->
+
+<!--
+Behavior Modification Assignment, Handout 3 of 3.
+
+Item 1b (the data) is split into four TextAreas, one per week. On paper this is
+scored one point per week present — {{corpus:1c/p1:series:0:32:sha=d1f3e922817c:shape=C4040401}} — so four
+fields map exactly onto the four credit slots, and a missing week is visible
+rather than buried in a wall of text. Each field holds seven comma-separated
+numbers, Sunday through Saturday, because 1c plots them.
+
+ITEM 1c — the graph. Worth 10 of the 40 scored points; the paper item asks for
+a graph carrying a title, both axis labels, and a legend. This page draws it:
+SelfMonitorPlot reads the four data fields from 1b and the three label fields
+in 1c, so the student's own numbers and their own labelling produce their own
+chart, live. Printing the review screen yields a submission containing the
+figure.
+
+That closes a gap this file previously documented. The earlier version could
+only capture the four labelling elements as text and let the LLM check them,
+because lo-blocks has no file-upload block and a chart image made in a
+spreadsheet could not be submitted here. Capturing labels is NOT a substitute
+for a graph: on the paper version one student submitted exactly that — "Title:
+{{corpus:1c/p20:title:0:27:sha=d794c8f137de}} / X-axis label: Days / Y-axis label: Hours of
+Sleep / Legend: Baseline, Week 1..." — with no plotted data, and was correctly
+scored zero. Now the labels and the plotted data are the same artifact, so that
+failure mode is not reachable.
+
+Two consequences worth knowing:
+
+  * The legend is the student's to write, like every other label. They name the
+    four plotted series in their own box and SelfMonitorPlot keys the chart off
+    those names, so until they do, their chart reads "Series 1, Series 2, ..."
+    — which is what an unlabelled key actually looks like, and is scored as no
+    legend. There is no separate legend-heading box: Observable Plot renders no
+    label for a swatches legend, so it would collect text the chart never shows.
+    Earlier revisions generated the series names,
+    which made the paper item's legend check unscoreable here; it is scoreable
+    again.
+  * ObservablePlot still renders the worked example in 1c, which is the right
+    block for it — fixed author-supplied data. It cannot read student state
+    at all: its spec is literal text, and `{{...}}` interpolation exists only
+    in Markdown. That asymmetry is why SelfMonitorPlot exists.
+
+The graph is now produced here, from the student's own data. 1c does not offer
+building it elsewhere as an alternative: the page draws a correctly-structured
+chart from the numbers in 1b, so a spreadsheet detour would only reintroduce
+the unlabelled-or-missing-figure failure this item keeps losing points to.
+
+EVERY <LLMAction> PROMPT BODY IN THIS FILE IS GENERATED from `rubric_h3.py` in
+~/code/molly_scoring/scorer, following `score.py:build_prompt`'s skeleton so
+that the web and the CLI scorer run the SAME rubric. Do not hand-edit one — the
+next `--write` overwrites it, and `--check` fails in the meantime:
+
+  ~/code/molly_scoring/scorer/olx_prompts.py --check   # are they current?
+  ~/code/molly_scoring/scorer/olx_prompts.py --write   # regenerate
+
+To change what a prompt says, change the rubric. Every difference that remains
+between the two implementations is listed, with its reason, in
+scorer/EQUIVALENCE.md. As of this revision 1c carries all five of the paper
+item's components on the same 10 points, so nothing about its scoring diverges;
+what it drops is three guidance bullets describing .docx evidence that does not
+exist here.
+
+Item 1b has no LLM check, and does not need one: it is scored a point per week
+of data present, which is a property of the fields rather than a judgement about
+prose. SelfMonitorPlot performs that check — it reports, under the chart, any
+week left empty, any week whose value count is not seven, and any entry it could
+not read as a number. Before that existed a student could leave two weeks blank,
+get a chart that looked finished with fewer bars, and never be told; on the paper
+version two of twenty lost points for exactly that. The other five items each
+have their own LLM check, matching the item-by-item scorer in ~/code/molly_scoring.
+
+Canonical wording in each prompt is the scoring dictionary's own phrasing, so a
+student who fixes what the LLM flagged meets the same words if the same gap is
+graded later. The prompt carries the point values because the rubric does; it
+forbids the model from repeating them to the student.
+
+Two calibration findings from the paper corpus reach the prompts as rubric
+guidance bullets and should not be tightened back: 1a is graded on the ARC
+rather than one sentence per week ("THE BAR IS THE ARC, NOT A SENTENCE COUNT"),
+and 2a counts CONTENT rather than sentences — two sentences can satisfy all
+three of its slots. Both items were over-strict before that was measured.
+
+Item 1c declares a `slots` sheet for all five of the paper item's components —
+having a graph, a title, both axes and the legend, 2 points each — so each gets
+a required verdict rather than a mention in prose. The totals agree at 10, and
+agreement_app.rebuild_gold_1c rebuilds gold from the grader's own verdicts on
+the same 10 rather than rescaling anything. Its verdict sets carry the distinctions
+that actually cost points on the paper version: `tick_values` for an axis whose
+"label" is really its values ("Sunday, Monday, ..." rather than "Days of the
+Week"), which was the single most common deduction, and `generic` for a label
+still carrying the example wording. A plain met/absent check cannot express
+either, and would credit both.
+
+`generic` is on the title AND the y-axis, because the worked example sits on
+this same screen with real labels — 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=R27-0-27}} and
+'Ounces of Water per Day' — three keystrokes from the student's own boxes. On
+paper this failure took the form of leaving the template chart in place; here it
+takes the form of copying its words, so the prompt names those exact strings.
+The x-axis is deliberately exempt: '{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} is the example's label,
+the placeholder AND the right answer for nearly everyone, since every week is
+plotted Sunday to Saturday. Adding `generic` to y_axis_label is score-neutral —
+any verdict but the first already costs the slot's 2 points — so it buys a
+better reason in the feedback, not a different score.
+
+The sheet opens with a `!has_own_graph` GATE carrying the paper item's two
+whole-item findings, asked of the DATA rather than of a file, because here the
+data is what a graph is made of:
+
+  * `absent` = "did not include". Blank or non-numeric weeks in 1b render no
+    chart, so there is no graph to label. Deliberately generous — fail it only
+    when the data is plainly missing or plainly not numbers, since a whole-item
+    gate should not turn on a miscount and SelfMonitorPlot already warns under
+    the chart about a short or unreadable week.
+  * `mismatch` = TEMPLATE_GRAPH_ONLY. A student can type the worked example's
+    OWN numbers into 1b and get the example's chart back, which is the paper
+    failure of leaving the template in place, reproduced exactly. The prompt is
+    given those numbers so it can recognise them.
+
+That second one is why the 1b placeholders no longer show the example's data.
+They used to read "e.g. 8, 10, 8, 12, 6, 10, 0" — the worked example's baseline
+week, verbatim — which invited the very copying this now scores. Keep any future
+placeholder plainly distinct from the water-drinking numbers.
+
+Both of these are why 1c's prompt is passed the four 1b fields under "Graph
+evidence": they are this version's equivalent of the chart XML and embedded
+images the CLI scorer digs out of a .docx.
+-->
+
+<Sequential id="bmod_handout3" title="BMod Handout 3: Presenting, Graphing, and Analyzing Your Data" launchable="true">
+
+  <!-- ============= Screen: Your data ====================================== -->
+
+  <Vertical id="bmod_h3_data" title="1b. Your data">
+    <Markdown id="bmod_h3_data_prompt">
+# Handout 3: Presenting and Analyzing Your Data
+
+You collected one week of **baseline** data and three weeks of **intervention**
+data. Enter each week below as **seven numbers, Sunday through Saturday**, in
+whatever units you tracked — separated by commas.
+
+Enter the number only, not the unit: `6.5, 5, 7, 6, 8, 7.5, 9`, not
+`6.5 hours, 5 hours`. If you missed a day, enter `0`. Your graph in 1c is
+built from exactly these numbers, so they are worth getting right.
+    </Markdown>
+
+    <Markdown id="bmod_h3_recall">
+**Your goal behavior:** {{@bmod_h1_q2_response.value}}
+
+**How you said you would measure it:** {{@bmod_h1_q3_measurable.value}}
+    </Markdown>
+
+    <!-- One field per week, still four fields mapping onto the four credit
+         slots (baseline + weeks 1-3), so a missing week stays visible as an
+         empty field. What changed is the format: comma-separated numbers
+         rather than free prose, because SelfMonitorPlot in 1c reads these
+         same fields to draw the student's graph.
+
+         These must stay on placeholder= rather than child starter text —
+         SelfMonitorPlot's multi-target read goes through useAggregate, which
+         reads the raw Redux field with no authored-text fallback, so starter
+         text would not plot anyway, and a placeholder correctly shows the
+         format without becoming data. -->
+
+    <Markdown id="bmod_h3_baseline_label">**Baseline week** — before you started the intervention</Markdown>
+    <TextArea id="bmod_h3_baseline" rows="1"
+              placeholder="Sun through Sat, e.g. 5, 6, 4, 7, 5, 6, 3" />
+
+    <Markdown id="bmod_h3_wk1_label">**Week 1**</Markdown>
+    <TextArea id="bmod_h3_wk1" rows="1"
+              placeholder="Sun through Sat, e.g. 7, 8, 6, 9, 7, 8, 5" />
+
+    <Markdown id="bmod_h3_wk2_label">**Week 2**</Markdown>
+    <TextArea id="bmod_h3_wk2" rows="1"
+              placeholder="Sun through Sat" />
+
+    <Markdown id="bmod_h3_wk3_label">**Week 3**</Markdown>
+    <TextArea id="bmod_h3_wk3" rows="1"
+              placeholder="Sun through Sat" />
+
+    <Markdown id="bmod_h3_data_preview_label">
+### Your data so far
+
+This updates as you type. It is the same chart you will label in 1c.
+    </Markdown>
+
+    <!-- 1b is scored from the fields themselves: a point per week of data
+         present, which the rubric is explicit is "a presence check, not a
+         quality judgement". There is nothing here for a model to read, so there
+         is no LLMAction and no prompt — DerivedChecks publishes the verdicts
+         using the same parser the chart draws with, and SlotSheetGrader does the
+         arithmetic. Before this, 1b was scored on the CLI and not at all here.
+
+         A short or partly unreadable week still earns its point. The chart warns
+         about those under itself; the warnings are advice about data quality and
+         this is the score. -->
+    <DerivedChecks id="bmod_h3_data_checks"
+                   verdicts="met,absent"
+                   slots="baseline_data:Baseline week's data present@1|week_1_data:Week 1 data present@1|week_2_data:Week 2 data present@1|week_3_data:Week 3 data present@1"
+                   derived="baseline_data:plots:bmod_h3_baseline|week_1_data:plots:bmod_h3_wk1|week_2_data:plots:bmod_h3_wk2|week_3_data:plots:bmod_h3_wk3"
+                   max="4" />
+    <SlotSheetGrader id="bmod_h3_data_grader" target="bmod_h3_data_checks" />
+    <!-- A grader only runs when something executes its action, and this item has
+         nothing to submit and no sensible button. So it re-grades whenever the
+         published sheet changes: the score always reflects the fields as typed.
+         Not hooked to navigation, because a grader must be mounted to fire and
+         Sequential renders only the current screen. -->
+    <OnChange id="bmod_h3_data_regrade"
+              watch="@bmod_h3_data_checks.checks"
+              target="bmod_h3_data_grader" />
+
+    <SelfMonitorPlot id="bmod_h3_data_preview"
+                     target="bmod_h3_baseline,bmod_h3_wk1,bmod_h3_wk2,bmod_h3_wk3"
+                     labels="Baseline,Week 1,Week 2,Week 3"
+                     categories="Sun,Mon,Tue,Wed,Thu,Fri,Sat"
+                     height="260" />
+  </Vertical>
+
+  <!-- ============= Screen: Overview of the data ========================== -->
+
+  <Vertical id="bmod_h3_overview" title="1a. Overview">
+    <Markdown id="bmod_h3_overview_prompt">
+## 1a. Give a brief overview of the data you collected
+
+How did your behavior change over time? Write **at least four sentences** —
+roughly one per week. You do not need to discuss every day; describe the trend
+for the baseline week and each of the three intervention weeks.
+    </Markdown>
+
+    <Markdown id="bmod_h3_overview_recall">
+Your data:
+
+**Baseline:** {{@bmod_h3_baseline.value}}
+
+**Week 1:** {{@bmod_h3_wk1.value}}
+
+**Week 2:** {{@bmod_h3_wk2.value}}
+
+**Week 3:** {{@bmod_h3_wk3.value}}
+    </Markdown>
+
+    <TextArea id="bmod_h3_overview_response" rows="8"
+              placeholder="The data I collected over the four-week period shows..." />
+
+    <LLMFeedback id="bmod_h3_overview_feedback" />
+    <ActionButton id="bmod_h3_overview_btn" label="Check my overview">
+      <LLMAction id="bmod_h3_overview_llm" target="bmod_h3_overview_feedback"
+                 slots="!distinguishes_periods:Separates the time periods at all|baseline_week:Covers the baseline week@2|week_1:Covers week 1@2|week_2:Covers week 2@2|week_3:Covers week 3@2|uncertain:Any judgement you were unsure about:no/yes">
+You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item 1a — 8 points
+
+## Question asked of the student
+Give a brief overview of the data you collected in at least 4 sentences. How did your behavior change over time? You do not need to discuss every day — one sentence per week is the expectation, covering the baseline week and the three intervention weeks.
+
+## Credit components
+- `distinguishes_periods` **GATE**: Separates the baseline period from the intervention weeks at all. NO_WEEKLY_BREAKDOWN (-8) is for an answer that never distinguishes any time periods — no before/after, no weeks. That took the full 8 from participants 1 and 15. Do not use it when some periods are discussed; deduct per missing period instead.
+- `baseline_week` (2 pt): Discusses the baseline week
+- `week_1` (2 pt): Discusses week 1
+- `week_2` (2 pt): Discusses week 2
+- `week_3` (2 pt): Discusses week 3
+
+## Deduction codes — the course's canonical wording for each gap
+- `BLANK` (-8): did not answer
+- `MISSING_WEEK` (-2) [repeatable]: -2 pts: you are missing one sentence
+- `NO_WEEKLY_BREAKDOWN` (-8): -8 pts: did not discuss data for each week
+
+## Grading guidance
+- Four 2-point slots, one per week. The graders count WEEKS COVERED, not sentences.
+- THE BAR IS THE ARC, NOT A SENTENCE COUNT. This item is graded generously. If the answer gives the BEFORE state and then describes how the behaviour changed across the intervention, award all four slots — even when the weeks are not enumerated one per sentence. All of these earned full marks: "Before starting my intervention my screen time was 50-70 hours per week; after starting it decreased to 28-50"; "my average before was 7.5 hours ... after I began my intervention my sleep {{corpus:1a/p19:response:193:218:sha=f0575a8e436e}} week {{corpus:1a/p19:response:225:266:sha=b6cf1ee0aae9}} 8"; "{{corpus:1a/p14:response:293:338:sha=452919d1f186}} ...". A week referred to collectively ("after I began, it increased") counts when the others are named.
+- DEDUCT A WEEK only when a period is clearly and specifically absent. The observed case is an answer that opens at the intervention and never mentions the before/baseline state at all: participant 6 began "{{corpus:1a/p6:response:0:43:sha=1f8c54ccc5bf}} intervention..." and lost 2 points for having no sentence pertaining {{corpus:2a/p20:how1:117:138:sha=db9958048324}}
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `distinguishes_periods` **GATE** — `met`/`absent`/`unclear`: the NO_WEEKLY_BREAKDOWN test: does the answer distinguish any time periods at all? A single AGGREGATE verdict over the whole span does not, even when it mentions weeks — "the data {{corpus:1a/p1:response:14:86:sha=fd470c356371}}" and "{{corpus:1a/p15:response:21:71:sha=1f3c0e307310}} change" both scored 0. What distinguishes periods is reporting more than one point in time separately, so that a reader can see the behaviour CHANGE
+- `baseline_week` — `met`/`absent`/`unclear`: is the BEFORE state given — the level the behaviour ran at prior to the intervention? "{{corpus:1a/p11:response:119:215:sha=3ac0bbcc3b37}}" is `met`; so is any pre-intervention figure or description. `absent` when the answer opens at the intervention and never says what came before — p6 began "{{corpus:1a/p6:response:0:43:sha=1f8c54ccc5bf}} intervention" and lost exactly this slot and no other
+- `week_1` — `met`/`absent`/`unclear`: does the answer's account of change COVER this stretch of the intervention? Judge the arc, not the label. Naming some weeks does NOT make the unnamed ones absent: an answer that runs from the before state through to the end covers all three intervention weeks even if it names one of them or none. Answer `absent` only when a period is clearly and specifically skipped
+- `week_2` — `met`/`absent`/`unclear`: same question for the middle stretch — and the same rule: a week the answer does not name by number is still covered if the account of change runs through it. p14 named only "{{corpus:1a/p14:response:293:316:sha=3df2d6dade26}}" and gold still credited all four
+- `week_3` — `met`/`absent`/`unclear`: same question for the final stretch, same rule. "{{corpus:1a/p6:response:385:450:sha=db1e9b887fad}} upon" covers it without a number
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
+
+## Student response to grade (item 1a)
+<Ref id="bmod_h3_ov_ref" target="bmod_h3_overview_response" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes; costs and the item
+           total live on the sheet, this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h3_overview_grader" target="bmod_h3_overview_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: The graph ====================================== -->
+
+  <Vertical id="bmod_h3_graph" title="1c. Your graph">
+    <Markdown id="bmod_h3_graph_prompt">
+## 1c. Present your data in a figure or graph
+
+Choose the best way to depict your data — a bar graph, a line graph, an x-y
+scatterplot with a trend line. Then make sure it carries all four of these:
+
+1. a **title**
+2. an **x-axis label**
+3. a **y-axis label**
+4. a **legend** naming the series ({{corpus:1c/p1:series:0:32:sha=d1f3e922817c}})
+
+Here is a worked example, using the water-drinking data from the sample
+handout. Notice that the title says what is being measured and over how long,
+the axes are labelled with what they represent rather than just their values,
+and the legend names all four weeks.
+    </Markdown>
+
+    <ObservablePlot id="bmod_h3_example_plot" height="320">
+marks:
+  - type: barY
+    data:
+      - {day: "Sun", week: "Baseline", oz: 8}
+      - {day: "Mon", week: "Baseline", oz: 10}
+      - {day: "Tue", week: "Baseline", oz: 8}
+      - {day: "Wed", week: "Baseline", oz: 12}
+      - {day: "Thu", week: "Baseline", oz: 6}
+      - {day: "Fri", week: "Baseline", oz: 10}
+      - {day: "Sat", week: "Baseline", oz: 0}
+      - {day: "Sun", week: "Week 1", oz: 32}
+      - {day: "Mon", week: "Week 1", oz: 20}
+      - {day: "Tue", week: "Week 1", oz: 22}
+      - {day: "Wed", week: "Week 1", oz: 28}
+      - {day: "Thu", week: "Week 1", oz: 30}
+      - {day: "Fri", week: "Week 1", oz: 32}
+      - {day: "Sat", week: "Week 1", oz: 10}
+      - {day: "Sun", week: "Week 2", oz: 30}
+      - {day: "Mon", week: "Week 2", oz: 28}
+      - {day: "Tue", week: "Week 2", oz: 26}
+      - {day: "Wed", week: "Week 2", oz: 30}
+      - {day: "Thu", week: "Week 2", oz: 32}
+      - {day: "Fri", week: "Week 2", oz: 32}
+      - {day: "Sat", week: "Week 2", oz: 30}
+      - {day: "Sun", week: "Week 3", oz: 25}
+      - {day: "Mon", week: "Week 3", oz: 26}
+      - {day: "Tue", week: "Week 3", oz: 30}
+      - {day: "Wed", week: "Week 3", oz: 32}
+      - {day: "Thu", week: "Week 3", oz: 32}
+      - {day: "Fri", week: "Week 3", oz: 28}
+      - {day: "Sat", week: "Week 3", oz: 32}
+    fx: day
+    x: week
+    y: oz
+    fill: week
+title: Water Consumption Over Four Weeks
+fx:
+  domain: [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
+  label: Days of the Week
+x:
+  axis: null
+y:
+  label: Ounces of Water per Day
+  grid: true
+color:
+  legend: true
+    </ObservablePlot>
+
+    <!-- The student's own graph. The numbers come from the four fields in 1b;
+         the title and axis labels come from the three fields below, read
+         reactively through *Target. So the labelling exercise is no longer a
+         self-report about a graph made elsewhere — type a label, watch it
+         land on your own chart. The legend is generated from the series
+         names, which is why there is no longer a "name your legend" field:
+         asking a student to type a legend the page draws for them would be
+         asking them to describe something they can see. -->
+
+    <Markdown id="bmod_h3_graph_yours">
+### Your graph
+
+Your four weeks from 1b are plotted below. Label it by filling in the boxes —
+each one takes effect on the chart as you type.
+
+Remember that an axis label names *what the axis represents*, not its tick
+values: "Days of the Week", not "Sunday, Monday, Tuesday".
+
+**The legend is yours to write too.** A legend is the key that names the series
+you plotted, so name all four of them, in the order they appear in 1b —
+baseline first, then the three intervention weeks. Until you do, your chart's
+key will read "Series 1, Series 2, ..." and it is not a legend.
+    </Markdown>
+
+    <Markdown id="bmod_h3_title_label">**Your graph's title**</Markdown>
+    <TextArea id="bmod_h3_graph_title" rows="1" placeholder="Minutes {{corpus:1c/p14:title:8:35:sha=ba4c5127b1fd:shape=C1000}}" />
+
+    <Markdown id="bmod_h3_x_label">**Your x-axis label**</Markdown>
+    <TextArea id="bmod_h3_graph_x" rows="1" placeholder="Days of the Week" />
+
+    <Markdown id="bmod_h3_y_label">**Your y-axis label**</Markdown>
+    <TextArea id="bmod_h3_graph_y" rows="1" placeholder="Minutes of Exercise per Day" />
+
+    <Markdown id="bmod_h3_series_label">**Your legend** — name your four series, separated by commas</Markdown>
+    <TextArea id="bmod_h3_graph_series" rows="1"
+              placeholder="{{corpus:1c/p1:series:0:32:sha=d1f3e922817c}}" />
+
+    <SelfMonitorPlot id="bmod_h3_student_plot"
+                     target="bmod_h3_baseline,bmod_h3_wk1,bmod_h3_wk2,bmod_h3_wk3"
+                     categories="Sun,Mon,Tue,Wed,Thu,Fri,Sat"
+                     chartTitleTarget="bmod_h3_graph_title"
+                     xlabelTarget="bmod_h3_graph_x"
+                     ylabelTarget="bmod_h3_graph_y"
+                     labelsTarget="bmod_h3_graph_series"
+                     height="340" />
+
+    <Markdown id="bmod_h3_graph_submit">
+### Submitting it
+
+Your graph above is your figure for this item. Print this page to PDF and
+include it with your handout in Canvas, or screenshot the chart.
+    </Markdown>
+
+    <ActionButton id="bmod_h3_graph_print" label="Print this page">
+      <PrintAction id="bmod_h3_graph_print_action" />
+    </ActionButton>
+
+    <LLMFeedback id="bmod_h3_graph_feedback" />
+    <ActionButton id="bmod_h3_graph_btn" label="Check my labelling">
+      <LLMAction id="bmod_h3_graph_llm" target="bmod_h3_graph_feedback"
+                 verdicts="met,absent"
+                 slots="!has_own_graph:Your 1b data produces a graph of your own:met/absent/mismatch@2|title:Title saying what is measured and over what period:met/absent/generic@2|x_axis_label:X-axis label naming what the axis represents:met/absent/tick_values@2|y_axis_label:Y-axis label naming what the axis represents:met/absent/tick_values/generic@2|legend:Legend naming all four series you plotted:met/absent/incomplete@2|uncertain:Any judgement you were unsure about:no/yes"
+                 derived="has_own_graph:complete:bmod_h3_baseline,bmod_h3_wk1,bmod_h3_wk2,bmod_h3_wk3:8,10,8,12,6,10,0;32,20,22,28,30,32,10;30,28,26,30,32,32,30;25,26,30,32,32,28,32">
+You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item 1c — 10 points
+
+## Question asked of the student
+Present your data in a figure/graph at the end of the handout. The graph needs a title, both axis labels, and a legend.
+
+## Credit components
+- `has_own_graph` **GATE**: The student supplied their OWN graph of their OWN data
+- `title` (2 pt): The graph has a title, and A DEFAULT PLACEHOLDER IS NOT ONE: spreadsheet software inserts "Chart Title" when the student never types one, and that counts as missing. Participant 8's graph carries the literal text "Chart Title" and the grader deducted the title point
+- `x_axis_label` (2 pt): The x-axis is labelled — an AXIS TITLE, not the tick values. "Sunday, Monday, ..." along the bottom is tick data; "Days of the Week" is the label. This distinction is the single most common deduction on this item: nine of the twenty gold rows lost points for a missing axis title. A default placeholder is not a label either — spreadsheet software inserts "Axis Title" when the student never types one, and that counts as missing
+- `y_axis_label` (2 pt): The y-axis is labelled — same test as `x_axis_label`: an axis TITLE naming what the axis represents, not its tick values, and not the software's default "Axis Title" placeholder
+- `legend` (2 pt): The graph has a legend — the key naming the plotted series (Baseline / Week 1 / Week 2 / Week 3). A single-series graph with no key has no legend
+
+## Deduction codes — the course's canonical wording for each gap
+- `NO_GRAPH` (-10): did not include
+- `TEMPLATE_GRAPH_ONLY` (-10): Did not provide a graph.
+- `NO_TITLE` (-2): -2 pts: missing the graph title
+- `NO_X_AXIS` (-2): -2 pts: missing the x-axis label
+- `NO_Y_AXIS` (-2): -2 pts: missing the y-axis label
+- `NO_LEGEND` (-2): -2 pts: missing the legend
+
+## Grading guidance
+- Five independent 2-point slots: having a graph at all, a title, an x-axis label, a y-axis label, and a legend. Judge each from the evidence bundle.
+- If a slot cannot be determined from the evidence, mark it `absent` and set escalate — do not guess in the student's favour.
+
+## How this item reaches you
+The student does not upload a figure. SelfMonitorPlot draws their chart live from the four weeks of data they entered in 1b and the three labels they type here. Everything the paper rubric asks of a graph is theirs: the data that produces it, the three labels, and the legend — they name the four plotted series themselves, and until they do their chart's key reads 'Series 1, Series 2, ...', which is not a legend. Judge `legend` on the series names only.
+
+THE WORKED EXAMPLE IS ON THIS SCREEN, immediately above their boxes, and reproducing it is the live form of the paper item's template failure. It is a water-drinking chart titled 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=R27-0-27}}, with axes '{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} and 'Ounces of Water per Day', plotting:
+  Baseline 8, 10, 8, 12, 6, 10, 0
+  Week 1   32, 20, 22, 28, 30, 32, 10
+  Week 2   30, 28, 26, 30, 32, 32, 30
+  Week 3   25, 26, 30, 32, 32, 28, 32
+Two distinct failures come out of that, and only one of them is yours. If the DATA is those numbers, the GRADER detects it: it compares the fields against the example itself and sets `has_own_graph` to `mismatch`, zeroing the item exactly as on paper. You are not asked about that, and you should not discuss it. What IS yours is when only the WORDING is copied — a title of 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=R27-0-27}} from a student who did not track water, or a y-axis of 'Ounces of Water per Day' — that is `generic` on the label, like an untouched 'Chart Title'. Their own graph names their own behaviour: hours of sleep, minutes of exercise, servings.
+
+The x-axis is the exception: '{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} is the example's label, the placeholder, AND the correct answer for nearly every student, since all four weeks are plotted Sunday to Saturday. Do not treat it as copied.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `title` — `met`/`absent`/`generic`: The graph has a title, and A DEFAULT PLACEHOLDER IS NOT ONE: spreadsheet software inserts "Chart Title" when the student never types one, and that counts as missing. Participant 8's graph carries the literal text "Chart Title" and the grader deducted the title point
+- `x_axis_label` — `met`/`absent`/`tick_values`: The x-axis is labelled — an AXIS TITLE, not the tick values. "Sunday, Monday, ..." along the bottom is tick data; "Days of the Week" is the label. This distinction is the single most common deduction on this item: nine of the twenty gold rows lost points for a missing axis title. A default placeholder is not a label either — spreadsheet software inserts "Axis Title" when the student never types one, and that counts as missing
+- `y_axis_label` — `met`/`absent`/`tick_values`/`generic`: The y-axis is labelled — same test as `x_axis_label`: an axis TITLE naming what the axis represents, not its tick values, and not the software's default "Axis Title" placeholder
+- `legend` — `met`/`absent`/`incomplete`: the NO_LEGEND test. `met` when the series names name all four plotted periods — the baseline and the three intervention weeks — in any reasonable wording ('Baseline, Wk1, Wk2, Wk3' counts). `incomplete` when some are named and some are not, or the count does not match the four series; `absent` when the box is empty or holds something that is not a set of series names. Judge the series names, not the heading
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+DO NOT ANSWER `has_own_graph` **GATE**. The grader reads it off the page, using the same code that draws the chart: satisfied when EVERY week of data is present, `absent` when a week is missing or they hold no numbers at all, and `mismatch` when they are the worked example's own numbers rather than a record of this student's behaviour. Copied WORDING is still yours to judge, on the label checks. It is not in your schema, and none of it is a judgement — the runtime already knows.
+
+A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
+
+## Graph evidence for this submission
+The four weeks of data the student entered in 1b. SelfMonitorPlot plots exactly these, so they are what decides whether a graph exists at all.
+Baseline week: <Ref id="bmod_h3_graph_ref_baseline" target="bmod_h3_baseline" />
+Week 1: <Ref id="bmod_h3_graph_ref_wk1" target="bmod_h3_wk1" />
+Week 2: <Ref id="bmod_h3_graph_ref_wk2" target="bmod_h3_wk2" />
+Week 3: <Ref id="bmod_h3_graph_ref_wk3" target="bmod_h3_wk3" />
+
+## Student response to grade (item 1c)
+Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
+
+### Asked for: Title
+<Ref id="bmod_h3_g_ref_t" target="bmod_h3_graph_title" />
+
+### Asked for: X-axis label
+<Ref id="bmod_h3_g_ref_x" target="bmod_h3_graph_x" />
+
+### Asked for: Y-axis label
+<Ref id="bmod_h3_g_ref_y" target="bmod_h3_graph_y" />
+
+### Asked for: Legend — the series names they typed, comma-separated
+<Ref id="bmod_h3_graph_ref_graph_series" target="bmod_h3_graph_series" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes; costs and the item
+           total live on the sheet, this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h3_graph_grader" target="bmod_h3_graph_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: 2a - was it successful? ======================== -->
+
+  <Vertical id="bmod_h3_success" title="2a. Was it successful?">
+    <Markdown id="bmod_h3_success_prompt">
+## 2a. Did your plan successfully modify your behavior?
+
+Answer in **one sentence**, then describe **how** it was or was not
+successfully modified in at least two more sentences.
+
+How successful your intervention was does not affect your grade. An honest
+account of something that did not work is worth exactly as much as a success.
+    </Markdown>
+
+    <Markdown id="bmod_h3_s1_label">**Sentence 1** — did it work?</Markdown>
+    <TextArea id="bmod_h3_success_verdict" rows="2" />
+
+    <Markdown id="bmod_h3_s2_label">**Sentence 2** — how?</Markdown>
+    <TextArea id="bmod_h3_success_how1" rows="3" />
+
+    <Markdown id="bmod_h3_s3_label">**Sentence 3** — how?</Markdown>
+    <TextArea id="bmod_h3_success_how2" rows="3" />
+
+    <LLMFeedback id="bmod_h3_success_feedback" />
+    <ActionButton id="bmod_h3_success_btn" label="Check my answer">
+      <LLMAction id="bmod_h3_success_llm" target="bmod_h3_success_feedback"
+                 slots="verdict:States whether the plan worked@2|hows_given:How many separate explanations of HOW you give:2/1/0|how_1:First explanation of how@2|how_2:Second explanation of how@2|uncertain:Any judgement you were unsure about:no/yes"
+                 counts="hows_given:how_1,how_2">
+You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item 2a — 6 points
+
+## Question asked of the student
+Did the implementation of your behavior modification plan successfully modify your behavior? Answer in 1 sentence, then describe HOW it was successfully or unsuccessfully modified in at least 2 further sentences. The level of success does not affect the grade.
+
+## Credit components
+- `verdict` (2 pt): States whether the plan was successful
+- `hows_given`: HOW MANY separate pieces of explanation of HOW the plan succeeded or failed the response gives — count CONTENT, not sentences: one compound sentence that states the outcome and explains it can carry two. Ignore any stretch that does not bear on how the plan succeeded or failed. Answer 2 for two or more
+- `how_1` (2 pt): First explanation of HOW it succeeded or failed
+- `how_2` (2 pt): Second explanation of HOW it succeeded or failed
+
+## Deduction codes — the course's canonical wording for each gap
+- `BLANK` (-6): did not answer
+- `NO_VERDICT` (-2): -2 pts: did not answer if the implementation of your behavior modification plan successfully modified your behavior or not
+- `MISSING_HOW` (-2) [repeatable]: -2 pts: missing one sentence describing how your behavior was or was not successfully modified
+
+## Grading guidance
+- Three 2-point slots: the verdict, then two pieces of explanation of HOW.
+- COUNT CONTENT, NOT SENTENCES. A compound sentence that states the outcome and explains it satisfies more than one slot. Two sentences can earn all six points: "{{corpus:2a/p18:how1:0:40:sha=b7498bbe1c2d}} sessions {{corpus:2a/p18:how1:49:78:sha=b006ecc8d60c}} {{corpus:2a/p18:how2:0:63:sha=3a85748bd1d0}} after-school fatigue" was scored 6/6, as was "{{corpus:2a/p20:how1:0:138:sha=b1fa2c6ec0e6}} {{corpus:2a/p20:how2:0:109:sha=dd37a7806ace}} week". So was an answer whose explanation was simply "{{corpus:2a/p6:how1:38:84:sha=56b940d7e24b}} reinforcements ... {{corpus:2a/p6:how2:0:26:sha=6fcbcc48ab13}} be {{corpus:2a/p6:how2:27:43:sha=5942279439ee}} track".
+- DEDUCT when a stretch of the answer does NOT bear on how the plan succeeded or failed. Participant 1 lost 2 points because a sentence about their stomach being unsettled explained nothing about the plan working — the grader wrote 'your third sentence does not explain how your plan was successful'. Participant 14 lost 2 for an answer that could not settle on whether it worked ('{{corpus:2a/p14:verdict:0:42:sha=7ec74c73e177}} rate') — 'need more explanation on how it was or was not successful'.
+- Success or failure is irrelevant to the score; only whether it is stated and explained.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `verdict` — `met`/`absent`/`unclear`: States whether the plan was successful
+- `hows_given` — `2`/`1`/`0`: HOW MANY separate pieces of explanation of HOW the plan succeeded or failed the response gives — count CONTENT, not sentences: one compound sentence that states the outcome and explains it can carry two. Ignore any stretch that does not bear on how the plan succeeded or failed. Answer 2 for two or more
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+DO NOT ANSWER `how_1`, `how_2` individually. Answer `hows_given` — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### 1a
+<Ref id="bmod_h3_su_ref_ov" target="bmod_h3_overview_response" />
+
+## Student response to grade (item 2a)
+Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
+
+### Asked for: Verdict
+<Ref id="bmod_h3_su_ref_v" target="bmod_h3_success_verdict" />
+
+### Asked for: How (1)
+<Ref id="bmod_h3_su_ref_1" target="bmod_h3_success_how1" />
+
+### Asked for: How (2)
+<Ref id="bmod_h3_su_ref_2" target="bmod_h3_success_how2" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes; costs and the item
+           total live on the sheet, this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h3_success_grader" target="bmod_h3_success_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: 2b - overall assessment ======================== -->
+
+  <Vertical id="bmod_h3_assessment" title="2b. Overall assessment">
+    <Markdown id="bmod_h3_assessment_prompt">
+## 2b. Write an overall assessment of your intervention
+
+Which aspects were effective, and which were not? Include your own
+observations about how you executed the project — for instance, how well your
+reinforcements or punishments actually worked for changing your behavior.
+
+At least **three sentences**.
+    </Markdown>
+
+    <Markdown id="bmod_h3_assessment_recall">
+The two types of operant conditioning you planned to use:
+
+**{{@bmod_h2_t1.value}}** — daily: {{@bmod_h2_day1.value}}
+
+**{{@bmod_h2_t2.value}}** — daily: {{@bmod_h2_day2.value}}
+    </Markdown>
+
+    <TextArea id="bmod_h3_assessment_response" rows="8" />
+
+    <LLMFeedback id="bmod_h3_assessment_feedback" />
+    <ActionButton id="bmod_h3_assessment_btn" label="Check my assessment">
+      <LLMAction id="bmod_h3_assessment_llm" target="bmod_h3_assessment_feedback"
+                 slots="sentences_given:How many substantive assessment sentences you give:3/2/1/0|sentence_1:First substantive assessment sentence@2|sentence_2:Second substantive sentence@2|sentence_3:Third substantive sentence@2|uncertain:Any judgement you were unsure about:no/yes"
+                 counts="sentences_given:sentence_1,sentence_2,sentence_3"
+                 showChecks="false">
+You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item 2b — 6 points
+
+## Question asked of the student
+Write an overall assessment of your intervention: which aspects were effective and which were not, including personal observations about your execution (for example, how your reinforcements or punishments worked). At least 3 sentences.
+
+## Credit components
+- `sentences_given`: HOW MANY substantive sentences about the intervention the response gives — count generously: sentences about what worked, what did not, and how the student executed the plan all count, and quality of insight is not judged. Answer 3 for three or more
+- `sentence_1` (2 pt): First substantive sentence about the intervention
+- `sentence_2` (2 pt): Second substantive sentence
+- `sentence_3` (2 pt): Third substantive sentence
+
+## Deduction codes — the course's canonical wording for each gap
+- `BLANK` (-6): did not answer
+- `MISSING_SENTENCE` (-2) [repeatable]: -2 pts: missing a sentence
+
+## Grading guidance
+- Three 2-point slots, one per assessment sentence. This item is graded generously: the graders counted substantive sentences about the intervention and deducted only when fewer than three were present.
+- Sentences about what worked, what did not, and how the student executed the plan all count. Do not deduct for quality of insight.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `sentences_given` — `3`/`2`/`1`/`0`: HOW MANY substantive sentences about the intervention the response gives — count generously: sentences about what worked, what did not, and how the student executed the plan all count, and quality of insight is not judged. Answer 3 for three or more
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+DO NOT ANSWER `sentence_1`, `sentence_2`, `sentence_3` individually. Answer `sentences_given` — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### 2a
+Verdict: <Ref id="bmod_h3_assessment_ref_success_verdict" target="bmod_h3_success_verdict" />
+How (1): <Ref id="bmod_h3_assessment_ref_success_how1" target="bmod_h3_success_how1" />
+How (2): <Ref id="bmod_h3_assessment_ref_success_how2" target="bmod_h3_success_how2" />
+
+## Student response to grade (item 2b)
+<Ref id="bmod_h3_as_ref" target="bmod_h3_assessment_response" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes; costs and the item
+           total live on the sheet, this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h3_assessment_grader" target="bmod_h3_assessment_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: 3 - what would you change? ===================== -->
+
+  <Vertical id="bmod_h3_improve" title="3. What would you change?">
+    <Markdown id="bmod_h3_improve_prompt">
+## 3. What could be done differently next time?
+
+What changes would you make if you continued trying to change this behavior?
+Give **two specific examples**.
+
+Every study and every intervention can be improved, so "nothing would change"
+is not an acceptable answer.
+    </Markdown>
+
+    <Markdown id="bmod_h3_improve_first_label">**First change**</Markdown>
+    <TextArea id="bmod_h3_improve_first" rows="4" />
+
+    <Markdown id="bmod_h3_improve_second_label">**Second change**</Markdown>
+    <TextArea id="bmod_h3_improve_second" rows="4" />
+
+    <LLMFeedback id="bmod_h3_improve_feedback" />
+    <ActionButton id="bmod_h3_improve_btn" label="Check my answer">
+      <LLMAction id="bmod_h3_improve_llm" target="bmod_h3_improve_feedback"
+                 slots="changes_given:How many distinct changes you propose:2/1/0|example_1:First specific change@3|example_2:Second, different change@3|uncertain:Any judgement you were unsure about:no/yes"
+                 counts="changes_given:example_1,example_2"
+                 showChecks="false">
+You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item 3 — 6 points
+
+## Question asked of the student
+What could be done differently next time to improve your intervention plan? Give at least 2 specific examples. ('Nothing would change' is not acceptable — every intervention can be improved.)
+
+## Credit components
+- `changes_given`: HOW MANY DISTINCT changes the response proposes — count generously: a change to the reinforcer and a change to the schedule are two even in one sentence, and any concrete alternative counts without justification or feasibility. A statement that nothing needs changing counts as none. Answer 2 for two or more
+- `example_1` (3 pt): First specific change they would make
+- `example_2` (3 pt): Second specific change
+
+## Deduction codes — the course's canonical wording for each gap
+- `BLANK` (-6): -6 pts: Every intervention and study can be improved! You did not provide two examples of what could be done differently next time to improve your intervention plan
+- `ONLY_ONE` (-3): -3 pts: only provided one example of a change
+
+## Grading guidance
+- Two 3-point slots. Count DISTINCT proposed changes, generously — a change to the reinforcer and a change to the schedule are two, even in one sentence.
+- A statement that nothing needs changing is not a proposed change, and does not add to the count.
+- IMPLICIT (from gold): the graders accepted any concrete alternative the student would try; they did not require justification or feasibility.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `changes_given` — `2`/`1`/`0`: HOW MANY DISTINCT changes the response proposes — count generously: a change to the reinforcer and a change to the schedule are two even in one sentence, and any concrete alternative counts without justification or feasibility. A statement that nothing needs changing counts as none. Answer 2 for two or more
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+DO NOT ANSWER `example_1`, `example_2` individually. Answer `changes_given` — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### 2a
+Verdict: <Ref id="bmod_h3_improve_ref_success_verdict" target="bmod_h3_success_verdict" />
+How (1): <Ref id="bmod_h3_improve_ref_success_how1" target="bmod_h3_success_how1" />
+How (2): <Ref id="bmod_h3_improve_ref_success_how2" target="bmod_h3_success_how2" />
+
+### 2b
+<Ref id="bmod_h3_improve_ref_assessment_response" target="bmod_h3_assessment_response" />
+
+## Student response to grade (item 3)
+Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
+
+### Asked for: First change
+<Ref id="bmod_h3_im_ref_1" target="bmod_h3_improve_first" />
+
+### Asked for: Second change
+<Ref id="bmod_h3_im_ref_2" target="bmod_h3_improve_second" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes; costs and the item
+           total live on the sheet, this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h3_improve_grader" target="bmod_h3_improve_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: Review ========================================= -->
+
+  <Vertical id="bmod_h3_review" title="Review and submit">
+    <Markdown id="bmod_h3_submission">
+## Your Handout 3
+
+### 1a. Overview of the data
+{{@bmod_h3_overview_response.value}}
+
+### 1b. Data
+**Baseline:** {{@bmod_h3_baseline.value}}
+
+**Week 1:** {{@bmod_h3_wk1.value}}
+
+**Week 2:** {{@bmod_h3_wk2.value}}
+
+**Week 3:** {{@bmod_h3_wk3.value}}
+
+### 1c. Graph
+Title: {{@bmod_h3_graph_title.value}} — x-axis: {{@bmod_h3_graph_x.value}} — y-axis: {{@bmod_h3_graph_y.value}}
+    </Markdown>
+
+    <!-- The graph itself, so that printing this page produces a submission
+         that contains the figure rather than a description of it. Same four
+         data fields and same three label fields as 1c — this is the same
+         chart, not a second one to keep in sync. -->
+    <SelfMonitorPlot id="bmod_h3_review_plot"
+                     target="bmod_h3_baseline,bmod_h3_wk1,bmod_h3_wk2,bmod_h3_wk3"
+                     labels="Baseline,Week 1,Week 2,Week 3"
+                     categories="Sun,Mon,Tue,Wed,Thu,Fri,Sat"
+                     chartTitleTarget="bmod_h3_graph_title"
+                     xlabelTarget="bmod_h3_graph_x"
+                     ylabelTarget="bmod_h3_graph_y"
+                     height="340" />
+
+    <Markdown id="bmod_h3_submission_rest">
+### 2a. Was the behavior successfully modified?
+{{@bmod_h3_success_verdict.value}}
+
+{{@bmod_h3_success_how1.value}}
+
+{{@bmod_h3_success_how2.value}}
+
+### 2b. Overall assessment
+{{@bmod_h3_assessment_response.value}}
+
+### 3. What I would change
+1. {{@bmod_h3_improve_first.value}}
+2. {{@bmod_h3_improve_second.value}}
+    </Markdown>
+
+    <Markdown id="bmod_h3_final">
+That completes the Behavior Modification Assignment. Print or save this page as
+a PDF and submit it in Canvas. Your graph is on it, so there is no separate
+image to upload.
+    </Markdown>
+
+    <ActionButton id="bmod_h3_print_btn" label="Print or save as PDF">
+      <PrintAction id="bmod_h3_print" />
+    </ActionButton>
+  </Vertical>
+
+</Sequential>
