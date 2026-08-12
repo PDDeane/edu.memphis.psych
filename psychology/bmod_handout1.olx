@@ -1,0 +1,1334 @@
+<!--
+---
+description: Behavior Modification Assignment Handout 1 - defining an unwanted target behavior, a wanted goal behavior, SMART goals, and a functional behavioral analysis (ABCs)
+category: psychology
+index: 10
+lang: en-Latn-US
+authors:
+  - Mollie Blair Anderson
+  - Randy Floyd
+  - Emily N Srisarajivakul
+  - Kara Watkins
+  - Paul Deane
+license: AGPL
+---
+-->
+
+<!--
+Behavior Modification Assignment, Handout 1 of 3.
+
+Screen-per-question, following the paper handout's numbering (1, 2, 3, 4a, 4b,
+4c, 5, 6). Two things differ deliberately from the paper version:
+
+  * The paper handout is worth 50 points, 5 of which are for uploading photos
+    of the handwritten pages alongside a typed copy. That requirement is an
+    artifact of a paper workflow and has no analogue here, so the scored items
+    below total the remaining 45.
+
+  * Question 6 asks students to reuse the antecedents from 4a and the
+    consequences from 4c. On paper this is the most commonly lost item —
+    students introduce new ones instead of reusing their own. Here their own
+    answers are shown on the screen via <Ref>, so the requirement is visible
+    rather than remembered.
+
+EVERY <LLMAction> PROMPT BODY IN THIS FILE IS GENERATED. Do not hand-edit one:
+the next `--write` will overwrite it, and `--check` fails in the meantime.
+
+  ~/code/molly_scoring/scorer/olx_prompts.py --check   # are they current?
+  ~/code/molly_scoring/scorer/olx_prompts.py --write   # regenerate
+
+The source is `rubric_hN.py` in that directory, which scores the paper
+submissions item-by-item and measures itself against 20 rows of human grading
+per handout. Each prompt follows `score.py:build_prompt`'s skeleton — item
+header, question as asked, credit components, deduction code table, every
+guidance bullet, worked examples, cross-item context — copied verbatim, so the
+two implementations run the SAME rubric and a comparison between them means
+something. To change what a prompt says, change the rubric. Every difference
+that remains is listed, with its reason, in scorer/EQUIVALENCE.md.
+
+That verbatim material is what carries the calibration: criteria the scoring
+dictionary never states but the graders applied anyway (a Q1 reason must be a
+negative consequence, not an aspiration; Q2's reasons must be benefits; Q3's
+Measurable needs a tracking method; Q4b is judged on framing rather than
+category; Q5 credits form over insight), the graders' own decided cases quoted
+as written, and Q6's three worked examples. THREE is the measured optimum on
+Q6 — a fourth example made agreement worse (62% -> 44%), and five were worse
+still. Do not add more without re-measuring.
+
+The canonical feedback wording in each prompt is the scoring dictionary's own
+phrasing, so a student who fixes what the LLM flagged meets the same words if
+the same gap is graded later. The prompt carries the point values because the
+rubric does; it forbids the model from repeating them to the student.
+
+Each item declares its checks as a `slots` sheet on the LLMAction, which makes
+them required properties of a strict JSON schema rather than a request in
+prose. That is the same fix that worked in the scorer, for the same reason: the
+failure mode is not misjudging a check, it is answering two of eight and
+writing fluent feedback about the two. The student sees the model's prose
+followed by the verdicts, so which parts were found is visible rather than
+inferred. A SlotSheetGrader beside each action turns that sheet into a score.
+See LLMAction.md for the attribute format.
+-->
+
+<Sequential id="bmod_handout1" title="BMod Handout 1: Defining Behaviors, ABCs, and SMART Goals" launchable="true">
+
+  <!-- ============= Screen: Choose an unwanted target behavior ============= -->
+
+  <Vertical id="bmod_h1_choose" title="Choose your behavior">
+    <Markdown id="bmod_h1_intro">
+# Behavior Modification Assignment: Handout 1
+
+Over the next four weeks you will run a behavior modification intervention on
+your **own** behavior: one week of baseline data collection, then three weeks
+of intervention.
+
+Two ground rules:
+
+* You will intervene on your own behavior, not anyone else's.
+* Do not choose an intervention that could cause you harm.
+
+Start by choosing the unwanted target behavior (UTB) you want to change.
+    </Markdown>
+
+    <CapaProblem id="bmod_h1_utb_problem" title="Your unwanted target behavior" showanswer="never">
+      <CorrectGrader id="bmod_h1_utb_grader">
+        <Markdown id="bmod_h1_utb_prompt">Which behavior will you work on?</Markdown>
+        <ChoiceInput id="bmod_h1_utb">
+          <Key id="bmod_h1_utb_sleep" value="lack of sleep">Lack of sleep</Key>
+          <Key id="bmod_h1_utb_exercise" value="lack of exercise">Lack of exercise</Key>
+        <Key id="bmod_h1_utb_produce" value="insufficient consumption of fruits and vegetables">Insufficient consumption of fruits and vegetables</Key>
+        <Key id="bmod_h1_utb_screens" value="spending too much time on electronic devices">Spending too much time on electronic devices</Key>
+        </ChoiceInput>
+      </CorrectGrader>
+    </CapaProblem>
+  </Vertical>
+
+  <!-- ============= Screen: Question 1 - define the UTB ===================== -->
+
+  <Vertical id="bmod_h1_q1" title="1. Define your unwanted target behavior">
+    <Markdown id="bmod_h1_q1_prompt">
+## 1. Define your unwanted target behavior and explain WHY you chose it
+
+Write **one sentence** describing your unwanted target behavior, then **at
+least three sentences** explaining why you chose to change it.
+
+Your reasons should be things that go wrong because of the behavior — symptoms
+you experience when you engage in it, or health issues that can arise from
+continuing it.
+    </Markdown>
+
+    <TextArea id="bmod_h1_q1_response" rows="7"
+              placeholder="My unwanted target behavior is..." />
+
+    <LLMFeedback id="bmod_h1_q1_feedback" />
+    <ActionButton id="bmod_h1_q1_btn" label="Check my answer">
+      <LLMAction id="bmod_h1_q1_llm" target="bmod_h1_q1_feedback"
+                 slots="utb_stated:Your unwanted target behavior stated explicitly@2|harms_listed:How many statements name a negative effect of the behavior:3/2/1/0|benefits_listed:How many name a benefit you expect from changing:3/2/1/0|reasons_given:How many separate reasons you give:3/2/1/0|reason_1:First reason — a negative effect of the behavior@1|reason_2:Second reason@1|reason_3:Third reason@1|uncertain:Any judgement you were unsure about:no/yes"
+                 counts="reasons_given:reason_1,reason_2,reason_3">
+You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item Q1 — 5 points
+
+## Question asked of the student
+Define your unwanted target behavior (UTB) and explain WHY you chose this particular UTB for intervention. Requires 1 sentence describing the UTB and at least 3 sentences explaining why you chose to change this behavior.
+
+## Credit components
+- `utb_stated` (2 pt)
+- `harms_listed`
+- `benefits_listed`
+- `reasons_given`
+- `reason_1` (1 pt)
+- `reason_2` (1 pt)
+- `reason_3` (1 pt)
+
+## Deduction codes — the course's canonical wording for each gap
+- `UTB_NOT_ON_LIST` (-5): You did not choose an UTB from the provided list (lack of sleep, lack of exercise, insufficient consumption of fruits and vegetables, spending too much time on electronics). Please choose one of these behaviors for you to modify.
+- `UTB_NOT_STATED` (-2): What is your UTB? This needs to be explicitly stated.
+- `REASON_MISSING` (-1) [repeatable]: You did not provide 3 separate reasons as to why you chose to change this UTB. These should be negative consequences of engaging in the UTB.
+
+## Grading guidance
+- The UTB must be one of the four from the closed list.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `utb_stated` — `met`/`absent`/`unclear`: The unwanted target behavior is identified as the student's own target, not merely mentioned as the cause of some effect. Judge ONLY the response text the student wrote. Where the UTB also appears in this prompt as a separate field or context line, that does NOT satisfy this check — the question is whether the RESPONSE names the behaviour as its target. A response that opens straight into effects ("the lack of sleep would make me more tired...") fails; a sentence of the form "My unwanted target behavior is X" satisfies it
+- `harms_listed` — `3`/`2`/`1`/`0`: HOW MANY statements name a NEGATIVE EFFECT of the unwanted behaviour — something that goes wrong because of it, or a symptom of it. "With lack of sleep, it has become hard to stay focused in class" is one. A reason is a whole STATEMENT: a clause that merely continues one is part of it, so "makes me turn to snacking on unhealthy things, like candy, WHICH CAUSES me to gain weight" is ONE, while two effects merely joined by "and" are two. Do NOT count a restatement that the student struggles with the behaviour (participant 1) or a behaviour performed DURING it (participant 2). Answer 3 for three or more
+- `benefits_listed` — `3`/`2`/`1`/`0`: HOW MANY statements name a BENEFIT the student expects from changing. The test is GETS versus DOES: a benefit is something the student GETS — "I wanted to feel more confident in myself", "I will overall be a healthier person". A statement of what they intend to DO names the goal behaviour itself and is NOT a benefit of it, however much it sounds like a wish. Do NOT count a restatement of the goal ("my goal for this year is more active"), the struggle ("something I have been struggling with"), or background about how the behaviour came about ("I used to exercise a lot due to sports"). Answer 3 for three or more
+- `reasons_given` — `3`/`2`/`1`/`0`: HOW MANY reasons count. The rule is CONDITIONAL on the two counts above. If `harms_listed` is 1 or more the answer IS `harms_listed`, and benefits do not add to it — a response with one harm and two benefits counts 1, which is what participant 6 scored. Only when `harms_listed` is 0 does the answer become `benefits_listed` instead, which is how participants 9, 10 and 16 were credited. Never answer 0 when the student offered anything of either kind. Answer 3 for three or more
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+DO NOT ANSWER `reason_1`, `reason_2`, `reason_3` individually. Answer `reasons_given` — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.
+
+## The behavior they chose from the list
+Chosen from the four on the list, before question 1.
+<Ref id="bmod_h1_q1_ref_utb" target="bmod_h1_utb" />
+
+## Student response to grade (item Q1)
+<Ref id="bmod_h1_q1_ref" target="bmod_h1_q1_response" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes; costs and the item
+           total live on the sheet, this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h1_q1_grader" target="bmod_h1_q1_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: Question 2 - define the WGB ===================== -->
+
+  <Vertical id="bmod_h1_q2" title="2. Define your wanted goal behavior">
+    <Markdown id="bmod_h1_q2_prompt">
+## 2. Define your wanted goal behavior
+
+Your wanted goal behavior (WGB) is the behavior you hope to *strengthen*. It
+should be the opposite of your unwanted target behavior — if your UTB is not
+drinking enough water, your WGB is drinking more water.
+
+Write **one sentence** describing your wanted goal behavior, then **at least
+three sentences** explaining why you chose to strengthen it. These reasons
+should be the *benefits* of the goal behavior, not the harms of the unwanted
+one.
+    </Markdown>
+
+    <Markdown id="bmod_h1_q2_recall">
+Your unwanted target behavior was: **{{@bmod_h1_utb.value}}**
+    </Markdown>
+
+    <TextArea id="bmod_h1_q2_response" rows="7"
+              placeholder="My wanted goal behavior is..." />
+
+    <LLMFeedback id="bmod_h1_q2_feedback" />
+    <ActionButton id="bmod_h1_q2_btn" label="Check my answer">
+      <LLMAction id="bmod_h1_q2_llm" target="bmod_h1_q2_feedback"
+                 slots="!wgb_is_counterpart:Goal behavior is the opposite of your unwanted behavior|wgb_inverts_utb:Goal behavior states the opposite of your unwanted behavior@2|reasons_listed:How many statements you offer as reasons:3/2/1/0|reasons_failing:How many of those are not a benefit of the goal:0/1/2/3|reasons_given:How many separate benefits you give:3/2/1/0|reason_1:First benefit of the goal behavior@1|reason_2:Second benefit@1|reason_3:Third benefit@1|uncertain:Any judgement you were unsure about:no/yes"
+                 counts="reasons_given:reason_1,reason_2,reason_3">
+You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item Q2 — 5 points
+
+## Question asked of the student
+Define your wanted goal behavior (WGB) that you hope to strengthen. Requires 1 sentence describing the WGB and at least 3 sentences explaining why you chose to strengthen it.
+
+## Credit components
+- `wgb_is_counterpart` **GATE**: The goal behaviour concerns the SAME behaviour as the Q1 UTB. Fail this ONLY when it is a different behaviour altogether — "connect more with people and restart reading books" against a UTB of screen time. A goal in the right territory that simply does not invert the behaviour still passes this: that is WGB_NOT_OPPOSITE on `wgb_inverts_utb`, worth 2, not the whole item. When this DOES fail the goal is unstated and its reasons cannot count either, so WGB_UNRELATED stands INSTEAD of WGB_NOT_OPPOSITE plus reason deductions, never alongside them — it cost participant 7 the whole item
+- `wgb_inverts_utb` (2 pt): The WGB is explicitly stated AND inverts the behaviour the UTB names — not merely a goal in the same territory, and not an outcome of the behaviour. Judge the BEHAVIOUR it concerns against the behaviour the UTB names: a goal that names a different activity fails (reading and socialising against a UTB of screen time), and so does one that names a different measure (losing twenty pounds against a UTB of lack of exercise). A goal stating the same behaviour's positive state PASSES — "get back in shape" against a UTB of lack of exercise is the inversion, phrased as a state. Full credit is the same behaviour turned around: UTB lack of sleep -> "get eight hours of sleep"; UTB lack of exercise -> "attend the gym three days a week". "Gain a consistent routine" against lack of exercise cost participant 10 two points — it never says exercise more
+- `reasons_listed`: HOW MANY statements the response offers as reasons, before judging any of them. Count what is on the page
+- `reasons_failing`: Of those, HOW MANY are not a benefit of the goal behaviour — because they restate the UTB's harm, or repeat another one
+- `reasons_given`: HOW MANY of the listed statements are a real benefit of the GOAL behaviour: `reasons_listed` minus `reasons_failing`. A statement that restates the harm of the unwanted behaviour is not a benefit of the goal — "not exercising makes me feel lazy" is a reason to drop the UTB, not a benefit of exercising. Whether one sentence holds one benefit or two is STRUCTURAL: a second half that is a knock-on effect of the first is ONE ("helps me stay focused in class, WHICH WILL improve my learning"), while two independent benefits merely joined by "and" are TWO ("my body would be in a better-looking shape AND feel better also"). A restatement of the GOAL is not a benefit of it either — "I know that I can become a more active person" against a goal of being more active cost participant 6 a point. Statements about why the UTB is bad belong to Q1 and earn nothing here; participant 3 lost all three that way. Answer 3 for three or more
+- `reason_1` (1 pt): First reason — a benefit of the goal behaviour
+- `reason_2` (1 pt): Second reason
+- `reason_3` (1 pt): Third reason
+
+## Deduction codes — the course's canonical wording for each gap
+- `WGB_UNRELATED` (-5): Your WGB should be the opposite of your UTB. You also need three reasons why you chose the WGB.
+- `WGB_NOT_OPPOSITE` (-2): What is your WGB? This needs to be explicitly stated. Your WGB should be the opposite of your UTB (e.g., UTB = not drinking enough water; WGB = drinking more water).
+- `REASON_MISSING` (-1) [repeatable]: You did not provide 3 separate reasons as to why you chose to strengthen this WGB. These should be the benefits of engaging in the WGB.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `wgb_is_counterpart` **GATE** — `met`/`absent`/`unclear`: the WGB_UNRELATED test, and only that: is the goal behavior about a DIFFERENT behavior altogether from the unwanted one? A goal in the right territory that simply fails to invert the behavior still satisfies this — that is WGB_NOT_OPPOSITE on `wgb_inverts_utb`, worth 2, not the whole item. Not satisfied means the whole item is that finding
+- `wgb_inverts_utb` — `met`/`absent`/`unclear`: TWO ways to fail, and the second is the common one. (i) no goal behavior is stated at all. (ii) a goal IS stated but does not invert the behaviour the Q1 UTB names — the WGB_NOT_OPPOSITE test. Tier (a) full credit needs the SAME behaviour turned around: UTB lack of sleep -> "get eight hours of sleep"; UTB lack of exercise -> "attend the gym three days a week". `absent` when the goal is in the right territory but never says to do the behaviour more or less: "gain a consistent routine" against a UTB of lack of exercise is `absent` — it never says exercise more, and cost participant 10 two points; so is "loose at least twenty pounds and stay fit", which names a DIFFERENT MEASURE — pounds are not exercise. But the same behaviour's own positive STATE is `met`: "get back in shape" against a UTB of lack of exercise IS the inversion phrased as a state, and the graders charged participant 18 nothing for it. So a different measure of the right behaviour fails; the right behaviour's state passes. A goal naming a DIFFERENT ACTIVITY fails here too — "connect more with people and restart reading books" against a UTB of screen time never says to use the devices less, and cost participant 7 the item. Answer `absent` for that here even though the `wgb_is_counterpart` gate above may also catch it; do not pass this check assuming the gate will
+- `reasons_listed` — `3`/`2`/`1`/`0`: how many statements the response OFFERS as reasons, counted off the page before judging any of them. This is not scored; it is the first half of the count below
+- `reasons_failing` — `0`/`1`/`2`/`3`: of those, how many are NOT a benefit of the goal behaviour — either because the statement restates the harm of the unwanted behaviour rather than naming something the goal gets you, or because it repeats another statement already counted. Not scored; the second half of the count below
+- `reasons_given` — `3`/`2`/`1`/`0`: HOW MANY separate BENEFITS of the goal behaviour — `reasons_listed` minus `reasons_failing`, the two counts above. Thematic overlap alone does not merge two benefits. Whether one sentence holds one benefit or two is STRUCTURAL, not a matter of degree. A second half that is a KNOCK-ON EFFECT of the first is ONE benefit — "getting enough sleep helps me stay focused during class, WHICH WILL improve my learning" is one, not two, and counting it as two cost participant 19 a point. Two INDEPENDENT benefits merely joined by "and" are TWO — "my body would be in a better-looking shape AND feel better also" is two, and counting it as one cost participant 6 a point. Three kinds of statement do not count at all. (i) A reason the UNWANTED behaviour is bad, rather than a benefit of the wanted one: against a WGB of "exercise more", "Not exercising more makes me feel lazy" and "it makes me feel out of breath" are reasons to stop the UTB, and the graders counted them as ZERO benefits. (ii) A restatement of the goal or of the problem it solves: "I know that I can become a more active person" against a goal of being more active is the goal again, not a benefit of it; so is "I feel like I'm getting big but that's only because I'm out of shape" against a goal of getting back in shape. (iii) A statement that says the same thing as one already counted. Answer 3 for three or more that survive all three tests
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+DO NOT ANSWER `reason_1`, `reason_2`, `reason_3` individually. Answer `reasons_given` — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.
+
+A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
+
+## The behavior they chose (authoritative)
+Chosen from the four on the list, before question 1.
+<Ref id="bmod_h1_q2_llm_ref_utb" target="bmod_h1_utb" />
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### Q1
+What they wrote about it: <Ref id="bmod_h1_q2_ref_q1_response" target="bmod_h1_q1_response" />
+
+## Student response to grade (item Q2)
+<Ref id="bmod_h1_q2_ref" target="bmod_h1_q2_response" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes; costs and the item
+           total live on the sheet, this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h1_q2_grader" target="bmod_h1_q2_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: Question 3 - SMART goal ========================= -->
+
+  <Vertical id="bmod_h1_q3" title="3. SMART goal">
+    <Markdown id="bmod_h1_q3_prompt">
+## 3. Use the SMART goal acronym to define your wanted goal behavior
+
+Fill in each aspect. All five are required for full credit.
+    </Markdown>
+
+    <Markdown id="bmod_h1_q3_s_label">
+**Specific** — quantify your goal. What is your daily goal? Your weekly goal?
+
+*For example: "my goal is Specific because I plan to drink at least 32 ounces
+of water per day, every day of the week."*
+    </Markdown>
+    <TextArea id="bmod_h1_q3_specific" rows="3" placeholder="My goal is Specific because..." />
+
+    <Markdown id="bmod_h1_q3_m_label">
+**Measurable** — how will you keep track, and *where* will you record your data?
+
+*For example: "I will track my water intake in a Notes app on my phone,
+counting the number of ounces I drink."*
+    </Markdown>
+    <TextArea id="bmod_h1_q3_measurable" rows="3" placeholder="My goal is Measurable because..." />
+
+    <Markdown id="bmod_h1_q3_a_label">
+**Action-Oriented** — what specific actions will you physically take?
+    </Markdown>
+    <TextArea id="bmod_h1_q3_action" rows="3" placeholder="My goal is Action-Oriented because..." />
+
+    <Markdown id="bmod_h1_q3_r_label">
+**Realistic** — why is this goal realistic for *you*?
+    </Markdown>
+    <TextArea id="bmod_h1_q3_realistic" rows="3" placeholder="My goal is Realistic because..." />
+
+    <Markdown id="bmod_h1_q3_t_label">
+**Time-Bound** — over what period does your intervention run?
+    </Markdown>
+    <TextArea id="bmod_h1_q3_timebound" rows="3" placeholder="My plan is Time-Bound because..." />
+
+    <LLMFeedback id="bmod_h1_q3_feedback" />
+    <ActionButton id="bmod_h1_q3_btn" label="Check my SMART goal">
+      <LLMAction id="bmod_h1_q3_llm" target="bmod_h1_q3_feedback"
+                 slots="specific:Specific — a quantified daily or weekly goal@1|measurable:Measurable — names a tracking method or place@1|action_oriented:Action-Oriented — something you will physically do@1|realistic:Realistic — why it is achievable for you@1|time_bound:Time-Bound — four weeks, one baseline plus three@1|uncertain:Any judgement you were unsure about:no/yes">
+You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item Q3 — 5 points
+
+## Question asked of the student
+Use the SMART goal acronym to further define your WGB. Each aspect must be discussed AND labeled: Specific, Measurable, Actionable/Action-Oriented, Realistic, Time-Bound.
+
+## Credit components
+- `specific` (1 pt): Names a specific target, quantified
+- `measurable` (1 pt): Says how it will be measured
+- `action_oriented` (1 pt): States the action to be taken
+- `realistic` (1 pt): Is realistic, or says why it is
+- `time_bound` (1 pt): Has a time frame for the goal
+
+## Deduction codes — the course's canonical wording for each gap
+- `SPECIFIC_NOT_QUANTIFIED` (-1): -1 pt: For specific, you should have a specific, quantifiable goal. (ex. 30 minutes a day).
+- `MEASURABLE_NO_METHOD` (-1): -1 pt: For measurable, how are you tracking your goal? (ex. in a notebook).
+- `ACTION_MISSING` (-1): -1 pt: For action, what do you have to actively do to achieve your goal?
+- `REALISTIC_MISSING` (-1): -1 pt: missing realistic.
+- `TIME_BOUND_WRONG` (-1): -1 pt: For time-bound, you have one week of baseline data and three weeks of intervention, or 4 weeks total.
+
+## Grading guidance
+- Award each of the five letters independently, 1 point each.
+- Time-Bound has a near-verbatim expected answer: four weeks total, one week of baseline data collection and three weeks of intervention data collection. Any other duration loses the point.
+- IMPLICIT (from gold): Measurable must name a tracking METHOD or LOCATION (a notebook, a phone app). Restating the goal is not measuring it. Specific must carry a NUMBER.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `specific` — `met`/`absent`/`unclear`: Names a specific target, quantified
+- `measurable` — `met`/`absent`/`unclear`: Says how it will be measured
+- `action_oriented` — `met`/`absent`/`unclear`: States the action to be taken
+- `realistic` — `met`/`absent`/`unclear`: Is realistic, or says why it is
+- `time_bound` — `met`/`absent`/`unclear`: Has a time frame for the goal
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### Q1
+Their unwanted target behavior, chosen from the list: <Ref id="bmod_h1_q3_ref_utb" target="bmod_h1_utb" />
+What they wrote about it: <Ref id="bmod_h1_q3_ref_q1_response" target="bmod_h1_q1_response" />
+
+### Q2
+<Ref id="bmod_h1_q3_ref_wgb" target="bmod_h1_q2_response" />
+
+## Student response to grade (item Q3)
+Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
+
+### Asked for: Specific
+<Ref id="bmod_h1_q3_ref_s" target="bmod_h1_q3_specific" />
+
+### Asked for: Measurable
+<Ref id="bmod_h1_q3_ref_m" target="bmod_h1_q3_measurable" />
+
+### Asked for: Action-Oriented
+<Ref id="bmod_h1_q3_ref_a" target="bmod_h1_q3_action" />
+
+### Asked for: Realistic
+<Ref id="bmod_h1_q3_ref_r" target="bmod_h1_q3_realistic" />
+
+### Asked for: Time-Bound
+<Ref id="bmod_h1_q3_ref_t" target="bmod_h1_q3_timebound" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes; costs and the item
+           total live on the sheet, this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h1_q3_grader" target="bmod_h1_q3_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: FBA intro ======================================= -->
+
+  <Vertical id="bmod_h1_fba_intro" title="4. Functional behavioral analysis">
+    <Markdown id="bmod_h1_fba_text">
+## 4. Perform a functional behavioral analysis (FBA)
+
+Next you will detail the **ABCs** of your unwanted target behavior.
+
+* **A — Antecedents**: what happens *before* the behavior and leads to it.
+* **B — Behavior**: what you are actively doing *during* the behavior.
+* **C — Consequences**: what happens *after* the behavior, as a result of it.
+
+These three must be different from one another. Antecedents lead to behaviors,
+which lead to consequences.
+    </Markdown>
+  </Vertical>
+
+  <!-- ============= Screen: Question 4a - antecedents ======================= -->
+
+  <Vertical id="bmod_h1_q4a" title="4a. Antecedents">
+    <Markdown id="bmod_h1_q4a_prompt">
+## 4a. What are the ANTECEDENTS (triggers) for your unwanted target behavior?
+
+What circumstances lead up to it? List and describe **two** examples.
+
+You must use the word **antecedent** or **trigger** in your answer.
+    </Markdown>
+    <TextArea id="bmod_h1_q4a_first" rows="3" placeholder="My first antecedent is..." />
+    <TextArea id="bmod_h1_q4a_second" rows="3" placeholder="My second trigger is..." />
+
+    <LLMFeedback id="bmod_h1_q4a_feedback" />
+    <ActionButton id="bmod_h1_q4a_btn" label="Check my antecedents">
+      <LLMAction id="bmod_h1_q4a_llm" target="bmod_h1_q4a_feedback"
+                 slots="antecedent_1:First antecedent is a genuine trigger:met/absent/not_antecedent@2|antecedent_2:Second antecedent is a genuine trigger:met/absent/not_antecedent@2|keyword:Uses the word antecedent or trigger@1|uncertain:Any judgement you were unsure about:no/yes">
+You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item Q4a — 5 points
+
+## Question asked of the student
+What are the ANTECEDENTS (triggers) for your engagement in your UTB? List and describe two examples. You must use the word antecedent or trigger.
+
+## Credit components
+- `antecedent_1` (2 pt): First valid antecedent
+- `antecedent_2` (2 pt): Second valid antecedent
+- `keyword` (1 pt): Uses 'antecedent' or 'trigger' at least once. A_NO_KEYWORD applies whenever neither "antecedent" nor "trigger" appears anywhere in the response. The graders enforced this inconsistently — participant 17 lost the point, participants 9 and 15 did not — but the dictionary is explicit, so apply it. This is a deliberate divergence from those two gold rows.
+
+## Deduction codes — the course's canonical wording for each gap
+- `A_NONE` (-5): No antecedents listed.
+- `A_ONLY_ONE` (-2): Only one antecedent listed.
+- `A_NOT_ANTECEDENT` (-2) [repeatable]: These examples are not antecedents. An antecedent/trigger is something that causes you to engage in the UTB.
+- `A_NO_KEYWORD` (-1): Did not use the word "antecedent" or "trigger".
+
+## Grading guidance
+- An antecedent happens BEFORE the UTB and plausibly leads to it.
+- ACCEPT generously when the example precedes the UTB and a reader can see how it leads there. A circumstance or state of mind qualifies — "waking up and not feeling motivated", "long spans of time that need to be filled", "friends calling or texting me" all earned full credit. Do not demand an elaborate causal chain; plausible precedence is enough.
+- REJECT decisively in three cases. (a) The example is an AFTERMATH of the UTB — phrased as happening afterwards or as a result ("being in pain afterwards, and because of that I can't function" cost participant 14 four points). (b) The example is what the student does INSTEAD of the goal behaviour, which belongs to 4b ("instead of exercising I would just not eat" cost participant 3 two points). (c) The example is a consequence already listed in 4c.
+- Where the link is genuinely opaque rather than merely brief, the graders did deduct — "how does grumpy emotions lead to lack of sleep?" (participant 4), "how does not stretching lead to lack of exercise?" (participant 6).
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `antecedent_1` — `met`/`absent`/`not_antecedent`: First valid antecedent
+- `antecedent_2` — `met`/`absent`/`not_antecedent`: Second valid antecedent
+- `keyword` — `met`/`absent`/`unclear`: Uses 'antecedent' or 'trigger' at least once. A_NO_KEYWORD applies whenever neither "antecedent" nor "trigger" appears anywhere in the response. The graders enforced this inconsistently — participant 17 lost the point, participants 9 and 15 did not — but the dictionary is explicit, so apply it. This is a deliberate divergence from those two gold rows.
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### Q1
+Their unwanted target behavior, chosen from the list: <Ref id="bmod_h1_q4a_ref_utb" target="bmod_h1_utb" />
+What they wrote about it: <Ref id="bmod_h1_q4a_ref_q1_response" target="bmod_h1_q1_response" />
+
+## Student response to grade (item Q4a)
+Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
+
+### Asked for: First antecedent
+<Ref id="bmod_h1_q4a_ref1" target="bmod_h1_q4a_first" />
+
+### Asked for: Second antecedent
+<Ref id="bmod_h1_q4a_ref2" target="bmod_h1_q4a_second" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes; costs and the item
+           total live on the sheet, this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h1_q4a_grader" target="bmod_h1_q4a_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: Question 4b - behaviors ========================= -->
+
+  <Vertical id="bmod_h1_q4b" title="4b. Behaviors">
+    <Markdown id="bmod_h1_q4b_prompt">
+## 4b. What ARE you actively doing during your unwanted target behavior?
+
+Think of it as: what are you doing *instead of* your goal behavior? List and
+describe **two** examples.
+
+Then say whether this behavior is a good choice for you to modify, **and why**.
+Is it under your control? Is it genuinely an issue for you?
+    </Markdown>
+
+    <Markdown id="bmod_h1_q4b_recall">
+Your antecedents from 4a were:
+
+1. {{@bmod_h1_q4a_first.value}}
+2. {{@bmod_h1_q4a_second.value}}
+    </Markdown>
+
+    <TextArea id="bmod_h1_q4b_first" rows="3"
+              placeholder="When I am doing my unwanted behavior, I am..." />
+    <TextArea id="bmod_h1_q4b_second" rows="3"
+              placeholder="When I am doing my unwanted behavior, I am..." />
+    <Markdown id="bmod_h1_q4b_modify_label">**Is this a good behavior for you to modify, and why?**</Markdown>
+    <TextArea id="bmod_h1_q4b_modify" rows="3"
+              placeholder="This is a good choice for me to modify because..." />
+
+    <LLMFeedback id="bmod_h1_q4b_feedback" />
+    <ActionButton id="bmod_h1_q4b_btn" label="Check my answer">
+      <LLMAction id="bmod_h1_q4b_llm" target="bmod_h1_q4b_feedback"
+                 slots="behavior_1:First example is something done during the behavior:met/absent/not_active@1.5|behavior_2:Second example is something done during the behavior:met/absent/not_active@1.5|modify_stated:Says whether it is a good choice to modify:met/absent@2|modify_why:Gives a reason why:met/absent@1|uncertain:Any judgement you were unsure about:no/yes"
+                 onlyif="modify_why:modify_stated"
+                 max="5">
+You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item Q4b — 5 points
+
+## Question asked of the student
+What ARE you actively doing during your unwanted target BEHAVIOR? List and describe two examples. Additionally, state whether this behavior is a good choice for you to modify AND why.
+
+## Credit components
+- `behavior_1` (1.5 pt): First active behavior
+- `behavior_2` (1.5 pt): Second active behavior
+- `modify_stated` (2 pt): States whether it is a good choice to modify
+- `modify_why` (1 pt): States why it is or is not. B_NO_MODIFY_WHY applies only when the response says it is/isn't a good choice to modify and gives NO reason whatsoever. Any reason, however brief — "because I have full control of when I go to bed" — earns the point.
+
+## Deduction codes — the course's canonical wording for each gap
+- `B_NONE` (-5): No active behaviors listed.
+- `B_ONLY_ONE` (-1.5): Only one active behavior listed.
+- `B_NOT_ACTIVE` (-1.5) [repeatable]: These examples are not what you’re actively doing during your UTB. Think about it like this: what are you doing *instead of* engaging in your WGB? (e.g., instead of drinking water, I am drinking soda).
+- `B_NO_MODIFY` (-2): No statement of if the behavior is a good choice to modify and why.
+- `B_NO_MODIFY_WHY` (-1): Did not say why it is a good choice to modify.
+
+## Grading guidance
+- An active behavior happens DURING the UTB — what the student does instead of the WGB.
+- THE TEST IS FRAMING, NOT CATEGORY. The graders accept almost anything the student presents as happening during the UTB episode, and reject statements presented as outcomes of it. Judge how the sentence is framed, not whether the content is technically a 'behaviour'.
+- ACCEPT — and accept broadly. Ordinary activities ("I am scrolling social media", "I am talking with friends over the phone", "I am indoors watching TV", "I get distracted and multitask"), INTERNAL STATES AND THOUGHTS occurring in the episode ("my brain is telling me to go to sleep but I couldn't physically do it", "I am wishing I went to sleep earlier that night"), and COPING BEHAVIOURS in the same period ("I rely on caffeine to get me through my day") all earned full credit — participants 13, 15 and 19 each scored 5.0 on responses of exactly these kinds. A sentence opening "When I am doing my unwanted behavior, I am ..." is almost always creditable.
+- REJECT in only two shapes. (a) The sentence is framed as an OUTCOME or resulting state rather than an activity: "When not stretching throughout the week, I walk around campus with stiff muscles" cost participant 6 1.5 points, and falling asleep in the car or being late to class cost participant 20 three. (b) The sentence is not an example of doing anything at all — meta-commentary about whether the behaviour is worth modifying, or a recital of consequences. Participant 7 offered one sentence about why it is good to modify and one about procrastination consequences, and the grader took 3 points: "did not provide two examples". When neither entry is an example, deduct B_NOT_ACTIVE twice rather than B_ONLY_ONE.
+- IMPLICIT (from gold): antecedent, active behavior, and consequence must be THREE DISTINCT things. Reusing a Q4a antecedent as an active behavior loses 1.5 pts — "your behaviors cannot be the same as your antecedents. Antecedents lead to behaviors, which lead to consequences" (participants 2 and 4).
+- But a trigger and the student's RESPONSE to that trigger are two distinct things, not a repeat. Participant 15 listed "friends calling or texting me" as an antecedent and "I am talking with friends over the phone or text" as an active behaviour, and the grader gave full credit: being called is the trigger, choosing to stay on the call is the behaviour. Apply the distinctness rule only when the two entries name the SAME event from the same side.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `behavior_1` — `met`/`absent`/`not_active`: First active behavior
+- `behavior_2` — `met`/`absent`/`not_active`: Second active behavior
+- `modify_stated` — `met`/`absent`: States whether it is a good choice to modify
+- `modify_why` — `met`/`absent`: States why it is or is not. B_NO_MODIFY_WHY applies only when the response says it is/isn't a good choice to modify and gives NO reason whatsoever. Any reason, however brief — "because I have full control of when I go to bed" — earns the point.
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### Q1
+Their unwanted target behavior, chosen from the list: <Ref id="bmod_h1_q4b_ref_utb" target="bmod_h1_utb" />
+What they wrote about it: <Ref id="bmod_h1_q4b_ref_q1_response" target="bmod_h1_q1_response" />
+
+### Q2
+<Ref id="bmod_h1_q4b_ref_q2_response" target="bmod_h1_q2_response" />
+
+### Q4a
+First antecedent: <Ref id="bmod_h1_q4b_llm_ref_a1" target="bmod_h1_q4a_first" />
+Second antecedent: <Ref id="bmod_h1_q4b_llm_ref_a2" target="bmod_h1_q4a_second" />
+
+## Student response to grade (item Q4b)
+Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
+
+### Asked for: First active behavior
+<Ref id="bmod_h1_q4b_ref1" target="bmod_h1_q4b_first" />
+
+### Asked for: Second active behavior
+<Ref id="bmod_h1_q4b_ref2" target="bmod_h1_q4b_second" />
+
+### Asked for: Is it a good choice to modify, and why
+<Ref id="bmod_h1_q4b_ref_m" target="bmod_h1_q4b_modify" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes; costs and the item
+           total live on the sheet, this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h1_q4b_grader" target="bmod_h1_q4b_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: Question 4c - consequences ====================== -->
+
+  <Vertical id="bmod_h1_q4c" title="4c. Consequences">
+    <Markdown id="bmod_h1_q4c_prompt">
+## 4c. What are the CONSEQUENCES of engaging in your unwanted target behavior?
+
+List and describe **two** examples. A consequence happens *after* the behavior
+and results directly from it.
+
+You must use the word **consequence** or **consequences** in your answer.
+    </Markdown>
+
+    <TextArea id="bmod_h1_q4c_first" rows="3"
+              placeholder="One consequence of my unwanted behavior is..." />
+    <TextArea id="bmod_h1_q4c_second" rows="3"
+              placeholder="Another consequence is..." />
+
+    <LLMFeedback id="bmod_h1_q4c_feedback" />
+    <ActionButton id="bmod_h1_q4c_btn" label="Check my consequences">
+      <LLMAction id="bmod_h1_q4c_llm" target="bmod_h1_q4c_feedback"
+                 slots="consequence_1:First consequence follows from the behavior:met/absent/not_consequence/duplicate@2|consequence_2:Second consequence follows from the behavior:met/absent/not_consequence/duplicate@2|keyword:Uses the word consequence|uncertain:Any judgement you were unsure about:no/yes"
+                 max="5">
+You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item Q4c — 5 points
+
+## Question asked of the student
+What are the CONSEQUENCES of engaging in your UTB? List and describe two examples. You must use the word consequence(s).
+
+## Credit components
+- `consequence_1` (2 pt): First valid consequence
+- `consequence_2` (2 pt): Second valid consequence
+- `keyword`: Uses 'consequence' at least once (advisory, not scored). The word "consequence" is NOT worth a point here, unlike the keyword on Q4a. Report `keyword: absent` when it appears nowhere — the feedback may mention it — but it costs nothing. IMPLICIT (from gold): no Q4c row in the corpus deducts for it, and none carries a 1-point deduction at all; participants 15 and 17 kept full credit while omitting the word. Q4a differs and keeps its charge, because participant 17's Q4a row does deduct for the missing keyword.
+
+## Deduction codes — the course's canonical wording for each gap
+- `C_NONE` (-5): No consequences listed.
+- `C_ONLY_ONE` (-2): Only one consequence listed.
+- `C_NOT_CONSEQUENCE` (-2) [repeatable]: These are not consequences of engaging in the UTB.
+- `C_DUPLICATE` (-2): Listed the same consequence twice.
+- `C_NO_KEYWORD` (-1): Did not use the word "consequence".
+
+## Grading guidance
+- A consequence happens AFTER the UTB and results directly from it.
+- ACCEPT downstream effects of any kind, including behavioural ones. "I eat more unhealthy junk food, which can negatively impact my health" is a valid consequence of not eating fruits and vegetables — participant 12 had full credit for it. Do not reject a consequence merely because it names an action rather than a state.
+- REJECT a statement that is really a BENEFIT of the goal behaviour rather than a result of the UTB. "I would have reached my goal weight, better health, and maintained a healthy weight" is not a consequence of failing to exercise; participant 9 lost 4 points for two statements of that kind.
+- DEDUCT when the causal link is left for the reader to guess. "Finishing my homework late" against a UTB of lack of sleep cost participant 20 two points — "need more explanation on how your second example is a direct consequence". Participant 4 lost 2 for "specify what spending too much time awake means".
+- The two consequences must be distinct — participant 11 lost 2 points for listing the same one twice.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `consequence_1` — `met`/`absent`/`not_consequence`/`duplicate`: First valid consequence
+- `consequence_2` — `met`/`absent`/`not_consequence`/`duplicate`: Second valid consequence
+- `keyword` — `met`/`absent`/`unclear`: Uses 'consequence' at least once (advisory, not scored). The word "consequence" is NOT worth a point here, unlike the keyword on Q4a. Report `keyword: absent` when it appears nowhere — the feedback may mention it — but it costs nothing. IMPLICIT (from gold): no Q4c row in the corpus deducts for it, and none carries a 1-point deduction at all; participants 15 and 17 kept full credit while omitting the word. Q4a differs and keeps its charge, because participant 17's Q4a row does deduct for the missing keyword.
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### Q1
+Their unwanted target behavior, chosen from the list: <Ref id="bmod_h1_q4c_ref_utb" target="bmod_h1_utb" />
+What they wrote about it: <Ref id="bmod_h1_q4c_ref_q1_response" target="bmod_h1_q1_response" />
+
+### Q4a
+First antecedent: <Ref id="bmod_h1_q4c_ref_a1" target="bmod_h1_q4a_first" />
+Second antecedent: <Ref id="bmod_h1_q4c_ref_a2" target="bmod_h1_q4a_second" />
+
+### Q4b
+First active behavior: <Ref id="bmod_h1_q4c_ref_b1" target="bmod_h1_q4b_first" />
+Second active behavior: <Ref id="bmod_h1_q4c_ref_b2" target="bmod_h1_q4b_second" />
+
+## Student response to grade (item Q4c)
+Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
+
+### Asked for: First consequence
+<Ref id="bmod_h1_q4c_ref1" target="bmod_h1_q4c_first" />
+
+### Asked for: Second consequence
+<Ref id="bmod_h1_q4c_ref2" target="bmod_h1_q4c_second" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes; costs and the item
+           total live on the sheet, this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h1_q4c_grader" target="bmod_h1_q4c_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: Question 5 - function of the behavior =========== -->
+
+  <Vertical id="bmod_h1_q5" title="5. Why do you continue?">
+    <Markdown id="bmod_h1_q5_prompt">
+## 5. Why do you think you continue to engage in the unwanted target behavior?
+
+Even though it results in undesired consequences, something keeps it going. It
+may be to gain something, to escape a task, to receive attention, or something
+else.
+
+List and describe **two** examples.
+
+*For example: "I continue to not drink enough water because soda tastes so
+good, and I get my sugar fix."*
+    </Markdown>
+
+    <TextArea id="bmod_h1_q5_first" rows="3"
+              placeholder="I continue to engage in this behavior because..." />
+    <TextArea id="bmod_h1_q5_second" rows="3"
+              placeholder="I also continue because..." />
+
+    <LLMFeedback id="bmod_h1_q5_feedback" />
+    <ActionButton id="bmod_h1_q5_btn" label="Check my answer">
+      <LLMAction id="bmod_h1_q5_llm" target="bmod_h1_q5_feedback"
+                 slots="example_1:First reason you keep doing it:met/absent/not_reason/duplicate@2.5|example_2:Second, different reason:met/absent/not_reason/duplicate@2.5|thin_reason:Either reason is present but weak:no/yes|uncertain:Any judgement you were unsure about:no/yes"
+                 showChecks="false">
+You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item Q5 — 5 points
+
+## Question asked of the student
+Why do you think you continue to engage in the UTB even though it results in undesired consequences? (To gain something, to escape a task, to receive attention, or something else.) List and describe two examples.
+
+## Credit components
+- `example_1` (2.5 pt): First way the goal behavior is worth strengthening
+- `example_2` (2.5 pt): Second way
+- `thin_reason`: Whether either reason is PRESENT but weak — reported so it can be said in the feedback, never deducted
+
+## Deduction codes — the course's canonical wording for each gap
+- `W_NONE` (-5): did not answer
+- `W_ONLY_ONE` (-2.5): Only one example listed.
+- `W_NOT_REASON` (-2.5) [repeatable]: These are not examples of why you continue to engage in the UTB. It should be something like, ‘I continue to not drink enough water because soda tastes so good, and I get my sugar fix.’
+
+## Grading guidance
+- The answer is about FUNCTION — what the student gains, escapes, or gets from continuing the UTB.
+- CREDIT ON FORM, NOT ON QUALITY. This is the most forgiving item on the handout. Any statement shaped like "I continue to [UTB] because X" earns its 2.5 points, essentially regardless of how insightful X is. "because when I play the game I get carried away", "because I don't make time for it", "because I drink caffeine which makes me not tired early enough", "because I'd rather use my free time watching a movie" — every one of these scored full marks (participants 8, 9, 19, 20).
+- A THIN REASON IS AN ADVISORY, NOT A DEDUCTION. When a reason is present but weak, the graders wrote a note and left the score at full. Participant 9's second reason drew "Explain how your second reason is a reason you are choosing to not exercise" — as feedback, on a 5.0. Put that kind of remark in advisory_note; do not emit W_NOT_REASON for it.
+- W_NOT_REASON is for a statement that is not a reason for CONTINUING at all — most often a consequence wearing a reason's clothes. "I continue to not sleep enough because I get super emotional and mad when I'm super tired" describes an effect of the UTB, not a payoff from it, and cost participant 4 2.5 points.
+- W_ONLY_ONE also covers two statements that collapse into the SAME reason. Participant 6 gave two entries both amounting to escaping physical effort and was marked "missing a reason you continue to engage in lack of exercise".
+- If the response is empty, this is W_NONE and the feedback is exactly 'did not answer'.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `example_1` — `met`/`absent`/`not_reason`/`duplicate`: First way the goal behavior is worth strengthening
+- `example_2` — `met`/`absent`/`not_reason`/`duplicate`: `met` for a second reason that is genuinely DIFFERENT from the first. `duplicate` when both entries are well-formed but amount to the SAME reason — participant 6 gave "the walk is far, so my legs would be tired" and "I am not as flexible, so I would be sore", which are both escaping physical effort, and the graders wrote "missing a reason". `absent` only when there is no second entry at all. `not_reason` when there IS a second, distinct entry but it is not a reason for CONTINUING — an EFFECT of the behaviour rather than a payoff from it. When it is present, distinct and a real payoff but merely thin, that is `met` plus `thin_reason`
+- `thin_reason` — `no`/`yes`: `yes` when a reason is PRESENT but weak — thin, vague, or barely explained. This costs NOTHING; it exists so you can say it in the feedback instead of reaching for `not_reason`. "I continue to not exercise because I'm not taking better care of my health" is thin and the graders left it at FULL marks with a written note. Reserve `not_reason` for a statement that is not a reason for CONTINUING at all — most often an EFFECT of the behaviour wearing a reason's clothes, like "because I get super emotional and mad when I'm super tired", which is what the behaviour causes rather than what the student gets out of it
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### Q1
+Their unwanted target behavior, chosen from the list: <Ref id="bmod_h1_q5_ref_utb" target="bmod_h1_utb" />
+What they wrote about it: <Ref id="bmod_h1_q5_ref_q1_response" target="bmod_h1_q1_response" />
+
+### Q4c
+First consequence: <Ref id="bmod_h1_q5_ref_c1" target="bmod_h1_q4c_first" />
+Second consequence: <Ref id="bmod_h1_q5_ref_c2" target="bmod_h1_q4c_second" />
+
+## Student response to grade (item Q5)
+Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
+
+### Asked for: First reason
+<Ref id="bmod_h1_q5_ref1" target="bmod_h1_q5_first" />
+
+### Asked for: Second reason
+<Ref id="bmod_h1_q5_ref2" target="bmod_h1_q5_second" />
+      </LLMAction>
+      <!-- Scores the sheet this action publishes; costs and the item
+           total live on the sheet, this block only does the arithmetic. -->
+      <SlotSheetGrader id="bmod_h1_q5_grader" target="bmod_h1_q5_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: Question 6 - changing antecedents =============== -->
+
+  <Vertical id="bmod_h1_q6" title="6. Changing your antecedents">
+    <Markdown id="bmod_h1_q6_prompt">
+## 6. How could you change each antecedent?
+
+By changing our antecedents we can change our behavior, and so our consequences
+can change too.
+
+For **each** of your two antecedents, describe how you could change it to get
+closer to your goal behavior — then describe how that change would affect
+**each** of your two consequences.
+
+*For example: I am going to change my antecedent of sugar cravings (original A)
+that leads to my drinking soda instead of water (UTB) by buying fruit-flavored
+water at the grocery store (new A), which I hope will help me drink more water
+(WGB). When I start buying it (new A), I hope I will no longer suffer from my
+consequence of spending too much money on sodas (original C). Instead I will
+have extra money to go to the movies with friends (new C).*
+    </Markdown>
+
+    <Markdown id="bmod_h1_q6_recall">
+**Your antecedents from 4a:**
+
+1. {{@bmod_h1_q4a_first.value}}
+2. {{@bmod_h1_q4a_second.value}}
+
+**Your consequences from 4c:**
+
+1. {{@bmod_h1_q4c_first.value}}
+2. {{@bmod_h1_q4c_second.value}}
+    </Markdown>
+
+    <!-- Eight boxes, not two paragraphs.
+         This item is scored on eight independent 1.25-point judgements: for
+         each antecedent, is it named and does it match 4a, is the change to it
+         described, is the affected consequence named and does it match 4c, is
+         the effect described. Asking for it as two free paragraphs collapsed
+         eight judgements into two boxes, which made the requirement something
+         to remember rather than something to answer, and left the eight slots
+         to be recovered from prose afterwards. One box per judgement makes each
+         one askable, gradeable, and visible to the student as a thing they have
+         or have not done. -->
+
+    <Markdown id="bmod_h1_q6_a1_head">### Your first antecedent</Markdown>
+
+    <Markdown id="bmod_h1_q6_state_a1_label">**Which antecedent from 4a are you changing?**</Markdown>
+    <TextArea id="bmod_h1_q6_state_a1" rows="2"
+              placeholder="The antecedent I am changing is..." />
+
+    <Markdown id="bmod_h1_q6_change_a1_label">**How will you change it?**</Markdown>
+    <TextArea id="bmod_h1_q6_change_a1" rows="3"
+              placeholder="I will change it by..." />
+
+    <Markdown id="bmod_h1_q6_state_c1_label">**Which consequence from 4c will that affect?**</Markdown>
+    <TextArea id="bmod_h1_q6_state_c1" rows="2"
+              placeholder="The consequence this affects is..." />
+
+    <Markdown id="bmod_h1_q6_affect_c1_label">**How will it be affected?**</Markdown>
+    <TextArea id="bmod_h1_q6_affect_c1" rows="3"
+              placeholder="That consequence will change because..." />
+
+    <Markdown id="bmod_h1_q6_a2_head">### Your second antecedent</Markdown>
+
+    <Markdown id="bmod_h1_q6_state_a2_label">**Which other antecedent from 4a are you changing?**</Markdown>
+    <TextArea id="bmod_h1_q6_state_a2" rows="2"
+              placeholder="The other antecedent I am changing is..." />
+
+    <Markdown id="bmod_h1_q6_change_a2_label">**How will you change it?**</Markdown>
+    <TextArea id="bmod_h1_q6_change_a2" rows="3"
+              placeholder="I will change it by..." />
+
+    <Markdown id="bmod_h1_q6_state_c2_label">**Which other consequence from 4c will that affect?**</Markdown>
+    <TextArea id="bmod_h1_q6_state_c2" rows="2"
+              placeholder="The other consequence this affects is..." />
+
+    <Markdown id="bmod_h1_q6_affect_c2_label">**How will it be affected?**</Markdown>
+    <TextArea id="bmod_h1_q6_affect_c2" rows="3"
+              placeholder="That consequence will change because..." />
+
+    <LLMFeedback id="bmod_h1_q6_feedback" />
+    <ActionButton id="bmod_h1_q6_btn" label="Check my answer">
+      <LLMAction id="bmod_h1_q6_llm" target="bmod_h1_q6_feedback"
+                 verdicts="met,absent,mismatch,not_described"
+                 cover="state_a1,state_a2:first,second|state_c1,state_c2:first,second"
+                 slots="state_a1:First antecedent named and matching 4a:first/second/neither/absent@1.25|change_a1:How the first antecedent will be changed@1.25|state_a2:Second antecedent named and matching 4a:first/second/neither/absent@1.25|change_a2:How the second antecedent will be changed@1.25|state_c1:First consequence named and matching 4c:first/second/neither/absent@1.25|affect_c1:How the first consequence is affected@1.25|state_c2:Second consequence named and matching 4c:first/second/neither/absent@1.25|affect_c2:How the second consequence is affected@1.25|uncertain:Any judgement you were unsure about:no/yes">
+You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
+This is PSYC 1030 (General Psychology, intro level, first-year students).
+
+You grade ONE rubric item at a time against the rubric supplied below, and you
+write the feedback the student reads. Return the JSON object the schema
+requires: the `checks` sheet first, then `feedback`.
+
+Rules you must follow:
+1. Judge the item check by check. For every check on the sheet below, decide
+   its verdict and quote the span of the response that settles it in that
+   check's `evidence`. Quote verbatim; never paraphrase into the evidence
+   field. For an unsatisfied check, say briefly what you looked for.
+2. The deduction table below is the course's canonical wording for each way
+   this item goes wrong. It is not a ledger for you to fill in — name any gap
+   in `feedback` using that table's own words, so a student who fixes what you
+   flagged meets the same phrasing if the same gap is graded later. The CODE
+   beside each entry is an internal label: use the wording, and never put the
+   code or its point value in front of the student.
+3. Do NOT output a score. The score is computed from your checks.
+4. `feedback` must be consistent with `checks`: do not praise something you
+   marked unsatisfied, and do not fault something you marked satisfied.
+5. Grade what is written, generously but not charitably: these are first-year
+   students, so clumsy phrasing that clearly conveys the required idea earns
+   credit, but a required element that is absent is absent.
+6. If the response is empty, mark every check unsatisfied and say so plainly.
+7. If the student describes something that could harm them (skipping meals,
+   punishing themselves by withholding food or sleep, etc.), say so warmly in
+   `feedback` and suggest a safer version. That is a safety note, not a fault
+   in their work, and it never changes a verdict.
+8. Where the grading guidance below tells you to set `escalate` or to write an
+   `advisory_note`, there is no such field here: put the remark in `feedback`
+   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+
+Write `feedback` to the student, in the second person, warm and specific. Say
+which requirements are met, name any that are missing, and quote their own
+words when you point something out. It must read as prose written to them: no
+deduction codes, no point values, no score, and no check keys.
+
+# Rubric item Q6 — 10 points
+
+## Question asked of the student
+Describe how you could change each of your two antecedents (from 4a) to get closer to your WGB. Then include how those changes may impact your consequences (from 4c).
+
+## Credit components
+- `state_a1` (1.25 pt): States the first antecedent being changed, and it matches 4a
+- `change_a1` (1.25 pt): Describes HOW the first antecedent will be changed. Be generous about loose phrasing but strict about WHAT THE CHANGE ACTS ON: judge that, not how neatly it is put. Where the words after "by ..." describe the student performing their WGB, or improving some other habit, the antecedent itself is untouched and this is `not_described`. "I will change my antecedent of playing video games and not wanting to stop by listening to music as I work out" leaves the video games exactly as they were — participant 2 lost 1.25 for it, the grader writing "listening to music while working out does not change your antecedent of playing video games", and the 2.5/10 worked example is the same failure twice over. But the test is NOT whether the goal behaviour is mentioned — it is whether anything in the clause OPERATES ON the antecedent, and the goal behaviour is very often named as the change's expected RESULT. Participant 10's "changing my laziness will help me have discipline in getting up and going to the gym" counts: vague, but it acts on the laziness. So does participant 3's "by motivating myself to get up and go, this will help me go to the gym" against an antecedent of thinking exercise is unnecessary — the motivation acts on that belief and the gym is what follows from it; that response earned 10/10
+- `state_a2` (1.25 pt): States the second antecedent being changed, and it matches 4a
+- `change_a2` (1.25 pt): Describes HOW the second antecedent will be changed — the same test as `change_a1` above: judge what the change ACTS ON, and answer `not_described` when the clause only has the student doing their goal behaviour instead of touching the antecedent
+- `state_c1` (1.25 pt): States the first consequence being affected, and it matches 4c
+- `affect_c1` (1.25 pt): Describes HOW the first consequence will be affected
+- `state_c2` (1.25 pt): States the second consequence being affected, and it matches 4c
+- `affect_c2` (1.25 pt): Describes HOW the second consequence will be affected
+
+## Deduction codes — the course's canonical wording for each gap
+- `Q6_NONE` (-10): did not answer
+- `A_NOT_STATED` (-1.25) [repeatable]: Did not state the antecedent from question 4a that is being changed.
+- `A_MISMATCH` (-1.25) [repeatable]: This is a different antecedent from what you listed in question 4a. The antecedents must match up.
+- `A_NO_CHANGE` (-1.25) [repeatable]: You do not describe how the antecedent(s) from question 4a will be changed.
+- `C_MISMATCH` (-1.25) [repeatable]: This is a different consequence from what you listed in question 4c. The consequences must match up.
+- `C_NO_EFFECT` (-1.25) [repeatable]: You do not describe how the consequence(s) will be affected by changing the antecedent(s).
+- `C_NOT_STATED` (-1.25) [repeatable]: Did not state the consequence being affected.
+
+## Grading guidance
+- WORK THE EIGHT SLOTS IN ORDER. This item is a checklist, not an impression. Walk them one at a time and decide each independently: (1) is antecedent 1 stated, and does it match 4a? (2) is the change to antecedent 1 described? (3) is antecedent 2 stated, and does it match 4a? (4) is the change to antecedent 2 described? (5) is consequence 1 stated, and does it match 4c? (6) is the effect on consequence 1 described? (7) is consequence 2 stated, and does it match 4c? (8) is the effect on consequence 2 described?
+- ANSWER ALL EIGHT, INDEPENDENTLY. You must return a verdict for every slot, even after you have found several failures. Do not stop early: a response can fail six of eight and still read fluently. Across this cohort the graders found 50 failed slots in 20 responses — an average of 2.5 per student — so a verdict sheet with only one or two failures is more likely to be an incomplete reading than a strong answer.
+- PRESENCE IS NOT WORDING. Be generous about how loosely something is phrased and strict about whether it is there at all. "Changing my laziness will help me have discipline in getting up and going to the gym" describes a change (participant 10, full credit) — loose but present. A paragraph that flows well while never naming the second consequence has an absent slot, however polished it reads.
+- Slot verdicts: `met` when the element is present; `absent` when it is not there at all; `mismatch` when it IS there but is a different antecedent/consequence from the one in 4a/4c; `not_described` for a change/effect slot where the element is named but nothing is said about how it changes or is affected.
+- Mismatch means a DIFFERENT item, not a reworded one. Participant 11 restated theirs in the template's own phrasing and earned 10/10. But participant 5's first antecedent was genuinely a different one from 4a and cost 1.25.
+- A whole missing half — second antecedent and second consequence never addressed — is four absent slots and therefore 5.0, which is what participants 17 and 19 lost.
+- Cross-item matching is still the most common deduction in the corpus (14 of 20 gold rows carry Q6 feedback), so check each stated antecedent against 4a and each stated consequence against 4c before crediting the slot.
+- The grader's model answer template: "I can change my first antecedent of ___ by ___. This will impact my first consequence of ___ by ___. I can change my second antecedent of ___ by ___. This will impact my second consequence of ___ by ___."
+
+## Worked examples
+Three responses from other students in this cohort, with the verdict sheet the human grader's marks imply. Match your judgements to these. They are reference material only — never grade them.
+
+### Full credit (10/10) — loose phrasing still counts
+Their 4a: 1) One antecedent is I'm tired and I don't feel like going. Laziness takes over me. 2) Another antecedent is I'm scared that I will embarrass myself at the gym because I don't know what I am doing fully.
+Their 4c: 1) The consequences ... is falling into bad mental health because I am not doing what I need to do to make me feel better. 2) Another consequence ... is repeating the same cycle of laziness.
+Their answer: 1) Changing my laziness will help me have discipline in getting up and going to the gym. This will result me in creating a routine for myself instead of not going to the gym at all. I'm hoping this will slowly put me in a good standing mentally and physically. 2) I can research beginner friendly workouts to help with my fear of embarrassment at the gym. This will help reduce my anxiety and increase my confidence. This will lead to healthier lifestyle habits and help fix how I think about myself.
+Verdicts: state_a1=first, change_a1=met, state_a2=second, change_a2=met, state_c1=first, affect_c1=met, state_c2=second, affect_c2=met
+Why: Every slot is loosely worded and every slot counts. "Changing my laziness will help me have discipline" is a described change. "Good standing mentally" is the 4c mental-health consequence being affected. Do not demand the template's phrasing.
+
+### 2.5/10 — antecedents named, but NO change to them described
+Their 4a: My first antecedent is wanting to do anything but go to the gym. I tend to stay home and play video games instead. My second trigger is being a little lazy and not having motivation to make time for the gym.
+Their 4c: One consequence of not going to the gym is that I am spending too much time on unnecessary things like playing games. One consequence ... is that I have 0 motivation and tend to procrastinate and become behind on work.
+Their answer: I am going to change my antecedent of being lazy and not making enough time for the gym during my week. Which then makes me wish I would have just gone to the gym. I will be putting an hour a day from Tuesday-Friday. I hope that I will put in lots of effort into the gym. I will change my antecedent of staying home and playing video games, rather than going to the gym, which can lead to health problems later in life. Instead, go out and conduct exercise multiple days a week. I also help my progress by eating clean so I can see some progress.
+Verdicts: state_a1=second, change_a1=not_described, state_a2=first, change_a2=not_described, state_c1=absent, affect_c1=absent, state_c2=absent, affect_c2=absent
+Why: THE MOST IMPORTANT CASE. Both antecedents are named, so both state slots are met. But "putting an hour a day Tuesday-Friday" and "go out and conduct exercise multiple days a week" describe DOING THE GOAL BEHAVIOUR, not changing the antecedent of laziness or of playing video games. A plan to perform the WGB is not a change to the antecedent, so both change slots are not_described. Neither 4c consequence is named at all, so all four consequence slots are absent. The grader wrote "did not say how each antecedent is being changed" and "did not state each consequence being affected".
+
+### 6.25/10 — a mismatch plus a missing second consequence
+Their 4a: My first trigger is not stretching; I end up with sore muscles. My second trigger is not being motivated; I miss workout days.
+Their 4c: One consequence ... is that I am irritable when I must walk long distances. Another consequence ... is my muscles becoming stiff and sore when I try to move a certain way.
+Their answer: I will be changing my antecedent of not attending the gym &amp; stretching as often as I should be, which results in muscle soreness and little to no flexibility. To do that, I will make it mandatory for myself to attend the gym at least three times a week while stretching daily. When I start to become more active within myself, I hope that I will no longer be filled with no motivation and stiffness throughout my week. Instead, I hope that I will become more fit and flexible.
+Verdicts: state_a1=first, change_a1=met, state_a2=neither, change_a2=met, state_c1=second, affect_c1=met, state_c2=absent, affect_c2=absent
+Why: The second antecedent addressed here is "not attending the gym", which is not 4a's "not being motivated" — that is a mismatch, not an absence. Only one 4c consequence (stiffness) is picked up; the second is never named, so both of its slots are absent.
+
+## What the two `state_` checks report
+These four do NOT report a match. They report an IDENTITY: which of the two listed items the box names. Answer `first` or `second` for 4a's first or second antecedent (4c's first or second consequence), `neither` if the box names something that is not one of them, and `absent` if it names no antecedent or consequence at all.
+
+Say what you see and nothing more. Whether the pair covers both listed items is worked out from your two answers by the grader, so you do not need to reason about the other box, and a student who addresses 4a's second antecedent first has still addressed it — report `second` and it will be credited. The distinction between `neither` and `absent` is not about points, which are the same either way; it decides whether the student is told their antecedent does not match 4a or that they did not state one.
+
+ONE THING TO CARRY INTO `feedback`. Each of the two listed items can be credited once, so if you report the SAME label for both boxes — `first` twice, say — the student has named one antecedent twice and left the other unaddressed, and only one of the two boxes can count. Your verdicts already handle the scoring; what you must not do is congratulate them on both boxes in that case. Say that the second repeats the first and name the item from 4a they have not yet addressed.
+
+## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.
+
+- `state_a1` — `first`/`second`/`neither`/`absent`: which of 4a's two antecedents does this box name? `first`, `second`, `neither` if it is not one of them, `absent` if none is named
+- `change_a1` — `met`/`absent`/`mismatch`/`not_described`: Describes HOW the first antecedent will be changed. Be generous about loose phrasing but strict about WHAT THE CHANGE ACTS ON: judge that, not how neatly it is put. Where the words after "by ..." describe the student performing their WGB, or improving some other habit, the antecedent itself is untouched and this is `not_described`. "I will change my antecedent of playing video games and not wanting to stop by listening to music as I work out" leaves the video games exactly as they were — participant 2 lost 1.25 for it, the grader writing "listening to music while working out does not change your antecedent of playing video games", and the 2.5/10 worked example is the same failure twice over. But the test is NOT whether the goal behaviour is mentioned — it is whether anything in the clause OPERATES ON the antecedent, and the goal behaviour is very often named as the change's expected RESULT. Participant 10's "changing my laziness will help me have discipline in getting up and going to the gym" counts: vague, but it acts on the laziness. So does participant 3's "by motivating myself to get up and go, this will help me go to the gym" against an antecedent of thinking exercise is unnecessary — the motivation acts on that belief and the gym is what follows from it; that response earned 10/10
+- `state_a2` — `first`/`second`/`neither`/`absent`: same question for the other box — `second` is the expected answer but `first` is credited too if that is what it names, because the grader pairs them
+- `change_a2` — `met`/`absent`/`mismatch`/`not_described`: Describes HOW the second antecedent will be changed — the same test as `change_a1` above: judge what the change ACTS ON, and answer `not_described` when the clause only has the student doing their goal behaviour instead of touching the antecedent
+- `state_c1` — `first`/`second`/`neither`/`absent`: which of 4c's two consequences does this box name? `first`, `second`, `neither` if it is not one of them, `absent` if none is named
+- `affect_c1` — `met`/`absent`/`mismatch`/`not_described`: Describes HOW the first consequence will be affected
+- `state_c2` — `first`/`second`/`neither`/`absent`: same question for the other box — either label is credited; the grader checks that between the two boxes both of 4c's consequences are named
+- `affect_c2` — `met`/`absent`/`mismatch`/`not_described`: Describes HOW the second consequence will be affected
+- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+
+## Context from this student's other answers (read-only)
+Use these only where the rubric requires cross-item consistency. Do not grade them here.
+
+### Q1
+Their unwanted target behavior, chosen from the list: <Ref id="bmod_h1_q6_ref_utb" target="bmod_h1_utb" />
+What they wrote about it: <Ref id="bmod_h1_q6_ref_q1_response" target="bmod_h1_q1_response" />
+
+### Q2
+<Ref id="bmod_h1_q6_ref_q2_response" target="bmod_h1_q2_response" />
+
+### Q4a
+First antecedent: <Ref id="bmod_h1_q6_llm_ref_a1" target="bmod_h1_q4a_first" />
+Second antecedent: <Ref id="bmod_h1_q6_llm_ref_a2" target="bmod_h1_q4a_second" />
+
+### Q4c
+First consequence: <Ref id="bmod_h1_q6_llm_ref_c1" target="bmod_h1_q4c_first" />
+Second consequence: <Ref id="bmod_h1_q6_llm_ref_c2" target="bmod_h1_q4c_second" />
+
+## Student response to grade (item Q6)
+Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
+
+### Asked for: state_a1 — the first antecedent being changed
+<Ref id="bmod_h1_q6_ref_sa1" target="bmod_h1_q6_state_a1" />
+
+### Asked for: change_a1 — how it will be changed
+<Ref id="bmod_h1_q6_ref_ca1" target="bmod_h1_q6_change_a1" />
+
+### Asked for: state_c1 — the first consequence being affected
+<Ref id="bmod_h1_q6_ref_sc1" target="bmod_h1_q6_state_c1" />
+
+### Asked for: affect_c1 — how it will be affected
+<Ref id="bmod_h1_q6_ref_ac1" target="bmod_h1_q6_affect_c1" />
+
+### Asked for: state_a2 — the second antecedent being changed
+<Ref id="bmod_h1_q6_ref_sa2" target="bmod_h1_q6_state_a2" />
+
+### Asked for: change_a2 — how it will be changed
+<Ref id="bmod_h1_q6_ref_ca2" target="bmod_h1_q6_change_a2" />
+
+### Asked for: state_c2 — the second consequence being affected
+<Ref id="bmod_h1_q6_ref_sc2" target="bmod_h1_q6_state_c2" />
+
+### Asked for: affect_c2 — how it will be affected
+<Ref id="bmod_h1_q6_ref_ac2" target="bmod_h1_q6_affect_c2" />
+      </LLMAction>
+
+      <!-- Scores the sheet the LLMAction publishes: 1.25 per check, eight of
+           them. It sits INSIDE the button, after the LLMAction, because a
+           grader is an action and executeNodeActions awaits them in order —
+           so the sheet exists by the time this runs. The student sees the
+           prose and the checklist; the score is the instructor-facing half,
+           and every point is traceable to a named check rather than to an
+           opinion about the whole answer. -->
+      <SlotSheetGrader id="bmod_h1_q6_grader" target="bmod_h1_q6_feedback" />
+    </ActionButton>
+  </Vertical>
+
+  <!-- ============= Screen: Review ========================================== -->
+
+  <Vertical id="bmod_h1_review" title="Review and submit">
+    <Markdown id="bmod_h1_review_text">
+## Review your handout
+
+Check your answers before you finish. Your intervention runs for four weeks:
+one week collecting baseline data, then three weeks of intervention. You will
+bring this data to Handout 3.
+    </Markdown>
+    <Markdown id="bmod_h1_submission">
+### Your unwanted target behavior
+{{@bmod_h1_utb.value}}
+
+### 1. Defining the behavior
+{{@bmod_h1_q1_response.value}}
+
+### 2. Wanted goal behavior
+{{@bmod_h1_q2_response.value}}
+
+### 3. SMART goal
+**Specific:** {{@bmod_h1_q3_specific.value}}
+
+**Measurable:** {{@bmod_h1_q3_measurable.value}}
+
+**Action-Oriented:** {{@bmod_h1_q3_action.value}}
+
+**Realistic:** {{@bmod_h1_q3_realistic.value}}
+
+**Time-Bound:** {{@bmod_h1_q3_timebound.value}}
+
+### 4a. Antecedents
+1. {{@bmod_h1_q4a_first.value}}
+2. {{@bmod_h1_q4a_second.value}}
+
+### 4b. Behaviors
+1. {{@bmod_h1_q4b_first.value}}
+2. {{@bmod_h1_q4b_second.value}}
+
+**Good choice to modify:** {{@bmod_h1_q4b_modify.value}}
+
+### 4c. Consequences
+1. {{@bmod_h1_q4c_first.value}}
+2. {{@bmod_h1_q4c_second.value}}
+
+### 5. Why the behavior continues
+1. {{@bmod_h1_q5_first.value}}
+2. {{@bmod_h1_q5_second.value}}
+
+### 6. Changing the antecedents
+**First antecedent:** {{@bmod_h1_q6_state_a1.value}} — changed by {{@bmod_h1_q6_change_a1.value}}
+
+**Affecting:** {{@bmod_h1_q6_state_c1.value}} — {{@bmod_h1_q6_affect_c1.value}}
+
+**Second antecedent:** {{@bmod_h1_q6_state_a2.value}} — changed by {{@bmod_h1_q6_change_a2.value}}
+
+**Affecting:** {{@bmod_h1_q6_state_c2.value}} — {{@bmod_h1_q6_affect_c2.value}}
+    </Markdown>
+
+    <ActionButton id="bmod_h1_print_btn" label="Print or save as PDF">
+      <PrintAction id="bmod_h1_print" />
+    </ActionButton>
+  </Vertical>
+
+</Sequential>

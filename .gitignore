@@ -1,0 +1,30 @@
+# This repository is PUBLIC. Nothing derived from student submissions belongs
+# in it. The submissions carry real names in their OOXML metadata (dc:creator),
+# so a "Participant ID NNN" filename is not de-identification, and the gold
+# sheets are the key that makes those IDs meaningful. Run artifacts quote
+# student text verbatim as scoring evidence.
+#
+# The corpus lives outside any git repo, at $MOLLY_DATA — see scoring/config.py.
+# These rules are a backstop for an accidental `cp` or `git add -A`, not the
+# primary control.
+
+# Student corpus, in any location or spelling
+**/Handout Submissions*/
+**/*Submissions with Scoring*/
+*.xlsx
+
+# Run artifacts and intermediate splits (both quote student text)
+scoring/out/
+scoring/handsplit/
+out/
+handsplit/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Editors / OS
+.DS_Store
+*.swp
