@@ -128,7 +128,7 @@ continuing it.
       <EndPane>
     <ActionButton id="bmod_h1_q1_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q1_llm" target="bmod_h1_q1_feedback"
-                 slots="matches_selected:Same behavior you selected above:matches/differs|utb_stated:Your unwanted target behavior stated explicitly@2|harms_listed:How many statements name a negative effect of the behavior:3/2/1/0|benefits_listed:How many name a benefit you expect from changing:3/2/1/0|reasons_given:How many separate reasons you give:3/2/1/0|reason_1:First reason — a negative effect of the behavior@1|reason_2:Second reason@1|reason_3:Third reason@1|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="matches_selected:Same behavior you selected above:matches/differs|utb_stated:Your unwanted target behavior stated explicitly:met/absent/unclear@2|harms_listed:How many statements name a negative effect of the behavior:3/2/1/0|benefits_listed:How many name a benefit you expect from changing:3/2/1/0|reasons_given:How many separate reasons you give:3/2/1/0|reason_1:First reason — a negative effect of the behavior:met/absent/unclear@1|reason_2:Second reason:met/absent/unclear@1|reason_3:Third reason:met/absent/unclear@1|uncertain:Any judgement I was unsure about:no/yes"
                  counts="reasons_given:reason_1,reason_2,reason_3">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -267,7 +267,7 @@ one.
       <EndPane>
     <ActionButton id="bmod_h1_q2_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q2_llm" target="bmod_h1_q2_feedback"
-                 slots="!wgb_is_counterpart:Goal behavior is the opposite of your unwanted behavior|wgb_inverts_utb:Goal behavior states the opposite of your unwanted behavior@2|reasons_listed:How many statements you offer as reasons:3/2/1/0|reasons_failing:How many of those are not a benefit of the goal:0/1/2/3|reasons_given:How many separate benefits you give:3/2/1/0|reason_1:First benefit of the goal behavior@1|reason_2:Second benefit@1|reason_3:Third benefit@1|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!wgb_is_counterpart:Goal behavior is the opposite of your unwanted behavior:met/absent/unclear|wgb_inverts_utb:Goal behavior states the opposite of your unwanted behavior:met/absent/unclear@2|reasons_listed:How many statements you offer as reasons:3/2/1/0|reasons_failing:How many of those are not a benefit of the goal:0/1/2/3|reasons_given:How many separate benefits you give:3/2/1/0|reason_1:First benefit of the goal behavior:met/absent/unclear@1|reason_2:Second benefit:met/absent/unclear@1|reason_3:Third benefit:met/absent/unclear@1|uncertain:Any judgement I was unsure about:no/yes"
                  counts="reasons_given:reason_1,reason_2,reason_3">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -419,7 +419,7 @@ counting the number of ounces I drink."*
       <EndPane>
     <ActionButton id="bmod_h1_q3_btn" label="Check my SMART goal">
       <LLMAction id="bmod_h1_q3_llm" target="bmod_h1_q3_feedback"
-                 slots="specific:Specific — a quantified daily or weekly goal@1|measurable:Measurable — names a tracking method or place@1|action_oriented:Action-Oriented — something you will physically do@1|realistic:Realistic — why it is achievable for you@1|time_bound:Time-Bound — four weeks, one baseline plus three@1|uncertain:Any judgement I was unsure about:no/yes">
+                 slots="specific:Specific — a quantified daily or weekly goal:met/absent/unclear@1|measurable:Measurable — names a tracking method or place:met/absent/unclear@1|action_oriented:Action-Oriented — something you will physically do:met/absent/unclear@1|realistic:Realistic — why it is achievable for you:met/absent/unclear@1|time_bound:Time-Bound — four weeks, one baseline plus three:met/absent/unclear@1|uncertain:Any judgement I was unsure about:no/yes">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -570,7 +570,7 @@ You must use the word **antecedent** or **trigger** in your answer.
       <EndPane>
     <ActionButton id="bmod_h1_q4a_btn" label="Check my antecedents">
       <LLMAction id="bmod_h1_q4a_llm" target="bmod_h1_q4a_feedback"
-                 slots="antecedent_1:First antecedent is a genuine trigger:met/absent/not_antecedent@2|antecedent_2:Second antecedent is a genuine trigger:met/absent/not_antecedent@2|keyword:Uses the word antecedent or trigger@1|uncertain:Any judgement I was unsure about:no/yes">
+                 slots="antecedent_1:First antecedent is a genuine trigger:met/absent/not_antecedent@2|antecedent_2:Second antecedent is a genuine trigger:met/absent/not_antecedent@2|keyword:Uses the word antecedent or trigger:met/absent/unclear@1|uncertain:Any judgement I was unsure about:no/yes">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -846,7 +846,7 @@ You must use the word **consequence** or **consequences** in your answer.
       <EndPane>
     <ActionButton id="bmod_h1_q4c_btn" label="Check my consequences">
       <LLMAction id="bmod_h1_q4c_llm" target="bmod_h1_q4c_feedback"
-                 slots="consequence_1:First consequence follows from the behavior:met/absent/not_consequence/duplicate@2|consequence_2:Second consequence follows from the behavior:met/absent/not_consequence/duplicate@2|keyword:Uses the word consequence|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="consequence_1:First consequence follows from the behavior:met/absent/not_consequence/duplicate@2|consequence_2:Second consequence follows from the behavior:met/absent/not_consequence/duplicate@2|keyword:Uses the word consequence:met/absent/unclear|uncertain:Any judgement I was unsure about:no/yes"
                  max="5">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -1204,9 +1204,8 @@ have extra money to go to the movies with friends (new C).*
       <EndPane>
     <ActionButton id="bmod_h1_q6_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q6_llm" target="bmod_h1_q6_feedback"
-                 verdicts="met,absent,mismatch,not_described"
                  cover="state_a1,state_a2:first,second|state_c1,state_c2:first,second"
-                 slots="state_a1:First antecedent named and matching 4a:first/second/neither/absent@1.25|change_a1:How the first antecedent will be changed@1.25|state_a2:Second antecedent named and matching 4a:first/second/neither/absent@1.25|change_a2:How the second antecedent will be changed@1.25|state_c1:First consequence named and matching 4c:first/second/neither/absent@1.25|affect_c1:How the first consequence is affected@1.25|state_c2:Second consequence named and matching 4c:first/second/neither/absent@1.25|affect_c2:How the second consequence is affected@1.25|uncertain:Any judgement I was unsure about:no/yes">
+                 slots="state_a1:First antecedent named and matching 4a:first/second/neither/absent@1.25|change_a1:How the first antecedent will be changed:met/absent/mismatch/not_described@1.25|state_a2:Second antecedent named and matching 4a:first/second/neither/absent@1.25|change_a2:How the second antecedent will be changed:met/absent/mismatch/not_described@1.25|state_c1:First consequence named and matching 4c:first/second/neither/absent@1.25|affect_c1:How the first consequence is affected:met/absent/mismatch/not_described@1.25|state_c2:Second consequence named and matching 4c:first/second/neither/absent@1.25|affect_c2:How the second consequence is affected:met/absent/mismatch/not_described@1.25|uncertain:Any judgement I was unsure about:no/yes">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 

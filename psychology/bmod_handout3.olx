@@ -168,8 +168,7 @@ built from exactly these numbers, so they are worth getting right.
     </Markdown>
 
     <DerivedChecks id="bmod_h3_data_checks"
-                   verdicts="met,absent"
-                   slots="baseline_data:Baseline week's data present@1|week_1_data:Week 1 data present@1|week_2_data:Week 2 data present@1|week_3_data:Week 3 data present@1"
+                   slots="baseline_data:Baseline week's data present:met/absent@1|week_1_data:Week 1 data present:met/absent@1|week_2_data:Week 2 data present:met/absent@1|week_3_data:Week 3 data present:met/absent@1"
                    derived="baseline_data:plots:bmod_h3_baseline|week_1_data:plots:bmod_h3_wk1|week_2_data:plots:bmod_h3_wk2|week_3_data:plots:bmod_h3_wk3"
                    max="4" />
     <SlotSheetGrader id="bmod_h3_data_grader" target="bmod_h3_data_checks" />
@@ -266,7 +265,7 @@ Your data:
       <EndPane>
     <ActionButton id="bmod_h3_overview_btn" label="Check my overview">
       <LLMAction id="bmod_h3_overview_llm" target="bmod_h3_overview_feedback"
-                 slots="!distinguishes_periods:Separates the time periods at all|baseline_week:Covers the baseline week@2|week_1:Covers week 1@2|week_2:Covers week 2@2|week_3:Covers week 3@2|uncertain:Any judgement I was unsure about:no/yes">
+                 slots="!distinguishes_periods:Separates the time periods at all:met/absent/unclear|baseline_week:Covers the baseline week:met/absent/unclear@2|week_1:Covers week 1:met/absent/unclear@2|week_2:Covers week 2:met/absent/unclear@2|week_3:Covers week 3:met/absent/unclear@2|uncertain:Any judgement I was unsure about:no/yes">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -507,7 +506,6 @@ include it with your handout in Canvas, or screenshot the chart.
       <EndPane>
     <ActionButton id="bmod_h3_graph_btn" label="Check my labelling">
       <LLMAction id="bmod_h3_graph_llm" target="bmod_h3_graph_feedback"
-                 verdicts="met,absent"
                  slots="!has_own_graph:Your 1b data produces a graph of your own:met/absent/mismatch@2|title:Title saying what is measured and over what period:met/absent/generic@2|x_axis_label:X-axis label naming what the axis represents:met/absent/tick_values@2|y_axis_label:Y-axis label naming what the axis represents:met/absent/tick_values/generic@2|legend:Legend naming all four series you plotted:met/absent/incomplete@2|uncertain:Any judgement I was unsure about:no/yes"
                  derived="has_own_graph:complete:bmod_h3_baseline,bmod_h3_wk1,bmod_h3_wk2,bmod_h3_wk3:8,10,8,12,6,10,0;32,20,22,28,30,32,10;30,28,26,30,32,32,30;25,26,30,32,32,28,32">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
@@ -671,7 +669,7 @@ account of something that did not work is worth exactly as much as a success.
       <EndPane>
     <ActionButton id="bmod_h3_success_btn" label="Check my answer">
       <LLMAction id="bmod_h3_success_llm" target="bmod_h3_success_feedback"
-                 slots="verdict:States whether the plan worked@2|hows_given:How many separate explanations of HOW you give:2/1/0|how_1:First explanation of how@2|how_2:Second explanation of how@2|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="verdict:States whether the plan worked:met/absent/unclear@2|hows_given:How many separate explanations of HOW you give:2/1/0|how_1:First explanation of how:met/absent/unclear@2|how_2:Second explanation of how:met/absent/unclear@2|uncertain:Any judgement I was unsure about:no/yes"
                  counts="hows_given:how_1,how_2">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -803,7 +801,7 @@ The two types of operant conditioning you planned to use:
       <EndPane>
     <ActionButton id="bmod_h3_assessment_btn" label="Check my assessment">
       <LLMAction id="bmod_h3_assessment_llm" target="bmod_h3_assessment_feedback"
-                 slots="sentences_given:How many substantive assessment sentences you give:3/2/1/0|sentence_1:First substantive assessment sentence@2|sentence_2:Second substantive sentence@2|sentence_3:Third substantive sentence@2|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="sentences_given:How many substantive assessment sentences you give:3/2/1/0|sentence_1:First substantive assessment sentence:met/absent/unclear@2|sentence_2:Second substantive sentence:met/absent/unclear@2|sentence_3:Third substantive sentence:met/absent/unclear@2|uncertain:Any judgement I was unsure about:no/yes"
                  counts="sentences_given:sentence_1,sentence_2,sentence_3"
                  showChecks="false">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
@@ -927,7 +925,7 @@ is not an acceptable answer.
       <EndPane>
     <ActionButton id="bmod_h3_improve_btn" label="Check my answer">
       <LLMAction id="bmod_h3_improve_llm" target="bmod_h3_improve_feedback"
-                 slots="changes_given:How many distinct changes you propose:2/1/0|example_1:First specific change@3|example_2:Second, different change@3|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="changes_given:How many distinct changes you propose:2/1/0|example_1:First specific change:met/absent/unclear@3|example_2:Second, different change:met/absent/unclear@3|uncertain:Any judgement I was unsure about:no/yes"
                  counts="changes_given:example_1,example_2"
                  showChecks="false">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
