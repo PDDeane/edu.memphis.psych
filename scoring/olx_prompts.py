@@ -222,7 +222,16 @@ RESPONSE: dict[str, list[tuple[str, str]]] = {
 
 CONTEXT: dict[str, list[tuple[str, str]]] = {
     # rubric context key -> [(label, component id)]
-    "Q1":   [("Their unwanted target behavior, chosen from the list", "bmod_h1_utb"),
+    # The behaviour as the student WROTE it, not the one they ticked. Every later
+    # item is graded against what they actually described — a student who picks
+    # "lack of sleep" and then writes about exercise is doing the exercise
+    # project, and Q4a's antecedents are antecedents of that. `bmod_h1_utb_observed`
+    # is a SheetValue over `utb_stated`'s evidence, and falls back to the choice
+    # until question 1 has been checked, so this line is never blank.
+    #
+    # Q1 itself is NOT routed through here: it keeps the raw choice, because
+    # comparing the two is its own `matches_selected` check.
+    "Q1":   [("Their unwanted target behavior, as they described it", "bmod_h1_utb_observed"),
              ("What they wrote about it", "bmod_h1_q1_response")],
     "Q2":   [("", "bmod_h1_q2_response")],
     "Q4a":  [("First antecedent", "bmod_h1_q4a_first"),
@@ -248,7 +257,15 @@ CONTEXT: dict[str, list[tuple[str, str]]] = {
 # read out of the .docx's underline formatting and correct in only 6 of 20
 # transcriptions. The web asks for the UTB as a closed choice before question
 # 1, so the same fact arrives authoritatively. This replaces that section.
-UTB_CHOICE = ("Q1", "Q2")
+#
+# Q2 was dropped from this list when the later items moved onto the behaviour the
+# student DESCRIBED. It was getting both: the raw choice under "the behavior they
+# chose", and the described one under context — two different answers to the same
+# question, under two headings, which is exactly what the `seen` guard below
+# exists to prevent. That guard keys on component id, so pointing context at a
+# different component walked straight past it. Q1 keeps the section because
+# comparing the two IS its job (`matches_selected`).
+UTB_CHOICE = ("Q1",)
 
 # Ref ids already in the .olx, kept so component ids stay stable across the
 # rewrite: (action id, target) -> ref id. Anything not here is minted below.
@@ -565,6 +582,22 @@ SCORING_DIVERGENCES = [
 # not paraphrases: they say something about the web that the rubric cannot
 # know, and each is a deviation recorded in EQUIVALENCE.md.
 ITEM_NOTES: dict[str, str] = {
+    # A mismatch reframes everything after it: the rest of the feedback is about
+    # a behavior the student may not think they are being asked about, and a
+    # student who reads three paragraphs before being told which behavior was
+    # graded has to re-read all three. So it leads, and the checklist puts the
+    # check first for the same reason.
+    "Q1": (
+        "## Say this before anything else\n"
+        "If `matches_selected` is `differs`, the FIRST sentence of `feedback` says "
+        "so: name the behavior they ticked, name the one they wrote about, and say "
+        "that the rest of this feedback is about what they wrote. Then give the "
+        "normal feedback.\n\n"
+        "It is not a fault and nothing is deducted for it — most often they simply "
+        "changed their mind — so say it plainly and without warning them off. If it "
+        "is `matches`, say nothing about it at all: confirming a match the student "
+        "never doubted spends their attention on nothing.\n"
+    ),
     # The eight boxes are POSITIONAL and the rubric's matching is not. The CLI
     # reads one undivided block, so it pairs the student's antecedents against
     # 4a's set-wise; splitting the answer into `state_a1`/`state_a2` makes
@@ -650,6 +683,44 @@ EVIDENCE: dict[str, tuple[str, list[tuple[str, str]]]] = {
 # CLI's credit_checks + deductions + advisory_note + safety_flag + confidence +
 # escalate collapse into {checks, feedback}. The sheet is authored in the .olx
 # `slots` attribute; this reads it so prompt and schema cannot drift.
+#
+# DEVIATION 7 (permitted), a consequence of 3: LLMAction appends
+# `slotSheet.slotSheetGuidance()` to every slot-sheet prompt, and the schema
+# gains a field on some. None of it is in the .olx, and the CLI sends none of it.
+# Two parts, only one conditional:
+#
+#   * ALL 23 items — `studentFacingGuidance()`: spell out the rubric's
+#     abbreviations and check keys, because the prose is read by someone who has
+#     not seen the rubric. Also restated in the `feedback` and `note` schema
+#     descriptions, which are read at a different moment.
+#   * The 20 items whose checklist the student SEES — `checklistGuidance()` plus
+#     `buildSlotSchema(..., perCheckNotes=true)`, which adds a REQUIRED `note`
+#     (capped at two sentences) to every non-computed check and tightens the
+#     `evidence` description, because the web DISPLAYS evidence under its check
+#     while the CLI keeps it as an internal audit field.
+#
+#   * The 3 items with showChecks="false" (bmod_h1_q5, bmod_h3_assessment,
+#     bmod_h3_improve) — `terseFeedbackGuidance()` instead, capping `feedback`
+#     at four sentences. Hiding the checklist removes the structure that was
+#     bounding length, and these items are the ones graded most gently.
+#
+# So all 23 differ from the CLI; none of them by the same amount. Tying the spell-out rule to showChecks would have exempted
+# exactly the items whose output is nothing BUT prose.
+#
+# It is a display difference, not a grading one: `note` is prose shown under its
+# own check, is never scored, and no verdict, point value or deduction wording
+# depends on it. `equivalence.py --enforcement` is unmoved by it, because that
+# audit compares scoring behaviour rather than prompt text — which is precisely
+# why this has to be written down rather than left for the audit to catch.
+#
+# What it DOES affect is output length: 8-11 notes per item, against an
+# `interactive` budget of 16384 covering reasoning and output together. Re-run
+# `agreement_app.py` before trusting a web-vs-gold figure measured before this.
+#
+# NOT reproduced here on purpose. This module generates the prompt BODIES that
+# live in the .olx; the guidance is appended at runtime, so writing it into the
+# generated text would send it twice on the web and would make `--check` demand
+# it in files the runtime already supplements.
 # ---------------------------------------------------------------------------
 
 def parse_equals(spec: str) -> list[dict]:
@@ -707,6 +778,18 @@ def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
 # things on different items.
 SLOT_NOTES = {
     "uncertain": "`yes` if any judgement above was a close call — this is rule 8's channel",
+    # Web-only, and unscored on purpose. The web asks for the unwanted target
+    # behavior twice — once as a closed choice before question 1, once in the
+    # student's own words inside it — so the two can disagree in a way the paper
+    # version cannot. The rubric has no deduction for that because on paper there
+    # is nothing to disagree with, so this reports the fact and costs nothing.
+    "Q1:matches_selected":
+        "`matches` if the behavior the student writes about is the one they picked "
+        "from the list above, `differs` if they write about a different behavior. "
+        "Judge the BEHAVIOR, not the wording: '{{corpus:Q1/p19:response:46:70:sha=f4d8dbbfd800:shape=C1}}' matches "
+        "the choice 'lack of sleep'. This check carries no points and never changes "
+        "another verdict — everything else is judged on what they WROTE, whichever "
+        "box they ticked",
     "Q2:wgb_is_counterpart":
         # Was "is it the direct positive counterpart, or a different behavior
         # altogether?" — the tier (a) question, which is NOT what this gate tests.
@@ -1481,6 +1564,41 @@ def _derived_attr(handout: int, action: str) -> list[dict]:
     return out
 
 
+def check_scorer_voice_in_labels() -> list[str]:
+    """A slot label the STUDENT reads must not address the scorer as "you".
+
+    Slot labels are rendered verbatim by composeSlotFeedback — the model never
+    rewrites them — so no amount of prompt guidance can fix one. That makes the
+    voice of a label an AUTHORING property, and this the only place it can be
+    enforced.
+
+    The rubric's own voice is second-person-to-the-student throughout ("something
+    you will physically do", "your unwanted target behavior"), which is correct
+    and is why this cannot simply forbid "you". What it forbids is second person
+    in the checks that are about the SCORER's own work: `uncertain` is the
+    grader's self-report channel for WEB_SYSTEM rule 8, and it shipped reading
+    "Any judgement you were unsure about" on all 23 sheets — telling the student
+    they were unsure of a judgement they never made.
+    """
+    scorer_facing = ("uncertain",)
+    second_person = re.compile(r"\b(you|your|yours|yourself)\b", re.I)
+    out = []
+    for h in (1, 2, 3):
+        src = _src(h)
+        for m in re.finditer(r'slots="([^"]*)"', src, re.S):
+            for entry in m.group(1).split("|"):
+                parts = entry.split(":")
+                if len(parts) < 2:
+                    continue
+                key = parts[0].lstrip("!").strip()
+                label = parts[1].split("@")[0]
+                if key in scorer_facing and second_person.search(label):
+                    out.append(f"H{h}: `{key}` addresses the scorer as \"you\" in a "
+                               f"label the student reads: {label!r} — use the first "
+                               f"person (\"a judgement I was unsure about\")")
+    return out
+
+
 def check_template_matches_example(handout: int = 3) -> list[str]:
     """The `derived` template must be the worked example's own numbers.
 
@@ -1577,7 +1695,7 @@ def main() -> int:
         print(f"WARNING: {d}", file=sys.stderr)
     # A copied constant with nothing binding it is the failure mode this project
     # keeps re-learning, so this one is fatal rather than a warning.
-    bad = check_template_matches_example()
+    bad = check_template_matches_example() + check_scorer_voice_in_labels()
     for b in bad:
         print(f"ERROR: {b}", file=sys.stderr)
     if bad:

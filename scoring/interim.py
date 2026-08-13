@@ -32,6 +32,8 @@ import os
 
 from handouts import HANDOUTS, config
 
+import paths
+
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -61,14 +63,14 @@ def paper_run(h: int, outdir: str) -> dict[str, list[tuple[float, float]]]:
 
 
 def paper_opus(h: int) -> dict[str, float]:
-    r = paper_run(h, os.path.join(ROOT, "out", f"h{h}"))
+    r = paper_run(h, os.path.join(str(paths.OUT), f"h{h}"))
     return {k: v for k, v in ((k, _exact(p)) for k, p in r.items()) if v is not None}
 
 
 def paper_mini(h: int) -> dict[str, float]:
     """Mean over however many of the three runs are on disk."""
     per: dict[str, list[float]] = {}
-    for d in sorted(glob.glob(os.path.join(ROOT, "out", "paper_mini", "r*", f"h{h}"))):
+    for d in sorted(glob.glob(os.path.join(str(paths.OUT), "paper_mini", "r*", f"h{h}"))):
         # A run dir is seeded from out/h* so score.py's --items merge works, which
         # means a run that failed outright leaves the SEEDED records in place and
         # they read as results. That happened: every participant died on a
@@ -128,8 +130,8 @@ def main() -> int:
     total = 0
     for h in ([args.handout] if args.handout else sorted(HANDOUTS)):
         po, pm = paper_opus(h), paper_mini(h)
-        cm = shipped(h, os.path.join("out", "cli_v7"), web=False)
-        wm = shipped(h, os.path.join("out", "web_v6"), web=True)
+        cm = shipped(h, str(paths.OUT / "cli_v7"), web=False)
+        wm = shipped(h, str(paths.OUT / "web_v6"), web=True)
         for it in [i["id"] for i in config(h)["rubric"].ITEMS]:
             total += 1
             for name, src in (("paper/O", po), ("paper/m", pm),
