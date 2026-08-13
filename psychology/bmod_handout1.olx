@@ -988,7 +988,7 @@ good, and I get my sugar fix."*
       <EndPane>
     <ActionButton id="bmod_h1_q5_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q5_llm" target="bmod_h1_q5_feedback"
-                 slots="example_1:First reason you keep doing it:wrong_kind/duplicate@2.5|example_2:Second, different reason:wrong_kind/duplicate@2.5|thin_reason:Either reason is present but weak:no/yes|confident:All judgments confident"
+                 slots="example_1:First reason you keep doing it:wrong_kind/duplicate@2.5|example_2:Second, different reason:wrong_kind/duplicate@2.5|reasons_substantial:Both reasons are substantial|confident:All judgments confident"
                  showChecks="false">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -1036,7 +1036,7 @@ Why do you think you continue to engage in the UTB even though it results in und
 ## Credit components
 - `example_1` (2.5 pt): First way the goal behavior is worth strengthening
 - `example_2` (2.5 pt): Second way
-- `thin_reason`: Whether either reason is PRESENT but weak — reported so it can be said in the feedback, never deducted
+- `reasons_substantial`: Whether both reasons are substantial — `absent` reports a present-but-weak reason so it can be said in the feedback, never deducted
 
 ## Deduction codes — the course's canonical wording for each gap
 - `W_NONE` (-5): did not answer
@@ -1058,8 +1058,8 @@ check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
 - `example_1` — `met`/`absent`/`wrong_kind`/`duplicate`: First way the goal behavior is worth strengthening
-- `example_2` — `met`/`absent`/`wrong_kind`/`duplicate`: `met` for a second reason that is genuinely DIFFERENT from the first. `duplicate` when both entries are well-formed but amount to the SAME reason — participant 6 gave "{{corpus:Q5/p6:first:51:93:sha=36d36ab1012b}}" and "I am not as flexible, so I would be sore", which are both escaping physical effort, and the graders wrote "missing a reason". `absent` only when there is no second entry at all. `not_reason` when there IS a second, distinct entry but it is not a reason for CONTINUING — an EFFECT of the behaviour rather than a payoff from it. When it is present, distinct and a real payoff but merely thin, that is `met` plus `thin_reason`
-- `thin_reason` — `no`/`yes`: `yes` when a reason is PRESENT but weak — thin, vague, or barely explained. This costs NOTHING; it exists so you can say it in the feedback instead of reaching for `not_reason`. "{{corpus:Q5/p9:second:0:67:sha=28c29c5cd649:shape=A36}} health" is thin and the graders left it at FULL marks with a written note. Reserve `not_reason` for a statement that is not a reason for CONTINUING at all — most often an EFFECT of the behaviour wearing a reason's clothes, like "{{corpus:Q5/p4:second:31:83:sha=342a4d43bd2e:shape=A44}} tired", which is what the behaviour causes rather than what the student gets out of it
+- `example_2` — `met`/`absent`/`wrong_kind`/`duplicate`: `met` for a second reason that is genuinely DIFFERENT from the first. `duplicate` when both entries are well-formed but amount to the SAME reason — participant 6 gave "{{corpus:Q5/p6:first:51:93:sha=36d36ab1012b}}" and "I am not as flexible, so I would be sore", which are both escaping physical effort, and the graders wrote "missing a reason". `absent` only when there is no second entry at all. `not_reason` when there IS a second, distinct entry but it is not a reason for CONTINUING — an EFFECT of the behaviour rather than a payoff from it. When it is present, distinct and a real payoff but merely thin, that is `met` plus `reasons_substantial: absent`
+- `reasons_substantial` — `met`/`absent`: `absent` when a reason is PRESENT but weak — thin, vague, or barely explained. This costs NOTHING; it exists so you can say it in the feedback instead of reaching for `wrong_kind`. "{{corpus:Q5/p9:second:0:67:sha=28c29c5cd649:shape=A36}} health" is thin and the graders left it at FULL marks with a written note. Reserve `wrong_kind` for a statement that is not a reason for CONTINUING at all — most often an EFFECT of the behaviour wearing a reason's clothes, like "{{corpus:Q5/p4:second:31:83:sha=342a4d43bd2e:shape=A44}} tired", which is what the behaviour causes rather than what the student gets out of it
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 ## Context from this student's other answers (read-only)
