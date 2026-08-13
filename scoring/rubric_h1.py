@@ -248,7 +248,13 @@ ITEMS: list[dict] = [
                         "of either kind. Answer 3 for three or more",
             },
             {"what": "reason_1", "pts": 1.0, "codes": {"absent": "REASON_MISSING"},
-             "desc": "First reason for choosing it"},
+             # Matches the authored slot label in bmod_handout1.olx. It said
+             # "First reason for choosing it" while the web's label said what a
+             # reason has to BE; the two systems were describing the same credit
+             # component differently, which equivalence.py counted as a gap.
+             # Aligned on the web's wording because it is the more specific of
+             # the two: "a negative effect" is the rule REASON_MISSING enforces.
+             "desc": "First reason — a negative effect of the behavior"},
             {"what": "reason_2", "pts": 1.0, "codes": {"absent": "REASON_MISSING"},
              "desc": "Second reason"},
             {"what": "reason_3", "pts": 1.0, "codes": {"absent": "REASON_MISSING"},

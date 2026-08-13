@@ -266,6 +266,10 @@ def load_action(olx_file: str, action_id: str) -> dict:
             "derived": parse_derived(open_tag),
             "cover": parse_cover(open_tag),
             "excluded": excluded_keys(open_tag),
+            # The runtime keys per-check notes and the display guidance off this,
+            # so a harness that ignores it measures a different prompt and a
+            # different schema from the one the student meets.
+            "show_checks": 'showChecks="false"' not in open_tag,
         }
     raise SystemExit(f"no <LLMAction id=\"{action_id}\"> in {path}")
 
@@ -511,7 +515,79 @@ def build_prompt(body: str, fixture: dict[str, str]) -> str:
     return re.sub(r"\n[ \t]+", "\n", text).strip()
 
 
-def build_schema(slots: list[dict], exclude: set[str] = frozenset()) -> dict:
+def _guidance_block(fn_name: str) -> str:
+    """One guidance function's text, lifted from slotSheet.ts."""
+    ts = _ts_source()
+    m = re.search(rf"function {fn_name}\b.*?return \[(.*?)\]\.join", ts, re.S)
+    if not m:
+        raise SystemExit(f"{fn_name}() not found in {paths.SLOTSHEET_TS} — "
+                         "the mirror in agreement.checklist_guidance is stale")
+    parts = re.findall(r"'((?:[^'\\]|\\.)*)'", m.group(1))
+    return "\n".join(x.replace("\\'", "'") for x in parts)
+
+
+def checklist_guidance(show_checks: bool) -> str:
+    """Mirror of slotSheetGuidance() in slotSheet.ts, read from the source.
+
+    LLMAction appends this to every slot-sheet prompt (DEVIATION 7). Two parts,
+    and only one is conditional:
+
+      studentFacingGuidance  ALWAYS — spell out the rubric's abbreviations and
+                             keys, because the student has not read the rubric.
+      checklistGuidance      only when the student SEES the checks — one note
+                             per check, capped at two sentences.
+
+    Composed in the same order the runtime composes it: the text is prompt, so
+    order is part of what is being measured.
+    """
+    out = _guidance_block("studentFacingGuidance")
+    # Both branches carry a block; the hidden one is not "nothing", it is the
+    # length budget that the checklist's own structure supplies when shown.
+    out += _guidance_block("checklistGuidance" if show_checks
+                           else "terseFeedbackGuidance")
+    return out
+
+
+def _ts_source() -> str:
+    try:
+        return open(paths.SLOTSHEET_TS).read()
+    except OSError as e:                       # pragma: no cover - config error
+        raise SystemExit(f"cannot read {paths.SLOTSHEET_TS}: {e}")
+
+
+def _ts_literal(which: str, per_check_notes: bool = True) -> str:
+    """Lift a schema description straight out of slotSheet.ts.
+
+    A copy kept here is the thing that drifts — three times so far, each found
+    by chasing a score rather than by looking. The descriptions are INSTRUCTION,
+    so a paraphrase is a different prompt; reading the source means this harness
+    cannot describe a schema the app does not send.
+
+    Fails loudly rather than falling back to a copy: a silent fallback would
+    restore exactly the drift this removes.
+    """
+    ts = _ts_source()
+    if which == "note":
+        m = re.search(r"note:\s*\{.*?description:\s*\n?\s*(.*?),\n\s*\},", ts, re.S)
+    else:
+        m = re.search(r"feedback:\s*\{.*?description:\s*(.*?),\n\s*\},", ts, re.S)
+    if not m:
+        raise SystemExit(f"could not read the `{which}` description from "
+                         f"{paths.SLOTSHEET_TS} — the mirror in build_schema is stale")
+    blob = m.group(1)
+    if which == "feedback":
+        # `feedback` is a ternary on perCheckNotes: take the arm the web takes.
+        arms = re.split(r"\n\s*:\s*", blob, maxsplit=1)
+        blob = arms[0] if per_check_notes else (arms[1] if len(arms) > 1 else arms[0])
+        blob = re.sub(r"^\s*perCheckNotes\s*\n?\s*\?", "", blob)
+    parts = re.findall(r"'((?:[^'\\]|\\.)*)'", blob)
+    if not parts:
+        raise SystemExit(f"no string literal in the `{which}` description")
+    return "".join(p.replace("\\'", "'") for p in parts)
+
+
+def build_schema(slots: list[dict], exclude: set[str] = frozenset(),
+                 per_check_notes: bool = False) -> dict:
     """Mirror of buildSlotSchema() in lib/llm/slotSheet.ts.
 
     `exclude` is the keys a schema-excluding primitive answers, which the web
@@ -547,11 +623,21 @@ def build_schema(slots: list[dict], exclude: set[str] = frozenset()) -> dict:
                                    "for and did not find",
                 },
             },
-            "required": ["verdict", "evidence"],
+            "required": (["verdict", "evidence", "note"] if per_check_notes
+                         else ["verdict", "evidence"]),
             "additionalProperties": False,
         }
         for s in slots
     }
+    # Fourth instance of the same drift, caught by the schema audit again. When
+    # the student SEES the checklist the web asks for a per-check `note` and
+    # re-describes `feedback` as an opening; sending the old single-paragraph
+    # schema here would measure a system we no longer ship.
+    if per_check_notes:
+        for s in slots:
+            props[s["key"]]["properties"]["note"] = {
+                "type": "string", "description": _ts_literal("note"),
+            }
     return {
         "type": "object",
         "properties": {
@@ -568,8 +654,7 @@ def build_schema(slots: list[dict], exclude: set[str] = frozenset()) -> dict:
             # feedback that need not agree with what it just decided.
             "feedback": {
                 "type": "string",
-                "description": "The warm, specific feedback the student reads. "
-                               "Consistent with the checks above.",
+                "description": _ts_literal("feedback", per_check_notes),
             },
         },
         "required": ["checks", "feedback"],
@@ -1075,8 +1160,9 @@ def measure_one(backend, handout: int, spec: dict, action_id: str, path: str, pi
     # Handout 3 no longer needs its own branch: build_jobs applies the simulation
     # for the items that declare one, along with every other reconstruction.
     fixture = fixture_for(spec["item"], pid)
-    prompt = build_prompt(action["body"], fixture)
-    raw = backend.complete(prompt, build_schema(action["slots"], action["excluded"]))
+    prompt = build_prompt(action["body"], fixture) + checklist_guidance(action["show_checks"])
+    raw = backend.complete(prompt, build_schema(action["slots"], action["excluded"],
+                                                action["show_checks"]))
     checks = apply_computed(action, raw.get("checks") or {}, fixture)
 
     merged = dict(spec, slots=action["slots"], cover=action["cover"])
