@@ -276,19 +276,41 @@ def schema_divergences():
     # — `properties[slot.key] = { ... }` — because a body-wide scan picks up the
     # TOP-level keys instead and reports a phantom mismatch. It did.
     slot_obj = _re.search(r"properties\[slot\.key\] = \{(.*?)\n {4}\};", body, _re.S)
-    want_props = _re.findall(r"^\s{8}(\w+): [\{\n]", slot_obj.group(1), _re.M) \
+    # Anchored on "name followed by an object literal" rather than on an exact
+    # indent: a property added inside a conditional spread (`...(cond ? { note:
+    # {...} } : {})`) sits two spaces deeper and an indent-anchored scan silently
+    # does not see it — which is indistinguishable from the mirror being right.
+    # Requiring `{` is what makes the looser indent safe: `type`, `enum` and
+    # `description` are never followed by one.
+    want_props = _re.findall(r"^\s{8,14}(\w+): \{", slot_obj.group(1), _re.M) \
         if slot_obj else []
     # (b) the description literals, located rather than collected. Scoped by level
     # so a description can be checked WHERE it belongs: a bag-of-descriptions
     # comparison passes when one slot loses its own and a sibling still has it,
     # which the selftest below caught it doing.
     def _lits(text):
-        return [" ".join(x.split())
-                for x in _re.findall(r"description:\s*\n?\s*'([^']*)'", text)]
+        """Each description, with a concatenation joined as the model receives it.
+
+        A TS description written as several '...' + '...' segments reaches the
+        provider as one string. Capturing only the first segment compares a
+        prefix against the whole and reports a difference that is not there —
+        and would equally MISS a real one anywhere past the first segment.
+        """
+        out = []
+        for m in _re.finditer(r"description:\s*\n?\s*((?:'(?:[^'\\]|\\.)*'\s*\+?\s*)+)", text):
+            parts = _re.findall(r"'((?:[^'\\]|\\.)*)'", m.group(1))
+            out.append(" ".join("".join(parts).split()))
+        return out
     want_slot_descs = _lits(slot_obj.group(1)) if slot_obj else []
     want_top_descs = [d for d in _lits(body) if d not in want_slot_descs]
-    # (c) required + additionalProperties
-    want_req = _re.search(r"required: \[([^\]]*)\]", body)
+    # (c) required + additionalProperties. Scoped to the slot object for the same
+    # reason (a) is: a body-wide search takes the first `required: [` in the
+    # function, which is the TOP-level one the moment the slot's stops being a
+    # bare literal. It did — a ternary on perCheckNotes made this report the slot
+    # list as ['checks', 'feedback'], a phantom exactly like the one the comment
+    # above describes.
+    _req_src = slot_obj.group(1) if slot_obj else body
+    want_req = _re.search(r"required: (?:[^\[\n]*\?\s*)?\[([^\]]*)\]", _req_src)
     want_req = [x.strip().strip("'") for x in want_req.group(1).split(",")] if want_req else []
     want_addl = "additionalProperties: false" in body
     # (d) top-level ordering
@@ -299,7 +321,10 @@ def schema_divergences():
     # same way, so a difference is a difference everywhere.
     aid, spec = next((a, s) for a, s in BLOCKS[1].items() if s.get("olx"))
     act = load_action(spec["olx"], aid)
-    got = build_schema(act["slots"], act["excluded"])
+    # Built the way the RUNTIME builds it for this item: per-check notes are
+    # keyed off showChecks, so comparing the no-notes schema against a source
+    # that has them reports a difference the app never sends.
+    got = build_schema(act["slots"], act["excluded"], act["show_checks"])
     checks = got["properties"]["checks"]["properties"]
     one = next(iter(checks.values()))
 

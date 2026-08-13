@@ -187,7 +187,7 @@ JOBS = {
         # spans — so before this, two web runs one rescore apart were not
         # comparable. See q6_consensus.py for how the vote works and why the
         # slots are allowed to overlap.
-        "consensus": "out/q6_consensus/consensus.json",
+        "consensus": str(paths.OUT / "q6_consensus" / "consensus.json"),
         # Eight components, eight boxes, NO splitting — and do not "fix" the
         # overlap between siblings. 36 of 117 filled boxes share text with a
         # sibling (`state_c1` and `affect_c1` are often one sentence, or one
@@ -210,7 +210,7 @@ JOBS = {
     # leave this handout's restatement of the behaviour and goal empty, and
     # without them the model judges a contingency against a goal it cannot see.
     "PR": {
-        "handout": 2, "screen": f"{paths.NS}/bmod_h2_four", "ns": paths.NS,
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_pr_screen", "ns": paths.NS,
         "button": "Check my Positive Reinforcement example",
         "feedback": "bmod_h2_pr_feedback", "grader": "bmod_h2_pr_grader",
         "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
@@ -218,7 +218,7 @@ JOBS = {
         "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
     },
     "NR": {
-        "handout": 2, "screen": f"{paths.NS}/bmod_h2_four", "ns": paths.NS,
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_nr_screen", "ns": paths.NS,
         "button": "Check my Negative Reinforcement example",
         "feedback": "bmod_h2_nr_feedback", "grader": "bmod_h2_nr_grader",
         "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
@@ -226,7 +226,7 @@ JOBS = {
         "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
     },
     "PP": {
-        "handout": 2, "screen": f"{paths.NS}/bmod_h2_four", "ns": paths.NS,
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_pp_screen", "ns": paths.NS,
         "button": "Check my Positive Punishment example",
         "feedback": "bmod_h2_pp_feedback", "grader": "bmod_h2_pp_grader",
         "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
@@ -234,7 +234,7 @@ JOBS = {
         "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
     },
     "NP": {
-        "handout": 2, "screen": f"{paths.NS}/bmod_h2_four", "ns": paths.NS,
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_np_screen", "ns": paths.NS,
         "button": "Check my Negative Punishment example",
         "feedback": "bmod_h2_np_feedback", "grader": "bmod_h2_np_grader",
         "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
@@ -242,7 +242,7 @@ JOBS = {
         "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
     },
     "D1": {
-        "handout": 2, "screen": f"{paths.NS}/bmod_h2_first", "ns": paths.NS,
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_d1_screen", "ns": paths.NS,
         "button": "Check my definition",
         "feedback": "bmod_h2_d1_feedback", "grader": "bmod_h2_d1_grader",
         "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
@@ -251,7 +251,7 @@ JOBS = {
         "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
     },
     "DAY1": {
-        "handout": 2, "screen": f"{paths.NS}/bmod_h2_first", "ns": paths.NS,
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_day1_screen", "ns": paths.NS,
         "button": "Check my daily example",
         "feedback": "bmod_h2_day1_feedback", "grader": "bmod_h2_day1_grader",
         "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
@@ -260,7 +260,7 @@ JOBS = {
         "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
     },
     "WK1": {
-        "handout": 2, "screen": f"{paths.NS}/bmod_h2_first", "ns": paths.NS,
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_wk1_screen", "ns": paths.NS,
         "button": "Check my weekly example",
         "feedback": "bmod_h2_wk1_feedback", "grader": "bmod_h2_wk1_grader",
         "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
@@ -269,7 +269,7 @@ JOBS = {
         "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
     },
     "D2": {
-        "handout": 2, "screen": f"{paths.NS}/bmod_h2_second", "ns": paths.NS,
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_d2_screen", "ns": paths.NS,
         "button": "Check my definition",
         "feedback": "bmod_h2_d2_feedback", "grader": "bmod_h2_d2_grader",
         "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
@@ -278,7 +278,7 @@ JOBS = {
         "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
     },
     "DAY2": {
-        "handout": 2, "screen": f"{paths.NS}/bmod_h2_second", "ns": paths.NS,
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_day2_screen", "ns": paths.NS,
         "button": "Check my daily example",
         "feedback": "bmod_h2_day2_feedback", "grader": "bmod_h2_day2_grader",
         "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
@@ -287,7 +287,7 @@ JOBS = {
         "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
     },
     "WK2": {
-        "handout": 2, "screen": f"{paths.NS}/bmod_h2_second", "ns": paths.NS,
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_wk2_screen", "ns": paths.NS,
         "button": "Check my weekly example",
         "feedback": "bmod_h2_wk2_feedback", "grader": "bmod_h2_wk2_grader",
         "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
@@ -319,7 +319,7 @@ JOBS = {
         "feedback": "bmod_h1_q4b_feedback", "grader": "bmod_h1_q4b_grader",
         "fields": {"bmod_h1_utb": "_utb_choice", "bmod_h1_q2_response": "Q2"},
         "split": {"Q4a": ("bmod_h1_q4a_first", "bmod_h1_q4a_second")},
-        "handsplit": "handsplit/Q4b.json",
+        "handsplit": str(paths.HANDSPLIT / "Q4b.json"),
     },
     "1a": {
         "handout": 3, "screen": f"{paths.NS}/bmod_h3_overview", "ns": paths.NS,
@@ -440,7 +440,7 @@ def detect_utb(path: str, q1: str) -> str:
     return best
 
 
-SCORER_OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+SCORER_OUT = str(paths.OUT)
 
 
 _ANNOTATED = re.compile(r'^\s*["“](?P<q>.+?)["”]\s*(?:[—–]|--)\s*\S')

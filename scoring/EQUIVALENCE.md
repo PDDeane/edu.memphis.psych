@@ -24,9 +24,18 @@ guidance bullets, exemplars, cross-item context — copied verbatim.
 `equivalence.py` reports **0 undeclared gaps** and 3 declared omissions (all on
 1c, all describing `.docx` evidence that has no web analogue). Measured baseline
 of the equivalent system: **410 cells, 85% exact, MAE 0.33** — see Measurement
-state. Before this, across 23 items: the question text appeared verbatim in 1,
-credit descriptions in 1, deduction texts 0–6 of each set, guidance bullets 0–8
-of each set.
+state.
+
+> **2026-08-12 — that baseline predates deviation 7.** Per-check notes were added
+> to the 20 items whose checklist is shown, which lengthens the completion
+> without changing any verdict. `equivalence.py` is unmoved (it compares scoring
+> behaviour), and `--check` still passes, so the structural claim above holds.
+> The **measured** figure does not carry across it: re-run `agreement_app.py`
+> before quoting 85% for the current system.
+
+Before this, across 23 items: the question text appeared verbatim in 1, credit
+descriptions in 1, deduction texts 0–6 of each set, guidance bullets 0–8 of each
+set.
 
 **Do not hand-edit a prompt body in the .olx.** Change `rubric_hN.py`, or change
 `olx_prompts.py`, and re-run `--write`. `--check` fails if someone has, and each
@@ -208,12 +217,101 @@ into 3. The paper Q1 block holds both the chosen UTB and the prose about it, so
 the rubric key `Q1` maps to the closed choice *and* the text area; `_utb` /
 `_wgb` are the same split.
 
-### 6. Q1/Q2's "weak hint" is replaced by the closed choice
+### 6. Q1's "weak hint" is replaced by the closed choice; later items use the described behavior
 
 `build_prompt` adds a `## Weak hint` section for Q1 and Q2, read from the .docx's
 underline formatting and correct in only 6 of 20 transcriptions. The web asks
 for the UTB as a closed `ChoiceInput` before question 1, so the same fact
 arrives authoritatively as `## The behavior they chose`.
+
+**Q1 only.** Everywhere after it, the web sends the behavior the student
+DESCRIBED in question 1 rather than the one they ticked — `bmod_h1_utb_observed`,
+a `SheetValue` over `utb_stated`'s evidence, falling back to the choice until
+question 1 has been checked. Seven prompts carry it (Q2, Q3, Q4a, Q4b, Q4c, Q5,
+Q6), labelled "as they described it".
+
+The reason is that the two can disagree, and everything after question 1 is
+graded against what the student actually wrote: someone who ticks "lack of
+sleep" and then writes about exercise is doing the exercise project, and Q4a's
+antecedents are antecedents of *that*. On paper the question cannot arise —
+there is one handwritten answer and nothing to disagree with it — so the CLI
+keeps sending the underlined hint and this is a web-only refinement, not a
+divergence in what is being judged.
+
+Q2 was also dropped from `UTB_CHOICE` as part of this. It had been getting the
+raw choice under "the behavior they chose" *and* the described behavior under
+context — two different answers to the same question under two headings. The
+`seen` guard in `build_web_prompt` exists to stop exactly that, but it keys on
+component id, so pointing context at a different component walked past it. Q1
+keeps the section, because comparing the two is its own `matches_selected` check.
+
+### 7. Per-check notes on the items whose checklist is shown
+
+A consequence of deviation 3. Where the student SEES the sheet, the feedback is
+displayed as a list with each comment under the check it is about, so the runtime
+asks for it that way instead of asking for one paragraph:
+
+`LLMAction` appends `slotSheet.slotSheetGuidance()` to **every** slot-sheet
+prompt. It has two parts, and only the second is conditional:
+
+* **All 23 items** — `studentFacingGuidance()`: spell out every abbreviation and
+  piece of shorthand the rubric uses, and name checks in plain words rather than
+  by key. The rubric is written for a grader and its shorthand is all in the
+  prompt, so it is all within reach of the prose; the student has not read the
+  rubric, and "your UTB is clear" is feedback they must decode before they can
+  act on it. Restated in the `feedback` and `note` schema descriptions, which the
+  model reads while filling those fields rather than while planning the answer.
+* **The 20 items whose checklist is shown** — `checklistGuidance()`, saying each
+  check's `note` appears directly beneath it, so notes stand alone, do not repeat
+  one another, are written for passing checks too, and are capped at two short
+  sentences. With it, `buildSlotSchema(..., perCheckNotes=true)` adds a
+  **required** `note` to every non-computed check and re-describes `feedback` as
+  a one-or-two-sentence opening.
+
+  It also re-describes **`evidence`**, which the CLI treats as an internal audit
+  field and the web now DISPLAYS under its check. The web therefore asks for the
+  shortest verbatim span in quotation marks; the CLI asks only for "quote from
+  the student, or what you looked for and did not find". Same field, same
+  purpose, a stricter contract on the side where a student reads it — and the
+  reason the web does not ask for a quote in the prose: the span is already on
+  screen, so a note saying "that sentence" would point at something the reader
+  cannot identify while the words sit directly above it.
+
+Neither is in the .olx: both are appended at runtime, keyed off `showChecks`.
+`olx_prompts.py` deliberately does not reproduce them — generating them into the
+prompt bodies would send them twice on the web, and would make `--check` demand
+text in the files that the runtime already supplies.
+
+**Scope.** The student-facing half reaches all 23 sheets. The other half is a
+fork rather than an on/off: the 20 shown sheets get `checklistGuidance()` and
+per-check notes, and the three with `showChecks="false"` — `bmod_h1_q5`,
+`bmod_h3_assessment`, `bmod_h3_improve` — get `terseFeedbackGuidance()` instead,
+capping `feedback` at four sentences and saying so again in the schema.
+
+That cap exists because hiding the checklist removes what was doing the
+compressing. With checks shown, every comment is pinned to one check and capped
+at two sentences; with them hidden the model has one open field, the whole
+sheet's findings in view, and nothing telling it to stop. These are precisely the
+items chosen to be graded generously, and burying that in six paragraphs is its
+own kind of discouraging. All three items therefore still differ from the CLI —
+by the student-facing block and the length budget. Keying the spell-out rule off `showChecks` would
+have exempted exactly the items whose output is nothing but prose.
+
+**Why it is permitted.** It is a display difference, not a grading one. `note`
+is prose rendered under its own check; it is never scored, and no verdict, point
+value or deduction wording depends on it. The schema property is added, not
+substituted: `verdict` and `evidence` are unchanged, so every check the CLI makes
+the web still makes, in the same words.
+
+**Why it needed writing down anyway.** `equivalence.py --enforcement` compares
+scoring behaviour, not prompt text, and is byte-identical across this change. An
+audit that cannot see a difference is exactly the case the declaration contract
+exists for.
+
+**What it may move.** Output length: the model now writes 8-11 notes per item,
+under an `interactive` budget of 16384 that covers reasoning and output together.
+A web-vs-gold figure measured before this change was measured on shorter
+completions; re-run `agreement_app.py` before comparing across it.
 
 ## Scoring divergences (arithmetic, not prompt text)
 
