@@ -111,6 +111,8 @@ Start by choosing the unwanted target behavior (UTB) you want to change.
   <!-- ============= Screen: Question 1 - define the UTB ===================== -->
 
   <Vertical id="bmod_h1_q1" title="1. Define your unwanted target behavior">
+    <SplitPanel id="bmod_h1_q1_split" sizes="55,45">
+      <StartPane>
     <Markdown id="bmod_h1_q1_prompt">
 ## 1. Define your unwanted target behavior and explain WHY you chose it
 
@@ -120,15 +122,18 @@ least three sentences** explaining why you chose to change it.
 Your reasons should be things that go wrong because of the behavior — symptoms
 you experience when you engage in it, or health issues that can arise from
 continuing it.
+
+&nbsp;
     </Markdown>
 
     <TextArea id="bmod_h1_q1_response" rows="7"
               placeholder="{{corpus:Q1/p3:response:0:30:sha=c5fd6758ccc7}}..." />
 
-    <LLMFeedback id="bmod_h1_q1_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h1_q1_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q1_llm" target="bmod_h1_q1_feedback"
-                 slots="utb_stated:Your unwanted target behavior stated explicitly@2|harms_listed:How many statements name a negative effect of the behavior:3/2/1/0|benefits_listed:How many name a benefit you expect from changing:3/2/1/0|reasons_given:How many separate reasons you give:3/2/1/0|reason_1:First reason — a negative effect of the behavior@1|reason_2:Second reason@1|reason_3:Third reason@1|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="matches_selected:Same behavior you selected above:matches/differs|utb_stated:Your unwanted target behavior stated explicitly@2|harms_listed:How many statements name a negative effect of the behavior:3/2/1/0|benefits_listed:How many name a benefit you expect from changing:3/2/1/0|reasons_given:How many separate reasons you give:3/2/1/0|reason_1:First reason — a negative effect of the behavior@1|reason_2:Second reason@1|reason_3:Third reason@1|uncertain:Any judgement I was unsure about:no/yes"
                  counts="reasons_given:reason_1,reason_2,reason_3">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -190,12 +195,18 @@ Define your unwanted target behavior (UTB) and explain WHY you chose this partic
 ## Grading guidance
 - The UTB must be one of the four from the closed list.
 
+## Say this before anything else
+If `matches_selected` is `differs`, the FIRST sentence of `feedback` says so: name the behavior they ticked, name the one they wrote about, and say that the rest of this feedback is about what they wrote. Then give the normal feedback.
+
+It is not a fault and nothing is deducted for it — most often they simply changed their mind — so say it plainly and without warning them off. If it is `matches`, say nothing about it at all: confirming a match the student never doubted spends their attention on nothing.
+
 ## The checklist to return (`checks`)
 Return a verdict for EVERY one of these, in this order, BEFORE you write
 `feedback` — a response can fail most of them and still read fluently. Each
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
+- `matches_selected` — `matches`/`differs`: `matches` if the behavior the student writes about is the one they picked from the list above, `differs` if they write about a different behavior. Judge the BEHAVIOR, not the wording: '{{corpus:Q1/p19:response:46:70:sha=f4d8dbbfd800:shape=C1}}' matches the choice 'lack of sleep'. This check carries no points and never changes another verdict — everything else is judged on what they WROTE, whichever box they ticked
 - `utb_stated` — `met`/`absent`/`unclear`: {{corpus:Q1/p10:response:0:31:sha=f748d9d9ddd6}} identified as the student's own target, not merely mentioned as the cause of some effect. Judge ONLY the response text the student wrote. Where the UTB also appears in this prompt as a separate field or context line, that does NOT satisfy this check — the question is whether the RESPONSE names the behaviour as its target. A response that opens straight into effects ("{{corpus:Q1/p20:response:0:36:sha=7f8a552a724d}} tired...") fails; a sentence of the form "{{corpus:Q1/p3:response:0:30:sha=c5fd6758ccc7}} X" satisfies it
 - `harms_listed` — `3`/`2`/`1`/`0`: HOW MANY statements name a NEGATIVE EFFECT of the unwanted behaviour — something that goes wrong because of it, or a symptom of it. "{{corpus:Q1/p1:response:280:337:sha=1946589e2f0b}} class" is one. A reason is a whole STATEMENT: a clause that merely continues one is part of it, so "{{corpus:Q1/p5:response:161:243:sha=bfd41c6d673e:shape=C7ef800000000000000}} weight" is ONE, while two effects merely joined by "and" are two. Do NOT count a restatement that the student struggles with the behaviour (participant 1) or a behaviour performed DURING it (participant 2). Answer 3 for three or more
 - `benefits_listed` — `3`/`2`/`1`/`0`: HOW MANY statements name a BENEFIT the student expects from changing. The test is GETS versus DOES: a benefit is something the student GETS — "{{corpus:Q1/p10:response:155:189:sha=cedcf4a87d7a}} myself", "{{corpus:Q1/p16:response:256:285:sha=30187edf82d0}} person". A statement of what they intend to DO names the goal behaviour itself and is NOT a benefit of it, however much it sounds like a wish. Do NOT count a restatement of the goal ("{{corpus:Q1/p10:response:117:146:sha=be46148ce74e}} active"), the struggle ("something I have been struggling with"), or background about how the behaviour came about ("I used to exercise {{corpus:Q1/p16:response:90:102:sha=0264516373dc}} sports"). Answer 3 for three or more
@@ -214,12 +225,25 @@ Chosen from the four on the list, before question 1.
       <!-- Scores the sheet this action publishes; costs and the item
            total live on the sheet, this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h1_q1_grader" target="bmod_h1_q1_feedback" />
+      <!-- The behaviour the student actually WROTE ABOUT, lifted from the
+           span that settled `utb_stated`. Later screens echo this rather than
+           the radio button, which is what they PICKED. Mounted here because
+           this is where the sheet is published; its value persists, so the
+           later screens read it without it being mounted there. Falls back to
+           the choice until the student has pressed the button. -->
+      <SheetValue id="bmod_h1_utb_observed" target="bmod_h1_q1_feedback"
+                  check="utb_stated" part="evidence" fallback="bmod_h1_utb" />
     </ActionButton>
+    <LLMFeedback id="bmod_h1_q1_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: Question 2 - define the WGB ===================== -->
 
   <Vertical id="bmod_h1_q2" title="2. Define your wanted goal behavior">
+    <SplitPanel id="bmod_h1_q2_split" sizes="55,45">
+      <StartPane>
     <Markdown id="bmod_h1_q2_prompt">
 ## 2. Define your wanted goal behavior
 
@@ -234,16 +258,21 @@ one.
     </Markdown>
 
     <Markdown id="bmod_h1_q2_recall">
-Your unwanted target behavior was: **{{@bmod_h1_utb.value}}**
+&nbsp;
+
+**{{@bmod_h1_utb_observed.value}}**
+
+&nbsp;
     </Markdown>
 
     <TextArea id="bmod_h1_q2_response" rows="7"
               placeholder="My wanted goal behavior is..." />
 
-    <LLMFeedback id="bmod_h1_q2_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h1_q2_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q2_llm" target="bmod_h1_q2_feedback"
-                 slots="!wgb_is_counterpart:Goal behavior is the opposite of your unwanted behavior|wgb_inverts_utb:Goal behavior states the opposite of your unwanted behavior@2|reasons_listed:How many statements you offer as reasons:3/2/1/0|reasons_failing:How many of those are not a benefit of the goal:0/1/2/3|reasons_given:How many separate benefits you give:3/2/1/0|reason_1:First benefit of the goal behavior@1|reason_2:Second benefit@1|reason_3:Third benefit@1|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="!wgb_is_counterpart:Goal behavior is the opposite of your unwanted behavior|wgb_inverts_utb:Goal behavior states the opposite of your unwanted behavior@2|reasons_listed:How many statements you offer as reasons:3/2/1/0|reasons_failing:How many of those are not a benefit of the goal:0/1/2/3|reasons_given:How many separate benefits you give:3/2/1/0|reason_1:First benefit of the goal behavior@1|reason_2:Second benefit@1|reason_3:Third benefit@1|uncertain:Any judgement I was unsure about:no/yes"
                  counts="reasons_given:reason_1,reason_2,reason_3">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -320,14 +349,11 @@ DO NOT ANSWER `reason_1`, `reason_2`, `reason_3` individually. Answer `reasons_g
 
 A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
 
-## The behavior they chose (authoritative)
-Chosen from the four on the list, before question 1.
-<Ref id="bmod_h1_q2_llm_ref_utb" target="bmod_h1_utb" />
-
 ## Context from this student's other answers (read-only)
 Use these only where the rubric requires cross-item consistency. Do not grade them here.
 
 ### Q1
+Their unwanted target behavior, as they described it: <Ref id="bmod_h1_q2_ref_utb_observed" target="bmod_h1_utb_observed" />
 What they wrote about it: <Ref id="bmod_h1_q2_ref_q1_response" target="bmod_h1_q1_response" />
 
 ## Student response to grade (item Q2)
@@ -337,11 +363,16 @@ What they wrote about it: <Ref id="bmod_h1_q2_ref_q1_response" target="bmod_h1_q
            total live on the sheet, this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h1_q2_grader" target="bmod_h1_q2_feedback" />
     </ActionButton>
+    <LLMFeedback id="bmod_h1_q2_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: Question 3 - SMART goal ========================= -->
 
   <Vertical id="bmod_h1_q3" title="3. SMART goal">
+    <SplitPanel id="bmod_h1_q3_split" sizes="55,45">
+      <StartPane>
     <Markdown id="bmod_h1_q3_prompt">
 ## 3. Use the SMART goal acronym to define your wanted goal behavior
 
@@ -353,6 +384,8 @@ Fill in each aspect. All five are required for full credit.
 
 *For example: "my goal is Specific because I plan to drink at least 32 ounces
 of water per day, every day of the week."*
+
+&nbsp;
     </Markdown>
     <TextArea id="bmod_h1_q3_specific" rows="3" placeholder="{{corpus:Q3/p1:specific:10:37:sha=32a1b1a0f56c:shape=C800}}..." />
 
@@ -361,28 +394,37 @@ of water per day, every day of the week."*
 
 *For example: "I will track my water intake in a Notes app on my phone,
 counting the number of ounces I drink."*
+
+&nbsp;
     </Markdown>
     <TextArea id="bmod_h1_q3_measurable" rows="3" placeholder="My goal is Measurable because..." />
 
     <Markdown id="bmod_h1_q3_a_label">
 **Action-Oriented** — what specific actions will you physically take?
+
+&nbsp;
     </Markdown>
     <TextArea id="bmod_h1_q3_action" rows="3" placeholder="My goal is Action-Oriented because..." />
 
     <Markdown id="bmod_h1_q3_r_label">
 **Realistic** — why is this goal realistic for *you*?
+
+&nbsp;
     </Markdown>
     <TextArea id="bmod_h1_q3_realistic" rows="3" placeholder="My goal is Realistic because..." />
 
     <Markdown id="bmod_h1_q3_t_label">
 **Time-Bound** — over what period does your intervention run?
+
+&nbsp;
     </Markdown>
     <TextArea id="bmod_h1_q3_timebound" rows="3" placeholder="My plan is Time-Bound because..." />
 
-    <LLMFeedback id="bmod_h1_q3_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h1_q3_btn" label="Check my SMART goal">
       <LLMAction id="bmod_h1_q3_llm" target="bmod_h1_q3_feedback"
-                 slots="specific:Specific — a quantified daily or weekly goal@1|measurable:Measurable — names a tracking method or place@1|action_oriented:Action-Oriented — something you will physically do@1|realistic:Realistic — why it is achievable for you@1|time_bound:Time-Bound — four weeks, one baseline plus three@1|uncertain:Any judgement you were unsure about:no/yes">
+                 slots="specific:Specific — a quantified daily or weekly goal@1|measurable:Measurable — names a tracking method or place@1|action_oriented:Action-Oriented — something you will physically do@1|realistic:Realistic — why it is achievable for you@1|time_bound:Time-Bound — four weeks, one baseline plus three@1|uncertain:Any judgement I was unsure about:no/yes">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -462,7 +504,7 @@ says the check reports an identity rather than a judgement.
 Use these only where the rubric requires cross-item consistency. Do not grade them here.
 
 ### Q1
-Their unwanted target behavior, chosen from the list: <Ref id="bmod_h1_q3_ref_utb" target="bmod_h1_utb" />
+Their unwanted target behavior, as they described it: <Ref id="bmod_h1_q3_ref_utb_observed" target="bmod_h1_utb_observed" />
 What they wrote about it: <Ref id="bmod_h1_q3_ref_q1_response" target="bmod_h1_q1_response" />
 
 ### Q2
@@ -490,6 +532,9 @@ Each heading is the on-screen field label — what the student was ASKED to put 
            total live on the sheet, this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h1_q3_grader" target="bmod_h1_q3_feedback" />
     </ActionButton>
+    <LLMFeedback id="bmod_h1_q3_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: FBA intro ======================================= -->
@@ -512,20 +557,25 @@ which lead to consequences.
   <!-- ============= Screen: Question 4a - antecedents ======================= -->
 
   <Vertical id="bmod_h1_q4a" title="4a. Antecedents">
+    <SplitPanel id="bmod_h1_q4a_split" sizes="55,45">
+      <StartPane>
     <Markdown id="bmod_h1_q4a_prompt">
 ## 4a. What are the ANTECEDENTS (triggers) for your unwanted target behavior?
 
 What circumstances lead up to it? List and describe **two** examples.
 
 You must use the word **antecedent** or **trigger** in your answer.
+
+&nbsp;
     </Markdown>
     <TextArea id="bmod_h1_q4a_first" rows="3" placeholder="My first antecedent is..." />
     <TextArea id="bmod_h1_q4a_second" rows="3" placeholder="My second trigger is..." />
 
-    <LLMFeedback id="bmod_h1_q4a_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h1_q4a_btn" label="Check my antecedents">
       <LLMAction id="bmod_h1_q4a_llm" target="bmod_h1_q4a_feedback"
-                 slots="antecedent_1:First antecedent is a genuine trigger:met/absent/not_antecedent@2|antecedent_2:Second antecedent is a genuine trigger:met/absent/not_antecedent@2|keyword:Uses the word antecedent or trigger@1|uncertain:Any judgement you were unsure about:no/yes">
+                 slots="antecedent_1:First antecedent is a genuine trigger:met/absent/not_antecedent@2|antecedent_2:Second antecedent is a genuine trigger:met/absent/not_antecedent@2|keyword:Uses the word antecedent or trigger@1|uncertain:Any judgement I was unsure about:no/yes">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -601,7 +651,7 @@ says the check reports an identity rather than a judgement.
 Use these only where the rubric requires cross-item consistency. Do not grade them here.
 
 ### Q1
-Their unwanted target behavior, chosen from the list: <Ref id="bmod_h1_q4a_ref_utb" target="bmod_h1_utb" />
+Their unwanted target behavior, as they described it: <Ref id="bmod_h1_q4a_ref_utb_observed" target="bmod_h1_utb_observed" />
 What they wrote about it: <Ref id="bmod_h1_q4a_ref_q1_response" target="bmod_h1_q1_response" />
 
 ## Student response to grade (item Q4a)
@@ -617,11 +667,16 @@ Each heading is the on-screen field label — what the student was ASKED to put 
            total live on the sheet, this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h1_q4a_grader" target="bmod_h1_q4a_feedback" />
     </ActionButton>
+    <LLMFeedback id="bmod_h1_q4a_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: Question 4b - behaviors ========================= -->
 
   <Vertical id="bmod_h1_q4b" title="4b. Behaviors">
+    <SplitPanel id="bmod_h1_q4b_split" sizes="55,45">
+      <StartPane>
     <Markdown id="bmod_h1_q4b_prompt">
 ## 4b. What ARE you actively doing during your unwanted target behavior?
 
@@ -637,20 +692,27 @@ Your antecedents from 4a were:
 
 1. {{@bmod_h1_q4a_first.value}}
 2. {{@bmod_h1_q4a_second.value}}
+
+&nbsp;
     </Markdown>
 
     <TextArea id="bmod_h1_q4b_first" rows="3"
               placeholder="{{corpus:Q4b/p15:first:0:42:sha=4b55d3d3884a}}..." />
     <TextArea id="bmod_h1_q4b_second" rows="3"
               placeholder="{{corpus:Q4b/p15:first:0:42:sha=4b55d3d3884a}}..." />
-    <Markdown id="bmod_h1_q4b_modify_label">**Is this {{corpus:Q4b/p11:modify:8:27:sha=daab82c45af4}} you to modify, and why?**</Markdown>
+    <Markdown id="bmod_h1_q4b_modify_label">
+**Is this {{corpus:Q4b/p11:modify:8:27:sha=daab82c45af4}} you to modify, and why?**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h1_q4b_modify" rows="3"
               placeholder="This is a good choice for me to modify because..." />
 
-    <LLMFeedback id="bmod_h1_q4b_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h1_q4b_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q4b_llm" target="bmod_h1_q4b_feedback"
-                 slots="behavior_1:First example is something done during the behavior:met/absent/not_active@1.5|behavior_2:Second example is something done during the behavior:met/absent/not_active@1.5|modify_stated:Says whether it is a good choice to modify:met/absent@2|modify_why:Gives a reason why:met/absent@1|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="behavior_1:First example is something done during the behavior:met/absent/not_active@1.5|behavior_2:Second example is something done during the behavior:met/absent/not_active@1.5|modify_stated:Says whether it is a good choice to modify:met/absent@2|modify_why:Gives a reason why:met/absent@1|uncertain:Any judgement I was unsure about:no/yes"
                  onlyif="modify_why:modify_stated"
                  max="5">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
@@ -733,7 +795,7 @@ says the check reports an identity rather than a judgement.
 Use these only where the rubric requires cross-item consistency. Do not grade them here.
 
 ### Q1
-Their unwanted target behavior, chosen from the list: <Ref id="bmod_h1_q4b_ref_utb" target="bmod_h1_utb" />
+Their unwanted target behavior, as they described it: <Ref id="bmod_h1_q4b_ref_utb_observed" target="bmod_h1_utb_observed" />
 What they wrote about it: <Ref id="bmod_h1_q4b_ref_q1_response" target="bmod_h1_q1_response" />
 
 ### Q2
@@ -759,11 +821,16 @@ Each heading is the on-screen field label — what the student was ASKED to put 
            total live on the sheet, this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h1_q4b_grader" target="bmod_h1_q4b_feedback" />
     </ActionButton>
+    <LLMFeedback id="bmod_h1_q4b_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: Question 4c - consequences ====================== -->
 
   <Vertical id="bmod_h1_q4c" title="4c. Consequences">
+    <SplitPanel id="bmod_h1_q4c_split" sizes="55,45">
+      <StartPane>
     <Markdown id="bmod_h1_q4c_prompt">
 ## 4c. What are the CONSEQUENCES of engaging in your unwanted target behavior?
 
@@ -771,6 +838,8 @@ List and describe **two** examples. A consequence happens *after* the behavior
 and results directly from it.
 
 You must use the word **consequence** or **consequences** in your answer.
+
+&nbsp;
     </Markdown>
 
     <TextArea id="bmod_h1_q4c_first" rows="3"
@@ -778,10 +847,11 @@ You must use the word **consequence** or **consequences** in your answer.
     <TextArea id="bmod_h1_q4c_second" rows="3"
               placeholder="Another consequence is..." />
 
-    <LLMFeedback id="bmod_h1_q4c_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h1_q4c_btn" label="Check my consequences">
       <LLMAction id="bmod_h1_q4c_llm" target="bmod_h1_q4c_feedback"
-                 slots="consequence_1:First consequence follows from the behavior:met/absent/not_consequence/duplicate@2|consequence_2:Second consequence follows from the behavior:met/absent/not_consequence/duplicate@2|keyword:Uses the word consequence|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="consequence_1:First consequence follows from the behavior:met/absent/not_consequence/duplicate@2|consequence_2:Second consequence follows from the behavior:met/absent/not_consequence/duplicate@2|keyword:Uses the word consequence|uncertain:Any judgement I was unsure about:no/yes"
                  max="5">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -860,7 +930,7 @@ says the check reports an identity rather than a judgement.
 Use these only where the rubric requires cross-item consistency. Do not grade them here.
 
 ### Q1
-Their unwanted target behavior, chosen from the list: <Ref id="bmod_h1_q4c_ref_utb" target="bmod_h1_utb" />
+Their unwanted target behavior, as they described it: <Ref id="bmod_h1_q4c_ref_utb_observed" target="bmod_h1_utb_observed" />
 What they wrote about it: <Ref id="bmod_h1_q4c_ref_q1_response" target="bmod_h1_q1_response" />
 
 ### Q4a
@@ -884,11 +954,16 @@ Each heading is the on-screen field label — what the student was ASKED to put 
            total live on the sheet, this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h1_q4c_grader" target="bmod_h1_q4c_feedback" />
     </ActionButton>
+    <LLMFeedback id="bmod_h1_q4c_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: Question 5 - function of the behavior =========== -->
 
   <Vertical id="bmod_h1_q5" title="5. Why do you continue?">
+    <SplitPanel id="bmod_h1_q5_split" sizes="55,45">
+      <StartPane>
     <Markdown id="bmod_h1_q5_prompt">
 ## 5. Why do you think you continue to engage in the unwanted target behavior?
 
@@ -900,6 +975,8 @@ List and describe **two** examples.
 
 *For example: "I continue to not drink enough water because soda tastes so
 good, and I get my sugar fix."*
+
+&nbsp;
     </Markdown>
 
     <TextArea id="bmod_h1_q5_first" rows="3"
@@ -907,10 +984,11 @@ good, and I get my sugar fix."*
     <TextArea id="bmod_h1_q5_second" rows="3"
               placeholder="I also continue because..." />
 
-    <LLMFeedback id="bmod_h1_q5_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h1_q5_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q5_llm" target="bmod_h1_q5_feedback"
-                 slots="example_1:First reason you keep doing it:met/absent/not_reason/duplicate@2.5|example_2:Second, different reason:met/absent/not_reason/duplicate@2.5|thin_reason:Either reason is present but weak:no/yes|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="example_1:First reason you keep doing it:met/absent/not_reason/duplicate@2.5|example_2:Second, different reason:met/absent/not_reason/duplicate@2.5|thin_reason:Either reason is present but weak:no/yes|uncertain:Any judgement I was unsure about:no/yes"
                  showChecks="false">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -988,7 +1066,7 @@ says the check reports an identity rather than a judgement.
 Use these only where the rubric requires cross-item consistency. Do not grade them here.
 
 ### Q1
-Their unwanted target behavior, chosen from the list: <Ref id="bmod_h1_q5_ref_utb" target="bmod_h1_utb" />
+Their unwanted target behavior, as they described it: <Ref id="bmod_h1_q5_ref_utb_observed" target="bmod_h1_utb_observed" />
 What they wrote about it: <Ref id="bmod_h1_q5_ref_q1_response" target="bmod_h1_q1_response" />
 
 ### Q4c
@@ -1008,11 +1086,16 @@ Each heading is the on-screen field label — what the student was ASKED to put 
            total live on the sheet, this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h1_q5_grader" target="bmod_h1_q5_feedback" />
     </ActionButton>
+    <LLMFeedback id="bmod_h1_q5_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: Question 6 - changing antecedents =============== -->
 
   <Vertical id="bmod_h1_q6" title="6. Changing your antecedents">
+    <SplitPanel id="bmod_h1_q6_split" sizes="55,45">
+      <StartPane>
     <Markdown id="bmod_h1_q6_prompt">
 ## 6. How could you change each antecedent?
 
@@ -1056,46 +1139,79 @@ have extra money {{corpus:PR/p2:pr:49:68:sha=043d19084034}} with friends (new C)
 
     <Markdown id="bmod_h1_q6_a1_head">### Your first antecedent</Markdown>
 
-    <Markdown id="bmod_h1_q6_state_a1_label">**Which antecedent from 4a are you changing?**</Markdown>
+    <Markdown id="bmod_h1_q6_state_a1_label">
+**Which antecedent from 4a are you changing?**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h1_q6_state_a1" rows="2"
               placeholder="The antecedent I am changing is..." />
 
-    <Markdown id="bmod_h1_q6_change_a1_label">**How will you change it?**</Markdown>
+    <Markdown id="bmod_h1_q6_change_a1_label">
+**How will you change it?**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h1_q6_change_a1" rows="3"
               placeholder="I will change it by..." />
 
-    <Markdown id="bmod_h1_q6_state_c1_label">**Which consequence from 4c will that affect?**</Markdown>
+    <Markdown id="bmod_h1_q6_state_c1_label">
+**Which consequence from 4c will that affect?**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h1_q6_state_c1" rows="2"
               placeholder="The consequence this affects is..." />
 
-    <Markdown id="bmod_h1_q6_affect_c1_label">**How will it be affected?**</Markdown>
+    <Markdown id="bmod_h1_q6_affect_c1_label">
+**How will it be affected?**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h1_q6_affect_c1" rows="3"
               placeholder="That consequence will change because..." />
 
     <Markdown id="bmod_h1_q6_a2_head">### Your second antecedent</Markdown>
 
-    <Markdown id="bmod_h1_q6_state_a2_label">**Which other antecedent from 4a are you changing?**</Markdown>
+    <Markdown id="bmod_h1_q6_state_a2_label">
+**Which other antecedent from 4a are you changing?**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h1_q6_state_a2" rows="2"
               placeholder="The other antecedent I am changing is..." />
 
-    <Markdown id="bmod_h1_q6_change_a2_label">**How will you change it?**</Markdown>
+    <Markdown id="bmod_h1_q6_change_a2_label">
+**How will you change it?**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h1_q6_change_a2" rows="3"
               placeholder="I will change it by..." />
 
-    <Markdown id="bmod_h1_q6_state_c2_label">**Which other consequence from 4c will that affect?**</Markdown>
+    <Markdown id="bmod_h1_q6_state_c2_label">
+**Which other consequence from 4c will that affect?**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h1_q6_state_c2" rows="2"
               placeholder="The other consequence this affects is..." />
 
-    <Markdown id="bmod_h1_q6_affect_c2_label">**How will it be affected?**</Markdown>
+    <Markdown id="bmod_h1_q6_affect_c2_label">
+**How will it be affected?**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h1_q6_affect_c2" rows="3"
               placeholder="That consequence will change because..." />
 
-    <LLMFeedback id="bmod_h1_q6_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h1_q6_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q6_llm" target="bmod_h1_q6_feedback"
                  verdicts="met,absent,mismatch,not_described"
                  cover="state_a1,state_a2:first,second|state_c1,state_c2:first,second"
-                 slots="state_a1:First antecedent named and matching 4a:first/second/neither/absent@1.25|change_a1:How the first antecedent will be changed@1.25|state_a2:Second antecedent named and matching 4a:first/second/neither/absent@1.25|change_a2:How the second antecedent will be changed@1.25|state_c1:First consequence named and matching 4c:first/second/neither/absent@1.25|affect_c1:How the first consequence is affected@1.25|state_c2:Second consequence named and matching 4c:first/second/neither/absent@1.25|affect_c2:How {{corpus:Q4c/p19:second:0:25:sha=d4d526f38996:shape=C1}} affected@1.25|uncertain:Any judgement you were unsure about:no/yes">
+                 slots="state_a1:First antecedent named and matching 4a:first/second/neither/absent@1.25|change_a1:How the first antecedent will be changed@1.25|state_a2:Second antecedent named and matching 4a:first/second/neither/absent@1.25|change_a2:How the second antecedent will be changed@1.25|state_c1:First consequence named and matching 4c:first/second/neither/absent@1.25|affect_c1:How the first consequence is affected@1.25|state_c2:Second consequence named and matching 4c:first/second/neither/absent@1.25|affect_c2:How {{corpus:Q4c/p19:second:0:25:sha=d4d526f38996:shape=C1}} affected@1.25|uncertain:Any judgement I was unsure about:no/yes">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -1219,7 +1335,7 @@ says the check reports an identity rather than a judgement.
 Use these only where the rubric requires cross-item consistency. Do not grade them here.
 
 ### Q1
-Their unwanted target behavior, chosen from the list: <Ref id="bmod_h1_q6_ref_utb" target="bmod_h1_utb" />
+Their unwanted target behavior, as they described it: <Ref id="bmod_h1_q6_ref_utb_observed" target="bmod_h1_utb_observed" />
 What they wrote about it: <Ref id="bmod_h1_q6_ref_q1_response" target="bmod_h1_q1_response" />
 
 ### Q2
@@ -1270,6 +1386,9 @@ Each heading is the on-screen field label — what the student was ASKED to put 
            opinion about the whole answer. -->
       <SlotSheetGrader id="bmod_h1_q6_grader" target="bmod_h1_q6_feedback" />
     </ActionButton>
+    <LLMFeedback id="bmod_h1_q6_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: Review ========================================== -->
@@ -1282,58 +1401,58 @@ Check your answers before you finish. Your intervention runs for four weeks:
 one week collecting baseline data, then three weeks of intervention. You will
 bring this data to Handout 3.
     </Markdown>
+
+    <IntakeGate id="bmod_h1_gate" ready="@bmod_h1_q1_feedback.value &amp;&amp; @bmod_h1_q2_feedback.value &amp;&amp; @bmod_h1_q3_feedback.value &amp;&amp; @bmod_h1_q4a_feedback.value &amp;&amp; @bmod_h1_q4b_feedback.value &amp;&amp; @bmod_h1_q4c_feedback.value &amp;&amp; @bmod_h1_q5_feedback.value &amp;&amp; @bmod_h1_q6_feedback.value">
+      <Vertical id="bmod_h1_gate_wait">
+        <Markdown id="bmod_h1_gate_msg">
+**Your assignment will not be complete until you have checked all of your answers and reviewed the AI feedback provided.**
+        </Markdown>
+      </Vertical>
+      <Vertical id="bmod_h1_gate_done">
+    <ActionButton id="bmod_h1_print_btn" label="Submit here then save to PDF to submit to my LMS"
+                  ignoreSubmitLock="true">
+      <!-- Freezes the whole handout: every input goes read-only and every
+           other button greys out. Set BEFORE printing, so the freeze sticks
+           even if the student cancels the print dialog. -->
+      <SetFieldAction id="bmod_h1_print_btn_submit" target="bmod_handout1" field="submitted" value="true" />
+      <PrintAction id="bmod_h1_print" />
+    </ActionButton>
+    <ScoreTable id="bmod_h1_scores"
+                items="bmod_h1_q1_llm:1. Defining the behavior|bmod_h1_q2_llm:2. Wanted goal behavior|bmod_h1_q3_llm:3. SMART goal|bmod_h1_q4a_llm:4a. Antecedents|bmod_h1_q4b_llm:4b. Behaviors|bmod_h1_q4c_llm:4c. Consequences|bmod_h1_q5_llm:5. Why the behavior continues|bmod_h1_q6_llm:6. Changing the antecedents" />
     <Markdown id="bmod_h1_submission">
 ### Your unwanted target behavior
-{{@bmod_h1_utb.value}}
-
+{{@bmod_h1_utb_observed.value}}
 ### 1. Defining the behavior
 {{@bmod_h1_q1_response.value}}
-
 ### 2. Wanted goal behavior
 {{@bmod_h1_q2_response.value}}
-
 ### 3. SMART goal
 **Specific:** {{@bmod_h1_q3_specific.value}}
-
 **Measurable:** {{@bmod_h1_q3_measurable.value}}
-
 **Action-Oriented:** {{@bmod_h1_q3_action.value}}
-
 **Realistic:** {{@bmod_h1_q3_realistic.value}}
-
 **Time-Bound:** {{@bmod_h1_q3_timebound.value}}
-
 ### 4a. Antecedents
 1. {{@bmod_h1_q4a_first.value}}
 2. {{@bmod_h1_q4a_second.value}}
-
 ### 4b. Behaviors
 1. {{@bmod_h1_q4b_first.value}}
 2. {{@bmod_h1_q4b_second.value}}
-
 **Good choice to modify:** {{@bmod_h1_q4b_modify.value}}
-
 ### 4c. Consequences
 1. {{@bmod_h1_q4c_first.value}}
 2. {{@bmod_h1_q4c_second.value}}
-
 ### 5. Why the behavior continues
 1. {{@bmod_h1_q5_first.value}}
 2. {{@bmod_h1_q5_second.value}}
-
 ### 6. Changing the antecedents
 **First antecedent:** {{@bmod_h1_q6_state_a1.value}} — changed by {{@bmod_h1_q6_change_a1.value}}
-
 **Affecting:** {{@bmod_h1_q6_state_c1.value}} — {{@bmod_h1_q6_affect_c1.value}}
-
 **Second antecedent:** {{@bmod_h1_q6_state_a2.value}} — changed by {{@bmod_h1_q6_change_a2.value}}
-
 **Affecting:** {{@bmod_h1_q6_state_c2.value}} — {{@bmod_h1_q6_affect_c2.value}}
     </Markdown>
-
-    <ActionButton id="bmod_h1_print_btn" label="Print or save as PDF">
-      <PrintAction id="bmod_h1_print" />
-    </ActionButton>
+      </Vertical>
+    </IntakeGate>
   </Vertical>
 
 </Sequential>

@@ -152,6 +152,8 @@ images the CLI scorer digs out of a .docx.
   <!-- ============= Screen: Your data ====================================== -->
 
   <Vertical id="bmod_h3_data" title="1b. Your data">
+    <SplitPanel id="bmod_h3_data_split" sizes="50,50">
+      <StartPane>
     <Markdown id="bmod_h3_data_prompt">
 # Handout 3: Presenting and Analyzing Your Data
 
@@ -170,33 +172,55 @@ built from exactly these numbers, so they are worth getting right.
 **How you said you would measure it:** {{@bmod_h1_q3_measurable.value}}
     </Markdown>
 
-    <!-- One field per week, still four fields mapping onto the four credit
-         slots (baseline + weeks 1-3), so a missing week stays visible as an
-         empty field. What changed is the format: comma-separated numbers
-         rather than free prose, because SelfMonitorPlot in 1c reads these
-         same fields to draw the student's graph.
+    <DerivedChecks id="bmod_h3_data_checks"
+                   verdicts="met,absent"
+                   slots="baseline_data:Baseline week's data present@1|week_1_data:Week 1 data present@1|week_2_data:Week 2 data present@1|week_3_data:Week 3 data present@1"
+                   derived="baseline_data:plots:bmod_h3_baseline|week_1_data:plots:bmod_h3_wk1|week_2_data:plots:bmod_h3_wk2|week_3_data:plots:bmod_h3_wk3"
+                   max="4" />
+    <SlotSheetGrader id="bmod_h3_data_grader" target="bmod_h3_data_checks" />
+    <OnChange id="bmod_h3_data_regrade"
+              watch="@bmod_h3_data_checks.checks"
+              target="bmod_h3_data_grader" />
+      </StartPane>
+      <EndPane>
+      <Tabs id="bmod_h3_data_tabs">
+        <Vertical id="bmod_h3_baseline_tab" title="Baseline week">
+    <Markdown id="bmod_h3_baseline_label">
+**Baseline week** — before you started the intervention
 
-         These must stay on placeholder= rather than child starter text —
-         SelfMonitorPlot's multi-target read goes through useAggregate, which
-         reads the raw Redux field with no authored-text fallback, so starter
-         text would not plot anyway, and a placeholder correctly shows the
-         format without becoming data. -->
-
-    <Markdown id="bmod_h3_baseline_label">**Baseline week** — before you started the intervention</Markdown>
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h3_baseline" rows="1"
               placeholder="Sun through Sat, e.g. 5, 6, 4, 7, 5, 6, 3" />
+        </Vertical>
+        <Vertical id="bmod_h3_wk1_tab" title="Week 1">
+    <Markdown id="bmod_h3_wk1_label">
+**Week 1**
 
-    <Markdown id="bmod_h3_wk1_label">**Week 1**</Markdown>
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h3_wk1" rows="1"
               placeholder="Sun through Sat, e.g. 7, 8, 6, 9, 7, 8, 5" />
+        </Vertical>
+        <Vertical id="bmod_h3_wk2_tab" title="Week 2">
+    <Markdown id="bmod_h3_wk2_label">
+**Week 2**
 
-    <Markdown id="bmod_h3_wk2_label">**Week 2**</Markdown>
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h3_wk2" rows="1"
               placeholder="Sun through Sat" />
+        </Vertical>
+        <Vertical id="bmod_h3_wk3_tab" title="Week 3">
+    <Markdown id="bmod_h3_wk3_label">
+**Week 3**
 
-    <Markdown id="bmod_h3_wk3_label">**Week 3**</Markdown>
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h3_wk3" rows="1"
               placeholder="Sun through Sat" />
+        </Vertical>
+      </Tabs>
 
     <Markdown id="bmod_h3_data_preview_label">
 ### Your data so far
@@ -204,41 +228,20 @@ built from exactly these numbers, so they are worth getting right.
 This updates as you type. It is the same chart you will label in 1c.
     </Markdown>
 
-    <!-- 1b is scored from the fields themselves: a point per week of data
-         present, which the rubric is explicit is "a presence check, not a
-         quality judgement". There is nothing here for a model to read, so there
-         is no LLMAction and no prompt — DerivedChecks publishes the verdicts
-         using the same parser the chart draws with, and SlotSheetGrader does the
-         arithmetic. Before this, 1b was scored on the CLI and not at all here.
-
-         A short or partly unreadable week still earns its point. The chart warns
-         about those under itself; the warnings are advice about data quality and
-         this is the score. -->
-    <DerivedChecks id="bmod_h3_data_checks"
-                   verdicts="met,absent"
-                   slots="baseline_data:Baseline week's data present@1|week_1_data:Week 1 data present@1|week_2_data:Week 2 data present@1|week_3_data:Week 3 data present@1"
-                   derived="baseline_data:plots:bmod_h3_baseline|week_1_data:plots:bmod_h3_wk1|week_2_data:plots:bmod_h3_wk2|week_3_data:plots:bmod_h3_wk3"
-                   max="4" />
-    <SlotSheetGrader id="bmod_h3_data_grader" target="bmod_h3_data_checks" />
-    <!-- A grader only runs when something executes its action, and this item has
-         nothing to submit and no sensible button. So it re-grades whenever the
-         published sheet changes: the score always reflects the fields as typed.
-         Not hooked to navigation, because a grader must be mounted to fire and
-         Sequential renders only the current screen. -->
-    <OnChange id="bmod_h3_data_regrade"
-              watch="@bmod_h3_data_checks.checks"
-              target="bmod_h3_data_grader" />
-
     <SelfMonitorPlot id="bmod_h3_data_preview"
                      target="bmod_h3_baseline,bmod_h3_wk1,bmod_h3_wk2,bmod_h3_wk3"
                      labels="Baseline,Week 1,Week 2,Week 3"
                      categories="Sun,Mon,Tue,Wed,Thu,Fri,Sat"
                      height="260" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: Overview of the data ========================== -->
 
   <Vertical id="bmod_h3_overview" title="1a. Overview">
+    <SplitPanel id="bmod_h3_overview_split" sizes="55,45">
+      <StartPane>
     <Markdown id="bmod_h3_overview_prompt">
 ## 1a. Give a brief overview of the data you collected
 
@@ -257,15 +260,18 @@ Your data:
 **Week 2:** {{@bmod_h3_wk2.value}}
 
 **Week 3:** {{@bmod_h3_wk3.value}}
+
+&nbsp;
     </Markdown>
 
     <TextArea id="bmod_h3_overview_response" rows="8"
               placeholder="The data I collected over the four-week period shows..." />
 
-    <LLMFeedback id="bmod_h3_overview_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h3_overview_btn" label="Check my overview">
       <LLMAction id="bmod_h3_overview_llm" target="bmod_h3_overview_feedback"
-                 slots="!distinguishes_periods:Separates the time periods at all|baseline_week:Covers the baseline week@2|week_1:Covers week 1@2|week_2:Covers week 2@2|week_3:Covers week 3@2|uncertain:Any judgement you were unsure about:no/yes">
+                 slots="!distinguishes_periods:Separates the time periods at all|baseline_week:Covers the baseline week@2|week_1:Covers week 1@2|week_2:Covers week 2@2|week_3:Covers week 3@2|uncertain:Any judgement I was unsure about:no/yes">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -348,11 +354,16 @@ A GATE that is not satisfied is the whole story for this item: report that findi
            total live on the sheet, this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h3_overview_grader" target="bmod_h3_overview_feedback" />
     </ActionButton>
+    <LLMFeedback id="bmod_h3_overview_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: The graph ====================================== -->
 
   <Vertical id="bmod_h3_graph" title="1c. Your graph">
+    <SplitPanel id="bmod_h3_graph_split" sizes="55,45">
+      <StartPane>
     <Markdown id="bmod_h3_graph_prompt">
 ## 1c. Present your data in a figure or graph
 
@@ -443,16 +454,32 @@ baseline first, then the three intervention weeks. Until you do, your chart's
 key will read "Series 1, Series 2, ..." and it is not a legend.
     </Markdown>
 
-    <Markdown id="bmod_h3_title_label">**Your graph's title**</Markdown>
+    <Markdown id="bmod_h3_title_label">
+**Your graph's title**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h3_graph_title" rows="1" placeholder="Minutes {{corpus:1c/p14:title:8:35:sha=ba4c5127b1fd:shape=C1000}}" />
 
-    <Markdown id="bmod_h3_x_label">**Your x-axis label**</Markdown>
+    <Markdown id="bmod_h3_x_label">
+**Your x-axis label**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h3_graph_x" rows="1" placeholder="Days of the Week" />
 
-    <Markdown id="bmod_h3_y_label">**Your y-axis label**</Markdown>
+    <Markdown id="bmod_h3_y_label">
+**Your y-axis label**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h3_graph_y" rows="1" placeholder="Minutes of Exercise per Day" />
 
-    <Markdown id="bmod_h3_series_label">**Your legend** — name your four series, separated by commas</Markdown>
+    <Markdown id="bmod_h3_series_label">
+**Your legend** — name your four series, separated by commas
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h3_graph_series" rows="1"
               placeholder="{{corpus:1c/p1:series:0:32:sha=d1f3e922817c}}" />
 
@@ -472,15 +499,21 @@ Your graph above is your figure for this item. Print this page to PDF and
 include it with your handout in Canvas, or screenshot the chart.
     </Markdown>
 
-    <ActionButton id="bmod_h3_graph_print" label="Print this page">
+    <!-- ignoreSubmitLock: printing {{corpus:Q4b/p13:modify:42:63:sha=ae62a6d034c3}} must still work after
+         the handout is handed in. Submitting freezes the inputs and the
+         feedback buttons; a student who then wants another copy of their graph
+         page is not editing anything. -->
+    <ActionButton id="bmod_h3_graph_print" label="Print this page"
+                  ignoreSubmitLock="true">
       <PrintAction id="bmod_h3_graph_print_action" />
     </ActionButton>
 
-    <LLMFeedback id="bmod_h3_graph_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h3_graph_btn" label="Check my labelling">
       <LLMAction id="bmod_h3_graph_llm" target="bmod_h3_graph_feedback"
                  verdicts="met,absent"
-                 slots="!has_own_graph:Your 1b data produces a graph of your own:met/absent/mismatch@2|title:Title saying what is measured and over what period:met/absent/generic@2|x_axis_label:X-axis label naming what the axis represents:met/absent/tick_values@2|y_axis_label:Y-axis label naming what the axis represents:met/absent/tick_values/generic@2|legend:Legend naming all four series you plotted:met/absent/incomplete@2|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="!has_own_graph:Your 1b data produces a graph of your own:met/absent/mismatch@2|title:Title saying what is measured and over what period:met/absent/generic@2|x_axis_label:X-axis label naming what the axis represents:met/absent/tick_values@2|y_axis_label:Y-axis label naming what the axis represents:met/absent/tick_values/generic@2|legend:Legend naming all four series you plotted:met/absent/incomplete@2|uncertain:Any judgement I was unsure about:no/yes"
                  derived="has_own_graph:complete:bmod_h3_baseline,bmod_h3_wk1,bmod_h3_wk2,bmod_h3_wk3:8,10,8,12,6,10,0;32,20,22,28,30,32,10;30,28,26,30,32,32,30;25,26,30,32,32,28,32">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -598,11 +631,16 @@ Each heading is the on-screen field label — what the student was ASKED to put 
            total live on the sheet, this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h3_graph_grader" target="bmod_h3_graph_feedback" />
     </ActionButton>
+    <LLMFeedback id="bmod_h3_graph_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: 2a - was it successful? ======================== -->
 
   <Vertical id="bmod_h3_success" title="2a. Was it successful?">
+    <SplitPanel id="bmod_h3_success_split" sizes="55,45">
+      <StartPane>
     <Markdown id="bmod_h3_success_prompt">
 ## 2a. Did your plan successfully modify your behavior?
 
@@ -613,19 +651,32 @@ How successful your intervention was does not affect your grade. An honest
 account of something that did not work is worth exactly as much as a success.
     </Markdown>
 
-    <Markdown id="bmod_h3_s1_label">**Sentence 1** — did it work?</Markdown>
+    <Markdown id="bmod_h3_s1_label">
+**Sentence 1** — did it work?
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h3_success_verdict" rows="2" />
 
-    <Markdown id="bmod_h3_s2_label">**Sentence 2** — how?</Markdown>
+    <Markdown id="bmod_h3_s2_label">
+**Sentence 2** — how?
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h3_success_how1" rows="3" />
 
-    <Markdown id="bmod_h3_s3_label">**Sentence 3** — how?</Markdown>
+    <Markdown id="bmod_h3_s3_label">
+**Sentence 3** — how?
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h3_success_how2" rows="3" />
 
-    <LLMFeedback id="bmod_h3_success_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h3_success_btn" label="Check my answer">
       <LLMAction id="bmod_h3_success_llm" target="bmod_h3_success_feedback"
-                 slots="verdict:States whether the plan worked@2|hows_given:How many separate explanations of HOW you give:2/1/0|how_1:First explanation of how@2|how_2:Second explanation of how@2|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="verdict:States whether the plan worked@2|hows_given:How many separate explanations of HOW you give:2/1/0|how_1:First explanation of how@2|how_2:Second explanation of how@2|uncertain:Any judgement I was unsure about:no/yes"
                  counts="hows_given:how_1,how_2">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -721,11 +772,16 @@ Each heading is the on-screen field label — what the student was ASKED to put 
            total live on the sheet, this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h3_success_grader" target="bmod_h3_success_feedback" />
     </ActionButton>
+    <LLMFeedback id="bmod_h3_success_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: 2b - overall assessment ======================== -->
 
   <Vertical id="bmod_h3_assessment" title="2b. Overall assessment">
+    <SplitPanel id="bmod_h3_assessment_split" sizes="55,45">
+      <StartPane>
     <Markdown id="bmod_h3_assessment_prompt">
 ## 2b. Write an overall assessment of your intervention
 
@@ -742,14 +798,17 @@ The two types of operant conditioning you planned to use:
 **{{@bmod_h2_t1.value}}** — daily: {{@bmod_h2_day1.value}}
 
 **{{@bmod_h2_t2.value}}** — daily: {{@bmod_h2_day2.value}}
+
+&nbsp;
     </Markdown>
 
     <TextArea id="bmod_h3_assessment_response" rows="8" />
 
-    <LLMFeedback id="bmod_h3_assessment_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h3_assessment_btn" label="Check my assessment">
       <LLMAction id="bmod_h3_assessment_llm" target="bmod_h3_assessment_feedback"
-                 slots="sentences_given:How many substantive assessment sentences you give:3/2/1/0|sentence_1:First substantive assessment sentence@2|sentence_2:Second substantive sentence@2|sentence_3:Third substantive sentence@2|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="sentences_given:How many substantive assessment sentences you give:3/2/1/0|sentence_1:First substantive assessment sentence@2|sentence_2:Second substantive sentence@2|sentence_3:Third substantive sentence@2|uncertain:Any judgement I was unsure about:no/yes"
                  counts="sentences_given:sentence_1,sentence_2,sentence_3"
                  showChecks="false">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
@@ -835,11 +894,16 @@ How (2): <Ref id="bmod_h3_assessment_ref_success_how2" target="bmod_h3_success_h
            total live on the sheet, this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h3_assessment_grader" target="bmod_h3_assessment_feedback" />
     </ActionButton>
+    <LLMFeedback id="bmod_h3_assessment_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: 3 - what would you change? ===================== -->
 
   <Vertical id="bmod_h3_improve" title="3. What would you change?">
+    <SplitPanel id="bmod_h3_improve_split" sizes="55,45">
+      <StartPane>
     <Markdown id="bmod_h3_improve_prompt">
 ## 3. What could be done differently next time?
 
@@ -850,16 +914,25 @@ Every study and every intervention can be improved, so "nothing would change"
 is not an acceptable answer.
     </Markdown>
 
-    <Markdown id="bmod_h3_improve_first_label">**First change**</Markdown>
+    <Markdown id="bmod_h3_improve_first_label">
+**First change**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h3_improve_first" rows="4" />
 
-    <Markdown id="bmod_h3_improve_second_label">**Second change**</Markdown>
+    <Markdown id="bmod_h3_improve_second_label">
+**Second change**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h3_improve_second" rows="4" />
 
-    <LLMFeedback id="bmod_h3_improve_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h3_improve_btn" label="Check my answer">
       <LLMAction id="bmod_h3_improve_llm" target="bmod_h3_improve_feedback"
-                 slots="changes_given:How many distinct changes you propose:2/1/0|example_1:First specific change@3|example_2:Second, different change@3|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="changes_given:How many distinct changes you propose:2/1/0|example_1:First specific change@3|example_2:Second, different change@3|uncertain:Any judgement I was unsure about:no/yes"
                  counts="changes_given:example_1,example_2"
                  showChecks="false">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
@@ -954,30 +1027,46 @@ Each heading is the on-screen field label — what the student was ASKED to put 
            total live on the sheet, this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h3_improve_grader" target="bmod_h3_improve_feedback" />
     </ActionButton>
+    <LLMFeedback id="bmod_h3_improve_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: Review ========================================= -->
 
   <Vertical id="bmod_h3_review" title="Review and submit">
-    <Markdown id="bmod_h3_submission">
+    <Markdown id="bmod_h3_review_text">
 ## Your Handout 3
+    </Markdown>
 
+    <IntakeGate id="bmod_h3_gate" ready="@bmod_h3_overview_feedback.value &amp;&amp; @bmod_h3_graph_feedback.value &amp;&amp; @bmod_h3_success_feedback.value &amp;&amp; @bmod_h3_assessment_feedback.value &amp;&amp; @bmod_h3_improve_feedback.value">
+      <Vertical id="bmod_h3_gate_wait">
+        <Markdown id="bmod_h3_gate_msg">
+**Your assignment will not be complete until you have checked all of your answers and reviewed the AI feedback provided.**
+        </Markdown>
+      </Vertical>
+      <Vertical id="bmod_h3_gate_done">
+    <ActionButton id="bmod_h3_print_btn" label="Submit here then save to PDF to submit to my LMS"
+                  ignoreSubmitLock="true">
+      <!-- Freezes the whole handout: every input goes read-only and every
+           other button greys out. Set BEFORE printing, so the freeze sticks
+           even if the student cancels the print dialog. -->
+      <SetFieldAction id="bmod_h3_print_btn_submit" target="bmod_handout3" field="submitted" value="true" />
+      <PrintAction id="bmod_h3_print" />
+    </ActionButton>
+    <ScoreTable id="bmod_h3_scores"
+                items="bmod_h3_overview_llm:1a. Overview of the data|bmod_h3_data_checks:1b. Data|bmod_h3_graph_llm:1c. Graph|bmod_h3_success_llm:2a. Was the behavior successfully modified?|bmod_h3_assessment_llm:2b. Overall assessment|bmod_h3_improve_llm:3. What I would change" />
+    <Markdown id="bmod_h3_submission">
 ### 1a. Overview of the data
 {{@bmod_h3_overview_response.value}}
-
 ### 1b. Data
 **Baseline:** {{@bmod_h3_baseline.value}}
-
 **Week 1:** {{@bmod_h3_wk1.value}}
-
 **Week 2:** {{@bmod_h3_wk2.value}}
-
 **Week 3:** {{@bmod_h3_wk3.value}}
-
 ### 1c. Graph
 Title: {{@bmod_h3_graph_title.value}} — x-axis: {{@bmod_h3_graph_x.value}} — y-axis: {{@bmod_h3_graph_y.value}}
     </Markdown>
-
     <!-- The graph itself, so that printing this page produces a submission
          that contains the figure rather than a description of it. Same four
          data fields and same three label fields as 1c — this is the same
@@ -990,32 +1079,24 @@ Title: {{@bmod_h3_graph_title.value}} — x-axis: {{@bmod_h3_graph_x.value}} —
                      xlabelTarget="bmod_h3_graph_x"
                      ylabelTarget="bmod_h3_graph_y"
                      height="340" />
-
     <Markdown id="bmod_h3_submission_rest">
 ### 2a. Was the behavior successfully modified?
 {{@bmod_h3_success_verdict.value}}
-
 {{@bmod_h3_success_how1.value}}
-
 {{@bmod_h3_success_how2.value}}
-
 ### 2b. Overall assessment
 {{@bmod_h3_assessment_response.value}}
-
 ### 3. What I would change
 1. {{@bmod_h3_improve_first.value}}
 2. {{@bmod_h3_improve_second.value}}
     </Markdown>
-
     <Markdown id="bmod_h3_final">
 That completes the Behavior Modification Assignment. Print or save this page as
 a PDF and submit it in Canvas. Your graph is on it, so there is no separate
 image to upload.
     </Markdown>
-
-    <ActionButton id="bmod_h3_print_btn" label="Print or save as PDF">
-      <PrintAction id="bmod_h3_print" />
-    </ActionButton>
+      </Vertical>
+    </IntakeGate>
   </Vertical>
 
 </Sequential>
