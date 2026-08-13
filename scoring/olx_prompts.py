@@ -137,7 +137,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -822,7 +822,7 @@ def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
 # Keyed by slot key, or by "item:slot key" where the same key means different
 # things on different items.
 SLOT_NOTES = {
-    "uncertain": "`yes` if any judgement above was a close call — this is rule 8's channel",
+    "confident": "`absent` if any judgement above was a close call — this is rule 8's channel",
     # Web-only, and unscored on purpose. The web asks for the unwanted target
     # behavior twice — once as a closed choice before question 1, once in the
     # student's own words inside it — so the two can disagree in a way the paper
@@ -1620,12 +1620,16 @@ def check_scorer_voice_in_labels() -> list[str]:
     The rubric's own voice is second-person-to-the-student throughout ("something
     you will physically do", "your unwanted target behavior"), which is correct
     and is why this cannot simply forbid "you". What it forbids is second person
-    in the checks that are about the SCORER's own work: `uncertain` is the
+    in the checks that are about the SCORER's own work: `confident` is the
     grader's self-report channel for WEB_SYSTEM rule 8, and it shipped reading
     "Any judgement you were unsure about" on all 23 sheets — telling the student
     they were unsure of a judgement they never made.
+
+    (It was `uncertain`, answered no/yes with `no` as the good state, until the
+    verdict standardisation un-inverted it: `met` now means every judgement was
+    confident, which is what the rest of the vocabulary already meant by `met`.)
     """
-    scorer_facing = ("uncertain",)
+    scorer_facing = ("confident", "uncertain")
     second_person = re.compile(r"\b(you|your|yours|yourself)\b", re.I)
     out = []
     for h in (1, 2, 3):

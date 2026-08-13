@@ -353,7 +353,7 @@ Each should be something you could actually use on your own behavior.
       <EndPane>
     <ActionButton id="bmod_h2_pr_btn" label="Check my Positive Reinforcement example">
       <LLMAction id="bmod_h2_pr_llm" target="bmod_h2_pr_feedback"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|confident:All judgments confident"
                  onlyif="targets_goal_behavior:observed_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
@@ -387,7 +387,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -439,15 +439,15 @@ Return a verdict for EVERY one of these, in this order, BEFORE you write
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
-- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
-- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
-- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
-- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
-- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `names_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `met`/`absent`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `met`/`absent`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `met`/`absent`/`unclear`: criterion 5 (`stimulus_is_arranged`)
 - `observed_type` — `PR`/`NR`/`PP`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
-- `targets_goal_behavior` — `yes`/`no`: is the plan aimed at INCREASING their wanted goal behavior, rather than reinforcing the unwanted one? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
+- `targets_goal_behavior` — `met`/`absent`: is the plan aimed at INCREASING their wanted goal behavior, rather than reinforcing the unwanted one? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
 - `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
 
@@ -486,7 +486,7 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
       <EndPane>
     <ActionButton id="bmod_h2_nr_btn" label="Check my Negative Reinforcement example">
       <LLMAction id="bmod_h2_nr_llm" target="bmod_h2_nr_feedback"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:NR/PR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|observed_type:Which of the four types this actually is:NR/PR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|confident:All judgments confident"
                  onlyif="targets_goal_behavior:observed_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
@@ -520,7 +520,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -572,15 +572,15 @@ Return a verdict for EVERY one of these, in this order, BEFORE you write
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
-- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
-- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
-- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
-- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
-- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `names_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `met`/`absent`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `met`/`absent`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `met`/`absent`/`unclear`: criterion 5 (`stimulus_is_arranged`)
 - `observed_type` — `NR`/`PR`/`PP`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
-- `targets_goal_behavior` — `yes`/`no`: is the plan aimed at INCREASING their wanted goal behavior, rather than reinforcing the unwanted one? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
+- `targets_goal_behavior` — `met`/`absent`: is the plan aimed at INCREASING their wanted goal behavior, rather than reinforcing the unwanted one? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
 - `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
 
@@ -619,7 +619,7 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
       <EndPane>
     <ActionButton id="bmod_h2_pp_btn" label="Check my Positive Punishment example">
       <LLMAction id="bmod_h2_pp_llm" target="bmod_h2_pp_feedback"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:PP/PR/NR/NP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|observed_type:Which of the four types this actually is:PP/PR/NR/NP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|confident:All judgments confident"
                  onlyif="targets_unwanted_behavior:observed_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
@@ -653,7 +653,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -705,15 +705,15 @@ Return a verdict for EVERY one of these, in this order, BEFORE you write
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
-- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
-- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
-- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
-- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
-- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `names_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `met`/`absent`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `met`/`absent`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `met`/`absent`/`unclear`: criterion 5 (`stimulus_is_arranged`)
 - `observed_type` — `PP`/`PR`/`NR`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
-- `targets_unwanted_behavior` — `yes`/`no`: is the plan aimed at DECREASING their unwanted target behavior, rather than the wrong behaviour? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
+- `targets_unwanted_behavior` — `met`/`absent`: is the plan aimed at DECREASING their unwanted target behavior, rather than the wrong behaviour? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
 - `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
 
@@ -752,7 +752,7 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
       <EndPane>
     <ActionButton id="bmod_h2_np_btn" label="Check my Negative Punishment example">
       <LLMAction id="bmod_h2_np_llm" target="bmod_h2_np_feedback"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:NP/PR/NR/PP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|observed_type:Which of the four types this actually is:NP/PR/NR/PP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|confident:All judgments confident"
                  onlyif="targets_unwanted_behavior:observed_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
@@ -786,7 +786,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -838,15 +838,15 @@ Return a verdict for EVERY one of these, in this order, BEFORE you write
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
-- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
-- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
-- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
-- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
-- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `names_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `met`/`absent`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `met`/`absent`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `met`/`absent`/`unclear`: criterion 5 (`stimulus_is_arranged`)
 - `observed_type` — `NP`/`PR`/`NR`/`PP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
-- `targets_unwanted_behavior` — `yes`/`no`: is the plan aimed at DECREASING their unwanted target behavior, rather than the wrong behaviour? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
+- `targets_unwanted_behavior` — `met`/`absent`: is the plan aimed at DECREASING their unwanted target behavior, rather than the wrong behaviour? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
 - `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
 
@@ -925,7 +925,7 @@ Start with the first.
     <ActionButton id="bmod_h2_d1_btn" label="Check my definition">
       <LLMAction id="bmod_h2_d1_llm" target="bmod_h2_d1_feedback"
                  equals="matches_chosen_type:defines_type,named_type:unclear"
-                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose|add_or_remove:Says whether something is added or taken away:unclear@1|increase_or_decrease:Says whether the behavior increases or decreases:unclear@1|uncertain:Any judgement I was unsure about:no/yes">
+                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose|add_or_remove:Says whether something is added or taken away:unclear@1|increase_or_decrease:Says whether the behavior increases or decreases:unclear@1|confident:All judgments confident">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -957,7 +957,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -1000,7 +1000,7 @@ says the check reports an identity rather than a judgement.
 - `named_type` — `PR`/`NR`/`PP`/`NP`/`unclear`: which of the four the student chose, read from the type slot in the context below. `unclear` only if it is blank or unreadable
 - `add_or_remove` — `met`/`absent`/`unclear`: States whether something is added or taken away
 - `increase_or_decrease` — `met`/`absent`/`unclear`: States whether the behaviour increases or decreases
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `matches_chosen_type` **GATE**. The grader computes it by comparing `defines_type` with `named_type` — the two checks above that you DO answer. It is not in your schema, and the comparison is not a judgement you can make more accurately than the arithmetic can. Where either is `unclear`, no mismatch is established and nothing is charged.
 
@@ -1045,7 +1045,7 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
     <ActionButton id="bmod_h2_day1_btn" label="Check my daily example">
       <LLMAction id="bmod_h2_day1_llm" target="bmod_h2_day1_feedback"
                  equals="matches_chosen_type:observed_type,named_type:unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_daily:Checked each day rather than against the week:yes/no|matches_chosen_type:Matches your first chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_daily:Checked each day rather than against the week|matches_chosen_type:Matches your first chosen type@2|targets_own_behavior:Aimed at your own target or goal behavior@1|consequence_asserted:The consequence is asserted to follow from the behavior@1|confident:All judgments confident"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -1078,7 +1078,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -1140,18 +1140,18 @@ Return a verdict for EVERY one of these, in this order, BEFORE you write
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
-- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
-- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
-- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
-- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
-- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `names_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `met`/`absent`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `met`/`absent`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `met`/`absent`/`unclear`: criterion 5 (`stimulus_is_arranged`)
 - `observed_type` — `PR`/`NR`/`PP`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
 - `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
 - `named_type` — `PR`/`NR`/`PP`/`NP`/`unclear`: criterion 8 (`named_type`) — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly. `unclear` only when neither says. Reported, never scored — but the grader compares it against the type the example actually is, so report it accurately rather than helpfully
-- `cadence_is_daily` **GATE** — `yes`/`no`: criterion 9 (`cadence_ok`). Judge how often the BEHAVIOUR IS CHECKED, not how long the consequence lasts — a daily trigger whose reward runs to the end of the week is still daily. This gate takes the whole item, so answer `no` only when the contingency is plainly settled on the weekly schedule, e.g. a daily slot answered with a whole-week tally. When it could be read either way, it is daily
-- `targets_own_behavior` — `yes`/`no`: criterion 10 (`targets_own_behavior`)
-- `consequence_asserted` — `yes`/`no`: one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. "{{corpus:DAY2/p13:day2:0:82:sha=570b91d3e84b:shape=C700000000}}" is `no`, while "{{corpus:DAY1/p16:day1:0:58:sha=d9d8f7292ea6:shape=C180000}} TV" is `yes` — the same two facts, but the second asserts the link. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded, and it never changes the score
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `cadence_is_daily` **GATE** — `met`/`absent`: criterion 9 (`cadence_ok`). Judge how often the BEHAVIOUR IS CHECKED, not how long the consequence lasts — a daily trigger whose reward runs to the end of the week is still daily. This gate takes the whole item, so answer `no` only when the contingency is plainly settled on the weekly schedule, e.g. a daily slot answered with a whole-week tally. When it could be read either way, it is daily
+- `targets_own_behavior` — `met`/`absent`: criterion 10 (`targets_own_behavior`)
+- `consequence_asserted` — `met`/`absent`: one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. "{{corpus:DAY2/p13:day2:0:82:sha=570b91d3e84b:shape=C700000000}}" is `no`, while "{{corpus:DAY1/p16:day1:0:58:sha=d9d8f7292ea6:shape=C180000}} TV" is `yes` — the same two facts, but the second asserts the link. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded, and it never changes the score
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `matches_chosen_type`. The grader computes it by comparing `observed_type` with `named_type` — the two checks above that you DO answer. It is not in your schema, and the comparison is not a judgement you can make more accurately than the arithmetic can. Where either is `unclear`, no mismatch is established and nothing is charged.
 
@@ -1199,7 +1199,7 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
     <ActionButton id="bmod_h2_wk1_btn" label="Check my weekly example">
       <LLMAction id="bmod_h2_wk1_llm" target="bmod_h2_wk1_feedback"
                  equals="matches_chosen_type:observed_type,named_type:unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_weekly:Checked against the week rather than each day:yes/no|matches_chosen_type:Matches your first chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_weekly:Checked against the week rather than each day|matches_chosen_type:Matches your first chosen type@2|targets_own_behavior:Aimed at your own target or goal behavior@1|consequence_asserted:The consequence is asserted to follow from the behavior@1|confident:All judgments confident"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -1232,7 +1232,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -1294,18 +1294,18 @@ Return a verdict for EVERY one of these, in this order, BEFORE you write
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
-- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
-- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
-- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
-- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
-- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `names_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `met`/`absent`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `met`/`absent`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `met`/`absent`/`unclear`: criterion 5 (`stimulus_is_arranged`)
 - `observed_type` — `PR`/`NR`/`PP`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
 - `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
 - `named_type` — `PR`/`NR`/`PP`/`NP`/`unclear`: criterion 8 (`named_type`) — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly. `unclear` only when neither says. Reported, never scored — but the grader compares it against the type the example actually is, so report it accurately rather than helpfully
-- `cadence_is_weekly` **GATE** — `yes`/`no`: criterion 9 (`cadence_ok`). Judge how often the BEHAVIOUR IS CHECKED, not how long the consequence lasts. This gate takes the whole item, so answer `no` only when the contingency is plainly settled on the daily schedule. When it could be read either way, it is weekly
-- `targets_own_behavior` — `yes`/`no`: criterion 10 (`targets_own_behavior`)
-- `consequence_asserted` — `yes`/`no`: one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. "{{corpus:DAY2/p13:day2:0:82:sha=570b91d3e84b:shape=C700000000}}" is `no`, while "{{corpus:DAY1/p16:day1:0:58:sha=d9d8f7292ea6:shape=C180000}} TV" is `yes` — the same two facts, but the second asserts the link. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded, and it never changes the score
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `cadence_is_weekly` **GATE** — `met`/`absent`: criterion 9 (`cadence_ok`). Judge how often the BEHAVIOUR IS CHECKED, not how long the consequence lasts. This gate takes the whole item, so answer `no` only when the contingency is plainly settled on the daily schedule. When it could be read either way, it is weekly
+- `targets_own_behavior` — `met`/`absent`: criterion 10 (`targets_own_behavior`)
+- `consequence_asserted` — `met`/`absent`: one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. "{{corpus:DAY2/p13:day2:0:82:sha=570b91d3e84b:shape=C700000000}}" is `no`, while "{{corpus:DAY1/p16:day1:0:58:sha=d9d8f7292ea6:shape=C180000}} TV" is `yes` — the same two facts, but the second asserts the link. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded, and it never changes the score
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `matches_chosen_type`. The grader computes it by comparing `observed_type` with `named_type` — the two checks above that you DO answer. It is not in your schema, and the comparison is not a judgement you can make more accurately than the arithmetic can. Where either is `unclear`, no mismatch is established and nothing is charged.
 
@@ -1388,7 +1388,7 @@ Your first choice was: **{{@bmod_h2_t1.value}}**
     <ActionButton id="bmod_h2_d2_btn" label="Check my definition">
       <LLMAction id="bmod_h2_d2_llm" target="bmod_h2_d2_feedback"
                  equals="matches_chosen_type:defines_type,named_type:unclear"
-                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose|add_or_remove:Says whether something is added or taken away:unclear@1|increase_or_decrease:Says whether the behavior increases or decreases:unclear@1|uncertain:Any judgement I was unsure about:no/yes">
+                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose|add_or_remove:Says whether something is added or taken away:unclear@1|increase_or_decrease:Says whether the behavior increases or decreases:unclear@1|confident:All judgments confident">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -1420,7 +1420,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -1463,7 +1463,7 @@ says the check reports an identity rather than a judgement.
 - `named_type` — `PR`/`NR`/`PP`/`NP`/`unclear`: which of the four the student chose, read from the type slot in the context below. `unclear` only if it is blank or unreadable
 - `add_or_remove` — `met`/`absent`/`unclear`: States whether something is added or taken away
 - `increase_or_decrease` — `met`/`absent`/`unclear`: States whether the behaviour increases or decreases
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `matches_chosen_type` **GATE**. The grader computes it by comparing `defines_type` with `named_type` — the two checks above that you DO answer. It is not in your schema, and the comparison is not a judgement you can make more accurately than the arithmetic can. Where either is `unclear`, no mismatch is established and nothing is charged.
 
@@ -1508,7 +1508,7 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
     <ActionButton id="bmod_h2_day2_btn" label="Check my daily example">
       <LLMAction id="bmod_h2_day2_llm" target="bmod_h2_day2_feedback"
                  equals="matches_chosen_type:observed_type,named_type:unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_daily:Checked each day rather than against the week:yes/no|matches_chosen_type:Matches your second chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_daily:Checked each day rather than against the week|matches_chosen_type:Matches your second chosen type@2|targets_own_behavior:Aimed at your own target or goal behavior@1|consequence_asserted:The consequence is asserted to follow from the behavior@1|confident:All judgments confident"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -1541,7 +1541,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -1603,18 +1603,18 @@ Return a verdict for EVERY one of these, in this order, BEFORE you write
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
-- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
-- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
-- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
-- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
-- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `names_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `met`/`absent`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `met`/`absent`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `met`/`absent`/`unclear`: criterion 5 (`stimulus_is_arranged`)
 - `observed_type` — `PR`/`NR`/`PP`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
 - `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
 - `named_type` — `PR`/`NR`/`PP`/`NP`/`unclear`: criterion 8 (`named_type`) — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly. `unclear` only when neither says. Reported, never scored — but the grader compares it against the type the example actually is, so report it accurately rather than helpfully
-- `cadence_is_daily` **GATE** — `yes`/`no`: criterion 9 (`cadence_ok`). Judge how often the BEHAVIOUR IS CHECKED, not how long the consequence lasts — a daily trigger whose reward runs to the end of the week is still daily. This gate takes the whole item, so answer `no` only when the contingency is plainly settled on the weekly schedule, e.g. a daily slot answered with a whole-week tally. When it could be read either way, it is daily
-- `targets_own_behavior` — `yes`/`no`: criterion 10 (`targets_own_behavior`)
-- `consequence_asserted` — `yes`/`no`: one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. "{{corpus:DAY2/p13:day2:0:82:sha=570b91d3e84b:shape=C700000000}}" is `no`, while "{{corpus:DAY1/p16:day1:0:58:sha=d9d8f7292ea6:shape=C180000}} TV" is `yes` — the same two facts, but the second asserts the link. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded, and it never changes the score
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `cadence_is_daily` **GATE** — `met`/`absent`: criterion 9 (`cadence_ok`). Judge how often the BEHAVIOUR IS CHECKED, not how long the consequence lasts — a daily trigger whose reward runs to the end of the week is still daily. This gate takes the whole item, so answer `no` only when the contingency is plainly settled on the weekly schedule, e.g. a daily slot answered with a whole-week tally. When it could be read either way, it is daily
+- `targets_own_behavior` — `met`/`absent`: criterion 10 (`targets_own_behavior`)
+- `consequence_asserted` — `met`/`absent`: one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. "{{corpus:DAY2/p13:day2:0:82:sha=570b91d3e84b:shape=C700000000}}" is `no`, while "{{corpus:DAY1/p16:day1:0:58:sha=d9d8f7292ea6:shape=C180000}} TV" is `yes` — the same two facts, but the second asserts the link. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded, and it never changes the score
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `matches_chosen_type`. The grader computes it by comparing `observed_type` with `named_type` — the two checks above that you DO answer. It is not in your schema, and the comparison is not a judgement you can make more accurately than the arithmetic can. Where either is `unclear`, no mismatch is established and nothing is charged.
 
@@ -1662,7 +1662,7 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
     <ActionButton id="bmod_h2_wk2_btn" label="Check my weekly example">
       <LLMAction id="bmod_h2_wk2_llm" target="bmod_h2_wk2_feedback"
                  equals="matches_chosen_type:observed_type,named_type:unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_weekly:Checked against the week rather than each day:yes/no|matches_chosen_type:Matches your second chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_weekly:Checked against the week rather than each day|matches_chosen_type:Matches your second chosen type@2|targets_own_behavior:Aimed at your own target or goal behavior@1|consequence_asserted:The consequence is asserted to follow from the behavior@1|confident:All judgments confident"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -1695,7 +1695,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -1757,18 +1757,18 @@ Return a verdict for EVERY one of these, in this order, BEFORE you write
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
-- `names_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
-- `names_stimulus` **GATE** — `yes`/`no`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
-- `contingent` **GATE** — `yes`/`no`/`unclear`: criterion 3 (`contingent`)
-- `follows_behavior` **GATE** — `yes`/`no`/`unclear`: criterion 4 (`follows_behavior`)
-- `you_arrange_it` **GATE** — `yes`/`no`/`unclear`: criterion 5 (`stimulus_is_arranged`)
+- `names_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference
+- `names_stimulus` **GATE** — `met`/`absent`/`unclear`: criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`
+- `contingent` **GATE** — `met`/`absent`/`unclear`: criterion 3 (`contingent`)
+- `follows_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 4 (`follows_behavior`)
+- `you_arrange_it` **GATE** — `met`/`absent`/`unclear`: criterion 5 (`stimulus_is_arranged`)
 - `observed_type` — `PR`/`NR`/`PP`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
 - `avoidance_frame` — `no`/`yes`: criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased by what is AVOIDED, `no` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
 - `named_type` — `PR`/`NR`/`PP`/`NP`/`unclear`: criterion 8 (`named_type`) — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly. `unclear` only when neither says. Reported, never scored — but the grader compares it against the type the example actually is, so report it accurately rather than helpfully
-- `cadence_is_weekly` **GATE** — `yes`/`no`: criterion 9 (`cadence_ok`). Judge how often the BEHAVIOUR IS CHECKED, not how long the consequence lasts. This gate takes the whole item, so answer `no` only when the contingency is plainly settled on the daily schedule. When it could be read either way, it is weekly
-- `targets_own_behavior` — `yes`/`no`: criterion 10 (`targets_own_behavior`)
-- `consequence_asserted` — `yes`/`no`: one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. "{{corpus:DAY2/p13:day2:0:82:sha=570b91d3e84b:shape=C700000000}}" is `no`, while "{{corpus:DAY1/p16:day1:0:58:sha=d9d8f7292ea6:shape=C180000}} TV" is `yes` — the same two facts, but the second asserts the link. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded, and it never changes the score
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `cadence_is_weekly` **GATE** — `met`/`absent`: criterion 9 (`cadence_ok`). Judge how often the BEHAVIOUR IS CHECKED, not how long the consequence lasts. This gate takes the whole item, so answer `no` only when the contingency is plainly settled on the daily schedule. When it could be read either way, it is weekly
+- `targets_own_behavior` — `met`/`absent`: criterion 10 (`targets_own_behavior`)
+- `consequence_asserted` — `met`/`absent`: one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. "{{corpus:DAY2/p13:day2:0:82:sha=570b91d3e84b:shape=C700000000}}" is `no`, while "{{corpus:DAY1/p16:day1:0:58:sha=d9d8f7292ea6:shape=C180000}} TV" is `yes` — the same two facts, but the second asserts the link. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded, and it never changes the score
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `matches_chosen_type`. The grader computes it by comparing `observed_type` with `named_type` — the two checks above that you DO answer. It is not in your schema, and the comparison is not a judgement you can make more accurately than the arithmetic can. Where either is `unclear`, no mismatch is established and nothing is charged.
 
