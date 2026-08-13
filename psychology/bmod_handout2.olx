@@ -353,8 +353,7 @@ Each should be something you could actually use on your own behavior.
       <EndPane>
     <ActionButton id="bmod_h2_pr_btn" label="Check my Positive Reinforcement example">
       <LLMAction id="bmod_h2_pr_llm" target="bmod_h2_pr_feedback"
-                 verdicts="yes,no,unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
                  onlyif="targets_goal_behavior:observed_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
@@ -487,8 +486,7 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
       <EndPane>
     <ActionButton id="bmod_h2_nr_btn" label="Check my Negative Reinforcement example">
       <LLMAction id="bmod_h2_nr_llm" target="bmod_h2_nr_feedback"
-                 verdicts="yes,no,unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:NR/PR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:NR/PR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
                  onlyif="targets_goal_behavior:observed_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
@@ -621,8 +619,7 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
       <EndPane>
     <ActionButton id="bmod_h2_pp_btn" label="Check my Positive Punishment example">
       <LLMAction id="bmod_h2_pp_llm" target="bmod_h2_pp_feedback"
-                 verdicts="yes,no,unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PP/PR/NR/NP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:PP/PR/NR/NP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
                  onlyif="targets_unwanted_behavior:observed_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
@@ -755,8 +752,7 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
       <EndPane>
     <ActionButton id="bmod_h2_np_btn" label="Check my Negative Punishment example">
       <LLMAction id="bmod_h2_np_llm" target="bmod_h2_np_feedback"
-                 verdicts="yes,no,unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:NP/PR/NR/PP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:NP/PR/NR/PP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
                  onlyif="targets_unwanted_behavior:observed_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
@@ -906,8 +902,7 @@ Start with the first.
          list of the four types (declared in SCORING_DIVERGENCES), which leaves
          only "did they answer": a `present` check over the choice field. -->
     <DerivedChecks id="bmod_h2_t1_checks"
-                   verdicts="met,absent"
-                   slots="type_stated:Names the first type you will use@2"
+                   slots="type_stated:Names the first type you will use:met/absent@2"
                    derived="type_stated:present:bmod_h2_t1"
                    max="2" />
     <SlotSheetGrader id="bmod_h2_t1_sheet_grader" target="bmod_h2_t1_checks" />
@@ -930,7 +925,7 @@ Start with the first.
     <ActionButton id="bmod_h2_d1_btn" label="Check my definition">
       <LLMAction id="bmod_h2_d1_llm" target="bmod_h2_d1_feedback"
                  equals="matches_chosen_type:defines_type,named_type:unclear"
-                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose:met/absent|add_or_remove:Says whether something is added or taken away@1|increase_or_decrease:Says whether the behavior increases or decreases@1|uncertain:Any judgement I was unsure about:no/yes">
+                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose:met/absent|add_or_remove:Says whether something is added or taken away:met/absent/unclear@1|increase_or_decrease:Says whether the behavior increases or decreases:met/absent/unclear@1|uncertain:Any judgement I was unsure about:no/yes">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -1049,9 +1044,8 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
       <EndPane>
     <ActionButton id="bmod_h2_day1_btn" label="Check my daily example">
       <LLMAction id="bmod_h2_day1_llm" target="bmod_h2_day1_feedback"
-                 verdicts="yes,no,unclear"
                  equals="matches_chosen_type:observed_type,named_type:unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_daily:Checked each day rather than against the week:yes/no|matches_chosen_type:Matches your first chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_daily:Checked each day rather than against the week:yes/no|matches_chosen_type:Matches your first chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -1204,9 +1198,8 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
       <EndPane>
     <ActionButton id="bmod_h2_wk1_btn" label="Check my weekly example">
       <LLMAction id="bmod_h2_wk1_llm" target="bmod_h2_wk1_feedback"
-                 verdicts="yes,no,unclear"
                  equals="matches_chosen_type:observed_type,named_type:unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_weekly:Checked against the week rather than each day:yes/no|matches_chosen_type:Matches your first chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_weekly:Checked against the week rather than each day:yes/no|matches_chosen_type:Matches your first chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -1371,8 +1364,7 @@ Your first choice was: **{{@bmod_h2_t1.value}}**
     </CapaProblem>
 
     <DerivedChecks id="bmod_h2_t2_checks"
-                   verdicts="met,absent"
-                   slots="type_stated:Names the second type you will use@2"
+                   slots="type_stated:Names the second type you will use:met/absent@2"
                    derived="type_stated:present:bmod_h2_t2"
                    max="2" />
     <SlotSheetGrader id="bmod_h2_t2_sheet_grader" target="bmod_h2_t2_checks" />
@@ -1396,7 +1388,7 @@ Your first choice was: **{{@bmod_h2_t1.value}}**
     <ActionButton id="bmod_h2_d2_btn" label="Check my definition">
       <LLMAction id="bmod_h2_d2_llm" target="bmod_h2_d2_feedback"
                  equals="matches_chosen_type:defines_type,named_type:unclear"
-                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose:met/absent|add_or_remove:Says whether something is added or taken away@1|increase_or_decrease:Says whether the behavior increases or decreases@1|uncertain:Any judgement I was unsure about:no/yes">
+                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose:met/absent|add_or_remove:Says whether something is added or taken away:met/absent/unclear@1|increase_or_decrease:Says whether the behavior increases or decreases:met/absent/unclear@1|uncertain:Any judgement I was unsure about:no/yes">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -1515,9 +1507,8 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
       <EndPane>
     <ActionButton id="bmod_h2_day2_btn" label="Check my daily example">
       <LLMAction id="bmod_h2_day2_llm" target="bmod_h2_day2_feedback"
-                 verdicts="yes,no,unclear"
                  equals="matches_chosen_type:observed_type,named_type:unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_daily:Checked each day rather than against the week:yes/no|matches_chosen_type:Matches your second chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_daily:Checked each day rather than against the week:yes/no|matches_chosen_type:Matches your second chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -1670,9 +1661,8 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
       <EndPane>
     <ActionButton id="bmod_h2_wk2_btn" label="Check my weekly example">
       <LLMAction id="bmod_h2_wk2_llm" target="bmod_h2_wk2_feedback"
-                 verdicts="yes,no,unclear"
                  equals="matches_chosen_type:observed_type,named_type:unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_weekly:Checked against the week rather than each day:yes/no|matches_chosen_type:Matches your second chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:yes/no/unclear|!names_stimulus:Names what is added or taken away:yes/no/unclear|!contingent:The consequence depends on that behavior:yes/no/unclear|!follows_behavior:The consequence arrives after the behavior:yes/no/unclear|!you_arrange_it:Something you arrange, not an automatic result:yes/no/unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_weekly:Checked against the week rather than each day:yes/no|matches_chosen_type:Matches your second chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
