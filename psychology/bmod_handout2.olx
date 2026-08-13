@@ -899,7 +899,7 @@ Start with the first.
          list of the four types (declared in SCORING_DIVERGENCES), which leaves
          only "did they answer": a `present` check over the choice field. -->
     <DerivedChecks id="bmod_h2_t1_checks"
-                   slots="type_stated:Names the first type you will use:met/absent@2"
+                   slots="type_stated:Names the first type you will use@2"
                    derived="type_stated:present:bmod_h2_t1"
                    max="2" />
     <SlotSheetGrader id="bmod_h2_t1_sheet_grader" target="bmod_h2_t1_checks" />
@@ -922,7 +922,7 @@ Start with the first.
     <ActionButton id="bmod_h2_d1_btn" label="Check my definition">
       <LLMAction id="bmod_h2_d1_llm" target="bmod_h2_d1_feedback"
                  equals="matches_chosen_type:defines_type,named_type:unclear"
-                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose:met/absent|add_or_remove:Says whether something is added or taken away:met/absent/unclear@1|increase_or_decrease:Says whether the behavior increases or decreases:met/absent/unclear@1|uncertain:Any judgement I was unsure about:no/yes">
+                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose|add_or_remove:Says whether something is added or taken away:unclear@1|increase_or_decrease:Says whether the behavior increases or decreases:unclear@1|uncertain:Any judgement I was unsure about:no/yes">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -1361,7 +1361,7 @@ Your first choice was: **{{@bmod_h2_t1.value}}**
     </CapaProblem>
 
     <DerivedChecks id="bmod_h2_t2_checks"
-                   slots="type_stated:Names the second type you will use:met/absent@2"
+                   slots="type_stated:Names the second type you will use@2"
                    derived="type_stated:present:bmod_h2_t2"
                    max="2" />
     <SlotSheetGrader id="bmod_h2_t2_sheet_grader" target="bmod_h2_t2_checks" />
@@ -1385,7 +1385,7 @@ Your first choice was: **{{@bmod_h2_t1.value}}**
     <ActionButton id="bmod_h2_d2_btn" label="Check my definition">
       <LLMAction id="bmod_h2_d2_llm" target="bmod_h2_d2_feedback"
                  equals="matches_chosen_type:defines_type,named_type:unclear"
-                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose:met/absent|add_or_remove:Says whether something is added or taken away:met/absent/unclear@1|increase_or_decrease:Says whether the behavior increases or decreases:met/absent/unclear@1|uncertain:Any judgement I was unsure about:no/yes">
+                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose|add_or_remove:Says whether something is added or taken away:unclear@1|increase_or_decrease:Says whether the behavior increases or decreases:unclear@1|uncertain:Any judgement I was unsure about:no/yes">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
