@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import functools
 import re
 import sys
 
@@ -746,6 +747,50 @@ def parse_equals(spec: str) -> list[dict]:
     return out
 
 
+# ---------------------------------------------------------------------------
+# The verdict vocabulary, read from lo-blocks rather than copied.
+#
+# A copy here is the thing that drifts, and this one would drift silently: the
+# generated "## The checklist to return" section LISTS each check's verdicts, so
+# a stale copy writes a prompt describing a schema the app does not send. Same
+# reasoning as agreement._ts_literal, same failure it prevents.
+# ---------------------------------------------------------------------------
+def _slotsheet_ts() -> str:
+    try:
+        return open(paths.SLOTSHEET_TS).read()
+    except OSError as e:                       # pragma: no cover - config error
+        raise SystemExit(f"cannot read {paths.SLOTSHEET_TS}: {e}")
+
+
+def _ts_string_array(name: str) -> list[str]:
+    """Lift `export const NAME = [ ... ];` out of slotSheet.ts."""
+    m = re.search(rf"export const {name}\s*=\s*\[(.*?)\]", _slotsheet_ts(), re.S)
+    if not m:
+        raise SystemExit(f"{name} not found in {paths.SLOTSHEET_TS} — "
+                         "the verdict vocabulary mirror in olx_prompts is stale")
+    return re.findall(r"'([^']+)'", m.group(1))
+
+
+@functools.lru_cache(maxsize=None)
+def default_verdicts() -> list[str]:
+    return _ts_string_array("DEFAULT_VERDICTS")
+
+
+@functools.lru_cache(maxsize=None)
+def extra_verdicts() -> list[str]:
+    return _ts_string_array("EXTRA_VERDICTS")
+
+
+def resolve_options(segment: str | None, defaults: list[str]) -> list[str]:
+    """Mirror of slotSheet.ts:resolveOptions."""
+    tokens = [t.strip() for t in (segment or "").split("/") if t.strip()]
+    if not tokens:
+        return list(defaults)
+    if all(t in extra_verdicts() for t in tokens):
+        return default_verdicts() + tokens
+    return tokens
+
+
 def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
     """Mirror of lo-blocks parseSlots (packages/shared/lib/llm/slotSheet.ts)."""
     out = []
@@ -761,7 +806,7 @@ def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
         parts = [p.strip() for p in entry.split(":")]
         raw_key = parts[0]
         label = parts[1] if len(parts) > 1 and parts[1] else raw_key
-        opts = [o.strip() for o in parts[2].split("/")] if len(parts) > 2 and parts[2] else list(defaults)
+        opts = resolve_options(parts[2] if len(parts) > 2 else None, defaults)
         out.append({
             "key": raw_key.lstrip("!").strip(),
             "label": label,
@@ -1514,14 +1559,14 @@ def _slots_attr(handout: int, action: str) -> tuple[str, list[str]]:
         verd = re.search(r'\bverdicts="([^"]*)"', tag)
         return ((spec.group(1) if spec else ""),
                 ([v.strip() for v in verd.group(1).split(",") if v.strip()]
-                 if verd else ["met", "absent", "unclear"]))
+                 if verd else default_verdicts()))
     if not m:
         raise SystemExit(f"no <LLMAction id={action}> in handout {handout}")
     tag = m.group(1)
     spec = re.search(r'\bslots="([^"]*)"', tag)
     verd = re.search(r'\bverdicts="([^"]*)"', tag)
     defaults = ([v.strip() for v in verd.group(1).split(",") if v.strip()]
-                if verd else ["met", "absent", "unclear"])
+                if verd else default_verdicts())
     return (spec.group(1) if spec else ""), defaults
 
 
