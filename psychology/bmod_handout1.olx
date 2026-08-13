@@ -128,7 +128,7 @@ continuing it.
       <EndPane>
     <ActionButton id="bmod_h1_q1_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q1_llm" target="bmod_h1_q1_feedback"
-                 slots="matches_selected:Same behavior you selected above:matches/differs|utb_stated:Your unwanted target behavior stated explicitly:unclear@2|harms_listed:How many statements name a negative effect of the behavior:3/2/1/0|benefits_listed:How many name a benefit you expect from changing:3/2/1/0|reasons_given:How many separate reasons you give:3/2/1/0|reason_1:First reason — a negative effect of the behavior:unclear@1|reason_2:Second reason:unclear@1|reason_3:Third reason:unclear@1|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="matches_selected:Same behavior you selected above:matches/differs|utb_stated:Your unwanted target behavior stated explicitly:unclear@2|harms_listed:How many statements name a negative effect of the behavior:3/2/1/0|benefits_listed:How many name a benefit you expect from changing:3/2/1/0|reasons_given:How many separate reasons you give:3/2/1/0|reason_1:First reason — a negative effect of the behavior:unclear@1|reason_2:Second reason:unclear@1|reason_3:Third reason:unclear@1|confident:All judgments confident"
                  counts="reasons_given:reason_1,reason_2,reason_3">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -161,7 +161,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -206,7 +206,7 @@ says the check reports an identity rather than a judgement.
 - `harms_listed` — `3`/`2`/`1`/`0`: HOW MANY statements name a NEGATIVE EFFECT of the unwanted behaviour — something that goes wrong because of it, or a symptom of it. "With lack of sleep, it has become hard to stay focused in class" is one. A reason is a whole STATEMENT: a clause that merely continues one is part of it, so "makes me turn to snacking on unhealthy things, like candy, WHICH CAUSES me to gain weight" is ONE, while two effects merely joined by "and" are two. Do NOT count a restatement that the student struggles with the behaviour (participant 1) or a behaviour performed DURING it (participant 2). Answer 3 for three or more
 - `benefits_listed` — `3`/`2`/`1`/`0`: HOW MANY statements name a BENEFIT the student expects from changing. The test is GETS versus DOES: a benefit is something the student GETS — "I wanted to feel more confident in myself", "I will overall be a healthier person". A statement of what they intend to DO names the goal behaviour itself and is NOT a benefit of it, however much it sounds like a wish. Do NOT count a restatement of the goal ("my goal for this year is more active"), the struggle ("something I have been struggling with"), or background about how the behaviour came about ("I used to exercise a lot due to sports"). Answer 3 for three or more
 - `reasons_given` — `3`/`2`/`1`/`0`: HOW MANY reasons count. The rule is CONDITIONAL on the two counts above. If `harms_listed` is 1 or more the answer IS `harms_listed`, and benefits do not add to it — a response with one harm and two benefits counts 1, which is what participant 6 scored. Only when `harms_listed` is 0 does the answer become `benefits_listed` instead, which is how participants 9, 10 and 16 were credited. Never answer 0 when the student offered anything of either kind. Answer 3 for three or more
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `reason_1`, `reason_2`, `reason_3` individually. Answer `reasons_given` — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.
 
@@ -267,7 +267,7 @@ one.
       <EndPane>
     <ActionButton id="bmod_h1_q2_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q2_llm" target="bmod_h1_q2_feedback"
-                 slots="!wgb_is_counterpart:Goal behavior is the opposite of your unwanted behavior:unclear|wgb_inverts_utb:Goal behavior states the opposite of your unwanted behavior:unclear@2|reasons_listed:How many statements you offer as reasons:3/2/1/0|reasons_failing:How many of those are not a benefit of the goal:0/1/2/3|reasons_given:How many separate benefits you give:3/2/1/0|reason_1:First benefit of the goal behavior:unclear@1|reason_2:Second benefit:unclear@1|reason_3:Third benefit:unclear@1|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!wgb_is_counterpart:Goal behavior is the opposite of your unwanted behavior:unclear|wgb_inverts_utb:Goal behavior states the opposite of your unwanted behavior:unclear@2|reasons_listed:How many statements you offer as reasons:3/2/1/0|reasons_failing:How many of those are not a benefit of the goal:0/1/2/3|reasons_given:How many separate benefits you give:3/2/1/0|reason_1:First benefit of the goal behavior:unclear@1|reason_2:Second benefit:unclear@1|reason_3:Third benefit:unclear@1|confident:All judgments confident"
                  counts="reasons_given:reason_1,reason_2,reason_3">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -300,7 +300,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -338,7 +338,7 @@ says the check reports an identity rather than a judgement.
 - `reasons_listed` — `3`/`2`/`1`/`0`: how many statements the response OFFERS as reasons, counted off the page before judging any of them. This is not scored; it is the first half of the count below
 - `reasons_failing` — `0`/`1`/`2`/`3`: of those, how many are NOT a benefit of the goal behaviour — either because the statement restates the harm of the unwanted behaviour rather than naming something the goal gets you, or because it repeats another statement already counted. Not scored; the second half of the count below
 - `reasons_given` — `3`/`2`/`1`/`0`: HOW MANY separate BENEFITS of the goal behaviour — `reasons_listed` minus `reasons_failing`, the two counts above. Thematic overlap alone does not merge two benefits. Whether one sentence holds one benefit or two is STRUCTURAL, not a matter of degree. A second half that is a KNOCK-ON EFFECT of the first is ONE benefit — "getting enough sleep helps me stay focused during class, WHICH WILL improve my learning" is one, not two, and counting it as two cost participant 19 a point. Two INDEPENDENT benefits merely joined by "and" are TWO — "my body would be in a better-looking shape AND feel better also" is two, and counting it as one cost participant 6 a point. Three kinds of statement do not count at all. (i) A reason the UNWANTED behaviour is bad, rather than a benefit of the wanted one: against a WGB of "exercise more", "Not exercising more makes me feel lazy" and "it makes me feel out of breath" are reasons to stop the UTB, and the graders counted them as ZERO benefits. (ii) A restatement of the goal or of the problem it solves: "I know that I can become a more active person" against a goal of being more active is the goal again, not a benefit of it; so is "I feel like I'm getting big but that's only because I'm out of shape" against a goal of getting back in shape. (iii) A statement that says the same thing as one already counted. Answer 3 for three or more that survive all three tests
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `reason_1`, `reason_2`, `reason_3` individually. Answer `reasons_given` — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.
 
@@ -419,7 +419,7 @@ counting the number of ounces I drink."*
       <EndPane>
     <ActionButton id="bmod_h1_q3_btn" label="Check my SMART goal">
       <LLMAction id="bmod_h1_q3_llm" target="bmod_h1_q3_feedback"
-                 slots="specific:Specific — a quantified daily or weekly goal:unclear@1|measurable:Measurable — names a tracking method or place:unclear@1|action_oriented:Action-Oriented — something you will physically do:unclear@1|realistic:Realistic — why it is achievable for you:unclear@1|time_bound:Time-Bound — four weeks, one baseline plus three:unclear@1|uncertain:Any judgement I was unsure about:no/yes">
+                 slots="specific:Specific — a quantified daily or weekly goal:unclear@1|measurable:Measurable — names a tracking method or place:unclear@1|action_oriented:Action-Oriented — something you will physically do:unclear@1|realistic:Realistic — why it is achievable for you:unclear@1|time_bound:Time-Bound — four weeks, one baseline plus three:unclear@1|confident:All judgments confident">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -451,7 +451,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -493,7 +493,7 @@ says the check reports an identity rather than a judgement.
 - `action_oriented` — `met`/`absent`/`unclear`: States the action to be taken
 - `realistic` — `met`/`absent`/`unclear`: Is realistic, or says why it is
 - `time_bound` — `met`/`absent`/`unclear`: Has a time frame for the goal
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 ## Context from this student's other answers (read-only)
 Use these only where the rubric requires cross-item consistency. Do not grade them here.
@@ -570,7 +570,7 @@ You must use the word **antecedent** or **trigger** in your answer.
       <EndPane>
     <ActionButton id="bmod_h1_q4a_btn" label="Check my antecedents">
       <LLMAction id="bmod_h1_q4a_llm" target="bmod_h1_q4a_feedback"
-                 slots="antecedent_1:First antecedent is a genuine trigger:met/absent/not_antecedent@2|antecedent_2:Second antecedent is a genuine trigger:met/absent/not_antecedent@2|keyword:Uses the word antecedent or trigger:unclear@1|uncertain:Any judgement I was unsure about:no/yes">
+                 slots="antecedent_1:First antecedent is a genuine trigger:wrong_kind@2|antecedent_2:Second antecedent is a genuine trigger:wrong_kind@2|keyword:Uses the word antecedent or trigger:unclear@1|confident:All judgments confident">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -602,7 +602,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -637,10 +637,10 @@ Return a verdict for EVERY one of these, in this order, BEFORE you write
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
-- `antecedent_1` — `met`/`absent`/`not_antecedent`: First valid antecedent
-- `antecedent_2` — `met`/`absent`/`not_antecedent`: Second valid antecedent
+- `antecedent_1` — `met`/`absent`/`wrong_kind`: First valid antecedent
+- `antecedent_2` — `met`/`absent`/`wrong_kind`: Second valid antecedent
 - `keyword` — `met`/`absent`/`unclear`: Uses 'antecedent' or 'trigger' at least once. A_NO_KEYWORD applies whenever neither "antecedent" nor "trigger" appears anywhere in the response. The graders enforced this inconsistently — participant 17 lost the point, participants 9 and 15 did not — but the dictionary is explicit, so apply it. This is a deliberate divergence from those two gold rows.
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 ## Context from this student's other answers (read-only)
 Use these only where the rubric requires cross-item consistency. Do not grade them here.
@@ -707,7 +707,7 @@ Your antecedents from 4a were:
       <EndPane>
     <ActionButton id="bmod_h1_q4b_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q4b_llm" target="bmod_h1_q4b_feedback"
-                 slots="behavior_1:First example is something done during the behavior:met/absent/not_active@1.5|behavior_2:Second example is something done during the behavior:met/absent/not_active@1.5|modify_stated:Says whether it is a good choice to modify@2|modify_why:Gives a reason why@1|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="behavior_1:First example is something done during the behavior:wrong_kind@1.5|behavior_2:Second example is something done during the behavior:wrong_kind@1.5|modify_stated:Says whether it is a good choice to modify@2|modify_why:Gives a reason why@1|confident:All judgments confident"
                  onlyif="modify_why:modify_stated"
                  max="5">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
@@ -741,7 +741,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -780,11 +780,11 @@ Return a verdict for EVERY one of these, in this order, BEFORE you write
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
-- `behavior_1` — `met`/`absent`/`not_active`: First active behavior
-- `behavior_2` — `met`/`absent`/`not_active`: Second active behavior
+- `behavior_1` — `met`/`absent`/`wrong_kind`: First active behavior
+- `behavior_2` — `met`/`absent`/`wrong_kind`: Second active behavior
 - `modify_stated` — `met`/`absent`: States whether it is a good choice to modify
 - `modify_why` — `met`/`absent`: States why it is or is not. B_NO_MODIFY_WHY applies only when the response says it is/isn't a good choice to modify and gives NO reason whatsoever. Any reason, however brief — "because I have full control of when I go to bed" — earns the point.
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 ## Context from this student's other answers (read-only)
 Use these only where the rubric requires cross-item consistency. Do not grade them here.
@@ -846,7 +846,7 @@ You must use the word **consequence** or **consequences** in your answer.
       <EndPane>
     <ActionButton id="bmod_h1_q4c_btn" label="Check my consequences">
       <LLMAction id="bmod_h1_q4c_llm" target="bmod_h1_q4c_feedback"
-                 slots="consequence_1:First consequence follows from the behavior:met/absent/not_consequence/duplicate@2|consequence_2:Second consequence follows from the behavior:met/absent/not_consequence/duplicate@2|keyword:Uses the word consequence:unclear|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="consequence_1:First consequence follows from the behavior:wrong_kind/duplicate@2|consequence_2:Second consequence follows from the behavior:wrong_kind/duplicate@2|keyword:Uses the word consequence:unclear|confident:All judgments confident"
                  max="5">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -879,7 +879,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -916,10 +916,10 @@ Return a verdict for EVERY one of these, in this order, BEFORE you write
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
-- `consequence_1` — `met`/`absent`/`not_consequence`/`duplicate`: First valid consequence
-- `consequence_2` — `met`/`absent`/`not_consequence`/`duplicate`: Second valid consequence
+- `consequence_1` — `met`/`absent`/`wrong_kind`/`duplicate`: First valid consequence
+- `consequence_2` — `met`/`absent`/`wrong_kind`/`duplicate`: Second valid consequence
 - `keyword` — `met`/`absent`/`unclear`: Uses 'consequence' at least once (advisory, not scored). The word "consequence" is NOT worth a point here, unlike the keyword on Q4a. Report `keyword: absent` when it appears nowhere — the feedback may mention it — but it costs nothing. IMPLICIT (from gold): no Q4c row in the corpus deducts for it, and none carries a 1-point deduction at all; participants 15 and 17 kept full credit while omitting the word. Q4a differs and keeps its charge, because participant 17's Q4a row does deduct for the missing keyword.
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 ## Context from this student's other answers (read-only)
 Use these only where the rubric requires cross-item consistency. Do not grade them here.
@@ -983,7 +983,7 @@ good, and I get my sugar fix."*
       <EndPane>
     <ActionButton id="bmod_h1_q5_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q5_llm" target="bmod_h1_q5_feedback"
-                 slots="example_1:First reason you keep doing it:met/absent/not_reason/duplicate@2.5|example_2:Second, different reason:met/absent/not_reason/duplicate@2.5|thin_reason:Either reason is present but weak:no/yes|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="example_1:First reason you keep doing it:wrong_kind/duplicate@2.5|example_2:Second, different reason:wrong_kind/duplicate@2.5|thin_reason:Either reason is present but weak:no/yes|confident:All judgments confident"
                  showChecks="false">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -1016,7 +1016,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -1052,10 +1052,10 @@ Return a verdict for EVERY one of these, in this order, BEFORE you write
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
-- `example_1` — `met`/`absent`/`not_reason`/`duplicate`: First way the goal behavior is worth strengthening
-- `example_2` — `met`/`absent`/`not_reason`/`duplicate`: `met` for a second reason that is genuinely DIFFERENT from the first. `duplicate` when both entries are well-formed but amount to the SAME reason — participant 6 gave "the walk is far, so my legs would be tired" and "I am not as flexible, so I would be sore", which are both escaping physical effort, and the graders wrote "missing a reason". `absent` only when there is no second entry at all. `not_reason` when there IS a second, distinct entry but it is not a reason for CONTINUING — an EFFECT of the behaviour rather than a payoff from it. When it is present, distinct and a real payoff but merely thin, that is `met` plus `thin_reason`
+- `example_1` — `met`/`absent`/`wrong_kind`/`duplicate`: First way the goal behavior is worth strengthening
+- `example_2` — `met`/`absent`/`wrong_kind`/`duplicate`: `met` for a second reason that is genuinely DIFFERENT from the first. `duplicate` when both entries are well-formed but amount to the SAME reason — participant 6 gave "the walk is far, so my legs would be tired" and "I am not as flexible, so I would be sore", which are both escaping physical effort, and the graders wrote "missing a reason". `absent` only when there is no second entry at all. `not_reason` when there IS a second, distinct entry but it is not a reason for CONTINUING — an EFFECT of the behaviour rather than a payoff from it. When it is present, distinct and a real payoff but merely thin, that is `met` plus `thin_reason`
 - `thin_reason` — `no`/`yes`: `yes` when a reason is PRESENT but weak — thin, vague, or barely explained. This costs NOTHING; it exists so you can say it in the feedback instead of reaching for `not_reason`. "I continue to not exercise because I'm not taking better care of my health" is thin and the graders left it at FULL marks with a written note. Reserve `not_reason` for a statement that is not a reason for CONTINUING at all — most often an EFFECT of the behaviour wearing a reason's clothes, like "because I get super emotional and mad when I'm super tired", which is what the behaviour causes rather than what the student gets out of it
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 ## Context from this student's other answers (read-only)
 Use these only where the rubric requires cross-item consistency. Do not grade them here.
@@ -1205,7 +1205,7 @@ have extra money to go to the movies with friends (new C).*
     <ActionButton id="bmod_h1_q6_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q6_llm" target="bmod_h1_q6_feedback"
                  cover="state_a1,state_a2:first,second|state_c1,state_c2:first,second"
-                 slots="state_a1:First antecedent named and matching 4a:first/second/neither/absent@1.25|change_a1:How the first antecedent will be changed:met/absent/mismatch/not_described@1.25|state_a2:Second antecedent named and matching 4a:first/second/neither/absent@1.25|change_a2:How the second antecedent will be changed:met/absent/mismatch/not_described@1.25|state_c1:First consequence named and matching 4c:first/second/neither/absent@1.25|affect_c1:How the first consequence is affected:met/absent/mismatch/not_described@1.25|state_c2:Second consequence named and matching 4c:first/second/neither/absent@1.25|affect_c2:How the second consequence is affected:met/absent/mismatch/not_described@1.25|uncertain:Any judgement I was unsure about:no/yes">
+                 slots="state_a1:First antecedent named and matching 4a:first/second/neither/absent@1.25|change_a1:How the first antecedent will be changed:mismatch/incomplete@1.25|state_a2:Second antecedent named and matching 4a:first/second/neither/absent@1.25|change_a2:How the second antecedent will be changed:mismatch/incomplete@1.25|state_c1:First consequence named and matching 4c:first/second/neither/absent@1.25|affect_c1:How the first consequence is affected:mismatch/incomplete@1.25|state_c2:Second consequence named and matching 4c:first/second/neither/absent@1.25|affect_c2:How the second consequence is affected:mismatch/incomplete@1.25|confident:All judgments confident">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -1237,7 +1237,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -1316,14 +1316,14 @@ check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
 - `state_a1` — `first`/`second`/`neither`/`absent`: which of 4a's two antecedents does this box name? `first`, `second`, `neither` if it is not one of them, `absent` if none is named
-- `change_a1` — `met`/`absent`/`mismatch`/`not_described`: Describes HOW the first antecedent will be changed. Be generous about loose phrasing but strict about WHAT THE CHANGE ACTS ON: judge that, not how neatly it is put. Where the words after "by ..." describe the student performing their WGB, or improving some other habit, the antecedent itself is untouched and this is `not_described`. "I will change my antecedent of playing video games and not wanting to stop by listening to music as I work out" leaves the video games exactly as they were — participant 2 lost 1.25 for it, the grader writing "listening to music while working out does not change your antecedent of playing video games", and the 2.5/10 worked example is the same failure twice over. But the test is NOT whether the goal behaviour is mentioned — it is whether anything in the clause OPERATES ON the antecedent, and the goal behaviour is very often named as the change's expected RESULT. Participant 10's "changing my laziness will help me have discipline in getting up and going to the gym" counts: vague, but it acts on the laziness. So does participant 3's "by motivating myself to get up and go, this will help me go to the gym" against an antecedent of thinking exercise is unnecessary — the motivation acts on that belief and the gym is what follows from it; that response earned 10/10
+- `change_a1` — `met`/`absent`/`mismatch`/`incomplete`: Describes HOW the first antecedent will be changed. Be generous about loose phrasing but strict about WHAT THE CHANGE ACTS ON: judge that, not how neatly it is put. Where the words after "by ..." describe the student performing their WGB, or improving some other habit, the antecedent itself is untouched and this is `not_described`. "I will change my antecedent of playing video games and not wanting to stop by listening to music as I work out" leaves the video games exactly as they were — participant 2 lost 1.25 for it, the grader writing "listening to music while working out does not change your antecedent of playing video games", and the 2.5/10 worked example is the same failure twice over. But the test is NOT whether the goal behaviour is mentioned — it is whether anything in the clause OPERATES ON the antecedent, and the goal behaviour is very often named as the change's expected RESULT. Participant 10's "changing my laziness will help me have discipline in getting up and going to the gym" counts: vague, but it acts on the laziness. So does participant 3's "by motivating myself to get up and go, this will help me go to the gym" against an antecedent of thinking exercise is unnecessary — the motivation acts on that belief and the gym is what follows from it; that response earned 10/10
 - `state_a2` — `first`/`second`/`neither`/`absent`: same question for the other box — `second` is the expected answer but `first` is credited too if that is what it names, because the grader pairs them
-- `change_a2` — `met`/`absent`/`mismatch`/`not_described`: Describes HOW the second antecedent will be changed — the same test as `change_a1` above: judge what the change ACTS ON, and answer `not_described` when the clause only has the student doing their goal behaviour instead of touching the antecedent
+- `change_a2` — `met`/`absent`/`mismatch`/`incomplete`: Describes HOW the second antecedent will be changed — the same test as `change_a1` above: judge what the change ACTS ON, and answer `not_described` when the clause only has the student doing their goal behaviour instead of touching the antecedent
 - `state_c1` — `first`/`second`/`neither`/`absent`: which of 4c's two consequences does this box name? `first`, `second`, `neither` if it is not one of them, `absent` if none is named
-- `affect_c1` — `met`/`absent`/`mismatch`/`not_described`: Describes HOW the first consequence will be affected
+- `affect_c1` — `met`/`absent`/`mismatch`/`incomplete`: Describes HOW the first consequence will be affected
 - `state_c2` — `first`/`second`/`neither`/`absent`: same question for the other box — either label is credited; the grader checks that between the two boxes both of 4c's consequences are named
-- `affect_c2` — `met`/`absent`/`mismatch`/`not_described`: Describes HOW the second consequence will be affected
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `affect_c2` — `met`/`absent`/`mismatch`/`incomplete`: Describes HOW the second consequence will be affected
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 ## Context from this student's other answers (read-only)
 Use these only where the rubric requires cross-item consistency. Do not grade them here.

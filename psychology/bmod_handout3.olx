@@ -265,7 +265,7 @@ Your data:
       <EndPane>
     <ActionButton id="bmod_h3_overview_btn" label="Check my overview">
       <LLMAction id="bmod_h3_overview_llm" target="bmod_h3_overview_feedback"
-                 slots="!distinguishes_periods:Separates the time periods at all:unclear|baseline_week:Covers the baseline week:unclear@2|week_1:Covers week 1:unclear@2|week_2:Covers week 2:unclear@2|week_3:Covers week 3:unclear@2|uncertain:Any judgement I was unsure about:no/yes">
+                 slots="!distinguishes_periods:Separates the time periods at all:unclear|baseline_week:Covers the baseline week:unclear@2|week_1:Covers week 1:unclear@2|week_2:Covers week 2:unclear@2|week_3:Covers week 3:unclear@2|confident:All judgments confident">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -297,7 +297,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -337,7 +337,7 @@ says the check reports an identity rather than a judgement.
 - `week_1` — `met`/`absent`/`unclear`: does the answer's account of change COVER this stretch of the intervention? Judge the arc, not the label. Naming some weeks does NOT make the unnamed ones absent: an answer that runs from the before state through to the end covers all three intervention weeks even if it names one of them or none. Answer `absent` only when a period is clearly and specifically skipped
 - `week_2` — `met`/`absent`/`unclear`: same question for the middle stretch — and the same rule: a week the answer does not name by number is still covered if the account of change runs through it. p14 named only "Week One and Week Three" and gold still credited all four
 - `week_3` — `met`/`absent`/`unclear`: same question for the final stretch, same rule. "By the time the last week of my data collection intervention came upon" covers it without a number
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
 
@@ -506,7 +506,7 @@ include it with your handout in Canvas, or screenshot the chart.
       <EndPane>
     <ActionButton id="bmod_h3_graph_btn" label="Check my labelling">
       <LLMAction id="bmod_h3_graph_llm" target="bmod_h3_graph_feedback"
-                 slots="!has_own_graph:Your 1b data produces a graph of your own:mismatch@2|title:Title saying what is measured and over what period:generic@2|x_axis_label:X-axis label naming what the axis represents:tick_values@2|y_axis_label:Y-axis label naming what the axis represents:tick_values/generic@2|legend:Legend naming all four series you plotted:incomplete@2|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="!has_own_graph:Your 1b data produces a graph of your own:mismatch@2|title:Title saying what is measured and over what period:generic@2|x_axis_label:X-axis label naming what the axis represents:tick_values@2|y_axis_label:Y-axis label naming what the axis represents:tick_values/generic@2|legend:Legend naming all four series you plotted:incomplete@2|confident:All judgments confident"
                  derived="has_own_graph:complete:bmod_h3_baseline,bmod_h3_wk1,bmod_h3_wk2,bmod_h3_wk3:8,10,8,12,6,10,0;32,20,22,28,30,32,10;30,28,26,30,32,32,30;25,26,30,32,32,28,32">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -539,7 +539,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -592,7 +592,7 @@ says the check reports an identity rather than a judgement.
 - `x_axis_label` — `met`/`absent`/`tick_values`: The x-axis is labelled — an AXIS TITLE, not the tick values. "Sunday, Monday, ..." along the bottom is tick data; "Days of the Week" is the label. This distinction is the single most common deduction on this item: nine of the twenty gold rows lost points for a missing axis title. A default placeholder is not a label either — spreadsheet software inserts "Axis Title" when the student never types one, and that counts as missing
 - `y_axis_label` — `met`/`absent`/`tick_values`/`generic`: The y-axis is labelled — same test as `x_axis_label`: an axis TITLE naming what the axis represents, not its tick values, and not the software's default "Axis Title" placeholder
 - `legend` — `met`/`absent`/`incomplete`: the NO_LEGEND test. `met` when the series names name all four plotted periods — the baseline and the three intervention weeks — in any reasonable wording ('Baseline, Wk1, Wk2, Wk3' counts). `incomplete` when some are named and some are not, or the count does not match the four series; `absent` when the box is empty or holds something that is not a set of series names. Judge the series names, not the heading
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `has_own_graph` **GATE**. The grader reads it off the page, using the same code that draws the chart: satisfied when EVERY week of data is present, `absent` when a week is missing or they hold no numbers at all, and `mismatch` when they are the worked example's own numbers rather than a record of this student's behaviour. Copied WORDING is still yours to judge, on the label checks. It is not in your schema, and none of it is a judgement — the runtime already knows.
 
@@ -669,7 +669,7 @@ account of something that did not work is worth exactly as much as a success.
       <EndPane>
     <ActionButton id="bmod_h3_success_btn" label="Check my answer">
       <LLMAction id="bmod_h3_success_llm" target="bmod_h3_success_feedback"
-                 slots="verdict:States whether the plan worked:unclear@2|hows_given:How many separate explanations of HOW you give:2/1/0|how_1:First explanation of how:unclear@2|how_2:Second explanation of how:unclear@2|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="verdict:States whether the plan worked:unclear@2|hows_given:How many separate explanations of HOW you give:2/1/0|how_1:First explanation of how:unclear@2|how_2:Second explanation of how:unclear@2|confident:All judgments confident"
                  counts="hows_given:how_1,how_2">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -702,7 +702,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -739,7 +739,7 @@ says the check reports an identity rather than a judgement.
 
 - `verdict` — `met`/`absent`/`unclear`: States whether the plan was successful
 - `hows_given` — `2`/`1`/`0`: HOW MANY separate pieces of explanation of HOW the plan succeeded or failed the response gives — count CONTENT, not sentences: one compound sentence that states the outcome and explains it can carry two. Ignore any stretch that does not bear on how the plan succeeded or failed. Answer 2 for two or more
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `how_1`, `how_2` individually. Answer `hows_given` — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.
 
@@ -801,7 +801,7 @@ The two types of operant conditioning you planned to use:
       <EndPane>
     <ActionButton id="bmod_h3_assessment_btn" label="Check my assessment">
       <LLMAction id="bmod_h3_assessment_llm" target="bmod_h3_assessment_feedback"
-                 slots="sentences_given:How many substantive assessment sentences you give:3/2/1/0|sentence_1:First substantive assessment sentence:unclear@2|sentence_2:Second substantive sentence:unclear@2|sentence_3:Third substantive sentence:unclear@2|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="sentences_given:How many substantive assessment sentences you give:3/2/1/0|sentence_1:First substantive assessment sentence:unclear@2|sentence_2:Second substantive sentence:unclear@2|sentence_3:Third substantive sentence:unclear@2|confident:All judgments confident"
                  counts="sentences_given:sentence_1,sentence_2,sentence_3"
                  showChecks="false">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
@@ -835,7 +835,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -868,7 +868,7 @@ check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
 - `sentences_given` — `3`/`2`/`1`/`0`: HOW MANY substantive sentences about the intervention the response gives — count generously: sentences about what worked, what did not, and how the student executed the plan all count, and quality of insight is not judged. Answer 3 for three or more
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `sentence_1`, `sentence_2`, `sentence_3` individually. Answer `sentences_given` — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.
 
@@ -925,7 +925,7 @@ is not an acceptable answer.
       <EndPane>
     <ActionButton id="bmod_h3_improve_btn" label="Check my answer">
       <LLMAction id="bmod_h3_improve_llm" target="bmod_h3_improve_feedback"
-                 slots="changes_given:How many distinct changes you propose:2/1/0|example_1:First specific change:unclear@3|example_2:Second, different change:unclear@3|uncertain:Any judgement I was unsure about:no/yes"
+                 slots="changes_given:How many distinct changes you propose:2/1/0|example_1:First specific change:unclear@3|example_2:Second, different change:unclear@3|confident:All judgments confident"
                  counts="changes_given:example_1,example_2"
                  showChecks="false">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
@@ -959,7 +959,7 @@ Rules you must follow:
    in their work, and it never changes a verdict.
 8. Where the grading guidance below tells you to set `escalate` or to write an
    `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries an `uncertain` check, set it to `yes`.
+   instead, and where the sheet carries a `confident` check, set it to `absent`.
 
 Write `feedback` to the student, in the second person, warm and specific. Say
 which requirements are met, name any that are missing, and quote their own
@@ -992,7 +992,7 @@ check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
 - `changes_given` — `2`/`1`/`0`: HOW MANY DISTINCT changes the response proposes — count generously: a change to the reinforcer and a change to the schedule are two even in one sentence, and any concrete alternative counts without justification or feasibility. A statement that nothing needs changing counts as none. Answer 2 for two or more
-- `uncertain` — `no`/`yes`: `yes` if any judgement above was a close call — this is rule 8's channel
+- `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `example_1`, `example_2` individually. Answer `changes_given` — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.
 
