@@ -781,8 +781,16 @@ def extra_verdicts() -> list[str]:
     return _ts_string_array("EXTRA_VERDICTS")
 
 
+def count_max(segment: str | None) -> int | None:
+    """Mirror of slotSheet.ts:parseCountMax — `count(3)` -> 3."""
+    m = re.fullmatch(r"count\(\s*(\d+)\s*\)", (segment or "").strip())
+    return int(m.group(1)) if m else None
+
+
 def resolve_options(segment: str | None, defaults: list[str]) -> list[str]:
     """Mirror of slotSheet.ts:resolveOptions."""
+    if count_max(segment) is not None:
+        return []                      # a measurement, not a verdict list
     tokens = [t.strip() for t in (segment or "").split("/") if t.strip()]
     if not tokens:
         return list(defaults)
@@ -806,15 +814,18 @@ def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
         parts = [p.strip() for p in entry.split(":")]
         raw_key = parts[0]
         label = parts[1] if len(parts) > 1 and parts[1] else raw_key
-        opts = resolve_options(parts[2] if len(parts) > 2 else None, defaults)
+        seg = parts[2] if len(parts) > 2 else None
+        opts = resolve_options(seg, defaults)
+        cmax = count_max(seg)
         out.append({
             "key": raw_key.lstrip("!").strip(),
             "label": label,
             "options": [o for o in opts if o],
             "gates": raw_key.startswith("!"),
             "pts": pts,
+            "count_max": cmax,
         })
-    return [s for s in out if s["key"] and s["options"]]
+    return [s for s in out if s["key"] and (s["options"] or s["count_max"] is not None)]
 
 
 # What a check means where the rubric's credit list does not already say.
@@ -1484,7 +1495,11 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
             continue
         note = SLOT_NOTES.get(f"{item_id}:{s['key']}") or SLOT_NOTES.get(s["key"]) or desc.get(s["key"])
         gate = " **GATE**" if s["gates"] else ""
-        head = f"- `{s['key']}`{gate} — {'/'.join('`%s`' % o for o in s['options'])}"
+        if s.get("count_max") is not None:
+            head = (f"- `{s['key']}`{gate} — a NUMBER from 0 to {s['count_max']} "
+                    f"(how many, not a judgement)")
+        else:
+            head = f"- `{s['key']}`{gate} — {'/'.join('`%s`' % o for o in s['options'])}"
         lines.append(f"{head}: {note}" if note else head)
     for key, r in computed.items():
         spec = next((x for x in slots if x["key"] == key), None)
