@@ -1,26 +1,30 @@
 #!/usr/bin/env python3
-"""Verdict standardisation, step 1: make every slot's verdicts explicit.
+"""Verdict standardisation: move slots onto the canonical vocabulary.
 
-WHAT THIS DOES. Each sheet-bearing block may carry a `verdicts=` attribute that
-redefines the default verdict list for every slot in it that does not spell its
-own. That is the override hatch the standardisation exists to close: while it
-is there, "the canonical vocabulary" is advisory. This rewrites every slot that
-was relying on a default — the block's or the engine's — to state its options
-itself, then deletes the attribute.
+Run twice so far, for the two halves of stage 02.
 
-WHY THIS STEP IS SEPARATE. It is provably score-neutral, and the proof is cheap:
-the RESOLVED option list of every slot is identical before and after, so nothing
-the model is asked or the grader computes can have moved. Concision comes next,
-in the step that introduces the extras form (`key:Label:unclear`) and flips the
-engine default; keeping the two apart means the risky half is a one-line default
-change with no content in flight, rather than 182 rewrites and a default change
-landing together across two repositories.
+  1. Retire `verdicts=`. A block could redefine the default verdict list for
+     every slot in it that did not spell its own — the override hatch that made
+     "the canonical vocabulary" advisory. Every inheriting slot was rewritten to
+     state its options, and the attribute deleted.
 
-    ./migrate_verdicts.py --check    # report, touch nothing
+  2. Shorten what can be shortened. A judgement is `met`, `absent`, then extras,
+     so it can be written as just its extras (`key:Label:unclear`) or as nothing
+     at all. Anything whose first two options are not met/absent is an identity,
+     a count, or a yes/no spelling that has not moved yet, and is left verbatim
+     for a later stage — this script only makes changes it can prove are inert.
+
+THE CHECK, which is the reason this is a script at all: parse before, parse
+after, and refuse to write unless EVERY slot in every block resolves to the same
+option list. A rewrite that would change what the model is asked does not get
+written; it gets reported. Idempotent — a second run reports no edits.
+
+    ./migrate_verdicts.py            # report, touch nothing
     ./migrate_verdicts.py --write    # rewrite in place
 
-The check the whole thing rests on runs either way: parse before, parse after,
-and refuse to write unless every slot in every block resolves to the same list.
+The vocabulary itself is read out of lo-blocks' slotSheet.ts rather than copied,
+for the same reason agreement._ts_literal reads its schema descriptions there: a
+copy is the thing that drifts, and this one would drift silently.
 """
 from __future__ import annotations
 
@@ -31,7 +35,11 @@ from pathlib import Path
 
 import paths
 
-ENGINE_DEFAULT = ["met", "absent", "unclear"]  # lib/llm/slotSheet.ts:DEFAULT_VERDICTS
+import olx_prompts  # for the vocabulary, read from slotSheet.ts
+
+# Read, never copied — the same reason olx_prompts reads them.
+ENGINE_DEFAULT = olx_prompts.default_verdicts()
+EXTRAS = olx_prompts.extra_verdicts()
 
 BLOCK_RE = re.compile(r"<(LLMAction|DerivedChecks)\b(.*?)(/?)>", re.S)
 SLOTS_RE = re.compile(r'slots="([^"]*)"', re.S)
@@ -49,16 +57,28 @@ def resolve(slots_attr: str, default: list[str]) -> list[tuple[str, list[str]]]:
         e = PTS_RE.sub("", e).strip()
         parts = e.split(":")
         key = parts[0].strip()
-        if len(parts) >= 3 and parts[2].strip():
-            opts = [o.strip() for o in parts[2].split("/") if o.strip()]
-        else:
-            opts = list(default)
-        out.append((key, opts))
+        seg = parts[2] if len(parts) >= 3 else None
+        out.append((key, olx_prompts.resolve_options(seg, default)))
     return out
 
 
+def shorten(opts: list[str]) -> str | None:
+    """The concise spelling of an option list, or None to leave it alone.
+
+    A judgement is `met`, `absent`, then extras — so it can be written as just
+    its extras, or as nothing at all. Anything else is an identity or count
+    vocabulary that has not moved out of `verdict` yet; left verbatim.
+    """
+    if opts[:2] != ENGINE_DEFAULT:
+        return None
+    extras = opts[2:]
+    if any(e not in EXTRAS for e in extras):
+        return None
+    return "/".join(extras)
+
+
 def rewrite_slots(slots_attr: str, default: list[str]) -> str:
-    """Spell out the options of any slot that was inheriting them."""
+    """Rewrite explicit judgement lists in the concise extras form."""
     pieces = []
     for entry in slots_attr.split("|"):
         raw = entry
@@ -70,13 +90,16 @@ def rewrite_slots(slots_attr: str, default: list[str]) -> str:
         pts = m.group(0) if m else ""
         body = PTS_RE.sub("", e).strip()
         parts = body.split(":")
-        if len(parts) >= 3 and parts[2].strip():
-            pieces.append(raw)                       # already explicit
+        if len(parts) < 3 or not parts[2].strip():
+            pieces.append(raw)                       # already bare
             continue
-        # key:Label (or a bare key) — append the list it was inheriting.
-        if len(parts) == 1:
-            parts.append(parts[0])                   # label defaults to the key
-        pieces.append(f"{parts[0]}:{parts[1]}:{'/'.join(default)}{pts}")
+        opts = [o.strip() for o in parts[2].split("/") if o.strip()]
+        short = shorten(opts)
+        if short is None:
+            pieces.append(raw)                       # identity/count — not yet
+            continue
+        tail = f":{short}" if short else ""
+        pieces.append(f"{parts[0]}:{parts[1]}{tail}{pts}")
     return "|".join(pieces)
 
 
@@ -94,8 +117,7 @@ def process(src: str) -> tuple[str, list[str]]:
         bid = re.search(r'id="([^"]+)"', attrs)
         new_slots = rewrite_slots(sm.group(1), default)
         if new_slots != sm.group(1):
-            notes.append(f"  {bid.group(1) if bid else tag}: spelled out "
-                         f"{'/'.join(default)}")
+            notes.append(f"  {bid.group(1) if bid else tag}: shortened")
         attrs2 = attrs[:sm.start(1)] + new_slots + attrs[sm.end(1):]
         if vm:
             # Recompute the span against the rewritten string.
