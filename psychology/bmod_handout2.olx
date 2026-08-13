@@ -330,27 +330,28 @@ From Handout 1:
 
   <!-- ============= Screen: Four examples ================================== -->
 
-  <Vertical id="bmod_h2_four" title="One example of each type">
+  <Vertical id="bmod_h2_pr_screen" title="Positive Reinforcement">
+    <SplitPanel id="bmod_h2_pr_feedback_split" sizes="50,50">
+      <StartPane>
     <Markdown id="bmod_h2_four_prompt">
 ## Write one example of each type
 
 Each should be something you could actually use on your own behavior.
     </Markdown>
 
-    <!-- One LLM check per example rather than one for all four. Each of these
-         is a separate scored item on the paper version with its own feedback
-         cell, and the item-by-item scorer in ~/code/molly_scoring is built the
-         same way for the same reason: four verdicts sharing one call share one
-         call's attention, and each type has its own characteristic failure. -->
+    <Markdown id="bmod_h2_pr_label">
+**Positive Reinforcement** — add something desirable to increase your goal behavior
 
-    <Markdown id="bmod_h2_pr_label">**Positive Reinforcement** — add something desirable to increase your goal behavior</Markdown>
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h2_pr" rows="3" placeholder="If I meet my goal, I will..." />
 
-    <LLMFeedback id="bmod_h2_pr_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h2_pr_btn" label="Check my Positive Reinforcement example">
       <LLMAction id="bmod_h2_pr_llm" target="bmod_h2_pr_feedback"
                  verdicts="yes,no,unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
                  onlyif="targets_goal_behavior:observed_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
@@ -464,15 +465,27 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
            total live on the sheet; this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h2_pr_grader" target="bmod_h2_pr_feedback" />
     </ActionButton>
+        <LLMFeedback id="bmod_h2_pr_feedback" />
+      </EndPane>
+    </SplitPanel>
+  </Vertical>
 
-    <Markdown id="bmod_h2_nr_label">**Negative Reinforcement** — take away something undesirable to increase your goal behavior</Markdown>
+  <Vertical id="bmod_h2_nr_screen" title="Negative Reinforcement">
+    <SplitPanel id="bmod_h2_nr_feedback_split" sizes="50,50">
+      <StartPane>
+    <Markdown id="bmod_h2_nr_label">
+**Negative Reinforcement** — take away something undesirable to increase your goal behavior
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h2_nr" rows="3" placeholder="If I meet my goal, I will not have to..." />
 
-    <LLMFeedback id="bmod_h2_nr_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h2_nr_btn" label="Check my Negative Reinforcement example">
       <LLMAction id="bmod_h2_nr_llm" target="bmod_h2_nr_feedback"
                  verdicts="yes,no,unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:NR/PR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:NR/PR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
                  onlyif="targets_goal_behavior:observed_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
@@ -586,15 +599,27 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
            total live on the sheet; this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h2_nr_grader" target="bmod_h2_nr_feedback" />
     </ActionButton>
+        <LLMFeedback id="bmod_h2_nr_feedback" />
+      </EndPane>
+    </SplitPanel>
+  </Vertical>
 
-    <Markdown id="bmod_h2_pp_label">**Positive Punishment** — add something undesirable to decrease your unwanted behavior</Markdown>
+  <Vertical id="bmod_h2_pp_screen" title="Positive Punishment">
+    <SplitPanel id="bmod_h2_pp_feedback_split" sizes="50,50">
+      <StartPane>
+    <Markdown id="bmod_h2_pp_label">
+**Positive Punishment** — add something undesirable to decrease your unwanted behavior
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h2_pp" rows="3" placeholder="If I do not meet my goal, I will have to..." />
 
-    <LLMFeedback id="bmod_h2_pp_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h2_pp_btn" label="Check my Positive Punishment example">
       <LLMAction id="bmod_h2_pp_llm" target="bmod_h2_pp_feedback"
                  verdicts="yes,no,unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PP/PR/NR/NP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PP/PR/NR/NP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
                  onlyif="targets_unwanted_behavior:observed_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
@@ -708,15 +733,27 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
            total live on the sheet; this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h2_pp_grader" target="bmod_h2_pp_feedback" />
     </ActionButton>
+        <LLMFeedback id="bmod_h2_pp_feedback" />
+      </EndPane>
+    </SplitPanel>
+  </Vertical>
 
-    <Markdown id="bmod_h2_np_label">**Negative Punishment** — take away something desirable to decrease your unwanted behavior</Markdown>
+  <Vertical id="bmod_h2_np_screen" title="Negative Punishment">
+    <SplitPanel id="bmod_h2_np_feedback_split" sizes="50,50">
+      <StartPane>
+    <Markdown id="bmod_h2_np_label">
+**Negative Punishment** — take away something desirable to decrease your unwanted behavior
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h2_np" rows="3" placeholder="If I do not meet my goal, I will lose..." />
 
-    <LLMFeedback id="bmod_h2_np_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h2_np_btn" label="Check my Negative Punishment example">
       <LLMAction id="bmod_h2_np_llm" target="bmod_h2_np_feedback"
                  verdicts="yes,no,unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:NP/PR/NR/PP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:NP/PR/NR/PP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior:yes/no@2|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|uncertain:Any judgement I was unsure about:no/yes"
                  onlyif="targets_unwanted_behavior:observed_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
@@ -830,6 +867,9 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
            total live on the sheet; this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h2_np_grader" target="bmod_h2_np_feedback" />
     </ActionButton>
+        <LLMFeedback id="bmod_h2_np_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: First chosen type ============================== -->
@@ -871,18 +911,23 @@ Start with the first.
     <OnChange id="bmod_h2_t1_regrade"
               watch="@bmod_h2_t1_checks.checks"
               target="bmod_h2_t1_sheet_grader" />
+  </Vertical>
 
+  <Vertical id="bmod_h2_d1_screen" title="Define it">
+    <SplitPanel id="bmod_h2_d1_feedback_split" sizes="50,50">
+      <StartPane>
     <Markdown id="bmod_h2_d1_label">
-**Define it.** A complete definition says whether something is being *added* or
+**Define {{@bmod_h2_t1.value ? @bmod_h2_t1.value : "it"}}.** A complete definition says whether something is being *added* or
 *taken away*, **and** whether the behavior is *increasing* or *decreasing*.
     </Markdown>
     <TextArea id="bmod_h2_d1" rows="3" placeholder="I will use ___, which is..." />
 
-    <LLMFeedback id="bmod_h2_d1_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h2_d1_btn" label="Check my definition">
       <LLMAction id="bmod_h2_d1_llm" target="bmod_h2_d1_feedback"
                  equals="matches_chosen_type:defines_type,named_type:unclear"
-                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose:met/absent|add_or_remove:Says whether something is added or taken away@1|increase_or_decrease:Says whether the behavior increases or decreases@1|uncertain:Any judgement you were unsure about:no/yes">
+                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose:met/absent|add_or_remove:Says whether something is added or taken away@1|increase_or_decrease:Says whether the behavior increases or decreases@1|uncertain:Any judgement I was unsure about:no/yes">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -982,16 +1027,28 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
            total live on the sheet; this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h2_d1_grader" target="bmod_h2_d1_feedback" />
     </ActionButton>
+        <LLMFeedback id="bmod_h2_d1_feedback" />
+      </EndPane>
+    </SplitPanel>
+  </Vertical>
 
-    <Markdown id="bmod_h2_day1_label">**Daily example** — how will you use it each day?</Markdown>
+  <Vertical id="bmod_h2_day1_screen" title="Daily example">
+    <SplitPanel id="bmod_h2_day1_feedback_split" sizes="50,50">
+      <StartPane>
+    <Markdown id="bmod_h2_day1_label">
+**Daily example of {{@bmod_h2_t1.value ? @bmod_h2_t1.value : "it"}}** — how will you use it each day?
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h2_day1" rows="3" />
 
-    <LLMFeedback id="bmod_h2_day1_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h2_day1_btn" label="Check my daily example">
       <LLMAction id="bmod_h2_day1_llm" target="bmod_h2_day1_feedback"
                  verdicts="yes,no,unclear"
                  equals="matches_chosen_type:observed_type,named_type:unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_daily:Checked each day rather than against the week:yes/no|matches_chosen_type:Matches your first chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_daily:Checked each day rather than against the week:yes/no|matches_chosen_type:Matches your first chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -1125,16 +1182,28 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
            total live on the sheet; this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h2_day1_grader" target="bmod_h2_day1_feedback" />
     </ActionButton>
+        <LLMFeedback id="bmod_h2_day1_feedback" />
+      </EndPane>
+    </SplitPanel>
+  </Vertical>
 
-    <Markdown id="bmod_h2_wk1_label">**Weekly example** — how will you use it across a week?</Markdown>
+  <Vertical id="bmod_h2_wk1_screen" title="Weekly example">
+    <SplitPanel id="bmod_h2_wk1_feedback_split" sizes="50,50">
+      <StartPane>
+    <Markdown id="bmod_h2_wk1_label">
+**Weekly example of {{@bmod_h2_t1.value ? @bmod_h2_t1.value : "it"}}** — how will you use it across a week?
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h2_wk1" rows="3" />
 
-    <LLMFeedback id="bmod_h2_wk1_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h2_wk1_btn" label="Check my weekly example">
       <LLMAction id="bmod_h2_wk1_llm" target="bmod_h2_wk1_feedback"
                  verdicts="yes,no,unclear"
                  equals="matches_chosen_type:observed_type,named_type:unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_weekly:Checked against the week rather than each day:yes/no|matches_chosen_type:Matches your first chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_weekly:Checked against the week rather than each day:yes/no|matches_chosen_type:Matches your first chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -1268,6 +1337,9 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
            total live on the sheet; this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h2_wk1_grader" target="bmod_h2_wk1_feedback" />
     </ActionButton>
+        <LLMFeedback id="bmod_h2_wk1_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: Second chosen type ============================= -->
@@ -1304,15 +1376,24 @@ Your first choice was: **{{@bmod_h2_t1.value}}**
     <OnChange id="bmod_h2_t2_regrade"
               watch="@bmod_h2_t2_checks.checks"
               target="bmod_h2_t2_sheet_grader" />
+  </Vertical>
 
-    <Markdown id="bmod_h2_d2_label">**Define it.**</Markdown>
+  <Vertical id="bmod_h2_d2_screen" title="Define it">
+    <SplitPanel id="bmod_h2_d2_feedback_split" sizes="50,50">
+      <StartPane>
+    <Markdown id="bmod_h2_d2_label">
+**Define {{@bmod_h2_t2.value ? @bmod_h2_t2.value : "it"}}.**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h2_d2" rows="3" placeholder="I will use ___, which is..." />
 
-    <LLMFeedback id="bmod_h2_d2_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h2_d2_btn" label="Check my definition">
       <LLMAction id="bmod_h2_d2_llm" target="bmod_h2_d2_feedback"
                  equals="matches_chosen_type:defines_type,named_type:unclear"
-                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose:met/absent|add_or_remove:Says whether something is added or taken away@1|increase_or_decrease:Says whether the behavior increases or decreases@1|uncertain:Any judgement you were unsure about:no/yes">
+                 slots="defines_type:Which type this definition describes:PR/NR/PP/NP/unclear|named_type:Which type you chose:PR/NR/PP/NP/unclear|!matches_chosen_type:Definition matches the type you chose:met/absent|add_or_remove:Says whether something is added or taken away@1|increase_or_decrease:Says whether the behavior increases or decreases@1|uncertain:Any judgement I was unsure about:no/yes">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -1412,16 +1493,28 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
            total live on the sheet; this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h2_d2_grader" target="bmod_h2_d2_feedback" />
     </ActionButton>
+        <LLMFeedback id="bmod_h2_d2_feedback" />
+      </EndPane>
+    </SplitPanel>
+  </Vertical>
 
-    <Markdown id="bmod_h2_day2_label">**Daily example**</Markdown>
+  <Vertical id="bmod_h2_day2_screen" title="Daily example">
+    <SplitPanel id="bmod_h2_day2_feedback_split" sizes="50,50">
+      <StartPane>
+    <Markdown id="bmod_h2_day2_label">
+**Daily example of {{@bmod_h2_t2.value ? @bmod_h2_t2.value : "it"}}**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h2_day2" rows="3" />
 
-    <LLMFeedback id="bmod_h2_day2_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h2_day2_btn" label="Check my daily example">
       <LLMAction id="bmod_h2_day2_llm" target="bmod_h2_day2_feedback"
                  verdicts="yes,no,unclear"
                  equals="matches_chosen_type:observed_type,named_type:unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_daily:Checked each day rather than against the week:yes/no|matches_chosen_type:Matches your second chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_daily:Checked each day rather than against the week:yes/no|matches_chosen_type:Matches your second chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -1555,16 +1648,28 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
            total live on the sheet; this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h2_day2_grader" target="bmod_h2_day2_feedback" />
     </ActionButton>
+        <LLMFeedback id="bmod_h2_day2_feedback" />
+      </EndPane>
+    </SplitPanel>
+  </Vertical>
 
-    <Markdown id="bmod_h2_wk2_label">**Weekly example**</Markdown>
+  <Vertical id="bmod_h2_wk2_screen" title="Weekly example">
+    <SplitPanel id="bmod_h2_wk2_feedback_split" sizes="50,50">
+      <StartPane>
+    <Markdown id="bmod_h2_wk2_label">
+**Weekly example of {{@bmod_h2_t2.value ? @bmod_h2_t2.value : "it"}}**
+
+&nbsp;
+    </Markdown>
     <TextArea id="bmod_h2_wk2" rows="3" />
 
-    <LLMFeedback id="bmod_h2_wk2_feedback" />
+      </StartPane>
+      <EndPane>
     <ActionButton id="bmod_h2_wk2_btn" label="Check my weekly example">
       <LLMAction id="bmod_h2_wk2_llm" target="bmod_h2_wk2_feedback"
                  verdicts="yes,no,unclear"
                  equals="matches_chosen_type:observed_type,named_type:unclear"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_weekly:Checked against the week rather than each day:yes/no|matches_chosen_type:Matches your second chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement you were unsure about:no/yes"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on|!names_stimulus:Names what is added or taken away|!contingent:The consequence depends on that behavior|!follows_behavior:The consequence arrives after the behavior|!you_arrange_it:Something you arrange, not an automatic result|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none|avoidance_frame:Phrased directly rather than by what is avoided:no/yes|named_type:Which of the four you said you would use:PR/NR/PP/NP/unclear|!cadence_is_weekly:Checked against the week rather than each day:yes/no|matches_chosen_type:Matches your second chosen type:yes/no@2|targets_own_behavior:Aimed at your own target or goal behavior:yes/no@1|consequence_asserted:The consequence is asserted to follow from the behavior:yes/no@1|uncertain:Any judgement I was unsure about:no/yes"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -1698,46 +1803,56 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
            total live on the sheet; this block only does the arithmetic. -->
       <SlotSheetGrader id="bmod_h2_wk2_grader" target="bmod_h2_wk2_feedback" />
     </ActionButton>
+        <LLMFeedback id="bmod_h2_wk2_feedback" />
+      </EndPane>
+    </SplitPanel>
   </Vertical>
 
   <!-- ============= Screen: Review ========================================= -->
 
   <Vertical id="bmod_h2_review" title="Review and submit">
-    <Markdown id="bmod_h2_submission">
+    <Markdown id="bmod_h2_review_text">
 ## Your Handout 2
-
-### Examples of each type
-**Positive Reinforcement:** {{@bmod_h2_pr.value}}
-
-**Negative Reinforcement:** {{@bmod_h2_nr.value}}
-
-**Positive Punishment:** {{@bmod_h2_pp.value}}
-
-**Negative Punishment:** {{@bmod_h2_np.value}}
-
-### First type: {{@bmod_h2_t1.value}}
-**Definition:** {{@bmod_h2_d1.value}}
-
-**Daily:** {{@bmod_h2_day1.value}}
-
-**Weekly:** {{@bmod_h2_wk1.value}}
-
-### Second type: {{@bmod_h2_t2.value}}
-**Definition:** {{@bmod_h2_d2.value}}
-
-**Daily:** {{@bmod_h2_day2.value}}
-
-**Weekly:** {{@bmod_h2_wk2.value}}
     </Markdown>
 
+    <IntakeGate id="bmod_h2_gate" ready="@bmod_h2_pr_feedback.value &amp;&amp; @bmod_h2_nr_feedback.value &amp;&amp; @bmod_h2_pp_feedback.value &amp;&amp; @bmod_h2_np_feedback.value &amp;&amp; @bmod_h2_d1_feedback.value &amp;&amp; @bmod_h2_day1_feedback.value &amp;&amp; @bmod_h2_wk1_feedback.value &amp;&amp; @bmod_h2_d2_feedback.value &amp;&amp; @bmod_h2_day2_feedback.value &amp;&amp; @bmod_h2_wk2_feedback.value">
+      <Vertical id="bmod_h2_gate_wait">
+        <Markdown id="bmod_h2_gate_msg">
+**Your assignment will not be complete until you have checked all of your answers and reviewed the AI feedback provided.**
+        </Markdown>
+      </Vertical>
+      <Vertical id="bmod_h2_gate_done">
+    <ActionButton id="bmod_h2_print_btn" label="Submit here then save to PDF to submit to my LMS"
+                  ignoreSubmitLock="true">
+      <!-- Freezes the whole handout: every input goes read-only and every
+           other button greys out. Set BEFORE printing, so the freeze sticks
+           even if the student cancels the print dialog. -->
+      <SetFieldAction id="bmod_h2_print_btn_submit" target="bmod_handout2" field="submitted" value="true" />
+      <PrintAction id="bmod_h2_print" />
+    </ActionButton>
+    <ScoreTable id="bmod_h2_scores"
+                items="bmod_h2_pr_llm:Positive Reinforcement example|bmod_h2_nr_llm:Negative Reinforcement example|bmod_h2_pp_llm:Positive Punishment example|bmod_h2_np_llm:Negative Punishment example|bmod_h2_t1_checks:First type chosen|bmod_h2_d1_llm:First type: definition|bmod_h2_day1_llm:First type: daily example|bmod_h2_wk1_llm:First type: weekly example|bmod_h2_t2_checks:Second type chosen|bmod_h2_d2_llm:Second type: definition|bmod_h2_day2_llm:Second type: daily example|bmod_h2_wk2_llm:Second type: weekly example" />
+    <Markdown id="bmod_h2_submission">
+### Examples of each type
+**Positive Reinforcement:** {{@bmod_h2_pr.value}}
+**Negative Reinforcement:** {{@bmod_h2_nr.value}}
+**Positive Punishment:** {{@bmod_h2_pp.value}}
+**Negative Punishment:** {{@bmod_h2_np.value}}
+### First type: {{@bmod_h2_t1.value}}
+**Definition:** {{@bmod_h2_d1.value}}
+**Daily:** {{@bmod_h2_day1.value}}
+**Weekly:** {{@bmod_h2_wk1.value}}
+### Second type: {{@bmod_h2_t2.value}}
+**Definition:** {{@bmod_h2_d2.value}}
+**Daily:** {{@bmod_h2_day2.value}}
+**Weekly:** {{@bmod_h2_wk2.value}}
+    </Markdown>
     <Markdown id="bmod_h2_next">
 Start collecting your **baseline** data now. You will need one week of baseline
 plus three weeks of intervention data for Handout 3.
     </Markdown>
-
-    <ActionButton id="bmod_h2_print_btn" label="Print or save as PDF">
-      <PrintAction id="bmod_h2_print" />
-    </ActionButton>
+      </Vertical>
+    </IntakeGate>
   </Vertical>
 
 </Sequential>
