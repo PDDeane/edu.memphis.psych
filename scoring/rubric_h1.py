@@ -977,11 +977,12 @@ ITEMS: list[dict] = [
                 # a scored slot even if that were wanted. Unscored is also the
                 # right answer on the evidence: the graders left the score at full
                 # and wrote a note.
-                "what": "thin_reason",
+                "what": "reasons_substantial",
                 "reported": True,
-                "verdicts": ["no", "yes"],
-                "desc": "Whether either reason is PRESENT but weak — reported so "
-                        "it can be said in the feedback, never deducted",
+                "verdicts": ["met", "absent"],
+                "desc": "Whether both reasons are substantial — `absent` reports "
+                        "a present-but-weak reason so it can be said in the "
+                        "feedback, never deducted",
             },
         ],
         "deductions": [
