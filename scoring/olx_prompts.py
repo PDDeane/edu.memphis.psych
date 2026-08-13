@@ -1004,10 +1004,11 @@ SLOT_NOTES = {
     "observed_type": "criterion 6 (`observed_type`) — which of the four it ACTUALLY is, "
                      "independently of what the student called it. The first option listed "
                      "is the type this item asks for",
-    "avoidance_frame": "criterion 7 (`avoidance_frame`) — `yes` when the contingency is phrased "
-                       "by what is AVOIDED, `no` when it is phrased directly. Never changes a "
-                       "verdict; it earns a comment on phrasing. It is the ONLY check that "
-                       "judges this phrasing: no other check may fail an answer for it",
+    "phrased_directly": "criterion 7 (the CLI calls this input `avoidance_frame`) — `absent` "
+                        "when the contingency is phrased by what is AVOIDED, `met` when it is "
+                        "phrased directly. Never changes a verdict; it earns a comment on "
+                        "phrasing. It is the ONLY check that judges this phrasing: no other "
+                        "check may fail an answer for it",
     # These two carry the SECOND half of WRONG_TYPE. The rubric charges that code
     # once, for either cause: an example of the wrong type, OR the right type
     # aimed at the wrong behaviour (score.py:derive_oc_ledger uses `elif`, so at
@@ -1125,14 +1126,14 @@ SLOT_NOTES = {
         "when there is no second entry at all. `not_reason` when there IS a second, "
         "distinct entry but it is not a reason for CONTINUING — an EFFECT of the "
         "behaviour rather than a payoff from it. When it is present, distinct and a "
-        "real payoff but merely thin, that is `met` plus `thin_reason`",
-    "thin_reason":
-        "`yes` when a reason is PRESENT but weak — thin, vague, or barely "
+        "real payoff but merely thin, that is `met` plus `reasons_substantial: absent`",
+    "reasons_substantial":
+        "`absent` when a reason is PRESENT but weak — thin, vague, or barely "
         "explained. This costs NOTHING; it exists so you can say it in the "
-        "feedback instead of reaching for `not_reason`. \"{{corpus:Q5/p9:second:0:17:sha=a7a7b2017ea2:shape=R17-0-20}}"
+        "feedback instead of reaching for `wrong_kind`. \"{{corpus:Q5/p9:second:0:17:sha=a7a7b2017ea2:shape=R17-0-20}}"
         "{{corpus:Q5/p9:second:18:67:sha=a5c01e2ecb08:shape=A18}} health\" is thin and "
         "the graders left it at FULL marks with a written note. Reserve "
-        "`not_reason` for a statement that is not a reason for CONTINUING at all "
+        "`wrong_kind` for a statement that is not a reason for CONTINUING at all "
         "— most often an EFFECT of the behaviour wearing a reason's clothes, like "
         "\"{{corpus:Q5/p4:second:31:83:sha=342a4d43bd2e:shape=A44}} tired\", which is "
         "what the behaviour causes rather than what the student gets out of it",

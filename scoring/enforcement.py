@@ -73,6 +73,10 @@ _TYPE_FIELDS = ("observed_type", "named_type")
 # an unmapped key is REPORTED, never assumed equivalent.
 ALIAS = {
     "behavior": "names_behavior",
+    # The web renamed this to say the good state, and inverted it to match the
+    # rest of the vocabulary: `met` is phrased directly. The CLI input keeps the
+    # old name and its boolean sense (True = phrased by what is avoided).
+    "avoidance_frame": "phrased_directly",
     "stimulus": "names_stimulus",
     "stimulus_is_arranged": "you_arrange_it",
     "targets_intended_behavior": ("targets_goal_behavior", "targets_unwanted_behavior"),
