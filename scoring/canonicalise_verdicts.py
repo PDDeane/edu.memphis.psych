@@ -96,8 +96,15 @@ def split_slot(entry: str):
     return raw_key.lstrip("!"), raw_key.startswith("!"), label, opts, pts
 
 
+def is_count(opts: list[str]) -> bool:
+    """A verdict list that is really a measurement: every option a digit."""
+    return len(opts) > 1 and all(o.isdigit() for o in opts)
+
+
 def rename_options(key: str, opts: list[str]) -> tuple[str, str | None, list[str]]:
     """New (key, label-or-None, options) for a slot."""
+    if is_count(opts):
+        return key, None, list(opts)          # handled by the count branch
     # 2. A backwards-written check, if its replacement wording is settled.
     if opts and opts[0] == "no":
         if key not in INVERTED:
@@ -152,21 +159,27 @@ def process(src: str) -> tuple[str, list[str], list[str]]:
                 problems.append(f"{blk}.{key}: option count {len(opts)} -> {len(new_opts)}")
             if new_opts and opts and new_opts[0] != rename_options(key, [opts[0]])[2][0]:
                 problems.append(f"{blk}.{key}: satisfied value moved")
-            if new_opts != opts and new_opts[0] != MET:
+            if new_opts != opts and not is_count(opts) and new_opts[0] != MET:
                 problems.append(f"{blk}.{key}: renamed but not satisfied-by met "
                                 f"({'/'.join(new_opts)})")
 
             if opts and opts[0] == "no" and key not in INVERTED:
                 deferred.add(f"{key} ({'/'.join(opts)}) — {label}")
-            if new_opts == opts and new_key == key:
+            if new_opts == opts and new_key == key and not is_count(opts):
                 pieces.append(entry)                       # untouched
                 continue
 
-            tail = concise(new_opts)
+            if is_count(opts):
+                # 3/2/1/0, 2/1/0 and 0/1/2/3 all mean 0..max; the direction they
+                # were written in never meant anything the engine read.
+                tail = f"count({max(int(o) for o in opts)})"
+            else:
+                tail = concise(new_opts)
             bang = "!" if gates else ""
             pieces.append(f"{bang}{new_key}:{new_label or label}"
                           + (f":{tail}" if tail else "") + pts)
-            notes.append(f"  {blk}.{key}: {'/'.join(opts)} -> {'/'.join(new_opts)}"
+            notes.append(f"  {blk}.{key}: {'/'.join(opts)} -> "
+                         f"{tail if is_count(opts) else '/'.join(new_opts)}"
                          + (f"  (key -> {new_key})" if new_key != key else ""))
 
         new_slots = "|".join(pieces)
