@@ -669,7 +669,7 @@ account of something that did not work is worth exactly as much as a success.
       <EndPane>
     <ActionButton id="bmod_h3_success_btn" label="Check my answer">
       <LLMAction id="bmod_h3_success_llm" target="bmod_h3_success_feedback"
-                 slots="verdict:States whether the plan worked:unclear@2|hows_given:How many separate explanations of HOW you give:2/1/0|how_1:First explanation of how:unclear@2|how_2:Second explanation of how:unclear@2|confident:All judgments confident"
+                 slots="verdict:States whether the plan worked:unclear@2|hows_given:How many separate explanations of HOW you give:count(2)|how_1:First explanation of how:unclear@2|how_2:Second explanation of how:unclear@2|confident:All judgments confident"
                  counts="hows_given:how_1,how_2">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -738,7 +738,7 @@ check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
 - `verdict` — `met`/`absent`/`unclear`: States whether the plan was successful
-- `hows_given` — `2`/`1`/`0`: HOW MANY separate pieces of explanation of HOW the plan succeeded or failed the response gives — count CONTENT, not sentences: one compound sentence that states the outcome and explains it can carry two. Ignore any stretch that does not bear on how the plan succeeded or failed. Answer 2 for two or more
+- `hows_given` — a NUMBER from 0 to 2 (how many, not a judgement): HOW MANY separate pieces of explanation of HOW the plan succeeded or failed the response gives — count CONTENT, not sentences: one compound sentence that states the outcome and explains it can carry two. Ignore any stretch that does not bear on how the plan succeeded or failed. Answer 2 for two or more
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `how_1`, `how_2` individually. Answer `hows_given` — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.
@@ -801,7 +801,7 @@ The two types of operant conditioning you planned to use:
       <EndPane>
     <ActionButton id="bmod_h3_assessment_btn" label="Check my assessment">
       <LLMAction id="bmod_h3_assessment_llm" target="bmod_h3_assessment_feedback"
-                 slots="sentences_given:How many substantive assessment sentences you give:3/2/1/0|sentence_1:First substantive assessment sentence:unclear@2|sentence_2:Second substantive sentence:unclear@2|sentence_3:Third substantive sentence:unclear@2|confident:All judgments confident"
+                 slots="sentences_given:How many substantive assessment sentences you give:count(3)|sentence_1:First substantive assessment sentence:unclear@2|sentence_2:Second substantive sentence:unclear@2|sentence_3:Third substantive sentence:unclear@2|confident:All judgments confident"
                  counts="sentences_given:sentence_1,sentence_2,sentence_3"
                  showChecks="false">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
@@ -867,7 +867,7 @@ Return a verdict for EVERY one of these, in this order, BEFORE you write
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
-- `sentences_given` — `3`/`2`/`1`/`0`: HOW MANY substantive sentences about the intervention the response gives — count generously: sentences about what worked, what did not, and how the student executed the plan all count, and quality of insight is not judged. Answer 3 for three or more
+- `sentences_given` — a NUMBER from 0 to 3 (how many, not a judgement): HOW MANY substantive sentences about the intervention the response gives — count generously: sentences about what worked, what did not, and how the student executed the plan all count, and quality of insight is not judged. Answer 3 for three or more
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `sentence_1`, `sentence_2`, `sentence_3` individually. Answer `sentences_given` — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.
@@ -925,7 +925,7 @@ is not an acceptable answer.
       <EndPane>
     <ActionButton id="bmod_h3_improve_btn" label="Check my answer">
       <LLMAction id="bmod_h3_improve_llm" target="bmod_h3_improve_feedback"
-                 slots="changes_given:How many distinct changes you propose:2/1/0|example_1:First specific change:unclear@3|example_2:Second, different change:unclear@3|confident:All judgments confident"
+                 slots="changes_given:How many distinct changes you propose:count(2)|example_1:First specific change:unclear@3|example_2:Second, different change:unclear@3|confident:All judgments confident"
                  counts="changes_given:example_1,example_2"
                  showChecks="false">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
@@ -991,7 +991,7 @@ Return a verdict for EVERY one of these, in this order, BEFORE you write
 check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
-- `changes_given` — `2`/`1`/`0`: HOW MANY DISTINCT changes the response proposes — count generously: a change to the reinforcer and a change to the schedule are two even in one sentence, and any concrete alternative counts without justification or feasibility. A statement that nothing needs changing counts as none. Answer 2 for two or more
+- `changes_given` — a NUMBER from 0 to 2 (how many, not a judgement): HOW MANY DISTINCT changes the response proposes — count generously: a change to the reinforcer and a change to the schedule are two even in one sentence, and any concrete alternative counts without justification or feasibility. A statement that nothing needs changing counts as none. Answer 2 for two or more
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `example_1`, `example_2` individually. Answer `changes_given` — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.
