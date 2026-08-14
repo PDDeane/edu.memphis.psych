@@ -946,14 +946,25 @@ SLOT_NOTES = {
     "1a:week_3":
         "same question for the final stretch, same rule. \"{{corpus:1a/p6:response:385:413:sha=1f5741c8e47b:shape=R28-0-20}}"
         "{{corpus:1a/p6:response:414:450:sha=22497486f0b6}} upon\" covers it without a number",
+    # These four answer TWO things, in two fields. The verdict says whether an
+    # antecedent (or consequence) is named at all; `refers_to` says WHICH of the
+    # earlier item's two it is. They used to share one field, which is why the
+    # verdict list read `first/second/neither/absent` — a set of pointers where
+    # every other check has a judgement.
     'Q6:state_a1':
-        "which of 4a's two antecedents does this box name? `first`, `second`, `neither` if it is not one of them, `absent` if none is named",
+        "`met` if this box names an antecedent at all, `absent` if it names none. "
+        "Then set `refers_to` to WHICH of 4a's two it is — `first`, `second`, or "
+        "`none` if it is neither of them",
     'Q6:state_a2':
-        'same question for the other box — `second` is the expected answer but `first` is credited too if that is what it names, because the grader pairs them',
+        'same for the other box. `second` is the expected `refers_to` but `first` '
+        'is credited too if that is what it names, because the grader pairs them',
     'Q6:state_c1':
-        "which of 4c's two consequences does this box name? `first`, `second`, `neither` if it is not one of them, `absent` if none is named",
+        "`met` if this box names a consequence at all, `absent` if it names none. "
+        "Then set `refers_to` to WHICH of 4c's two it is — `first`, `second`, or "
+        "`none` if it is neither of them",
     'Q6:state_c2':
-        "same question for the other box — either label is credited; the grader checks that between the two boxes both of 4c's consequences are named",
+        "same for the other box — either label is credited; the grader checks that "
+        "between the two boxes both of 4c's consequences are named",
     "1c:legend":
         "the NO_LEGEND test. `met` when the series names name all four plotted "
         "periods — the baseline and the three intervention weeks — in any reasonable "
