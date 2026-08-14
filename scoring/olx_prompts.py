@@ -505,18 +505,23 @@ OMIT_DEDUCTION: dict[str, dict[str, str]] = {}
 # ---------------------------------------------------------------------------
 
 SCORING_DIVERGENCES = [
-    dict(items=["Q1"], what="`utb_stated` is read from the UTB choice, not the prose",
-         necessary=True, web_computes={"Q1": ["utb_stated"]},
-         why="on paper the prose is the only place the target is named, so the CLI "
-             "judges it there. The web asks 'Which behavior will you work on?' as a "
-             "closed ChoiceInput BEFORE the box, so the target is already stated "
-             "unambiguously; requiring the prose to also declare it would score "
-             "rhetorical form for a fact the interface holds, and it is the one rule "
-             "the graders applied inconsistently (p17 kept the points, p20 lost them, "
-             "on materially identical answers). Derived as `present` over the choice "
-             "field, so UTB_NOT_STATED stays REACHABLE — a student who skips the "
-             "selection loses the 2 points, which also closes the robustness gap "
-             "where an unselected UTB was absorbed silently."),
+    dict(items=["Q1"], what="a no-penalty check compares the prose against the UTB choice",
+         necessary=False,
+         why="the web asks 'Which behavior will you work on?' as a closed ChoiceInput "
+             "before the box, which the paper version has no equivalent of. But "
+             "`utb_stated` is still ASKED of the model on BOTH sides — the prose has to "
+             "name the target, and UTB_NOT_STATED costs the same 2 points for the same "
+             "reason — so the scoring does not diverge. What the web adds is "
+             "`matches_selected`, an UNSCORED check reporting whether the prose names "
+             "the same behaviour the student selected, shown first in the feedback. It "
+             "carries no points precisely so a mismatch prompts a rewording rather than "
+             "charging twice for one fact. "
+             "THIS ENTRY USED TO DECLARE THE OPPOSITE: that the web read utb_stated "
+             "from the choice and derived it, so the prose need not state it. That was "
+             "never implemented here — no version of the content back to the initial "
+             "import carries a `derived` rule for it — and the design was later settled "
+             "the other way. The audit had been reporting the declaration as stale ever "
+             "since; it was describing an intention, not the sheet."),
 
     {
         "items": ["1b"],
