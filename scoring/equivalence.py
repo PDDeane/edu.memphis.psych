@@ -495,15 +495,35 @@ def enforcement_audit():
             findings.append((item, "COVER DIFFERS",
                              f"CLI {c['cover'] or 'none'} vs web {w['cover'] or 'none'}"))
 
-        # 1b. the verdict vocabulary a grouped slot accepts, now that the CLI
-        #     states it too. Collapsing the CLI's identity onto the verdict is
-        #     only a real convergence if the accepted values agree.
+        # 1b. the vocabulary a grouped slot accepts.
+        #
+        #     The CLI puts the whole thing in one field: `first`, `second`,
+        #     `neither`, `absent`. The web now SPLITS it — `verdict` says whether
+        #     a thing was named at all, `refers_to` says which of the list it is
+        #     — so a value-for-value comparison of the verdict options reports a
+        #     difference on every grouped slot and means nothing.
+        #
+        #     What still has to hold is that the web can express every
+        #     distinction the CLI draws, so the CLI's vocabulary is mapped onto
+        #     the split and required to be covered: `neither` is `refers_to:
+        #     none`, `absent` is `verdict: absent`, and the rest are cover
+        #     labels. A web slot that dropped one of them still fails here.
         wopts = {s["key"]: s["options"] for s in w["scored"] if "options" in s}
+        wlabels = {}
+        for grp in (w["cover"] or []):
+            for k in grp.get("keys", []):
+                wlabels[k] = list(grp.get("labels", []))
         for k, vocab in (c.get("cover_vocab") or {}).items():
             got = wopts.get(k)
-            if got is not None and list(got) != list(vocab):
+            if got is None:
+                continue
+            expressible = set(got) | set(wlabels.get(k, [])) | ({"none"} if k in wlabels else set())
+            missing = [v for v in vocab
+                       if ("none" if v == "neither" else v) not in expressible]
+            if missing:
                 findings.append((item, "COVER VOCAB DIFFERS",
-                                 f"`{k}`: CLI {vocab} vs web {list(got)}"))
+                                 f"`{k}`: CLI {vocab} — the web cannot express {missing} "
+                                 f"(verdict {list(got)}, refers_to {wlabels.get(k, [])})"))
 
         # 2. computed — a check the web derives must not be a CLI model input.
         # Guarded PER KEY, not per item: an item-level exemption would silence this

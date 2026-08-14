@@ -353,8 +353,8 @@ Each should be something you could actually use on your own behavior.
       <EndPane>
     <ActionButton id="bmod_h2_pr_btn" label="Check my Positive Reinforcement example">
       <LLMAction id="bmod_h2_pr_llm" target="bmod_h2_pr_feedback"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|observed_type:Which of the four types this actually is:PR/NR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior@2|phrased_directly:Phrased directly rather than by what is avoided|confident:All judgments confident"
-                 onlyif="targets_goal_behavior:observed_type"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|demonstrates_type:Your example demonstrates Positive Reinforcement:wrong_kind@2|targets_goal_behavior:Aimed at increasing your goal behavior@2|phrased_directly:Phrased directly rather than by what is avoided|confident:All judgments confident"
+                 onlyif="targets_goal_behavior:demonstrates_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -444,7 +444,7 @@ says the check reports an identity rather than a judgement.
 - `contingent` **GATE** — `met`/`absent`/`unclear`: criterion 3 (`contingent`)
 - `follows_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 4 (`follows_behavior`)
 - `you_arrange_it` **GATE** — `met`/`absent`/`unclear`: criterion 5 (`stimulus_is_arranged`)
-- `observed_type` — `PR`/`NR`/`PP`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
+- `demonstrates_type` — `met`/`absent`/`wrong_kind`: criterion 6 (the CLI calls this input `observed_type`) — `met` when the example really is the type THIS screen asks for, judged from the contingency and not from what the student called it. `wrong_kind` when it is a different one of the four — say WHICH in your note, since that is the thing the student has to fix. `absent` when there is no usable example to classify
 - `targets_goal_behavior` — `met`/`absent`: is the plan aimed at INCREASING their wanted goal behavior, rather than reinforcing the unwanted one? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
 - `phrased_directly` — `met`/`absent`: criterion 7 (the CLI calls this input `avoidance_frame`) — `absent` when the contingency is phrased by what is AVOIDED, `met` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
@@ -486,8 +486,8 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
       <EndPane>
     <ActionButton id="bmod_h2_nr_btn" label="Check my Negative Reinforcement example">
       <LLMAction id="bmod_h2_nr_llm" target="bmod_h2_nr_feedback"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|observed_type:Which of the four types this actually is:NR/PR/PP/NP/none@2|targets_goal_behavior:Aimed at increasing your goal behavior@2|phrased_directly:Phrased directly rather than by what is avoided|confident:All judgments confident"
-                 onlyif="targets_goal_behavior:observed_type"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|demonstrates_type:Your example demonstrates Negative Reinforcement:wrong_kind@2|targets_goal_behavior:Aimed at increasing your goal behavior@2|phrased_directly:Phrased directly rather than by what is avoided|confident:All judgments confident"
+                 onlyif="targets_goal_behavior:demonstrates_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -577,7 +577,7 @@ says the check reports an identity rather than a judgement.
 - `contingent` **GATE** — `met`/`absent`/`unclear`: criterion 3 (`contingent`)
 - `follows_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 4 (`follows_behavior`)
 - `you_arrange_it` **GATE** — `met`/`absent`/`unclear`: criterion 5 (`stimulus_is_arranged`)
-- `observed_type` — `NR`/`PR`/`PP`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
+- `demonstrates_type` — `met`/`absent`/`wrong_kind`: criterion 6 (the CLI calls this input `observed_type`) — `met` when the example really is the type THIS screen asks for, judged from the contingency and not from what the student called it. `wrong_kind` when it is a different one of the four — say WHICH in your note, since that is the thing the student has to fix. `absent` when there is no usable example to classify
 - `targets_goal_behavior` — `met`/`absent`: is the plan aimed at INCREASING their wanted goal behavior, rather than reinforcing the unwanted one? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
 - `phrased_directly` — `met`/`absent`: criterion 7 (the CLI calls this input `avoidance_frame`) — `absent` when the contingency is phrased by what is AVOIDED, `met` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
@@ -619,8 +619,8 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
       <EndPane>
     <ActionButton id="bmod_h2_pp_btn" label="Check my Positive Punishment example">
       <LLMAction id="bmod_h2_pp_llm" target="bmod_h2_pp_feedback"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|observed_type:Which of the four types this actually is:PP/PR/NR/NP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior@2|phrased_directly:Phrased directly rather than by what is avoided|confident:All judgments confident"
-                 onlyif="targets_unwanted_behavior:observed_type"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|demonstrates_type:Your example demonstrates Positive Punishment:wrong_kind@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior@2|phrased_directly:Phrased directly rather than by what is avoided|confident:All judgments confident"
+                 onlyif="targets_unwanted_behavior:demonstrates_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -710,7 +710,7 @@ says the check reports an identity rather than a judgement.
 - `contingent` **GATE** — `met`/`absent`/`unclear`: criterion 3 (`contingent`)
 - `follows_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 4 (`follows_behavior`)
 - `you_arrange_it` **GATE** — `met`/`absent`/`unclear`: criterion 5 (`stimulus_is_arranged`)
-- `observed_type` — `PP`/`PR`/`NR`/`NP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
+- `demonstrates_type` — `met`/`absent`/`wrong_kind`: criterion 6 (the CLI calls this input `observed_type`) — `met` when the example really is the type THIS screen asks for, judged from the contingency and not from what the student called it. `wrong_kind` when it is a different one of the four — say WHICH in your note, since that is the thing the student has to fix. `absent` when there is no usable example to classify
 - `targets_unwanted_behavior` — `met`/`absent`: is the plan aimed at DECREASING their unwanted target behavior, rather than the wrong behaviour? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
 - `phrased_directly` — `met`/`absent`: criterion 7 (the CLI calls this input `avoidance_frame`) — `absent` when the contingency is phrased by what is AVOIDED, `met` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
@@ -752,8 +752,8 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
       <EndPane>
     <ActionButton id="bmod_h2_np_btn" label="Check my Negative Punishment example">
       <LLMAction id="bmod_h2_np_llm" target="bmod_h2_np_feedback"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|observed_type:Which of the four types this actually is:NP/PR/NR/PP/none@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior@2|phrased_directly:Phrased directly rather than by what is avoided|confident:All judgments confident"
-                 onlyif="targets_unwanted_behavior:observed_type"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|demonstrates_type:Your example demonstrates Negative Punishment:wrong_kind@2|targets_unwanted_behavior:Aimed at decreasing your unwanted behavior@2|phrased_directly:Phrased directly rather than by what is avoided|confident:All judgments confident"
+                 onlyif="targets_unwanted_behavior:demonstrates_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -843,7 +843,7 @@ says the check reports an identity rather than a judgement.
 - `contingent` **GATE** — `met`/`absent`/`unclear`: criterion 3 (`contingent`)
 - `follows_behavior` **GATE** — `met`/`absent`/`unclear`: criterion 4 (`follows_behavior`)
 - `you_arrange_it` **GATE** — `met`/`absent`/`unclear`: criterion 5 (`stimulus_is_arranged`)
-- `observed_type` — `NP`/`PR`/`NR`/`PP`/`none`: criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. The first option listed is the type this item asks for
+- `demonstrates_type` — `met`/`absent`/`wrong_kind`: criterion 6 (the CLI calls this input `observed_type`) — `met` when the example really is the type THIS screen asks for, judged from the contingency and not from what the student called it. `wrong_kind` when it is a different one of the four — say WHICH in your note, since that is the thing the student has to fix. `absent` when there is no usable example to classify
 - `targets_unwanted_behavior` — `met`/`absent`: is the plan aimed at DECREASING their unwanted target behavior, rather than the wrong behaviour? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
 - `phrased_directly` — `met`/`absent`: criterion 7 (the CLI calls this input `avoidance_frame`) — `absent` when the contingency is phrased by what is AVOIDED, `met` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
