@@ -64,6 +64,7 @@ import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import olx_prompts
 import simulate_h3
 from handouts import (config, exemplar_drops, find_submissions, gold_ceiling,
                       suspect)
@@ -85,7 +86,7 @@ with open(PRIMITIVES_JSON) as _fh:
 # without asking the model. A schema-excluding primitive missing from here would
 # be silently left in the schema, which is the exact failure this file is being
 # fixed for — so it raises instead.
-COMPUTABLE = {"counts", "equals", "derived"}
+COMPUTABLE = {"counts", "equals", "derived", "expect"}
 LO_ENDPOINT = "http://localhost:8888/api/llm/chat/completions"
 
 # A ref whose paper text has already been shown under an earlier ref in the
@@ -265,6 +266,12 @@ def load_action(olx_file: str, action_id: str) -> dict:
             "equals": parse_equals(open_tag),
             "derived": parse_derived(open_tag),
             "cover": parse_cover(open_tag),
+            # `expect` compares a pick against an authored value, so apply_computed
+            # cannot fill it without the rule, and the schema cannot offer the pick
+            # its category list without `choices`. Both were missing here, which
+            # made the expect branch below dead code in the real harness.
+            "choices": olx_prompts.parse_choices(_attr(open_tag, "choices")),
+            "expect": olx_prompts.parse_expect(_attr(open_tag, "expect")),
             "excluded": excluded_keys(open_tag),
             # The runtime keys per-check notes and the display guidance off this,
             # so a harness that ignores it measures a different prompt and a
@@ -333,6 +340,12 @@ def parse_equals(open_tag: str) -> list[dict]:
     return out
 
 
+def _attr(open_tag: str, name: str) -> str | None:
+    """One attribute's raw value off an opening tag, or None."""
+    m = re.search(rf'{name}="([^"]*)"', open_tag, re.S)
+    return m.group(1) if m else None
+
+
 def parse_cover(open_tag: str) -> list[dict]:
     """`cover="keyA,keyB:labelA,labelB"`, '|'-separated.
 
@@ -381,10 +394,15 @@ def _nums(text: str) -> list[float]:
 
 
 def apply_computed(action: dict, checks: dict, fixture: dict) -> dict:
-    """Fill the checks the web computes, in the web's order: derived, then equals.
+    """Fill the checks the web computes: derived, then equals, then expect.
 
-    `equals` reads other checks, so it runs last — and it must tolerate an
-    operand the model left blank, which is what `lenient` is for.
+    `equals` and `expect` read other checks, so they run last — and both must
+    tolerate an operand the model left blank, which is what `lenient` is for.
+
+    `expect` is the one-sided form: it compares a CLASSIFICATION against a value
+    the item authored, where `equals` compares two classifications. A
+    classification answers `refers_to`, so read that in preference to `verdict`,
+    the same way satisfiedMap does.
     """
     by_key = {s["key"]: s for s in action["slots"]}
     opts = lambda k: (by_key.get(k) or {}).get("options") or ["met", "absent"]
@@ -433,39 +451,31 @@ def apply_computed(action: dict, checks: dict, fixture: dict) -> dict:
             "verdict": o[0] if ok else (o[1] if len(o) > 1 else "no"),
             "evidence": f"{rule['left']}={left or '?'}, {rule['right']}={right or '?'}",
         }
+
+    for rule in action.get("expect", []):
+        entry = checks.get(rule["left"]) or {}
+        got = str(entry.get("refers_to") or entry.get("verdict") or "").strip()
+        ok = got in rule["lenient"] or (bool(got) and got == rule["value"])
+        o = opts(rule["key"])
+        checks[rule["key"]] = {
+            "verdict": o[0] if ok else (o[1] if len(o) > 1 else "no"),
+            "evidence": f"{rule['left']}={got or '?'}, wanted {rule['value']}",
+        }
     return checks
 
 
 def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
-    """Same grammar as lib/llm/slotSheet.ts: key:Label[:o1/o2][@pts], '|'-separated.
+    """The slot grammar, from olx_prompts — deliberately not a fourth copy.
 
-    The `@pts` suffix comes off the END first, exactly as parseSlots() does it.
-    This did not, so a slot written `matches_chosen_type:...:yes/no@2` parsed its
-    options as ["yes", "no@2"] — and those options ARE the schema's enum, so the
-    model was offered `"no@2"` as the legal way to say no on 35 slots across ten
-    items. Scoring only ever tested "is it the first option", which is why it
-    stayed invisible.
+    This used to reimplement it, and drifted exactly the way this project's
+    other hand-kept mirrors have. The filter read `len(opts) > 1`, so a slot
+    whose answer is not a verdict list — `pick(operant_or_none)`, `count(3)` —
+    parsed to zero options and was DROPPED. Sixteen picks and nine counts of
+    real authored content vanished from the schema this harness sends, while
+    the prompt beside it went on asking for them. The prompt audit could not
+    see it: it compares TEXT, and a missing slot is a schema fact.
     """
-    out = []
-    for entry in (e.strip() for e in spec.split("|")):
-        if not entry:
-            continue
-        at = re.search(r"@(-?\d+(?:\.\d+)?)\s*$", entry)
-        if at:
-            entry = entry[:at.start()].strip()
-        parts = [p.strip() for p in entry.split(":")]
-        key = parts[0]
-        gates = key.startswith("!")
-        key = key[1:].strip() if gates else key
-        opts = parts[2].split("/") if len(parts) > 2 and parts[2] else defaults
-        opts = [o.strip() for o in opts if o.strip()]
-        if key and len(opts) > 1:
-            slot = {"key": key, "label": parts[1] if len(parts) > 1 else key,
-                    "options": opts, "gates": gates}
-            if at:
-                slot["pts"] = float(at.group(1))
-            out.append(slot)
-    return out
+    return olx_prompts.parse_slots(spec, defaults)
 
 
 def fixture_for(item: str, pid: int) -> dict[str, str]:
@@ -567,19 +577,34 @@ def _ts_literal(which: str, per_check_notes: bool = True) -> str:
     restore exactly the drift this removes.
     """
     ts = _ts_source()
-    if which == "note":
-        m = re.search(r"note:\s*\{.*?description:\s*\n?\s*(.*?),\n\s*\},", ts, re.S)
-    else:
+    if which == "feedback":
         m = re.search(r"feedback:\s*\{.*?description:\s*(.*?),\n\s*\},", ts, re.S)
+    elif which == "evidence":
+        # A ternary, like `feedback`. This was read as a plain literal and the
+        # regex simply did not match, so the description was never lifted at all
+        # — the harness hardcoded the SHORT arm and sent it even for items that
+        # show the checklist, where the web asks for a verbatim student quote
+        # the student will read. Two different instructions, invisible to an
+        # audit that compares prompt text.
+        m = re.search(r"evidence:\s*\{.*?description:\s*(.*?),\n\s*\},", ts, re.S)
+    else:
+        # Any named property: find it, then take the chain of string literals
+        # its `description` is built from. Matching on a closing brace instead
+        # tied this to one property's formatting — `count`'s description ends on
+        # the same line as its object, and could not be read at all.
+        m = re.search(
+            rf"\b{re.escape(which)}:\s*\{{.*?description:\s*\n?\s*"
+            r"((?:'(?:[^'\\]|\\.)*'\s*\+?\s*)+)", ts, re.S)
     if not m:
         raise SystemExit(f"could not read the `{which}` description from "
                          f"{paths.SLOTSHEET_TS} — the mirror in build_schema is stale")
     blob = m.group(1)
-    if which == "feedback":
+    if which in ("feedback", "evidence"):
         # `feedback` is a ternary on perCheckNotes: take the arm the web takes.
         arms = re.split(r"\n\s*:\s*", blob, maxsplit=1)
         blob = arms[0] if per_check_notes else (arms[1] if len(arms) > 1 else arms[0])
         blob = re.sub(r"^\s*perCheckNotes\s*\n?\s*\?", "", blob)
+        blob = re.sub(r"//[^\n]*", "", blob)   # arms carry comments; they are not text
     parts = re.findall(r"'((?:[^'\\]|\\.)*)'", blob)
     if not parts:
         raise SystemExit(f"no string literal in the `{which}` description")
@@ -587,7 +612,9 @@ def _ts_literal(which: str, per_check_notes: bool = True) -> str:
 
 
 def build_schema(slots: list[dict], exclude: set[str] = frozenset(),
-                 per_check_notes: bool = False) -> dict:
+                 per_check_notes: bool = False,
+                 cover: list[dict] | None = None,
+                 choices: dict[str, list[str]] | None = None) -> dict:
     """Mirror of buildSlotSchema() in lib/llm/slotSheet.ts.
 
     `exclude` is the keys a schema-excluding primitive answers, which the web
@@ -603,11 +630,47 @@ def build_schema(slots: list[dict], exclude: set[str] = frozenset(),
     registry lists four.
     """
     slots = [s for s in slots if s["key"] not in exclude]
+    # Which list a check chooses its answer from. A cover member picks from its
+    # group's labels plus "none"; a `pick` slot draws from its named set
+    # verbatim, because whether "none"/"unclear" belongs in that set is the
+    # item's decision, not the engine's.
+    refers_to_of: dict[str, list[str]] = {}
+    for g in (cover or []):
+        for k in g["keys"]:
+            refers_to_of[k] = [*g["labels"], "none"]
+    for s in slots:
+        if s.get("picks") and (choices or {}).get(s["picks"]):
+            refers_to_of[s["key"]] = list(choices[s["picks"]])
+
+    def _answer(s: dict) -> dict:
+        """The ONE field this check's kind answers.
+
+        A count answers a number, a pick answers only which category, and a
+        judgement answers a verdict. Sending all three would ask the model for
+        answers the web never requests and then discards.
+        """
+        if s.get("count_max") is not None:
+            return {"count": {"type": "integer", "minimum": 0,
+                              "maximum": s["count_max"],
+                              "description": _ts_literal("count")}}
+        if s.get("picks") is not None:
+            return {}
+        return {"verdict": {"type": "string", "enum": s["options"]}}
+
+    def _refers_to(s: dict) -> dict:
+        if s["key"] not in refers_to_of:
+            return {}
+        return {"refers_to": {
+            "type": "string", "enum": refers_to_of[s["key"]],
+            "description": _ts_literal("refers_to"),
+        }}
+
     props = {
         s["key"]: {
             "type": "object",
             "properties": {
-                "verdict": {"type": "string", "enum": s["options"]},
+                **_refers_to(s),
+                **_answer(s),
                 # The description is not decoration — it is instruction the web
                 # has been sending and this side has not, so the two have been
                 # asking the model for subtly different things. It matters most
@@ -619,12 +682,20 @@ def build_schema(slots: list[dict], exclude: set[str] = frozenset(),
                 # TEXT, and a schema is not text.
                 "evidence": {
                     "type": "string",
-                    "description": "Quote from the student, or what you looked "
-                                   "for and did not find",
+                    "description": _ts_literal("evidence", per_check_notes),
                 },
             },
-            "required": (["verdict", "evidence", "note"] if per_check_notes
-                         else ["verdict", "evidence"]),
+            # Every key in `properties`, or a strict provider rejects the whole
+            # request. The two lists are built from the same conditions on
+            # purpose: they drifted apart once already and every call 400'd.
+            "required": [
+                *(["count"] if s.get("count_max") is not None
+                  else [] if s.get("picks") is not None
+                  else ["verdict"]),
+                *(["refers_to"] if s["key"] in refers_to_of else []),
+                "evidence",
+                *(["note"] if per_check_notes else []),
+            ],
             "additionalProperties": False,
         }
         for s in slots
@@ -1162,7 +1233,8 @@ def measure_one(backend, handout: int, spec: dict, action_id: str, path: str, pi
     fixture = fixture_for(spec["item"], pid)
     prompt = build_prompt(action["body"], fixture) + checklist_guidance(action["show_checks"])
     raw = backend.complete(prompt, build_schema(action["slots"], action["excluded"],
-                                                action["show_checks"]))
+                                                action["show_checks"],
+                                                action["cover"], action["choices"]))
     checks = apply_computed(action, raw.get("checks") or {}, fixture)
 
     merged = dict(spec, slots=action["slots"], cover=action["cover"])

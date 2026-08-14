@@ -2198,6 +2198,63 @@ recovered by the re-run.
 
 Tuning is unblocked. Re-measure against this table, not against the 83%.
 
+## What the audits were not looking at
+
+Twenty enforcement findings and one schema divergence were standing open when
+the verdict standardisation was committed; the commit message said there were
+none. They are recorded here because each was invisible to the audit that
+should have caught it, and the reason differs every time.
+
+**`demonstrates_type` was asked and forbidden at once.** `_checklist_section`
+builds its skip set from `equals`, `derived` and `counts`. `expect` excludes
+keys from the schema exactly as `equals` does, and was never added, so the four
+example screens listed `demonstrates_type` as an answerable check *and* carried
+a "DO NOT ANSWER `demonstrates_type`" block about it. The model was told both
+things in one prompt. Four lines of generated checklist; regenerating removes
+them.
+
+**An alias resolved a deduction to a check that cannot charge.** `web_name`
+matched identity first and consulted `ALIAS` only on a miss. That was sound
+while a CLI key never named a web slot of a different kind — but since `pick`,
+`observed_type` names one on both sides, and on the web it is the
+classification, not the check carrying the cost. `demonstrates_type` is that
+check. The audit compared the CLI's charge-once pair against a web slot worth
+nothing and reported eight differences that were an artefact of its own lookup
+order. Aliases now win over identity, and the identity candidate is listed last.
+
+**The CLI dropped sixteen `pick` and nine `count` slots.** `agreement.py` kept
+its own copy of the slot grammar whose filter read `len(opts) > 1`. A slot whose
+answer is not a verdict list — `pick(operant_or_none)`, `count(3)` — resolves to
+zero options, so every one of them was discarded before the schema was built,
+while the prompt beside it went on asking for them. `--prompts` compares text
+and could not see it; the schema audit could not see it either, because it
+compared **one representative slot** on the stated grounds that "build_schema
+treats every slot the same way". That stopped being true the moment a slot's
+shape depended on its kind. The parser now delegates to `olx_prompts.parse_slots`
+rather than being a fourth copy, and the audit builds every sheet and checks
+that no declared property is unreachable across all of them.
+
+**`evidence` carried the wrong instruction on every item that shows a
+checklist.** Its description is a ternary on `perCheckNotes`, and the audit's
+literal-scraper only matched a `description:` followed directly by a quote — so
+it silently collected nothing for that field and compared nothing. The CLI had
+the short arm hardcoded and sent it always; the web sends a longer arm asking
+for a verbatim student quote wherever the student reads the checklist. Both arms
+are now lifted from the TypeScript, and the scraper reads ternary arms as
+alternatives.
+
+**`expect` was uncomputable by the harness.** `agreement.py` is the fifth
+consumer of `primitives.json` and the registry lists four. `apply_computed`
+gained an `expect` branch — one-sided, reading `refers_to` in preference to
+`verdict` the way `satisfiedMap` does — and `load_action` now parses the
+`choices` and `expect` attributes it had never read, without which that branch
+would have been dead code.
+
+None of these were caught by a type checker or by a passing test. Four of the
+five were caught by an audit only after another fix removed whatever was masking
+them, which is the argument for running the audits after every stage rather than
+at the end.
+
 ## Practical notes
 
 * One run per cell; ~30s per cell, so a full sweep is several hours. Verify a
