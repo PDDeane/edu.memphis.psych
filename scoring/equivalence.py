@@ -286,8 +286,58 @@ def schema_divergences():
     # does not see it — which is indistinguishable from the mirror being right.
     # Requiring `{` is what makes the looser indent safe: `type`, `enum` and
     # `description` are never followed by one.
-    want_props = _re.findall(r"^\s{8,14}(\w+): \{", slot_obj.group(1), _re.M) \
-        if slot_obj else []
+    def _props_block(lit):
+        """The text of the slot literal's own `properties: { ... }`.
+
+        Brace-matched rather than indent-matched: the names inside sit at
+        whatever depth a conditional spread puts them, and two of them —
+        `count` and `verdict` — are written mid-line inside a ternary, where a
+        line-anchored scan cannot see them at all. It could not, which is why
+        the audit believed a judgement slot's `verdict` was undeclared.
+        """
+        at = lit.find("properties: {")
+        if at < 0:
+            return ""
+        i = lit.index("{", at)
+        depth = 0
+        for j in range(i, len(lit)):
+            if lit[j] == "{":
+                depth += 1
+            elif lit[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    return lit[i + 1:j]
+        return lit[i + 1:]
+
+    _lit = slot_obj.group(1) if slot_obj else ""
+    _block = _props_block(_lit)
+    # A nested key is never followed by `{` — `type`, `enum`, `minimum` and
+    # `description` all take scalars — so this names exactly the properties.
+    _spans = [(m.group(1), m.start()) for m in _re.finditer(r"(\w+):\s*\{", _block)]
+    want_props = [n for n, _ in _spans]
+    # Where each declared property's own text begins and ends, so a description
+    # can be checked against the property it belongs to. The audit used to
+    # compare ONE representative slot against a flat list of every name in the
+    # literal, which was sound only while every slot had the same shape. It no
+    # longer does: a count answers `count`, a pick answers only `refers_to`, a
+    # judgement answers `verdict`. The flat comparison then demanded that a
+    # plain judgement carry the description of a field it must not have.
+    want_prop_descs = {}
+    for i, (name, at) in enumerate(_spans):
+        end = _spans[i + 1][1] if i + 1 < len(_spans) else len(_block)
+        seg = _block[at:end]
+        d = seg.find("description:")
+        if d < 0:
+            continue
+        # Each maximal run of adjacent '...' + '...' literals after the
+        # `description:`. A ternary yields one run per arm — alternatives, so
+        # carrying either satisfies the check.
+        want_prop_descs[name] = [
+            " ".join("".join(_re.findall(r"'((?:[^'\\]|\\.)*)'", run.group(0))).split())
+            for run in _re.finditer(
+                r"(?:'(?:[^'\\]|\\.)*'\s*\+\s*)*'(?:[^'\\]|\\.)*'",
+                _re.sub(r"//[^\n]*", "", seg[d:]))
+        ]
     # (b) the description literals, located rather than collected. Scoped by level
     # so a description can be checked WHERE it belongs: a bag-of-descriptions
     # comparison passes when one slot loses its own and a sibling still has it,
@@ -313,33 +363,64 @@ def schema_divergences():
     # bare literal. It did — a ternary on perCheckNotes made this report the slot
     # list as ['checks', 'feedback'], a phantom exactly like the one the comment
     # above describes.
-    _req_src = slot_obj.group(1) if slot_obj else body
-    want_req = _re.search(r"required: (?:[^\[\n]*\?\s*)?\[([^\]]*)\]", _req_src)
-    want_req = [x.strip().strip("'") for x in want_req.group(1).split(",")] if want_req else []
+    # `required` is built from conditionals on the slot's kind, so there is no
+    # literal list to lift. What matters is the rule a strict provider enforces
+    # and the one that actually broke — every key in `properties` is required,
+    # and nothing else is — so check THAT, on every slot, rather than scraping a
+    # ternary's source text and reporting a fragment of it as the expectation.
     want_addl = "additionalProperties: false" in body
     # (d) top-level ordering
     want_checks_first = body.find("checks:") < body.find("feedback:") \
         if "feedback:" in body else True
 
-    # One representative slot sheet is enough: build_schema treats every slot the
-    # same way, so a difference is a difference everywhere.
-    aid, spec = next((a, s) for a, s in BLOCKS[1].items() if s.get("olx"))
-    act = load_action(spec["olx"], aid)
-    # Built the way the RUNTIME builds it for this item: per-check notes are
-    # keyed off showChecks, so comparing the no-notes schema against a source
-    # that has them reports a difference the app never sends.
-    got = build_schema(act["slots"], act["excluded"], act["show_checks"])
-    checks = got["properties"]["checks"]["properties"]
-    one = next(iter(checks.values()))
+    # EVERY sheet, not a representative one. That shortcut was justified by
+    # "build_schema treats every slot the same way", which stopped being true
+    # the moment a slot's shape depended on its kind: one sheet of plain
+    # judgements cannot show that picks and counts are built right, or built at
+    # all. Reachability below is judged over the union for the same reason.
+    sheets = {}
+    for handout in BLOCKS.values():
+        for aid, spec in handout.items():
+            if not spec.get("olx"):
+                continue
+            act = load_action(spec["olx"], aid)
+            # Built the way the RUNTIME builds it for this item: per-check notes
+            # are keyed off showChecks, so comparing the no-notes schema against
+            # a source that has them reports a difference the app never sends.
+            sheets[aid] = build_schema(act["slots"], act["excluded"],
+                                       act["show_checks"], act["cover"],
+                                       act["choices"])
+    got = next(iter(sheets.values()))
+    checks = {f"{aid}/{k}": v
+              for aid, sch in sheets.items()
+              for k, v in sch["properties"]["checks"]["properties"].items()}
 
-    got_props = list(one["properties"])
-    if want_props and got_props != want_props:
-        problems.append(f"per-slot properties differ: web {want_props}, cli {got_props}")
-    got_req = list(one.get("required", []))
-    if want_req and got_req != want_req:
-        problems.append(f"required differs: web {want_req}, cli {got_req}")
-    if want_addl and one.get("additionalProperties") is not False:
-        problems.append("web sets additionalProperties: false; cli does not")
+    for key, one in checks.items():
+        got_props = list(one["properties"])
+        stray = [p for p in got_props if p not in want_props]
+        if stray:
+            problems.append(f"slot `{key}` sends {stray}, which buildSlotSchema "
+                            f"never declares")
+            break
+        if set(one.get("required", [])) != set(got_props):
+            problems.append(f"slot `{key}`: required {sorted(one.get('required', []))} "
+                            f"!= properties {sorted(got_props)} — a strict provider "
+                            f"rejects the whole request")
+            break
+        if want_addl and one.get("additionalProperties") is not False:
+            problems.append(f"web sets additionalProperties: false; cli does not "
+                            f"on slot `{key}`")
+            break
+    # Every property the web declares has to be reachable SOMEWHERE, or the cli
+    # has quietly stopped building a whole kind of check — which is exactly what
+    # had happened: `pick` and `count` slots were dropped by the slot parser, so
+    # neither `refers_to` nor `count` appeared on any slot at all.
+    reachable = {p for one in checks.values() for p in one["properties"]}
+    unreached = [p for p in want_props if p not in reachable]
+    if unreached:
+        problems.append(f"no slot on ANY audited sheet carries {unreached}, which the "
+                        f"web declares — a whole slot kind is being dropped. This is "
+                        f"how sixteen `pick` and nine `count` slots went missing.")
     def _here(obj):
         """Descriptions on THIS object's immediate properties."""
         return [" ".join(v["description"].split())
@@ -349,10 +430,18 @@ def schema_divergences():
     # EVERY slot, not a representative one: the failure this replaced was a
     # description present on some slots and absent on others.
     for key, slot_schema in checks.items():
-        miss = [d for d in want_slot_descs if d not in _here(slot_schema)]
+        miss = []
+        for name, prop in (slot_schema.get("properties") or {}).items():
+            arms = want_prop_descs.get(name) or []
+            if not arms:
+                continue
+            got_d = " ".join(str(prop.get("description") or "").split())
+            if got_d not in arms:
+                miss.append(f"{name}: {got_d or '(none)'!r} is not one of "
+                            + " | ".join(repr(a) for a in arms))
         if miss:
-            problems.append(f"slot `{key}` is missing description(s) the web sends: "
-                            + "; ".join(repr(d) for d in miss))
+            problems.append(f"slot `{key}` describes fields differently from the "
+                            f"web: " + "; ".join(miss))
             break                      # one report is enough; they share a builder
     miss_top = [d for d in want_top_descs if d not in _here(got)]
     if miss_top:
@@ -746,12 +835,24 @@ def enforcement_selftest():
 
     # The silent-miss guard. A derived field the refs cannot resolve reads as empty,
     # scores the check unmet on every cell, and still prints a table.
-    _q1 = _AG.BLOCKS[1]["bmod_h1_q1_llm"]["refs"]
-    _saved = _q1.pop("bmod_h1_utb")
+    #
+    # Injected on 1c, the only item that still HAS a derived rule. It used to be
+    # injected on Q1, whose `utb_stated` was derived when this case was written
+    # and is not any more — so the injection had become a no-op, and the case
+    # went on passing because an unrelated standing finding of the same type was
+    # being emitted unconditionally. Removing that finding is what exposed it.
+    # Asserted rather than assumed: a case that cannot break what it claims to
+    # break must fail loudly the next time the content moves under it.
+    _d_item = _AG.BLOCKS[3]["bmod_h3_graph_llm"]
+    _d_field = _AG.load_action(_d_item["olx"], "bmod_h3_graph_llm")["derived"][0]["fields"][0]
+    assert _d_field in _d_item["refs"], (
+        f"selftest is stale: {_d_field} is not in 1c's refs, so removing it "
+        f"cannot break anything")
+    _saved = _d_item["refs"].pop(_d_field)
     cases.append(("a derived rule's field leaves the refs map",
                   "DERIVED FIELD UNREADABLE", "-",
                   [f for f in enforcement_audit()[0]]))
-    _q1["bmod_h1_utb"] = _saved
+    _d_item["refs"][_d_field] = _saved
 
     # The evenness guard, in both directions. Q1 was counted and Q2 — the same item
     # with a different noun — was not, and every audit passed for as long as it took
