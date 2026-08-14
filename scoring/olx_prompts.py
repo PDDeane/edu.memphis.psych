@@ -787,6 +787,40 @@ def extra_verdicts() -> list[str]:
     return _ts_string_array("EXTRA_VERDICTS")
 
 
+def parse_choices(spec: str | None) -> dict[str, list[str]]:
+    """Mirror of slotSheet.ts:parseChoices — named sets of categories."""
+    out: dict[str, list[str]] = {}
+    for grp in (spec or "").split("|"):
+        name, _, members = grp.partition(":")
+        vals = [v.strip() for v in members.split(",") if v.strip()]
+        if name.strip() and vals:
+            out[name.strip()] = vals
+    return out
+
+
+def pick_set(segment: str | None) -> str | None:
+    """Mirror of slotSheet.ts:parsePick — `pick(operant_type)` -> the set name."""
+    m = re.fullmatch(r"pick\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)", (segment or "").strip())
+    return m.group(1) if m else None
+
+
+def parse_expect(spec: str | None) -> list[dict]:
+    """Mirror of slotSheet.ts:parseExpect."""
+    out = []
+    for rule in (spec or "").split("|"):
+        parts = [x.strip() for x in rule.split(":")]
+        if len(parts) < 2:
+            continue
+        key, lhs = parts[0], parts[1]
+        left, _, value = lhs.partition("=")
+        if not key or not left.strip() or not value.strip():
+            continue
+        out.append({"key": key, "left": left.strip(), "value": value.strip(),
+                    "lenient": [v.strip() for v in (parts[2] if len(parts) > 2 else "").split(",")
+                                if v.strip()]})
+    return out
+
+
 def count_max(segment: str | None) -> int | None:
     """Mirror of slotSheet.ts:parseCountMax — `count(3)` -> 3."""
     m = re.fullmatch(r"count\(\s*(\d+)\s*\)", (segment or "").strip())
@@ -797,6 +831,8 @@ def resolve_options(segment: str | None, defaults: list[str]) -> list[str]:
     """Mirror of slotSheet.ts:resolveOptions."""
     if count_max(segment) is not None:
         return []                      # a measurement, not a verdict list
+    if pick_set(segment) is not None:
+        return []                      # a classification, not a verdict list
     tokens = [t.strip() for t in (segment or "").split("/") if t.strip()]
     if not tokens:
         return list(defaults)
@@ -823,6 +859,7 @@ def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
         seg = parts[2] if len(parts) > 2 else None
         opts = resolve_options(seg, defaults)
         cmax = count_max(seg)
+        picks = pick_set(seg)
         out.append({
             "key": raw_key.lstrip("!").strip(),
             "label": label,
@@ -830,8 +867,11 @@ def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
             "gates": raw_key.startswith("!"),
             "pts": pts,
             "count_max": cmax,
+            "picks": picks,
         })
-    return [s for s in out if s["key"] and (s["options"] or s["count_max"] is not None)]
+    return [s for s in out
+            if s["key"] and (s["options"] or s["count_max"] is not None
+                             or s["picks"] is not None)]
 
 
 # What a check means where the rubric's credit list does not already say.
@@ -1030,8 +1070,9 @@ SLOT_NOTES = {
     "follows_behavior": "criterion 4 (`follows_behavior`)",
     "you_arrange_it": "criterion 5 (`stimulus_is_arranged`)",
     "observed_type": "criterion 6 (`observed_type`) — which of the four it ACTUALLY is, "
-                     "independently of what the student called it. The first option listed "
-                     "is the type this item asks for",
+                     "independently of what the student called it. Report what you see; "
+                     "which one the item wanted is stated by the rule that reads this, not "
+                     "by the order these are listed in",
     # The same criterion on the four example screens, where the type asked for is
     # AUTHORED — each screen names it — so there is nothing to identify against
     # and the check is an ordinary judgement. It used to be spelled as the
@@ -1041,12 +1082,10 @@ SLOT_NOTES = {
     # The diagnosis that the identity carried is not dropped, it moves to prose:
     # `wrong_kind` is told to name the type the example actually shows, which is
     # what a student needs to read anyway.
-    "demonstrates_type": "criterion 6 (the CLI calls this input `observed_type`) — `met` when "
-                         "the example really is the type THIS screen asks for, judged from the "
-                         "contingency and not from what the student called it. `wrong_kind` "
-                         "when it is a different one of the four — say WHICH in your note, "
-                         "since that is the thing the student has to fix. `absent` when there "
-                         "is no usable example to classify",
+    # Computed by `expect` now, so it is not asked and carries no note of its
+    # own — the DO NOT ANSWER block generated for the rule says what it means and
+    # names the expected type out loud. Left here as a marker so the next person
+    # does not re-add a note for a check the model never sees.
     "phrased_directly": "criterion 7 (the CLI calls this input `avoidance_frame`) — `absent` "
                         "when the contingency is phrased by what is AVOIDED, `met` when it is "
                         "phrased directly. Never changes a verdict; it earns a comment on "
@@ -1370,7 +1409,8 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
         p.append(ITEM_NOTES[item_id])
 
     p.append(_checklist_section(item, slots, item_id, _equals_attr(h, action),
-                                _derived_attr(h, action), _counts_attr(h, action)))
+                                _derived_attr(h, action), _counts_attr(h, action),
+                                _choices_attr(h, action), _expect_attr(h, action)))
 
     # One component, one <Ref>: the same value twice under two headings reads
     # as two different answers.
@@ -1497,7 +1537,9 @@ def _criteria_section(item: dict) -> str:
 def _checklist_section(item: dict, slots: list[dict], item_id: str,
                        equals: list[dict] | None = None,
                        derived: list[dict] | None = None,
-                       counts: list[dict] | None = None) -> str:
+                       counts: list[dict] | None = None,
+                       choices: dict[str, list[str]] | None = None,
+                       expect: list[dict] | None = None) -> str:
     """The sheet the model must fill, generated from the .olx `slots` attribute.
 
     Checks the grader COMPUTES are listed separately and explicitly NOT asked for:
@@ -1507,6 +1549,8 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
     equals = equals or []
     derived = derived or []
     counts = counts or []
+    choices = choices or {}
+    expect = expect or []
     computed = {r["key"]: r for r in equals}
     from_page = {r["key"]: r for r in derived}
     # Counted members are derived from the count and are NOT in the response schema.
@@ -1527,7 +1571,11 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
             continue
         note = SLOT_NOTES.get(f"{item_id}:{s['key']}") or SLOT_NOTES.get(s["key"]) or desc.get(s["key"])
         gate = " **GATE**" if s["gates"] else ""
-        if s.get("count_max") is not None:
+        if s.get("picks") is not None:
+            members = "/".join("`%s`" % o for o in choices.get(s["picks"], []))
+            head = (f"- `{s['key']}`{gate} — one of {members} in `refers_to` "
+                    f"(WHICH it is, not whether it is right)")
+        elif s.get("count_max") is not None:
             head = (f"- `{s['key']}`{gate} — a NUMBER from 0 to {s['count_max']} "
                     f"(how many, not a judgement)")
         else:
@@ -1542,6 +1590,17 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
                       f"judgement you can make more accurately than the arithmetic can."
                   + (f" Where either is `{'` or `'.join(r['lenient'])}`, no mismatch is "
                      f"established and nothing is charged." if r["lenient"] else "")]
+    for r in expect:
+        spec = next((x for x in slots if x["key"] == r["key"]), None)
+        gate = " **GATE**" if spec and spec["gates"] else ""
+        lines += ["", f"DO NOT ANSWER `{r['key']}`{gate}. The grader computes it: it holds "
+                      f"when `{r['left']}` is `{r['value']}`, which is the answer THIS item "
+                      f"asks for. Report what you actually see in `{r['left']}` — if it is a "
+                      f"different one of the four, say so there and say which in your note; "
+                      f"the deduction follows from the arithmetic, not from your judgement "
+                      f"about whether it is right."
+                  + (f" `{'` or `'.join(r['lenient'])}` establishes nothing and is not charged."
+                     if r["lenient"] else "")]
     for cr in counts:
         members = ", ".join(f"`{k}`" for k in cr["slots"])
         lines += ["", f"DO NOT ANSWER {members} individually. Answer `{cr['key']}` — HOW "
@@ -1722,6 +1781,16 @@ def check_template_matches_example(handout: int = 3) -> list[str]:
 def _equals_attr(handout: int, action: str) -> list[dict]:
     eq = re.search(r'\bequals="([^"]*)"', _sheet_tag(handout, action))
     return parse_equals(eq.group(1) if eq else "")
+
+
+def _choices_attr(handout: int, action: str) -> dict[str, list[str]]:
+    ch = re.search(r'\bchoices="([^"]*)"', _sheet_tag(handout, action))
+    return parse_choices(ch.group(1) if ch else "")
+
+
+def _expect_attr(handout: int, action: str) -> list[dict]:
+    ex = re.search(r'\bexpect="([^"]*)"', _sheet_tag(handout, action))
+    return parse_expect(ex.group(1) if ex else "")
 
 
 def _escape(text: str) -> str:

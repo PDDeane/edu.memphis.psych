@@ -186,6 +186,10 @@ def _web_attrs(item):
     return {"item": item, "slots": get("slots"), "verdicts": get("verdicts"),
             "cover": get("cover"), "equals": get("equals"), "onlyif": get("onlyif"),
             "derived": get("derived"), "counts": get("counts"),
+            # Forwarded like every other primitive: without them the probe sees a
+            # `pick` slot with no set to draw from, answers nothing, and reports
+            # the sheet's all-satisfied baseline as zero.
+            "choices": get("choices"), "expect": get("expect"),
             **({"max": float(mx.group(1))} if mx else {})}
 
 
@@ -692,8 +696,12 @@ def enforcement_selftest():
     import olx_prompts as _o
     _orig_cs = _o._checklist_section
 
-    def _blind(item, slots, item_id, equals=None, derived=None, counts=None):
-        return _orig_cs(item, slots, item_id, equals, derived, None)
+    def _blind(item, slots, item_id, equals=None, derived=None, counts=None,
+               choices=None, expect=None):
+        # Drops `counts`, to prove the audit notices a generator that stops
+        # honouring a primitive. Must accept every parameter the real signature
+        # takes, or adding one breaks the selftest instead of testing it.
+        return _orig_cs(item, slots, item_id, equals, derived, None, choices, expect)
     _o._checklist_section = _blind
     cases.append(("the generator forgets a primitive", "PRIMITIVE NOT HONOURED", "-",
                   [f for f in enforcement_audit()[0]]))
