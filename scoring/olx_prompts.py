@@ -1027,6 +1027,21 @@ SLOT_NOTES = {
     "observed_type": "criterion 6 (`observed_type`) — which of the four it ACTUALLY is, "
                      "independently of what the student called it. The first option listed "
                      "is the type this item asks for",
+    # The same criterion on the four example screens, where the type asked for is
+    # AUTHORED — each screen names it — so there is nothing to identify against
+    # and the check is an ordinary judgement. It used to be spelled as the
+    # identity with the expected type placed first, which made the option ORDER
+    # the answer key.
+    #
+    # The diagnosis that the identity carried is not dropped, it moves to prose:
+    # `wrong_kind` is told to name the type the example actually shows, which is
+    # what a student needs to read anyway.
+    "demonstrates_type": "criterion 6 (the CLI calls this input `observed_type`) — `met` when "
+                         "the example really is the type THIS screen asks for, judged from the "
+                         "contingency and not from what the student called it. `wrong_kind` "
+                         "when it is a different one of the four — say WHICH in your note, "
+                         "since that is the thing the student has to fix. `absent` when there "
+                         "is no usable example to classify",
     "phrased_directly": "criterion 7 (the CLI calls this input `avoidance_frame`) — `absent` "
                         "when the contingency is phrased by what is AVOIDED, `met` when it is "
                         "phrased directly. Never changes a verdict; it earns a comment on "
