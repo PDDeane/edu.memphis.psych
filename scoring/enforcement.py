@@ -102,20 +102,35 @@ def web_name(cli_key: str, web_keys: set[str]) -> str | None:
 
 
 def check_criteria_table_is_complete(items: list[dict]) -> list[str]:
-    """Every oc_analysis property must have a pass and a fail value."""
+    """Every oc_analysis property must have a pass and a fail value.
+
+    "Path-specific" is COMPUTED rather than listed. The criteria items come in
+    two shapes — the four example screens and the four daily/weekly ones — and a
+    field required by one shape and not the other is not stale, it is just on the
+    other path. That used to be a hardcoded tuple of four names, which meant a
+    fifth such field (`consequence_asserted`, required by all four DAY/WK items
+    and none of the examples) was reported as stale on four items forever. The
+    list could only ever be as current as the last person to notice.
+
+    What is still a finding: a probe-table key required by NO item, which really
+    is dead, and a schema property the probe table has no values for, which is a
+    field nobody decided how to fail.
+    """
     problems = []
     known = set(_PASS) | set(_TYPE_FIELDS)
-    for it in items:
-        if not it.get("derive_from_criteria"):
-            continue
+    derive = [it for it in items if it.get("derive_from_criteria")]
+    required_somewhere: set[str] = set()
+    for it in derive:
+        required_somewhere |= set(build_schema(it)["properties"]["oc_analysis"]["required"])
+
+    for it in derive:
         req = set(build_schema(it)["properties"]["oc_analysis"]["required"])
         for extra in sorted(req - known):
             problems.append(f"{it['id']}: oc_analysis has `{extra}`, not in the probe table")
         for stale in sorted(known - req):
-            if stale in ("targets_intended_behavior", "cadence_ok",
-                         "targets_own_behavior", "named_type"):
-                continue          # path-specific: present on one path only
-            problems.append(f"{it['id']}: probe table has `{stale}`, not in oc_analysis")
+            if stale in required_somewhere:
+                continue          # on the other path, not dead
+            problems.append(f"{it['id']}: probe table has `{stale}`, required by no item")
     return problems
 
 
