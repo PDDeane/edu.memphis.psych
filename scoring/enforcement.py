@@ -77,6 +77,10 @@ ALIAS = {
     # rest of the vocabulary: `met` is phrased directly. The CLI input keeps the
     # old name and its boolean sense (True = phrased by what is avoided).
     "avoidance_frame": "phrased_directly",
+    # The four example screens ask about ONE authored type, so the web judges
+    # "is it this type" where the CLI identifies which of the four it is. Same
+    # deduction, different shape — see EQUIVALENCE.md.
+    "observed_type": ("observed_type", "demonstrates_type"),
     "stimulus": "names_stimulus",
     "stimulus_is_arranged": "you_arrange_it",
     "targets_intended_behavior": ("targets_goal_behavior", "targets_unwanted_behavior"),
