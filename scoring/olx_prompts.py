@@ -1557,6 +1557,11 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
     # Listing them anyway asked the model for answers it could not return, alongside
     # the count that replaces them — two framings of the same judgement at once.
     counted = {k: cr for cr in counts for k in cr["slots"]}
+    # An `expect` key is computed from a classification, so it is out of the
+    # response schema exactly as an `equals` key is. Leaving it in the answerable
+    # list made the prompt say "answer this" and "DO NOT ANSWER this" about the
+    # same check.
+    expected = {r["key"]: r for r in expect}
     desc = {c["what"]: c["desc"] for c in item["credit"]}
     lines = [
         "## The checklist to return (`checks`)",
@@ -1567,7 +1572,8 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
         "",
     ]
     for s in slots:
-        if s["key"] in computed or s["key"] in from_page or s["key"] in counted:
+        if (s["key"] in computed or s["key"] in from_page
+                or s["key"] in counted or s["key"] in expected):
             continue
         note = SLOT_NOTES.get(f"{item_id}:{s['key']}") or SLOT_NOTES.get(s["key"]) or desc.get(s["key"])
         gate = " **GATE**" if s["gates"] else ""

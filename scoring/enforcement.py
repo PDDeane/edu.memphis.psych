@@ -80,7 +80,13 @@ ALIAS = {
     # The four example screens ask about ONE authored type, so the web judges
     # "is it this type" where the CLI identifies which of the four it is. Same
     # deduction, different shape — see EQUIVALENCE.md.
-    "observed_type": ("observed_type", "demonstrates_type"),
+    # Order matters, and the identity candidate comes LAST on purpose. Since
+    # `pick`, `observed_type` names a web slot too — but there it is the
+    # classification the student's answer is sorted into, not the check that
+    # carries the deduction. That check is `demonstrates_type`, computed from
+    # the pick by `expect`. Resolving to the pick would compare a CLI deduction
+    # against a web slot that costs nothing.
+    "observed_type": ("demonstrates_type", "observed_type"),
     "stimulus": "names_stimulus",
     "stimulus_is_arranged": "you_arrange_it",
     "targets_intended_behavior": ("targets_goal_behavior", "targets_unwanted_behavior"),
@@ -90,15 +96,24 @@ ALIAS = {
 
 def web_name(cli_key: str, web_keys: set[str]) -> str | None:
     """The web check corresponding to a CLI input, or None if unmatched."""
-    if cli_key in web_keys:
-        return cli_key
+    # An explicit alias wins over the identity match. The two used to be the
+    # other way round, which was fine while a CLI key never named a web slot of
+    # a different kind. It does now, and identity-first quietly resolved a
+    # deduction to a check that does not charge.
     a = ALIAS.get(cli_key)
-    if isinstance(a, tuple):
-        for cand in a:
+    if a is not None:
+        # An alias entry is AUTHORITATIVE: falling through to identity when none
+        # of its candidates is present would quietly re-admit the same-name match
+        # the alias exists to override, and could hide a removal the selftest is
+        # supposed to catch. A key that legitimately matches itself says so by
+        # listing itself as a candidate, the way `observed_type` does.
+        for cand in (a if isinstance(a, tuple) else (a,)):
             if cand in web_keys:
                 return cand
         return None
-    return a if a in web_keys else None
+    if cli_key in web_keys:
+        return cli_key
+    return None
 
 
 def check_criteria_table_is_complete(items: list[dict]) -> list[str]:
