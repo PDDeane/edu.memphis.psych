@@ -46,6 +46,9 @@ def _extract_json(text: str) -> dict:
 
 
 class ClaudeCliBackend:
+    # Honours allow_tools by passing --allowedTools, so a graph item can be read.
+    SUPPORTS_TOOLS = True
+
     def __init__(
         self,
         model: str = DEFAULT_MODEL_CLI,
@@ -147,6 +150,11 @@ class ClaudeCliBackend:
 
 
 class AnthropicApiBackend:
+    # Accepts allow_tools in its signature but does not forward it. Declared
+    # False rather than left ambiguous: an unforwarded tool list scores a graph
+    # item blind, and blind on a graph item means "no graph".
+    SUPPORTS_TOOLS = False
+
     """Official SDK path. Requires credentials (ANTHROPIC_API_KEY or an
     `ant auth login` profile — a bare Anthropic() client picks up either)."""
 
@@ -197,6 +205,19 @@ class AnthropicApiBackend:
 
 
 class LoBlocksBackend:
+    # Sends `"tools": []` unconditionally — this is the SHIPPED route, and the
+    # app does not give the grader tools.
+    #
+    # This limits ONE consumer, not the backend's users generally. score.py's
+    # handout-3 prompt asks the model to Read the student's graph as an IMAGE,
+    # because on paper that is what a graph is; without the tool it answers "no
+    # graph". agreement.py uses this same backend and is unaffected, because the
+    # web and CLI never look at an image: 1c is scored from the four weeks of
+    # data the student TYPED, through `derived="has_own_graph:complete:..."`,
+    # and web_v8 scores it 16/17 with no tool at all. See
+    # handouts.not_comparable_items(), which only baseline.py consults.
+    SUPPORTS_TOOLS = False
+
     """score.py's prompt, sent down the SHIPPED route.
 
     Exists to separate two variables that were confounded for the whole project.
