@@ -2255,6 +2255,65 @@ five were caught by an audit only after another fix removed whatever was masking
 them, which is the argument for running the audits after every stage rather than
 at the end.
 
+## Prompts that give the answer away
+
+`exemplar_items` existed for one shape of self-grading: a response reproduced in
+full as a worked example, which handout 1 does on Q6 for p10/p8/p6. Auditing
+every item's prompt-bearing text for a participant cited BY NUMBER found a
+second shape, nine times more common and entirely unregistered.
+
+The citations read like this, from Q4b:
+
+> falling asleep in the car or {{corpus:Q6/p20:affect_c2:46:65:sha=f4404254ef89}} cost participant 20 three
+> [points]
+
+> Participant 7 offered one sentence about why it {{corpus:Q4b/p7:modify:21:38:sha=1fa4115cf4a6}} and one
+> about procrastination consequences, and the grader took 3 points
+
+Each quotes the student's answer AND states the grader's decision. For that
+participant on that item it is an answer key, so scoring them there measures
+recall, not judgement. `guidance` is copied verbatim into both the paper prompt
+and the OLX, so both scorers see it.
+
+Ten items cite participants this way — 53 item-cells:
+
+| handout | item | cited |
+| --- | --- | --- |
+| 1 | Q1  | 1, 2, 6, 9, 10, 16 |
+| 1 | Q2  | 3, 6, 7, 10 |
+| 1 | Q4a | 3, 4, 6, 9, 14, 15, 17 |
+| 1 | Q4b | 2, 4, 6, 7, 13, 15, 19, 20 |
+| 1 | Q4c | 4, 9, 11, 12, 15, 17, 20 |
+| 1 | Q5  | 4, 6, 8, 9, 19, 20 |
+| 1 | Q6  | 2, 3, 5, 10, 11, 17, 19 |
+| 3 | 1a  | 1, 6, 15 |
+| 3 | 1c  | 4, 8, 20 |
+| 3 | 2a  | 1, 14 |
+
+Only Q4b is registered, in `cited_participants` — a per-item map, because the
+sets differ item by item and the handout-wide `exemplar_participants` list
+cannot express that. Q6's own citation list is also wider than the three
+few-shot bodies already registered for it.
+
+**It matters to a published comparison.** Q4b was the largest web/paper gap in
+the corpus, and most of that gap was the citations:
+
+| | before | after dropping the 8 cited |
+| --- | --- | --- |
+| web | 13/19 (68%) | 9/12 (75%) |
+| paper+Opus | 17/19 (89%) | 10/12 (83%) |
+
+A 21-point gap becomes 8. Across the whole corpus, dropping all ten items'
+citations moves web 89.3% -> 91.8% and paper+Opus 90.9% -> 92.1%, closing a
+1.6-point difference to 0.3. Reading either scorer as better than the other on
+these numbers is largely reading which one memorised its own prompt better —
+and Opus, the stronger model, is the one that exploits them: it scored every
+cited Q4b cell correctly, while the web missed three.
+
+The other nine are deliberately NOT registered here. It is a measurement-policy
+change that moves every denominator in the project, so it wants to be a decision
+rather than a side effect of fixing Q4b.
+
 ## Practical notes
 
 * One run per cell; ~30s per cell, so a full sweep is several hours. Verify a
