@@ -103,7 +103,6 @@ SCHEMA = {
         },
         "advisory_note": {"type": ["string", "null"]},
         "safety_flag": {"type": "boolean"},
-        "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
         "escalate": {"type": "boolean"},
     },
     "required": [
@@ -111,7 +110,6 @@ SCHEMA = {
         "deductions",
         "advisory_note",
         "safety_flag",
-        "confidence",
         "escalate",
     ],
     "additionalProperties": False,
@@ -923,7 +921,6 @@ def score_item(
         "advisory_note": forced_advisory or raw.get("advisory_note"),
         "avoidance_frame": bool((raw.get("oc_analysis") or {}).get("avoidance_frame")),
         "safety_flag": bool(raw.get("safety_flag")),
-        "confidence": raw.get("confidence", "low"),
         "over_specified": over_specified,
         "escalate": (
             bool(raw.get("escalate")) or bool(unknown) or over_specified

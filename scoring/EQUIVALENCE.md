@@ -18,7 +18,7 @@ scorer, because that is the only one that existed when it was written.
 
 | name used here | code | prompt | output |
 | --- | --- | --- | --- |
-| **paper** (older passages: "CLI") | `score.py`, measured by `baseline.py` | its own, from `rubric_hN.py` | credit_checks + deductions + advisory_note + safety_flag + confidence + escalate |
+| **paper** (older passages: "CLI") | `score.py`, measured by `baseline.py` | its own, from `rubric_hN.py` | credit_checks + deductions + advisory_note + safety_flag + escalate |
 | **CLI harness** | `agreement.py`, driven by `sweep_cli.sh` | the SHIPPED `.olx` prompt | a slot sheet — `{checks, feedback}` |
 | **web** | the app itself, driven by `agreement_app.py` | the SHIPPED `.olx` prompt | a slot sheet — `{checks, feedback}` |
 
@@ -103,7 +103,7 @@ which left its mapping implied rather than declared, unlike `safety_flag` and
 
 The web grader (`SlotSheetGrader` over `scoreSlotSheet`) consumes
 `{checks, feedback}`; the PAPER scorer returns credit_checks + deductions +
-advisory_note + safety_flag + confidence + escalate. `agreement.py` returns the
+advisory_note + safety_flag + escalate. `agreement.py` returns the
 same `{checks, feedback}` the web does — it is the shipped prompt run from the
 command line, not a second rubric. The sheet is authored in
 the `slots=` attribute and `olx_prompts.py` **reads it** to generate the
