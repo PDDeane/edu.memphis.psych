@@ -878,19 +878,6 @@ def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
 # Keyed by slot key, or by "item:slot key" where the same key means different
 # things on different items.
 SLOT_NOTES = {
-    # Unscored, and first on the sheet on purpose: it exists to make the model
-    # PERFORM the comparison before it judges the two examples. The distinctness
-    # rule was stated in guidance and named the participant it came from, and the
-    # model still never ran it — p4 reused their own 4a antecedent verbatim
-    # ("scrolling through tiktok" -> "scrolling on tiktok") and the evidence for
-    # behavior_1 quoted the sentence without mentioning 4a at all. A rule nothing
-    # asks about is a rule nothing applies.
-    "repeats_antecedent":
-        "`absent` if either example names the SAME event, from the same side, as "
-        "an entry in question 4a — answer this FIRST, and where it is `absent` the "
-        "repeated example is `wrong_kind` below. A trigger and the student's "
-        "response to it are two different things, so judge the event, not the "
-        "wording",
     "confident": "`absent` if any judgement above was a close call — this is rule 8's channel",
     # Web-only, and unscored on purpose. The web asks for the unwanted target
     # behavior twice — once as a closed choice before question 1, once in the
