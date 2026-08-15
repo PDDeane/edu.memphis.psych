@@ -34,6 +34,7 @@ import sys
 import tempfile
 
 import simulate_h3
+import handouts as _handouts
 from handouts import config, exemplar_drops, find_submissions, suspect
 from segment import repair_orphans, segment, utb_hint
 import paths
@@ -84,38 +85,10 @@ CONSENSUS_MIN_SHARE = 0.8
 # comparison itself is not defined. handouts.exemplar_drops() is a third kind:
 # per-item, because self-grading follows the prompt. Passing --exclude explicitly
 # overrides all of them.
-PER_ITEM_EXCLUDE = {
-    "Q6": {
-        9: "the CLI split 5/5 on state_c2 and affect_c2 across ten runs, so the "
-           "consensus fixture had to break a tie; also one of the four "
-           "documented gold divergences (A_MISMATCH on state_a1)",
-    },
-    "Q4c": {
-        16: "gold 3.0 for \"did not say if this behavior is a good choice for you "
-            "modify and why\" — but the handout asks that under 4b (\"explain if "
-            "your unwanted target behavior is a good choice for you to modify AND "
-            "why\", with its own `Modify:` field), and Q4b carries "
-            "modify_stated/modify_why for 3 of its 5 points. 4c asks only for two "
-            "consequences plus the keyword. The deduction is misfiled: p16's Q4b "
-            "row is a clean 5.0, so the point came off the wrong item. No correct "
-            "4c scorer can reach 3.0, and both systems return 5.0. Mirrored in "
-            "agreement.py's PER_ITEM_EXCLUDE — drop it on one side only and the "
-            "item's two columns stop being a comparison.",
-    },
-    "1c": {
-        4: "no graph on paper (gold 0, \"Did not provide a graph\") but all four weeks "
-           "of data supplied — on the web that data DRAWS the chart, so the paper "
-           "failure is unreachable rather than missed",
-        19: "the same: gold 0 for no graph, four complete weeks of data",
-        20: "the same failure in its third form: p20 supplied a written DESCRIPTION "
-            "of a graph, which the rubric names as this item's 'did not include' "
-            "(\"Participant 20 wrote exactly that\"). On the web a description IS the "
-            "answer — the labels are typed into fields and the chart is drawn from "
-            "their four complete weeks — so there is nothing left to fail. p15 and "
-            "p18 are NOT excluded: their data is incomplete and the completeness "
-            "gate catches both.",
-    },
-}
+# The canonical table lives in handouts.py so this side, agreement.py and
+# baseline.py cannot drift apart. It was two hand-kept mirrors that happened
+# to agree, plus a third harness that had none at all.
+PER_ITEM_EXCLUDE = _handouts.PER_ITEM_EXCLUDE
 
 LO = str(paths.lo_root())
 RUNNER = paths.RUNNER
@@ -1171,20 +1144,19 @@ def main() -> int:
 
     spec = JOBS[args.item]
     handout = spec["handout"]
-    drop = set(suspect(handout) if args.exclude is None else args.exclude)
-    per_item = dict(PER_ITEM_EXCLUDE.get(args.item, {})) if args.exclude is None else {}
-    if args.exclude is None:
-        # Exemplar participants are dropped from the items whose prompt embeds
-        # them, not from the whole handout — see exemplar_drops().
-        for pid in exemplar_drops(handout).get(args.item, []):
-            per_item.setdefault(pid, "their response is a few-shot exemplar in THIS "
-                                     "item's prompt, so scoring it would be self-grading")
-    drop |= set(per_item)
+    # Excluded cells are RUN and only kept out of the RATE — see
+    # handouts.cell_exclusions(). Skipping them used to save the calls; it also
+    # discarded the one piece of evidence a counted cell cannot give, namely
+    # whether the model gets a cell whose answer is sitting in its own prompt.
+    per_item = ({} if args.exclude is not None
+                else _handouts.cell_exclusions(handout, args.item))
+    drop = set(args.exclude or ()) if args.exclude is not None else set()
     pids = [p for p, _ in find_submissions(handout, args.participants) if p not in drop]
     if drop:
-        print(f"(excluding {sorted(drop)})", file=sys.stderr)
-    for pid, why in sorted(per_item.items()):
-        print(f"(excluding p{pid} from {args.item}: {why})", file=sys.stderr)
+        print(f"(excluding {sorted(drop)} outright — explicit --exclude)", file=sys.stderr)
+    for pid, (kind, why) in sorted(per_item.items()):
+        print(f"(not counted: p{pid} on {args.item} [{kind}] — {why}; run anyway)",
+              file=sys.stderr)
 
     idmap = args.idmap
     if not idmap:
@@ -1218,8 +1190,6 @@ def main() -> int:
         rows, failures = [], []
         for r in res:
             pid = int(re.match(r"p(\d+)/", r["cell"]).group(1))
-            if pid in dropped_1c:
-                continue          # excluded above, not a failure
             if not r["ok"]:
                 failures.append((pid, r["status"],
                                  (r.get("error") or r["feedback"])[:120]))
@@ -1243,8 +1213,12 @@ def main() -> int:
         all_results.append(extra)
         all_runs.append(tabulate(extra))
 
+    def counted(rows):
+        """The rows the RATE is computed over — excluded cells are run, not counted."""
+        return [r for r in rows if r[0] not in per_item]
+
     def exact_of(rows):
-        return sum(1 for _, g, p, _ in rows if abs(p - g) < 1e-9)
+        return sum(1 for _, g, p, _ in counted(rows) if abs(p - g) < 1e-9)
 
     # MEDIAN by exact count, ties to the lowest run index. Fixed here, in code,
     # deliberately: choosing which run to publish after seeing the numbers is how
@@ -1257,7 +1231,7 @@ def main() -> int:
 
     if args.runs > 1:
         counts = [exact_of(r) for r, _ in all_runs]
-        sizes = [len(r) for r, _ in all_runs]
+        sizes = [len(counted(r)) for r, _ in all_runs]
         per_run = ", ".join(f"{c}/{s}" for c, s in zip(counts, sizes))
         spread = max(counts) - min(counts)
         print(f"\n{args.runs} runs — exact {per_run}   mean {statistics.fmean(counts):.1f}"
@@ -1267,6 +1241,25 @@ def main() -> int:
             print(f"read the table below as +/-{spread} cell(s) "
                   f"({100 * spread / sizes[0]:.0f} points): a single run of this item "
                   f"cannot resolve a difference smaller than that")
+
+    if uncounted:
+        print("\nnot counted in the rate, but run — how they scored:")
+        meaning = {
+            "self_graded": "the prompt contains the answer and the grader's decision "
+                           "— a miss here is evidence of a problem with the model",
+            "unscoreable": "no correct scorer can reach this gold — a miss is EXPECTED",
+            "suspect":     "the submission is mis-transcribed — a miss says nothing",
+        }
+        for kind in _handouts.EXCLUSION_KINDS:
+            mine = [r for r in uncounted if per_item[r[0]][0] == kind]
+            if not mine:
+                continue
+            ok = sum(1 for _, g, p, _ in mine if abs(p - g) < 1e-9)
+            print(f"  {kind:<12} {ok}/{len(mine)} scored correctly — {meaning[kind]}")
+            for pid, g, pred, _ in sorted(mine):
+                if abs(pred - g) >= 1e-9:
+                    flag = "  <-- MISSED" if kind == "self_graded" else ""
+                    print(f"      p{pid:<3} gold={g:.2f} pred={pred:.2f}{flag}")
 
     if args.out:
         with open(args.out, "w") as fh:
@@ -1294,6 +1287,12 @@ def main() -> int:
                              for i in range(len(all_results))],
                 }, fh, indent=2)
             print(f"wrote {path} ({len(all_results)} runs)", file=sys.stderr)
+
+    # Excluded cells were run and scored; they come out of the RATE here, and are
+    # reported below as evidence in their own right.
+    kept = [r for r in rows if r[0] not in per_item]
+    uncounted = [r for r in rows if r[0] in per_item]
+    rows = kept
 
     print(f"\nlo-blocks {args.item} via the app — {len(rows)} cell(s)\n")
     print(f"{'pid':>4} {'gold':>6} {'pred':>6} {'diff':>6}")

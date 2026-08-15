@@ -638,3 +638,61 @@ def all_derive_items() -> list[dict]:
 if __name__ == "__main__":
     import json
     print(json.dumps(cli_signatures(), indent=1))
+
+
+def check_exclusions_agree() -> list[str]:
+    """Do the three harnesses exclude the SAME cells, from the same source?
+
+    A rate is only comparable to another rate over the same denominator, and
+    this project has already published two that were not: `PER_ITEM_EXCLUDE`
+    lived in agreement.py and agreement_app.py as two hand-kept mirrors, and in
+    baseline.py not at all — so the paper scorer counted 1c p4/p19/p20, Q4c p16
+    and Q6 p9, which both other harnesses drop as unreachable. Nothing compared
+    the two tables, because they happened to agree; nothing noticed the third
+    had none, because nothing looked.
+
+    Identity, not equality: two dicts that are equal today are still two dicts,
+    and the point is that there is ONE. A harness that reintroduces a local copy
+    fails here even while the contents match.
+    """
+    import handouts as H
+    problems = []
+
+    for name in ("agreement", "agreement_app"):
+        mod = __import__(name)
+        tbl = getattr(mod, "PER_ITEM_EXCLUDE", None)
+        if tbl is None:
+            problems.append(f"{name}.py no longer exposes PER_ITEM_EXCLUDE")
+        elif tbl is not H.PER_ITEM_EXCLUDE:
+            same = tbl == H.PER_ITEM_EXCLUDE
+            problems.append(
+                f"{name}.py keeps its OWN PER_ITEM_EXCLUDE"
+                + (" (equal to handouts' today, which is how the last one survived"
+                   " — it will drift)" if same
+                   else f"; it DIFFERS: {sorted(tbl)} vs {sorted(H.PER_ITEM_EXCLUDE)}"))
+
+    # Every harness that reports a rate must decide what it counts through the
+    # one function. A grep, because the alternative is calling each harness's
+    # main() to find out.
+    import os
+    for fname in ("agreement.py", "agreement_app.py", "baseline.py"):
+        path = os.path.join(os.path.dirname(H.__file__), fname)
+        try:
+            src = open(path).read()
+        except OSError as e:
+            problems.append(f"cannot read {fname}: {e}")
+            continue
+        if "cell_exclusions(" not in src:
+            problems.append(
+                f"{fname} does not call handouts.cell_exclusions() — it is deciding "
+                f"what to count some other way, so its denominator is its own")
+
+    # The kinds must stay in step with what the reporters know how to explain: a
+    # new kind that no harness has a sentence for prints as a bare label.
+    for fname in ("agreement.py", "agreement_app.py", "baseline.py"):
+        src = open(os.path.join(os.path.dirname(H.__file__), fname)).read()
+        for kind in H.EXCLUSION_KINDS:
+            if f'"{kind}"' not in src:
+                problems.append(f"{fname} has no wording for exclusion kind "
+                                f"`{kind}` — it would report it unlabelled")
+    return problems
