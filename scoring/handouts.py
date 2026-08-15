@@ -43,6 +43,27 @@ HANDOUTS: dict[int, dict] = {
         # answers appear in no prompt, so dropping them there discarded 21 cells
         # for nothing. See exemplar_drops() below.
         "exemplar_items": ["Q6"],
+        # A SECOND way a prompt can give the answer away, found by auditing every
+        # item's prompt-bearing text for a participant cited by number.
+        #
+        # `exemplar_items` covers a response reproduced in full as a worked
+        # example. This covers a response CITED as calibration — "falling asleep
+        # in the car ... cost participant 20 three points" — which quotes the
+        # answer AND states the grader's decision. That is an answer key for that
+        # cell just as surely, so scoring the cited participant on that item is
+        # self-grading too.
+        #
+        # Per item, because the sets differ: Q6 embeds p10/p8/p6, Q4b cites eight
+        # entirely different participants. The handout-wide `exemplar_participants`
+        # list cannot express that, which is why registering Q4b needed this.
+        #
+        # Nine more items qualify on the same test and are NOT registered here —
+        # Q1, Q2, Q4a, Q4c, Q5, Q6 and H3's 1a, 1c, 2a, another 45 item-cells.
+        # Registering them is a measurement-policy change that moves every
+        # reported denominator in the project, so it is a deliberate decision
+        # rather than a side effect of this one. Run the audit to reproduce the
+        # list; it is in EQUIVALENCE.md.
+        "cited_participants": {"Q4b": [2, 4, 6, 7, 13, 15, 19, 20]},
     },
     2: {
         "rubric": rubric_h2,
@@ -141,10 +162,16 @@ def exemplar_drops(handout: int) -> dict[str, list[int]]:
     cost 3 participants x 7 items = 21 cells of handout-1 evidence.
     """
     cfg = config(handout)
+    out: dict[str, list[int]] = {}
     pids = sorted(cfg.get("exemplar_participants", []) or [])
-    if not pids:
-        return {}
-    return {item: list(pids) for item in cfg.get("exemplar_items", [])}
+    for item in cfg.get("exemplar_items", []) or []:
+        if pids:
+            out[item] = list(pids)
+    # Per-item citations, merged rather than replacing: an item can both embed a
+    # worked example and cite others as calibration.
+    for item, cited in (cfg.get("cited_participants", {}) or {}).items():
+        out[item] = sorted(set(out.get(item, [])) | set(cited or []))
+    return out
 
 
 # ── Deliberate divergences from gold ─────────────────────────────────────────
