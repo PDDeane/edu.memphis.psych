@@ -166,10 +166,15 @@ def main() -> int:
         row, worst = [], 0
         for l in labels:
             ks = [k for k in cells if k[0] == iid and k in preds[l]]
-            ok = sum(1 for k in ks
-                     if abs((_num(golds[cells[k]].get(k[1], {}).get(iid)) or -1)
-                            - preds[l][k]) < 1e-9
-                     or k in declared)
+            # `(gold or -1)` was here, and 0.0 is falsy: every cell whose gold
+            # is a legitimate ZERO became -1 and counted as a miss. 1a reported
+            # 1/3 where it scores 3/3, because two of its three cells are gold 0
+            # — and a gold of 0 is common exactly where a scorer must recognise
+            # that an answer earns nothing, which is the case worth measuring.
+            def _hit(k):
+                g = _num(golds[cells[k]].get(k[1], {}).get(iid))
+                return g is not None and abs(g - preds[l][k]) < 1e-9
+            ok = sum(1 for k in ks if _hit(k) or k in declared)
             row.append(f"{ok}/{len(ks)}" if ks else "-")
             if ks and ok < len(ks):
                 worst = max(worst, len(ks) - ok)
