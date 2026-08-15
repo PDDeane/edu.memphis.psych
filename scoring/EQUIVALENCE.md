@@ -2325,6 +2325,56 @@ The other nine are deliberately NOT registered here. It is a measurement-policy
 change that moves every denominator in the project, so it wants to be a decision
 rather than a side effect of fixing Q4b.
 
+## Excluded cells are run, not skipped
+
+Three harnesses decide what to count, and until now they decided differently.
+`PER_ITEM_EXCLUDE` lived in agreement.py and agreement_app.py as two hand-kept
+mirrors, and in baseline.py not at all — so the paper scorer counted 1c
+p4/p19/p20, Q4c p16 and Q6 p9, which both other harnesses drop as unreachable,
+and its headline rate was computed over a different denominator from the numbers
+it was being compared against. Nothing compared the two tables because they
+happened to agree, and nothing noticed the third had none because nothing
+looked. The table now lives in handouts.py and the audit checks IDENTITY, not
+equality: equal-today is how the last pair survived.
+
+The bigger change is that an excluded cell is now RUN. It used to be cut from
+the work list on the reasoning that a cell nothing can score right is not worth
+an LLM call. That reasoning discarded the most diagnostic evidence in the
+corpus, because the three exclusions do not mean the same thing:
+
+| kind | why not counted | what a MISS means |
+| --- | --- | --- |
+| `suspect` | the submission is mis-transcribed | nothing — the input is not what the student wrote |
+| `self_graded` | the prompt contains this participant's answer AND the grader's decision | **a red flag** — the answer was supplied and the model missed it |
+| `unscoreable` | no correct scorer can reach this gold | **expected** — it is the documented behaviour |
+
+Only the rate excludes them; every harness now reports them underneath it.
+
+**It changed the Q4b reading immediately.** The shipped prompt looked like the
+corpus's worst item at 68%. Scored on the cells it should be judged on, the CLI
+returns **12/12 — 100% exact, MAE 0.00** — and every failure is on a self-graded
+cell:
+
+```
+   Q4b     5  12   100%   100%   0.00   +0.00
+not counted in the rate, but run — how they scored:
+  self_graded  4/7 scored correctly
+      p4   Q4b   gold=2.00 pred=5.00  <-- MISSED
+      p7   Q4b   gold=2.00 pred=5.00  <-- MISSED
+      p20  Q4b   gold=2.00 pred=5.00  <-- MISSED
+```
+
+Paper+Opus scores **10/10** self-graded cells on handout 1. So the item's
+apparent web/paper gap was never about judging student writing: it was one model
+reproducing answers held in its own prompt and the other not. The three misses
+are the cells whose text the guidance quotes verbatim — p7's "one sentence about
+why it is good to modify and one about procrastination consequences" is
+described in the prompt, and both harnesses still credit it.
+
+That is worth keeping as a standing measurement. A `self_graded` miss is a lower
+bound on how much the prompt is failing to carry: if a model cannot apply a rule
+when the answer is written beside it, the rule is not reaching it.
+
 ## Practical notes
 
 * One run per cell; ~30s per cell, so a full sweep is several hours. Verify a

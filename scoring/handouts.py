@@ -308,3 +308,104 @@ def gold_ceiling(handout: int, item: str) -> tuple[str, ...]:
     """
     got = GOLD_CEILINGS.get((str(handout), item)) or ()
     return (got,) if isinstance(got, str) else tuple(got)
+
+
+# Gold criteria that neither system scores, declared rather than left to be
+# rediscovered. An omission that is SYMMETRIC costs the head-to-head nothing —
+# both columns miss it identically — but an undeclared one is indistinguishable
+# from a bug, which is the whole reason this list exists.
+#
+#   1c, "missing baseline data week" (p11, -1): the only instance in 20 rows,
+#   and unreachable on the web by construction. The chart is drawn by
+#   SelfMonitorPlot from the four data fields, so a populated baseline series is
+#   necessarily plotted — p11's `baseline` field holds "0, 30, 0, 0, 30, 0, 30",
+#   which is why their 1b scored a full 4.0. The grader is marking a series
+#   absent from a hand-drawn paper graph whose data table contained it. Adding a
+#   slot for it would have no reachable failing state: with baseline data present
+#   the web always plots it, and with baseline data absent 1b already takes the
+#   point, so the slot could only double-count or misfire. Note also that p11's
+#   row does not self-reconcile — it itemises -2/-2/-1 against a score of 7.0 —
+#   so rebuild_gold_1c derives from the itemised deductions, not the total.
+# Cells where the gold row cannot be scored on the item it sits in, dropped from
+# that item only. Mirrors PER_ITEM_EXCLUDE in agreement_app.py; the two sides
+# must drop the SAME cells or the item's two columns stop being a comparison.
+PER_ITEM_EXCLUDE: dict[str, dict[int, str]] = {
+    "Q6": {
+        9: "the eight-box fixture for this cell is arbitrary, and it is the SAME "
+           "arbitrary fixture on both sides: fixture_for() imports "
+           "agreement_app.build_jobs, so this harness feeds its prompt the frozen "
+           "q6_consensus table rather than building its own split — verified "
+           "byte-identical. p9 tied 5/5 across ten runs on state_c2 and affect_c2, "
+           "so the vote had to break the tie, and the break put the text in "
+           "state_c2 and left affect_c2 empty. That decides 2 of the 8 slots — 2.5 "
+           "of 10 points — before the model reads anything, and the CLI's error "
+           "here is exactly -2.50. Measuring either side on it measures the "
+           "tie-break. Also one of the four documented gold divergences "
+           "(A_MISMATCH on state_a1). Both reasons are side-agnostic, which is why "
+           "the web-only exclusion this mirrors was incomplete.",
+    },
+    "Q4c": {
+        16: "gold 3.0 for \"did not say if this behavior is a good choice for you "
+            "modify and why\" — but the handout asks that under 4b, which has its "
+            "own `Modify:` field and carries modify_stated/modify_why for 3 of "
+            "its 5 points. 4c asks only for two consequences plus the keyword. "
+            "The deduction is misfiled: p16's Q4b row is a clean 5.0, so the "
+            "point was taken off the wrong item. No correct 4c scorer can reach "
+            "3.0 here, and both systems return 5.0.",
+    },
+    "1c": {
+        4: "gold 0 (\"Did not provide a graph\") but all four weeks of data "
+           "supplied — on the web that data DRAWS the chart, so the paper "
+           "failure is unreachable rather than missed",
+        19: "the same: gold 0 for no graph, four complete weeks of data",
+        20: "the same failure in its third form — a written DESCRIPTION of a "
+            "graph, which on the web IS the answer: the labels are typed into "
+            "fields and the chart is drawn from the four complete weeks",
+    },
+}
+
+
+# ── One place that answers "is this cell counted?" ──────────────────────────
+#
+# Three reasons a cell is not counted, and they mean DIFFERENT things when the
+# model gets one wrong, which is why the kind travels with the pid:
+#
+#   suspect      the SUBMISSION cannot be trusted (mis-transcribed), so the
+#                input is not what the student wrote. A miss says nothing.
+#   self_graded  the PROMPT contains this participant's answer and the grader's
+#                decision. A miss here is a RED FLAG: the answer was supplied
+#                and the model missed it anyway.
+#   unscoreable  the GOLD ROW cannot be reproduced by any correct scorer. A miss
+#                is EXPECTED — the documented behaviour, not a defect.
+#
+# All three harnesses must read this, or their rates are computed over different
+# denominators and the columns stop being a comparison. Not theoretical: the
+# table above lived in agreement.py and agreement_app.py as two hand-kept mirrors
+# and in baseline.py not at all, so the paper scorer counted five cells the other
+# two dropped.
+
+EXCLUSION_KINDS = ("suspect", "self_graded", "unscoreable")
+
+
+def unscoreable(item: str) -> dict[int, str]:
+    """{pid: why} — cells whose gold no correct scorer can reach."""
+    return dict(PER_ITEM_EXCLUDE.get(item, {}))
+
+
+def cell_exclusions(handout: int, item: str) -> dict[int, tuple[str, str]]:
+    """{pid: (kind, why)} for one item — every cell that must not be COUNTED.
+
+    Not a work list. Excluded cells are still RUN and still scored: whether the
+    model gets them right is evidence in its own right, and suppressing the call
+    threw that evidence away. Only the RATE excludes them.
+    """
+    out: dict[int, tuple[str, str]] = {}
+    for pid in suspect(handout):
+        out[pid] = ("suspect", "mis-transcribed submission; the input is not "
+                               "what the student wrote")
+    for pid in exemplar_drops(handout).get(item, []):
+        out[pid] = ("self_graded", "this item's prompt contains their response "
+                                   "and the grader's decision")
+    for pid, why in unscoreable(item).items():
+        out[pid] = ("unscoreable", why)
+    return out
