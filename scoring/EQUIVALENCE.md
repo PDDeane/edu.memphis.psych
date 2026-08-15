@@ -7,7 +7,25 @@
 is only meaningful if both run the **same rubric**.
 
 Run `python3 equivalence.py` for the current table, `--item Q4a` for one item's
-gaps, `--cli Q4a` to print exactly what the CLI sends.
+gaps, `--cli Q4a` to print exactly what the paper scorer sends.
+
+### Three scorers, and what "CLI" means here
+
+The project grew a third scorer after this file was named, and the word "CLI"
+now carries two senses. Which one is meant is stated at each use from here on;
+where an older passage says "CLI" without qualification it means the **paper**
+scorer, because that is the only one that existed when it was written.
+
+| name used here | code | prompt | output |
+| --- | --- | --- | --- |
+| **paper** (older passages: "CLI") | `score.py`, measured by `baseline.py` | its own, from `rubric_hN.py` | credit_checks + deductions + advisory_note + safety_flag + confidence + escalate |
+| **CLI harness** | `agreement.py`, driven by `sweep_cli.sh` | the SHIPPED `.olx` prompt | a slot sheet — `{checks, feedback}` |
+| **web** | the app itself, driven by `agreement_app.py` | the SHIPPED `.olx` prompt | a slot sheet — `{checks, feedback}` |
+
+The distinction matters for reading the rule table below: its left column is the
+**paper** scorer's fields. `agreement.py` has no `escalate`, no `safety_flag`
+and no `advisory_note` — it sends the web's prompt and returns the web's sheet,
+so on every row of that table it belongs in the RIGHT column, not the left.
 
 ## State: structurally equivalent as of 2026-08-02
 
@@ -62,7 +80,7 @@ prompt as `olx_prompts.WEB_SYSTEM`. Rules 3 and 5 are verbatim and
 `_check_rules_still_match()` asserts it; the other six are re-pointed at fields
 that exist here, because of deviation 3:
 
-| rule | CLI | web |
+| rule | paper (`score.py`) | web |
 | --- | --- | --- |
 | 1 | credit component by component, quote into `evidence` | check by check, quote into that check's `evidence` |
 | 2 | emit a deduction ledger using exact codes | the deduction table is canonical *wording* for `feedback`; the code is an internal label |
@@ -72,32 +90,60 @@ that exist here, because of deviation 3:
 | 6 | empty response → every component unmet + the "did not answer" code | empty response → every check unsatisfied, said plainly |
 | 7 | `safety_flag` | a safety note in `feedback`, never a fault, never changes a verdict |
 | 8 | `escalate` | say it in `feedback`; set the `confident` check where the sheet has one — note the INVERTED sense: `absent` is the flag |
+| 9 | `advisory_note` | say it in `feedback`. Folded into the student's feedback by `compose_feedback` when there is other content or a safety flag, so it is prose on both sides — it just travels as its own field on the paper side |
 
-Rule 8 is what lets every guidance bullet stay verbatim even where it says
-"put that in `advisory_note`" or "set escalate" — the prompt explains the
-substitution once instead of the bullets being edited.
+Rules 8 and 9 are what let every guidance bullet stay verbatim even where it
+says "put that in `advisory_note`" or "set escalate" — the prompt explains the
+substitution once instead of the bullets being edited. `advisory_note` had no
+row of its own until it was audited for: it was named only in this paragraph,
+which left its mapping implied rather than declared, unlike `safety_flag` and
+`escalate` beside it.
 
 ### 3. Output is a slot sheet
 
 The web grader (`SlotSheetGrader` over `scoreSlotSheet`) consumes
-`{checks, feedback}`; the CLI returns credit_checks + deductions +
-advisory_note + safety_flag + confidence + escalate. The sheet is authored in
+`{checks, feedback}`; the PAPER scorer returns credit_checks + deductions +
+advisory_note + safety_flag + confidence + escalate. `agreement.py` returns the
+same `{checks, feedback}` the web does — it is the shipped prompt run from the
+command line, not a second rubric. The sheet is authored in
 the `slots=` attribute and `olx_prompts.py` **reads it** to generate the
 `## The checklist to return` section, so the prompt and the schema cannot drift.
 
 The slot keys already match the rubric's credit `what` names on every item
-except the eight operant-conditioning ones, where the web sheet is shaped
-differently (`names_behavior` for `behavior`, a `cadence_is_daily` gate rather
-than a `cadence_ok` boolean, `matches_chosen_type` folding in `named_type`).
-`olx_prompts.SLOT_NOTES` maps each web check back to its numbered CLI
-criterion, so the criteria text stays verbatim and still names real checks.
+except the operant-conditioning ones, where the web sheet is shaped differently
+(`names_behavior` for `behavior`, a `cadence_is_daily` gate rather than a
+`cadence_ok` boolean). `olx_prompts.SLOT_NOTES` maps each web check back to its
+numbered paper criterion, so the criteria text stays verbatim and still names
+real checks.
+
+**The type judgement is a classification, not a verdict.** This is the largest
+of those shape differences and the newest, so it is spelled out. The paper
+scorer asks WHICH of the four types something is as a verdict value; the web
+splits that in two — the model answers `refers_to` from a named set, and the
+grader COMPUTES whether that answer is the right one. Ten items are shaped this
+way, not the eight the previous wording implied: D1 and D2 classify as well.
+
+| items | picks | the computed check |
+| --- | --- | --- |
+| PR, NR, PP, NP | `observed_type` from `operant_or_none` (PR/NR/PP/NP/none) | `demonstrates_type` @2, by `expect="demonstrates_type:observed_type=PR"` — the item names its own answer |
+| DAY1, WK1, DAY2, WK2 | `observed_type` from `operant_or_none`, `named_type` from `operant_or_unclear` | `matches_chosen_type`, by `equals` — the two classifications must agree |
+| D1, D2 | `defines_type` and `named_type`, both from `operant_or_unclear` | `matches_chosen_type`, by `equals` |
+
+Three consequences worth holding on to. A `pick` slot answers `refers_to` ONLY —
+no `verdict` is asked of it, because "which one is it" is not a judgement about
+quality. The computed check is removed from the response schema entirely, so the
+model is never asked for an answer the grader will overwrite. And because
+`expect` names the expected value out loud, the correct answer is no longer
+carried by the ORDER of a verdict list — which is what made the older
+`PR`/`NR`/`PP`/`NP`-as-verdicts shape fragile, since first-in-the-list silently
+meant "correct".
 
 Consequences of this deviation:
 
 * **The deduction table is sent to every item**, including `derive_from_credit`
   and `derive_from_criteria` items where `build_prompt` omits it. The CLI
   applies that canonical wording *after* the call, in
-  `score.py:compose_feedback`; the web has no post-processing step, so the model
+  `score.py:compose_feedback` (the paper scorer); the web has no post-processing step, so the model
   must see the wording to be able to use it.
 * **`build_prompt`'s "## Slots to judge" block is not reused.** Its verdict
   paragraph is written for Q6 and describes Q6's verdicts even on 1c, whose
@@ -2217,7 +2263,7 @@ triggers this has no equivalent for — an unknown deduction code, and a ledger
 with more deductions than credit components — though the web's strict enum
 schema and one-slot-per-component shape make both faults unrepresentable there.
 
-That is a usable routing signal: it is what the CLI's `escalate` exists for, and
+That is a usable routing signal: it is what the paper scorer's `escalate` exists for, and
 on the web it could gate which responses get a human read. Worth keeping for
 that alone, independently of the parallelism argument that motivated it.
 
