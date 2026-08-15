@@ -1695,9 +1695,23 @@ def main() -> int:
         print(f"(run {i} of {args.runs})", file=sys.stderr)
         passes.append(one_pass())
 
+    def _counts(r: dict) -> bool:
+        """Is this cell in the RATE? The same filter report() applies.
+
+        Selecting the median over excluded cells as well let a self-graded or
+        unscoreable cell decide which run gets published, and printed a spread
+        line whose denominator disagreed with the table under it — Q5 reported
+        "19/20, 19/20, 18/20" above a rate of 14/14. agreement_app.py had the
+        same bug and was fixed the same way.
+        """
+        return r["participant_id"] not in _handouts.cell_exclusions(
+            args.handout, r["item"])
+
     def exact_of(res: list[dict]) -> int:
         n = 0
         for r in res:
+            if not _counts(r):
+                continue
             g = gold.get(r["participant_id"], {}).get(r["item"], {}).get("score")
             if g is not None and abs(r["score"] - g) < 1e-9:
                 n += 1
@@ -1715,7 +1729,8 @@ def main() -> int:
         counts = [exact_of(p[0]) for p in passes]
         spread = max(counts) - min(counts)
         cells = len([r for r in results
-                     if gold.get(r["participant_id"], {}).get(r["item"], {}).get("score")
+                     if _counts(r)
+                     and gold.get(r["participant_id"], {}).get(r["item"], {}).get("score")
                      is not None]) or 1
         print(f"\n{args.runs} runs — exact "
               + ", ".join(f"{c}/{cells}" for c in counts)
