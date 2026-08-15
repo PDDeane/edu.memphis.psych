@@ -1067,6 +1067,13 @@ def main() -> int:
             except Exception as e:  # keep going; one bad file must not stop the run
                 print(f"  participant {pid}: FAILED {e}", file=sys.stderr)
                 continue
+            # Provenance. Without it a results directory cannot say which backend
+            # produced it, and baseline.py cannot tell a graph item scored WITH
+            # image tools from one scored blind — which is the difference between
+            # a real 88% and a 29% that is a missing tool. Recorded per file so a
+            # directory assembled from more than one run is still readable.
+            rec["backend"] = type(backend).__name__
+            rec["supports_tools"] = bool(getattr(backend, "SUPPORTS_TOOLS", False))
             with open(os.path.join(outdir, f"participant_{pid:03d}.json"), "w") as fh:
                 json.dump(rec, fh, indent=2)
             done += 1
