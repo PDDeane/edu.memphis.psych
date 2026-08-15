@@ -825,3 +825,83 @@ def check_blank_collapse_is_gated() -> list[str]:
                     f"not the student wrote anything — they would read "
                     f"\"{text[:40]}\" about an answer they wrote")
     return problems
+
+
+# Participants named in an item's own prompt, e.g. "cost participant 20 three
+# points". Attributed citations only — a few-shot exemplar is reproduced in FULL
+# and never attributed, which is why `exemplar_participants` is a separate
+# mechanism and is not checked against this.
+_CITED_RE = re.compile(r"participants?\s+((?:\d+)(?:\s*(?:,|and)\s*\d+)*)", re.I)
+
+
+def _prompt_text(item: dict) -> str:
+    """Every field of a rubric item that reaches the generated prompt."""
+    out = []
+    for key in ("guidance", "question", "label"):
+        v = item.get(key)
+        if isinstance(v, str):
+            out.append(v)
+        elif isinstance(v, list):
+            out += [x for x in v if isinstance(x, str)]
+    for c in item.get("credit", []) or []:
+        if isinstance(c.get("desc"), str):
+            out.append(c["desc"])
+    for d in item.get("deductions", []) or []:
+        if isinstance(d.get("text"), str):
+            out.append(d["text"])
+    return "\n".join(out)
+
+
+def check_citations_match_exclusions() -> list[str]:
+    """Does every `cited_participants` entry still have a citation to justify it?
+
+    A cell is registered because the item's prompt names that participant and
+    states the grader's decision, which makes scoring them recall rather than
+    judgement. Edit the guidance and that justification can vanish while the
+    registration stays — and then the item reports a rate over cells chosen for a
+    reason that no longer exists, which is the exact flattery the registry was
+    built to remove.
+
+    Both directions are wrong and both are reported:
+
+      registered, no longer cited   the cell is dropped from the rate for
+                                    nothing. Re-count it.
+      cited, not registered         the prompt hands the model the answer and
+                                    the rate counts it anyway.
+
+    Deliberately narrow. It compares against `cited_participants` ONLY, not the
+    merged view from cell_exclusions(): `exemplar_participants` are reproduced in
+    full and never attributed, so no regex can find them, and `unscoreable` cells
+    are about a gold row rather than a prompt. An earlier version of this check
+    compared against the merged set and reported both of those as faults — two
+    false alarms out of two findings, on a corpus with no real ones.
+    """
+    import rubric_h1, rubric_h2, rubric_h3
+    from handouts import HANDOUTS
+
+    problems = []
+    for h, mod in ((1, rubric_h1), (2, rubric_h2), (3, rubric_h3)):
+        cfg = HANDOUTS[h]
+        registry = cfg.get("cited_participants", {}) or {}
+        exemplars = set(cfg.get("exemplar_participants", []) or [])
+        for item in mod.ITEMS:
+            iid = item["id"]
+            cited = set()
+            for m in _CITED_RE.finditer(_prompt_text(item)):
+                cited |= {int(x) for x in re.findall(r"\d+", m.group(1))}
+            registered = set(registry.get(iid, []) or [])
+
+            stale = registered - cited
+            if stale:
+                problems.append(
+                    f"H{h} {iid}: excludes {sorted(stale)} as self-graded, but the "
+                    f"prompt no longer names them — the rate drops those cells for "
+                    f"a reason that no longer exists")
+
+            missing = cited - registered - exemplars
+            if missing:
+                problems.append(
+                    f"H{h} {iid}: the prompt names {sorted(missing)} with the "
+                    f"grader's decision, and the rate counts them — that is "
+                    f"self-grading. Register them in cited_participants")
+    return problems
