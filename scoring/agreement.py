@@ -1449,6 +1449,7 @@ def report(handout: int, results: list[dict], failures: list[tuple], gold: dict)
     all_abs, all_err = [], []
     disagreements = []
     not_counted: list[tuple] = []
+    no_gold: list[tuple] = []
     for iid in items:
         item = by_id[iid]
         tol = tolerance(item)
@@ -1457,6 +1458,13 @@ def report(handout: int, results: list[dict], failures: list[tuple], gold: dict)
         for r in (x for x in results if x["item"] == iid):
             g = gold.get(r["participant_id"], {}).get(iid, {}).get("score")
             if g is None:
+                # Ran, scored, but there is nothing on the other side of the
+                # comparison. Reported rather than dropped: a silently skipped
+                # cell is indistinguishable from one that was never run, which
+                # is the same visibility problem the web harness had from the
+                # other end — it counted these as FAILURES and exited non-zero,
+                # so a real failure had nothing to stand out against.
+                no_gold.append((iid, r["participant_id"], r["score"]))
                 continue
             if r["participant_id"] in excl:
                 kind, _why = excl[r["participant_id"]]
@@ -1537,6 +1545,14 @@ def report(handout: int, results: list[dict], failures: list[tuple], gold: dict)
                 print(f"  {iid if n == 0 else '':>5}  {why.split('. ')[0]}.")
 
     # Never let a partial run read as a complete one.
+    if no_gold:
+        print(f"\n{len(no_gold)} cell(s) ran but have no gold to compare against — "
+              f"not a failure, and not in the rate:")
+        for iid, pid, pred in sorted(no_gold):
+            why = (_handouts.cell_exclusions(handout, iid).get(pid) or (None, None))[1]
+            print(f"      p{pid} {iid}: scored {pred:.2f}, gold has no row"
+                  + (f" — {why}" if why else ""))
+
     if failures:
         print(f"\n*** {len(failures)} cell(s) FAILED and are missing from the table above:")
         for pid, iid, err in failures[:10]:
