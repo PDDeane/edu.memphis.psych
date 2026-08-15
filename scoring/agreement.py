@@ -66,6 +66,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import olx_prompts
 import simulate_h3
+import handouts as _handouts
 from handouts import (config, exemplar_drops, find_submissions, gold_ceiling,
                       suspect)
 from segment import repair_orphans, segment
@@ -1317,59 +1318,10 @@ def measure_one(backend, handout: int, spec: dict, action_id: str, path: str, pi
     }
 
 
-# Gold criteria that neither system scores, declared rather than left to be
-# rediscovered. An omission that is SYMMETRIC costs the head-to-head nothing —
-# both columns miss it identically — but an undeclared one is indistinguishable
-# from a bug, which is the whole reason this list exists.
-#
-#   1c, "missing baseline data week" (p11, -1): the only instance in 20 rows,
-#   and unreachable on the web by construction. The chart is drawn by
-#   SelfMonitorPlot from the four data fields, so a populated baseline series is
-#   necessarily plotted — p11's `baseline` field holds "{{corpus:1a/p6:baseline:0:19:sha=66e4f9120272}} 30",
-#   which is why their 1b scored a full 4.0. The grader is marking a series
-#   absent from a hand-drawn paper graph whose data table contained it. Adding a
-#   slot for it would have no reachable failing state: with baseline data present
-#   the web always plots it, and with baseline data absent 1b already takes the
-#   point, so the slot could only double-count or misfire. Note also that p11's
-#   row does not self-reconcile — it itemises -2/-2/-1 against a score of 7.0 —
-#   so rebuild_gold_1c derives from the itemised deductions, not the total.
-# Cells where the gold row cannot be scored on the item it sits in, dropped from
-# that item only. Mirrors PER_ITEM_EXCLUDE in agreement_app.py; the two sides
-# must drop the SAME cells or the item's two columns stop being a comparison.
-PER_ITEM_EXCLUDE: dict[str, dict[int, str]] = {
-    "Q6": {
-        9: "the eight-box fixture for this cell is arbitrary, and it is the SAME "
-           "arbitrary fixture on both sides: fixture_for() imports "
-           "agreement_app.build_jobs, so this harness feeds its prompt the frozen "
-           "q6_consensus table rather than building its own split — verified "
-           "byte-identical. p9 tied 5/5 across ten runs on state_c2 and affect_c2, "
-           "so the vote had to break the tie, and the break put the text in "
-           "state_c2 and left affect_c2 empty. That decides 2 of the 8 slots — 2.5 "
-           "of 10 points — before the model reads anything, and the CLI's error "
-           "here is exactly -2.50. Measuring either side on it measures the "
-           "tie-break. Also one of the four documented gold divergences "
-           "(A_MISMATCH on state_a1). Both reasons are side-agnostic, which is why "
-           "the web-only exclusion this mirrors was incomplete.",
-    },
-    "Q4c": {
-        16: "gold 3.0 for \"did not say if this behavior is a good choice for you "
-            "modify and why\" — but the handout asks that under 4b, which has its "
-            "own `Modify:` field and carries modify_stated/modify_why for 3 of "
-            "its 5 points. 4c asks only for two consequences plus the keyword. "
-            "The deduction is misfiled: p16's Q4b row is a clean 5.0, so the "
-            "point was taken off the wrong item. No correct 4c scorer can reach "
-            "3.0 here, and both systems return 5.0.",
-    },
-    "1c": {
-        4: "gold 0 (\"Did not provide a graph\") but all four weeks of data "
-           "supplied — on the web that data DRAWS the chart, so the paper "
-           "failure is unreachable rather than missed",
-        19: "the same: gold 0 for no graph, four complete weeks of data",
-        20: "the same failure in its third form — a written DESCRIPTION of a "
-            "graph, which on the web IS the answer: the labels are typed into "
-            "fields and the chart is drawn from the four complete weeks",
-    },
-}
+# The canonical table lives in handouts.py so this side, the web and
+# baseline.py cannot drift apart. Kept as a module attribute because
+# GRAPH_UNREACHABLE_1C and the report below both read it.
+PER_ITEM_EXCLUDE = _handouts.PER_ITEM_EXCLUDE
 
 # Derived from PER_ITEM_EXCLUDE, not repeated, so the two drops cannot disagree.
 # Both are applied: the work list stops the call being made, and nulling the gold
@@ -1451,6 +1403,39 @@ def tolerance(item: dict) -> float:
     return min(c["pts"] for c in item["credit"] if c.get("pts") is not None)
 
 
+# What a miss on an uncounted cell MEANS, per kind. Printed with the cells so a
+# reader does not have to remember which kind is a warning and which is expected.
+_NOT_COUNTED_MEANING = {
+    "self_graded": "the prompt contains the answer and the grader's decision — "
+                   "a miss here is evidence of a problem with the model",
+    "unscoreable": "no correct scorer can reach this gold — a miss is EXPECTED",
+    "suspect":     "the submission is mis-transcribed — a miss says nothing",
+}
+
+
+def _print_not_counted(rows: list[tuple]) -> None:
+    """Cells run but kept out of the rate, and whether they were scored right.
+
+    They are shown because they are evidence: a `self_graded` cell was handed
+    the answer, so missing one is a finding rather than a gap in coverage. This
+    is the reason the harness stopped cutting them from the work list.
+    """
+    if not rows:
+        return
+    print("\nnot counted in the rate, but run — how they scored:")
+    for kind in _handouts.EXCLUSION_KINDS:
+        mine = [r for r in rows if r[0] == kind]
+        if not mine:
+            continue
+        ok = sum(1 for _, _, _, g, p in mine if abs(p - g) < 1e-9)
+        print(f"  {kind:<12} {ok}/{len(mine)} scored correctly — "
+              f"{_NOT_COUNTED_MEANING[kind]}")
+        for _, iid, pid, g, p in sorted(mine, key=lambda r: (r[1], r[2])):
+            if abs(p - g) >= 1e-9:
+                flag = "  <-- MISSED" if kind == "self_graded" else ""
+                print(f"      p{pid:<3} {iid:<5} gold={g:.2f} pred={p:.2f}{flag}")
+
+
 def report(handout: int, results: list[dict], failures: list[tuple], gold: dict) -> int:
     cfg = config(handout)
     by_id = cfg["rubric"].BY_ID
@@ -1463,13 +1448,19 @@ def report(handout: int, results: list[dict], failures: list[tuple], gold: dict)
 
     all_abs, all_err = [], []
     disagreements = []
+    not_counted: list[tuple] = []
     for iid in items:
         item = by_id[iid]
         tol = tolerance(item)
         errs, exact, within = [], 0, 0
+        excl = _handouts.cell_exclusions(handout, iid)
         for r in (x for x in results if x["item"] == iid):
             g = gold.get(r["participant_id"], {}).get(iid, {}).get("score")
             if g is None:
+                continue
+            if r["participant_id"] in excl:
+                kind, _why = excl[r["participant_id"]]
+                not_counted.append((kind, iid, r["participant_id"], g, r["score"]))
                 continue
             e = r["score"] - g
             errs.append(e)
@@ -1493,6 +1484,8 @@ def report(handout: int, results: list[dict], failures: list[tuple], gold: dict)
         print(f"{'ALL':>6} {'':>5} {len(all_abs):>3} "
               f"{sum(1 for e in all_err if abs(e) < 1e-9)/len(all_err):>6.0%} {'':>6} "
               f"{statistics.mean(all_abs):>6.2f} {statistics.mean(all_err):>+7.2f}")
+
+    _print_not_counted(not_counted)
 
     # Slot detection: how many failed slots the prompt finds against how many
     # the grader's own arithmetic implies. This is the metric that moved when
@@ -1609,36 +1602,32 @@ def main() -> int:
             print(f"none of {args.items} are measurable on handout {args.handout}", file=sys.stderr)
             return 1
 
-    drop = set(suspect(args.handout) if args.exclude is None else args.exclude)
+    # `--exclude` with explicit values still removes them outright; that is its
+    # purpose. The DEFAULT path now runs everyone and excludes at count time.
+    drop = set(args.exclude or ()) if args.exclude is not None else set()
     targets = [(pid, p) for pid, p in find_submissions(args.handout, args.participants)
                if pid not in drop]
     if drop:
-        print(f"(excluding participants {sorted(drop)} — untrusted transcription)",
+        print(f"(excluding participants {sorted(drop)} outright — explicit --exclude)",
               file=sys.stderr)
 
     backend = LoBlocksBackend() if args.backend == "lo" else CliBackend()
-    # Per-item drops are applied to the WORK LIST, not just to the metrics: a
-    # cell nothing can score right is not worth an LLM call either, and leaving
-    # it in the results would put it in the failure census.
+    # Excluded cells are RUN, not skipped. They used to be cut from the work list
+    # on the grounds that a cell nothing can score right is not worth a call —
+    # but that threw away the most diagnostic evidence there is. A `self_graded`
+    # cell carries its own answer in the prompt, so missing one says something
+    # about the model that no counted cell can. Only the RATE excludes them; see
+    # handouts.cell_exclusions().
     per_item = {} if args.exclude is not None else {
-        (s["item"], pid): why
+        (item, pid): kv
         for s in blocks.values()
-        for pid, why in PER_ITEM_EXCLUDE.get(s["item"], {}).items()
+        for item in (s["item"],)
+        for pid, kv in _handouts.cell_exclusions(args.handout, item).items()
     }
-    if args.exclude is None:
-        # Exemplar participants are dropped from the items whose prompt embeds
-        # them, not from the whole handout — see exemplar_drops().
-        ex = exemplar_drops(args.handout)
-        for s in blocks.values():
-            for pid in ex.get(s["item"], []):
-                per_item.setdefault(
-                    (s["item"], pid),
-                    "their response is a few-shot exemplar in THIS item's prompt, "
-                    "so scoring it would be self-grading")
-    jobs = [(a, s, path, pid) for pid, path in targets for a, s in blocks.items()
-            if (s["item"], pid) not in per_item]
-    for (iid, pid), why in sorted(per_item.items()):
-        print(f"(excluding p{pid} from {iid}: {why})", file=sys.stderr)
+    jobs = [(a, s, path, pid) for pid, path in targets for a, s in blocks.items()]
+    for (iid, pid), (kind, why) in sorted(per_item.items()):
+        print(f"(not counted: p{pid} on {iid} [{kind}] — {why}; run anyway)",
+              file=sys.stderr)
     print(f"measuring {len(blocks)} item(s) x {len(targets)} participant(s) "
           f"= {len(jobs)} calls via {backend.name}", file=sys.stderr)
 
