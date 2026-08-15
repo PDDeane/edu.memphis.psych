@@ -1189,7 +1189,19 @@ def main() -> int:
                   f"their data is incomplete and the gate does fire)", file=sys.stderr)
 
     def tabulate(res):
-        rows, failures = [], []
+        """-> (comparable rows, real failures, cells with no gold to compare to).
+
+        A missing GOLD row is not a harness failure. The harness ran the cell,
+        the app scored it, and there is simply nothing on the other side of the
+        comparison — 1c's p4/p19/p20 are registered `unscoreable` for exactly
+        that reason, and Q4b's p2 has no gold row at all. Counting them as
+        failures made those items exit non-zero on every run, which is the state
+        a REAL failure has to be visible against.
+
+        A missing GRADER score is still a failure: the cell was supposed to
+        produce one and did not.
+        """
+        rows, failures, no_gold = [], [], []
         for r in res:
             pid = int(re.match(r"p(\d+)/", r["cell"]).group(1))
             if not r["ok"]:
@@ -1198,12 +1210,15 @@ def main() -> int:
                 continue
             g = gold.get(pid, {}).get(args.item, {}).get("score")
             frac = (r.get("grader") or {}).get("score")
-            if g is None or frac is None:
-                failures.append((pid, "no score", f"gold={g} grader={frac}"))
+            if frac is None:
+                failures.append((pid, "no grader score", f"gold={g} grader=None"))
+                continue
+            if g is None:
+                no_gold.append((pid, round(float(frac) * float(r["sheet_max"]), 2)))
                 continue
             pred = round(float(frac) * float(r["sheet_max"]), 2)
             rows.append((pid, g, pred, r["verdicts"]))
-        return rows, failures
+        return rows, failures, no_gold
 
     # Runs 2..N. The FIRST run is `results`, already driven above so that a
     # fixture or server failure surfaces before spending on repeats.
@@ -1228,7 +1243,7 @@ def main() -> int:
     # 6-point difference between the two implementations.
     order = sorted(range(len(all_runs)), key=lambda i: (exact_of(all_runs[i][0]), i))
     pick = order[len(order) // 2]
-    rows, failures = all_runs[pick]
+    rows, failures, no_gold = all_runs[pick]
     results = all_results[pick]
     # Split BEFORE anything reads either half. This lived next to the table it
     # feeds, which put it AFTER the `uncounted` report that consumes it: every
@@ -1239,8 +1254,8 @@ def main() -> int:
     rows = kept
 
     if args.runs > 1:
-        counts = [exact_of(r) for r, _ in all_runs]
-        sizes = [len(counted(r)) for r, _ in all_runs]
+        counts = [exact_of(r) for r, *_ in all_runs]
+        sizes = [len(counted(r)) for r, *_ in all_runs]
         per_run = ", ".join(f"{c}/{s}" for c, s in zip(counts, sizes))
         spread = max(counts) - min(counts)
         print(f"\n{args.runs} runs — exact {per_run}   mean {statistics.fmean(counts):.1f}"
@@ -1353,6 +1368,14 @@ def main() -> int:
     if weak:
         print("cells where a paper answer held one entry, so the second field is "
               f"empty (a state the graders score): {weak}")
+
+    if no_gold:
+        print(f"\n{len(no_gold)} cell(s) ran but have no gold to compare against — "
+              f"not a failure, and not in the rate:")
+        for pid, pred in sorted(no_gold):
+            why = per_item.get(pid, (None, None))[1]
+            print(f"      p{pid}: scored {pred:.2f}, gold has no row"
+                  + (f" — {why}" if why else ""))
 
     if failures:
         print(f"\n*** {len(failures)} cell(s) did not produce a score — the rates "
