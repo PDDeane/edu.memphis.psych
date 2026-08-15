@@ -1228,6 +1228,13 @@ def main() -> int:
     pick = order[len(order) // 2]
     rows, failures = all_runs[pick]
     results = all_results[pick]
+    # Split BEFORE anything reads either half. This lived next to the table it
+    # feeds, which put it AFTER the `uncounted` report that consumes it: every
+    # item ran its three runs and then died on an unbound name, losing a finished
+    # 26-item sweep to a line ordering.
+    kept = [r for r in rows if r[0] not in per_item]
+    uncounted = [r for r in rows if r[0] in per_item]
+    rows = kept
 
     if args.runs > 1:
         counts = [exact_of(r) for r, _ in all_runs]
@@ -1241,25 +1248,6 @@ def main() -> int:
             print(f"read the table below as +/-{spread} cell(s) "
                   f"({100 * spread / sizes[0]:.0f} points): a single run of this item "
                   f"cannot resolve a difference smaller than that")
-
-    if uncounted:
-        print("\nnot counted in the rate, but run — how they scored:")
-        meaning = {
-            "self_graded": "the prompt contains the answer and the grader's decision "
-                           "— a miss here is evidence of a problem with the model",
-            "unscoreable": "no correct scorer can reach this gold — a miss is EXPECTED",
-            "suspect":     "the submission is mis-transcribed — a miss says nothing",
-        }
-        for kind in _handouts.EXCLUSION_KINDS:
-            mine = [r for r in uncounted if per_item[r[0]][0] == kind]
-            if not mine:
-                continue
-            ok = sum(1 for _, g, p, _ in mine if abs(p - g) < 1e-9)
-            print(f"  {kind:<12} {ok}/{len(mine)} scored correctly — {meaning[kind]}")
-            for pid, g, pred, _ in sorted(mine):
-                if abs(pred - g) >= 1e-9:
-                    flag = "  <-- MISSED" if kind == "self_graded" else ""
-                    print(f"      p{pid:<3} gold={g:.2f} pred={pred:.2f}{flag}")
 
     if args.out:
         with open(args.out, "w") as fh:
@@ -1288,12 +1276,6 @@ def main() -> int:
                 }, fh, indent=2)
             print(f"wrote {path} ({len(all_results)} runs)", file=sys.stderr)
 
-    # Excluded cells were run and scored; they come out of the RATE here, and are
-    # reported below as evidence in their own right.
-    kept = [r for r in rows if r[0] not in per_item]
-    uncounted = [r for r in rows if r[0] in per_item]
-    rows = kept
-
     print(f"\nlo-blocks {args.item} via the app — {len(rows)} cell(s)\n")
     print(f"{'pid':>4} {'gold':>6} {'pred':>6} {'diff':>6}")
     print("-" * 26)
@@ -1306,6 +1288,25 @@ def main() -> int:
         print(f"exact {exact}/{len(errs)} ({exact/len(errs):.0%})  "
               f"MAE {statistics.mean(map(abs, errs)):.2f}  "
               f"bias {statistics.mean(errs):+.2f}")
+
+    if uncounted:
+        print("\nnot counted in the rate, but run — how they scored:")
+        meaning = {
+            "self_graded": "the prompt contains the answer and the grader's decision "
+                           "— a miss here is evidence of a problem with the model",
+            "unscoreable": "no correct scorer can reach this gold — a miss is EXPECTED",
+            "suspect":     "the submission is mis-transcribed — a miss says nothing",
+        }
+        for kind in _handouts.EXCLUSION_KINDS:
+            mine = [r for r in uncounted if per_item[r[0]][0] == kind]
+            if not mine:
+                continue
+            ok = sum(1 for _, g, p, _ in mine if abs(p - g) < 1e-9)
+            print(f"  {kind:<12} {ok}/{len(mine)} scored correctly — {meaning[kind]}")
+            for pid, g, pred, _ in sorted(mine):
+                if abs(pred - g) >= 1e-9:
+                    flag = "  <-- MISSED" if kind == "self_graded" else ""
+                    print(f"      p{pid:<3} gold={g:.2f} pred={pred:.2f}{flag}")
 
     if fb_by_cell:
         print("\ncells where a field this handout left empty was taken from another "
