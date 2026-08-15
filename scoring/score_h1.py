@@ -315,7 +315,9 @@ def score_item(backend, item: dict, response: str, context: dict, hint) -> dict:
     raw = backend.complete(SYSTEM, prompt, build_schema(item))
 
     if item.get("derive_from_credit"):
-        ledger, checks, unknown = derive_ledger(item, raw)
+        # `response` for the same reason score.py passes it: the blank-answer
+        # collapse must only fire on an answer that is actually blank.
+        ledger, checks, unknown = derive_ledger(item, raw, response)
     else:
         valid = {d["code"]: d for d in item["deductions"]}
         ledger, unknown = [], []
