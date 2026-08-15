@@ -778,9 +778,8 @@ ITEMS: list[dict] = [
             "An active behavior happens DURING the UTB — what the student does instead of "
             "the WGB.",
             "THE TEST IS FRAMING, NOT CATEGORY. The graders accept almost anything the "
-            "student presents as happening during the UTB episode, and reject statements "
-            "presented as outcomes of it. Judge how the sentence is framed, not whether "
-            "the content is technically a 'behaviour'.",
+            "student presents as happening during the UTB episode. Judge how the sentence "
+            "is framed, not whether the content is technically a 'behaviour'.",
             "ACCEPT — and accept broadly. Ordinary activities (\"I am scrolling social "
             "media\", \"{{corpus:Q4b/p15:second:38:78:sha=834b72be96f6}}\", \"{{corpus:Q4b/p16:first:0:21:sha=4b5ab94038d3}} "
             "TV\", \"{{corpus:Q4b/p13:first:19:39:sha=771ed2fbc3ad:shape=C1}} multitask\"), INTERNAL STATES AND THOUGHTS "
@@ -790,26 +789,10 @@ ITEMS: list[dict] = [
             "{{corpus:Q4b/p19:second:57:74:sha=0570c82c125d}} day\") all earned full credit — participants 13, 15 and 19 "
             "each scored 5.0 on responses of exactly these kinds. A sentence opening \"{{corpus:Q4b/p15:first:0:4:sha=cf9c7aa24a26:shape=R4-0-20}}"
             "{{corpus:Q4b/p15:first:5:42:sha=cd9c4f449b3d}} ...\" is almost always creditable.",
-            "REJECT in only two shapes. (a) The sentence is framed as an OUTCOME or "
-            "resulting state rather than an activity: \"{{corpus:Q4b/p6:second:0:34:sha=a7d377e82394:shape=R34-0-20}}"
-            "{{corpus:Q4b/p6:second:35:72:sha=9e4ac1aacc6e}} muscles\" cost participant 6 1.5 points, "
-            "and falling asleep in the car or {{corpus:Q6/p20:affect_c2:46:65:sha=f4404254ef89}} cost participant 20 three. "
-            "(b) The sentence is not an example of doing anything at all — meta-commentary "
-            "about whether the behaviour is worth modifying, or a recital of consequences. "
-            "Participant 7 offered one sentence about why it {{corpus:Q4b/p7:modify:21:38:sha=1fa4115cf4a6}} and one "
-            "about procrastination consequences, and the grader took 3 points: \"did not "
-            "provide two examples\". When neither entry is an example, deduct B_NOT_ACTIVE "
-            "twice rather than B_ONLY_ONE.",
-            "IMPLICIT (from gold): antecedent, active behavior, and consequence must be "
-            "THREE DISTINCT things. Reusing a Q4a antecedent as an active behavior loses "
-            "1.5 pts — \"your behaviors cannot be the same as your antecedents. Antecedents "
-            "lead to behaviors, which lead to consequences\" (participants 2 and 4).",
-            "But a trigger and the student's RESPONSE to that trigger are two distinct "
-            "things, not a repeat. Participant 15 listed \"{{corpus:Q4a/p15:second:0:26:sha=b39ebb0b59d3:shape=C1}} me\" "
-            "as an antecedent and \"{{corpus:Q4b/p15:second:38:81:sha=d85cd85d84fa}} text\" as "
-            "an active behaviour, and the grader gave full credit: being called is the "
-            "trigger, choosing to stay on the call is the behaviour. Apply the distinctness "
-            "rule only when the two entries name the SAME event from the same side.",
+            "REJECT in ONE shape: the sentence is not an example of doing anything at "
+            "all — meta-commentary about whether the behaviour is worth modifying, or a "
+            "recital of consequences. When neither entry is an example, deduct "
+            "B_NOT_ACTIVE twice rather than B_ONLY_ONE.",
         ],
         "context": ["Q1", "Q2", "Q4a"],
     },
