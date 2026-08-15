@@ -71,7 +71,7 @@ that exist here, because of deviation 3:
 | 5 | generously but not charitably | verbatim |
 | 6 | empty response → every component unmet + the "did not answer" code | empty response → every check unsatisfied, said plainly |
 | 7 | `safety_flag` | a safety note in `feedback`, never a fault, never changes a verdict |
-| 8 | `escalate` | say it in `feedback`; set the `uncertain` check where the sheet has one |
+| 8 | `escalate` | say it in `feedback`; set the `confident` check where the sheet has one — note the INVERTED sense: `absent` is the flag |
 
 Rule 8 is what lets every guidance bullet stay verbatim even where it says
 "put that in `advisory_note`" or "set escalate" — the prompt explains the
@@ -824,7 +824,7 @@ what to re-run, not after.
 B_NO_MODIFY's full 2 points, a hedge there charged 2 and suppressed `modify_why` with
 it: p14 and p17 both fell to 3.0 against a gold of 5.0. `unclear` is gone from both
 modify slots on both sides — presence questions do not need a hedge, and the sheet's
-`uncertain` check is where doubt belongs. **69% -> 75%**, though honestly it fixed
+the doubt check is where doubt belongs. **69% -> 75%**, though honestly it fixed
 three cells and broke two; worth about one cell, not the three hoped for.
 
 **The Q6 regression** is written up in its own section below — a dropped verdict on
@@ -2141,7 +2141,7 @@ Across the rounds recorded above, a pattern separates them cleanly:
 | seeding the unfed context refs | wiring bug | Q6 **24% → 71%** |
 | `unclear` charged where the CLI defaults favourable | arithmetic parity | +4/171, every fix on a touched slot |
 | cadence sheets' orphaned criteria | prompt/schema coherence | +1/67 — noise |
-| `uncertain` added to ten sheets | schema, provably score-neutral | −4/173 — noise |
+| the doubt channel added to ten sheets | schema, provably score-neutral | −4/173 — noise |
 | asserting response headings | prompt framing | 0/156 — flat |
 | stripping the scorer's commentary from a quote | fixture correctness | 8/12 → 7/12 — noise |
 | anchoring Q6's eight boxes | **fixture, misdiagnosed** | **11/17 → 3/17 — REVERTED** |
@@ -2159,7 +2159,7 @@ spending remaining effort on wiring and arithmetic rather than wording.
 The most useful number in this file, and it came from a change that could not
 possibly matter.
 
-`uncertain` was added to the ten sheets that lacked it — unscored, non-gating,
+The doubt channel was added to the ten sheets that lacked it — unscored, non-gating,
 last. `scoreSlotSheet` cannot see it: max is unchanged on every item, no gate is
 added, nothing is deducted. The arithmetic is provably identical.
 
@@ -2181,20 +2181,41 @@ own, with net swings of ±4**. That is the floor. Consequences:
 * Before trusting any future comparison, run the same config twice and subtract.
   That null experiment has still not been run and would cost one sweep.
 
-### `uncertain` earns its place — it predicts disagreement
+### `confident` earns its place — it predicts disagreement
 
-All 23 sheets now carry the channel, matching the CLI's `escalate`. It is used,
-and it is informative:
+All 23 model-scored sheets carry the channel, matching the paper scorer's
+`escalate`. The three that do not — `bmod_h2_t1_checks`, `bmod_h2_t2_checks`,
+`bmod_h3_data_checks` — are `DerivedChecks` sheets with no model call, so there
+is nothing to be uncertain about.
+
+**It was called `uncertain` and is now `confident`, with the sense INVERTED**:
+the flag is `absent`, not `yes`. Renamed by the same change that un-inverted the
+advisory flags so every check says its good state. The numbers below are
+therefore re-measured in the new polarity, from `web_v8`; the older table read
+`uncertain = yes 47% / no 15%` over 173 cells and is superseded.
 
 | | cells | miss rate |
 | --- | --- | --- |
-| `uncertain = yes` | 36 | **47%** |
-| `uncertain = no` | 137 | 15% |
-| all | 173 | 22% |
+| `confident = absent` (flagged) | 274 | **16%** |
+| `confident = met` | 157 | 5% |
+| all | 431 | 12% |
 
-Three times the miss rate when flagged. Q3 flags 10 of 17 and Q4b 8 of 17 —
-the two worst H1 items after Q6 — while 1c and 2b flag nothing and score 93% and
-100%. The model knows where it is guessing.
+Three times the miss rate when flagged, on 2.5x the evidence the first
+measurement had. Q2 and Q4b each flag 18 of 19, and 2a flags 18 of 20 — but the
+flag discriminates within them rather than just marking hard items: Q4b misses
+33% of its flagged cells and Q2 only 6%. At the other end, item 3 flags 5 of 20
+and scores 100%, 1c flags 7 of 17 and scores 94%. The model knows where it is
+guessing.
+
+Two caveats on these figures. `web_v8` predates the cited-participant
+registrations, so its cells include the 55 now excluded from rates — the
+correlation is unaffected, but the denominators are not the ones a current sweep
+reports. And nothing consumes the signal: grepping `lib/llm/` and
+`components/blocks/grading/` finds no reader of `confident`, so it is published
+in the sheet and dropped. The paper scorer's `escalate` is also wired to two
+triggers this has no equivalent for — an unknown deduction code, and a ledger
+with more deductions than credit components — though the web's strict enum
+schema and one-slot-per-component shape make both faults unrepresentable there.
 
 That is a usable routing signal: it is what the CLI's `escalate` exists for, and
 on the web it could gate which responses get a human read. Worth keeping for
