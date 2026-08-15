@@ -686,7 +686,7 @@ EVIDENCE: dict[str, tuple[str, list[tuple[str, str]]]] = {
 
 # ---------------------------------------------------------------------------
 # The checklist. DEVIATION 3 (permitted): the web returns a slot sheet, so the
-# CLI's credit_checks + deductions + advisory_note + safety_flag + confidence +
+# the paper scorer's credit_checks + deductions + advisory_note + safety_flag +
 # escalate collapse into {checks, feedback}. The sheet is authored in the .olx
 # `slots` attribute; this reads it so prompt and schema cannot drift.
 #
