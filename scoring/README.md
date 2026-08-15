@@ -107,7 +107,7 @@ matching the graders, who leave the cell blank on full credit.
 
 **Abstains rather than guesses.** `escalate: true` when no dictionary code
 fits, when the model returned a code outside the closed set, or when
-confidence is low. Given that per-item scores drive a 150-point graded
+the model is genuinely unsure. Given that per-item scores drive a 150-point graded
 project, this is grader-assist, not autograding.
 
 ## Measured agreement (20 gold rows, `claude-opus-5`)
