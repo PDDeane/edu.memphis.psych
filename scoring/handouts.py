@@ -72,7 +72,12 @@ HANDOUTS: dict[int, dict] = {
             "Q1":  [1, 2, 6, 9, 10, 16],
             "Q2":  [3, 6, 7, 10],
             "Q4a": [3, 4, 6, 9, 14, 15, 17],
-            "Q4b": [2, 4, 6, 7, 13, 15, 19, 20],
+            # Q4b cites only its ACCEPT cases now. 2, 4, 6, 7 and 20 came OUT of the
+            # guidance rather than staying in it and being excluded: the item could
+            # not score them right even with the answer written beside them, so
+            # excluding them reported a rate over the cells it can do. They are
+            # counted now, and expected to be wrong. See EQUIVALENCE.md.
+            "Q4b": [13, 15, 19],
             "Q4c": [4, 9, 11, 12, 15, 17, 20],
             "Q5":  [4, 6, 8, 9, 19, 20],
             # Merged with `exemplar_items` above, not replacing it: Q6 both

@@ -528,6 +528,8 @@ def enforcement_audit():
         findings.append(("-", "BACKEND DEVIATION UNDECLARED", bad))
     for bad in ENF.check_blank_collapse_is_gated():
         findings.append(("-", "BLANK COLLAPSE UNGATED", bad))
+    for bad in ENF.check_citations_match_exclusions():
+        findings.append(("-", "EXCLUSION UNJUSTIFIED", bad))
     for iid, h, mx, label in uncovered_cli_items():
         findings.append((iid, "SCORED ON CLI ONLY",
                          f"H{h} {label} is worth {mx:g} on the CLI and is scored by "
@@ -854,6 +856,20 @@ def enforcement_selftest():
     # different cell sets and compared anyway. This injects the first half of
     # that — a harness with its own copy — and it must fail even though the
     # copy is equal, because equal-today is exactly how the last one survived.
+    # The stale-exclusion guard, in BOTH directions. An exclusion outlives the
+    # citation that justified it (the rate keeps dropping a cell for nothing), or
+    # a citation is added without registering it (the rate counts a self-graded
+    # cell). Neither shows up in any number: the first shrinks a denominator, the
+    # second inflates a numerator, and both look like ordinary results.
+    import handouts as _H4
+    _cp = _H4.HANDOUTS[1]["cited_participants"]
+    _saved_cp = dict(_cp)
+    _cp["Q4b"] = sorted(set(_cp.get("Q4b", [])) | {99})
+    cases.append(("an exclusion outlives the citation that justified it",
+                  "EXCLUSION UNJUSTIFIED", "-",
+                  [f for f in enforcement_audit()[0]]))
+    _H4.HANDOUTS[1]["cited_participants"] = _saved_cp
+
     # The "did not answer" guard. Un-gating the collapse changes no score, so
     # nothing else in this suite would notice; it only changes the code and the
     # sentence the student reads.
