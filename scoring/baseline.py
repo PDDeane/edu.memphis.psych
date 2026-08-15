@@ -17,6 +17,7 @@ import json
 import os
 import statistics
 
+import handouts as _handouts
 from handouts import (HANDOUTS, config, exemplar_drops, gold_ceiling,
                       gold_divergence_cells, suspect)
 from stale_check import audit as stale_audit
@@ -64,14 +65,25 @@ def main() -> int:
     # every item — 3 participants x 7 items = 21 cells of handout-1 evidence
     # discarded, and it made this tool's n disagree with agreement.py's, which
     # has used per-item drops for a while. See handouts.exemplar_drops().
+    # score.py already runs every participant, so nothing has to be re-run for
+    # this: the predictions for excluded cells are on disk and were simply never
+    # read. They are now read and reported separately, never counted.
     if args.exclude is None:
-        args.exclude = suspect(args.handout)
+        args.exclude = []
     gold = cfg["gold"]()
     if args.exclude:
         gold = {k: v for k, v in gold.items() if k not in set(args.exclude)}
         print(f"(excluding participants {sorted(args.exclude)} — mis-transcribed, "
               f"not attributable on any item)\n")
-    per_item_drop = exemplar_drops(args.handout)
+    # The SAME source the web and CLI harnesses read. This used to be
+    # exemplar_drops() alone, with no equivalent of PER_ITEM_EXCLUDE at all —
+    # so the paper scorer counted five cells (1c p4/p19/p20, Q4c p16, Q6 p9)
+    # that both other harnesses drop as unreachable, and its headline rate was
+    # computed over a different denominator from the numbers it was compared
+    # against.
+    per_item_excl = {it["id"]: _handouts.cell_exclusions(args.handout, it["id"])
+                     for it in ITEMS}
+    per_item_drop = {k: sorted(v) for k, v in per_item_excl.items() if v}
     if per_item_drop:
         shown = ", ".join(f"{k}: {sorted(v)}" for k, v in sorted(per_item_drop.items()))
         print(f"(excluding per item, few-shot exemplars in that item's own prompt — "
@@ -116,6 +128,7 @@ def main() -> int:
     print("-" * len(hdr))
 
     all_err, all_abs = [], []
+    not_counted: list[tuple] = []
     adj_err = []                       # declared divergences removed
     per_item_rows = []
     disagreements = []
@@ -126,9 +139,13 @@ def main() -> int:
         tol = tolerance(iid)
         errs, exact, within, esc, n = [], 0, 0, 0, 0
         aerrs, aexact = [], 0
-        skip = set(per_item_drop.get(iid, []))
+        skip = per_item_excl.get(iid, {})
         for pid in pids:
             if pid in skip:
+                g = gold[pid].get(iid, {}).get("score")
+                p = pred[pid].get(iid, {}).get("score")
+                if g is not None and p is not None:
+                    not_counted.append((skip[pid][0], iid, pid, g, p))
                 continue
             g = gold[pid].get(iid, {}).get("score")
             p = pred[pid].get(iid, {}).get("score")
@@ -223,6 +240,26 @@ def main() -> int:
             f"bias {statistics.mean(tot_err):+.2f}, "
             f"within 2 pts {sum(1 for e in tot_err if abs(e)<=2)/len(tot_err):.0%}"
         )
+
+    if not_counted:
+        print("\nnot counted in the rate, but scored — how they came out:")
+        meaning = {
+            "self_graded": "the prompt contains the answer and the grader's decision "
+                           "— a miss here is evidence of a problem with the model",
+            "unscoreable": "no correct scorer can reach this gold — a miss is EXPECTED",
+            "suspect":     "the submission is mis-transcribed — a miss says nothing",
+        }
+        for kind in _handouts.EXCLUSION_KINDS:
+            mine = [r for r in not_counted if r[0] == kind]
+            if not mine:
+                continue
+            ok = sum(1 for _, _, _, g, p in mine if abs(p - g) < 1e-9)
+            print(f"  {kind:<12} {ok}/{len(mine)} scored correctly — {meaning[kind]}")
+            for _, iid, pid, g, p in sorted(mine, key=lambda r: (r[1], r[2])):
+                if abs(p - g) >= 1e-9:
+                    flag = "  <-- MISSED" if kind == "self_graded" else ""
+                    print(f"      p{pid:<3} {iid:<5} gold={g:.2f} pred={p:.2f}{flag}")
+
 
     if disagreements:
         print("\nLargest disagreements (|error| beyond item tolerance):")

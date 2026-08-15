@@ -522,6 +522,8 @@ def enforcement_audit():
         findings.append(("-", "HARNESS SCHEMA DIVERGES", bad))
     for bad in ENF.check_derived_fields_resolve():
         findings.append(("-", "DERIVED FIELD UNREADABLE", bad))
+    for bad in ENF.check_exclusions_agree():
+        findings.append(("-", "EXCLUSIONS DIVERGE", bad))
     for iid, h, mx, label in uncovered_cli_items():
         findings.append((iid, "SCORED ON CLI ONLY",
                          f"H{h} {label} is worth {mx:g} on the CLI and is scored by "
@@ -843,6 +845,19 @@ def enforcement_selftest():
     # being emitted unconditionally. Removing that finding is what exposed it.
     # Asserted rather than assumed: a case that cannot break what it claims to
     # break must fail loudly the next time the content moves under it.
+    # The denominator guard. Two harnesses kept hand-mirrored copies of
+    # PER_ITEM_EXCLUDE and a third had none, so their rates were computed over
+    # different cell sets and compared anyway. This injects the first half of
+    # that — a harness with its own copy — and it must fail even though the
+    # copy is equal, because equal-today is exactly how the last one survived.
+    import handouts as _H
+    _real_tbl = _AG.PER_ITEM_EXCLUDE
+    _AG.PER_ITEM_EXCLUDE = {k: dict(v) for k, v in _real_tbl.items()}
+    cases.append(("a harness keeps its own copy of the exclusions",
+                  "EXCLUSIONS DIVERGE", "-",
+                  [f for f in enforcement_audit()[0]]))
+    _AG.PER_ITEM_EXCLUDE = _real_tbl
+
     _d_item = _AG.BLOCKS[3]["bmod_h3_graph_llm"]
     _d_field = _AG.load_action(_d_item["olx"], "bmod_h3_graph_llm")["derived"][0]["fields"][0]
     assert _d_field in _d_item["refs"], (
