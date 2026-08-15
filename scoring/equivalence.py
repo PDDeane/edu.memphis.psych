@@ -524,6 +524,8 @@ def enforcement_audit():
         findings.append(("-", "DERIVED FIELD UNREADABLE", bad))
     for bad in ENF.check_exclusions_agree():
         findings.append(("-", "EXCLUSIONS DIVERGE", bad))
+    for bad in ENF.check_backend_deviations_declared():
+        findings.append(("-", "BACKEND DEVIATION UNDECLARED", bad))
     for iid, h, mx, label in uncovered_cli_items():
         findings.append((iid, "SCORED ON CLI ONLY",
                          f"H{h} {label} is worth {mx:g} on the CLI and is scored by "
@@ -850,6 +852,16 @@ def enforcement_selftest():
     # different cell sets and compared anyway. This injects the first half of
     # that — a harness with its own copy — and it must fail even though the
     # copy is equal, because equal-today is exactly how the last one survived.
+    # The blind-graph-item guard. A backend that quietly stops forwarding tools
+    # scores 1c as "no graph" on every cell and reports it as a model result.
+    import backends as _B
+    _real_st = _B.LoBlocksBackend.SUPPORTS_TOOLS
+    _B.LoBlocksBackend.SUPPORTS_TOOLS = True
+    cases.append(("a tool-less backend claims it has tools",
+                  "BACKEND DEVIATION UNDECLARED", "-",
+                  [f for f in enforcement_audit()[0]]))
+    _B.LoBlocksBackend.SUPPORTS_TOOLS = _real_st
+
     import handouts as _H
     _real_tbl = _AG.PER_ITEM_EXCLUDE
     _AG.PER_ITEM_EXCLUDE = {k: dict(v) for k, v in _real_tbl.items()}

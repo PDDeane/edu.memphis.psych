@@ -32,6 +32,24 @@ def load_pred(outdir: str) -> dict[int, dict[str, dict]]:
     return pred
 
 
+def provenance(outdir: str) -> tuple[set, set]:
+    """(backend names, supports_tools flags) recorded in a results directory.
+
+    Read from the record rather than the items, because that is where score.py
+    stamps it. Empty flags mean the directory predates the stamp — the caller
+    must not read that as "tools were available".
+    """
+    names, tools = set(), set()
+    for f in sorted(glob.glob(os.path.join(outdir, "participant_*.json"))):
+        with open(f) as fh:
+            rec = json.load(fh)
+        if rec.get("backend"):
+            names.add(rec["backend"])
+        if "supports_tools" in rec:
+            tools.add(bool(rec["supports_tools"]))
+    return names, tools
+
+
 def tolerance(item_id: str) -> float:
     # Skips components that carry no points: a reported-only slot exists so a
     # later check can use it, and a gating one costs the whole item.
@@ -43,6 +61,13 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--handout", type=int, default=1, choices=sorted(HANDOUTS))
     ap.add_argument("--outdir", default=None)
+    ap.add_argument("--tools", choices=["auto", "yes", "no"], default="auto",
+                    help="Did the backend that produced these predictions have "
+                         "image tools? `auto` reads the stamp score.py writes and "
+                         "assumes NO when there is none, because an unstamped "
+                         "directory that scored a graph item blind is "
+                         "indistinguishable from one that did not. Use `yes` only "
+                         "when you know how the directory was produced.")
     ap.add_argument(
         "--exclude",
         type=int,
@@ -81,6 +106,28 @@ def main() -> int:
     # that both other harnesses drop as unreachable, and its headline rate was
     # computed over a different denominator from the numbers it was compared
     # against.
+    # A whole ITEM the producing backend could not score. Distinct from the
+    # per-cell exclusions below: those drop cells from an item that is otherwise
+    # measurable, this says the item's number means nothing from this source.
+    backends_seen, tools = provenance(args.outdir)
+    if args.tools != "auto":
+        tools = {args.tools == "yes"}
+        print(f"(--tools {args.tools}: taking image-tool support as "
+              f"{args.tools == 'yes'} on the operator's word)\n")
+    if tools == {True}:
+        not_comparable = {}
+    elif tools == {False}:
+        not_comparable = _handouts.not_comparable_items(args.handout, False)
+    else:
+        # Older outputs predate the provenance field. Assume the worst and say so,
+        # rather than silently reporting a number that may be a missing tool.
+        not_comparable = _handouts.not_comparable_items(args.handout, False)
+        if not_comparable:
+            print(f"!! predictions do not record which backend made them "
+                  f"({sorted(x for x in backends_seen if x) or 'unrecorded'}). "
+                  f"Treating {sorted(not_comparable)} as not comparable — re-score "
+                  f"to remove the doubt.\n")
+
     per_item_excl = {it["id"]: _handouts.cell_exclusions(args.handout, it["id"])
                      for it in ITEMS}
     per_item_drop = {k: sorted(v) for k, v in per_item_excl.items() if v}
@@ -136,6 +183,8 @@ def main() -> int:
 
     for item in ITEMS:
         iid = item["id"]
+        if iid in not_comparable:
+            continue                  # reported below, never counted
         tol = tolerance(iid)
         errs, exact, within, esc, n = [], 0, 0, 0, 0
         aerrs, aexact = [], 0
@@ -240,6 +289,11 @@ def main() -> int:
             f"bias {statistics.mean(tot_err):+.2f}, "
             f"within 2 pts {sum(1 for e in tot_err if abs(e)<=2)/len(tot_err):.0%}"
         )
+
+    if not_comparable:
+        print("\nNOT COMPARABLE — excluded entirely, not a score:")
+        for iid, why in sorted(not_comparable.items()):
+            print(f"  {iid}: {why}")
 
     if not_counted:
         print("\nnot counted in the rate, but scored — how they came out:")

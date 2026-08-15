@@ -57,13 +57,28 @@ HANDOUTS: dict[int, dict] = {
         # entirely different participants. The handout-wide `exemplar_participants`
         # list cannot express that, which is why registering Q4b needed this.
         #
-        # Nine more items qualify on the same test and are NOT registered here —
-        # Q1, Q2, Q4a, Q4c, Q5, Q6 and H3's 1a, 1c, 2a, another 45 item-cells.
-        # Registering them is a measurement-policy change that moves every
-        # reported denominator in the project, so it is a deliberate decision
-        # rather than a side effect of this one. Run the audit to reproduce the
-        # list; it is in EQUIVALENCE.md.
-        "cited_participants": {"Q4b": [2, 4, 6, 7, 13, 15, 19, 20]},
+        # All ten qualifying items, registered together after the evidence came
+        # in. Q4b was registered first, alone; measuring it then showed the whole
+        # 21-point web/paper gap on that item was Opus reproducing answers held
+        # in its prompt (7/7 on cited cells) where gpt-5-mini did not (4/7),
+        # while on the cells that should be judged the three scorers were
+        # equivalent — 12, 11 and 10 of 12. Leaving the other nine unregistered
+        # would have kept that distortion in every handout-1 and handout-3 number.
+        #
+        # Reproduce with the audit in EQUIVALENCE.md: search each item's
+        # prompt-bearing text for a participant cited by number. Handout 2 has
+        # none — its guidance quotes answers without attributing them.
+        "cited_participants": {
+            "Q1":  [1, 2, 6, 9, 10, 16],
+            "Q2":  [3, 6, 7, 10],
+            "Q4a": [3, 4, 6, 9, 14, 15, 17],
+            "Q4b": [2, 4, 6, 7, 13, 15, 19, 20],
+            "Q4c": [4, 9, 11, 12, 15, 17, 20],
+            "Q5":  [4, 6, 8, 9, 19, 20],
+            # Merged with `exemplar_items` above, not replacing it: Q6 both
+            # reproduces p10/p8/p6 in full AND cites seven others.
+            "Q6":  [2, 3, 5, 10, 11, 17, 19],
+        },
     },
     2: {
         "rubric": rubric_h2,
@@ -104,6 +119,14 @@ HANDOUTS: dict[int, dict] = {
             "the data collected during the intervention, and analysing the result."
         ),
         "exemplar_participants": [],
+        # See handout 1's entry. 1c is also the item that cannot be scored at all
+        # by a backend without image tools — a separate problem, declared in
+        # BACKEND_DEVIATIONS below.
+        "cited_participants": {
+            "1a": [1, 6, 15],
+            "1c": [4, 8, 20],
+            "2a": [1, 14],
+        },
     },
 }
 
@@ -409,3 +432,41 @@ def cell_exclusions(handout: int, item: str) -> dict[int, tuple[str, str]]:
     for pid, why in unscoreable(item).items():
         out[pid] = ("unscoreable", why)
     return out
+
+
+# ── Items a backend cannot score at all ─────────────────────────────────────
+
+def not_comparable_items(handout: int, supports_tools: bool) -> dict[str, str]:
+    """{item: why} — items the PAPER scorer cannot score from this backend.
+
+    Scoped to score.py, and only baseline.py consults it. The web and CLI are
+    NOT affected and must not be filtered by this: they never look at an image.
+    1c on those sides is scored from the four weeks of data the student typed,
+    through `derived="has_own_graph:complete:..."` in the OLX, and web_v8 scores
+    it 16/17 with no tool involved. It is score.py's handout-3 prompt that asks
+    the model to Read the graph as an IMAGE, because on paper a graph is a
+    picture — so the deviation belongs to that prompt, not to the item.
+
+    COMPUTED from the rubric rather than listed, so it cannot go stale: score.py
+    passes `allow_tools=["Read"]` for exactly the items flagged `graph_item`, and
+    a backend that does not forward tools scores those blind. Blind on a graph
+    item is not noise, it is a systematic zero — the model reports no graph
+    because it cannot see one.
+
+    Observed, not hypothesised: paper+gpt-5-mini returned 0.00 on 11 of 20 cells
+    of 1c where gold is 6-10, against paper+Opus scoring the same cells correctly
+    through the Read tool. Reporting that as 5/17 would publish a missing tool as
+    a model deficiency.
+
+    Excluded from the RATE and reported as not comparable — a different thing
+    from cell_exclusions(), which drops individual cells of an item that is
+    otherwise fine.
+    """
+    if supports_tools:
+        return {}
+    return {
+        it["id"]: ("needs an image tool to read the student's graph; this backend "
+                   "sends no tools, so the item scores blind and returns 'no graph'")
+        for it in config(handout)["rubric"].ITEMS
+        if it.get("graph_item")
+    }
