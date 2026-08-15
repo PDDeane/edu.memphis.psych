@@ -526,6 +526,8 @@ def enforcement_audit():
         findings.append(("-", "EXCLUSIONS DIVERGE", bad))
     for bad in ENF.check_backend_deviations_declared():
         findings.append(("-", "BACKEND DEVIATION UNDECLARED", bad))
+    for bad in ENF.check_blank_collapse_is_gated():
+        findings.append(("-", "BLANK COLLAPSE UNGATED", bad))
     for iid, h, mx, label in uncovered_cli_items():
         findings.append((iid, "SCORED ON CLI ONLY",
                          f"H{h} {label} is worth {mx:g} on the CLI and is scored by "
@@ -852,6 +854,17 @@ def enforcement_selftest():
     # different cell sets and compared anyway. This injects the first half of
     # that — a harness with its own copy — and it must fail even though the
     # copy is equal, because equal-today is exactly how the last one survived.
+    # The "did not answer" guard. Un-gating the collapse changes no score, so
+    # nothing else in this suite would notice; it only changes the code and the
+    # sentence the student reads.
+    import score as _SC
+    _real_dl = _SC.derive_ledger
+    _SC.derive_ledger = lambda item, raw, response="": _real_dl(item, raw, "")
+    cases.append(("the blank-answer collapse stops checking for a blank answer",
+                  "BLANK COLLAPSE UNGATED", "-",
+                  [f for f in enforcement_audit()[0]]))
+    _SC.derive_ledger = _real_dl
+
     # The blind-graph-item guard. A backend that quietly stops forwarding tools
     # scores 1c as "no graph" on every cell and reports it as a model result.
     import backends as _B

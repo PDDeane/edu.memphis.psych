@@ -495,10 +495,15 @@ def _oc_fail(item: dict, a: dict, key: str, other: str = "") -> dict:
 
 
 def _score(item: dict, raw: dict) -> float:
+    # Deliberately passes a NON-blank response. This audit probes what a sheet
+    # scores, and every probe is a hypothetical answer that exists — a blank one
+    # would collapse to the item's blank_code and score the same 0 for a reason
+    # the probe is not testing. Leaving the argument out would default to "" and
+    # do exactly that.
     if item.get("derive_from_criteria"):
         ledger, *_ = derive_oc_ledger(item, raw)
     else:
-        ledger, *_ = derive_ledger(item, raw)
+        ledger, *_ = derive_ledger(item, raw, response="(probe answer)")
     off = sum(d["pts"] for d in ledger)
     return round(max(0.0, min(item["max"], item["max"] - off)), 4)
 
@@ -753,4 +758,70 @@ def check_backend_deviations_declared() -> list[str]:
             problems.append(
                 f"handout {h}: not_comparable_items() excludes items even when the "
                 f"backend HAS tools; it would drop a measurable item")
+    return problems
+
+
+def check_blank_collapse_is_gated() -> list[str]:
+    """Does "did not answer" require an answer that is actually missing?
+
+    Every item with a `blank_code` collapses an all-slots-failed ledger into that
+    one code, so a blank page reports the way a grader wrote it rather than as
+    eight separate slot failures. The collapse used to fire on ANY all-failed
+    sheet, including one where the student wrote something and every part of it
+    was judged wrong — and the feedback they read then opened with "did not
+    answer" about an answer they had written.
+
+    Invisible in the numbers, which is why it needs a check rather than a
+    measurement: for every item carrying one, the blank code's points equal the
+    sum of the scorable components, so both ledgers clamp to the same score. Only
+    the code and the prose differ, and the prose is the half a student reads.
+
+    Stated as a RELATIVE invariant on purpose: whatever sheet is built below, if
+    the blank-response call collapses then the written-response call must not.
+    An earlier version asserted that a hand-built sheet WOULD collapse, which
+    meant it was really testing whether the probe modelled derive_ledger's gates,
+    suppressions and verdict vocabularies correctly — it did not, and reported
+    six items that were behaving perfectly. A guard that cannot tell its own bugs
+    from the code's is worse than none.
+    """
+    import rubric_h1, rubric_h2, rubric_h3
+    from score import derive_ledger
+
+    problems = []
+    for h, mod in ((1, rubric_h1), (2, rubric_h2), (3, rubric_h3)):
+        for item in mod.ITEMS:
+            blank = item.get("blank_code")
+            if not blank:
+                continue
+            # Only items where the COLLAPSE can fire. T1 and T2 have a single
+            # credit component whose own `absent` code is BLANK, so they report
+            # it as that component's verdict and never through the collapse —
+            # which derive_ledger requires more than one scorable slot for.
+            # Reporting them here was a false positive on a correct design.
+            scorable = [c for c in item["credit"]
+                        if not c.get("reported") and c.get("pts") is not None]
+            if len(scorable) < 2:
+                continue
+            slots = {}
+            for c in item["credit"]:
+                verdicts = c.get("verdicts") or ["met", "absent"]
+                if c.get("gates") or c.get("reported") or c.get("pts") is None:
+                    slots[c["what"]] = {"verdict": "met" if "met" in verdicts
+                                        else verdicts[0], "evidence": "probe"}
+                else:
+                    bad = [v for v in verdicts if v != "met"]
+                    slots[c["what"]] = {"verdict": bad[0] if bad else "absent",
+                                        "evidence": "probe"}
+            raw = {"slots": slots}
+            blank_led, *_ = derive_ledger(item, raw, response="   \n  ")
+            wrote_led, *_ = derive_ledger(item, raw, response="the student wrote this")
+            collapsed_blank = any(d["code"] == blank for d in blank_led)
+            collapsed_wrote = any(d["code"] == blank for d in wrote_led)
+            if collapsed_blank and collapsed_wrote:
+                text = next((d["text"] for d in item["deductions"]
+                             if d["code"] == blank), blank)
+                problems.append(
+                    f"H{h} {item['id']}: the same sheet reports {blank} whether or "
+                    f"not the student wrote anything — they would read "
+                    f"\"{text[:40]}\" about an answer they wrote")
     return problems

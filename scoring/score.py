@@ -225,7 +225,8 @@ def build_schema(item: dict) -> dict:
     return schema
 
 
-def derive_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], list[str]]:
+def derive_ledger(item: dict, raw: dict,
+                  response: str = "") -> tuple[list[dict], list[dict], list[str]]:
     """Turn a slot verdict sheet into a deduction ledger.
 
     One slot, one deduction, by construction — the stacking that produced
@@ -395,6 +396,16 @@ def derive_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], list[s
     # Nothing at all was answered: report it the way the graders did, as a
     # single "did not answer", rather than as eight separate slot failures.
     #
+    # Gated on the response ACTUALLY being blank, which is what `blank_code`
+    # says. It used to fire whenever every scorable slot failed, for any reason —
+    # so an answer that was written and wrong collapsed to "did not answer" too.
+    # Q5 p4 wrote two sentences, both judged the wrong kind of reason, and the
+    # ledger recorded W_NONE while the model's own notes said "W_NOT_REASON;
+    # W_NOT_REASON"; the feedback the STUDENT reads then opened with "did not
+    # answer" about an answer they had written. It was invisible in every number
+    # because the arithmetic agrees — two 2.5s and one 5.0 both clamp to 0 — so
+    # only the code and the prose were wrong, which is the half a student sees.
+    #
     # The code is DECLARED (`blank_code`), full stop. It used to fall back to
     # matching the literal text "did not answer", which worked only while every
     # such code used that exact wording — 1b's says "did not provide data" — and an
@@ -409,7 +420,8 @@ def derive_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], list[s
     # single-slot item would otherwise report every failure as "did not answer",
     # losing the distinction the vocabulary exists for — T1's `not_a_type` came
     # back as BLANK.
-    if len(scorable) > 1 and len(ledger) == len(scorable):
+    if (len(scorable) > 1 and len(ledger) == len(scorable)
+            and not (response or "").strip()):
         want = item.get("blank_code")
         none_code = next((d for d in item["deductions"] if d["code"] == want), None)
         if none_code:
@@ -862,7 +874,7 @@ def score_item(
     if item.get("derive_from_criteria"):
         ledger, checks, unknown, forced_advisory = derive_oc_ledger(item, raw)
     elif item.get("derive_from_credit"):
-        ledger, checks, unknown = derive_ledger(item, raw)
+        ledger, checks, unknown = derive_ledger(item, raw, response)
     else:
         valid = {d["code"]: d for d in item["deductions"]}
         ledger, unknown = [], []
