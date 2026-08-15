@@ -800,17 +800,6 @@ ITEMS: list[dict] = [
             "about procrastination consequences, and the grader took 3 points: \"did not "
             "provide two examples\". When neither entry is an example, deduct B_NOT_ACTIVE "
             "twice rather than B_ONLY_ONE.",
-            "JUDGE THE WHOLE SENTENCE, NOT THE CREDITABLE FRAGMENT INSIDE IT. The accept "
-            "list above is generous, and two shapes override it however the sentence is "
-            "worded. (a) The entry's SUBJECT is the modification decision rather than an "
-            "activity — \"{{corpus:Q4b/p7:modify:0:55:sha=129498ed6d32:shape=R55-0-20}}"
-            "{{corpus:Q4b/p7:modify:56:85:sha=042307abae19}}\" is not an example, even though \"I get "
-            "frustrated\" on its own would read as an internal state. (b) The entry names "
-            "something that happens TO the student BECAUSE of the unwanted behaviour — "
-            "falling asleep in the car, {{corpus:Q6/p20:affect_c2:46:65:sha=f4404254ef89}}, becoming grumpy. Those are "
-            "consequences and belong to 4c. The question to ask of each entry is not \"is "
-            "this true of them during the episode\" but \"is this what they are doing "
-            "INSTEAD of the goal behaviour\".",
             "IMPLICIT (from gold): antecedent, active behavior, and consequence must be "
             "THREE DISTINCT things. Reusing a Q4a antecedent as an active behavior loses "
             "1.5 pts — \"your behaviors cannot be the same as your antecedents. Antecedents "
