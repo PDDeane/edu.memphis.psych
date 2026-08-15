@@ -696,3 +696,61 @@ def check_exclusions_agree() -> list[str]:
                 problems.append(f"{fname} has no wording for exclusion kind "
                                 f"`{kind}` — it would report it unlabelled")
     return problems
+
+
+def check_backend_deviations_declared() -> list[str]:
+    """Does every backend declare whether it can use tools, and is that true?
+
+    score.py passes `allow_tools=["Read"]` for items flagged `graph_item`. A
+    backend that does not forward the list scores those blind, and blind on a
+    graph item is a systematic zero rather than noise: paper+gpt-5-mini returned
+    0.00 on 11 of 20 cells of 1c where gold is 6-10, which read as a 5/17 score
+    for the model until the cause was found. So the capability is a declaration
+    the audit checks, not a comment.
+    """
+    import inspect
+    import backends as B
+    import handouts as H
+
+    problems = []
+    classes = [(n, c) for n, c in vars(B).items()
+               if inspect.isclass(c) and n.endswith("Backend") and n != "BackendError"]
+    if not classes:
+        return ["no *Backend classes found in backends.py — this audit is stale"]
+
+    for name, cls in sorted(classes):
+        if not hasattr(cls, "SUPPORTS_TOOLS"):
+            problems.append(
+                f"{name} does not declare SUPPORTS_TOOLS. Every backend must say "
+                f"whether it forwards allow_tools, or a graph item scored blind "
+                f"is reported as a model result")
+            continue
+        try:
+            src = inspect.getsource(cls)
+        except OSError:
+            continue
+        # Claimed True has to be visible in the source: the parameter is in every
+        # signature, so accepting it proves nothing — it has to be USED.
+        body = src.split("def complete", 1)[-1]
+        uses = ("allowedTools" in body or "allow_tools" in body.split("\n", 1)[-1]
+                .replace("allow_tools: list[str] | None = None,", ""))
+        if cls.SUPPORTS_TOOLS and not uses:
+            problems.append(
+                f"{name} declares SUPPORTS_TOOLS=True but its complete() never "
+                f"uses allow_tools — it would score graph items blind while "
+                f"claiming otherwise")
+
+    # And the derivation must actually find the items, or the deviation is empty
+    # and nothing is ever excluded.
+    for h in (1, 2, 3):
+        items = [it["id"] for it in H.config(h)["rubric"].ITEMS if it.get("graph_item")]
+        got = H.not_comparable_items(h, supports_tools=False)
+        if set(items) != set(got):
+            problems.append(
+                f"handout {h}: graph items {sorted(items)} but "
+                f"not_comparable_items() returns {sorted(got)}")
+        if H.not_comparable_items(h, supports_tools=True):
+            problems.append(
+                f"handout {h}: not_comparable_items() excludes items even when the "
+                f"backend HAS tools; it would drop a measurable item")
+    return problems
