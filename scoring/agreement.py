@@ -442,8 +442,11 @@ def apply_computed(action: dict, checks: dict, fixture: dict) -> dict:
         checks[rule["key"]] = {"verdict": v, "evidence": why}
 
     for rule in action.get("equals", []):
-        left = verdict_of(checks, rule["left"]).strip()
-        right = verdict_of(checks, rule["right"]).strip()
+        # A classification answers `refers_to`; an unmigrated slot still spells
+        # it as the verdict. Reading only the verdict made every comparison on a
+        # migrated pick slot compare "" against "" and fail.
+        left = answer_of(checks, rule["left"])
+        right = answer_of(checks, rule["right"])
         ok = (left in rule["lenient"] or right in rule["lenient"]
               or (bool(left) and bool(right) and left == right))
         o = opts(rule["key"])
@@ -857,6 +860,41 @@ def verdict_of(checks: dict, key: str) -> str:
     return (got or {}).get("verdict", "") if isinstance(got, dict) else ""
 
 
+def answer_of(checks: dict, key: str) -> str:
+    """What a check ANSWERED — `refers_to` if it classifies, else its verdict.
+
+    Mirrors the `checks[k]?.refers_to ?? checks[k]?.verdict` fallback that
+    satisfiedMap uses in every place a check names something rather than judging
+    it. A migrated slot answers `refers_to` and carries no verdict at all, so
+    reading only the verdict returns "" and the comparison silently fails.
+    """
+    got = checks.get(key)
+    if not isinstance(got, dict):
+        return ""
+    v = got.get("refers_to")
+    if v is None:
+        v = got.get("verdict")
+    return str(v or "").strip()
+
+
+def is_satisfied(slot: dict, verdict: str | None) -> bool:
+    """Mirror of isSatisfied() in slotSheet.ts.
+
+    The empty-options case is the one that mattered: a `pick` or `count` slot
+    resolves to NO verdict list, and `slot["options"][0]` raised IndexError on
+    every cell of every migrated item. It is not an error condition — the web
+    answers `false` there, because such a slot carries no points and gates
+    nothing; its result is read through the check computed FROM it.
+    """
+    v = (verdict or "").strip()
+    if not v:
+        return False
+    opts = slot.get("options") or []
+    if "met" in opts:
+        return v == "met"
+    return bool(opts) and v == opts[0]
+
+
 def satisfied_map(spec: dict, checks: dict) -> dict[str, bool]:
     """Which slots are satisfied. Mirrors satisfiedMap() in slotSheet.ts.
 
@@ -871,16 +909,25 @@ def satisfied_map(spec: dict, checks: dict) -> dict[str, bool]:
     the answer the prompt says to expect from the second box — read as a miss,
     docking 2.50 from every participant who paired their antecedents correctly.
     """
-    out = {s["key"]: verdict_of(checks, s["key"]) == s["options"][0]
+    out = {s["key"]: is_satisfied(s, verdict_of(checks, s["key"]))
            for s in spec["slots"]}
+    by_key = {s["key"]: s for s in spec["slots"]}
     for g in spec.get("cover") or []:
         claimed = set()
         for k in g["keys"]:
-            v = verdict_of(checks, k).strip()
+            # `refers_to` once the item is migrated, `verdict` while it still
+            # spells the reference as a verdict — the same per-check fallback
+            # the web uses, so both shapes can coexist during a migration.
+            migrated = isinstance(checks.get(k), dict) and "refers_to" in checks[k]
+            v = answer_of(checks, k)
             ok = v in g["labels"] and v not in claimed
             if ok:
                 claimed.add(v)
-            out[k] = ok
+            # Once the two are separate fields BOTH must hold: naming a distinct
+            # item is not enough if the check also says nothing was answered.
+            judged = (is_satisfied(by_key[k], verdict_of(checks, k))
+                      if migrated and k in by_key else True)
+            out[k] = ok and judged
     return out
 
 
@@ -919,7 +966,12 @@ def score_slots(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     counted = set()
     for cr in item.get("counts", []):
         counted.add(cr["key"])
-        raw = verdict_of(checks, cr["key"]).strip()
+        # `count` where the item has been migrated, `verdict` where it has not —
+        # countedVerdicts() reads them in exactly this order. Reading only the
+        # verdict parsed "" on every migrated count, scored n=0, and marked every
+        # member absent: the whole family lost, on every cell.
+        entry = checks.get(cr["key"]) if isinstance(checks.get(cr["key"]), dict) else {}
+        raw = str(entry.get("count", entry.get("verdict", "")) or "").strip()
         try:
             n = int(raw)
         except ValueError:
@@ -970,7 +1022,18 @@ def score_oc(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     any and the answer is not operant conditioning whatever it looks like — then
     the type is checked, and an avoidance frame never deducts.
     """
-    yes = lambda k: verdict_of(checks, k) == "yes"
+    # Satisfaction is read through satisfied_map, NOT by comparing the verdict to
+    # a literal. This compared it to "yes", which was the vocabulary before the
+    # verdicts were standardised on met/absent — so after that change every
+    # definitional criterion read as unmet, `is_oc` was false for every student,
+    # and all four items charged NOT_OC in full and scored 0. cli_v7 predates the
+    # standardisation, which is why the last CLI sweep did not show it.
+    #
+    # Asking satisfied_map is what stops it happening again: it mirrors
+    # isSatisfied(), so the rule is "whatever the web counts as satisfied",
+    # whatever the vocabulary becomes.
+    sat = satisfied_map(spec, checks)
+    yes = lambda k: bool(sat.get(k))
     codes = {d["code"]: d["pts"] for d in item["deductions"]}
 
     is_oc = yes("names_behavior") and yes("names_stimulus") and yes("contingent") and yes("follows_behavior")
@@ -979,7 +1042,9 @@ def score_oc(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     if not yes("you_arrange_it"):
         return max(0.0, item["max"] - codes["NOT_EXTERNAL_STIMULUS"]), 1
 
-    observed = verdict_of(checks, "observed_type")
+    # The classification answers `refers_to` since pick(); reading the verdict
+    # returned "" and made every example look like the wrong type.
+    observed = answer_of(checks, "observed_type")
     aimed_key = "targets_goal_behavior" if "targets_goal_behavior" in {s["key"] for s in spec["slots"]} \
         else "targets_unwanted_behavior"
     if observed != spec["expected_type"]:
@@ -992,7 +1057,8 @@ def score_oc(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
 def score_oc_cadence(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     """The daily/weekly example items — as above plus cadence, and the type is
     whatever the student chose rather than a fixed one."""
-    yes = lambda k: verdict_of(checks, k) == "yes"
+    sat = satisfied_map(spec, checks)          # see score_oc: never a literal
+    yes = lambda k: bool(sat.get(k))
     codes = {d["code"]: d["pts"] for d in item["deductions"]}
 
     is_oc = yes("names_behavior") and yes("names_stimulus") and yes("contingent") and yes("follows_behavior")
