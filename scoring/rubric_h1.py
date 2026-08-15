@@ -1018,6 +1018,14 @@ ITEMS: list[dict] = [
             "most often a consequence wearing a reason's clothes. \"I continue to not sleep "
             "enough because I get super emotional and mad when I'm super tired\" describes "
             "an effect of the UTB, not a payoff from it, and cost participant 4 2.5 points.",
+            "THE LINE BETWEEN THIN AND ABSENT. The two rules above overlap, and the example "
+            "just given has perfect form, so apply this test per entry and in this order. "
+            "Deduct W_NOT_REASON ONLY when the statement (a) names a CONSEQUENCE of the "
+            "unwanted behaviour rather than something gained by continuing it, or (b) is "
+            "about a DIFFERENT behaviour than the UTB. Everything else that is present — "
+            "vague, circular, shallow, clumsily worded, or a reason you find unconvincing — "
+            "is THIN: credit it and write an advisory. Vagueness is never a deduction on "
+            "this item; only the wrong KIND of statement is.",
             "W_ONLY_ONE also covers two statements that collapse into the SAME reason. "
             "Participant 6 gave two entries both amounting to escaping physical effort and "
             "was marked \"missing a reason you continue to engage in lack of exercise\".",

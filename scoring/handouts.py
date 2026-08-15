@@ -221,6 +221,21 @@ def exemplar_drops(handout: int) -> dict[str, list[int]]:
 # they never reach a comparison. The other seven do.
 GOLD_DIVERGENCES: list[dict] = [
     {
+        "code": "REASON_FOR_WRONG_BEHAVIOR", "cells": [("Q5", 4)],
+        "why": "p4's first entry reads \"I continue sleep enough because sleep is "
+               "good for you, I am gaining something)\" — it names the OPPOSITE of "
+               "the unwanted behaviour and gives a reason to change rather than a "
+               "payoff for continuing. Gold credited it and charged only the second "
+               "entry, so 2.5 of 5. Reproducing that needs a scorer to read through "
+               "a dropped \"to not\" AND to accept \"sleep is good for you\" as a "
+               "payoff for not sleeping, which contradicts the item's own "
+               "W_NOT_REASON rule. All four engines — two prompts, two model "
+               "families — classify it `not_reason` and score 0, in near-identical "
+               "words. The rule 2 / rule 3 boundary added to the guidance places it "
+               "in rule 3 as well, so this divergence is the deliberate consequence "
+               "of drawing that line, not an oversight left in it.",
+    },
+    {
         "code": "A_MISMATCH", "cells": [("Q6", 9)],
         "why": "p9's Q6 changes a third antecedent not listed in their 4a. The "
                "dictionary is explicit that the antecedents must match up, so "
