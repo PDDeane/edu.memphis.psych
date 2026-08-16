@@ -1563,7 +1563,24 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
     # same check.
     expected = {r["key"]: r for r in expect}
     desc = {c["what"]: c["desc"] for c in item["credit"]}
-    rule = {c["what"]: c["rule"] for c in item["credit"] if c.get("rule")}
+    # `{fail}` is filled with the verdict THIS side offers. The rule text is
+    # shared with score.py, whose vocabulary differs — web `wrong_kind` maps to
+    # paper `not_active`, as enforcement.ALIAS records — so a rule naming one
+    # side's token literally is unreadable on the other. It was: the paper
+    # scorer was told when to answer `wrong_kind` while being offered
+    # met/absent/not_active, so every test was inert and it credited p8's
+    # "avoiding going the gym" that the web and CLI both reject.
+    def _fail_token(slot_key: str) -> str:
+        for sl in slots:
+            if sl["key"] == slot_key:
+                # The item-specific EXTRA verdict, not merely the first non-`met`
+                # one: options run [met, absent, <extra>], and `absent` means the
+                # box was empty, which is a different finding from wrong-kind.
+                opts = [o for o in (sl.get("options") or []) if o not in ("met", "absent")]
+                return opts[0] if opts else "absent"
+        return "absent"
+    rule = {c["what"]: c["rule"].replace("{fail}", _fail_token(c["what"]))
+            for c in item["credit"] if c.get("rule")}
     lines = [
         "## The checklist to return (`checks`)",
         "Return a verdict for EVERY one of these, in this order, BEFORE you write",

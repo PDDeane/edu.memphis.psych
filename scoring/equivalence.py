@@ -534,6 +534,8 @@ def enforcement_audit():
         findings.append(("-", "HANDSPLIT ROW OVERLAPS", bad))
     for bad in ENF.check_slot_rules_reach_both_prompts():
         findings.append(("-", "SLOT RULE WEB ONLY", bad))
+    for bad in ENF.check_slot_rules_are_vocabulary_neutral():
+        findings.append(("-", "SLOT RULE NAMES A VERDICT", bad))
     for iid, h, mx, label in uncovered_cli_items():
         findings.append((iid, "SCORED ON CLI ONLY",
                          f"H{h} {label} is worth {mx:g} on the CLI and is scored by "
@@ -860,6 +862,20 @@ def enforcement_selftest():
     # different cell sets and compared anyway. This injects the first half of
     # that — a harness with its own copy — and it must fail even though the
     # copy is equal, because equal-today is exactly how the last one survived.
+    # The shared-vocabulary guard. A rule rendered into both prompts must not name
+    # one side's verdict token: the paper scorer was told when to answer
+    # `wrong_kind` while being offered met/absent/not_active, so every test in it
+    # was inert and p8 scored 5.00 against a gold of 2.00 — reproducibly, which
+    # made a broken prompt look like a stable model difference.
+    import rubric_h1 as _R1
+    _c = [x for x in _R1.BY_ID["Q4b"]["credit"] if x["what"] == "behavior_1"][0]
+    _saved_rule = _c["rule"]
+    _c["rule"] = _saved_rule.replace("{fail}", "wrong_kind")
+    cases.append(("a shared rule names one side's verdict token",
+                  "SLOT RULE NAMES A VERDICT", "-",
+                  [f for f in enforcement_audit()[0]]))
+    _c["rule"] = _saved_rule
+
     # The one-sided-prompt guard. `--prompts` only ever counts rubric elements the
     # WEB is MISSING, so judging text added to SLOT_NOTES reaches the web and the
     # CLI and leaves score.py behind with every audit green. Q4b's five

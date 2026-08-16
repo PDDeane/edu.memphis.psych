@@ -1053,3 +1053,51 @@ def check_slot_rules_reach_both_prompts() -> list[str]:
             f"BACKLOG names SLOT_NOTES[{stale!r}], which no longer qualifies. If it "
             f"was migrated to a `rule` field, drop it from BACKLOG")
     return problems
+
+
+def check_slot_rules_are_vocabulary_neutral() -> list[str]:
+    """Does any shared `rule` name a verdict token literally?
+
+    A `rule` is rendered into BOTH prompts, and the two sides do not share a
+    verdict vocabulary: the web sheet says `wrong_kind` where the rubric says
+    `not_active`, which is what enforcement.ALIAS exists to record. So a rule
+    that names one side's token is unreadable on the other — and unreadable in
+    the worst way, because it still looks like an instruction.
+
+    That is not hypothetical either. Q4b's five substitution tests were written
+    while they lived in SLOT_NOTES, where `wrong_kind` is correct, and moving
+    them to the shared field carried that token into the paper prompt. Opus was
+    told when to answer `wrong_kind` while being offered met/absent/not_active,
+    so every test was inert: it credited p8's "{{corpus:Q4b/p8:first:53:79:sha=824d9f001c44}} gym"
+    that the web and CLI both reject, and scored 5.00 against a gold of 2.00.
+    Three runs reproduced it exactly, so it read as a stable model difference
+    rather than a broken prompt.
+
+    Rules must therefore use the `{fail}` placeholder, which each generator
+    fills with the verdict IT offers. This checks for the literal tokens.
+    """
+    import rubric_h1, rubric_h2, rubric_h3
+    from slot_vocab import KNOWN_VERDICTS
+
+    problems = []
+    for h, mod in ((1, rubric_h1), (2, rubric_h2), (3, rubric_h3)):
+        for item in mod.ITEMS:
+            for c in item.get("credit", []) or []:
+                rule = c.get("rule")
+                if not rule:
+                    continue
+                named = sorted({v for v in KNOWN_VERDICTS
+                                if f"`{v}`" in rule and v not in ("met", "absent")})
+                if named:
+                    problems.append(
+                        f"H{h} {item['id']}.{c['what']}: `rule` names the verdict "
+                        f"{named} literally. The rule is rendered into both prompts "
+                        f"and the two vocabularies differ, so one side gets an "
+                        f"instruction about a token it cannot emit. Use `{{fail}}`, "
+                        f"which each generator fills with its own verdict")
+                if "{fail}" not in rule and not named:
+                    # A rule that never says when to FAIL is not necessarily wrong,
+                    # but one that neither uses the placeholder nor names a token is
+                    # worth noticing — it may have lost its failing condition.
+                    pass
+    return problems
