@@ -2469,6 +2469,62 @@ uses `allow_tools` — the selftest injects exactly that.
 
 With 1c out, paper+mini measures **88.3%** against paper+Opus's **90.9%**.
 
+## Cleaning up an item: the procedure
+
+Worked out on Q4b, which went from a reported 92% over twelve hand-picked cells
+to a measured 88% over all sixteen. Every durable gain came from this order;
+every attempt that skipped a step cost cells.
+
+**Rank items by percent correct with exclusions INCLUDED in the denominator, and
+start with the worst.** An item that excludes half its cells and still misses
+half of what remains is not a good item with awkward cases; it is an item whose
+number is being protected. Q6 excludes 10 of 20 and reads 6/10 on the rest.
+
+**1. Remove exclusions the item gets wrong anyway.** A cell is excluded because
+the prompt cites the participant and states the grader's decision, which makes
+scoring it recall. If the scorer misses it even so, the exclusion is buying a
+flattering denominator and nothing else. Take the citation OUT of the guidance
+and the participant out of `cited_participants` together — the citation is what
+justifies the exclusion, and `check_citations_match_exclusions` enforces that
+they move as a pair. Expect the reported number to FALL; that is the point.
+
+**2. Remove rules that do not earn their place.** For each rule ask which cells
+it fires on and which it rescues. A rule with firings and no rescues is a cost.
+Q4b carried an outcome rule that fired on one cell and rescued none, and two
+distinctness bullets that governed a single scoreable cell and got it wrong.
+Removing them changed no score — which is the proof they were inert.
+
+Prefer stability to percentage here. A configuration that scores the same but
+reproduces cell-for-cell across runs is better than one that scores a point
+higher and swings by four cells: the second cannot tell you whether your next
+change helped. Q4b's spread went 4 -> 0 across this step.
+
+**3. Generalise from the cells it gets wrong against the ones it gets exactly
+right — and prefer the ORIGINAL hand-scoring dictionary's wording.** Read the
+right and wrong cells side by side and name what separates them. Then check the
+dictionary before writing anything: Q4b's derived guidance had replaced the
+dictionary's "what are you doing INSTEAD OF engaging in your WGB" with a much
+broader "anything happening during the UTB episode", and admitted every failure.
+The dictionary is the rubric; the derived guidance is a copy that drifts.
+
+Note where the check ASKS the wrong question, not just where the prose does.
+Three rewrites of Q4b's guidance moved nothing because the checklist still said
+"is this a first ACTIVE BEHAVIOR?" — a category question every student entry
+passes. Slot-specific text belongs in the slot's `rule` field, which both
+generators render.
+
+**4. Measure on the CLI at every stage; it is the cheapest and fastest.** One
+item, three runs, a few minutes. Confirm on the web only when the item looks
+settled — the two have agreed cell-for-cell on every configuration measured.
+Once an item is clean and aligned, keep going on the cells that still err: form
+an actionable hypothesis about WHY it differs from gold and test that.
+
+Two habits that paid for themselves. Predict before measuring and write the
+prediction down, because a wrong prediction is a finding — the token fix that
+"should" have flipped p8 changed nothing, which is how the tests were shown not
+to be inert. And re-run an unchanged configuration when a result surprises you:
+Q4b's p6-for-p20 trade looked like noise and reproduced exactly.
+
 ## Practical notes
 
 * One run per cell; ~30s per cell, so a full sweep is several hours. Verify a
