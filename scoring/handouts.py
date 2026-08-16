@@ -226,6 +226,26 @@ def exemplar_drops(handout: int) -> dict[str, list[int]]:
 # they never reach a comparison. The other seven do.
 GOLD_DIVERGENCES: list[dict] = [
     {
+        "code": "ANTECEDENT_REUSED_AS_BEHAVIOR", "cells": [("Q4b", 4)],
+        "why": "p4 gave \"scrolling on tiktok\" and \"becoming grumpy\" as their "
+               "active behaviours, having already named \"scrolling through "
+               "tiktok\" and \"having grumpy emotions\" as their 4a triggers. Gold "
+               "charged both as repeats, -3. The scoring dictionary states no such "
+               "rule; it was inferred from this cell. Reading all 40 antecedents "
+               "in the corpus shows why it will not generalise: students name a "
+               "state, circumstance, feeling or absence as the trigger — \"too "
+               "cold outside\", \"feeling exhausted\", \"not seeing immediate "
+               "results\" — and p4 is the ONLY one who names an ordinary activity, "
+               "which is the only shape that can collide with an active behaviour. "
+               "So the rule rests on one cell. Two implementations were measured "
+               "and both were worse than not having it: a `repeats_antecedent` "
+               "check answered `absent` on p4 in one run and `met` in the next "
+               "while misfiring on p6 and p20 (spread 4), and a guidance clause "
+               "fixed p4 but broke p1, p14 and p16 on surface wording and took the "
+               "spread to 5. Both times the model matched the 4a SENTENCE rather "
+               "than the trigger in it.",
+    },
+    {
         "code": "REASON_FOR_WRONG_BEHAVIOR", "cells": [("Q5", 4)],
         "why": "p4's first entry reads \"{{corpus:Q5/p4:first:0:40:sha=5adbcff99c0f:shape=R40-0-20}}"
                "{{corpus:Q5/p4:first:41:78:sha=dbee47176fe2}}\" — it names the OPPOSITE of "

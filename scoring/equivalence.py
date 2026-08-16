@@ -530,6 +530,8 @@ def enforcement_audit():
         findings.append(("-", "BLANK COLLAPSE UNGATED", bad))
     for bad in ENF.check_citations_match_exclusions():
         findings.append(("-", "EXCLUSION UNJUSTIFIED", bad))
+    for bad in ENF.check_handsplit_rows_are_disjoint():
+        findings.append(("-", "HANDSPLIT ROW OVERLAPS", bad))
     for iid, h, mx, label in uncovered_cli_items():
         findings.append((iid, "SCORED ON CLI ONLY",
                          f"H{h} {label} is worth {mx:g} on the CLI and is scored by "
@@ -856,6 +858,23 @@ def enforcement_selftest():
     # different cell sets and compared anyway. This injects the first half of
     # that — a harness with its own copy — and it must fail even though the
     # copy is equal, because equal-today is exactly how the last one survived.
+    # The hand-split transcription guard. Q4b p7 had one sentence in two boxes
+    # for as long as the table has existed: the student left `Modify:` blank and
+    # wrote their modify answer in example box 1, and the table put it in both.
+    # The harness then showed the model an answer the student had not given
+    # there, and it scored 5.00 against a gold of 2.00 through every prompt
+    # wording tried. Nothing detected it; it surfaced from an evidence quote
+    # that read oddly.
+    _real_hs = ENF._handsplit_tables
+    ENF._handsplit_tables = lambda: {"/injected/Q4b.json": {"7": {
+        "bmod_h1_q4b_first": "1) the whole sentence including the modify answer",
+        "bmod_h1_q4b_modify": "the modify answer",
+    }}}
+    cases.append(("a hand-split row puts one sentence in two boxes",
+                  "HANDSPLIT ROW OVERLAPS", "-",
+                  [f for f in enforcement_audit()[0]]))
+    ENF._handsplit_tables = _real_hs
+
     # The stale-exclusion guard, in BOTH directions. An exclusion outlives the
     # citation that justified it (the rate keeps dropping a cell for nothing), or
     # a citation is added without registering it (the rate counts a self-graded

@@ -878,6 +878,57 @@ def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
 # Keyed by slot key, or by "item:slot key" where the same key means different
 # things on different items.
 SLOT_NOTES = {
+    # The verdict token is standardised, so its MEANING has to be said here. Left
+    # unexplained, `wrong_kind` reads as "not a behaviour" — and every entry
+    # students write IS grammatically a behaviour, so the model answered `met`
+    # and the check could not reach the cells gold rejects. The rubric's own
+    # deduction text has always said the real test: what are you doing INSTEAD
+    # of the goal behaviour.
+    "Q4b:behavior_1":
+        "`wrong_kind` in two cases. (1) The entry names a CONSEQUENCE of the "
+        "unwanted behaviour — a state they ended up in, or something they then "
+        "had to do — rather than something they did INSTEAD of the goal "
+        "behaviour. (2) The entry IS the goal behaviour, done at the wrong time, "
+        "in the wrong place, or badly: you cannot do something instead of "
+        "itself. If the goal is to sleep enough, sleeping in the car is not "
+        "something done instead of sleeping — it is that sleep, displaced. "
+        "Keep this apart from a RIVAL choice, which IS a substitute: if the goal "
+        "is to eat fruit, eating chips counts, because chips are not fruit. The "
+        "question is whether they did a different thing that crowded the goal "
+        "out, or the goal itself gone wrong. (3) The entry names an ordinary "
+        "activity that CARRIES a state the unwanted behaviour produced — "
+        "\"{{corpus:Q4b/p6:second:41:72:sha=ca4722977c72}} muscles\", \"I sit in lecture unable "
+        "to focus\". The activity is incidental there: they would be doing it "
+        "anyway, and what the sentence actually reports is the state, which is a "
+        "consequence. Test it by asking whether the activity would have happened "
+        "regardless of the goal behaviour. If it would, nothing was displaced and "
+        "the entry is not a substitute — an activity that is LIKELY A CONSEQUENCE "
+        "of not doing the goal behaviour cannot also be what replaced it. (4) Where "
+        "the entry offers ALTERNATIVES — two or more things joined by \"or\", "
+        "either of which might be what they did — every alternative must pass "
+        "the tests above. One qualifying alternative does not rescue the rest: "
+        "\"I am tired in class OR catching up on chores\" fails, because being "
+        "tired is a state the behaviour produced. This applies only to genuine "
+        "alternatives. A sentence that names an activity AND THEN what came of "
+        "it is judged on the activity — \"I eat chips and let the fruit go "
+        "bad\" is one substitute with its result attached, not two "
+        "alternatives — and several words for the same choice (chips, candy, "
+        "cookies) are one substitute described three ways. (5) NAMING A FAILURE "
+        "TO ACT IS NOT NAMING A "
+        "SUBSTITUTE. \"I procrastinate\", \"I avoid going\", \"I neglect it\", "
+        "\"I put it off\" all describe the goal behaviour NOT happening; they do "
+        "not say what the student was doing in that time, which is what the "
+        "question asks. Credit the concrete activity if the entry gives one "
+        "(\"{{corpus:Q4b/p8:first:26:46:sha=33a61914f582}} games\"), and treat the not-doing as failing "
+        "the test — including when it is one alternative among several",
+    "Q4b:behavior_2":
+        "`wrong_kind` on the same four tests as the first example: a consequence "
+        "of the unwanted behaviour; the goal behaviour itself done at the wrong "
+        "time or place; an ordinary activity carrying a state that behaviour "
+        "produced; a set of ALTERNATIVES joined by \"or\" in which any one "
+        "alternative fails those tests; or a naming of the goal behaviour NOT "
+        "happening (procrastinating, avoiding, neglecting) rather than of what "
+        "they did instead",
     "confident": "`absent` if any judgement above was a close call — this is rule 8's channel",
     # Web-only, and unscored on purpose. The web asks for the unwanted target
     # behavior twice — once as a closed choice before question 1, once in the
