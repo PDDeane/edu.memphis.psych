@@ -543,6 +543,8 @@ def enforcement_audit():
         findings.append(("-", "EXCLUSION CLAIM IN PROSE", bad))
     for bad in ENF.check_rule_examples_are_not_corpus():
         findings.append(("-", "PROMPT QUOTES A COUNTED CELL", bad))
+    for bad in ENF.check_reporters_execute():
+        findings.append(("-", "REPORTER CRASHES", bad))
     for bad in ENF.check_unreachable_gold_is_allowed():
         findings.append(("-", "UNREACHABLE GOLD PENALISED", bad))
     for iid, h, mx, label in uncovered_cli_items():
@@ -964,6 +966,23 @@ def enforcement_selftest():
             _a1.pop("rule", None)
         else:
             _a1["rule"] = _saved_a1
+
+    # A reporter that crashes. Nothing else here executes `report()` — the
+    # audits import the module, py_compile only parses — so an unbound name in
+    # it survives every check and is not seen until a full measurement has been
+    # spent. Injected by removing the accumulator the ALL row sums.
+    import importlib as _importlib
+    import agreement as _A3
+    _asrc = open(_A3.__file__).read()
+    open(_A3.__file__, "w").write(
+        _asrc.replace("    all_abs, all_err, all_hit = [], [], []",
+                      "    all_abs, all_err = [], []"))
+    _importlib.reload(_A3)
+    cases.append(("a reporter crashes on an unbound name",
+                  "REPORTER CRASHES", "-",
+                  [f for f in enforcement_audit()[0]]))
+    open(_A3.__file__, "w").write(_asrc)
+    _importlib.reload(_A3)
 
     # An exclusion rationale that asserts a point figure only in prose. Q6's p9
     # read "the CLI's error here is exactly -2.50" through every run measuring

@@ -174,7 +174,7 @@ def main() -> int:
     print(hdr)
     print("-" * len(hdr))
 
-    all_err, all_abs = [], []
+    all_err, all_abs, all_hit, adj_hit = [], [], [], []
     not_counted: list[tuple] = []
     adj_err = []                       # declared divergences removed
     per_item_rows = []
