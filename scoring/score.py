@@ -721,7 +721,10 @@ def build_prompt(
             # the paper prompt's slot-specific field is this line. Without it the
             # web and CLI apply rules this scorer has never seen — which is how
             # Q4b's five substitution tests reached two scorers out of three.
-            rule = f" {c['rule']}" if c.get("rule") else ""
+            # `{fail}` -> the verdict THIS scorer offers; see olx_prompts for why.
+            _fail = next((v for v in (c.get("verdicts") or [])
+                          if v not in ("met", "absent")), "absent")
+            rule = f" {c['rule'].replace('{fail}', _fail)}" if c.get("rule") else ""
             parts.append(f"- `{c['what']}`{worth}{vocab}: {c['desc']}{rule}")
         for cr in item.get("counts", []):
             members = ", ".join(f"`{k}`" for k in cr["slots"])
@@ -765,7 +768,10 @@ def build_prompt(
     else:
         parts.append("## Credit components")
         for c in item["credit"]:
-            rule = f" {c['rule']}" if c.get("rule") else ""
+            # `{fail}` -> the verdict THIS scorer offers; see olx_prompts for why.
+            _fail = next((v for v in (c.get("verdicts") or [])
+                          if v not in ("met", "absent")), "absent")
+            rule = f" {c['rule'].replace('{fail}', _fail)}" if c.get("rule") else ""
             parts.append(f"- `{c['what']}` ({c['pts']:g} pt): {c['desc']}{rule}")
         parts.append("")
 
