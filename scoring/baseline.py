@@ -204,10 +204,13 @@ def main() -> int:
                 continue
             n += 1
             e = p - g
+            # Exact, or the nearest reachable score where gold names one the item
+            # cannot produce — see handouts.scores_as_exact.
+            hit = _handouts.scores_as_exact(item, g, p)
             errs.append(e)
             all_err.append(e)
             all_abs.append(abs(e))
-            if abs(e) < 1e-9:
+            if hit:
                 exact += 1
             if abs(e) <= tol + 1e-9:
                 within += 1

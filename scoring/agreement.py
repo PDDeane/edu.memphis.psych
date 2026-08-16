@@ -1471,10 +1471,15 @@ def report(handout: int, results: list[dict], failures: list[tuple], gold: dict)
                 not_counted.append((kind, iid, r["participant_id"], g, r["score"]))
                 continue
             e = r["score"] - g
+            # Gold sometimes names a score the item cannot produce. The nearest
+            # reachable value is then the best any correct scorer can do, so it
+            # counts as exact — see handouts.scores_as_exact, which opens that
+            # allowance ONLY for an unreachable gold.
+            hit = _handouts.scores_as_exact(item, g, r["score"])
             errs.append(e)
             all_err.append(e)
             all_abs.append(abs(e))
-            if abs(e) < 1e-9:
+            if hit:
                 exact += 1
             if abs(e) <= tol + 1e-9:
                 within += 1
