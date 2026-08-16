@@ -717,7 +717,12 @@ def build_prompt(
                      f" ({c['pts']:g} pt)" if one is None else "")
             vocab = (f" — {'/'.join('`%s`' % v for v in c['verdicts'])}"
                      if c.get("verdicts") else "")
-            parts.append(f"- `{c['what']}`{worth}{vocab}: {c['desc']}")
+            # The rubric's per-component `rule` is slot-specific judging text, and
+            # the paper prompt's slot-specific field is this line. Without it the
+            # web and CLI apply rules this scorer has never seen — which is how
+            # Q4b's five substitution tests reached two scorers out of three.
+            rule = f" {c['rule']}" if c.get("rule") else ""
+            parts.append(f"- `{c['what']}`{worth}{vocab}: {c['desc']}{rule}")
         for cr in item.get("counts", []):
             members = ", ".join(f"`{k}`" for k in cr["slots"])
             parts.append(
@@ -760,7 +765,8 @@ def build_prompt(
     else:
         parts.append("## Credit components")
         for c in item["credit"]:
-            parts.append(f"- `{c['what']}` ({c['pts']:g} pt): {c['desc']}")
+            rule = f" {c['rule']}" if c.get("rule") else ""
+            parts.append(f"- `{c['what']}` ({c['pts']:g} pt): {c['desc']}{rule}")
         parts.append("")
 
         parts.append("## Deduction codes (use these exact codes; the points shown are applied for you)")

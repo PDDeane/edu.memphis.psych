@@ -532,6 +532,8 @@ def enforcement_audit():
         findings.append(("-", "EXCLUSION UNJUSTIFIED", bad))
     for bad in ENF.check_handsplit_rows_are_disjoint():
         findings.append(("-", "HANDSPLIT ROW OVERLAPS", bad))
+    for bad in ENF.check_slot_rules_reach_both_prompts():
+        findings.append(("-", "SLOT RULE WEB ONLY", bad))
     for iid, h, mx, label in uncovered_cli_items():
         findings.append((iid, "SCORED ON CLI ONLY",
                          f"H{h} {label} is worth {mx:g} on the CLI and is scored by "
@@ -858,6 +860,18 @@ def enforcement_selftest():
     # different cell sets and compared anyway. This injects the first half of
     # that — a harness with its own copy — and it must fail even though the
     # copy is equal, because equal-today is exactly how the last one survived.
+    # The one-sided-prompt guard. `--prompts` only ever counts rubric elements the
+    # WEB is MISSING, so judging text added to SLOT_NOTES reaches the web and the
+    # CLI and leaves score.py behind with every audit green. Q4b's five
+    # substitution tests did exactly that for a day, while `--item Q4b` reported
+    # "missing 0/4, 0/5, 0/3".
+    import olx_prompts as _OP2
+    _OP2.SLOT_NOTES["Q4b:behavior_1"] = "x" * 400
+    cases.append(("a slot rule is added to the web prompt only",
+                  "SLOT RULE WEB ONLY", "-",
+                  [f for f in enforcement_audit()[0]]))
+    del _OP2.SLOT_NOTES["Q4b:behavior_1"]
+
     # The hand-split transcription guard. Q4b p7 had one sentence in two boxes
     # for as long as the table has existed: the student left `Modify:` blank and
     # wrote their modify answer in example box 1, and the table put it in both.
