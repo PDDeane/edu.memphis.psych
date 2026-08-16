@@ -977,3 +977,79 @@ def check_handsplit_rows_are_disjoint() -> list[str]:
                             f"same sentence is in two boxes, so one of them shows the "
                             f"model text the student did not put there")
     return problems
+
+
+def check_slot_rules_reach_both_prompts() -> list[str]:
+    """Does per-slot judging text reach the PAPER prompt as well as the web's?
+
+    The web checklist and the paper component list are each a slot-specific
+    field, and only the rubric is read by both generators. Text parked in
+    `olx_prompts.SLOT_NOTES` therefore reaches the web and the CLI harness and
+    silently leaves score.py behind — the two sides go on applying different
+    rules while every existing audit stays green, because `--prompts` only ever
+    counts rubric elements the WEB is MISSING. It has no notion of the web
+    carrying something the paper does not.
+
+    That is not hypothetical. Q4b's five substitution tests lived in SLOT_NOTES
+    for a day: the web and CLI moved from 69% to 88% on them and the paper
+    scorer never saw them, with `--item Q4b` reporting "missing 0/4, 0/5, 0/3".
+
+    So: any SLOT_NOTES entry naming a scored slot of an item is a finding. The
+    rubric's per-component `rule` field is the shared home, and both generators
+    render it into their own slot-specific position.
+
+    Mapping notes are exempt. SLOT_NOTES' documented job is to point a web check
+    at its numbered paper criterion, and such a note carries no judging text of
+    its own — it is short and refers to a criterion. The heuristic is length,
+    which is crude but errs the right way: a long note is doing more than
+    mapping.
+    """
+    import olx_prompts as OP
+    import rubric_h1, rubric_h2, rubric_h3
+
+    MAPPING_MAX = 220        # a "see criterion N" pointer, not a rule
+
+    # PRE-EXISTING, and declared rather than hidden. These predate the `rule`
+    # field and each one is a real divergence: the web and CLI apply them and
+    # score.py does not. They are listed so that a NEW one fails the audit
+    # immediately, instead of joining a backlog nobody can see. Migrating one
+    # means moving its text to the credit component's `rule` field and
+    # re-measuring the paper scorer on that item — a scoring change per item,
+    # which is why they are not being done in a batch.
+    BACKLOG = ['1a:baseline_week', '1a:distinguishes_periods', '1a:week_1', '1a:week_2', '1c:has_own_graph', '1c:legend', 'D1:defines_type', 'D2:defines_type', 'Q1:matches_selected', 'Q2:reasons_given', 'Q2:wgb_inverts_utb', 'Q2:wgb_is_counterpart', 'Q5:example_2', 'consequence_asserted', 'matches_chosen_type', 'named_type', 'reasons_failing', 'reasons_substantial']
+
+    problems = []
+    scored = {}
+    for mod in (rubric_h1, rubric_h2, rubric_h3):
+        for item in mod.ITEMS:
+            for c in item.get("credit", []) or []:
+                scored.setdefault(item["id"], set()).add(c["what"])
+
+    seen_backlog = set()
+    for key, note in (getattr(OP, "SLOT_NOTES", {}) or {}).items():
+        if len(note) <= MAPPING_MAX:
+            continue
+        if key in BACKLOG:
+            seen_backlog.add(key)
+            continue
+        item_id, _, slot = key.partition(":")
+        if not slot:                       # unscoped note, applies by slot name
+            item_id, slot = None, key
+        owners = ([item_id] if item_id and item_id in scored
+                  else [i for i, s in scored.items() if slot in s])
+        if not owners:
+            continue                       # not a scored slot — nothing to share
+        problems.append(
+            f"SLOT_NOTES[{key!r}] is {len(note)} chars of judging text on a scored "
+            f"slot of {', '.join(sorted(owners))}. SLOT_NOTES is web-only, so the "
+            f"paper scorer never sees it. Move it to that credit component's "
+            f"`rule` field, which both generators render")
+
+    # A backlog entry that has gone means the list is rotting: either it was
+    # migrated (good — remove it from BACKLOG) or its note shrank below the
+    # mapping threshold (also worth knowing).
+    for stale in sorted(set(BACKLOG) - seen_backlog):
+        problems.append(
+            f"BACKLOG names SLOT_NOTES[{stale!r}], which no longer qualifies. If it "
+            f"was migrated to a `rule` field, drop it from BACKLOG")
+    return problems
