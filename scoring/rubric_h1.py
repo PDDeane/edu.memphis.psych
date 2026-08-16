@@ -726,14 +726,14 @@ ITEMS: list[dict] = [
                 "pts": 1.5,
                 "verdicts": ["met", "absent", "not_active"],
                 "codes": {"absent": "B_ONLY_ONE", "not_active": "B_NOT_ACTIVE"},
-                "desc": "First active behavior",
+                "desc": "First example of what they do INSTEAD OF the goal behavior",
             },
             {
                 "what": "behavior_2",
                 "pts": 1.5,
                 "verdicts": ["met", "absent", "not_active"],
                 "codes": {"absent": "B_ONLY_ONE", "not_active": "B_NOT_ACTIVE"},
-                "desc": "Second active behavior",
+                "desc": "Second example of what they do INSTEAD OF the goal behavior",
             },
             {
                 "what": "modify_stated",
@@ -775,23 +775,34 @@ ITEMS: list[dict] = [
             },
         ],
         "guidance": [
-            "An active behavior happens DURING the UTB — what the student does instead of "
-            "the WGB.",
-            "THE TEST IS FRAMING, NOT CATEGORY. The graders accept almost anything the "
-            "student presents as happening during the UTB episode. Judge how the sentence "
-            "is framed, not whether the content is technically a 'behaviour'.",
-            "ACCEPT — and accept broadly. Ordinary activities (\"I am scrolling social "
-            "media\", \"{{corpus:Q4b/p15:second:38:78:sha=834b72be96f6}}\", \"{{corpus:Q4b/p16:first:0:21:sha=4b5ab94038d3}} "
-            "TV\", \"{{corpus:Q4b/p13:first:19:39:sha=771ed2fbc3ad:shape=C1}} multitask\"), INTERNAL STATES AND THOUGHTS "
-            "occurring in the episode (\"{{corpus:Q4b/p13:second:25:56:sha=6a68567defb7}} sleep {{corpus:Q4b/p13:second:64:69:sha=20d82428425b:shape=R4-1-4920}}"
-            "{{corpus:Q4b/p13:second:70:92:sha=ada4d124385d:shape=A6}} it\", \"{{corpus:Q4b/p19:first:28:69:sha=ac83b3561af9}} "
-            "night\"), and COPING BEHAVIOURS in the same period (\"{{corpus:Q4b/p19:second:35:56:sha=8b16de8fb795:shape=R21-0-20}}"
-            "{{corpus:Q4b/p19:second:57:74:sha=0570c82c125d}} day\") all earned full credit — participants 13, 15 and 19 "
-            "each scored 5.0 on responses of exactly these kinds. A sentence opening \"{{corpus:Q4b/p15:first:0:4:sha=cf9c7aa24a26:shape=R4-0-20}}"
-            "{{corpus:Q4b/p15:first:5:42:sha=cd9c4f449b3d}} ...\" is almost always creditable.",
-            "REJECT in ONE shape: the sentence is not an example of doing anything at "
+            "THE TEST IS THE DICTIONARY'S, and it is one question: what is the student "
+            "doing INSTEAD OF engaging in their wanted goal behaviour? The dictionary "
+            "puts it that way and gives its own example — \"instead of drinking water, I "
+            "am drinking soda\". Their goal behaviour is quoted above from question 2; "
+            "read each entry against THAT. An entry earns its 1.5 points when it names "
+            "something they do in the time the goal behaviour would have taken.",
+            "ACCEPT — and accept broadly, once that test is met. Ordinary activities "
+            "(\"I am scrolling social media\", \"{{corpus:Q4b/p15:second:38:72:sha=8493013dd8ed:shape=R34-0-20}}"
+            "{{corpus:Q4b/p15:second:73:78:sha=45569da57f4b}}\", \"{{corpus:Q4b/p16:first:0:21:sha=4b5ab94038d3}} TV\", \"{{corpus:Q4b/p13:first:19:39:sha=771ed2fbc3ad:shape=C1}} "
+            "multitask\"), INTERNAL STATES AND THOUGHTS that are themselves what they "
+            "are doing instead (\"{{corpus:Q4b/p13:second:25:56:sha=6a68567defb7}} sleep {{corpus:Q4b/p13:second:64:78:sha=a57ca598fd79:shape=R4-1-49,R12-1-27,R14-0-20}}"
+            "{{corpus:Q4b/p13:second:79:92:sha=d13f8875e1b2}} it\", \"{{corpus:Q4b/p19:first:28:69:sha=ac83b3561af9}} night\"), "
+            "and COPING BEHAVIOURS standing in for the goal behaviour (\"{{corpus:Q4b/p19:second:35:44:sha=232aaf968f26:shape=R9-0-20}}"
+            "{{corpus:Q4b/p19:second:45:74:sha=b28fcda7c6f4}} day\") all earned full credit — participants "
+            "13, 15 and 19 each scored 5.0 on responses of exactly these kinds. Do not "
+            "judge how insightful the entry is; judge only whether it is an alternative "
+            "to the goal behaviour.",
+            "REJECT when the entry is not something the student did INSTEAD OF the "
+            "goal behaviour. Two shapes. (a) It is not an example of doing anything at "
             "all — meta-commentary about whether the behaviour is worth modifying, or a "
-            "recital of consequences. When neither entry is an example, deduct "
+            "recital of consequences. (b) It names something the unwanted behaviour "
+            "CAUSED rather than something that REPLACED the goal behaviour — a state "
+            "they ended up in, or something they then had to do. The test is "
+            "substitution, not grammar: \"I am yawning through my morning classes\" "
+            "names an activity but is what the lost sleep left them with, while \"I am "
+            "watching TV\" genuinely replaces the workout. Ask of each entry: could "
+            "they have done this INSTEAD of the goal behaviour, or did it happen "
+            "BECAUSE they did not? When neither entry is an example, deduct "
             "B_NOT_ACTIVE twice rather than B_ONLY_ONE.",
         ],
         "context": ["Q1", "Q2", "Q4a"],

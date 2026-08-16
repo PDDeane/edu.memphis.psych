@@ -905,3 +905,75 @@ def check_citations_match_exclusions() -> list[str]:
                     f"grader's decision, and the rate counts them — that is "
                     f"self-grading. Register them in cited_participants")
     return problems
+
+
+def _handsplit_tables() -> dict[str, dict]:
+    """{path: table} for every hand-split fixture a measured item declares.
+
+    A seam, not a convenience: the selftest replaces this to inject a bad row,
+    which is the only way to prove the check below still detects one.
+    """
+    import json
+    import os
+    import agreement_app as APP
+
+    out = {}
+    for spec in APP.JOBS.values():
+        path = spec.get("handsplit")
+        if not path or not os.path.exists(path):
+            continue                 # corpus absent on this machine — see below
+        try:
+            with open(path) as fh:
+                out[path] = json.load(fh)
+        except (OSError, ValueError) as e:
+            out[path] = {"__error__": str(e)}
+    return out
+
+
+def check_handsplit_rows_are_disjoint() -> list[str]:
+    """Does any hand-split row put the same text in two fields?
+
+    A hand-split table says which of a paper block's sentences belongs in which
+    of the web's boxes. The boxes are disjoint by construction — one sentence
+    cannot be both the first active-behaviour example AND the statement about
+    whether the behaviour is worth modifying — so a row where one field contains
+    another is a transcription fault, and it feeds the model an answer the
+    student did not give in that box.
+
+    Q4b p7 is why this exists. The student left `Modify:` blank on the page and
+    wrote their modify answer in example box 1. The table put that sentence in
+    BOTH `bmod_h1_q4b_modify` and `bmod_h1_q4b_first`, so the harness showed the
+    model a modify statement where the student had written nothing, and the model
+    scored it as an example — 5.00 against a gold of 2.00, stable across every
+    run and every prompt wording tried. It was found by chance, from an evidence
+    quote that read oddly.
+
+    Skips silently when the corpus is not on this machine. The tables live in
+    $MOLLY_DATA, outside both repositories by design, so a checkout without the
+    student data must not fail this audit — it simply has nothing to check.
+    """
+    import os
+
+    problems = []
+    for path, table in _handsplit_tables().items():
+        name = os.path.basename(path)
+        if "__error__" in table:
+            problems.append(f"{name} could not be read: {table['__error__']}")
+            continue
+        for pid, row in sorted(table.items(), key=lambda kv: str(kv[0])):
+            if not isinstance(row, dict):
+                continue
+            norm = {f: " ".join(str(v or "").replace("\u2019", "'").split())
+                          .strip().rstrip(".").lower()
+                    for f, v in row.items()}
+            fields = sorted(f for f, v in norm.items() if v)
+            for i, a in enumerate(fields):
+                for b in fields[i + 1:]:
+                    va, vb = norm[a], norm[b]
+                    if va in vb or vb in va:
+                        small, big = (a, b) if len(va) < len(vb) else (b, a)
+                        problems.append(
+                            f"{name} p{pid}: `{small}` is contained in `{big}` — the "
+                            f"same sentence is in two boxes, so one of them shows the "
+                            f"model text the student did not put there")
+    return problems
