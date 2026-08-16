@@ -210,6 +210,7 @@ def main() -> int:
             errs.append(e)
             all_err.append(e)
             all_abs.append(abs(e))
+            all_hit.append(hit)
             if hit:
                 exact += 1
             if abs(e) <= tol + 1e-9:
@@ -219,7 +220,8 @@ def main() -> int:
             if (iid, pid) not in dvg:
                 aerrs.append(e)
                 adj_err.append(e)
-                aexact += abs(e) < 1e-9
+                adj_hit.append(hit)
+                aexact += hit
         if not n:
             continue
         nd = sum(1 for pid in pids if pid not in skip and (iid, pid) in dvg)
@@ -240,7 +242,7 @@ def main() -> int:
     n_all = len(all_abs)
     print(
         f"{'ALL':>5} {'':>5} {n_all:>3} {'':>4} "
-        f"{sum(1 for e in all_err if abs(e)<1e-9)/n_all:>6.0%} "
+        f"{sum(all_hit)/n_all:>6.0%} "
         f"{'':>6} {statistics.mean(all_abs):>6.2f} "
         f"{statistics.mean(all_err):>+7.2f}"
     )
@@ -248,7 +250,7 @@ def main() -> int:
         n_adj = len(adj_err)
         print(
             f"{'ALL*':>5} {'':>5} {n_adj:>3} {'':>4} "
-            f"{sum(1 for e in adj_err if abs(e)<1e-9)/n_adj:>6.0%} "
+            f"{sum(adj_hit)/n_adj:>6.0%} "
             f"{'':>6} {statistics.mean(map(abs, adj_err)):>6.2f} "
             f"{statistics.mean(adj_err):>+7.2f}"
         )
@@ -310,12 +312,16 @@ def main() -> int:
             mine = [r for r in not_counted if r[0] == kind]
             if not mine:
                 continue
-            ok = sum(1 for _, _, _, g, p in mine if abs(p - g) < 1e-9)
+            ok = sum(1 for _, iid, _, g, p in mine
+                     if _handouts.scored_exactly(iid, g, p))
             print(f"  {kind:<12} {ok}/{len(mine)} scored correctly — {meaning[kind]}")
             for _, iid, pid, g, p in sorted(mine, key=lambda r: (r[1], r[2])):
-                if abs(p - g) >= 1e-9:
+                if not _handouts.scored_exactly(iid, g, p):
                     flag = "  <-- MISSED" if kind == "self_graded" else ""
                     print(f"      p{pid:<3} {iid:<5} gold={g:.2f} pred={p:.2f}{flag}")
+                stale = _handouts.stale_claim(iid, pid, g, p)
+                if stale:
+                    print(f"      p{pid:<3} {iid:<5} {stale}")
 
 
     if disagreements:
