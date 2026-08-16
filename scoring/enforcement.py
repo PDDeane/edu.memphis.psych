@@ -1347,6 +1347,49 @@ def check_rule_examples_are_not_corpus() -> list[str]:
     return problems
 
 
+def check_reporters_execute() -> list[str]:
+    """Do the harnesses' report paths actually RUN?
+
+    Twice now a name has been used in `report()` that was never bound, and twice
+    it survived every check in this project: `py_compile` sees valid syntax, the
+    audits import the module without calling it, and a measurement only reaches
+    the failing line after the last cell has been scored. The first cost a
+    finished 26-item web sweep; the second shipped in a commit and crashed the
+    CLI at the end of a full three-run Q6 measurement.
+
+    So this executes them, on synthetic rows, with output swallowed. It proves
+    nothing about the numbers — the audits above do that — only that the code
+    path runs at all, which is exactly what nothing else here checks.
+    """
+    import contextlib
+    import io
+
+    problems = []
+    rows = [{"participant_id": 1, "item": "Q6", "score": 8.75, "max": 10.0,
+             "failed_slots": 1, "checks": {}},
+            {"participant_id": 9, "item": "Q6", "score": 3.75, "max": 10.0,
+             "failed_slots": 5, "checks": {}}]
+    gold = {1: {"Q6": {"score": 8.75, "feedback": ""}},
+            9: {"Q6": {"score": 5.0, "feedback": ""}}}
+    try:
+        import agreement as A
+        with contextlib.redirect_stdout(io.StringIO()):
+            A.report(1, rows, [], gold)
+    except Exception as e:
+        problems.append(
+            f"agreement.report() raised {type(e).__name__}: {e}. A measurement "
+            f"reaches this only after every cell is scored, so the run is lost")
+    try:
+        import agreement as A2
+        with contextlib.redirect_stdout(io.StringIO()):
+            A2._print_not_counted([("unscoreable", "Q6", 9, 5.0, 3.75),
+                                   ("self_graded", "Q6", 2, 8.75, 8.75)])
+    except Exception as e:
+        problems.append(
+            f"agreement._print_not_counted() raised {type(e).__name__}: {e}")
+    return problems
+
+
 def check_exclusion_claims_are_data() -> list[str]:
     """Does any exclusion rationale assert a point figure only in prose?
 
