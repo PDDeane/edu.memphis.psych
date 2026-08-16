@@ -726,14 +726,14 @@ ITEMS: list[dict] = [
                 "pts": 1.5,
                 "verdicts": ["met", "absent", "not_active"],
                 "codes": {"absent": "B_ONLY_ONE", "not_active": "B_NOT_ACTIVE"},
-                "desc": "First active behavior",
+                "desc": "First example of what they do INSTEAD OF the goal behavior",
             },
             {
                 "what": "behavior_2",
                 "pts": 1.5,
                 "verdicts": ["met", "absent", "not_active"],
                 "codes": {"absent": "B_ONLY_ONE", "not_active": "B_NOT_ACTIVE"},
-                "desc": "Second active behavior",
+                "desc": "Second example of what they do INSTEAD OF the goal behavior",
             },
             {
                 "what": "modify_stated",
@@ -775,23 +775,34 @@ ITEMS: list[dict] = [
             },
         ],
         "guidance": [
-            "An active behavior happens DURING the UTB — what the student does instead of "
-            "the WGB.",
-            "THE TEST IS FRAMING, NOT CATEGORY. The graders accept almost anything the "
-            "student presents as happening during the UTB episode. Judge how the sentence "
-            "is framed, not whether the content is technically a 'behaviour'.",
-            "ACCEPT — and accept broadly. Ordinary activities (\"I am scrolling social "
-            "media\", \"I am talking with friends over the phone\", \"I am indoors watching "
-            "TV\", \"I get distracted and multitask\"), INTERNAL STATES AND THOUGHTS "
-            "occurring in the episode (\"my brain is telling me to go to sleep but I "
-            "couldn't physically do it\", \"I am wishing I went to sleep earlier that "
-            "night\"), and COPING BEHAVIOURS in the same period (\"I rely on caffeine to "
-            "get me through my day\") all earned full credit — participants 13, 15 and 19 "
-            "each scored 5.0 on responses of exactly these kinds. A sentence opening \"When "
-            "I am doing my unwanted behavior, I am ...\" is almost always creditable.",
-            "REJECT in ONE shape: the sentence is not an example of doing anything at "
+            "THE TEST IS THE DICTIONARY'S, and it is one question: what is the student "
+            "doing INSTEAD OF engaging in their wanted goal behaviour? The dictionary "
+            "puts it that way and gives its own example — \"instead of drinking water, I "
+            "am drinking soda\". Their goal behaviour is quoted above from question 2; "
+            "read each entry against THAT. An entry earns its 1.5 points when it names "
+            "something they do in the time the goal behaviour would have taken.",
+            "ACCEPT — and accept broadly, once that test is met. Ordinary activities "
+            "(\"I am scrolling social media\", \"I am talking with friends over the "
+            "phone\", \"I am indoors watching TV\", \"I get distracted and "
+            "multitask\"), INTERNAL STATES AND THOUGHTS that are themselves what they "
+            "are doing instead (\"my brain is telling me to go to sleep but I couldn't "
+            "physically do it\", \"I am wishing I went to sleep earlier that night\"), "
+            "and COPING BEHAVIOURS standing in for the goal behaviour (\"I rely on "
+            "caffeine to get me through my day\") all earned full credit — participants "
+            "13, 15 and 19 each scored 5.0 on responses of exactly these kinds. Do not "
+            "judge how insightful the entry is; judge only whether it is an alternative "
+            "to the goal behaviour.",
+            "REJECT when the entry is not something the student did INSTEAD OF the "
+            "goal behaviour. Two shapes. (a) It is not an example of doing anything at "
             "all — meta-commentary about whether the behaviour is worth modifying, or a "
-            "recital of consequences. When neither entry is an example, deduct "
+            "recital of consequences. (b) It names something the unwanted behaviour "
+            "CAUSED rather than something that REPLACED the goal behaviour — a state "
+            "they ended up in, or something they then had to do. The test is "
+            "substitution, not grammar: \"I am yawning through my morning classes\" "
+            "names an activity but is what the lost sleep left them with, while \"I am "
+            "watching TV\" genuinely replaces the workout. Ask of each entry: could "
+            "they have done this INSTEAD of the goal behaviour, or did it happen "
+            "BECAUSE they did not? When neither entry is an example, deduct "
             "B_NOT_ACTIVE twice rather than B_ONLY_ONE.",
         ],
         "context": ["Q1", "Q2", "Q4a"],
