@@ -36,6 +36,14 @@ HANDOUTS: dict[int, dict] = {
         ),
         # Participants whose responses appear as few-shot exemplars in the
         # rubric, so scoring them would be self-grading.
+        # p6 is an UNSTABLE exemplar and is kept as a diagnostic. Its whole
+        # answer and its 6.25 are printed in Q6's prompt, and the scorer
+        # reproduces that score in only 6 of 12 runs — unanimous one way in one
+        # pass and the other way in the next. It is not a step-1 removal: taking
+        # the citation out would mean deleting a worked example the prompt is
+        # built around. Watch it while tuning Q6's slot judgements; it should
+        # stop flipping when they stabilise, which reads independently of the
+        # counted rate. See EQUIVALENCE.md, "Cleaning up an item".
         "exemplar_participants": [10, 8, 6],
         # ...but only on the items whose PROMPT actually embeds them. Verified
         # against the rubric: Q6 is the sole item with an `exemplars` field, and

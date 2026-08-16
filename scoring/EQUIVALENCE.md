@@ -2499,6 +2499,21 @@ and the participant out of `cited_participants` together — the citation is wha
 justifies the exclusion, and `check_citations_match_exclusions` enforces that
 they move as a pair. Expect the reported number to FALL; that is the point.
 
+One 3-run pass is not enough to call a cell "wrong anyway". Q6 p6 came back
+unanimous in BOTH directions on different passes — 6.25 three times, then wrong
+three times — and settled at 6 correct in 12 runs, an even split. Take at least
+two passes before removing an exclusion on the strength of failures, or a
+coin-flip cell will look decided.
+
+And the remedy only fits a CITATION. A few-shot exemplar is a different thing:
+its whole response and score are reproduced in the prompt as a worked example,
+so "remove the language that cites it" means deleting an exemplar the prompt is
+built around. p6 is one of Q6's three. Leave those excluded and treat an
+unstable one as a DIAGNOSTIC instead — a scorer that cannot reproduce a score
+printed in its own prompt is telling you the item's judgement is unstable, and
+it will stop flipping when step 2 succeeds. That gives a reading on stability
+that is independent of the counted rate.
+
 **2. Remove rules that do not earn their place.** For each rule ask which cells
 it fires on and which it rescues. A rule with firings and no rescues is a cost.
 Q4b carried an outcome rule that fired on one cell and rescued none, and two
