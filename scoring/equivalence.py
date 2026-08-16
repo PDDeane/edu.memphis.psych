@@ -190,6 +190,7 @@ def _web_attrs(item):
             # `pick` slot with no set to draw from, answers nothing, and reports
             # the sheet's all-satisfied baseline as zero.
             "choices": get("choices"), "expect": get("expect"),
+            "requires": get("requires"),
             **({"max": float(mx.group(1))} if mx else {})}
 
 
@@ -536,6 +537,12 @@ def enforcement_audit():
         findings.append(("-", "SLOT RULE WEB ONLY", bad))
     for bad in ENF.check_slot_rules_are_vocabulary_neutral():
         findings.append(("-", "SLOT RULE NAMES A VERDICT", bad))
+    for bad in ENF.check_rule_fail_tokens_agree():
+        findings.append(("-", "SLOT RULE FAILS DIFFERENTLY", bad))
+    for bad in ENF.check_exclusion_claims_are_data():
+        findings.append(("-", "EXCLUSION CLAIM IN PROSE", bad))
+    for bad in ENF.check_rule_examples_are_not_corpus():
+        findings.append(("-", "PROMPT QUOTES A COUNTED CELL", bad))
     for bad in ENF.check_unreachable_gold_is_allowed():
         findings.append(("-", "UNREACHABLE GOLD PENALISED", bad))
     for iid, h, mx, label in uncovered_cli_items():
@@ -680,6 +687,10 @@ def enforcement_audit():
         #     comparing it as charge-once compares nothing.
         gating = {s["key"] for s in w["scored"] if s.get("gates")} | set(w["declaredGates"])
         web_pairs = {frozenset(p) for p in w["chargeOnce"]}
+        # `requires` makes a pair sublinear from the credit side: once the
+        # condition has denied its dependent, failing the dependent too costs
+        # nothing more. Declared, like `onlyif`, so CLI discovery has a match.
+        web_pairs |= {frozenset((r["key"], r["cond"])) for r in w.get("requires", [])}
         web_pairs |= {frozenset(e["operands"]) for e in w["equals"]
                       if e["key"] not in gating and not c.get("equals")}
         for a, b in c["charge_once"]:
@@ -893,6 +904,82 @@ def enforcement_selftest():
                   "SLOT RULE NAMES A VERDICT", "-",
                   [f for f in enforcement_audit()[0]]))
     _c["rule"] = _saved_rule
+
+    # The other half of that hazard: the rule uses `{fail}` correctly and the two
+    # generators still substitute different meanings. Q6's state_c slots keep
+    # their vocabulary on the `cover` group, score.py read only the credit entry,
+    # and a rule about naming the WRONG consequence reached paper as `absent` —
+    # "the box was empty". Injected by hiding the cover group the paper-side
+    # lookup falls back to, which is exactly the state that caused it. Both
+    # halves are injected — a rule ON a cover slot, and the cover group hidden —
+    # because no cover slot need carry a rule at any given moment, and a probe
+    # that depends on one being there stops testing anything the day it goes.
+    _q6 = _R1.BY_ID["Q6"]
+    _sc1 = [x for x in _q6["credit"] if x["what"] == "state_c1"][0]
+    _saved_cover, _had_rule = _q6["cover"], _sc1.get("rule")
+    # All THREE vocabulary homes are emptied. `codes` included: once
+    # score._fail_verdict learned to read it, hiding only the cover group left the
+    # paper side resolving `neither` correctly and the probe had nothing to catch.
+    _saved_codes = _sc1.get("codes")
+    _q6["cover"], _sc1["codes"] = [], {}
+    _sc1["rule"] = "Answer `{fail}` when the box names the wrong thing."
+    cases.append(("the two prompts fill `{fail}` with different verdicts",
+                  "SLOT RULE FAILS DIFFERENTLY", "-",
+                  [f for f in enforcement_audit()[0]]))
+    _q6["cover"] = _saved_cover
+    if _saved_codes is None:
+        _sc1.pop("codes", None)
+    else:
+        _sc1["codes"] = _saved_codes
+    if _had_rule is None:
+        _sc1.pop("rule", None)
+    else:
+        _sc1["rule"] = _had_rule
+
+    # The leak that prompted the check: Q6's `affect_c1` rule illustrated its test
+    # with p15's answer, p15's own 4c and the verdict — for one of the two cells
+    # the rule was measured as fixing. Injected with a REAL quote from a counted
+    # cell, so the probe exercises the corpus comparison rather than a stub.
+    import enforcement as _E2
+    import handouts as H_MOD
+    _corp = _E2._corpus_cells()
+    _leak = None
+    for (_iid, _pid), _body in sorted(_corp.items()):
+        if (_iid == "Q6" and _pid not in H_MOD.cell_exclusions(1, "Q6")
+                and ("Q6", _pid) not in _E2.CORPUS_QUOTE_BACKLOG
+                and len(_body.split()) > 40):
+            # A run from the MIDDLE of the answer: the opening words are the
+            # template sentence many students share, and a shared run is
+            # filtered as the assignment's own language.
+            _leak = (_pid, " ".join(_body.split()[12:26]))
+            break
+    if _leak is not None:
+        _a1 = [x for x in _R1.BY_ID["Q6"]["credit"] if x["what"] == "affect_c1"][0]
+        _saved_a1 = _a1.get("rule")
+        _a1["rule"] = f'A response reading "{_leak[1]}" counts.'
+        cases.append(("a prompt quotes a counted participant verbatim",
+                      "PROMPT QUOTES A COUNTED CELL", "-",
+                      [f for f in enforcement_audit()[0]]))
+        if _saved_a1 is None:
+            _a1.pop("rule", None)
+        else:
+            _a1["rule"] = _saved_a1
+
+    # An exclusion rationale that asserts a point figure only in prose. Q6's p9
+    # read "the CLI's error here is exactly -2.50" through every run measuring
+    # -1.25, and blamed the fixture reconstruction while the real cause — a
+    # declared A_MISMATCH divergence — went unstated in the one place whose job
+    # was to state it. Injected by taking the number back out of `expect_error`.
+    import handouts as _H6
+    _p9 = _H6.PER_ITEM_EXCLUDE["Q6"][9]
+    _saved_err = _p9["expect_error"]
+    _p9["expect_error"] = None            # not pop(): popping reorders the dict
+    _p9["why"] += " the error here is exactly -2.50."
+    cases.append(("an exclusion states a point figure only in prose",
+                  "EXCLUSION CLAIM IN PROSE", "-",
+                  [f for f in enforcement_audit()[0]]))
+    _p9["expect_error"] = _saved_err
+    _p9["why"] = _p9["why"][: -len(" the error here is exactly -2.50.")]
 
     # The one-sided-prompt guard. `--prompts` only ever counts rubric elements the
     # WEB is MISSING, so judging text added to SLOT_NOTES reaches the web and the

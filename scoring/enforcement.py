@@ -545,9 +545,19 @@ def _credit_fail(item: dict, base: dict, key: str, avoid: str = "") -> dict:
     raw = {"slots": {k: dict(v) for k, v in base["slots"].items()}}
     comp = next(c for c in item["credit"] if c["what"] == key)
     vocab = comp.get("verdicts")
+    # A slot in a cover group must fail to a value OUTSIDE the group's labels.
+    # The labels are all valid answers, so swapping `first` for `second` does not
+    # fail the check — it re-answers it, and on a two-member group that makes the
+    # SIBLING a duplicate and knocks it out too. The web's probe already picks a
+    # non-label value, so the two harnesses disagreed about what "failed" meant
+    # and every pair containing a cover member came back sublinear on one side.
+    labels = {l for g in item.get("cover", []) if key in g["keys"] for l in g["labels"]}
     if vocab:
         now = raw["slots"][key]["verdict"]
-        alt = [v for v in vocab if v != now and v != avoid] or [v for v in vocab if v != now]
+        cands = [v for v in vocab if v not in labels] or list(vocab)
+        alt = ([v for v in cands if v != now and v != avoid]
+               or [v for v in cands if v != now]
+               or [v for v in vocab if v != now])
         raw["slots"][key]["verdict"] = alt[0]
     else:
         raw["slots"][key]["verdict"] = "absent"
@@ -1103,6 +1113,294 @@ def check_slot_rules_are_vocabulary_neutral() -> list[str]:
     return problems
 
 
+def check_rule_fail_tokens_agree() -> list[str]:
+    """Do the two generators fill `{fail}` with tokens that mean the same thing?
+
+    The sibling check above stops a rule NAMING one side's token. This one
+    covers the other half of the same hazard: the rule is correctly written
+    with `{fail}`, both prompts render, every existing audit stays green — and
+    the two sides are nevertheless told to answer differently, because the
+    substitution itself diverged.
+
+    Not hypothetical. Q6's `state_c1`/`state_c2` take their vocabulary from
+    their `cover` group (an IDENTITY — first/second/neither/absent) rather than
+    from a `verdicts` list on the credit entry, and score.py read only the
+    credit entry. So a rule about the box naming the WRONG consequence reached
+    the web as `mismatch` and the paper scorer as `absent` — "the box was
+    empty" — which is a different finding, and one the response it is about
+    plainly contradicts.
+
+    Two invariants, both cheap:
+      1. Each side's token must be a verdict THAT side actually offers for the
+         slot. A token outside the vocabulary is uninterpretable.
+      2. Neither side may fall back to the generic `absent` while the other
+         substitutes a specific extra. `absent` means nothing was written;
+         every extra means something was written and is wrong. They can never
+         be the same instruction.
+    """
+    import rubric_h1, rubric_h2, rubric_h3
+    import olx_prompts as O
+    from score import _fail_verdict
+
+    problems = []
+    for h, mod in ((1, rubric_h1), (2, rubric_h2), (3, rubric_h3)):
+        for item in mod.ITEMS:
+            action = O.ACTION.get(item["id"])
+            if not action:
+                continue               # no <LLMAction>: nothing to compare against
+            web_opts = {s["key"]: (s.get("options") or [])
+                        for s in O.parse_slots(*O._slots_attr(h, action))}
+            for c in item.get("credit", []) or []:
+                if not c.get("rule") or "{fail}" not in c["rule"]:
+                    continue
+                slot = c["what"]
+                opts = web_opts.get(slot)
+                if opts is None:
+                    continue           # computed/derived slot, not on the sheet
+                extras = [o for o in opts if o not in ("met", "absent")]
+                web = extras[0] if extras else "absent"
+                paper = _fail_verdict(item, c)
+
+                where = f"H{h} {item['id']}.{slot}"
+                if paper not in _rubric_vocab(item, c):
+                    problems.append(
+                        f"{where}: `rule` renders {paper!r} into the paper prompt, "
+                        f"which is not a verdict that slot offers there")
+                if ("absent" in (web, paper)) and web != paper:
+                    problems.append(
+                        f"{where}: `{{fail}}` becomes {web!r} on the web and "
+                        f"{paper!r} on paper. One side is being told the box was "
+                        f"left empty and the other that its content is wrong — "
+                        f"the same rule, firing on different evidence")
+    return problems
+
+
+_CORPUS_MEMO: dict[tuple[str, int], str] | None = None
+
+
+def _corpus_cells() -> dict[tuple[str, int], str]:
+    """{(item_id, pid): the student's text for that cell}, normalised.
+
+    A seam, like `_handsplit_tables`: the selftest replaces it so the check
+    below can be proved to still fire. Empty when the corpus is absent — it
+    lives outside this repo and most machines will not have it.
+    """
+    import warnings
+
+    # Memoised: the selftest runs the whole audit once per injected breakage, and
+    # rebuilding 520 fixtures each time turned a fast check into five minutes.
+    global _CORPUS_MEMO
+    if _CORPUS_MEMO is not None:
+        return _CORPUS_MEMO
+
+    out: dict[tuple[str, int], str] = {}
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            from agreement import fixture_for
+            import handouts as H
+            for h in (1, 2, 3):
+                for item in H.config(h)["rubric"].ITEMS:
+                    for pid in range(1, 21):
+                        try:
+                            fx = fixture_for(item["id"], pid)
+                        except Exception:
+                            continue
+                        out[(item["id"], pid)] = _norm(
+                            " ".join(str(v) for v in fx.values()))
+    except Exception:
+        _CORPUS_MEMO = {}
+        return _CORPUS_MEMO            # corpus absent — nothing to check against
+    _CORPUS_MEMO = out
+    return out
+
+
+def _norm(s: str) -> str:
+    """Lowercased, whitespace-collapsed, with smart punctuation folded."""
+    s = s.lower().replace("’", "'").replace("‘", "'")
+    s = s.replace("“", '"').replace("”", '"').replace("—", "-")
+    return " ".join(s.split())
+
+
+# Prompts that quote a COUNTED participant's own words without attribution, as
+# found the day `check_rule_examples_are_not_corpus` landed. Declared, not fixed:
+# each one needs its example rewritten and the item re-measured, and doing that
+# to seventeen items in one change would make every number in the project move
+# at once for reasons nobody could separate. Same treatment as the SLOT_NOTES
+# BACKLOG above, and with the same rule attached — an entry that stops firing
+# must be REMOVED, so the list cannot quietly outlive the problem.
+#
+# The point of declaring them is that a NEW leak fails immediately. The one that
+# prompted the check was written this session, into Q6's `affect_c*` rule, and
+# would have sat here unnoticed among the others.
+CORPUS_QUOTE_BACKLOG = {
+    ("1a", 11),
+    ("1a", 14),
+    ("1a", 19),
+    ("2a", 18),
+    ("2a", 20),
+    ("D2", 9),
+    ("DAY1", 1),
+    ("DAY1", 15),
+    ("DAY1", 16),
+    ("DAY2", 13),
+    ("NP", 14),
+    ("NR", 7),
+    ("NR", 14),
+    ("NR", 15),
+    ("NR", 20),
+    ("PR", 10),
+    ("Q1", 5),
+    ("Q2", 18),
+    ("Q2", 19),
+    ("WK1", 13),
+    ("WK2", 15),
+}
+
+
+def _grams(text: str, n: int = 8) -> set[tuple[str, ...]]:
+    w = text.split()
+    return {tuple(w[i:i + n]) for i in range(len(w) - n + 1)}
+
+
+def check_rule_examples_are_not_corpus() -> list[str]:
+    """Does any prompt reproduce a student's own words without declaring it?
+
+    `check_citations_match_exclusions` polices citations that name a participant
+    BY NUMBER, because those are what `cited_participants` can record. It cannot
+    see an UNATTRIBUTED reproduction — and that gives the answer away just as
+    completely while leaving the cell in the counted denominator.
+
+    Not hypothetical. The mechanism rule written for Q6's `affect_c*` slots
+    illustrated its test with a positive example lifted verbatim from p14, a
+    counted cell scoring exact. Both examples were written from the evidence
+    while reading it, which is how it will happen again.
+
+    Method: an 8-word sequence shared between an item's prompt and one
+    participant's answer to that item. Two filters keep it honest. A sequence
+    that appears in MORE THAN ONE student's answer is the assignment's own
+    language — "baseline data collection and three weeks of intervention" is the
+    handout talking, not a student — so only sequences unique to one answer
+    count. And a participant already excluded on that item is declared, which is
+    what `exemplars` and `cited_participants` are for.
+
+    What it CANNOT catch, stated plainly so nobody trusts it too far: a
+    PARAPHRASE. The other half of the same Q6 mistake described p15's answer in
+    different words while naming p15's own 4c and the verdict, which is a
+    complete answer key and shares no 8-word run with anything. This check is a
+    floor, not a guarantee — writing examples from a participant's answer is
+    still the thing not to do.
+    """
+    import collections
+    import handouts as H
+    import olx_prompts as O
+
+    corpus = _corpus_cells()
+    if not corpus:
+        return []                      # corpus absent; nothing to compare against
+
+    problems = []
+    seen_backlog: set[tuple[str, int]] = set()
+    for h in (1, 2, 3):
+        for item in H.config(h)["rubric"].ITEMS:
+            iid = item["id"]
+            # Prompt-bearing text, MINUS the worked examples: an item's
+            # `exemplars` field reproduces whole answers on purpose, and those
+            # participants are registered and excluded.
+            guidance = item.get("guidance") or ""
+            parts = list(guidance) if isinstance(guidance, list) else [guidance]
+            for c in item.get("credit", []) or []:
+                parts += [c.get("desc") or "", c.get("rule") or ""]
+            for key, note in O.SLOT_NOTES.items():
+                owner, _, slot = key.partition(":")
+                if not slot or owner == iid:
+                    parts.append(note)
+            prompt = _grams(_norm(" ".join(parts)))
+            if not prompt:
+                continue
+
+            per = {pid: _grams(body) for (i, pid), body in corpus.items() if i == iid}
+            shared = collections.Counter(g for gs in per.values() for g in gs)
+            excluded = set(H.cell_exclusions(h, iid))
+            for pid, gs in sorted(per.items()):
+                if pid in excluded:
+                    continue
+                own = [g for g in (prompt & gs) if shared[g] == 1]
+                if not own:
+                    continue
+                if (iid, pid) in CORPUS_QUOTE_BACKLOG:
+                    seen_backlog.add((iid, pid))
+                    continue
+                problems.append(
+                    f"H{h} {iid}: the prompt reproduces p{pid}'s own words "
+                    f"(\"...{' '.join(sorted(own)[0])}...\") and p{pid} is still "
+                    f"COUNTED on this item. Either invent the example, or "
+                    f"register p{pid} in handouts `cited_participants` and accept "
+                    f"the smaller denominator")
+
+    # A backlog entry that no longer fires has been fixed; leaving it listed
+    # would exempt a future leak on the same cell.
+    for stale in sorted(CORPUS_QUOTE_BACKLOG - seen_backlog):
+        problems.append(
+            f"CORPUS_QUOTE_BACKLOG lists {stale[0]}/p{stale[1]}, which no longer "
+            f"reproduces that participant. Remove it from the list")
+    return problems
+
+
+def check_exclusion_claims_are_data() -> list[str]:
+    """Does any exclusion rationale assert a point figure only in prose?
+
+    An `unscoreable` reason is an argument that no correct scorer can reach the
+    gold, and those arguments are quantitative — they say how far off the cell
+    lands and why. A number written into the sentence is checked by nobody, and
+    Q6's p9 proved what that costs: it read "the CLI's error here is exactly
+    -2.50" through every run that measured -1.25, and because the sentence
+    blamed the fixture reconstruction, the actual cause — a declared A_MISMATCH
+    divergence, the one slot of eight where the scorer disagrees with gold — sat
+    unstated in an exclusion whose whole job was to state it.
+
+    So a reason that names a point figure must also declare `expect_error`,
+    which the harnesses assert against the measurement on every run. Prose may
+    still explain the number; it may not be the only place it lives.
+    """
+    import handouts as H
+
+    # A points claim: a signed decimal, optionally spelled with the word. Bare
+    # integers are not enough on their own — "2 of the 8 slots" is structure, not
+    # an assertion about the score — so a decimal point or an explicit sign is
+    # what marks a figure as one the harness could check.
+    claim = re.compile(r"[-+]?\d+\.\d+|[-+]\d+\b")
+    problems = []
+    for item, cells in H.PER_ITEM_EXCLUDE.items():
+        declared = H.unscoreable_expectation(item)
+        for pid, entry in cells.items():
+            why = entry["why"] if isinstance(entry, dict) else entry
+            found = claim.findall(why)
+            if found and pid not in declared:
+                problems.append(
+                    f"{item}/p{pid}: the `unscoreable` reason states the point "
+                    f"figure(s) {sorted(set(found))} in prose, where nothing "
+                    f"checks them. Declare `expect_error` on the entry so the "
+                    f"harnesses assert it every run, or drop the figure")
+    return problems
+
+
+def _rubric_vocab(item: dict, c: dict) -> set[str]:
+    """Every verdict the PAPER prompt offers for `c`, from all THREE homes.
+
+    Kept in step with score._fail_verdict: a vocabulary can be declared on the
+    credit entry, on the `cover` group a slot belongs to, or — the common case on
+    Q6, where no credit entry declares `verdicts` at all — only by the `codes`
+    map, whose keys name the failures the slot can report.
+    """
+    if c.get("verdicts"):
+        return set(c["verdicts"])
+    for grp in item.get("cover", []) or []:
+        if c["what"] in grp["keys"]:
+            return set(grp.get("verdicts") or []) | set(grp.get("labels") or [])
+    return {"met", "absent"} | set(c.get("codes") or {})
+
+
 def check_unreachable_gold_is_allowed() -> list[str]:
     """Do all three harnesses forgive a gold score the item cannot produce?
 
@@ -1127,11 +1425,32 @@ def check_unreachable_gold_is_allowed() -> list[str]:
         except OSError as e:
             problems.append(f"cannot read {fname}: {e}")
             continue
-        if "scores_as_exact" not in src:
+        if "scores_as_exact" not in src and "scored_exactly" not in src:
             problems.append(
                 f"{fname} reports an exact-match rate without calling "
                 f"handouts.scores_as_exact(), so it penalises a scorer for missing "
                 f"a score the item cannot produce")
+        # Presence is NOT use. This check passed for a long time while
+        # agreement.py called the helper in its per-item row and re-derived
+        # exactness as a raw comparison in the ALL aggregate, in the not-counted
+        # block, and in the MEDIAN-RUN SELECTOR — so the run chosen for
+        # publication was picked by one rule and printed under another, and a
+        # single table showed 67% and 58% for the same twelve cells. What the
+        # audit can see statically is the anti-pattern: a float equality against
+        # gold, which is the shape every one of those four sites had.
+        for m in re.finditer(r"abs\(\s*([^)]*?)\s*\)\s*[<>]=?\s*1e-9", src):
+            expr = m.group(1)
+            # Either shape counts: a difference taken inline (`p - g`) or an
+            # error already in a variable (`e`), which is what the ALL aggregate
+            # used. A tolerance test reads `<= tol + 1e-9` and does not match,
+            # because the bound here must be 1e-9 exactly.
+            if not re.search(r"\bg\b|gold|pred|\be\b|err|delta", expr):
+                continue          # not an exactness test
+            line = src[: m.start()].count("\n") + 1
+            problems.append(
+                f"{fname}:{line} decides exactness as `abs({expr}) < 1e-9`. That "
+                f"is the raw-equality rule, which penalises a gold the item "
+                f"cannot produce. Route it through handouts.scored_exactly()")
 
     # And the helper must stay an allowance for UNREACHABLE gold only. If it ever
     # forgives a near miss on a reachable one it becomes a tolerance, and every
