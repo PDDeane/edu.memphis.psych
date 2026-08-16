@@ -1274,9 +1274,13 @@ ITEMS: list[dict] = [
             "theirs in the template's own phrasing and earned 10/10. But an antecedent that "
             "is genuinely a different one from the 4a answer IS a mismatch, and costs its "
             "slot even when it is a reasonable antecedent in its own right.",
+            # De-identified: p17's answer and the grader's decision were both here,
+            # and the scorer missed the cell anyway (3.75 against a gold of 5.00,
+            # reproducibly). An exclusion that buys a flattering denominator and
+            # nothing else is a step-1 removal — the citation and the exclusion
+            # come out together, and p17 is counted from now on.
             "A whole missing half — second antecedent and second consequence never "
-            "addressed — is four absent slots and therefore 5.0, which is what participant "
-            "17 lost.",
+            "addressed — is four absent slots and therefore 5.0.",
             "Cross-item matching is still the most common deduction in the corpus (14 of 20 "
             "gold rows carry Q6 feedback), so check each stated antecedent against 4a and "
             "each stated consequence against 4c before crediting the slot.",

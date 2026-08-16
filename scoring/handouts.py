@@ -95,7 +95,10 @@ HANDOUTS: dict[int, dict] = {
             # Their citations came out of the guidance with them — p5's rule was
             # kept and de-identified, p19 was named beside p17, who IS scored
             # correctly and stays.
-            "Q6":  [2, 3, 10, 11, 17],
+            # p17 came out with its citation: the prompt held its answer AND the
+            # grader's decision and the scorer still returned 3.75 against a gold
+            # of 5.00, reproducibly. See EQUIVALENCE.md step 1.
+            "Q6":  [2, 3, 10, 11],
         },
     },
     2: {
