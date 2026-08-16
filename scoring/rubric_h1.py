@@ -728,7 +728,7 @@ ITEMS: list[dict] = [
                 "codes": {"absent": "B_ONLY_ONE", "not_active": "B_NOT_ACTIVE"},
                 "desc": "First example of what they do INSTEAD OF the goal behavior",
                 "rule": (
-                    "`wrong_kind` in two cases. (1) The entry names a CONSEQUENCE of the "
+                    "`{fail}` in two cases. (1) The entry names a CONSEQUENCE of the "
                     "unwanted behaviour — a state they ended up in, or something they then had "
                     "to do — rather than something they did INSTEAD of the goal behaviour. (2) "
                     "The entry IS the goal behaviour, done at the wrong time, in the wrong "
@@ -771,7 +771,7 @@ ITEMS: list[dict] = [
                 "codes": {"absent": "B_ONLY_ONE", "not_active": "B_NOT_ACTIVE"},
                 "desc": "Second example of what they do INSTEAD OF the goal behavior",
                 "rule": (
-                    "`wrong_kind` on the same four tests as the first example: a consequence of "
+                    "`{fail}` on the same four tests as the first example: a consequence of "
                     "the unwanted behaviour; the goal behaviour itself done at the wrong time "
                     "or place; an ordinary activity carrying a state that behaviour produced; a "
                     "set of ALTERNATIVES joined by \"or\" in which any one alternative fails "
