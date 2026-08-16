@@ -536,6 +536,8 @@ def enforcement_audit():
         findings.append(("-", "SLOT RULE WEB ONLY", bad))
     for bad in ENF.check_slot_rules_are_vocabulary_neutral():
         findings.append(("-", "SLOT RULE NAMES A VERDICT", bad))
+    for bad in ENF.check_unreachable_gold_is_allowed():
+        findings.append(("-", "UNREACHABLE GOLD PENALISED", bad))
     for iid, h, mx, label in uncovered_cli_items():
         findings.append((iid, "SCORED ON CLI ONLY",
                          f"H{h} {label} is worth {mx:g} on the CLI and is scored by "
@@ -862,6 +864,22 @@ def enforcement_selftest():
     # different cell sets and compared anyway. This injects the first half of
     # that — a harness with its own copy — and it must fail even though the
     # copy is equal, because equal-today is exactly how the last one survived.
+    # The unreachable-gold guard. Q6 p4 asks for 6.00 from an item that moves in
+    # steps of 1.25, so 6.25 is the best any correct scorer can do; counting it
+    # wrong measures the rubric's arithmetic. All three harnesses must apply the
+    # same allowance or their rates stop being comparable.
+    # Injected as the failure that MATTERS: the allowance widening into a
+    # tolerance. Tightening it back to equality would be invisible here, since
+    # the check reads the harnesses' source for the call and then probes the
+    # helper for over-permissiveness — so that is what gets injected.
+    import handouts as _H5
+    _real_sae = _H5.scores_as_exact
+    _H5.scores_as_exact = lambda item, g, p: abs(p - g) <= 1.5
+    cases.append(("the unreachable-gold allowance becomes a tolerance",
+                  "UNREACHABLE GOLD PENALISED", "-",
+                  [f for f in enforcement_audit()[0]]))
+    _H5.scores_as_exact = _real_sae
+
     # The shared-vocabulary guard. A rule rendered into both prompts must not name
     # one side's verdict token: the paper scorer was told when to answer
     # `wrong_kind` while being offered met/absent/not_active, so every test in it

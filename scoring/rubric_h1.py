@@ -1271,11 +1271,12 @@ ITEMS: list[dict] = [
             "from the one in 4a/4c; `not_described` for a change/effect slot where the "
             "element is named but nothing is said about how it changes or is affected.",
             "Mismatch means a DIFFERENT item, not a reworded one. Participant 11 restated "
-            "theirs in the template's own phrasing and earned 10/10. But participant 5's "
-            "first antecedent was genuinely a different one from 4a and cost 1.25.",
+            "theirs in the template's own phrasing and earned 10/10. But an antecedent that "
+            "is genuinely a different one from the 4a answer IS a mismatch, and costs its "
+            "slot even when it is a reasonable antecedent in its own right.",
             "A whole missing half — second antecedent and second consequence never "
-            "addressed — is four absent slots and therefore 5.0, which is what participants "
-            "17 and 19 lost.",
+            "addressed — is four absent slots and therefore 5.0, which is what participant "
+            "17 lost.",
             "Cross-item matching is still the most common deduction in the corpus (14 of 20 "
             "gold rows carry Q6 feedback), so check each stated antecedent against 4a and "
             "each stated consequence against 4c before crediting the slot.",
