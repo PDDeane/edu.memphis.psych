@@ -1234,8 +1234,14 @@ def main() -> int:
         """The rows the RATE is computed over — excluded cells are run, not counted."""
         return [r for r in rows if r[0] not in per_item]
 
+    _spec = config(handout)["rubric"].BY_ID[args.item]
+
+    def _hit(g, p):
+        """Exact, or the nearest reachable score where gold is unreachable."""
+        return _handouts.scores_as_exact(_spec, g, p)
+
     def exact_of(rows):
-        return sum(1 for _, g, p, _ in counted(rows) if abs(p - g) < 1e-9)
+        return sum(1 for _, g, p, _ in counted(rows) if _hit(g, p))
 
     # MEDIAN by exact count, ties to the lowest run index. Fixed here, in code,
     # deliberately: choosing which run to publish after seeing the numbers is how
@@ -1300,7 +1306,7 @@ def main() -> int:
         print(f"{pid:>4} {g:>6.2f} {pred:>6.2f} {pred-g:>+6.2f}")
     if rows:
         errs = [p - g for _, g, p, _ in rows]
-        exact = sum(1 for e in errs if abs(e) < 1e-9)
+        exact = sum(1 for _, g, p, _ in rows if _hit(g, p))
         print("-" * 26)
         print(f"exact {exact}/{len(errs)} ({exact/len(errs):.0%})  "
               f"MAE {statistics.mean(map(abs, errs)):.2f}  "

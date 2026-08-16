@@ -82,7 +82,12 @@ HANDOUTS: dict[int, dict] = {
             "Q5":  [4, 6, 8, 9, 19, 20],
             # Merged with `exemplar_items` above, not replacing it: Q6 both
             # reproduces p10/p8/p6 in full AND cites seven others.
-            "Q6":  [2, 3, 5, 10, 11, 17, 19],
+            # p5 and p19 came out: both were excluded and the scorer missed them
+            # anyway, so the exclusion was buying a denominator and nothing else.
+            # Their citations came out of the guidance with them — p5's rule was
+            # kept and de-identified, p19 was named beside p17, who IS scored
+            # correctly and stays.
+            "Q6":  [2, 3, 10, 11, 17],
         },
     },
     2: {
@@ -333,6 +338,17 @@ def gold_divergence_cells() -> dict[tuple[str, int], str]:
 #
 # The practical use is to stop a ceiling reading as headroom. Q3 sits at 75% and
 # looks like 25% of work available; about 10% of it does not exist.
+#
+# Q6 p4 was listed here and is NOT any more. Its gold of 6.00 implies 3.2 slots
+# of 1.25, so no slot-derived score can land on it — but that is now HANDLED
+# rather than merely explained: scores_as_exact() credits the nearest reachable
+# value, so a scorer returning 6.25 is counted correct and the cell is neither a
+# ceiling nor headroom. A note here would tell a reader there is unwinnable
+# ground where there is none.
+#
+# Contrast DAY2 p7 below, which stays. Its gold of 1.00 IS reachable; it just
+# does not reconcile with its own itemised comment. Nothing computes that away,
+# so it remains a real ceiling.
 GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
     ("1", "Q3"): (
         "`action_oriented`: five answers justify the goal by CAPABILITY rather "
@@ -345,12 +361,6 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "ceiling. Measured: the other four SMART slots are 0-2 errors each, this "
         "one is 4-5, and a 'labelled Action section' rule matches gold on only "
         "12/20 — worse than the models manage without it.",
-    ),
-    ("1", "Q6"): (
-        "p4's gold of 6.00 implies 3.2 slots of 1.25 — not a whole number of "
-        "slots, so no slot-derived score can land on it. The row itemises "
-        "\"-2.5: missing both consequences\" and \"-1.5; missing one antecedent\", "
-        "and 1.5 is not a multiple of this item's slot value.",
     ),
     ("2", "DAY2"): (
         "p7's gold is 1.00 while its comment itemises only \"-1 pt\", which implies "
@@ -510,3 +520,56 @@ def not_comparable_items(handout: int, supports_tools: bool) -> dict[str, str]:
         for it in config(handout)["rubric"].ITEMS
         if it.get("graph_item")
     }
+
+
+# ── Scores gold asks for that the item cannot produce ────────────────────────
+
+def attainable_scores(item: dict) -> list[float]:
+    """Every score this item can actually produce.
+
+    A score is max minus the sum of some subset of the scorable components,
+    clamped at 0, plus 0 itself where a gate can take the whole item. Computed
+    from the rubric rather than listed, so an item whose point values change
+    cannot leave a stale table behind.
+    """
+    from itertools import combinations
+    pts = [c["pts"] for c in item["credit"]
+           if not c.get("reported") and c.get("pts") is not None]
+    out = {float(item["max"])}
+    for r in range(1, len(pts) + 1):
+        for combo in combinations(pts, r):
+            out.add(max(0.0, round(item["max"] - sum(combo), 4)))
+    if any(c.get("gates") for c in item["credit"]):
+        out.add(0.0)
+    return sorted(out)
+
+
+def nearest_attainable(item: dict, gold: float) -> set[float]:
+    """The reachable score(s) closest to `gold` — the whole tie, if it is one.
+
+    Empty when gold is itself reachable, which is the ordinary case: only one
+    cell in the corpus is not (Q6 p4, whose 6.00 implies 3.2 slots of 1.25).
+    """
+    scores = attainable_scores(item)
+    if any(abs(gold - a) < 1e-9 for a in scores):
+        return set()
+    best = min(abs(gold - a) for a in scores)
+    return {a for a in scores if abs(abs(gold - a) - best) < 1e-9}
+
+
+def scores_as_exact(item: dict, gold: float, pred: float) -> bool:
+    """Does `pred` count as exact against `gold`?
+
+    Normally that means equality. But where gold names a score the item CANNOT
+    produce, the closest reachable value is the best any correct scorer can do,
+    and penalising it measures the rubric's arithmetic rather than the scorer's
+    judgement. Q6 p4 asks for 6.00 from an item that moves in steps of 1.25; a
+    scorer returning 6.25 has done everything right.
+
+    Deliberately not a tolerance. Only an UNREACHABLE gold opens the allowance,
+    and only to the nearest reachable value(s) — a cell whose gold is reachable
+    is still judged on equality, so this cannot quietly forgive a near miss.
+    """
+    if abs(pred - gold) < 1e-9:
+        return True
+    return pred in nearest_attainable(item, gold)

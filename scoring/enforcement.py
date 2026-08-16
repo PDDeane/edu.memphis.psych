@@ -1101,3 +1101,49 @@ def check_slot_rules_are_vocabulary_neutral() -> list[str]:
                     # worth noticing — it may have lost its failing condition.
                     pass
     return problems
+
+
+def check_unreachable_gold_is_allowed() -> list[str]:
+    """Do all three harnesses forgive a gold score the item cannot produce?
+
+    An item's score is max minus a subset of its component costs, so it can only
+    land on certain values. Where a gold row names a value outside that set, the
+    nearest reachable one is the best any correct scorer can do, and counting it
+    wrong measures the rubric's arithmetic rather than the scorer's judgement.
+    Q6 p4 asks for 6.00 from an item that moves in steps of 1.25.
+
+    Every harness that reports an exact-match rate must apply the same
+    allowance, or their rates stop being comparable — the same failure the
+    exclusion checks exist for, and the same fix: one helper, called by all.
+    """
+    import os
+    import handouts as H
+
+    problems = []
+    here = os.path.dirname(H.__file__)
+    for fname in ("agreement.py", "agreement_app.py", "baseline.py"):
+        try:
+            src = open(os.path.join(here, fname)).read()
+        except OSError as e:
+            problems.append(f"cannot read {fname}: {e}")
+            continue
+        if "scores_as_exact" not in src:
+            problems.append(
+                f"{fname} reports an exact-match rate without calling "
+                f"handouts.scores_as_exact(), so it penalises a scorer for missing "
+                f"a score the item cannot produce")
+
+    # And the helper must stay an allowance for UNREACHABLE gold only. If it ever
+    # forgives a near miss on a reachable one it becomes a tolerance, and every
+    # rate in the project silently loosens.
+    for h in (1, 2, 3):
+        for item in H.config(h)["rubric"].ITEMS:
+            scores = H.attainable_scores(item)
+            if len(scores) < 2:
+                continue
+            a, b = scores[0], scores[1]
+            if H.scores_as_exact(item, a, b):
+                problems.append(
+                    f"H{h} {item['id']}: scores_as_exact() accepts {b:g} against a "
+                    f"REACHABLE gold of {a:g} — it has become a tolerance")
+    return problems
