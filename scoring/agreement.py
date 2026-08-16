@@ -1468,7 +1468,7 @@ def report(handout: int, results: list[dict], failures: list[tuple], gold: dict)
     print(hdr)
     print("-" * len(hdr))
 
-    all_abs, all_err = [], []
+    all_abs, all_err, all_hit = [], [], []
     disagreements = []
     not_counted: list[tuple] = []
     no_gold: list[tuple] = []
