@@ -267,6 +267,7 @@ def load_action(olx_file: str, action_id: str) -> dict:
             "equals": parse_equals(open_tag),
             "derived": parse_derived(open_tag),
             "cover": parse_cover(open_tag),
+            "requires": olx_prompts.parse_requires(_attr(open_tag, "requires")),
             # `expect` compares a pick against an authored value, so apply_computed
             # cannot fill it without the rule, and the schema cannot offer the pick
             # its category list without `choices`. Both were missing here, which
@@ -929,6 +930,18 @@ def satisfied_map(spec: dict, checks: dict) -> dict[str, bool]:
             judged = (is_satisfied(by_key[k], verdict_of(checks, k))
                       if migrated and k in by_key else True)
             out[k] = ok and judged
+
+    # `requires` last, so a dependency may name a cover or computed check.
+    # Mirrors slotSheet.satisfiedMap: the mirror image of `onlyif` (that one
+    # decides what may be CHARGED, this one what may be CREDITED), and
+    # non-transitive for the same reason.
+    for r in spec.get("requires") or []:
+        answered = ((checks.get(r["cond"]) or {}).get("verdict") or "").strip() \
+            if isinstance(checks.get(r["cond"]), dict) else ""
+        if answered in (r.get("lenient") or []):
+            continue                      # establishes nothing, so denies nothing
+        if r["cond"] in out and r["key"] in out:
+            out[r["key"]] = out[r["key"]] and out[r["cond"]]
     return out
 
 
@@ -1304,7 +1317,8 @@ def measure_one(backend, handout: int, spec: dict, action_id: str, path: str, pi
                                                 action["cover"], action["choices"]))
     checks = apply_computed(action, raw.get("checks") or {}, fixture)
 
-    merged = dict(spec, slots=action["slots"], cover=action["cover"])
+    merged = dict(spec, slots=action["slots"], cover=action["cover"],
+                  requires=action["requires"])
     score, n_failed = SCORERS[spec["kind"]](merged, item, checks)
     return {
         "participant_id": pid,
@@ -1427,13 +1441,21 @@ def _print_not_counted(rows: list[tuple]) -> None:
         mine = [r for r in rows if r[0] == kind]
         if not mine:
             continue
-        ok = sum(1 for _, _, _, g, p in mine if abs(p - g) < 1e-9)
+        ok = sum(1 for _, iid, _, g, p in mine
+                 if _handouts.scored_exactly(iid, g, p))
         print(f"  {kind:<12} {ok}/{len(mine)} scored correctly — "
               f"{_NOT_COUNTED_MEANING[kind]}")
         for _, iid, pid, g, p in sorted(mine, key=lambda r: (r[1], r[2])):
-            if abs(p - g) >= 1e-9:
+            if not _handouts.scored_exactly(iid, g, p):
                 flag = "  <-- MISSED" if kind == "self_graded" else ""
                 print(f"      p{pid:<3} {iid:<5} gold={g:.2f} pred={p:.2f}{flag}")
+            # An `unscoreable` cell that declares WHAT its miss is gets that
+            # checked here. The claim is the justification for dropping the cell,
+            # so it has to keep being true — p9's said "-2.50" for as long as the
+            # measurement said -1.25, and nothing anywhere disagreed.
+            stale = _handouts.stale_claim(iid, pid, g, p)
+            if stale:
+                print(f"      p{pid:<3} {iid:<5} {stale}")
 
 
 def report(handout: int, results: list[dict], failures: list[tuple], gold: dict) -> int:
@@ -1479,6 +1501,7 @@ def report(handout: int, results: list[dict], failures: list[tuple], gold: dict)
             errs.append(e)
             all_err.append(e)
             all_abs.append(abs(e))
+            all_hit.append(hit)
             if hit:
                 exact += 1
             if abs(e) <= tol + 1e-9:
@@ -1495,7 +1518,7 @@ def report(handout: int, results: list[dict], failures: list[tuple], gold: dict)
     print("-" * len(hdr))
     if all_abs:
         print(f"{'ALL':>6} {'':>5} {len(all_abs):>3} "
-              f"{sum(1 for e in all_err if abs(e) < 1e-9)/len(all_err):>6.0%} {'':>6} "
+              f"{sum(all_hit)/len(all_hit):>6.0%} {'':>6} "
               f"{statistics.mean(all_abs):>6.2f} {statistics.mean(all_err):>+7.2f}")
 
     _print_not_counted(not_counted)
@@ -1718,7 +1741,8 @@ def main() -> int:
             if not _counts(r):
                 continue
             g = gold.get(r["participant_id"], {}).get(r["item"], {}).get("score")
-            if g is not None and abs(r["score"] - g) < 1e-9:
+            if g is not None and _handouts.scored_exactly(
+                    r["item"], g, r["score"]):
                 n += 1
         return n
 

@@ -2528,6 +2528,28 @@ Three rewrites of Q4b's guidance moved nothing because the checklist still said
 passes. Slot-specific text belongs in the slot's `rule` field, which both
 generators render.
 
+**Do not trust gold's prose to name the slot.** Gold is written to a student,
+not to a checklist, and where two slots cover one element its wording is
+routinely ambiguous between them — Q6's "did not clarify the first consequence
+being affected" fits `state_c1` and `affect_c1` equally, and both cost 1.25.
+The score is what is measured, so the question is only whether the item sheds
+one slot, not which. Three failed attempts to tighten Q6's `affect_c*` slots
+were aimed at a defect that lived on `state_c*`; the sheet's own asymmetry said
+so all along, since the antecedent side carried a full operational test
+("judge what the change ACTS ON") and the consequence side carried one bare
+clause. Where an item's paired slots are lopsided like that, suspect the
+lopsidedness before inventing a new rule.
+
+**When both sides render a `rule`, check what each SUBSTITUTES, not just that
+it arrived.** `{fail}` keeps a rule vocabulary-neutral, but the two generators
+resolve it independently, and Q6's `state_c*` slots keep their vocabulary on
+the `cover` group rather than on the credit entry. score.py read only the
+credit entry, so a rule about naming the WRONG consequence rendered as
+`mismatch` on the web and `absent` — "the box was empty" — on paper: one rule,
+two different findings, every prior audit green. `check_rule_fail_tokens_agree`
+now fails when either side's token is outside that side's vocabulary, or when
+one falls back to the generic `absent` while the other names a specific extra.
+
 **4. Measure on the CLI at every stage; it is the cheapest and fastest.** One
 item, three runs, a few minutes. Confirm on the web only when the item looks
 settled — the two have agreed cell-for-cell on every configuration measured.
@@ -2539,6 +2561,146 @@ prediction down, because a wrong prediction is a finding — the token fix that
 "should" have flipped p8 changed nothing, which is how the tests were shown not
 to be inert. And re-run an unchanged configuration when a result surprises you:
 Q4b's p6-for-p20 trade looked like noise and reproduced exactly.
+
+### "Scored exactly right" had six implementations, and two disagreed in print
+
+One table printed both 67% and 58% for the same twelve cells — the per-item row
+and the ALL row, side by side. The difference was one cell: Q6's p4, whose gold
+of 6.00 is a score the item cannot produce.
+
+The phrase "scored exactly right" turned out to have SIX implementations. Two
+called `handouts.scores_as_exact`, which allows the nearest reachable value when
+gold names an unreachable one. Four re-derived it as `abs(error) < 1e-9`: the
+ALL aggregate in `agreement.py`, two aggregates in `baseline.py`, and — the one
+that matters most — `exact_of`, the MEDIAN-RUN SELECTOR. So the run chosen for
+publication was picked by one rule and then printed under another.
+
+`check_unreachable_gold_is_allowed` did not catch it, and the reason is worth
+keeping: it tested that the STRING `scores_as_exact` appeared in each harness,
+and it did — in the one code path that used it. Presence is not use. The check
+now looks for the ANTI-PATTERN instead, a float equality against gold or an
+error variable, and reports the file and line. A tolerance test reads
+`<= tol + 1e-9` and does not match, because the bound must be `1e-9` exactly.
+Re-injecting the original bug fires it; on its first live run it found two more
+real sites in `baseline.py` that had been missed by hand.
+
+The fix is one decision point, `handouts.scored_exactly(item_id, gold, pred)`,
+with every site routed through it. Same shape as `stale_claim` below: where
+three harnesses each keep a copy of one rule, the rule belongs in `handouts`.
+
+What it changed, on data already measured: Q6's baseline is [7, 8, 8] across its
+three runs, not the [7, 8, 7] the strict path reported. Any `3 runs — exact ...`
+line published before this was understating, and every per-run count quoted in
+this document has been re-derived through `scored_exactly`.
+
+### Q6's `affect_c*` never fired, so gold's own charge was unreachable
+
+Measured over the cohort, `affect_c1`/`affect_c2` copied `state_c1`/`state_c2`'s
+verdict in **18 of 20 responses**, and their "named but not described" verdict
+fired **zero** times — while the same verdict on `change_a1`/`change_a2` fired
+five. The consequence side had collapsed to a binary mirror of its sibling.
+
+Two causes. The `state_c*` and `affect_c*` fixture boxes hold OVERLAPPING text,
+which is faithful and must not be split; and `change_a*` carries a worked
+operational test ("judge WHAT THE CHANGE ACTS ON") where `affect_c*` carried a
+one-line desc. The same text twice, with nothing to separate the questions, gets
+the same answer twice.
+
+The consequence: gold's commonest charge on this item — "did not clarify the
+[first/second] consequence being affected" — is exactly an `affect_c*` failure
+with the consequence named, and was therefore MECHANICALLY UNREACHABLE. Two
+counted cells could not be scored right by any run.
+
+This is also why an earlier attempt made it worse. That rule asked `affect_c*`
+whether the 4c consequence was IDENTIFIED — `state_c*`'s question restated — so
+it pushed the two slots to agree harder. The rule that worked asks about
+MECHANISM, which is what the deduction code already said and the desc had
+dropped: "how the consequence will be affected BY CHANGING THE ANTECEDENT". Both
+observed failure shapes are named in it: a bare good outcome, and the plan
+restated.
+
+The rule was measured, reverted, and is worth reading for HOW it was measured.
+Its first run scored [8, 8, 8] against a baseline of [7, 8, 8], with p15 and p16
+both landing on gold. That result was an artefact: the rule illustrated its own
+test with examples lifted from the corpus — a positive example verbatim from
+p14, a counted cell scoring exact, and a negative example that described p15's
+answer, p15's own 4c AND the verdict. An answer key for one of the two cells it
+was measured as fixing.
+
+Re-measured with invented examples, verified absent from every submission: [8,
+7, 7]. **p16 is genuinely fixed** — 8.75 in all three runs, where baseline gave
+10.00 — so the diagnosis holds and the mechanism test does reach a cell nothing
+else could. p15 never moved, and p1 and p18 broke. +1 for −2, so the rule came
+out and the item stayed at baseline.
+
+The diagnosis is the durable part: the `affect_c*` slots cannot express gold's
+commonest charge, and any future attempt has to make that verdict fire without
+disturbing the cells that legitimately credit it.
+
+### Examples in a prompt must be INVENTED, and the audit now checks it
+
+`check_citations_match_exclusions` polices citations that name a participant by
+number, because those are what `cited_participants` can record. It cannot see an
+UNATTRIBUTED reproduction, which gives the answer away just as completely while
+leaving the cell in the counted denominator. `check_rule_examples_are_not_corpus`
+closes that: an 8-word run shared between an item's prompt and one participant's
+answer to that item is a finding, unless that participant is already excluded
+there.
+
+Two filters keep it honest. A run appearing in more than one student's answer is
+the assignment's own language — "baseline data collection and three weeks of
+intervention" is the handout talking — so only runs unique to one answer count.
+And `exemplars` are exempt: those reproduce whole answers on purpose, and their
+participants are registered.
+
+It found **21 pre-existing cells** across all three handouts on its first run,
+declared in `CORPUS_QUOTE_BACKLOG` with the same stale-entry rule the SLOT_NOTES
+backlog uses. Each needs its example rewritten and its item re-measured, and
+doing twenty-one at once would move every number in the project for reasons
+nobody could separate.
+
+Its limit, stated so nobody trusts it too far: it cannot catch a PARAPHRASE. The
+p15 half of the Q6 leak described that answer in different words while naming
+its 4c and the verdict, and shares no 8-word run with anything. The check is a
+floor. Writing an example while reading a participant's answer is still the
+thing not to do — which is exactly how this one happened.
+
+### A cell can be exact for two wrong reasons, and the score cannot tell you
+
+Q6's p18 scored 7.50 — gold exactly — while failing the WRONG SLOTS: a spurious
+`state_a2` mismatch standing in for the `affect_c2` failure gold actually
+charges. Two errors, equal and opposite. p4 was the same story with a different
+mask. Both looked like settled cells for the whole of step 2, and both "broke"
+the moment a correct change removed the cancellation.
+
+So when a change moves a cell that was exact, check WHICH slots moved before
+calling it a regression. The useful diff is against gold's own charge, not
+against the previous number.
+
+### `requires`, and the linkage experiment that did not survive measurement
+
+`requires="key:cond[:lenient,...]"` — a check is CREDITED only while another
+holds. The mirror of `onlyif`, which decides what may be CHARGED. Landed in all
+five consumers the registry names, plus `score.py`, with `requires.test.ts`
+covering the arithmetic, leniency, unknown conditions and non-transitivity.
+
+It was built for a real gap: Q6 never asks which antecedent's change PRODUCES a
+consequence's effect, so a response addressing one antecedent in a single run-on
+sentence banks both consequence pairs off one clause. Adding the linkage as its
+own check fixed p19 exactly as predicted — the first thing that ever moved it.
+
+It was still reverted. Net 7/12 against a baseline of 8/12: p19 fixed, p4 and
+p18 broken. A `lenient` variant for `unclear` was measured too and was dominated
+on every metric. The primitive stays because it is correct, tested and cheap to
+reuse; the Q6 sheet went back to baseline. Fixing p19 is worth doing when it
+does not cost two other cells.
+
+Two process notes from it. The audit caught the parity gap the moment the CLI
+started applying `requires` and the web probe did not — working as intended. And
+`_credit_fail` was mis-failing identity slots, flipping `first` to `second`,
+which does not FAIL a cover member but re-answers it and makes its sibling a
+duplicate; the web probe already picked a non-label value, so the two harnesses
+had disagreed about what "failed" meant for as long as both had existed.
 
 ## Practical notes
 

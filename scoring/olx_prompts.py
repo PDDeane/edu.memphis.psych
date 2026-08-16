@@ -821,6 +821,23 @@ def parse_expect(spec: str | None) -> list[dict]:
     return out
 
 
+def parse_requires(spec: str | None) -> list[dict]:
+    """Mirror of slotSheet.ts:parseRequires — `key:condition[:lenient,...]`.
+
+    The third segment lists verdicts on the CONDITION that establish nothing and
+    so deny nothing, exactly as `equals`/`expect` use the word.
+    """
+    out = []
+    for rule in (spec or "").split("|"):
+        parts = [x.strip() for x in rule.split(":")]
+        if len(parts) >= 2 and parts[0] and parts[1]:
+            out.append({"key": parts[0], "cond": parts[1],
+                        "lenient": [v.strip() for v in
+                                    (parts[2] if len(parts) > 2 else "").split(",")
+                                    if v.strip()]})
+    return out
+
+
 def count_max(segment: str | None) -> int | None:
     """Mirror of slotSheet.ts:parseCountMax — `count(3)` -> 3."""
     m = re.fullmatch(r"count\(\s*(\d+)\s*\)", (segment or "").strip())

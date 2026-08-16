@@ -410,29 +410,55 @@ def gold_ceiling(handout: int, item: str) -> tuple[str, ...]:
 # Cells where the gold row cannot be scored on the item it sits in, dropped from
 # that item only. Mirrors PER_ITEM_EXCLUDE in agreement_app.py; the two sides
 # must drop the SAME cells or the item's two columns stop being a comparison.
-PER_ITEM_EXCLUDE: dict[str, dict[int, str]] = {
+PER_ITEM_EXCLUDE: dict[str, dict[int, str | dict]] = {
     "Q6": {
-        9: "the eight-box fixture for this cell is arbitrary, and it is the SAME "
-           "arbitrary fixture on both sides: fixture_for() imports "
-           "agreement_app.build_jobs, so this harness feeds its prompt the frozen "
-           "q6_consensus table rather than building its own split — verified "
-           "byte-identical. p9 tied 5/5 across ten runs on state_c2 and affect_c2, "
-           "so the vote had to break the tie, and the break put the text in "
-           "state_c2 and left affect_c2 empty. That decides 2 of the 8 slots — 2.5 "
-           "of 10 points — before the model reads anything, and the CLI's error "
-           "here is exactly -2.50. Measuring either side on it measures the "
-           "tie-break. Also one of the four documented gold divergences "
-           "(A_MISMATCH on state_a1). Both reasons are side-agnostic, which is why "
-           "the web-only exclusion this mirrors was incomplete.",
+        # Rewritten after measurement contradicted the original reason, which said
+        # the fixture tie-break decided 2 of 8 slots and that "the CLI's error here
+        # is exactly -2.50". Both halves were false. The tie-break DID put the text
+        # in state_c2 and leave affect_c2 empty — and the scorer answers `mismatch`
+        # on state_c2 and `absent` on affect_c2, which is exactly what gold charges
+        # ("-2.5 pts: missing second consequences"). The arbitrary split landed on
+        # gold's own answer and cost nothing.
+        #
+        # The real reason is the divergence, and it is a clean one: the scorer
+        # agrees with gold on SEVEN of eight slots, and the eighth is `state_a1`,
+        # where it answers `mismatch` and gold credits. That is the declared
+        # A_MISMATCH divergence — p9's Q6 changes a third antecedent not listed in
+        # their 4a, and the dictionary is explicit that the antecedents must match
+        # up. Gold is unreachable because gold is lenient there and we are not, so
+        # a miss stays EXPECTED; the error is one slot, not two.
+        9: {
+            "why": "gold credits `state_a1`, which is a third antecedent not listed "
+                   "in this participant's 4a — the declared A_MISMATCH divergence, "
+                   "where the scorer is right and gold is lenient. Every other slot "
+                   "agrees with gold, including both second-consequence slots, so "
+                   "the gold row is unreachable by exactly that one deliberate "
+                   "disagreement. The fixture for this cell is also reconstructed "
+                   "(the state_c2/affect_c2 split came from a 5/5 tie-break across "
+                   "ten runs), and it is the SAME split on both sides — "
+                   "fixture_for() imports agreement_app.build_jobs, verified "
+                   "byte-identical — but it is not what makes the cell unscoreable: "
+                   "the tie-break happens to agree with gold on both slots",
+            # Asserted against every run. The prose above used to carry this number
+            # and drifted from it silently; see check_exclusion_claims_are_data.
+            "expect_error": -1.25,
+        },
     },
     "Q4c": {
-        16: "gold 3.0 for \"did not say if this behavior is a good choice for you "
-            "modify and why\" — but the handout asks that under 4b, which has its "
-            "own `Modify:` field and carries modify_stated/modify_why for 3 of "
-            "its 5 points. 4c asks only for two consequences plus the keyword. "
-            "The deduction is misfiled: p16's Q4b row is a clean 5.0, so the "
-            "point was taken off the wrong item. No correct 4c scorer can reach "
-            "3.0 here, and both systems return 5.0.",
+        16: {
+            "why": "gold 3.0 for \"did not say if {{corpus:Q4b/p15:modify:0:30:sha=431b4811e0ab:shape=R0-1-74,R30-0-20}}"
+                   "{{corpus:Q4b/p15:modify:31:34:sha=10c22bcf4c76}} you modify and why\" — but the handout asks that under 4b, "
+                   "which has its own `Modify:` field and carries "
+                   "modify_stated/modify_why for 3 of its 5 points. 4c asks only "
+                   "for two consequences plus the keyword. The deduction is "
+                   "misfiled: p16's Q4b row is a clean 5.0, so the point was taken "
+                   "off the wrong item. No correct 4c scorer can reach 3.0 here, "
+                   "and both systems return 5.0.",
+            # Taken from the reason's own claim (returns 5.0 against a gold of
+            # 3.0). Unverified at the time of writing — the next Q4c run asserts
+            # it, and says so in the not-counted block if it has drifted.
+            "expect_error": +2.00,
+        },
     },
     "1c": {
         4: "gold 0 (\"Did not provide a graph\") but all four weeks of data "
@@ -470,7 +496,63 @@ EXCLUSION_KINDS = ("suspect", "self_graded", "unscoreable")
 
 def unscoreable(item: str) -> dict[int, str]:
     """{pid: why} — cells whose gold no correct scorer can reach."""
-    return dict(PER_ITEM_EXCLUDE.get(item, {}))
+    return {pid: (e["why"] if isinstance(e, dict) else e)
+            for pid, e in PER_ITEM_EXCLUDE.get(item, {}).items()}
+
+
+def unscoreable_expectation(item: str) -> dict[int, float]:
+    """{pid: pred - gold} for unscoreable cells that declare what the miss IS.
+
+    An `unscoreable` reason says a correct scorer CANNOT reach the gold, which is
+    a claim about a number. Left in prose that number goes stale without anything
+    noticing: Q6's p9 asserted "the CLI's error here is exactly -2.50" while every
+    run measured -1.25, and the sentence went on pointing future work at the
+    fixture reconstruction when the whole story was a declared divergence.
+
+    Declaring it here makes it an assertion the harnesses check on every run, so
+    the cell either behaves as documented or says so.
+    """
+    return {pid: float(e["expect_error"])
+            for pid, e in PER_ITEM_EXCLUDE.get(item, {}).items()
+            if isinstance(e, dict) and e.get("expect_error") is not None}
+
+
+def scored_exactly(item_id: str, gold: float, pred: float) -> bool:
+    """Did this cell score exactly right, by ITEM ID rather than rubric record?
+
+    The same decision as `scores_as_exact`, reachable from the places that have
+    an item id and a number and nothing else — which turned out to be most of
+    them. Every rate in this project is a count of cells that "scored exactly
+    right", and that phrase had SIX implementations: two called
+    `scores_as_exact`, and four re-derived it as `abs(pred - gold) < 1e-9`. The
+    four included the ALL aggregate on both the CLI and paper harnesses and, worse,
+    the median-run SELECTOR — so the run chosen for publication was picked by a
+    rule the published table then disagreed with. One table printed 67% and 58%
+    for the same twelve cells.
+
+    `check_unreachable_gold_is_allowed` did not catch it: it tested that the
+    string "scores_as_exact" appeared in each file, and it did — in the one code
+    path that used it.
+    """
+    for h in (1, 2, 3):
+        rec = config(h)["rubric"].BY_ID.get(item_id)
+        if rec is not None:
+            return scores_as_exact(rec, gold, pred)
+    raise KeyError(f"no rubric item {item_id!r} in any handout")
+
+
+def stale_claim(item: str, pid: int, gold: float, pred: float) -> str | None:
+    """The warning line for a cell that stopped behaving as its exclusion says.
+
+    Lives here rather than in the three reporters because they are three copies
+    of one block already — the same mirror-keeping this module exists to end.
+    """
+    want = unscoreable_expectation(item).get(pid)
+    if want is None or abs((pred - gold) - want) < 1e-9:
+        return None
+    return (f"<-- CLAIM STALE: declared expect_error={want:+.2f}, measured "
+            f"{pred - gold:+.2f}. Fix the reason in "
+            f"handouts.PER_ITEM_EXCLUDE or the exclusion")
 
 
 def cell_exclusions(handout: int, item: str) -> dict[int, tuple[str, str]]:

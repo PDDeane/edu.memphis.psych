@@ -1322,12 +1322,16 @@ def main() -> int:
             mine = [r for r in uncounted if per_item[r[0]][0] == kind]
             if not mine:
                 continue
-            ok = sum(1 for _, g, p, _ in mine if abs(p - g) < 1e-9)
+            ok = sum(1 for _, g, p, _ in mine
+                     if _handouts.scored_exactly(args.item, g, p))
             print(f"  {kind:<12} {ok}/{len(mine)} scored correctly — {meaning[kind]}")
             for pid, g, pred, _ in sorted(mine):
-                if abs(pred - g) >= 1e-9:
+                if not _handouts.scored_exactly(args.item, g, pred):
                     flag = "  <-- MISSED" if kind == "self_graded" else ""
                     print(f"      p{pid:<3} gold={g:.2f} pred={pred:.2f}{flag}")
+                stale = _handouts.stale_claim(args.item, pid, g, pred)
+                if stale:
+                    print(f"      p{pid:<3} {stale}")
 
     if fb_by_cell:
         print("\ncells where a field this handout left empty was taken from another "
