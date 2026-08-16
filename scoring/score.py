@@ -324,6 +324,24 @@ def derive_ledger(item: dict, raw: dict,
 
     satisfying = {k: g["labels"] for g in item.get("cover", []) for k in g["keys"]}
 
+    # `requires`: a check is CREDITED only while its condition holds — the mirror
+    # of the charge-once rule below, and applied here, after the cover demotions,
+    # so a condition may itself be a cover check. A denied slot is demoted rather
+    # than rewritten, for the reason the cover block gives: the model's verdict
+    # about that box was true, and the finding is about the pair.
+    for rule in item.get("requires", []):
+        cond = rule["cond"]
+        cverdict = ((slots.get(cond) or {}).get("verdict") or "").strip()
+        if cverdict in (rule.get("lenient") or []):
+            continue                      # establishes nothing, so denies nothing
+        held = (cverdict in satisfying[cond] if cond in satisfying
+                else cverdict == "met") and cond not in demoted
+        if not held and rule["key"] not in demoted:
+            demoted[rule["key"]] = (
+                "absent",
+                f"`{cond}` did not hold, so this was never separately addressed.",
+            )
+
     # Charge-once, ported from the web's `onlyif`. Some codes span more than one
     # slot: Q4b's B_NO_MODIFY (-2) covers "did not say IF it is a good choice AND
     # why", while B_NO_MODIFY_WHY (-1) covers only the second half. Expressed as two
@@ -608,6 +626,41 @@ def graph_bundle(path: str, pid: int, shape_text: str) -> str:
     return "\n".join(lines)
 
 
+def _fail_verdict(item: dict, c: dict) -> str:
+    """The verdict THIS scorer offers for a `{fail}` placeholder in a `rule`.
+
+    The web's `_fail_token` reads the slot sheet, where every slot carries its
+    own option list. Here the vocabulary can live in either of two places: on
+    the credit entry's own `verdicts`, or — for a slot in a `cover` group, whose
+    options are an IDENTITY (`first`/`second`/`neither`/`absent`) rather than a
+    judgement — on the group. Reading only the credit entry made a cover slot
+    fall through to the "absent" default, so a rule about naming the WRONG thing
+    told the paper scorer to answer "the box was empty". Same class of bug as
+    parking a rule in SLOT_NOTES: the rule reaches every scorer, but one of them
+    is handed the wrong verdict to apply it with.
+    """
+    verdicts = list(c.get("verdicts") or [])
+    skip = {"met", "absent"}
+    if not verdicts:
+        for grp in item.get("cover", []):
+            if c["what"] in grp["keys"]:
+                verdicts = list(grp.get("verdicts") or [])
+                # `first`/`second` say WHICH one it is: those are the satisfied
+                # answers here, so they are skipped alongside `met`.
+                skip |= set(grp.get("labels") or [])
+                break
+    if not verdicts:
+        # Third home, and the common one on this rubric: NO Q6 credit entry
+        # declares `verdicts` at all, so a slot outside a cover group has its
+        # failure vocabulary only in `codes` — `not_described` is the paper-side
+        # counterpart of the web sheet's `incomplete`. Falling straight through
+        # to "absent" told the paper scorer a rule about wrongly-described
+        # content fires when the box is EMPTY. Reading `codes` fixes the whole
+        # class rather than the two slots that happen to carry a rule today.
+        verdicts = [k for k in (c.get("codes") or {}) if k != "absent"]
+    return next((v for v in verdicts if v not in skip), "absent")
+
+
 def build_prompt(
     item: dict,
     response: str,
@@ -721,10 +774,7 @@ def build_prompt(
             # the paper prompt's slot-specific field is this line. Without it the
             # web and CLI apply rules this scorer has never seen — which is how
             # Q4b's five substitution tests reached two scorers out of three.
-            # `{fail}` -> the verdict THIS scorer offers; see olx_prompts for why.
-            _fail = next((v for v in (c.get("verdicts") or [])
-                          if v not in ("met", "absent")), "absent")
-            rule = f" {c['rule'].replace('{fail}', _fail)}" if c.get("rule") else ""
+            rule = f" {c['rule'].replace('{fail}', _fail_verdict(item, c))}" if c.get("rule") else ""
             parts.append(f"- `{c['what']}`{worth}{vocab}: {c['desc']}{rule}")
         for cr in item.get("counts", []):
             members = ", ".join(f"`{k}`" for k in cr["slots"])
@@ -768,10 +818,7 @@ def build_prompt(
     else:
         parts.append("## Credit components")
         for c in item["credit"]:
-            # `{fail}` -> the verdict THIS scorer offers; see olx_prompts for why.
-            _fail = next((v for v in (c.get("verdicts") or [])
-                          if v not in ("met", "absent")), "absent")
-            rule = f" {c['rule'].replace('{fail}', _fail)}" if c.get("rule") else ""
+            rule = f" {c['rule'].replace('{fail}', _fail_verdict(item, c))}" if c.get("rule") else ""
             parts.append(f"- `{c['what']}` ({c['pts']:g} pt): {c['desc']}{rule}")
         parts.append("")
 
