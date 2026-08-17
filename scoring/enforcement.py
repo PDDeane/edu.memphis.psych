@@ -2006,18 +2006,18 @@ def check_consensus_spans_are_disjoint() -> list[str]:
 # decide them, because "which clause is this box" is sometimes a judgement about
 # the answer and not a fact about its punctuation.
 FIXTURE_STRUCTURE_OVERRIDES: dict[tuple[str, int, str], str] = {
-    ("Q3", 17, "realistic"):
-        "\"... {{corpus:Q3/p17:realistic:40:83:sha=cac3674d624e}} do\" is a complete "
-        "clause ending on a main verb; p17 writes the whole passage without "
-        "sentence terminators, so the dangling-word test sees an auxiliary where "
-        "there is none. The five aspects are each in their own labelled box",
-    ("Q6", 2, "change_a1"):
-        "\"... {{corpus:Q6/p2:change_a1:132:170:sha=21acf3047fe0}} to\" is a complete phrase "
-        "that happens to close on a function word; extending it swallows the "
-        "next sentence, which no box needs",
-    ("Q6", 15, "state_a2"):
-        "\"{{corpus:Q6/p15:state_a2:21:67:sha=7015ae7a2915}} me\" is a complete noun "
-        "phrase; the words after it are the CHANGE clause and belong to change_a2",
+    # Empty, and worth recording why all three entries went rather than being
+    # renewed. Every one was the dangling-word test misfiring, not a fixture
+    # departing from its response on purpose.
+    #
+    # Q6/p15 and Q3/p17 ended on `me` and `do` one character before the NEXT BOX
+    # began. Nothing was severed; the box handed on. The check now sees that.
+    #
+    # Q6/p2 was the opposite — a real cut wearing an override. Its note claimed
+    # extending `change_a1` would swallow "the next sentence, which no box
+    # needs". It is not the next sentence: it is the rest of the SAME one, the
+    # clause "{{corpus:Q6/p2:change_a1:174:215:sha=9feaaabd7986}} myself", which belonged
+    # to no box at all. The box now runs to its own full stop.
 }
 
 
@@ -2200,8 +2200,16 @@ def check_fixture_follows_response_structure() -> list[str]:
             # its last word: "... by doing this.", "... about it.", "... get
             # exercise in." all end on a function word and all are complete.
             finished = tail.endswith((".", "!", "?"))
+            # A boundary the NEXT box starts at is a deliberate hand-off, not a
+            # severed clause: nothing is lost, and where the two should divide is
+            # a question about the split, which the readout answers. Q6/p15's
+            # `state_a2` ends one character before `change_a2` begins, and
+            # Q3/p17's `realistic` one before `timebound` — both were carrying
+            # hand-written overrides for a dangling `me` and `do` that only ever
+            # meant "this box hands on here".
+            handed_on = any(0 <= st - b <= 3 for st, _e, _t in located.values())
             last = tail.rstrip(".,;:").split()[-1].lower() if tail.split() else ""
-            if not inside and not finished and last in _DANGLING:
+            if not inside and not finished and not handed_on and last in _DANGLING:
                 note.append(f"ends mid-clause on {last!r}")
             crossed = [p for p in parts[1:] if a < p < b]
             if crossed:
