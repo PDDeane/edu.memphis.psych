@@ -459,20 +459,30 @@ PER_ITEM_EXCLUDE: dict[str, dict[int, str | dict]] = {
         # up. Gold is unreachable because gold is lenient there and we are not, so
         # a miss stays EXPECTED; the error is one slot, not two.
         9: {
-            "why": "gold credits `state_a1`, which is a third antecedent not listed "
-                   "in this participant's 4a — the declared A_MISMATCH divergence, "
-                   "where the scorer is right and gold is lenient. Every other slot "
-                   "agrees with gold, including both second-consequence slots, so "
-                   "the gold row is unreachable by exactly that one deliberate "
-                   "disagreement. The fixture for this cell is also reconstructed "
-                   "(the state_c2/affect_c2 split came from a 5/5 tie-break across "
-                   "ten runs), and it is the SAME split on both sides — "
-                   "fixture_for() imports agreement_app.build_jobs, verified "
-                   "byte-identical — but it is not what makes the cell unscoreable: "
-                   "the tie-break happens to agree with gold on both slots",
-            # Asserted against every run. The prose above used to carry this number
-            # and drifted from it silently; see check_exclusion_claims_are_data.
-            "expect_error": -1.25,
+            "why": "gold credits `state_a1`, which is a third antecedent not "
+                   "listed in this participant's 4a — the declared A_MISMATCH "
+                   "divergence, where the scorer is right and gold is lenient. "
+                   "Note HOW that now shows up: the verdict on `state_a1` is "
+                   "`met`, and it is `refers_to: none` — matching neither listed "
+                   "antecedent — that makes the cover logic demote it. Reading "
+                   "verdicts alone would say the scorer agrees with gold here, "
+                   "and it does not. The fixture is also reconstructed (the "
+                   "state_c2/affect_c2 split came from a 5/5 tie-break across "
+                   "ten runs, the SAME split on both sides), but that is not "
+                   "what makes the cell unscoreable: the tie-break agrees with "
+                   "gold on both slots. "
+                   "A SECOND slot disagrees as of the Q6 rewrite, and it is NOT "
+                   "declared: `affect_c1` answers `incomplete` on \"{{corpus:Q6/p9:affect_c1:64:73:sha=873ae831e703:shape=R9-0-20}}"
+                   "{{corpus:Q6/p9:affect_c1:74:120:sha=6ca82c6dffa2}} progress\" "
+                   "where gold credits. That is an ordinary error riding inside "
+                   "an excluded cell, which is exactly what an exclusion hides — "
+                   "worth deciding on its own merits rather than leaving it to "
+                   "sit here",
+            # Was -1.25, and the assertion caught the drift: the Q6 rewrite
+            # added the affect_c1 disagreement on top of the A_MISMATCH one.
+            # Gold 5.00 = state_a1 + change_a1 + state_c1 + affect_c1; the
+            # scorer credits change_a1 and state_c1 only.
+            "expect_error": -2.50,
         },
     },
     "Q4c": {
