@@ -499,6 +499,16 @@ PER_ITEM_EXCLUDE: dict[str, dict[int, str | dict]] = {
         20: "the same failure in its third form — a written DESCRIPTION of a "
             "graph, which on the web IS the answer: the labels are typed into "
             "fields and the chart is drawn from the four complete weeks",
+        # OPEN QUESTION — p11 may be a fourth form of the same failure, and is
+        # deliberately NOT excluded until that is decided, because excluding a
+        # cell changes the denominator every harness reports against.
+        #
+        # p11 typed baseline data (1b scores full marks, and the reconstruction
+        # records "Baseline week has data (30/30/30) but was not plotted on the
+        # graph"), so gold's "-1 pt: missing baseline data week" is a charge
+        # about the CHART. On the web that typed data draws the chart, which is
+        # exactly why 4, 19 and 20 are listed above. It differs from them only
+        # in degree: they lost the whole item, p11 lost one point of seven.
     },
 }
 
