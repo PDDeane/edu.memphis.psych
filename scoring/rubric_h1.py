@@ -1173,6 +1173,13 @@ ITEMS: list[dict] = [
                 "codes": {"absent": "C_NO_EFFECT", "not_described": "C_NO_EFFECT"},
                 "rule": (
                     "What becomes of the consequence is the whole question, and a student who says it STOPS has answered it. Credit a box that says the consequence will not happen any more, will happen less, or has been replaced by the improved state — the causal link does NOT have to be spelled out, because the question already frames everything here as a result of changing the antecedent, and demanding the link costs credit the graders gave. Be as generous about phrasing as everywhere else on this item. `{fail}` is for a box that says nothing about what becomes of the consequence at all — a benefit that never refers back to it — or one that only restates the arrangement the student has just described instead of its effect."' The two effect boxes must be about DIFFERENT consequences. Where both describe the same effect on the same consequence, the student has addressed one consequence twice and only the FIRST of the two can count; the second is `{fail}`. Judge the CONSEQUENCE, not the wording — where 4c lists two consequences of a similar kind, two similar-sounding effects can both be genuine, and a box is only a repeat when it is the same consequence again.'
+                    "One arrangement in particular keeps reading as an effect and "
+                    "is not one: a box that says WHEN the student may do something "
+                    "— kept off it `until`, allowed it `only after`, permitted `as "
+                    "long as` — is stating the timing of the plan, not what becomes "
+                    "of the consequence. The consequence may well shrink as a result, "
+                    "but the box has not said so, and this check is about what the "
+                    "box says."
                 ),
             },
             {
@@ -1189,6 +1196,13 @@ ITEMS: list[dict] = [
                 "codes": {"absent": "C_NO_EFFECT", "not_described": "C_NO_EFFECT"},
                 "rule": (
                     "The same test as `affect_c1` above, applied to this box on its own: credit it when it says the second consequence stops, lessens, or is replaced by the improved state, without requiring the causal link to be spelled out; `{fail}` when it says nothing about what becomes of that consequence, or only restates the arrangement."' The two effect boxes must be about DIFFERENT consequences. Where both describe the same effect on the same consequence, the student has addressed one consequence twice and only the FIRST of the two can count; the second is `{fail}`. Judge the CONSEQUENCE, not the wording — where 4c lists two consequences of a similar kind, two similar-sounding effects can both be genuine, and a box is only a repeat when it is the same consequence again.'
+                    "One arrangement in particular keeps reading as an effect and "
+                    "is not one: a box that says WHEN the student may do something "
+                    "— kept off it `until`, allowed it `only after`, permitted `as "
+                    "long as` — is stating the timing of the plan, not what becomes "
+                    "of the consequence. The consequence may well shrink as a result, "
+                    "but the box has not said so, and this check is about what the "
+                    "box says."
                 ),
             },
         ],
