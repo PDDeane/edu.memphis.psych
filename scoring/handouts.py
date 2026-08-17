@@ -507,6 +507,19 @@ PER_ITEM_EXCLUDE: dict[str, dict[int, str | dict]] = {
             "expect_error": +2.00,
         },
     },
+    "2a": {
+        18: "gold gives a full 6.0, crediting a verdict the student COPIED from "
+            "the template's worked example — \"The behavior modification plan "
+            "was successful.\" is the example's own first line. join_aware "
+            "strips it as boilerplate, correctly and load-bearingly: the same "
+            "subtraction is what stops p4's kept example chart being scored as "
+            "their graph. After it no verdict of p18's own survives, so no "
+            "correct scorer can reach the 2.0 gold awarded for one. The paper "
+            "scorer then quotes the nearest sentence, which is how1's — that "
+            "overlap is the scorer coping with an absent element, not a "
+            "transcription that lost one, and there is nothing to repair in the "
+            "fixture",
+    },
     "1c": {
         4: "gold 0 (\"Did not provide a graph\") but all four weeks of data "
            "supplied — on the web that data DRAWS the chart, so the paper "

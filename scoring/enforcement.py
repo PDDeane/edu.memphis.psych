@@ -1732,7 +1732,8 @@ def check_fixture_covers_the_response() -> list[str]:
                 boxes = _span_boxes(iid, pid)
                 if len(boxes) < 2 or not any(not v for v in boxes.values()):
                     continue               # no empty box: nothing to lose text to
-                run, text = _longest_unassigned(raw, _norm(" ".join(boxes.values())))
+                run, text = _longest_unassigned(
+                    raw, [_norm(v) for v in boxes.values()])
                 if run < 10:
                     continue
                 if (iid, pid) in FIXTURE_GAP_BACKLOG:
@@ -1879,15 +1880,34 @@ def _span_boxes(item_id: str, pid: int) -> dict[str, str]:
     return {k: v for k, v in _fixture_boxes(item_id, pid).items() if k not in drop}
 
 
-def _longest_unassigned(raw: str, boxes: str, n: int = 5) -> tuple[int, str]:
-    """Longest run of response words appearing in no box, and that run."""
-    rw, bw = raw.split(), boxes.split()
+def _longest_unassigned(raw: str, boxes, n: int = 5) -> tuple[int, str]:
+    """Longest run of response words appearing in no box, and that run.
+
+    `boxes` is the list of box texts (a single joined string is accepted too).
+    The list form matters. Coverage is computed from n-grams, so a box SHORTER
+    than n words can never match one, and its text reads as unassigned however
+    faithfully it was transcribed. Q6/p6's `change_a1` is three words — "while
+    stretching daily." — and the moment it was correctly split out of a box that
+    had swallowed the whole sentence, the check called it lost text. A short box
+    is located whole instead.
+    """
+    rw = raw.split()
+    texts = [boxes] if isinstance(boxes, str) else [t for t in boxes if t]
+    bw = " ".join(texts).split()
     have = {tuple(bw[i:i + n]) for i in range(len(bw) - n + 1)}
     cov = [False] * len(rw)
     for i in range(len(rw) - n + 1):
         if tuple(rw[i:i + n]) in have:
             for j in range(i, i + n):
                 cov[j] = True
+    for t in texts:
+        tw = t.split()
+        if not tw or len(tw) >= n:
+            continue
+        for i in range(len(rw) - len(tw) + 1):
+            if rw[i:i + len(tw)] == tw:
+                for j in range(i, i + len(tw)):
+                    cov[j] = True
     best = cur = at = 0
     for i, c in enumerate(cov):
         cur = cur + 1 if not c else 0
@@ -1901,19 +1921,18 @@ def _longest_unassigned(raw: str, boxes: str, n: int = 5) -> tuple[int, str]:
 # true transcription and the grader's own machinery handles it.
 CONSENSUS_OVERLAP_BACKLOG = {
     ("Q6", 6, "state_a1", "state_a2"):
-        "p6 names the same antecedent in both boxes verbatim; gold charges the "
-        "second as a mismatch and `cover` demotes it, which is the correct result",
-    ("Q6", 6, "change_a1", "change_a2"):
-        "the same sentence answers both, for the same reason",
-    ("2a", 18, "how1", "verdict"):
-        "p18 copied the template example's verdict sentence (\"The behavior "
-        "modification plan was successful.\") verbatim, and join_aware strips it "
-        "as boilerplate — correctly, since it IS template prose. No verdict of "
-        "the student's own survives, so the paper scorer quotes the nearest "
-        "sentence and it lands on how1's. Gold gives the cell a full 6.0, having "
-        "credited the copied sentence on paper. The overlap is the scorer coping "
-        "with an absent element, not a transcription that lost one. Whether the "
-        "cell is UNSCOREABLE is a separate scoring decision, still open",
+        "faithful, and the only one of p6's two overlaps that was. The student "
+        "names BOTH of 4a's triggers in one conjoined phrase — \"not attending "
+        "the gym & stretching as often as I should be\" — where a single \"not\" "
+        "scopes over both halves, so splitting it would invert the meaning of "
+        "whichever half lost the negation. Offering the same text to both boxes "
+        "and letting `cover` decide is what the mechanism is FOR: the scorer "
+        "labelled both `first`, so state_a2 is demoted. "
+        "Note what this entry used to claim — that gold charges the second as a "
+        "mismatch. p6's gold row carries NO itemised comment, only a 6.25, so "
+        "which five slots the grader credited is not recorded anywhere. The "
+        "claim was an inference presented as data; the demotion is ours, and it "
+        "stands on the response, not on gold",
 }
 
 
@@ -1945,7 +1964,17 @@ def check_consensus_spans_are_disjoint() -> list[str]:
     def norm(x):
         return " ".join((x or "").split()).lower()
 
+    import handouts as H
+
     for _h, iid, pid, _raw, boxes in _fixture_cells():
+        if H.cell_exclusions(_h, iid).get(pid, ("", ""))[0] == "unscoreable":
+            # Same rule the coverage check follows: an `unscoreable` cell has had
+            # its gold withdrawn, reaches no comparison, and cannot move a number.
+            # 2a/p18's overlap is the scorer quoting the nearest sentence because
+            # the student's verdict was TEMPLATE prose that join_aware removes —
+            # unfixable at the fixture level, and now recorded once, as an
+            # exclusion, instead of twice.
+            continue
         bx = {k: norm(v) for k, v in boxes.items() if v}
         keys = sorted(bx)
         for i, a in enumerate(keys):
