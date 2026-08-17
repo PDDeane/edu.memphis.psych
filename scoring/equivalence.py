@@ -547,6 +547,10 @@ def enforcement_audit():
         findings.append(("-", "REPORTER CRASHES", bad))
     for bad in ENF.check_rubric_items_are_unique():
         findings.append(("-", "RUBRIC ITEMS NOT UNIQUE", bad))
+    for bad in ENF.check_consensus_spans_are_disjoint():
+        findings.append(("-", "CONSENSUS SPANS OVERLAP", bad))
+    for bad in ENF.check_fixture_covers_the_response():
+        findings.append(("-", "FIXTURE DROPS RESPONSE TEXT", bad))
     for bad in ENF.check_unreachable_gold_is_allowed():
         findings.append(("-", "UNREACHABLE GOLD PENALISED", bad))
     for iid, h, mx, label in uncovered_cli_items():
