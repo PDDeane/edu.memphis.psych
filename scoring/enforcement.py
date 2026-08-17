@@ -1406,19 +1406,26 @@ def check_rubric_items_are_unique() -> list[str]:
 # split rightly discards. Declared so a NEW one fails. An entry that stops firing
 # must be removed, like every other backlog here.
 FIXTURE_GAP_BACKLOG = {
-    ("Q6", 8):  "gold: did not state each consequence being affected",
-    ("Q6", 17): "gold: did not address your second antecedent ... or second consequence",
-    # Both 1c cells below are graphs flattened into text, where the unassigned
-    # run is chart FURNITURE, not an answer the fixture mislaid.
-    ("1c", 9):  "the empty x and y are faithful: p9's chart carries tick values "
-                "(2.5 2 1.5 1 0.5 0), day names and series names, but no axis "
-                "TITLES. Gold's 6.0 is partial credit for exactly that",
-    ("1c", 20): "the unassigned run is the student's WRITTEN DESCRIPTION of a "
-                "graph they never drew (\"Title: ... X-axis label: ...\"), so "
-                "the empty title/x/y are faithful to the paper. This cell is "
-                "already declared unscoreable in cell_exclusions for the same "
-                "reason: gold scored it 0, while on the web that description "
-                "IS the answer",
+    ("Q6", 17): "the empty boxes are all SECOND-element slots, and gold agrees "
+                "the student addressed one antecedent and one consequence "
+                "(\"did not address your second antecedent ... or second "
+                "consequence\"). The unassigned run is not a lost element: it is "
+                "the parenthetical labelling this student uses throughout — "
+                "\"(UTB)\", \"(WGB)\" — plus the lead-in \"When I start "
+                "preparing ahead of time and using reminders (new A), I hope "
+                "that\". None of it answers an empty box, so there is nothing "
+                "to assign. The check fires on empty-box AND a long unassigned "
+                "run, which is the right conjunction in general and wrong here",
+    ("1c", 9):  "not a gap at all — the fixture is exactly right, and provably: "
+                "rebuilt gold is 6.0, the scorer returns 6.0, and the two label "
+                "sets are identical (title met, x and y absent, legend met). "
+                "p9's graph flattened into text, so the response IS chart "
+                "rendering: the title goes to `title`, the legend \"Baseline "
+                "Week 1 Week 2 Week 3\" to `series`, and what is left over is "
+                "the y-axis TICK VALUES (2.5 2 1.5 1 0.5 0) and the x-axis "
+                "CATEGORIES (the day names). Neither has a box, because 1c's "
+                "`x` and `y` are axis TITLES — which this chart genuinely lacks, "
+                "and which is exactly what gold's 6.0 deducts for",
 }
 
 
@@ -1556,6 +1563,59 @@ def check_single_box_fixtures_are_verbatim() -> list[str]:
     return problems
 
 
+# Overridable so the selftest can point the check at a source it controls;
+# the check reads a FILE, so there is no loaded object to patch instead.
+_CONSENSUS_SOURCE: str | None = None
+
+
+def check_consensus_fixes_have_no_duplicate_cells() -> list[str]:
+    """Two entries for the same (item, pid) in CONSENSUS_FIXES.
+
+    `check_consensus_fixes_are_unique` guards duplicate BOXES inside one entry.
+    It cannot see this one: CONSENSUS_FIXES is a dict LITERAL, so a repeated key
+    is resolved by Python before any check runs — the later entry wins and the
+    earlier one vanishes without a trace. Reading the loaded dict can never find
+    it; only the source can.
+
+    Not hypothetical. Q6/p8 already had an entry extending `change_a2`, and a
+    second entry assigning its two consequence boxes was added further up the
+    file. The dict kept the change_a2 one, the consequence assignment silently
+    did nothing, and the boxes it was meant to fill read as empty — which looked
+    exactly like the repair having been considered and correctly skipped.
+    """
+    import ast
+    import os
+
+    src = _CONSENSUS_SOURCE or os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "agreement_app.py")
+    try:
+        tree = ast.parse(open(src).read())
+    except Exception as exc:                    # pragma: no cover
+        return [f"cannot parse agreement_app.py to check CONSENSUS_FIXES: {exc}"]
+
+    node = None
+    for stmt in ast.walk(tree):
+        targets = getattr(stmt, "targets", []) or ([stmt.target] if hasattr(stmt, "target") else [])
+        for t in targets:
+            if isinstance(t, ast.Name) and t.id == "CONSENSUS_FIXES":
+                node = stmt.value
+    if not isinstance(node, ast.Dict):
+        return ["CONSENSUS_FIXES is not a dict literal — this check is stale"]
+
+    seen, dupes = set(), []
+    for k in node.keys:
+        try:
+            key = ast.literal_eval(k)
+        except Exception:
+            continue
+        if key in seen:
+            dupes.append(f"CONSENSUS_FIXES has TWO entries for {key}. A dict "
+                         f"literal keeps only the last, so the other one is "
+                         f"silently doing nothing — merge them into one entry")
+        seen.add(key)
+    return dupes
+
+
 def check_the_audit_read_the_corpus() -> list[str]:
     """Did the fixture checks actually LOOK at anything?
 
@@ -1657,6 +1717,15 @@ def check_fixture_covers_the_response() -> list[str]:
                 raw = _norm(segs.get(iid, ""))
                 if len(raw.split()) < 20:
                     continue               # too short for a gap to mean anything
+                if H.cell_exclusions(h, iid).get(pid, ("", ""))[0] == "unscoreable":
+                    # No gold to corrupt. An `unscoreable` cell has had its gold
+                    # withdrawn — rebuild_gold_1c nulls 1c/p20 outright — so it
+                    # reaches no comparison and a fixture gap in it cannot move a
+                    # number. 1c/p20 was carrying a backlog entry that restated,
+                    # word for word, the exclusion already recorded against it.
+                    # Declaring the same fact twice means it can go stale in one
+                    # place and not the other.
+                    continue
                 boxes = _span_boxes(iid, pid)
                 if len(boxes) < 2 or not any(not v for v in boxes.values()):
                     continue               # no empty box: nothing to lose text to
