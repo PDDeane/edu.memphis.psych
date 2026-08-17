@@ -983,8 +983,8 @@ SLOT_NOTES = {
     # unnamed. The label is not the evidence — the arc is.
     "1a:baseline_week":
         "is the BEFORE state given — the level the behaviour ran at prior to the "
-        "intervention? \"{{corpus:1a/p11:response:119:180:sha=7e8408304e52:shape=R61-0-20}}"
-        "{{corpus:1a/p11:response:181:215:sha=ec7670528760}}\" is `met`; so is any pre-intervention "
+        "intervention? A sentence that looks back before the plan began and gives "
+        "the rate the behaviour ran at then is `met`; so is any pre-intervention "
         "figure or description. `absent` when the answer opens at the intervention and "
         "never says what came before — p6 began \"{{corpus:1a/p6:response:0:32:sha=13c13ed907f5:shape=R32-0-20}}"
         "{{corpus:1a/p6:response:33:43:sha=fa7496e4ae84}} intervention\" and lost exactly this slot and no other",
@@ -1200,9 +1200,9 @@ SLOT_NOTES = {
         "`reasons_failing`, the two counts above. Thematic overlap alone does not "
         "merge two benefits. Whether one sentence holds one benefit or two is "
         "STRUCTURAL, not a matter of degree. A second half that is a KNOCK-ON "
-        "EFFECT of the first is ONE benefit — \"{{corpus:Q2/p19:response:269:303:sha=9753ecd9d00b:shape=R34-0-20}}"
-        "{{corpus:Q2/p19:response:304:347:sha=1feb88d45d38:shape=Cf7c00000}} learning\" is one, not two, "
-        "and counting it as two cost participant 19 a point. Two INDEPENDENT "
+        "EFFECT of the first is ONE benefit — a benefit followed by \"which will\" "
+        "and the further good it leads to is one, not two, and counting such a "
+        "chain as two costs a point. Two INDEPENDENT "
         "benefits merely joined by \"and\" are TWO — \"{{corpus:Q2/p6:response:147:168:sha=83df973b1fc8:shape=R21-0-20}}"
         "{{corpus:Q2/p6:response:169:205:sha=9a881984121c:shape=Ce00000}} also\" is two, and counting it as one "
         "cost participant 6 a point. Three kinds of statement do not count at all. (i) A reason the UNWANTED "
@@ -1211,9 +1211,9 @@ SLOT_NOTES = {
         "{{corpus:Q2/p3:response:102:120:sha=cb52bb747f4a}}\" are reasons to stop the UTB, and the graders counted "
         "them as ZERO benefits. (ii) A restatement of the goal or of the problem it "
         "solves: \"{{corpus:Q2/p6:response:275:320:sha=447eb5403401}}\" against a goal of "
-        "being more active is the goal again, not a benefit of it; so is \"{{corpus:Q2/p18:response:132:143:sha=ac6e644d5805:shape=R11-0-20}}"
-        "{{corpus:Q2/p18:response:144:194:sha=aa7ed039c5c0}} shape\" against a goal of "
-        "getting back in shape. (iii) A statement that says the same thing as one "
+        "being more active is the goal again, not a benefit of it; so is a remark "
+        "that blames the student's present condition on being out of shape, when "
+        "the goal is to {{corpus:Q2/p18:response:30:48:sha=273e8ffd5831}} (iii) A statement that says the same thing as one "
         "already counted. Answer 3 for three or more that survive all three tests",
     "Q5:example_2":
         "`met` for a second reason that is genuinely DIFFERENT from the first. "
@@ -1268,10 +1268,10 @@ SLOT_NOTES = {
     # and the pushups example appears under criterion 7 ONLY.
     "consequence_asserted":
         "one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour "
-        "and consequence without asserting one follows from the other. \"{{corpus:DAY2/p13:day2:0:12:sha=88f25a1bfa3a:shape=R12-0-20}}"
-        "{{corpus:DAY2/p13:day2:13:82:sha=b5e079f14be7:shape=C380000}}\" is "
-        "`no`, while \"{{corpus:DAY1/p16:day1:0:58:sha=d9d8f7292ea6:shape=C180000}} TV\" "
-        "is `yes` — the same two facts, but the second asserts the link. Anything with "
+        "and consequence without asserting one follows from the other. Two facts "
+        "strung together with a bare AND — the behaviour performed, the reward "
+        "taken — are `no`; the same two facts joined by SO, or by any word that "
+        "makes the reward follow FROM the behaviour, are `yes`. Anything with "
         "if / when / for each / every time / until / once, naming something actually "
         "given or taken away, is `yes` — including withholding a reward until the "
         "behaviour happens, which is a normal reinforcement shape. This check does NOT "

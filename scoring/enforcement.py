@@ -1233,29 +1233,25 @@ def _norm(s: str) -> str:
 # The point of declaring them is that a NEW leak fails immediately. The one that
 # prompted the check was written this session, into Q6's `affect_c*` rule, and
 # would have sat here unnoticed among the others.
-CORPUS_QUOTE_BACKLOG = {
-    ("1a", 11),
-    ("1a", 14),
-    ("1a", 19),
-    ("2a", 18),
-    ("2a", 20),
-    ("D2", 9),
-    ("DAY1", 1),
-    ("DAY1", 15),
-    ("DAY1", 16),
-    ("DAY2", 13),
-    ("NP", 14),
-    ("NR", 7),
-    ("NR", 14),
-    ("NR", 15),
-    ("NR", 20),
-    ("PR", 10),
-    ("Q1", 5),
-    ("Q2", 18),
-    ("Q2", 19),
-    ("WK1", 13),
-    ("WK2", 15),
-}
+CORPUS_QUOTE_BACKLOG: set[tuple[str, int]] = set()  # noqa: C408
+# (
+    # Empty. All 21 entries were the same mistake, made 21 times: a rule
+    # illustrated with a counted student's own words, so the prompt handed the
+    # model the answer to a cell still in the denominator. 2a's bullet was the
+    # extreme — it quoted two answers and attached the grade ("was scored 6/6"),
+    # and p20 shared THIRTY distinct 8-word runs with it.
+    #
+    # Each was rewritten to abstract the pattern and keep the deduction: "ADDING
+    # a privilege for staying within a limit is PR, not NR (-2)" in place of the
+    # student sentence that made the point. What the guidance loses is the
+    # ability to say "the graders credited THIS"; what it keeps is the shape they
+    # credited, which is the part that generalises.
+    #
+    # The alternative — registering all 21 in `cited_participants` and excluding
+    # them — was priced and rejected: 21 cells out of the denominator, and NR
+    # alone would have dropped from 18 counted cells to 14.
+# )
+
 
 
 def _grams(text: str, n: int = 8) -> set[tuple[str, ...]]:
