@@ -1411,6 +1411,122 @@ FIXTURE_GAP_BACKLOG = {
 }
 
 
+# Items whose response is deliberately carried in more than one box, with why.
+MULTI_BLOCK_DECLARED: dict[str, str] = {
+    # Examined box by box in this session and confirmed against each response's
+    # own structure. The web version presents these as separate input fields, so
+    # the split is the form's, not an artefact of reconstruction.
+    "Q6": "eight boxes: two antecedents, each with its change, consequence and "
+          "effect. Every cell read out and corrected; all fixture checks clean",
+    "Q3": "five boxes, one per SMART aspect, and the students label them "
+          "themselves. Anchored on the aspect's own name where the scorer gave "
+          "no quote; 9 cells with an empty box reduced to 1, and that one is "
+          "correct — p9 never mentions realistic",
+    "Q4b": "three boxes: the modify statement and two examples. p7 read out and "
+           "assigned; the rest carry no findings",
+}
+
+
+def check_single_box_fixtures_are_verbatim() -> list[str]:
+    """For a one-box item, is the student's text reproduced EXACTLY?
+
+    Where a response is one block, there is no segmentation judgement to make and
+    the only thing that can go wrong is corruption in transit — a smart quote
+    mangled by an encoding round-trip, a replacement character, text silently
+    truncated. So the test is simply: does the box match the response verbatim?
+
+    Two families are reported.
+
+      * NOT VERBATIM. The box is not the response, ignoring whitespace. Either
+        it lost characters or it gained them.
+      * CORRUPT. The text carries mojibake ("â€™" for an apostrophe, "Â" for a
+        non-breaking space) or U+FFFD, the sign of a decode that failed and was
+        papered over. These survive every other check in this file, because the
+        fixture and the response agree — both are wrong together.
+
+    An item carried in MORE than one box is reported separately, for analysis
+    rather than as a defect: splitting a response is a judgement, and the
+    multi-box checks are the ones that examine it. Declaring it in
+    MULTI_BLOCK_DECLARED says the split is intended.
+    """
+    import warnings
+    import handouts as H
+    import segment as SEG
+
+    MOJIBAKE = ("\u00e2\u0080\u0099", "\u00e2\u0080\u009c", "\u00e2\u0080\u009d",
+                "\u00e2\u0080\u0093", "\u00c2\u00a0", "\ufffd")
+    problems, multi = [], {}
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        for h in (1, 2, 3):
+            cfg = H.config(h)
+            try:
+                subs = dict(H.find_submissions(h))
+            except Exception:
+                continue
+            for pid, path in sorted(subs.items()):
+                try:
+                    segs = SEG.segment(path, cfg["template"], cfg["markers"],
+                                       cfg.get("capture_tail", False))
+                except Exception:
+                    continue
+                for item in cfg["rubric"].ITEMS:
+                    iid = item["id"]
+                    boxes = _fixture_boxes(iid, pid)
+                    if len(boxes) > 1:
+                        multi.setdefault(iid, len(boxes))
+                        continue
+                    if len(boxes) != 1:
+                        continue
+                    box = " ".join(next(iter(boxes.values())).split())
+                    raw = " ".join((segs.get(iid) or "").split())
+                    for bad in MOJIBAKE:
+                        if bad in box or bad in raw:
+                            problems.append(
+                                f"H{h} {iid}/p{pid}: text carries {bad!r} — a "
+                                f"decode that failed and was papered over, not a "
+                                f"character any student typed")
+                            break
+                    if not box or not raw:
+                        continue
+                    # Compared directly, not through _locate: that helper bails
+                    # on anything under ten non-space characters, which reported
+                    # NP/p13's "I take away" as differing from itself.
+                    b = "".join(box.split()).lower()
+                    r = "".join(raw.split()).lower()
+                    if b == r:
+                        continue
+                    if b in r:
+                        # The box is a PREFIX or substring of the segment. That is
+                        # usually the segment being over-inclusive rather than the
+                        # box being truncated: D2/p19 holds exactly the definition
+                        # while segment.py failed to find the DAY2 boundary and
+                        # swept the daily example into D2's segment too — DAY2's
+                        # segment is empty and its box holds that text. Reported
+                        # as what it is, because the repair is in segment.py.
+                        problems.append(
+                            f"H{h} {iid}/p{pid}: the segment holds MORE than the "
+                            f"box ({len(raw)} chars vs {len(box)}); the extra text "
+                            f"is {raw[len(box):][:44]!r}... Check whether the next "
+                            f"item's marker fired — an empty neighbouring segment "
+                            f"means the boundary was missed, not that this box "
+                            f"lost text")
+                    else:
+                        problems.append(
+                            f"H{h} {iid}/p{pid}: the box is not the response "
+                            f"verbatim ({len(box)} chars vs {len(raw)}) — a "
+                            f"one-block answer has no segmentation judgement to "
+                            f"make, so any difference is corruption in transit")
+    for iid, n in sorted(multi.items()):
+        if iid in MULTI_BLOCK_DECLARED:
+            continue
+        problems.append(
+            f"{iid} is carried in {n} boxes, not one. Splitting a response is a "
+            f"judgement — read it out with `--fixture {iid}` and either confirm "
+            f"the split or declare it in MULTI_BLOCK_DECLARED")
+    return problems
+
+
 def check_fixture_covers_the_response() -> list[str]:
     """Does the split fixture still contain the student's whole answer?
 
@@ -1507,28 +1623,53 @@ _BOXES_MEMO: dict[tuple[str, int], dict[str, str]] = {}
 
 
 def _fixture_boxes(item_id: str, pid: int) -> dict[str, str]:
-    """The item's OWN input boxes from the fixture — not its read-only context."""
-    # Memoised HERE rather than in the caller, deliberately. The selftest injects
-    # defects by REPLACING this function, and a cache one level up would hand the
-    # checks pre-patched boxes — a probe that passes while testing nothing, which
-    # is how two checks in this file shipped vacuous. Replacing the function
-    # bypasses this cache completely.
+    """The item's OWN input boxes from the fixture — not its read-only context.
+
+    Read from the JOBS spec, not from the field names. A name heuristic
+    (`_<item>_<box>`) covered handout 1, where fields are `bmod_h1_q6_state_a1`,
+    and silently returned NOTHING for handout 2's `bmod_h2_pr` or handout 3's
+    `bmod_h3_success_verdict`. Both handouts were therefore absent from every
+    fixture check — reported as "no multi-box cells" when the truth was "not
+    looked at". The spec says which fields carry this item's response:
+    `fields` entries whose source is the item itself, everything in
+    `from_scorer`, and a hand-split row's own keys.
+    """
+    import warnings
     if (item_id, pid) in _BOXES_MEMO:
         return dict(_BOXES_MEMO[(item_id, pid)])
-
-    import warnings
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         from agreement import fixture_for
+        import agreement_app as APP
         try:
             fx = fixture_for(item_id, pid)
         except Exception:
             return {}
+        spec = APP.JOBS.get(item_id) or {}
+
+    own = {f for f, src in (spec.get("fields") or {}).items() if src == item_id}
+    own |= set(spec.get("from_scorer") or {})
+    own |= set(spec.get("sim") or {})
+    hs = spec.get("handsplit")
+    if hs:
+        import json, os
+        try:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), hs)) as fh:
+                own |= set(json.load(fh).get(str(pid), {}))
+        except Exception:
+            pass
     key = f"_{item_id.lower()}_"
-    out = {k.split(key)[-1]: str(v).strip()
-           for k, v in fx.items() if key in k and "ref" not in k}
+    own |= {k for k in fx if key in k and "ref" not in k}
+
+    def label(field):
+        tail = field.split(key)[-1] if key in field else field
+        return tail.rsplit("_", 1)[-1] if key not in field else tail
+
+    out = {label(f): str(fx.get(f, "")).strip() for f in own if f in fx or True}
+    out = {k: v for k, v in out.items() if k}
     _BOXES_MEMO[(item_id, pid)] = out
     return dict(out)
+
 
 
 def _longest_unassigned(raw: str, boxes: str, n: int = 5) -> tuple[int, str]:
