@@ -863,7 +863,17 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     ("Q6", 9): [
         ("set", "state_c1",
          "With this I hope I don\u2019t suffer the consequences of bad health."),
+        # affect_c1 must carry the clause that says what BECOMES of the
+        # consequence, and in this response that clause is inseparable from the
+        # naming: "I hope I don't suffer the consequences of bad health" states
+        # the consequence and its fate in one breath. Given only the sentence
+        # after it, the scorer answered `incomplete` — correctly, since "I will
+        # get more motivated" names a NEW state rather than the fate of the old
+        # one — and lost a slot gold credits. state_c1 and affect_c1 are
+        # siblings, so one clause answering both is expected and the overlap
+        # check exempts it.
         ("set", "affect_c1",
+         "With this I hope I don\u2019t suffer the consequences of bad health. "
          "Instead I hope I will get more motivated after seeing my progress."),
         ("set", "state_c2", ""),
         ("set", "affect_c2", ""),

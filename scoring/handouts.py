@@ -471,18 +471,18 @@ PER_ITEM_EXCLUDE: dict[str, dict[int, str | dict]] = {
                    "ten runs, the SAME split on both sides), but that is not "
                    "what makes the cell unscoreable: the tie-break agrees with "
                    "gold on both slots. "
-                   "A SECOND slot disagrees as of the Q6 rewrite, and it is NOT "
-                   "declared: `affect_c1` answers `incomplete` on \"Instead I "
-                   "hope I will get more motivated after seeing my progress\" "
-                   "where gold credits. That is an ordinary error riding inside "
-                   "an excluded cell, which is exactly what an exclusion hides — "
-                   "worth deciding on its own merits rather than leaving it to "
-                   "sit here",
-            # Was -1.25, and the assertion caught the drift: the Q6 rewrite
-            # added the affect_c1 disagreement on top of the A_MISMATCH one.
-            # Gold 5.00 = state_a1 + change_a1 + state_c1 + affect_c1; the
-            # scorer credits change_a1 and state_c1 only.
-            "expect_error": -2.50,
+                   "One slot, not two. `affect_c1` used to disagree as well, "
+                   "answering `incomplete` where gold credits, and that was a "
+                   "FIXTURE fault rather than a scoring one: the clause saying "
+                   "what becomes of the consequence — \"I hope I don't suffer "
+                   "the consequences of bad health\" — is inseparable from the "
+                   "naming of it, so affect_c1 was left holding only the "
+                   "sentence after, which states a NEW state rather than the "
+                   "fate of the old one. Given the clause, it answers `met`",
+            # Measured, not predicted: p9 re-run after the fixture repair
+            # returns 3.75 against a gold of 5.00. state_a1 is the only slot
+            # that disagrees, through the cover demotion described above.
+            "expect_error": -1.25,
         },
     },
     "Q4c": {
