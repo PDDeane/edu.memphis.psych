@@ -43,38 +43,37 @@ _EXAMPLE_RULES = [
     "is about FORM. A creditable answer links the behaviour to the consequence "
     "conditionally: \"If I [do / fail to do the behaviour], I will [gain / "
     "lose Y]\". An answer that names a reward without tying it to the behaviour "
-    "fails even though a reward is present — \"{{corpus:PR/p10:pr:0:31:sha=d8e6b017bfed:shape=R31-0-20}}"
-    "{{corpus:PR/p10:pr:32:35:sha=e326cff641fb}} {{corpus:PR/p10:pr:52:97:sha=3cdef347ee1d}} weeks\" scored 0, with "
-    "the grader asking the student to \"state what the exact behavior you are "
-    "trying to increase is and what you are adding after that behavior is "
-    "exhibited\". A bare prediction with no plan at all (\"{{corpus:NP/p1:np:0:17:sha=868176d33c58:shape=R17-0-20}}"
+    "fails even though a reward is present. Naming the behaviour to be increased "
+    "and then a reward on a FIXED SCHEDULE — one given every so many weeks, "
+    "rather than after the behaviour — scored 0, the grader asking the student "
+    "to state the exact behaviour and what is added once it is exhibited. A "
+    "bare prediction with no plan at all (\"{{corpus:NP/p1:np:0:17:sha=868176d33c58:shape=R17-0-20}}"
     "{{corpus:NP/p1:np:18:29:sha=88dbce75bea2}} tired\") also scores 0.",
     "TEST 2 — DOES THE CONSEQUENCE ARRIVE AFTER THE BEHAVIOUR? \"Remember that "
     "what you take away or add has to happen after the behavior is exhibited.\" "
-    "Judge the DELIVERY, not the wording. \"{{corpus:NP/p14:np:0:31:sha=ad86a1265c58:shape=R31-0-20}}"
-    "{{corpus:NP/p14:np:32:65:sha=ba6ec09787a0}} goal\" passes: the outing is delivered "
-    "once the goal is met, which is the ordinary shape of a reinforcement "
-    "contingency, and the graders credited it. What fails is a plan where "
-    "nothing is ever delivered contingent on the behaviour — \"{{corpus:DAY1/p6:day1:0:10:sha=85ea7f191b92:shape=R10-0-20}}"
-    "{{corpus:DAY1/p6:day1:11:32:sha=0e832a9eac69}}\" or \"{{corpus:WK1/p13:wk1:0:45:sha=20eb7e2cf18e:shape=R45-0-20}}"
-    "{{corpus:WK1/p13:wk1:46:51:sha=cd7ac4c61fd8}}\" are antecedent manipulations that remove a temptation in advance "
-    "and never tie anything to performing the behaviour.",
+    "Judge the DELIVERY, not the wording. A privilege WITHHELD until a weekly "
+    "goal is met passes: it is delivered once the goal is met, which is the "
+    "ordinary shape of a reinforcement contingency, and the graders credited "
+    "it. What fails is a plan where nothing is ever delivered contingent on the "
+    "behaviour — leaving a temptation somewhere else, or putting a device away "
+    "beforehand, are antecedent manipulations that remove the temptation in "
+    "advance and never tie anything to performing the behaviour.",
     "TEST 3 — WHICH OF THE FOUR TYPES IS IT? Before crediting a type, answer the "
     "two questions explicitly: is the behaviour being INCREASED or DECREASED, "
     "and is something being ADDED or TAKEN AWAY? Then compare with the type "
     "under discussion. Well-formed contingencies of the WRONG type are the most "
-    "commonly missed deduction on this handout — \"{{corpus:NR/p15:nr:57:86:sha=76296a38201e:shape=R29-0-20}}"
-    "{{corpus:NR/p15:nr:87:119:sha=0fdcea55153c:shape=A9}} studying\" is PR, not NR (-2); \"{{corpus:WK2/p15:wk2:0:9:sha=11b990983ce7:shape=R9-0-20}}"
-    "{{corpus:WK2/p15:wk2:10:58:sha=f37b5aff32de}}\" is NP (-2); \"{{corpus:NR/p14:nr:46:51:sha=9cb0dea67a72:shape=R5-0-20}}"
-    "{{corpus:NR/p14:nr:52:83:sha=658c91c9eff0}} exercise\" is not NR (-2).",
+    "commonly missed deduction on this handout, and three shapes recur. ADDING a "
+    "privilege for staying within a limit is PR, not NR (-2). ADDING a loss for "
+    "missing the goal is NP, not NR (-2). A barrier the student must clear "
+    "before performing the behaviour removes nothing once it is performed, so "
+    "it is not NR either (-2).",
     "WHAT COUNTS AS THE ADDED OR REMOVED THING — BE BROAD. It does not have to "
     "be a physical object. Removing an unpleasant OBLIGATION, chore, or "
-    "requirement is a perfectly good negative reinforcer, and the graders gave "
-    "full credit for all of these: \"{{corpus:NR/p7:nr:0:38:sha=b15b136396fe}} "
-    "10pm {{corpus:NR/p7:nr:45:103:sha=04d046dff05b}} "
-    "procrastinated\"; \"{{corpus:NR/p20:nr:0:54:sha=4b832e36ef1b:shape=R54-0-20}}"
-    "{{corpus:NR/p20:nr:55:75:sha=d85dba6461b2}} tired\"; \"{{corpus:DAY1/p1:day1:0:43:sha=cbf992b9e213:shape=R43-0-20}}"
-    "{{corpus:DAY1/p1:day1:44:65:sha=e00a2d5c84ce:shape=S1-20}}\". Do NOT deduct these as intrinsic outcomes.",
+    "requirement is a perfectly good negative reinforcer. The graders gave full "
+    "credit wherever meeting the goal SPARED the student something they would "
+    "otherwise have had to do — an early start to make up procrastinated work, "
+    "a compensating nap, getting out of bed at once. Do NOT deduct these as "
+    "intrinsic outcomes.",
     "NOT_EXTERNAL_STIMULUS is reserved for the narrow case where the named "
     "consequence is simply the behaviour's own automatic result AND no "
     "conditional plan is stated — the canonical zero is \"{{corpus:PR/p1:pr:0:18:sha=04923497e5d4:shape=R18-0-20}}"
@@ -288,8 +287,10 @@ def _definition_item(item_id: str, label: str, ordinal: str, type_ctx: str) -> d
             "but omits one of the two halves — e.g. says something is removed but never "
             "says the behaviour decreases.",
             "IMPLICIT (from gold): graders accepted textbook phrasing and the student's "
-            "own words equally. \"{{corpus:D2/p9:d2:0:55:sha=ce88cb4261ac:shape=R55-0-20}}"
-            "{{corpus:D2/p9:d2:56:58:sha=fa51fd49abf6}} exhibited\" earned full credit. Do not require the course's exact wording.",
+            "own words equally. A definition given in the course's technical register — "
+            "naming the stimulus, its removal, and the behaviour it follows — earned "
+            "full credit, and so did the same idea in ordinary words. Do not require "
+            "the course's exact wording.",
         ],
         "context": ["_utb", "_wgb", type_ctx],
     }
@@ -436,9 +437,10 @@ def _example_use_item(
             "WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour "
             "from the student's UTB/WGB — a plan about procrastination when the UTB is {{corpus:Q1/p15:response:49:53:sha=336074805fc8:shape=R4-0-20}}"
             "{{corpus:Q1/p15:response:54:76:sha=019d6dc324ea}} Do not deduct it merely because the phrasing is loose "
-            "or the link is indirect: \"{{corpus:DAY1/p15:day1:40:90:sha=67f07d606067:shape=R50-0-20}}"
-            "{{corpus:DAY1/p15:day1:91:108:sha=05e50f4b87e6}} assignments\" earned full credit against a screen-time goal. "
-            "It stacks with TYPE_MISMATCH when both are true.",
+            "or the link is indirect: against a screen-time goal, gating the screen "
+            "activity itself on finishing coursework earned full credit, even though "
+            "the coursework is what the sentence foregrounds. It stacks with "
+            "TYPE_MISMATCH when both are true.",
             "IMPLICIT (from gold): advisory notes without deduction are common on these "
             "items — \"I suggest changing your punisher to something not related to "
             "exercise\" was written on a 4.0. Put that kind of remark in advisory_note.",
