@@ -839,6 +839,38 @@ def _unclaimed_tail(raw: str, boxes: list[str]) -> str:
     return rest if len(rest.split()) >= 8 else ""
 
 
+# Tolerant of how these students actually spell the aspects. "Measureable" is
+# not a typo worth ignoring: p13 and p20 both label the aspect that way, and a
+# strict pattern left their `measurable` box empty while the sentence sat in a
+# neighbour's slice — the same silent loss this fallback exists to end.
+_ASPECT_WORDS = {
+    "specific": r"specific",
+    "measurable": r"measur\w*able",
+    "action": r"action[\s-]?oriented|action",
+    "realistic": r"realistic|attainable",
+    "timebound": r"time[\s-]?bound|timebound",
+}
+
+
+def _keyword_anchor(text: str, field: str) -> int | None:
+    """Where the aspect `field` names is introduced, or None.
+
+    Used only when the scorer produced no evidence span at all. Anchors on the
+    START of the sentence carrying the aspect's own word, so the box takes a
+    whole clause; a bare keyword offset would cut mid-sentence, which is the
+    defect check_fixture_follows_response_structure exists to catch.
+    """
+    import re
+    pat = _ASPECT_WORDS.get(field.rsplit("_", 1)[-1])
+    if not pat:
+        return None
+    m = re.search(r"\b(?:" + pat + r")\b", text, re.I)
+    if not m:
+        return None
+    starts = [0] + [x.end() for x in re.finditer(r"[.!?]\s+|\n+", text)]
+    return max((s for s in starts if s <= m.start()), default=0)
+
+
 def anchored_split(raw: str, spans: list[tuple[str, str]]) -> dict[str, str]:
     """Partition a block using the scorer's evidence quotes as ANCHORS.
 
@@ -862,12 +894,37 @@ def anchored_split(raw: str, spans: list[tuple[str, str]]) -> dict[str, str]:
     for field, quote in spans:
         q = " ".join((quote or "").split())
         if not q:
+            # NO QUOTE AT ALL. scorer_evidence drops evidence that is a note
+            # about an absence rather than a span, so this field is empty
+            # whenever the paper scorer declined to quote that aspect — and the
+            # web and CLI are then handed an empty box and correctly report what
+            # they were given. That is circular: their input is built from the
+            # paper scorer's output, so its failures arrive as their missing
+            # evidence.
+            #
+            # These responses label themselves. Q3's students write "My goal is
+            # Specific because ...", "Measurable: ...", one sentence per aspect,
+            # so the aspect's own name is a better anchor than a neighbour's
+            # slice. Fall back to it, and to the START of the sentence carrying
+            # it, so the box gets a whole clause rather than a mid-sentence cut.
+            at = _keyword_anchor(text, field)
+            hits.append((at, field, None) if at is not None else (None, field, ""))
             continue
         at = low.find(q[:40].lower())
         if at < 0:                      # quote reworded or absent: fall back to it
             hits.append((None, field, q))
         else:
             hits.append((at, field, None))
+    # Every anchor snaps back to the START of the sentence carrying it. A quote
+    # located mid-sentence otherwise cuts the PRECEDING slice mid-clause: p6's
+    # `realistic` was found at "{{corpus:Q3/p6:realistic:11:36:sha=431cb737ffeb}} ...", so `action` ran
+    # up to it and ended "... then exercise. - Adding on,". Snapping moves the
+    # boundary to the sentence break, which gives each box whole clauses on both
+    # sides and drops nothing.
+    import re as _re
+    _starts = [0] + [m.end() for m in _re.finditer(r"[.!?]\s+|\n+", text)]
+    hits = [((max((st for st in _starts if st <= at), default=0)
+              if at is not None else None), f, q) for at, f, q in hits]
     located = sorted([h for h in hits if h[0] is not None])
     out = {field: "" for field, _ in spans}
     for i, (start, field, _) in enumerate(located):
