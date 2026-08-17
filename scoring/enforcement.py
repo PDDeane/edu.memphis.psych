@@ -1482,8 +1482,19 @@ def check_fixture_covers_the_response() -> list[str]:
     return problems
 
 
+_BOXES_MEMO: dict[tuple[str, int], dict[str, str]] = {}
+
+
 def _fixture_boxes(item_id: str, pid: int) -> dict[str, str]:
     """The item's OWN input boxes from the fixture — not its read-only context."""
+    # Memoised HERE rather than in the caller, deliberately. The selftest injects
+    # defects by REPLACING this function, and a cache one level up would hand the
+    # checks pre-patched boxes — a probe that passes while testing nothing, which
+    # is how two checks in this file shipped vacuous. Replacing the function
+    # bypasses this cache completely.
+    if (item_id, pid) in _BOXES_MEMO:
+        return dict(_BOXES_MEMO[(item_id, pid)])
+
     import warnings
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -1493,8 +1504,10 @@ def _fixture_boxes(item_id: str, pid: int) -> dict[str, str]:
         except Exception:
             return {}
     key = f"_{item_id.lower()}_"
-    return {k.split(key)[-1]: str(v).strip()
-            for k, v in fx.items() if key in k and "ref" not in k}
+    out = {k.split(key)[-1]: str(v).strip()
+           for k, v in fx.items() if key in k and "ref" not in k}
+    _BOXES_MEMO[(item_id, pid)] = out
+    return dict(out)
 
 
 def _longest_unassigned(raw: str, boxes: str, n: int = 5) -> tuple[int, str]:
@@ -1518,10 +1531,10 @@ def _longest_unassigned(raw: str, boxes: str, n: int = 5) -> tuple[int, str]:
 # student really did write the same words twice, so two boxes holding them is a
 # true transcription and the grader's own machinery handles it.
 CONSENSUS_OVERLAP_BACKLOG = {
-    (6, "state_a1", "state_a2"):
+    ("Q6", 6, "state_a1", "state_a2"):
         "p6 names the same antecedent in both boxes verbatim; gold charges the "
         "second as a mismatch and `cover` demotes it, which is the correct result",
-    (6, "change_a1", "change_a2"):
+    ("Q6", 6, "change_a1", "change_a2"):
         "the same sentence answers both, for the same reason",
 }
 
@@ -1548,45 +1561,38 @@ def check_consensus_spans_are_disjoint() -> list[str]:
     as both "how the first antecedent is changed" and "the second consequence" —
     and p10 carries `change_a1`'s only error in the item.
     """
-    import handouts as H
-
     problems = []
     seen: set[tuple] = set()
-    try:
-        subs = dict(H.find_submissions(1))
-    except Exception:
-        return []                       # corpus absent
-    if not subs:
-        return []
 
     def norm(x):
         return " ".join((x or "").split()).lower()
 
-    for pid in sorted(subs):
-        bx = {k: norm(v) for k, v in _fixture_boxes("Q6", pid).items() if v}
+    for _h, iid, pid, _raw, boxes in _fixture_cells():
+        bx = {k: norm(v) for k, v in boxes.items() if v}
         keys = sorted(bx)
         for i, a in enumerate(keys):
             for b in keys[i + 1:]:
                 # same element: "state_c1"/"affect_c1" -> both end "c1"
-                if a.rsplit("_", 1)[-1] == b.rsplit("_", 1)[-1]:
+                if _siblings(a) == b or _siblings(b) == a:
                     continue
                 if len(bx[a]) < 25 or len(bx[b]) < 25:
                     continue
                 if bx[a] not in bx[b] and bx[b] not in bx[a]:
                     continue
-                key = (pid, a, b)
+                key = (iid, pid, a, b)
                 if key in CONSENSUS_OVERLAP_BACKLOG:
                     seen.add(key)
                     continue
                 inner = a if len(bx[a]) < len(bx[b]) else b
                 problems.append(
-                    f"Q6/p{pid}: `{a}` and `{b}` hold the same text "
+                    f"{iid}/p{pid}: `{a}` and `{b}` hold the same text "
                     f"({bx[inner][:52]!r}...) — one clause answering two different "
                     f"questions. Either the consensus mis-assigned it, or declare "
                     f"it in CONSENSUS_OVERLAP_BACKLOG with why it is faithful")
     for stale in sorted(CONSENSUS_OVERLAP_BACKLOG.keys() - seen):
         problems.append(
-            f"CONSENSUS_OVERLAP_BACKLOG lists Q6/p{stale[0]} {stale[1]}/{stale[2]}, "
+            f"CONSENSUS_OVERLAP_BACKLOG lists {stale[0]}/p{stale[1]} "
+            f"{stale[2]}/{stale[3]}, "
             f"which no longer overlaps. Remove it")
     return problems
 
@@ -1639,6 +1645,70 @@ _DANGLING = {
 }
 
 
+_SEGMENTS_MEMO = None
+
+
+def _fixture_cells():
+    """(handout, item, pid, raw response, boxes) for every multi-box fixture.
+
+    The structural checks were written against Q6 and hardcoded to it. Q6 turned
+    out to have defects in twelve of its twenty cells, so "we have not looked at
+    the others" is not a statement about their condition. This is the seam that
+    lets all three look everywhere.
+
+    ONLY the segmentation is memoised. Caching the boxes as well would make the
+    checks blind to a patched `_fixture_boxes`, which is exactly how the selftest
+    injects a defect — the probes would pass while testing nothing, the failure
+    mode this project has already shipped twice.
+    """
+    global _SEGMENTS_MEMO
+    import warnings
+    import handouts as H
+    import segment as SEG
+
+    if _SEGMENTS_MEMO is None:
+        segs_by_cell = []
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for h in (1, 2, 3):
+                cfg = H.config(h)
+                try:
+                    subs = dict(H.find_submissions(h))
+                except Exception:
+                    continue
+                for pid, path in sorted(subs.items()):
+                    try:
+                        segs = SEG.segment(path, cfg["template"], cfg["markers"],
+                                           cfg.get("capture_tail", False))
+                    except Exception:
+                        continue
+                    for item in cfg["rubric"].ITEMS:
+                        raw = " ".join((segs.get(item["id"]) or "").split())
+                        if len(raw) >= 40:
+                            segs_by_cell.append((h, item["id"], pid, raw))
+        _SEGMENTS_MEMO = segs_by_cell
+
+    out = []
+    for h, iid, pid, raw in _SEGMENTS_MEMO:
+        boxes = _fixture_boxes(iid, pid)
+        if len(boxes) >= 2:
+            out.append((h, iid, pid, raw, boxes))
+    return out
+
+
+def _siblings(box: str) -> str:
+    """The box that may legitimately overlap this one: same element, other role.
+
+    Q6 pairs `state_cN` with `affect_cN` and `state_aN` with `change_aN` — one
+    clause answering "which consequence" and "what becomes of it". Items whose
+    box names share no element suffix have no siblings, and every overlap counts.
+    """
+    head, _, tag = box.rpartition("_")
+    if not head or not tag or tag == box:
+        return ""
+    return ("affect" if head == "state" else "state") + "_" + tag
+
+
 def check_fixture_follows_response_structure() -> list[str]:
     """Do the boxes hold WHOLE clauses, laid out by the response's own structure?
 
@@ -1667,30 +1737,9 @@ def check_fixture_follows_response_structure() -> list[str]:
     all the student wrote. Anything deliberate goes in
     FIXTURE_STRUCTURE_OVERRIDES with a reason, and a stale entry fails.
     """
-    import handouts as H
-    import segment as SEG
-
     problems = []
     seen: set[tuple] = set()
-    cfg = H.config(1)
-    try:
-        subs = dict(H.find_submissions(1))
-    except Exception:
-        return []
-    if not subs:
-        return []
-
-    for pid in sorted(subs):
-        try:
-            raw = " ".join(SEG.segment(subs[pid], cfg["template"], cfg["markers"],
-                                       cfg.get("capture_tail", False)).get("Q6", "").split())
-        except Exception:
-            continue
-        if len(raw) < 40:
-            continue
-        boxes = _fixture_boxes("Q6", pid)
-        if not boxes:
-            continue
+    for _h, iid, pid, raw, boxes in _fixture_cells():
         parts = _response_parts(raw)
         low = raw.lower()
         located = {}
@@ -1702,14 +1751,10 @@ def check_fixture_follows_response_structure() -> list[str]:
             if at >= 0:
                 located[k] = (at, at + len(v), v)
 
-        def sibling(k):
-            head, _, tag = k.rpartition("_")
-            return ("affect" if head == "state" else "state") + "_" + tag
-
         for k, (a, b, v) in sorted(located.items()):
-            key = ("Q6", pid, k)
+            key = (iid, pid, k)
             note = []
-            sib = located.get(sibling(k))
+            sib = located.get(_siblings(k))
             inside = sib and sib[0] <= a and b <= sib[1] + 2
             tail = v.rstrip()
             # A clause that closes with terminal punctuation is finished, whatever
@@ -1728,7 +1773,7 @@ def check_fixture_follows_response_structure() -> list[str]:
                 seen.add(key)
                 continue
             problems.append(
-                f"Q6/p{pid} `{k}` {' and '.join(note)}: {v[-58:]!r} — lay the "
+                f"{iid}/p{pid} `{k}` {' and '.join(note)}: {v[-58:]!r} — lay the "
                 f"response out by parts then clauses and give the box a whole "
                 f"clause, or declare it in FIXTURE_STRUCTURE_OVERRIDES")
     for stale in sorted(FIXTURE_STRUCTURE_OVERRIDES.keys() - seen):
@@ -1799,74 +1844,63 @@ def check_fixture_agrees_with_gold() -> list[str]:
     import re
     import handouts as H
 
+    # What gold CALLS each box. Q6's graders write "antecedent"/"consequence",
+    # not slot names, so it needs a map; items whose boxes are already named the
+    # way gold names them (Q3's SMART aspects) use the box name itself.
+    NAMED = {
+        "Q6": {"state_a1": ("first", "antecedent"), "state_a2": ("second", "antecedent"),
+               "state_c1": ("first", "consequence"), "state_c2": ("second", "consequence")},
+    }
     ABSENT = r"(?:did not (?:state|address|say|provide|list|clarify)|missing|never)"
     WRONG = r"(?:is not the same|does not match|not the same|a different)"
     problems = []
     seen: set[tuple] = set()
-    gold = H.config(1)["gold"]()
-    for pid in sorted(gold):
-        fb = " ".join((gold[pid].get("Q6") or {}).get("feedback", "").split())
+    for h, iid, pid, _raw, boxes in _fixture_cells():
+        fb = " ".join(((H.config(h)["gold"]().get(pid) or {}).get(iid) or {})
+                      .get("feedback", "").split()).lower()
         if not fb:
             continue
-        boxes = _fixture_boxes("Q6", pid)
-        if not boxes:
-            continue
-        low = fb.lower()
-        for m in re.finditer(ABSENT + r"[^.]{0,90}", low):
-            frag = m.group(0)
-            for which, tag in (("second", "2"), ("first", "1")):
-                if which not in frag and not (which == "first" and "each" in frag):
-                    continue
-                # "did not STATE the antecedent" is the state slot; "did not say
-                # HOW it is being changed / clarify it being affected" is the
-                # change or affect slot. Gold's own verb decides which.
-                # ONLY a "did not state" claim implies an empty box. "Did not say
-                # HOW it is being changed" or "did not clarify it being affected"
-                # is a judgement that what the student DID write is inadequate —
-                # p8's change slots carry "{{corpus:Q6/p8:change_a1:0:36:sha=3d9188d12f04}}
-                # Tuesday-Friday", and gold's charge is precisely that this does
-                # not describe changing the antecedent. Filled is correct there.
-                if "how" in frag or "clarify" in frag or "being affected" in frag:
+        named = NAMED.get(iid) or {k: (k.replace("_", " "),) for k in boxes}
+        for box, words in named.items():
+            if box not in boxes:
+                continue
+            filled = bool((boxes.get(box) or "").strip())
+            for pat, want_filled in ((ABSENT, False), (WRONG, True)):
+                for m in re.finditer(pat + r"[^.]{0,90}", fb):
+                    # An ABSENT claim must name the element WITHIN its own
+                    # clause. Looking back into the previous sentence matched
+                    # Q6/p6's `state_a2` against "did not state a second
+                    # consequence" because the word "antecedent" happened to sit
+                    # in the charge before it. A WRONG claim may name the element
+                    # ahead of the phrase ("second consequence is not the same"),
+                    # so it keeps a short lookback.
+                    frag = (m.group(0) if pat is ABSENT
+                            else fb[max(0, m.start() - 60):m.end()])
+                    if not all(w in frag for w in words):
+                        continue
+                    # "did not say HOW it is changed" is a judgement that what was
+                    # written is INADEQUATE, not a claim that nothing was. p8's
+                    # change slots rightly hold text gold charges as insufficient.
+                    # "did not say HOW / WHY" is a judgement that what the
+                    # student wrote is INADEQUATE, not that nothing was written.
+                    if pat is ABSENT and ("how" in frag or "why" in frag
+                                          or "clarify" in frag
+                                          or "being affected" in frag):
+                        continue
+                    if filled == want_filled:
+                        continue
+                    key = (iid, pid, box)
+                    if key in FIXTURE_GOLD_OVERRIDES:
+                        seen.add(key)
+                        break
+                    problems.append(
+                        f"{iid}/p{pid} `{box}` is "
+                        + ("EMPTY but gold marked it wrong rather than absent"
+                           if want_filled else
+                           "filled but gold says it was never written")
+                        + f" ({m.group(0)[:52]!r}...) — either the box has the "
+                          f"wrong clause, or declare it in FIXTURE_GOLD_OVERRIDES")
                     break
-                for word, stem in (("antecedent", "state_a"),
-                                   ("consequence", "state_c")):
-                    if word not in frag:
-                        continue
-                    box = stem + tag
-                    if not (boxes.get(box) or "").strip():
-                        continue
-                    key = ("Q6", pid, box)
-                    if key in FIXTURE_GOLD_OVERRIDES:
-                        seen.add(key)
-                        continue
-                    problems.append(
-                        f"Q6/p{pid} `{box}` holds text but gold says it was not "
-                        f"written ({frag[:58]!r}...) — either the box has the "
-                        f"wrong clause, or declare it in FIXTURE_GOLD_OVERRIDES")
-                break
-        for m in re.finditer(WRONG + r"[^.]{0,90}", low):
-            frag = m.group(0)
-            pre = low[max(0, m.start() - 60):m.start()]
-            for which, tag in (("second", "2"), ("first", "1")):
-                if which not in pre + frag:
-                    continue
-                for word, pair in (("antecedent", ("state_a", "change_a")),
-                                   ("consequence", ("state_c", "affect_c"))):
-                    if word not in pre + frag:
-                        continue
-                    treat = "how" in pre + frag or "clarify" in pre + frag
-                    box = pair[1 if treat else 0] + tag
-                    if (boxes.get(box) or "").strip():
-                        continue
-                    key = ("Q6", pid, box)
-                    if key in FIXTURE_GOLD_OVERRIDES:
-                        seen.add(key)
-                        continue
-                    problems.append(
-                        f"Q6/p{pid} `{box}` is EMPTY but gold marked it wrong "
-                        f"rather than absent ({frag[:52]!r}...) — the words the "
-                        f"grader read are missing from the fixture")
-                break
     for stale in sorted(FIXTURE_GOLD_OVERRIDES.keys() - seen):
         problems.append(f"FIXTURE_GOLD_OVERRIDES lists {stale}, which no longer "
                         f"disagrees. Remove it")
