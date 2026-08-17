@@ -598,6 +598,21 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     #
     # Part 2's c-boxes share one sentence because the student wrote only one
     # there; that is the permitted same-element overlap, not a duplication.
+    # Q6/p2. `change_a1` stopped at "... something to look forward to", and the
+    # rest of its own sentence — "when I have the time to fix my bad day by
+    # myself." — belonged to NO box. It carried a structure override saying the
+    # phrase was complete and that extending it would swallow the next sentence.
+    # The phrase does read complete, because "to" there is a phrasal particle,
+    # but the sentence does not end at it. Runs to its own full stop now, ending
+    # at 307 where affect_c1 starts at 308.
+    ("Q6", 2): [
+        ("set", "change_a1",
+         "by turning my anger and sadness into motivation to work out and "
+         "better myself. Turing these negative emotions into fuel to work out "
+         "will give me something to look forward to when I have the time to fix "
+         "my bad day by myself."),
+    ],
+
     # 2a/p1. how1 swallowed BOTH explanations — the sleep/patience one and the
     # physical-health one — leaving how2 empty. Two distinct HOWs, two boxes.
     ("2a", 1): [
