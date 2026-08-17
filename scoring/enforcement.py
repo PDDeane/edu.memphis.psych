@@ -1595,7 +1595,15 @@ def check_consensus_spans_are_disjoint() -> list[str]:
 # Keyed (item, pid, box) -> why. This check REPORTS mismatches; it does not
 # decide them, because "which clause is this box" is sometimes a judgement about
 # the answer and not a fact about its punctuation.
-FIXTURE_STRUCTURE_OVERRIDES: dict[tuple[str, int, str], str] = {}
+FIXTURE_STRUCTURE_OVERRIDES: dict[tuple[str, int, str], str] = {
+    ("Q6", 2, "change_a1"):
+        "\"... {{corpus:Q6/p2:change_a1:132:170:sha=21acf3047fe0}} to\" is a complete phrase "
+        "that happens to close on a function word; extending it swallows the "
+        "next sentence, which no box needs",
+    ("Q6", 15, "state_a2"):
+        "\"{{corpus:Q6/p15:state_a2:21:67:sha=7015ae7a2915}} me\" is a complete noun "
+        "phrase; the words after it are the CHANGE clause and belong to change_a2",
+}
 
 
 def _response_parts(raw: str) -> list[int]:
@@ -1728,6 +1736,204 @@ def check_fixture_follows_response_structure() -> list[str]:
             f"FIXTURE_STRUCTURE_OVERRIDES lists {stale}, which no longer "
             f"mismatches. Remove it")
     return problems
+
+
+# Cells where gold's wording and the fixture legitimately disagree, with why.
+FIXTURE_GOLD_OVERRIDES: dict[tuple[str, int, str], str] = {}
+
+
+def check_fixture_agrees_with_gold() -> list[str]:
+    """Does the text in each box make sense in the light of gold's comment?
+
+    The graders read the whole response, so their wording says whether an element
+    was THERE. Two families of phrase, and they imply opposite things about the
+    fixture:
+
+      "did not state" / "missing" / "did not address"  -> nothing was written,
+          so the box should be EMPTY. A box with text means we are asking the
+          scorer to judge words the grader says do not exist.
+
+      "is not the same as" / "does not match" / "a different"  -> something WAS
+          written and it was the wrong item, so the box should NOT be empty. An
+          empty box means we lost the words the grader marked down.
+
+    This is the discriminator that settled p5: gold said its second consequence
+    "does not match 4c" while both c2 boxes were empty, which is how a dropped
+    200-character clause was finally identified after two checks had passed it.
+    It is the one signal that reaches OUTSIDE the response — the other checks
+    compare the fixture against the student's text, this one against the
+    grader's reading of it.
+
+    Heuristic and therefore overridable: gold's prose is written to a student,
+    not to a checklist, and where two slots cover one element its wording does
+    not always distinguish them. FIXTURE_GOLD_OVERRIDES carries the exceptions.
+    """
+    import re
+    import handouts as H
+
+    ABSENT = r"(?:did not (?:state|address|say|provide|list|clarify)|missing|never)"
+    WRONG = r"(?:is not the same|does not match|not the same|a different)"
+    problems = []
+    seen: set[tuple] = set()
+    gold = H.config(1)["gold"]()
+    for pid in sorted(gold):
+        fb = " ".join((gold[pid].get("Q6") or {}).get("feedback", "").split())
+        if not fb:
+            continue
+        boxes = _fixture_boxes("Q6", pid)
+        if not boxes:
+            continue
+        low = fb.lower()
+        for m in re.finditer(ABSENT + r"[^.]{0,90}", low):
+            frag = m.group(0)
+            for which, tag in (("second", "2"), ("first", "1")):
+                if which not in frag and not (which == "first" and "each" in frag):
+                    continue
+                # "did not STATE the antecedent" is the state slot; "did not say
+                # HOW it is being changed / clarify it being affected" is the
+                # change or affect slot. Gold's own verb decides which.
+                # ONLY a "did not state" claim implies an empty box. "Did not say
+                # HOW it is being changed" or "did not clarify it being affected"
+                # is a judgement that what the student DID write is inadequate —
+                # p8's change slots carry "{{corpus:Q6/p8:change_a1:0:36:sha=3d9188d12f04}}
+                # Tuesday-Friday", and gold's charge is precisely that this does
+                # not describe changing the antecedent. Filled is correct there.
+                if "how" in frag or "clarify" in frag or "being affected" in frag:
+                    break
+                for word, stem in (("antecedent", "state_a"),
+                                   ("consequence", "state_c")):
+                    if word not in frag:
+                        continue
+                    box = stem + tag
+                    if not (boxes.get(box) or "").strip():
+                        continue
+                    key = ("Q6", pid, box)
+                    if key in FIXTURE_GOLD_OVERRIDES:
+                        seen.add(key)
+                        continue
+                    problems.append(
+                        f"Q6/p{pid} `{box}` holds text but gold says it was not "
+                        f"written ({frag[:58]!r}...) — either the box has the "
+                        f"wrong clause, or declare it in FIXTURE_GOLD_OVERRIDES")
+                break
+        for m in re.finditer(WRONG + r"[^.]{0,90}", low):
+            frag = m.group(0)
+            pre = low[max(0, m.start() - 60):m.start()]
+            for which, tag in (("second", "2"), ("first", "1")):
+                if which not in pre + frag:
+                    continue
+                for word, pair in (("antecedent", ("state_a", "change_a")),
+                                   ("consequence", ("state_c", "affect_c"))):
+                    if word not in pre + frag:
+                        continue
+                    treat = "how" in pre + frag or "clarify" in pre + frag
+                    box = pair[1 if treat else 0] + tag
+                    if (boxes.get(box) or "").strip():
+                        continue
+                    key = ("Q6", pid, box)
+                    if key in FIXTURE_GOLD_OVERRIDES:
+                        seen.add(key)
+                        continue
+                    problems.append(
+                        f"Q6/p{pid} `{box}` is EMPTY but gold marked it wrong "
+                        f"rather than absent ({frag[:52]!r}...) — the words the "
+                        f"grader read are missing from the fixture")
+                break
+    for stale in sorted(FIXTURE_GOLD_OVERRIDES.keys() - seen):
+        problems.append(f"FIXTURE_GOLD_OVERRIDES lists {stale}, which no longer "
+                        f"disagrees. Remove it")
+    return problems
+
+
+def fixture_readout(item: str, pid: int) -> str:
+    """The cell laid out for reading: response, then every box, in order.
+
+    The three fixture checks each answer one question — did text go missing, do
+    two boxes share it, is any box cut mid-clause — and every one of them passed
+    on defects that reading the cell out loud found in a minute. p18's boxes all
+    ended on clean clause boundaries and two of them held clauses from the WRONG
+    HALF of the response, with part two's own consequence sentence belonging to
+    nothing. p5's `state_a1` ran 289 characters and its `state_c1` began
+    mid-sentence. p10's `state_c2` still holds a slice of `change_a1`.
+
+    So this is the procedure itself, not another check: print the response with
+    its parts and sentences, then the boxes with their positions, and let a
+    person see whether the mapping respects what the student wrote. Three of the
+    four cells that needed a structural rewrite were found this way and by
+    nothing else.
+
+    Read it as: does each box hold ONE whole clause, do the boxes run in
+    document order, and does each half of the response fill its own boxes?
+    """
+    import re
+    import warnings
+    import handouts as H
+    import segment as SEG
+
+    cfg = H.config(1 if item.startswith("Q") else 3)
+    subs = dict(H.find_submissions(cfg is not None and (1 if item.startswith("Q") else 3)))
+    if pid not in subs:
+        return f"p{pid}: no submission on this machine"
+    raw = " ".join(SEG.segment(subs[pid], cfg["template"], cfg["markers"],
+                               cfg.get("capture_tail", False)).get(item, "").split())
+    if not raw:
+        return f"{item}/p{pid}: empty response"
+
+    out = [f"{'=' * 78}", f"{item} / p{pid}", "=" * 78, "", "RESPONSE:", ""]
+    parts = re.split(r"(?=\b2\s*\))", raw)
+    for i, part in enumerate(parts, 1):
+        if len(parts) > 1:
+            out.append(f"  PART {i}")
+        for sent in [x.strip() for x in re.split(r"(?<=[.!?])\s+", part) if x.strip()]:
+            out.append(f"    @{raw.find(sent):<4} {sent}")
+    out += ["", "-" * 78, "", "BOXES, in document order:", ""]
+
+    boxes = _fixture_boxes(item, pid)
+    low = raw.lower()
+    placed, unplaced = [], []
+    for k, v in boxes.items():
+        v = " ".join((v or "").split())
+        if not v:
+            unplaced.append((k, "(empty)"))
+            continue
+        at = low.find(v[:40].lower()) if len(v) >= 12 else -1
+        (placed if at >= 0 else unplaced).append((at, k, v) if at >= 0 else (k, v))
+    for at, k, v in sorted(placed):
+        out.append(f"  [{k}] @{at}")
+        out.append(f"     {v}")
+        out.append("")
+    for k, v in unplaced:
+        out.append(f"  [{k}] (not located in the response)")
+        out.append(f"     {v}")
+        out.append("")
+
+    cov = [False] * len(raw)
+    for at, _k, v in placed:
+        for i in range(at, min(at + len(v), len(raw))):
+            cov[i] = True
+    gaps, i = [], 0
+    while i < len(raw):
+        if not cov[i]:
+            j = i
+            while j < len(raw) and not cov[j]:
+                j += 1
+            if raw[i:j].strip():
+                gaps.append(f"@{i}-{j} {raw[i:j].strip()!r}")
+            i = j
+        else:
+            i += 1
+    out += ["-" * 78, "",
+            "ASSIGNED TO NO BOX: " + ("; ".join(gaps) if gaps else "nothing"), ""]
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        flags = [f for f in (check_fixture_follows_response_structure()
+                             + check_consensus_spans_are_disjoint()
+                             + check_fixture_covers_the_response())
+                 if f"/p{pid}:" in f or f"/p{pid} " in f]
+    out.append("AUDIT FLAGS: " + (f"{len(flags)}" if flags else "none"))
+    out += [f"  - {f.split(' — ')[0]}" for f in flags]
+    return "\n".join(out)
 
 
 def check_reporters_execute() -> list[str]:

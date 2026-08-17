@@ -597,6 +597,160 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     #
     # Part 2's c-boxes share one sentence because the student wrote only one
     # there; that is the permitted same-element overlap, not a duplication.
+    # --- EXTENDS, worked cell by cell -------------------------------------
+    # p8: change_a2 stopped at "... some progress in the". The response ends
+    # "... in the near future." and BOTH c2 boxes are empty, so nothing competes
+    # for it. The only true extension in the item.
+    ("Q6", 8): [
+        ("set", "change_a2",
+         "{{corpus:Q6/p8:change_a2:0:70:sha=ce49c79fb729:shape=R70-0-20}}"
+         "{{corpus:Q6/p8:change_a2:71:139:sha=20b00a0f9360:shape=R68-0-20}}"
+         "{{corpus:Q6/p8:change_a2:140:148:sha=d4b9d02da030}} future."),
+    ],
+
+    # p19 is ONE sentence describing ONE pair, and the student labelled every
+    # element themselves: "(orig A) ... (newA), {{corpus:Q6/p19:state_c1:0:31:sha=7f5d158a453a}}
+    # all day.(C) {{corpus:Q6/p19:affect_c1:0:31:sha=73a34551a5b2}} ... assignments(New C)."
+    #
+    # JUDGEMENT, not a mechanical repair. "(New C)" marks the NEW consequence
+    # after the change, not a SECOND one, and there is no second antecedent
+    # anywhere — so the c2 boxes were holding pieces of the first pair's
+    # narrative. Emptying them says the student addressed one pair, which is
+    # what gold says too ("-5 pts: did not address your second antecedent being
+    # changed and how it will affect your second consequence"). state_c1 gives
+    # back the "Instead, I" it took from the following clause, and affect_c1
+    # runs to the end of the sentence it owns.
+    ("Q6", 19): [
+        ("set", "state_c1", "{{corpus:Q6/p19:state_c1:0:35:sha=f8a81a5a2a8b}} day.(C)"),
+        ("set", "affect_c1",
+         "{{corpus:Q6/p19:affect_c1:0:68:sha=fb43b827cf3f:shape=R68-0-20}}"
+         "{{corpus:Q6/p19:affect_c1:69:129:sha=63dc060d6f65}} C)."),
+        ("set", "state_c2", ""),
+        ("set", "affect_c2", ""),
+    ],
+
+    # p18's c2 boxes were in the WRONG HALF of the response. Both held slices
+    # of part one's consequence sentence — state_c2 "{{corpus:Q6/p18:affect_c1:97:118:sha=62c32824db1c}}
+    # guilty.", affect_c2 "{{corpus:Q6/p18:affect_c1:26:66:sha=698264b8d1ee}} ..." — while
+    # part two's own consequence sentence, at @464, belonged to no box at all.
+    # That is the p5 defect again, and it is what generated all four of this
+    # cell's cross-element overlap findings.
+    #
+    #   part 2  @296 change   @403 antecedent   @464 consequence
+    #
+    # It also explains the scoring. p18's 4c second consequence is "personal
+    # dissatisfaction and guilt", and part one's sentence contains "guilty", so
+    # the borrowed text was being credited. The student's actual part-two
+    # sentence names focus and a SMART goal, not that consequence — which is
+    # what the graders charged ("-2.5 pts: did not address how the second
+    # consequence is being affected"). state_c2 and affect_c2 share the sentence
+    # as the permitted same-element overlap, since that is all part two has.
+    ("Q6", 18): [
+        ("set", "change_a2",
+         "{{corpus:Q6/p18:change_a2:0:52:sha=149c6db4cf7a}} \"Do Not "
+         "Disturb\" {{corpus:Q6/p18:change_a2:70:101:sha=bc939cf835e6}} time"),
+        ("set", "state_c2",
+         "{{corpus:Q6/p18:state_c2:0:68:sha=997397aa6e54:shape=R68-0-20}}"
+         "{{corpus:Q6/p18:state_c2:69:99:sha=3aa7aa7e32e3}} eliminated."),
+        ("set", "affect_c2",
+         "{{corpus:Q6/p18:state_c2:0:68:sha=997397aa6e54:shape=R68-0-20}}"
+         "{{corpus:Q6/p18:state_c2:69:99:sha=3aa7aa7e32e3}} eliminated."),
+    ],
+
+    # p10, made symmetric with its own part one. The student writes two parts,
+    # and part one assigns cleanly: change_a1 spans S1+S2 (the change AND its
+    # immediate result), state_c1/affect_c1 share S3 (the consequence). Part two
+    # did not follow: change_a2 held only S1, state_c2 held a slice of PART
+    # ONE's S1, and part two's S2 and S3 belonged to nothing.
+    #
+    #   part 1  S1+S2 -> change_a1     S3 -> state_c1 = affect_c1
+    #   part 2  S1+S2+S3 -> change_a2  S4 -> state_c2 = affect_c2
+    #
+    # An earlier attempt put part two's S2 ("reduce {{corpus:Q6/p10:change_a2:23:49:sha=865ea5a35836}}
+    # confidence") into state_c2 and measured 8.75 -> 6.25. That was the wrong
+    # clause: by symmetry with part one, S2 belongs with the CHANGE, and the
+    # consequence box takes the part's last sentence. 4c's second consequence is
+    # "{{corpus:Q4c/p10:second:81:108:sha=94a4a51d6d09}} laziness", which S4's "healthier lifestyle
+    # {{corpus:Q6/p10:affect_c2:38:75:sha=cfeee219cbf2}} myself" answers and S2 does not.
+    ("Q6", 10): [
+        # part one's consequence, whole: the box began at "hoping", orphaning
+        # "I'm", and ran on to grab the "2) I" that opens part two.
+        ("set", "state_c1",
+         "{{corpus:Q6/p10:affect_c1:0:66:sha=2c56a52bac2d:shape=R1-1-5c7532303139,R66-0-20}}"
+         "{{corpus:Q6/p10:affect_c1:67:78:sha=ddfeab4b3e20}}"),
+        ("set", "affect_c1",
+         "{{corpus:Q6/p10:affect_c1:0:66:sha=2c56a52bac2d:shape=R1-1-5c7532303139,R66-0-20}}"
+         "{{corpus:Q6/p10:affect_c1:67:78:sha=ddfeab4b3e20}}"),
+        ("set", "change_a2",
+         "2) {{corpus:Q6/p10:state_a2:0:65:sha=905fbe44a231:shape=R65-0-20}}"
+         "{{corpus:Q6/p10:state_a2:66:91:sha=d91508197d5c}} {{corpus:Q6/p10:change_a2:0:37:sha=b6bf7abb3629:shape=R37-0-20}}"
+         "{{corpus:Q6/p10:change_a2:38:105:sha=a44d7101b7ef:shape=R67-0-20}}"
+         "{{corpus:Q6/p10:change_a2:106:117:sha=0c741450843c}} steps."),
+        ("set", "state_c2",
+         "{{corpus:Q6/p10:affect_c2:0:69:sha=511126de9f44:shape=R69-0-20}}"
+         "{{corpus:Q6/p10:affect_c2:70:83:sha=4140a87a0a04}}"),
+    ],
+
+    # --- TRIMS -------------------------------------------------------------
+    # Nine boxes that had taken the HEAD of the following sentence. Where a box
+    # ends "... flexibility. To" or "... physically. 2) I", the response says
+    # unambiguously where the boundary goes: cut at the stop, and the head
+    # belongs to whichever box owns that sentence. Verified as a set — structure
+    # mismatches 14 -> 6 with overlaps and coverage unchanged.
+    #
+    # The opposite direction is NOT mechanical and is not done here. Where a box
+    # stops mid-clause, how far it should reach is a judgement about which box
+    # owns the rest: extending them all cleared the remaining six mismatches and
+    # created two new OVERLAPS, swallowing clauses their neighbours hold.
+    # p6: both antecedent boxes grabbed the "To" that opens "To do that, I will
+    # make it mandatory ..."; change_a1 already begins there
+    ("Q6", 6): [
+        ("set", "state_a1",
+         "I will be changing my antecedent of {{corpus:Q6/p6:state_a1:0:21:sha=641b355f6e09}} & "
+         "{{corpus:Q6/p6:state_a2:4:38:sha=56244251ed73}}, which results in muscle "
+         "soreness and little to no flexibility."),
+        ("set", "state_a2",
+         "I will be changing my antecedent of {{corpus:Q6/p6:state_a1:0:21:sha=641b355f6e09}} & "
+         "{{corpus:Q6/p6:state_a2:4:38:sha=56244251ed73}}, which results in muscle "
+         "soreness and little to no flexibility."),
+    ],
+    # p9: both consequence boxes grabbed "Instead I hope I", the head of the next
+    # sentence, which affect_c1's own span already covers
+    # p9 is one pair, like p19. The trailing "{{corpus:Q6/p9:affect_c1:64:94:sha=9a0c693733bf}}
+    # {{corpus:Q6/p9:affect_c1:95:130:sha=6fd00b4d8d14}}" is the EFFECT on the first
+    # consequence, not a second consequence — and gold says so outright:
+    # "missing second consequences". state_c2 was holding it while affect_c1 held
+    # only a slice of state_c1's sentence. Caught by
+    # check_fixture_agrees_with_gold; the other four checks passed it.
+    ("Q6", 9): [
+        ("set", "state_c1",
+         "{{corpus:Q6/p9:affect_c1:0:55:sha=ee60f3a47798:shape=R22-1-5c7532303139}} health."),
+        ("set", "affect_c1",
+         "{{corpus:Q6/p9:affect_c1:64:130:sha=fdb6e2c24c5a}}"),
+        ("set", "state_c2", ""),
+        ("set", "affect_c2", ""),
+    ],
+    # p11: state_c1 ran into "{{corpus:Q6/p11:affect_c1:0:41:sha=9d084f037499}} ...", which
+    # affect_c1 already holds in full
+    ("Q6", 11): [
+        ("set", "state_c1",
+         "{{corpus:Q6/p11:state_c1:0:62:sha=1c7a5865b73a:shape=R62-0-20}}"
+         "{{corpus:Q6/p11:state_c1:63:115:sha=708d51f16f11}} C)."),
+    ],
+    # p14: affect_c1 grabbed the "I" opening the next sentence
+    ("Q6", 14): [
+        ("set", "affect_c1",
+         "{{corpus:Q6/p14:change_a1:63:82:sha=2db206dd72e6}} {{corpus:Q6/p14:affect_c1:0:42:sha=821a94be6ef7:shape=R42-0-20}}"
+         "{{corpus:Q6/p14:affect_c1:43:109:sha=4eda7641ab07:shape=R66-0-20}}"
+         "{{corpus:Q6/p14:affect_c1:110:117:sha=5f0d61eabc13}} weight."),
+        ("set", "affect_c2",
+         "not be that severe."),
+        ("set", "state_c2",
+         "{{corpus:Q6/p14:affect_c2:0:65:sha=6667cda887b4:shape=R65-0-20}}"
+         "{{corpus:Q6/p14:affect_c2:66:128:sha=9dbff4a7fc7a:shape=R62-0-20}}"
+         "{{corpus:Q6/p14:affect_c2:129:153:sha=8e21d79ba026}} go."),
+    ],
+
     ("Q6", 4): [
         ("set", "state_c1", "{{corpus:Q6/p4:affect_c1:0:31:sha=87595cd9dfc0}} happier."),
         ("set", "affect_c1",
