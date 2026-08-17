@@ -551,6 +551,8 @@ def enforcement_audit():
         findings.append(("-", "CONSENSUS SPANS OVERLAP", bad))
     for bad in ENF.check_fixture_covers_the_response():
         findings.append(("-", "FIXTURE DROPS RESPONSE TEXT", bad))
+    for bad in ENF.check_single_box_fixtures_are_verbatim():
+        findings.append(("-", "ONE-BLOCK FIXTURE NOT VERBATIM", bad))
     for bad in ENF.check_fixture_follows_response_structure():
         findings.append(("-", "FIXTURE CUTS MID-CLAUSE", bad))
     for bad in ENF.check_fixture_agrees_with_gold():
