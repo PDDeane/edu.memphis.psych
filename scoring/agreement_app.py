@@ -598,6 +598,31 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     #
     # Part 2's c-boxes share one sentence because the student wrote only one
     # there; that is the permitted same-element overlap, not a duplication.
+    # Q4b/p7. The student numbers two items: (1) a statement that the behaviour
+    # is good to modify, with its reason, and (2) procrastinating. The hand-split
+    # cut item 1 in half — `modify` held only "... I get frustrated and
+    # aggravated", with a full stop the student never wrote — leaving "which
+    # makes not fun to be around and generally moody ..." in no box and `first`
+    # empty while `second` held item 2.
+    #
+    # Gold is 2.0, "-3 pts: did not provide two examples", so the grader read ONE
+    # example. Reading item 1 as the modify statement and item 2 as that single
+    # example assigns every word, respects the clause boundaries, and agrees with
+    # the grader's own count. The alternative — splitting item 1 at "which" to
+    # manufacture a first example — cuts mid-clause and credits two examples
+    # where gold says one.
+    ("Q4b", 7): [
+        ("set", "modify",
+         "My unwanted behavior is good to modify since when I get interrupted, I "
+         "get frustrated and aggravated which makes not fun to be around and "
+         "generally moody for a while when playing my games."),
+        ("set", "first",
+         "Also, I get myself procrastinating on activities that I was supposed to "
+         "complete hours ago which forces me to rush to meet deadlines and "
+         "eventually stretches my schedule to more than I can handle."),
+        ("set", "second", ""),
+    ],
+
     # --- EXTENDS, worked cell by cell -------------------------------------
     # p8: change_a2 stopped at "... some progress in the". The response ends
     # "... in the near future." and BOTH c2 boxes are empty, so nothing competes
@@ -1466,6 +1491,35 @@ def build_jobs(item: str, pids: list[int]) -> list[dict]:
                 raise SystemExit(f"{hs} has no entry for p{pid}")
             fixture.update(row)
             how["_handsplit"] = os.path.basename(hs)
+
+            # Declared corrections reach hand-split items too. Without this the
+            # only way to repair one is to edit the JSON in $MOLLY_DATA, which is
+            # not committable — which is how the earlier p7 repair ended up
+            # living outside the repo, invisible to anyone who clones this.
+            fixes = CONSENSUS_FIXES.get((item, pid), [])
+            touched: dict[str, str] = {}
+            for fix in fixes:
+                for box in (fix[1:] if fix[0] == "swap" else fix[1:2]):
+                    if box in touched:
+                        raise SystemExit(
+                            f"CONSENSUS_FIXES[{(item, pid)}] has two fixes for "
+                            f"`{box}` ({touched[box]} then {fix[0]}). The later "
+                            f"one silently wins; state a single span per box.")
+                    touched[box] = fix[0]
+
+            def _hs_field(box):
+                for k in row:
+                    if k.rsplit("_", 1)[-1] == box:
+                        return k
+                raise SystemExit(f"{hs}: p{pid} has no field for box `{box}`")
+
+            for fix in fixes:
+                if fix[0] == "set":
+                    fixture[_hs_field(fix[1])] = fix[2]
+                else:
+                    fa, fb = _hs_field(fix[1]), _hs_field(fix[2])
+                    fixture[fa], fixture[fb] = fixture.get(fb, ""), fixture.get(fa, "")
+                how["_span_fix"] = how.get("_span_fix", "") + f" {fix[1]}"
         if spec.get("sim"):
             simrec = simulate_h3.load_all().get(pid)
             if simrec is None:
