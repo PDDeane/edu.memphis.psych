@@ -1251,6 +1251,20 @@ def main() -> int:
     pick = order[len(order) // 2]
     rows, failures, no_gold = all_runs[pick]
     results = all_results[pick]
+
+    # PER-CELL MEDIAN, not a published run — the same change as agreement.py, and
+    # it has to happen on both sides or the two harnesses stop being comparable.
+    # Publishing one run reports every cell at whatever THAT run gave it, so a
+    # bistable cell lands wherever the winning run fell and a cell-by-cell diff
+    # between two configurations invents differences. The run selection survives
+    # only to source the non-score fields from one coherent pass.
+    if len(all_runs) > 1:
+        by_pid: dict[object, list[float]] = {}
+        for r, *_ in all_runs:
+            for row in r:
+                by_pid.setdefault(row[0], []).append(row[2])
+        rows = [(row[0], row[1], statistics.median(by_pid[row[0]])) + tuple(row[3:])
+                for row in rows]
     # Split BEFORE anything reads either half. This lived next to the table it
     # feeds, which put it AFTER the `uncounted` report that consumes it: every
     # item ran its three runs and then died on an unbound name, losing a finished
@@ -1266,7 +1280,8 @@ def main() -> int:
         spread = max(counts) - min(counts)
         print(f"\n{args.runs} runs — exact {per_run}   mean {statistics.fmean(counts):.1f}"
               f"   spread {spread} cell(s)")
-        print(f"publishing run {pick + 1} (median by exact count, ties to lowest index)")
+        print("publishing the PER-CELL median across runs; non-score fields come "
+              f"from run {pick + 1}")
         if spread and sizes[0]:
             print(f"read the table below as +/-{spread} cell(s) "
                   f"({100 * spread / sizes[0]:.0f} points): a single run of this item "

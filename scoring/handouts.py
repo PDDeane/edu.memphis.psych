@@ -50,7 +50,11 @@ HANDOUTS: dict[int, dict] = {
         # the three bodies reproduce p10, p8 and p6 verbatim. Their Q1..Q5
         # answers appear in no prompt, so dropping them there discarded 21 cells
         # for nothing. See exemplar_drops() below.
-        "exemplar_items": ["Q6"],
+        # Empty since Q6 was rewritten from the dictionary: it no longer
+        # reproduces anyone's answer, so no cell on it is self-graded. The
+        # handout-wide `exemplar_participants` list above is now inert for
+        # handout 1 and kept only so a future item can opt in by naming itself.
+        "exemplar_items": [],
         # A SECOND way a prompt can give the answer away, found by auditing every
         # item's prompt-bearing text for a participant cited by number.
         #
@@ -88,17 +92,9 @@ HANDOUTS: dict[int, dict] = {
             "Q4b": [13, 15, 19],
             "Q4c": [4, 9, 11, 12, 15, 17, 20],
             "Q5":  [4, 6, 8, 9, 19, 20],
-            # Merged with `exemplar_items` above, not replacing it: Q6 both
-            # reproduces p10/p8/p6 in full AND cites seven others.
-            # p5 and p19 came out: both were excluded and the scorer missed them
-            # anyway, so the exclusion was buying a denominator and nothing else.
-            # Their citations came out of the guidance with them — p5's rule was
-            # kept and de-identified, p19 was named beside p17, who IS scored
-            # correctly and stays.
-            # p17 came out with its citation: the prompt held its answer AND the
-            # grader's decision and the scorer still returned 3.75 against a gold
-            # of 5.00, reproducibly. See EQUIVALENCE.md step 1.
-            "Q6":  [2, 3, 10, 11],
+            # Q6 is gone from this map: rewritten from the dictionary, its
+            # prompt cites no participant at all. Every cell on it is scoreable
+            # now except p9, which is unreachable for a declared divergence.
         },
     },
     2: {
@@ -275,6 +271,38 @@ GOLD_DIVERGENCES: list[dict] = [
                "words. The rule 2 / rule 3 boundary added to the guidance places it "
                "in rule 3 as well, so this divergence is the deliberate consequence "
                "of drawing that line, not an oversight left in it.",
+    },
+    {
+        "code": "A_NO_CHANGE",
+        "cells": [("Q6", 8)],
+        "why": (
+            "gold charges BOTH change slots — \"did not say how each antecedent is "
+            "being changed\" — for offering a scheduling commitment where the "
+            "antecedent was stated as not doing the goal behaviour. p8's first "
+            "antecedent is \"being lazy and not making enough time for the gym\" and "
+            "the change is \"putting an hour a day from Tuesday-Friday\"; the second "
+            "is \"staying home and playing video games, rather than going to the gym\" "
+            "and the change is \"go out and conduct exercise multiple days a week\". "
+            "Read literally each change DOES negate the antecedent as the student "
+            "framed it, because the student framed the antecedent as the absence of "
+            "the goal behaviour. The graders applied the item's pedagogical point "
+            "instead: an antecedent change alters what triggers the unwanted "
+            "behaviour, it does not resolve to do the wanted one.\n\n"
+            "Declared rather than chased because p6 is the same shape and gold "
+            "CREDITS it. p6's antecedent is \"not attending the gym & stretching as "
+            "often as I should\" and its change is \"I will make it mandatory for "
+            "myself to attend the gym at least three times a week\" — an absence-framed "
+            "antecedent answered with a scheduling commitment, exactly like p8. No "
+            "textual feature separates them, and three attempts confirmed it: a prose "
+            "acts-on rule moved one of p8's two slots and stuck on the other; a "
+            "reported-only classification probe had the model answer `antecedent` for "
+            "both, which is correct on a literal reading; and a test keyed on "
+            "absence-framed antecedents would flag six credited cells (p2, p3, p5, p6, "
+            "p16, p19) to catch this one.\n\n"
+            "The scorer treats p6 and p8 alike, which is the defensible position. "
+            "p8 accounts for both of `change_a1`'s errors and `change_a2`'s only one, "
+            "so with this declared those two slots are at ceiling."
+        ),
     },
     {
         "code": "A_MISMATCH", "cells": [("Q6", 9)],

@@ -1746,13 +1746,32 @@ def main() -> int:
                 n += 1
         return n
 
-    # MEDIAN by exact count, ties to the lowest run index — the same rule as
-    # agreement_app.py, and fixed in code for the same reason: picking a run after
-    # seeing the numbers is how a best-of-three got published here once and read as
-    # a 6-point difference between the two implementations that did not exist.
+    # PER-CELL MEDIAN, not a published run.
+    #
+    # Publishing one whole run reports every cell at whatever THAT run gave it,
+    # and a bistable cell then lands wherever the winning run happened to fall.
+    # Comparing two configurations cell by cell therefore invents differences:
+    # Q6's p4 read [7.5, 7.5, 6.25] before a change and [7.5, 6.25, 7.5] after —
+    # the same distribution — and was reported as "exact, then broke" purely
+    # because the published run differed. That cost a correct change, which was
+    # reverted on the strength of it.
+    #
+    # The median over runs is per cell, so a cell that is stable reports its
+    # value and a cell that is bistable reports its more common one. The run
+    # selection survives only to source the non-score fields (checks, evidence)
+    # from one coherent pass, and the spread line below still reports the honest
+    # run-to-run variation.
     order = sorted(range(len(passes)), key=lambda i: (exact_of(passes[i][0]), i))
     pick = order[len(order) // 2]
     results, failures = passes[pick]
+
+    if len(passes) > 1:
+        by_cell: dict[tuple, list[float]] = {}
+        for res, _f in passes:
+            for r in res:
+                by_cell.setdefault((r["participant_id"], r["item"]), []).append(r["score"])
+        results = [dict(r, score=statistics.median(
+            by_cell[(r["participant_id"], r["item"])])) for r in results]
 
     if args.runs > 1:
         counts = [exact_of(p[0]) for p in passes]
@@ -1764,7 +1783,8 @@ def main() -> int:
         print(f"\n{args.runs} runs — exact "
               + ", ".join(f"{c}/{cells}" for c in counts)
               + f"   mean {statistics.fmean(counts):.1f}   spread {spread} cell(s)")
-        print(f"publishing run {pick + 1} (median by exact count, ties to lowest index)")
+        print("publishing the PER-CELL median across runs; non-score fields come "
+              f"from run {pick + 1}")
         if spread:
             print(f"read the table below as +/-{spread} cell(s) "
                   f"({100 * spread / cells:.0f} points): a single run of these item(s) "

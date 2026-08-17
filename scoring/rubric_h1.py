@@ -1073,6 +1073,34 @@ ITEMS: list[dict] = [
         ],
         "context": ["Q1", "Q4c"],
     },
+        # ------------------------------------------------------------------
+    # Q6, REWRITTEN FROM THE DICTIONARY.
+    #
+    # Everything here traces to "Handout 1 - Scoring & Feedback Dictionary_.docx"
+    # or to the question itself. The previous version had accreted three worked
+    # student examples, five participant citations, an operational test for the
+    # change slots, a lecture on working the slots in order, and a cohort
+    # statistic — none of which is in the dictionary, and all of which had to be
+    # excluded from the measurement because it quoted the cells being scored.
+    # Seven of Q6's twenty cells were unscoreable as a result.
+    #
+    # The dictionary's own content, in full:
+    #   "Stating each antecedent is worth 1.25 points each."
+    #   "Stating how each antecedent is being changed is worth 1.25 points each."
+    #   "Stating each consequence is worth 1.25 points each."
+    #   "Stating how each consequence is being affected is worth 1.25 points each."
+    #   plus the four deduction wordings below and the template.
+    # So the 8 x 1.25 decomposition was always right; the guidance around it was
+    # the part we invented.
+    #
+    # (The dictionary's header says "(5 points)" while its own four credit lines
+    # sum to 10 and every gold row is out of 10. Treated as a typo in the source.)
+    #
+    # Two earlier experiments are recorded so they are not silently repeated: a
+    # FOURTH exemplar (participant 15) measured Q6 62% -> 44%, MAE 0.56 -> 0.80;
+    # a fifth and sixth (participants 5 and 17) measured 60% -> 47%, MAE 0.60 ->
+    # 0.85. Three was the best of {3,4,5} — but none of those trials tested ZERO,
+    # which is what this version is.
     {
         "id": "Q6",
         "label": "Question 6",
@@ -1083,31 +1111,15 @@ ITEMS: list[dict] = [
             "closer to your WGB. Then include how those changes may impact your "
             "consequences (from 4c)."
         ),
-        # Q6's ledger is DERIVED, not model-authored: the model answers one
-        # met/absent/mismatch/not_described question per slot and the code
-        # below turns unmet slots into deductions. See `derive_from_credit`.
         "derive_from_credit": True,
         "blank_code": "Q6_NONE",
-        # The question says "change EACH OF YOUR TWO antecedents", so the two
-        # state slots must name DIFFERENT 4a items — and until this existed
-        # nothing checked it. The met/absent/mismatch vocabulary carries no
-        # identity, so a student who addressed one antecedent twice was credited
-        # for both slots: participant 18 named the same 4c consequence in both
-        # boxes and scored 8.75 where the graders gave 7.5 ("did not address how
-        # the second consequence is being affected").
-        #
-        # So the model now also reports WHICH of the two it named, and the code
-        # does the pairing. Order-free by construction: a student who addresses
-        # 4a's second antecedent first is not penalised (worked example 2 is
-        # exactly that), and naming the same one twice is unrepresentable rather
-        # than merely discouraged. Ported from the web version's `cover`, where
-        # the same reasoning already applies.
-        # `verdicts` replaces the generic met/absent/mismatch vocabulary on these
-        # four slots: for a slot whose whole job is "which of the two is this?",
-        # the identity IS the verdict. Asking met/absent/mismatch AND a separate
-        # identity was two questions for one fact, and it admitted contradictions
-        # (`met` + `neither`) that code then had to resolve. Same four values as
-        # the web sheet, so the two are now the same shape.
+        # The matching requirement, and the only mechanism for it. The dictionary
+        # says the antecedents and consequences "must match up" with 4a and 4c,
+        # and the question says "each of your TWO antecedents" — so each box
+        # reports WHICH of the two listed items it names, and the grader works
+        # out from the pair whether both were addressed. Reporting an identity is
+        # one question; asking met/absent/mismatch as well was two questions for
+        # one fact and admitted contradictions.
         "cover": [
             {"keys": ["state_a1", "state_a2"], "labels": ["first", "second"], "of": "4a",
              "verdicts": ["first", "second", "neither", "absent"]},
@@ -1124,35 +1136,7 @@ ITEMS: list[dict] = [
             {
                 "what": "change_a1",
                 "pts": 1.25,
-                # Q6's central judgement, moved here from item-level `guidance`, where
-             # it was read before all eight slots while the two it governs carried
-             # one-line descs. Same move as Q1 (+2 cells on the paper scorer) and
-             # Q2 (+1 Opus / +2 gpt-5-mini). Made self-contained on the way: it
-             # used to open "the qualification on the rule above", meaning the
-             # generosity-about-wording bullet, and to cite the worked example
-             # "below" — neither reference survives a move.
-             "desc": "Describes HOW the first antecedent will be changed. Be generous "
-                     "about loose phrasing but strict about WHAT THE CHANGE ACTS ON: "
-                     "judge that, not how neatly it is put. Where the words after "
-                     "\"by ...\" describe the student performing their WGB, or "
-                     "improving some other habit, the antecedent itself is untouched "
-                     "and this is `not_described`. \"I will change my antecedent of "
-                     "playing video games and not wanting to stop by listening to "
-                     "music as I work out\" leaves the video games exactly as they "
-                     "were — participant 2 lost 1.25 for it, the grader writing "
-                     "\"listening to music while working out does not change your "
-                     "antecedent of playing video games\", and the 2.5/10 worked "
-                     "example is the same failure twice over. But the test is NOT "
-                     "whether the goal behaviour is mentioned — it is whether "
-                     "anything in the clause OPERATES ON the antecedent, and the goal "
-                     "behaviour is very often named as the change's expected RESULT. "
-                     "Participant 10's \"changing my laziness will help me have "
-                     "discipline in getting up and going to the gym\" counts: vague, "
-                     "but it acts on the laziness. So does participant 3's \"by "
-                     "motivating myself to get up and go, this will help me go to the "
-                     "gym\" against an antecedent of thinking exercise is "
-                     "unnecessary — the motivation acts on that belief and the gym is "
-                     "what follows from it; that response earned 10/10",
+                "desc": "States HOW the first antecedent is being changed",
                 "codes": {"absent": "A_NO_CHANGE", "not_described": "A_NO_CHANGE"},
             },
             {
@@ -1164,10 +1148,7 @@ ITEMS: list[dict] = [
             {
                 "what": "change_a2",
                 "pts": 1.25,
-                "desc": "Describes HOW the second antecedent will be changed — the same "
-                     "test as `change_a1` above: judge what the change ACTS ON, and "
-                     "answer `not_described` when the clause only has the student "
-                     "doing their goal behaviour instead of touching the antecedent",
+                "desc": "States HOW the second antecedent is being changed",
                 "codes": {"absent": "A_NO_CHANGE", "not_described": "A_NO_CHANGE"},
             },
             {
@@ -1179,8 +1160,20 @@ ITEMS: list[dict] = [
             {
                 "what": "affect_c1",
                 "pts": 1.25,
-                "desc": "Describes HOW the first consequence will be affected",
+                # The dictionary's wording, restored in full. The desc used to
+                # read "Describes HOW the first consequence will be affected" and
+                # stopped there, dropping "by changing the antecedent(s)" — the
+                # clause that makes this a different question from `state_c1`.
+                # Without it the check did not discriminate: across the cohort it
+                # copied `state_c1`'s verdict in 18 of 20 responses and its
+                # not-described verdict never fired once, which made the
+                # graders' commonest charge on this item unreachable.
+                "desc": "States HOW the first consequence is being affected BY CHANGING "
+                        "the antecedent",
                 "codes": {"absent": "C_NO_EFFECT", "not_described": "C_NO_EFFECT"},
+                "rule": (
+                    "What becomes of the consequence is the whole question, and a student who says it STOPS has answered it. Credit a box that says the consequence will not happen any more, will happen less, or has been replaced by the improved state — the causal link does NOT have to be spelled out, because the question already frames everything here as a result of changing the antecedent, and demanding the link costs credit the graders gave. Be as generous about phrasing as everywhere else on this item. `{fail}` is for a box that says nothing about what becomes of the consequence at all — a benefit that never refers back to it — or one that only restates the arrangement the student has just described instead of its effect."' The two effect boxes must be about DIFFERENT consequences. Where both describe the same effect on the same consequence, the student has addressed one consequence twice and only the FIRST of the two can count; the second is `{fail}`. Judge the CONSEQUENCE, not the wording — where 4c lists two consequences of a similar kind, two similar-sounding effects can both be genuine, and a box is only a repeat when it is the same consequence again.'
+                ),
             },
             {
                 "what": "state_c2",
@@ -1191,230 +1184,51 @@ ITEMS: list[dict] = [
             {
                 "what": "affect_c2",
                 "pts": 1.25,
-                "desc": "Describes HOW the second consequence will be affected",
+                "desc": "States HOW the second consequence is being affected BY CHANGING "
+                        "the antecedent",
                 "codes": {"absent": "C_NO_EFFECT", "not_described": "C_NO_EFFECT"},
+                "rule": (
+                    "The same test as `affect_c1` above, applied to this box on its own: credit it when it says the second consequence stops, lessens, or is replaced by the improved state, without requiring the causal link to be spelled out; `{fail}` when it says nothing about what becomes of that consequence, or only restates the arrangement."' The two effect boxes must be about DIFFERENT consequences. Where both describe the same effect on the same consequence, the student has addressed one consequence twice and only the FIRST of the two can count; the second is `{fail}`. Judge the CONSEQUENCE, not the wording — where 4c lists two consequences of a similar kind, two similar-sounding effects can both be genuine, and a box is only a repeat when it is the same consequence again.'
+                ),
             },
         ],
+        # The four dictionary wordings, verbatim. A_NOT_STATED and C_NOT_STATED
+        # have no canonical text there — the dictionary prices "stating each
+        # antecedent" and "stating each consequence" without giving feedback for
+        # their absence — so those two are phrased from the credit lines they
+        # enforce, and are the only wordings here not lifted from the source.
         "deductions": [
             {"code": "Q6_NONE", "pts": 10.0, "text": "did not answer"},
-            {
-                "code": "A_NOT_STATED",
-                "pts": 1.25,
-                "text": "Did not state the antecedent from question 4a that is being changed.",
-                "repeatable": True,
-            },
-            {
-                "code": "A_MISMATCH",
-                "pts": 1.25,
-                "text": (
-                    "This is a different antecedent from what you listed in question 4a. The "
-                    "antecedents must match up."
-                ),
-                "repeatable": True,
-            },
-            {
-                "code": "A_NO_CHANGE",
-                "pts": 1.25,
-                "text": "You do not describe how the antecedent(s) from question 4a will be changed.",
-                "repeatable": True,
-            },
-            {
-                "code": "C_MISMATCH",
-                "pts": 1.25,
-                "text": (
-                    "This is a different consequence from what you listed in question 4c. The "
-                    "consequences must match up."
-                ),
-                "repeatable": True,
-            },
-            {
-                "code": "C_NO_EFFECT",
-                "pts": 1.25,
-                "text": (
-                    "You do not describe how the consequence(s) will be affected by changing "
-                    "the antecedent(s)."
-                ),
-                "repeatable": True,
-            },
-            {
-                "code": "C_NOT_STATED",
-                "pts": 1.25,
-                "text": "Did not state the consequence being affected.",
-                "repeatable": True,
-            },
+            {"code": "A_NOT_STATED", "pts": 1.25, "repeatable": True,
+             "text": "Did not state the antecedent from question 4a that is being changed."},
+            {"code": "A_MISMATCH", "pts": 1.25, "repeatable": True,
+             "text": "This is a different antecedent from what you listed in question 4a. "
+                     "The antecedents must match up."},
+            {"code": "A_NO_CHANGE", "pts": 1.25, "repeatable": True,
+             "text": "You do not describe how the antecedent(s) from question 4a will be "
+                     "changed."},
+            {"code": "C_MISMATCH", "pts": 1.25, "repeatable": True,
+             "text": "This is a different consequence from what you listed in question 4c. "
+                     "The consequences must match up."},
+            {"code": "C_NO_EFFECT", "pts": 1.25, "repeatable": True,
+             "text": "You do not describe how the consequence(s) will be affected by "
+                     "changing the antecedent(s)."},
+            {"code": "C_NOT_STATED", "pts": 1.25, "repeatable": True,
+             "text": "Did not state the consequence being affected."},
         ],
         "guidance": [
-            "WORK THE EIGHT SLOTS IN ORDER. This item is a checklist, not an impression. "
-            "Walk them one at a time and decide each independently: "
-            "(1) is antecedent 1 stated, and does it match 4a? "
-            "(2) is the change to antecedent 1 described? "
-            "(3) is antecedent 2 stated, and does it match 4a? "
-            "(4) is the change to antecedent 2 described? "
-            "(5) is consequence 1 stated, and does it match 4c? "
-            "(6) is the effect on consequence 1 described? "
-            "(7) is consequence 2 stated, and does it match 4c? "
-            "(8) is the effect on consequence 2 described?",
-            "ANSWER ALL EIGHT, INDEPENDENTLY. You must return a verdict for every slot, "
-            "even after you have found several failures. Do not stop early: a response can "
-            "fail six of eight and still read fluently. Across this cohort the graders "
-            "found 50 failed slots in 20 responses — an average of 2.5 per student — so a "
-            "verdict sheet with only one or two failures is more likely to be an incomplete "
-            "reading than a strong answer.",
-            "PRESENCE IS NOT WORDING. Be generous about how loosely something is phrased "
-            "and strict about whether it is there at all. \"Changing my laziness will help "
-            "me have discipline in getting up and going to the gym\" describes a change "
-            "(participant 10, full credit) — loose but present. A paragraph that flows well "
-            "while never naming the second consequence has an absent slot, however polished "
-            "it reads.",
-            "Slot verdicts: `met` when the element is present; `absent` when it is not there "
-            "at all; `mismatch` when it IS there but is a different antecedent/consequence "
-            "from the one in 4a/4c; `not_described` for a change/effect slot where the "
-            "element is named but nothing is said about how it changes or is affected.",
-            "Mismatch means a DIFFERENT item, not a reworded one. Participant 11 restated "
-            "theirs in the template's own phrasing and earned 10/10. But an antecedent that "
-            "is genuinely a different one from the 4a answer IS a mismatch, and costs its "
-            "slot even when it is a reasonable antecedent in its own right.",
-            # De-identified: p17's answer and the grader's decision were both here,
-            # and the scorer missed the cell anyway (3.75 against a gold of 5.00,
-            # reproducibly). An exclusion that buys a flattering denominator and
-            # nothing else is a step-1 removal — the citation and the exclusion
-            # come out together, and p17 is counted from now on.
-            "A whole missing half — second antecedent and second consequence never "
-            "addressed — is four absent slots and therefore 5.0.",
-            "Cross-item matching is still the most common deduction in the corpus (14 of 20 "
-            "gold rows carry Q6 feedback), so check each stated antecedent against 4a and "
-            "each stated consequence against 4c before crediting the slot.",
-            # REVERTED — a fifth Q6 attempt added four bullets here tightening the
-            # consequence slots ("a hoped-for improvement is not a stated
-            # consequence"; "work the halves as pairs"). Measured on the held-out
-            # 17 it made things worse: exact 59% -> 47%, MAE 0.60 -> 0.75, two
-            # cells lost and none gained. It did nudge slot detection 37 -> 39 of
-            # 41 and bias +0.31 -> +0.16, so the diagnosis was not wrong — the
-            # extra failures simply landed on the wrong slots. Recorded so the
-            # experiment is not repeated; see README for the full Q6 history.
-            "The grader's model answer template: \"I can change my first antecedent of ___ "
-            "by ___. This will impact my first consequence of ___ by ___. I can change my "
-            "second antecedent of ___ by ___. This will impact my second consequence of ___ "
-            "by ___.\"",
-        ],
-        # Worked slot sheets taken from gold rows whose feedback pins every
-        # verdict unambiguously. These three participants are excluded from
-        # the reported baseline (`baseline_h1.py --exclude 10 8 6`) so the
-        # numbers are not self-graded.
-        "exemplars": [
-            {
-                "label": "Full credit (10/10) — loose phrasing still counts",
-                "four_a": "1) One antecedent is I'm tired and I don't feel like going. "
-                "Laziness takes over me. 2) Another antecedent is I'm scared that I will "
-                "embarrass myself at the gym because I don't know what I am doing fully.",
-                "four_c": "1) The consequences ... is falling into bad mental health "
-                "because I am not doing what I need to do to make me feel better. "
-                "2) Another consequence ... is repeating the same cycle of laziness.",
-                "response": "1) Changing my laziness will help me have discipline in "
-                "getting up and going to the gym. This will result me in creating a routine "
-                "for myself instead of not going to the gym at all. I'm hoping this will "
-                "slowly put me in a good standing mentally and physically. 2) I can research "
-                "beginner friendly workouts to help with my fear of embarrassment at the "
-                "gym. This will help reduce my anxiety and increase my confidence. This will "
-                "lead to healthier lifestyle habits and help fix how I think about myself.",
-                "slots": {
-                    "state_a1": "first",
-                    "change_a1": "met",
-                    "state_a2": "second",
-                    "change_a2": "met",
-                    "state_c1": "first",
-                    "affect_c1": "met",
-                    "state_c2": "second",
-                    "affect_c2": "met",
-                },
-                "note": "Every slot is loosely worded and every slot counts. "
-                "\"Changing my laziness will help me have discipline\" is a described "
-                "change. \"Good standing mentally\" is the 4c mental-health consequence "
-                "being affected. Do not demand the template's phrasing.",
-            },
-            {
-                "label": "2.5/10 — antecedents named, but NO change to them described",
-                "four_a": "My first antecedent is wanting to do anything but go to the gym. "
-                "I tend to stay home and play video games instead. My second trigger is "
-                "being a little lazy and not having motivation to make time for the gym.",
-                "four_c": "One consequence of not going to the gym is that I am spending too "
-                "much time on unnecessary things like playing games. One consequence ... is "
-                "that I have 0 motivation and tend to procrastinate and become behind on work.",
-                "response": "I am going to change my antecedent of being lazy and not making "
-                "enough time for the gym during my week. Which then makes me wish I would "
-                "have just gone to the gym. I will be putting an hour a day from Tuesday-"
-                "Friday. I hope that I will put in lots of effort into the gym. I will change "
-                "my antecedent of staying home and playing video games, rather than going to "
-                "the gym, which can lead to health problems later in life. Instead, go out "
-                "and conduct exercise multiple days a week. I also help my progress by eating "
-                "clean so I can see some progress.",
-                "slots": {
-                    "state_a1": "second",
-                    "change_a1": "not_described",
-                    "state_a2": "first",
-                    "change_a2": "not_described",
-                    "state_c1": "absent",
-                    "affect_c1": "absent",
-                    "state_c2": "absent",
-                    "affect_c2": "absent",
-                },
-                "note": "THE MOST IMPORTANT CASE. Both antecedents are named, so both "
-                "state slots are met. But \"putting an hour a day Tuesday-Friday\" and "
-                "\"go out and conduct exercise multiple days a week\" describe DOING THE "
-                "GOAL BEHAVIOUR, not changing the antecedent of laziness or of playing "
-                "video games. A plan to perform the WGB is not a change to the antecedent, "
-                "so both change slots are not_described. Neither 4c consequence is named "
-                "at all, so all four consequence slots are absent. The grader wrote "
-                "\"did not say how each antecedent is being changed\" and \"did not state "
-                "each consequence being affected\".",
-            },
-            {
-                "label": "6.25/10 — a mismatch plus a missing second consequence",
-                "four_a": "My first trigger is not stretching; I end up with sore muscles. "
-                "My second trigger is not being motivated; I miss workout days.",
-                "four_c": "One consequence ... is that I am irritable when I must walk long "
-                "distances. Another consequence ... is my muscles becoming stiff and sore "
-                "when I try to move a certain way.",
-                "response": "I will be changing my antecedent of not attending the gym & "
-                "stretching as often as I should be, which results in muscle soreness and "
-                "little to no flexibility. To do that, I will make it mandatory for myself "
-                "to attend the gym at least three times a week while stretching daily. When "
-                "I start to become more active within myself, I hope that I will no longer "
-                "be filled with no motivation and stiffness throughout my week. Instead, I "
-                "hope that I will become more fit and flexible.",
-                "slots": {
-                    "state_a1": "first",
-                    "change_a1": "met",
-                    "state_a2": "neither",
-                    "change_a2": "met",
-                    "state_c1": "second",
-                    "affect_c1": "met",
-                    "state_c2": "absent",
-                    "affect_c2": "absent",
-                },
-                "note": "The second antecedent addressed here is \"not attending the gym\", "
-                "which is not 4a's \"not being motivated\" — that is a mismatch, not an "
-                "absence. Only one 4c consequence (stiffness) is picked up; the second is "
-                "never named, so both of its slots are absent.",
-            },
-            # REVERTED — a FOURTH exemplar (participant 15: both antecedents
-            # handled, all three losses on the consequence side) was added to
-            # demonstrate the one failure mode the other three do not show. It
-            # was chosen to hold the demonstration set's balance at exactly 62.5%
-            # met, addressing the suspected cause of the v8 failure. It still
-            # made things worse on an identical held-out 16: Q6 exact 62% -> 44%,
-            # MAE 0.56 -> 0.80, bias +0.25 -> +0.33. Three exemplars appears to
-            # be the working number for this item; a fourth dilutes rather than
-            # adds, regardless of which failure mode it demonstrates.
-            # REVERTED — two further exemplars (participants 5 and 17) were tried
-            # here and measured WORSE on an identical held-out 15: Q6 exact fell
-            # 60% -> 47%, MAE rose 0.60 -> 0.85, bias rose +0.43 -> +0.52. Both
-            # were heavily "met"-weighted (24 met vs 16 unmet across five
-            # exemplars, against 12 vs 12 across three), which appears to have
-            # pushed the item further toward the leniency it already had, and
-            # diluted the decisive participant-8 case. Kept as a comment so the
-            # experiment is not silently repeated. Do not re-enable without
-            # re-measuring held-out.
+            # The dictionary's own suggested framing, quoted as it stands. It is
+            # the source of the sentence shape many students follow, and it is
+            # the only worked material the graders were given.
+            "The dictionary offers students this framing, and it is the shape most "
+            "answers take: \"I can change my first antecedent of ___ by ___. This will "
+            "impact my first consequence of ___ by ___. I can change my second antecedent "
+            "of ___ by ___. This will impact my second consequence of ___ by ___.\"",
+            # From the question, not from us: "each of your TWO antecedents".
+            "The question asks about EACH OF THE TWO antecedents from 4a and EACH OF THE "
+            "TWO consequences from 4c. Report which of the two listed items each box "
+            "names; the grader pairs them. A response that names the same one twice has "
+            "addressed one and left the other out.",
         ],
         "context": ["Q1", "Q2", "Q4a", "Q4c"],
     },
