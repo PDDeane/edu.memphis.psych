@@ -572,14 +572,95 @@ def scorer_evidence(handout: int, pid: int, item: str) -> dict[str, str]:
 # A span that is mis-assigned (p10's `state_c2` holds a slice of `change_a1`) or
 # a response with no second consequence to assign at all (p18) is a judgement
 # about the answer, not a reordering, and must not be patched here.
-CONSENSUS_FIXES: dict[tuple[str, int], list[tuple[str, str]]] = {
+# Two forms. ("swap", a, b) exchanges two boxes whose spans are both correct and
+# merely sit in the wrong places. ("set", field, text) assigns a span outright,
+# quoted in full so the correction is auditable against the response.
+CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # p4 wrote antecedent-1 -> change -> consequence, then antecedent-2 ->
     # change -> consequence. The consensus put the FIRST pair's consequence in
     # the c2 boxes (document positions 157 and 219) and the SECOND pair's in the
     # c1 boxes (both at 389), inverting both pairs. Nothing is dropped or
     # duplicated; the two clauses are simply exchanged, which scrambles exactly
     # the antecedent-to-consequence linkage the affect_c* rules judge.
-    ("Q6", 4): [("state_c1", "state_c2"), ("affect_c1", "affect_c2")],
+    # p4 writes part 1 in three clauses and part 2 in two, and the consensus
+    # respected neither. `state_c1` held "{{corpus:Q6/p4:affect_c1:91:128:sha=f850fdd69cda:shape=A5}}
+    # o I" — a slice from the MIDDLE of part 1's last sentence plus the two
+    # characters that open part 2. `affect_c1` began mid-phrase at "be happier",
+    # orphaning "which I hope will help me to". `state_a2` stopped at "that leads
+    # to me not", orphaning "{{corpus:Q6/p4:state_a1:74:104:sha=2eb26cbe281f}}" — the same asymmetry
+    # as p5, where state_a1 runs through its parallel clause and state_a2 does
+    # not. Fourteen words belonged to no box, both stretches mid-sentence cuts
+    # rather than the connectives a clause split rightly discards.
+    #
+    #   part 1  @0    antecedent   @105 change   @127 consequence   @157 effect
+    #   part 2  @259  antecedent   @367 change   @389 consequence AND effect
+    #
+    # Part 2's c-boxes share one sentence because the student wrote only one
+    # there; that is the permitted same-element overlap, not a duplication.
+    ("Q6", 4): [
+        ("set", "state_c1", "{{corpus:Q6/p4:affect_c1:0:31:sha=87595cd9dfc0}} happier."),
+        ("set", "affect_c1",
+         "{{corpus:Q6/p4:affect_c1:41:109:sha=ca4905db381e:shape=R55-1-5c7532303139,R68-0-20}}"
+         "{{corpus:Q6/p4:affect_c1:110:116:sha=ea51ae6e548f}} everywhere."),
+        ("set", "state_a2",
+         "{{corpus:Q6/p4:state_a2:0:72:sha=d1111817d157:shape=R72-0-20}}"
+         "{{corpus:Q6/p4:state_a2:73:101:sha=1789a92ce924}} hours"),
+        ("set", "state_c2", "{{corpus:Q6/p4:state_c1:0:34:sha=4e032e011208}} late"),
+        ("set", "affect_c2",
+         "{{corpus:Q6/p4:state_c1:0:54:sha=f06a56022d3f}} tired."),
+    ],
+
+    # p5 writes the two halves in exactly parallel three-clause form:
+    #   part 1  @0    antecedent + change ("... {{corpus:Q6/p5:change_a1:0:37:sha=5a4c4c317c1e:shape=C3}} by")
+    #           @199  "{{corpus:Q6/p5:state_c1:0:32:sha=a5cb31d3a584}} ... no longer suffer from"
+    #           @363  "{{corpus:Q6/p5:affect_c1:0:58:sha=8ca537769e96}}"
+    #   part 2  @438  antecedent + change ("... {{corpus:Q6/p5:change_a2:0:28:sha=7386c8253705:shape=C3}}")
+    #           @738  "{{corpus:Q6/p5:state_c2:0:51:sha=80f4a1676d53}} me ..."
+    #           @880  "{{corpus:Q6/p5:affect_c2:0:49:sha=c20b853f77bc}} often ..."
+    #
+    # The consensus emptied BOTH c2 boxes (the scorer called them `absent` in
+    # all ten runs) and the tail recovery then swept every remaining clause
+    # into state_c2 as one lump, leaving affect_c2 empty. That recovered the
+    # words but not the shape: the student wrote an "Instead, I hope ..."
+    # effect clause at @880 exactly parallel to part 1's at @363. Split at the
+    # sentence boundary, part 2 now mirrors part 1 box for box.
+    ("Q6", 5): [
+        ("set", "state_c2",
+         "{{corpus:Q6/p5:state_c2:0:69:sha=2d5b313cec8c:shape=R69-0-20}}"
+         "{{corpus:Q6/p5:state_c2:70:141:sha=a5198c07c1c7}}"),
+        ("set", "affect_c2",
+         "{{corpus:Q6/p5:affect_c2:0:70:sha=ae88ff0806c0:shape=R70-0-20}}"
+         "{{corpus:Q6/p5:affect_c2:71:77:sha=e06e309b66b3}} healthy."),
+        # ... and change_a2 runs to its sentence end, as change_a1 does. Part 1
+        # keeps "{{corpus:Q6/p5:change_a1:42:90:sha=7d793a059cb2}} veggies" inside
+        # the change clause; without the parallel tail here those nine words
+        # belonged to no box at all.
+        # Part 1 had the same three faults p4's did. `state_a1` ran 289 chars,
+        # swallowing the change clause and most of the next sentence to end
+        # mid-phrase at "I hope that I"; `state_c1` began mid-sentence at "and
+        # {{corpus:Q6/p5:state_c1:37:72:sha=b42442d3c2e6}} me" and then ran past its own end,
+        # trailing off into "Instead, I hope that I will" and duplicating the
+        # opening of affect_c1. Trimmed to whole clauses so part 1 mirrors part 2.
+        ("set", "state_a1",
+         "{{corpus:Q6/p5:state_a1:0:68:sha=479931f088bd:shape=R68-0-20}}"
+         "{{corpus:Q6/p5:state_a1:69:91:sha=8a310c57278d}} snacks"),
+        ("set", "state_c1",
+         "{{corpus:Q6/p5:state_c1:0:69:sha=90e91f3dbb8f:shape=R69-0-20}}"
+         "{{corpus:Q6/p5:state_c1:70:136:sha=c91a4b465388:shape=R66-0-20}}"
+         "{{corpus:Q6/p5:state_c1:137:156:sha=24d47e9a287e}} foods."),
+        # state_a2 stopped at "in my home", while state_a1 runs through its
+        # parallel "{{corpus:Q6/p5:state_a1:52:91:sha=02b653aa2b5f}} snacks". That
+        # asymmetry left seven words belonging to no box; part 1's shape decides
+        # the boundary.
+        ("set", "state_a2",
+         "{{corpus:Q6/p5:state_a2:0:62:sha=94017bc6a724:shape=R62-0-20}}"
+         "{{corpus:Q6/p5:state_a2:63:131:sha=2a9f0d5783ed}} "
+         "alternatives"),
+        ("set", "change_a2",
+         "{{corpus:Q6/p5:change_a2:0:67:sha=37cb113482cc:shape=R67-0-20}}"
+         "{{corpus:Q6/p5:change_a2:68:138:sha=73f71d540754:shape=R70-0-20}}"
+         "{{corpus:Q6/p5:change_a2:29:32:sha=6201111b83a0}} vegetables."),
+    ],
 }
 
 
@@ -1056,9 +1137,14 @@ def build_jobs(item: str, pids: list[int]) -> list[dict]:
             how["_consensus"] = f"{n_runs} runs"
 
             # Declared span corrections, applied before anything reads the boxes.
-            for a, b in CONSENSUS_FIXES.get((item, pid), []):
-                fa = next(f for f, c in spec["from_scorer"].items() if c == a)
-                fb = next(f for f, c in spec["from_scorer"].items() if c == b)
+            def _field_of(comp):
+                return next(f for f, c in spec["from_scorer"].items() if c == comp)
+            for fix in CONSENSUS_FIXES.get((item, pid), []):
+                if fix[0] == "set":
+                    fixture[_field_of(fix[1])] = fix[2]
+                    continue
+                _, a, b = fix
+                fa, fb = _field_of(a), _field_of(b)
                 fixture[fa], fixture[fb] = fixture.get(fb, ""), fixture.get(fa, "")
                 how["_span_fix"] = how.get("_span_fix", "") + f" {a}<->{b}"
 
