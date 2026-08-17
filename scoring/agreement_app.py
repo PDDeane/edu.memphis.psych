@@ -1295,6 +1295,21 @@ def build_jobs(item: str, pids: list[int]) -> list[dict]:
             # Declared span corrections, applied before anything reads the boxes.
             def _field_of(comp):
                 return next(f for f, c in spec["from_scorer"].items() if c == comp)
+            # ONE fix per box. The entries apply in order, so a second fix for the
+            # same box silently overwrites the first — which is exactly what
+            # happened to p9: new assignments were prepended and clobbered by its
+            # own earlier trims, and the tail recovery then dropped the orphaned
+            # sentence into state_a2. There is never a legitimate reason to state
+            # two different spans for one box, so this raises rather than warns.
+            _touched: dict[str, str] = {}
+            for fix in CONSENSUS_FIXES.get((item, pid), []):
+                for _box in fix[1:] if fix[0] == "swap" else fix[1:2]:
+                    if _box in _touched:
+                        raise SystemExit(
+                            f"CONSENSUS_FIXES[{(item, pid)}] has two fixes for "
+                            f"`{_box}` ({_touched[_box]} then {fix[0]}). The later "
+                            f"one silently wins; state a single span per box.")
+                    _touched[_box] = fix[0]
             for fix in CONSENSUS_FIXES.get((item, pid), []):
                 if fix[0] == "set":
                     fixture[_field_of(fix[1])] = fix[2]

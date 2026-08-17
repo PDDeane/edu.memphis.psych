@@ -555,6 +555,8 @@ def enforcement_audit():
         findings.append(("-", "FIXTURE CUTS MID-CLAUSE", bad))
     for bad in ENF.check_fixture_agrees_with_gold():
         findings.append(("-", "FIXTURE CONTRADICTS GOLD", bad))
+    for bad in ENF.check_consensus_fixes_are_unique():
+        findings.append(("-", "TWO FIXES FOR ONE BOX", bad))
     for bad in ENF.check_unreachable_gold_is_allowed():
         findings.append(("-", "UNREACHABLE GOLD PENALISED", bad))
     for iid, h, mx, label in uncovered_cli_items():
@@ -988,6 +990,14 @@ def enforcement_selftest():
                   "RUBRIC ITEMS NOT UNIQUE", "-",
                   [f for f in enforcement_audit()[0]]))
     _R4.ITEMS.pop()
+
+    # Two declared corrections for one box: the later silently wins.
+    import agreement_app as _APP7
+    _APP7.CONSENSUS_FIXES[("Q6", 9)].append(("set", "affect_c1", "duplicate"))
+    cases.append(("two span fixes name the same box",
+                  "TWO FIXES FOR ONE BOX", "-",
+                  [f for f in enforcement_audit()[0]]))
+    _APP7.CONSENSUS_FIXES[("Q6", 9)].pop()
 
     # A box holding text gold says was never written. This is the one fixture
     # check that reaches OUTSIDE the response — the others compare the boxes
