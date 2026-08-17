@@ -871,8 +871,19 @@ def anchored_split(raw: str, spans: list[tuple[str, str]]) -> dict[str, str]:
     located = sorted([h for h in hits if h[0] is not None])
     out = {field: "" for field, _ in spans}
     for i, (start, field, _) in enumerate(located):
+        # The FIRST slice begins at 0, not at its own anchor. The loop used to
+        # run anchor-to-anchor, so nothing ever covered the text BEFORE the first
+        # located quote — and the docstring's claim that "nothing the student
+        # wrote is dropped" was false whenever the scorer gave no quote for the
+        # aspect the student happened to write first. On Q3/p3 that discarded the
+        # opening 110 characters, the whole "{{corpus:Q3/p1:specific:10:37:sha=32a1b1a0f56c:shape=C800}} ..."
+        # sentence, and the same prefix loss runs through nine of Q3's twenty
+        # cells. The two defects compound: a missing `specific` quote moves the
+        # first anchor to `measurable`, which puts the specific text in the
+        # dropped prefix.
+        begin = 0 if i == 0 else start
         end = located[i + 1][0] if i + 1 < len(located) else len(text)
-        out[field] = text[start:end].strip()
+        out[field] = text[begin:end].strip()
     for start, field, q in hits:        # unlocated quotes keep the quote itself
         if start is None:
             out[field] = q
