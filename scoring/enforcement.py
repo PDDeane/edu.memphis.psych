@@ -1594,6 +1594,146 @@ def check_consensus_spans_are_disjoint() -> list[str]:
     return problems
 
 
+# Cells whose fixture deliberately departs from the response's own structure.
+# Keyed (item, pid, box) -> why. This check REPORTS mismatches; it does not
+# decide them, because "which clause is this box" is sometimes a judgement about
+# the answer and not a fact about its punctuation.
+FIXTURE_STRUCTURE_OVERRIDES: dict[tuple[str, int, str], str] = {}
+
+
+def _response_parts(raw: str) -> list[int]:
+    """Offsets where the response's numbered parts begin.
+
+    Students mark the two halves of Q6 explicitly more often than not — "1)",
+    "2)", sometimes with OCR damage ("o I am going to change ..."). Where no
+    marker survives, the second antecedent statement opens the second part.
+    """
+    import re
+    starts = [0]
+    for m in re.finditer(r"(?<![\d.])\s*\b2\s*\)", raw):
+        starts.append(m.start())
+        break
+    if len(starts) == 1:
+        m = list(re.finditer(r"I (?:am going to|will) change my (?:antecedent|downfall|trigger)", raw))
+        if len(m) > 1:
+            starts.append(m[1].start())
+    return starts
+
+
+# Words a clause does not end on. A box finishing here was cut mid-clause: p5's
+# `state_a1` ended "... I hope that I", its `state_c1` trailed off into "Instead,
+# I hope that I will", p4's `state_a2` stopped at "that leads to me not" and its
+# `state_c1` at "everywhere. o I". Function words only — a clause ending on a
+# noun, verb or adjective is finished, whether or not a full stop follows.
+_DANGLING = {
+    "a", "an", "the", "my", "me", "i", "to", "of", "in", "on", "at", "and", "or",
+    "but", "that", "which", "will", "would", "can", "could", "not", "is", "are",
+    "was", "were", "be", "been", "for", "with", "from", "so", "then", "this",
+    "it", "he", "she", "they", "we", "you", "have", "has", "had", "do", "does",
+    "did", "if", "when", "while", "as", "by", "into", "than", "there", "their",
+}
+
+
+def check_fixture_follows_response_structure() -> list[str]:
+    """Do the boxes hold WHOLE clauses, laid out by the response's own structure?
+
+    Lay a response out by its parts and then its clauses and the assignment is
+    forced — which is how p4, p5 and p10 were each settled after two other
+    checks had passed them. Those ask whether text went missing
+    (check_fixture_covers_the_response) and whether two boxes share words
+    (check_consensus_spans_are_disjoint). Neither can see a box holding a
+    FRAGMENT, and that is what the consensus spans mostly got wrong.
+
+    Sentence boundaries are the wrong test: `state_aN` and `change_aN` routinely
+    split ONE sentence at "by ...", which is correct. So this looks for two
+    things a clause-level layout rules out:
+
+      * a box ENDING on a function word — cut mid-clause. p5's `state_a1` ended
+        "... I hope that I"; p4's `state_a2` stopped at "that leads to me not".
+      * a box CROSSING a part boundary — p4's `state_c1` held "I won't be falling
+        asleep everywhere. o I", the tail of part one plus the opening of part two.
+
+    A box contained in its same-element sibling is exempt from the first: a
+    `state_cN` that is the opening of `affect_cN`'s sentence is the permitted
+    overlap, and splitting those measured worse (11/17 -> 3/17).
+
+    REPORTED, NOT DECIDED. Which clause a box should hold is sometimes a
+    judgement about the answer — p4's part two has one consequence sentence
+    serving as both `state_c2` and `affect_c2`, which is faithful because that is
+    all the student wrote. Anything deliberate goes in
+    FIXTURE_STRUCTURE_OVERRIDES with a reason, and a stale entry fails.
+    """
+    import handouts as H
+    import segment as SEG
+
+    problems = []
+    seen: set[tuple] = set()
+    cfg = H.config(1)
+    try:
+        subs = dict(H.find_submissions(1))
+    except Exception:
+        return []
+    if not subs:
+        return []
+
+    for pid in sorted(subs):
+        try:
+            raw = " ".join(SEG.segment(subs[pid], cfg["template"], cfg["markers"],
+                                       cfg.get("capture_tail", False)).get("Q6", "").split())
+        except Exception:
+            continue
+        if len(raw) < 40:
+            continue
+        boxes = _fixture_boxes("Q6", pid)
+        if not boxes:
+            continue
+        parts = _response_parts(raw)
+        low = raw.lower()
+        located = {}
+        for k, v in boxes.items():
+            v = " ".join((v or "").split())
+            if len(v) < 12:
+                continue
+            at = low.find(v[:40].lower())
+            if at >= 0:
+                located[k] = (at, at + len(v), v)
+
+        def sibling(k):
+            head, _, tag = k.rpartition("_")
+            return ("affect" if head == "state" else "state") + "_" + tag
+
+        for k, (a, b, v) in sorted(located.items()):
+            key = ("Q6", pid, k)
+            note = []
+            sib = located.get(sibling(k))
+            inside = sib and sib[0] <= a and b <= sib[1] + 2
+            tail = v.rstrip()
+            # A clause that closes with terminal punctuation is finished, whatever
+            # its last word: "... by doing this.", "... about it.", "... get
+            # exercise in." all end on a function word and all are complete.
+            finished = tail.endswith((".", "!", "?"))
+            last = tail.rstrip(".,;:").split()[-1].lower() if tail.split() else ""
+            if not inside and not finished and last in _DANGLING:
+                note.append(f"ends mid-clause on {last!r}")
+            crossed = [p for p in parts[1:] if a < p < b]
+            if crossed:
+                note.append(f"crosses the part boundary at {crossed[0]}")
+            if not note:
+                continue
+            if key in FIXTURE_STRUCTURE_OVERRIDES:
+                seen.add(key)
+                continue
+            problems.append(
+                f"Q6/p{pid} `{k}` {' and '.join(note)}: {v[-58:]!r} — lay the "
+                f"response out by parts then clauses and give the box a whole "
+                f"clause, or declare it in FIXTURE_STRUCTURE_OVERRIDES")
+    for stale in sorted(FIXTURE_STRUCTURE_OVERRIDES.keys() - seen):
+        problems.append(
+            f"FIXTURE_STRUCTURE_OVERRIDES lists {stale}, which no longer "
+            f"mismatches. Remove it")
+    return problems
+
+
 def check_reporters_execute() -> list[str]:
     """Do the harnesses' report paths actually RUN?
 

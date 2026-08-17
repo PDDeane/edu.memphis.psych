@@ -551,6 +551,8 @@ def enforcement_audit():
         findings.append(("-", "CONSENSUS SPANS OVERLAP", bad))
     for bad in ENF.check_fixture_covers_the_response():
         findings.append(("-", "FIXTURE DROPS RESPONSE TEXT", bad))
+    for bad in ENF.check_fixture_follows_response_structure():
+        findings.append(("-", "FIXTURE CUTS MID-CLAUSE", bad))
     for bad in ENF.check_unreachable_gold_is_allowed():
         findings.append(("-", "UNREACHABLE GOLD PENALISED", bad))
     for iid, h, mx, label in uncovered_cli_items():
@@ -984,6 +986,22 @@ def enforcement_selftest():
                   "RUBRIC ITEMS NOT UNIQUE", "-",
                   [f for f in enforcement_audit()[0]]))
     _R4.ITEMS.pop()
+
+    # A box cut mid-clause. Two other fixture checks pass on these: the text is
+    # all present and no two boxes share it, but a box holding "... I hope that
+    # I" is a fragment, not a clause. Injected by truncating one.
+    import enforcement as _E5
+    _real_fb = _E5._fixture_boxes
+    def _truncating(item, pid):
+        bx = dict(_real_fb(item, pid))
+        if item == "Q6" and pid == 1 and bx.get("state_a1"):
+            bx["state_a1"] = " ".join(bx["state_a1"].split()[:4] + ["that"])
+        return bx
+    _E5._fixture_boxes = _truncating
+    cases.append(("a fixture box is cut mid-clause",
+                  "FIXTURE CUTS MID-CLAUSE", "-",
+                  [f for f in enforcement_audit()[0]]))
+    _E5._fixture_boxes = _real_fb
 
     # A reporter that crashes. Nothing else here executes `report()` — the
     # audits import the module, py_compile only parses — so an unbound name in

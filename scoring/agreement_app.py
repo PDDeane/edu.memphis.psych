@@ -573,14 +573,95 @@ def scorer_evidence(handout: int, pid: int, item: str) -> dict[str, str]:
 # A span that is mis-assigned (p10's `state_c2` holds a slice of `change_a1`) or
 # a response with no second consequence to assign at all (p18) is a judgement
 # about the answer, not a reordering, and must not be patched here.
-CONSENSUS_FIXES: dict[tuple[str, int], list[tuple[str, str]]] = {
+# Two forms. ("swap", a, b) exchanges two boxes whose spans are both correct and
+# merely sit in the wrong places. ("set", field, text) assigns a span outright,
+# quoted in full so the correction is auditable against the response.
+CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # p4 wrote antecedent-1 -> change -> consequence, then antecedent-2 ->
     # change -> consequence. The consensus put the FIRST pair's consequence in
     # the c2 boxes (document positions 157 and 219) and the SECOND pair's in the
     # c1 boxes (both at 389), inverting both pairs. Nothing is dropped or
     # duplicated; the two clauses are simply exchanged, which scrambles exactly
     # the antecedent-to-consequence linkage the affect_c* rules judge.
-    ("Q6", 4): [("state_c1", "state_c2"), ("affect_c1", "affect_c2")],
+    # p4 writes part 1 in three clauses and part 2 in two, and the consensus
+    # respected neither. `state_c1` held "I won't be falling asleep everywhere.
+    # o I" — a slice from the MIDDLE of part 1's last sentence plus the two
+    # characters that open part 2. `affect_c1` began mid-phrase at "be happier",
+    # orphaning "which I hope will help me to". `state_a2` stopped at "that leads
+    # to me not", orphaning "sleeping the full 8 or 9 hours" — the same asymmetry
+    # as p5, where state_a1 runs through its parallel clause and state_a2 does
+    # not. Fourteen words belonged to no box, both stretches mid-sentence cuts
+    # rather than the connectives a clause split rightly discards.
+    #
+    #   part 1  @0    antecedent   @105 change   @127 consequence   @157 effect
+    #   part 2  @259  antecedent   @367 change   @389 consequence AND effect
+    #
+    # Part 2's c-boxes share one sentence because the student wrote only one
+    # there; that is the permitted same-element overlap, not a duplication.
+    ("Q6", 4): [
+        ("set", "state_c1", "which I hope will help me to be happier."),
+        ("set", "affect_c1",
+         "When I start sleeping, I will become happier, and I won\u2019t be falling "
+         "asleep everywhere."),
+        ("set", "state_a2",
+         "I am going to change my antecedent of going to bed late that leads to me "
+         "not sleeping the full 8 or 9 hours"),
+        ("set", "state_c2", "I hope that I will no longer be up late"),
+        ("set", "affect_c2",
+         "I hope that I will no longer be up late and getting so tired."),
+    ],
+
+    # p5 writes the two halves in exactly parallel three-clause form:
+    #   part 1  @0    antecedent + change ("... BY keeping healthy alternatives close by")
+    #           @199  "When I manage my snacking habits ... no longer suffer from"
+    #           @363  "Instead, I hope that I will satisfy my craving with fruits"
+    #   part 2  @438  antecedent + change ("... BY buying myself more fruits")
+    #           @738  "When I have more fruits and vegetables available to me ..."
+    #           @880  "Instead, I hope to eat fruits and vegetables more often ..."
+    #
+    # The consensus emptied BOTH c2 boxes (the scorer called them `absent` in
+    # all ten runs) and the tail recovery then swept every remaining clause
+    # into state_c2 as one lump, leaving affect_c2 empty. That recovered the
+    # words but not the shape: the student wrote an "Instead, I hope ..."
+    # effect clause at @880 exactly parallel to part 1's at @363. Split at the
+    # sentence boundary, part 2 now mirrors part 1 box for box.
+    ("Q6", 5): [
+        ("set", "state_c2",
+         "When I have more fruits and vegetables available to me, I hope that I "
+         "will no longer feel the need to satisfy my craving of unhealthy snacks."),
+        ("set", "affect_c2",
+         "Instead, I hope to eat fruits and vegetables more often, so I can keep "
+         "myself healthy."),
+        # ... and change_a2 runs to its sentence end, as change_a1 does. Part 1
+        # keeps "which I hope will help me to eat more fruits and veggies" inside
+        # the change clause; without the parallel tail here those nine words
+        # belonged to no box at all.
+        # Part 1 had the same three faults p4's did. `state_a1` ran 289 chars,
+        # swallowing the change clause and most of the next sentence to end
+        # mid-phrase at "I hope that I"; `state_c1` began mid-sentence at "and
+        # keep fruits and vegetables close to me" and then ran past its own end,
+        # trailing off into "Instead, I hope that I will" and duplicating the
+        # opening of affect_c1. Trimmed to whole clauses so part 1 mirrors part 2.
+        ("set", "state_a1",
+         "I am going to change my antecedent of sugar craving that leads me to "
+         "reaching for unhealthy snacks"),
+        ("set", "state_c1",
+         "When I manage my snacking habits and keep fruits and vegetables close "
+         "to me, I hope that I will no longer suffer from being fulfilled by "
+         "unhealthy and fatty foods."),
+        # state_a2 stopped at "in my home", while state_a1 runs through its
+        # parallel "that leads me to reaching for unhealthy snacks". That
+        # asymmetry left seven words belonging to no box; part 1's shape decides
+        # the boundary.
+        ("set", "state_a2",
+         "I am going to change my antecedent of not having any fruits or "
+         "vegetables available in my home that leads to me consuming unhealthy "
+         "alternatives"),
+        ("set", "change_a2",
+         "by buying myself more fruits and vegetables for the pantry so I can "
+         "fulfil my new dietary requirements, which will help me eat more fruits "
+         "and vegetables."),
+    ],
 }
 
 
@@ -1058,9 +1139,14 @@ def build_jobs(item: str, pids: list[int]) -> list[dict]:
             how["_consensus"] = f"{n_runs} runs"
 
             # Declared span corrections, applied before anything reads the boxes.
-            for a, b in CONSENSUS_FIXES.get((item, pid), []):
-                fa = next(f for f, c in spec["from_scorer"].items() if c == a)
-                fb = next(f for f, c in spec["from_scorer"].items() if c == b)
+            def _field_of(comp):
+                return next(f for f, c in spec["from_scorer"].items() if c == comp)
+            for fix in CONSENSUS_FIXES.get((item, pid), []):
+                if fix[0] == "set":
+                    fixture[_field_of(fix[1])] = fix[2]
+                    continue
+                _, a, b = fix
+                fa, fb = _field_of(a), _field_of(b)
                 fixture[fa], fixture[fb] = fixture.get(fb, ""), fixture.get(fa, "")
                 how["_span_fix"] = how.get("_span_fix", "") + f" {a}<->{b}"
 
