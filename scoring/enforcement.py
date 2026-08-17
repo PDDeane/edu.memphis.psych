@@ -1602,6 +1602,11 @@ def check_consensus_spans_are_disjoint() -> list[str]:
 # decide them, because "which clause is this box" is sometimes a judgement about
 # the answer and not a fact about its punctuation.
 FIXTURE_STRUCTURE_OVERRIDES: dict[tuple[str, int, str], str] = {
+    ("Q3", 17, "realistic"):
+        "\"... {{corpus:Q3/p17:realistic:40:83:sha=cac3674d624e}} do\" is a complete "
+        "clause ending on a main verb; p17 writes the whole passage without "
+        "sentence terminators, so the dangling-word test sees an auxiliary where "
+        "there is none. The five aspects are each in their own labelled box",
     ("Q6", 2, "change_a1"):
         "\"... {{corpus:Q6/p2:change_a1:132:170:sha=21acf3047fe0}} to\" is a complete phrase "
         "that happens to close on a function word; extending it swallows the "
