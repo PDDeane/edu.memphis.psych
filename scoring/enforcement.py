@@ -1435,6 +1435,21 @@ MULTI_BLOCK_DECLARED: dict[str, str] = {
           "correct — p9 never mentions realistic",
     "Q4b": "three boxes: the modify statement and two examples. p7 read out and "
            "assigned; the rest carry no findings",
+    # Declared on PROVENANCE, not on a cell-by-cell reading, and the distinction
+    # is the whole reason these two are cheap. Neither item's response was ever
+    # PARTITIONED: nothing decided where one box ends and the next begins, so
+    # there is no boundary to misplace. Contrast Q6, Q3, Q4b above, and the five
+    # items still undeclared — each of those carves several boxes out of one
+    # prose block, which is what put how1's sentence in 2a/p18's verdict box.
+    "1a": "five boxes, but only ONE is this item's own response — a single "
+          "field. The other four are the shared data table, `sim`-parsed values "
+          "carried as context. Nothing here was split",
+    "1b": "four boxes, all four `sim`-parsed values: the student's weekly data "
+          "read out of a table, not spans cut from prose. p15 shows the shape — "
+          "`wk1` is `8, 11, 6, 9, 6, 10, 9` for a table reading \"Sunday - 8 "
+          "hours Monday - 11 hours ...\", and its empty `baseline`/`wk3` are the "
+          "student's own \"none\" and \"Week Three Data: Lost\", which gold's "
+          "2.0 agrees with",
 }
 
 
@@ -1731,6 +1746,23 @@ def _fixture_boxes(item_id: str, pid: int) -> dict[str, str]:
     key = f"_{item_id.lower()}_"
     own |= {k for k in fx if key in k and "ref" not in k}
 
+    # `from_scorer` carries CONTEXT as well as the item's own response, and the
+    # context is another item's field. Q5's spec pulls `bmod_h1_q4c_first` and
+    # `_second` so the Q5 grader can see the consequences — and those label to
+    # `first`/`second`, exactly like Q5's OWN `bmod_h1_q5_first`/`_second`. The
+    # labels collided, set iteration decided the winner, and Q5's boxes came out
+    # holding Q4c's text: every one of its 20 cells was being read out and
+    # checked against a different item's answer. It raised no finding because
+    # the borrowed boxes were never EMPTY, which is the coverage check's trigger.
+    #
+    # A field cannot be keyed on this item's name alone — handout 3's fields are
+    # `bmod_h3_success_verdict`, with no `_2a_` in them. So the test is the other
+    # way round: a field belongs to another item when it carries THAT item's key
+    # and not this one's.
+    others = {f"_{o.lower()}_" for o in APP.JOBS if o != item_id}
+    own = {f for f in own
+           if key in f or not any(o in f for o in others)}
+
     def label(field):
         tail = field.split(key)[-1] if key in field else field
         return tail.rsplit("_", 1)[-1] if key not in field else tail
@@ -1804,6 +1836,15 @@ CONSENSUS_OVERLAP_BACKLOG = {
         "second as a mismatch and `cover` demotes it, which is the correct result",
     ("Q6", 6, "change_a1", "change_a2"):
         "the same sentence answers both, for the same reason",
+    ("2a", 18, "how1", "verdict"):
+        "p18 copied the template example's verdict sentence (\"The behavior "
+        "modification plan was successful.\") verbatim, and join_aware strips it "
+        "as boilerplate — correctly, since it IS template prose. No verdict of "
+        "the student's own survives, so the paper scorer quotes the nearest "
+        "sentence and it lands on how1's. Gold gives the cell a full 6.0, having "
+        "credited the copied sentence on paper. The overlap is the scorer coping "
+        "with an absent element, not a transcription that lost one. Whether the "
+        "cell is UNSCOREABLE is a separate scoring decision, still open",
 }
 
 
