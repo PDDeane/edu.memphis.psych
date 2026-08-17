@@ -598,6 +598,53 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     #
     # Part 2's c-boxes share one sentence because the student wrote only one
     # there; that is the permitted same-element overlap, not a duplication.
+    # 2a/p1. how1 swallowed BOTH explanations — the sleep/patience one and the
+    # physical-health one — leaving how2 empty. Two distinct HOWs, two boxes.
+    ("2a", 1): [
+        ("set", "how1",
+         "I am a lot more patient than I have been due to the amount of sleep I am getting."),
+        ("set", "how2",
+         "I have not had the best days with my physical health. I did find that on days I didn’t get a lot of rest my stomach would hurt or be unsettled for a little bit."),
+    ],
+    # 2a/p5. how1 began mid-sentence at "I feel that I started to slip", dropping the
+    # clause it depends on. Restored to the whole sentence.
+    ("2a", 5): [
+        ("set", "how1",
+         "The simplicity of the plan makes it seem much easier than it actually is, and I feel that I started to slip towards the end of my intervention due to burnout."),
+    ],
+    # 2a/p15. how1 held both explanations and how2 was empty, same shape as p1.
+    ("2a", 15): [
+        ("set", "how1",
+         "I was unable to lower my screentime."),
+        ("set", "how2",
+         "I found my reinforcement I set for myself a little unreasonable."),
+    ],
+    # 2a/p16. p16 labels its own sentences ("Sentence 1:", "Sentence 2:"). how1 held a
+    # string that appears NOWHERE in the response — sentence 1's label welded to
+    # sentence 2's text. Set to sentence 2 with the label stripped.
+    ("2a", 16): [
+        ("set", "how1",
+         "It worked well when I had free time and would just get up and exercise."),
+    ],
+    # Q4a/p10. `second` dropped part 2's closing clause ("I am a beginner at the end of
+    # the day ..."). A numbered part keeps all of its own clauses.
+    ("Q4a", 10): [
+        ("set", "second",
+         "Another antecedent is I’m scared that I will embarrass myself at the gym because I don’t know what I am doing fully. I am a beginner at the end of the day, and this is a challenge of some sorts."),
+    ],
+    # Q4a/p17. `first` dropped part 1's second sentence, same rule.
+    ("Q4a", 17): [
+        ("set", "first",
+         "Feeing tired and not wanting to workout. And pushing it to the the next day, i don’t end up doing it the day after ."),
+    ],
+    # Q5/p11. both boxes truncated: `first` lost part 1's third sentence, `second` was cut
+    # mid-clause at "recover from stress". Each part keeps all three of its clauses.
+    ("Q5", 11): [
+        ("set", "first",
+         "One reason I continue to engage in my unwanted target behavior is to escape discomfort and fear caused by my asthma symptoms. When I feel shortness of breath or chest tightness, avoiding exercise helps me feel safer and more comfortable in the moment. This allows me to avoid the fear of triggering an asthma attack, even though it prevents me from improving my physical health."),
+        ("set", "second",
+         "Another reason is because I feel physically and mentally exhausted after a long college day. After attending classes, studying, and completing assignments, I often feel drained and unmotivated to exercise. Resting feels more rewarding because it helps me relax and recover from stress, even though avoiding exercise can negatively affect my health and energy in the long term."),
+    ],
     # 2a/p18 is NOT fixed here, and the reason is worth keeping. This entry
     # once set `verdict` to "The behavior modification plan was successful."
     # That sentence is the first line of the TEMPLATE'S WORKED EXAMPLE, which
