@@ -1401,27 +1401,19 @@ def check_rubric_items_are_unique() -> list[str]:
 # a faithful transcription and the leftover words are elaboration the clause-level
 # split rightly discards. Declared so a NEW one fails. An entry that stops firing
 # must be removed, like every other backlog here.
-FIXTURE_GAP_BACKLOG = {
-    ("Q6", 17): "the empty boxes are all SECOND-element slots, and gold agrees "
-                "the student addressed one antecedent and one consequence "
-                "(\"did not address your second antecedent ... or second "
-                "consequence\"). The unassigned run is not a lost element: it is "
-                "the parenthetical labelling this student uses throughout — "
-                "\"(UTB)\", \"(WGB)\" — plus the lead-in \"When I start "
-                "preparing ahead of time and using reminders (new A), I hope "
-                "that\". None of it answers an empty box, so there is nothing "
-                "to assign. The check fires on empty-box AND a long unassigned "
-                "run, which is the right conjunction in general and wrong here",
-    ("1c", 9):  "not a gap at all — the fixture is exactly right, and provably: "
-                "rebuilt gold is 6.0, the scorer returns 6.0, and the two label "
-                "sets are identical (title met, x and y absent, legend met). "
-                "p9's graph flattened into text, so the response IS chart "
-                "rendering: the title goes to `title`, the legend \"Baseline "
-                "Week 1 Week 2 Week 3\" to `series`, and what is left over is "
-                "the y-axis TICK VALUES (2.5 2 1.5 1 0.5 0) and the x-axis "
-                "CATEGORIES (the day names). Neither has a box, because 1c's "
-                "`x` and `y` are axis TITLES — which this chart genuinely lacks, "
-                "and which is exactly what gold's 6.0 deducts for",
+FIXTURE_GAP_BACKLOG: dict[tuple[str, int], str] = {
+    # Empty. Both entries said "the fixture is correct here", which is not a fact
+    # about a cell — it is a check firing where it should not, and the fix
+    # belonged in the check.
+    #
+    # 1c/p9: 1c has no prose-derived box at all. Its title/x/y are read off the
+    # GRAPH, so they are extractions, not quotations, and `_value_derived` now
+    # says so for the item instead of the cell.
+    #
+    # Q6/p17: the unassigned runs sat BETWEEN two filled boxes. A lost element
+    # runs to the end of the response or stands alone; it does not come bracketed
+    # by two spans that were both assigned. The check now steps over interstitial
+    # text.
 }
 
 
@@ -1725,8 +1717,32 @@ def check_fixture_covers_the_response() -> list[str]:
                 boxes = _span_boxes(iid, pid)
                 if len(boxes) < 2 or not any(not v for v in boxes.values()):
                     continue               # no empty box: nothing to lose text to
+                # Measure over UNCLAIMED SENTENCES only. A lost element is a
+                # sentence, or a run of them, that no box reaches into; text
+                # inside a sentence some box already claims is the connective
+                # tissue a clause-level split necessarily leaves behind.
+                #
+                # Q6/p17 is all of the second kind — the student's own "(UTB)"
+                # and "(WGB)" labelling and a lead-in clause, each wedged inside
+                # a sentence whose other half is in a box — and it carried a
+                # per-cell note saying exactly that.
+                #
+                # Sentence granularity, not "between the first and last box":
+                # masking the whole middle would hide a dropped interior
+                # sentence, which is the very thing this check is for (Q6/p5's
+                # missing second consequence, and Q5/p11's dropped third
+                # sentence, both found that way).
+                spans = [(at, at + len(t)) for at, t in
+                         ((_locate(raw, _norm(v)), _norm(v))
+                          for v in boxes.values() if v) if at >= 0]
+                unclaimed, pos = [], 0
+                for sent in re.split(r"(?<=[.!?])\s+", raw):
+                    lo, hi = pos, pos + len(sent)
+                    pos = hi + 1
+                    if not any(a < hi and lo < b for a, b in spans):
+                        unclaimed.append(sent)
                 run, text = _longest_unassigned(
-                    raw, [_norm(v) for v in boxes.values()])
+                    " ".join(unclaimed), [_norm(v) for v in boxes.values()])
                 if run < 10:
                     continue
                 if (iid, pid) in FIXTURE_GAP_BACKLOG:
@@ -1861,6 +1877,16 @@ def _value_derived(item_id: str) -> set[str]:
     spec = APP.JOBS.get(item_id) or {}
     key = f"_{item_id.lower()}_"
     out = set()
+    # 1c's `from_scorer` boxes are read off the GRAPH, not off the prose segment
+    # — the paper scorer takes them from the chart, which is why p11's `title`
+    # arrives filled while its prose segment is empty. They are extractions of
+    # named elements, not quotations, and the item has no prose-derived box at
+    # all. The one cell where a title IS locatable is p9, whose chart flattened
+    # INTO the text; that is a property of the transcription, not of the item.
+    # This carried a per-cell "the fixture is correct" note for p9; the fact is
+    # about 1c, so it belongs here, once.
+    if item_id == "1c":
+        out |= {"title", "x", "y"}
     for field in (spec.get("sim") or {}):
         tail = field.split(key)[-1] if key in field else field
         out.add(tail if key in field else tail.rsplit("_", 1)[-1])
@@ -1912,21 +1938,54 @@ def _longest_unassigned(raw: str, boxes, n: int = 5) -> tuple[int, str]:
 # Cross-element containments in the Q6 consensus table that are FAITHFUL: the
 # student really did write the same words twice, so two boxes holding them is a
 # true transcription and the grader's own machinery handles it.
-CONSENSUS_OVERLAP_BACKLOG = {
-    ("Q6", 6, "state_a1", "state_a2"):
-        "faithful, and the only one of p6's two overlaps that was. The student "
-        "names BOTH of 4a's triggers in one conjoined phrase — \"{{corpus:Q6/p6:state_a1:0:13:sha=8dd84d02fbee:shape=R13-0-20}}"
-        "{{corpus:Q6/p6:state_a1:14:21:sha=af9b87cbfe04}} & {{corpus:Q6/p6:state_a2:4:38:sha=56244251ed73}}\" — where a single \"not\" "
-        "scopes over both halves, so splitting it would invert the meaning of "
-        "whichever half lost the negation. Offering the same text to both boxes "
-        "and letting `cover` decide is what the mechanism is FOR: the scorer "
-        "labelled both `first`, so state_a2 is demoted. "
-        "Note what this entry used to claim — that gold charges the second as a "
-        "mismatch. p6's gold row carries NO itemised comment, only a 6.25, so "
-        "which five slots the grader credited is not recorded anywhere. The "
-        "claim was an inference presented as data; the demotion is ours, and it "
-        "stands on the response, not on gold",
+CONSENSUS_OVERLAP_BACKLOG: dict[tuple, str] = {
+    # Empty. Its last entry recorded that Q6/p6's two `state_a` boxes hold the
+    # same conjoined phrase on purpose — which the SLOT SHEET already declares,
+    # in cover="state_a1,state_a2:first,second|...". Two boxes sharing a cover
+    # group are meant to be resolved by the grader naming which listed item each
+    # refers to; the check reads that declaration now rather than being told
+    # cell by cell.
 }
+
+
+def _cover_groups(item_id: str) -> list[set[str]]:
+    """Boxes the slot sheet declares as covering ONE list between them.
+
+    Q6's LLMAction carries cover="state_a1,state_a2:first,second|state_c1,
+    state_c2:first,second". That means the two boxes answer between them a list
+    of two items: the grader asks WHICH each box refers to and demotes one that
+    names an item already claimed. Two boxes in such a group holding the same
+    text is an expected input, not a defect — it is the case the mechanism was
+    built to resolve.
+
+    Q6/p6 is that case. One conjoined phrase, "{{corpus:Q6/p6:state_a1:0:21:sha=641b355f6e09}} &
+    {{corpus:Q6/p6:state_a2:4:38:sha=56244251ed73}}", names both of 4a's triggers under a
+    single "not", so neither half can be split off without inverting it. The
+    scorer labelled both boxes `first` and cover demoted the second, as
+    designed. That carried a per-cell declaration; the fact is in the slot
+    sheet, so it is read from there.
+
+    Matched by SLOT NAMES rather than by the grader id: `cover` sits on the
+    <LLMAction>, thousands of characters from the grader it feeds, and a
+    proximity search silently found nothing.
+    """
+    import re
+
+    import paths
+
+    boxes = set(_fixture_boxes(item_id, 1)) or set()
+    for h in (1, 2, 3):
+        try:
+            src = open(paths.OLX % h).read()
+        except Exception:
+            continue
+        for m in re.finditer(r'cover="([^"]*)"\s*\n?\s*slots="([^"]*)"', src):
+            keys = {sl.split(":")[0].strip() for sl in m.group(2).split("|")}
+            if not boxes or not (boxes & keys) or len(boxes & keys) < 2:
+                continue
+            return [{b.strip() for b in g.split(":")[0].split(",") if b.strip()}
+                    for g in m.group(1).split("|")]
+    return []
 
 
 def check_consensus_spans_are_disjoint() -> list[str]:
@@ -1975,6 +2034,8 @@ def check_consensus_spans_are_disjoint() -> list[str]:
                 # same element: "state_c1"/"affect_c1" -> both end "c1"
                 if _siblings(a) == b or _siblings(b) == a:
                     continue
+                if any({a, b} <= g for g in _cover_groups(iid)):
+                    continue           # the sheet declares these two share a list
                 if len(bx[a]) < 25 or len(bx[b]) < 25:
                     continue
                 if bx[a] not in bx[b] and bx[b] not in bx[a]:
