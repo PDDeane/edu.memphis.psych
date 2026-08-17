@@ -685,13 +685,28 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
 
     # --- EXTENDS, worked cell by cell -------------------------------------
     # p8: change_a2 stopped at "... some progress in the". The response ends
-    # "... in the near future." and BOTH c2 boxes are empty, so nothing competes
-    # for it. The only true extension in the item.
+    # "... in the near future." and nothing competes for the tail.
+    #
+    # The consequence boxes are no longer empty. Both consequence clauses used to
+    # sit in NO box while all four c-boxes were blank, and the scorer's evidence
+    # for every one of them read "There is no text in this box." — it was
+    # reporting an empty box, not judging the student's writing, and it happened
+    # to land on gold's own answer, which charges -5 for consequences. Right
+    # score, wrong reason, with the fixture doing the scoring.
+    #
+    # Each clause hangs off the antecedent sentence before it, so each goes to
+    # the consequence box of its own element. Whether either NAMES a consequence
+    # from p8's 4c ("{{corpus:Q4c/p8:first:53:110:sha=0463b65e03dd}}
+    # games"; "0 motivation ... procrastinate") is the scorer's call, not ours.
     ("Q6", 8): [
         ("set", "change_a2",
          "{{corpus:Q6/p8:change_a2:0:70:sha=ce49c79fb729:shape=R70-0-20}}"
          "{{corpus:Q6/p8:change_a2:71:139:sha=20b00a0f9360:shape=R68-0-20}}"
          "{{corpus:Q6/p8:change_a2:140:148:sha=d4b9d02da030}} future."),
+        ("set", "state_c1",
+         "Which then makes me wish I would have just gone to the gym, since at times I feel super unmotivated to {{corpus:Q6/p8:change_a2:9:27:sha=bfc0a265c4d1}} exercise."),
+        ("set", "state_c2",
+         "which can lead to {{corpus:Q1/p8:response:206:236:sha=a6fc82d76be7}}"),
     ],
 
     # p19 is ONE sentence describing ONE pair, and the student labelled every

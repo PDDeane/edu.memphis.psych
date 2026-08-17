@@ -547,6 +547,8 @@ def enforcement_audit():
         findings.append(("-", "REPORTER CRASHES", bad))
     for bad in ENF.check_rubric_items_are_unique():
         findings.append(("-", "RUBRIC ITEMS NOT UNIQUE", bad))
+    for bad in ENF.check_consensus_fixes_have_no_duplicate_cells():
+        findings.append(("-", "TWO FIXES FOR ONE CELL", bad))
     for bad in ENF.check_the_audit_read_the_corpus():
         findings.append(("-", "AUDIT EXAMINED NOTHING", bad))
     for bad in ENF.check_consensus_spans_are_disjoint():
@@ -1103,6 +1105,26 @@ def enforcement_selftest():
                   [f for f in enforcement_audit()[0]]))
     ENF._segment_as_scored = _real_seg
     ENF._SEGMENTS_MEMO = None
+
+    # The duplicate-CELL guard. CONSENSUS_FIXES is a dict literal, so a repeated
+    # (item, pid) is resolved by Python before any check runs: the later entry
+    # wins, the earlier one vanishes, and the boxes it meant to fill read as
+    # empty — indistinguishable from the repair having been considered and
+    # rightly skipped. That happened to Q6/p8 while its consequence boxes were
+    # being assigned. No loaded object can show it, so the check parses the
+    # source and the injection gives it a source with a duplicate in it.
+    import tempfile as _tf
+    _dup = _tf.NamedTemporaryFile("w", suffix=".py", delete=False)
+    _dup.write("CONSENSUS_FIXES = {\n"
+               '    ("Q6", 8): [("set", "state_c1", "one")],\n'
+               '    ("Q6", 8): [("set", "change_a2", "two")],\n'
+               "}\n")
+    _dup.close()
+    ENF._CONSENSUS_SOURCE = _dup.name
+    cases.append(("two CONSENSUS_FIXES entries for one cell",
+                  "TWO FIXES FOR ONE CELL", "-",
+                  [f for f in enforcement_audit()[0]]))
+    ENF._CONSENSUS_SOURCE = None
 
     # The hand-split transcription guard. Q4b p7 had one sentence in two boxes
     # for as long as the table has existed: the student left `Modify:` blank and
