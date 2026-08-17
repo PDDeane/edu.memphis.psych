@@ -1951,7 +1951,18 @@ def check_fixture_follows_response_structure() -> list[str]:
 
 
 # Cells where gold's wording and the fixture legitimately disagree, with why.
-FIXTURE_GOLD_OVERRIDES: dict[tuple[str, int, str], str] = {}
+FIXTURE_GOLD_OVERRIDES: dict[tuple[str, int, str], str] = {
+    ("1c", 11, "baseline"):
+        "the box is right and gold is judging something else. p11 TYPED baseline "
+        "data — 1b scores full marks and the reconstruction records \"Baseline "
+        "week has data (30/30/30) but was not plotted on the graph\" — so gold's "
+        "\"-1 pt: missing baseline data week\" is about the CHART. On the web "
+        "that typed data draws the chart, which is the same reason p4, p19 and "
+        "p20 are already declared unscoreable on this item: a paper failure the "
+        "web cannot reproduce. Worth deciding separately whether p11 belongs "
+        "with them at the SCORING level; this only records that the fixture is "
+        "not at fault",
+}
 
 
 def check_consensus_fixes_are_unique() -> list[str]:
@@ -2014,9 +2025,16 @@ def check_fixture_agrees_with_gold() -> list[str]:
     # What gold CALLS each box. Q6's graders write "antecedent"/"consequence",
     # not slot names, so it needs a map; items whose boxes are already named the
     # way gold names them (Q3's SMART aspects) use the box name itself.
+    # What gold CALLS each box, and what it must NOT say. 1c needs the second
+    # half: "missing x-axis title" names the AXIS title, and a bare "title" key
+    # matched it against the CHART title box, which p9 and p11 both fill
+    # correctly. Two of this check's three findings on 1c were that collision.
     NAMED = {
         "Q6": {"state_a1": ("first", "antecedent"), "state_a2": ("second", "antecedent"),
                "state_c1": ("first", "consequence"), "state_c2": ("second", "consequence")},
+        "1c": {"x": ("x-axis",), "y": ("y-axis",),
+               "title": (("title",), ("x-axis", "y-axis", "axis")),
+               "series": ("series",), "baseline": ("baseline",)},
     }
     ABSENT = r"(?:did not (?:state|address|say|provide|list|clarify)|missing|never)"
     WRONG = r"(?:is not the same|does not match|not the same|a different)"
@@ -2043,7 +2061,11 @@ def check_fixture_agrees_with_gold() -> list[str]:
                     # so it keeps a short lookback.
                     frag = (m.group(0) if pat is ABSENT
                             else fb[max(0, m.start() - 60):m.end()])
-                    if not all(w in frag for w in words):
+                    want, forbid = (words if isinstance(words[0], tuple)
+                                    else (words, ()))
+                    if not all(w in frag for w in want):
+                        continue
+                    if any(w in frag for w in forbid):
                         continue
                     # "did not say HOW it is changed" is a judgement that what was
                     # written is INADEQUATE, not a claim that nothing was. p8's
