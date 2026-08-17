@@ -240,9 +240,26 @@ def segment(
                 advanced = True
                 if capture_tail:
                     tail = line[m.end():]
-                    stripped = strip_template_prefix(tail, stems)
-                    if stripped != tail:
-                        tail = stripped
+                    # Strip the printed question from BOTH ends of the match, not
+                    # just after it. A marker can fire INSIDE a question, and then
+                    # what follows is the REST OF THE QUESTION rather than an
+                    # answer — but the stem can no longer match it, because the
+                    # marker just consumed the stem's opening words.
+                    #
+                    # Participant 8's handout 3 is the case. Their transcription
+                    # dropped the "3." prefix, so the item-3 marker matched on
+                    # "What could be done differently" instead, mid-stem. The tail
+                    # began "next time to improve your behavior modification
+                    # intervention plan? ..." — no stem starts there — so 320
+                    # characters of printed question went into the section and
+                    # every scorer read the question as p8's answer.
+                    #
+                    # Measuring from the WHOLE LINE finds the stem again. Any stem
+                    # that matches is template text by construction, so taking
+                    # whichever candidate removed the most is safe.
+                    tail = min((tail,
+                                strip_template_prefix(tail, stems),
+                                strip_template_prefix(line, stems)), key=len)
                     # Two labels can share one line — participant 15 has
                     # "Second type of Operant Conditioning I plan to use:
                     # \t Definition:" with the answer on the line below. Keep
