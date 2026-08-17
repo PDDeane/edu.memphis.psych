@@ -862,8 +862,18 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     ("Q6", 9): [
         ("set", "state_c1",
          "{{corpus:Q6/p9:affect_c1:0:55:sha=ee60f3a47798:shape=R22-1-5c7532303139}} health."),
+        # affect_c1 must carry the clause that says what BECOMES of the
+        # consequence, and in this response that clause is inseparable from the
+        # naming: "{{corpus:Q6/p9:affect_c1:10:55:sha=c168024a17ed:shape=A12}} health" states
+        # the consequence and its fate in one breath. Given only the sentence
+        # after it, the scorer answered `incomplete` — correctly, since "I will
+        # get more motivated" names a NEW state rather than the fate of the old
+        # one — and lost a slot gold credits. state_c1 and affect_c1 are
+        # siblings, so one clause answering both is expected and the overlap
+        # check exempts it.
         ("set", "affect_c1",
-         "{{corpus:Q6/p9:affect_c1:64:130:sha=fdb6e2c24c5a}}"),
+         "{{corpus:Q6/p9:affect_c1:0:63:sha=d7be8ab0f600:shape=R22-1-5c7532303139,R63-0-20}}"
+         "{{corpus:Q6/p9:affect_c1:64:120:sha=abe47e0087a3}} progress."),
         ("set", "state_c2", ""),
         ("set", "affect_c2", ""),
     ],
