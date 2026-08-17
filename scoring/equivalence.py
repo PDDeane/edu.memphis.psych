@@ -547,6 +547,8 @@ def enforcement_audit():
         findings.append(("-", "REPORTER CRASHES", bad))
     for bad in ENF.check_rubric_items_are_unique():
         findings.append(("-", "RUBRIC ITEMS NOT UNIQUE", bad))
+    for bad in ENF.check_the_audit_read_the_corpus():
+        findings.append(("-", "AUDIT EXAMINED NOTHING", bad))
     for bad in ENF.check_consensus_spans_are_disjoint():
         findings.append(("-", "CONSENSUS SPANS OVERLAP", bad))
     for bad in ENF.check_fixture_covers_the_response():
@@ -1082,6 +1084,25 @@ def enforcement_selftest():
                   "SLOT RULE WEB ONLY", "-",
                   [f for f in enforcement_audit()[0]]))
     del _OP2.SLOT_NOTES["Q4b:behavior_1"]
+
+    # The audit-read-anything guard. Every segment-reading check swallows its
+    # read errors so a machine without the corpus can still run the audit, which
+    # means one bug in the shared reader turns "examined 60 submissions, found
+    # six problems" into "examined nothing, found none" — reported as SUCCESS.
+    # That happened: the shared reader landed at module scope, where the
+    # `import segment as SEG` each check does locally was out of scope, and it
+    # raised NameError on every submission. Only diffing against the previous
+    # run caught it, so the condition is asserted here instead.
+    _real_seg = ENF._segment_as_scored
+    def _blind(*_a, **_k):
+        raise NameError("name 'SEG' is not defined")
+    ENF._segment_as_scored = _blind
+    ENF._SEGMENTS_MEMO = None
+    cases.append(("the audit cannot read the corpus at all",
+                  "AUDIT EXAMINED NOTHING", "-",
+                  [f for f in enforcement_audit()[0]]))
+    ENF._segment_as_scored = _real_seg
+    ENF._SEGMENTS_MEMO = None
 
     # The hand-split transcription guard. Q4b p7 had one sentence in two boxes
     # for as long as the table has existed: the student left `Modify:` blank and

@@ -1408,6 +1408,17 @@ def check_rubric_items_are_unique() -> list[str]:
 FIXTURE_GAP_BACKLOG = {
     ("Q6", 8):  "gold: did not state each consequence being affected",
     ("Q6", 17): "gold: did not address your second antecedent ... or second consequence",
+    # Both 1c cells below are graphs flattened into text, where the unassigned
+    # run is chart FURNITURE, not an answer the fixture mislaid.
+    ("1c", 9):  "the empty x and y are faithful: p9's chart carries tick values "
+                "(2.5 2 1.5 1 0.5 0), day names and series names, but no axis "
+                "TITLES. Gold's 6.0 is partial credit for exactly that",
+    ("1c", 20): "the unassigned run is the student's WRITTEN DESCRIPTION of a "
+                "graph they never drew (\"Title: ... X-axis label: ...\"), so "
+                "the empty title/x/y are faithful to the paper. This cell is "
+                "already declared unscoreable in cell_exclusions for the same "
+                "reason: gold scored it 0, while on the web that description "
+                "IS the answer",
 }
 
 
@@ -1466,8 +1477,7 @@ def check_single_box_fixtures_are_verbatim() -> list[str]:
                 continue
             for pid, path in sorted(subs.items()):
                 try:
-                    segs = SEG.segment(path, cfg["template"], cfg["markers"],
-                                       cfg.get("capture_tail", False))
+                    segs = _segment_as_scored(h, pid)
                 except Exception:
                     continue
                 for item in cfg["rubric"].ITEMS:
@@ -1475,6 +1485,10 @@ def check_single_box_fixtures_are_verbatim() -> list[str]:
                     boxes = _fixture_boxes(iid, pid)
                     if len(boxes) > 1:
                         multi.setdefault(iid, len(boxes))
+                        continue
+                    # A lone box that holds a PARSED VALUE is not a quotation,
+                    # so "is it reproduced verbatim" is not a question about it.
+                    if set(boxes) & _value_derived(iid):
                         continue
                     if len(boxes) != 1:
                         continue
@@ -1527,6 +1541,60 @@ def check_single_box_fixtures_are_verbatim() -> list[str]:
     return problems
 
 
+def check_the_audit_read_the_corpus() -> list[str]:
+    """Did the fixture checks actually LOOK at anything?
+
+    Every segment-reading check wraps its read in `except Exception: continue`,
+    because a corpus is not present on all machines and one unreadable .docx
+    should not stop an audit. That is the right behaviour and it has a sharp
+    edge: a bug in the shared reader raises for EVERY submission, every check
+    skips every cell, and an audit that examined nothing reports the same clean
+    result as an audit that examined everything and found nothing.
+
+    That is not hypothetical either. Moving the four bare `segment()` calls onto
+    a shared helper put the helper at module scope, where the `import segment as
+    SEG` that each check does locally was not in scope. It raised `NameError` on
+    all 60 submissions, and the audit's answer changed from six real findings to
+    zero — reported as SUCCESS. Only diffing against the previous run caught it.
+
+    So: if the corpus is here, the checks must have read it. The corpus itself is
+    the control — when it is absent there is nothing to assert and this passes.
+    """
+    present = []
+    for h in (1, 2, 3):
+        try:
+            import handouts as H
+
+            if H.find_submissions(h):
+                present.append(h)
+        except Exception:
+            continue
+    if not present:
+        return []                          # no corpus on this machine
+
+    problems = []
+    for h in present:
+        try:
+            segs = _segment_as_scored(h, sorted(dict(__import__("handouts")
+                                                     .find_submissions(h)))[0])
+        except Exception as exc:
+            problems.append(
+                f"H{h}: the fixture checks cannot read this corpus — "
+                f"{type(exc).__name__}: {exc}. Every check that reads a segment "
+                f"silently skips every cell and reports no findings, which is "
+                f"indistinguishable from a clean audit")
+            continue
+        if not any((v or "").strip() for v in segs.values()):
+            problems.append(
+                f"H{h}: segmentation returned nothing for the first submission. "
+                f"The checks will examine no cells and report no findings")
+    if not problems and not _fixture_cells():
+        problems.append(
+            "the corpus is present but no multi-box cell was collected, so "
+            "every fixture check examined nothing and reported nothing")
+    return problems
+
+
 def check_fixture_covers_the_response() -> list[str]:
     """Does the split fixture still contain the student's whole answer?
 
@@ -1569,8 +1637,7 @@ def check_fixture_covers_the_response() -> list[str]:
             continue
         for pid, path in subs:
             try:
-                segs = SEG.segment(path, cfg["template"], cfg["markers"],
-                                   cfg.get("capture_tail", False))
+                segs = _segment_as_scored(h, pid)
             except Exception:
                 continue
             for item in cfg["rubric"].ITEMS:
@@ -1578,7 +1645,7 @@ def check_fixture_covers_the_response() -> list[str]:
                 raw = _norm(segs.get(iid, ""))
                 if len(raw.split()) < 20:
                     continue               # too short for a gap to mean anything
-                boxes = _fixture_boxes(iid, pid)
+                boxes = _span_boxes(iid, pid)
                 if len(boxes) < 2 or not any(not v for v in boxes.values()):
                     continue               # no empty box: nothing to lose text to
                 run, text = _longest_unassigned(raw, _norm(" ".join(boxes.values())))
@@ -1673,6 +1740,42 @@ def _fixture_boxes(item_id: str, pid: int) -> dict[str, str]:
     _BOXES_MEMO[(item_id, pid)] = out
     return dict(out)
 
+
+
+def _value_derived(item_id: str) -> set[str]:
+    """Boxes holding PARSED VALUES rather than quoted spans of the response.
+
+    Handout 3's 1b is answered with a data table and 1c with a drawing, not with
+    prose. Their `sim` boxes hold what simulate_h3 parsed out: 1b/p15's `wk1` is
+    `8, 11, 6, 9, 6, 10, 9` for a student who typed "Sunday - 8 hours Monday -
+    11 hours ...". The value is right and the box is right, but it appears
+    nowhere as a SUBSTRING of what the student wrote, so every check that works
+    by locating a box inside the response calls the entire response unassigned.
+
+    That is what flagged 1b/p15 and three 1c cells. All four fixtures were
+    faithful; 1b/p15's empty `baseline` and `wk3` are the student's own "none"
+    and "Week Three Data: Lost", which gold's 2.0 agrees with. The locator-based
+    checks only make sense for boxes that quote the response, so they ask here
+    which boxes those are.
+
+    Provenance decides it, so read it off the JOBS spec — the same rule
+    `_fixture_boxes` uses to name a box — rather than guessing from box names.
+    """
+    import agreement_app as APP
+
+    spec = APP.JOBS.get(item_id) or {}
+    key = f"_{item_id.lower()}_"
+    out = set()
+    for field in (spec.get("sim") or {}):
+        tail = field.split(key)[-1] if key in field else field
+        out.add(tail if key in field else tail.rsplit("_", 1)[-1])
+    return out
+
+
+def _span_boxes(item_id: str, pid: int) -> dict[str, str]:
+    """`_fixture_boxes` minus the boxes that hold values instead of quotations."""
+    drop = _value_derived(item_id)
+    return {k: v for k, v in _fixture_boxes(item_id, pid).items() if k not in drop}
 
 
 def _longest_unassigned(raw: str, boxes: str, n: int = 5) -> tuple[int, str]:
@@ -1848,8 +1951,7 @@ def _fixture_cells():
                     continue
                 for pid, path in sorted(subs.items()):
                     try:
-                        segs = SEG.segment(path, cfg["template"], cfg["markers"],
-                                           cfg.get("capture_tail", False))
+                        segs = _segment_as_scored(h, pid)
                     except Exception:
                         continue
                     for item in cfg["rubric"].ITEMS:
@@ -1860,10 +1962,41 @@ def _fixture_cells():
 
     out = []
     for h, iid, pid, raw in _SEGMENTS_MEMO:
-        boxes = _fixture_boxes(iid, pid)
+        boxes = _span_boxes(iid, pid)
         if len(boxes) >= 2:
             out.append((h, iid, pid, raw, boxes))
     return out
+
+
+def _segment_as_scored(handout: int, pid: int) -> dict[str, str]:
+    """Segment one submission through the SCORER'S OWN entry point.
+
+    `agreement_app.sections_for` is that entry point, and its docstring records
+    this exact bug happening once already: the web scorer segmented without
+    `repair_orphans` while the CLI segmented with it, so the two read DIFFERENT
+    INPUT on H2 p19 and their comparison for that cell became meaningless rather
+    than merely wrong.
+
+    The audit then reintroduced it. It called `segment()` bare at four sites,
+    dropping both `repair_orphans` (H2) and `join_aware` (H3), and so judged
+    fixtures against text no scorer ever sees. Every accusation that followed
+    was false: D2/p19 was reported as holding less than the response (the audit
+    was looking at the unrepaired definition with the daily example still stuck
+    to its end), and 1c/p11 and 1c/p20 were reported as DROPPING the template's
+    own printed instruction — "Ensure the graph title, both axes' labels, and
+    the legend ... are labeled appropriately" — which no student wrote.
+
+    So this delegates rather than reimplementing. An audit that reads its
+    subject through a different lens than the scorer is not measuring the
+    scorer, and the only durable way to guarantee one lens is to have one.
+    """
+    import warnings
+
+    import agreement_app as APP
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return APP.sections_for(handout, pid)
 
 
 def _siblings(box: str) -> str:
@@ -1956,16 +2089,12 @@ def check_fixture_follows_response_structure() -> list[str]:
 
 # Cells where gold's wording and the fixture legitimately disagree, with why.
 FIXTURE_GOLD_OVERRIDES: dict[tuple[str, int, str], str] = {
-    ("1c", 11, "baseline"):
-        "the box is right and gold is judging something else. p11 TYPED baseline "
-        "data — 1b scores full marks and the reconstruction records \"Baseline "
-        "week has data (30/30/30) but was not plotted on the graph\" — so gold's "
-        "\"-1 pt: missing baseline data week\" is about the CHART. On the web "
-        "that typed data draws the chart, which is the same reason p4, p19 and "
-        "p20 are already declared unscoreable on this item: a paper failure the "
-        "web cannot reproduce. Worth deciding separately whether p11 belongs "
-        "with them at the SCORING level; this only records that the fixture is "
-        "not at fault",
+    # Empty. The one entry that lived here — ("1c", 11, "baseline") — covered a
+    # box that holds a PARSED VALUE, and `_span_boxes` now keeps value boxes out
+    # of the locator-based checks entirely, so nothing is left to suppress. The
+    # substance of that note was never about the fixture: it asked whether p11
+    # belongs with 1c's unscoreable cells, and it now sits beside them as a
+    # documented open question in handouts.py's `unscoreable` block.
 }
 
 
@@ -2129,8 +2258,8 @@ def fixture_readout(item: str, pid: int) -> str:
     subs = dict(H.find_submissions(cfg is not None and (1 if item.startswith("Q") else 3)))
     if pid not in subs:
         return f"p{pid}: no submission on this machine"
-    raw = " ".join(SEG.segment(subs[pid], cfg["template"], cfg["markers"],
-                               cfg.get("capture_tail", False)).get(item, "").split())
+    raw = " ".join(_segment_as_scored(
+        1 if item.startswith("Q") else 3, pid).get(item, "").split())
     if not raw:
         return f"{item}/p{pid}: empty response"
 
@@ -2157,8 +2286,11 @@ def fixture_readout(item: str, pid: int) -> str:
         out.append(f"  [{k}] @{at}")
         out.append(f"     {v}")
         out.append("")
+    values = _value_derived(item)
     for k, v in unplaced:
-        out.append(f"  [{k}] (not located in the response)")
+        why = ("(a parsed value, not a quotation)" if k in values
+               else "(not located in the response)")
+        out.append(f"  [{k}] {why}")
         out.append(f"     {v}")
         out.append("")
 
