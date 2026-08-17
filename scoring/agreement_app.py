@@ -597,6 +597,53 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     #
     # Part 2's c-boxes share one sentence because the student wrote only one
     # there; that is the permitted same-element overlap, not a duplication.
+    # 2a/p1. how1 swallowed BOTH explanations — the sleep/patience one and the
+    # physical-health one — leaving how2 empty. Two distinct HOWs, two boxes.
+    ("2a", 1): [
+        ("set", "how1",
+         "{{corpus:2a/p1:how1:0:72:sha=f985dc5d569d}} getting."),
+        ("set", "how2",
+         "{{corpus:2a/p1:how2:0:155:sha=630d660099b1}} bit."),
+    ],
+    # 2a/p5. how1 began mid-sentence at "{{corpus:2a/p5:how1:78:102:sha=1a189475cd71}} slip", dropping the
+    # clause it depends on. Restored to the whole sentence.
+    ("2a", 5): [
+        ("set", "how1",
+         "{{corpus:2a/p5:how1:0:149:sha=37d5a4ba7e65}} burnout."),
+    ],
+    # 2a/p15. how1 held both explanations and how2 was empty, same shape as p1.
+    ("2a", 15): [
+        ("set", "how1",
+         "{{corpus:2a/p15:how1:0:24:sha=76aa568a019e}} screentime."),
+        ("set", "how2",
+         "{{corpus:2a/p15:how2:0:50:sha=fbc7eed7d0f0}} unreasonable."),
+    ],
+    # 2a/p16. p16 labels its own sentences ("Sentence 1:", "Sentence 2:"). how1 held a
+    # string that appears NOWHERE in the response — sentence 1's label welded to
+    # sentence 2's text. Set to sentence 2 with the label stripped.
+    ("2a", 16): [
+        ("set", "how1",
+         "{{corpus:2a/p16:how1:0:61:sha=4cbf58cc2e12}} exercise."),
+    ],
+    # Q4a/p10. `second` dropped part 2's closing clause ("{{corpus:Q4a/p10:second:117:146:sha=ee9ee342783a}}
+    # the day ..."). A numbered part keeps all of its own clauses.
+    ("Q4a", 10): [
+        ("set", "second",
+         "{{corpus:Q4a/p10:second:0:187:sha=b0c29b343081}} sorts."),
+    ],
+    # Q4a/p17. `first` dropped part 1's second sentence, same rule.
+    ("Q4a", 17): [
+        ("set", "first",
+         "{{corpus:Q4a/p17:first:0:114:sha=dd1ff58cb34f}} ."),
+    ],
+    # Q5/p11. both boxes truncated: `first` lost part 1's third sentence, `second` was cut
+    # mid-clause at "recover from stress". Each part keeps all three of its clauses.
+    ("Q5", 11): [
+        ("set", "first",
+         "{{corpus:Q5/p11:first:0:370:sha=99b69bed3aea}} health."),
+        ("set", "second",
+         "{{corpus:Q5/p11:second:0:370:sha=cec57960c613}} term."),
+    ],
     # 2a/p18 is NOT fixed here, and the reason is worth keeping. This entry
     # once set `verdict` to "The behavior modification plan was successful."
     # That sentence is the first line of the TEMPLATE'S WORKED EXAMPLE, which
