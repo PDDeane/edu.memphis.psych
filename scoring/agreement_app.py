@@ -805,6 +805,23 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # created two new OVERLAPS, swallowing clauses their neighbours hold.
     # p6: both antecedent boxes grabbed the "To" that opens "To do that, I will
     # make it mandatory ..."; change_a1 already begins there
+    #
+    # The change boxes are split at "while", a clause boundary. `change_a2` used
+    # to hold "{{corpus:Q6/p6:change_a1:12:36:sha=4f2bd88df1ea}} ... {{corpus:Q6/p6:change_a1:75:93:sha=d808b781e5fa:shape=R18-0-22}} — a strict
+    # SUBSTRING of `change_a1`, which held the whole sentence — and both were
+    # credited: 2.5 points for one commitment. `cover` cannot catch that. The
+    # sheet declares cover="state_a1,state_a2:first,second|state_c1,state_c2:
+    # first,second", so it governs the STATE slots only; state_a2's duplicate IS
+    # demoted, the change duplicate is not, and p6 landed on gold's 6.25 with a
+    # slot right for the wrong reason.
+    #
+    # The sentence carries two commitments, one per trigger, and 4a names them:
+    # "not stretching" is the FIRST trigger, "{{corpus:Q4a/p6:second:21:56:sha=98e4d82db22b}}
+    # days" the second. So the stretching clause answers a1 and the gym clause
+    # answers a2 — which is what state_a1's `refers_to: first` says too. The
+    # opening adjunct "To do that," goes with the main clause it modifies, which
+    # is change_a2's; leaving it stranded pushed the unassigned run over the
+    # coverage check's threshold for no reason a reader could act on.
     ("Q6", 6): [
         ("set", "state_a1",
          "I will be changing my antecedent of {{corpus:Q6/p6:state_a1:0:21:sha=641b355f6e09}} & "
@@ -814,6 +831,10 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "I will be changing my antecedent of {{corpus:Q6/p6:state_a1:0:21:sha=641b355f6e09}} & "
          "{{corpus:Q6/p6:state_a2:4:38:sha=56244251ed73}}, which results in muscle "
          "soreness and little to no flexibility."),
+        ("set", "change_a1", "while stretching daily."),
+        ("set", "change_a2",
+         "{{corpus:Q6/p6:change_a1:0:68:sha=45cb3b4751e5:shape=R68-0-20}}"
+         "{{corpus:Q6/p6:change_a1:69:93:sha=521aae91343f}}"),
     ],
     # p9: both consequence boxes grabbed "Instead I hope I", the head of the next
     # sentence, which affect_c1's own span already covers
