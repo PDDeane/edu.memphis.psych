@@ -597,17 +597,19 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     #
     # Part 2's c-boxes share one sentence because the student wrote only one
     # there; that is the permitted same-element overlap, not a duplication.
-    # 2a/p18 writes three sentences: the verdict, then two ways it worked.
-    #   @0   "The behavior modification plan was successful."
-    #   @47  "{{corpus:2a/p18:how1:0:50:sha=ed55adb2fb89}} week ..."
-    #   @126 "{{corpus:2a/p18:how2:0:50:sha=2f819792fd00}} ..."
-    # `verdict` held the SECOND sentence — the same span as `how1` — while the
-    # actual verdict at @0 belonged to no box. The scorer was asked whether the
-    # student stated a verdict while looking at one of their explanations, and
-    # `how1`'s text was doing duty for two different questions.
-    ("2a", 18): [
-        ("set", "verdict", "The behavior modification plan was successful."),
-    ],
+    # 2a/p18 is NOT fixed here, and the reason is worth keeping. This entry
+    # once set `verdict` to "The behavior modification plan was successful."
+    # That sentence is the first line of the TEMPLATE'S WORKED EXAMPLE, which
+    # p18 copied verbatim; `join_aware` strips it as boilerplate, exactly as it
+    # is meant to. The fix was made while the audit was reading segments WITHOUT
+    # join_aware, so the example text was still sitting in the response and read
+    # as the student's own verdict — putting template prose into a scored box.
+    #
+    # What remains is a real disagreement, not a fixture defect. Gold gives this
+    # cell a full 6.0, crediting the copied sentence the grader saw on paper.
+    # After template subtraction no verdict survives, so the paper scorer quotes
+    # the nearest thing — which is how1's sentence, and why `verdict` and `how1`
+    # overlap. Whether that makes the cell unscoreable is a SCORING decision.
 
     # Q4b/p7. The student numbers two items: (1) a statement that the behaviour
     # {{corpus:Q4b/p7:modify:21:38:sha=1fa4115cf4a6}}, with its reason, and (2) procrastinating. The hand-split
