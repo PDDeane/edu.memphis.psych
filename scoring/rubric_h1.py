@@ -203,9 +203,9 @@ ITEMS: list[dict] = [
                         "behaviour — something that goes wrong because of it, or a "
                         "symptom of it. \"{{corpus:Q1/p1:response:280:321:sha=552f19bc3c86:shape=R41-0-20}}"
                         "{{corpus:Q1/p1:response:322:337:sha=45dff12ade2b}} class\" is one. A reason is a whole STATEMENT: a "
-                        "clause that merely continues one is part of it, so \"{{corpus:Q1/p5:response:161:169:sha=7fc24b87e3f5:shape=R8-0-20}}"
-                        "{{corpus:Q1/p5:response:170:232:sha=68f227b24df0:shape=R50-5-5748494348,R56-6-43415553455320}}"
-                        "{{corpus:Q1/p5:response:233:243:sha=1baf8ec21bc7}} weight\" is ONE, while two effects merely joined by "
+                        "clause that merely continues one is part of it, so a named "
+                        "effect followed by \"which causes\" and its downstream result "
+                        "is ONE, while two effects merely joined by "
                         "\"and\" are two. Do NOT count a restatement that the student "
                         "struggles with the behaviour (participant 1) or a behaviour "
                         "performed DURING it (participant 2). Answer 3 for three or more",
