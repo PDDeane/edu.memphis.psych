@@ -203,9 +203,9 @@ ITEMS: list[dict] = [
                         "behaviour — something that goes wrong because of it, or a "
                         "symptom of it. \"With lack of sleep, it has become hard to "
                         "stay focused in class\" is one. A reason is a whole STATEMENT: a "
-                        "clause that merely continues one is part of it, so \"makes me "
-                        "turn to snacking on unhealthy things, like candy, WHICH CAUSES "
-                        "me to gain weight\" is ONE, while two effects merely joined by "
+                        "clause that merely continues one is part of it, so a named "
+                        "effect followed by \"which causes\" and its downstream result "
+                        "is ONE, while two effects merely joined by "
                         "\"and\" are two. Do NOT count a restatement that the student "
                         "struggles with the behaviour (participant 1) or a behaviour "
                         "performed DURING it (participant 2). Answer 3 for three or more",

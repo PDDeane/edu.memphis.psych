@@ -43,38 +43,37 @@ _EXAMPLE_RULES = [
     "is about FORM. A creditable answer links the behaviour to the consequence "
     "conditionally: \"If I [do / fail to do the behaviour], I will [gain / "
     "lose Y]\". An answer that names a reward without tying it to the behaviour "
-    "fails even though a reward is present — \"I want to increase going to the "
-    "gym so I will reward myself a cheat day every two weeks\" scored 0, with "
-    "the grader asking the student to \"state what the exact behavior you are "
-    "trying to increase is and what you are adding after that behavior is "
-    "exhibited\". A bare prediction with no plan at all (\"Not sleeping will "
+    "fails even though a reward is present. Naming the behaviour to be increased "
+    "and then a reward on a FIXED SCHEDULE — one given every so many weeks, "
+    "rather than after the behaviour — scored 0, the grader asking the student "
+    "to state the exact behaviour and what is added once it is exhibited. A "
+    "bare prediction with no plan at all (\"Not sleeping will "
     "make me too tired\") also scores 0.",
     "TEST 2 — DOES THE CONSEQUENCE ARRIVE AFTER THE BEHAVIOUR? \"Remember that "
     "what you take away or add has to happen after the behavior is exhibited.\" "
-    "Judge the DELIVERY, not the wording. \"I am not allowed to go out with "
-    "friends till I complete my weekly goal\" passes: the outing is delivered "
-    "once the goal is met, which is the ordinary shape of a reinforcement "
-    "contingency, and the graders credited it. What fails is a plan where "
-    "nothing is ever delivered contingent on the behaviour — \"Leaving my "
-    "headphones at my dorm\" or \"I would put away my phone as well as my video "
-    "games\" are antecedent manipulations that remove a temptation in advance "
-    "and never tie anything to performing the behaviour.",
+    "Judge the DELIVERY, not the wording. A privilege WITHHELD until a weekly "
+    "goal is met passes: it is delivered once the goal is met, which is the "
+    "ordinary shape of a reinforcement contingency, and the graders credited "
+    "it. What fails is a plan where nothing is ever delivered contingent on the "
+    "behaviour — leaving a temptation somewhere else, or putting a device away "
+    "beforehand, are antecedent manipulations that remove the temptation in "
+    "advance and never tie anything to performing the behaviour.",
     "TEST 3 — WHICH OF THE FOUR TYPES IS IT? Before crediting a type, answer the "
     "two questions explicitly: is the behaviour being INCREASED or DECREASED, "
     "and is something being ADDED or TAKEN AWAY? Then compare with the type "
     "under discussion. Well-formed contingencies of the WRONG type are the most "
-    "commonly missed deduction on this handout — \"if you stay under your screen "
-    "limit you're allowed music while studying\" is PR, not NR (-2); \"If I fail "
-    "to meet my goal I must delete a social media app\" is NP (-2); \"set a "
-    "screen lock on my phone until I exercise\" is not NR (-2).",
+    "commonly missed deduction on this handout, and three shapes recur. ADDING a "
+    "privilege for staying within a limit is PR, not NR (-2). ADDING a loss for "
+    "missing the goal is NP, not NR (-2). A barrier the student must clear "
+    "before performing the behaviour removes nothing once it is performed, so "
+    "it is not NR either (-2).",
     "WHAT COUNTS AS THE ADDED OR REMOVED THING — BE BROAD. It does not have to "
     "be a physical object. Removing an unpleasant OBLIGATION, chore, or "
-    "requirement is a perfectly good negative reinforcer, and the graders gave "
-    "full credit for all of these: \"If I quit using my electric devices by "
-    "10pm I will not have to wake up early to cover all activities I "
-    "procrastinated\"; \"If I go to sleep on time, I will not have to take naps "
-    "after school or feel tired\"; \"I will reward myself with not having to get "
-    "out of bed right away\". Do NOT deduct these as intrinsic outcomes.",
+    "requirement is a perfectly good negative reinforcer. The graders gave full "
+    "credit wherever meeting the goal SPARED the student something they would "
+    "otherwise have had to do — an early start to make up procrastinated work, "
+    "a compensating nap, getting out of bed at once. Do NOT deduct these as "
+    "intrinsic outcomes.",
     "NOT_EXTERNAL_STIMULUS is reserved for the narrow case where the named "
     "consequence is simply the behaviour's own automatic result AND no "
     "conditional plan is stated — the canonical zero is \"Sleeping more will "
@@ -288,8 +287,10 @@ def _definition_item(item_id: str, label: str, ordinal: str, type_ctx: str) -> d
             "but omits one of the two halves — e.g. says something is removed but never "
             "says the behaviour decreases.",
             "IMPLICIT (from gold): graders accepted textbook phrasing and the student's "
-            "own words equally. \"Removing a desired stimulus after a particular behavior "
-            "is exhibited\" earned full credit. Do not require the course's exact wording.",
+            "own words equally. A definition given in the course's technical register — "
+            "naming the stimulus, its removal, and the behaviour it follows — earned "
+            "full credit, and so did the same idea in ordinary words. Do not require "
+            "the course's exact wording.",
         ],
         "context": ["_utb", "_wgb", type_ctx],
     }
@@ -436,9 +437,10 @@ def _example_use_item(
             "WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour "
             "from the student's UTB/WGB — a plan about procrastination when the UTB is time "
             "on electronic devices. Do not deduct it merely because the phrasing is loose "
-            "or the link is indirect: \"I will only start watching shows or scrolling when "
-            "I am caught up on assignments\" earned full credit against a screen-time goal. "
-            "It stacks with TYPE_MISMATCH when both are true.",
+            "or the link is indirect: against a screen-time goal, gating the screen "
+            "activity itself on finishing coursework earned full credit, even though "
+            "the coursework is what the sentence foregrounds. It stacks with "
+            "TYPE_MISMATCH when both are true.",
             "IMPLICIT (from gold): advisory notes without deduction are common on these "
             "items — \"I suggest changing your punisher to something not related to "
             "exercise\" was written on a 4.0. Put that kind of remark in advisory_note.",
