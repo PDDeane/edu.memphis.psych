@@ -485,9 +485,15 @@ PER_ITEM_EXCLUDE: dict[str, dict[int, str | dict]] = {
                    "misfiled: p16's Q4b row is a clean 5.0, so the point was taken "
                    "off the wrong item. No correct 4c scorer can reach 3.0 here, "
                    "and both systems return 5.0.",
-            # Taken from the reason's own claim (returns 5.0 against a gold of
-            # 3.0). Unverified at the time of writing — the next Q4c run asserts
-            # it, and says so in the not-counted block if it has drifted.
+            # VERIFIED against 61 handout-1 runs on disk: 58 return 5.0, which
+            # is this +2.00. The three that return 3.0 are all pre-refactor
+            # snapshots (h1_preconv, h1_precover, h1_prevocab), and they reach
+            # gold's NUMBER by a route gold never took — charging
+            # C_NOT_CONSEQUENCE on the second example, where gold's stated
+            # reason is a misfiled 4b criterion. Hitting the total on a
+            # different criterion is not scoring the cell; the claim that no
+            # correct 4c scorer reaches 3.0 stands. Still asserted every run,
+            # and reported in the not-counted block if it drifts.
             "expect_error": +2.00,
         },
     },
