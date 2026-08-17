@@ -598,6 +598,160 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     #
     # Part 2's c-boxes share one sentence because the student wrote only one
     # there; that is the permitted same-element overlap, not a duplication.
+    # --- EXTENDS, worked cell by cell -------------------------------------
+    # p8: change_a2 stopped at "... some progress in the". The response ends
+    # "... in the near future." and BOTH c2 boxes are empty, so nothing competes
+    # for it. The only true extension in the item.
+    ("Q6", 8): [
+        ("set", "change_a2",
+         "Instead, go out and conduct exercise multiple days a week. I also help "
+         "my progress in the gym by eating clean so I can see some progress in "
+         "the near future."),
+    ],
+
+    # p19 is ONE sentence describing ONE pair, and the student labelled every
+    # element themselves: "(orig A) ... (newA), so I am not feeling unmotivated
+    # all day.(C) Instead, I feel refreshed (WGB) ... assignments(New C)."
+    #
+    # JUDGEMENT, not a mechanical repair. "(New C)" marks the NEW consequence
+    # after the change, not a SECOND one, and there is no second antecedent
+    # anywhere — so the c2 boxes were holding pieces of the first pair's
+    # narrative. Emptying them says the student addressed one pair, which is
+    # what gold says too ("-5 pts: did not address your second antecedent being
+    # changed and how it will affect your second consequence"). state_c1 gives
+    # back the "Instead, I" it took from the following clause, and affect_c1
+    # runs to the end of the sentence it owns.
+    ("Q6", 19): [
+        ("set", "state_c1", "so I am not feeling unmotivated all day.(C)"),
+        ("set", "affect_c1",
+         "Instead, I feel refreshed (WGB) when I get enough sleep, I will feel "
+         "motivated and perform well in my classes and assignments(New C)."),
+        ("set", "state_c2", ""),
+        ("set", "affect_c2", ""),
+    ],
+
+    # p18's c2 boxes were in the WRONG HALF of the response. Both held slices
+    # of part one's consequence sentence — state_c2 "rather than tired and
+    # guilty.", affect_c2 "will lead to a more positive consequence ..." — while
+    # part two's own consequence sentence, at @464, belonged to no box at all.
+    # That is the p5 defect again, and it is what generated all four of this
+    # cell's cross-element overlap findings.
+    #
+    #   part 2  @296 change   @403 antecedent   @464 consequence
+    #
+    # It also explains the scoring. p18's 4c second consequence is "personal
+    # dissatisfaction and guilt", and part one's sentence contains "guilty", so
+    # the borrowed text was being credited. The student's actual part-two
+    # sentence names focus and a SMART goal, not that consequence — which is
+    # what the graders charged ("-2.5 pts: did not address how the second
+    # consequence is being affected"). state_c2 and affect_c2 share the sentence
+    # as the permitted same-element overlap, since that is all part two has.
+    ("Q6", 18): [
+        ("set", "change_a2",
+         "either move my phone to a separate room or put it in \"Do Not "
+         "Disturb\" mode during my allotted workout time"),
+        ("set", "state_c2",
+         "I will be able to focus on my training and achieve my SMART goal for "
+         "the day if this distraction is eliminated."),
+        ("set", "affect_c2",
+         "I will be able to focus on my training and achieve my SMART goal for "
+         "the day if this distraction is eliminated."),
+    ],
+
+    # p10, made symmetric with its own part one. The student writes two parts,
+    # and part one assigns cleanly: change_a1 spans S1+S2 (the change AND its
+    # immediate result), state_c1/affect_c1 share S3 (the consequence). Part two
+    # did not follow: change_a2 held only S1, state_c2 held a slice of PART
+    # ONE's S1, and part two's S2 and S3 belonged to nothing.
+    #
+    #   part 1  S1+S2 -> change_a1     S3 -> state_c1 = affect_c1
+    #   part 2  S1+S2+S3 -> change_a2  S4 -> state_c2 = affect_c2
+    #
+    # An earlier attempt put part two's S2 ("reduce my anxiety and increase my
+    # confidence") into state_c2 and measured 8.75 -> 6.25. That was the wrong
+    # clause: by symmetry with part one, S2 belongs with the CHANGE, and the
+    # consequence box takes the part's last sentence. 4c's second consequence is
+    # "repeating the same cycle of laziness", which S4's "healthier lifestyle
+    # habits and help fix how I think about myself" answers and S2 does not.
+    ("Q6", 10): [
+        # part one's consequence, whole: the box began at "hoping", orphaning
+        # "I'm", and ran on to grab the "2) I" that opens part two.
+        ("set", "state_c1",
+         "I\u2019m hoping this will slowly put me in a good standing mentally and "
+         "physically."),
+        ("set", "affect_c1",
+         "I\u2019m hoping this will slowly put me in a good standing mentally and "
+         "physically."),
+        ("set", "change_a2",
+         "2) I can research beginner friendly workouts to help with my fear of "
+         "embarrassment at the gym. This will help reuduce my anxiety and "
+         "increase my confidence to try newer things in the gym. It all about "
+         "taking baby steps."),
+        ("set", "state_c2",
+         "This will lead to healthier lifestyle habits and help fix how I think "
+         "about myself."),
+    ],
+
+    # --- TRIMS -------------------------------------------------------------
+    # Nine boxes that had taken the HEAD of the following sentence. Where a box
+    # ends "... flexibility. To" or "... physically. 2) I", the response says
+    # unambiguously where the boundary goes: cut at the stop, and the head
+    # belongs to whichever box owns that sentence. Verified as a set — structure
+    # mismatches 14 -> 6 with overlaps and coverage unchanged.
+    #
+    # The opposite direction is NOT mechanical and is not done here. Where a box
+    # stops mid-clause, how far it should reach is a judgement about which box
+    # owns the rest: extending them all cleared the remaining six mismatches and
+    # created two new OVERLAPS, swallowing clauses their neighbours hold.
+    # p6: both antecedent boxes grabbed the "To" that opens "To do that, I will
+    # make it mandatory ..."; change_a1 already begins there
+    ("Q6", 6): [
+        ("set", "state_a1",
+         "I will be changing my antecedent of not attending the gym & "
+         "stretching as often as I should be, which results in muscle "
+         "soreness and little to no flexibility."),
+        ("set", "state_a2",
+         "I will be changing my antecedent of not attending the gym & "
+         "stretching as often as I should be, which results in muscle "
+         "soreness and little to no flexibility."),
+    ],
+    # p9: both consequence boxes grabbed "Instead I hope I", the head of the next
+    # sentence, which affect_c1's own span already covers
+    # p9 is one pair, like p19. The trailing "Instead I hope I will get more
+    # motivated after seeing my progress." is the EFFECT on the first
+    # consequence, not a second consequence — and gold says so outright:
+    # "missing second consequences". state_c2 was holding it while affect_c1 held
+    # only a slice of state_c1's sentence. Caught by
+    # check_fixture_agrees_with_gold; the other four checks passed it.
+    ("Q6", 9): [
+        ("set", "state_c1",
+         "With this I hope I don\u2019t suffer the consequences of bad health."),
+        ("set", "affect_c1",
+         "Instead I hope I will get more motivated after seeing my progress."),
+        ("set", "state_c2", ""),
+        ("set", "affect_c2", ""),
+    ],
+    # p11: state_c1 ran into "Instead, I hope that I will have improved ...", which
+    # affect_c1 already holds in full
+    ("Q6", 11): [
+        ("set", "state_c1",
+         "A), I hope that I will no longer experience the consequence of "
+         "reduced physical fitness and low endurance (original C)."),
+    ],
+    # p14: affect_c1 grabbed the "I" opening the next sentence
+    ("Q6", 14): [
+        ("set", "affect_c1",
+         "I work out (new A). I hope setting this new trigger, I will be "
+         "able to work out more(WGB), so it won't lead to the consequence of "
+         "gaining weight."),
+        ("set", "affect_c2",
+         "not be that severe."),
+        ("set", "state_c2",
+         "I hope setting this new trigger, I will be able to function well, "
+         "so it won't lead to the consequences of me not able to release "
+         "tension because I didn’t go."),
+    ],
+
     ("Q6", 4): [
         ("set", "state_c1", "which I hope will help me to be happier."),
         ("set", "affect_c1",

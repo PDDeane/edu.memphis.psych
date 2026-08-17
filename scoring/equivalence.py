@@ -553,6 +553,8 @@ def enforcement_audit():
         findings.append(("-", "FIXTURE DROPS RESPONSE TEXT", bad))
     for bad in ENF.check_fixture_follows_response_structure():
         findings.append(("-", "FIXTURE CUTS MID-CLAUSE", bad))
+    for bad in ENF.check_fixture_agrees_with_gold():
+        findings.append(("-", "FIXTURE CONTRADICTS GOLD", bad))
     for bad in ENF.check_unreachable_gold_is_allowed():
         findings.append(("-", "UNREACHABLE GOLD PENALISED", bad))
     for iid, h, mx, label in uncovered_cli_items():
@@ -987,6 +989,24 @@ def enforcement_selftest():
                   [f for f in enforcement_audit()[0]]))
     _R4.ITEMS.pop()
 
+    # A box holding text gold says was never written. This is the one fixture
+    # check that reaches OUTSIDE the response — the others compare the boxes
+    # against the student's words, this one against the grader's reading of
+    # them. It found p9 after the other four had passed it. Injected by filling
+    # a box gold reports as absent.
+    import enforcement as _E6
+    _real_fb6 = _E6._fixture_boxes
+    def _filling(item, pid):
+        bx = dict(_real_fb6(item, pid))
+        if item == "Q6" and pid == 9:
+            bx["state_c2"] = "Instead I hope I will get more motivated after seeing my progress."
+        return bx
+    _E6._fixture_boxes = _filling
+    cases.append(("a box holds text gold says was never written",
+                  "FIXTURE CONTRADICTS GOLD", "-",
+                  [f for f in enforcement_audit()[0]]))
+    _E6._fixture_boxes = _real_fb6
+
     # A box cut mid-clause. Two other fixture checks pass on these: the text is
     # all present and no two boxes share it, but a box holding "... I hope that
     # I" is a fragment, not a clause. Injected by truncating one.
@@ -995,7 +1015,10 @@ def enforcement_selftest():
     def _truncating(item, pid):
         bx = dict(_real_fb(item, pid))
         if item == "Q6" and pid == 1 and bx.get("state_a1"):
-            bx["state_a1"] = " ".join(bx["state_a1"].split()[:4] + ["that"])
+            # A REAL prefix of the response, cut so it ends on a function word.
+            # An invented string ("... going to that") cannot be located in the
+            # raw at all, so the check skips the box and the probe tests nothing.
+            bx["state_a1"] = " ".join(bx["state_a1"].split()[:6])
         return bx
     _E5._fixture_boxes = _truncating
     cases.append(("a fixture box is cut mid-clause",
@@ -1276,9 +1299,25 @@ def main():
                     help="audit the ARITHMETIC rather than the prompt text")
     ap.add_argument("--enforcement", action="store_true",
                     help="audit what each side ENFORCES (gates, charge-once, cover)")
+    ap.add_argument("--fixture", metavar="ITEM[:PID]",
+                    help="read a cell out box by box: the response with its parts "
+                         "and sentences, then every box with its position, what "
+                         "no box holds, and the audit flags. The procedure that "
+                         "found the defects three automated checks passed.")
     ap.add_argument("--selftest", action="store_true",
                     help="with --enforcement: break each rule and check the audit notices")
     a = ap.parse_args()
+
+    if a.fixture:
+        # The box-by-box readout. Not a check — the PROCEDURE the checks cannot
+        # replace: three of the four Q6 cells needing a structural rewrite were
+        # found by reading them out and by nothing else.
+        import enforcement as _ENF
+        item, _, pid = a.fixture.partition(":")
+        for p in ([int(pid)] if pid else range(1, 21)):
+            print(_ENF.fixture_readout(item, p))
+            print()
+        return 0
 
     if a.enforcement:
         return enforcement_selftest() if a.selftest else print_enforcement()
