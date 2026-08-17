@@ -560,6 +560,53 @@ def scorer_evidence(handout: int, pid: int, item: str) -> dict[str, str]:
     return {}
 
 
+# Declared corrections to the frozen consensus spans.
+#
+# The table is built from per-component evidence quotes the scorer chose
+# INDEPENDENTLY, so nothing required the eight spans to be ordered, disjoint or
+# complete — see check_consensus_spans_are_disjoint and
+# check_fixture_covers_the_response, which now assert the last two.
+#
+# Only MECHANICAL corrections belong here: a swap where both clauses are
+# correctly identified and correctly bounded and merely sit in the wrong boxes.
+# A span that is mis-assigned (p10's `state_c2` holds a slice of `change_a1`) or
+# a response with no second consequence to assign at all (p18) is a judgement
+# about the answer, not a reordering, and must not be patched here.
+CONSENSUS_FIXES: dict[tuple[str, int], list[tuple[str, str]]] = {
+    # p4 wrote antecedent-1 -> change -> consequence, then antecedent-2 ->
+    # change -> consequence. The consensus put the FIRST pair's consequence in
+    # the c2 boxes (document positions 157 and 219) and the SECOND pair's in the
+    # c1 boxes (both at 389), inverting both pairs. Nothing is dropped or
+    # duplicated; the two clauses are simply exchanged, which scrambles exactly
+    # the antecedent-to-consequence linkage the affect_c* rules judge.
+    ("Q6", 4): [("state_c1", "state_c2"), ("affect_c1", "affect_c2")],
+}
+
+
+def _unclaimed_tail(raw: str, boxes: list[str]) -> str:
+    """The end of the response that no box claims, or "" if nothing is missing.
+
+    Located by the LAST box text that can be found in the response: everything
+    after it belongs to the student and to no field. Deliberately conservative —
+    a gap in the middle is left alone, because splitting it would be guessing,
+    while a tail is unambiguous.
+    """
+    text = raw or ""
+    if not text.strip():
+        return ""
+    low = text.lower()
+    end = 0
+    for b in boxes:
+        b = " ".join((b or "").split())
+        if len(b) < 12:
+            continue
+        at = low.find(b[:40].lower())
+        if at >= 0:
+            end = max(end, at + len(b))
+    rest = text[end:].strip() if end else ""
+    return rest if len(rest.split()) >= 8 else ""
+
+
 def anchored_split(raw: str, spans: list[tuple[str, str]]) -> dict[str, str]:
     """Partition a block using the scorer's evidence quotes as ANCHORS.
 
@@ -1007,6 +1054,45 @@ def build_jobs(item: str, pids: list[int]) -> list[dict]:
                     fixture[field] = row["fields"][comp]
             n_runs = table["n_runs"].get(str(pid)) or 0
             how["_consensus"] = f"{n_runs} runs"
+
+            # Declared span corrections, applied before anything reads the boxes.
+            for a, b in CONSENSUS_FIXES.get((item, pid), []):
+                fa = next(f for f, c in spec["from_scorer"].items() if c == a)
+                fb = next(f for f, c in spec["from_scorer"].items() if c == b)
+                fixture[fa], fixture[fb] = fixture.get(fb, ""), fixture.get(fa, "")
+                how["_span_fix"] = how.get("_span_fix", "") + f" {a}<->{b}"
+
+            # NO STUDENT TEXT MAY BE DROPPED.
+            #
+            # The spans come from `credit_checks[].evidence`, and an unmet
+            # component carries a note instead of a quote, which scorer_evidence
+            # discards on the reasoning that "an empty field is the right fixture
+            # for something the student did not write". That reasoning fails
+            # whenever the scorer was WRONG about the absence. p5's Q6 ends with
+            # a complete second consequence — "{{corpus:Q6/p5:state_c2:56:89:sha=1a5abc3ab042}}
+            # {{corpus:Q6/p5:state_c2:90:141:sha=d4c87436ee83}} Instead, I hope
+            # {{corpus:1a/p12:response:276:309:sha=a5517f7d126e}} often" — and the scorer called
+            # both c2 slots `absent` in all ten runs, so the consensus froze two
+            # empty boxes and about 200 characters never reached ANY scorer. The
+            # graders read the whole answer and charged "does not MATCH".
+            #
+            # That is a circular dependency: the input the web and CLI see is
+            # built from the paper scorer's output, so its mistakes arrive as
+            # their missing evidence, and a three-way comparison is partly
+            # measuring one scorer against its own prior failures.
+            #
+            # So any TAIL of the response that no box claims is handed to the
+            # first empty box after the last one that was filled. Only the tail,
+            # and only into an empty box: this recovers what was dropped without
+            # re-segmenting anything the consensus did assign.
+            tail = _unclaimed_tail(sec.get(item) or "",
+                                   [fixture.get(f, "") for f in spec["from_scorer"]])
+            if tail:
+                for field in spec["from_scorer"]:
+                    if not (fixture.get(field) or "").strip():
+                        fixture[field] = tail
+                        how["_tail_recovered"] = f"{len(tail.split())} words -> {field}"
+                        break
 
             # A vote can be reproducible and still be arbitrary. Freezing the
             # table made every fixture byte-identical run to run, which is what
