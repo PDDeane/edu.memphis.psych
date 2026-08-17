@@ -598,6 +598,18 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     #
     # Part 2's c-boxes share one sentence because the student wrote only one
     # there; that is the permitted same-element overlap, not a duplication.
+    # 2a/p18 writes three sentences: the verdict, then two ways it worked.
+    #   @0   "The behavior modification plan was successful."
+    #   @47  "My exercise intake increased from 0 to 3 session a week ..."
+    #   @126 "It worked good when I packed my gym bag in advance ..."
+    # `verdict` held the SECOND sentence — the same span as `how1` — while the
+    # actual verdict at @0 belonged to no box. The scorer was asked whether the
+    # student stated a verdict while looking at one of their explanations, and
+    # `how1`'s text was doing duty for two different questions.
+    ("2a", 18): [
+        ("set", "verdict", "The behavior modification plan was successful."),
+    ],
+
     # Q4b/p7. The student numbers two items: (1) a statement that the behaviour
     # is good to modify, with its reason, and (2) procrastinating. The hand-split
     # cut item 1 in half — `modify` held only "... I get frustrated and
@@ -1385,33 +1397,6 @@ def build_jobs(item: str, pids: list[int]) -> list[dict]:
             n_runs = table["n_runs"].get(str(pid)) or 0
             how["_consensus"] = f"{n_runs} runs"
 
-            # Declared span corrections, applied before anything reads the boxes.
-            def _field_of(comp):
-                return next(f for f, c in spec["from_scorer"].items() if c == comp)
-            # ONE fix per box. The entries apply in order, so a second fix for the
-            # same box silently overwrites the first — which is exactly what
-            # happened to p9: new assignments were prepended and clobbered by its
-            # own earlier trims, and the tail recovery then dropped the orphaned
-            # sentence into state_a2. There is never a legitimate reason to state
-            # two different spans for one box, so this raises rather than warns.
-            _touched: dict[str, str] = {}
-            for fix in CONSENSUS_FIXES.get((item, pid), []):
-                for _box in fix[1:] if fix[0] == "swap" else fix[1:2]:
-                    if _box in _touched:
-                        raise SystemExit(
-                            f"CONSENSUS_FIXES[{(item, pid)}] has two fixes for "
-                            f"`{_box}` ({_touched[_box]} then {fix[0]}). The later "
-                            f"one silently wins; state a single span per box.")
-                    _touched[_box] = fix[0]
-            for fix in CONSENSUS_FIXES.get((item, pid), []):
-                if fix[0] == "set":
-                    fixture[_field_of(fix[1])] = fix[2]
-                    continue
-                _, a, b = fix
-                fa, fb = _field_of(a), _field_of(b)
-                fixture[fa], fixture[fb] = fixture.get(fb, ""), fixture.get(fa, "")
-                how["_span_fix"] = how.get("_span_fix", "") + f" {a}<->{b}"
-
             # NO STUDENT TEXT MAY BE DROPPED.
             #
             # The spans come from `credit_checks[].evidence`, and an unmet
@@ -1492,34 +1477,6 @@ def build_jobs(item: str, pids: list[int]) -> list[dict]:
             fixture.update(row)
             how["_handsplit"] = os.path.basename(hs)
 
-            # Declared corrections reach hand-split items too. Without this the
-            # only way to repair one is to edit the JSON in $MOLLY_DATA, which is
-            # not committable — which is how the earlier p7 repair ended up
-            # living outside the repo, invisible to anyone who clones this.
-            fixes = CONSENSUS_FIXES.get((item, pid), [])
-            touched: dict[str, str] = {}
-            for fix in fixes:
-                for box in (fix[1:] if fix[0] == "swap" else fix[1:2]):
-                    if box in touched:
-                        raise SystemExit(
-                            f"CONSENSUS_FIXES[{(item, pid)}] has two fixes for "
-                            f"`{box}` ({touched[box]} then {fix[0]}). The later "
-                            f"one silently wins; state a single span per box.")
-                    touched[box] = fix[0]
-
-            def _hs_field(box):
-                for k in row:
-                    if k.rsplit("_", 1)[-1] == box:
-                        return k
-                raise SystemExit(f"{hs}: p{pid} has no field for box `{box}`")
-
-            for fix in fixes:
-                if fix[0] == "set":
-                    fixture[_hs_field(fix[1])] = fix[2]
-                else:
-                    fa, fb = _hs_field(fix[1]), _hs_field(fix[2])
-                    fixture[fa], fixture[fb] = fixture.get(fb, ""), fixture.get(fa, "")
-                how["_span_fix"] = how.get("_span_fix", "") + f" {fix[1]}"
         if spec.get("sim"):
             simrec = simulate_h3.load_all().get(pid)
             if simrec is None:
@@ -1540,6 +1497,50 @@ def build_jobs(item: str, pids: list[int]) -> list[dict]:
                 src = prov.get(key)
                 if src:
                     how[f"_prov:{field}"] = src
+        # DECLARED SPAN CORRECTIONS, applied once, after every branch has filled
+        # the fixture. They used to live inside the `consensus` and `handsplit`
+        # branches, which left `from_scorer` items — 2a among them — unreachable:
+        # the only way to repair one was to edit data outside the repo, which is
+        # how an earlier p7 fix ended up invisible to anyone who clones this.
+        fixes = CONSENSUS_FIXES.get((item, pid), [])
+        if fixes:
+            key = f"_{item.lower()}_"
+
+            def _field_of(box):
+                # The item's OWN fields first. A fixture carries context fields
+                # too, and Q4b's includes 4a's `bmod_h1_q4a_first` — matching on
+                # the trailing word alone resolved `first` to the NEIGHBOUR's box
+                # and silently left Q4b/p7's own `first` empty. Only fall back to
+                # the trailing word when nothing carries the item's key.
+                for k in fixture:
+                    if key in k and k.split(key)[-1] == box:
+                        return k
+                for k in fixture:
+                    if key not in k and k.rsplit("_", 1)[-1] == box:
+                        return k
+                raise SystemExit(f"CONSENSUS_FIXES[{(item, pid)}] names box "
+                                 f"`{box}`, which this fixture has no field for")
+
+            # One fix per box: the entries apply in order, so a second naming the
+            # same box silently overwrites the first. p9's corrections were
+            # clobbered by its own earlier trims exactly this way.
+            touched: dict[str, str] = {}
+            for fix in fixes:
+                for box in (fix[1:] if fix[0] == "swap" else fix[1:2]):
+                    if box in touched:
+                        raise SystemExit(
+                            f"CONSENSUS_FIXES[{(item, pid)}] has two fixes for "
+                            f"`{box}` ({touched[box]} then {fix[0]}). The later "
+                            f"one silently wins; state a single span per box.")
+                    touched[box] = fix[0]
+            for fix in fixes:
+                if fix[0] == "set":
+                    fixture[_field_of(fix[1])] = fix[2]
+                else:
+                    fa, fb = _field_of(fix[1]), _field_of(fix[2])
+                    fixture[fa], fixture[fb] = fixture.get(fb, ""), fixture.get(fa, "")
+                how["_span_fix"] = how.get("_span_fix", "") + f" {fix[1]}"
+
         for section, (f1, f2) in spec.get("split", {}).items():
             a, b, method = split_two(sec.get(section, ""))
             fixture[f1], fixture[f2] = a, b
