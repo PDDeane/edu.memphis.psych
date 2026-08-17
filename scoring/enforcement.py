@@ -1742,6 +1742,34 @@ def check_fixture_follows_response_structure() -> list[str]:
 FIXTURE_GOLD_OVERRIDES: dict[tuple[str, int, str], str] = {}
 
 
+def check_consensus_fixes_are_unique() -> list[str]:
+    """One declared span correction per box.
+
+    `agreement_app.CONSENSUS_FIXES` applies its entries in order, so a second fix
+    naming the same box silently overwrites the first. p9's corrected assignments
+    were prepended to its existing trims and clobbered by them, and the tail
+    recovery then dropped the orphaned sentence into `state_a2` — a box it has
+    nothing to do with. build_jobs raises on this now, but that only fires when a
+    fixture is built; this reports it without a run.
+
+    There is no legitimate reason to state two different spans for one box.
+    """
+    import agreement_app as APP
+
+    problems = []
+    for (item, pid), fixes in APP.CONSENSUS_FIXES.items():
+        seen: dict[str, str] = {}
+        for fix in fixes:
+            for box in (fix[1:] if fix[0] == "swap" else fix[1:2]):
+                if box in seen:
+                    problems.append(
+                        f"CONSENSUS_FIXES[{item!r}, {pid}] fixes `{box}` twice "
+                        f"({seen[box]} then {fix[0]}) — the later one silently "
+                        f"wins. State a single span per box")
+                seen[box] = fix[0]
+    return problems
+
+
 def check_fixture_agrees_with_gold() -> list[str]:
     """Does the text in each box make sense in the light of gold's comment?
 
