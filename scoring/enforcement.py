@@ -1482,6 +1482,27 @@ def check_fixture_covers_the_response() -> list[str]:
     return problems
 
 
+def _locate(raw: str, box: str) -> int:
+    """Where `box` starts in `raw`, ignoring whitespace differences, or -1.
+
+    A hand-split or a scorer quote can differ from the response by a space that
+    nobody typed: Q4b/p7's `second` box reads "2) Also, I get myself ..." where
+    the student wrote "2)Also". An exact search misses it, the box counts as
+    unlocated, and its whole 33-word sentence is reported as belonging to no box
+    — a fixture defect that is really a matching defect.
+    """
+    b = "".join((box or "").split()).lower()
+    if len(b) < 10:
+        return -1
+    idx, squashed = [], []
+    for i, ch in enumerate(raw):
+        if not ch.isspace():
+            squashed.append(ch.lower())
+            idx.append(i)
+    at = "".join(squashed).find(b[:40])
+    return idx[at] if at >= 0 else -1
+
+
 _BOXES_MEMO: dict[tuple[str, int], dict[str, str]] = {}
 
 
@@ -1752,7 +1773,7 @@ def check_fixture_follows_response_structure() -> list[str]:
             v = " ".join((v or "").split())
             if len(v) < 12:
                 continue
-            at = low.find(v[:40].lower())
+            at = _locate(raw, v)
             if at >= 0:
                 located[k] = (at, at + len(v), v)
 
@@ -1963,7 +1984,7 @@ def fixture_readout(item: str, pid: int) -> str:
         if not v:
             unplaced.append((k, "(empty)"))
             continue
-        at = low.find(v[:40].lower()) if len(v) >= 12 else -1
+        at = _locate(raw, v)
         (placed if at >= 0 else unplaced).append((at, k, v) if at >= 0 else (k, v))
     for at, k, v in sorted(placed):
         out.append(f"  [{k}] @{at}")
