@@ -1400,6 +1400,197 @@ def check_rubric_items_are_unique() -> list[str]:
     return problems
 
 
+# Cells where a fixture box is empty AND the response still has unassigned text,
+# and that is CORRECT: gold says the element was never stated, so an empty box is
+# a faithful transcription and the leftover words are elaboration the clause-level
+# split rightly discards. Declared so a NEW one fails. An entry that stops firing
+# must be removed, like every other backlog here.
+FIXTURE_GAP_BACKLOG = {
+    ("Q6", 8):  "gold: did not state each consequence being affected",
+    ("Q6", 17): "gold: did not address your second antecedent ... or second consequence",
+}
+
+
+def check_fixture_covers_the_response() -> list[str]:
+    """Does the split fixture still contain the student's whole answer?
+
+    Q6's eight boxes are a RECONSTRUCTION — a frozen consensus table with
+    tie-breaks — and it is the input every scorer sees. `check_handsplit_rows_are_disjoint`
+    asserts no row swallows another, but nothing asserted that a split PRESERVES
+    the response.
+
+    It does not always. p5's Q6 ends "{{corpus:Q6/p5:state_c2:0:141:sha=aa2e6137e3b0:shape=S6-0a20202020,S22-0a20202020}} {{corpus:Q6/p5:affect_c2:0:49:sha=c20b853f77bc:shape=S7-0a20202020}} often" — a complete second consequence, and both of its boxes are
+    EMPTY. About 200 characters never reach the scorer, which then correctly
+    reports what it was given (`absent`) and disagrees with a grader who read
+    the whole answer. We spent this session treating that cell as evidence that
+    gold under-counted, and recommended declaring it unscoreable.
+
+    Lexical coverage alone cannot find this: a clause-level split discards
+    connective and elaborative text everywhere, and the longest unassigned run
+    is 22-27 words on several perfectly good cells. The signal is the
+    CONJUNCTION — an EMPTY box while a long run of the response is unassigned.
+    That flags four cells on Q6, of which three are correct and declared above:
+    gold's own wording separates them. "Did not state" or "did not address"
+    means the element really is missing and the empty box is faithful; "does not
+    MATCH" means the grader read something there, so an empty box is a lost
+    transcription.
+    """
+    import handouts as H
+    import segment as SEG
+
+    problems = []
+    seen: set[tuple[str, int]] = set()
+    for h in (1, 2, 3):
+        cfg = H.config(h)
+        try:
+            subs = H.find_submissions(h)
+        except Exception:
+            continue                       # corpus absent on this machine
+        if not subs:
+            continue
+        for pid, path in subs:
+            try:
+                segs = SEG.segment(path, cfg["template"], cfg["markers"],
+                                   cfg.get("capture_tail", False))
+            except Exception:
+                continue
+            for item in cfg["rubric"].ITEMS:
+                iid = item["id"]
+                raw = _norm(segs.get(iid, ""))
+                if len(raw.split()) < 20:
+                    continue               # too short for a gap to mean anything
+                boxes = _fixture_boxes(iid, pid)
+                if len(boxes) < 2 or not any(not v for v in boxes.values()):
+                    continue               # no empty box: nothing to lose text to
+                run, text = _longest_unassigned(raw, _norm(" ".join(boxes.values())))
+                if run < 10:
+                    continue
+                if (iid, pid) in FIXTURE_GAP_BACKLOG:
+                    seen.add((iid, pid))
+                    continue
+                empty = sorted(k for k, v in boxes.items() if not v)
+                problems.append(
+                    f"H{h} {iid}/p{pid}: {', '.join(empty)} empty while {run} words "
+                    f"of the response are assigned to no box — \"...{text}...\". "
+                    f"Either the split lost them, or add the cell to "
+                    f"FIXTURE_GAP_BACKLOG with the gold wording that says the "
+                    f"element really is absent")
+    for stale in sorted(FIXTURE_GAP_BACKLOG.keys() - seen):
+        problems.append(
+            f"FIXTURE_GAP_BACKLOG lists {stale[0]}/p{stale[1]}, which no longer "
+            f"has an empty box with unassigned text. Remove it")
+    return problems
+
+
+def _fixture_boxes(item_id: str, pid: int) -> dict[str, str]:
+    """The item's OWN input boxes from the fixture — not its read-only context."""
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        from agreement import fixture_for
+        try:
+            fx = fixture_for(item_id, pid)
+        except Exception:
+            return {}
+    key = f"_{item_id.lower()}_"
+    return {k.split(key)[-1]: str(v).strip()
+            for k, v in fx.items() if key in k and "ref" not in k}
+
+
+def _longest_unassigned(raw: str, boxes: str, n: int = 5) -> tuple[int, str]:
+    """Longest run of response words appearing in no box, and that run."""
+    rw, bw = raw.split(), boxes.split()
+    have = {tuple(bw[i:i + n]) for i in range(len(bw) - n + 1)}
+    cov = [False] * len(rw)
+    for i in range(len(rw) - n + 1):
+        if tuple(rw[i:i + n]) in have:
+            for j in range(i, i + n):
+                cov[j] = True
+    best = cur = at = 0
+    for i, c in enumerate(cov):
+        cur = cur + 1 if not c else 0
+        if cur > best:
+            best, at = cur, i - cur + 1
+    return best, " ".join(rw[at:at + best])[:70]
+
+
+# Cross-element containments in the Q6 consensus table that are FAITHFUL: the
+# student really did write the same words twice, so two boxes holding them is a
+# true transcription and the grader's own machinery handles it.
+CONSENSUS_OVERLAP_BACKLOG = {
+    (6, "state_a1", "state_a2"):
+        "p6 names the same antecedent in both boxes verbatim; gold charges the "
+        "second as a mismatch and `cover` demotes it, which is the correct result",
+    (6, "change_a1", "change_a2"):
+        "the same sentence answers both, for the same reason",
+}
+
+
+def check_consensus_spans_are_disjoint() -> list[str]:
+    """Do Q6's eight fixture boxes hold text belonging to DIFFERENT elements?
+
+    `check_handsplit_rows_are_disjoint` enforces exactly this invariant — and
+    only over the hand-split JSON files, which is Q4b alone. Q6's fixture comes
+    from a frozen consensus table built from per-component evidence quotes the
+    scorer chose INDEPENDENTLY, so nothing has ever required those eight spans
+    to partition the response: not to be ordered, not to be disjoint, not to be
+    complete. The coverage check now covers completeness; this covers the rest.
+
+    ONE overlap is permitted and is not a defect. `state_cN` and `affect_cN`
+    describe the same consequence — the box for "which consequence" and the box
+    for "what becomes of it" are cut from one clause — and splitting them was
+    measured as worse (Q6 fell 11/17 to 3/17 when an anchored split sliced those
+    sentences into fragments). The same holds for `state_aN`/`change_aN`. Twenty
+    such containments exist across fifteen cells and all are faithful.
+
+    What is NOT permitted is one element's words appearing in another element's
+    box: p10's `state_c2` is a substring of its `change_a1`, so one clause serves
+    as both "how the first antecedent is changed" and "the second consequence" —
+    and p10 carries `change_a1`'s only error in the item.
+    """
+    import handouts as H
+
+    problems = []
+    seen: set[tuple] = set()
+    try:
+        subs = dict(H.find_submissions(1))
+    except Exception:
+        return []                       # corpus absent
+    if not subs:
+        return []
+
+    def norm(x):
+        return " ".join((x or "").split()).lower()
+
+    for pid in sorted(subs):
+        bx = {k: norm(v) for k, v in _fixture_boxes("Q6", pid).items() if v}
+        keys = sorted(bx)
+        for i, a in enumerate(keys):
+            for b in keys[i + 1:]:
+                # same element: "state_c1"/"affect_c1" -> both end "c1"
+                if a.rsplit("_", 1)[-1] == b.rsplit("_", 1)[-1]:
+                    continue
+                if len(bx[a]) < 25 or len(bx[b]) < 25:
+                    continue
+                if bx[a] not in bx[b] and bx[b] not in bx[a]:
+                    continue
+                key = (pid, a, b)
+                if key in CONSENSUS_OVERLAP_BACKLOG:
+                    seen.add(key)
+                    continue
+                inner = a if len(bx[a]) < len(bx[b]) else b
+                problems.append(
+                    f"Q6/p{pid}: `{a}` and `{b}` hold the same text "
+                    f"({bx[inner][:52]!r}...) — one clause answering two different "
+                    f"questions. Either the consensus mis-assigned it, or declare "
+                    f"it in CONSENSUS_OVERLAP_BACKLOG with why it is faithful")
+    for stale in sorted(CONSENSUS_OVERLAP_BACKLOG.keys() - seen):
+        problems.append(
+            f"CONSENSUS_OVERLAP_BACKLOG lists Q6/p{stale[0]} {stale[1]}/{stale[2]}, "
+            f"which no longer overlaps. Remove it")
+    return problems
+
+
 def check_reporters_execute() -> list[str]:
     """Do the harnesses' report paths actually RUN?
 
