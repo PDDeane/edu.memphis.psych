@@ -545,6 +545,8 @@ def enforcement_audit():
         findings.append(("-", "PROMPT QUOTES A COUNTED CELL", bad))
     for bad in ENF.check_reporters_execute():
         findings.append(("-", "REPORTER CRASHES", bad))
+    for bad in ENF.check_rubric_items_are_unique():
+        findings.append(("-", "RUBRIC ITEMS NOT UNIQUE", bad))
     for bad in ENF.check_unreachable_gold_is_allowed():
         findings.append(("-", "UNREACHABLE GOLD PENALISED", bad))
     for iid, h, mx, label in uncovered_cli_items():
@@ -966,6 +968,18 @@ def enforcement_selftest():
             _a1.pop("rule", None)
         else:
             _a1["rule"] = _saved_a1
+
+    # A duplicated rubric item. A bad splice re-included everything from Q1
+    # onward, leaving TWO entries apiece for seven items; BY_ID resolved to the
+    # second copy, so the next edit was verified against a different dict than
+    # the one it changed, and every audit here stayed green because they all read
+    # through BY_ID. Injected by appending a copy of Q6 to ITEMS.
+    import rubric_h1 as _R4
+    _R4.ITEMS.append(dict(_R4.BY_ID["Q6"]))
+    cases.append(("a rubric item is duplicated",
+                  "RUBRIC ITEMS NOT UNIQUE", "-",
+                  [f for f in enforcement_audit()[0]]))
+    _R4.ITEMS.pop()
 
     # A reporter that crashes. Nothing else here executes `report()` — the
     # audits import the module, py_compile only parses — so an unbound name in

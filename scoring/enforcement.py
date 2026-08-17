@@ -1347,6 +1347,59 @@ def check_rule_examples_are_not_corpus() -> list[str]:
     return problems
 
 
+def check_rubric_items_are_unique() -> list[str]:
+    """Is each rubric table a well-formed set of distinct items?
+
+    Structural invariants that nothing else asserts, because nothing else has
+    reason to: every other check reads `BY_ID[...]` and trusts it.
+
+    Added after a bad edit to rubric_h1.py spliced from the wrong offset — an
+    index search matched Q1's `credit` list instead of Q6's — and re-included
+    everything from Q1 onward. The file grew from 1424 lines to 2376 with TWO
+    entries apiece for seven items, and `BY_ID` silently resolved to the second
+    copy, so the next edit was verified against a different dict than the one it
+    had changed. Every audit here stayed green throughout: they all went through
+    `BY_ID`, which is exactly the thing that had gone wrong.
+
+    Three invariants, all cheap:
+      1. Item ids are distinct, and `BY_ID` reaches every item.
+      2. A slot name appears once in an item's credit list.
+
+    NOT checked here: whether the credit slots' points sum to the item's max.
+    The same bad splice left a Q6 summing to 5.0 against a max of 10.0, so it
+    would have caught this too — but `onlyif` legitimately lets a sum EXCEED the
+    max (Q4b sums to 6 of 5, by design, because one slot's charge is suppressed
+    when another fails) and Q4c sums to 4 of 5 for reasons `--scoring` already
+    flags separately. Without a rule that tells a real shortfall from those, the
+    invariant reports two standing findings and teaches people to ignore it.
+    """
+    import collections
+    import handouts as H
+
+    problems = []
+    for h in (1, 2, 3):
+        mod = H.config(h)["rubric"]
+        ids = [it["id"] for it in mod.ITEMS]
+        for iid, n in sorted(collections.Counter(ids).items()):
+            if n > 1:
+                problems.append(
+                    f"H{h}: rubric ITEMS has {n} entries with id {iid!r}. BY_ID "
+                    f"resolves to one of them and every audit here reads through "
+                    f"BY_ID, so the others are invisible")
+        if len(getattr(mod, "BY_ID", {})) != len(set(ids)):
+            problems.append(
+                f"H{h}: BY_ID has {len(mod.BY_ID)} entries for {len(set(ids))} "
+                f"distinct item ids")
+
+        for it in mod.ITEMS:
+            slots = [c["what"] for c in it.get("credit", []) or []]
+            for what, n in sorted(collections.Counter(slots).items()):
+                if n > 1:
+                    problems.append(
+                        f"H{h} {it['id']}: credit lists {what!r} {n} times")
+    return problems
+
+
 def check_reporters_execute() -> list[str]:
     """Do the harnesses' report paths actually RUN?
 
