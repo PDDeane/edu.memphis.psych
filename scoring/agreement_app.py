@@ -892,18 +892,33 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "{{corpus:Q6/p11:state_c1:0:62:sha=1c7a5865b73a:shape=R62-0-20}}"
          "{{corpus:Q6/p11:state_c1:63:115:sha=708d51f16f11}} C)."),
     ],
-    # p14: affect_c1 grabbed the "I" opening the next sentence
+    # p14 lays out as four sentences, two pairs: S1 antecedent+change, S2 the first
+    # consequence and its fate, S3 the second antecedent+change, S4 the second
+    # consequence and its fate. Each c-box takes the sentence that answers it;
+    # state and affect of one element are siblings, so sharing a sentence is
+    # expected and the overlap check exempts it.
+    #
+    # An earlier fix left three faults here, and its comment justified only the
+    # first. `affect_c1` KEPT "{{corpus:Q6/p14:change_a1:63:82:sha=2db206dd72e6}}" — the tail of S1, which
+    # change_a1 also holds, so two different elements shared it. `state_c1` began
+    # mid-word at "more(WGB)". Worst, `affect_c2` was set to "not be that severe.",
+    # a 19-character fragment sliced off the END OF S3 — part of change_a2's own
+    # sentence — while S4, which actually states what becomes of the second
+    # consequence, sat wholly in state_c2. Shown that fragment the scorer answered
+    # `incomplete`, which is right about the box and wrong about the student, and
+    # it cost p14 the 1.25 that gold awards.
+    #
+    # Both overlaps escaped the audit because the disjointness check skips any pair
+    # where a box is under 25 characters, and both fragments were 19.
     ("Q6", 14): [
+        ("set", "state_c1",
+         "{{corpus:Q6/p14:affect_c1:0:117:sha=0b8d940aaf67}} weight."),
         ("set", "affect_c1",
-         "{{corpus:Q6/p14:change_a1:63:82:sha=2db206dd72e6}} {{corpus:Q6/p14:affect_c1:0:42:sha=821a94be6ef7:shape=R42-0-20}}"
-         "{{corpus:Q6/p14:affect_c1:43:109:sha=4eda7641ab07:shape=R66-0-20}}"
-         "{{corpus:Q6/p14:affect_c1:110:117:sha=5f0d61eabc13}} weight."),
-        ("set", "affect_c2",
-         "not be that severe."),
+         "{{corpus:Q6/p14:affect_c1:0:117:sha=0b8d940aaf67}} weight."),
         ("set", "state_c2",
-         "{{corpus:Q6/p14:affect_c2:0:65:sha=6667cda887b4:shape=R65-0-20}}"
-         "{{corpus:Q6/p14:affect_c2:66:128:sha=9dbff4a7fc7a:shape=R62-0-20}}"
-         "{{corpus:Q6/p14:affect_c2:129:153:sha=8e21d79ba026}} go."),
+         "{{corpus:Q6/p14:affect_c2:0:153:sha=0d48f0444ca7}} go."),
+        ("set", "affect_c2",
+         "{{corpus:Q6/p14:affect_c2:0:153:sha=0d48f0444ca7}} go."),
     ],
 
     ("Q6", 4): [
