@@ -305,6 +305,30 @@ GOLD_DIVERGENCES: list[dict] = [
         ),
     },
     {
+        "code": "C_MISMATCH", "cells": [("Q6", 17)],
+        "why": "p17 writes \"my {{corpus:Q6/p17:state_c1:32:82:sha=ef8f2e007fd6:shape=R50-0-20}}"
+               "{{corpus:Q6/p17:state_c1:83:110:sha=e4aa52e14baa}} C)\" against a 4c listing weight gain "
+               "and becoming unproductive. The scorer answers that this matches "
+               "neither; gold credits it, deducting only for the second pair. The "
+               "student is pointing at their own 4c — the phrasing is the "
+               "template's own scaffold, which they filled — but they never name "
+               "either consequence they listed, and one element (\"stressed\") is "
+               "new. "
+               "Declared rather than fixed, and the attempt is worth recording. "
+               "Loosening `refers_to` to credit a paraphrase was implemented and "
+               "MEASURED: Q6 went 16/19 -> 12/19. p5, p10 and p15 each moved off "
+               "an exact score with no fixture change, so the loss is the rule's "
+               "alone, and bias rose +0.14 -> +0.34. That is the A_MISMATCH "
+               "warning coming true — crediting this paraphrase means teaching "
+               "the check to credit real mismatches. "
+               "Note gold applies the matching rule elsewhere in its own words: "
+               "it refuses p1's first consequence \"(from 4c)\" when nothing is "
+               "named, and charges p6 because the \"second antecedent is not the "
+               "same as mentioned in 4a\". Gold is not ignoring the requirement "
+               "here; it is drawing the line more generously on one paraphrase, "
+               "and we draw it where the dictionary does",
+    },
+    {
         "code": "A_MISMATCH", "cells": [("Q6", 9)],
         "why": "p9's Q6 changes a third antecedent not listed in their 4a. The "
                "dictionary is explicit that the antecedents must match up, so "
