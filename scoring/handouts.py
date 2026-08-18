@@ -413,6 +413,33 @@ def gold_divergence_cells() -> dict[tuple[str, int], str]:
 # does not reconcile with its own itemised comment. Nothing computes that away,
 # so it remains a real ceiling.
 GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
+    ("1", "Q6"): (
+        "`change_a1`/`change_a2`: whether a stated action actually CHANGES the "
+        "antecedent it is paired with, rather than improving the goal behaviour, "
+        "cannot be scored consistently against gold, and the cells that go wrong "
+        "depend on which rule you adopt. p2 is over-credited: its second "
+        "antecedent is a pastime and its change makes the exercise more pleasant, "
+        "which gold refuses in terms — \"listening to music while working out does "
+        "not change your antecedent of playing video games and not wanting to "
+        "stop\" — while both scorers credit it. "
+        "MEASURED, three wordings, none of which separates it. A rule asking "
+        "whether the action improves the goal behaviour instead of the trigger "
+        "fixed p2 and cost p3 and p5, both of which state a real action followed "
+        "by a purpose clause (\"by X, which will help me Y\") that reads as goal "
+        "language. Ignoring the purpose clause and testing the trigger's object, "
+        "occasion and supply held p3 and p5 and lost p2. Naming p2's shape "
+        "concretely — an action improving the conditions of the exercise while the "
+        "trigger is a different activity — held p3 and lost p5. "
+        "The reason is that p5's credited action changes the SUPPLY at the trigger "
+        "moment while p2's changes a different activity, and both read as "
+        "providing something more pleasant. A_NO_CHANGE predicted exactly this: it "
+        "records that a test of this shape \"would flag six credited cells (p2, "
+        "p3, p5, p6, p16, p19) to catch this one\", and p2, p3 and p5 are the "
+        "three that moved. Six attempts across the project now, three of them "
+        "measured here. "
+        "So p2's 1.25 is unwinnable on any consistent rule, and this is a ceiling "
+        "rather than headroom: Q6's practical maximum is 18 of 19 cells, not 19.",
+    ),
     ("1", "Q3"): (
         "`action_oriented`: five answers justify the goal by CAPABILITY rather "
         "than by naming an action, and gold splits them — p14 (\"my early mornings "
