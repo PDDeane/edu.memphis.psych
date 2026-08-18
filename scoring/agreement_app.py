@@ -1659,7 +1659,62 @@ def build_jobs(item: str, pids: list[int]) -> list[dict]:
     return jobs
 
 
-def run_jobs(jobs: list[dict], idmap: str) -> list[dict]:
+def check_idmap_is_current(idmap: str, item_id: str) -> None:
+    """Refuse to measure against a dump that predates the current prompt.
+
+    The prompt reaches the scorer through THREE stages — rubric_hN.py, then the
+    .olx files that olx_prompts.py generates, then the idmap dumped out of the
+    dev server — and only the third is what a run actually measures. Reverting
+    the source and confirming `olx_prompts.py --check` says "up to date" leaves
+    the first two in agreement and says nothing about the third.
+
+    That gap cost a whole sweep. A loosened Q6 matching rule was implemented,
+    measured at 16/19 -> 12/19, and reverted; the re-baseline run was then
+    launched against the idmap dumped WHILE the loosened rule was live, so it
+    silently re-measured the reverted change. Two cells looked like regressions
+    caused by unrelated fixture repairs, and one of those repairs was very nearly
+    reverted on the strength of it.
+
+    Lines carrying a `REF:` marker are skipped: the server resolves those into
+    the student's own text, so they cannot appear in a dump verbatim. Everything
+    else in the generated prompt must be present in the dump.
+    """
+    import olx_prompts as _OP
+
+    try:
+        want = _OP.build_web_prompt(item_id)
+    except Exception as exc:                      # pragma: no cover
+        print(f"(cannot verify idmap freshness for {item_id}: {exc})",
+              file=sys.stderr)
+        return
+    lines = [ln.strip() for ln in want.split("\n")
+             if 40 < len(ln.strip()) < 130
+             and "REF:" not in ln and "<Ref" not in ln]
+    if not lines:
+        return
+    try:
+        with open(idmap) as fh:
+            blob = fh.read()
+    except OSError as exc:
+        raise SystemExit(f"cannot read --idmap {idmap}: {exc}")
+    missing = [ln for ln in lines if ln not in blob]
+    if not missing:
+        print(f"(idmap checked: it serves the current {item_id} prompt, "
+              f"{len(lines)} lines matched)", file=sys.stderr)
+        return
+    sample = "\n".join(f"    - {ln[:100]}" for ln in missing[:3])
+    raise SystemExit(
+        f"STALE IDMAP: {len(missing)} of {len(lines)} lines of the {item_id} "
+        f"prompt that rubric/olx_prompts generate are ABSENT from {idmap}.\n"
+        f"{sample}\n"
+        f"  The dump predates the current prompt, so this run would measure "
+        f"something the repo no longer says. Re-dump it:\n"
+        f"    curl -s 'http://localhost:8888/api/olxjson?id=all' > <newfile>\n"
+        f"  (run `python3 olx_prompts.py --write` first if the .olx files are "
+        f"themselves behind the rubric.)")
+
+
+def run_jobs(jobs: list[dict], idmap: str, on_cell=None) -> list[dict]:
     tmp = tempfile.mkdtemp(prefix="agreement_app_")
     jf, rf = os.path.join(tmp, "jobs.json"), os.path.join(tmp, "results.json")
     with open(jf, "w") as fh:
@@ -1669,15 +1724,44 @@ def run_jobs(jobs: list[dict], idmap: str) -> list[dict]:
         "JOBS_JSON": jf, "RESULTS_JSON": rf, "IDMAP_JSON": idmap,
     }
     print(f"driving {len(jobs)} cell(s) through the app", file=sys.stderr)
-    proc = subprocess.run(
+    # STREAMED, not captured. `subprocess.run(capture_output=True)` held the
+    # runner's stdout in memory until vitest exited, so the per-cell "[runner]"
+    # lines it prints all arrived in one burst at the end of a ~12-minute pass:
+    # a run in progress was indistinguishable from a run that had hung, and
+    # diagnosing one meant walking down four levels of child process to find the
+    # node worker actually doing the work.
+    proc = subprocess.Popen(
         ["npx", "vitest", "run", "--reporter=dot", RUNNER],
-        cwd=LO, env=env, capture_output=True, text=True,
+        cwd=LO, env=env, text=True,
+        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, bufsize=1,
     )
-    for line in proc.stdout.splitlines():
-        if "[runner]" in line:
-            print("  " + line.strip(), file=sys.stderr)
+    tail: list[str] = []
+    seen: set[str] = set()
+    for line in proc.stdout:                       # type: ignore[union-attr]
+        tail.append(line)
+        del tail[:-40]
+        if "[runner]" not in line:
+            continue
+        print("  " + line.strip(), file=sys.stderr)
+        if on_cell is None:
+            continue
+        # The runner rewrites its results file after every cell, so the record
+        # for the cell just announced is already on disk.
+        try:
+            with open(rf) as fh:
+                done = json.load(fh)
+        except Exception:
+            continue
+        for rec in done:
+            if rec.get("cell") and rec["cell"] not in seen:
+                seen.add(rec["cell"])
+                try:
+                    on_cell(rec)
+                except Exception as exc:           # never let reporting kill a run
+                    print(f"  (cell report failed: {exc})", file=sys.stderr)
+    proc.wait()
     if not os.path.exists(rf):
-        print(proc.stdout[-2000:], file=sys.stderr)
+        print("".join(tail)[-2000:], file=sys.stderr)
         raise SystemExit("runner produced no results")
     with open(rf) as fh:
         return json.load(fh)
@@ -1695,6 +1779,9 @@ def main() -> int:
                          "to include everyone — the exemplar exclusion is specific "
                          "to Q6's prompt and does not apply to other items.")
     ap.add_argument("--out", default=None, help="Write per-cell JSON here.")
+    ap.add_argument("--baseline", default=None,
+                    help="A previous --out file. Each cell is reported as "
+                         "same/improvement/regression against it as it lands.")
     ap.add_argument("--runs", type=int, default=3,
                     help="How many times to drive the item (default 3). One run is "
                          "not a measurement on this side: Q3 measured 16/20, 12/20 "
@@ -1732,11 +1819,65 @@ def main() -> int:
     if not idmap:
         raise SystemExit("--idmap is required: curl the dev server's "
                          "/api/olxjson?id=all to a file and pass it")
+    check_idmap_is_current(idmap, args.item)
 
     jobs = build_jobs(args.item, pids)
     how_by_cell = {j["cell"]: j["split_how"] for j in jobs}
     fb_by_cell = {j["cell"]: j["fell_back"] for j in jobs if j["fell_back"]}
-    results = run_jobs(jobs, idmap)
+
+    # Report each cell as it lands, against gold AND against a previous run, so
+    # a sweep says whether it is same / better / worse WHILE it runs instead of
+    # only in a table 36 minutes later. `--baseline` takes a prior --out file.
+    _gold_now = config(handout)["gold"]()
+    _base: dict[int, float] = {}
+    if args.baseline:
+        try:
+            with open(args.baseline) as fh:
+                for rec in json.load(fh).get("results", []):
+                    frac = (rec.get("grader") or {}).get("score")
+                    if frac is None or not rec.get("ok"):
+                        continue
+                    _bp = int(re.match(r"p(\d+)/", rec["cell"]).group(1))
+                    _base[_bp] = round(float(frac) * float(rec["sheet_max"]), 2)
+            print(f"(comparing against {len(_base)} cell(s) from {args.baseline})",
+                  file=sys.stderr)
+        except Exception as exc:
+            print(f"(cannot read --baseline: {exc})", file=sys.stderr)
+
+    def _report_cell(rec: dict) -> None:
+        m = re.match(r"p(\d+)/", rec.get("cell") or "")
+        if not m:
+            return
+        pid = int(m.group(1))
+        frac = (rec.get("grader") or {}).get("score")
+        if not rec.get("ok") or frac is None:
+            print(f"      p{pid:<3} FAILED — {rec.get('status')}", file=sys.stderr)
+            return
+        pred = round(float(frac) * float(rec["sheet_max"]), 2)
+        g = (_gold_now.get(pid, {}).get(args.item, {}) or {}).get("score")
+        if g is None:
+            print(f"      p{pid:<3} pred={pred:.2f}  (no gold row)", file=sys.stderr)
+            return
+        exact = _handouts.scored_exactly(args.item, g, pred)
+        mark = "exact" if exact else f"{pred - g:+.2f}"
+        note = ""
+        if pid in _base:
+            b = _base[pid]
+            was_exact = _handouts.scored_exactly(args.item, g, b)
+            if abs(b - pred) < 0.005:
+                note = "  SAME as baseline"
+            elif exact and not was_exact:
+                note = f"  IMPROVEMENT (was {b - g:+.2f})"
+            elif was_exact and not exact:
+                note = f"  REGRESSION (was exact)"
+            elif abs(pred - g) < abs(b - g):
+                note = f"  improvement (was {b - g:+.2f})"
+            else:
+                note = f"  regression (was {b - g:+.2f})"
+        print(f"      p{pid:<3} gold={g:5.2f} pred={pred:5.2f}  {mark:>6s}{note}",
+              file=sys.stderr)
+
+    results = run_jobs(jobs, idmap, on_cell=_report_cell)
     # --out is written AFTER the median is chosen, further down. It used to be
     # written here, from run 1, while the table below reported the median — so the
     # two disagreed whenever the median was not run 1, and anything reading the
@@ -1794,7 +1935,7 @@ def main() -> int:
     all_results = [results]
     for i in range(2, args.runs + 1):
         print(f"(run {i} of {args.runs})", file=sys.stderr)
-        extra = run_jobs(jobs, idmap)
+        extra = run_jobs(jobs, idmap, on_cell=_report_cell)
         all_results.append(extra)
         all_runs.append(tabulate(extra))
 
