@@ -1658,6 +1658,50 @@ def check_the_audit_read_the_corpus() -> list[str]:
     return problems
 
 
+
+def _gold_corroborates_absence(h: int, iid: str, pid: int, empty: list[str]) -> bool:
+    """Does GOLD say the elements whose boxes are empty are themselves absent?
+
+    This check's own premise, from its docstring: gold's wording separates a
+    faithful empty box from a lost transcription. "Did not state" or "did not
+    address" means the element really is missing, so an empty box is right;
+    "does not MATCH" means the grader read something there, so an empty box lost
+    it. That test used to be applied by hand, one FIXTURE_GAP_BACKLOG entry per
+    cell, each restating what the gold row already says.
+
+    Q6/p8 is the case that made it worth reading directly. Its gold reads "-5
+    pts: did not state each consequence being affected and how it is being
+    affected", which corroborates all four empty consequence boxes. Two clauses
+    of the response were once assigned into them on the argument that an empty
+    box lets the FIXTURE do the scoring; measured, that credited `state_c1` and
+    moved the cell from its declared divergence alone to a second, undeclared
+    disagreement. Gold's bundled deduction is the evidence that those boxes are
+    meant to be empty.
+
+    Deliberately narrow: the absence wording must name the KIND of element whose
+    box is empty. Gold saying an antecedent is missing does not excuse an empty
+    consequence box.
+    """
+    import handouts as H
+
+    try:
+        row = H.config(h)["gold"]().get(pid, {}).get(iid, {}) or {}
+    except Exception:
+        return False
+    fb = _norm(row.get("feedback") or "")
+    if not fb:
+        return False
+    if "does not match" in fb or "not the same as" in fb:
+        return False                    # the grader read something there
+    absent = ("did not state", "did not address", "did not include",
+              "did not provide", "missing", "did not say")
+    if not any(a in fb for a in absent):
+        return False
+    kinds = {("consequence" if k.rstrip("12").endswith(("_c", "c")) else "antecedent")
+             for k in empty}
+    return all(kind in fb for kind in kinds)
+
+
 def check_fixture_covers_the_response() -> list[str]:
     """Does the split fixture still contain the student's whole answer?
 
@@ -1752,6 +1796,8 @@ def check_fixture_covers_the_response() -> list[str]:
                     seen.add((iid, pid))
                     continue
                 empty = sorted(k for k, v in boxes.items() if not v)
+                if _gold_corroborates_absence(h, iid, pid, empty):
+                    continue
                 problems.append(
                     f"H{h} {iid}/p{pid}: {', '.join(empty)} empty while {run} words "
                     f"of the response are assigned to no box — \"...{text}...\". "
