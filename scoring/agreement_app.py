@@ -702,26 +702,37 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # p8: change_a2 stopped at "... some progress in the". The response ends
     # "... in the near future." and nothing competes for the tail.
     #
-    # The consequence boxes are no longer empty. Both consequence clauses used to
-    # sit in NO box while all four c-boxes were blank, and the scorer's evidence
-    # for every one of them read "There is no text in this box." — it was
-    # reporting an empty box, not judging the student's writing, and it happened
-    # to land on gold's own answer, which charges -5 for consequences. Right
-    # score, wrong reason, with the fixture doing the scoring.
+    # The consequence boxes stay EMPTY, and the attempt to fill them is recorded
+    # because the reasoning for it was half right and the measurement settled it.
     #
-    # Each clause hangs off the antecedent sentence before it, so each goes to
-    # the consequence box of its own element. Whether either NAMES a consequence
-    # from p8's 4c ("{{corpus:Q4c/p8:first:53:110:sha=0463b65e03dd}}
-    # games"; "0 motivation ... procrastinate") is the scorer's call, not ours.
+    # Two clauses sit in no box — "Which then makes me wish I would have just
+    # gone to the gym, since at times I feel super unmotivated ..." and "which
+    # can lead to {{corpus:Q1/p8:response:206:236:sha=a6fc82d76be7}}" They were assigned to state_c1
+    # and state_c2 on the argument that an empty box makes the FIXTURE do the
+    # scoring: the scorer's evidence read "There is no text in this box", so it
+    # was reporting an absence rather than judging the student, and it landed on
+    # gold's own answer for the wrong reason.
+    #
+    # MEASURED, and reverted. The prediction was that both clauses would read
+    # `mismatch` — same score, better reasoning. Instead state_c1 came back `met`
+    # with refers_to `second`, matching "I feel super unmotivated" to 4c's "0
+    # motivation to do anything", in all three runs. p8 went +2.50 -> +3.75: its
+    # error had been EXACTLY the declared A_NO_CHANGE divergence, and the
+    # assignment added a second, undeclared disagreement.
+    #
+    # Gold's wording is the reason the empty boxes are right after all: "-5 pts:
+    # did not state each consequence being affected AND how it is being affected
+    # by changing your antecedents" — one bundled deduction over all four slots.
+    # Both clauses hang off the ANTECEDENT sentences and describe what the
+    # current behaviour leads to; neither says what becomes of a consequence once
+    # the antecedent changes. `state_c*` asks for the consequence BEING AFFECTED,
+    # so this text does not belong in it. Wrong text in the box is a worse fault
+    # than a right score for a thin reason.
     ("Q6", 8): [
         ("set", "change_a2",
          "{{corpus:Q6/p8:change_a2:0:70:sha=ce49c79fb729:shape=R70-0-20}}"
          "{{corpus:Q6/p8:change_a2:71:139:sha=20b00a0f9360:shape=R68-0-20}}"
          "{{corpus:Q6/p8:change_a2:140:148:sha=d4b9d02da030}} future."),
-        ("set", "state_c1",
-         "Which then makes me wish I would have just gone to the gym, since at times I feel super unmotivated to {{corpus:Q6/p8:change_a2:9:27:sha=bfc0a265c4d1}} exercise."),
-        ("set", "state_c2",
-         "which can lead to {{corpus:Q1/p8:response:206:236:sha=a6fc82d76be7}}"),
     ],
 
     # p19 is ONE sentence describing ONE pair, and the student labelled every
