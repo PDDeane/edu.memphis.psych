@@ -1674,6 +1674,66 @@ def build_jobs(item: str, pids: list[int]) -> list[dict]:
     return jobs
 
 
+def _idmap_extra_lines(idmap: str, item_id: str, want: str) -> list[str]:
+    """Lines the DUMP's prompt has that the rubric no longer generates.
+
+    The freshness check began as a one-directional test — is every line of the
+    generated prompt present in the dump — which catches a dump taken BEFORE a
+    change. It cannot catch a dump taken DURING one. A dump is a superset then,
+    every generated line is still in it, and it passes while serving rule text
+    that has since been reverted.
+
+    That is not hypothetical: after five experimental Q6 wordings were built,
+    measured and reverted, two saved dumps still carried them and both were
+    reported as matching HEAD. The mirror image of the failure this check was
+    written for, and it survived because the original only looked one way.
+
+    Needs the prompt body out of the dump rather than a substring test over the
+    whole file, since the file legitimately holds every other item's text too.
+    The body sits at idMap["<ns>/<action>"]["<locale>"]["kids"][0].
+    """
+    import json
+    import re as _re
+
+    import paths
+
+    try:
+        with open(idmap) as fh:
+            m = json.load(fh).get("idMap") or {}
+    except Exception:
+        return []
+    action = (JOBS.get(item_id) or {}).get("grader", "").replace("_grader", "_llm")
+    body = None
+    for key, entry in m.items():
+        if not key.endswith("/" + action):
+            continue
+        for _loc, val in (entry or {}).items():
+            kids = (val or {}).get("kids") or []
+            if kids and isinstance(kids[0], str):
+                body = kids[0]
+        break
+    if not body:
+        return []                       # cannot locate it; stay silent rather than block
+
+    # SENTENCES, not lines, and with no upper length bound. A line-based test with
+    # a 130-character ceiling missed the very text this is for: a slot note is
+    # rendered as one long bullet, so the rule wordings all sat above the ceiling
+    # and passed. Ref markup is stripped from both sides, since the server resolves
+    # it into the student's own text and the generated copy still carries the tag.
+    def _sentences(text: str) -> set[str]:
+        text = _re.sub(r"<Ref\b[^>]*/?>|REF:[\w.:-]+", " ", text)
+        text = _re.sub(r"\s+", " ", text)
+        return {t.strip() for t in _re.split(r"(?<=[.!?])\s+", text)
+                if len(t.strip()) >= 60}
+
+    # Substring, not set membership. Resolving a Ref removes a line break, so a
+    # heading and the label beneath it merge into one "sentence" in the served copy
+    # and would read as extra text on every correct dump.
+    flat = _re.sub(r"\s+", " ",
+                   _re.sub(r"<Ref\b[^>]*/?>|REF:[\w.:-]+", " ", want))
+    return [t for t in _sentences(body) if t not in flat]
+
+
 def check_idmap_is_current(idmap: str, item_id: str) -> None:
     """Refuse to measure against a dump that predates the current prompt.
 
@@ -1713,10 +1773,20 @@ def check_idmap_is_current(idmap: str, item_id: str) -> None:
     except OSError as exc:
         raise SystemExit(f"cannot read --idmap {idmap}: {exc}")
     missing = [ln for ln in lines if ln not in blob]
-    if not missing:
+    extra = _idmap_extra_lines(idmap, item_id, want)
+    if not missing and not extra:
         print(f"(idmap checked: it serves the current {item_id} prompt, "
-              f"{len(lines)} lines matched)", file=sys.stderr)
+              f"{len(lines)} lines matched, nothing extra)", file=sys.stderr)
         return
+    if extra and not missing:
+        sample = "\n".join(f"    + {ln[:100]}" for ln in extra[:3])
+        raise SystemExit(
+            f"SUPERSET IDMAP: the {item_id} prompt in {idmap} carries "
+            f"{len(extra)} line(s) the rubric no longer generates.\n{sample}\n"
+            f"  The dump was taken while extra rule text was live and that text "
+            f"was later reverted, so this run would measure a rule the repo does "
+            f"not contain. Re-dump it:\n"
+            f"    curl -s 'http://localhost:8888/api/olxjson?id=all' > <newfile>")
     sample = "\n".join(f"    - {ln[:100]}" for ln in missing[:3])
     raise SystemExit(
         f"STALE IDMAP: {len(missing)} of {len(lines)} lines of the {item_id} "
