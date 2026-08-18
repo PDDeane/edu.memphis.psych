@@ -1846,18 +1846,46 @@ def main() -> int:
     _gold_now = config(handout)["gold"]()
     _base: dict[int, float] = {}
     if args.baseline:
+        # Compare against the PER-CELL MEDIAN of the baseline sweep, which is what
+        # its table reported. --out holds one run: the `published` index in the
+        # sibling .runs.json, chosen by "median by exact count". That run is the
+        # median by TOTAL, so any individual cell in it can sit at either
+        # extreme — and reading it as the baseline mislabels cells. It called p15
+        # an IMPROVEMENT against a baseline whose median was already exact, and
+        # left me comparing single draws on an item where 9 of 20 cells take more
+        # than one value across identical passes.
+        _runs_path = re.sub(r"\.json$", ".runs.json", args.baseline)
+        _how = None
         try:
-            with open(args.baseline) as fh:
-                for rec in json.load(fh).get("results", []):
-                    frac = (rec.get("grader") or {}).get("score")
-                    if frac is None or not rec.get("ok"):
-                        continue
-                    _bp = int(re.match(r"p(\d+)/", rec["cell"]).group(1))
-                    _base[_bp] = round(float(frac) * float(rec["sheet_max"]), 2)
-            print(f"(comparing against {len(_base)} cell(s) from {args.baseline})",
+            if os.path.exists(_runs_path):
+                _vals: dict[int, list[float]] = {}
+                with open(_runs_path) as fh:
+                    for _r in json.load(fh).get("runs", []):
+                        for rec in _r.get("results", []):
+                            frac = (rec.get("grader") or {}).get("score")
+                            if frac is None or not rec.get("ok"):
+                                continue
+                            _bp = int(re.match(r"p(\d+)/", rec["cell"]).group(1))
+                            _vals.setdefault(_bp, []).append(
+                                round(float(frac) * float(rec["sheet_max"]), 2))
+                _base = {p: statistics.median(v) for p, v in _vals.items() if v}
+                _n = max((len(v) for v in _vals.values()), default=0)
+                _how = f"per-cell median of {_n} run(s) in {os.path.basename(_runs_path)}"
+            else:
+                with open(args.baseline) as fh:
+                    for rec in json.load(fh).get("results", []):
+                        frac = (rec.get("grader") or {}).get("score")
+                        if frac is None or not rec.get("ok"):
+                            continue
+                        _bp = int(re.match(r"p(\d+)/", rec["cell"]).group(1))
+                        _base[_bp] = round(float(frac) * float(rec["sheet_max"]), 2)
+                _how = (f"ONE RUN from {os.path.basename(args.baseline)} — no "
+                        f".runs.json beside it, so single-draw labels")
+            print(f"(comparing against {len(_base)} cell(s), {_how})",
                   file=sys.stderr)
         except Exception as exc:
             print(f"(cannot read --baseline: {exc})", file=sys.stderr)
+            _base = {}
 
     def _report_cell(rec: dict) -> None:
         m = re.match(r"p(\d+)/", rec.get("cell") or "")
