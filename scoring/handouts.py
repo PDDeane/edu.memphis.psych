@@ -326,7 +326,25 @@ GOLD_DIVERGENCES: list[dict] = [
                "named, and charges p6 because the \"second antecedent is not the "
                "same as mentioned in 4a\". Gold is not ignoring the requirement "
                "here; it is drawing the line more generously on one paraphrase, "
-               "and we draw it where the dictionary does",
+               "and we draw it where the dictionary does. "
+               "ASKED SEPARATELY whether gold could be made reachable at no cost "
+               "to other cells, and it cannot. p17 needs a FOURTH credited slot "
+               "to reach 5.00, and state_c1 is the only candidate — the second "
+               "pair's boxes are empty and gold deducts them too. Three routes "
+               "reach it, all priced: loosening `refers_to` to credit a "
+               "paraphrase was measured at 16/19 -> 12/19; dropping the matching "
+               "requirement from the c-slots would credit p1's \"{{corpus:Q6/p1:state_c1:0:14:sha=c5af2a053212:shape=R14-0-20}}"
+               "{{corpus:Q6/p1:state_c1:15:56:sha=65b7abc7c7e3}} this\", which names no "
+               "consequence and which gold refuses in terms (\"did not state the "
+               "first consequence (from 4c)\"), so p1 gains 1.25 it should not "
+               "have; and the only fixture route is to move the clause the "
+               "student labelled (UTB) — sitting at home scrolling on their "
+               "phone, which does resemble 4c's second entry — into a consequence "
+               "box, which is putting text in a box against the student's own "
+               "labelling, the error reverted twice already on 2a/p18 and Q6/p8. "
+               "So the cell stays a declared miss. Excluding it would raise the "
+               "rate to 15/18 without making anything reachable, and that is a "
+               "denominator decision, not a fix",
     },
     {
         "code": "A_MISMATCH", "cells": [("Q6", 9)],
@@ -437,8 +455,19 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "p3, p5, p6, p16, p19) to catch this one\", and p2, p3 and p5 are the "
         "three that moved. Six attempts across the project now, three of them "
         "measured here. "
-        "So p2's 1.25 is unwinnable on any consistent rule, and this is a ceiling "
-        "rather than headroom: Q6's practical maximum is 18 of 19 cells, not 19.",
+        "p10 is the same criterion in its other form: a BORDERLINE FLIP rather than "
+        "a stable error. Its change_a1 states what changing the antecedent will do "
+        "for the student — give them discipline, produce a routine — without ever "
+        "naming a method, and \"produce a routine\" is arguably itself a method, so "
+        "the judgement is genuinely close. The scorer answers `incomplete` "
+        "sometimes and `met` sometimes: 1 of 3 passes in one sweep, 3 of 3 in the "
+        "next, on identical input. Gold credits it. Do not read a change in p10 as "
+        "a change in the system — it moved from exact to a miss between two sweeps "
+        "with no fixture and no prompt difference between them, purely on which "
+        "way the flip landed. "
+        "So both cells sit on the same unwinnable criterion, one stably and one by "
+        "coin-flip, and this is a ceiling rather than headroom: Q6's practical "
+        "maximum is 18 of 19 cells, not 19.",
     ),
     ("1", "Q3"): (
         "`action_oriented`: five answers justify the goal by CAPABILITY rather "
