@@ -896,18 +896,33 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "A), I hope that I will no longer experience the consequence of "
          "reduced physical fitness and low endurance (original C)."),
     ],
-    # p14: affect_c1 grabbed the "I" opening the next sentence
+    # p14 lays out as four sentences, two pairs: S1 antecedent+change, S2 the first
+    # consequence and its fate, S3 the second antecedent+change, S4 the second
+    # consequence and its fate. Each c-box takes the sentence that answers it;
+    # state and affect of one element are siblings, so sharing a sentence is
+    # expected and the overlap check exempts it.
+    #
+    # An earlier fix left three faults here, and its comment justified only the
+    # first. `affect_c1` KEPT "I work out (new A)." — the tail of S1, which
+    # change_a1 also holds, so two different elements shared it. `state_c1` began
+    # mid-word at "more(WGB)". Worst, `affect_c2` was set to "not be that severe.",
+    # a 19-character fragment sliced off the END OF S3 — part of change_a2's own
+    # sentence — while S4, which actually states what becomes of the second
+    # consequence, sat wholly in state_c2. Shown that fragment the scorer answered
+    # `incomplete`, which is right about the box and wrong about the student, and
+    # it cost p14 the 1.25 that gold awards.
+    #
+    # Both overlaps escaped the audit because the disjointness check skips any pair
+    # where a box is under 25 characters, and both fragments were 19.
     ("Q6", 14): [
+        ("set", "state_c1",
+         "I hope setting this new trigger, I will be able to work out more(WGB), so it won't lead to the consequence of gaining weight."),
         ("set", "affect_c1",
-         "I work out (new A). I hope setting this new trigger, I will be "
-         "able to work out more(WGB), so it won't lead to the consequence of "
-         "gaining weight."),
-        ("set", "affect_c2",
-         "not be that severe."),
+         "I hope setting this new trigger, I will be able to work out more(WGB), so it won't lead to the consequence of gaining weight."),
         ("set", "state_c2",
-         "I hope setting this new trigger, I will be able to function well, "
-         "so it won't lead to the consequences of me not able to release "
-         "tension because I didn’t go."),
+         "I hope setting this new trigger, I will be able to function well, so it won't lead to the consequences of me not able to release tension because I didn’t go."),
+        ("set", "affect_c2",
+         "I hope setting this new trigger, I will be able to function well, so it won't lead to the consequences of me not able to release tension because I didn’t go."),
     ],
 
     ("Q6", 4): [

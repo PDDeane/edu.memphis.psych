@@ -2085,7 +2085,16 @@ def check_consensus_spans_are_disjoint() -> list[str]:
                     continue
                 if any({a, b} <= g for g in _cover_groups(iid)):
                     continue           # the sheet declares these two share a list
-                if len(bx[a]) < 25 or len(bx[b]) < 25:
+                # 10, not 25. The floor is meant to skip coincidental short
+                # phrases, but at 25 it skipped the most suspicious case there is:
+                # a box holding a FRAGMENT lifted out of a neighbour's sentence.
+                # Q6/p14 had two, both 19 characters — `affect_c2` set to "not be
+                # that severe.", sliced off the end of change_a2's sentence, and
+                # `affect_c1` holding "I work out (new A)." that change_a1 also
+                # held. The scorer answered `incomplete` about the fragment,
+                # correctly, and the cell lost 1.25 that gold awards. Lowering the
+                # floor to 5 surfaces nothing else in the corpus, so 10 is free.
+                if len(bx[a]) < 10 or len(bx[b]) < 10:
                     continue
                 if bx[a] not in bx[b] and bx[b] not in bx[a]:
                     continue
