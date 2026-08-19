@@ -1337,15 +1337,36 @@ ITEMS: list[dict] = [
             # p9 it is a genuine, near-stable miss, and its cause is known: `state_a2`
             # names an antecedent 4a puts in the EFFECT half, so the trigger/effect
             # rule above refuses what gold credits. Addressing it needs a
-            # judgement-level rule, and the four variants plus this note's earlier
-            # eight show what those cost. Verification is the binding constraint
+            # judgement-level rule -- though NOT the trigger/effect rule, whose
+            # removal leaves p4 unchanged (see below) -- and the four variants plus
+            # this note's earlier eight show what those cost. Verification is the binding constraint
             # rather than invention: separating 11% from a fixed rate needs about
             # nine passes on p4 AND nine on every cell the rule perturbs, and every
             # judgement-level rule tried has perturbed several. That is an order of
             # magnitude more measurement than one cell worth 1.25 points can justify.
-            # If it is ever revisited, the trigger/effect counterfactual is the
-            # cheaper question: p4's 11% is that rule's visible cost, and nobody has
-            # yet measured what it earns.
+            # AND THE CAUSE RECORDED ABOVE IS WRONG. The counterfactual was run:
+            # the rule removed, 20 cells x 3 passes to find what moved, then 9
+            # passes on the four cells that did. p4 is exact 1 of 9 WITH the rule
+            # and 1 of 9 WITHOUT it -- same rate, same two values, same
+            # distribution. Removing the rule does not touch p4, so the rule is not
+            # what refuses `state_a2`; something else in the grader refuses that box
+            # about 89% of the time regardless of what we say about effect halves.
+            # p4 remains Q6's only genuine residual and its cause is UNKNOWN.
+            #
+            # The trigger/effect story was persuasive because it is true about the
+            # TEXT -- "{{corpus:Q6/p4:state_a2:38:55:sha=e101f3f9ce13}}" really is the effect half of that 4a entry
+            # -- and I took a correct reading of the text for a demonstrated cause.
+            # It was never tested until the counterfactual. Two successive accounts
+            # of this cell, both from 3-pass evidence, both wrong the same way.
+            #
+            # The rule itself measured NEUTRAL, which is its own small finding: no
+            # cost on p4, and its apparent benefit dissolved under 9 passes. p18
+            # showed 7.50 twice in three passes and then 9 of 9 at 6.25; p5 came
+            # back 89% exact; only p6 degrades, to 56% [27%, 81%], which is another
+            # coin-flip cell rather than a clean loss. So the rule neither earns nor
+            # loses its place, and it stays for the reason the tie-break stays: the
+            # incumbent wording carries no edit risk and a replacement carries all
+            # of it. See out/q6_noTErule_stage1 and _stage2.
             #
             # AND A LESSON ABOUT PROBING. v2 was probed on 8 cells chosen from the
             # error list and looked clean; the full sweep found p6, which no error
