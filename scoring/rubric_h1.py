@@ -1275,14 +1275,43 @@ ITEMS: list[dict] = [
             "TWO consequences from 4c. Report which of the two listed items each box "
             "names; the grader pairs them. A response that names the same one twice has "
             "addressed one and left the other out.",
-            # A THIRD of the 4a entries in this corpus (13 of 39 boxes) state the
-            # trigger and then what it leads to, joined by ";" or "so I" or "which".
-            # Matching a Q6 box against the whole entry lets it match on the EFFECT
-            # half, which is how "{{corpus:Q6/p6:state_a1:0:21:sha=641b355f6e09}}" gets credited against a
-            # trigger of "{{corpus:Q4a/p6:second:21:56:sha=98e4d82db22b}} days", and "going to
-            # bed late" against "{{corpus:Q4a/p4:second:21:71:sha=a628cc785942}}
-            # early". Gold refuses both. This is a statement about how the reference
-            # text is SHAPED, not a judgement of how close two things are.
+            # Some 4a and 4c entries state the element and then what it leads to,
+            # joined by ";" or "so I" or "which" -- 10 of the corpus's 78 non-empty
+            # reference boxes, about one in eight. Matching a Q6 box against the
+            # whole entry lets it match on the EFFECT half instead of the element.
+            # This is a statement about how the reference text is SHAPED, not a
+            # judgement of how close two things are.
+            #
+            # TWO CLAIMS THAT USED TO BE HERE WERE WRONG, and both are the same
+            # error as the p10 paragraph in handouts.GOLD_CEILINGS -- a plausible
+            # reading written up as data. Corrected 2026-08-18 after measuring:
+            #
+            # It said "A THIRD of the 4a entries (13 of 39 boxes)". The real figure
+            # is the 13% above. 39 is the 4a box count, so the original may have
+            # counted one family with a looser marker set, but nothing reproduces
+            # a third and the rule does not need it -- one entry in eight is still
+            # worth a rule.
+            #
+            # It also named two examples, "{{corpus:Q6/p6:state_a1:0:21:sha=641b355f6e09}}" against a trigger
+            # of "{{corpus:Q4a/p6:second:21:56:sha=98e4d82db22b}} days" and "{{corpus:Q6/p4:state_a2:38:55:sha=e101f3f9ce13}}"
+            # against "{{corpus:Q4a/p4:second:21:71:sha=a628cc785942}} early",
+            # and said "Gold refuses both". Gold refuses ONE. Measured on per-family
+            # counts against corrected gold: on the first cell we and gold both
+            # credit one antecedent of two, so the refusal is consistent with gold;
+            # on the second, gold credits one antecedent and we credit none, and
+            # this rule is why. So one of the two examples offered in support of the
+            # rule is a cell where it costs us.
+            #
+            # What the rule COSTS is therefore one disagreement, on the item's least
+            # reliable cell -- gold there deducts -1.5, off the 1.25 grid, and its
+            # `state_c2` is a truncation of its `affect_c2`. What the rule EARNS is
+            # unmeasured, and cannot be read off a finished run: its effect is to
+            # turn some `refers_to` answers into `none`, and separating "the rule
+            # refused this" from "the model would have refused it anyway" needs a
+            # sweep with the rule removed. A static detector was tried and does not
+            # work -- it misses the first cell above, where the box matches NEITHER
+            # half, and it reports three cells whose only link is a shared common
+            # word. Before defending or dropping this rule, run that sweep.
             "HOW TO READ A 4a OR 4c ENTRY WHEN YOU MATCH AGAINST IT. Students "
             "often write the element and then what it leads to, in one entry: "
             "\"my trigger is X; I end up Y\", \"my antecedent is X, so I Y\", "
