@@ -415,6 +415,41 @@ def exemplar_drops(handout: int) -> dict[str, list[int]]:
 # they never reach a comparison. The other seven do.
 GOLD_DIVERGENCES: list[dict] = [
     {
+        "code": "DUPLICATE_EFFECT_TIE_BREAK", "cells": [("Q6", 5)],
+        "why": "our sheet applies a duplicate rule to the EFFECT boxes and gold does "
+               "not. p5 writes a textbook parallel answer -- six sentences, one per "
+               "box, the cleanest split in the corpus -- in which both effect boxes "
+               "describe the same effect on the same consequence: eating fruit and "
+               "vegetables instead. `affect_c2`'s own note says that where both "
+               "boxes describe the same effect on the same consequence only the "
+               "FIRST can count, so we credit `affect_c1` and answer `incomplete` on "
+               "`affect_c2`. Gold credits both, because gold charges the naming miss "
+               "once, under the state slot, and does not charge the effect slot "
+               "again -- verified across all twenty rows, where every effect slot "
+               "gold DOES withhold is one whose box describes no effect. Both sides "
+               "reach 6.25 by different routes; the disagreement is one slot deep "
+               "and does not move the total. "
+               "This is a POSITION, not an error, and it is the more faithful one: "
+               "the item asks about EACH of two consequences, `cover` already "
+               "enforces that on the naming slots, and this extends it to the "
+               "effect slots so a response addressing one consequence twice cannot "
+               "collect both effect credits. Gold's no-double-jeopardy reading is "
+               "defensible and simply differs. "
+               "MEASURED, and the reason it stays as it is. The rule is live on ONE "
+               "cell: of the ten cells with both effect boxes filled, nine agree "
+               "with gold and p16 refuses for gold's own reason. Two changes were "
+               "swept and both were worse. Replacing the positional tie-break with "
+               "\"credit whichever box describes the consequence more directly\" as "
+               "free-standing sentences broke p14, p15 and p16 in one pass. "
+               "Rewriting it as ONE sentence wholly inside the \"where both describe "
+               "the same effect\" conditional -- no imperative escaping the clause -- "
+               "still gave 14/20 against a 17/20 baseline, breaking p12 where the "
+               "condition applies and p15 where it CANNOT: p15 has two empty effect "
+               "boxes, and both its state verdicts moved anyway. So the risk lives "
+               "in editing a note this long, not in what the note says, and the "
+               "incumbent wording is the only one carrying none of it.",
+    },
+    {
         "code": "ANTECEDENT_REUSED_AS_BEHAVIOR", "cells": [("Q4b", 4)],
         "why": "p4 gave \"scrolling on tiktok\" and \"becoming grumpy\" as their "
                "active behaviours, having already named \"scrolling through "
