@@ -21,6 +21,128 @@ MATERIALS = paths.MATERIALS
 SUBS = paths.SUBS
 OUT = paths.OUT
 
+# ── Gold rows the grader got wrong, corrected ────────────────────────────────
+#
+# A FIFTH kind of gold caveat, and the narrowest. The four already here say what
+# to do when gold is unreachable or inconsistent; none of them changes the number
+# we are scored against. This one does, and only where the gold row contradicts
+# a FACT ESTABLISHED IN THE STUDENT'S OWN SUBMISSION — not where we merely judge
+# differently.
+#
+#   GOLD_DIVERGENCES   we disagree on purpose; the cell is still scored as gold
+#                      has it, and the miss stands
+#   PER_ITEM_EXCLUDE   the cell is dropped, because nothing correct can score it
+#   GOLD_CEILINGS      a criterion gold decides inconsistently, so some cells are
+#                      unwinnable whichever rule you pick
+#   UNSCORED_GOLD_CRITERIA
+#                      criteria neither system scores at all
+#   CORRECTED_GOLD     the gold NUMBER is wrong on the submission's own evidence,
+#                      and the corrected number is what we score against
+#
+# The bar is deliberately high, and `was` is asserted against the sheet on every
+# run so a correction cannot outlive the row it corrects.
+CORRECTED_GOLD: dict[tuple[str, int], dict] = {
+    ("Q6", 9): {
+        "was": 5.00,
+        "score": 3.75,
+        "why": "gold credits `state_a1`, which names a THIRD antecedent p9 never "
+               "listed. Their 4a gives \"wanting {{corpus:Q4a/p8:first:30:58:sha=c33d740e9cde}} gym\" "
+               "and \"{{corpus:Q4a/p8:second:26:60:sha=b6dda568cd34}} any motivation\"; Q6 says "
+               "\"my {{corpus:Q6/p9:state_a1:24:83:sha=7b87e54e2cd5}} "
+               "show\". The scoring dictionary is explicit that the antecedents "
+               "must match up, and the lo-blocks prompt returned a mismatch in "
+               "five runs of five. "
+               "PREVIOUSLY EXCLUDED as unscoreable with expect_error -1.25, which "
+               "dropped the cell from every rate. Correcting the row is better: "
+               "the exclusion threw away a scoreable cell to avoid an error that "
+               "was gold's, and p9 now counts. The measured behaviour is "
+               "unchanged — 3.75, from crediting change_a1, state_c1 and affect_c1 "
+               "while state_a1 is demoted on `refers_to: none`. "
+               "Declared rather than chased, and the reason survives from the old "
+               "A_MISMATCH entry: p6 is the same shape and gold CREDITS it, no "
+               "textual feature separates them, and three attempts confirmed it — "
+               "a prose acts-on rule moved one slot and stuck on the other, a "
+               "classification probe answered `antecedent` for both, and a test "
+               "keyed on absence-framed antecedents would flag six credited cells "
+               "to catch this one. "
+               "5.00 -> 3.75. Gold's own charges, \"-2.5 pts: missing second "
+               "antecedent\" and \"-2.5 pts: missing second consequences\", we agree "
+               "with and reproduce.",
+    },
+    ("Q6", 17): {
+        "was": 5.00,
+        "score": 3.75,
+        "why": "gold credits `state_c1`, which names a consequence p17 never "
+               "listed. Their 4c gives \"gaining weight quickly\" and \"becoming "
+               "lazy and am not productive\"; Q6 says \"my {{corpus:Q6/p17:state_c1:32:54:sha=e4c2d3c739bb:shape=R22-0-20}}"
+               "{{corpus:Q6/p17:state_c1:55:93:sha=57f42152d2a2}} enough\". Weight gain LEADS "
+               "TO feeling unhealthy rather than being a kind of it, \"stressed\" "
+               "appears nowhere in 4c, and \"not moving enough\" is the behaviour "
+               "rather than a consequence. "
+               "This was declared C_MISMATCH and measured five times. Gold itself "
+               "applies the matching rule elsewhere in its own words — refusing "
+               "p1's first consequence \"(from 4c)\", charging p5's \"first "
+               "antecedent does not match antecedents listed in 4a\" — and a "
+               "substitution test built to honour those refusals (is one a KIND OF "
+               "the other, or does one LEAD TO the other) refused p17 too. So no "
+               "consistent rule can credit it, which makes the 1.25 an error in "
+               "the row rather than a disagreement about judgement. "
+               "5.00 -> 3.75. Gold's own charge, \"-5 pts: did not address your "
+               "second antecedent being changed and how it will affect your second "
+               "consequence\", we agree with and reproduce.",
+    },
+    ("Q6", 18): {
+        "was": 7.50,
+        "score": 6.25,
+        "why": "gold credits a SECOND ANTECEDENT that p18 never listed. Their 4a "
+               "writes two numbered items whose text is verbatim identical — the "
+               "after-school fatigue trigger, twice — so `bmod_h1_q4a_second` is "
+               "empty and there is no second antecedent to change. Q6's "
+               "`state_a2` names \"phone distractions\", which appears in NEITHER "
+               "4a item, and no arrangement of p18's own words can put a "
+               "matchable antecedent in that box. "
+               "Gold says so itself on the same row: Q4a scores 3.0, \"-2 pts: "
+               "only provided one antecedent\". Then Q6 credits the second one. "
+               "The two judgements cannot both be right, and the 4a one is the "
+               "one supported by the document. "
+               "So 1.25 comes off: 7.50 -> 6.25, which is what a scorer that "
+               "honours the student's own 4a can reach. Everything else in the "
+               "row stands — gold's other charge, \"-2.5 pts: did not address how "
+               "{{corpus:Q4c/p19:second:0:25:sha=d4d526f38996:shape=C1}} being affected\", we agree with and "
+               "reproduce.",
+    },
+}
+
+
+def corrected_gold(item: str, pid: int) -> dict | None:
+    """The correction for one cell, or None. See CORRECTED_GOLD."""
+    return CORRECTED_GOLD.get((item, pid))
+
+
+def apply_corrected_gold(rows: dict, handout: int) -> dict:
+    """Overwrite the gold score wherever CORRECTED_GOLD names a cell.
+
+    Applied inside the gold LOADER rather than at each call site, because eight
+    places load gold — the app, the CLI, the paper baseline, interim, the audit,
+    self_graded_misses — and a correction applied in some of them would make the
+    columns stop being a comparison. Every consumer goes through
+    config(h)["gold"](), so this is the one place that reaches all of them.
+    """
+    for (item, pid), fix in CORRECTED_GOLD.items():
+        cell = (rows.get(pid) or {}).get(item)
+        if not cell:
+            continue                    # different handout, or no such row
+        cell["score"] = fix["score"]
+        cell["corrected_from"] = fix["was"]
+    return rows
+
+
+def _gold_loader(fn, handout: int):
+    def load(*a, **kw):
+        return apply_corrected_gold(fn(*a, **kw), handout)
+    return load
+
+
 HANDOUTS: dict[int, dict] = {
     1: {
         "rubric": rubric_h1,
@@ -29,7 +151,7 @@ HANDOUTS: dict[int, dict] = {
         "markers": H1_MARKERS,
         "capture_tail": False,
         "outdir": f"{OUT}/h1",
-        "gold": gold_mod.load_h1,
+        "gold": _gold_loader(gold_mod.load_h1, 1),
         "blurb": (
             "Handout 1 of the Behavior Modification Assignment: defining behaviours, "
             "the ABCs of a functional behavioural analysis, and SMART goals."
@@ -108,7 +230,7 @@ HANDOUTS: dict[int, dict] = {
         "capture_tail": True,
         "repair_orphans": True,
         "outdir": f"{OUT}/h2",
-        "gold": gold_mod.load_h2,
+        "gold": _gold_loader(gold_mod.load_h2, 2),
         "blurb": (
             "Handout 2 of the Behavior Modification Assignment: applying the four types "
             "of operant conditioning to the student's own behaviour-change plan."
@@ -130,7 +252,7 @@ HANDOUTS: dict[int, dict] = {
         "capture_tail": True,
         "join_aware": True,
         "outdir": f"{OUT}/h3",
-        "gold": gold_mod.load_h3,
+        "gold": _gold_loader(gold_mod.load_h3, 3),
         "blurb": (
             "Handout 3 of the Behavior Modification Assignment: presenting and graphing "
             "the data collected during the intervention, and analysing the result."
@@ -304,97 +426,16 @@ GOLD_DIVERGENCES: list[dict] = [
             "so with this declared those two slots are at ceiling."
         ),
     },
-    {
-        "code": "C_MISMATCH", "cells": [("Q6", 17)],
-        "why": "A FORCED divergence, not a chosen one: gold is inconsistent with "
-               "itself here, so no correct algorithm can agree with it on all "
-               "three of p4, p5 and p17. Gold ARTICULATES the matching rule in its "
-               "own comments — \"First antecedent does not match antecedents "
-               "listed in 4a\" on p5, \"did not state the first consequence (from "
-               "4c)\" on p1 — and then credits p17, which breaks the same rule in "
-               "the same way. Any scorer that refuses p4 and p5, as gold requires, "
-               "must refuse p17 too. That was verified by building the rule and "
-               "watching it do exactly that. "
-               "p17 writes \"my {{corpus:Q6/p17:state_c1:32:82:sha=ef8f2e007fd6:shape=R50-0-20}}"
-               "{{corpus:Q6/p17:state_c1:83:110:sha=e4aa52e14baa}} C)\" against a 4c listing weight gain "
-               "and becoming unproductive. The student is pointing at their own 4c "
-               "— the phrasing is the template's own scaffold, which they filled — "
-               "but they never name either consequence they listed, one element "
-               "(\"stressed\") is new, and weight gain LEADS TO feeling unhealthy "
-               "rather than being a kind of it. "
-               "Declared rather than fixed, and the attempts are worth recording. "
-               "Loosening `refers_to` to credit a paraphrase was implemented and "
-               "MEASURED: Q6 went 16/19 -> 12/19. p5, p10 and p15 each moved off "
-               "an exact score with no fixture change, so the loss is the rule's "
-               "alone, and bias rose +0.14 -> +0.34. That is the A_MISMATCH "
-               "warning coming true — crediting this paraphrase means teaching "
-               "the check to credit real mismatches. "
-               "Note gold applies the matching rule elsewhere in its own words: "
-               "it refuses p1's first consequence \"(from 4c)\" when nothing is "
-               "named, and charges p6 because the \"second antecedent is not the "
-               "same as mentioned in 4a\". Gold is not ignoring the requirement "
-               "here; it is drawing the line more generously on one paraphrase, "
-               "and we draw it where the dictionary does. "
-               "ASKED SEPARATELY whether gold could be made reachable at no cost "
-               "to other cells, and it cannot. p17 needs a FOURTH credited slot "
-               "to reach 5.00, and state_c1 is the only candidate — the second "
-               "pair's boxes are empty and gold deducts them too. Three routes "
-               "reach it, all priced: loosening `refers_to` to credit a "
-               "paraphrase was measured at 16/19 -> 12/19; dropping the matching "
-               "requirement from the c-slots would credit p1's \"{{corpus:Q6/p1:state_c1:0:14:sha=c5af2a053212:shape=R14-0-20}}"
-               "{{corpus:Q6/p1:state_c1:15:56:sha=65b7abc7c7e3}} this\", which names no "
-               "consequence and which gold refuses in terms (\"did not state the "
-               "first consequence (from 4c)\"), so p1 gains 1.25 it should not "
-               "have; and the only fixture route is to move the clause the "
-               "student labelled (UTB) — sitting at home scrolling on their "
-               "phone, which does resemble 4c's second entry — into a consequence "
-               "box, which is putting text in a box against the student's own "
-               "labelling, the error reverted twice already on 2a/p18 and Q6/p8. "
-               "So the cell stays a declared miss. Excluding it would raise the "
-               "rate to 15/18 without making anything reachable, and that is a "
-               "denominator decision, not a fix. "
-               "TWO MORE ATTEMPTS, and the second settled what this cell is. "
-               "The fourth granted latitude on one textual feature — a box that "
-               "points back at the student's own answer, \"my consequence of X\" — "
-               "in the state_c notes only, leaving the state_a notes untouched. A "
-               "four-cell probe looked clean and p17 reached gold. Over three "
-               "passes it netted zero: p17 and p10 gained, p4 and p5 lost, 15/19 "
-               "either way, bias +0.14 -> +0.34. p4's extra credit came from "
-               "`state_a2` and p5's from `state_a1` — ANTECEDENT slots, never "
-               "edited — because those boxes carry the same back-reference "
-               "phrasing, 22 of them across 14 cells. Scoping a rule to one slot "
-               "family in the NOTES does not scope its EFFECT, and measuring where "
-               "a trigger PHRASE occurs is not measuring the blast radius. "
-               "The fifth asked the right question and answered p17 differently "
-               "than expected. Gold credits a BROADER OR NARROWER WORD for the "
-               "same thing and refuses a NEIGHBOUR ON THE CAUSAL CHAIN: p4 names "
-               "what its listed trigger CAUSES — {{corpus:Q6/p4:state_a2:38:55:sha=e101f3f9ce13}}, where 4a lists "
-               "the scrolling that causes it — and p5 names WHY its listed "
-               "condition bites, a craving where 4a lists the snacks kept nearby. "
-               "Gold refuses both in terms. A substitution test (is one a KIND OF "
-               "the other, or does one LEAD TO the other) held all three refusals, "
-               "the first wording of five to hold its controls. "
-               "IT ALSO REFUSED p17, and correctly. \"Feeling unhealthy\" is not a "
-               "category containing \"gaining weight quickly\" — weight gain LEADS "
-               "TO feeling unhealthy, which is the refusing case. So p17 is the "
-               "same kind of case as p4 and p5, and gold simply credited it where "
-               "it refused those. No property separates them, so p17's gold is "
-               "unreachable by any CONSISTENT rule and not merely by the five "
-               "tried. That is a stronger claim than this entry could previously "
-               "make, and it retires the question. "
-               "The rule was measured anyway, to see whether the boundary was "
-               "worth drawing for its own sake. It was not: pass 1 came in at "
-               "12/19 against a 15/19 baseline, with p4, p12, p16 and p18 all off "
-               "exact. Reverted. Stop here",
-    },
-    {
-        "code": "A_MISMATCH", "cells": [("Q6", 9)],
-        "why": "p9's Q6 changes a third antecedent not listed in their 4a. The "
-               "dictionary is explicit that the antecedents must match up, so "
-               "`state_a1` is a mismatch; gold scored it met. The lo-blocks "
-               "prompt returned `mismatch` in five runs of five — matching gold "
-               "would mean teaching the check to credit real mismatches.",
-    },
+    # C_MISMATCH for Q6/p17 was here and is now CORRECTED_GOLD[("Q6", 17)]. A
+    # divergence says the cell is scored as gold has it and the miss stands; a
+    # correction says the row is wrong. Once five measured wordings showed that no
+    # consistent rule can credit p17's consequence, the second is the honest
+    # description, and keeping both would have claimed we disagree with a number we
+    # now match. The measured history moved into the correction's reason.
+    # A_MISMATCH for Q6/p9 was here and is now CORRECTED_GOLD[("Q6", 9)], for the
+    # same reason C_MISMATCH moved: we no longer disagree with the number we score
+    # against. Its evidence — that p6 is the same shape and gold credits it, and
+    # the three attempts that failed to separate them — moved into the reason there.
     {
         "code": "A_NO_KEYWORD", "cells": [("Q4a", 9), ("Q4a", 15)],
         "why": "the dictionary requires the word \"antecedent\" or \"trigger\". "
@@ -496,19 +537,25 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "p3, p5, p6, p16, p19) to catch this one\", and p2, p3 and p5 are the "
         "three that moved. Six attempts across the project now, three of them "
         "measured here. "
-        "p10 is the same criterion in its other form: a BORDERLINE FLIP rather than "
-        "a stable error. Its change_a1 states what changing the antecedent will do "
-        "for the student — give them discipline, produce a routine — without ever "
-        "naming a method, and \"produce a routine\" is arguably itself a method, so "
-        "the judgement is genuinely close. The scorer answers `incomplete` "
-        "sometimes and `met` sometimes: 1 of 3 passes in one sweep, 3 of 3 in the "
-        "next, on identical input. Gold credits it. Do not read a change in p10 as "
-        "a change in the system — it moved from exact to a miss between two sweeps "
-        "with no fixture and no prompt difference between them, purely on which "
-        "way the flip landed. "
-        "So both cells sit on the same unwinnable criterion, one stably and one by "
-        "coin-flip, and this is a ceiling rather than headroom: Q6's practical "
-        "maximum is 18 of 19 cells, not 19.",
+        "p10 WAS listed here as the same criterion in its other form — a borderline "
+        "flip on `change_a1`, answering `incomplete` on 1 of 3 passes and `met` on "
+        "3 of 3 in the next sweep. That reading was WRONG, and it is left here "
+        "because the way it was wrong is the useful part. The instability was real "
+        "but it was not a close judgement: p10's fixture was defective. Its "
+        "`state_a1` held a mid-sentence fragment and its `change_a1` held two whole "
+        "sentences, so the grader was being asked to judge a method statement "
+        "against a box that had been cut in the wrong place. Repaired, p10 scores "
+        "10.00 — five consecutive probes, then 3 of 3 in each of the two sweeps "
+        "since. Nothing about the criterion changed. "
+        "The lesson is about attribution, not about p10. An unstable cell reads "
+        "exactly like a genuinely close judgement, and \"the criterion cannot be "
+        "scored consistently\" is the more flattering of the two explanations, "
+        "because it puts the fault in gold. Three of the cells once explained that "
+        "way — p10, p14, p15 — turned out to be fixtures that had cut the student's "
+        "sentences in the wrong place, and each was found by reading the boxes out "
+        "one at a time, never by a check. Suspect the fixture before the criterion. "
+        "So p2 sits alone on this ceiling now, and Q6's practical maximum is 19 of "
+        "its 20 counted cells.",
     ),
     ("1", "Q3"): (
         "`action_oriented`: five answers justify the goal by CAPABILITY rather "
@@ -579,32 +626,11 @@ PER_ITEM_EXCLUDE: dict[str, dict[int, str | dict]] = {
         # their 4a, and the dictionary is explicit that the antecedents must match
         # up. Gold is unreachable because gold is lenient there and we are not, so
         # a miss stays EXPECTED; the error is one slot, not two.
-        9: {
-            "why": "gold credits `state_a1`, which is a third antecedent not "
-                   "listed in this participant's 4a — the declared A_MISMATCH "
-                   "divergence, where the scorer is right and gold is lenient. "
-                   "Note HOW that now shows up: the verdict on `state_a1` is "
-                   "`met`, and it is `refers_to: none` — matching neither listed "
-                   "antecedent — that makes the cover logic demote it. Reading "
-                   "verdicts alone would say the scorer agrees with gold here, "
-                   "and it does not. The fixture is also reconstructed (the "
-                   "state_c2/affect_c2 split came from a 5/5 tie-break across "
-                   "ten runs, the SAME split on both sides), but that is not "
-                   "what makes the cell unscoreable: the tie-break agrees with "
-                   "gold on both slots. "
-                   "One slot, not two. `affect_c1` used to disagree as well, "
-                   "answering `incomplete` where gold credits, and that was a "
-                   "FIXTURE fault rather than a scoring one: the clause saying "
-                   "what becomes of the consequence — \"{{corpus:Q6/p9:affect_c1:10:31:sha=cb9713afcc59:shape=R12-1-27,R21-0-20}}"
-                   "{{corpus:Q6/p9:affect_c1:32:55:sha=374f94f40fd7}} health\" — is inseparable from the "
-                   "naming of it, so affect_c1 was left holding only the "
-                   "sentence after, which states a NEW state rather than the "
-                   "fate of the old one. Given the clause, it answers `met`",
-            # Measured, not predicted: p9 re-run after the fixture repair
-            # returns 3.75 against a gold of 5.00. state_a1 is the only slot
-            # that disagrees, through the cover demotion described above.
-            "expect_error": -1.25,
-        },
+        # p9 was excluded here as unscoreable with expect_error -1.25. It is now
+        # CORRECTED_GOLD[("Q6", 9)] instead: the exclusion dropped a perfectly
+        # scoreable cell from every rate in order to absorb an error that was
+        # gold's, and correcting the row lets the cell count. Its measured
+        # behaviour is unchanged at 3.75.
     },
     "Q4c": {
         16: {
