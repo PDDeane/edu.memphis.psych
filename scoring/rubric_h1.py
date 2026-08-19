@@ -1271,7 +1271,18 @@ ITEMS: list[dict] = [
             #
             # Nothing beat leaving the rule out. Read the failures, not the totals:
             #
-            # EVERY variant fixed p9 and broke p1 or p4. p9's flip -- a box naming
+            # THEY DID NOT EVEN FIX p9, though all four looked like they had, and
+            # that is the most important correction to this whole account. Measured
+            # afterwards at NINE passes on the unmodified committed state, p9 is
+            # exact 5 of 9 -- 56%, 95% CI [27%, 81%] -- a coin flip that already
+            # lands right more often than not. It appears in the error table only
+            # because the 3-pass baseline happened to draw it 2-of-3 the wrong way.
+            # A rule that takes a 56% cell to exact-on-three-passes has told you
+            # nothing, so every claim below that a variant "fixed p9" is withdrawn:
+            # the honest scorecard for all four is that they broke cells and gained
+            # nothing. p9 is not a target. There is nothing consistent there to fix.
+            #
+            # EVERY variant appeared to fix p9 and broke p1 or p4. p9's flip -- a box naming
             # bad health against a listed better health -- is unambiguous and all
             # four wordings caught it. p1 (more time to sleep, against consequences
             # about mood and falling asleep in class) and p4 (happier, against
@@ -1320,6 +1331,21 @@ ITEMS: list[dict] = [
             # what the edit says, and an incumbent wording is worth more than its
             # content: it is the only one carrying none of that risk. This applies
             # to every item with a note this size, not just Q6.
+            #
+            # p4 IS Q6's ONLY REAL RESIDUAL, and it is deliberately not pursued.
+            # Nine passes put it exact 1 of 9 -- 11%, 95% CI [2%, 44%] -- so unlike
+            # p9 it is a genuine, near-stable miss, and its cause is known: `state_a2`
+            # names an antecedent 4a puts in the EFFECT half, so the trigger/effect
+            # rule above refuses what gold credits. Addressing it needs a
+            # judgement-level rule, and the four variants plus this note's earlier
+            # eight show what those cost. Verification is the binding constraint
+            # rather than invention: separating 11% from a fixed rate needs about
+            # nine passes on p4 AND nine on every cell the rule perturbs, and every
+            # judgement-level rule tried has perturbed several. That is an order of
+            # magnitude more measurement than one cell worth 1.25 points can justify.
+            # If it is ever revisited, the trigger/effect counterfactual is the
+            # cheaper question: p4's 11% is that rule's visible cost, and nobody has
+            # yet measured what it earns.
             #
             # AND A LESSON ABOUT PROBING. v2 was probed on 8 cells chosen from the
             # error list and looked clean; the full sweep found p6, which no error
