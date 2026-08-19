@@ -1243,6 +1243,27 @@ ITEMS: list[dict] = [
             "TWO consequences from 4c. Report which of the two listed items each box "
             "names; the grader pairs them. A response that names the same one twice has "
             "addressed one and left the other out.",
+            # A THIRD of the 4a entries in this corpus (13 of 39 boxes) state the
+            # trigger and then what it leads to, joined by ";" or "so I" or "which".
+            # Matching a Q6 box against the whole entry lets it match on the EFFECT
+            # half, which is how "{{corpus:Q6/p6:state_a1:0:21:sha=641b355f6e09}}" gets credited against a
+            # trigger of "{{corpus:Q4a/p6:second:21:56:sha=98e4d82db22b}} days", and "going to
+            # bed late" against "{{corpus:Q4a/p4:second:21:71:sha=a628cc785942}}
+            # early". Gold refuses both. This is a statement about how the reference
+            # text is SHAPED, not a judgement of how close two things are.
+            "HOW TO READ A 4a OR 4c ENTRY WHEN YOU MATCH AGAINST IT. Students "
+            "often write the element and then what it leads to, in one entry: "
+            "\"my trigger is X; I end up Y\", \"my antecedent is X, so I Y\", "
+            "\"X, which leads to Y\". In that shape X is the antecedent and Y is "
+            "its consequence — Y is NOT part of the antecedent, and it is usually "
+            "the unwanted behaviour or one of its results. "
+            "When you set `refers_to`, match the Q6 box against X ONLY. A Q6 box "
+            "that names Y has named the CONSEQUENCE of that trigger, not the "
+            "trigger, so it does not refer to that entry — answer `none` unless it "
+            "matches the X of the other entry. This holds however closely the "
+            "wording of Y is echoed, and echoing Y closely is exactly the case to "
+            "watch for. The same reading applies to a 4c entry that names a "
+            "consequence and then what follows from it.",
         ],
         "context": ["Q1", "Q2", "Q4a", "Q4c"],
     },

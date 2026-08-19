@@ -465,7 +465,10 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
 <Ref id="bmod_h2_pr_ref_wgb" target="bmod_h1_q2_response" />
 
 ## Student response to grade (item PR)
-<Ref id="bmod_h2_pr_ref" target="bmod_h2_pr" />
+[box begins] <Ref id="bmod_h2_pr_ref" target="bmod_h2_pr" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes. Costs and the item
            total live on the sheet; this block only does the arithmetic. -->
@@ -602,7 +605,10 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
 <Ref id="bmod_h2_nr_ref_wgb" target="bmod_h1_q2_response" />
 
 ## Student response to grade (item NR)
-<Ref id="bmod_h2_nr_ref" target="bmod_h2_nr" />
+[box begins] <Ref id="bmod_h2_nr_ref" target="bmod_h2_nr" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes. Costs and the item
            total live on the sheet; this block only does the arithmetic. -->
@@ -739,7 +745,10 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
 <Ref id="bmod_h2_pp_ref_wgb" target="bmod_h1_q2_response" />
 
 ## Student response to grade (item PP)
-<Ref id="bmod_h2_pp_ref" target="bmod_h2_pp" />
+[box begins] <Ref id="bmod_h2_pp_ref" target="bmod_h2_pp" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes. Costs and the item
            total live on the sheet; this block only does the arithmetic. -->
@@ -876,7 +885,10 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
 <Ref id="bmod_h2_np_ref_wgb" target="bmod_h1_q2_response" />
 
 ## Student response to grade (item NP)
-<Ref id="bmod_h2_np_ref" target="bmod_h2_np" />
+[box begins] <Ref id="bmod_h2_np_ref" target="bmod_h2_np" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes. Costs and the item
            total live on the sheet; this block only does the arithmetic. -->
@@ -1036,7 +1048,10 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
 <Ref id="bmod_h2_d1_ref_t" target="bmod_h2_t1" />
 
 ## Student response to grade (item D1)
-<Ref id="bmod_h2_d1_ref" target="bmod_h2_d1" />
+[box begins] <Ref id="bmod_h2_d1_ref" target="bmod_h2_d1" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes. Costs and the item
            total live on the sheet; this block only does the arithmetic. -->
@@ -1191,7 +1206,10 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
 <Ref id="bmod_h2_day1_ref_d" target="bmod_h2_d1" />
 
 ## Student response to grade (item DAY1)
-<Ref id="bmod_h2_day1_ref" target="bmod_h2_day1" />
+[box begins] <Ref id="bmod_h2_day1_ref" target="bmod_h2_day1" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes. Costs and the item
            total live on the sheet; this block only does the arithmetic. -->
@@ -1346,7 +1364,10 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
 <Ref id="bmod_h2_wk1_ref_d" target="bmod_h2_d1" />
 
 ## Student response to grade (item WK1)
-<Ref id="bmod_h2_wk1_ref" target="bmod_h2_wk1" />
+[box begins] <Ref id="bmod_h2_wk1_ref" target="bmod_h2_wk1" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes. Costs and the item
            total live on the sheet; this block only does the arithmetic. -->
@@ -1502,7 +1523,10 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
 <Ref id="bmod_h2_d2_ref_t" target="bmod_h2_t2" />
 
 ## Student response to grade (item D2)
-<Ref id="bmod_h2_d2_ref" target="bmod_h2_d2" />
+[box begins] <Ref id="bmod_h2_d2_ref" target="bmod_h2_d2" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes. Costs and the item
            total live on the sheet; this block only does the arithmetic. -->
@@ -1657,7 +1681,10 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
 <Ref id="bmod_h2_day2_ref_d" target="bmod_h2_d2" />
 
 ## Student response to grade (item DAY2)
-<Ref id="bmod_h2_day2_ref" target="bmod_h2_day2" />
+[box begins] <Ref id="bmod_h2_day2_ref" target="bmod_h2_day2" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes. Costs and the item
            total live on the sheet; this block only does the arithmetic. -->
@@ -1812,7 +1839,10 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
 <Ref id="bmod_h2_wk2_ref_d" target="bmod_h2_d2" />
 
 ## Student response to grade (item WK2)
-<Ref id="bmod_h2_wk2_ref" target="bmod_h2_wk2" />
+[box begins] <Ref id="bmod_h2_wk2_ref" target="bmod_h2_wk2" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes. Costs and the item
            total live on the sheet; this block only does the arithmetic. -->
