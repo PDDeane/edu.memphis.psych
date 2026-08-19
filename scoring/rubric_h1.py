@@ -1312,6 +1312,35 @@ ITEMS: list[dict] = [
             # work -- it misses the first cell above, where the box matches NEITHER
             # half, and it reports three cells whose only link is a shared common
             # word. Before defending or dropping this rule, run that sweep.
+            #
+            # SCOPING CONSTRAINT FOR ANY INVERSION RULE ADDED LATER. The two rules
+            # reach for the SAME textual relation from opposite directions, and the
+            # cell where the rule costs us is exactly the cell where they collide.
+            # p4's 4a reads "scrolling through tiktok, so I forget to go to bed
+            # EARLY" and its Q6 box says "going to bed LATE" -- the same state with
+            # the polarity flipped. This rule refuses it on POSITION, because it is
+            # the Y half; an inversion rule would credit it on MEANING, because the
+            # attribute matches and only the sign differs. Surveyed across the
+            # corpus, p4 is the ONLY one of the eight trigger/effect cells where the
+            # relation in play is an inversion -- p6's box matches Y by near-synonymy
+            # ("miss workout days" / "not attending the gym") and p15's matches X --
+            # so this collision accounts for the whole of this rule's measured cost.
+            #
+            # They are compatible only if inversion names its comparison target
+            # explicitly: the LISTED ELEMENT, never the entry. "Is the box this
+            # element with the polarity flipped?" refuses p4, because Y is a
+            # DIFFERENT ATTRIBUTE from X -- it is what X causes -- so inverting Y
+            # still has not named X. Stated loosely enough to apply to any text in
+            # the entry, inversion makes Y fair game, credits p4, and silently
+            # undoes this rule. That is the back-reference failure again: a rule
+            # scoped in the notes to one slot family leaked in EFFECT because the
+            # phrase it keyed on sat in 22 antecedent boxes across 14 cells.
+            #
+            # What this does NOT settle is whether refusing p4 is right. Gold
+            # credits it, and the student does treat "going to bed late" as their
+            # own antecedent -- re-describing an antecedent at one remove between
+            # items is ordinary. Our rule refuses that re-description. One cell,
+            # with off-grid gold and a truncated `state_c2`, cannot decide it.
             "HOW TO READ A 4a OR 4c ENTRY WHEN YOU MATCH AGAINST IT. Students "
             "often write the element and then what it leads to, in one entry: "
             "\"my trigger is X; I end up Y\", \"my antecedent is X, so I Y\", "
