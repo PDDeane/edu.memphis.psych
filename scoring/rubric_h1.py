@@ -1259,9 +1259,52 @@ ITEMS: list[dict] = [
             # about one cell (p9) plus three cells right for the right reasons;
             # landed separately either one loses ground.
             #
-            # So the next attempt here is a PAIR, probed at 5 passes not 3 on p4,
-            # p5, p9 and p15 with p11 and p20 as direct-restatement controls, and
-            # only then swept. Anything less has already been tried.
+            # THE PAIR WAS BUILT AND SWEPT. It does not work, and neither does
+            # any of the four wordings tried. Measured 2026-08-19, all reverted,
+            # all against the same fixtures and the same corrected gold as the
+            # 17/20 baseline in out/q6_boxbounds_full:
+            #
+            #   v1  flip clauses + boundary as a veto     probe only; broke p4
+            #   v2  boundary sharpened into a test        17/20, MAE 0.25
+            #   v3  boundary reordered as a fallback      17/20, MAE 0.25
+            #   v4  flip clauses alone, no boundary       16/20, MAE 0.31
+            #
+            # Nothing beat leaving the rule out. Read the failures, not the totals:
+            #
+            # EVERY variant fixed p9 and broke p1 or p4. p9's flip -- a box naming
+            # bad health against a listed better health -- is unambiguous and all
+            # four wordings caught it. p1 (more time to sleep, against consequences
+            # about mood and falling asleep in class) and p4 (happier, against
+            # getting mad and sleepy) sit at the edge of same-attribute, and no
+            # wording separated them from p9. In v4 the clause written to hold p1
+            # -- a general benefit is not an attribute -- held it in pass 1 and
+            # failed in passes 2 and 3 on identical input. So the boundary is not
+            # being drawn by the rule text at all; it moves with the draw. The
+            # discrimination p9-yes / p1-no / p4-no may simply not be expressible
+            # as prompt text, because the three differ by degree of semantic
+            # distance and not by any structural feature a rule can name.
+            #
+            # THE TWO HALVES ARE IN TENSION, which is why the pair fails as a pair.
+            # Tighten the boundary and it swallows a box that names an antecedent
+            # AND a listed consequence under one negation: v2 cost p6 3.75 points
+            # in one pass, on a cell that had been 6.25 in three straight passes,
+            # because its box reads "no longer be filled with no motivation and
+            # stiffness" -- "no longer" scoping over both, so the stiffness half
+            # names 4c's second consequence and the box is creditable. Loosen the
+            # boundary to a fallback and the flip clauses over-fire instead (v3:
+            # p1's median regressed, c-family errors went 2 -> 3).
+            #
+            # A STABILITY FINDING THAT DID NOT REPLICATE. v3 cut cells taking more
+            # than one value across three passes from 6/20 to 3/20, the largest
+            # such gain anything has produced here. v4 was built to keep it without
+            # the boundary test and lost it, so it came from the combination or it
+            # was noise in a 3-pass sample. Do not cite it as a reason to try again.
+            #
+            # AND A LESSON ABOUT PROBING. v2 was probed on 8 cells chosen from the
+            # error list and looked clean; the full sweep found p6, which no error
+            # list named. A rule keyed on a RELATION BETWEEN BOXES can fire on any
+            # cell exhibiting the relation, so the affected set cannot be predicted
+            # from where the errors are. Sweep these, do not probe them.
             #
             # The dictionary's own suggested framing, quoted as it stands. It is
             # the source of the sentence shape many students follow, and it is
