@@ -1334,16 +1334,19 @@ ITEMS: list[dict] = [
             #
             # p4 IS Q6's ONLY REAL RESIDUAL, and it is deliberately not pursued.
             # Nine passes put it exact 1 of 9 -- 11%, 95% CI [2%, 44%] -- so unlike
-            # p9 it is a genuine, near-stable miss, and its cause is known: `state_a2`
-            # names an antecedent 4a puts in the EFFECT half, so the trigger/effect
-            # rule above refuses what gold credits. Addressing it needs a
-            # judgement-level rule -- though NOT the trigger/effect rule, whose
-            # removal leaves p4 unchanged (see below) -- and the four variants plus
-            # this note's earlier eight show what those cost. Verification is the binding constraint
-            # rather than invention: separating 11% from a fixed rate needs about
-            # nine passes on p4 AND nine on every cell the rule perturbs, and every
+            # p9 it is a genuine, near-stable miss. ITS CAUSE IS UNKNOWN. Two
+            # accounts were written here and both were wrong: the box does name an
+            # antecedent that 4a puts in the effect half, which made the
+            # trigger/effect rule the obvious culprit, and removing that rule leaves
+            # p4 at exactly the same rate. Something else refuses `state_a2` about
+            # 89% of the time. A correct reading of the text is not a cause.
+            #
+            # Verification, not invention, is the binding constraint on fixing it:
+            # separating 11% from a fixed rate needs about nine passes on p4 AND
+            # nine on every cell a candidate rule perturbs, and every
             # judgement-level rule tried has perturbed several. That is an order of
             # magnitude more measurement than one cell worth 1.25 points can justify.
+            #
             # THE RULE IS KEPT, and the "measures neutral" verdict that briefly
             # stood here is WITHDRAWN. Removing it was tried and measured at CORPUS
             # scale, and it costs real cells:
@@ -1360,20 +1363,11 @@ ITEMS: list[dict] = [
             # earlier lesson that three passes cannot support a per-cell claim.
             # Match the measurement to the SCOPE of the claim, in both directions.
             #
-            # AND THE CAUSE OF p4 RECORDED ABOVE IS STILL WRONG. The counterfactual was run:
-            # the rule removed, 20 cells x 3 passes to find what moved, then 9
-            # passes on the four cells that did. p4 is exact 1 of 9 WITH the rule
-            # and 1 of 9 WITHOUT it -- same rate, same two values, same
-            # distribution. Removing the rule does not touch p4, so the rule is not
-            # what refuses `state_a2`; something else in the grader refuses that box
-            # about 89% of the time regardless of what we say about effect halves.
-            # p4 remains Q6's only genuine residual and its cause is UNKNOWN.
-            #
-            # The trigger/effect story was persuasive because it is true about the
-            # TEXT -- "going to bed late" really is the effect half of that 4a entry
-            # -- and I took a correct reading of the text for a demonstrated cause.
-            # It was never tested until the counterfactual. Two successive accounts
-            # of this cell, both from 3-pass evidence, both wrong the same way.
+            # HOW THE COUNTERFACTUAL WAS RUN, since the design is reusable: rule
+            # removed, 20 cells x 3 passes to find what moved, then 9 passes on the
+            # four cells that did, then -- because that probe could not see a
+            # distributed effect -- 20 cells x 9 passes, stopped at six complete
+            # passes once the arms separated.
             #
             # On the FOUR CELLS measured at 9 passes each way the rule looks
             # neutral -- p4 11% both ways, p5 100% vs 89%, p6 67% vs 56%, p18 78%
@@ -1426,20 +1420,34 @@ ITEMS: list[dict] = [
             # and said "Gold refuses both". Gold refuses ONE. Measured on per-family
             # counts against corrected gold: on the first cell we and gold both
             # credit one antecedent of two, so the refusal is consistent with gold;
-            # on the second, gold credits one antecedent and we credit none, and
-            # this rule is why. So one of the two examples offered in support of the
-            # rule is a cell where it costs us.
+            # on the second, gold credits one antecedent and we credit none. An
+            # earlier version of this note blamed that on the rule. It is not the
+            # rule: removing it leaves that cell at exactly the same rate (see the
+            # counterfactual below). So one of the two examples offered in support
+            # of the rule is a cell the rule does not in fact decide.
             #
-            # What the rule COSTS is therefore one disagreement, on the item's least
-            # reliable cell -- gold there deducts -1.5, off the 1.25 grid, and its
-            # `state_c2` is a truncation of its `affect_c2`. What the rule EARNS is
-            # unmeasured, and cannot be read off a finished run: its effect is to
-            # turn some `refers_to` answers into `none`, and separating "the rule
-            # refused this" from "the model would have refused it anyway" needs a
-            # sweep with the rule removed. A static detector was tried and does not
-            # work -- it misses the first cell above, where the box matches NEITHER
-            # half, and it reports three cells whose only link is a shared common
-            # word. Before defending or dropping this rule, run that sweep.
+            # WHAT IT COSTS AND EARNS, both now measured. Cost: nothing that can be
+            # located. The cell this note used to call the rule's price is exact
+            # 1 of 9 with the rule and 1 of 9 without it -- identical rate, identical
+            # values -- so the rule does not decide it and no other cell shows a
+            # per-cell loss either. Earns: about 1.8 cells corpus-wide.
+            #
+            #     rule present   17, 16, 16                  mean 16.3/20
+            #     rule removed   15, 15, 14, 12, 15, 16      mean 14.5/20
+            #
+            # Those two findings look contradictory and are not. The benefit is
+            # DISTRIBUTED -- no single cell moves by more than its own confidence
+            # interval, while the total moves by nearly two cells -- so a per-cell
+            # A/B cannot see it however many passes it runs, and a corpus sweep
+            # cannot say which cells produced it. Read both, and do not substitute
+            # one for the other; doing exactly that had this rule recorded as
+            # "costs one cell, earns nothing" and then as "measures neutral", within
+            # a day, before either was measured at the right scope.
+            #
+            # A static detector was also tried, to find where the rule bites without
+            # running anything, and does not work: it misses the first cell above,
+            # where the box matches NEITHER half, and reports three cells whose only
+            # link is a shared common word.
             #
             # SCOPING CONSTRAINT FOR ANY INVERSION RULE ADDED LATER. The two rules
             # reach for the SAME textual relation from opposite directions, and the
