@@ -169,12 +169,24 @@ def unresolved_slots(feedback: str, score: float) -> tuple[int, set[str]]:
     return missing, cands
 
 
-# Which slot each CORRECTED_GOLD row takes the credit back from. The scores live
-# in handouts.CORRECTED_GOLD; only the SLOT is here, because that module records
-# the correction as a total plus a prose reason and the reason is where the slot
-# is named ("gold credits `state_a1`, which names a THIRD antecedent ...").
-# Asserted against the recorded totals below rather than trusted.
-CORRECTED_SLOT = {9: "state_a1", 17: "state_c1", 18: "state_a2"}
+# How each CORRECTED_GOLD row changes gold's per-family credit counts.
+#
+# handouts.CORRECTED_GOLD records a total plus a prose reason; the reason is where
+# the affected slot is named ("gold credits `state_a1`, which names a THIRD
+# antecedent ..."), so the structured form lives here and is asserted against the
+# totals rather than trusted.
+#
+# `families` is the change to the number of LISTED entries gold credits, per
+# family -- negative where gold was lenient, positive where it was harsh. `grid`
+# is any part of the correction that is NOT a slot: Q6/p4 charges "-1.5" for one
+# antecedent on an item whose step is 1.25, so regularising that arithmetic moves
+# the total 0.25 without changing whether any slot is credited.
+CORRECTED_FAMILY = {
+    9:  {"families": {"a": -1}, "grid": 0.0,  "slot": "state_a1"},
+    17: {"families": {"c": -1}, "grid": 0.0,  "slot": "state_c1"},
+    18: {"families": {"a": -1}, "grid": 0.0,  "slot": "state_a2"},
+    4:  {"families": {"c": +1}, "grid": 0.25, "slot": "state_c2"},
+}
 
 AFAM = ("state_a1", "state_a2")
 CFAM = ("state_c1", "state_c2")
@@ -208,16 +220,21 @@ def gold_view(pid: int, feedback: str, score: float, corrected: bool = True) -> 
     if missing and cands:
         side = "a" if all(c.endswith(("a1", "a2")) for c in cands) else "c"
         fam[side] -= missing
-    if corrected and pid in CORRECTED_SLOT:
-        slot = CORRECTED_SLOT[pid]
-        fam["a" if slot in AFAM else "c"] -= 1
+    if corrected and pid in CORRECTED_FAMILY:
+        for side, d in CORRECTED_FAMILY[pid]["families"].items():
+            fam[side] += d
     return {"families": fam,
             "boxes": {s: s not in withheld for s in PER_BOX},
             "unpinned": (missing, sorted(cands)) if missing else (0, [])}
 
 
 def check_corrected_slots_account_for_the_totals() -> list[str]:
-    """Each CORRECTED_SLOT must explain exactly its row's correction, at 1.25 each."""
+    """Each row's family changes plus its grid term must explain its total exactly.
+
+    Signed, so a row that RAISES gold is checked as strictly as one that lowers it
+    -- Q6/p4 is the only raising row and it is the one most in need of the check,
+    since its correction mixes a slot (+1.25) with an off-grid regrade (+0.25).
+    """
     out = []
     try:
         import handouts as _H
@@ -226,16 +243,21 @@ def check_corrected_slots_account_for_the_totals() -> list[str]:
     for (item, pid), fix in _H.CORRECTED_GOLD.items():
         if item != "Q6":
             continue
-        delta = round(float(fix["was"]) - float(fix["score"]), 2)
-        if pid not in CORRECTED_SLOT:
-            out.append(f"Q6/p{pid} is corrected by {delta:.2f} but names no slot in "
-                       f"CORRECTED_SLOT -- the family view cannot apply it")
-        elif abs(delta - 1.25) > 0.01:
-            out.append(f"Q6/p{pid} is corrected by {delta:.2f}, which is not the 1.25 that "
-                       f"one slot ({CORRECTED_SLOT[pid]}) accounts for -- either the row "
-                       f"moves more than one slot, or CORRECTED_SLOT is out of date")
-    for pid in CORRECTED_SLOT:
+        delta = round(float(fix["score"]) - float(fix["was"]), 2)      # signed
+        spec = CORRECTED_FAMILY.get(pid)
+        if spec is None:
+            out.append(f"Q6/p{pid} is corrected by {delta:+.2f} but CORRECTED_FAMILY "
+                       f"does not say which family it moves -- the family view "
+                       f"silently ignores it")
+            continue
+        explained = round(1.25 * sum(spec["families"].values()) + spec["grid"], 2)
+        if abs(explained - delta) > 0.01:
+            out.append(f"Q6/p{pid}: the sheet moves {delta:+.2f} but CORRECTED_FAMILY "
+                       f"explains {explained:+.2f} "
+                       f"(families {spec['families']}, grid {spec['grid']:+.2f}) -- "
+                       f"one of the two is out of date")
+    for pid in CORRECTED_FAMILY:
         if ("Q6", pid) not in _H.CORRECTED_GOLD:
-            out.append(f"CORRECTED_SLOT names p{pid}, which handouts.CORRECTED_GOLD no "
-                       f"longer corrects -- drop it")
+            out.append(f"CORRECTED_FAMILY names p{pid}, which handouts.CORRECTED_GOLD "
+                       f"no longer corrects -- drop it")
     return out
