@@ -644,8 +644,20 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "way — p10, p14, p15 — turned out to be fixtures that had cut the student's "
         "sentences in the wrong place, and each was found by reading the boxes out "
         "one at a time, never by a check. Suspect the fixture before the criterion. "
-        "So p2 sits alone on this ceiling now, and Q6's practical maximum is 19 of "
-        "its 20 counted cells.",
+        "So p2 sits alone on THIS ceiling, but the item has a second one of a "
+        "different kind. `p9` is not a scoring error and not gold's fault either: "
+        "measured at nine passes on unmodified committed code it is exact 5 of 9, "
+        "56% with a 95% interval of [27%, 81%], flipping between 2.50 and 3.75 on "
+        "identical input. Its `state_c1` reads a listed consequence as a polarity "
+        "flip in some passes and not others, and nothing distinguishes the passes. "
+        "It shows up as a -1.25 miss whenever a 3-pass sweep draws it 2-of-3 the "
+        "wrong way, which is how it entered the error table, and four separate rule "
+        "variants were credited with fixing it before the base rate was known -- a "
+        "56% cell reaches exact-on-three-passes unaided. Treat it as unwinnable in "
+        "the sense that matters: there is no consistent behaviour to correct. "
+        "So Q6's practical maximum is 18 of its 20 counted cells, not 19 -- p2 by "
+        "gold's inconsistency, p9 by our own -- and p4 at 11% is the only genuine "
+        "residual left, documented in rubric_h1 and deliberately not pursued.",
     ),
     ("1", "Q3"): (
         "`action_oriented`: five answers justify the goal by CAPABILITY rather "
