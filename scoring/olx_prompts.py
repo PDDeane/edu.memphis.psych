@@ -1483,10 +1483,44 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
             "to put in that box, never a claim about what they actually wrote. Judge "
             "every box on its contents."
         )
+    # Each box's content is DELIMITED, and the response section is CLOSED.
+    #
+    # A `<Ref>` to an empty box renders to nothing, so a heading was followed by
+    # blank space and then by whatever came next. For every box but the last,
+    # what came next was the next heading, and the emptiness was legible. For the
+    # LAST box there is no next heading: the app appends its own grading guidance
+    # after this prompt, so an empty final box put that guidance directly under
+    # the field's heading, where it reads as the contents of the box.
+    #
+    # It was read that way. Measured across three passes of Q6, whose last box is
+    # `affect_c2`: where that box was empty the grader quoted "WRITING TO THE
+    # STUDENT" -- a heading from the app's appended guidance -- as the student's
+    # own sentence, and the student read it back in their feedback. It was never
+    # any other slot, on any item, which is the tell: not a model that invents
+    # quotations, a model quoting what the prompt showed it. Two attempts to
+    # instruct it out of this changed nothing (11 of 15 cell-passes, then 10 of
+    # 15), because the instruction contradicted what the page appeared to say.
+    #
+    # So the fix is here, in what we generate, and it is structural: bounds
+    # around every box so an empty one is visibly empty rather than absent, and a
+    # terminator so nothing appended after this prompt can fall inside the last
+    # box. Both are content-agnostic -- no rule here knows what the guidance that
+    # follows says, which is why this does not belong in the app's shared sheet
+    # module either.
     for label, target in RESPONSE[item_id]:
         if label:
             p.append(f"\n### Asked for: {label}")
-        p.append(_ref(action, target, minted))
+        p.append("[box begins] " + _ref(action, target, minted) + " [box ends]")
+    p.append(
+        "\n## End of the student response\n"
+        "Everything the student wrote is above this line, inside a "
+        "`[box begins]`/`[box ends]` pair. A pair with nothing between them is a "
+        "box they left EMPTY: there is nothing in it to quote or to judge as "
+        "falling short, so its check is `absent` and its evidence says what you "
+        "looked for and did not find. Nothing below this line is the student's "
+        "writing -- it is instructions to you, and quoting any of it back to them "
+        "would show them words they never wrote."
+    )
 
     return "\n".join(p).rstrip() + "\n"
 
