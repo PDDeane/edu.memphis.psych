@@ -188,6 +188,19 @@ CORRECTED_FAMILY = {
     4:  {"families": {"c": +1}, "grid": 0.25, "slot": "state_c2"},
 }
 
+# HOW GOLD ITEMISES AN EFFECT SLOT, because reading it wrong sends you the wrong
+# way. Gold charges `affect_cN` when the box describes NO EFFECT, and not when the
+# effect is described but the consequence named alongside it is the wrong one. So a
+# row can withhold both `state_c` slots and credit both `affect_c` slots without
+# contradicting itself: the naming error is charged once, under the naming slot.
+# Verified on all twenty rows -- the rows that DO withhold an effect slot say so in
+# those terms ("did not say how", "did not clarify"), every time.
+#
+# The consequence for anything comparing our verdicts against gold's: an
+# `affect_cN` disagreement is about whether an effect was DESCRIBED, never about
+# whether it attached to the right consequence. Q6/p5 is where this matters --
+# gold credits both its effect boxes, we refuse one, and the gap is ours.
+
 AFAM = ("state_a1", "state_a2")
 CFAM = ("state_c1", "state_c2")
 PER_BOX = ("change_a1", "change_a2", "affect_c1", "affect_c2")
