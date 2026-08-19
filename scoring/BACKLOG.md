@@ -52,6 +52,39 @@ What the Q6 version establishes about the design:
   both, the ERROR COUNT is the same whichever gold meant. Report the ambiguity;
   never pick one, because downstream an arbitrary pick reads as gold's verdict.
 
+- **Compare per-family COUNTS, not box attribution -- gold's ordinals are
+  TALLIES, not indices.** This is the one that changes the design rather than
+  refining it. Gold writes "second antecedent is not the same as mentioned in 4a"
+  and "did not state a second consequence", and the natural reading is that
+  "second" indexes something. It does not, and Q6/p6 proves it: its two families
+  need OPPOSITE index readings for gold to be true. The antecedent clause is true
+  only if "second" means the second thing the student NAMED (the box holding the
+  unlisted item), because the second BOX holds text that is in 4a. The consequence
+  clause is true only if "second" means the second BOX (which is empty), because
+  the second listed consequence IS addressed -- in the first box. No single index
+  reading satisfies both. Read as tallies -- "you named two antecedents but one is
+  not in 4a", "you named only one consequence" -- both are true and ordinary.
+  Measured across the 20 cells: as indices 13 of 20 agree with our scorer, as
+  tallies 14 of 20, and p6 is the cell that separates them.
+
+  This also matches what the rubric SCORES. `cover="state_a1,state_a2:first,
+  second"` asks that the two boxes between them cover both listed entries in
+  either order; it has never required box 1 to address entry 1. The rubric is
+  count-based within a family, so counts are the commensurable quantity, and an
+  index reading imports a pairing constraint that neither the rubric nor the
+  graders apply.
+
+  So: report per-family counts as the measure. Any box-level attribution the
+  summary produces is a HYPOTHESIS to check against the student's text, never
+  gold's verdict -- reported as such, or not at all. Attribution that gold never
+  asserted invented two slot errors on p6 and two on p15, and both cells were in
+  fact in complete agreement.
+
+  The cost of the tally reading is real and should be stated wherever it is used:
+  it says a family is short by one without saying WHICH entry went unaddressed, so
+  it cannot on its own drive a rule about which match failed. That question needs
+  the student's text and the 4a/4c entries side by side, not gold's prose.
+
 Open questions for whoever does it: where it lives (`agreement.py` beside
 `gold_slots_1c`, or its own module both harnesses import); whether the
 item-specific phrase-to-slot vocabulary can be derived from each item's slot
