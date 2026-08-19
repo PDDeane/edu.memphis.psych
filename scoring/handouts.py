@@ -41,6 +41,35 @@ OUT = paths.OUT
 #
 # The bar is deliberately high, and `was` is asserted against the sheet on every
 # run so a correction cannot outlive the row it corrects.
+#
+# WHAT DOES NOT QUALIFY, with the worked example that nearly got in. On 2026-08-19
+# these rows looked like they contradicted themselves: p5, p4 and p17 each charge a
+# consequence for not matching 4c and then CREDIT the effect slot for that same
+# consequence, which reads as crediting a description of what becomes of something
+# gold has just said was never named. Correcting it was proposed and would have
+# moved three rows and four slots, 5.00 points.
+#
+# It is not a contradiction. Surveyed across all twenty rows, gold charges an
+# effect slot when NO EFFECT IS DESCRIBED -- p1 "did not say how the first
+# consequence is being affected", p15 and p16 "did not clarify ... being affected",
+# p8 "did not state each consequence being affected and how" -- and never merely
+# because the naming missed. p5's row reads: the wrong consequence was named, which
+# is 1.25 off, and a change WAS described, so that is not charged twice. One
+# mistake, charged once. Gold is applying no-double-jeopardy, consistently, on
+# every row.
+#
+# So the principle behind the proposed correction -- that effect credit should be
+# contingent on naming credit -- is a RUBRIC-DESIGN OPINION, and gold holds a
+# defensible opposing one. That is exactly the line this table draws: p18's entry
+# rests on a second antecedent that does not exist in the document, p9's on an
+# antecedent that appears in no 4a item, p4's on a consequence equivalence the
+# student's own 4c supplies. Those are facts about a submission. "We would charge
+# this differently" is not, however consistently we would do it, and it belongs in
+# GOLD_DIVERGENCES if anywhere.
+#
+# Worth knowing which way the money went, since it is not the flattering direction:
+# applying it would have made p4 exact and turned p5 and p17 into misses, costing
+# us a cell. The reason to refuse it is the standard, not the score.
 CORRECTED_GOLD: dict[tuple[str, int], dict] = {
     ("Q6", 4): {
         "was": 6.0, "score": 7.5,
