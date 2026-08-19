@@ -549,6 +549,8 @@ def enforcement_audit():
         findings.append(("-", "RUBRIC ITEMS NOT UNIQUE", bad))
     for bad in ENF.check_consensus_fixes_have_no_duplicate_cells():
         findings.append(("-", "TWO FIXES FOR ONE CELL", bad))
+    for bad in ENF.check_corrected_gold_matches_the_sheet():
+        findings.append(("-", "CORRECTED GOLD STALE", bad))
     for bad in ENF.check_the_audit_read_the_corpus():
         findings.append(("-", "AUDIT EXAMINED NOTHING", bad))
     for bad in ENF.check_consensus_spans_are_disjoint():
@@ -1064,16 +1066,19 @@ def enforcement_selftest():
     # -1.25, and blamed the fixture reconstruction while the real cause — a
     # declared A_MISMATCH divergence — went unstated in the one place whose job
     # was to state it. Injected by taking the number back out of `expect_error`.
+    # Injected on Q4c/p16 since Q6/p9's exclusion became CORRECTED_GOLD; p16 is
+    # now the cell carrying an `expect_error`, and the check is about the shape of
+    # an exclusion rationale, not about which cell holds it.
     import handouts as _H6
-    _p9 = _H6.PER_ITEM_EXCLUDE["Q6"][9]
+    _p9 = _H6.PER_ITEM_EXCLUDE["Q4c"][16]
     _saved_err = _p9["expect_error"]
     _p9["expect_error"] = None            # not pop(): popping reorders the dict
-    _p9["why"] += " the error here is exactly -2.50."
+    _p9["why"] += " the error here is exactly +2.00."
     cases.append(("an exclusion states a point figure only in prose",
                   "EXCLUSION CLAIM IN PROSE", "-",
                   [f for f in enforcement_audit()[0]]))
     _p9["expect_error"] = _saved_err
-    _p9["why"] = _p9["why"][: -len(" the error here is exactly -2.50.")]
+    _p9["why"] = _p9["why"][: -len(" the error here is exactly +2.00.")]
 
     # The one-sided-prompt guard. `--prompts` only ever counts rubric elements the
     # WEB is MISSING, so judging text added to SLOT_NOTES reaches the web and the
@@ -1125,6 +1130,19 @@ def enforcement_selftest():
                   "TWO FIXES FOR ONE CELL", "-",
                   [f for f in enforcement_audit()[0]]))
     ENF._CONSENSUS_SOURCE = None
+
+    # The corrected-gold guard. CORRECTED_GOLD rewrites the number a cell is
+    # scored against, so a stale entry makes every rate measure against a score no
+    # grader gave. The `was` value is asserted against the raw sheet; injected by
+    # claiming to correct a value the sheet does not hold.
+    import handouts as _H7
+    _real_cg = dict(_H7.CORRECTED_GOLD)
+    _k = ("Q6", 18)
+    _H7.CORRECTED_GOLD[_k] = {**_real_cg[_k], "was": 9.75}
+    cases.append(("a CORRECTED_GOLD entry no longer matches the sheet",
+                  "CORRECTED GOLD STALE", "-",
+                  [f for f in enforcement_audit()[0]]))
+    _H7.CORRECTED_GOLD.clear(); _H7.CORRECTED_GOLD.update(_real_cg)
 
     # The hand-split transcription guard. Q4b p7 had one sentence in two boxes
     # for as long as the table has existed: the student left `Modify:` blank and
