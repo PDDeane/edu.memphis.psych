@@ -215,7 +215,10 @@ Chosen from the four on the list, before question 1.
 <Ref id="bmod_h1_q1_ref_utb" target="bmod_h1_utb" />
 
 ## Student response to grade (item Q1)
-<Ref id="bmod_h1_q1_ref" target="bmod_h1_q1_response" />
+[box begins] <Ref id="bmod_h1_q1_ref" target="bmod_h1_q1_response" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes; costs and the item
            total live on the sheet, this block only does the arithmetic. -->
@@ -352,7 +355,10 @@ Their unwanted target behavior, as they described it: <Ref id="bmod_h1_q2_ref_ut
 What they wrote about it: <Ref id="bmod_h1_q2_ref_q1_response" target="bmod_h1_q1_response" />
 
 ## Student response to grade (item Q2)
-<Ref id="bmod_h1_q2_ref" target="bmod_h1_q2_response" />
+[box begins] <Ref id="bmod_h1_q2_ref" target="bmod_h1_q2_response" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes; costs and the item
            total live on the sheet, this block only does the arithmetic. -->
@@ -509,19 +515,22 @@ What they wrote about it: <Ref id="bmod_h1_q3_ref_q1_response" target="bmod_h1_q
 Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
 
 ### Asked for: Specific
-<Ref id="bmod_h1_q3_ref_s" target="bmod_h1_q3_specific" />
+[box begins] <Ref id="bmod_h1_q3_ref_s" target="bmod_h1_q3_specific" /> [box ends]
 
 ### Asked for: Measurable
-<Ref id="bmod_h1_q3_ref_m" target="bmod_h1_q3_measurable" />
+[box begins] <Ref id="bmod_h1_q3_ref_m" target="bmod_h1_q3_measurable" /> [box ends]
 
 ### Asked for: Action-Oriented
-<Ref id="bmod_h1_q3_ref_a" target="bmod_h1_q3_action" />
+[box begins] <Ref id="bmod_h1_q3_ref_a" target="bmod_h1_q3_action" /> [box ends]
 
 ### Asked for: Realistic
-<Ref id="bmod_h1_q3_ref_r" target="bmod_h1_q3_realistic" />
+[box begins] <Ref id="bmod_h1_q3_ref_r" target="bmod_h1_q3_realistic" /> [box ends]
 
 ### Asked for: Time-Bound
-<Ref id="bmod_h1_q3_ref_t" target="bmod_h1_q3_timebound" />
+[box begins] <Ref id="bmod_h1_q3_ref_t" target="bmod_h1_q3_timebound" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes; costs and the item
            total live on the sheet, this block only does the arithmetic. -->
@@ -653,10 +662,13 @@ What they wrote about it: <Ref id="bmod_h1_q4a_ref_q1_response" target="bmod_h1_
 Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
 
 ### Asked for: First antecedent
-<Ref id="bmod_h1_q4a_ref1" target="bmod_h1_q4a_first" />
+[box begins] <Ref id="bmod_h1_q4a_ref1" target="bmod_h1_q4a_first" /> [box ends]
 
 ### Asked for: Second antecedent
-<Ref id="bmod_h1_q4a_ref2" target="bmod_h1_q4a_second" />
+[box begins] <Ref id="bmod_h1_q4a_ref2" target="bmod_h1_q4a_second" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes; costs and the item
            total live on the sheet, this block only does the arithmetic. -->
@@ -801,13 +813,16 @@ Second antecedent: <Ref id="bmod_h1_q4b_llm_ref_a2" target="bmod_h1_q4a_second" 
 Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
 
 ### Asked for: First active behavior
-<Ref id="bmod_h1_q4b_ref1" target="bmod_h1_q4b_first" />
+[box begins] <Ref id="bmod_h1_q4b_ref1" target="bmod_h1_q4b_first" /> [box ends]
 
 ### Asked for: Second active behavior
-<Ref id="bmod_h1_q4b_ref2" target="bmod_h1_q4b_second" />
+[box begins] <Ref id="bmod_h1_q4b_ref2" target="bmod_h1_q4b_second" /> [box ends]
 
 ### Asked for: Is it a good choice to modify, and why
-<Ref id="bmod_h1_q4b_ref_m" target="bmod_h1_q4b_modify" />
+[box begins] <Ref id="bmod_h1_q4b_ref_m" target="bmod_h1_q4b_modify" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes; costs and the item
            total live on the sheet, this block only does the arithmetic. -->
@@ -937,10 +952,13 @@ Second active behavior: <Ref id="bmod_h1_q4c_ref_b2" target="bmod_h1_q4b_second"
 Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
 
 ### Asked for: First consequence
-<Ref id="bmod_h1_q4c_ref1" target="bmod_h1_q4c_first" />
+[box begins] <Ref id="bmod_h1_q4c_ref1" target="bmod_h1_q4c_first" /> [box ends]
 
 ### Asked for: Second consequence
-<Ref id="bmod_h1_q4c_ref2" target="bmod_h1_q4c_second" />
+[box begins] <Ref id="bmod_h1_q4c_ref2" target="bmod_h1_q4c_second" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes; costs and the item
            total live on the sheet, this block only does the arithmetic. -->
@@ -1070,10 +1088,13 @@ Second consequence: <Ref id="bmod_h1_q5_ref_c2" target="bmod_h1_q4c_second" />
 Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
 
 ### Asked for: First reason
-<Ref id="bmod_h1_q5_ref1" target="bmod_h1_q5_first" />
+[box begins] <Ref id="bmod_h1_q5_ref1" target="bmod_h1_q5_first" /> [box ends]
 
 ### Asked for: Second reason
-<Ref id="bmod_h1_q5_ref2" target="bmod_h1_q5_second" />
+[box begins] <Ref id="bmod_h1_q5_ref2" target="bmod_h1_q5_second" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes; costs and the item
            total live on the sheet, this block only does the arithmetic. -->
@@ -1269,6 +1290,7 @@ Describe how you could change each of your two antecedents (from 4a) to get clos
 ## Grading guidance
 - The dictionary offers students this framing, and it is the shape most answers take: "I can change my first antecedent of ___ by ___. This will impact my first consequence of ___ by ___. I can change my second antecedent of ___ by ___. This will impact my second consequence of ___ by ___."
 - The question asks about EACH OF THE TWO antecedents from 4a and EACH OF THE TWO consequences from 4c. Report which of the two listed items each box names; the grader pairs them. A response that names the same one twice has addressed one and left the other out.
+- HOW TO READ A 4a OR 4c ENTRY WHEN YOU MATCH AGAINST IT. Students often write the element and then what it leads to, in one entry: "my trigger is X; I end up Y", "my antecedent is X, so I Y", "X, which leads to Y". In that shape X is the antecedent and Y is its consequence — Y is NOT part of the antecedent, and it is usually the unwanted behaviour or one of its results. When you set `refers_to`, match the Q6 box against X ONLY. A Q6 box that names Y has named the CONSEQUENCE of that trigger, not the trigger, so it does not refer to that entry — answer `none` unless it matches the X of the other entry. This holds however closely the wording of Y is echoed, and echoing Y closely is exactly the case to watch for. The same reading applies to a 4c entry that names a consequence and then what follows from it.
 
 ## What the two `state_` checks report
 These four do NOT report a match. They report an IDENTITY: which of the two listed items the box names. Answer `first` or `second` for 4a's first or second antecedent (4c's first or second consequence), `neither` if the box names something that is not one of them, and `absent` if it names no antecedent or consequence at all.
@@ -1315,28 +1337,31 @@ Second consequence: <Ref id="bmod_h1_q6_llm_ref_c2" target="bmod_h1_q4c_second" 
 Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
 
 ### Asked for: state_a1 — the first antecedent being changed
-<Ref id="bmod_h1_q6_ref_sa1" target="bmod_h1_q6_state_a1" />
+[box begins] <Ref id="bmod_h1_q6_ref_sa1" target="bmod_h1_q6_state_a1" /> [box ends]
 
 ### Asked for: change_a1 — how it will be changed
-<Ref id="bmod_h1_q6_ref_ca1" target="bmod_h1_q6_change_a1" />
+[box begins] <Ref id="bmod_h1_q6_ref_ca1" target="bmod_h1_q6_change_a1" /> [box ends]
 
 ### Asked for: state_c1 — the first consequence being affected
-<Ref id="bmod_h1_q6_ref_sc1" target="bmod_h1_q6_state_c1" />
+[box begins] <Ref id="bmod_h1_q6_ref_sc1" target="bmod_h1_q6_state_c1" /> [box ends]
 
 ### Asked for: affect_c1 — how it will be affected
-<Ref id="bmod_h1_q6_ref_ac1" target="bmod_h1_q6_affect_c1" />
+[box begins] <Ref id="bmod_h1_q6_ref_ac1" target="bmod_h1_q6_affect_c1" /> [box ends]
 
 ### Asked for: state_a2 — the second antecedent being changed
-<Ref id="bmod_h1_q6_ref_sa2" target="bmod_h1_q6_state_a2" />
+[box begins] <Ref id="bmod_h1_q6_ref_sa2" target="bmod_h1_q6_state_a2" /> [box ends]
 
 ### Asked for: change_a2 — how it will be changed
-<Ref id="bmod_h1_q6_ref_ca2" target="bmod_h1_q6_change_a2" />
+[box begins] <Ref id="bmod_h1_q6_ref_ca2" target="bmod_h1_q6_change_a2" /> [box ends]
 
 ### Asked for: state_c2 — the second consequence being affected
-<Ref id="bmod_h1_q6_ref_sc2" target="bmod_h1_q6_state_c2" />
+[box begins] <Ref id="bmod_h1_q6_ref_sc2" target="bmod_h1_q6_state_c2" /> [box ends]
 
 ### Asked for: affect_c2 — how it will be affected
-<Ref id="bmod_h1_q6_ref_ac2" target="bmod_h1_q6_affect_c2" />
+[box begins] <Ref id="bmod_h1_q6_ref_ac2" target="bmod_h1_q6_affect_c2" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
 
       <!-- Scores the sheet the LLMAction publishes: 1.25 per check, eight of

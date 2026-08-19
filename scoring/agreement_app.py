@@ -773,16 +773,41 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # what the graders charged ("-2.5 pts: did not address how the second
     # consequence is being affected"). state_c2 and affect_c2 share the sentence
     # as the permitted same-element overlap, since that is all part two has.
+    #
+    # REVISED: both consequence pairs now put the sentence in the NAMING box and
+    # leave the fate box blank. Each part of this response has exactly one
+    # consequence sentence, so sharing it left the scorer unable to reproduce
+    # gold's asymmetry — gold charges affect_c2 ALONE, and with the same words in
+    # both boxes the scorer accepts or refuses them together. It reached gold's
+    # 7.50 by refusing state_a2 and state_c2 while crediting the affect_c2 gold
+    # refuses: two errors cancelling.
+    #
+    # Blanking the fate boxes discards no text — the sentence stays whole in the
+    # naming box. Neither part says what BECOMES of a 4c consequence; both name an
+    # improved state ("feeling energized", "able to focus"), which is why gold's
+    # only charge is that the second consequence's fate went unaddressed. Same
+    # treatment as p15.
     ("Q6", 18): [
         ("set", "change_a2",
          "either move my phone to a separate room or put it in \"Do Not "
          "Disturb\" mode during my allotted workout time"),
+        ("set", "state_c1",
+         "This change in antecedent will lead to a more positive consequence of "
+         "feeling energized and done rather than tired and guilty."),
+        # affect_c1 KEEPS the sentence, shared with state_c1: gold CREDITS it.
+        # p18's two consequence pairs are not the same case — gold charges the
+        # SECOND pair's fate alone ("-2.5 pts" = state_c2 + affect_c2) — so
+        # blanking affect_c1 here cost 1.25 gold awards. Measured 5.00 x3 before
+        # this was put back. S2 earns both slots honestly: "tired and guilty"
+        # echoes 4c's two consequences, and "will lead to a more positive
+        # consequence" is the fate.
+        ("set", "affect_c1",
+         "This change in antecedent will lead to a more positive consequence of "
+         "feeling energized and done rather than tired and guilty."),
         ("set", "state_c2",
          "I will be able to focus on my training and achieve my SMART goal for "
          "the day if this distraction is eliminated."),
-        ("set", "affect_c2",
-         "I will be able to focus on my training and achieve my SMART goal for "
-         "the day if this distraction is eliminated."),
+        ("set", "affect_c2", ""),
     ],
 
     # p10, made symmetric with its own part one. The student writes two parts,
@@ -800,20 +825,36 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # consequence box takes the part's last sentence. 4c's second consequence is
     # "repeating the same cycle of laziness", which S4's "healthier lifestyle
     # habits and help fix how I think about myself" answers and S2 does not.
+    #
+    # REVISED, and the earlier arrangement above is what it revises. The antecedent
+    # boxes now take one sentence each instead of the state box holding a fragment
+    # of the change box's first sentence:
+    #
+    #   part 1  S1 -> state_a1   S2 -> change_a1
+    #   part 2  S4 -> state_a2   S5+S6 -> change_a2
+    #
+    # The consequence repairs below are unchanged and load-bearing: without them
+    # state_c1 begins at "hoping", orphaning "I\u2019m", and runs on to grab the
+    # "2) I" opening part two, while state_c2 holds a slice of PART ONE.
     ("Q6", 10): [
-        # part one's consequence, whole: the box began at "hoping", orphaning
-        # "I'm", and ran on to grab the "2) I" that opens part two.
+        ("set", "state_a1",
+         "1)_Changing my laziness will help me have discipline in getting up and "
+         "going to the gym."),
+        ("set", "change_a1",
+         "This will result me in creating a routine for myself instead of not "
+         "going to the gym at all."),
+        ("set", "state_a2",
+         "2) I can research beginner friendly workouts to help with my fear of "
+         "embarrassment at the gym."),
+        ("set", "change_a2",
+         "This will help reuduce my anxiety and increase my confidence to try "
+         "newer things in the gym. It all about taking baby steps."),
         ("set", "state_c1",
          "I\u2019m hoping this will slowly put me in a good standing mentally and "
          "physically."),
         ("set", "affect_c1",
          "I\u2019m hoping this will slowly put me in a good standing mentally and "
          "physically."),
-        ("set", "change_a2",
-         "2) I can research beginner friendly workouts to help with my fear of "
-         "embarrassment at the gym. This will help reuduce my anxiety and "
-         "increase my confidence to try newer things in the gym. It all about "
-         "taking baby steps."),
         ("set", "state_c2",
          "This will lead to healthier lifestyle habits and help fix how I think "
          "about myself."),
@@ -850,18 +891,28 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # is change_a2's; leaving it stranded pushed the unassigned run over the
     # coverage check's threshold for no reason a reader could act on.
     ("Q6", 6): [
-        ("set", "state_a1",
-         "I will be changing my antecedent of not attending the gym & "
-         "stretching as often as I should be, which results in muscle "
-         "soreness and little to no flexibility."),
-        ("set", "state_a2",
-         "I will be changing my antecedent of not attending the gym & "
-         "stretching as often as I should be, which results in muscle "
-         "soreness and little to no flexibility."),
-        ("set", "change_a1", "while stretching daily."),
-        ("set", "change_a2",
+        # S1 split at the ampersand, S2 split at "while", so each element carries
+        # its own trigger and its own change: a1 is the gym, a2 is stretching.
+        #
+        # state_a2 prepends "not", the one non-verbatim word in the corpus. The
+        # response reads "not attending the gym & stretching as often as I should
+        # be" — a single negation heading the conjunction — so the stretching half
+        # cannot carry it without being written out. Distributing it is what the
+        # sentence means, and leaving it off would make the box read as a positive.
+        #
+        # The point of the split is to let the RIGHT mechanism produce gold's 6.25.
+        # 4a lists "not stretching" and "not being motivated"; "not attending the
+        # gym" is on neither list — it is what the motivation trigger CAUSES. So
+        # state_a1 should answer `refers_to: none` and be demoted, which is gold's
+        # own reason ("second antecedent is not the same as mentioned in 4a"),
+        # rather than the identical-text collision that produced the right total by
+        # accident.
+        ("set", "state_a1", "not attending the gym"),
+        ("set", "change_a1",
          "To do that, I will make it mandatory for myself to attend the gym at "
          "least three times a week"),
+        ("set", "state_a2", "not stretching as often as I should be"),
+        ("set", "change_a2", "while stretching daily."),
     ],
     # p9: both consequence boxes grabbed "Instead I hope I", the head of the next
     # sentence, which affect_c1's own span already covers
@@ -896,6 +947,32 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "A), I hope that I will no longer experience the consequence of "
          "reduced physical fitness and low endurance (original C)."),
     ],
+    # p15's first-consequence pair came out of the consensus table holding ONE
+    # sentence twice: state_c1 the whole of "Which in turn will lead me to being
+    # more productive and getting my assignments done on time." and affect_c1 the
+    # same minus its lead-in. Not a split error — the paper scorer was asked which
+    # consequence is affected and how, had only that sentence to answer either
+    # with, and quoted it for both. state_c1 and affect_c1 are siblings, so the
+    # checks permit the sharing and nothing flagged it.
+    #
+    # It made gold's judgement unreachable. Gold credits the naming and refuses the
+    # fate — "did not clarify the first consequence being affected" — which the
+    # scorer cannot reproduce when both boxes show it the same words: it accepts or
+    # refuses them as a unit.
+    #
+    # The sentence is a conjunction of two improved states, so it splits at "and"
+    # and each box gets its own. Both halves verbatim, cut at a non-sentence
+    # boundary.
+    ("Q6", 15): [
+        # Whole sentence in state_c1, affect_c1 blank: the student names improved
+        # states and never says what becomes of a 4c consequence, so the fate box
+        # has nothing of its own to hold.
+        ("set", "state_c1",
+         "Which in turn will lead me to being more productive and getting my "
+         "assignments done on time."),
+        ("set", "affect_c1", ""),
+    ],
+
     # p14 lays out as four sentences, two pairs: S1 antecedent+change, S2 the first
     # consequence and its fate, S3 the second antecedent+change, S4 the second
     # consequence and its fate. Each c-box takes the sentence that answers it;
@@ -1591,6 +1668,17 @@ def build_jobs(item: str, pids: list[int]) -> list[dict]:
                 share = max(votes.values()) / n_runs
                 if share < CONSENSUS_MIN_SHARE:
                     weak.append((comp, dict(votes), round(share, 2)))
+            # A slot that CONSENSUS_FIXES sets by hand is no longer decided by
+            # the vote, so a tie on it is moot — "hand-split it" is one of the
+            # three remedies this warning names. p9's state_c2 and affect_c2 are
+            # the tied pair, and both are hand-set to empty, so the tie-break
+            # fixes nothing. Before this, the warning was satisfied only by
+            # PER_ITEM_EXCLUDE, and it fired the moment p9's exclusion was
+            # replaced by a gold correction — while the slots it names had been
+            # hand-split all along.
+            declared = {f[1] for f in CONSENSUS_FIXES.get((item, pid), [])
+                        if f[0] == "set"}
+            weak = [w for w in weak if w[0] not in declared]
             if weak and pid not in PER_ITEM_EXCLUDE.get(item, {}):
                 print(f"*** p{pid}/{item}: consensus fixture is WEAK on "
                       f"{len(weak)} slot(s) and this cell is not declared in "
@@ -1816,6 +1904,50 @@ def check_idmap_is_current(idmap: str, item_id: str) -> None:
         f"themselves behind the rubric.)")
 
 
+def _normalize_empty_fields(rec: dict, job: dict) -> dict:
+    """An empty input field is `absent`, and it has nothing to quote.
+
+    Measured on the 3-pass Q6 sweep of 2026-08-18: six times across five cells
+    the grader returned `incomplete` for a box that was EMPTY, and since
+    `incomplete` obliges it to quote the text that falls short, it quoted the
+    nearest thing to hand -- the string "WRITING TO THE STUDENT", a heading in
+    the prompt itself. That put words in the student's feedback that the student
+    never wrote. The prompt now forbids it (rule 1 in olx_prompts), but a prompt
+    is a request; this is the invariant, so it is also enforced here.
+
+    `incomplete` means text is present and falls short, so it cannot describe an
+    empty field -- there is no gradient between "wrote nothing" and "wrote
+    something inadequate". The verdict is corrected to `absent` and the evidence
+    dropped.
+
+    This corrects the verdicts WE store and read back; the published score is
+    computed inside the app (`grader.score`) and this function cannot and does
+    not touch it. That is fine because the two verdicts score the same, which is
+    measurable rather than assumed: p7 and p8 each took `incomplete` in one pass
+    and `absent` in the other two with no other field moving, and scored 5.00 in
+    all three. That equality is also why the leak survived three full passes
+    without disturbing a single number -- it was only ever visible in the prose
+    the student reads.
+    """
+    vals = job.get("fixture") or {}
+    empty = {k for k, v in vals.items() if not (v or "").strip()}
+    if not empty:
+        return rec
+    for slot in list((rec.get("verdicts") or {}).keys()):
+        # slots are named by the component id's suffix (affect_c2 <- bmod_h1_q6_affect_c2)
+        if not any(k == slot or k.endswith("_" + slot) for k in empty):
+            continue
+        if rec["verdicts"][slot] in ("absent", None):
+            continue
+        rec.setdefault("_corrected", []).append(
+            f"{slot}: {rec['verdicts'][slot]} -> absent (field is empty)")
+        rec["verdicts"][slot] = "absent"
+        ev = rec.get("evidence")
+        if isinstance(ev, dict) and ev.get(slot):
+            ev[slot] = ""
+    return rec
+
+
 def run_jobs(jobs: list[dict], idmap: str, on_cell=None) -> list[dict]:
     tmp = tempfile.mkdtemp(prefix="agreement_app_")
     jf, rf = os.path.join(tmp, "jobs.json"), os.path.join(tmp, "results.json")
@@ -1837,6 +1969,7 @@ def run_jobs(jobs: list[dict], idmap: str, on_cell=None) -> list[dict]:
         cwd=LO, env=env, text=True,
         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, bufsize=1,
     )
+    by_cell = {j.get("cell"): j for j in jobs}
     tail: list[str] = []
     seen: set[str] = set()
     for line in proc.stdout:                       # type: ignore[union-attr]
@@ -1857,6 +1990,7 @@ def run_jobs(jobs: list[dict], idmap: str, on_cell=None) -> list[dict]:
         for rec in done:
             if rec.get("cell") and rec["cell"] not in seen:
                 seen.add(rec["cell"])
+                _normalize_empty_fields(rec, by_cell.get(rec["cell"], {}))
                 try:
                     on_cell(rec)
                 except Exception as exc:           # never let reporting kill a run
@@ -1866,7 +2000,10 @@ def run_jobs(jobs: list[dict], idmap: str, on_cell=None) -> list[dict]:
         print("".join(tail)[-2000:], file=sys.stderr)
         raise SystemExit("runner produced no results")
     with open(rf) as fh:
-        return json.load(fh)
+        out = json.load(fh)
+    for rec in out:
+        _normalize_empty_fields(rec, by_cell.get(rec.get("cell"), {}))
+    return out
 
 
 def main() -> int:
@@ -2121,6 +2258,22 @@ def main() -> int:
               f"   spread {spread} cell(s)")
         print("publishing the PER-CELL median across runs; non-score fields come "
               f"from run {pick + 1}")
+        # This spread is the spread of SCORES, and it understates how much moves
+        # underneath them. Audited on the Q6 sweep of 2026-08-18, which reported a
+        # spread of one cell: only 5 of 20 cells returned the same JUDGEMENT in all
+        # three passes. The other 15 drifted on 24 verdict fields and 8 `refers_to`
+        # fields, and most of that drift is invisible here -- one cell swung a slot
+        # across `mismatch`/`absent`/`met` in three passes and scored exact every
+        # time, and three cells flipped a `confident` that carries no points.
+        #
+        # Two consequences worth keeping in mind when reading any table below.
+        # A cell that is "stably exact" may be stably exact for a reason that is
+        # not stable, so a later prompt change can move it without having touched
+        # what it appears to be about. And the drift is not spread evenly: on Q6 it
+        # sits entirely in the four `state_*` slots, the ones carrying `refers_to`
+        # -- the `change_*` and `affect_*` slots drifted on zero cells out of
+        # twenty. Deciding WHETHER the student described something is stable;
+        # deciding WHICH listed item they described is not.
         if spread and sizes[0]:
             print(f"read the table below as +/-{spread} cell(s) "
                   f"({100 * spread / sizes[0]:.0f} points): a single run of this item "

@@ -1604,6 +1604,62 @@ def check_consensus_fixes_have_no_duplicate_cells() -> list[str]:
     return dupes
 
 
+def check_corrected_gold_matches_the_sheet() -> list[str]:
+    """Does every CORRECTED_GOLD entry still correct the row it claims to?
+
+    A correction rewrites the number we are scored against, which makes it the
+    most dangerous declaration in the project: if the workbook is revised and a
+    correction stays behind, every rate silently measures against a score no
+    grader ever gave. So each entry states the value it is replacing, and that
+    `was` is checked against the RAW sheet on every run.
+
+    Read through gold.load_hN directly rather than config(h)["gold"](), which is
+    the corrected loader — comparing a correction against its own output would
+    always agree.
+    """
+    import gold as G
+    import handouts as H
+
+    loaders = {1: G.load_h1, 2: G.load_h2, 3: G.load_h3}
+    raw: dict[int, dict] = {}
+    for h, fn in loaders.items():
+        try:
+            raw[h] = fn()
+        except Exception:
+            continue                    # corpus absent on this machine
+    if not raw:
+        return []
+
+    problems = []
+    for (item, pid), fix in sorted(H.CORRECTED_GOLD.items()):
+        found = None
+        for h, rows in raw.items():
+            cell = (rows.get(pid) or {}).get(item)
+            if cell and cell.get("score") is not None:
+                found = float(cell["score"])
+                break
+        if found is None:
+            problems.append(
+                f"CORRECTED_GOLD names {item}/p{pid}, which has no gold row in "
+                f"any handout. Remove it")
+            continue
+        if abs(found - float(fix["was"])) > 0.005:
+            problems.append(
+                f"CORRECTED_GOLD[{item}/p{pid}] says it corrects {fix['was']:.2f} "
+                f"but the sheet now reads {found:.2f}. The row changed under the "
+                f"correction — re-derive it or remove it")
+        if abs(found - float(fix["score"])) < 0.005:
+            problems.append(
+                f"CORRECTED_GOLD[{item}/p{pid}] corrects {found:.2f} to the same "
+                f"value. It is doing nothing — remove it")
+        if len((fix.get("why") or "").split()) < 25:
+            problems.append(
+                f"CORRECTED_GOLD[{item}/p{pid}] has no substantive reason. A "
+                f"correction to the score we are measured against must say what "
+                f"evidence in the submission contradicts the row")
+    return problems
+
+
 def check_the_audit_read_the_corpus() -> list[str]:
     """Did the fixture checks actually LOOK at anything?
 
@@ -2058,6 +2114,27 @@ def check_consensus_spans_are_disjoint() -> list[str]:
     box: p10's `state_c2` is a substring of its `change_a1`, so one clause serves
     as both "how the first antecedent is changed" and "the second consequence" —
     and p10 carries `change_a1`'s only error in the item.
+
+    KNOWN BLIND SPOT, and it is the permitted overlap that creates it. Because a
+    containment between `state_cN` and `affect_cN` is exempt, this check cannot
+    see the defect that actually recurs: the pair being cut in the WRONG PLACE.
+    Three cells were repaired after this check passed them, all found by reading
+    the eight boxes out one at a time against the submission --
+
+      p14  `affect_c2` held a fragment lifted out of `change_a2`'s sentence
+      p15  one sentence sat in BOTH `state_c1` and `affect_c1`
+      p10  `state_a1` held a mid-sentence fragment; `change_a1` held two sentences
+
+    -- and each had been read, before that, as evidence about the SCORER: p10 as
+    a criterion gold decides inconsistently, p14 as a borderline flip. All three
+    were the fixture. See the p10 note in `handouts.GOLD_CEILINGS`.
+
+    A check for this would have to know where the clause boundary SHOULD fall,
+    which is the judgement the split is making, so it is not obviously
+    automatable and no attempt is recorded here. What is recorded is the cost of
+    not having one: a defect in this class costs points, survives every check,
+    and reads as a fact about gold or about the model. When a Q6 cell misbehaves,
+    print its eight boxes and read them against the .docx before theorising.
     """
     problems = []
     seen: set[tuple] = set()
@@ -2744,3 +2821,89 @@ def check_unreachable_gold_is_allowed() -> list[str]:
                     f"H{h} {item['id']}: scores_as_exact() accepts {b:g} against a "
                     f"REACHABLE gold of {a:g} — it has become a tolerance")
     return problems
+
+
+def check_empty_fields_are_absent() -> list[str]:
+    """An empty input field must be `absent`, with nothing quoted against it.
+
+    `incomplete` is a verdict about text that is present and falls short. Handed
+    an EMPTY field it is not a harsh judgement, it is an impossible one, and it
+    has a specific cost: `incomplete` obliges the grader to quote the text that
+    falls short, so when there is none it quotes whatever is nearest. On the
+    3-pass Q6 sweep of 2026-08-18 that was the string "WRITING TO THE STUDENT",
+    a heading out of the prompt itself, reproduced to the student as their own
+    words six times across five cells.
+
+    Nothing caught it, and nothing could have: the two verdicts score
+    identically, so the leak never moved a number. It was found by reading a
+    record, which is the same way the p14, p15 and p10 fixture defects were
+    found. `agreement_app._normalize_empty_fields` now corrects it on the way in
+    and rule 1 of the shared prompt preamble forbids it at the source; this
+    checks that both halves are still there and still work, because a guard that
+    reads the wrong key is indistinguishable from no guard -- the first cut of
+    this one read `job["values"]` where the jobs carry `job["fixture"]`, silently
+    corrected nothing, and passed.
+    """
+    out: list[str] = []
+    import os
+    try:
+        import agreement_app as APP
+    except Exception as exc:
+        return [f"could not import the scorer modules to check the guard: {exc}"]
+
+    # 1. the STRUCTURAL half, in the prompt we generate.
+    #
+    # An empty box's `<Ref>` renders to nothing, and for the LAST box on an item
+    # there was no following heading to bound it -- so the guidance the app
+    # appends after our prompt fell where the box's contents belong, and was
+    # quoted to the student as their own words. Two instruction-level fixes were
+    # measured and neither moved the rate; the bounds are what fixed it, so the
+    # bounds are what this checks. Every item on every handout, because the last
+    # box of any item is the one exposed.
+    try:
+        import olx_prompts as OLX
+        items = sorted(OLX.RESPONSE)      # every item that shows the student's boxes
+    except Exception as exc:
+        out.append(f"could not enumerate the generated prompts: {exc}")
+        items = []
+    for item_id in items:
+        try:
+            prompt = OLX.build_web_prompt(item_id)
+        except Exception:
+            continue
+        if "## Student response to grade" not in prompt:
+            continue
+        body = prompt.split("## Student response to grade", 1)[1]
+        opens, closes = body.count("[box begins]"), body.count("[box ends]")
+        if opens == 0:
+            out.append(f"{item_id}: the student's boxes are not delimited -- "
+                       "an empty box renders as nothing, and for the LAST box the "
+                       "guidance the app appends lands where its contents would be")
+        elif opens != closes:
+            out.append(f"{item_id}: {opens} `[box begins]` against {closes} "
+                       "`[box ends]` -- an unclosed box swallows whatever follows it")
+        if "## End of the student response" not in body:
+            out.append(f"{item_id}: the response section is not closed, so "
+                       "nothing separates the last box from the appended guidance")
+
+    # 2. the guard half, exercised rather than merely imported
+    probe = {"cell": "p0/Q6",
+             "verdicts": {"slot_a": "incomplete", "slot_b": "met", "slot_c": "absent"},
+             "evidence": {"slot_a": "WRITING TO THE STUDENT", "slot_b": "real text"}}
+    job = {"cell": "p0/Q6",
+           "fixture": {"x_slot_a": "", "x_slot_b": "real text", "x_slot_c": ""}}
+    try:
+        got = APP._normalize_empty_fields(probe, job)
+    except Exception as exc:
+        return out + [f"_normalize_empty_fields raised on a synthetic record: {exc}"]
+    if got["verdicts"]["slot_a"] != "absent":
+        out.append("_normalize_empty_fields left `incomplete` on an EMPTY field "
+                   f"(got {got['verdicts']['slot_a']!r}) -- check it reads the same key "
+                   "the jobs are built with (`fixture`, not `values`)")
+    if (got.get("evidence") or {}).get("slot_a"):
+        out.append("_normalize_empty_fields corrected the verdict but kept the "
+                   "quotation that cannot exist -- drop the evidence too")
+    if got["verdicts"]["slot_b"] != "met":
+        out.append("_normalize_empty_fields overwrote a verdict on a FILLED field -- "
+                   "it must only touch fields that are empty")
+    return out

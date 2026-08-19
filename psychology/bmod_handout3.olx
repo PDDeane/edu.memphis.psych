@@ -342,7 +342,10 @@ says the check reports an identity rather than a judgement.
 A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
 
 ## Student response to grade (item 1a)
-<Ref id="bmod_h3_ov_ref" target="bmod_h3_overview_response" />
+[box begins] <Ref id="bmod_h3_ov_ref" target="bmod_h3_overview_response" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes; costs and the item
            total live on the sheet, this block only does the arithmetic. -->
@@ -609,16 +612,19 @@ Week 3: <Ref id="bmod_h3_graph_ref_wk3" target="bmod_h3_wk3" />
 Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
 
 ### Asked for: Title
-<Ref id="bmod_h3_g_ref_t" target="bmod_h3_graph_title" />
+[box begins] <Ref id="bmod_h3_g_ref_t" target="bmod_h3_graph_title" /> [box ends]
 
 ### Asked for: X-axis label
-<Ref id="bmod_h3_g_ref_x" target="bmod_h3_graph_x" />
+[box begins] <Ref id="bmod_h3_g_ref_x" target="bmod_h3_graph_x" /> [box ends]
 
 ### Asked for: Y-axis label
-<Ref id="bmod_h3_g_ref_y" target="bmod_h3_graph_y" />
+[box begins] <Ref id="bmod_h3_g_ref_y" target="bmod_h3_graph_y" /> [box ends]
 
 ### Asked for: Legend — the series names they typed, comma-separated
-<Ref id="bmod_h3_graph_ref_graph_series" target="bmod_h3_graph_series" />
+[box begins] <Ref id="bmod_h3_graph_ref_graph_series" target="bmod_h3_graph_series" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes; costs and the item
            total live on the sheet, this block only does the arithmetic. -->
@@ -753,13 +759,16 @@ Use these only where the rubric requires cross-item consistency. Do not grade th
 Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
 
 ### Asked for: Verdict
-<Ref id="bmod_h3_su_ref_v" target="bmod_h3_success_verdict" />
+[box begins] <Ref id="bmod_h3_su_ref_v" target="bmod_h3_success_verdict" /> [box ends]
 
 ### Asked for: How (1)
-<Ref id="bmod_h3_su_ref_1" target="bmod_h3_success_how1" />
+[box begins] <Ref id="bmod_h3_su_ref_1" target="bmod_h3_success_how1" /> [box ends]
 
 ### Asked for: How (2)
-<Ref id="bmod_h3_su_ref_2" target="bmod_h3_success_how2" />
+[box begins] <Ref id="bmod_h3_su_ref_2" target="bmod_h3_success_how2" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes; costs and the item
            total live on the sheet, this block only does the arithmetic. -->
@@ -881,7 +890,10 @@ How (1): <Ref id="bmod_h3_assessment_ref_success_how1" target="bmod_h3_success_h
 How (2): <Ref id="bmod_h3_assessment_ref_success_how2" target="bmod_h3_success_how2" />
 
 ## Student response to grade (item 2b)
-<Ref id="bmod_h3_as_ref" target="bmod_h3_assessment_response" />
+[box begins] <Ref id="bmod_h3_as_ref" target="bmod_h3_assessment_response" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes; costs and the item
            total live on the sheet, this block only does the arithmetic. -->
@@ -1011,10 +1023,13 @@ How (2): <Ref id="bmod_h3_improve_ref_success_how2" target="bmod_h3_success_how2
 Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.
 
 ### Asked for: First change
-<Ref id="bmod_h3_im_ref_1" target="bmod_h3_improve_first" />
+[box begins] <Ref id="bmod_h3_im_ref_1" target="bmod_h3_improve_first" /> [box ends]
 
 ### Asked for: Second change
-<Ref id="bmod_h3_im_ref_2" target="bmod_h3_improve_second" />
+[box begins] <Ref id="bmod_h3_im_ref_2" target="bmod_h3_improve_second" /> [box ends]
+
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.
       </LLMAction>
       <!-- Scores the sheet this action publishes; costs and the item
            total live on the sheet, this block only does the arithmetic. -->
