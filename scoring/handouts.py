@@ -42,6 +42,32 @@ OUT = paths.OUT
 # The bar is deliberately high, and `was` is asserted against the sheet on every
 # run so a correction cannot outlive the row it corrects.
 CORRECTED_GOLD: dict[tuple[str, int], dict] = {
+    ("Q6", 4): {
+        "was": 6.0, "score": 7.5,
+        "why":
+            "gold charges \"-2.5: missing both consequences\" when the response names "
+            "ONE of them and negates it. Their 4c gives \"spending too much time "
+            "awake\" and \"I {{corpus:Q4c/p4:second:59:100:sha=c3be460e781e}} awake\"; Q6's "
+            "`state_c2` says \"{{corpus:Q6/p4:state_c1:0:34:sha=4e032e011208}} late\". Being up "
+            "late {{corpus:Q1/p15:response:28:53:sha=23c86ac77562:shape=C3}} awake -- the equivalence is supplied by "
+            "the student's own 4c, not inferred -- and \"no longer\" is the answer to "
+            "what becomes of it, which this item credits everywhere else. So one "
+            "consequence is missing, `state_c1`'s \"{{corpus:Q6/p4:affect_c1:0:31:sha=87595cd9dfc0}} "
+            "happier\", and the charge is 1.25 rather than 2.50. "
+            "The antecedent charge is kept as gold made it, and its arithmetic "
+            "regularised: \"-1.5; missing one antecedent\" is off the item's 1.25 "
+            "step, and the missing one is `state_a1`, which names neither listed "
+            "trigger. 10.00 - 1.25 - 1.25 = 7.50. "
+            "THIS CORRECTION COSTS US. It is the first entry here that RAISES a row, "
+            "and our own prediction is 6.25, so p4 turns from exact into a -1.25 "
+            "miss. The gap is `state_a2`, \"my {{corpus:Q6/p4:state_a2:24:50:sha=2158850b7566}} late\", "
+            "which gold credits and the trigger/effect rule in rubric_h1 refuses "
+            "because 4a puts it in the effect half (\"{{corpus:Q4a/p4:second:21:51:sha=6557c70626e3:shape=R30-0-20}}"
+            "{{corpus:Q4a/p4:second:52:71:sha=6dcbb8ec4d79}} early\"). That disagreement was previously hidden: "
+            "it cancelled against the consequence error being corrected here. "
+            "Correcting the row makes the rule's cost visible as a number instead of "
+            "leaving two errors to offset each other, which is the point.",
+    },
     ("Q6", 9): {
         "was": 5.00,
         "score": 3.75,
