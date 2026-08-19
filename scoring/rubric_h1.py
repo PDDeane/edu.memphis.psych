@@ -1231,6 +1231,38 @@ ITEMS: list[dict] = [
              "text": "Did not state the consequence being affected."},
         ],
         "guidance": [
+            # BEFORE ADDING A MATCHING RULE HERE, READ THIS.
+            #
+            # Every remaining Q6 error is in the `refers_to` channel, and eight
+            # rule wordings have now been built, measured and reverted trying to
+            # fix it. The failure is always the same shape: the rule helps two
+            # cells and costs two, inside a slot family where only 5 of 20 cells
+            # return the same judgement across three identical passes. A 2-cell
+            # move is inside the noise, so a 3-pass sweep cannot tell whether the
+            # rule worked.
+            #
+            # The largest single semantic pattern is NOT inversion, which the
+            # eighth attempt targeted. It is the reverse error: a consequence box
+            # that describes the ANTECEDENT going away being credited as a
+            # consequence -- "I will no longer suffer from being fulfilled by
+            # unhealthy and fatty foods" against a listed consequence of
+            # worsening health, where stopping the snacking is the plan, not its
+            # consequence. Four boxes across three cells.
+            #
+            # And it CANNOT be fixed on its own. All four are score-neutral today:
+            # one is already demoted as a cover duplicate, two are offset by an
+            # inversion false-refusal in the same cover group, and p4's gold is
+            # off the 1.25 grid so we sit at the nearest attainable value already.
+            # Refusing them without also crediting the inversions unmasks the
+            # error each one was cancelling and REGRESSES three cells by 1.25
+            # each. The two rules are complements: landed together they are worth
+            # about one cell (p9) plus three cells right for the right reasons;
+            # landed separately either one loses ground.
+            #
+            # So the next attempt here is a PAIR, probed at 5 passes not 3 on p4,
+            # p5, p9 and p15 with p11 and p20 as direct-restatement controls, and
+            # only then swept. Anything less has already been tried.
+            #
             # The dictionary's own suggested framing, quoted as it stands. It is
             # the source of the sentence shape many students follow, and it is
             # the only worked material the graders were given.

@@ -907,6 +907,21 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
         # own reason ("second antecedent is not the same as mentioned in 4a"),
         # rather than the identical-text collision that produced the right total by
         # accident.
+        # MEASURED ALTERNATIVE, rejected 2026-08-18. Collapsing this back into one
+        # box -- the whole conjunction verbatim in state_a1, state_a2 EMPTY, the
+        # change boxes untouched -- was tried because it invents no word and needs
+        # no reading of gold's ordinals. It scored 3.75, 3.75, 5.00 against gold's
+        # 6.25: a regression in all three passes.
+        #
+        # The cause is worth more than the result. Emptying state_a2 cost BOTH
+        # CHANGE SLOTS, not just the naming slot it emptied: with no second
+        # antecedent named, "while stretching daily" has nothing to be the change
+        # TO, and change_a1 went with it in two passes of three. The slots are not
+        # independent -- a naming slot is load-bearing for the change slot beside
+        # it, and emptying one box silently reprices two others. Any future fixture
+        # change that empties a naming box should expect to lose its change box as
+        # well, and predictions that treat slots as separable (mine did) will be
+        # wrong in the same direction.
         ("set", "state_a1", "not attending the gym"),
         ("set", "change_a1",
          "To do that, I will make it mandatory for myself to attend the gym at "
