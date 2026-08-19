@@ -1344,7 +1344,23 @@ ITEMS: list[dict] = [
             # nine passes on p4 AND nine on every cell the rule perturbs, and every
             # judgement-level rule tried has perturbed several. That is an order of
             # magnitude more measurement than one cell worth 1.25 points can justify.
-            # AND THE CAUSE RECORDED ABOVE IS WRONG. The counterfactual was run:
+            # THE RULE IS KEPT, and the "measures neutral" verdict that briefly
+            # stood here is WITHDRAWN. Removing it was tried and measured at CORPUS
+            # scale, and it costs real cells:
+            #
+            #     rule present   17, 16, 16                  mean 16.3/20
+            #     rule removed   15, 15, 14, 12, 15, 16      mean 14.5/20
+            #
+            # About 1.8 cells. The per-cell A/B below could not see this because the
+            # effect is DISTRIBUTED: no single cell shows a difference its own
+            # confidence interval can resolve, and the four cells that changed
+            # status at 3 passes were the wrong place to look. A four-cell probe
+            # cannot measure a corpus-scale effect spread thinly across twenty
+            # cells, however many passes it runs -- which is the mirror image of the
+            # earlier lesson that three passes cannot support a per-cell claim.
+            # Match the measurement to the SCOPE of the claim, in both directions.
+            #
+            # AND THE CAUSE OF p4 RECORDED ABOVE IS STILL WRONG. The counterfactual was run:
             # the rule removed, 20 cells x 3 passes to find what moved, then 9
             # passes on the four cells that did. p4 is exact 1 of 9 WITH the rule
             # and 1 of 9 WITHOUT it -- same rate, same two values, same
@@ -1359,14 +1375,15 @@ ITEMS: list[dict] = [
             # It was never tested until the counterfactual. Two successive accounts
             # of this cell, both from 3-pass evidence, both wrong the same way.
             #
-            # The rule itself measured NEUTRAL, which is its own small finding: no
-            # cost on p4, and its apparent benefit dissolved under 9 passes. p18
-            # showed 7.50 twice in three passes and then 9 of 9 at 6.25; p5 came
-            # back 89% exact; only p6 degrades, to 56% [27%, 81%], which is another
-            # coin-flip cell rather than a clean loss. So the rule neither earns nor
-            # loses its place, and it stays for the reason the tie-break stays: the
-            # incumbent wording carries no edit risk and a replacement carries all
-            # of it. See out/q6_noTErule_stage1 and _stage2.
+            # On the FOUR CELLS measured at 9 passes each way the rule looks
+            # neutral -- p4 11% both ways, p5 100% vs 89%, p6 67% vs 56%, p18 78%
+            # vs 100%, every interval overlapping. That reading was published here
+            # and is superseded by the corpus figures at the top of this note: the
+            # rule is worth ~1.8 cells even though no single cell can demonstrate
+            # it. Keep both numbers in view. They are not contradictory, they are
+            # measurements of different things, and taking either for the other is
+            # how this rule was twice mis-assessed in one day.
+            # See out/q6_noTErule_stage1, _stage2, _9pass and q6_TErule_present_9.
             #
             # AND A LESSON ABOUT PROBING. v2 was probed on 8 cells chosen from the
             # error list and looked clean; the full sweep found p6, which no error
