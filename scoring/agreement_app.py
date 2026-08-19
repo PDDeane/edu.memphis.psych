@@ -2283,6 +2283,18 @@ def main() -> int:
         # -- the `change_*` and `affect_*` slots drifted on zero cells out of
         # twenty. Deciding WHETHER the student described something is stable;
         # deciding WHICH listed item they described is not.
+        # AND THREE PASSES CANNOT SUPPORT A PER-CELL CLAIM. The median is sound
+        # for the ITEM total; "cell X is wrong" is a different assertion and needs
+        # more passes than this. Measured on Q6 at nine passes: p9 is exact 5 of 9,
+        # 56% with a 95% interval of [27%, 81%], while p4 is exact 1 of 9, 11%
+        # [2%, 44%]. Both look identical in a 3-pass table -- each shows as a
+        # -1.25 miss -- and they are not remotely the same cell. p9 has nothing
+        # consistent to fix; p4 does.
+        #
+        # The cost of not knowing that was four rule variants each credited with
+        # "fixing p9", which a 56% cell does for free. Before concluding anything
+        # about a single cell, or about a change that turns on one, re-run it at
+        # nine passes; see out/q6_baserate.
         if spread and sizes[0]:
             print(f"read the table below as +/-{spread} cell(s) "
                   f"({100 * spread / sizes[0]:.0f} points): a single run of this item "
