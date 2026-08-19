@@ -1300,6 +1300,27 @@ ITEMS: list[dict] = [
             # the boundary test and lost it, so it came from the combination or it
             # was noise in a 3-pass sample. Do not cite it as a reason to try again.
             #
+            # A FIFTH AND SIXTH ATTEMPT, on a different rule, established the
+            # sharpest constraint of the lot: EDITING A LONG SLOT NOTE HAS
+            # NON-LOCAL EFFECTS. The target was the duplicate-effect tie-break in
+            # the `affect_c*` notes, which credits the FIRST of two boxes describing
+            # the same effect and is arbitrary where the boxes differ in content.
+            # Replacing it with "credit whichever describes the consequence more
+            # directly", written as free-standing sentences, broke p14, p15 and p16
+            # in a single pass. Rewritten as ONE sentence wholly inside the "where
+            # both describe the same effect" conditional, with no imperative
+            # escaping the clause, it still scored 14/20 against 17/20.
+            #
+            # p15 is the case that generalises. Both its effect boxes are EMPTY, so
+            # a clause about choosing between two FILLED effect boxes cannot apply
+            # to it -- and both its `state_c` verdicts moved anyway, costing the
+            # cell a point. The clause was logically scoped and the behaviour was
+            # not. These notes are past the length at which a local edit stays
+            # local, so the risk attaches to editing them at all rather than to
+            # what the edit says, and an incumbent wording is worth more than its
+            # content: it is the only one carrying none of that risk. This applies
+            # to every item with a note this size, not just Q6.
+            #
             # AND A LESSON ABOUT PROBING. v2 was probed on 8 cells chosen from the
             # error list and looked clean; the full sweep found p6, which no error
             # list named. A rule keyed on a RELATION BETWEEN BOXES can fire on any
