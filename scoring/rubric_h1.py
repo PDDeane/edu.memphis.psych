@@ -675,45 +675,14 @@ ITEMS: list[dict] = [
                 "pts": 2.0,
                 "verdicts": ["met", "absent", "not_antecedent"],
                 "codes": {"absent": "A_ONLY_ONE", "not_antecedent": "A_NOT_ANTECEDENT"},
-                # IMPLICIT (from gold). "First valid antecedent" said nothing
-                # about what makes one valid, and the observed failure is
-                # over-refusal of a STATE OF MIND: gold gives full credit to
-                # "waking up and not feeling motivated" and we answered
-                # `not_antecedent` on it in 6 of 6 passes. The accept side lived
-                # only in `guidance`, forty lines from the slot that applies it.
-                "desc": "A circumstance or state of mind that comes BEFORE the "
-                        "unwanted behaviour and plausibly leads to it. Accept "
-                        "generously and do not require a causal chain: "
-                        "plausible precedence is enough, and an INTERNAL STATE "
-                        "qualifies as readily as an external event — how the "
-                        "student feels, what they believe about the behaviour, or "
-                        "what they lack at that moment is an antecedent if the "
-                        "reader can see how it leads there. Refuse only what "
-                        "cannot precede "
-                        "the behaviour: an AFTERMATH of it, phrased as happening "
-                        "afterwards or as its result; what the student does "
-                        "INSTEAD of the goal behaviour, which belongs to 4b; or "
-                        "a consequence already listed in 4c",
+                "desc": "First valid antecedent",
             },
             {
                 "what": "antecedent_2",
                 "pts": 2.0,
                 "verdicts": ["met", "absent", "not_antecedent"],
                 "codes": {"absent": "A_ONLY_ONE", "not_antecedent": "A_NOT_ANTECEDENT"},
-                # Same test as `antecedent_1`; see the note there.
-                "desc": "A circumstance or state of mind that comes BEFORE the "
-                        "unwanted behaviour and plausibly leads to it. Accept "
-                        "generously and do not require a causal chain: "
-                        "plausible precedence is enough, and an INTERNAL STATE "
-                        "qualifies as readily as an external event — how the "
-                        "student feels, what they believe about the behaviour, or "
-                        "what they lack at that moment is an antecedent if the "
-                        "reader can see how it leads there. Refuse only what "
-                        "cannot precede "
-                        "the behaviour: an AFTERMATH of it, phrased as happening "
-                        "afterwards or as its result; what the student does "
-                        "INSTEAD of the goal behaviour, which belongs to 4b; or "
-                        "a consequence already listed in 4c",
+                "desc": "Second valid antecedent",
             },
             {
                 "what": "keyword",
@@ -744,10 +713,13 @@ ITEMS: list[dict] = [
         "guidance": [
             "An antecedent happens BEFORE the UTB and plausibly leads to it.",
             "ACCEPT generously when the example precedes the UTB and a reader can see how "
-            "it leads there. A circumstance or state of mind qualifies — \"waking up and "
-            "not feeling motivated\", \"long spans of time that need to be filled\", "
-            "\"friends calling or texting me\" all earned full credit. Do not demand an "
-            "elaborate causal chain; plausible precedence is enough.",
+            "it leads there. A circumstance or a state of mind qualifies as readily as an "
+            "event — a mood, a belief about the behaviour, an unstructured stretch of "
+            "time, an interruption from someone else. Do not demand an elaborate causal "
+            "chain; plausible precedence is enough. But PRECEDENCE IS THE TEST, and it "
+            "depends on which UTB the example is offered for: the same words can be a "
+            "trigger for one behaviour and an aftermath of another, so check the direction "
+            "against the student's own UTB before crediting.",
             "REJECT decisively in three cases. (a) The example is an AFTERMATH of the UTB "
             "— phrased as happening afterwards or as a result (\"being in pain afterwards, "
             "and because of that I can't function\" cost participant 14 four points). "
