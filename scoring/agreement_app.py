@@ -661,6 +661,22 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "{{corpus:2a/p20:how1:0:68:sha=9639ba171206:shape=R68-0-20}}"
          "{{corpus:2a/p20:how1:69:138:sha=3f9a44a79d62}}"),
     ],
+    # Q5/p1 and p16. The same enumerator defect as Q4c/p13+p16, third item to
+    # carry it: p1 kept "1) " and "2) " in BOTH boxes and p16 kept the "2. " it
+    # is the only cell to write, while p8, p10, p12, p18, p19 and p20 all start
+    # after their markers ("_2)", "1)_", "1.", "2)_"). Stripped.
+    ("Q5", 1): [
+        ("set", "first",
+         "{{corpus:Q5/p1:first:0:69:sha=1f3485f6cdcb:shape=R69-0-20}}"
+         "{{corpus:Q5/p1:first:70:86:sha=87448ff3a3c7}} phone."),
+        ("set", "second",
+         "{{corpus:Q5/p1:second:0:69:sha=43bf46489519:shape=R69-0-20}}"
+         "{{corpus:Q5/p1:second:70:114:sha=ee7752e02720}} so."),
+    ],
+    ("Q5", 16): [
+        ("set", "second",
+         "{{corpus:Q5/p16:second:0:57:sha=7e304c0d2262}} times."),
+    ],
     # Q4c/p13 and p16. Three boxes kept the student's ENUMERATOR inside them
     # while the other eight cells of the item strip theirs — p13's `first` opened
     # "1) {{corpus:Q4c/p13:first:0:15:sha=f2014335e974}} ...", p16 held "1. One consequence ..." and "2. Another
