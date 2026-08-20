@@ -1430,6 +1430,19 @@ MULTI_BLOCK_DECLARED: dict[str, str] = {
           "correct — p9 never mentions realistic",
     "Q4b": "three boxes: the modify statement and two examples. p7 read out and "
            "assigned; the rest carry no findings",
+    "3": "two boxes, one proposed change each, and the count is judged over the "
+         "whole response, so an empty `second` costs nothing by itself. All 20 "
+         "read out; five repaired (p4, p6, p9, p16, p19), all one defect — "
+         "`second` opened with a sentence elaborating the FIRST change, so box "
+         "2 began before change 2 did. Boundaries moved to the sentence that "
+         "opens change 2; the union of each pair is unchanged. Four cells hold "
+         "everything in `first` with `second` empty: p5, p8 and p15 propose one "
+         "change or none, which is what gold charges, but p3 is a real gap — its "
+         "two changes sit in ONE sentence and no anchor separates them, so a "
+         "6.0 is being earned from box 1 alone. 15 of 20 `first` boxes still "
+         "open with the printed question\'s own \") \", which is template "
+         "residue and NOT the student\'s word; it is corpus-wide and fixed "
+         "upstream, not here (see scoring/BACKLOG.md)",
     "Q5": "two boxes, one reason each. All 20 read out; three boxes repaired, "
           "the same enumerator defect as Q4c — p1 kept \"1) \"/\"2) \" and p16 "
           "the \"2. \" it alone writes. Two cells are BLANK (p13, p17), so both "
