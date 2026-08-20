@@ -612,20 +612,40 @@ ITEM_NOTES: dict[str, str] = {
     # `mismatch` verdicts, where gold and the CLI both gave full marks — against
     # this item's own rule that "Mismatch means a DIFFERENT item, not a reworded
     # one". The final clause preserves the whole-missing-half rule.
+    # The paragraph below used to describe ONE answer with four values --
+    # first/second/neither/absent -- which is how this looked before the verdict
+    # and the identity were split into two fields. Post-split the web takes a
+    # verdict of met/absent/mismatch and a SEPARATE `refers_to` whose enum the app
+    # builds as [...labels, "none"], so `neither` and `absent` are values that
+    # field rejects and the model cannot emit them. It was telling the grader to
+    # answer in the CLI's vocabulary on the one channel every remaining Q6
+    # disagreement lives in.
+    #
+    # The CLI's vocabulary is NOT wrong and is not changed: rubric_h1's cover spec
+    # declares verdicts ["first","second","neither","absent"] because that is what
+    # the CLI accepts, and equivalence.py bridges it -- `neither` maps to
+    # `refers_to: none`, `absent` to `verdict: absent`. COVER VOCAB DIFFERS exists
+    # to police exactly that bridge. Only the web-facing instruction was at fault.
     "Q6": (
         "## What the two `state_` checks report\n"
-        "These four do NOT report a match. They report an IDENTITY: which of the two "
-        "listed items the box names. Answer `first` or `second` for 4a's first or "
-        "second antecedent (4c's first or second consequence), `neither` if the box "
-        "names something that is not one of them, and `absent` if it names no "
-        "antecedent or consequence at all.\n\n"
+        "These four do NOT report a match. They report an IDENTITY, and they report "
+        "it in a FIELD OF ITS OWN, separate from the verdict. The two fields take "
+        "different values and neither accepts the other's.\n"
+        "`verdict` says whether the box names an antecedent (or a consequence) at "
+        "all: `met` if it does, `absent` if it does not.\n"
+        "`refers_to` says WHICH of the two listed items it is: `first`, `second`, or "
+        "`none`. `none` is the value for \"not either of the two\" -- it is the only "
+        "one, so do not answer `neither`, and do not put `absent` here. Those are "
+        "not values this field takes.\n\n"
         "Say what you see and nothing more. Whether the pair covers both listed "
         "items is worked out from your two answers by the grader, so you do not need "
         "to reason about the other box, and a student who addresses 4a's second "
         "antecedent first has still addressed it — report `second` and it will be "
-        "credited. The distinction between `neither` and `absent` is not about "
-        "points, which are the same either way; it decides whether the student is "
-        "told their antecedent does not match 4a or that they did not state one.\n\n"
+        "credited. One distinction matters for the feedback rather than the score: "
+        "`met` with `refers_to: none` says they named an antecedent but not one of "
+        "4a's, while `absent` says they named none at all. The points are the same "
+        "either way; the difference decides whether the student is told their "
+        "antecedent does not match 4a or that they did not state one.\n\n"
         "ONE THING TO CARRY INTO `feedback`. Each of the two listed items can be "
         "credited once, so if you report the SAME label for both boxes — `first` "
         "twice, say — the student has named one antecedent twice and left the other "
