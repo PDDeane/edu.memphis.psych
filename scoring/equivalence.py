@@ -1376,7 +1376,10 @@ def main():
                     help="read a cell out box by box: the response with its parts "
                          "and sentences, then every box with its position, what "
                          "no box holds, and the audit flags. The procedure that "
-                         "found the defects three automated checks passed.")
+                         "found the defects three automated checks passed. Any "
+                         "item on any handout; a cell answered with a chart or a "
+                         "table has no prose to locate a box in, so its boxes are "
+                         "printed by PROVENANCE instead.")
     ap.add_argument("--selftest", action="store_true",
                     help="with --enforcement: break each rule and check the audit notices")
     a = ap.parse_args()

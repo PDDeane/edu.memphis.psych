@@ -269,19 +269,27 @@ agree must not move, and p14's `antecedent_1` — the same state-of-mind shape,
 credited on purpose against gold — is the cell that says whether the change
 widened acceptance too far.
 
-### p18's second box: the fix is agreed and deliberately NOT applied
+### p18's second box: DECLARED, an intentional divergence — settled
 
 p18 wrote one antecedent and repeated it verbatim as its second, so `second` is
-empty and 153 characters of the response belong to no box. The agreed repair is
-to fill `second` with that duplicate, which is what the student actually
-submitted; it is held pending release and must not be applied as a side effect
-of anything else.
+empty and 153 characters of the response belong to no box. The fixture
+deliberately leaves it empty rather than serving the duplicate, and that is now
+a declared divergence from verbatim reproduction rather than a decision waiting
+to be taken. Do not "fix" it.
 
-Recorded so the reason survives: the cell currently agrees with gold at 3.0 in
-6 of 6 passes, gold's row is "-2 pts: only provided one antecedent", and
-filling the box invites the grader to credit two. Releasing the fix therefore
-probably costs the agreement, and the honest landing place would be a
-divergence or a ceiling rather than an empty box that scores well.
+Why: gold's row is "-2 pts: only provided one antecedent", the cell agrees with
+it at 3.0 in 6 of 6 passes, and filling the box invites the grader to credit two
+antecedents on one sentence. The divergence is from FAITHFULNESS, not from gold,
+which is why it is not in `GOLD_DIVERGENCES` — we and the graders agree about
+this answer.
+
+It is also self-enforcing, which is the part worth knowing. Nothing had to be
+added to a table: `check_fixture_covers_the_response` sees the empty box and the
+unassigned run, asks `_gold_corroborates_absence`, and gold's "only provided
+one" licenses the gap on every run. If gold's wording were ever restated as
+"does not match", the check would start failing and this decision would come
+back up on its own. The declaration itself lives in Q4a's
+`MULTI_BLOCK_DECLARED` entry, next to the split it is about.
 
 ### Everything else in the item is already declared
 
@@ -551,19 +559,32 @@ three label boxes hold the label instead of the scorer's sentence about it.
 Declared in `enforcement.MULTI_BLOCK_DECLARED`. With that, **all 26 items pass
 every fixture check** and none is left undeclared.
 
-### The readout is blind on this item, and that is a hole in the procedure
+### The readout was blind on this item — FIXED
 
-`--fixture 1c` prints "empty response" for 18 of 20 cells, because 1c is
-answered with a chart and the readout is anchored on the prose segment. So the
-step QUALITY_CONTROL.md §1 calls irreplaceable — read the boxes out one at a
-time — silently does nothing here, and the audit had to be done by printing the
-eight boxes against the chart instead. 1a and 1b have the same shape and were
-declared on PROVENANCE for the same reason.
+`--fixture 1c` used to print "empty response" for 18 of 20 cells, because 1c is
+answered with a chart and the readout was anchored on the prose segment. The
+step QUALITY_CONTROL.md §1 calls irreplaceable therefore did nothing on exactly
+the items whose boxes no other check can read, and the defect below — ten cells
+of a counted item — would never have shown up in it.
 
-Worth fixing in `fixture_readout`: when the prose segment is empty but the cell
-HAS boxes, print the boxes with their provenance rather than one line saying
-there is nothing to see. The defect below sat in ten cells of a counted item
-and the readout would not have shown it.
+Fixed, and it turned out to be two bugs reaching **237 of the 520 cells**:
+
+* The handout was GUESSED from the item name (`1 if item.startswith("Q") else
+  3`), so all twelve of handout 2's items resolved to handout 3, where they have
+  no segment. **220 cells** of readable fixture that answered "empty response"
+  — PR, NR, PP, NP, T1, T2, D1, D2, DAY1, DAY2, WK1, WK2, every cell of every
+  one. `_handout_of` reads the spec now.
+* A cell answered with a chart or a table has nothing to locate a box in, which
+  is normal rather than a dead end. Those go to `_boxes_only_readout`, which
+  prints each box with the spec key that filled it — `sim`, `from_scorer`,
+  `fields`, `handsplit` — so it can be read against the table or the chart.
+  **17 cells** of 1c.
+
+"Empty response" now means only what it says, and prints as "empty cell — no
+prose response and no filled box": 26 cells of the corpus, all genuinely blank.
+Swept over all 520 cells with no errors: 477 prose readouts, 17 by provenance,
+26 empty. The rule is in QUALITY_CONTROL.md §1 as well, since the question a
+chart item asks of a box is a different one.
 
 ### The scorer's verdict was inside the field the grader is asked to judge
 
@@ -615,28 +636,32 @@ does not, and the cell is a live disagreement on a criterion the note never
 mentions. The fixture is not the cause: `series` comes from `sim` and holds the
 student's literal legend, which is exactly what the box is for.
 
-### p20's exclusion assumes a seeding the fixture does not do
+### p20's labels are now seeded from its own description — SETTLED
 
 The `unscoreable` entry reads: "a written DESCRIPTION of a graph, which on the
 web IS the answer: the labels are typed into fields and the chart is drawn from
-the four complete weeks". The four weeks are indeed seeded. The labels are not:
-`title`, `x` and `y` are all EMPTY, and p20's whole description — "Title: Sleep
-Duration Over 4 Weeks X-axis label: Days (or Weeks) Y-axis label: Hours of
-Sleep" — is assigned to no box.
+the four complete weeks". Only the second half was happening. The four weeks
+were seeded; `title`, `x` and `y` were all EMPTY, because there is no chart for
+the paper scorer to read a title off, and p20's whole description belonged to no
+box.
 
-So the entry's verdict may be right while its stated mechanism is not
-happening. Two ways to close it, and this audit deliberately picked neither,
-because the choice is a judgement about what the student would have typed into
-three fields:
+Closed by seeding the three labels from the student's own words — "Sleep
+Duration Over 4 Weeks", "Days (or Weeks)", "Hours of Sleep" — in
+`agreement_app.CONSENSUS_FIXES`, which is what they would have typed into the
+three fields. The scaffolding they wrote around them ("Title:", "X-axis label:",
+"Y-axis label:", "Legend:") stays out of the boxes, like every other label in
+the corpus, and `series` was already right from `sim`. All three now locate
+inside the response (@7, @49, @79), the cell carries no audit flag, and the
+exclusion entry says what actually happens.
 
-1. Seed the three labels from p20's own prose, after which the entry's sentence
-   becomes true and the cell tests what the entry says it tests.
-2. Leave the fixture and correct the entry to say the labels are absent, which
-   makes it a different claim about why gold's 0 is unreachable.
+The cell stays `unscoreable`: gold's 0 is for a graph that was never drawn, and
+seeding the labels is what makes that failure unreachable on the web rather
+than missed, which is the entry's whole point. It is excluded, so nothing in any
+rate moves.
 
-p4 and p19 do NOT have this problem: their entries claim only that the DATA
-draws the chart, and their data is seeded with their labels empty, which is
-what the fixture does.
+p4 and p19 never had this problem: their entries claim only that the DATA draws
+the chart, and their data is seeded with their labels empty, which is what the
+fixture does.
 
 ### Confirmed, not changed
 

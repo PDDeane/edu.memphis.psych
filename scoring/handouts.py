@@ -828,15 +828,31 @@ PER_ITEM_EXCLUDE: dict[str, dict[int, str | dict]] = {
         19: "the same: gold 0 for no graph, four complete weeks of data",
         20: "the same failure in its third form — a written DESCRIPTION of a "
             "graph, which on the web IS the answer: the labels are typed into "
-            "fields and the chart is drawn from the four complete weeks",
+            "fields and the chart is drawn from the four complete weeks. Both "
+            "halves of that are now true. The chart was always drawn from the "
+            "four weeks, but the three label fields were EMPTY until the "
+            "fixture audit found it: there is no chart for the paper scorer to "
+            "read a title off, so it recorded none, and the student's own "
+            "\"Title: Sleep Duration Over 4 Weeks X-axis label: Days (or "
+            "Weeks) Y-axis label: Hours of Sleep\" belonged to no box. Seeded "
+            "from that description in agreement_app.CONSENSUS_FIXES",
         # p11 is NOT a fourth: asked twice now, settled both times. Its "-1 pt:
         # missing baseline data week" never reaches a comparison, because
         # rebuild_gold_1c restates the row from its labelling verdicts and the
         # improvised charge drops out — effective gold 6.0, not the sheet's 7.0.
-        # The scorer reads title from the graph (not the prose, which is empty),
-        # faults x and y exactly as gold does, and returns 6.0. Exact match, so
-        # there is nothing here to exclude. See agreement.UNSCORED_GOLD_CRITERIA,
-        # which is where that criterion is declared.
+        # The scorer reads title from the graph (not the prose, which is empty)
+        # and faults x and y exactly as gold does. See
+        # agreement.UNSCORED_GOLD_CRITERIA, which is where that criterion is
+        # declared.
+        #
+        # The "and returns 6.0, exact match" that used to end this note is NOT
+        # what happens, and the fixture audit measured it: six passes over
+        # web_v8 and web_v9 return 4.0. The extra 2.0 is `legend: absent`, on a
+        # legend of day names ("Sunday, Monday, ... Satureday") that gold did
+        # not fault. Still nothing to EXCLUDE — the row is reachable and the
+        # fixture is faithful, `series` holding the student's literal legend —
+        # but it is a live disagreement on a criterion this note never named,
+        # and it is the item's only counted miss. See scoring/BACKLOG.md.
     },
 }
 
