@@ -289,3 +289,88 @@ the split), and p14's `antecedent_1` is credited against a gold row that
 refused both examples while its commentary accounts for only one. No stale
 exclusion surfaced: of the seven cited cells, none is wrong beyond those
 declarations, so none of them is buying a flattering denominator.
+
+## Q4c: what the fixture audit left behind
+
+Three boxes repaired, all one defect: p13's `first` and both of p16's kept the
+student's enumerator inside them ("1) {{corpus:Q4c/p13:first:0:15:sha=f2014335e974}} ...", "1. One consequence
+...", "2. Another consequence ...") while the item's other eight enumerated
+cells strip theirs — p12, whose response has p16's exact "1."/"2." shape, starts
+after the marker. That is 2a/p16's "Sentence 3:" defect in a second item.
+Everything else confirmed and declared in `enforcement.MULTI_BLOCK_DECLARED`.
+
+**Re-baseline p13 and p16.** p13 is a COUNTED cell whose served text just
+changed, so its stored passes no longer describe what the grader would see. p16
+is excluded, but its `expect_error` is asserted every run, so it needs the same
+treatment.
+
+**Where the item stands.** `out/web_v8` and `out/web_v9`, three passes each:
+**12 of 12 counted, identical in all six passes**; **17 of 20** with exclusions
+in the denominator. Eight of the twenty cells are outside the rate — seven
+`self_graded` (the guidance cites p4, p9, p11, p12, p15, p17 and p20 by number)
+and p16 `unscoreable`.
+
+### 12 of 12 does not mean the item is finished
+
+Read the counted set: **eleven of the twelve cells have a gold row of 5.0**, and
+the twelfth is p13, whose deduction is a missing second consequence. So no
+counted cell in this item requires REFUSING a consequence the student stated.
+Every cell that tests that — p4, p9, p11, p20, p16 — sits in the excluded eight.
+The rate measures the accept side and is silent on the criterion the item exists
+to apply, which is why 12/12 should not be read as a finished item the way Q4a's
+12/13 can be.
+
+What the excluded cells say when read as diagnostics, six passes each, is that
+the two reject channels behave differently — and the prompt quotes the very
+cells that test them:
+
+* **The category test works.** The REJECT bullet's example is p9's own
+  "{{corpus:Q4c/p9:second:0:86:sha=ffcd2e47f756:shape=S12-0a2020}} body", and `consequence_2` comes back `wrong_kind` on exactly that
+  text, 6 of 6. A benefit of the goal behaviour is being caught.
+* **The sufficiency test does not.** The DEDUCT bullet quotes p20's
+  "{{corpus:Q4c/p20:second:54:80:sha=106b406ee2c5:shape=S0-0a2020}}" and records that the grader wrote "need more explanation on
+  how your second example is a direct consequence". Our grader answers `met` on
+  that sentence in 6 of 6 passes. "The causal link is left for the reader to
+  guess" is a different judgement from "this is not a consequence at all", and
+  only the second one is reaching the model.
+
+So the work here is the sufficiency test, not the category test. It is also the
+test with no counted cell behind it, so any change to it must be measured on the
+excluded cells as a diagnostic and swept corpus-wide for damage elsewhere.
+
+### p9's residual gap is a gold shape that is already declared elsewhere
+
+Our 3.0 against gold's 1.0 is not the cited example: `consequence_2` is refused
+as designed. It is `consequence_1`, "{{corpus:Q4c/p9:first:0:47:sha=649fd6c0427a:shape=S5-0a}}", which gold also refused — its -4 is two refusals while its
+commentary accounts for one. That is the same shape as Q4a/p14, which
+`handouts.GOLD_DIVERGENCES` already declares in those words. Q4c/p9 has no such
+entry, and should get one if its citation is ever removed; while the citation
+stands, the `self_graded` exclusion covers it.
+
+For the record, the fixture is not the cause: p9 is one run-on line with a
+single comma, and the split leaves "while not exercising" with the clause that
+comma attaches it to. Splitting the other way leaves `first` as a bare
+"Gaining bad eating habits", which is creditable too.
+
+### Two cited cells the scorer misses anyway
+
+p9 and p20 are cited in the guidance AND wrong in every pass — which is exactly
+the case EQUIVALENCE.md's cleanup procedure says to close: "if the scorer misses
+it even so, the exclusion is buying a flattering denominator and nothing else",
+and the citation and the exclusion have to move together
+(`check_citations_match_exclusions` enforces the pair). The other five cited
+cells are scored correctly and their exclusions are doing their job.
+
+Two things make this more than a deletion. The examples being removed are the
+item's ONLY reject and deduct illustrations, so they have to be REPLACED with
+invented ones rather than dropped — writing them from a participant's answer is
+the mistake that created this. And the reported rate will FALL, from 12/12 to
+12/14 on current behaviour. That is the point of doing it.
+
+### A superseded section to annotate
+
+`EQUIVALENCE.md:562` reads Q4c at "CLI 76%, web 65% over 17 cells" and closes
+"Nothing to fix. Left alone." All three parts have moved: the denominator is 12
+counted, not 17; its web-only p13 gap was `keyword: absent` on "conequence",
+which cannot arise now that Q4c's keyword slot is advisory with `pts=None`; and
+three boxes were in fact fixed above.
