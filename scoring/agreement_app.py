@@ -714,6 +714,135 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "{{corpus:2a/p20:how1:0:68:sha=9639ba171206:shape=R68-0-20}}"
          "{{corpus:2a/p20:how1:69:138:sha=3f9a44a79d62}}"),
     ],
+    # The enumerator strip, third and last group: Q4b's fourteen boxes and Q6's
+    # five. Same defect as 2a/p16, Q4c/p13+p16, Q5/p1+p16 and Q3/p6 — the
+    # student's own list marker served back as the opening of their answer, and
+    # inconsistently, since most cells of each item start at the first word.
+    #
+    # Both items are declared and were declared BEFORE the box-by-box pass, which
+    # is how they kept theirs: a MULTI_BLOCK_DECLARED entry records that someone
+    # read the SPLIT, not that every box was normalised.
+    #
+    # Applied here rather than at each item's source, deliberately. Q4b's fixture
+    # is the hand-split JSON and Q6's is the frozen 10-run consensus, both in
+    # MOLLY_DATA and neither in git; the note further down this block records what
+    # editing data outside the repo cost last time — a p7 fix invisible to anyone
+    # who clones this. A declared correction is reviewable and reversible, and it
+    # leaves the consensus frozen, which is the property Q6 was frozen FOR.
+    #
+    # Q6 must be re-measured because of this: it is the item with the longest
+    # measured history in the corpus, and five of its boxes now serve different
+    # text. Q4b likewise. Nothing else about any box changes — only the marker
+    # comes off — and the markers are left belonging to no box, as they are in
+    # every other item.
+    #
+    # Q6/p18's `state_a1` is left ending on its comma ("{{corpus:Q6/p18:state_a1:0:18:sha=f73306bc964c}}
+    # trigger (after-school fatigue),"). That is a mid-clause cut in a frozen
+    # box, a different defect from this one, and it is recorded in
+    # scoring/BACKLOG.md rather than repaired in passing.
+    ("Q4b", 1): [
+        ("set", "first",
+         "{{corpus:Q4b/p1:first:0:57:sha=8eaa05f8849c:shape=R57-0-20}}"
+         "{{corpus:Q4b/p1:first:58:111:sha=9f5e4ffc371a}} "
+         "Instagram."),
+        ("set", "second",
+         "{{corpus:Q4b/p1:second:0:58:sha=1ee985c3ead1:shape=R58-0-20}}"
+         "{{corpus:Q4b/p1:second:59:104:sha=21c194923c2e}} morning."),
+    ],
+    ("Q4b", 8): [
+        ("set", "first",
+         "{{corpus:Q4b/p8:first:0:55:sha=f8b160b89a72:shape=R55-0-20}}"
+         "{{corpus:Q4b/p8:first:56:79:sha=12753558179d}} gym,"),
+    ],
+    ("Q4b", 10): [
+        ("set", "first",
+         "{{corpus:Q4b/p10:first:0:56:sha=4dfcc4f578cb:shape=R56-0-20}}"
+         "{{corpus:Q4b/p10:first:57:113:sha=faead3a061c8:shape=R56-0-20}}"
+         "{{corpus:Q4b/p10:first:114:170:sha=da265e4784c8:shape=R56-0-20}}"
+         "{{corpus:Q4b/p10:first:171:229:sha=9a0fe9b264fd:shape=R58-0-20}}"
+         "{{corpus:Q4b/p10:first:230:236:sha=0dcb22b4cbdc}} day."),
+        ("set", "second",
+         "{{corpus:Q4b/p10:second:0:57:sha=5531e675e4cd:shape=R57-0-20}}"
+         "{{corpus:Q4b/p10:second:58:113:sha=9859b68bade3:shape=R55-0-20}}"
+         "{{corpus:Q4b/p10:second:114:164:sha=8dde1ae4dcb8:shape=R50-0-20}}"
+         "{{corpus:Q4b/p10:second:165:220:sha=5f9cfa0b8eb9}} do."),
+    ],
+    ("Q4b", 13): [
+        ("set", "first",
+         "{{corpus:Q4b/p13:first:0:54:sha=3dc37fa7e224:shape=R54-0-20}}"
+         "{{corpus:Q4b/p13:first:55:88:sha=0b7c7b7fd706}} phone"),
+        ("set", "second",
+         "{{corpus:Q4b/p13:second:0:56:sha=ad986e1ca2e2:shape=R56-0-20}}"
+         "{{corpus:Q4b/p13:second:57:109:sha=3489581e3c6b}} ADHD."),
+    ],
+    ("Q4b", 17): [
+        ("set", "first",
+         "{{corpus:Q4b/p17:first:0:58:sha=e1357bc042d9:shape=R58-0-20}}"
+         "{{corpus:Q4b/p17:first:59:85:sha=bd0b39e06ba1}} self."),
+        ("set", "second",
+         "{{corpus:Q4b/p17:second:0:59:sha=d5a82d911dbb:shape=R59-0-20}}"
+         "{{corpus:Q4b/p17:second:60:87:sha=71d9fc0003ea}} exercise."),
+    ],
+    ("Q4b", 18): [
+        ("set", "first",
+         "{{corpus:Q4b/p18:first:0:59:sha=d3866ce5077d:shape=R59-0-20}}"
+         "{{corpus:Q4b/p18:first:60:119:sha=6e191b403986:shape=R59-0-20}}"
+         "{{corpus:Q4b/p18:first:120:149:sha=8624d26b1317}} time."),
+        ("set", "second",
+         "{{corpus:Q4b/p18:second:0:52:sha=39ca41d30056:shape=R52-0-20}}"
+         "{{corpus:Q4b/p18:second:53:108:sha=67f91eb0f2b3:shape=R55-0-20}}"
+         "{{corpus:Q4b/p18:second:109:129:sha=f2795a9631a3}} routine."),
+    ],
+    ("Q4b", 19): [
+        ("set", "second",
+         "{{corpus:Q4b/p19:second:0:56:sha=de83c713493b:shape=R56-0-20}}"
+         "{{corpus:Q4b/p19:second:57:74:sha=0570c82c125d}} day."),
+    ],
+    ("Q4b", 20): [
+        ("set", "first",
+         "{{corpus:Q4b/p20:first:0:59:sha=0db758654998:shape=R59-0-20}}"
+         "{{corpus:Q4b/p20:first:60:79:sha=65aa6c15bf01}} classroom."),
+        ("set", "second",
+         "{{corpus:Q4b/p20:second:0:56:sha=76f06a8b2a8c:shape=R56-0-20}}"
+         "{{corpus:Q4b/p20:second:57:84:sha=aa10d5e38053}} assignments."),
+    ],
+    ("Q6", 20): [
+        ("set", "state_a1",
+         "{{corpus:Q6/p20:state_a1:0:56:sha=4b1af8a7aced:shape=R56-0-20}}"
+         "{{corpus:Q6/p20:state_a1:57:77:sha=259714044519}} deprived."),
+        ("set", "state_a2",
+         "{{corpus:Q6/p20:state_a2:0:57:sha=ec4f7c4ba255:shape=R57-0-20}}"
+         "{{corpus:Q6/p20:state_a2:58:115:sha=4097d7b8f9bb}} "
+         "school."),
+    ],
+    # Q3/p6 bullets four of its five aspects, and all four boxes kept the "- ".
+    # `specific`, the one aspect it does not bullet, starts at the student's
+    # first word — so the cell served four boxes opening with punctuation and
+    # one without, which is the enumerator defect already fixed in 2a, Q4c and
+    # Q5. Stripped; nothing else about the boxes changes, and the four bullets
+    # now belong to no box.
+    #
+    # This cell writes no aspect LABELS ("Measurable:"), unlike p1 and p19, so
+    # there is no label question here — only the bullet. It is a counted cell,
+    # gold 3.0, and the two points gold takes off are on `specific` and
+    # `timebound`, one of which is the box that never had a bullet.
+    ("Q3", 6): [
+        ("set", "measurable",
+         "{{corpus:Q3/p6:measurable:0:67:sha=6d16caa31724:shape=R67-0-20}}"
+         "{{corpus:Q3/p6:measurable:68:132:sha=42cb4c027d3e:shape=R64-0-20}}"
+         "{{corpus:Q3/p6:measurable:133:167:sha=16b2df34071b}} daily."),
+        ("set", "action",
+         "{{corpus:Q3/p6:action:0:69:sha=b0309742d058:shape=R69-0-20}}"
+         "{{corpus:Q3/p6:action:70:83:sha=e2cd374989df}} exercise."),
+        ("set", "realistic",
+         "{{corpus:Q3/p6:realistic:0:67:sha=7b2f53e1f612:shape=R67-0-20}}"
+         "{{corpus:Q3/p6:realistic:68:130:sha=60f2cf17cf61:shape=R41-1-5c7532303139,R62-0-20}}"
+         "{{corpus:Q3/p6:realistic:131:142:sha=3e9437b4c15d}} go."),
+        ("set", "timebound",
+         "{{corpus:Q3/p6:timebound:0:69:sha=853d8854181b:shape=R69-0-20}}"
+         "{{corpus:Q3/p6:timebound:70:139:sha=ac9476d8c793:shape=R69-0-20}}"
+         "{{corpus:Q3/p6:timebound:140:167:sha=e7b8e2483f2b}} collection."),
+    ],
     # Q3/p19 typed the handout's own scaffolding above its answer, and the
     # anchored split took it for content: `measurable` held the printed
     # INSTRUCTION "You must discuss and label each aspect of the SMART goal for
@@ -1032,6 +1161,12 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # only charge is that the second consequence's fate went unaddressed. Same
     # treatment as p15.
     ("Q6", 18): [
+        # `state_a1` opened "1) {{corpus:Q6/p18:state_a1:0:26:sha=3e2b1fc2de4f}} ...". The marker came
+        # off with the rest of the corpus's; the box still ENDS on its comma,
+        # which is a mid-clause cut in a frozen box and a different defect —
+        # recorded in scoring/BACKLOG.md rather than repaired in passing.
+        ("set", "state_a1",
+         "{{corpus:Q6/p18:state_a1:0:50:sha=c9250d345b28}}"),
         ("set", "change_a2",
          "{{corpus:Q6/p18:change_a2:0:52:sha=149c6db4cf7a}} \"Do Not "
          "Disturb\" {{corpus:Q6/p18:change_a2:70:101:sha=bc939cf835e6}} time"),
@@ -1081,14 +1216,16 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # state_c1 begins at "hoping", orphaning "I\u2019m", and runs on to grab the
     # "2) I" opening part two, while state_c2 holds a slice of PART ONE.
     ("Q6", 10): [
+        # The "1)_" and "2) " that used to open these two came off with the rest
+        # of the corpus's list markers; nothing else about them changed.
         ("set", "state_a1",
-         "1)_{{corpus:Q6/p10:state_a1:0:67:sha=e25cf240879f:shape=R67-0-20}}"
+         "{{corpus:Q6/p10:state_a1:0:67:sha=e25cf240879f:shape=R67-0-20}}"
          "{{corpus:Q6/p10:state_a1:68:85:sha=1ff750d0f1df}}"),
         ("set", "change_a1",
          "{{corpus:Q6/p10:change_a1:0:67:sha=33f7fe95bc26:shape=R67-0-20}}"
          "{{corpus:Q6/p10:change_a1:68:92:sha=2aa25fc09046}}"),
         ("set", "state_a2",
-         "2) {{corpus:Q6/p10:state_a2:0:65:sha=905fbe44a231:shape=R65-0-20}}"
+         "{{corpus:Q6/p10:state_a2:0:65:sha=905fbe44a231:shape=R65-0-20}}"
          "{{corpus:Q6/p10:state_a2:66:91:sha=d91508197d5c}}"),
         ("set", "change_a2",
          "{{corpus:Q6/p10:change_a2:0:67:sha=1cb11948717a:shape=R67-0-20}}"
