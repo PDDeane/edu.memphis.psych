@@ -781,3 +781,37 @@ residue fix.
 Checked while looking: p11 is NOT a second case. Its `specific` box carries
 tracking prose that reads like `measurable`'s job, but both boxes hold the
 student's own words, and gold gives the cell full credit.
+
+## Q6/p18's antecedent boxes are sentence halves, not clauses
+
+Surfaced by the marker strip, which took the "1) " off `state_a1` and left what
+was underneath visible:
+
+    [state_a1]  "To change my first trigger (after-school fatigue),"
+    [change_a1] "I will pack my gym clothes in my bag so I can go straight to
+                 exercise before I ever sit down on the couch."
+    [state_a2]  "to handle my second antecedent, which is phone distractions."
+
+`state_a1` ends on its comma and `state_a2` opens lowercase mid-sentence, so
+both antecedent-naming boxes are FRAGMENTS of sentences whose main clauses live
+in the `change_a*` boxes. The student wrote "To change my first trigger
+(after-school fatigue), I will pack my gym clothes ..." and "I'll either move
+my phone to a separate room ... to handle my second antecedent, which is phone
+distractions."
+
+Whether that is a defect is a real question rather than an obvious yes, which
+is why it is here and not fixed. Against fixing: the split is FAITHFUL to how
+p18 wrote it — the antecedent is named in a subordinate clause and the change
+in the main one, so a clause-level split has to cut there, and both boxes do
+name their antecedent, which is what `state_a*` is scored on. Gold gives 7.5
+and charges only the second consequence's fate, so nothing about the antecedent
+half is in dispute. For fixing: "To change my first trigger (after-school
+fatigue)," cannot be judged on its own as a statement of an antecedent, and the
+QC guide's dangling-word test exists because boxes like this one usually mean
+the pair was cut in the wrong place.
+
+If it is ever touched, note what it is NOT: not the marker (stripped), and not
+a lost element (nothing is unassigned). It is one sentence split at the
+boundary between naming and changing, which is the boundary this item's slots
+ask for. Q6's fixture is the frozen consensus, so any change wants the
+re-measurement Q6 already owes.
