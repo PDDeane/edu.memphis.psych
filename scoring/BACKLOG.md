@@ -118,8 +118,12 @@ class:
    plan calls for (`../VERDICT_VOCABULARY_PLAN.md`), and it would have caught
    both instances without anyone having to think of `{fail}`.
 
-Not measured. Fixing it CHANGES A PROMPT for Q5, so it needs a sweep, and Q5 has
-no measurements against current inputs.
+Fixing it CHANGES A PROMPT for Q5, so it needs a sweep. Six passes now exist
+(`out/web_v8`, `out/web_v9`) and the fixture audit below measured what the dead
+note does and does not cost: refusals still happen, under `wrong_kind`, so what
+is lost is the DISTINCTION the note draws rather than the deduction itself — and
+no COUNTED cell exercises a refusal at all, so the fix cannot be validated on
+the rate. Read that section before sweeping.
 
 `not_reason` in `rubric_h1.py:979` is NOT part of this — that is the paper
 scorer's own vocabulary, bridged by `enforcement.ALIAS`, and it is correct there.
@@ -374,3 +378,72 @@ the mistake that created this. And the reported rate will FALL, from 12/12 to
 counted, not 17; its web-only p13 gap was `keyword: absent` on "conequence",
 which cannot arise now that Q4c's keyword slot is advisory with `pts=None`; and
 three boxes were in fact fixed above.
+
+## Q5: what the fixture audit left behind
+
+Three boxes repaired, the same enumerator defect Q4c had: p1 kept "1) " and "2)
+" inside both boxes and p16 kept the "2. " it is the only cell to write, while
+p8, p10, p12, p18, p19 and p20 all start after their markers. Third item to
+carry this, after 2a/p16 and Q4c/p13+p16. Everything else confirmed and
+declared in `enforcement.MULTI_BLOCK_DECLARED`.
+
+**Re-baseline p1 and p16.** Both are COUNTED cells whose served text changed.
+
+**Where the item stands.** `out/web_v8` and `out/web_v9`, three passes each:
+**14 of 14 counted, identical in all six passes**; 19 of 20 with the six
+`self_graded` cells in the denominator (the guidance cites p4, p6, p8, p9, p19
+and p20 by number). Note for comparisons: `EQUIVALENCE.md:492` has Q5 at "100
+vs 88" from web_v2, a different denominator and a superseded fixture.
+
+### 14 of 14 is a rate over twelve free cells and two blanks
+
+Of the fourteen counted cells, **twelve have a gold row of 5.0 and two are
+blank** — p13 and p17 wrote nothing, so both boxes are empty and gold's "did
+not answer" is reproduced by the blank path rather than by any judgement. So no
+counted cell requires refusing an entry or calling two entries the same. Both
+cells that exercise this item's only two deductions are excluded: p4 for
+`W_NOT_REASON` and p6 for the duplicate that maps to `W_ONLY_ONE`.
+
+This is the same shape as Q4c, and on this item it is sharper, because the
+guidance calls itself "the most forgiving item on the handout" and says any
+statement of the right form earns its 2.5 "essentially regardless of how
+insightful X is". A rate built from twelve such cells plus two blanks cannot
+move when the refusal rules change, in either direction. Any work on them has
+to be read on the excluded cells as diagnostics plus a corpus sweep for damage.
+
+### The dead `not_reason` note, now with evidence
+
+The existing item above is confirmed and can be sharpened. Q5's web slots offer
+`wrong_kind/duplicate` (`bmod_handout1.olx:1001`) and nothing else, so the
+SLOT_NOTES sentence telling the grader to answer `not_reason` is unreachable —
+but refusals are NOT lost: p4 comes back `wrong_kind` on both entries in 6 of 6
+passes. What the dead token costs is the DISTINCTION, since a real-but-not-a-
+reason-for-continuing entry and a wrong-kind entry now collapse into one token
+at one price. That also means the fix is unmeasurable on the rate, per the
+section above — the lint in option 2 is the part worth doing, because it is a
+correctness guarantee rather than a score claim.
+
+### p4, read from the record rather than the score
+
+We refuse both entries (`wrong_kind` twice, 0.0 in every pass); gold deducts
+2.5. Two things are worth having written down before anyone re-opens it.
+
+* **The guidance's account of gold's row does not match the row.** The
+  `W_NOT_REASON` bullet says p4's second entry — "{{corpus:Q5/p4:second:31:83:sha=342a4d43bd2e:shape=S4-0a2020,A46}} tired" — "cost participant 4 2.5 points". Gold's row
+  reads "-2.5 pts: missing one reason why you continue to engage in lack of
+  sleep", which is `W_ONLY_ONE`'s wording, not `W_NOT_REASON`'s. Both cost 2.5,
+  so no score can separate them, and the guidance is describing a charge gold's
+  own words do not make.
+* **p4's first box is the student's text, checked.** It reads "{{corpus:Q5/p4:first:0:78:sha=f7407ff462b1:shape=S1-0a2020}}" — a
+  missing negation that inverts the sentence. The submission itself says that
+  (`doc_lines`, line 51), so this is not a transcription loss and the cell is
+  not `suspect`. Our refusal and gold's credit are both defensible on those
+  words, which makes this a divergence rather than a defect — the same landing
+  place as Q4a/p14 and Q4c/p9, and it needs an entry if p4's citation is ever
+  removed.
+
+p4 is also the only cited Q5 cell the scorer misses, so it is the
+cleanup-procedure step-1 candidate here. The same caution as Q4c applies twice
+over: its example is the item's only `W_NOT_REASON` illustration, and
+un-excluding it puts a cell we get wrong into a count that would go 14/14 to
+14/15.
