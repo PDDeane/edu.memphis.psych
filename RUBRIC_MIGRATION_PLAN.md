@@ -303,4 +303,5 @@ bundle rather than the OLX directly. That choice shapes stage 5 and should not b
 
 *Supersedes the prompt-generation arrangement in which molly_scoring produced the web's prompts ·
 companion to the verdict-standardisation plan ("One Verdict Vocabulary",
+`VERDICT_VOCABULARY_PLAN.md`, retrieved from
 `https://claude.ai/code/artifact/379e952f-24d3-4e76-92e5-ecad514ce92b`)*
