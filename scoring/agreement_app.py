@@ -662,6 +662,25 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "{{corpus:2a/p20:how1:0:68:sha=9639ba171206:shape=R68-0-20}}"
          "{{corpus:2a/p20:how1:69:138:sha=3f9a44a79d62}}"),
     ],
+    # Q4c/p13 and p16. Three boxes kept the student's ENUMERATOR inside them
+    # while the other eight cells of the item strip theirs — p13's `first` opened
+    # "1) {{corpus:Q4c/p13:first:0:15:sha=f2014335e974}} ...", p16 held "1. One consequence ..." and "2. Another
+    # consequence ...", and p12, whose response has p16's exact "1."/"2." shape,
+    # starts after the marker. Serving one cell's list numbers back as its words
+    # and not another's is the 2a/p16 defect ("Sentence 3:") in a second item.
+    # Stripped; nothing else about these boxes changes, and p13's `second` stays
+    # empty, which is what gold's "missing second consequence" charges.
+    ("Q4c", 13): [
+        ("set", "first",
+         "{{corpus:Q4c/p13:first:0:54:sha=574e2368f73b}} day."),
+    ],
+    ("Q4c", 16): [
+        ("set", "first",
+         "{{corpus:Q4c/p16:first:0:62:sha=af2cbdc72b97}} down."),
+        ("set", "second",
+         "{{corpus:Q4c/p16:second:0:67:sha=6f4c351c9eb1:shape=R67-0-20}}"
+         "{{corpus:Q4c/p16:second:68:104:sha=40b5d834a7d5}} rise."),
+    ],
     # Q4a/p10. `second` dropped part 2's closing clause ("{{corpus:Q4a/p10:second:117:146:sha=ee9ee342783a}}
     # the day ..."). A numbered part keeps all of its own clauses.
     ("Q4a", 10): [
