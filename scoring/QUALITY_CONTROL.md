@@ -20,8 +20,10 @@ guide came from doing step 3 while step 1 was still wrong.
 2. **Gold.** Is the row right, and is its own itemisation coherent?
 3. **Model.** Does the prompt tell the grader how to decide?
 4. **Declare** whatever is left.
+5. **Reduce** the declarations, on the schedule in section 5.
 
-A scoring model tuned against a bad fixture measures the fixture.
+A scoring model tuned against a bad fixture measures the fixture. A model whose
+declarations only ever grow measures the declarations.
 
 ---
 
@@ -197,7 +199,75 @@ outlive the row it corrects.
 
 ---
 
-## 5. What wastes time
+## 5. Reducing exclusions
+
+A caveat is a promise to stop looking, and they accumulate. Each one is
+defensible at the moment it is written, and nothing afterwards asks it to justify
+itself again. Left to grow, the headline rate stops measuring how well the model
+scores and starts measuring how much has been excused.
+
+**They do not all cost the same, and only two of the five move the number.**
+
+| Caveat | What it does to the rate |
+| --- | --- |
+| `PER_ITEM_EXCLUDE` | **drops the cell from every rate** — the most flattering thing you can write |
+| `CORRECTED_GOLD` | **moves the target** the cell is measured against |
+| `GOLD_DIVERGENCES` | nothing. "A divergence is still scored; we just knowingly disagree." |
+| `GOLD_CEILINGS` | nothing. Prose whose only job is to stop a ceiling reading as headroom. |
+| `agreement.UNSCORED_GOLD_CRITERIA` | nothing head-to-head; the omission is symmetric by construction. |
+
+The two rules below therefore bite on the first two. The safe landing place for a
+real disagreement is one of the last three, which leaves the miss **counted and
+visible** while still saying what it is.
+
+**An exclusion on a cell the scorer gets WRONG must be removed.** That is exactly
+the exclusion buying accuracy nobody earned, and it is the one that will never
+remove itself, because the cell it hides is the cell that would otherwise ask for
+work. There are two honest ways out and neither keeps the exclusion: if the miss
+is ours, take it and let it show; if it is gold's, name it — a correction, a
+divergence, a ceiling — so the cell counts again. Q6/p9 was `PER_ITEM_EXCLUDE`
+with `expect_error` -1.25 and became `CORRECTED_GOLD[("Q6", 9)]`, because the
+exclusion "dropped a perfectly scoreable cell from every rate in order to absorb
+an error that was gold's". Its measured behaviour did not change at all; the rate
+went up because a cell we score correctly finally counted.
+
+**An exclusion on a cell the scorer gets RIGHT must be retested until it is
+removed.** It is not doing the job it was opened for, so what remains is the
+claim, and the claim is now false in a way that misleads in the expensive
+direction: a stale ceiling reports unwinnable ground where there is none, and
+hides real headroom behind it. Q6/p4 left `GOLD_CEILINGS` for precisely that
+reason once `scores_as_exact` credited its off-grid gold — "a note here would
+tell a reader there is unwinnable ground where there is none."
+
+**The retest trigger is a change, not a calendar.** In practice an exclusion is
+retired by work done for some other reason, so retest every excluded cell that a
+prompt or fixture change could plausibly reach, and sweep the whole set when an
+item closes out. The ceiling on Q6/p9 was retired by a definition written for
+the item as a whole: the cell went from 56% at nine passes to 9 of 9, and "it was
+never an unwinnable criterion; it was an undefined term."
+
+**Retesting is already free — the machinery exists, so use it.** Excluded cells
+are still run and still scored; `cell_exclusions` says so in terms — "Not a work
+list. Excluded cells are still RUN and still scored... Only the RATE excludes
+them." On top of that, an `unscoreable` entry may declare `expect_error`, the
+size of the miss it claims to absorb, and `stale_claim` then asserts it on every
+run and prints `<-- CLAIM STALE` when the cell stops behaving as documented. That
+is the retest, automatic and per-run. **It only fires where the number is
+declared: 1 of the 5 live entries declares `expect_error`, so the other four are
+retested only when a person remembers to.** Declaring it on every one of them is
+the cheapest way to make this section self-enforcing.
+
+**The commonest bad reason to open one is instability.** A cell that flips
+between two scores on identical input looks like a criterion that cannot be
+scored, and "cannot be scored consistently" is the more flattering of the two
+explanations, because it puts the fault in gold. Three cells once explained that
+way were fixtures cut in the wrong place, and a fourth was a term the prompt had
+never defined. An instability is evidence that the grader was given no rule, not
+evidence that no rule exists.
+
+---
+
+## 6. What wastes time
 
 - Tuning a rule while the fixture is wrong.
 - Ranking variants inside the noise floor. Six variants, all intervals
@@ -213,7 +283,7 @@ outlive the row it corrects.
 
 ---
 
-## 6. When to stop
+## 7. When to stop
 
 Stop when what remains is **declared**. For the item this guide came from: seven
 slot disagreements, six of them a deliberate divergence, a gold ceiling, or a
