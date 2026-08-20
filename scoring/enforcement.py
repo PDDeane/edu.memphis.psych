@@ -1423,7 +1423,19 @@ MULTI_BLOCK_DECLARED: dict[str, str] = {
     # own structure. The web version presents these as separate input fields, so
     # the split is the form's, not an artefact of reconstruction.
     "Q6": "eight boxes: two antecedents, each with its change, consequence and "
-          "effect. Every cell read out and corrected; all fixture checks clean",
+          "effect. Every cell read out and corrected; all fixture checks clean. "
+          "p18\'s two antecedent boxes are DECLARED as sentence fragments and "
+          "are correct that way: `state_a1` ends on its comma (\"To change my "
+          "first trigger (after-school fatigue),\") and `state_a2` opens "
+          "lowercase (\"to handle my second antecedent, which is phone "
+          "distractions.\"), because p18 names each antecedent in a subordinate "
+          "clause and puts the change in the main one. A clause-level split has "
+          "to cut there; both boxes name their antecedent, which is what "
+          "`state_a*` is scored on; and gold\'s 7.5 charges only the second "
+          "consequence\'s fate. Both halves of one sentence being fragments is "
+          "fine — do not re-cut them. Not in FIXTURE_STRUCTURE_OVERRIDES "
+          "because no check fires on it, and an entry there that stops firing "
+          "is reported stale",
     "Q3": "five boxes, one per SMART aspect, and the students label them "
           "themselves. Anchored on the aspect's own name where the scorer gave "
           "no quote; 9 cells with an empty box reduced to 1, and that one is "

@@ -1164,9 +1164,14 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # treatment as p15.
     ("Q6", 18): [
         # `state_a1` opened "1) To change my first trigger ...". The marker came
-        # off with the rest of the corpus's; the box still ENDS on its comma,
-        # which is a mid-clause cut in a frozen box and a different defect —
-        # recorded in scoring/BACKLOG.md rather than repaired in passing.
+        # off with the rest of the corpus's. The box still ENDS on its comma, and
+        # that is DECLARED rather than repaired: p18 names each antecedent in a
+        # subordinate clause and puts the change in the main one, so `state_a1`
+        # and `change_a1` are two halves of one sentence and so are `state_a2`
+        # and `change_a2`. Both halves being fragments is fine here — each names
+        # its antecedent, which is what the slot scores. See Q6's entry in
+        # enforcement.MULTI_BLOCK_DECLARED and the section in
+        # scoring/BACKLOG.md.
         ("set", "state_a1",
          "To change my first trigger (after-school fatigue),"),
         ("set", "change_a2",
