@@ -1430,6 +1430,18 @@ MULTI_BLOCK_DECLARED: dict[str, str] = {
           "correct — p9 never mentions realistic",
     "Q4b": "three boxes: the modify statement and two examples. p7 read out and "
            "assigned; the rest carry no findings",
+    "Q5": "two boxes, one reason each. All 20 read out; three boxes repaired, "
+          "the same enumerator defect as Q4c — p1 kept \"1) \"/\"2) \" and p16 "
+          "the \"2. \" it alone writes. Two cells are BLANK (p13, p17), so both "
+          "boxes are empty and gold\'s \"did not answer\" is what the split "
+          "reproduces. Three cells are run-ons split where the student\'s own "
+          "sentence boundary is missing (p9, p15, and p3, whose orphaned full "
+          "stop is left where the scorer\'s quote ended). p5 and p6 keep each "
+          "reason\'s parenthetical function label (\"(Gaining something.)\", "
+          "\"(I am escaping a task.)\") with the reason it labels, which is what "
+          "the question asks the student to supply. p4\'s first box reads \"I "
+          "continue sleep enough\" — checked against the submission, that is the "
+          "student\'s own missing negation, not a transcription loss",
     "Q4c": "two boxes, one consequence each, and like Q4a the student usually "
            "does the splitting. All 20 read out; three boxes repaired, all one "
            "defect — p13\'s `first` and both of p16\'s kept the enumerator "

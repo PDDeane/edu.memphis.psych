@@ -663,6 +663,22 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "My sleep duration increased over time, as shown by the higher number "
          "of hours during the intervention weeks compared to the baseline week."),
     ],
+    # Q5/p1 and p16. The same enumerator defect as Q4c/p13+p16, third item to
+    # carry it: p1 kept "1) " and "2) " in BOTH boxes and p16 kept the "2. " it
+    # is the only cell to write, while p8, p10, p12, p18, p19 and p20 all start
+    # after their markers ("_2)", "1)_", "1.", "2)_"). Stripped.
+    ("Q5", 1): [
+        ("set", "first",
+         "I believe that I miss out on sleep at night because I get so consumed "
+         "with stuff on my phone."),
+        ("set", "second",
+         "I think that with all the extra time I have I get distracted and stay "
+         "up because I feel like I have the time to do so."),
+    ],
+    ("Q5", 16): [
+        ("set", "second",
+         "Another reason I continue is because I like being lazy at times."),
+    ],
     # Q4c/p13 and p16. Three boxes kept the student's ENUMERATOR inside them
     # while the other eight cells of the item strip theirs — p13's `first` opened
     # "1) I end up facing ...", p16 held "1. One consequence ..." and "2. Another
