@@ -1017,17 +1017,45 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "I hope setting this new trigger, I will be able to function well, so it won't lead to the consequences of me not able to release tension because I didn’t go."),
     ],
 
+    # p4 writes five sentences in two pairs:
+    #   S1  antecedent + change            S4  antecedent + change
+    #   S2  an effect                      S5  an effect, conjoined under one
+    #   S3  another effect                     negation
+    #
+    # Two things the earlier assignment got wrong about that shape.
+    #
+    # FIRST, `state_c1` held S2 -- "which I hope will help me to be happier" --
+    # which names no consequence at all; it is a hoped-for outcome. The template
+    # wants a 4c consequence in that box, so putting an effect clause there tells
+    # the grader a consequence was named when the student went straight to the
+    # effect. It scored `met` with `refers_to: none` in 5 of 9 passes, which is the
+    # fixture manufacturing a naming and the cover logic then discarding it. S2
+    # belongs with S3 in `affect_c1`, and `state_c1` is EMPTY: this student named
+    # no first consequence. Gold says so too -- its charge is "missing both
+    # consequences", corrected here to one missing, and this is the one.
+    #
+    # SECOND, `affect_c2` held the whole of S5 while `state_c2` held a strict
+    # PREFIX of it -- the truncation overlap that check_consensus_spans_are_disjoint
+    # cannot see, because state_cN/affect_cN containment is its permitted case.
+    # S5 is "I hope that I will no longer be up late and getting so tired": ONE
+    # negation, "no longer", scoping a conjunction of [up late] and [getting so
+    # tired]. Split at the conjunction, and the negation has to be REPEATED on the
+    # second conjunct, or "getting so tired" reads as an assertion that they will
+    # be tired -- the opposite of what the sentence says. Same principle as p6,
+    # where "not attending the gym & stretching as often as I should be" needed
+    # "not" distributed onto the stretching half. These are the corpus's only two
+    # non-verbatim words, and both are one negation carried across one split.
     ("Q6", 4): [
-        ("set", "state_c1", "which I hope will help me to be happier."),
+        ("set", "state_c1",
+         "I hope that I will no longer be up late and getting so tired."),
         ("set", "affect_c1",
-         "When I start sleeping, I will become happier, and I won\u2019t be falling "
-         "asleep everywhere."),
+         "which I hope will help me to be happier. When I start sleeping, I will "
+         "become happier, and I won\u2019t be falling asleep everywhere."),
         ("set", "state_a2",
          "I am going to change my antecedent of going to bed late that leads to me "
          "not sleeping the full 8 or 9 hours"),
-        ("set", "state_c2", "I hope that I will no longer be up late"),
-        ("set", "affect_c2",
-         "I hope that I will no longer be up late and getting so tired."),
+        ("set", "state_c2", ""),
+        ("set", "affect_c2", ""),
     ],
 
     # p5 writes the two halves in exactly parallel three-clause form:

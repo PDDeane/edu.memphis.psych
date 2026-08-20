@@ -1480,16 +1480,20 @@ ITEMS: list[dict] = [
             "HOW TO READ A 4a OR 4c ENTRY WHEN YOU MATCH AGAINST IT. Students "
             "often write the element and then what it leads to, in one entry: "
             "\"my trigger is X; I end up Y\", \"my antecedent is X, so I Y\", "
-            "\"X, which leads to Y\". In that shape X is the antecedent and Y is "
-            "its consequence — Y is NOT part of the antecedent, and it is usually "
-            "the unwanted behaviour or one of its results. "
-            "When you set `refers_to`, match the Q6 box against X ONLY. A Q6 box "
-            "that names Y has named the CONSEQUENCE of that trigger, not the "
-            "trigger, so it does not refer to that entry — answer `none` unless it "
-            "matches the X of the other entry. This holds however closely the "
-            "wording of Y is echoed, and echoing Y closely is exactly the case to "
-            "watch for. The same reading applies to a 4c entry that names a "
-            "consequence and then what follows from it.",
+            "\"X, which leads to Y\". WHEN Y IS OF THE THIRD KIND in the "
+            "definition at the top of this item — a consequence, meaning the "
+            "unwanted behaviour itself or something following from it — match the "
+            "Q6 box against X, not against Y. A box naming that kind of Y has "
+            "named the consequence of the trigger rather than the trigger, so it "
+            "does not refer to that 4a entry, and that holds however closely the "
+            "wording of Y is echoed. Echoing Y closely is exactly the case to "
+            "watch for. It is also the case to match against 4c instead, where "
+            "that consequence is listed. "
+            "Kinds 1 and 2 are not affected: a Y that restates the antecedent, or "
+            "that still leads to the unwanted behaviour, IS part of the antecedent, "
+            "and the definition at the top governs. Decide the kind first. "
+            "The same reading applies to a 4c entry that names a consequence and "
+            "then what follows from it.",
         ],
         "context": ["Q1", "Q2", "Q4a", "Q4c"],
     },
