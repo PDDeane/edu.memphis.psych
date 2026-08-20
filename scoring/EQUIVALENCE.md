@@ -471,6 +471,9 @@ that data was on disk; it is the decomposition the web's separate fields need.
   one sentence.
 * Retention does **not** predict harm: item 3 keeps 64% and scores 95%, because
   its dropped text is preamble. Check retention per item, do not assume.
+  **[The 64% is an older reconstruction.** On the current fixture item 3 drops
+  nothing in any of its 20 cells — "ASSIGNED TO NO BOX: nothing" everywhere. The
+  lesson stands; the number no longer describes this item.**]**
 
 ## Measurement state — the full sweep
 
@@ -485,6 +488,9 @@ structurally unreachable on the web. Built from the per-item JSON.
 | H3 | 117 | 94.9% | 94.0% | 0.10 | 0.17 | 96.6% |
 
 **Eleven items agree on every single cell** — D1, NP, PP, PR, T1, T2, 1b, 2a, 2b, 3.
+**[web_v2 only.** On web_v8/v9, 2a is 14-16 of 18 and 3 is 20 of 20; the
+reference re-run below invalidated every `from_scorer` fixture, 2a's among them.
+Do not quote this list as current.**]**
 All are criteria-path OC items or items whose checks are derived: where both sides run
 the same sheet they are indistinguishable. **D2 and Q6 beat the CLI** (94 vs 89, 62 vs
 56). **1c and Q1 are level** with it.
@@ -582,7 +588,12 @@ and differ from the graders.
     minus the declared divergence  CLI 87%   web 73%
     minus that and the shared      CLI 100%  web 85%
 
-Nothing to fix. Left alone.
+Nothing to fix. Left alone. **[Superseded on all three counts, 2026-08-20.** The
+denominator is 12 counted, not 17. The web-only p13 gap was `keyword: absent` on
+"conequence", which cannot arise now that Q4c's keyword slot is advisory with
+`pts=None`. And three boxes WERE fixed — p13's and both of p16's kept the
+student's enumerator. The readout also found that 12/12 measures only the accept
+side of this item; see the fixture-audit section.**]**
 
 ### DAY2: two cells of cadence judgement, and a larger problem both sides share
 
@@ -2163,7 +2174,11 @@ What survived from that round is `_quoted_span`: the scorer sometimes annotates 
 real quote (`"…bad health" — loosely worded, but this is the 4c consequence`) and
 the commentary was landing in the student's box on 9 of Q6's fields. The CLI's
 reasoning about the student's text is not the student's text. It is the only
-`from_scorer` item affected — all eight were checked. Measured: 8/12 → 7/12,
+`from_scorer` item affected — all eight were checked. **[Not true, corrected
+2026-08-20.** Eight boxes of ONE item were checked and the sentence was written
+about the corpus. 1c's `title`/`x`/`y` were affected in ten of twenty cells, on
+the item where it matters most, because there the box IS the graded value. See
+"The fixture audit: all 26 items read out".**]** Measured: 8/12 → 7/12,
 three cells moved, i.e. **nothing outside noise.** Kept on correctness grounds,
 not for the numbers.
 
@@ -2701,6 +2716,129 @@ started applying `requires` and the web probe did not — working as intended. A
 which does not FAIL a cover member but re-answers it and makes its sibling a
 duplicate; the web probe already picked a non-label value, so the two harnesses
 had disagreed about what "failed" meant for as long as both had existed.
+
+## The fixture audit: all 26 items read out, box by box
+
+The whole corpus's fixtures were read out one cell at a time against the
+submissions, finishing what `--fixture` was built for. Six items had never been
+declared (2a, Q4a, Q4c, Q5, 3, 1c); five had been declared without being read
+(Q3, Q4b, Q6, 1a, 1b), and three of those five were carrying defects. All 26
+items now pass every fixture check and none is undeclared.
+
+**Nothing here is measured yet, and that is the first thing to know.** This
+session changed served text in nine items. Every stored number for a repaired
+cell describes a fixture that is no longer served, and the list of what owes a
+re-baseline is in `scoring/BACKLOG.md`. One of them is expected to MOVE rather
+than sit still — see 1c below.
+
+### What was wrong, by class
+
+**Scaffolding served as the student's words — 30 boxes, 7 items.** A student's
+own list marker or field label, kept in the box while most cells of the same
+item strip theirs: 2a/p16's `"Sentence 3: "`, Q4c/p13 and p16, Q5/p1 and p16,
+Q3/p6's four `"- "` bullets, Q4b's fourteen `"1) "`/`"2) "`, Q6's five (p10,
+p18, p20). Class now closed — no box in the corpus opens with a marker. Q4b's
+and Q6's went through `CONSENSUS_FIXES` rather than their own sources, because
+those live in `MOLLY_DATA` and this table's note already records what editing
+data outside the repo cost: a p7 fix invisible to anyone who clones the repo.
+It also leaves Q6's consensus frozen, which is the property it was frozen for.
+
+**A box holding a neighbour's clause — 8 boxes.** Item 3's five cells opened
+`second` with a sentence elaborating the FIRST change (p4's "I hate school!"
+and four more), and 2a/p20's `how1` was a comma-initial adjunct sliced out of
+the verdict's own sentence. In every case the union of the pair was asserted
+unchanged, so the repair moves a boundary and nothing else.
+
+**Template prose inside a scored box.** Q3/p19's `measurable` held the printed
+instruction "You must discuss and label each aspect of the SMART goal for full
+credit." while its `specific` held the printed question plus TWO aspects, the
+student's own measurable sentence among them. So the grader was asked whether
+the goal is measurable and shown an instruction — and gold docks p19 that exact
+point. Fixed. The same class survives corpus-wide in a milder form: template
+subtraction leaves an orphan `")"`, `"_"` or `"; "` at the head of a response,
+and where a box starts at offset 0 it is served as the student's first
+characters. **47 boxes across 13 items**, one `segment.py` fix, still open.
+
+**The scorer's verdict inside the field being graded — 20 boxes, 10 cells.**
+1c's `title`, `x` and `y` held the paper scorer's SENTENCE about the label
+rather than the label: `"Weeks" appears as a bolded axis title centred beneath
+the day tick values.` The web grader's question for those slots is whether the
+student labelled the axis, and the field it reads answered that question in the
+scorer's words. `_ANNOTATED` matched only `"…" — prose`, so a sentence, a
+parenthetical and a bracketed run-list all passed through whole; `_quoted_span`
+now enumerates the shapes, and was verified against the served fixtures of all
+26 items — exactly 1c's 20 boxes move and nothing else does.
+
+**This document was wrong about that last one.** "Q6's overlapping fixture
+boxes are FAITHFUL" says of the `_quoted_span` leak: *"It is the only
+`from_scorer` item affected — all eight were checked."* 1c's twenty boxes were
+affected the whole time, on the item where it mattered most, because there the
+box IS the graded value. Eight boxes of one item were checked and the sentence
+was written about the corpus.
+
+### Lessons that generalise
+
+**Declaring a split is not reading the boxes.** `MULTI_BLOCK_DECLARED` records
+that someone examined where one box ends and the next begins. Q3, Q4b and Q6
+were all declared before this pass and all three carried defects — Q3/p19's
+misaligned pair among them. The declaration and the readout answer different
+questions.
+
+**A procedure that reports "nothing to see" is indistinguishable from a clean
+cell.** `fixture_readout` reached 283 of 520 cells and said "empty response"
+for the rest: the handout was guessed from the item name (`1 if
+item.startswith("Q") else 3`), which sent all twelve of handout 2's items to
+handout 3 where they have no segment, and a cell answered with a chart or a
+table had no prose to locate a box in. 220 + 17 cells, silently unreadable,
+including the ten that held the leak above. Both fixed; the readout now prints
+chart-and-table cells by PROVENANCE — which spec key filled each box — because
+the question there is not "is this cut in the right place" but "could this text
+only have come from the student?"
+
+**An exclusion silences every other question about its cell.** 2a/p18 was
+`unscoreable`, and `check_consensus_spans_are_disjoint` skips those, so its
+`verdict`/`how1` overlap sat exempt for as long as the exclusion stood — not
+because anyone judged it faithful, but because the check never looked. Removing
+the exclusion surfaced it the same minute. Declaring beats excluding wherever
+the choice exists.
+
+**An empty box is sometimes the faithful transcription, and gold says which.**
+Q4a/p18 repeats one antecedent verbatim as its second; the fixture leaves
+`second` empty and that is now a declared divergence from verbatim
+reproduction, self-enforcing because `_gold_corroborates_absence` reads gold's
+"only provided one antecedent" as the licence on every run. Contrast 2a/p13,
+whose `how2` holds the "{{corpus:2a/p13:how2:0:46:sha=446c357de928}}" that
+gold explicitly charges as not-an-explanation: there the box must hold it, and
+the grader must judge it.
+
+**Overlap is a device, not a defect, and the measurements say so twice.**
+2a/p20's `verdict` and `how1` share one sentence that states the outcome and
+supplies its evidence, licensed by the item's own guidance; 2a/p18's do the
+same. Both are declared in `CONSENSUS_OVERLAP_BACKLOG` rather than split, on
+the strength of the 11/17 → 3/17 that splitting cost Q6.
+
+### What the readouts said about the items themselves
+
+Three findings that are not fixture defects at all, and are the reason to read
+a fixture out even when it turns out clean:
+
+* **Q4a's one counted miss is an accept the prompt quotes.** `antecedent_1`
+  returns `wrong_kind` 6/6 on "{{corpus:Q4a/p19:first:23:58:sha=ca9d4ea70d5d:shape=S4-20}}", which the
+  item's own ACCEPT bullet lists as an example that "all earned full credit".
+  The phrase is six words, under `check_rule_examples_are_not_corpus`'s 8-word
+  floor. And `antecedent_1`/`antecedent_2` carry no `rule` field at all, so
+  every accept and reject test for the item sits in `guidance`, far below the
+  components that apply it.
+* **A perfect counted rate can measure half an item.** Q4c is 12/12 and Q5 is
+  14/14, and in both cases nearly every counted cell is a full-credit row: no
+  counted cell in Q4c requires REFUSING a stated consequence, and none in Q5
+  requires refusing a reason or calling two the same. Every cell that tests
+  those criteria is excluded. Read as diagnostics they separate cleanly — Q4c's
+  category test fires on the exact text its REJECT bullet quotes, and its
+  sufficiency test does not fire on the exact text its DEDUCT bullet quotes.
+* **2a's error is one shape.** Every miss but one is +2.0 for a second `how`
+  gold withheld, which makes it a one-directional target: a rule that can only
+  refuse a `how` cannot disturb the twelve cells that agree.
 
 ## Practical notes
 
