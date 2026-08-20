@@ -458,6 +458,13 @@ def _quoted_span(ev: str) -> str:
     s = (ev or "").strip()
     if not s:
         return ""
+    # A `from_scorer` value inherits whatever template punctuation the scorer was
+    # reading, because it quotes the same segmented response: item 3's fifteen
+    # boxes opened with the printed question's own `")"`, and Q6/p19's `state_a1`
+    # with a `"_"`. `segment.strip_orphan_head` fixes the sections; these strings
+    # are stored scorer output and never pass through it, so they are stripped
+    # here with the same rule.
+    from segment import strip_orphan_head as _head
     m = _RUN_LIST.match(s)
     if m:
         runs = [r[1:-1] for r in _RUN.findall(m.group("inner"))]
@@ -479,8 +486,8 @@ def _quoted_span(ev: str) -> str:
             return "".join(runs).strip()
     m4 = _ANNOTATED.match(s)
     if m4:
-        return m4.group("q").strip()
-    return s
+        return _head(m4.group("q").strip())
+    return _head(s)
 
 
 def counted_members(handout: int, item: str) -> dict[str, tuple[str, list[str]]]:
@@ -900,7 +907,7 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # whole response, which is why the mis-cut cost nothing.
     ("3", 4): [
         ("set", "first",
-         ") {{corpus:3/p4:first:0:50:sha=6df4895faa2d:shape=R50-0-20}}"
+         "{{corpus:3/p4:first:0:50:sha=6df4895faa2d:shape=R50-0-20}}"
          "{{corpus:3/p4:first:51:102:sha=30ee69eb1362:shape=R51-0-20}}"
          "{{corpus:3/p4:first:103:159:sha=957961f6cbe2:shape=R56-0-20}}"
          "{{corpus:3/p4:first:160:216:sha=4c15d62a2960:shape=R56-0-20}}"
@@ -918,7 +925,7 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     ],
     ("3", 6): [
         ("set", "first",
-         ") {{corpus:3/p6:first:0:56:sha=a2fc9fa2ac66:shape=R56-0-20}}"
+         "{{corpus:3/p6:first:0:56:sha=a2fc9fa2ac66:shape=R56-0-20}}"
          "{{corpus:3/p6:first:57:113:sha=aa0d8410ec44:shape=R56-0-20}}"
          "{{corpus:3/p6:first:114:173:sha=8efee6fa0313:shape=R59-0-20}}"
          "{{corpus:3/p6:first:174:232:sha=664b2c5e1929:shape=R58-0-20}}"
@@ -961,7 +968,7 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     ],
     ("3", 19): [
         ("set", "first",
-         ") {{corpus:3/p19:first:0:53:sha=ef65869bd68f:shape=R53-0-20}}"
+         "{{corpus:3/p19:first:0:53:sha=ef65869bd68f:shape=R53-0-20}}"
          "{{corpus:3/p19:first:54:111:sha=a5938965c247:shape=R57-0-20}}"
          "{{corpus:3/p19:first:112:169:sha=025bf385916c:shape=R57-0-20}}"
          "{{corpus:3/p19:first:170:222:sha=b426231cb7f7:shape=R52-0-20}}"
@@ -1119,6 +1126,14 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # back the "Instead, I" it took from the following clause, and affect_c1
     # runs to the end of the sentence it owns.
     ("Q6", 19): [
+        # `state_a1` opened on a single "_" — the template's blank rule, which
+        # `clean` only collapses in runs of two or more and which
+        # `segment.strip_orphan_head` now takes off the RESPONSE. This value comes
+        # from the frozen consensus rather than from a section, so it is stripped
+        # here, the same way item 3's three set values were.
+        ("set", "state_a1",
+         "{{corpus:Q6/p19:state_a1:0:64:sha=2e468372d723:shape=R64-0-20}}"
+         "{{corpus:Q6/p19:state_a1:65:80:sha=6b0ab628bdcc}} A)"),
         ("set", "state_c1", "{{corpus:Q6/p19:state_c1:0:35:sha=f8a81a5a2a8b}} day.(C)"),
         ("set", "affect_c1",
          "{{corpus:Q6/p19:affect_c1:0:68:sha=fb43b827cf3f:shape=R68-0-20}}"

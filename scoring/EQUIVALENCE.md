@@ -2749,6 +2749,47 @@ and four more), and 2a/p20's `how1` was a comma-initial adjunct sliced out of
 the verdict's own sentence. In every case the union of the pair was asserted
 unchanged, so the repair moves a boundary and nothing else.
 
+### The template residue, and where a normalisation belongs
+
+Closed after the audit, and it is the clearest case in this project of a defect
+whose fix belongs at the SEAM rather than in the fixtures. Template subtraction
+leaves an orphan punctuation run at the head of a response — item 3's question
+ends `... you should not say, "Nothing will be changed"). (6 points: 3 points
+per example)`, the stem strip takes the words, and the `")"` survives — and
+where a box starts at the beginning of the response, that run reached the
+grader as the student's first characters. 47 boxes across 13 items: item 3's
+fifteen `")"`, handout 2's twenty-three `"_"`/`"; "` blank rules, Q3's five `"-
+"`, and four more in Q1, Q2 and Q6.
+
+Three things worth keeping from fixing it.
+
+**It went in `segment.strip_orphan_head`, one normalisation where a section's
+text is finalised, so every harness reads the same input.** Forty-seven
+per-cell corrections would have been the wrong shape — and would have had to be
+renewed every time the segmenter changed.
+
+**What NOT to strip is the whole design.** `(`, `"`, `'` and `[` are excluded
+because they open student text — Q5's "(Gaining something.)" is an answer — and
+digits are excluded because `"1)"` is the student's own numbering. That is the
+line between template punctuation and the student's: the fixtures strip a list
+marker per box, and the response keeps it and shows it as belonging to no box.
+
+**A value the paper scorer STORED never passes through segmentation.** Fixing
+the seam left sixteen boxes untouched, because `from_scorer` strings quote the
+same residue-bearing response into JSON on disk. `_quoted_span` strips those
+with the same rule, which left exactly four: Q6/p19's `state_a1`, which comes
+from the frozen consensus, and three item-3 boxes this very audit had set from
+residue-bearing text. All four carry declared corrections. **The general form:
+a normalisation at one seam does not reach a value that was captured upstream
+of it, and the fixtures are full of captured values.**
+
+Verified box by box across the corpus: 38 boxes and 46 response texts changed,
+and every change is a pure leading strip — the before-value ends with the
+after-value in all 84 cases. Residue boxes corpus-wide: 0. And the reason
+nothing caught it for so long is the blind spot
+`check_single_box_fixtures_are_verbatim` already documents for mojibake: for a
+one-box item, box and response agreed because both were wrong together.
+
 **Template prose inside a scored box.** Q3/p19's `measurable` held the printed
 instruction "You must discuss and label each aspect of the SMART goal for full
 credit." while its `specific` held the printed question plus TWO aspects, the
@@ -2756,8 +2797,8 @@ student's own measurable sentence among them. So the grader was asked whether
 the goal is measurable and shown an instruction — and gold docks p19 that exact
 point. Fixed. The same class survives corpus-wide in a milder form: template
 subtraction leaves an orphan `")"`, `"_"` or `"; "` at the head of a response,
-and where a box starts at offset 0 it is served as the student's first
-characters. **47 boxes across 13 items**, one `segment.py` fix, still open.
+and where a box starts at offset 0 it was served as the student's first
+characters. **47 boxes across 13 items** — now fixed; see the section above.
 
 **The scorer's verdict inside the field being graded — 20 boxes, 10 cells.**
 1c's `title`, `x` and `y` held the paper scorer's SENTENCE about the label
