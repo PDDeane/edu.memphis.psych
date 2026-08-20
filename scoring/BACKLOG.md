@@ -727,3 +727,44 @@ survey already lists.
 None of this is measurably costing a point. It is the same faithfulness argument
 as the other three items: scaffolding is not the student's words, and serving
 one cell's numbering and not another's makes the boxes inconsistent inputs.
+
+## Q3/p19's boxes are misaligned by one, and one of them holds the instructions
+
+Found while writing up the enumerator sweep above, in the same three items that
+were declared before the audit pass. It is a worse defect than the enumerators
+and it is one cell.
+
+p19 typed the handout's own scaffolding above their answer, and the split took
+it for content:
+
+    [measurable] "You must discuss and label each aspect of the SMART goal
+                  for full credit."
+    [specific]   "(How is your wanted goal behavior: Specific, Measurable,
+                  Actionable/Action-Oriented, Realistic, and Time-Bound?)
+                  Specific: My goal is specific because i plan to get 8 hours
+                  of sleep per night ... Measureable: My goal is measurable
+                  because i will track how long I sleep each night ..."
+
+So `measurable` holds a printed INSTRUCTION, `specific` holds the printed
+QUESTION plus two of the five aspects, and the student's real measurable
+sentence is inside the specific box. `action`, `realistic` and `timebound` are
+correct. Nothing is unassigned, which is why no check sees it: the response is
+fully covered, just covered wrongly.
+
+It matters more than the enumerators for two reasons. The grader is asked
+whether the goal is measurable and shown an instruction, so a refusal there is
+guaranteed and means nothing. And gold docks p19 exactly that point — "-1 pt:
+For measurable, how are you tracking your goal? (ex. in a notebook)" — while the
+student's own sentence says "i will track how long I sleep each night by going
+to sleep at the same time, and waking up at the same time". Whatever our scorer
+returns for `measurable`, it is not returning it about the student's answer, and
+if it agrees with gold it agrees for the wrong reason.
+
+The repair is mechanical and local: `measurable` takes the student's Measureable
+sentence, `specific` keeps the question-line and its own sentence or drops the
+question line too. It is a counted cell in an item at 5 of 5 aspects per cell,
+so measure it.
+
+Checked while looking: p11 is NOT a second case. Its `specific` box carries
+tracking prose that reads like `measurable`'s job, but both boxes hold the
+student's own words, and gold gives the cell full credit.
