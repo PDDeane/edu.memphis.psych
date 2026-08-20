@@ -188,10 +188,25 @@ that cites the data as its evidence ... covers the verdict and both
 explanations").
 
 So this is QUALITY_CONTROL.md §5's second rule exactly: an exclusion on a cell
-the scorer gets RIGHT. Two ways out, and the entry cannot stay as written:
+the scorer gets RIGHT. Two ways out, and the entry could not stay as written:
 remove it, so an agreeing cell counts and n goes 17 → 18; or keep it and declare
-`expect_error`, which is what would have caught this without anyone looking —
-this entry is one of the four live ones that declare no number.
+`expect_error`, which is what would have caught this without anyone looking.
+
+**`expect_error: -2.00` is now declared**, and that is the half that has been
+done. -2.00 is what the reason CLAIMS — no verdict credit, so 4.0 against a gold
+of 6.0 — and not what the cell measures, so `stale_claim` prints `<-- CLAIM
+STALE: declared expect_error=-2.00, measured +0.00` on nearly every run. That is
+the intended state, not a defect to silence: the entry now asks for the decision
+every time a report is printed, which is the only thing that reliably retires an
+exclusion nobody is looking at.
+
+**What is still open is the decision itself**, and it is a one-line change
+either way. Removing the exclusion is the reading the record supports — the cell
+agrees with gold in 5 of 6 passes on the student's own sentence, and the item's
+guidance licenses that verdict in terms. Keeping it means rewriting the reason
+to say something the measurement supports, which is hard to do while the cell
+keeps scoring 6.0. Do not "fix" the stale line by fitting `expect_error` to
++0.00: an exclusion that absorbs nothing is an exclusion with no argument left.
 
 ### p1 is the self-graded red flag, and it is the same shape
 
