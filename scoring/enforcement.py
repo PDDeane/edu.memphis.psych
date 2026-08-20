@@ -1430,6 +1430,18 @@ MULTI_BLOCK_DECLARED: dict[str, str] = {
           "correct — p9 never mentions realistic",
     "Q4b": "three boxes: the modify statement and two examples. p7 read out and "
            "assigned; the rest carry no findings",
+    "2a": "three boxes: the verdict and two explanations, which the screen asks "
+          "for as three separate fields. All 20 cells read out against the "
+          "response. Two repaired here — p16's how2 still carried the "
+          "\"Sentence 3:\" label the other two boxes had stripped, and p20's "
+          "how1 was a comma-initial adjunct sliced out of the verdict's own "
+          "sentence (now the whole sentence, overlap declared). Everything else "
+          "confirmed, including the boxes that hold text gold says is not an "
+          "explanation: p13's how2 holds its \"{{corpus:2a/p13:how2:0:28:sha=2fa2e12271d7:shape=R28-0-20}}"
+          "{{corpus:2a/p13:how2:29:46:sha=aaccc09e897f}}\" because the student wrote it, and gold charges "
+          "that sentence rather than a missing one. The item's remaining error "
+          "is all one shape and none of it is the fixture — 15-17/20 over six "
+          "passes, every miss +2.0 for a second how gold withheld",
     # Declared on PROVENANCE, not on a cell-by-cell reading, and the distinction
     # is the whole reason these two are cheap. Neither item's response was ever
     # PARTITIONED: nothing decided where one box ends and the next begins, so
@@ -2041,7 +2053,24 @@ def _longest_unassigned(raw: str, boxes, n: int = 5) -> tuple[int, str]:
 # student really did write the same words twice, so two boxes holding them is a
 # true transcription and the grader's own machinery handles it.
 CONSENSUS_OVERLAP_BACKLOG: dict[tuple, str] = {
-    # Empty. Its last entry recorded that Q6/p6's two `state_a` boxes hold the
+    # 2a/p20. One sentence, "{{corpus:2a/p20:how1:0:50:sha=2f8ba2be6c18}}
+    # {{corpus:2a/p20:how1:51:123:sha=312f58eeb41c}}
+    # baseline week", states the outcome AND supplies the evidence for it. The
+    # `verdict` box holds its main clause; `how1` holds the whole sentence, so
+    # the containment is total. It is faithful for the reason the item's own
+    # rubric gives — "one compound sentence that states the outcome and explains
+    # it can carry two" — and the alternative was measured elsewhere and lost:
+    # `how1` used to hold ", {{corpus:2a/p20:how1:39:77:sha=781132f0280c}} ...", a
+    # comma-initial adjunct sliced out of the verdict's sentence, which is not a
+    # clause and cannot be judged as an explanation on its own. That is the
+    # fragment shape "Q6's overlapping fixture boxes are FAITHFUL" in
+    # EQUIVALENCE.md records as taking Q6 from 11/17 to 3/17.
+    ("2a", 20, "how1", "verdict"): (
+        "one sentence doing verdict duty and how duty at once; the verdict box "
+        "holds its main clause and how1 the whole sentence, so each can be "
+        "judged. Splitting it left how1 a comma-initial adjunct"),
+    # Otherwise empty. Its last entry recorded that Q6/p6's two `state_a`
+    # boxes hold the
     # same conjoined phrase on purpose — which the SLOT SHEET already declares,
     # in cover="state_a1,state_a2:first,second|...". Two boxes sharing a cover
     # group are meant to be resolved by the grader naming which listed item each
