@@ -25,6 +25,14 @@ guide came from doing step 3 while step 1 was still wrong.
 A scoring model tuned against a bad fixture measures the fixture. A model whose
 declarations only ever grow measures the declarations.
 
+**Every step ends by writing down what it found and did not fix, in
+`scoring/BACKLOG.md`.** Nothing in that file is enforced, which is exactly why
+the entry has to be written: a finding that lives only in a session log is gone,
+and several of a fixture audit's findings are visible nowhere else — the readout
+that produced them costs an hour to reproduce. The declarations in
+`enforcement.py` record what the audit SETTLED; the backlog records what it
+opened.
+
 ---
 
 ## 1. Fixture first
@@ -63,6 +71,19 @@ produced a grader quoting a section heading of the prompt back to the student as
 their own sentence, six times across five cells, invisible in every score
 because the two verdicts involved score the same. Delimit every box and
 terminate the response section.
+
+**Close the audit with a backlog entry, and put five things in it.** The
+repairs are in the fixture and the confirmations are in
+`MULTI_BLOCK_DECLARED`; what needs the entry is (1) the cells whose miss the
+readout has now EXCLUDED the fixture from explaining, with the passes behind
+them, (2) any exclusion the readout retested and found stale, (3) the
+re-baseline the repairs themselves require, since every stored number for a
+repaired cell now describes a fixture that is no longer served, (4) published
+claims about the item the readout contradicts, and (5) the shape the remaining
+error has, if it has one. The last is the one worth the most and the one a
+per-cell fix list loses: 2a's audit repaired two boxes and its real finding was
+that every miss left in the item is the same +2.0 over-credit, which is a
+one-directional target rather than three unrelated cells.
 
 **Seed the fallbacks the OLX declares.** A `<SheetValue>` resolves from a graded
 sheet and falls back to a plain component; a harness that grades one item sees
