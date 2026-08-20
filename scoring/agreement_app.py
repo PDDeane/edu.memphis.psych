@@ -716,6 +716,135 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "My sleep duration increased over time, as shown by the higher number "
          "of hours during the intervention weeks compared to the baseline week."),
     ],
+    # The enumerator strip, third and last group: Q4b's fourteen boxes and Q6's
+    # five. Same defect as 2a/p16, Q4c/p13+p16, Q5/p1+p16 and Q3/p6 — the
+    # student's own list marker served back as the opening of their answer, and
+    # inconsistently, since most cells of each item start at the first word.
+    #
+    # Both items are declared and were declared BEFORE the box-by-box pass, which
+    # is how they kept theirs: a MULTI_BLOCK_DECLARED entry records that someone
+    # read the SPLIT, not that every box was normalised.
+    #
+    # Applied here rather than at each item's source, deliberately. Q4b's fixture
+    # is the hand-split JSON and Q6's is the frozen 10-run consensus, both in
+    # MOLLY_DATA and neither in git; the note further down this block records what
+    # editing data outside the repo cost last time — a p7 fix invisible to anyone
+    # who clones this. A declared correction is reviewable and reversible, and it
+    # leaves the consensus frozen, which is the property Q6 was frozen FOR.
+    #
+    # Q6 must be re-measured because of this: it is the item with the longest
+    # measured history in the corpus, and five of its boxes now serve different
+    # text. Q4b likewise. Nothing else about any box changes — only the marker
+    # comes off — and the markers are left belonging to no box, as they are in
+    # every other item.
+    #
+    # Q6/p18's `state_a1` is left ending on its comma ("To change my first
+    # trigger (after-school fatigue),"). That is a mid-clause cut in a frozen
+    # box, a different defect from this one, and it is recorded in
+    # scoring/BACKLOG.md rather than repaired in passing.
+    ("Q4b", 1): [
+        ("set", "first",
+         "When I’m on my phone sometimes, I say I will only stay up "
+         "for 30 minutes then waste two hours just scrolling on "
+         "Instagram."),
+        ("set", "second",
+         "Sometimes me and my friends will stay up late playing card "
+         "games and I would go to bed around one in the morning."),
+    ],
+    ("Q4b", 8): [
+        ("set", "first",
+         "When I am not at the gym, I am at home playing games or "
+         "just avoiding going the gym,"),
+    ],
+    ("Q4b", 10): [
+        ("set", "first",
+         "I will ultimately feel more confident in myself. This is "
+         "something I struggle with and going to the gym will be a "
+         "good first step for me to create an healthy relationship "
+         "with myself. I will start to feel less insecure at the end "
+         "of the day."),
+        ("set", "second",
+         "I will begin to have discipline in myself more. I will be "
+         "creating an routine for myself even though I won’t like "
+         "doing it. This will help with my laziness and will "
+         "encourage me to fight the urge to not do what I need to do."),
+    ],
+    ("Q4b", 13): [
+        ("set", "first",
+         "the first thing is i get distracted and multitask from "
+         "getting work dine and being on my phone"),
+        ("set", "second",
+         "the second thing is that my brain is telling me to go to "
+         "sleep, but i couldn’t physically do it because of my ADHD."),
+    ],
+    ("Q4b", 17): [
+        ("set", "first",
+         "When I am not exercising I am eating or being busy running "
+         "errands or shopping for my self."),
+        ("set", "second",
+         "When I am not exercising im on my phone instead of spending "
+         "my time with doing my daily exercise."),
+    ],
+    ("Q4b", 18): [
+        ("set", "first",
+         "During my unwanted behavior, I am often sedentary on my bed "
+         "or couch, mindlessly scrolling through various social media "
+         "feeds for extended periods of time."),
+        ("set", "second",
+         "Additionally, I find myself choosing to nap or watch "
+         "television instead of putting on my workout clothes and "
+         "starting my exercise routine."),
+    ],
+    ("Q4b", 19): [
+        ("set", "second",
+         "When I am not getting enough sleep I rely on caffeine to "
+         "get me through my day."),
+    ],
+    ("Q4b", 20): [
+        ("set", "first",
+         "when i am not getting enough sleep, i am mostly go to sleep "
+         "in my car or in the classroom."),
+        ("set", "second",
+         "When i a, not getting enough sleep, i am mostly late for "
+         "classroom or doing past due assignments."),
+    ],
+    ("Q6", 20): [
+        ("set", "state_a1",
+         "One antecedent of my unwanted target behavior is feeling "
+         "lazy when I am sleep deprived."),
+        ("set", "state_a2",
+         "Another trigger for my unwanted target behavior is waking "
+         "up late and rushing, which leads to forgetting things for "
+         "school."),
+    ],
+    # Q3/p6 bullets four of its five aspects, and all four boxes kept the "- ".
+    # `specific`, the one aspect it does not bullet, starts at the student's
+    # first word — so the cell served four boxes opening with punctuation and
+    # one without, which is the enumerator defect already fixed in 2a, Q4c and
+    # Q5. Stripped; nothing else about the boxes changes, and the four bullets
+    # now belong to no box.
+    #
+    # This cell writes no aspect LABELS ("Measurable:"), unlike p1 and p19, so
+    # there is no label question here — only the bullet. It is a counted cell,
+    # gold 3.0, and the two points gold takes off are on `specific` and
+    # `timebound`, one of which is the box that never had a bullet.
+    ("Q3", 6): [
+        ("set", "measurable",
+         "My goal is measurable because I will create a board with a count of "
+         "how many days I attend the gym, while making a side note on that "
+         "board of how often I am stretching daily."),
+        ("set", "action",
+         "My goal is also action-oriented because I will have to attend the gym "
+         "days and then exercise."),
+        ("set", "realistic",
+         "Adding on, my goal is also realistic because it is possible to walk "
+         "to a gym more than one time a week, and I\u2019ll have control over "
+         "how often I go."),
+        ("set", "timebound",
+         "Atlas, my behavior intervention plan is time-bound, as it is designed "
+         "to occur over three months, with one month of data collection and two "
+         "months of intervention data collection."),
+    ],
     # Q3/p19 typed the handout's own scaffolding above its answer, and the
     # anchored split took it for content: `measurable` held the printed
     # INSTRUCTION "You must discuss and label each aspect of the SMART goal for
@@ -1034,6 +1163,12 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # only charge is that the second consequence's fate went unaddressed. Same
     # treatment as p15.
     ("Q6", 18): [
+        # `state_a1` opened "1) To change my first trigger ...". The marker came
+        # off with the rest of the corpus's; the box still ENDS on its comma,
+        # which is a mid-clause cut in a frozen box and a different defect —
+        # recorded in scoring/BACKLOG.md rather than repaired in passing.
+        ("set", "state_a1",
+         "To change my first trigger (after-school fatigue),"),
         ("set", "change_a2",
          "either move my phone to a separate room or put it in \"Do Not "
          "Disturb\" mode during my allotted workout time"),
@@ -1083,14 +1218,16 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # state_c1 begins at "hoping", orphaning "I\u2019m", and runs on to grab the
     # "2) I" opening part two, while state_c2 holds a slice of PART ONE.
     ("Q6", 10): [
+        # The "1)_" and "2) " that used to open these two came off with the rest
+        # of the corpus's list markers; nothing else about them changed.
         ("set", "state_a1",
-         "1)_Changing my laziness will help me have discipline in getting up and "
+         "Changing my laziness will help me have discipline in getting up and "
          "going to the gym."),
         ("set", "change_a1",
          "This will result me in creating a routine for myself instead of not "
          "going to the gym at all."),
         ("set", "state_a2",
-         "2) I can research beginner friendly workouts to help with my fear of "
+         "I can research beginner friendly workouts to help with my fear of "
          "embarrassment at the gym."),
         ("set", "change_a2",
          "This will help reuduce my anxiety and increase my confidence to try "
