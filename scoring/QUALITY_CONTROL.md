@@ -43,6 +43,15 @@ one clause occupying two boxes, one box holding a purpose clause that belonged
 to its neighbour. Each had previously been explained as a fault in gold or in
 the model.
 
+**An item answered with a chart or a table is read by PROVENANCE, not by
+position.** There is no prose to locate a box in, so the question changes from
+"is this box cut in the right place" to "is this the student's value, or is it
+somebody's account of their value". 1c's three label boxes held the paper
+scorer's sentence about the label — `"Weeks" appears as a bolded axis title
+centred beneath the day tick values.` — in ten of twenty cells, which is the
+answer to the grader's own question sitting in the field it reads. Ask of every
+parsed or extracted box: could this text only have come from the student?
+
 **Suspect the fixture before gold or the model.** Three cells once written up as
 "a criterion gold decides inconsistently" or "a borderline flip" were our own
 splits. "Gold is wrong" is the more flattering hypothesis; check the cheaper one
