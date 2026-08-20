@@ -767,7 +767,7 @@ Checked while looking: p11 is NOT a second case. Its `specific` box carries
 tracking prose that reads like `measurable`'s job, but both boxes hold the
 student's own words, and gold gives the cell full credit.
 
-## Q6/p18's antecedent boxes are sentence halves, not clauses
+## Q6/p18's antecedent boxes are sentence halves — DECLARED, settled
 
 Surfaced by the marker strip, which took the "1) " off `state_a1` and left what
 was underneath visible:
@@ -777,21 +777,22 @@ was underneath visible:
     [state_a2]  "{{corpus:Q6/p18:state_a2:0:60:sha=c6293ae612e6}}"
 
 `state_a1` ends on its comma and `state_a2` opens lowercase mid-sentence, so
-both antecedent-naming boxes are FRAGMENTS of sentences whose main clauses live
-in the `change_a*` boxes. The student wrote "{{corpus:Q6/p18:state_a1:0:50:sha=c9250d345b28:shape=S4-0a}} {{corpus:Q6/p18:change_a1:0:26:sha=55a9d4efe3b6}} ..." and "I'll {{corpus:Q6/p18:change_a2:0:39:sha=56b9b662d090:shape=S1-0a}} ... {{corpus:Q6/p18:state_a2:0:60:sha=c6293ae612e6:shape=S7-0a}}"
+both antecedent-naming boxes are fragments of sentences whose main clauses live
+in the `change_a*` boxes.
 
-Whether that is a defect is a real question rather than an obvious yes, which
-is why it is here and not fixed. Against fixing: the split is FAITHFUL to how
-p18 wrote it — the antecedent is named in a subordinate clause and the change
-in the main one, so a clause-level split has to cut there, and both boxes do
-name their antecedent, which is what `state_a*` is scored on. Gold gives 7.5
-and charges only the second consequence's fate, so nothing about the antecedent
-half is in dispute. For fixing: "{{corpus:Q6/p18:state_a1:0:50:sha=c9250d345b28:shape=S5-0a}}" cannot be judged on its own as a statement of an antecedent, and the
-QC guide's dangling-word test exists because boxes like this one usually mean
-the pair was cut in the wrong place.
+**That is correct and declared. Do not re-cut them.** p18 names each antecedent
+in a subordinate clause and puts the change in the main one, so a clause-level
+split has to cut exactly there; both boxes do name their antecedent, which is
+what `state_a*` is scored on; and gold's 7.5 charges only the second
+consequence's fate, so nothing on the antecedent half is in dispute. Both
+halves of one sentence being fragments is fine.
 
-If it is ever touched, note what it is NOT: not the marker (stripped), and not
-a lost element (nothing is unassigned). It is one sentence split at the
-boundary between naming and changing, which is the boundary this item's slots
-ask for. Q6's fixture is the frozen consensus, so any change wants the
-re-measurement Q6 already owes.
+Where it is written down: Q6's `MULTI_BLOCK_DECLARED` entry, beside the split
+it describes, and the `("Q6", 18)` note in `CONSENSUS_FIXES`. It is NOT in
+`FIXTURE_STRUCTURE_OVERRIDES` — no check fires on it (the dangling-word test
+reads "fatigue)," as a finished noun, correctly), and an entry there that stops
+firing is reported stale.
+
+Note for anyone tempted later: this is not the marker (stripped) and not a lost
+element (nothing is unassigned). It is one sentence split at the boundary
+between naming and changing, which is the boundary this item's slots ask for.
