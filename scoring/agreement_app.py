@@ -663,6 +663,25 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "My sleep duration increased over time, as shown by the higher number "
          "of hours during the intervention weeks compared to the baseline week."),
     ],
+    # Q4c/p13 and p16. Three boxes kept the student's ENUMERATOR inside them
+    # while the other eight cells of the item strip theirs — p13's `first` opened
+    # "1) I end up facing ...", p16 held "1. One consequence ..." and "2. Another
+    # consequence ...", and p12, whose response has p16's exact "1."/"2." shape,
+    # starts after the marker. Serving one cell's list numbers back as its words
+    # and not another's is the 2a/p16 defect ("Sentence 3:") in a second item.
+    # Stripped; nothing else about these boxes changes, and p13's `second` stays
+    # empty, which is what gold's "missing second consequence" charges.
+    ("Q4c", 13): [
+        ("set", "first",
+         "I end up facing the conequence of being tired the next day."),
+    ],
+    ("Q4c", 16): [
+        ("set", "first",
+         "One consequence is gaining weight. If I keep being lazy laying down."),
+        ("set", "second",
+         "Another consequence is the risk of getting addicted to electronics, "
+         "and my screen time then continues to rise."),
+    ],
     # Q4a/p10. `second` dropped part 2's closing clause ("I am a beginner at the end of
     # the day ..."). A numbered part keeps all of its own clauses.
     ("Q4a", 10): [
