@@ -1422,6 +1422,19 @@ def fallback_from(spec: dict, pid: int, section: str) -> str:
 #   ("section", name)          the paper answer, whole
 #   ("scorer", item, comp)     one component the scorer already separated
 # Keyed by web component id, so it is stated once however many prompts use it.
+# The OLX `fallback=` attributes, mirrored. A `<SheetValue>` resolves from a
+# graded sheet and falls back to a plain component until that sheet exists, so in
+# the app these are never blank. The harness drives one item directly and grades
+# no other, so the sheet never exists and the SheetValue resolved to nothing --
+# `bmod_h1_utb_observed` was EMPTY on all 20 H1 cells, which made every item that
+# echoes it print a labelled context line with no value after it. That is a
+# harness artifact, not a prompt defect: production shows the student's own words
+# there. Seeding the fallback here makes a run see what production sees.
+CONTEXT_FALLBACK = {
+    # <SheetValue id="bmod_h1_utb_observed" ... fallback="bmod_h1_utb" />
+    "bmod_h1_utb_observed": "bmod_h1_utb",
+}
+
 CONTEXT_SOURCE = {
     "bmod_h1_q1_response":      ("section", "Q1"),
     "bmod_h1_q2_response":      ("section", "Q2"),
@@ -1600,7 +1613,13 @@ def build_jobs(item: str, pids: list[int]) -> list[dict]:
         for target in context_targets(item):
             if (fixture.get(target) or "").strip():
                 continue                       # already seeded by `fields` etc.
-            fixture[target] = context_value(spec["handout"], pid, sec, target)
+            val = context_value(spec["handout"], pid, sec, target)
+            if not val:
+                # Mirror the OLX fallback rather than leaving the ref unfed: an
+                # unseeded ref reads to the model as an EMPTY answer, which is the
+                # same failure the loop above exists to prevent.
+                val = (fixture.get(CONTEXT_FALLBACK.get(target, "")) or "").strip()
+            fixture[target] = val
         # A frozen consensus table overrides the single-run spans it was built
         # from. Keyed by rubric component, so it is mapped back through
         # `from_scorer` rather than duplicating the field names.
