@@ -213,3 +213,80 @@ Related: `EQUIVALENCE.md:487` still lists 2a among the eleven items that "agree
 on every single cell". That is the superseded web_v2 sweep; on web_v8/v9 the
 item is 14-15 of 17. The line sits in a dated section, but it is the kind of
 stale headline §5 warns about and should be annotated where it stands.
+
+## Q4a: what the fixture audit left behind
+
+The fixture needed **no repairs** — all 20 cells read out, every box whole
+sentences in document order, and the only unassigned text in the item is
+enumerators and OCR debris. Declared in `enforcement.MULTI_BLOCK_DECLARED`. So
+unlike 2a, nothing here invalidates a stored number: the figures below still
+describe what would be served.
+
+**Where the item stands.** `out/web_v8` and `out/web_v9`, three passes each,
+honouring `cell_exclusions`: **12 of 13 counted, identical in all six passes**,
+and **16 of 20** with the exclusions in the denominator. Seven cells are
+`self_graded` — the guidance cites p3, p4, p6, p9, p14, p15 and p17 by number —
+so a third of the item is outside the rate, which is worth remembering before
+reading 92%.
+
+Note for anyone comparing: `EQUIVALENCE.md:919` and `:1233` quote Q4a at 76-82%
+over **n=17**, which predates the citation registration. Those figures and the
+current 12/13 are different denominators, not a change in the item.
+
+### p19 is the item's only remaining error, and the prompt contains its answer
+
+`antecedent_1` comes back `wrong_kind` in **6 of 6 passes**, every one citing
+"waking up and not feeling motivated" — which is the phrase the item's own
+guidance lists in its ACCEPT bullet, in the sentence that says those examples
+"all earned full credit" (`rubric_h1.py:683`). So this is not an
+under-specified criterion. The grader is refusing an example the prompt tells
+it to accept, verbatim, and the cell loses exactly the 2 points that refusal
+costs.
+
+Two things follow, and the second is the one to act on.
+
+* **The prompt reproduces a counted cell's own answer, undetected.**
+  `check_rule_examples_are_not_corpus` needs an 8-word shared run; this phrase
+  is six, and its neighbours in the same bullet ("long spans of time that need
+  to be filled", "friends calling or texting me") are p15's. p15 is declared,
+  p19 is not — and p19 is the cell that misses. The check's docstring already
+  says it is a floor rather than a guarantee; this is what falls through it.
+* **`antecedent_1` and `antecedent_2` carry no `rule` field at all.** Every
+  accept and reject test for this item lives in `guidance`, which both
+  generators render as prose well below the components that use it. That is the
+  configuration QUALITY_CONTROL.md §3 says to change first — Q6 moved a target
+  cell 11% → 78% by putting two sentences immediately BEFORE the components
+  rather than rewriting the guidance forty lines above them. The test to move is
+  the accept side: a circumstance or state of mind qualifies, and plausible
+  precedence is enough without a causal chain.
+
+Predict before measuring, and name a control: the twelve cells that already
+agree must not move, and p14's `antecedent_1` — the same state-of-mind shape,
+credited on purpose against gold — is the cell that says whether the change
+widened acceptance too far.
+
+### p18's second box: the fix is agreed and deliberately NOT applied
+
+p18 wrote one antecedent and repeated it verbatim as its second, so `second` is
+empty and 153 characters of the response belong to no box. The agreed repair is
+to fill `second` with that duplicate, which is what the student actually
+submitted; it is held pending release and must not be applied as a side effect
+of anything else.
+
+Recorded so the reason survives: the cell currently agrees with gold at 3.0 in
+6 of 6 passes, gold's row is "-2 pts: only provided one antecedent", and
+filling the box invites the grader to credit two. Releasing the fix therefore
+probably costs the agreement, and the honest landing place would be a
+divergence or a ceiling rather than an empty box that scores well.
+
+### Everything else in the item is already declared
+
+Stated so a future pass does not re-open it. The three cells that differ from
+gold besides p19 are all in `handouts.GOLD_DIVERGENCES` and all three were
+confirmed against the readout and six passes: p9 and p15 lose the keyword point
+the dictionary requires and the graders did not charge (`kw=absent` in every
+pass, and the responses genuinely never use either word — nothing was lost in
+the split), and p14's `antecedent_1` is credited against a gold row that
+refused both examples while its commentary accounts for only one. No stale
+exclusion surfaced: of the seven cited cells, none is wrong beyond those
+declarations, so none of them is buying a flattering denominator.

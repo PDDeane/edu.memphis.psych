@@ -1430,6 +1430,19 @@ MULTI_BLOCK_DECLARED: dict[str, str] = {
           "correct — p9 never mentions realistic",
     "Q4b": "three boxes: the modify statement and two examples. p7 read out and "
            "assigned; the rest carry no findings",
+    "Q4a": "two boxes, one antecedent each, and in 12 of 20 cells the STUDENT "
+           "does the splitting — \"1)\"/\"2)\", \"1.\"/\"2.\", or \"My first "
+           "antecedent\"/\"My second trigger\". All 20 read out; no repairs. The "
+           "only text belonging to no box anywhere in the item is enumerators "
+           "and OCR debris (\"1)_\", \"2 )_\", \"-\", a bare \"o\", a leading "
+           "\"_\"), and every box is whole sentences in document order. p15 is "
+           "the one cell split with no marker at all — one run-on line, cut "
+           "before its second antecedent — and both halves are phrases the "
+           "item\'s own guidance quotes as accepts. p18\'s empty `second` is "
+           "faithful: it wrote one antecedent twice, and gold charges the "
+           "missing one. The keyword point survives every split, including the "
+           "three cells that misspell it in one box and spell \"trigger\" in the "
+           "other",
     "2a": "three boxes: the verdict and two explanations, which the screen asks "
           "for as three separate fields. All 20 cells read out against the "
           "response. Two repaired here — p16's how2 still carried the "
