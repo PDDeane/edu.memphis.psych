@@ -809,37 +809,36 @@ PER_ITEM_EXCLUDE: dict[str, dict[int, str | dict]] = {
         },
     },
     "2a": {
-        18: {
-            "why": "gold gives a full 6.0, crediting a verdict the student "
-                   "COPIED from the template's worked example — \"The behavior "
-                   "modification plan was successful.\" is the example's own "
-                   "first line. join_aware strips it as boilerplate, correctly "
-                   "and load-bearingly: the same subtraction is what stops p4's "
-                   "kept example chart being scored as their graph. After it no "
-                   "verdict of p18's own survives, so no correct scorer can "
-                   "reach the 2.0 gold awarded for one. The paper scorer then "
-                   "quotes the nearest sentence, which is how1's — that overlap "
-                   "is the scorer coping with an absent element, not a "
-                   "transcription that lost one, and there is nothing to repair "
-                   "in the fixture",
-            # -2.00 is what the reason above CLAIMS: no verdict credit, so 4.0
-            # against a gold of 6.0. Unlike Q4c/p16's, it is NOT what the cell
-            # measures. Six passes over web_v8 and web_v9 return `verdict: met`
-            # every time, cited to the student's own surviving sentence ("My
-            # exercise intake increased from 0 to 3 session a week, as shown by
-            # the data"), and the cell scores gold's 6.0 in five of the six.
-            #
-            # So this declaration will print `<-- CLAIM STALE ... measured
-            # +0.00` on nearly every run, and that is the intended effect rather
-            # than an oversight. QUALITY_CONTROL.md section 5: an exclusion on a
-            # cell the scorer gets RIGHT must be retested until it is removed,
-            # and "it is the one that will never remove itself, because the cell
-            # it hides is the cell that would otherwise ask for work". Declared
-            # so it asks, every run, until someone decides between removing the
-            # exclusion (the cell agrees; n goes 17 to 18) and rewriting the
-            # reason. The decision is set out in scoring/BACKLOG.md under "2a".
-            "expect_error": -2.00,
-        },
+        # Empty. p18 was excluded here as unscoreable with expect_error -2.00,
+        # on the argument that gold's 6.0 credits a verdict the student copied
+        # from the template's worked example, which `join_aware` strips, so no
+        # correct scorer could reach it.
+        #
+        # The record never agreed. Six passes over web_v8 and web_v9 return
+        # `verdict: met` every time, cited to a sentence the student DID write
+        # ("My exercise intake increased from 0 to 3 session a week, as shown by
+        # the data"), and the cell scores gold's 6.0 in five of the six. The
+        # item's own guidance licenses that reading in terms: "a verdict that
+        # cites the data as its evidence, followed by one concrete circumstance
+        # under which the plan worked, covers the verdict and both
+        # explanations", one of three shapes it says earned 6/6. The copied
+        # sentence was never load-bearing for the credit; the student's own
+        # first sentence carries it.
+        #
+        # So the exclusion was hiding a cell we score correctly, which is the
+        # one kind QUALITY_CONTROL.md section 5 says must go: it "dropped a
+        # perfectly scoreable cell from every rate", exactly as Q6/p9's did
+        # above. Removed rather than re-argued, and the cell's measured
+        # behaviour does not change at all — the counted n goes 17 to 18. The
+        # rate rises in five of the six stored passes and FALLS in the sixth
+        # (web_v8 run 1, where p18 answered `hows_given: 1` and scored 4.0), so
+        # 14-15 of 17 becomes 14-16 of 18. That sixth pass is the honest cost of
+        # counting a cell that flips once in six.
+        #
+        # What the exclusion was also doing, silently: `check_consensus_spans_are_disjoint`
+        # skips `unscoreable` cells, so p18's `verdict`/`how1` overlap was
+        # exempt by side effect. It is now declared where the other one is, in
+        # enforcement.CONSENSUS_OVERLAP_BACKLOG.
     },
     "1c": {
         4: "gold 0 (\"Did not provide a graph\") but all four weeks of data "

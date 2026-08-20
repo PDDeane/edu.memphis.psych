@@ -137,15 +137,19 @@ the readout found that a fixture fix cannot reach.
 
 **Re-baseline first: the numbers here predate the two repairs.** Derived from
 `out/web_v8` and `out/web_v9`, three passes each, honouring `cell_exclusions`:
-**14-15 of 17 counted** (15-17 of 20 with exclusions in the denominator). p16 is
-one of the cells whose fixture just changed, so its six passes no longer
-describe what would be served. Re-derive before attributing anything to a
-change.
+**14-16 of 18 counted** (15-17 of 20 with exclusions in the denominator) — it
+was 14-15 of 17 until p18's exclusion was removed, leaving only the
+`self_graded` p1 and p14 outside the rate. p16 is one of the cells whose fixture
+just changed, so its six passes no longer describe what would be served.
+Re-derive before attributing anything to a change.
 
 ### The over-credit is one shape, and it is the only shape
 
-Every miss in the item is **+2.0, crediting a second `how` gold withheld** — and
-that holds on all six passes, in both directions of the split cells:
+Almost every miss is **+2.0, crediting a second `how` gold withheld**, and on
+the three cells below that holds in both directions across all six passes. The
+exception is p18, which is neither this shape nor a consistent miss — it agrees
+at 6.0 in five passes and dropped to 4.0 in one. So the item still has a single
+target, and it is these three:
 
 | cell | gold | ours | passes wrong | gold's stated reason |
 | --- | --- | --- | --- | --- |
@@ -176,37 +180,37 @@ whether p16 is a target or a `GOLD_DIVERGENCES` entry BEFORE tuning toward it,
 or the rule gets fitted to an unexplained row. Changing this guidance changes a
 prompt, so it needs a corpus sweep, not a 2a probe.
 
-### p18's `unscoreable` exclusion is stale
+### p18's exclusion was stale and is REMOVED — settled
 
-`handouts.py:811` says gold's 6.0 is unreachable because `join_aware` strips the
+`handouts.py` said gold's 6.0 was unreachable because `join_aware` strips the
 template verdict the student copied, so "no verdict of p18's own survives". The
-record says otherwise: `verdict` came back **`met` in 6 of 6 passes**, every one
+record never agreed: `verdict` came back **`met` in 6 of 6 passes**, every one
 citing "My exercise intake increased from 0 to 3 session a week, as shown by the
-data" — the student's own surviving sentence — and the cell scores gold's 6.0 in
-5 of the 6. The item's own guidance licenses that reading in terms ("a verdict
+data" — a sentence the student did write — and the cell scores gold's 6.0 in 5
+of the 6. The item's own guidance licenses that reading in terms ("a verdict
 that cites the data as its evidence ... covers the verdict and both
-explanations").
+explanations", one of three shapes it says earned 6/6). The copied sentence was
+never what carried the credit.
 
-So this is QUALITY_CONTROL.md §5's second rule exactly: an exclusion on a cell
-the scorer gets RIGHT. Two ways out, and the entry could not stay as written:
-remove it, so an agreeing cell counts and n goes 17 → 18; or keep it and declare
-`expect_error`, which is what would have caught this without anyone looking.
+So it was QUALITY_CONTROL.md §5's second rule exactly — an exclusion on a cell
+the scorer gets RIGHT — and it is gone. `expect_error: -2.00` went with it. The
+counted n is 17 → 18, and the rate rises in five of the six stored passes and
+falls in the sixth (web_v8 run 1, where p18 answered `hows_given: 1`), which is
+the honest cost of counting a cell that flips once in six.
 
-**`expect_error: -2.00` is now declared**, and that is the half that has been
-done. -2.00 is what the reason CLAIMS — no verdict credit, so 4.0 against a gold
-of 6.0 — and not what the cell measures, so `stale_claim` prints `<-- CLAIM
-STALE: declared expect_error=-2.00, measured +0.00` on nearly every run. That is
-the intended state, not a defect to silence: the entry now asks for the decision
-every time a report is printed, which is the only thing that reliably retires an
-exclusion nobody is looking at.
+Two things it leaves behind, both worth keeping:
 
-**What is still open is the decision itself**, and it is a one-line change
-either way. Removing the exclusion is the reading the record supports — the cell
-agrees with gold in 5 of 6 passes on the student's own sentence, and the item's
-guidance licenses that verdict in terms. Keeping it means rewriting the reason
-to say something the measurement supports, which is hard to do while the cell
-keeps scoring 6.0. Do not "fix" the stale line by fitting `expect_error` to
-+0.00: an exclusion that absorbs nothing is an exclusion with no argument left.
+* **The exclusion was silencing a second question.**
+  `check_consensus_spans_are_disjoint` skips `unscoreable` cells, so p18's `verdict`/`how1` overlap had been exempt
+  by side effect for as long as the cell was excluded — nobody had ever judged
+  it. Removing the exclusion surfaced it the same minute, and it is now declared
+  on its own merits in `CONSENSUS_OVERLAP_BACKLOG`, beside p20's identical case.
+  An exclusion written about the SCORE silences every other question about the
+  cell, and that is an argument for declaring rather than excluding wherever the
+  choice exists.
+* **p18 is now the item's only unstable cell**, at 5 of 6. If it flips again,
+  the thing to read is `hows_given` — the one bad pass answered 1 where the
+  other five answered 2, on an unchanged fixture.
 
 ### p1 is the self-graded red flag, and it is the same shape
 

@@ -1512,8 +1512,10 @@ MULTI_BLOCK_DECLARED: dict[str, str] = {
           "explanation: p13's how2 holds its \"Overall, the plan did end up "
           "pretty successful\" because the student wrote it, and gold charges "
           "that sentence rather than a missing one. The item's remaining error "
-          "is all one shape and none of it is the fixture — 15-17/20 over six "
-          "passes, every miss +2.0 for a second how gold withheld",
+          "is almost all one shape and none of it is the fixture: 14-16 of 18 "
+          "counted over six passes, and every miss but one is +2.0 for a "
+          "second how gold withheld. The exception is p18, which flipped "
+          "to 4.0 in one pass of six once its exclusion was removed",
     # Declared on PROVENANCE, not on a cell-by-cell reading, and the distinction
     # is the whole reason these two are cheap. Neither item's response was ever
     # PARTITIONED: nothing decided where one box ends and the next begins, so
@@ -2170,6 +2172,21 @@ CONSENSUS_OVERLAP_BACKLOG: dict[tuple, str] = {
     # clause and cannot be judged as an explanation on its own. That is the
     # fragment shape "Q6's overlapping fixture boxes are FAITHFUL" in
     # EQUIVALENCE.md records as taking Q6 from 11/17 to 3/17.
+    # 2a/p18. Two sentences, and the first does verdict duty and how duty at
+    # once — "My exercise intake increased from 0 to 3 session a week, as shown
+    # by the data" — so `verdict` and `how1` hold it together. Same shape as p20
+    # below and licensed by the same guidance bullet, and gold's 6.0 credits
+    # both the verdict and two hows on those two sentences.
+    #
+    # It was exempt until now by SIDE EFFECT rather than by declaration: the
+    # cell was `unscoreable`, and this check skips those. Removing that
+    # exclusion (see handouts.PER_ITEM_EXCLUDE) is what surfaced the overlap,
+    # which is the argument for declaring rather than excluding — an exclusion
+    # silences whatever else happens to be wrong with the cell.
+    ("2a", 18, "how1", "verdict"): (
+        "one sentence doing verdict duty and how duty at once, in a two-sentence "
+        "response gold gives 6.0; the copied template verdict that join_aware "
+        "strips was never what carried the credit"),
     ("2a", 20, "how1", "verdict"): (
         "one sentence doing verdict duty and how duty at once; the verdict box "
         "holds its main clause and how1 the whole sentence, so each can be "
@@ -2299,10 +2316,14 @@ def check_consensus_spans_are_disjoint() -> list[str]:
         if H.cell_exclusions(_h, iid).get(pid, ("", ""))[0] == "unscoreable":
             # Same rule the coverage check follows: an `unscoreable` cell has had
             # its gold withdrawn, reaches no comparison, and cannot move a number.
-            # 2a/p18's overlap is the scorer quoting the nearest sentence because
-            # the student's verdict was TEMPLATE prose that join_aware removes —
-            # unfixable at the fixture level, and now recorded once, as an
-            # exclusion, instead of twice.
+            #
+            # It is a blunt instrument, and 2a/p18 is the cautionary case. Its
+            # `verdict`/`how1` overlap sat exempt here for as long as the cell
+            # was excluded — not because anyone judged the overlap faithful, but
+            # because this branch never looked. When the exclusion was removed
+            # the overlap surfaced immediately and had to be declared in
+            # CONSENSUS_OVERLAP_BACKLOG on its own merits. An exclusion written
+            # about the SCORE silences every other question about the cell.
             continue
         bx = {k: norm(v) for k, v in boxes.items() if v}
         keys = sorted(bx)
