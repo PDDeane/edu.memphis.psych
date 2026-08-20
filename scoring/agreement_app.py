@@ -459,6 +459,13 @@ def _quoted_span(ev: str) -> str:
     s = (ev or "").strip()
     if not s:
         return ""
+    # A `from_scorer` value inherits whatever template punctuation the scorer was
+    # reading, because it quotes the same segmented response: item 3's fifteen
+    # boxes opened with the printed question's own `")"`, and Q6/p19's `state_a1`
+    # with a `"_"`. `segment.strip_orphan_head` fixes the sections; these strings
+    # are stored scorer output and never pass through it, so they are stripped
+    # here with the same rule.
+    from segment import strip_orphan_head as _head
     m = _RUN_LIST.match(s)
     if m:
         runs = [r[1:-1] for r in _RUN.findall(m.group("inner"))]
@@ -480,8 +487,8 @@ def _quoted_span(ev: str) -> str:
             return "".join(runs).strip()
     m4 = _ANNOTATED.match(s)
     if m4:
-        return m4.group("q").strip()
-    return s
+        return _head(m4.group("q").strip())
+    return _head(s)
 
 
 def counted_members(handout: int, item: str) -> dict[str, tuple[str, list[str]]]:
@@ -905,7 +912,7 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # whole response, which is why the mis-cut cost nothing.
     ("3", 4): [
         ("set", "first",
-         ") There are a few changes I would make to improve my "
+         "There are a few changes I would make to improve my "
          "behavior intervention plan. First, I might choose a "
          "different weekly operant conditioning principle—positive "
          "punishment—that might be more powerful and enticing. For "
@@ -923,7 +930,7 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     ],
     ("3", 6): [
         ("set", "first",
-         ") In my opinion, there could have been some slight changes "
+         "In my opinion, there could have been some slight changes "
          "made to my modification plan. One of those changes being "
          "the way I chose to discipline myself. Instead of creating a "
          "chore every Sunday that I may not like doing, I could have "
@@ -966,7 +973,7 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     ],
     ("3", 19): [
         ("set", "first",
-         ") There are a few things that I would do differently to "
+         "There are a few things that I would do differently to "
          "improve my behavior modification plan. The first would be "
          "to set a screen time limit for myself. This would help me "
          "improve by not having access to social media after a "
@@ -1124,6 +1131,14 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # back the "Instead, I" it took from the following clause, and affect_c1
     # runs to the end of the sentence it owns.
     ("Q6", 19): [
+        # `state_a1` opened on a single "_" — the template's blank rule, which
+        # `clean` only collapses in runs of two or more and which
+        # `segment.strip_orphan_head` now takes off the RESPONSE. This value comes
+        # from the frozen consensus rather than from a section, so it is stripped
+        # here, the same way item 3's three set values were.
+        ("set", "state_a1",
+         "I am going to change my antecedents of waking up and not feeling "
+         "motivated (orig A)"),
         ("set", "state_c1", "so I am not feeling unmotivated all day.(C)"),
         ("set", "affect_c1",
          "Instead, I feel refreshed (WGB) when I get enough sleep, I will feel "

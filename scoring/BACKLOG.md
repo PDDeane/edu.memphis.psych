@@ -481,11 +481,11 @@ over: its example is the item's only `W_NOT_REASON` illustration, and
 un-excluding it puts a cell we get wrong into a count that would go 14/14 to
 14/15.
 
-## Template residue reaches the grader in 47 student boxes across 13 items
+## Template residue reached the grader in 47 boxes across 13 items — FIXED
 
-Found by item 3's fixture audit, but not an item-3 problem. Template
+Found by item 3's fixture audit, but never an item-3 problem. Template
 subtraction leaves an orphan punctuation run at the head of a response, and
-where a box starts at the beginning of the response that run is served to the
+where a box starts at the beginning of the response that run was served to the
 grader as the student's first characters.
 
 | item | boxes | residue |
@@ -495,30 +495,49 @@ grader as the student's first characters.
 | H1/Q3 | 5 | `"- "` (four of them one cell, p6) |
 | H1/Q1, Q2, Q6 | 4 | `"_"` |
 
-Item 3's is the clearest to read: its question ends `... so you should not say,
-"Nothing will be changed"). (6 points: 3 points per example)`, the stem strip
-removes the matched prefix, and the `")"` that closed the parenthetical survives
+Item 3's was the clearest to read: its question ends `... so you should not
+say, "Nothing will be changed"). (6 points: 3 points per example)`, the stem
+strip takes the words, and the `")"` that closed the parenthetical survived
 into 15 of 20 `first` boxes. Checked against the submission — the student's own
-line begins "Next time I will leave wiggle room", so the character is the
-template's, not theirs.
+line begins "Next time I will leave wiggle room", so the character was the
+template's.
 
-Why no check catches it: for a one-box item
+**Fixed at the seam, in `segment.strip_orphan_head`.** One normalisation where
+a section's text is finalised, so every harness gets the same input. `(`, `"`,
+`'` and `[` are deliberately NOT stripped — those open student text, and
+"(Gaining something.)" is an answer — and digits are not either, because `"1)"`
+is the student's own numbering, which the fixtures strip per box while the
+response keeps it.
+
+Four boxes needed a second pass, and the reason is worth keeping: a value the
+paper scorer STORED never goes through segmentation.
+`agreement_app._quoted_span` strips those with the same rule, which covered
+item 3's `from_scorer` boxes and left exactly four — Q6/p19's `state_a1`, which
+comes from the frozen consensus, and item 3's p4, p6 and p19, whose `first`
+boxes this audit had itself set from residue-bearing text. All four now carry
+declared corrections.
+
+Verified box by box across the corpus: **38 boxes and 46 response texts
+changed, and every single change is a pure leading strip** — the before-value
+ends with the after-value in all 84 cases, so nothing anywhere else moved.
+Residue boxes corpus-wide: 0.
+
+Why no check had caught it: for a one-box item
 `check_single_box_fixtures_are_verbatim` compares the box against the response
-and both carry the residue, which is the same blind spot its docstring already
-records for mojibake — "the fixture and the response agree, because both are
-wrong together". Items whose boxes are anchored
-to a scorer quote are immune by accident: the junk falls outside the quote (Q4a
-and Q4c p19 both leave a `"_"` unassigned).
+and both carried the residue, which is the blind spot its own docstring records
+for mojibake — "the fixture and the response agree, because both are wrong
+together". Items whose boxes are anchored to a scorer quote were immune by
+accident.
 
-The fix belongs in `segment.py`'s template subtraction — strip a leading orphan
-punctuation run once, and 47 boxes in 13 items are corrected together. That
-changes served text for every harness, so it needs a corpus sweep, and it is why
-this was NOT done cell by cell in the fixture tables. Nothing here is measurably
-costing a point today; it is prompt text inside a student's box.
+**Re-measure everything on the list.** This touched 26 boxes that ARE the
+response for H2's one-box items, which had never been repaired before, plus
+item 3, Q1, Q2, Q3 and Q6. Nothing here was measurably costing a point, but it
+changes served text in twelve items.
 
-One row in the survey is a false positive worth remembering: H3/1c `p6/title`
-starts `['Time', ' Spent a...` because it is a PARSED VALUE, not a quotation.
-`_value_derived` already says so for the item.
+One row in the original survey was a false positive worth remembering: H3/1c
+`p6/title` started `['Time', ' Spent a...` because it is a PARSED VALUE, not a
+quotation. `_value_derived` already says so for the item, and `_quoted_span`
+now joins those runs.
 
 ## Item 3: what the fixture audit left behind
 
