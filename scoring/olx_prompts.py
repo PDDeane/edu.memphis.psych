@@ -1336,6 +1336,42 @@ def _ref(action: str, target: str, minted: dict) -> str:
     return _REF % (rid, target)
 
 
+# What "matches" means, stated once, before the first component that uses the
+# word. Per item, because only the items whose components say "matches" need it.
+MATCH_DEF = {
+    "Q6": ("## Definition of 'matches' below:\n"
+           "The two things being compared are semantically equivalent. That "
+           "includes equivalence established by combinations of negations and "
+           "antonyms: failing to do a thing early is doing it late, forgetting "
+           "to do a thing is not doing it, not suffering a bad state is being in "
+           "the good one.\n"
+           "ANTONYMS, precisely. Two words are antonyms when they name the "
+           "OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so "
+           "that naming one and negating it gives you the other. Early and late "
+           "are one scale. Poor health and good health are one scale. Words that "
+           "are merely both unpleasant, or both pleasant, or that name DIFFERENT "
+           "properties, are not antonyms and do not establish equivalence: being "
+           "tired and being cheerful are two properties, not two ends of one. Ask "
+           "what single property is being measured before you call two words "
+           "opposites.\n"
+           "A listed 4a or 4c entry often states one thing and then what follows "
+           "from it -- \"X, so I Y\". Decide which of THREE kinds Y is before you "
+           "compare, because it decides what the entry can be matched against.\n"
+           "1. Y RESTATES THE ANTECEDENT in other words. Part of the antecedent; a "
+           "box equivalent to Y matches that 4a entry.\n"
+           "2. Y IS AN INTERMEDIATE ANTECEDENT -- a further step that still LEADS "
+           "TO the unwanted behaviour rather than following from it. Also part of "
+           "the antecedent, described one link nearer; a box equivalent to Y "
+           "matches that 4a entry.\n"
+           "3. Y IS A CONSEQUENCE -- the unwanted behaviour itself, or something "
+           "that follows from it. Not part of the antecedent: a box equivalent to "
+           "Y does NOT match that 4a entry. It may still match a 4c entry that "
+           "lists that same consequence, and should be matched there.\n"
+           "The test between 2 and 3 is direction: does Y lead to the unwanted "
+           "behaviour, or follow from it? The unwanted behaviour is named in the "
+           "Q1 answer in the context below.\n"),
+}
+
 # Items whose "## Credit components" section lists slots WITHOUT restating their
 # rules. The rules still ship — once, in the checklist, which is where the verdict
 # is committed and which also carries the verdict vocabulary.
@@ -1385,6 +1421,15 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
     if item.get("derive_from_criteria"):
         p.append(_criteria_section(item))
     else:
+        # Placed HERE, immediately before the components that use the word, and
+        # kept to two sentences. Sixteen wording variants of this idea were built
+        # and reverted on 2026-08-19, all of them added to the grading guidance
+        # forty-odd lines further down; the hypothesis this tests is that the
+        # position and the length were the problem rather than the content. The
+        # components themselves say "matches 4a" and "matches 4c", so this defines
+        # the term at its first use instead of qualifying it later.
+        if MATCH_DEF.get(item_id):
+            p.append(MATCH_DEF[item_id])
         p.append("## Credit components")
         omitted = OMIT_CREDIT.get(item_id, {})
         for c in item["credit"]:
