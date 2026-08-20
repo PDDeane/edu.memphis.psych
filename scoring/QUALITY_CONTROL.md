@@ -261,6 +261,14 @@ exclusion "dropped a perfectly scoreable cell from every rate in order to absorb
 an error that was gold's". Its measured behaviour did not change at all; the rate
 went up because a cell we score correctly finally counted.
 
+**Declaring beats excluding wherever the choice exists, because an exclusion
+silences questions nobody asked it to.** 2a/p18 was `unscoreable`, and
+`check_consensus_spans_are_disjoint` skips those — so its `verdict`/`how1`
+overlap sat exempt for as long as the exclusion stood, never judged by anyone.
+Removing the exclusion surfaced it the same minute, and it turned out to be
+faithful and declarable. An exclusion is written about the SCORE; it silences
+every other question about the cell.
+
 **An exclusion on a cell the scorer gets RIGHT must be retested until it is
 removed.** It is not doing the job it was opened for, so what remains is the
 claim, and the claim is now false in a way that misleads in the expensive
