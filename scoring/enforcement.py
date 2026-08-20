@@ -1427,7 +1427,15 @@ MULTI_BLOCK_DECLARED: dict[str, str] = {
     "Q3": "five boxes, one per SMART aspect, and the students label them "
           "themselves. Anchored on the aspect's own name where the scorer gave "
           "no quote; 9 cells with an empty box reduced to 1, and that one is "
-          "correct — p9 never mentions realistic",
+          "correct — p9 never mentions realistic. NOT read box by box when it "
+          "was declared, and p19 is what that cost: `measurable` held the "
+          "printed instruction \"You must discuss and label each aspect of the "
+          "SMART goal for full credit.\" and `specific` held the printed "
+          "question plus two aspects, with the student's own measurable "
+          "sentence inside it. Repaired; the two lines of template scaffolding "
+          "now belong to no box. p6 still opens all four of its boxes with the "
+          "student's \"- \" bullet, which is the corpus-wide residue and "
+          "enumerator work in scoring/BACKLOG.md",
     "Q4b": "three boxes: the modify statement and two examples. p7 read out and "
            "assigned; the rest carry no findings",
     "1c": "eight boxes and not one of them a quotation, which is why the "

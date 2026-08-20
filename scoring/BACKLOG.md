@@ -728,11 +728,11 @@ None of this is measurably costing a point. It is the same faithfulness argument
 as the other three items: scaffolding is not the student's words, and serving
 one cell's numbering and not another's makes the boxes inconsistent inputs.
 
-## Q3/p19's boxes are misaligned by one, and one of them holds the instructions
+## Q3/p19's boxes were misaligned by one — FIXED, and it needs measuring
 
 Found while writing up the enumerator sweep above, in the same three items that
-were declared before the audit pass. It is a worse defect than the enumerators
-and it is one cell.
+were declared before the audit pass. A worse defect than the enumerators, and
+one cell.
 
 p19 typed the handout's own scaffolding above their answer, and the split took
 it for content:
@@ -760,10 +760,23 @@ to sleep at the same time, and waking up at the same time". Whatever our scorer
 returns for `measurable`, it is not returning it about the student's answer, and
 if it agrees with gold it agrees for the wrong reason.
 
-The repair is mechanical and local: `measurable` takes the student's Measureable
-sentence, `specific` keeps the question-line and its own sentence or drops the
-question line too. It is a counted cell in an item at 5 of 5 aspects per cell,
-so measure it.
+**Repaired.** `measurable` now holds the student's own "Measureable:_My goal is
+measurable because i will track how long I sleep each night ..." and `specific`
+holds only "Specific: My goal is specific because i plan to get 8 hours of sleep
+per night by tracking my sleep." Both lines of template scaffolding drop out and
+belong to no box, which is correct; the other three boxes were already right,
+and all five now hold their own aspect in document order with no audit flag.
+
+**It is a counted cell, so measure it.** Two slots change what the grader sees,
+and one of them is the slot gold docks. Before the repair the `measurable`
+verdict was about an instruction, so whatever it was, it was not about p19's
+answer — which means this cell's stored passes tell you nothing about how it
+will behave now, in either direction.
+
+The `"_"` after "Measureable:" is kept on purpose: it is the fill-in rule the
+student typed over, `timebound` has the same one, and stripping it here alone
+would make the cell inconsistent with itself. It goes with the corpus-wide
+residue fix.
 
 Checked while looking: p11 is NOT a second case. Its `specific` box carries
 tracking prose that reads like `measurable`'s job, but both boxes hold the
