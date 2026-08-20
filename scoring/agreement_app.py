@@ -884,7 +884,11 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     # cell a full 6.0, crediting the copied sentence the grader saw on paper.
     # After template subtraction no verdict survives, so the paper scorer quotes
     # the nearest thing — which is how1's sentence, and why `verdict` and `how1`
-    # overlap. Whether that makes the cell unscoreable is a SCORING decision.
+    # overlap. Whether that made the cell unscoreable was a SCORING decision,
+    # and it is now taken: NO. The cell is counted. Six passes credit the
+    # verdict on the student's own first sentence and five of them reach gold's
+    # 6.0, so the exclusion was hiding a cell we score correctly; the overlap is
+    # declared in enforcement.CONSENSUS_OVERLAP_BACKLOG instead.
 
     # Q4b/p7. The student numbers two items: (1) a statement that the behaviour
     # {{corpus:Q4b/p7:modify:21:38:sha=1fa4115cf4a6}}, with its reason, and (2) procrastinating. The hand-split
