@@ -90,3 +90,36 @@ Open questions for whoever does it: where it lives (`agreement.py` beside
 item-specific phrase-to-slot vocabulary can be derived from each item's slot
 labels rather than hand-written per item; and whether `gold_slots_1c` should be
 re-expressed in terms of it, which would be the proof that it generalises.
+
+## Q5 `example_2` names a token the web enum does not have
+
+`bmod_handout1.olx:1072` tells the web grader to answer `not_reason` when the
+second entry is a real, distinct entry that is not a reason for CONTINUING. The
+same line's `slots=` offers that check `wrong_kind/duplicate`. So the test is
+inert: the model is asked for a token it cannot return, and the diagnosis the
+rule exists to draw never gets drawn. It has to be reading through to `absent` or
+`met` instead, which are different findings.
+
+This is the exact failure the `{fail}` placeholder was built to prevent —
+`olx_prompts.py:1682` records the last instance of it, where the paper scorer was
+told when to answer `wrong_kind` while being offered `met/absent/not_active`, and
+"every test was inert and it credited p8's 'avoiding going the gym' that the web
+and CLI both reject." Same slot family, same year.
+
+Why the guard missed it: `{fail}` is substituted into the rubric's `rule` text
+only (`olx_prompts.py:1698`). The offending string is a SLOT_NOTES entry
+(`olx_prompts.py:1245`), which is a SECOND source of prompt prose and gets no
+substitution. Two candidate fixes, and the second is the one that closes the
+class:
+
+1. Put `{fail}` in the note and run the same substitution over SLOT_NOTES.
+2. Lint it: no prompt prose may name a verdict token that the slot it describes
+   does not offer. That is the content lint stage 08 of the verdict-vocabulary
+   plan calls for (`../VERDICT_VOCABULARY_PLAN.md`), and it would have caught
+   both instances without anyone having to think of `{fail}`.
+
+Not measured. Fixing it CHANGES A PROMPT for Q5, so it needs a sweep, and Q5 has
+no measurements against current inputs.
+
+`not_reason` in `rubric_h1.py:979` is NOT part of this — that is the paper
+scorer's own vocabulary, bridged by `enforcement.ALIAS`, and it is correct there.
