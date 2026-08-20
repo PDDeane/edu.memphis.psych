@@ -1430,6 +1430,17 @@ MULTI_BLOCK_DECLARED: dict[str, str] = {
           "correct — p9 never mentions realistic",
     "Q4b": "three boxes: the modify statement and two examples. p7 read out and "
            "assigned; the rest carry no findings",
+    "Q4c": "two boxes, one consequence each, and like Q4a the student usually "
+           "does the splitting. All 20 read out; three boxes repaired, all one "
+           "defect — p13\'s `first` and both of p16\'s kept the enumerator "
+           "inside them while the item\'s other eight enumerated cells strip "
+           "theirs. Three cells are split with no marker at all, and each is a "
+           "run-on where the student\'s sentence boundary is simply missing "
+           "(p5, p6, p15); p9\'s is the one genuine judgement — one comma, and "
+           "\"while not exercising\" is left with the clause the comma attaches "
+           "it to. p13\'s `second` is empty and faithful: gold charges the "
+           "missing second consequence. p11\'s boxes follow DOCUMENT order, not "
+           "the student\'s own labels, which run \"Another\" then \"One\"",
     "Q4a": "two boxes, one antecedent each, and in 12 of 20 cells the STUDENT "
            "does the splitting — \"1)\"/\"2)\", \"1.\"/\"2.\", or \"My first "
            "antecedent\"/\"My second trigger\". All 20 read out; no repairs. The "
