@@ -606,6 +606,29 @@ def gold_divergence_cells() -> dict[tuple[str, int], str]:
 # does not reconcile with its own itemised comment. Nothing computes that away,
 # so it remains a real ceiling.
 GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
+    ("1", "Q3"): (
+        "`action_oriented`: gold credits an AVAILABILITY statement on some cells "
+        "and refuses one on another, and the two are the same kind of claim. It "
+        "credits \"I am able to go the gym or walk around campus\" (p10) and "
+        "\"my early mornings are free and my gym is near my house\" (p14), and "
+        "refuses \"I have a lot of time on my hands to exercise multiple times a "
+        "week\" (p16, \"-1 pt: For action, what do you have to actively do\"). "
+        "Whichever way the rule is set, p10 or p16 is wrong. "
+        "MEASURED: defining the slot from gold's own decisions — an activity or a "
+        "concrete enabling circumstance counts, grounding actionability in "
+        "another SMART letter does not — took p14 and p18 from 0-1 of 3 to 3 of "
+        "3 and left p16 credited, which is the direction that keeps four cells "
+        "right and one wrong rather than the reverse. "
+        "p19 is NOT part of this ceiling and is a live target: it grounds "
+        "actionability in measurability but names the goal behaviour itself as "
+        "the doing (\"can be tracked by going to sleep and waking up at the same "
+        "time\"), so the grader finds an action and credits it, 0 of 3. A clause "
+        "saying that the goal RESTATED is not the action would separate it — the "
+        "same \"you cannot do something instead of itself\" logic Q4b's "
+        "`behavior_*` rule already carries — with p13's \"I can take my "
+        "medication before I go to bed\" as the control that must keep its "
+        "credit. Untried.",
+    ),
     ("1", "Q6"): (
         "`change_a1`/`change_a2`: whether a stated action actually CHANGES the "
         "antecedent it is paired with, rather than improving the goal behaviour, "
