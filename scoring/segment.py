@@ -114,6 +114,38 @@ def clean(line: str) -> str:
     return _WS.sub(" ", s).strip()
 
 
+# Punctuation a template leaves at the HEAD of a section, never the first thing a
+# student wrote. `(`, `"`, `'` and `[` are deliberately absent: those open student
+# text ("(Gaining something.)" is an answer), and digits are absent because "1)"
+# is the student's own numbering, which the fixtures strip per box and the
+# response keeps.
+_ORPHAN_HEAD = re.compile(r"""^[\s_)\]};:,.\-–—*•·]+(?=[\w"“'(\[])""")
+
+
+def strip_orphan_head(text: str) -> str:
+    """Drop template punctuation stranded at the start of a section.
+
+    Template subtraction removes the printed stem and leaves whatever punctuation
+    closed it. Handout 3's item 3 is the clearest: its question ends `... so you
+    should not say, "Nothing will be changed"). (6 points: 3 points per example)`,
+    the stem strip takes the words, and the `")"` that closed the parenthetical
+    survives — so 15 of 20 responses began `") {{corpus:3/p1:first:0:16:sha=0730669f8565}} ..."` and the
+    grader was handed the question's own punctuation as the student's first
+    character. Handout 2's blank rules do the same with a single `"_"` or `";"`
+    (`clean` only collapses runs of TWO or more), and `Q3/p6` with `"- "`.
+
+    47 boxes across 13 items carried one of these, and for a one-box item no
+    check could see it: `check_single_box_fixtures_are_verbatim` compares the box
+    against the response and both carried it — the blind spot its own docstring
+    records for mojibake, "both are wrong together".
+
+    Applied once, where a section's text is finalised, so every harness gets the
+    same input. It does NOT touch a `from_scorer` value, which is a string the
+    paper scorer stored; `agreement_app._quoted_span` strips those the same way.
+    """
+    return _ORPHAN_HEAD.sub("", text, count=1)
+
+
 def norm(line: str) -> str:
     s = _BULLET.sub("", line)
     s = _UNDERSCORE.sub(" ", s)
@@ -309,7 +341,8 @@ def segment(
         if cleaned:
             sections[current].append(cleaned)
 
-    return {item: "\n".join(v).strip() for item, v in sections.items()}
+    return {item: strip_orphan_head("\n".join(v).strip())
+            for item, v in sections.items()}
 
 
 def repair_orphans(
