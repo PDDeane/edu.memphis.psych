@@ -809,17 +809,37 @@ PER_ITEM_EXCLUDE: dict[str, dict[int, str | dict]] = {
         },
     },
     "2a": {
-        18: "gold gives a full 6.0, crediting a verdict the student COPIED from "
-            "the template's worked example — \"{{corpus:2a/p17:verdict:0:30:sha=4f8cdaa536cd:shape=R30-0-20}}"
-            "{{corpus:2a/p17:verdict:31:34:sha=b63b99f6383b}} successful.\" is the example's own first line. join_aware "
-            "strips it as boilerplate, correctly and load-bearingly: the same "
-            "subtraction is what stops p4's kept example chart being scored as "
-            "their graph. After it no verdict of p18's own survives, so no "
-            "correct scorer can reach the 2.0 gold awarded for one. The paper "
-            "scorer then quotes the nearest sentence, which is how1's — that "
-            "overlap is the scorer coping with an absent element, not a "
-            "transcription that lost one, and there is nothing to repair in the "
-            "fixture",
+        18: {
+            "why": "gold gives a full 6.0, crediting a verdict the student "
+                   "COPIED from the template's worked example — \"{{corpus:2a/p17:verdict:0:12:sha=a2f88de6c01f:shape=R12-0-20}}"
+                   "{{corpus:2a/p17:verdict:13:34:sha=4b5f56ba3ffc}} successful.\" is the example's own "
+                   "first line. join_aware strips it as boilerplate, correctly "
+                   "and load-bearingly: the same subtraction is what stops p4's "
+                   "kept example chart being scored as their graph. After it no "
+                   "verdict of p18's own survives, so no correct scorer can "
+                   "reach the 2.0 gold awarded for one. The paper scorer then "
+                   "quotes the nearest sentence, which is how1's — that overlap "
+                   "is the scorer coping with an absent element, not a "
+                   "transcription that lost one, and there is nothing to repair "
+                   "in the fixture",
+            # -2.00 is what the reason above CLAIMS: no verdict credit, so 4.0
+            # against a gold of 6.0. Unlike Q4c/p16's, it is NOT what the cell
+            # measures. Six passes over web_v8 and web_v9 return `verdict: met`
+            # every time, cited to the student's own surviving sentence ("My
+            # {{corpus:2a/p18:how1:3:68:sha=c663af8396f0}}
+            # the data"), and the cell scores gold's 6.0 in five of the six.
+            #
+            # So this declaration will print `<-- CLAIM STALE ... measured
+            # +0.00` on nearly every run, and that is the intended effect rather
+            # than an oversight. QUALITY_CONTROL.md section 5: an exclusion on a
+            # cell the scorer gets RIGHT must be retested until it is removed,
+            # and "it is the one that will never remove itself, because the cell
+            # it hides is the cell that would otherwise ask for work". Declared
+            # so it asks, every run, until someone decides between removing the
+            # exclusion (the cell agrees; n goes 17 to 18) and rewriting the
+            # reason. The decision is set out in scoring/BACKLOG.md under "2a".
+            "expect_error": -2.00,
+        },
     },
     "1c": {
         4: "gold 0 (\"Did not provide a graph\") but all four weeks of data "
