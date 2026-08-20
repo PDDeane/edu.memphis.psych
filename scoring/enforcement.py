@@ -1489,9 +1489,17 @@ MULTI_BLOCK_DECLARED: dict[str, str] = {
            "\"_\"), and every box is whole sentences in document order. p15 is "
            "the one cell split with no marker at all — one run-on line, cut "
            "before its second antecedent — and both halves are phrases the "
-           "item\'s own guidance quotes as accepts. p18\'s empty `second` is "
-           "faithful: it wrote one antecedent twice, and gold charges the "
-           "missing one. The keyword point survives every split, including the "
+           "item\'s own guidance quotes as accepts. p18 is a DECLARED DIVERGENCE "
+           "from verbatim reproduction, not an oversight: it wrote one "
+           "antecedent and repeated it word for word as its second, and the "
+           "fixture deliberately leaves `second` EMPTY rather than serving the "
+           "duplicate. Gold charges the missing one, so "
+           "`_gold_corroborates_absence` licenses the gap on every run and no "
+           "check fires; the divergence is from faithfulness, not from gold, "
+           "which is why it is not in GOLD_DIVERGENCES. Filling the box would "
+           "invite the grader to credit two antecedents on one, against a cell "
+           "that agrees with gold at 3.0 in 6 of 6 passes. The keyword point "
+           "survives every split, including the "
            "three cells that misspell it in one box and spell \"trigger\" in the "
            "other",
     "2a": "three boxes: the verdict and two explanations, which the screen asks "
@@ -1962,6 +1970,9 @@ def _locate(raw: str, box: str) -> int:
 
 
 _BOXES_MEMO: dict[tuple[str, int], dict[str, str]] = {}
+# Which spec key filled each box, recorded by `_fixture_boxes` as it labels them
+# so nothing has to re-derive the label. Read it with `_box_provenance`.
+_PROV_MEMO: dict[tuple[str, int], dict[str, str]] = {}
 
 
 def _fixture_boxes(item_id: str, pid: int) -> dict[str, str]:
@@ -1993,13 +2004,15 @@ def _fixture_boxes(item_id: str, pid: int) -> dict[str, str]:
     own |= set(spec.get("from_scorer") or {})
     own |= set(spec.get("sim") or {})
     hs = spec.get("handsplit")
+    hs_keys: set[str] = set()
     if hs:
         import json, os
         try:
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), hs)) as fh:
-                own |= set(json.load(fh).get(str(pid), {}))
+                hs_keys = set(json.load(fh).get(str(pid), {}))
         except Exception:
             pass
+        own |= hs_keys
     key = f"_{item_id.lower()}_"
     own |= {k for k in fx if key in k and "ref" not in k}
 
@@ -2024,10 +2037,35 @@ def _fixture_boxes(item_id: str, pid: int) -> dict[str, str]:
         tail = field.split(key)[-1] if key in field else field
         return tail.rsplit("_", 1)[-1] if key not in field else tail
 
+    src = {}
+    for f in (spec.get("sim") or {}):
+        src[f] = "sim — parsed from the data table or the chart"
+    for f in (spec.get("from_scorer") or {}):
+        src[f] = "from_scorer — the paper scorer's extracted value"
+    for f, origin in (spec.get("fields") or {}).items():
+        if origin == item_id:
+            src[f] = "fields — a span of the response segment"
+    for f in hs_keys:
+        src[f] = "handsplit — read by hand"
+
     out = {label(f): str(fx.get(f, "")).strip() for f in own if f in fx or True}
     out = {k: v for k, v in out.items() if k}
     _BOXES_MEMO[(item_id, pid)] = out
+    _PROV_MEMO[(item_id, pid)] = {
+        label(f): src.get(f, "field") for f in own if label(f)}
     return dict(out)
+
+
+def _box_provenance(item_id: str, pid: int) -> dict[str, str]:
+    """{box: which spec key filled it}, for a cell with no prose to locate it in.
+
+    Recorded by `_fixture_boxes` as it labels the fields, rather than derived
+    again here: the labelling rule has two corrections in it already (a field
+    belonging to ANOTHER item, and the `first`/`second` collision that had Q5's
+    boxes holding Q4c's text), and a second copy would drift away from both.
+    """
+    _fixture_boxes(item_id, pid)
+    return dict(_PROV_MEMO.get((item_id, pid)) or {})
 
 
 
@@ -2673,6 +2711,85 @@ def check_fixture_agrees_with_gold() -> list[str]:
     return problems
 
 
+def _handout_of(item: str) -> int:
+    """Which handout an item belongs to, read off the specs rather than guessed.
+
+    It replaces `1 if item.startswith("Q") else 3`, which sent all twelve of
+    handout 2's items — PR, NR, PP, NP, T1, D1, DAY1, WK1 and the rest — to
+    handout 3, where they have no segment. `--fixture PR` therefore answered
+    "empty response" for all twenty cells of an item whose fixture is fine, and
+    nearly half the corpus could not be read out at all.
+    """
+    import agreement_app as APP
+    import handouts as H
+
+    spec = APP.JOBS.get(item) or {}
+    if spec.get("handout"):
+        return int(spec["handout"])
+    for h in (1, 2, 3):
+        try:
+            if any(i["id"] == item for i in H.config(h)["rubric"].ITEMS):
+                return h
+        except Exception:
+            continue
+    return 1
+
+
+def _boxes_only_readout(item: str, pid: int, boxes: dict) -> str:
+    """The cell laid out for reading where there is no prose to read it against.
+
+    1c is answered with a chart and 1b with a data table, so 18 of 1c's 20 cells
+    have an empty prose segment. This used to print one line — "empty response"
+    — and stop, which meant the procedure QUALITY_CONTROL.md section 1 calls
+    irreplaceable silently did nothing on exactly the items whose boxes no other
+    check can read. What it was hiding sat in ten cells of a counted item: 1c's
+    `title`, `x` and `y` held the paper scorer's SENTENCE about the label rather
+    than the label, and the web grader was being handed its own answer.
+
+    Nothing can be located here, so PROVENANCE replaces position — which spec
+    key filled each box, and therefore what to read it against. A parsed value
+    is checked against the table or the chart; a `from_scorer` value against
+    what the scorer was looking at. Read it as: is this the student's value, or
+    is it the scorer's account of their value?
+    """
+    prov = _box_provenance(item, pid)
+    filled = {k: " ".join((v or "").split()) for k, v in boxes.items()}
+    if not any(filled.values()):
+        return (f"{item}/p{pid}: empty cell — no prose response and no filled "
+                f"box ({len(boxes)} box(es) declared)")
+
+    out = [f"{'=' * 78}", f"{item} / p{pid}", "=" * 78, "",
+           "NO PROSE RESPONSE. This item is not answered in prose, so there is",
+           "nothing to locate a box in. Read each box against the source its",
+           "provenance names.", "", "-" * 78, "", "BOXES, by provenance:", ""]
+    values = _value_derived(item)
+    for k in sorted(filled, key=lambda k: (prov.get(k, ""), k)):
+        v = filled[k]
+        why = prov.get(k, "field")
+        if k in values:
+            why += "; a parsed value, not a quotation"
+        out.append(f"  [{k}] {why}")
+        out.append(f"     {v if v else '(EMPTY)'}")
+        out.append("")
+    out += ["-" * 78, ""]
+    return "\n".join(out + [_readout_flags(pid)])
+
+
+def _readout_flags(pid: int) -> str:
+    """The audit flags for one participant, as the readout prints them."""
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        flags = [f for f in (check_fixture_follows_response_structure()
+                             + check_consensus_spans_are_disjoint()
+                             + check_fixture_covers_the_response())
+                 if f"/p{pid}:" in f or f"/p{pid} " in f]
+    lines = ["AUDIT FLAGS: " + (f"{len(flags)}" if flags else "none")]
+    lines += [f"  - {f.split(' — ')[0]}" for f in flags]
+    return "\n".join(lines)
+
+
 def fixture_readout(item: str, pid: int) -> str:
     """The cell laid out for reading: response, then every box, in order.
 
@@ -2692,20 +2809,39 @@ def fixture_readout(item: str, pid: int) -> str:
 
     Read it as: does each box hold ONE whole clause, do the boxes run in
     document order, and does each half of the response fill its own boxes?
+
+    Two bugs kept it from reaching 237 of the 520 cells, both fixed and both
+    silent — it answered "empty response" and a reader concluded there was
+    nothing to see.
+
+      * The handout was GUESSED from the item name, `1 if item.startswith("Q")
+        else 3`, which sent all twelve of handout 2's items to handout 3 where
+        they have no segment. 220 cells, every one of them a fixture nobody
+        could read out. `_handout_of` reads the spec instead.
+      * A cell answered with a CHART or a TABLE has no prose to locate a box in,
+        which is normal for 1c and 1b rather than a dead end. Those go to
+        `_boxes_only_readout`, which prints the boxes by provenance. The defect
+        that was hiding behind the old one line sat in ten cells of a counted
+        item — 1c's `title`/`x`/`y` holding the scorer's sentence about the
+        label instead of the label.
+
+    "Empty response" now means only what it says: no prose AND no filled box.
     """
     import re
-    import warnings
     import handouts as H
-    import segment as SEG
 
-    cfg = H.config(1 if item.startswith("Q") else 3)
-    subs = dict(H.find_submissions(cfg is not None and (1 if item.startswith("Q") else 3)))
+    h = _handout_of(item)
+    try:
+        subs = dict(H.find_submissions(h))
+    except Exception:
+        subs = {}
     if pid not in subs:
         return f"p{pid}: no submission on this machine"
-    raw = " ".join(_segment_as_scored(
-        1 if item.startswith("Q") else 3, pid).get(item, "").split())
+    raw = " ".join(_segment_as_scored(h, pid).get(item, "").split())
+    boxes = _fixture_boxes(item, pid) or {}
     if not raw:
-        return f"{item}/p{pid}: empty response"
+        # No prose is the NORMAL case for a chart or table item, not a dead end.
+        return _boxes_only_readout(item, pid, boxes)
 
     out = [f"{'=' * 78}", f"{item} / p{pid}", "=" * 78, "", "RESPONSE:", ""]
     parts = re.split(r"(?=\b2\s*\))", raw)
@@ -2716,8 +2852,6 @@ def fixture_readout(item: str, pid: int) -> str:
             out.append(f"    @{raw.find(sent):<4} {sent}")
     out += ["", "-" * 78, "", "BOXES, in document order:", ""]
 
-    boxes = _fixture_boxes(item, pid)
-    low = raw.lower()
     placed, unplaced = [], []
     for k, v in boxes.items():
         v = " ".join((v or "").split())
@@ -2756,15 +2890,7 @@ def fixture_readout(item: str, pid: int) -> str:
     out += ["-" * 78, "",
             "ASSIGNED TO NO BOX: " + ("; ".join(gaps) if gaps else "nothing"), ""]
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        flags = [f for f in (check_fixture_follows_response_structure()
-                             + check_consensus_spans_are_disjoint()
-                             + check_fixture_covers_the_response())
-                 if f"/p{pid}:" in f or f"/p{pid} " in f]
-    out.append("AUDIT FLAGS: " + (f"{len(flags)}" if flags else "none"))
-    out += [f"  - {f.split(' — ')[0]}" for f in flags]
-    return "\n".join(out)
+    return "\n".join(out + [_readout_flags(pid)])
 
 
 def check_reporters_execute() -> list[str]:
