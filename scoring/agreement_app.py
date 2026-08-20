@@ -713,6 +713,23 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "{{corpus:2a/p20:how1:0:68:sha=9639ba171206:shape=R68-0-20}}"
          "{{corpus:2a/p20:how1:69:138:sha=3f9a44a79d62}}"),
     ],
+    # 1c/p20 wrote its graph out as prose instead of drawing one: "Title: Sleep
+    # {{corpus:1c/p20:title:6:27:sha=07693115e1a5}} X-axis label: Days (or Weeks) Y-axis label: Hours of
+    # Sleep Legend: Baseline Week 1 Week 2 Week 3". The paper scorer records no
+    # title or axis evidence for it — there is no chart to read them off — so all
+    # three label boxes came out empty while the whole description belonged to no
+    # box. That made the cell's `unscoreable` entry untrue about its own
+    # mechanism: it says "the labels are typed into fields and the chart is drawn
+    # from the four complete weeks", and only the second half was happening.
+    # Seeded from the student's own labels, which is what they would have typed
+    # into the three fields. The scaffolding ("Title:", "X-axis label:",
+    # "Y-axis label:", "Legend:") stays out, like every other label in the
+    # corpus, and `series` was already correct from `sim`.
+    ("1c", 20): [
+        ("set", "title", "{{corpus:1c/p20:title:0:27:sha=d794c8f137de}}"),
+        ("set", "x", "Days (or Weeks)"),
+        ("set", "y", "Hours of Sleep"),
+    ],
     # Item 3, five cells with one defect: `second` opened with a sentence that
     # elaborates the FIRST change, so box 2 began before the second change did.
     # p4's opened "I hate school!" (about change 1's extra-schoolwork punishment),
