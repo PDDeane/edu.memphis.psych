@@ -1013,16 +1013,44 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "{{corpus:Q6/p14:affect_c2:0:153:sha=0d48f0444ca7}} go."),
     ],
 
+    # p4 writes five sentences in two pairs:
+    #   S1  antecedent + change            S4  antecedent + change
+    #   S2  an effect                      S5  an effect, conjoined under one
+    #   S3  another effect                     negation
+    #
+    # Two things the earlier assignment got wrong about that shape.
+    #
+    # FIRST, `state_c1` held S2 -- "{{corpus:Q6/p4:affect_c1:0:31:sha=87595cd9dfc0}} happier" --
+    # which names no consequence at all; it is a hoped-for outcome. The template
+    # wants a 4c consequence in that box, so putting an effect clause there tells
+    # the grader a consequence was named when the student went straight to the
+    # effect. It scored `met` with `refers_to: none` in 5 of 9 passes, which is the
+    # fixture manufacturing a naming and the cover logic then discarding it. S2
+    # belongs with S3 in `affect_c1`, and `state_c1` is EMPTY: this student named
+    # no first consequence. Gold says so too -- its charge is "missing both
+    # consequences", corrected here to one missing, and this is the one.
+    #
+    # SECOND, `affect_c2` held the whole of S5 while `state_c2` held a strict
+    # PREFIX of it -- the truncation overlap that check_consensus_spans_are_disjoint
+    # cannot see, because state_cN/affect_cN containment is its permitted case.
+    # S5 is "{{corpus:Q6/p4:state_c1:0:54:sha=f06a56022d3f}} tired": ONE
+    # negation, "no longer", scoping a conjunction of [up late] and [getting so
+    # tired]. Split at the conjunction, and the negation has to be REPEATED on the
+    # second conjunct, or "getting so tired" reads as an assertion that they will
+    # be tired -- the opposite of what the sentence says. Same principle as p6,
+    # where "{{corpus:Q6/p6:state_a1:0:21:sha=641b355f6e09}} & {{corpus:Q6/p6:state_a2:4:38:sha=56244251ed73}}" needed
+    # "not" distributed onto the stretching half. These are the corpus's only two
+    # non-verbatim words, and both are one negation carried across one split.
     ("Q6", 4): [
-        ("set", "state_c1", "{{corpus:Q6/p4:affect_c1:0:31:sha=87595cd9dfc0}} happier."),
+        ("set", "state_c1",
+         "{{corpus:Q6/p4:state_c1:0:54:sha=f06a56022d3f}} tired."),
         ("set", "affect_c1",
-         "{{corpus:Q6/p4:affect_c1:41:116:sha=70d3064be717:shape=S12-20220a20202020202020202022,R55-1-5c7532303139}} everywhere."),
+         "{{corpus:Q6/p4:affect_c1:0:116:sha=06269adb7908:shape=S14-20220a20202020202020202022,R108-1-5c7532303139}} everywhere."),
         ("set", "state_a2",
          "{{corpus:Q6/p4:state_a2:0:72:sha=d1111817d157:shape=R72-0-20}}"
          "{{corpus:Q6/p4:state_a2:73:101:sha=1789a92ce924}} hours"),
-        ("set", "state_c2", "{{corpus:Q6/p4:state_c1:0:34:sha=4e032e011208}} late"),
-        ("set", "affect_c2",
-         "{{corpus:Q6/p4:state_c1:0:54:sha=f06a56022d3f}} tired."),
+        ("set", "state_c2", ""),
+        ("set", "affect_c2", ""),
     ],
 
     # p5 writes the two halves in exactly parallel three-clause form:

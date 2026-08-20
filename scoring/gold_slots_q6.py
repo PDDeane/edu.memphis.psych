@@ -185,7 +185,6 @@ CORRECTED_FAMILY = {
     9:  {"families": {"a": -1}, "grid": 0.0,  "slot": "state_a1"},
     17: {"families": {"c": -1}, "grid": 0.0,  "slot": "state_c1"},
     18: {"families": {"a": -1}, "grid": 0.0,  "slot": "state_a2"},
-    4:  {"families": {"c": +1}, "grid": 0.25, "slot": "state_c2"},
 }
 
 # HOW GOLD ITEMISES AN EFFECT SLOT, because reading it wrong sends you the wrong

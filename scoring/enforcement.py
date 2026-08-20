@@ -2100,10 +2100,29 @@ def check_consensus_spans_are_disjoint() -> list[str]:
     to partition the response: not to be ordered, not to be disjoint, not to be
     complete. The coverage check now covers completeness; this covers the rest.
 
-    ONE overlap is permitted and is not a defect. `state_cN` and `affect_cN`
-    describe the same consequence — the box for "which consequence" and the box
-    for "what becomes of it" are cut from one clause — and splitting them was
-    measured as worse (Q6 fell 11/17 to 3/17 when an anchored split sliced those
+    ONE overlap is permitted, and it is not merely tolerated -- it is a STRATEGY
+    the fixtures rely on. `state_cN` names which consequence and `affect_cN` says
+    what becomes of it, and where the student wrote one clause doing both jobs,
+    putting that clause in BOTH boxes is what lets each be judged on it. Four
+    cells do this: p4, p5, p15, p18, and in at least two the duplication is what
+    earns a slot GOLD ALSO CREDITS, because gold charges a naming miss once and
+    does not re-charge the effect (see the no-double-jeopardy note in
+    handouts.CORRECTED_GOLD).
+
+    Measured, on p4, 2026-08-19. Its `state_c2` held "{{corpus:Q6/p4:state_c1:0:34:sha=4e032e011208:shape=S6-0a20202020}} late" and `affect_c2` the whole sentence that is a superset of it. Split
+    faithfully -- the conjunction broken and the negation repeated on the second
+    conjunct, so it reads as a negation and not an assertion -- `affect_c2` fell
+    from `met` 9 of 9 to `incomplete` 7 of 9, and the cell lost 1.25 in every
+    pass. Reframing the fragment as a full clause did not recover it. The box had
+    been earning its credit on the phrase it shared with `state_c2`, not on its
+    own words, so removing the redundancy made the fixture more faithful and less
+    scoreable, and made our scoring stricter than gold's.
+
+    So the exemption below is deliberate on two counts: the containment is usually
+    faithful, AND removing it costs credit gold gives. What it hides is the pair
+    being cut in the WRONG PLACE, which is a different defect and the one the
+    blind-spot note further down is about. Splitting them was also measured as
+    worse (Q6 fell 11/17 to 3/17 when an anchored split sliced those
     sentences into fragments). The same holds for `state_aN`/`change_aN`. Twenty
     such containments exist across fifteen cells and all are faithful.
 
