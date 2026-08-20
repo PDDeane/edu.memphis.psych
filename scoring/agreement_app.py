@@ -714,6 +714,33 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "{{corpus:2a/p20:how1:0:68:sha=9639ba171206:shape=R68-0-20}}"
          "{{corpus:2a/p20:how1:69:138:sha=3f9a44a79d62}}"),
     ],
+    # Q3/p19 typed the handout's own scaffolding above its answer, and the
+    # anchored split took it for content: `measurable` held the printed
+    # INSTRUCTION "You must discuss and label each aspect of the SMART goal for
+    # full credit.", and `specific` held the printed QUESTION plus BOTH the
+    # specific and the measurable sentences. So the grader was asked whether the
+    # goal is measurable and shown an instruction, while the student's own
+    # measurable sentence sat in the specific box — and gold docks p19 that exact
+    # point ("-1 pt: For measurable, how are you tracking your goal?") while the
+    # sentence answers it. No check saw it: the response was fully covered, just
+    # covered wrongly.
+    #
+    # Each box now holds its own aspect, labelled the way this item's students
+    # label them and the way p19's other three boxes already are. Both lines of
+    # template text drop out and belong to no box, which is correct. The "_"
+    # after "Measureable:" is the fill-in rule the student typed over and is kept
+    # deliberately — `timebound` has the same one, and stripping it here alone
+    # would make the cell inconsistent with itself; it goes with the corpus-wide
+    # residue fix instead.
+    ("Q3", 19): [
+        ("set", "specific",
+         "{{corpus:Q3/p19:specific:0:68:sha=94e0b7755ef0:shape=R68-0-20}}"
+         "{{corpus:Q3/p19:specific:69:100:sha=fbed1668fd21}}"),
+        ("set", "measurable",
+         "{{corpus:Q3/p19:measurable:0:66:sha=4315d6bbb354:shape=R66-0-20}}"
+         "{{corpus:Q3/p19:measurable:67:136:sha=622311d5b637:shape=R69-0-20}}"
+         "{{corpus:Q3/p19:measurable:105:113:sha=fa0487f2dc91}} time."),
+    ],
     # 1c/p20 wrote its graph out as prose instead of drawing one: "Title: Sleep
     # {{corpus:1c/p20:title:6:27:sha=07693115e1a5}} X-axis label: Days (or Weeks) Y-axis label: Hours of
     # Sleep Legend: Baseline Week 1 Week 2 Week 3". The paper scorer records no
