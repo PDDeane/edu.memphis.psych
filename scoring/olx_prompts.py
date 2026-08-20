@@ -627,7 +627,7 @@ ITEM_NOTES: dict[str, str] = {
     # `refers_to: none`, `absent` to `verdict: absent`. COVER VOCAB DIFFERS exists
     # to police exactly that bridge. Only the web-facing instruction was at fault.
     "Q6": (
-        "## What the two `state_` checks report\n"
+        "## What the four `state_` checks report\n"
         "These four do NOT report a match. They report an IDENTITY, and they report "
         "it in a FIELD OF ITS OWN, separate from the verdict. The two fields take "
         "different values and neither accepts the other's.\n"

@@ -39,6 +39,17 @@ OUT = paths.OUT
 #   CORRECTED_GOLD     the gold NUMBER is wrong on the submission's own evidence,
 #                      and the corrected number is what we score against
 #
+# A CORRECTION HERE INVALIDATES EVERY EARLIER MEASUREMENT OF THAT CELL, and the
+# stored figure does not know it. out/q6_boxbounds_full published "17/20 (85%)"
+# for Q6 and was cited as the baseline all through 2026-08-19; it ran before the
+# p4 entry below, when p4's gold was the unreachable 6.00 and our 6.25 counted
+# exact by nearest_attainable. Against p4 = 7.50 that same run is 16/20. Nothing
+# recomputes a stored .json when a row is corrected, so the published number and
+# a fresh recomputation of the same data differed by a cell, which I spent part
+# of that day attributing to a bug in the reporter. Re-derive a baseline from its
+# .runs.json after touching this table, or compare only figures computed on the
+# same gold.
+#
 # The bar is deliberately high, and `was` is asserted against the sheet on every
 # run so a correction cannot outlive the row it corrects.
 #
