@@ -662,6 +662,94 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "{{corpus:2a/p20:how1:0:68:sha=9639ba171206:shape=R68-0-20}}"
          "{{corpus:2a/p20:how1:69:138:sha=3f9a44a79d62}}"),
     ],
+    # Item 3, five cells with one defect: `second` opened with a sentence that
+    # elaborates the FIRST change, so box 2 began before the second change did.
+    # p4's opened "I hate school!" (about change 1's extra-schoolwork punishment),
+    # p6's "{{corpus:3/p6:first:303:352:sha=bbf115c1a2ba}} effective.", p9's
+    # "{{corpus:3/p9:first:275:323:sha=77075afddf4e:shape=A11}} ...", p16's "If I don't
+    # exercise ... {{corpus:3/p16:first:180:204:sha=cad7a69987aa}}" and p19's two sentences about the
+    # screen-time limit it had just proposed. Each boundary moves to the sentence
+    # that actually opens change 2 ("I could also consider ...", "Another change
+    # I could have made ...", "{{corpus:3/p9:second:0:40:sha=b2621b681157}} ...",
+    # "{{corpus:3/p16:second:0:27:sha=f9781cbea1c9}} ...", "I would also change ..."). Nothing
+    # enters or leaves either box: the union of the pair is identical, asserted
+    # cell by cell before these were written. All five score 6.0 against a gold
+    # of 6.0 today, so they need re-measuring — the count is judged over the
+    # whole response, which is why the mis-cut cost nothing.
+    ("3", 4): [
+        ("set", "first",
+         ") {{corpus:3/p4:first:0:50:sha=6df4895faa2d:shape=R50-0-20}}"
+         "{{corpus:3/p4:first:51:102:sha=30ee69eb1362:shape=R51-0-20}}"
+         "{{corpus:3/p4:first:103:159:sha=957961f6cbe2:shape=R56-0-20}}"
+         "{{corpus:3/p4:first:160:216:sha=4c15d62a2960:shape=R56-0-20}}"
+         "{{corpus:3/p4:first:217:276:sha=38496c6ccce8:shape=R59-0-20}}"
+         "{{corpus:3/p4:first:277:311:sha=8c4dec74db4f}} school!"),
+        ("set", "second",
+         "{{corpus:3/p4:second:0:58:sha=a774fc6a1b94:shape=R58-0-20}}"
+         "{{corpus:3/p4:second:59:118:sha=861b80bfdd6c:shape=R59-0-20}}"
+         "{{corpus:3/p4:second:119:177:sha=754cdcbcc999:shape=R58-0-20}}"
+         "{{corpus:3/p4:second:178:233:sha=9eb3c5e27573:shape=R55-0-20}}"
+         "{{corpus:3/p4:second:234:289:sha=3f9473662459:shape=R55-0-20}}"
+         "{{corpus:3/p4:second:290:348:sha=39c9e097afae:shape=R58-0-20}}"
+         "{{corpus:3/p4:second:349:408:sha=cedfd57f5b97:shape=R59-0-20}}"
+         "{{corpus:3/p4:second:409:454:sha=db552f9b3f05}} night."),
+    ],
+    ("3", 6): [
+        ("set", "first",
+         ") {{corpus:3/p6:first:0:56:sha=a2fc9fa2ac66:shape=R56-0-20}}"
+         "{{corpus:3/p6:first:57:113:sha=aa0d8410ec44:shape=R56-0-20}}"
+         "{{corpus:3/p6:first:114:173:sha=8efee6fa0313:shape=R59-0-20}}"
+         "{{corpus:3/p6:first:174:232:sha=664b2c5e1929:shape=R58-0-20}}"
+         "{{corpus:3/p6:first:233:278:sha=c290ae6f9966:shape=R45-0-20}}"
+         "{{corpus:3/p6:first:279:326:sha=219764481a10:shape=R47-0-20}}"
+         "{{corpus:3/p6:first:327:352:sha=75161498241c}} effective."),
+        ("set", "second",
+         "{{corpus:3/p6:second:0:55:sha=802c05534e9b:shape=R55-0-20}}"
+         "{{corpus:3/p6:second:56:113:sha=7b34a1474d5a:shape=R57-0-20}}"
+         "{{corpus:3/p6:second:114:170:sha=4435e74afcd7:shape=R56-0-20}}"
+         "{{corpus:3/p6:second:171:230:sha=a52e9ca07a71:shape=R59-0-20}}"
+         "{{corpus:3/p6:second:231:259:sha=167e10a5043d}} myself."),
+    ],
+    ("3", 9): [
+        ("set", "first",
+         "{{corpus:3/p9:first:0:59:sha=7d5366fd7f39:shape=R59-0-20}}"
+         "{{corpus:3/p9:first:60:112:sha=c506ca051ecd:shape=R52-0-20}}"
+         "{{corpus:3/p9:first:113:169:sha=5a13f0f3d7c5:shape=R56-0-20}}"
+         "{{corpus:3/p9:first:170:226:sha=041936128300:shape=R56-0-20}}"
+         "{{corpus:3/p9:first:227:284:sha=4993049d6090:shape=R57-0-20}}"
+         "{{corpus:3/p9:first:285:343:sha=67442467cb9b:shape=R58-0-20}}"
+         "{{corpus:3/p9:first:344:399:sha=9b8292ea1b69:shape=R55-0-20}}"
+         "{{corpus:3/p9:first:400:416:sha=6c412f4d8cd3}} night."),
+        ("set", "second",
+         "{{corpus:3/p9:second:0:52:sha=71e336a842a5:shape=R52-0-20}}"
+         "{{corpus:3/p9:second:53:110:sha=876318bec842:shape=R57-0-20}}"
+         "{{corpus:3/p9:second:111:158:sha=1e3ffb7f8d6a}} phone."),
+    ],
+    ("3", 16): [
+        ("set", "first",
+         "{{corpus:3/p16:first:0:57:sha=d256c787c8a0:shape=R57-0-20}}"
+         "{{corpus:3/p16:first:58:110:sha=84cf8699e9e6:shape=R52-0-20}}"
+         "{{corpus:3/p16:first:111:168:sha=c5f511ef773b:shape=R57-0-20}}"
+         "{{corpus:3/p16:first:169:223:sha=5a530a9f9644:shape=R54-0-20}}"
+         "{{corpus:3/p16:first:224:283:sha=601f914b0286:shape=R59-0-20}}"
+         "{{corpus:3/p16:first:284:335:sha=05a4d2b0986d}} better."),
+        ("set", "second",
+         "{{corpus:3/p16:second:0:56:sha=dfa4bdfaeb46:shape=R56-0-20}}"
+         "{{corpus:3/p16:second:57:97:sha=3fecb7af0cc6}} day."),
+    ],
+    ("3", 19): [
+        ("set", "first",
+         ") {{corpus:3/p19:first:0:53:sha=ef65869bd68f:shape=R53-0-20}}"
+         "{{corpus:3/p19:first:54:111:sha=a5938965c247:shape=R57-0-20}}"
+         "{{corpus:3/p19:first:112:169:sha=025bf385916c:shape=R57-0-20}}"
+         "{{corpus:3/p19:first:170:222:sha=b426231cb7f7:shape=R52-0-20}}"
+         "{{corpus:3/p19:first:223:280:sha=48c45881a972:shape=R57-0-20}}"
+         "{{corpus:3/p19:first:281:298:sha=ddc1ae92c06d}} time."),
+        ("set", "second",
+         "{{corpus:3/p19:second:0:57:sha=c89e979b6db6:shape=R57-0-20}}"
+         "{{corpus:3/p19:second:58:116:sha=e2a212211b3e:shape=R58-0-20}}"
+         "{{corpus:3/p19:second:117:148:sha=eac86365d880}} day."),
+    ],
     # Q5/p1 and p16. The same enumerator defect as Q4c/p13+p16, third item to
     # carry it: p1 kept "1) " and "2) " in BOTH boxes and p16 kept the "2. " it
     # is the only cell to write, while p8, p10, p12, p18, p19 and p20 all start
