@@ -82,58 +82,50 @@ OUT = paths.OUT
 # applying it would have made p4 exact and turned p5 and p17 into misses, costing
 # us a cell. The reason to refuse it is the standard, not the score.
 CORRECTED_GOLD: dict[tuple[str, int], dict] = {
-    ("Q6", 4): {
-        "was": 6.0, "score": 7.5,
-        "why":
-            "gold charges \"-2.5: missing both consequences\" when the response names "
-            "ONE of them and negates it. Their 4c gives \"spending too much time "
-            "awake\" and \"I {{corpus:Q4c/p4:second:59:100:sha=c3be460e781e}} awake\"; Q6's "
-            "`state_c2` says \"{{corpus:Q6/p4:state_c1:0:34:sha=4e032e011208}} late\". Being up "
-            "late {{corpus:Q1/p15:response:28:53:sha=23c86ac77562:shape=C3}} awake -- the equivalence is supplied by "
-            "the student's own 4c, not inferred -- and \"no longer\" is the answer to "
-            "what becomes of it, which this item credits everywhere else. So one "
-            "consequence is missing, `state_c1`'s \"{{corpus:Q6/p4:affect_c1:0:31:sha=87595cd9dfc0}} "
-            "happier\", and the charge is 1.25 rather than 2.50. "
-            "The antecedent charge is kept as gold made it, and its arithmetic "
-            "regularised: \"-1.5; missing one antecedent\" is off the item's 1.25 "
-            "step, and the missing one is `state_a1`, which names neither listed "
-            "trigger. 10.00 - 1.25 - 1.25 = 7.50. "
-            "THIS CORRECTION COSTS US. It is the first entry here that RAISES a row, "
-            "and our own prediction is 6.25, so p4 turns from exact into a -1.25 "
-            "miss. The gap is `state_a2`, \"my {{corpus:Q6/p4:state_a2:24:50:sha=2158850b7566}} late\", "
-            "which gold credits and the trigger/effect rule in rubric_h1 refuses "
-            "because 4a puts it in the effect half (\"{{corpus:Q4a/p4:second:21:51:sha=6557c70626e3:shape=R30-0-20}}"
-            "{{corpus:Q4a/p4:second:52:71:sha=6dcbb8ec4d79}} early\"). That disagreement was previously hidden: "
-            "it cancelled against the consequence error being corrected here. "
-            "Correcting the row makes the rule's cost visible as a number instead of "
-            "leaving two errors to offset each other, which is the point.",
-    },
+    # ("Q6", 4) RETIRED 2026-08-19. It raised p4 from 6.00 to 7.50 on the reading
+    # that gold had missed one of two consequences the student named. The second
+    # naming was not the student's: `state_c2` held "I hope that I will no longer
+    # be up late" and `affect_c2` held the whole sentence it is a prefix OF, so one
+    # clause was occupying two boxes and the correction was reasoning from our own
+    # duplication. Assign the sentence to one pair and leave the other empty --
+    # which is what the response supports, one consequence addressed and one not --
+    # and the deserved total is five slots, 6.25. Gold wrote 6.00, which is off the
+    # 1.25 grid, and `nearest_attainable` maps it to 6.25. Gold was right as
+    # written; the entry was chasing a fixture artifact, and p4 measures 6.25 in
+    # seven of nine passes on the repaired fixture.
+    #
+    # The general lesson, since it applies to this whole table: an entry that
+    # reasons from BOX CONTENTS inherits every judgement in the split. Check the
+    # spans before correcting the row.
     ("Q6", 9): {
-        "was": 5.00,
-        "score": 3.75,
-        "why": "gold credits `state_a1`, which names a THIRD antecedent p9 never "
-               "listed. Their 4a gives \"wanting {{corpus:Q4a/p8:first:30:58:sha=c33d740e9cde}} gym\" "
-               "and \"{{corpus:Q4a/p8:second:26:60:sha=b6dda568cd34}} any motivation\"; Q6 says "
-               "\"my {{corpus:Q6/p9:state_a1:24:83:sha=7b87e54e2cd5}} "
-               "show\". The scoring dictionary is explicit that the antecedents "
-               "must match up, and the lo-blocks prompt returned a mismatch in "
-               "five runs of five. "
-               "PREVIOUSLY EXCLUDED as unscoreable with expect_error -1.25, which "
-               "dropped the cell from every rate. Correcting the row is better: "
-               "the exclusion threw away a scoreable cell to avoid an error that "
-               "was gold's, and p9 now counts. The measured behaviour is "
-               "unchanged — 3.75, from crediting change_a1, state_c1 and affect_c1 "
-               "while state_a1 is demoted on `refers_to: none`. "
-               "Declared rather than chased, and the reason survives from the old "
-               "A_MISMATCH entry: p6 is the same shape and gold CREDITS it, no "
-               "textual feature separates them, and three attempts confirmed it — "
-               "a prose acts-on rule moved one slot and stuck on the other, a "
-               "classification probe answered `antecedent` for both, and a test "
-               "keyed on absence-framed antecedents would flag six credited cells "
-               "to catch this one. "
-               "5.00 -> 3.75. Gold's own charges, \"-2.5 pts: missing second "
-               "antecedent\" and \"-2.5 pts: missing second consequences\", we agree "
-               "with and reproduce.",
+        "was": 5.0, "score": 3.75,
+        "why":
+            "gold credits `state_a1`, which names a THIRD antecedent p9 never "
+            "listed. Their 4a gives \"{{corpus:Q4a/p9:first:0:45:sha=61a3572fe501:shape=R45-0-20}}"
+            "{{corpus:Q4a/p9:first:46:57:sha=c8721314956d}} gym\" and \"Not {{corpus:Q4a/p9:second:4:47:sha=51aa08720e1c:shape=R43-0-20}}"
+            "{{corpus:Q4a/p9:second:48:64:sha=98c7d83be08c}} easily\"; Q6 says \"my {{corpus:Q6/p9:state_a1:24:56:sha=1569107a8807:shape=R32-0-20}}"
+            "{{corpus:Q6/p9:state_a1:57:83:sha=f115e31bd80e}} show\". Watching a movie in bed appears in "
+            "neither entry, so the box names an antecedent that is not on the list "
+            "at all -- not a reworded one, which is the distinction this item's own "
+            "rule turns on. The scoring dictionary is explicit that the antecedents "
+            "must match up, and the lo-blocks prompt returned a mismatch in five "
+            "runs of five. "
+            "THE EVIDENCE CITED HERE WAS WRONG UNTIL 2026-08-19, and the way it was "
+            "wrong is worth keeping. It quoted p9's 4a as \"wanting {{corpus:Q4a/p8:first:30:44:sha=c662a8e2ce0f:shape=R14-0-20}}"
+            "{{corpus:Q4a/p8:first:45:58:sha=99f7dbdeb779}} gym\" and \"{{corpus:Q4a/p8:second:26:60:sha=b6dda568cd34}} any "
+            "motivation\" -- which are P8's antecedents, not p9's. Neither phrase "
+            "occurs anywhere in p9's 4a. The conclusion survived the correction "
+            "because p9's real entries are about thinking-about-exercising and "
+            "skipping-a-run-with-a-friend, and a movie in bed is no more one of "
+            "those than of p8's; but an entry whose stated basis is another "
+            "student's text cannot be checked, and being checkable is where this "
+            "table's authority comes from. Quote the row you are correcting. "
+            "PREVIOUSLY EXCLUDED as unscoreable with expect_error -1.25, which "
+            "dropped the cell from every rate. Correcting the row is better: the "
+            "exclusion threw away a scoreable cell to avoid an error that was "
+            "gold's, and p9 now counts. 5.00 -> 3.75. Gold's own charges, \"-2.5 "
+            "pts: missing second antecedent\" and \"-2.5 pts: missing second "
+            "consequences\", we agree with and reproduce.",
     },
     ("Q6", 17): {
         "was": 5.00,
