@@ -123,3 +123,93 @@ no measurements against current inputs.
 
 `not_reason` in `rubric_h1.py:979` is NOT part of this — that is the paper
 scorer's own vocabulary, bridged by `enforcement.ALIAS`, and it is correct there.
+
+## 2a: what the fixture audit left behind
+
+The fixture itself is done — all 20 cells read out box by box, two repaired
+(p16's unstripped `"Sentence 3:"` label, p20's comma-initial `how1`), and the
+split declared in `enforcement.MULTI_BLOCK_DECLARED`. Everything below is what
+the readout found that a fixture fix cannot reach.
+
+**Re-baseline first: the numbers here predate the two repairs.** Derived from
+`out/web_v8` and `out/web_v9`, three passes each, honouring `cell_exclusions`:
+**14-15 of 17 counted** (15-17 of 20 with exclusions in the denominator). p16 is
+one of the cells whose fixture just changed, so its six passes no longer
+describe what would be served. Re-derive before attributing anything to a
+change.
+
+### The over-credit is one shape, and it is the only shape
+
+Every miss in the item is **+2.0, crediting a second `how` gold withheld** — and
+that holds on all six passes, in both directions of the split cells:
+
+| cell | gold | ours | passes wrong | gold's stated reason |
+| --- | --- | --- | --- | --- |
+| p13 | 4.0 | 6.0 | 6 of 6 | "your third sentece does not explain how your plan was successful" |
+| p16 | 4.0 | 6.0 | 6 of 6 | none — the row deducts 2 and says nothing |
+| p15 | 4.0 | 6.0 | 4 of 6 | "your second sentece does not explain how" |
+
+No cell in the item errs the other way, which makes this a one-directional
+target: a rule that can only refuse a `how` cannot disturb the twelve cells that
+already agree.
+
+The hypothesis the readout supports is POSITIONAL, not a wording problem.
+`rubric_h3.py:342` opens the guidance with "COUNT CONTENT, NOT SENTENCES ... Two
+sentences can earn all six points, and three shapes did", enumerates the three
+shapes that earned 6/6, and only then, at `rubric_h3.py:352`, says to DEDUCT for
+a stretch that does not bear on how the plan succeeded. That is the shape
+QUALITY_CONTROL.md §3 names twice over — a categorical instruction that
+pre-emptively dismisses the exception, sitting above the components that need
+it. The thing to try is not another rewrite of either bullet: it is to put the
+deduct test immediately before the `hows_given` component that applies it,
+and to make the permissive bullet defer to it explicitly.
+
+**Choose the target before measuring.** p13 is the honest one: gold names the
+sentence it charged, the fixture holds that sentence in `how2`, and our grader
+credits it anyway. p16's gold deducts 2 with no reason recorded at all, and its
+three sentences are a verdict and two explanations on any reading — so decide
+whether p16 is a target or a `GOLD_DIVERGENCES` entry BEFORE tuning toward it,
+or the rule gets fitted to an unexplained row. Changing this guidance changes a
+prompt, so it needs a corpus sweep, not a 2a probe.
+
+### p18's `unscoreable` exclusion is stale
+
+`handouts.py:811` says gold's 6.0 is unreachable because `join_aware` strips the
+template verdict the student copied, so "no verdict of p18's own survives". The
+record says otherwise: `verdict` came back **`met` in 6 of 6 passes**, every one
+citing "My exercise intake increased from 0 to 3 session a week, as shown by the
+data" — the student's own surviving sentence — and the cell scores gold's 6.0 in
+5 of the 6. The item's own guidance licenses that reading in terms ("a verdict
+that cites the data as its evidence ... covers the verdict and both
+explanations").
+
+So this is QUALITY_CONTROL.md §5's second rule exactly: an exclusion on a cell
+the scorer gets RIGHT. Two ways out, and the entry cannot stay as written:
+remove it, so an agreeing cell counts and n goes 17 → 18; or keep it and declare
+`expect_error`, which is what would have caught this without anyone looking —
+this entry is one of the four live ones that declare no number.
+
+### p1 is the self-graded red flag, and it is the same shape
+
+p1 and p14 are registered in handout 3's `cited_participants`
+(`handouts.py:322`) and excluded as `self_graded`, which is correct — 2a's
+guidance quotes p1's answer AND the grader's -2. But p1 comes back **wrong in 6
+of 6 passes**, over-crediting by exactly the +2.0 above, with the deduction
+printed in the prompt it was given. Per the rule in EQUIVALENCE.md, that is a
+diagnostic rather than a rate: the item's judgement is unstable, and p1 is the
+cell that should flip first if the positional fix above works. Watch it; do not
+count it.
+
+### 2a's fixture is not frozen, and one published claim about it is stale
+
+`from_scorer` builds these three boxes from `out/h3/participant_NNN.json`, so
+they move whenever the paper scorer is re-run — the reference re-run recorded at
+`EQUIVALENCE.md:1763` already invalidated 2a's web numbers once for exactly this
+reason, and Q6 was frozen from a 10-run consensus after its spans moved on 47%
+of slots per rerun. Until 2a is frozen or hash-pinned, any comparison spanning a
+paper re-run is not like-for-like.
+
+Related: `EQUIVALENCE.md:487` still lists 2a among the eleven items that "agree
+on every single cell". That is the superseded web_v2 sweep; on web_v8/v9 the
+item is 14-15 of 17. The line sits in a dated section, but it is the kind of
+stale headline §5 warns about and should be annotated where it stands.

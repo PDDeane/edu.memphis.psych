@@ -640,6 +640,28 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     ("2a", 16): [
         ("set", "how1",
          "It worked well when I had free time and would just get up and exercise."),
+        # how2 kept the label the other two boxes had stripped, so the grader read
+        # "Sentence 3: On the other hand ..." — the student's own scaffolding
+        # served back as their words, and inconsistently, since verdict and how1
+        # start after theirs. Stripped like the others.
+        ("set", "how2",
+         "On the other hand, it was hard for me to get up and exercise when I "
+         "had a busy day or didn\u2019t feel motivated enough to exercise."),
+    ],
+    # 2a/p20. how1 began ", as shown by the higher number of hours ..." — a
+    # comma-initial adjunct cut out of the verdict's own sentence, which is not a
+    # clause and cannot be judged as an explanation on its own. The response is
+    # two sentences and gold gives it 6.0, so both hows come from them; how1 now
+    # holds the whole first sentence, which CONTAINS the verdict box's clause.
+    # The item's own guidance licenses exactly that shape — "a verdict that cites
+    # the data as its evidence, followed by one concrete circumstance under which
+    # the plan worked, covers the verdict and both explanations", one of three
+    # shapes it says earned 6/6. verdict is left untouched; the containment is
+    # declared in enforcement.CONSENSUS_OVERLAP_BACKLOG.
+    ("2a", 20): [
+        ("set", "how1",
+         "My sleep duration increased over time, as shown by the higher number "
+         "of hours during the intervention weeks compared to the baseline week."),
     ],
     # Q4a/p10. `second` dropped part 2's closing clause ("I am a beginner at the end of
     # the day ..."). A numbered part keeps all of its own clauses.
