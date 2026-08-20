@@ -663,6 +663,94 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
          "My sleep duration increased over time, as shown by the higher number "
          "of hours during the intervention weeks compared to the baseline week."),
     ],
+    # Item 3, five cells with one defect: `second` opened with a sentence that
+    # elaborates the FIRST change, so box 2 began before the second change did.
+    # p4's opened "I hate school!" (about change 1's extra-schoolwork punishment),
+    # p6's "That would have made my modification results more effective.", p9's
+    # "Some days I'm ready to go home after working out ...", p16's "If I don't
+    # exercise ... I would take away sweets" and p19's two sentences about the
+    # screen-time limit it had just proposed. Each boundary moves to the sentence
+    # that actually opens change 2 ("I could also consider ...", "Another change
+    # I could have made ...", "Another operant conditioning I would try ...",
+    # "Another punishment could be ...", "I would also change ..."). Nothing
+    # enters or leaves either box: the union of the pair is identical, asserted
+    # cell by cell before these were written. All five score 6.0 against a gold
+    # of 6.0 today, so they need re-measuring — the count is judged over the
+    # whole response, which is why the mis-cut cost nothing.
+    ("3", 4): [
+        ("set", "first",
+         ") There are a few changes I would make to improve my "
+         "behavior intervention plan. First, I might choose a "
+         "different weekly operant conditioning principle—positive "
+         "punishment—that might be more powerful and enticing. For "
+         "instance, if I did not sleep enough one night, I could make "
+         "myself do extra schoolwork. I hate school!"),
+        ("set", "second",
+         "I could also consider setting two daily alarms on my phone "
+         "with different tones to try to help me go to bed at certain "
+         "times. Lastly, I noticed that I never withheld TikTok from "
+         "myself, so next time, I would choose another example of "
+         "negative punishment, one that I would be more likely to "
+         "follow through with doing. An alternative punishment could "
+         "be that if I did not sleep enough, I would not allow myself "
+         "to watch TV with my friends or by myself that night."),
+    ],
+    ("3", 6): [
+        ("set", "first",
+         ") In my opinion, there could have been some slight changes "
+         "made to my modification plan. One of those changes being "
+         "the way I chose to discipline myself. Instead of creating a "
+         "chore every Sunday that I may not like doing, I could have "
+         "put myself on a high-protein diet and cut off "
+         "sweets/unhealthy foods. That would have made my "
+         "modification results more effective."),
+        ("set", "second",
+         "Another change I could have made would be the amount of "
+         "time I chose to spend at the gym. Although I did reach my "
+         "goal, if I kept increasing the timeframe I spent working "
+         "out, I would be more motivated to keep exercising on my own "
+         "without having to discipline myself."),
+    ],
+    ("3", 9): [
+        ("set", "first",
+         "There are a few changes I would make to improve my behavior "
+         "modification plan. First, I would choose a different "
+         "operant conditioning type, which I would choose positive "
+         "punishment. For example the day I didn’t go to the gym I "
+         "will add 30 minutes to my workout the next day. Some days "
+         "I’m ready to go home after working out because sometimes I "
+         "feel like I am rushing myself enough time to get myself "
+         "situated for the night."),
+        ("set", "second",
+         "Another operant conditioning I would try is negative "
+         "punishment. If I skip a day or at least not do 30 minutes "
+         "of exercising I will limit my screen time on my phone."),
+    ],
+    ("3", 16): [
+        ("set", "first",
+         "I will make many changes next time I try this. I would do "
+         "positive punishment because I feel like that is most "
+         "effective for me. If I don’t exercise as much as I said I "
+         "would then I would take away sweets because it is more "
+         "realistic than taking away electronics. I love sweets but I "
+         "have cut them out before so I feel that it may work better."),
+        ("set", "second",
+         "Another punishment could be taking away going out to eat "
+         "with my boyfriend unless I exercise that day."),
+    ],
+    ("3", 19): [
+        ("set", "first",
+         ") There are a few things that I would do differently to "
+         "improve my behavior modification plan. The first would be "
+         "to set a screen time limit for myself. This would help me "
+         "improve by not having access to social media after a "
+         "certain time. This would make it more likely that I would "
+         "sleep at the same time."),
+        ("set", "second",
+         "I would also change my positive punishment, which is if I "
+         "did not meet my sleep goal for that night, I would have to "
+         "finish all my homework for that day."),
+    ],
     # Q5/p1 and p16. The same enumerator defect as Q4c/p13+p16, third item to
     # carry it: p1 kept "1) " and "2) " in BOTH boxes and p16 kept the "2. " it
     # is the only cell to write, while p8, p10, p12, p18, p19 and p20 all start

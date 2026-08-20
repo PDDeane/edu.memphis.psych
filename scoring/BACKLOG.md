@@ -453,3 +453,92 @@ cleanup-procedure step-1 candidate here. The same caution as Q4c applies twice
 over: its example is the item's only `W_NOT_REASON` illustration, and
 un-excluding it puts a cell we get wrong into a count that would go 14/14 to
 14/15.
+
+## Template residue reaches the grader in 47 student boxes across 13 items
+
+Found by item 3's fixture audit, but not an item-3 problem. Template
+subtraction leaves an orphan punctuation run at the head of a response, and
+where a box starts at the beginning of the response that run is served to the
+grader as the student's first characters.
+
+| item | boxes | residue |
+| --- | --- | --- |
+| H3/3 | 15 | `") "` — the printed question's own closing parenthesis |
+| H2/PP, NR, NP, D2, PR, D1, DAY1, DAY2 | 23 | `"_ "`, `"; "` — the blank rule the student typed on |
+| H1/Q3 | 5 | `"- "` (four of them one cell, p6) |
+| H1/Q1, Q2, Q6 | 4 | `"_"` |
+
+Item 3's is the clearest to read: its question ends `... so you should not say,
+"Nothing will be changed"). (6 points: 3 points per example)`, the stem strip
+removes the matched prefix, and the `")"` that closed the parenthetical survives
+into 15 of 20 `first` boxes. Checked against the submission — the student's own
+line begins "Next time I will leave wiggle room", so the character is the
+template's, not theirs.
+
+Why no check catches it: for a one-box item
+`check_single_box_fixtures_are_verbatim` compares the box against the response
+and both carry the residue, which is the same blind spot its docstring already
+records for mojibake — "the fixture and the response agree, because both are
+wrong together". Items whose boxes are anchored
+to a scorer quote are immune by accident: the junk falls outside the quote (Q4a
+and Q4c p19 both leave a `"_"` unassigned).
+
+The fix belongs in `segment.py`'s template subtraction — strip a leading orphan
+punctuation run once, and 47 boxes in 13 items are corrected together. That
+changes served text for every harness, so it needs a corpus sweep, and it is why
+this was NOT done cell by cell in the fixture tables. Nothing here is measurably
+costing a point today; it is prompt text inside a student's box.
+
+One row in the survey is a false positive worth remembering: H3/1c `p6/title`
+starts `['Time', ' Spent a...` because it is a PARSED VALUE, not a quotation.
+`_value_derived` already says so for the item.
+
+## Item 3: what the fixture audit left behind
+
+Five cells repaired — p4, p6, p9, p16 and p19 — all one defect: `second` opened
+with a sentence that elaborates the FIRST change, so box 2 began before change 2
+did. p4's opened "I hate school!" (about change 1's extra-schoolwork
+punishment); p6's "That would have made my modification results more
+effective."; p9's "Some days I'm ready to go home after working out ..."; p16's
+"If I don't exercise ... I would take away sweets"; p19's two sentences about
+the screen-time limit it had just proposed. Each boundary moved to the sentence
+that opens change 2, and the union of each pair is unchanged — asserted cell by
+cell before the entries were written. Declared in
+`enforcement.MULTI_BLOCK_DECLARED`.
+
+**Re-baseline all five.** This is the item's whole risk. Item 3 is **20 of 20
+counted, identical across six passes, with NO exclusions** — the only such item
+audited so far — so every one of these five cells currently agrees with gold and
+the repair can only be checked by measuring. The reason the mis-cut cost nothing
+is that `changes_given` is one count over the whole response, so a sentence in
+the wrong box does not change the total; that is also why the repair is expected
+to be inert. Expected, not shown. If a cell moves, revert that cell — the
+entries are per-cell and independent.
+
+### p3 earns its 6.0 from one box, and that is a real gap
+
+p3's `second` is empty and `first` holds the entire response, because its two
+changes sit inside ONE sentence — "letting myself feel comfortable in my skin
+and focus solely on my goals, I will also push myself to get my entire workout
+done" — and nothing anchors a second box. Gold gives 6.0 and so do we, in every
+pass, but the credit comes from a count made inside box 1 while the box the
+rubric calls "Second specific change" is empty.
+
+Two other cells have an empty `second` and are NOT this: p5 and p15 propose one
+change or none, and gold charges them 3.0 and 0.0 respectively; p8 likewise at
+3.0. p3 is the only cell where an empty box coexists with full credit.
+
+A repair would split that sentence at ", I will also", which is a within-
+sentence cut of the kind EQUIVALENCE.md warns about — Q6 lost eight cells to
+exactly that. Left alone deliberately, and recorded here so the next reader does
+not have to re-derive why.
+
+### Nothing else is open
+
+No exclusions to retest: this item has none, on any of the three grounds. No
+published claim contradicted, with one qualification — `EQUIVALENCE.md:471`
+cites item 3 as the case that "retention does not predict harm", keeping 64% of
+the student's words and scoring 95%. On the current fixture nothing is dropped
+in any of the 20 cells ("ASSIGNED TO NO BOX: nothing" everywhere), so the 64%
+belongs to an older reconstruction. The lesson it illustrates still stands; the
+number no longer describes this item.
