@@ -2907,3 +2907,67 @@ def check_empty_fields_are_absent() -> list[str]:
         out.append("_normalize_empty_fields overwrote a verdict on a FILLED field -- "
                    "it must only touch fields that are empty")
     return out
+
+
+def check_the_cli_sends_the_apps_prompt() -> list[str]:
+    """Does the CLI path send the same prompt the app sends, bar mapped vocabulary?
+
+    The two paths are built to share their text rather than to resemble it. Both
+    read the SAME OLX action body -- same file, same action id -- so the body
+    cannot drift. Then each appends the slot-sheet guidance, and that is the one
+    seam: the app composes it in `slotSheetGuidance`, and `agreement`'s Python
+    mirror lifts each block's literal text out of slotSheet.ts rather than keeping
+    a copy, because a copy is the thing that drifts (three times, per the mirror's
+    own docstring, each found by chasing a score).
+
+    Lifting the blocks is not the whole job, though, and this is the gap it leaves.
+    `checklist_guidance` HARDCODES which blocks it composes and in what order --
+    studentFacingGuidance, then checklistGuidance or terseFeedbackGuidance. If the
+    app grows a third block, or reorders, or renames, every individual lift still
+    succeeds and the composed prompts silently differ. Nothing was checking that,
+    so this compares the composition itself, read out of the app's source.
+
+    What it does NOT do, and why: it does not diff the composed prompts token by
+    token. The web's prompt is served from a dump and the CLI's is assembled in
+    Python, and the only sanctioned difference between them is the cover
+    vocabulary -- `neither` for `refers_to: none`, `absent` for `verdict: absent`
+    -- which `COVER VOCAB DIFFERS` in equivalence.py already polices per slot with
+    that mapping written into it. Duplicating that here would put the same bridge
+    in two places, which is how a bridge stops being one.
+    """
+    out: list[str] = []
+    import re as _re
+    try:
+        import paths as _paths
+        ts = open(_paths.SLOTSHEET_TS).read()
+    except Exception as exc:
+        return [f"could not read slotSheet.ts to compare the prompt paths: {exc}"]
+
+    m = _re.search(r"export function slotSheetGuidance\b[^{]*\{(.*?)\n\}", ts, _re.S)
+    if not m:
+        return ["slotSheetGuidance() not found in slotSheet.ts -- the CLI mirrors a "
+                "composition that no longer exists, so the two paths cannot be compared"]
+    body = m.group(1)
+    called = _re.findall(r"\b([a-z][A-Za-z]*Guidance)\s*\(", body)
+    # What agreement.checklist_guidance composes, in its own order.
+    expected = ["studentFacingGuidance", "checklistGuidance", "terseFeedbackGuidance"]
+    if called != expected:
+        out.append(
+            "slotSheetGuidance() now composes "
+            f"{called} but agreement.checklist_guidance composes {expected}. Every "
+            "individual block still lifts cleanly, so the prompts differ silently: "
+            "fix the mirror in agreement.checklist_guidance to match this order")
+    # And each block must still be liftable, in BOTH branches.
+    try:
+        import agreement as _AG
+        for show in (True, False):
+            txt = _AG.checklist_guidance(show)
+            if len(txt.strip()) < 200:
+                out.append(f"checklist_guidance(show_checks={show}) lifted only "
+                           f"{len(txt.strip())} chars -- a block matched empty, so the "
+                           "CLI is sending less guidance than the app")
+    except SystemExit as exc:
+        out.append(f"a guidance block no longer lifts out of slotSheet.ts: {exc}")
+    except Exception as exc:
+        out.append(f"could not compose the CLI guidance: {exc}")
+    return out
