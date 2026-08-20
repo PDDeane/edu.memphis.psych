@@ -530,6 +530,24 @@ GOLD_DIVERGENCES: list[dict] = [
     # against. Its evidence — that p6 is the same shape and gold credits it, and
     # the three attempts that failed to separate them — moved into the reason there.
     {
+        # MEASURED, and the measurement is what this entry is FOR. The item's own
+        # ACCEPT bullet quoted p19's phrase as an example that "earned full
+        # credit", so the miss looked like an accept-side gap in the criterion.
+        # Defining both antecedent slots from gold — internal states qualify,
+        # refuse only aftermath / do-instead / a 4c consequence — left p19 at 0 of
+        # 3 and cost p16 a run, so it was reverted. The criterion was never the
+        # cause. The DIRECTION was, and the guidance now states that test instead
+        # of quoting the cell.
+        "code": "A_NOT_ANTECEDENT", "cells": [("Q4a", 19)],
+        "why": "gold credits an antecedent that is an AFTERMATH of the UTB. p19's "
+               "UTB is lack of sleep and its first example is \"{{corpus:Q4a/p19:first:23:40:sha=0d6baee4d7af:shape=R17-0-20}}"
+               "{{corpus:Q4a/p19:first:41:58:sha=aa7b7f69f9a9:shape=S0-20}}\", which happens after sleeping too little and "
+               "so cannot precede the behaviour it results from. Both scorers "
+               "refuse it — 0 of 3 here, 0 of 6 in the stored web runs — and the "
+               "refusal is correct on the criterion both sides share, that an "
+               "antecedent happens BEFORE the UTB.",
+    },
+    {
         "code": "A_NO_KEYWORD", "cells": [("Q4a", 9), ("Q4a", 15)],
         "why": "the dictionary requires the word \"antecedent\" or \"trigger\". "
                "p17 lost the point for omitting it; p9 and p15 did not. Applied "
