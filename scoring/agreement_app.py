@@ -639,6 +639,28 @@ CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
     ("2a", 16): [
         ("set", "how1",
          "{{corpus:2a/p16:how1:0:61:sha=4cbf58cc2e12}} exercise."),
+        # how2 kept the label the other two boxes had stripped, so the grader read
+        # "Sentence 3: On the other hand ..." — the student's own scaffolding
+        # served back as their words, and inconsistently, since verdict and how1
+        # start after theirs. Stripped like the others.
+        ("set", "how2",
+         "{{corpus:2a/p16:how2:0:67:sha=0b52b736ef2c:shape=R67-0-20}}"
+         "{{corpus:2a/p16:how2:68:117:sha=f6f8e0f419cb:shape=R22-1-5c7532303139}} exercise."),
+    ],
+    # 2a/p20. how1 began ", {{corpus:2a/p20:how1:39:77:sha=781132f0280c}} ..." — a
+    # comma-initial adjunct cut out of the verdict's own sentence, which is not a
+    # clause and cannot be judged as an explanation on its own. The response is
+    # two sentences and gold gives it 6.0, so both hows come from them; how1 now
+    # holds the whole first sentence, which CONTAINS the verdict box's clause.
+    # The item's own guidance licenses exactly that shape — "a verdict that cites
+    # the data as its evidence, followed by one concrete circumstance under which
+    # the plan worked, covers the verdict and both explanations", one of three
+    # shapes it says earned 6/6. verdict is left untouched; the containment is
+    # declared in enforcement.CONSENSUS_OVERLAP_BACKLOG.
+    ("2a", 20): [
+        ("set", "how1",
+         "{{corpus:2a/p20:how1:0:68:sha=9639ba171206:shape=R68-0-20}}"
+         "{{corpus:2a/p20:how1:69:138:sha=3f9a44a79d62}}"),
     ],
     # Q4a/p10. `second` dropped part 2's closing clause ("{{corpus:Q4a/p10:second:117:146:sha=ee9ee342783a}}
     # the day ..."). A numbered part keeps all of its own clauses.
