@@ -542,3 +542,108 @@ the student's words and scoring 95%. On the current fixture nothing is dropped
 in any of the 20 cells ("ASSIGNED TO NO BOX: nothing" everywhere), so the 64%
 belongs to an older reconstruction. The lesson it illustrates still stands; the
 number no longer describes this item.
+
+## 1c: what the fixture audit left behind
+
+One fix, in shared code rather than in a fixture table: `_quoted_span` now
+handles every shape the paper scorer writes an extracted value in, so 1c's
+three label boxes hold the label instead of the scorer's sentence about it.
+Declared in `enforcement.MULTI_BLOCK_DECLARED`. With that, **all 26 items pass
+every fixture check** and none is left undeclared.
+
+### The readout is blind on this item, and that is a hole in the procedure
+
+`--fixture 1c` prints "empty response" for 18 of 20 cells, because 1c is
+answered with a chart and the readout is anchored on the prose segment. So the
+step QUALITY_CONTROL.md §1 calls irreplaceable — read the boxes out one at a
+time — silently does nothing here, and the audit had to be done by printing the
+eight boxes against the chart instead. 1a and 1b have the same shape and were
+declared on PROVENANCE for the same reason.
+
+Worth fixing in `fixture_readout`: when the prose segment is empty but the cell
+HAS boxes, print the boxes with their provenance rather than one line saying
+there is nothing to see. The defect below sat in ten cells of a counted item
+and the readout would not have shown it.
+
+### The scorer's verdict was inside the field the grader is asked to judge
+
+In 10 of 20 cells, `title`/`x`/`y` held the paper scorer's own prose:
+
+    p3/x    "Weeks" appears as a bolded axis title centred beneath the day
+            tick values.
+    p13/y   "Hours of sleep" appears as the rotated axis title to the left of
+            the numeric tick values in image1.png.
+    p6/title  ['Time', ' Spent at Gym Over Four Weeks'] — a typed title naming
+            the student's behaviour and time span, not the default 'Chart
+            Title' placeholder.
+    p17/x   "Days of the Week" (axis title beneath the Sunday–Saturday tick
+            values)
+
+The web grader's question for those slots is whether the student labelled the
+axis. The old text answers it, in the scorer's words, inside the student's
+field — the `cited_participants` failure arriving through the fixture instead
+of the prompt. `_ANNOTATED` only matched `"…" — prose`, so a sentence, a
+parenthetical or a bracketed run-list all passed through whole.
+
+**Re-measure 1c before quoting its rate again, and expect this one to move.**
+Every other repair in this audit series removed something inert; this one
+removed a leak that was HELPING. 1c is 15 of 16 counted over six passes
+(`out/web_v8`, `out/web_v9`, effective gold via `rebuild_gold_1c`), and those
+passes were scored with the scorer's verdict in the field. Now the grader sees
+`Weeks` and must decide for itself. The precedent says the effect is small —
+EQUIVALENCE.md records the first `_quoted_span` change as 8/12 → 7/12, "nothing
+outside noise", kept on correctness grounds — but it is the direction that
+matters here, and it is the harder one.
+
+Related annotation: that same section says of the leak "It is the only
+`from_scorer` item affected — all eight were checked." It was not; 1c's twenty
+boxes were affected the whole time. The check that would have caught it does
+not exist, and the shapes are now enumerated in `_quoted_span`'s docstring.
+
+### p11 is the one counted miss, and the note explaining it away is stale
+
+`handouts.py`'s 1c comment says of p11: "The scorer reads title from the graph
+(not the prose, which is empty), faults x and y exactly as gold does, and
+returns 6.0. Exact match, so there is nothing here to exclude." Six passes
+return **4.0** against an effective gold of 6.0. The extra deduction is
+`legend: absent`, on `"Sunday, Monday, Tuesday, Wednesday, Thursday, Friday,
+Satureday"` — the student labelled their series with day names, and gold
+charged x, y and the missing baseline week without charging the legend.
+
+The conclusion may survive (nothing here needs excluding), but the reason given
+does not, and the cell is a live disagreement on a criterion the note never
+mentions. The fixture is not the cause: `series` comes from `sim` and holds the
+student's literal legend, which is exactly what the box is for.
+
+### p20's exclusion assumes a seeding the fixture does not do
+
+The `unscoreable` entry reads: "a written DESCRIPTION of a graph, which on the
+web IS the answer: the labels are typed into fields and the chart is drawn from
+the four complete weeks". The four weeks are indeed seeded. The labels are not:
+`title`, `x` and `y` are all EMPTY, and p20's whole description — "Title: Sleep
+Duration Over 4 Weeks X-axis label: Days (or Weeks) Y-axis label: Hours of
+Sleep" — is assigned to no box.
+
+So the entry's verdict may be right while its stated mechanism is not
+happening. Two ways to close it, and this audit deliberately picked neither,
+because the choice is a judgement about what the student would have typed into
+three fields:
+
+1. Seed the three labels from p20's own prose, after which the entry's sentence
+   becomes true and the cell tests what the entry says it tests.
+2. Leave the fixture and correct the entry to say the labels are absent, which
+   makes it a different claim about why gold's 0 is unreachable.
+
+p4 and p19 do NOT have this problem: their entries claim only that the DATA
+draws the chart, and their data is seeded with their labels empty, which is
+what the fixture does.
+
+### Confirmed, not changed
+
+p15 and p18's empty boxes are right — gold "did not include", and p15's two
+present weeks are its own partial data. p9's response is OCR'd chart furniture
+(tick values and day names, duplicated), so 217 characters belong to no box and
+should not; its `title` box holds the real title. p12's `series` of "Series1,
+Series2" is the spreadsheet default the student left in place, which is why
+gold charges the legend. p2, p10 and p11's titles are plain text and were left
+untouched by the extractor, as intended.

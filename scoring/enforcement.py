@@ -1430,6 +1430,21 @@ MULTI_BLOCK_DECLARED: dict[str, str] = {
           "correct — p9 never mentions realistic",
     "Q4b": "three boxes: the modify statement and two examples. p7 read out and "
            "assigned; the rest carry no findings",
+    "1c": "eight boxes and not one of them a quotation, which is why the "
+          "box-by-box readout is BLIND here: 18 of 20 cells have no prose at "
+          "all, so `--fixture 1c` prints \"empty response\" and shows nothing. "
+          "Audited by reading the eight boxes against the chart instead. Four "
+          "come from `sim` (the four weeks of data) plus `series`, all parsed "
+          "values; three — title/x/y — are read off the GRAPH by the paper "
+          "scorer. Those three were the defect: in 10 of 20 cells they held the "
+          "scorer\'s own sentence about the label (\"Weeks\" appears as a bolded "
+          "axis title centred beneath the day tick values.) or its extracted "
+          "text RUNS ([\'Time\', \' Spent at Gym Over Four Weeks\']) instead of "
+          "the label. Fixed in `_quoted_span`, not per cell, and verified "
+          "against the served fixtures of all 26 items: exactly 20 boxes move, "
+          "all of them 1c\'s. p15 and p18 are empty by right (gold \"did not "
+          "include\"), and p11\'s day-name `series` is the student\'s own "
+          "legend",
     "3": "two boxes, one proposed change each, and the count is judged over the "
          "whole response, so an empty `second` costs nothing by itself. All 20 "
          "read out; five repaired (p4, p6, p9, p16, p19), all one defect — "

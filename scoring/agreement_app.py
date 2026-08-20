@@ -416,19 +416,72 @@ def detect_utb(path: str, q1: str) -> str:
 SCORER_OUT = str(paths.OUT)
 
 
-_ANNOTATED = re.compile(r'^\s*["“](?P<q>.+?)["”]\s*(?:[—–]|--)\s*\S')
+# The shapes the paper scorer writes an extracted value in. `_ANNOTATED` was the
+# first of them — `"…" — prose` — and matching only that left 1c's three label
+# boxes holding the scorer's own sentences: `"Weeks" appears as a bolded axis
+# title centred beneath the day tick values.` went into the field the web grader
+# is asked to judge, verdict and all. Twenty boxes across ten cells, and the
+# note in EQUIVALENCE.md saying Q6 "is the only `from_scorer` item affected" was
+# wrong about that.
+_ANNOTATED = re.compile(r'^\s*["“](?P<q>[^"”]*)["”]')
+_RUN_LIST = re.compile(r"^\s*\[(?P<inner>[^\]]*)\]")
+_RUN = re.compile(r"""('[^']*'|"[^"]*")""")
+_RUN_SQ = re.compile(r"^\s*'(?P<q>[^']*)'")
 
 
 def _quoted_span(ev: str) -> str:
     """A quote the scorer annotated, reduced to the quote.
 
-    Matches only `"…" — prose`: an em/en dash AFTER a closing quote mark. A
-    hyphen inside the student's own words, or a dash with no quotes around the
-    span, is left alone — the aim is to drop the scorer's commentary, not to
+    Four shapes, all of them seen in `out/h3`'s 1c records:
+
+      "Label" — prose            the original case
+      "Label" appears as ...     a sentence, no dash
+      "Label" (where it sits)    a parenthetical
+      ['A', ' B'] — prose        the chart's text RUNS, as extracted
+      'A', ' B'                  the same runs without the brackets
+
+    The runs are joined, not comma-separated: `['Time', ' Spent at Gym Over Four
+    Weeks']` is one title the spreadsheet split in two, and the student typed
+    "Time Spent at Gym Over Four Weeks".
+
+    Only the FIRST double-quoted run is taken, because the scorer's commentary
+    quotes things too — p1's title annotation ends "not the default \"Chart
+    Title\" placeholder", and joining every run would hand the student a title
+    they did not write. A value that does not START with a quote or a bracket is
+    returned untouched: the aim is to drop the scorer's commentary, not to
     reformat what the student wrote.
+
+    Measured against the served fixtures of all 26 items before landing: exactly
+    the 20 boxes of 1c move, and nothing else in the corpus does. Q6's two
+    annotated evidence strings do NOT move, because its boxes come from the
+    frozen consensus rather than from this path.
     """
-    m = _ANNOTATED.match(ev or "")
-    return m.group("q").strip() if m else (ev or "").strip()
+    s = (ev or "").strip()
+    if not s:
+        return ""
+    m = _RUN_LIST.match(s)
+    if m:
+        runs = [r[1:-1] for r in _RUN.findall(m.group("inner"))]
+        if runs:
+            return "".join(runs).strip()
+    if _RUN_SQ.match(s):
+        runs, rest = [], s
+        while True:
+            m2 = _RUN_SQ.match(rest)
+            if not m2:
+                break
+            runs.append(m2.group("q"))
+            rest = rest[m2.end():]
+            m3 = re.match(r"^\s*,\s*(?=')", rest)
+            if not m3:
+                break
+            rest = rest[m3.end():]
+        if runs:
+            return "".join(runs).strip()
+    m4 = _ANNOTATED.match(s)
+    if m4:
+        return m4.group("q").strip()
+    return s
 
 
 def counted_members(handout: int, item: str) -> dict[str, tuple[str, list[str]]]:
