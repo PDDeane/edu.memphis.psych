@@ -637,3 +637,39 @@ should not; its `title` box holds the real title. p12's `series` of "Series1,
 Series2" is the spreadsheet default the student left in place, which is why
 gold charges the legend. p2, p10 and p11's titles are plain text and were left
 untouched by the extractor, as intended.
+
+## The enumerator defect survives in 20 boxes of three declared items
+
+Swept after the six-item audit closed, with a pattern that catches what the
+punctuation-residue survey missed: a box opening `"1) "`, `"2. "`, `"- "` or
+`"Sentence 3: "` starts with an alphanumeric, so nothing above saw it.
+
+| item | boxes | cells |
+| --- | --- | --- |
+| H1/Q4b | 14 | p1, p8, p10, p13, p17, p18, p19, p20 |
+| H1/Q3 | 4 | p6 (all four SMART boxes, `"- "`) |
+| H1/Q6 | 2 | p10 `state_a2`, p18 `state_a1` |
+
+Same defect fixed in 2a/p16, Q4c/p13+p16 and Q5/p1+p16: the student's list
+numbering served back as the opening of their answer, inconsistently, since the
+other cells of each item strip theirs. All three items were declared BEFORE this
+audit pass, which is how they escaped it — a declaration records that the split
+was read, not that every box was normalised.
+
+Two of them are not simple edits, and that is the point of writing them down:
+
+* **Q6's are frozen.** Its fixture comes from the 10-run consensus in
+  `out/q6_consensus`, adopted specifically so the fixture could not move and
+  comparisons stayed valid (`EQUIVALENCE.md:1884`). Two boxes is not worth
+  re-freezing an item whose churn already invalidated two published
+  comparisons; note it against the next re-freeze instead.
+* **Q4b's are hand-authored.** `handsplit/Q4b.json` is read by hand, so its
+  fourteen are typed in, not extracted — the fix is in that file and touches
+  more cells than any other item here.
+
+Q3/p6 is the only cheap one, and its four bullets are the same cell the residue
+survey already lists.
+
+None of this is measurably costing a point. It is the same faithfulness argument
+as the other three items: scaffolding is not the student's words, and serving
+one cell's numbering and not another's makes the boxes inconsistent inputs.
