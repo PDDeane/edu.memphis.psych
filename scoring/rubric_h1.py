@@ -91,10 +91,16 @@ ITEMS: list[dict] = [
                         "Judge ONLY the response text the student wrote. Where the UTB "
                         "also appears in this prompt as a separate field or context "
                         "line, that does NOT satisfy this check — the question is "
-                        "whether the RESPONSE names the behaviour as its target. A "
-                        "response that opens straight into effects (\"{{corpus:Q1/p20:response:0:11:sha=4b138919e041:shape=R11-0-20}}"
-                        "{{corpus:Q1/p20:response:12:36:sha=5d2f3521dd7e}} tired...\") fails; a sentence of "
-                        "the form \"{{corpus:Q1/p3:response:0:30:sha=c5fd6758ccc7}} X\" satisfies it"
+                        "whether the RESPONSE names the behaviour as its target. "
+                        "The test is OWNERSHIP, not first-person pronouns, and "
+                        "it can be satisfied anywhere in the response: naming the "
+                        "behaviour as theirs (\"{{corpus:Q1/p3:response:0:30:sha=c5fd6758ccc7}} "
+                        "X\"), choosing it (\"I chose X\"), or saying what they "
+                        "want instead of it. A clause that says only what the "
+                        "behaviour DOES TO them — it makes them tired, it leaves "
+                        "them behind — is an EFFECT and is not ownership, however "
+                        "many times \"me\" appears in it. A response built "
+                        "entirely of such clauses is `absent`"
             },
             # Q1 HAS NO GOLD CEILING. It had an entry in handouts.GOLD_CEILINGS
             # claiming `reasons_given` was unwinnable on p6 and p10 "for every model
@@ -558,7 +564,24 @@ ITEMS: list[dict] = [
                 "pts": 1.0,
                 "verdicts": ["met", "absent", "unclear"],
                 "codes": {"absent": "ACTION_MISSING", "unclear": "ACTION_MISSING"},
-                "desc": "States the action to be taken",
+                # IMPLICIT (from gold). "States the action to be taken" on its own
+                # left this slot nearly inverted — refused on two cells gold
+                # credits and credited on the one gold charges. Gold's own test is
+                # in its comment: "what do you have to actively do to achieve your
+                # goal?" It accepts an enabling CIRCUMSTANCE as readily as an
+                # activity, and refuses a response that grounds actionability in
+                # another SMART letter instead of in any doing.
+                "desc": "Names something the student will DO, or a concrete "
+                        "circumstance that lets them do it — an activity "
+                        "(\"prepare them in advance\", \"{{corpus:Q3/p1:action:94:117:sha=bcf71ab4d6d1:shape=R23-0-20}}"
+                        "{{corpus:Q3/p1:action:118:124:sha=7f84f6023994}} 9:00\"), or access, equipment, or time they "
+                        "already have. Be generous: a plain statement of what "
+                        "they will physically perform counts, and so does naming "
+                        "what makes it possible. What FAILS is a response that "
+                        "justifies actionability by another letter of SMART — "
+                        "\"it is actionable because it is measurable\" — and "
+                        "names no doing of its own, or that only re-labels the "
+                        "goal as actionable without saying what is done",
             },
             {
                 "what": "realistic",
@@ -572,7 +595,18 @@ ITEMS: list[dict] = [
                 "pts": 1.0,
                 "verdicts": ["met", "absent", "unclear"],
                 "codes": {"absent": "TIME_BOUND_WRONG", "unclear": "TIME_BOUND_WRONG"},
-                "desc": "Has a time frame for the goal",
+                # IMPLICIT (from gold). The guidance's "near-verbatim expected
+                # answer" was read as requiring the canonical phrasing, and cost
+                # the point on a response that gave the split in the REVERSE order
+                # and on one that gave the total with no split at all — both of
+                # which gold credits. The only duration gold charges is one that
+                # does not total four weeks.
+                "desc": "FOUR WEEKS TOTAL is the test. One week of baseline {{corpus:Q3/p13:timebound:119:122:sha=6201111b83a0:shape=R3-0-20}}"
+                        "{{corpus:Q3/p13:timebound:123:144:sha=b2b91b2b065f}} is how most students phrase it, "
+                        "and any wording that comes to four weeks satisfies this "
+                        "check — the two halves in either order, or a bare \"four "
+                        "weeks\" with no split named. A duration that does not "
+                        "total four weeks loses the point, whatever else it says",
             },
         ],
         "deductions": [
@@ -641,14 +675,45 @@ ITEMS: list[dict] = [
                 "pts": 2.0,
                 "verdicts": ["met", "absent", "not_antecedent"],
                 "codes": {"absent": "A_ONLY_ONE", "not_antecedent": "A_NOT_ANTECEDENT"},
-                "desc": "First valid antecedent",
+                # IMPLICIT (from gold). "First valid antecedent" said nothing
+                # about what makes one valid, and the observed failure is
+                # over-refusal of a STATE OF MIND: gold gives full credit to
+                # "{{corpus:Q4a/p19:first:23:58:sha=ca9d4ea70d5d:shape=S4-20}}" and we answered
+                # `not_antecedent` on it in 6 of 6 passes. The accept side lived
+                # only in `guidance`, forty lines from the slot that applies it.
+                "desc": "A circumstance or state of mind that comes BEFORE the "
+                        "unwanted behaviour and plausibly leads to it. Accept "
+                        "generously and do not require a causal chain: "
+                        "plausible precedence is enough, and an INTERNAL STATE "
+                        "qualifies as readily as an external event — how the "
+                        "student feels, what they believe about the behaviour, or "
+                        "what they lack at that moment is an antecedent if the "
+                        "reader can see how it leads there. Refuse only what "
+                        "cannot precede "
+                        "the behaviour: an AFTERMATH of it, phrased as happening "
+                        "afterwards or as its result; what the student does "
+                        "INSTEAD of the goal behaviour, which belongs to 4b; or "
+                        "a consequence already listed in 4c",
             },
             {
                 "what": "antecedent_2",
                 "pts": 2.0,
                 "verdicts": ["met", "absent", "not_antecedent"],
                 "codes": {"absent": "A_ONLY_ONE", "not_antecedent": "A_NOT_ANTECEDENT"},
-                "desc": "Second valid antecedent",
+                # Same test as `antecedent_1`; see the note there.
+                "desc": "A circumstance or state of mind that comes BEFORE the "
+                        "unwanted behaviour and plausibly leads to it. Accept "
+                        "generously and do not require a causal chain: "
+                        "plausible precedence is enough, and an INTERNAL STATE "
+                        "qualifies as readily as an external event — how the "
+                        "student feels, what they believe about the behaviour, or "
+                        "what they lack at that moment is an antecedent if the "
+                        "reader can see how it leads there. Refuse only what "
+                        "cannot precede "
+                        "the behaviour: an AFTERMATH of it, phrased as happening "
+                        "afterwards or as its result; what the student does "
+                        "INSTEAD of the goal behaviour, which belongs to 4b; or "
+                        "a consequence already listed in 4c",
             },
             {
                 "what": "keyword",
