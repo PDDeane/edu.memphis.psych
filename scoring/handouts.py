@@ -451,11 +451,35 @@ HANDOUTS: dict[int, dict] = {
         # See handout 1's entry. 1c is also the item that cannot be scored at all
         # by a backend without image tools — a separate problem, declared in
         # BACKEND_DEVIATIONS below.
-        "cited_participants": {
-            "1a": [1, 6, 15],
-            "1c": [4, 8, 20],
-            "2a": [1, 14],
-        },
+        # Empty, and measured empty. All eight of handout 3's registrations were
+        # tested the way handout 1's 25 were: rewrite the citation as a rule, sweep
+        # the item three times, compare the cited cell against its own cited
+        # baseline. Not one survived, though two failed for a reason handout 1
+        # never produced.
+        #
+        # 1a  p1  3/3 cited, and 6/6 uncited when probed with two controls that
+        #         both held 6/6 — the 2/3 in the sweep was noise, not a loss.
+        #     p15 3/3 -> 3/3. Unnecessary.
+        #     p6  0/3 -> 0/3. Wrong with its own verdict in the prompt and wrong
+        #         without it; the exclusion was buying a flattering denominator and
+        #         nothing else. Counts as a miss now.
+        # 1c  p8  2/3 -> 2/3, unchanged. An unchanged cell needs no probe: the
+        #         comparison IS the answer.
+        #     p4, p20  gold withdrawn by rebuild_gold_1c, so they leave the
+        #         denominator on their own and never needed a citation to do it.
+        # 2a  p1  1/3 -> 0/3 and p14 2/3 -> 0/3. These are the first two cells in
+        #         33 tests whose citation was genuinely load-bearing — and they
+        #         still go, because a citation that lifts a cell from wrong to
+        #         wrong-slightly-less-often is measuring recall of an answer key,
+        #         which is the whole reason this registry exists. Both count as
+        #         misses. That makes 2a's known error shape (+2.0 for a second
+        #         `how` gold withheld) visible in its rate instead of hidden
+        #         behind two absent cells.
+        #
+        # Handout 3 counted cells: 51 of 60 -> 57 of 60. What is left out is only
+        # 1c's p4, p19 and p20, all excluded on grounds that have nothing to do
+        # with citations.
+        "cited_participants": {},
     },
 }
 

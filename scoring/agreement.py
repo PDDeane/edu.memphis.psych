@@ -1799,6 +1799,13 @@ def main() -> int:
                   f"p18 are kept: their data is incomplete and the gate does fire)",
                   file=sys.stderr)
     if args.out:
+        # After the scoring, not before it: sixty calls had already been spent
+        # when the write raised FileNotFoundError on a directory that did not
+        # exist, and only the log's per-cell lines made the run recoverable.
+        # A run's artifact should not depend on someone having run mkdir.
+        import os as _os
+        _dir = _os.path.dirname(_os.path.abspath(args.out))
+        _os.makedirs(_dir, exist_ok=True)
         with open(args.out, "w") as fh:
             json.dump({"handout": args.handout, "results": results,
                        "failures": [(p, i, str(e)) for p, i, e in failures]}, fh, indent=2)

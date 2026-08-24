@@ -993,9 +993,10 @@ SLOT_NOTES = {
     "1a:distinguishes_periods":
         "the NO_WEEKLY_BREAKDOWN test: does the answer distinguish any time periods at "
         "all? A single AGGREGATE verdict over the whole span does not, even when it "
-        "mentions weeks — \"the data I collected for the last three weeks shows that my "
-        "plan was able to work\" and \"over the four week period shows an overall lack of "
-        "change\" both scored 0. What distinguishes periods is reporting more than one "
+        "mentions weeks — \"my three weeks of tracking prove the plan worked\" and "
+        "\"looking at the whole month, nothing really changed\" both score 0: each "
+        "delivers ONE verdict covering the entire span. What distinguishes periods is "
+        "reporting more than one "
         "point in time separately, so that a reader can see the behaviour CHANGE",
     # The four period slots. Written out because the observed failure is not the one
     # the guidance anticipated: it warns against requiring one sentence per week, but
@@ -1008,8 +1009,9 @@ SLOT_NOTES = {
         "intervention? A sentence that looks back before the plan began and gives "
         "the rate the behaviour ran at then is `met`; so is any pre-intervention "
         "figure or description. `absent` when the answer opens at the intervention and "
-        "never says what came before — p6 began \"During the first week of my data "
-        "collection intervention\" and lost exactly this slot and no other",
+        "never says what came before: an answer beginning \"in the first week of my "
+        "plan I was still up past midnight most nights\" starts the clock at the "
+        "intervention, and loses exactly this slot and no other",
     "1a:week_1":
         "does the answer's account of change COVER this stretch of the intervention? "
         "Judge the arc, not the label. Naming some weeks does NOT make the unnamed ones "
@@ -1026,10 +1028,12 @@ SLOT_NOTES = {
     "1a:week_2":
         "same question for the middle stretch — and the same rule: a week the answer "
         "does not name by number is still covered if the account of change runs through "
-        "it. p14 named only \"Week One and Week Three\" and gold still credited all four",
+        "it. An answer that names only its first and last weeks by number, but "
+        "describes a change carrying continuously from one to the other, covers the "
+        "middle week too, and gold credits all four slots",
     "1a:week_3":
-        "same question for the final stretch, same rule. \"By the time the last week of "
-        "my data collection intervention came upon\" covers it without a number",
+        "same question for the final stretch, same rule. \"By the end of the month I "
+        "was down to about one\" covers it without naming a week",
     # These four answer TWO things, in two fields. The verdict says whether an
     # antecedent (or consequence) is named at all; `refers_to` says WHICH of the
     # earlier item's two it is. They used to share one field, which is why the
@@ -2020,6 +2024,46 @@ def _measurements_in_flight() -> list[str]:
     return busy
 
 
+_SECTION_RE = re.compile(r'<Vertical id="[^"]*" title="([^"]*)"')
+
+
+def _changed_sections(old: str, new: str) -> list[str]:
+    """Which handout sections does this regeneration change the text of?
+
+    The in-flight guard above stops a write from CORRUPTING a run. This answers
+    the question that comes after it: the write succeeded, so which items are now
+    unmeasured? A prompt edit is not finished until its item has been swept and
+    compared, and the one thing that reliably goes wrong is sweeping from memory —
+    editing four SLOT_NOTES entries, remembering three, and reporting a baseline
+    for an item whose prose moved underneath it.
+
+    So attribute every changed line to the nearest enclosing <Vertical> title and
+    report those. Titles rather than agreement item keys, deliberately: the keys
+    differ per handout (Q1..Q6, S1..S10, 1a/1c/2a) and the mapping is another copy
+    that can drift, whereas the title is read straight out of the text that
+    changed and is unambiguous to the person who has to run the sweep.
+    """
+    def sections(text: str) -> list[str]:
+        here, out = "(preamble)", []
+        for line in text.splitlines():
+            m = _SECTION_RE.search(line)
+            if m:
+                here = m.group(1)
+            out.append(here)
+        return out
+
+    a_sec, b_sec = sections(old), sections(new)
+    hit: list[str] = []
+    sm = difflib.SequenceMatcher(None, old.splitlines(), new.splitlines())
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        if tag == "equal":
+            continue
+        for s in a_sec[i1:i2] + b_sec[j1:j2]:
+            if s not in hit:
+                hit.append(s)
+    return hit
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--print", dest="show", choices=sorted(ACTION),
@@ -2100,9 +2144,15 @@ def main() -> int:
                 old.splitlines(True), new.splitlines(True),
                 fromfile=f"h{h} current", tofile=f"h{h} generated"))
         if a.write:
+            touched = _changed_sections(old, new)
             with open(OLX % h, "w") as fh:
                 fh.write(new)
             print(f"H{h}: rewritten", file=sys.stderr)
+            if touched:
+                print(f"H{h}: UNMEASURED — prompt text changed under "
+                      + "; ".join(touched), file=sys.stderr)
+                print(f"H{h}: sweep those items and compare numerators against "
+                      f"the last baseline BEFORE committing", file=sys.stderr)
         elif a.check:
             print(f"H{h}: OUT OF DATE — run olx_prompts.py --write", file=sys.stderr)
     return rc if a.check else 0
