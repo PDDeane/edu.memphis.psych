@@ -2493,7 +2493,8 @@ every attempt that skipped a step cost cells.
 **Rank items by percent correct with exclusions INCLUDED in the denominator, and
 start with the worst.** An item that excludes half its cells and still misses
 half of what remains is not a good item with awkward cases; it is an item whose
-number is being protected. Q6 excludes 10 of 20 and reads 6/10 on the rest.
+number is being protected. Q6 once excluded 10 of 20 and read 6/10 on the rest;
+it now excludes none and records 18/20, which is what makes the ranking honest.
 
 **1. Remove exclusions the item gets wrong anyway.** A cell is excluded because
 the prompt cites the participant and states the grader's decision, which makes
