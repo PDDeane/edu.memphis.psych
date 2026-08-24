@@ -530,6 +530,22 @@ GOLD_DIVERGENCES: list[dict] = [
     # against. Its evidence — that p6 is the same shape and gold credits it, and
     # the three attempts that failed to separate them — moved into the reason there.
     {
+        # MEASURED, and this is the guide's "which cells does it RESCUE" question
+        # answered with numbers. `behavior_*`'s test (5) — naming a failure to act
+        # is not naming a substitute — fires on three cells. It RESCUES p7 and p8,
+        # both right 3 of 3, where gold also refuses the not-doing entry. It COSTS
+        # p12 alone. Removing it would be a net -1, so it earns its place and
+        # p12's miss is gold's leniency rather than our defect.
+        "code": "B_NOT_ACTIVE", "cells": [("Q4b", 12)],
+        "why": "gold credits a not-doing as an active behaviour. p12's second "
+               "entry is \"I skip adding fruits or vegetables to my meals even "
+               "when they are available and let them sit in the refrigerator "
+               "until they go bad\" — it names no activity that displaced the "
+               "goal, which is what the question asks for, and `behavior_*`'s "
+               "fifth test refuses it in terms. Gold gives 5.0; we give 3.5, 0 of "
+               "3. The test that refuses it rescues p7 and p8, so it stays.",
+    },
+    {
         # MEASURED, and the measurement is what this entry is FOR. The item's own
         # ACCEPT bullet quoted p19's phrase as an example that "earned full
         # credit", so the miss looked like an accept-side gap in the criterion.
@@ -624,29 +640,6 @@ def gold_divergence_cells() -> dict[tuple[str, int], str]:
 # does not reconcile with its own itemised comment. Nothing computes that away,
 # so it remains a real ceiling.
 GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
-    ("1", "Q3"): (
-        "`action_oriented`: gold credits an AVAILABILITY statement on some cells "
-        "and refuses one on another, and the two are the same kind of claim. It "
-        "credits \"I am able to go the gym or walk around campus\" (p10) and "
-        "\"my early mornings are free and my gym is near my house\" (p14), and "
-        "refuses \"I have a lot of time on my hands to exercise multiple times a "
-        "week\" (p16, \"-1 pt: For action, what do you have to actively do\"). "
-        "Whichever way the rule is set, p10 or p16 is wrong. "
-        "MEASURED: defining the slot from gold's own decisions — an activity or a "
-        "concrete enabling circumstance counts, grounding actionability in "
-        "another SMART letter does not — took p14 and p18 from 0-1 of 3 to 3 of "
-        "3 and left p16 credited, which is the direction that keeps four cells "
-        "right and one wrong rather than the reverse. "
-        "p19 is NOT part of this ceiling and is a live target: it grounds "
-        "actionability in measurability but names the goal behaviour itself as "
-        "the doing (\"can be tracked by going to sleep and waking up at the same "
-        "time\"), so the grader finds an action and credits it, 0 of 3. A clause "
-        "saying that the goal RESTATED is not the action would separate it — the "
-        "same \"you cannot do something instead of itself\" logic Q4b's "
-        "`behavior_*` rule already carries — with p13's \"I can take my "
-        "medication before I go to bed\" as the control that must keep its "
-        "credit. Untried.",
-    ),
     ("1", "Q6"): (
         "`change_a1`/`change_a2`: whether a stated action actually CHANGES the "
         "antecedent it is paired with, rather than improving the goal behaviour, "
@@ -762,7 +755,38 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "gets at most 3 of those 5, so >=2 cells are unwinnable and 18/20 is the "
         "ceiling. Measured: the other four SMART slots are 0-2 errors each, this "
         "one is 4-5, and a 'labelled Action section' rule matches gold on only "
-        "12/20 — worse than the models manage without it.",
+        "12/20 — worse than the models manage without it. "
+        "MEASURED AGAIN 2026-08-23, and the ceiling holds with the cells "
+        "redistributed. Defining the slot from gold's own decisions — an activity "
+        "or a concrete enabling circumstance counts, grounding actionability in "
+        "another SMART letter does not — took p14 and p18 from 0-1 of 3 to 3 of 3 "
+        "and left p16 credited, which is the direction that keeps four cells "
+        "right and one wrong rather than the reverse. p19 is the one cell in this "
+        "family that is NOT part of the ceiling: it grounds actionability in "
+        "measurability while naming the goal behaviour itself as the doing, so "
+        "the grader finds an action and credits it, 0 of 3. A clause saying that "
+        "the goal RESTATED is not the action would separate it — the same \"you "
+        "cannot do something instead of itself\" logic Q4b's `behavior_*` rule "
+        "carries — with p13's \"I can take my medication before I go to bed\" as "
+        "the control that must keep its credit. Untried.",
+    ),
+    ("1", "Q4b"): (
+        "gold charges a criterion this rubric does not carry — \"your behaviors "
+        "cannot be the same as your antecedents\" — and applies it to some cells "
+        "exhibiting that relation and not to others. p4 is charged the full -3 "
+        "(two refusals) for behaviours that ARE its own 4a antecedents with the "
+        "two swapped: 4a gives \"having grumpy emotions\" and \"scrolling "
+        "through tiktok\", 4b gives \"scrolling on tiktok instead\" and "
+        "\"becoming grumpy\". We credit the first and refuse the second, 3.5 "
+        "against gold's 2.0, 0 of 3. "
+        "SWEPT rather than probed, because a rule keyed on a relation BETWEEN two "
+        "items' boxes can fire on any cell exhibiting it: overlap between a "
+        "cell's 4b behaviours and its own 4a antecedents appears in 13 of the 20 "
+        "cells, and gold gives FULL CREDIT to four of them (p1, p12, p15, p17). "
+        "A duplication test would therefore have to separate same-REFERENT from "
+        "same-topic, the relational judgement Q6's `refers_to` resisted across "
+        "seven measured attempts. Charged on p2 and p4, ignored on four others: "
+        "whichever way the rule is set, a cell is wrong.",
     ),
     ("2", "DAY2"): (
         "p7's gold is 1.00 while its comment itemises only \"-1 pt\", which implies "
