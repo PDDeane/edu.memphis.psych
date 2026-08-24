@@ -1118,3 +1118,71 @@ WK1 does not have, which is why it broke p1.
 That leaves the likeliest account of WK1's zero as a VERDICT CARRIED ACROSS a run
 of three cells for one student — a claim about gold's process, not about the
 answer. Which is what a divergence is for, and what no rule should chase.
+
+### WK1/p8 IS reachable: the consequence needs someone to deliver it
+
+Recorded after a false negative of my own making. I first concluded no gate could
+match gold here, on the grounds that WK1/p5 scores 4 while stating "no
+contingency at all" — and that was an artifact of reading only the FIRST LINE of
+each response. p5 has two sentences, and the second is a textbook weekly NR
+contingency: "{{corpus:WK1/p5:wk1:62:164:sha=bcb2f8e5c91b:shape=S5-20,S13-0a}}" p5 is correctly scored by everyone, and
+proves nothing about gates.
+
+Read in full, WK1's countable cells separate perfectly on one feature — whether
+the answer names SOMEONE WHO DELIVERS the consequence:
+
+    gold 4   p1  "{{corpus:WK1/p1:wk1:49:87:sha=8d68ef1ac8b9:shape=S5-20}}"
+             p4  "{{corpus:WK1/p4:wk1:56:91:sha=50343f5b996f}}"
+             p5  "{{corpus:WK1/p5:wk1:108:135:sha=deaa7bffadae}} one chore"
+             p9  "{{corpus:WK1/p9:wk1:46:83:sha=441a5dbfab7f}}"
+             p11 "{{corpus:PR/p11:pr:22:49:sha=44f5be7c8687}} alo set"
+             p12 "{{corpus:WK1/p12:wk1:51:87:sha=1601ce28c9c1}} day"
+             p14 "{{corpus:WK1/p14:wk1:86:132:sha=364885d56dfc}} nice"
+
+    gold 0   p6  "{{corpus:WK1/p6:wk1:0:50:sha=465f4decda26}} pops..."
+                 — a substitution; nobody delivers anything
+             p8  "{{corpus:WK1/p8:wk1:107:136:sha=8740f4342e10}} stacking"
+                 — no agent; the tally grows by itself
+             p13 "{{corpus:WK1/p13:wk1:0:51:sha=848ae9e56f72}}"
+                 — a plan; nothing is delivered contingently
+
+Seven of seven credited, three of three zeroed. The rule is not grammatical
+pedantry: it is TEST 2's "judge the DELIVERY, not the wording" turned into a
+positive requirement, and it says an accumulating tally is not a delivered
+consequence any more than a substitution or a plan is.
+
+The lesson about method, which is the more expensive one: a one-line extraction
+of a multi-line response produced a confident argument that gold was
+unreproducible, and I committed to it in conversation before checking. The
+fixture readout prints every line for a reason. `sed -n '7p'` is not reading a
+response.
+
+Measured, and it failed for a reason worth knowing: **the gate never answered a
+confident `absent` on any cell.** It answered `unclear`, and a gating slot
+treats anything other than satisfied as a failure, so `unclear` zeroes the item.
+
+    p8   gold 0, was 0/3   ->  2/3   verdicts met, unclear, unclear
+    p11  gold 4, was 3/3   ->  1/3   verdicts unclear, unclear, met
+
+Both cells came back uncertain twice out of three, and the median rose only
+because p8's coin landed better than p11's. The model cannot reliably separate
+"{{corpus:WK1/p8:wk1:107:136:sha=8740f4342e10}} stacking" (no agent) from "{{corpus:PR/p11:pr:22:49:sha=44f5be7c8687:shape=S6-0a}} alo set" (an agent, but modal and passive-ish), which is the distinction the
+paper reading rests on. Reverted.
+
+**The design trap, which generalises past this item.** Writing a slot as
+`!key:Label:unclear` makes `unclear` GATE — the third field lists the extra
+verdict, and the engine satisfies only the first. So a gate fires on the model's
+UNCERTAINTY as well as on its judgement, and a criterion the model finds hard to
+call becomes a 4-point coin flip on every cell. That is the opposite of what a
+gate is for: gates belong on judgements the model makes crisply. Before gating a
+new slot, check the verdict DISTRIBUTION on a sweep — if `unclear` appears at
+all, the slot is not gate material. WK2's `aimed_correctly` has the same
+exposure; it answered `unclear` on three cells, all of them gold 0, so it costs
+nothing there today, but the same coin is in it.
+
+**Where this leaves WK1/p8, after seven attempts.** The separation on paper is
+real: read in full, the item's gold-4 cells all name someone who delivers the
+consequence and its gold-0 cells do not. What is not available is a way for the
+model to apply that test reliably enough to gate on. So the divergence stands —
+now for a stated reason rather than for want of a hypothesis: the rule is
+identifiable but not operationalisable at this model's precision.
