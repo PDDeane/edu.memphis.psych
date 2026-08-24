@@ -162,6 +162,12 @@ def build_schema(item: dict) -> dict:
             # — punishing the goal behaviour — passes every check on the sheet.
             if item.get("id") == "WK2":
                 props["aimed_correctly"] = {"type": "boolean"}
+            # WK1 only, and asked as a PARSE rather than a judgement — see the
+            # guidance in rubric_h2. Two earlier versions asked "is a consequence
+            # delivered?" and the model answered inconsistently on the two cells
+            # that matter; the cue it can actually apply is syntactic.
+            if item.get("id") == "WK1":
+                props["agent_delivers_consequence"] = {"type": "boolean"}
             # The item's fourth point. rubric_h2 has carried this slot and its
             # LINK_NOT_ASSERTED deduction for a while, but nothing here asked for
             # it, so on the paper-scorer path it was inert: 0 of 80 cadence cells
@@ -534,6 +540,15 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
                 add("NOT_OC", "The consequence is pointed the wrong way: an "
                               "aversive for meeting the goal, or a reward for "
                               "missing it.")
+                return ledger, checks, unknown, advisory
+
+        if item.get("id") == "WK1":
+            agentive = a.get("agent_delivers_consequence", True)
+            checks.append({"what": "agent_delivers_consequence",
+                           "met": bool(agentive), "evidence": ""})
+            if not agentive:
+                add("NOT_OC", "No one is named as adding or removing anything: "
+                              "the consequence clause has no agent.")
                 return ledger, checks, unknown, advisory
 
         asserted = a.get("consequence_asserted", True)

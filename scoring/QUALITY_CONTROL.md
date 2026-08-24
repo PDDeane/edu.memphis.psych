@@ -372,6 +372,41 @@ experiment.
 whose answer the change must NOT alter. Controls caught what totals hid, twice:
 a rule that looked clean on its targets had broken a cell no error list named.
 
+**Ask the grader for a PARSE, not a judgement.** This is the difference between
+a rule that works and the same rule that wobbles, and it cost eight attempts on
+one cell to find.
+
+A question about the PLAN invites the model to weigh the whole answer: "is a
+consequence delivered?", "does this target the student's own behaviour?", "is
+this really operant conditioning?". On easy cells it agrees with you; on the
+cells that matter it returns different verdicts run to run, because the question
+has no procedure in it. A question about the SENTENCE has one: "find the clause
+that states the consequence; is a person in its subject position, and does its
+verb say that person brings the thing about or takes it away?" That is a parse,
+and parses do not wobble.
+
+Measured on WK1/p8. Four semantic framings failed, including a well-formed
+binary gate that still flipped the two decisive cells — the target read
+delivered two times in three, and a correct neighbour read undelivered one time
+in three. The same criterion asked syntactically put the target at 6 of 6 and
+the neighbour at 6 of 6, both correct, controls holding, and the item went 15/18
+to 17/18. Nothing about the criterion changed; only what the model was asked to
+look at.
+
+Two corollaries worth the words:
+
+- **A closed list in a rule is a boundary you are promising to defend.** The
+  first syntactic version listed transfer verbs — give, buy, treat, withhold —
+  and so excluded "I will stay up an extra hour on Friday", a student granting
+  themselves a privilege, putting a correct cell at 3 of 6. The case had been
+  noticed on paper, marked "marginal", and waved through. Widening from "is the
+  verb on this list" to "does a person make the thing happen or stop happening"
+  fixed it at 6 of 6. Prefer the criterion the list was approximating.
+- **Give a gate no hedge.** `!key:Label:unclear` ADDS `unclear` to `met`/`absent`,
+  and a gate fails on anything but satisfied — so the hedge becomes a 4-point
+  coin flip on every cell. Omit the segment for a binary gate. Removing the hedge
+  is necessary and not sufficient: it was the reframing that fixed the judgement.
+
 **Sweep, don't probe, for rules keyed on relations between boxes.** Such a rule
 can fire on any cell exhibiting the relation, so the affected set cannot be
 predicted from where the errors are.

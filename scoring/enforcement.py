@@ -54,6 +54,8 @@ _PASS = {
     "consequence_asserted": True,
     # WK2 only: the consequence points the right way for the type chosen.
     "aimed_correctly": True,
+    # WK1 only: the consequence clause has an agent subject and a transfer verb.
+    "agent_delivers_consequence": True,
 }
 _FAIL = {
     "behavior": "",
@@ -69,6 +71,8 @@ _FAIL = {
     # WK2 only, and it GATES there — an aversive delivered for meeting the goal.
     # False is the failing value, and on that item it takes the whole 4.
     "aimed_correctly": False,
+    # WK1 only, and it GATES — no agent, or no verb of giving or taking.
+    "agent_delivers_consequence": False,
 }
 # The two type fields are handled separately: their failing value depends on the
 # other one, and a naive flip can make them agree again.

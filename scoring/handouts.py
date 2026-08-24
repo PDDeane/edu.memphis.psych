@@ -848,65 +848,30 @@ GOLD_DIVERGENCES: list[dict] = [
                "immediate results\" — is the state-of-mind case the item's own "
                "guidance says to accept. Credited in five runs of five.",
     },
-    {
-        # Was AVOIDANCE_FRAMING over DAY1, WK1 and WK2 until 2026-08-24. Renamed
-        # and narrowed after reading all four of p8's cadence answers against
-        # gold, because the old rationale — contingencies "stated by what is
-        # AVOIDED" — described ONE of its three cells and was quoting DAY1 while
-        # speaking for all of them.
-        #
-        # WK1 is not avoidance-framed: "for every day I do not attend the gym the
-        # 30 pushups will just keep stacking" states the added aversive directly.
-        # WK2 was removed outright — see the note below it — because gold is RIGHT
-        # there and we are wrong, which is not a disagreement to declare.
-        #
-        # What DAY1 and WK1 actually share, and what this entry now says: the
-        # student names the added aversive and ties it to failing the goal, and
-        # gold answers "This is not an example of operant conditioning. For PP,
-        # you should state what undesirable thing will you add if you do not meet
-        # your daily/weekly goal" — asking for the thing the sentence already
-        # contains. The control that makes this OUR reading rather than a guess is
-        # p8's own PP item, which scored the FULL 4 on the same plan stated
-        # plainly ("If I don't meet my exercise goals of 4 days a week, I will
-        # make myself do an extra 30 pushups"). Gold accepted the contingency when
-        # asked for an example of the type and rejected it twice when asked how it
-        # would be used, on answers that name the same aversive.
-        #
-        # Left as a DIVERGENCE and not moved to CORRECTED_GOLD deliberately: gold
-        # wrote a reasoned comment rather than an arithmetic slip, and section 4
-        # reserves that table for a wrong NUMBER on the row's own evidence. Both
-        # cells stay counted, and both stay 4 points over gold.
-        # DAY1/p8 RETIRED 2026-08-24, hours after this entry was written, by
-        # making the rule match gold instead of declaring the disagreement. The
-        # cell now scores 0 against gold 0 in SIX of six probe passes.
-        #
-        # What did it: `phrased_directly` — the check for a contingency stated by
-        # what is AVOIDED — was set to flag and never deduct, on the reasoning
-        # that such a contingency is structurally sound. It GATES on DAY1 now,
-        # because the cohort says gold treats the phrasing as disqualifying: of
-        # the five DAY1 cells where that check ever answers `absent`, gold scores
-        # FOUR of them 0, and the fifth we already miss for unrelated reasons. So
-        # honouring it cost nothing and gained the cell: DAY1's median rose by one,
-        # with p14 recovering to 6 of 6 alongside.
-        #
-        # The lesson for the entry that remains: this cell looked exactly as
-        # settled as WK1/p8 does, and it was reachable. The rule was findable in
-        # the cohort's own pattern rather than in the sentence being argued about.
-        "code": "ADDED_AVERSIVE_NAMED", "cells": [("WK1", 8)],
-        "why": "p8 names the added aversive and ties it to missing the goal — an "
-               "extra 30 pushups for every day the gym is skipped — and gold "
-               "answers that this is not operant conditioning and asks them to "
-               "state what undesirable thing they would add. The thing is in the "
-               "sentence. DAY1 says it by what is avoided (\"so I don't have to "
-               "do an extra 30 pushups if...\") and WK1 says it directly (the "
-               "pushups \"will just keep stacking\"); on either phrasing a "
-               "consequence is arranged, contingent, and aversive, which is "
-               "positive punishment. score.py flags for review and never deducts; "
-               "the lo-blocks sheet reaches the same verdict. Both sides are 4 "
-               "points over gold on both cells, BY DESIGN. The control is p8's "
-               "own PP item, scored 4 by the same grader on the same pushups "
-               "contingency stated plainly.",
-    },
+    # ADDED_AVERSIVE_NAMED RETIRED IN FULL, 2026-08-24. It began the day covering
+    # DAY1/p8, WK1/p8 and WK2/p8 under one rationale that fitted one of them, and
+    # ends with no cells at all. Each left for a different and better reason:
+    #
+    #   WK2/p8  removed first — gold is RIGHT there and we were wrong, crediting a
+    #           contingency that runs backwards (the chore arrives for SUCCESS).
+    #           Not a disagreement to declare; a miss to count. See BACKLOG.md.
+    #   DAY1/p8 fixed by making avoidance framing GATE on that item. Of the five
+    #           DAY1 cells where that check answers `absent`, gold scores four of
+    #           them 0, so honouring it cost nothing and gained the cell. 9 of 9.
+    #   WK1/p8  fixed last, after eight attempts, by asking the grader for a PARSE
+    #           instead of a judgement. The cue is syntactic: every gold-4 cell on
+    #           the item puts an animate agent in subject position governing a verb
+    #           that brings the thing about ("I will treat myself to a movie"),
+    #           while p8 puts the PENALTY in subject position with an accumulation
+    #           verb ("the press-ups will just keep stacking") — nobody imposes
+    #           anything. 6 of 6 probed, controls holding, WK1 up from 15 to 17.
+    #
+    # The lesson those eight attempts bought, now in QUALITY_CONTROL.md: ask for a
+    # PARSE, not a judgement. "Is a consequence delivered?" and "does this target
+    # their own behaviour?" wobble, because they are questions about the PLAN.
+    # "What is the subject of the consequence clause, and does its verb say a
+    # person brings the thing about?" is a question about the SENTENCE, and does
+    # not wobble.
     # WK2/p8 REMOVED from this entry 2026-08-24, and NOT declared anywhere else.
     # It was carried as a third instance of avoidance framing and is not that at
     # all: "I will be doing yard during the weekend If I had met my goal 4 days a

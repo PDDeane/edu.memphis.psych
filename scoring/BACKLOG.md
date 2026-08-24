@@ -1200,12 +1200,11 @@ all, the slot is not gate material. WK2's `aimed_correctly` has the same
 exposure; it answered `unclear` on three cells, all of them gold 0, so it costs
 nothing there today, but the same coin is in it.
 
-**Where this leaves WK1/p8, after seven attempts.** The separation on paper is
-real: read in full, the item's gold-4 cells all name someone who delivers the
-consequence and its gold-0 cells do not. What is not available is a way for the
-model to apply that test reliably enough to gate on. So the divergence stands —
-now for a stated reason rather than for want of a hypothesis: the rule is
-identifiable but not operationalisable at this model's precision.
+**Where this left WK1/p8 after seven attempts, and why that conclusion was
+wrong.** The separation on paper was real, and I closed the entry saying the rule
+was "identifiable but not operationalisable at this model's precision". It was
+operationalisable. I had been asking for it in the wrong currency — see the
+SOLVED section at the end of this entry.
 
 **Attempt 8: the same gate, binary.** The `unclear` verdict was mine to remove —
 `DEFAULT_VERDICTS` is `['met','absent']`, and writing `!key:Label:unclear` ADDS
@@ -1225,7 +1224,39 @@ Two things worth keeping from it. **Binary is the right shape for a gate** —
 offer no hedge on a judgement that zeroes an item, and check the distribution of
 an existing gate before trusting it (WK2's `aimed_correctly` still offers
 `unclear`, and should be made binary the next time that item is measured). And
-**a well-formed gate on a judgement the model cannot make crisply is still a coin
-flip**: the fault was never only the hedge. Eight attempts in, the separation
-between "the press-ups will just keep stacking" and "I will be able to get a new
-alo set" is visible to a reader and not to the grader.
+**the hedge was only half the fault**: a well-formed gate still wobbled, which is
+what pointed at the real problem — the QUESTION, not the verdict set.
+
+### SOLVED, attempt 9: ask for a parse, not a judgement
+
+WK1 rose from 15 to **17 of 18**, and the divergence is retired.
+
+Every version up to attempt 8 asked a question about the PLAN — "is a consequence
+delivered?" — and the model wobbled on the only two cells that separate. The cue
+I had actually found by reading the texts was SYNTACTIC, and a parse is something
+the model does crisply. So the slot asks two mechanical things about the clause
+that states the consequence:
+
+  (a) its SUBJECT — is a person there, as the subject of an active verb or the
+      agent of a `by`-passive?
+  (b) its VERB — does it say that person brings the thing about or takes it away,
+      read broadly enough to include granting oneself a privilege ("stay up an
+      extra hour", "skip one chore")?
+
+and answers `absent` when the subject is the CONSEQUENCE ITSELF with a verb of
+accumulation ("the press-ups will just keep stacking"), when there is no finite
+clause, or when the answer is off the point entirely.
+
+    sweep   15/15/16 -> 17/17/16, seventeen of eighteen cells at 3/3
+    probe   p8 absent 6/6, scoring 0 against gold 0
+            p1 met 6/6 — the boundary case the first verb list broke, at 3/6
+            controls p4 and p11 6/6
+
+**The verb list is where the first version went wrong, and it is a general
+warning.** Written as a list of transfer verbs, it excluded "I will stay up an
+extra hour on Friday" — a student granting themselves a privilege — and put a
+correct cell at 3/6. I had noticed that case on paper, marked it "marginal", and
+waved it through. Widening the test from "is the verb on this list" to "does a
+person make the thing happen or stop happening" fixed it at 6/6. A closed list
+in a rule is a boundary you are promising to defend; prefer the criterion the
+list was trying to approximate.
