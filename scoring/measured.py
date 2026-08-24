@@ -366,6 +366,212 @@ def prose_claims(paths: list[str] | None = None) -> list[str]:
     return out
 
 
+_DEDUCT_RE = re.compile(r"-\s*(\d+(?:\.\d+)?)\s*(?:pt|point)", re.I)
+
+
+def gold_rows_that_do_not_reconcile() -> list[str]:
+    """Rows whose own comment itemises deductions that do not reach their score.
+
+    D2/p11 was found this way by hand: the grader named one defect, charged 1
+    point for it, and the deduction dictionary plus the same grader's own
+    treatment of the identical defect one item earlier both said 2. That is a
+    wrong NUMBER — CORRECTED_GOLD — rather than a disagreement to declare.
+
+    The generalisation is mechanical wherever a comment itemises its arithmetic:
+    take the item's maximum, subtract the deductions the comment names, and
+    compare with the score written. A row that does not reconcile is a gold
+    question, and gold questions come BEFORE model work (step 2 before step 3),
+    because tuning a criterion against an incoherent row measures the row.
+
+    Reported, never auto-corrected. A row can fail to reconcile because the
+    grader slipped OR because they applied a deduction they did not write down,
+    and only reading the submission distinguishes those. What this removes is the
+    part that was left to memory: noticing that the row is worth reading.
+    """
+    import gold as _gold
+    import handouts as H
+
+    out: list[str] = []
+    loaders = {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}
+    jobs = _jobs()
+    for h in (1, 2, 3):
+        try:
+            g = loaders[h]()
+        except Exception:
+            continue
+        items = [i for i in sorted(jobs) if jobs[i]["handout"] == h]
+        maxes = {i: max(((g.get(p) or {}).get(i) or {}).get("score") or 0
+                        for p in g) for i in items}
+        for item in items:
+            for pid in sorted(g):
+                row = (g.get(pid) or {}).get(item) or {}
+                score, fb = row.get("score"), (row.get("feedback") or "").strip()
+                if score is None or not fb:
+                    continue
+                named = [float(x) for x in _DEDUCT_RE.findall(fb)]
+                if not named:
+                    continue
+                implied = maxes[item] - sum(named)
+                if abs(implied - score) < 1e-9:
+                    continue
+                # A cell already declared has had this argument had about it.
+                if H.gold_divergence(item, pid) or H.corrected_gold(item, pid):
+                    continue
+                out.append(
+                    f"{item}/p{pid}: gold {score:g}, but its comment itemises "
+                    f"{'+'.join(f'{n:g}' for n in named)} off a max of "
+                    f"{maxes[item]:g}, which implies {implied:g}. Read the "
+                    f"submission: a slip is CORRECTED_GOLD, an unwritten "
+                    f"deduction is not")
+    return out
+
+
+def fixture_suspects() -> list[str]:
+    """Cells whose miss looks like a mis-parsed box rather than a judgement.
+
+    Two signatures, both requiring the cell to be wrong in EVERY recorded run,
+    since an intermittent miss is a judgement wobbling:
+
+      * we award NOTHING where gold awarded full marks — the grader found no
+        creditable content in an answer the paper scorer credited completely
+      * we award something where gold awarded ZERO — credit found in an answer
+        judged empty of it
+
+    Every other stable miss in this corpus is off by one deduction step, which is
+    what a criterion boundary looks like. These two are what a box holding the
+    wrong text looks like, and §1 puts a fixture read-out before any rubric work,
+    because a criterion tuned against a mis-cut box measures the box.
+
+    Declared cells are skipped: a divergence or correction means the disagreement
+    has already been examined.
+    """
+    import gold as _gold
+    import handouts as H
+
+    led = load().get("items", {})
+    loaders = {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}
+    jobs = _jobs()
+    out: list[str] = []
+    for item, rec in sorted(led.items()):
+        if rec.get("pending") or not rec.get("cells"):
+            continue
+        h = jobs[item]["handout"]
+        try:
+            g = H.apply_corrected_gold(loaders[h](), h)
+        except Exception:
+            continue
+        if item == "1c":
+            import agreement_app as APP
+            g, _ = APP.rebuild_gold_1c({p: dict(v) for p, v in g.items()})
+        top = max(((g.get(p) or {}).get(item) or {}).get("score") or 0 for p in g)
+        runs_path = _runs_path(item)
+        for pid_s, right in sorted(rec["cells"].items(), key=lambda kv: int(kv[0])):
+            if right != 0:
+                continue
+            pid = int(pid_s)
+            gs = ((g.get(pid) or {}).get(item) or {}).get("score")
+            if gs is None or H.gold_divergence(item, pid):
+                continue
+            got = _scores_for(item, pid, runs_path)
+            if not got or any(s is None for s in got):
+                continue
+            # Three runs cannot distinguish a stable miss from a coin, and
+            # sending someone to read a fixture for a cell that is merely
+            # unstable wastes the expensive step. Q2/p17 read 0/3 here and is
+            # 10/18 across six sweeps. So ask every artifact that ever measured
+            # this cell — the corollary in QUALITY_CONTROL.md, and cheaper than
+            # either a probe or a fixture read.
+            if _ever_right(item, pid, gs):
+                continue
+            if gs == top and all(s == 0 for s in got):
+                out.append(f"{item}/p{pid}: gold {gs:g} (full marks) and we award "
+                           f"0 in every run — read the fixture before the rubric")
+            elif gs == 0 and all(s > 0 for s in got):
+                out.append(f"{item}/p{pid}: gold 0 and we award "
+                           f"{'/'.join(f'{s:g}' for s in got)} in every run — "
+                           f"read the fixture before the rubric")
+    return out
+
+
+def _runs_path(item: str) -> str | None:
+    """Where the recorded sweep's artifact is, derived from the ledger entry.
+
+    The ledger stores the output DIRECTORY name it recorded from, so the artifact
+    is findable without a second registry to keep in step.
+    """
+    import paths
+
+    rec = (load().get("items", {}) or {}).get(item) or {}
+    out = rec.get("out")
+    if not out:
+        return None
+    p = paths.OUT / out / f"{item}.runs.json"
+    return str(p) if p.exists() else None
+
+
+def _ever_right(item: str, pid: int, gold_score: float) -> bool:
+    """Has this cell EVER agreed with gold, in any artifact on disk?
+
+    A cell that has been right before is unstable, not mis-parsed. Reading its
+    fixture will find nothing, because the fixture did not change between the
+    run that scored it right and the one that did not.
+    """
+    import glob
+
+    import handouts as H
+    import paths
+
+    for path in glob.glob(str(paths.OUT / "*" / f"{item}.runs.json")):
+        try:
+            data = json.loads(Path(path).read_text())
+        except (OSError, ValueError):
+            continue
+        for run in data.get("runs", []):
+            for c in run.get("results", []):
+                if not isinstance(c, dict) or c.get("participant_id") != pid:
+                    continue
+                s = c.get("score")
+                if s is not None and H.scored_exactly(item, gold_score, s):
+                    return True
+    return False
+
+
+def _scores_for(item: str, pid: int, runs_path: str | None) -> list:
+    if not runs_path:
+        return []
+    try:
+        data = json.loads(Path(runs_path).read_text())
+    except OSError:
+        return []
+    return [c.get("score") for run in data["runs"] for c in run["results"]
+            if c.get("participant_id") == pid]
+
+
+def preflight() -> dict[str, list[str]]:
+    """Everything outstanding, in the order the guide says to address it.
+
+    Probes are the last step, not the next one. A probe costs 24 calls to settle
+    one cell, and settling a cell is worthless while the item's fixture is
+    unread, its gold incoherent, or its declarations unexamined — the guide's
+    step order exists because work done out of order measures the wrong thing.
+    Leaving that ordering to memory is how a session spends an afternoon probing
+    cells on an item whose gold row does not add up.
+    """
+    return {
+        "1. fixture — read these boxes before any rubric work":
+            fixture_suspects(),
+        "2. gold — these rows do not reconcile with their own comments":
+            gold_rows_that_do_not_reconcile(),
+        "3. declarations — contradicted by a recorded measurement":
+            declaration_conflicts(),
+        "4. staleness — items not measured as currently configured":
+            [f"{i}: {s}" for i, s in status()
+             if s.startswith(("ABSENT", "STALE", "pending"))],
+        "5. record — prose that disagrees with the ledger":
+            prose_claims(),
+    }
+
+
 def report() -> str:
     """The canonical table, generated. Paste this rather than retyping figures.
 
@@ -413,6 +619,22 @@ def main() -> int:
     if a[:1] == ["--report"]:
         print(report())
         return 0
+    if a[:1] == ["--preflight"]:
+        blockers = preflight()
+        n = sum(len(v) for v in blockers.values())
+        for heading, items in blockers.items():
+            if not items:
+                continue
+            print(f"\n{heading}")
+            for x in items:
+                print(f"    {x}")
+        if n:
+            print(f"\n{n} outstanding item(s). Probes are the LAST step: settling "
+                  f"one cell is worthless while an item's fixture is unread or its "
+                  f"gold does not reconcile.")
+        else:
+            print("nothing outstanding — probes are the right next step")
+        return 2 if n else 0
     if a[:1] == ["--conflicts"]:
         conflicts = declaration_conflicts()
         for c in conflicts:

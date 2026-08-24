@@ -97,6 +97,54 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
     # The general lesson, since it applies to this whole table: an entry that
     # reasons from BOX CONTENTS inherits every judgement in the split. Check the
     # spans before correcting the row.
+    # DAY2/p7 and WK1/p7, both 1.00 -> 3.00, found by generalising ("D2", 11)
+    # below: when a grader itemises their arithmetic, the itemisation can be
+    # checked against the score.
+    #
+    # Every OTHER itemised row in the four example items reconciles exactly —
+    # seven rows of "-4 pts: This example is not Operant Conditioning" landing on
+    # 0.00, four rows of "-2 pts: This is an example of PP/NP" landing on 2.00.
+    # Nine for nine. The only two that do not are these, both "-1 pt", both
+    # landing on 1.00 where the comment implies 3.00, both written by the same
+    # grader on the same student. Against a nine-row control set the itemisation
+    # is the reliable half and the score field is the slip.
+    #
+    # The deduction each comment describes is WRONG_BEHAVIOR, which our own
+    # dictionary charges at exactly 1.0 — "The behavior you target in this
+    # example is not your chosen behavior." p7's daily example rewards reading a
+    # chapter, and their UTB is screen time; their weekly example is correctly NP
+    # ("This is an example of NP" AFFIRMS the type) but again targets the wrong
+    # behaviour. So gold's comments and our dictionary agree to the point, and
+    # only the two score fields disagree with both.
+    #
+    # This correction gains us NOTHING, which is why it is safe to make: we score
+    # 4.00 on both cells and are still wrong at 3.00. What it changes is the
+    # diagnosis. Both cells were declared under GOLD_CEILINGS ('2','DAY2') as
+    # gold that no scorer charging the stated deduction could reach — true of the
+    # row as written, and it made an unreachable target out of what is really a
+    # live bug: WRONG_BEHAVIOR never fires on either cell. Correcting the rows
+    # turns two declared-unreachable cells into two cells we miss for a reason,
+    # which is worth more than the ceiling was.
+    ("DAY2", 7): {
+        "was": 1.0, "score": 3.0,
+        "why": "comment itemises \"-1 pt\" against a max of 4, which implies "
+               "3.00; the row wrote 1.00. The deduction described is "
+               "WRONG_BEHAVIOR (their example targets reading a chapter, their "
+               "UTB is screen time), which our dictionary also charges at 1.0. "
+               "Nine other itemised rows in these items reconcile exactly. We "
+               "score 4.00 and remain wrong at 3.00 — the correction makes gold "
+               "coherent, it does not move our number.",
+    },
+    ("WK1", 7): {
+        "was": 1.0, "score": 3.0,
+        "why": "same shape as (\"DAY2\", 7), same student, same grader. \"-1 pt: "
+               "This is an example of NP, however your UTB is not "
+               "procrastination\" — the first clause AFFIRMS the type (p7's first "
+               "type IS NP), so the only deduction described is WRONG_BEHAVIOR at "
+               "1.0, implying 3.00 against the 1.00 written. Was read as a "
+               "concealed TYPE_MISMATCH (2.0 + 1.0 = the 1.00 gold wrote) until "
+               "the type was checked; it is not.",
+    },
     ("D2", 11): {
         "was": 1.0, "score": 0.0,
         "why": "p11 chose Negative Reinforcement and wrote the definition of "
@@ -992,11 +1040,17 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "carries — with p13's \"I can take my medication before I go to bed\" as "
         "the control that must keep its credit. Untried.",
     ),
-    ("2", "DAY2"): (
-        "p7's gold is 1.00 while its comment itemises only \"-1 pt\", which implies "
-        "3.00. The row does not reconcile with itself, so 1.00 is unreachable by "
-        "any scorer that charges the stated deduction. WK1 p7 is the same shape.",
-    ),
+    # ("2", "DAY2") RETIRED 2026-08-24. It read: p7's gold is 1.00 while its
+    # comment itemises only "-1 pt", which implies 3.00, so 1.00 is unreachable
+    # by any scorer that charges the stated deduction — and WK1 p7 is the same
+    # shape. Both halves were correct about the ROWS and drew the wrong
+    # conclusion from them. "Unreachable" was a statement about gold as written,
+    # and the nine other itemised rows in these items reconcile exactly, which
+    # makes the two score fields slips rather than a target we cannot hit. Both
+    # rows are now in CORRECTED_GOLD at 3.00, and the cells remain misses,
+    # because WRONG_BEHAVIOR — the 1.0 deduction both comments describe and our
+    # own dictionary carries — never fires on either. A ceiling that says a cell
+    # is unreachable ends the inquiry; the truth was a bug with two symptoms.
 }
 
 
