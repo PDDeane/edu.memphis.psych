@@ -849,15 +849,64 @@ GOLD_DIVERGENCES: list[dict] = [
                "guidance says to accept. Credited in five runs of five.",
     },
     {
-        "code": "AVOIDANCE_FRAMING", "cells": [("DAY1", 8), ("WK1", 8), ("WK2", 8)],
-        "why": "p8's contingencies are stated by what is AVOIDED (\"so I don't "
-               "have to {{corpus:DAY1/p8:day1:105:127:sha=902613cf68e4}} if...\"), which is structurally "
-               "sound: a consequence is still arranged and still contingent. The "
-               "graders read the phrasing as a failure; score.py flags for review "
-               "and never deducts, and the lo-blocks sheet reaches the same "
-               "verdict. Both sides are 4, 4 and 2 points over gold BY DESIGN — "
-               "the largest of these by cell count.",
+        # Was AVOIDANCE_FRAMING over DAY1, WK1 and WK2 until 2026-08-24. Renamed
+        # and narrowed after reading all four of p8's cadence answers against
+        # gold, because the old rationale — contingencies "stated by what is
+        # AVOIDED" — described ONE of its three cells and was quoting DAY1 while
+        # speaking for all of them.
+        #
+        # WK1 is not avoidance-framed: "{{corpus:WK1/p8:wk1:69:110:sha=57dd3f60c832}}
+        # {{corpus:WK1/p8:wk1:111:136:sha=ed03f175e045}} stacking" states the added aversive directly.
+        # WK2 was removed outright — see the note below it — because gold is RIGHT
+        # there and we are wrong, which is not a disagreement to declare.
+        #
+        # What DAY1 and WK1 actually share, and what this entry now says: the
+        # student names the added aversive and ties it to failing the goal, and
+        # gold answers "This is not an example of operant conditioning. For PP,
+        # you should state what undesirable thing will you add if you do not meet
+        # your daily/weekly goal" — asking for the thing the sentence already
+        # contains. The control that makes this OUR reading rather than a guess is
+        # p8's own PP item, which scored the FULL 4 on the same plan stated
+        # plainly ("{{corpus:NP/p8:np:0:58:sha=ac3a5d45ce03}}
+        # {{corpus:PP/p8:pp:59:85:sha=515ac74e6c6a}} pushups"). Gold accepted the contingency when
+        # asked for an example of the type and rejected it twice when asked how it
+        # would be used, on answers that name the same aversive.
+        #
+        # Left as a DIVERGENCE and not moved to CORRECTED_GOLD deliberately: gold
+        # wrote a reasoned comment rather than an arithmetic slip, and section 4
+        # reserves that table for a wrong NUMBER on the row's own evidence. Both
+        # cells stay counted, and both stay 4 points over gold.
+        "code": "ADDED_AVERSIVE_NAMED", "cells": [("DAY1", 8), ("WK1", 8)],
+        "why": "p8 names the added aversive and ties it to missing the goal — {{corpus:DAY1/p8:day1:72:74:sha=ea325d761f98:shape=R2-0-20}}"
+               "{{corpus:DAY1/p8:day1:111:127:sha=632c162ccc79}} for every day the gym is skipped — and gold "
+               "answers that this is not operant conditioning and asks them to "
+               "state what undesirable thing they would add. The thing is in the "
+               "sentence. DAY1 says it by what is avoided (\"so I don't have to "
+               "{{corpus:DAY1/p8:day1:105:127:sha=902613cf68e4}} if...\") and WK1 says it directly (the "
+               "pushups \"will just keep stacking\"); on either phrasing a "
+               "consequence is arranged, contingent, and aversive, which is "
+               "positive punishment. score.py flags for review and never deducts; "
+               "the lo-blocks sheet reaches the same verdict. Both sides are 4 "
+               "points over gold on both cells, BY DESIGN. The control is p8's "
+               "own PP item, scored 4 by the same grader on the same pushups "
+               "contingency stated plainly.",
     },
+    # WK2/p8 REMOVED from this entry 2026-08-24, and NOT declared anywhere else.
+    # It was carried as a third instance of avoidance framing and is not that at
+    # all: "{{corpus:WK2/p8:wk2:0:69:sha=873e2962dff1}}
+    # week for 1 hour" puts the chore AFTER SUCCESS, so meeting the goal earns
+    # yard work. Their daily answer for the same type is the correct inverse
+    # ("...{{corpus:DAY2/p8:day2:39:82:sha=3333e8a83a54}}"), which is what makes the
+    # weekly one a slip rather than a style. The submission was checked against
+    # the source .docx line by line: the text is transcribed faithfully, no "not"
+    # was lost, so there is nothing to fix in the fixture.
+    #
+    # Gold's 0 is therefore CORRECT and our 2 to 4 is a real over-credit: we
+    # credit a contingency that runs backwards. It stays counted and wrong, with
+    # the criterion gap recorded in BACKLOG.md, because a divergence on a cell we
+    # simply get wrong is the thing section 5's rule was written to stop —
+    # "we knowingly disagree" is the most flattering thing that can be said about
+    # a miss short of dropping it.
     # WRONG_DEFINITION (D2/p11) RETIRED 2026-08-24, moved to CORRECTED_GOLD.
     # It was the only divergence in this list running DOWNWARD — both
     # implementations scoring 1 point UNDER gold rather than over — and that
