@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import difflib
 import functools
+import os
 import re
 import sys
 
@@ -1992,6 +1993,33 @@ def ref_delta(handout: int) -> tuple[list[str], list[str], list[str]]:
     )
 
 
+def _measurements_in_flight() -> list[str]:
+    """Command lines of any harness process that is currently scoring cells.
+
+    Both harnesses read the generated .olx per call, so rewriting it under a
+    running one changes the prompt mid-measurement. Matched by module name rather
+    than by a lock file: a lock is only as good as the last process to release it,
+    and these runs are killed by hand often enough that a stale lock would train
+    everyone to pass --force.
+    """
+    import subprocess
+
+    try:
+        out = subprocess.run(["ps", "-eo", "pid,args"], capture_output=True,
+                             text=True, check=False).stdout
+    except Exception:                                   # pragma: no cover
+        return []
+    mine = str(os.getpid())
+    busy = []
+    for line in out.splitlines()[1:]:
+        pid, _, args = line.strip().partition(" ")
+        if pid == mine or "olx_prompts" in args:
+            continue
+        if ("agreement.py" in args or "agreement_app.py" in args) and "--items" in args:
+            busy.append(" ".join(args.split()[:9]))
+    return busy
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--print", dest="show", choices=sorted(ACTION),
@@ -2002,7 +2030,29 @@ def main() -> int:
     ap.add_argument("--diff", action="store_true", help="show what --write would change")
     ap.add_argument("--refs", action="store_true",
                     help="report <Ref> ids this generation drops, adds or duplicates")
+    ap.add_argument("--force", action="store_true",
+                    help="write even while a measurement is running (see the refusal)")
     a = ap.parse_args()
+
+    # A --write while a run is IN FLIGHT silently splits that run across two
+    # prompts. The cells already sent used the old text and the rest use the new,
+    # so the .runs.json is a mixture of two configurations that nothing in it
+    # records — and it reads exactly like a clean measurement.
+    #
+    # Done on 2026-08-24, on handout 3, by someone who had waited for two earlier
+    # runs to clear for precisely this reason: 1a's baseline was 40 cells old
+    # prompt and 20 new, and the two items behind it in the queue would have
+    # measured the NEW prompt as their baseline. All three discarded.
+    if a.write:
+        busy = _measurements_in_flight()
+        if busy and not a.force:
+            print("REFUSING to write: a measurement is in flight and would be "
+                  "split across two prompts.", file=sys.stderr)
+            for b in busy:
+                print(f"  {b}", file=sys.stderr)
+            print("Wait for it, or re-run with --force if you know the run is "
+                  "being discarded.", file=sys.stderr)
+            return 1
 
     drift = _check_rules_still_match()
     for d in drift:
