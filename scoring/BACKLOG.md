@@ -1319,3 +1319,54 @@ The practical consequences, both cheap:
   DAY2's median was unchanged at 15 here, and underneath it p9 gained two runs
   while p8 lost three. A flat median can hide a gain and a regression of similar
   size, and only the per-cell table shows it.
+
+### p7, attempt 10: the criterion as a CLASSIFICATION, and a blind spot in the artifacts
+
+`targets_own_behavior` was restructured to work the way `matches_chosen_type`
+already works on these items: the model emits a classification and the engine
+derives the verdict, rather than judging the slot directly.
+
+    choices="trigger_target:utb,wgb,other"
+    slots=...|trigger_behavior:Which behaviour must happen, or fail to happen,
+              for the consequence to arrive:pick(trigger_target)|...
+    expect="targets_own_behavior:trigger_behavior=utb:wgb"
+
+Mirrored on the CLI as an enum property with the same derivation, so the paths
+stay in step; the enforcement suite confirmed no divergence. Deliberately short
+on prose, since the previous attempt's ~1000 characters were what knocked a
+committed cadence gain off DAY2/p8.
+
+**It failed on both items and cost DAY2 two cells.**
+
+    WK1   p7 unmoved at 0/3 (4, 4, 4); median 17, unchanged from recorded;
+          p6 3/3 -> 2/3
+    DAY2  p7 unmoved at 0/3; median 14 against a RECORDED 15, with p12 3/3 -> 1/3
+          and p13 3/3 -> 1/3
+
+The regression-against-recorded check added an hour earlier named p12 and p13 by
+itself. Without it the median moving 15 -> 14 would have looked like ordinary
+noise rather than two committed cells being handed back.
+
+**The blind spot, which matters more than the result.** `trigger_behavior` reads
+EMPTY in every cell of every run — exactly as `observed_type` and `named_type`
+do — because a pick answers in `refers_to` and `agreement.py` stores only
+verdicts in the artifact. So it cannot be determined whether the model classified
+`other` and the expect rule failed to apply, or classified `utb` and the rule
+worked exactly as designed. The experiment is negative on the SCORE and
+undiagnosable on the MECHANISM.
+
+Anyone retrying this must first make the harness persist `refers_to` alongside
+`verdict`. Three experiments on pick-valued slots are uninterpretable until it
+does, and the same blind spot has been sitting under `observed_type` all along.
+
+**A real reason WK1/p7 may be unfixable, found while reading its context.** p7's
+UTB response is "I chose 'Spending too much time on electronic devices' SINCE I
+END UP PROCRASTINATING on a daily stretching my schedule to much." The grader is
+handed that whole paragraph as `_utb`. So when the weekly answer triggers on "if
+I end up procrastinating during the week", a rule asking whether the trigger
+names the student's UTB can answer `utb` on good evidence — the word is in the
+text it compares against. Gold's "your UTB is not procrastination" is true of the
+CHOSEN BEHAVIOUR and false of the paragraph we supply. That is a context
+question, not a criterion one: it would be settled by passing the grader the
+chosen behaviour rather than the whole Q1 response, which is a fixture change
+with its own blast radius across every item that reads `_utb`.
