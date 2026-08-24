@@ -973,3 +973,84 @@ The untried alternative nobody has checked: whether the CADENCE items' question
 text should say the example must act on the student's own behaviour, since that
 requirement is currently only in the grader's criteria and never in what the
 student is asked.
+
+### p8's four cadence cells, read out in full — and a backwards contingency we credit
+
+Prompted by the observation that three declared divergences on ONE student looks
+suspicious. It was, though not in the direction expected.
+
+**The fixture is faithful.** All four boxes were checked against
+`Participant ID 008 - Handout 2.docx` line by line (source lines 44, 50, 66, 73
+-> day1, wk1, day2, wk2). The text matches exactly, the boxes are in the right
+order, and only trailing template underscores are stripped. No fixture
+correction is warranted, which is worth recording because the readout was
+undertaken expressly to look for one.
+
+p8's first chosen type is PP, their second NR (gold's own comments say so).
+
+| cell | gold | us | who is right |
+|---|---|---|---|
+| DAY1 | 0 | 4 | us — the aversive gold asks for is in the sentence |
+| WK1 | 0 | 4 | us — same, and stated directly rather than by avoidance |
+| DAY2 | 4 | 0 | **gold** — cadence misjudged, see below |
+| WK2 | 0 | 2/2/4 | **gold** — the contingency runs backwards |
+
+**WK2 is a real over-credit and is no longer declared.** "{{corpus:WK2/p8:wk2:0:80:sha=b1483eea3dd9:shape=S4-0a}} hour" puts the chore
+AFTER SUCCESS: meeting the goal earns yard work. Their daily answer for the same
+type is the correct inverse, which is what makes this a slip rather than a
+style. We score 2 or 4 because `matches_chosen_type` goes absent in some runs and
+nothing catches the reversal at all.
+
+**The criterion gap:** no check asks whether the consequence's VALENCE matches
+its position — an aversive delivered for success, or a reward delivered for
+failure, is not the type named however well-formed the contingency is. TEST 3
+asks which of the four types it is, and the model answers by looking at what is
+added or removed rather than at which side of the contingency it sits on. Worth
+attempting on `observed_type` rather than on a new gate, and worth measuring on
+all four cadence items with the correctly-inverted daily answer as the control.
+
+**DAY2 is our clearest live defect on these items.** Gold 4, we score 0 in every
+run, and the cause is `cadence_is_daily` answering `absent` because the reward
+lasts to the end of the week — while that gate's own rule in the served prompt
+says "Judge how often the BEHAVIOUR IS CHECKED, not how long the consequence
+lasts — a daily trigger whose reward runs to the end of the week is still
+daily". The rule is present, precise, and ignored. Pooled 1 of 12.
+
+### WK2's direction gap is closed, and p8's residual is severity not reading
+
+The gap was real and locatable: the TYPE items have always asked whether the
+arrangement is pointed the right way (`targets_intended_behavior`, charging
+WRONG_TYPE), while the cadence items only ask whose behaviour it is
+(`targets_own_behavior`). So nothing on WK2 asked which side of the contingency
+the consequence sits on.
+
+`aimed_correctly` now does, gating on WK2 on both paths — the OLX slot, the
+rubric guidance both generators render, `score.derive_oc_ledger`, and the probe
+table's pass/fail pair, which the enforcement suite demanded the moment the
+schema field appeared.
+
+Measured: median 16/18 -> 16/18, no cell moved. It fires `absent` or `unclear`
+on exactly three cells — p10, p13, p18 — and ALL THREE are gold 0, so where it
+speaks it agrees with gold three times out of three. Kept on that basis: a
+correct criterion with no measured harm, closing an asymmetry between items that
+ask the same question of the same kind of answer.
+
+**Why it does not fix the cell that exposed it, which is the interesting part.**
+p8's answer adds a chore after SUCCESS. The model reads that exactly right — its
+feedback says "adds a task after success (an added stimulus), so if you meant
+Negative Reinforcement you should instead remove an unpleasant obligation" — and
+charges it under `matches_chosen_type` as a type mismatch, -2, giving 2. It
+answers `aimed_correctly: met` because the fault is already accounted for.
+
+That reading is arguably better than gold's. Adding an aversive after success IS
+an operant arrangement — positive punishment of the goal behaviour — so it is
+self-defeating and mistyped, but not "not operant conditioning". Gold charges the
+whole 4; we charge 2. The disagreement is SEVERITY, and closing it would mean
+telling the grader something false.
+
+So for WK2/p8 the alternatives are now exhausted in the order section 5 asks:
+the fixture was verified faithful against the source .docx, gold's row carries a
+reasoned comment rather than an itemisation to check, the missing criterion has
+been added and measured, and our reading has been confirmed the sounder one. It
+stays COUNTED AND WRONG rather than declared — the cost is one cell, and what is
+recorded here is worth more than a line saying we disagree.

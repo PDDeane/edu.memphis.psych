@@ -487,6 +487,34 @@ def _example_use_item(
                "avoidance IS the claim. This is the only check that judges the "
                "phrasing; no other may deduct for it."]
               if item_id == "DAY1" else []),
+            # WK2 only. The gap this closes: the TYPE items ask whether the
+            # arrangement is pointed the right way (`targets_intended_behavior`,
+            # charging WRONG_TYPE), and the cadence items only ask whose
+            # behaviour it is (`targets_own_behavior`). So an answer that delivers
+            # an aversive for SUCCESS passes every check on the sheet — the
+            # behaviour is the student's own, the consequence is arranged,
+            # contingent and subsequent, the cadence is right — and we credited
+            # one 2 to 4 where gold scored 0.
+            #
+            # A gate because gold's charge is the whole 4 and the scored slots
+            # here top out at 2 + 1 + 1. That makes every cell on this item a
+            # 4-point bet on a single cell's evidence, which is thinner than the
+            # four-of-five pattern that justified DAY1's gate — measured with the
+            # item's correct cells as controls, and reverted if any of them move.
+            *(["IS THE CONSEQUENCE POINTED THE RIGHT WAY? A plan earns nothing "
+               "if its consequence works against the behaviour it follows. "
+               "Reinforcement must make the WANTED behaviour more likely, so the "
+               "thing that arrives when the student succeeds has to be desirable "
+               "(or an aversive lifted); punishment must make the UNWANTED "
+               "behaviour less likely, so the thing that arrives when they slip "
+               "has to be aversive (or a privilege withdrawn). Answer `no` when "
+               "the pairing is inverted — a chore, a loss or a penalty delivered "
+               "for MEETING the goal, or a treat delivered for missing it — even "
+               "when the sentence is otherwise a well-formed contingency about "
+               "the student's own behaviour, and even when the wording is only a "
+               "slip. Judge which side of the contingency the consequence sits "
+               "on, not whether it is describable as a consequence."]
+              if item_id == "WK2" else []),
             "WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour "
             "from the student's UTB/WGB — a plan about procrastination when the UTB is {{corpus:Q1/p15:response:49:53:sha=336074805fc8:shape=R4-0-20}}"
             "{{corpus:Q1/p15:response:54:76:sha=019d6dc324ea}} Do not deduct it merely because the phrasing is loose "
