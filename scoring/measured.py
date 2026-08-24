@@ -250,16 +250,151 @@ def declaration_conflicts() -> list[str]:
         if rec.get("pending"):
             continue
         runs = rec.get("runs") or 0
+        kinds = H.cell_exclusions(_jobs()[item]["handout"], item)
         for pid_s, right in sorted((rec.get("excluded_cells") or {}).items(),
                                    key=lambda kv: int(kv[0])):
             if runs == 0 or right < runs:
                 continue
+            kind = (kinds.get(int(pid_s)) or ("", ""))[0]
+            # Not every exclusion is a hypothesis about the model, and only the
+            # ones that are can be retired by measuring it.
+            #
+            # `suspect` is a fact about the INPUT: the submission was
+            # mis-transcribed and the prompt carries another participant's data.
+            # A cell like that agreeing with gold is a coincidence between the
+            # wrong student's answer and this student's score — the one reading
+            # that must NOT be taken as evidence the cell is fine. PR/p2 hit this
+            # within minutes of the check going in, offering to count a cell
+            # whose input is known to belong to someone else.
+            #
+            # `self_graded` and `unscoreable` are claims that measurement can
+            # contradict: the first says the prompt gives the answer away, the
+            # second says gold's row is unreachable, and a cell that agrees
+            # anyway refutes both.
+            if kind == "suspect":
+                continue
             out.append(verdict(
-                f"{item}/p{pid_s} is EXCLUDED, yet scores right every recorded "
-                f"run — the exclusion",
+                f"{item}/p{pid_s} is EXCLUDED as {kind or 'excluded'}, yet scores "
+                f"right every recorded run — the exclusion",
                 right, runs,
                 f"Remove {item}/p{pid_s} from its exclusion and let it count"))
     return out
+
+
+# Fractions first, item names second — NOT one pattern anchored on the name.
+# Anchoring on the name meant any word in front of it was consumed as the
+# candidate and the real name never got its turn: "Item 3 is 20/20" matched
+# "Item", found it absent from JOBS, and moved past the fraction without ever
+# testing "3", because finditer does not retry overlapping starts.
+_FRAC_RE = re.compile(r"\b(?P<num>\d{1,2})\s*(?:/|\s+of\s+)\s*(?P<den>\d{1,2})\b")
+_TOKEN_RE = re.compile(r"[A-Za-z0-9]+")
+_WINDOW = 45
+
+# Prose legitimately cites superseded numbers; those sentences say so. A claim
+# framed as history is not a claim about the present.
+_HISTORICAL = re.compile(
+    r"\b(was|were|had been|used to|previously|prior|before|earlier|once|"
+    r"then|originally|superseded|stale|reported as|no longer)\b"
+    # A fraction attributed to a NAMED artifact is a claim about that run, not
+    # about the present configuration, however present-tense the verb.
+    # EQUIVALENCE.md line 491 reads "On web_v8/v9, 2a is 14-16 of 18 and 3 is 20
+    # of 20" inside a block that already says "Do not quote this list as
+    # current" — correct prose that the first version of this check called stale.
+    r"|\b(web_v|cli_v|qc_v|qc_h|opusweb|baseline_)\w*", re.I)
+
+# Words that make a fraction a COUNT of cells rather than a score over them.
+# "Q6 excludes 10 of 20" and "2a flags 18 of 20" are both true and neither is a
+# rate; each produced a confident false positive before this list existed.
+_COUNTING = re.compile(r"exclud|flag|cells|participants|of the rest|"
+                       r"rows|boxes|slots|passes|runs", re.I)
+
+
+def prose_claims(paths: list[str] | None = None) -> list[str]:
+    """Numbers written into the repo that disagree with the recorded measurement.
+
+    A figure in prose is the form a measurement actually travels in — a guide,
+    a backlog entry, a note in handouts.py — and it goes stale silently. This
+    project has done it: Q4c and Q5 were described in writing as perfect items
+    and were 12/14 and 14/15, because the sentences outlived the denominators
+    they were computed over.
+
+    The rule is deliberately narrow, so it fires on real staleness rather than on
+    every number in the tree. A finding needs all of: an item name from JOBS, a
+    fraction within 40 characters of it, a DENOMINATOR equal to that item's
+    currently recorded one — and a numerator that disagrees. Matching the
+    denominator is what makes it a claim about the present configuration; a
+    fraction over the old denominator is history and is left alone, as is any
+    sentence framed in the past tense.
+    """
+    import paths as _paths
+
+    files = paths or [str(p) for p in (
+        list((_paths.SCORING).glob("*.md")) + [_paths.SCORING / "handouts.py"])]
+    led = load().get("items", {})
+    jobs = set(_jobs())
+    out: list[str] = []
+    for path in files:
+        try:
+            text = Path(path).read_text()
+        except OSError:
+            continue
+        for lineno, line in enumerate(text.splitlines(), 1):
+            if _HISTORICAL.search(line):
+                continue
+            for m in _FRAC_RE.finditer(line):
+                window = line[max(0, m.start() - _WINDOW):m.start()]
+                # The NEAREST item name before the fraction owns it.
+                names = [t for t in _TOKEN_RE.findall(window) if t in jobs]
+                if not names:
+                    continue
+                item = names[-1]
+                rec = led.get(item)
+                if not rec or rec.get("pending"):
+                    continue
+                num, den = int(m.group("num")), int(m.group("den"))
+                if den != rec["denominator"] or num == rec["numerator"]:
+                    continue
+                # The denominator is the same 20 whether the fraction counts
+                # cells or scores them, so the surrounding words are the only
+                # way to tell, and getting it wrong yields a confident lie.
+                if _COUNTING.search(window):
+                    continue
+                out.append(
+                    f"{Path(path).name}:{lineno} says {item} {num}/{den}, but the "
+                    f"recorded measurement is {rec['numerator']}/{rec['denominator']}"
+                    f" — update the sentence, or re-record if the sweep is newer")
+    return out
+
+
+def report() -> str:
+    """The canonical table, generated. Paste this rather than retyping figures.
+
+    Every number here is the median of the recorded runs over the recorded
+    denominator, because those are the two things a reported figure is most
+    easily wrong about: the best run instead of the median, and a denominator
+    that has since grown. Handout 1's items were once reported as 12/14 and
+    14/15 while their denominators were 19 and 20.
+    """
+    led = load().get("items", {})
+    lines, tot_n, tot_d = [], 0, 0
+    for h in (1, 2, 3):
+        rows = [(i, led.get(i, {})) for i in sorted(_jobs())
+                if _jobs()[i]["handout"] == h]
+        lines.append(f"Handout {h}")
+        for item, rec in rows:
+            if not rec or rec.get("pending"):
+                lines.append(f"  {item:<5} pending")
+                continue
+            n, d = rec["numerator"], rec["denominator"]
+            tot_n += n
+            tot_d += d
+            ex = f"  excl {rec['exclusions']}" if rec["exclusions"] else ""
+            lines.append(f"  {item:<5} {n:>3}/{d:<3} {100.0 * n / d:5.1f}%  "
+                         f"median of {rec['runs']} runs {rec['run_totals']}{ex}")
+    if tot_d:
+        lines.append(f"\nTOTAL {tot_n}/{tot_d} = {100.0 * tot_n / tot_d:.1f}% "
+                     f"(sum of per-item medians; not a run of the whole corpus)")
+    return "\n".join(lines)
 
 
 def main() -> int:
@@ -274,6 +409,9 @@ def main() -> int:
         record(a[1], a[2])
         for c in declaration_conflicts():
             print(f"  DECLARATION EXPIRED? {c}")
+        return 0
+    if a[:1] == ["--report"]:
+        print(report())
         return 0
     if a[:1] == ["--conflicts"]:
         conflicts = declaration_conflicts()
