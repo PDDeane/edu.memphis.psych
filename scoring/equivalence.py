@@ -551,6 +551,8 @@ def enforcement_audit():
         findings.append(("-", "TWO FIXES FOR ONE CELL", bad))
     for bad in ENF.check_corrected_gold_matches_the_sheet():
         findings.append(("-", "CORRECTED GOLD STALE", bad))
+    for bad in ENF.check_gold_tables_have_no_duplicate_keys():
+        findings.append(("-", "TWO ENTRIES FOR ONE CELL", bad))
     for bad in ENF.check_the_audit_read_the_corpus():
         findings.append(("-", "AUDIT EXAMINED NOTHING", bad))
     for bad in ENF.check_consensus_spans_are_disjoint():
