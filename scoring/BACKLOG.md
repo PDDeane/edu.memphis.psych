@@ -1260,3 +1260,62 @@ waved it through. Widening the test from "is the verb on this list" to "does a
 person make the thing happen or stop happening" fixed it at 6/6. A closed list
 in a rule is a boundary you are promising to defend; prefer the criterion the
 list was trying to approximate.
+
+### p7 on WK1 and DAY2: where "ask for a parse" stops working
+
+The parse framing that solved WK1/p8 was applied to the other open cell on these
+items, and failed on both. The failure is informative, so it is recorded rather
+than merely reverted.
+
+**The cells.** p7's UTB is screen time. Their weekly answer triggers on
+procrastinating and withholds their games; their daily answer triggers on reading
+a chapter and grants their games. Both times the UTB is in the sentence — as the
+PRIZE — and `targets_own_behavior` answers `met` on seeing it, so the 1-point
+WRONG_BEHAVIOR gold charges never fires. With both rows corrected to 3.00, a
+firing deduction would land exactly on gold rather than merely closer.
+
+**What was tried.** The criterion rewritten as a procedure: locate the clause
+saying what must happen for the consequence to arrive, quote its verb phrase,
+compare THAT PHRASE and nothing else against the UTB and WGB in context, and
+answer `no` when it names neither. Scoped to WK1 and DAY2, in the credit
+component's `rule` so both generators render it.
+
+    WK1   p7 fired once in three — 4, 4, 3, and the 3 is exactly gold — while
+          p19 took a spurious `absent` and lost a run. Median unchanged at 17.
+    DAY2  p7 never fired at all: `met` in every run, 4, 4, 4.
+
+**Why it does not transfer, which is the finding.** `agent_delivers_consequence`
+is a PURE parse: find a clause, look at its subject, classify its verb. Nothing
+in it requires knowing what the answer is about. `targets_own_behavior` only
+BEGINS with a parse; its decisive step is comparing the quoted trigger against
+the student's stated UTB and WGB, which is a semantic comparison. The framing
+sharpened the locating half and left the wobble in the comparing half. So: ask
+for a parse where the whole test is syntactic. A criterion whose core is a
+comparison is not rescued by telling the grader which clause to compare.
+
+### The coupling tax: an edit moves gates it never mentions
+
+Fourth observation of this today, and the first where it cost a COMMITTED gain.
+
+Adding the p7 rule to DAY2 — text about which behaviour a trigger names, saying
+nothing whatever about cadence — flipped `cadence_is_daily` on DAY2/p8 from `met`
+in two runs of three (5 of 6 on its probe) to `absent` in all three:
+
+    DAY2/p8   after the cadence fix   4/met, 0/abs, 4/met
+              with the p7 rule added  0/abs, 0/abs, 0/abs
+
+`olx_prompts.SLOT_NOTES` already recorded this for the five definitional gates —
+"these five definitional gates are coupled, emphasis on any one shifts the
+others" — and today it has been seen on `you_arrange_it`, on `separate_consequence`
+firing where it was not aimed, on `targets_own_behavior` disturbing p12, and now
+on `cadence_is_daily`, which the edit does not mention at all.
+
+The practical consequences, both cheap:
+
+* **A committed gain is not safe from a later unrelated edit on the same item.**
+  Re-measure the WHOLE item after any change to it, never just the target cell —
+  which is what caught this, since the sweep covers all 18.
+* **When an edit measures neutral, check whether it is neutral or COMPENSATING.**
+  DAY2's median was unchanged at 15 here, and underneath it p9 gained two runs
+  while p8 lost three. A flat median can hide a gain and a regression of similar
+  size, and only the per-cell table shows it.
