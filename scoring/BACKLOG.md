@@ -1054,3 +1054,67 @@ reasoned comment rather than an itemisation to check, the missing criterion has
 been added and measured, and our reading has been confirmed the sounder one. It
 stays COUNTED AND WRONG rather than declared — the cost is one cell, and what is
 recorded here is worth more than a line saying we disagree.
+
+### WK1/p8, attempt 6: the punisher-made-of-the-goal-behaviour reading, refuted
+
+The most promising hypothesis yet about gold's zero on WK1/p8, and it is wrong.
+
+The reading: p8's unwanted behaviour is a lack of exercise, their goal is to work
+out four days a week, and the penalty they set for {{corpus:Q4c/p8:first:19:42:sha=7ac6426f11ad}} extra
+press-ups — which is exercise. So the punisher is made of the goal behaviour and
+is not aversive TO THEM, which is exactly what gold's comment asks for ("state
+what UNDESIRABLE thing will you add"). It also explained why the same plan earns
+4 on the TYPE item: that item asks only for a valid example of PP, where
+press-ups as an aversive is fine in the abstract, while the cadence items ask how
+it will be used in this intervention. Same asymmetry as `targets_own_behavior`.
+
+Implemented as `consequence_distinct_from_goal`, gating on WK1 on both paths.
+Measured: median 15/18 -> 15/18, and the gate answered `met` on the target in
+every run. It never fired where it was aimed. It DID fire 15 times elsewhere and
+broke p1, a previously correct cell, twice — the 4-point bet a gate makes of
+every cell, realised as a loss. Reverted.
+
+Why the reading fails, which is worth keeping: the model does not accept that
+press-ups ARE the goal behaviour, and that is defensible. The goal is gym
+attendance four days a week; extra press-ups imposed as a penalty is a distinct
+imposition, and a common one. Reading it as "more of the goal behaviour" was an
+inference the text does not compel.
+
+So gold's "undesirable thing" objection remains UNEXPLAINED rather than explained,
+and WK1/p8 stays declared as ADDED_AVERSIVE_NAMED. Six attempts now stand behind
+that entry: deduction severity, `you_arrange_it`, a new separateness gate,
+`targets_own_behavior`, cadence-by-accumulation, and this. The fixture was
+verified faithful against the source .docx, gold's row carries a reasoned comment
+rather than an itemisation to check, and two of the six attempts produced
+criteria worth keeping on OTHER items.
+
+**And then the comment turned out not to be evidence.** The sentence "you should
+state what undesirable thing will you add..." appears NOWHERE else in handout 2 —
+only on p8's three cells, with the type and cadence slotted in. On the third,
+WK2, it reads "For NR, you should state what undesirable thing will you take away
+at the end of the week IF YOU DO NOT MEET your weekly goal", which is wrong for
+NR: negative reinforcement removes an aversive when the behaviour OCCURS, and
+removing one for failing rewards failure. The clause was carried over from the two
+PP versions unadjusted.
+
+So the operative judgement is the FIRST sentence, "This is not an example of
+operant conditioning", and the second is per-student boilerplate written once and
+pasted. Its words cannot be mined for a criterion — which retires the
+"undesirable thing" reading on evidence rather than on a failed measurement.
+
+**What does account for the three zeros**: p8 never states a fresh, complete,
+correctly-oriented contingency in any of these boxes, but keeps adjusting the one
+plan established in their earlier type items. Each fails a different half —
+DAY1's consequence lives only in an avoidance clause under an intention (fixed,
+the avoidance gate, 9 of 9); WK2's is attached to success instead of failure
+(charged as a type mismatch); and WK1's is named, oriented and stated directly,
+so nothing is wrong with it.
+
+**The distinguishing feature, for anyone tempted by a new rule**: every cell that
+must stay correct names BOTH SIDES in one canonical conditional — "{{corpus:PR/p2:pr:0:48:sha=6c9624661ff5:shape=S3-0a,C1}} the movies". TEST 1 and the two gates added on
+2026-08-24 already enforce that. The rule tried here reached past it for a defect
+WK1 does not have, which is why it broke p1.
+
+That leaves the likeliest account of WK1's zero as a VERDICT CARRIED ACROSS a run
+of three cells for one student — a claim about gold's process, not about the
+answer. Which is what a divergence is for, and what no rule should chase.
