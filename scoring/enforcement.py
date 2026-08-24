@@ -1710,6 +1710,64 @@ def check_consensus_fixes_have_no_duplicate_cells() -> list[str]:
     return dupes
 
 
+def check_gold_tables_have_no_duplicate_keys(src: str | None = None) -> list[str]:
+    """A key written twice in one of handouts.py's declaration tables.
+
+    Same failure as `check_consensus_fixes_have_no_duplicate_cells`, on the
+    tables that decide what a cell is measured against: GOLD_CEILINGS,
+    CORRECTED_GOLD and PER_ITEM_EXCLUDE. They are dict LITERALS, so Python
+    resolves a repeated key before any check runs — the later entry wins and the
+    earlier one vanishes. The loaded dict can never show it; only the source can.
+
+    Not hypothetical, and the way it happened is the reason to check it. Q3
+    already had a GOLD_CEILINGS entry for `action_oriented`, written from five
+    cells. A second ("1", "Q3") entry was added for the same criterion after a
+    fresh measurement, by someone who had read the item's error list rather than
+    this table, and one of the two became dead text instantly. Both described a
+    real ceiling, so nothing looked wrong: the file simply carried two accounts
+    of one phenomenon and served whichever came last.
+    """
+    import ast
+    import os
+
+    # `src` is overridable for the same reason `_CONSENSUS_SOURCE` is: a check
+    # that cannot be pointed at a deliberately broken copy has never been shown
+    # to detect anything.
+    src = src or os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              "handouts.py")
+    try:
+        tree = ast.parse(open(src).read())
+    except Exception as exc:                    # pragma: no cover
+        return [f"cannot parse handouts.py: {exc}"]
+
+    WANT = ("GOLD_CEILINGS", "CORRECTED_GOLD", "PER_ITEM_EXCLUDE")
+    problems = []
+    for stmt in ast.walk(tree):
+        targets = (getattr(stmt, "targets", []) or
+                   ([stmt.target] if hasattr(stmt, "target") else []))
+        for t in targets:
+            if not (isinstance(t, ast.Name) and t.id in WANT):
+                continue
+            node = stmt.value
+            if not isinstance(node, ast.Dict):
+                problems.append(f"{t.id} is not a dict literal — this check is stale")
+                continue
+            seen = set()
+            for k in node.keys:
+                try:
+                    key = ast.literal_eval(k)
+                except Exception:
+                    continue
+                if key in seen:
+                    problems.append(
+                        f"{t.id} has TWO entries for {key}. A dict literal keeps "
+                        f"only the last, so the other is silently doing nothing "
+                        f"— merge them, because two accounts of one ceiling read "
+                        f"as two ceilings")
+                seen.add(key)
+    return problems
+
+
 def check_corrected_gold_matches_the_sheet() -> list[str]:
     """Does every CORRECTED_GOLD entry still correct the row it claims to?
 
