@@ -555,6 +555,8 @@ def enforcement_audit():
         findings.append(("-", "TWO ENTRIES FOR ONE CELL", bad))
     for bad in ENF.check_items_are_measured_as_configured():
         findings.append(("-", "ITEM UNMEASURED AS CONFIGURED", bad))
+    for bad in ENF.check_declarations_still_have_evidence():
+        findings.append(("-", "DECLARATION OUTLIVED ITS EVIDENCE", bad))
     for bad in ENF.check_the_audit_read_the_corpus():
         findings.append(("-", "AUDIT EXAMINED NOTHING", bad))
     for bad in ENF.check_consensus_spans_are_disjoint():
