@@ -44,30 +44,30 @@ grader's decision sitting in their prompt. Q4c and Q5 had been reported as
 perfect items; they are 12/14 and 14/15. Every number reported before the audit
 was computed over a denominator the audit shrank.
 
-**Step 0 asks TWO questions, and the second one is the one that gets skipped: is
-this exclusion CORRECT, and is it NECESSARY?** They have different answers and
-opposite consequences.
+**Step 0 asks TWO questions, and the second one is the one that gets skipped:
+is this exclusion CORRECT, and is it NECESSARY?** They have different answers
+and opposite consequences.
 
 | | the cell scores WRONG | the cell scores RIGHT |
 |---|---|---|
 | **correct?** | the exclusion is hiding a miss — remove it, take the miss | the exclusion is consistent with itself |
 | **necessary?** | — | UNTESTED until you remove the citation and measure |
 
-An exclusion on a cell that scores right is not thereby justified. It rests on a
-claim — that the prompt hands the grader this answer — and that claim is
-testable: rewrite the citation as the RULE it was illustrating, measure the cell
-again, and see whether it still scores right without the answer in front of it.
-If it does, the citation was never load-bearing, and BOTH the citation and the
-exclusion go: the cell counts, and the denominator grows.
+An exclusion on a cell that scores right is not thereby justified. It rests on
+a claim — that the prompt hands the grader this answer — and that claim is
+testable: rewrite the citation as the RULE it was illustrating, measure the
+cell again, and see whether it still scores right without the answer in front
+of it. If it does, the citation was never load-bearing, and BOTH the citation
+and the exclusion go: the cell counts, and the denominator grows.
 
 This is the direction the reduction pressure usually misses, because nothing
 about a correct cell looks wrong. Section 5's two rules both start from a
-problem — a miss being hidden, a stale claim reporting unwinnable ground — so an
-exclusion whose cell behaves can sit undisturbed forever while quietly costing
-the rate a cell it has earned. The audit that found the eight wrong ones also
-left 21 right ones untouched with the words "the exclusion is doing its job",
-which was an assumption dressed as a verdict: what its job REQUIRES is that the
-citation be doing work, and none of the 21 had been asked.
+problem — a miss being hidden, a stale claim reporting unwinnable ground — so
+an exclusion whose cell behaves can sit undisturbed forever while quietly
+costing the rate a cell it has earned. The audit that found the eight wrong
+ones also left 21 right ones untouched with the words "the exclusion is doing
+its job", which was an assumption dressed as a verdict: what its job REQUIRES
+is that the citation be doing work, and none of the 21 had been asked.
 
 Both halves are cheap and neither is optional. The wrong ones cost you a rate
 you did not earn; the unnecessary ones cost you cells you did.
@@ -77,10 +77,10 @@ answer key, so sweep ALL items and ALL prompt sources afterwards — and keep
 sweeping until the check is clean.** An exclusion licenses the prompts to quote
 that participant freely. Remove it and every one of those quotes becomes what
 `check_rule_examples_are_not_corpus` exists to catch: the model reading a
-counted cell's own words with the verdict attached. The quotes are not where you left
-them, either. They accumulate in two places — a rubric `desc` or `guidance`
-bullet, and `olx_prompts.SLOT_NOTES`, which is a second source of prompt prose
-that a scan of the rubric alone will not see.
+counted cell's own words with the verdict attached. The quotes are not where
+you left them, either. They accumulate in two places — a rubric `desc` or a
+`guidance` bullet, and `olx_prompts.SLOT_NOTES`, which is a second source of
+prompt prose that a scan of the rubric alone will not see.
 
 Measured the hard way on 2026-08-24. Un-excluding Q1/p1 and Q2/p6 lit up quotes
 that had sat there legally for months. Fixing the rubric copy surfaced a second
@@ -89,12 +89,12 @@ sentence in a different note. Three passes of the same check to reach clean, on
 one exclusion change. So: run the check as the last step of every exclusion
 change, not the first, and run it again after each fix.
 
-**Measured on Q1, and it is worth knowing which direction the answer went.** Its
-five citations were bare attributions with a decision attached — "(participant
-1)", "which is what participant 6 scored", "which is how participants 10 and 16
-were credited". Deleting the attributions left every rule intact, which is the
-common shape and the reason the test is usually cheap. Three runs with the
-citations gone:
+**Measured on Q1, and it is worth knowing which direction the answer went.**
+Its five citations were bare attributions with a decision attached —
+"(participant 1)", "which is what participant 6 scored", "which is how
+participants 10 and 16 were credited". Deleting the attributions left every
+rule intact, which is the common shape and the reason the test is usually
+cheap. Three runs with the citations gone:
 
 | | before | after |
 |---|---|---|
@@ -107,14 +107,14 @@ against a reported 13/15. **Five cells we score correctly had been subtracted
 from every rate on an untested claim.** An audit that only looks for exclusions
 hiding misses would never have found them, because there was no miss to find.
 
-**Why this half gets skipped, stated plainly so the next reader recognises it.**
-A wrong-and-excluded cell eventually attracts attention: the item reads as
-perfect and someone asks why. A right-and-excluded cell produces no symptom at
-all — the rate is merely smaller than it should be, and a smaller denominator
-looks like rigour. Of 34 exclusions audited on 2026-08-23, the 8 hiding misses
-were found and fixed the same hour; the 21 that were merely unnecessary were
-dismissed in a sentence, and finding them took a second pass and a second
-prompt.
+**Why this half gets skipped, stated plainly so the next reader recognises
+it.** A wrong-and-excluded cell eventually attracts attention: the item reads
+as perfect and someone asks why. A right-and-excluded cell produces no symptom
+at all — the rate is merely smaller than it should be, and a smaller
+denominator looks like rigour. Of 34 exclusions audited on 2026-08-23, the 8
+hiding misses were found and fixed the same hour; the 21 that were merely
+unnecessary were dismissed in a sentence, and finding them took a second pass
+and a second prompt.
 
 **Every step ends by writing down what it found and did not fix, in
 `scoring/BACKLOG.md`.** Nothing in that file is enforced, which is exactly why
@@ -227,14 +227,14 @@ and are not the target separate a SPECIFIC regression from item-wide wobble: if
 the target moves and the controls hold, the change did it; if everything
 wobbles, the item's variance did, and the target was never the story.
 
-Both errors happened here on the same day. Q1's baseline had p17 wrong in 3 of 3
-and a criterion rewrite was drafted for it; six passes said 4 of 6, the rubric
-had already recorded that cell as a model limit, and the "fix" would have
-re-litigated a settled question against an unlucky draw. In the other direction,
-Q4a's numerator fell by one in one run of three after eight citations were
-removed, on a single cell — small enough to wave through, except that this
-item's baseline spread was 0 cells, which makes a stable-right cell going 2 of 3
-a change in the item's STABILITY rather than in its score.
+Both errors happened here on the same day. Q1's baseline had p17 wrong in 3 of
+3 and a criterion rewrite was drafted for it; six passes said 4 of 6, the
+rubric had already recorded that cell as a model limit, and the "fix" would
+have re-litigated a settled question against an unlucky draw. In the other
+direction, Q4a's numerator fell by one in one run of three after eight
+citations were removed, on a single cell — small enough to wave through, except
+that this item's baseline spread was 0 cells, which makes a stable-right cell
+going 2 of 3 a change in the item's STABILITY rather than in its score.
 
 **Land a declaration correction and a denominator change as SEPARATE steps.**
 Both are cheap and both are tempting to do in one commit, and then the next
@@ -278,12 +278,30 @@ threshold as a count, before measuring: "the numerator must not fall below 12."
 Worked, 2026-08-23. Eight `self_graded` exclusions were removed and the
 citations that justified them came out of the prompts, which meant deleting
 worked examples from Q4a, Q4c and Q5. Re-deriving from the pre-change runs put
-the numerators at
-12, 12 and 14 — unchanged BY CONSTRUCTION, since the newly counted cells were
-the ones already known to be wrong. That number could not answer the only
-question that mattered: whether the deleted examples had been doing work for the
-OTHER cells. Only a fresh sweep of the three items can say, and the answer is a
-numerator, not a rate.
+the numerators at 12, 12 and 14 — unchanged BY CONSTRUCTION, since the newly
+counted cells were the ones already known to be wrong. That number could not
+answer the only question that mattered: whether the deleted examples had been
+doing work for the OTHER cells. Only a fresh sweep of the three items can say,
+and the answer is a numerator, not a rate.
+
+**Never regenerate the prompt while a run is in flight, and do not trust
+yourself to remember.** Both harnesses read the generated `.olx` per call, so a
+`--write` part-way through splits that run across two prompts: the cells
+already sent used the old text, the rest use the new, and the `.runs.json`
+records nothing about it. It reads exactly like a clean measurement, and it is
+the one contamination that cannot be detected afterwards — the before and the
+after differ by an unknown mixture.
+
+Done on 2026-08-24, by someone who had deliberately waited for two earlier runs
+to clear for precisely this reason. Handout 3's 1a baseline was 40 cells of old
+prompt and 20 of new, and the two items queued behind it would have measured
+the NEW prompt as their baseline. All three discarded.
+
+`olx_prompts.py --write` now REFUSES while a harness process is scoring cells,
+naming the process, with `--force` for the case where the run is knowingly
+being thrown away. The check is at the point of the mistake rather than in the
+audit, because an audit that runs afterwards can only tell you the measurement
+was worthless.
 
 **Validate the served prompt every run.** The prompt reaches the grader through
 three stages — rubric, generated OLX, dumped idmap — and only the third is what
