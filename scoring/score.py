@@ -154,6 +154,14 @@ def build_schema(item: dict) -> dict:
             }
             props["cadence_ok"] = {"type": "boolean"}
             props["targets_own_behavior"] = {"type": "boolean"}
+            # WK2 only, mirroring a question the TYPE items have always asked and
+            # the cadence items never did. There, `targets_intended_behavior`
+            # charges WRONG_TYPE when the arrangement is the right type but
+            # pointed the wrong way; here, `targets_own_behavior` asks only WHOSE
+            # behaviour it is. So an answer that delivers an aversive for SUCCESS
+            # — punishing the goal behaviour — passes every check on the sheet.
+            if item.get("id") == "WK2":
+                props["aimed_correctly"] = {"type": "boolean"}
             # The item's fourth point. rubric_h2 has carried this slot and its
             # LINK_NOT_ASSERTED deduction for a while, but nothing here asked for
             # it, so on the paper-scorer path it was inert: 0 of 80 cadence cells
@@ -508,6 +516,26 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
         # Charged additively alongside TYPE_MISMATCH and WRONG_BEHAVIOR, and in
         # the same order as agreement.py's score_oc_cadence, so the two paths
         # reach the same total from the same criteria sheet.
+        # WK2 only, and it GATES, because gold's charge on the cell that
+        # exposed the gap is the whole 4 and nothing smaller reaches it: the
+        # scored slots on this item top out at 2 + 1 + 1.
+        #
+        # The gap: an aversive delivered for SUCCESS punishes the goal behaviour,
+        # which is not a usable arrangement whatever else is well-formed about
+        # it — and every other check passes such an answer. The behaviour is the
+        # student's own, the consequence is arranged, contingent and subsequent,
+        # and the cadence is right. The TYPE items have always asked this
+        # question as `targets_intended_behavior`; the cadence items never did.
+        if item.get("id") == "WK2":
+            aimed_right = a.get("aimed_correctly", True)
+            checks.append({"what": "aimed_correctly", "met": bool(aimed_right),
+                           "evidence": ""})
+            if not aimed_right:
+                add("NOT_OC", "The consequence is pointed the wrong way: an "
+                              "aversive for meeting the goal, or a reward for "
+                              "missing it.")
+                return ledger, checks, unknown, advisory
+
         asserted = a.get("consequence_asserted", True)
         checks.append({"what": "consequence_asserted", "met": bool(asserted),
                        "evidence": ""})
