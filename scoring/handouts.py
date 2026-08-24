@@ -283,17 +283,127 @@ HANDOUTS: dict[int, dict] = {
         # Section 5's retest-until-removed rule bites on `unscoreable` claims, not
         # on these.
         "cited_participants": {
-            "Q1":  [1, 2, 6, 10, 16],
-            "Q2":  [3, 6, 10],
-            "Q4a": [3, 4, 6, 17],
-            # Q4b cites only its ACCEPT cases now. 2, 4, 6, 7 and 20 came OUT of the
-            # guidance rather than staying in it and being excluded: the item could
-            # not score them right even with the answer written beside them, so
-            # excluding them reported a rate over the cells it can do. They are
-            # counted now, and expected to be wrong. See EQUIVALENCE.md.
-            "Q4b": [13, 15, 19],
-            "Q4c": [4, 11, 12, 15, 17],
-            "Q5":  [6, 8, 9, 19, 20],
+            # Q1 IS GONE FROM THIS MAP, and it is the worked example of the second
+            # half of step 0: an exclusion can be correct and still be unnecessary.
+            # All five of its registrations rested on bare attributions — "(participant
+            # 1)", "which is what participant 6 scored", "which is how participants 10
+            # and 16 were credited" — so deleting the attributions left every rule
+            # intact and the claim became testable.
+            #
+            # MEASURED, 3 runs with the citations gone: the 15 cells already counted
+            # held at 13, 13, 13, and four of the five cited cells stayed right 3 of 3.
+            # The citations were load-bearing for nothing, and the whole item scores
+            # 18, 17, 18 of 20 against the 13/15 it had been reporting. FIVE CELLS WE
+            # SCORE CORRECTLY had been subtracted from every rate on an untested claim.
+            #
+            # p10 is the exception and was kept out deliberately anyway. Probed at 6
+            # passes it is right 4 of 6 without its citation, against 3 of 3 with it —
+            # so that citation WAS doing work, and what it was doing was holding a
+            # coin-flip cell at 100%. Keeping the exclusion would mean keeping an answer
+            # key in the prompt to make one cell look stable, which is the opposite of
+            # what the registry is for. It counts, and it flips.
+            # Q2 IS GONE TOO, and its citations were the harder kind: quote plus
+            # verdict, not bare attribution. `wgb_inverts_utb` quoted p10's own goal
+            # and the two points it lost; `reasons_given` quoted p6's restatement and
+            # named p3 as having lost all three. Rewriting them as rules — a goal that
+            # names something ACQUIRED rather than the behaviour fails; a restatement
+            # of the goal is not a benefit of it — kept the teaching:
+            #
+            #   numerator, 17 counted cells   16, 14, 15  ->  15, 15, 17
+            #   whole item, 20 cells          18, 17, 18  ->  17, 17, 20
+            #
+            # p3 held at 3/3 and p6 IMPROVED, 2/3 -> 3/3, without the answer in front
+            # of it. p10 read 1/3 in the sweep, which looked like a load-bearing
+            # citation, and probed 5 of 6 with both controls at 6/6 — its scores are
+            # 3,3,3,3,0,3 against a gold of 3, so the failure is a rare zeroing gate
+            # rather than a steady refusal. Six of nine passes overall: a two-thirds
+            # cell, treated like Q1's p10 and counted.
+            #
+            # This item is genuinely noisy — a 3-cell spread before and after — so read
+            # its floor, not its mean.
+            # Q4a IS GONE, all four. Its citations were quote-bearing: the
+            # "{{corpus:Q4a/p3:second:25:67:sha=5c4b20801855}}" do-instead example, gold's
+            # own two opacity questions with p4 and p6 named, and the keyword
+            # inconsistency naming p17. Rewritten as rules — refuse a substitute
+            # activity or another route to the same end; ask whether a reader can see
+            # how THIS entry leads to THIS behaviour, an omission that could precede
+            # anything being the opaque shape — the numerator did not move at all:
+            #
+            #   numerator, 16 counted cells   12, 12, 12  ->  12, 12, 12
+            #   whole item, 20 cells          16, 16, 15  ->  15, 16, 15
+            #
+            # p3, p4 and p17 all held at 3/3 with no citation. p6 read 1/3 in the sweep
+            # and probed 5 of 6 — BETTER than the 2/3 it managed WITH its citation,
+            # which is the second cell in this pass to improve when its answer key was
+            # taken away (Q2's p6 went 2/3 -> 3/3). A citation naming one participant's
+            # verdict does not merely fail to help; it can pull the grader toward the
+            # wrong reading of a neighbouring judgement.
+            #
+            # p6's scores are 3,3,3,3,5,3 against a gold of 3: gold charges the opacity
+            # of "not stretching" leading to lack of exercise, and we now agree with it
+            # five times in six.
+            # Q4b IS GONE, and its three were the hardest of the pass. Its ACCEPT
+            # bullet quoted p13's own second entry and BOTH of p19's as the internal-state
+            # and coping-behaviour examples — three of the four accepted shapes lifted
+            # from two students the item then excluded, which is the circularity this
+            # registry exists to break. (An earlier round had already removed 2, 4, 6, 7
+            # and 20 for the opposite reason: the item could not score them even with the
+            # answer beside them. See EQUIVALENCE.md.)
+            #
+            # Three configurations, MEASURED, p15 at 6/6 as control throughout:
+            #
+            #                        p13    p19    numerator (17 counted)
+            #   quoting their words  67%    100%   14, 13, 13
+            #   my abstractions       0%      0%   13, 14, 14
+            #   invented examples    33%    100%   14, 14, 14
+            #
+            # The first rewrite replaced EXAMPLES with category descriptions and broke
+            # both cells outright — and it was narrower than what it replaced, excluding
+            # a state that "befell" the student when the original bullet accepted exactly
+            # that. The guide says examples must be INVENTED, not that they should become
+            # abstractions; reading it the second way cost two cells and two measurements.
+            #
+            # With concrete invented examples the item is steadier than it ever was with
+            # the quotes — 14 flat against 13-14 — so what those quotes contributed was
+            # CONCRETENESS, not the students' particular words. p19 recovered fully.
+            #
+            # p13 sits at 67% with its own words in the prompt and 33% with an invented
+            # near-equivalent: a coin-flip cell either way across nine passes. Counted,
+            # like Q1's and Q2's p10, and recorded as a cell whose apparent stability was
+            # its own answer key.
+            #
+            # Whole item, 20 cells: 16, 17, 16 — against the 13/16 this campaign opened
+            # with.
+            # Q4c IS GONE, all five, and it is the cleanest result of the pass: not one
+            # cell moved. Its citations were quote-bearing — p12's junk-food consequence
+            # as the ACCEPT example, gold's question to p4, p11's duplicate charge, p15
+            # and p17 named in the keyword note — and rewriting them as rules changed
+            # nothing whatsoever:
+            #
+            #   numerator, 14 counted cells   12, 12, 12  ->  12, 12, 12
+            #   whole item, 20 cells          17, 17, 17  ->  17, 17, 17
+            #   p4, p11, p12, p15, p17        3/3 each, before and after
+            #
+            # Five cells recovered at zero cost. p16 stays out as `unscoreable` — that is
+            # a claim about its gold row, not about the prompt, and its expect_error still
+            # matches its measurement — so the honest denominator is 19, at 17 of 19.
+            # Q5 IS GONE, all five, which empties this map for handout 1 entirely.
+            # Four of the five were named in ONE bullet — a list of four quoted answers
+            # with "every one of these scored full marks (participants 8, 9, 19, 20)" —
+            # plus p6's duplicate case and p9's thin-reason advisory.
+            #
+            #   numerator, 15 counted cells   14, 14, 14  ->  13, 14, 14
+            #   whole item, 20 cells          18, 19, 19  ->  18, 19, 19   (identical)
+            #   p6, p8, p19, p20              3/3, unchanged
+            #   p9                            2/3 -> 3/3, better without its answer key
+            #
+            # The numerator's single dip is p10, which no citation ever named: probed at
+            # 3 of 6 with controls at 6/6 and 5/6, so a true coin flip that had been
+            # reading 3/3 while the quoted list was in the prompt. A list of four
+            # students' answers was cueing a cell it did not name — the teaching effect,
+            # not recall — which is the strongest argument in this pass for writing
+            # examples rather than borrowing them.
+            "Q5":  [],
             # Q6 is gone from this map: rewritten from the dictionary, its
             # prompt cites no participant at all. Every cell on it is scoreable
             # now except p9, which is unreachable for a declared divergence.
