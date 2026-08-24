@@ -52,6 +52,8 @@ _PASS = {
     "targets_own_behavior": True,
     "targets_intended_behavior": True,
     "consequence_asserted": True,
+    # WK2 only: the consequence points the right way for the type chosen.
+    "aimed_correctly": True,
 }
 _FAIL = {
     "behavior": "",
@@ -64,6 +66,9 @@ _FAIL = {
     "targets_own_behavior": False,
     "targets_intended_behavior": False,
     "consequence_asserted": False,
+    # WK2 only, and it GATES there — an aversive delivered for meeting the goal.
+    # False is the failing value, and on that item it takes the whole 4.
+    "aimed_correctly": False,
 }
 # The two type fields are handled separately: their failing value depends on the
 # other one, and a naive flip can make them agree again.
