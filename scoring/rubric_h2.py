@@ -436,6 +436,30 @@ def _example_use_item(
             "wrong cadence voids it. A daily slot answered with a week-long contingency "
             "scored 0, the grader writing only \"This is a weekly example.\" Check that the "
             f"contingency actually operates {cadence}.",
+            # DAY2 only. In the rubric rather than SLOT_NOTES because the gate has
+            # no credit component to host a `rule`, and SLOT_NOTES reaches the web
+            # alone — the enforcement check said so and was right.
+            #
+            # The cell: gold 4, we score 0 in every run, cadence_is_daily
+            # `absent`, feedback "this is a weekly". The bare slot note already
+            # says duration is not cadence and that a tie goes to daily, so the
+            # model is not treating this as a tie — it thinks the answer is
+            # PLAINLY weekly, and it has a second ground the note never rebuts:
+            # this student's goal is stated as a weekly quantity, so "if I meet my
+            # goal" looks weekly on its face.
+            *(["CADENCE, TWO THINGS THAT DO NOT MAKE AN ANSWER WEEKLY. First, "
+               "duration: a consequence that runs to the end of the week is how "
+               "LONG the reward lasts, not how often the behaviour is checked, "
+               "and a trigger checked each day whose reward lasts until Sunday is "
+               "daily. Second, and the one that is missed: a goal expressed as a "
+               "weekly QUANTITY — \"four days a week\", \"five sessions a week\" — "
+               "is still checked day by day, because each day either counts "
+               "toward it or does not. An answer keyed to \"{{corpus:NR/p2:nr:0:17:sha=bd6ad50ff8db:shape=C1}}\" is "
+               "daily even when the goal itself is a weekly total. Answer that "
+               "the cadence is wrong only when the student must WAIT FOR THE WEEK "
+               "TO END before the contingency can fire at all — a whole-week "
+               "tally scored on Sunday, one weekend reward for the week's "
+               "performance."] if item_id == "DAY2" else []),
             "WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour "
             "from the student's UTB/WGB — a plan about procrastination when the UTB is {{corpus:Q1/p15:response:49:53:sha=336074805fc8:shape=R4-0-20}}"
             "{{corpus:Q1/p15:response:54:76:sha=019d6dc324ea}} Do not deduct it merely because the phrasing is loose "
