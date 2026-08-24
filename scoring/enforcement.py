@@ -1778,6 +1778,55 @@ def check_citation_necessity_is_recorded() -> list[str]:
     return problems
 
 
+def check_items_are_measured_as_configured() -> list[str]:
+    """Is each item's recorded number still the number of the CURRENT setup?
+
+    A published rate means nothing apart from the prompt the grader was sent and
+    the cells the rate was computed over, and both can change without leaving
+    anything that looks changed. A rule rewrite is a diff among many in the same
+    commit. Removing an exclusion DELETES the only record that the cell was ever
+    in question. So an item whose prompt was rewritten and whose denominator grew
+    is, in the tree, indistinguishable from an item nobody touched.
+
+    Q1, on 2026-08-24: five exclusions removed and six citations rewritten into
+    rules in one commit, no sweep afterwards, its number carried forward by
+    re-derivation from a sweep that predated both. Two guards had landed that
+    same day and neither could see it — `olx_prompts --write` warns at write time
+    and prints to stderr, `compare_runs.py` only fires if someone runs it. The
+    guide had said to measure, and had been read.
+
+    This compares the ledger against the working tree: the SHA of the item's own
+    OLX section, and its exclusion set. Either one moving makes the recorded
+    number stale, and stale is reported as a difference rather than a warning,
+    because the failure mode being defended against is precisely a true statement
+    that nobody acted on.
+
+    A gap may be DECLARED — `pending` with a reason — which is listed, not failed
+    on, the same bargain the rest of this file offers. What it may not be is
+    absent: an item with no entry at all is the Q1 state, and it fails.
+    """
+    import measured as MEAS
+
+    problems = []
+    for item, state in MEAS.status():
+        if state.startswith("ABSENT"):
+            problems.append(
+                f"{item} has no entry in MEASURED.json. Sweep it and run "
+                f"`measured.py --record {item} OUT/{item}.runs.json`, or declare "
+                f"`pending` with a reason saying when it will be measured")
+        elif state.startswith("STALE PROMPT"):
+            problems.append(
+                f"{item}: {state}. Its prompt text changed since the recorded "
+                f"measurement, so the recorded number is not this prompt's "
+                f"number — re-sweep and re-record")
+        elif state.startswith("STALE CELLS"):
+            problems.append(
+                f"{item}: {state}. Its denominator changed since the recorded "
+                f"measurement, so the recorded number was computed over a "
+                f"different set of cells — re-sweep and re-record")
+    return problems
+
+
 def check_gold_tables_have_no_duplicate_keys(src: str | None = None) -> list[str]:
     """A key written twice in one of handouts.py's declaration tables.
 
