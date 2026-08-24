@@ -23,6 +23,34 @@ guide came from doing step 3 while step 1 was still wrong.
 4. **Declare** whatever is left.
 5. **Reduce** the declarations, on the schedule in section 5.
 
+**`measured.py --preflight` enumerates what is outstanding, in this order, and
+`agreement.py` REFUSES a probe while anything is.** A probe is a participant
+subset run six or more times: ~24 calls to settle one cell, and a settled cell
+is worth nothing while that item's fixture is unread or its gold row does not
+reconcile with its own comment. `--force-probe` overrides it, for the case where
+the probe IS what settles a blocker.
+
+The gate is code rather than a paragraph because this section already told
+someone to check exclusions first and seven items were worked before any
+exclusion was retested. A step order that is only written down is a step order
+that gets skipped under momentum, and probes are exactly where momentum
+gathers — they feel like progress and cost a fraction of a sweep.
+
+Two of its detectors are worth knowing about, since both were built from
+mistakes made here:
+
+- **Fixture suspects.** A cell wrong in every run where we award NOTHING against
+  full-marks gold, or award something against gold 0. Every other stable miss in
+  this corpus is off by one deduction step, which is what a criterion boundary
+  looks like; these two shapes are what a box holding the wrong text looks like.
+  It consults EVERY artifact before flagging, because a cell that was ever right
+  is unstable rather than mis-parsed, and reading its fixture will find nothing.
+  That check removed four of seven candidates on first run, including one this
+  session had already called a probable fixture defect out loud.
+- **Non-reconciling gold rows.** Where a grader itemises their arithmetic, the
+  itemisation can be checked against the score. It found three rows nobody had
+  looked at, after D2/p11 and DAY2/WK1 p7 were found by hand.
+
 Every step that edits prompt prose ends with a sweep of the items it touched,
 compared against the last baseline on the same denominator, BEFORE the commit —
 including steps 0 and 5, where the edit is a deleted citation rather than a new

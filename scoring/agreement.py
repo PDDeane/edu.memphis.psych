@@ -1614,6 +1614,9 @@ def main() -> int:
     ap.add_argument("--handout", type=int, default=1, choices=sorted(BLOCKS))
     ap.add_argument("--backend", default="lo", choices=["lo", "cli"])
     ap.add_argument("--participants", type=int, nargs="*", default=None)
+    ap.add_argument("--force-probe", action="store_true",
+                    help="probe even though preflight has outstanding items "
+                         "(use when THIS probe is what settles one of them)")
     ap.add_argument("--items", nargs="*", default=None,
                     help="Rubric item ids to measure (default: all measurable ones).")
     ap.add_argument("--workers", type=int, default=3,
@@ -1634,6 +1637,35 @@ def main() -> int:
                     help="Participants to drop (default: this handout's exemplar "
                          "and mis-transcribed rows, which cannot be measured honestly).")
     args = ap.parse_args()
+
+    # A PROBE — a participant subset run many times — is the last step in the
+    # order of operations, not the next one. It costs ~24 calls to settle one
+    # cell, and a settled cell is worth nothing while the item's fixture is
+    # unread or its gold row does not reconcile with its own comment: work done
+    # out of order measures the wrong thing.
+    #
+    # Guidance said this already, in the section that also says to check
+    # exclusions first, which was itself skipped for seven items. So the check
+    # runs here, where the probe is actually launched, and the operator has to
+    # dismiss it deliberately.
+    if args.participants and args.runs >= 4 and not args.force_probe:
+        try:
+            import measured as _meas
+            blockers = {k: v for k, v in _meas.preflight().items() if v}
+        except Exception as e:                      # never block on a broken check
+            blockers = {}
+            print(f"(preflight unavailable: {e})", file=sys.stderr)
+        if blockers:
+            n = sum(len(v) for v in blockers.values())
+            print(f"REFUSING to probe: {n} outstanding item(s) come first.",
+                  file=sys.stderr)
+            for heading, items in blockers.items():
+                print(f"  {heading}", file=sys.stderr)
+                for x in items:
+                    print(f"    {x}", file=sys.stderr)
+            print("Address these, or re-run with --force-probe if this probe is "
+                  "what settles one of them.", file=sys.stderr)
+            return 1
 
     blocks = BLOCKS[args.handout]
     if not blocks:
