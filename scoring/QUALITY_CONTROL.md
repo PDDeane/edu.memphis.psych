@@ -23,6 +23,11 @@ guide came from doing step 3 while step 1 was still wrong.
 4. **Declare** whatever is left.
 5. **Reduce** the declarations, on the schedule in section 5.
 
+Every step that edits prompt prose ends with a sweep of the items it touched,
+compared against the last baseline on the same denominator, BEFORE the commit —
+including steps 0 and 5, where the edit is a deleted citation rather than a new
+rule. See "No prompt edit is finished until it has been measured" in section 2.
+
 A scoring model tuned against a bad fixture measures the fixture. A model whose
 declarations only ever grow measures the declarations.
 
@@ -236,6 +241,23 @@ citations were removed, on a single cell — small enough to wave through, excep
 that this item's baseline spread was 0 cells, which makes a stable-right cell
 going 2 of 3 a change in the item's STABILITY rather than in its score.
 
+Knowing the rule is not complying with it, and the way it fails is through the
+output format of whatever script did the comparison. On 2026-08-24 a scratch
+comparison of 1a printed `<-- LOST` for a cell that went 3/3 to 2/3 and
+`<-- gained` for one that went 1/3 to 3/3, and both were written up
+immediately — one as "a wobble inside the item's variance band", the other as
+"the rewrite fixed it" — with no probe run and this paragraph already in the
+guide. Two labels in a report were enough to skip it, because a line that reads
+like a verdict gets used as one.
+
+So the arithmetic moved into `compare_runs.py`, which prints PROBE REQUIRED and
+the exact command instead of a direction, marks the comparison NOT REPORTABLE,
+and exits non-zero so a chained script stops rather than continuing. It calls a
+move decisive only when the cell was uniform before and uniform after; anything
+short of that is a three-pass rate where the scope table asks for nine. Use it
+rather than writing the tally inline — that is also how the two definitions of
+`scored_exactly` came to disagree in print.
+
 **Land a declaration correction and a denominator change as SEPARATE steps.**
 Both are cheap and both are tempting to do in one commit, and then the next
 measurement mixes them: a rate that moved because two entries were rewritten is
@@ -302,6 +324,53 @@ naming the process, with `--force` for the case where the run is knowingly
 being thrown away. The check is at the point of the mistake rather than in the
 audit, because an audit that runs afterwards can only tell you the measurement
 was worthless.
+
+**No prompt edit is finished until it has been measured, and a commit is not
+the place to find that out.** Every change to prompt prose — a rubric rule, a
+`SLOT_NOTES` entry, an invented example replacing a quote — needs its item swept
+before it lands, compared against the last baseline on the same denominator. An
+edit that merely satisfies an enforcement check is the most dangerous kind,
+because the check going green feels like the work finishing. It isn't: the check
+proves the prompt no longer leaks an answer, and says nothing whatever about
+whether the replacement still teaches the rule.
+
+This bites hardest on exactly the edits that look safest. Swapping a real quote
+for an invented one of the same shape is a rewrite of the only concrete example
+the grader has for that slot, and concrete examples are what these prompts run
+on — handout 1's Q4b lost six cells to a rewrite that replaced examples with
+abstractions, and got them back only when invented examples went in. Cleaning
+three leaked quotes out of 1a's period slots is the same operation on an item
+whose own code comment records those slots as variance-sensitive.
+
+So: sweep, compare numerators, THEN commit. If the numbers drop, the leak still
+has to go — but it goes together with a rewrite that holds, or with the loss
+declared, and either way the commit says what the change cost.
+
+`olx_prompts.py --write` now names the sections whose text it changed and calls
+them UNMEASURED, because the thing that actually goes wrong is not disagreeing
+with this rule, it is sweeping from memory: editing four `SLOT_NOTES` entries,
+remembering three, and publishing a baseline for an item whose prose moved
+underneath it. The generator knows exactly which sections it rewrote, so it says
+so, at the point of the mistake rather than in an audit afterwards.
+
+**End every sweep by recording it: `measured.py --record <item> OUT/<item>.runs.json`.**
+This is the step that makes the two rules above enforceable rather than
+aspirational. The ledger stores the SHA of the item's own OLX section and the
+exact exclusion set the number was computed over, and
+`check_items_are_measured_as_configured` fails the suite when either has moved
+since — so a rewritten rule or a removed exclusion turns the item's recorded
+number red instead of leaving it to be noticed.
+
+It exists because it was needed. Q1 had five exclusions removed and six
+citations rewritten into rules in one commit and was never swept afterwards; its
+number was carried forward by re-derivation from a sweep that predated both
+changes, and an audit five commits later is what found it. Nothing looked wrong,
+because nothing WAS visibly wrong: a removed exclusion deletes the record that
+the cell was ever in question, and a rule rewrite is one diff among many.
+
+An item may declare `pending` with a reason instead of a measurement — the usual
+bargain in this project. What it may not be is absent, which is the state Q1 was
+in, and the state the check refuses.
 
 **Validate the served prompt every run.** The prompt reaches the grader through
 three stages — rubric, generated OLX, dumped idmap — and only the third is what

@@ -40,7 +40,7 @@ ITEMS: list[dict] = [
                 "gates": True,
                 "verdicts": ["met", "absent", "unclear"],
                 "codes": {"absent": "NO_WEEKLY_BREAKDOWN", "unclear": "NO_WEEKLY_BREAKDOWN"},
-                "desc": "Separates the baseline period from the intervention weeks at all. NO_WEEKLY_BREAKDOWN (-8) is for an answer that never distinguishes any time periods — no before/after, no weeks. That took the full 8 from participants 1 and 15. Do not use it when some periods are discussed; deduct per missing period instead.",
+                "desc": "Separates the baseline period from the intervention weeks at all. NO_WEEKLY_BREAKDOWN (-8) is for an answer that never distinguishes any time periods — no before/after, no weeks. An answer of that kind loses the whole 8. Do not use it when some periods are discussed; deduct per missing period instead.",
             },
             {
                 "what": "baseline_week",
@@ -99,9 +99,9 @@ ITEMS: list[dict] = [
             "(\"after I began, it increased\") counts when the others are named.",
             "DEDUCT A WEEK only when a period is clearly and specifically absent. The "
             "observed case is an answer that opens at the intervention and never mentions "
-            "the before/baseline state at all: participant 6 began \"{{corpus:1a/p6:response:0:21:sha=4089e1266c80:shape=R21-0-20}}"
-            "{{corpus:1a/p6:response:22:43:sha=1b95dfe08136}} intervention...\" and lost 2 points for having no "
-            "sentence pertaining {{corpus:2a/p20:how1:117:138:sha=db9958048324}}",
+            "the before/baseline state at all — it begins with the first week of data "
+            "collection and carries no sentence about how things stood beforehand, which "
+            "costs the baseline week's 2 points.",
         ],
         "context": [],
     },
@@ -198,9 +198,9 @@ ITEMS: list[dict] = [
                 "pts": 2.0,
                 "desc": "The graph has a title, and A DEFAULT PLACEHOLDER IS NOT ONE: "
                      "spreadsheet software inserts \"Chart Title\" when the student "
-                     "never types one, and that counts as missing. Participant 8's "
-                     "graph carries the literal text \"Chart Title\" and the grader "
-                     "deducted the title point",
+                     "never types one, and that counts as missing. A graph carrying "
+                     "that literal text has no title, and the graders deducted the "
+                     "point for it",
                 "codes": {"absent": "NO_TITLE", "not_described": "NO_TITLE"},
             },
             {
@@ -251,8 +251,9 @@ ITEMS: list[dict] = [
             "titled 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=R27-0-27}}, with axes '{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} and "
             "'Ounces of Water per Day'. Several students left it in place and added "
             "nothing. If the ONLY graph present is that one, `has_own_graph` is "
-            "`mismatch` and the whole item is 0 — participant 4 was scored 'Did not "
-            "provide a graph' on a file that contains a chart. A student's own graph plots "
+            "`mismatch` and the whole item is 0 — the graders scored 'Did not "
+            "provide a graph' on files that contain a chart, because the chart was not "
+            "the student's. A student's own graph plots "
             "THEIR behaviour (hours of sleep, minutes of exercise, servings) over their "
             "four weeks.",
             "The bundle marks each piece of evidence as `student` or `template`. Trust "
@@ -261,11 +262,11 @@ ITEMS: list[dict] = [
             "jammed against the labels ('Excersing Over Four Weeks2.521.510.50 Sunday "
             "Monday...'). Read the title and any series names out of it; series names "
             "(Baseline / Week 1 / Week 2 / Week 3) appearing together indicate a legend.",
-            "A WRITTEN DESCRIPTION OF A GRAPH IS NOT A GRAPH. Tidy label prose — "
-            "'Title: {{corpus:1c/p20:title:0:27:sha=d794c8f137de}} / X-axis label: Days / Y-axis label: "
-            "Hours of Sleep / Legend: Baseline, Week 1...' — is the student listing what "
-            "their graph WOULD contain, with no plotted data. Participant 20 wrote exactly "
-            "that and was scored 'did not include'. A real shape-drawn graph carries "
+            "A WRITTEN DESCRIPTION OF A GRAPH IS NOT A GRAPH. Tidy label prose — a "
+            "'Title:' line, an 'X-axis label:' line, a 'Y-axis label:' line, a "
+            "'Legend:' line, each with its value written after it — is the student "
+            "listing what their graph WOULD contain, with no plotted data, and the "
+            "graders scored that 'did not include'. A real shape-drawn graph carries "
             "numeric tick values run together with the labels; a description carries none. "
             "If the only evidence is such a description, `has_own_graph` is `absent`.",
             "If a slot cannot be determined from the evidence, mark it `absent` and set "
@@ -350,12 +351,12 @@ ITEMS: list[dict] = [
             "naming the techniques the student relied on, with no situation "
             "attached, counts. All three earned 6/6.",
             "DEDUCT when a stretch of the answer does NOT bear on how the plan succeeded "
-            "or failed. Participant 1 lost 2 points because a sentence about their stomach "
-            "being unsettled explained nothing about the plan working — the grader wrote "
-            "'your third sentence does not explain how your plan was successful'. "
-            "Participant 14 lost 2 for an answer that could not settle on whether it "
-            "worked ('{{corpus:2a/p14:verdict:0:42:sha=7ec74c73e177}} rate') — 'need more "
-            "explanation on how it was or was not successful'.",
+            "or failed. Two shapes were charged. A sentence reporting a bodily or "
+            "circumstantial detail that explains nothing about the plan working: the "
+            "graders wrote 'your third sentence does not explain how your plan was "
+            "successful' and took 2 points. And an answer that cannot settle whether it "
+            "worked at all, hedging the verdict instead of explaining either outcome: "
+            "'need more explanation on how it was or was not successful', also 2.",
             "Success or failure is irrelevant to the score; only whether it is stated and "
             "explained.",
         ],
