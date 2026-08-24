@@ -188,6 +188,33 @@ mid-construction, one clause occupying two boxes, one box holding a purpose
 clause that belonged to its neighbour. Each had previously been explained as a
 fault in gold or in the model.
 
+**READ EVERY RESPONSE IN FULL. A truncated readout is not a readout.** Print the
+whole box and the whole document region it came from — every line, to the end —
+whenever a response is being read for any purpose: a fixture audit, a
+disagreement with gold, a decision about a declaration, or a claim in a report.
+Never sample a response with a line-limited command, never quote from the first
+sentence, and never let a table of one-line excerpts stand in for the text. The
+`--fixture ITEM:PID` readout prints every line for exactly this reason.
+
+The failure is not hypothetical and it is not cheap. On 2026-08-24 a survey of
+WK1 was built with `sed -n '7p'` — the first response line of each cell — and
+p5 came back as "I will plan out my meals of when I eat fruits and vegetables."
+On that basis it was reported as an answer gold credits with 4 while stating no
+consequence, no conditional and no contingency at all, and that single "fact"
+was used to argue that gold on this item was not reproducible by any rule, that
+no gate could ever match it, and that a declared divergence was therefore
+correct. The argument was written up and stated to the user.
+
+p5 has a second sentence: "For every week that I stick to the meal plan, I will
+allow myself to skip one chore for the next week." A textbook weekly
+contingency. Read in full, the item's ten gold-bearing cells separate PERFECTLY
+on a single feature, and the rule that had just been declared unreachable was
+sitting in plain view.
+
+So: the cost of a truncated readout is not a missed detail, it is a confident
+conclusion in the wrong direction, defended with evidence that does not exist.
+If a response is worth reading, it is worth reading to the end.
+
 **An item answered with a chart or a table is read by PROVENANCE, not by
 position.** There is no prose to locate a box in, so the question changes from
 "is this box cut in the right place" to "is this the student's value, or is it
@@ -578,10 +605,20 @@ principled disagreement for any number of duller reasons:
 - the item's own scoring layer makes the rule inert, which no amount of prose
   about it will fix.
 
-So the order is: read the fixture out box by box, check gold's arithmetic
-against its own comment, confirm the rule reaches both generators and the layer
-that decides the score, and only then — with the attempts and their numbers
-written down — ask whether what remains is a genuine disagreement.
+So the order is: read the fixture out box by box **and in full — every line of
+every response, see section 1** — check gold's arithmetic against its own
+comment, confirm the rule reaches both generators and the layer that decides the
+score, and only then — with the attempts and their numbers written down — ask
+whether what remains is a genuine disagreement.
+
+The in-full requirement earns its capitals here specifically. A truncated
+readout does not merely fail to find the answer; it manufactures an argument FOR
+declaring. WK1's divergence was defended on the strength of a neighbouring cell
+that appeared to have no contingency, read from its first line alone — and that
+cell's second sentence is a textbook contingency. Read whole, the item's cells
+separated perfectly and the rule was obvious. A declaration argued from partial
+text is the worst outcome this section exists to prevent, because it is
+indistinguishable, afterwards, from a declaration that was earned.
 
 The cost of skipping this is not hypothetical. p7's DAY2 and WK1 cells were
 carried through four measured attempts and 0 of 36 passes, and looked exactly

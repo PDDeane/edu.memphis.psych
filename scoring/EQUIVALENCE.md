@@ -2731,6 +2731,16 @@ had disagreed about what "failed" meant for as long as both had existed.
 
 ## The fixture audit: all 26 items read out, box by box
 
+**"Read out" means IN FULL — every line of the box, to the end.** A readout
+assembled from first lines is not a smaller readout, it is a different and
+misleading document. On 2026-08-24 a WK1 survey built from each cell's first
+response line reported that gold credits an answer stating no contingency at
+all, and that claim was used to argue no rule could reproduce gold on the item
+and a divergence was therefore required. The cell had a second sentence
+containing a textbook contingency; read whole, the item's ten gold-bearing cells
+separated perfectly. Truncation does not cost you a detail, it hands you a
+confident conclusion pointing the wrong way. See QUALITY_CONTROL.md section 1.
+
 The whole corpus's fixtures were read out one cell at a time against the
 submissions, finishing what `--fixture` was built for. Six items had never been
 declared (2a, Q4a, Q4c, Q5, 3, 1c); five had been declared without being read
