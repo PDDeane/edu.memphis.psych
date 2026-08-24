@@ -559,6 +559,38 @@ The two rules below therefore bite on the first two. The safe landing place for
 a real disagreement is one of the last three, which leaves the miss **counted
 and visible** while still saying what it is.
 
+**NEVER DECLARE A GOLD DIVERGENCE UNTIL EVERY ALTERNATIVE IS EXHAUSTED — and
+the first alternative to check is the FIXTURE and its alignment with gold.** A
+divergence says "we understand this cell and choose to disagree", which is the
+most flattering thing that can be said about a miss short of dropping it: it
+closes the question, reads as understanding, and costs nothing to write. It is
+also the easiest thing to be wrong about, because a cell can look like a
+principled disagreement for any number of duller reasons:
+
+- the fixture hands the grader the wrong text, or splits it at the wrong
+  boundary, so the two sides are not judging the same answer at all;
+- the box the rule reads is empty, or holds a neighbour's words;
+- gold's row does not reconcile with its own comment, making it a wrong NUMBER
+  rather than a different judgement — D2/p11, DAY2/p7 and WK1/p7 were all found
+  this way, and two of them had been declared or ceilinged first;
+- the criterion is unreachable as written — a verdict token the slot does not
+  offer, a rule parked where only one generator reads it;
+- the item's own scoring layer makes the rule inert, which no amount of prose
+  about it will fix.
+
+So the order is: read the fixture out box by box, check gold's arithmetic
+against its own comment, confirm the rule reaches both generators and the layer
+that decides the score, and only then — with the attempts and their numbers
+written down — ask whether what remains is a genuine disagreement.
+
+The cost of skipping this is not hypothetical. p7's DAY2 and WK1 cells were
+carried through four measured attempts and 0 of 36 passes, and looked exactly
+like a divergence. What the reading actually produced was better: gold's rows
+did not reconcile and became CORRECTED_GOLD, the criterion turned out to be
+present but unreachable on one layer, and PR/NP were found not to carry
+`targets_own_behavior` at all — which dissolved an apparent gold inconsistency
+that a divergence would have enshrined as ours.
+
 **An exclusion on a cell the scorer gets WRONG must be removed.** That is
 exactly the exclusion buying accuracy nobody earned, and it is the one that
 will never remove itself, because the cell it hides is the cell that would
