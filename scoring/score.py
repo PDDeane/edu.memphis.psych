@@ -526,11 +526,31 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
             # that reinforces the unwanted behaviour is not a usable answer.
             add("WRONG_TYPE", "This reinforces the unwanted behaviour rather than the goal behaviour.")
 
+    if a.get("avoidance_frame") and item.get("id") == "DAY1":
+        # DAY1 GATES on this, and the CLI must gate with it or the two
+        # implementations score the same answer differently — the divergence
+        # class this project exists to close, and the one `equivalence.py` flags
+        # as GATE WEB ONLY.
+        #
+        # The standing decision was to flag and never deduct: an avoidance-framed
+        # contingency is structurally sound, so zeroing it looked like punishing
+        # phrasing. The cohort disagrees on THIS item. Of the five DAY1 cells
+        # where the web's `phrased_directly` ever answers `absent`, gold scores
+        # four of them 0 and the fifth we already miss for other reasons, so
+        # `absent` predicts gold's zero and honouring it costs nothing. Measured:
+        # DAY1 15/18 -> 16/18, p8 from wrong in every run to right in six of six
+        # probe passes, p14 recovering to 6/6, both controls holding.
+        #
+        # Deliberately NOT extended to the other items. WK1's p8 answer is not
+        # avoidance-framed at all and stays declared; PR/NR/PP/NP were never
+        # measured for this and three of them are perfect as they stand.
+        add("NOT_OC", "The consequence is stated only as something avoided.")
+        return ledger, checks, unknown, advisory
+
     if a.get("avoidance_frame"):
-        # Valid contingency, stated as avoidance ("so I don't have to X if I
-        # miss"). Structurally sound but easy to misread; the graders zeroed two
-        # of these on participant 8 for what was really a phrasing problem.
-        # Flag for review, never deduct.
+        # Everywhere else, the original decision stands: valid contingency,
+        # stated as avoidance ("so I don't have to X if I miss"). Structurally
+        # sound but easy to misread. Flag for review, never deduct.
         advisory = (
             "This is stated as an avoidance contingency — the consequence is framed by "
             "what is avoided when the behaviour occurs, rather than what is added or "
@@ -705,10 +725,18 @@ def build_prompt(
             "correct readings. When the arrangement admits both and one of them is the "
             "type under discussion, report that one; do not mark it a mismatch.\n"
             "7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED "
-            "when the behaviour occurs (\"so I don't have to do 30 pushups if I miss it\") "
-            "rather than by what is added or removed after it. This never changes the "
-            "score; it flags the answer for a phrasing comment. It is the ONLY criterion "
-            "that judges this phrasing — no other check may deduct for it.\n"
+            "when the behaviour occurs (\"so I don't have to do the extra chore if I miss "
+            "it\") rather than by what is added or removed after it. "
+            + ("On THIS item a true answer takes the whole 4: an answer whose only claim "
+               "is about dodging a penalty has not said what will be added or taken away "
+               "when the behaviour happens, and the graders scored those zero. Answer "
+               "true only when the sentence's own claim is the avoidance — not merely "
+               "because a penalty is mentioned. "
+               if item.get("id") == "DAY1" else
+               "This never changes the score; it flags the answer for a phrasing "
+               "comment. ")
+            + "It is the ONLY criterion that judges this phrasing — no other check may "
+            "deduct for it.\n"
         )
         if item.get("cadence"):
             parts.append(

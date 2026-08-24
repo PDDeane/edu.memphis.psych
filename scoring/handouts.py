@@ -876,7 +876,23 @@ GOLD_DIVERGENCES: list[dict] = [
         # wrote a reasoned comment rather than an arithmetic slip, and section 4
         # reserves that table for a wrong NUMBER on the row's own evidence. Both
         # cells stay counted, and both stay 4 points over gold.
-        "code": "ADDED_AVERSIVE_NAMED", "cells": [("DAY1", 8), ("WK1", 8)],
+        # DAY1/p8 RETIRED 2026-08-24, hours after this entry was written, by
+        # making the rule match gold instead of declaring the disagreement. The
+        # cell now scores 0 against gold 0 in SIX of six probe passes.
+        #
+        # What did it: `phrased_directly` — the check for a contingency stated by
+        # what is AVOIDED — was set to flag and never deduct, on the reasoning
+        # that such a contingency is structurally sound. It GATES on DAY1 now,
+        # because the cohort says gold treats the phrasing as disqualifying: of
+        # the five DAY1 cells where that check ever answers `absent`, gold scores
+        # FOUR of them 0, and the fifth we already miss for unrelated reasons. So
+        # honouring it cost nothing and gained the cell: DAY1's median rose by one,
+        # with p14 recovering to 6 of 6 alongside.
+        #
+        # The lesson for the entry that remains: this cell looked exactly as
+        # settled as WK1/p8 does, and it was reachable. The rule was findable in
+        # the cohort's own pattern rather than in the sentence being argued about.
+        "code": "ADDED_AVERSIVE_NAMED", "cells": [("WK1", 8)],
         "why": "p8 names the added aversive and ties it to missing the goal — an "
                "extra 30 pushups for every day the gym is skipped — and gold "
                "answers that this is not operant conditioning and asks them to "
