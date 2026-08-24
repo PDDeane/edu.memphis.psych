@@ -207,14 +207,15 @@ ITEMS: list[dict] = [
                 "verdicts": ["3", "2", "1", "0"],
                 "desc": "HOW MANY statements name a NEGATIVE EFFECT of the unwanted "
                         "behaviour — something that goes wrong because of it, or a "
-                        "symptom of it. \"With lack of sleep, it has become hard to "
-                        "stay focused in class\" is one. A reason is a whole STATEMENT: a "
+                        "symptom of it. A single statement tying the behaviour to one "
+                        "thing that goes wrong — the behaviour, then what it costs "
+                        "them — is one. A reason is a whole STATEMENT: a "
                         "clause that merely continues one is part of it, so a named "
                         "effect followed by \"which causes\" and its downstream result "
                         "is ONE, while two effects merely joined by "
                         "\"and\" are two. Do NOT count a restatement that the student "
-                        "struggles with the behaviour (participant 1) or a behaviour "
-                        "performed DURING it (participant 2). Answer 3 for three or more",
+                        "struggles with the behaviour, and do not count a behaviour "
+                        "performed DURING it. Answer 3 for three or more",
             },
             {
                 "what": "benefits_listed",
@@ -247,10 +248,9 @@ ITEMS: list[dict] = [
                 "desc": "HOW MANY reasons count. The rule is CONDITIONAL on the two "
                         "counts above. If `harms_listed` is 1 or more the answer IS "
                         "`harms_listed`, and benefits do not add to it — a response with "
-                        "one harm and two benefits counts 1, which is what participant 6 "
-                        "scored. Only when `harms_listed` is 0 does the answer become "
-                        "`benefits_listed` instead, which is how participants 10 and 16 "
-                        "were credited. Never answer 0 when the student offered anything "
+                        "one harm and two benefits counts 1. Only when `harms_listed` "
+                        "is 0 does the answer become `benefits_listed` instead. "
+                        "Never answer 0 when the student offered anything "
                         "of either kind. Answer 3 for three or more",
             },
             {"what": "reason_1", "pts": 1.0, "codes": {"absent": "REASON_MISSING"},
@@ -402,9 +402,10 @@ ITEMS: list[dict] = [
                         "of lack of exercise is the inversion, phrased as a state. Full "
                         "credit is the same behaviour turned around: UTB lack of sleep -> "
                         "\"get eight hours of sleep\"; UTB lack of exercise -> \"attend "
-                        "the gym three days a week\". \"Gain a consistent routine\" "
-                        "against lack of exercise cost participant 10 two points — it "
-                        "never says exercise more",
+                        "the gym three days a week\". What FAILS is a goal naming "
+                        "something the student would acquire rather than the "
+                        "behaviour itself — a habit, a routine, a discipline — "
+                        "because it never says to do the goal behaviour more",
             },
             # A `reasons_listed` / `reasons_failing` scaffold in front of this
             # count was measured and REVERTED. The idea was sound and the model
@@ -475,16 +476,16 @@ ITEMS: list[dict] = [
                         "makes me feel lazy\" is a reason to drop the UTB, not a "
                         "benefit of exercising. Whether one sentence holds one "
                         "benefit or two is STRUCTURAL: a second half that is a "
-                        "knock-on effect of the first is ONE (\"helps me stay "
-                        "focused in class, WHICH WILL improve my learning\"), while "
-                        "two independent benefits merely joined by \"and\" are TWO "
-                        "(\"my body would be in a better-looking shape AND feel "
-                        "better also\"). A restatement of the GOAL is not a benefit of "
-                        "it either — \"I know that I can become a more active person\" "
-                        "against a goal of being more active cost participant 6 a point. "
-                        "Statements about why the UTB is bad belong to Q1 and earn "
-                        "nothing here; participant 3 lost all three that way. Answer 3 "
-                        "for three or more",
+                        "knock-on effect of the first is ONE (a benefit, then "
+                        "\"WHICH WILL\" and what follows from it), while two "
+                        "independent benefits merely joined by \"and\" are TWO (one "
+                        "about the body, say, AND one about mood). A restatement of "
+                        "the GOAL is not a benefit of "
+                        "it either: saying they will become the kind of person who "
+                        "does the goal behaviour names the goal again and earns "
+                        "nothing. Statements about why the UTB is bad belong to Q1 and "
+                        "earn nothing here either — a response whose reasons are all "
+                        "of that kind scores 0. Answer 3 for three or more",
             },
             {"what": "reason_1", "pts": 1.0,
              "codes": {"absent": "REASON_MISSING"},
@@ -689,7 +690,7 @@ ITEMS: list[dict] = [
                 "pts": 1.0,
                 "verdicts": ["met", "absent", "unclear"],
                 "codes": {"absent": "A_NO_KEYWORD", "unclear": "A_NO_KEYWORD"},
-                "desc": "Uses 'antecedent' or 'trigger' at least once. A_NO_KEYWORD applies whenever neither \"antecedent\" nor \"trigger\" appears anywhere in the response. The graders enforced this inconsistently — participant 17 lost the point and two other rows kept it — but the dictionary is explicit, so apply it. This is a deliberate divergence from the rows that kept it.",
+                "desc": "Uses 'antecedent' or 'trigger' at least once. A_NO_KEYWORD applies whenever neither \"antecedent\" nor \"trigger\" appears anywhere in the response. The graders enforced this inconsistently — one row lost the point and two others kept it — but the dictionary is explicit, so apply it. This is a deliberate divergence from the rows that kept it.",
             },
         ],
         "deductions": [
@@ -724,11 +725,13 @@ ITEMS: list[dict] = [
             "— phrased as happening afterwards or as its result, such as a pain or a "
             "difficulty the behaviour left behind. "
             "(b) The example is what the student does INSTEAD of the goal behaviour, which "
-            "belongs to 4b (\"instead of exercising I would just not eat\" cost participant "
-            "3 two points). (c) The example is a consequence already listed in 4c.",
+            "belongs to 4b — a substitute activity, or a different way of pursuing the same "
+            "end. (c) The example is a consequence already listed in 4c.",
             "Where the link is genuinely opaque rather than merely brief, the graders did "
-            "deduct — \"how does grumpy emotions lead to lack of sleep?\" (participant 4), "
-            "\"how does not stretching lead to lack of exercise?\" (participant 6).",
+            "deduct. The test they applied was whether a reader can see how this leads to "
+            "THIS behaviour: a mood or an omission that could precede almost anything is "
+            "opaque, and asking \"how does that lead to the UTB?\" of the entry is the "
+            "check. Brevity alone is not opacity.",
         ],
         "context": ["Q1"],
     },
@@ -863,17 +866,22 @@ ITEMS: list[dict] = [
             "am drinking soda\". Their goal behaviour is quoted above from question 2; "
             "read each entry against THAT. An entry earns its 1.5 points when it names "
             "something they do in the time the goal behaviour would have taken.",
-            "ACCEPT — and accept broadly, once that test is met. Ordinary activities "
-            "(\"I am scrolling social media\", \"I am talking with friends over the "
-            "phone\", \"I am indoors watching TV\", \"I get distracted and "
-            "multitask\"), INTERNAL STATES AND THOUGHTS that are themselves what they "
-            "are doing instead (\"my brain is telling me to go to sleep but I couldn't "
-            "physically do it\", \"I am wishing I went to sleep earlier that night\"), "
-            "and COPING BEHAVIOURS standing in for the goal behaviour (\"I rely on "
-            "caffeine to get me through my day\") all earned full credit — participants "
-            "13, 15 and 19 each scored 5.0 on responses of exactly these kinds. Do not "
-            "judge how insightful the entry is; judge only whether it is an alternative "
-            "to the goal behaviour.",
+            "ACCEPT — and accept broadly, once that test is met. Three kinds all earn "
+            "full credit. ORDINARY ACTIVITIES that occupied the time: \"I am playing "
+            "cards with my roommates\", \"I am reorganising my desk\". INTERNAL "
+            "STATES AND THOUGHTS, where the state or the thought is itself what "
+            "occupied them instead of the goal behaviour: \"my head keeps telling me "
+            "to get up but I cannot make myself move\", \"I lie there wishing I had "
+            "started earlier\". These count even though nothing was physically done, "
+            "and it does not matter whether the state was chosen or simply arrived — "
+            "what matters is that the entry names what filled that time rather than a "
+            "consequence of the behaviour. And COPING BEHAVIOURS standing in for the "
+            "goal "
+            "behaviour, where something is consumed or leaned on to get through the "
+            "day the goal behaviour was supposed to serve: \"I lean on energy drinks "
+            "to make it to the evening\". Do not judge how insightful "
+            "the entry is; judge only whether it is an alternative to the goal "
+            "behaviour.",
             "REJECT when the entry is not something the student did INSTEAD OF the "
             "goal behaviour. Two shapes. (a) It is not an example of doing anything at "
             "all — meta-commentary about whether the behaviour is worth modifying, or a "
@@ -943,7 +951,7 @@ ITEMS: list[dict] = [
                 "reported": True,
                 "verdicts": ["met", "absent", "unclear"],
                 "codes": {},
-                "desc": "Uses 'consequence' at least once (advisory, not scored). The word \"consequence\" is NOT worth a point here, unlike the keyword on Q4a. Report `keyword: absent` when it appears nowhere — the feedback may mention it — but it costs nothing. IMPLICIT (from gold): no Q4c row in the corpus deducts for it, and none carries a 1-point deduction at all; participants 15 and 17 kept full credit while omitting the word. Q4a differs and keeps its charge, because participant 17's Q4a row does deduct for the missing keyword.",
+                "desc": "Uses 'consequence' at least once (advisory, not scored). The word \"consequence\" is NOT worth a point here, unlike the keyword on Q4a. Report `keyword: absent` when it appears nowhere — the feedback may mention it — but it costs nothing. IMPLICIT (from gold): no Q4c row in the corpus deducts for it, and none carries a 1-point deduction at all — rows that omit the word keep full credit. Q4a differs and keeps its charge, because a Q4a row there does deduct for the missing keyword.",
             },
         ],
         "deductions": [
@@ -968,11 +976,11 @@ ITEMS: list[dict] = [
         ],
         "guidance": [
             "A consequence happens AFTER the UTB and results directly from it.",
-            "ACCEPT downstream effects of any kind, including behavioural ones. \"I eat more "
-            "unhealthy junk food, which can negatively impact my health\" is a valid "
-            "consequence of not eating fruits and vegetables — participant 12 had full "
-            "credit for it. Do not reject a consequence merely because it names an action "
-            "rather than a state.",
+            "ACCEPT downstream effects of any kind, including behavioural ones. A "
+            "consequence may name something the student ends up DOING as a result — "
+            "turning to a worse alternative, or falling into a further habit — and that "
+            "counts as readily as a state they end up in. Do not reject a consequence "
+            "merely because it names an action rather than a state.",
             "REJECT a statement that is really a BENEFIT of the goal behaviour rather than "
             "a result of the UTB. Naming the healthy weight, fitness or wellbeing the "
             "student would have HAD by doing the goal behaviour describes what they "
@@ -980,10 +988,11 @@ ITEMS: list[dict] = [
             "cost a whole item.",
             "DEDUCT when the causal link is left for the reader to guess: a consequence "
             "that is real but whose connection to THIS unwanted behaviour the reader has "
-            "to supply. "
-            "Participant 4 lost 2 for \"specify what spending too much time awake means\".",
-            "The two consequences must be distinct — participant 11 lost 2 points for "
-            "listing the same one twice.",
+            "to supply. An entry that restates the behaviour in other words, without "
+            "saying what it COSTS the student, is the usual shape — the grader's question "
+            "there is what the restated phrase actually means for them.",
+            "The two consequences must be distinct; listing the same one twice costs the "
+            "second.",
         ],
         "context": ["Q1", "Q4a", "Q4b"],
     },
@@ -1081,15 +1090,15 @@ ITEMS: list[dict] = [
             "continuing the UTB.",
             "CREDIT ON FORM, NOT ON QUALITY. This is the most forgiving item on the "
             "handout. Any statement shaped like \"I continue to [UTB] because X\" earns its "
-            "2.5 points, essentially regardless of how insightful X is. \"because when I "
-            "play the game I get carried away\", \"because I don't make time for it\", "
-            "\"because I drink caffeine which makes me not tired early enough\", \"because "
-            "I'd rather use my free time watching a movie\" — every one of these scored "
-            "full marks (participants 8, 9, 19, 20).",
+            "2.5 points, essentially regardless of how insightful X is. Getting absorbed "
+            "in something, not making time, a substance that keeps them up, preferring "
+            "an easier way to spend the evening — all of these earn full marks, and so "
+            "does any other payoff named however plainly.",
             "A THIN REASON IS AN ADVISORY, NOT A DEDUCTION. When a reason is present but "
-            "weak, the graders wrote a note and left the score at full. Participant 9's "
-            "second reason drew \"Explain how your second reason is a reason you are "
-            "choosing to not exercise\" — as feedback, on a 5.0. Put that kind of remark in "
+            "weak, the graders wrote a note and left the score at full: a second reason "
+            "that restates the first, or that gestures at the behaviour without saying "
+            "what it does for the student, drew \"explain how this is a reason you are "
+            "choosing to [UTB]\" as FEEDBACK on a full score. Put that kind of remark in "
             "advisory_note; do not emit W_NOT_REASON for it.",
             "W_NOT_REASON is for a statement that is not a reason for CONTINUING at all — "
             "most often a consequence wearing a reason's clothes. \"I continue to [UTB] "
@@ -1104,9 +1113,10 @@ ITEMS: list[dict] = [
             "vague, circular, shallow, clumsily worded, or a reason you find unconvincing — "
             "is THIN: credit it and write an advisory. Vagueness is never a deduction on "
             "this item; only the wrong KIND of statement is.",
-            "W_ONLY_ONE also covers two statements that collapse into the SAME reason. "
-            "Participant 6 gave two entries both amounting to escaping physical effort and "
-            "was marked \"missing a reason you continue to engage in lack of exercise\".",
+            "W_ONLY_ONE also covers two statements that collapse into the SAME reason — "
+            "two entries that both amount to escaping the same effort or discomfort are "
+            "one reason described twice, and the row reads \"missing a reason you "
+            "continue to engage in [the UTB]\".",
             "If the response is empty, this is W_NONE and the feedback is exactly "
             "'did not answer'.",
         ],

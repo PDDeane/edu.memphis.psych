@@ -1710,6 +1710,74 @@ def check_consensus_fixes_have_no_duplicate_cells() -> list[str]:
     return dupes
 
 
+# Whether each registered citation was MEASURED to be load-bearing. Keyed
+# (item, pid) -> "necessary" | "untested".
+#
+# A registration says the prompt hands the grader that participant's answer, so
+# scoring the cell measures recall. That is a claim about the PROMPT, and the way
+# to test it is to rewrite the citation as the rule it illustrates and re-run the
+# cell: if it still scores right without the answer in front of it, the citation
+# was never load-bearing and both it and the registration go.
+#
+# Only two states belong here. A citation measured as UNNECESSARY is removed, and
+# its cell counts — there is nothing left to record. `untested` is a promise with
+# a name on it, and `check_citation_necessity_is_recorded` makes the silence
+# impossible.
+CITATION_NECESSITY: dict[tuple[str, int], str] = {}
+
+
+def check_citation_necessity_is_recorded() -> list[str]:
+    """Has anyone asked whether a citation is doing work, not just whether it exists?
+
+    `check_citations_match_exclusions` holds the pair together: registered implies
+    cited, cited implies registered. Neither direction asks the question that
+    decides whether the registration is EARNED — does the citation actually hand
+    the grader that participant's answer? A cell excluded on a citation that turns
+    out to teach nothing is a cell subtracted from every rate for no reason, and
+    nothing about it ever looks wrong, because the cell scores fine.
+
+    The test is measurement, not inspection: rewrite the citation as the rule it
+    illustrates, re-measure, and see whether the cell still scores right. That
+    cannot run here — it needs the corpus and an endpoint. What CAN be enforced is
+    that the answer was written down, so a registration cannot sit untested
+    indefinitely while the guide claims step 0 was done.
+
+    So: every registered cell needs an entry in CITATION_NECESSITY saying what the
+    measurement showed. `unnecessary` cells should not be registered at all — they
+    are removed, not recorded — so the table holds only `necessary` and `untested`,
+    and `untested` is a backlog item with a name on it rather than a silence.
+    """
+    from handouts import HANDOUTS
+
+    problems = []
+    for h in (1, 2, 3):
+        registry = (HANDOUTS[h].get("cited_participants") or {})
+        for item, pids in sorted(registry.items()):
+            for pid in sorted(pids):
+                state = CITATION_NECESSITY.get((item, pid))
+                if state is None:
+                    problems.append(
+                        f"H{h} {item}/p{pid} is registered in cited_participants "
+                        f"with no CITATION_NECESSITY entry. Either measure whether "
+                        f"the citation is load-bearing — rewrite it as its rule and "
+                        f"re-run the cell — or record it as 'untested' so the "
+                        f"backlog can see it")
+                elif state not in ("necessary", "untested"):
+                    problems.append(
+                        f"H{h} {item}/p{pid}: CITATION_NECESSITY says {state!r}. "
+                        f"Only 'necessary' and 'untested' belong here — a citation "
+                        f"measured as unnecessary is REMOVED along with the "
+                        f"registration, not recorded")
+    for stale in sorted(CITATION_NECESSITY):
+        item, pid = stale
+        if not any(pid in (HANDOUTS[h].get("cited_participants") or {}).get(item, [])
+                   for h in (1, 2, 3)):
+            problems.append(
+                f"CITATION_NECESSITY lists {item}/p{pid}, which is no longer "
+                f"registered in cited_participants. Remove it")
+    return problems
+
+
 def check_gold_tables_have_no_duplicate_keys(src: str | None = None) -> list[str]:
     """A key written twice in one of handouts.py's declaration tables.
 
