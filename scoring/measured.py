@@ -620,6 +620,22 @@ def main() -> int:
         print(report())
         return 0
     if a[:1] == ["--preflight"]:
+        # The active objective, printed wherever the gate is consulted. A goal
+        # kept only in someone's head is a goal that gets swapped for a
+        # different one mid-task without anything noticing.
+        goals = LEDGER.parent / "GOALS.md"
+        if goals.exists():
+            lines = goals.read_text().splitlines()
+            for i, line in enumerate(lines):
+                if line.startswith("## ACTIVE"):
+                    print(line[3:].strip())
+                    for nxt in lines[i + 1:]:
+                        if nxt.startswith("## "):
+                            break
+                        if nxt.strip().startswith("- [ ]"):
+                            print(f"  {nxt.strip()}")
+                    print()
+                    break
         blockers = preflight()
         n = sum(len(v) for v in blockers.values())
         for heading, items in blockers.items():

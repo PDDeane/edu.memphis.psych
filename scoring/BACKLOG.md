@@ -834,3 +834,158 @@ firing is reported stale.
 Note for anyone tempted later: this is not the marker (stripped) and not a lost
 element (nothing is unassigned). It is one sentence split at the boundary
 between naming and changing, which is the boundary this item's slots ask for.
+
+---
+
+## DAY1/DAY2/WK1/WK2 — the NOT_OC boundary is misaligned, in both directions
+
+Found by `measured.py --preflight`'s fixture-suspect detector and settled by
+reading the three cells it named. **All three fixtures are clean** — each box
+holds exactly what the student typed, whole, nothing unassigned, no flags. So
+none of them is a fixture repair. They are one defect with three faces:
+
+| cell | gold | us | direction |
+|---|---|---|---|
+| DAY1/p1 | 4, no comment | 0, every run | we fire NOT_OC, gold does not |
+| DAY1/p13 | 0, "-4 pts: not Operant Conditioning" | 4, all slots pass | gold fires it, we do not |
+| DAY2/p14 | 0, "-4 pts: not Operant Conditioning" | 4 / 2 / 2 | gold fires it, we do not |
+
+The same criterion is firing where gold is silent and staying silent where gold
+fires. Two specifics from the readout worth keeping:
+
+* **p13 reverses cause and effect.** The removal happens AT a time of day rather
+  than BECAUSE the target behaviour occurred, and the thing removed is the
+  behaviour the plan exists to reduce — the goal, not a consequence of reaching
+  it. Gold's zero is right, and our feedback claims the opposite in as many
+  words ("linked them as contingent and occurring after the behaviour"), which
+  is a misreading of the sentence's temporal structure.
+* **p14 is an antecedent manipulation** — the device is made unavailable in
+  advance — which TEST 2 already says is not a contingency. It also scores
+  4/2/2, so it is partly a stability problem.
+
+**What was tried, and why it did not work.** A severity rule reserving NOT_OC
+(-4) for answers with no consequence at all, and directing the grader to
+LINK_NOT_ASSERTED (-1) where only the if-clause is missing. Scoped to these four
+items after the ledger showed the natural home, `_EXAMPLE_RULES`, would have
+changed EIGHT items' prompts including three that are perfect at 18/18.
+
+Measured, 240 calls: medians 15/14/15/16 -> 15/14/16/15, a sum of 60 either way.
+WK1 gained a cell (p19, 1/3 -> 3/3, its spread collapsing to zero) and WK2 lost
+one; DAY1 and DAY2 were flat with wobbles in both directions. Reverted.
+
+The reason it could not have worked is the thing to carry forward: these items
+set `derive_from_criteria`, so the score comes from the `oc_analysis` gate in
+`score.derive_oc_ledger` and the deduction codes are feedback vocabulary. Prose
+about which code to prefer changes what a student reads, not what they score.
+DAY1/p1's feedback DID improve — it stopped telling a student with a
+full-marks answer that their example is not Operant Conditioning — and the
+score stayed 0, so the student is still failed, in better words.
+
+**Where the real fix lives:** `names_behavior`, `contingent` and
+`follows_behavior` in the oc_analysis gate. p1 fails all three because the
+behaviour earning the reward is implicit; gold credited it because the behaviour
+is the one the whole handout is about. Loosening the gate is the change that
+would move the number — and it is the change that risks p13 and p14, which are
+already over-credited and would be credited harder. Anyone attempting it should
+measure DAY1, DAY2, WK1, WK2 together and watch p13/p14 as controls.
+
+**A gold question, noted not acted on.** p1's own row deserves a second look:
+their example removes an obligation (negative reinforcement) while they had
+chosen Positive Reinforcement, and gold gave 4.0 with no comment — no
+TYPE_MISMATCH charged. There is no itemisation to check it against, so it is not
+CORRECTED_GOLD material under the rule that a correction needs the row's own
+evidence.
+
+### Attempt 2 on the same four items: the gate itself, and why it also failed
+
+After the prose attempt above measured neutral, the fix moved to the layer that
+actually decides the score — the five definitional gates the web reads as slots
+(`names_behavior`, `names_stimulus`, `contingent`, `follows_behavior`,
+`you_arrange_it`). Target: DAY1/p13, gold 0 with "-4 pts: not Operant
+Conditioning", which we credit 4/4/4 with every gate `met`, although the
+sentence ends screen time by going to bed — nothing is arranged, so
+`you_arrange_it` looked like the gate that should catch it.
+
+Isolated exactly as `olx_prompts.SLOT_NOTES`' own comment prescribes for a
+retry: ONE gate, and via an item-scoped key (`DAY1:you_arrange_it`, which beats
+the bare key at the lookup) so PR/NR/PP/NP kept their text and stayed out of it.
+The ledger confirmed the blast radius was DAY1 alone — 60 calls, not 240.
+
+Result: median 15/18 -> 15/18, and the mechanism did not engage AT ALL.
+
+    p13  run1 score 4   you_arrange_it=met  contingent=met  follows=met
+         run2 score 4   you_arrange_it=met  contingent=met  follows=met
+         run3 score 0   you_arrange_it=met  contingent=met  follows=unclear
+
+`you_arrange_it` stayed `met` in every run. The single correct run came from
+`follows_behavior` drifting to `unclear` — a field the note never mentions —
+while p7 (previously 3/3) fell to 2/3 and p14 and p15 each rose one. Aimed at
+one gate; it did not move, and three neighbours did. That is the coupling the
+SLOT_NOTES comment already recorded from the 129/144 -> 128/144 attempt, now
+observed a second time on a single-gate, single-item edit. Reverted.
+
+**What this establishes.** The criteria layer IS where the score is decided —
+that part of the diagnosis held. What does not work is steering a NAMED FIELD by
+describing it better: the model's reading of "I would remove my time playing
+video games" as an arranged removal is stable across every phrasing tried, and
+sharpening the field's description moves other fields instead. Two measured
+attempts, opposite layers, same neutral result.
+
+**The untried lever, for whoever picks this up.** Every attempt so far has
+edited the DESCRIPTION of an existing gate. Nobody has added a NEW required
+slot — e.g. one asking whether the consequence exists independently of the
+behaviour, answered before the five gates are judged. That is the shape README's
+v5 note actually recommends ("a step the model must not skip belongs in the
+schema, not in prose") and the shape that fixed Q6: a required property, not
+better prose about an existing one. It is a structural change to the slot list
+for these items, so it needs all eight measured, and it should be attempted with
+DAY1/p13 and DAY2/p14 as targets and DAY2/p12, DAY1/p2, DAY2/p3, DAY2/p5,
+WK2/p12 as the named controls.
+
+### Attempts 3 and 4, and what reading the cells actually produced
+
+Attempt 3 added a NEW required gate (`separate_consequence`) to DAY1 — the
+structural lever, not another re-description. It engaged (9 `absent` verdicts of
+60) but answered `met` on the target in every pass, and the probe then dissolved
+the whole result: the target cell DAY1/p13 is 3 of 6, not the stable 0/3 the
+3-run baseline showed, and the apparent collateral on p11 probed 6/6. Reverted.
+
+Attempt 4 aimed at `targets_own_behavior` for p7 on DAY2 and WK1 — the
+best-evidenced target of the four: 0 of 24 pooled, the field answering `met`
+every pass, gold naming the defect in both rows, our dictionary charging exactly
+the 1 point gold charges, and the corrected rows making 4-1=3 an EXACT match.
+A scored slot, so no cell was a 4-point bet. WK1 read 15 -> 17 with the field
+flipping to `absent` on the target; the probe put it at 0 of 6 with `met` six
+times, so the flip was a three-pass fluke. DAY2/p12's apparent fall probed 6/6.
+Neutral, no harm, reverted.
+
+**What the reading produced, which is worth more than the four attempts.**
+
+* **PR and NP do not carry `targets_own_behavior` at all** — their criteria are
+  `is_operant_conditioning` + `is_pr`/`is_np`, full stop. That dissolves what
+  looked like a gold inconsistency: the same student p7 wrote a reading-based
+  example on PR and got 4, and a reading-based example on DAY2 and was charged.
+  Gold is coherent — the type items ask only for a valid example of the type,
+  while the cadence items ask how the student will use it "during your
+  intervention", which is why they alone require the plan to act on the
+  student's own UTB/WGB. Anyone comparing a cadence cell against a type cell is
+  comparing items with different criteria.
+* **The guidance's counter-example does not describe a cadence cell.** "Gating
+  the screen activity itself on finishing coursework earned full credit" is used
+  in `_EXAMPLE_RULES` as the brake on WRONG_BEHAVIOR, and no full-credit cadence
+  cell has that shape — the nearest, schoolwork rewarded with video games, scores
+  ZERO in gold. It is a type-item observation applied to eight items, four of
+  which score the criterion it argues against.
+* **p7's disagreement is a real ambiguity, not a defect.** Their daily answer
+  gates game time on reading a chapter, and games ARE their UTB, so the plan
+  does regulate the UTB — via a third behaviour as the trigger. Gold reads the
+  trigger; the model reads the thing regulated. Four levers failed to move it
+  because both readings are defensible.
+
+**NOT declared as a divergence, deliberately** — see the rule in
+QUALITY_CONTROL.md section 5. The cells stay counted and wrong, and the next
+person gets the readings above plus four numbers instead of a closed question.
+The untried alternative nobody has checked: whether the CADENCE items' question
+text should say the example must act on the student's own behaviour, since that
+requirement is currently only in the grader's criteria and never in what the
+student is asked.
