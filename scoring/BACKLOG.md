@@ -1186,3 +1186,26 @@ consequence and its gold-0 cells do not. What is not available is a way for the
 model to apply that test reliably enough to gate on. So the divergence stands —
 now for a stated reason rather than for want of a hypothesis: the rule is
 identifiable but not operationalisable at this model's precision.
+
+**Attempt 8: the same gate, binary.** The `unclear` verdict was mine to remove —
+`DEFAULT_VERDICTS` is `['met','absent']`, and writing `!key:Label:unclear` ADDS
+the hedge; omitting the third field gives a two-valued gate, which is how
+`cadence_is_weekly` is written and one reason it behaves. Re-run that way:
+
+    verdict distribution   met 52, absent 8, unclear 0
+    p8   gold 0, was 0/3  ->  1/3   absent, met, met
+    p11  gold 4, was 3/3  ->  2/3   met, met, absent
+
+So the hedge was real and removable, and removing it did not make the judgement
+correct: the model calls p8 delivered twice in three and p11 undelivered once in
+three. Median 15 -> 15, p8 +1, p11 -1. A two-sided coin instead of a three-sided
+one. No collateral beyond p11. Reverted.
+
+Two things worth keeping from it. **Binary is the right shape for a gate** —
+offer no hedge on a judgement that zeroes an item, and check the distribution of
+an existing gate before trusting it (WK2's `aimed_correctly` still offers
+`unclear`, and should be made binary the next time that item is measured). And
+**a well-formed gate on a judgement the model cannot make crisply is still a coin
+flip**: the fault was never only the hedge. Eight attempts in, the separation
+between "the press-ups will just keep stacking" and "{{corpus:PR/p11:pr:22:49:sha=44f5be7c8687}}
+alo set" is visible to a reader and not to the grader.
