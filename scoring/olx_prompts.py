@@ -1284,8 +1284,10 @@ SLOT_NOTES = {
     # of a penalty, quoting p8's "so I don't have to {{corpus:DAY1/p8:day1:105:132:sha=f154f6b814a1}}
     # miss it". That was withdrawn, because it collided with criterion 7:
     # `avoidance_frame` claims the same shape and its decision is to FLAG AND NEVER
-    # DEDUCT, a decision handouts.GOLD_DIVERGENCES declares as AVOIDANCE_FRAMING on
-    # p8's DAY1/WK1/WK2 ("score.py flags for review and never deducts, and the
+    # DEDUCT, a decision handouts.GOLD_DIVERGENCES declares as
+    # ADDED_AVERSIVE_NAMED on p8's DAY1/WK1 — renamed from AVOIDANCE_FRAMING and
+    # narrowed on 2026-08-24, WK2 having been removed because gold is right there
+    # ("score.py flags for review and never deducts, and the
     # lo-blocks sheet reaches the same verdict"). With the same sentence serving as
     # the worked example for two criteria with opposite outcomes, the two
     # implementations split on it: the web answered `yes` on all three runs while
