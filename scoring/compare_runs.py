@@ -78,9 +78,19 @@ def compare(handout: int, item: str, before_path: str, after_path: str) -> int:
     na = min(len(after[p]) for p in shared)
 
     totals = lambda d, n: [sum(1 for p in shared if d[p][i]) for i in range(n)]
+    tb, ta = totals(before, nb), totals(after, na)
+    med = lambda t: sorted(t)[len(t) // 2]
+    # The median first and labelled, the runs second and labelled as runs. A bare
+    # three-run array invites the reader to quote its best line, especially when
+    # the best line agrees with the change just made: 1a was reported at 18/20
+    # off runs of 17, 17, 18. The number to report is the median, so it is the
+    # number printed first.
     print(f"{item}: {len(shared)} counted cells")
-    print(f"  before  {totals(before, nb)}   ({nb} runs)")
-    print(f"  after   {totals(after, na)}   ({na} runs)")
+    print(f"  before  MEDIAN {med(tb)}/{len(shared)}   (runs {tb})")
+    print(f"  after   MEDIAN {med(ta)}/{len(shared)}   (runs {ta})")
+    if med(ta) != med(tb):
+        print(f"  median moved {med(tb)} -> {med(ta)}; the per-cell picture below "
+              f"decides whether that is real")
 
     moved, probe = [], []
     for p in shared:
