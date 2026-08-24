@@ -44,6 +44,78 @@ grader's decision sitting in their prompt. Q4c and Q5 had been reported as
 perfect items; they are 12/14 and 14/15. Every number reported before the audit
 was computed over a denominator the audit shrank.
 
+**Step 0 asks TWO questions, and the second one is the one that gets skipped: is
+this exclusion CORRECT, and is it NECESSARY?** They have different answers and
+opposite consequences.
+
+| | the cell scores WRONG | the cell scores RIGHT |
+|---|---|---|
+| **correct?** | the exclusion is hiding a miss — remove it, take the miss | the exclusion is consistent with itself |
+| **necessary?** | — | UNTESTED until you remove the citation and measure |
+
+An exclusion on a cell that scores right is not thereby justified. It rests on a
+claim — that the prompt hands the grader this answer — and that claim is
+testable: rewrite the citation as the RULE it was illustrating, measure the cell
+again, and see whether it still scores right without the answer in front of it.
+If it does, the citation was never load-bearing, and BOTH the citation and the
+exclusion go: the cell counts, and the denominator grows.
+
+This is the direction the reduction pressure usually misses, because nothing
+about a correct cell looks wrong. Section 5's two rules both start from a
+problem — a miss being hidden, a stale claim reporting unwinnable ground — so an
+exclusion whose cell behaves can sit undisturbed forever while quietly costing
+the rate a cell it has earned. The audit that found the eight wrong ones also
+left 21 right ones untouched with the words "the exclusion is doing its job",
+which was an assumption dressed as a verdict: what its job REQUIRES is that the
+citation be doing work, and none of the 21 had been asked.
+
+Both halves are cheap and neither is optional. The wrong ones cost you a rate
+you did not earn; the unnecessary ones cost you cells you did.
+
+**Un-excluding a cell turns every existing quote of that student into a live
+answer key, so sweep ALL items and ALL prompt sources afterwards — and keep
+sweeping until the check is clean.** An exclusion licenses the prompts to quote
+that participant freely. Remove it and every one of those quotes becomes what
+`check_rule_examples_are_not_corpus` exists to catch: the model reading a
+counted cell's own words with the verdict attached. The quotes are not where you left
+them, either. They accumulate in two places — a rubric `desc` or `guidance`
+bullet, and `olx_prompts.SLOT_NOTES`, which is a second source of prompt prose
+that a scan of the rubric alone will not see.
+
+Measured the hard way on 2026-08-24. Un-excluding Q1/p1 and Q2/p6 lit up quotes
+that had sat there legally for months. Fixing the rubric copy surfaced a second
+copy in SLOT_NOTES; fixing that surfaced a THIRD copy of the same student's
+sentence in a different note. Three passes of the same check to reach clean, on
+one exclusion change. So: run the check as the last step of every exclusion
+change, not the first, and run it again after each fix.
+
+**Measured on Q1, and it is worth knowing which direction the answer went.** Its
+five citations were bare attributions with a decision attached — "(participant
+1)", "which is what participant 6 scored", "which is how participants 10 and 16
+were credited". Deleting the attributions left every rule intact, which is the
+common shape and the reason the test is usually cheap. Three runs with the
+citations gone:
+
+| | before | after |
+|---|---|---|
+| the 15 cells already counted | 13, 13, 13 | 13, 13, 13 |
+| the five cited cells | 3/3 each | four still 3/3 |
+| the whole item, 20 cells | not measurable | **18, 17, 18** |
+
+So the citations were load-bearing for nothing, and the honest rate is 18/20
+against a reported 13/15. **Five cells we score correctly had been subtracted
+from every rate on an untested claim.** An audit that only looks for exclusions
+hiding misses would never have found them, because there was no miss to find.
+
+**Why this half gets skipped, stated plainly so the next reader recognises it.**
+A wrong-and-excluded cell eventually attracts attention: the item reads as
+perfect and someone asks why. A right-and-excluded cell produces no symptom at
+all — the rate is merely smaller than it should be, and a smaller denominator
+looks like rigour. Of 34 exclusions audited on 2026-08-23, the 8 hiding misses
+were found and fixed the same hour; the 21 that were merely unnecessary were
+dismissed in a sentence, and finding them took a second pass and a second
+prompt.
+
 **Every step ends by writing down what it found and did not fix, in
 `scoring/BACKLOG.md`.** Nothing in that file is enforced, which is exactly why
 the entry has to be written: a finding that lives only in a session log is
@@ -209,8 +281,8 @@ worked examples from Q4a, Q4c and Q5. Re-deriving from the pre-change runs put
 the numerators at
 12, 12 and 14 — unchanged BY CONSTRUCTION, since the newly counted cells were
 the ones already known to be wrong. That number could not answer the only
-question that mattered: whether the deleted examples had been doing work for the OTHER
-cells. Only a fresh sweep of the three items can say, and the answer is a
+question that mattered: whether the deleted examples had been doing work for the
+OTHER cells. Only a fresh sweep of the three items can say, and the answer is a
 numerator, not a rate.
 
 **Validate the served prompt every run.** The prompt reaches the grader through
