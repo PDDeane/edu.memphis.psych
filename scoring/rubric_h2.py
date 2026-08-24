@@ -349,7 +349,9 @@ def _example_use_item(
                 # withdrawn. It collided with criterion 7 `avoidance_frame`,
                 # which claims the same shape and whose decision is to FLAG AND
                 # NEVER DEDUCT — a decision GOLD_DIVERGENCES declares as
-                # AVOIDANCE_FRAMING on p8's DAY1/WK1/WK2, in the words "score.py
+                # ADDED_AVERSIVE_NAMED on p8's DAY1/WK1 (renamed from
+                # AVOIDANCE_FRAMING 2026-08-24, and WK2 dropped from it), in the
+                # words "score.py
                 # flags for review and never deducts, and the lo-blocks sheet
                 # reaches the same verdict". With one sentence serving as the
                 # worked example for two criteria with opposite outcomes, the two
