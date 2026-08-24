@@ -1827,6 +1827,29 @@ def check_items_are_measured_as_configured() -> list[str]:
     return problems
 
 
+def check_declarations_still_have_evidence() -> list[str]:
+    """Declarations the recorded measurements have outgrown.
+
+    A declaration is a prediction: a divergence predicts a miss we mean to keep,
+    a ceiling predicts an item cannot be perfect, an exclusion predicts a cell
+    should not count. Predictions expire, and an expired one leaves no trace —
+    the cell has stopped producing an error, so there is nothing to notice. It
+    just subtracts itself from every rate, indefinitely.
+
+    Section 5's reduce-the-declarations schedule is the manual version of this
+    check, and running it by hand is how 25 unnecessary registrations survived
+    several passes of a guide that told someone to look. So the ledger's per-cell
+    record — which includes the EXCLUDED cells, since those are still run and
+    still scored — is compared against the declaration tables on every audit.
+
+    Thresholds live in `measured.declaration_conflicts`, and follow Q2/p17:
+    fewer than six recorded runs buys a demand for a probe, not a retirement.
+    """
+    import measured as MEAS
+
+    return MEAS.declaration_conflicts()
+
+
 def check_gold_tables_have_no_duplicate_keys(src: str | None = None) -> list[str]:
     """A key written twice in one of handouts.py's declaration tables.
 

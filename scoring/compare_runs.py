@@ -15,8 +15,9 @@ than re-deriving them: `scored_exactly` for whether a cell is right,
 for the denominator, `rebuild_gold_1c` for the one item whose gold is rebuilt.
 
 The part that matters more than the arithmetic: this tool does NOT print a
-directional verdict for a cell that moved by a single run. It prints PROBE
-REQUIRED and the command that settles it.
+directional verdict for a cell that moved, at all. It prints PROBE REQUIRED and
+the command that settles it. Not even a clean 3/3-to-0/3 flip is exempt — see
+the note in `compare`, where Q2's p17 retired that exemption.
 
 That is not a style preference. QUALITY_CONTROL.md has said "when a 3-run
 measurement moves ONE cell, probe that cell before believing it in either
@@ -87,11 +88,22 @@ def compare(handout: int, item: str, before_path: str, after_path: str) -> int:
         a = sum(1 for v in after[p][:na] if v)
         if b / nb == a / na:
             continue
-        # Decisive only when the cell was uniformly one way and is now uniformly
-        # the other. Anything short of that is a rate estimated from three
-        # passes, and the guide's scope table puts a per-cell claim at nine.
-        decisive = (b in (0, nb) and a in (0, na)) and (b == 0) != (a == 0)
-        (moved if decisive else probe).append((p, b, a))
+        # There is no such thing as a decisive per-cell move in three passes,
+        # in either direction, however clean it looks.
+        #
+        # This function used to exempt a cell that was uniform before and
+        # uniform after — 3/3 to 0/3 reads like a fact rather than an estimate.
+        # Q2's p17 is why it does not: across six sweeps it scores 10 of 18, and
+        # it produced 0/3, 2/3 and 3/3 readings in both directions, including
+        # three consecutive uniform runs each way. A 50/50 cell throws uniform
+        # triples about a quarter of the time, so uniformity IS the thing three
+        # passes cannot distinguish from a real flip. Exempting those cells put
+        # the exemption exactly where acting on noise is most tempting, because a
+        # clean flip is what looks worth chasing.
+        #
+        # So every move goes to the probe list, and `moved` stays only to carry
+        # cells whose probe has already been run and recorded elsewhere.
+        probe.append((p, b, a))
 
     if moved:
         print("\n  decisive moves (uniform before, uniform after):")
@@ -103,9 +115,9 @@ def compare(handout: int, item: str, before_path: str, after_path: str) -> int:
                   if all(before[p][:nb]) and all(after[p][:na])
                   and p not in [q for q, _, _ in probe + moved]]
         controls = " ".join(str(p) for p in stable[:2])
-        print("\n  PROBE REQUIRED — these moved by less than a clean flip, and a "
-              "three-pass\n  rate cannot tell a real change from the item's own "
-              "variance:")
+        print("\n  PROBE REQUIRED — a three-pass rate cannot tell a real change "
+              "from the\n  item's own variance, and a clean 3/3-to-0/3 flip least "
+              "of all (see p17):")
         for p, b, a in probe:
             print(f"    p{p:<3} gold {g[p][item]['score']:<4g} {b}/{nb} -> {a}/{na}")
         pids = " ".join(str(p) for p, _, _ in probe)
@@ -118,6 +130,20 @@ def compare(handout: int, item: str, before_path: str, after_path: str) -> int:
         print("\n  NOT REPORTABLE until the probe above is run.")
     if not moved and not probe:
         print("\n  no cell changed.")
+
+    # A sweep is also the moment to ask whether this item's DECLARATIONS still
+    # describe it. The enforcement suite asks the same question, but the review
+    # of a fresh sweep is when someone is actually looking at the item.
+    try:
+        import measured as MEAS
+        mine = [c for c in MEAS.declaration_conflicts()
+                if f"{item}/" in c or f"{item!r}" in c]
+        if mine:
+            print("\n  DECLARATIONS THIS SWEEP CONTRADICTS:")
+            for c in mine:
+                print(f"    {c}")
+    except Exception as e:                                  # never block a review
+        print(f"\n  (declaration check unavailable: {e})")
     return 2 if probe else 0
 
 
