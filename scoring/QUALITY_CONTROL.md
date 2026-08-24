@@ -372,6 +372,19 @@ experiment.
 whose answer the change must NOT alter. Controls caught what totals hid, twice:
 a rule that looked clean on its targets had broken a cell no error list named.
 
+**Compare against the RECORDED state, not only the old baseline.** A diff
+against a stale baseline cannot see a gain being undone: DAY2/p8 was 0 of 3 in
+the baseline, was fixed to 5 of 6 by a committed change, and was knocked back to
+0 of 3 by a later edit that never mentioned the gate it moved — and the
+comparison read "no change", because both ends were 0 of 3. `compare_runs.py`
+now diffs against the ledger's recorded run as well, and prints REGRESSION
+AGAINST THE RECORDED STATE for any cell an earlier change had already won.
+
+The companion habit: **when an edit measures neutral, ask whether it is neutral
+or COMPENSATING.** That same sweep held its median at 15 while one cell gained
+two runs and another lost three. Only the per-cell table shows it, and a median
+is exactly the statistic that hides it.
+
 **Ask the grader for a PARSE, not a judgement.** This is the difference between
 a rule that works and the same rule that wobbles, and it cost eight attempts on
 one cell to find.
