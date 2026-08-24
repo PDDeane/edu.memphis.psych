@@ -515,6 +515,61 @@ def _example_use_item(
                "slip. Judge which side of the contingency the consequence sits "
                "on, not whether it is describable as a consequence."]
               if item_id == "WK2" else []),
+            # WK1 only, and asked as a PARSE. Two earlier versions of this gate
+            # asked the semantic question — "is a consequence delivered?" — and
+            # the model answered inconsistently on the only two cells that
+            # separate: it called a self-accumulating penalty delivered two times
+            # in three, and a straightforward "{{corpus:PR/p11:pr:22:43:sha=26a7f88a4cb9}} X" undelivered
+            # one time in three. Making the slot binary removed the hedge and did
+            # not fix the wobble.
+            #
+            # The cue that actually separates the cells is syntactic, and a parse
+            # is something the model does crisply. Every gold-4 cell puts an
+            # ANIMATE AGENT in subject position governing a verb of transfer — "I
+            # will treat myself to a movie", "{{corpus:WK1/p9:wk1:46:79:sha=3c6319f18560}}
+            # set", "{{corpus:WK1/p5:wk1:108:135:sha=deaa7bffadae}} one chore". The gold-0 cell this
+            # gate is for puts the CONSEQUENCE ITSELF in subject position with an
+            # aspectual verb: the penalty "will just keep stacking". No agent, no
+            # transfer verb. The other gold-0 cells are already caught elsewhere —
+            # one has no finite clause at all, and the other fails `contingent`.
+            *(["WHO IS NAMED AS DOING IT? This is a question about the sentence, "
+               "not about the plan. Find the clause that states the consequence, "
+               "then look at two things.\n"
+               "  (a) Its SUBJECT. Answer `met` only if a person appears in an "
+               "agentive position — the subject of an active verb (\"I will...\", "
+               "\"my brother will...\"), or the agent of a passive marked with "
+               "`by` (\"my phone is taken away BY my flatmate\"). A person "
+               "mentioned elsewhere in the sentence does not count; the agent must "
+               "govern the consequence.\n"
+               "  (b) Its VERB. Read this BROADLY: it must say that the agent "
+               "brings the thing about or takes it away. Transfer verbs qualify — "
+               "give, buy, treat, reward, allow, let, withhold, remove, take "
+               "away, hand over, lose, pay — and so does an agent GRANTING "
+               "THEMSELVES a privilege or an activity, however it is worded: "
+               "staying up later, sleeping in, having a lie-in, skipping a chore, "
+               "taking the evening off, going out. \"{{corpus:WK1/p1:wk1:49:77:sha=15ec8e8d64c4:shape=R23-1-20,R28-0-20}}"
+               "{{corpus:WK1/p1:wk1:78:87:sha=7c1ea03ace9f}}\" is the student granting themselves something, and "
+               "counts. So does a privilege denied — \"I will not go out this "
+               "weekend\". The test is whether a PERSON makes the thing happen or "
+               "stop happening, not whether the verb is on a list.\n"
+               "Answer `absent` in these cases.\n"
+               "  * The subject of the consequence clause is the CONSEQUENCE "
+               "ITSELF — a penalty, a tally, a debt, an amount — with a verb of "
+               "existing, growing or accumulating: stacking, piling up, adding "
+               "up, building, getting bigger. \"The extra laps will keep stacking "
+               "up\" names no one who imposes them, and a rule about how a debt "
+               "grows is not a person delivering a consequence.\n"
+               "  * The consequence appears in no finite clause at all — a bare "
+               "gerund or noun phrase with nobody acting.\n"
+               "  * The answer does not describe a consequence for this "
+               "student's behaviour at all: it is off the point, discusses "
+               "something else entirely, restates the question, comments on the "
+               "task or the handout, is too vague to identify any thing or any "
+               "actor, or is empty. If you cannot point to a clause and say who "
+               "acts and what they do to what, the answer is `absent` — do not "
+               "search the sentence for the most consequence-like fragment in it "
+               "and credit that."]
+              if item_id == "WK1" else []),
             "WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour "
             "from the student's UTB/WGB — a plan about procrastination when the UTB is {{corpus:Q1/p15:response:49:53:sha=336074805fc8:shape=R4-0-20}}"
             "{{corpus:Q1/p15:response:54:76:sha=019d6dc324ea}} Do not deduct it merely because the phrasing is loose "
