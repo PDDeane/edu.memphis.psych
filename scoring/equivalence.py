@@ -557,6 +557,8 @@ def enforcement_audit():
         findings.append(("-", "ITEM UNMEASURED AS CONFIGURED", bad))
     for bad in ENF.check_declarations_still_have_evidence():
         findings.append(("-", "DECLARATION OUTLIVED ITS EVIDENCE", bad))
+    for bad in ENF.check_prose_numbers_match_the_ledger():
+        findings.append(("-", "PROSE NUMBER CONTRADICTS THE LEDGER", bad))
     for bad in ENF.check_the_audit_read_the_corpus():
         findings.append(("-", "AUDIT EXAMINED NOTHING", bad))
     for bad in ENF.check_consensus_spans_are_disjoint():

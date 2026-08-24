@@ -97,6 +97,32 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
     # The general lesson, since it applies to this whole table: an entry that
     # reasons from BOX CONTENTS inherits every judgement in the split. Check the
     # spans before correcting the row.
+    ("D2", 11): {
+        "was": 1.0, "score": 0.0,
+        "why": "p11 chose Negative Reinforcement and wrote the definition of "
+               "Negative Punishment, and the grader said so: \"This is the "
+               "definition of NP.\" They then charged 1 point, not 2. Three "
+               "independent sources say 2 is the charge for writing another "
+               "quadrant's definition. The deduction dictionary puts "
+               "WRONG_DEFINITION at -2. The SAME grader charged the same defect "
+               "-2 one item earlier, on D1/p7 — \"This is not the correct "
+               "definition for NP\" — taking that row to 0.00. And the five other "
+               "definition rows in this handout (D1/D2 for p9, p13, p16) are all "
+               "the DIFFERENT, lesser defect, \"did not provide the entire "
+               "definition\", each charged exactly -1. So -1 is the settled "
+               "charge for an incomplete definition and -2 for a wrong one, with "
+               "this row the lone place the two are confused.\n"
+               "\n"
+               "This was a GOLD_DIVERGENCE (WRONG_DEFINITION) until 2026-08-24, "
+               "declared on the reasoning that both implementations score 0 and "
+               "are therefore 1 point under gold — the only divergence in the "
+               "corpus running downward, which should have been the tell. A "
+               "divergence says we disagree with a coherent gold decision; an "
+               "isolated arithmetic slip against the grader's own practice "
+               "elsewhere is a wrong NUMBER, which is this table. D1/p7 is the "
+               "control that makes it decidable: same defect, same model answer "
+               "of 0, and gold agrees there.",
+    },
     ("Q6", 9): {
         "was": 5.0, "score": 3.75,
         "why":
@@ -784,14 +810,14 @@ GOLD_DIVERGENCES: list[dict] = [
                "verdict. Both sides are 4, 4 and 2 points over gold BY DESIGN — "
                "the largest of these by cell count.",
     },
-    {
-        "code": "WRONG_DEFINITION", "cells": [("D2", 11)],
-        "why": "p11 chose Negative Reinforcement and defined Negative Punishment. "
-               "The grader diagnosed it correctly but charged -1 and left the "
-               "score at 1.0; the dictionary puts WRONG_DEFINITION at -2. Both "
-               "implementations score 0, so both are 1 point UNDER gold — the "
-               "only one of these where the divergence is downward.",
-    },
+    # WRONG_DEFINITION (D2/p11) RETIRED 2026-08-24, moved to CORRECTED_GOLD.
+    # It was the only divergence in this list running DOWNWARD — both
+    # implementations scoring 1 point UNDER gold rather than over — and that
+    # asymmetry was the tell. A divergence is a disagreement with a COHERENT
+    # gold decision; p11's row is an isolated arithmetic slip against the same
+    # grader's own practice, since D1/p7 has the identical defect, the identical
+    # model answer of 0, and gold agrees there. Wrong number, not wrong
+    # judgement, so it belongs in the table for wrong numbers. See CORRECTED_GOLD.
 ]
 
 

@@ -552,10 +552,13 @@ that opens change 2, and the union of each pair is unchanged — asserted cell b
 cell before the entries were written. Declared in
 `enforcement.MULTI_BLOCK_DECLARED`.
 
-**Re-baseline all five.** This is the item's whole risk. Item 3 is **20 of 20
-counted, identical across six passes, with NO exclusions** — the only such item
-audited so far — so every one of these five cells currently agrees with gold and
-the repair can only be checked by measuring. The reason the mis-cut cost nothing
+**Re-baseline all five.** This is the item's whole risk. Item 3 records **19 of
+20 counted, identical across three passes, with NO exclusions and no
+declarations** — its one miss is p15, a stable over-credit of 3 against a gold
+of 0, unrelated to these five cells, which all still agree with gold. (This
+paragraph read "20 of 20" until 2026-08-24, written when the item was believed
+perfect; `check_prose_numbers_match_the_ledger` caught it against the ledger.)
+So the repair can only be checked by measuring. The reason the mis-cut cost nothing
 is that `changes_given` is one count over the whole response, so a sentence in
 the wrong box does not change the total; that is also why the repair is expected
 to be inert. Expected, not shown. If a cell moves, revert that cell — the
