@@ -94,6 +94,15 @@ must not skip belongs in the schema, not in prose") and what fixed Q6.
       items with `met` six times, DAY2/p12 at 6/6, controls 6/6. Neutral.
       Reverted.
 
+## DONE — p8's four cadence cells, and WK2's direction gap
+
+Three of the four came out of the divergence table. DAY1/p8 fixed by gating
+avoidance framing (9 of 9), DAY2/p8 by the days-per-week cadence fact (5 of 6),
+WK2/p8 by reading it out and finding gold right — counted and wrong, not
+declared. WK1/p8 survives six attempts and stays declared. Two new criteria kept
+on their items: `aimed_correctly` on WK2, the cadence fact on DAY2. Handout 2's
+cadence items went DAY1 15->16, DAY2 14->15, WK1 15, WK2 16.
+
 ## ACTIVE — the three non-reconciling gold rows
 
 From `--preflight`. This is also the FIRST alternative the new section-5 policy
