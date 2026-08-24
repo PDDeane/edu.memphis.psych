@@ -144,14 +144,19 @@ def record(item: str, runs_path: str) -> None:
         g, _ = APP.rebuild_gold_1c({p: dict(v) for p, v in g.items()})
     ex = set(exclusions(item))
     per: dict[int, list[bool]] = {}
+    exc: dict[int, list[bool]] = {}
     for run in json.loads(Path(runs_path).read_text())["runs"]:
         for c in run["results"]:
             pid, s = c["participant_id"], c.get("score")
             row = (g.get(pid) or {}).get(item) or {}
-            if row.get("score") is None or pid in ex:
+            if row.get("score") is None:
                 continue
-            per.setdefault(pid, []).append(
-                s is not None and H.scored_exactly(item, row["score"], s))
+            right = s is not None and H.scored_exactly(item, row["score"], s)
+            # Excluded cells are still run and still scored, so recording them
+            # costs nothing and is what lets a declaration be caught outliving
+            # its evidence: an exclusion whose cell now agrees, every run, is a
+            # cell being subtracted from every rate for a reason that expired.
+            (exc if pid in ex else per).setdefault(pid, []).append(right)
     if not per:
         raise SystemExit(f"{item}: no counted cells in {runs_path}")
     n = min(len(v) for v in per.values())
@@ -165,10 +170,96 @@ def record(item: str, runs_path: str) -> None:
         "denominator": len(per),
         "run_totals": totals,
         "out": str(Path(runs_path).parent.name),
+        # Per cell, how many of the recorded runs scored it right. Keyed by str
+        # because JSON keys are strings; read back through `_cells`.
+        "cells": {str(p): sum(1 for v in per[p][:n] if v) for p in sorted(per)},
+        "excluded_cells": {str(p): sum(1 for v in exc[p] if v)
+                           for p in sorted(exc)},
     }
     save(led)
     print(f"{item}: {totals[n // 2]}/{len(per)} recorded at prompt "
           f"{prompt_sha(item)} over {len(per)} cells (runs {totals})")
+
+
+def declaration_conflicts() -> list[str]:
+    """Declarations the recorded measurements no longer support.
+
+    Every declaration in handouts.py is a PREDICTION about a cell or an item: a
+    divergence predicts we miss this cell and mean to; a ceiling predicts the
+    item cannot be perfect because gold is incoherent; an exclusion predicts the
+    cell should not be counted. Predictions can expire — the model improves, a
+    fixture defect is repaired, a rule is rewritten — and an expired declaration
+    is invisible, because a cell that has stopped being a problem produces no
+    error to notice. It just quietly costs a cell in every rate, forever.
+
+    Section 5's "reduce the declarations" schedule exists for this and was run by
+    hand, which is why 25 unnecessary registrations survived several passes. So
+    the ledger, which records every cell's per-run outcome INCLUDING the excluded
+    ones, is compared against the declarations automatically.
+
+    The threshold follows Q2/p17: three uniform passes prove nothing, in either
+    direction. So a declaration contradicted by fewer than six recorded runs
+    yields a demand for a probe, not a retirement; only 6+ runs of unbroken
+    agreement asks for the declaration to go. Nothing is flagged from a partial
+    rate, because a declaration about a cell the model gets right half the time
+    is doing exactly the job it was written for.
+    """
+    import handouts as H
+
+    led = load().get("items", {})
+    out: list[str] = []
+
+    def verdict(what: str, right: int, runs: int, action: str) -> str:
+        if runs >= 6:
+            return (f"{what} is contradicted by {right}/{runs} recorded runs. "
+                    f"{action}")
+        lead = action[:1].lower() + action[1:]   # not .lower(): "Q6/p5" is a name
+        return (f"{what} is contradicted by {right}/{runs} recorded runs, but "
+                f"{runs} runs cannot settle a per-cell claim (see Q2/p17). Probe "
+                f"it at six passes with controls; if it holds, {lead}")
+
+    for entry in getattr(H, "GOLD_DIVERGENCES", []) or []:
+        for item, pid in entry.get("cells", []):
+            rec = led.get(item)
+            if not rec or rec.get("pending"):
+                continue
+            right = (rec.get("cells") or {}).get(str(pid))
+            runs = rec.get("runs") or 0
+            if right is None or runs == 0 or right < runs:
+                continue
+            out.append(verdict(
+                f"GOLD_DIVERGENCES {entry['code']} says we knowingly miss "
+                f"{item}/p{pid}, but the recorded measurement scores it RIGHT "
+                f"every run — the divergence",
+                right, runs, f"Retire the {item}/p{pid} cell from that entry"))
+
+    for (h, item), _why in (getattr(H, "GOLD_CEILINGS", {}) or {}).items():
+        rec = led.get(item)
+        if not rec or rec.get("pending"):
+            continue
+        num, den, runs = (rec.get("numerator"), rec.get("denominator"),
+                          rec.get("runs") or 0)
+        if not den or num != den or runs == 0:
+            continue
+        out.append(verdict(
+            f"GOLD_CEILINGS ({h!r}, {item!r}) says this item cannot be perfect, "
+            f"but it recorded {num}/{den} — the ceiling",
+            runs, runs, f"Retire the ({h!r}, {item!r}) ceiling"))
+
+    for item, rec in sorted(led.items()):
+        if rec.get("pending"):
+            continue
+        runs = rec.get("runs") or 0
+        for pid_s, right in sorted((rec.get("excluded_cells") or {}).items(),
+                                   key=lambda kv: int(kv[0])):
+            if runs == 0 or right < runs:
+                continue
+            out.append(verdict(
+                f"{item}/p{pid_s} is EXCLUDED, yet scores right every recorded "
+                f"run — the exclusion",
+                right, runs,
+                f"Remove {item}/p{pid_s} from its exclusion and let it count"))
+    return out
 
 
 def main() -> int:
@@ -181,7 +272,16 @@ def main() -> int:
         return worst
     if a[:1] == ["--record"] and len(a) == 3:
         record(a[1], a[2])
+        for c in declaration_conflicts():
+            print(f"  DECLARATION EXPIRED? {c}")
         return 0
+    if a[:1] == ["--conflicts"]:
+        conflicts = declaration_conflicts()
+        for c in conflicts:
+            print(f"  {c}")
+        if not conflicts:
+            print("  no declaration is contradicted by a recorded measurement")
+        return 2 if conflicts else 0
     print(__doc__.strip().splitlines()[2].strip(), file=sys.stderr)
     print(__doc__.strip().splitlines()[3].strip(), file=sys.stderr)
     return 1

@@ -252,11 +252,27 @@ like a verdict gets used as one.
 
 So the arithmetic moved into `compare_runs.py`, which prints PROBE REQUIRED and
 the exact command instead of a direction, marks the comparison NOT REPORTABLE,
-and exits non-zero so a chained script stops rather than continuing. It calls a
-move decisive only when the cell was uniform before and uniform after; anything
-short of that is a three-pass rate where the scope table asks for nine. Use it
+and exits non-zero so a chained script stops rather than continuing. Use it
 rather than writing the tally inline — that is also how the two definitions of
 `scored_exactly` came to disagree in print.
+
+**A clean 3/3-to-0/3 flip is not decisive either, and that exemption is the
+dangerous one.** `compare_runs.py` shipped with one: a cell uniform before and
+uniform after was reported as REGRESSED or FIXED without a probe, on the
+reasoning that three-and-three is more than a rate. Q2's p17 retired it within
+the hour. Across six sweeps that cell scores 10 of 18, and it has produced 0/3,
+2/3 and 3/3 in both directions — three consecutive identical runs each way. A
+coin throws uniform triples about a quarter of the time, so uniformity is
+precisely what three passes cannot separate from a real flip, and the exemption
+sat exactly where acting on noise is most tempting, because a clean flip is what
+looks worth chasing. Had that REGRESSED line been believed, the next hours would
+have gone to hunting a regression in a prompt that never caused one.
+
+Corollary worth its own line: **check a suspicious cell against every artifact
+that ever measured it, not just the previous sweep.** p17's six-sweep history
+took one query and settled in seconds what a fresh probe would have spent 24
+calls on — and it answers a question a probe cannot, which is whether the cell
+was ever stable in the first place.
 
 **Land a declaration correction and a denominator change as SEPARATE steps.**
 Both are cheap and both are tempting to do in one commit, and then the next
