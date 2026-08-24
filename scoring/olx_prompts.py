@@ -1254,7 +1254,7 @@ SLOT_NOTES = {
         "the graders left it at FULL marks with a written note. Reserve "
         "`wrong_kind` for a statement that is not a reason for CONTINUING at all "
         "— most often an EFFECT of the behaviour wearing a reason's clothes, like "
-        "\"{{corpus:Q5/p4:second:31:83:sha=342a4d43bd2e:shape=A44}} tired\", which is "
+        "\"because it leaves me irritable and behind on everything\", which is "
         "what the behaviour causes rather than what the student gets out of it",
     # The scaffold in front of the count. Its arithmetic held on 120 of 120
     # cell-runs the first time it was tried, so the two parts are asked as

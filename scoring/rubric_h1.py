@@ -249,7 +249,7 @@ ITEMS: list[dict] = [
                         "`harms_listed`, and benefits do not add to it — a response with "
                         "one harm and two benefits counts 1, which is what participant 6 "
                         "scored. Only when `harms_listed` is 0 does the answer become "
-                        "`benefits_listed` instead, which is how participants 9, 10 and 16 "
+                        "`benefits_listed` instead, which is how participants 10 and 16 "
                         "were credited. Never answer 0 when the student offered anything "
                         "of either kind. Answer 3 for three or more",
             },
@@ -343,8 +343,8 @@ ITEMS: list[dict] = [
                         "WGB_NOT_OPPOSITE on `wgb_inverts_utb`, worth 2, not the whole item. "
                         "When this DOES fail the goal is unstated and its reasons cannot "
                         "count either, so WGB_UNRELATED stands INSTEAD of "
-                        "WGB_NOT_OPPOSITE plus reason deductions, never alongside them — "
-                        "it cost participant 7 the whole item",
+                        "WGB_NOT_OPPOSITE plus reason deductions, never alongside them. "
+                        "Where it fires it costs the whole item",
             },
             {
                 "what": "wgb_inverts_utb",
@@ -689,7 +689,7 @@ ITEMS: list[dict] = [
                 "pts": 1.0,
                 "verdicts": ["met", "absent", "unclear"],
                 "codes": {"absent": "A_NO_KEYWORD", "unclear": "A_NO_KEYWORD"},
-                "desc": "Uses 'antecedent' or 'trigger' at least once. A_NO_KEYWORD applies whenever neither \"antecedent\" nor \"trigger\" appears anywhere in the response. The graders enforced this inconsistently — participant 17 lost the point, participants 9 and 15 did not — but the dictionary is explicit, so apply it. This is a deliberate divergence from those two gold rows.",
+                "desc": "Uses 'antecedent' or 'trigger' at least once. A_NO_KEYWORD applies whenever neither \"antecedent\" nor \"trigger\" appears anywhere in the response. The graders enforced this inconsistently — participant 17 lost the point and two other rows kept it — but the dictionary is explicit, so apply it. This is a deliberate divergence from the rows that kept it.",
             },
         ],
         "deductions": [
@@ -721,8 +721,8 @@ ITEMS: list[dict] = [
             "trigger for one behaviour and an aftermath of another, so check the direction "
             "against the student's own UTB before crediting.",
             "REJECT decisively in three cases. (a) The example is an AFTERMATH of the UTB "
-            "— phrased as happening afterwards or as a result (\"{{corpus:Q4a/p14:second:21:46:sha=44ac4c79e876:shape=R25-0-20}}"
-            "{{corpus:Q4a/p14:second:47:61:sha=3aef819f1371}} that I can't function\" cost participant 14 four points). "
+            "— phrased as happening afterwards or as its result, such as a pain or a "
+            "difficulty the behaviour left behind. "
             "(b) The example is what the student does INSTEAD of the goal behaviour, which "
             "belongs to 4b (\"{{corpus:Q4a/p3:second:25:67:sha=5c4b20801855}}\" cost participant "
             "3 two points). (c) The example is a consequence already listed in 4c.",
@@ -974,12 +974,13 @@ ITEMS: list[dict] = [
             "credit for it. Do not reject a consequence merely because it names an action "
             "rather than a state.",
             "REJECT a statement that is really a BENEFIT of the goal behaviour rather than "
-            "a result of the UTB. \"I would have {{corpus:Q4c/p9:second:11:53:sha=c5630be947d7}} "
-            "maintained a healthy weight\" is not a consequence of failing to exercise; "
-            "participant 9 lost 4 points for two statements of that kind.",
-            "DEDUCT when the causal link is left for the reader to guess. \"{{corpus:Q4c/p20:second:54:66:sha=aa80b04b6cf8:shape=R0-1-46,R12-0-20}}"
-            "{{corpus:Q4c/p20:second:67:80:sha=c0099a8efaec}}\" against a UTB of lack of sleep cost participant 20 two points "
-            "— \"need more explanation on how your second example is a direct consequence\". "
+            "a result of the UTB. Naming the healthy weight, fitness or wellbeing the "
+            "student would have HAD by doing the goal behaviour describes what they "
+            "forfeited, not what engaging in the UTB produced, and two such statements "
+            "cost a whole item.",
+            "DEDUCT when the causal link is left for the reader to guess: a consequence "
+            "that is real but whose connection to THIS unwanted behaviour the reader has "
+            "to supply. "
             "Participant 4 lost 2 for \"specify what spending too much time awake means\".",
             "The two consequences must be distinct — participant 11 lost 2 points for "
             "listing the same one twice.",
@@ -1091,9 +1092,10 @@ ITEMS: list[dict] = [
             "choosing to not exercise\" — as feedback, on a 5.0. Put that kind of remark in "
             "advisory_note; do not emit W_NOT_REASON for it.",
             "W_NOT_REASON is for a statement that is not a reason for CONTINUING at all — "
-            "most often a consequence wearing a reason's clothes. \"{{corpus:Q5/p4:second:0:23:sha=1416fe6d0f1a:shape=R23-0-20}}"
-            "{{corpus:Q5/p4:second:24:83:sha=f2c3b6afc33a:shape=A51}} tired\" describes "
-            "an effect of the UTB, not a payoff from it, and cost participant 4 2.5 points.",
+            "most often a consequence wearing a reason's clothes. \"I continue to [UTB] "
+            "because it leaves me irritable and worn out\" names an EFFECT of the "
+            "behaviour, not a payoff from it, and loses the 2.5 even though its form is "
+            "perfect.",
             "THE LINE BETWEEN THIN AND ABSENT. The two rules above overlap, and the example "
             "just given has perfect form, so apply this test per entry and in this order. "
             "Deduct W_NOT_REASON ONLY when the statement (a) names a CONSEQUENCE of the "
