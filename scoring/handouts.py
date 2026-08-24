@@ -530,20 +530,60 @@ GOLD_DIVERGENCES: list[dict] = [
     # against. Its evidence — that p6 is the same shape and gold credits it, and
     # the three attempts that failed to separate them — moved into the reason there.
     {
-        # MEASURED, and this is the guide's "which cells does it RESCUE" question
-        # answered with numbers. `behavior_*`'s test (5) — naming a failure to act
-        # is not naming a substitute — fires on three cells. It RESCUES p7 and p8,
-        # both right 3 of 3, where gold also refuses the not-doing entry. It COSTS
-        # p12 alone. Removing it would be a net -1, so it earns its place and
-        # p12's miss is gold's leniency rather than our defect.
-        "code": "B_NOT_ACTIVE", "cells": [("Q4b", 12)],
+        # MEASURED BY REMOVAL, 3 runs with `behavior_*`'s test (5) deleted from
+        # both slots and the served prompt checked to confirm it was gone. An
+        # earlier version of this entry asserted the same conclusion from the
+        # RECORD — p7 and p8 are right, their entries are not-doings, therefore
+        # the test is what saves them — which is a hypothesis, not the arithmetic
+        # the guide asks for. Deleting it and measuring says:
+        #
+        #   counted   [14, 13, 13] with the test   ->   [13, 12, 13] without
+        #   rescued   p7 3/3 -> 0/3, p8 3/3 -> 0/3, p14 3/3 -> 2/3
+        #   cost      p12 0/3 -> 3/3, p16 1/3 -> 3/3
+        #
+        # So it earns its place at +1 cell per run, and the substance of the
+        # inference held. What the inference could NOT see is half the picture:
+        # the test also costs p16, and it marginally rescues p14. Two of the five
+        # cells it moves were invisible from the record.
+        "code": "B_NOT_ACTIVE", "cells": [("Q4b", 12), ("Q4b", 4)],
+        # p4 is a SECOND Q4b disagreement and it is NOT a ceiling, though this
+        # file said it was for one commit. Gold charges a criterion the rubric
+        # does not carry — "your behaviors cannot be the same as your
+        # antecedents" — and p4's two entries are its own 4a antecedents with the
+        # pair swapped: 4a gives "having grumpy emotions" and "scrolling through
+        # tiktok", 4b gives "scrolling on tiktok instead" and "becoming grumpy".
+        # We credit the first and refuse the second, 3.5 against gold's 2.0.
+        #
+        # The ceiling claim was that no rule can charge this without breaking the
+        # cells gold credits, argued from a lexical sweep: 4b/4a overlap appears
+        # in 13 of 20 cells and gold gives four of them full credit. That was a
+        # prediction about a rule nobody had written, and the sweep over-reports
+        # — its own key-word heuristic flagged p11 and p19, which the grader had
+        # already credited.
+        #
+        # MEASURED, 3 runs, with a sixth test added to both slots: an entry that
+        # names the same THING as one of the student's own 4a antecedents fails,
+        # judged by REFERENT and not by topic.
+        #
+        #   counted   [14, 13, 13] baseline   ->   [15, 12, 14] with the test
+        #   p4        0/3 -> 1/3              the target does move
+        #   p1 p12 p15 p17                    unchanged — the four gold credits held
+        #   spread    1 cell -> 3 cells
+        #
+        # So the rule is possible and the ceiling was wrong. It is not adopted
+        # because of the SPREAD: a mean of 13.67 against 13.33 for three times the
+        # variance is the trade the guide refuses, since a configuration that
+        # swings three cells cannot tell you whether the next change helped.
+        # p4's miss therefore stands as a divergence, with the door open to a
+        # steadier formulation of the same test.
         "why": "gold credits a not-doing as an active behaviour. p12's second "
                "entry is \"I {{corpus:Q4b/p12:second:2:51:sha=f2201f319b22:shape=R49-0-20}}"
                "{{corpus:Q4b/p12:second:52:112:sha=eead74115ae9:shape=R60-0-20}}"
                "{{corpus:Q4b/p12:second:113:126:sha=b9ba0a5dbbd1}} bad\" — it names no activity that displaced the "
                "goal, which is what the question asks for, and `behavior_*`'s "
                "fifth test refuses it in terms. Gold gives 5.0; we give 3.5, 0 of "
-               "3. The test that refuses it rescues p7 and p8, so it stays.",
+               "3. The test that refuses it is worth +1 cell a run against "
+               "deleting it, measured, so it stays and this miss stands.",
     },
     {
         # MEASURED, and the measurement is what this entry is FOR. The item's own
@@ -769,24 +809,6 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "cannot do something instead of itself\" logic Q4b's `behavior_*` rule "
         "carries — with p13's \"{{corpus:Q3/p13:action:58:101:sha=0eb12399ea3c}}\" as "
         "the control that must keep its credit. Untried.",
-    ),
-    ("1", "Q4b"): (
-        "gold charges a criterion this rubric does not carry — \"your behaviors "
-        "cannot be the same as your antecedents\" — and applies it to some cells "
-        "exhibiting that relation and not to others. p4 is charged the full -3 "
-        "(two refusals) for behaviours that ARE its own 4a antecedents with the "
-        "two swapped: 4a gives \"having grumpy emotions\" and \"scrolling "
-        "through tiktok\", 4b gives \"scrolling on tiktok instead\" and "
-        "\"becoming grumpy\". We credit the first and refuse the second, 3.5 "
-        "against gold's 2.0, 0 of 3. "
-        "SWEPT rather than probed, because a rule keyed on a relation BETWEEN two "
-        "items' boxes can fire on any cell exhibiting it: overlap between a "
-        "cell's 4b behaviours and its own 4a antecedents appears in 13 of the 20 "
-        "cells, and gold gives FULL CREDIT to four of them (p1, p12, p15, p17). "
-        "A duplication test would therefore have to separate same-REFERENT from "
-        "same-topic, the relational judgement Q6's `refers_to` resisted across "
-        "seven measured attempts. Charged on p2 and p4, ignored on four others: "
-        "whichever way the rule is set, a cell is wrong.",
     ),
     ("2", "DAY2"): (
         "p7's gold is 1.00 while its comment itemises only \"-1 pt\", which implies "
