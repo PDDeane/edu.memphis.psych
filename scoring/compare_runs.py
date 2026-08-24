@@ -66,6 +66,55 @@ def tally(path: str, handout: int, item: str, g: dict) -> dict[int, list[bool]]:
     return out
 
 
+def _regressions_against_recorded(handout, item, after, na, g) -> None:
+    """Cells that are right in the RECORDED state and wrong now.
+
+    A comparison against an old baseline cannot see a gain being undone. DAY2/p8
+    was 0 of 3 in the baseline, was fixed to 5 of 6 by a committed change, and
+    was knocked back to 0 of 3 by a later edit that never mentioned the gate it
+    moved — and the diff against the baseline read "no change", because both ends
+    were 0 of 3. It was found only by printing per-cell detail and remembering.
+
+    So every comparison also diffs against whatever the ledger currently records
+    for this item, which is the best state anyone has measured. A committed gain
+    being silently undone becomes a line of output instead of something you have
+    to hold in your head.
+    """
+    try:
+        import measured as MEAS
+        rec = (MEAS.load().get("items", {}) or {}).get(item) or {}
+        path = MEAS._runs_path(item)
+        if rec.get("pending") or not path:
+            return
+        recorded = tally(path, handout, item, g)
+    except Exception as e:                       # never block a comparison
+        print(f"\n  (recorded-state check unavailable: {e})")
+        return
+
+    nr = min((len(v) for v in recorded.values()), default=0)
+    if not nr:
+        return
+    lost = []
+    for p, runs in sorted(recorded.items()):
+        if p not in after:
+            continue
+        was = sum(1 for v in runs[:nr] if v) / nr
+        now = sum(1 for v in after[p][:na] if v) / na
+        if now < was:
+            lost.append((p, sum(1 for v in runs[:nr] if v), nr,
+                         sum(1 for v in after[p][:na] if v), na))
+    if lost:
+        print(f"\n  REGRESSION AGAINST THE RECORDED STATE ({rec.get('out')}, "
+              f"{rec.get('numerator')}/{rec.get('denominator')}) — these are "
+              f"cells\n  an EARLIER change had already won, and this one gives "
+              f"back:")
+        for p, wb, wn, ab, an in lost:
+            print(f"    p{p:<3} gold {g[p][item]['score']:<4g} {wb}/{wn} "
+                  f"recorded -> {ab}/{an} now")
+        print("  A flat median can hide this: a gain and a regression of similar "
+              "size cancel.")
+
+
 def compare(handout: int, item: str, before_path: str, after_path: str) -> int:
     g = gold_for(handout, item)
     before = tally(before_path, handout, item, g)
@@ -140,6 +189,8 @@ def compare(handout: int, item: str, before_path: str, after_path: str) -> int:
         print("\n  NOT REPORTABLE until the probe above is run.")
     if not moved and not probe:
         print("\n  no cell changed.")
+
+    _regressions_against_recorded(handout, item, after, na, g)
 
     # A sweep is also the moment to ask whether this item's DECLARATIONS still
     # describe it. The enforcement suite asks the same question, but the review
