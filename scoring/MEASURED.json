@@ -43,16 +43,125 @@
       "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
     },
     "Q1": {
-      "pending": "five exclusions removed and six citations rewritten into rules in 09e516d, with no item sweep afterwards \u2014 found by audit on 2026-08-24, and the reason this ledger exists. Its last item-level artifact (qc_v1) predates both changes"
+      "cells": {
+        "1": 3,
+        "10": 3,
+        "11": 2,
+        "12": 3,
+        "13": 3,
+        "14": 2,
+        "15": 3,
+        "16": 3,
+        "17": 1,
+        "18": 3,
+        "19": 3,
+        "2": 3,
+        "20": 3,
+        "3": 3,
+        "4": 3,
+        "5": 3,
+        "6": 2,
+        "7": 1,
+        "8": 3,
+        "9": 0
+      },
+      "denominator": 20,
+      "excluded_cells": {},
+      "exclusions": [],
+      "numerator": 16,
+      "out": "baseline_20260824",
+      "prompt_sha": "dbe2469d5a18",
+      "run_totals": [
+        15,
+        16,
+        19
+      ],
+      "runs": 3
     },
     "Q2": {
-      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+      "cells": {
+        "1": 3,
+        "10": 2,
+        "11": 3,
+        "12": 3,
+        "13": 3,
+        "14": 3,
+        "15": 3,
+        "16": 2,
+        "17": 0,
+        "18": 3,
+        "19": 3,
+        "2": 3,
+        "20": 0,
+        "3": 3,
+        "4": 3,
+        "5": 3,
+        "6": 3,
+        "7": 2,
+        "8": 3,
+        "9": 3
+      },
+      "denominator": 20,
+      "excluded_cells": {},
+      "exclusions": [],
+      "numerator": 17,
+      "out": "baseline_20260824",
+      "prompt_sha": "831b30f7e207",
+      "run_totals": [
+        16,
+        17,
+        18
+      ],
+      "runs": 3
     },
     "Q3": {
-      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+      "denominator": 20,
+      "exclusions": [],
+      "numerator": 17,
+      "out": "baseline_20260824",
+      "prompt_sha": "f16c96551af0",
+      "run_totals": [
+        16,
+        17,
+        18
+      ],
+      "runs": 3
     },
     "Q4a": {
-      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+      "cells": {
+        "1": 3,
+        "10": 3,
+        "11": 3,
+        "12": 3,
+        "13": 3,
+        "14": 0,
+        "15": 0,
+        "16": 2,
+        "17": 3,
+        "18": 3,
+        "19": 0,
+        "2": 2,
+        "20": 3,
+        "3": 3,
+        "4": 3,
+        "5": 3,
+        "6": 3,
+        "7": 3,
+        "8": 3,
+        "9": 0
+      },
+      "denominator": 20,
+      "excluded_cells": {},
+      "exclusions": [],
+      "numerator": 16,
+      "out": "baseline_20260824",
+      "prompt_sha": "cdda9249de2f",
+      "run_totals": [
+        14,
+        16,
+        16
+      ],
+      "runs": 3
     },
     "Q4b": {
       "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
@@ -64,7 +173,40 @@
       "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
     },
     "Q6": {
-      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+      "cells": {
+        "1": 3,
+        "10": 3,
+        "11": 3,
+        "12": 3,
+        "13": 3,
+        "14": 3,
+        "15": 3,
+        "16": 3,
+        "17": 3,
+        "18": 3,
+        "19": 2,
+        "2": 0,
+        "20": 3,
+        "3": 3,
+        "4": 3,
+        "5": 2,
+        "6": 3,
+        "7": 3,
+        "8": 0,
+        "9": 3
+      },
+      "denominator": 20,
+      "excluded_cells": {},
+      "exclusions": [],
+      "numerator": 18,
+      "out": "baseline_20260824",
+      "prompt_sha": "78c9b1a3c3d0",
+      "run_totals": [
+        16,
+        18,
+        18
+      ],
+      "runs": 3
     },
     "T1": {
       "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
