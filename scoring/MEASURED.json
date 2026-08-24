@@ -1,0 +1,83 @@
+{
+  "items": {
+    "1a": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "1b": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "1c": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "2a": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "2b": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "3": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "D1": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "D2": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "DAY1": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "DAY2": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "NP": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "NR": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "PP": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "PR": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "Q1": {
+      "pending": "five exclusions removed and six citations rewritten into rules in 09e516d, with no item sweep afterwards \u2014 found by audit on 2026-08-24, and the reason this ledger exists. Its last item-level artifact (qc_v1) predates both changes"
+    },
+    "Q2": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "Q3": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "Q4a": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "Q4b": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "Q4c": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "Q5": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "Q6": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "T1": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "T2": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "WK1": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    },
+    "WK2": {
+      "pending": "awaiting the full 3-run baseline sweep begun 2026-08-24, which measures every item at the current prompt and denominator"
+    }
+  },
+  "note": "Per item: the prompt SHA that was measured and the exclusion set it was measured over. Written by `measured.py --record`, never by hand. Checked by enforcement.check_items_are_measured_as_configured. An entry may declare `pending` with a reason; it may not be absent."
+}
