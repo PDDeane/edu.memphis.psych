@@ -1850,6 +1850,30 @@ def check_declarations_still_have_evidence() -> list[str]:
     return MEAS.declaration_conflicts()
 
 
+def check_prose_numbers_match_the_ledger() -> list[str]:
+    """A score written into the repo's prose that the ledger contradicts.
+
+    A measurement travels as a sentence — in a guide, a backlog entry, a note in
+    handouts.py — and the sentence outlives the configuration it was computed
+    over. Q4c and Q5 were described in writing as perfect items while they stood
+    at 12/14 and 14/15, because their denominators had grown underneath the
+    prose. Nothing about a stale sentence looks stale.
+
+    Guarding this with advice was tried first, on the day 1a was reported at
+    18/20 off runs of 17, 17, 18 — the median was 17 and 18 was the flattering
+    pick. Advice is what the reader already agreed with before misreading the
+    table, so the number now comes from `measured.py --report` and this check
+    verifies the prose against the same ledger.
+
+    Narrow on purpose (see `measured.prose_claims`): an item name, a fraction
+    beside it, the CURRENT denominator, and a disagreeing numerator. History
+    keeps its old figures.
+    """
+    import measured as MEAS
+
+    return MEAS.prose_claims()
+
+
 def check_gold_tables_have_no_duplicate_keys(src: str | None = None) -> list[str]:
     """A key written twice in one of handouts.py's declaration tables.
 

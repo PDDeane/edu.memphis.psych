@@ -49,9 +49,30 @@ grader's decision sitting in their prompt. Q4c and Q5 had been reported as
 perfect items; they are 12/14 and 14/15. Every number reported before the audit
 was computed over a denominator the audit shrank.
 
-**Step 0 asks TWO questions, and the second one is the one that gets skipped:
-is this exclusion CORRECT, and is it NECESSARY?** They have different answers
-and opposite consequences.
+**Both questions only apply to exclusions that are claims about the MODEL.**
+`cell_exclusions` returns a kind with every cell, and the kind decides whether
+measurement can say anything at all:
+
+| kind | what it claims | can a sweep refute it? |
+|---|---|---|
+| `self_graded` | the prompt hands over the answer and the grader's decision | yes — that is the necessity test |
+| `unscoreable` | gold's row cannot be reached by any correct answer | yes — a cell that reaches it refutes the claim |
+| `suspect` | the submission was mis-transcribed; the input is another participant's data | **no, ever** |
+
+A `suspect` cell agreeing with gold is a coincidence between the wrong
+student's answer and this student's score, and it is the single reading that
+must not be taken as reassurance. There is nothing to be right about: the input
+is not what the student wrote. No number of passes can retire it — only
+re-transcribing the submission can.
+
+This was not hypothetical for long. The expired-declaration check went in and
+within minutes offered to un-exclude PR/p2, a known mis-transcription, because
+it scored 3 of 3. The check now reads the kind and skips `suspect` entirely;
+`unscoreable` and `self_graded` still fire, verified both ways at 6/6.
+
+**For the two kinds that ARE claims about the model, step 0 asks TWO questions,
+and the second is the one that gets skipped: is this exclusion CORRECT, and is
+it NECESSARY?** They have different answers and opposite consequences.
 
 | | the cell scores WRONG | the cell scores RIGHT |
 |---|---|---|
@@ -267,6 +288,14 @@ precisely what three passes cannot separate from a real flip, and the exemption
 sat exactly where acting on noise is most tempting, because a clean flip is what
 looks worth chasing. Had that REGRESSED line been believed, the next hours would
 have gone to hunting a regression in a prompt that never caused one.
+
+**Quote the ledger's number, not the run table's best line.** `--record`
+publishes the median run; reading a three-run table by eye invites the best one,
+especially when it agrees with the change just made. 1a was reported at 18/20
+off a sweep whose runs were 17, 17, 18 — the median was 17, and 18 was the
+flattering pick. A same-prompt repeat then produced 18, 18, 19, so the figure
+happened to survive; the reasoning did not, and it is the same optimistic-read
+reflex that put a decisive-move exemption in `compare_runs.py`.
 
 Corollary worth its own line: **check a suspicious cell against every artifact
 that ever measured it, not just the previous sweep.** p17's six-sweep history
