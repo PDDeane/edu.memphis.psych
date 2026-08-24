@@ -460,6 +460,33 @@ def _example_use_item(
                "TO END before the contingency can fire at all — a whole-week "
                "tally scored on Sunday, one weekend reward for the week's "
                "performance."] if item_id == "DAY2" else []),
+            # DAY1 only, and it reverses this project's standing decision on
+            # avoidance framing FOR THIS ITEM. Here rather than in SLOT_NOTES so
+            # both generators render the same words — the enforcement check calls
+            # a rule parked web-only SLOT RULE WEB ONLY, and the CLI gates on this
+            # too (score.derive_oc_ledger, keyed on the item id).
+            #
+            # The decision was to flag and never deduct, because a contingency
+            # stated by what is avoided is structurally sound. The cohort says
+            # gold disagrees on this item: of the five DAY1 cells where the check
+            # ever answers `absent`, gold scores FOUR of them 0, and the fifth we
+            # already miss for unrelated reasons. Measured — the item's median
+            # rose by one, one cell went from wrong in every run to right in six
+            # of six probe passes, a second recovered to 6/6, and both controls
+            # held.
+            *(["AVOIDANCE FRAMING TAKES THE WHOLE ITEM HERE. An answer whose only "
+               "claim is about dodging a penalty has not said what will be added "
+               "or taken away when the behaviour happens, and the graders scored "
+               "those zero. \"I will push myself to {{corpus:DAY1/p8:day1:76:104:sha=140d96680ba2}} "
+               "to do the extra chore\" asserts an intention and mentions a "
+               "penalty in passing; \"if I miss my goal I will do the extra "
+               "chore\" states the contingency. Judge the sentence's own claim: "
+               "answer that the phrasing is direct whenever the consequence is "
+               "stated as something added or removed after the behaviour, however "
+               "plainly worded, and only call it avoidance-framed when the "
+               "avoidance IS the claim. This is the only check that judges the "
+               "phrasing; no other may deduct for it."]
+              if item_id == "DAY1" else []),
             "WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour "
             "from the student's UTB/WGB — a plan about procrastination when the UTB is {{corpus:Q1/p15:response:49:53:sha=336074805fc8:shape=R4-0-20}}"
             "{{corpus:Q1/p15:response:54:76:sha=019d6dc324ea}} Do not deduct it merely because the phrasing is loose "

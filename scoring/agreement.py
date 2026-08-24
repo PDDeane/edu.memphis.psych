@@ -1085,6 +1085,19 @@ def score_oc_cadence(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     if not yes(cadence_key):
         return max(0.0, item["max"] - codes["CADENCE_MISMATCH"]), 1
 
+    # Any OTHER slot the sheet marks as gating, honoured generically. lo-blocks'
+    # failedGate walks every slot and zeroes the item on the first unsatisfied
+    # gate, so a `!` added to a slots= list changes the app's behaviour with no
+    # code change anywhere — while this mirror knew only the gates hardcoded
+    # above and would have scored the same answer differently. The three keys
+    # already handled are excluded because each maps to its OWN deduction code,
+    # which is the distinction this function exists to make.
+    _handled = {"names_behavior", "names_stimulus", "contingent",
+                "follows_behavior", "you_arrange_it", cadence_key}
+    for _s in spec["slots"]:
+        if _s.get("gates") and _s["key"] not in _handled and not yes(_s["key"]):
+            return max(0.0, item["max"] - codes["NOT_OC"]), 1
+
     lost = 0.0
     n = 0
     if not yes("matches_chosen_type"):
