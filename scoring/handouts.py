@@ -260,18 +260,40 @@ HANDOUTS: dict[int, dict] = {
         # Reproduce with the audit in EQUIVALENCE.md: search each item's
         # prompt-bearing text for a participant cited by number. Handout 2 has
         # none — its guidance quotes answers without attributing them.
+        # EIGHT CELLS CAME OUT 2026-08-23, on the same principle Q4b's note below
+        # records, after the exclusion audit that step 1 of the cleanup procedure
+        # asks for and that this campaign had skipped. Every excluded cell in the
+        # handout was retested against its item's current configuration — free,
+        # because excluded cells are still run and still scored — and eight were
+        # WRONG in 3 of 3 runs with the answer and the grader's decision sitting in
+        # the prompt. An exclusion there buys a flattering denominator and nothing
+        # else, so the citation and the registration moved together:
+        #
+        #   Q1 p9   Q2 p7   Q4a p9, p14, p15   Q4c p9, p20   Q5 p4
+        #
+        # Each citation was rewritten as the RULE it was illustrating rather than
+        # deleted, so the guidance keeps its content and loses the answer key.
+        # Three of the eight (Q4a's) already carry declared divergences, so their
+        # misses were always intentional and now simply count. EXPECT THESE FIVE
+        # ITEMS' RATES TO FALL; that is what the step is for.
+        #
+        # The 21 cells that stayed are right in 3 of 3, which is what a
+        # `self_graded` exclusion is FOR: with the answer in the prompt, getting it
+        # right proves nothing, so the cell is uninformative rather than stale.
+        # Section 5's retest-until-removed rule bites on `unscoreable` claims, not
+        # on these.
         "cited_participants": {
-            "Q1":  [1, 2, 6, 9, 10, 16],
-            "Q2":  [3, 6, 7, 10],
-            "Q4a": [3, 4, 6, 9, 14, 15, 17],
+            "Q1":  [1, 2, 6, 10, 16],
+            "Q2":  [3, 6, 10],
+            "Q4a": [3, 4, 6, 17],
             # Q4b cites only its ACCEPT cases now. 2, 4, 6, 7 and 20 came OUT of the
             # guidance rather than staying in it and being excluded: the item could
             # not score them right even with the answer written beside them, so
             # excluding them reported a rate over the cells it can do. They are
             # counted now, and expected to be wrong. See EQUIVALENCE.md.
             "Q4b": [13, 15, 19],
-            "Q4c": [4, 9, 11, 12, 15, 17, 20],
-            "Q5":  [4, 6, 8, 9, 19, 20],
+            "Q4c": [4, 11, 12, 15, 17],
+            "Q5":  [6, 8, 9, 19, 20],
             # Q6 is gone from this map: rewritten from the dictionary, its
             # prompt cites no participant at all. Every cell on it is scoreable
             # now except p9, which is unreachable for a declared divergence.
