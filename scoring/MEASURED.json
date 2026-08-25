@@ -938,8 +938,8 @@
         3
       ],
       "numerator": 18,
-      "out": "trigger_v3",
-      "prompt_sha": "c9d40809b355",
+      "out": "trigger_v7",
+      "prompt_sha": "0e4aa1cb566c",
       "run_totals": [
         18,
         18,
