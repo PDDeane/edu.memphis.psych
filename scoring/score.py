@@ -32,8 +32,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from backends import BackendError, make_backend
 from handouts import config, find_submissions
-from rubric_h2 import (CADENCE_ITEMS, CONTINGENCY_GATE_ITEMS,
-                       POLARITY_GATE_ITEMS)
+from rubric_h2 import CONTINGENCY_GATE_ITEMS, POLARITY_GATE_ITEMS
 from docx_text import extract_media, graph_evidence
 from segment import repair_orphans, segment, utb_hint
 
@@ -176,12 +175,10 @@ def build_schema(item: dict) -> dict:
             # and its `equals` rule, lenient on `none`.
             # Diagnostic: answered, reported, never scored or gated. Mirrors
             # the web's plain pick slot, which contributes no points either.
-            if item.get("id") in CADENCE_ITEMS:
+            if item.get("id") in POLARITY_GATE_ITEMS:
                 props["restriction_authored"] = {
                     "type": "string", "enum": ["created", "relieved", "neither"]}
             if item.get("id") in POLARITY_GATE_ITEMS:
-                props["consequence_valence"] = {
-                    "type": "string", "enum": ["gain", "loss"]}
                 props["trigger_expects"] = {
                     "type": "string", "enum": ["gain", "loss", "none"]}
                 props["restricts"] = {
@@ -600,7 +597,7 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
                               "withheld on a condition.")
                 return ledger, checks, unknown, advisory
 
-        if item.get("id") in CADENCE_ITEMS:
+        if item.get("id") in POLARITY_GATE_ITEMS:
             # Mirrors the web's `forbid` primitive: FAILS only when every named
             # condition holds, and passes when any operand is unanswered. A
             # deprivation the plan CREATES is not a fault on its own — an
@@ -622,29 +619,10 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
                               "front of the behaviour rather than following it.")
                 return ledger, checks, unknown, advisory
 
-        if item.get("id") in CADENCE_ITEMS and a.get("restriction_authored"):
+        if item.get("id") in POLARITY_GATE_ITEMS and a.get("restriction_authored"):
             checks.append({"what": "restriction_authored", "met": True,
                            "reported": True,
                            "evidence": a["restriction_authored"]})
-
-        if item.get("id") in POLARITY_GATE_ITEMS:
-            # Same formula as agreement.apply_computed's `equals`, lenient on
-            # `none`: a sentence stating no condition is clause (a)'s business,
-            # not this gate's, so `none` on either side passes here.
-            lenient = ("none",)
-            cv = a.get("consequence_valence") or ""
-            te = a.get("trigger_expects") or ""
-            ok = (cv in lenient or te in lenient
-                  or (bool(cv) and bool(te) and cv == te))
-            checks.append({"what": "direction_ok", "met": bool(ok),
-                           "evidence": f"consequence_valence={cv or '?'}, "
-                                       f"trigger_expects={te or '?'}"})
-            if not ok:
-                add("NOT_OC", "The consequence runs the wrong way: a "
-                              f"{cv} follows the student doing "
-                              f"{'well' if te == 'gain' else 'badly'}, which "
-                              "would push the behaviour in the wrong direction.")
-                return ledger, checks, unknown, advisory
 
         asserted = a.get("consequence_asserted", True)
         checks.append({"what": "consequence_asserted", "met": bool(asserted),
