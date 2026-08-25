@@ -634,6 +634,35 @@ this wrong in either direction costs cells.
 **Structural changes beat judgement changes.** Changes to what the grader SEES
 have worked and stuck. Changes to how it JUDGES mostly have not.
 
+**The sharpest form of that: ask for a QUOTE, not a decision.** WK1/p7 is the
+cleanest case in the corpus. Gold says "-1 pt: This is an example of NP, however
+your UTB is not procrastination", the student's UTB reads "Spending too much time
+on electric devices", and `trigger_behavior` answered `utb` on every pass for
+eleven attempts across two sessions — including one written the same day that
+told it, in as many words, that an activity the chosen behaviour "might plausibly
+cause, or lead to, or be a form of" is `other`. It did not move a single run.
+
+The failure was not that the model inferred a RELATION between procrastination
+and device use. It treated them as ONE activity under two descriptions, so every
+instruction about relations missed. What worked, first time and 3/3:
+
+> Quote the words THE STUDENT used for the behaviour, from their own
+> unwanted-behaviour or goal statement, beside the trigger you quoted. If you
+> cannot find words of theirs naming the SAME activity, answer `other` — and
+> answer it even when you judge the two to mean the same thing.
+
+p7 went 0/3 to 3/3 and WK1 to 18/18. The evidence field shows why: it now writes
+both phrases side by side and answers from their difference, never adjudicating
+what they mean. A word the student never wrote cannot be quoted, so the answer is
+forced rather than argued.
+
+The generalisation worth trying elsewhere: when a slot keeps reaching a defensible
+but wrong judgement, stop refining the criterion and give it a MECHANICAL test it
+must show its working for. "Find me the words" has no room for an opinion; "decide
+whether these are the same" is all room. Guard it with "a paraphrase of their own
+wording is fine", which is what keeps WK1/p8 — trigger "I do not attend the gym"
+against a UTB naming "the gym" — from being caught by it.
+
 **Editing a long slot note has non-local effects.** Clauses with airtight
 logical scope moved cells whose preconditions they could not satisfy. An
 incumbent wording is worth something purely for carrying no edit risk.

@@ -1230,7 +1230,7 @@ SLOT_NOTES = {
         "week\", \"my plan\" — has no content of its own. Classify it as "
         "whatever it points at: `wgb` for a goal they are building, `utb` for "
         "the behaviour they are cutting.\n"
-        "  * A NAMED ACTIVITY — \"procrastinating\", \"reading a chapter\", "
+        "  * A NAMED ACTIVITY — \"tidying the kitchen\", \"walking the dog\", "
         "\"going to the gym\" — has content, so judge it on its own terms "
         "against the behaviour the student CHOSE. Their paragraph also explains "
         "why they chose it, and the causes, effects and knock-on habits it "
@@ -1238,7 +1238,14 @@ SLOT_NOTES = {
         "behaviour costs them will name several other activities in passing, "
         "and a plan triggered on one of THOSE is `other`. Being mentioned in "
         "that paragraph does not make an activity theirs; being the behaviour "
-        "they chose does.",
+        "they chose does.\n"
+        "  DO THIS BEFORE YOU CLASSIFY, and put it in `evidence`: quote the "
+        "words THE STUDENT used for the behaviour, from their own unwanted-behaviour or goal statement, beside the trigger you quoted. If you cannot "
+        "find words of theirs naming the SAME activity, answer `other` — and "
+        "answer it even when you judge the two to mean the same thing. Two "
+        "descriptions you would call equivalent are still two activities "
+        "unless the student wrote both. A paraphrase of their own wording is "
+        "fine; a word they never used is not.",
     # The whole point of this slot is to stop `not_reason` absorbing weak reasons,
     # so it says so, and says where the boundary is with the case that DOES deduct.
     # Three non-`met` verdicts now, so the boundaries have to be drawn or the new
