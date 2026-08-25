@@ -1476,7 +1476,7 @@ which no criterion covers and which gold's comment does not name. Gold asks them
 to target the UTB while the item's own question asks reinforcement examples to
 target the GOAL behaviour, so that cell is a gold question, not a criterion one.
 
-### DAY2/p14: two rubric rules that contradict each other on one answer
+### DAY2/p14: the note was aimed at the wrong cell (CORRECTED)
 
 `you_arrange_it` was given an item-scoped note on DAY2 stating the
 automatic-result test as a question about WHO ACTS — the framing that worked for
@@ -1484,11 +1484,14 @@ the agent parse and the trigger classification. It did not fire. The slot read
 `met` in all three runs and the cell scored 2, 4, 4 against a gold of 0. Median
 matched the recorded 15, and one coupling regression appeared on p8. Reverted.
 
-**Why it did not fire is the finding.** The answer is "I go for a daily walk to
-avoid putting on extra weight", and `observed_type` reads NR twice and PR once:
-the model sees walking as REMOVING the aversive of gaining weight. Under that
-reading, "who arranges it?" answers "the student, by walking", so `met` is
-coherent. The note asked the right question and got a defensible answer.
+**CORRECTION, same day.** The paragraphs below identified DAY2/p14 as "I go for
+a daily walk to avoid putting on extra weight". That is DAY2/p16. DAY2/p14 reads
+"In my case, having my screen locked until I am in a gym of some sort. Then, I
+will unlock it, so I can choose my music and whatnot" — the antecedent-
+manipulation case, not an automatic-result one. The cell id was carried from
+memory instead of re-read, so the note was aimed at a cell whose defect it does
+not describe, which is why it never fired. The rule-collision analysis below is
+sound as a reading of DAY2/p16 and says nothing about p14.
 
 The cell sits on a CONTRADICTION INSIDE THE RUBRIC, and no sharper note can
 resolve it:
