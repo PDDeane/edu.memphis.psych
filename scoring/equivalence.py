@@ -190,7 +190,7 @@ def _web_attrs(item):
             # `pick` slot with no set to draw from, answers nothing, and reports
             # the sheet's all-satisfied baseline as zero.
             "choices": get("choices"), "expect": get("expect"),
-            "requires": get("requires"),
+            "requires": get("requires"), "forbid": get("forbid"),
             **({"max": float(mx.group(1))} if mx else {})}
 
 
