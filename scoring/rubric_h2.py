@@ -42,6 +42,9 @@ CONTINGENCY_GATE_ITEMS = ('DAY1', 'DAY2', 'WK2')
 # patched DAY2.
 POLARITY_GATE_ITEMS = ('DAY1', 'DAY2', 'WK2')
 
+# The four items asking for a daily or weekly worked example.
+CADENCE_ITEMS = ('DAY1', 'WK1', 'DAY2', 'WK2')
+
 # The four operant-conditioning types, as the course defines them.
 _OC_FRAME = (
     "Operant conditioning has exactly four types, defined by two questions: is "
@@ -575,6 +578,60 @@ def _example_use_item(
                "duration, not a schedule, and a consequence running to the end "
                "of the week does not make a daily trigger weekly. Answer those "
                "two slots from their own rules and let this one stand alone."]
+              if item_id in POLARITY_GATE_ITEMS else []),
+            # DIAGNOSTIC ONLY — this slot gates nothing and scores nothing.
+            # The barrier cases (a self-imposed deprivation lifted by the
+            # behaviour) are gold 0, and the legitimate escapes (an obligation
+            # that exists anyway, cancelled by success) are gold 4, but there
+            # are only three of the former and they come from two students. A
+            # gate built on that would be fitted to the corpus rather than to
+            # the criterion — which is the same error as quoting a response,
+            # and it would pass every leakage check. So the question is asked
+            # and REPORTED first: measure how it answers on all 72 cells, and
+            # gate later only if it separates the contrast set cleanly.
+            #
+            # "until" was tested as a cheap marker and rejected: it appears in
+            # all three barrier answers and in DAY2/p8, a gold 4, as "till".
+            *(["WAS THE UNDESIRABLE THING CREATED BY THE PLAN, OR ALREADY "
+               "THERE? A question about how the sentence is built, not about "
+               "whether the plan is a wise one.\n"
+               "  Answer `created` when the answer describes the student "
+               "BRINGING A DEPRIVATION INTO BEING as part of the plan — "
+               "putting something out of reach, going without something, "
+               "locking or leaving something behind — which performing the "
+               "behaviour then lifts.\n"
+               "  Answer `relieved` when it describes the student being LET "
+               "OFF something that would have been required of them anyway: a "
+               "chore, an obligation, a task they would otherwise have had to "
+               "do whether or not this plan existed.\n"
+               "  The two are usually built differently. Creating a "
+               "deprivation is stated in the POSITIVE — leaving something "
+               "behind, keeping something locked, having only the one thing. "
+               "Being let off is usually stated as a NEGATED REQUIREMENT — not "
+               "having to do it, one less than usual, skipping it this time.\n"
+               "  Answer `neither` when no undesirable thing figures on either "
+               "side. Report what the sentence shows; this answer does not by "
+               "itself decide anything."]
+              if item_id in CADENCE_ITEMS else []),
+            # The exception gold draws, and the reason the barrier rule needs a
+            # third condition rather than more prose. DAY1/p6 (gold 0) holds
+            # back MUSIC to drive gym attendance; DAY1/p15 (gold 4) holds back
+            # the screen time that IS its own unwanted behaviour. Structurally
+            # identical — a restriction the student's compliance lifts — and
+            # gold splits them on WHAT is restricted. Gating the unwanted
+            # behaviour itself is a real plan; gating something unrelated to it
+            # is a setup that never consequates anything.
+            *(["WHAT IS BEING HELD BACK? Answer only about the thing the plan "
+               "restricts, withholds, or puts out of reach — if it restricts "
+               "nothing, this does not apply and either answer will do.\n"
+               "  Answer `target_behavior` when the thing held back IS the "
+               "student's own unwanted behaviour, or the activity that "
+               "behaviour consists of. Holding back the very thing they are "
+               "trying to do less of is a real plan.\n"
+               "  Answer `other_thing` when what is held back is something "
+               "else — an unrelated comfort, possession or activity that has "
+               "nothing to do with the behaviour being changed.\n"
+               "This is about WHICH thing, not about whether the plan works."]
               if item_id in POLARITY_GATE_ITEMS else []),
             # DAY1 only, and it reverses this project's standing decision on
             # avoidance framing FOR THIS ITEM. Here rather than in SLOT_NOTES so

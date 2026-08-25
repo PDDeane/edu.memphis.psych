@@ -87,7 +87,7 @@ with open(PRIMITIVES_JSON) as _fh:
 # without asking the model. A schema-excluding primitive missing from here would
 # be silently left in the schema, which is the exact failure this file is being
 # fixed for — so it raises instead.
-COMPUTABLE = {"counts", "equals", "derived", "expect"}
+COMPUTABLE = {"counts", "equals", "derived", "expect", "forbid"}
 LO_ENDPOINT = "http://localhost:8888/api/llm/chat/completions"
 
 # A ref whose paper text has already been shown under an earlier ref in the
@@ -274,6 +274,7 @@ def load_action(olx_file: str, action_id: str) -> dict:
             # made the expect branch below dead code in the real harness.
             "choices": olx_prompts.parse_choices(_attr(open_tag, "choices")),
             "expect": olx_prompts.parse_expect(_attr(open_tag, "expect")),
+            "forbid": olx_prompts.parse_forbid(_attr(open_tag, "forbid")),
             "excluded": excluded_keys(open_tag),
             # The runtime keys per-check notes and the display guidance off this,
             # so a harness that ignores it measures a different prompt and a
@@ -455,6 +456,19 @@ def apply_computed(action: dict, checks: dict, fixture: dict) -> dict:
         checks[rule["key"]] = {
             "verdict": o[0] if ok else (o[1] if len(o) > 1 else "no"),
             "evidence": f"{rule['left']}={left or '?'}, {rule['right']}={right or '?'}",
+        }
+
+    # `forbid` fails a check when a COMBINATION of answers holds, which neither
+    # `equals` (two answers agree) nor `expect` (one answer against a value) can
+    # express. Placed before `expect` for no reason but reading order; the three
+    # read only answers the model gave, never each other.
+    for rule in action.get("forbid", []):
+        hit = all(answer_of(checks, c["slot"]) == c["value"] for c in rule["conds"])
+        o = opts(rule["key"])
+        checks[rule["key"]] = {
+            "verdict": (o[1] if len(o) > 1 else "no") if hit else o[0],
+            "evidence": ", ".join(
+                f"{c['slot']}={answer_of(checks, c['slot']) or '?'}" for c in rule["conds"]),
         }
 
     for rule in action.get("expect", []):
