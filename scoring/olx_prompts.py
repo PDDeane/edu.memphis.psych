@@ -1240,12 +1240,9 @@ SLOT_NOTES = {
         "that paragraph does not make an activity theirs; being the behaviour "
         "they chose does.\n"
         "  DO THIS BEFORE YOU CLASSIFY, and put it in `evidence`: quote the "
-        "words THE STUDENT used for the behaviour, from their own unwanted-behaviour or goal statement, beside the trigger you quoted. If you cannot "
-        "find words of theirs naming the SAME activity, answer `other` — and "
-        "answer it even when you judge the two to mean the same thing. Two "
-        "descriptions you would call equivalent are still two activities "
-        "unless the student wrote both. A paraphrase of their own wording is "
-        "fine; a word they never used is not.",
+        "words THE STUDENT used for the behaviour, from their own unwanted-behaviour or goal statement, beside the trigger you quoted, and say "
+        "whether they are equivalent by the definition given above. If they are "
+        "not, answer `other`.",
     # The whole point of this slot is to stop `not_reason` absorbing weak reasons,
     # so it says so, and says where the boundary is with the case that DOES deduct.
     # Three non-`met` verdicts now, so the boundaries have to be drawn or the new
@@ -1414,7 +1411,50 @@ def _ref(action: str, target: str, minted: dict) -> str:
 
 # What "matches" means, stated once, before the first component that uses the
 # word. Per item, because only the items whose components say "matches" need it.
+# Semantic equivalence, stated once. Q6 asks whether a box MATCHES a listed entry
+# and WK1 asks whether a trigger names the SAME ACTIVITY the student chose; those
+# are one operation, and two definitions of it would drift. Kept here so it can be
+# placed EARLY on either prompt shape.
+#
+# The parity framing is what this adds, and it is measured: "semantically
+# equivalent" on its own licenses open judgement, and WK1/p7 held 3/3 under this
+# closed construction where an open test fenced after the fact held only 1/3.
+EQUIVALENCE_DEF = (
+    "Two expressions are SEMANTICALLY EQUIVALENT when they name the same thing. "
+    "Each NEGATION reverses a meaning, and so does swapping a word for its "
+    "SAME-SCALE ANTONYM, and they are equivalent when those reversals CANCEL — "
+    "an EVEN number of them, zero included. Plain rewording has none. Two "
+    "negations cancel: not failing to do a thing is doing it. A negation and an "
+    "antonym cancel: failing to do a thing often is doing it seldom. Two "
+    "antonyms cancel: doing more of a thing is doing less of its opposite. An "
+    "ODD number does not cancel and leaves you with the OPPOSITE, not a "
+    "paraphrase.\n"
+    "ANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE "
+    "ENDS OF ONE SCALE -- more and less of a single property, so that naming one "
+    "and negating it gives you the other. Early and late are one scale. Poor "
+    "health and good health are one scale. Words that are merely both "
+    "unpleasant, or both pleasant, or that name DIFFERENT properties, are not "
+    "antonyms and do not establish equivalence: being tired and being cheerful "
+    "are two properties, not two ends of one. Ask what single property is being "
+    "measured before you call two words opposites."
+)
+
+
 MATCH_DEF = {
+    "WK1": ("## Definition of 'the same activity' below:\n"
+            + EQUIVALENCE_DEF + "\n"
+            "Two phrases that are NOT equivalent by that test name two "
+            "activities, however close the connection between them. An activity "
+            "that another might cause, accompany, amount to, or be evidence of "
+            "is a SECOND thing, not a point on the same scale.\n"
+            "DEGREE AND DETAIL ARE NOT DIFFERENCES OF ACTIVITY. The same doing "
+            "with a different number, frequency, duration or extra particular "
+            "attached is still that doing. Compare WHAT IS BEING DONE, not how "
+            "much of it is being done or how precisely it is specified.\n"
+            "A phrase with NO CONTENT OF ITS OWN -- a pointer, such as \"my "
+            "goal\" or \"my target this week\" -- is not compared by this test "
+            "at all. Classify it by what it points at, as the check itself "
+            "directs.\n"),
     "Q6": ("## Definition of 'matches' below:\n"
            "The two things being compared are semantically equivalent. That "
            "includes equivalence established by combinations of negations and "
@@ -1495,6 +1535,11 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
     p.append(f"## Question asked of the student\n{item['question']}\n")
 
     if item.get("derive_from_criteria"):
+        # Same placement rule as the credit-component path below: immediately
+        # BEFORE the criteria that use the term. This branch had no such channel,
+        # which is why WK1's equivalence rule lived in SLOT_NOTES to begin with.
+        if MATCH_DEF.get(item_id):
+            p.append(MATCH_DEF[item_id])
         p.append(_criteria_section(item))
     else:
         # Placed HERE, immediately before the components that use the word, and
