@@ -648,6 +648,48 @@ def exemplar_drops(handout: int) -> dict[str, list[int]]:
 # they never reach a comparison. The other seven do.
 GOLD_DIVERGENCES: list[dict] = [
     {
+        "code": "BEHAVIOR_NEVER_STATED", "cells": [("DAY1", 1)],
+        "why": "p1's daily example is \"{{corpus:DAY1/p1:day1:0:43:sha=cbf992b9e213:shape=R43-0-20}}"
+               "{{corpus:DAY1/p1:day1:44:72:sha=28bc43813174:shape=S1-20}}\" Gold gives it 4; we award 0 in every "
+               "run, and four GATES fail, each defensible about that sentence on its "
+               "own: `names_behavior` (no behaviour of theirs appears in it, not even "
+               "by reference -- \"my goal\", \"my target behavior\" would satisfy "
+               "the slot and none is there), `contingent`, `follows_behavior` and "
+               "`states_a_contingency`. The sentence says what the student will "
+               "RECEIVE and how often, and never what earns it. "
+               "NOT A FIXTURE FAULT. Checked against Participant ID 001's .docx, "
+               "where the sentence spans two paragraphs and the reconstruction joins "
+               "them correctly. The response is what it appears to be. "
+               "NOT A GOLD ERROR, which is why this is a divergence and not "
+               "CORRECTED_GOLD. Gold's 4 survives a charitable reading: the eight "
+               "hours slept is the behaviour and the lie-in afterwards is the "
+               "reward -- related, but distinguishable. The same student wrote "
+               "textbook contingencies on WK1, DAY2 and WK2 and scored 4 on all "
+               "four, so a grader crediting evident understanding on the one "
+               "elliptical answer is ordinary, not a slip. Two defensible readings; "
+               "ours is the literal one. "
+               "MEASURED, and the reason it stays a miss. One instruction was added "
+               "to all four cadence items: where a sentence names its consequence "
+               "explicitly AS a reward or penalty and says how often it recurs, the "
+               "behaviour may be left unsaid and the student's stated goal supplies "
+               "it. It reached two of the four gates -- `contingent` and "
+               "`follows_behavior` both read `met` in one run -- and never moved "
+               "`names_behavior`, which is evaluated first, so the cell stayed 0/3. "
+               "Its carve-out did hold: DAY2/p13 says \"reward myself\" too, names a "
+               "behaviour of its own, and stayed 0/3 CORRECT, so the ellipsis/wrong- "
+               "behaviour distinction is one the model can draw. Net effect on all "
+               "four items was zero, six cells moved a run each in both directions, "
+               "and the ~14 lines were reverted. "
+               "WHAT IS LEFT, and why it is refused. p1 needs the behaviour IMPORTED "
+               "from another field -- Q2's \"wanting to get more sleep\" -- and no "
+               "instruction about how to read THIS sentence can supply that. "
+               "Relaxing `names_behavior` to take the behaviour from the stated goal "
+               "would credit answers that name nothing, on the gate every cadence "
+               "item leans on hardest, for one cell. "
+               "The money goes the unflattering way, as it should: declaring costs "
+               "us the cell and we keep scoring 0 against gold's 4.",
+    },
+    {
         "code": "DUPLICATE_EFFECT_TIE_BREAK", "cells": [("Q6", 5)],
         "why": "our sheet applies a duplicate rule to the EFFECT boxes and gold does "
                "not. p5 writes a textbook parallel answer -- six sentences, one per "
