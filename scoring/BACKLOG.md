@@ -1346,3 +1346,50 @@ CHOSEN BEHAVIOUR and false of the paragraph we supply. That is a context
 question, not a criterion one: it would be settled by passing the grader the
 chosen behaviour rather than the whole Q1 response, which is a fixture change
 with its own blast radius across every item that reads `_utb`.
+
+### The blind spot fixed, and what it then showed about p7
+
+`agreement.py` now stores `answers` and `evidence` beside the verdicts in every
+run artifact. Both were computed at run time and thrown away at write time: a
+pick answers `refers_to` and carries no verdict, so it stored as `""`, and
+`apply_computed` writes the operands of every `equals` and `expect` rule into
+`evidence` ("trigger_behavior=other, wanted utb") — the only record of what a
+derived check was derived FROM. `answer_of()` already existed to read the first;
+nothing needed inventing. This retroactively un-blinds `observed_type` and
+`named_type`, which have read `""` in every artifact ever written.
+
+With it, the classification experiment became readable, and it had never failed:
+
+    p7   trigger_behavior = 'utb'   quote: "{{corpus:WK1/p7:wk1:12:43:sha=5e1f6a6d53e1}}"
+    p12  trigger_behavior = 'wgb'   quote: "{{corpus:WK1/p12:wk1:5:37:sha=121d9d3fe5b0}}"
+
+The model located each trigger exactly, quoted it, and the expect rule computed
+correctly. It classified procrastination as p7's UTB because THEIR OWN UTB
+PARAGRAPH SAYS SO — "{{corpus:Q1/p7:response:0:27:sha=fd875dec0a64:shape=R8-1-27}}{{corpus:Q1/p7:response:27:54:sha=e207b8a916a2:shape=A26}} {{corpus:Q1/p7:response:55:90:sha=f7ae905d33ad:shape=S0-0a,C3fffb71f}} daily..." — and `_utb` hands the grader that whole
+paragraph. Not a criterion failure and not a plumbing failure: a context one.
+
+**DAY2/p7 is not a `targets_own_behavior` failure at all, and this is the finding
+to keep.** Its trigger is "having {{corpus:DAY2/p7:day2:10:33:sha=9dea65fda79b:shape=R23-0-22}}, and p7's stated goal
+is "{{corpus:Q2/p7:response:88:153:sha=ff038d8a7f4b}} games". So
+the trigger IS their wanted goal behaviour; the model classifies `wgb` 6 of 6 and
+is RIGHT. Gold's "-1 pt: make sure the behavior you are targeting is spending
+less time on electronic devices" asks them to target the UTB, while the item's
+own question says the opposite for reinforcement — "the student should be trying
+to increase their wanted goal behaviour". The real defect in that answer is that
+it rewards with the UNWANTED behaviour (games), which is a different criterion
+and not the one gold's comment names. Any future attempt should target THAT, and
+should not touch `targets_own_behavior`.
+
+**WK1/p7 is reachable, but only by trading p19 for it.** Two instructions are
+each independently correct and cannot both be held:
+
+    narrow reading only            p7 5/6 `other`   p19 3/6 (over-corrected)
+    + "a reference counts as naming"  p7 2/6 `utb`   p19 6/6 `wgb`
+
+p19's trigger is "{{corpus:WK1/p19:wk1:0:38:sha=5e7c12c5248e:shape=C1}}", a pure reference, so
+the reference rule is needed for it; p7's is "{{corpus:WK1/p7:wk1:12:43:sha=5e1f6a6d53e1}}",
+which the narrow rule is needed to exclude. Adding the second — "answer `other`
+ONLY when the trigger names a different activity outright" — made the model
+reluctant to answer `other` at all, and p7 swung back to the reading its UTB
+paragraph invites. Reverted; the criterion sits at the edge of what this model
+holds at once.

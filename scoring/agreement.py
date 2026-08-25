@@ -1340,6 +1340,28 @@ def measure_one(backend, handout: int, spec: dict, action_id: str, path: str, pi
         "max": MAX_OVERRIDE.get((str(handout), spec["item"]), item["max"]),
         "failed_slots": n_failed,
         "checks": {s["key"]: verdict_of(checks, s["key"]) for s in action["slots"]},
+        # What each check ANSWERED, and why, kept beside the verdicts.
+        #
+        # A pick answers `refers_to` and carries no verdict, so it stored as an
+        # empty string and three experiments on pick-valued slots were
+        # uninterpretable: `observed_type`, `named_type` and a `trigger_behavior`
+        # classification all read "" in every cell of every run, and there was no
+        # way to tell a slot the model answered wrongly from one it never
+        # answered. `evidence` matters for the same reason — apply_computed
+        # writes the operands of every `equals` and `expect` rule into it
+        # ("trigger_behavior=other, wanted utb"), which is the one record of what
+        # a derived check was derived FROM.
+        #
+        # Both were computed at run time and discarded at write time. Only keys
+        # that carry something are stored, so the artifacts do not grow for the
+        # items that use neither.
+        "answers": {s["key"]: answer_of(checks, s["key"]) for s in action["slots"]
+                    if answer_of(checks, s["key"])
+                    and answer_of(checks, s["key"]) != verdict_of(checks, s["key"])},
+        "evidence": {s["key"]: (checks.get(s["key"]) or {}).get("evidence", "")
+                     for s in action["slots"]
+                     if isinstance(checks.get(s["key"]), dict)
+                     and (checks[s["key"]] or {}).get("evidence")},
         "feedback": raw.get("feedback", ""),
         "response_chars": len((sections_for(handout, pid).get(spec["item"]) or "").strip()),
     }
