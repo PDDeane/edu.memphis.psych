@@ -580,6 +580,32 @@ guidance forty lines below the components that use the term. Two sentences
 placed immediately BEFORE those components did what none of the rewrites could
 — one target cell went from 11% to 78%, another from 56% to 100%.
 
+**WORKING HYPOTHESIS: the coupling tax scales with VOLUME, not content.** That
+adding prose to one slot moves gates the text never mentions has been observed
+repeatedly here, and was treated as an unavoidable toll on any edit. One
+measurement suggests it is a toll on SIZE. The `restricts` block, about twelve
+lines, cost DAY1/p11 and DAY1/p14 a run each. Removing `consequence_valence` and
+the twenty-line put-on/taken-off block that existed to answer it gave both back —
+2/3 to 3/3 each — and moved WK2/p15 1/3 to 2/3 as well. The cells that recovered
+were the same ones the earlier addition had cost, and neither block mentions
+them or anything they turn on.
+
+If it holds, it inverts the usual move. Every failed attempt on the four cadence
+items added words; the change that finally recovered two cells removed them. So
+before writing a new rule, ask what can come OUT — a gate a later one subsumes,
+a diagnostic whose question is answered, an operand with no consumer — and
+measure that removal on its own. A removal is also the cheaper experiment: it
+cannot introduce a false positive, only withdraw a behaviour you already have
+measured.
+
+Stated as a hypothesis because it rests on one observation. It would be
+CONFIRMED by adding and removing a block of similar size on an item with no rule
+change at all, twice, and seeing the same cells move both ways. It would be
+REFUTED by a large addition that costs nothing, or a removal that costs cells it
+never mentions. Until then, do not spend a sweep on volume alone when a real
+rule is waiting to be measured — but when a sweep is going to run anyway, prefer
+the version with less text in it.
+
 **Define a term at its first use.** If the credit components say "matches", the
 definition of "matches" belongs directly above them.
 
