@@ -1180,6 +1180,33 @@ SLOT_NOTES = {
                            "If `named_type` came out `unclear`, answer `yes`: there is no "
                            "established mismatch to charge",
     "targets_own_behavior": "criterion 10 (`targets_own_behavior`)",
+    # Version C. Two earlier drafts each fixed one cell and broke the other, and
+    # the reason was an authoring bug rather than a limit on the grader: the
+    # second said to answer `other` ONLY when the trigger names an activity "not
+    # pointing at either", which contradicted the first draft's own worked
+    # example, where a cause named in the UTB paragraph IS `other`. The model
+    # followed the more absolute clause, which is the right thing to do with
+    # contradictory rules.
+    #
+    # The two cases differ in the KIND of expression, not in degree, so one rule
+    # with two branches covers both and no `only` is needed.
+    "trigger_behavior":
+        "name which behaviour has to happen, or fail to happen, before the "
+        "consequence arrives — quote it — then classify it `utb`, `wgb` or "
+        "`other`. Decide by WHAT KIND OF PHRASE it is.\n"
+        "  * A POINTER — \"my goal\", \"my daily goal\", \"my target this "
+        "week\", \"my plan\" — has no content of its own. Classify it as "
+        "whatever it points at: `wgb` for a goal they are building, `utb` for "
+        "the behaviour they are cutting.\n"
+        "  * A NAMED ACTIVITY — \"procrastinating\", \"reading a chapter\", "
+        "\"going to the gym\" — has content, so judge it on its own terms "
+        "against the behaviour the student CHOSE. Their paragraph also explains "
+        "why they chose it, and the causes, effects and knock-on habits it "
+        "mentions are not the chosen behaviour: a student whose chosen behaviour "
+        "is screen time may write that it makes them procrastinate and sleep "
+        "badly, and a plan triggered on procrastinating or on sleeping is "
+        "`other`. Being mentioned in that paragraph does not make an activity "
+        "theirs; being the behaviour they chose does.",
     # The whole point of this slot is to stop `not_reason` absorbing weak reasons,
     # so it says so, and says where the boundary is with the case that DOES deduct.
     # Three non-`met` verdicts now, so the boundaries have to be drawn or the new

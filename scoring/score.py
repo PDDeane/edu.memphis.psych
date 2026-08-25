@@ -153,7 +153,17 @@ def build_schema(item: dict) -> dict:
                 "enum": ["PR", "NR", "PP", "NP", "unclear"],
             }
             props["cadence_ok"] = {"type": "boolean"}
-            props["targets_own_behavior"] = {"type": "boolean"}
+            # WK1 and DAY2 derive this from a CLASSIFICATION, mirroring the
+            # web's pick + expect: the model names which behaviour the trigger
+            # identifies and the engine compares it against the student's own.
+            # Judged directly, the slot answered `met` on every pass of the cells
+            # gold charges, because their own behaviour is in the sentence as the
+            # PRIZE rather than as the trigger.
+            if item.get("id") == "WK1":
+                props["trigger_behavior"] = {
+                    "type": "string", "enum": ["utb", "wgb", "other"]}
+            else:
+                props["targets_own_behavior"] = {"type": "boolean"}
             # WK2 only, mirroring a question the TYPE items have always asked and
             # the cadence items never did. There, `targets_intended_behavior`
             # charges WRONG_TYPE when the arrangement is the right type but
@@ -514,7 +524,10 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
             return ledger, checks, unknown, advisory
         if named != "unclear" and observed != named:
             add("TYPE_MISMATCH", f"This example is {observed}, but you chose {named}.")
-        aimed = a.get("targets_own_behavior", True)
+        if item.get("id") == "WK1":
+            aimed = str(a.get("trigger_behavior", "utb")).strip() in ("utb", "wgb")
+        else:
+            aimed = a.get("targets_own_behavior", True)
         checks.append({"what": "targets_own_behavior", "met": bool(aimed),
                        "evidence": ""})
         if not aimed:
@@ -793,9 +806,21 @@ def build_prompt(
                 "daily trigger whose reward runs to the end of the week is still daily. Set "
                 "this false only when the contingency is plainly settled on the other "
                 f"schedule — e.g. a daily slot answered with a whole-week tally.\n"
-                "10. `targets_own_behavior` — is it aimed at this student's own UTB/WGB "
-                "rather than some clearly different behaviour?\n"
+                + ("10. `trigger_behavior` — name which behaviour has to happen, or "
+                   "fail to happen, before the consequence arrives, then answer "
+                   "`utb`, `wgb` or `other` by WHAT KIND OF PHRASE it is. A POINTER "
+                   "(\"my goal\", \"my daily goal\", \"my plan\") has no content of "
+                   "its own: classify it as whatever it points at. A NAMED ACTIVITY "
+                   "(\"procrastinating\", \"reading a chapter\") has content: judge it "
+                   "against the behaviour the student CHOSE. Their paragraph also "
+                   "explains why they chose it, and the causes and knock-on habits "
+                   "it mentions are not the chosen behaviour — a plan triggered on "
+                   "one of those is `other`.\n"
+                   if item.get("id") == "WK1" else
+                   "10. `targets_own_behavior` — is it aimed at this student's own "
+                   "UTB/WGB rather than some clearly different behaviour?\n")
                 # Kept near-verbatim from olx_prompts.SLOT_NOTES['consequence_asserted']
+                +
                 # so both implementations put the same question to the model. If
                 # you retune one, retune the other and re-baseline; the wording is
                 # deliberately narrow because the over-credited cells it targets do

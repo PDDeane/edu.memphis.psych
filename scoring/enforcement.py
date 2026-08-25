@@ -76,7 +76,7 @@ _FAIL = {
 }
 # The two type fields are handled separately: their failing value depends on the
 # other one, and a naive flip can make them agree again.
-_TYPE_FIELDS = ("observed_type", "named_type")
+_TYPE_FIELDS = ("observed_type", "named_type", "trigger_behavior")
 
 # The same rule wears different names on the two sides. Kept explicit and small;
 # an unmapped key is REPORTED, never assumed equivalent.
