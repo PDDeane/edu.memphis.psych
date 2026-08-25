@@ -23,6 +23,25 @@ Shape of this handout, and how it differs from Handout 1:
 
 from __future__ import annotations
 
+# Items carrying the four-clause contingency gate (states_a_contingency).
+# One tuple, imported by score.py and consulted by olx_prompts.py, so the
+# rule can be switched on, off, or scoped for a measurement WITHOUT the
+# three definitions drifting apart — which is how an earlier edit patched
+# DAY1 while believing it had patched DAY2.
+CONTINGENCY_GATE_ITEMS = ('DAY1', 'DAY2', 'WK2')
+
+# Items carrying the DERIVED direction gate: `direction_ok` is satisfied when
+# `consequence_valence` equals `trigger_expects`, both answered separately by
+# the model. It replaces the composite clause that asked one judgement to weigh
+# both at once — measured inert, because all 13 of the contingency gate's
+# `absent` verdicts across DAY1/DAY2/WK2 were attributable to its clause (a).
+#
+# A SEPARATE tuple from CONTINGENCY_GATE_ITEMS on purpose. The two gates were
+# measured independently and must stay independently togglable; assuming one
+# selector governed several sources is what patched DAY1 while believing it had
+# patched DAY2.
+POLARITY_GATE_ITEMS = ('DAY1', 'DAY2', 'WK2')
+
 # The four operant-conditioning types, as the course defines them.
 _OC_FRAME = (
     "Operant conditioning has exactly four types, defined by two questions: is "
@@ -47,16 +66,16 @@ _EXAMPLE_RULES = [
     "and then a reward on a FIXED SCHEDULE — one given every so many weeks, "
     "rather than after the behaviour — scored 0, the grader asking the student "
     "to state the exact behaviour and what is added once it is exhibited. A "
-    "bare prediction with no plan at all (\"Not sleeping will "
-    "make me too tired\") also scores 0.",
+    "bare prediction with no plan at all (\"skipping practice will "
+    "set me back\") also scores 0.",
     "TEST 2 — DOES THE CONSEQUENCE ARRIVE AFTER THE BEHAVIOUR? \"Remember that "
     "what you take away or add has to happen after the behavior is exhibited.\" "
     "Judge the DELIVERY, not the wording. A privilege WITHHELD until a weekly "
     "goal is met passes: it is delivered once the goal is met, which is the "
     "ordinary shape of a reinforcement contingency, and the graders credited "
     "it. What fails is a plan where nothing is ever delivered contingent on the "
-    "behaviour — leaving a temptation somewhere else, or putting a device away "
-    "beforehand, are antecedent manipulations that remove the temptation in "
+    "behaviour — leaving a temptation somewhere else, or putting it out of "
+    "reach beforehand, are antecedent manipulations that remove the temptation in "
     "advance and never tie anything to performing the behaviour.",
     "TEST 3 — WHICH OF THE FOUR TYPES IS IT? Before crediting a type, answer the "
     "two questions explicitly: is the behaviour being INCREASED or DECREASED, "
@@ -76,8 +95,9 @@ _EXAMPLE_RULES = [
     "intrinsic outcomes.",
     "NOT_EXTERNAL_STIMULUS is reserved for the narrow case where the named "
     "consequence is simply the behaviour's own automatic result AND no "
-    "conditional plan is stated — the canonical zero is \"Sleeping more will "
-    "reward me with a rested body\". If the answer is phrased as an if/then "
+    "conditional plan is stated: the answer says the behaviour will leave "
+    "them better off in the way the behaviour itself produces, and arranges "
+    "nothing. If the answer is phrased as an if/then "
     "arrangement the student sets up, this code does not apply; judge it on "
     "tests 2 and 3 instead.",
     "SAFETY: flag, but do not deduct for, any example that withholds food, "
@@ -460,6 +480,102 @@ def _example_use_item(
                "TO END before the contingency can fire at all — a whole-week "
                "tally scored on Sunday, one weekend reward for the week's "
                "performance."] if item_id == "DAY2" else []),
+            # DAY2 only, for now. Derived by reading all 64 counted answers on
+            # the four cadence items, not from one cell: of the gold-zero cells
+            # that are not valence inversions, EVERY ONE states no contingency,
+            # and EVERY credited cell states one. The "desirable / escape from
+            # something undesirable" half is what keeps negative-reinforcement
+            # answers safe — several credited cells reward the student by sparing
+            # them a chore rather than by giving them a thing, and a bare "grants
+            # or withholds something" could be read to exclude those.
+            *(["IS A WORKABLE CONTINGENCY STATED? Look for three things.\n"
+               "  (a) A CONDITION ON THE STUDENT'S BEHAVIOUR — \"if I...\", "
+               "\"when I...\", \"every day that I...\", \"once I reach...\", "
+               "or a statement of what they did followed by \"so\". The "
+               "condition may be their doing well or their doing badly.\n"
+               "  (b) A MAIN CLAUSE IN WHICH SOMEONE GRANTS OR WITHHOLDS "
+               "SOMETHING DESIRABLE, OR OFFERS ESCAPE FROM SOMETHING "
+               "UNDESIRABLE. Giving a treat, buying a thing, allowing an "
+               "activity, taking away a privilege, imposing a chore, or sparing "
+               "one all qualify — being let off an obligation counts exactly as "
+               "much as receiving a thing.\n"
+               "  (c) THE CONSEQUENCE MUST COME AFTERWARDS, AS A SEPARATE "
+               "EVENT. Operant conditioning needs TWO MOMENTS: first the "
+               "student behaves, then, afterwards, the consequence is "
+               "delivered. Escape from something undesirable still counts — "
+               "being let off a chore, an obligation lifted — provided the "
+               "relief arrives once the behaviour is complete and is a step "
+               "distinct from it. What does not count is a restriction "
+               "standing IN FRONT OF the behaviour that is simply lifted at "
+               "the moment of doing it: a lock that opens when the student "
+               "arrives, access granted upon starting, a barrier the "
+               "behaviour itself removes. There the lifting IS the "
+               "behaviour's own occurrence, not something that follows it. "
+               "Ask: once the student has behaved, is anything still left to "
+               "happen? If nothing is, (c) fails.\n"
+               "Answer `met` when all three hold. Answer `absent` when any is "
+               "missing, however sensible the plan is. A missing (a) or (b) "
+               "usually looks like one of these: a sentence that only says what "
+               "the student will DO (\"I will get up at six and go for a "
+               "run\"); a PURPOSE clause giving the reason for the behaviour "
+               "rather than a consequence of it (\"I go for a run to feel "
+               "healthier\"); one activity offered INSTEAD OF another (\"I "
+               "will read rather than scroll\"); or a bare statement of intent "
+               "or hope (\"this should help me reach my goal\"). A missing (c) "
+               "looks well formed: \"the kitchen "
+               "stays off limits until I have finished studying, and I go in "
+               "as soon as I do\" describes one moment, not two — going in IS "
+               "having finished, not a consequence delivered for it."]
+              if item_id in CONTINGENCY_GATE_ITEMS else []),
+            *(["TWO SEPARATE READINGS, THEN A COMPARISON. Answer these two "
+               "independently. Neither asks whether the plan is a good one.\n"
+               "  `consequence_valence` — is what the sentence says will HAPPEN "
+               "TO THE STUDENT good for them or bad for them? Work it out as a "
+               "DIRECTION, not as a list.\n"
+               "    Find the undesirable thing in the consequence clause, if "
+               "there is one — a chore, an obligation, a restriction, a "
+               "penalty — and ask WHICH WAY IT MOVES. Is it being PUT ON the "
+               "student, or TAKEN OFF them? Taken off is a `gain`: let off a "
+               "chore, an obligation lifted, a restriction removed. Put on is "
+               "a `loss`. One and the same chore can appear in either "
+               "direction, and the direction IS the answer — \"I will do the "
+               "washing-up\" and \"I will not have to do the washing-up\" name "
+               "the same chore and take opposite answers. Read the verb and "
+               "any negation attached to it; do not answer from the chore.\n"
+               "    If the consequence names something DESIRABLE instead, ask "
+               "the same question in the other register: given to them is a "
+               "`gain`, withheld or taken away is a `loss`.\n"
+               "    Judge the thing itself — not whether the plan will work, "
+               "and not how well the sentence is written.\n"
+               "  `trigger_expects` — read the CONDITION only, and say which "
+               "way a working plan would have to run from it. Answer `gain` "
+               "when the condition describes the student DOING WELL: meeting "
+               "the goal, hitting the target, performing the wanted behaviour. "
+               "Answer `loss` when it describes them DOING BADLY: missing the "
+               "goal, falling short, performing the unwanted behaviour. Answer "
+               "`none` when the sentence puts no condition on their behaviour "
+               "at all.\n"
+               "The engine compares the two answers itself, so neither should "
+               "be adjusted to fit the other — answer each from the sentence "
+               "and let the comparison fall out.\n"
+               "What the comparison is for: a student\'s SUCCESS must not bring "
+               "them something they would rather avoid, or cost them something "
+               "they have. That is the one pairing that cannot work, because it "
+               "would make the behaviour less likely, not more. Such answers "
+               "are usually fluent, unambiguous sentences, and being clearly "
+               "written is not the thing being judged.\n"
+               "WHAT THIS READING DOES NOT DECIDE. The put-on / taken-off "
+               "question settles `consequence_valence` and nothing else. It "
+               "does not decide WHICH TYPE this is: `observed_type` is answered "
+               "from its own two questions, and something PUT ON the student is "
+               "an ADDITION there — imposing a chore or an extra task is "
+               "positive punishment, not the removal of anything, however "
+               "plainly it reads here as a loss. Nor does it decide HOW OFTEN "
+               "the behaviour is checked: how long a consequence lasts is a "
+               "duration, not a schedule, and a consequence running to the end "
+               "of the week does not make a daily trigger weekly. Answer those "
+               "two slots from their own rules and let this one stand alone."]
+              if item_id in POLARITY_GATE_ITEMS else []),
             # DAY1 only, and it reverses this project's standing decision on
             # avoidance framing FOR THIS ITEM. Here rather than in SLOT_NOTES so
             # both generators render the same words — the enforcement check calls
@@ -477,10 +593,10 @@ def _example_use_item(
             *(["AVOIDANCE FRAMING TAKES THE WHOLE ITEM HERE. An answer whose only "
                "claim is about dodging a penalty has not said what will be added "
                "or taken away when the behaviour happens, and the graders scored "
-               "those zero. \"I will push myself to meet my goal so I don't have "
-               "to do the extra chore\" asserts an intention and mentions a "
-               "penalty in passing; \"if I miss my goal I will do the extra "
-               "chore\" states the contingency. Judge the sentence's own claim: "
+               "those zero. \"I will make myself practise so that I never have to "
+               "face the fine\" asserts an intention and mentions a penalty in "
+               "passing; \"if I skip a practice session I pay the fine\" states "
+               "the contingency. Judge the sentence's own claim: "
                "answer that the phrasing is direct whenever the consequence is "
                "stated as something added or removed after the behaviour, however "
                "plainly worded, and only call it avoidance-framed when the "
@@ -547,8 +663,8 @@ def _example_use_item(
                "away, hand over, lose, pay — and so does an agent GRANTING "
                "THEMSELVES a privilege or an activity, however it is worded: "
                "staying up later, sleeping in, having a lie-in, skipping a chore, "
-               "taking the evening off, going out. \"I will stay up an extra hour "
-               "on Friday\" is the student granting themselves something, and "
+               "taking the evening off, going out. \"I will take myself to the "
+               "cinema on Sunday\" is the student granting themselves something, and "
                "counts. So does a privilege denied — \"I will not go out this "
                "weekend\". The test is whether a PERSON makes the thing happen or "
                "stop happening, not whether the verb is on a list.\n"
@@ -571,11 +687,12 @@ def _example_use_item(
                "and credit that."]
               if item_id == "WK1" else []),
             "WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour "
-            "from the student's UTB/WGB — a plan about procrastination when the UTB is time "
-            "on electronic devices. Do not deduct it merely because the phrasing is loose "
-            "or the link is indirect: against a screen-time goal, gating the screen "
-            "activity itself on finishing coursework earned full credit, even though "
-            "the coursework is what the sentence foregrounds. It stacks with "
+            "from the student's UTB/WGB: the plan would change some other habit "
+            "entirely, and carrying it out would leave the stated goal untouched. "
+            "Do not deduct it merely because the phrasing is loose or the link is "
+            "indirect. In particular, a plan that gates the unwanted activity itself "
+            "on completing some other task IS controlling the target behaviour, even "
+            "though the other task is what the sentence foregrounds. It stacks with "
             "TYPE_MISMATCH when both are true.",
             "IMPLICIT (from gold): advisory notes without deduction are common on these "
             "items — \"I suggest changing your punisher to something not related to "

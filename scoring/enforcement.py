@@ -52,10 +52,16 @@ _PASS = {
     "targets_own_behavior": True,
     "targets_intended_behavior": True,
     "consequence_asserted": True,
+    "states_a_contingency": True,
     # WK2 only: the consequence points the right way for the type chosen.
     "aimed_correctly": True,
     # WK1 only: the consequence clause has an agent subject and a transfer verb.
     "agent_delivers_consequence": True,
+    # The two halves of the direction test. Neither has a "passing" value on its
+    # own — it is the PAIR that passes or fails — so the passing state is any
+    # matched pair, and the failing state below mismatches exactly one of them.
+    "consequence_valence": "gain",
+    "trigger_expects": "gain",
 }
 _FAIL = {
     "behavior": "",
@@ -64,10 +70,17 @@ _FAIL = {
     "follows_behavior": False,
     "stimulus_is_arranged": False,
     "avoidance_frame": True,          # advisory only; must show zero loss
+    # Each must MISMATCH the other's _PASS value, since `direction_ok` fails on
+    # the pair rather than on either field. Setting this one to "gain" — a match
+    # against _PASS's "gain" — made the probe report GATE WEB ONLY, because the
+    # CLI correctly saw no mismatch and did not zero.
+    "consequence_valence": "loss",   # a loss for doing well
+    "trigger_expects": "loss",       # a gain for doing badly
     "cadence_ok": False,
     "targets_own_behavior": False,
     "targets_intended_behavior": False,
     "consequence_asserted": False,
+    "states_a_contingency": False,
     # WK2 only, and it GATES there — an aversive delivered for meeting the goal.
     # False is the failing value, and on that item it takes the whole 4.
     "aimed_correctly": False,
@@ -1225,9 +1238,26 @@ def _corpus_cells() -> dict[tuple[str, int], str]:
 
 
 def _norm(s: str) -> str:
-    """Lowercased, whitespace-collapsed, with smart punctuation folded."""
+    """Lowercased, whitespace-collapsed, punctuation removed.
+
+    Punctuation is STRIPPED, not merely folded, and that matters more than it
+    looks. `_grams` tokenises on whitespace, so a comma or a quote mark rides
+    along on the word it touches. A worked example in a prompt is always written
+    inside quotation marks — that is what makes it an example — so its first and
+    last tokens were `"i` and `friday"`, matching nothing in a student's answer,
+    and any interior comma broke the run again. An 8-gram could only land if it
+    threaded between both ends and every mark in between.
+
+    So `check_rule_examples_are_not_corpus` was close to blind to the one thing
+    it exists to catch. WK1's agent rule quoted WK1/p1's answer word for word,
+    p1 was counted on that item, and the check passed at every commit.
+
+    Intra-word apostrophes survive, so "don't" stays one token.
+    """
     s = s.lower().replace("’", "'").replace("‘", "'")
     s = s.replace("“", '"').replace("”", '"').replace("—", "-")
+    s = re.sub(r"[^a-z0-9' ]+", " ", s)
+    s = re.sub(r"(^|\s)'+|'+(\s|$)", " ", s)
     return " ".join(s.split())
 
 
@@ -1263,7 +1293,19 @@ CORPUS_QUOTE_BACKLOG: set[tuple[str, int]] = set()  # noqa: C408
 
 
 
-def _grams(text: str, n: int = 8) -> set[tuple[str, ...]]:
+# Length of the shared run that counts as a quotation. Was 8, which on a
+# cleaned tree finds NOTHING while n=6 still finds four genuine leaks: an
+# 8-word run has to survive both ends of the quotation marks and every comma
+# in between. Measured on this corpus, the knee is at 6 — n=5 starts admitting
+# handout vocabulary ("the end of the week", "the unwanted target behavior is")
+# that happens to appear in only one student's answer for an item, and n=4 is
+# unusable at 39 hits. Two filters keep 6 honest: a run appearing in MORE THAN
+# ONE student's answer is the assignment talking, and a run appearing in the
+# ITEM'S OWN QUESTION is the student quoting the form back at us.
+_QUOTE_N = 6
+
+
+def _grams(text: str, n: int = _QUOTE_N) -> set[tuple[str, ...]]:
     w = text.split()
     return {tuple(w[i:i + n]) for i in range(len(w) - n + 1)}
 
@@ -1326,11 +1368,13 @@ def check_rule_examples_are_not_corpus() -> list[str]:
 
             per = {pid: _grams(body) for (i, pid), body in corpus.items() if i == iid}
             shared = collections.Counter(g for gs in per.values() for g in gs)
+            # A student echoing the question back is not us quoting the student.
+            asked = _grams(_norm(str(item.get("question") or "")))
             excluded = set(H.cell_exclusions(h, iid))
             for pid, gs in sorted(per.items()):
                 if pid in excluded:
                     continue
-                own = [g for g in (prompt & gs) if shared[g] == 1]
+                own = [g for g in (prompt & gs) if shared[g] == 1 and g not in asked]
                 if not own:
                     continue
                 if (iid, pid) in CORPUS_QUOTE_BACKLOG:

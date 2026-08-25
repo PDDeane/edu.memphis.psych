@@ -32,6 +32,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from backends import BackendError, make_backend
 from handouts import config, find_submissions
+from rubric_h2 import CONTINGENCY_GATE_ITEMS, POLARITY_GATE_ITEMS
 from docx_text import extract_media, graph_evidence
 from segment import repair_orphans, segment, utb_hint
 
@@ -159,6 +160,24 @@ def build_schema(item: dict) -> dict:
             # Judged directly, the slot answered `met` on every pass of the cells
             # gold charges, because their own behaviour is in the sentence as the
             # PRIZE rather than as the trigger.
+            # DAY2 only. Derived by reading all 64 counted cadence answers: the
+            # nine over-credited cells that are not valence inversions share one
+            # property — they state no contingency. They describe what the
+            # student will do, or why, or offer one activity instead of another.
+            # Every credited cell states a condition on the behaviour AND a
+            # clause in which something is granted or withheld.
+            if item.get("id") in CONTINGENCY_GATE_ITEMS:
+                props["states_a_contingency"] = {"type": "boolean"}
+            # The two halves of the direction test, answered separately. The
+            # engine compares them; the model is never asked to weigh both at
+            # once, which is what the composite clause did and why it never
+            # fired. Mirrors the web's pick(valence) + pick(valence_or_none)
+            # and its `equals` rule, lenient on `none`.
+            if item.get("id") in POLARITY_GATE_ITEMS:
+                props["consequence_valence"] = {
+                    "type": "string", "enum": ["gain", "loss"]}
+                props["trigger_expects"] = {
+                    "type": "string", "enum": ["gain", "loss", "none"]}
             if item.get("id") == "WK1":
                 props["trigger_behavior"] = {
                     "type": "string", "enum": ["utb", "wgb", "other"]}
@@ -562,6 +581,34 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
             if not agentive:
                 add("NOT_OC", "No one is named as adding or removing anything: "
                               "the consequence clause has no agent.")
+                return ledger, checks, unknown, advisory
+
+        if item.get("id") in CONTINGENCY_GATE_ITEMS:
+            stated = a.get("states_a_contingency", True)
+            checks.append({"what": "states_a_contingency", "met": bool(stated),
+                           "evidence": ""})
+            if not stated:
+                add("NOT_OC", "No contingency is stated: nothing is granted or "
+                              "withheld on a condition.")
+                return ledger, checks, unknown, advisory
+
+        if item.get("id") in POLARITY_GATE_ITEMS:
+            # Same formula as agreement.apply_computed's `equals`, lenient on
+            # `none`: a sentence stating no condition is clause (a)'s business,
+            # not this gate's, so `none` on either side passes here.
+            lenient = ("none",)
+            cv = a.get("consequence_valence") or ""
+            te = a.get("trigger_expects") or ""
+            ok = (cv in lenient or te in lenient
+                  or (bool(cv) and bool(te) and cv == te))
+            checks.append({"what": "direction_ok", "met": bool(ok),
+                           "evidence": f"consequence_valence={cv or '?'}, "
+                                       f"trigger_expects={te or '?'}"})
+            if not ok:
+                add("NOT_OC", "The consequence runs the wrong way: a "
+                              f"{cv} follows the student doing "
+                              f"{'well' if te == 'gain' else 'badly'}, which "
+                              "would push the behaviour in the wrong direction.")
                 return ledger, checks, unknown, advisory
 
         asserted = a.get("consequence_asserted", True)

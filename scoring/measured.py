@@ -569,7 +569,24 @@ def preflight() -> dict[str, list[str]]:
              if s.startswith(("ABSENT", "STALE", "pending"))],
         "5. record — prose that disagrees with the ledger":
             prose_claims(),
+        "6. leakage — rule blocks echoing the cohort, with no verdict filed":
+            _leakage_pending(),
     }
+
+
+def _leakage_pending() -> list[str]:
+    """Rule prose that shares wording with the responses it is meant to judge.
+
+    Listed here as well as gated in agreement.py because preflight is what a
+    session reads to decide what to do next, and "our rule quotes the cell it
+    was written to fix" belongs on that list — it invalidates a measurement
+    rather than merely delaying one.
+    """
+    try:
+        import leakage
+        return leakage.unreviewed()
+    except Exception:
+        return []
 
 
 def report() -> str:

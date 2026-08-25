@@ -20,8 +20,49 @@ guide came from doing step 3 while step 1 was still wrong.
 1. **Fixture.** Does each box hold what the template says it holds?
 2. **Gold.** Is the row right, and is its own itemisation coherent?
 3. **Model.** Does the prompt tell the grader how to decide?
+3a. **Leakage.** Does the prompt QUOTE the answers it is meant to judge?
 4. **Declare** whatever is left.
 5. **Reduce** the declarations, on the schedule in section 5.
+
+**`leakage.py` runs before every sweep, and `agreement.py` REFUSES to sweep
+handout 2 while any rule block echoes the cohort without a recorded verdict.**
+A rule that borrows a student's sentence scores the cell it was copied from and
+proves nothing about the criterion; worse, the sentence is almost always taken
+from the very cell the rule was written to fix, so the gain it reports is
+circular. This is not hypothetical here. Two recorded gains were found to rest
+on quoted prose *after* they had been measured, reported and committed:
+
+* DAY1's avoidance-framing rule contained "I will push myself to meet my goal so
+  I don't have to do the extra chore" — DAY1/p8 with "30 pushups" changed to
+  "the extra chore". p8 is the cell that rule took from 0/9 to 9/9.
+* WK1's agent rule contained "I will stay up an extra hour on Friday", which is
+  WK1/p1 verbatim, and "the extra laps will keep stacking up", which is WK1/p8
+  with the noun swapped. The item had been recorded as perfect on that rule.
+
+The two cases then came apart under measurement, and the difference is the
+lesson. DAY1 held its number with the borrowed sentence replaced by an invented
+one: that rule was a real criterion. WK1 did not — it lost p7, and p7 is the
+cell whose configuration a `trigger_behavior` note had described in PARAPHRASE.
+p1, whose sentence was reproduced word for word, held. So the verbatim quote was
+not the load-bearing one; the described cell was. That is the form neither the
+n-gram check nor the bigram check can see, and it is the one that mattered.
+
+Neither was noticed by reading. Both are obvious the moment the prose and the
+responses are diffed, which is all the tool does.
+
+A shared phrase is not automatically a fault, and the tool cannot tell the three
+cases apart — DOMAIN VOCABULARY that both sides must use, COINCIDENCE where an
+invented example lands on a stock phrasing, and QUOTATION. A person judges, and
+records the judgement with `--review`. **Verdicts are keyed to the sha of the
+prose**, so re-wording a block lapses its waiver and the gate asks again — which
+is the property that matters, because a rule gets re-worded at exactly the
+moment someone is tempted to paste a student's sentence into it.
+
+The worst form is not a quoted phrase but a described cell WITH ITS GRADE
+attached: "against a screen-time goal, gating the screen activity on finishing
+coursework earned full credit", or "cost participant 10 two points". That tells
+the grader the answer for one identifiable row. State the criterion, never the
+row.
 
 **`measured.py --preflight` enumerates what is outstanding, in this order, and
 `agreement.py` REFUSES a probe while anything is.** A probe is a participant

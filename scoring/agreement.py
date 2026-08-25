@@ -1652,6 +1652,9 @@ def main() -> int:
     ap.add_argument("--force-probe", action="store_true",
                     help="probe even though preflight has outstanding items "
                          "(use when THIS probe is what settles one of them)")
+    ap.add_argument("--force-leakage", action="store_true",
+                    help="sweep even though a rule block shares wording with the "
+                         "cohort and has no recorded verdict (see leakage.py)")
     ap.add_argument("--items", nargs="*", default=None,
                     help="Rubric item ids to measure (default: all measurable ones).")
     ap.add_argument("--workers", type=int, default=3,
@@ -1701,6 +1704,29 @@ def main() -> int:
             print("Address these, or re-run with --force-probe if this probe is "
                   "what settles one of them.", file=sys.stderr)
             return 1
+
+    # A LEAKAGE AUDIT comes before ANY sweep, not just before a probe. A rule
+    # that quotes the cohort scores the cell it was copied from and proves
+    # nothing, so a sweep launched over one spends its calls measuring our own
+    # paraphrase. This was found twice, after the runs had been recorded and
+    # committed: DAY1's avoidance rule reproduced DAY1/p8 almost word for word
+    # and WK1's agent rule quoted WK1/p1 verbatim, and both items had already
+    # been reported as gains.
+    #
+    # Unlike the probe gate above, this one runs on every measuring invocation,
+    # because the cost of a quoted rule is not the calls — it is a recorded
+    # number that means something other than what the ledger says it means.
+    if args.handout == 2 and not args.force_leakage:
+        try:
+            import leakage as _leak
+            import rubric_h2 as _R
+            targets = tuple(args.items) if args.items else tuple(_R.BY_ID)
+            if _leak.gate(targets):
+                print("Re-run with --force-leakage only if the sweep is what "
+                      "settles the question.", file=sys.stderr)
+                return 1
+        except ImportError as e:                    # never block on a broken check
+            print(f"(leakage audit unavailable: {e})", file=sys.stderr)
 
     blocks = BLOCKS[args.handout]
     if not blocks:
@@ -1870,9 +1896,23 @@ def main() -> int:
         # when the write raised FileNotFoundError on a directory that did not
         # exist, and only the log's per-cell lines made the run recoverable.
         # A run's artifact should not depend on someone having run mkdir.
+        #
+        # A TRAILING SLASH then cost 720 calls the same way. `--out dir/` looks
+        # like the natural way to ask for a directory of per-item files, and
+        # every other tool here accepts it, but `open()` raises IsADirectoryError
+        # on any path ending in "/" whether or not it exists — and the makedirs
+        # guard above resolved to the PARENT, so it created the wrong directory
+        # and reported success. So a trailing slash is now taken to mean what it
+        # looks like it means: put the item's file inside that directory.
         import os as _os
-        _dir = _os.path.dirname(_os.path.abspath(args.out))
+        out = args.out
+        if out.endswith(("/", _os.sep)) or _os.path.isdir(out):
+            stem = "-".join(args.items) if args.items else f"h{args.handout}"
+            out = _os.path.join(out, f"{stem}.json")
+            print(f"--out named a directory; writing {out}", file=sys.stderr)
+        _dir = _os.path.dirname(_os.path.abspath(out))
         _os.makedirs(_dir, exist_ok=True)
+        args.out = out
         with open(args.out, "w") as fh:
             json.dump({"handout": args.handout, "results": results,
                        "failures": [(p, i, str(e)) for p, i, e in failures]}, fh, indent=2)

@@ -223,15 +223,14 @@ ITEMS: list[dict] = [
                 "verdicts": ["3", "2", "1", "0"],
                 "desc": "HOW MANY statements name a BENEFIT the student expects from "
                         "changing. The test is GETS versus DOES: a benefit is "
-                        "something the student GETS — \"I wanted to feel more "
-                        "confident in myself\", \"I will overall be a healthier "
-                        "person\". A statement of what they intend to DO names the "
+                        "something the student GETS — a state, a feeling, a "
+                        "capacity they expect to have once the change has "
+                        "taken hold. A statement of what they intend to DO names the "
                         "goal behaviour itself and is NOT a benefit of it, however "
-                        "much it sounds like a wish. Do NOT count a restatement of the goal "
-                        "(\"my goal for this year is more active\"), the struggle "
-                        "(\"something I have been struggling with\"), or background "
-                        "about how the behaviour came about (\"I used to exercise a "
-                        "lot due to sports\"). Answer 3 for three or more",
+                        "much it sounds like a wish. Do NOT count a restatement of the goal, "
+                        "a remark about how hard the behaviour has been to "
+                        "change, or background explaining how it came about. "
+                        "Answer 3 for three or more",
             },
             {
                 "what": "reasons_given",
@@ -336,9 +335,10 @@ ITEMS: list[dict] = [
                 # first — "is the direct positive counterpart" — it zeroed p10 (gold 3)
                 # and p18 (gold 4) while correctly zeroing only p17.
                 "desc": "The goal behaviour concerns the SAME behaviour as the Q1 UTB. "
-                        "Fail this ONLY when it is a different behaviour altogether — "
-                        "\"connect more with people and restart reading books\" against a "
-                        "UTB of screen time. A goal in the right territory that simply "
+                        "Fail this ONLY when it is a different behaviour altogether: the "
+                        "goal names activities the student will take up instead, and "
+                        "never says to do less of the behaviour the UTB names. "
+                        "A goal in the right territory that simply "
                         "does not invert the behaviour still passes this: that is "
                         "WGB_NOT_OPPOSITE on `wgb_inverts_utb`, worth 2, not the whole item. "
                         "When this DOES fail the goal is unstated and its reasons cannot "
@@ -396,13 +396,14 @@ ITEMS: list[dict] = [
                         "concerns against the behaviour the UTB names: a goal that "
                         "names a different activity fails (reading and socialising "
                         "against a UTB of screen time), and so does one that names a "
-                        "different measure (losing twenty pounds against a UTB of "
-                        "lack of exercise). A goal stating the same behaviour's "
-                        "positive state PASSES — \"get back in shape\" against a UTB "
-                        "of lack of exercise is the inversion, phrased as a state. Full "
-                        "credit is the same behaviour turned around: UTB lack of sleep -> "
-                        "\"get eight hours of sleep\"; UTB lack of exercise -> \"attend "
-                        "the gym three days a week\". What FAILS is a goal naming "
+                        "different measure — an outcome the behaviour is meant to "
+                        "produce, counted in units the behaviour is not. A goal "
+                        "stating the same behaviour's positive STATE PASSES: the "
+                        "condition of having done it is the inversion, phrased as "
+                        "a state. Full credit is the same behaviour turned "
+                        "around — the UTB names a behaviour there is too much or "
+                        "too little of, and the goal says to do that same "
+                        "behaviour less, or more. What FAILS is a goal naming "
                         "something the student would acquire rather than the "
                         "behaviour itself — a habit, a routine, a discipline — "
                         "because it never says to do the goal behaviour more",
@@ -574,13 +575,13 @@ ITEMS: list[dict] = [
                 # another SMART letter instead of in any doing.
                 "desc": "Names something the student will DO, or a concrete "
                         "circumstance that lets them do it — an activity "
-                        "(\"prepare them in advance\", \"start getting ready for "
-                        "bed at 9:00\"), or access, equipment, or time they "
+                        "— a step they will physically carry out, at a stated "
+                        "time or not — or access, equipment, or time they "
                         "already have. Be generous: a plain statement of what "
                         "they will physically perform counts, and so does naming "
                         "what makes it possible. What FAILS is a response that "
-                        "justifies actionability by another letter of SMART — "
-                        "\"it is actionable because it is measurable\" — and "
+                        "justifies actionability by pointing at another letter of "
+                        "SMART instead of at any doing — and "
                         "names no doing of its own, or that only re-labels the "
                         "goal as actionable without saying what is done",
             },
@@ -779,8 +780,9 @@ ITEMS: list[dict] = [
                     "counts, because chips are not fruit. The question is whether they did a "
                     "different thing that crowded the goal out, or the goal itself gone wrong. "
                     "(3) The entry names an ordinary activity that CARRIES a state the unwanted "
-                    "behaviour produced — \"I walk around campus with stiff muscles\", \"I sit "
-                    "in lecture unable to focus\". The activity is incidental there: they would "
+                    "behaviour produced — an everyday activity reported together with the "
+                    "discomfort or dullness it is being carried out under. The "
+                    "activity is incidental there: they would "
                     "be doing it anyway, and what the sentence actually reports is the state, "
                     "which is a consequence. Test it by asking whether the activity would have "
                     "happened regardless of the goal behaviour. If it would, nothing was "
@@ -792,15 +794,15 @@ ITEMS: list[dict] = [
                     "\"I am tired in class OR catching up on chores\" fails, because being "
                     "tired is a state the behaviour produced. This applies only to genuine "
                     "alternatives. A sentence that names an activity AND THEN what came of it "
-                    "is judged on the activity — \"I eat chips and let the fruit go bad\" is "
-                    "one substitute with its result attached, not two alternatives — and "
-                    "several words for the same choice (chips, candy, cookies) are one "
+                    "is judged on the activity: a snack eaten and the fruit left to spoil "
+                    "is one substitute with its result attached, not two alternatives — and "
+                    "several near-synonyms for the same choice are one "
                     "substitute described three ways. (5) NAMING A FAILURE TO ACT IS NOT NAMING "
                     "A SUBSTITUTE. \"I procrastinate\", \"I avoid going\", \"I neglect it\", "
                     "\"I put it off\" all describe the goal behaviour NOT happening; they do "
                     "not say what the student was doing in that time, which is what the "
-                    "question asks. Credit the concrete activity if the entry gives one (\"I am "
-                    "at home playing games\"), and treat the not-doing as failing the test — "
+                    "question asks. Credit the concrete activity if the entry names one "
+                    "alongside the avoidance, and treat the not-doing as failing the test — "
                     "including when it is one alternative among several"
                 ),
             },
@@ -825,14 +827,14 @@ ITEMS: list[dict] = [
                 "pts": 2.0,
                 "verdicts": ["met", "absent"],
                 "codes": {"absent": "B_NO_MODIFY"},
-                "desc": "States whether it is a good choice to modify",
+                "desc": "States whether modifying this behaviour is a good idea",
             },
             {
                 "what": "modify_why",
                 "pts": 1.0,
                 "verdicts": ["met", "absent"],
                 "codes": {"absent": "B_NO_MODIFY_WHY"},
-                "desc": "States why it is or is not. B_NO_MODIFY_WHY applies only when the response says it is/isn't a good choice to modify and gives NO reason whatsoever. Any reason, however brief — \"because I have full control of when I go to bed\" — earns the point.",
+                "desc": "States why it is or is not. B_NO_MODIFY_WHY applies only when the response says it is/isn't a good choice to modify and gives NO reason whatsoever. Any reason, however brief, earns the point — a single clause naming why the behaviour is or is not within their control is enough.",
             },
         ],
         "deductions": [
