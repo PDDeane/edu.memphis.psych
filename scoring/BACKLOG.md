@@ -1209,7 +1209,7 @@ what pointed at the real problem — the QUESTION, not the verdict set.
 
 ### SOLVED, attempt 9: ask for a parse, not a judgement
 
-WK1 rose from 15 to **17 of 18**, and the divergence is retired.
+WK1 rose from 15 to **17 counted cells** at that point, and the divergence is retired. It reached **18/18** later the same day — see the trigger-classification entry at the end of this file.
 
 Every version up to attempt 8 asked a question about the PLAN — "is a consequence
 delivered?" — and the model wobbled on the only two cells that separate. The cue
@@ -1393,3 +1393,60 @@ ONLY when the trigger names a different activity outright" — made the model
 reluctant to answer `other` at all, and p7 swung back to the reading its UTB
 paragraph invites. Reverted; the criterion sits at the edge of what this model
 holds at once.
+
+### WK1 to 18/18: the trigger classification, and why "one rule at a time" was wrong
+
+WK1/p7 is fixed and WK1 is the first perfect LLM-scored item in handout 2.
+`targets_own_behavior` is now DERIVED on that item, the way `matches_chosen_type`
+always has been: the model classifies which behaviour the trigger names and the
+engine compares.
+
+    choices="trigger_target:utb,wgb,other"
+    slots=...|trigger_behavior:Which behaviour must happen, or fail to happen,
+              for the consequence to arrive:pick(trigger_target)|...
+    expect="targets_own_behavior:trigger_behavior=utb:wgb"
+
+Mirrored on the CLI as an enum with the same derivation and the same wording, so
+both generators put the same question.
+
+**The rule that works, after three drafts.** Classify by WHAT KIND OF PHRASE the
+trigger is:
+
+  * a POINTER — "my goal", "my daily goal", "my plan" — has no content of its
+    own, so classify it as whatever it points at;
+  * a NAMED ACTIVITY — "procrastinating", "reading a chapter" — has content, so
+    judge it against the behaviour the student CHOSE. Their paragraph also says
+    WHY they chose it, and the causes and knock-on habits it names are not the
+    chosen behaviour.
+
+**"The model can only hold one rule at a time" was wrong, and worth correcting
+in the open.** Draft A (narrow reading only) fixed p7 at 5/6 and over-corrected
+p19 to 3/6. Draft B added the pointer rule and inverted it — p19 6/6, p7 2/6 —
+and the conclusion drawn was that the two could not coexist. They can. Draft B
+had said to answer `other` "ONLY when the trigger names a different activity
+outright, one that is NOT POINTING AT EITHER", which contradicted draft A's own
+worked example, where an activity named in the UTB paragraph IS `other`. The
+model followed the more absolute clause, which is the correct thing to do with
+contradictory instructions. Splitting by kind of phrase, with no `only` anywhere,
+holds both: p7 5/6 `other`, p19 6/6 `wgb`, controls 6/6.
+
+    sweep   runs 15, 15, 16 -> 17, 18, 18. Median 15 -> 18. The one cell not at
+            3/3 is p7 itself, at 2/3, consistent with its 5/6 probe.
+
+The failure mode to remember is not a capacity limit: it is AN ABSOLUTE QUALIFIER
+IN A LATER CLAUSE SILENTLY REPEALING AN EARLIER CARVE-OUT. From outside it looks
+exactly like a model that cannot hold two rules.
+
+**NOT extended to DAY2, on measurement.** DAY2's p7 classifies `wgb` 6 of 6 and
+is RIGHT to: its trigger is "having {{corpus:DAY2/p7:day2:10:33:sha=9dea65fda79b:shape=R23-0-22}} and the student's
+stated goal is "{{corpus:Q2/p7:response:88:153:sha=ff038d8a7f4b}}
+games". So the criterion has nothing to fix there, and the sweep priced what it
+would cost anyway — median 15 (recorded) -> 14, with p9, p12 and p13 all handed
+back, each named by the regression-against-recorded check. The slot was removed
+from DAY2 and the OLX restored from HEAD so that item is byte-identical to what
+it recorded.
+
+DAY2/p7's real defect is that the answer rewards with the UNWANTED behaviour,
+which no criterion covers and which gold's comment does not name. Gold asks them
+to target the UTB while the item's own question asks reinforcement examples to
+target the GOAL behaviour, so that cell is a gold question, not a criterion one.
