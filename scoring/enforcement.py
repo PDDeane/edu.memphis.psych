@@ -60,7 +60,6 @@ _PASS = {
     # The two halves of the direction test. Neither has a "passing" value on its
     # own — it is the PAIR that passes or fails — so the passing state is any
     # matched pair, and the failing state below mismatches exactly one of them.
-    "consequence_valence": "gain",
     "trigger_expects": "gain",
     # Diagnostic only: gates nothing, scores nothing, so it has no failing
     # value. Both tables name the same one, which is what "this field cannot
@@ -79,7 +78,6 @@ _FAIL = {
     # the pair rather than on either field. Setting this one to "gain" — a match
     # against _PASS's "gain" — made the probe report GATE WEB ONLY, because the
     # CLI correctly saw no mismatch and did not zero.
-    "consequence_valence": "loss",   # a loss for doing well
     "trigger_expects": "loss",       # a gain for doing badly
     # Mismatched against _PASS so the derived `consequence_not_a_setup`
     # fires: created + success-lifts-it is the forbidden pair.
