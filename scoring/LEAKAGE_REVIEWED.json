@@ -1,0 +1,42 @@
+{
+ "06685b34fed7": {
+  "label": "WK2 guidance :: TWO SEPARATE READINGS, THEN A COMPARISON. Answer the",
+  "note": "'plan work' is from our own 'not whether the plan will work'; 'week make' from 'running to the end of the week does not make a daily trigger weekly'. Both are ordinary word pairs in prose we wrote, colliding with p8's answers on Q3 and PP \u2014 different items from the three this block governs. No borrowed content; p8's cadence answers share nothing with it.",
+  "verdict": "coincidence"
+ },
+ "5bdf88689fd8": {
+  "label": "SLOT_NOTES targets_unwanted_behavior",
+  "note": "targets_unwanted_behavior states the rubric's own terms of art ('unwanted target behavior'). Domain vocabulary, no example quoted, no participant describable.",
+  "verdict": "vocabulary"
+ },
+ "7b86061df9be": {
+  "label": "Q6 guidance :: HOW TO READ A 4a OR 4c ENTRY WHEN YOU MATCH AGAINST ",
+  "note": "'leads unwanted' and 'watch also' come from our own sentences ('what it leads to', 'the case to watch for. It is also'), and land on two DIFFERENT items of p14's. The block's examples are schematic placeholders (X, Y), which is the right way to write them.",
+  "verdict": "coincidence"
+ },
+ "84fce468760b": {
+  "label": "SLOT_NOTES names_behavior",
+  "note": "names_behavior lists the FORMS OF REFERENCE a student may use to point at their own behaviour ('my goal', 'my target behavior'). Those phrases are the handout's own vocabulary, printed on the form the students filled in; both sides must use them and no cell is being described.",
+  "verdict": "vocabulary"
+ },
+ "bcb6d6c2d294": {
+  "label": "SLOT_NOTES reasons_substantial",
+  "note": "Our example opens 'I keep doing it because', which is the natural frame for answering 'why do you keep doing it?' and is also how Q5/p18 opens. The CONTENT differs entirely \u2014 ours names self-neglect as a thin answer, p18 names dopamine and gratification, which is substantive. Frame shared, substance not.",
+  "verdict": "coincidence"
+ },
+ "d5e736ab6279": {
+  "label": "Q4b credit.rule :: `{fail}` in two cases. (1) The entry names a CONSEQU",
+  "note": "'because tired' and 'goal sleep' are ordinary word pairs falling out of our own prose about states and goals; the block's worked examples are invented (fruit/chips as a rival choice), and p13 shares no content with it.",
+  "verdict": "coincidence"
+ },
+ "e6b7275e65f1": {
+  "label": "SLOT_NOTES targets_goal_behavior",
+  "note": "targets_goal_behavior states the rubric's own terms of art ('wanted goal behavior'). Domain vocabulary, no example quoted, no participant describable.",
+  "verdict": "vocabulary"
+ },
+ "ed18fb7ff9be": {
+  "label": "WK2 guidance :: IS A WORKABLE CONTINGENCY STATED? Look for four thin",
+  "note": "'help reach' comes from our own invented bare-intent example ('this should {{corpus:NR/p12:nr:123:139:sha=d881672437f8}} goal'); 'meeting goal' is clause (c)'s 'meeting the goal', unavoidable in a rule about meeting a goal. Both land on p12's HANDOUT 3 answers, not their cadence answers, which concern fruit and Starbucks and share nothing with this rule. No borrowed content.",
+  "verdict": "coincidence"
+ }
+}
