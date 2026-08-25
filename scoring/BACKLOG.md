@@ -1483,8 +1483,13 @@ Resolving it means narrowing one of the two rules, and both live in
 are perfect today. That is a much larger and riskier change than the cell is
 worth, and it should not be attempted without measuring all eight.
 
-**Where the four cadence items stand after the day's work**: DAY1 16/18, DAY2
-15/18, WK1 18/18, WK2 16/18 — 65 of 72, up five cells. The residue is 23 wrong
+**Where the four cadence items stood after that day's work**: 65 of 72, up five
+cells on the morning's baseline. SUPERSEDED TWICE, so the figures are deliberately
+not repeated here — `measured.py --status` holds the current ones, and quoting
+them in prose is what this file keeps getting wrong. First the de-specification
+pass showed WK1's perfect score rested partly on prose describing p7 (see the
+leakage section of QUALITY_CONTROL.md); then the derived direction gate moved two
+of the four again. The residue is 23 wrong
 cell-runs of 216, and the slot breakdown says two thirds of them are
 OVER-CREDITS, of which the largest group is cells where every check passes and
 gold still says zero. `observed_type` answering `none` predicts a correct zero
