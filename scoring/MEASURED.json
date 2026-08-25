@@ -301,10 +301,10 @@
       "cells": {
         "1": 0,
         "10": 3,
-        "11": 3,
+        "11": 2,
         "12": 3,
         "13": 3,
-        "14": 3,
+        "14": 2,
         "15": 3,
         "16": 3,
         "17": 3,
@@ -327,12 +327,12 @@
         2,
         3
       ],
-      "numerator": 17,
-      "out": "insul_v1",
-      "prompt_sha": "deacc8421b77",
+      "numerator": 16,
+      "out": "restricts_v1",
+      "prompt_sha": "80d10b13d673",
       "run_totals": [
-        17,
-        17,
+        16,
+        16,
         17
       ],
       "runs": 3
@@ -344,7 +344,7 @@
         "11": 2,
         "12": 3,
         "13": 3,
-        "14": 0,
+        "14": 3,
         "15": 3,
         "16": 3,
         "17": 3,
@@ -356,7 +356,7 @@
         "6": 3,
         "7": 0,
         "8": 2,
-        "9": 2
+        "9": 3
       },
       "denominator": 18,
       "excluded_cells": {
@@ -367,13 +367,13 @@
         2,
         3
       ],
-      "numerator": 15,
-      "out": "insul_v1",
-      "prompt_sha": "be986d56d64d",
+      "numerator": 16,
+      "out": "restricts_v1",
+      "prompt_sha": "d2e3dcaf546e",
       "run_totals": [
-        14,
-        15,
-        16
+        16,
+        16,
+        17
       ],
       "runs": 3
     },
@@ -938,8 +938,8 @@
         3
       ],
       "numerator": 17,
-      "out": "despec_h2",
-      "prompt_sha": "786fefb351b5",
+      "out": "forbid_v1",
+      "prompt_sha": "31288047a0b8",
       "run_totals": [
         17,
         17,
@@ -955,7 +955,7 @@
         "12": 3,
         "13": 3,
         "14": 3,
-        "15": 2,
+        "15": 1,
         "16": 3,
         "17": 3,
         "18": 3,
@@ -977,12 +977,12 @@
         2,
         3
       ],
-      "numerator": 18,
-      "out": "insul_v1",
-      "prompt_sha": "ec4bf8daeb87",
+      "numerator": 17,
+      "out": "restricts_v1",
+      "prompt_sha": "df99e7bb3128",
       "run_totals": [
         17,
-        18,
+        17,
         18
       ],
       "runs": 3

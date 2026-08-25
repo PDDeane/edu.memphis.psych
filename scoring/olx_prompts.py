@@ -749,6 +749,36 @@ EVIDENCE: dict[str, tuple[str, list[tuple[str, str]]]] = {
 # it in files the runtime already supplements.
 # ---------------------------------------------------------------------------
 
+def parse_forbid(spec: str) -> list[dict]:
+    """Mirror of lo-blocks parseForbid (packages/shared/lib/llm/slotSheet.ts).
+
+    `key:slot=value,slot=value`, rules separated by `|`. The named check FAILS
+    only when EVERY condition holds, and like `equals` it is COMPUTED, so it must
+    not appear in the prompt's checklist or the response schema.
+
+    Why a primitive rather than one composite slot: `equals` asks whether two
+    answers agree and `expect` compares one against an authored value, and
+    neither says "fail when A is this AND B is that". Written as a single slot the
+    question becomes composite, and the rule this replaces failed four times
+    exactly that way — asked one answer at a time it was stable, asked as one
+    judgement the model resolved the tension by re-reading which clause was which.
+    """
+    out = []
+    for entry in (spec or "").split("|"):
+        entry = entry.strip()
+        if not entry:
+            continue
+        key, _, rest = entry.partition(":")
+        conds = []
+        for cond in rest.split(","):
+            slot, _, value = (x.strip() for x in cond.partition("="))
+            if slot and value:
+                conds.append({"slot": slot, "value": value})
+        if key.strip() and conds:
+            out.append({"key": key.strip(), "conds": conds})
+    return out
+
+
 def parse_equals(spec: str) -> list[dict]:
     """Mirror of lo-blocks parseEquals (packages/shared/lib/llm/slotSheet.ts).
 
@@ -1529,7 +1559,8 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
 
     p.append(_checklist_section(item, slots, item_id, _equals_attr(h, action),
                                 _derived_attr(h, action), _counts_attr(h, action),
-                                _choices_attr(h, action), _expect_attr(h, action)))
+                                _choices_attr(h, action), _expect_attr(h, action),
+                                _forbid_attr(h, action)))
 
     # One component, one <Ref>: the same value twice under two headings reads
     # as two different answers.
@@ -1692,7 +1723,8 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
                        derived: list[dict] | None = None,
                        counts: list[dict] | None = None,
                        choices: dict[str, list[str]] | None = None,
-                       expect: list[dict] | None = None) -> str:
+                       expect: list[dict] | None = None,
+                       forbid: list[dict] | None = None) -> str:
     """The sheet the model must fill, generated from the .olx `slots` attribute.
 
     Checks the grader COMPUTES are listed separately and explicitly NOT asked for:
@@ -1715,6 +1747,10 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
     # list made the prompt say "answer this" and "DO NOT ANSWER this" about the
     # same check.
     expected = {r["key"]: r for r in expect}
+    # A `forbid` key is computed from a COMBINATION of answers, so like `equals`
+    # and `expect` it is out of the response schema and must not be asked for.
+    forbid = forbid or []
+    forbidden_keys = {r["key"]: r for r in forbid}
     desc = {c["what"]: c["desc"] for c in item["credit"]}
     # `{fail}` is filled with the verdict THIS side offers. The rule text is
     # shared with score.py, whose vocabulary differs — web `wrong_kind` maps to
@@ -1744,7 +1780,8 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
     ]
     for s in slots:
         if (s["key"] in computed or s["key"] in from_page
-                or s["key"] in counted or s["key"] in expected):
+                or s["key"] in counted or s["key"] in expected
+                or s["key"] in forbidden_keys):
             continue
         # The rubric's own per-component `rule` comes FIRST. Slot-specific judging
         # text belongs in a slot-specific field on BOTH sides, and only the rubric
@@ -1766,6 +1803,15 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
         else:
             head = f"- `{s['key']}`{gate} — {'/'.join('`%s`' % o for o in s['options'])}"
         lines.append(f"{head}: {note}" if note else head)
+    for key, r in forbidden_keys.items():
+        spec = next((x for x in slots if x["key"] == key), None)
+        gate = " **GATE**" if spec and spec["gates"] else ""
+        pairs = ", ".join(f"`{c['slot']}` is `{c['value']}`" for c in r["conds"])
+        lines += ["", f"DO NOT ANSWER `{key}`{gate}. The grader computes it from the "
+                      f"checks above: it FAILS only when ALL of {pairs}, and passes "
+                      f"otherwise — including when any of them is left unanswered. "
+                      f"Answer each of those on its own terms and do not adjust one to "
+                      f"suit another; the combination is arithmetic, not a judgement."]
     for key, r in computed.items():
         spec = next((x for x in slots if x["key"] == key), None)
         gate = " **GATE**" if spec and spec["gates"] else ""
@@ -1961,6 +2007,11 @@ def check_template_matches_example(handout: int = 3) -> list[str]:
         if r["template"] and r["template"] != plot:
             return [f"derived template {r['template']} != example plot {plot}"]
     return []
+
+
+def _forbid_attr(handout: int, action: str) -> list[dict]:
+    fb = re.search(r'\bforbid="([^"]*)"', _sheet_tag(handout, action))
+    return parse_forbid(fb.group(1) if fb else "")
 
 
 def _equals_attr(handout: int, action: str) -> list[dict]:
