@@ -1450,3 +1450,44 @@ DAY2/p7's real defect is that the answer rewards with the UNWANTED behaviour,
 which no criterion covers and which gold's comment does not name. Gold asks them
 to target the UTB while the item's own question asks reinforcement examples to
 target the GOAL behaviour, so that cell is a gold question, not a criterion one.
+
+### DAY2/p14: two rubric rules that contradict each other on one answer
+
+`you_arrange_it` was given an item-scoped note on DAY2 stating the
+automatic-result test as a question about WHO ACTS — the framing that worked for
+the agent parse and the trigger classification. It did not fire. The slot read
+`met` in all three runs and the cell scored 2, 4, 4 against a gold of 0. Median
+matched the recorded 15, and one coupling regression appeared on p8. Reverted.
+
+**Why it did not fire is the finding.** The answer is "{{corpus:DAY2/p16:day2:0:47:sha=0cde22e921aa:shape=S6-0a}} weight", and `observed_type` reads NR twice and PR once:
+the model sees walking as REMOVING the aversive of gaining weight. Under that
+reading, "who arranges it?" answers "the student, by walking", so `met` is
+coherent. The note asked the right question and got a defensible answer.
+
+The cell sits on a CONTRADICTION INSIDE THE RUBRIC, and no sharper note can
+resolve it:
+
+  * `WHAT COUNTS AS THE ADDED OR REMOVED THING — BE BROAD` credits a consequence
+    that SPARES the student something — "the graders gave full credit wherever
+    meeting the goal SPARED the student something they would otherwise have had
+    to do".
+  * `NOT_EXTERNAL_STIMULUS` zeroes a consequence that is "simply the behaviour's
+    own automatic result", canonical zero "{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=S6-0a20202020}} body".
+
+Walking to avoid weight gain satisfies BOTH descriptions. Gold applies the
+second; the model applies the first, which the rubric states just as plainly.
+Resolving it means narrowing one of the two rules, and both live in
+`_EXAMPLE_RULES`, shared by all eight items that use these gates — four of which
+are perfect today. That is a much larger and riskier change than the cell is
+worth, and it should not be attempted without measuring all eight.
+
+**Where the four cadence items stand after the day's work**: DAY1 16/18, DAY2
+15/18, WK1 18/18, WK2 16/18 — 65 of 72, up five cells. The residue is 23 wrong
+cell-runs of 216, and the slot breakdown says two thirds of them are
+OVER-CREDITS, of which the largest group is cells where every check passes and
+gold still says zero. `observed_type` answering `none` predicts a correct zero
+perfectly; the over-credited cells all have it naming a quadrant instead, and
+each does so for a different upstream reason — a consequence made of the target
+behaviour, a backwards contingency, and this rule collision. They do not share a
+criterion, which is why five separate attempts at a single new gate found
+nothing.
