@@ -62,6 +62,11 @@ _PASS = {
     # matched pair, and the failing state below mismatches exactly one of them.
     "consequence_valence": "gain",
     "trigger_expects": "gain",
+    # Diagnostic only: gates nothing, scores nothing, so it has no failing
+    # value. Both tables name the same one, which is what "this field cannot
+    # cost the item anything" looks like to the probe.
+    "restriction_authored": "relieved",
+    "restricts": "target_behavior",
 }
 _FAIL = {
     "behavior": "",
@@ -76,6 +81,11 @@ _FAIL = {
     # CLI correctly saw no mismatch and did not zero.
     "consequence_valence": "loss",   # a loss for doing well
     "trigger_expects": "loss",       # a gain for doing badly
+    # Mismatched against _PASS so the derived `consequence_not_a_setup`
+    # fires: created + success-lifts-it is the forbidden pair.
+    "restriction_authored": "created",
+    # Non-firing on its own, like the other operands: the gate needs all three.
+    "restricts": "target_behavior",
     "cadence_ok": False,
     "targets_own_behavior": False,
     "targets_intended_behavior": False,
