@@ -40,10 +40,13 @@ CONTINGENCY_GATE_ITEMS = ('DAY1', 'DAY2', 'WK2')
 # measured independently and must stay independently togglable; assuming one
 # selector governed several sources is what patched DAY1 while believing it had
 # patched DAY2.
+# Items carrying the polarity pair, and with it the barrier gate: that gate's
+# second operand IS `trigger_expects`, so it cannot exist where the pair does
+# not. One selector for both, because the dependency is structural rather than
+# coincidental — authoring the gate on an item without the pair produced a rule
+# that could never fire, which is how this was found.
 POLARITY_GATE_ITEMS = ('DAY1', 'DAY2', 'WK2')
 
-# The four items asking for a daily or weekly worked example.
-CADENCE_ITEMS = ('DAY1', 'WK1', 'DAY2', 'WK2')
 
 # The four operant-conditioning types, as the course defines them.
 _OC_FRAME = (
@@ -530,54 +533,21 @@ def _example_use_item(
                "as soon as I do\" describes one moment, not two — going in IS "
                "having finished, not a consequence delivered for it."]
               if item_id in CONTINGENCY_GATE_ITEMS else []),
-            *(["TWO SEPARATE READINGS, THEN A COMPARISON. Answer these two "
-               "independently. Neither asks whether the plan is a good one.\n"
-               "  `consequence_valence` — is what the sentence says will HAPPEN "
-               "TO THE STUDENT good for them or bad for them? Work it out as a "
-               "DIRECTION, not as a list.\n"
-               "    Find the undesirable thing in the consequence clause, if "
-               "there is one — a chore, an obligation, a restriction, a "
-               "penalty — and ask WHICH WAY IT MOVES. Is it being PUT ON the "
-               "student, or TAKEN OFF them? Taken off is a `gain`: let off a "
-               "chore, an obligation lifted, a restriction removed. Put on is "
-               "a `loss`. One and the same chore can appear in either "
-               "direction, and the direction IS the answer — \"I will do the "
-               "washing-up\" and \"I will not have to do the washing-up\" name "
-               "the same chore and take opposite answers. Read the verb and "
-               "any negation attached to it; do not answer from the chore.\n"
-               "    If the consequence names something DESIRABLE instead, ask "
-               "the same question in the other register: given to them is a "
-               "`gain`, withheld or taken away is a `loss`.\n"
-               "    Judge the thing itself — not whether the plan will work, "
-               "and not how well the sentence is written.\n"
-               "  `trigger_expects` — read the CONDITION only, and say which "
-               "way a working plan would have to run from it. Answer `gain` "
-               "when the condition describes the student DOING WELL: meeting "
-               "the goal, hitting the target, performing the wanted behaviour. "
-               "Answer `loss` when it describes them DOING BADLY: missing the "
-               "goal, falling short, performing the unwanted behaviour. Answer "
-               "`none` when the sentence puts no condition on their behaviour "
-               "at all.\n"
-               "The engine compares the two answers itself, so neither should "
-               "be adjusted to fit the other — answer each from the sentence "
-               "and let the comparison fall out.\n"
-               "What the comparison is for: a student\'s SUCCESS must not bring "
-               "them something they would rather avoid, or cost them something "
-               "they have. That is the one pairing that cannot work, because it "
-               "would make the behaviour less likely, not more. Such answers "
-               "are usually fluent, unambiguous sentences, and being clearly "
-               "written is not the thing being judged.\n"
-               "WHAT THIS READING DOES NOT DECIDE. The put-on / taken-off "
-               "question settles `consequence_valence` and nothing else. It "
-               "does not decide WHICH TYPE this is: `observed_type` is answered "
-               "from its own two questions, and something PUT ON the student is "
-               "an ADDITION there — imposing a chore or an extra task is "
-               "positive punishment, not the removal of anything, however "
-               "plainly it reads here as a loss. Nor does it decide HOW OFTEN "
-               "the behaviour is checked: how long a consequence lasts is a "
-               "duration, not a schedule, and a consequence running to the end "
-               "of the week does not make a daily trigger weekly. Answer those "
-               "two slots from their own rules and let this one stand alone."]
+            # `direction_ok` was measured redundant: it fired on three cells and
+            # the barrier gate caught all three, plus DAY2/p14 that it could not.
+            # Removed with `consequence_valence`, its only operand. What is left
+            # is the one reading the barrier gate still needs.
+            *(["WHICH WAY WOULD A WORKING PLAN RUN FROM YOUR CONDITION? Read the "
+               "CONDITION only — the clause saying when the consequence "
+               "arrives — and answer `trigger_expects` from it alone.\n"
+               "  Answer `gain` when the condition describes the student DOING "
+               "WELL: meeting the goal, hitting the target, performing the "
+               "wanted behaviour.\n"
+               "  Answer `loss` when it describes them DOING BADLY: missing the "
+               "goal, falling short, performing the unwanted behaviour.\n"
+               "  Answer `none` when the sentence puts no condition on their "
+               "behaviour at all.\n"
+               "This is a reading of the condition, not a judgement of the plan."]
               if item_id in POLARITY_GATE_ITEMS else []),
             # DIAGNOSTIC ONLY — this slot gates nothing and scores nothing.
             # The barrier cases (a self-imposed deprivation lifted by the
@@ -612,7 +582,7 @@ def _example_use_item(
                "  Answer `neither` when no undesirable thing figures on either "
                "side. Report what the sentence shows; this answer does not by "
                "itself decide anything."]
-              if item_id in CADENCE_ITEMS else []),
+              if item_id in POLARITY_GATE_ITEMS else []),
             # The exception gold draws, and the reason the barrier rule needs a
             # third condition rather than more prose. DAY1/p6 (gold 0) holds
             # back MUSIC to drive gym attendance; DAY1/p15 (gold 4) holds back
