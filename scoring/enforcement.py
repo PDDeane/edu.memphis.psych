@@ -1404,6 +1404,63 @@ def check_rule_examples_are_not_corpus() -> list[str]:
     return problems
 
 
+def _attr(handout: int, item_id: str, attr: str) -> str:
+    """One sheet attribute, or "" — the reader the slot guard needs."""
+    import re
+    import olx_prompts as O
+    m = re.search(r'\b%s="([^"]*)"' % attr, O._sheet_tag(handout, O.ACTION[item_id]))
+    return m.group(1) if m else ""
+
+
+def check_weighted_slots_are_scored() -> list[str]:
+    """Does every POINT-BEARING slot reach a scorer?
+
+    `agreement.score_oc` and `score_oc_cadence` are hand-written mirrors of
+    `derive_oc_ledger`, naming each check they consult. A slot authored with `@n`
+    that neither names is answered by the model, recorded in the sheet, and then
+    ignored by the arithmetic -- which is not a wrong number but a silent one.
+
+    It happened: `barrier_is_not_this_type@2` fired on all six runs of NR/p14 and
+    the cell still scored 4.0, because nothing read it. The verdict was right and
+    the score did not move, which is the hardest kind of gap to notice.
+    """
+    import inspect
+    import agreement as A
+    import olx_prompts as O
+    src = inspect.getsource(A.score_oc) + inspect.getsource(A.score_oc_cadence)
+    problems = []
+    for h in (1, 2, 3):
+        for item in config(h)["rubric"].ITEMS:
+            iid = item["id"]
+            if not item.get("derive_from_criteria") or iid not in O.ACTION:
+                continue          # only the items those two scorers handle
+            try:
+                slots = O.parse_slots(*O._slots_attr(h, O.ACTION[iid]))
+            except Exception:
+                continue
+            # A DERIVED slot may be honoured under another name: `demonstrates_type`
+            # is an `expect` over `observed_type`, and score_oc implements it as
+            # `observed != expected_type` without naming the key. So a derived key
+            # counts as reached when the key OR any operand it reads appears.
+            derived_ops = {}
+            for r in O.parse_equals(_attr(h, iid, "equals")):
+                derived_ops[r["key"]] = {r["left"], r["right"]}
+            for r in O.parse_expect(_attr(h, iid, "expect")):
+                derived_ops[r["key"]] = {r["left"]}
+            for r in O.parse_forbid(_attr(h, iid, "forbid")):
+                derived_ops[r["key"]] = {c["slot"] for c in r["conds"]}
+            for s in slots:
+                if s.get("pts") is None or s["key"] in src:
+                    continue
+                if any(op in src for op in derived_ops.get(s["key"], set())):
+                    continue
+                problems.append(
+                    f"H{h} {iid}: slot `{s['key']}` carries {s['pts']:g} point(s) and "
+                    f"is named by neither score_oc nor score_oc_cadence, so the "
+                    f"harness ignores its verdict")
+    return problems
+
+
 def check_rubric_items_are_unique() -> list[str]:
     """Is each rubric table a well-formed set of distinct items?
 

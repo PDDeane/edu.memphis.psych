@@ -1079,6 +1079,14 @@ def score_oc(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
         return max(0.0, item["max"] - codes["WRONG_TYPE"]), 1
     if not yes(aimed_key):
         return max(0.0, item["max"] - codes["WRONG_TYPE"]), 1
+    # A weighted slot this hand-written mirror does not name is INVISIBLE here:
+    # the model answers it, the sheet records it, and the score ignores it. That
+    # is how `barrier_is_not_this_type` fired 6/6 on NR/p14 and the cell still
+    # read 4.0. Guarded on presence in the sheet, because absent means the slot
+    # is not authored on this item, not that it failed.
+    keys = {s["key"] for s in spec["slots"]}
+    if "barrier_is_not_this_type" in keys and not yes("barrier_is_not_this_type"):
+        return max(0.0, item["max"] - codes["WRONG_TYPE"]), 1
     return item["max"], 0
 
 
