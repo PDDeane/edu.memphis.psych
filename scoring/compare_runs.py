@@ -32,6 +32,7 @@ not offer the option.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import warnings
 
@@ -41,6 +42,75 @@ import gold
 import handouts as H
 
 _LOADERS = {1: gold.load_h1, 2: gold.load_h2, 3: gold.load_h3}
+
+
+
+PROBED = os.path.join(os.path.dirname(os.path.abspath(__file__)), "PROBED.json")
+
+
+def _probe_ledger() -> list[dict]:
+    try:
+        with open(PROBED) as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return []
+
+
+def record_probe(item: str, after_sha: str, cells: list[int], artifact: str,
+                 runs: int) -> None:
+    """File a probe against the exact prompt it was run on."""
+    led = _probe_ledger()
+    led = [e for e in led if not (e["item"] == item and e["after_sha"] == after_sha)]
+    led.append({"item": item, "after_sha": after_sha, "cells": sorted(set(cells)),
+                "artifact": artifact, "runs": runs})
+    with open(PROBED, "w") as fh:
+        json.dump(led, fh, indent=1, sort_keys=True)
+        fh.write("\n")
+
+
+def probed_cells(item: str, after_sha: str) -> set[int]:
+    """Cells covered by a >=6-run probe of THIS prompt. A probe of a different
+    prompt proves nothing about this one, which is why the sha is the key."""
+    return {c for e in _probe_ledger()
+            if e["item"] == item and e["after_sha"] == after_sha and e["runs"] >= 6
+            for c in e["cells"]}
+
+
+def _verdict(item: str, movers: list[int]) -> int:
+    """The line that makes the rule automatic rather than remembered.
+
+    `compare_runs` has always printed PROBE REQUIRED and exited 2, and a 1-cell
+    median drop across three items was still read as a loss and reverted without
+    a probe. The message was advisory because the READER draws the verdict. So
+    the verdict is printed here, and it is withheld unless probe evidence for
+    this exact prompt is on file.
+    """
+    if not movers:
+        print("\n  VERDICT PERMITTED — no cell moved; the medians speak for themselves.")
+        return 0
+    try:
+        import measured as _m
+        sha = _m.prompt_sha(item)
+    except Exception as e:
+        print(f"\n  VERDICT WITHHELD — cannot resolve this item's prompt sha ({e}).")
+        return 2
+    have = probed_cells(item, sha)
+    missing = [p for p in movers if p not in have]
+    if missing:
+        print(f"\n  ##### VERDICT WITHHELD on {item} #####")
+        print(f"  {len(missing)} moved cell(s) have no 6-run probe of prompt {sha}: "
+              + ", ".join(f"p{p}" for p in missing))
+        print("  KEEP and REVERT are both unsupported until those are probed. A")
+        print("  three-pass rate cannot separate a real change from this item's")
+        print("  own variance, so a median that moved by one or two cells is not")
+        print("  yet evidence of anything in either direction.")
+        print("  Run the probe above, then:")
+        print(f"    python3 compare_runs.py --record-probe {item} "
+              f"OUT/<probe>/{item}.runs.json")
+        return 2
+    print(f"\n  VERDICT PERMITTED on {item} — all {len(movers)} moved cell(s) "
+          f"probed at prompt {sha}.")
+    return 0
 
 
 def gold_for(handout: int, item: str) -> dict:
@@ -190,6 +260,8 @@ def compare(handout: int, item: str, before_path: str, after_path: str) -> int:
     if not moved and not probe:
         print("\n  no cell changed.")
 
+    verdict = _verdict(item, [p for p, _, _ in probe])
+
     _regressions_against_recorded(handout, item, after, na, g)
 
     # A sweep is also the moment to ask whether this item's DECLARATIONS still
@@ -205,10 +277,23 @@ def compare(handout: int, item: str, before_path: str, after_path: str) -> int:
                 print(f"    {c}")
     except Exception as e:                                  # never block a review
         print(f"\n  (declaration check unavailable: {e})")
-    return 2 if probe else 0
+    return 2 if (probe or verdict) else 0
 
 
 def main() -> int:
+    if sys.argv[1:2] == ["--record-probe"]:
+        if len(sys.argv) != 4:
+            print("usage: compare_runs.py --record-probe ITEM PROBE.runs.json",
+                  file=sys.stderr)
+            return 1
+        import measured as _m
+        item, art = sys.argv[2], sys.argv[3]
+        doc = json.loads(open(art).read())
+        cells = sorted({c["participant_id"] for r in doc["runs"] for c in r["results"]})
+        record_probe(item, _m.prompt_sha(item), cells, art, len(doc["runs"]))
+        print(f"probe filed: {item} at {_m.prompt_sha(item)}, {len(doc['runs'])} runs, "
+              f"cells {cells}")
+        return 0
     if len(sys.argv) != 5:
         print(__doc__.strip().splitlines()[2].strip(), file=sys.stderr)
         return 1

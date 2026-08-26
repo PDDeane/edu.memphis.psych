@@ -1436,6 +1436,12 @@ EQUIVALENCE_DEF = (
 
 
 MATCH_DEF = {
+    "DAY1": ("## Definition of 'the same behaviour' below:\n"
+              + EQUIVALENCE_DEF + "\n"),
+    "DAY2": ("## Definition of 'the same behaviour' below:\n"
+              + EQUIVALENCE_DEF + "\n"),
+    "WK2": ("## Definition of 'the same behaviour' below:\n"
+              + EQUIVALENCE_DEF + "\n"),
     "WK1": ("## Definition of 'the same activity' below:\n"
             + EQUIVALENCE_DEF + "\n"
             "Two phrases that are NOT equivalent by that test name two "
