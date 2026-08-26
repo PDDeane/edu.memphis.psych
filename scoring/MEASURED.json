@@ -930,7 +930,7 @@
       },
       "denominator": 18,
       "excluded_cells": {
-        "2": 3,
+        "2": 2,
         "3": 0
       },
       "exclusions": [
@@ -938,8 +938,8 @@
         3
       ],
       "numerator": 18,
-      "out": "trigger_v7",
-      "prompt_sha": "0e4aa1cb566c",
+      "out": "wk1_q6def",
+      "prompt_sha": "55707a386d47",
       "run_totals": [
         18,
         18,
