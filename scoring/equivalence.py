@@ -1350,6 +1350,17 @@ def print_enforcement():
           "\nauthors, where there is no arithmetic to probe. A `-` is that absence, not a"
           "\nzero. `computed` is 0 on the CLI by construction: a derived check is not an"
           "\ninput there.\n")
+    # A declaration may name an (item, kind) the enforcement probe cannot reach,
+    # as opposed to a difference in what the two sides DO. Without this the audit
+    # never reads clean again, and a permanently dirty audit is how the next real
+    # drift goes unnoticed -- the whole value of this output is that empty means
+    # nothing moved.
+    excused = {tuple(e) for d in SCORING_DIVERGENCES
+               for e in (d.get("enforcement") or [])}
+    for item, kind, detail in findings:
+        if (item, kind) in excused:
+            print(f"  {item:<5} {kind:<24} {detail}  [DECLARED]")
+    findings = [f for f in findings if (f[0], f[1]) not in excused]
     for item, kind, detail in findings:
         print(f"! {item:<5} {kind:<24} {detail}")
     print(f"{'  nothing flagged' if not findings else ''}")

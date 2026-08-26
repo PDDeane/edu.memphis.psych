@@ -490,10 +490,10 @@ Everything the student wrote is above this line, inside a `[box begins]`/`[box e
       <EndPane>
     <ActionButton id="bmod_h2_nr_btn" label="Check my Negative Reinforcement example">
       <LLMAction id="bmod_h2_nr_llm" target="bmod_h2_nr_feedback"
-                 expect="demonstrates_type:observed_type=NR"
-                 choices="operant_or_none:PR,NR,PP,NP,none"
-                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|observed_type:Which of the four types this example shows:pick(operant_or_none)|demonstrates_type:Your example demonstrates Negative Reinforcement@2|targets_goal_behavior:Aimed at increasing your goal behavior@2|phrased_directly:Phrased directly rather than by what is avoided|confident:All judgments confident"
-                 onlyif="targets_goal_behavior:demonstrates_type"
+                 expect="demonstrates_type:observed_type=NR" forbid="barrier_is_not_this_type:restriction_authored=created,trigger_expects=gain,restricts=other_thing"
+                 choices="authorship:relieved,created,neither|valence_or_none:gain,loss,none|restriction_target:target_behavior,other_thing|operant_or_none:PR,NR,PP,NP,none"
+                 slots="!names_behavior:Names a behavior of yours the plan acts on:unclear|!names_stimulus:Names what is added or taken away:unclear|!contingent:The consequence depends on that behavior:unclear|!follows_behavior:The consequence arrives after the behavior:unclear|!you_arrange_it:Something you arrange, not an automatic result:unclear|observed_type:Which of the four types this example shows:pick(operant_or_none)|demonstrates_type:Your example demonstrates Negative Reinforcement@2|targets_goal_behavior:Aimed at increasing your goal behavior@2|restriction_authored:Whether the undesirable thing was created by the plan or was already there:pick(authorship)|trigger_expects:Which way a working plan would run from your condition:pick(valence_or_none)|restricts:What the plan holds back, if it holds anything back:pick(restriction_target)|barrier_is_not_this_type:Not a restriction the plan sets up that your success then lifts@2|phrased_directly:Phrased directly rather than by what is avoided|confident:All judgments confident"
+                 onlyif="targets_goal_behavior:demonstrates_type|barrier_is_not_this_type:demonstrates_type"
                  max="4">
 You are an experienced teaching assistant grading Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -570,6 +570,20 @@ Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is c
 - WHAT COUNTS AS THE ADDED OR REMOVED THING — BE BROAD. It does not have to be a physical object. Removing an unpleasant OBLIGATION, chore, or requirement is a perfectly good negative reinforcer. The graders gave full credit wherever meeting the goal SPARED the student something they would otherwise have had to do — an early start to make up procrastinated work, a compensating nap, getting out of bed at once. Do NOT deduct these as intrinsic outcomes.
 - NOT_EXTERNAL_STIMULUS is reserved for the narrow case where the named consequence is simply the behaviour's own automatic result AND no conditional plan is stated: the answer says the behaviour will leave them better off in the way the behaviour itself produces, and arranges nothing. If the answer is phrased as an if/then arrangement the student sets up, this code does not apply; judge it on tests 2 and 3 instead.
 - SAFETY: flag, but do not deduct for, any example that withholds food, sleep, or medical care, or that punishes with exercise in a way that could harm the student. The graders wrote notes like "Please change this example to remove something not related to meals. It is important to us that you are safe and healthy throughout this behavior modification!" while leaving the score at full.
+- WHICH WAY WOULD A WORKING PLAN RUN FROM YOUR CONDITION? Read the CONDITION only — the clause saying when the consequence arrives — and answer `trigger_expects` from it alone.
+  Answer `gain` when the condition describes the student DOING WELL: meeting the goal, hitting the target, performing the wanted behaviour.
+  Answer `loss` when it describes them DOING BADLY: missing the goal, falling short, performing the unwanted behaviour.
+  Answer `none` when the sentence puts no condition on their behaviour at all.
+This is a reading of the condition, not a judgement of the plan.
+- WAS THE UNDESIRABLE THING CREATED BY THE PLAN, OR ALREADY THERE? A question about how the sentence is built, not about whether the plan is a wise one.
+  Answer `created` when the answer describes the student BRINGING A DEPRIVATION INTO BEING as part of the plan — putting something out of reach, going without something, locking or leaving something behind — which performing the behaviour then lifts.
+  Answer `relieved` when it describes the student being LET OFF something that would have been required of them anyway: a chore, an obligation, a task they would otherwise have had to do whether or not this plan existed.
+  The two are usually built differently. Creating a deprivation is stated in the POSITIVE — leaving something behind, keeping something locked, having only the one thing. Being let off is usually stated as a NEGATED REQUIREMENT — not having to do it, one less than usual, skipping it this time.
+  Answer `neither` when no undesirable thing figures on either side. Report what the sentence shows; this answer does not by itself decide anything.
+- WHAT IS BEING HELD BACK? Answer only about the thing the plan restricts, withholds, or puts out of reach — if it restricts nothing, this does not apply and either answer will do.
+  Answer `target_behavior` when the thing held back IS the student's own unwanted behaviour, or the activity that behaviour consists of. Holding back the very thing they are trying to do less of is a real plan.
+  Answer `other_thing` when what is held back is something else — an unrelated comfort, possession or activity that has nothing to do with the behaviour being changed.
+This is about WHICH thing, not about whether the plan works.
 - Award the two credit components separately: a valid contingency that names the wrong type keeps its first 2 points and loses the second (WRONG_TYPE). Something that is not a contingency at all loses all 4 (NOT_OC or NOT_EXTERNAL_STIMULUS — use whichever the grader would have written).
 
 ## The checklist to return (`checks`)
@@ -585,8 +599,13 @@ says the check reports an identity rather than a judgement.
 - `you_arrange_it` **GATE** — `met`/`absent`/`unclear`: criterion 5 (`stimulus_is_arranged`)
 - `observed_type` — one of `PR`/`NR`/`PP`/`NP`/`none` in `refers_to` (WHICH it is, not whether it is right): criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. Report what you see; which one the item wanted is stated by the rule that reads this, not by the order these are listed in
 - `targets_goal_behavior` — `met`/`absent`: is the plan aimed at INCREASING their wanted goal behavior, rather than reinforcing the unwanted one? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice
+- `restriction_authored` — one of `relieved`/`created`/`neither` in `refers_to` (WHICH it is, not whether it is right)
+- `trigger_expects` — one of `gain`/`loss`/`none` in `refers_to` (WHICH it is, not whether it is right)
+- `restricts` — one of `target_behavior`/`other_thing` in `refers_to` (WHICH it is, not whether it is right)
 - `phrased_directly` — `met`/`absent`: criterion 7 (the CLI calls this input `avoidance_frame`) — `absent` when the contingency is phrased by what is AVOIDED, `met` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
+
+DO NOT ANSWER `barrier_is_not_this_type`. The grader computes it from the checks above: it FAILS only when ALL of `restriction_authored` is `created`, `trigger_expects` is `gain`, `restricts` is `other_thing`, and passes otherwise — including when any of them is left unanswered. Answer each of those on its own terms and do not adjust one to suit another; the combination is arithmetic, not a judgement.
 
 DO NOT ANSWER `demonstrates_type`. The grader computes it: it holds when `observed_type` is `NR`, which is the answer THIS item asks for. Report what you actually see in `observed_type` — if it is a different one of the four, say so there and say which in your note; the deduction follows from the arithmetic, not from your judgement about whether it is right.
 

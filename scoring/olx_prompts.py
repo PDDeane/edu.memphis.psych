@@ -506,6 +506,27 @@ OMIT_DEDUCTION: dict[str, dict[str, str]] = {}
 # ---------------------------------------------------------------------------
 
 SCORING_DIVERGENCES = [
+    dict(items=["NR"],
+         enforcement=[("NR", "CHARGE-ONCE WEB ONLY")],
+         what="a three-way conjunction is invisible to the pairwise "
+                             "charge-once probe",
+         necessary=True,
+         why="`barrier_is_not_this_type` fails only when THREE readings coincide -- "
+             "`restriction_authored`=created, `trigger_expects`=gain, "
+             "`restricts`=other_thing -- and `onlyif` keeps it from charging on top "
+             "of `demonstrates_type`, so both sides charge 2 once. The web probe sees "
+             "that pair because it reads slot keys; the CLI probe discovers "
+             "charge-once by flipping answered fields in PAIRS, and no pair of flips "
+             "can satisfy a three-condition rule while the third field holds its "
+             "passing value. So the CLI never discovers the pair and the audit reports "
+             "CHARGE-ONCE WEB ONLY. "
+             "The behaviour is identical; what differs is what the instrument can "
+             "reach. The cadence items carry the same conjunction and raise no such "
+             "finding only because there it drives a GATE, and gates are discovered by "
+             "single flips. Widening the probe to triples would multiply its cost by "
+             "the number of inputs and is not worth it for one rule; this entry is "
+             "the cheaper honest option, and it will stop applying if the rule ever "
+             "becomes a gate."),
     dict(items=["Q1"], what="a no-penalty check compares the prose against the UTB choice",
          necessary=False,
          why="the web asks 'Which behavior will you work on?' as a closed ChoiceInput "

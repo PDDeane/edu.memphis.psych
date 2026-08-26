@@ -47,6 +47,14 @@ CONTINGENCY_GATE_ITEMS = ('DAY1', 'DAY2', 'WK2')
 # that could never fire, which is how this was found.
 POLARITY_GATE_ITEMS = ('DAY1', 'DAY2', 'WK2')
 
+# Items that answer the three barrier readings. NR joins the cadence three
+# because the same structure appears there -- a self-imposed screen lock the
+# behaviour lifts -- and the same decomposition catches it. What differs is the
+# CHARGE: on the cadence items a created barrier is not operant conditioning at
+# all and zeroes the item; on NR it is simply not NEGATIVE REINFORCEMENT, which
+# gold charges at 2. Same readings, different consequence, so a separate tuple.
+BARRIER_PICK_ITEMS = ('DAY1', 'DAY2', 'WK2', 'NR')
+
 
 # The four operant-conditioning types, as the course defines them.
 _OC_FRAME = (
@@ -63,6 +71,57 @@ _OC_FRAME = (
 # Criteria the graders applied on every example item but the dictionary never
 # states. These are the difference between 0 and 4 on the four example items —
 # five of the twenty students scored 0 on PR and NP for precisely these.
+_EXPECTS_RULE = (
+"WHICH WAY WOULD A WORKING PLAN RUN FROM YOUR CONDITION? Read the "
+               "CONDITION only — the clause saying when the consequence "
+               "arrives — and answer `trigger_expects` from it alone.\n"
+               "  Answer `gain` when the condition describes the student DOING "
+               "WELL: meeting the goal, hitting the target, performing the "
+               "wanted behaviour.\n"
+               "  Answer `loss` when it describes them DOING BADLY: missing the "
+               "goal, falling short, performing the unwanted behaviour.\n"
+               "  Answer `none` when the sentence puts no condition on their "
+               "behaviour at all.\n"
+               "This is a reading of the condition, not a judgement of the plan."
+)
+
+_AUTHORED_RULE = (
+"WAS THE UNDESIRABLE THING CREATED BY THE PLAN, OR ALREADY "
+               "THERE? A question about how the sentence is built, not about "
+               "whether the plan is a wise one.\n"
+               "  Answer `created` when the answer describes the student "
+               "BRINGING A DEPRIVATION INTO BEING as part of the plan — "
+               "putting something out of reach, going without something, "
+               "locking or leaving something behind — which performing the "
+               "behaviour then lifts.\n"
+               "  Answer `relieved` when it describes the student being LET "
+               "OFF something that would have been required of them anyway: a "
+               "chore, an obligation, a task they would otherwise have had to "
+               "do whether or not this plan existed.\n"
+               "  The two are usually built differently. Creating a "
+               "deprivation is stated in the POSITIVE — leaving something "
+               "behind, keeping something locked, having only the one thing. "
+               "Being let off is usually stated as a NEGATED REQUIREMENT — not "
+               "having to do it, one less than usual, skipping it this time.\n"
+               "  Answer `neither` when no undesirable thing figures on either "
+               "side. Report what the sentence shows; this answer does not by "
+               "itself decide anything."
+)
+
+_RESTRICTS_RULE = (
+"WHAT IS BEING HELD BACK? Answer only about the thing the plan "
+               "restricts, withholds, or puts out of reach — if it restricts "
+               "nothing, this does not apply and either answer will do.\n"
+               "  Answer `target_behavior` when the thing held back IS the "
+               "student's own unwanted behaviour, or the activity that "
+               "behaviour consists of. Holding back the very thing they are "
+               "trying to do less of is a real plan.\n"
+               "  Answer `other_thing` when what is held back is something "
+               "else — an unrelated comfort, possession or activity that has "
+               "nothing to do with the behaviour being changed.\n"
+               "This is about WHICH thing, not about whether the plan works."
+)
+
 _EXAMPLE_RULES = [
     "TEST 1 — IS THERE AN EXPLICIT CONTINGENCY? This is the primary test and it "
     "is about FORM. A creditable answer links the behaviour to the consequence "
@@ -168,7 +227,9 @@ def _example_item(item_id: str, label: str, type_name: str, abbrev: str, definit
             },
             {"code": "BLANK", "pts": 4.0, "text": "did not answer"},
         ],
-        "guidance": [_OC_FRAME] + _EXAMPLE_RULES + [
+        "guidance": [_OC_FRAME] + _EXAMPLE_RULES
+        + ([_EXPECTS_RULE, _AUTHORED_RULE, _RESTRICTS_RULE]
+           if item_id in BARRIER_PICK_ITEMS else []) + [
             "Award the two credit components separately: a valid contingency that names "
             "the wrong type keeps its first 2 points and loses the second (WRONG_TYPE). "
             "Something that is not a contingency at all loses all 4 (NOT_OC or "
@@ -537,18 +598,7 @@ def _example_use_item(
             # the barrier gate caught all three, plus DAY2/p14 that it could not.
             # Removed with `consequence_valence`, its only operand. What is left
             # is the one reading the barrier gate still needs.
-            *(["WHICH WAY WOULD A WORKING PLAN RUN FROM YOUR CONDITION? Read the "
-               "CONDITION only — the clause saying when the consequence "
-               "arrives — and answer `trigger_expects` from it alone.\n"
-               "  Answer `gain` when the condition describes the student DOING "
-               "WELL: meeting the goal, hitting the target, performing the "
-               "wanted behaviour.\n"
-               "  Answer `loss` when it describes them DOING BADLY: missing the "
-               "goal, falling short, performing the unwanted behaviour.\n"
-               "  Answer `none` when the sentence puts no condition on their "
-               "behaviour at all.\n"
-               "This is a reading of the condition, not a judgement of the plan."]
-              if item_id in POLARITY_GATE_ITEMS else []),
+            *([_EXPECTS_RULE] if item_id in BARRIER_PICK_ITEMS else []),
             # DIAGNOSTIC ONLY — this slot gates nothing and scores nothing.
             # The barrier cases (a self-imposed deprivation lifted by the
             # behaviour) are gold 0, and the legitimate escapes (an obligation
@@ -562,27 +612,7 @@ def _example_use_item(
             #
             # "until" was tested as a cheap marker and rejected: it appears in
             # all three barrier answers and in DAY2/p8, a gold 4, as "till".
-            *(["WAS THE UNDESIRABLE THING CREATED BY THE PLAN, OR ALREADY "
-               "THERE? A question about how the sentence is built, not about "
-               "whether the plan is a wise one.\n"
-               "  Answer `created` when the answer describes the student "
-               "BRINGING A DEPRIVATION INTO BEING as part of the plan — "
-               "putting something out of reach, going without something, "
-               "locking or leaving something behind — which performing the "
-               "behaviour then lifts.\n"
-               "  Answer `relieved` when it describes the student being LET "
-               "OFF something that would have been required of them anyway: a "
-               "chore, an obligation, a task they would otherwise have had to "
-               "do whether or not this plan existed.\n"
-               "  The two are usually built differently. Creating a "
-               "deprivation is stated in the POSITIVE — leaving something "
-               "behind, keeping something locked, having only the one thing. "
-               "Being let off is usually stated as a NEGATED REQUIREMENT — not "
-               "having to do it, one less than usual, skipping it this time.\n"
-               "  Answer `neither` when no undesirable thing figures on either "
-               "side. Report what the sentence shows; this answer does not by "
-               "itself decide anything."]
-              if item_id in POLARITY_GATE_ITEMS else []),
+            *([_AUTHORED_RULE] if item_id in BARRIER_PICK_ITEMS else []),
             # The exception gold draws, and the reason the barrier rule needs a
             # third condition rather than more prose. DAY1/p6 (gold 0) holds
             # back MUSIC to drive gym attendance; DAY1/p15 (gold 4) holds back
@@ -591,18 +621,7 @@ def _example_use_item(
             # gold splits them on WHAT is restricted. Gating the unwanted
             # behaviour itself is a real plan; gating something unrelated to it
             # is a setup that never consequates anything.
-            *(["WHAT IS BEING HELD BACK? Answer only about the thing the plan "
-               "restricts, withholds, or puts out of reach — if it restricts "
-               "nothing, this does not apply and either answer will do.\n"
-               "  Answer `target_behavior` when the thing held back IS the "
-               "student's own unwanted behaviour, or the activity that "
-               "behaviour consists of. Holding back the very thing they are "
-               "trying to do less of is a real plan.\n"
-               "  Answer `other_thing` when what is held back is something "
-               "else — an unrelated comfort, possession or activity that has "
-               "nothing to do with the behaviour being changed.\n"
-               "This is about WHICH thing, not about whether the plan works."]
-              if item_id in POLARITY_GATE_ITEMS else []),
+            *([_RESTRICTS_RULE] if item_id in BARRIER_PICK_ITEMS else []),
             # DAY1 only, and it reverses this project's standing decision on
             # avoidance framing FOR THIS ITEM. Here rather than in SLOT_NOTES so
             # both generators render the same words — the enforcement check calls
