@@ -1,0 +1,40 @@
+[
+ {
+  "after_sha": "d227fc42c4ef",
+  "artifact": "/home/pdeane/molly_data/out/probe_eqdef/DAY1.runs.json",
+  "cells": [
+   4,
+   5,
+   13,
+   15,
+   20
+  ],
+  "item": "DAY1",
+  "runs": 6
+ },
+ {
+  "after_sha": "8c68e07f866f",
+  "artifact": "/home/pdeane/molly_data/out/probe_eqdef/DAY2.runs.json",
+  "cells": [
+   1,
+   4,
+   8,
+   11
+  ],
+  "item": "DAY2",
+  "runs": 6
+ },
+ {
+  "after_sha": "df7b884d4b78",
+  "artifact": "/home/pdeane/molly_data/out/probe_eqdef/WK2.runs.json",
+  "cells": [
+   1,
+   4,
+   8,
+   11,
+   15
+  ],
+  "item": "WK2",
+  "runs": 6
+ }
+]
