@@ -671,6 +671,16 @@ the components that use the term, and moving the equivalence rule there from a
 slot note is what let it override the pointer rule. Early placement raises a rule
 to govern everything after it, which is the point and also the risk.
 
+**Share a definition only where the slot performs that operation.** Tested:
+`EQUIVALENCE_DEF` was extended from Q6 and WK1 to the other three cadence items,
+whose slots LOOK like matching -- `restricts`, `targets_own_behavior`. It cost a
+cell (50/54 to 49/54) and moved nothing it was aimed at. `targets_own_behavior`
+asks whether the plan aims at their target OR goal behaviour: a disjunction over
+two known referents, not a comparison of two phrases. ~878 chars of prompt that
+no criterion consults, and the volume tax lands regardless. Ask what the slot
+actually does before giving it a definition; "it mentions the same noun" is not
+the same as "it performs the same operation".
+
 **State a matching rule ONCE.** `olx_prompts.EQUIVALENCE_DEF` is now shared:
 Q6 asking whether a box matches a listed entry and WK1 asking whether a trigger
 names the activity the student chose are one operation. Two definitions of it
