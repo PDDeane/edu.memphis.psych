@@ -1436,11 +1436,7 @@ EQUIVALENCE_DEF = (
     "unpleasant, or both pleasant, or that name DIFFERENT properties, are not "
     "antonyms and do not establish equivalence: being tired and being cheerful "
     "are two properties, not two ends of one. Ask what single property is being "
-    "measured before you call two words opposites.\n"
-    "DEGREE AND DETAIL ARE NOT DIFFERENCES OF KIND. The same thing named with a "
-    "different number, frequency, duration or extra particular attached is still "
-    "that thing. Compare WHAT IS NAMED, not how much of it there is or how "
-    "precisely it is specified."
+    "measured before you call two words opposites."
 )
 
 
@@ -1451,6 +1447,10 @@ MATCH_DEF = {
             "activities, however close the connection between them. An activity "
             "that another might cause, accompany, amount to, or be evidence of "
             "is a SECOND thing, not a point on the same scale.\n"
+            "DEGREE AND DETAIL ARE NOT DIFFERENCES OF ACTIVITY. The same doing "
+            "with a different number, frequency, duration or extra particular "
+            "attached is still that doing. Compare WHAT IS BEING DONE, not how "
+            "much of it is being done or how precisely it is specified.\n"
             "A phrase with NO CONTENT OF ITS OWN -- a pointer, such as \"my "
             "goal\" or \"my target this week\" -- is not compared by this test "
             "at all. Classify it by what it points at, as the check itself "
