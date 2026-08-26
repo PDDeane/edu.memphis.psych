@@ -674,15 +674,25 @@ the components that use the term, and moving the equivalence rule there from a
 slot note is what let it override the pointer rule. Early placement raises a rule
 to govern everything after it, which is the point and also the risk.
 
-**Share a definition only where the slot performs that operation.** Tested:
-`EQUIVALENCE_DEF` was extended from Q6 and WK1 to the other three cadence items,
-whose slots LOOK like matching -- `restricts`, `targets_own_behavior`. It cost a
-cell (50/54 to 49/54) and moved nothing it was aimed at. `targets_own_behavior`
-asks whether the plan aims at their target OR goal behaviour: a disjunction over
-two known referents, not a comparison of two phrases. ~878 chars of prompt that
-no criterion consults, and the volume tax lands regardless. Ask what the slot
-actually does before giving it a definition; "it mentions the same noun" is not
-the same as "it performs the same operation".
+**A verdict now REQUIRES probe evidence, in code.** `compare_runs` has always
+printed PROBE REQUIRED and exited 2 on a moved cell, and that was not enough: a
+1-cell median move across three items was read as a loss and reverted without a
+probe, because the tool printed a warning while the READER drew the conclusion.
+Reverting felt like the cautious option rather than a conclusion needing support.
+
+So the conclusion is now the tool's. `compare_runs` ends with a VERDICT line,
+withheld unless every moved cell has a >=6-run probe of THAT EXACT PROMPT SHA on
+file in `PROBED.json` -- a probe of a different prompt proves nothing about this
+one. The withheld banner says KEEP AND REVERT ARE BOTH UNSUPPORTED, because the
+failure was not choosing wrongly between them but believing one of them was the
+safe default. File a probe with `compare_runs.py --record-probe ITEM
+OUT/<probe>/ITEM.runs.json`; `measured.py --preflight` lists unprobed movers as
+step 7, beside unread fixtures and unreconciled gold.
+
+What it caught immediately: of eight moved cells across DAY1/DAY2/WK2, six came
+back 4/6 to 6/6 -- noise -- one improved from 0/3 to 4/6, and the only genuinely
+unstable one had measured 3/6 under the PREVIOUS configuration too. Two
+"regressions" of 3/3 to 2/3 were 6/6 on probing. Nothing had actually regressed.
 
 **State a matching rule ONCE.** `olx_prompts.EQUIVALENCE_DEF` is now shared:
 Q6 asking whether a box matches a listed entry and WK1 asking whether a trigger

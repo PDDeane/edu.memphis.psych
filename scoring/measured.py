@@ -571,7 +571,34 @@ def preflight() -> dict[str, list[str]]:
             prose_claims(),
         "6. leakage — rule blocks echoing the cohort, with no verdict filed":
             _leakage_pending(),
+        "7. probes — items whose recorded prompt has unprobed moved cells":
+            _unprobed_movers(),
     }
+
+
+def _unprobed_movers() -> list[str]:
+    """Items measured at a prompt whose moved cells were never probed.
+
+    `compare_runs` withholds its verdict on these, so they are decisions that
+    cannot honestly be made yet — neither keeping a change nor reverting it. They
+    belong on the same list as an unread fixture for the same reason: work done
+    on top of one is work done on a number nobody has established.
+    """
+    try:
+        import compare_runs as CR
+    except Exception:
+        return []
+    out = []
+    for item, rec in (load().get("items", {}) or {}).items():
+        pending = rec.get("unprobed_movers") or []
+        if not pending:
+            continue
+        have = CR.probed_cells(item, rec.get("prompt_sha", ""))
+        left = [p for p in pending if p not in have]
+        if left:
+            out.append(f"{item}: moved cell(s) {', '.join('p%s' % p for p in left)} "
+                       f"never probed at prompt {rec.get('prompt_sha')}")
+    return out
 
 
 def _leakage_pending() -> list[str]:
