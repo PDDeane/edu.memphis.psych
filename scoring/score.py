@@ -32,7 +32,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from backends import BackendError, make_backend
 from handouts import config, find_submissions
-from rubric_h2 import CONTINGENCY_GATE_ITEMS, POLARITY_GATE_ITEMS
+from rubric_h2 import (BARRIER_PICK_ITEMS, CONTINGENCY_GATE_ITEMS,
+                       POLARITY_GATE_ITEMS)
 from docx_text import extract_media, graph_evidence
 from segment import repair_orphans, segment, utb_hint
 
@@ -148,6 +149,16 @@ def build_schema(item: dict) -> dict:
             },
             "avoidance_frame": {"type": "boolean"},
         }
+        # The three barrier readings, on whichever items answer them. Hoisted
+        # OUT of the cadence branch: NR needs the same readings, and leaving them
+        # inside meant widening the selector changed nothing.
+        if item.get("id") in BARRIER_PICK_ITEMS:
+            props["restriction_authored"] = {
+                "type": "string", "enum": ["created", "relieved", "neither"]}
+            props["trigger_expects"] = {
+                "type": "string", "enum": ["gain", "loss", "none"]}
+            props["restricts"] = {
+                "type": "string", "enum": ["target_behavior", "other_thing"]}
         if item.get("cadence"):
             props["named_type"] = {
                 "type": "string",
@@ -173,16 +184,6 @@ def build_schema(item: dict) -> dict:
             # once, which is what the composite clause did and why it never
             # fired. Mirrors the web's pick(valence) + pick(valence_or_none)
             # and its `equals` rule, lenient on `none`.
-            # Diagnostic: answered, reported, never scored or gated. Mirrors
-            # the web's plain pick slot, which contributes no points either.
-            if item.get("id") in POLARITY_GATE_ITEMS:
-                props["restriction_authored"] = {
-                    "type": "string", "enum": ["created", "relieved", "neither"]}
-            if item.get("id") in POLARITY_GATE_ITEMS:
-                props["trigger_expects"] = {
-                    "type": "string", "enum": ["gain", "loss", "none"]}
-                props["restricts"] = {
-                    "type": "string", "enum": ["target_behavior", "other_thing"]}
             if item.get("id") == "WK1":
                 props["trigger_behavior"] = {
                     "type": "string", "enum": ["utb", "wgb", "other"]}
@@ -631,6 +632,27 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
             add("LINK_NOT_ASSERTED")
     else:
         expected = item.get("expected_type")
+        # The cadence barrier conjunction, imported to NR because the same
+        # structure appears there -- a self-imposed screen lock the behaviour
+        # lifts -- and the same three independent readings catch it. What changes
+        # is the CHARGE: on the cadence items a created barrier is not operant
+        # conditioning and zeroes the item; here it is simply not NEGATIVE
+        # REINFORCEMENT, which requires removing something UNDESIRABLE, and gold
+        # charges 2. NR/p8 is spared because its yard work pre-exists the plan,
+        # so `restriction_authored` reads `relieved` rather than `created`.
+        if item.get("id") in BARRIER_PICK_ITEMS:
+            conds = (("restriction_authored", "created"),
+                     ("trigger_expects", "gain"),
+                     ("restricts", "other_thing"))
+            hit = all((a.get(k) or "") == v for k, v in conds)
+            checks.append({"what": "barrier_is_not_this_type", "met": not hit,
+                           "evidence": ", ".join(
+                               f"{k}={a.get(k) or '?'}" for k, _ in conds)})
+            if hit and observed == expected:
+                add("WRONG_TYPE", "The plan sets up a restriction that performing "
+                                  "the behaviour removes; that is not "
+                                  f"{expected}, which needs an undesirable thing "
+                                  "taken away.")
         checks.append({"what": f"is_{str(expected).lower()}", "met": observed == expected, "evidence": f"observed {observed}"})
         aimed = a.get("targets_intended_behavior", True)
         checks.append({"what": "targets_intended_behavior", "met": bool(aimed), "evidence": ""})
