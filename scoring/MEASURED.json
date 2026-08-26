@@ -300,27 +300,27 @@
     "DAY1": {
       "cells": {
         "1": 0,
-        "10": 3,
-        "11": 3,
-        "12": 3,
-        "13": 3,
-        "14": 3,
-        "15": 2,
-        "16": 3,
-        "17": 3,
-        "18": 3,
-        "19": 3,
-        "20": 2,
-        "4": 3,
-        "5": 3,
-        "6": 3,
-        "7": 3,
-        "8": 3,
-        "9": 3
+        "10": 6,
+        "11": 4,
+        "12": 6,
+        "13": 6,
+        "14": 6,
+        "15": 5,
+        "16": 6,
+        "17": 6,
+        "18": 6,
+        "19": 6,
+        "20": 6,
+        "4": 6,
+        "5": 6,
+        "6": 6,
+        "7": 6,
+        "8": 6,
+        "9": 6
       },
       "denominator": 18,
       "excluded_cells": {
-        "2": 3,
+        "2": 6,
         "3": 0
       },
       "exclusions": [
@@ -328,54 +328,60 @@
         3
       ],
       "numerator": 17,
-      "out": "cadence_eqdef",
+      "out": "cadence_eq6",
       "prompt_sha": "d227fc42c4ef",
       "run_totals": [
-        15,
+        16,
+        16,
+        16,
+        17,
         17,
         17
       ],
-      "runs": 3
+      "runs": 6
     },
     "DAY2": {
       "cells": {
-        "1": 3,
-        "10": 3,
-        "11": 2,
-        "12": 3,
-        "13": 3,
-        "14": 3,
-        "15": 3,
-        "16": 3,
-        "17": 3,
-        "18": 3,
-        "19": 3,
-        "20": 3,
-        "4": 3,
-        "5": 3,
-        "6": 3,
+        "1": 6,
+        "10": 6,
+        "11": 6,
+        "12": 5,
+        "13": 6,
+        "14": 6,
+        "15": 6,
+        "16": 6,
+        "17": 6,
+        "18": 6,
+        "19": 6,
+        "20": 6,
+        "4": 6,
+        "5": 6,
+        "6": 6,
         "7": 0,
-        "8": 1,
-        "9": 3
+        "8": 4,
+        "9": 5
       },
       "denominator": 18,
       "excluded_cells": {
-        "2": 3,
-        "3": 3
+        "2": 6,
+        "3": 6
       },
       "exclusions": [
         2,
         3
       ],
-      "numerator": 16,
-      "out": "cadence_eqdef",
+      "numerator": 17,
+      "out": "cadence_eq6",
       "prompt_sha": "8c68e07f866f",
       "run_totals": [
         15,
         16,
+        16,
+        17,
+        17,
         17
       ],
-      "runs": 3
+      "runs": 6
     },
     "NP": {
       "cells": {
@@ -949,43 +955,46 @@
     },
     "WK2": {
       "cells": {
-        "1": 3,
-        "10": 3,
-        "11": 2,
-        "12": 3,
-        "13": 3,
-        "14": 3,
-        "15": 1,
-        "16": 3,
-        "17": 3,
-        "18": 3,
-        "19": 3,
-        "20": 3,
-        "4": 3,
-        "5": 3,
-        "6": 3,
-        "7": 3,
-        "8": 1,
-        "9": 3
+        "1": 6,
+        "10": 6,
+        "11": 6,
+        "12": 6,
+        "13": 6,
+        "14": 6,
+        "15": 3,
+        "16": 6,
+        "17": 6,
+        "18": 6,
+        "19": 6,
+        "20": 6,
+        "4": 6,
+        "5": 6,
+        "6": 6,
+        "7": 6,
+        "8": 5,
+        "9": 6
       },
       "denominator": 18,
       "excluded_cells": {
-        "2": 3,
+        "2": 6,
         "3": 0
       },
       "exclusions": [
         2,
         3
       ],
-      "numerator": 16,
-      "out": "cadence_eqdef",
+      "numerator": 17,
+      "out": "cadence_eq6",
       "prompt_sha": "df7b884d4b78",
       "run_totals": [
-        16,
-        16,
-        17
+        17,
+        17,
+        17,
+        17,
+        18,
+        18
       ],
-      "runs": 3
+      "runs": 6
     }
   },
   "note": "Per item: the prompt SHA that was measured and the exclusion set it was measured over. Written by `measured.py --record`, never by hand. Checked by enforcement.check_items_are_measured_as_configured. An entry may declare `pending` with a reason; it may not be absent."
