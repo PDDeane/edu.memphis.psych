@@ -4,14 +4,74 @@
   "note": "'plan work' is from our own 'not whether the plan will work'; 'week make' from 'running to the end of the week does not make a daily trigger weekly'. Both are ordinary word pairs in prose we wrote, colliding with p8's answers on Q3 and PP \u2014 different items from the three this block governs. No borrowed content; p8's cadence answers share nothing with it.",
   "verdict": "coincidence"
  },
+ "1644f5c45fc4": {
+  "label": "1c credit.desc :: The x-axis is labelled \u2014 an AXIS TITLE, not the tick",
+  "note": "'{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} and the Sunday/Monday tick values are the handout's own axis labels.",
+  "verdict": "vocabulary"
+ },
+ "208986e13a21": {
+  "label": "Q5 guidance :: W_ONLY_ONE also covers two statements that collapse ",
+  "note": "effort/escaping is negative-reinforcement vocabulary the item is about.",
+  "verdict": "vocabulary"
+ },
+ "317a0e842d88": {
+  "label": "DAY2 guidance :: CADENCE, TWO THINGS THAT DO NOT MAKE AN ANSWER WEEKL",
+  "note": "'five sessions a week' appears in no response (phrase-checked); wait is the block's own cadence test.",
+  "verdict": "coincidence"
+ },
+ "345ea55418a2": {
+  "label": "SLOT_NOTES 1a:baseline_week",
+  "note": "'in {{corpus:1a/p6:response:7:27:sha=ffb845e9e43e}} plan I was still up past midnight most nights' is invented -- 'past midnight' appears in no response. beginning/rate/starts are the note's own timing vocabulary.",
+  "verdict": "coincidence"
+ },
+ "3790507d6152": {
+  "label": "PR guidance :: WHICH WAY, AND IS IT WANTED?",
+  "note": "adds/enjoy/money/people are ordinary English in the move rule's own prose -- 'the thing your example adds or takes away', 'their time, their effort, their money, their comfort', 'not whether people enjoy such things'. No example is borrowed; the rule names no concrete object at all, by construction. Surfaced only because the block stopped being shared: while the same text sat in PR/NR/PP/NP, each copy's words counted as appearing 'elsewhere in our own prose' and the check suppressed them. Scoping it to PR alone unmasked them.",
+  "verdict": "coincidence"
+ },
+ "38deb85ad8b5": {
+  "label": "Q5 guidance :: The answer is about FUNCTION \u2014 what the student gain",
+  "note": "function/gains is the operant-conditioning frame's own vocabulary.",
+  "verdict": "vocabulary"
+ },
+ "57b63cedf776": {
+  "label": "Q4b guidance :: ACCEPT \u2014 and accept broadly, once that test is met. ",
+  "note": "Examples invented: 'energy drinks', 'roommates', 'reorganising my desk', 'lie there wishing I had started earlier', 'head keeps telling me' are all absent from the cohort (phrase-checked). Flagged words are the block's own category prose (coping, thoughts, consumed) plus ordinary English.",
+  "verdict": "coincidence"
+ },
  "5bdf88689fd8": {
   "label": "SLOT_NOTES targets_unwanted_behavior",
   "note": "targets_unwanted_behavior states the rubric's own terms of art ('unwanted target behavior'). Domain vocabulary, no example quoted, no participant describable.",
   "verdict": "vocabulary"
  },
+ "5d2c8deaf702": {
+  "label": "1a guidance :: THE BAR IS THE ARC, NOT A SENTENCE COUNT. This item ",
+  "note": "across/average/pair are graph-reading vocabulary the item cannot avoid; the handout asks for a baseline average.",
+  "verdict": "vocabulary"
+ },
+ "7331ef355578": {
+  "label": "SLOT_NOTES matches_chosen_type",
+  "note": "compared/established are the note's own prose about criteria 6 and 8.",
+  "verdict": "coincidence"
+ },
+ "739f52c67049": {
+  "label": "Q4c guidance :: ACCEPT downstream effects of any kind, including beh",
+  "note": "ends/turning are ordinary English in prose about downstream effects.",
+  "verdict": "coincidence"
+ },
  "7b86061df9be": {
   "label": "Q6 guidance :: HOW TO READ A 4a OR 4c ENTRY WHEN YOU MATCH AGAINST ",
   "note": "'leads unwanted' and 'watch also' come from our own sentences ('what it leads to', 'the case to watch for. It is also'), and land on two DIFFERENT items of p14's. The block's examples are schematic placeholders (X, Y), which is the right way to write them.",
+  "verdict": "coincidence"
+ },
+ "81a9f56bd0d8": {
+  "label": "Q1 credit.desc :: HOW MANY statements name a BENEFIT the student expec",
+  "note": "Credit description from the instructor's rubric; hard/wish are its wording about what does not count as a benefit.",
+  "verdict": "vocabulary"
+ },
+ "84ddae7e091d": {
+  "label": "SLOT_NOTES Q2:wgb_inverts_utb",
+  "note": "catch/general are ordinary English in prose about gate interaction.",
   "verdict": "coincidence"
  },
  "84fce468760b": {
@@ -19,14 +79,59 @@
   "note": "names_behavior lists the FORMS OF REFERENCE a student may use to point at their own behaviour ('my goal', 'my target behavior'). Those phrases are the handout's own vocabulary, printed on the form the students filled in; both sides must use them and no cell is being described.",
   "verdict": "vocabulary"
  },
+ "941ac2844d8a": {
+  "label": "WK1 guidance :: WHO IS NAMED AS DOING IT? This is a question about t",
+  "note": "'The extra laps will keep piling up' is invented; bigger and hand ('hand over') are entries in a verb list.",
+  "verdict": "coincidence"
+ },
+ "947d7ac5907e": {
+  "label": "Q4a guidance :: Where the link is genuinely opaque rather than merel",
+  "note": "almost/lead are ordinary English in the opacity test.",
+  "verdict": "coincidence"
+ },
+ "a5760d6bd538": {
+  "label": "DAY1 guidance :: AVOIDANCE FRAMING TAKES THE WHOLE ITEM HERE. An answ",
+  "note": "'practice session' and 'the fine' appear in no response (phrase-checked); both were written to replace an earlier lift. skip/face/intention are ordinary English.",
+  "verdict": "coincidence"
+ },
  "bcb6d6c2d294": {
   "label": "SLOT_NOTES reasons_substantial",
   "note": "Our example opens 'I keep doing it because', which is the natural frame for answering 'why do you keep doing it?' and is also how Q5/p18 opens. The CONTENT differs entirely \u2014 ours names self-neglect as a thin answer, p18 names dopamine and gratification, which is substantive. Frame shared, substance not.",
   "verdict": "coincidence"
  },
+ "c42b6de7aa7b": {
+  "label": "Q4b guidance :: THE TEST IS THE DICTIONARY'S, and it is one question",
+  "note": "'instead of drinking water, I am drinking soda' is the INSTRUMENT'S own example -- B_NOT_ACTIVE's description in the instructor's rubric (molly_scoring/scorer/rubric_h1.py); the block attributes it as the dictionary's.",
+  "verdict": "vocabulary"
+ },
+ "c43428af95b8": {
+  "label": "Q4b guidance :: REJECT when the entry is not something the student d",
+  "note": "'yawning through my morning classes' is invented -- 'morning class' appears in no response. caused is the block's own causal vocabulary.",
+  "verdict": "coincidence"
+ },
+ "cf14a0964fa2": {
+  "label": "1c guidance :: The bundle marks each piece of evidence as `student`",
+  "note": "image/parts/piece describe the evidence bundle's own structure.",
+  "verdict": "coincidence"
+ },
+ "d24c78cd36d8": {
+  "label": "SLOT_NOTES 1a:distinguishes_periods",
+  "note": "entire/span are the note's own words for an aggregate verdict.",
+  "verdict": "coincidence"
+ },
  "d5e736ab6279": {
   "label": "Q4b credit.rule :: `{fail}` in two cases. (1) The entry names a CONSEQU",
   "note": "'because tired' and 'goal sleep' are ordinary word pairs falling out of our own prose about states and goals; the block's worked examples are invented (fruit/chips as a rival choice), and p13 shares no content with it.",
+  "verdict": "coincidence"
+ },
+ "d5fb35244bc3": {
+  "label": "Q3 credit.desc :: Names something the student will DO, or a concrete c",
+  "note": "Credit description carried over from the instructor's rubric (molly_scoring/scorer). equipment/plain/possible are its wording, not a student's.",
+  "verdict": "vocabulary"
+ },
+ "d8af2b73b674": {
+  "label": "Q4a guidance :: REJECT decisively in three cases. (a) The example is",
+  "note": "pain/difficulty are this block's category words for after-effects, not lifted objects.",
   "verdict": "coincidence"
  },
  "e6b7275e65f1": {
@@ -37,6 +142,26 @@
  "ed18fb7ff9be": {
   "label": "WK2 guidance :: IS A WORKABLE CONTINGENCY STATED? Look for four thin",
   "note": "'help reach' comes from our own invented bare-intent example ('this should {{corpus:NR/p12:nr:123:139:sha=d881672437f8}} goal'); 'meeting goal' is clause (c)'s 'meeting the goal', unavoidable in a rule about meeting a goal. Both land on p12's HANDOUT 3 answers, not their cadence answers, which concern fruit and Starbucks and share nothing with this rule. No borrowed content.",
+  "verdict": "coincidence"
+ },
+ "f6b0c5bfdb86": {
+  "label": "SLOT_NOTES 1a:week_2",
+  "note": "last/middle are ordinary English for positions in a week sequence.",
+  "verdict": "coincidence"
+ },
+ "f7da4a99f560": {
+  "label": "1c guidance :: FIRST DECIDE WHOSE GRAPH IT IS. The blank handout sh",
+  "note": "'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=R27-0-27}} is the blank handout's shipped worked example, named as such; 'days of the week' is its axis title, which is why six students use it.",
+  "verdict": "vocabulary"
+ },
+ "fa0efe6f1d88": {
+  "label": "SLOT_NOTES trigger_behavior",
+  "note": "'walking the dog' and 'tidying the kitchen' are invented (phrase-checked). cutting/used/terms are the note's own prose about the wgb-utb distinction.",
+  "verdict": "coincidence"
+ },
+ "fb6af195c066": {
+  "label": "Q5 guidance :: CREDIT ON FORM, NOT ON QUALITY. This is the most for",
+  "note": "easier/spend/essentially are ordinary English in prose about scoring on form.",
   "verdict": "coincidence"
  }
 }

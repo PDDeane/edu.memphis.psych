@@ -1075,7 +1075,13 @@ def score_oc(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     observed = answer_of(checks, "observed_type")
     aimed_key = "targets_goal_behavior" if "targets_goal_behavior" in {s["key"] for s in spec["slots"]} \
         else "targets_unwanted_behavior"
-    if observed != spec["expected_type"]:
+    # `demonstrates_type` is now derived from `stimulus_move`, so read the
+    # SATISFACTION of the derived check rather than comparing a classification.
+    # Asking satisfied_map keeps this correct whichever primitive computes it.
+    if "demonstrates_type" in {s["key"] for s in spec["slots"]}:
+        if not yes("demonstrates_type"):
+            return max(0.0, item["max"] - codes["WRONG_TYPE"]), 1
+    elif observed != spec["expected_type"]:
         return max(0.0, item["max"] - codes["WRONG_TYPE"]), 1
     if not yes(aimed_key):
         return max(0.0, item["max"] - codes["WRONG_TYPE"]), 1
