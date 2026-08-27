@@ -9,6 +9,11 @@
   "note": "'Days of the Week' and the Sunday/Monday tick values are the handout's own axis labels.",
   "verdict": "vocabulary"
  },
+ "16afd3c3e4ef": {
+  "label": "Q3 credit.desc :: action_oriented, narrowed so time alone does not count",
+  "note": "equipment and plain both stood in this desc BEFORE the narrowing -- 'access, equipment, or time they already have' and 'a plain statement of what they will physically perform' -- so neither is new prose and neither is borrowed; the verdict lapsed only because editing the block changed its sha, which is the mechanism working as designed. The words the check DID catch in the new prose were real and were removed: 'free' and 'arrange' echoed p14's 'my early mornings are free' and p11's 'I'll arrange times', both CONTROL cells for this very change, and 'resting' echoed p11 as well. Rewritten to 'hours they could give to it, or expect to clear' and 'an answer that leans entirely on'.",
+  "verdict": "coincidence"
+ },
  "208986e13a21": {
   "label": "Q5 guidance :: W_ONLY_ONE also covers two statements that collapse ",
   "note": "effort/escaping is negative-reinforcement vocabulary the item is about.",
