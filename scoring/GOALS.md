@@ -118,7 +118,7 @@ The order below is by diagnosed tractability, not by score. A deterministic miss
 with a named failing check is worth more than a larger gap of unknown shape,
 because it can be fixed or declared; a wobbling cell cannot be either.
 
-- [ ] 1. **Q3's `action` criterion.** The clearest target on the board. Five
+- [x] 1. **Q3's `action` criterion.** The clearest target on the board. Five
       misses, ONE cause: gold charges two criteria and we charge one, and the
       criterion we skip is `action` every time. DONE, +2: the desc credited
       "access, equipment, or TIME they already have", and gold never credits
@@ -133,6 +133,10 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       so neither the time clause nor "names no doing of its own" reaches it;
       p10 is ~3/6 on `measurable`, where it names tracking methods but no
       medium; p13 over-charges `realistic` on an answer gold passed silently.
+      CLOSED on the measured +2, committed. The criterion this subgoal named is
+      fixed; the three residual cells are NOT settled and do not stay buried in a
+      closed entry -- they are subgoals 9, 10 and 11, one per criterion, because
+      each needs its own readout and they must not be attempted as one change.
   Before ANY sweep: the structural checks now run automatically at the top of
   `agreement.py`, and a HARNESS fix must be shown to change something with
   `before_after.py '<snippet>'` -- an identical result is not evidence. Section 2
@@ -216,6 +220,143 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       two reasons under the new rule and one harm under the old, and gold counts
       it once. p6 and p9 are the paired test, and Q2's rule already carries a
       structural test of the right shape to borrow.
+      v2 MEASURED AND REVERTED. Reading all twenty responses found the concept
+      both earlier rules lacked -- gold treats a harm and its INVERSE BENEFIT as
+      one reason -- and a paper check reproduced gold on all twenty cells. Swept:
+      median fell to 16 from v1's 17, mean 15.7, spread 4 cells. Reverted to v1
+      byte-exactly; the OLX diff against the committed state is empty and Q1
+      re-records at the same prompt sha the v1 measurement used.
+      THE FINDING SURVIVES. p9 went 1/6 -> 3/6 -> 6/6 across v0/v1/v2 as the
+      mirror rule was stated more explicitly: a dose-response on the targeted
+      cell. What failed was the wording -- every new miss over-credited by one,
+      four cells that had never missed began to, and v2 ran +95% over v0. Too
+      long to apply consistently, not wrong.
+      TWO LESSONS: a paper check establishes CONTENT and can say nothing about
+      whether a model executes 759 characters the same way twice; and a per-cell
+      decision rule is not enough here -- the one agreed in advance did not fire
+      because p14 held and p9 recovered, while the item got worse. Median clause
+      next time.
+      v3 PROPOSED, in the draft: the mirror rule at 508 characters, 106 SHORTER
+      than the live v1, by replacing v1's duplicated exclusion list with a pointer
+      to the two counts above -- which v0 proved works, since p9's old wrong
+      answer was that rule being obeyed. It reintroduces a dependency on the two
+      counters deliberately: v0 made the SCORE depend on the harm/benefit split
+      the model cannot make, while v3 makes only the EXCLUSIONS depend on their
+      definitions, and those are identical for both kinds. Must reach a median of
+      18 to be kept; at 17 it merely ties v1, and below that stop rewriting this
+      paragraph.
+      v3 MEASURED AND REVERTED. Median fell to 16, runs [17,15,17,14,16,16],
+      mean 15.8. Reverted byte-exactly; the OLX diff against the committed state
+      is empty and Q1 re-records at the same prompt sha v1 used.
+      THE TRADE-OFF IS NOW PRICED, which is what three attempts bought. p9 is
+      3/6 at v1, 6/6 at v2, 3/6 again at v3 -- the CONCEPT was identical in v2 and
+      v3, only the scaffolding differed, so the compressed form does not reach the
+      cell. Stating the mirror rule strongly enough to fix p9 costs the volume
+      that damages p7, p16 and p17; stating it briefly enough to protect them
+      fails to fix p9. Not a wording problem.
+      SECOND FINDING: the pointer costs exclusion strength. p16 ran 4/6 with v1's
+      inline exclusion list, 3/6 with v2's, 1/6 with v3's pointer. v0's pointer
+      worked for the COUNTING rule and does not work for the exclusions.
+      This subgoal is now at its decision point, and by its own pre-agreed rule
+      the paragraph should stop being rewritten. The ONE untried idea is the
+      NARROW form -- merge only when both halves name the SAME OBJECT -- which is
+      mechanical enough to state in one clause and is the only form that fixes p9
+      while explicitly forbidding p7's merge. Every pair gold merges in Q1 has
+      that property; every pair it counts twice names different objects. Taking it
+      would be a deliberate exception to the stop rule, with the inline exclusion
+      list restored. ASK before spending the 120 calls.
+- [ ] 7. **Q4b's per-cell instability, which the item median hides.** Two cells
+      went from six clean runs to intermittent across two sweeps of IDENTICAL
+      prompt text: p17 6/6 -> 4/6, failing `modify_stated`, and p19 6/6 -> 3/6,
+      failing `behavior_1`. Neither check had ever failed before. The item's
+      median held at 16/19 throughout, so nothing at item level shows it -- and
+      the `onlyif` fix cannot be the cause, because it can only ever RAISE a
+      score by withholding a charge, and `modify_stated` came back absent in just
+      2 of 120 observations with the guarded check passing in both.
+      So this is not a mis-rule with a named failing check, which is the shape
+      this project knows how to fix. It is a borderline judgement resolved
+      differently on each pass, and p19's clean 3-of-6 alternation is the
+      signature. Start with `measured.py --criterion Q4b behavior_1` and read the
+      CREDITED rows: the question is where the line falls, not why two cells
+      fail. Do not change prose before that readout -- an item at 16/19 with two
+      unstable cells can be made worse by a rule that looks tighter.
+- [ ] 8. **A count slot outside the rubric's `counts` records nothing.**
+      `harms_listed` and `benefits_listed` store as `""` in every artifact,
+      because `expand_counted` writes a verdict only for keys the RUBRIC names in
+      `counts`, and `verdict_of` reads a count answer from the wrong field.
+      Their values survive only in `evidence`. That matters beyond tidiness:
+      those two are the operands of the rule subgoal 6 is revising, so the whole
+      diagnosis of Q1/p9, p10 and p14 had to be reconstructed from prose
+      fragments in `evidence` rather than read from `checks`.
+      Same shape as the count-recorded-as-blank bug fixed last session, which
+      cost 140 calls and a wrong diagnosis stated out loud: reading the artifact
+      says the check was never answered when in fact it was. Land it with a
+      before/after (`before_after.py`) and a selftest case, since a recording fix
+      that is not exercised is indistinguishable from one that does nothing.
+      PLANNED: `drafts/subgoal8_recording_plan.md`, four steps, no model calls.
+      Scoping corrected the subgoal in both directions. THIRTY-FOUR slots on 13
+      items carry an answer `verdict_of` cannot read, not two -- but 30 are PICKS
+      and the `answers` field already holds their values, so only FOUR are truly
+      lost: Q1's `harms_listed`/`benefits_listed` and Q2's
+      `reasons_listed`/`reasons_failing`.
+      A THIRD DEFECT found while scoping, and the reason step 4 exists: the
+      per-item fingerprint hashes 9 functions for Q1 and hashes NEITHER
+      `verdict_of`, `answer_of` nor `is_satisfied`, all three on the scoring path
+      and reached from `satisfied_map` and `apply_computed`, which are hashed.
+      Hashing a function does not hash its callees, so editing any of the three
+      moves scores while every item still reads current. It is also directly in
+      the way: the obvious fix here is to teach `answer_of` about `count`, and
+      that edit would be invisible to the guard -- so the fix goes at the
+      RECORDING site instead, and "no fingerprint moved" becomes the test that
+      it stayed there.
+- [ ] 9. **Q3/p19: actionability grounded in measurability.** The cell names a
+      doing AND rests its actionability on being able to measure it, so neither
+      lever that fixed p8 and p16 reaches it -- not the time clause, and not
+      "names no doing of its own". Gold docks it. This is the residual cell most
+      likely to be a genuine boundary question rather than a wording gap: the
+      answer does the thing the criterion asks for and justifies it the wrong
+      way. Read `--criterion Q3 action_oriented` credited rows FIRST; a rule that
+      rejects measurability-as-justification risks p9, p14 and p18, all credited
+      on access alone.
+- [ ] 10. **Q3/p10: `measurable` at ~3/6.** Names tracking methods but no medium
+      -- what it would be recorded in. Unstable rather than stably wrong, so it
+      is the weakest of the three: six runs of the criterion before any prose
+      change, since a ~3/6 cell can be moved by noise and read as a fix.
+- [ ] 11. **Q3/p13: `realistic` over-charged.** We charge where gold passed the
+      answer silently, so unlike 9 and 10 the defect is OURS being too strict,
+      not too lenient. Gold's silence is the evidence, which makes this the one
+      of the three where the credited rows matter most -- there is no gold note
+      to read, only the absence of a deduction.
+- [ ] 12. **Q1's exclusion failures: p6, p10, p16.** Not a counting problem, and
+      three rewrites of the counting rule have now been blamed for it. The model
+      credits things the rubric already excludes: background about how the
+      behaviour came about (p16 counts "used to exercise due to sports"), a
+      restatement of the goal (p10 counts "{{corpus:Q1/p10:response:117:146:sha=be46148ce74e}}
+      active"), and a CONDITIONAL goal restatement (p6 counts "if I discipline
+      myself ... {{corpus:Q1/p6:response:347:369:sha=380de98ed5ad:shape=A1}} myself"). Gold rejects all three, and says
+      so in its own words on p1 ("struggling with it" is not a reason) and p2 (a
+      behaviour done DURING the unwanted one).
+      p6 is the sharpest evidence that this is independent: it scored 4/6 under
+      v0 and 0/6 under every version since, because v0's harms-dominance
+      INCIDENTALLY suppressed its spurious benefit-side reasons. No counting rule
+      fixed or broke it; one accidentally hid it.
+      Carries the open question from subgoal 6's v3: an inline exclusion list
+      beats a pointer (p16 4/6 -> 3/6 -> 1/6 as the list became a reference), so
+      the fix here probably ADDS length to the exclusions rather than the counting
+      rule. Measure `--criterion Q1 reasons_given` and read the credited rows
+      first: p1, p2 and p15 are all credited with exclusions correctly applied.
+- [ ] 13. **Q1/p17: `utb_stated` is a coin flip.** `reasons_given` is 3 in all
+      six runs and CORRECT; the score moves entirely on `utb_stated`, absent in
+      four runs and met in two, costing 2 points each time. The response is a
+      single sentence that never says "my unwanted target behavior is", so
+      whether it counts as stating the UTB is being decided anew on every pass.
+      Nothing to do with counting reasons. It was attributed to the counting rule
+      repeatedly across three sweeps before anyone checked the other checks --
+      which is the general lesson: read WHICH CHECK failed before attributing a
+      cell to the rule you happen to be editing.
+      Gold credits the UTB here, so the question is what makes a UTB "stated"
+      when it is named inside a sentence about its effects rather than in a
+      sentence of its own.
 
 ## DONE — the three non-reconciling gold rows
 
