@@ -663,6 +663,91 @@ def report() -> str:
     return "\n".join(lines)
 
 
+def criterion_rows(item: str, check: str) -> str:
+    """Every row of an item, GROUPED BY whether gold charged one criterion.
+
+    Built because the same table was assembled by hand twice in one day and the
+    second time it changed the answer. Reading only the cells we MISS points at
+    tightening a criterion; the cells gold CREDITS are what say where the line
+    actually falls. On Q3's `action_oriented` the three misses (p8, p16, p19) all
+    justify actionability with something that is not a doing, which suggests
+    demanding a doing -- and that would have cost p9, p14 and p18, three cells
+    gold credits on ACCESS alone, because the sixteen credited rows show gold
+    accepting "a car", "my gym is near my house", "access to the university's
+    gym". The rule the corpus actually draws was activity-or-access, never time,
+    and only the credited rows contain it.
+
+    Prints, for each row: gold's score, whether its comment charges this
+    criterion, what our own last recorded run answered for the check, and the
+    student's text. Grouped so the contrast is the layout rather than something
+    to hold in mind.
+    """
+    import re
+    import agreement as A
+    import gold as _gold
+    import handouts as H
+
+    h = _jobs()[item]["handout"]
+    g = H.apply_corrected_gold(
+        {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[h](), h)
+    rec = load().get("items", {}).get(item, {})
+    ours: dict[int, list[str]] = {}
+    art = rec.get("out")
+    if art:
+        for cand in Path("/home/pdeane/molly_data/out").glob(f"{art}*/{item}.runs.json"):
+            try:
+                runs = json.loads(cand.read_text())["runs"]
+            except Exception:
+                continue
+            for run in runs:
+                for c in run.get("results", []):
+                    v = (c.get("checks") or {}).get(check)
+                    if v:
+                        ours.setdefault(c["participant_id"], []).append(v)
+            break
+
+    # The comment charges this criterion if it names it. Graders write the
+    # criterion's own word ("For action", "Actionable"), so match on the check
+    # name's parts rather than on a deduction code they never write.
+    parts = re.split(r"[_\s]+", check)
+    words = [w for w in parts if len(w) > 3]
+    # "antecedent_1" -> also look at a field named ..._first, "_2" -> ..._second
+    ordinal = {"1": "first", "2": "second"}.get(parts[-1])
+    out = [f"  {item}: rows grouped by whether GOLD charges `{check}`",
+           f"  (our verdicts from the recorded run set: {art or 'none recorded'})",
+           "  GROUPING IS A HEURISTIC -- it matches the criterion's own words in",
+           "  the grader's comment, and a comment can name the word for another",
+           "  reason (Q4a/p17 says \"did not use the word 'antecedent'\" and is a",
+           "  KEYWORD charge). The comment is printed so a mis-group is visible.", ""]
+    groups: dict[str, list[str]] = {"CHARGED": [], "CREDITED": []}
+    for pid in sorted(g):
+        row = (g.get(pid) or {}).get(item) or {}
+        if row.get("score") is None:
+            continue
+        fb = row.get("feedback") or ""
+        charged = any(re.search(rf"\b{w}", fb, re.I) for w in words)
+        try:
+            fx = A.fixture_for(item, pid)
+        except Exception:
+            fx = {}
+        text = ""
+        for k, v in fx.items():
+            if v and (any(w.lower() in k.lower() for w in words)
+                      or (ordinal and k.lower().endswith(ordinal))):
+                text = str(v)
+                break
+        mine = "/".join(sorted(set(ours.get(pid, [])))) or "-"
+        fbs = " ".join((fb or "(no comment)").split())[:90]
+        groups["CHARGED" if charged else "CREDITED"].append(
+            f"    p{pid:<3} gold {row['score']:>5g}  we said {mine:<10} {text[:120]}\n"
+            f"         gold: {fbs}")
+    for name in ("CHARGED", "CREDITED"):
+        out.append(f"  --- GOLD {name} ({len(groups[name])} rows) ---")
+        out.extend(groups[name] or ["    (none)"])
+        out.append("")
+    return "\n".join(out)
+
+
 def main() -> int:
     a = sys.argv[1:]
     if a[:1] == ["--status"]:
@@ -675,6 +760,9 @@ def main() -> int:
         record(a[1], a[2])
         for c in declaration_conflicts():
             print(f"  DECLARATION EXPIRED? {c}")
+        return 0
+    if a[:1] == ["--criterion"] and len(a) == 3:
+        print(criterion_rows(a[1], a[2]))
         return 0
     if a[:1] == ["--report"]:
         print(report())
