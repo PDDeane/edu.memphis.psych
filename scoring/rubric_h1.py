@@ -818,7 +818,7 @@ ITEMS: list[dict] = [
                     "or place; an ordinary activity carrying a state that behaviour produced; a "
                     "set of ALTERNATIVES joined by \"or\" in which any one alternative fails "
                     "those tests; or a naming of the goal behaviour NOT happening "
-                    "(procrastinating, avoiding, neglecting) rather than of what they did "
+                    "(avoiding it, neglecting it, leaving it undone) rather than of what they did "
                     "instead"
                 ),
             },
