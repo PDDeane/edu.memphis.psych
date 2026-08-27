@@ -686,9 +686,33 @@ ITEMS: list[dict] = [
                 "codes": {"absent": "A_ONLY_ONE", "not_antecedent": "A_NOT_ANTECEDENT"},
                 "desc": "Second valid antecedent",
             },
+            # MEASURED at six runs, and left charging. Dropping the point takes p9
+            # (0/6 -> 5/6) and p15 (0/6 -> 6/6) to gold exactly and costs p2
+            # (6/6 -> 4/6), median 16.0 -> 17.5. It also removes 4.0 from the
+            # item's ATTAINABLE set, and p17's gold IS 4.0, so the
+            # unreachable-gold allowance in scores_as_exact would forgive our 5
+            # there -- turning a real one-point disagreement into a silent pass,
+            # on an allowance whose docstring says it is "deliberately not a
+            # tolerance". The unreachability would be ours, not the rubric's.
+            # THE SPLIT WAS INVESTIGATED AND IS NOT ATTRIBUTABLE. Three rows omit
+            # the word: p9, p15, p17. p15 and p17 are the SAME case structurally
+            # -- two antecedents gold accepted, no keyword, nothing else at
+            # fault -- and gold charged p17 while waiving p15. p9's -2 is for
+            # its second example, not the keyword. Neither writing quality nor
+            # "was anything else deducted" separates them (p15 drew the clarity
+            # comment and no charge; p17 is the roughest written and drew the
+            # charge). The gold rows carry only `score` and `feedback`, with no
+            # rater identity, so different-grader cannot be shown either way.
+            # The one textual difference that does separate all three is that
+            # the waived rows state the relation with a causal VERB ("makes me",
+            # "causing me to") and p17 uses only "so" -- a rule on that could
+            # only ever be validated on the three cells that generated it, which
+            # is corpus-fitting, so it is refused. Charging stands: it follows
+            # the written dictionary and takes the hit on two rows.
             {
                 "what": "keyword",
-                "pts": 1.0,
+                "pts": None,
+                "reported": True,
                 "verdicts": ["met", "absent", "unclear"],
                 "codes": {"absent": "A_NO_KEYWORD", "unclear": "A_NO_KEYWORD"},
                 "desc": "Uses 'antecedent' or 'trigger' at least once. A_NO_KEYWORD applies whenever neither \"antecedent\" nor \"trigger\" appears anywhere in the response. The graders enforced this inconsistently — one row lost the point and two others kept it — but the dictionary is explicit, so apply it. This is a deliberate divergence from the rows that kept it.",
@@ -708,7 +732,7 @@ ITEMS: list[dict] = [
             },
             {
                 "code": "A_NO_KEYWORD",
-                "pts": 1.0,
+                "pts": 0.0,
                 "text": 'Did not use the word "antecedent" or "trigger".',
             },
         ],

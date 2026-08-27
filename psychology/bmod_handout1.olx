@@ -579,7 +579,7 @@ You must use the word **antecedent** or **trigger** in your answer.
       <EndPane>
     <ActionButton id="bmod_h1_q4a_btn" label="Check my antecedents">
       <LLMAction id="bmod_h1_q4a_llm" target="bmod_h1_q4a_feedback"
-                 slots="antecedent_1:First antecedent is a genuine trigger:wrong_kind@2|antecedent_2:Second antecedent is a genuine trigger:wrong_kind@2|keyword:Uses the word antecedent or trigger:unclear@1|confident:All judgments confident">
+                 slots="antecedent_1:First antecedent is a genuine trigger:wrong_kind@2|antecedent_2:Second antecedent is a genuine trigger:wrong_kind@2|keyword:Uses the word antecedent or trigger:unclear|confident:All judgments confident">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -626,13 +626,13 @@ What are the ANTECEDENTS (triggers) for your engagement in your UTB? List and de
 ## Credit components
 - `antecedent_1` (2 pt): First valid antecedent
 - `antecedent_2` (2 pt): Second valid antecedent
-- `keyword` (1 pt): Uses 'antecedent' or 'trigger' at least once. A_NO_KEYWORD applies whenever neither "antecedent" nor "trigger" appears anywhere in the response. The graders enforced this inconsistently — one row lost the point and two others kept it — but the dictionary is explicit, so apply it. This is a deliberate divergence from the rows that kept it.
+- `keyword`: Uses 'antecedent' or 'trigger' at least once. A_NO_KEYWORD applies whenever neither "antecedent" nor "trigger" appears anywhere in the response. The graders enforced this inconsistently — one row lost the point and two others kept it — but the dictionary is explicit, so apply it. This is a deliberate divergence from the rows that kept it.
 
 ## Deduction codes — the course's canonical wording for each gap
 - `A_NONE` (-5): No antecedents listed.
 - `A_ONLY_ONE` (-2): Only one antecedent listed.
 - `A_NOT_ANTECEDENT` (-2) [repeatable]: These examples are not antecedents. An antecedent/trigger is something that causes you to engage in the UTB.
-- `A_NO_KEYWORD` (-1): Did not use the word "antecedent" or "trigger".
+- `A_NO_KEYWORD` (-0): Did not use the word "antecedent" or "trigger".
 
 ## Grading guidance
 - An antecedent happens BEFORE the UTB and plausibly leads to it.

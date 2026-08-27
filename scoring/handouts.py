@@ -82,6 +82,29 @@ OUT = paths.OUT
 # applying it would have made p4 exact and turned p5 and p17 into misses, costing
 # us a cell. The reason to refuse it is the standard, not the score.
 CORRECTED_GOLD: dict[tuple[str, int], dict] = {
+    ("Q4a", 17): {
+        "was": 4.0, "score": 5.0,
+        "why": "the row docks the keyword point -- \'-1 pt: did not use the word "
+               "\"antecedent\" or \"trigger\"\' -- and is INTERNALLY COHERENT, which "
+               "makes this correction different in kind from the others here: the ground "
+               "is not the row\'s own arithmetic but its inconsistency with every "
+               "comparable row. COUNTED ACROSS ALL THREE HANDOUTS, seven responses omit a "
+               "required course term and the graders charged ONE. Q4a p9, p15 and p17 "
+               "omit antecedent/trigger; only p17 was charged. Q4c p9, p13, p15 and p17 "
+               "omit consequence; none was charged, which is why Q4c\'s keyword already "
+               "carries no points. p15 is p17\'s structural twin -- two antecedents gold "
+               "accepted, no keyword, nothing else at fault -- and kept the point. The "
+               "same two students present four opportunities between them: three waived, "
+               "one charged. The check is purely lexical (two words, anywhere, once), so "
+               "there is no gradation in it a grader could have been grading, and nothing "
+               "in the responses separates p17 from p15. THE ARITHMETIC MATTERS TOO: with "
+               "the keyword not charged, Q4a can produce {0,1,3,5} and 4.00 is "
+               "unreachable, so leaving the row at 4.00 would have had the unreachable-"
+               "gold allowance forgive our 5.00 -- a tolerance where the unreachability "
+               "was OURS. Corrected, every gold value in the item is attainable, no "
+               "allowance fires anywhere in the corpus outside Q6/p4 and 1c/p11, and no "
+               "divergence is needed. We score 5.00 and the corrected row is 5.00.",
+    },
     # ("Q6", 4) RETIRED 2026-08-19. It raised p4 from 6.00 to 7.50 on the reading
     # that gold had missed one of two consequences the student named. The second
     # naming was not the student's: `state_c2` held "I hope that I will no longer
@@ -916,14 +939,6 @@ GOLD_DIVERGENCES: list[dict] = [
                "refuse it — 0 of 3 here, 0 of 6 in the stored web runs — and the "
                "refusal is correct on the criterion both sides share, that an "
                "antecedent happens BEFORE the UTB.",
-    },
-    {
-        "code": "A_NO_KEYWORD", "cells": [("Q4a", 9), ("Q4a", 15)],
-        "why": "the dictionary requires the word \"antecedent\" or \"trigger\". "
-               "p17 lost the point for omitting it; p9 and p15 did not. Applied "
-               "uniformly. Contrast Q4c, whose equivalent charge was REMOVED "
-               "today because no gold row applies it at all — the difference is "
-               "evidence, not consistency for its own sake.",
     },
     {
         "code": "A_NOT_ANTECEDENT", "cells": [("Q4a", 14)],

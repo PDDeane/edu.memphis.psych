@@ -19,6 +19,11 @@
   "note": "'five sessions a week' appears in no response (phrase-checked); wait is the block's own cadence test.",
   "verdict": "coincidence"
  },
+ "33be95616b4c": {
+  "label": "Q1 credit.desc :: The unwanted target behavior is identified as the student's own",
+  "note": "anywhere/cause are ordinary English in the block's own prose -- 'it can be satisfied anywhere in the response' and 'not merely mentioned as the cause of some effect'. No example is borrowed. Surfaced only because Q4a's keyword credit.desc was rewritten and stopped containing 'anywhere', which had been shielding this block: a word shared between two authored blocks counts as appearing 'elsewhere in our own prose' and is suppressed, so removing it from one block lights up the other. Second instance of that unmasking today.",
+  "verdict": "coincidence"
+ },
  "345ea55418a2": {
   "label": "SLOT_NOTES 1a:baseline_week",
   "note": "'in the first week of my plan I was still up past midnight most nights' is invented -- 'past midnight' appears in no response. beginning/rate/starts are the note's own timing vocabulary.",
