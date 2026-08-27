@@ -275,6 +275,12 @@ def load_action(olx_file: str, action_id: str) -> dict:
             "choices": olx_prompts.parse_choices(_attr(open_tag, "choices")),
             "expect": olx_prompts.parse_expect(_attr(open_tag, "expect")),
             "forbid": olx_prompts.parse_forbid(_attr(open_tag, "forbid")),
+            # Was MISSING, and the omission was silent: the expansion at
+            # `for cr in item.get("counts", [])` ran zero times, so counted
+            # members never received a verdict and their points were never
+            # charged on any of the five items that use the attribute.
+            "counts": olx_prompts.parse_counts(_attr(open_tag, "counts")),
+            "onlyif": olx_prompts.parse_onlyif(_attr(open_tag, "onlyif")),
             "excluded": excluded_keys(open_tag),
             # The runtime keys per-check notes and the display guidance off this,
             # so a harness that ignores it measures a different prompt and a
@@ -959,6 +965,36 @@ def satisfied_map(spec: dict, checks: dict) -> dict[str, bool]:
     return out
 
 
+def expand_counted(item: dict, checks: dict) -> dict:
+    """Resolve counted members from their count, returning a NEW sheet.
+
+    Lifted out of `score_slots` so the RECORDED sheet and the SCORED sheet are
+    the same object. They were not: score_slots expanded a private copy, so the
+    artifact stored `('', '', '')` for a count and its members even on runs where
+    a member had plainly been charged -- 2a/p14 recorded three blanks while
+    scoring 4.0 out of 6. Reading that artifact, the members looked unanswered,
+    which is the opposite of what had happened, and the misreading cost 140 calls
+    and a wrong diagnosis stated out loud.
+    """
+    out = dict(checks)
+    for cr in item.get("counts", []):
+        got = out.get(cr["key"]) or {}
+        raw = got.get("count", got.get("verdict", ""))
+        try:
+            n = int(str(raw).strip())
+        except (TypeError, ValueError):
+            n = 0
+        by_key = {sl["key"]: sl for sl in (item.get("_slots") or [])}
+        for i, key in enumerate(cr["slots"]):
+            opts = (by_key.get(key) or {}).get("options") or ["met", "absent"]
+            out[key] = {"verdict": opts[0] if i < n else "absent"}
+        # The count itself is what the model answered; keep it visible in the
+        # sheet rather than leaving a blank where a number was given.
+        if raw != "":
+            out[cr["key"]] = {**got, "verdict": str(raw)}
+    return out
+
+
 def score_slots(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     """Uniform slot sheet: one unmet component, one deduction.
 
@@ -990,9 +1026,9 @@ def score_slots(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     # BELOW the maximum, so every cell it dropped was one where the student was
     # short — the exact cells the count exists to measure. The runner says the
     # rates are over a biased subset, which is the only reason it surfaced.
-    checks = dict(checks)
-    counted = set()
-    for cr in item.get("counts", []):
+    checks = expand_counted(dict(item, _slots=spec["slots"]), checks)
+    counted = {cr["key"] for cr in item.get("counts", [])}
+    for cr in []:
         counted.add(cr["key"])
         # `count` where the item has been migrated, `verdict` where it has not —
         # countedVerdicts() reads them in exactly this order. Reading only the
@@ -1013,6 +1049,20 @@ def score_slots(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     # Recomputed, not reused from the gate pass: the counted expansion above
     # rewrote those members' verdicts, and this is what the points are read off.
     sat = satisfied_map(spec, checks)
+
+    # Mirror of slotSheet.chargedMap: everything is chargeable except a check
+    # whose `onlyif` condition failed. An UNKNOWN condition suppresses nothing,
+    # so a typo cannot silently stop a charge, and the chaining is not
+    # transitive -- both exactly as the TS does it.
+    # Read from the RUBRIC item, exactly as score.py:derive_ledger does. Reading
+    # it off `spec` was dead code: `merged` is built as dict(spec, slots=...,
+    # cover=..., requires=...) and never carries onlyif, so the map was always
+    # all-True and the guard never fired. The CLI has honoured this rule from the
+    # rubric all along -- the divergence was web-side only.
+    charged = {sl["key"]: True for sl in spec["slots"]}
+    for rule in item.get("onlyif", []):
+        if rule["cond"] in sat:
+            charged[rule["key"]] = bool(sat[rule["cond"]])
 
     lost, failed = 0.0, 0
     for comp in item["credit"]:
@@ -1038,6 +1088,12 @@ def score_slots(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
                 f"credit component names."
             )
         if not sat[slot["key"]]:
+            if not charged.get(slot["key"], True):
+                # `onlyif` — this check may not be CHARGED while its condition
+                # fails, mirroring slotSheet.chargedMap. Without it Q4b charged
+                # `modify_why` on answers that never stated whether modifying
+                # was a good idea, which {{corpus:Q4b/p13:modify:42:58:sha=ed0e48693398}} its condition asks.
+                continue
             failed += 1
             lost += comp["pts"]
     return max(0.0, min(item["max"], item["max"] - lost)), failed
@@ -1361,13 +1417,15 @@ def measure_one(backend, handout: int, spec: dict, action_id: str, path: str, pi
     merged = dict(spec, slots=action["slots"], cover=action["cover"],
                   requires=action["requires"])
     score, n_failed = SCORERS[spec["kind"]](merged, item, checks)
+    recorded = expand_counted(dict(item, _slots=action["slots"]), checks)
     return {
         "participant_id": pid,
         "item": spec["item"],
         "score": round(score, 2),
         "max": MAX_OVERRIDE.get((str(handout), spec["item"]), item["max"]),
         "failed_slots": n_failed,
-        "checks": {s["key"]: verdict_of(checks, s["key"]) for s in action["slots"]},
+        # From the EXPANDED sheet, so what is recorded is what was scored.
+        "checks": {s["key"]: verdict_of(recorded, s["key"]) for s in action["slots"]},
         # What each check ANSWERED, and why, kept beside the verdicts.
         #
         # A pick answers `refers_to` and carries no verdict, so it stored as an
@@ -1654,6 +1712,71 @@ def report(handout: int, results: list[dict], failures: list[tuple], gold: dict)
     return 0
 
 
+def cheap_checks_gate(stream=sys.stderr) -> int:
+    """The call-free checks, run BEFORE anything spends. 0 to proceed.
+
+    Written after 140 calls were spent on a misdiagnosis that three free checks
+    would each have caught alone: the consumer's own signature (`item` there is
+    the RUBRIC item, so parsing an OLX attribute could not feed it), whether the
+    CLI already implemented the primitive (it did), and running the fix's test
+    against the PRE-FIX code as a control (identical output, which is what
+    "before/after" means).
+
+    So the structural audit now runs at the top of every sweep rather than after
+    it. These checks read source and gold; they make no model calls, so the cost
+    of running them is nothing against the cost of not having.
+
+    `--force-checks` overrides, for the case where the sweep is what settles a
+    finding the checks are reporting.
+    """
+    try:
+        import enforcement as ENF
+    except Exception as e:                          # never block on a broken check
+        print(f"(structural checks unavailable: {e})", file=stream)
+        return 0
+    suite = (
+        ("OLX ATTRIBUTE REACHES NO SCORER", ENF.check_olx_attributes_are_read),
+        ("SELECTOR GOVERNS NOTHING", ENF.check_selectors_govern_something),
+        ("CHECK NEVER RUNS", ENF.check_every_check_is_invoked),
+        ("WEIGHTED SLOT UNSCORED", ENF.check_weighted_slots_are_scored),
+        # Behavioural, not structural: runs this side's scorer on synthetic
+        # sheets and watches the number. The audit models the web from the
+        # sheet's attributes, so a scorer that parses a primitive and ignores
+        # it is invisible to every other check here.
+        ("SHEET REACHES NO ARITHMETIC", ENF.check_web_scorer_exercises_its_sheet),
+    )
+    bad = []
+    for label, fn in suite:
+        try:
+            bad += [f"{label}: {x}" for x in fn()]
+        except Exception as e:
+            bad.append(f"{label}: the check itself raised {type(e).__name__}: {e}")
+    if not bad:
+        # The behavioural check's coverage is PRINTED, not implied. It has
+        # already reported clean twice while running zero probes -- once because
+        # two pick slots carried empty options, once because it probed one
+        # scorer of three -- and a bare "clean" cannot be told from that.
+        tally = getattr(ENF.check_web_scorer_exercises_its_sheet, "tally", None)
+        extra = ""
+        if tally:
+            inst = tally.get("instances") or {}
+            extra = ("; {p} scorer probe(s) over {n} rule instance(s) "
+                     "({d})".format(
+                         p=tally.get("probes", 0),
+                         n=sum(len(v) for v in inst.values()),
+                         d=", ".join(f"{k} {len(v)}" for k, v in sorted(inst.items()))))
+        print(f"  structural checks: {len(suite)} clean, no calls spent{extra}",
+              file=stream)
+        return 0
+    print("REFUSING to sweep: the instruments disagree with the code.", file=stream)
+    for b in bad:
+        print(f"    {b}", file=stream)
+    print("\nThese cost nothing to run and everything to skip. Fix them, or "
+          "re-run with --force-checks if the sweep is what settles one.",
+          file=stream)
+    return 1
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(
         description=__doc__.split("Run:")[0],
@@ -1680,6 +1803,9 @@ def main() -> int:
     ap.add_argument("--force-probe", action="store_true",
                     help="probe even though preflight has outstanding items "
                          "(use when THIS probe is what settles one of them)")
+    ap.add_argument("--force-checks", action="store_true",
+                    help="sweep even though a structural check is reporting a "
+                         "finding (see cheap_checks_gate)")
     ap.add_argument("--force-leakage", action="store_true",
                     help="sweep even though a rule block shares wording with the "
                          "cohort and has no recorded verdict (see leakage.py)")
@@ -1744,6 +1870,9 @@ def main() -> int:
     # Unlike the probe gate above, this one runs on every measuring invocation,
     # because the cost of a quoted rule is not the calls — it is a recorded
     # number that means something other than what the ledger says it means.
+    # BEFORE the leakage gate and before any call: the free checks first.
+    if not args.force_checks and cheap_checks_gate():
+        return 1
     if args.handout == 2 and not args.force_leakage:
         try:
             import leakage as _leak

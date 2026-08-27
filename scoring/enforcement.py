@@ -27,6 +27,7 @@ probe.test.ts and diffs the two.
 from __future__ import annotations
 
 import pathlib
+import inspect
 import re
 import sys
 
@@ -1465,6 +1466,499 @@ def check_every_check_is_invoked() -> list[str]:
             continue
     return [f"enforcement.{n}() is defined but never invoked -- it reads as "
             f"coverage and enforces nothing" for n in sorted(defined - called)]
+
+
+def check_web_scorer_exercises_its_sheet() -> list[str]:
+    """Does the web scorer BEHAVE as its sheet says, not merely parse it?
+
+    The gap this closes is one no injected breakage can reach. The enforcement
+    audit models the web side from the SHEET -- its own declaration says "the web
+    probe sees that pair because it reads slot keys" -- so a scorer that parses a
+    primitive correctly and then ignores it looks identical to one that honours
+    it. Every selftest case removes something from the sheet, which the probe
+    does read; none can remove something from the SCORER.
+
+    That is exactly how `onlyif` was dead on the web path. `agreement.score_slots`
+    built its charge-once map from `spec.get("onlyif")`, and `spec` there is
+    `merged`, which never carries it -- so the map was all-True and the guard
+    never fired, while the audit reported the behaviour present because the
+    attribute was in the sheet.
+
+    So this does not read: it RUNS. Synthetic answer sheets, no model calls, and
+    the number has to move the way the primitive says it should.
+
+    THREE THINGS THIS GETS RIGHT THAT A NAIVE PROBE DOES NOT, each of which
+    silently reported clean while measuring nothing:
+
+    1. THE SPEC IS THE RUNNER'S. measure_one hands the scorer
+       `dict(job, slots=..., cover=..., requires=...)` -- a spec that carries no
+       `equals`, `counts`, `onlyif` or `choices`. Probing with the full action
+       dict instead makes `spec.get("onlyif")` work in the probe and stay dead in
+       production, so this check would have MISSED the very bug it was written
+       for. The spec below is built the same way, from BLOCKS, so an omission
+       there is an omission here.
+
+    2. COMPUTED KEYS ARE NOT ANSWERED. `equals`, `derived`, `expect` and `forbid`
+       are stripped from the response schema and filled by apply_computed. A
+       sheet that pre-answers them makes the rule unobservable: it was pre-filling
+       `matches_chosen_type` that produced a confident report of a dead `equals`
+       on D1/D2 and a "fix" to a scorer that was correct all along. Every sheet
+       here goes through apply_computed, exactly as the runner does.
+
+    3. THE CONTROL EARNS FULL MARKS. score_oc gates on the four definitional
+       criteria and returns at the first failure, so a control that already fails
+       one makes every rule below it invisible. The control is hill-climbed to
+       the item max, and an item where that cannot be reached is REPORTED rather
+       than passed over.
+
+    Assertion primitives (`equals`, `expect`, `forbid`, `counts`, `cover`,
+    `derived`, and a gating slot) are tested by violating them: the number must
+    move. `onlyif` is a SUPPRESSION rule, so violating it must not cost more than
+    honouring it -- charging both the failed condition and the check it guards is
+    the observable failure there.
+    """
+    import agreement as A
+
+    problems: list[str] = []
+    probed = 0
+    unprobed: list[str] = []
+    # What was exercised, per primitive, published on the function so the audit
+    # can print it. A check whose coverage is invisible is a check that can drop
+    # to zero probes without anyone noticing -- which is what happened.
+    covered: dict[str, list[str]] = {}
+
+    for h, blocks in sorted(A.BLOCKS.items()):
+        try:
+            rubric = config(h)["rubric"]
+        except Exception:
+            continue
+        for action_id, job in sorted(blocks.items()):
+            if job["kind"] not in A.SCORERS or not job.get("olx"):
+                continue          # deterministic item: no sheet to exercise
+            iid = job["item"]
+            try:
+                item = rubric.BY_ID[iid]
+                act = A.load_action(job["olx"], action_id)
+            except Exception as e:
+                problems.append(f"H{h} {iid}: its sheet cannot be loaded to probe "
+                                f"it: {type(e).__name__}: {e}")
+                continue
+
+            slots = act["slots"]
+            by_key = {sl["key"]: sl for sl in slots}
+            excluded = set(act.get("excluded") or ())
+            merged = dict(job, slots=slots, cover=act["cover"],
+                          requires=act["requires"])
+            scorer = A.SCORERS[job["kind"]]
+            here = f"H{h} {iid}"
+
+            def vocab(sl):
+                if sl.get("picks"):
+                    return (act.get("choices") or {}).get(sl["picks"]) or []
+                return sl.get("options") or ["met", "absent"]
+
+            def answer(sl, value):
+                return ({"refers_to": value} if sl.get("picks")
+                        else {"verdict": value})
+
+            # `derived` reads FIELDS, so it needs a fixture rather than a sheet.
+            # Two numbers, so `plots` and `complete` both see data.
+            full_fx = {f: "12 34" for r in act.get("derived", []) or []
+                       for f in r["fields"]}
+            pinned: dict[str, str] = {}
+
+            def run(**over):
+                nonlocal probed
+                raw: dict = {}
+                for sl in slots:
+                    if sl["key"] in excluded:
+                        continue          # the web strips it and computes it
+                    vs = vocab(sl)
+                    raw[sl["key"]] = answer(sl, vs[0] if vs else "met")
+                for k, v in {**pinned, **over}.items():
+                    raw[k] = (v if isinstance(v, dict)
+                              else answer(by_key.get(k) or {}, v))
+                probed += 1
+                return scorer(merged, item,
+                              A.apply_computed(act, raw, full_fx))
+
+            # A first-value-everywhere sheet is not a passing one, and the two
+            # ways it falls short are facts about the SLOT SHAPE rather than
+            # about the item:
+            #
+            #   a COUNTER (`count(3)`) carries count_max and no options at all,
+            #   so a verdict in that field parses to n=0 and marks every member
+            #   absent -- the control lost exactly the points the count exists
+            #   to award, on all five counted items;
+            #
+            #   a COVER slot is credited on a `refers_to` LABEL, and a sheet
+            #   that answers only the verdict names no label, so the group
+            #   claims nothing -- Q6 sat at 5.0 of 10.0.
+            #
+            # Both looked like "this item cannot reach full marks" and would have
+            # been reported as six unprobeable items rather than a control built
+            # to the wrong shape.
+            for sl in slots:
+                if sl.get("count_max") and sl["key"] not in excluded:
+                    pinned[sl["key"]] = {"count": sl["count_max"]}
+            for grp in act.get("cover", []) or []:
+                labels = grp.get("labels") or []
+                for i, k in enumerate(grp.get("keys", [])):
+                    if k in by_key and i < len(labels):
+                        pinned[k] = {"verdict": "met", "refers_to": labels[i]}
+
+            # A pick answers a category, and the first category listed need not
+            # be the one the item expects. Climb to full marks before probing.
+            best = run()[0]
+            for sl in slots:
+                if best >= item["max"]:
+                    break
+                if sl["key"] in excluded or len(vocab(sl)) < 2:
+                    continue
+                for v in vocab(sl)[1:]:
+                    got = run(**{sl["key"]: v})[0]
+                    if got > best:
+                        best, pinned[sl["key"]] = got, v
+            if best < item["max"]:
+                problems.append(
+                    f"{here}: no synthetic sheet scores the item's own maximum "
+                    f"({best} of {item['max']} at best), so NO rule on this item "
+                    f"can be observed to cost anything -- every probe below it "
+                    f"reports clean because nothing can move, not because "
+                    f"nothing is broken")
+                continue
+            base_score, base_failed = run()
+
+            def must_cost(label: str, mutation: dict, why: str, key: str = ""):
+                """A rule violated must move the number. Flat means dead.
+
+                When the violated check GATES the item, the gate loop below
+                cannot reach it -- a computed key is stripped from the sheet, so
+                there is no verdict to set. D1/D2's `matches_chosen_type` is
+                exactly that: gating, and answered by `equals`. So the gate is
+                asserted here instead, driven through the rule that computes it,
+                and its 2.0 WRONG_DEFINITION is the whole item.
+                """
+                score, failed = run(**mutation)
+                if score == base_score and failed == base_failed:
+                    problems.append(
+                        f"{here}: `{label}` is in the sheet, and {why} scores "
+                        f"{score} with {failed} failed check(s) -- exactly what "
+                        f"an answer that honours it scores -- so the rule reaches "
+                        f"no arithmetic")
+                    return
+                if key and (by_key.get(key) or {}).get("gates"):
+                    covered.setdefault("gates", []).append(f"{here}/{key} (computed)")
+                    if score > 0:
+                        problems.append(
+                            f"{here}: `{key}` GATES the item and is computed by "
+                            f"`{label}`, so {why} should leave nothing standing, "
+                            f"and it scores {score} of {item['max']}")
+
+            def other(key: str, *avoid: str):
+                """A value for `key` that is none of `avoid`, or None."""
+                sl = by_key.get(key)
+                if sl is None:
+                    return None
+                for v in vocab(sl):
+                    if v not in avoid:
+                        return v
+                return None
+
+            # ── equals: the key holds iff its two operands agree ──────────────
+            for rule in act.get("equals", []) or []:
+                lenient = rule.get("lenient") or []
+                if rule["left"] not in by_key or rule["right"] not in by_key:
+                    unprobed.append(f"{here} equals={rule['key']} (operand not a slot)")
+                    continue
+                # Same value on both sides is the control; a DIFFERENT one on the
+                # right, lenient on neither side, must cost.
+                l = other(rule["left"], *lenient)
+                r = other(rule["right"], *lenient, l)
+                if l is None or r is None:
+                    unprobed.append(f"{here} equals={rule['key']} (no two non-lenient values)")
+                    continue
+                covered.setdefault("equals", []).append(f"{here}/{rule['key']}")
+                must_cost(f"equals={rule['key']}:{rule['left']}={rule['right']}",
+                          {rule["left"]: l, rule["right"]: r},
+                          f"operands that disagree ({l!r} vs {r!r})", rule["key"])
+
+            # ── expect: one answer against a value the item authored ──────────
+            for rule in act.get("expect", []) or []:
+                wrong = other(rule["left"], rule["value"], *(rule.get("lenient") or []))
+                if wrong is None:
+                    unprobed.append(f"{here} expect={rule['key']} (no value other than the expected one)")
+                    continue
+                covered.setdefault("expect", []).append(f"{here}/{rule['key']}")
+                must_cost(f"expect={rule['key']}:{rule['left']}={rule['value']}",
+                          {rule["left"]: wrong},
+                          f"answering {wrong!r} where the item expects "
+                          f"{rule['value']!r}", rule["key"])
+
+            # ── forbid: the check fails when a COMBINATION holds ──────────────
+            for rule in act.get("forbid", []) or []:
+                conds = rule.get("conds") or []
+                if not conds or any(c["slot"] not in by_key for c in conds):
+                    unprobed.append(f"{here} forbid={rule['key']} (condition not a slot)")
+                    continue
+                covered.setdefault("forbid", []).append(f"{here}/{rule['key']}")
+                must_cost(f"forbid={rule['key']}",
+                          {c["slot"]: c["value"] for c in conds},
+                          "the forbidden combination "
+                          + ", ".join(f"{c['slot']}={c['value']}" for c in conds),
+                          rule["key"])
+
+            # ── a GATING slot is worth the whole item ────────────────────────
+            for sl in slots:
+                if not sl.get("gates") or sl["key"] in excluded:
+                    continue
+                miss = other(sl["key"], *(vocab(sl)[:1] or []))
+                if miss is None:
+                    unprobed.append(f"{here} gates={sl['key']} (no failing value)")
+                    continue
+                covered.setdefault("gates", []).append(f"{here}/{sl['key']}")
+                score, failed = run(**{sl["key"]: miss})
+                if score == base_score and failed == base_failed:
+                    problems.append(
+                        f"{here}: `{sl['key']}` GATES the item, and failing it "
+                        f"scores {score} of {item['max']} -- what passing it "
+                        f"scores -- so the gate reaches no arithmetic")
+                elif score > 0:
+                    problems.append(
+                        f"{here}: `{sl['key']}` GATES the item, so failing it "
+                        f"should leave nothing standing, and it scores {score} "
+                        f"of {item['max']}")
+
+            # ── counts: the score must fall as the count falls ────────────────
+            for cr in item.get("counts", []) or []:
+                if cr["key"] not in by_key:
+                    unprobed.append(f"{here} counts={cr['key']} (counter not a slot)")
+                    continue
+                covered.setdefault("counts", []).append(f"{here}/{cr['key']}")
+                n_max = len(cr["slots"])
+                scores = [run(**{cr["key"]: {"count": n}})[0]
+                          for n in range(n_max + 1)]
+                if len(set(scores)) == 1:
+                    problems.append(
+                        f"{here}: `counts={cr['key']}` names {n_max} member(s), "
+                        f"and the score is {scores[0]} for every count from 0 to "
+                        f"{n_max} -- the members reach no arithmetic")
+
+            # ── cover: naming the same item twice is the error it catches ─────
+            for grp in act.get("cover", []) or []:
+                keys = [k for k in grp.get("keys", []) if k in by_key]
+                labels = grp.get("labels") or []
+                if len(keys) < 2 or len(labels) < 2:
+                    unprobed.append(f"{here} cover={keys} (needs two keys and two labels)")
+                    continue
+                covered.setdefault("cover", []).append(f"{here}/{keys[0]}")
+                dup = run(**{keys[0]: {"verdict": "met", "refers_to": labels[0]},
+                             keys[1]: {"verdict": "met", "refers_to": labels[0]}})
+                distinct = run(**{keys[0]: {"verdict": "met", "refers_to": labels[0]},
+                                  keys[1]: {"verdict": "met", "refers_to": labels[1]}})
+                if dup == distinct:
+                    problems.append(
+                        f"{here}: `cover` groups {keys} over {labels}, and both "
+                        f"checks naming {labels[0]!r} scores exactly what naming "
+                        f"one each does ({dup[0]}, {dup[1]} failed) -- the "
+                        f"duplicate it exists to catch reaches no arithmetic")
+
+            # ── onlyif is SUPPRESSION: failing the condition must not also
+            #    charge the check it guards ─────────────────────────────────────
+            for rule in item.get("onlyif", []) or []:
+                key, cond = rule["key"], rule["cond"]
+                if key not in by_key or cond not in by_key:
+                    unprobed.append(f"{here} onlyif={key}:{cond} (not a slot)")
+                    continue
+                kmiss, cmiss = other(key, vocab(by_key[key])[0]), other(cond, vocab(by_key[cond])[0])
+                if kmiss is None or cmiss is None:
+                    unprobed.append(f"{here} onlyif={key}:{cond} (no failing value)")
+                    continue
+                covered.setdefault("onlyif", []).append(f"{here}/{key}")
+                both = run(**{cond: cmiss, key: kmiss})[1]
+                only = run(**{key: kmiss})[1]
+                if both > only:
+                    problems.append(
+                        f"{here}: `onlyif={key}:{cond}` is in the sheet but "
+                        f"{both} check(s) are charged when the condition fails "
+                        f"against {only} when it holds -- the guarded check is "
+                        f"charged anyway, so the rule reaches no arithmetic")
+
+            # ── derived: computed from the FIXTURE, not from other checks ─────
+            for rule in act.get("derived", []) or []:
+                fields = rule.get("fields") or []
+                if not fields:
+                    unprobed.append(f"{here} derived={rule['key']} (names no field)")
+                    continue
+                covered.setdefault("derived", []).append(f"{here}/{rule['key']}")
+                short = dict(full_fx, **{fields[0]: ""})
+                try:
+                    a = A.apply_computed(act, {}, full_fx).get(rule["key"], {})
+                    b = A.apply_computed(act, {}, short).get(rule["key"], {})
+                except Exception as e:
+                    problems.append(f"{here}: probing `derived={rule['key']}` "
+                                    f"raised {type(e).__name__}: {e}")
+                    continue
+                if rule.get("kind") == "present" and len(fields) > 1:
+                    pass          # `present` is all-of, so one blank IS a miss
+                if a.get("verdict") == b.get("verdict"):
+                    problems.append(
+                        f"{here}: `derived={rule['key']}` is `{rule.get('kind')}` "
+                        f"over {len(fields)} field(s), and a fixture missing one "
+                        f"answers {b.get('verdict')!r} exactly as a full one does "
+                        f"-- the derivation reaches no verdict")
+
+    # ZERO PROBES READS EXACTLY LIKE ZERO FAULTS. Two pick slots carrying empty
+    # `options` once made this run no probes at all on D1 and D2 while reporting
+    # clean, so the count is asserted rather than assumed.
+    if probed < 40:
+        problems.append(
+            f"this check ran only {probed} probe(s) across all three handouts, "
+            f"which is too few to have exercised the sheets -- it is reporting "
+            f"clean because it measured nothing")
+    check_web_scorer_exercises_its_sheet.tally = {
+        "probes": probed,
+        "instances": {k: sorted(v) for k, v in sorted(covered.items())},
+        "unprobed": sorted(unprobed),
+    }
+    if unprobed:
+        problems.append("rule instances this check could not exercise, each of "
+                        "which is a rule with NO behavioural coverage:\n    "
+                        + "\n    ".join(sorted(unprobed)))
+    return problems
+
+def check_scorer_fingerprint_is_scoped_and_prose_blind() -> list[str]:
+    """Does STALE SCORER mean what it says?
+
+    The ledger stamps each recorded number with a fingerprint of the code that
+    produced it, and refuses to call the number current when that code moves.
+    A fingerprint is only useful between two failures: it must move when
+    BEHAVIOUR moves, and it must not move otherwise.
+
+    Both halves were broken. Correcting one docstring in `parse_counts` --
+    retracting a misdiagnosis, changing no code -- marked twenty-one of
+    twenty-six items STALE SCORER, and the blast radius was guessed from "does
+    this sheet author any computed primitive", which is true of twenty-one items
+    and so indistinguishable from a global flag. Between them that is roughly
+    1800 calls of re-sweeping to reconfirm numbers nothing had touched, and a
+    flag that would be ignored inside a day.
+
+    So this asserts the two properties directly, and one more: an item that
+    fingerprints the WHOLE path is the signature of the scoping having silently
+    fallen back, which is how it read for every item while a KeyError was being
+    swallowed.
+    """
+    import measured as M
+
+    out = []
+    doc = "def f(x):\n    'doc'\n    # a comment\n    return x + 1\n"
+    prose = "def f(x):\n    'another docstring entirely, much longer'\n    return  x+1\n"
+    behave = "def f(x):\n    'doc'\n    return x + 2\n"
+    try:
+        if M._behaviour_src(doc) != M._behaviour_src(prose):
+            out.append("the fingerprint MOVES on a docstring or comment edit, so "
+                       "documenting the scorer marks the corpus stale")
+        if M._behaviour_src(doc) == M._behaviour_src(behave):
+            out.append("the fingerprint does NOT move when a return value "
+                       "changes, so a real scorer change would be recorded as "
+                       "current -- the guard is inert")
+    except Exception as e:
+        out.append(f"the fingerprint's prose stripper raised "
+                   f"{type(e).__name__}: {e}")
+        return out
+
+    shas = {it: M.scorer_sha(it) for it in M._jobs()}
+    if len(set(shas.values())) < 2:
+        out.append(f"all {len(shas)} items share one fingerprint, so any scorer "
+                   f"edit stales the whole corpus -- the per-item scoping is not "
+                   f"in effect")
+    whole = sorted(it for it in shas if len(M._parts_for(it)) >= len(M.SCORER_PARTS))
+    if whole:
+        out.append(f"{', '.join(whole)} fingerprint the ENTIRE scoring path, "
+                   f"which is the scoping's fallback, not a scope -- something "
+                   f"in _parts_for is failing for them")
+    return out
+
+
+def check_olx_attributes_are_read() -> list[str]:
+    """Is every attribute authored on an <LLMAction> actually PARSED?
+
+    An attribute the harness never reads is a rule that exists in the sheet, is
+    maintained, is visible to whoever edits the OLX -- and does nothing. The
+    failure is silent in both directions: the attribute looks live, and the
+    consumer looks correct, because `item.get("counts", [])` over an empty list
+    raises nothing and simply never charges.
+
+    THE STORY THIS DOCSTRING USED TO TELL WAS WRONG, and it is corrected here
+    rather than deleted, because the wrong version was stated out loud and cost
+    140 calls. It claimed `counts=` had gone unparsed on five items and 22 points,
+    with 2a's five gold-4 cells scoring 6 on checks that were never asked. It had
+    not: every one of those items carries its own `counts` key on its RUBRIC item,
+    `score_slots` reads it from there, and the counted members were scoring all
+    along. 2a's misses are a judgement about how many `hows` the response gives,
+    not a plumbing fault.
+    What the episode actually demonstrates is the failure mode this check exists
+    for -- an attribute can be authored, maintained and visible while nothing
+    reads it, in either direction -- and the failure mode of the diagnosis:
+    "verified" against the fixed code only, which is why a harness fix must now
+    be run against the pre-fix code (`before_after.py`).
+
+    `check_weighted_slots_are_scored` cannot see this: it asks whether a scorer
+    NAMES the slot, and `how_1` is named -- inside a loop over a list that is
+    always empty. Named but unreachable.
+    """
+    import re
+    import agreement as A
+    import handouts as H
+
+    # Structural, or consumed by a path other than the attribute parser.
+    KNOWN = {
+        "id": "names the action; looked up by ACTION",
+        "target": "the feedback field, read when the tag is located",
+        "max": "the item total, taken from the rubric rather than the tag",
+        "showChecks": "read as a substring test, not through the parser",
+        "slots": "parsed by parse_slots with the verdicts default",
+        "verdicts": "the default vocabulary, read alongside slots",
+    }
+    src = inspect.getsource(A)
+    # Only the real parse sites: `_attr(open_tag, "x")` and an explicit regex
+    # over the tag. A looser match (any `"word="` literal in the source) let an
+    # attribute count as read because its name appeared in a comment.
+    read = set(re.findall(r'_attr\(open_tag,\s*"(\w+)"\)', src))
+    read |= set(re.findall(r"r'(\w+)=", src))
+    read |= set(re.findall(r'search\(r.(\w+)=', src))
+
+    # A RUBRIC-SIDE DECLARATION IS COVERAGE. Several primitives are declared
+    # twice -- once as an OLX attribute for the runtime, once as a key on the
+    # rubric item for the Python scorers -- and the scorers read the rubric.
+    # Judging "unread" from agreement.py alone reported `counts=` as a live
+    # 22-point hole across five items when every one of those items carries its
+    # own `counts` key and had been scoring correctly all along. That false
+    # alarm cost 140 calls, so the second source is consulted here.
+    import olx_prompts as O
+    rubric_keys = set()
+    for hh in (1, 2, 3):
+        try:
+            for it in config(hh)["rubric"].ITEMS:
+                rubric_keys |= {k for k, v in it.items() if v}
+        except Exception:
+            continue
+
+    problems = []
+    for h in (1, 2, 3):
+        try:
+            text = pathlib.Path(O.OLX % h).read_text()
+        except Exception:
+            continue                    # corpus absent on this machine
+        for tag in re.findall(r"<LLMAction\b[^>]*>", text, re.S):
+            for attr in re.findall(r'\s(\w+)="', tag):
+                if attr in KNOWN or attr in read or attr in rubric_keys:
+                    continue
+                problems.append(
+                    f"H{h}: <LLMAction> authors `{attr}=`, and neither "
+                    f"agreement.py nor any rubric item carries it -- the rule "
+                    f"is in the sheet and reaches no scorer")
+    return sorted(set(problems))
 
 
 def check_selectors_govern_something() -> list[str]:

@@ -527,6 +527,12 @@ def enforcement_audit():
         findings.append(("-", "EXCLUSIONS DIVERGE", bad))
     for bad in ENF.check_selectors_govern_something():
         findings.append(("-", "SELECTOR GOVERNS NOTHING", bad))
+    for bad in ENF.check_olx_attributes_are_read():
+        findings.append(("-", "OLX ATTRIBUTE UNREAD", bad))
+    for bad in ENF.check_web_scorer_exercises_its_sheet():
+        findings.append(("-", "SHEET REACHES NO ARITHMETIC", bad))
+    for bad in ENF.check_scorer_fingerprint_is_scoped_and_prose_blind():
+        findings.append(("-", "STALE-SCORER FLAG UNRELIABLE", bad))
     for bad in ENF.check_every_check_is_invoked():
         findings.append(("-", "CHECK NEVER RUNS", bad))
     for bad in ENF.check_weighted_slots_are_scored():
@@ -785,6 +791,8 @@ def enforcement_selftest():
     grader.
     """
     import rubric_h1, rubric_h2
+    # Captured BEFORE any injection: the findings this corpus carries legitimately.
+    _selftest_baseline = len(enforcement_audit()[0])
     cases = []
 
     saved = rubric_h1.BY_ID["Q6"].pop("cover")
@@ -856,12 +864,18 @@ def enforcement_selftest():
     import olx_prompts as _o
     _orig_cs = _o._checklist_section
 
-    def _blind(item, slots, item_id, equals=None, derived=None, counts=None,
-               choices=None, expect=None):
+    def _blind(*a, **k):
         # Drops `counts`, to prove the audit notices a generator that stops
-        # honouring a primitive. Must accept every parameter the real signature
-        # takes, or adding one breaks the selftest instead of testing it.
-        return _orig_cs(item, slots, item_id, equals, derived, None, choices, expect)
+        # honouring a primitive. SIGNATURE-AGNOSTIC, because the fixed-arity
+        # version broke exactly as its own comment warned: `forbid` was added to
+        # _checklist_section as a ninth parameter and the stub kept accepting
+        # eight, so `--selftest` raised TypeError instead of testing anything --
+        # the audit's own validator, silently out of service.
+        if "counts" in k:
+            k = {**k, "counts": None}
+        elif len(a) > 5:
+            a = a[:5] + (None,) + a[6:]
+        return _orig_cs(*a, **k)
     _o._checklist_section = _blind
     cases.append(("the generator forgets a primitive", "PRIMITIVE NOT HONOURED", "-",
                   [f for f in enforcement_audit()[0]]))
@@ -1317,7 +1331,95 @@ def enforcement_selftest():
                       [f for f in enforcement_audit()[0]]))
         globals()["_web_attrs"] = orig
 
+    # ── INJECTIONS INTO THE SCORER, not into the sheet ───────────────────────
+    #
+    # Every case above removes something from a SHEET, and the audit reads the
+    # sheet, so all of them are reachable by construction. The class they cannot
+    # reach is a scorer that parses a rule correctly and then ignores it -- which
+    # is what `onlyif` did on the web path for as long as it existed, and what a
+    # confident report of a dead `equals` on D1/D2 wrongly claimed.
+    #
+    # These break the ARITHMETIC and leave every sheet intact. Only a check that
+    # RUNS the scorer can see them; a check that reads declarations cannot, so
+    # each of these is a test of check_web_scorer_exercises_its_sheet itself.
+    import agreement as _A
+
+    WANT = "SHEET REACHES NO ARITHMETIC"
+    # enforcement_audit records a behavioural finding against item "-": it is a
+    # property of the SCORER, not of one item's declarations, and several items
+    # trip together. The matcher below compares f[0] to this, so passing the real
+    # item name here reports FAIL on a case that fired correctly -- which is what
+    # the first draft of these eight cases did.
+    ANY_ITEM = "-"
+
+    def _scorer_case(label, install, restore, want=WANT):
+        install()
+        try:
+            cases.append((label, want, ANY_ITEM,
+                          [f for f in enforcement_audit()[0]]))
+        finally:
+            restore()
+
+    # A computed primitive that always answers "satisfied" is the shape of every
+    # apply_computed regression: the rule is parsed, the key is filled, and the
+    # value no longer depends on the operands.
+    _real_computed = _A.apply_computed
+    for prim in ("equals", "expect", "forbid", "derived"):
+        def _always_ok(action, checks, fixture, _prim=prim):
+            out = _real_computed(action, checks, fixture)
+            by = {sl["key"]: sl for sl in action["slots"]}
+            for rule in action.get(_prim, []) or []:
+                opts = (by.get(rule["key"]) or {}).get("options") or ["met"]
+                out[rule["key"]] = {"verdict": opts[0], "evidence": "injected"}
+            return out
+        _scorer_case(f"the scorer stops computing `{prim}`",
+                     lambda f=_always_ok: setattr(_A, "apply_computed", f),
+                     lambda: setattr(_A, "apply_computed", _real_computed))
+
+    # The counted expansion dropped -- the exact bug that left five items' members
+    # unscored while every sheet still declared them.
+    _real_expand = _A.expand_counted
+    _scorer_case("the scorer stops expanding a count",
+                 lambda: setattr(_A, "expand_counted", lambda item, checks: dict(checks)),
+                 lambda: setattr(_A, "expand_counted", _real_expand))
+
+    # Coverage dropped from satisfiedMap: naming one item twice earns both slots.
+    _real_sat = _A.satisfied_map
+    def _no_cover(spec, checks):
+        return _real_sat(dict(spec, cover=[]), checks)
+    _scorer_case("the scorer stops honouring `cover`",
+                 lambda: setattr(_A, "satisfied_map", _no_cover),
+                 lambda: setattr(_A, "satisfied_map", _real_sat))
+
+    # A gating slot demoted to an ordinary one: the item's whole value stops
+    # depending on the check that is supposed to decide it.
+    _real_slots = _A.SCORERS["slots"]
+    def _ungated(spec, item, checks):
+        return _real_slots(dict(spec, slots=[{**sl, "gates": False}
+                                             for sl in spec["slots"]]), item, checks)
+    _scorer_case("the scorer stops honouring a gate",
+                 lambda: _A.SCORERS.__setitem__("slots", _ungated),
+                 lambda: _A.SCORERS.__setitem__("slots", _real_slots))
+
+    # `onlyif` ignored: the guarded check is charged alongside its failed
+    # condition. This is the regression that shipped.
+    def _no_onlyif(spec, item, checks):
+        return _real_slots(spec, {k: v for k, v in item.items() if k != "onlyif"}, checks)
+    _scorer_case("the scorer stops honouring `onlyif`",
+                 lambda: _A.SCORERS.__setitem__("slots", _no_onlyif),
+                 lambda: _A.SCORERS.__setitem__("slots", _real_slots))
+
+    # The ledger's own guard. A fingerprint that moves on prose is the failure
+    # that put twenty-one items on the sweep list for a corrected comment.
+    import measured as _M
+    _real_strip = _M._behaviour_src
+    _scorer_case("the fingerprint starts tracking prose again",
+                 lambda: setattr(_M, "_behaviour_src", lambda src: src),
+                 lambda: setattr(_M, "_behaviour_src", _real_strip),
+                 want="STALE-SCORER FLAG UNRELIABLE")
+
     print("SELF-TEST — does the audit notice when a rule is removed?\n")
+    baseline = _selftest_baseline
     bad = 0
     for label, want, item, found in cases:
         hit = [f for f in found if f[0] == item and f[1] == want]
@@ -1325,13 +1427,24 @@ def enforcement_selftest():
         bad += not ok
         print(f"  {'PASS' if ok else 'FAIL'}  {label:<28} -> "
               f"{hit[0][1] if hit else 'NOTHING FIRED'}")
+    # Against the BASELINE, not against zero. The corpus legitimately carries
+    # declared divergences -- NR's CHARGE-ONCE WEB ONLY is one -- so counting
+    # every finding as dirt reported "restored state is clean: False" and exited
+    # 1 on a run where all 39 injections were detected and nothing was left
+    # behind. A selftest that fails when it passes gets ignored, which is how the
+    # arity bug survived in the first place.
     clean = len(enforcement_audit()[0])
     if plain is None:
         print("  SKIP  plain-path computed check     -> no plain-path item left to "
               "inject onto")
-    print(f"\n  restored state is clean: {clean == 0}")
+    print(f"\n  restored state is clean: {clean == baseline} "
+          f"({clean} finding(s), baseline {baseline})")
     print(f"  {len(cases) - bad}/{len(cases)} injected breakages detected.")
-    return 1 if (bad or clean) else 0
+    # Against the baseline here too. `clean` is a COUNT, so `or clean` made a
+    # fully passing selftest exit 1 whenever the corpus carried its one declared
+    # divergence -- the same off-by-a-baseline the message above already fixed,
+    # left behind in the exit code where it was less visible.
+    return 1 if (bad or clean != baseline) else 0
 
 
 def print_enforcement():
