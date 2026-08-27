@@ -648,6 +648,48 @@ def exemplar_drops(handout: int) -> dict[str, list[int]]:
 # they never reach a comparison. The other seven do.
 GOLD_DIVERGENCES: list[dict] = [
     {
+        "code": "NP_SHAPE_CREDITED_AS_NR", "cells": [("NR", 4)],
+        "why": "p4's answer is \"I will not watch TikTok for each day that I do not "
+               "sleep 8 hours.\" Gold gives it 4; we award 2 in EVERY run of every "
+               "build measured this session -- move_v3, move_v4, derive_v2, "
+               "derive_v3, barrier_final, derived_record and the dual_v1 probe, "
+               "0/6 or 0/4 in each. Nothing about it wavers. "
+               "OUR READING. A desirable thing is withdrawn contingent on the "
+               "UNWANTED behaviour, which is negative punishment, so "
+               "`demonstrates_type` fails and WRONG_TYPE charges 2. The two "
+               "independent parses agree and are stable: `stimulus_move` answers "
+               "`taken_desirable` 6/6 and `restriction_authored` answers `created` "
+               "6/6. The engine is not confused about this sentence; it reads it the "
+               "way the sentence reads. "
+               "NOT A FIXTURE FAULT. One complete sentence, every field checked, and "
+               "p4 is not among handout 2's suspect submissions (p2, p3). "
+               "NOT A GOLD ERROR, which is why this is a divergence and not "
+               "CORRECTED_GOLD. The row is a bare 4.0 with EMPTY feedback -- there is "
+               "no itemisation contradicting the score, unlike Q3/p8, Q6/p1 and "
+               "1c/p11. And gold's 4 survives a charitable reading: the standing "
+               "no-TikTok restriction is itself the aversive thing, and sleeping 8 "
+               "hours lifts it, which is negative reinforcement of B. Two defensible "
+               "readings of one sentence; ours is the literal one. "
+               "THREE ROUTES MEASURED AND REVERTED. (1) The barrier conjunction "
+               "cannot fire here and should not: p4's condition is a FAILURE, so "
+               "`trigger_expects` reads `loss`, and the conjunction is exactly what "
+               "correctly charges NR/p14, whose condition is a gain. Gold splits p14 "
+               "(2) from p4 (4) on that same axis. (2) The `stimulus_move` pair reads "
+               "the sentence correctly and therefore denies credit; it also cost NR "
+               "a cell overall and was reverted. (3) A clause was added to criterion "
+               "6's DUAL DESCRIPTIONS telling the model in terms that NR-of-B is an "
+               "available reading of \"X withheld until B\". p4 answered 2 in all "
+               "four probe runs while five guards held 17/17. Permission does not "
+               "change what a sentence most obviously says. "
+               "WHAT IS LEFT, and why it is refused. Crediting p4 means accepting "
+               "\"a desirable thing withdrawn after the unwanted behaviour\" as NR. "
+               "NR's four gold-zero cells and p9 are scored correctly BECAUSE that "
+               "mismatch is caught -- p9 is 6/6 correct on `demonstrates_type` "
+               "failing. Spending five reliable cells to win one is the wrong trade, "
+               "so the money goes the unflattering way: we keep scoring 2 against "
+               "gold's 4.",
+    },
+    {
         "code": "BEHAVIOR_NEVER_STATED", "cells": [("DAY1", 1)],
         "why": "p1's daily example is \"I will reward myself with not having to get "
                "out of bed right away daily.\" Gold gives it 4; we award 0 in every "
