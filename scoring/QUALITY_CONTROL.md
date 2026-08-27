@@ -619,6 +619,35 @@ occasionally.
 
 ## 3. Building the model
 
+**READ THE CREDITED ROWS, NOT JUST THE MISSES. `python3 measured.py
+--criterion ITEM CHECK` prints them grouped, so this is a command rather than a
+discipline.** A criterion is a line, and a line needs both sides. The cells we
+MISS tell you the criterion is wrong; only the cells gold CREDITS tell you where
+it should fall, and the two answers are usually different.
+
+Q3's `action_oriented` is the case that earned the rule. The three misses --
+p8 "hours I can make", p16 "hours I have", p19 grounds it in measurability --
+all justify actionability with something that is not a doing, which points
+straight at demanding a doing. That change would have cost THREE cells: p9 is
+credited on "a car", p14 on "{{corpus:Q3/p14:action:91:114:sha=ef5c3179ffeb}}", p18 on "{{corpus:Q3/p18:action:71:97:sha=4b1ed59f418c:shape=S2-0a}} gym", none of which names a doing either. The sixteen credited rows
+are what contain the actual rule -- an activity OR access to a place or thing,
+never available time -- and narrowing to that took the item from 16/20 to 18/20
+with all five guards holding at 6/6.
+
+The same reading was what closed Q4a: gold's rejections there quote their own
+test ("how does grumpy emotions LEAD TO lack of sleep?"), and it was the
+credited rows that showed p14 and p19 to be gold departing from that test in
+opposite directions -- a pair no criterion can satisfy, so a declaration rather
+than a rule.
+
+Two things the command does that the eye does not. It prints OUR verdict beside
+gold's, so a criterion that is right on the misses and wrong on the credits
+shows up as a column of disagreements rather than a hunch. And it prints the
+grader's comment, because the grouping is a heuristic on the criterion's own
+words: Q4a/p17 says 'did not use the word "antecedent"' and lands in the
+CHARGED group while being a KEYWORD charge. A visible mis-group is harmless; an
+invisible one sends the next hour in the wrong direction.
+
 **Position and brevity beat content.** Sixteen wording variants of one matching
 rule were built, measured and reverted; every one was added to the grading
 guidance forty lines below the components that use the term. Two sentences
