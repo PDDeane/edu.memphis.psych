@@ -525,6 +525,20 @@ def enforcement_audit():
         findings.append(("-", "DERIVED FIELD UNREADABLE", bad))
     for bad in ENF.check_exclusions_agree():
         findings.append(("-", "EXCLUSIONS DIVERGE", bad))
+    for bad in ENF.check_selectors_govern_something():
+        findings.append(("-", "SELECTOR GOVERNS NOTHING", bad))
+    for bad in ENF.check_every_check_is_invoked():
+        findings.append(("-", "CHECK NEVER RUNS", bad))
+    for bad in ENF.check_weighted_slots_are_scored():
+        findings.append(("-", "WEIGHTED SLOT UNSCORED", bad))
+    for bad in ENF.check_ref_targets_resolve():
+        findings.append(("-", "REF TARGET UNRESOLVED", bad))
+    for bad in ENF.check_empty_fields_are_absent():
+        findings.append(("-", "EMPTY FIELD PRESENT", bad))
+    for bad in ENF.check_citation_necessity_is_recorded():
+        findings.append(("-", "CITATION NECESSITY UNRECORDED", bad))
+    for bad in ENF.check_the_cli_sends_the_apps_prompt():
+        findings.append(("-", "CLI PROMPT DIVERGES", bad))
     for bad in ENF.check_backend_deviations_declared():
         findings.append(("-", "BACKEND DEVIATION UNDECLARED", bad))
     for bad in ENF.check_blank_collapse_is_gated():

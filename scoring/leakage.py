@@ -88,6 +88,22 @@ most less least good bad well badly been being was were am
 # `enforcement.check_rule_examples_are_not_corpus` applies to its 6-grams.
 MIN_EXCLUSIVE = 2
 
+# A SINGLE word can leak, and the bigram rule cannot see it. Two cases found by
+# hand after passing every check: "procrastinating" left in `trigger_behavior`'s
+# example list, which is WK1/p7's own trigger word; and "a phone, a snack, an
+# evening out, music" offered as valence examples, which are the objects in
+# NR/p14, PP/p14, NP/p14 and DAY1/p6 -- the four cells that rule scores.
+#
+# Neither is EXCLUSIVE to one student, so the bigram filter is blind to both:
+# "phone" is in three students' answers. What makes them leak is being CONCRETE
+# and CORPUS-SPECIFIC while the rule judges the very cells they come from.
+#
+# Rarity is the usable proxy. A word the assignment itself uses is shared by
+# necessity; a word a handful of students happen to use is theirs. The threshold
+# is a fraction of the cohort rather than a count, so it survives a corpus of a
+# different size.
+MAX_STUDENTS_FOR_INFORMATIVE = 6
+
 
 def _content(text: str) -> list[str]:
     return [w for w in re.findall(r"[a-z']+", (text or "").lower())
@@ -172,6 +188,65 @@ def authored(items: tuple[str, ...]) -> dict[str, str]:
     return blocks
 
 
+def _domain_words(items: tuple[str, ...]) -> set[str]:
+    """Words the ASSIGNMENT uses, which authored prose cannot avoid re-using.
+
+    Drawn from the items' own question text and the four type definitions rather
+    than a hand-kept list, so it cannot go stale: if the handout says it, both
+    sides must say it, and it is not a leak however specific it looks.
+    """
+    specs = _specs()
+    txt = " ".join(str((specs.get(i) or {}).get("question") or "") for i in items)
+    try:
+        import rubric_h2 as R2
+        txt += " " + R2._OC_FRAME
+    except Exception:
+        pass
+    return set(_content(txt))
+
+
+def word_findings(items: tuple[str, ...]) -> list[dict]:
+    """Authored blocks re-using a CONCRETE word from a few students' answers.
+
+    Complements `findings`, which needs a shared PAIR. A rule that lists the very
+    objects the cohort wrote about is teaching to the test one noun at a time.
+    """
+    responses = cohort(items)
+    students: dict[str, set[int]] = {}
+    for (_item, pid, _f), text in responses.items():
+        for w in set(_content(text)):
+            students.setdefault(w, set()).add(pid)
+    domain = _domain_words(items)
+    reviews = load_reviews()
+    blocks = authored(items)
+    # OUR OWN vocabulary, derived rather than hand-kept: every word used in some
+    # OTHER authored block. Rarity alone is not informativeness -- with twenty
+    # students and short answers, ordinary English words like "already" or
+    # "cannot" appear in only a handful, and flagging those buried the real cases
+    # 196 blocks deep. A word we use elsewhere in our own prose is ours; a word
+    # that appears NOWHERE else in it, and does appear in a few students'
+    # answers, is theirs. That is what separates "phone" and "procrastinating"
+    # from "activity".
+    ours = {lbl: set(_content(t)) for lbl, t in blocks.items()}
+    out: list[dict] = []
+    for label, text in blocks.items():
+        elsewhere = set().union(*(v for k, v in ours.items() if k != label)) \
+            if len(ours) > 1 else set()
+        rare = sorted(
+            w for w in set(_content(text)) & set(students)
+            if w not in domain and w not in elsewhere
+            and len(students[w]) <= MAX_STUDENTS_FOR_INFORMATIVE)
+        if len(rare) < 2:
+            continue
+        h = sha(text)
+        out.append({"label": label, "sha": h, "text": text, "kind": "word",
+                    "shared": rare, "hits": len(rare),
+                    "owners": {w: sorted(students[w]) for w in rare},
+                    "review": reviews.get(h)})
+    out.sort(key=lambda f: -f["hits"])
+    return out
+
+
 def findings(items: tuple[str, ...]) -> list[dict]:
     """Flagged blocks, worst concentration first, each tagged with its review."""
     responses = cohort(items)
@@ -210,15 +285,39 @@ def findings(items: tuple[str, ...]) -> list[dict]:
 
 
 def unreviewed(items: tuple[str, ...] = CADENCE) -> list[str]:
-    """One line per flagged block with no standing verdict. The gate's payload."""
-    return [f"{f['label']}  [sha {f['sha']}] — {f['hits']} bigram(s) "
-            f"used by p{f['top_participant']} and no other student"
-            for f in findings(items) if not f["review"]]
+    """One line per flagged block with no standing verdict. The gate's payload.
+
+    AUDITS EVERY ITEM and ignores `items`, for the reason spelled out on `gate`:
+    both filters that decide a flag are computed over the scope given, so a
+    narrow scope makes ordinary English look borrowed. Every enforcement caller
+    -- the sweep gate and `measured.py --preflight` -- comes through here, so
+    they cannot disagree about whether the same prose is clean.
+    """
+    items = tuple(_specs())
+    pending = [f"{f['label']}  [sha {f['sha']}] — {f['hits']} bigram(s) "
+               f"used by p{f['top_participant']} and no other student"
+               for f in findings(items) if not f["review"]]
+    pending += [f"{f['label']}  [sha {f['sha']}] — {f['hits']} concrete word(s) "
+                f"from few students' answers: "
+                + ", ".join(f"{w} (p{'/p'.join(str(x) for x in f['owners'][w][:3])})"
+                            for w in f["shared"][:4])
+                for f in word_findings(items) if not f["review"]]
+    return pending
 
 
 def gate(items: tuple[str, ...], stream=sys.stderr) -> int:
-    """0 to proceed, 1 to refuse. Called before a sweep spends anything."""
-    pending = unreviewed(items)
+    """0 to proceed, 1 to refuse. Called before a sweep spends anything.
+
+    AUDITS EVERY ITEM, whatever is being swept. The `items` argument is kept for
+    the caller's convenience and deliberately ignored, because both filters that
+    decide a flag are computed OVER THE SCOPE GIVEN: `_domain_words` from the
+    items' question text, and `ours` from the other authored blocks in scope.
+    Narrow the scope and ordinary English stops looking ordinary -- auditing WK1
+    alone flagged "work", "food", "healthy" and "should" as concrete borrowings,
+    because no other block in scope used them. The same prose passes at ALL.
+    A leak is a leak whatever is being measured, so the audit does not narrow.
+    """
+    pending = unreviewed()
     if not pending:
         return 0
     print(f"REFUSING to sweep: {len(pending)} rule block(s) share wording with "

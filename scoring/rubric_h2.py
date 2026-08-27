@@ -53,7 +53,37 @@ POLARITY_GATE_ITEMS = ('DAY1', 'DAY2', 'WK2')
 # CHARGE: on the cadence items a created barrier is not operant conditioning at
 # all and zeroes the item; on NR it is simply not NEGATIVE REINFORCEMENT, which
 # gold charges at 2. Same readings, different consequence, so a separate tuple.
-BARRIER_PICK_ITEMS = ('DAY1', 'DAY2', 'WK2', 'NR')
+CADENCE_BARRIER_ITEMS = ('DAY1', 'DAY2', 'WK2')
+# The four type screens. `restricts` -- is the held-back thing the student's own
+# unwanted behaviour -- cannot work here: p14 holds back a phone on NR, going
+# out on NP and a snack on PP, all desirable, all unrelated to their exercise
+# UTB, and gold reads 2, 4 and 2. The discriminator is the VALENCE of the
+# held-back thing against what the target type removes: NR removes something
+# undesirable, NP removes something desirable.
+# The valence that CONTRADICTS each type when something is held back. Only NP's
+# operation IS removing a desirable thing, so only NP is contradicted by an
+# undesirable one.
+# The pair each type IS. Four types, two bits: added/taken x desirable/not.
+REQUIRED_MOVE = {'PR': 'given_desirable', 'NR': 'taken_undesirable',
+                 'PP': 'given_undesirable', 'NP': 'taken_desirable'}
+# NR joins the cadence three: the same structure appears there -- a self-imposed
+# barrier the behaviour lifts -- and the same three readings catch it. What
+# differs is the CHARGE. On the cadence items a created barrier is not operant
+# conditioning at all and zeroes the item; on NR it is simply not NEGATIVE
+# REINFORCEMENT, which gold charges at 2. Removing this in the `stimulus_move`
+# work cost NR/p14, which went 6/6 -> 0/6 with every other check passing.
+BARRIER_PICK_ITEMS = CADENCE_BARRIER_ITEMS + ('NR',)
+
+# Items answering the `stimulus_move` pair. NR is NOT among them: measured over
+# four sweeps it scored 15.0-15.5 there against 16.0 for the observed_type build
+# that preceded it, and its gains (p11, p20) never covered p15. PR keeps it on a
+# measured +1.0; PP and NP are level.
+# PR only. Measured at six runs twice over: PR 18.0 against a recorded 17 in
+# both move_v3 and move_v4, while PP and NP each came in half a cell BELOW their
+# recorded 18 and NR lost a full cell. The pair-and-derive reading earns its
+# place on one item, not on the four that share the question.
+MOVE_PICK_ITEMS = ('PR',)
+
 
 
 # The four operant-conditioning types, as the course defines them.
@@ -120,6 +150,50 @@ _RESTRICTS_RULE = (
                "else — an unrelated comfort, possession or activity that has "
                "nothing to do with the behaviour being changed.\n"
                "This is about WHICH thing, not about whether the plan works."
+)
+
+_HELD_BACK_RULE = (
+    "WHAT IS HELD BACK, AND IS IT WANTED? If the plan withholds, blocks or puts "
+    "something out of reach, answer `held_back_is` about THAT thing: is it "
+    "DESIRABLE to the student -- something they want or enjoy -- or UNDESIRABLE, "
+    "something they would rather avoid? Answer about the thing held back, not "
+    "about the behaviour and not about whether the plan is a good one. If the "
+    "plan withholds nothing, either answer will do.\n"
+    "Read it off the thing itself. A phone, a snack, an evening out, music are "
+    "wanted; a chore, an early start, an obligation are not. The grader compares "
+    "your answer with what this type of conditioning requires, so do not adjust "
+    "it to fit the type -- answer what the thing is."
+)
+
+_MOVE_RULE = (
+    "WHICH WAY, AND IS IT WANTED? `stimulus_move` is one answer combining two "
+    "readings of the SAME thing -- the thing your example adds or takes away.\n"
+    "  FIRST, the direction. Is that thing GIVEN to the student, or TAKEN AWAY "
+    "from them? Read it about the thing itself, not about the plan's machinery: "
+    "a restriction placed on something TAKES AWAY that thing, however the "
+    "sentence words it, and a privilege allowed on a condition GIVES that "
+    "privilege.\n"
+    "  SECOND, the valence. Is that thing DESIRABLE to the student -- something "
+    "they would choose for its own sake -- or UNDESIRABLE, something they would "
+    "only do or accept because they had to?\n"
+    "  Judge the thing, NOT whether having it is good for them. A pleasure that "
+    "works against their goal is still desirable; that is precisely why taking "
+    "it away can change behaviour. Do not call something undesirable because the "
+    "student is trying to do less of it.\n"
+    "  A thing the student must SPEND -- their time, their effort, their money, "
+    "their comfort -- is UNDESIRABLE, even where the same activity would be a "
+    "pleasure had they chosen it freely and at a moment of their own choosing. "
+    "Being required to do it is what makes it a cost, so ask what it costs them "
+    "at the moment it happens, not whether people enjoy such things. A thing "
+    "they RECEIVE, or are PERMITTED, at no cost to themselves, is DESIRABLE.\n"
+    "  It follows that an obligation LIFTED -- required effort or time struck "
+    "off, a duty they no longer owe -- is an undesirable thing TAKEN AWAY, and "
+    "not a desirable thing given, however much better off they end up.\n"
+    "Then answer the one option combining the two: `given_desirable`, "
+    "`given_undesirable`, `taken_desirable` or `taken_undesirable`.\n"
+    "Answer what the sentence describes. The grader works out from your answer "
+    "which of the four types this is, so do not reason backwards from the type "
+    "the question asks about -- that is the arithmetic's job, not yours."
 )
 
 _EXAMPLE_RULES = [
@@ -227,7 +301,14 @@ def _example_item(item_id: str, label: str, type_name: str, abbrev: str, definit
             },
             {"code": "BLANK", "pts": 4.0, "text": "did not answer"},
         ],
+        # The three barrier readings need their DEFINITIONS here, not only in the
+        # cadence builder: NR answers the same picks, and a pick asked for with no
+        # vocabulary explained is answered from its label alone. Restoring
+        # BARRIER_PICK_ITEMS without this put the slots on NR's sheet and left the
+        # conjunction unable to fire -- measured, at 16 probe calls, p14 scoring 4
+        # in both runs with the slots present and their meanings absent.
         "guidance": [_OC_FRAME] + _EXAMPLE_RULES
+        + ([_MOVE_RULE] if item_id in MOVE_PICK_ITEMS else [])
         + ([_EXPECTS_RULE, _AUTHORED_RULE, _RESTRICTS_RULE]
            if item_id in BARRIER_PICK_ITEMS else []) + [
             "Award the two credit components separately: a valid contingency that names "
@@ -621,7 +702,7 @@ def _example_use_item(
             # gold splits them on WHAT is restricted. Gating the unwanted
             # behaviour itself is a real plan; gating something unrelated to it
             # is a setup that never consequates anything.
-            *([_RESTRICTS_RULE] if item_id in BARRIER_PICK_ITEMS else []),
+            *([_RESTRICTS_RULE] if item_id in CADENCE_BARRIER_ITEMS else []),
             # DAY1 only, and it reverses this project's standing decision on
             # avoidance framing FOR THIS ITEM. Here rather than in SLOT_NOTES so
             # both generators render the same words — the enforcement check calls
@@ -699,7 +780,7 @@ def _example_use_item(
                "then look at two things.\n"
                "  (a) Its SUBJECT. Answer `met` only if a person appears in an "
                "agentive position — the subject of an active verb (\"I will...\", "
-               "\"my brother will...\"), or the agent of a passive marked with "
+               "\"my flatmate will...\"), or the agent of a passive marked with "
                "`by` (\"my phone is taken away BY my flatmate\"). A person "
                "mentioned elsewhere in the sentence does not count; the agent must "
                "govern the consequence.\n"
@@ -717,8 +798,8 @@ def _example_use_item(
                "Answer `absent` in these cases.\n"
                "  * The subject of the consequence clause is the CONSEQUENCE "
                "ITSELF — a penalty, a tally, a debt, an amount — with a verb of "
-               "existing, growing or accumulating: stacking, piling up, adding "
-               "up, building, getting bigger. \"The extra laps will keep stacking "
+               "existing, growing or accumulating: piling up, mounting, adding "
+               "up, building, getting bigger. \"The extra laps will keep piling "
                "up\" names no one who imposes them, and a rule about how a debt "
                "grows is not a person delivering a consequence.\n"
                "  * The consequence appears in no finite clause at all — a bare "

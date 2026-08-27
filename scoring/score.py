@@ -32,8 +32,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from backends import BackendError, make_backend
 from handouts import config, find_submissions
-from rubric_h2 import (BARRIER_PICK_ITEMS, CONTINGENCY_GATE_ITEMS,
-                       POLARITY_GATE_ITEMS)
+from rubric_h2 import (BARRIER_PICK_ITEMS, CADENCE_BARRIER_ITEMS,
+                       CONTINGENCY_GATE_ITEMS, MOVE_PICK_ITEMS,
+                       POLARITY_GATE_ITEMS, REQUIRED_MOVE)
 from docx_text import extract_media, graph_evidence
 from segment import repair_orphans, segment, utb_hint
 
@@ -157,8 +158,12 @@ def build_schema(item: dict) -> dict:
                 "type": "string", "enum": ["created", "relieved", "neither"]}
             props["trigger_expects"] = {
                 "type": "string", "enum": ["gain", "loss", "none"]}
+            # All three readings, on every barrier item: the conjunction needs
+            # `restricts` as its third condition, so scoping it to the cadence
+            # items alone left NR answering two of three and never firing.
             props["restricts"] = {
                 "type": "string", "enum": ["target_behavior", "other_thing"]}
+
         if item.get("cadence"):
             props["named_type"] = {
                 "type": "string",
@@ -213,6 +218,15 @@ def build_schema(item: dict) -> dict:
             props["consequence_asserted"] = {"type": "boolean"}
         else:
             props["targets_intended_behavior"] = {"type": "boolean"}
+            # The type is a two-bit function -- added/taken x desirable/not -- so
+            # ask for the pair and derive it. A single pick makes it impossible to
+            # assert a type contradicting the reading it rests on, which is what
+            # `observed_type` kept doing: NP/p14 answered "taken away" and
+            # "desirable" and then called the example PR.
+            if item.get("id") in MOVE_PICK_ITEMS:
+                props["stimulus_move"] = {"type": "string", "enum": [
+                    "given_desirable", "given_undesirable",
+                    "taken_desirable", "taken_undesirable"]}
         schema = json.loads(json.dumps(SCHEMA))
         del schema["properties"]["credit_checks"]
         del schema["properties"]["deductions"]
@@ -632,14 +646,22 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
             add("LINK_NOT_ASSERTED")
     else:
         expected = item.get("expected_type")
-        # The cadence barrier conjunction, imported to NR because the same
-        # structure appears there -- a self-imposed screen lock the behaviour
-        # lifts -- and the same three independent readings catch it. What changes
-        # is the CHARGE: on the cadence items a created barrier is not operant
-        # conditioning and zeroes the item; here it is simply not NEGATIVE
-        # REINFORCEMENT, which requires removing something UNDESIRABLE, and gold
-        # charges 2. NR/p8 is spared because its yard work pre-exists the plan,
-        # so `restriction_authored` reads `relieved` rather than `created`.
+        want_move = REQUIRED_MOVE.get(str(expected))
+        move = a.get("stimulus_move")
+        # Derived, not judged: the reading decides the type rather than the type
+        # deciding the reading.
+        demonstrates = (move == want_move) if (want_move and move) else (observed == expected)
+        checks.append({"what": f"is_{str(expected).lower()}", "met": demonstrates,
+                       "evidence": f"move {move or observed}, {expected} needs {want_move}"})
+        # The cadence barrier conjunction, on NR. Same three independent readings
+        # as the cadence items, different charge: there a created barrier is not
+        # operant conditioning and zeroes the item; here it is simply not
+        # NEGATIVE REINFORCEMENT, which needs an UNDESIRABLE thing taken away,
+        # and gold charges 2. Guarded by `demonstrates` so it cannot stack on top
+        # of a WRONG_TYPE already charged for the same reading -- two charges
+        # would take the cell to 0 where gold says 2.
+        # NR/p8 is spared because its chore pre-exists the plan, so
+        # `restriction_authored` reads `relieved` rather than `created`.
         if item.get("id") in BARRIER_PICK_ITEMS:
             conds = (("restriction_authored", "created"),
                      ("trigger_expects", "gain"),
@@ -648,16 +670,17 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
             checks.append({"what": "barrier_is_not_this_type", "met": not hit,
                            "evidence": ", ".join(
                                f"{k}={a.get(k) or '?'}" for k, _ in conds)})
-            if hit and observed == expected:
+            if hit and demonstrates:
                 add("WRONG_TYPE", "The plan sets up a restriction that performing "
                                   "the behaviour removes; that is not "
                                   f"{expected}, which needs an undesirable thing "
                                   "taken away.")
-        checks.append({"what": f"is_{str(expected).lower()}", "met": observed == expected, "evidence": f"observed {observed}"})
+
         aimed = a.get("targets_intended_behavior", True)
         checks.append({"what": "targets_intended_behavior", "met": bool(aimed), "evidence": ""})
-        if observed != expected:
-            add("WRONG_TYPE", f"This example is {observed}.")
+        if not demonstrates:
+            add("WRONG_TYPE", f"The thing is {move or observed}; "
+                                f"{expected} needs {want_move}.")
         elif not aimed:
             # Right type, wrong target: the handout says reinforcement examples
             # increase the WGB and punishment examples decrease the UTB. An NR

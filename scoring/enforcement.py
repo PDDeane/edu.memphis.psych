@@ -26,6 +26,7 @@ probe.test.ts and diffs the two.
 """
 from __future__ import annotations
 
+import pathlib
 import re
 import sys
 
@@ -66,6 +67,11 @@ _PASS = {
     # cost the item anything" looks like to the probe.
     "restriction_authored": "relieved",
     "restricts": "target_behavior",
+    # The type is derived from this pair, so the PASSING value is the pair each
+    # type IS. Per item, and a flat value would make the baseline charge on three
+    # of the four screens.
+    "stimulus_move": {"PR": "given_desirable", "NR": "taken_undesirable",
+                      "PP": "given_undesirable", "NP": "taken_desirable"},
 }
 _FAIL = {
     "behavior": "",
@@ -94,6 +100,11 @@ _FAIL = {
     "aimed_correctly": False,
     # WK1 only, and it GATES — no agent, or no verb of giving or taking.
     "agent_delivers_consequence": False,
+    # A pair the type is NOT, so `demonstrates_type` fails. Each is the same
+    # direction with the wrong valence, which is the live confusion: a phone lock
+    # is taken-away-DESIRABLE, which is NP, not the NR it claims to be.
+    "stimulus_move": {"PR": "given_undesirable", "NR": "taken_desirable",
+                      "PP": "given_desirable", "NP": "taken_undesirable"},
 }
 # The two type fields are handled separately: their failing value depends on the
 # other one, and a naive flip can make them agree again.
@@ -121,7 +132,20 @@ ALIAS = {
     "stimulus_is_arranged": "you_arrange_it",
     "targets_intended_behavior": ("targets_goal_behavior", "targets_unwanted_behavior"),
     "cadence_ok": ("cadence_is_daily", "cadence_is_weekly"),
+    "stimulus_move": ("demonstrates_type", "stimulus_move"),
 }
+
+
+def _tbl(table: dict, key: str, item_id: str):
+    """A probe-table value, resolved per item where the table says so.
+
+    Most fields have one passing value everywhere. The valence fields do not:
+    what a type REQUIRES differs by screen, so a flat value would make the
+    probe's own all-satisfied baseline charge on some of them. A dict value is
+    read as {item_id: value}.
+    """
+    v = table[key]
+    return v.get(item_id) if isinstance(v, dict) else v
 
 
 def web_name(cli_key: str, web_keys: set[str]) -> str | None:
@@ -501,7 +525,7 @@ def all_items() -> list[dict]:
 def _oc_baseline(item: dict) -> dict:
     """An analysis that earns full marks."""
     req = set(build_schema(item)["properties"]["oc_analysis"]["required"])
-    a = {k: v for k, v in _PASS.items() if k in req}
+    a = {k: _tbl(_PASS, k, item["id"]) for k in _PASS if k in req}
     if item.get("cadence"):
         a["observed_type"] = "PR"
         a["named_type"] = "PR"          # agreeing, so no mismatch
@@ -520,7 +544,7 @@ def _oc_fail(item: dict, a: dict, key: str, other: str = "") -> dict:
                  if t != a.get("observed_type") and t != a.get("named_type")]
         a[key] = wrong[1] if (other in _TYPE_FIELDS and len(wrong) > 1) else wrong[0]
     else:
-        a[key] = _FAIL[key]
+        a[key] = _tbl(_FAIL, key, item["id"])
     return a
 
 
@@ -1410,6 +1434,125 @@ def _attr(handout: int, item_id: str, attr: str) -> str:
     import olx_prompts as O
     m = re.search(r'\b%s="([^"]*)"' % attr, O._sheet_tag(handout, O.ACTION[item_id]))
     return m.group(1) if m else ""
+
+
+def check_every_check_is_invoked() -> list[str]:
+    """Does every check in this file actually RUN?
+
+    A check nobody calls is worse than no check: it reads as coverage, it is
+    maintained as coverage, and it enforces nothing. Six were found this way,
+    among them `check_weighted_slots_are_scored` -- written the same morning to
+    catch a weighted slot the arithmetic ignored, never wired to the runner, and
+    so silent through the very regression it was built for.
+
+    The audit that found them was itself wrong first: it searched for
+    `check_x(` across the sources, which every definition satisfies on its own
+    `def` line, so all 38 looked reached. Hence the `def` lines are stripped
+    here before the call sites are counted -- a check must be called from
+    SOMEWHERE THAT IS NOT ITSELF.
+    """
+    import re
+    here = pathlib.Path(__file__).parent
+    src = pathlib.Path(__file__).read_text()
+    defined = set(re.findall(r"^def (check_\w+)", src, re.M))
+    called = set(re.findall(r"\b(check_\w+)\s*\(",
+                            re.sub(r"^def check_\w+.*$", "", src, flags=re.M)))
+    for name in ("equivalence.py", "measured.py", "agreement.py", "compare_runs.py",
+                 "olx_prompts.py", "leakage.py"):
+        try:
+            called |= set(re.findall(r"\b(check_\w+)\s*\(", (here / name).read_text()))
+        except OSError:
+            continue
+    return [f"enforcement.{n}() is defined but never invoked -- it reads as "
+            f"coverage and enforces nothing" for n in sorted(defined - called)]
+
+
+def check_selectors_govern_something() -> list[str]:
+    """Does every ITEM SELECTOR still select something?
+
+    rubric_h2 keeps tuples of item ids -- CONTINGENCY_GATE_ITEMS,
+    POLARITY_GATE_ITEMS, TYPE_BARRIER_ITEMS -- and each one exists to decide
+    which items get a particular slot or paragraph. Delete the thing it governs
+    and the tuple survives: still defined, still imported, now deciding nothing,
+    and reading in the source exactly like a live feature.
+
+    It happened, and it cost a measured cell. `TYPE_BARRIER_ITEMS` governed
+    `barrier_is_not_this_type`, the slot commit 71ac1d7 added to win NR/p14 and
+    take the item 14 -> 16. The `stimulus_move` work dropped that slot as
+    superseded and left the tuple behind. p14 went from 6/6 to 0/6 while EVERY
+    remaining check on its sheet passed, so no verdict was wrong, no gate fired,
+    and the loss surfaced only as a median two cells down.
+
+    The sibling `check_weighted_slots_are_scored` cannot see this. It polices a
+    slot the arithmetic ignores; this is a slot that no longer exists, so there
+    is nothing for the arithmetic to ignore. The mistake leaves a trace at both
+    ends and both are checked:
+
+      A. a selector consulted NOWHERE outside its own definition and the import
+         lines that carry it between modules;
+      B. a slot key still named by the scorers that no item's sheet emits, which
+         is the same deletion seen from the reading end.
+    """
+    import inspect
+    import agreement as A
+    import olx_prompts as O
+    import rubric_h2 as R2
+    import score as S
+
+    problems = []
+    src_r2 = inspect.getsource(R2)
+    selectors = {
+        n: v for n, v in vars(R2).items()
+        if re.fullmatch(r"[A-Z][A-Z0-9_]*_ITEMS", n)
+        and isinstance(v, tuple) and all(isinstance(x, str) for x in v)
+    }
+
+    # A selector's own definition is not a consultation, and neither is an alias
+    # (`BARRIER_PICK_ITEMS = CADENCE_BARRIER_ITEMS`) nor the import that hands it
+    # to another module. Strip all three, then anything left is a real use.
+    consulting = re.sub(r"^[A-Z][A-Z0-9_]*_ITEMS\s*=.*$", "", src_r2, flags=re.M)
+    for mod in (S, O, A):
+        text = inspect.getsource(mod)
+        text = re.sub(r"from rubric_h2 import \([^)]*\)", "", text)
+        text = re.sub(r"from rubric_h2 import .*$", "", text, flags=re.M)
+        consulting += text
+    for name in sorted(selectors):
+        if name not in consulting:
+            problems.append(
+                f"rubric_h2.{name} = {selectors[name]} is defined and imported but "
+                f"consulted nowhere: it governs no slot and no paragraph. Either "
+                f"the thing it selected was deleted -- in which case a measured "
+                f"cell may have gone with it -- or the tuple is dead and should go")
+
+    # B. every slot key the scorers read must still be emitted by some sheet.
+    emitted = set()
+    for h in (1, 2, 3):
+        for item in config(h)["rubric"].ITEMS:
+            iid = item["id"]
+            if iid not in O.ACTION:
+                continue
+            try:
+                emitted |= {s["key"] for s in O.parse_slots(*O._slots_attr(h, O.ACTION[iid]))}
+            except Exception:
+                continue
+            for parse, attr in ((O.parse_equals, "equals"), (O.parse_expect, "expect"),
+                                (O.parse_forbid, "forbid")):
+                try:
+                    emitted |= {r["key"] for r in parse(_attr(h, iid, attr))}
+                except Exception:
+                    continue
+    scorer_src = "".join(inspect.getsource(f) for f in
+                         (A.score_oc, A.score_oc_cadence, S.derive_oc_ledger))
+    # Only the two unambiguous slot accessors, so a `.get` on some other dict
+    # cannot be mistaken for a check being read.
+    read = set(re.findall(r'yes\("(\w+)"\)', scorer_src))
+    read |= set(re.findall(r'"(\w+)" in keys', scorer_src))
+    for key in sorted(read - emitted):
+        problems.append(
+            f"the scorers read check `{key}`, which no item's slot sheet emits any "
+            f"more -- a deleted slot still being consulted, so its deduction is "
+            f"silently never charged")
+    return problems
 
 
 def check_weighted_slots_are_scored() -> list[str]:
