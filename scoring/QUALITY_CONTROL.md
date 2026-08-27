@@ -49,6 +49,25 @@ n-gram check nor the bigram check can see, and it is the one that mattered.
 Neither was noticed by reading. Both are obvious the moment the prose and the
 responses are diffed, which is all the tool does.
 
+A PHRASE-LEVEL REWRITE IS NOT A FIX. The instrument now runs three checks — a
+6-gram exact match, a shared-bigram check, and a SINGLE-WORD check — and the
+third was added because the first two passed prose the second rewrite had left
+half-borrowed. WK1's agent rule had "the extra laps will keep stacking up"
+swapped in for the student's noun, and "stacking" is WK1/p8's own verb, in the
+verb list the gate matches on, in the cell the gate was built for. The same
+sweep found "my brother will..." (DAY2/p12) and "procrastinating" (the word
+whose paraphrase had already cost WK1/p7). Change the object and the borrowed
+WORD survives, which is the part the model keys on.
+
+The single-word check flags a word that (a) appears in a few students' answers,
+(b) is absent from the handout and the type definitions, and (c) appears nowhere
+else in our own prose — that last clause being what separates "phone" from
+"activity". It is noisier than the bigram check by design: of 26 blocks flagged
+on its first run, 2 were faults and 24 were ordinary English or the instrument's
+own examples. Triage is cheap and mechanical — phrase-check the block's example
+sentences against the cohort, and a sentence that appears in no response
+exonerates every word in it.
+
 A shared phrase is not automatically a fault, and the tool cannot tell the three
 cases apart — DOMAIN VOCABULARY that both sides must use, COINCIDENCE where an
 invented example lands on a stock phrasing, and QUOTATION. A person judges, and
@@ -62,6 +81,32 @@ attached: "against a screen-time goal, gating the screen activity on finishing
 coursework earned full credit", or "cost participant 10 two points". That tells
 the grader the answer for one identifiable row. State the criterion, never the
 row.
+
+A DELETION IS A CHANGE, AND NOTHING WAS WATCHING FOR IT. Every instrument here
+polices what the prompts SAY. None watched what they stopped saying, and that is
+how NR/p14 was lost: `barrier_is_not_this_type` was added in the morning to win
+that cell (14 -> 16), removed the same day as superseded by `stimulus_move`, and
+the cell fell from 6/6 to 0/6 with every remaining check on its sheet passing. No
+verdict was wrong. No gate fired. The loss appeared only as a median two cells
+down, three sweeps later.
+
+`check_selectors_govern_something` now catches it from both ends: a selector
+tuple consulted nowhere, and a slot key the scorers still read that no sheet
+emits. Both halves fire on that deletion.
+
+Two things found while building it, each worse than the bug:
+
+* **`python3 enforcement.py` does not run the audit.** It prints
+  `cli_signatures()` and exits 0. The audit is `python3 equivalence.py
+  --enforcement`. Exit 0 from the wrong command was reported as a clean gate
+  more than once in this project.
+* **Six checks were never invoked at all** — defined, documented, maintained,
+  wired to nothing. Among them `check_weighted_slots_are_scored`, written the
+  same morning to catch a weighted slot the arithmetic ignored, silent through
+  the very regression it was built for. All six pass; they are now wired, and
+  `check_every_check_is_invoked` fails the audit if another is ever orphaned.
+  The first attempt to find them reported none, because it searched for
+  `check_x(` and every definition matches that on its own `def` line.
 
 **`measured.py --preflight` enumerates what is outstanding, in this order, and
 `agreement.py` REFUSES a probe while anything is.** A probe is a participant
