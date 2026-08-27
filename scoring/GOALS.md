@@ -133,6 +133,12 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       so neither the time clause nor "names no doing of its own" reaches it;
       p10 is ~3/6 on `measurable`, where it names tracking methods but no
       medium; p13 over-charges `realistic` on an answer gold passed silently.
+  Run `measured.py --criterion ITEM CHECK` on any criterion before changing it.
+  Section 3 of QUALITY_CONTROL.md says why: the misses tell you a criterion is
+  wrong, the CREDITED rows tell you where the line falls, and on Q3 those two
+  answers pointed opposite ways -- demanding a doing would have cost p9, p14 and
+  p18, all credited on access alone.
+
 - [ ] 2. **Handout 3's 2a, 15/20 with runs [15,15,15].** The worst cell count in
       the corpus and never once examined. Perfectly stable, which usually means
       a systematic mis-rule rather than noise -- the shape that made NR/p14
