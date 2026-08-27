@@ -671,6 +671,44 @@ def exemplar_drops(handout: int) -> dict[str, list[int]]:
 # they never reach a comparison. The other seven do.
 GOLD_DIVERGENCES: list[dict] = [
     {
+        "code": "ANTECEDENT_RULE_APPLIED_AGAINST_ITSELF",
+        "cells": [("Q4a", 14), ("Q4a", 19)],
+        "why": "Two cells, deterministic at 0/6 each, where gold departs from the rule "
+               "gold itself states -- in OPPOSITE directions, which is why no single "
+               "criterion reaches both. "
+               "THE RULE, in the graders' own words on three other rows of this item: "
+               "p3 is docked \"Need further explanation for how not eating is an "
+               "antecedent of lack of exercise\"; p4 \"how does grumpy emotions lead to "
+               "lack of sleep?\"; p20 \"An antecedent/trigger is something that causes "
+               "you to engage in the UTB\". All three demand that the example show how "
+               "it leads to THE UTB, and we score all three exactly right, 6/6 each. "
+               "p14 (gold 1, we score 3): \"not seeing immediate results, so I tend to "
+               "bed rot\" STATES that link and names the UTB as its effect -- bed-rotting "
+               "is lack of exercise -- so by the rule above it qualifies, and our "
+               "`antecedent_1` reads `met` 6/6. Gold rejected both examples for -4. "
+               "p19 (gold 5, we score 3): \"waking up and not feeling motivated\" states "
+               "NO link at all, which is what p3 was docked two points for, and our "
+               "`antecedent_1` reads `wrong_kind` 6/6. Gold credited it in full with no "
+               "feedback. "
+               "MEASURED, NOT ASSUMED, and the routes are closed. (1) EQUIVALENCE_DEF was "
+               "imported to make the stated effect have to BE the UTB by semantic "
+               "equivalence -- six runs, seven cells: p14's `antecedent_1` stayed `met` "
+               "6/6 and p9's `antecedent_2` flipped to `met` 5/6, net -0.67, reverted "
+               "(see the note in rubric_h1 beside the Q4a guidance). (2) Crediting an "
+               "unexplained state on the ground that these behaviours are CYCLICAL -- a "
+               "state that follows one occurrence and precedes the next -- would reach "
+               "p19, but p20's second example is the same shape (\"waking up late and "
+               "forgetting items for school\" against lack of sleep) and gold REJECTS it; "
+               "p20 is 6/6 correct at gold 1, and crediting both its examples would score "
+               "it 5. One cell won, one worth four points lost. "
+               "NOT FIXTURE FAULTS: both responses are complete and neither student is "
+               "among handout 1's suspect submissions. NOT GOLD ERRORS: p14's row "
+               "itemises -4 against a max of 5 and reconciles at 1; p19's carries no "
+               "feedback, which is normal for full credit. Each is defensible read alone "
+               "-- it is the PAIR that cannot both be right under one rule. Ours is the "
+               "reading that follows the criterion the graders wrote down.",
+    },
+    {
         "code": "NP_SHAPE_CREDITED_AS_NR", "cells": [("NR", 4)],
         "why": "p4's answer is \"I will not watch TikTok for each day that I do not "
                "sleep 8 hours.\" Gold gives it 4; we award 2 in EVERY run of every "
