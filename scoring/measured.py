@@ -458,6 +458,113 @@ _COUNTING = re.compile(r"exclud|flag|cells|participants|of the rest|"
                        r"rows|boxes|slots|passes|runs", re.I)
 
 
+def error_profile(item: str, runs_path: str) -> str:
+    """Where an item's errors COME FROM, by slot. Run after every sweep.
+
+    A median says how many cells are wrong. It never says which JUDGEMENT is
+    wrong, and the two answers can point at different work entirely. Q1 spent a
+    day on its merge rule because three misses looked like merge failures; this
+    profile over the same artifact says 16 of 17 count errors are OVER-counts and
+    8 of those are on cells where gold credits ONE reason -- an exclusion problem
+    roughly twice the size of the merge problem, and untouched by any of the
+    eleven configurations tried.
+
+    Three tables, because each answers a different question:
+
+      DIRECTION   over- vs under-credit. A one-sided profile means a threshold is
+                  set wrong; a two-sided one means the judgement is unstable.
+      BY SLOT     how often each slot is unsatisfied, split by whether the CELL
+                  was right. A slot that is unsatisfied mostly in correct cells is
+                  doing its job; one that tracks the errors is the lever.
+      DRIFT       how often a slot's verdict changes across runs of the SAME cell.
+                  High drift means the prompt is asking something the model cannot
+                  answer twice the same way, which no rewrite of the rule fixes.
+    """
+    import json
+    import collections
+    import agreement as A
+    import gold as _gold
+    import handouts as _H
+
+    h = _jobs()[item]["handout"]
+    g = _H.apply_corrected_gold(
+        {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[h](), h)
+    runs = json.loads(Path(runs_path).read_text())["runs"]
+
+    obs = []
+    for i, run in enumerate(runs, 1):
+        for r in run["results"]:
+            pid = r["participant_id"]
+            gv = (g.get(pid, {}).get(item) or {}).get("score")
+            if gv is None:
+                continue
+            obs.append((i, pid, gv, r["score"], r.get("checks") or {}))
+    if not obs:
+        return f"{item}: no scored observations in {runs_path}"
+
+    out = [f"{item}: error profile over {len(obs)} observation(s) — {runs_path}"]
+    n = len(obs)
+    corr = sum(1 for *_, gv, s, _ in [(0, 0, o[2], o[3], 0) for o in obs] if s == gv)
+    over = sum(1 for o in obs if o[3] > o[2])
+    under = sum(1 for o in obs if o[3] < o[2])
+    out.append(f"  DIRECTION   correct {corr} ({100*corr/n:.0f}%)   "
+               f"over-credit {over} ({100*over/n:.0f}%)   "
+               f"under-credit {under} ({100*under/n:.0f}%)")
+    if over and under and min(over, under) / max(over, under) < 0.25:
+        out.append("              one-sided: a threshold is set wrong, not unstable")
+
+    # Which slots are unsatisfied, and do they track the errors?
+    try:
+        spec = A.load_action(f"bmod_handout{h}.olx", __import__("olx_prompts").ACTION[item])
+        slots = spec["slots"]
+    except Exception:
+        slots = []
+    out.append(f"  {'BY SLOT':12} {'unmet':>6} {'in WRONG cells':>15} {'in right cells':>15}")
+    for sl in slots:
+        k = sl["key"]
+        if sl.get("count_max"):
+            continue                      # counts are profiled below, not as verdicts
+        unmet = wrong = right = 0
+        for _, pid, gv, s, ch in obs:
+            v = (ch or {}).get(k)
+            if v in (None, ""):
+                continue                  # unrecorded: see the count-slot gap
+            if not A.is_satisfied(sl, v):
+                unmet += 1
+                if s != gv: wrong += 1
+                else: right += 1
+        if unmet:
+            flag = "  <-- tracks the errors" if wrong and wrong >= right else ""
+            out.append(f"  {k:14} {unmet:>6} {wrong:>15} {right:>15}{flag}")
+
+    # Counted families: what number was given, against what gold implies
+    counts = collections.Counter()
+    for cr in (_H.config(h)["rubric"].BY_ID[item].get("counts") or []):
+        for _, pid, gv, s, ch in obs:
+            raw = str((ch or {}).get(cr["key"], "")).strip()
+            if raw.isdigit() and s != gv:
+                counts[f"said {raw}, scored {s:g} against gold {gv:g}"] += 1
+    if counts:
+        out.append("  COUNTS in wrong cells:")
+        for k, v in counts.most_common(8):
+            out.append(f"    {k:44} x{v}")
+
+    # Drift: same cell, different verdict across runs
+    per = collections.defaultdict(lambda: collections.defaultdict(set))
+    for _, pid, gv, s, ch in obs:
+        for k, v in (ch or {}).items():
+            if v not in (None, ""):
+                per[k][pid].add(v)
+    drifty = [(k, sum(1 for pid, vs in cells.items() if len(vs) > 1))
+              for k, cells in per.items()]
+    drifty = [(k, c) for k, c in drifty if c]
+    if drifty:
+        out.append("  DRIFT (cells whose verdict changed across runs):")
+        for k, c in sorted(drifty, key=lambda x: -x[1]):
+            out.append(f"    {k:24} {c} cell(s)")
+    return "\n".join(out)
+
+
 def prose_claims(paths: list[str] | None = None) -> list[str]:
     """Numbers written into the repo that disagree with the recorded measurement.
 
@@ -907,8 +1014,21 @@ def main() -> int:
         return worst
     if a[:1] == ["--record"] and len(a) == 3:
         record(a[1], a[2])
+        # The error profile is PRINTED, not offered. A median says how many cells
+        # are wrong and never which judgement is wrong, and those point at
+        # different work: Q1 spent a day on its merge rule while this profile,
+        # over the same artifact, said 16 of 17 count errors were OVER-counts and
+        # half of those sat on cells crediting ONE reason. Nobody runs an optional
+        # diagnostic at the moment they think they already know the answer.
+        try:
+            print(error_profile(a[1], a[2]))
+        except Exception as e:                       # never block a recording
+            print(f"  (error profile unavailable: {type(e).__name__}: {e})")
         for c in declaration_conflicts():
             print(f"  DECLARATION EXPIRED? {c}")
+        return 0
+    if a[:1] == ["--errors"] and len(a) == 3:
+        print(error_profile(a[1], a[2]))
         return 0
     if a[:1] == ["--criterion"] and len(a) == 3:
         print(criterion_rows(a[1], a[2]))
