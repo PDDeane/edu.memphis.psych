@@ -752,6 +752,26 @@ ITEMS: list[dict] = [
             "(b) The example is what the student does INSTEAD of the goal behaviour, which "
             "belongs to 4b — a substitute activity, or a different way of pursuing the same "
             "end. (c) The example is a consequence already listed in 4c.",
+            # MEASURED AND REVERTED: EQUIVALENCE_DEF imported here as
+            # MATCH_DEF["Q4a"], on the reading that "does this lead to the UTB?"
+            # is a matching question -- gold's own rejections all turn on it
+            # (p3 "how not eating is an antecedent of lack of exercise", p4 "how
+            # does grumpy emotions lead to lack of sleep", p20 "something that
+            # CAUSES you to engage in the UTB"). The clause said the stated
+            # effect must BE the UTB, with things that merely cause, accompany,
+            # amount to or evidence it excluded as a second thing. Six runs over
+            # seven cells: p14's `antecedent_1` stayed `met` 6/6 -- "so I tend to
+            # bed rot" still reads as leading to lack of exercise -- so the
+            # target never moved. And p9's `antecedent_2` flipped from
+            # `wrong_kind` to `met` 5/6, costing 0.67 cells: its example NAMES
+            # the behaviour ("Not going on a run..."), which is exactly why it
+            # is not an antecedent, and a clause requiring the effect to BE the
+            # UTB reads as licence for an example that names the UTB outright.
+            # Five guards (p3, p4, p15, p18, p20) were untouched, so the
+            # definition transfers without collateral damage -- it simply does
+            # not bite on this slot, and its wording backfires where the example
+            # is the destination. Net -0.67. Do not re-import without solving
+            # the names-the-destination case first.
             "Where the link is genuinely opaque rather than merely brief, the graders did "
             "deduct. The test they applied was whether a reader can see how this leads to "
             "THIS behaviour: a mood or an omission that could precede almost anything is "
