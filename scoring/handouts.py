@@ -82,6 +82,25 @@ OUT = paths.OUT
 # applying it would have made p4 exact and turned p5 and p17 into misses, costing
 # us a cell. The reason to refuse it is the standard, not the score.
 CORRECTED_GOLD: dict[tuple[str, int], dict] = {
+    ("Q3", 8): {
+        "was": 4.0, "score": 3.0,
+        "why": "the comment carries TWO explicit \"-1 pt\" markers -- measurable (\"how "
+               "will you track your goal?\") and actionable (\"what specific actions will "
+               "you take?\") -- against a max of 5, which implies 3.00; the row wrote "
+               "4.00. THE CONTROL SET IS THE WHOLE ITEM. Q3 has five 1-point criteria, "
+               "and every other row's arithmetic follows exactly: one itemised deduction "
+               "scores 4 (p1, p17, p18), two score 3 (p3, p6, p7, p10, p13, p16, p19), "
+               "three score 2 (p9, p20), none scores 5 (p2, p4, p5, p11, p12, p14, p15). "
+               "p19 is the exact control -- the SAME pair, measurable and action -- and "
+               "scores 3. p8 is the only row in twenty where the sum does not match. "
+               "The submission supports both deductions: \"I {{corpus:Q3/p8:measurable:47:74:sha=1953a79ffdab:shape=R27-0-20}}"
+               "{{corpus:Q3/p8:measurable:75:81:sha=866ab23f0299}} gym\" names no method, and \"This {{corpus:Q3/p8:action:33:64:sha=37e96844d3a4:shape=R31-0-20}}"
+               "{{corpus:Q3/p8:action:65:77:sha=d31a15770b5a}} time\" describes achievability rather than any action. A "
+               "SLIP, not an unwritten deduction -- the grader wrote both charges and "
+               "subtracted one. THE CORRECTION COSTS US THE CELL: we score 4.00, which "
+               "matched the uncorrected row 3/3, and against 3.00 we are now wrong. It "
+               "makes gold coherent; it does not move our number.",
+    },
     ("Q4a", 17): {
         "was": 4.0, "score": 5.0,
         "why": "the row docks the keyword point -- \'-1 pt: did not use the word "
