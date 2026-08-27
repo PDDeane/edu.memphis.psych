@@ -910,6 +910,54 @@ def parse_requires(spec: str | None) -> list[dict]:
     return out
 
 
+def parse_onlyif(spec: str | None) -> list[dict]:
+    """Mirror of slotSheet.ts:parseOnlyIf — `key:condition[|key:condition]`.
+
+    Which checks may be CHARGED: the mirror image of `requires`, which decides
+    what may be CREDITED. An unknown condition suppresses nothing, so a typo in
+    the attribute cannot silently stop a check being charged, and chaining is
+    deliberately not transitive.
+
+    Was never parsed here. On PR/NR/PP/NP it is redundant -- `score_oc` returns
+    on a failed `demonstrates_type` before the guarded checks are reached, which
+    is the same effect by a different route -- but Q4b is scored by the GENERIC
+    `score_slots`, where `onlyif="modify_why:modify_stated"` had no
+    implementation at all and `modify_why` could be charged on a response that
+    never said whether modifying was a good idea.
+    """
+    out = []
+    for rule in (spec or "").split("|"):
+        key, _, cond = rule.strip().partition(":")
+        if key.strip() and cond.strip():
+            out.append({"key": key.strip(), "cond": cond.strip()})
+    return out
+
+
+def parse_counts(spec: str | None) -> list[dict]:
+    """Mirror of slotSheet.ts:parseCounts — `key:member,member[|key:...]`.
+
+    The members are DERIVED from the count and deliberately absent from the
+    response schema: the model answers how many, and the first n members are met
+    and the rest absent. So a consumer that does not read this rule never gives
+    the members a verdict at all, and every point they carry goes permanently
+    uncharged.
+
+    That was once written here as something that HAD happened, across five items
+    and 22 points. It had not. The five items each declare `counts` on their
+    RUBRIC item as well as in the sheet, `score_slots` reads the rubric, and the
+    members were being scored throughout; the claim was a misdiagnosis, stated
+    out loud, that cost 140 calls. The hazard above is real and is why both
+    declarations are checked; the incident was not.
+    """
+    out = []
+    for group in (spec or "").split("|"):
+        key, _, members = group.strip().partition(":")
+        slots = [m.strip() for m in members.split(",") if m.strip()]
+        if key.strip() and slots:
+            out.append({"key": key.strip(), "slots": slots})
+    return out
+
+
 def count_max(segment: str | None) -> int | None:
     """Mirror of slotSheet.ts:parseCountMax — `count(3)` -> 3."""
     m = re.fullmatch(r"count\(\s*(\d+)\s*\)", (segment or "").strip())
