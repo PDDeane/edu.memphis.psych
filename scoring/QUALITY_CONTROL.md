@@ -720,6 +720,85 @@ occasionally.
 
 ---
 
+## 2a. TRY THE STRUCTURAL FIX FIRST
+
+**When a cell resists, change the SHAPE of what the model is asked, not the
+wording of the question. Structural fixes have worked in this project; wording
+changes mostly have not.** Reach for prose only after a structural option has
+been tried or ruled out, and say which.
+
+The record is one-sided:
+
+* **Q6** was fixed by ADDING A REQUIRED SLOT, after prose attempts failed. The
+  README's own recommendation.
+* **DAY1's `you_arrange_it`** absorbed four measured prose attempts, all neutral,
+  all reverted. BACKLOG.md records the untried lever as "add a NEW required slot
+  rather than re-describing an existing gate".
+* **DAY2/p14** was fixed by the `forbid` PRIMITIVE -- a new rule shape -- not by
+  re-describing the judgement.
+* **Q1's `reasons_given`** cost EIGHT configurations and ~550 calls of wording
+  changes. p14 was won early (v1, 2/6 -> 6/6) and p9 never landed: 1/6, 3/6, 6/6,
+  3/6, 4/6, 2/6, 1/6, 1/6. Three "isolate the mechanism" probes all scored WORSE
+  than the baseline they were derived from, and the one 6/6 was never replicated.
+  The structural option -- ask `reason_1/2/3` SEPARATELY instead of collapsing
+  them into one count -- sat unexamined the whole time.
+
+Why it works, when it does: prose can only move a threshold on a judgement the
+model is already making in one step. A structural change alters WHICH judgements
+are made. Q1 is the clearest case: `counts=` forces one aggregate answer, so two
+cells needing opposite thresholds cannot both be satisfied by any wording --
+that is arithmetic, not rhetoric. Asked per slot, each candidate is judged on its
+own eligibility, and "is this DIFFERENT from what I already credited" becomes a
+local comparison instead of a global counting principle.
+
+The structural inventory, before writing prose: is there a primitive that says
+this (`forbid`, `equals`, `expect`, `requires`, `onlyif`, `cover`)? Can a slot be
+added? Can an aggregate be split? Can a derived check replace a judgement? If the
+answer to all of those is no, then write prose -- and note in the commit that the
+structural options were considered.
+
+## 2b. PROFILE THE ERRORS BY SLOT AFTER EVERY SWEEP
+
+**A median says how many cells are wrong. It never says which JUDGEMENT is
+wrong, and those point at different work.** `measured.py --record` now prints
+the profile automatically; `measured.py --errors ITEM ARTIFACT` runs it alone.
+Not optional, because nobody runs a diagnostic at the moment they believe they
+already know the answer.
+
+Three tables, three different questions:
+
+* **DIRECTION** — over- versus under-credit. One-sided means a THRESHOLD is set
+  wrong. Two-sided means the judgement is unstable, and no rewrite fixes that.
+* **BY SLOT** — how often each slot is unsatisfied, split by whether the CELL was
+  right. A slot unsatisfied mostly in CORRECT cells is doing its job; a slot that
+  tracks the errors is the lever.
+* **DRIFT** — how often a slot's verdict changes across runs of the SAME cell.
+  High drift means the prompt asks something the model cannot answer twice the
+  same way.
+
+The case that produced this rule: Q1 was worked for a day on its merge rule,
+across eleven configurations and roughly 900 calls, because three misses looked
+like merge failures. The profile over the SAME artifact that was sitting there
+the whole time:
+
+    DIRECTION   correct 101 (84%)   over-credit 16 (13%)   under 3 (2%)
+                one-sided: a threshold is set wrong, not unstable
+    COUNTS      said 3, gold 2  x8      <- the merge problem
+                said 3, gold 1  x6      <- an EXCLUSION problem, untouched
+                said 2, gold 1  x2      <- the same
+    DRIFT       confident 15 cells, reasons_given 5 cells
+
+Sixteen of seventeen count errors were OVER-counts and eight sat on cells
+crediting ONE reason — an exclusion problem roughly twice the size of the merge
+problem, and not addressed by any of the eleven configurations. Reading the item
+median, or even the three failing cells, could not have shown that; the
+distribution of error DIRECTIONS did, immediately.
+
+Two further readings that fall out of it for free: a slot with high `unmet` but
+almost all of it in CORRECT cells is not the problem however much it dominates
+the eye (`confident`, 99 unmet, 83 of them in cells scored right), and DRIFT
+identifies cells that no wording can fix before calls are spent trying.
+
 ## 3. Building the model
 
 **READ THE CREDITED ROWS, NOT JUST THE MISSES. `python3 measured.py
