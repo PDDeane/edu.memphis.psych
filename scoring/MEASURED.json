@@ -34,7 +34,9 @@
         18,
         19
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "52f69e509272",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "1b": {
       "cells": {
@@ -70,7 +72,9 @@
         20,
         20
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "547e6788b068",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "1c": {
       "cells": {
@@ -107,7 +111,9 @@
         16,
         16
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "a22bb09fdb49",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "2a": {
       "cells": {
@@ -143,7 +149,8 @@
         15,
         15
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "pre-counts-fix"
     },
     "2b": {
       "cells": {
@@ -179,7 +186,8 @@
         20,
         20
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "pre-counts-fix"
     },
     "3": {
       "cells": {
@@ -215,7 +223,8 @@
         19,
         19
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "pre-counts-fix"
     },
     "D1": {
       "cells": {
@@ -255,7 +264,9 @@
         18,
         18
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "b2a061633ec5",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "D2": {
       "cells": {
@@ -295,7 +306,9 @@
         18,
         18
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "b2a061633ec5",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "DAY1": {
       "cells": {
@@ -338,7 +351,9 @@
         17,
         17
       ],
-      "runs": 6
+      "runs": 6,
+      "scorer_sha": "a1384fbdabbe",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "DAY2": {
       "cells": {
@@ -381,7 +396,9 @@
         17,
         17
       ],
-      "runs": 6
+      "runs": 6,
+      "scorer_sha": "a1384fbdabbe",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "NP": {
       "cells": {
@@ -421,7 +438,9 @@
         18,
         18
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "8bf6854ee6ec",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "NR": {
       "cells": {
@@ -464,7 +483,9 @@
         16,
         16
       ],
-      "runs": 6
+      "runs": 6,
+      "scorer_sha": "7e1037374da7",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "PP": {
       "cells": {
@@ -504,7 +525,9 @@
         18,
         18
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "8bf6854ee6ec",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "PR": {
       "cells": {
@@ -547,7 +570,9 @@
         18,
         18
       ],
-      "runs": 6
+      "runs": 6,
+      "scorer_sha": "8bf6854ee6ec",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "Q1": {
       "cells": {
@@ -583,7 +608,8 @@
         17,
         18
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "pre-counts-fix"
     },
     "Q2": {
       "cells": {
@@ -619,7 +645,8 @@
         17,
         18
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "pre-counts-fix"
     },
     "Q3": {
       "cells": {
@@ -658,7 +685,9 @@
         18,
         18
       ],
-      "runs": 6
+      "runs": 6,
+      "scorer_sha": "52f69e509272",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "Q4a": {
       "cells": {
@@ -697,7 +726,9 @@
         18,
         18
       ],
-      "runs": 6
+      "runs": 6,
+      "scorer_sha": "52f69e509272",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "Q4b": {
       "cells": {
@@ -735,7 +766,8 @@
         17,
         17
       ],
-      "runs": 6
+      "runs": 6,
+      "scorer_sha": "pre-counts-fix"
     },
     "Q4c": {
       "cells": {
@@ -774,7 +806,9 @@
         17,
         17
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "52f69e509272",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "Q5": {
       "cells": {
@@ -810,7 +844,9 @@
         19,
         19
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "52f69e509272",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "Q6": {
       "cells": {
@@ -846,7 +882,9 @@
         18,
         18
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "7ef34ef24364",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "T1": {
       "cells": {
@@ -886,7 +924,9 @@
         18,
         18
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "547e6788b068",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "T2": {
       "cells": {
@@ -926,7 +966,9 @@
         18,
         18
       ],
-      "runs": 3
+      "runs": 3,
+      "scorer_sha": "547e6788b068",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "WK1": {
       "cells": {
@@ -969,7 +1011,9 @@
         18,
         18
       ],
-      "runs": 6
+      "runs": 6,
+      "scorer_sha": "37efc7343320",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     },
     "WK2": {
       "cells": {
@@ -1012,7 +1056,9 @@
         18,
         18
       ],
-      "runs": 6
+      "runs": 6,
+      "scorer_sha": "a1384fbdabbe",
+      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings"
     }
   },
   "note": "Per item: the prompt SHA that was measured and the exclusion set it was measured over. Written by `measured.py --record`, never by hand. Checked by enforcement.check_items_are_measured_as_configured. An entry may declare `pending` with a reason; it may not be absent."

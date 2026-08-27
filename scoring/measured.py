@@ -122,6 +122,17 @@ def status() -> list[tuple[str, str]]:
             out.append((item, f"STALE PROMPT — measured at "
                               f"{rec.get('prompt_sha')}, now {prompt_sha(item)}"))
             continue
+        # A scorer change invalidates a number exactly as a prompt change does.
+        # Scoped by fingerprinting the item's OWN scoring path, so the blast
+        # radius is COMPUTED rather than guessed. The guess it replaces -- "does
+        # this sheet author any computed primitive" -- was true of twenty-one
+        # items, which is indistinguishable from a global flag.
+        want = scorer_sha(item)
+        if rec.get("scorer_sha") not in (None, want):
+            out.append((item, f"STALE SCORER — measured at "
+                              f"{rec.get('scorer_sha')}, now {want}; the code "
+                              f"this item's score depends on has changed"))
+            continue
         if rec.get("exclusions") != exclusions(item):
             out.append((item, f"STALE CELLS — measured over "
                               f"{rec.get('exclusions')}, now {exclusions(item)}"))
@@ -129,6 +140,133 @@ def status() -> list[tuple[str, str]]:
         out.append((item, f"ok  {rec.get('numerator')}/{rec.get('denominator')} "
                           f"in {rec.get('runs')} run(s)  {rec.get('out', '')}"))
     return out
+
+
+# The SCORER's own version. `prompt_sha` catches a changed prompt; nothing
+# caught a changed SCORER, and the two invalidate a recorded number equally.
+# Found the hard way: `counts=` had never been parsed into the action dict, so
+# five items scored with two-to-six points permanently uncharged. Fixing the
+# harness left every prompt sha untouched, so `--status` reported all six items
+# as current while their recorded numbers described arithmetic that no longer
+# existed.
+#
+# Hashed FUNCTION BY FUNCTION rather than whole-file, so an edit to a CLI flag
+# or a log line does not invalidate the corpus. The list is the path from a
+# model's answers to a score: the attribute parsers that build the sheet, the
+# satisfied/computed resolution, and the three scorers.
+SCORER_PARTS = (
+    ("agreement", "load_action"), ("agreement", "parse_slots"),
+    ("agreement", "parse_equals"), ("agreement", "parse_derived"),
+    ("agreement", "parse_cover"), ("agreement", "satisfied_map"),
+    ("agreement", "apply_computed"), ("agreement", "score_slots"),
+    ("agreement", "score_oc"), ("agreement", "score_oc_cadence"),
+    ("olx_prompts", "parse_slots"), ("olx_prompts", "parse_counts"),
+    ("olx_prompts", "parse_onlyif"), ("olx_prompts", "parse_expect"),
+    ("olx_prompts", "parse_forbid"), ("olx_prompts", "parse_requires"),
+    ("handouts", "scores_as_exact"), ("handouts", "attainable_scores"),
+)
+
+
+# Which parts each item's number actually depends on. A change to `score_oc`
+# cannot move a slots-path item, and a parser for a primitive the item does not
+# author cannot move it either -- so hashing all eighteen parts for every item
+# marks the whole corpus stale on any edit, which is a flag that gets ignored.
+_ALWAYS = (("agreement", "load_action"), ("agreement", "parse_slots"),
+           ("agreement", "satisfied_map"), ("agreement", "apply_computed"),
+           ("agreement", "expand_counted"), ("olx_prompts", "parse_slots"),
+           ("handouts", "scores_as_exact"), ("handouts", "attainable_scores"))
+_BY_KIND = {"slots": ("agreement", "score_slots"),
+            "oc": ("agreement", "score_oc"),
+            "oc_cadence": ("agreement", "score_oc_cadence")}
+_BY_PRIMITIVE = {
+    "equals": (("agreement", "parse_equals"),),
+    "derived": (("agreement", "parse_derived"),),
+    "cover": (("agreement", "parse_cover"),),
+    "counts": (("olx_prompts", "parse_counts"),),
+    "onlyif": (("olx_prompts", "parse_onlyif"),),
+    "expect": (("olx_prompts", "parse_expect"),),
+    "forbid": (("olx_prompts", "parse_forbid"),),
+    "requires": (("olx_prompts", "parse_requires"),),
+}
+
+
+def _behaviour_src(src: str) -> str:
+    """A function's source with its PROSE removed, so only behaviour is hashed.
+
+    This codebase documents heavily, and a fingerprint that moves on a docstring
+    is a fingerprint that cries wolf. Correcting one comment in `parse_counts` --
+    retracting a misdiagnosis, changing no code -- marked TWENTY-ONE of
+    twenty-six items STALE SCORER and would have put ~1800 calls of re-sweeping
+    on the list to reconfirm numbers nothing had touched.
+
+    Comments never reach the AST, and unparsing normalises formatting, so what is
+    left is the behaviour. Docstrings are dropped at every level.
+    """
+    import ast, textwrap
+    tree = ast.parse(textwrap.dedent(src))
+    for node in ast.walk(tree):
+        body = getattr(node, "body", None)
+        if not isinstance(body, list) or not body:
+            continue
+        first = body[0]
+        if (isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant)
+                and isinstance(first.value.value, str)):
+            node.body = body[1:] or [ast.Pass()]
+    return ast.unparse(tree)
+
+
+def _parts_for(item: str | None) -> tuple:
+    """The scoring path for one item, or every part when item is None."""
+    if item is None:
+        return SCORER_PARTS
+    import re
+    import agreement as A
+    import olx_prompts as O
+    parts = list(_ALWAYS)
+    # The handout comes from the BLOCKS key, not from the job: those entries
+    # carry item/olx/refs/kind and no handout, so reading one raised a KeyError
+    # into the fallback below and every item quietly fingerprinted all eighteen
+    # parts -- conservative, so it looked like nothing was wrong.
+    found = next(((h, j) for h, b in A.BLOCKS.items() for j in b.values()
+                  if j["item"] == item), None)
+    if found is None:
+        return SCORER_PARTS               # unknown shape: assume all of it
+    handout, job = found
+    if job["kind"] in _BY_KIND:
+        parts.append(_BY_KIND[job["kind"]])
+    aid = O.ACTION.get(item)
+    tag = ""
+    if aid and job.get("olx"):
+        try:
+            text = Path(O.OLX % handout).read_text()
+        except Exception as e:            # a sheet that cannot be read stales all
+            return SCORER_PARTS
+        m = re.search(rf'<LLMAction id="{re.escape(aid)}"[^>]*>', text, re.S)
+        tag = m.group(0) if m else ""
+    for attr, extra in _BY_PRIMITIVE.items():
+        if f'{attr}="' in tag:
+            parts.extend(extra)
+    return tuple(dict.fromkeys(parts))
+
+
+def scorer_sha(item: str | None = None) -> str:
+    """SHA-256 of the code that turns THIS item's answers into a score, 12 hex.
+
+    Prose-insensitive and scoped: see `_behaviour_src` and `_parts_for`. Called
+    with no item it fingerprints the whole path, which is what the ledger header
+    and the reports quote.
+    """
+    import hashlib
+    import importlib
+    import inspect
+    src = []
+    for mod, name in _parts_for(item):
+        try:
+            got = inspect.getsource(getattr(importlib.import_module(mod), name))
+            src.append(_behaviour_src(got))
+        except Exception:
+            src.append(f"<missing {mod}.{name}>")
+    return hashlib.sha256("".join(src).encode()).hexdigest()[:12]
 
 
 def record(item: str, runs_path: str) -> None:
@@ -164,6 +302,7 @@ def record(item: str, runs_path: str) -> None:
     led = load()
     led.setdefault("items", {})[item] = {
         "prompt_sha": prompt_sha(item),
+        "scorer_sha": scorer_sha(item),
         "exclusions": exclusions(item),
         "runs": n,
         "numerator": totals[n // 2],
@@ -250,7 +389,17 @@ def declaration_conflicts() -> list[str]:
         if rec.get("pending"):
             continue
         runs = rec.get("runs") or 0
-        kinds = H.cell_exclusions(_jobs()[item]["handout"], item)
+        job = _jobs().get(item)
+        if job is None:
+            # In the ledger but no longer driven by agreement_app.JOBS. A real
+            # condition, and one the audit already reports on its own ("NEVER
+            # MEASURED"), so skip rather than raise: `_jobs()[item]` here turned
+            # an item leaving JOBS into a KeyError that took down the whole audit
+            # -- including `--selftest`, whose "an item leaves JOBS" case is
+            # exactly this scenario, so the crash hid the very check meant to
+            # catch it.
+            continue
+        kinds = H.cell_exclusions(job["handout"], item)
         for pid_s, right in sorted((rec.get("excluded_cells") or {}).items(),
                                    key=lambda kv: int(kv[0])):
             if runs == 0 or right < runs:

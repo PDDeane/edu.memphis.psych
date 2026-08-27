@@ -361,6 +361,109 @@ nothing after it — a harness artifact that looks exactly like a prompt defect.
 
 ## 2. Measurement discipline
 
+**MODEL NOTHING YOU CAN EXERCISE. A scorer is checked by RUNNING it on
+synthetic sheets and watching the number, never by reading its sheet.** This is
+now `check_web_scorer_exercises_its_sheet`, in the audit and in the pre-sweep
+gate, and it costs no calls.
+
+The enforcement audit had a blind spot no injected breakage could reach, and its
+own declaration named it: "the web probe sees that pair because it reads slot
+keys". Modelling one side from the SHEET means a scorer that parses a primitive
+correctly and then ignores it is indistinguishable from one that honours it.
+Every selftest case removes something from the sheet, which the probe reads; none
+can remove something from the SCORER.
+
+That is how `onlyif` was dead on the web path while the audit reported the
+behaviour present. `score_slots` built its charge-once map from
+`spec.get("onlyif")`, and `spec` there is `merged`, which never carried it, so the
+map was all-True and the guard never fired. Shown with a before column:
+
+    BEFORE (HEAD)   cond-fails charges 2, cond-holds charges 1   RULE IGNORED
+    AFTER           cond-fails charges 1, cond-holds charges 1   HONOURED
+
+The probes are cheap because they are synthetic: 179 of them, no model calls,
+covering 76 rule instances across both scorer paths -- `equals` (6), `expect`
+(5), `forbid` (4), `counts` (5), `cover` (2), `derived` (1), `onlyif` (1) and 57
+gating slots, five of those gates computed rather than answered. The rule is one
+sentence: **an assertion primitive, violated, must move the number; a
+suppression primitive, violated, must not move it further.** A flat result means
+the rule reaches no arithmetic.
+
+Cover every primitive, not only the one that broke. When this check was written
+for `onlyif` and `counts` it probed 2 `equals` instances of 6 and had ZERO
+coverage of `expect` and `forbid`, because both live on the `score_oc` path and
+the check only ran `score_slots`. Neither had ever been exercised by anything.
+
+Three things a naive probe gets wrong, each of which reports clean while
+measuring nothing:
+
+1. **Build the spec the RUNNER builds.** `measure_one` hands the scorer
+   `dict(job, slots=..., cover=..., requires=...)` -- a spec carrying no
+   `equals`, `counts`, `onlyif` or `choices`. Probing with the full action dict
+   makes `spec.get("onlyif")` work in the probe and stay dead in production, so
+   the check would have missed the very bug it was written for.
+2. **Do not answer the computed keys.** `equals`, `derived`, `expect` and
+   `forbid` are stripped from the response schema and filled by
+   `apply_computed`. A sheet that pre-answers them makes the rule unobservable.
+   Pre-filling `matches_chosen_type` produced a confident report of a dead
+   `equals` on D1/D2, and a "fix" to a scorer that was correct throughout -- the
+   gate zeroes the item, as `before_after.py` then showed by refusing to call an
+   identical result evidence.
+3. **Make the control earn full marks.** `score_oc` gates on four definitional
+   criteria and returns at the first failure, so a control that already fails one
+   makes every rule below it invisible. A first-value-everywhere sheet is not a
+   passing sheet: a counter carries `count_max` and no options, so a verdict in
+   that field parses to n=0 and marks every member absent, and a `cover` slot is
+   credited on a `refers_to` label, so a verdict-only answer claims nothing. Both
+   read as "this item cannot reach full marks" -- six items so reported -- when
+   the control was built to the wrong shape. Hill-climb to the maximum, and
+   report an item where that cannot be reached rather than probing past it.
+
+And count the probes. Zero probes reads exactly like zero faults: two pick slots
+with empty `options` once made this check run no probes at all on D1 and D2 while
+reporting clean. The count and the per-primitive tally are asserted, not assumed.
+
+**THE SELFTEST INJECTS INTO THE SCORER TOO.** Thirty-nine cases removed
+something from a sheet, and the audit reads sheets, so all thirty-nine were
+reachable by construction -- that is why the class they cannot reach survived.
+Eight further cases break the ARITHMETIC and leave every sheet intact: a computed
+primitive that always answers "satisfied" (one per primitive), the counted
+expansion dropped, coverage dropped from `satisfiedMap`, a gate demoted to an
+ordinary slot, and `onlyif` ignored. Only a check that RUNS the scorer can see
+them, so each is a test of the behavioural check itself.
+
+**A HARNESS FIX MUST BE TESTED AGAINST THE PRE-FIX CODE. `python3
+before_after.py '<snippet>'` runs it in both trees and refuses to call an
+identical result evidence.** Testing a fix against only the fixed code answers
+"can this code do X", never "did my change make it do X", and those differ
+exactly when the change does nothing.
+
+It happened, and it cost 140 calls. `counts=` looked unparsed in the harness, so
+five items appeared to have two-to-six points that could never be charged. The
+verification was a synthetic `count=1` fed to `score_slots`, which returned 4.0
+out of 6 -- read as "the fix works", but the same input returned 4.0 at HEAD too:
+the rubric items carry their own `counts` key and `score_slots` reads it from
+THERE, so the machinery had never been broken. Two sweeps were launched, a
+confident wrong diagnosis was stated twice, and the numbers came back unchanged
+because nothing had changed.
+
+Three free checks would each have caught it alone, and the order matters:
+
+1. **Read the consumer's signature, not just its body.** `for cr in
+   item.get("counts", [])` sits in `score_slots(spec, item, checks)` where
+   `item` is the RUBRIC item. Parsing an OLX attribute into the action dict
+   could not feed that loop, and the parameter list says so.
+2. **Ask whether the other side already implements it.** `score.py` had honoured
+   `onlyif` from the rubric all along. When the CLI implements a primitive and
+   `equivalence.py --enforcement` reports no divergence, the web side cannot be
+   missing it -- that is what a two-sided audit is for, and it is free.
+3. **Run the before.** One command, now.
+
+`agreement.py` runs the structural checks at the top of every sweep for the same
+reason (`cheap_checks_gate`, `--force-checks` to override). The checks read
+source and gold and make no model calls, so the question is never whether they
+are worth running.
+
 This is where the leverage is. Nearly every wrong conclusion in the session
 came from comparing two numbers computed on different bases.
 

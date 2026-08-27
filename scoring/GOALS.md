@@ -133,6 +133,11 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       so neither the time clause nor "names no doing of its own" reaches it;
       p10 is ~3/6 on `measurable`, where it names tracking methods but no
       medium; p13 over-charges `realistic` on an answer gold passed silently.
+  Before ANY sweep: the structural checks now run automatically at the top of
+  `agreement.py`, and a HARNESS fix must be shown to change something with
+  `before_after.py '<snippet>'` -- an identical result is not evidence. Section 2
+  of QUALITY_CONTROL.md has the case that cost 140 calls.
+
   Run `measured.py --criterion ITEM CHECK` on any criterion before changing it.
   Section 3 of QUALITY_CONTROL.md says why: the misses tell you a criterion is
   wrong, the CREDITED rows tell you where the line falls, and on Q3 those two
