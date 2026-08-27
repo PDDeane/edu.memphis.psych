@@ -103,41 +103,93 @@ declared. WK1/p8 survives six attempts and stays declared. Two new criteria kept
 on their items: `aimed_correctly` on WK2, the cadence fact on DAY2. Handout 2's
 cadence items went DAY1 15->16, DAY2 14->15, WK1 15, WK2 16.
 
-## ACTIVE — the three non-reconciling gold rows
+## ACTIVE — quality control on the remaining items
 
-From `--preflight`. This is also the FIRST alternative the new section-5 policy
-demands before any divergence is contemplated: check gold's arithmetic against
-its own comment. Read each submission; a slip is CORRECTED_GOLD, an unwritten
-deduction is not, and the D2/p11 precedent needs a control set before
-correcting — nine rows reconciling exactly is what earned that one.
+Every item is recorded and the preflight is clean, so the work is no longer
+"find the blockers" but "check the numbers we have". SEVENTEEN of twenty-six
+items still rest on THREE-RUN medians, and today showed twice over what that is
+worth: Q4a sat on a three-run median from runs [14,16,16], six runs gave
+[16,17,17,18,18,18], and it now records 18/20 -- and NR's derive_v3 opened 17,17
+before finishing at a median of 15.5.
+A three-run median is not a measurement, it is a sample that happens to have a
+middle.
 
-- [ ] Q3/p8: comment itemises 1+1 off max 5, implies 3, row says 4.
-- [ ] Q6/p1: itemises 1.25 x3 off max 10, implies 6.25, row says 5.
-- [ ] 1c/p11: itemises 2+2+1 off max 10, implies 5, row says 7.
-- [ ] For each: find the control set (other rows with the same itemisation
-      shape) before deciding. No correction without one.
+The order below is by diagnosed tractability, not by score. A deterministic miss
+with a named failing check is worth more than a larger gap of unknown shape,
+because it can be fixed or declared; a wobbling cell cannot be either.
+
+- [ ] 1. **Q3's `action` criterion.** The clearest target on the board. Five
+      misses, ONE cause: gold charges two criteria and we charge one, and the
+      criterion we skip is `action` every time -- p8 (measurable only), p16
+      (specific only), p19 (measurable only), all 0/6 deterministic, with p10
+      and p13 wobbling on the same pair. Q3 is 16/20 on six runs against the
+      corrected p8 row. Worth up to three cells. Read the three submissions
+      against the `action` credit's own wording BEFORE touching prose: the
+      question is whether our criterion is too generous or the slot never fires.
+- [ ] 2. **Handout 3's 2a, 15/20 with runs [15,15,15].** The worst cell count in
+      the corpus and never once examined. Perfectly stable, which usually means
+      a systematic mis-rule rather than noise -- the shape that made NR/p14
+      diagnosable. Six runs first, then read the failing checks.
+- [ ] 3. **Re-measure the 3-run items at six runs, cheapest-first.** H1: Q1, Q2,
+      Q4c, Q5, Q6. H3: 1a, 1b, 1c, 2a, 2b, 3. H2: PP, NP, T1, D1, T2, D2 -- the
+      four definition items sit at 18/18 and are the least likely to move, so
+      they go last. 120 calls each; do not batch more than two items at once,
+      because two sweeps sharing the endpoint halved throughput today.
+- [ ] 4. **The leakage detector's shared-prose blind spot.** Found twice today:
+      the word check suppresses any word appearing in ANOTHER authored block, so
+      prose duplicated across items is invisible to it -- the whole of
+      `_MOVE_RULE` was unchecked while it sat in four prompts, and both times a
+      block was edited an unrelated block lit up. Compute the "ours" set from
+      DISTINCT prose rather than per-block. Expect a fresh backlog to triage.
+- [ ] 5. **Q4b/p12's declared divergence.** Accurate today, but its stated reason
+      says we never matched gold there and cli_v7/cli_v8 both scored it 3/3. A
+      declaration whose reason is false is a declaration that will be trusted
+      for the wrong reason.
+
+## DONE — the three non-reconciling gold rows
+
+One was a slip, one never failed to reconcile, one had been settled upstream and
+the checker did not know. `gold_rows_that_do_not_reconcile()` returns NONE and
+`--preflight` reports nothing outstanding.
+
+- [x] **Q3/p8 was a slip.** Two explicit "-1 pt" markers against a max of 5
+      imply 3.00; the row wrote 4.00. The control set is the whole item -- one
+      charge scores 4, two score 3, three score 2 -- and p19 carries the SAME
+      pair and scores 3. CORRECTED_GOLD 4 -> 3, and it cost us the cell: we
+      score 4, so p8 had been "correct" only because gold's slip matched our own
+      under-charge. p19 was already 0/3 the same way.
+- [x] **Q6/p1 reconciled all along.** It itemises FOUR 1.25 charges, the third
+      written "-1.25:" with no unit, totalling exactly its recorded 5.00.
+      `_DEDUCT_RE` required "pt"/"point", so unit-less markers were invisible.
+      Widening it to accept ":" and ";" cleared p1 and surfaced Q6/p4, which
+      writes "-2.5:" and "-1.5;" for 4.00 off 10 and also reconciles at its
+      recorded 6.00. Two rows carried as gold questions for two months were
+      formatting variants.
+- [x] **1c/p11 was settled upstream.** `rebuild_gold_1c` restates 1c's gold from
+      its labelling verdicts so p11's improvised "-1 pt: missing baseline data
+      week" is dropped rather than subtracted, putting the row at 6.00. The
+      checker was reading the raw 7.00. A CORRECTED_GOLD entry written against
+      the raw row was inert -- the rebuild overrode it, the re-record came back
+      unchanged, and the audit caught the prose claiming 17/17 against a ledger
+      saying 16/17. Entry removed; the checker now defers to the rebuild.
+- [x] **Q3 re-measured at six runs against the corrected row: 16/20**, runs
+      [15,15,15,16,16,17]. The check-level data the 3-run artifact lacked
+      (`checks: null`) is what identified subgoal 1.
 
 ## THEN
 
-- The two remaining fixture suspects: DAY1/p1 (gold 4, we award 0 every run) and
-  DAY2/p14 (gold 0, we award 4/2/2). Read the boxes; both fixtures were read
-  once and found clean, so the next step is the record, not the rubric.
-- The probe backlog from the baseline: Q1 (p6/p7/p17) and Q3 (seven cells)
-  crossed a real prompt change. The same-prompt flags are noise samples.
-- Q4b/p12's declared divergence: accurate today, but its stated reason says we
-  never matched gold there, and cli_v7/cli_v8 both scored it 3/3.
+Nothing is parked here. The ACTIVE subgoals above absorbed what used to sit in
+THEN and LATER, and the entries that are no longer true were deleted rather than
+carried:
 
-## LATER
-
-- Three non-reconciling gold rows from `--preflight`: Q3/p8 (implies 3, says 4),
-  Q6/p1 (implies 6.25, says 5), 1c/p11 (implies 5, says 7). Read each
-  submission; a slip is CORRECTED_GOLD, an unwritten deduction is not.
-- The probe backlog from the full baseline: Q1 (p6/p7/p17) and Q3 (seven cells)
-  crossed a real prompt change and deserve six passes. The same-prompt flags in
-  Q2/Q4a/Q4b/Q4c/Q5 are noise samples, not regression candidates.
-- Q4b/p12's declared divergence: 3/3 right in cli_v7 and cli_v8, 0/3 in every
-  sweep since. The declaration is accurate today but its stated reason says we
-  never matched gold there, and we did.
+* The two "remaining fixture suspects" are settled. DAY1/p1 is a declared
+  divergence (BEHAVIOR_NEVER_STATED); DAY2/p14 is 6/6 correct and was fixed by
+  the `forbid` primitive, not by reading its boxes again.
+* The three non-reconciling gold rows moved to DONE above.
+* Q3's probe backlog is superseded: the item has six runs and a named cause.
+* Q1's probe backlog and the 3-run flags in Q2/Q4c/Q5/Q6 are subgoal 3.
+* Q4b/p12 is subgoal 5. It is 0/6 against gold and correctly declared TODAY --
+  the problem is the reason written on the declaration, not the cell.
 
 ## DONE
 
