@@ -366,7 +366,12 @@ def prose_claims(paths: list[str] | None = None) -> list[str]:
     return out
 
 
-_DEDUCT_RE = re.compile(r"-\s*(\d+(?:\.\d+)?)\s*(?:pt|point)", re.I)
+# The unit is OPTIONAL BEFORE A COLON. Graders write "-1.25 pts:" and also
+# "-1.25:" and "-1.5;", and requiring the unit made those invisible. Q6/p1 itemises
+# FOUR 1.25 charges, the third of them unitless, and was reported for two
+# months as implying 6.25 against a row of 5.00. Q6/p4 writes "-2.5:" and
+# "-1.5;" for 4.00 off 10, exactly its recorded 6.00. Both reconcile.
+_DEDUCT_RE = re.compile(r"-\s*(\d+(?:\.\d+)?)\s*(?:pts?\b|points?\b|[:;])", re.I)
 
 
 def gold_rows_that_do_not_reconcile() -> list[str]:
@@ -410,6 +415,17 @@ def gold_rows_that_do_not_reconcile() -> list[str]:
                     continue
                 named = [float(x) for x in _DEDUCT_RE.findall(fb)]
                 if not named:
+                    continue
+                # 1c's gold is RESTATED FROM ITS VERDICTS by
+                # agreement_app.rebuild_gold_1c before anything scores against
+                # it, precisely so p11's improvised "-1 pt: missing baseline
+                # data week" -- a charge no slot on either side prices -- is
+                # dropped rather than subtracted. Reading the raw row here
+                # reported p11 as an open question for two months when it had
+                # already been settled upstream: the rebuild puts it at 6.00,
+                # and a CORRECTED_GOLD entry written against the raw 7.00 is
+                # inert, because the rebuild overrides it.
+                if item == "1c":
                     continue
                 implied = maxes[item] - sum(named)
                 if abs(implied - score) < 1e-9:
