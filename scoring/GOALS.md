@@ -153,6 +153,18 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       four definition items sit at 18/18 and are the least likely to move, so
       they go last. 120 calls each; do not batch more than two items at once,
       because two sweeps sharing the endpoint halved throughput today.
+      IN PROGRESS. The six items the scorer fingerprint flagged are being swept
+      first, two at a time, into `scorer_fix_6run`: Q1 was **16/20** at the old
+      (runs [15,16,16,16,17,17], was 17/20 on three; now 17/20 at the rewritten
+      prompt -- see subgoal 6) and Q2 **18/20** (runs
+      [16,17,17,18,18,18], was 17/20 on three) are recorded, both probes filed,
+      both verdicts permitted. Neither item actually moved: every moved cell was
+      already unstable and the six-run rates mostly SHARPEN the three-run ones
+      (5/6 where three runs said 3/3, 1/6 where they said 1/3), which is the
+      expected result -- their `counts` machinery was working all along via the
+      rubric key, and the fingerprint flagged them because `expand_counted`
+      moved, not because arithmetic changed. Q4b and 2a are running; 2b and 3
+      are next.
 - [ ] 4. **The leakage detector's shared-prose blind spot.** Found twice today:
       the word check suppresses any word appearing in ANOTHER authored block, so
       prose duplicated across items is invisible to it -- the whole of
@@ -163,6 +175,47 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       says we never matched gold there and cli_v7/cli_v8 both scored it 3/3. A
       declaration whose reason is false is a declaration that will be trusted
       for the wrong reason.
+- [ ] 6. **Make the `reasons_given` rewrite live, then measure it.** DRAFTED,
+      not live: `drafts/q1q2_reasons_rule.md` holds the replacement text, the
+      per-cell evidence, the rejected alternative and the test plan. Diagnosed
+      from Q1's three durable misses, which turned out to be three different
+      things. p9 and p14 are OUR RULE contradicting gold -- it makes harms
+      dominate and discards benefits, and in both cells the shortfall is exactly
+      the benefits discarded; on p9 the model obeyed the rule to the letter and
+      the rule is what is wrong. p10 is the model counting a goal restatement
+      that `benefits_listed` already excludes, where rule and gold agree.
+      The prize is bigger than two cells: the score currently depends on the
+      harm/benefit SPLIT, which the model demonstrably cannot make -- p14 flipped
+      on which counter one sentence landed in, and on p10 benefit text went under
+      `harms_listed` in 4 of 6 runs. Counting statements towards one total makes
+      the number invariant to that split, removing a source of variance instead
+      of re-describing a judgement.
+      Do NOT make it a computed sum of the two counters: p9 would score 3 against
+      gold 2, because one clause was counted under both headings. The reason it
+      cannot be arithmetic is written down in the draft.
+      Shared by Q1 AND Q2, so it needs six runs of each and Q2 is the regression
+      test. Baselines and per-cell predictions are in the draft; the decision rule
+      is stated there in advance. Land the artifact fix in the same change: a
+      count slot absent from the rubric's `counts` records `""` , so the operands
+      of this rule survive only in `evidence`.
+      LANDED AND KEPT on a measured +1: Q1 was 16/20, now **17/20**, six runs
+      [15,16,16,17,18,19], artifact `reasons_rule_v1`, prompt `fa105e57b2c0`,
+      probe filed, verdict permitted. KEPT ON A WEAK RESULT and the draft says so
+      in full. p14 went 2/6 -> 6/6, which validates the actual thesis -- its score
+      used to depend on which counter one sentence landed in and is now invariant
+      to that split. But p9 went only 1/6 -> 3/6 and its misses now OVERSHOOT, p6
+      is a stable new loss at 0/6 over-crediting by two, and the spread widened
+      2 -> 4 cells.
+      TWO CORRECTIONS to what this subgoal said before measuring, both caught by
+      checking rather than assuming: the rule is Q1-ONLY (the counter is shared
+      with Q2, the rule is not -- Q2 has its own 921-char text asking a different
+      question), so there was no Q2 regression column; and the replacement is
+      +58% longer than what it replaced, not volume-neutral as first written.
+      WHERE THE NEXT ATTEMPT GOES: clause boundaries, not counter dominance.
+      Harms-dominance never was p9's problem -- one "and"-joined clause reads as
+      two reasons under the new rule and one harm under the old, and gold counts
+      it once. p6 and p9 are the paired test, and Q2's rule already carries a
+      structural test of the right shape to borrow.
 
 ## DONE — the three non-reconciling gold rows
 

@@ -2208,12 +2208,34 @@ def _measurements_in_flight() -> list[str]:
         return []
     mine = str(os.getpid())
     busy = []
+    SHELLS = {"bash", "sh", "dash", "zsh", "ksh", "-bash", "fish"}
+    HARNESS = {"agreement.py", "agreement_app.py"}
     for line in out.splitlines()[1:]:
         pid, _, args = line.strip().partition(" ")
         if pid == mine or "olx_prompts" in args:
             continue
-        if ("agreement.py" in args or "agreement_app.py" in args) and "--items" in args:
-            busy.append(" ".join(args.split()[:9]))
+        parts = args.split()
+        if not parts:
+            continue
+        # A SHELL whose command line merely MENTIONS a sweep is not a sweep.
+        # Substring matching could not tell the two apart, and the shells that
+        # wait for a sweep to finish necessarily quote its command line -- so
+        # every watcher looked like a measurement in flight and the generator
+        # refused to write with nothing running. That trains everyone to pass
+        # --force, which is exactly what this guard exists to prevent.
+        if os.path.basename(parts[0]) in SHELLS:
+            continue
+        # argv[0] is not required to be python: a sweep is normally launched
+        # through `timeout`, and demanding python at the front would let a real
+        # run go undetected -- a false negative here corrupts a measurement,
+        # which is far worse than a false positive.
+        idx = next((i for i, tok in enumerate(parts)
+                    if os.path.basename(tok) in HARNESS), None)
+        if idx is None or "--items" not in parts:
+            continue
+        if not any(os.path.basename(t).startswith("python") for t in parts[:idx]):
+            continue
+        busy.append(" ".join(parts[:9]))
     return busy
 
 
