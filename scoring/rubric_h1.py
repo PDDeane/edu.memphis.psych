@@ -244,11 +244,29 @@ ITEMS: list[dict] = [
                 # like candy" + "{{corpus:Q1/p5:response:220:243:sha=a56d4f5cc177}} weight". Gold counts that
                 # sentence once, so p5 is 2. Same shape as Q2 p19; see the
                 # knock-on rule on Q2's `reasons_given`.
-                "desc": "HOW MANY reasons count. The rule is CONDITIONAL on the two "
-                        "counts above. If `harms_listed` is 1 or more the answer IS "
-                        "`harms_listed`, and benefits do not add to it — a response with "
-                        "one harm and two benefits counts 1. Only when `harms_listed` "
-                        "is 0 does the answer become `benefits_listed` instead. "
+                # WAS a harms-dominate conditional: "if `harms_listed` is 1 or
+                # more the answer IS `harms_listed`, and benefits do not add to
+                # it". Measured wrong against gold on Q1/p9 and Q1/p14, where the
+                # shortfall was exactly the benefits it discarded -- on p9 the
+                # model obeyed the old rule to the letter and scored 1 where gold
+                # counts 2. The larger defect was that the score DEPENDED on the
+                # harm/benefit split, which the model cannot make reliably: p14
+                # flipped purely on which counter one sentence landed in, and on
+                # p10 benefit text was filed under `harms_listed` in 4 of 6 runs.
+                # Counting statements towards one total makes the number invariant
+                # to that split. See drafts/q1q2_reasons_rule.md for the evidence,
+                # the per-cell predictions, and why this cannot be computed
+                # arithmetic (a sum over the two counters scores p9 3 against
+                # gold 2, because one clause is counted under both headings).
+                "desc": "HOW MANY separate reasons the student gives. Count "
+                        "STATEMENTS, harms and benefits alike, towards ONE total: a "
+                        "named negative effect of the behaviour and a named benefit "
+                        "of changing each count one. A single clause counts ONCE — a "
+                        "clause naming both a gain and the trouble it avoids is one "
+                        "reason, and a clause counted under one heading is never "
+                        "counted again under the other. Two DISTINCT effects joined "
+                        "by \"and\" are two. Do NOT count a restatement of the goal or "
+                        "of the behaviour, a remark about difficulty, or background. "
                         "Never answer 0 when the student offered anything "
                         "of either kind. Answer 3 for three or more",
             },
