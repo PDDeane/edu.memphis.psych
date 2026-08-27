@@ -120,12 +120,19 @@ because it can be fixed or declared; a wobbling cell cannot be either.
 
 - [ ] 1. **Q3's `action` criterion.** The clearest target on the board. Five
       misses, ONE cause: gold charges two criteria and we charge one, and the
-      criterion we skip is `action` every time -- p8 (measurable only), p16
-      (specific only), p19 (measurable only), all 0/6 deterministic, with p10
-      and p13 wobbling on the same pair. Q3 is 16/20 on six runs against the
-      corrected p8 row. Worth up to three cells. Read the three submissions
-      against the `action` credit's own wording BEFORE touching prose: the
-      question is whether our criterion is too generous or the slot never fires.
+      criterion we skip is `action` every time. DONE, +2: the desc credited
+      "access, equipment, or TIME they already have", and gold never credits
+      available time -- it credits an activity, or access to a place or thing
+      (p9 a car, p14 a gym near the house, p18 the university gym), and docks
+      every answer resting on hours (p8, p16), on measurability (p19) or on a
+      bare capability (p20). Narrowed from all twenty rows, not the three
+      misses. p8 and p16 went 0/6 -> 6/6 with `action_oriented` flipping to
+      `absent` x6 on exactly those two; five guards held 6/6 including p14.
+      Q3 16 -> 18/20, verdict permitted. THREE CELLS REMAIN, each a different
+      question: p19 grounds actionability in measurability WHILE naming a doing,
+      so neither the time clause nor "names no doing of its own" reaches it;
+      p10 is ~3/6 on `measurable`, where it names tracking methods but no
+      medium; p13 over-charges `realistic` on an answer gold passed silently.
 - [ ] 2. **Handout 3's 2a, 15/20 with runs [15,15,15].** The worst cell count in
       the corpus and never once examined. Perfectly stable, which usually means
       a systematic mis-rule rather than noise -- the shape that made NR/p14

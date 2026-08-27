@@ -58,9 +58,19 @@ def _probe_ledger() -> list[dict]:
 
 def record_probe(item: str, after_sha: str, cells: list[int], artifact: str,
                  runs: int) -> None:
-    """File a probe against the exact prompt it was run on."""
+    """File a probe against the exact prompt it was run on.
+
+    ONE ENTRY PER ARTIFACT, not per prompt. `probed_cells` unions across
+    entries, so several probes of the same prompt are meant to accumulate --
+    a change that moves five cells is often covered by two runs of different
+    subsets. Keying the replacement on (item, sha) alone discarded the earlier
+    probe every time a second was filed, so the gate asked for cells that had
+    already been probed and no sequence of probes could ever satisfy it.
+    Re-filing the SAME artifact still replaces rather than duplicates.
+    """
     led = _probe_ledger()
-    led = [e for e in led if not (e["item"] == item and e["after_sha"] == after_sha)]
+    led = [e for e in led if not (e["item"] == item and e["after_sha"] == after_sha
+                                  and e.get("artifact") == artifact)]
     led.append({"item": item, "after_sha": after_sha, "cells": sorted(set(cells)),
                 "artifact": artifact, "runs": runs})
     with open(PROBED, "w") as fh:
