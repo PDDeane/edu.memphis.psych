@@ -506,8 +506,9 @@ OMIT_DEDUCTION: dict[str, dict[str, str]] = {}
 # ---------------------------------------------------------------------------
 
 SCORING_DIVERGENCES = [
-    dict(items=["NR"],
-         enforcement=[("NR", "CHARGE-ONCE WEB ONLY")],
+    dict(items=["NR", "PR", "PP", "NP"],
+         enforcement=[(i, "CHARGE-ONCE WEB ONLY")
+                      for i in ("NR", "PR", "PP", "NP")],
          what="a three-way conjunction is invisible to the pairwise "
                              "charge-once probe",
          necessary=True,
