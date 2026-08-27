@@ -573,13 +573,31 @@ ITEMS: list[dict] = [
                 # goal?" It accepts an enabling CIRCUMSTANCE as readily as an
                 # activity, and refuses a response that grounds actionability in
                 # another SMART letter instead of in any doing.
+                # NARROWED, from all twenty rows rather than the three misses.
+                # Gold credits an ACTIVITY or ACCESS TO A PLACE OR THING, and
+                # never available time on its own: p9 (a car), p14 (a gym near
+                # the house), p18 (access to the university gym) all keep the
+                # point, while p8 and p16 -- whose whole justification is hours
+                # they have or can make -- lose it, as do p19 (grounds it in
+                # measurability) and p20 (a bare capability, methods admittedly
+                # absent). "or time they already have" was crediting exactly the
+                # two the graders docked.
                 "desc": "Names something the student will DO, or a concrete "
                         "circumstance that lets them do it — an activity "
                         "— a step they will physically carry out, at a stated "
-                        "time or not — or access, equipment, or time they "
-                        "already have. Be generous: a plain statement of what "
-                        "they will physically perform counts, and so does naming "
-                        "what makes it possible. What FAILS is a response that "
+                        "time or not — or access to a PLACE or EQUIPMENT that "
+                        "lets them do it. Be generous about the doing: a plain "
+                        "statement of what they will physically perform counts, "
+                        "and so does naming somewhere they can go or something "
+                        "they can use. TIME ALONE IS NOT ENOUGH, and this is "
+                        "where the graders drew the line: hours they could "
+                        "give to it, or expect to clear, name neither a doing "
+                        "nor any means of doing it. An answer that leans entirely on "
+                        "how much of the week it could occupy loses this point; "
+                        "an answer naming somewhere to go or something to use "
+                        "keeps it, whatever it says about hours. A bare capability with no activity and no "
+                        "place or equipment named fails for the same reason. "
+                        "What FAILS is a response that "
                         "justifies actionability by pointing at another letter of "
                         "SMART instead of at any doing — and "
                         "names no doing of its own, or that only re-labels the "
