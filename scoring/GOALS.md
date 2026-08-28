@@ -327,7 +327,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       not too lenient. Gold's silence is the evidence, which makes this the one
       of the three where the credited rows matter most -- there is no gold note
       to read, only the absence of a deduction.
-- [ ] 12. **Q1's exclusion failures: p6, p10, p16.** Not a counting problem, and
+- [x] 12. **Q1's exclusion failures: p6, p10, p16.** Not a counting problem, and
       three rewrites of the counting rule have now been blamed for it. The model
       credits things the rubric already excludes: background about how the
       behaviour came about (p16 counts "used to exercise due to sports"), a
@@ -345,6 +345,28 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       the fix here probably ADDS length to the exclusions rather than the counting
       rule. Measure `--criterion Q1 reasons_given` and read the credited rows
       first: p1, p2 and p15 are all credited with exclusions correctly applied.
+      CLOSED, +1: **Q1 17 -> 18**, runs [15,16,17,18,18,19], artifact
+      `tier_restored`. Two of the three cells recovered and the mechanism was
+      confirmed, not inferred.
+      WHAT FIXED THEM was not a new rule but RESTORING one this project had
+      already measured and today had deleted: `reasons_given` is CONDITIONAL --
+      harms of the unwanted behaviour, with stated benefits credited only where a
+      response offers none. p6 went **0/6 -> 4/6** and p16 **4/6 -> 6/6**. The
+      error profile confirms the mechanism at item level: v1 over-credited 16 to
+      3, one-sided; the restored conditional runs 7 to 10, balanced. Letting
+      benefits top up harms was what inflated both cells.
+      ONE CLAUSE was added, for p14, so restoring the conditional did not cost
+      v1's gain there: a statement naming what the behaviour EXPOSES the student
+      to is a negative effect even when written as what the goal behaviour would
+      protect against. p14 held at 5/6.
+      p9 was declared (subgoal 12b). p10 did NOT recover and p18 was destabilised
+      by the same change that fixed p6 -- both carried to subgoal 14 rather than
+      left as prose here.
+      THE COST OF NOT READING THE RECORD: eleven configurations and ~900 calls
+      went into a merge rule first, while the comment above the component already
+      named the conditional, classified every cell with gold < 3, and diagnosed
+      p9. The restoration took ~60 calls. §2c now enforces the check that would
+      have prevented it.
 - [x] 12b. **Q1/p9 DECLARED: `GARBLED_CLAUSE_READ_LITERALLY`.** Twelve
       configurations, rates 1/6 3/6 6/6 3/6 4/6 2/6 1/6 1/6 4/6 4/6 3/6 1/6. The
       one 6/6 cost p7 four runs and three isolation probes each scored p9 WORSE
@@ -356,25 +378,22 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       assertion-versus-avoidance clause written for exactly this shape. See
       handouts.GOLD_DIVERGENCES. Q1 records 18/20 and cannot exceed nineteen of
       its twenty cells while this stands.
-- [ ] 13. **Q1/p17: `utb_stated` is a coin flip.** `reasons_given` is 3 in all
-      six runs and CORRECT; the score moves entirely on `utb_stated`, absent in
-      four runs and met in two, costing 2 points each time. The response is a
-      single sentence that never says "my unwanted target behavior is", so
-      whether it counts as stating the UTB is being decided anew on every pass.
-      Nothing to do with counting reasons. It was attributed to the counting rule
-      repeatedly across three sweeps before anyone checked the other checks --
-      which is the general lesson: read WHICH CHECK failed before attributing a
-      cell to the rule you happen to be editing.
-      Gold credits the UTB here, so the question is what makes a UTB "stated"
-      when it is named inside a sentence about its effects rather than in a
-      sentence of its own.
-
-## DONE — the three non-reconciling gold rows
-
-One was a slip, one never failed to reconcile, one had been settled upstream and
-the checker did not know. `gold_rows_that_do_not_reconcile()` returns NONE and
-`--preflight` reports nothing outstanding.
-
+- [x] 13. **Q1/p17: `utb_stated` is a coin flip.** CLOSED BY DECISION, not by
+      success, and with the number: p17 is **4/6** under the committed
+      configuration, `utb_stated` reading absent in two runs of six and costing 2
+      points each time, while `reasons_given` is 3 and correct in all six. The
+      cell is CORRECT at the median, so it is not one of the item's misses.
+      Two reasons for closing rather than working it. Its methodological content
+      -- read WHICH check failed before blaming the rule you happen to be editing
+      -- is now printed automatically after every sweep by the BY SLOT table
+      (§2b), so it no longer needs a goal entry to survive. And it is not the
+      best target: ranked by how often they are wrong, the non-declared cells go
+      p10 1/6, p18 3/6, p6 4/6, p17 4/6, p7 5/6, p14 5/6.
+      NOT SOLVED, and deliberately not buried: gold credits a UTB named inside a
+      sentence about its effects rather than stated on its own, which is a
+      boundary question rather than a misapplied rule, and the hardest of the
+      three. If Q1 is ever pushed past its current record, this is the cell to
+      look at AFTER subgoal 14.
 - [x] **Q3/p8 was a slip.** Two explicit "-1 pt" markers against a max of 5
       imply 3.00; the row wrote 4.00. The control set is the whole item -- one
       charge scores 4, two score 3, three score 2 -- and p19 carries the SAME
@@ -398,6 +417,27 @@ the checker did not know. `gold_rows_that_do_not_reconcile()` returns NONE and
 - [x] **Q3 re-measured at six runs against the corrected row: 16/20**, runs
       [15,15,15,16,16,17]. The check-level data the 3-run artifact lacked
       (`checks: null`) is what identified subgoal 1.
+
+- [ ] 14. **Q1's two live misses: p10 and p18.** Lifted out of subgoal 12's
+      prose so they are tracked rather than mentioned. Both are APPLICATION
+      failures -- the rule already states the right principle in each case -- so
+      §2a offers no structural lever and prose is the last resort, not the first.
+      Run `measured.py --errors Q1 <artifact>` and read the record the `--write`
+      hook prints BEFORE touching either.
+      **p10, gold 4, correct in 1 of 6 runs -- the worst non-declared cell.** It
+      counts "my goal for this year is more active" as a reason. That is a
+      restatement of the goal, excluded in as many words by BOTH `reasons_given`
+      and `benefits_listed`, and the model applies the exclusion correctly in
+      only one or two runs. Its two real reasons (confidence, a balanced routine)
+      are read correctly throughout, so nothing else in the cell moves.
+      **p18, gold 5, correct in 3 of 6 runs -- a drift, not damage.** Its
+      `harms_listed` counts "makes me become lazy and out of shape" as ONE effect
+      in half the runs and TWO in the other half; the rule already says "two
+      effects merely joined by `and` are two". Under the flat sum this was
+      invisible because the student's benefit padded the total to three; the
+      two-tier conditional made the harm count load-bearing and exposed a wobble
+      that predates it. Fixing it means making the and-split deterministic, which
+      is a classification question like p14's, not a counting rule.
 
 ## THEN
 
