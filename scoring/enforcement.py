@@ -1184,6 +1184,41 @@ PROSE_ONLY_SLOTS = {
 PROSE_ONLY_BUDGET = 9
 
 
+def check_convertible_prose_rules_have_subgoals() -> list[str]:
+    """Does every CONVERTIBLE prose rule have a subgoal, or just a label?
+
+    The registry's second job is to be a WORK LIST, and a work list whose items
+    live only in a comment is a list nobody works. So the rule, set on 2026-08-28:
+    a PROSE_ONLY_SLOTS entry whose reason says CONVERTIBLE becomes a subgoal under
+    the equivalence goal, and this fails the audit until it is one.
+
+    It looks for `ITEM.slot` or `` `slot` `` alongside the item id in GOALS.md,
+    which is loose on purpose -- the check exists to make sure the work was
+    WRITTEN DOWN, not to police how a subgoal is phrased. A stricter match would
+    fail on the first reworded heading and teach people to route around it.
+    """
+    import pathlib
+
+    goals = pathlib.Path(__file__).resolve().parent / "GOALS.md"
+    try:
+        text = goals.read_text()
+    except OSError as e:
+        return [f"GOALS.md cannot be read, so CONVERTIBLE prose rules cannot be "
+                f"checked for a subgoal: {e}"]
+
+    out = []
+    for (item, slot), why in sorted(PROSE_ONLY_SLOTS.items()):
+        if "CONVERTIBLE" not in why or why.strip().startswith("NOT CONVERTIBLE"):
+            continue
+        named = f"{item}.{slot}" in text or (f"`{slot}`" in text and item in text)
+        if not named:
+            out.append(f"PROSE_ONLY_SLOTS marks {item}.{slot} CONVERTIBLE but no "
+                       f"subgoal in GOALS.md names it. A convertible rule is work, "
+                       f"not a label: add it as a subgoal under the equivalence "
+                       f"goal, or change the reason to argue why it cannot convert")
+    return out
+
+
 def check_prose_only_slots_are_declared() -> list[str]:
     """Is the prose channel's surface known, and is it growing?
 

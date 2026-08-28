@@ -256,6 +256,35 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       "SLOT_NOTES is web-only" premise no longer holds for it. Which keys those
       are is declared in `olx_prompts.CLI_CRITERIA_NOTES` rather than copied into
       the check.
+- [ ] 9. **Q4b's `behavior_1`/`behavior_2`: convert the referent test to `forbid`.**
+      Raised BY the registry, 2026-08-28, under the standing rule that any
+      PROSE_ONLY_SLOTS entry marked CONVERTIBLE becomes a subgoal here rather than
+      a note in a table. `enforcement.check_convertible_prose_rules_have_subgoals`
+      enforces that: a CONVERTIBLE entry with no subgoal naming it fails the audit.
+      WHAT CONVERTS. Both slots carry five fail conditions in prose, and one of
+      them is arithmetic wearing prose: handouts.py records a sixth test measured
+      into these rules -- an entry that names the same THING as one of the
+      student's own 4a antecedents fails, "judged by REFERENT and not by topic".
+      Two answers compared by referent is `forbid`-shaped, exactly like
+      `consequence_not_a_setup`. The other four conditions judge what an entry IS
+      and stay prose.
+      WHY IT MATTERS MORE THAN THE OTHER SEVEN. This pair IS the demonstrated
+      cross-path divergence: Q4b/p4 paper 2.0 against web 3.5 with gold at 2.0,
+      and cross_path localises it to these two slots. A `forbid` declaration is
+      something `equivalence.py --enforcement` can compare between the scorers;
+      the prose it replaces is not, which is why the divergence went undeclared.
+      CONVERT THE PAIR TOGETHER. behavior_2 restates behavior_1's conditions for
+      the second entry, so converting one alone would have the two entries judged
+      by different machinery on the same item.
+      NOT BEHAVIOUR-PRESERVING, unlike subgoal 3's seven: this moves a test from
+      the model's judgement to the engine's arithmetic, so `oc_grid` cannot certify
+      it and the sweep must measure it. Q4b sits at 16/19 over 6 runs, and p4 and
+      p12 are the cells to watch -- p12 because it is where the two paths already
+      disagree 6-of-6 against 11-of-12.
+      Lower PROSE_ONLY_BUDGET from 9 to 7 if both slots leave the list; if only the
+      referent test moves and the four judgement conditions stay, the entries
+      REMAIN and their reasons must be rewritten to say so.
+
 - [ ] 7. **§2c's recorded-comment lookup is blind to all twelve H2 items.**
       Found in passing: `olx_prompts.prior_record` locates an item's rubric
       comments by grepping for the literal `"id": "DAY1"`, but `rubric_h2.py`
@@ -591,12 +620,23 @@ until all three are closed.
            enforcement audit can then compare between the two scorers -- or
            declares why it cannot be one. That forces subgoal 3's choice at the
            moment the rule is written, instead of seven conversions later.
-        2. IT IS A WORK LIST. Each reason must argue CONVERTIBILITY, not describe
-           the rule; the first nine reasons described, and were rewritten. Two are
-           marked CONVERTIBLE IN PART -- Q4b's `behavior_1`/`behavior_2`, whose
-           sixth test (an entry naming the same THING as one of the student's own
-           4a antecedents) is `forbid`-shaped, two answers compared by referent.
-           Those are also the demonstrated divergence, so they are first in line.
+        2. IT IS A WORK LIST, and ENFORCED AS ONE (user's direction, 2026-08-28):
+           any entry marked CONVERTIBLE, in whole or in part, becomes a SUBGOAL
+           here, not a note in a table.
+           `check_convertible_prose_rules_have_subgoals` fails the audit while a
+           CONVERTIBLE entry has no subgoal naming it, so the two cannot drift
+           apart -- a work list whose items live only in a comment is a list
+           nobody works. The match is deliberately loose: it checks the work was
+           written down, not how a subgoal is phrased, because a stricter match
+           would fail on the first reworded heading and teach people to route
+           around it.
+           Each reason must argue CONVERTIBILITY, not describe the rule; the first
+           nine reasons described, and were rewritten. Two are marked CONVERTIBLE
+           IN PART -- Q4b's `behavior_1`/`behavior_2`, whose sixth test (an entry
+           naming the same THING as one of the student's own 4a antecedents) is
+           `forbid`-shaped, two answers compared by referent. Those are also the
+           demonstrated divergence, so they are first in line, and they are now
+           subgoal 9.
            Seven argue NOT CONVERTIBLE and say why: Q6's "does it state HOW" and
            1a's arc-not-label coverage have no operands to compare, and 1a's weeks
            are already exempted from `counts` in COUNTABLE_EXEMPT because named
