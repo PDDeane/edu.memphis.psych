@@ -554,6 +554,8 @@ def enforcement_audit():
         findings.append(("-", "RECORD NOT PUSHED AT THE CHANGE", bad))
     for bad in ENF.check_recorded_answers_are_complete():
         findings.append(("-", "ARTIFACT LOSES AN ANSWER", bad))
+    for bad in ENF.check_handcoded_rules_are_being_cleared():
+        findings.append(("-", "HAND-CODED RULES ACCUMULATING", bad))
     for bad in ENF.check_no_undeclared_handcoded_rules():
         findings.append(("-", "RULE HAND-CODED, NOT DECLARED", bad))
     for bad in ENF.check_criteria_prose_has_one_source():
