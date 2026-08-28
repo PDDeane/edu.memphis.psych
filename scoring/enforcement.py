@@ -1199,6 +1199,50 @@ COMPUTE_EXEMPT = {"derived": "1c only, and platform-forced: it reads the web pag
                              "equivalent of. See EQUIVALENCE.md's 1c deviation."}
 
 
+def check_fails_verdict_is_mirrored_in_the_app() -> list[str]:
+    """Does the RUNTIME understand `key->verdict` too?
+
+    Three implementations parse these attributes: score.py, agreement.py, and
+    lo-blocks' slotSheet.ts, which is the one students meet. A syntax the first two
+    understand and the third does not is worse than a syntax nobody understands,
+    because the arrow becomes part of the KEY: no slot matches
+    `behavior_1->not_active`, so the check it names is never computed, never
+    charged, and nothing reports it. The app's own test asserts exactly that
+    failure mode.
+
+    Checks the SOURCE rather than running node: the mirror is a fact about the
+    file, and the app's test suite already exercises the behaviour.
+    """
+    import pathlib
+    import paths
+
+    ts = pathlib.Path(paths.SLOTSHEET_TS)
+    try:
+        src = ts.read_text()
+    except OSError as e:
+        return [f"cannot read {ts} to confirm the app understands `->`: {e}"]
+
+    out = []
+    if "splitFailsVerdict" not in src:
+        out.append(f"{ts.name} has no splitFailsVerdict: the app would read the "
+                   f"arrow as part of the key, so a rule written "
+                   f"`behavior_1->not_active` would compute NOTHING there while "
+                   f"both python engines honoured it")
+        return out
+    for fn in ("parseForbid", "parseExpect"):
+        i = src.find(f"export function {fn}(")
+        if i < 0:
+            out.append(f"{ts.name} has no {fn} -- retarget this check")
+            continue
+        j = src.find("\nexport ", i + 1)
+        body = src[i:j if j > 0 else len(src)]
+        if "splitFailsVerdict" not in body:
+            out.append(f"{ts.name}:{fn} does not call splitFailsVerdict, so a "
+                       f"`key->verdict` rule parsed there keeps the arrow in its "
+                       f"key and silently computes nothing")
+    return out
+
+
 def check_both_engines_compute_the_same_primitives() -> list[str]:
     """If a primitive removes a key from the schema, BOTH engines must compute it.
 
