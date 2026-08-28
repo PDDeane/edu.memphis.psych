@@ -1054,7 +1054,22 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       the corpus and never once examined. Perfectly stable, which usually means
       a systematic mis-rule rather than noise -- the shape that made NR/p14
       diagnosable. Six runs first, then read the failing checks.
-- [ ] 3. **Re-measure the 3-run items at six runs, cheapest-first.** H1: Q1, Q2,
+- [x] 3. **Re-measure the 3-run items at six runs, cheapest-first.** CLOSED
+      2026-08-28 as SUPERSEDED, at the user's direction, not as finished:
+      equivalence subgoal 2 sweeps every item at six runs on both sides, so the
+      twelve remaining three-run numbers are re-measured by construction rather
+      than by a separate campaign. Running both would pay twice for one result.
+      STILL AT THREE RUNS when this closed, so this is the list to check the
+      sweep against: 1a, 1b, 1c, D1, D2, NP, PP, Q4c, Q5, Q6, T1, T2. The
+      ledger's `runs` field per item is the test -- if any of the twelve comes
+      out of the sweep at fewer than six, the need returns and this reopens.
+      WHAT IT ESTABLISHED BEFORE CLOSING, worth keeping: six runs mostly SHARPEN
+      three-run rates rather than overturn them. Q1 and Q2 were re-measured here
+      and neither actually moved -- every moved cell was already unstable, and
+      the fingerprint had flagged them because `expand_counted` moved, not
+      because any arithmetic changed. That is the reason a three-run number is
+      treated as coarse rather than as wrong.
+      Original plan, for the record: H1: Q1, Q2,
       Q4c, Q5, Q6. H3: 1a, 1b, 1c, 2a, 2b, 3. H2: PP, NP, T1, D1, T2, D2 -- the
       four definition items sit at 18/18 and are the least likely to move, so
       they go last. 120 calls each; do not batch more than two items at once,
