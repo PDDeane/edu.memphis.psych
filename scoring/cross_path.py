@@ -359,6 +359,93 @@ def _slot_diffs(lvs: list, rvs: list) -> list:
     return out
 
 
+def _gold_scores() -> dict:
+    """(item, pid) -> gold score, from the graders' own spreadsheets."""
+    import gold as G
+    out = {}
+    for h, loader in ((1, G.load_h1), (2, G.load_h2), (3, G.load_h3)):
+        try:
+            rows = loader()
+        except Exception:
+            continue
+        for pid, items in rows.items():
+            for item, rec in (items or {}).items():
+                sc = (rec or {}).get("score")
+                if sc is not None:
+                    out[(item, int(pid))] = float(sc)
+    return out
+
+
+def against_gold(left: str, right: str, item_filter: str | None = None) -> int:
+    """Which side matches GOLD more often, per item.
+
+    The tie-break that decides direction. "Web wording wins" settles which way to
+    SAY a shared rule; it never settles which of two answers is right, and gold
+    does -- symmetrically. If the web matches gold better the web is kept and the
+    CLI moves; if the CLI does, the reverse. This measures it instead of arguing
+    it, from artifacts already on disk.
+
+    A side MATCHES a cell when its median score equals gold. Median rather than
+    any-run, so a side is not credited for having once stumbled onto the right
+    answer.
+    """
+    ls, _, lkind, le = load(left)
+    rs, _, rkind, re_ = load(right)
+    lname = os.path.basename(left.rstrip("/"))
+    rname = os.path.basename(right.rstrip("/"))
+    goldsc = _gold_scores()
+    if not goldsc:
+        print("no gold could be loaded")
+        return 1
+
+    import statistics
+    def med(v):
+        return statistics.median(sorted(v))
+
+    per = collections.defaultdict(lambda: [0, 0, 0])      # item -> [both, L, R]
+    cells = collections.defaultdict(list)
+    for k in sorted(set(ls) & set(rs) & set(goldsc)):
+        if item_filter and k[0] != item_filter:
+            continue
+        g = goldsc[k]
+        lm, rm = med(ls[k]), med(rs[k])
+        lok, rok = abs(lm - g) < 1e-9, abs(rm - g) < 1e-9
+        row = per[k[0]]
+        row[0] += 1
+        row[1] += int(lok)
+        row[2] += int(rok)
+        if lok != rok:
+            cells[k[0]].append((k[1], g, lm, rm, lname if lok else rname))
+
+    print(f"{lname} ({lkind})  vs  {rname} ({rkind})   -- median against gold")
+    # NAME THE SIDE BY KIND, NOT BY DIRECTORY. The corpus has a directory called
+    # `cli_v8` that is agreement.py -- the harness that sends the WEB's prompt and
+    # derives the score in Python -- while `paper_mini_v8` is score.py, the path the
+    # equivalence goal calls the CLI. Reading the dir names as sides gets the
+    # conclusion exactly backwards, so the kinds are spelled out every run.
+    KIND = {"paper": "score.py, the paper/CLI scorer",
+            "harness": "agreement.py, the WEB prompt scored in python",
+            "app": "agreement_app.py, the web app's own grader"}
+    print(f"  {lname} = {KIND.get(lkind, lkind)}")
+    print(f"  {rname} = {KIND.get(rkind, rkind)}\n")
+    print(f"{'item':6}{'cells':>6}{lname[:9]:>11}{rname[:9]:>11}   closer to gold")
+    print("-" * 62)
+    tl = tr = tc = 0
+    for item in sorted(per):
+        n, l, r = per[item]
+        tc += n; tl += l; tr += r
+        who = "tie" if l == r else (lname if l > r else rname)
+        print(f"{item:6}{n:>6}{l:>11}{r:>11}   {who}")
+    print("-" * 62)
+    print(f"{'TOTAL':6}{tc:>6}{tl:>11}{tr:>11}   "
+          f"{'tie' if tl == tr else (lname if tl > tr else rname)}")
+    if item_filter and cells:
+        print(f"\ncells where exactly one side matches gold, {item_filter}:")
+        for pid, g, lm, rm, who in cells[item_filter]:
+            print(f"   p{pid:<3} gold {g:<6} {lname} {lm:<6} {rname} {rm:<6} -> {who}")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(
         description="Compare two scoring paths cell by cell.")
@@ -368,6 +455,9 @@ def main() -> int:
     ap.add_argument("--slots", action="store_true",
                     help="for each divergent cell, name the slots whose majority "
                          "verdict differs")
+    ap.add_argument("--gold", action="store_true",
+                    help="which side matches GOLD more often, per item -- the "
+                         "tie-break that decides which way a divergence is fixed")
     ap.add_argument("--min-runs", type=int, default=1,
                     help="ignore cells with fewer runs than this on either side")
     a = ap.parse_args()
@@ -376,6 +466,8 @@ def main() -> int:
     def resolve(d: str) -> str:
         return d if os.path.isdir(d) else os.path.join(str(paths.OUT), d)
 
+    if a.gold:
+        return against_gold(resolve(a.left), resolve(a.right), a.item)
     return compare(resolve(a.left), resolve(a.right), a.item, a.slots, a.min_runs)
 
 
