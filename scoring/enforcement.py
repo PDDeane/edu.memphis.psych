@@ -1190,6 +1190,43 @@ PROSE_ONLY_BUDGET = 9
 NO_RUBRIC_COMMENTS = {"1c", "3"}
 
 
+def check_computed_rules_do_not_share_a_key() -> list[str]:
+    """Two computed rules writing the SAME check: the second silently wins.
+
+    Both engines compute `forbid` and `expect` in a loop that ASSIGNS the check --
+    `checks[rule["key"]] = ...` in agreement.apply_computed, `slots[rule["key"]] =
+    ...` in score.derive_ledger. So two rules on one key are not an OR, which is
+    how anyone would read them; the last one decides and the first is dead.
+
+    Both sides do it identically, so it is not a divergence -- it is a trap. It was
+    found while designing a disjunction for Q4b's INSTEAD-OF test, which needed
+    exactly that OR and would have silently got "whichever rule I wrote last".
+
+    Nothing authors a duplicate today. This makes the day someone does an audit
+    failure rather than a wrong number, and it belongs here rather than in a
+    comment because the loop reads correct.
+    """
+    import collections
+    import rubric_h1, rubric_h2, rubric_h3
+
+    out = []
+    for h, mod in ((1, rubric_h1), (2, rubric_h2), (3, rubric_h3)):
+        for item in mod.ITEMS:
+            for kind in ("forbid", "expect", "equals", "derived"):
+                seen = collections.Counter(
+                    r.get("key") for r in (item.get(kind) or ()) if isinstance(r, dict))
+                for key, n in seen.items():
+                    if n > 1:
+                        out.append(
+                            f"H{h} {item['id']}: {n} `{kind}` rules write `{key}`. "
+                            f"Both engines ASSIGN the computed check per rule, so "
+                            f"the last one wins and the others are dead -- they do "
+                            f"NOT combine as an OR. Express the disjunction as one "
+                            f"rule over a single operand, or extend the primitive "
+                            f"deliberately on both sides")
+    return out
+
+
 def check_prior_record_reaches_every_item() -> list[str]:
     """Does the §2c hook actually find the record, for every item?
 
