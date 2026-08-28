@@ -884,62 +884,48 @@ ITEMS: list[dict] = [
             {
                 "what": "behavior_1",
                 "pts": 1.5,
-                "verdicts": ["met", "absent", "not_active"],
-                "codes": {"absent": "B_ONLY_ONE", "not_active": "B_NOT_ACTIVE"},
+                "verdicts": ["met", "absent", "wrong_kind"],
+                "codes": {"absent": "B_ONLY_ONE", "wrong_kind": "B_NOT_ACTIVE"},
                 "desc": "First example of what they do INSTEAD OF the goal behavior",
-                "rule": (
-                    "`{fail}` in two cases. (1) The entry names a CONSEQUENCE of the "
-                    "unwanted behaviour — a state they ended up in, or something they then had "
-                    "to do — rather than something they did INSTEAD of the goal behaviour. (2) "
-                    "The entry IS the goal behaviour, done at the wrong time, in the wrong "
-                    "place, or badly: you cannot do something instead of itself. If the goal is "
-                    "to sleep enough, sleeping in the car is not something done instead of "
-                    "sleeping — it is that sleep, displaced. Keep this apart from a RIVAL "
-                    "choice, which IS a substitute: if the goal is to eat fruit, eating chips "
-                    "counts, because chips are not fruit. The question is whether they did a "
-                    "different thing that crowded the goal out, or the goal itself gone wrong. "
-                    "(3) The entry names an ordinary activity that CARRIES a state the unwanted "
-                    "behaviour produced — an everyday activity reported together with the "
-                    "discomfort or dullness it is being carried out under. The "
-                    "activity is incidental there: they would "
-                    "be doing it anyway, and what the sentence actually reports is the state, "
-                    "which is a consequence. Test it by asking whether the activity would have "
-                    "happened regardless of the goal behaviour. If it would, nothing was "
-                    "displaced and the entry is not a substitute — an activity that is LIKELY A "
-                    "CONSEQUENCE of not doing the goal behaviour cannot also be what replaced "
-                    "it. (4) Where the entry offers ALTERNATIVES — two or more things joined by "
-                    "\"or\", either of which might be what they did — every alternative must "
-                    "pass the tests above. One qualifying alternative does not rescue the rest: "
-                    "\"I am tired in class OR catching up on chores\" fails, because being "
-                    "tired is a state the behaviour produced. This applies only to genuine "
-                    "alternatives. A sentence that names an activity AND THEN what came of it "
-                    "is judged on the activity: a snack eaten and the fruit left to spoil "
-                    "is one substitute with its result attached, not two alternatives — and "
-                    "several near-synonyms for the same choice are one "
-                    "substitute described three ways. (5) NAMING A FAILURE TO ACT IS NOT NAMING "
-                    "A SUBSTITUTE. \"I procrastinate\", \"I avoid going\", \"I neglect it\", "
-                    "\"I put it off\" all describe the goal behaviour NOT happening; they do "
-                    "not say what the student was doing in that time, which is what the "
-                    "question asks. Credit the concrete activity if the entry names one "
-                    "alongside the avoidance, and treat the not-doing as failing the test — "
-                    "including when it is one alternative among several"
-                ),
+                # MOVED to `b1_basis`/`b2_basis` on 2026-08-28. This check is
+                # COMPUTED by `maps` now, so it is never asked and a rule here
+                # would render nowhere. Dead prose in a rubric is how two copies
+                # of one judgement start, which is the drift this item was the
+                # demonstrated cost of. The five cases are stated once, on the pick.
             },
             {
                 "what": "behavior_2",
                 "pts": 1.5,
-                "verdicts": ["met", "absent", "not_active"],
-                "codes": {"absent": "B_ONLY_ONE", "not_active": "B_NOT_ACTIVE"},
+                "verdicts": ["met", "absent", "wrong_kind"],
+                "codes": {"absent": "B_ONLY_ONE", "wrong_kind": "B_NOT_ACTIVE"},
                 "desc": "Second example of what they do INSTEAD OF the goal behavior",
-                "rule": (
-                    "`{fail}` on the same four tests as the first example: a consequence of "
-                    "the unwanted behaviour; the goal behaviour itself done at the wrong time "
-                    "or place; an ordinary activity carrying a state that behaviour produced; a "
-                    "set of ALTERNATIVES joined by \"or\" in which any one alternative fails "
-                    "those tests; or a naming of the goal behaviour NOT happening "
-                    "(avoiding it, neglecting it, leaving it undone) rather than of what they did "
-                    "instead"
-                ),
+                # MOVED to `b1_basis`/`b2_basis` on 2026-08-28. This check is
+                # COMPUTED by `maps` now, so it is never asked and a rule here
+                # would render nowhere. Dead prose in a rubric is how two copies
+                # of one judgement start, which is the drift this item was the
+                # demonstrated cost of. The five cases are stated once, on the pick.
+            },
+            # THE TWO PICKS. `behavior_1` and `behavior_2` are no longer asked:
+            # `maps` below computes each from its pick, so the composite
+            # judgement the two scorers used to weigh separately is now
+            # arithmetic and cannot be read differently by each.
+            #
+            # The prose is MOVED, not rewritten. It is already leakage-reviewed,
+            # and rewording a rule while changing its mechanism would leave the
+            # sweep unable to say which of the two moved a cell.
+            {
+                "what": "b1_basis",
+                "verdicts": ["activity", "consequence", "goal_behaviour",
+                             "not_doing", "none"],
+                "desc": "What the first example IS",
+                "rule": 'ONE ANSWER, and it says what the entry IS. The engine turns it into this example\'s verdict, so do not judge whether the example earns credit -- classify it and the arithmetic follows.\n  `activity` -- something they did INSTEAD of the goal behaviour. This is the answer that earns the point.\n  `none` -- the box is empty, or names nothing at all.\n  `consequence` -- cases (1) and (3) below.\n  `goal_behaviour` -- case (2) below.\n  `not_doing` -- case (5) below.\nWHERE THE ENTRY OFFERS ALTERNATIVES, case (4): classify by the FAILING alternative, because one qualifying alternative does not rescue the rest.\nThe cases, unchanged: (1) (1) The entry names a CONSEQUENCE of the unwanted behaviour — a state they ended up in, or something they then had to do — rather than something they did INSTEAD of the goal behaviour. (2) The entry IS the goal behaviour, done at the wrong time, in the wrong place, or badly: you cannot do something instead of itself. If the goal is to sleep enough, sleeping in the car is not something done instead of sleeping — it is that sleep, displaced. Keep this apart from a RIVAL choice, which IS a substitute: if the goal is to eat fruit, eating chips counts, because chips are not fruit. The question is whether they did a different thing that crowded the goal out, or the goal itself gone wrong. (3) The entry names an ordinary activity that CARRIES a state the unwanted behaviour produced — an everyday activity reported together with the discomfort or dullness it is being carried out under. The activity is incidental there: they would be doing it anyway, and what the sentence actually reports is the state, which is a consequence. Test it by asking whether the activity would have happened regardless of the goal behaviour. If it would, nothing was displaced and the entry is not a substitute — an activity that is LIKELY A CONSEQUENCE of not doing the goal behaviour cannot also be what replaced it. (4) Where the entry offers ALTERNATIVES — two or more things joined by "or", either of which might be what they did — every alternative must pass the tests above. One qualifying alternative does not rescue the rest: "I am tired in class OR catching up on chores" fails, because being tired is a state the behaviour produced. This applies only to genuine alternatives. A sentence that names an activity AND THEN what came of it is judged on the activity: a snack eaten and the fruit left to spoil is one substitute with its result attached, not two alternatives — and several near-synonyms for the same choice are one substitute described three ways. (5) NAMING A FAILURE TO ACT IS NOT NAMING A SUBSTITUTE. "I procrastinate", "I avoid going", "I neglect it", "I put it off" all describe the goal behaviour NOT happening; they do not say what the student was doing in that time, which is what the question asks. Credit the concrete activity if the entry names one alongside the avoidance, and treat the not-doing as failing the test — including when it is one alternative among several',
+            },
+            {
+                "what": "b2_basis",
+                "verdicts": ["activity", "consequence", "goal_behaviour",
+                             "not_doing", "none"],
+                "desc": "What the second example IS",
+                "rule": 'ONE ANSWER, on the same terms as the first example: `activity` for something done INSTEAD of the goal behaviour, `none` for an empty box, and otherwise the case it falls under -- `consequence` for a consequence of the unwanted behaviour or an ordinary activity carrying a state that behaviour produced, `goal_behaviour` for the goal behaviour itself done at the wrong time or place, `not_doing` for a naming of the goal behaviour NOT happening rather than of what they did instead. Where the entry offers ALTERNATIVES, classify by the failing one.',
             },
             {
                 "what": "modify_stated",
@@ -1714,6 +1700,41 @@ ITEMS: list[dict] = [
 # because score.build_prompt used to select these two by item id, which the
 # enforcement audit reads as a rule it cannot compare -- and the hint IS
 # scoring-relevant: it is evidence handed to the model.
+# Q4b's two examples are COMPUTED from a pick each, not judged directly. `absent`
+# and `wrong_kind` charge different codes -- "you only gave one example" against a
+# repeatable "that is not something done instead" -- so this needs the one primitive
+# that can give a check more than one kind of failure. `equals`, `expect` and
+# `forbid` each offer a single failing verdict, and two `forbid` rules on one key
+# credit a wrong entry rather than refusing it.
+#
+# WHY AT ALL: the INSTEAD-OF test was prose on both sides, the two scorers read it
+# differently, and no primitive existed for the audit to compare -- Q4b/p4 and p12
+# are the measured cost. Computing it from one declared map means both engines reach
+# the same verdict from the same pick, so the disagreement has nowhere left to live
+# except the classification itself, which is one named question instead of five
+# weighed at once.
+#
+# THE REFERENT TEST IS DELIBERATELY NOT HERE. An entry naming the same THING as one
+# of the student's own 4a antecedents would be a sixth option, and it was measured
+# once in prose form and rejected for THREE TIMES THE VARIANCE. Adding it here would
+# confound that experiment with this mechanism change; it stays subgoal 10.
+MAPS: dict[str, list[dict]] = {
+    "Q4b": [
+        {"key": "behavior_1", "pick": "b1_basis",
+         "pairs": [{"value": "activity", "verdict": "met"},
+                   {"value": "none", "verdict": "absent"}],
+         "fallback": "wrong_kind"},
+        {"key": "behavior_2", "pick": "b2_basis",
+         "pairs": [{"value": "activity", "verdict": "met"},
+                   {"value": "none", "verdict": "absent"}],
+         "fallback": "wrong_kind"},
+    ],
+}
+for _it in ITEMS:
+    if _it["id"] in MAPS:
+        _it["maps"] = MAPS[_it["id"]]
+
+
 READS_UTB_CHOICE = ("Q1", "Q2")
 for _it in ITEMS:
     if _it["id"] in READS_UTB_CHOICE:

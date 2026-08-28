@@ -29,6 +29,11 @@
   "note": "effort/escaping is negative-reinforcement vocabulary the item is about.",
   "verdict": "vocabulary"
  },
+ "2197c8bef713": {
+  "label": "Q4b credit.rule :: ONE ANSWER, and it says what the entry IS. The engin",
+  "note": "Q4b credit.rule d5e736ab6279 MOVED verbatim onto the b1_basis pick, plus a framing naming the pick's options. Verified word by word: chips, chores, eaten and everyday are all in the MOVED text and none in the new framing, which adds only structural vocabulary (activity/none/consequence/goal_behaviour/not_doing/classify/arithmetic). The prior verdict on this prose was coincidence -- its worked examples are invented, fruit/chips as a rival choice -- and moving it does not change that. chores is used by three students, which is this tool's own signal for domain vocabulary rather than a quotation; eaten and everyday are ordinary English about states and activities.",
+  "verdict": "coincidence"
+ },
  "317a0e842d88": {
   "label": "DAY2 guidance :: CADENCE, TWO THINGS THAT DO NOT MAKE AN ANSWER WEEKL",
   "note": "'five sessions a week' appears in no response (phrase-checked); wait is the block's own cadence test.",
