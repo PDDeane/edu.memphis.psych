@@ -1100,10 +1100,82 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       defect -- a pick's value lives in `answers`/`refers_to`, and `checks` carries
       verdicts. It is blank on all 20 cells of PR and all 20 of Q4b, including
       every cell that scores correctly. Nothing is wrong with the picks.
-      MONITOR THE REST OF THE SWEEP: the detector is nine lines of python over the
-      `.runs.json` files and should be re-run as each item lands. If the class
-      grows past a handful, or concentrates on one handout, that changes it from a
-      per-cell question into a sheet-design one.
+      THE DETECTOR WAS UNDER-COUNTING, corrected 2026-08-28 while working NR. It
+      excluded only `confident`, so any cell with an unmet ADVISORY slot fell out --
+      and `phrased_directly` is advisory on the H2 type items (pts=None,
+      gates=False, it cannot deduct). Counting only slots that can actually move
+      the score -- gates plus point-carrying -- the class is SEVEN, not four:
+          NR   p3   ours  4.00  gold 0.00     (missed before)
+          PR   p3   ours  4.00  gold 0.00
+          Q1   p10  ours  5.00  gold 4.00     (missed before; also subgoal 14)
+          Q4a  p17  ours  5.00  gold 4.00     (missed before)
+          Q4c  p16  ours  5.00  gold 3.00
+          Q4c  p20  ours  5.00  gold 3.00
+          Q6   p2   ours 10.00  gold 8.75     DECLARED ceiling
+      Q1/p10 arriving here is the useful one: subgoal 14 has it as a live miss, and
+      this says no slot on that sheet can refuse it, which is a different problem
+      from a criterion set too loosely.
+      MONITOR THE REST OF THE SWEEP with the corrected detector -- only gates and
+      point-carrying slots count as scoring. If the class grows past a handful, or
+      concentrates on one handout, that changes it from a per-cell question into a
+      sheet-design one.
+
+- [ ] 21. **NR: a 4-point GATE running at 71% precision.**
+      NR RECORDS 15/18, runs [14,14,15,15,15,16], and carries the worst MAE (0.50)
+      and bias (-0.39) in the sweep. A ONE-cell drop from the ledger's previous
+      16/18, which was itself a six-run figure (`nr_barrier2`), so the comparison
+      is like-for-like apart from the prompt change. Under-credit 16 against
+      over-credit 9.
+      NOT 14/18: that figure came from the sweep summary's `exact` column, which
+      reports the PUBLISHED MEDIAN RUN's count. The ledger records
+      `totals[n//2]`, the upper median of the six run totals, and that is the
+      canonical number. The two differ on half the items swept so far.
+      THE STRUCTURAL FINDING, and it is the whole subgoal: `you_arrange_it` GATES.
+      pts=None, gates=True, so ONE unmet verdict zeroes the entire 4-point item. It
+      is refused 34 times with 10 of those in wrong cells -- 71% precision -- which
+      makes it simultaneously the most expensive instrument on the sheet and one of
+      its least precise. Five other slots on this item are 100% precise;
+      `barrier_is_not_this_type`, converted to a declaration today, is 6 refusals
+      and 100%.
+      PRECISION RANKING, the order to work in:
+          targets_goal_behavior  13 refusals   62%
+          you_arrange_it         34 refusals   71%   <-- and it GATES
+          demonstrates_type      29 refusals   79%
+          phrased_directly       64 refusals   80%   advisory, cannot deduct
+      THE FOUR STABLY WRONG CELLS, each with a different cause:
+        p20  gold 4.00, ours 0.00, 6/6. The gate fires and gold's feedback is
+             EMPTY -- gold gave full credit and said nothing, so there is no stated
+             objection to read. Pure gate false-positive, and the most expensive
+             single error in the sweep.
+        p11  gold 2.00, ours 0.00, gate fires 4/6. Gold docks TWO points, saying
+             "This is an example of NP" -- so gold and we AGREE the type is wrong
+             and disagree only about the PRICE. This is a charge-size mismatch, not
+             a judgement one.
+        p4   gold 4.00, ours 2.00. `demonstrates_type` refused 6/6, gold silent. It
+             is COMPUTED, via `expect` from `observed_type`/`stimulus_move` against
+             REQUIRED_MOVE's `taken_undesirable`, so the lever is the PICK, not
+             prose -- check what the model answers for the move before touching any
+             wording.
+        p3   gold 0.00, ours 4.00. Every SCORING check passes. Gold objects that
+             what is taken away "has to be easily controllable", and no check on the
+             sheet asks that. This belongs to subgoal 20's class, not here.
+      PROPOSALS, in leverage order, none of them a wording change:
+        1. RECONSIDER THE GATE. p11 is the evidence: gold prices a wrong-type answer
+           at 2 of 4 and our gate takes all 4. If `you_arrange_it` carried points
+           instead of gating, a false refusal would cost 2 rather than 4, and p11
+           would land on gold exactly. Controls: the 24 refusals that are correct,
+           where gating currently produces the right zero -- check how many of those
+           gold also zeroes, because if gold zeroes them for a different reason the
+           gate is doing right by accident.
+        2. p4 is arithmetic, not judgement. Read the picks.
+        3. p3 goes to subgoal 20.
+        4. DO NOT TOUCH `phrased_directly` despite 64 refusals and 7 drifting cells
+           -- the largest real instability in the sweep. It is advisory on this item
+           and cannot deduct, so its correlation with wrong cells is a marker of
+           hard cells, not a cause.
+      ALREADY DECLARED: NR carries "CHARGE-ONCE WEB ONLY (barrier_is_not_this_type,
+      demonstrates_type) cost less together on the web". Read it before changing
+      either of those two, since the charge interaction is the declared part.
 
 - [ ] 19. **The LATER-BOX gradient, corpus-wide. Read this before any numbered slot.**
       Placed ahead of the item-specific subgoals because six of them are about a
@@ -1204,8 +1276,10 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       because two sweeps sharing the endpoint halved throughput today.
       IN PROGRESS. The six items the scorer fingerprint flagged are being swept
       first, two at a time, into `scorer_fix_6run`: Q1 was **16/20** at the old
+      [SUPERSEDED 2026-08-28: Q1 now records 17/20 and Q2 16/20 from the two-sided
+      sweep; the figures in this closed entry are the state when it was written.]
       (runs [15,16,16,16,17,17], was 17/20 on three; now 17/20 at the rewritten
-      prompt -- see subgoal 6) and Q2 **18/20** (runs
+      prompt -- see subgoal 6) and Q2 measured eighteen of twenty then (runs
       [16,17,17,18,18,18], was 17/20 on three) are recorded, both probes filed,
       both verdicts permitted. Neither item actually moved: every moved cell was
       already unstable and the six-run rates mostly SHARPEN the three-run ones
@@ -1556,7 +1630,8 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       closed and measured: mirror-pair rules at four lengths, the criterion
       inside the aggregate, splitting the counted family, and an
       assertion-versus-avoidance clause written for exactly this shape. See
-      handouts.GOLD_DIVERGENCES. Q1 records 18/20 and cannot exceed nineteen of
+      handouts.GOLD_DIVERGENCES. Q1 records 17/20 as of the 2026-08-28 sweep
+      (18/20 when this was written) and cannot exceed nineteen of
       its twenty cells while this stands.
 - [x] 13. **Q1/p17: `utb_stated` is a coin flip.** CLOSED BY DECISION, not by
       success, and with the number: p17 is **4/6** under the committed
@@ -1600,9 +1675,11 @@ because it can be fixed or declared; a wobbling cell cannot be either.
 
 - [ ] 17. **Q2: `wgb_is_counterpart`, `wgb_inverts_utb`, `reason_3`.**
       Set 2026-08-28 from the two-sided sweep's second item. 6 runs, current
-      configuration: 15/20 exact (75%), 90% per check, spread 3 cells, 0 failures.
-      The ledger says 18/20 but that entry is STALE SCORER, so it is a reference
-      point and not a baseline -- do not report this as a 3-cell regression.
+      configuration: RECORDS 16/20, runs [15,16,16,16,17,18], spread 3 cells, 0
+      failures. The previous entry said 18/20 and was STALE SCORER, so this is a
+      two-cell move between configurations rather than a regression against a live
+      baseline. (An earlier draft said 15/20, from the summary's median-RUN column
+      rather than the ledger's median-of-run-totals.)
       SAME LOPSIDEDNESS AS Q1, AND STRONGER: under-credit 17 (14%) against
       over-credit 5 (4%). Two items, both erring the direction Q1's recorded
       history says they should not. That pattern is now worth a look of its own.
