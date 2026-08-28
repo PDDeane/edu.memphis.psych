@@ -1421,6 +1421,49 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       [15,15,15,16,16,17]. The check-level data the 3-run artifact lacked
       (`checks: null`) is what identified subgoal 1.
 
+- [ ] 16. **Diagnose Q1's wrong calls: `utb_stated`, `reason_2`, `reason_3`.**
+      Set 2026-08-28 from the two-sided sweep's first item, so the numbers below are
+      6 runs at the CURRENT configuration rather than a recollection.
+      THE PROFILE, 120 observations: 102 correct (85%), UNDER-credit 13 (11%),
+      over-credit 5 (4%). The direction is the finding. Q1's whole recorded history
+      is an OVER-counting problem -- ~900 calls and eleven `reasons_given`
+      configurations, ending in the restored two-tier conditional -- and this says
+      the current prompt errs the other way, nearly 3 to 1. Nothing in the tree
+      predicted that, so read it before assuming the old diagnosis still holds.
+      EVERY WRONG CELL IS A COUNTING DISAGREEMENT, and they oppose each other:
+          said 3, scored 5 against gold 4    x5   over
+          said 3, scored 3 against gold 5    x5   under
+          said 2, scored 4 against gold 5    x4   under
+          said 1, scored 3 against gold 4    x4   under
+      THE STRUCTURAL OBSERVATION, and where to start (§2a): the first two lines
+      have the model saying THE SAME COUNT, 3, and the cell scoring 5 in one group
+      and 3 in the other. The count is therefore not deciding the score -- the
+      gating slots are. Look there before any wording, because a rule that changes
+      what "3" means cannot separate two groups that both said 3.
+      THE THREE SLOTS TO WORK, with their measured shape:
+        `utb_stated`  unmet 11, of which 5 in wrong cells and 6 in right -- the only
+                      slot whose unmet verdicts split near-evenly, so it carries
+                      real signal. Subgoal 13 CLOSED BY DECISION on p17 being a coin
+                      flip for this slot; that is prior work, not a settled answer.
+        `reason_2`    unmet 16, 4 in wrong cells.
+        `reason_3`    unmet 47, 39 of them in cells that scored CORRECTLY -- so it
+                      fires far more often than it explains. Treat a change here as
+                      likely to move right cells, and control for them.
+      DO NOT CHASE `confident`. Unmet in 92 of 120 observations with 79 of those in
+      cells that scored correctly, and the top drifter at 14 cells changing verdict
+      across runs. It fires constantly and predicts nothing; it is the noise floor,
+      not a lever.
+      WAIT FOR THE APP COLUMN. The two sides share this prompt and differ only in
+      whose rules score it, so the same profile on the web side separates "the
+      prompt asks badly" from "one scorer applies it differently". Acting on the CLI
+      column alone would be tuning a prompt against one of its two readers.
+      ALREADY RECORDED, do not rediscover: Q1/p9 is a declared divergence
+      (GARBLED_CLAUSE_READ_LITERALLY, twelve configurations); p10 and p18 are
+      subgoal 14; the `harms_listed` ASSERTION-vs-AVOIDANCE clause and the two-tier
+      `reasons_given` conditional are both live and measured. `python3
+      olx_prompts.py --write` prints Q1's recorded comment blocks, and since
+      2026-08-28 it prints the LATEST three, which is where the counting rule sits.
+
 - [ ] 14. **Q1's two live misses: p10 and p18.** Lifted out of subgoal 12's
       prose so they are tracked rather than mentioned. Both are APPLICATION
       failures -- the rule already states the right principle in each case -- so
