@@ -530,6 +530,19 @@ def derive_ledger(item: dict, raw: dict,
     return ledger, checks, unknown
 
 
+def _expect_rule(item: dict, key: str) -> tuple[str, str, tuple[str, ...]] | None:
+    """One declared `expect` rule as (left_slot, value, lenient), or None.
+
+    The web's `expect` primitive: a computed check that is met when another
+    slot's answer equals `value`, or any of `lenient`. Presence of the
+    declaration selects the item, so the caller needs no id.
+    """
+    for rule in item.get("expect") or ():
+        if rule.get("key") == key:
+            return rule["left"], rule["value"], tuple(rule.get("lenient") or ())
+    return None
+
+
 def _forbid_rule(item: dict, key: str) -> tuple[tuple[str, str], ...] | None:
     """One declared `forbid` conjunction as (slot, value) pairs, or None.
 
@@ -599,8 +612,17 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
             return ledger, checks, unknown, advisory
         if named != "unclear" and observed != named:
             add("TYPE_MISMATCH", f"This example is {observed}, but you chose {named}.")
-        if item.get("id") == "WK1":
-            aimed = str(a.get("trigger_behavior", "utb")).strip() in ("utb", "wgb")
+        # `targets_own_behavior` is either ASKED as a boolean or COMPUTED from a
+        # parse of which behaviour the trigger names -- WK1 does the latter,
+        # declared as `expect` in rubric_h2 and generated into the web's sheet
+        # from the same declaration. Asked as a parse because two earlier versions
+        # asked the judgement directly and the model answered inconsistently on
+        # the two cells that matter; the cue it can apply is syntactic.
+        spec = _expect_rule(item, "targets_own_behavior")
+        if spec:
+            left, value, lenient = spec
+            got = str(a.get(left, value)).strip()
+            aimed = got == value or got in lenient
         else:
             aimed = a.get("targets_own_behavior", True)
         checks.append({"what": "targets_own_behavior", "met": bool(aimed),
