@@ -205,6 +205,24 @@ def _domain_words(items: tuple[str, ...]) -> set[str]:
     return set(_content(txt))
 
 
+def _segments(text: str) -> list[str]:
+    """Sentence-ish units, normalised, for deciding what counts as OUR OTHER prose.
+
+    The unit matters: with the block as the unit, a paragraph duplicated across
+    two blocks is "elsewhere" for both and neither copy is ever checked. With the
+    sentence as the unit, a shared sentence is excluded from the evidence of every
+    block that contains it, so it has to be vouched for by prose that is genuinely
+    somewhere else.
+    """
+    import re as _re
+    out = []
+    for s in _re.split(r"(?<=[.!?])\s+|\n+", text or ""):
+        s = " ".join(s.split())
+        if len(s) > 12:
+            out.append(s)
+    return out or ([" ".join((text or "").split())] if text else [])
+
+
 def word_findings(items: tuple[str, ...]) -> list[dict]:
     """Authored blocks re-using a CONCRETE word from a few students' answers.
 
@@ -227,11 +245,29 @@ def word_findings(items: tuple[str, ...]) -> list[dict]:
     # that appears NOWHERE else in it, and does appear in a few students'
     # answers, is theirs. That is what separates "phone" and "procrastinating"
     # from "activity".
-    ours = {lbl: set(_content(t)) for lbl, t in blocks.items()}
+    # OUR OWN prose has to be prose THIS BLOCK DOES NOT CONTAIN, or duplicated
+    # text vouches for itself and can never be flagged. Measured before fixing:
+    # 139 of 301 blocks carry a full text that also appears verbatim in another
+    # block, and 114 sentences appear in more than one block, filling 526 block
+    # slots -- the four-type operant definition alone sits in twelve. Under the
+    # old per-block union every word of all of that was "elsewhere", so nearly
+    # half the authored prose was exempt from the check that exists to police it.
+    # `_MOVE_RULE` sat unchecked in four prompts for exactly this reason.
+    #
+    # Sentence granularity, not block: a paragraph shared between two otherwise
+    # different blocks would still vouch for itself if the unit were the block.
+    seg_words: dict[str, set[str]] = {}
+    block_segs: dict[str, set[str]] = {}
+    for lbl, t in blocks.items():
+        ss = _segments(t)
+        block_segs[lbl] = set(ss)
+        for sg in ss:
+            seg_words.setdefault(sg, set()).update(_content(sg))
     out: list[dict] = []
     for label, text in blocks.items():
-        elsewhere = set().union(*(v for k, v in ours.items() if k != label)) \
-            if len(ours) > 1 else set()
+        mine = block_segs.get(label, set())
+        elsewhere = set().union(*(w for sg, w in seg_words.items() if sg not in mine)) \
+            if any(sg not in mine for sg in seg_words) else set()
         rare = sorted(
             w for w in set(_content(text)) & set(students)
             if w not in domain and w not in elsewhere
@@ -382,7 +418,12 @@ def main() -> int:
     if args.review:
         if not args.verdict or not args.note.strip():
             ap.error("--review needs --verdict and a --note saying why")
-        known = {f["sha"]: f["label"] for f in findings(items)}
+        # BOTH checks, not just the bigram one. The word check can flag a block
+        # and the gate refuses on it, but `--review` looked only at `findings()`,
+        # so a word finding could block every sweep with no way to file a verdict
+        # for it. It never bit while the word check was suppressing duplicated
+        # prose; widening that check surfaced 43 findings and the jam with them.
+        known = {f["sha"]: f["label"] for f in findings(items) + word_findings(items)}
         if args.review not in known:
             ap.error(f"no flagged block with sha {args.review} in {','.join(items)}")
         data = load_reviews()

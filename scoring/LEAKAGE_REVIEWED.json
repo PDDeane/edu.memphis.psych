@@ -4,6 +4,11 @@
   "note": "'plan work' is from our own 'not whether the plan will work'; 'week make' from 'running to the end of the week does not make a daily trigger weekly'. Both are ordinary word pairs in prose we wrote, colliding with p8's answers on Q3 and PP \u2014 different items from the three this block governs. No borrowed content; p8's cadence answers share nothing with it.",
   "verdict": "coincidence"
  },
+ "06ca7e12e5d1": {
+  "label": "WK2 guidance :: TEST 2 \u2014 DOES THE CONSEQUENCE ARRIVE AFTER THE BEHAV",
+  "note": "Operant vocabulary and the handout's own words, not students'. 'withheld' is the technical term for withholding a reinforcer; 'Remember that what you take away or add has to happen after the behaviour' quotes the HANDOUT's instruction to the student, so the shared words travel from us to them. 'advance' and 'ever' are ordinary English. Surfaced only because this block sits in eight prompts and each copy used to vouch for the others.",
+  "verdict": "vocabulary"
+ },
  "1644f5c45fc4": {
   "label": "1c credit.desc :: The x-axis is labelled \u2014 an AXIS TITLE, not the tick",
   "note": "'Days of the Week' and the Sunday/Monday tick values are the handout's own axis labels.",
@@ -13,6 +18,11 @@
   "label": "Q3 credit.desc :: action_oriented, narrowed so time alone does not count",
   "note": "equipment and plain both stood in this desc BEFORE the narrowing -- 'access, equipment, or time they already have' and 'a plain statement of what they will physically perform' -- so neither is new prose and neither is borrowed; the verdict lapsed only because editing the block changed its sha, which is the mechanism working as designed. The words the check DID catch in the new prose were real and were removed: 'free' and 'arrange' echoed p14's 'my early mornings are free' and p11's 'I'll arrange times', both CONTROL cells for this very change, and 'resting' echoed p11 as well. Rewritten to 'hours they could give to it, or expect to clear' and 'an answer that leans entirely on'.",
   "verdict": "coincidence"
+ },
+ "1fb57dec8a6a": {
+  "label": "WK2 guidance :: IS A WORKABLE CONTINGENCY STATED? Look for three thi",
+  "note": "Ordinary English and our own rule vocabulary, once the two BORROWED examples were removed from this block (a lock opening when the student arrives, taken from p14's screen lock, and 'rather than scroll', from p4's TikTok scrolling - both scored cells). What remains: 'come' from 'MUST COME AFTERWARDS', 'main' from 'A MAIN CLAUSE', 'moments' from 'TWO MOMENTS', 'lifting' from 'the lifting IS the behaviour's own occurrence'. The one concrete example left is invented: NO student mentions a kitchen, and 'studying'/'healthier' appear in the responses in unrelated senses.",
+  "verdict": "vocabulary"
  },
  "208986e13a21": {
   "label": "Q5 guidance :: W_ONLY_ONE also covers two statements that collapse ",
@@ -44,6 +54,11 @@
   "note": "function/gains is the operant-conditioning frame's own vocabulary.",
   "verdict": "vocabulary"
  },
+ "4cbec78f7d8c": {
+  "label": "WK2 guidance :: IMPLICIT (from gold): advisory notes without deducti",
+  "note": "'notes' and 'related' from 'advisory notes without deduction are common' - a statement about how the GRADERS wrote, not about any response. Ordinary English.",
+  "verdict": "vocabulary"
+ },
  "57b63cedf776": {
   "label": "Q4b guidance :: ACCEPT \u2014 and accept broadly, once that test is met. ",
   "note": "Examples invented: 'energy drinks', 'roommates', 'reorganising my desk', 'lie there wishing I had started earlier', 'head keeps telling me' are all absent from the cohort (phrase-checked). Flagged words are the block's own category prose (coping, thoughts, consumed) plus ordinary English.",
@@ -57,6 +72,16 @@
  "5d2c8deaf702": {
   "label": "1a guidance :: THE BAR IS THE ARC, NOT A SENTENCE COUNT. This item ",
   "note": "across/average/pair are graph-reading vocabulary the item cannot avoid; the handout asks for a baseline average.",
+  "verdict": "vocabulary"
+ },
+ "62000e2c25a3": {
+  "label": "WK2 guidance :: WAS THE UNDESIRABLE THING CREATED BY THE PLAN, OR AL",
+  "note": "Our own rule vocabulary. 'creating'/'keeping' from 'Creating a deprivation is stated in the POSITIVE', 'lifts' from 'which performing the behaviour then lifts', 'setting' from 'setting something aside' - which replaced 'locking or leaving something behind' precisely because 'lock' traced to p14. All ordinary English in senses unrelated to the students' use.",
+  "verdict": "vocabulary"
+ },
+ "63da49ba34aa": {
+  "label": "WK2 guidance :: TEST 3 \u2014 WHICH OF THE FOUR TYPES IS IT? Before credi",
+  "note": "'limit' in 'ADDING a privilege for staying within a limit is PR, not NR' and 'commonly' in 'the most commonly missed'. Ordinary English in senses unrelated to the students' use.",
   "verdict": "vocabulary"
  },
  "7331ef355578": {
@@ -99,6 +124,11 @@
   "note": "almost/lead are ordinary English in the opacity test.",
   "verdict": "coincidence"
  },
+ "9523189cff04": {
+  "label": "WK2 guidance :: WRONG_BEHAVIOR (-1) is for an example aimed at a CLE",
+  "note": "'completing' in 'gates the unwanted activity itself on completing the goal' and 'loose' in 'do not deduct merely because the phrasing is loose'. Ordinary English; p10's 'body felt loose' is a different sense.",
+  "verdict": "vocabulary"
+ },
  "a5760d6bd538": {
   "label": "DAY1 guidance :: AVOIDANCE FRAMING TAKES THE WHOLE ITEM HERE. An answ",
   "note": "'practice session' and 'the fine' appear in no response (phrase-checked); both were written to replace an earlier lift. skip/face/intention are ordinary English.",
@@ -118,6 +148,11 @@
   "label": "Q4b guidance :: REJECT when the entry is not something the student d",
   "note": "'yawning through my morning classes' is invented -- 'morning class' appears in no response. caused is the block's own causal vocabulary.",
   "verdict": "coincidence"
+ },
+ "c9c635d503da": {
+  "label": "WK2 guidance :: WHAT COUNTS AS THE ADDED OR REMOVED THING \u2014 BE BROAD",
+  "note": "Textbook operant phrasing. 'unpleasant' is definitional - D1/p6 quotes 'the removal of an unpleasant stimulus that strengthens a behavior' at US - and ours reads 'Removing an unpleasant OBLIGATION, chore, or requirement'. 'physical' appears as 'it does not have to be a physical object'; 'early' and 'procrastinated' are ordinary English in unrelated senses.",
+  "verdict": "vocabulary"
  },
  "cf14a0964fa2": {
   "label": "1c guidance :: The bundle marks each piece of evidence as `student`",
