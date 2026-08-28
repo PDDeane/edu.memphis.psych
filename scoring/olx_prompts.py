@@ -2439,22 +2439,79 @@ def prior_record(item: str) -> str:
     h = HANDOUT.get(item)
     lines = [f"  ---- what is already recorded about {item} (QUALITY_CONTROL.md §2c) ----"]
 
-    # 1. Substantial comment blocks inside this item's rubric entry.
+    # 1. Substantial comment blocks about this item in its rubric.
+    #
+    # Found by MENTION, not by locating a dict entry. The first version looked for
+    # a literal `"id": "DAY1"` line and scanned to the next `"id":`, which works
+    # only where the rubric is written as a list of literal dicts. rubric_h2 builds
+    # its twelve items from a factory, so no H2 item ever matched: the hook printed
+    # "could not read rubric_h2.py: StopIteration" on every H2 --write, silently,
+    # and §2c enforced nothing on the handout with the most recorded dead ends.
+    #
+    # A comment counts as being about this item when the item is named within a few
+    # lines below it -- which covers a comment above a dict entry, above an
+    # `if item_id == "DAY1"` branch, and above a declaration table keyed by id.
     try:
         src = (paths.SCORING / f"rubric_h{h}.py").read_text().splitlines()
-        start = next(i for i, l in enumerate(src) if f'"id": "{item}"' in l)
-        end = next((i for i in range(start + 1, len(src))
-                    if re.search(r'"id": "[^"]+"', src[i])), len(src))
-        block, run = [], []
-        for i in range(start, end):
-            if src[i].lstrip().startswith("#"):
-                run.append((i + 1, src[i].strip().lstrip("# ").rstrip()))
-            else:
-                if len(run) >= 4:
-                    block.append(run)
-                run = []
-        if len(run) >= 4:
-            block.append(run)
+        quoted = (f'"{item}"', f"'{item}'")
+        mentions = {i for i, l in enumerate(src) if any(q in l for q in quoted)}
+        if not mentions:
+            raise LookupError(f"{item} is never named in rubric_h{h}.py")
+
+        # The literal-dict span, when there is one: comments INSIDE the entry are
+        # about the item even where they do not name it.
+        span = None
+        idline = next((i for i, l in enumerate(src)
+                       if f'"id": "{item}"' in l), None)
+        if idline is not None:
+            stop = next((i for i in range(idline + 1, len(src))
+                         if re.search(r'"id": "[^"]+"', src[i])), len(src))
+            span = (idline, stop)
+
+        WINDOW = 6          # how far below a comment the item may be named
+        runs, run = [], []
+        for i, line in enumerate(src + [""]):
+            if line.lstrip().startswith("#"):
+                run.append((i + 1, line.strip().lstrip("# ").rstrip()))
+                continue
+            if len(run) >= 4:
+                runs.append(run)
+            run = []
+        # THE SPAN WINS WHERE THERE IS ONE. Mention-matching is the fallback for a
+        # factory-built rubric, not an addition to the literal-dict case: only
+        # three blocks are printed, and a file-level comment that merely sits near
+        # a mention of the item can take a slot from one written about it. That
+        # happened here -- Q1 was shown rubric_h1's general note on scoring
+        # granularity, which is about every item, while one of its own six runs
+        # dropped off the end.
+        if span is not None:
+            block = [r for r in runs if span[0] < r[0][0] <= span[1] + 1]
+        else:
+            # A FACTORY-BUILT ITEM'S RECORD IS IN ITS FACTORY. D1 and D2 are
+            # `_definition_item("D1", ...)` and nothing else in the file names them,
+            # so mention-matching alone found nothing for either -- and the function
+            # that builds them carries the comments that ARE their record. Resolve
+            # the factory from the constructing call and take its body too.
+            spans = []
+            for i in sorted(mentions):
+                m = re.search(r'(\w+)\(\s*["\']%s["\']' % re.escape(item), src[i])
+                if not m:
+                    continue
+                d = next((k for k, l in enumerate(src)
+                          if l.startswith(f"def {m.group(1)}(")), None)
+                if d is None:
+                    continue
+                stop = next((k for k in range(d + 1, len(src))
+                             if src[k] and not src[k][0].isspace()), len(src))
+                spans.append((d, stop))
+            block = []
+            for r in runs:
+                after = r[-1][0]                   # 0-based index of the next line
+                near = any(j in mentions
+                           for j in range(after, min(after + WINDOW, len(src))))
+                in_factory = any(a <= r[0][0] - 1 < b for a, b in spans)
+                if near or in_factory:
+                    block.append(r)
         for b in block[:3]:
             n0, n1 = b[0][0], b[-1][0]
             lines.append(f"    rubric_h{h}.py:{n0}-{n1} —")
@@ -2464,7 +2521,8 @@ def prior_record(item: str) -> str:
                 lines.append(f"      ... {len(b)-8} more lines: "
                              f"sed -n '{n0},{n1}p' rubric_h{h}.py")
     except Exception as e:
-        lines.append(f"    (could not read rubric_h{h}.py: {type(e).__name__})")
+        lines.append(f"    (no recorded comments found in rubric_h{h}.py for "
+                     f"{item}: {type(e).__name__}: {e})")
 
     # 2. Anything naming this item in the written record.
     for where in ("drafts", "BACKLOG.md", "GOALS.md"):

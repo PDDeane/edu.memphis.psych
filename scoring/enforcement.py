@@ -1184,6 +1184,61 @@ PROSE_ONLY_SLOTS = {
 PROSE_ONLY_BUDGET = 9
 
 
+# Items whose rubric entry genuinely carries no substantial comment block, so
+# §2c has nothing to push for them. Verified, not assumed: 1c's and 3's longest
+# comment runs are three lines against a threshold of four.
+NO_RUBRIC_COMMENTS = {"1c", "3"}
+
+
+def check_prior_record_reaches_every_item() -> list[str]:
+    """Does the §2c hook actually find the record, for every item?
+
+    It did not, for twelve of them, for as long as rubric_h2 has been a factory.
+    `prior_record` located an item's comments by searching for a literal
+    `"id": "DAY1"` line; rubric_h2 builds its items from `_example_use_item(...)`,
+    so no H2 item ever matched and the hook printed "could not read rubric_h2.py:
+    StopIteration" on every H2 --write. It was visible and nobody read it, which is
+    the only kind of failure a printed warning produces.
+
+    §2c is the discipline that the record gets pushed at the moment a rule changes
+    -- it exists because ~900 calls were spent rewriting a rule whose comment
+    already contained the answer. A hook that silently finds nothing on the handout
+    with the most recorded dead ends is worse than no hook, because the empty
+    output reads as "nothing recorded".
+
+    So this asserts coverage per item, with the genuinely-empty ones declared.
+    """
+    import olx_prompts as O
+
+    out = []
+    for item in sorted(getattr(O, "ACTION", {})):
+        try:
+            text = O.prior_record(item)
+        except Exception as e:
+            out.append(f"prior_record({item}) raised {type(e).__name__}: {e}")
+            continue
+        if "no recorded comments found" in text:
+            out.append(f"§2c cannot read {item}'s rubric: the hook reports a lookup "
+                       f"failure, so its output reads as 'nothing recorded' when the "
+                       f"record may be there")
+            continue
+        blocks = [l for l in text.splitlines() if ".py:" in l and "rubric_h" in l]
+        if not blocks and item not in NO_RUBRIC_COMMENTS:
+            out.append(f"§2c finds no rubric comment block for {item}. Either the "
+                       f"lookup broke for its rubric's shape, or the item genuinely "
+                       f"has none -- if the latter, add it to NO_RUBRIC_COMMENTS so "
+                       f"the silence is declared rather than assumed")
+    for item in sorted(NO_RUBRIC_COMMENTS):
+        try:
+            text = O.prior_record(item)
+        except Exception:
+            continue
+        if [l for l in text.splitlines() if ".py:" in l and "rubric_h" in l]:
+            out.append(f"NO_RUBRIC_COMMENTS names {item}, but §2c now finds comment "
+                       f"blocks for it -- drop it from the set")
+    return out
+
+
 def check_convertible_prose_rules_have_subgoals() -> list[str]:
     """Does every CONVERTIBLE prose rule have a subgoal, or just a label?
 
