@@ -1100,21 +1100,33 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       defect -- a pick's value lives in `answers`/`refers_to`, and `checks` carries
       verdicts. It is blank on all 20 cells of PR and all 20 of Q4b, including
       every cell that scores correctly. Nothing is wrong with the picks.
-      THE DETECTOR WAS UNDER-COUNTING, corrected 2026-08-28 while working NR. It
-      excluded only `confident`, so any cell with an unmet ADVISORY slot fell out --
-      and `phrased_directly` is advisory on the H2 type items (pts=None,
-      gates=False, it cannot deduct). Counting only slots that can actually move
-      the score -- gates plus point-carrying -- the class is SEVEN, not four:
-          NR   p3   ours  4.00  gold 0.00     (missed before)
-          PR   p3   ours  4.00  gold 0.00
-          Q1   p10  ours  5.00  gold 4.00     (missed before; also subgoal 14)
-          Q4a  p17  ours  5.00  gold 4.00     (missed before)
-          Q4c  p16  ours  5.00  gold 3.00
+      THE DETECTOR WAS WRONG TWICE, and the corrected class is FOUR cells, all on
+      handout 1:
+          Q1   p10  ours  5.00  gold 4.00     also subgoal 14
+          Q4a  p17  ours  5.00  gold 4.00
           Q4c  p20  ours  5.00  gold 3.00
           Q6   p2   ours 10.00  gold 8.75     DECLARED ceiling
-      Q1/p10 arriving here is the useful one: subgoal 14 has it as a live miss, and
-      this says no slot on that sheet can refuse it, which is a different problem
-      from a criterion set too loosely.
+      FIRST ERROR: it excluded only `confident`, so any cell with an unmet ADVISORY
+      slot fell out -- and `phrased_directly` is advisory on the H2 type items
+      (pts=None, gates=False, it cannot deduct). Counting only gates and
+      point-carrying slots fixed that.
+      SECOND ERROR, and the instructive one: it read the raw per-cell results
+      WITHOUT applying `handouts.cell_exclusions`. Handout 2's p2 and p3 are
+      SUSPECT on every item -- "byte-identical transcriptions but different gold
+      rows, so at least one is mis-transcribed and neither can be attributed" --
+      and excluded cells are still RUN and scored on purpose, so they appear in the
+      artifacts looking like ordinary results. That produced PR/p3, NR/p3 and
+      WK1/p3 as apparent members, and a false pattern on top of them: "three
+      different H2 items, all on participant 3", which is just the one known-bad
+      transcription seen three times. Q4c/p16 also dropped out on exclusion.
+      THE LESSON, which is the same one three times today: compute through the
+      accessors that apply the project's own accounting -- cell_exclusions,
+      scores_as_exact, the ledger's numerator -- not from the raw artifacts. Every
+      convention I read as a signal today (the ±tol column, blank picks, suspect
+      cells) came from going around them.
+      Q1/p10 is the useful survivor: subgoal 14 has it as a live miss, and this
+      says no slot on that sheet can refuse it, which is a different problem from a
+      criterion set too loosely.
       MONITOR THE REST OF THE SWEEP with the corrected detector -- only gates and
       point-carrying slots count as scoring. If the class grows past a handful, or
       concentrates on one handout, that changes it from a per-cell question into a
