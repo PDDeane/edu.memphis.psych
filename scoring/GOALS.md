@@ -207,6 +207,13 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       Where the wordings differ, the WEB's wins -- unless the difference is
       forced by how the response text is presented, or the web is CLEARLY WRONG,
       as in the DAY1 contradiction subgoal 6 found and fixed.
+      AND THE RULE IS ABOUT WORDING, NOT SCORING (user, 2026-08-28). On
+      scoring-sensitive work, prefer whichever side MATCHES GOLD: if the CLI
+      matches gold and the web does not, the CLI's behaviour is the one to keep and
+      the web is what changes. "Web wins" settles which of two ways of SAYING the
+      same rule to use; it never settles which of two ANSWERS is right, and gold
+      does. Q4b/p4 is the live case -- paper 2.0, gold 2.0, web 3.5 -- so subgoal 9
+      converges the web onto the CLI, not the reverse.
 - [x] 6. **The criteria prose was written twice, and the copies had drifted.**
       Found while establishing subgoal 2's precondition. `score.py:build_prompt`
       held the `derive_from_criteria` block and `olx_prompts._criteria_section`
@@ -276,6 +283,12 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       CONVERT THE PAIR TOGETHER. behavior_2 restates behavior_1's conditions for
       the second entry, so converting one alone would have the two entries judged
       by different machinery on the same item.
+      DIRECTION: THE WEB MOVES TO THE CLI HERE. On p4 the paper path scores 2.0,
+      which IS gold, and the web scores 3.5. So this is not a case of "web wording
+      wins" -- that rule is about which way to SAY a shared rule, and it does not
+      decide which of two answers is right. Gold does, and gold is with the CLI.
+      The `forbid` declaration should reproduce the CLI's refusal and the web
+      should start charging it.
       NOT BEHAVIOUR-PRESERVING, unlike subgoal 3's seven: this moves a test from
       the model's judgement to the engine's arithmetic, so `oc_grid` cannot certify
       it and the sweep must measure it. Q4b sits at 16/19 over 6 runs, and p4 and
@@ -285,15 +298,41 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       referent test moves and the four judgement conditions stay, the entries
       REMAIN and their reasons must be rewritten to say so.
 
-- [ ] 7. **§2c's recorded-comment lookup is blind to all twelve H2 items.**
-      Found in passing: `olx_prompts.prior_record` locates an item's rubric
-      comments by grepping for the literal `"id": "DAY1"`, but `rubric_h2.py`
-      builds its items from a factory, so no H2 item ever matches and the hook
-      reports `could not read rubric_h2.py: StopIteration`. It has been reporting
-      that, visibly, on every H2 `--write`. §2c is a discipline the record is
-      supposed to enforce automatically, and on the handout with the most
-      recorded dead ends it enforces nothing. Pre-existing, not caused by the
-      subgoal 6 work.
+- [x] 7. **§2c's recorded-comment lookup is blind to all twelve H2 items.** FIXED
+      2026-08-28. `prior_record` found an item's comments by searching for a literal
+      `"id": "DAY1"` line and scanning to the next `"id":`. rubric_h2 builds its
+      items from a factory, so no H2 item ever matched and the hook printed "could
+      not read rubric_h2.py: StopIteration" on every H2 `--write`. Visible, and
+      unread -- which is the only kind of failure a printed warning produces.
+      Now found by MENTION, with the literal-dict SPAN still winning where there is
+      one. That ordering matters and was measured: taking both let a file-level
+      comment about scoring granularity, which merely sits near a mention of Q1,
+      occupy one of only three display slots while one of Q1's own six comment runs
+      dropped off the end. Widening the search made the H1 output worse before it
+      made the H2 output exist.
+      A FACTORY-BUILT ITEM'S RECORD IS IN ITS FACTORY. D1 and D2 are
+      `_definition_item("D1", ...)` and nothing else in the file names them, so
+      mention-matching alone still found nothing for either; the constructing call
+      is resolved to its `def` and that body is searched too. D1, D2 and T1 went
+      from 0 blocks to 1.
+      1c and 3 remain at 0, verified rather than assumed: their entries' longest
+      comment runs are three lines against a threshold of four. They are declared
+      in `NO_RUBRIC_COMMENTS` so the silence is a statement, not an accident.
+      GUARDED by `check_prior_record_reaches_every_item`, which asserts per item
+      that the hook neither fails its lookup nor comes back empty undeclared.
+      Proved to fire: with the pre-fix lookup restored it reports 10 findings, which
+      is every H2 item in ACTION.
+      STILL OPEN, deliberately out of scope: only three blocks are printed, and Q1
+      has six. That cap predates this and hides Q1's later runs -- including the
+      `reasons_given` material §2c was written about. Raising it is a separate
+      judgement about how much to push at a reader.
+
+      AS FOUND, for the record: the hook reported `could not read rubric_h2.py:
+      StopIteration` on every H2 `--write`, visibly, for as long as rubric_h2 has
+      been a factory. §2c is a discipline the record is supposed to enforce
+      automatically, and on the handout with the most recorded dead ends it
+      enforced nothing. Pre-existing, not caused by the subgoal 6 work that
+      surfaced it.
 
 - [x] 3. **Seven scoring rules the two sides implement separately.** Widened
       from POLARITY_GATE_ITEMS once the audit's new hand-coded check listed them
