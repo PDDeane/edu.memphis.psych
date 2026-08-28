@@ -605,32 +605,22 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
         # student's own, the consequence is arranged, contingent and subsequent,
         # and the cadence is right. The TYPE items have always asked this
         # question as `targets_intended_behavior`; the cadence items never did.
-        if item.get("id") == "WK2":
-            aimed_right = a.get("aimed_correctly", True)
-            checks.append({"what": "aimed_correctly", "met": bool(aimed_right),
-                           "evidence": ""})
-            if not aimed_right:
-                add("NOT_OC", "The consequence is pointed the wrong way: an "
-                              "aversive for meeting the goal, or a reward for "
-                              "missing it.")
-                return ledger, checks, unknown, advisory
-
-        if item.get("id") == "WK1":
-            agentive = a.get("agent_delivers_consequence", True)
-            checks.append({"what": "agent_delivers_consequence",
-                           "met": bool(agentive), "evidence": ""})
-            if not agentive:
-                add("NOT_OC", "No one is named as adding or removing anything: "
-                              "the consequence clause has no agent.")
-                return ledger, checks, unknown, advisory
-
-        if item.get("id") in CONTINGENCY_GATE_ITEMS:
-            stated = a.get("states_a_contingency", True)
-            checks.append({"what": "states_a_contingency", "met": bool(stated),
-                           "evidence": ""})
-            if not stated:
-                add("NOT_OC", "No contingency is stated: nothing is granted or "
-                              "withheld on a condition.")
+        # THE ITEM'S DECLARED GATES, in declared order. This replaced three
+        # `if item["id"] == ...` branches that did the same thing for
+        # `aimed_correctly` (WK2), `agent_delivers_consequence` (WK1) and
+        # `states_a_contingency` (DAY1/DAY2/WK2). Each check is marked `!` on the
+        # sheet for the web, so the rule was a declaration on one side and code on
+        # the other -- and the enforcement audit compares declarations, so nothing
+        # compared them. See rubric_h2.OC_GATES.
+        #
+        # `a.get(key, True)` keeps the old default: a gate the model was not asked
+        # cannot fail. Order and short-circuiting are preserved exactly, which the
+        # synthetic grid in oc_grid.py checks against the pre-change scorer.
+        for g in item.get("oc_gates") or []:
+            ok = a.get(g["key"], True)
+            checks.append({"what": g["key"], "met": bool(ok), "evidence": ""})
+            if not ok:
+                add(g["code"], g["text"])
                 return ledger, checks, unknown, advisory
 
         if item.get("id") in POLARITY_GATE_ITEMS:

@@ -1843,13 +1843,14 @@ HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
         "`forbid` written by hand, from before the rule could be declared. The "
         "general implementation now sits beside it and reads item['forbid']; this "
         "branch should fold into a declared rule on those items.",
-    ("derive_oc_ledger", "CONTINGENCY_GATE_ITEMS"):
-        "the contingency gate: a conjunction over three answers with per-item "
-        "wording. No primitive expresses 'all three of these, with THIS message'.",
     ("derive_oc_ledger", "BARRIER_PICK_ITEMS"):
         "reads the barrier pick vocabulary, which only these items author.",
-    ("derive_oc_ledger", "'WK1'"): "WK1's agent check has no counterpart elsewhere.",
-    ("derive_oc_ledger", "'WK2'"): "WK2's aimed-correctly check, likewise.",
+    ("derive_oc_ledger", "'WK1'"):
+        "WK1's `trigger_behavior` -> `targets_own_behavior` vocabulary mapping. "
+        "Its agent gate and WK2's aimed gate and the contingency gate were "
+        "converted to declared `oc_gates`; this mapping is what is left, and it "
+        "is `expect`-shaped -- a pick compared against authored values -- so it "
+        "should convert too.",
     ("derive_oc_ledger", "'DAY1'"):
         "the avoidance frame never deducts on DAY1 -- gold's own exception.",
     ("build_schema", "BARRIER_PICK_ITEMS"): "schema shape, not scoring.",
