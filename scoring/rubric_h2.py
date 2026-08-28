@@ -932,5 +932,26 @@ for _it in ITEMS:
     if _it["id"] in FORBID:
         _it["forbid"] = FORBID[_it["id"]]
 
+# WK1's `expect`, declared once. The model names WHICH behaviour the trigger
+# identifies -- `utb`, `wgb` or `other` -- and the engine decides whether that
+# counts as the student's own; asked as a parse rather than as a judgement,
+# because two earlier versions asked "is it aimed at your own behaviour?" and the
+# model answered inconsistently on the two cells that matter.
+#
+# `utb` with `wgb` lenient: either the behaviour they are cutting or the one they
+# are building is their own. Only `other` is not.
+#
+# The other four `expect` rules on this handout (`demonstrates_type` on
+# NP/NR/PP/PR) are deliberately NOT declared here: the CLI reaches that fact
+# through `expected_type` and REQUIRED_MOVE, which are already rubric
+# declarations, and a second declaration of one fact is what this work removes.
+EXPECT: dict[str, list[dict]] = {
+    "WK1": [{"key": "targets_own_behavior", "left": "trigger_behavior",
+             "value": "utb", "lenient": ["wgb"]}],
+}
+for _it in ITEMS:
+    if _it["id"] in EXPECT:
+        _it["expect"] = EXPECT[_it["id"]]
+
 BY_ID = {it["id"]: it for it in ITEMS}
 TOTAL = sum(it["max"] for it in ITEMS)  # 40.0 scored; +10 upload = 50
