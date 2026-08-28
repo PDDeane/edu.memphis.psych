@@ -322,10 +322,16 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       that the hook neither fails its lookup nor comes back empty undeclared.
       Proved to fire: with the pre-fix lookup restored it reports 10 findings, which
       is every H2 item in ACTION.
-      STILL OPEN, deliberately out of scope: only three blocks are printed, and Q1
-      has six. That cap predates this and hides Q1's later runs -- including the
-      `reasons_given` material §2c was written about. Raising it is a separate
-      judgement about how much to push at a reader.
+      AND THE CAP NOW SHOWS THE RIGHT END (user, 2026-08-28). Three blocks are
+      still printed, but the LAST three rather than the first: an entry accumulates,
+      general decisions written early and measured findings piling up at the bottom,
+      so `block[:3]` was showing the oldest and cutting the newest. Q1 has six runs
+      and now surfaces rubric_h1.py:246-279 -- the `reasons_given` counting rule,
+      which is the comment §2c was written about after ~900 calls were spent
+      rediscovering it. The earlier blocks are NAMED with their line spans and a
+      `sed` command rather than dropped, because a later comment routinely assumes
+      an earlier one: "the same rule" and "reverted again" mean nothing without
+      what came before.
 
       AS FOUND, for the record: the hook reported `could not read rubric_h2.py:
       StopIteration` on every H2 `--write`, visibly, for as long as rubric_h2 has

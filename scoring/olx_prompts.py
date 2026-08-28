@@ -2511,7 +2511,26 @@ def prior_record(item: str) -> str:
                 in_factory = any(a <= r[0][0] - 1 < b for a, b in spans)
                 if near or in_factory:
                     block.append(r)
-        for b in block[:3]:
+        # THE LATEST BLOCKS, not the first ones. An entry accumulates: the general
+        # decisions are written early and the measured findings pile up at the
+        # bottom, so `block[:3]` showed the oldest and cut the newest. Q1 has six
+        # runs and the `reasons_given` material -- the comment §2c was written
+        # about, after ~900 calls were spent rediscovering it -- is in the last
+        # two.
+        #
+        # The earlier ones are NAMED rather than dropped, with the command to read
+        # them, because a later comment often assumes an earlier one: "the same
+        # rule" and "reverted again" mean nothing without what came before.
+        SHOWN = 3
+        skipped = block[:-SHOWN] if len(block) > SHOWN else []
+        if skipped:
+            spans = ", ".join(f"{b[0][0]}-{b[-1][0]}" for b in skipped)
+            n0, n1 = skipped[0][0][0], skipped[-1][-1][0]
+            lines.append(f"    {len(skipped)} EARLIER block(s) not shown, at "
+                         f"rubric_h{h}.py:{spans}. A later comment often assumes an "
+                         f"earlier one, so read them for context:")
+            lines.append(f"      sed -n '{n0},{n1}p' rubric_h{h}.py")
+        for b in block[-SHOWN:]:
             n0, n1 = b[0][0], b[-1][0]
             lines.append(f"    rubric_h{h}.py:{n0}-{n1} —")
             for _, t in b[:8]:
