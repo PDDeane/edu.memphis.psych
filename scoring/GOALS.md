@@ -531,9 +531,33 @@ until all three are closed.
             The list is 17 and the sibling `CORPUS_QUOTE_BACKLOG` is empty, so
             every declared backlog in the audit now has a ceiling that can only
             fall.
-        (c) migrate the five `1a:*` notes to the rubric `rule` field, which both
-            generators render, and measure 1a -- this is a scoring change on one
-            item, so it belongs in the sweep;
+        [x] (c) MIGRATED, 2026-08-28. All five `1a:*` notes moved VERBATIM into
+            rubric_h3's per-component `rule` fields. The web prompt did not move --
+            byte-identical across all 23, because the web checklist looks up `rule`
+            BEFORE SLOT_NOTES and finds the same string -- so every recorded web
+            number stands and 1a did not go stale. Only the CLI gained text, which
+            is the entire point.
+            THE CLI NOW RENDERS SHARED RULES AS THE WEB DOES: `rule` REPLACES
+            `desc` rather than being appended to it. The web has always done that
+            (`rule or SLOT_NOTES or desc`), so the one field written to be read by
+            both scorers was being rendered differently by each -- and since these
+            rules are written to continue from the web's `— `, appending them after
+            a desc produced "Discusses the baseline week is the BEFORE state
+            given". No audit compared the two RENDERINGS, because both sides
+            carried the text and the audit asks only whether it is carried. Blast
+            radius is the only three items with rules: 1a, Q4b, Q6, whose CLI
+            prompts change (the web's do not).
+            The two measured findings in those notes' comments -- the partial-week
+            failure the guidance did not anticipate, and the reverted experiment
+            where p6 swung 8.0/0.0/6.0 -- moved into rubric_h3 beside the rules
+            they describe. Deleting them would have destroyed the record.
+            Backlog 17 -> 13, budget lowered with it, so the ratchet stays clean.
+            The text is still leakage-scanned: leakage.py reads rubric `rule`
+            strings as well as SLOT_NOTES, and the gate passes.
+            NOT YET MEASURED, deliberately. This should fix 1a/p6's 8-point gap and
+            it may move other 1a cells; three items' CLI prompts changed. The sweep
+            measures it -- predicting the direction here would only make the result
+            harder to read honestly.
         (d) for the prose channel, declare rather than compare: a registry of
             scoring-relevant prose rules, so the surface is KNOWN, with the sweep's
             divergence table as the detector.
