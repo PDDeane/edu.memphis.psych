@@ -100,16 +100,82 @@ def exclusions(item: str) -> list[int]:
 def load() -> dict:
     if not LEDGER.exists():
         return {"items": {}}
-    return json.loads(LEDGER.read_text())
+    return _migrate(json.loads(LEDGER.read_text()))
+
+
+# The two scoring paths a number can come from. Every recorded number until
+# 2026-08-28 came from the web-prompt path, so that is what the migration assumes
+# and what `side` defaults to -- an unlabelled number is a web number.
+SIDES = ("web", "cli")
+DEFAULT_SIDE = "web"
+
+
+def _migrate(led: dict) -> dict:
+    """Fold a pre-side ledger into the per-side shape, in memory.
+
+    The old entry was the record itself: {"numerator": ..., "prompt_sha": ...}.
+    The new one is {"web": {...}, "cli": {...}}, because a two-sided sweep measures
+    both paths and the old shape had nowhere to put the second -- it could compare
+    the paths and record only one of them, which is the whole point of the sweep
+    lost at the last step.
+
+    Migration is by SHAPE, not by a version field: an entry carrying `numerator` at
+    the top is old. That way a half-migrated file, or a hand-edit that reverts one
+    entry, still reads correctly instead of raising.
+    """
+    items = led.get("items") or {}
+    for item, rec in list(items.items()):
+        if isinstance(rec, dict) and "numerator" in rec:
+            items[item] = {DEFAULT_SIDE: rec}
+    return led
+
+
+def entry(item: str, side: str = DEFAULT_SIDE) -> dict:
+    """One side's record for an item, or {} if that side has never been recorded.
+
+    Readers go through this rather than indexing the ledger, so the shape lives in
+    one place. It tolerates the old shape via `_migrate`.
+    """
+    if side not in SIDES:
+        raise SystemExit(f"unknown side {side!r}; expected one of {SIDES}")
+    rec = (load().get("items") or {}).get(item) or {}
+    return rec.get(side) or {}
+
+
+def records(side: str = DEFAULT_SIDE) -> dict:
+    """{item: record} for one side, skipping items that side has no number for.
+
+    Every reader that used to write `records()` calls this instead,
+    so adding the side dimension did not mean auditing nine index expressions for
+    which of them meant "the web's number" -- all of them did.
+    """
+    if side not in SIDES:
+        raise SystemExit(f"unknown side {side!r}; expected one of {SIDES}")
+    out = {}
+    for item, rec in (load().get("items") or {}).items():
+        got = (rec or {}).get(side)
+        if got:
+            out[item] = got
+    return out
+
+
+def sides_recorded(item: str) -> list:
+    """Which sides have a number for this item."""
+    rec = (load().get("items") or {}).get(item) or {}
+    return [s for s in SIDES if rec.get(s)]
 
 
 def save(led: dict) -> None:
     LEDGER.write_text(json.dumps(led, indent=2, sort_keys=True) + "\n")
 
 
-def status() -> list[tuple[str, str]]:
-    """Per item, one of: ok, pending (declared), stale-prompt, stale-cells, absent."""
-    led = load().get("items", {})
+def status(side: str = DEFAULT_SIDE) -> list[tuple[str, str]]:
+    """Per item, one of: ok, pending (declared), stale-prompt, stale-cells, absent.
+
+    Per SIDE. The default is the web-prompt path, which is where every number
+    recorded before 2026-08-28 came from, so existing callers keep their meaning.
+    """
+    led = records(side)
     out = []
     for item in sorted(_jobs()):
         rec = led.get(item)
@@ -427,7 +493,7 @@ def scorer_sha(item: str | None = None) -> str:
     return hashlib.sha256("".join(src).encode()).hexdigest()[:12]
 
 
-def record(item: str, runs_path: str) -> None:
+def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     """Write item's entry FROM a run artifact, so it cannot claim what was not run."""
     import handouts as H
     import gold
@@ -457,8 +523,10 @@ def record(item: str, runs_path: str) -> None:
         raise SystemExit(f"{item}: no counted cells in {runs_path}")
     n = min(len(v) for v in per.values())
     totals = sorted(sum(1 for p in per if per[p][i]) for i in range(n))
+    if side not in SIDES:
+        raise SystemExit(f"unknown side {side!r}; expected one of {SIDES}")
     led = load()
-    led.setdefault("items", {})[item] = {
+    led.setdefault("items", {}).setdefault(item, {})[side] = {
         "prompt_sha": prompt_sha(item),
         "scorer_sha": scorer_sha(item),
         "exclusions": exclusions(item),
@@ -474,7 +542,7 @@ def record(item: str, runs_path: str) -> None:
                            for p in sorted(exc)},
     }
     save(led)
-    print(f"{item}: {totals[n // 2]}/{len(per)} recorded at prompt "
+    print(f"{item} [{side}]: {totals[n // 2]}/{len(per)} recorded at prompt "
           f"{prompt_sha(item)} over {len(per)} cells (runs {totals})")
 
 
@@ -503,7 +571,7 @@ def declaration_conflicts() -> list[str]:
     """
     import handouts as H
 
-    led = load().get("items", {})
+    led = records()
     out: list[str] = []
 
     def verdict(what: str, right: int, runs: int, action: str) -> str:
@@ -744,7 +812,7 @@ def prose_claims(paths: list[str] | None = None) -> list[str]:
 
     files = paths or [str(p) for p in (
         list((_paths.SCORING).glob("*.md")) + [_paths.SCORING / "handouts.py"])]
-    led = load().get("items", {})
+    led = records()
     jobs = set(_jobs())
     out: list[str] = []
     for path in files:
@@ -878,7 +946,7 @@ def fixture_suspects() -> list[str]:
     import gold as _gold
     import handouts as H
 
-    led = load().get("items", {})
+    led = records()
     loaders = {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}
     jobs = _jobs()
     out: list[str] = []
@@ -931,7 +999,7 @@ def _runs_path(item: str) -> str | None:
     """
     import paths
 
-    rec = (load().get("items", {}) or {}).get(item) or {}
+    rec = entry(item)
     out = rec.get("out")
     if not out:
         return None
@@ -1019,7 +1087,7 @@ def _unprobed_movers() -> list[str]:
     except Exception:
         return []
     out = []
-    for item, rec in (load().get("items", {}) or {}).items():
+    for item, rec in records().items():
         pending = rec.get("unprobed_movers") or []
         if not pending:
             continue
@@ -1055,7 +1123,7 @@ def report() -> str:
     that has since grown. Handout 1's items were once reported as 12/14 and
     14/15 while their denominators were 19 and 20.
     """
-    led = load().get("items", {})
+    led = records()
     lines, tot_n, tot_d = [], 0, 0
     for h in (1, 2, 3):
         rows = [(i, led.get(i, {})) for i in sorted(_jobs())
@@ -1104,7 +1172,7 @@ def criterion_rows(item: str, check: str) -> str:
     h = _jobs()[item]["handout"]
     g = H.apply_corrected_gold(
         {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[h](), h)
-    rec = load().get("items", {}).get(item, {})
+    rec = entry(item)
     ours: dict[int, list[str]] = {}
     art = rec.get("out")
     if art:
@@ -1170,8 +1238,10 @@ def main() -> int:
             print(f"  {item:<5} {s}")
             worst = max(worst, 2 if s.startswith(("ABSENT", "STALE")) else 0)
         return worst
-    if a[:1] == ["--record"] and len(a) == 3:
-        record(a[1], a[2])
+    if a[:1] == ["--record"] and len(a) in (3, 4):
+        # `--record ITEM ARTIFACT [SIDE]`. SIDE defaults to the web-prompt path,
+        # so a two-sided sweep records the CLI half with an explicit `cli`.
+        record(a[1], a[2], a[3] if len(a) == 4 else DEFAULT_SIDE)
         # The error profile is PRINTED, not offered. A median says how many cells
         # are wrong and never which judgement is wrong, and those point at
         # different work: Q1 spent a day on its merge rule while this profile,

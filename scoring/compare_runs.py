@@ -162,7 +162,9 @@ def _regressions_against_recorded(handout, item, after, na, g) -> None:
     """
     try:
         import measured as MEAS
-        rec = (MEAS.load().get("items", {}) or {}).get(item) or {}
+        # Through MEAS.entry, not the raw ledger: the ledger grew a per-side
+        # dimension on 2026-08-28 and the accessor owns that shape.
+        rec = MEAS.entry(item)
         path = MEAS._runs_path(item)
         if rec.get("pending") or not path:
             return
