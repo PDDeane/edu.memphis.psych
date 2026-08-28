@@ -174,16 +174,23 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       mechanisms.
       Q4a and Q4c are marked STALE PROMPT and NOT swept, by instruction. They join
       subgoal 2's list, which is now TEN items.
-- [ ] 2. **Clear the stale H2 items with a sweep.** TEN items read STALE PROMPT: the eight handout-2 items after the
-      leakage rewrite -- DAY1, DAY2, NP, NR, PP, PR, WK1, WK2 -- which was option
-      2, taken deliberately: prompts cleaned immediately, calls deferred, ledger
-      honest. Six runs each is ~960 calls.
-      The rewrite removed two borrowed examples and restated the safety block as a
-      principle, so movement should be small -- but "should be small" is exactly
-      the prediction this project has been wrong about repeatedly, so measure it
-      and read the error profile (§2b) rather than assuming. Record each with
-      `measured.py --record`, which prints that profile automatically.
-
+- [ ] 2. **A full two-sided sweep: every item, six runs, BOTH scorers.**
+      Replaces "clear the stale H2 items", which would have measured one side of
+      ten items. This measures both sides of all of them, and it is the only
+      thing that can answer the question the whole goal is about: do the CLI and
+      the web give comparable scores now?
+      Ten items are stale from the leakage rewrite and the A_NONE/C_NONE wiring,
+      subgoals 3-5 will move more, and every declared divergence in the tree is a
+      claim about a difference between the sides that has never been measured
+      end to end -- only probed per rule. Q4b/p12 is the warning: CLI 5.0 six
+      times of six, web 3.5 eleven of twelve, and nothing declared it.
+      COST, stated plainly: 23 items take model calls (1b, T1 and T2 are
+      deterministic), so six runs is about 2,760 calls a side and ~5,500 for
+      both. Do it LAST, after 3, 4 and 5, so it measures the finished state
+      rather than a state that is about to change.
+      Record each side, then compare per item AND per cell: an item can agree on
+      the number while disagreeing on which cells it got right, and that is
+      exactly the shape a per-item comparison hides.
 - [ ] 3. **Seven scoring rules the two sides implement separately.** Widened
       from POLARITY_GATE_ITEMS once the audit's new hand-coded check listed them
       all. Every one is DECLARED on the web and HAND-WRITTEN in `score.py` as an

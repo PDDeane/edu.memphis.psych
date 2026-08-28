@@ -859,5 +859,37 @@ ITEMS: list[dict] = [
     _example_use_item("WK2", "Second Weekly Example", "second", "weekly", "T2", "D2"),
 ]
 
+# THE GATES EACH ITEM APPLIES, in the order it applies them.
+#
+# Declared here rather than written into score.py as `if item["id"] == ...`
+# branches. The same checks are marked `!` on the sheet for the web, so the rule
+# existed on one side as a declaration and on the other as code -- and the
+# enforcement audit compares DECLARATIONS, so nothing compared these at all.
+#
+# Order is part of the declaration: the first gate that fails is the one whose
+# message the student sees, and each short-circuits the rest of the ledger. The
+# order below reproduces the branch order it replaces exactly -- WK2 asked
+# `aimed_correctly` before `states_a_contingency`.
+OC_GATES: dict[str, list[dict]] = {
+    "WK1": [{"key": "agent_delivers_consequence", "code": "NOT_OC",
+             "text": "No one is named as adding or removing anything: the "
+                     "consequence clause has no agent."}],
+    "WK2": [{"key": "aimed_correctly", "code": "NOT_OC",
+             "text": "The consequence is pointed the wrong way: an aversive for "
+                     "meeting the goal, or a reward for missing it."},
+            {"key": "states_a_contingency", "code": "NOT_OC",
+             "text": "No contingency is stated: nothing is granted or withheld "
+                     "on a condition."}],
+    "DAY1": [{"key": "states_a_contingency", "code": "NOT_OC",
+              "text": "No contingency is stated: nothing is granted or withheld "
+                      "on a condition."}],
+    "DAY2": [{"key": "states_a_contingency", "code": "NOT_OC",
+              "text": "No contingency is stated: nothing is granted or withheld "
+                      "on a condition."}],
+}
+for _it in ITEMS:
+    if _it["id"] in OC_GATES:
+        _it["oc_gates"] = OC_GATES[_it["id"]]
+
 BY_ID = {it["id"]: it for it in ITEMS}
 TOTAL = sum(it["max"] for it in ITEMS)  # 40.0 scored; +10 upload = 50
