@@ -228,13 +228,20 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       Where the wordings differ, the WEB's wins -- unless the difference is
       forced by how the response text is presented, or the web is CLEARLY WRONG,
       as in the DAY1 contradiction subgoal 6 found and fixed.
-      AND THE RULE IS ABOUT WORDING, NOT SCORING (user, 2026-08-28). On
-      scoring-sensitive work, prefer whichever side MATCHES GOLD: if the CLI
-      matches gold and the web does not, the CLI's behaviour is the one to keep and
-      the web is what changes. "Web wins" settles which of two ways of SAYING the
-      same rule to use; it never settles which of two ANSWERS is right, and gold
-      does. Q4b/p4 is the live case -- paper 2.0, gold 2.0, web 3.5 -- so subgoal 9
-      converges the web onto the CLI, not the reverse.
+      AND THE RULE IS ABOUT WORDING, NOT SCORING (user, 2026-08-28). "Web wins"
+      settles which of two ways of SAYING the same rule to use; it never settles
+      which of two ANSWERS is right. Gold does, and SYMMETRICALLY: whichever side
+      matches gold better is the one kept, and the other moves. If the web matches
+      gold better, prefer the web; if the CLI does, prefer the CLI.
+      MEASURED, 0 calls, `cross_path.py --gold` over paper_mini_v8 against cli_v8:
+      the WEB-PROMPT path matches gold better overall, 456 cells of 519 against
+      440. It wins 10 items, ties 15, and loses exactly one -- Q1, where the paper
+      scorer is 19 of 20 against the web's 17. So the web is the right DEFAULT on
+      scoring too, and Q1 is the standing exception.
+      A NAMING TRAP worth stating: the artifact directory called `cli_v8` is
+      agreement.py, the WEB prompt scored in python, and `paper_mini_v8` is
+      score.py, the path this goal calls the CLI. Reading the directory names as
+      sides inverts the conclusion, so cross_path now prints each side's KIND.
 - [x] 6. **The criteria prose was written twice, and the copies had drifted.**
       Found while establishing subgoal 2's precondition. `score.py:build_prompt`
       held the `derive_from_criteria` block and `olx_prompts._criteria_section`
@@ -327,13 +334,19 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
           decomposition genuinely is, since asking the operands separately is the
           documented reason `forbid` exists. But it is the same test, and the
           variance is the thing to beat, not the mean.
-      (ii) THE TWO DECLARED CELLS PULL OPPOSITE WAYS. Under the rule that the side
-          matching GOLD wins: on p4 gold is 2.0, the CLI gives 2.0, the web 3.5 --
-          the web must charge MORE. On p12 gold is 5.0, the CLI gives 5.0, the web
-          3.5 -- the web must charge LESS, and what it is applying there is the
-          fifth test, a DELIBERATE divergence measured at +1 cell a run. So "make
-          the web match the CLI on Q4b" is not one change; it is two, in opposite
-          directions, and the referent test addresses only p4.
+      (ii) THE TWO DECLARED CELLS PULL OPPOSITE WAYS, AND THE ITEM IS A TIE. On p4
+          gold is 2.0, the CLI gives 2.0, the web 3.5 -- the web must charge MORE.
+          On p12 gold is 5.0, the CLI gives 5.0, the web 3.5 -- the web must charge
+          LESS, and what it applies there is the fifth test, a DELIBERATE divergence
+          measured at +1 cell a run. So "make the web match the CLI on Q4b" is two
+          changes in opposite directions, and the referent test addresses only p4.
+          CORRECTION to what this entry first said. Both DECLARED cells favour the
+          CLI, and I read that as the CLI being the better side on Q4b. Measured, it
+          is not: `cross_path --gold --item Q4b` puts the item at 15 against 15,
+          because p6 goes the other way -- gold 3.5, web 3.5, paper 5.0. Two
+          declared cells are the two someone wrote an entry about, not a sample of
+          the item, and the symmetric gold rule has to be applied to the item and
+          not to the cells that already have paperwork.
       (iii) `forbid` CANNOT TARGET A MODEL-ANSWERED SLOT. Its key is computed and
           excluded from the response schema, so making `behavior_1` the key would
           delete the four prose tests the model must still apply. The workable
