@@ -413,6 +413,83 @@ written as `if item["id"] in SOME_SET` is compared by nobody.
 primitive. It forbids hand-coding silently, and it fires in both directions: a new
 undeclared branch, and a declaration whose branch has gone.
 
+## The criteria prose: one source, and the three substitutions that remain
+
+The eight `derive_from_criteria` items (DAY1, DAY2, WK1, WK2, NR, PR, PP, NP) are
+graded from a numbered criteria sheet rather than a credit list. That sheet's
+prose used to exist TWICE: in `score.py:build_prompt` and in
+`olx_prompts._criteria_section`, whose docstring described itself as
+"score.py:build_prompt's derive_from_criteria block, verbatim."
+
+It had stopped being verbatim. Criterion 5's example read "{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=S2-0a,C1}} body" on the CLI and "a rested body, or fitness itself,
+following the behaviour that produces it" on the web; criterion 7's read "the
+extra chore" against "30 pushups"; criterion 10's WK1 rule was a shorter, older
+version on the CLI than the one the web had grown. Every audit stayed green
+throughout, because each side was self-consistent and this prose is authored in
+the SCORERS rather than in the rubric — so it fell exactly between the prompt
+audit, which asks whether the web carries each RUBRIC element, and the
+enforcement audit, which compares DECLARATIONS. Neither has any notion of two
+scorers holding two copies of the same paragraph.
+
+`leakage.py` could not see it either: it scans rubric `guidance`/`rule` strings
+and `SLOT_NOTES`. The CLI's copy had never been scanned, and the two drifted
+examples were precisely the ones the web-side leakage rewrite had replaced.
+
+**score.py now calls `_criteria_section`.** One source, nothing to keep in step.
+Which criteria get asked follows `build_schema` rather than an item id, so the
+prompt cannot describe a field the answer sheet does not collect — the bug that
+put "put it in `evidence`" in front of a model whose sheet has no evidence field.
+
+Three substitutions remain. Each is forced by the CLI's ANSWER SHEET, not by any
+difference in judging, and these are all of them:
+
+| substitution | why it is forced |
+|---|---|
+| `` `evidence` `` → `` `behavior` `` | the CLI's `oc_analysis` object has no evidence field; the web's checklist does |
+| `` `yes` ``/`` `no` `` → `true`/`false` | its criteria are booleans; the web's checklist answers yes/no |
+| drop "one point, and it charges ONLY this:" | the web's checklist slot carries a point value the model applies; on the CLI the engine computes the score and the model never sees points |
+
+They are applied by `olx_prompts._as_criterion`, in one place. The list format
+differs too — a numbered criteria sheet against a bulleted checklist — so the
+prefix and trailing period are not the same characters. Nothing else differs:
+191 of 200 CLI criteria sentences are verbatim web text after the substitutions,
+and each of the other 9 was confirmed character-identical in its rule BODY.
+
+### The one place the web was clearly wrong
+
+Web wording wins wherever the two differ. The exception is where the web is
+plainly self-contradictory, and DAY1 was, in two places at once. Criterion 7 said
+the avoidance reading "never changes the score; it flags the answer for a
+phrasing comment", and the `consequence_asserted` note repeated it — while DAY1's
+own guidance said "AVOIDANCE FRAMING TAKES THE WHOLE ITEM HERE. An answer whose
+only claim is about dodging a penalty ... the graders scored those zero." The CLI
+had suppressed the false half; the web shipped both halves and contradicted
+itself.
+
+That is now `rubric_h2.AVOIDANCE_SCORES` — declared once, on the rubric, read by
+both generators. DAY1 is the only member, DAY2 is unaffected, and DAY1's is the
+only web prompt this work moved; the other 22 are byte-unchanged.
+
+### What keeps it from growing back
+
+`enforcement.check_criteria_prose_has_one_source` fails the build if that branch
+stops delegating, or if prose reappears inside it. It sums the TOTAL length of
+string literals in the branch rather than measuring the longest one: adjacent
+literals are concatenated at parse time, so the original block was one huge
+constant, but a copy reassembled with `+` is a dozen short ones — and the first
+version of the check passed a synthetic paste built exactly that way. Both halves
+were proved to fire before the check was trusted.
+
+The check deliberately does NOT diff the two texts. Once there is one source
+there is nothing to compare, and a check that compares a thing with itself passes
+forever.
+
+`consequence_asserted` and `trigger_behavior` are now read by BOTH scorers, so
+`check_slot_rules_reach_both_prompts`' premise — SLOT_NOTES is web-only — is
+false for them. They are exempted through `olx_prompts.CLI_CRITERIA_NOTES` rather
+than through a list inside the check, and `consequence_asserted` left that
+check's BACKLOG by being fixed rather than by rotting.
+
 ## Scoring divergences (arithmetic, not prompt text)
 
     python3 equivalence.py --scoring
