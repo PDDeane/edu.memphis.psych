@@ -1012,9 +1012,27 @@ GOLD_DIVERGENCES: list[dict] = [
                "{{corpus:Q4b/p12:second:52:112:sha=eead74115ae9:shape=R60-0-20}}"
                "{{corpus:Q4b/p12:second:113:126:sha=b9ba0a5dbbd1}} bad\" — it names no activity that displaced the "
                "goal, which is what the question asks for, and `behavior_*`'s "
-               "fifth test refuses it in terms. Gold gives 5.0; we give 3.5, 0 of "
-               "3. The test that refuses it is worth +1 cell a run against "
-               "deleting it, measured, so it stays and this miss stands.",
+               "fifth test refuses it in terms. Gold gives 5.0. "
+               "THE REASON THIS ENTRY USED TO GIVE WAS FALSE and is corrected "
+               "here rather than deleted, because a declaration trusted for the "
+               "wrong reason is worse than none. It said \"we give 3.5, 0 of 3\", "
+               "which is true of the WEB path only, and not even there: across "
+               "every artifact that measured this cell the web scores 3.5 in 11 "
+               "of 12 runs (leak_fix 0/6, scorer_fix_6run 1/6 — one run at 5.0), "
+               "while the CLI scores 5.0 in SIX of six (cli_v7 3/3, cli_v8 3/3). "
+               "The cell is not unreachable; the two paths disagree about it. "
+               "THAT ASYMMETRY IS NOT DECLARED ANYWHERE. It is absent from "
+               "olx_prompts.SCORING_DIVERGENCES and the enforcement audit reports "
+               "nothing for Q4b, because the rule doing the refusing lives in "
+               "GUIDANCE PROSE — \"REJECT when the entry is not something the "
+               "student did INSTEAD OF the goal behaviour\" — rather than in a "
+               "primitive the audit can compare. A scoring-relevant rule enforced "
+               "on one side only is exactly what that audit exists to catch, and "
+               "it cannot see this one. "
+               "The divergence itself STANDS: the web result differs from gold "
+               "for the stated reason, and the test that refuses the entry was "
+               "measured at +1 cell a run against deleting it. What changes is "
+               "that the reason no longer claims we never match gold here.",
     },
     {
         # MEASURED, and the measurement is what this entry is FOR. The item's own
