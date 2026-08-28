@@ -421,6 +421,12 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
             or it is moved out of a table about RULES. A contrived declaration
             that exists only to empty the table is worse than the entry.
 
+      ENFORCED, as of 2026-08-28: `enforcement.HANDCODED_BUDGET` is a two-sided
+      ratchet at 7. Adding an entry fails the audit, and so does landing a
+      conversion WITHOUT lowering the budget -- the slack would otherwise leave
+      room for a replacement entry to arrive unnoticed. So this subgoal closes by
+      the budget reaching 0, not by an argument that the remainder is acceptable.
+
 ORDER, set 2026-08-28: 5, then 7, then 8, then the sweep. Subgoal 8 is the only
 one of the three that can move a score, so it lands last and its effect is
 measured BY the sweep rather than by a separate run. Nothing goes to the sweep
