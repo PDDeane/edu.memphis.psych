@@ -540,6 +540,12 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     if side not in SIDES:
         raise SystemExit(f"unknown side {side!r}; expected one of {SIDES}")
     led = load()
+    # WHAT THIS REPLACES, kept on the entry. Recording used to overwrite outright,
+    # so "what did this item score before the change" meant `git show` -- and the
+    # ledger is the thing people actually read. One generation is enough: the
+    # artifact directory named in `out` holds every run, and git holds the rest, so
+    # this is a pointer to the last number rather than a second archive.
+    prior = (led.get("items", {}).get(item, {}) or {}).get(side)
     led.setdefault("items", {}).setdefault(item, {})[side] = {
         "prompt_sha": prompt_sha(item),
         "scorer_sha": scorer_sha(item),
@@ -555,6 +561,11 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
         "excluded_cells": {str(p): sum(1 for v in exc[p] if v)
                            for p in sorted(exc)},
     }
+    if prior:
+        led["items"][item][side]["previous"] = {
+            k: prior.get(k) for k in
+            ("numerator", "denominator", "runs", "out", "prompt_sha", "scorer_sha")
+        }
     save(led)
     print(f"{item} [{side}]: {totals[n // 2]}/{len(per)} recorded at prompt "
           f"{prompt_sha(item)} over {len(per)} cells (runs {totals})")
