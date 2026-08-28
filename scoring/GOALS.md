@@ -237,17 +237,42 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       has no verdict at all and cannot distinguish `not_active` from `absent`.
       Naming the verdict in the declaration therefore reaches both harnesses and
       not the app.
-      TWO WAYS FORWARD, and this is the decision to take:
-        (A) FULL RETIREMENT: give computed checks a verdict in lo-blocks, so the
-            app can charge B_NOT_ACTIVE rather than only "unsatisfied". That is a
-            change to the app's grading model, not a parser tweak, and it is the
-            only route that lets `behavior_1` become computed and the declaration
-            retire outright.
-        (B) NARROW IT: compute the REFERENT half only, as a 2-option check whose
-            code is B_NOT_ACTIVE, which the app's boolean model already supports.
-            The four prose tests stay prose, so the declaration narrows to them
-            instead of retiring -- and it becomes a smaller, truer declaration
-            rather than a general one about the whole INSTEAD-OF test.
+      OPTION A WAS TAKEN AND IS LANDED, across all three implementations: a
+      computed rule names its failing verdict, `parseForbid`/`parseExpect` in
+      slotSheet.ts strip and carry it, four tests cover it in the app's own suite,
+      and `check_fails_verdict_is_mirrored_in_the_app` fails the audit if the
+      runtime stops honouring the syntax (proved by making parseForbid drop it).
+      IT TURNED OUT SMALLER THAN BILLED, which is worth recording: the app does NOT
+      map verdicts to codes at all. `scoreFromSheet` computes booleans and subtracts
+      points, so `not_active` versus `absent` never changed what the app CHARGES --
+      the code distinction is a CLI-ledger concept. What the app actually needed was
+      for the key to resolve: unstripped, `behavior_1->not_active` matches no slot,
+      so the check silently computes nothing. That is the failure mode its new test
+      asserts.
+
+      AND THEN A NEW LIMIT, found only by writing Q4b's declaration against it.
+      `behavior_1` has TWO failure verdicts with DIFFERENT codes: `absent` for an
+      empty box, charging B_ONLY_ONE ("you only gave one example"), and
+      `not_active` for a wrong entry, charging the repeatable B_NOT_ACTIVE. A
+      computed rule names ONE. Writing two rules on the key is the last-rule-wins
+      trap -- verified, and the consequence is the wrong direction: with
+      `b1_basis=consequence` the first rule fails the check and the second
+      OVERWRITES it back to met, so a wrong entry would be CREDITED. The new
+      `check_computed_rules_do_not_share_a_key` catches it if anyone declares it.
+      SO RETIREMENT NEEDS A VALUE-TO-VERDICT MAP, not another arrow: something of
+      the shape `behavior_1:b1_basis:activity>met,none>absent,*>not_active`. That is
+      a FOURTH primitive -- primitives.json plus three implementations -- which is a
+      materially bigger decision than extending two parsers, and it is the one to
+      take next. Without it, a single pick can only be computed into a check whose
+      verdict vocabulary it matches positionally, which is renaming rather than
+      computing.
+        (A-as-billed) giving the app a verdict for computed checks: DONE, and it was
+            not the blocker it looked like.
+        (B) STILL AVAILABLE, and now cheaper than it looked: compute the REFERENT
+            half only, as a 2-option check charging B_NOT_ACTIVE. Two options means
+            one failing verdict, so no map is needed and the primitive set as it now
+            stands is enough. The four prose tests stay prose and the declaration
+            narrows to them rather than retiring.
       Also found: `for (const r of forbid) out[r.key] = ...` in the app has the same
       last-rule-wins overwrite as both harnesses, so the trap is consistent across
       all three and `check_computed_rules_do_not_share_a_key` guards the authoring
