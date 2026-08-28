@@ -304,6 +304,33 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       SIX OF THE SEVEN ITEMS ARE ALREADY STALE (subgoal 2), so this can ride that
       sweep instead of costing its own -- but only if it lands before the sweep.
 
+      PROGRESS, 6 of 7 converted, all verified behaviour-preserving at 0 model
+      calls by the 56-row `oc_grid` being IDENTICAL across each step:
+        [x] states_a_contingency, agent_delivers_consequence, aimed_correctly --
+            the three plain gates, now `rubric_h2.OC_GATES`, iterated in declared
+            order because the first gate to fail owns the message.  (3a8d758)
+        [x] avoidance_frame -- now `rubric_h2.AVOIDANCE_SCORES`, the same
+            declaration that decides whether the criteria prose promises this
+            reading "never changes the score", so prompt and arithmetic cannot
+            disagree about it again. The exemption it replaced described the rule
+            BACKWARDS.  (b5d19fe)
+        [x] consequence_not_a_setup + barrier_is_not_this_type -- one
+            `rubric_h2.FORBID` declaration. It had FOUR implementations, not two:
+            both score.py branches AND a hand-authored `forbid=` attribute in the
+            .olx. The rubric declares it and `olx_prompts.forbid_attr_for`
+            generates the attribute; regenerated OLX byte-identical, and the
+            generator's ownership proved by perturbing the declaration.  (77026ed)
+        [ ] targets_own_behavior -- WK1's `trigger_behavior` -> boolean mapping,
+            the last one. `expect`-shaped: the model names which behaviour the
+            trigger identifies (`utb`/`wgb`/`other`) and the engine compares it
+            against the student's own, mirroring the web's pick + expect.
+
+      Worth recording about the method: every one of these was found or kept
+      honest by a check rather than by memory. Two stale exemptions surfaced the
+      moment their branches went, the wrong DAY1 description was only visible
+      once the code was read beside it, and the audit cannot check an exemption's
+      PROSE -- only that the branch it names still exists.
+
 - [ ] 4. **Hash the scoring-path helpers, then re-stamp.** From subgoal 8's
       step 4. `verdict_of`, `answer_of` and `is_satisfied` are read by
       `satisfied_map` and `apply_computed` -- both hashed -- but are not hashed
