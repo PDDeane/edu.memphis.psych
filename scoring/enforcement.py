@@ -1077,6 +1077,49 @@ SLOT_RULE_BACKLOG = [
 SLOT_RULE_BACKLOG_BUDGET = 17
 
 
+# The three programs that write scoring artifacts, and the field each must stamp.
+ARTIFACT_WRITERS = (("agreement.py", "the python harness"),
+                    ("agreement_app.py", "the app harness"),
+                    ("score.py", "the paper scorer"))
+
+
+def check_artifacts_record_their_era() -> list[str]:
+    """Does every artifact writer stamp WHAT IT RAN AGAINST?
+
+    A sweep's .json used to say what it scored and never what it scored against,
+    so two directories could be told apart only by file mtime -- which is not a
+    version. That made prompt version indistinguishable from scoring path, and it
+    cost a real answer: the first cross-path scoping found 18 cells diverging in
+    both of two comparisons and 17 in only one, and those 17 could not be
+    attributed to version or to path, because nothing recorded which prompt each
+    run used.
+
+    So all three writers stamp `era` from measured.era_stamp, and this asserts
+    they still do. It reads the SOURCE rather than the artifacts on disk: the
+    corpus is full of legitimately unstamped older runs, and flagging those would
+    be thousands of findings about the past instead of one about the code.
+    """
+    import pathlib
+    here = pathlib.Path(__file__).parent
+    out = []
+    for fname, what in ARTIFACT_WRITERS:
+        try:
+            src = (here / fname).read_text()
+        except OSError as e:
+            out.append(f"{fname} ({what}) cannot be read, so its era stamp "
+                       f"cannot be checked: {e}")
+            continue
+        if "era_stamp" not in src:
+            out.append(f"{fname} ({what}) does not call measured.era_stamp -- the "
+                       f"artifacts it writes will not say which prompt they ran "
+                       f"against, and cross_path.py cannot then tell a version "
+                       f"difference from a path difference")
+        elif '"era"' not in src:
+            out.append(f"{fname} ({what}) computes an era stamp but does not write "
+                       f"it under the `era` key that cross_path.py reads")
+    return out
+
+
 def check_slot_rules_backlog_is_being_cleared() -> list[str]:
     """Is the web-only slot-rule backlog shrinking, or accumulating?
 
