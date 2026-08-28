@@ -1173,6 +1173,47 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       concentrates on one handout, that changes it from a per-cell question into a
       sheet-design one.
 
+- [ ] 23. **`matches_chosen_type` on WK2, and across the cadence family.**
+      Measured 2026-08-28 over the CLI sweep, 6 runs, exclusions AND corrected gold
+      applied (see the caution at the end -- the first version of this table was
+      wrong without them):
+          D1    6 refusals  100%          WK1   10 refusals  100%
+          D2    6 refusals  100%          DAY2   9 refusals   89%   wrong on p11
+          WK2  30 refusals   80%          DAY1  12 refusals   67%   wrong on p1
+                wrong on p8 x3, p11 x2, p15 x1
+          ALL  73 refusals, 11 wrong
+      WK2 CARRIES MOST OF THE VOLUME -- 30 of 73 refusals, more than twice any other
+      item -- and 6 of the 11 errors. DAY1 has the worst RATE but on a single cell,
+      p1, failing 4 of 6 runs. The definition items and WK1 never err.
+      IT IS A COMPUTED CHECK, SO THE LEVER IS NOT THE CHECK. `matches_chosen_type` is
+      declared as `equals`: observed_type == named_type, lenient on `unclear`. The
+      arithmetic cannot be wrong -- if it fires, the two PICKS disagreed. So the
+      question is which operand is misread on WK2's p8/p11/p15 and DAY1's p1: does
+      the model misclassify what the student DEMONSTRATED (`observed_type`), or what
+      they SAID they would use (`named_type`)? Read both picks on those four cells
+      before touching any prose; the answer is in the artifacts and costs nothing.
+      IT DOES NOT GATE on WK2 -- pts=2.0, gates=False -- so each error costs 2 of 4
+      rather than the item. That distinguishes it from `cadence_is_weekly` and
+      `you_arrange_it`, which do gate, and it means WK2's ±3 spread is NOT mostly
+      this: a 2-point slot cannot produce a 3-cell swing on its own.
+      A BROADER PROBLEM, AS SUSPECTED, BUT NOT A UNIFORM ONE: six items carry the
+      check and three are perfect. It concentrates on the two items whose answers
+      are hardest to type, which is the same shape as the cadence gate (subgoal 22)
+      and the `you_arrange_it` gate (subgoal 21) -- an instrument that is sound where
+      it fires rarely and unreliable where it fires often. Three slots now show that
+      pattern; consider whether it is one finding about the H2 sheet rather than
+      three about three slots.
+      ALSO IN `SLOT_RULE_BACKLOG`: `matches_chosen_type` is one of the four unscoped
+      entries whose judging text lives in SLOT_NOTES, so the PAPER scorer never sees
+      it. Both columns of this sweep read it, so that is not causing these errors --
+      but it means equivalence subgoal 11 and this subgoal touch the same rule, and
+      migrating it to the rubric `rule` field should happen once, not twice.
+      CAUTION, and it cost this table two wrong entries: compute correctness with
+      `H.apply_corrected_gold` and `H.scored_exactly`, never `abs(pred-gold)`. D2's
+      p11 gold is CORRECTED from 1.0 to 0.0 -- the grader charged 1 point for
+      writing another quadrant's definition where three independent sources say 2 --
+      so a raw comparison read D2 as 0% precise on this slot when it is 100%.
+
 - [ ] 22. **`cadence_is_daily`: a 4-point gate that FLIPS, worst on DAY2.**
       Raised 2026-08-28 from the sweep. Filed here rather than as a goal of its own
       because GOALS.md holds ONE active goal and that is the equivalence sweep;
