@@ -356,6 +356,53 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       gold-matching, so the web is the reference and this improves the reference
       side's own accuracy rather than importing the CLI's reading.
 
+- [ ] 11. **Empty SLOT_RULE_BACKLOG: thirteen rules the paper scorer cannot see.**
+      Created 2026-08-28 because there was no subgoal for it -- only the ratchet,
+      which stops the list GROWING and never asked it to shrink. Unlike
+      HANDCODED_BUDGET, now at 0, `SLOT_RULE_BACKLOG_BUDGET` sits at 13 with no
+      target. That is the difference between a declared problem and a tracked one.
+      WHAT THEY ARE: judging text parked in `olx_prompts.SLOT_NOTES`, which the web
+      generator and the agreement.py harness both read and `score.py` does not. So
+      the rule reaches two of the three scorers and the paper one grades without it.
+        1c:has_own_graph   1c:legend        D1:defines_type   D2:defines_type
+        Q1:matches_selected                 Q2:reasons_given
+        Q2:wgb_inverts_utb                  Q2:wgb_is_counterpart
+        Q5:example_2       matches_chosen_type   named_type
+        reasons_failing    reasons_substantial
+      NOT THEORETICAL, and the price is on record: five `1a:*` notes were in this
+      list until today, and while they were, 1a/p6 scored 0.0 on the paper path
+      against 6.0-8.0 on the web -- the WHOLE item, stably, in 3 of 3 runs.
+      Migrating them fixed it and cost nothing elsewhere.
+      AND THE SWEEP IMPLICATES FIVE MORE. From the CLI column's error profiles:
+        Q2:wgb_is_counterpart   5 of its 7 refusals land in wrong cells -- the
+                                sharpest single signal in the sweep so far
+        Q2:wgb_inverts_utb      8 of 16
+        Q2:reasons_given        drifts 4 cells
+        Q5:example_2            8 of 26 refusals in wrong cells
+        reasons_substantial     59 refusals, 7 wrong, and 7 drifting cells on Q5
+      Five of thirteen entries turn up in the error tables of the two worst-scoring
+      handout-1 items. That is not proof the notes cause the errors -- both columns
+      of this sweep READ them -- but it is where to start.
+      SCOPE IT HONESTLY: migrating these does NOT change either column of the
+      current sweep, because agreement.py reads SLOT_NOTES. It changes score.py,
+      the paper scorer, which is the side with no sweep at all. So the payoff is
+      measured against the paper corpus, not here.
+      THE PROCEDURE IS PROVEN, from 1a: move the text to the credit component's
+      `rule` field VERBATIM -- both generators render it, and the web prompt does
+      not move because its checklist looks up `rule` BEFORE SLOT_NOTES and finds
+      the same string. Then re-run the leakage gate, which re-asks because a
+      verdict is keyed to the prose, and refile with an attribution rather than a
+      rubber stamp. Drop the entry, lower the budget, and let the ratchet confirm.
+      TWO THAT MAY NOT BE MIGRATABLE, so check before promising 13 -> 0:
+      `1c:has_own_graph` and `1c:legend` belong to the item whose web chart is
+      drawn from typed data a paper student cannot supply -- the declared,
+      platform-forced 1c deviation. If they cannot move, say so on the entry and
+      lower the target to 11 rather than leaving them looking unfinished.
+      A `rule` is rendered into BOTH prompts, so it must not name one side's
+      verdict token: use `{fail}`. check_slot_rules_are_vocabulary_neutral enforces
+      it, and Q4b's five substitution tests are the recorded case of getting it
+      wrong.
+
 - [ ] 2. **A full two-sided sweep: every item, six runs, BOTH scorers.**
       Replaces "clear the stale H2 items", which would have measured one side of
       ten items. This measures both sides of all of them, and it is the only
