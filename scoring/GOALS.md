@@ -174,7 +174,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       mechanisms.
       Q4a and Q4c are marked STALE PROMPT and NOT swept, by instruction. They join
       subgoal 2's list, which is now TEN items.
-- [ ] 10. **A FIX that retires Q4b's declaration, not just the declaration.**
+- [x] 10. **A FIX that retires Q4b's declaration, not just the declaration.** DONE, declaration RETIRED.
       User, 2026-08-28: "I want more than a declaration. I want a fix that allows us
       to retire the declaration." The declaration says the INSTEAD-OF test is prose
       on both sides and the two paths read it differently with no primitive to
@@ -304,6 +304,54 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       too. Target p4 (gold 2.0, web 3.5); controls p1, p12, p15, p17 -- the four
       gold credits that held last time -- and p6, where the web already matches gold
       and the CLI does not.
+      LANDED 2026-08-28, and the declaration is gone from SCORING_DIVERGENCES.
+      `behavior_1` and `behavior_2` are COMPUTED by `maps` from one pick each --
+      b1_basis / b2_basis, answering what the entry IS over
+      activity / consequence / goal_behaviour / not_doing / none -- so the composite
+      the two scorers used to weigh separately is now arithmetic.
+      VERIFIED ON THE REAL SHEETS, 0 model calls: both engines return the same
+      verdict for every classification, and the codes follow -- `none` and a blank
+      box give `absent` and charge B_ONLY_ONE ("you only gave one example"), while
+      consequence / goal_behaviour / not_doing give `wrong_kind` and charge the
+      repeatable B_NOT_ACTIVE. That distinction is the whole reason `maps` had to
+      exist: no single `forbid` or `expect` can produce two kinds of failure.
+      THE PROSE MOVED, IT WAS NOT REWRITTEN. behavior_1's five cases now sit on
+      b1_basis verbatim, under a framing that only names the options. The leakage
+      gate re-asked -- a verdict is keyed to the prose, so moving it asks again --
+      and the answer was checked rather than waved through: chips, chores, eaten and
+      everyday are all in the MOVED text and none in the new framing, so the prior
+      `coincidence` verdict carries over, refiled with that attribution.
+      FOUR THINGS THE AUDIT CAUGHT, each a real defect in this change:
+        - `slot_basis` did not count `maps` as computing a key, so it reported
+          behavior_* as prose-judged on the day they stopped being judged at all;
+        - `_checklist_section` still listed them as answerable, so the prompt said
+          "answer this" and "DO NOT ANSWER this" about the same check;
+        - the old rule text on behavior_* became DEAD prose -- a computed check's
+          rule renders nowhere -- and dead prose is how two copies of a judgement
+          start, so it was removed and replaced by a pointer;
+        - my own removal script took FOUR literals rather than two, deleting Q6's
+          affect_c1/affect_c2 rules as well. Caught by the prose-only check, restored
+          from HEAD, and confirmed lossless: the regenerated OLX shows only Q4b's
+          material moving.
+      AND A SYNTAX BUG OF MY OWN MAKING, worth recording because it is a trap for
+      any future attribute: `maps` first used `>` between a value and its verdict,
+      and this project reads an opening tag as `[^>]*>`. The `>` ended the match
+      early and Q4b's `slots=` became invisible -- "no slots= attribute; nothing to
+      measure". XML permits `>` in a value; these readers do not. The separator is
+      `~` on all three implementations now, and the `fails` marker moved from `->`
+      to `~` for the same reason before it could bite.
+      EVERY ITEM IS NOW STALE: 11 prompt, 15 scorer. The scorer flags are honest
+      rather than alarming -- `apply_computed` gained the `maps` loop and it is in
+      every item's hashed path, so the fingerprint moved even where the loop is
+      inert for want of a declaration. They are NOT being re-stamped: the two-sided
+      sweep re-measures all 26 at six runs, so the flags cost nothing, and marking
+      a number current on an argument is exactly what the ledger exists to prevent.
+      WHAT IS NOT CLAIMED: that p4 and p12 now match gold. The classification is
+      still a judgement, so the paths can still differ on it -- one named question
+      instead of five weighed at once. That residual is declared as
+      PROSE_ONLY_SLOTS Q4b.b1_basis/b2_basis, and the reopen condition is on the
+      retired entry in olx_prompts.
+
       IT IS A WEB-SIDE CHANGE, consistent with the tie-break: Q4b ties on
       gold-matching, so the web is the reference and this improves the reference
       side's own accuracy rather than importing the CLI's reading.
