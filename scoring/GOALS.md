@@ -468,7 +468,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       the scoping may drop only an item-dependent part. Proved to fire -- 13
       findings when `_closure` is reduced to returning its roots, naming
       `apply_computed -> answer_of` first, which is the original defect.
-- [ ] 8. **Clear the seven entries left in HANDCODED_ITEM_RULES.** Set 2026-08-28
+- [x] 8. **Clear the seven entries left in HANDCODED_ITEM_RULES.** DONE, table EMPTY, budget 0. Set 2026-08-28
       at the user's direction: do it even though all seven are non-scoring, so the
       table empties rather than settling into a permanent backlog. They are five
       `build_schema` shapes (BARRIER_PICK_ITEMS, CONTINGENCY_GATE_ITEMS,
@@ -495,8 +495,41 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
             or it is moved out of a table about RULES. A contrived declaration
             that exists only to empty the table is worse than the entry.
 
+      CLOSED 2026-08-28, both criteria cleared and neither waived:
+        (a) ALL 26 BUILT SCHEMAS IDENTICAL before and after, including the ORDER of
+            each `required` list -- the thing a reordered insertion would have
+            broken silently, since `required` is a list and my snapshot compared
+            content order-insensitively. Snapshot taken BEFORE the first edit.
+        (b) DECIDED, not declared: `score_participant`/`only` was never a rule. It
+            is `--only Q1 Q4b`, a user-supplied filter, so the CHECK was wrong
+            rather than the table incomplete -- it flagged any `item["id"]`
+            comparison, including one against runtime data. It now ignores a
+            comparison whose right side is a local or parameter rather than a
+            module-level constant. Proved narrow: an injected branch against
+            BARRIER_PICK_ITEMS still fires, an injected comparison against a local
+            does not. A table about rules containing a non-rule teaches its readers
+            to skim, which is why this was not just left declared.
+      The five "schema shape, not scoring" entries were the interesting ones, and
+      that description was true but beside the point: the schema is WHAT THE MODEL
+      IS ASKED, so a shape keyed by item id is a rule keyed by item id in a
+      different hat. Each now follows the declaration that CONSUMES its answer --
+      the barrier readings from the slots this item's `forbid` names, three gate
+      keys from `oc_gates`, `trigger_behavior` from the slot its `expect` parses,
+      `stimulus_move` from a new `move_pick` attribute -- so a sheet cannot drift
+      from the rule that reads it. Answer vocabularies live in
+      `rubric_h2.SLOT_OPTIONS`, keyed by SLOT and not by item, because the
+      vocabulary belongs to the question.
+      `MOVE_PICK_ITEMS` is the one that could NOT be derived: it is ('PR',) while
+      `REQUIRED_MOVE` has entries for all four types, so deriving membership from
+      REQUIRED_MOVE would have put a new required field on NR, PP and NP -- a
+      change to what the model is asked, which criterion (a) forbids. Declared as
+      an attribute instead.
+      The `build_prompt` hint went the same way: `rubric_h1.READS_UTB_CHOICE`, since
+      the underlined-UTB markup is evidence handed to the model and so genuinely
+      scoring-relevant. Verified to reach exactly Q1 and Q2.
+
       ENFORCED, as of 2026-08-28: `enforcement.HANDCODED_BUDGET` is a two-sided
-      ratchet at 7. Adding an entry fails the audit, and so does landing a
+      ratchet, now at 0. Adding an entry fails the audit, and so does landing a
       conversion WITHOUT lowering the budget -- the slack would otherwise leave
       room for a replacement entry to arrive unnoticed. So this subgoal closes by
       the budget reaching 0, not by an argument that the remainder is acceptable.
