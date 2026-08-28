@@ -1223,6 +1223,18 @@ def check_fails_verdict_is_mirrored_in_the_app() -> list[str]:
         return [f"cannot read {ts} to confirm the app understands `->`: {e}"]
 
     out = []
+    # `maps` is the fourth computed primitive and the runtime must parse it too: a
+    # `maps` attribute the app ignores means the check it names is never computed
+    # there, so the app credits a slot both harnesses refuse.
+    for fn in ("parseMaps", "mappedVerdict"):
+        if f"export function {fn}(" not in src:
+            out.append(f"{ts.name} has no {fn}: the `maps` primitive is declared in "
+                       f"primitives.json and computed by both python engines, so the "
+                       f"app would ignore the attribute and credit a check they "
+                       f"refuse")
+    if "for (const r of maps)" not in src:
+        out.append(f"{ts.name}:satisfiedMap does not apply `maps`, so a mapped check "
+                   f"is parsed there and never computed")
     if "splitFailsVerdict" not in src:
         out.append(f"{ts.name} has no splitFailsVerdict: the app would read the "
                    f"arrow as part of the key, so a rule written "
