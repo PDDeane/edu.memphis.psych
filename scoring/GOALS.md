@@ -1159,14 +1159,28 @@ because it can be fixed or declared; a wobbling cell cannot be either.
         p3   gold 0.00, ours 4.00. Every SCORING check passes. Gold objects that
              what is taken away "has to be easily controllable", and no check on the
              sheet asks that. This belongs to subgoal 20's class, not here.
+      THE LEAD PROPOSAL WAS WRONG, AND THE FOURTH TYPE ITEM KILLED IT. I proposed
+      making `you_arrange_it` carry points instead of gating, on the grounds that
+      gold prices a wrong-type answer at 2 of 4 while our gate takes 4. Then PP and
+      NP landed. Across all four items that share this gate:
+          PR   18 refusals   100% precise
+          PP   18 refusals   100% precise
+          NP   27 refusals    89% precise
+          NR   34 refusals    71% precise
+      PR and PP are PERFECT items -- PP is 18/18 with a zero spread, the only such
+      item in the sweep -- and both depend on this gate firing 18 times without a
+      single error. Removing the gate would damage them to fix NR. Do not do it.
+      WHAT THE FOUR POINTS ACTUALLY SHOW is a monotone relationship: the more often
+      the gate fires, the less precise it is (18 -> 100%, 27 -> 89%, 34 -> 71%).
+      The instrument is sound where it fires rarely and unreliable where it fires
+      often, which points at NR's ANSWERS tripping a threshold rather than at the
+      threshold being wrong. So the question is why NR's cells reach it twice as
+      often as PR's and PP's -- its `taken_undesirable` framing, or its prompt --
+      and not whether the gate should exist.
       PROPOSALS, in leverage order, none of them a wording change:
-        1. RECONSIDER THE GATE. p11 is the evidence: gold prices a wrong-type answer
-           at 2 of 4 and our gate takes all 4. If `you_arrange_it` carried points
-           instead of gating, a false refusal would cost 2 rather than 4, and p11
-           would land on gold exactly. Controls: the 24 refusals that are correct,
-           where gating currently produces the right zero -- check how many of those
-           gold also zeroes, because if gold zeroes them for a different reason the
-           gate is doing right by accident.
+        1. ASK WHY NR FIRES TWICE AS OFTEN. Compare the cells where NR's gate fires
+           against PR's and PP's, which never misfire. NP at 89% is the useful
+           middle case: three wrong refusals, few enough to read individually.
         2. p4 is arithmetic, not judgement. Read the picks.
         3. p3 goes to subgoal 20.
         4. DO NOT TOUCH `phrased_directly` despite 64 refusals and 7 drifting cells
