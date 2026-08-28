@@ -507,6 +507,35 @@ OMIT_DEDUCTION: dict[str, dict[str, str]] = {}
 
 SCORING_DIVERGENCES = [
     {
+        "what": "the web COMPUTES the nothing-listed gate; the CLI asks the model",
+        "items": ["Q4a", "Q4c"],
+        "necessary": True,
+        "web_computes": {"Q4a": ["no_antecedents"], "Q4c": ["no_consequences"]},
+        "enforcement": "same gate, reached differently: computed on the web, asked on the CLI",
+        "why": "A_NONE and C_NONE -- 'no antecedents/consequences listed' -- take "
+               "the whole item and could not be charged at all: `absent` on both "
+               "entry slots maps to two -2 codes, so the item could not reach 0 "
+               "where gold's dictionary says 0. They are now wired with `forbid`, "
+               "which fails a check exactly when a COMBINATION holds: both entries "
+               "`absent`. That is distinct from entries written but of the wrong "
+               "kind, which the -2 codes charge -- Q4a/p20 is wrong_kind twice, "
+               "gold 1, and is untouched. "
+               "THE DIFFERENCE IS WHERE THE ANSWER COMES FROM, not what it does. "
+               "`forbid` keys are stripped from the web response schema, so the "
+               "web computes the check; the CLI's ledger is model-authored from "
+               "the rubric, so it asks for it. Both then gate the item to 0. Same "
+               "shape as 1b, T1/T2 and 1c, declared the same way. "
+               "The web gate is real, not modelled: lo-blocks' pickGate requires "
+               "`slot.gates && !sat[key] && charged[key]`, and chargedMap sets "
+               "every slot true unless an `onlyif` suppresses it -- neither item "
+               "has one -- so the third condition is a no-op here and the gate "
+               "fires. Verified by scoring a synthetic both-absent sheet: 0.0 on "
+               "both items. "
+               "MEASURED INERT on the corpus: all 180 recorded sheets rescored "
+               "through the new rules, 120 of 120 on Q4a and 60 of 60 on Q4c "
+               "unchanged. No cell has both entries `absent`.",
+    },
+    {
         "what": "Q4a's assignable slot points sum to 4 against an item max of 5",
         "items": ["Q4a"],
         "necessary": True,
