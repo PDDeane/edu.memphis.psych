@@ -174,6 +174,52 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       mechanisms.
       Q4a and Q4c are marked STALE PROMPT and NOT swept, by instruction. They join
       subgoal 2's list, which is now TEN items.
+- [ ] 3. **Seven scoring rules the two sides implement separately.** Widened
+      from POLARITY_GATE_ITEMS once the audit's new hand-coded check listed them
+      all. Every one is DECLARED on the web and HAND-WRITTEN in `score.py` as an
+      `if item["id"] in ...` branch, which the enforcement audit cannot compare
+      because it compares declarations:
+
+          key                          web declares          CLI does
+          states_a_contingency         GATE (DAY1,DAY2,WK2)  branch -> NOT_OC
+          agent_delivers_consequence   GATE (WK1)            branch -> NOT_OC
+          aimed_correctly              GATE (WK2)            branch -> NOT_OC
+          consequence_not_a_setup      forbid (DAY1,DAY2,WK2) hand-written conjunction
+          barrier_is_not_this_type     forbid (NR)           hand-written conjunction
+          targets_own_behavior         slot (all)            WK1 maps a pick by hand
+          avoidance_frame              --                    DAY1 gates on it in code
+
+      THREE ARE PLAIN GATES the web already marks with `!`. Nothing needs
+      inventing: the declaration exists and the CLI does not read it. Those are
+      the cheapest and should go first.
+      TWO ARE THE SAME CONJUNCTION under different names -- both test
+      `restriction_authored=created`, `trigger_expects=gain`,
+      `restricts=other_thing` -- written out twice in score.py and declared as two
+      separate `forbid` rules on the web. One rule, four implementations.
+      ONE, `avoidance_frame`, carries a comment saying it exists to stop the two
+      sides scoring the same answer differently. Someone hit this divergence
+      class before and fixed it by hand-coding, and the hand-coding is what now
+      hides it.
+      NOT A PURE SWAP for any of them: each branch also charges NOT_OC with
+      item-specific wording and RETURNS, short-circuiting later checks.
+      Reproducing that needs the declared check bound to a gate or a code, so do
+      them ONE AT A TIME and replay the recorded sheets after each -- the replay
+      costs nothing and catches a behaviour change the audit would not.
+      `score.py` already has a general `forbid` reading `item["forbid"]`, so the
+      two conjunctions convert the way Q4a/Q4c did.
+      Delete each branch's line from `enforcement.HANDCODED_ITEM_RULES` as it
+      goes; the check fires on a stale exemption, so forgetting is caught.
+      SIX OF THE SEVEN ITEMS ARE ALREADY STALE (subgoal 2), so this can ride that
+      sweep instead of costing its own -- but only if it lands before the sweep.
+
+- [ ] 4. **Hash the scoring-path helpers, then re-stamp.** From subgoal 8's
+      step 4. `verdict_of`, `answer_of` and `is_satisfied` are read by
+      `satisfied_map` and `apply_computed` -- both hashed -- but are not hashed
+      themselves, and hashing a function does not hash its callees. Editing any of
+      the three changes scores while every item still reads current.
+      Closing it re-stamps all 26 entries at once. Do it deliberately, with a note
+      on each entry saying the behaviour did not change, and ideally while the
+      ledger is already disturbed rather than when it is clean.
 - [ ] 2. **Clear the stale H2 items with a sweep.** TEN items read STALE PROMPT: the eight handout-2 items after the
       leakage rewrite -- DAY1, DAY2, NP, NR, PP, PR, WK1, WK2 -- which was option
       2, taken deliberately: prompts cleaned immediately, calls deferred, ledger
@@ -438,7 +484,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       CREDITED rows: the question is where the line falls, not why two cells
       fail. Do not change prose before that readout -- an item at 16/19 with two
       unstable cells can be made worse by a rule that looks tighter.
-- [ ] 8. **A count slot outside the rubric's `counts` records nothing.**
+- [x] 8. **A count slot outside the rubric's `counts` records nothing.**
       `harms_listed` and `benefits_listed` store as `""` in every artifact,
       because `expand_counted` writes a verdict only for keys the RUBRIC names in
       `counts`, and `verdict_of` reads a count answer from the wrong field.
@@ -467,6 +513,28 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       that edit would be invisible to the guard -- so the fix goes at the
       RECORDING site instead, and "no fingerprint moved" becomes the test that
       it stayed there.
+      DONE, steps 1-3 of the plan. `recorded_answer` reads a count slot's `count`
+      field for the artifact; `verdict_of` -- which reads `verdict` -- is untouched
+      and still does the scoring. Four slots stop recording "" in every run: Q1's
+      `harms_listed`/`benefits_listed` and Q2's `reasons_listed`/`reasons_failing`.
+      RECORDING IS NOT SCORING, and that is asserted rather than hoped: every
+      item's scorer fingerprint was captured before the change and compared after
+      -- NONE moved, so no measurement was invalidated by a recording fix.
+      `check_recorded_answers_are_complete` runs the recording path over a
+      synthetic sheet for every item and fails if a slot records nothing; it also
+      fails if `recorded_answer` ever appears on a scoring fingerprint. Reverting
+      to the old behaviour produces 9 findings. A selftest case injects exactly
+      that, because a recording fault moves no score and nothing else in the
+      harness would ever notice it.
+      PICK slots are left recording "" BY DECLARATION: their values are in
+      `answers`, so nothing is lost, and changing them would alter the recorded
+      semantics of 30 slots on 13 items where readers treat "" as unanswered.
+      STEP 4 NOT DONE, deliberately and not silently: `verdict_of`, `answer_of`
+      and `is_satisfied` are on the scoring path and on NO item's fingerprint, so
+      editing one changes scores while every item still reads current. Closing
+      that re-stamps all 26 ledger entries, which is a decision about the ledger
+      rather than a fix, and ten items are already stale. Carried as subgoal 16.
+
 - [ ] 9. **Q3/p19: actionability grounded in measurability.** The cell names a
       doing AND rests its actionability on being able to measure it, so neither
       lever that fixed p8 and p16 reaches it -- not the time clause, and not
