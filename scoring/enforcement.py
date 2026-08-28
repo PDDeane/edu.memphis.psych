@@ -1922,12 +1922,6 @@ def check_web_scorer_exercises_its_sheet() -> list[str]:
 # the CLI ASK the model a question the web computed -- and the only reason it
 # surfaced is that the prompt-text audit noticed the extra question.
 HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
-    ("derive_oc_ledger", "POLARITY_GATE_ITEMS"):
-        "`forbid` written by hand, from before the rule could be declared. The "
-        "general implementation now sits beside it and reads item['forbid']; this "
-        "branch should fold into a declared rule on those items.",
-    ("derive_oc_ledger", "BARRIER_PICK_ITEMS"):
-        "reads the barrier pick vocabulary, which only these items author.",
     ("derive_oc_ledger", "'WK1'"):
         "WK1's `trigger_behavior` -> `targets_own_behavior` vocabulary mapping. "
         "Its agent gate and WK2's aimed gate and the contingency gate were "
@@ -1940,6 +1934,13 @@ HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
     # item, and everywhere else it is advisory. The branch now reads
     # rubric_h2.AVOIDANCE_SCORES, the same declaration that decides what the
     # criteria prose promises, so there is no item id left to exempt.
+    # ("derive_oc_ledger", "POLARITY_GATE_ITEMS") and
+    # ("derive_oc_ledger", "BARRIER_PICK_ITEMS") stood here. Both were the SAME
+    # three-condition conjunction, written by hand in two branches and a third
+    # time as a `forbid=` attribute in the .olx. It is now rubric_h2.FORBID,
+    # declared once; olx_prompts generates the attribute from it and
+    # score._forbid_rule reads it, so presence of the declaration selects the
+    # item and there is no id left to exempt.
     ("build_schema", "BARRIER_PICK_ITEMS"): "schema shape, not scoring.",
     ("build_schema", "CONTINGENCY_GATE_ITEMS"): "schema shape, not scoring.",
     ("build_schema", "MOVE_PICK_ITEMS"): "schema shape, not scoring.",

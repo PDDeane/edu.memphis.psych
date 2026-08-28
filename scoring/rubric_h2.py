@@ -904,5 +904,33 @@ for _it in ITEMS:
     if _it["id"] in AVOIDANCE_SCORES:
         _it["avoidance_scores"] = True
 
+# The `forbid` conjunctions, declared once. Same three readings on all four
+# items, different charges: on DAY1/DAY2/WK2 a restriction the plan CREATES,
+# which the student's SUCCESS lifts, and which restricts something UNRELATED, is
+# not operant conditioning and gates the item; on NR the identical reading is
+# simply not NEGATIVE REINFORCEMENT, which needs an undesirable thing taken away,
+# and gold charges 2 rather than the whole item.
+#
+# It was written three times: as this conjunction in score.py's polarity branch,
+# again in its barrier branch, and a third time as a hand-authored `forbid="..."`
+# attribute in bmod_handout2.olx. The rubric is the channel both scorers read, so
+# it is declared here and the OLX attribute is GENERATED from it -- see
+# olx_prompts.forbid_attr_for.
+#
+# `restricts: other_thing` is gold's own exception: gating the unwanted behaviour
+# itself earns credit, so only a restriction on something unrelated is a setup.
+_BARRIER_CONDS = [{"slot": "restriction_authored", "value": "created"},
+                  {"slot": "trigger_expects", "value": "gain"},
+                  {"slot": "restricts", "value": "other_thing"}]
+
+FORBID: dict[str, list[dict]] = {
+    **{i: [{"key": "consequence_not_a_setup", "conds": _BARRIER_CONDS}]
+       for i in POLARITY_GATE_ITEMS},
+    "NR": [{"key": "barrier_is_not_this_type", "conds": _BARRIER_CONDS}],
+}
+for _it in ITEMS:
+    if _it["id"] in FORBID:
+        _it["forbid"] = FORBID[_it["id"]]
+
 BY_ID = {it["id"]: it for it in ITEMS}
 TOTAL = sum(it["max"] for it in ITEMS)  # 40.0 scored; +10 upload = 50

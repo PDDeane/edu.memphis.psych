@@ -530,6 +530,20 @@ def derive_ledger(item: dict, raw: dict,
     return ledger, checks, unknown
 
 
+def _forbid_rule(item: dict, key: str) -> tuple[tuple[str, str], ...] | None:
+    """One declared `forbid` conjunction as (slot, value) pairs, or None.
+
+    Presence of the declaration is what selects the item, so neither caller needs
+    an item id. Both conjunctions were hand-written here AND hand-authored as an
+    `forbid=` attribute in the .olx; now rubric_h2.FORBID declares them once and
+    olx_prompts.forbid_attr_for generates that attribute from it.
+    """
+    for rule in item.get("forbid") or ():
+        if rule.get("key") == key:
+            return tuple((c["slot"], c["value"]) for c in rule["conds"])
+    return None
+
+
 def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], list[str], str | None]:
     """Turn the criteria sheet into a deduction ledger.
 
@@ -624,18 +638,17 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
                 add(g["code"], g["text"])
                 return ledger, checks, unknown, advisory
 
-        if item.get("id") in POLARITY_GATE_ITEMS:
-            # Mirrors the web's `forbid` primitive: FAILS only when every named
-            # condition holds, and passes when any operand is unanswered. A
-            # deprivation the plan CREATES is not a fault on its own — an
-            # ordinary punishment contingency creates one too — it is a fault
-            # only when the student's SUCCESS is what lifts it.
-            # Three conditions, all required. The third is gold's own
-            # exception: gating the unwanted behaviour itself earns credit, so
-            # only a restriction on something UNRELATED is a setup.
-            conds = (("restriction_authored", "created"),
-                     ("trigger_expects", "gain"),
-                     ("restricts", "other_thing"))
+        spec = _forbid_rule(item, "consequence_not_a_setup")
+        if spec:
+            # IS the web's `forbid` primitive now, from the same rubric
+            # declaration that generates the web's attribute: FAILS only when
+            # every named condition holds, and passes when any operand is
+            # unanswered. A deprivation the plan CREATES is not a fault on its
+            # own — an ordinary punishment contingency creates one too — it is a
+            # fault only when the student's SUCCESS is what lifts it. The
+            # conditions, and gold's `other_thing` exception, are documented
+            # where they are declared: rubric_h2.FORBID.
+            conds = spec
             hit = all((a.get(k) or "") == v for k, v in conds)
             checks.append({"what": "consequence_not_a_setup", "met": not hit,
                            "evidence": ", ".join(
@@ -646,7 +659,10 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
                               "front of the behaviour rather than following it.")
                 return ledger, checks, unknown, advisory
 
-        if item.get("id") in POLARITY_GATE_ITEMS and a.get("restriction_authored"):
+        # Reported, never scored: the reading the conjunction above consumed,
+        # surfaced so the sheet shows what it was given. Selected by the same
+        # declaration, so it cannot drift away from the rule it reports on.
+        if _forbid_rule(item, "consequence_not_a_setup") and a.get("restriction_authored"):
             checks.append({"what": "restriction_authored", "met": True,
                            "reported": True,
                            "evidence": a["restriction_authored"]})
@@ -674,10 +690,9 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
         # would take the cell to 0 where gold says 2.
         # NR/p8 is spared because its chore pre-exists the plan, so
         # `restriction_authored` reads `relieved` rather than `created`.
-        if item.get("id") in BARRIER_PICK_ITEMS:
-            conds = (("restriction_authored", "created"),
-                     ("trigger_expects", "gain"),
-                     ("restricts", "other_thing"))
+        spec = _forbid_rule(item, "barrier_is_not_this_type")
+        if spec:
+            conds = spec
             hit = all((a.get(k) or "") == v for k, v in conds)
             checks.append({"what": "barrier_is_not_this_type", "met": not hit,
                            "evidence": ", ".join(
