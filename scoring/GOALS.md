@@ -406,13 +406,25 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       id disappears. The same argument applies to the barrier and move picks,
       whose slots exist because a declared conjunction or an `expect` consumes
       them.
-      Two cautions. A schema change alters what the model is ASKED, so unlike the
-      seven scoring conversions it is not automatically behaviour-preserving --
-      `oc_grid` will not certify it, and each item's schema must be compared
-      key-for-key before and after. And `score_participant`/`only` is a CLI flag
-      filter, not a rule at all; if it cannot be expressed as a declaration the
-      honest close is to move it out of a table about RULES rather than to
-      contrive one.
+      TWO CAUTIONS, AND BOTH MUST BE CHECKED AND CLEARED, not merely noted
+      (user's direction, 2026-08-28). They are acceptance criteria for this
+      subgoal, not caveats to record while closing it:
+        (a) A schema change alters what the model is ASKED, so unlike the seven
+            scoring conversions it is NOT automatically behaviour-preserving and
+            `oc_grid` cannot certify it. Clearing it means comparing every item's
+            built schema KEY FOR KEY before and after -- properties, required,
+            enums, nesting -- and showing the set is identical for all 26. If any
+            item's schema does move, that is a measured change and belongs in the
+            sweep, declared, not waved through as a refactor.
+        (b) `score_participant`/`only` is a CLI flag filter, not a rule at all.
+            Clearing it means DECIDING: either it is expressible as a declaration,
+            or it is moved out of a table about RULES. A contrived declaration
+            that exists only to empty the table is worse than the entry.
+
+ORDER, set 2026-08-28: 5, then 7, then 8, then the sweep. Subgoal 8 is the only
+one of the three that can move a score, so it lands last and its effect is
+measured BY the sweep rather than by a separate run. Nothing goes to the sweep
+until all three are closed.
 - [ ] 5. **The enforcement audit cannot see a rule written as guidance prose.**
       MOVED here from quality control, where it was subgoal 15: it is an
       equivalence-enforcement defect, not an item's scoring problem, and it
