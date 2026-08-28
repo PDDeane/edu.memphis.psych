@@ -2306,7 +2306,32 @@ def forbid_attr_for(item_id: str) -> str | None:
         for r in rules)
 
 
-_FORBID_ATTR = re.compile(r'forbid="([^"]*)"')
+def expect_attr_for(item_id: str) -> str | None:
+    """The `expect=` attribute value for an item, from the RUBRIC declaration.
+
+    Format is parse_expect's: `key:left=value:lenient,lenient`, rules joined by
+    `|`. Only WK1 declares one; the four `demonstrates_type` rules stay authored
+    in the .olx because the CLI reaches that fact through `expected_type` and
+    REQUIRED_MOVE, so declaring them here would be a second source for one fact.
+    """
+    item = config(HANDOUT[item_id])["rubric"].BY_ID[item_id]
+    rules = item.get("expect") or []
+    if not rules:
+        return None
+    out = []
+    for r in rules:
+        spec = "%s:%s=%s" % (r["key"], r["left"], r["value"])
+        if r.get("lenient"):
+            spec += ":" + ",".join(r["lenient"])
+        out.append(spec)
+    return "|".join(out)
+
+
+# Attributes the GENERATOR owns, each from a rubric declaration. An item without
+# the declaration keeps whatever the .olx authors; an item WITH one whose tag has
+# no such attribute is a hard error, because the rule would then reach score.py
+# and not the web -- the asymmetry these conversions exist to remove.
+GENERATED_ATTRS = (("forbid", forbid_attr_for), ("expect", expect_attr_for))
 
 
 def render(handout: int) -> tuple[str, dict]:
@@ -2326,18 +2351,21 @@ def render(handout: int) -> tuple[str, dict]:
         # are untouched. A declaration with nowhere to land is a hard error: the
         # rule would silently reach score.py and not the web, which is the exact
         # asymmetry this conversion exists to remove.
-        want = forbid_attr_for(item_id)
+        wants = [(name, fn(item_id)) for name, fn in GENERATED_ATTRS]
 
         def _sub(m: re.Match) -> str:
             head = m.group(1)
-            if want is not None:
-                if not _FORBID_ATTR.search(head):
+            for name, want in wants:
+                if want is None:
+                    continue
+                pat_attr = re.compile(r'%s="([^"]*)"' % name)
+                if not pat_attr.search(head):
                     raise SystemExit(
-                        f"{item_id} declares `forbid` in the rubric but "
-                        f"<LLMAction id={action}> has no forbid= attribute to write "
+                        f"{item_id} declares `{name}` in the rubric but "
+                        f"<LLMAction id={action}> has no {name}= attribute to write "
                         f"it into -- add the attribute (any value) so the generator "
                         f"can own it")
-                head = _FORBID_ATTR.sub(lambda _: 'forbid="%s"' % want, head, count=1)
+                head = pat_attr.sub(lambda _: '%s="%s"' % (name, want), head, count=1)
             return head + "\n" + body + "      " + m.group(3)
 
         src = pat.sub(_sub, src, count=1)
