@@ -1421,6 +1421,56 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       [15,15,15,16,16,17]. The check-level data the 3-run artifact lacked
       (`checks: null`) is what identified subgoal 1.
 
+- [ ] 17. **Q2: `wgb_is_counterpart`, `wgb_inverts_utb`, `reason_3`.**
+      Set 2026-08-28 from the two-sided sweep's second item. 6 runs, current
+      configuration: 15/20 exact (75%), 90% per check, spread 3 cells, 0 failures.
+      The ledger says 18/20 but that entry is STALE SCORER, so it is a reference
+      point and not a baseline -- do not report this as a 3-cell regression.
+      SAME LOPSIDEDNESS AS Q1, AND STRONGER: under-credit 17 (14%) against
+      over-credit 5 (4%). Two items, both erring the direction Q1's recorded
+      history says they should not. That pattern is now worth a look of its own.
+      THE PROFILE NAMES ITS OWN SUSPECTS -- the tool marks two slots as tracking
+      the errors:
+        `wgb_is_counterpart`  unmet 7, FIVE of them in wrong cells. The sharpest
+                              signal in either item so far.
+        `wgb_inverts_utb`     unmet 16, 8 wrong / 8 right.
+        `reason_3`            unmet 47, 20 wrong / 27 right -- fires more often
+                              than it explains, exactly as Q1's reason_3 does
+                              (47 unmet, 39 right). The same slot behaving the same
+                              way on two items points at the counting structure
+                              rather than either item's wording.
+      THE TWO WORST CELLS ARE ONE RULE FAILING BOTH WAYS:
+        p10  gold 3.00 -> pred 0.00  (-3.00)  gold: "your WGB should be the
+                                              opposite of your UTB"
+        p7   gold 0.00 -> pred 2.00  (+2.00)  gold: same criterion
+      We refuse p10 where gold credits and credit p7 where gold refuses, on the
+      INVERSION criterion in both cases. A rule change that fixes one will tend to
+      break the other -- the shape that produced Q6's seven measured-and-reverted
+      attempts -- so name both as controls before touching anything.
+      WHAT THE TWO SLOTS ARE FOR, from their own recorded text: they are a
+      deliberate two-tier split. `wgb_is_counterpart` is "the WGB_UNRELATED test,
+      and only that: is the goal behavior about a DIFFERENT behavior altogether",
+      and explicitly PASSES a goal in the right territory that fails to invert.
+      `wgb_inverts_utb` then carries "TWO ways to fail, and the second is the common
+      one ... a goal IS stated but does not invert the behaviour the Q1 UTB names".
+      So the errors concentrate exactly on the boundary between "unrelated" and
+      "related but not inverted", which is the thing the split was built to separate.
+      A FINDING TO CARRY, not an action here: ALL THREE of these slots --
+      `Q2:wgb_is_counterpart`, `Q2:wgb_inverts_utb`, `Q2:reasons_given` -- have
+      their judging text in SLOT_NOTES, the web-only channel, and are three of the
+      thirteen entries in `enforcement.SLOT_RULE_BACKLOG`. Both columns of THIS
+      sweep read them, because agreement.py loads the OLX prompt, so the reach gap
+      is not what is causing these errors. But the PAPER scorer never sees them, so
+      when score.py is compared these same slots will diverge further, and
+      migrating them to the rubric `rule` field -- as 1a's five were on 2026-08-28,
+      which cost 1a/p6 the whole item before the migration -- is the action that
+      serves both problems at once. Q2's `reasons_failing` and `reasons_substantial`
+      are in that backlog too, unscoped.
+      DO NOT CHASE `confident`: unmet in 117 of 120 observations with 95 in cells
+      that scored correctly. Same noise floor as Q1, confirmed twice.
+      WAIT FOR THE APP COLUMN, for the reason on subgoal 16: the two sides share
+      this prompt and differ only in whose rules score it.
+
 - [ ] 16. **Diagnose Q1's wrong calls: `utb_stated`, `reason_2`, `reason_3`.**
       Set 2026-08-28 from the two-sided sweep's first item, so the numbers below are
       6 runs at the CURRENT configuration rather than a recollection.
