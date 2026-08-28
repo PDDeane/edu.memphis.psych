@@ -1020,6 +1020,49 @@ The order below is by diagnosed tractability, not by score. A deterministic miss
 with a named failing check is worth more than a larger gap of unknown shape,
 because it can be fixed or declared; a wobbling cell cannot be either.
 
+- [ ] 19. **The LATER-BOX gradient, corpus-wide. Read this before any numbered slot.**
+      Placed ahead of the item-specific subgoals because six of them are about a
+      numbered box, and this says which part of that is one problem and which is
+      six. Measured 2026-08-28 over the CLI sweep's first seven items, 6 runs each.
+      TWO CLAIMS, AND ONLY ONE IS UNIVERSAL.
+      (1) VOLUME rises with box index, everywhere, no exceptions:
+            Q1  reason_2 16 -> reason_3 47
+            Q2  reason_1 21 -> reason_2 22 -> reason_3 47
+            Q4a antecedent_1 23 -> antecedent_2 34
+            Q4b behavior_1  23 -> behavior_2  52
+            Q4c consequence_1 6 -> consequence_2 19
+            Q5  example_1  18 -> example_2  26
+          We refuse the later box roughly twice as often as the first.
+      (2) PRECISION -- how often a refusal lands in a cell that scored RIGHT --
+          collapses on only TWO items:
+            Q4b box1 100% -> box2 67%
+            Q4c box1 100% -> box2 63%
+          and is FLAT or BETTER on the rest: Q4a 74/71, Q5 67/69, Q2 62/59/57,
+          Q1 75 then 83 on the third box.
+      SO THE SHAPE IS NOT "the second box is judged badly". It is "we refuse the
+      later box far more often, and on Q4b and Q4c those extra refusals are wrong".
+      An earlier reading of this data as "first box clean, second box carries the
+      failures, four items, one shape" was WRONG: Q4a's first box has 6 wrong-cell
+      refusals and Q5's has 6. Only Q4b and Q4c have a genuinely spotless first box.
+      THE OBVIOUS INNOCENT EXPLANATION IS PROBABLY THE RIGHT ONE for claim (1):
+      students' second examples really are weaker -- they run out of material --
+      so refusing the later box more often is correct behaviour, and the flat
+      precision on four of six items says exactly that. Do NOT try to flatten the
+      volume gradient. The thing to explain is the precision drop on two items.
+      ONE HYPOTHESIS ALREADY DEAD, so nobody re-runs it: the CONTINUED placeholder,
+      which used to put the whole paper block in the first box and "(continued
+      above)" in the rest. `build_jobs` replaced that with real per-box
+      reconstruction, its docstring says so in the past tense, and the string
+      appears in no recorded evidence in this sweep.
+      WHERE TO LOOK, given the above: Q4b and Q4c are the two items whose first box
+      is never wrong, and both are `*_1`/`*_2` pairs judged by ONE shared rule.
+      Q4b's failures localise further to a single option value (`not_doing`, see
+      subgoal 18) -- check whether Q4c's do too, because a shared cause across the
+      only two affected items is worth more than two item fixes.
+      AND CHECK IT AGAINST THE WEB COLUMN before acting: if the gradient is the
+      same on both sides it is the prompt or the corpus, and if it differs it is
+      the scorer. That comparison costs nothing once the app sweep lands.
+
 - [x] 1. **Q3's `action` criterion.** The clearest target on the board. Five
       misses, ONE cause: gold charges two criteria and we charge one, and the
       criterion we skip is `action` every time. DONE, +2: the desc credited
