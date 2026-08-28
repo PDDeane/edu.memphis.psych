@@ -1063,7 +1063,12 @@ def check_handsplit_rows_are_disjoint() -> list[str]:
 # does. Two copies of this would drift, which is the failure the whole
 # equivalence goal is about.
 SLOT_RULE_BACKLOG = [
-    '1a:baseline_week', '1a:distinguishes_periods', '1a:week_1', '1a:week_2',
+    # The four `1a:*` entries were MIGRATED on 2026-08-28, budget 17 -> 13. They
+    # led because they were the only group with a measured price: 1a/p6 scored 0.0
+    # on the paper path against 6.0-8.0 on the web, the whole item, 3 of 3 runs.
+    # Their text now lives in rubric_h3's `rule` fields, which both generators
+    # render, and the web prompt did not move because its checklist looks up
+    # `rule` before SLOT_NOTES and finds the same string.
     '1c:has_own_graph', '1c:legend', 'D1:defines_type', 'D2:defines_type',
     'Q1:matches_selected', 'Q2:reasons_given', 'Q2:wgb_inverts_utb',
     'Q2:wgb_is_counterpart', 'Q5:example_2', 'matches_chosen_type',
@@ -1074,7 +1079,7 @@ SLOT_RULE_BACKLOG = [
 # the same reason and on the evidence of the same day: a declared backlog with no
 # ceiling reads as coverage while enforcing nothing about its own size, and this
 # one had grown to seventeen entries costing at least one item its whole score.
-SLOT_RULE_BACKLOG_BUDGET = 17
+SLOT_RULE_BACKLOG_BUDGET = 13
 
 
 # The three programs that write scoring artifacts, and the field each must stamp.

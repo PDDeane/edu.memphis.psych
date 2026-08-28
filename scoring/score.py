@@ -963,8 +963,19 @@ def build_prompt(
             # the paper prompt's slot-specific field is this line. Without it the
             # web and CLI apply rules this scorer has never seen — which is how
             # Q4b's five substitution tests reached two scorers out of three.
-            rule = f" {c['rule'].replace('{fail}', _fail_verdict(item, c))}" if c.get("rule") else ""
-            parts.append(f"- `{c['what']}`{worth}{vocab}: {c['desc']}{rule}")
+            #
+            # It REPLACES `desc`, exactly as the web's checklist does: there the
+            # lookup is `rule or SLOT_NOTES or desc`, so a component with a rule
+            # never shows its desc. This side used to show BOTH, which meant the
+            # one field written to be read by both scorers was rendered
+            # differently by each -- and the rules are written as the web renders
+            # them, continuing from the `— `, so appending them after a desc
+            # produced "Discusses the baseline week is the BEFORE state given".
+            # No audit compared the two renderings, because both sides carried the
+            # text and the audit asks only whether it is CARRIED.
+            body = (c['rule'].replace('{fail}', _fail_verdict(item, c))
+                    if c.get("rule") else c['desc'])
+            parts.append(f"- `{c['what']}`{worth}{vocab}: {body}")
         for cr in item.get("counts", []):
             members = ", ".join(f"`{k}`" for k in cr["slots"])
             parts.append(
@@ -1007,8 +1018,10 @@ def build_prompt(
     else:
         parts.append("## Credit components")
         for c in item["credit"]:
-            rule = f" {c['rule'].replace('{fail}', _fail_verdict(item, c))}" if c.get("rule") else ""
-            parts.append(f"- `{c['what']}` ({c['pts']:g} pt): {c['desc']}{rule}")
+            # Same rule-replaces-desc as above; see the note there.
+            body = (c['rule'].replace('{fail}', _fail_verdict(item, c))
+                    if c.get("rule") else c['desc'])
+            parts.append(f"- `{c['what']}` ({c['pts']:g} pt): {body}")
         parts.append("")
 
         parts.append("## Deduction codes (use these exact codes; the points shown are applied for you)")
