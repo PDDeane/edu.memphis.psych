@@ -1655,7 +1655,8 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
         # which is why WK1's equivalence rule lived in SLOT_NOTES to begin with.
         if MATCH_DEF.get(item_id):
             p.append(MATCH_DEF[item_id])
-        p.append(_criteria_section(item))
+        p.append(_criteria_section(
+            item, avoidance_scores=bool(item.get("avoidance_scores"))))
     else:
         # Placed HERE, immediately before the components that use the word, and
         # kept to two sentences. Sixteen wording variants of this idea were built
@@ -1827,8 +1828,78 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
     return "\n".join(p).rstrip() + "\n"
 
 
-def _criteria_section(item: dict) -> str:
-    """score.py:build_prompt's derive_from_criteria block, verbatim."""
+# Criteria 10 and 11 as the CLI asks them, DERIVED from the web's own wording in
+# SLOT_NOTES rather than restated. Three substitutions, each forced by the CLI's
+# ANSWER SHEET rather than by any difference in judging, and these are all of
+# them:
+#   `evidence` -> `behavior`   the CLI's criteria object has no evidence field,
+#                              so the web's "put it in `evidence`" would name a
+#                              field the model cannot fill
+#   `yes`/`no` -> true/false   its criteria are booleans; the web's checklist
+#                              answers yes/no
+#   drop "one point, and it charges ONLY this:"
+#                              the web's checklist slot carries a point value the
+#                              model applies; on the CLI the engine computes the
+#                              score and the model never sees points
+# The list format differs too -- a numbered criteria sheet against a bulleted
+# checklist -- so the prefix and trailing period are not the same characters.
+# Nothing else differs, and enforcement.check_criteria_prose_has_one_source
+# fails the build if a second copy of this prose reappears in score.py.
+# Documented in EQUIVALENCE.md.
+def _as_criterion(note: str) -> str:
+    return (note.replace("put it in `evidence`", "put it in `behavior`")
+                .replace("`yes`", "true").replace("`no`", "false"))
+
+
+_C10_TRIGGER = "10. `trigger_behavior` — " + _as_criterion(SLOT_NOTES["trigger_behavior"]) + "\n"
+
+
+# Where avoidance framing is declared to COST the item, the base note's closing
+# promise that criterion 7 "never changes the score" is false -- and it was false
+# on BOTH sides, the same defect as in criterion 7 itself but in a second place.
+# Written as a per-item SLOT_NOTES override so the web's checklist picks it up
+# through the lookup it already does, and read from the rubric declaration rather
+# than from an item id.
+for _it in config(2)["rubric"].ITEMS:
+    if _it.get("avoidance_scores"):
+        SLOT_NOTES[f"{_it['id']}:consequence_asserted"] = (
+            SLOT_NOTES["consequence_asserted"].replace(
+                ", and it never changes the score", ""))
+
+
+# The SLOT_NOTES keys the CLI renders too, via _C10_TRIGGER and _criterion_11.
+# check_slot_rules_reach_both_prompts exempts these, and it needs a declaration
+# rather than a list of its own: its whole premise is that SLOT_NOTES is web-only,
+# which is true of every key EXCEPT the ones named here, and a check carrying its
+# own copy of that exception would go stale the moment this list changed.
+CLI_CRITERIA_NOTES = ("trigger_behavior", "consequence_asserted")
+
+
+def _criterion_11(item: dict) -> str:
+    """The CLI's eleventh criterion, from the web's note for THIS item."""
+    note = (SLOT_NOTES.get(f"{item['id']}:consequence_asserted")
+            or SLOT_NOTES["consequence_asserted"])
+    return ("11. `consequence_asserted` — " + _as_criterion(
+        note.replace("one point, and it charges ONLY this: ", "")) + ".\n")
+
+
+def _criteria_section(item: dict, trigger_slot: bool = False,
+                      consequence_slot: bool = False,
+                      avoidance_scores: bool = False) -> str:
+    """The criteria prose, for BOTH scorers. score.py:build_prompt calls this.
+
+    It used to be a hand-kept copy of score.py's block -- the docstring said
+    "verbatim" -- and it had drifted in three places (criterion 5's example,
+    criterion 7's example, criterion 10's WK1 rule). Two copies of a rule are
+    two rules, so score.py now calls this instead of holding the second one.
+
+    The flags exist because the CLI collects a different ANSWER SHEET, not
+    because it grades differently: it asks `trigger_behavior` where the web
+    asks `targets_own_behavior`, it carries `consequence_asserted` as an
+    eleventh criterion rather than a checklist slot, and on DAY1 its avoidance
+    reading gates the item. Defaults reproduce the web's text exactly, so the
+    measured web prompts do not move.
+    """
     parts = [
         "## How to judge this item\n"
         "Do NOT output a score or a deduction list. Fill in the criteria sheet; the "
@@ -1863,8 +1934,12 @@ def _criteria_section(item: dict) -> str:
         "type under discussion, report that one; do not mark it a mismatch.\n"
         "7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED "
         "when the behaviour occurs (\"so I don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87}} it\") "
-        "rather than by what is added or removed after it. This never changes the "
-        "score; it flags the answer for a phrasing comment. It is the ONLY criterion "
+        "rather than by what is added or removed after it. "
+        # Suppressed where the reading gates the item: saying it never changes the
+        # score there contradicts the guidance, which says it takes the whole item.
+        + ("" if avoidance_scores else
+           "This never changes the score; it flags the answer for a phrasing comment. ")
+        + "It is the ONLY criterion "
         "that judges this phrasing — no other check may deduct for it.\n"
     ]
     if item.get("cadence"):
@@ -1879,9 +1954,12 @@ def _criteria_section(item: dict) -> str:
             "daily trigger whose reward runs to the end of the week is still daily. Set "
             "this false only when the contingency is plainly settled on the other "
             "schedule — e.g. a daily slot answered with a whole-week tally.\n"
-            "10. `targets_own_behavior` — is it aimed at this student's own UTB/WGB "
-            "rather than some clearly different behaviour?\n"
+            + (_C10_TRIGGER if trigger_slot else
+               "10. `targets_own_behavior` — is it aimed at this student's own UTB/WGB "
+               "rather than some clearly different behaviour?\n")
         )
+    if consequence_slot:
+        parts.append(_criterion_11(item))
     parts.append("")
     return "\n".join(parts)
 

@@ -554,6 +554,8 @@ def enforcement_audit():
         findings.append(("-", "ARTIFACT LOSES AN ANSWER", bad))
     for bad in ENF.check_no_undeclared_handcoded_rules():
         findings.append(("-", "RULE HAND-CODED, NOT DECLARED", bad))
+    for bad in ENF.check_criteria_prose_has_one_source():
+        findings.append(("-", "CRITERIA PROSE COPIED, NOT SHARED", bad))
     for bad in ENF.check_every_check_is_invoked():
         findings.append(("-", "CHECK NEVER RUNS", bad))
     for bad in ENF.check_weighted_slots_are_scored():
