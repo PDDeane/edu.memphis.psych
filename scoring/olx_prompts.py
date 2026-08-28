@@ -2288,6 +2288,26 @@ def _to_xml(body: str) -> str:
     )
 
 
+def forbid_attr_for(item_id: str) -> str | None:
+    """The `forbid=` attribute value for an item, from the RUBRIC declaration.
+
+    The conjunction used to exist three times -- twice in score.py and once as a
+    hand-authored attribute in the .olx -- so the rubric declares it and this
+    generates the attribute. Format is parse_forbid's: `key:slot=value,...`,
+    rules joined by `|`.
+    """
+    item = config(HANDOUT[item_id])["rubric"].BY_ID[item_id]
+    rules = item.get("forbid") or []
+    if not rules:
+        return None
+    return "|".join(
+        "%s:%s" % (r["key"], ",".join(f"{c['slot']}={c['value']}" for c in r["conds"]))
+        for r in rules)
+
+
+_FORBID_ATTR = re.compile(r'forbid="([^"]*)"')
+
+
 def render(handout: int) -> tuple[str, dict]:
     """The .olx source with every generated prompt body substituted in."""
     src = _src(handout)
@@ -2299,7 +2319,27 @@ def render(handout: int) -> tuple[str, dict]:
         pat = re.compile(_ACTION_RE % re.escape(action), re.S)
         if not pat.search(src):
             raise SystemExit(f"no <LLMAction id={action}> in handout {handout}")
-        src = pat.sub(lambda m: m.group(1) + "\n" + body + "      " + m.group(3), src, count=1)
+        # The open tag is group(1) and carries the sheet's attributes. Only
+        # `forbid` is generated from the rubric; the rest stay as authored, and
+        # the VALUE alone is swapped so the tag's own line breaks and indentation
+        # are untouched. A declaration with nowhere to land is a hard error: the
+        # rule would silently reach score.py and not the web, which is the exact
+        # asymmetry this conversion exists to remove.
+        want = forbid_attr_for(item_id)
+
+        def _sub(m: re.Match) -> str:
+            head = m.group(1)
+            if want is not None:
+                if not _FORBID_ATTR.search(head):
+                    raise SystemExit(
+                        f"{item_id} declares `forbid` in the rubric but "
+                        f"<LLMAction id={action}> has no forbid= attribute to write "
+                        f"it into -- add the attribute (any value) so the generator "
+                        f"can own it")
+                head = _FORBID_ATTR.sub(lambda _: 'forbid="%s"' % want, head, count=1)
+            return head + "\n" + body + "      " + m.group(3)
+
+        src = pat.sub(_sub, src, count=1)
     return src, minted
 
 
