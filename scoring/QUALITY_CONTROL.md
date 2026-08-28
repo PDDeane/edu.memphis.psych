@@ -801,6 +801,40 @@ almost all of it in CORRECT cells is not the problem however much it dominates
 the eye (`confident`, 99 unmet, 83 of them in cells scored right), and DRIFT
 identifies cells that no wording can fix before calls are spent trying.
 
+## 2c. READ WHAT IS ALREADY RECORDED BEFORE FORMING A HYPOTHESIS
+
+**Before touching a rule, read the comments around it, the draft for that item,
+and the goal entry. Prior measured work lives next to the thing it measured, and
+it is usually more specific than anything you are about to guess.**
+
+The case: Q1's `reasons_given` absorbed ELEVEN configurations and ~900 calls in
+one day, aimed at a merge rule. The comment block directly above the component
+already said, from earlier measured work:
+
+* gold's rule is **CONDITIONAL** -- reasons are HARMS of the unwanted behaviour,
+  and stated benefits are credited only where a response offers no harms at all;
+* every cell with gold < 3 was already classified: "p6 has exactly one harm among
+  four background statements and two goal-benefits and scores 1; p9/p10 have no
+  harms and 2 benefits each and score 2; p16 has none and one benefit and scores
+  1";
+* **p9 was already diagnosed and not as a merge problem** -- "the model reads
+  'have unwanted complications...' as a harm, so `harms_listed` is 1 and tier one
+  applies, giving 1 where gold wants 2".
+
+The first change of the day replaced that conditional with a flat sum, which is
+why p6 went 4/6 -> 0/6 and never recovered under any later wording: a measured
+reconstruction of gold's structure was deleted as if it were a defect. Six
+further configurations then argued with the consequences.
+
+Checking is cheap and mechanical:
+
+    sed -n '/"what": "THE_SLOT"/,+3p' rubric_hN.py     # the component
+    sed -n '/THE_SLOT/,-40p'          rubric_hN.py     # the comment ABOVE it
+    ls drafts/ && grep -rl ITEM drafts/ BACKLOG.md GOALS.md
+
+A rule that looks arbitrary usually is not. If the recorded reason is wrong, say
+so and measure against it -- but do not discover it after the fact.
+
 ## 3. Building the model
 
 **READ THE CREDITED ROWS, NOT JUST THE MISSES. `python3 measured.py

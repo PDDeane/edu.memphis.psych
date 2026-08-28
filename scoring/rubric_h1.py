@@ -213,7 +213,14 @@ ITEMS: list[dict] = [
                         "clause that merely continues one is part of it, so a named "
                         "effect followed by \"which causes\" and its downstream result "
                         "is ONE, while two effects merely joined by "
-                        "\"and\" are two. Do NOT count a restatement that the student "
+                        "\"and\" are two. A statement naming what the behaviour "
+                        "EXPOSES the student to — a susceptibility it worsens — is a "
+                        "negative effect even when written as what the goal "
+                        "behaviour would protect against. A clause carried along "
+                        "within a statement of what the student expects to GET from "
+                        "changing belongs to that statement and is not a negative "
+                        "effect of its own, however unwanted the thing it names. "
+                        "Do NOT count a restatement that the student "
                         "struggles with the behaviour, and do not count a behaviour "
                         "performed DURING it. Answer 3 for three or more",
             },
@@ -258,15 +265,23 @@ ITEMS: list[dict] = [
                 # the per-cell predictions, and why this cannot be computed
                 # arithmetic (a sum over the two counters scores p9 3 against
                 # gold 2, because one clause is counted under both headings).
-                "desc": "HOW MANY separate reasons the student gives. Count "
-                        "STATEMENTS, harms and benefits alike, towards ONE total: a "
-                        "named negative effect of the behaviour and a named benefit "
-                        "of changing each count one. A single clause counts ONCE — a "
-                        "clause naming both a gain and the trouble it avoids is one "
-                        "reason, and a clause counted under one heading is never "
-                        "counted again under the other. Two DISTINCT effects joined "
-                        "by \"and\" are two. Do NOT count a restatement of the goal or "
-                        "of the behaviour, a remark about difficulty, or background. "
+                # TWO-TIER CONDITIONAL, RESTORED. The flat "count both kinds towards
+                # one total" that replaced it was measured over eleven
+                # configurations and never beat this item's 17/20, while costing
+                # p6 (4/6 -> 0/6) and p16. The comment above records why the
+                # conditional is right: gold credits HARMS of the unwanted
+                # behaviour, and falls back to stated benefits only where a
+                # response offers no harms at all. Deleting it was the error.
+                # The remaining failures are CLASSIFICATION, not arithmetic:
+                # p9 is correct in exactly the runs where harms_listed reads 0
+                # ("unwanted complications to have to with my health" is not a
+                # harm gold sees), and p14 needs the heart-disease clause read AS
+                # a harm to reach three.
+                "desc": "HOW MANY reasons count. The rule is CONDITIONAL on the two "
+                        "counts above. If `harms_listed` is 1 or more the answer IS "
+                        "`harms_listed`, and benefits do not add to it — a response with "
+                        "one harm and two benefits counts 1. Only when `harms_listed` "
+                        "is 0 does the answer become `benefits_listed` instead. "
                         "Never answer 0 when the student offered anything "
                         "of either kind. Answer 3 for three or more",
             },
