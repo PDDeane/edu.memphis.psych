@@ -507,6 +507,59 @@ OMIT_DEDUCTION: dict[str, dict[str, str]] = {}
 
 SCORING_DIVERGENCES = [
     {
+        # DECLARED 2026-08-28, closing the hole subgoal 5 found. Q4b was absent
+        # from this list and the enforcement audit reported nothing for it, because
+        # the rule doing the refusing lives in GUIDANCE PROSE -- "REJECT when the
+        # entry is not something the student did INSTEAD OF the goal behaviour" --
+        # rather than in a primitive the audit can compare. A scoring-relevant rule
+        # enforced on one side only is exactly what that audit exists to catch, and
+        # it cannot see this one. So it is declared here instead of detected there.
+        #
+        # HOW THE CELLS FALL, measured across every artifact that scored them:
+        #   p4   gold 2.0   CLI 2.0 (3/3)          web 3.5           CLI matches
+        #   p12  gold 5.0   CLI 5.0 (6/6)          web 3.5 (11/12)   CLI matches
+        #   p6   gold 3.5   CLI 5.0                web 3.5           WEB matches
+        # so the two declared cells favour the CLI and p6 favours the web, and at
+        # the ITEM level `cross_path --gold --item Q4b` is 15 against 15: a TIE.
+        #
+        # DIRECTION: RESOLVED IN FAVOUR OF THE WEB. The two sides tie against gold
+        # on this item, and the rule on a tie is to prefer the web. So the WEB'S
+        # READING IS THE REFERENCE and the CLI is what converges; the CLI's refusals
+        # on p4 and p12 are not imported just because they happen to land on gold in
+        # those two cells.
+        #
+        # That is not the same as freezing the web's accuracy. Improving the web's
+        # OWN rule against gold is still the right work -- the referent test would
+        # make the web charge p4, moving it TOWARD gold -- and it is a change to the
+        # reference side, which is exactly where a change belongs. What "prefer the
+        # web" forbids is adopting the CLI's reading as the target.
+        #
+        # This is the opposite of what the entry was first drafted as, on two cells
+        # read without the item around them.
+        #
+        # WHAT WOULD ACTUALLY CLOSE p4 is the referent test, and it has been
+        # measured once already: in prose form, 3 runs, counted [14,13,13] ->
+        # [15,12,14], rejected for THREE TIMES THE VARIANCE at +0.34 mean. It is
+        # now its own subgoal, to be run against a 6-run baseline after the sweep,
+        # because a 3-run history is what made the first verdict unsafe.
+        "what": "the INSTEAD-OF test is prose on both sides and the two paths read "
+                "it differently, with no primitive for the audit to compare",
+        "items": ["Q4b"],
+        "necessary": False,
+        "enforcement": "neither side computes it: `behavior_1` and `behavior_2` are "
+                       "model-judged from a per-slot `rule`, declared as prose-only "
+                       "in enforcement.PROSE_ONLY_SLOTS. The audit compares "
+                       "declarations, so it can see the SLOT but not the rule.",
+        "why": "Measured, not asserted: paper 2.0 against web 3.5 on p4 (gold 2.0) "
+               "and paper 5.0 against web 3.5 on p12 (gold 5.0), while p6 goes the "
+               "other way at paper 5.0 against web 3.5 (gold 3.5). Item-level the "
+               "two sides tie at 15 of 19 cells each, so the tie-break applies and "
+               "the WEB is preferred; the CLI converges. The cells are not "
+               "unreachable and the paths are not equally right cell by cell -- "
+               "they disagree, and until the referent test is measured at six runs "
+               "the disagreement is declared rather than fixed.",
+    },
+    {
         "what": "the web COMPUTES the nothing-listed gate; the CLI asks the model",
         "items": ["Q4a", "Q4c"],
         "necessary": True,
