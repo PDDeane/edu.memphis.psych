@@ -417,7 +417,7 @@
         "cells": {
           "1": 6,
           "10": 6,
-          "11": 6,
+          "11": 4,
           "12": 5,
           "13": 6,
           "14": 6,
@@ -431,7 +431,7 @@
           "5": 6,
           "6": 6,
           "7": 0,
-          "8": 4,
+          "8": 3,
           "9": 5
         },
         "denominator": 18,
@@ -443,20 +443,27 @@
           2,
           3
         ],
-        "numerator": 17,
-        "out": "cadence_eq6",
-        "prompt_sha": "8c68e07f866f",
+        "numerator": 16,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 17,
+          "out": "cadence_eq6",
+          "prompt_sha": "8c68e07f866f",
+          "runs": 6,
+          "scorer_sha": "38bd39ee8a03"
+        },
+        "prompt_sha": "b3c86328c706",
         "run_totals": [
           15,
           16,
           16,
-          17,
-          17,
-          17
+          16,
+          16,
+          16
         ],
         "runs": 6,
-        "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
-        "scorer_sha": "38bd39ee8a03"
+        "scorer_sha": "52fedad3b91b"
       }
     },
     "NP": {

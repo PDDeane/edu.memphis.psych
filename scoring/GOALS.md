@@ -1173,6 +1173,42 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       concentrates on one handout, that changes it from a per-cell question into a
       sheet-design one.
 
+- [ ] 22. **`cadence_is_daily`: a 4-point gate that FLIPS, worst on DAY2.**
+      Raised 2026-08-28 from the sweep. Filed here rather than as a goal of its own
+      because GOALS.md holds ONE active goal and that is the equivalence sweep;
+      promote it if it should displace that.
+      IT GATES. `cadence_is_daily` and `cadence_is_weekly` are gates=True, pts=None
+      on all four cadence items, so a single unmet verdict zeroes the whole 4-point
+      item. That makes its precision the item's ceiling.
+      THE SAME CHECK, THREE DIFFERENT BEHAVIOURS:
+          WK1  cadence_is_weekly  20 refusals  100% precise   no errors
+          DAY1 cadence_is_daily   26 refusals   92%           wrong on p11 only
+          DAY2 cadence_is_daily   17 refusals   71%           wrong on p8, p9, p11
+      The WEEKLY form is clean and the DAILY form is not, which is the first thing
+      to explain -- they are the same question with one word changed.
+      AND ON DAY2 IT IS NOT A THRESHOLD, IT IS INSTABILITY. The verdicts flip run to
+      run on cells whose input never changes:
+          p8   gold 4.0   verdicts [absent, met, met, met, absent, absent]   ours 0.0 / 4.0
+          p9   gold 4.0   verdicts [met, met, met, absent, met, met]         ours 0.0 / 4.0
+          p11  gold 2.0   verdicts [met, absent, met, met, met, met]
+      p8 is the case to work: gold gives FULL credit and says nothing, and a gate
+      flips on it three times in six, taking the item from 4.0 to 0.0 each time.
+      That is the largest single source of variance found in the sweep -- DAY2's
+      run totals are [15,16,16,16,16,16] and p8 is most of the 15.
+      WHY IT MATTERS BEYOND DAY2: a gate that flips is worse than a gate that is
+      wrong, because a wrong gate can be re-scoped and a flipping one cannot be
+      measured against. Any future change to DAY2 will be read through p8's coin
+      flip unless this is settled first.
+      WHERE TO START, and NOT with wording: the rule is `cadence_ok` in the shared
+      criteria prose -- "is the TRIGGER evaluated daily? Judge only how often the
+      behaviour is checked, not how long the consequence lasts" -- and it is stated
+      ONCE for both cadences, with the period substituted from the item's `cadence`
+      field. So the prose is identical for WK1, which never errs. Read p8's answer
+      first and establish what about it is borderline; the difference between the
+      daily and weekly items may be in the ANSWERS rather than the rule.
+      CONTROLS: DAY1's 26 refusals at 92% and WK1's 20 at 100% both depend on this
+      gate firing correctly. A change that relaxes it risks two items to fix one.
+
 - [ ] 21. **NR: a 4-point GATE running at 71% precision.**
       NR RECORDS 15/18, runs [14,14,15,15,15,16], and carries the worst MAE (0.50)
       and bias (-0.39) in the sweep. A ONE-cell drop from the ledger's previous
