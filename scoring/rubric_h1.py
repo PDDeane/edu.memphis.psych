@@ -721,7 +721,7 @@ ITEMS: list[dict] = [
         "derive_from_credit": True,
         # Unreachable on purpose: listing nothing costs both antecedent slots, and
         # A_NONE was never emitted across the cohort.
-        "unreachable_codes": ["A_NONE"],
+        "unreachable_codes": [],
         "credit": [
             {
                 "what": "antecedent_1",
@@ -767,6 +767,22 @@ ITEMS: list[dict] = [
                 "verdicts": ["met", "absent", "unclear"],
                 "codes": {"absent": "A_NO_KEYWORD", "unclear": "A_NO_KEYWORD"},
                 "desc": "Uses 'antecedent' or 'trigger' at least once. A_NO_KEYWORD applies whenever neither \"antecedent\" nor \"trigger\" appears anywhere in the response. The graders enforced this inconsistently — one row lost the point and two others kept it — but the dictionary is explicit, so apply it. This is a deliberate divergence from the rows that kept it.",
+            },
+            {
+                "what": "no_antecedents",
+                "gates": True,
+                "codes": {"absent": "A_NONE"},
+                "pts": None,
+                # Computed by `forbid`, so the model is never asked it: the check
+                # FAILS exactly when both entries are `absent`, which is what
+                # A_NONE names -- nothing listed at all. That is DISTINCT from
+                # entries written but of the wrong kind, which the -2 codes charge:
+                # Q4a/p20 is wrong_kind twice, gold 1, and is untouched by this.
+                # Measured before wiring: NO cell in the corpus has both entries
+                # `absent`, across 180 observations, so no recorded score moves.
+                # It exists because gold's dictionary specifies the code and the
+                # item could not otherwise reach 0.
+                "desc": "No antecedents were listed at all",
             },
         ],
         "deductions": [
@@ -1008,7 +1024,7 @@ ITEMS: list[dict] = [
         "derive_from_credit": True,
         # Unreachable on purpose, as A_NONE on Q4a. C_NO_KEYWORD joins it: the
         # keyword slot no longer maps a verdict to it, so nothing can emit it.
-        "unreachable_codes": ["C_NONE", "C_NO_KEYWORD"],
+        "unreachable_codes": ["C_NO_KEYWORD"],
         "credit": [
             {
                 "what": "consequence_1",
@@ -1034,8 +1050,23 @@ ITEMS: list[dict] = [
                 # deduction of any kind on this item; every one is 2 or 4. The
                 # charge cost three cells (p15 and p17 docked at full credit,
                 # p13 charged it on top of a correct -2) and recovered none.
-                # Q4a is the opposite case and keeps its charge: p17's gold row
-                # reads `-1 pt: did not use the word "antecedent" or "trigger"`.
+                # Q4a WAS the opposite case, keeping its charge because p17's
+                # gold row reads `-1 pt: did not use the word "antecedent" or
+                # "trigger"`. That is no longer true: A_NO_KEYWORD now costs 0.0,
+                # after the charge was measured firing on one row in seven where
+                # gold charged nothing, and p17's gold was corrected instead (see
+                # handouts.CORRECTED_GOLD). The two items now agree in EFFECT --
+                # neither charges for the keyword — by different mechanisms: Q4a's
+                # code is reachable and worth nothing, Q4c's is unreachable.
+                #
+                # REVISITED under the equivalence goal, which asks that a code
+                # gold specifies be made reachable rather than declared away. The
+                # answer here is unchanged, and the fresh measurement agrees with
+                # the one above to the cell: the keyword reads absent or unclear
+                # in 12 of 60 recorded observations across p9, p13, p15 and p17,
+                # every run, while gold charges a keyword deduction NOWHERE on
+                # either item. Reachable-at-zero would be cosmetic; the code stays
+                # in `unreachable_codes` with this note as its reason.
                 "what": "keyword",
                 "pts": None,
                 # `reported`, not merely unpointed. pts=None already stops the
@@ -1049,6 +1080,22 @@ ITEMS: list[dict] = [
                 "verdicts": ["met", "absent", "unclear"],
                 "codes": {},
                 "desc": "Uses 'consequence' at least once (advisory, not scored). The word \"consequence\" is NOT worth a point here, unlike the keyword on Q4a. Report `keyword: absent` when it appears nowhere — the feedback may mention it — but it costs nothing. IMPLICIT (from gold): no Q4c row in the corpus deducts for it, and none carries a 1-point deduction at all — rows that omit the word keep full credit. Q4a differs and keeps its charge, because a Q4a row there does deduct for the missing keyword.",
+            },
+            {
+                "what": "no_consequences",
+                "gates": True,
+                "codes": {"absent": "C_NONE"},
+                "pts": None,
+                # Computed by `forbid`, so the model is never asked it: the check
+                # FAILS exactly when both entries are `absent`, which is what
+                # C_NONE names -- nothing listed at all. That is DISTINCT from
+                # entries written but of the wrong kind, which the -2 codes charge:
+                # Q4a/p20 is wrong_kind twice, gold 1, and is untouched by this.
+                # Measured before wiring: NO cell in the corpus has both entries
+                # `absent`, across 180 observations, so no recorded score moves.
+                # It exists because gold's dictionary specifies the code and the
+                # item could not otherwise reach 0.
+                "desc": "No consequences were listed at all",
             },
         ],
         "deductions": [

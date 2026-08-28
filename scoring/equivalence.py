@@ -128,8 +128,23 @@ def scoring_audit():
 
         if abs(web_max - rub["max"]) > 1e-9:
             findings.append((item, "TOTAL", f"web {web_max:g} vs CLI {rub['max']:g}"))
+        # `unreachable_codes` is a DECLARATION and this check has to honour it, the
+        # same way --scoring honours SCORING_DIVERGENCES. The rubric already
+        # names Q4a's A_NONE and Q4c's C_NONE/C_NO_KEYWORD there, with reasons,
+        # and enforcement.check_codes_reachable reads the field -- but this
+        # mechanical pass did not, so it reported three "undeclared" flags against
+        # codes that were declared. An audit that ignores a project's own
+        # declaration mechanism trains its readers to ignore the audit.
+        #
+        # It is a declaration, not an amnesty: a code named here that is in fact
+        # reachable is itself a finding, and check_codes_reachable already raises
+        # that. See GOALS.md — a code gold specifies should be made REACHABLE
+        # rather than declared away, and A_NONE/C_NONE are being wired up.
+        declared_dead = set(rub.get("unreachable_codes") or [])
         for d in rub["deductions"]:
             if d["code"] in OMIT_DEDUCTION.get(item, {}):
+                continue
+            if d["code"] in declared_dead:
                 continue
             whole = abs(d["pts"] - rub["max"]) < 1e-9
             if whole and not can_zero:
