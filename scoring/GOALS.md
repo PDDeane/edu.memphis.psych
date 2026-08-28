@@ -169,12 +169,36 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       rubric key, and the fingerprint flagged them because `expand_counted`
       moved, not because arithmetic changed. Q4b and 2a are running; 2b and 3
       are next.
-- [ ] 4. **The leakage detector's shared-prose blind spot.** Found twice today:
+- [x] 4. **The leakage detector's shared-prose blind spot.** Found twice today:
       the word check suppresses any word appearing in ANOTHER authored block, so
       prose duplicated across items is invisible to it -- the whole of
       `_MOVE_RULE` was unchecked while it sat in four prompts, and both times a
       block was edited an unrelated block lit up. Compute the "ours" set from
       DISTINCT prose rather than per-block. Expect a fresh backlog to triage.
+      FIXED AND IT CAUGHT REAL LEAKAGE ON ITS FIRST RUN. `elsewhere` is now
+      computed from prose the block does NOT contain, at SENTENCE granularity so
+      partial sharing is caught too, not only exact duplicates. Measured before
+      the fix: 139 of 301 authored blocks carried a full text that also appears
+      verbatim in another block, and 114 sentences sat in more than one block --
+      the four-type operant definition in twelve. All of that was exempt.
+      Findings went 26 -> 69, the new 43 collapsing to 7 distinct prose shas.
+      Four were vocabulary. THREE WERE REAL:
+      p14/NR's "{{corpus:NR/p14:nr:52:83:sha=658c91c9eff0}} exercise" had become our canonical
+      negative example, "a lock that opens when the student arrives", in blocks
+      shared by DAY1/DAY2/NR/WK2; p4's "scroll through TikTok" had become "I will
+      read rather than scroll". Both are CELLS WE SCORE. Rewritten, not excused.
+      The SAFETY block was wrong on its own terms as well as leaky: an enumerated
+      list -- food, sleep, medical care, exercise-as-punishment -- where gold has
+      a principle (the graders flagged whatever could harm the student and left
+      the score at full), plus a grader's note quoted verbatim, which is where its
+      shared vocabulary came from. Restated as the principle.
+      A SECOND BUG surfaced with it: `--review` built its known set from
+      `findings()` only, so a WORD finding could block every sweep with no way to
+      file a verdict for it. It never bit while the word check was suppressing
+      duplicated prose. Fixed to search both.
+      OPTION 2 TAKEN: prompts are clean now, the eight handout-2 items read STALE
+      PROMPT, and the ~960 calls to re-measure them are deferred rather than
+      spent. The ledger tells the truth about what is unmeasured.
 - [ ] 5. **Q4b/p12's declared divergence.** Accurate today, but its stated reason
       says we never matched gold there and cli_v7/cli_v8 both scored it 3/3. A
       declaration whose reason is false is a declaration that will be trusted
