@@ -1313,6 +1313,22 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       that re-stamps all 26 ledger entries, which is a decision about the ledger
       rather than a fix, and ten items are already stale. Carried as subgoal 16.
 - [ ] 9. **Q3/p19: actionability grounded in measurability.** The cell names a
+      MEASURED IN THE TWO-SIDED SWEEP, 6 runs, 2026-08-28. Q3 came out 18/20 at
+      100% PER CHECK with a spread of ZERO cells -- so every individual verdict was
+      right and the two missed cells are arithmetic on correct judgements. The
+      error profile is ONE-SIDED: over-credit 11, under-credit 1, and the tool's own
+      reading is "a threshold is set wrong, not unstable". Both remaining defects
+      are MISSING DEDUCTIONS -- we credit what gold docks -- which is a far more
+      tractable shape than Q1's and Q2's opposed-direction errors.
+      AND THE DIAGNOSIS MOVED, because gold docks TWO points on each of these cells
+      and we were reading the first one only:
+      CONFIRMED AND STABLE, 6 of 6. gold 3.0, we predict 4.0 every run. gold's
+      note is "-1 pt: For measurable, how are you tracking your goal? -1 pt: For
+      action, what do you have to actively do to achieve your goal?" -- and we fail
+      `measurable` in 6 of 6 runs while NEVER failing `action_oriented`. So we
+      already agree with gold on the slot the subgoal is not about, and the entire
+      gap is the missing `action_oriented` deduction. This is the clearest of the
+      three and the only one whose premise survives the sweep unchanged.
       doing AND rests its actionability on being able to measure it, so neither
       lever that fixed p8 and p16 reaches it -- not the time clause, and not
       "names no doing of its own". Gold docks it. This is the residual cell most
@@ -1322,10 +1338,43 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       rejects measurability-as-justification risks p9, p14 and p18, all credited
       on access alone.
 - [ ] 10. **Q3/p10: `measurable` at ~3/6.** Names tracking methods but no medium
+      MEASURED IN THE TWO-SIDED SWEEP, 6 runs, 2026-08-28. Q3 came out 18/20 at
+      100% PER CHECK with a spread of ZERO cells -- so every individual verdict was
+      right and the two missed cells are arithmetic on correct judgements. The
+      error profile is ONE-SIDED: over-credit 11, under-credit 1, and the tool's own
+      reading is "a threshold is set wrong, not unstable". Both remaining defects
+      are MISSING DEDUCTIONS -- we credit what gold docks -- which is a far more
+      tractable shape than Q1's and Q2's opposed-direction errors.
+      AND THE DIAGNOSIS MOVED, because gold docks TWO points on each of these cells
+      and we were reading the first one only:
+      RIGHT SLOT, WORSE RATE, AND NO LONGER UNSTABLE. gold 3.0 against our 4.0 in
+      5 of 6 runs. gold docks `specific` AND `measurable`; we fail `specific` in 6
+      of 6 and `measurable` in only ONE of 6. So the cell is not "~3/6" any more --
+      we credit `measurable` five times in six, which is stably wrong rather than
+      noisy. The recorded caution here was "six runs of the criterion before any
+      prose change, since a ~3/6 cell can be moved by noise and read as a fix";
+      those six runs now exist and the answer is that noise is not what this is.
       -- what it would be recorded in. Unstable rather than stably wrong, so it
       is the weakest of the three: six runs of the criterion before any prose
       change, since a ~3/6 cell can be moved by noise and read as a fix.
 - [ ] 11. **Q3/p13: `realistic` over-charged.** We charge where gold passed the
+      MEASURED IN THE TWO-SIDED SWEEP, 6 runs, 2026-08-28. Q3 came out 18/20 at
+      100% PER CHECK with a spread of ZERO cells -- so every individual verdict was
+      right and the two missed cells are arithmetic on correct judgements. The
+      error profile is ONE-SIDED: over-credit 11, under-credit 1, and the tool's own
+      reading is "a threshold is set wrong, not unstable". Both remaining defects
+      are MISSING DEDUCTIONS -- we credit what gold docks -- which is a far more
+      tractable shape than Q1's and Q2's opposed-direction errors.
+      AND THE DIAGNOSIS MOVED, because gold docks TWO points on each of these cells
+      and we were reading the first one only:
+      PREMISE LARGELY RESOLVED -- CHECK BEFORE SPENDING ANYTHING ON IT. gold 3.0
+      and we now predict 3.0 in 5 of 6 runs. gold docks `specific` AND `measurable`
+      and we fail both in 6 of 6, which is why the cell is right. The systematic
+      over-charge this subgoal was written about is gone; what is left is a single
+      run where `realistic=unclear` cost a point, and that one run is the ONLY
+      under-credit in the whole item (1 of 120 observations). Consider closing this
+      on the sweep rather than working it, and if it stays open the target is a
+      1-in-6 flicker, not a threshold.
       answer silently, so unlike 9 and 10 the defect is OURS being too strict,
       not too lenient. Gold's silence is the evidence, which makes this the one
       of the three where the credited rows matter most -- there is no gold note
