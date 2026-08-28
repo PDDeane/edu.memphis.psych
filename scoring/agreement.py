@@ -471,8 +471,12 @@ def apply_computed(action: dict, checks: dict, fixture: dict) -> dict:
     for rule in action.get("forbid", []):
         hit = all(answer_of(checks, c["slot"]) == c["value"] for c in rule["conds"])
         o = opts(rule["key"])
+        # See score.derive_ledger: the failing verdict is declared via `fails`
+        # where the option list is longer than two, because the positional default
+        # differed between the two engines and coincided only because every
+        # computed check happens to have exactly two options.
         checks[rule["key"]] = {
-            "verdict": (o[1] if len(o) > 1 else "no") if hit else o[0],
+            "verdict": (rule.get("fails") or (o[1] if len(o) > 1 else "no")) if hit else o[0],
             "evidence": ", ".join(
                 f"{c['slot']}={answer_of(checks, c['slot']) or '?'}" for c in rule["conds"]),
         }
@@ -483,7 +487,8 @@ def apply_computed(action: dict, checks: dict, fixture: dict) -> dict:
         ok = got in rule["lenient"] or (bool(got) and got == rule["value"])
         o = opts(rule["key"])
         checks[rule["key"]] = {
-            "verdict": o[0] if ok else (o[1] if len(o) > 1 else "no"),
+            "verdict": o[0] if ok else (rule.get("fails")
+                                        or (o[1] if len(o) > 1 else "no")),
             "evidence": f"{rule['left']}={got or '?'}, wanted {rule['value']}",
         }
     return checks

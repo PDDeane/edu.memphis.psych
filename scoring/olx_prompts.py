@@ -881,6 +881,24 @@ EVIDENCE: dict[str, tuple[str, list[tuple[str, str]]]] = {
 # it in files the runtime already supplements.
 # ---------------------------------------------------------------------------
 
+def _split_fails(key: str) -> tuple[str, str | None]:
+    """`behavior_1->not_active` -> ("behavior_1", "not_active").
+
+    A computed rule may NAME the verdict it sets when it fails. Without it the
+    verdict is positional, and the two engines read the position differently:
+    score.py took the LAST option and agreement.py the SECOND. Every computed check
+    in the corpus has exactly two options, so those coincide and the engines agree
+    BY LUCK -- the divergence fires on the first three-option computed check, which
+    is what Q4b's INSTEAD-OF test needs (met / absent / not_active, where `absent`
+    charges B_ONLY_ONE and `not_active` charges the repeatable B_NOT_ACTIVE).
+
+    So: explicit where it is ambiguous, and `check_computed_verdict_is_unambiguous`
+    requires it there.
+    """
+    k, sep, fails = key.partition("->")
+    return k.strip(), (fails.strip() or None) if sep else None
+
+
 def parse_forbid(spec: str) -> list[dict]:
     """Mirror of lo-blocks parseForbid (packages/shared/lib/llm/slotSheet.ts).
 
@@ -901,13 +919,17 @@ def parse_forbid(spec: str) -> list[dict]:
         if not entry:
             continue
         key, _, rest = entry.partition(":")
+        key, fails = _split_fails(key)
         conds = []
         for cond in rest.split(","):
             slot, _, value = (x.strip() for x in cond.partition("="))
             if slot and value:
                 conds.append({"slot": slot, "value": value})
         if key.strip() and conds:
-            out.append({"key": key.strip(), "conds": conds})
+            rule = {"key": key.strip(), "conds": conds}
+            if fails:
+                rule["fails"] = fails
+            out.append(rule)
     return out
 
 
@@ -994,12 +1016,16 @@ def parse_expect(spec: str | None) -> list[dict]:
         if len(parts) < 2:
             continue
         key, lhs = parts[0], parts[1]
+        key, fails = _split_fails(key)
         left, _, value = lhs.partition("=")
         if not key or not left.strip() or not value.strip():
             continue
-        out.append({"key": key, "left": left.strip(), "value": value.strip(),
-                    "lenient": [v.strip() for v in (parts[2] if len(parts) > 2 else "").split(",")
-                                if v.strip()]})
+        rule = {"key": key, "left": left.strip(), "value": value.strip(),
+                "lenient": [v.strip() for v in (parts[2] if len(parts) > 2 else "").split(",")
+                            if v.strip()]}
+        if fails:
+            rule["fails"] = fails
+        out.append(rule)
     return out
 
 
