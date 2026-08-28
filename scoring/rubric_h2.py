@@ -121,16 +121,16 @@ _AUTHORED_RULE = (
                "whether the plan is a wise one.\n"
                "  Answer `created` when the answer describes the student "
                "BRINGING A DEPRIVATION INTO BEING as part of the plan — "
-               "putting something out of reach, going without something, "
-               "locking or leaving something behind — which performing the "
+               "putting something beyond use, going without it, or "
+               "setting it aside — which performing the "
                "behaviour then lifts.\n"
                "  Answer `relieved` when it describes the student being LET "
                "OFF something that would have been required of them anyway: a "
                "chore, an obligation, a task they would otherwise have had to "
                "do whether or not this plan existed.\n"
                "  The two are usually built differently. Creating a "
-               "deprivation is stated in the POSITIVE — leaving something "
-               "behind, keeping something locked, having only the one thing. "
+               "deprivation is stated in the POSITIVE — setting something "
+               "aside, keeping it beyond use, having only the one thing. "
                "Being let off is usually stated as a NEGATED REQUIREMENT — not "
                "having to do it, one less than usual, skipping it this time.\n"
                "  Answer `neither` when no undesirable thing figures on either "
@@ -239,12 +239,20 @@ _EXAMPLE_RULES = [
     "nothing. If the answer is phrased as an if/then "
     "arrangement the student sets up, this code does not apply; judge it on "
     "tests 2 and 3 instead.",
-    "SAFETY: flag, but do not deduct for, any example that withholds food, "
-    "sleep, or medical care, or that punishes with exercise in a way that could "
-    "harm the student. The graders wrote notes like \"Please change this example "
-    "to remove something not related to meals. It is important to us that you "
-    "are safe and healthy throughout this behavior modification!\" while leaving "
-    "the score at full.",
+    # WAS an enumerated list -- food, sleep, medical care, exercise-as-punishment
+    # -- with a grader's note quoted verbatim. Two faults. The list is NARROWER
+    # than what it reconstructs: the graders flagged whatever could harm the
+    # student and left the score at full, so a plan harmful in some other way was
+    # not covered at all. And the verbatim quotation hard-coded one incident into
+    # a general rule, and was where most of this block's shared vocabulary came
+    # from. Stated as the principle instead.
+    "SAFETY: flag, but do not deduct for, any example whose arrangement could "
+    "harm the student or put their wellbeing at stake — going without something "
+    "the body needs, forgoing care, or using the goal behaviour itself as a "
+    "punishment are the common shapes, but the judgement is whether the plan "
+    "could do harm, not whether it matches that list. Say so in the feedback and "
+    "leave the score at full: the graders did exactly this, flagging the "
+    "arrangement while awarding every point.",
 ]
 
 
@@ -655,9 +663,9 @@ def _example_use_item(
                "relief arrives once the behaviour is complete and is a step "
                "distinct from it. What does not count is a restriction "
                "standing IN FRONT OF the behaviour that is simply lifted at "
-               "the moment of doing it: a lock that opens when the student "
-               "arrives, access granted upon starting, a barrier the "
-               "behaviour itself removes. There the lifting IS the "
+               "the moment of doing it: a restriction that ends exactly when "
+               "the behaviour begins, so that beginning it IS the lifting. "
+               "There the lifting IS the "
                "behaviour's own occurrence, not something that follows it. "
                "Ask: once the student has behaved, is anything still left to "
                "happen? If nothing is, (c) fails.\n"
@@ -668,7 +676,7 @@ def _example_use_item(
                "{{corpus:DAY1/p2:day1:81:84:sha=acba25512100}}\"); a PURPOSE clause giving the reason for the behaviour "
                "rather than a consequence of it (\"I {{corpus:DAY1/p2:day1:72:84:sha=ad82f04b1536}} to feel "
                "healthier\"); one activity offered INSTEAD OF another (\"I "
-               "will read rather than scroll\"); or a bare statement of intent "
+               "will do the other one instead\"); or a bare statement of intent "
                "or hope (\"this should {{corpus:NR/p12:nr:123:139:sha=d881672437f8}} goal\"). A missing (c) "
                "looks well formed: \"the kitchen "
                "stays off limits until I have finished studying, and I go in "
