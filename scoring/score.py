@@ -265,6 +265,10 @@ def build_schema(item: dict) -> dict:
     # A check the code COMPUTES is left out entirely: asking for an answer that is
     # then discarded is the incoherence the removed `pts`/`item_id` fields were.
     computed = {r["key"] for r in item.get("equals", [])}
+    # `forbid` keys too. "Were none listed?" is answerable from two verdicts the
+    # model has already given, so asking spends a judgement and lets it contradict
+    # itself. The web strips them from its schema; this is the same rule here.
+    computed |= {r["key"] for r in item.get("forbid", [])}
     # A counted group asks HOW MANY once, instead of asking each member. The
     # members are derived, so they leave the schema the way a computed check does.
     for cr in item.get("counts", []):
@@ -371,6 +375,23 @@ def derive_ledger(item: dict, raw: dict,
     # A computed check's verdict comes from comparing two answered ones. Same rule
     # as the web's `equals`: operands that mean "cannot tell" SATISFY it, because a
     # mismatch that cannot be established is not one the rubric charges.
+    # `forbid`: the named check FAILS only when EVERY condition holds. Mirrors the
+    # web primitive and apply_computed's implementation. The POLARITY_GATE_ITEMS
+    # branch below is the same idea hand-written for one item family, from before
+    # the rule could be declared; this reads it from the rubric, so any item can
+    # carry one and both sides compute it from the same declaration.
+    for rule in item.get("forbid", []):
+        hit = all(((slots.get(c["slot"]) or {}).get("verdict") or "").strip() == c["value"]
+                  for c in rule["conds"])
+        spec = next((c for c in item["credit"] if c["what"] == rule["key"]), None)
+        vocab = (spec or {}).get("verdicts") or ["met", "absent"]
+        slots[rule["key"]] = {
+            "verdict": vocab[-1] if hit else vocab[0],
+            "evidence": ", ".join(
+                f"{c['slot']}={(slots.get(c['slot']) or {}).get('verdict') or '?'}"
+                for c in rule["conds"]),
+        }
+
     for rule in item.get("equals", []):
         left = ((slots.get(rule["left"]) or {}).get("verdict") or "").strip()
         right = ((slots.get(rule["right"]) or {}).get("verdict") or "").strip()
@@ -947,6 +968,7 @@ def build_prompt(
         parts.append("")
     elif item.get("derive_from_credit"):
         computed = {r["key"] for r in item.get("equals", [])}
+        computed |= {r["key"] for r in item.get("forbid", [])}   # not asked; see above
         worths = {c.get("pts") for c in item["credit"] if not c.get("reported")
                   and not c.get("gates")}
         # Not `.pop()`: mutating the set here made the per-slot suffix below fire
