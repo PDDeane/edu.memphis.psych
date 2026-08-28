@@ -206,12 +206,52 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
           would fail the check as `absent`, telling a student who gave two examples
           that they gave one, and charging a non-repeatable code in place of a
           repeatable one. Same points, wrong feedback, wrong repeatability.
-      SO THE FIX NEEDS A PRIMITIVE EXTENSION: let a computed rule NAME the verdict
-      it sets on failure, rather than taking the second option. Three places, and
-      they must move together -- `score.derive_ledger`, `agreement.apply_computed`,
-      and lo-blocks' `slotSheet.ts`, which is the runtime the students meet. That is
-      the decision to take before this subgoal can proceed; it is a change to a
-      shared primitive, not to one item.
+      THE PRIMITIVE EXTENSION IS DONE, on the two python engines. A computed rule
+      may now NAME the verdict it sets: `behavior_1->not_active:b1_basis=activity`,
+      parsed by `parse_forbid`/`parse_expect` into a `fails` field and honoured by
+      both `score.derive_ledger` and `agreement.apply_computed`.
+      IT ALSO CLOSED A LATENT DIVERGENCE. The failing verdict was positional, and
+      the two engines read the position DIFFERENTLY -- score.py took `vocab[-1]`,
+      agreement.py took `options[1]`. Every computed check in the corpus has exactly
+      two options, so those coincide and the engines agreed BY LUCK; the divergence
+      would have fired on the first three-option computed check, which is precisely
+      what this fix needs.
+      TWO MORE GAPS FOUND AND CLOSED ON THE WAY, both of the same kind -- a
+      primitive honoured on one side only:
+        - `expect` was computed by agreement.apply_computed for any item and by
+          score.py only inside derive_oc_ledger. A credit-path `expect` was
+          honoured by the web and silently ignored by the CLI: the check simply
+          never got set, its code never charged, nothing reported. Now computed in
+          derive_ledger, and `check_both_engines_compute_the_same_primitives`
+          asserts the parity from the REGISTRY rather than from a list of names.
+        - score.py's schema exclusion named `equals` and `forbid` by hand -- a
+          mirror of primitives.json kept by memory, already behind: `expect`
+          excludes keys and was missing, so an `expect` key would have been ASKED
+          on the CLI while the web computed it. Now registry-driven. `counts` is
+          the one primitive whose KEY the model does answer, and over-excluding it
+          moved five schemas until the baseline comparison caught it.
+
+      STILL BLOCKED, at the last step, and the blocker moved: the APP models a
+      computed check as a BOOLEAN. `slotSheet.satisfiedMap` returns
+      `out[key] = true/false`, so in the runtime students meet, a computed check
+      has no verdict at all and cannot distinguish `not_active` from `absent`.
+      Naming the verdict in the declaration therefore reaches both harnesses and
+      not the app.
+      TWO WAYS FORWARD, and this is the decision to take:
+        (A) FULL RETIREMENT: give computed checks a verdict in lo-blocks, so the
+            app can charge B_NOT_ACTIVE rather than only "unsatisfied". That is a
+            change to the app's grading model, not a parser tweak, and it is the
+            only route that lets `behavior_1` become computed and the declaration
+            retire outright.
+        (B) NARROW IT: compute the REFERENT half only, as a 2-option check whose
+            code is B_NOT_ACTIVE, which the app's boolean model already supports.
+            The four prose tests stay prose, so the declaration narrows to them
+            instead of retiring -- and it becomes a smaller, truer declaration
+            rather than a general one about the whole INSTEAD-OF test.
+      Also found: `for (const r of forbid) out[r.key] = ...` in the app has the same
+      last-rule-wins overwrite as both harnesses, so the trap is consistent across
+      all three and `check_computed_rules_do_not_share_a_key` guards the authoring
+      side of it.
       ONCE EXTENDED: declare the pick and its `choices`, declare
       `expect: behavior_1:b1_basis=activity:...` naming `not_active` as the failing
       verdict, author the OLX slots (Q4b has no picks, no `choices` and no `forbid`

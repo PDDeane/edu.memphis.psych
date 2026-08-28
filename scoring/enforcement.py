@@ -1190,6 +1190,90 @@ PROSE_ONLY_BUDGET = 9
 NO_RUBRIC_COMMENTS = {"1c", "3"}
 
 
+# A key-excluding primitive the CLI cannot compute, with the reason. `derived` is
+# declared only on 1c, where it reads the four typed data fields the web page
+# collects and draws its chart from; there is no way to ask a .docx that question,
+# which is the platform-forced 1c deviation already in EQUIVALENCE.md.
+COMPUTE_EXEMPT = {"derived": "1c only, and platform-forced: it reads the web page's "
+                             "typed data fields, which the paper submission has no "
+                             "equivalent of. See EQUIVALENCE.md's 1c deviation."}
+
+
+def check_both_engines_compute_the_same_primitives() -> list[str]:
+    """If a primitive removes a key from the schema, BOTH engines must compute it.
+
+    A key that leaves the response schema is a key the model is not asked, so
+    whichever side does not compute it has no value for that check at all. The
+    consequences differ by side but both are silent: the web would score a check it
+    never set, and score.py simply never sets it -- the check does not fire, its
+    code is never charged, and nothing reports a problem.
+
+    That was live, latently: `expect` was computed by agreement.apply_computed for
+    any item and by score.py only inside derive_oc_ledger, so an `expect` declared
+    on a credit-path item was honoured on one side and ignored on the other. No
+    credit-path item declared one, so it cost nothing -- it was found by needing one
+    for Q4b, which is the wrong way to find it.
+
+    Reads the REGISTRY rather than a list of primitive names, so a primitive added
+    to primitives.json is covered the day it lands.
+    """
+    import inspect
+    import olx_prompts as OP
+
+    try:
+        import agreement as A
+        import score as S
+    except Exception as exc:
+        return [f"could not import both engines to compare their computation: {exc}"]
+
+    # THE COMPUTATION ENTRY POINTS, not the modules. Scanning whole modules made
+    # this check inert: score.py mentions "expect" in helper functions, so removing
+    # the computation loop entirely left the check silent -- it would have missed
+    # the very gap it was written for. And scanning one function per side is wrong
+    # the other way: `counts` is expanded by agreement.expand_counted, not by
+    # apply_computed, so a single-function scan reports a mismatch that is not one.
+    WEB_FNS = ("apply_computed", "expand_counted")
+    CLI_FNS = ("derive_ledger", "derive_oc_ledger")
+
+    def _src(mod, names):
+        out = []
+        for n in names:
+            fn = getattr(mod, n, None)
+            if fn is None:
+                return None, f"{mod.__name__}.{n} is gone -- retarget this check"
+            try:
+                out.append(inspect.getsource(fn))
+            except Exception as exc:
+                return None, f"cannot read {mod.__name__}.{n}: {exc}"
+        return "\n".join(out), None
+
+    web, err = _src(A, WEB_FNS)
+    if err:
+        return [err]
+    cli, err = _src(S, CLI_FNS)
+    if err:
+        return [err]
+
+    out = []
+    for attr in OP.primitive_attrs(excluding_keys=True):
+        # A READ of the declaration, not a mention of the word.
+        pats = (f'get("{attr}"', f"get('{attr}'", f'["{attr}"]', f"['{attr}']")
+        w = any(x in web for x in pats)
+        c = any(x in cli for x in pats)
+        if w and not c and attr not in COMPUTE_EXEMPT:
+            out.append(f"`{attr}` removes keys from the schema and the web computes "
+                       f"it, but score.py never reads item[{attr!r}]. The model is "
+                       f"not asked for those keys, so on the CLI the check is never "
+                       f"set, its code is never charged, and nothing reports it")
+        if c and not w:
+            out.append(f"`{attr}` is computed by score.py and not by agreement.py, "
+                       f"so the web scores a check it never set")
+        if attr in COMPUTE_EXEMPT and c:
+            out.append(f"COMPUTE_EXEMPT excuses `{attr}` as uncomputable on the CLI, "
+                       f"but score.py now reads it -- drop the exemption")
+    return out
+
+
 def check_computed_rules_do_not_share_a_key() -> list[str]:
     """Two computed rules writing the SAME check: the second silently wins.
 

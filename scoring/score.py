@@ -120,6 +120,33 @@ SCHEMA = {
 }
 
 
+def _computed_keys(item: dict) -> set:
+    """Keys the model must NOT be asked, because a primitive computes them.
+
+    Sourced from primitives.json via olx_prompts.primitive_attrs(excluding_keys=
+    True), so this cannot fall behind the registry the way a hand-written list of
+    attribute names did.
+    """
+    from olx_prompts import primitive_attrs
+
+    out = set()
+    for attr in primitive_attrs(excluding_keys=True):
+        for rule in item.get(attr) or ():
+            if not isinstance(rule, dict):
+                continue
+            if attr == "counts":
+                # A counted group is the one primitive whose KEY the model DOES
+                # answer -- "how many did you find" -- while its members are
+                # derived from that number. Excluding the key here removed the
+                # count question itself from five items' schemas, which the
+                # baseline comparison caught immediately.
+                out.update(rule.get("slots") or ())
+                continue
+            if rule.get("key"):
+                out.add(rule["key"])
+    return out
+
+
 def _slot_options(slot: str) -> list:
     """The answer vocabulary for a slot, from rubric_h2.SLOT_OPTIONS.
 
@@ -302,11 +329,17 @@ def build_schema(item: dict) -> dict:
     grouped = {k: g["verdicts"] for g in item.get("cover", []) for k in g["keys"]}
     # A check the code COMPUTES is left out entirely: asking for an answer that is
     # then discarded is the incoherence the removed `pts`/`item_id` fields were.
-    computed = {r["key"] for r in item.get("equals", [])}
-    # `forbid` keys too. "Were none listed?" is answerable from two verdicts the
-    # model has already given, so asking spends a judgement and lets it contradict
-    # itself. The web strips them from its schema; this is the same rule here.
-    computed |= {r["key"] for r in item.get("forbid", [])}
+    # EVERY key-excluding primitive, from the REGISTRY. "Were none listed?" is
+    # answerable from two verdicts the model has already given, so asking spends a
+    # judgement and lets it contradict itself; the web strips such keys from its
+    # schema and this is the same rule here.
+    #
+    # It used to name `equals` and `forbid` by hand, which is a mirror of
+    # primitives.json kept by memory -- and it had already fallen behind: `expect`
+    # excludes keys and was not listed, so an `expect` key would have been ASKED
+    # here while the web computed it. Reading the registry covers a primitive the
+    # day it is added.
+    computed = _computed_keys(item)
     # A counted group asks HOW MANY once, instead of asking each member. The
     # members are derived, so they leave the schema the way a computed check does.
     for cr in item.get("counts", []):
@@ -423,8 +456,17 @@ def derive_ledger(item: dict, raw: dict,
                   for c in rule["conds"])
         spec = next((c for c in item["credit"] if c["what"] == rule["key"]), None)
         vocab = (spec or {}).get("verdicts") or ["met", "absent"]
+        # The failing verdict is DECLARED where it matters. It used to be
+        # positional and the two engines read the position differently -- this side
+        # took vocab[-1], agreement.apply_computed took options[1]. Every computed
+        # check in the corpus has exactly two options, so those coincide and the
+        # engines agreed by luck; the divergence fires on the first three-option
+        # computed check. `check_computed_verdict_is_unambiguous` requires `fails`
+        # there, and the shared default below is the two-option case where both
+        # readings are the same answer.
         slots[rule["key"]] = {
-            "verdict": vocab[-1] if hit else vocab[0],
+            "verdict": (rule.get("fails") or vocab[1] if len(vocab) > 1
+                        else "absent") if hit else vocab[0],
             "evidence": ", ".join(
                 f"{c['slot']}={(slots.get(c['slot']) or {}).get('verdict') or '?'}"
                 for c in rule["conds"]),
@@ -442,6 +484,26 @@ def derive_ledger(item: dict, raw: dict,
             "evidence": (f"{rule['left']}={left or '?'}, {rule['right']}={right or '?'}"
                          + (" — no mismatch established" if ok and
                             (left in lenient or right in lenient) else "")),
+        }
+
+    # `expect`: one answer against an AUTHORED value, leniently. The web's
+    # apply_computed has always computed this for any item; THIS side computed it
+    # only inside derive_oc_ledger, so an `expect` declared on a credit-path item
+    # was honoured by the web and silently ignored here -- the check would simply
+    # never be set. No credit-path item declared one, so it was latent rather than
+    # live, and it was found by needing one for Q4b. The three primitives the two
+    # engines share must be computed by both or the declaration means different
+    # things on each side, which is the divergence class this whole goal is about.
+    for rule in item.get("expect", []):
+        entry = slots.get(rule["left"]) or {}
+        got = str(entry.get("refers_to") or entry.get("verdict") or "").strip()
+        ok = got in (rule.get("lenient") or []) or (bool(got) and got == rule["value"])
+        spec = next((c for c in item["credit"] if c["what"] == rule["key"]), None)
+        vocab = (spec or {}).get("verdicts") or ["met", "absent"]
+        slots[rule["key"]] = {
+            "verdict": vocab[0] if ok else (rule.get("fails") or vocab[1]
+                                            if len(vocab) > 1 else "absent"),
+            "evidence": f"{rule['left']}={got or '?'}, wanted {rule['value']}",
         }
 
     satisfying = {k: g["labels"] for g in item.get("cover", []) for k in g["keys"]}
@@ -970,8 +1032,7 @@ def build_prompt(
         ))
         parts.append("")
     elif item.get("derive_from_credit"):
-        computed = {r["key"] for r in item.get("equals", [])}
-        computed |= {r["key"] for r in item.get("forbid", [])}   # not asked; see above
+        computed = _computed_keys(item)      # not asked; see build_schema
         worths = {c.get("pts") for c in item["credit"] if not c.get("reported")
                   and not c.get("gates")}
         # Not `.pop()`: mutating the set here made the per-slot suffix below fire
