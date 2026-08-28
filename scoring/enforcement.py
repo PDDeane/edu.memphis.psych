@@ -2259,38 +2259,34 @@ def check_web_scorer_exercises_its_sheet() -> list[str]:
 # the CLI ASK the model a question the web computed -- and the only reason it
 # surfaced is that the prompt-text audit noticed the extra question.
 HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
-    # ("derive_oc_ledger", "'WK1'") stood here, and its own text said the mapping
-    # was `expect`-shaped and should convert. It did: rubric_h2.EXPECT declares
-    # it, olx_prompts.expect_attr_for generates the web's attribute from that
-    # declaration, and score._expect_rule reads it. That was the last of the
-    # seven -- derive_oc_ledger now has no item id in it at all.
-    # ("derive_oc_ledger", "'DAY1'") was declared here as "the avoidance frame
-    # never deducts on DAY1 -- gold's own exception", which read the rule
-    # BACKWARDS: DAY1 is the one item where it DOES deduct, gating the whole
-    # item, and everywhere else it is advisory. The branch now reads
-    # rubric_h2.AVOIDANCE_SCORES, the same declaration that decides what the
-    # criteria prose promises, so there is no item id left to exempt.
-    # ("derive_oc_ledger", "POLARITY_GATE_ITEMS") and
-    # ("derive_oc_ledger", "BARRIER_PICK_ITEMS") stood here. Both were the SAME
-    # three-condition conjunction, written by hand in two branches and a third
-    # time as a `forbid=` attribute in the .olx. It is now rubric_h2.FORBID,
-    # declared once; olx_prompts generates the attribute from it and
-    # score._forbid_rule reads it, so presence of the declaration selects the
-    # item and there is no id left to exempt.
-    ("build_schema", "BARRIER_PICK_ITEMS"): "schema shape, not scoring.",
-    ("build_schema", "CONTINGENCY_GATE_ITEMS"): "schema shape, not scoring.",
-    ("build_schema", "MOVE_PICK_ITEMS"): "schema shape, not scoring.",
-    ("build_schema", "'WK1'"): "schema shape, not scoring.",
-    ("build_schema", "'WK2'"): "schema shape, not scoring.",
-    # ("build_prompt", "'DAY1'") and ("build_prompt", "'WK1'") lived here as
-    # "prompt wording, not scoring". Both are gone: the criteria prose has one
-    # source now, DAY1's avoidance exception is declared on the rubric as
-    # `avoidance_scores`, and WK1's criterion follows build_schema rather than an
-    # item id. The exemptions were removed because the check flagged them as
-    # stale the moment the branches went -- which is the half of it that earns
-    # its keep.
-    ("build_prompt", "('Q1', 'Q2')"): "prompt hint, not scoring.",
-    ("score_participant", "only"): "a CLI flag filter, not a rule.",
+    # EMPTY, 2026-08-28. All seven went, and the last five were the ones this
+    # table called "schema shape, not scoring" -- true, and beside the point: the
+    # schema is what the model is ASKED, so a shape keyed by item id is a rule
+    # keyed by item id wearing a different hat.
+    #
+    # Each now follows the declaration that CONSUMES the answer, so the sheet
+    # cannot drift from the rule that reads it:
+    #   the three barrier readings  <- the slots this item's `forbid` names
+    #   states_a_contingency        <- an `oc_gates` key
+    #   aimed_correctly             <- an `oc_gates` key
+    #   agent_delivers_consequence  <- an `oc_gates` key
+    #   trigger_behavior            <- the slot this item's `expect` parses
+    #   stimulus_move               <- rubric_h2 `move_pick`
+    #   the underlined-UTB hint     <- rubric_h1 `reads_utb_choice`
+    # with answer vocabularies in rubric_h2.SLOT_OPTIONS, keyed by SLOT rather
+    # than by item, because the vocabulary belongs to the question.
+    #
+    # VERIFIED: all 26 built schemas identical before and after, including the
+    # ORDER of each `required` list, which is what a reordered insertion would
+    # have broken silently.
+    #
+    # `score_participant`/`only` was never a rule. It is `--only Q1 Q4b`, a
+    # user-supplied filter, and the check now excludes a comparison against
+    # runtime data rather than carrying an entry that misdescribes itself. A table
+    # about rules containing a non-rule teaches its readers to skim.
+    #
+    # Keep it empty. A new entry is a rule one scorer states as a declaration and
+    # the other reimplements, which is what this whole goal exists to remove.
 }
 
 
@@ -2303,7 +2299,7 @@ HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
 # nothing about its own size. That is how the SLOT_NOTES backlog got to eighteen.
 #
 # Lower this as entries go. Raising it is the finding.
-HANDCODED_BUDGET = 7
+HANDCODED_BUDGET = 0
 
 
 def check_handcoded_rules_are_being_cleared() -> list[str]:
@@ -2371,7 +2367,19 @@ def check_no_undeclared_handcoded_rules() -> list[str]:
     for fn in [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]:
         for n in ast.walk(fn):
             if isinstance(n, ast.Compare) and is_item_id(n.left):
-                tag = ast.unparse(n.comparators[0])
+                rhs = n.comparators[0]
+                # A comparison against RUNTIME DATA is not a rule. `--only Q1 Q4b`
+                # filters which items to score, so `item["id"] not in only` compares
+                # the id against a user-supplied list -- categorically unlike
+                # comparing it against an authored constant, which is what makes a
+                # rule uncomparable between the two scorers. A bare name that is not
+                # a module-level attribute of score.py is a local or a parameter, so
+                # that is the test. Without it the table had to carry an entry that
+                # was never a rule, and a table about rules that contains a
+                # non-rule teaches its readers to skim.
+                if isinstance(rhs, ast.Name) and not hasattr(_score, rhs.id):
+                    continue
+                tag = ast.unparse(rhs)
                 key = (fn.name, tag)
                 seen.add(key)
                 if key not in HANDCODED_ITEM_RULES:

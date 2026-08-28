@@ -120,6 +120,45 @@ SCHEMA = {
 }
 
 
+def _slot_options(slot: str) -> list:
+    """The answer vocabulary for a slot, from rubric_h2.SLOT_OPTIONS.
+
+    Keyed by slot rather than by item: the vocabulary belongs to the question.
+    Raises rather than defaulting -- a silent empty enum would let the model
+    answer anything and the engine would compare it against values it never
+    offered.
+    """
+    from rubric_h2 import SLOT_OPTIONS
+    try:
+        return list(SLOT_OPTIONS[slot])
+    except KeyError:
+        raise SystemExit(f"no SLOT_OPTIONS for `{slot}` -- declare its answer "
+                         f"vocabulary in rubric_h2 before asking for it")
+
+
+def _forbid_operands(item: dict) -> list:
+    """The slots this item's `forbid` conjunctions read, in declared order."""
+    out = []
+    for rule in item.get("forbid") or ():
+        for cond in rule.get("conds") or ():
+            if cond.get("slot") and cond["slot"] not in out:
+                out.append(cond["slot"])
+    return out
+
+
+def _gate_keys(item: dict) -> set:
+    """The check keys this item's declared `oc_gates` read."""
+    return {g["key"] for g in (item.get("oc_gates") or ()) if g.get("key")}
+
+
+def _expect_operand(item: dict, key: str) -> str | None:
+    """The slot an `expect` rule for `key` parses, if the item declares one."""
+    for rule in item.get("expect") or ():
+        if rule.get("key") == key:
+            return rule.get("left")
+    return None
+
+
 def build_schema(item: dict) -> dict:
     """Schema for one item.
 
@@ -154,16 +193,15 @@ def build_schema(item: dict) -> dict:
         # The three barrier readings, on whichever items answer them. Hoisted
         # OUT of the cadence branch: NR needs the same readings, and leaving them
         # inside meant widening the selector changed nothing.
-        if item.get("id") in BARRIER_PICK_ITEMS:
-            props["restriction_authored"] = {
-                "type": "string", "enum": ["created", "relieved", "neither"]}
-            props["trigger_expects"] = {
-                "type": "string", "enum": ["gain", "loss", "none"]}
-            # All three readings, on every barrier item: the conjunction needs
-            # `restricts` as its third condition, so scoping it to the cadence
-            # items alone left NR answering two of three and never firing.
-            props["restricts"] = {
-                "type": "string", "enum": ["target_behavior", "other_thing"]}
+        # ASK FOR WHAT THE DECLARATIONS CONSUME. The three barrier readings are
+        # exactly the slots this item's `forbid` conjunction names in its
+        # conditions, so the sheet follows the rule instead of a tuple of item ids
+        # -- and the old failure it guards against cannot recur: scoping the third
+        # reading differently from the other two left NR answering two of three
+        # and the conjunction never firing, and a conjunction now brings its own
+        # operands.
+        for _slot in _forbid_operands(item):
+            props[_slot] = {"type": "string", "enum": _slot_options(_slot)}
 
         if item.get("cadence"):
             props["named_type"] = {
@@ -183,16 +221,16 @@ def build_schema(item: dict) -> dict:
             # student will do, or why, or offer one activity instead of another.
             # Every credited cell states a condition on the behaviour AND a
             # clause in which something is granted or withheld.
-            if item.get("id") in CONTINGENCY_GATE_ITEMS:
+            if "states_a_contingency" in _gate_keys(item):
                 props["states_a_contingency"] = {"type": "boolean"}
             # The two halves of the direction test, answered separately. The
             # engine compares them; the model is never asked to weigh both at
             # once, which is what the composite clause did and why it never
             # fired. Mirrors the web's pick(valence) + pick(valence_or_none)
             # and its `equals` rule, lenient on `none`.
-            if item.get("id") == "WK1":
-                props["trigger_behavior"] = {
-                    "type": "string", "enum": ["utb", "wgb", "other"]}
+            _parsed = _expect_operand(item, "targets_own_behavior")
+            if _parsed:
+                props[_parsed] = {"type": "string", "enum": _slot_options(_parsed)}
             else:
                 props["targets_own_behavior"] = {"type": "boolean"}
             # WK2 only, mirroring a question the TYPE items have always asked and
@@ -201,13 +239,13 @@ def build_schema(item: dict) -> dict:
             # pointed the wrong way; here, `targets_own_behavior` asks only WHOSE
             # behaviour it is. So an answer that delivers an aversive for SUCCESS
             # — punishing the goal behaviour — passes every check on the sheet.
-            if item.get("id") == "WK2":
+            if "aimed_correctly" in _gate_keys(item):
                 props["aimed_correctly"] = {"type": "boolean"}
             # WK1 only, and asked as a PARSE rather than a judgement — see the
             # guidance in rubric_h2. Two earlier versions asked "is a consequence
             # delivered?" and the model answered inconsistently on the two cells
             # that matter; the cue it can actually apply is syntactic.
-            if item.get("id") == "WK1":
+            if "agent_delivers_consequence" in _gate_keys(item):
                 props["agent_delivers_consequence"] = {"type": "boolean"}
             # The item's fourth point. rubric_h2 has carried this slot and its
             # LINK_NOT_ASSERTED deduction for a while, but nothing here asked for
@@ -224,10 +262,9 @@ def build_schema(item: dict) -> dict:
             # assert a type contradicting the reading it rests on, which is what
             # `observed_type` kept doing: NP/p14 answered "taken away" and
             # "desirable" and then called the example PR.
-            if item.get("id") in MOVE_PICK_ITEMS:
-                props["stimulus_move"] = {"type": "string", "enum": [
-                    "given_desirable", "given_undesirable",
-                    "taken_desirable", "taken_undesirable"]}
+            if item.get("move_pick"):
+                props["stimulus_move"] = {
+                    "type": "string", "enum": _slot_options("stimulus_move")}
         schema = json.loads(json.dumps(SCHEMA))
         del schema["properties"]["credit_checks"]
         del schema["properties"]["deductions"]
@@ -1066,7 +1103,7 @@ def build_prompt(
             parts.append(f"\n### {k}\n{body}")
         parts.append("")
 
-    if hint and item["id"] in ("Q1", "Q2"):
+    if hint and item.get("reads_utb_choice"):
         parts.append(
             f"## Weak hint\nFormatting in the document marks '{hint}' as the "
             "underlined UTB choice. Only 6 of 20 transcriptions preserve this "
