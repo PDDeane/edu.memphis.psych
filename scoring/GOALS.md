@@ -1203,6 +1203,42 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       demonstrates_type) cost less together on the web". Read it before changing
       either of those two, since the charge interaction is the declared part.
 
+- [ ] 22. **Over-credit without slot error: 38% of over-credits, 1.6% of under.**
+      Measured 2026-08-28 over the CLI sweep's fourteen scored items, 6 runs each,
+      with `cell_exclusions` applied. Counting observations where our score differs
+      from gold and asking whether ANY scoring slot was unmet:
+          over-credit    84 observations,  32 with NO slot unmet   (38%)
+          under-credit  129 observations,   2 with no slot unmet   (1.6%)
+      THE ASYMMETRY IS STRUCTURAL, and stating it plainly is most of the value: to
+      UNDER-credit the sheet must refuse something, so a slot has to be unmet. To
+      OVER-credit it need only fail to refuse. So a fully-satisfied sheet is almost
+      never wrong in the strict direction and is wrong in the generous one 32 times
+      -- and those 32 cannot be reached by tuning any existing slot, because every
+      slot already passed. They need a NEW check or a declared divergence.
+      WHERE THEY ARE, which is not everywhere:
+          Q6   8 of 22 over-credits clean      Q4a  7 of 13
+          Q4c  6 of 12                         Q1   5 of  5
+          NR   3 of  3                         WK1  3 of  6
+          Q2   0 of  5    Q3  0 of 11    Q4b  0 of  7
+      Q1 and NR are the pure cases: EVERY over-credit they make happens with the
+      sheet fully satisfied. Q3 and Q4b are the opposite -- their over-credits all
+      involve a slot that fired and was wrong, which is a tuning problem and a
+      different kind of work. Do not treat the two groups with one fix.
+      RELATION TO SUBGOAL 20: that subgoal counts CELLS where every scoring check
+      passes and gold docks in a majority of runs, and finds four. This counts
+      OBSERVATIONS, and finds 32 -- roughly five to six cells, so the two agree, but
+      the observation view shows which items carry it and the cell view does not.
+      Work them together; subgoal 20 holds the per-cell list.
+      DO NOT READ THE PROFILE HINT AS A DIAGNOSIS HERE. `measured.error_profile`
+      prints "one-sided: a threshold is set wrong, not unstable" whenever the
+      direction is lopsided -- it says that for Q3, whose over-credits all have slot
+      errors, and it would say it for Q1, whose over-credits have none. Those are
+      opposite problems and the hint does not distinguish them.
+      AND CHECK IT ON THE WEB COLUMN. If the same 32 appear there, the sheet is
+      missing a check and both scorers inherit it. If they do not, the CLI's
+      arithmetic is crediting something the app refuses, which is an equivalence
+      defect rather than a rubric gap.
+
 - [ ] 19. **The LATER-BOX gradient, corpus-wide. Read this before any numbered slot.**
       Placed ahead of the item-specific subgoals because six of them are about a
       numbered box, and this says which part of that is one problem and which is
