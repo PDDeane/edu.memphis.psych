@@ -87,7 +87,7 @@ with open(PRIMITIVES_JSON) as _fh:
 # without asking the model. A schema-excluding primitive missing from here would
 # be silently left in the schema, which is the exact failure this file is being
 # fixed for — so it raises instead.
-COMPUTABLE = {"counts", "equals", "derived", "expect", "forbid"}
+COMPUTABLE = {"counts", "equals", "derived", "expect", "forbid", "maps"}
 LO_ENDPOINT = "http://localhost:8888/api/llm/chat/completions"
 
 # A ref whose paper text has already been shown under an earlier ref in the
@@ -275,6 +275,7 @@ def load_action(olx_file: str, action_id: str) -> dict:
             "choices": olx_prompts.parse_choices(_attr(open_tag, "choices")),
             "expect": olx_prompts.parse_expect(_attr(open_tag, "expect")),
             "forbid": olx_prompts.parse_forbid(_attr(open_tag, "forbid")),
+            "maps": olx_prompts.parse_maps(_attr(open_tag, "maps")),
             # Was MISSING, and the omission was silent: the expansion at
             # `for cr in item.get("counts", [])` ran zero times, so counted
             # members never received a verdict and their points were never
@@ -479,6 +480,23 @@ def apply_computed(action: dict, checks: dict, fixture: dict) -> dict:
             "verdict": (rule.get("fails") or (o[1] if len(o) > 1 else "no")) if hit else o[0],
             "evidence": ", ".join(
                 f"{c['slot']}={answer_of(checks, c['slot']) or '?'}" for c in rule["conds"]),
+        }
+
+    # `maps` after the other three, so a mapped check may read a pick an earlier
+    # rule wrote. It resolves to a NAMED verdict rather than to a satisfied/failed
+    # pair, which is the whole reason it exists: a check with two kinds of failure
+    # -- an empty box against a wrong entry -- cannot be derived by a primitive that
+    # offers one failing verdict.
+    for rule in action.get("maps", []):
+        got = answer_of(checks, rule["pick"])
+        v = olx_prompts.mapped_verdict(rule, got)
+        o = opts(rule["key"])
+        checks[rule["key"]] = {
+            # UNMAPPED is not satisfied. A pick answer with no pair and no fallback
+            # means the sheet does not say what to do, and crediting on silence is
+            # the failure mode `forbid`'s "anything else passes" already risks.
+            "verdict": v if v else (o[1] if len(o) > 1 else "no"),
+            "evidence": f"{rule['pick']}={got or '?'}" + ("" if v else " — unmapped"),
         }
 
     for rule in action.get("expect", []):

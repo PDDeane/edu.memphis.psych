@@ -486,6 +486,25 @@ def derive_ledger(item: dict, raw: dict,
                             (left in lenient or right in lenient) else "")),
         }
 
+    # `maps`: one pick's value mapped to a NAMED verdict. The only computed
+    # primitive that can give a check more than one kind of failure -- `absent` for
+    # an empty box and `wrong_kind` for a wrong entry charge different codes, and
+    # the other three each offer a single failing verdict. See
+    # olx_prompts.parse_maps for why two `forbid` rules cannot substitute.
+    for rule in item.get("maps", []):
+        from olx_prompts import mapped_verdict
+        entry = slots.get(rule["pick"]) or {}
+        got = str(entry.get("refers_to") or entry.get("verdict") or "").strip()
+        v = mapped_verdict(rule, got)
+        spec = next((c for c in item["credit"] if c["what"] == rule["key"]), None)
+        vocab = (spec or {}).get("verdicts") or ["met", "absent"]
+        slots[rule["key"]] = {
+            # Unmapped is not satisfied; crediting on silence would be worse than
+            # charging on it, because nobody reads a credit.
+            "verdict": v if v else (vocab[1] if len(vocab) > 1 else "absent"),
+            "evidence": f"{rule['pick']}={got or '?'}" + ("" if v else " — unmapped"),
+        }
+
     # `expect`: one answer against an AUTHORED value, leniently. The web's
     # apply_computed has always computed this for any item; THIS side computed it
     # only inside derive_oc_ledger, so an `expect` declared on a credit-path item

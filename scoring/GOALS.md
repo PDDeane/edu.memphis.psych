@@ -259,13 +259,27 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       `b1_basis=consequence` the first rule fails the check and the second
       OVERWRITES it back to met, so a wrong entry would be CREDITED. The new
       `check_computed_rules_do_not_share_a_key` catches it if anyone declares it.
-      SO RETIREMENT NEEDS A VALUE-TO-VERDICT MAP, not another arrow: something of
-      the shape `behavior_1:b1_basis:activity>met,none>absent,*>not_active`. That is
-      a FOURTH primitive -- primitives.json plus three implementations -- which is a
-      materially bigger decision than extending two parsers, and it is the one to
-      take next. Without it, a single pick can only be computed into a check whose
-      verdict vocabulary it matches positionally, which is renaming rather than
-      computing.
+      THE MAP PRIMITIVE IS BUILT, 2026-08-28: `maps`, the fourth computed
+      primitive, across primitives.json and all three implementations.
+        maps="behavior_1:b1_basis:activity>met,none>absent,*>wrong_kind"
+      `*` is the fallback, and an unmapped value leaves the check UNSATISFIED rather
+      than credited: the sheet has not said what to do, and crediting on silence is
+      worse than charging on it because nobody reads a credit.
+      VERIFIED THREE WAYS, 0 model calls: the two python engines agree on every pick
+      value tested -- activity, none, consequence, own_antecedent, blank, nonsense --
+      the app's suite asserts the same mapping and that an unmapped pick is not
+      satisfied, and one test asserts the trap directly: two `forbid` rules on one
+      key CREDIT a wrong entry, `maps` refuses it.
+      Registering it immediately failed the app's probe registry-coverage test,
+      which is the guard working: a primitive added to primitives.json and not
+      taught to the audit stops being seen. That is how `derived` went unnoticed
+      once. probe.test.ts now parses and forwards it.
+      Nothing declares `maps` yet, so all 26 schemas are unchanged and oc_grid is
+      identical -- the primitive is in place and no item's behaviour has moved.
+      WHAT REMAINS for the retirement itself: declare Q4b's two picks and their
+      `choices`, author them into the OLX sheet with a `maps` attribute, and let
+      `behavior_1`/`behavior_2` become computed. That is a scoring change on a
+      measured item, so it goes to the sweep -- and it is now unblocked.
         (A-as-billed) giving the app a verdict for computed checks: DONE, and it was
             not the blocker it looked like.
         (B) STILL AVAILABLE, and now cheaper than it looked: compute the REFERENT
