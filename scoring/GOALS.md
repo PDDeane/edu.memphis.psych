@@ -442,13 +442,62 @@ until all three are closed.
       so a rule that changes scoring but is expressed in guidance text is invisible
       to it in both directions. Q4b/p12 is the demonstrated case: the web refuses
       an entry the CLI credits, six runs to six, and nothing flags it.
-      SCOPE IT FIRST, since the audit is the instrument the whole two-sided
-      comparison rests on: how many scoring-relevant rules live only in guidance?
-      Every REJECT/ACCEPT bullet is a candidate. Then decide whether they can be
-      compared at all -- the two sides are given the same guidance text, so a
-      difference in EFFECT cannot be read off the text and may only be detectable
-      by scoring the same sheet through both paths, which is what
-      `check_web_scorer_exercises_its_sheet` already does for primitives.
+      SCOPED, 2026-08-28, at 0 model calls. The scoping was going to be a census
+      of prose bullets; it turned into a MEASUREMENT, which is better, because the
+      hazard surface and the actual damage are different sizes.
+
+      THE HAZARD SURFACE: 70 of 150 authored prose blocks carry directive scoring
+      language (REJECT / no credit / only when / takes the whole), concentrated in
+      the OC items -- DAY1, DAY2, WK2 at 8 each, WK1 at 7. That is an upper bound
+      from a deliberately loose regex, not a count of rules.
+
+      THE MEASURED DAMAGE, from artifacts already on disk -- paper_mini_v8
+      (score.py, 3 runs) against the web-prompt path, 520 cells present on both:
+        18 cells NEVER agree in both of two independent comparisons ("robust")
+        17 more diverge in one comparison and not the other ("era-only"): Q6 7,
+           Q3 4, Q4a 2, Q4b 2, 2a 1, Q5 1. These are NOT attributable -- the two
+           comparisons span different prompt versions, so version is confounded
+           with path, and only an era-matched two-sided sweep separates them.
+           That is subgoal 2, which is another reason it goes last.
+      Of the 18 robust: 15 are 1c and 1 is Q4a, both DECLARED. Exactly TWO are
+      undeclared, and both are stable in 3 of 3 runs rather than noise:
+
+        1a/p6   paper 0.0 vs web 6.0-8.0. The paper scorer refuses the WHOLE item
+                -- "-8 pts: did not discuss data for each week" -- on a 512-char
+                answer with no error. CAUSE CONFIRMED: five `1a:*` SLOT_NOTES
+                entries, 129 to 494 chars of judging text each, reach the web
+                prompt and NOT the CLI's. Verified fragment by fragment.
+        Q4b/p4  paper 2.0 vs web 3.5, and GOLD IS 2.0. The paper path charges what
+                the graders charged and the web path does not. The rule doing the
+                refusing is the guidance-prose REJECT test.
+
+      SO THE BLINDNESS HAS TWO CHANNELS, not one. This subgoal was written about
+      guidance prose; SLOT_NOTES is the other, and it is the one with a measured
+      price tag -- 8 points on 1a/p6, every run. It already has a declared
+      18-entry backlog in `check_slot_rules_reach_both_prompts` whose own comment
+      says these "reach the web and CLI and silently leave the paper scorer
+      behind". 1a/p6 is that sentence with a number attached.
+
+      WHAT CAN AND CANNOT BE BUILT. The prose channel cannot be closed by any text
+      comparison: both sides are given the same guidance verbatim -- the prompt
+      audit already proves it, 0 undeclared gaps -- so there is no textual
+      difference to find. Only running both paths over the same cell exposes it,
+      which means the instrument is the sweep plus a cell-level cross-path
+      comparison, not a static check. The SLOT_NOTES channel is the opposite: it
+      IS statically visible, already checked, and merely unfinished.
+      PLAN, in this order:
+        (a) land the cross-path cell comparison as a reusable tool rather than the
+            throwaway script this scoping used, so the sweep produces the
+            divergence table automatically instead of by hand;
+        (b) give the SLOT_NOTES backlog the same two-sided ratchet the hand-coded
+            table now has -- 18 entries with no ceiling is the same accumulation
+            failure, and 1a/p6 shows it is not theoretical;
+        (c) migrate the five `1a:*` notes to the rubric `rule` field, which both
+            generators render, and measure 1a -- this is a scoring change on one
+            item, so it belongs in the sweep;
+        (d) for the prose channel, declare rather than compare: a registry of
+            scoring-relevant prose rules, so the surface is KNOWN, with the sweep's
+            divergence table as the detector.
 ## PARKED — quality control on the remaining items
 
 Every item is recorded and the preflight is clean, so the work is no longer
