@@ -580,6 +580,8 @@ def enforcement_audit():
         findings.append(("-", "EXCLUSION UNJUSTIFIED", bad))
     for bad in ENF.check_handsplit_rows_are_disjoint():
         findings.append(("-", "HANDSPLIT ROW OVERLAPS", bad))
+    for bad in ENF.check_fails_verdict_is_mirrored_in_the_app():
+        findings.append(("-", "APP DOES NOT MIRROR `->` SYNTAX", bad))
     for bad in ENF.check_both_engines_compute_the_same_primitives():
         findings.append(("-", "ENGINE DOES NOT COMPUTE A PRIMITIVE", bad))
     for bad in ENF.check_computed_rules_do_not_share_a_key():
