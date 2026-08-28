@@ -699,7 +699,11 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
             # that reinforces the unwanted behaviour is not a usable answer.
             add("WRONG_TYPE", "This reinforces the unwanted behaviour rather than the goal behaviour.")
 
-    if a.get("avoidance_frame") and item.get("id") == "DAY1":
+    if a.get("avoidance_frame") and item.get("avoidance_scores"):
+        # Reads rubric_h2.AVOIDANCE_SCORES, which is also what decides whether
+        # the criteria prose promises this reading "never changes the score" --
+        # so the prompt and the arithmetic cannot disagree about it again. DAY1
+        # is the only member; the behaviour below is unchanged.
         # DAY1 GATES on this, and the CLI must gate with it or the two
         # implementations score the same answer differently — the divergence
         # class this project exists to close, and the one `equivalence.py` flags
