@@ -1827,6 +1827,70 @@ def check_web_scorer_exercises_its_sheet() -> list[str]:
                         + "\n    ".join(sorted(unprobed)))
     return problems
 
+def check_the_record_is_pushed_at_the_change() -> list[str]:
+    """Does `--write` still print the prior record for every item it changes?
+
+    QUALITY_CONTROL.md §2c is the only discipline of the three that a machine can
+    enforce, and it is enforced in ONE place: `olx_prompts.main` calls
+    `prior_record` for each item whose prompt text moved. Delete that call and the
+    guide's paragraph stays true-looking while nothing happens -- which is the
+    exact shape of the failure §2c was written about.
+
+    It matters because §2c cost the most to learn. A day went into rewriting Q1's
+    `reasons_given` while the comment above the component already named gold's
+    conditional structure, classified every cell with gold < 3, and diagnosed the
+    failing cell as a `harms_listed` misclassification. Eleven configurations,
+    ~900 calls, and the answer was in the file.
+
+    Three things are asserted: the writer calls the hook, the hook still reports
+    the three sources it promises, and it does not swallow its own failures --
+    the first version raised NameError on every lookup into a bare `except: pass`
+    and reported an empty record.
+    """
+    import inspect
+    import olx_prompts as O
+
+    out = []
+    try:
+        src = inspect.getsource(O.main)
+    except Exception as e:
+        return [f"cannot read olx_prompts.main: {type(e).__name__}: {e}"]
+    if "prior_record(" not in src:
+        out.append("olx_prompts.main no longer calls prior_record(): a rule can be "
+                   "changed and regenerated without the record being shown, which "
+                   "is QUALITY_CONTROL.md §2c unenforced")
+    if "_items_whose_prompt_changed(" not in src:
+        out.append("olx_prompts.main no longer computes which items changed, so the "
+                   "record cannot be scoped to them")
+
+    try:
+        body = inspect.getsource(O.prior_record)
+    except Exception as e:
+        return out + [f"cannot read prior_record: {type(e).__name__}: {e}"]
+    for needle, what in (("rubric_h", "the comment blocks in the rubric"),
+                         ("GOALS.md", "the goal entries"),
+                         ("drafts", "the item drafts"),
+                         ("PRIMITIVES in use", "the structural inventory (§2a)")):
+        if needle not in body:
+            out.append(f"prior_record no longer reports {what}")
+    if "except Exception:\n            pass" in body:
+        out.append("prior_record swallows a lookup failure silently — it did exactly "
+                   "that once and reported an empty record for every item")
+
+    # And it must actually produce something for a real item.
+    try:
+        got = O.prior_record("Q1")
+        if got.count("\n") < 4:
+            out.append(f"prior_record('Q1') returned {got.count(chr(10))+1} line(s): "
+                       f"it is reporting an empty record")
+        if "failed:" in got:
+            out.append(f"prior_record('Q1') reports a failed lookup: "
+                       f"{[l for l in got.splitlines() if 'failed:' in l][:1]}")
+    except Exception as e:
+        out.append(f"prior_record('Q1') raised {type(e).__name__}: {e}")
+    return out
+
+
 def check_scorer_fingerprint_is_scoped_and_prose_blind() -> list[str]:
     """Does STALE SCORER mean what it says?
 
