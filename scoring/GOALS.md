@@ -1407,10 +1407,44 @@ because it can be fixed or declared; a wobbling cell cannot be either.
   answers pointed opposite ways -- demanding a doing would have cost p9, p14 and
   p18, all credited on access alone.
 
-- [ ] 2. **Handout 3's 2a, 15/20 with runs [15,15,15].** The worst cell count in
-      the corpus and never once examined. Perfectly stable, which usually means
-      a systematic mis-rule rather than noise -- the shape that made NR/p14
-      diagnosable. Six runs first, then read the failing checks.
+- [ ] 2. **2a over-credits `hows_given`: one rule, five cells, 29 of 29 errors.**
+      Was "Handout 3's 2a, 15/20 with runs [15,15,15] ... six runs first, then read
+      the failing checks". The six runs are done and the checks are read, so this
+      entry is now the diagnosis rather than the plan. A NEW subgoal was asked for;
+      this is it, folded into the existing 2a entry rather than opened beside it,
+      because two subgoals on one item is how the same work gets done twice.
+      STABLE, NOT NOISY -- the question the old entry asked. Six runs give
+      [15,15,15,15,15,16] and the previous six-run figure was also 15/20, so the
+      flat three-run median was not hiding movement. The item is reliably 15/20.
+      EVERY ERROR IS ONE ERROR. 29 over-credits, ZERO under-credits, and the count
+      profile is a single line:
+          said 2, scored 6 against gold 4      x29
+      That is five cells times six runs. `verdict` is unmet once in 120 observations
+      and never wrongly; no scoring slot drifts. There is nothing else on this item.
+      THE MECHANISM, exactly: `counts` declares `hows_given` over `how_1` and
+      `how_2`, each worth 2.0, with `verdict` worth 2.0 for a total of 6. The model
+      answers `hows_given` = 2 in EVERY run of all five cells, both hows are
+      credited, and the item pays 6. Gold pays 4 -- it credits ONE how.
+      GOLD SAYS WHY, on four of the five, and says the same thing each time:
+          p1   "-2 pts: missing one sentence. Your third sentece does not explain
+                how your plan was successful."
+          p13  identical wording
+          p15  "... Your second sentece does not explain how ..."
+          p14  "-2 pts: need more explanation on how it was or was not successful"
+          p16  silent
+      So gold is not counting SENTENCES, it is counting sentences that EXPLAIN HOW.
+      The student wrote the required number of sentences and one of them does not do
+      the job, and our count accepts it. That is a definition problem in what
+      qualifies as a `how`, not an arithmetic one -- the counted members are derived
+      from the count, so the count is the only place to fix it.
+      DO IT AS A COUNT RULE, NOT PROSE ON THE MEMBERS: `how_1`/`how_2` are derived
+      from `hows_given` and are never asked, so text attached to them cannot reach
+      the model. The `counts` guidance is what it reads.
+      ALL FIVE MOVE TOGETHER, which is the risk and the opportunity: they fail
+      identically in every run, so a change either recovers five cells or none.
+      15/20 -> 20/20 is the ceiling if the rule can be stated; there is no partial
+      credit to collect. CONTROLS: the fifteen cells that already pass, all of which
+      answer `hows_given` and would be exposed to a stricter definition.
 - [x] 3. **Re-measure the 3-run items at six runs, cheapest-first.** CLOSED
       2026-08-28 as SUPERSEDED, at the user's direction, not as finished:
       equivalence subgoal 2 sweeps every item at six runs on both sides, so the
