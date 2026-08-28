@@ -1044,6 +1044,65 @@ def check_handsplit_rows_are_disjoint() -> list[str]:
     return problems
 
 
+# Slot rules that reach the web and CLI and NOT score.py. PRE-EXISTING, and
+# declared rather than hidden: these predate the `rule` field and each one is a
+# real divergence. They are listed so a NEW one fails the audit immediately
+# instead of joining a backlog nobody can see. Migrating one means moving its text
+# to the credit component's `rule` field, which both generators render, and
+# re-measuring the paper scorer on that item -- a scoring change per item, which
+# is why they are not done in a batch.
+#
+# NOT THEORETICAL, and the cost is now measured. The five `1a:*` notes carry 129
+# to 494 characters of judging text each, reach the web prompt and not the CLI's,
+# and 1a/p6 scores 0.0 on the paper path against 6.0-8.0 on the web -- the whole
+# item, stably, in 3 of 3 runs. Confirmed fragment by fragment on 2026-08-28. The
+# `1a:*` entries are therefore the ones to migrate first: they are the only group
+# with a measured price attached.
+#
+# Hoisted out of the check so the ratchet below reads the same list the check
+# does. Two copies of this would drift, which is the failure the whole
+# equivalence goal is about.
+SLOT_RULE_BACKLOG = [
+    '1a:baseline_week', '1a:distinguishes_periods', '1a:week_1', '1a:week_2',
+    '1c:has_own_graph', '1c:legend', 'D1:defines_type', 'D2:defines_type',
+    'Q1:matches_selected', 'Q2:reasons_given', 'Q2:wgb_inverts_utb',
+    'Q2:wgb_is_counterpart', 'Q5:example_2', 'matches_chosen_type',
+    'named_type', 'reasons_failing', 'reasons_substantial',
+]
+
+# How many may remain. It may only go DOWN. Same ratchet as HANDCODED_BUDGET, for
+# the same reason and on the evidence of the same day: a declared backlog with no
+# ceiling reads as coverage while enforcing nothing about its own size, and this
+# one had grown to seventeen entries costing at least one item its whole score.
+SLOT_RULE_BACKLOG_BUDGET = 17
+
+
+def check_slot_rules_backlog_is_being_cleared() -> list[str]:
+    """Is the web-only slot-rule backlog shrinking, or accumulating?
+
+    Every entry is a rule two scorers apply and a third does not. `--prompts`
+    counts only rubric elements the WEB is missing and has no notion of the web
+    carrying something the paper scorer does not, so nothing else in the audit
+    objects to this list growing.
+
+    Two-sided, like HANDCODED_BUDGET. Over budget means an entry was added. Under
+    budget means one was migrated and the ceiling was not lowered, which leaves
+    room for a replacement to arrive unnoticed.
+    """
+    n = len(SLOT_RULE_BACKLOG)
+    if n > SLOT_RULE_BACKLOG_BUDGET:
+        return [f"SLOT_RULE_BACKLOG holds {n} entries against a budget of "
+                f"{SLOT_RULE_BACKLOG_BUDGET} -- {n - SLOT_RULE_BACKLOG_BUDGET} "
+                f"web-only slot rule(s) were ADDED. Put the text in the credit "
+                f"component's `rule` field, which both generators render, rather "
+                f"than in SLOT_NOTES, which the paper scorer never sees"]
+    if n < SLOT_RULE_BACKLOG_BUDGET:
+        return [f"SLOT_RULE_BACKLOG is down to {n} entries but the budget still "
+                f"says {SLOT_RULE_BACKLOG_BUDGET} -- lower it to {n}, or the slack "
+                f"lets a new web-only slot rule in without the audit noticing"]
+    return []
+
+
 def check_slot_rules_reach_both_prompts() -> list[str]:
     """Does per-slot judging text reach the PAPER prompt as well as the web's?
 
@@ -1073,15 +1132,7 @@ def check_slot_rules_reach_both_prompts() -> list[str]:
     import rubric_h1, rubric_h2, rubric_h3
 
     MAPPING_MAX = 220        # a "see criterion N" pointer, not a rule
-
-    # PRE-EXISTING, and declared rather than hidden. These predate the `rule`
-    # field and each one is a real divergence: the web and CLI apply them and
-    # score.py does not. They are listed so that a NEW one fails the audit
-    # immediately, instead of joining a backlog nobody can see. Migrating one
-    # means moving its text to the credit component's `rule` field and
-    # re-measuring the paper scorer on that item — a scoring change per item,
-    # which is why they are not being done in a batch.
-    BACKLOG = ['1a:baseline_week', '1a:distinguishes_periods', '1a:week_1', '1a:week_2', '1c:has_own_graph', '1c:legend', 'D1:defines_type', 'D2:defines_type', 'Q1:matches_selected', 'Q2:reasons_given', 'Q2:wgb_inverts_utb', 'Q2:wgb_is_counterpart', 'Q5:example_2', 'matches_chosen_type', 'named_type', 'reasons_failing', 'reasons_substantial']
+    BACKLOG = SLOT_RULE_BACKLOG
 
     problems = []
     scored = {}

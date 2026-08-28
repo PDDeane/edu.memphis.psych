@@ -489,9 +489,18 @@ until all three are closed.
         (a) land the cross-path cell comparison as a reusable tool rather than the
             throwaway script this scoping used, so the sweep produces the
             divergence table automatically instead of by hand;
-        (b) give the SLOT_NOTES backlog the same two-sided ratchet the hand-coded
-            table now has -- 18 entries with no ceiling is the same accumulation
-            failure, and 1a/p6 shows it is not theoretical;
+        [x] (b) DONE. `SLOT_RULE_BACKLOG` is hoisted to module scope -- so the
+            ratchet and the existing check read ONE list, verified by removing an
+            entry and watching the existing check flag that note -- and
+            `SLOT_RULE_BACKLOG_BUDGET` ratchets it two-sidedly at 17, not 18: the
+            count was already one lower, because `consequence_asserted` left the
+            list on 2026-08-28 by being FIXED. Both directions proved to fire. The
+            comment now records which entries to migrate first and why: the five
+            `1a:*` notes are the only group with a measured price, 8 points on
+            1a/p6 in 3 of 3 runs.
+            The list is 17 and the sibling `CORPUS_QUOTE_BACKLOG` is empty, so
+            every declared backlog in the audit now has a ceiling that can only
+            fall.
         (c) migrate the five `1a:*` notes to the rubric `rule` field, which both
             generators render, and measure 1a -- this is a scoring change on one
             item, so it belongs in the sweep;
