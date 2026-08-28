@@ -953,5 +953,34 @@ for _it in ITEMS:
     if _it["id"] in EXPECT:
         _it["expect"] = EXPECT[_it["id"]]
 
+# The answer VOCABULARY for slots the engine reads rather than scores: which
+# options the model may pick from. Keyed by SLOT, not by item, because the
+# vocabulary is a property of the question and not of who asks it -- and because
+# an item-keyed table is the thing this conversion is removing.
+#
+# score.build_schema used to carry these lists inline behind `item["id"] in ...`
+# branches, which the enforcement audit cannot compare between the two scorers
+# because it compares declarations. WHICH items ask each slot is now derived from
+# the declaration that consumes the answer: `forbid` names the three barrier
+# readings in its conditions, `oc_gates` names its own gate keys, `expect` names
+# the slot it parses, and `move_pick` is declared below.
+SLOT_OPTIONS: dict[str, list[str]] = {
+    "restriction_authored": ["created", "relieved", "neither"],
+    "trigger_expects": ["gain", "loss", "none"],
+    "restricts": ["target_behavior", "other_thing"],
+    "trigger_behavior": ["utb", "wgb", "other"],
+    "stimulus_move": ["given_desirable", "given_undesirable",
+                      "taken_desirable", "taken_undesirable"],
+}
+
+# Items that answer the two-bit move pick instead of naming the type directly.
+# DELIBERATELY NARROWER than REQUIRED_MOVE, which has an entry for all four types:
+# only PR asks it, so deriving membership from REQUIRED_MOVE would put a new
+# required field on NR, PP and NP -- a change to what the model is ASKED, not a
+# refactor. Declared as an attribute so the code needs no item id.
+for _it in ITEMS:
+    if _it["id"] in MOVE_PICK_ITEMS:
+        _it["move_pick"] = True
+
 BY_ID = {it["id"]: it for it in ITEMS}
 TOTAL = sum(it["max"] for it in ITEMS)  # 40.0 scored; +10 upload = 50

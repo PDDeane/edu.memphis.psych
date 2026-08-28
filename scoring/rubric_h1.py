@@ -1708,5 +1708,17 @@ ITEMS: list[dict] = [
     },
 ]
 
+# Items that read the student's UNDERLINED UTB choice from the document's
+# formatting. Q1 defines the UTB and Q2 defines its counterpart, so the marked
+# choice corroborates both; no other item is judged against it. Declared here
+# because score.build_prompt used to select these two by item id, which the
+# enforcement audit reads as a rule it cannot compare -- and the hint IS
+# scoring-relevant: it is evidence handed to the model.
+READS_UTB_CHOICE = ("Q1", "Q2")
+for _it in ITEMS:
+    if _it["id"] in READS_UTB_CHOICE:
+        _it["reads_utb_choice"] = True
+
+
 BY_ID = {it["id"]: it for it in ITEMS}
 TOTAL = sum(it["max"] for it in ITEMS)  # 45.0 scored; +5 upload = 50
