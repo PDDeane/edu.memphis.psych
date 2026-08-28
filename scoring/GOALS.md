@@ -179,7 +179,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       says we never matched gold there and cli_v7/cli_v8 both scored it 3/3. A
       declaration whose reason is false is a declaration that will be trusted
       for the wrong reason.
-- [ ] 6. **Make the `reasons_given` rewrite live, then measure it.** DRAFTED,
+- [x] 6. **Make the `reasons_given` rewrite live, then measure it.** DRAFTED,
       not live: `drafts/q1q2_reasons_rule.md` holds the replacement text, the
       per-cell evidence, the rejected alternative and the test plan. Diagnosed
       from Q1's three durable misses, which turned out to be three different
@@ -265,6 +265,28 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       that property; every pair it counts twice names different objects. Taking it
       would be a deliberate exception to the stop rule, with the inline exclusion
       list restored. ASK before spending the 120 calls.
+      CLOSED, SUPERSEDED BY SUBGOAL 12 -- and closed as a failure, because that is
+      what it was. ELEVEN configurations, ~900 calls, and the item ended where it
+      started at 17/20 before subgoal 12 took it to 18 by a different route.
+      Medians measured: v1 17 (kept and committed at the time), v2 16, v3 16,
+      v4 17, the per-slot SPLIT 16 and 13, split+attribute 16, split+attribute+
+      explicit exclusions 16, and the criterion inside the aggregate 2/6 on its
+      target cell. Three isolation probes each scored p9 WORSE than the baseline
+      they were derived from.
+      THE PREMISE WAS WRONG, which is the finding worth keeping. This subgoal set
+      out to replace `reasons_given`'s conditional with a flat "count both kinds
+      towards one total", on the reading that harms-dominance was a defect. It was
+      not: it was a measured reconstruction of gold's own structure, recorded in
+      the comment directly above the component, and deleting it is what cost p6
+      (4/6 -> 0/6) and p16 for the rest of the day. Subgoal 12 closed by putting
+      it back.
+      WHAT SURVIVES: p14's fix, which v1 genuinely won (2/6 -> 6/6) and which the
+      restoration kept by adding one classification clause; the mirror-pair
+      analysis, which correctly describes what gold does even though no wording of
+      it ever paid for itself; and three disciplines that came out of the failure
+      -- §2a structure before prose, §2b profile errors by slot after every sweep,
+      §2c read what is already recorded, the last now enforced by the `--write`
+      hook. The full history is in drafts/q1q2_reasons_rule.md.
 - [ ] 7. **Q4b's per-cell instability, which the item median hides.** Two cells
       went from six clean runs to intermittent across two sweeps of IDENTICAL
       prompt text: p17 6/6 -> 4/6, failing `modify_stated`, and p19 6/6 -> 3/6,
