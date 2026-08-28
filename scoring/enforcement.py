@@ -2153,6 +2153,57 @@ def check_the_record_is_pushed_at_the_change() -> list[str]:
     return out
 
 
+def check_scorer_fingerprint_covers_its_callees() -> list[str]:
+    """Does the fingerprint hash everything the hashed code CALLS?
+
+    Hashing a function does not hash its callees, and for a long time three of
+    them -- `verdict_of`, `answer_of`, `is_satisfied` -- decided verdicts for
+    every item while being reachable only through `satisfied_map` and
+    `apply_computed`. Editing any of the three changed scores while all 26 items
+    still read current.
+
+    `measured._closure` takes the transitive closure so the CLASS is fixed rather
+    than those three names, and this asserts the closure is actually closed: for
+    every function hashed, every local function it calls is hashed too. It is a
+    check on the closure's own resolver -- an alias it fails to follow, a depth it
+    stops at -- because a closure that quietly stops early looks exactly like a
+    closure that is complete.
+
+    It also asserts the two tables cannot disagree. `SCORER_PARTS` was authored by
+    hand beside `_ALWAYS` and had drifted: it omitted `agreement.expand_counted`,
+    so the whole-path fingerprint -- the ledger header's, and the fallback for an
+    item whose shape cannot be read -- was NARROWER than every per-item one.
+    """
+    import measured as M
+
+    out: list[str] = []
+    if not set(M._ALWAYS) <= set(M.SCORER_PARTS):
+        missing = sorted(set(M._ALWAYS) - set(M.SCORER_PARTS))
+        out.append(f"SCORER_PARTS is missing {missing}, which _ALWAYS includes -- "
+                   f"the whole-path fingerprint is narrower than the scoped one, so "
+                   f"the conservative fallback is not conservative")
+
+    whole = set(M._closure(M.SCORER_PARTS))
+    gaps = sorted({(mod, name, c) for mod, name in whole
+                   for c in M._local_callees(mod, name) if c not in whole})
+    for mod, name, callee in gaps:
+        out.append(f"{mod}.{name} calls {callee[0]}.{callee[1]}, which the "
+                   f"fingerprint does not hash -- editing it would change "
+                   f"scores while every item still read current")
+
+    # And the scoping must not drop something unconditional. A part is allowed out
+    # only by being item-dependent by design; anything else must survive scoping.
+    for item in sorted(M._jobs()):
+        roots = M._parts_for(item)
+        dropped = set(M._closure(roots)) - set(M._scoped_closure(roots))
+        stray = sorted(p for p in dropped if p not in M._SCOPED_PARTS)
+        if stray:
+            out.append(f"{item}: the scoping dropped {stray}, which is not an "
+                       f"item-dependent part -- only a per-kind scorer or a "
+                       f"per-primitive parser may be scoped out")
+    return out
+
+
 def check_scorer_fingerprint_is_scoped_and_prose_blind() -> list[str]:
     """Does STALE SCORER mean what it says?
 
