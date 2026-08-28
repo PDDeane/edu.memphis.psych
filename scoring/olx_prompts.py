@@ -1147,50 +1147,6 @@ SLOT_NOTES = {
         "behaviour the UTB names. Answer "
         "`absent` for that here even though the `wgb_is_counterpart` gate above may "
         "also catch it; do not pass this check assuming the gate will",
-    "1a:distinguishes_periods":
-        "the NO_WEEKLY_BREAKDOWN test: does the answer distinguish any time periods at "
-        "all? A single AGGREGATE verdict over the whole span does not, even when it "
-        "mentions weeks — \"my three weeks of tracking prove the plan worked\" and "
-        "\"looking at the whole month, nothing really changed\" both score 0: each "
-        "delivers ONE verdict covering the entire span. What distinguishes periods is "
-        "reporting more than one "
-        "point in time separately, so that a reader can see the behaviour CHANGE",
-    # The four period slots. Written out because the observed failure is not the one
-    # the guidance anticipated: it warns against requiring one sentence per week, but
-    # the model's actual mistake is treating a PARTIAL list of week names as
-    # exhaustive. p11 names only "week two" and p14 only "{{corpus:1a/p14:response:293:316:sha=3df2d6dade26}}";
-    # gold gave both the full 8, and both systems docked 2 for the week that went
-    # unnamed. The label is not the evidence — the arc is.
-    "1a:baseline_week":
-        "is the BEFORE state given — the level the behaviour ran at prior to the "
-        "intervention? A sentence that looks back before the plan began and gives "
-        "the rate the behaviour ran at then is `met`; so is any pre-intervention "
-        "figure or description. `absent` when the answer opens at the intervention and "
-        "never says what came before: an answer beginning \"in {{corpus:1a/p6:response:7:27:sha=ffb845e9e43e}} "
-        "plan I was still up past midnight most nights\" starts the clock at the "
-        "intervention, and loses exactly this slot and no other",
-    "1a:week_1":
-        "does the answer's account of change COVER this stretch of the intervention? "
-        "Judge the arc, not the label. Naming some weeks does NOT make the unnamed ones "
-        "absent: an answer that runs from the before state through to the end covers all "
-        "three intervention weeks even if it names one of them or none. Answer `absent` "
-        "only when a period is clearly and specifically skipped",
-    # Measured, and NOT extended further. Propagating the aggregate test from
-    # `distinguishes_periods` into these three slots — plus a plea to keep the two
-    # consistent — held the mean at 90% but put the variance back: over three runs
-    # p6 swung 8.0/0.0/6.0 and p7, correct in every run before it, dropped to 6.0
-    # once. Stability at the same accuracy beats a wider spread around the same
-    # mean, because a measurement that moves cannot tell you whether the next
-    # change helped. Reverted; do not re-add without three runs to compare.
-    "1a:week_2":
-        "same question for the middle stretch — and the same rule: a week the answer "
-        "does not name by number is still covered if the account of change runs through "
-        "it. An answer that names only its first and last weeks by number, but "
-        "describes a change carrying continuously from one to the other, covers the "
-        "middle week too, and gold credits all four slots",
-    "1a:week_3":
-        "same question for the final stretch, same rule. \"By the end of the month I "
-        "was down to about one\" covers it without naming a week",
     # These four answer TWO things, in two fields. The verdict says whether an
     # antecedent (or consequence) is named at all; `refers_to` says WHICH of the
     # earlier item's two it is. They used to share one field, which is why the
