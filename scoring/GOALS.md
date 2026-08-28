@@ -1520,6 +1520,45 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       WAIT FOR THE APP COLUMN, for the reason on subgoal 16: the two sides share
       this prompt and differ only in whose rules score it.
 
+- [ ] 18. **Q4b: the `not_doing` classification on the SECOND box.**
+      Asked for as "errors on behavior_1", and the first thing to record is that
+      BEHAVIOR_1 HAS NONE: unmet 23 times across 120 observations, all 23 in cells
+      that scored correctly. Every one of the 17 wrong-cell observations is on
+      `behavior_2`. behavior_1 is the control here, not the target -- and the
+      asymmetry between the two boxes IS the question, because they are judged by
+      the same rule on the same answer sheet.
+      THE SWEEP, 6 runs: 16/19, which is EXACTLY the ledger's 16/19. The mechanism
+      change landed today -- both boxes are now computed by `maps` from a pick --
+      and it cost nothing in accuracy while making the two scorers unable to
+      disagree about the combining. Drift is 1 cell per box across six runs.
+      THE PICKS LOCALISE IT FURTHER THAN THE SLOT, which is what the conversion
+      bought: the failing classification is one option value.
+        p4   gold 2.0  ours 3.5 (6/6)   b1=activity, b2=consequence
+        p12  gold 5.0  ours 3.5 (6/6)   b1=activity, b2=not_doing
+        p13  gold 5.0  ours 3.5 (4/6)   b1=activity, b2=not_doing 4/6, activity 2/6
+      p12 AND p13 ARE THE SAME SHAPE: we classify the second entry `not_doing` --
+      the fifth test, "NAMING A FAILURE TO ACT IS NOT NAMING A SUBSTITUTE" -- and
+      gold credits it anyway. p4 is the opposite: we credit box 1 where gold
+      refuses both.
+      WHAT IS ALREADY DECLARED, and what is not: p4 and p12 are BOTH declared gold
+      divergences in handouts.GOLD_DIVERGENCES under B_NOT_ACTIVE, with p12's entry
+      stating the case exactly -- "gold credits a not-doing as an active behaviour
+      ... `behavior_*`'s fifth test refuses it in terms. Gold gives 5.0." P13 IS
+      NOT DECLARED and is the same shape, so it is the live one. Check whether it
+      is a third instance of the declared disagreement or a genuine miss before
+      touching the rule.
+      THE LEVER IS ONE OPTION, NOT THE PROSE: `not_doing` accounts for 16 of
+      b2_basis's 120 answers and for both undeclared-shape failures, while
+      `consequence` (30 answers) produces one. A change scoped to when `not_doing`
+      is chosen -- or to whether it should map to `wrong_kind` at all -- is
+      testable without touching the other four cases. That option-level view did
+      not exist before 2026-08-28: the same judgement was buried in a five-test
+      composite, and only the pick makes it countable.
+      CONTROLS, named in advance: b1_basis is `activity` in 6 of 6 runs on all
+      three cells, so any change that moves box 1 has broken something unrelated.
+      The six `b2_basis=none` observations are the only source of `absent`
+      (B_ONLY_ONE rather than B_NOT_ACTIVE) and must keep charging that.
+
 - [ ] 16. **Diagnose Q1's wrong calls: `utb_stated`, `reason_2`, `reason_3`.**
       Set 2026-08-28 from the two-sided sweep's first item, so the numbers below are
       6 runs at the CURRENT configuration rather than a recollection.
