@@ -174,6 +174,16 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       mechanisms.
       Q4a and Q4c are marked STALE PROMPT and NOT swept, by instruction. They join
       subgoal 2's list, which is now TEN items.
+- [ ] 2. **Clear the stale H2 items with a sweep.** TEN items read STALE PROMPT: the eight handout-2 items after the
+      leakage rewrite -- DAY1, DAY2, NP, NR, PP, PR, WK1, WK2 -- which was option
+      2, taken deliberately: prompts cleaned immediately, calls deferred, ledger
+      honest. Six runs each is ~960 calls.
+      The rewrite removed two borrowed examples and restated the safety block as a
+      principle, so movement should be small -- but "should be small" is exactly
+      the prediction this project has been wrong about repeatedly, so measure it
+      and read the error profile (§2b) rather than assuming. Record each with
+      `measured.py --record`, which prints that profile automatically.
+
 - [ ] 3. **Seven scoring rules the two sides implement separately.** Widened
       from POLARITY_GATE_ITEMS once the audit's new hand-coded check listed them
       all. Every one is DECLARED on the web and HAND-WRITTEN in `score.py` as an
@@ -220,16 +230,24 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       Closing it re-stamps all 26 entries at once. Do it deliberately, with a note
       on each entry saying the behaviour did not change, and ideally while the
       ledger is already disturbed rather than when it is clean.
-- [ ] 2. **Clear the stale H2 items with a sweep.** TEN items read STALE PROMPT: the eight handout-2 items after the
-      leakage rewrite -- DAY1, DAY2, NP, NR, PP, PR, WK1, WK2 -- which was option
-      2, taken deliberately: prompts cleaned immediately, calls deferred, ledger
-      honest. Six runs each is ~960 calls.
-      The rewrite removed two borrowed examples and restated the safety block as a
-      principle, so movement should be small -- but "should be small" is exactly
-      the prediction this project has been wrong about repeatedly, so measure it
-      and read the error profile (§2b) rather than assuming. Record each with
-      `measured.py --record`, which prints that profile automatically.
-
+- [ ] 5. **The enforcement audit cannot see a rule written as guidance prose.**
+      MOVED here from quality control, where it was subgoal 15: it is an
+      equivalence-enforcement defect, not an item's scoring problem, and it
+      sits directly beside subgoal 3. Both are the same failure in different
+      clothing -- a rule the audit cannot compare because it is not declared.
+      Subgoal 3 is rules hand-written in Python; this is rules written in
+      PROSE. Found closing quality-control subgoal 5. The audit compares PRIMITIVES between the two
+      sides -- counts, equals, cover, onlyif, requires, expect, forbid, derived --
+      so a rule that changes scoring but is expressed in guidance text is invisible
+      to it in both directions. Q4b/p12 is the demonstrated case: the web refuses
+      an entry the CLI credits, six runs to six, and nothing flags it.
+      SCOPE IT FIRST, since the audit is the instrument the whole two-sided
+      comparison rests on: how many scoring-relevant rules live only in guidance?
+      Every REJECT/ACCEPT bullet is a candidate. Then decide whether they can be
+      compared at all -- the two sides are given the same guidance text, so a
+      difference in EFFECT cannot be read off the text and may only be detectable
+      by scoring the same sheet through both paths, which is what
+      `check_web_scorer_exercises_its_sheet` already does for primitives.
 ## PARKED — quality control on the remaining items
 
 Every item is recorded and the preflight is clean, so the work is no longer
@@ -348,19 +366,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       The divergence itself stands: the web result differs from gold for the
       stated reason, and the refusing test measured +1 cell a run against deleting
       it. Only the false claim is gone.
-- [ ] 15. **The enforcement audit cannot see a rule written as guidance prose.**
-      Found closing subgoal 5. The audit compares PRIMITIVES between the two
-      sides -- counts, equals, cover, onlyif, requires, expect, forbid, derived --
-      so a rule that changes scoring but is expressed in guidance text is invisible
-      to it in both directions. Q4b/p12 is the demonstrated case: the web refuses
-      an entry the CLI credits, six runs to six, and nothing flags it.
-      SCOPE IT FIRST, since the audit is the instrument the whole two-sided
-      comparison rests on: how many scoring-relevant rules live only in guidance?
-      Every REJECT/ACCEPT bullet is a candidate. Then decide whether they can be
-      compared at all -- the two sides are given the same guidance text, so a
-      difference in EFFECT cannot be read off the text and may only be detectable
-      by scoring the same sheet through both paths, which is what
-      `check_web_scorer_exercises_its_sheet` already does for primitives.
+
 - [x] 6. **Make the `reasons_given` rewrite live, then measure it.** DRAFTED,
       not live: `drafts/q1q2_reasons_rule.md` holds the replacement text, the
       per-cell evidence, the rejected alternative and the test plan. Diagnosed
@@ -534,7 +540,6 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       editing one changes scores while every item still reads current. Closing
       that re-stamps all 26 ledger entries, which is a decision about the ledger
       rather than a fix, and ten items are already stale. Carried as subgoal 16.
-
 - [ ] 9. **Q3/p19: actionability grounded in measurability.** The cell names a
       doing AND rests its actionability on being able to measure it, so neither
       lever that fixed p8 and p16 reaches it -- not the time clause, and not
