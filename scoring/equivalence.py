@@ -580,6 +580,8 @@ def enforcement_audit():
         findings.append(("-", "EXCLUSION UNJUSTIFIED", bad))
     for bad in ENF.check_handsplit_rows_are_disjoint():
         findings.append(("-", "HANDSPLIT ROW OVERLAPS", bad))
+    for bad in ENF.check_artifacts_record_their_era():
+        findings.append(("-", "ARTIFACT HAS NO ERA", bad))
     for bad in ENF.check_slot_rules_backlog_is_being_cleared():
         findings.append(("-", "WEB-ONLY SLOT RULES ACCUMULATING", bad))
     for bad in ENF.check_slot_rules_reach_both_prompts():
