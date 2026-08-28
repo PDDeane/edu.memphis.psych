@@ -1934,8 +1934,12 @@ HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
         "converted to declared `oc_gates`; this mapping is what is left, and it "
         "is `expect`-shaped -- a pick compared against authored values -- so it "
         "should convert too.",
-    ("derive_oc_ledger", "'DAY1'"):
-        "the avoidance frame never deducts on DAY1 -- gold's own exception.",
+    # ("derive_oc_ledger", "'DAY1'") was declared here as "the avoidance frame
+    # never deducts on DAY1 -- gold's own exception", which read the rule
+    # BACKWARDS: DAY1 is the one item where it DOES deduct, gating the whole
+    # item, and everywhere else it is advisory. The branch now reads
+    # rubric_h2.AVOIDANCE_SCORES, the same declaration that decides what the
+    # criteria prose promises, so there is no item id left to exempt.
     ("build_schema", "BARRIER_PICK_ITEMS"): "schema shape, not scoring.",
     ("build_schema", "CONTINGENCY_GATE_ITEMS"): "schema shape, not scoring.",
     ("build_schema", "MOVE_PICK_ITEMS"): "schema shape, not scoring.",
