@@ -690,6 +690,43 @@ def exemplar_drops(handout: int) -> dict[str, list[int]]:
 # they never reach a comparison. The other seven do.
 GOLD_DIVERGENCES: list[dict] = [
     {
+        "code": "GARBLED_CLAUSE_READ_LITERALLY",
+        "cells": [("Q1", 9)],
+        "why": "The cell turns on ONE ungrammatical clause whose literal sense is the "
+               "opposite of what the student meant, and both readings are defensible. "
+               "THE TEXT: \"I {{corpus:Q1/p9:response:151:208:sha=a25ae64edefd:shape=R57-0-20}}"
+               "{{corpus:Q1/p9:response:209:278:sha=1e08e9034878}}\" "
+               "Read literally it says exercising will HAVE unwanted complications; gold "
+               "reads the intended \"avoid having\". "
+               "WHY IT DECIDES THE CELL: gold counts p9 as offering NO harms and two "
+               "benefits (free time, health), so the two-tier rule falls through to "
+               "`benefits_listed` = 2 and scores 4. When the model reads the clause as a "
+               "harm, `harms_listed` = 1, tier one applies, and the cell scores 3. Its "
+               "`benefits_listed` is a stable 2 in every run measured; nothing else in "
+               "the cell moves. "
+               "MEASURED ACROSS TWELVE CONFIGURATIONS, rates in order: 1/6, 3/6, 6/6, "
+               "3/6, 4/6, 2/6, 1/6, 1/6, 4/6, 4/6, 3/6, 1/6. The single 6/6 came from a "
+               "prompt that cost p7 four of six runs, and three probes built to isolate "
+               "what produced it (the sentence-unit instruction alone, that instruction "
+               "with `count DISTINCT CONTENT`, and making the and-joined split "
+               "conditional) each scored p9 WORSE than the baseline they were derived "
+               "from -- 2/6, 1/6, 1/6. "
+               "ROUTES CLOSED, each measured, none free: a mirror-pair rule at four "
+               "lengths (v2 759 chars, v3 508, v4 560, v5 600); the same criterion inside "
+               "the aggregate rule (2/6); splitting the counted family so each reason is "
+               "judged on its own (4/6, and the item swept 16); and an "
+               "assertion-versus-avoidance clause on `harms_listed` written for exactly "
+               "this shape -- a bad outcome named only as something the goal behaviour "
+               "would spare the student is not a negative effect -- which left the clause "
+               "quoted as a harm in 5 of 6 runs, took p9 to 1/6, and cost p14 and p6 a "
+               "run each. "
+               "The prior record predicted this before the work started: \"its text is "
+               "garbled enough that the reading is defensible\". While this cell "
+               "stands the item cannot exceed nineteen of its twenty cells; it records "
+               "18/20, the other miss being p10's goal restatement, which the model "
+               "excludes correctly in some runs.",
+    },
+    {
         "code": "ANTECEDENT_RULE_APPLIED_AGAINST_ITSELF",
         "cells": [("Q4a", 14), ("Q4a", 19)],
         "why": "Two cells, deterministic at 0/6 each, where gold departs from the rule "

@@ -345,6 +345,17 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       the fix here probably ADDS length to the exclusions rather than the counting
       rule. Measure `--criterion Q1 reasons_given` and read the credited rows
       first: p1, p2 and p15 are all credited with exclusions correctly applied.
+- [x] 12b. **Q1/p9 DECLARED: `GARBLED_CLAUSE_READ_LITERALLY`.** Twelve
+      configurations, rates 1/6 3/6 6/6 3/6 4/6 2/6 1/6 1/6 4/6 4/6 3/6 1/6. The
+      one 6/6 cost p7 four runs and three isolation probes each scored p9 WORSE
+      than the baseline they came from. The cell turns on one ungrammatical
+      clause whose literal sense is the opposite of the intent, and both readings
+      are defensible -- which the record predicted before the work began. Routes
+      closed and measured: mirror-pair rules at four lengths, the criterion
+      inside the aggregate, splitting the counted family, and an
+      assertion-versus-avoidance clause written for exactly this shape. See
+      handouts.GOLD_DIVERGENCES. Q1 records 18/20 and cannot exceed nineteen of
+      its twenty cells while this stands.
 - [ ] 13. **Q1/p17: `utb_stated` is a coin flip.** `reasons_given` is 3 in all
       six runs and CORRECT; the score moves entirely on `utb_stated`, absent in
       four runs and met in two, costing 2 points each time. The response is a
