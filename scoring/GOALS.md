@@ -192,6 +192,27 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       the number while disagreeing on which cells it got right, and that is
       exactly the shape a per-item comparison hides.
 
+      OUTSTANDING BEFORE THE SWEEP, checked 2026-08-28:
+        1. THE LEDGER HAS NO SIDE. `measured.py --record ITEM ARTIFACT` stores one
+           number per item and it is the web-prompt path; MEASURED.json has no
+           per-side dimension. A two-sided sweep has nowhere to put the CLI's
+           numbers, so this is a hard prerequisite, not a nicety. Either add a side
+           to the ledger or record the CLI in its own.
+        2. TWELVE OF 26 ITEMS ARE RECORDED AT 3 RUNS: 1a 1b 1c D1 D2 NP PP Q4c Q5
+           Q6 T1 T2. The sweep at 6 fixes it by construction, but their current
+           numbers cannot referee a 2-cell move, so nothing should be compared
+           against them in the meantime.
+        3. THREE ITEMS' CLI PROMPTS MOVED TODAY and are unmeasured on that side:
+           1a, Q4b and Q6, from `rule` replacing `desc` in the CLI render. 1a also
+           gained five migrated rules. All three are web-unchanged, so only the CLI
+           half of the sweep is affected.
+        4. TEN ITEMS ARE STALE PROMPT, which the sweep clears; that is its job.
+        5. cross_path reports 25 divergent cells against cli_v8, 15 of them 1c and
+           declared. The rest cannot be attributed until both sides are era-matched,
+           which the sweep's artifacts will be -- era stamping landed today.
+        6. Q4b/p12 needs a decision of its own, independent of subgoal 9: the web
+           applies a deliberate divergence there and gold sides with the CLI.
+
       PRECONDITION, set 2026-08-28: before the sweep runs, the two sides must put
       the SAME RULE LOGIC AND THE SAME RULE LANGUAGE to the model. Byte-identical
       prompts were considered and RETRACTED the same day, on the right grounds:
@@ -294,6 +315,41 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       it and the sweep must measure it. Q4b sits at 16/19 over 6 runs, and p4 and
       p12 are the cells to watch -- p12 because it is where the two paths already
       disagree 6-of-6 against 11-of-12.
+      STOPPED BEFORE IMPLEMENTING, 2026-08-28, on three findings from reading the
+      record first (§2c). The design is ready; the decision is not mine.
+      (i) THIS TEST WAS ALREADY MEASURED AND REJECTED. handouts.py records it, in
+          prose form, on 3 runs: counted [14,13,13] -> [15,12,14], p4 moving 0/3 ->
+          1/3 and the four gold credits holding. Not adopted, and for a reason the
+          guide states: "a mean of 13.67 against 13.33 for three times the variance
+          is the trade the guide refuses, since a configuration that swings three
+          cells cannot tell you whether the next change helped." It leaves "the
+          door open to a steadier formulation of the same test" -- which a `forbid`
+          decomposition genuinely is, since asking the operands separately is the
+          documented reason `forbid` exists. But it is the same test, and the
+          variance is the thing to beat, not the mean.
+      (ii) THE TWO DECLARED CELLS PULL OPPOSITE WAYS. Under the rule that the side
+          matching GOLD wins: on p4 gold is 2.0, the CLI gives 2.0, the web 3.5 --
+          the web must charge MORE. On p12 gold is 5.0, the CLI gives 5.0, the web
+          3.5 -- the web must charge LESS, and what it is applying there is the
+          fifth test, a DELIBERATE divergence measured at +1 cell a run. So "make
+          the web match the CLI on Q4b" is not one change; it is two, in opposite
+          directions, and the referent test addresses only p4.
+      (iii) `forbid` CANNOT TARGET A MODEL-ANSWERED SLOT. Its key is computed and
+          excluded from the response schema, so making `behavior_1` the key would
+          delete the four prose tests the model must still apply. The workable
+          shape: two new referent PICKS, and two computed checks whose `forbid`
+          conditions include `behavior_1=met` so the charge cannot stack on a
+          `wrong_kind` the model already reported -- B_NOT_ACTIVE is repeatable, so
+          without that second condition one bad entry would cost 3.0. Q4b today has
+          no `slots` picks, no `choices` and no `forbid` attribute, so this needs
+          authored OLX changes, a FORBID table for handout 1, and the schema
+          derivation extended to the `derive_from_credit` path.
+      WHAT I RECOMMEND, if the aim is the audit's blindness rather than p4: declare
+      the asymmetry in `olx_prompts.SCORING_DIVERGENCES` now -- that closes the
+      hole subgoal 5 found, at zero risk and zero calls -- and treat the referent
+      test as a separate measured experiment after the sweep, when there is a
+      6-run baseline to judge its variance against. The 3-run history is exactly
+      why it was rejected before.
       Lower PROSE_ONLY_BUDGET from 9 to 7 if both slots leave the list; if only the
       referent test moves and the four judgement conditions stay, the entries
       REMAIN and their reasons must be rewritten to say so.
