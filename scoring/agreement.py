@@ -1745,6 +1745,15 @@ def report(handout: int, results: list[dict], failures: list[tuple], gold: dict)
     return 0
 
 
+def _era_for(items: list) -> dict:
+    """The era stamp, or why it could not be taken. Never fails a sweep."""
+    try:
+        import measured
+        return measured.era_stamp(items or None)
+    except Exception as e:
+        return {"error": f"{type(e).__name__}: {e}"}
+
+
 def cheap_checks_gate(stream=sys.stderr) -> int:
     """The call-free checks, run BEFORE anything spends. 0 to proceed.
 
@@ -2120,6 +2129,12 @@ def main() -> int:
                     "handout": args.handout,
                     "rule": "median by exact count, ties to lowest index",
                     "published": pick + 1,
+                    # WHAT THIS RAN AGAINST. Without it a directory can only be
+                    # dated by file mtime, which makes prompt version
+                    # indistinguishable from scoring path -- see
+                    # measured.era_stamp and cross_path.py.
+                    "era": _era_for(sorted({r["item"] for p_ in passes
+                                            for r in p_[0] if r.get("item")})),
                     "runs": [{"run": i + 1, "exact": exact_of(p[0]),
                               "results": p[0],
                               "failures": [(a, b, str(c)) for a, b, c in p[1]]}

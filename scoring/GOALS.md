@@ -486,9 +486,39 @@ until all three are closed.
       comparison, not a static check. The SLOT_NOTES channel is the opposite: it
       IS statically visible, already checked, and merely unfinished.
       PLAN, in this order:
-        (a) land the cross-path cell comparison as a reusable tool rather than the
-            throwaway script this scoping used, so the sweep produces the
-            divergence table automatically instead of by hand;
+        [x] (a) DONE. `cross_path.py` compares two scoring paths CELL BY CELL --
+            a different question from `head_to_head.py`, which asks how well each
+            side matches gold. It normalises all three artifact shapes (score.py's
+            `participant_*.json`, agreement.py's and agreement_app.py's
+            `.runs.json`, the last carrying grader.score as a FRACTION of
+            sheet_max that has to be multiplied back up), reports cells whose
+            score sets are disjoint, marks each item declared or not, and with
+            `--slots` names the slots whose majority verdict differs.
+            That last part is what makes it a diagnosis rather than a symptom: it
+            localises 1a/p6 to `distinguishes_periods` -- which IS one of the five
+            web-only `1a:*` SLOT_NOTES entries -- and Q4b/p4 to
+            `behavior_1`/`behavior_2`, the guidance-prose REJECT test. The tool
+            found the responsible rule in both cases without being told about
+            either.
+            AND THE ERA GAP IS CLOSED AT THE SOURCE, which was the right place: it
+            was going to ship with a docstring disclaiming that era could not be
+            checked, because no artifact recorded the prompt it ran against.
+            `measured.era_stamp` now gives the git commit, a dirty-tree flag, and
+            each item's prompt and scorer fingerprints from the same functions the
+            ledger uses, and all THREE writers stamp it. cross_path compares the
+            stamps per item and WITHHOLDS any item whose prompt differed, since
+            such a cell cannot speak about the paths; where a side predates
+            stamping it says so rather than implying it checked.
+            Guarded by `enforcement.check_artifacts_record_their_era`, which reads
+            the writers' source rather than the artifacts -- the corpus is full of
+            legitimately unstamped older runs, and flagging those would be
+            thousands of findings about the past instead of one about the code.
+            Both halves proved to fire.
+            Two bugs were caught by testing rather than by reading: the era check
+            silently did nothing because the loaders returned a flattened item map
+            while the comparison expected the full stamp, and `declared_items`
+            searched each divergence entry's PROSE instead of its `items` field --
+            a false `declared` hides precisely what this tool exists to surface.
         [x] (b) DONE. `SLOT_RULE_BACKLOG` is hoisted to module scope -- so the
             ratchet and the existing check read ONE list, verified by removing an
             entry and watching the existing check flag that note -- and
