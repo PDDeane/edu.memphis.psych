@@ -2243,6 +2243,108 @@ def _measurements_in_flight() -> list[str]:
 _SECTION_RE = re.compile(r'<Vertical id="[^"]*" title="([^"]*)"')
 
 
+def _items_whose_prompt_changed(handout: int, old: str, new: str) -> list[str]:
+    """Which ITEMS' <LLMAction> bodies differ between two renderings."""
+    out = []
+    for item, aid in sorted(ACTION.items()):
+        if HANDOUT.get(item) != handout:
+            continue
+        pat = re.compile(r'<LLMAction\b[^>]*?\bid="%s".*?</LLMAction>' % re.escape(aid), re.S)
+        a = pat.search(old)
+        b = pat.search(new)
+        if (a.group(0) if a else None) != (b.group(0) if b else None):
+            out.append(item)
+    return out
+
+
+def prior_record(item: str) -> str:
+    """Everything already RECORDED about an item, printed where a rule is changed.
+
+    QUALITY_CONTROL.md §2c exists because a day was spent rewriting Q1's
+    `reasons_given` while the comment directly above the component already named
+    gold's conditional structure, classified every cell with gold < 3, and
+    diagnosed the one failing cell as a `harms_listed` misclassification rather
+    than the merge failure being chased. Eleven configurations, ~900 calls.
+
+    Advice did not prevent that and would not have: the guide's own words are
+    "advice is what the reader already agreed with before misreading the table".
+    So the record is pushed at the moment the rule changes -- the only moment it
+    matters -- rather than left somewhere to be consulted by whoever remembers.
+
+    Also prints the STRUCTURAL inventory (§2a): which primitives this item
+    already carries and which are available but unused, so "is there a primitive
+    for this" is answered before prose is written rather than after.
+    """
+    import subprocess
+    import os.path
+
+    h = HANDOUT.get(item)
+    lines = [f"  ---- what is already recorded about {item} (QUALITY_CONTROL.md §2c) ----"]
+
+    # 1. Substantial comment blocks inside this item's rubric entry.
+    try:
+        src = (paths.SCORING / f"rubric_h{h}.py").read_text().splitlines()
+        start = next(i for i, l in enumerate(src) if f'"id": "{item}"' in l)
+        end = next((i for i in range(start + 1, len(src))
+                    if re.search(r'"id": "[^"]+"', src[i])), len(src))
+        block, run = [], []
+        for i in range(start, end):
+            if src[i].lstrip().startswith("#"):
+                run.append((i + 1, src[i].strip().lstrip("# ").rstrip()))
+            else:
+                if len(run) >= 4:
+                    block.append(run)
+                run = []
+        if len(run) >= 4:
+            block.append(run)
+        for b in block[:3]:
+            n0, n1 = b[0][0], b[-1][0]
+            lines.append(f"    rubric_h{h}.py:{n0}-{n1} —")
+            for _, t in b[:8]:
+                lines.append(f"      {t[:96]}")
+            if len(b) > 8:
+                lines.append(f"      ... {len(b)-8} more lines: "
+                             f"sed -n '{n0},{n1}p' rubric_h{h}.py")
+    except Exception as e:
+        lines.append(f"    (could not read rubric_h{h}.py: {type(e).__name__})")
+
+    # 2. Anything naming this item in the written record.
+    for where in ("drafts", "BACKLOG.md", "GOALS.md"):
+        p = paths.SCORING / where
+        if not p.exists():
+            continue
+        try:
+            # -w, not "\\b": grep's BRE has no word-boundary escape, so the
+            # first version matched nothing and reported the record as empty --
+            # a silent failure in the check written to prevent silent failures.
+            r = subprocess.run(["grep", "-rnw", "-m", "3", item, str(p)],
+                               capture_output=True, text=True, timeout=20)
+            for l in (r.stdout or "").splitlines()[:3]:
+                f, _, rest = l.partition(":")
+                lines.append(f"    {os.path.basename(f)}:{rest[:100]}")
+        except Exception as e:
+            # NOT silent. `Path` was not in this module's namespace, so every
+            # iteration raised NameError into a bare `except: pass` and the hook
+            # reported an empty record -- the failure mode it exists to prevent,
+            # inside the thing preventing it.
+            lines.append(f"    (record lookup in {where} failed: "
+                         f"{type(e).__name__}: {e})")
+
+    # 3. The structural inventory (§2a): what this item already uses.
+    try:
+        tag = _sheet_tag(h, ACTION[item])
+        have = [a for a in ("counts", "equals", "cover", "onlyif", "requires",
+                            "expect", "forbid", "derived", "choices")
+                if f'{a}="' in tag]
+        free = [a for a in ("counts", "equals", "cover", "onlyif", "requires",
+                            "expect", "forbid", "derived") if a not in have]
+        lines.append(f"    PRIMITIVES in use: {', '.join(have) or 'none'}")
+        lines.append(f"    available, unused: {', '.join(free)}   (§2a: structure before prose)")
+    except Exception:
+        pass
+    return "\n".join(lines)
+
+
 def _changed_sections(old: str, new: str) -> list[str]:
     """Which handout sections does this regeneration change the text of?
 
@@ -2369,6 +2471,9 @@ def main() -> int:
                       + "; ".join(touched), file=sys.stderr)
                 print(f"H{h}: sweep those items and compare numerators against "
                       f"the last baseline BEFORE committing", file=sys.stderr)
+            # §2c, enforced where it matters: the record is pushed AT the change.
+            for it in _items_whose_prompt_changed(h, old, new):
+                print(prior_record(it), file=sys.stderr)
         elif a.check:
             print(f"H{h}: OUT OF DATE — run olx_prompts.py --write", file=sys.stderr)
     return rc if a.check else 0

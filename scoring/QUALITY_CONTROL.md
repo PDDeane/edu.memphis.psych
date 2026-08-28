@@ -835,6 +835,25 @@ Checking is cheap and mechanical:
 A rule that looks arbitrary usually is not. If the recorded reason is wrong, say
 so and measure against it -- but do not discover it after the fact.
 
+**ENFORCED, not advised.** `olx_prompts.py --write` prints the prior record for
+every item whose prompt text it changes: the substantial comment blocks inside
+that item's rubric entry, anything naming it in `drafts/`, `BACKLOG.md` and
+`GOALS.md`, and the structural inventory §2a asks for -- which primitives the
+item already carries and which are available and unused. You cannot change a rule
+and regenerate without the record being put in front of you at the moment it
+matters, which is the only moment it does.
+
+`check_the_record_is_pushed_at_the_change` guards the guard: it asserts the
+writer still calls the hook, that the hook still reports all three sources plus
+the inventory, and that it does not swallow its own lookup failures. That last
+assertion exists because the first version of the hook raised NameError on every
+lookup into a bare `except: pass` and cheerfully reported an empty record — the
+failure mode of §2c occurring inside the mechanism enforcing §2c.
+
+Of the three disciplines in this section, only §2b and §2c are machine-enforced.
+§2a rides along on §2c's hook (the inventory is printed with the record) but
+nothing checks that the inventory was ACTED on; that remains a judgement.
+
 ## 3. Building the model
 
 **READ THE CREDITED ROWS, NOT JUST THE MISSES. `python3 measured.py

@@ -533,6 +533,8 @@ def enforcement_audit():
         findings.append(("-", "SHEET REACHES NO ARITHMETIC", bad))
     for bad in ENF.check_scorer_fingerprint_is_scoped_and_prose_blind():
         findings.append(("-", "STALE-SCORER FLAG UNRELIABLE", bad))
+    for bad in ENF.check_the_record_is_pushed_at_the_change():
+        findings.append(("-", "RECORD NOT PUSHED AT THE CHANGE", bad))
     for bad in ENF.check_every_check_is_invoked():
         findings.append(("-", "CHECK NEVER RUNS", bad))
     for bad in ENF.check_weighted_slots_are_scored():
