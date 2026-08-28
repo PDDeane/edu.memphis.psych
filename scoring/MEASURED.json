@@ -307,45 +307,55 @@
     "D2": {
       "cli": {
         "cells": {
-          "1": 3,
-          "10": 3,
-          "11": 3,
-          "12": 3,
-          "13": 3,
-          "14": 3,
-          "15": 3,
-          "16": 3,
-          "17": 3,
-          "18": 3,
-          "19": 3,
-          "20": 3,
-          "4": 3,
-          "5": 3,
-          "6": 3,
-          "7": 3,
-          "8": 3,
-          "9": 3
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
         },
         "denominator": 18,
         "excluded_cells": {
-          "2": 2,
-          "3": 2
+          "2": 3,
+          "3": 0
         },
         "exclusions": [
           2,
           3
         ],
         "numerator": 18,
-        "out": "baseline_20260824",
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 18,
+          "out": "baseline_20260824",
+          "prompt_sha": "d157ef618d52",
+          "runs": 3,
+          "scorer_sha": "87749496b9c8"
+        },
         "prompt_sha": "d157ef618d52",
         "run_totals": [
           18,
           18,
+          18,
+          18,
+          18,
           18
         ],
-        "runs": 3,
-        "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
-        "scorer_sha": "87749496b9c8"
+        "runs": 6,
+        "scorer_sha": "fa4d1b3a2c1d"
       }
     },
     "DAY1": {
@@ -1098,45 +1108,55 @@
     "T2": {
       "cli": {
         "cells": {
-          "1": 3,
-          "10": 3,
-          "11": 3,
-          "12": 3,
-          "13": 3,
-          "14": 3,
-          "15": 3,
-          "16": 3,
-          "17": 3,
-          "18": 3,
-          "19": 3,
-          "20": 3,
-          "4": 3,
-          "5": 3,
-          "6": 3,
-          "7": 3,
-          "8": 3,
-          "9": 3
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
         },
         "denominator": 18,
         "excluded_cells": {
-          "2": 3,
-          "3": 3
+          "2": 6,
+          "3": 6
         },
         "exclusions": [
           2,
           3
         ],
         "numerator": 18,
-        "out": "baseline_20260824",
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 18,
+          "out": "baseline_20260824",
+          "prompt_sha": "444071541584",
+          "runs": 3,
+          "scorer_sha": "466cd518dfe8"
+        },
         "prompt_sha": "444071541584",
         "run_totals": [
           18,
           18,
+          18,
+          18,
+          18,
           18
         ],
-        "runs": 3,
-        "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
-        "scorer_sha": "466cd518dfe8"
+        "runs": 6,
+        "scorer_sha": "4f0592d0beaf"
       }
     },
     "WK1": {
