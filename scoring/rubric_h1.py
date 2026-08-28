@@ -722,6 +722,14 @@ ITEMS: list[dict] = [
         # Unreachable on purpose: listing nothing costs both antecedent slots, and
         # A_NONE was never emitted across the cohort.
         "unreachable_codes": [],
+        # Declared on BOTH sides, like `counts` and `equals`: the OLX carries
+        # the attribute for the web, this carries it for score.py. Without it
+        # the CLI ASKED the model "were no antecedents listed?" -- a
+        # question answerable from two verdicts the model has already given,
+        # so it cost a judgement and invited the model to contradict itself.
+        "forbid": [{"key": "no_antecedents",
+                    "conds": [{"slot": "antecedent_1", "value": "absent"},
+                              {"slot": "antecedent_2", "value": "absent"}]}],
         "credit": [
             {
                 "what": "antecedent_1",
@@ -1025,6 +1033,14 @@ ITEMS: list[dict] = [
         # Unreachable on purpose, as A_NONE on Q4a. C_NO_KEYWORD joins it: the
         # keyword slot no longer maps a verdict to it, so nothing can emit it.
         "unreachable_codes": ["C_NO_KEYWORD"],
+        # Declared on BOTH sides, like `counts` and `equals`: the OLX carries
+        # the attribute for the web, this carries it for score.py. Without it
+        # the CLI ASKED the model "were no consequences listed?" -- a
+        # question answerable from two verdicts the model has already given,
+        # so it cost a judgement and invited the model to contradict itself.
+        "forbid": [{"key": "no_consequences",
+                    "conds": [{"slot": "consequence_1", "value": "absent"},
+                              {"slot": "consequence_2", "value": "absent"}]}],
         "credit": [
             {
                 "what": "consequence_1",
