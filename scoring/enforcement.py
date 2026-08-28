@@ -1922,12 +1922,11 @@ def check_web_scorer_exercises_its_sheet() -> list[str]:
 # the CLI ASK the model a question the web computed -- and the only reason it
 # surfaced is that the prompt-text audit noticed the extra question.
 HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
-    ("derive_oc_ledger", "'WK1'"):
-        "WK1's `trigger_behavior` -> `targets_own_behavior` vocabulary mapping. "
-        "Its agent gate and WK2's aimed gate and the contingency gate were "
-        "converted to declared `oc_gates`; this mapping is what is left, and it "
-        "is `expect`-shaped -- a pick compared against authored values -- so it "
-        "should convert too.",
+    # ("derive_oc_ledger", "'WK1'") stood here, and its own text said the mapping
+    # was `expect`-shaped and should convert. It did: rubric_h2.EXPECT declares
+    # it, olx_prompts.expect_attr_for generates the web's attribute from that
+    # declaration, and score._expect_rule reads it. That was the last of the
+    # seven -- derive_oc_ledger now has no item id in it at all.
     # ("derive_oc_ledger", "'DAY1'") was declared here as "the avoidance frame
     # never deducts on DAY1 -- gold's own exception", which read the rule
     # BACKWARDS: DAY1 is the one item where it DOES deduct, gating the whole

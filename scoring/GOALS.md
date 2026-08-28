@@ -266,7 +266,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       recorded dead ends it enforces nothing. Pre-existing, not caused by the
       subgoal 6 work.
 
-- [ ] 3. **Seven scoring rules the two sides implement separately.** Widened
+- [x] 3. **Seven scoring rules the two sides implement separately.** Widened
       from POLARITY_GATE_ITEMS once the audit's new hand-coded check listed them
       all. Every one is DECLARED on the web and HAND-WRITTEN in `score.py` as an
       `if item["id"] in ...` branch, which the enforcement audit cannot compare
@@ -320,10 +320,28 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
             .olx. The rubric declares it and `olx_prompts.forbid_attr_for`
             generates the attribute; regenerated OLX byte-identical, and the
             generator's ownership proved by perturbing the declaration.  (77026ed)
-        [ ] targets_own_behavior -- WK1's `trigger_behavior` -> boolean mapping,
-            the last one. `expect`-shaped: the model names which behaviour the
-            trigger identifies (`utb`/`wgb`/`other`) and the engine compares it
-            against the student's own, mirroring the web's pick + expect.
+        [x] targets_own_behavior -- WK1's `trigger_behavior` -> boolean mapping,
+            the last one, and its own exemption text had already diagnosed it as
+            `expect`-shaped. Now `rubric_h2.EXPECT`, generated into the web's
+            `expect=` attribute by `olx_prompts.expect_attr_for` and read by
+            `score._expect_rule`. The four `demonstrates_type` expects on
+            NP/NR/PP/PR are deliberately NOT declared: the CLI reaches that fact
+            through `expected_type` + REQUIRED_MOVE, already a rubric
+            declaration, and a second declaration of one fact is the thing being
+            removed. Verified by the 56-row grid AND by an exhaustive truth table
+            over nine `trigger_behavior` values -- missing key, whitespace, empty,
+            None, wrong case, nonsense -- because the grid does not exercise them
+            all and the old branch's `.strip()` and `"utb"` default were load-
+            bearing.
+
+      SUBGOAL 3 IS COMPLETE, 7 of 7. `derive_oc_ledger` now contains no item-id
+      comparison at all, asserted by walking its AST rather than by reading it.
+      The seven entries left in HANDCODED_ITEM_RULES are all non-scoring and were
+      already declared as such: five `build_schema` shapes, one prompt hint, one
+      CLI flag filter. The `build_schema` five are the obvious next candidates --
+      WK1's asks for `trigger_behavior` precisely because the `expect` rule reads
+      it, so the declaration could drive the schema too -- but that is a separate
+      question from scoring equivalence and should be decided on its own.
 
       Worth recording about the method: every one of these was found or kept
       honest by a check rather than by memory. Two stale exemptions surfaced the
