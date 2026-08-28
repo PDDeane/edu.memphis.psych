@@ -1331,6 +1331,15 @@ def main() -> int:
             # directory assembled from more than one run is still readable.
             rec["backend"] = type(backend).__name__
             rec["supports_tools"] = bool(getattr(backend, "SUPPORTS_TOOLS", False))
+            # WHAT THIS RAN AGAINST, on the paper side too. cross_path.py compares
+            # this scorer against the web path cell by cell, and without an era on
+            # both sides a prompt-version difference reads as a path difference.
+            # See measured.era_stamp.
+            try:
+                import measured as _M
+                rec["era"] = _M.era_stamp([i["item_id"] for i in rec["items"]])
+            except Exception as _e:      # never fail a sweep over bookkeeping
+                rec["era"] = {"error": f"{type(_e).__name__}: {_e}"}
             with open(os.path.join(outdir, f"participant_{pid:03d}.json"), "w") as fh:
                 json.dump(rec, fh, indent=2)
             done += 1

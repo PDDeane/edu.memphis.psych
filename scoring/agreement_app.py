@@ -1947,6 +1947,15 @@ def detect_type(text: str) -> str:
     return f"{m.group(1).capitalize()} {m.group(2).capitalize()}"
 
 
+def _era_for(items) -> dict:
+    """The era stamp, or why it could not be taken. Never fails a sweep."""
+    try:
+        import measured
+        return measured.era_stamp(items)
+    except Exception as e:
+        return {"error": f"{type(e).__name__}: {e}"}
+
+
 def build_jobs(item: str, pids: list[int]) -> list[dict]:
     spec = JOBS[item]
     jobs = []
@@ -2775,6 +2784,9 @@ def main() -> int:
                     "item": args.item,
                     "rule": "median by exact count, ties to lowest index",
                     "published": pick + 1,
+                    # See measured.era_stamp: an artifact that does not say what
+                    # it ran against cannot be compared with another artifact.
+                    "era": _era_for([args.item] if args.item else None),
                     "runs": [{"run": i + 1,
                               "exact": exact_of(all_runs[i][0]),
                               "n": len(all_runs[i][0]),

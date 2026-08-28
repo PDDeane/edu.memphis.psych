@@ -363,6 +363,48 @@ def _scoped_closure(roots: tuple) -> tuple:
         if p in roots or p not in _SCOPED_PARTS))
 
 
+def era_stamp(items=None) -> dict:
+    """What an artifact must record to be comparable with another artifact.
+
+    A sweep's .json said WHAT it scored and never WHAT IT SCORED AGAINST, so two
+    directories could only be dated by file mtime. That is not a version: it made
+    version indistinguishable from path, and the cross-path scoping on 2026-08-28
+    hit it head on -- 18 cells diverged in both of two comparisons and 17 in only
+    one, which is what prompt drift looks like when you cannot see it. Those 17
+    could not be attributed to anything.
+
+    So: the git commit, whether the tree was dirty when it ran, and each item's
+    prompt and scorer fingerprints -- the same two the ledger stamps, from the same
+    functions, so an artifact and a recorded measurement can be compared directly.
+    A dirty tree is recorded rather than refused, because a probe on uncommitted
+    work is legitimate; what is not legitimate is not knowing afterwards.
+    """
+    import subprocess
+    from pathlib import Path as _P
+
+    here = _P(__file__).resolve().parent
+    def _git(*a):
+        try:
+            return subprocess.run(("git", *a), cwd=here, capture_output=True,
+                                  text=True, timeout=10).stdout.strip()
+        except Exception:
+            return ""
+
+    if items is None:
+        items = sorted(_jobs())
+    per = {}
+    for it in items:
+        try:
+            per[it] = {"prompt_sha": prompt_sha(it), "scorer_sha": scorer_sha(it)}
+        except Exception as e:
+            per[it] = {"error": f"{type(e).__name__}: {e}"}
+    return {
+        "git": _git("rev-parse", "HEAD") or "unknown",
+        "dirty": bool(_git("status", "--porcelain")),
+        "items": per,
+    }
+
+
 def scorer_sha(item: str | None = None) -> str:
     """SHA-256 of the code that turns THIS item's answers into a score, 12 hex.
 
