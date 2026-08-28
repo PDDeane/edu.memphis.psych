@@ -191,6 +191,81 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       Record each side, then compare per item AND per cell: an item can agree on
       the number while disagreeing on which cells it got right, and that is
       exactly the shape a per-item comparison hides.
+
+      PRECONDITION, set 2026-08-28: before the sweep runs, the two sides must put
+      the SAME RULE LOGIC AND THE SAME RULE LANGUAGE to the model. Byte-identical
+      prompts were considered and RETRACTED the same day, on the right grounds:
+      the two sides are fed the student's work differently -- the web has one box
+      per field, the CLI has one segmented block per item -- so a shared document
+      would have meant rewriting the CLI's whole prompt path to serve a
+      difference in plumbing. Measured before retracting, and worth keeping: the
+      generator IS the shipped artifact (`build_web_prompt` reproduces all 23 OLX
+      bodies byte-for-byte once its `\x00REF:` sentinel is expanded), and
+      `agreement_app.build_jobs` reconstructs the web's per-box fixture from the
+      same paper block the CLI segments. So identity was reachable; it just was
+      not worth what it cost.
+      Where the wordings differ, the WEB's wins -- unless the difference is
+      forced by how the response text is presented, or the web is CLEARLY WRONG,
+      as in the DAY1 contradiction subgoal 6 found and fixed.
+- [x] 6. **The criteria prose was written twice, and the copies had drifted.**
+      Found while establishing subgoal 2's precondition. `score.py:build_prompt`
+      held the `derive_from_criteria` block and `olx_prompts._criteria_section`
+      held a copy whose docstring called it "score.py:build_prompt's
+      derive_from_criteria block, verbatim". It was not verbatim: criterion 5's
+      example ("{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=C1}} body" against "a
+      rested body, or fitness itself, following the behaviour that produces
+      it"), criterion 7's example ("the extra chore" against "30 pushups"), and
+      criterion 10's WK1 rule, which the web had grown and the CLI had not. All
+      eight OC items were affected and every audit was green, because each side
+      was internally consistent and this prose is authored in the SCORERS rather
+      than in the rubric -- so it fell between the prompt audit, which compares
+      rubric elements to the web, and the enforcement audit, which compares
+      declarations.
+      The CLI's copy had never been leakage-scanned either: `leakage.py` reads
+      rubric `guidance`/`rule` strings and `SLOT_NOTES`, not `score.py`. The two
+      drifted examples were the ones the web-side leakage rewrite had already
+      replaced.
+      FIXED STRUCTURALLY: score.py calls `_criteria_section`, so there is one
+      source and nothing left to keep in step. The web's wording won everywhere
+      except one case where the web was clearly wrong (below). Three
+      substitutions remain, each forced by the CLI's ANSWER SHEET and each
+      declared in EQUIVALENCE.md: `evidence` -> `behavior` (its criteria object
+      has no evidence field), `yes`/`no` -> true/false (its criteria are
+      booleans), and dropping "one point, and it charges ONLY this" (the engine
+      computes the score; its model never sees points).
+      THE WEB WAS CLEARLY WRONG ON DAY1, in two places, and was fixed to match
+      what the CLI had: its criterion 7 said the avoidance reading "never changes
+      the score" while its own guidance said "AVOIDANCE FRAMING TAKES THE WHOLE
+      ITEM HERE ... the graders scored those zero", and its `consequence_asserted`
+      note repeated the false half. Now declared once, on the rubric, as
+      `rubric_h2.AVOIDANCE_SCORES`, and read by both generators.
+      VERIFIED, 0 model calls: the 56-row `oc_grid` is IDENTICAL across the change
+      (prompt text moved, scoring logic did not); 191 of 200 CLI criteria
+      sentences match the web verbatim after the declared substitutions and the
+      other 9 are numbered-list prefixes and a trailing period, each rule body
+      confirmed character-identical to the web's note; exactly one web prompt
+      moved (DAY1) and the other 22 are byte-unchanged.
+      GUARDED: `enforcement.check_criteria_prose_has_one_source` fails the build
+      if that branch stops delegating or if prose reappears in it, counting TOTAL
+      literal length rather than the longest literal -- the first version passed a
+      synthetic paste assembled from `+`-joined pieces. Both halves were proved to
+      fire before being trusted.
+      Two stale exemptions fell out of the change and were removed, and
+      `consequence_asserted` left `check_slot_rules_reach_both_prompts`' BACKLOG
+      by being FIXED rather than by rotting: score.py reads it now, so the
+      "SLOT_NOTES is web-only" premise no longer holds for it. Which keys those
+      are is declared in `olx_prompts.CLI_CRITERIA_NOTES` rather than copied into
+      the check.
+- [ ] 7. **§2c's recorded-comment lookup is blind to all twelve H2 items.**
+      Found in passing: `olx_prompts.prior_record` locates an item's rubric
+      comments by grepping for the literal `"id": "DAY1"`, but `rubric_h2.py`
+      builds its items from a factory, so no H2 item ever matches and the hook
+      reports `could not read rubric_h2.py: StopIteration`. It has been reporting
+      that, visibly, on every H2 `--write`. §2c is a discipline the record is
+      supposed to enforce automatically, and on the handout with the most
+      recorded dead ends it enforces nothing. Pre-existing, not caused by the
+      subgoal 6 work.
+
 - [ ] 3. **Seven scoring rules the two sides implement separately.** Widened
       from POLARITY_GATE_ITEMS once the audit's new hand-coded check listed them
       all. Every one is DECLARED on the web and HAND-WRITTEN in `score.py` as an

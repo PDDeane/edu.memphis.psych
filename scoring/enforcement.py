@@ -1081,7 +1081,7 @@ def check_slot_rules_reach_both_prompts() -> list[str]:
     # means moving its text to the credit component's `rule` field and
     # re-measuring the paper scorer on that item — a scoring change per item,
     # which is why they are not being done in a batch.
-    BACKLOG = ['1a:baseline_week', '1a:distinguishes_periods', '1a:week_1', '1a:week_2', '1c:has_own_graph', '1c:legend', 'D1:defines_type', 'D2:defines_type', 'Q1:matches_selected', 'Q2:reasons_given', 'Q2:wgb_inverts_utb', 'Q2:wgb_is_counterpart', 'Q5:example_2', 'consequence_asserted', 'matches_chosen_type', 'named_type', 'reasons_failing', 'reasons_substantial']
+    BACKLOG = ['1a:baseline_week', '1a:distinguishes_periods', '1a:week_1', '1a:week_2', '1c:has_own_graph', '1c:legend', 'D1:defines_type', 'D2:defines_type', 'Q1:matches_selected', 'Q2:reasons_given', 'Q2:wgb_inverts_utb', 'Q2:wgb_is_counterpart', 'Q5:example_2', 'matches_chosen_type', 'named_type', 'reasons_failing', 'reasons_substantial']
 
     problems = []
     scored = {}
@@ -1100,6 +1100,12 @@ def check_slot_rules_reach_both_prompts() -> list[str]:
         item_id, _, slot = key.partition(":")
         if not slot:                       # unscoped note, applies by slot name
             item_id, slot = None, key
+        # Except for the handful score.py's criteria sheet renders itself. The
+        # docstring's premise -- SLOT_NOTES is web-only -- stopped being true for
+        # those when the criteria prose was given one source; `consequence_asserted`
+        # left the BACKLOG below by being FIXED rather than by rotting.
+        if slot in getattr(OP, "CLI_CRITERIA_NOTES", ()):
+            continue
         owners = ([item_id] if item_id and item_id in scored
                   else [i for i, s in scored.items() if slot in s])
         if not owners:
@@ -1435,6 +1441,83 @@ def _attr(handout: int, item_id: str, attr: str) -> str:
     import olx_prompts as O
     m = re.search(r'\b%s="([^"]*)"' % attr, O._sheet_tag(handout, O.ACTION[item_id]))
     return m.group(1) if m else ""
+
+
+def check_criteria_prose_has_one_source() -> list[str]:
+    """Is the criteria prose still stated ONCE, or has a second copy grown back?
+
+    It was stated twice for months. score.py:build_prompt held the block, and
+    olx_prompts._criteria_section held a copy whose docstring called it
+    "score.py:build_prompt's derive_from_criteria block, verbatim". By the time
+    anyone compared them they were not verbatim: criterion 5's example, criterion
+    7's example and criterion 10's WK1 rule had each drifted, so the two scorers
+    put materially different words to the model on all eight OC items and every
+    audit passed, because each side was internally consistent.
+
+    Nothing detected that. The prompt audit compares the RUBRIC's elements
+    against the web prompt, and this prose is authored in the scorers rather than
+    the rubric, so it fell between the two.
+
+    The fix was structural -- score.py calls the same function the web calls --
+    and this check is what keeps it that way. It fails if that branch stops
+    delegating, or if a long string literal reappears inside it, which is what a
+    pasted-back copy looks like. It deliberately does not compare the two texts:
+    once there is one source there is nothing to compare, and a check that
+    compares a thing with itself passes forever.
+    """
+    import ast, pathlib
+    src = pathlib.Path(__file__).with_name("score.py").read_text()
+    try:
+        tree = ast.parse(src)
+    except SyntaxError as exc:
+        return [f"score.py does not parse, so the criteria prose cannot be checked: {exc}"]
+
+    fn = next((n for n in ast.walk(tree)
+               if isinstance(n, ast.FunctionDef) and n.name == "build_prompt"), None)
+    if fn is None:
+        return ["score.py has no build_prompt(), so the criteria branch cannot be found"]
+
+    branch = None
+    for node in ast.walk(fn):
+        if not isinstance(node, ast.If):
+            continue
+        t = ast.unparse(node.test)
+        if "derive_from_criteria" in t:
+            branch = node
+            break
+    if branch is None:
+        return ["score.py:build_prompt has no `derive_from_criteria` branch -- if the "
+                "shape changed, retarget this check rather than deleting it"]
+
+    out: list[str] = []
+    # BODY ONLY. `ast.walk` on the If node descends into `orelse` as well, which
+    # is the `elif derive_from_credit` chain -- a different branch with prose of
+    # its own, and walking it made this check fire on two innocent literals the
+    # first time it ran.
+    body = [n for stmt in branch.body for n in ast.walk(stmt)]
+    calls = {ast.unparse(n.func) for n in body if isinstance(n, ast.Call)}
+    if not any("_criteria_section" in c for c in calls):
+        out.append("score.py's derive_from_criteria branch no longer calls "
+                   "_criteria_section -- the criteria prose has a second source "
+                   "again, and the two copies will drift the way they did before")
+
+    # TOTAL authored text in the branch, not the longest single literal. Adjacent
+    # string literals are concatenated at parse time, so the original block was
+    # one huge Constant and a per-literal threshold would have caught it -- but a
+    # copy reassembled with `+` or an f-string is a dozen short ones, and the
+    # first version of this check passed a synthetic paste built that way. Sum
+    # them, and the shape of the copy stops mattering.
+    LIMIT = 300
+    prose = [n.value for n in body
+             if isinstance(n, ast.Constant) and isinstance(n.value, str)]
+    total = sum(len(t) for t in prose)
+    if total > LIMIT:
+        longest = max(prose, key=len)
+        out.append(f"score.py's derive_from_criteria branch holds {total} characters "
+                   f"of string literal across {len(prose)} of them "
+                   f"({longest[:60].strip()!r}...) -- criteria prose belongs in "
+                   "olx_prompts._criteria_section, which both scorers read")
+    return out
 
 
 def check_every_check_is_invoked() -> list[str]:
@@ -1858,8 +1941,13 @@ HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
     ("build_schema", "MOVE_PICK_ITEMS"): "schema shape, not scoring.",
     ("build_schema", "'WK1'"): "schema shape, not scoring.",
     ("build_schema", "'WK2'"): "schema shape, not scoring.",
-    ("build_prompt", "'DAY1'"): "prompt wording, not scoring.",
-    ("build_prompt", "'WK1'"): "prompt wording, not scoring.",
+    # ("build_prompt", "'DAY1'") and ("build_prompt", "'WK1'") lived here as
+    # "prompt wording, not scoring". Both are gone: the criteria prose has one
+    # source now, DAY1's avoidance exception is declared on the rubric as
+    # `avoidance_scores`, and WK1's criterion follows build_schema rather than an
+    # item id. The exemptions were removed because the check flagged them as
+    # stale the moment the branches went -- which is the half of it that earns
+    # its keep.
     ("build_prompt", "('Q1', 'Q2')"): "prompt hint, not scoring.",
     ("score_participant", "only"): "a CLI flag filter, not a rule.",
 }

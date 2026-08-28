@@ -32,6 +32,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from backends import BackendError, make_backend
 from handouts import config, find_submissions
+from olx_prompts import _criteria_section
 from rubric_h2 import (BARRIER_PICK_ITEMS, CADENCE_BARRIER_ITEMS,
                        CONTINGENCY_GATE_ITEMS, MOVE_PICK_ITEMS,
                        POLARITY_GATE_ITEMS, REQUIRED_MOVE)
@@ -864,97 +865,31 @@ def build_prompt(
     parts.append(f"## Question asked of the student\n{item['question']}\n")
 
     if item.get("derive_from_criteria"):
-        parts.append(
-            "## How to judge this item\n"
-            "Do NOT output a score or a deduction list. Fill in the criteria sheet; the "
-            "score is computed from it.\n\n"
-            "Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR "
-            "is changed by a CONSEQUENCE that is contingent on it. Answer these in order "
-            "and answer them literally about what the student wrote:\n"
-            "1. `behavior` — quote the voluntary behaviour of the student that the plan "
-            "acts on. If the answer names no behaviour of theirs, leave this an empty "
-            "string.\n"
-            "2. `stimulus` — quote the thing being added or taken away. Empty string if "
-            "none is named.\n"
-            "3. `contingent` — is the stimulus delivered BECAUSE of that behaviour (or its "
-            "absence)? A statement of something the student will just do, with no link to "
-            "performing the behaviour, is not contingent.\n"
-            "4. `follows_behavior` — does the CONSEQUENCE EVENT (gaining or losing the "
-            "thing) occur after the behaviour? Judge the delivery, not the wording. "
-            "\"I am not allowed X until I do B\" DOES satisfy this: X is delivered once B "
-            "happens, which is the ordinary shape of a reinforcement contingency. It fails "
-            "only when nothing is ever delivered contingent on the behaviour — the plan is "
-            "purely to remove a temptation or set up the environment in advance, which is "
-            "an antecedent manipulation rather than a consequence.\n"
-            "5. `stimulus_is_arranged` — is the consequence something the student arranges, "
-            "as opposed to the behaviour's own automatic result? Removing an obligation or "
-            "chore IS arranged; '{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=C1}} body' is not.\n"
-            "6. `observed_type` — given increase-or-decrease and add-or-remove, which of "
-            "PR/NR/PP/NP is it actually? Use `none` only if 1-4 fail.\n"
-            "   DUAL DESCRIPTIONS: an arrangement of the form \"I am not allowed X until I "
-            "do B\" is genuinely describable two ways — as PR of B (X is granted once B "
-            "happens) and as NP of not-B (X is withheld while B is absent). Both are "
-            "correct readings. When the arrangement admits both and one of them is the "
-            "type under discussion, report that one; do not mark it a mismatch.\n"
-            "7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED "
-            "when the behaviour occurs (\"so I don't have to do the extra chore if I miss "
-            "it\") rather than by what is added or removed after it. "
-            + ("On THIS item a true answer takes the whole 4: an answer whose only claim "
-               "is about dodging a penalty has not said what will be added or taken away "
-               "when the behaviour happens, and the graders scored those zero. Answer "
-               "true only when the sentence's own claim is the avoidance — not merely "
-               "because a penalty is mentioned. "
-               if item.get("id") == "DAY1" else
-               "This never changes the score; it flags the answer for a phrasing "
-               "comment. ")
-            + "It is the ONLY criterion that judges this phrasing — no other check may "
-            "deduct for it.\n"
-        )
-        if item.get("cadence"):
-            parts.append(
-                f"8. `named_type` — which of the four the student SAID they would use. Read "
-                "the type slot in the context below; if it is blank or garbled, fall back to "
-                "their DEFINITION, which usually states the type plainly (\"{{corpus:D2/p15:d2:28:41:sha=561e03f6a586:shape=R13-0-20}}"
-                "{{corpus:D2/p15:d2:42:110:sha=bd23c4b2e196}}\" is "
-                "Positive Punishment). Use `unclear` only when neither says.\n"
-                f"9. `cadence_ok` — is the TRIGGER evaluated {item['cadence']}? Judge only "
-                "how often the behaviour is checked, not how long the consequence lasts: a "
-                "daily trigger whose reward runs to the end of the week is still daily. Set "
-                "this false only when the contingency is plainly settled on the other "
-                f"schedule — e.g. a daily slot answered with a whole-week tally.\n"
-                + ("10. `trigger_behavior` — name which behaviour has to happen, or "
-                   "fail to happen, before the consequence arrives, then answer "
-                   "`utb`, `wgb` or `other` by WHAT KIND OF PHRASE it is. A POINTER "
-                   "(\"my goal\", \"my daily goal\", \"my plan\") has no content of "
-                   "its own: classify it as whatever it points at. A NAMED ACTIVITY "
-                   "(\"procrastinating\", \"reading a chapter\") has content: judge it "
-                   "against the behaviour the student CHOSE. Their paragraph also "
-                   "explains why they chose it, and the causes and knock-on habits "
-                   "it mentions are not the chosen behaviour — a plan triggered on "
-                   "one of those is `other`.\n"
-                   if item.get("id") == "WK1" else
-                   "10. `targets_own_behavior` — is it aimed at this student's own "
-                   "UTB/WGB rather than some clearly different behaviour?\n")
-                # Kept near-verbatim from olx_prompts.SLOT_NOTES['consequence_asserted']
-                +
-                # so both implementations put the same question to the model. If
-                # you retune one, retune the other and re-baseline; the wording is
-                # deliberately narrow because the over-credited cells it targets do
-                # not share one statable property.
-                "11. `consequence_asserted` — false ONLY when the answer merely "
-                "JUXTAPOSES behaviour and consequence without asserting one follows "
-                "from the other: \"{{corpus:DAY2/p13:day2:0:49:sha=28fcf479970c:shape=R32-3-414e44,R49-0-20}}"
-                "{{corpus:DAY2/p13:day2:50:82:sha=044c35247226}}\" is false, while \"{{corpus:DAY1/p16:day1:0:11:sha=4f4bb2cd8fe8:shape=R11-0-20}}"
-                "{{corpus:DAY1/p16:day1:12:58:sha=445fd12bcc9c:shape=C180}} TV\" is true — the "
-                "same two facts, but the second asserts the link. Anything with if / "
-                "when / for each / every time / until / once, naming something "
-                "actually given or taken away, is true — including withholding a "
-                "reward until the behaviour happens, which is a normal reinforcement "
-                "shape. This criterion does NOT judge phrasing: a consequence stated "
-                "by what is AVOIDED asserts the link perfectly well and is true here. "
-                "Criterion 7 is the only place that phrasing is recorded, and it "
-                "never changes the score.\n"
-            )
+        # ONE SOURCE for this prose. It used to live here in full, while
+        # olx_prompts._criteria_section held a second copy whose docstring called
+        # it "score.py:build_prompt's derive_from_criteria block, verbatim". It
+        # was not verbatim any more: criterion 5's example had drifted ("sleeping
+        # {{corpus:PR/p1:pr:9:42:sha=39dac706d4b0}} body" here against "a rested body, or
+        # fitness itself, following the behaviour that produces it" there),
+        # criterion 7's had too ("the extra chore" against "30 pushups"), and
+        # criterion 10's WK1 rule here was an older, shorter version of the one
+        # the web had grown. Two copies of a rule are two rules, and this pair
+        # drifted exactly the way every other hand-kept mirror in this project
+        # has. The web's wording wins wherever they differed and nothing forced
+        # the difference; the forced substitutions are enumerated in
+        # EQUIVALENCE.md and applied by _as_criterion.
+        #
+        # WHICH criteria get asked follows build_schema rather than an item id,
+        # so the prompt cannot describe a field the answer sheet does not collect
+        # -- the failure that put "put it in `evidence`" in front of a model
+        # whose sheet has no evidence field.
+        asked = build_schema(item)["properties"]["oc_analysis"]["properties"]
+        parts.append(_criteria_section(
+            item,
+            trigger_slot="trigger_behavior" in asked,
+            consequence_slot="consequence_asserted" in asked,
+            avoidance_scores=bool(item.get("avoidance_scores")),
+        ))
         parts.append("")
     elif item.get("derive_from_credit"):
         computed = {r["key"] for r in item.get("equals", [])}
