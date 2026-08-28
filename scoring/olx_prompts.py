@@ -506,59 +506,28 @@ OMIT_DEDUCTION: dict[str, dict[str, str]] = {}
 # ---------------------------------------------------------------------------
 
 SCORING_DIVERGENCES = [
-    {
-        # DECLARED 2026-08-28, closing the hole subgoal 5 found. Q4b was absent
-        # from this list and the enforcement audit reported nothing for it, because
-        # the rule doing the refusing lives in GUIDANCE PROSE -- "REJECT when the
-        # entry is not something the student did INSTEAD OF the goal behaviour" --
-        # rather than in a primitive the audit can compare. A scoring-relevant rule
-        # enforced on one side only is exactly what that audit exists to catch, and
-        # it cannot see this one. So it is declared here instead of detected there.
-        #
-        # HOW THE CELLS FALL, measured across every artifact that scored them:
-        #   p4   gold 2.0   CLI 2.0 (3/3)          web 3.5           CLI matches
-        #   p12  gold 5.0   CLI 5.0 (6/6)          web 3.5 (11/12)   CLI matches
-        #   p6   gold 3.5   CLI 5.0                web 3.5           WEB matches
-        # so the two declared cells favour the CLI and p6 favours the web, and at
-        # the ITEM level `cross_path --gold --item Q4b` is 15 against 15: a TIE.
-        #
-        # DIRECTION: RESOLVED IN FAVOUR OF THE WEB. The two sides tie against gold
-        # on this item, and the rule on a tie is to prefer the web. So the WEB'S
-        # READING IS THE REFERENCE and the CLI is what converges; the CLI's refusals
-        # on p4 and p12 are not imported just because they happen to land on gold in
-        # those two cells.
-        #
-        # That is not the same as freezing the web's accuracy. Improving the web's
-        # OWN rule against gold is still the right work -- the referent test would
-        # make the web charge p4, moving it TOWARD gold -- and it is a change to the
-        # reference side, which is exactly where a change belongs. What "prefer the
-        # web" forbids is adopting the CLI's reading as the target.
-        #
-        # This is the opposite of what the entry was first drafted as, on two cells
-        # read without the item around them.
-        #
-        # WHAT WOULD ACTUALLY CLOSE p4 is the referent test, and it has been
-        # measured once already: in prose form, 3 runs, counted [14,13,13] ->
-        # [15,12,14], rejected for THREE TIMES THE VARIANCE at +0.34 mean. It is
-        # now its own subgoal, to be run against a 6-run baseline after the sweep,
-        # because a 3-run history is what made the first verdict unsafe.
-        "what": "the INSTEAD-OF test is prose on both sides and the two paths read "
-                "it differently, with no primitive for the audit to compare",
-        "items": ["Q4b"],
-        "necessary": False,
-        "enforcement": "neither side computes it: `behavior_1` and `behavior_2` are "
-                       "model-judged from a per-slot `rule`, declared as prose-only "
-                       "in enforcement.PROSE_ONLY_SLOTS. The audit compares "
-                       "declarations, so it can see the SLOT but not the rule.",
-        "why": "Measured, not asserted: paper 2.0 against web 3.5 on p4 (gold 2.0) "
-               "and paper 5.0 against web 3.5 on p12 (gold 5.0), while p6 goes the "
-               "other way at paper 5.0 against web 3.5 (gold 3.5). Item-level the "
-               "two sides tie at 15 of 19 cells each, so the tie-break applies and "
-               "the WEB is preferred; the CLI converges. The cells are not "
-               "unreachable and the paths are not equally right cell by cell -- "
-               "they disagree, and until the referent test is measured at six runs "
-               "the disagreement is declared rather than fixed.",
-    },
+    # RETIRED 2026-08-28, the same day it was written. It declared that the
+    # INSTEAD-OF test was prose on both sides with no primitive for the audit to
+    # compare -- and that is no longer true: `behavior_1` and `behavior_2` are
+    # COMPUTED from one declared `maps` rule each, which the enforcement audit
+    # compares like any other primitive.
+    #
+    # Verified before retiring, 0 model calls: both engines return the same verdict
+    # for every classification -- activity>met, none>absent, and consequence /
+    # goal_behaviour / not_doing > wrong_kind -- and the codes follow, B_ONLY_ONE for
+    # an empty box and the repeatable B_NOT_ACTIVE for a wrong entry. The two paths
+    # no longer have a composite to read differently.
+    #
+    # WHAT IS NOT CLAIMED: that p4 and p12 now match gold. The classification is
+    # still a judgement, so the paths can still differ on it -- one named question
+    # instead of five weighed at once. That residual is declared as
+    # enforcement.PROSE_ONLY_SLOTS Q4b.b1_basis/b2_basis, and the sweep measures the
+    # numbers. REOPEN THIS if the sweep shows the two paths disagreeing on Q4b by
+    # more than the pick can explain.
+    #
+    # The referent test is deliberately NOT part of this: it was measured in prose
+    # form and rejected for three times the variance, and it stays subgoal 10 so the
+    # mechanism change and the accuracy experiment are not confounded.
     {
         "what": "the web COMPUTES the nothing-listed gate; the CLI asks the model",
         "items": ["Q4a", "Q4c"],
@@ -882,7 +851,14 @@ EVIDENCE: dict[str, tuple[str, list[tuple[str, str]]]] = {
 # ---------------------------------------------------------------------------
 
 def _split_fails(key: str) -> tuple[str, str | None]:
-    """`behavior_1->not_active` -> ("behavior_1", "not_active").
+    """`behavior_1~not_active` -> ("behavior_1", "not_active").
+
+    `~` and not `->`, because this project's tag readers match an opening tag as
+    `[^>]*>`: a `>` inside an attribute VALUE terminates the match early and every
+    attribute after it disappears. That is not hypothetical -- the first version of
+    `maps` used `>` and Q4b's `slots=` became invisible, reported as "no slots=
+    attribute; nothing to measure". XML permits `>` in a value; these regexes do
+    not, so the syntax avoids it.
 
     A computed rule may NAME the verdict it sets when it fails. Without it the
     verdict is positional, and the two engines read the position differently:
@@ -895,7 +871,7 @@ def _split_fails(key: str) -> tuple[str, str | None]:
     So: explicit where it is ambiguous, and `check_computed_verdict_is_unambiguous`
     requires it there.
     """
-    k, sep, fails = key.partition("->")
+    k, sep, fails = key.partition("~")
     return k.strip(), (fails.strip() or None) if sep else None
 
 
@@ -936,7 +912,7 @@ def parse_forbid(spec: str) -> list[dict]:
 def parse_maps(spec: str | None) -> list[dict]:
     """Mirror of slotSheet.ts:parseMaps.
 
-    `maps="key:pick:value>verdict,...,*>verdict"`, rules separated by `|`. A check
+    `maps="key:pick:value~verdict,...,*~verdict"`, rules separated by `|`. A check
     COMPUTED by mapping one pick's value to a NAMED verdict, which {{corpus:Q4b/p13:modify:42:58:sha=ed0e48693398}}
     `equals`, `expect` and `forbid` cannot express: each of those answers a yes/no
     question about other answers and so produces a check with ONE failing verdict.
@@ -961,7 +937,7 @@ def parse_maps(spec: str | None) -> list[dict]:
             continue
         pairs, fallback = [], None
         for pair in raw.split(","):
-            value, sep, verdict = pair.partition(">")
+            value, sep, verdict = pair.partition("~")
             value, verdict = value.strip(), verdict.strip()
             if not sep or not value or not verdict:
                 continue
@@ -1819,7 +1795,7 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
     p.append(_checklist_section(item, slots, item_id, _equals_attr(h, action),
                                 _derived_attr(h, action), _counts_attr(h, action),
                                 _choices_attr(h, action), _expect_attr(h, action),
-                                _forbid_attr(h, action)))
+                                _forbid_attr(h, action), _maps_attr(h, action)))
 
     # One component, one <Ref>: the same value twice under two headings reads
     # as two different answers.
@@ -2060,7 +2036,8 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
                        counts: list[dict] | None = None,
                        choices: dict[str, list[str]] | None = None,
                        expect: list[dict] | None = None,
-                       forbid: list[dict] | None = None) -> str:
+                       forbid: list[dict] | None = None,
+                       maps: list[dict] | None = None) -> str:
     """The sheet the model must fill, generated from the .olx `slots` attribute.
 
     Checks the grader COMPUTES are listed separately and explicitly NOT asked for:
@@ -2087,6 +2064,13 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
     # and `expect` it is out of the response schema and must not be asked for.
     forbid = forbid or []
     forbidden_keys = {r["key"]: r for r in forbid}
+    # A `maps` key is computed from ONE pick's value, so like the four above it is
+    # out of the response schema and must not be asked for. Leaving it in the
+    # answerable list made the prompt say "answer this" and, further down, "DO NOT
+    # ANSWER this" about the same check -- which the enforcement audit caught the
+    # first time this item was generated.
+    maps = maps or []
+    mapped_keys = {r["key"]: r for r in maps}
     desc = {c["what"]: c["desc"] for c in item["credit"]}
     # `{fail}` is filled with the verdict THIS side offers. The rule text is
     # shared with score.py, whose vocabulary differs — web `wrong_kind` maps to
@@ -2117,7 +2101,7 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
     for s in slots:
         if (s["key"] in computed or s["key"] in from_page
                 or s["key"] in counted or s["key"] in expected
-                or s["key"] in forbidden_keys):
+                or s["key"] in forbidden_keys or s["key"] in mapped_keys):
             continue
         # The rubric's own per-component `rule` comes FIRST. Slot-specific judging
         # text belongs in a slot-specific field on BOTH sides, and only the rubric
@@ -2139,6 +2123,16 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
         else:
             head = f"- `{s['key']}`{gate} — {'/'.join('`%s`' % o for o in s['options'])}"
         lines.append(f"{head}: {note}" if note else head)
+    for key, r in mapped_keys.items():
+        spec = next((x for x in slots if x["key"] == key), None)
+        gate = " **GATE**" if spec and spec["gates"] else ""
+        pairs = ", ".join(f"`{c['value']}` makes it `{c['verdict']}`" for c in r["pairs"])
+        tail = (f", and anything else makes it `{r['fallback']}`"
+                if r.get("fallback") else "")
+        lines += ["", f"DO NOT ANSWER `{key}`{gate}. The grader computes it from "
+                      f"`{r['pick']}`: {pairs}{tail}. Answer `{r['pick']}` on its own "
+                      f"terms -- what the entry IS -- and the verdict follows. It is "
+                      f"arithmetic, not a second judgement."]
     for key, r in forbidden_keys.items():
         spec = next((x for x in slots if x["key"] == key), None)
         gate = " **GATE**" if spec and spec["gates"] else ""
@@ -2345,6 +2339,11 @@ def check_template_matches_example(handout: int = 3) -> list[str]:
     return []
 
 
+def _maps_attr(handout: int, action: str) -> list[dict]:
+    mp = re.search(r'\bmaps="([^"]*)"', _sheet_tag(handout, action))
+    return parse_maps(mp.group(1) if mp else "")
+
+
 def _forbid_attr(handout: int, action: str) -> list[dict]:
     fb = re.search(r'\bforbid="([^"]*)"', _sheet_tag(handout, action))
     return parse_forbid(fb.group(1) if fb else "")
@@ -2421,7 +2420,27 @@ def expect_attr_for(item_id: str) -> str | None:
 # the declaration keeps whatever the .olx authors; an item WITH one whose tag has
 # no such attribute is a hard error, because the rule would then reach score.py
 # and not the web -- the asymmetry these conversions exist to remove.
-GENERATED_ATTRS = (("forbid", forbid_attr_for), ("expect", expect_attr_for))
+def maps_attr_for(item_id: str) -> str | None:
+    """The `maps=` attribute value for an item, from the RUBRIC declaration.
+
+    Format is parse_maps's: `key:pick:value~verdict,...`, `*` last as the fallback,
+    rules joined by `|`.
+    """
+    item = config(HANDOUT[item_id])["rubric"].BY_ID[item_id]
+    rules = item.get("maps") or []
+    if not rules:
+        return None
+    out = []
+    for r in rules:
+        pairs = [f"{c['value']}~{c['verdict']}" for c in r["pairs"]]
+        if r.get("fallback"):
+            pairs.append(f"*~{r['fallback']}")
+        out.append("%s:%s:%s" % (r["key"], r["pick"], ",".join(pairs)))
+    return "|".join(out)
+
+
+GENERATED_ATTRS = (("forbid", forbid_attr_for), ("expect", expect_attr_for),
+                   ("maps", maps_attr_for))
 
 
 def render(handout: int) -> tuple[str, dict]:
