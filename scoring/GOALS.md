@@ -116,7 +116,7 @@ any rule written as guidance prose (subgoal 15, under the parked goal). Q4b/p12
 is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
 3.5 in eleven of twelve, and nothing anywhere declares that.
 
-- [ ] 1. **Declare the mechanical flags -- or wire them up.** Three findings, all
+- [x] 1. **Declare the mechanical flags -- or wire them up.** Three findings, all
       pre-existing except the first, none declared:
       **Q4a TOTAL, web 4 vs CLI 5.** The two antecedent slots carry 2 points each
       and the item's fifth point lived in the `keyword` component, which was
@@ -134,7 +134,47 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       For each: either bind the code to a check that can charge it, or declare it
       with a reason that says why the code exists and cannot fire. Do not leave a
       deduction that looks live and is not.
-- [ ] 2. **Clear the stale.** Eight handout-2 items read STALE PROMPT after the
+      DONE, and two of the three flags were never undeclared. `unreachable_codes`
+      already named Q4a's A_NONE and Q4c's C_NONE/C_NO_KEYWORD, with reasons, and
+      `enforcement.check_codes_reachable` reads that field -- but the MECHANICAL
+      pass in `--scoring` did not, so it reported them as undeclared and they were
+      passed on as real findings. The pass now honours the field. It stays a
+      declaration and not an amnesty, because check_codes_reachable independently
+      flags a code declared dead that turns out reachable.
+      **Q4a TOTAL was genuinely undeclared and the omission was ours**, following
+      from this session's decision to zero A_NO_KEYWORD. Declared in
+      SCORING_DIVERGENCES with the part that matters checkable rather than
+      asserted: gold's Q4a scores are exactly {5.0 x13, 3.0 x5, 1.0 x2} and the
+      charges we can express reach exactly {5, 3, 1}, so no gold row needs the
+      missing point.
+      **A_NONE and C_NONE are now REACHABLE**, per the rule that a code gold
+      specifies should be wired rather than declared away. Done with the `forbid`
+      primitive (§2a: structure before prose), which is built for "fails when a
+      COMBINATION holds": the computed check fails exactly when BOTH entries are
+      `absent` -- nothing listed at all -- which is what the codes name, and is
+      distinct from entries written but of the wrong kind, which the -2 codes
+      charge. `forbid` keys are stripped from the response schema, so the model is
+      asked nothing new.
+      VERIFIED INERT BY REPLAY, 0 calls: all 180 recorded sheets rescored through
+      the new rules, 120 of 120 on Q4a and 60 of 60 on Q4c unchanged. No cell in
+      the corpus has both entries `absent`, and Q4a/p20 -- the cell that looks
+      like a candidate -- is wrong_kind twice in 6 of 6 runs, correctly scoring 1
+      against gold's 1.
+      **C_NO_KEYWORD stays unreachable**, and that is the record's answer, not a
+      shortcut. The comment above the component already recorded the measurement:
+      no Q4c gold row deducts for the missing word, there is no 1-point deduction
+      of ANY kind on the item, and charging it cost three cells and recovered
+      none. A fresh measurement agreed to the cell -- absent or unclear in 12 of
+      60 observations across p9, p13, p15, p17, every run. Reachable-at-zero would
+      be cosmetic. The revisit is recorded there so the next reader does not
+      repeat it.
+      A STALE CLAIM was corrected while in there: that comment said "Q4a is the
+      opposite case and keeps its charge", which this session made false when
+      A_NO_KEYWORD went to 0.0. The two items now agree in EFFECT by different
+      mechanisms.
+      Q4a and Q4c are marked STALE PROMPT and NOT swept, by instruction. They join
+      subgoal 2's list, which is now TEN items.
+- [ ] 2. **Clear the stale H2 items with a sweep.** TEN items read STALE PROMPT: the eight handout-2 items after the
       leakage rewrite -- DAY1, DAY2, NP, NR, PP, PR, WK1, WK2 -- which was option
       2, taken deliberately: prompts cleaned immediately, calls deferred, ledger
       honest. Six runs each is ~960 calls.
