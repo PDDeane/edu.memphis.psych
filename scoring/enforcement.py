@@ -1957,6 +1957,46 @@ HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
 }
 
 
+# How many hand-coded item rules are still declared. It may only go DOWN.
+#
+# A declaration is a promise to convert, not a licence to keep. The existing
+# check compares the table against score.py and is silent about an entry that is
+# accurately declared -- so seven of them could sit there indefinitely, each one
+# individually justified, and the table would read as coverage while enforcing
+# nothing about its own size. That is how the SLOT_NOTES backlog got to eighteen.
+#
+# Lower this as entries go. Raising it is the finding.
+HANDCODED_BUDGET = 7
+
+
+def check_handcoded_rules_are_being_cleared() -> list[str]:
+    """Is the hand-coded table shrinking, or accumulating?
+
+    Every entry is outstanding work: a rule one scorer states as a declaration
+    and the other reimplements in Python, which the enforcement audit cannot
+    compare because it compares declarations. Seven of these were closed on
+    2026-08-28 and each one turned up something the declaration had got wrong --
+    a rule described backwards, a conjunction with four implementations rather
+    than two, an exemption gone stale.
+
+    The ratchet is two-sided on purpose. Over budget means an entry was ADDED and
+    the table is growing. Under budget means work landed and the budget was not
+    lowered, which would silently leave room for a new entry to take its place.
+    """
+    n = len(HANDCODED_ITEM_RULES)
+    if n > HANDCODED_BUDGET:
+        extra = n - HANDCODED_BUDGET
+        return [f"HANDCODED_ITEM_RULES holds {n} entries against a budget of "
+                f"{HANDCODED_BUDGET} -- {extra} hand-coded rule(s) were ADDED. A "
+                f"declaration is a promise to convert it, not a licence to keep "
+                f"it: convert the rule, or lower the budget only when one goes"]
+    if n < HANDCODED_BUDGET:
+        return [f"HANDCODED_ITEM_RULES is down to {n} entries but the budget still "
+                f"says {HANDCODED_BUDGET} -- lower it to {n}, or the slack lets a "
+                f"new hand-coded rule in without the audit noticing"]
+    return []
+
+
 def check_no_undeclared_handcoded_rules() -> list[str]:
     """Rule behaviour keyed by item id in score.py, rather than declared.
 
