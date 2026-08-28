@@ -35,8 +35,8 @@
         19
       ],
       "runs": 3,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "52f69e509272"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "660b39fe775b"
     },
     "1b": {
       "cells": {
@@ -73,8 +73,8 @@
         20
       ],
       "runs": 3,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "547e6788b068"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "466cd518dfe8"
     },
     "1c": {
       "cells": {
@@ -112,8 +112,8 @@
         16
       ],
       "runs": 3,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "a22bb09fdb49"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "03663d1125ff"
     },
     "2a": {
       "cells": {
@@ -153,7 +153,8 @@
         16
       ],
       "runs": 6,
-      "scorer_sha": "f7e26c4857ff"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "08ba16711c07"
     },
     "2b": {
       "cells": {
@@ -193,7 +194,8 @@
         20
       ],
       "runs": 6,
-      "scorer_sha": "f7e26c4857ff"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "08ba16711c07"
     },
     "3": {
       "cells": {
@@ -233,7 +235,8 @@
         20
       ],
       "runs": 6,
-      "scorer_sha": "f7e26c4857ff"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "08ba16711c07"
     },
     "D1": {
       "cells": {
@@ -274,8 +277,8 @@
         18
       ],
       "runs": 3,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "b2a061633ec5"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "87749496b9c8"
     },
     "D2": {
       "cells": {
@@ -316,8 +319,8 @@
         18
       ],
       "runs": 3,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "b2a061633ec5"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "87749496b9c8"
     },
     "DAY1": {
       "cells": {
@@ -361,8 +364,8 @@
         17
       ],
       "runs": 6,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "a1384fbdabbe"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "38bd39ee8a03"
     },
     "DAY2": {
       "cells": {
@@ -406,8 +409,8 @@
         17
       ],
       "runs": 6,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "a1384fbdabbe"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "38bd39ee8a03"
     },
     "NP": {
       "cells": {
@@ -448,8 +451,8 @@
         18
       ],
       "runs": 3,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "8bf6854ee6ec"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "a65b80bf4352"
     },
     "NR": {
       "cells": {
@@ -493,8 +496,8 @@
         16
       ],
       "runs": 6,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "7e1037374da7"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "5c0899ad6d04"
     },
     "PP": {
       "cells": {
@@ -535,8 +538,8 @@
         18
       ],
       "runs": 3,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "8bf6854ee6ec"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "a65b80bf4352"
     },
     "PR": {
       "cells": {
@@ -580,8 +583,8 @@
         18
       ],
       "runs": 6,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "8bf6854ee6ec"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "a65b80bf4352"
     },
     "Q1": {
       "cells": {
@@ -621,7 +624,8 @@
         19
       ],
       "runs": 6,
-      "scorer_sha": "f7e26c4857ff"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "08ba16711c07"
     },
     "Q2": {
       "cells": {
@@ -661,7 +665,8 @@
         18
       ],
       "runs": 6,
-      "scorer_sha": "f7e26c4857ff"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "08ba16711c07"
     },
     "Q3": {
       "cells": {
@@ -701,8 +706,8 @@
         18
       ],
       "runs": 6,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "52f69e509272"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "660b39fe775b"
     },
     "Q4a": {
       "cells": {
@@ -742,8 +747,8 @@
         18
       ],
       "runs": 6,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "52f69e509272"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "9decbd34055f"
     },
     "Q4b": {
       "cells": {
@@ -782,7 +787,8 @@
         17
       ],
       "runs": 6,
-      "scorer_sha": "d3aecdb891d3"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "dbbf7fbb650b"
     },
     "Q4c": {
       "cells": {
@@ -822,8 +828,8 @@
         17
       ],
       "runs": 3,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "52f69e509272"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "9decbd34055f"
     },
     "Q5": {
       "cells": {
@@ -860,8 +866,8 @@
         19
       ],
       "runs": 3,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "52f69e509272"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "660b39fe775b"
     },
     "Q6": {
       "cells": {
@@ -898,8 +904,8 @@
         18
       ],
       "runs": 3,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "7ef34ef24364"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "3dbb1d76bdd4"
     },
     "T1": {
       "cells": {
@@ -940,8 +946,8 @@
         18
       ],
       "runs": 3,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "547e6788b068"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "466cd518dfe8"
     },
     "T2": {
       "cells": {
@@ -982,8 +988,8 @@
         18
       ],
       "runs": 3,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "547e6788b068"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "466cd518dfe8"
     },
     "WK1": {
       "cells": {
@@ -1027,8 +1033,8 @@
         18
       ],
       "runs": 6,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "37efc7343320"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "3212c8d0bd13"
     },
     "WK2": {
       "cells": {
@@ -1072,8 +1078,8 @@
         18
       ],
       "runs": 6,
-      "scorer_note": "re-stamped when the fingerprint stopped tracking prose and became per-item; recorded by this same working tree, whose only later diff was docstrings",
-      "scorer_sha": "a1384fbdabbe"
+      "scorer_note": "re-stamped when the fingerprint began hashing the TRANSITIVE CLOSURE of the scoring path rather than a list of roots: verdict_of, answer_of, is_satisfied and eight more were called by hashed code and not hashed themselves, so editing them changed scores while every item read current. Two narrower faults went with it -- SCORER_PARTS, authored by hand beside _ALWAYS, omitted expand_counted, and the primitive scoping read only the <LLMAction> tag, missing the forbid Q4a/Q4c declare on their sheet element. No scorer code changed in the re-stamp, and `git log -L` shows none of the eleven newly-covered functions modified since 2026-08-18, before this number was recorded -- so the wider fingerprint is safe backwards as well as forwards.",
+      "scorer_sha": "38bd39ee8a03"
     }
   },
   "note": "Per item: the prompt SHA that was measured and the exclusion set it was measured over. Written by `measured.py --record`, never by hand. Checked by enforcement.check_items_are_measured_as_configured. An entry may declare `pending` with a reason; it may not be absent."

@@ -349,14 +349,70 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       once the code was read beside it, and the audit cannot check an exemption's
       PROSE -- only that the branch it names still exists.
 
-- [ ] 4. **Hash the scoring-path helpers, then re-stamp.** From subgoal 8's
-      step 4. `verdict_of`, `answer_of` and `is_satisfied` are read by
-      `satisfied_map` and `apply_computed` -- both hashed -- but are not hashed
-      themselves, and hashing a function does not hash its callees. Editing any of
-      the three changes scores while every item still reads current.
-      Closing it re-stamps all 26 entries at once. Do it deliberately, with a note
-      on each entry saying the behaviour did not change, and ideally while the
-      ledger is already disturbed rather than when it is clean.
+- [x] 4. **Hash the scoring-path helpers, then re-stamp.** DONE. The three named
+      helpers were the symptom; the fault was that the fingerprint hashed a LIST
+      OF ROOTS and hashing a function does not hash its callees. `measured._closure`
+      now takes the transitive closure of local callees, so the class is fixed
+      rather than three names: twelve functions came in, and only three of them
+      were the ones anyone had noticed.
+      TWO MORE FAULTS IN THE SAME MECHANISM, both found on the way and both of the
+      same kind -- a guard quietly narrower than it appeared:
+        - `SCORER_PARTS` was authored by hand beside `_ALWAYS` and had drifted: it
+          omitted `agreement.expand_counted`. So the WHOLE-PATH fingerprint -- the
+          ledger header's, and the fallback for an item whose shape cannot be read
+          -- was narrower than every per-item one, when its entire job is to be
+          conservative. It is now derived from the three authored tables.
+        - the primitive scoping detected `forbid`/`equals`/... by scanning the
+          `<LLMAction>` open tag, but olx_prompts reads those from `_sheet_tag`,
+          "whichever element carries this action's slot sheet", which is not always
+          the same element. Q4a and Q4c declare `forbid` there, so `parse_forbid`
+          was absent from their fingerprints while their numbers depended on it.
+          Both tags are scanned now, and the effect was to make the scoping FINER:
+          12 distinct fingerprints across the corpus, up from 4.
+      THE FIRST ATTEMPT BROKE THE SCOPING, and measurably: `load_action` is an
+      unconditional root and parses the whole sheet, so it calls every primitive
+      parser, and the raw closure pulled `parse_forbid` onto all 26 items -- a
+      one-line edit to it moved every fingerprint, rebuilding by the back door the
+      global flag that the docstring incident cost ~1800 calls to eliminate.
+      `_scoped_closure` keeps a part that is item-dependent BY DESIGN only when
+      the item's roots asked for it; everything else the closure finds is
+      unconditional and comes in.
+      MEASURED, three properties, each proved by injection rather than argued:
+        a behaviour edit to `verdict_of` (unconditional) moves 26/26;
+        a behaviour edit to `parse_forbid` (item-dependent) moves exactly the 6
+        items that author it -- DAY1, DAY2, NR, WK2, Q4a, Q4c;
+        rewording an existing docstring moves 0/26.
+      RE-STAMPED all 26 entries, and the claim on them is evidenced rather than
+      asserted: `git log -L` shows none of the eleven newly-covered functions
+      modified since 2026-08-18, before the oldest recorded number, so the wider
+      fingerprint is safe backwards as well as forwards. The instrument was
+      checked against functions known to have changed today (13, 2 and 4 commits)
+      before its zeros were trusted. 0 STALE SCORER after; the same 10 STALE
+      PROMPT as before.
+      GUARDED by `enforcement.check_scorer_fingerprint_covers_its_callees`: for
+      every hashed function, every local function it calls must be hashed too, and
+      the scoping may drop only an item-dependent part. Proved to fire -- 13
+      findings when `_closure` is reduced to returning its roots, naming
+      `apply_computed -> answer_of` first, which is the original defect.
+- [ ] 8. **Clear the seven entries left in HANDCODED_ITEM_RULES.** Set 2026-08-28
+      at the user's direction: do it even though all seven are non-scoring, so the
+      table empties rather than settling into a permanent backlog. They are five
+      `build_schema` shapes (BARRIER_PICK_ITEMS, CONTINGENCY_GATE_ITEMS,
+      MOVE_PICK_ITEMS, 'WK1', 'WK2'), one `build_prompt` hint (('Q1','Q2')), and
+      one CLI flag filter (`score_participant`/`only`).
+      The schema five are the real work and WK1's is the model for it: its schema
+      asks for `trigger_behavior` precisely because the `expect` rule declared in
+      rubric_h2 reads that slot, so the declaration can drive the schema and the
+      id disappears. The same argument applies to the barrier and move picks,
+      whose slots exist because a declared conjunction or an `expect` consumes
+      them.
+      Two cautions. A schema change alters what the model is ASKED, so unlike the
+      seven scoring conversions it is not automatically behaviour-preserving --
+      `oc_grid` will not certify it, and each item's schema must be compared
+      key-for-key before and after. And `score_participant`/`only` is a CLI flag
+      filter, not a rule at all; if it cannot be expressed as a declaration the
+      honest close is to move it out of a table about RULES rather than to
+      contrive one.
 - [ ] 5. **The enforcement audit cannot see a rule written as guidance prose.**
       MOVED here from quality control, where it was subgoal 15: it is an
       equivalence-enforcement defect, not an item's scoring problem, and it

@@ -546,6 +546,8 @@ def enforcement_audit():
         findings.append(("-", "OLX ATTRIBUTE UNREAD", bad))
     for bad in ENF.check_web_scorer_exercises_its_sheet():
         findings.append(("-", "SHEET REACHES NO ARITHMETIC", bad))
+    for bad in ENF.check_scorer_fingerprint_covers_its_callees():
+        findings.append(("-", "FINGERPRINT MISSES A CALLEE", bad))
     for bad in ENF.check_scorer_fingerprint_is_scoped_and_prose_blind():
         findings.append(("-", "STALE-SCORER FLAG UNRELIABLE", bad))
     for bad in ENF.check_the_record_is_pushed_at_the_change():
