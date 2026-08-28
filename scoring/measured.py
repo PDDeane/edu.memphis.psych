@@ -103,11 +103,24 @@ def load() -> dict:
     return _migrate(json.loads(LEDGER.read_text()))
 
 
-# The two scoring paths a number can come from. Every recorded number until
-# 2026-08-28 came from the web-prompt path, so that is what the migration assumes
-# and what `side` defaults to -- an unlabelled number is a web number.
+# The two scoring paths a number can come from, and WHICH IS WHICH matters more
+# than it looks -- I got it backwards once, in the migration that added the
+# dimension, and it would have mislabelled every historical number.
+#
+#   "cli"  agreement.py, driven by sweep_cli.sh: the shipped prompt, scored by the
+#          CLI's RULES in python. This is what every number in the ledger has
+#          always been -- baseline_20260824's own log says "via lo-blocks endpoint
+#          (what the browser calls)", and measured.SCORER_PARTS hashes agreement.py's
+#          functions, because that is the code whose arithmetic the number depends on.
+#   "web"  agreement_app.py, driven by sweep_app.sh: the same prompt scored by the
+#          APP's own SlotSheetGrader, which is what a student actually meets.
+#
+# The trap: the artifact directory holding the CLI column is called `cli_v8`, but
+# the harness inside it talks to the web endpoint, so a glance at the log reads
+# "web". The prompt is the web's on BOTH sides; what differs is whose rules score
+# it. An unlabelled number is a `cli` number.
 SIDES = ("web", "cli")
-DEFAULT_SIDE = "web"
+DEFAULT_SIDE = "cli"
 
 
 def _migrate(led: dict) -> dict:
@@ -172,8 +185,9 @@ def save(led: dict) -> None:
 def status(side: str = DEFAULT_SIDE) -> list[tuple[str, str]]:
     """Per item, one of: ok, pending (declared), stale-prompt, stale-cells, absent.
 
-    Per SIDE. The default is the web-prompt path, which is where every number
-    recorded before 2026-08-28 came from, so existing callers keep their meaning.
+    Per SIDE. The default is the CLI column -- agreement.py, the shipped prompt
+    scored by the CLI's rules -- which is where every number recorded before
+    2026-08-28 came from, so existing callers keep their meaning.
     """
     led = records(side)
     out = []
