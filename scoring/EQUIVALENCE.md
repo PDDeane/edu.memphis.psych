@@ -359,6 +359,60 @@ under an `interactive` budget of 16384 that covers reasoning and output together
 A web-vs-gold figure measured before this change was measured on shorter
 completions; re-run `agreement_app.py` before comparing across it.
 
+## `forbid`: the same rule, reached three different ways
+
+Verified deliberately, after wiring `A_NONE`/`C_NONE` on Q4a/Q4c exposed that the
+two sides did not implement this primitive the same way at all.
+
+**The web** parses `forbid="key:slot=value,slot=value"` from the sheet, computes
+the check in `satisfiedMap`, and strips the key from the response schema. General:
+any item can carry a rule and nothing is hand-written per item.
+
+**The CLI** had NO general implementation. `forbid` existed only as a hand-written
+branch, `if item.get("id") in POLARITY_GATE_ITEMS`, computing one specific
+conjunction for one item family. Its schema-exclusion set covered `equals` keys
+and `counts` members but not `forbid` keys.
+
+**The harness mirror** (`agreement.apply_computed`) was general, like the web.
+
+So declaring a `forbid` rule on a NEW item produced a three-way split: the web
+computed it, the harness computed it, and the CLI ASKED THE MODEL for it -- a
+question answerable from two verdicts the model had already given, which spends a
+judgement and invites it to contradict itself. Nothing compared the two, because
+the enforcement audit compares DECLARATIONS and a hand-written branch declares
+nothing.
+
+**Now:** `score.py` reads `item["forbid"]` from the rubric, computes it beside
+`equals`, and strips the keys from both its schema and its prompt. The rule is
+declared on both sides -- the OLX attribute for the web, the rubric key for the
+CLI -- exactly as `counts` and `equals` already were. The POLARITY_GATE_ITEMS
+branch still stands and should fold into a declared rule on those items; it is
+recorded in `enforcement.HANDCODED_ITEM_RULES` so it cannot be forgotten.
+
+### Gates on computed checks
+
+A gate whose slot is COMPUTED cannot be found by behavioural probing: the probe
+fails each INPUT in turn, and a computed key is not an input. `probe.test.ts`
+reports such gates in `declaredGates` rather than `gates`, and the enforcement
+comparison read only the latter -- so a computed gate looked CLI-only when both
+sides gate. The comparison now accepts either.
+
+The web gate is real and was checked against the app rather than assumed:
+`pickGate` fires on `slot.gates && !sat[key] && charged[key]`, and `chargedMap`
+marks every slot chargeable unless an `onlyif` suppresses it. Neither item has
+one, so the third condition is a no-op there. A synthetic both-absent sheet scores
+0.0 on both items.
+
+### The general lesson, now enforced
+
+A rule expressed as a PRIMITIVE is compared between the two scorers. A rule
+written as `if item["id"] in SOME_SET` is compared by nobody.
+`check_no_undeclared_handcoded_rules` now enumerates every item-keyed branch in
+`score.py` -- eighteen of them -- and requires each to carry a reason in
+`HANDCODED_ITEM_RULES`. It does not forbid hand-coding; some rules have no
+primitive. It forbids hand-coding silently, and it fires in both directions: a new
+undeclared branch, and a declaration whose branch has gone.
+
 ## Scoring divergences (arithmetic, not prompt text)
 
     python3 equivalence.py --scoring

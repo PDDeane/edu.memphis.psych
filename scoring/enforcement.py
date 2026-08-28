@@ -1827,6 +1827,175 @@ def check_web_scorer_exercises_its_sheet() -> list[str]:
                         + "\n    ".join(sorted(unprobed)))
     return problems
 
+# Item-keyed branches in score.py that implement RULE BEHAVIOUR by hand instead of
+# reading it from a declaration both sides share. Each needs a reason, and a new
+# one is a finding until someone writes one.
+#
+# They matter more than they look. A declared primitive is compared between the
+# two scorers by the enforcement audit; a hand-written branch is compared by
+# nobody, so the sides drift silently and the audit reports clean. Q4a and Q4c hit
+# this exactly: `forbid` existed as a general web primitive and as a hand-written
+# POLARITY_GATE_ITEMS branch here, so declaring a forbid rule on a new item made
+# the CLI ASK the model a question the web computed -- and the only reason it
+# surfaced is that the prompt-text audit noticed the extra question.
+HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
+    ("derive_oc_ledger", "POLARITY_GATE_ITEMS"):
+        "`forbid` written by hand, from before the rule could be declared. The "
+        "general implementation now sits beside it and reads item['forbid']; this "
+        "branch should fold into a declared rule on those items.",
+    ("derive_oc_ledger", "CONTINGENCY_GATE_ITEMS"):
+        "the contingency gate: a conjunction over three answers with per-item "
+        "wording. No primitive expresses 'all three of these, with THIS message'.",
+    ("derive_oc_ledger", "BARRIER_PICK_ITEMS"):
+        "reads the barrier pick vocabulary, which only these items author.",
+    ("derive_oc_ledger", "'WK1'"): "WK1's agent check has no counterpart elsewhere.",
+    ("derive_oc_ledger", "'WK2'"): "WK2's aimed-correctly check, likewise.",
+    ("derive_oc_ledger", "'DAY1'"):
+        "the avoidance frame never deducts on DAY1 -- gold's own exception.",
+    ("build_schema", "BARRIER_PICK_ITEMS"): "schema shape, not scoring.",
+    ("build_schema", "CONTINGENCY_GATE_ITEMS"): "schema shape, not scoring.",
+    ("build_schema", "MOVE_PICK_ITEMS"): "schema shape, not scoring.",
+    ("build_schema", "'WK1'"): "schema shape, not scoring.",
+    ("build_schema", "'WK2'"): "schema shape, not scoring.",
+    ("build_prompt", "'DAY1'"): "prompt wording, not scoring.",
+    ("build_prompt", "'WK1'"): "prompt wording, not scoring.",
+    ("build_prompt", "('Q1', 'Q2')"): "prompt hint, not scoring.",
+    ("score_participant", "only"): "a CLI flag filter, not a rule.",
+}
+
+
+def check_no_undeclared_handcoded_rules() -> list[str]:
+    """Rule behaviour keyed by item id in score.py, rather than declared.
+
+    The enforcement audit compares what the two sides DECLARE. A branch written
+    as `if item["id"] in SOME_SET` is invisible to it, so the two implementations
+    can diverge with the audit reporting clean -- which is what happened when
+    `forbid` existed as a general web primitive and a hand-written CLI branch at
+    the same time.
+
+    This does not forbid hand-coding: some rules genuinely have no primitive.
+    It forbids hand-coding SILENTLY. Every branch needs a line in
+    HANDCODED_ITEM_RULES saying why, and a new one fails until it gets one.
+    """
+    import ast
+    import score as _score
+
+    def is_item_id(node):
+        if (isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name)
+                and node.value.id == "item"):
+            k = node.slice
+            return isinstance(k, ast.Constant) and k.value == "id"
+        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "get" and isinstance(node.func.value, ast.Name)
+                and node.func.value.id == "item" and node.args
+                and isinstance(node.args[0], ast.Constant)):
+            return node.args[0].value == "id"
+        return False
+
+    try:
+        tree = ast.parse(inspect.getsource(_score))
+    except Exception as e:
+        return [f"cannot parse score.py: {type(e).__name__}: {e}"]
+
+    out, seen = [], set()
+    for fn in [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]:
+        for n in ast.walk(fn):
+            if isinstance(n, ast.Compare) and is_item_id(n.left):
+                tag = ast.unparse(n.comparators[0])
+                key = (fn.name, tag)
+                seen.add(key)
+                if key not in HANDCODED_ITEM_RULES:
+                    out.append(
+                        f"score.py:{n.lineno} `{fn.name}` branches on the item id "
+                        f"against {tag} — rule behaviour keyed by item, which the "
+                        f"enforcement audit cannot compare against the web. Declare "
+                        f"it in HANDCODED_ITEM_RULES with a reason, or express it as "
+                        f"a primitive both sides read")
+    for key in sorted(set(HANDCODED_ITEM_RULES) - seen):
+        out.append(f"HANDCODED_ITEM_RULES declares {key}, which no longer exists in "
+                   f"score.py — a stale exemption silences a real finding later")
+    return out
+
+
+def check_recorded_answers_are_complete() -> list[str]:
+    """Does the artifact record what the model answered, for every slot?
+
+    A recorded number is only as good as the record. `verdict_of` reads
+    `checks[k]["verdict"]`, which a COUNT slot has not got -- it answers `count` --
+    so four count slots recorded "" in every artifact, in every run: Q1's
+    `harms_listed` and `benefits_listed`, Q2's `reasons_listed` and
+    `reasons_failing`. Reading the artifact said those checks were never answered.
+    They were, every time. The entire Q1 diagnosis had to be rebuilt from prose
+    fragments in `evidence` because the numbers were not where numbers go.
+
+    Nothing else in the harness notices: a recording fault moves no score, so no
+    sweep, gate or audit reacts to it. That is why this check exists and why it
+    RUNS the recording path over a synthetic sheet rather than reading it.
+
+    Two assertions, and the second matters as much as the first:
+
+      COMPLETE   every slot the model can answer must record something.
+      NOT SCORING   `recorded_answer` must not appear on any item's scoring
+                    fingerprint. Recording and scoring have to stay separable, or
+                    the next fix to one silently invalidates every measurement
+                    taken under the other.
+
+    PICK slots are exempt BY DECLARATION, not by oversight: they record "" here
+    and their values live in `answers`, and changing that would alter the recorded
+    semantics of 30 slots on 13 items where readers treat "" as unanswered.
+    """
+    import agreement as A
+    import measured as M
+
+    out = []
+    for h, blocks in sorted(A.BLOCKS.items()):
+        try:
+            rub = config(h)["rubric"]
+        except Exception:
+            continue
+        for aid, job in sorted(blocks.items()):
+            if not job.get("olx") or job["kind"] not in A.SCORERS:
+                continue
+            iid = job["item"]
+            try:
+                act = A.load_action(job["olx"], aid)
+            except Exception:
+                continue
+            counted = {k for cr in (rub.BY_ID[iid].get("counts") or []) for k in [cr["key"]]}
+            sheet = {}
+            for sl in act["slots"]:
+                if sl.get("count_max") is not None:
+                    sheet[sl["key"]] = {"count": sl["count_max"]}
+                elif sl.get("picks"):
+                    vs = (act.get("choices") or {}).get(sl["picks"]) or ["x"]
+                    sheet[sl["key"]] = {"refers_to": vs[0]}
+                else:
+                    sheet[sl["key"]] = {"verdict": (sl.get("options") or ["met"])[0]}
+            for sl in act["slots"]:
+                if sl.get("picks"):
+                    continue                      # declared: recoverable from `answers`
+                if sl["key"] in (act.get("excluded") or ()):
+                    continue                      # computed, not answered
+                got = A.recorded_answer(sl, sheet)
+                if got in ("", None):
+                    kind = "count" if sl.get("count_max") else "verdict"
+                    out.append(
+                        f"H{h} {iid}: the artifact records nothing for `{sl['key']}` "
+                        f"(a {kind} slot the model answers), so a reader of the "
+                        f"artifact cannot tell an unanswered check from an answered one")
+
+    # Recording must not be scoring.
+    for item in sorted(M._jobs()):
+        try:
+            parts = {n for _, n in M._parts_for(item)}
+        except Exception:
+            continue
+        if "recorded_answer" in parts:
+            out.append(f"{item}: `recorded_answer` is on the scoring fingerprint — "
+                       f"a recording fix would now invalidate this item's measurement")
+    return out
+
+
 def check_the_record_is_pushed_at_the_change() -> list[str]:
     """Does `--write` still print the prior record for every item it changes?
 

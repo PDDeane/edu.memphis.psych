@@ -550,6 +550,10 @@ def enforcement_audit():
         findings.append(("-", "STALE-SCORER FLAG UNRELIABLE", bad))
     for bad in ENF.check_the_record_is_pushed_at_the_change():
         findings.append(("-", "RECORD NOT PUSHED AT THE CHANGE", bad))
+    for bad in ENF.check_recorded_answers_are_complete():
+        findings.append(("-", "ARTIFACT LOSES AN ANSWER", bad))
+    for bad in ENF.check_no_undeclared_handcoded_rules():
+        findings.append(("-", "RULE HAND-CODED, NOT DECLARED", bad))
     for bad in ENF.check_every_check_is_invoked():
         findings.append(("-", "CHECK NEVER RUNS", bad))
     for bad in ENF.check_weighted_slots_are_scored():
@@ -725,11 +729,25 @@ def enforcement_audit():
                                  f"the CLI derives `{k}`; the web still asks the model"))
 
         # 3. gates, mapped through the vocabulary bridge.
+        #
+        # `gates` is what the probe OBSERVED by failing each input in turn;
+        # `declaredGates` is what the sheet says. A COMPUTED gate can only ever
+        # appear in the second: the probe perturbs inputs, and a computed key is
+        # not an input, so failing it is not something the probe can do. Comparing
+        # against the observed set alone reported Q4a/Q4c's `forbid`-computed
+        # gates as CLI-only when both sides gate -- verified against lo-blocks'
+        # own pickGate, which fires on `slot.gates && !sat && charged`, with
+        # chargedMap true for every slot absent an `onlyif`.
+        #
+        # Observed still counts for everything it can see: a gate that is declared
+        # and does NOT bite is a different fault, and `check_declared_gates_bite`
+        # is where that belongs.
+        web_gates = set(w["gates"]) | set(w.get("declaredGates") or [])
         for k in c["gates"]:
             wk = ENF.web_name(k, wkeys)
             if wk is None:
                 findings.append((item, "UNMAPPED KEY", f"CLI gate `{k}` has no web counterpart"))
-            elif wk not in w["gates"]:
+            elif wk not in web_gates:
                 findings.append((item, "GATE CLI ONLY",
                                  f"`{k}` zeroes the item on the CLI, not on the web (as `{wk}`)"))
         cli_gate_web_names = {ENF.web_name(k, wkeys) for k in c["gates"]}
@@ -1430,6 +1448,17 @@ def enforcement_selftest():
     # that put twenty-one items on the sweep list for a corrected comment.
     import measured as _M
     _real_strip = _M._behaviour_src
+    # The RECORDING path, which no other case touches. A recording fault moves no
+    # score, so nothing else in the harness reacts to it: four count slots wrote
+    # "" into every artifact of every run and the only symptom was a diagnosis
+    # that had to be rebuilt from `evidence` prose.
+    _real_rec = _A.recorded_answer
+    _scorer_case("the artifact stops recording a count answer",
+                 lambda: setattr(_A, "recorded_answer",
+                                 lambda sl, ch: _A.verdict_of(ch, sl["key"])),
+                 lambda: setattr(_A, "recorded_answer", _real_rec),
+                 want="ARTIFACT LOSES AN ANSWER")
+
     _scorer_case("the fingerprint starts tracking prose again",
                  lambda: setattr(_M, "_behaviour_src", lambda src: src),
                  lambda: setattr(_M, "_behaviour_src", _real_strip),

@@ -1395,6 +1395,39 @@ def measure_type_stated(handout: int, spec: dict, pid: int) -> dict:
     }
 
 
+def recorded_answer(slot: dict, checks: dict) -> str:
+    """What the model answered, FOR THE ARTIFACT. Never used in scoring.
+
+    `verdict_of` reads `checks[k]["verdict"]`, which a COUNT slot does not have --
+    it answers `count` -- so a count slot the rubric does not name in its `counts`
+    rule recorded "" in every artifact, in every run. Four slots do that: Q1's
+    `harms_listed` and `benefits_listed`, Q2's `reasons_listed` and
+    `reasons_failing`. They are the operands of the rules those items score by,
+    and the whole Q1 diagnosis had to be reconstructed from prose fragments in
+    `evidence` because the numbers were not in `checks`.
+
+    Reading the artifact said the checks were never answered. They were.
+
+    PICK slots are deliberately left alone: they also record "" here, but their
+    values are in `answers`, so nothing is lost, and changing them would alter the
+    recorded semantics of 30 slots on 13 items where downstream readers treat ""
+    as "not answered". That asymmetry is declared rather than tidied.
+
+    Recording only. It must not appear on any scoring path -- see
+    `check_recorded_answers_are_complete`, which asserts the fingerprints do not
+    move when this changes.
+    """
+    got = checks.get(slot["key"])
+    if not isinstance(got, dict):
+        return ""
+    if slot.get("count_max") is not None:
+        v = got.get("count")
+        if v is None:
+            v = got.get("verdict")
+        return "" if v is None else str(v).strip()
+    return verdict_of(checks, slot["key"])
+
+
 def measure_one(backend, handout: int, spec: dict, action_id: str, path: str, pid: int) -> dict:
     cfg = config(handout)
     item = cfg["rubric"].BY_ID[spec["item"]]
@@ -1425,7 +1458,7 @@ def measure_one(backend, handout: int, spec: dict, action_id: str, path: str, pi
         "max": MAX_OVERRIDE.get((str(handout), spec["item"]), item["max"]),
         "failed_slots": n_failed,
         # From the EXPANDED sheet, so what is recorded is what was scored.
-        "checks": {s["key"]: verdict_of(recorded, s["key"]) for s in action["slots"]},
+        "checks": {s["key"]: recorded_answer(s, recorded) for s in action["slots"]},
         # What each check ANSWERED, and why, kept beside the verdicts.
         #
         # A pick answers `refers_to` and carries no verdict, so it stored as an
