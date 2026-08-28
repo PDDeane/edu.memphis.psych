@@ -77,6 +77,37 @@ import os
 import time
 
 
+_BASIS_CACHE: dict = {}
+
+
+def slot_basis(item_id: str) -> dict:
+    """slot -> what decides it, from enforcement.slot_basis. Cached per item.
+
+    This is what makes a named slot actionable. A divergence on a COMPUTED slot
+    means the two sides ran different arithmetic: one right answer, and a bug. A
+    divergence on a PROSE slot means they read the same instruction and landed
+    differently, which no static check can see -- and `enforcement.PROSE_ONLY_SLOTS`
+    says whether that hazard was known in advance or is new.
+    """
+    if item_id in _BASIS_CACHE:
+        return _BASIS_CACHE[item_id]
+    basis: dict = {}
+    try:
+        import enforcement as ENF
+        import handouts as H
+        import olx_prompts as O
+        item = H.config(O.HANDOUT[item_id])["rubric"].BY_ID[item_id]
+        basis = ENF.slot_basis(item)
+        declared = {k for (i, k) in getattr(ENF, "PROSE_ONLY_SLOTS", {}) if i == item_id}
+        for k, v in list(basis.items()):
+            if v == "prose+rule":
+                basis[k] = v + (", declared" if k in declared else ", UNDECLARED")
+    except Exception:
+        basis = {}
+    _BASIS_CACHE[item_id] = basis
+    return basis
+
+
 def _merge_era(acc: dict, era: dict | None) -> None:
     """Fold one artifact's era stamp into the side's stamp.
 
@@ -299,8 +330,11 @@ def compare(left: str, right: str, item_filter: str | None = None,
             d = "mixed"
         print(f"{k[0]+'/p'+str(k[1]):12}{str(l):>12}{str(r):>12}   {d}")
         if show_slots:
+            basis = slot_basis(k[0])
             for slot, lval, rval in _slot_diffs(lv.get(k, []), rv.get(k, [])):
-                print(f"{'':12}  slot `{slot}`: {lname} {lval} / {rname} {rval}")
+                what = basis.get(slot, "unknown basis")
+                print(f"{'':12}  slot `{slot}`: {lname} {lval} / {rname} {rval}"
+                      f"   [{what}]")
     return 0
 
 

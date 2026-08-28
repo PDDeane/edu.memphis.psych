@@ -431,7 +431,7 @@ ORDER, set 2026-08-28: 5, then 7, then 8, then the sweep. Subgoal 8 is the only
 one of the three that can move a score, so it lands last and its effect is
 measured BY the sweep rather than by a separate run. Nothing goes to the sweep
 until all three are closed.
-- [ ] 5. **The enforcement audit cannot see a rule written as guidance prose.**
+- [x] 5. **The enforcement audit cannot see a rule written as guidance prose.**
       MOVED here from quality control, where it was subgoal 15: it is an
       equivalence-enforcement defect, not an item's scoring problem, and it
       sits directly beside subgoal 3. Both are the same failure in different
@@ -558,9 +558,60 @@ until all three are closed.
             it may move other 1a cells; three items' CLI prompts changed. The sweep
             measures it -- predicting the direction here would only make the result
             harder to read honestly.
-        (d) for the prose channel, declare rather than compare: a registry of
-            scoring-relevant prose rules, so the surface is KNOWN, with the sweep's
-            divergence table as the detector.
+        [x] (d) DONE, and narrower than planned, which is the finding. The plan
+            said "a registry of scoring-relevant prose rules", and the first count
+            put that at 70 of 150 blocks -- unmanageable, and mostly ITEM-level
+            guidance that steers every slot at once.
+            The tractable surface is SLOT-level: a per-slot `rule` deciding a
+            verdict that nothing computes. There are NINE, and none is backed by a
+            computed primitive -- Q4b's two INSTEAD-OF tests, Q6's two "X, so I Y"
+            readings, and 1a's five. Both measured divergences live in that nine.
+            `enforcement.slot_basis(item)` COMPUTES what decides each slot --
+            computed:equals/forbid/expect/derived, counted, prose+rule, prose --
+            rather than listing it, because a hand table would drift from the rubric
+            and drift is what this goal is about. `PROSE_ONLY_SLOTS` then declares
+            the nine WITH REASONS, on a ratchet at 9, and
+            `check_prose_only_slots_are_declared` fails three ways: an undeclared
+            prose-only rule appearing, a declaration that stopped qualifying, and
+            the count leaving budget. All three proved to fire.
+            What the declaration buys, given no static check can compare prose:
+            `cross_path.py --slots` now annotates every divergent slot with its
+            basis, so the sweep's table reads
+              slot `behavior_1`: paper not_active / cli met  [prose+rule, declared]
+            A divergence on a COMPUTED slot means the two sides ran different
+            arithmetic -- one right answer, a bug. On a declared prose slot it means
+            they read the same instruction and landed differently: known hazard, no
+            static fix. On an UNDECLARED prose slot it means the surface grew and
+            nobody decided. Three different readings that used to look identical.
+
+      WHAT THE REGISTRY IS FOR, since a list that only exists is inert. Three
+      jobs, all live:
+        1. IT GATES AUTHORING. A new per-slot rule that nothing computes fails the
+           audit until someone either expresses it as a primitive -- which the
+           enforcement audit can then compare between the two scorers -- or
+           declares why it cannot be one. That forces subgoal 3's choice at the
+           moment the rule is written, instead of seven conversions later.
+        2. IT IS A WORK LIST. Each reason must argue CONVERTIBILITY, not describe
+           the rule; the first nine reasons described, and were rewritten. Two are
+           marked CONVERTIBLE IN PART -- Q4b's `behavior_1`/`behavior_2`, whose
+           sixth test (an entry naming the same THING as one of the student's own
+           4a antecedents) is `forbid`-shaped, two answers compared by referent.
+           Those are also the demonstrated divergence, so they are first in line.
+           Seven argue NOT CONVERTIBLE and say why: Q6's "does it state HOW" and
+           1a's arc-not-label coverage have no operands to compare, and 1a's weeks
+           are already exempted from `counts` in COUNTABLE_EXEMPT because named
+           weeks are not interchangeable.
+        3. IT MAKES A DIVERGENCE ATTRIBUTABLE, which is the only thing that reads
+           the sweep for us: prose-and-declared, prose-and-new, and
+           different-arithmetic stop looking alike.
+      UNLIKE HANDCODED_BUDGET THIS DOES NOT TARGET ZERO. The honest end state is
+      that every remaining entry argues why it cannot be a primitive -- which is
+      now true of all nine.
+
+      SUBGOAL 5 IS COMPLETE, (a) through (d). The prose channel cannot be closed --
+      both sides get the same text verbatim -- so it is instead KNOWN, BOUNDED and
+      ATTRIBUTABLE, with the sweep as its only real detector. The next conversion
+      it points at, Q4b's pair, is a scoring change and belongs in the sweep.
 ## PARKED — quality control on the remaining items
 
 Every item is recorded and the preflight is clean, so the work is no longer

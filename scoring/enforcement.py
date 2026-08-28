@@ -1088,6 +1088,154 @@ ARTIFACT_WRITERS = (("agreement.py", "the python harness"),
                     ("score.py", "the paper scorer"))
 
 
+def slot_basis(item: dict) -> dict:
+    """What DECIDES each of an item's slots: arithmetic, or the model reading prose.
+
+    A cross-path divergence means something different depending on which. On a
+    computed slot the two sides ran different ARITHMETIC and that is a bug with a
+    single right answer. On a prose-judged slot they ran the same instruction and
+    the model landed differently, which no static check can see, because both
+    sides are given the same text verbatim.
+
+    Computed rather than listed. A hand-written table of prose-judged slots would
+    drift from the rubric the moment a slot changed, and drift is the failure this
+    whole goal is about.
+    """
+    computed = {}
+    for kind in ("equals", "forbid", "expect", "derived"):
+        for r in item.get(kind) or ():
+            if isinstance(r, dict) and r.get("key"):
+                computed[r["key"]] = f"computed:{kind}"
+    counted = set()
+    for cr in item.get("counts") or ():
+        counted.update(cr.get("slots") or ())
+        if cr.get("key"):
+            counted.add(cr["key"])
+
+    out = {}
+    for c in item.get("credit") or ():
+        key = c["what"]
+        if key in computed:
+            out[key] = computed[key]
+        elif key in counted:
+            out[key] = "counted"
+        elif c.get("rule"):
+            out[key] = "prose+rule"
+        else:
+            out[key] = "prose"
+    return out
+
+
+# Slots whose verdict rests on a per-slot RULE and on nothing computable: the
+# prose channel, enumerated so it is known rather than merely suspected.
+#
+# Why declared and not just computed. The computation above tells you a slot is
+# prose-judged; this says someone LOOKED. Q4b/p4 is why it matters: paper 2.0
+# against web 3.5, gold 2.0, the two paths reading the same REJECT test
+# differently, and nothing in the audit able to object because there is no textual
+# difference to find. When the sweep's divergence table names one of these slots,
+# the answer is "prose, and we knew"; when it names a slot NOT on this list, the
+# arithmetic diverged and that is a bug.
+#
+# The budget ratchets like the others. A tenth entry means a new rule was written
+# as prose where it could have been a primitive -- which is the choice subgoal 3
+# spent seven conversions undoing -- so it has to be a decision, not a default.
+# Each reason must answer ONE question: why is this not a primitive? A reason that
+# merely describes the rule leaves the entry looking settled when it is a work
+# item. CONVERTIBLE marks the ones that could become declarations -- those are the
+# list's whole point, because a declaration is something the enforcement audit can
+# compare between the two scorers and prose is not.
+PROSE_ONLY_SLOTS = {
+    ("Q4b", "behavior_1"):
+        "CONVERTIBLE IN PART. Five fail conditions in prose, and the sixth test "
+        "handouts.py records -- an entry naming the same THING as one of the "
+        "student's own 4a antecedents -- is `forbid`-shaped: two answers compared "
+        "by referent. The other four are judgements of what an entry IS. This is "
+        "the demonstrated divergence, paper 2.0 / web 3.5 on p4 with gold at 2.0, "
+        "so it is first in line.",
+    ("Q4b", "behavior_2"):
+        "CONVERTIBLE IN PART, with behavior_1 and by the same argument: it restates "
+        "the same conditions for the second entry. Convert the pair together or the "
+        "two entries will be judged by different machinery.",
+    ("Q6", "affect_c1"):
+        "NOT CONVERTIBLE. `cover` already constrains WHICH listed entry is referred "
+        "to; what is left is whether the answer states HOW the consequence is "
+        "affected, which is a reading of a sentence's claim and has no operands to "
+        "compare. Seven measured rule attempts are recorded in "
+        "memory/q6-matching-ceiling.md; none of them was arithmetic.",
+    ("Q6", "affect_c2"):
+        "NOT CONVERTIBLE, same as affect_c1 for the second consequence.",
+    ("1a", "distinguishes_periods"):
+        "NOT CONVERTIBLE as it stands. The test is whether the answer reports more "
+        "than one point in time SEPARATELY -- a property of the whole response, not "
+        "a relation between two answers. `counts` was considered and is exempted in "
+        "COUNTABLE_EXEMPT: the weeks are named, not interchangeable, so `3 of 4` "
+        "cannot say which is missing.",
+    ("1a", "baseline_week"):
+        "NOT CONVERTIBLE, same COUNTABLE_EXEMPT reason. Migrated out of SLOT_NOTES "
+        "on 2026-08-28, where it reached the web and not the paper scorer and cost "
+        "1a/p6 the whole item in 3 of 3 runs.",
+    ("1a", "week_1"):
+        "NOT CONVERTIBLE, same reason: arc-not-label coverage is judged over the "
+        "narrative, and no operand pair expresses it.",
+    ("1a", "week_2"): "NOT CONVERTIBLE, same as week_1 for the middle stretch.",
+    ("1a", "week_3"): "NOT CONVERTIBLE, same as week_1 for the final stretch.",
+}
+PROSE_ONLY_BUDGET = 9
+
+
+def check_prose_only_slots_are_declared() -> list[str]:
+    """Is the prose channel's surface known, and is it growing?
+
+    THE LIST HAS THREE JOBS, and they are why it is enforced rather than filed.
+    It GATES authoring: a new per-slot rule that nothing computes fails this check
+    until someone either expresses it as a primitive -- which the enforcement audit
+    can then compare between the two scorers -- or declares here why it cannot be
+    one. It is a WORK LIST: entries marked CONVERTIBLE are the ones to turn into
+    declarations, and the budget falls as they go, exactly as HANDCODED_BUDGET
+    does. And it makes a sweep divergence ATTRIBUTABLE: `cross_path.py --slots`
+    prints each divergent slot's basis, so prose-and-declared, prose-and-new, and
+    different-arithmetic stop looking alike.
+
+    Unlike HANDCODED_BUDGET this does not target zero. Q6's "does it state HOW"
+    and 1a's arc-not-label coverage have no operands to compare; the honest end
+    state is that every remaining entry argues, in its reason, why it cannot be a
+    primitive.
+
+    Three ways to fail. A slot carrying a rule that nothing computes and that is
+    NOT declared -- the surface grew and nobody decided. A declaration naming a
+    slot that no longer qualifies -- it was converted to a primitive, or its rule
+    was removed, and the list is rotting. And the count against its budget.
+    """
+    import rubric_h1, rubric_h2, rubric_h3
+
+    actual = {}
+    for mod in (rubric_h1, rubric_h2, rubric_h3):
+        for item in mod.ITEMS:
+            for key, basis in slot_basis(item).items():
+                if basis == "prose+rule":
+                    actual[(item["id"], key)] = basis
+
+    out = []
+    for k in sorted(set(actual) - set(PROSE_ONLY_SLOTS)):
+        out.append(f"{k[0]}.{k[1]} is judged by a per-slot `rule` and by nothing "
+                   f"computable, and is not in PROSE_ONLY_SLOTS. Either express it "
+                   f"as a primitive, which the enforcement audit can then compare "
+                   f"between the two scorers, or declare it here with the reason it "
+                   f"cannot be one")
+    for k in sorted(set(PROSE_ONLY_SLOTS) - set(actual)):
+        out.append(f"PROSE_ONLY_SLOTS names {k[0]}.{k[1]}, which no longer carries a "
+                   f"prose-only rule. If it became a primitive, drop it from the "
+                   f"list and lower PROSE_ONLY_BUDGET")
+    n = len(PROSE_ONLY_SLOTS)
+    if n != PROSE_ONLY_BUDGET:
+        verb = "grew to" if n > PROSE_ONLY_BUDGET else "is down to"
+        out.append(f"PROSE_ONLY_SLOTS {verb} {n} against a budget of "
+                   f"{PROSE_ONLY_BUDGET} -- raise it only for a rule that genuinely "
+                   f"cannot be a primitive, and lower it whenever one converts")
+    return out
+
+
 def check_artifacts_record_their_era() -> list[str]:
     """Does every artifact writer stamp WHAT IT RAN AGAINST?
 
