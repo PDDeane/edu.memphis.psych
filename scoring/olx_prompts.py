@@ -933,6 +933,61 @@ def parse_forbid(spec: str) -> list[dict]:
     return out
 
 
+def parse_maps(spec: str | None) -> list[dict]:
+    """Mirror of slotSheet.ts:parseMaps.
+
+    `maps="key:pick:value>verdict,...,*>verdict"`, rules separated by `|`. A check
+    COMPUTED by mapping one pick's value to a NAMED verdict, which {{corpus:Q4b/p13:modify:42:58:sha=ed0e48693398}}
+    `equals`, `expect` and `forbid` cannot express: each of those answers a yes/no
+    question about other answers and so produces a check with ONE failing verdict.
+
+    Q4b's `behavior_*` needs two: `absent` for an empty box, charging "you only
+    gave one example", and `wrong_kind` for something present that is not an
+    activity done instead of the goal behaviour, which is repeatable. Writing that
+    as two `forbid` rules on one key fails DANGEROUSLY -- every implementation
+    assigns the computed check per rule, so the last wins and an earlier failure is
+    overwritten back to satisfied, crediting a wrong entry.
+
+    `*` is the fallback. A pick value with no pair and no fallback leaves the check
+    UNMAPPED rather than guessing.
+    """
+    out = []
+    for rule in (spec or "").split("|"):
+        parts = [x.strip() for x in rule.split(":")]
+        if len(parts) < 3:
+            continue
+        key, pick, raw = parts[0], parts[1], parts[2]
+        if not key or not pick:
+            continue
+        pairs, fallback = [], None
+        for pair in raw.split(","):
+            value, sep, verdict = pair.partition(">")
+            value, verdict = value.strip(), verdict.strip()
+            if not sep or not value or not verdict:
+                continue
+            if value == "*":
+                fallback = verdict
+            else:
+                pairs.append({"value": value, "verdict": verdict})
+        if pairs or fallback:
+            r = {"key": key, "pick": pick, "pairs": pairs}
+            if fallback:
+                r["fallback"] = fallback
+            out.append(r)
+    return out
+
+
+def mapped_verdict(rule: dict, answer: str | None) -> str | None:
+    """The verdict a `maps` rule assigns to one pick answer, or None."""
+    got = (answer or "").strip()
+    if not got:
+        return None
+    for pair in rule.get("pairs") or ():
+        if pair["value"] == got:
+            return pair["verdict"]
+    return rule.get("fallback")
+
+
 def parse_equals(spec: str) -> list[dict]:
     """Mirror of lo-blocks parseEquals (packages/shared/lib/llm/slotSheet.ts).
 
