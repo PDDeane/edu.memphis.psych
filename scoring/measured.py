@@ -39,6 +39,7 @@ declared is a hard failure, because silence is what let Q1 through.
 from __future__ import annotations
 
 import hashlib
+import functools
 import json
 import re
 import sys
@@ -154,17 +155,6 @@ def status() -> list[tuple[str, str]]:
 # or a log line does not invalidate the corpus. The list is the path from a
 # model's answers to a score: the attribute parsers that build the sheet, the
 # satisfied/computed resolution, and the three scorers.
-SCORER_PARTS = (
-    ("agreement", "load_action"), ("agreement", "parse_slots"),
-    ("agreement", "parse_equals"), ("agreement", "parse_derived"),
-    ("agreement", "parse_cover"), ("agreement", "satisfied_map"),
-    ("agreement", "apply_computed"), ("agreement", "score_slots"),
-    ("agreement", "score_oc"), ("agreement", "score_oc_cadence"),
-    ("olx_prompts", "parse_slots"), ("olx_prompts", "parse_counts"),
-    ("olx_prompts", "parse_onlyif"), ("olx_prompts", "parse_expect"),
-    ("olx_prompts", "parse_forbid"), ("olx_prompts", "parse_requires"),
-    ("handouts", "scores_as_exact"), ("handouts", "attainable_scores"),
-)
 
 
 # Which parts each item's number actually depends on. A change to `score_oc`
@@ -190,6 +180,18 @@ _BY_PRIMITIVE = {
 }
 
 
+# DERIVED, not authored. This was a hand-written list beside the three tables
+# above, and it had already drifted: it omitted `agreement.expand_counted`, which
+# `_ALWAYS` includes -- so the WHOLE-PATH fingerprint, the one the ledger header
+# quotes and the one an unknown-shaped item falls back to, was missing a part that
+# every per-item fingerprint had. A fallback that is meant to be conservative and
+# is quietly narrower than the scoped case is worse than no fallback.
+SCORER_PARTS = tuple(dict.fromkeys(
+    _ALWAYS
+    + tuple(_BY_KIND.values())
+    + tuple(part for parts in _BY_PRIMITIVE.values() for part in parts)))
+
+
 def _behaviour_src(src: str) -> str:
     """A function's source with its PROSE removed, so only behaviour is hashed.
 
@@ -213,6 +215,74 @@ def _behaviour_src(src: str) -> str:
                 and isinstance(first.value.value, str)):
             node.body = body[1:] or [ast.Pass()]
     return ast.unparse(tree)
+
+
+def _local_callees(mod_name: str, fn_name: str) -> list[tuple[str, str]]:
+    """The functions THIS function calls that live in this project's own modules.
+
+    Resolved from the AST, two ways: a bare `f(...)` against the defining
+    module's namespace, and an `A.f(...)` through whatever module `A` is bound to
+    there. Anything outside this directory is not ours and cannot change under us.
+    """
+    import ast, importlib, inspect, textwrap
+    from pathlib import Path as _P
+
+    here = _P(__file__).resolve().parent
+
+    def _is_local(mod) -> bool:
+        f = getattr(mod, "__file__", None)
+        return bool(f) and _P(f).resolve().parent == here
+
+    try:
+        mod = importlib.import_module(mod_name)
+        fn = getattr(mod, fn_name)
+        tree = ast.parse(textwrap.dedent(inspect.getsource(fn)))
+    except Exception:
+        return []                       # unreadable: scorer_sha records it missing
+
+    out: list[tuple[str, str]] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        f = node.func
+        if isinstance(f, ast.Name):
+            tgt = getattr(mod, f.id, None)
+            if inspect.isfunction(tgt) and getattr(tgt, "__module__", "") == mod_name:
+                out.append((mod_name, f.id))
+        elif isinstance(f, ast.Attribute) and isinstance(f.value, ast.Name):
+            alias = getattr(mod, f.value.id, None)
+            if inspect.ismodule(alias) and _is_local(alias):
+                tgt = getattr(alias, f.attr, None)
+                if inspect.isfunction(tgt):
+                    out.append((alias.__name__, f.attr))
+    return out
+
+
+@functools.lru_cache(maxsize=None)
+def _closure(roots: tuple) -> tuple:
+    """The roots PLUS everything they transitively call, sorted.
+
+    Hashing a function does not hash its callees, and three of them --
+    `verdict_of`, `answer_of`, `is_satisfied` -- decide verdicts for every item
+    while being reachable only through `satisfied_map` and `apply_computed`.
+    Editing any of them changed scores while all 26 items still read current.
+
+    Enumerating the three would have fixed those three. Taking the closure fixes
+    the class, including the callee someone adds next year: twelve functions came
+    in when this replaced the enumeration, and only three of them were the ones
+    that had been noticed.
+
+    Sorted, so the fingerprint does not depend on AST walk order.
+    """
+    seen: set[tuple[str, str]] = set()
+    queue = list(roots)
+    while queue:
+        part = queue.pop()
+        if part in seen:
+            continue
+        seen.add(part)
+        queue.extend(_local_callees(*part))
+    return tuple(sorted(seen))
 
 
 def _parts_for(item: str | None) -> tuple:
@@ -243,10 +313,54 @@ def _parts_for(item: str | None) -> tuple:
             return SCORER_PARTS
         m = re.search(rf'<LLMAction id="{re.escape(aid)}"[^>]*>', text, re.S)
         tag = m.group(0) if m else ""
+        # BOTH tags. The primitives are detected by looking for `attr="`, and this
+        # looked only at the <LLMAction> tag -- but `forbid`, `equals`, `derived`
+        # and the rest are read by olx_prompts from `_sheet_tag`, "whichever
+        # element carries this action's slot sheet", which is NOT always the same
+        # element. Q4a and Q4c declare `forbid` there, so their fingerprints did
+        # not cover `parse_forbid` while their numbers depended on it: exactly the
+        # miss this subgoal is about, one level further out.
+        try:
+            tag += " " + O._sheet_tag(handout, aid)
+        except SystemExit:                # no separate sheet element; the tag stands
+            pass
     for attr, extra in _BY_PRIMITIVE.items():
         if f'{attr}="' in tag:
             parts.extend(extra)
     return tuple(dict.fromkeys(parts))
+
+
+# The parts that are ITEM-DEPENDENT by design: one scorer per kind, one parser
+# per primitive. Everything else the closure finds is on every item's path.
+_SCOPED_PARTS = frozenset(
+    tuple(_BY_KIND.values())
+    + tuple(part for parts in _BY_PRIMITIVE.values() for part in parts))
+
+
+@functools.lru_cache(maxsize=None)
+def _scoped_closure(roots: tuple) -> tuple:
+    """The closure, with the scoping preserved.
+
+    Taking the raw closure destroyed the scoping, and not subtly: `load_action`
+    is an unconditional root and it parses the WHOLE sheet, so it calls every
+    primitive parser. The closure therefore pulled `parse_forbid` onto all 26
+    items, and a one-line edit to it moved all 26 fingerprints -- rebuilding by
+    the back door the global flag that the per-item scoping exists to prevent,
+    and that a docstring edit once turned into ~1800 calls of pointless
+    re-sweeping.
+
+    So a part that is item-dependent BY DESIGN is included only when this item's
+    roots asked for it. A parser for a primitive the item does not author cannot
+    move its number, whoever calls it: on a sheet with no `forbid` attribute
+    `parse_forbid` is handed nothing and returns nothing.
+
+    Everything else the closure discovers is unconditional and comes in -- which
+    is the whole point, and is how `verdict_of`, `answer_of` and `is_satisfied`
+    finally get hashed.
+    """
+    return tuple(sorted(
+        p for p in _closure(roots)
+        if p in roots or p not in _SCOPED_PARTS))
 
 
 def scorer_sha(item: str | None = None) -> str:
@@ -260,7 +374,9 @@ def scorer_sha(item: str | None = None) -> str:
     import importlib
     import inspect
     src = []
-    for mod, name in _parts_for(item):
+    # The CLOSURE of the scoped roots, not the roots alone -- minus the parts the
+    # scoping deliberately left out for THIS item. See _scoped_closure.
+    for mod, name in _scoped_closure(_parts_for(item)):
         try:
             got = inspect.getsource(getattr(importlib.import_module(mod), name))
             src.append(_behaviour_src(got))
