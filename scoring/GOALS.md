@@ -103,7 +103,48 @@ declared. WK1/p8 survives six attempts and stays declared. Two new criteria kept
 on their items: `aimed_correctly` on WK2, the cadence fact on DAY2. Handout 2's
 cadence items went DAY1 15->16, DAY2 14->15, WK1 15, WK2 16.
 
-## ACTIVE — quality control on the remaining items
+## ACTIVE — enforcing equivalence between the CLI and web scorers
+
+The whole project rests on the two sides running the same rubric: every recorded
+number is a comparison, and a comparison is meaningless while the scorers differ
+about the rules. A full audit run in all three modes found the picture is not what
+had been reported all session.
+
+`--enforcement` alone was being run and called clean. `--scoring` carries THREE
+undeclared mechanical flags, and `--enforcement` itself is structurally blind to
+any rule written as guidance prose (subgoal 15, under the parked goal). Q4b/p12
+is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
+3.5 in eleven of twelve, and nothing anywhere declares that.
+
+- [ ] 1. **Declare the mechanical flags -- or wire them up.** Three findings, all
+      pre-existing except the first, none declared:
+      **Q4a TOTAL, web 4 vs CLI 5.** The two antecedent slots carry 2 points each
+      and the item's fifth point lived in the `keyword` component, which was
+      zeroed by decision earlier (A_NO_KEYWORD -0.0). The decision was declared;
+      its ARITHMETIC CONSEQUENCE -- assignable points no longer summing to the
+      item max -- was not, and that omission is this session's.
+      **Q4c CANNOT ZERO.** `C_NONE` is worth the whole item and NO check can
+      charge it, so an answer naming no consequences at all cannot score 0. Gold
+      does award 0 on this family.
+      **Q4c UNREACHABLE COST.** `C_NO_KEYWORD` is still worth 1 point and is
+      equally dead. Q4a's keyword was zeroed deliberately; Q4c's was left
+      live-but-unchargeable, which is the worse state because it reads as a
+      working rule.
+      `A_NONE` (-5) is dead on Q4a too, by the same shape as `C_NONE`.
+      For each: either bind the code to a check that can charge it, or declare it
+      with a reason that says why the code exists and cannot fire. Do not leave a
+      deduction that looks live and is not.
+- [ ] 2. **Clear the stale.** Eight handout-2 items read STALE PROMPT after the
+      leakage rewrite -- DAY1, DAY2, NP, NR, PP, PR, WK1, WK2 -- which was option
+      2, taken deliberately: prompts cleaned immediately, calls deferred, ledger
+      honest. Six runs each is ~960 calls.
+      The rewrite removed two borrowed examples and restated the safety block as a
+      principle, so movement should be small -- but "should be small" is exactly
+      the prediction this project has been wrong about repeatedly, so measure it
+      and read the error profile (§2b) rather than assuming. Record each with
+      `measured.py --record`, which prints that profile automatically.
+
+## PARKED — quality control on the remaining items
 
 Every item is recorded and the preflight is clean, so the work is no longer
 "find the blockers" but "check the numbers we have". SEVENTEEN of twenty-six
@@ -518,7 +559,13 @@ because it can be fixed or declared; a wobbling cell cannot be either.
 
 ## THEN
 
-Nothing is parked here. The ACTIVE subgoals above absorbed what used to sit in
+The quality-control goal is PARKED, not closed: nine subgoals remain open under
+it (2, 3, 7, 8, 9, 10, 11, 14, 15) and its section below is unchanged. It was
+displaced rather than finished, because equivalence is the precondition for every
+number it produces -- a per-item rate compared against gold means nothing while
+the two scorers disagree about what the rules are.
+
+Nothing else is parked here. The ACTIVE subgoals above absorbed what used to sit in
 THEN and LATER, and the entries that are no longer true were deleted rather than
 carried:
 
