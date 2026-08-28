@@ -174,6 +174,61 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       mechanisms.
       Q4a and Q4c are marked STALE PROMPT and NOT swept, by instruction. They join
       subgoal 2's list, which is now TEN items.
+- [ ] 10. **A FIX that retires Q4b's declaration, not just the declaration.**
+      User, 2026-08-28: "I want more than a declaration. I want a fix that allows us
+      to retire the declaration." The declaration says the INSTEAD-OF test is prose
+      on both sides and the two paths read it differently with no primitive to
+      compare. RETIRING IT MEANS THE PATHS CANNOT DISAGREE, which means the test has
+      to be COMPUTED on both sides rather than judged on each.
+      DESIGN, worked out and blocked on one thing. Make `behavior_1`/`behavior_2`
+      computed from a single operand pick per entry -- "what IS this entry?" over
+      named options (activity / consequence / the goal behaviour done badly /
+      a not-doing / the same referent as one of their own 4a antecedents / nothing)
+      -- with the five prose tests moved onto the OPTIONS as their descriptions.
+      One classification with named answers, decided by the engine, instead of five
+      prose tests weighed together: which is the documented reason these primitives
+      exist ("written as a single slot the question becomes composite, and the rule
+      this replaces failed four times exactly that way").
+      TWO FINDINGS FROM TRYING TO BUILD IT.
+      (1) A DISJUNCTION CANNOT BE WRITTEN AS SEVERAL RULES. Both engines ASSIGN the
+          computed check per rule -- `checks[rule["key"]] = ...` and
+          `slots[rule["key"]] = ...` -- so two `forbid` rules on one key are not an
+          OR: the last one wins and the first is dead. Identical on both sides, so
+          it is a trap rather than a divergence, and it is now an audit failure
+          (`check_computed_rules_do_not_share_a_key`) instead of a wrong number.
+          This is why the design uses ONE pick with several values rather than
+          several rules.
+      (2) THE BLOCKER, and it is small and specific: a computed check's FAILING
+          VERDICT is hardcoded to `options[1]`. Q4b's `behavior_*` carry
+          [met, absent, not_active] with DIFFERENT codes -- `absent` charges
+          B_ONLY_ONE ("you only gave one example") and `not_active` charges
+          B_NOT_ACTIVE (present but wrong, and repeatable). So `expect` or `forbid`
+          would fail the check as `absent`, telling a student who gave two examples
+          that they gave one, and charging a non-repeatable code in place of a
+          repeatable one. Same points, wrong feedback, wrong repeatability.
+      SO THE FIX NEEDS A PRIMITIVE EXTENSION: let a computed rule NAME the verdict
+      it sets on failure, rather than taking the second option. Three places, and
+      they must move together -- `score.derive_ledger`, `agreement.apply_computed`,
+      and lo-blocks' `slotSheet.ts`, which is the runtime the students meet. That is
+      the decision to take before this subgoal can proceed; it is a change to a
+      shared primitive, not to one item.
+      ONCE EXTENDED: declare the pick and its `choices`, declare
+      `expect: behavior_1:b1_basis=activity:...` naming `not_active` as the failing
+      verdict, author the OLX slots (Q4b has no picks, no `choices` and no `forbid`
+      today), and the declaration retires because both engines then compute the same
+      answer from the same pick.
+      MEASURE IT AFTER THE SWEEP, against the 6-run baseline. The prose form of the
+      referent half was measured once on 3 runs -- counted [14,13,13] ->
+      [15,12,14] -- and rejected not for its mean (+0.34) but for THREE TIMES THE
+      VARIANCE, on the recorded principle that "a configuration that swings three
+      cells cannot tell you whether the next change helped". Judge this on variance
+      too. Target p4 (gold 2.0, web 3.5); controls p1, p12, p15, p17 -- the four
+      gold credits that held last time -- and p6, where the web already matches gold
+      and the CLI does not.
+      IT IS A WEB-SIDE CHANGE, consistent with the tie-break: Q4b ties on
+      gold-matching, so the web is the reference and this improves the reference
+      side's own accuracy rather than importing the CLI's reading.
+
 - [ ] 2. **A full two-sided sweep: every item, six runs, BOTH scorers.**
       Replaces "clear the stale H2 items", which would have measured one side of
       ten items. This measures both sides of all of them, and it is the only
@@ -238,6 +293,14 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       440. It wins 10 items, ties 15, and loses exactly one -- Q1, where the paper
       scorer is 19 of 20 against the web's 17. So the web is the right DEFAULT on
       scoring too, and Q1 is the standing exception.
+      ON A TIE, PREFER THE WEB (user, 2026-08-28) and resolve the divergence that
+      way: the web's reading is the reference and the CLI converges. It does NOT
+      freeze the web's accuracy -- improving the web's own rule against gold is
+      still the right work, and a change there is a change to the reference side,
+      which is where changes belong. What the tie-break forbids is adopting the
+      CLI's reading as the target merely because it lands on gold in the cells
+      someone happened to write a declaration about. Q4b is the live case: 15
+      against 15, so the web wins it.
       A NAMING TRAP worth stating: the artifact directory called `cli_v8` is
       agreement.py, the WEB prompt scored in python, and `paper_mini_v8` is
       score.py, the path this goal calls the CLI. Reading the directory names as
@@ -291,7 +354,11 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       "SLOT_NOTES is web-only" premise no longer holds for it. Which keys those
       are is declared in `olx_prompts.CLI_CRITERIA_NOTES` rather than copied into
       the check.
-- [ ] 9. **Q4b's `behavior_1`/`behavior_2`: convert the referent test to `forbid`.**
+- [x] 9. **Q4b's `behavior_1`/`behavior_2`: convert the referent test to `forbid`.**
+      CLOSED WITHOUT IMPLEMENTING, and replaced by subgoal 10 plus a declaration.
+      The asymmetry is now declared in `olx_prompts.SCORING_DIVERGENCES`, which
+      closes the audit hole subgoal 5 found at zero risk and zero calls, and the
+      experiment itself moved to subgoal 10 where it can be measured properly.
       Raised BY the registry, 2026-08-28, under the standing rule that any
       PROSE_ONLY_SLOTS entry marked CONVERTIBLE becomes a subgoal here rather than
       a note in a table. `enforcement.check_convertible_prose_rules_have_subgoals`
