@@ -456,10 +456,22 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       room for a replacement entry to arrive unnoticed. So this subgoal closes by
       the budget reaching 0, not by an argument that the remainder is acceptable.
 
-ORDER, set 2026-08-28: 5, then 7, then 8, then the sweep. Subgoal 8 is the only
-one of the three that can move a score, so it lands last and its effect is
-measured BY the sweep rather than by a separate run. Nothing goes to the sweep
-until all three are closed.
+ORDER, set 2026-08-28, amended the same day when subgoal 9 was raised:
+
+    5 [done]  ->  7  ->  8  ->  9  ->  the sweep
+
+Nothing goes to the sweep until 7, 8 and 9 are closed.
+
+The two that can MOVE A SCORE come last, in this order, and their effect is
+measured BY the sweep rather than by separate runs: 8 changes what the model is
+ASKED (five `build_schema` shapes), and 9 moves a test from the model's judgement
+to the engine's arithmetic on Q4b. 7 is bookkeeping on the §2c hook and moves
+nothing, so it goes first.
+9 AFTER 8 rather than beside it, per the user: 8 empties a table and its schema
+comparison must come out clean before another prompt-affecting change lands on top
+of it. Two uncertified changes arriving together would leave the sweep unable to
+say which moved a cell -- and 9 is already the harder read, since Q4b's p4 and p12
+are the cells to watch and p12 is where the two paths already disagree.
 - [x] 5. **The enforcement audit cannot see a rule written as guidance prose.**
       MOVED here from quality control, where it was subgoal 15: it is an
       equivalence-enforcement defect, not an item's scoring problem, and it
