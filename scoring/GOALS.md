@@ -199,10 +199,41 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       OPTION 2 TAKEN: prompts are clean now, the eight handout-2 items read STALE
       PROMPT, and the ~960 calls to re-measure them are deferred rather than
       spent. The ledger tells the truth about what is unmeasured.
-- [ ] 5. **Q4b/p12's declared divergence.** Accurate today, but its stated reason
+- [x] 5. **Q4b/p12's declared divergence.** Accurate today, but its stated reason
       says we never matched gold there and cli_v7/cli_v8 both scored it 3/3. A
       declaration whose reason is false is a declaration that will be trusted
       for the wrong reason.
+      CORRECTED, and the correction found something the subgoal did not know.
+      The reason said "we give 3.5, 0 of 3". Measured across every artifact that
+      scored this cell: the WEB gives 3.5 in 11 of 12 runs (leak_fix 0/6,
+      scorer_fix_6run 1/6 — one run reached 5.0), and the CLI gives 5.0 in SIX of
+      six (cli_v7 3/3, cli_v8 3/3). So the cell is not unreachable at all; the two
+      PATHS disagree about it, which is a different kind of finding from the one
+      declared.
+      AND THAT ASYMMETRY IS DECLARED NOWHERE. Q4b is absent from
+      olx_prompts.SCORING_DIVERGENCES and the enforcement audit reports nothing
+      for it, because the rule doing the refusing lives in GUIDANCE PROSE --
+      "REJECT when the entry is not something the student did INSTEAD OF the goal
+      behaviour" -- rather than in a primitive the audit can compare. A
+      scoring-relevant rule enforced on one side only is precisely what that audit
+      exists to catch, and it is blind to any such rule expressed as prose. That
+      is a NEW gap, wider than this cell, and it is subgoal 15.
+      The divergence itself stands: the web result differs from gold for the
+      stated reason, and the refusing test measured +1 cell a run against deleting
+      it. Only the false claim is gone.
+- [ ] 15. **The enforcement audit cannot see a rule written as guidance prose.**
+      Found closing subgoal 5. The audit compares PRIMITIVES between the two
+      sides -- counts, equals, cover, onlyif, requires, expect, forbid, derived --
+      so a rule that changes scoring but is expressed in guidance text is invisible
+      to it in both directions. Q4b/p12 is the demonstrated case: the web refuses
+      an entry the CLI credits, six runs to six, and nothing flags it.
+      SCOPE IT FIRST, since the audit is the instrument the whole two-sided
+      comparison rests on: how many scoring-relevant rules live only in guidance?
+      Every REJECT/ACCEPT bullet is a candidate. Then decide whether they can be
+      compared at all -- the two sides are given the same guidance text, so a
+      difference in EFFECT cannot be read off the text and may only be detectable
+      by scoring the same sheet through both paths, which is what
+      `check_web_scorer_exercises_its_sheet` already does for primitives.
 - [x] 6. **Make the `reasons_given` rewrite live, then measure it.** DRAFTED,
       not live: `drafts/q1q2_reasons_rule.md` holds the replacement text, the
       per-cell evidence, the rejected alternative and the test plan. Diagnosed
