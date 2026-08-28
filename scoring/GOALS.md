@@ -1180,12 +1180,22 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       IT GATES. `cadence_is_daily` and `cadence_is_weekly` are gates=True, pts=None
       on all four cadence items, so a single unmet verdict zeroes the whole 4-point
       item. That makes its precision the item's ceiling.
-      THE SAME CHECK, THREE DIFFERENT BEHAVIOURS:
+      THE SAME CHECK, FOUR ITEMS, A SPREAD RATHER THAN A SPLIT:
           WK1  cadence_is_weekly  20 refusals  100% precise   no errors
-          DAY1 cadence_is_daily   26 refusals   92%           wrong on p11 only
+          DAY1 cadence_is_daily   26 refusals   92%           wrong on p11
+          WK2  cadence_is_weekly  19 refusals   84%           wrong on p15, p11
           DAY2 cadence_is_daily   17 refusals   71%           wrong on p8, p9, p11
-      The WEEKLY form is clean and the DAILY form is not, which is the first thing
-      to explain -- they are the same question with one word changed.
+      WRITTEN FIRST AS "the weekly form is clean and the daily form is not", on WK1
+      and the two DAY items alone. WK2 landed at 84% and that reading does not
+      survive it: the four points interleave, so this is a spread across all four
+      cadence items and not a daily/weekly divide. Which also means the period
+      substituted from the item's `cadence` field is probably NOT the variable --
+      look at what the items ask before blaming the word.
+      AND IT IS THE SAME KIND OF FAILURE ON WK2 AS ON DAY2 -- flipping, not a
+      threshold: p15 reads [met, met, absent, met, absent, met] against gold 2.0 and
+      p11 [met, met, met, met, absent, met]. p11 flips on DAY2 AND on WK2, which is
+      the one cell to read first: it is the only participant appearing in three of
+      the four items' error lists.
       AND ON DAY2 IT IS NOT A THRESHOLD, IT IS INSTABILITY. The verdicts flip run to
       run on cells whose input never changes:
           p8   gold 4.0   verdicts [absent, met, met, met, absent, absent]   ours 0.0 / 4.0
@@ -1206,8 +1216,11 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       field. So the prose is identical for WK1, which never errs. Read p8's answer
       first and establish what about it is borderline; the difference between the
       daily and weekly items may be in the ANSWERS rather than the rule.
-      CONTROLS: DAY1's 26 refusals at 92% and WK1's 20 at 100% both depend on this
-      gate firing correctly. A change that relaxes it risks two items to fix one.
+      CONTROLS: WK1's 20 refusals at 100% and DAY1's 26 at 92% both depend on this
+      gate firing correctly. A change that relaxes it risks two items to fix two.
+      TOTAL COST, now that all four are measured: 82 refusals across the family,
+      11 of them wrong, and every one costs a full 4-point item because the check
+      gates. That is the largest single pool of error in handout 2.
 
 - [ ] 21. **NR: a 4-point GATE running at 71% precision.**
       NR RECORDS 15/18, runs [14,14,15,15,15,16], and carries the worst MAE (0.50)
