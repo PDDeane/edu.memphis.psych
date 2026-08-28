@@ -891,5 +891,18 @@ for _it in ITEMS:
     if _it["id"] in OC_GATES:
         _it["oc_gates"] = OC_GATES[_it["id"]]
 
+# Items where an avoidance-framed contingency COSTS the item rather than merely
+# being noted. Declared, because both scorers must say the same thing about it
+# and they were not: the shared criteria prose says criterion 7 "never changes
+# the score", which is true everywhere except here, where this item's own
+# guidance says avoidance framing takes the whole item and the graders scored
+# those zero. The web prompt carried both sentences and contradicted itself; the
+# CLI suppressed the first. This declaration is what the CLI was doing, read by
+# both sides, so neither has to know an item id.
+AVOIDANCE_SCORES = ("DAY1",)
+for _it in ITEMS:
+    if _it["id"] in AVOIDANCE_SCORES:
+        _it["avoidance_scores"] = True
+
 BY_ID = {it["id"]: it for it in ITEMS}
 TOTAL = sum(it["max"] for it in ITEMS)  # 40.0 scored; +10 upload = 50
