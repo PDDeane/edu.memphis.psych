@@ -1067,6 +1067,44 @@ The order below is by diagnosed tractability, not by score. A deterministic miss
 with a named failing check is worth more than a larger gap of unknown shape,
 because it can be fixed or declared; a wobbling cell cannot be either.
 
+- [ ] 20. **Cells the SHEET CANNOT REFUSE: every check passes and gold still docks.**
+      Opened on PR/p3 as asked, and generalised by detector rather than by eye,
+      because the first hypothesis about that cell was wrong (below).
+      THE CLASS: cells where every non-pick check is `met` -- `confident` excluded,
+      it is the corpus noise floor -- and gold still refuses, stably across all six
+      runs. Four exist in the nine items swept so far:
+          PR   p3   ours  4.00  gold 0.00   the WHOLE item, undeclared
+          Q4c  p16  ours  5.00  gold 3.00   undeclared
+          Q4c  p20  ours  5.00  gold 3.00   undeclared
+          Q6   p2   ours 10.00  gold 8.75   DECLARED, the change_a1/change_a2 ceiling
+      WHY THIS CLASS MATTERS MORE THAN A CELL: no amount of tuning an existing slot
+      can reach these. The sheet is fully satisfied, so there is no verdict to flip
+      -- gold is objecting to something the sheet has no check for. The options are
+      a NEW check, or a declared divergence, and Q6/p2 shows the project has already
+      concluded the latter once. Reading these as "the criterion is too lenient"
+      would send someone tuning slots that already pass.
+      PR/p3 IS THE STARKEST: gold gives ZERO on a 4-point item while we give full
+      marks in 6 of 6 runs, and the model classifies it correctly on both picks --
+      `observed_type` PR, `stimulus_move` given_desirable, which is exactly what a
+      PR example should answer. Every one of `names_behavior`, `names_stimulus`,
+      `contingent`, `follows_behavior`, `you_arrange_it`, `demonstrates_type` and
+      `targets_goal_behavior` passes. Whatever gold saw, the sheet does not ask
+      about. Read gold's feedback for p3 FIRST -- that is the only place the
+      objection is stated.
+      Q4c's two are the same shape at 2 points each, and Q4c already runs a bias of
+      +0.21 with 18 over-credits against 1 under -- the most one-sided item in the
+      sweep -- so this class may be most of what that bias is.
+      A DEAD HYPOTHESIS, recorded so it is not re-run: PR/p3 was first read as
+      "blank picks yet full credit", because `checks` shows `observed_type` and
+      `stimulus_move` as empty strings. That is a RECORDING CONVENTION, not a
+      defect -- a pick's value lives in `answers`/`refers_to`, and `checks` carries
+      verdicts. It is blank on all 20 cells of PR and all 20 of Q4b, including
+      every cell that scores correctly. Nothing is wrong with the picks.
+      MONITOR THE REST OF THE SWEEP: the detector is nine lines of python over the
+      `.runs.json` files and should be re-run as each item lands. If the class
+      grows past a handful, or concentrates on one handout, that changes it from a
+      per-cell question into a sheet-design one.
+
 - [ ] 19. **The LATER-BOX gradient, corpus-wide. Read this before any numbered slot.**
       Placed ahead of the item-specific subgoals because six of them are about a
       numbered box, and this says which part of that is one problem and which is
