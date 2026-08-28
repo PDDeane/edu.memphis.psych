@@ -1102,7 +1102,9 @@ def slot_basis(item: dict) -> dict:
     whole goal is about.
     """
     computed = {}
-    for kind in ("equals", "forbid", "expect", "derived"):
+    # Every key-excluding primitive, `maps` included. Leaving it out reported
+    # Q4b's behavior_* as prose-judged on the day they stopped being judged at all.
+    for kind in ("equals", "forbid", "expect", "derived", "maps"):
         for r in item.get(kind) or ():
             if isinstance(r, dict) and r.get("key"):
                 computed[r["key"]] = f"computed:{kind}"
@@ -1146,17 +1148,19 @@ def slot_basis(item: dict) -> dict:
 # list's whole point, because a declaration is something the enforcement audit can
 # compare between the two scorers and prose is not.
 PROSE_ONLY_SLOTS = {
-    ("Q4b", "behavior_1"):
-        "CONVERTIBLE IN PART. Five fail conditions in prose, and the sixth test "
-        "handouts.py records -- an entry naming the same THING as one of the "
-        "student's own 4a antecedents -- is `forbid`-shaped: two answers compared "
-        "by referent. The other four are judgements of what an entry IS. This is "
-        "the demonstrated divergence, paper 2.0 / web 3.5 on p4 with gold at 2.0, "
-        "so it is first in line.",
-    ("Q4b", "behavior_2"):
-        "CONVERTIBLE IN PART, with behavior_1 and by the same argument: it restates "
-        "the same conditions for the second entry. Convert the pair together or the "
-        "two entries will be judged by different machinery.",
+    # behavior_1 and behavior_2 LEFT this list on 2026-08-28: they are computed by
+    # `maps` now, not judged, so they are no longer prose-only. The prose did not
+    # disappear -- it moved to the picks below, which is where the residual
+    # divergence risk now lives, and it is one named classification instead of five
+    # tests weighed at once.
+    ("Q4b", "b1_basis"):
+        "NOT CONVERTIBLE, and it is the operand rather than the rule: `maps` turns "
+        "this classification into behavior_1's verdict arithmetically, so the "
+        "COMBINING is declared and only the classification is read. What an entry "
+        "IS -- an activity, a consequence, the goal behaviour displaced, a "
+        "not-doing -- has no operands to compare, so it stays a judgement.",
+    ("Q4b", "b2_basis"):
+        "NOT CONVERTIBLE, same as b1_basis for the second example.",
     ("Q6", "affect_c1"):
         "NOT CONVERTIBLE. `cover` already constrains WHICH listed entry is referred "
         "to; what is left is whether the answer states HOW the consequence is "
