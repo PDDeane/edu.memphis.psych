@@ -384,9 +384,19 @@ def _gold_scores() -> dict:
     """(item, pid) -> gold score, from the graders' own spreadsheets."""
     import gold as G
     out = {}
+    # THE SAME ACCOUNTING THE LEDGER USES, not a second reading of the same
+    # files. Raw gold is not what any rate in this project is computed against:
+    # `apply_corrected_gold` replaces rows a human re-read and corrected, and 1c
+    # needs `rebuild_gold_1c` on top -- without it 1c reads as 18 over-credits
+    # when it has none, which is exactly how a wrong figure reached a corpus-wide
+    # ranking once already.
+    import handouts as _H
+    import agreement_app as _APP
     for h, loader in ((1, G.load_h1), (2, G.load_h2), (3, G.load_h3)):
         try:
-            rows = loader()
+            rows = _H.apply_corrected_gold(loader(), h)
+            if h == 3:
+                rows, _ = _APP.rebuild_gold_1c({p: dict(v) for p, v in rows.items()})
         except Exception:
             continue
         for pid, items in rows.items():
@@ -395,6 +405,23 @@ def _gold_scores() -> dict:
                 if sc is not None:
                     out[(item, int(pid))] = float(sc)
     return out
+
+
+def _excluded_cells(item: str) -> set:
+    """The ledger's exclusions, read from the ledger -- never a second copy."""
+    try:
+        import measured
+        return set(measured.exclusions(item))
+    except Exception:
+        return set()
+
+
+def _H_scored_exactly(item, gold_score, pred) -> bool:
+    try:
+        import handouts as _H
+        return bool(_H.scored_exactly(item, gold_score, pred))
+    except Exception:
+        return abs(float(pred) - float(gold_score)) < 1e-9
 
 
 def against_gold(left: str, right: str, item_filter: str | None = None) -> int:
@@ -428,9 +455,15 @@ def against_gold(left: str, right: str, item_filter: str | None = None) -> int:
     for k in sorted(set(ls) & set(rs) & set(goldsc)):
         if item_filter and k[0] != item_filter:
             continue
+        if k[1] in _excluded_cells(k[0]):
+            continue          # excluded from every rate the ledger reports
         g = goldsc[k]
         lm, rm = med(ls[k]), med(rs[k])
-        lok, rok = abs(lm - g) < 1e-9, abs(rm - g) < 1e-9
+        # `scored_exactly`, NOT float equality: it carries the unreachable-gold
+        # allowance, so a cell gold puts out of reach is not counted as a miss on
+        # either side. Comparing with `==` charges both paths for the rubric's
+        # arithmetic and calls it a path difference.
+        lok, rok = _H_scored_exactly(k[0], g, lm), _H_scored_exactly(k[0], g, rm)
         row = per[k[0]]
         row[0] += 1
         row[1] += int(lok)
