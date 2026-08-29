@@ -634,6 +634,49 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       not a `requires` candidate (subgoal 15): denying credit would fix the
       over-credits and worsen the under-credits by the same count.
 
+- [ ] 19. **Re-test PROSE_ONLY_SLOTS' "NOT CONVERTIBLE" claims when the primitive set changes.**
+      Asked for as "a subgoal to clear PROSE_ONLY_SLOTS". IT SHOULD NOT BE
+      CLEARED, and the record says so in terms:
+      check_prose_only_slots_are_declared's own docstring -- "Unlike
+      HANDCODED_BUDGET this does not target zero ... the honest end state is that
+      every remaining entry argues, in its reason, why it cannot be a primitive."
+      All nine entries already do, all nine read NOT CONVERTIBLE, and
+      `check_convertible_prose_rules_have_subgoals` already forces a subgoal for
+      any entry marked CONVERTIBLE. There are none. The table is at its intended
+      end state.
+      THE REAL EXPOSURE IS THAT "NOT CONVERTIBLE" IS A CLAIM THAT CAN GO STALE,
+      which is the same defect class as the Q4a arithmetic divergence and the
+      auto-killer: a judgement that was true when written and that nothing
+      re-tests. Convertibility is judged AGAINST THE PRIMITIVE SET, and the
+      primitive set grows -- `maps` did not exist a week ago.
+      THREE OF THE NINE REASONS NAME A PRIMITIVE, so they are explicitly
+      relative to that set rather than absolute:
+        Q4b:b1_basis  "`maps` turns this classification into behavior_1's
+                       verdict arithmetically, so the COMBINING is declared and
+                       only the classification is read"
+        Q6:affect_c1  "`cover` already constrains WHICH listed entry is referred
+                       to; what is left is whether the answer states HOW"
+        1a:week_1     "no operand pair expresses it"
+      Q4b's entry is the proof of the mechanism: `maps` CHANGED what was
+      convertible about that slot, and the entry was rewritten to say so. Nothing
+      forced that rewrite -- it happened because the same person was holding both
+      pieces at once, which is exactly what does not scale.
+      THE FIX IS A STAMP, not a re-audit by hand. Record on each entry the
+      primitive set it was judged against -- a fingerprint of the `attr` names in
+      primitives.json -- and have the check fail when the current set differs:
+      "`Q6:affect_c1` was declared NOT CONVERTIBLE against {cover, equals,
+      onlyif, requires, derived, counts, expect, forbid}; the registry now also
+      has `maps`. Re-judge it or re-stamp it." Cheap, mechanical, and it fires
+      exactly once per primitive added -- which is the right cadence, because
+      that is precisely when the answer can have changed.
+      DO NOT let this become pressure to convert. A re-judged entry that is still
+      NOT CONVERTIBLE just gets a new stamp; the budget stays 9. The check exists
+      so the claim is re-made deliberately, not so the number falls.
+      RELATED: subgoal 15 asks whether `requires` -- implemented on both engines
+      and bound to no item -- belongs on Q6. Two of these nine entries are Q6
+      `affect_*` slots whose reasons turn on what `cover` already constrains. If
+      `requires` lands on Q6, both entries are due for re-judging by this rule.
+
 - [ ] 12. **`--selftest` without `--enforcement` silently scores nothing.**
       Found 2026-08-28, during the web sweep, by running it wrong and believing
       the result. `equivalence.py --selftest` is only honoured together with
