@@ -403,6 +403,51 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       it, and Q4b's five substitution tests are the recorded case of getting it
       wrong.
 
+- [ ] 14. **`maps` makes Q4b UNSCORABLE on the app path. The retirement is unmeasured.**
+      Found 2026-08-28 by the two-sided sweep, which is exactly the job the sweep
+      was for. Q4b fails EVERY cell on the web side with
+      `did not settle within 300s (status=undefined)`: the grader action never
+      fires, so there are no slots, no verdicts and no score. Not a divergence
+      between two answers -- an item that cannot be asked at all.
+      THE EVIDENCE NAMES `maps` AND NOTHING ELSE:
+        * the idmap preflight PASSES (52 lines matched, nothing extra), so this
+          is not the staleness that took out Q4a;
+        * every Q4b component is in the dump, `bmod_h1_q4b_llm` included;
+        * the `<LLMAction>` tag parses cleanly under `[^>]*>`, so the `~`-not-`>`
+          separator fix held and the tag is not truncated;
+        * `pick(` and `choices=` appear 30 and 10 times across handout 2, whose
+          items score normally, so the new pick slots are not the cause;
+        * `maps=` appears EXACTLY ONCE in the whole corpus -- on Q4b -- and Q4b
+          is the only item that fails.
+      HOW IT GOT PAST EVERYTHING. `maps.test.ts` has 8 passing unit tests,
+      `probe.test.ts` was taught the primitive, enforcement is clean, and the
+      self-test detects 49 of 49. Every one of those exercises the primitive in
+      isolation; none drives a cell through the running app. Subgoal 10 was
+      closed as "declaration RETIRED" on that basis. The retirement is real in
+      the rubric and fictional in the app.
+      SO SUBGOAL 10 IS NOT ACTUALLY CLOSED, whatever its checkbox says, and
+      Q4b/p12 -- the 5.0-vs-3.5 divergence this entire goal was opened to
+      explain -- remains unmeasured on the web side. Do not quote a Q4b web
+      figure until this is fixed; there is none.
+      FIX, in this order, and NOT while a sweep is running -- slotSheet.ts IS in
+      the scoring path, unlike the idmap preflight fixed the same day:
+      (a) reproduce with the single-cell runner, which is what surfaced the real
+          error once `stderr=DEVNULL` was bypassed:
+          `RUN_LLM_RUNNER=1 JOBS_JSON=<one Q4b job> RESULTS_JSON=<out>
+           IDMAP_JSON=... npx vitest run packages/shared/lib/llm/runner.test.ts`
+      (b) find why a sheet carrying `maps` never settles. Suspect the schema
+          build: a `maps` key that names a slot the schema does not offer, or a
+          pick slot the app will not emit, would leave the action waiting
+          forever rather than erroring -- which is why it TIMES OUT instead of
+          failing loudly.
+      (c) add an app-level test that drives one `maps` cell end to end. The unit
+          tests cannot catch this class and did not.
+      (d) re-run Q4a and Q4b: `sweep_app.sh` skips items whose .json exists and
+          retries the rest, so a plain re-run picks up exactly these two.
+      A TIMEOUT IS THE WRONG FAILURE for an unrunnable sheet. 300s per cell,
+      ~90s amortised, three hours per item, and the only signal is `no-cell`.
+      Whatever the root cause, a sheet the app cannot build should say so.
+
 - [ ] 12. **`--selftest` without `--enforcement` silently scores nothing.**
       Found 2026-08-28, during the web sweep, by running it wrong and believing
       the result. `equivalence.py --selftest` is only honoured together with
