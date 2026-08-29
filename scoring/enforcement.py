@@ -1420,6 +1420,158 @@ def check_prior_record_reaches_every_item() -> list[str]:
     return out
 
 
+# A primitive is code in two engines. Code that has never run against a live item
+# is a claim, not a capability -- and a goal retired on unit tests alone retires
+# the claim. Every entry names WHY there is no live app measurement yet.
+#
+# The budget ratchets like the others. It must fall as the two-sided sweep
+# reaches each primitive's items; an entry that outlives the sweep is a real
+# defect, not a pending measurement, and must become a subgoal.
+UNEXERCISED_PRIMITIVES = {
+    "maps": "AUDIT SUBGOAL 14 -- a real defect, not a pending measurement. Q4b "
+            "is its only user and the app cannot score it at all: every cell "
+            "returns no-cell. This is the entry the rule was written for",
+    "cover": "web sweep 2026-08-28 has not reached Q6, its only user",
+    "derived": "web sweep has not reached 1c; also the sole COMPUTE_EXEMPT entry",
+    "equals": "web sweep has not reached D1/DAY1",
+    "expect": "web sweep has not reached its items",
+    "forbid": "web sweep has not reached its items",
+    "onlyif": "web sweep has not reached PR",
+    "requires": "declared in primitives.json but used by NO item, so there is "
+                "nothing to exercise. Either bind it to an item or retire it",
+}
+UNEXERCISED_PRIMITIVES_BUDGET = 8
+
+
+def _primitives_with_live_app_evidence() -> dict:
+    """Which primitives has a LIVE APP run actually exercised?
+
+    The app, not the python harness. `maps` is why the distinction is not
+    pedantic: it had CLI evidence -- Q4b scored 16/19 through agreement.py --
+    while the app could not build the sheet at all. A primitive computed
+    identically by both engines can still be dead in one of them, and the CLI
+    column cannot see that.
+    """
+    import json as _json
+    import re as _re
+    import pathlib as _pl
+
+    import agreement_app as _A
+    from olx_prompts import primitives as _prims
+
+    attrs = {q["attr"] for q in _prims()["primitives"]}
+    olx = [f.read_text() for f in
+           _pl.Path(__file__).resolve().parent.parent.joinpath("psychology")
+           .glob("bmod_handout*.olx")]
+    try:
+        led = _json.loads((_pl.Path(__file__).resolve().parent
+                           / "MEASURED.json").read_text())["items"]
+    except Exception:
+        led = {}
+    users = {a: set() for a in attrs}
+    for item, J in _A.JOBS.items():
+        g = J.get("grader") or ""
+        if not g:
+            continue
+        act = g.replace("_grader", "_llm")
+        for txt in olx:
+            m = _re.search(r"<LLMAction[^>]*id=\"" + _re.escape(act) + r"\"[^>]*>", txt)
+            if not m:
+                continue
+            for a in attrs:
+                if a + "=" in m.group(0):
+                    users[a].add(item)
+    return {a: sorted(i for i in its if "web" in (led.get(i) or {}))
+            for a, its in users.items()}
+
+
+def check_closed_goals_that_changed_code_were_exercised() -> list[str]:
+    """Was the code a retired goal introduced ever RUN against a live item?
+
+    A goal that changed code and was closed on unit tests alone has retired a
+    claim, not a capability. The two are indistinguishable from inside the test
+    suite, which is the point: every test the code has was written by the same
+    person who wrote the code, against the same understanding of what the app
+    does.
+
+    Audit subgoal 10 is the recorded case. It introduced the `maps` primitive to
+    move Q4b's referent test from the model's judgement to the engine's
+    arithmetic, and closed as "declaration RETIRED" on eight passing unit tests
+    in maps.test.ts, a probe taught the new attribute, a clean enforcement run
+    and a self-test detecting 49 of 49. Not one of those drives a cell through
+    the running app. The first time a live item met the code -- the two-sided
+    sweep, weeks later -- Q4b failed EVERY cell and could not be scored at all.
+    The retirement was real in the rubric and fictional in the app, and the
+    divergence the goal existed to close was still unmeasured.
+
+    A closed subgoal that names a primitive in backticks is treated as
+    code-inducing, since a primitive IS code in two engines. It must then carry
+    an `EXERCISED:` line naming the item that ran it and where the result lives.
+    Cheap to satisfy honestly and impossible to satisfy by accident, which is
+    the property that matters: the failure mode here is not writing a false
+    line, it is never asking the question.
+    """
+    import pathlib
+    import re as _re
+
+    goals = pathlib.Path(__file__).resolve().parent / "GOALS.md"
+    try:
+        text = goals.read_text()
+    except OSError:
+        return ["GOALS.md cannot be read, so closed goals cannot be checked for "
+                "a live exercise"]
+
+    from olx_prompts import primitives
+    attrs = {p["attr"] for p in primitives()["primitives"]}
+    evidence = _primitives_with_live_app_evidence()
+    # Split into subgoal blocks: a marker line and everything up to the next one.
+    blocks = _re.split(r"\n(?=- \[[ x]\] )", text)
+    problems = []
+    for b in blocks:
+        head = b.split("\n", 1)[0]
+        if not head.startswith("- [x]"):
+            continue                      # only CLOSED goals make a claim
+        named = sorted({a for a in attrs if f"`{a}`" in b})
+        if not named:
+            continue                      # no primitive named: not code-inducing
+        if _re.search(r"^\s*EXERCISED:", b, _re.M):
+            continue
+        # Only a primitive with NO live app run is a problem. Naming one that
+        # has already run end to end is just prose, and demanding a line for it
+        # would turn the rule into bookkeeping nobody reads.
+        dead = [a for a in named
+                if not evidence.get(a) and a not in UNEXERCISED_PRIMITIVES]
+        if not dead:
+            continue
+        title = head[:88]
+        problems.append(
+            f"{title} is CLOSED and names {', '.join(dead)}, which no live APP "
+            f"run has ever exercised. Closing on unit tests alone retires a "
+            f"claim, not a capability -- `maps` passed 8 unit tests and could "
+            f"not score a single cell. Add `EXERCISED: <item> -- <where the "
+            f"live result lives>`, declare it in UNEXERCISED_PRIMITIVES with a "
+            f"reason, or reopen the goal")
+
+    n = len(UNEXERCISED_PRIMITIVES)
+    if n > UNEXERCISED_PRIMITIVES_BUDGET:
+        problems.append(
+            f"UNEXERCISED_PRIMITIVES holds {n} against a budget of "
+            f"{UNEXERCISED_PRIMITIVES_BUDGET} -- a primitive was added without a "
+            f"live app run")
+    elif n < UNEXERCISED_PRIMITIVES_BUDGET:
+        problems.append(
+            f"UNEXERCISED_PRIMITIVES is down to {n} but the budget still says "
+            f"{UNEXERCISED_PRIMITIVES_BUDGET} -- lower it to {n}, or the slack "
+            f"lets an unexercised primitive in unnoticed")
+    for a, why in sorted(UNEXERCISED_PRIMITIVES.items()):
+        if evidence.get(a):
+            problems.append(
+                f"UNEXERCISED_PRIMITIVES still lists `{a}` (\"{why[:60]}...\") but "
+                f"{evidence[a][0]} has now measured it live on the app -- drop the "
+                f"entry and lower the budget, or the table stops meaning anything")
+    return problems
+
+
 def check_convertible_prose_rules_have_subgoals() -> list[str]:
     """Does every CONVERTIBLE prose rule have a subgoal, or just a label?
 

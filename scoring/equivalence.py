@@ -590,6 +590,8 @@ def enforcement_audit():
         findings.append(("-", "RECORD HOOK BLIND TO AN ITEM", bad))
     for bad in ENF.check_convertible_prose_rules_have_subgoals():
         findings.append(("-", "CONVERTIBLE RULE HAS NO SUBGOAL", bad))
+    for bad in ENF.check_closed_goals_that_changed_code_were_exercised():
+        findings.append(("-", "GOAL RETIRED WITHOUT A LIVE RUN", bad))
     for bad in ENF.check_prose_only_slots_are_declared():
         findings.append(("-", "PROSE-ONLY SLOT UNDECLARED", bad))
     for bad in ENF.check_artifacts_record_their_era():
