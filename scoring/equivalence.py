@@ -596,6 +596,8 @@ def enforcement_audit():
         findings.append(("-", "GOLD ACCOUNTING NOT UNIFORM", bad))
     for bad in ENF.check_action_attributes_are_declared_in_the_block():
         findings.append(("-", "ATTRIBUTE NOT DECLARED IN THE BLOCK", bad))
+    for bad in ENF.check_divergence_arithmetic_is_still_true():
+        findings.append(("-", "DECLARED DIVERGENCE OUTLIVED ITS ARITHMETIC", bad))
     for bad in ENF.check_prose_only_slots_are_declared():
         findings.append(("-", "PROSE-ONLY SLOT UNDECLARED", bad))
     for bad in ENF.check_artifacts_record_their_era():
