@@ -3808,6 +3808,144 @@ def check_items_are_measured_as_configured() -> list[str]:
     return problems
 
 
+# EVERY DECLARATION TABLE, AND THE CHECK THAT RE-TESTS IT.
+#
+# A declaration is a claim that something is true and will stay true. The claim
+# is checkable or it is not; if it is, the check belongs here and not in
+# somebody's memory. Coverage is what this registry enforces -- adding a table
+# without naming a verifier fails the audit, which is the one thing prose
+# guidance cannot do for itself.
+#
+# Written after a divergence asserting "the slot points sum to 4 against a max of
+# 5" outlived the fix that made it false, with the whole audit green: no check
+# owned it, and nothing said one was missing.
+DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
+    "handouts.PER_ITEM_EXCLUDE": (
+        "cells dropped from every rate",
+        ("check_exclusion_claims_are_data", "check_citations_match_exclusions",
+         "check_declarations_still_have_evidence")),
+    "handouts.CORRECTED_GOLD": (
+        "the target a cell is measured against",
+        ("check_corrected_gold_matches_the_sheet",)),
+    "handouts.GOLD_DIVERGENCES": (
+        "cells we knowingly disagree with gold about",
+        ("check_declarations_still_have_evidence",)),
+    "handouts.GOLD_CEILINGS": (
+        "why an item cannot reach 100%",
+        ("check_declarations_still_have_evidence",)),
+    "olx_prompts.SCORING_DIVERGENCES": (
+        "where the two scorers deliberately differ",
+        ("check_divergence_arithmetic_is_still_true",
+         "check_declarations_still_have_evidence")),
+    "enforcement.UNEXERCISED_PRIMITIVES": (
+        "primitives no live app run has exercised",
+        ("check_closed_goals_that_changed_code_were_exercised",)),
+    "enforcement.SLOT_RULE_BACKLOG": (
+        "rules the paper scorer cannot see",
+        ("check_slot_rules_backlog_is_being_cleared",)),
+    "enforcement.HANDCODED_ITEM_RULES": (
+        "rules hand-written in python rather than declared",
+        ("check_handcoded_rules_are_being_cleared",)),
+    "enforcement.PROSE_ONLY_SLOTS": (
+        "rules the audit cannot compare because they are prose",
+        ("check_prose_only_slots_are_declared",)),
+    "enforcement.RAW_GOLD_READERS": (
+        "modules that read gold uncorrected, on purpose",
+        ("check_gold_accounting_is_uniform",)),
+    "enforcement.COMPUTE_EXEMPT": (
+        "primitives one engine cannot compute",
+        ("check_both_engines_compute_the_same_primitives",)),
+    # Found by this check's own reverse pass on the day it was written: three
+    # tables that were being enforced but not registered, so nothing said whether
+    # anything watched them. All three did have a verifier; none of them said so.
+    "enforcement.CONSENSUS_OVERLAP_BACKLOG": (
+        "overlapping consensus spans accepted as faithful",
+        ("check_consensus_spans_are_disjoint",)),
+    "enforcement.COUNTABLE_EXEMPT": (
+        "countable families deliberately not converted to `counts`",
+        ("check_countable_families_converted",)),
+    "enforcement.MULTI_BLOCK_DECLARED": (
+        "items whose response is split across blocks on purpose",
+        ("check_single_box_fixtures_are_verbatim",)),
+}
+
+
+def check_every_declaration_table_has_a_verifier() -> list[str]:
+    """Is every declaration table re-tested by something?
+
+    THE PRINCIPLE, stated once here and in QUALITY_CONTROL.md section 5: a
+    declaration that asserts something mechanically checkable must carry that
+    assertion as DATA, so the audit can re-test it -- and every table of
+    declarations must be named in DECLARATION_TABLES against the check that does
+    the re-testing.
+
+    Prose cannot enforce itself. The failure this exists for is not a wrong
+    declaration; it is a declaration nobody is looking at, which is invisible
+    precisely because everything is green. Two of those turned up in one day:
+    a divergence whose arithmetic had been fixed under it, and -- outside the
+    audit entirely -- a shell mitigation that went on killing four sweep items
+    for an hour after the defect it guarded against was repaired.
+
+    Named checks must EXIST. A table pointing at a function that has been renamed
+    or deleted is the same hole with a comment over it.
+    """
+    import handouts as _H
+    import olx_prompts as _OP
+
+    mods = {"handouts": _H, "olx_prompts": _OP,
+            "enforcement": sys.modules[__name__]}
+    problems = []
+    for path, (what, verifiers) in sorted(DECLARATION_TABLES.items()):
+        mod_name, _, attr = path.partition(".")
+        mod = mods.get(mod_name)
+        if mod is None or not hasattr(mod, attr):
+            problems.append(
+                f"DECLARATION_TABLES names {path} ({what}) but it does not "
+                f"exist -- the table was renamed or removed and its entry was "
+                f"not, so the registry is describing a table nobody has")
+            continue
+        if not verifiers:
+            problems.append(
+                f"{path} ({what}) is declared with NO verifier. A declaration "
+                f"nobody re-tests subtracts itself from every rate for as long "
+                f"as it survives")
+            continue
+        for fn in verifiers:
+            if not callable(globals().get(fn)):
+                problems.append(
+                    f"{path} names `{fn}` as its verifier and no such check "
+                    f"exists -- renamed or deleted, leaving the table unwatched")
+
+    # And the other direction: a declaration table that nobody registered.
+    for mod_name, mod in (("enforcement", sys.modules[__name__]),):
+        for attr in dir(mod):
+            if attr.startswith("_") or not attr.isupper() or attr.endswith("_BUDGET"):
+                continue
+            val = getattr(mod, attr)
+            if not isinstance(val, (dict, list)) or not val:
+                continue
+            path = f"{mod_name}.{attr}"
+            if path in DECLARATION_TABLES or attr in _NOT_DECLARATIONS:
+                continue
+            problems.append(
+                f"{path} looks like a declaration table and is not in "
+                f"DECLARATION_TABLES -- register it with the check that "
+                f"re-tests it, or add it to _NOT_DECLARATIONS saying why it is "
+                f"not a declaration")
+    return problems
+
+
+# Upper-case module data that is NOT a declaration: constants, vocabularies and
+# lookup tables assert nothing about the corpus, so nothing can re-test them.
+_NOT_DECLARATIONS = frozenset({
+    "ALIAS", "DEFAULT_VERDICTS", "KNOWN_ACTION_ATTRS", "KNOWN_VERDICTS",
+    "EXCLUSION_KINDS", "ARTIFACT_WRITERS", "GENERATED_ATTRS", "SCORER_PARTS",
+    "MATERIALS", "SUBS", "HANDOUTS", "ITEMS", "BY_ID", "TOTAL", "MAPS",
+    "READS_UTB_CHOICE", "ACTION", "SHEET_ONLY", "HANDOUT", "RESPONSE",
+    "VERBATIM_RULES", "WEB_SYSTEM", "PRIMITIVES_JSON", "DECLARATION_TABLES",
+})
+
+
 def check_divergence_arithmetic_is_still_true() -> list[str]:
     """Declared divergences that assert ARITHMETIC the sheet no longer does.
 
