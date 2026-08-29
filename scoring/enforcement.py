@@ -3808,6 +3808,86 @@ def check_items_are_measured_as_configured() -> list[str]:
     return problems
 
 
+def check_divergence_arithmetic_is_still_true() -> list[str]:
+    """Declared divergences that assert ARITHMETIC the sheet no longer does.
+
+    `check_declarations_still_have_evidence` retires a declaration whose CELLS
+    stopped erroring. It cannot see this class: a divergence that asserts a fact
+    about the sheet's own configuration -- "the assignable slot points sum to 4
+    against an item max of 5" -- predicts no per-cell miss at all. Q4a's entry
+    even carries `enforcement: "none"`, so nothing was looking at it from any
+    direction.
+
+    That entry went false the moment `max="5"` was added to Q4a, and the whole
+    audit stayed green: the sheet now reaches 5, which is precisely what the
+    declaration says it cannot. A stale declaration of this kind is worse than a
+    stale per-cell one, because it reads as a standing reason not to fix
+    something that is already fixed.
+
+    So the arithmetic is recomputed from the OLX and the rubric and compared
+    against the claim. `web_max` is the `max=` attribute when the action declares
+    one and the sum of the scored slots otherwise -- the same rule the app
+    applies.
+    """
+    import re as _re
+    import pathlib as _pl
+
+    import agreement_app as _A
+    import olx_prompts as _OP
+    import rubric_h1, rubric_h2, rubric_h3
+
+    RB = {1: rubric_h1, 2: rubric_h2, 3: rubric_h3}
+    olx = {f.name: f.read_text() for f in
+           _pl.Path(__file__).resolve().parent.parent.joinpath("psychology")
+           .glob("bmod_handout*.olx")}
+
+    def _maxes(item):
+        J = _A.JOBS.get(item) or {}
+        g = J.get("grader") or ""
+        if not g:
+            return None, None
+        act = g.replace("_grader", "_llm")
+        tag = None
+        for txt in olx.values():
+            m = _re.search(r"<LLMAction\b(?:(?!</?LLMAction)[^>])*?(?:^|\s)id=\""
+                           + _re.escape(act) + r"\"(?:(?!</?LLMAction)[^>])*>", txt, _re.S)
+            if m:
+                tag = m.group(0)
+                break
+        if tag is None:
+            return None, None
+        sm = _re.search(r'slots="([^"]*)"', tag, _re.S)
+        slot_sum = sum(float(x.group(1)) for part in (sm.group(1).split("|") if sm else [])
+                       for x in [_re.search(r"@([0-9.]+)", part)] if x)
+        mx = _re.search(r'(?:^|\s)max="([^"]*)"', tag)
+        web_max = float(mx.group(1)) if mx else slot_sum
+        rb = RB[J["handout"]].BY_ID.get(item) or {}
+        return web_max, rb.get("max")
+
+    # "sum to 4 against an item max of 5", "web_max ... is 4 while the rubric max is 5"
+    CLAIM = _re.compile(r"sum to (\d+(?:\.\d+)?)\b.*?max of (\d+(?:\.\d+)?)", _re.S | _re.I)
+    problems = []
+    for entry in getattr(_OP, "SCORING_DIVERGENCES", []):
+        blob = " ".join(str(entry.get(k) or "") for k in ("what", "why"))
+        m = CLAIM.search(blob)
+        if not m:
+            continue
+        claimed_web, claimed_rubric = float(m.group(1)), float(m.group(2))
+        for item in entry.get("items") or []:
+            web_max, rubric_max = _maxes(item)
+            if web_max is None:
+                continue
+            if (web_max, rubric_max) != (claimed_web, claimed_rubric):
+                problems.append(
+                    f"SCORING_DIVERGENCES declares for {item}: "
+                    f'"{str(entry.get("what"))[:70]}" -- claiming web_max '
+                    f"{claimed_web:g} against rubric max {claimed_rubric:g}. The "
+                    f"sheet now computes web_max {web_max:g} against rubric max "
+                    f"{rubric_max:g}. The divergence was FIXED and the declaration "
+                    f"outlived it; retire the entry")
+    return problems
+
+
 def check_declarations_still_have_evidence() -> list[str]:
     """Declarations the recorded measurements have outgrown.
 
