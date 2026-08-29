@@ -293,9 +293,25 @@ def compare(left: str, right: str, item_filter: str | None = None,
     # about the paths: version and path are confounded in it.
     confounded = set()
     if le.get("items") and re_.get("items"):
+        # PER SIDE, when both artifacts carry the side-aware stamp. The CLI
+        # consumes only SOME of an <LLMAction>'s attributes -- it takes the item
+        # max, the slots and the cover/equals/derived groups from the RUBRIC --
+        # so a web-only attribute changing leaves the CLI's input untouched.
+        # Comparing whole-section hashes reports those runs as confounded and
+        # asks for a re-run of a side that cannot have moved. Adding `max="5"` to
+        # Q4a, a web-only fix for a web-only defect, did exactly that.
+        #
+        # `prompt_sha_cli` is the harness's own view. Both artifacts must carry
+        # it: an artifact predating the stamp falls back to the whole-section
+        # comparison, which is stricter and never wrong, only sometimes coarse.
         for it in set(le["items"]) & set(re_["items"]):
-            a = (le["items"][it] or {}).get("prompt_sha")
-            b = (re_["items"][it] or {}).get("prompt_sha")
+            L, R = le["items"][it] or {}, re_["items"][it] or {}
+            harness_pair = "harness" in (lkind, rkind) and "app" in (lkind, rkind)
+            a = b = None
+            if harness_pair and L.get("prompt_sha_cli") and R.get("prompt_sha_cli"):
+                a, b = L["prompt_sha_cli"], R["prompt_sha_cli"]
+            if a is None:
+                a, b = L.get("prompt_sha"), R.get("prompt_sha")
             if a and b and a != b:
                 confounded.add(it)
         if confounded:

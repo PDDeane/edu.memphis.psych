@@ -76,8 +76,50 @@ def _section_bounds(text: str, screen_ids: set[str]) -> dict[str, tuple[int, int
     return out
 
 
-def prompt_sha(item: str) -> str:
-    """SHA-256 of the OLX text that item's grader is served, to 12 hex chars."""
+@functools.lru_cache(maxsize=1)
+def _cli_read_attrs() -> frozenset:
+    """Which <LLMAction> attributes agreement.py actually reads off the open tag.
+
+    DERIVED from its source, not listed here, so it cannot go stale: the day the
+    CLI starts reading a new attribute, that attribute starts counting toward the
+    CLI's fingerprint automatically.
+    """
+    src = (Path(__file__).resolve().parent / "agreement.py").read_text()
+    return frozenset(re.findall(r'_attr\(open_tag,\s*"([^"]+)"\)', src))
+
+
+def _cli_visible(section: str) -> str:
+    """The section as the CLI SEES it: prompt bodies plus the attributes it reads.
+
+    Everything else on the open tag reaches the CLI from the RUBRIC, not the OLX
+    -- `max`, `slots`, `cover`, `equals`, `derived`, `showChecks`. Hashing them
+    into the CLI's fingerprint reports a CLI measurement as stale when a web-only
+    attribute changed, which is a false positive in the expensive direction: it
+    asks for a re-run of a side that cannot have moved.
+
+    That is not hypothetical. Adding `max="5"` to Q4a -- a web-only fix for a
+    web-only defect, since the CLI takes the item max from `item["max"]` -- flagged
+    the CLI side STALE PROMPT and made cross_path refuse a comparison that was
+    perfectly valid.
+    """
+    keep = _cli_read_attrs()
+
+    def _one(m: re.Match) -> str:
+        tag = m.group(0)
+        return "<LLMAction" + "".join(
+            ' %s="%s"' % (n, v)
+            for n, v in re.findall(r'(?:^|\s)(\w+)="([^"]*)"', tag)
+            if n in keep) + ">"
+
+    return re.sub(r"<LLMAction\b[^>]*>", _one, section, flags=re.S)
+
+
+def prompt_sha(item: str, side: str | None = None) -> str:
+    """SHA-256 of the OLX text that item's grader is served, to 12 hex chars.
+
+    `side="cli"` hashes only what the CLI consumes -- see `_cli_visible`. Omit it
+    for the web, which is served the tag entire.
+    """
     jobs = _jobs()
     job = jobs[item]
     sid = job["screen"].split("/")[-1]
@@ -89,7 +131,10 @@ def prompt_sha(item: str) -> str:
         raise KeyError(f"{item}: no <Vertical id=\"{sid}\"> in handout "
                        f"{job['handout']}'s OLX")
     a, b = bounds[sid]
-    return hashlib.sha256(text[a:b].encode()).hexdigest()[:12]
+    section = text[a:b]
+    if side == "cli":
+        section = _cli_visible(section)
+    return hashlib.sha256(section.encode()).hexdigest()[:12]
 
 
 def exclusions(item: str) -> list[int]:
@@ -199,9 +244,13 @@ def status(side: str = DEFAULT_SIDE) -> list[tuple[str, str]]:
         if rec.get("pending"):
             out.append((item, f"pending: {rec['pending']}"))
             continue
-        if rec.get("prompt_sha") != prompt_sha(item):
+        # PER SIDE. A web-only attribute changing must not report the CLI's
+        # measurement as stale: the CLI cannot have moved, so asking for a re-run
+        # spends a sweep to reproduce a number we already have.
+        want_prompt = prompt_sha(item, side)
+        if rec.get("prompt_sha") != want_prompt:
             out.append((item, f"STALE PROMPT — measured at "
-                              f"{rec.get('prompt_sha')}, now {prompt_sha(item)}"))
+                              f"{rec.get('prompt_sha')}, now {want_prompt}"))
             continue
         # A scorer change invalidates a number exactly as a prompt change does.
         # Scoped by fingerprinting the item's OWN scoring path, so the blast
@@ -475,7 +524,8 @@ def era_stamp(items=None) -> dict:
     per = {}
     for it in items:
         try:
-            per[it] = {"prompt_sha": prompt_sha(it), "scorer_sha": scorer_sha(it)}
+            per[it] = {"prompt_sha": prompt_sha(it), "scorer_sha": scorer_sha(it),
+                       "prompt_sha_cli": prompt_sha(it, "cli")}
         except Exception as e:
             per[it] = {"error": f"{type(e).__name__}: {e}"}
     return {
@@ -558,7 +608,7 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     # this is a pointer to the last number rather than a second archive.
     prior = (led.get("items", {}).get(item, {}) or {}).get(side)
     led.setdefault("items", {}).setdefault(item, {})[side] = {
-        "prompt_sha": prompt_sha(item),
+        "prompt_sha": prompt_sha(item, side),
         "scorer_sha": scorer_sha(item),
         "exclusions": exclusions(item),
         "runs": n,
