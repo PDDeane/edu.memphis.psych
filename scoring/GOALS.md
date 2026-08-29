@@ -677,6 +677,44 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       `affect_*` slots whose reasons turn on what `cover` already constrains. If
       `requires` lands on Q6, both entries are due for re-judging by this rule.
 
+- [ ] 24. **DAY1 alone gates on `phrased_directly`. One `!`, undeclared, eight sibling items.**
+      Found 2026-08-29 while checking whether DAY1 contradicted subgoal 20's
+      orthogonal-gates finding. It does not contradict it; it is a different
+      sheet, and the difference is one character of OLX:
+          DAY1  !phrased_directly:Phrased directly rather than by what is avoided
+          DAY2   phrased_directly:Phrased directly rather than by what is avoided
+          WK1    phrased_directly:Phrased directly rather than by what is avoided
+      The `!` makes it a gate. So on DAY1 that slot can ZERO the whole 4-point
+      item; on its seven siblings -- PR, NR, PP, NP, WK1, DAY2 and (pending) WK2 --
+      it is advisory and cannot deduct at all. Confirmed from the published sheets,
+      not read off the OLX alone: `gates=True` on DAY1, `gates=False` on the rest.
+      IT IS DECLARED NOWHERE. Not in SCORING_DIVERGENCES, not in EQUIVALENCE.md,
+      not in the rubric comments. Both scorers honour it identically, so this is
+      not an equivalence defect -- it is a rubric one, and the audit has no check
+      that would notice it.
+      FIRST DECIDE WHICH IT IS, and the two answers lead opposite ways:
+      (a) INTENTIONAL -- a daily plan phrased by what is avoided is a different
+          failure from a weekly one, serious enough to void the item. Then declare
+          it, with the reason, and subgoal 20's DAY1 numbers stand as real.
+      (b) A SLIP -- someone typed `!` once. Then DAY1 has been scoring on a
+          harsher sheet than its siblings for as long as the slot has existed, and
+          its 17/18 is a number obtained under different rules from DAY2's 16/18.
+      READ THE RECORD BEFORE DECIDING (memory/read-the-record-first.md): check the
+      commit that introduced the `!` and the rubric comment above the component.
+      The precision table in subgoal 21 already lists `phrased_directly` as
+      "advisory, cannot deduct" -- which is TRUE OF NR AND FALSE OF DAY1, so at
+      least one recorded statement was written without this asymmetry in view.
+      THE CHECK THIS WANTS, and it generalises past this one slot: sibling items
+      that share a slot NAME should share its gate/points structure unless
+      declared. The eight cadence-and-type items are one family authored from one
+      pattern; a slot that gates in one of them and not the other seven is either
+      a decision or a typo, and the audit cannot currently tell those apart. That
+      is the same shape as `check_action_attributes_are_declared_in_the_block`:
+      cheap, structural, and it catches a class rather than an instance.
+      DO NOT "FIX" IT BY MEASUREMENT ALONE. DAY1 scores 17/18 on both engines
+      WITH the gate, so removing it is not obviously free; and if it is intentional,
+      removing it loses a judgement gold may be making. Decide the intent first.
+
 - [ ] 12. **`--selftest` without `--enforcement` silently scores nothing.**
       Found 2026-08-28, during the web sweep, by running it wrong and believing
       the result. `equivalence.py --selftest` is only honoured together with
@@ -1400,6 +1438,36 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       how much of our over-crediting works that way. Subgoal 22 held the second
       view and is folded in here.
 
+      == THE GATE SLOTS ARE MOSTLY ORTHOGONAL TO CORRECTNESS ==
+      Added 2026-08-29 from the completed two-sided sweep, and it bears directly
+      on view one: the sheet often cannot refuse because the instruments that
+      COULD refuse are not tracking the thing being scored.
+      Across seven H2 items, the four structural gates -- `names_behavior`,
+      `names_stimulus`, `contingent`, `follows_behavior` -- refuse constantly and
+      almost never in a cell that is wrong:
+          PR    1/0,  9/0, 19/0, 17/0        PP    6/0, 12/0
+          NP   12/0, 18/0                    WK1  14/0, 12/0, 18/0
+          NR    6/0, 12/0, 14/0, 13/0        DAY2 12/0, 23/0, 18/0
+      (refusals / of which in a WRONG cell). Hundreds of refusals, essentially
+      none coinciding with a miss. These are four required properties of a strict
+      schema, asked on every call, doing no discriminating work.
+      DAY1 IS THE EXCEPTION AND IT IS NOT A COUNTEREXAMPLE -- it is a different
+      sheet. `names_behavior` 18/6, `contingent` 23/6, `follows_behavior` 26/6.
+      The cause is structural and was found by looking: DAY1 is the ONLY item of
+      eight where `phrased_directly` GATES (`!phrased_directly` in its OLX; the
+      other seven author it plain). When any gate fires the item zeroes, so a
+      second gating slot makes every other gate's unmet status co-occur with a
+      wrong cell. HYPOTHESIS, NOT YET CONFIRMED: DAY1's six-apiece counts are that
+      artefact rather than those gates discriminating. Test it by checking whether
+      those cells are wrong on runs where `phrased_directly` is MET. Subgoal 24
+      owns the asymmetry itself.
+      WHAT THIS DOES NOT SAY: that the gates are useless. A gate that never fires
+      wrongly may be holding a floor nobody has tried removing -- PP and NP sit at
+      100% on both engines WITH these gates in place, and subgoal 21 records a
+      proposal to remove one that was withdrawn for exactly that reason. The
+      finding is that they are not where this item family's errors live, so they
+      are not where a fix for view one will come from.
+
       == VIEW ONE: the rate, and why the asymmetry is structural ==
       Measured 2026-08-28 over the CLI sweep's fourteen scored items, 6 runs each,
       with `cell_exclusions` applied. Counting observations where our score differs
@@ -1591,6 +1659,28 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       gates. That is the largest single pool of error in handout 2.
 
 - [ ] 21. **NR: a 4-point GATE running at 71% precision.**
+      MEASURED ON THE APP 2026-08-29, the first time NR has ever scored there --
+      it was one of the seven items `forbid` made unrunnable (subgoal 14). Web
+      16/18, runs [14,15,15,16,16,16], against the CLI's 15/18. Era checked, 0 of
+      20 cells never agreeing, so `forbid` -- the primitive that broke the item --
+      computes identically on both engines. Direction 8 over / 14 under, so NR
+      under-credits and is NOT a `requires` candidate (subgoal 15).
+      THE GATE'S PRECISION REPRODUCES: `you_arrange_it` refused 32 times with 8 in
+      wrong cells (75%) on the web against 34/10 (71%) on the CLI. Same
+      instrument, same imprecision, both engines -- so whatever is wrong with it
+      is in the RULE, not in either implementation, which is what a structural fix
+      needs to be true of.
+      AND SO DOES THE ORTHOGONALITY of the four structural gates:
+      `names_behavior` 6/0, `names_stimulus` 12/0, `contingent` 14/0,
+      `follows_behavior` 13/0 -- 45 refusals between them, ZERO in a wrong cell.
+      Read that with subgoal 20: those four are doing no discriminating work here
+      at all, while the fifth gate on the same sheet is the most expensive
+      instrument on the item.
+      `phrased_directly` IS NOT THE LEVER, and the precision table below already
+      says why -- advisory, cannot deduct. It is the largest single channel on the
+      web too (60 refusals, 12 in wrong cells), and every one of those 12 is
+      CO-OCCURRENCE: a slot that cannot deduct cannot have caused the miss. Noted
+      because the size of the number invites exactly the wrong conclusion.
       NR RECORDS 15/18, runs [14,14,15,15,15,16], and carries the worst MAE (0.50)
       and bias (-0.39) in the sweep. A ONE-cell drop from the ledger's previous
       16/18, which was itself a six-run figure (`nr_barrier2`), so the comparison
