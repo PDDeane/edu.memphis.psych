@@ -1054,6 +1054,51 @@ outlive the row it corrects.
 
 ## 5. Reducing exclusions
 
+### The rule every declaration has to satisfy
+
+**A declaration that asserts something mechanically checkable must carry that
+assertion as DATA, not only as prose, and some check must re-test it.**
+
+A declaration is a claim that something is true and will stay true. The second
+half is the part that rots. Nothing about a stale declaration looks wrong: the
+cell has stopped erroring, or the arithmetic has been fixed underneath it, so
+there is no error to notice and the audit stays green. It simply goes on
+subtracting itself from every rate, or — worse — reads to the next person as a
+standing reason not to fix something that is already fixed.
+
+Two of those surfaced in one day, which is what prompted writing this down:
+
+* `SCORING_DIVERGENCES` declared "Q4a's assignable slot points sum to 4 against
+  an item max of 5" for hours after `max="5"` made it false. Its own
+  `enforcement` field said `"none"`, so no check owned it and nothing reported
+  that none did.
+* Outside the audit entirely, a shell mitigation armed against the `forbid`
+  defect went on killing four sweep items for an hour after the defect was
+  fixed. The audit could not have caught that one — but it is the same shape,
+  and it is why the rule is stated as a principle rather than as a patch.
+
+So, concretely, when you write a declaration:
+
+1. **If it names a number, put the number in a field.** An exclusion whose
+   reason cites a point figure must declare `expect_error`; `check_exclusion_
+   claims_are_data` enforces it. Q6/p9 read "the error here is exactly -2.50"
+   through every run that measured -1.25.
+2. **If it asserts a structural fact** — a max, a slot sum, which side computes
+   what — say it in a form the audit can recompute. Prose may explain the
+   number; it may not be the only place the number lives.
+3. **Register the table.** `enforcement.DECLARATION_TABLES` maps every
+   declaration table to the check(s) that re-test it, and
+   `check_every_declaration_table_has_a_verifier` fails the audit when a table
+   has no verifier, names a verifier that no longer exists, or is not registered
+   at all. Coverage is the property being enforced — a table nobody watches is
+   invisible in exactly the way a wrong declaration is not.
+
+That last check found three tables on the day it was written —
+`CONSENSUS_OVERLAP_BACKLOG`, `COUNTABLE_EXEMPT`, `MULTI_BLOCK_DECLARED` — that
+were being enforced but not registered. All three had a verifier; none of them
+said so, and nothing could tell the difference between that and having none.
+
+
 A caveat is a promise to stop looking, and they accumulate. Each one is
 defensible at the moment it is written, and nothing afterwards asks it to
 justify itself again. Left to grow, the headline rate stops measuring how well
