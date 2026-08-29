@@ -403,50 +403,59 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       it, and Q4b's five substitution tests are the recorded case of getting it
       wrong.
 
-- [ ] 14. **`maps` makes Q4b UNSCORABLE on the app path. The retirement is unmeasured.**
-      Found 2026-08-28 by the two-sided sweep, which is exactly the job the sweep
-      was for. Q4b fails EVERY cell on the web side with
-      `did not settle within 300s (status=undefined)`: the grader action never
-      fires, so there are no slots, no verdicts and no score. Not a divergence
-      between two answers -- an item that cannot be asked at all.
-      THE EVIDENCE NAMES `maps` AND NOTHING ELSE:
-        * the idmap preflight PASSES (52 lines matched, nothing extra), so this
-          is not the staleness that took out Q4a;
-        * every Q4b component is in the dump, `bmod_h1_q4b_llm` included;
-        * the `<LLMAction>` tag parses cleanly under `[^>]*>`, so the `~`-not-`>`
-          separator fix held and the tag is not truncated;
-        * `pick(` and `choices=` appear 30 and 10 times across handout 2, whose
-          items score normally, so the new pick slots are not the cause;
-        * `maps=` appears EXACTLY ONCE in the whole corpus -- on Q4b -- and Q4b
-          is the only item that fails.
-      HOW IT GOT PAST EVERYTHING. `maps.test.ts` has 8 passing unit tests,
-      `probe.test.ts` was taught the primitive, enforcement is clean, and the
-      self-test detects 49 of 49. Every one of those exercises the primitive in
-      isolation; none drives a cell through the running app. Subgoal 10 was
-      closed as "declaration RETIRED" on that basis. The retirement is real in
-      the rubric and fictional in the app.
+- [ ] 14. **`forbid` and `maps` cannot score on the APP at all. Seven items.**
+      Found 2026-08-29 by the two-sided sweep, which is the job it was for. The
+      affected items fail EVERY cell on the web side with
+      `did not settle within 300s (status=undefined)`. Not a divergence between
+      two answers -- an item that cannot be asked at all.
+      SEVEN ITEMS: Q4a, Q4b, Q4c, NR, DAY1, DAY2, WK2. Six carry `forbid=`; Q4b
+      carries `maps=`. Every other item in the corpus scores normally.
+      THE CONTROLLED COMPARISON IS PR vs NR. Same handout, same five `!`-prefixed
+      gate slots, same shape -- NR has `forbid=` and fails, PR does not and
+      passes. That exonerates the `!` prefix, which was the first suspect and is
+      used 47 times in handout 2, and it isolates the attribute.
+      WHAT THE TWO SHARE, and `counts` does not. `forbid` and `maps` are the two
+      primitives that BOTH declare `excludesKeys` AND synthesise a check key the
+      model is never asked for. `counts` excludes keys without synthesising one,
+      and Q1, which uses it, scores fine.
+      MECHANISM, as far as the frozen environment allows. The button IS found and
+      clicked -- `findByRole` would throw at 20s otherwise. What never happens is
+      `status()` leaving undefined: it reads `comp()[k]?.state` for a redux key
+      containing the feedback id, and THE FEEDBACK COMPONENT NEVER ENTERS REDUX.
+      So nothing throws, nothing retries (`shouldRetry` will not retry an
+      undefined status), and the cell waits out 300s and reports `no-cell`.
+      RULED OUT: the idmap (clean, all nine components per item present, no
+      garbage keys); the response schemas (all build, no property/required
+      mismatch); `!` slots and `forbid` "in general" as categories; the LLM
+      backend (Azure answers, and Q1/Q3/Q5/PR score live).
+      HOW IT GOT PAST EVERYTHING. maps.test.ts passes 8 unit tests, probe.test.ts
+      was taught the attribute, enforcement is clean, the self-test detects 49 of
+      49, and `forbid` has been in the corpus for weeks. Every one of those
+      exercises the primitive in isolation; none drives a cell through the running
+      app. This is the case that `check_closed_goals_that_changed_code_were_
+      exercised` was written for, and `maps` is its declared entry.
       SO SUBGOAL 10 IS NOT ACTUALLY CLOSED, whatever its checkbox says, and
-      Q4b/p12 -- the 5.0-vs-3.5 divergence this entire goal was opened to
-      explain -- remains unmeasured on the web side. Do not quote a Q4b web
-      figure until this is fixed; there is none.
-      FIX, in this order, and NOT while a sweep is running -- slotSheet.ts IS in
-      the scoring path, unlike the idmap preflight fixed the same day:
+      Q4b/p12 -- the 5.0-vs-3.5 divergence this whole goal was opened to explain
+      -- is still unmeasured on the web side. Do not quote a web figure for any
+      of the seven; there is none.
+      FIX, in this order, and NOT while a sweep is running: slotSheet.ts IS in the
+      scoring path, unlike the idmap preflight fixed the same day, so changing it
+      mid-sweep would put later items in a different era from earlier ones.
       (a) reproduce with the single-cell runner, which is what surfaced the real
           error once `stderr=DEVNULL` was bypassed:
-          `RUN_LLM_RUNNER=1 JOBS_JSON=<one Q4b job> RESULTS_JSON=<out>
-           IDMAP_JSON=... npx vitest run packages/shared/lib/llm/runner.test.ts`
-      (b) find why a sheet carrying `maps` never settles. Suspect the schema
-          build: a `maps` key that names a slot the schema does not offer, or a
-          pick slot the app will not emit, would leave the action waiting
-          forever rather than erroring -- which is why it TIMES OUT instead of
-          failing loudly.
-      (c) add an app-level test that drives one `maps` cell end to end. The unit
-          tests cannot catch this class and did not.
-      (d) re-run Q4a and Q4b: `sweep_app.sh` skips items whose .json exists and
-          retries the rest, so a plain re-run picks up exactly these two.
-      A TIMEOUT IS THE WRONG FAILURE for an unrunnable sheet. 300s per cell,
-      ~90s amortised, three hours per item, and the only signal is `no-cell`.
-      Whatever the root cause, a sheet the app cannot build should say so.
+          `RUN_LLM_RUNNER=1 JOBS_JSON=<one job> RESULTS_JSON=<out> IDMAP_JSON=...
+           npx vitest run packages/shared/lib/llm/runner.test.ts`
+          NR and PR are the pair to run: one line of difference, opposite results.
+      (b) find why a sheet carrying a synthesised check key never mounts its
+          feedback component. Suspect the schema build path rejecting or
+          awaiting a key that is in `required` but never answered.
+      (c) add an APP-LEVEL test that drives one `forbid` cell and one `maps` cell
+          end to end. The unit tests cannot catch this class and did not.
+      (d) re-run the seven: `sweep_app.sh` skips items whose .json exists, so a
+          plain re-run picks up exactly these.
+      A TIMEOUT IS THE WRONG FAILURE for a sheet the app cannot build. 300s a
+      cell, ~90s amortised, three hours an item, and the only signal is
+      `no-cell`. Four of the seven were killed mid-sweep to recover ~12 hours.
 
 - [ ] 12. **`--selftest` without `--enforcement` silently scores nothing.**
       Found 2026-08-28, during the web sweep, by running it wrong and believing
