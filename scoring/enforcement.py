@@ -3047,6 +3047,71 @@ def check_scorer_fingerprint_is_scoped_and_prose_blind() -> list[str]:
     return out
 
 
+def check_action_attributes_are_declared_in_the_block() -> list[str]:
+    """Does the WEB BLOCK accept every attribute the OLX authors on <LLMAction>?
+
+    `check_olx_attributes_are_read` asks whether the PYTHON harness parses an
+    attribute. This asks the other half, and the other half is where the corpus
+    broke: LLMAction's zod schema is `.strict()`, so an attribute it does not
+    declare does not degrade the block -- it REPLACES it with an ErrorNode. The
+    button still renders, with nothing behind it. Clicking does nothing, no
+    status is ever written, and the runner waits out its 300s and reports
+    `no-cell`.
+
+    That cost seven items of a two-sided sweep: Q4a, Q4b, Q4c, NR, DAY1, DAY2 and
+    WK2, every cell, silently. `forbid` was implemented in slotSheet.ts, parsed
+    in LLMAction.ts, declared in primitives.json, parsed by agreement.py, covered
+    by unit tests, and never added to the block's attribute schema. `maps` was
+    the same and was additionally never even passed to buildSlotSchema. Every
+    existing check passed, because every existing check looked at one side.
+
+    The error is baked into the idmap DUMP at parse time, so it survives a
+    re-dump and is invisible to a prompt-text freshness check -- which is why the
+    STALE IDMAP guard reported those items as fine.
+    """
+    import re as _re
+
+    lo = pathlib.Path("/home/pdeane/code/update/lo-blocks")
+    block = lo / "packages/shared/components/blocks/action/LLMAction.ts"
+    try:
+        src = block.read_text()
+    except OSError:
+        return []                      # lo-blocks absent on this machine
+
+    m = _re.search(r"attributes:\s*z\.object\(\{(.*?)\}\)\.strict\(\)", src, _re.S)
+    if not m:
+        return [f"{block.name}: cannot find the `attributes: z.object({{...}}).strict()` "
+                f"block, so undeclared attributes cannot be detected"]
+    declared = set(_re.findall(r"^\s{4}(\w+):", m.group(1), _re.M))
+    declared.add("id")
+    declared.add("target")
+
+    used: dict[str, set] = {}
+    for f in sorted(pathlib.Path(__file__).resolve().parent.parent
+                    .joinpath("psychology").glob("bmod_handout*.olx")):
+        try:
+            txt = f.read_text()
+        except OSError:
+            continue
+        for tag in _re.findall(r"<LLMAction\b[^>]*>", txt, _re.S):
+            tid = _re.search(r'(?:^|\s)id="([^"]+)"', tag)
+            for a in _re.findall(r'(?:^|\s)(\w+)="', tag):
+                used.setdefault(a, set()).add(tid.group(1) if tid else f.name)
+
+    problems = []
+    for attr in sorted(used):
+        if attr in declared:
+            continue
+        where = ", ".join(sorted(used[attr])[:4])
+        problems.append(
+            f'<LLMAction {attr}="..."> is authored on {len(used[attr])} action(s) '
+            f"({where}) but is NOT declared in LLMAction.ts's attributes schema, "
+            f"which is .strict(). Every one of those blocks becomes an ErrorNode "
+            f"at parse time: the button renders, the click does nothing, and the "
+            f"cell times out as `no-cell` with no error anywhere. Declare it")
+    return problems
+
+
 def check_olx_attributes_are_read() -> list[str]:
     """Is every attribute authored on an <LLMAction> actually PARSED?
 
