@@ -512,6 +512,7 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     import handouts as H
     import gold
     import agreement_app as APP
+    import cross_path as X
 
     h = _jobs()[item]["handout"]
     g = H.apply_corrected_gold(
@@ -523,7 +524,17 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     exc: dict[int, list[bool]] = {}
     for run in json.loads(Path(runs_path).read_text())["runs"]:
         for c in run["results"]:
-            pid, s = c["participant_id"], c.get("score")
+            # Shape-reading lives in cross_path, which documents all three and
+            # owns the app's fraction-of-sheet_max conversion. The ledger must
+            # be recordable from EITHER scorer's artifact -- the whole point of
+            # the side dimension -- and two copies of that conversion is one
+            # too many.
+            got = X.result_cell(c)
+            if got is None:
+                continue
+            cell_item, pid, s, _v = got
+            if cell_item != item:
+                continue
             row = (g.get(pid) or {}).get(item) or {}
             if row.get("score") is None:
                 continue
@@ -736,6 +747,7 @@ def error_profile(item: str, runs_path: str) -> str:
     import agreement as A
     import gold as _gold
     import handouts as _H
+    import cross_path as _X
 
     h = _jobs()[item]["handout"]
     g = _H.apply_corrected_gold(
@@ -745,11 +757,16 @@ def error_profile(item: str, runs_path: str) -> str:
     obs = []
     for i, run in enumerate(runs, 1):
         for r in run["results"]:
-            pid = r["participant_id"]
+            got = _X.result_cell(r)          # either scorer's artifact shape
+            if got is None:
+                continue
+            cell_item, pid, sc, vd = got
+            if cell_item != item or sc is None:
+                continue
             gv = (g.get(pid, {}).get(item) or {}).get("score")
             if gv is None:
                 continue
-            obs.append((i, pid, gv, r["score"], r.get("checks") or {}))
+            obs.append((i, pid, gv, sc, vd))
     if not obs:
         return f"{item}: no scored observations in {runs_path}"
 

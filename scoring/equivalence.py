@@ -1011,14 +1011,24 @@ def enforcement_selftest():
     # `wrong_kind` while being offered met/absent/not_active, so every test in it
     # was inert and p8 scored 5.00 against a gold of 2.00 — reproducibly, which
     # made a broken prompt look like a stable model difference.
-    import rubric_h1 as _R1
-    _c = [x for x in _R1.BY_ID["Q4b"]["credit"] if x["what"] == "behavior_1"][0]
-    _saved_rule = _c["rule"]
-    _c["rule"] = _saved_rule.replace("{fail}", "wrong_kind")
-    cases.append(("a shared rule names one side's verdict token",
-                  "SLOT RULE NAMES A VERDICT", "-",
-                  [f for f in enforcement_audit()[0]]))
-    _c["rule"] = _saved_rule
+    # The SITE is chosen at run time, not named here. This case used to inject
+    # into Q4b/behavior_1, and when that rule's logic was converted into the
+    # `maps` primitive the entry lost its `rule` key and the whole suite died on
+    # a KeyError before its first case -- the guard over every other check,
+    # taken out by a conversion it was not watching. Any rule carrying the
+    # placeholder tests the same thing, so it now finds one; when the last such
+    # rule is converted this SKIPs, the way the plain-path case already does.
+    import rubric_h1 as _R1, rubric_h2 as _R2, rubric_h3 as _R3
+    _site = next((c for _m in (_R1, _R2, _R3) for _it in _m.ITEMS
+                  for c in (_it.get("credit") or [])
+                  if "`{fail}`" in (c.get("rule") or "")), None)
+    if _site is not None:
+        _saved_rule = _site["rule"]
+        _site["rule"] = _saved_rule.replace("{fail}", "wrong_kind")
+        cases.append(("a shared rule names one side's verdict token",
+                      "SLOT RULE NAMES A VERDICT", "-",
+                      [f for f in enforcement_audit()[0]]))
+        _site["rule"] = _saved_rule
 
     # The other half of that hazard: the rule uses `{fail}` correctly and the two
     # generators still substitute different meanings. Q6's state_c slots keep
@@ -1505,6 +1515,9 @@ def enforcement_selftest():
     if plain is None:
         print("  SKIP  plain-path computed check     -> no plain-path item left to "
               "inject onto")
+    if _site is None:
+        print("  SKIP  shared rule names a verdict   -> no rule carries `{fail}` "
+              "to inject into")
     print(f"\n  restored state is clean: {clean == baseline} "
           f"({clean} finding(s), baseline {baseline})")
     print(f"  {len(cases) - bad}/{len(cases)} injected breakages detected.")
