@@ -3867,7 +3867,101 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.MULTI_BLOCK_DECLARED": (
         "items whose response is split across blocks on purpose",
         ("check_single_box_fixtures_are_verbatim",)),
+    "enforcement.SYSTEM_PROMPT_DIVERGENCES": (
+        "system-prompt rules the two scorers must state differently",
+        ("check_system_prompts_are_parallel",)),
 }
+
+
+# The numbered system-prompt rules that MUST differ between the two scorers,
+# with the mechanism that forces each difference. A rule not listed here has to
+# be identical on both sides.
+#
+# The two prompts ask for different SHAPES -- the web returns a `checks` sheet
+# and student-facing feedback, the paper scorer returns a deduction ledger -- so
+# the rules describing that shape cannot be shared. What must not differ is the
+# GRADING STANCE: how generous to be, what counts as absent, how to treat an
+# empty response. Rule 5 carries that and is byte-identical on both sides today.
+SYSTEM_PROMPT_DIVERGENCES: dict[str, str] = {
+    "1": "output shape: the web judges check-by-check and fills each check's "
+         "`evidence`; the paper scorer awards credit component-by-component. "
+         "There is no checks sheet on the paper side to judge against",
+    "2": "the web is told the deduction table is NOT a ledger to fill in, "
+         "because it writes prose feedback from it; the paper scorer's entire "
+         "output IS that ledger, keyed by code",
+    "3": "same rule, different noun -- the score is computed from `checks` on "
+         "the web and from the deduction ledger on paper",
+    "4": "consistency is stated against the artifact each side produces: "
+         "feedback-vs-checks on the web, deductions-vs-unmet-components on paper",
+    "6": "an empty response marks every check unsatisfied on the web, and takes "
+         "the item's none/did-not-answer CODE on paper -- the web has no code to "
+         "take",
+    "7": "safety: the web has no `safety_flag` field, so the remark goes in "
+         "`feedback`; the paper scorer sets the flag. Same trigger list, "
+         "different destination",
+    "8": "escalation: the paper schema has `escalate` and the web's does not, so "
+         "the web routes the same situation into `feedback` and sets `confident` "
+         "absent. The web's rule 8 states that mapping in terms",
+}
+
+
+def check_system_prompts_are_parallel() -> list[str]:
+    """Do the two scorers' SYSTEM prompts still say the same things?
+
+    `score.SYSTEM_TMPL` and `olx_prompts.WEB_SYSTEM` are two hand-maintained
+    prompts, and until this check nothing compared them. equivalence.py imports
+    SYSTEM_TMPL only to PRINT it. So a substantive rule added to one side --
+    about hedged answers, or what counts as naming a thing -- would reach one
+    scorer and silently not the other, with every audit green.
+
+    That is the SLOT_NOTES failure in a different file, and it is the one this
+    codebase has already paid for once: Q4b's five substitution tests reached the
+    web and CLI and left score.py behind while `--item Q4b` reported "missing 0".
+
+    The two prompts ask for different SHAPES and always will -- a checks sheet
+    and student feedback on one side, a deduction ledger on the other -- so
+    difference is not the finding. An UNDECLARED difference is, and so is a
+    declaration that has gone stale because the two sides converged.
+    """
+    import re as _re
+
+    import olx_prompts as _OP
+    import score as _S
+
+    def _rules(text: str) -> dict:
+        return {m.group(1): " ".join(m.group(2).split())
+                for m in _re.finditer(r"^(\d+)\. (.*?)(?=^\d+\. |\Z)",
+                                      text, _re.S | _re.M)}
+
+    web, paper = _rules(_OP.WEB_SYSTEM), _rules(_S.SYSTEM_TMPL)
+    problems = []
+    for n in sorted(set(web) | set(paper), key=int):
+        w, p = web.get(n), paper.get(n)
+        declared = n in SYSTEM_PROMPT_DIVERGENCES
+        if w is None or p is None:
+            side = "the paper scorer" if w is None else "the web"
+            if not declared:
+                problems.append(
+                    f"system prompt rule {n} exists only on {'the web' if p is None else 'the paper side'} "
+                    f"-- a rule one scorer is told and the other is not. Add it to "
+                    f"the other prompt, or declare it in "
+                    f"SYSTEM_PROMPT_DIVERGENCES with the mechanism that forces it")
+            continue
+        if w == p:
+            if declared:
+                problems.append(
+                    f"SYSTEM_PROMPT_DIVERGENCES declares rule {n} must differ "
+                    f'("{SYSTEM_PROMPT_DIVERGENCES[n][:60]}...") but the two '
+                    f"prompts now say it identically -- retire the entry, or the "
+                    f"table stops meaning anything")
+            continue
+        if not declared:
+            problems.append(
+                f"system prompt rule {n} DIFFERS between the two scorers and is "
+                f"not declared.\n      web  : {w[:110]}\n      paper: {p[:110]}\n"
+                f"      If the difference is forced by the output shape, declare "
+                f"it in SYSTEM_PROMPT_DIVERGENCES; if not, make them agree")
+    return problems
 
 
 def check_every_declaration_table_has_a_verifier() -> list[str]:
