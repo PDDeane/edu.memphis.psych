@@ -457,6 +457,62 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       cell, ~90s amortised, three hours an item, and the only signal is
       `no-cell`. Four of the seven were killed mid-sweep to recover ~12 hours.
 
+- [ ] 15. **`requires` is implemented on BOTH engines and bound to nothing. Q6 is why it exists.**
+      Surfaced 2026-08-29 by the new live-exercise check, which listed `requires`
+      as used by NO item. It is not dead code: slotSheet.ts parses and applies it,
+      agreement.py and score.py compute it, primitives.json declares it. Only the
+      OLX half was never written -- `requires=` has never appeared in any handout,
+      in any commit.
+      ITS OWN IMPLEMENTATION NAMES THE USER. slotSheet.ts: "Q6 is why it exists.
+      Its eight slots are four (element, treatment) pairs, and the sheet asked
+      each box whether its consequence was named and whether an effect was
+      described -- but never which antecedent's change PRODUCES that effect. A
+      response addressing one antecedent in a single run-on sentence therefore
+      banked both consequence pairs from one clause, where the graders charged
+      the whole second half. Asking the linkage as its own check gives `cover` a
+      duplicate to spot; `requires` is what lets that answer reach the pair it
+      governs."
+      THE WORKAROUNDS FOR ITS ABSENCE ARE STILL IN THE TREE, which is the
+      evidence that the need is real and unmet:
+        * `affect_c2`'s rule hand-encodes the missing constraint in prose -- "the
+          two effect boxes must be about DIFFERENT consequences... only the FIRST
+          of the two can count";
+        * Q6/p5 is a DECLARED DIVERGENCE, DUPLICATE_EFFECT_TIE_BREAK, over
+          exactly the duplicate the comment says `cover` would spot.
+      WHY THIS IS THE RIGHT LEVER AND THE NINE FAILURES ARE NOT AN ARGUMENT
+      AGAINST IT. memory/q6-matching-ceiling.md records nine rule wordings built,
+      measured and reverted, and concludes: "the ceiling is not a wording problem
+      waiting for the right words... The ceiling is in the ITEM -- in how
+      `refers_to` is answered -- not in how matching is worded." Every one of the
+      nine was PROSE. This is structural: a new slot and a computed dependency,
+      the class memory/structural-before-wording.md says to try FIRST and which
+      Q6 has never had. The note says not to propose a tenth WORDING without
+      reading it; it has been read, and this is not one.
+      THE DESIGN, from the parse doc, which already anticipates the hazard:
+      `requires="state_c2:link_c2:unclear|affect_c2:link_c2:unclear"`. The third
+      segment lists verdicts on the condition that establish nothing and so deny
+      nothing -- "a condition answered `unclear` is the model declining to say;
+      reading that as a denial charges the student for the grader's hesitation."
+      Use it. Q6 under-credits when tightened, every time.
+      SEQUENCE, and it is not first in the queue:
+      (a) BLOCKED ON SUBGOAL 14. This adds a slot the model is asked, so it can
+          only be judged by a live app run, and `forbid`/`maps` prove a primitive
+          can pass every unit test while the app cannot build the sheet. Fix that
+          first, then exercise `requires` live BEFORE closing anything -- the
+          rule from subgoal 12/13's episode, now enforced.
+      (b) Baseline first: Q6's CLI six-run median is 16/20, runs
+          [15,15,15,16,16,16]. The web column does not exist yet.
+      (c) Measure at SIX runs. The note is explicit that a 3-pass sweep cannot
+          resolve a two-cell move on this item: only 5 of 20 cells returned the
+          same judgement across three passes.
+      (d) Predict per cell before measuring. p5 is the target. p2 over-credits
+          +1.25 in every recorded run and is the cell a narrower rule has fixed
+          twice. p19 and p10 are the historical casualties.
+      IF IT FAILS, the honest outcome is to RETIRE `requires` from
+      primitives.json rather than leave a primitive in the registry that nothing
+      uses and nothing can use. A registry entry no item can justify is a claim
+      about the system that is not true.
+
 - [ ] 12. **`--selftest` without `--enforcement` silently scores nothing.**
       Found 2026-08-28, during the web sweep, by running it wrong and believing
       the result. `equivalence.py --selftest` is only honoured together with
