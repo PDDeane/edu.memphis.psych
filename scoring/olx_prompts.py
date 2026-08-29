@@ -557,33 +557,6 @@ SCORING_DIVERGENCES = [
                "through the new rules, 120 of 120 on Q4a and 60 of 60 on Q4c "
                "unchanged. No cell has both entries `absent`.",
     },
-    {
-        "what": "Q4a's assignable slot points sum to 4 against an item max of 5",
-        "items": ["Q4a"],
-        "necessary": True,
-        "enforcement": "none — the arithmetic differs, the reachable scores do not",
-        "why": "The two antecedent slots carry 2 points each. The item's fifth "
-               "point lived in the `keyword` component, which carries a CODE but "
-               "no points: A_NO_KEYWORD was set to -0.0 by a measured decision "
-               "after the keyword deduction was found to fire on one cell in "
-               "seven where gold charged nothing. So `web_max` (the sum of "
-               "scored slots) is 4 while the rubric max is 5. "
-               "IT COSTS NOTHING, and that is checkable rather than asserted: "
-               "gold's Q4a scores across the corpus are exactly {5.0 x13, 3.0 x5, "
-               "1.0 x2}, and the charges we can express — 2.0 twice, 0.0 for the "
-               "keyword — reach exactly {5, 3, 1}. Every gold score on this item "
-               "is reachable; no gold row needs a 1-point charge. "
-               "Restoring the point was measured and rejected: charging "
-               "A_NO_KEYWORD -1 fixed p17 and broke two other rows, and the "
-               "chosen resolution was to correct p17's gold instead (see "
-               "handouts.CORRECTED_GOLD). "
-               "Declared rather than fixed because the alternative is a scoring "
-               "change with a measured cost. Q4c's sibling code, C_NO_KEYWORD, is "
-               "in `unreachable_codes` for the related reason that no check binds "
-               "it — and it is being wired up rather than declared away, since "
-               "gold's dictionary specifies it.",
-    },
-
     dict(items=["NR", "PR", "PP", "NP"],
          enforcement=[(i, "CHARGE-ONCE WEB ONLY")
                       for i in ("NR", "PR", "PP", "NP")],
