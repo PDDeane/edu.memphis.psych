@@ -600,6 +600,8 @@ def enforcement_audit():
         findings.append(("-", "DECLARED DIVERGENCE OUTLIVED ITS ARITHMETIC", bad))
     for bad in ENF.check_every_declaration_table_has_a_verifier():
         findings.append(("-", "DECLARATION TABLE UNWATCHED", bad))
+    for bad in ENF.check_system_prompts_are_parallel():
+        findings.append(("-", "SYSTEM PROMPTS OUT OF SYNC", bad))
     for bad in ENF.check_prose_only_slots_are_declared():
         findings.append(("-", "PROSE-ONLY SLOT UNDECLARED", bad))
     for bad in ENF.check_artifacts_record_their_era():
