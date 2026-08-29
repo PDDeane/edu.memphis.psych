@@ -752,6 +752,16 @@ def error_profile(item: str, runs_path: str) -> str:
     h = _jobs()[item]["handout"]
     g = _H.apply_corrected_gold(
         {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[h](), h)
+    if item == "1c":
+        # The SAME rebuild `record` applies. Without it this read 1c as 18
+        # over-credits and 78% correct, when the item has ZERO over-credits: the
+        # 18 were three cells scored against gold the rebuild removes. A profile
+        # that disagrees with the ledger about the same artifact is worse than no
+        # profile, because the per-slot table looks authoritative -- it sent
+        # `1c +9` into a corpus-wide over-credit ranking before the per-cell
+        # readout contradicted it.
+        import agreement_app as _APP
+        g, _ = _APP.rebuild_gold_1c({p: dict(v) for p, v in g.items()})
     runs = json.loads(Path(runs_path).read_text())["runs"]
 
     obs = []

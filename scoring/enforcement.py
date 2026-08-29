@@ -1431,16 +1431,15 @@ UNEXERCISED_PRIMITIVES = {
     "maps": "AUDIT SUBGOAL 14 -- a real defect, not a pending measurement. Q4b "
             "is its only user and the app cannot score it at all: every cell "
             "returns no-cell. This is the entry the rule was written for",
-    "cover": "web sweep 2026-08-28 has not reached Q6, its only user",
-    "derived": "web sweep has not reached 1c; also the sole COMPUTE_EXEMPT entry",
-    "equals": "web sweep has not reached D1/DAY1",
-    "expect": "web sweep has not reached its items",
-    "forbid": "web sweep has not reached its items",
-    "onlyif": "web sweep has not reached PR",
-    "requires": "declared in primitives.json but used by NO item, so there is "
-                "nothing to exercise. Either bind it to an item or retire it",
+    "forbid": "AUDIT SUBGOAL 14, same defect. Six items carry it -- Q4a, Q4c, "
+              "NR, DAY1, DAY2, WK2 -- and every one fails every cell on the app. "
+              "PR vs NR is the control: identical but for this attribute",
+    "requires": "AUDIT SUBGOAL 15. Implemented on both engines, declared in "
+                "primitives.json, and bound to NO item -- `requires=` has never "
+                "appeared in a handout in any commit. Q6 is the documented "
+                "intended user. Bind it to an item or retire it",
 }
-UNEXERCISED_PRIMITIVES_BUDGET = 8
+UNEXERCISED_PRIMITIVES_BUDGET = 3
 
 
 def _primitives_with_live_app_evidence() -> dict:
@@ -1483,6 +1482,79 @@ def _primitives_with_live_app_evidence() -> dict:
                     users[a].add(item)
     return {a: sorted(i for i in its if "web" in (led.get(i) or {}))
             for a, its in users.items()}
+
+
+# Modules that read gold RAW, on purpose, with the reason. Everything else that
+# compares a prediction to gold must go through the corrected loader, the 1c
+# rebuild, `scored_exactly` and the ledger's exclusions -- the accounting every
+# published rate uses.
+RAW_GOLD_READERS = {
+    "enforcement.check_corrections_still_match_the_sheet":
+        "audits the CORRECTIONS themselves; comparing a correction against its "
+        "own output would always agree",
+    "measured.gold_rows_that_do_not_reconcile":
+        "audits the graders' original rows against their own comments; a "
+        "corrected row would hide the row that needed correcting",
+    "baseline_h1":
+        "unreferenced by any script or module. Give it the canonical accounting "
+        "or retire it; it is listed so it cannot quietly become someone's source "
+        "of a number",
+}
+
+
+def check_gold_accounting_is_uniform() -> list[str]:
+    """Does every prediction-vs-gold comparison use the SAME accounting?
+
+    Four things separate a published rate from a naive comparison:
+    `apply_corrected_gold`, `rebuild_gold_1c` for 1c, `scored_exactly` (which
+    carries the unreachable-gold allowance), and the ledger's exclusions. A tool
+    that skips any of them produces numbers that look authoritative and disagree
+    with the ledger about the same artifact.
+
+    Both known cases were live and both produced wrong published figures:
+
+      * `measured.error_profile` omitted the 1c rebuild, so 1c read as 18
+        over-credits and 78% correct when it has ZERO over-credits -- the 18 were
+        three cells scored against gold the rebuild removes. That figure reached
+        a corpus-wide over-credit ranking as "1c +9" before a per-cell readout
+        contradicted it.
+      * `cross_path.against_gold` used raw gold AND float equality AND no
+        exclusions, so its "closer to gold" column counted H2's suspect cells and
+        charged both paths for gold the rubric cannot reach.
+
+    Checked by import, not by grepping source: a module that loads gold and
+    compares it to a prediction must reach the corrected loader. Declared raw
+    readers are listed with a reason in RAW_GOLD_READERS.
+    """
+    import importlib
+    import pathlib
+
+    problems = []
+    for mod_name in ("cross_path", "measured", "compare_runs"):
+        try:
+            m = importlib.import_module(mod_name)
+        except Exception as exc:
+            problems.append(f"{mod_name} will not import, so its gold "
+                            f"accounting cannot be checked: {exc}")
+            continue
+        src = ""
+        try:
+            src = pathlib.Path(m.__file__).read_text()
+        except Exception:
+            continue
+        if "load_h1" not in src and "load_h" not in src:
+            continue
+        for needed, why in (("apply_corrected_gold", "corrected gold rows"),
+                            ("rebuild_gold_1c", "1c's rebuilt gold"),
+                            ("scored_exactly", "the unreachable-gold allowance")):
+            if needed not in src:
+                problems.append(
+                    f"{mod_name} compares against gold but never calls "
+                    f"`{needed}` -- so its numbers do not carry {why}, and will "
+                    f"disagree with the ledger about the same artifact. Use the "
+                    f"canonical accounting, or declare the module in "
+                    f"RAW_GOLD_READERS with a reason")
+    return problems
 
 
 def check_closed_goals_that_changed_code_were_exercised() -> list[str]:
