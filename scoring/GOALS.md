@@ -553,6 +553,50 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       uses and nothing can use. A registry entry no item can justify is a claim
       about the system that is not true.
 
+- [ ] 17. **The `keyword` check is 100% accurate and cannot move a score. Retire or convert it.**
+      Asked for as "the accuracy of keyword matching on Q4b and elsewhere". First
+      the scope: Q4B HAS NO KEYWORD SLOT. Only Q4a and Q4c carry one -- "Uses the
+      word antecedent or trigger" and "Uses the word consequence".
+      ACCURACY IS NOT THE PROBLEM, and it was measured rather than assumed. The
+      keyword verdict has something no other slot in this corpus has: a
+      MECHANICAL ground truth. Comparing every verdict against a literal
+      case-folded substring search of the student's own text, over the 6-run web
+      artifacts:
+          Q4a  120/120 agree (100%)
+          Q4c  120/120 agree (100%)
+      240 of 240. The model is not getting this wrong, and no rewording is owed.
+      THE PROBLEM IS THAT IT IS INERT. Neither slot carries points, and neither
+      deduction can charge:
+          Q4a  slot pts none;  A_NO_KEYWORD pts 0.0  -- zeroed by decision, so
+               the code fires and costs nothing.
+          Q4c  slot pts none;  C_NO_KEYWORD pts 1.0  but the credit entry's
+               `codes` map is EMPTY, so no verdict routes to it, and the rubric
+               declares it in `unreachable_codes`.
+      So a required property of a strict schema is spent, on every call, on both
+      items, to obtain an answer that is always right and can never change a
+      number. That is the cost side of subgoal 1's declared flags, finally
+      quantified.
+      TWO WAYS OUT, and the record already rules on one:
+      (a) WIRE IT. Do not, on Q4c: the component's own comment records that no
+          Q4c gold row deducts for the missing word, that the item has no
+          1-point deduction of any kind, and that charging it COST THREE CELLS
+          AND RECOVERED NONE. A fresh measurement agreed. That is settled.
+      (b) CONVERT IT TO `derived`, the primitive built for exactly this -- "a
+          check read off the PAGE, field contents, rather than asked of the
+          model ... left out of the response schema, so the model is never asked
+          to guess at something the runtime already knows." A literal word search
+          is the purest case of it in the corpus, and the 240/240 result is the
+          evidence that the engine and the model already agree, so the conversion
+          is measurably behaviour-preserving BEFORE it is made.
+      PREFER (b) OVER DELETION unless the checklist display needs it: the student
+      is shown "Uses the word antecedent or trigger" as feedback even when it
+      costs nothing, and deleting the slot removes that line. Check what
+      showChecks renders on both items before choosing.
+      MEASURE THE SAVING, since the case for (b) is cost. Two fewer required
+      properties per call across 40 cells x 6 runs, and one less thing for the
+      model to be confident about -- `confident` is unmet 73 times on Q4c and 85
+      on Q4a, so anything that shortens the sheet is worth pricing.
+
 - [ ] 16. **Q4a's `antecedent_2`: the slot that carries the item's remaining error.**
       Opened 2026-08-29, on the FIRST measurement of Q4a on the app -- it could
       not run at all before the LLMAction attribute fix (subgoal 14), and the
