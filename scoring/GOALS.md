@@ -494,6 +494,29 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       nothing -- "a condition answered `unclear` is the model declining to say;
       reading that as a denial charges the student for the grader's hesitation."
       Use it. Q6 under-credits when tightened, every time.
+      A SECOND SITE, found 2026-08-29 by asking where else this is needed rather
+      than assuming Q6 was alone. Ranked by over-credit, since `requires` DENIES
+      credit and can only help an item that over-credits -- wiring it into an
+      under-crediting item pushes it further the way it is already wrong:
+        * Q6   +14 (23 over / 9 under). Has `cover` -- the duplicate SPOTTER --
+          and over-credits anyway. That is direct evidence for the split the
+          implementation describes: cover spots it, `requires` is what acts on it.
+          Q6 has half the mechanism.
+        * Q4c  +17 (18 over / 1 under), the most one-sided on the board after 2a.
+          Same (element, element) pair shape as Q6 -- consequence_1/consequence_2
+          -- with NO cover, NO onlyif, NO requires. Its only `forbid` fires when
+          BOTH boxes are absent, the opposite end of the problem. So it has no
+          way to notice that the second box restates the first, which is exactly
+          the second-box collapse recorded against it and Q4b.
+      NOT `requires` CASES, checked and rejected so the list is not padded:
+        * 2a +29 -- `counts:hows_given:how_1,how_2`. "said 2, scored 6 against
+          gold 4": gold counts sentences that EXPLAIN HOW, the model counts
+          sentences. A counting definition, not a cross-slot dependency.
+        * Q3 +10 -- bare SMART slots, no primitives. A measurable-requires-
+          specific dependency is plausible but is not asserted by the rubric or
+          the record; inventing one is the wording trap in a new costume.
+        * WK1/WK2 +7/+6 -- already compute `matches_chosen_type` via `equals`.
+        * 1c +9 -- the declared COMPUTE_EXEMPT chart item.
       SEQUENCE, and it is not first in the queue:
       (a) BLOCKED ON SUBGOAL 14. This adds a slot the model is asked, so it can
           only be judged by a live app run, and `forbid`/`maps` prove a primitive
