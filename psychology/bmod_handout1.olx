@@ -579,7 +579,8 @@ You must use the word **antecedent** or **trigger** in your answer.
       <EndPane>
     <ActionButton id="bmod_h1_q4a_btn" label="Check my antecedents">
       <LLMAction forbid="no_antecedents:antecedent_1=absent,antecedent_2=absent" id="bmod_h1_q4a_llm" target="bmod_h1_q4a_feedback"
-                 slots="antecedent_1:First antecedent is a genuine trigger:wrong_kind@2|antecedent_2:Second antecedent is a genuine trigger:wrong_kind@2|keyword:Uses the word antecedent or trigger:unclear|confident:All judgments confident|!no_antecedents:Nothing was listed at all:met/absent">
+                 slots="antecedent_1:First antecedent is a genuine trigger:wrong_kind@2|antecedent_2:Second antecedent is a genuine trigger:wrong_kind@2|keyword:Uses the word antecedent or trigger:unclear|confident:All judgments confident|!no_antecedents:Nothing was listed at all:met/absent"
+                 max="5">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
