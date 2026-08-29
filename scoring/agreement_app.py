@@ -2310,6 +2310,40 @@ def _idmap_extra_lines(idmap: str, item_id: str, want: str) -> list[str]:
     return [t for t in _sentences(body) if t not in flat]
 
 
+def _idmap_searchable_text(raw: str) -> str:
+    """The dump's text as the PROMPT reads, not as the file stores it.
+
+    The dump is JSON, so a prompt line that quotes a word is stored with `\\"`
+    and a raw substring test can never match it. That is not a rare shape: Q4a's
+    `A_NO_KEYWORD` and Q4c's `C_NO_KEYWORD` lines quote the very words they are
+    about, and both items were refused as STALE IDMAP while the dump was serving
+    them perfectly. Q4a lost its slot in a six-run sweep to it.
+
+    A false STALE reading is costly in the wrong direction. A missed staleness
+    measures the wrong prompt, which is what this check exists to prevent; a
+    false one blocks an item from being measured AT ALL, and reads as evidence
+    that the dump needs replacing when nothing is wrong with it. Decoding is
+    strictly more faithful, not more permissive: it compares the same lines the
+    server will render.
+    """
+    import json as _json
+
+    def walk(o):
+        if isinstance(o, str):
+            yield o
+        elif isinstance(o, dict):
+            for v in o.values():
+                yield from walk(v)
+        elif isinstance(o, list):
+            for v in o:
+                yield from walk(v)
+
+    try:
+        return "\n".join(walk(_json.loads(raw)))
+    except Exception:
+        return raw          # unparseable: fall back rather than pass silently
+
+
 def check_idmap_is_current(idmap: str, item_id: str) -> None:
     """Refuse to measure against a dump that predates the current prompt.
 
@@ -2345,7 +2379,7 @@ def check_idmap_is_current(idmap: str, item_id: str) -> None:
         return
     try:
         with open(idmap) as fh:
-            blob = fh.read()
+            blob = _idmap_searchable_text(fh.read())
     except OSError as exc:
         raise SystemExit(f"cannot read --idmap {idmap}: {exc}")
     missing = [ln for ln in lines if ln not in blob]
