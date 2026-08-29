@@ -403,6 +403,59 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       it, and Q4b's five substitution tests are the recorded case of getting it
       wrong.
 
+- [ ] 12. **`--selftest` without `--enforcement` silently scores nothing.**
+      Found 2026-08-28, during the web sweep, by running it wrong and believing
+      the result. `equivalence.py --selftest` is only honoured together with
+      `--enforcement`; alone, argparse accepts it, the flag is never read, the
+      default prompt audit runs instead, and the process EXITS 0. So a self-test
+      that never executed is indistinguishable at the shell from one where all
+      49 injections were detected.
+      THE COST IS ALREADY PAID, not hypothetical: it was used here to certify a
+      change to the artifact-shape reader, reported as verified on the strength
+      of that exit 0, and the correction had to be issued in the next message.
+      Every other check in this tree can be wrong and the self-test is what says
+      so; a mode where it appears to run and does not is the worst possible
+      place for a silent no-op.
+      FIX: make `--selftest` without `--enforcement` a usage ERROR, not a
+      fallthrough -- `ap.error("--selftest requires --enforcement")`. Prefer that
+      to quietly implying `--enforcement`, because the two modes take different
+      amounts of time and a user who typed one and got the other should be told,
+      not accommodated. Then check the same class across the other flags in
+      `equivalence.py`: any flag that is read only inside another mode's branch
+      has this bug, and `--slots`/`--gold` on `cross_path.py` deserve the same
+      look.
+
+- [ ] 13. **The self-test degrades silently: a lost case looks like a passing run.**
+      Found the same way and in the same hour as 12, and the two should be read
+      together -- 12 is the suite not running, this is the suite running SHORT.
+      `equivalence.py --enforcement --selftest` prints `N/N injected breakages
+      detected` where N is however many cases the run happened to build. A run
+      that detects 48 of 48 is visually identical to one that detects 49 of 49,
+      so a case that stops being constructed reports success.
+      TWO WAYS A CASE DISAPPEARS, both live:
+      (a) it CRASHES the suite. The `SLOT RULE NAMES A VERDICT` case hard-coded
+      Q4b/`behavior_1` as its injection site; audit subgoal 10 converted that
+      rule's logic into the `maps` primitive, the entry lost its `rule` key, and
+      the suite died on a KeyError BEFORE ITS FIRST CASE. The guard over every
+      other check was taken out by a conversion it was not watching, and stayed
+      dead until something else made it run.
+      (b) it SKIPs. Fixed the same day by choosing the site at run time and
+      skipping when no rule carries `{fail}` -- the degradation the plain-path
+      case already used. That is the right behaviour and it is still invisible:
+      two SKIP lines scroll past above a confident `47/47`.
+      THIS IS THE DIRECTION OF TRAVEL, which is why it matters now rather than
+      later. Subgoals 3, 9, 10 and 11 all convert prose rules into primitives,
+      and each conversion can remove the last site some case injects into. Only
+      two `{fail}`-bearing rules are left in the whole tree, both on Q6
+      (`affect_c1`, `affect_c2`) -- the same pair a removal script once destroyed
+      -- so this particular case is one conversion away from permanent SKIP.
+      FIX: assert the case COUNT. Record the expected number of constructed
+      cases and fail the run when the suite builds fewer, so dropping one is a
+      failure rather than a shorter success line. Count SKIPs explicitly in the
+      summary line (`47 detected, 2 skipped, 49 expected`) instead of letting
+      the denominator float. A ratchet, like HANDCODED_ITEM_RULES' budget: the
+      number may only go DOWN by decision, never by accident.
+
 - [ ] 2. **A full two-sided sweep: every item, six runs, BOTH scorers.**
       Replaces "clear the stale H2 items", which would have measured one side of
       ten items. This measures both sides of all of them, and it is the only

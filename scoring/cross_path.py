@@ -163,6 +163,42 @@ def _load_paper(root: str) -> tuple[dict, dict, dict]:
     return scores, verdicts, eras
 
 
+def result_cell(r: dict) -> tuple | None:
+    """One `results[]` entry -> (item, participant, points_or_None, verdicts).
+
+    Returns None only when the entry cannot be KEYED at all; a readable cell
+    that simply has no score comes back with points None, because "this cell
+    failed to score" and "this file has an entry I do not understand" are
+    different facts and the callers treat them differently -- cross_path skips
+    an unscored cell, the ledger counts it against the item.
+
+    Both artifact shapes are read here, in one place, because the app stores
+    `grader.score` as a FRACTION of `sheet_max` while every other writer stores
+    absolute points. A second copy of that conversion is a second chance to
+    forget the multiply, which would silently read every app cell as diverging.
+    """
+    if "cell" in r:                                   # the app
+        cell = str(r.get("cell") or "")
+        if "/" not in cell:
+            return None
+        pid_s, item = cell.split("/", 1)
+        try:
+            pid = int(pid_s.lstrip("pP"))
+        except ValueError:
+            return None
+        raw = (r.get("grader") or {}).get("score")
+        mx = r.get("sheet_max")
+        pts = None if raw is None or mx is None else float(raw) * float(mx)
+        return item, pid, pts, dict(r.get("verdicts") or {})
+    pid = r.get("participant_id")                     # the python harness
+    if pid is None or not r.get("item"):
+        return None
+    s = r.get("score")
+    ch = r.get("checks") or {}
+    return (r["item"], pid, None if s is None else float(s),
+            dict(ch) if isinstance(ch, dict) else {})
+
+
 def _load_runs(root: str) -> tuple[dict, dict, str, dict]:
     """agreement.py or agreement_app.py output, told apart by their result keys."""
     scores: dict = collections.defaultdict(list)
@@ -177,31 +213,16 @@ def _load_runs(root: str) -> tuple[dict, dict, str, dict]:
         _merge_era(eras, doc.get("era"))
         for run in doc.get("runs") or []:
             for r in run.get("results") or []:
-                if "cell" in r:                       # the app
+                got = result_cell(r)
+                if got is None:
+                    continue
+                item, pid, pts, vd = got
+                if "cell" in r:
                     kind = "app"
-                    cell = str(r.get("cell") or "")
-                    if "/" not in cell:
-                        continue
-                    pid_s, item = cell.split("/", 1)
-                    try:
-                        pid = int(pid_s.lstrip("pP"))
-                    except ValueError:
-                        continue
-                    raw = (r.get("grader") or {}).get("score")
-                    mx = r.get("sheet_max")
-                    if raw is None or mx is None:
-                        continue
-                    # A FRACTION of the sheet, unlike every other shape.
-                    scores[(item, pid)].append(float(raw) * float(mx))
-                    verdicts[(item, pid)].append(dict(r.get("verdicts") or {}))
-                else:                                 # the python harness
-                    pid = r.get("participant_id")
-                    if r.get("score") is None or pid is None:
-                        continue
-                    key = (r["item"], pid)
-                    scores[key].append(float(r["score"]))
-                    ch = r.get("checks") or {}
-                    verdicts[key].append(dict(ch) if isinstance(ch, dict) else {})
+                if pts is None:
+                    continue
+                scores[(item, pid)].append(pts)
+                verdicts[(item, pid)].append(vd)
     return scores, verdicts, kind, eras
 
 
