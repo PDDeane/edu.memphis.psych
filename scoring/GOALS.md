@@ -508,6 +508,23 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
           BOTH boxes are absent, the opposite end of the problem. So it has no
           way to notice that the second box restates the first, which is exactly
           the second-box collapse recorded against it and Q4b.
+      THE SECOND-BOX EVIDENCE, folded in from subgoal 18 on 2026-08-29 because
+      it is the same defect seen from the other end. All three second-box items
+      show the identical asymmetry -- the second slot unmet far more often, and
+      far more often in a WRONG cell:
+        Q4c  consequence_1  6/0    consequence_2  19/7
+        Q6   state_c1      15/6    state_c2       58/17
+        Q6   affect_c1     26/8    affect_c2      75/22
+      That is precisely the failure `requires` was written for: "a response
+      addressing one antecedent in a single run-on sentence banked both
+      consequence pairs from one clause." A second box scored off the first box's
+      content is a duplicate that `cover` can see and nothing acts on.
+      Q4b IS EXCLUDED FROM THIS SUBGOAL, deliberately, and this is the trap the
+      merge existed to create: it shows the same symptom (behavior_1 23/0 vs
+      behavior_2 52/17) with the OPPOSITE direction -- 7 over / 12 under, because
+      `maps` DENIES its second box credit. `requires` denies credit too, so a fix
+      measured across all three would be judged partly on an item it must make
+      worse. Q4b stays in subgoal 18.
       NOT `requires` CASES, checked and rejected so the list is not padded:
         * 2a +29 -- `counts:hows_given:how_1,how_2`. "said 2, scored 6 against
           gold 4": gold counts sentences that EXPLAIN HOW, the model counts
@@ -535,40 +552,6 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       primitives.json rather than leave a primitive in the registry that nothing
       uses and nothing can use. A registry entry no item can justify is a claim
       about the system that is not true.
-
-- [ ] 17. **Q4b/p12: `not_doing` maps to `wrong_kind`, and gold gives full marks.**
-      The cell this whole equivalence goal was opened over. It is no longer an
-      equivalence problem: since subgoal 14 let Q4b run on the app, BOTH engines
-      return 3.5 in all six runs where gold says 5.0. The old CLI-5.0 / web-3.5
-      split is CLOSED -- subgoal 10's `maps` conversion did what it claimed, and
-      the two engines now compute the referent test identically. What is left is
-      a scoring question with one right answer, which is why it moves to QC.
-      THE MECHANISM IS EXACT, COMPUTED, AND STABLE -- no model noise in it:
-        p12 run1..run6:  b2_basis = `not_doing`  every run
-        maps rule:       behavior_2:b2_basis:activity~met,none~absent,*~wrong_kind
-        `not_doing` is neither `activity` nor `none`, so it falls to `*` ->
-        wrong_kind -> the 1.5-point box is lost -> 5.0 - 1.5 = 3.5.
-      So the decision is one row of one table: should `not_doing` count as a
-      valid answer to "what do you do INSTEAD OF the goal behaviour"?
-      THE TRADE IS MEASURED AND IT IS NOT FREE. Across the 20 cells:
-        GAIN  p12  b2=not_doing  3.5 vs gold 5.0   stable 6/6
-        GAIN  p13  b2=not_doing  3.5 vs gold 5.0   (5.0 in some runs)
-        LOSE  p7   b1=not_doing  2.0 vs gold 2.0   CORRECT ONLY BECAUSE
-              `not_doing` maps to wrong_kind today
-      Mapping `not_doing~met` outright is +2/-1. Do not take that as a win
-      without asking why gold splits: p7's not_doing is in the FIRST box and p12
-      and p13's are in the SECOND. Read all three out (`equivalence.py --fixture
-      Q4b:7`, `:12`, `:13`) before touching the table -- the answer may be that
-      the graders read "I don't X" as an activity when it names what replaces the
-      behaviour and as a refusal when it does not, which is a distinction the
-      pick list cannot currently express.
-      A SEPARATE CELL, SAME TABLE, OPPOSITE DIRECTION: p4 scores 3.5 against gold
-      2.0 -- an OVER-credit. Its b1_basis is `activity` (met) and b2 is
-      `consequence` (wrong_kind), so the sheet charges one box; gold charges two.
-      The disagreement there is about the FIRST box, not the mapping, so a fix
-      aimed at `not_doing` will not touch it and must not be judged on it.
-      NOT A `requires` CANDIDATE (subgoal 15): Q4b runs 7 over / 12 under, and
-      `requires` denies credit.
 
 - [ ] 16. **Q4a's `antecedent_2`: the slot that carries the item's remaining error.**
       Opened 2026-08-29, on the FIRST measurement of Q4a on the app -- it could
@@ -2174,6 +2157,30 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       this prompt and differ only in whose rules score it.
 
 - [ ] 18. **Q4b: the `not_doing` classification on the SECOND box.**
+      MEASURED ON THE APP 2026-08-29, for the first time -- Q4b could not run
+      there at all until subgoal 14. Web 16/19, EXACTLY the CLI's 16/19, era
+      checked, 0 of 20 cells never agreeing. p12 returns 3.5 in all six runs on
+      BOTH engines where it used to be CLI 5.0 / web 3.5 in eleven of twelve.
+      So the divergence the whole equivalence goal was opened over is CLOSED, and
+      subgoal 10's `maps` conversion is what closed it: the referent test is now
+      arithmetic and the two engines cannot disagree about it. What is left here
+      is a gold question, which is what this subgoal was always about.
+      THE SECOND-BOX SYMPTOM IS SHARED WITH Q4c AND Q6; THE MECHANISM IS NOT.
+      All three show the same asymmetry -- the second slot unmet far more often
+      and far more often in wrong cells:
+        Q4b  behavior_1   23/0    behavior_2    52/17
+        Q4c  consequence_1 6/0    consequence_2 19/7
+        Q6   state_c1     15/6    state_c2      58/17
+      But the DIRECTION splits them, and direction decides the fix:
+        Q4c  18 over / 1 under      Q6  23 over / 9 under   -> the second box
+             TAKES credit it has not earned; that is subgoal 15's `requires`.
+        Q4b   7 over / 12 under                             -> the second box is
+             DENIED credit, by `maps` sending `not_doing` to wrong_kind.
+      SO DO NOT JUDGE A `requires` FIX ON THIS ITEM. `requires` denies credit and
+      Q4b already under-credits; it would move this item the wrong way while
+      helping Q4c and Q6. Q4c's half of the second-box problem lives in subgoal
+      15 for that reason. This subgoal keeps Q4b alone.
+
       Asked for as "errors on behavior_1", and the first thing to record is that
       BEHAVIOR_1 HAS NONE: unmet 23 times across 120 observations, all 23 in cells
       that scored correctly. Every one of the 17 wrong-cell observations is on
