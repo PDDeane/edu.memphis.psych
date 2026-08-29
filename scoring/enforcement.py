@@ -1188,6 +1188,92 @@ PROSE_ONLY_SLOTS = {
 PROSE_ONLY_BUDGET = 9
 
 
+# WHICH PRIMITIVE SET each "NOT CONVERTIBLE" claim was judged against.
+#
+# Convertibility is not an absolute property of a rule; it is a claim about what
+# the available primitives can express, and the primitive set grows. `maps` did
+# not exist a week ago, and when it landed it CHANGED what was convertible about
+# Q4b's picks -- behavior_1/behavior_2 left this table entirely and the picks'
+# reasons were rewritten to say so. Nothing forced that rewrite. It happened
+# because one person was holding both pieces at once, which does not scale.
+#
+# So each entry records the set it was judged against, and the check fails when
+# the registry no longer matches. It fires exactly once per primitive added,
+# which is precisely when the answer can have changed.
+#
+# THIS IS NOT PRESSURE TO CONVERT. A re-judged entry that is still not
+# convertible gets a new stamp and the budget stays 9. The point is that the
+# claim is re-made deliberately rather than inherited.
+_PRIMS_2026_08_29 = "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
+
+PROSE_ONLY_JUDGED_AGAINST: dict[tuple[str, str], str] = {
+    ("Q4b", "b1_basis"): _PRIMS_2026_08_29,
+    ("Q4b", "b2_basis"): _PRIMS_2026_08_29,
+    ("Q6", "affect_c1"): _PRIMS_2026_08_29,
+    ("Q6", "affect_c2"): _PRIMS_2026_08_29,
+    ("1a", "distinguishes_periods"): _PRIMS_2026_08_29,
+    ("1a", "baseline_week"): _PRIMS_2026_08_29,
+    ("1a", "week_1"): _PRIMS_2026_08_29,
+    ("1a", "week_2"): _PRIMS_2026_08_29,
+    ("1a", "week_3"): _PRIMS_2026_08_29,
+}
+
+
+def check_prose_only_claims_are_current() -> list[str]:
+    """Was each "NOT CONVERTIBLE" claim judged against TODAY's primitive set?
+
+    See PROSE_ONLY_JUDGED_AGAINST. A rule is prose-only relative to what the
+    primitives can express, so the claim expires when the registry grows -- and
+    it expires silently, because a stale claim looks exactly like a live one.
+
+    Q4b's picks are the worked example: `maps` made part of that slot's judging
+    arithmetic, two entries left the table, and the remaining reasons had to be
+    rewritten. If `requires` lands on Q6 (subgoal 15), the two Q6 `affect_*`
+    entries are due the same way -- their reasons turn on what `cover` already
+    constrains, and `requires` is the primitive that acts on what cover sees.
+
+    The key sets must match exactly, in both directions: an unstamped entry is a
+    claim nobody dated, and a stamp with no entry is a claim that has already
+    gone.
+    """
+    from olx_prompts import primitives
+
+    now = ",".join(sorted(p["attr"] for p in primitives()["primitives"]))
+    problems = []
+
+    unstamped = set(PROSE_ONLY_SLOTS) - set(PROSE_ONLY_JUDGED_AGAINST)
+    for k in sorted(unstamped):
+        problems.append(
+            f"PROSE_ONLY_SLOTS{list(k)} is declared NOT CONVERTIBLE with no "
+            f"entry in PROSE_ONLY_JUDGED_AGAINST -- an undated claim cannot be "
+            f"re-tested when the primitive set grows. Stamp it with the set it "
+            f"was judged against")
+    orphan = set(PROSE_ONLY_JUDGED_AGAINST) - set(PROSE_ONLY_SLOTS)
+    for k in sorted(orphan):
+        problems.append(
+            f"PROSE_ONLY_JUDGED_AGAINST{list(k)} stamps a slot that is no longer "
+            f"in PROSE_ONLY_SLOTS -- the entry left and its stamp did not")
+
+    for k in sorted(set(PROSE_ONLY_SLOTS) & set(PROSE_ONLY_JUDGED_AGAINST)):
+        was = PROSE_ONLY_JUDGED_AGAINST[k]
+        if was == now:
+            continue
+        added = sorted(set(now.split(",")) - set(was.split(",")))
+        gone = sorted(set(was.split(",")) - set(now.split(",")))
+        what = []
+        if added:
+            what.append("the registry now also has " + ", ".join(f"`{a}`" for a in added))
+        if gone:
+            what.append("no longer has " + ", ".join(f"`{a}`" for a in gone))
+        problems.append(
+            f"PROSE_ONLY_SLOTS{list(k)} was judged NOT CONVERTIBLE against "
+            f"{{{was}}}; {'; '.join(what)}. Re-judge the claim against the new "
+            f"set, then re-stamp it. Still not convertible is a fine answer -- "
+            f"the budget does not have to fall")
+    return problems
+
+
+
 # Items whose rubric entry genuinely carries no substantial comment block, so
 # §2c has nothing to push for them. Verified, not assumed: 1c's and 3's longest
 # comment runs are three lines against a threshold of four.
@@ -3848,7 +3934,11 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
         ("check_handcoded_rules_are_being_cleared",)),
     "enforcement.PROSE_ONLY_SLOTS": (
         "rules the audit cannot compare because they are prose",
-        ("check_prose_only_slots_are_declared",)),
+        ("check_prose_only_slots_are_declared",
+         "check_prose_only_claims_are_current")),
+    "enforcement.PROSE_ONLY_JUDGED_AGAINST": (
+        "the primitive set each NOT CONVERTIBLE claim was judged against",
+        ("check_prose_only_claims_are_current",)),
     "enforcement.RAW_GOLD_READERS": (
         "modules that read gold uncorrected, on purpose",
         ("check_gold_accounting_is_uniform",)),
