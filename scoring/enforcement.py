@@ -1431,15 +1431,12 @@ UNEXERCISED_PRIMITIVES = {
     "maps": "AUDIT SUBGOAL 14 -- a real defect, not a pending measurement. Q4b "
             "is its only user and the app cannot score it at all: every cell "
             "returns no-cell. This is the entry the rule was written for",
-    "forbid": "AUDIT SUBGOAL 14, same defect. Six items carry it -- Q4a, Q4c, "
-              "NR, DAY1, DAY2, WK2 -- and every one fails every cell on the app. "
-              "PR vs NR is the control: identical but for this attribute",
     "requires": "AUDIT SUBGOAL 15. Implemented on both engines, declared in "
                 "primitives.json, and bound to NO item -- `requires=` has never "
                 "appeared in a handout in any commit. Q6 is the documented "
                 "intended user. Bind it to an item or retire it",
 }
-UNEXERCISED_PRIMITIVES_BUDGET = 3
+UNEXERCISED_PRIMITIVES_BUDGET = 2
 
 
 def _primitives_with_live_app_evidence() -> dict:

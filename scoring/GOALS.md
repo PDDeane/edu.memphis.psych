@@ -536,6 +536,43 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       uses and nothing can use. A registry entry no item can justify is a claim
       about the system that is not true.
 
+- [ ] 16. **Q4a's `antecedent_2`: the slot that carries the item's remaining error.**
+      Opened 2026-08-29, on the FIRST measurement of Q4a on the app -- it could
+      not run at all before the LLMAction attribute fix (subgoal 14), and the
+      web-only `max` defect had to be cleared before any cell scored on the right
+      scale. So this is a channel nobody has ever been able to look at.
+      THE SLOT PROFILE NAMES IT. Over 120 observations, web:
+        antecedent_1   unmet 24   in wrong cells  6
+        antecedent_2   unmet 31   in wrong cells 10
+        keyword        unmet 18   in wrong cells  3
+      `antecedent_2` is unmet more often than `antecedent_1` AND lands in wrong
+      cells more often -- the SECOND-BOX shape again, on a third item. Subgoal 18
+      (the second-box problem) was scoped to Q4b and Q4c; this is evidence it
+      reaches Q4a, and the three should be read together before either is fixed.
+      FOUR CELLS CARRY IT, and their pattern is the useful part:
+        p2  3/6  a2 flips met/wrong_kind across runs (gold 5)
+        p9  3/6  a2 flips wrong_kind/met across runs (gold 3)
+        p19 0/6  a2 is `met` in 5 of 6 runs and the cell is STILL wrong (gold 5)
+        p14 0/6  a2 is `wrong_kind` in 6 of 6 and the cell is wrong (gold 1)
+      So there are TWO different failures wearing one slot's name, and a fix
+      aimed at either alone will move the other the wrong way:
+        * p2 and p9 are INSTABILITY -- the same box read both ways across runs.
+          A sharper rule about what makes an antecedent "a genuine trigger"
+          addresses these.
+        * p14 and p19 are STABLE and wrong, which a wording change will not
+          touch. p19 is the sharper one: `antecedent_2` is answered `met` in 5 of
+          6 runs and the cell still misses, so the error is NOT in this slot's
+          verdict -- it is in what the sheet does with it. Read p19's boxes out
+          (`equivalence.py --fixture Q4a:19`) BEFORE proposing any rule.
+      DO NOT START FROM THE MEDIAN. The item sits at 18/20 web / 17/20 cli, which
+      hides four cells that are wrong in two unrelated ways; and the by-slot
+      table alone would have pointed the whole effort at wording, which p19 and
+      p14 say cannot work. This is memory/error-profile-by-slot.md's rule and
+      memory/fixture-defects-found-by-readout.md's rule applying at once.
+      Direction is BALANCED -- 9 over, 9 under -- so unlike Q6 and Q4c this is
+      not a `requires` candidate (subgoal 15): denying credit would fix the
+      over-credits and worsen the under-credits by the same count.
+
 - [ ] 12. **`--selftest` without `--enforcement` silently scores nothing.**
       Found 2026-08-28, during the web sweep, by running it wrong and believing
       the result. `equivalence.py --selftest` is only honoured together with
