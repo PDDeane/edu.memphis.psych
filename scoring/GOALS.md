@@ -536,6 +536,40 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       uses and nothing can use. A registry entry no item can justify is a claim
       about the system that is not true.
 
+- [ ] 17. **Q4b/p12: `not_doing` maps to `wrong_kind`, and gold gives full marks.**
+      The cell this whole equivalence goal was opened over. It is no longer an
+      equivalence problem: since subgoal 14 let Q4b run on the app, BOTH engines
+      return 3.5 in all six runs where gold says 5.0. The old CLI-5.0 / web-3.5
+      split is CLOSED -- subgoal 10's `maps` conversion did what it claimed, and
+      the two engines now compute the referent test identically. What is left is
+      a scoring question with one right answer, which is why it moves to QC.
+      THE MECHANISM IS EXACT, COMPUTED, AND STABLE -- no model noise in it:
+        p12 run1..run6:  b2_basis = `not_doing`  every run
+        maps rule:       behavior_2:b2_basis:activity~met,none~absent,*~wrong_kind
+        `not_doing` is neither `activity` nor `none`, so it falls to `*` ->
+        wrong_kind -> the 1.5-point box is lost -> 5.0 - 1.5 = 3.5.
+      So the decision is one row of one table: should `not_doing` count as a
+      valid answer to "what do you do INSTEAD OF the goal behaviour"?
+      THE TRADE IS MEASURED AND IT IS NOT FREE. Across the 20 cells:
+        GAIN  p12  b2=not_doing  3.5 vs gold 5.0   stable 6/6
+        GAIN  p13  b2=not_doing  3.5 vs gold 5.0   (5.0 in some runs)
+        LOSE  p7   b1=not_doing  2.0 vs gold 2.0   CORRECT ONLY BECAUSE
+              `not_doing` maps to wrong_kind today
+      Mapping `not_doing~met` outright is +2/-1. Do not take that as a win
+      without asking why gold splits: p7's not_doing is in the FIRST box and p12
+      and p13's are in the SECOND. Read all three out (`equivalence.py --fixture
+      Q4b:7`, `:12`, `:13`) before touching the table -- the answer may be that
+      the graders read "I don't X" as an activity when it names what replaces the
+      behaviour and as a refusal when it does not, which is a distinction the
+      pick list cannot currently express.
+      A SEPARATE CELL, SAME TABLE, OPPOSITE DIRECTION: p4 scores 3.5 against gold
+      2.0 -- an OVER-credit. Its b1_basis is `activity` (met) and b2 is
+      `consequence` (wrong_kind), so the sheet charges one box; gold charges two.
+      The disagreement there is about the FIRST box, not the mapping, so a fix
+      aimed at `not_doing` will not touch it and must not be judged on it.
+      NOT A `requires` CANDIDATE (subgoal 15): Q4b runs 7 over / 12 under, and
+      `requires` denies credit.
+
 - [ ] 16. **Q4a's `antecedent_2`: the slot that carries the item's remaining error.**
       Opened 2026-08-29, on the FIRST measurement of Q4a on the app -- it could
       not run at all before the LLMAction attribute fix (subgoal 14), and the
