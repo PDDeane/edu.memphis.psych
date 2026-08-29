@@ -1428,15 +1428,12 @@ def check_prior_record_reaches_every_item() -> list[str]:
 # reaches each primitive's items; an entry that outlives the sweep is a real
 # defect, not a pending measurement, and must become a subgoal.
 UNEXERCISED_PRIMITIVES = {
-    "maps": "AUDIT SUBGOAL 14 -- a real defect, not a pending measurement. Q4b "
-            "is its only user and the app cannot score it at all: every cell "
-            "returns no-cell. This is the entry the rule was written for",
     "requires": "AUDIT SUBGOAL 15. Implemented on both engines, declared in "
                 "primitives.json, and bound to NO item -- `requires=` has never "
                 "appeared in a handout in any commit. Q6 is the documented "
                 "intended user. Bind it to an item or retire it",
 }
-UNEXERCISED_PRIMITIVES_BUDGET = 2
+UNEXERCISED_PRIMITIVES_BUDGET = 1
 
 
 def _primitives_with_live_app_evidence() -> dict:

@@ -1,2173 +1,2212 @@
 {
- "items": {
-  "1a": {
-   "cli": {
-    "cells": {
-     "1": 5,
-     "10": 6,
-     "11": 0,
-     "12": 6,
-     "13": 6,
-     "14": 4,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 0,
-     "7": 6,
-     "8": 6,
-     "9": 6
+  "items": {
+    "1a": {
+      "cli": {
+        "cells": {
+          "1": 5,
+          "10": 6,
+          "11": 0,
+          "12": 6,
+          "13": 6,
+          "14": 4,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 0,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 18,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 20,
+          "numerator": 18,
+          "out": "baseline_20260824",
+          "prompt_sha": "7774b163dc18",
+          "runs": 3,
+          "scorer_sha": "660b39fe775b"
+        },
+        "prompt_sha": "2eaef7477bd9",
+        "run_totals": [
+          17,
+          17,
+          17,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "8f2c4a9c148c"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 0,
+          "12": 6,
+          "13": 6,
+          "14": 5,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 5,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 1,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 18,
+        "out": "twoside_web",
+        "prompt_sha": "7774b163dc18",
+        "run_totals": [
+          17,
+          17,
+          18,
+          18,
+          18,
+          19
+        ],
+        "runs": 6,
+        "scorer_sha": "8f2c4a9c148c"
+      }
     },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 18,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 20,
-     "numerator": 18,
-     "out": "baseline_20260824",
-     "prompt_sha": "7774b163dc18",
-     "runs": 3,
-     "scorer_sha": "660b39fe775b"
+    "1b": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 20,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 20,
+          "numerator": 20,
+          "out": "baseline_20260824",
+          "prompt_sha": "5b8b38b4cde9",
+          "runs": 3,
+          "scorer_sha": "466cd518dfe8"
+        },
+        "prompt_sha": "5b8b38b4cde9",
+        "run_totals": [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "runs": 6,
+        "scorer_sha": "4f0592d0beaf"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 20,
+        "out": "twoside_web",
+        "prompt_sha": "5b8b38b4cde9",
+        "run_totals": [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "runs": 6,
+        "scorer_sha": "4f0592d0beaf"
+      }
     },
-    "prompt_sha": "2eaef7477bd9",
-    "run_totals": [
-     17,
-     17,
-     17,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "8f2c4a9c148c"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 0,
-     "12": 6,
-     "13": 6,
-     "14": 5,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 5,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 1,
-     "7": 6,
-     "8": 6,
-     "9": 6
+    "1c": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 0,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 3,
+          "17": 6,
+          "18": 6,
+          "2": 6,
+          "3": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 17,
+        "excluded_cells": {},
+        "exclusions": [
+          4,
+          19,
+          20
+        ],
+        "numerator": 16,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 17,
+          "numerator": 16,
+          "out": "baseline_20260824",
+          "prompt_sha": "88276a1e030a",
+          "runs": 3,
+          "scorer_sha": "03663d1125ff"
+        },
+        "prompt_sha": "81ba458d4fae",
+        "run_totals": [
+          15,
+          15,
+          15,
+          16,
+          16,
+          16
+        ],
+        "runs": 6,
+        "scorer_sha": "4334438d6d55"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 0,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 5,
+          "17": 6,
+          "18": 6,
+          "2": 6,
+          "3": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 5,
+          "9": 6
+        },
+        "denominator": 17,
+        "excluded_cells": {},
+        "exclusions": [
+          4,
+          19,
+          20
+        ],
+        "numerator": 16,
+        "out": "twoside_web",
+        "prompt_sha": "88276a1e030a",
+        "run_totals": [
+          15,
+          15,
+          16,
+          16,
+          16,
+          16
+        ],
+        "runs": 6,
+        "scorer_sha": "4334438d6d55"
+      }
     },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 18,
-    "out": "twoside_web",
-    "prompt_sha": "7774b163dc18",
-    "run_totals": [
-     17,
-     17,
-     18,
-     18,
-     18,
-     19
-    ],
-    "runs": 6,
-    "scorer_sha": "8f2c4a9c148c"
-   }
+    "2a": {
+      "cli": {
+        "cells": {
+          "1": 0,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 0,
+          "14": 1,
+          "15": 0,
+          "16": 0,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 15,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 20,
+          "numerator": 15,
+          "out": "scorer_fix_6run",
+          "prompt_sha": "8ca6bcea06d8",
+          "runs": 6,
+          "scorer_sha": "08ba16711c07"
+        },
+        "prompt_sha": "e0f3f2121c02",
+        "run_totals": [
+          15,
+          15,
+          15,
+          15,
+          15,
+          16
+        ],
+        "runs": 6,
+        "scorer_sha": "6526989cd34f"
+      },
+      "web": {
+        "cells": {
+          "1": 0,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 0,
+          "14": 2,
+          "15": 0,
+          "16": 0,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 15,
+        "out": "twoside_web",
+        "prompt_sha": "8ca6bcea06d8",
+        "run_totals": [
+          15,
+          15,
+          15,
+          15,
+          16,
+          16
+        ],
+        "runs": 6,
+        "scorer_sha": "6526989cd34f"
+      }
+    },
+    "2b": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 20,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 20,
+          "numerator": 20,
+          "out": "scorer_fix_6run",
+          "prompt_sha": "ff12408f6d76",
+          "runs": 6,
+          "scorer_sha": "08ba16711c07"
+        },
+        "prompt_sha": "9c07a2b2ed0e",
+        "run_totals": [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "runs": 6,
+        "scorer_sha": "6526989cd34f"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 20,
+        "out": "twoside_web",
+        "prompt_sha": "ff12408f6d76",
+        "run_totals": [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "runs": 6,
+        "scorer_sha": "6526989cd34f"
+      }
+    },
+    "3": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 2,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 19,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 20,
+          "numerator": 20,
+          "out": "scorer_fix_6run",
+          "prompt_sha": "5ab233254952",
+          "runs": 6,
+          "scorer_sha": "08ba16711c07"
+        },
+        "prompt_sha": "b820a5669872",
+        "run_totals": [
+          19,
+          19,
+          19,
+          19,
+          20,
+          20
+        ],
+        "runs": 6,
+        "scorer_sha": "6526989cd34f"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 20,
+        "out": "twoside_web",
+        "prompt_sha": "5ab233254952",
+        "run_totals": [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "runs": 6,
+        "scorer_sha": "6526989cd34f"
+      }
+    },
+    "D1": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 1
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 18,
+          "out": "baseline_20260824",
+          "prompt_sha": "385c91cae672",
+          "runs": 3,
+          "scorer_sha": "87749496b9c8"
+        },
+        "prompt_sha": "13f895ca5111",
+        "run_totals": [
+          18,
+          18,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "fa4d1b3a2c1d"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 5,
+          "3": 1
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_web",
+        "prompt_sha": "385c91cae672",
+        "run_totals": [
+          18,
+          18,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "fa4d1b3a2c1d"
+      }
+    },
+    "D2": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 3,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 18,
+          "out": "baseline_20260824",
+          "prompt_sha": "d157ef618d52",
+          "runs": 3,
+          "scorer_sha": "87749496b9c8"
+        },
+        "prompt_sha": "532fa90f0bb3",
+        "run_totals": [
+          18,
+          18,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "fa4d1b3a2c1d"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 5,
+          "3": 1
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_web",
+        "prompt_sha": "d157ef618d52",
+        "run_totals": [
+          18,
+          18,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "fa4d1b3a2c1d"
+      }
+    },
+    "DAY1": {
+      "cli": {
+        "cells": {
+          "1": 0,
+          "10": 6,
+          "11": 4,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 17,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 17,
+          "out": "cadence_eq6",
+          "prompt_sha": "d227fc42c4ef",
+          "runs": 6,
+          "scorer_sha": "38bd39ee8a03"
+        },
+        "prompt_sha": "3d31b9a39dc3",
+        "run_totals": [
+          16,
+          16,
+          17,
+          17,
+          17,
+          17
+        ],
+        "runs": 6,
+        "scorer_sha": "52fedad3b91b"
+      }
+    },
+    "DAY2": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 4,
+          "12": 5,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 0,
+          "8": 3,
+          "9": 5
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 6
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 16,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 17,
+          "out": "cadence_eq6",
+          "prompt_sha": "8c68e07f866f",
+          "runs": 6,
+          "scorer_sha": "38bd39ee8a03"
+        },
+        "prompt_sha": "b9275503c33a",
+        "run_totals": [
+          15,
+          16,
+          16,
+          16,
+          16,
+          16
+        ],
+        "runs": 6,
+        "scorer_sha": "52fedad3b91b"
+      }
+    },
+    "NP": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 3,
+          "13": 6,
+          "14": 5,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 5,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 17,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 18,
+          "out": "despec_h2",
+          "prompt_sha": "dc3345c3efd7",
+          "runs": 3,
+          "scorer_sha": "a65b80bf4352"
+        },
+        "prompt_sha": "0cab62ceeb01",
+        "run_totals": [
+          16,
+          17,
+          17,
+          17,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "2f11176f1cd0"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 4,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_web",
+        "prompt_sha": "21557786dd47",
+        "run_totals": [
+          17,
+          17,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "2f11176f1cd0"
+      }
+    },
+    "NR": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 2,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 3,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 0,
+          "4": 0,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 15,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 16,
+          "out": "nr_barrier2",
+          "prompt_sha": "9980a1ccd5e1",
+          "runs": 6,
+          "scorer_sha": "5c0899ad6d04"
+        },
+        "prompt_sha": "ef2f0d6aff20",
+        "run_totals": [
+          14,
+          14,
+          15,
+          15,
+          15,
+          16
+        ],
+        "runs": 6,
+        "scorer_sha": "eba19bcb286b"
+      }
+    },
+    "PP": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 6
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 18,
+          "out": "despec_h2",
+          "prompt_sha": "69c011f7db56",
+          "runs": 3,
+          "scorer_sha": "a65b80bf4352"
+        },
+        "prompt_sha": "86703f540a22",
+        "run_totals": [
+          18,
+          18,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "2f11176f1cd0"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 5,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 6
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_web",
+        "prompt_sha": "202b51ea6175",
+        "run_totals": [
+          17,
+          18,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "2f11176f1cd0"
+      }
+    },
+    "PR": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 3,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 18,
+          "out": "pr_record",
+          "prompt_sha": "878d956d3d75",
+          "runs": 6,
+          "scorer_sha": "a65b80bf4352"
+        },
+        "prompt_sha": "7a8634056b80",
+        "run_totals": [
+          17,
+          17,
+          17,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "2f11176f1cd0"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 2,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 17,
+        "out": "twoside_web",
+        "prompt_sha": "4aab3a39db71",
+        "run_totals": [
+          17,
+          17,
+          17,
+          17,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "2f11176f1cd0"
+      }
+    },
+    "Q1": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 1,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 3,
+          "15": 6,
+          "16": 6,
+          "17": 1,
+          "18": 6,
+          "19": 5,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 2
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 17,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 20,
+          "numerator": 18,
+          "out": "tier_restored",
+          "prompt_sha": "08e2163d1613",
+          "runs": 6,
+          "scorer_sha": "08ba16711c07"
+        },
+        "prompt_sha": "a4ddb7c9c87e",
+        "run_totals": [
+          16,
+          17,
+          17,
+          17,
+          17,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "6526989cd34f"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 0,
+          "11": 3,
+          "12": 6,
+          "13": 6,
+          "14": 5,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 4,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 5,
+          "7": 5,
+          "8": 6,
+          "9": 1
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 17,
+        "out": "twoside_web",
+        "prompt_sha": "08e2163d1613",
+        "run_totals": [
+          16,
+          16,
+          17,
+          17,
+          17,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "6526989cd34f"
+      }
+    },
+    "Q2": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 1,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 3,
+          "17": 6,
+          "18": 3,
+          "19": 6,
+          "2": 6,
+          "20": 1,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 5,
+          "7": 1,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 16,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 20,
+          "numerator": 18,
+          "out": "scorer_fix_6run",
+          "prompt_sha": "671c74ebe8cb",
+          "runs": 6,
+          "scorer_sha": "08ba16711c07"
+        },
+        "prompt_sha": "7ccf05c7e22f",
+        "run_totals": [
+          15,
+          16,
+          16,
+          16,
+          17,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "6526989cd34f"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 0,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 3,
+          "17": 6,
+          "18": 2,
+          "19": 6,
+          "2": 6,
+          "20": 0,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 3,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 17,
+        "out": "twoside_web",
+        "prompt_sha": "671c74ebe8cb",
+        "run_totals": [
+          15,
+          15,
+          16,
+          17,
+          17,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "6526989cd34f"
+      }
+    },
+    "Q3": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 1,
+          "11": 6,
+          "12": 6,
+          "13": 5,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 0,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 18,
+        "out": "twoside_cli",
+        "prompt_sha": "cb94d03d8b20",
+        "run_totals": [
+          18,
+          18,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "8f2c4a9c148c"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 1,
+          "11": 6,
+          "12": 6,
+          "13": 5,
+          "14": 6,
+          "15": 6,
+          "16": 5,
+          "17": 6,
+          "18": 6,
+          "19": 0,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 18,
+        "out": "twoside_web",
+        "prompt_sha": "f33083b970b3",
+        "run_totals": [
+          16,
+          18,
+          18,
+          18,
+          18,
+          19
+        ],
+        "runs": 6,
+        "scorer_sha": "8f2c4a9c148c"
+      }
+    },
+    "Q4a": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 0,
+          "15": 6,
+          "16": 3,
+          "17": 6,
+          "18": 6,
+          "19": 0,
+          "2": 5,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 5,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 17,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 20,
+          "numerator": 18,
+          "out": "q4a_final",
+          "prompt_sha": "c9f18c4b868e",
+          "runs": 6,
+          "scorer_sha": "9decbd34055f"
+        },
+        "prompt_sha": "c770299c50d7",
+        "run_totals": [
+          17,
+          17,
+          17,
+          17,
+          17,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "9cf671cbc173"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 0,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 0,
+          "2": 3,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 3
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 18,
+        "out": "twoside_web",
+        "prompt_sha": "26ade4488fcd",
+        "run_totals": [
+          16,
+          16,
+          16,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "9cf671cbc173"
+      }
+    },
+    "Q4b": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 0,
+          "13": 2,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 5,
+          "3": 6,
+          "4": 0,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 19,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 16,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 19,
+          "numerator": 16,
+          "out": "scorer_fix_6run",
+          "prompt_sha": "8f797ae166bb",
+          "runs": 6,
+          "scorer_sha": "dbbf7fbb650b"
+        },
+        "prompt_sha": "7945bc093e62",
+        "run_totals": [
+          15,
+          16,
+          16,
+          16,
+          17,
+          17
+        ],
+        "runs": 6,
+        "scorer_sha": "22f8ceb090da"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 0,
+          "13": 2,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 5,
+          "18": 6,
+          "19": 5,
+          "20": 6,
+          "3": 6,
+          "4": 0,
+          "5": 6,
+          "6": 5,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 19,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 16,
+        "out": "twoside_web",
+        "prompt_sha": "884defb56f26",
+        "run_totals": [
+          15,
+          15,
+          16,
+          16,
+          16,
+          17
+        ],
+        "runs": 6,
+        "scorer_sha": "22f8ceb090da"
+      }
+    },
+    "Q4c": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 5,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "2": 6,
+          "20": 0,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 0
+        },
+        "denominator": 19,
+        "excluded_cells": {
+          "16": 0
+        },
+        "exclusions": [
+          16
+        ],
+        "numerator": 17,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 19,
+          "numerator": 17,
+          "out": "baseline_20260824",
+          "prompt_sha": "31614b3167c4",
+          "runs": 3,
+          "scorer_sha": "9decbd34055f"
+        },
+        "prompt_sha": "fbc8e17ee92a",
+        "run_totals": [
+          16,
+          17,
+          17,
+          17,
+          17,
+          17
+        ],
+        "runs": 6,
+        "scorer_sha": "9cf671cbc173"
+      }
+    },
+    "Q5": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 5,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 0,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 5
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 19,
+        "out": "twoside_cli",
+        "prompt_sha": "16eeb6f79daa",
+        "run_totals": [
+          18,
+          18,
+          19,
+          19,
+          19,
+          19
+        ],
+        "runs": 6,
+        "scorer_sha": "8f2c4a9c148c"
+      },
+      "web": {
+        "cells": {
+          "1": 4,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 0,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 19,
+        "out": "twoside_web",
+        "prompt_sha": "aef93b94c75f",
+        "run_totals": [
+          18,
+          18,
+          19,
+          19,
+          19,
+          19
+        ],
+        "runs": 6,
+        "scorer_sha": "8f2c4a9c148c"
+      }
+    },
+    "Q6": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 4,
+          "15": 6,
+          "16": 3,
+          "17": 6,
+          "18": 3,
+          "19": 6,
+          "2": 0,
+          "20": 6,
+          "3": 6,
+          "4": 5,
+          "5": 4,
+          "6": 3,
+          "7": 6,
+          "8": 0,
+          "9": 5
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 16,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 20,
+          "numerator": 18,
+          "out": "baseline_20260824",
+          "prompt_sha": "78c9b1a3c3d0",
+          "runs": 3,
+          "scorer_sha": "3dbb1d76bdd4"
+        },
+        "prompt_sha": "39ddb377dad0",
+        "run_totals": [
+          15,
+          15,
+          15,
+          16,
+          16,
+          16
+        ],
+        "runs": 6,
+        "scorer_sha": "53f6d985f174"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 3,
+          "19": 6,
+          "2": 0,
+          "20": 6,
+          "3": 6,
+          "4": 3,
+          "5": 3,
+          "6": 6,
+          "7": 6,
+          "8": 0,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 17,
+        "out": "twoside_web",
+        "prompt_sha": "78c9b1a3c3d0",
+        "run_totals": [
+          15,
+          16,
+          16,
+          17,
+          17,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "53f6d985f174"
+      }
+    },
+    "T1": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 6
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 18,
+          "out": "baseline_20260824",
+          "prompt_sha": "e3b7c1d9ab70",
+          "runs": 3,
+          "scorer_sha": "466cd518dfe8"
+        },
+        "prompt_sha": "e3b7c1d9ab70",
+        "run_totals": [
+          18,
+          18,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "4f0592d0beaf"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 6
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_web",
+        "prompt_sha": "e3b7c1d9ab70",
+        "run_totals": [
+          18,
+          18,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "4f0592d0beaf"
+      }
+    },
+    "T2": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 6
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 18,
+          "out": "baseline_20260824",
+          "prompt_sha": "444071541584",
+          "runs": 3,
+          "scorer_sha": "466cd518dfe8"
+        },
+        "prompt_sha": "444071541584",
+        "run_totals": [
+          18,
+          18,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "4f0592d0beaf"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 6
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_web",
+        "prompt_sha": "444071541584",
+        "run_totals": [
+          18,
+          18,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "4f0592d0beaf"
+      }
+    },
+    "WK1": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 5,
+          "20": 6,
+          "4": 6,
+          "5": 5,
+          "6": 6,
+          "7": 3,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 17,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 18,
+          "out": "leak_fix",
+          "prompt_sha": "eec71a7aa42b",
+          "runs": 6,
+          "scorer_sha": "3212c8d0bd13"
+        },
+        "prompt_sha": "90c72369965a",
+        "run_totals": [
+          16,
+          17,
+          17,
+          17,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "92cc12585cc2"
+      },
+      "web": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 5,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 5,
+          "7": 5,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_web",
+        "prompt_sha": "c344af183dfa",
+        "run_totals": [
+          17,
+          17,
+          17,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "92cc12585cc2"
+      }
+    },
+    "WK2": {
+      "cli": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 4,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 3,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 3,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 17,
+        "out": "twoside_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 17,
+          "out": "cadence_eq6",
+          "prompt_sha": "df7b884d4b78",
+          "runs": 6,
+          "scorer_sha": "38bd39ee8a03"
+        },
+        "prompt_sha": "217bacce9779",
+        "run_totals": [
+          15,
+          15,
+          17,
+          17,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "52fedad3b91b"
+      }
+    }
   },
-  "1b": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 20,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 20,
-     "numerator": 20,
-     "out": "baseline_20260824",
-     "prompt_sha": "5b8b38b4cde9",
-     "runs": 3,
-     "scorer_sha": "466cd518dfe8"
-    },
-    "prompt_sha": "5b8b38b4cde9",
-    "run_totals": [
-     20,
-     20,
-     20,
-     20,
-     20,
-     20
-    ],
-    "runs": 6,
-    "scorer_sha": "4f0592d0beaf"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 20,
-    "out": "twoside_web",
-    "prompt_sha": "5b8b38b4cde9",
-    "run_totals": [
-     20,
-     20,
-     20,
-     20,
-     20,
-     20
-    ],
-    "runs": 6,
-    "scorer_sha": "4f0592d0beaf"
-   }
-  },
-  "1c": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 0,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 3,
-     "17": 6,
-     "18": 6,
-     "2": 6,
-     "3": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 17,
-    "excluded_cells": {},
-    "exclusions": [
-     4,
-     19,
-     20
-    ],
-    "numerator": 16,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 17,
-     "numerator": 16,
-     "out": "baseline_20260824",
-     "prompt_sha": "88276a1e030a",
-     "runs": 3,
-     "scorer_sha": "03663d1125ff"
-    },
-    "prompt_sha": "81ba458d4fae",
-    "run_totals": [
-     15,
-     15,
-     15,
-     16,
-     16,
-     16
-    ],
-    "runs": 6,
-    "scorer_sha": "4334438d6d55"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 0,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 5,
-     "17": 6,
-     "18": 6,
-     "2": 6,
-     "3": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 5,
-     "9": 6
-    },
-    "denominator": 17,
-    "excluded_cells": {},
-    "exclusions": [
-     4,
-     19,
-     20
-    ],
-    "numerator": 16,
-    "out": "twoside_web",
-    "prompt_sha": "88276a1e030a",
-    "run_totals": [
-     15,
-     15,
-     16,
-     16,
-     16,
-     16
-    ],
-    "runs": 6,
-    "scorer_sha": "4334438d6d55"
-   }
-  },
-  "2a": {
-   "cli": {
-    "cells": {
-     "1": 0,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 0,
-     "14": 1,
-     "15": 0,
-     "16": 0,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 15,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 20,
-     "numerator": 15,
-     "out": "scorer_fix_6run",
-     "prompt_sha": "8ca6bcea06d8",
-     "runs": 6,
-     "scorer_sha": "08ba16711c07"
-    },
-    "prompt_sha": "e0f3f2121c02",
-    "run_totals": [
-     15,
-     15,
-     15,
-     15,
-     15,
-     16
-    ],
-    "runs": 6,
-    "scorer_sha": "6526989cd34f"
-   },
-   "web": {
-    "cells": {
-     "1": 0,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 0,
-     "14": 2,
-     "15": 0,
-     "16": 0,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 15,
-    "out": "twoside_web",
-    "prompt_sha": "8ca6bcea06d8",
-    "run_totals": [
-     15,
-     15,
-     15,
-     15,
-     16,
-     16
-    ],
-    "runs": 6,
-    "scorer_sha": "6526989cd34f"
-   }
-  },
-  "2b": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 20,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 20,
-     "numerator": 20,
-     "out": "scorer_fix_6run",
-     "prompt_sha": "ff12408f6d76",
-     "runs": 6,
-     "scorer_sha": "08ba16711c07"
-    },
-    "prompt_sha": "9c07a2b2ed0e",
-    "run_totals": [
-     20,
-     20,
-     20,
-     20,
-     20,
-     20
-    ],
-    "runs": 6,
-    "scorer_sha": "6526989cd34f"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 20,
-    "out": "twoside_web",
-    "prompt_sha": "ff12408f6d76",
-    "run_totals": [
-     20,
-     20,
-     20,
-     20,
-     20,
-     20
-    ],
-    "runs": 6,
-    "scorer_sha": "6526989cd34f"
-   }
-  },
-  "3": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 2,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 19,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 20,
-     "numerator": 20,
-     "out": "scorer_fix_6run",
-     "prompt_sha": "5ab233254952",
-     "runs": 6,
-     "scorer_sha": "08ba16711c07"
-    },
-    "prompt_sha": "b820a5669872",
-    "run_totals": [
-     19,
-     19,
-     19,
-     19,
-     20,
-     20
-    ],
-    "runs": 6,
-    "scorer_sha": "6526989cd34f"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 20,
-    "out": "twoside_web",
-    "prompt_sha": "5ab233254952",
-    "run_totals": [
-     20,
-     20,
-     20,
-     20,
-     20,
-     20
-    ],
-    "runs": 6,
-    "scorer_sha": "6526989cd34f"
-   }
-  },
-  "D1": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 1
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 18,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 18,
-     "numerator": 18,
-     "out": "baseline_20260824",
-     "prompt_sha": "385c91cae672",
-     "runs": 3,
-     "scorer_sha": "87749496b9c8"
-    },
-    "prompt_sha": "13f895ca5111",
-    "run_totals": [
-     18,
-     18,
-     18,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "fa4d1b3a2c1d"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 5,
-     "3": 1
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 18,
-    "out": "twoside_web",
-    "prompt_sha": "385c91cae672",
-    "run_totals": [
-     18,
-     18,
-     18,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "fa4d1b3a2c1d"
-   }
-  },
-  "D2": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 3,
-     "3": 0
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 18,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 18,
-     "numerator": 18,
-     "out": "baseline_20260824",
-     "prompt_sha": "d157ef618d52",
-     "runs": 3,
-     "scorer_sha": "87749496b9c8"
-    },
-    "prompt_sha": "532fa90f0bb3",
-    "run_totals": [
-     18,
-     18,
-     18,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "fa4d1b3a2c1d"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 5,
-     "3": 1
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 18,
-    "out": "twoside_web",
-    "prompt_sha": "d157ef618d52",
-    "run_totals": [
-     18,
-     18,
-     18,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "fa4d1b3a2c1d"
-   }
-  },
-  "DAY1": {
-   "cli": {
-    "cells": {
-     "1": 0,
-     "10": 6,
-     "11": 4,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 0
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 17,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 18,
-     "numerator": 17,
-     "out": "cadence_eq6",
-     "prompt_sha": "d227fc42c4ef",
-     "runs": 6,
-     "scorer_sha": "38bd39ee8a03"
-    },
-    "prompt_sha": "3d31b9a39dc3",
-    "run_totals": [
-     16,
-     16,
-     17,
-     17,
-     17,
-     17
-    ],
-    "runs": 6,
-    "scorer_sha": "52fedad3b91b"
-   }
-  },
-  "DAY2": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 4,
-     "12": 5,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 0,
-     "8": 3,
-     "9": 5
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 6
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 16,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 18,
-     "numerator": 17,
-     "out": "cadence_eq6",
-     "prompt_sha": "8c68e07f866f",
-     "runs": 6,
-     "scorer_sha": "38bd39ee8a03"
-    },
-    "prompt_sha": "b9275503c33a",
-    "run_totals": [
-     15,
-     16,
-     16,
-     16,
-     16,
-     16
-    ],
-    "runs": 6,
-    "scorer_sha": "52fedad3b91b"
-   }
-  },
-  "NP": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 3,
-     "13": 6,
-     "14": 5,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 5,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 0
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 17,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 18,
-     "numerator": 18,
-     "out": "despec_h2",
-     "prompt_sha": "dc3345c3efd7",
-     "runs": 3,
-     "scorer_sha": "a65b80bf4352"
-    },
-    "prompt_sha": "0cab62ceeb01",
-    "run_totals": [
-     16,
-     17,
-     17,
-     17,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "2f11176f1cd0"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 4,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 0
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 18,
-    "out": "twoside_web",
-    "prompt_sha": "21557786dd47",
-    "run_totals": [
-     17,
-     17,
-     18,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "2f11176f1cd0"
-   }
-  },
-  "NR": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 2,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 3,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 0,
-     "4": 0,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 0
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 15,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 18,
-     "numerator": 16,
-     "out": "nr_barrier2",
-     "prompt_sha": "9980a1ccd5e1",
-     "runs": 6,
-     "scorer_sha": "5c0899ad6d04"
-    },
-    "prompt_sha": "ef2f0d6aff20",
-    "run_totals": [
-     14,
-     14,
-     15,
-     15,
-     15,
-     16
-    ],
-    "runs": 6,
-    "scorer_sha": "eba19bcb286b"
-   }
-  },
-  "PP": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 6
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 18,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 18,
-     "numerator": 18,
-     "out": "despec_h2",
-     "prompt_sha": "69c011f7db56",
-     "runs": 3,
-     "scorer_sha": "a65b80bf4352"
-    },
-    "prompt_sha": "86703f540a22",
-    "run_totals": [
-     18,
-     18,
-     18,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "2f11176f1cd0"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 5,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 6
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 18,
-    "out": "twoside_web",
-    "prompt_sha": "202b51ea6175",
-    "run_totals": [
-     17,
-     18,
-     18,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "2f11176f1cd0"
-   }
-  },
-  "PR": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 3,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 0
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 18,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 18,
-     "numerator": 18,
-     "out": "pr_record",
-     "prompt_sha": "878d956d3d75",
-     "runs": 6,
-     "scorer_sha": "a65b80bf4352"
-    },
-    "prompt_sha": "7a8634056b80",
-    "run_totals": [
-     17,
-     17,
-     17,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "2f11176f1cd0"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 2,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 0
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 17,
-    "out": "twoside_web",
-    "prompt_sha": "4aab3a39db71",
-    "run_totals": [
-     17,
-     17,
-     17,
-     17,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "2f11176f1cd0"
-   }
-  },
-  "Q1": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 1,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 3,
-     "15": 6,
-     "16": 6,
-     "17": 1,
-     "18": 6,
-     "19": 5,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 2
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 17,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 20,
-     "numerator": 18,
-     "out": "tier_restored",
-     "prompt_sha": "08e2163d1613",
-     "runs": 6,
-     "scorer_sha": "08ba16711c07"
-    },
-    "prompt_sha": "a4ddb7c9c87e",
-    "run_totals": [
-     16,
-     17,
-     17,
-     17,
-     17,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "6526989cd34f"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 0,
-     "11": 3,
-     "12": 6,
-     "13": 6,
-     "14": 5,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 4,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 5,
-     "7": 5,
-     "8": 6,
-     "9": 1
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 17,
-    "out": "twoside_web",
-    "prompt_sha": "08e2163d1613",
-    "run_totals": [
-     16,
-     16,
-     17,
-     17,
-     17,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "6526989cd34f"
-   }
-  },
-  "Q2": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 1,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 3,
-     "17": 6,
-     "18": 3,
-     "19": 6,
-     "2": 6,
-     "20": 1,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 5,
-     "7": 1,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 16,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 20,
-     "numerator": 18,
-     "out": "scorer_fix_6run",
-     "prompt_sha": "671c74ebe8cb",
-     "runs": 6,
-     "scorer_sha": "08ba16711c07"
-    },
-    "prompt_sha": "7ccf05c7e22f",
-    "run_totals": [
-     15,
-     16,
-     16,
-     16,
-     17,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "6526989cd34f"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 0,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 3,
-     "17": 6,
-     "18": 2,
-     "19": 6,
-     "2": 6,
-     "20": 0,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 3,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 17,
-    "out": "twoside_web",
-    "prompt_sha": "671c74ebe8cb",
-    "run_totals": [
-     15,
-     15,
-     16,
-     17,
-     17,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "6526989cd34f"
-   }
-  },
-  "Q3": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 1,
-     "11": 6,
-     "12": 6,
-     "13": 5,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 0,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 18,
-    "out": "twoside_cli",
-    "prompt_sha": "cb94d03d8b20",
-    "run_totals": [
-     18,
-     18,
-     18,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "8f2c4a9c148c"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 1,
-     "11": 6,
-     "12": 6,
-     "13": 5,
-     "14": 6,
-     "15": 6,
-     "16": 5,
-     "17": 6,
-     "18": 6,
-     "19": 0,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 18,
-    "out": "twoside_web",
-    "prompt_sha": "f33083b970b3",
-    "run_totals": [
-     16,
-     18,
-     18,
-     18,
-     18,
-     19
-    ],
-    "runs": 6,
-    "scorer_sha": "8f2c4a9c148c"
-   }
-  },
-  "Q4a": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 0,
-     "15": 6,
-     "16": 3,
-     "17": 6,
-     "18": 6,
-     "19": 0,
-     "2": 5,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 5,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 17,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 20,
-     "numerator": 18,
-     "out": "q4a_final",
-     "prompt_sha": "c9f18c4b868e",
-     "runs": 6,
-     "scorer_sha": "9decbd34055f"
-    },
-    "prompt_sha": "c770299c50d7",
-    "run_totals": [
-     17,
-     17,
-     17,
-     17,
-     17,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "9cf671cbc173"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 0,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 0,
-     "2": 3,
-     "20": 6,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 3
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 18,
-    "out": "twoside_web",
-    "prompt_sha": "26ade4488fcd",
-    "run_totals": [
-     16,
-     16,
-     16,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "9cf671cbc173"
-   }
-  },
-  "Q4b": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 0,
-     "13": 2,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 5,
-     "3": 6,
-     "4": 0,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 19,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 16,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 19,
-     "numerator": 16,
-     "out": "scorer_fix_6run",
-     "prompt_sha": "8f797ae166bb",
-     "runs": 6,
-     "scorer_sha": "dbbf7fbb650b"
-    },
-    "prompt_sha": "7945bc093e62",
-    "run_totals": [
-     15,
-     16,
-     16,
-     16,
-     17,
-     17
-    ],
-    "runs": 6,
-    "scorer_sha": "22f8ceb090da"
-   }
-  },
-  "Q4c": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 5,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "2": 6,
-     "20": 0,
-     "3": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 0
-    },
-    "denominator": 19,
-    "excluded_cells": {
-     "16": 0
-    },
-    "exclusions": [
-     16
-    ],
-    "numerator": 17,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 19,
-     "numerator": 17,
-     "out": "baseline_20260824",
-     "prompt_sha": "31614b3167c4",
-     "runs": 3,
-     "scorer_sha": "9decbd34055f"
-    },
-    "prompt_sha": "fbc8e17ee92a",
-    "run_totals": [
-     16,
-     17,
-     17,
-     17,
-     17,
-     17
-    ],
-    "runs": 6,
-    "scorer_sha": "9cf671cbc173"
-   }
-  },
-  "Q5": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 5,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 0,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 5
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 19,
-    "out": "twoside_cli",
-    "prompt_sha": "16eeb6f79daa",
-    "run_totals": [
-     18,
-     18,
-     19,
-     19,
-     19,
-     19
-    ],
-    "runs": 6,
-    "scorer_sha": "8f2c4a9c148c"
-   },
-   "web": {
-    "cells": {
-     "1": 4,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "2": 6,
-     "20": 6,
-     "3": 6,
-     "4": 0,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 19,
-    "out": "twoside_web",
-    "prompt_sha": "aef93b94c75f",
-    "run_totals": [
-     18,
-     18,
-     19,
-     19,
-     19,
-     19
-    ],
-    "runs": 6,
-    "scorer_sha": "8f2c4a9c148c"
-   }
-  },
-  "Q6": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 4,
-     "15": 6,
-     "16": 3,
-     "17": 6,
-     "18": 3,
-     "19": 6,
-     "2": 0,
-     "20": 6,
-     "3": 6,
-     "4": 5,
-     "5": 4,
-     "6": 3,
-     "7": 6,
-     "8": 0,
-     "9": 5
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 16,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 20,
-     "numerator": 18,
-     "out": "baseline_20260824",
-     "prompt_sha": "78c9b1a3c3d0",
-     "runs": 3,
-     "scorer_sha": "3dbb1d76bdd4"
-    },
-    "prompt_sha": "39ddb377dad0",
-    "run_totals": [
-     15,
-     15,
-     15,
-     16,
-     16,
-     16
-    ],
-    "runs": 6,
-    "scorer_sha": "53f6d985f174"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 3,
-     "19": 6,
-     "2": 0,
-     "20": 6,
-     "3": 6,
-     "4": 3,
-     "5": 3,
-     "6": 6,
-     "7": 6,
-     "8": 0,
-     "9": 6
-    },
-    "denominator": 20,
-    "excluded_cells": {},
-    "exclusions": [],
-    "numerator": 17,
-    "out": "twoside_web",
-    "prompt_sha": "78c9b1a3c3d0",
-    "run_totals": [
-     15,
-     16,
-     16,
-     17,
-     17,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "53f6d985f174"
-   }
-  },
-  "T1": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 6
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 18,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 18,
-     "numerator": 18,
-     "out": "baseline_20260824",
-     "prompt_sha": "e3b7c1d9ab70",
-     "runs": 3,
-     "scorer_sha": "466cd518dfe8"
-    },
-    "prompt_sha": "e3b7c1d9ab70",
-    "run_totals": [
-     18,
-     18,
-     18,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "4f0592d0beaf"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 6
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 18,
-    "out": "twoside_web",
-    "prompt_sha": "e3b7c1d9ab70",
-    "run_totals": [
-     18,
-     18,
-     18,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "4f0592d0beaf"
-   }
-  },
-  "T2": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 6
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 18,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 18,
-     "numerator": 18,
-     "out": "baseline_20260824",
-     "prompt_sha": "444071541584",
-     "runs": 3,
-     "scorer_sha": "466cd518dfe8"
-    },
-    "prompt_sha": "444071541584",
-    "run_totals": [
-     18,
-     18,
-     18,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "4f0592d0beaf"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 6
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 18,
-    "out": "twoside_web",
-    "prompt_sha": "444071541584",
-    "run_totals": [
-     18,
-     18,
-     18,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "4f0592d0beaf"
-   }
-  },
-  "WK1": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 5,
-     "20": 6,
-     "4": 6,
-     "5": 5,
-     "6": 6,
-     "7": 3,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 0
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 17,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 18,
-     "numerator": 18,
-     "out": "leak_fix",
-     "prompt_sha": "eec71a7aa42b",
-     "runs": 6,
-     "scorer_sha": "3212c8d0bd13"
-    },
-    "prompt_sha": "90c72369965a",
-    "run_totals": [
-     16,
-     17,
-     17,
-     17,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "92cc12585cc2"
-   },
-   "web": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 6,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 6,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 5,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 5,
-     "7": 5,
-     "8": 6,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 0
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 18,
-    "out": "twoside_web",
-    "prompt_sha": "c344af183dfa",
-    "run_totals": [
-     17,
-     17,
-     17,
-     18,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "92cc12585cc2"
-   }
-  },
-  "WK2": {
-   "cli": {
-    "cells": {
-     "1": 6,
-     "10": 6,
-     "11": 4,
-     "12": 6,
-     "13": 6,
-     "14": 6,
-     "15": 3,
-     "16": 6,
-     "17": 6,
-     "18": 6,
-     "19": 6,
-     "20": 6,
-     "4": 6,
-     "5": 6,
-     "6": 6,
-     "7": 6,
-     "8": 3,
-     "9": 6
-    },
-    "denominator": 18,
-    "excluded_cells": {
-     "2": 6,
-     "3": 0
-    },
-    "exclusions": [
-     2,
-     3
-    ],
-    "numerator": 17,
-    "out": "twoside_cli",
-    "previous": {
-     "denominator": 18,
-     "numerator": 17,
-     "out": "cadence_eq6",
-     "prompt_sha": "df7b884d4b78",
-     "runs": 6,
-     "scorer_sha": "38bd39ee8a03"
-    },
-    "prompt_sha": "217bacce9779",
-    "run_totals": [
-     15,
-     15,
-     17,
-     17,
-     18,
-     18
-    ],
-    "runs": 6,
-    "scorer_sha": "52fedad3b91b"
-   }
-  }
- },
- "note": "Per item: the prompt SHA that was measured and the exclusion set it was measured over. Written by `measured.py --record`, never by hand. Checked by enforcement.check_items_are_measured_as_configured. An entry may declare `pending` with a reason; it may not be absent."
+  "note": "Per item: the prompt SHA that was measured and the exclusion set it was measured over. Written by `measured.py --record`, never by hand. Checked by enforcement.check_items_are_measured_as_configured. An entry may declare `pending` with a reason; it may not be absent."
 }
