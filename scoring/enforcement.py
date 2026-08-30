@@ -1140,7 +1140,14 @@ SLOT_RULE_BACKLOG_BUDGET = 4
 # The three programs that write scoring artifacts, and the field each must stamp.
 ARTIFACT_WRITERS = (("agreement.py", "the python harness"),
                     ("agreement_app.py", "the app harness"),
-                    ("score.py", "the paper scorer"))
+                    ("score.py", "the paper scorer"),
+                    # score.py writes one file per (run, handout, participant).
+                    # paper_runs.py folds those into the per-item runs shape the
+                    # ledger records and stamps the era on the way -- including
+                    # the MODEL, which matters most here: the paper scorer is
+                    # swept on gpt-5-mini AND on Opus, and only the first is
+                    # comparable to the web and cli columns.
+                    ("paper_runs.py", "the paper sweep folder"))
 
 
 def slot_basis(item: dict) -> dict:

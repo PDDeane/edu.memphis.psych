@@ -663,6 +663,45 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
                 tokens across sides; _fail_token/_fail_verdict are per-side by
                 design and must stay so.
 
+- [ ] E28. **A paper sweep the ledger can record, on either model.**
+      The third scorer could be RUN and not RECORDED. `cross_path.result_cell`
+      read the app's `cell` shape and the harness's `participant_id` shape;
+      score.py writes `rN/hM/participant_NNN.json` with an `items[]` list, which
+      neither. So `measured.record` failed on a paper artifact exactly as it
+      failed on a web one before the reader was shared -- the same gap, still open
+      for the third path, and the reason no paper number has ever entered the
+      ledger.
+      BUILT 2026-08-30, and verified end to end against the old corpus before it
+      was discarded: Q1 18/20, PR 17/18, 1a 18/20 recorded on a `paper` side
+      beside the existing cli and web columns.
+        result_cell   reads the paper shape too, folding `credit_checks` to
+                      met/absent so nothing downstream knows which scorer it came
+                      from.
+        paper_runs.py folds a sweep into the per-item `.runs.json` the ledger
+                      records, one file per item, matching sweep_cli/sweep_app.
+        sweep_paper.sh drives the runs score.py has no --runs for, into rN/hM/,
+                      resumable per slice via a .done marker.
+      TWO SIDES, NOT ONE: `paper` is score.py on gpt-5-mini (`--backend lo`,
+      through the dev server) and `paper_opus` is score.py on Opus (`--backend
+      api`/`cli`). Only the first is comparable to the web and cli columns, both
+      of which ran on gpt-5-mini; an Opus paper run varies the model AND the path
+      at once and can settle neither. Recording both under one key would make each
+      overwrite the other with `previous` implying a progression that never
+      happened.
+      AND THE ERA NOW RECORDS THE MODEL, which it never did. Every measurement
+      before today is silent about what answered it -- survivable only while
+      everything ran on one deployment, and unattributable the moment two models
+      are in play. `era_stamp(model=, backend=)`, defaulting to
+      AZURE_DEPLOYMENT_ID, stamped by the writer because that is the only thing
+      that knows.
+      COST, measured from the real prompts rather than estimated: 519 scored cells
+      a run, ~2,060 input and ~720 output tokens a call. Six runs is ~3,100 calls,
+      6.4M in / 2.3M out -- single-digit dollars on gpt-5-mini and roughly forty
+      times that on Opus.
+      STILL BLOCKING A SWEEP: E11's remaining `{fail}` rewrites, E15 and E25 all
+      change prompts on Q4a, Q4c, Q5, Q6 and 1c. Sweeping first and doing them
+      after costs a re-sweep of five of twenty-six items on every side.
+
 - [ ] E15. **`requires` is implemented on BOTH engines and bound to nothing. Q6 is why it exists.**
       Surfaced 2026-08-29 by the new live-exercise check, which listed `requires`
       as used by NO item. It is not dead code: slotSheet.ts parses and applies it,

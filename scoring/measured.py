@@ -41,6 +41,7 @@ from __future__ import annotations
 import hashlib
 import functools
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -164,7 +165,26 @@ def load() -> dict:
 # the harness inside it talks to the web endpoint, so a glance at the log reads
 # "web". The prompt is the web's on BOTH sides; what differs is whose rules score
 # it. An unlabelled number is a `cli` number.
-SIDES = ("web", "cli")
+# THE THREE SCORERS, and which is which matters more than it looks -- see the
+# comment below. `paper` was added 2026-08-30, when the third scorer finally had
+# a harness that could produce a recordable artifact: before that a paper sweep
+# could be RUN and not RECORDED, which is the same shape as the web-side gap the
+# shared reader closed.
+# THE SCORER x MODEL combinations a number can come from. Scorer alone is not
+# enough: the paper scorer runs on gpt-5-mini through the dev server (`--backend
+# lo`) and on Opus directly (`--backend cli`/`api`), and those are different
+# experiments, not successive versions of one. Recording both under a single
+# `paper` key would make each overwrite the other, with `previous` implying a
+# progression that never happened.
+#
+#   web         agreement_app.py -- the app's own grader, gpt-5-mini
+#   cli         agreement.py     -- the web prompt scored in python, gpt-5-mini
+#   paper       score.py         -- the .docx scorer, gpt-5-mini: the column that
+#                                   is COMPARABLE to the two above
+#   paper_opus  score.py on Opus -- the headroom experiment, deliberately NOT
+#                                   comparable to the others, since it varies the
+#                                   model and the path at once
+SIDES = ("web", "cli", "paper", "paper_opus")
 DEFAULT_SIDE = "cli"
 
 
@@ -492,7 +512,8 @@ def _scoped_closure(roots: tuple) -> tuple:
         if p in roots or p not in _SCOPED_PARTS))
 
 
-def era_stamp(items=None) -> dict:
+def era_stamp(items=None, model: str | None = None,
+              backend: str | None = None) -> dict:
     """What an artifact must record to be comparable with another artifact.
 
     A sweep's .json said WHAT it scored and never WHAT IT SCORED AGAINST, so two
@@ -519,6 +540,14 @@ def era_stamp(items=None) -> dict:
         except Exception:
             return ""
 
+    # WHICH MODEL ANSWERED is part of the era and was missing from it. Every
+    # measurement in the ledger before 2026-08-30 is silent about this, which was
+    # survivable only because all of them ran on the same deployment. The moment
+    # the paper scorer is swept on two models, an artifact that cannot say which
+    # one produced it is unattributable in exactly the way an unstamped prompt is.
+    # Passed by the WRITER, which is the only thing that knows.
+    if model is None:
+        model = os.environ.get("AZURE_DEPLOYMENT_ID") or ""
     if items is None:
         items = sorted(_jobs())
     per = {}
@@ -531,6 +560,10 @@ def era_stamp(items=None) -> dict:
     return {
         "git": _git("rev-parse", "HEAD") or "unknown",
         "dirty": bool(_git("status", "--porcelain")),
+        # Empty when the writer did not say and the environment does not know.
+        # Recorded either way, so "unstamped" is visible rather than assumed.
+        "model": model or "",
+        "backend": backend or "",
         "items": per,
     }
 
