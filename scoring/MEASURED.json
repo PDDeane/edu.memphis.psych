@@ -1891,6 +1891,14 @@
         "exclusions": [],
         "numerator": 19,
         "out": "twoside_cli",
+        "previous": {
+          "denominator": 20,
+          "numerator": 18,
+          "out": "q5_recheck",
+          "prompt_sha": "0dd651594dfa",
+          "runs": 6,
+          "scorer_sha": "8f2c4a9c148c"
+        },
         "prompt_sha": "16eeb6f79daa",
         "run_totals": [
           18,
