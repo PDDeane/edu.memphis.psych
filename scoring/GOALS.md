@@ -112,11 +112,11 @@ had been reported all session.
 
 `--enforcement` alone was being run and called clean. `--scoring` carries THREE
 undeclared mechanical flags, and `--enforcement` itself is structurally blind to
-any rule written as guidance prose (subgoal 15, under the parked goal). Q4b/p12
+any rule written as guidance prose (subgoal E15, under the parked goal). Q4b/p12
 is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
 3.5 in eleven of twelve, and nothing anywhere declares that.
 
-- [x] 1. **Declare the mechanical flags -- or wire them up.** Three findings, all
+- [x] E1. **Declare the mechanical flags -- or wire them up.** Three findings, all
       pre-existing except the first, none declared:
       **Q4a TOTAL, web 4 vs CLI 5.** The two antecedent slots carry 2 points each
       and the item's fifth point lived in the `keyword` component, which was
@@ -173,8 +173,8 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       A_NO_KEYWORD went to 0.0. The two items now agree in EFFECT by different
       mechanisms.
       Q4a and Q4c are marked STALE PROMPT and NOT swept, by instruction. They join
-      subgoal 2's list, which is now TEN items.
-- [x] 10. **A FIX that retires Q4b's declaration, not just the declaration.** DONE, declaration RETIRED.
+      subgoal E2's list, which is now TEN items.
+- [x] E10. **A FIX that retires Q4b's declaration, not just the declaration.** DONE, declaration RETIRED.
       User, 2026-08-28: "I want more than a declaration. I want a fix that allows us
       to retire the declaration." The declaration says the INSTEAD-OF test is prose
       on both sides and the two paths read it differently with no primitive to
@@ -356,7 +356,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       gold-matching, so the web is the reference and this improves the reference
       side's own accuracy rather than importing the CLI's reading.
 
-- [ ] 11. **Empty SLOT_RULE_BACKLOG: thirteen rules the paper scorer cannot see.**
+- [ ] E11. **Empty SLOT_RULE_BACKLOG: thirteen rules the paper scorer cannot see.**
       Created 2026-08-28 because there was no subgoal for it -- only the ratchet,
       which stops the list GROWING and never asked it to shrink. Unlike
       HANDCODED_BUDGET, now at 0, `SLOT_RULE_BACKLOG_BUDGET` sits at 13 with no
@@ -403,7 +403,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       it, and Q4b's five substitution tests are the recorded case of getting it
       wrong.
 
-- [ ] 14. **`forbid` and `maps` cannot score on the APP at all. Seven items.**
+- [ ] E14. **`forbid` and `maps` cannot score on the APP at all. Seven items.**
       Found 2026-08-29 by the two-sided sweep, which is the job it was for. The
       affected items fail EVERY cell on the web side with
       `did not settle within 300s (status=undefined)`. Not a divergence between
@@ -457,7 +457,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       cell, ~90s amortised, three hours an item, and the only signal is
       `no-cell`. Four of the seven were killed mid-sweep to recover ~12 hours.
 
-- [ ] 15. **`requires` is implemented on BOTH engines and bound to nothing. Q6 is why it exists.**
+- [ ] E15. **`requires` is implemented on BOTH engines and bound to nothing. Q6 is why it exists.**
       Surfaced 2026-08-29 by the new live-exercise check, which listed `requires`
       as used by NO item. It is not dead code: slotSheet.ts parses and applies it,
       agreement.py and score.py compute it, primitives.json declares it. Only the
@@ -508,7 +508,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
           BOTH boxes are absent, the opposite end of the problem. So it has no
           way to notice that the second box restates the first, which is exactly
           the second-box collapse recorded against it and Q4b.
-      THE SECOND-BOX EVIDENCE, folded in from subgoal 18 on 2026-08-29 because
+      THE SECOND-BOX EVIDENCE, folded in from subgoal Q18 on 2026-08-29 because
       it is the same defect seen from the other end. All three second-box items
       show the identical asymmetry -- the second slot unmet far more often, and
       far more often in a WRONG cell:
@@ -524,7 +524,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       behavior_2 52/17) with the OPPOSITE direction -- 7 over / 12 under, because
       `maps` DENIES its second box credit. `requires` denies credit too, so a fix
       measured across all three would be judged partly on an item it must make
-      worse. Q4b stays in subgoal 18.
+      worse. Q4b stays in subgoal Q18.
       NOT `requires` CASES, checked and rejected so the list is not padded:
         * 2a +29 -- `counts:hows_given:how_1,how_2`. "said 2, scored 6 against
           gold 4": gold counts sentences that EXPLAIN HOW, the model counts
@@ -539,7 +539,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
           only be judged by a live app run, and `forbid`/`maps` prove a primitive
           can pass every unit test while the app cannot build the sheet. Fix that
           first, then exercise `requires` live BEFORE closing anything -- the
-          rule from subgoal 12/13's episode, now enforced.
+          rule from subgoal E12/13's episode, now enforced.
       (b) Baseline first: Q6's CLI six-run median is 16/20, runs
           [15,15,15,16,16,16]. The web column does not exist yet.
       (c) Measure at SIX runs. The note is explicit that a 3-pass sweep cannot
@@ -553,88 +553,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       uses and nothing can use. A registry entry no item can justify is a claim
       about the system that is not true.
 
-- [ ] 17. **The `keyword` check is 100% accurate and cannot move a score. Retire or convert it.**
-      Asked for as "the accuracy of keyword matching on Q4b and elsewhere". First
-      the scope: Q4B HAS NO KEYWORD SLOT. Only Q4a and Q4c carry one -- "Uses the
-      word antecedent or trigger" and "Uses the word consequence".
-      ACCURACY IS NOT THE PROBLEM, and it was measured rather than assumed. The
-      keyword verdict has something no other slot in this corpus has: a
-      MECHANICAL ground truth. Comparing every verdict against a literal
-      case-folded substring search of the student's own text, over the 6-run web
-      artifacts:
-          Q4a  120/120 agree (100%)
-          Q4c  120/120 agree (100%)
-      240 of 240. The model is not getting this wrong, and no rewording is owed.
-      THE PROBLEM IS THAT IT IS INERT. Neither slot carries points, and neither
-      deduction can charge:
-          Q4a  slot pts none;  A_NO_KEYWORD pts 0.0  -- zeroed by decision, so
-               the code fires and costs nothing.
-          Q4c  slot pts none;  C_NO_KEYWORD pts 1.0  but the credit entry's
-               `codes` map is EMPTY, so no verdict routes to it, and the rubric
-               declares it in `unreachable_codes`.
-      So a required property of a strict schema is spent, on every call, on both
-      items, to obtain an answer that is always right and can never change a
-      number. That is the cost side of subgoal 1's declared flags, finally
-      quantified.
-      TWO WAYS OUT, and the record already rules on one:
-      (a) WIRE IT. Do not, on Q4c: the component's own comment records that no
-          Q4c gold row deducts for the missing word, that the item has no
-          1-point deduction of any kind, and that charging it COST THREE CELLS
-          AND RECOVERED NONE. A fresh measurement agreed. That is settled.
-      (b) CONVERT IT TO `derived`, the primitive built for exactly this -- "a
-          check read off the PAGE, field contents, rather than asked of the
-          model ... left out of the response schema, so the model is never asked
-          to guess at something the runtime already knows." A literal word search
-          is the purest case of it in the corpus, and the 240/240 result is the
-          evidence that the engine and the model already agree, so the conversion
-          is measurably behaviour-preserving BEFORE it is made.
-      PREFER (b) OVER DELETION unless the checklist display needs it: the student
-      is shown "Uses the word antecedent or trigger" as feedback even when it
-      costs nothing, and deleting the slot removes that line. Check what
-      showChecks renders on both items before choosing.
-      MEASURE THE SAVING, since the case for (b) is cost. Two fewer required
-      properties per call across 40 cells x 6 runs, and one less thing for the
-      model to be confident about -- `confident` is unmet 73 times on Q4c and 85
-      on Q4a, so anything that shortens the sheet is worth pricing.
-
-- [ ] 16. **Q4a's `antecedent_2`: the slot that carries the item's remaining error.**
-      Opened 2026-08-29, on the FIRST measurement of Q4a on the app -- it could
-      not run at all before the LLMAction attribute fix (subgoal 14), and the
-      web-only `max` defect had to be cleared before any cell scored on the right
-      scale. So this is a channel nobody has ever been able to look at.
-      THE SLOT PROFILE NAMES IT. Over 120 observations, web:
-        antecedent_1   unmet 24   in wrong cells  6
-        antecedent_2   unmet 31   in wrong cells 10
-        keyword        unmet 18   in wrong cells  3
-      `antecedent_2` is unmet more often than `antecedent_1` AND lands in wrong
-      cells more often -- the SECOND-BOX shape again, on a third item. Subgoal 18
-      (the second-box problem) was scoped to Q4b and Q4c; this is evidence it
-      reaches Q4a, and the three should be read together before either is fixed.
-      FOUR CELLS CARRY IT, and their pattern is the useful part:
-        p2  3/6  a2 flips met/wrong_kind across runs (gold 5)
-        p9  3/6  a2 flips wrong_kind/met across runs (gold 3)
-        p19 0/6  a2 is `met` in 5 of 6 runs and the cell is STILL wrong (gold 5)
-        p14 0/6  a2 is `wrong_kind` in 6 of 6 and the cell is wrong (gold 1)
-      So there are TWO different failures wearing one slot's name, and a fix
-      aimed at either alone will move the other the wrong way:
-        * p2 and p9 are INSTABILITY -- the same box read both ways across runs.
-          A sharper rule about what makes an antecedent "a genuine trigger"
-          addresses these.
-        * p14 and p19 are STABLE and wrong, which a wording change will not
-          touch. p19 is the sharper one: `antecedent_2` is answered `met` in 5 of
-          6 runs and the cell still misses, so the error is NOT in this slot's
-          verdict -- it is in what the sheet does with it. Read p19's boxes out
-          (`equivalence.py --fixture Q4a:19`) BEFORE proposing any rule.
-      DO NOT START FROM THE MEDIAN. The item sits at 18/20 web / 17/20 cli, which
-      hides four cells that are wrong in two unrelated ways; and the by-slot
-      table alone would have pointed the whole effort at wording, which p19 and
-      p14 say cannot work. This is memory/error-profile-by-slot.md's rule and
-      memory/fixture-defects-found-by-readout.md's rule applying at once.
-      Direction is BALANCED -- 9 over, 9 under -- so unlike Q6 and Q4c this is
-      not a `requires` candidate (subgoal 15): denying credit would fix the
-      over-credits and worsen the under-credits by the same count.
-
-- [ ] 19. **Re-test PROSE_ONLY_SLOTS' "NOT CONVERTIBLE" claims when the primitive set changes.**
+- [ ] E19. **Re-test PROSE_ONLY_SLOTS' "NOT CONVERTIBLE" claims when the primitive set changes.**
       Asked for as "a subgoal to clear PROSE_ONLY_SLOTS". IT SHOULD NOT BE
       CLEARED, and the record says so in terms:
       check_prose_only_slots_are_declared's own docstring -- "Unlike
@@ -672,50 +591,90 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       DO NOT let this become pressure to convert. A re-judged entry that is still
       NOT CONVERTIBLE just gets a new stamp; the budget stays 9. The check exists
       so the claim is re-made deliberately, not so the number falls.
-      RELATED: subgoal 15 asks whether `requires` -- implemented on both engines
+      RELATED: subgoal E15 asks whether `requires` -- implemented on both engines
       and bound to no item -- belongs on Q6. Two of these nine entries are Q6
       `affect_*` slots whose reasons turn on what `cover` already constrains. If
       `requires` lands on Q6, both entries are due for re-judging by this rule.
 
-- [ ] 24. **DAY1 alone gates on `phrased_directly`. One `!`, undeclared, eight sibling items.**
-      Found 2026-08-29 while checking whether DAY1 contradicted subgoal 20's
-      orthogonal-gates finding. It does not contradict it; it is a different
-      sheet, and the difference is one character of OLX:
-          DAY1  !phrased_directly:Phrased directly rather than by what is avoided
-          DAY2   phrased_directly:Phrased directly rather than by what is avoided
-          WK1    phrased_directly:Phrased directly rather than by what is avoided
-      The `!` makes it a gate. So on DAY1 that slot can ZERO the whole 4-point
-      item; on its seven siblings -- PR, NR, PP, NP, WK1, DAY2 and (pending) WK2 --
-      it is advisory and cannot deduct at all. Confirmed from the published sheets,
-      not read off the OLX alone: `gates=True` on DAY1, `gates=False` on the rest.
-      IT IS DECLARED NOWHERE. Not in SCORING_DIVERGENCES, not in EQUIVALENCE.md,
-      not in the rubric comments. Both scorers honour it identically, so this is
-      not an equivalence defect -- it is a rubric one, and the audit has no check
-      that would notice it.
-      FIRST DECIDE WHICH IT IS, and the two answers lead opposite ways:
-      (a) INTENTIONAL -- a daily plan phrased by what is avoided is a different
-          failure from a weekly one, serious enough to void the item. Then declare
-          it, with the reason, and subgoal 20's DAY1 numbers stand as real.
-      (b) A SLIP -- someone typed `!` once. Then DAY1 has been scoring on a
-          harsher sheet than its siblings for as long as the slot has existed, and
-          its 17/18 is a number obtained under different rules from DAY2's 16/18.
-      READ THE RECORD BEFORE DECIDING (memory/read-the-record-first.md): check the
-      commit that introduced the `!` and the rubric comment above the component.
-      The precision table in subgoal 21 already lists `phrased_directly` as
-      "advisory, cannot deduct" -- which is TRUE OF NR AND FALSE OF DAY1, so at
-      least one recorded statement was written without this asymmetry in view.
-      THE CHECK THIS WANTS, and it generalises past this one slot: sibling items
-      that share a slot NAME should share its gate/points structure unless
-      declared. The eight cadence-and-type items are one family authored from one
-      pattern; a slot that gates in one of them and not the other seven is either
-      a decision or a typo, and the audit cannot currently tell those apart. That
-      is the same shape as `check_action_attributes_are_declared_in_the_block`:
-      cheap, structural, and it catches a class rather than an instance.
-      DO NOT "FIX" IT BY MEASUREMENT ALONE. DAY1 scores 17/18 on both engines
-      WITH the gate, so removing it is not obviously free; and if it is intentional,
-      removing it loses a judgement gold may be making. Decide the intent first.
+- [ ] E25. **The `keyword` check is 100% accurate and cannot move a score. Retire or convert it.**
+      AN AUDIT SUBGOAL, NOT A QC ONE, and it was filed wrong once: its FINDING is
+      about accuracy (240/240) but its DELIVERABLE is a primitive conversion --
+      turning a model-judged slot into `derived`. That is the audit's own
+      direction of travel, governed by the primitives registry and the
+      PROSE_ONLY/backlog machinery, and it makes a check comparable between
+      engines. The accuracy question is already answered and closed.
+      Asked for as "the accuracy of keyword matching on Q4b and elsewhere". First
+      the scope: Q4B HAS NO KEYWORD SLOT. Only Q4a and Q4c carry one -- "Uses the
+      word antecedent or trigger" and "Uses the word consequence".
+      ACCURACY IS NOT THE PROBLEM, and it was measured rather than assumed. The
+      keyword verdict has something no other slot in this corpus has: a
+      MECHANICAL ground truth. Comparing every verdict against a literal
+      case-folded substring search of the student's own text, over the 6-run web
+      artifacts:
+          Q4a  120/120 agree (100%)
+          Q4c  120/120 agree (100%)
+      240 of 240. The model is not getting this wrong, and no rewording is owed.
+      THE PROBLEM IS THAT IT IS INERT. Neither slot carries points, and neither
+      deduction can charge:
+          Q4a  slot pts none;  A_NO_KEYWORD pts 0.0  -- zeroed by decision, so
+               the code fires and costs nothing.
+          Q4c  slot pts none;  C_NO_KEYWORD pts 1.0  but the credit entry's
+               `codes` map is EMPTY, so no verdict routes to it, and the rubric
+               declares it in `unreachable_codes`.
+      So a required property of a strict schema is spent, on every call, on both
+      items, to obtain an answer that is always right and can never change a
+      number. That is the cost side of subgoal E1's declared flags, finally
+      quantified.
+      TWO WAYS OUT, and the record already rules on one:
+      (a) WIRE IT. Do not, on Q4c: the component's own comment records that no
+          Q4c gold row deducts for the missing word, that the item has no
+          1-point deduction of any kind, and that charging it COST THREE CELLS
+          AND RECOVERED NONE. A fresh measurement agreed. That is settled.
+      (b) CONVERT IT TO `derived`, the primitive built for exactly this -- "a
+          check read off the PAGE, field contents, rather than asked of the
+          model ... left out of the response schema, so the model is never asked
+          to guess at something the runtime already knows." A literal word search
+          is the purest case of it in the corpus, and the 240/240 result is the
+          evidence that the engine and the model already agree, so the conversion
+          is measurably behaviour-preserving BEFORE it is made.
+      PREFER (b) OVER DELETION unless the checklist display needs it: the student
+      is shown "Uses the word antecedent or trigger" as feedback even when it
+      costs nothing, and deleting the slot removes that line. Check what
+      showChecks renders on both items before choosing.
+      MEASURE THE SAVING, since the case for (b) is cost. Two fewer required
+      properties per call across 40 cells x 6 runs, and one less thing for the
+      model to be confident about -- `confident` is unmet 73 times on Q4c and 85
+      on Q4a, so anything that shortens the sheet is worth pricing.
 
-- [ ] 12. **`--selftest` without `--enforcement` silently scores nothing.**
+
+- [ ] E26. **Sibling items sharing a slot NAME should share its gate structure, or declare why not.**
+      Split from Q26 on 2026-08-29, which found the instance: `phrased_directly`
+      GATES on DAY1 and is advisory on its seven siblings, the difference being a
+      single `!` in one OLX slot spec, declared nowhere. Q26 decides whether that
+      one is a decision or a typo. THIS is the check, and it stands either way.
+      WHY IT IS AN AUDIT SUBGOAL and not part of that decision: the eight
+      cadence-and-type items are one family authored from one pattern, and the
+      audit cannot presently tell a deliberate divergence in that family from a
+      typo. Both scorers honour whatever the OLX says, identically, so nothing in
+      the equivalence machinery objects -- which is precisely the blind spot.
+      SAME SHAPE AS `check_action_attributes_are_declared_in_the_block`: read the
+      published sheets, group slots by NAME across items, and report any slot
+      whose `gates`/`pts` structure is not uniform across the group unless the
+      pair is declared. Cheap, structural, catches a class rather than an
+      instance, and needs no model call.
+      SCOPE IT BY FAMILY, NOT BY CORPUS. `keyword` legitimately differs between
+      Q4a and Q4c (one deduction zeroed, the other unreachable), and 1a's week_*
+      slots are not siblings of H2's gates. The grouping that matters is items
+      built from the same pattern; start with the eight H2 cadence-and-type items,
+      where the family is unambiguous, rather than trying to define siblinghood
+      corpus-wide on the first pass.
+      DECLARE, DO NOT NORMALISE. The check's output is a question -- "these seven
+      agree and this one does not" -- and the answer may well be that the odd one
+      is right. A declaration table keyed by (family, slot) with a reason is the
+      product, not a sweep that makes every slot identical.
+
+
+- [ ] E12. **`--selftest` without `--enforcement` silently scores nothing.**
       Found 2026-08-28, during the web sweep, by running it wrong and believing
       the result. `equivalence.py --selftest` is only honoured together with
       `--enforcement`; alone, argparse accepts it, the flag is never read, the
@@ -737,7 +696,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       has this bug, and `--slots`/`--gold` on `cross_path.py` deserve the same
       look.
 
-- [ ] 13. **The self-test degrades silently: a lost case looks like a passing run.**
+- [ ] E13. **The self-test degrades silently: a lost case looks like a passing run.**
       Found the same way and in the same hour as 12, and the two should be read
       together -- 12 is the suite not running, this is the suite running SHORT.
       `equivalence.py --enforcement --selftest` prints `N/N injected breakages
@@ -746,7 +705,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       so a case that stops being constructed reports success.
       TWO WAYS A CASE DISAPPEARS, both live:
       (a) it CRASHES the suite. The `SLOT RULE NAMES A VERDICT` case hard-coded
-      Q4b/`behavior_1` as its injection site; audit subgoal 10 converted that
+      Q4b/`behavior_1` as its injection site; audit subgoal E10 converted that
       rule's logic into the `maps` primitive, the entry lost its `rule` key, and
       the suite died on a KeyError BEFORE ITS FIRST CASE. The guard over every
       other check was taken out by a conversion it was not watching, and stayed
@@ -768,13 +727,13 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       the denominator float. A ratchet, like HANDCODED_ITEM_RULES' budget: the
       number may only go DOWN by decision, never by accident.
 
-- [ ] 2. **A full two-sided sweep: every item, six runs, BOTH scorers.**
+- [ ] E2. **A full two-sided sweep: every item, six runs, BOTH scorers.**
       Replaces "clear the stale H2 items", which would have measured one side of
       ten items. This measures both sides of all of them, and it is the only
       thing that can answer the question the whole goal is about: do the CLI and
       the web give comparable scores now?
       Ten items are stale from the leakage rewrite and the A_NONE/C_NONE wiring,
-      subgoals 3-5 will move more, and every declared divergence in the tree is a
+      subgoals E3-5 will move more, and every declared divergence in the tree is a
       claim about a difference between the sides that has never been measured
       end to end -- only probed per rule. Q4b/p12 is the warning: CLI 5.0 six
       times of six, web 3.5 eleven of twelve, and nothing declared it.
@@ -804,7 +763,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
         5. cross_path reports 25 divergent cells against cli_v8, 15 of them 1c and
            declared. The rest cannot be attributed until both sides are era-matched,
            which the sweep's artifacts will be -- era stamping landed today.
-        6. Q4b/p12 needs a decision of its own, independent of subgoal 9: the web
+        6. Q4b/p12 needs a decision of its own, independent of subgoal E9: the web
            applies a deliberate divergence there and gold sides with the CLI.
 
       PRECONDITION, set 2026-08-28: before the sweep runs, the two sides must put
@@ -821,7 +780,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       not worth what it cost.
       Where the wordings differ, the WEB's wins -- unless the difference is
       forced by how the response text is presented, or the web is CLEARLY WRONG,
-      as in the DAY1 contradiction subgoal 6 found and fixed.
+      as in the DAY1 contradiction subgoal E6 found and fixed.
       AND THE RULE IS ABOUT WORDING, NOT SCORING (user, 2026-08-28). "Web wins"
       settles which of two ways of SAYING the same rule to use; it never settles
       which of two ANSWERS is right. Gold does, and SYMMETRICALLY: whichever side
@@ -844,8 +803,8 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       agreement.py, the WEB prompt scored in python, and `paper_mini_v8` is
       score.py, the path this goal calls the CLI. Reading the directory names as
       sides inverts the conclusion, so cross_path now prints each side's KIND.
-- [x] 6. **The criteria prose was written twice, and the copies had drifted.**
-      Found while establishing subgoal 2's precondition. `score.py:build_prompt`
+- [x] E6. **The criteria prose was written twice, and the copies had drifted.**
+      Found while establishing subgoal E2's precondition. `score.py:build_prompt`
       held the `derive_from_criteria` block and `olx_prompts._criteria_section`
       held a copy whose docstring called it "score.py:build_prompt's
       derive_from_criteria block, verbatim". It was not verbatim: criterion 5's
@@ -893,11 +852,11 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       "SLOT_NOTES is web-only" premise no longer holds for it. Which keys those
       are is declared in `olx_prompts.CLI_CRITERIA_NOTES` rather than copied into
       the check.
-- [x] 9. **Q4b's `behavior_1`/`behavior_2`: convert the referent test to `forbid`.**
-      CLOSED WITHOUT IMPLEMENTING, and replaced by subgoal 10 plus a declaration.
+- [x] E9. **Q4b's `behavior_1`/`behavior_2`: convert the referent test to `forbid`.**
+      CLOSED WITHOUT IMPLEMENTING, and replaced by subgoal E10 plus a declaration.
       The asymmetry is now declared in `olx_prompts.SCORING_DIVERGENCES`, which
-      closes the audit hole subgoal 5 found at zero risk and zero calls, and the
-      experiment itself moved to subgoal 10 where it can be measured properly.
+      closes the audit hole subgoal E5 found at zero risk and zero calls, and the
+      experiment itself moved to subgoal E10 where it can be measured properly.
       Raised BY the registry, 2026-08-28, under the standing rule that any
       PROSE_ONLY_SLOTS entry marked CONVERTIBLE becomes a subgoal here rather than
       a note in a table. `enforcement.check_convertible_prose_rules_have_subgoals`
@@ -923,7 +882,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       decide which of two answers is right. Gold does, and gold is with the CLI.
       The `forbid` declaration should reproduce the CLI's refusal and the web
       should start charging it.
-      NOT BEHAVIOUR-PRESERVING, unlike subgoal 3's seven: this moves a test from
+      NOT BEHAVIOUR-PRESERVING, unlike subgoal E3's seven: this moves a test from
       the model's judgement to the engine's arithmetic, so `oc_grid` cannot certify
       it and the sweep must measure it. Q4b sits at 16/19 over 6 runs, and p4 and
       p12 are the cells to watch -- p12 because it is where the two paths already
@@ -965,7 +924,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
           derivation extended to the `derive_from_credit` path.
       WHAT I RECOMMEND, if the aim is the audit's blindness rather than p4: declare
       the asymmetry in `olx_prompts.SCORING_DIVERGENCES` now -- that closes the
-      hole subgoal 5 found, at zero risk and zero calls -- and treat the referent
+      hole subgoal E5 found, at zero risk and zero calls -- and treat the referent
       test as a separate measured experiment after the sweep, when there is a
       6-run baseline to judge its variance against. The 3-run history is exactly
       why it was rejected before.
@@ -973,7 +932,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       referent test moves and the four judgement conditions stay, the entries
       REMAIN and their reasons must be rewritten to say so.
 
-- [x] 7. **§2c's recorded-comment lookup is blind to all twelve H2 items.** FIXED
+- [x] E7. **§2c's recorded-comment lookup is blind to all twelve H2 items.** FIXED
       2026-08-28. `prior_record` found an item's comments by searching for a literal
       `"id": "DAY1"` line and scanning to the next `"id":`. rubric_h2 builds its
       items from a factory, so no H2 item ever matched and the hook printed "could
@@ -1012,10 +971,10 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       StopIteration` on every H2 `--write`, visibly, for as long as rubric_h2 has
       been a factory. §2c is a discipline the record is supposed to enforce
       automatically, and on the handout with the most recorded dead ends it
-      enforced nothing. Pre-existing, not caused by the subgoal 6 work that
+      enforced nothing. Pre-existing, not caused by the subgoal E6 work that
       surfaced it.
 
-- [x] 3. **Seven scoring rules the two sides implement separately.** Widened
+- [x] E3. **Seven scoring rules the two sides implement separately.** Widened
       from POLARITY_GATE_ITEMS once the audit's new hand-coded check listed them
       all. Every one is DECLARED on the web and HAND-WRITTEN in `score.py` as an
       `if item["id"] in ...` branch, which the enforcement audit cannot compare
@@ -1050,7 +1009,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       two conjunctions convert the way Q4a/Q4c did.
       Delete each branch's line from `enforcement.HANDCODED_ITEM_RULES` as it
       goes; the check fires on a stale exemption, so forgetting is caught.
-      SIX OF THE SEVEN ITEMS ARE ALREADY STALE (subgoal 2), so this can ride that
+      SIX OF THE SEVEN ITEMS ARE ALREADY STALE (subgoal E2), so this can ride that
       sweep instead of costing its own -- but only if it lands before the sweep.
 
       PROGRESS, 6 of 7 converted, all verified behaviour-preserving at 0 model
@@ -1098,7 +1057,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       once the code was read beside it, and the audit cannot check an exemption's
       PROSE -- only that the branch it names still exists.
 
-- [x] 4. **Hash the scoring-path helpers, then re-stamp.** DONE. The three named
+- [x] E4. **Hash the scoring-path helpers, then re-stamp.** DONE. The three named
       helpers were the symptom; the fault was that the fingerprint hashed a LIST
       OF ROOTS and hashing a function does not hash its callees. `measured._closure`
       now takes the transitive closure of local callees, so the class is fixed
@@ -1143,7 +1102,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       the scoping may drop only an item-dependent part. Proved to fire -- 13
       findings when `_closure` is reduced to returning its roots, naming
       `apply_computed -> answer_of` first, which is the original defect.
-- [x] 8. **Clear the seven entries left in HANDCODED_ITEM_RULES.** DONE, table EMPTY, budget 0. Set 2026-08-28
+- [x] E8. **Clear the seven entries left in HANDCODED_ITEM_RULES.** DONE, table EMPTY, budget 0. Set 2026-08-28
       at the user's direction: do it even though all seven are non-scoring, so the
       table empties rather than settling into a permanent backlog. They are five
       `build_schema` shapes (BARRIER_PICK_ITEMS, CONTINGENCY_GATE_ITEMS,
@@ -1209,29 +1168,49 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       room for a replacement entry to arrive unnoticed. So this subgoal closes by
       the budget reaching 0, not by an argument that the remainder is acceptable.
 
-ORDER, set 2026-08-28, amended the same day when subgoal 9 was raised:
+ORDER, reset 2026-08-29 when the two-sided sweep finished. The 2026-08-28 order
+(5 -> 7 -> 8 -> 9 -> the sweep) is spent: all four closed and the sweep has run
+twice, so it is replaced rather than amended.
 
-    5 [done]  ->  7  ->  8  ->  9  ->  the sweep
+    E14 [fix landed]  ->  E2  ->  E11  ->  E15
+                                   E12, E13, E19, E25, E26 any time
 
-Nothing goes to the sweep until 7, 8 and 9 are closed.
+E14 FIRST AND ALREADY DONE IN SUBSTANCE: the block-schema fix landed and is
+verified, and the seven items it unblocked are being re-measured now. It closes
+when the last of them is recorded, which is also what closes E2.
 
-The two that can MOVE A SCORE come last, in this order, and their effect is
-measured BY the sweep rather than by separate runs: 8 changes what the model is
-ASKED (five `build_schema` shapes), and 9 moves a test from the model's judgement
-to the engine's arithmetic on Q4b. 7 is bookkeeping on the §2c hook and moves
-nothing, so it goes first.
-9 AFTER 8 rather than beside it, per the user: 8 empties a table and its schema
-comparison must come out clean before another prompt-affecting change lands on top
-of it. Two uncertified changes arriving together would leave the sweep unable to
-say which moved a cell -- and 9 is already the harder read, since Q4b's p4 and p12
-are the cells to watch and p12 is where the two paths already disagree.
-- [x] 5. **The enforcement audit cannot see a rule written as guidance prose.**
-      MOVED here from quality control, where it was subgoal 15: it is an
+E2 IS THE GATE FOR EVERYTHING ELSE that touches scoring, because until both sides
+are recorded for all 26 items there is no baseline to judge a change against.
+25 of 26 are in; WK2 is running.
+
+E15 (`requires`) LAST of the scoring changes: it adds a slot the model is asked,
+so only a live app run can judge it, and E14 is the proof that a primitive can
+pass every unit test while the app cannot build the sheet. Both of its candidate
+sites -- Q6 and Q4c -- also need E2's baseline.
+
+E11 BEFORE E15 because emptying the paper-blind backlog changes what the paper
+scorer sees, and doing that after a `requires` conversion would leave two
+uncertified changes in one sweep, unable to say which moved a cell. That is the
+same reason the old order put 8 before 9.
+
+E12, E13, E19 and E26 MOVE NO SCORE -- they are audit machinery -- so they can
+land at any point without disturbing a measurement. E25 (`keyword` -> `derived`)
+does touch a sheet, but it is measurably behaviour-preserving before it is made:
+the model and a literal string search agree 240/240, so the conversion changes
+who answers the question and not what the answer is.
+
+NAMING, adopted 2026-08-29: audit subgoals are E<n> (equivalence), quality-control
+subgoals are Q<n>. Both goals had independently numbered 1..N and six numbers
+collided, so "subgoal 14" meant two different things depending on which goal the
+reader had in mind. Every cross-reference in this file is now prefixed.
+
+- [x] E5. **The enforcement audit cannot see a rule written as guidance prose.**
+      MOVED here from quality control, where it was subgoal E15: it is an
       equivalence-enforcement defect, not an item's scoring problem, and it
-      sits directly beside subgoal 3. Both are the same failure in different
+      sits directly beside subgoal E3. Both are the same failure in different
       clothing -- a rule the audit cannot compare because it is not declared.
       Subgoal 3 is rules hand-written in Python; this is rules written in
-      PROSE. Found closing quality-control subgoal 5. The audit compares PRIMITIVES between the two
+      PROSE. Found closing quality-control subgoal E5. The audit compares PRIMITIVES between the two
       sides -- counts, equals, cover, onlyif, requires, expect, forbid, derived --
       so a rule that changes scoring but is expressed in guidance text is invisible
       to it in both directions. Q4b/p12 is the demonstrated case: the web refuses
@@ -1252,7 +1231,7 @@ are the cells to watch and p12 is where the two paths already disagree.
            Q3 4, Q4a 2, Q4b 2, 2a 1, Q5 1. These are NOT attributable -- the two
            comparisons span different prompt versions, so version is confounded
            with path, and only an era-matched two-sided sweep separates them.
-           That is subgoal 2, which is another reason it goes last.
+           That is subgoal E2, which is another reason it goes last.
       Of the 18 robust: 15 are 1c and 1 is Q4a, both DECLARED. Exactly TWO are
       undeclared, and both are stable in 3 of 3 runs rather than noise:
 
@@ -1383,7 +1362,7 @@ are the cells to watch and p12 is where the two paths already disagree.
         1. IT GATES AUTHORING. A new per-slot rule that nothing computes fails the
            audit until someone either expresses it as a primitive -- which the
            enforcement audit can then compare between the two scorers -- or
-           declares why it cannot be one. That forces subgoal 3's choice at the
+           declares why it cannot be one. That forces subgoal E3's choice at the
            moment the rule is written, instead of seven conversions later.
         2. IT IS A WORK LIST, and ENFORCED AS ONE (user's direction, 2026-08-28):
            any entry marked CONVERTIBLE, in whole or in part, becomes a SUBGOAL
@@ -1401,7 +1380,7 @@ are the cells to watch and p12 is where the two paths already disagree.
            naming the same THING as one of the student's own 4a antecedents) is
            `forbid`-shaped, two answers compared by referent. Those are also the
            demonstrated divergence, so they are first in line, and they are now
-           subgoal 9.
+           subgoal E9.
            Seven argue NOT CONVERTIBLE and say why: Q6's "does it state HOW" and
            1a's arc-not-label coverage have no operands to compare, and 1a's weeks
            are already exempted from `counts` in COUNTABLE_EXEMPT because named
@@ -1432,7 +1411,7 @@ The order below is by diagnosed tractability, not by score. A deterministic miss
 with a named failing check is worth more than a larger gap of unknown shape,
 because it can be fixed or declared; a wobbling cell cannot be either.
 
-- [ ] 20. **The SHEET CANNOT REFUSE: over-credit with every check passing.**
+- [ ] Q20. **The SHEET CANNOT REFUSE: over-credit with every check passing.**
       Two views of one phenomenon, merged 2026-08-28: cells where every scoring
       check passes and gold still docks, and the observation-level rate that says
       how much of our over-crediting works that way. Subgoal 22 held the second
@@ -1463,7 +1442,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       owns the asymmetry itself.
       WHAT THIS DOES NOT SAY: that the gates are useless. A gate that never fires
       wrongly may be holding a floor nobody has tried removing -- PP and NP sit at
-      100% on both engines WITH these gates in place, and subgoal 21 records a
+      100% on both engines WITH these gates in place, and subgoal Q21 records a
       proposal to remove one that was withdrawn for exactly that reason. The
       finding is that they are not where this item family's errors live, so they
       are not where a fix for view one will come from.
@@ -1538,7 +1517,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       every cell that scores correctly. Nothing is wrong with the picks.
       THE DETECTOR WAS WRONG TWICE, and the corrected class is FOUR cells, all on
       handout 1:
-          Q1   p10  ours  5.00  gold 4.00     also subgoal 14
+          Q1   p10  ours  5.00  gold 4.00     also subgoal Q14
           Q4a  p17  ours  5.00  gold 4.00
           Q4c  p20  ours  5.00  gold 3.00
           Q6   p2   ours 10.00  gold 8.75     DECLARED ceiling
@@ -1560,7 +1539,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       scores_as_exact, the ledger's numerator -- not from the raw artifacts. Every
       convention I read as a signal today (the ±tol column, blank picks, suspect
       cells) came from going around them.
-      Q1/p10 is the useful survivor: subgoal 14 has it as a live miss, and this
+      Q1/p10 is the useful survivor: subgoal Q14 has it as a live miss, and this
       says no slot on that sheet can refuse it, which is a different problem from a
       criterion set too loosely.
       MONITOR THE REST OF THE SWEEP with the corrected detector -- only gates and
@@ -1568,7 +1547,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       concentrates on one handout, that changes it from a per-cell question into a
       sheet-design one.
 
-- [ ] 23. **`matches_chosen_type` on WK2, and across the cadence family.**
+- [ ] Q23. **`matches_chosen_type` on WK2, and across the cadence family.**
       Measured 2026-08-28 over the CLI sweep, 6 runs, exclusions AND corrected gold
       applied (see the caution at the end -- the first version of this table was
       wrong without them):
@@ -1593,15 +1572,15 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       this: a 2-point slot cannot produce a 3-cell swing on its own.
       A BROADER PROBLEM, AS SUSPECTED, BUT NOT A UNIFORM ONE: six items carry the
       check and three are perfect. It concentrates on the two items whose answers
-      are hardest to type, which is the same shape as the cadence gate (subgoal 22)
-      and the `you_arrange_it` gate (subgoal 21) -- an instrument that is sound where
+      are hardest to type, which is the same shape as the cadence gate (subgoal Q22)
+      and the `you_arrange_it` gate (subgoal Q21) -- an instrument that is sound where
       it fires rarely and unreliable where it fires often. Three slots now show that
       pattern; consider whether it is one finding about the H2 sheet rather than
       three about three slots.
       ALSO IN `SLOT_RULE_BACKLOG`: `matches_chosen_type` is one of the four unscoped
       entries whose judging text lives in SLOT_NOTES, so the PAPER scorer never sees
       it. Both columns of this sweep read it, so that is not causing these errors --
-      but it means equivalence subgoal 11 and this subgoal touch the same rule, and
+      but it means equivalence subgoal Q11 and this subgoal touch the same rule, and
       migrating it to the rubric `rule` field should happen once, not twice.
       CAUTION, and it cost this table two wrong entries: compute correctness with
       `H.apply_corrected_gold` and `H.scored_exactly`, never `abs(pred-gold)`. D2's
@@ -1609,7 +1588,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       writing another quadrant's definition where three independent sources say 2 --
       so a raw comparison read D2 as 0% precise on this slot when it is 100%.
 
-- [ ] 22. **`cadence_is_daily`: a 4-point gate that FLIPS, worst on DAY2.**
+- [ ] Q22. **`cadence_is_daily`: a 4-point gate that FLIPS, worst on DAY2.**
       Raised 2026-08-28 from the sweep. Filed here rather than as a goal of its own
       because GOALS.md holds ONE active goal and that is the equivalence sweep;
       promote it if it should displace that.
@@ -1658,13 +1637,13 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       11 of them wrong, and every one costs a full 4-point item because the check
       gates. That is the largest single pool of error in handout 2.
 
-- [ ] 21. **NR: a 4-point GATE running at 71% precision.**
+- [ ] Q21. **NR: a 4-point GATE running at 71% precision.**
       MEASURED ON THE APP 2026-08-29, the first time NR has ever scored there --
-      it was one of the seven items `forbid` made unrunnable (subgoal 14). Web
+      it was one of the seven items `forbid` made unrunnable (subgoal Q14). Web
       16/18, runs [14,15,15,16,16,16], against the CLI's 15/18. Era checked, 0 of
       20 cells never agreeing, so `forbid` -- the primitive that broke the item --
       computes identically on both engines. Direction 8 over / 14 under, so NR
-      under-credits and is NOT a `requires` candidate (subgoal 15).
+      under-credits and is NOT a `requires` candidate (subgoal E15).
       THE GATE'S PRECISION REPRODUCES: `you_arrange_it` refused 32 times with 8 in
       wrong cells (75%) on the web against 34/10 (71%) on the CLI. Same
       instrument, same imprecision, both engines -- so whatever is wrong with it
@@ -1673,7 +1652,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       AND SO DOES THE ORTHOGONALITY of the four structural gates:
       `names_behavior` 6/0, `names_stimulus` 12/0, `contingent` 14/0,
       `follows_behavior` 13/0 -- 45 refusals between them, ZERO in a wrong cell.
-      Read that with subgoal 20: those four are doing no discriminating work here
+      Read that with subgoal Q20: those four are doing no discriminating work here
       at all, while the fifth gate on the same sheet is the most expensive
       instrument on the item.
       `phrased_directly` IS NOT THE LEVER, and the precision table below already
@@ -1718,7 +1697,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
              wording.
         p3   gold 0.00, ours 4.00. Every SCORING check passes. Gold objects that
              what is taken away "has to be easily controllable", and no check on the
-             sheet asks that. This belongs to subgoal 20's class, not here.
+             sheet asks that. This belongs to subgoal Q20's class, not here.
       THE LEAD PROPOSAL WAS WRONG, AND THE FOURTH TYPE ITEM KILLED IT. I proposed
       making `you_arrange_it` carry points instead of gating, on the grounds that
       gold prices a wrong-type answer at 2 of 4 while our gate takes 4. Then PP and
@@ -1742,7 +1721,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
            against PR's and PP's, which never misfire. NP at 89% is the useful
            middle case: three wrong refusals, few enough to read individually.
         2. p4 is arithmetic, not judgement. Read the picks.
-        3. p3 goes to subgoal 20.
+        3. p3 goes to subgoal Q20.
         4. DO NOT TOUCH `phrased_directly` despite 64 refusals and 7 drifting cells
            -- the largest real instability in the sweep. It is advisory on this item
            and cannot deduct, so its correlation with wrong cells is a marker of
@@ -1751,7 +1730,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       demonstrates_type) cost less together on the web". Read it before changing
       either of those two, since the charge interaction is the declared part.
 
-- [ ] 19. **The LATER-BOX gradient, corpus-wide. Read this before any numbered slot.**
+- [ ] Q19. **The LATER-BOX gradient, corpus-wide. Read this before any numbered slot.**
       Placed ahead of the item-specific subgoals because six of them are about a
       numbered box, and this says which part of that is one problem and which is
       six. Measured 2026-08-28 over the CLI sweep's first seven items, 6 runs each.
@@ -1788,13 +1767,13 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       WHERE TO LOOK, given the above: Q4b and Q4c are the two items whose first box
       is never wrong, and both are `*_1`/`*_2` pairs judged by ONE shared rule.
       Q4b's failures localise further to a single option value (`not_doing`, see
-      subgoal 18) -- check whether Q4c's do too, because a shared cause across the
+      subgoal Q18) -- check whether Q4c's do too, because a shared cause across the
       only two affected items is worth more than two item fixes.
       AND CHECK IT AGAINST THE WEB COLUMN before acting: if the gradient is the
       same on both sides it is the prompt or the corpus, and if it differs it is
       the scorer. That comparison costs nothing once the app sweep lands.
 
-- [x] 1. **Q3's `action` criterion.** The clearest target on the board. Five
+- [x] Q1. **Q3's `action` criterion.** The clearest target on the board. Five
       misses, ONE cause: gold charges two criteria and we charge one, and the
       criterion we skip is `action` every time. DONE, +2: the desc credited
       "access, equipment, or TIME they already have", and gold never credits
@@ -1811,7 +1790,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       medium; p13 over-charges `realistic` on an answer gold passed silently.
       CLOSED on the measured +2, committed. The criterion this subgoal named is
       fixed; the three residual cells are NOT settled and do not stay buried in a
-      closed entry -- they are subgoals 9, 10 and 11, one per criterion, because
+      closed entry -- they are subgoals Q9, 10 and 11, one per criterion, because
       each needs its own readout and they must not be attempted as one change.
   Before ANY sweep: the structural checks now run automatically at the top of
   `agreement.py`, and a HARNESS fix must be shown to change something with
@@ -1824,7 +1803,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
   answers pointed opposite ways -- demanding a doing would have cost p9, p14 and
   p18, all credited on access alone.
 
-- [ ] 2. **2a over-credits `hows_given`: one rule, five cells, 29 of 29 errors.**
+- [ ] Q2. **2a over-credits `hows_given`: one rule, five cells, 29 of 29 errors.**
       Was "Handout 3's 2a, 15/20 with runs [15,15,15] ... six runs first, then read
       the failing checks". The six runs are done and the checks are read, so this
       entry is now the diagnosis rather than the plan. A NEW subgoal was asked for;
@@ -1862,9 +1841,9 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       15/20 -> 20/20 is the ceiling if the rule can be stated; there is no partial
       credit to collect. CONTROLS: the fifteen cells that already pass, all of which
       answer `hows_given` and would be exposed to a stricter definition.
-- [x] 3. **Re-measure the 3-run items at six runs, cheapest-first.** CLOSED
+- [x] Q3. **Re-measure the 3-run items at six runs, cheapest-first.** CLOSED
       2026-08-28 as SUPERSEDED, at the user's direction, not as finished:
-      equivalence subgoal 2 sweeps every item at six runs on both sides, so the
+      equivalence subgoal Q2 sweeps every item at six runs on both sides, so the
       twelve remaining three-run numbers are re-measured by construction rather
       than by a separate campaign. Running both would pay twice for one result.
       STILL AT THREE RUNS when this closed, so this is the list to check the
@@ -1887,7 +1866,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       [SUPERSEDED 2026-08-28: Q1 now records 17/20 and Q2 16/20 from the two-sided
       sweep; the figures in this closed entry are the state when it was written.]
       (runs [15,16,16,16,17,17], was 17/20 on three; now 17/20 at the rewritten
-      prompt -- see subgoal 6) and Q2 measured eighteen of twenty then (runs
+      prompt -- see subgoal Q6) and Q2 measured eighteen of twenty then (runs
       [16,17,17,18,18,18], was 17/20 on three) are recorded, both probes filed,
       both verdicts permitted. Neither item actually moved: every moved cell was
       already unstable and the six-run rates mostly SHARPEN the three-run ones
@@ -1896,7 +1875,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       rubric key, and the fingerprint flagged them because `expand_counted`
       moved, not because arithmetic changed. Q4b and 2a are running; 2b and 3
       are next.
-- [x] 4. **The leakage detector's shared-prose blind spot.** Found twice today:
+- [x] Q4. **The leakage detector's shared-prose blind spot.** Found twice today:
       the word check suppresses any word appearing in ANOTHER authored block, so
       prose duplicated across items is invisible to it -- the whole of
       `_MOVE_RULE` was unchecked while it sat in four prompts, and both times a
@@ -1926,7 +1905,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       OPTION 2 TAKEN: prompts are clean now, the eight handout-2 items read STALE
       PROMPT, and the ~960 calls to re-measure them are deferred rather than
       spent. The ledger tells the truth about what is unmeasured.
-- [x] 5. **Q4b/p12's declared divergence.** Accurate today, but its stated reason
+- [x] Q5. **Q4b/p12's declared divergence.** Accurate today, but its stated reason
       says we never matched gold there and cli_v7/cli_v8 both scored it 3/3. A
       declaration whose reason is false is a declaration that will be trusted
       for the wrong reason.
@@ -1944,12 +1923,12 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       behaviour" -- rather than in a primitive the audit can compare. A
       scoring-relevant rule enforced on one side only is precisely what that audit
       exists to catch, and it is blind to any such rule expressed as prose. That
-      is a NEW gap, wider than this cell, and it is subgoal 15.
+      is a NEW gap, wider than this cell, and it is subgoal E15.
       The divergence itself stands: the web result differs from gold for the
       stated reason, and the refusing test measured +1 cell a run against deleting
       it. Only the false claim is gone.
 
-- [x] 6. **Make the `reasons_given` rewrite live, then measure it.** DRAFTED,
+- [x] Q6. **Make the `reasons_given` rewrite live, then measure it.** DRAFTED,
       not live: `drafts/q1q2_reasons_rule.md` holds the replacement text, the
       per-cell evidence, the rejected alternative and the test plan. Diagnosed
       from Q1's three durable misses, which turned out to be three different
@@ -2037,7 +2016,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       list restored. ASK before spending the 120 calls.
       CLOSED, SUPERSEDED BY SUBGOAL 12 -- and closed as a failure, because that is
       what it was. ELEVEN configurations, ~900 calls, and the item ended where it
-      started at 17/20 before subgoal 12 took it to 18 by a different route.
+      started at 17/20 before subgoal Q12 took it to 18 by a different route.
       Medians measured: v1 17 (kept and committed at the time), v2 16, v3 16,
       v4 17, the per-slot SPLIT 16 and 13, split+attribute 16, split+attribute+
       explicit exclusions 16, and the criterion inside the aggregate 2/6 on its
@@ -2057,7 +2036,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       -- §2a structure before prose, §2b profile errors by slot after every sweep,
       §2c read what is already recorded, the last now enforced by the `--write`
       hook. The full history is in drafts/q1q2_reasons_rule.md.
-- [ ] 7. **Q4b's per-cell instability, which the item median hides.** Two cells
+- [ ] Q7. **Q4b's per-cell instability, which the item median hides.** Two cells
       went from six clean runs to intermittent across two sweeps of IDENTICAL
       prompt text: p17 6/6 -> 4/6, failing `modify_stated`, and p19 6/6 -> 3/6,
       failing `behavior_1`. Neither check had ever failed before. The item's
@@ -2072,12 +2051,12 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       CREDITED rows: the question is where the line falls, not why two cells
       fail. Do not change prose before that readout -- an item at 16/19 with two
       unstable cells can be made worse by a rule that looks tighter.
-- [x] 8. **A count slot outside the rubric's `counts` records nothing.**
+- [x] Q8. **A count slot outside the rubric's `counts` records nothing.**
       `harms_listed` and `benefits_listed` store as `""` in every artifact,
       because `expand_counted` writes a verdict only for keys the RUBRIC names in
       `counts`, and `verdict_of` reads a count answer from the wrong field.
       Their values survive only in `evidence`. That matters beyond tidiness:
-      those two are the operands of the rule subgoal 6 is revising, so the whole
+      those two are the operands of the rule subgoal Q6 is revising, so the whole
       diagnosis of Q1/p9, p10 and p14 had to be reconstructed from prose
       fragments in `evidence` rather than read from `checks`.
       Same shape as the count-recorded-as-blank bug fixed last session, which
@@ -2121,8 +2100,8 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       and `is_satisfied` are on the scoring path and on NO item's fingerprint, so
       editing one changes scores while every item still reads current. Closing
       that re-stamps all 26 ledger entries, which is a decision about the ledger
-      rather than a fix, and ten items are already stale. Carried as subgoal 16.
-- [ ] 9. **Q3/p19: actionability grounded in measurability.** The cell names a
+      rather than a fix, and ten items are already stale. Carried as subgoal Q16.
+- [ ] Q9. **Q3/p19: actionability grounded in measurability.** The cell names a
       MEASURED IN THE TWO-SIDED SWEEP, 6 runs, 2026-08-28. Q3 came out 18/20 at
       100% PER CHECK with a spread of ZERO cells -- so every individual verdict was
       right and the two missed cells are arithmetic on correct judgements. The
@@ -2147,7 +2126,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       way. Read `--criterion Q3 action_oriented` credited rows FIRST; a rule that
       rejects measurability-as-justification risks p9, p14 and p18, all credited
       on access alone.
-- [ ] 10. **Q3/p10: `measurable` at ~3/6.** Names tracking methods but no medium
+- [ ] Q10. **Q3/p10: `measurable` at ~3/6.** Names tracking methods but no medium
       MEASURED IN THE TWO-SIDED SWEEP, 6 runs, 2026-08-28. Q3 came out 18/20 at
       100% PER CHECK with a spread of ZERO cells -- so every individual verdict was
       right and the two missed cells are arithmetic on correct judgements. The
@@ -2167,7 +2146,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       -- what it would be recorded in. Unstable rather than stably wrong, so it
       is the weakest of the three: six runs of the criterion before any prose
       change, since a ~3/6 cell can be moved by noise and read as a fix.
-- [ ] 11. **Q3/p13: `realistic` over-charged.** We charge where gold passed the
+- [ ] Q11. **Q3/p13: `realistic` over-charged.** We charge where gold passed the
       MEASURED IN THE TWO-SIDED SWEEP, 6 runs, 2026-08-28. Q3 came out 18/20 at
       100% PER CHECK with a spread of ZERO cells -- so every individual verdict was
       right and the two missed cells are arithmetic on correct judgements. The
@@ -2189,7 +2168,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       not too lenient. Gold's silence is the evidence, which makes this the one
       of the three where the credited rows matter most -- there is no gold note
       to read, only the absence of a deduction.
-- [x] 12. **Q1's exclusion failures: p6, p10, p16.** Not a counting problem, and
+- [x] Q12. **Q1's exclusion failures: p6, p10, p16.** Not a counting problem, and
       three rewrites of the counting rule have now been blamed for it. The model
       credits things the rubric already excludes: background about how the
       behaviour came about (p16 counts "used to exercise due to sports"), a
@@ -2202,7 +2181,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       v0 and 0/6 under every version since, because v0's harms-dominance
       INCIDENTALLY suppressed its spurious benefit-side reasons. No counting rule
       fixed or broke it; one accidentally hid it.
-      Carries the open question from subgoal 6's v3: an inline exclusion list
+      Carries the open question from subgoal Q6's v3: an inline exclusion list
       beats a pointer (p16 4/6 -> 3/6 -> 1/6 as the list became a reference), so
       the fix here probably ADDS length to the exclusions rather than the counting
       rule. Measure `--criterion Q1 reasons_given` and read the credited rows
@@ -2221,8 +2200,8 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       v1's gain there: a statement naming what the behaviour EXPOSES the student
       to is a negative effect even when written as what the goal behaviour would
       protect against. p14 held at 5/6.
-      p9 was declared (subgoal 12b). p10 did NOT recover and p18 was destabilised
-      by the same change that fixed p6 -- both carried to subgoal 14 rather than
+      p9 was declared (subgoal Q12b). p10 did NOT recover and p18 was destabilised
+      by the same change that fixed p6 -- both carried to subgoal Q14 rather than
       left as prose here.
       THE COST OF NOT READING THE RECORD: eleven configurations and ~900 calls
       went into a merge rule first, while the comment above the component already
@@ -2241,7 +2220,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       handouts.GOLD_DIVERGENCES. Q1 records 17/20 as of the 2026-08-28 sweep
       (18/20 when this was written) and cannot exceed nineteen of
       its twenty cells while this stands.
-- [x] 13. **Q1/p17: `utb_stated` is a coin flip.** CLOSED BY DECISION, not by
+- [x] Q13. **Q1/p17: `utb_stated` is a coin flip.** CLOSED BY DECISION, not by
       success, and with the number: p17 is **4/6** under the committed
       configuration, `utb_stated` reading absent in two runs of six and costing 2
       points each time, while `reasons_given` is 3 and correct in all six. The
@@ -2256,7 +2235,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       sentence about its effects rather than stated on its own, which is a
       boundary question rather than a misapplied rule, and the hardest of the
       three. If Q1 is ever pushed past its current record, this is the cell to
-      look at AFTER subgoal 14.
+      look at AFTER subgoal Q14.
 - [x] **Q3/p8 was a slip.** Two explicit "-1 pt" markers against a max of 5
       imply 3.00; the row wrote 4.00. The control set is the whole item -- one
       charge scores 4, two score 3, three score 2 -- and p19 carries the SAME
@@ -2279,9 +2258,9 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       saying 16/17. Entry removed; the checker now defers to the rebuild.
 - [x] **Q3 re-measured at six runs against the corrected row: 16/20**, runs
       [15,15,15,16,16,17]. The check-level data the 3-run artifact lacked
-      (`checks: null`) is what identified subgoal 1.
+      (`checks: null`) is what identified subgoal Q1.
 
-- [ ] 17. **Q2: `wgb_is_counterpart`, `wgb_inverts_utb`, `reason_3`.**
+- [ ] Q17. **Q2: `wgb_is_counterpart`, `wgb_inverts_utb`, `reason_3`.**
       Set 2026-08-28 from the two-sided sweep's second item. 6 runs, current
       configuration: RECORDS 16/20, runs [15,16,16,16,17,18], spread 3 cells, 0
       failures. The previous entry said 18/20 and was STALE SCORER, so this is a
@@ -2330,16 +2309,16 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       are in that backlog too, unscoped.
       DO NOT CHASE `confident`: unmet in 117 of 120 observations with 95 in cells
       that scored correctly. Same noise floor as Q1, confirmed twice.
-      WAIT FOR THE APP COLUMN, for the reason on subgoal 16: the two sides share
+      WAIT FOR THE APP COLUMN, for the reason on subgoal Q16: the two sides share
       this prompt and differ only in whose rules score it.
 
-- [ ] 18. **Q4b: the `not_doing` classification on the SECOND box.**
+- [ ] Q18. **Q4b: the `not_doing` classification on the SECOND box.**
       MEASURED ON THE APP 2026-08-29, for the first time -- Q4b could not run
-      there at all until subgoal 14. Web 16/19, EXACTLY the CLI's 16/19, era
+      there at all until subgoal Q14. Web 16/19, EXACTLY the CLI's 16/19, era
       checked, 0 of 20 cells never agreeing. p12 returns 3.5 in all six runs on
       BOTH engines where it used to be CLI 5.0 / web 3.5 in eleven of twelve.
       So the divergence the whole equivalence goal was opened over is CLOSED, and
-      subgoal 10's `maps` conversion is what closed it: the referent test is now
+      subgoal Q10's `maps` conversion is what closed it: the referent test is now
       arithmetic and the two engines cannot disagree about it. What is left here
       is a gold question, which is what this subgoal was always about.
       THE SECOND-BOX SYMPTOM IS SHARED WITH Q4c AND Q6; THE MECHANISM IS NOT.
@@ -2350,7 +2329,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
         Q6   state_c1     15/6    state_c2      58/17
       But the DIRECTION splits them, and direction decides the fix:
         Q4c  18 over / 1 under      Q6  23 over / 9 under   -> the second box
-             TAKES credit it has not earned; that is subgoal 15's `requires`.
+             TAKES credit it has not earned; that is subgoal E15's `requires`.
         Q4b   7 over / 12 under                             -> the second box is
              DENIED credit, by `maps` sending `not_doing` to wrong_kind.
       SO DO NOT JUDGE A `requires` FIX ON THIS ITEM. `requires` denies credit and
@@ -2396,7 +2375,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       The six `b2_basis=none` observations are the only source of `absent`
       (B_ONLY_ONE rather than B_NOT_ACTIVE) and must keep charging that.
 
-- [ ] 16. **Diagnose Q1's wrong calls: `utb_stated`, `reason_2`, `reason_3`.**
+- [ ] Q16. **Diagnose Q1's wrong calls: `utb_stated`, `reason_2`, `reason_3`.**
       Set 2026-08-28 from the two-sided sweep's first item, so the numbers below are
       6 runs at the CURRENT configuration rather than a recollection.
       THE PROFILE, 120 observations: 102 correct (85%), UNDER-credit 13 (11%),
@@ -2434,12 +2413,12 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       column alone would be tuning a prompt against one of its two readers.
       ALREADY RECORDED, do not rediscover: Q1/p9 is a declared divergence
       (GARBLED_CLAUSE_READ_LITERALLY, twelve configurations); p10 and p18 are
-      subgoal 14; the `harms_listed` ASSERTION-vs-AVOIDANCE clause and the two-tier
+      subgoal Q14; the `harms_listed` ASSERTION-vs-AVOIDANCE clause and the two-tier
       `reasons_given` conditional are both live and measured. `python3
       olx_prompts.py --write` prints Q1's recorded comment blocks, and since
       2026-08-28 it prints the LATEST three, which is where the counting rule sits.
 
-- [ ] 14. **Q1's two live misses: p10 and p18.** Lifted out of subgoal 12's
+- [ ] Q14. **Q1's two live misses: p10 and p18.** Lifted out of subgoal Q12's
       prose so they are tracked rather than mentioned. Both are APPLICATION
       failures -- the rule already states the right principle in each case -- so
       §2a offers no structural lever and prose is the last resort, not the first.
@@ -2460,6 +2439,78 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       that predates it. Fixing it means making the and-split deterministic, which
       is a classification question like p14's, not a counting rule.
 
+- [ ] Q24. **Q4a's `antecedent_2`: the slot that carries the item's remaining error.**
+      Opened 2026-08-29, on the FIRST measurement of Q4a on the app -- it could
+      not run at all before the LLMAction attribute fix (subgoal E14), and the
+      web-only `max` defect had to be cleared before any cell scored on the right
+      scale. So this is a channel nobody has ever been able to look at.
+      THE SLOT PROFILE NAMES IT. Over 120 observations, web:
+        antecedent_1   unmet 24   in wrong cells  6
+        antecedent_2   unmet 31   in wrong cells 10
+        keyword        unmet 18   in wrong cells  3
+      `antecedent_2` is unmet more often than `antecedent_1` AND lands in wrong
+      cells more often -- the SECOND-BOX shape again, on a third item. Subgoal 18
+      (the second-box problem) was scoped to Q4b and Q4c; this is evidence it
+      reaches Q4a, and the three should be read together before either is fixed.
+      FOUR CELLS CARRY IT, and their pattern is the useful part:
+        p2  3/6  a2 flips met/wrong_kind across runs (gold 5)
+        p9  3/6  a2 flips wrong_kind/met across runs (gold 3)
+        p19 0/6  a2 is `met` in 5 of 6 runs and the cell is STILL wrong (gold 5)
+        p14 0/6  a2 is `wrong_kind` in 6 of 6 and the cell is wrong (gold 1)
+      So there are TWO different failures wearing one slot's name, and a fix
+      aimed at either alone will move the other the wrong way:
+        * p2 and p9 are INSTABILITY -- the same box read both ways across runs.
+          A sharper rule about what makes an antecedent "a genuine trigger"
+          addresses these.
+        * p14 and p19 are STABLE and wrong, which a wording change will not
+          touch. p19 is the sharper one: `antecedent_2` is answered `met` in 5 of
+          6 runs and the cell still misses, so the error is NOT in this slot's
+          verdict -- it is in what the sheet does with it. Read p19's boxes out
+          (`equivalence.py --fixture Q4a:19`) BEFORE proposing any rule.
+      DO NOT START FROM THE MEDIAN. The item sits at 18/20 web / 17/20 cli, which
+      hides four cells that are wrong in two unrelated ways; and the by-slot
+      table alone would have pointed the whole effort at wording, which p19 and
+      p14 say cannot work. This is memory/error-profile-by-slot.md's rule and
+      memory/fixture-defects-found-by-readout.md's rule applying at once.
+      Direction is BALANCED -- 9 over, 9 under -- so unlike Q6 and Q4c this is
+      not a `requires` candidate (subgoal E15): denying credit would fix the
+      over-credits and worsen the under-credits by the same count.
+
+- [ ] Q26. **DAY1 alone gates on `phrased_directly`. One `!`, undeclared, eight sibling items.**
+      Found 2026-08-29 while checking whether DAY1 contradicted subgoal Q20's
+      orthogonal-gates finding. It does not contradict it; it is a different
+      sheet, and the difference is one character of OLX:
+          DAY1  !phrased_directly:Phrased directly rather than by what is avoided
+          DAY2   phrased_directly:Phrased directly rather than by what is avoided
+          WK1    phrased_directly:Phrased directly rather than by what is avoided
+      The `!` makes it a gate. So on DAY1 that slot can ZERO the whole 4-point
+      item; on its seven siblings -- PR, NR, PP, NP, WK1, DAY2 and (pending) WK2 --
+      it is advisory and cannot deduct at all. Confirmed from the published sheets,
+      not read off the OLX alone: `gates=True` on DAY1, `gates=False` on the rest.
+      IT IS DECLARED NOWHERE. Not in SCORING_DIVERGENCES, not in EQUIVALENCE.md,
+      not in the rubric comments. Both scorers honour it identically, so this is
+      not an equivalence defect -- it is a rubric one, and the audit has no check
+      that would notice it.
+      FIRST DECIDE WHICH IT IS, and the two answers lead opposite ways:
+      (a) INTENTIONAL -- a daily plan phrased by what is avoided is a different
+          failure from a weekly one, serious enough to void the item. Then declare
+          it, with the reason, and subgoal Q20's DAY1 numbers stand as real.
+      (b) A SLIP -- someone typed `!` once. Then DAY1 has been scoring on a
+          harsher sheet than its siblings for as long as the slot has existed, and
+          its 17/18 is a number obtained under different rules from DAY2's 16/18.
+      READ THE RECORD BEFORE DECIDING (memory/read-the-record-first.md): check the
+      commit that introduced the `!` and the rubric comment above the component.
+      The precision table in subgoal Q21 already lists `phrased_directly` as
+      "advisory, cannot deduct" -- which is TRUE OF NR AND FALSE OF DAY1, so at
+      least one recorded statement was written without this asymmetry in view.
+      THE CHECK THIS WANTS IS SUBGOAL E26, split out because it does not depend on
+      how this question is answered: whichever way DAY1 goes, sibling items that
+      share a slot name should share its gate structure or declare why not.
+      DO NOT "FIX" IT BY MEASUREMENT ALONE. DAY1 scores 17/18 on both engines
+      WITH the gate, so removing it is not obviously free; and if it is intentional,
+      removing it loses a judgement gold may be making. Decide the intent first.
+
+
 ## THEN
 
 The quality-control goal is PARKED, not closed: nine subgoals remain open under
@@ -2477,8 +2528,8 @@ carried:
   the `forbid` primitive, not by reading its boxes again.
 * The three non-reconciling gold rows moved to DONE above.
 * Q3's probe backlog is superseded: the item has six runs and a named cause.
-* Q1's probe backlog and the 3-run flags in Q2/Q4c/Q5/Q6 are subgoal 3.
-* Q4b/p12 is subgoal 5. It is 0/6 against gold and correctly declared TODAY --
+* Q1's probe backlog and the 3-run flags in Q2/Q4c/Q5/Q6 are subgoal Q3.
+* Q4b/p12 is subgoal Q5. It is 0/6 against gold and correctly declared TODAY --
   the problem is the reason written on the declaration, not the cell.
 
 ## DONE
