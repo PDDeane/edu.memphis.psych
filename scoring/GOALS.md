@@ -415,6 +415,45 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       PROSE_ONLY_SLOTS up by roughly the same number, unless a rule turns out to
       be expressible as a primitive. Do not read the second budget rising as
       backsliding; read it as the cost of the first one falling.
+      SECOND PASS 2026-08-29, 11 -> 4. Five more migrated, two struck off as never
+      having been gaps, and one bug caught by diffing the generated OLX:
+        MIGRATED   Q2:reasons_given  Q2:wgb_inverts_utb  Q2:wgb_is_counterpart
+                   Q5:example_2      reasons_failing     reasons_substantial
+        The paper prompts gained what they lacked -- Q2 3791 -> 4560 chars,
+        Q5 3161 -> 4346, measured against a git-HEAD baseline rather than a
+        capture taken mid-migration, which the first attempt got wrong.
+        STRUCK OFF  `matches_chosen_type` is COMPUTED by `equals` from
+        defines_type and named_type, so no model is asked about it and NEITHER
+        generator renders its note. It reached no prompt at all -- dead text, and
+        a `rule` briefly added to its six components was reverted for the same
+        reason. It was never a paper-blind rule.
+        KEPT, CANNOT MIGRATE  `named_type` -- DAY1, DAY2, WK1 and WK2 carry the
+        SLOT with no credit component behind it, so there is nowhere to put a
+        rule. D1 and D2 have their own item-scoped notes which take precedence.
+      THE BUG WORTH RECORDING: the first attempt put the GLOBAL `named_type` note
+      into D1/D2's `rule`, which overrode their item-scoped notes and would have
+      rewritten both prompts. Nothing caught it -- not the ledger, whose shas
+      still matched because the OLX on disk had not been regenerated, and not a
+      prompt-text comparison. `olx_prompts.py --check` caught it, by saying H2 was
+      OUT OF DATE. Regenerate and diff the OLX after every migration; a `rule`
+      that differs from the note it replaces is a prompt change wearing the
+      clothes of a refactor.
+      NET AFTER REVERTS: backlog 11 -> 6, PROSE_ONLY_SLOTS 11 -> 14. The only
+      prompt that changed anywhere in the corpus is Q2's PAPER prompt, +769 chars,
+      verified by capturing every prompt on both generators before and after with
+      `git stash` -- the only comparison method here that puts both sides in an
+      identical tree. Two earlier attempts at that baseline were wrong: one
+      captured "before" after the migration, the other ran HEAD's modules against
+      paths that resolved elsewhere and reported all 23 web prompts as changed.
+      TWO REVERTED, and they define the remaining work: `Q5:example_2` and
+      `reasons_substantial` name verdict tokens literally -- duplicate/not_reason
+      and wrong_kind. Safe in a web-only note, refused in a shared `rule` by
+      check_slot_rules_are_vocabulary_neutral, because the paper scorer would be
+      instructed about tokens it cannot emit. `{fail}` fills with ONE verdict and
+      example_2 distinguishes two. Rewriting the prose to avoid the tokens changes
+      the WEB prompt on a measured item, so these are a scoring change to be
+      measured, not a refactor.
+      THE TRADE, again: PROSE_ONLY_SLOTS rises as the backlog falls.
       TWO THAT MAY NOT BE MIGRATABLE, so check before promising 13 -> 0:
       `1c:has_own_graph` and `1c:legend` belong to the item whose web chart is
       drawn from typed data a paper student cannot supply -- the declared,
