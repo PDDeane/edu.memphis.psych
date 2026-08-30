@@ -403,7 +403,27 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       it, and Q4b's five substitution tests are the recorded case of getting it
       wrong.
 
-- [ ] E14. **`forbid` and `maps` cannot score on the APP at all. Seven items.**
+- [x] E14. **`forbid` and `maps` cannot score on the APP at all. Seven items.** FIXED
+      2026-08-29, verified end to end, all seven re-measured and comparable.
+      ROOT CAUSE, one line: LLMAction's zod attribute schema is `.strict()` and
+      declared neither `forbid` nor `maps`, so every block carrying one was
+      replaced by an ErrorNode at parse time. The button rendered with nothing
+      behind it; the click was silent; no status was ever written; the cell timed
+      out after 300s as `no-cell`. Nothing threw.
+      Fixed in lo-blocks (fef13c06): both attributes declared, and `maps` also
+      threaded to buildSlotSchema/composeSlotFeedback/publishedSheet, which all
+      already accepted it. A SECOND defect was hiding behind the first -- Q4a's
+      missing `max="5"` -- and only became visible once Q4a could run (0974736).
+      THE GUARD SO IT CANNOT RECUR: enforcement.check_action_attributes_are_declared
+      _in_the_block (3235dca). The audit already asked whether the PYTHON harness
+      parses every attribute; nothing asked whether the WEB BLOCK accepts it, and
+      that is the half the corpus broke on.
+      RESULT, all seven on the web side, era-checked, 0 cells never agreeing:
+          Q4a web 18/20     Q4b web 16/19     Q4c web 17/19
+          NR  web 16/18     DAY1 web 17/18    DAY2 web 16/18    WK2 web 17/18 Q4b/p12, the
+      divergence this whole goal was opened over, now returns 3.5 on BOTH engines
+      where it was CLI 5.0 / web 3.5. The equivalence half of that cell is closed;
+      the gold half is Q18.
       Found 2026-08-29 by the two-sided sweep, which is the job it was for. The
       affected items fail EVERY cell on the web side with
       `did not settle within 300s (status=undefined)`. Not a divergence between
@@ -727,7 +747,26 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       the denominator float. A ratchet, like HANDCODED_ITEM_RULES' budget: the
       number may only go DOWN by decision, never by accident.
 
-- [ ] E2. **A full two-sided sweep: every item, six runs, BOTH scorers.**
+- [x] E2. **A full two-sided sweep: every item, six runs, BOTH scorers.** DONE
+      2026-08-29. 26 of 26 items on both scorers, six runs each, era-checked per
+      item.
+          CLI  451/491 = 91.9%        WEB  457/491 = 93.1%
+      THE ANSWER TO THE QUESTION THE GOAL WAS OPENED ON IS NO: the two scorers do
+      not disagree. `cross_path` finds ZERO cells out of 491 where the paths never
+      agree -- every cell's score sets overlap, which is stricter than comparing
+      medians. Per-item deltas are all within +/-1: seven items +1, one -1 (PR),
+      eighteen identical.
+      THE CONTROL THAT MAKES THAT READABLE: the three items with no model call --
+      T1, T2, 1b -- are CELL-FOR-CELL IDENTICAL across both engines, 60 cells and
+      720 observations without a single difference. So where no model is involved
+      the two implementations compute the same thing, and the +/-1 differences
+      elsewhere are model variance rather than engine disagreement.
+      WHAT IT ACTUALLY FOUND was a different defect: seven items the app could not
+      score AT ALL (E14). Six of those were re-measured after the fix and every
+      one is comparable, which is also the evidence that `forbid` and `maps`
+      compute identically on both engines.
+      Do not read 91.9% against 93.1% as a quality gap without the per-item table:
+      it is six cells spread over seven items, each inside the run-to-run spread.
       Replaces "clear the stale H2 items", which would have measured one side of
       ten items. This measures both sides of all of them, and it is the only
       thing that can answer the question the whole goal is about: do the CLI and
@@ -1172,16 +1211,17 @@ ORDER, reset 2026-08-29 when the two-sided sweep finished. The 2026-08-28 order
 (5 -> 7 -> 8 -> 9 -> the sweep) is spent: all four closed and the sweep has run
 twice, so it is replaced rather than amended.
 
-    E14 [fix landed]  ->  E2  ->  E11  ->  E15
-                                   E12, E13, E19, E25, E26 any time
+    E14 [done]  ->  E2 [done]  ->  E11  ->  E15
+                                     E12, E13, E19, E25, E26 any time
 
-E14 FIRST AND ALREADY DONE IN SUBSTANCE: the block-schema fix landed and is
-verified, and the seven items it unblocked are being re-measured now. It closes
-when the last of them is recorded, which is also what closes E2.
+E14 AND E2 CLOSED 2026-08-29. The block-schema fix landed, all seven blocked
+items were re-measured, and the sweep finished at 26 of 26 on both scorers:
+CLI 451/491, WEB 457/491, zero cells where the paths never agree.
 
-E2 IS THE GATE FOR EVERYTHING ELSE that touches scoring, because until both sides
-are recorded for all 26 items there is no baseline to judge a change against.
-25 of 26 are in; WK2 is running.
+THE BASELINE NOW EXISTS, which is what everything below was waiting for. Any
+scoring change from here is measured against a recorded six-run figure on BOTH
+sides, per item, era-stamped -- so a moved cell can be attributed instead of
+argued about.
 
 E15 (`requires`) LAST of the scoring changes: it adds a slot the model is asked,
 so only a live app run can judge it, and E14 is the proof that a primitive can

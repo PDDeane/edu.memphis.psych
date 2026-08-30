@@ -853,6 +853,19 @@ def uncompared_web_rules():
     return out
 
 
+# How many injected breakages the suite must account for -- CONSTRUCTED plus
+# SKIPPED. Two-sided: fewer means a case was lost and the run would otherwise
+# report success at a smaller denominator; more means one was added without
+# raising this, leaving slack a later loss can hide in.
+#
+# 50 = 49 constructed + 1 skipped. Set from a measured run, not from counting
+# the source: the first value written here was 51, guessed as "49 cases and
+# the two SKIP lines I remembered", and the ratchet immediately reported a
+# lost case. Only the plain-path case skips -- the `{fail}` injection site
+# still exists on Q6, so that case is built.
+SELFTEST_EXPECTED = 50
+
+
 def enforcement_selftest():
     """Break each rule on purpose and confirm the audit says so.
 
@@ -1526,20 +1539,54 @@ def enforcement_selftest():
     # behind. A selftest that fails when it passes gets ignored, which is how the
     # arity bug survived in the first place.
     clean = len(enforcement_audit()[0])
+
+    # SKIPS ARE COUNTED, not just printed. A case that degrades to SKIP still
+    # exists on paper and tests nothing, and until the count was made explicit it
+    # scrolled past above a confident "49/49".
+    skips = []
     if plain is None:
-        print("  SKIP  plain-path computed check     -> no plain-path item left to "
-              "inject onto")
+        skips.append(("plain-path computed check",
+                      "no plain-path item left to inject onto"))
     if _site is None:
-        print("  SKIP  shared rule names a verdict   -> no rule carries `{fail}` "
-              "to inject into")
+        skips.append(("shared rule names a verdict",
+                      "no rule carries `{fail}` to inject into"))
+    for label, why in skips:
+        print(f"  SKIP  {label:<28} -> {why}")
+
     print(f"\n  restored state is clean: {clean == baseline} "
           f"({clean} finding(s), baseline {baseline})")
-    print(f"  {len(cases) - bad}/{len(cases)} injected breakages detected.")
+
+    # THE DENOMINATOR DOES NOT FLOAT. It used to be `len(cases)`, so a case that
+    # stopped being CONSTRUCTED took the denominator down with it and reported
+    # success: 48/48 and 49/49 are indistinguishable at a glance. That is not
+    # hypothetical -- the `SLOT RULE NAMES A VERDICT` case hard-coded an injection
+    # site that a later conversion removed, and the whole suite died before its
+    # first case while nothing said a case was missing.
+    #
+    # A two-sided ratchet, like HANDCODED_BUDGET and the rest: built + skipped
+    # must equal SELFTEST_EXPECTED exactly. Fewer means a case was lost; more
+    # means one was added and the constant was not raised, which leaves room for
+    # a later loss to hide inside the slack.
+    built = len(cases)
+    detected = built - bad
+    total = built + len(skips)
+    print(f"  {detected} detected, {bad} failed, {len(skips)} skipped, "
+          f"{total} of {SELFTEST_EXPECTED} expected.")
+    short = total != SELFTEST_EXPECTED
+    if short:
+        verb = "LOST" if total < SELFTEST_EXPECTED else "GAINED"
+        print(f"\n  *** THE SUITE {verb} {abs(total - SELFTEST_EXPECTED)} CASE(S): "
+              f"{total} constructed or skipped against SELFTEST_EXPECTED="
+              f"{SELFTEST_EXPECTED}. "
+              + ("A case that stops being built reports success -- find it, or "
+                 "lower the constant deliberately with the reason."
+                 if total < SELFTEST_EXPECTED else
+                 "Raise SELFTEST_EXPECTED so the new case is protected too."))
     # Against the baseline here too. `clean` is a COUNT, so `or clean` made a
     # fully passing selftest exit 1 whenever the corpus carried its one declared
     # divergence -- the same off-by-a-baseline the message above already fixed,
     # left behind in the exit code where it was less visible.
-    return 1 if (bad or clean != baseline) else 0
+    return 1 if (bad or clean != baseline or short) else 0
 
 
 def print_enforcement():
@@ -1624,6 +1671,23 @@ def main():
     ap.add_argument("--selftest", action="store_true",
                     help="with --enforcement: break each rule and check the audit notices")
     a = ap.parse_args()
+
+    # A FLAG READ ONLY INSIDE ANOTHER MODE'S BRANCH IS A SILENT NO-OP.
+    # `--selftest` is honoured at `if a.enforcement:` below and nowhere else, so
+    # on its own it fell through to the default prompt audit and EXITED 0 -- a
+    # suite that never ran, reported at the shell exactly like one where all 49
+    # injections were detected. That is the worst place in this tree for a silent
+    # no-op, because the self-test is what certifies every other check, and it was
+    # used to "verify" a change on the strength of that exit code.
+    #
+    # An ERROR, not an implied --enforcement: the two modes cost different amounts
+    # of time, and someone who typed one and got the other should be told rather
+    # than accommodated.
+    if a.selftest and not a.enforcement:
+        ap.error("--selftest only runs with --enforcement: "
+                 "`equivalence.py --enforcement --selftest`. On its own it would "
+                 "silently run the default prompt audit and exit 0, which is "
+                 "indistinguishable from a passing self-test.")
 
     if a.fixture:
         # The box-by-box readout. Not a check — the PROCEDURE the checks cannot
