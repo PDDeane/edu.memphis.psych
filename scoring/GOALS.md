@@ -604,6 +604,37 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       cell, ~90s amortised, three hours an item, and the only signal is
       `no-cell`. Four of the seven were killed mid-sweep to recover ~12 hours.
 
+- [ ] E27. **Two sources of truth for a slot's verdicts, and they disagree on Q5.**
+      Found 2026-08-30 by a rename that cost a cell and was reverted. The rubric
+      component and the OLX slot spec BOTH declare a slot's vocabulary, and for
+      Q5's example slots they say different things:
+          rubric  example_1/example_2 verdicts = [met, absent, not_reason, duplicate]
+          OLX     example_1:...:wrong_kind/duplicate@2.5
+      The OLX is what the runtime serves, so the model emits `wrong_kind` -- Q5/p4
+      comes back `wrong_kind/wrong_kind` in all six runs. The rubric's list is
+      stale, and nothing compares the two.
+      WHAT IT COST, measured: reading the rubric list as authoritative, I "fixed"
+      reasons_substantial's rule from `wrong_kind` to `not_reason` as a dangling
+      reference. The CLI column lost a cell -- a six-run median of 19 fell to 18
+      under the renamed rule -- with 0 over-credits and 12 under,
+      because the rename pointed a LIVE instruction at a token the model cannot
+      emit -- the reverse of the bug I thought I was fixing. Reverted; Q5 is back
+      to 19/20 on both sides with both shas matching.
+      THE INERT-SENTENCE LESSON, which is the general one: a rule naming an
+      unemittable verdict is not merely wrong, it is SILENT -- the sentence asks
+      for nothing and the sheet behaves as if it were absent. So "this names a
+      token nothing offers" is a real defect class, but the fix is to check which
+      declaration is stale, not to assume the prose is.
+      THE CHECK THIS WANTS: rubric component `verdicts` must equal the OLX slot
+      spec's declared verdicts, per slot, or be declared. It is the same shape as
+      E26 (sibling gate structure) and cheap for the same reason -- both sources
+      are already parsed. `check_slot_rules_are_vocabulary_neutral` already unions
+      them, which is why it went quiet instead of catching this; unioning HIDES a
+      disagreement that comparing would expose.
+      Q5's example_2 rule carries the same stale token (`not_reason`) and is left
+      verbatim on purpose: correcting it is a content change to measure, and this
+      subgoal is where that decision belongs.
+
 - [ ] E15. **`requires` is implemented on BOTH engines and bound to nothing. Q6 is why it exists.**
       Surfaced 2026-08-29 by the new live-exercise check, which listed `requires`
       as used by NO item. It is not dead code: slotSheet.ts parses and applies it,
