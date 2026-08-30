@@ -453,6 +453,25 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       example_2 distinguishes two. Rewriting the prose to avoid the tokens changes
       the WEB prompt on a measured item, so these are a scoring change to be
       measured, not a refactor.
+      THIRD PASS, same day, prompted by asking WHY the Q5 rewrites would touch the
+      web at all. They would not, and the revert that assumed they would was
+      unnecessary: check_slot_rules_are_vocabulary_neutral was flagging every
+      literal verdict token on the blanket premise that "the two vocabularies
+      differ". That is true of the DEFAULT vocabulary -- the web's `wrong_kind`
+      against the rubric's `not_active`, which ALIAS records -- and FALSE of a
+      slot that declares its own. Both generators render the verdict list from the
+      component's `verdicts`, so `example_2`, declaring
+      [met, absent, not_reason, duplicate], offers all four on BOTH sides.
+      The check now tests the slot's own list, and still catches the real hazard
+      (verified by injection: a token the slot does NOT offer is caught, one it
+      does is silent). Q5:example_2 migrated, paper 3161 -> 3780 chars.
+      AND IT FOUND A CONTENT BUG. `reasons_substantial` says "instead of reaching
+      for `wrong_kind`" and Q5 OFFERS NO `wrong_kind` on any slot -- the example
+      slots run met/absent/not_reason/duplicate and this one runs met/absent. The
+      advice names a token nobody on this item can emit, almost certainly a
+      leftover from before the example slots gained their own vocabulary, and it
+      is in the WEB prompt today. Left in the backlog: fixing the text changes a
+      measured prompt, so it is a scoring change to be measured, not a migration.
       THE TRADE, again: PROSE_ONLY_SLOTS rises as the backlog falls.
       TWO THAT MAY NOT BE MIGRATABLE, so check before promising 13 -> 0:
       `1c:has_own_graph` and `1c:legend` belong to the item whose web chart is

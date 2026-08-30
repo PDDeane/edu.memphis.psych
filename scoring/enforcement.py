@@ -1096,24 +1096,15 @@ SLOT_RULE_BACKLOG = [
     #   nowhere to put a rule. Removing the note deleted the text from those four
     #   web prompts -- caught by diffing the generated prompt against HEAD, and by
     #   nothing else. The note stays, declared in place.
-    # Q5:example_2 and reasons_substantial were MIGRATED and REVERTED the same
-    # day. Both rules name a verdict token literally -- duplicate/not_reason
-    # and wrong_kind -- which is safe in a web-only note and refused in a
-    # shared `rule` by check_slot_rules_are_vocabulary_neutral, because the
-    # paper scorer would be told about tokens it cannot emit. `{fail}` is the
-    # sanctioned escape and fills with ONE verdict, while example_2
-    # distinguishes two with different meanings. Rewriting the prose to avoid
-    # the tokens changes the WEB prompt on a measured item, so it is a scoring
-    # change to be measured, not a refactor. That is the work these two need.
     '1c:has_own_graph', '1c:legend', 'Q1:matches_selected', 'named_type',
-    'Q5:example_2', 'reasons_substantial',
+    'reasons_substantial',
 ]
 
 # How many may remain. It may only go DOWN. Same ratchet as HANDCODED_BUDGET, for
 # the same reason and on the evidence of the same day: a declared backlog with no
 # ceiling reads as coverage while enforcing nothing about its own size, and this
 # one had grown to seventeen entries costing at least one item its whole score.
-SLOT_RULE_BACKLOG_BUDGET = 6
+SLOT_RULE_BACKLOG_BUDGET = 5
 
 
 # The three programs that write scoring artifacts, and the field each must stamp.
@@ -1241,6 +1232,12 @@ PROSE_ONLY_SLOTS = {
         "a judgement: how many listed statements are not a benefit of the goal "
         "behaviour. `counts` already expands the members; what it cannot express "
         "is the test each member is counted against.",
+    ("Q5", "example_2"):
+        "NOT CONVERTIBLE. The operative verdict is `duplicate` -- both entries "
+        "well-formed but amounting to the SAME reason -- a sameness judgement "
+        "between two spans the student wrote. `cover` spots a duplicate against a "
+        "LIST; here there is no list, only the other box. Naming the token is safe "
+        "because the slot DECLARES it, so both generators offer it.",
     ("D1", "defines_type"):
         "NOT CONVERTIBLE. The slot classifies a DEFINITION into PR/NR/PP/NP by "
         "reading what it says -- something added or removed, behaviour increased "
@@ -1254,7 +1251,7 @@ PROSE_ONLY_SLOTS = {
         "NOT CONVERTIBLE, same as D1: one factory builds both.",
     ("1a", "week_3"): "NOT CONVERTIBLE, same as week_1 for the final stretch.",
 }
-PROSE_ONLY_BUDGET = 14
+PROSE_ONLY_BUDGET = 15
 
 
 # WHICH PRIMITIVE SET each "NOT CONVERTIBLE" claim was judged against.
@@ -1287,6 +1284,7 @@ PROSE_ONLY_JUDGED_AGAINST: dict[tuple[str, str], str] = {
     ("1a", "week_3"): _PRIMS_2026_08_29,
     ("D1", "defines_type"): _PRIMS_2026_08_29,
     ("D2", "defines_type"): _PRIMS_2026_08_29,
+    ("Q5", "example_2"): _PRIMS_2026_08_29,
     ("Q2", "wgb_is_counterpart"): _PRIMS_2026_08_29,
     ("Q2", "wgb_inverts_utb"): _PRIMS_2026_08_29,
     ("Q2", "reasons_failing"): _PRIMS_2026_08_29,
@@ -2184,12 +2182,28 @@ def check_slot_rules_are_vocabulary_neutral() -> list[str]:
                     continue
                 named = sorted({v for v in KNOWN_VERDICTS
                                 if f"`{v}`" in rule and v not in ("met", "absent")})
+                # ONLY a token this slot does not OFFER is a problem. Both
+                # generators render the verdict list from the component's own
+                # `verdicts`, so a slot declaring [met, absent, not_reason,
+                # duplicate] offers all four on BOTH sides and naming one of them
+                # instructs nobody about a token they cannot emit.
+                #
+                # The check used to flag every literal token on the blanket
+                # premise that "the two vocabularies differ". That is true of the
+                # DEFAULT vocabulary -- the web's wrong_kind against the rubric's
+                # not_active, which ALIAS exists to record -- and false of a slot
+                # that declares its own. It cost a correct migration: Q5:example_2
+                # and reasons_substantial were moved out of SLOT_NOTES, refused
+                # here, and reverted, when both slots declare the tokens they name.
+                offered = set(c.get("verdicts") or [])
+                named = [v for v in named if v not in offered]
                 if named:
                     problems.append(
                         f"H{h} {item['id']}.{c['what']}: `rule` names the verdict "
-                        f"{named} literally. The rule is rendered into both prompts "
-                        f"and the two vocabularies differ, so one side gets an "
-                        f"instruction about a token it cannot emit. Use `{{fail}}`, "
+                        f"{named} literally, and this slot does not offer "
+                        f"{sorted(offered) or 'a declared verdict list'}. The rule "
+                        f"is rendered into both prompts, so a side that cannot emit "
+                        f"the token is instructed about it anyway. Use `{{fail}}`, "
                         f"which each generator fills with its own verdict")
                 if "{fail}" not in rule and not named:
                     # A rule that never says when to FAIL is not necessarily wrong,

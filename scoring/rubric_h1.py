@@ -1259,6 +1259,17 @@ ITEMS: list[dict] = [
                 "codes": {"absent": "W_ONLY_ONE", "not_reason": "W_NOT_REASON",
                           "duplicate": "W_ONLY_ONE"},
                 "desc": "Second way",
+                # MIGRATED from olx_prompts.SLOT_NOTES 2026-08-29 (E11), verbatim. Names duplicate/not_reason, which THIS SLOT declares in its own verdicts, so both generators offer them.
+                "rule": "`met` for a second reason that is genuinely DIFFERENT from the "
+                         "first. `duplicate` when both entries are well-formed but amount to "
+                         "the SAME reason — two entries that each avoid the same discomfort, "
+                         "one naming the distance and one the aching afterwards, are one "
+                         "reason twice, and the graders wrote \"missing a reason\". `absent` "
+                         "only when there is no second entry at all. `not_reason` when there "
+                         "IS a second, distinct entry but it is not a reason for CONTINUING "
+                         "— an EFFECT of the behaviour rather than a payoff from it. When it "
+                         "is present, distinct and a real payoff but merely thin, that is "
+                         "`met` plus `reasons_substantial: absent`",
 },
             {
                 # Reported, never scored — the same shape as `avoidance_frame` on
