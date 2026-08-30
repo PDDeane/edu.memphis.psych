@@ -604,36 +604,47 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       cell, ~90s amortised, three hours an item, and the only signal is
       `no-cell`. Four of the seven were killed mid-sweep to recover ~12 hours.
 
-- [ ] E27. **Two sources of truth for a slot's verdicts, and they disagree on Q5.**
-      Found 2026-08-30 by a rename that cost a cell and was reverted. The rubric
-      component and the OLX slot spec BOTH declare a slot's vocabulary, and for
-      Q5's example slots they say different things:
-          rubric  example_1/example_2 verdicts = [met, absent, not_reason, duplicate]
-          OLX     example_1:...:wrong_kind/duplicate@2.5
-      The OLX is what the runtime serves, so the model emits `wrong_kind` -- Q5/p4
-      comes back `wrong_kind/wrong_kind` in all six runs. The rubric's list is
-      stale, and nothing compares the two.
-      WHAT IT COST, measured: reading the rubric list as authoritative, I "fixed"
-      reasons_substantial's rule from `wrong_kind` to `not_reason` as a dangling
-      reference. The CLI column lost a cell -- a six-run median of 19 fell to 18
-      under the renamed rule -- with 0 over-credits and 12 under,
-      because the rename pointed a LIVE instruction at a token the model cannot
-      emit -- the reverse of the bug I thought I was fixing. Reverted; Q5 is back
-      to 19/20 on both sides with both shas matching.
-      THE INERT-SENTENCE LESSON, which is the general one: a rule naming an
-      unemittable verdict is not merely wrong, it is SILENT -- the sentence asks
-      for nothing and the sheet behaves as if it were absent. So "this names a
-      token nothing offers" is a real defect class, but the fix is to check which
-      declaration is stale, not to assume the prose is.
-      THE CHECK THIS WANTS: rubric component `verdicts` must equal the OLX slot
-      spec's declared verdicts, per slot, or be declared. It is the same shape as
-      E26 (sibling gate structure) and cheap for the same reason -- both sources
-      are already parsed. `check_slot_rules_are_vocabulary_neutral` already unions
-      them, which is why it went quiet instead of catching this; unioning HIDES a
-      disagreement that comparing would expose.
-      Q5's example_2 rule carries the same stale token (`not_reason`) and is left
-      verbatim on purpose: correcting it is a content change to measure, and this
-      subgoal is where that decision belongs.
+- [ ] E27. **The two scorers' verdict vocabularies differ BY DESIGN. Audit what respects that.**
+      Filed 2026-08-30 as "two sources of truth, disagreeing", which was WRONG and
+      is corrected here. slot_vocab.py says it plainly: WEB_EXTRAS come from
+      slotSheet.ts, RUBRIC_EXTRAS from the credit components' `verdicts` lists,
+      "and a rule may legitimately mention neither". `wrong_kind` is the web's
+      token, `not_reason` the rubric's counterpart. Nothing is stale.
+      HOW THE MISREADING COST A CELL: taking the rubric list as "what this slot
+      offers", I renamed reasons_substantial's `wrong_kind` to `not_reason` as a
+      dangling reference. The CLI column lost a cell, 0 over-credits and 12 under,
+      because the rename pointed a LIVE instruction at a token that side cannot
+      emit. Reverted; Q5 is 19/20 on both sides with both shas matching.
+      AND I WEAKENED THE CHECK THAT WOULD HAVE STOPPED IT, twice: first to "only a
+      token this slot does not offer", then unioning the rubric list with the OLX
+      spec. Both were built on the same false premise, and the second actively
+      hid the case the check exists for. RESTORED to its original strictness --
+      any literal token from either list, in a shared `rule`, is a finding.
+      THREE MIGRATIONS REVERTED as a consequence, and they are web-only BY DESIGN
+      rather than backlog work: `Q5:example_2` (names `not_reason`),
+      `reasons_substantial` (`wrong_kind`), `1c:legend` (`incomplete`).
+      THE REMAINING WORK IS `{fail}`, not migration. Each needs rewriting around
+      the placeholder each generator fills with its own token. Workable for
+      reasons_substantial and 1c:legend, which name ONE failure; not for
+      example_2, which distinguishes `duplicate` from `not_reason` and would need
+      a second placeholder that does not exist. Any rewrite changes a measured
+      prompt.
+      THE AUDIT SWEEP THE USER ASKED FOR, done 2026-08-30, is recorded in
+      slot_vocab.py beside the lists themselves:
+        FIXED   cross_path._slot_diffs compared RAW verdict strings between
+                artifacts. Correct for harness-vs-app, which share the web's
+                vocabulary; a false-positive generator the moment a PAPER
+                artifact is compared, where the counterpart tokens would report
+                every such slot as divergent. It now folds to satisfied/failed
+                only when the kinds differ, and keeps the raw tokens otherwise.
+                It also referenced `lkind`/`rkind`, which were not parameters --
+                a NameError waiting for the first divergent slot.
+        SAFE    agreement.is_satisfied and slotSheet.isSatisfied compare against
+                the slot's OWN options, so they are right under either
+                vocabulary; measured.error_profile reads them rather than
+                matching strings; head_to_head counts verdicts without comparing
+                tokens across sides; _fail_token/_fail_verdict are per-side by
+                design and must stay so.
 
 - [ ] E15. **`requires` is implemented on BOTH engines and bound to nothing. Q6 is why it exists.**
       Surfaced 2026-08-29 by the new live-exercise check, which listed `requires`
