@@ -209,6 +209,11 @@
   "note": "'Water Consumption Over Four Weeks' is the blank handout's shipped worked example, named as such; 'days of the week' is its axis title, which is why six students use it.",
   "verdict": "vocabulary"
  },
+ "f86ba6c6a592": {
+  "label": "Q5 credit.rule :: `absent` when a reason is PRESENT but weak \u2014 thin, v",
+  "note": "Checked against the corpus before filing, not assumed. The block carries two quoted EXAMPLES -- 'I keep doing it because I am not looking after myself' and 'because it leaves me irritable and behind on everything' -- and neither appears anywhere in the 63 submission files, nor do the fragments 'looking after myself', 'leaves me irritable' or 'behind on everything'. They are constructed illustrations, not student text. What the detector flagged is the rule's OWN vocabulary: 'barely' from 'barely explained' and 'reaching' from 'reaching for', both ordinary English that students happen to use about the same subject. The block became visible on 2026-08-29 only because E11 moved this text from SLOT_NOTES into a credit , where it is scanned as a rule block; the wording is unchanged apart from correcting the token name wrong_kind -> not_reason.",
+  "verdict": "vocabulary"
+ },
  "fa0efe6f1d88": {
   "label": "SLOT_NOTES trigger_behavior",
   "note": "'walking the dog' and 'tidying the kitchen' are invented (phrase-checked). cutting/used/terms are the note's own prose about the wgb-utb distinction.",

@@ -1294,6 +1294,18 @@ ITEMS: list[dict] = [
                 "desc": "Whether both reasons are substantial — `absent` reports "
                         "a present-but-weak reason so it can be said in the "
                         "feedback, never deducted",
+                # MIGRATED from olx_prompts.SLOT_NOTES 2026-08-29 (E11). Its text named `wrong_kind`, which Q5 offers on NO slot -- example_1/example_2 run met/absent/not_reason/duplicate and this one runs met/absent. The intended token is `not_reason`, which example_2 defines in the same words (not a reason for CONTINUING, an EFFECT of the behaviour). Corrected before the move, so this DID change the web prompt and Q5 was re-measured.
+                "rule": "`absent` when a reason is PRESENT but weak — thin, vague, or "
+                         "barely explained. This costs NOTHING; it exists so you can say it "
+                         "in the feedback instead of reaching for `not_reason`. A reason "
+                         "that gestures at the student's own neglect without naming what "
+                         "they get out of it — \"I keep doing it because I am not looking "
+                         "after myself\" — is thin, and the graders left that kind at FULL "
+                         "marks with a written note. Reserve `not_reason` for a statement "
+                         "that is not a reason for CONTINUING at all — most often an EFFECT "
+                         "of the behaviour wearing a reason's clothes, like \"because it "
+                         "leaves me irritable and behind on everything\", which is what the "
+                         "behaviour causes rather than what the student gets out of it",
 },
         ],
         "deductions": [

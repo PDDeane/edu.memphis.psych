@@ -1058,6 +1058,45 @@ outlive the row it corrects.
 
 ## 5. Reducing exclusions
 
+### "Nothing can host this" does not mean "this cannot move"
+
+**An audit finding names what is missing, not what is impossible. Before writing
+"cannot" into a subgoal, test the capability separately from the plumbing.**
+
+This is the most repeated error in this project's records, and it always looks
+like a finished piece of reasoning:
+
+* `forbid` and `maps` broke seven items, and the note read "the app cannot score
+  these". The app was fine; one zod schema did not DECLARE two attributes.
+* `keyword` was to be converted to `derived`, and the note read "score.py cannot
+  compute a keyword match". It never reads `item["derived"]` — but
+  `derive_ledger` takes the response text and already inspects it. A missing
+  dispatch, not a missing capability.
+* `named_type` was recorded as unmigratable because "no credit component exists
+  to carry a `rule`". True, and irrelevant: `CLI_CRITERIA_NOTES` plus a criterion
+  renderer already carries two other notes to the paper scorer by a different
+  route.
+
+Each time the evidence for the strong claim was an ABSENCE — a grep that found
+nothing, a field that was not there — and an absence is the weakest evidence
+there is. It is equally consistent with "impossible", "not built yet" and
+"built somewhere I did not look".
+
+So when an audit says a rule has nowhere to go:
+
+1. **Ask what the other side actually receives**, not what mechanism delivers
+   it. Build both prompts and diff them. `score.py` uses `rule or desc` and never
+   reads SLOT_NOTES — that fact is worth more than any inference about it.
+2. **Look for a second route.** This codebase has at least three ways text
+   reaches the paper scorer: a component `rule`, the shared `_criteria_section`,
+   and a criterion renderer reading a note directly.
+3. **Then price it.** The honest answer is usually not "impossible" but "this
+   costs a prompt change on a measured item". That is a schedule, not a wall —
+   and saying so lets someone decide, where "cannot" ends the conversation.
+
+Write the price into the subgoal. "Migratable, costs a re-measurement of Q5" is
+a decision someone can take; "blocked" is one they cannot.
+
 ### The rule every declaration has to satisfy
 
 **A declaration that asserts something mechanically checkable must carry that

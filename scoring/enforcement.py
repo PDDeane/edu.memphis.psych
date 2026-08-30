@@ -1119,14 +1119,14 @@ SLOT_RULE_BACKLOG = [
     #     prompt change to measure, not a mechanical move.
     #   `reasons_substantial` -- its text names `wrong_kind`, which Q5 offers on
     #     no slot. Fixing that content bug changes a measured web prompt.
-    'Q1:matches_selected', 'named_type', 'reasons_substantial',
+    'Q1:matches_selected', 'named_type',
 ]
 
 # How many may remain. It may only go DOWN. Same ratchet as HANDCODED_BUDGET, for
 # the same reason and on the evidence of the same day: a declared backlog with no
 # ceiling reads as coverage while enforcing nothing about its own size, and this
 # one had grown to seventeen entries costing at least one item its whole score.
-SLOT_RULE_BACKLOG_BUDGET = 3
+SLOT_RULE_BACKLOG_BUDGET = 2
 
 
 # The three programs that write scoring artifacts, and the field each must stamp.
@@ -1260,6 +1260,11 @@ PROSE_ONLY_SLOTS = {
         "between two spans the student wrote. `cover` spots a duplicate against a "
         "LIST; here there is no list, only the other box. Naming the token is safe "
         "because the slot DECLARES it, so both generators offer it.",
+    ("Q5", "reasons_substantial"):
+        "NOT CONVERTIBLE, and it costs nothing by design: `absent` marks a "
+        "reason that is present but thin, so the grader can say so in feedback "
+        "instead of refusing it. A judgement of THINNESS has no operands to "
+        "compare.",
     ("1c", "legend"):
         "NOT CONVERTIBLE. Whether the series names name all four plotted "
         "periods is a reading of the legend text the student wrote; the four "
@@ -1280,7 +1285,7 @@ PROSE_ONLY_SLOTS = {
         "NOT CONVERTIBLE, same as D1: one factory builds both.",
     ("1a", "week_3"): "NOT CONVERTIBLE, same as week_1 for the final stretch.",
 }
-PROSE_ONLY_BUDGET = 16
+PROSE_ONLY_BUDGET = 17
 
 
 # WHICH PRIMITIVE SET each "NOT CONVERTIBLE" claim was judged against.
@@ -1314,6 +1319,7 @@ PROSE_ONLY_JUDGED_AGAINST: dict[tuple[str, str], str] = {
     ("D1", "defines_type"): _PRIMS_2026_08_29,
     ("D2", "defines_type"): _PRIMS_2026_08_29,
     ("1c", "legend"): _PRIMS_2026_08_29,
+    ("Q5", "reasons_substantial"): _PRIMS_2026_08_29,
     ("Q5", "example_2"): _PRIMS_2026_08_29,
     ("Q2", "wgb_is_counterpart"): _PRIMS_2026_08_29,
     ("Q2", "wgb_inverts_utb"): _PRIMS_2026_08_29,
@@ -2262,13 +2268,24 @@ def check_slot_rules_are_vocabulary_neutral() -> list[str]:
                 # `legend` is authored `legend:...:incomplete@2` with no
                 # `verdicts` on its component, so reading the component alone
                 # reported a false positive on the very migration that exposed it.
-                offered = set(c.get("verdicts") or []) | _olx_slot_verdicts(item["id"], c["what"])
+                # THE ITEM'S vocabulary, not the slot's. A rule may legitimately
+                # tell the grader what to do on a SIBLING slot -- Q5's
+                # `reasons_substantial` says to mark a thin reason `absent` here
+                # rather than reaching for `not_reason`, which is example_1 and
+                # example_2's verdict. Nobody is instructed about a token they
+                # cannot emit: the prompt lists every slot with its own verdicts.
+                # The hazard this check exists for is narrower and survives --
+                # Q4b named `wrong_kind` when NO slot on the item offered it.
+                offered = set()
+                for sib in item.get("credit", []) or []:
+                    offered |= set(sib.get("verdicts") or [])
+                    offered |= _olx_slot_verdicts(item["id"], sib["what"])
                 named = [v for v in named if v not in offered]
                 if named:
                     problems.append(
                         f"H{h} {item['id']}.{c['what']}: `rule` names the verdict "
-                        f"{named} literally, and this slot does not offer "
-                        f"{sorted(offered) or 'a declared verdict list'}. The rule "
+                        f"{named} literally, and NO slot on this item offers it "
+                        f"(the item's vocabulary is {sorted(offered)}). The rule "
                         f"is rendered into both prompts, so a side that cannot emit "
                         f"the token is instructed about it anyway. Use `{{fail}}`, "
                         f"which each generator fills with its own verdict")
