@@ -629,6 +629,23 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       example_2, which distinguishes `duplicate` from `not_reason` and would need
       a second placeholder that does not exist. Any rewrite changes a measured
       prompt.
+      A SECOND SWEEP, asked for after the first: where else did not knowing the
+      two vocabularies produce a wrong result? Two, both in the check itself:
+        `unclear` WAS MISCLASSIFIED. It sat only in WEB_EXTRAS while TWENTY-ONE
+        rubric slots declared it -- Q1's utb_stated, all five of Q3's, both
+        keyword slots, D1/D2's type slots, 1a's four week slots, 2a's verdict. It
+        is offered by both sides and always was; the list did not say so. A
+        shared rule naming it would have been refused as one-side.
+        `duplicate` IS IN BOTH LISTS and the restored check flagged it anyway --
+        it was part of why Q5:example_2 read as doubly blocked.
+        Fixed by deriving SHARED_EXTRAS = WEB_EXTRAS ∩ RUBRIC_EXTRAS and exempting
+        it. Not a relaxation: naming a token BOTH sides offer instructs nobody
+        about something they cannot emit. Verified by injection that wrong_kind,
+        not_reason and incomplete are still caught while unclear and duplicate
+        are not.
+      NEITHER CHANGED A BACKLOG DECISION -- example_2 still names `not_reason`,
+      reasons_substantial `wrong_kind`, 1c:legend `incomplete`, all one-side, all
+      still blocked on a `{fail}` rewrite. Checked rather than assumed.
       THE AUDIT SWEEP THE USER ASKED FOR, done 2026-08-30, is recorded in
       slot_vocab.py beside the lists themselves:
         FIXED   cross_path._slot_diffs compared RAW verdict strings between
