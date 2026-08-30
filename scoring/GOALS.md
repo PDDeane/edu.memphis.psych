@@ -638,7 +638,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       `affect_*` slots whose reasons turn on what `cover` already constrains. If
       `requires` lands on Q6, both entries are due for re-judging by this rule.
 
-- [ ] E25. **The `keyword` check is 100% accurate and cannot move a score. Retire or convert it.**
+- [ ] E25. **The `keyword` check is 100% accurate and cannot move a score. Convert it to `derived`.**
       AN AUDIT SUBGOAL, NOT A QC ONE, and it was filed wrong once: its FINDING is
       about accuracy (240/240) but its DELIVERABLE is a primitive conversion --
       turning a model-judged slot into `derived`. That is the audit's own
@@ -679,6 +679,38 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
           is the purest case of it in the corpus, and the 240/240 result is the
           evidence that the engine and the model already agree, so the conversion
           is measurably behaviour-preserving BEFORE it is made.
+      DO NOT RETIRE IT: Q4a and Q4c both default showChecks=true, so the learner
+      SEES "Uses the word antecedent or trigger" in the checklist. Telling a
+      first-year to use the course's term is the line's purpose, and costing no
+      marks is by design. Deleting the slot deletes the feedback.
+      CONVERT IT, and the route is shorter than it first looked. A WRONG TURN IS
+      RECORDED HERE because it nearly closed this subgoal on a false premise:
+      score.py does not implement the `derived` PRIMITIVE -- it never reads
+      item["derived"] -- and I read that as "the paper scorer cannot compute a
+      keyword match", which does not follow and is not true. `derive_ledger` takes
+      `response: str` and ALREADY inspects it: line ~280 gates the blank-answer
+      collapse on `(response or "").strip()`. The text is in hand. Nothing here is
+      platform-forced, unlike 1c's typed chart fields, which is the only thing
+      COMPUTE_EXEMPT's `derived` entry actually licenses.
+      THE WORK, in order:
+      (1) add a `contains` kind to `derived` -- the registry already declares
+          kinds [plots, complete, present], so this is a fourth, not a new
+          primitive;
+      (2) implement that kind in all THREE engines: slotSheet.ts, agreement.py,
+          and score.py, where it reads the `response` parameter already passed in;
+      (3) re-author Q4a's and Q4c's `keyword` slot as a derived check;
+      (4) measure. The prior is unusually strong: the model and a literal
+          case-folded substring search already agree 240/240, so a divergence
+          would mean the conversion is wrong rather than the rule.
+      WHAT IT BUYS: two required schema properties out of every call on two items,
+      and a check that moves from the model's judgement to the engine's, which is
+      the direction E11 and E15 are both pushing. And it must be exercised LIVE
+      before closing -- E14 is the standing proof that a primitive can pass every
+      unit test while the app cannot build the sheet.
+      NOTE FOR COMPUTE_EXEMPT: once `derived` is computed by score.py for this
+      kind, the exemption's reason needs narrowing to the 1c `complete` case it
+      actually describes, rather than the primitive as a whole. E19's stamp on
+      PROSE_ONLY_SLOTS fires on the same event.
       PREFER (b) OVER DELETION unless the checklist display needs it: the student
       is shown "Uses the word antecedent or trigger" as feedback even when it
       costs nothing, and deleting the slot removes that line. Check what
@@ -1287,7 +1319,7 @@ ORDER, reset 2026-08-29 when the two-sided sweep finished. The 2026-08-28 order
 twice, so it is replaced rather than amended.
 
     E14 [done]  ->  E2 [done]  ->  E11  ->  E15
-                                     E25 any time  [E12,E13,E19,E26 done]
+                                     E25  [E12, E13, E19, E26 done]
 
 E14 AND E2 CLOSED 2026-08-29. The block-schema fix landed, all seven blocked
 items were re-measured, and the sweep finished at 26 of 26 on both scorers:
