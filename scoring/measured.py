@@ -932,7 +932,21 @@ def prose_claims(paths: list[str] | None = None) -> list[str]:
                 if not names:
                     continue
                 item = names[-1]
-                rec = led.get(item)
+                # WHICH SIDE the sentence is talking about. The ledger has held
+                # two since the side dimension landed, and this check compared
+                # against the default one only -- so a correctly quoted WEB figure
+                # read as a contradiction of the CLI's. That fired on the E14
+                # closure note, which reports the seven re-measured items on the
+                # side that could not previously run them.
+                # Naming a side is what selects it; saying nothing still means the
+                # default, so no existing sentence changes meaning.
+                side = DEFAULT_SIDE
+                low = window.lower()
+                for cue, s_ in (("web", "web"), ("app", "web"),
+                                ("cli", "cli"), ("harness", "cli")):
+                    if cue in low:
+                        side = s_
+                rec = records(side).get(item)
                 if not rec or rec.get("pending"):
                     continue
                 num, den = int(m.group("num")), int(m.group("den"))
@@ -945,7 +959,8 @@ def prose_claims(paths: list[str] | None = None) -> list[str]:
                     continue
                 out.append(
                     f"{Path(path).name}:{lineno} says {item} {num}/{den}, but the "
-                    f"recorded measurement is {rec['numerator']}/{rec['denominator']}"
+                    f"recorded {side} measurement is "
+                    f"{rec['numerator']}/{rec['denominator']}"
                     f" — update the sentence, or re-record if the sweep is newer")
     return out
 
