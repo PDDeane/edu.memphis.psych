@@ -1219,6 +1219,135 @@ PROSE_ONLY_JUDGED_AGAINST: dict[tuple[str, str], str] = {
 }
 
 
+# Items built from ONE pattern, whose shared slot names should therefore mean the
+# same thing. Scoped by family rather than corpus-wide on purpose: `keyword`
+# legitimately differs between Q4a and Q4c (one deduction zeroed by decision, the
+# other declared unreachable), and 1a's week_* slots are not siblings of these.
+SLOT_STRUCTURE_FAMILIES: dict[str, tuple[str, ...]] = {
+    "h2-cadence-and-type": ("PR", "NR", "PP", "NP", "DAY1", "WK1", "DAY2", "WK2"),
+}
+
+# A slot whose gate/points structure is deliberately not uniform in its family.
+# The budget ratchets: an entry is either a decision with a reason or a defect
+# waiting to be fixed, and it must not sit here being neither.
+SLOT_STRUCTURE_DIVERGENCES: dict[tuple[str, str], str] = {
+    ("h2-cadence-and-type", "phrased_directly"):
+        "UNDECIDED, and declared so rather than silently tolerated -- see QC "
+        "subgoal Q26. DAY1 authors `!phrased_directly` and the other seven author "
+        "it plain, so on DAY1 alone the slot GATES and can zero the 4-point item. "
+        "One `!`, in one OLX slot spec, declared nowhere until now. Q26 decides "
+        "whether that is a judgement about daily plans or a typo; this entry is "
+        "the placeholder that keeps the audit honest meanwhile, and it comes out "
+        "either way -- replaced by a real reason, or by making DAY1 match.",
+}
+SLOT_STRUCTURE_BUDGET = 1
+
+
+def _family_slot_structure() -> dict:
+    """(family, slot) -> {item: (gates, pts)} read from the OLX slot specs.
+
+    From the OLX and not from a run artifact: the artifacts only exist after a
+    sweep, and a structural check should not need one. `!key` gates; `@n` carries
+    points.
+    """
+    import re as _re
+    import pathlib as _pl
+
+    import agreement_app as _A
+
+    olx = {f.name: f.read_text() for f in
+           _pl.Path(__file__).resolve().parent.parent.joinpath("psychology")
+           .glob("bmod_handout*.olx")}
+    out: dict = {}
+    for fam, items in SLOT_STRUCTURE_FAMILIES.items():
+        for item in items:
+            g = (_A.JOBS.get(item) or {}).get("grader") or ""
+            if not g:
+                continue
+            act = g.replace("_grader", "_llm")
+            tag = None
+            for txt in olx.values():
+                m = _re.search(r"<LLMAction\b(?:(?!</?LLMAction)[^>])*?(?:^|\s)id=\""
+                               + _re.escape(act) + r"\"(?:(?!</?LLMAction)[^>])*>",
+                               txt, _re.S)
+                if m:
+                    tag = m.group(0)
+                    break
+            if tag is None:
+                continue
+            sm = _re.search(r'slots="([^"]*)"', tag, _re.S)
+            for part in (sm.group(1).split("|") if sm else []):
+                key = part.split(":")[0].strip()
+                gates = key.startswith("!")
+                key = key.lstrip("!")
+                pts = _re.search(r"@([0-9.]+)", part)
+                out.setdefault((fam, key), {})[item] = (
+                    gates, float(pts.group(1)) if pts else None)
+    return out
+
+
+def check_sibling_slots_share_their_structure() -> list[str]:
+    """Does a slot NAME mean the same thing across the items built from one pattern?
+
+    Eight H2 items are one family authored from one template. A slot that GATES in
+    one of them and is advisory in the other seven is either a decision or a typo,
+    and until this check the audit could not tell those apart: both scorers honour
+    whatever the OLX says, identically, so nothing in the equivalence machinery
+    objects. That is the blind spot -- it is a RUBRIC defect, and the equivalence
+    audit is not looking for those.
+
+    The instance that prompted it: `phrased_directly` is `!phrased_directly` on
+    DAY1 and plain on the other seven, so on DAY1 alone it can zero the item.
+    Undeclared anywhere, and found only because DAY1's error profile looked unlike
+    its siblings'.
+
+    THE OUTPUT IS A QUESTION, NOT A NORMALISATION. "These seven agree and this one
+    does not" may well resolve in favour of the odd one. A declaration with a
+    reason is the product; a sweep that makes every slot identical is not.
+    """
+    problems = []
+    for (fam, slot), per_item in sorted(_family_slot_structure().items()):
+        shapes = set(per_item.values())
+        if len(shapes) < 2:
+            continue
+        if (fam, slot) in SLOT_STRUCTURE_DIVERGENCES:
+            continue
+        groups: dict = {}
+        for item, shape in per_item.items():
+            groups.setdefault(shape, []).append(item)
+        desc = "; ".join(
+            f"{'gates' if g else 'advisory'}"
+            + (f" @{p:g}" if p is not None else "")
+            + f" on {', '.join(sorted(items))}"
+            for (g, p), items in sorted(groups.items(), key=lambda kv: -len(kv[1])))
+        problems.append(
+            f"`{slot}` is not uniform across the {fam} family: {desc}. Sibling "
+            f"items built from one pattern should give a slot name one meaning -- "
+            f"declare the difference in SLOT_STRUCTURE_DIVERGENCES with the reason, "
+            f"or make them agree")
+
+    n = len(SLOT_STRUCTURE_DIVERGENCES)
+    if n != SLOT_STRUCTURE_BUDGET:
+        verb = "holds" if n > SLOT_STRUCTURE_BUDGET else "is down to"
+        problems.append(
+            f"SLOT_STRUCTURE_DIVERGENCES {verb} {n} entrie(s) against a budget of "
+            f"{SLOT_STRUCTURE_BUDGET} -- "
+            + ("a divergence was added; declare it deliberately or fix it"
+               if n > SLOT_STRUCTURE_BUDGET else
+               "one was resolved and the ceiling was not lowered, which leaves "
+               "room for a replacement to arrive unnoticed"))
+    # A declaration that has stopped being true.
+    live = _family_slot_structure()
+    for key in sorted(SLOT_STRUCTURE_DIVERGENCES):
+        per_item = live.get(key)
+        if per_item and len(set(per_item.values())) < 2:
+            problems.append(
+                f"SLOT_STRUCTURE_DIVERGENCES declares `{key[1]}` divergent in "
+                f"{key[0]}, but the family now agrees about it -- retire the entry "
+                f"and lower the budget")
+    return problems
+
+
 def check_prose_only_claims_are_current() -> list[str]:
     """Was each "NOT CONVERTIBLE" claim judged against TODAY's primitive set?
 
@@ -3960,6 +4089,12 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.SYSTEM_PROMPT_DIVERGENCES": (
         "system-prompt rules the two scorers must state differently",
         ("check_system_prompts_are_parallel",)),
+    "enforcement.SLOT_STRUCTURE_DIVERGENCES": (
+        "slots whose gate/points structure is deliberately not uniform in a family",
+        ("check_sibling_slots_share_their_structure",)),
+    "enforcement.SLOT_STRUCTURE_FAMILIES": (
+        "which items count as siblings for the structure check",
+        ("check_sibling_slots_share_their_structure",)),
 }
 
 

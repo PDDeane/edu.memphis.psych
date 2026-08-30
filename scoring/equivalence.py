@@ -604,6 +604,8 @@ def enforcement_audit():
         findings.append(("-", "SYSTEM PROMPTS OUT OF SYNC", bad))
     for bad in ENF.check_prose_only_claims_are_current():
         findings.append(("-", "PROSE-ONLY CLAIM PREDATES THE REGISTRY", bad))
+    for bad in ENF.check_sibling_slots_share_their_structure():
+        findings.append(("-", "SIBLING SLOTS DIFFER IN STRUCTURE", bad))
     for bad in ENF.check_prose_only_slots_are_declared():
         findings.append(("-", "PROSE-ONLY SLOT UNDECLARED", bad))
     for bad in ENF.check_artifacts_record_their_era():
