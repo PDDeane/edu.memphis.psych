@@ -573,7 +573,29 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       uses and nothing can use. A registry entry no item can justify is a claim
       about the system that is not true.
 
-- [ ] E19. **Re-test PROSE_ONLY_SLOTS' "NOT CONVERTIBLE" claims when the primitive set changes.**
+- [x] E19. **Re-test PROSE_ONLY_SLOTS' "NOT CONVERTIBLE" claims when the primitive set changes.**
+      DONE 2026-08-29, implemented the same day it was filed (249655f).
+      `PROSE_ONLY_JUDGED_AGAINST` stamps each of the nine entries with the
+      primitive set it was judged against; `check_prose_only_claims_are_current`
+      fails when the registry no longer matches, and is wired into the audit and
+      registered in DECLARATION_TABLES. It fires exactly once per primitive
+      added, which is when the answer can have changed.
+      Injection-tested three ways: a new primitive landing flags all nine, an
+      unstamped entry is caught, an orphaned stamp is caught. Key sets must match
+      in both directions.
+      WHAT THE BASELINE STAMP ASSERTS, recorded so it is not read as more: that
+      these nine reasons stand against today's nine primitives. Verifiable for the
+      three that name one -- Q4b:b1_basis argues from `maps`, Q6:affect_c1 from
+      `cover` -- and the rest were last written 2026-08-28/29, after `maps`
+      landed. It is NOT a re-judgement of each rule from scratch; it is the dated
+      baseline the check measures drift from.
+      CLOSED WITHOUT CLEARING THE TABLE, which was the original request and the
+      wrong target: check_prose_only_slots_are_declared does not aim at zero, all
+      nine already argue why they cannot be primitives, and the budget stays 9. A
+      re-judged entry that is still not convertible just gets a new stamp.
+      NEXT TIME IT FIRES: `requires` landing on Q6 under E15 will flag both Q6
+      `affect_*` entries, since their reasons turn on what `cover` already
+      constrains.
       Asked for as "a subgoal to clear PROSE_ONLY_SLOTS". IT SHOULD NOT BE
       CLEARED, and the record says so in terms:
       check_prose_only_slots_are_declared's own docstring -- "Unlike
@@ -694,7 +716,23 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       product, not a sweep that makes every slot identical.
 
 
-- [ ] E12. **`--selftest` without `--enforcement` silently scores nothing.**
+- [x] E12. **`--selftest` without `--enforcement` silently scores nothing.** DONE
+      2026-08-29 (2c87cc6). It is now a usage error naming the correct
+      invocation, not a fallthrough that runs the prompt audit and exits 0. An
+      ERROR rather than an implied --enforcement, because the two modes cost
+      different amounts of time and someone who typed one should be told which
+      they are getting.
+      THE CLASS SWEEP FOUND A SECOND LIVE INSTANCE, which is why the subgoal
+      asked for it: `cross_path` read `--slots` only in the non-`--gold` branch,
+      so every `--slots --gold` invocation silently dropped `--slots` -- and the
+      missing slot section reads exactly like "no slot diverged". It was being
+      run that way all through the sweep, and the output was cited as evidence it
+      had never produced. No conclusion moved (the verdicts rest on the era check
+      and set-disjointness, and with zero divergent cells there were no slot bases
+      to print), but the citation was wrong. Both now error.
+      Remaining flags checked: equivalence.py's --item/--cli/--scoring/--fixture
+      and agreement_app.py's are each read in their own dispatch branch, so none
+      has this shape.
       Found 2026-08-28, during the web sweep, by running it wrong and believing
       the result. `equivalence.py --selftest` is only honoured together with
       `--enforcement`; alone, argparse accepts it, the flag is never read, the
@@ -716,7 +754,19 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       has this bug, and `--slots`/`--gold` on `cross_path.py` deserve the same
       look.
 
-- [ ] E13. **The self-test degrades silently: a lost case looks like a passing run.**
+- [x] E13. **The self-test degrades silently: a lost case looks like a passing run.** DONE
+      2026-08-29 (2c87cc6). The denominator was `len(cases)`, so a case that
+      stopped being CONSTRUCTED took the denominator down with it: 48/48 and
+      49/49 are indistinguishable at a glance. `SELFTEST_EXPECTED` is now a
+      two-sided ratchet over built + skipped, SKIPs are counted in the summary
+      line rather than scrolling past above a confident total, and a short run
+      exits non-zero.
+      IT CAUGHT ITS AUTHOR ON THE FIRST RUN, which is the best evidence it works:
+      I set the constant to 51 by counting from memory -- "49 cases and the two
+      SKIP lines I remembered" -- and the ratchet reported a lost case. Only the
+      plain-path case skips; the `{fail}` injection site still exists on Q6, so
+      that case is built. Set to 50 from a measured run, with the reason recorded
+      in the constant so it is not re-derived.
       Found the same way and in the same hour as 12, and the two should be read
       together -- 12 is the suite not running, this is the suite running SHORT.
       `equivalence.py --enforcement --selftest` prints `N/N injected breakages
@@ -1212,7 +1262,7 @@ ORDER, reset 2026-08-29 when the two-sided sweep finished. The 2026-08-28 order
 twice, so it is replaced rather than amended.
 
     E14 [done]  ->  E2 [done]  ->  E11  ->  E15
-                                     E12, E13, E19, E25, E26 any time
+                                     E25, E26 any time  [E12,E13,E19 done]
 
 E14 AND E2 CLOSED 2026-08-29. The block-schema fix landed, all seven blocked
 items were re-measured, and the sweep finished at 26 of 26 on both scorers:
@@ -1233,8 +1283,8 @@ scorer sees, and doing that after a `requires` conversion would leave two
 uncertified changes in one sweep, unable to say which moved a cell. That is the
 same reason the old order put 8 before 9.
 
-E12, E13, E19 and E26 MOVE NO SCORE -- they are audit machinery -- so they can
-land at any point without disturbing a measurement. E25 (`keyword` -> `derived`)
+E26 MOVES NO SCORE -- it is audit machinery -- so it can land at any point
+without disturbing a measurement. E12, E13 and E19 were the same and are done. E25 (`keyword` -> `derived`)
 does touch a sheet, but it is measurably behaviour-preserving before it is made:
 the model and a literal string search agree 240/240, so the conversion changes
 who answers the question and not what the answer is.
