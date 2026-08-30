@@ -1355,15 +1355,7 @@ SLOT_NOTES = {
                   "plainly. `unclear` only when neither says. Reported, never scored — but "
                   "the grader compares it against the type the example actually is, so "
                   "report it accurately rather than helpfully",
-    "D1:defines_type": "which of the four types this DEFINITION describes, judged on its "
-                       "content alone: something added or removed, behaviour increased or "
-                       "decreased. Do not look at what they chose — that is the other "
-                       "check, and the grader does the comparison",
-    "D2:defines_type": "which of the four types this DEFINITION describes, judged on its "
-                       "content alone: something added or removed, behaviour increased or "
-                       "decreased. Do not look at what they chose — that is the other "
-                       "check, and the grader does the comparison",
-    "D1:named_type": "which of the four the student chose, read from the type slot in the "
+            "D1:named_type": "which of the four the student chose, read from the type slot in the "
                      "context below. `unclear` only if it is blank or unreadable",
     "D2:named_type": "which of the four the student chose, read from the type slot in the "
                      "context below. `unclear` only if it is blank or unreadable",
