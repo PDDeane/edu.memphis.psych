@@ -473,6 +473,36 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       is in the WEB prompt today. Left in the backlog: fixing the text changes a
       measured prompt, so it is a scoring change to be measured, not a migration.
       THE TRADE, again: PROSE_ONLY_SLOTS rises as the backlog falls.
+      FOURTH PASS, 5 -> 3, and the 1c pair split rather than moving together:
+        `1c:legend` MIGRATED -- its note reached the web only and 1c has a credit
+        component to host it. Paper prompt 3709 -> 3974 chars.
+        `1c:has_own_graph` STRUCK OFF: it is `derived`, computed from the typed
+        data fields, so no model is asked and NEITHER generator rendered its note.
+        Dead text, like matches_chosen_type. The pair looked identical in the
+        backlog and were not.
+      THE THREE THAT REMAIN, each blocked for a different reason:
+        `Q1:matches_selected` -- not a paper-blind RULE at all. The paper sheet
+        has no such SLOT, because a .docx has no closed choice to compare against,
+        and the asymmetry is already declared in SCORING_DIVERGENCES. It stays
+        listed because this list IS the declaration of web-only notes; striking it
+        out just made the reach check demand it back.
+        `named_type` -- DAY1/DAY2/WK1/WK2 have the slot on BOTH sheets and the
+        note on neither rubric. Those items are `derive_from_criteria`, so their
+        slot prose comes from the SHARED _criteria_section and no credit component
+        exists to carry a `rule`. The route is that shared source, which changes
+        where the web renders it too: a prompt change to measure.
+        `reasons_substantial` -- its text names `wrong_kind`, which Q5 offers on
+        no slot. A content bug in the web prompt today; fixing it is a measured
+        change.
+      A SECOND-ORDER EFFECT WORTH KNOWING ABOUT: deleting the dead
+      `1c:has_own_graph` note broke the LEAKAGE gate on four unrelated H2 guidance
+      blocks. Their text is byte-identical -- same sha at HEAD, where they passed.
+      The note contained "a short or unreadable week", so removing it took "short"
+      out of the prompt corpus and tipped the detector's threshold on blocks that
+      merely use the ordinary idioms "hitting the target" and "falling short".
+      Filed as `vocabulary` with that explanation. THE LESSON: the leakage
+      detector is corpus-relative, so REMOVING prompt text can flag prose you did
+      not touch. Run the leakage gate after a deletion, not only after an edit.
       TWO THAT MAY NOT BE MIGRATABLE, so check before promising 13 -> 0:
       `1c:has_own_graph` and `1c:legend` belong to the item whose web chart is
       drawn from typed data a paper student cannot supply -- the declared,
