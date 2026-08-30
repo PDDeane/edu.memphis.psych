@@ -2244,8 +2244,15 @@ def check_slot_rules_are_vocabulary_neutral() -> list[str]:
                 rule = c.get("rule")
                 if not rule:
                     continue
+                # SHARED tokens are safe to name: both sides offer them, so no
+                # scorer is instructed about a verdict it cannot emit. Excluding
+                # them is not a relaxation of the rule -- it is the rule, applied
+                # to the vocabularies as they actually are. `duplicate` and
+                # `unclear` are in both lists.
+                from slot_vocab import SHARED_EXTRAS
+                exempt = ("met", "absent") + SHARED_EXTRAS
                 named = sorted({v for v in KNOWN_VERDICTS
-                                if f"`{v}`" in rule and v not in ("met", "absent")})
+                                if f"`{v}`" in rule and v not in exempt})
                 if named:
                     problems.append(
                         f"H{h} {item['id']}.{c['what']}: `rule` names the verdict "

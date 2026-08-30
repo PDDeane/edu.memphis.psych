@@ -11,7 +11,19 @@ WEB_EXTRAS = ("unclear", "wrong_kind", "incomplete", "duplicate",
               "mismatch", "generic", "tick_values")
 
 RUBRIC_EXTRAS = ("not_active", "not_reason", "duplicate", "not_a_type",
+                 # `unclear` was missing here until 2026-08-30 while TWENTY-ONE
+                 # rubric slots declared it, across all three handouts -- Q1's
+                 # utb_stated, all five of Q3's, both keyword slots, D1/D2's
+                 # type slots, 1a's four week slots, 2a's verdict. It is offered
+                 # by both sides and always was; the list simply did not say so.
+                 "unclear",
                  "PR", "NR", "PP", "NP")
+
+# Tokens BOTH sides offer. A shared `rule` may name one of these safely -- no
+# scorer is being told about a verdict it cannot emit -- so the neutrality check
+# must not flag them. Derived rather than listed, so it cannot drift from the two
+# lists above.
+SHARED_EXTRAS = tuple(sorted(set(WEB_EXTRAS) & set(RUBRIC_EXTRAS)))
 
 KNOWN_VERDICTS = ("met", "absent") + WEB_EXTRAS + RUBRIC_EXTRAS
 
