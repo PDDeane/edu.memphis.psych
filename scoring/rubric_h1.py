@@ -378,7 +378,23 @@ ITEMS: list[dict] = [
                         "count either, so WGB_UNRELATED stands INSTEAD of "
                         "WGB_NOT_OPPOSITE plus reason deductions, never alongside them. "
                         "Where it fires it costs the whole item",
-            },
+                            # MIGRATED from olx_prompts.SLOT_NOTES 2026-08-29 (E11), verbatim.
+                # ITS HISTORY, carried over from the note it replaced rather than
+                # lost with it: the note once read "is it the direct positive
+                # counterpart, or a different behavior altogether?" -- the tier (a)
+                # question, which is NOT what this gate tests. The desc was rewritten
+                # to tier (c) after it zeroed p10 and p18; the note was missed, so the
+                # web prompt carried BOTH framings while the CLI carried one. A
+                # web-only note contradicting the shared desc is the worst shape a
+                # deviation can take, and moving it here is what makes that
+                # impossible: one string, rendered by both generators.
+                "rule": "the WGB_UNRELATED test, and only that: is the goal behavior about "
+                         "a DIFFERENT behavior altogether from the unwanted one? A goal in "
+                         "the right territory that simply fails to invert the behavior still "
+                         "satisfies this — that is WGB_NOT_OPPOSITE on `wgb_inverts_utb`, "
+                         "worth 2, not the whole item. Not satisfied means the whole item is "
+                         "that finding",
+},
             {
                 "what": "wgb_inverts_utb",
                 "pts": 2.0,
@@ -440,7 +456,29 @@ ITEMS: list[dict] = [
                         "something the student would acquire rather than the "
                         "behaviour itself — a habit, a routine, a discipline — "
                         "because it never says to do the goal behaviour more",
-            },
+                            # MIGRATED from olx_prompts.SLOT_NOTES 2026-08-29 (E11), verbatim -- the web checklist looks up `rule` first, so its prompt does not move.
+                "rule": "TWO ways to fail, and the second is the common one. (i) no goal "
+                         "behavior is stated at all. (ii) a goal IS stated but does not "
+                         "invert the behaviour the Q1 UTB names — the WGB_NOT_OPPOSITE test. "
+                         "Tier (a) full credit needs the SAME behaviour turned around: the "
+                         "UTB names a behaviour there is too little or too much of, and the "
+                         "goal says to do that same behaviour more, or less. `absent` when "
+                         "the goal is in the right territory but never says to do the "
+                         "behaviour more or less. Two shapes fail this way. A goal naming a "
+                         "general CONDITION or ROUTINE the behaviour would contribute to "
+                         "does not say to perform it. A goal naming a DIFFERENT MEASURE — an "
+                         "outcome the behaviour is supposed to produce, in units the "
+                         "behaviour is not counted in — is not the behaviour either. But the "
+                         "same behaviour's own positive STATE is `met`: a goal naming the "
+                         "condition of HAVING DONE the behaviour is the inversion phrased as "
+                         "a state, and the graders charged nothing for it. So a different "
+                         "measure of the right behaviour fails; the right behaviour's state "
+                         "passes. A goal naming a DIFFERENT ACTIVITY fails here too — one "
+                         "that describes what the student will do INSTEAD never says to do "
+                         "less of the behaviour the UTB names. Answer `absent` for that here "
+                         "even though the `wgb_is_counterpart` gate above may also catch it; "
+                         "do not pass this check assuming the gate will",
+},
             # A `reasons_listed` / `reasons_failing` scaffold in front of this
             # count was measured and REVERTED. The idea was sound and the model
             # executed it perfectly: `listed - failing == given` held on 120 of
@@ -486,7 +524,13 @@ ITEMS: list[dict] = [
                 "verdicts": ["0", "1", "2", "3"],
                 "desc": "Of those, HOW MANY are not a benefit of the goal behaviour — "
                         "because they restate the UTB's harm, or repeat another one",
-            },
+                            # MIGRATED from olx_prompts.SLOT_NOTES 2026-08-29 (E11), verbatim -- the web checklist looks up `rule` first, so its prompt does not move.
+                "rule": "of those, how many are NOT a benefit of the goal behaviour — "
+                         "either because the statement restates the harm of the unwanted "
+                         "behaviour rather than naming something the goal gets you, or "
+                         "because it repeats another statement already counted. Not scored; "
+                         "the second half of the count below",
+},
             {
                 "what": "reasons_given",
                 "reported": True,
@@ -520,7 +564,31 @@ ITEMS: list[dict] = [
                         "nothing. Statements about why the UTB is bad belong to Q1 and "
                         "earn nothing here either — a response whose reasons are all "
                         "of that kind scores 0. Answer 3 for three or more",
-            },
+                            # MIGRATED from olx_prompts.SLOT_NOTES 2026-08-29 (E11), verbatim -- the web checklist looks up `rule` first, so its prompt does not move.
+                "rule": "HOW MANY separate BENEFITS of the goal behaviour — "
+                         "`reasons_listed` minus `reasons_failing`, the two counts above. "
+                         "Thematic overlap alone does not merge two benefits. Whether one "
+                         "sentence holds one benefit or two is STRUCTURAL, not a matter of "
+                         "degree. A second half that is a KNOCK-ON EFFECT of the first is "
+                         "ONE benefit — a benefit followed by \"which will\" and the further "
+                         "good it leads to is one, not two, and counting such a chain as two "
+                         "costs a point. Two INDEPENDENT benefits merely joined by \"and\" are "
+                         "TWO — one about the body and one about mood, in a single sentence, "
+                         "is two benefits and counting it as one costs a point. Three kinds "
+                         "of statement do not count at all. (i) A reason the UNWANTED "
+                         "behaviour is bad, rather than a benefit of the wanted one. A "
+                         "sentence built on the NEGATIVE — what NOT doing the goal behaviour "
+                         "costs them — is a reason to stop the UTB however it is phrased, "
+                         "and the graders counted such sentences as ZERO benefits, even "
+                         "where the same fact stated positively would have counted. (ii) A "
+                         "restatement of the goal or of the problem it solves: saying they "
+                         "will become the kind of person who does the goal behaviour names "
+                         "the goal again, not a benefit of it; so is a remark that "
+                         "attributes their present condition to not having done the goal "
+                         "behaviour. (iii) A statement that says the same thing as one "
+                         "already counted. Answer 3 for three or more that survive all three "
+                         "tests",
+},
             {"what": "reason_1", "pts": 1.0,
              "codes": {"absent": "REASON_MISSING"},
              "desc": "First reason — a benefit of the goal behaviour"},
@@ -1191,7 +1259,7 @@ ITEMS: list[dict] = [
                 "codes": {"absent": "W_ONLY_ONE", "not_reason": "W_NOT_REASON",
                           "duplicate": "W_ONLY_ONE"},
                 "desc": "Second way",
-            },
+},
             {
                 # Reported, never scored — the same shape as `avoidance_frame` on
                 # the operant-conditioning items.
@@ -1215,7 +1283,7 @@ ITEMS: list[dict] = [
                 "desc": "Whether both reasons are substantial — `absent` reports "
                         "a present-but-weak reason so it can be said in the "
                         "feedback, never deducted",
-            },
+},
         ],
         "deductions": [
             {"code": "W_NONE", "pts": 5.0, "text": "did not answer"},

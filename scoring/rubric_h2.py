@@ -430,7 +430,7 @@ def _definition_item(item_id: str, label: str, ordinal: str, type_ctx: str) -> d
                 "verdicts": ["PR", "NR", "PP", "NP", "unclear"],
                 "desc": f"Which of the four the student CHOSE, read from {type_ctx} in the "
                         "context below; `unclear` only if it is blank or unreadable",
-            },
+},
             {
                 "what": "matches_chosen_type",
                 "gates": True,
@@ -440,7 +440,7 @@ def _definition_item(item_id: str, label: str, ordinal: str, type_ctx: str) -> d
                         f"{type_ctx}. A definition that is correct for a DIFFERENT "
                         f"type than the one they chose is WRONG_DEFINITION (-2), not "
                         f"merely incomplete",
-            },
+},
             {
                 "what": "add_or_remove",
                 "pts": 1.0,
@@ -514,7 +514,7 @@ def _example_use_item(
                 "what": "matches_chosen_type",
                 "pts": 1.0,
                 "desc": f"Matches the type named in {type_ctx}",
-            },
+},
             {
                 "what": "targets_own_behavior",
                 "pts": 1.0,
