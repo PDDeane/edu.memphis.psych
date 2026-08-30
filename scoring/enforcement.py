@@ -1119,14 +1119,14 @@ SLOT_RULE_BACKLOG = [
     #     prompt change to measure, not a mechanical move.
     #   `reasons_substantial` -- its text names `wrong_kind`, which Q5 offers on
     #     no slot. Fixing that content bug changes a measured web prompt.
-    'Q1:matches_selected', 'named_type',
+    'Q1:matches_selected',
 ]
 
 # How many may remain. It may only go DOWN. Same ratchet as HANDCODED_BUDGET, for
 # the same reason and on the evidence of the same day: a declared backlog with no
 # ceiling reads as coverage while enforcing nothing about its own size, and this
 # one had grown to seventeen entries costing at least one item its whole score.
-SLOT_RULE_BACKLOG_BUDGET = 2
+SLOT_RULE_BACKLOG_BUDGET = 1
 
 
 # The three programs that write scoring artifacts, and the field each must stamp.
