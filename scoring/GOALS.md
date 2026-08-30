@@ -480,20 +480,37 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
         data fields, so no model is asked and NEITHER generator rendered its note.
         Dead text, like matches_chosen_type. The pair looked identical in the
         backlog and were not.
-      THE THREE THAT REMAIN, each blocked for a different reason:
+      RE-EXAMINED 2026-08-29 after being asked whether these are truly necessary.
+      ONE IS. THE OTHER TWO ARE WORK WITH A PRICE, and calling them blockers
+      overstated it -- the same error as E25's "the paper scorer cannot compute a
+      keyword match", which was also a missing implementation read as a missing
+      capability.
+      THE HOST I SAID DID NOT EXIST DOES: `CLI_CRITERIA_NOTES` names the
+      SLOT_NOTES keys the paper scorer renders anyway, via `_C10_TRIGGER` and
+      `_criterion_11`, which turn a note into criterion prose. DAY1's paper prompt
+      carries "11. `consequence_asserted` — ..." by exactly that route. So a note
+      with no credit component is not homeless; it needs a criterion renderer.
+      THE PRICE, which is why they are deferred rather than done:
+      `_criteria_section` is SHARED, so adding a criterion puts the text in the
+      WEB prompt too. That is a measured scoring change on items with a recorded
+      six-run baseline on both sides -- exactly what E2 exists to make possible,
+      and exactly what must not be slipped in as a refactor.
+      THE THREE THAT REMAIN:
         `Q1:matches_selected` -- not a paper-blind RULE at all. The paper sheet
         has no such SLOT, because a .docx has no closed choice to compare against,
         and the asymmetry is already declared in SCORING_DIVERGENCES. It stays
         listed because this list IS the declaration of web-only notes; striking it
         out just made the reach check demand it back.
-        `named_type` -- DAY1/DAY2/WK1/WK2 have the slot on BOTH sheets and the
-        note on neither rubric. Those items are `derive_from_criteria`, so their
-        slot prose comes from the SHARED _criteria_section and no credit component
-        exists to carry a `rule`. The route is that shared source, which changes
-        where the web renders it too: a prompt change to measure.
-        `reasons_substantial` -- its text names `wrong_kind`, which Q5 offers on
-        no slot. A content bug in the web prompt today; fixing it is a measured
-        change.
+        `named_type` -- MIGRATABLE, via a criterion renderer on the pattern of
+        `_criterion_11`, adding the key to CLI_CRITERIA_NOTES. Not blocked; the
+        cost is that `_criteria_section` is shared, so the web gains a criterion
+        line too. Re-measure the four cadence items after. Worth doing: all four
+        have the slot on BOTH sheets and the guidance on neither rubric, and
+        `matches_chosen_type` -- which IS scored -- is computed from it.
+        `reasons_substantial` -- MIGRATABLE once a one-clause content bug is
+        fixed: the text says "instead of reaching for `wrong_kind`" and Q5 offers
+        `wrong_kind` on no slot. Fix the clause, then it moves like the others.
+        Cost: re-measure Q5, which sits at 19/20 on both sides.
       A SECOND-ORDER EFFECT WORTH KNOWING ABOUT: deleting the dead
       `1c:has_own_graph` note broke the LEAKAGE gate on four unrelated H2 guidance
       blocks. Their text is byte-identical -- same sha at HEAD, where they passed.
