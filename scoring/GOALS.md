@@ -689,7 +689,32 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       on Q4a, so anything that shortens the sheet is worth pricing.
 
 
-- [ ] E26. **Sibling items sharing a slot NAME should share its gate structure, or declare why not.**
+- [x] E26. **Sibling items sharing a slot NAME should share its gate structure, or declare why not.** DONE
+      2026-08-29. `check_sibling_slots_share_their_structure` reads the OLX slot
+      specs -- not a run artifact, so it needs no sweep -- groups slots by NAME
+      within a declared family, and reports any whose (gates, points) shape is not
+      uniform unless declared in SLOT_STRUCTURE_DIVERGENCES.
+      THE SURVEY IT WAS BUILT ON: 27 slot names across the eight H2 items. 26 are
+      uniform. Exactly one is not, and it is the one Q26 found --
+      `phrased_directly`, advisory on DAY2/NP/NR/PP/PR/WK1/WK2 and gating on DAY1.
+      So the check is quiet by construction and will stay quiet until something
+      changes, which is what makes it worth running on every audit.
+      DECLARED AS UNDECIDED, deliberately. The entry names Q26 and says the answer
+      is not yet known, rather than either tolerating the divergence silently or
+      going red until someone decides. It comes out either way -- replaced by a
+      real reason, or by making DAY1 match -- and the budget of 1 ratchets so it
+      cannot quietly become the place divergences accumulate.
+      SCOPED BY FAMILY, per the subgoal: `keyword` legitimately differs between
+      Q4a and Q4c (one deduction zeroed by decision, the other declared
+      unreachable) and 1a's week_* slots are not siblings of H2's gates. Only the
+      eight H2 cadence-and-type items are declared a family so far;
+      SLOT_STRUCTURE_FAMILIES is where another would go.
+      Injection-tested four ways: undeclaring the known divergence, introducing a
+      new one into the OLX (`you_arrange_it` flipped), budget slack, and a
+      declaration that has stopped being true because the family converged.
+      WHY THE AUDIT COULD NOT SEE THIS BEFORE: both scorers honour whatever the
+      OLX says, identically, so nothing in the equivalence machinery objects. It
+      is a RUBRIC defect, and the equivalence audit was not looking for those.
       Split from Q26 on 2026-08-29, which found the instance: `phrased_directly`
       GATES on DAY1 and is advisory on its seven siblings, the difference being a
       single `!` in one OLX slot spec, declared nowhere. Q26 decides whether that
@@ -1262,7 +1287,7 @@ ORDER, reset 2026-08-29 when the two-sided sweep finished. The 2026-08-28 order
 twice, so it is replaced rather than amended.
 
     E14 [done]  ->  E2 [done]  ->  E11  ->  E15
-                                     E25, E26 any time  [E12,E13,E19 done]
+                                     E25 any time  [E12,E13,E19,E26 done]
 
 E14 AND E2 CLOSED 2026-08-29. The block-schema fix landed, all seven blocked
 items were re-measured, and the sweep finished at 26 of 26 on both scorers:
