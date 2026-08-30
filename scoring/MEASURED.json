@@ -746,7 +746,7 @@
           "11": 4,
           "12": 6,
           "13": 6,
-          "14": 6,
+          "14": 5,
           "15": 6,
           "16": 6,
           "17": 6,
@@ -770,20 +770,20 @@
           3
         ],
         "numerator": 17,
-        "out": "twoside_cli",
+        "out": "nt2_cli",
         "previous": {
           "denominator": 18,
           "numerator": 17,
-          "out": "cadence_eq6",
-          "prompt_sha": "d227fc42c4ef",
+          "out": "twoside_cli",
+          "prompt_sha": "3d31b9a39dc3",
           "runs": 6,
-          "scorer_sha": "38bd39ee8a03"
+          "scorer_sha": "52fedad3b91b"
         },
-        "prompt_sha": "3d31b9a39dc3",
+        "prompt_sha": "409fb683a744",
         "run_totals": [
           16,
           16,
-          17,
+          16,
           17,
           17,
           17
