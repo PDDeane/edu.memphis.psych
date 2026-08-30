@@ -1412,8 +1412,6 @@ SLOT_NOTES = {
     # before the example slots gained their own vocabulary. It is in the WEB
     # prompt today. Fixing the text changes a measured prompt, so it is a
     # scoring change to be measured -- not a migration.
-    "reasons_substantial":
-        "`absent` when a reason is PRESENT but weak \u2014 thin, vague, or barely explained. This costs NOTHING; it exists so you can say it in the feedback instead of reaching for `wrong_kind`. A reason that gestures at the student's own neglect without naming what they get out of it \u2014 \"I keep doing it because I am not looking after myself\" \u2014 is thin, and the graders left that kind at FULL marks with a written note. Reserve `wrong_kind` for a statement that is not a reason for CONTINUING at all \u2014 most often an EFFECT of the behaviour wearing a reason's clothes, like \"because it leaves me irritable and behind on everything\", which is what the behaviour causes rather than what the student gets out of it",
     "reasons_listed":
         "how many statements the response OFFERS as reasons, counted off the page "
         "before judging any of them. This is not scored; it is the first half of "
