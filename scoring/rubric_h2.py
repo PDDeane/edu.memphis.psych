@@ -407,6 +407,22 @@ def _definition_item(item_id: str, label: str, ordinal: str, type_ctx: str) -> d
                 "desc": "Which of the four types this DEFINITION describes, judged on its "
                         "content alone: something added or removed, behaviour increased or "
                         "decreased",
+                # MIGRATED out of olx_prompts.SLOT_NOTES on 2026-08-29 (E11), for
+                # D1 and D2 at once -- both come from this factory.
+                # The `desc` above already carried the first clause, so score.py
+                # was told WHAT to judge and not the operative half: do not look
+                # at what they chose. That matters more here than most, because
+                # `defines_type` and `named_type` feed the `matches_chosen_type`
+                # comparison -- a grader who reads the choice while judging the
+                # definition collapses two checks that have to stay independent.
+                # VERBATIM from the note, so the web prompt does not move: its
+                # checklist looks up `rule` before SLOT_NOTES and finds the same
+                # string.
+                "rule": "which of the four types this DEFINITION describes, judged on "
+                        "its content alone: something added or removed, behaviour "
+                        "increased or decreased. Do not look at what they chose "
+                        "\u2014 that is the other check, and the grader does the "
+                        "comparison",
             },
             {
                 "what": "named_type",

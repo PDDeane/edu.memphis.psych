@@ -1069,7 +1069,14 @@ SLOT_RULE_BACKLOG = [
     # Their text now lives in rubric_h3's `rule` fields, which both generators
     # render, and the web prompt did not move because its checklist looks up
     # `rule` before SLOT_NOTES and finds the same string.
-    '1c:has_own_graph', '1c:legend', 'D1:defines_type', 'D2:defines_type',
+    # D1/D2:defines_type MIGRATED 2026-08-29, budget 13 -> 11. Same procedure
+    # as the 1a group: the text is now the `rule` on rubric_h2's
+    # `_definition_item` factory, which serves both items, and the web
+    # prompts are byte-identical before and after. The paper prompt GAINED
+    # the operative clause it never had -- "do not look at what they chose"
+    # -- which is the half that keeps `defines_type` independent of
+    # `named_type` for the `matches_chosen_type` comparison.
+    '1c:has_own_graph', '1c:legend',
     'Q1:matches_selected', 'Q2:reasons_given', 'Q2:wgb_inverts_utb',
     'Q2:wgb_is_counterpart', 'Q5:example_2', 'matches_chosen_type',
     'named_type', 'reasons_failing', 'reasons_substantial',
@@ -1079,7 +1086,7 @@ SLOT_RULE_BACKLOG = [
 # the same reason and on the evidence of the same day: a declared backlog with no
 # ceiling reads as coverage while enforcing nothing about its own size, and this
 # one had grown to seventeen entries costing at least one item its whole score.
-SLOT_RULE_BACKLOG_BUDGET = 13
+SLOT_RULE_BACKLOG_BUDGET = 11
 
 
 # The three programs that write scoring artifacts, and the field each must stamp.
@@ -1183,9 +1190,25 @@ PROSE_ONLY_SLOTS = {
         "NOT CONVERTIBLE, same reason: arc-not-label coverage is judged over the "
         "narrative, and no operand pair expresses it.",
     ("1a", "week_2"): "NOT CONVERTIBLE, same as week_1 for the middle stretch.",
+    # ARRIVED 2026-08-29 with the E11 migration, and the trade is deliberate: the
+    # rule used to reach two scorers of three SILENTLY, and now reaches all three
+    # and is declared as prose the audit cannot compare. PROSE_ONLY_SLOTS growing
+    # is the price of that visibility, not a regression -- an undeclared asymmetry
+    # became a declared symmetry.
+    ("D1", "defines_type"):
+        "NOT CONVERTIBLE. The slot classifies a DEFINITION into PR/NR/PP/NP by "
+        "reading what it says -- something added or removed, behaviour increased "
+        "or decreased. That is a reading of prose, with no operands to compare. "
+        "What IS computed is the next step: `equals` pairs this verdict against "
+        "`named_type` to derive `matches_chosen_type`, so the COMBINING is already "
+        "a primitive and only the classification is judged. The rule's operative "
+        "half -- do not look at what they chose -- exists to keep the two inputs "
+        "independent, which no primitive can enforce about a model's attention.",
+    ("D2", "defines_type"):
+        "NOT CONVERTIBLE, same as D1: one factory builds both.",
     ("1a", "week_3"): "NOT CONVERTIBLE, same as week_1 for the final stretch.",
 }
-PROSE_ONLY_BUDGET = 9
+PROSE_ONLY_BUDGET = 11
 
 
 # WHICH PRIMITIVE SET each "NOT CONVERTIBLE" claim was judged against.
@@ -1216,6 +1239,8 @@ PROSE_ONLY_JUDGED_AGAINST: dict[tuple[str, str], str] = {
     ("1a", "week_1"): _PRIMS_2026_08_29,
     ("1a", "week_2"): _PRIMS_2026_08_29,
     ("1a", "week_3"): _PRIMS_2026_08_29,
+    ("D1", "defines_type"): _PRIMS_2026_08_29,
+    ("D2", "defines_type"): _PRIMS_2026_08_29,
 }
 
 

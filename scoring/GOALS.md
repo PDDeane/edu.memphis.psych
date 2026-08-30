@@ -393,6 +393,28 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       the same string. Then re-run the leakage gate, which re-asks because a
       verdict is keyed to the prose, and refile with an attribution rather than a
       rubber stamp. Drop the entry, lower the budget, and let the ratchet confirm.
+      PROGRESS 2026-08-29: D1/D2:defines_type MIGRATED, 13 -> 11. One edit served
+      both, because rubric_h2 builds them from a `_definition_item` factory. Web
+      prompts byte-identical before and after; the paper prompt GAINED 94 chars,
+      and what it gained is the point -- its `desc` already carried "which of the
+      four types this DEFINITION describes", so score.py was told what to judge
+      and NOT the operative half, "do not look at what they chose". That clause is
+      what keeps `defines_type` independent of `named_type`, and the two feed the
+      `matches_chosen_type` comparison, so a paper grader reading the choice while
+      judging the definition collapses two checks that must stay separate.
+      No item's web prompt_sha moved, so the two-sided sweep stays valid.
+      THE TRADE THIS MAKES, and it is worth stating because the numbers move in
+      opposite directions: SLOT_RULE_BACKLOG 13 -> 11 while PROSE_ONLY_SLOTS
+      9 -> 11. That is not a wash. Before, the rule reached two scorers of three
+      and nothing said so; after, it reaches all three and is DECLARED as prose
+      the audit cannot compare. An undeclared asymmetry became a declared
+      symmetry, and the audit prefers the second even though the count is the
+      same -- one is a hidden difference in what gets graded, the other is a known
+      limit on what can be compared.
+      EXPECT THAT TRADE ON EVERY REMAINING ENTRY. Emptying this backlog will push
+      PROSE_ONLY_SLOTS up by roughly the same number, unless a rule turns out to
+      be expressible as a primitive. Do not read the second budget rising as
+      backsliding; read it as the cost of the first one falling.
       TWO THAT MAY NOT BE MIGRATABLE, so check before promising 13 -> 0:
       `1c:has_own_graph` and `1c:legend` belong to the item whose web chart is
       drawn from typed data a paper student cannot supply -- the declared,
