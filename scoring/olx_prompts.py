@@ -1383,35 +1383,6 @@ SLOT_NOTES = {
     # cell-runs the first time it was tried, so the two parts are asked as
     # reported slots and the count stays the scored one, rather than teaching a
     # `present - failing` primitive to seven consumers.
-    # NOT MIGRATABLE, established 2026-08-29 (E11). D1 and D2 have a `named_type`
-    # CREDIT COMPONENT and now carry this text as their `rule`; DAY1, DAY2, WK1 and
-    # WK2 carry the SLOT with no component behind it, so there is nowhere on those
-    # four to put a rule. Removing this note deleted the text from their web
-    # prompts -- caught by diffing the generated prompt, not by any check.
-    "named_type":
-        "criterion 8 (`named_type`) \u2014 which of the four the student SAID they "
-        "would use. Read the type slot in the context below; if it is blank or "
-        "garbled, fall back to their DEFINITION, which usually states the type "
-        "plainly. `unclear` only when neither says. Reported, never scored \u2014 "
-        "but the grader compares it against the type the example actually is, so "
-        "report it accurately rather than helpfully",
-    # NOT MIGRATABLE AS WRITTEN, established 2026-08-29 (E11). Both rules name a
-    # verdict token literally -- `duplicate`/`not_reason` here, `wrong_kind` on
-    # reasons_substantial -- which is safe in a web-only note and is not safe in a
-    # shared `rule`: check_slot_rules_are_vocabulary_neutral refuses it, because
-    # the paper scorer would be instructed about tokens it cannot emit. `{fail}`
-    # is the sanctioned escape and fills with ONE verdict, while `example_2`
-    # distinguishes two with different meanings. Rewriting the prose to avoid the
-    # tokens would change the WEB prompt on a measured item, so it is a scoring
-    # change to be measured, not a refactor to be slipped in.
-    # NOT MIGRATABLE UNTIL A CONTENT BUG IS FIXED, found 2026-08-29 (E11).
-    # This rule says "instead of reaching for `wrong_kind`" and Q5 OFFERS NO
-    # `wrong_kind` on any slot -- example_1/example_2 run met/absent/
-    # not_reason/duplicate and this slot runs met/absent. So the advice names
-    # a token nobody on this item can emit, almost certainly a leftover from
-    # before the example slots gained their own vocabulary. It is in the WEB
-    # prompt today. Fixing the text changes a measured prompt, so it is a
-    # scoring change to be measured -- not a migration.
     "reasons_listed":
         "how many statements the response OFFERS as reasons, counted off the page "
         "before judging any of them. This is not scored; it is the first half of "
@@ -1895,11 +1866,19 @@ def _criteria_section(item: dict, trigger_slot: bool = False,
     ]
     if item.get("cadence"):
         parts.append(
+            # THE TWO SIDES EACH HELD HALF, until 2026-08-29 (E11). This criterion
+            # carried the worked example and the WEB's SLOT_NOTES entry carried the
+            # closing clause -- so the paper scorer was never told WHY to report
+            # this accurately, and the web was never given the example. Merged
+            # here, in the one place both generators read, and the note deleted so
+            # the web renders it once.
             "8. `named_type` — which of the four the student SAID they would use. Read "
             "the type slot in the context below; if it is blank or garbled, fall back to "
             "their DEFINITION, which usually states the type plainly (\"{{corpus:D2/p15:d2:28:41:sha=561e03f6a586:shape=R13-0-20}}"
             "{{corpus:D2/p15:d2:42:110:sha=bd23c4b2e196}}\" is "
-            "Positive Punishment). Use `unclear` only when neither says.\n"
+            "Positive Punishment). Use `unclear` only when neither says. Reported, never "
+            "scored — but the grader compares it against the type the example actually "
+            "is, so report it accurately rather than helpfully.\n"
             f"9. `cadence_ok` — is the TRIGGER evaluated {item['cadence']}? Judge only "
             "how often the behaviour is checked, not how long the consequence lasts: a "
             "daily trigger whose reward runs to the end of the week is still daily. Set "
