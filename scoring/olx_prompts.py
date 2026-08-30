@@ -1384,6 +1384,27 @@ SLOT_NOTES = {
     # cell-runs the first time it was tried, so the two parts are asked as
     # reported slots and the count stays the scored one, rather than teaching a
     # `present - failing` primitive to seven consumers.
+    # WEB-ONLY BY DESIGN, not a backlog item to clear: this rule names a
+    # verdict from ONE side's vocabulary (slot_vocab.WEB_EXTRAS /
+    # RUBRIC_EXTRAS), so moving it to a shared `rule` would instruct the
+    # other scorer about a token it cannot emit. Migrated 2026-08-29 and
+    # REVERTED 2026-08-30. See E27.
+    "Q5:example_2":
+        "`met` for a second reason that is genuinely DIFFERENT from the first. `duplicate` when both entries are well-formed but amount to the SAME reason \u2014 two entries that each avoid the same discomfort, one naming the distance and one the aching afterwards, are one reason twice, and the graders wrote \"missing a reason\". `absent` only when there is no second entry at all. `not_reason` when there IS a second, distinct entry but it is not a reason for CONTINUING \u2014 an EFFECT of the behaviour rather than a payoff from it. When it is present, distinct and a real payoff but merely thin, that is `met` plus `reasons_substantial: absent`",
+    # WEB-ONLY BY DESIGN, not a backlog item to clear: this rule names a
+    # verdict from ONE side's vocabulary (slot_vocab.WEB_EXTRAS /
+    # RUBRIC_EXTRAS), so moving it to a shared `rule` would instruct the
+    # other scorer about a token it cannot emit. Migrated 2026-08-29 and
+    # REVERTED 2026-08-30. See E27.
+    "reasons_substantial":
+        "`absent` when a reason is PRESENT but weak \u2014 thin, vague, or barely explained. This costs NOTHING; it exists so you can say it in the feedback instead of reaching for `wrong_kind`. A reason that gestures at the student's own neglect without naming what they get out of it \u2014 \"I keep doing it because I am not looking after myself\" \u2014 is thin, and the graders left that kind at FULL marks with a written note. Reserve `wrong_kind` for a statement that is not a reason for CONTINUING at all \u2014 most often an EFFECT of the behaviour wearing a reason's clothes, like \"because it leaves me irritable and behind on everything\", which is what the behaviour causes rather than what the student gets out of it",
+    # WEB-ONLY BY DESIGN, not a backlog item to clear: this rule names a
+    # verdict from ONE side's vocabulary (slot_vocab.WEB_EXTRAS /
+    # RUBRIC_EXTRAS), so moving it to a shared `rule` would instruct the
+    # other scorer about a token it cannot emit. Migrated 2026-08-29 and
+    # REVERTED 2026-08-30. See E27.
+    "1c:legend":
+        "the NO_LEGEND test. `met` when the series names name all four plotted periods \u2014 the baseline and the three intervention weeks \u2014 in any reasonable wording ('Baseline, Wk1, Wk2, Wk3' counts). `incomplete` when some are named and some are not, or the count does not match the four series; `absent` when the box is empty or holds something that is not a set of series names. Judge the series names, not the heading",
     "reasons_listed":
         "how many statements the response OFFERS as reasons, counted off the page "
         "before judging any of them. This is not scored; it is the first half of "

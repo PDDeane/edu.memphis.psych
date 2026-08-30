@@ -368,14 +368,14 @@ def compare(left: str, right: str, item_filter: str | None = None,
         print(f"{k[0]+'/p'+str(k[1]):12}{str(l):>12}{str(r):>12}   {d}")
         if show_slots:
             basis = slot_basis(k[0])
-            for slot, lval, rval in _slot_diffs(lv.get(k, []), rv.get(k, [])):
+            for slot, lval, rval in _slot_diffs(lv.get(k, []), rv.get(k, []), lkind, rkind):
                 what = basis.get(slot, "unknown basis")
                 print(f"{'':12}  slot `{slot}`: {lname} {lval} / {rname} {rval}"
                       f"   [{what}]")
     return 0
 
 
-def _slot_diffs(lvs: list, rvs: list) -> list:
+def _slot_diffs(lvs: list, rvs: list, lkind: str = "", rkind: str = "") -> list:
     """Slots whose majority verdict differs, which names the responsible rule.
 
     Majority rather than any-run, so one flapping run does not implicate a slot
@@ -387,12 +387,39 @@ def _slot_diffs(lvs: list, rvs: list) -> list:
             return None
         return collections.Counter(vals).most_common(1)[0][0]
 
+    # THE TWO SIDES DO NOT SHARE A VERDICT VOCABULARY when one of them is the
+    # paper scorer. slot_vocab declares them separately -- WEB_EXTRAS come from
+    # slotSheet.ts, RUBRIC_EXTRAS from the credit components' `verdicts` lists --
+    # so `wrong_kind` on the web and `not_reason` in the rubric are counterparts,
+    # not a disagreement. Comparing the raw strings would report every such slot
+    # as divergent, which is a false positive on exactly the comparison this tool
+    # exists for.
+    #
+    # Harness-vs-app is safe: both serve the web's vocabulary, and the raw tokens
+    # carry which failure mode was chosen, which is worth keeping. So the tokens
+    # are folded to satisfied/failed ONLY when a paper artifact is involved, and
+    # the caller is told, because a folded comparison answers a coarser question.
+    cross_vocab = "paper" in (lkind, rkind) and lkind != rkind
+
+    def fold(v):
+        if v is None or not cross_vocab:
+            return v
+        return "met" if v == "met" else f"<not-met:{v}>"
+
     slots = {s for d in lvs for s in d} & {s for d in rvs for s in d}
     out = []
     for s in sorted(slots):
         a, b = majority(lvs, s), majority(rvs, s)
-        if a is not None and b is not None and a != b:
-            out.append((s, a, b))
+        if a is None or b is None:
+            continue
+        fa, fb = fold(a), fold(b)
+        if cross_vocab:
+            # Same satisfied/failed answer under different names is agreement.
+            if (a == "met") == (b == "met"):
+                continue
+        elif a == b:
+            continue
+        out.append((s, a, b))
     return out
 
 
