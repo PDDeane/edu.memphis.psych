@@ -1216,23 +1216,6 @@ SLOT_NOTES = {
     'Q6:state_c2':
         "same for the other box — either label is credited; the grader checks that "
         "between the two boxes both of 4c's consequences are named",
-    "1c:legend":
-        "the NO_LEGEND test. `met` when the series names name all four plotted "
-        "periods — the baseline and the three intervention weeks — in any reasonable "
-        "wording ('Baseline, Wk1, Wk2, Wk3' counts). `incomplete` when some are named "
-        "and some are not, or the count does not match the four series; `absent` when "
-        "the box is empty or holds something that is not a set of series names. "
-        "Judge the series names, not the heading",
-    "1c:has_own_graph":
-        "the NO_GRAPH and TEMPLATE_GRAPH_ONLY tests, asked of the data rather than of "
-        "a file. `met` when the four weeks under `Graph evidence` hold numbers "
-        "SelfMonitorPlot can plot and they are the student's own. `absent` when they "
-        "are empty or plainly not numeric — a whole-item gate should not turn on a "
-        "miscount, and the plot itself already warns about a short or unreadable week; "
-        "partial data still draws a graph, so judge the labels on their merits. "
-        "`mismatch` when the numbers are the WORKED EXAMPLE'S, listed in the note "
-        "above: that is the template graph reproduced, and it takes the whole item "
-        "exactly as it does on paper",
     # The operant-conditioning criteria sheet, slot by slot.
     # "quote such a behavior" alone reads too literally, and this is a GATE, so a
     # literal reading costs the whole item. Students routinely point at the
