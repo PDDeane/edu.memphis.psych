@@ -1096,15 +1096,37 @@ SLOT_RULE_BACKLOG = [
     #   nowhere to put a rule. Removing the note deleted the text from those four
     #   web prompts -- caught by diffing the generated prompt against HEAD, and by
     #   nothing else. The note stays, declared in place.
-    '1c:has_own_graph', '1c:legend', 'Q1:matches_selected', 'named_type',
-    'reasons_substantial',
+    # 2026-08-29, third pass, 5 -> 2. Two struck off as mis-categorised and one
+    # migrated:
+    #   `1c:has_own_graph` is DERIVED -- computed from the typed data fields --
+    #     so no model is asked and neither generator renders its note. Dead
+    #     text, like matches_chosen_type. Deleted.
+    #   `Q1:matches_selected` STAYS, but not as work: the paper sheet has no
+    #     such SLOT, because a .docx has no closed choice to compare against,
+    #     and the asymmetry is already declared in SCORING_DIVERGENCES as a
+    #     no-penalty check. It is listed here because this list IS the
+    #     declaration of web-only notes -- striking it out just made the
+    #     reach check demand it back.
+    #   `1c:legend` MIGRATED -- it reached the web only and 1c has a credit
+    #     component to host it, unlike has_own_graph beside it.
+    #
+    # THE TWO THAT REMAIN, each with a known blocker rather than a to-do:
+    #   `named_type` -- DAY1/DAY2/WK1/WK2 have the slot on BOTH sheets but the
+    #     note on neither's rubric: those items are derive_from_criteria, so
+    #     their slot prose comes from the SHARED _criteria_section and there is
+    #     no credit component to carry a `rule`. The route is the shared
+    #     criteria source, which changes where the web renders it too -- a
+    #     prompt change to measure, not a mechanical move.
+    #   `reasons_substantial` -- its text names `wrong_kind`, which Q5 offers on
+    #     no slot. Fixing that content bug changes a measured web prompt.
+    'Q1:matches_selected', 'named_type', 'reasons_substantial',
 ]
 
 # How many may remain. It may only go DOWN. Same ratchet as HANDCODED_BUDGET, for
 # the same reason and on the evidence of the same day: a declared backlog with no
 # ceiling reads as coverage while enforcing nothing about its own size, and this
 # one had grown to seventeen entries costing at least one item its whole score.
-SLOT_RULE_BACKLOG_BUDGET = 5
+SLOT_RULE_BACKLOG_BUDGET = 3
 
 
 # The three programs that write scoring artifacts, and the field each must stamp.
@@ -1238,6 +1260,13 @@ PROSE_ONLY_SLOTS = {
         "between two spans the student wrote. `cover` spots a duplicate against a "
         "LIST; here there is no list, only the other box. Naming the token is safe "
         "because the slot DECLARES it, so both generators offer it.",
+    ("1c", "legend"):
+        "NOT CONVERTIBLE. Whether the series names name all four plotted "
+        "periods is a reading of the legend text the student wrote; the four "
+        "period names are not a list the sheet holds to pair against, so `cover` "
+        "has nothing to work with. Its sibling `has_own_graph` IS computed, by "
+        "`derived` off the typed fields -- which is why that one left this list "
+        "and this one could not.",
     ("D1", "defines_type"):
         "NOT CONVERTIBLE. The slot classifies a DEFINITION into PR/NR/PP/NP by "
         "reading what it says -- something added or removed, behaviour increased "
@@ -1251,7 +1280,7 @@ PROSE_ONLY_SLOTS = {
         "NOT CONVERTIBLE, same as D1: one factory builds both.",
     ("1a", "week_3"): "NOT CONVERTIBLE, same as week_1 for the final stretch.",
 }
-PROSE_ONLY_BUDGET = 15
+PROSE_ONLY_BUDGET = 16
 
 
 # WHICH PRIMITIVE SET each "NOT CONVERTIBLE" claim was judged against.
@@ -1284,6 +1313,7 @@ PROSE_ONLY_JUDGED_AGAINST: dict[tuple[str, str], str] = {
     ("1a", "week_3"): _PRIMS_2026_08_29,
     ("D1", "defines_type"): _PRIMS_2026_08_29,
     ("D2", "defines_type"): _PRIMS_2026_08_29,
+    ("1c", "legend"): _PRIMS_2026_08_29,
     ("Q5", "example_2"): _PRIMS_2026_08_29,
     ("Q2", "wgb_is_counterpart"): _PRIMS_2026_08_29,
     ("Q2", "wgb_inverts_utb"): _PRIMS_2026_08_29,
@@ -2149,6 +2179,37 @@ def check_slot_rules_reach_both_prompts() -> list[str]:
     return problems
 
 
+def _olx_slot_verdicts(item_id: str, slot: str) -> set:
+    """Verdicts the OLX slot spec declares for this slot, e.g. `key:label:fail@2`."""
+    import re as _re
+    import pathlib as _pl
+
+    import agreement_app as _A
+
+    J = _A.JOBS.get(item_id) or {}
+    g = J.get("grader") or ""
+    if not g:
+        return set()
+    act = g.replace("_grader", "_llm")
+    for f in _pl.Path(__file__).resolve().parent.parent.joinpath("psychology").glob("bmod_handout*.olx"):
+        txt = f.read_text()
+        m = _re.search(r"<LLMAction\b(?:(?!</?LLMAction)[^>])*?(?:^|\s)id=\"" +
+                       _re.escape(act) + r"\"(?:(?!</?LLMAction)[^>])*>", txt, _re.S)
+        if not m:
+            continue
+        sm = _re.search(r'slots="([^"]*)"', m.group(0), _re.S)
+        for part in (sm.group(1).split("|") if sm else []):
+            bits = part.split(":")
+            if bits[0].lstrip("!").strip() != slot:
+                continue
+            out = set()
+            for b in bits[2:]:
+                for tok in b.split("/"):
+                    out.add(_re.sub(r"@[0-9.]+$", "", tok).strip())
+            return {o for o in out if o}
+    return set()
+
+
 def check_slot_rules_are_vocabulary_neutral() -> list[str]:
     """Does any shared `rule` name a verdict token literally?
 
@@ -2195,7 +2256,13 @@ def check_slot_rules_are_vocabulary_neutral() -> list[str]:
                 # that declares its own. It cost a correct migration: Q5:example_2
                 # and reasons_substantial were moved out of SLOT_NOTES, refused
                 # here, and reverted, when both slots declare the tokens they name.
-                offered = set(c.get("verdicts") or [])
+                # BOTH sources of truth, unioned. A slot's vocabulary is declared
+                # in the rubric component's `verdicts` OR in the OLX slot spec's
+                # `:verdict` suffix, and some slots use only the second: 1c's
+                # `legend` is authored `legend:...:incomplete@2` with no
+                # `verdicts` on its component, so reading the component alone
+                # reported a false positive on the very migration that exposed it.
+                offered = set(c.get("verdicts") or []) | _olx_slot_verdicts(item["id"], c["what"])
                 named = [v for v in named if v not in offered]
                 if named:
                     problems.append(

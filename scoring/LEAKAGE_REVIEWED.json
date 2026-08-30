@@ -139,6 +139,11 @@
   "note": "'practice session' and 'the fine' appear in no response (phrase-checked); both were written to replace an earlier lift. skip/face/intention are ordinary English.",
   "verdict": "coincidence"
  },
+ "afd99975fc59": {
+  "label": "WK2 guidance :: WHICH WAY WOULD A WORKING PLAN RUN FROM YOUR CONDITI",
+  "note": "Ordinary idiom, not quotation: the block explains gain-vs-loss with 'hitting the target' and 'falling short', the plainest English for meeting and missing a goal. Students write the same words because they are writing about goals -- coincidence of subject, not borrowing. UNCHANGED TEXT: this block's sha is byte-identical at HEAD, where it passed. It became visible on 2026-08-29 only because E11 deleted the dead 1c:has_own_graph note, which contained 'a short or unreadable week', so 'short' stopped appearing elsewhere in the prompt corpus and the detector's threshold tipped. The block was never rewritten.",
+  "verdict": "vocabulary"
+ },
  "bcb6d6c2d294": {
   "label": "SLOT_NOTES reasons_substantial",
   "note": "Our example opens 'I keep doing it because', which is the natural frame for answering 'why do you keep doing it?' and is also how Q5/p18 opens. The CONTENT differs entirely \u2014 ours names self-neglect as a thin answer, p18 names dopamine and gratification, which is substantive. Frame shared, substance not.",

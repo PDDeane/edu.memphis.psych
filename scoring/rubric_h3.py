@@ -257,7 +257,15 @@ ITEMS: list[dict] = [
                      "(Baseline / Week 1 / Week 2 / Week 3). A single-series graph with "
                      "no key has no legend",
                 "codes": {"absent": "NO_LEGEND", "not_described": "NO_LEGEND"},
-            },
+                            # MIGRATED from olx_prompts.SLOT_NOTES 2026-08-29 (E11), verbatim. The note reached the WEB prompt only; 1c.legend is judged by the model on both sides, unlike has_own_graph which is derived.
+                "rule": "the NO_LEGEND test. `met` when the series names name all four "
+                         "plotted periods — the baseline and the three intervention weeks — "
+                         "in any reasonable wording ('Baseline, Wk1, Wk2, Wk3' counts). "
+                         "`incomplete` when some are named and some are not, or the count "
+                         "does not match the four series; `absent` when the box is empty or "
+                         "holds something that is not a set of series names. Judge the "
+                         "series names, not the heading",
+},
         ],
         "deductions": [
             {"code": "NO_GRAPH", "pts": 10.0, "text": "did not include"},
