@@ -1076,17 +1076,44 @@ SLOT_RULE_BACKLOG = [
     # the operative clause it never had -- "do not look at what they chose"
     # -- which is the half that keeps `defines_type` independent of
     # `named_type` for the `matches_chosen_type` comparison.
-    '1c:has_own_graph', '1c:legend',
-    'Q1:matches_selected', 'Q2:reasons_given', 'Q2:wgb_inverts_utb',
-    'Q2:wgb_is_counterpart', 'Q5:example_2', 'matches_chosen_type',
-    'named_type', 'reasons_failing', 'reasons_substantial',
+    # 2026-08-29, E11: SIX MORE MIGRATED and two struck off as never having been
+    # gaps, 11 -> 3. Migrated to the credit component's `rule`, verbatim, web
+    # prompts byte-identical against a git-HEAD baseline:
+    #   Q2:reasons_given  Q2:wgb_inverts_utb  Q2:wgb_is_counterpart
+    #   Q5:example_2      reasons_failing     reasons_substantial
+    # The paper prompts gained what they had been missing -- Q2 3791 -> 4560
+    # chars, Q5 3161 -> 4346, D1/D2 +276 each.
+    #
+    # STRUCK OFF, NOT MIGRATED, because neither was a paper-blind rule:
+    #   `matches_chosen_type` is COMPUTED by `equals` from defines_type and
+    #   named_type, so no model is ever asked about it and NEITHER generator
+    #   renders its note. It reached no prompt at all -- dead text, deleted. A
+    #   `rule` was briefly added to its six components and reverted for the same
+    #   reason: it would have been dead too.
+    #   `named_type` CANNOT migrate for four of its six items: D1 and D2 have a
+    #   credit component and now carry the text as their `rule`, but DAY1, DAY2,
+    #   WK1 and WK2 carry the SLOT with no component behind it, so there is
+    #   nowhere to put a rule. Removing the note deleted the text from those four
+    #   web prompts -- caught by diffing the generated prompt against HEAD, and by
+    #   nothing else. The note stays, declared in place.
+    # Q5:example_2 and reasons_substantial were MIGRATED and REVERTED the same
+    # day. Both rules name a verdict token literally -- duplicate/not_reason
+    # and wrong_kind -- which is safe in a web-only note and refused in a
+    # shared `rule` by check_slot_rules_are_vocabulary_neutral, because the
+    # paper scorer would be told about tokens it cannot emit. `{fail}` is the
+    # sanctioned escape and fills with ONE verdict, while example_2
+    # distinguishes two with different meanings. Rewriting the prose to avoid
+    # the tokens changes the WEB prompt on a measured item, so it is a scoring
+    # change to be measured, not a refactor. That is the work these two need.
+    '1c:has_own_graph', '1c:legend', 'Q1:matches_selected', 'named_type',
+    'Q5:example_2', 'reasons_substantial',
 ]
 
 # How many may remain. It may only go DOWN. Same ratchet as HANDCODED_BUDGET, for
 # the same reason and on the evidence of the same day: a declared backlog with no
 # ceiling reads as coverage while enforcing nothing about its own size, and this
 # one had grown to seventeen entries costing at least one item its whole score.
-SLOT_RULE_BACKLOG_BUDGET = 11
+SLOT_RULE_BACKLOG_BUDGET = 6
 
 
 # The three programs that write scoring artifacts, and the field each must stamp.
@@ -1195,6 +1222,25 @@ PROSE_ONLY_SLOTS = {
     # and is declared as prose the audit cannot compare. PROSE_ONLY_SLOTS growing
     # is the price of that visibility, not a regression -- an undeclared asymmetry
     # became a declared symmetry.
+    # ARRIVED 2026-08-29 with the E11 migration of five Q2/Q5 notes. Same trade as
+    # D1/D2:defines_type: the rule used to reach two scorers of three silently and
+    # now reaches all three, declared.
+    ("Q2", "wgb_is_counterpart"):
+        "NOT CONVERTIBLE. The WGB_UNRELATED test asks whether the goal behaviour "
+        "is about a DIFFERENT behaviour from the unwanted one -- a judgement about "
+        "what two pieces of prose are ABOUT, with no operand pair that expresses "
+        "it. `cover` cannot help: there is no list to pair against.",
+    ("Q2", "wgb_inverts_utb"):
+        "NOT CONVERTIBLE. Two ways to fail and both are readings: no goal stated "
+        "at all, or one stated that does not invert the named behaviour. The "
+        "second is a semantic relation between two free-text spans, which is the "
+        "same thing memory/q6-matching-ceiling.md records nine failed wordings "
+        "against on a different item.",
+    ("Q2", "reasons_failing"):
+        "NOT CONVERTIBLE as it stands, and it is a COUNT of judgements rather than "
+        "a judgement: how many listed statements are not a benefit of the goal "
+        "behaviour. `counts` already expands the members; what it cannot express "
+        "is the test each member is counted against.",
     ("D1", "defines_type"):
         "NOT CONVERTIBLE. The slot classifies a DEFINITION into PR/NR/PP/NP by "
         "reading what it says -- something added or removed, behaviour increased "
@@ -1208,7 +1254,7 @@ PROSE_ONLY_SLOTS = {
         "NOT CONVERTIBLE, same as D1: one factory builds both.",
     ("1a", "week_3"): "NOT CONVERTIBLE, same as week_1 for the final stretch.",
 }
-PROSE_ONLY_BUDGET = 11
+PROSE_ONLY_BUDGET = 14
 
 
 # WHICH PRIMITIVE SET each "NOT CONVERTIBLE" claim was judged against.
@@ -1241,6 +1287,9 @@ PROSE_ONLY_JUDGED_AGAINST: dict[tuple[str, str], str] = {
     ("1a", "week_3"): _PRIMS_2026_08_29,
     ("D1", "defines_type"): _PRIMS_2026_08_29,
     ("D2", "defines_type"): _PRIMS_2026_08_29,
+    ("Q2", "wgb_is_counterpart"): _PRIMS_2026_08_29,
+    ("Q2", "wgb_inverts_utb"): _PRIMS_2026_08_29,
+    ("Q2", "reasons_failing"): _PRIMS_2026_08_29,
 }
 
 
