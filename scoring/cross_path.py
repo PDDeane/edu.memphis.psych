@@ -536,6 +536,18 @@ def main() -> int:
     def resolve(d: str) -> str:
         return d if os.path.isdir(d) else os.path.join(str(paths.OUT), d)
 
+    # SAME CLASS AS equivalence.py's `--selftest`: a flag read in one branch and
+    # silently dropped in the other. `--slots` annotates each DIVERGENT slot with
+    # its basis, which only `compare` produces; `--gold` returns before it. Every
+    # `--slots --gold` invocation therefore ignored `--slots` without saying so,
+    # and the missing slot section reads exactly like "no slot diverged".
+    # An error rather than a quiet drop, for the reason E12 records: the two modes
+    # answer different questions, and someone who asked for both should be told
+    # which one they are getting.
+    if a.gold and a.slots:
+        ap.error("--slots has no effect with --gold: --gold reports which side is "
+                 "closer to gold, --slots annotates divergent slots in the "
+                 "path-vs-path comparison. Run them as two commands.")
     if a.gold:
         return against_gold(resolve(a.left), resolve(a.right), a.item)
     return compare(resolve(a.left), resolve(a.right), a.item, a.slots, a.min_runs)
