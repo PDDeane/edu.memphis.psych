@@ -190,6 +190,17 @@ def result_cell(r: dict) -> tuple | None:
         mx = r.get("sheet_max")
         pts = None if raw is None or mx is None else float(raw) * float(mx)
         return item, pid, pts, dict(r.get("verdicts") or {})
+    if "item_id" in r:                                # score.py, the paper scorer
+        # Its file is per (run, handout, PARTICIPANT) with an `items[]` list, so
+        # the participant is carried by the caller rather than the entry. Verdicts
+        # live in `credit_checks` as {what, met, ...} instead of a verdict map;
+        # folded to met/absent so the shape matches the other two readers and
+        # nothing downstream has to know which scorer it came from.
+        s = r.get("score")
+        checks = {c.get("what"): ("met" if c.get("met") else "absent")
+                  for c in (r.get("credit_checks") or []) if c.get("what")}
+        return (r["item_id"], r.get("_pid"),
+                None if s is None else float(s), checks)
     pid = r.get("participant_id")                     # the python harness
     if pid is None or not r.get("item"):
         return None
