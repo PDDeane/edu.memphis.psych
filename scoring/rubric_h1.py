@@ -1259,17 +1259,6 @@ ITEMS: list[dict] = [
                 "codes": {"absent": "W_ONLY_ONE", "not_reason": "W_NOT_REASON",
                           "duplicate": "W_ONLY_ONE"},
                 "desc": "Second way",
-                # MIGRATED from olx_prompts.SLOT_NOTES 2026-08-29 (E11), verbatim. Names duplicate/not_reason, which THIS SLOT declares in its own verdicts, so both generators offer them.
-                "rule": "`met` for a second reason that is genuinely DIFFERENT from the "
-                         "first. `duplicate` when both entries are well-formed but amount to "
-                         "the SAME reason — two entries that each avoid the same discomfort, "
-                         "one naming the distance and one the aching afterwards, are one "
-                         "reason twice, and the graders wrote \"missing a reason\". `absent` "
-                         "only when there is no second entry at all. `not_reason` when there "
-                         "IS a second, distinct entry but it is not a reason for CONTINUING "
-                         "— an EFFECT of the behaviour rather than a payoff from it. When it "
-                         "is present, distinct and a real payoff but merely thin, that is "
-                         "`met` plus `reasons_substantial: absent`",
 },
             {
                 # Reported, never scored — the same shape as `avoidance_frame` on
@@ -1294,27 +1283,6 @@ ITEMS: list[dict] = [
                 "desc": "Whether both reasons are substantial — `absent` reports "
                         "a present-but-weak reason so it can be said in the "
                         "feedback, never deducted",
-                # MIGRATED from olx_prompts.SLOT_NOTES 2026-08-29 (E11), VERBATIM.
-                # A rename was attempted here and REVERTED after measuring: the
-                # text names `wrong_kind`, the rubric component's `verdicts` list
-                # says `not_reason`, and the OLX slot spec -- which is what the
-                # runtime actually serves -- declares
-                # `example_1:...:wrong_kind/duplicate@2.5`. The note was right and
-                # the rubric list is stale. Renaming cost a cell (Q5 19/20 -> 18/20,
-                # 0 over / 12 under) because it pointed a live instruction at a
-                # token the model cannot emit. See E11 for the rubric-vs-OLX
-                # inconsistency this exposed.
-                "rule": "`absent` when a reason is PRESENT but weak — thin, vague, or "
-                         "barely explained. This costs NOTHING; it exists so you can say it "
-                         "in the feedback instead of reaching for `wrong_kind`. A reason "
-                         "that gestures at the student's own neglect without naming what "
-                         "they get out of it — \"I keep doing it because I am not looking "
-                         "after myself\" — is thin, and the graders left that kind at FULL "
-                         "marks with a written note. Reserve `wrong_kind` for a statement "
-                         "that is not a reason for CONTINUING at all — most often an EFFECT "
-                         "of the behaviour wearing a reason's clothes, like \"because it "
-                         "leaves me irritable and behind on everything\", which is what the "
-                         "behaviour causes rather than what the student gets out of it",
 },
         ],
         "deductions": [

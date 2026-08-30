@@ -1119,14 +1119,22 @@ SLOT_RULE_BACKLOG = [
     #     prompt change to measure, not a mechanical move.
     #   `reasons_substantial` -- its text names `wrong_kind`, which Q5 offers on
     #     no slot. Fixing that content bug changes a measured web prompt.
-    'Q1:matches_selected',
+    # THE THREE BELOW NAME ONE SIDE'S VERDICT TOKEN and are web-only BY
+    # DESIGN, not work waiting to be done: slot_vocab declares WEB_EXTRAS
+    # and RUBRIC_EXTRAS as separate vocabularies, and a shared `rule` may
+    # mention neither. Migrating them verbatim instructs the other scorer
+    # about a token it cannot emit. Each would need rewriting around
+    # `{fail}`, which fills with one verdict per side -- workable for
+    # reasons_substantial and 1c:legend, not for example_2, which
+    # distinguishes two failure modes. See E27.
+    'Q1:matches_selected', 'Q5:example_2', 'reasons_substantial', '1c:legend',
 ]
 
 # How many may remain. It may only go DOWN. Same ratchet as HANDCODED_BUDGET, for
 # the same reason and on the evidence of the same day: a declared backlog with no
 # ceiling reads as coverage while enforcing nothing about its own size, and this
 # one had grown to seventeen entries costing at least one item its whole score.
-SLOT_RULE_BACKLOG_BUDGET = 1
+SLOT_RULE_BACKLOG_BUDGET = 4
 
 
 # The three programs that write scoring artifacts, and the field each must stamp.
@@ -1254,24 +1262,6 @@ PROSE_ONLY_SLOTS = {
         "a judgement: how many listed statements are not a benefit of the goal "
         "behaviour. `counts` already expands the members; what it cannot express "
         "is the test each member is counted against.",
-    ("Q5", "example_2"):
-        "NOT CONVERTIBLE. The operative verdict is `duplicate` -- both entries "
-        "well-formed but amounting to the SAME reason -- a sameness judgement "
-        "between two spans the student wrote. `cover` spots a duplicate against a "
-        "LIST; here there is no list, only the other box. Naming the token is safe "
-        "because the slot DECLARES it, so both generators offer it.",
-    ("Q5", "reasons_substantial"):
-        "NOT CONVERTIBLE, and it costs nothing by design: `absent` marks a "
-        "reason that is present but thin, so the grader can say so in feedback "
-        "instead of refusing it. A judgement of THINNESS has no operands to "
-        "compare.",
-    ("1c", "legend"):
-        "NOT CONVERTIBLE. Whether the series names name all four plotted "
-        "periods is a reading of the legend text the student wrote; the four "
-        "period names are not a list the sheet holds to pair against, so `cover` "
-        "has nothing to work with. Its sibling `has_own_graph` IS computed, by "
-        "`derived` off the typed fields -- which is why that one left this list "
-        "and this one could not.",
     ("D1", "defines_type"):
         "NOT CONVERTIBLE. The slot classifies a DEFINITION into PR/NR/PP/NP by "
         "reading what it says -- something added or removed, behaviour increased "
@@ -1285,7 +1275,7 @@ PROSE_ONLY_SLOTS = {
         "NOT CONVERTIBLE, same as D1: one factory builds both.",
     ("1a", "week_3"): "NOT CONVERTIBLE, same as week_1 for the final stretch.",
 }
-PROSE_ONLY_BUDGET = 17
+PROSE_ONLY_BUDGET = 14
 
 
 # WHICH PRIMITIVE SET each "NOT CONVERTIBLE" claim was judged against.
@@ -1318,9 +1308,6 @@ PROSE_ONLY_JUDGED_AGAINST: dict[tuple[str, str], str] = {
     ("1a", "week_3"): _PRIMS_2026_08_29,
     ("D1", "defines_type"): _PRIMS_2026_08_29,
     ("D2", "defines_type"): _PRIMS_2026_08_29,
-    ("1c", "legend"): _PRIMS_2026_08_29,
-    ("Q5", "reasons_substantial"): _PRIMS_2026_08_29,
-    ("Q5", "example_2"): _PRIMS_2026_08_29,
     ("Q2", "wgb_is_counterpart"): _PRIMS_2026_08_29,
     ("Q2", "wgb_inverts_utb"): _PRIMS_2026_08_29,
     ("Q2", "reasons_failing"): _PRIMS_2026_08_29,
@@ -2240,6 +2227,16 @@ def check_slot_rules_are_vocabulary_neutral() -> list[str]:
     import rubric_h1, rubric_h2, rubric_h3
     from slot_vocab import KNOWN_VERDICTS
 
+    # RESTORED 2026-08-30 to its original strictness, after being weakened
+    # twice on a false premise. slot_vocab.py is explicit: the web's extras
+    # come from EXTRA_VERDICTS in slotSheet.ts, the rubric's from the
+    # `verdicts` lists on credit components, "and a rule may legitimately
+    # mention NEITHER". The two vocabularies differ BY DESIGN -- `wrong_kind`
+    # is the web's token and `not_reason` the rubric's counterpart -- so a
+    # slot declaring one of them is not evidence that both sides offer it.
+    # Reading the rubric list as "what this slot offers" and then unioning it
+    # with the OLX spec made the check blind to exactly the case it exists
+    # for, and cost a cell on Q5 before the measurement caught it.
     problems = []
     for h, mod in ((1, rubric_h1), (2, rubric_h2), (3, rubric_h3)):
         for item in mod.ITEMS:
@@ -2249,45 +2246,12 @@ def check_slot_rules_are_vocabulary_neutral() -> list[str]:
                     continue
                 named = sorted({v for v in KNOWN_VERDICTS
                                 if f"`{v}`" in rule and v not in ("met", "absent")})
-                # ONLY a token this slot does not OFFER is a problem. Both
-                # generators render the verdict list from the component's own
-                # `verdicts`, so a slot declaring [met, absent, not_reason,
-                # duplicate] offers all four on BOTH sides and naming one of them
-                # instructs nobody about a token they cannot emit.
-                #
-                # The check used to flag every literal token on the blanket
-                # premise that "the two vocabularies differ". That is true of the
-                # DEFAULT vocabulary -- the web's wrong_kind against the rubric's
-                # not_active, which ALIAS exists to record -- and false of a slot
-                # that declares its own. It cost a correct migration: Q5:example_2
-                # and reasons_substantial were moved out of SLOT_NOTES, refused
-                # here, and reverted, when both slots declare the tokens they name.
-                # BOTH sources of truth, unioned. A slot's vocabulary is declared
-                # in the rubric component's `verdicts` OR in the OLX slot spec's
-                # `:verdict` suffix, and some slots use only the second: 1c's
-                # `legend` is authored `legend:...:incomplete@2` with no
-                # `verdicts` on its component, so reading the component alone
-                # reported a false positive on the very migration that exposed it.
-                # THE ITEM'S vocabulary, not the slot's. A rule may legitimately
-                # tell the grader what to do on a SIBLING slot -- Q5's
-                # `reasons_substantial` says to mark a thin reason `absent` here
-                # rather than reaching for `not_reason`, which is example_1 and
-                # example_2's verdict. Nobody is instructed about a token they
-                # cannot emit: the prompt lists every slot with its own verdicts.
-                # The hazard this check exists for is narrower and survives --
-                # Q4b named `wrong_kind` when NO slot on the item offered it.
-                offered = set()
-                for sib in item.get("credit", []) or []:
-                    offered |= set(sib.get("verdicts") or [])
-                    offered |= _olx_slot_verdicts(item["id"], sib["what"])
-                named = [v for v in named if v not in offered]
                 if named:
                     problems.append(
                         f"H{h} {item['id']}.{c['what']}: `rule` names the verdict "
-                        f"{named} literally, and NO slot on this item offers it "
-                        f"(the item's vocabulary is {sorted(offered)}). The rule "
-                        f"is rendered into both prompts, so a side that cannot emit "
-                        f"the token is instructed about it anyway. Use `{{fail}}`, "
+                        f"{named} literally. The rule is rendered into both prompts "
+                        f"and the two vocabularies differ, so one side gets an "
+                        f"instruction about a token it cannot emit. Use `{{fail}}`, "
                         f"which each generator fills with its own verdict")
                 if "{fail}" not in rule and not named:
                     # A rule that never says when to FAIL is not necessarily wrong,
