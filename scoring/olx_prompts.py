@@ -1167,18 +1167,6 @@ SLOT_NOTES = {
         "the choice 'lack of sleep'. This check carries no points and never changes "
         "another verdict — everything else is judged on what they WROTE, whichever "
         "box they ticked",
-    "Q2:wgb_is_counterpart":
-        # Was "is it the direct positive counterpart, or a different behavior
-        # altogether?" — the tier (a) question, which is NOT what this gate tests.
-        # The desc was rewritten to tier (c) after it zeroed p10 and p18; this line
-        # was missed, so the web prompt carried both framings while the CLI's carried
-        # only one. A web-only note that contradicts the shared desc is the worst
-        # shape a deviation can take.
-        "the WGB_UNRELATED test, and only that: is the goal behavior about a DIFFERENT "
-        "behavior altogether from the unwanted one? A goal in the right territory that "
-        "simply fails to invert the behavior still satisfies this — that is "
-        "WGB_NOT_OPPOSITE on `wgb_inverts_utb`, worth 2, not the whole item. Not satisfied "
-        "means the whole item is that finding",
     # The other half of the same defect the note above describes. This slot charges
     # WGB_NOT_OPPOSITE — tier (b) — but asked only "WGB explicitly stated", which
     # every answer satisfies, so tier (b) was UNREACHABLE: `wgb_inverts_utb` — then named `wgb_stated`, which is the whole defect — came back
@@ -1209,27 +1197,6 @@ SLOT_NOTES = {
     #
     # p7 does not need it: 9 of 12 single-cell CLI runs are already correct, and
     # score.py reaches p7 through the GATE instead, 8 of 8 (see rubric_h1.py).
-    "Q2:wgb_inverts_utb":
-        "TWO ways to fail, and the second is the common one. (i) no goal behavior is "
-        "stated at all. (ii) a goal IS stated but does not invert the behaviour the "
-        "Q1 UTB names — the WGB_NOT_OPPOSITE test. Tier (a) full credit needs the SAME "
-        "behaviour turned around: the UTB names a behaviour there is too little or "
-        "too much of, and the goal says to do that same behaviour more, or less. "
-        "`absent` when the goal "
-        "is in the right territory but never says to do the behaviour more or less. "
-        "Two shapes fail this way. A goal naming a general CONDITION or ROUTINE the "
-        "behaviour would contribute to does not say to perform it. A goal naming a "
-        "DIFFERENT MEASURE — an outcome the behaviour is supposed to produce, in "
-        "units the behaviour is not counted in — is not the behaviour either. "
-        "But the same behaviour's own positive STATE is `met`: a goal naming the "
-        "condition of HAVING DONE the behaviour is the inversion phrased as a "
-        "state, and the graders charged nothing for it. "
-        "So a different measure of the right behaviour fails; the right behaviour's "
-        "state passes. A goal naming a DIFFERENT ACTIVITY fails here too — one that "
-        "describes what the student will do INSTEAD never says to do less of the "
-        "behaviour the UTB names. Answer "
-        "`absent` for that here even though the `wgb_is_counterpart` gate above may "
-        "also catch it; do not pass this check assuming the gate will",
     # These four answer TWO things, in two fields. The verdict says whether an
     # antecedent (or consequence) is named at all; `refers_to` says WHICH of the
     # earlier item's two it is. They used to share one field, which is why the
@@ -1349,12 +1316,6 @@ SLOT_NOTES = {
         "the wrong behaviour? Answer what is true of the example even if it turned out "
         "to be a different type than this item asks for — where that makes this finding "
         "redundant the grader drops it, and it charges nothing twice",
-    "named_type": "criterion 8 (`named_type`) — which of the four the student SAID they "
-                  "would use. Read the type slot in the context below; if it is blank or "
-                  "garbled, fall back to their DEFINITION, which usually states the type "
-                  "plainly. `unclear` only when neither says. Reported, never scored — but "
-                  "the grader compares it against the type the example actually is, so "
-                  "report it accurately rather than helpfully",
             "D1:named_type": "which of the four the student chose, read from the type slot in the "
                      "context below. `unclear` only if it is blank or unreadable",
     "D2:named_type": "which of the four the student chose, read from the type slot in the "
@@ -1362,11 +1323,6 @@ SLOT_NOTES = {
     # The rubric will not charge a mismatch it cannot establish: derive_oc_ledger
     # guards TYPE_MISMATCH with `named != "unclear"`, so an unreadable type slot
     # costs nothing. Without this the web charges 2 for the model's own hedge.
-    "matches_chosen_type": "criteria 6 and 8 compared — does `observed_type` match "
-                           "`named_type`? Both are already on this sheet above; this check "
-                           "is only the comparison, and it is what carries TYPE_MISMATCH. "
-                           "If `named_type` came out `unclear`, answer `yes`: there is no "
-                           "established mismatch to charge",
     "targets_own_behavior": "criterion 10 (`targets_own_behavior`)",
     # Version C. Two earlier drafts each fixed one cell and broke the other, and
     # the reason was an authoring bug rather than a limit on the grader: the
@@ -1440,61 +1396,39 @@ SLOT_NOTES = {
     # on two runs of three while the note already named p18's own failing sentence
     # under (ii). p19's failure was not covered at all — one sentence with a
     # knock-on clause counted as two benefits, stably in 3 of 3 runs.
-    "Q2:reasons_given":
-        "HOW MANY separate BENEFITS of the goal behaviour — `reasons_listed` minus "
-        "`reasons_failing`, the two counts above. Thematic overlap alone does not "
-        "merge two benefits. Whether one sentence holds one benefit or two is "
-        "STRUCTURAL, not a matter of degree. A second half that is a KNOCK-ON "
-        "EFFECT of the first is ONE benefit — a benefit followed by \"which will\" "
-        "and the further good it leads to is one, not two, and counting such a "
-        "chain as two costs a point. Two INDEPENDENT "
-        "benefits merely joined by \"and\" are TWO — one about the body and one "
-        "about mood, in a single sentence, is two benefits and counting it as one "
-        "costs a point. Three kinds of statement do not count at all. (i) A reason the UNWANTED "
-        "behaviour is bad, rather than a benefit of the wanted one. A sentence "
-        "built on the NEGATIVE — what NOT doing the goal behaviour costs them — "
-        "is a reason to stop the UTB however it is phrased, and the graders "
-        "counted such sentences as ZERO benefits, even where the same fact "
-        "stated positively would have counted. (ii) A restatement of the goal or of the problem it "
-        "solves: saying they will become the kind of person who does the goal "
-        "behaviour names the goal again, not a benefit of it; so is a remark "
-        "that attributes their present condition to not having done the goal "
-        "behaviour. (iii) A statement that says the same thing as one "
-        "already counted. Answer 3 for three or more that survive all three tests",
-    "Q5:example_2":
-        "`met` for a second reason that is genuinely DIFFERENT from the first. "
-        "`duplicate` when both entries are well-formed but amount to the SAME "
-        "reason — two entries that each avoid the same discomfort, one naming the "
-        "distance and one the aching afterwards, are one reason twice, and the "
-        "graders wrote \"missing a reason\". `absent` only "
-        "when there is no second entry at all. `not_reason` when there IS a second, "
-        "distinct entry but it is not a reason for CONTINUING — an EFFECT of the "
-        "behaviour rather than a payoff from it. When it is present, distinct and a "
-        "real payoff but merely thin, that is `met` plus `reasons_substantial: absent`",
-    "reasons_substantial":
-        "`absent` when a reason is PRESENT but weak — thin, vague, or barely "
-        "explained. This costs NOTHING; it exists so you can say it in the "
-        "feedback instead of reaching for `wrong_kind`. A reason that gestures at "
-        "the student's own neglect without naming what they get out of it — \"I "
-        "keep doing it because I am not looking after myself\" — is thin, and the "
-        "graders left that kind at FULL marks with a written note. Reserve "
-        "`wrong_kind` for a statement that is not a reason for CONTINUING at all "
-        "— most often an EFFECT of the behaviour wearing a reason's clothes, like "
-        "\"because it leaves me irritable and behind on everything\", which is "
-        "what the behaviour causes rather than what the student gets out of it",
     # The scaffold in front of the count. Its arithmetic held on 120 of 120
     # cell-runs the first time it was tried, so the two parts are asked as
     # reported slots and the count stays the scored one, rather than teaching a
     # `present - failing` primitive to seven consumers.
+    # NOT MIGRATABLE, established 2026-08-29 (E11). D1 and D2 have a `named_type`
+    # CREDIT COMPONENT and now carry this text as their `rule`; DAY1, DAY2, WK1 and
+    # WK2 carry the SLOT with no component behind it, so there is nowhere on those
+    # four to put a rule. Removing this note deleted the text from their web
+    # prompts -- caught by diffing the generated prompt, not by any check.
+    "named_type":
+        "criterion 8 (`named_type`) \u2014 which of the four the student SAID they "
+        "would use. Read the type slot in the context below; if it is blank or "
+        "garbled, fall back to their DEFINITION, which usually states the type "
+        "plainly. `unclear` only when neither says. Reported, never scored \u2014 "
+        "but the grader compares it against the type the example actually is, so "
+        "report it accurately rather than helpfully",
+    # NOT MIGRATABLE AS WRITTEN, established 2026-08-29 (E11). Both rules name a
+    # verdict token literally -- `duplicate`/`not_reason` here, `wrong_kind` on
+    # reasons_substantial -- which is safe in a web-only note and is not safe in a
+    # shared `rule`: check_slot_rules_are_vocabulary_neutral refuses it, because
+    # the paper scorer would be instructed about tokens it cannot emit. `{fail}`
+    # is the sanctioned escape and fills with ONE verdict, while `example_2`
+    # distinguishes two with different meanings. Rewriting the prose to avoid the
+    # tokens would change the WEB prompt on a measured item, so it is a scoring
+    # change to be measured, not a refactor to be slipped in.
+    "Q5:example_2":
+        "`met` for a second reason that is genuinely DIFFERENT from the first. `duplicate` when both entries are well-formed but amount to the SAME reason \u2014 two entries that each avoid the same discomfort, one naming the distance and one the aching afterwards, are one reason twice, and the graders wrote \"missing a reason\". `absent` only when there is no second entry at all. `not_reason` when there IS a second, distinct entry but it is not a reason for CONTINUING \u2014 an EFFECT of the behaviour rather than a payoff from it. When it is present, distinct and a real payoff but merely thin, that is `met` plus `reasons_substantial: absent`",
+    "reasons_substantial":
+        "`absent` when a reason is PRESENT but weak \u2014 thin, vague, or barely explained. This costs NOTHING; it exists so you can say it in the feedback instead of reaching for `wrong_kind`. A reason that gestures at the student's own neglect without naming what they get out of it \u2014 \"I keep doing it because I am not looking after myself\" \u2014 is thin, and the graders left that kind at FULL marks with a written note. Reserve `wrong_kind` for a statement that is not a reason for CONTINUING at all \u2014 most often an EFFECT of the behaviour wearing a reason's clothes, like \"because it leaves me irritable and behind on everything\", which is what the behaviour causes rather than what the student gets out of it",
     "reasons_listed":
         "how many statements the response OFFERS as reasons, counted off the page "
         "before judging any of them. This is not scored; it is the first half of "
         "the count below",
-    "reasons_failing":
-        "of those, how many are NOT a benefit of the goal behaviour — either "
-        "because the statement restates the harm of the unwanted behaviour rather "
-        "than naming something the goal gets you, or because it repeats another "
-        "statement already counted. Not scored; the second half of the count below",
 
     # Narrow on purpose, and the pattern is quoted because near-twins of it earn
     # full credit: "{{corpus:DAY1/p15:day1:40:72:sha=e23fe0094031}} when I am caught up on
