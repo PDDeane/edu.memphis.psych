@@ -833,6 +833,14 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       gpt-5-mini run or the Opus one, which is the single distinction `paper` and
       `paper_opus` exist to keep apart. score.py knows it (`rec["backend"]`, two
       lines above) and now passes it. Fixed and re-verified.
+      THE FIRST FIX WAS HALF A FIX, caught by asking whether it was really fixed
+      rather than assuming: it stamped `rec["backend"]`, the CLASS name, so the
+      field read "LoBlocksBackend" from score.py and "lo" from paper_runs -- one
+      field, two vocabularies, decided by which writer filled it, in the field
+      the side is keyed on. It now stamps `args.backend`, the token
+      sweep_paper.sh passes to both. Verified: both writers now say `lo`.
+      `rec["backend"]` keeps the class name, which answers a different question
+      and sits beside supports_tools.
 
 - [x] E29. **`error_profile` ignores cell exclusions, and its one-sided flag lied.** DONE
       AN AUDIT SUBGOAL. `measured.error_profile` applies corrected gold and
