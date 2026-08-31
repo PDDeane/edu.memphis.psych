@@ -929,24 +929,51 @@ def enforcement_selftest():
     # The plain-path branch. No live item exercises it now that T1/T2 and 1b are
     # derived, so one is injected onto a plain item — the guard has to stay tested
     # even while nothing happens to trip it.
+    # A plain-path item is SYNTHESISED rather than borrowed. This used to look for
+    # a live item carrying neither `derive_from_credit` nor `derive_from_criteria`
+    # and inject onto it, which worked while T1/T2 and 1b were plain -- and then
+    # all 26 items moved onto one derive path or the other, the search returned
+    # None, and this branch quietly became a SKIP. So the plain-path half of
+    # COMPUTED, UNDECLARED went unexercised: if it broke, nothing would say so.
+    #
+    # A case whose SUBJECT can leave the corpus is not a durable case. So the
+    # shape is manufactured here instead: take an item, strip its derive keys for
+    # the length of one audit -- which is exactly what being plain-path means --
+    # inject the undeclared `derived`, and put the keys back. The guard is then
+    # tested whatever the corpus does next, which is the property the borrowed
+    # version never had.
+    #
+    # The derive-path branch's own item is excluded, so the two halves cannot
+    # interfere: 1b is found through SCORING_DIVERGENCES.web_computes above.
+    _derive_branch = {i for d in _op.SCORING_DIVERGENCES
+                      for i in (d.get("web_computes") or {})}
     plain = next((i for i in sorted({**ACTION, **SHEET_ONLY})
-                  if not config(HANDOUT[i])["rubric"].BY_ID[i].get("derive_from_credit")
-                  and not config(HANDOUT[i])["rubric"].BY_ID[i].get("derive_from_criteria")),
-                 None)
+                  if i not in _derive_branch), None)
     _orig = globals()["_web_attrs"]
 
     if plain is not None:
-        def _inject(i, _p=plain):
-            a = _orig(i)
-            if i == _p:
-                key = parse_slots(*_slots_attr(HANDOUT[i], sheet_id(i)))[0]["key"]
-                a["derived"] = f"{key}:present:some_field"
-            return a
-        globals()["_web_attrs"] = _inject
-        cases.append((f"a computed check appears on {plain} undeclared",
-                      "COMPUTED, UNDECLARED", plain,
-                      [f for f in enforcement_audit()[0]]))
-        globals()["_web_attrs"] = _orig
+        _rub = config(HANDOUT[plain])["rubric"].BY_ID[plain]
+        _derive_saved = {k: _rub.pop(k) for k in
+                         ("derive_from_credit", "derive_from_criteria") if k in _rub}
+        try:
+            def _inject(i, _p=plain):
+                a = _orig(i)
+                if i == _p:
+                    key = parse_slots(*_slots_attr(HANDOUT[i], sheet_id(i)))[0]["key"]
+                    a["derived"] = f"{key}:present:some_field"
+                return a
+            globals()["_web_attrs"] = _inject
+            cases.append(
+                (f"a computed check appears on plain-path {plain} undeclared",
+                 "COMPUTED, UNDECLARED", plain,
+                 [f for f in enforcement_audit()[0]]))
+        finally:
+            # Restored even if the audit raises: leaving an item stripped of its
+            # derive key would corrupt every case after this one, and the
+            # baseline comparison at the end would report the damage as dirt
+            # without saying where it came from.
+            globals()["_web_attrs"] = _orig
+            _rub.update(_derive_saved)
 
     # The conformance guard: the two bugs that actually shipped were the prompt
     # generator not knowing about a primitive, so its keys stayed in the checklist
@@ -1604,8 +1631,10 @@ def enforcement_selftest():
     # scrolled past above a confident "49/49".
     skips = []
     if plain is None:
+        # Now reachable only if the corpus has NO items outside the derive-path
+        # branch at all, which the coverage checks report on their own.
         skips.append(("plain-path computed check",
-                      "no plain-path item left to inject onto"))
+                      "no item outside the derive-path branch to synthesise from"))
     if _site is None:
         skips.append(("shared rule names a verdict",
                       "no rule carries `{fail}` to inject into"))
@@ -1747,6 +1776,38 @@ def main():
                  "`equivalence.py --enforcement --selftest`. On its own it would "
                  "silently run the default prompt audit and exit 0, which is "
                  "indistinguishable from a passing self-test.")
+
+    # NOT WHILE A MEASUREMENT IS RUNNING. The self-test injects breakages into
+    # rubric_h*.py, enforcement.py and olx_prompts.py and restores them, so for
+    # the fifteen minutes it runs those files intermittently hold text nobody
+    # wrote -- and agreement.py builds its prompts from the rubric on every call.
+    # A sweep overlapping this scores some cells against an injected rule and
+    # says nothing.
+    #
+    # This was a convention, not a guard: "wait for the self-test" is a thing a
+    # person remembers. The project already has the same failure from the other
+    # direction on record -- a mid-run OLX rewrite that split handout 3's
+    # measurement and cost three items -- and that one earned
+    # olx_prompts._measurements_in_flight. This is the same guard, pointed the
+    # other way, reusing that function so there is one definition of "a sweep is
+    # running".
+    if a.selftest:
+        import os as _os
+        import olx_prompts as _OP
+        busy = _OP._measurements_in_flight()
+        if busy:
+            why = _os.environ.get("ALLOW_SELFTEST_OVERLAP", "").strip()
+            if not why:
+                print("REFUSING to run the self-test: a measurement is in flight,\n"
+                      "and this test injects breakages into the rubric and "
+                      "enforcement source\nthat measurement reads live.")
+                for b in busy:
+                    print(f"    {b}")
+                print('Wait for it to finish, or say why:\n'
+                      '    ALLOW_SELFTEST_OVERLAP="..." python3 equivalence.py '
+                      '--enforcement --selftest')
+                return 2
+            print(f"self-test: proceeding during a measurement — {why}")
 
     if a.fixture:
         # The box-by-box readout. Not a check — the PROCEDURE the checks cannot
