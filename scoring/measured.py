@@ -769,8 +769,31 @@ def declaration_conflicts() -> list[str]:
                 f"GOLD_DIVERGENCES {entry['code']} says we knowingly miss "
                 f"{item}/p{pid}, but it scores RIGHT every run",
                 f"Retire the {item}/p{pid} cell from that entry", got)
-            if msg:
-                out.append(msg)
+            if not msg:
+                continue
+            # SCORING RIGHT IS NOT THE SAME AS AGREEING. This check reported a
+            # contradiction on the strength of the TOTAL, which is all the ledger
+            # holds -- and Q6/p5 agrees on the total while failing a different set
+            # of slots from the ones gold charged: gold takes state_a1/state_c1/
+            # state_c2, we take state_a1/state_c2/affect_c2, two disagreements
+            # cancelling. On that evidence DUPLICATE_EFFECT_TIE_BREAK was proposed
+            # for retirement, and gold's own comment confirms its stated reason.
+            #
+            # So where the slot sets can be compared and DIFFER, the declaration
+            # is not contradicted and nothing is reported. This is not an
+            # exemption for one cell: it is the check declining to draw a
+            # conclusion the evidence does not support, and it protects every
+            # divergence the same way. Where slots cannot be read
+            # (gold_charged_slots returns None) the total stands as before, which
+            # is the old behaviour and the honest default for an unread comment.
+            charged = gold_charged_slots(item, pid)
+            if charged is not None:
+                ours = _our_failing_slots(item, pid)
+                if ours:
+                    stable = set.intersection(*[set(f) for f in ours])
+                    if stable != charged:
+                        continue
+            out.append(msg)
 
     for (h, item), _why in (getattr(H, "GOLD_CEILINGS", {}) or {}).items():
         def _perfect(rec):
@@ -1840,6 +1863,47 @@ GOLD_SLOT_DISAGREEMENTS_KNOWN: dict[tuple[str, int], str] = {
     ("Q6", 18): "we fail state_a2 as well as everything gold charges.",
 }
 GOLD_SLOT_DISAGREEMENTS_BUDGET = 8
+
+
+def gold_charged_slots(item: str, pid: int):
+    """The slots gold's comment charges for one cell, or None if it cannot be read.
+
+    None means "no opinion", and the callers must treat it that way: either the
+    item has no phrase table, or the comment itemises nothing, or a deduction did
+    not map. Returning an empty set for those would assert that gold charged
+    NOTHING, which is the opposite of not knowing.
+
+    Extracted so declaration_conflicts and gold_slot_disagreements ask the same
+    question of the same table. Two copies of this would drift, and the drift
+    would be invisible: both would still produce a plausible slot set.
+    """
+    import re
+    import gold as _gold
+    import handouts as H
+
+    table = GOLD_SLOT_CHARGES.get(item)
+    if not table:
+        return None
+    if (item, pid) in GOLD_SLOT_UNMAPPABLE:
+        return None
+    h = _jobs()[item]["handout"]
+    try:
+        g = H.apply_corrected_gold(
+            {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[h](), h)
+    except Exception:
+        return None
+    fb = ((g.get(pid) or {}).get(item) or {}).get("feedback") or ""
+    segs = [s for s in re.split(r"(?=-\s*\d)", fb) if re.match(r"-\s*\d", s)]
+    if not segs:
+        return None
+    charged: set = set()
+    for seg in segs:
+        hit = next((slots for pat, slots in table if re.search(pat, seg, re.I)),
+                   None)
+        if hit is None:
+            return None                 # an unread charge is not an empty one
+        charged |= set(hit)
+    return charged
 
 
 def _our_failing_slots(item: str, pid: int, side: str = DEFAULT_SIDE):
