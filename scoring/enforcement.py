@@ -1110,31 +1110,45 @@ SLOT_RULE_BACKLOG = [
     #   `1c:legend` MIGRATED -- it reached the web only and 1c has a credit
     #     component to host it, unlike has_own_graph beside it.
     #
-    # THE TWO THAT REMAIN, each with a known blocker rather than a to-do:
-    #   `named_type` -- DAY1/DAY2/WK1/WK2 have the slot on BOTH sheets but the
-    #     note on neither's rubric: those items are derive_from_criteria, so
-    #     their slot prose comes from the SHARED _criteria_section and there is
-    #     no credit component to carry a `rule`. The route is the shared
-    #     criteria source, which changes where the web renders it too -- a
-    #     prompt change to measure, not a mechanical move.
-    #   `reasons_substantial` -- its text names `wrong_kind`, which Q5 offers on
-    #     no slot. Fixing that content bug changes a measured web prompt.
-    # THE THREE BELOW NAME ONE SIDE'S VERDICT TOKEN and are web-only BY
-    # DESIGN, not work waiting to be done: slot_vocab declares WEB_EXTRAS
-    # and RUBRIC_EXTRAS as separate vocabularies, and a shared `rule` may
-    # mention neither. Migrating them verbatim instructs the other scorer
-    # about a token it cannot emit. Each would need rewriting around
-    # `{fail}`, which fills with one verdict per side -- workable for
-    # reasons_substantial and 1c:legend, not for example_2, which
-    # distinguishes two failure modes. See E27.
-    'Q1:matches_selected', 'Q5:example_2', 'reasons_substantial', '1c:legend',
+    # 2026-08-30, E11 closed out, 4 -> 1. The three "web-only BY DESIGN" entries
+    # -- Q5:example_2, reasons_substantial, 1c:legend -- MIGRATED. The
+    # declaration standing here said they named one side's verdict token and so
+    # could never be shared, and that `{fail}` was "workable for
+    # reasons_substantial and 1c:legend, not for example_2, which distinguishes
+    # two failure modes". The constraint was real; the conclusion was wrong, and
+    # wrong in BOTH directions, which is why it took measuring the vocabularies
+    # rather than reasoning about them:
+    #   `Q5:example_2` DOES migrate. Its second failure mode is `duplicate`,
+    #     which slot_vocab.SHARED_EXTRAS shows both sides offer, so `{fail}`
+    #     plus one literal covers both. Migrating it also fixed a live defect:
+    #     the note sat in web-only SLOT_NOTES while naming `not_reason`, the
+    #     RUBRIC's token, so the web prompt listed met/absent/wrong_kind/
+    #     duplicate and then told the model when to answer `not_reason`. That
+    #     dates to the original import, not to any migration.
+    #   `reasons_substantial` did NOT migrate for the recorded reason. Bare
+    #     `{fail}` fills with the slot's OWN failing verdict, which here is
+    #     `absent` -- rendering "instead of reaching for `absent`" and inverting
+    #     the rule. The token it names belongs to the EXAMPLE slots. That is
+    #     what `{fail:key}` was added for; on the web it renders `wrong_kind`,
+    #     byte-identical to the note it replaced.
+    #   `1c:legend` migrated as recorded, on `{fail}` + a literal `absent`,
+    #     which is universal and means a different thing here (empty box) from
+    #     the failing verdict.
+    #
+    # THE ONE THAT REMAINS is not work waiting to be done:
+    #   `Q1:matches_selected` STAYS. The paper sheet has no such SLOT, because a
+    #     .docx has no closed choice to compare against, and the asymmetry is
+    #     already declared in SCORING_DIVERGENCES as a no-penalty check. It is
+    #     listed here because this list IS the declaration of web-only notes --
+    #     striking it out just makes the reach check demand it back.
+    'Q1:matches_selected',
 ]
 
 # How many may remain. It may only go DOWN. Same ratchet as HANDCODED_BUDGET, for
 # the same reason and on the evidence of the same day: a declared backlog with no
 # ceiling reads as coverage while enforcing nothing about its own size, and this
 # one had grown to seventeen entries costing at least one item its whole score.
-SLOT_RULE_BACKLOG_BUDGET = 4
+SLOT_RULE_BACKLOG_BUDGET = 1
 
 
 # The three programs that write scoring artifacts, and the field each must stamp.
@@ -1245,14 +1259,11 @@ PROSE_ONLY_SLOTS = {
         "NOT CONVERTIBLE, same reason: arc-not-label coverage is judged over the "
         "narrative, and no operand pair expresses it.",
     ("1a", "week_2"): "NOT CONVERTIBLE, same as week_1 for the middle stretch.",
-    # ARRIVED 2026-08-29 with the E11 migration, and the trade is deliberate: the
-    # rule used to reach two scorers of three SILENTLY, and now reaches all three
-    # and is declared as prose the audit cannot compare. PROSE_ONLY_SLOTS growing
-    # is the price of that visibility, not a regression -- an undeclared asymmetry
-    # became a declared symmetry.
-    # ARRIVED 2026-08-29 with the E11 migration of five Q2/Q5 notes. Same trade as
-    # D1/D2:defines_type: the rule used to reach two scorers of three silently and
-    # now reaches all three, declared.
+    # ARRIVED 2026-08-29 with the E11 migration of five Q2/Q5 notes, and the trade
+    # is deliberate: the rule used to reach two scorers of three SILENTLY, and now
+    # reaches all three and is declared as prose the audit cannot compare.
+    # PROSE_ONLY_SLOTS growing is the price of that visibility, not a regression --
+    # an undeclared asymmetry became a declared symmetry.
     ("Q2", "wgb_is_counterpart"):
         "NOT CONVERTIBLE. The WGB_UNRELATED test asks whether the goal behaviour "
         "is about a DIFFERENT behaviour from the unwanted one -- a judgement about "
@@ -1281,8 +1292,36 @@ PROSE_ONLY_SLOTS = {
     ("D2", "defines_type"):
         "NOT CONVERTIBLE, same as D1: one factory builds both.",
     ("1a", "week_3"): "NOT CONVERTIBLE, same as week_1 for the final stretch.",
+    # ARRIVED 2026-08-30, closing E11's last three entries. Same trade again, and
+    # this time the asymmetry it ended was the widest: all three rules had reached
+    # the WEB ONLY, from SLOT_NOTES, so the paper scorer was never given them.
+    # These three appearing here is the audit seeing a judgement it could not see
+    # before, not a new judgement being made.
+    ("Q5", "example_2"):
+        "NOT CONVERTIBLE, and on two counts. Whether a second entry is genuinely "
+        "DIFFERENT from the first is a semantic relation between two free-text "
+        "spans -- the same shape as Q2:wgb_inverts_utb and the `refers_to` channel "
+        "that memory/q6-matching-ceiling.md records seven failed wordings against. "
+        "Whether an entry is a payoff for CONTINUING or an EFFECT of the behaviour "
+        "is a second reading, of one span against no operand at all. `cover` "
+        "cannot pair them: both spans are free text, and neither is a list.",
+    ("Q5", "reasons_substantial"):
+        "NOT CONVERTIBLE, and it is a judgement of DEGREE, which is the one shape "
+        "no primitive here expresses: whether a reason that is present, distinct "
+        "and a real payoff is nonetheless thin. There is nothing to compare it "
+        "against -- not a list, not a sibling verdict, not a count. It is also "
+        "`reported`, never scored, so no arithmetic depends on it; what it feeds "
+        "is the feedback sentence.",
+    ("1c", "legend"):
+        "NOT CONVERTIBLE. The test is whether a set of series names covers the "
+        "four plotted periods 'in any reasonable wording', so the matching is "
+        "semantic, not literal, and `counts` cannot carry it for the same reason "
+        "COUNTABLE_EXEMPT gives for 1a's weeks: the four periods are NAMED and not "
+        "interchangeable, so `3 of 4` cannot say which is missing -- and here the "
+        "rule needs exactly that, since naming three of four is the `{fail}` case "
+        "while naming none is `absent`.",
 }
-PROSE_ONLY_BUDGET = 14
+PROSE_ONLY_BUDGET = 17
 
 
 # WHICH PRIMITIVE SET each "NOT CONVERTIBLE" claim was judged against.
@@ -1318,6 +1357,14 @@ PROSE_ONLY_JUDGED_AGAINST: dict[tuple[str, str], str] = {
     ("Q2", "wgb_is_counterpart"): _PRIMS_2026_08_29,
     ("Q2", "wgb_inverts_utb"): _PRIMS_2026_08_29,
     ("Q2", "reasons_failing"): _PRIMS_2026_08_29,
+    # Judged on 2026-08-30 against the SAME registry -- `requires` was the last
+    # primitive added and it predates both dates -- so they carry the same
+    # constant rather than a new one spelling out an identical string. The check
+    # compares SETS, not dates: a second name for one set would be a mirror, and
+    # mirrors here drift.
+    ("Q5", "example_2"): _PRIMS_2026_08_29,
+    ("Q5", "reasons_substantial"): _PRIMS_2026_08_29,
+    ("1c", "legend"): _PRIMS_2026_08_29,
 }
 
 
@@ -1508,7 +1555,10 @@ def check_prose_only_claims_are_current() -> list[str]:
 # Items whose rubric entry genuinely carries no substantial comment block, so
 # §2c has nothing to push for them. Verified, not assumed: 1c's and 3's longest
 # comment runs are three lines against a threshold of four.
-NO_RUBRIC_COMMENTS = {"1c", "3"}
+# 1c LEFT this set on 2026-08-30: the E11 migration gave `legend` a `rule`, and
+# the comment recording why it moved is a comment block §2c now finds. The set is
+# for items whose rubric genuinely carries no rationale, and 1c is no longer one.
+NO_RUBRIC_COMMENTS = {"3"}
 
 
 # A key-excluding primitive the CLI cannot compute, with the reason. `derived` is
@@ -2210,6 +2260,76 @@ def _olx_slot_verdicts(item_id: str, slot: str) -> set:
     return set()
 
 
+def check_prompt_prose_names_only_offered_verdicts() -> list[str]:
+    """Does any prompt prose tell the model to answer a verdict its slot lacks?
+
+    `check_slot_rules_are_vocabulary_neutral` polices the rubric's shared `rule`,
+    where the answer is `{fail}`. But `rule` is not the only source of prompt
+    prose: SLOT_NOTES is a SECOND one, web-only, and it gets no substitution. So
+    the guard covered one source and the other went unwatched, which is how
+    Q5:example_2 sat in the live web prompt naming `not_reason` -- a token from
+    the RUBRIC's vocabulary -- while its sheet offered `wrong_kind`. The test was
+    inert: the model was asked for a token it could not return, so the
+    distinction the note existed to draw was never drawn. It dated to the
+    original import and was found by reading, not by any check.
+
+    BACKLOG.md:94 recorded it and named two fixes: put `{fail}` in the note, or
+    lint the class. This is the lint, which is the one that closes it -- the note
+    itself has since migrated to `rule`, but nothing stopped the next one.
+
+    Two things this must get right, both of which a naive version gets wrong:
+
+    * `pick(NAME)` options live in the sheet's `choices=` map, not in the slot
+      spec. Without resolving them, D1/D2:named_type read as naming `unclear`
+      against a slot offering only met/absent -- two false positives on prose
+      that is correct, since `operant_or_unclear` is `PR,NR,PP,NP,unclear`.
+    * A GLOBAL note reaches a slot only when that slot has no `rule` and no
+      item-scoped note, so the precedence here mirrors the generator's at the
+      emit site rather than assuming every note reaches every matching slot.
+    """
+    import olx_prompts as O
+    from slot_vocab import KNOWN_VERDICTS
+
+    by_id = {it["id"]: it for it in all_items()}
+    jobs = O.ACTION
+    problems = []
+    for item_id, action in sorted(jobs.items()):
+        handout = O.HANDOUT.get(item_id)
+        if handout is None:
+            continue
+        try:
+            spec, defaults = O._slots_attr(handout, action)
+            choices = O._choices_attr(handout, action)
+            slots = O.parse_slots(spec, defaults)
+        except Exception:
+            continue
+        rubric = by_id.get(item_id)
+        rules = {c["what"] for c in (rubric or {}).get("credit", []) or []
+                 if c.get("rule")}
+        for s in slots:
+            key = s["key"]
+            if key in rules:
+                continue                      # `rule` wins; the other check owns it
+            note = (O.SLOT_NOTES.get(f"{item_id}:{key}")
+                    or O.SLOT_NOTES.get(key))
+            if not note:
+                continue
+            offered = set(s["options"] or ())
+            if s.get("picks") is not None:
+                offered |= set(choices.get(s["picks"], []) or ())
+            named = {v for v in KNOWN_VERDICTS if f"`{v}`" in note}
+            missing = sorted(named - offered)
+            if missing:
+                problems.append(
+                    f"{item_id}.{key}: the prompt prose tells the model to answer "
+                    f"{missing}, which this slot does not offer -- it offers "
+                    f"{sorted(offered)}. The test is inert: the model cannot "
+                    f"return that token, so it answers something else and the "
+                    f"distinction is lost. Move the text to the rubric's `rule` "
+                    f"and use `{{fail}}`, or name a verdict the slot has")
+    return problems
+
+
 def check_slot_rules_are_vocabulary_neutral() -> list[str]:
     """Does any shared `rule` name a verdict token literally?
 
@@ -2267,7 +2387,11 @@ def check_slot_rules_are_vocabulary_neutral() -> list[str]:
                         f"and the two vocabularies differ, so one side gets an "
                         f"instruction about a token it cannot emit. Use `{{fail}}`, "
                         f"which each generator fills with its own verdict")
-                if "{fail}" not in rule and not named:
+                # `{fail}` OR `{fail:sibling}`. Testing for the bare literal
+                # reported every rule that uses the qualified form as having lost
+                # its failing condition.
+                from olx_prompts import _FAIL_RE
+                if not _FAIL_RE.search(rule) and not named:
                     # A rule that never says when to FAIL is not necessarily wrong,
                     # but one that neither uses the placeholder nor names a token is
                     # worth noticing — it may have lost its failing condition.

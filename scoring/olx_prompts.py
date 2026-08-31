@@ -40,6 +40,12 @@ sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from handouts import config
 import paths
 
+# The `{fail}` placeholder in a shared `rule`, bare or slot-qualified. ONE
+# definition, imported by score.py rather than restated: the two generators must
+# recognise exactly the same syntax, and every hand-kept mirror in this project
+# has drifted. score.py imports from here, so this is the end that can hold it.
+_FAIL_RE = re.compile(r"\{fail(?::([A-Za-z0-9_]+))?\}")
+
 OLX = paths.OLX
 
 # The slot-sheet primitives, shared with the TypeScript side. Adding one has to be
@@ -1384,27 +1390,17 @@ SLOT_NOTES = {
     # cell-runs the first time it was tried, so the two parts are asked as
     # reported slots and the count stays the scored one, rather than teaching a
     # `present - failing` primitive to seven consumers.
-    # WEB-ONLY BY DESIGN, not a backlog item to clear: this rule names a
-    # verdict from ONE side's vocabulary (slot_vocab.WEB_EXTRAS /
-    # RUBRIC_EXTRAS), so moving it to a shared `rule` would instruct the
-    # other scorer about a token it cannot emit. Migrated 2026-08-29 and
-    # REVERTED 2026-08-30. See E27.
-    "Q5:example_2":
-        "`met` for a second reason that is genuinely DIFFERENT from the first. `duplicate` when both entries are well-formed but amount to the SAME reason \u2014 two entries that each avoid the same discomfort, one naming the distance and one the aching afterwards, are one reason twice, and the graders wrote \"missing a reason\". `absent` only when there is no second entry at all. `not_reason` when there IS a second, distinct entry but it is not a reason for CONTINUING \u2014 an EFFECT of the behaviour rather than a payoff from it. When it is present, distinct and a real payoff but merely thin, that is `met` plus `reasons_substantial: absent`",
-    # WEB-ONLY BY DESIGN, not a backlog item to clear: this rule names a
-    # verdict from ONE side's vocabulary (slot_vocab.WEB_EXTRAS /
-    # RUBRIC_EXTRAS), so moving it to a shared `rule` would instruct the
-    # other scorer about a token it cannot emit. Migrated 2026-08-29 and
-    # REVERTED 2026-08-30. See E27.
-    "reasons_substantial":
-        "`absent` when a reason is PRESENT but weak \u2014 thin, vague, or barely explained. This costs NOTHING; it exists so you can say it in the feedback instead of reaching for `wrong_kind`. A reason that gestures at the student's own neglect without naming what they get out of it \u2014 \"I keep doing it because I am not looking after myself\" \u2014 is thin, and the graders left that kind at FULL marks with a written note. Reserve `wrong_kind` for a statement that is not a reason for CONTINUING at all \u2014 most often an EFFECT of the behaviour wearing a reason's clothes, like \"because it leaves me irritable and behind on everything\", which is what the behaviour causes rather than what the student gets out of it",
-    # WEB-ONLY BY DESIGN, not a backlog item to clear: this rule names a
-    # verdict from ONE side's vocabulary (slot_vocab.WEB_EXTRAS /
-    # RUBRIC_EXTRAS), so moving it to a shared `rule` would instruct the
-    # other scorer about a token it cannot emit. Migrated 2026-08-29 and
-    # REVERTED 2026-08-30. See E27.
-    "1c:legend":
-        "the NO_LEGEND test. `met` when the series names name all four plotted periods \u2014 the baseline and the three intervention weeks \u2014 in any reasonable wording ('Baseline, Wk1, Wk2, Wk3' counts). `incomplete` when some are named and some are not, or the count does not match the four series; `absent` when the box is empty or holds something that is not a set of series names. Judge the series names, not the heading",
+    # The three notes that stood here -- Q5:example_2, reasons_substantial and
+    # 1c:legend -- MIGRATED 2026-08-30 to the `rule` field on their credit
+    # components, where both generators render them. Each was declared here as
+    # web-only BY DESIGN on the grounds that it named one side's verdict token
+    # and `{fail}` could not express it. That was right about the constraint and
+    # wrong about the conclusion, in the way QUALITY_CONTROL.md now warns about:
+    # `nothing can host this` is a fact about today's mechanism, not about the
+    # rule. Measuring the tokens instead of assuming them showed example_2's
+    # second failure mode is `duplicate`, which BOTH sides offer, and that
+    # reasons_substantial's blocker was different from the recorded one -- it
+    # names a SIBLING slot's token, which is why `{fail:key}` now exists.
     "reasons_listed":
         "how many statements the response OFFERS as reasons, counted off the page "
         "before judging any of them. This is not scored; it is the first half of "
@@ -1974,7 +1970,26 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
                 opts = [o for o in (sl.get("options") or []) if o not in ("met", "absent")]
                 return opts[0] if opts else "absent"
         return "absent"
-    rule = {c["what"]: c["rule"].replace("{fail}", _fail_token(c["what"]))
+
+    def _fill_fail(text: str, own_key: str) -> str:
+        """`{fail}` -> this slot's failing verdict, `{fail:other}` -> a sibling's.
+
+        The qualified form is score.fill_fail's counterpart and must stay in step
+        with it; the shared `rule` is written once and rendered by both. See the
+        docstring there for why a rule ever names a SIBLING's token — Q5's
+        `reasons_substantial`, whose whole point is that a thin reason must NOT
+        be sent to the example slots' failure token.
+        """
+        def sub(m: "re.Match") -> str:
+            key = m.group(1) or own_key
+            if m.group(1) and not any(sl["key"] == key for sl in slots):
+                raise KeyError(
+                    f"{item['id']}: the `rule` on `{own_key}` names "
+                    f"`{{fail:{key}}}`, but `{key}` is not a slot on this sheet")
+            return _fail_token(key)
+        return _FAIL_RE.sub(sub, text)
+
+    rule = {c["what"]: _fill_fail(c["rule"], c["what"])
             for c in item["credit"] if c.get("rule")}
     lines = [
         "## The checklist to return (`checks`)",

@@ -1013,6 +1013,43 @@ def _fail_verdict(item: dict, c: dict) -> str:
     return next((v for v in verdicts if v not in skip), "absent")
 
 
+# `{fail}` fills with the check's OWN failing verdict; `{fail:other_slot}` with
+# a NAMED sibling's. The pattern itself is olx_prompts._FAIL_RE, imported rather
+# than restated so the two generators cannot come to recognise different syntax.
+from olx_prompts import _FAIL_RE as FAIL_RE
+
+
+def fill_fail(text: str, item: dict, c: dict) -> str:
+    """Fill the `{fail}` placeholders in one shared `rule`.
+
+    The qualified form exists because a rule sometimes has to name a SIBLING
+    slot's verdict rather than its own. Q5's `reasons_substantial` is the case
+    that forced it: it says a thin-but-real reason costs NOTHING and must not be
+    sent to the example slots' failure token, so the token it names belongs to
+    `example_1`/`example_2`, not to itself. Bare `{fail}` would fill it with
+    `reasons_substantial`'s own failing verdict — `absent` — which inverts the
+    rule, telling the scorer that a thin reason means the box was empty.
+
+    Without this the rule could not be shared at all, and it was not: it sat in
+    web-only SLOT_NOTES naming `wrong_kind` literally, so the paper scorer never
+    received it. That is the same shape as every other rule parked there — the
+    text reaches one scorer and the audit sees a note, not a gap.
+    """
+    def sub(m: re.Match) -> str:
+        key = m.group(1)
+        if key is None:
+            return _fail_verdict(item, c)
+        other = next((x for x in item.get("credit", []) if x["what"] == key), None)
+        if other is None:
+            # Loud, not silent: an unresolvable reference would otherwise render
+            # the literal `{fail:...}` into the prompt as if it were prose.
+            raise KeyError(
+                f"{item['id']}: the `rule` on `{c['what']}` names `{{fail:{key}}}`, "
+                f"but `{key}` is not a credit component of this item")
+        return _fail_verdict(item, other)
+    return FAIL_RE.sub(sub, text)
+
+
 def build_prompt(
     item: dict,
     response: str,
@@ -1090,7 +1127,7 @@ def build_prompt(
             # produced "Discusses the baseline week is the BEFORE state given".
             # No audit compared the two renderings, because both sides carried the
             # text and the audit asks only whether it is CARRIED.
-            body = (c['rule'].replace('{fail}', _fail_verdict(item, c))
+            body = (fill_fail(c['rule'], item, c)
                     if c.get("rule") else c['desc'])
             parts.append(f"- `{c['what']}`{worth}{vocab}: {body}")
         for cr in item.get("counts", []):
@@ -1136,7 +1173,7 @@ def build_prompt(
         parts.append("## Credit components")
         for c in item["credit"]:
             # Same rule-replaces-desc as above; see the note there.
-            body = (c['rule'].replace('{fail}', _fail_verdict(item, c))
+            body = (fill_fail(c['rule'], item, c)
                     if c.get("rule") else c['desc'])
             parts.append(f"- `{c['what']}` ({c['pts']:g} pt): {body}")
         parts.append("")

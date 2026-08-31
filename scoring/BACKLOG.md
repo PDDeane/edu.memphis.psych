@@ -91,7 +91,7 @@ item-specific phrase-to-slot vocabulary can be derived from each item's slot
 labels rather than hand-written per item; and whether `gold_slots_1c` should be
 re-expressed in terms of it, which would be the proof that it generalises.
 
-## Q5 `example_2` names a token the web enum does not have
+## ~~Q5 `example_2` names a token the web enum does not have~~ FIXED 2026-08-30
 
 `bmod_handout1.olx:1072` tells the web grader to answer `not_reason` when the
 second entry is a real, distinct entry that is not a reason for CONTINUING. The
@@ -124,6 +124,38 @@ note does and does not cost: refusals still happen, under `wrong_kind`, so what
 is lost is the DISTINCTION the note draws rather than the deduction itself — and
 no COUNTED cell exercises a refusal at all, so the fix cannot be validated on
 the rate. Read that section before sweeping.
+
+FIXED 2026-08-30, by route 1 AND route 2 -- the instance and the class.
+
+The note MIGRATED out of SLOT_NOTES into the rubric's `rule` on Q5's `example_2`
+component, where `{fail}` is substituted per side: the web now renders
+`wrong_kind` and the paper scorer `not_reason`, each its own vocabulary. The
+web prompt changed by exactly that one token and nothing else, confirmed by
+`olx_prompts.py --diff` showing a single changed line. `duplicate` stayed
+literal, which is correct -- slot_vocab.SHARED_EXTRAS shows both sides offer it.
+
+The CLASS is closed too, by the lint this entry asked for:
+`enforcement.check_prompt_prose_names_only_offered_verdicts` reads every source
+of prompt prose that is NOT a `rule` -- SLOT_NOTES today -- and reports any
+verdict token the slot cannot return. Two things it has to get right, both of
+which a naive version gets wrong: `pick(NAME)` options come from the sheet's
+`choices=` map (without resolving them D1/D2:named_type read as naming `unclear`
+against a met/absent slot, two false positives on correct prose), and a GLOBAL
+note reaches a slot only when that slot has no `rule` and no item-scoped note,
+so the precedence mirrors the generator's. A scan of all 24 SLOT_NOTES entries
+found no other instance.
+
+The lint is itself guarded: the audit self-test injects the historical defect and
+requires the check to fire ("prompt prose asks for a verdict the slot cannot
+return" -> PROMPT ASKS FOR AN IMPOSSIBLE VERDICT), with the site and the token
+chosen at run time so it does not die silently the day a note migrates.
+SELFTEST_EXPECTED 50 -> 51.
+
+MEASURED, on the regenerated prompt f933e0876c3b and a fresh idmap_v97 proven to
+carry the new line: Q5 cli 19/20 and web 19/20, both unchanged from 19/20, era
+checked, 0 cells never agreeing. Neutral, as this entry predicted it would be --
+no counted cell exercises a refusal, so what the fix buys is the distinction
+being drawable, not a different score.
 
 `not_reason` in `rubric_h1.py:979` is NOT part of this — that is the paper
 scorer's own vocabulary, bridged by `enforcement.ALIAS`, and it is correct there.

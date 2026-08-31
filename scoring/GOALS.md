@@ -356,7 +356,40 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       gold-matching, so the web is the reference and this improves the reference
       side's own accuracy rather than importing the CLI's reading.
 
-- [ ] E11. **Empty SLOT_RULE_BACKLOG: thirteen rules the paper scorer cannot see.**
+- [x] E11. **Empty SLOT_RULE_BACKLOG: thirteen rules the paper scorer cannot see.** DONE
+      CLOSED 2026-08-30, budget 13 -> 1. The one entry left is `Q1:matches_selected`,
+      which is not work: the paper sheet has no such SLOT, because a .docx has no
+      closed choice to compare against, and the asymmetry is declared in
+      SCORING_DIVERGENCES. The list IS the declaration of web-only notes, so the
+      entry stays in it.
+      THE LAST THREE went on 2026-08-30, and the recorded reason they could not --
+      "each names one side's verdict token, workable for reasons_substantial and
+      1c:legend, not for example_2, which distinguishes two failure modes" -- was
+      wrong in BOTH directions. Measuring the vocabularies instead of reasoning
+      about them:
+        `Q5:example_2` DID migrate. Its second failure mode is `duplicate`, which
+          SHARED_EXTRAS shows both sides offer, so `{fail}` plus one literal covers
+          it. This also FIXED a live defect rather than moving one -- see the
+          BACKLOG entry below.
+        `1c:legend` migrated on `{fail}` plus a literal `absent`, which is
+          universal and means a different thing here (empty box) from the failing
+          verdict.
+        `reasons_substantial` was the one bare `{fail}` genuinely could not carry:
+          the token it names belongs to the EXAMPLE slots, and this slot's own
+          failing verdict is `absent`, so `{fail}` would have rendered "instead of
+          reaching for `absent`" and inverted the rule. That is why `{fail:key}`
+          now exists, in olx_prompts._FAIL_RE and score.fill_fail.
+      MEASURED, which is what makes this closable rather than claimed. Q5's web
+      prompt changed by exactly one token -- `not_reason` -> `wrong_kind`, verified
+      by --diff as a one-line change -- and 1c and reasons_substantial rendered
+      BYTE-IDENTICAL on the web, so only the paper scorer gained anything there.
+      EXERCISED: Q5 swept at 6 runs on BOTH sides against the regenerated prompt
+      f933e0876c3b, on a freshly dumped idmap_v97 proven to carry the new line:
+          Q5 cli 19/20 (was 19/20)     Q5 web 19/20 (was 19/20)
+          era CHECKED, 0 cells never agree, out/q5_e11_cli and out/q5_e11_web
+      Neutral is the RIGHT result and was predicted: the change buys the ability to
+      draw a distinction, not a higher score, and BACKLOG.md recorded that no
+      counted cell exercises a refusal at all.
       Created 2026-08-28 because there was no subgoal for it -- only the ratchet,
       which stops the list GROWING and never asked it to shrink. Unlike
       HANDCODED_BUDGET, now at 0, `SLOT_RULE_BACKLOG_BUDGET` sits at 13 with no
@@ -547,7 +580,12 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       that is the half the corpus broke on.
       RESULT, all seven on the web side, era-checked, 0 cells never agreeing:
           Q4a web 18/20     Q4b web 16/19     Q4c web 17/19
-          NR  web 16/18     DAY1 web 17/18    DAY2 web 16/18    WK2 web 17/18 Q4b/p12, the
+          NR  web 16/18     DAY1 web 17/18    DAY2 web 16/18    WK2 web 18/18 Q4b/p12, the
+      (WK2's web figure is the 2026-08-30 RE-MEASUREMENT on the clean tree. The
+      run recorded here measured 17/18, but it ran from a tree we could not
+      certify, so DAY1/DAY2/WK1/WK2 were swept again at 6 runs; DAY1 and DAY2
+      came back unchanged, WK1 web 18/18, WK2 web 18/18. The ledger holds the
+      re-measure; the cli side of the same sweep has WK1 18/18 and WK2 17/18.)
       divergence this whole goal was opened over, now returns 3.5 on BOTH engines
       where it was CLI 5.0 / web 3.5. The equivalence half of that cell is closed;
       the gold half is Q18.
@@ -701,6 +739,37 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       STILL BLOCKING A SWEEP: E11's remaining `{fail}` rewrites, E15 and E25 all
       change prompts on Q4a, Q4c, Q5, Q6 and 1c. Sweeping first and doing them
       after costs a re-sweep of five of twenty-six items on every side.
+
+- [ ] E29. **`error_profile` ignores cell exclusions, and its one-sided flag lied.**
+      AN AUDIT SUBGOAL. `measured.error_profile` applies corrected gold and
+      `rebuild_gold_1c` but never filters EXCLUDED cells: it profiles all 20,
+      while every figure the ledger publishes is over 18. On the twelve H2 items
+      that is p2 and p3 -- 10% of every profile's observations, declared suspect,
+      feeding the DIRECTION verdict and the "one-sided: a threshold is set wrong,
+      not unstable" line.
+      FOUND 2026-08-30, and found the expensive way. The clean-tree re-sweep's
+      profiles reported WK1 8 over / 1 under and WK2 11 over / 4 under, three of
+      the four flagged one-sided. A subgoal was filed on that reading, claiming
+      p3 carried 24 of 37 over-credits and that a threshold was set wrong. p3 is
+      an EXCLUDED cell on both items. With exclusions applied:
+          WK1 cli  2 over / 1 under      WK1 web  2 over / 0 under
+          WK2 cli  5 over / 4 under      WK2 web  4 over / 2 under
+      WK2 is balanced, not one-sided, and WK1 is two observations out of 108 on
+      one cell. There was nothing to investigate. The whole finding was the
+      excluded cells.
+      WHY IT MATTERS beyond one wasted subgoal: this profile is the diagnostic
+      memory/error-profile-by-slot.md says to run after EVERY sweep, precisely
+      because a median never says which judgement is wrong. A diagnostic trusted
+      that way must not be computed over a different cell set than the number it
+      is diagnosing. The BY SLOT and DRIFT tables have the same defect.
+      DELIVERABLE: filter excluded cells in `error_profile`, the way
+      `cross_path.against_gold` already does via `_excluded_cells`; state the
+      observation count as n/18-based so a reader can see which set it used; and
+      re-read the four H2 profiles above afterwards to confirm nothing survives.
+      DO NOT re-file the p3 subgoal on the strength of the raw numbers. If p3 is
+      worth looking at, that is a question about whether its EXCLUSION is still
+      justified -- a different claim, resting on the citation behind the
+      exclusion, not on scores computed from a cell nobody counts.
 
 - [ ] E15. **`requires` is implemented on BOTH engines and bound to nothing. Q6 is why it exists.**
       Surfaced 2026-08-29 by the new live-exercise check, which listed `requires`
