@@ -847,7 +847,25 @@ def error_profile(item: str, runs_path: str) -> str:
         g, _ = _APP.rebuild_gold_1c({p: dict(v) for p, v in g.items()})
     runs = json.loads(Path(runs_path).read_text())["runs"]
 
+    # EXCLUDED cells are skipped, the same ones `record` leaves out of the
+    # published figure. They were not, and the profile was computed over a
+    # different cell set from the number it exists to diagnose: all 20 against a
+    # figure over 18. On the twelve H2 items that is p2 and p3 -- 10% of every
+    # profile's observations, declared suspect for a recorded reason -- feeding
+    # the DIRECTION counts and the one-sided verdict below.
+    #
+    # It misled exactly the way a trusted diagnostic does. The 2026-08-30
+    # re-sweep read WK1 as 8 over / 1 under and WK2 as 11 over / 4 under, three
+    # of four flagged one-sided, and a subgoal was filed claiming p3 carried 24
+    # of 37 over-credits and a threshold was set wrong. p3 is excluded on both
+    # items. Filtered, WK1 is 2 over / 1 under and WK2 is 5 over / 4 under --
+    # balanced, and nothing to investigate. Same shape as the 1c rebuild above:
+    # a profile that disagrees with the ledger about the same artifact is worse
+    # than no profile, because the tables look authoritative.
+    excluded = set(exclusions(item))
+
     obs = []
+    seen_cells = set()
     for i, run in enumerate(runs, 1):
         for r in run["results"]:
             got = _X.result_cell(r)          # either scorer's artifact shape
@@ -856,6 +874,9 @@ def error_profile(item: str, runs_path: str) -> str:
             cell_item, pid, sc, vd = got
             if cell_item != item or sc is None:
                 continue
+            seen_cells.add(pid)
+            if pid in excluded:
+                continue
             gv = (g.get(pid, {}).get(item) or {}).get("score")
             if gv is None:
                 continue
@@ -863,7 +884,16 @@ def error_profile(item: str, runs_path: str) -> str:
     if not obs:
         return f"{item}: no scored observations in {runs_path}"
 
-    out = [f"{item}: error profile over {len(obs)} observation(s) — {runs_path}"]
+    # Name the cell set in the header. A reader comparing this to the ledger
+    # needs to see WHICH cells it was computed over without reading the code --
+    # that is the whole failure being fixed.
+    kept = len({p for _, p, *_ in obs})
+    scope = f"{kept} of {len(seen_cells)} cell(s)"
+    if excluded & seen_cells:
+        scope += (" — excluding p"
+                  + ", p".join(str(p) for p in sorted(excluded & seen_cells)))
+    out = [f"{item}: error profile over {len(obs)} observation(s), "
+           f"{scope} — {runs_path}"]
     n = len(obs)
     corr = sum(1 for *_, gv, s, _ in [(0, 0, o[2], o[3], 0) for o in obs] if s == gv)
     over = sum(1 for o in obs if o[3] > o[2])
