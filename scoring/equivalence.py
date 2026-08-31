@@ -616,6 +616,8 @@ def enforcement_audit():
         findings.append(("-", "SLOT RULE WEB ONLY", bad))
     for bad in ENF.check_slot_rules_are_vocabulary_neutral():
         findings.append(("-", "SLOT RULE NAMES A VERDICT", bad))
+    for bad in ENF.check_prompt_prose_names_only_offered_verdicts():
+        findings.append(("-", "PROMPT ASKS FOR AN IMPOSSIBLE VERDICT", bad))
     for bad in ENF.check_rule_fail_tokens_agree():
         findings.append(("-", "SLOT RULE FAILS DIFFERENTLY", bad))
     for bad in ENF.check_exclusion_claims_are_data():
@@ -865,7 +867,7 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 50
+SELFTEST_EXPECTED = 51
 
 
 def enforcement_selftest():
@@ -1058,6 +1060,59 @@ def enforcement_selftest():
                       "SLOT RULE NAMES A VERDICT", "-",
                       [f for f in enforcement_audit()[0]]))
         _site["rule"] = _saved_rule
+
+    # The OTHER prose source. The case above guards the rubric's `rule`, where
+    # the answer is `{fail}`; SLOT_NOTES is a second source of prompt prose, is
+    # web-only, and gets no substitution. So the guard covered one source and the
+    # other went unwatched -- which is how Q5:example_2 sat in the LIVE web prompt
+    # naming `not_reason`, a token from the rubric's vocabulary, while its sheet
+    # offered `wrong_kind`. Every test in that note was inert, it dated to the
+    # original import, and BACKLOG.md:94 recorded it as found by reading. The
+    # lint that closes the class is check_prompt_prose_names_only_offered_verdicts.
+    # Site chosen at run time, for the reason the case above records: a hard-coded
+    # site dies silently the day its note migrates, and these notes are migrating.
+    # The token is chosen per site too -- `pick(NAME)` options come from the
+    # sheet's `choices=` map, so "a verdict this slot lacks" cannot be a constant.
+    import olx_prompts as _O
+    from slot_vocab import KNOWN_VERDICTS as _KV
+    _by_id = {i["id"]: i for _m in (_R1, _R2, _R3) for i in _m.ITEMS}
+    _nsite = None
+    for _iid, _act in sorted(_O.ACTION.items()):
+        _h = _O.HANDOUT.get(_iid)
+        if _h is None:
+            continue
+        try:
+            _spec, _defs = _O._slots_attr(_h, _act)
+            _ch = _O._choices_attr(_h, _act)
+            _sl = _O.parse_slots(_spec, _defs)
+        except Exception:
+            continue
+        _rk = {c["what"] for c in (_by_id.get(_iid) or {}).get("credit", []) or []
+               if c.get("rule")}
+        for _s in _sl:
+            if _s["key"] in _rk:
+                continue
+            _nk = (f"{_iid}:{_s['key']}" if f"{_iid}:{_s['key']}" in _O.SLOT_NOTES
+                   else _s["key"] if _s["key"] in _O.SLOT_NOTES else None)
+            if not _nk:
+                continue
+            _off = set(_s["options"] or ())
+            if _s.get("picks") is not None:
+                _off |= set(_ch.get(_s["picks"], []) or ())
+            _tok = next((v for v in sorted(_KV) if v not in _off), None)
+            if _tok:
+                _nsite = (_nk, _tok)
+                break
+        if _nsite:
+            break
+    if _nsite is not None:
+        _nk, _tok = _nsite
+        _saved_note = _O.SLOT_NOTES[_nk]
+        _O.SLOT_NOTES[_nk] = _saved_note + f" Answer `{_tok}` if unsure."
+        cases.append(("prompt prose asks for a verdict the slot cannot return",
+                      "PROMPT ASKS FOR AN IMPOSSIBLE VERDICT", "-",
+                      [f for f in enforcement_audit()[0]]))
+        _O.SLOT_NOTES[_nk] = _saved_note
 
     # The other half of that hazard: the rule uses `{fail}` correctly and the two
     # generators still substitute different meanings. Q6's state_c slots keep

@@ -1,4 +1,9 @@
 {
+ "02621720bbf6": {
+  "label": "Q5 credit.rule :: `absent` when a reason is PRESENT but weak \u2014 thin, v",
+  "note": "Re-derived against the corpus, not inherited from the standing verdict on the same prose. The two flagged bigrams are 'keep doing' and 'doing because', both from the block's constructed illustration 'I keep doing it because I am not looking after myself'. That opening is the natural frame for answering the question the item asks -- why do you keep doing it -- and Q5/p18 opens the same way, but the substance is opposite: p18 names {{corpus:Q5/p18:first:72:114:sha=a427f80834b5}} a real payoff and scores as substantial; the illustration names self-neglect, which is the thin answer the rule exists to describe. Neither the illustration nor the fragment 'looking after myself' appears in any submission. Frame shared, substance not. This block was already live in the web prompt via SLOT_NOTES (verdict bcb6d6c2d294, same finding); it re-flagged only because E11 moved it into credit.rule and the placeholder {fail:example_2} replaced the literal token, changing the sha.",
+  "verdict": "coincidence"
+ },
  "06685b34fed7": {
   "label": "WK2 guidance :: TWO SEPARATE READINGS, THEN A COMPARISON. Answer the",
   "note": "'plan work' is from our own 'not whether the plan will work'; 'week make' from 'running to the end of the week does not make a daily trigger weekly'. Both are ordinary word pairs in prose we wrote, colliding with p8's answers on Q3 and PP \u2014 different items from the three this block governs. No borrowed content; p8's cadence answers share nothing with it.",
