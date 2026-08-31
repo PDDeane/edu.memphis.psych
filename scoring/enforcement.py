@@ -6714,12 +6714,22 @@ PROBE_PROVOCATIONS: dict[str, object] = {
     # A primitive named unexercised while it is bound to a live item.
     "enforcement.UNEXERCISED_PRIMITIVES": ("cover", "probe: cover is bound to Q6"),
     "enforcement.HANDCODED_ITEM_RULES": ("probe_item", "probe: not a real rule"),
+    # PROBE_IMPOSSIBLE is EMPTY as of 2026-08-31 -- E31 and E33 fixed the two
+    # checks whose tables could not be provoked, so both entries were retired and
+    # every declaration table is now probeable. An empty table cannot be moved by
+    # emptying, so it needs a provocation of its own: adding an entry makes the
+    # named table report BY DESIGN instead of READ, which changes the output.
+    "enforcement.PROBE_IMPOSSIBLE": ("handouts.CORRECTED_GOLD",
+                                     "probe: not a real impossibility"),
 
     # RAW_GOLD_READERS became probeable on 2026-08-31 when E31 drove its
     # verifier's loop from the table. A bogus module name is now objected to, so
     # the default shape-derived provocation suffices and no entry is needed here.
-    # NO PROVOCATION EXISTS for the one below, and saying so is the finding.
-    "handouts.PER_ITEM_EXCLUDE": None,
+    # An exclusion on a cell that HAS gold and is absent from the last recorded
+    # run's excluded cells: E33 made the verifier read the table, so this now
+    # fires as "no evidence either way". A shape-derived bogus key would NOT --
+    # the loop iterates real items, so a nonsense item name is skipped.
+    "handouts.PER_ITEM_EXCLUDE": ("1b", {1: "probe: not a real exclusion"}),
 }
 
 # Why a table has no provocation. An entry here is a claim that the table CANNOT
@@ -6734,13 +6744,10 @@ PROBE_IMPOSSIBLE: dict[str, str] = {
     # A PROBE_IMPOSSIBLE reason that stops being true is exactly the staleness
     # this table has to be able to lose, so the entry goes rather than being
     # softened.
-    "handouts.PER_ITEM_EXCLUDE":
-        "its staleness verifier reads the LEDGER's `excluded_cells`, recorded at "
-        "sweep time, not the table as it stands now. A stale exclusion added "
-        "today is therefore invisible until the item is next recorded, so a "
-        "provocation cannot fire without re-sweeping. That is a real gap in the "
-        "check, not just in the probe: an exclusion added after the last sweep is "
-        "unwatched until the next one.",
+    # handouts.PER_ITEM_EXCLUDE was here until 2026-08-31. Its reason -- that the
+    # staleness verifier reads the ledger snapshot and not the table -- was true
+    # and is now false: E33 made it read both. The entry goes rather than being
+    # reworded, which is the whole point of this table being able to lose one.
 }
 
 
