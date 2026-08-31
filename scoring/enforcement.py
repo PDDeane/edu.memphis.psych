@@ -1890,7 +1890,14 @@ def _primitives_with_live_app_evidence() -> dict:
 # rebuild, `scored_exactly` and the ledger's exclusions -- the accounting every
 # published rate uses.
 RAW_GOLD_READERS = {
-    "enforcement.check_corrections_still_match_the_sheet":
+    # RENAMED 2026-08-31: this entry said `check_corrections_still_match_the_sheet`,
+    # which has never existed. The function is `check_corrected_gold_matches_the
+    # _sheet`, and its exemption is legitimate -- it reads gold raw on purpose.
+    # The name had been wrong for as long as nobody read the table, which is E31:
+    # the verifier mentioned RAW_GOLD_READERS only in an error message and never
+    # consulted it, so an entry naming nothing exempted nothing and read as
+    # coverage. Found the day the check started being driven by the table.
+    "enforcement.check_corrected_gold_matches_the_sheet":
         "audits the CORRECTIONS themselves; comparing a correction against its "
         "own output would always agree",
     "measured.gold_rows_that_do_not_reconcile":
@@ -1928,26 +1935,86 @@ def check_gold_accounting_is_uniform() -> list[str]:
     readers are listed with a reason in RAW_GOLD_READERS.
     """
     import importlib
+    import inspect
     import pathlib
+    import re
 
+    CANON = (("apply_corrected_gold", "corrected gold rows"),
+             ("rebuild_gold_1c", "1c's rebuilt gold"),
+             ("scored_exactly", "the unreachable-gold allowance"))
+    LOADER = re.compile(r"\bload_h[123]?\b")
+    here = pathlib.Path(__file__).resolve().parent
     problems = []
-    for mod_name in ("cross_path", "measured", "compare_runs"):
-        try:
-            m = importlib.import_module(mod_name)
-        except Exception as exc:
-            problems.append(f"{mod_name} will not import, so its gold "
-                            f"accounting cannot be checked: {exc}")
+
+    # PART ONE: the DECLARATIONS themselves. This is what the table is for and
+    # what nothing did -- the loop below used to walk a hard-coded list of three
+    # module names and mention RAW_GOLD_READERS only in its error text, so an
+    # entry was never verified. It named
+    # `enforcement.check_corrections_still_match_the_sheet`, which does not
+    # exist; the function is `check_corrected_gold_matches_the_sheet`. The
+    # exemption was legitimate and its name had been wrong for as long as nobody
+    # looked. See E31.
+    exempt_modules: set = set()
+    for name, why in sorted(RAW_GOLD_READERS.items()):
+        mod_name, _, fn_name = name.rpartition(".")
+        if not mod_name:                        # a bare module, exempt entire
+            exempt_modules.add(name)
+            f = here / f"{name}.py"
+            if not f.exists():
+                problems.append(
+                    f"RAW_GOLD_READERS declares {name} as a raw gold reader, but "
+                    f"there is no {name}.py -- the module was renamed or removed "
+                    f"and its exemption was not")
+            elif not LOADER.search(f.read_text()):
+                problems.append(
+                    f"RAW_GOLD_READERS exempts {name} from the canonical gold "
+                    f"accounting, but it does not load gold at all, so the "
+                    f"exemption protects nothing. Drop it")
             continue
-        src = ""
         try:
-            src = pathlib.Path(m.__file__).read_text()
+            obj = getattr(importlib.import_module(mod_name), fn_name, None)
+        except Exception as exc:
+            problems.append(f"RAW_GOLD_READERS declares {name}, but {mod_name} "
+                            f"will not import ({type(exc).__name__})")
+            continue
+        if obj is None:
+            problems.append(
+                f"RAW_GOLD_READERS declares {name} as a raw gold reader, but "
+                f"{mod_name} has no `{fn_name}` -- the function was renamed or "
+                f"removed and its exemption was not. An exemption naming nothing "
+                f"exempts nothing, and reads as coverage")
+            continue
+        try:
+            src = inspect.getsource(obj)
         except Exception:
             continue
-        if "load_h1" not in src and "load_h" not in src:
+        if not LOADER.search(src):
+            problems.append(
+                f"RAW_GOLD_READERS exempts {name}, but it does not appear to load "
+                f"gold directly. Either it reaches gold through a helper -- in "
+                f"which case say so in the reason -- or the exemption is stale")
+        elif "apply_corrected_gold" in src:
+            problems.append(
+                f"RAW_GOLD_READERS exempts {name} as a RAW reader, but it now "
+                f"calls `apply_corrected_gold`. The exemption is stale: it is "
+                f"using the canonical accounting and no longer needs excusing")
+
+    # PART TWO: every CONSUMER, discovered rather than listed. The hard-coded
+    # three missed four -- enforcement, handouts, baseline_h1 and gold itself --
+    # so a new module comparing gold raw was invisible to this check.
+    for f in sorted(here.glob("*.py")):
+        src = f.read_text()
+        if not LOADER.search(src):
             continue
-        for needed, why in (("apply_corrected_gold", "corrected gold rows"),
-                            ("rebuild_gold_1c", "1c's rebuilt gold"),
-                            ("scored_exactly", "the unreachable-gold allowance")):
+        mod_name = f.stem
+        # The module that DEFINES the loaders is the source of gold, not a
+        # consumer of it: requiring `gold.py` to apply its own corrections would
+        # be circular. Structural, not a declaration, so it is not in the table.
+        if any(f"def {l}" in src for l in ("load_h1", "load_h2", "load_h3")):
+            continue
+        if mod_name in exempt_modules:
+            continue
+        for needed, why in CANON:
             if needed not in src:
                 problems.append(
                     f"{mod_name} compares against gold but never calls "
@@ -6653,8 +6720,10 @@ PROBE_PROVOCATIONS: dict[str, object] = {
     "enforcement.UNEXERCISED_PRIMITIVES": ("cover", "probe: cover is bound to Q6"),
     "enforcement.HANDCODED_ITEM_RULES": ("probe_item", "probe: not a real rule"),
 
-    # NO PROVOCATION EXISTS for these two, and saying so is the finding.
-    "enforcement.RAW_GOLD_READERS": None,
+    # RAW_GOLD_READERS became probeable on 2026-08-31 when E31 drove its
+    # verifier's loop from the table. A bogus module name is now objected to, so
+    # the default shape-derived provocation suffices and no entry is needed here.
+    # NO PROVOCATION EXISTS for the one below, and saying so is the finding.
     "handouts.PER_ITEM_EXCLUDE": None,
 }
 
@@ -6663,12 +6732,13 @@ PROBE_PROVOCATIONS: dict[str, object] = {
 # it carries its reason and is reported as UNPROBEABLE BY DESIGN rather than
 # quietly passing.
 PROBE_IMPOSSIBLE: dict[str, str] = {
-    "enforcement.RAW_GOLD_READERS":
-        "its verifier NEVER reads it -- check_gold_accounting_is_uniform walks a "
-        "hard-coded module list and names the table only inside an error string, "
-        "so no entry can make it speak. This is E31: the table is inert by "
-        "reading, and no behavioural probe can show it. Fixing E31 -- driving the "
-        "loop from the table -- would also make it probeable.",
+    # enforcement.RAW_GOLD_READERS was here until 2026-08-31. Its reason -- "its
+    # verifier NEVER reads it" -- was true and is now false: E31 rewrote
+    # check_gold_accounting_is_uniform to drive its loop from the table and to
+    # verify each entry, which is what made the stale function name visible.
+    # A PROBE_IMPOSSIBLE reason that stops being true is exactly the staleness
+    # this table has to be able to lose, so the entry goes rather than being
+    # softened.
     "handouts.PER_ITEM_EXCLUDE":
         "its staleness verifier reads the LEDGER's `excluded_cells`, recorded at "
         "sweep time, not the table as it stands now. A stale exclusion added "
