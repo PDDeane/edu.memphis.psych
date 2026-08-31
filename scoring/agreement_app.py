@@ -2515,6 +2515,14 @@ def run_jobs(jobs: list[dict], idmap: str, on_cell=None) -> list[dict]:
 
 
 def main() -> int:
+    # NOT WHILE THE AUDIT SELF-TEST IS RUNNING. It injects breakages into the
+    # rubric and enforcement source this process reads live, so an overlapping
+    # sweep scores some cells against a rule nobody wrote -- and says nothing.
+    # The mirror of olx_prompts._measurements_in_flight, which guards the other
+    # direction. See refuse_if_selftest_running for the escape.
+    import olx_prompts as _OP_GUARD
+    _OP_GUARD.refuse_if_selftest_running("this app sweep")
+
     ap = argparse.ArgumentParser(description=__doc__.split("Run:")[0],
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--item", default="Q6", choices=sorted(JOBS))

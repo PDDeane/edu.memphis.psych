@@ -2093,13 +2093,25 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       So on p5 the CLI LOSES LESS WHEN IT FAILS MORE: an independently failing
       `affect_c2` produces a higher total than a passing one, with `link_c2`
       answering `absent` in all six.
-      THAT IS AN ARITHMETIC LEAD, not a wording one. `requires` demotes a
-      dependent only when it is `not in demoted` already, so a slot that has
-      failed on its own is skipped by the denial -- and if the pair's deduction
-      is charged through a shared code, the two paths through the arithmetic do
-      not cost the same. Read agreement.py's `requires` block against score.py's
-      (score.py:535) and against the C_NO_EFFECT / cover demotions on that cell,
-      with the run-4 verdict set as the input. Still no API calls.
+      THE TWO RUNS DIFFER IN ONE VERDICT. Dumped in full: every slot is `met` in
+      both, `confident` is `absent` in both, `link_c2` is `absent` in both, and
+      the ONLY difference is affect_c2 -- `met` in run 1 (score 6.25) and
+      `incomplete` in run 4 (score 7.5). Strictly more failure, 1.25 more credit.
+      A FIRST LEAD WAS WRONG and is recorded so it is not tried again: that
+      `requires` skips a dependent already in `demoted`, so an independently
+      failed slot escapes the denial. That IS score.py's code (score.py:535), but
+      the CLI column is agreement.py, whose `requires` is a plain boolean AND
+      (`out[key] = out[key] and out[cond]`, agreement.py:986) with no such skip.
+      So the asymmetry is not there, and the mechanism is still unidentified.
+      WHERE TO LOOK NEXT, given that: the interaction is between `requires` and
+      something else that reads the same slots, because `requires` alone would
+      deny state_c2 and affect_c2 in BOTH runs and cost the same 2.5 in each.
+      Candidates, cheapest first: `cover` -- state_c1 and state_c2 both answer
+      `met` while the group's labels are first/second, so is_satisfied's
+      non-`met` branch decides them and a duplicate demotion may fire in one run
+      and not the other; and the C_NO_EFFECT code, which affect_c2 shares with
+      affect_c1. Instrument score_slots on the two recorded verdict sets and
+      print what each stage denies. Still no API calls -- both sets are above.
       IF THAT IS THE BUG it is worth more than one cell: it would mean any
       `requires` pair scores differently depending on whether its dependent
       failed independently, on every item that ever carries one. Q6 is the only
