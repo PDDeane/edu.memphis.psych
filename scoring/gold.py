@@ -9,6 +9,7 @@ on a first pass — the real number is one).
 from __future__ import annotations
 
 import re
+import functools
 import zipfile
 import xml.etree.ElementTree as ET
 import paths
@@ -69,7 +70,26 @@ H3_HEADER_TO_ITEM = {
 }
 
 
+@functools.lru_cache(maxsize=None)
 def _grid(path: str) -> dict[tuple[int, str], str]:
+    """The workbook as {(row, column): text}, parsed ONCE per file.
+
+    Memoised because the callers ask per CELL while this reads a whole workbook:
+    check_fixture_agrees_with_gold walks 157 multi-box fixture cells and calls
+    handouts.load for each, so this ran 157 times -- four million regex
+    substitutions and eight million XML element lookups -- for twenty of the
+    audit's twenty-nine seconds. Three handouts, three parses.
+
+    Keyed on the PATH alone, which is the whole input: a workbook edited during a
+    run would not be re-read, and that is correct here because every caller is a
+    read-only audit. The self-test's own source fingerprint is what notices a tree
+    that moved underneath it.
+
+    Returning the cached dict rather than a copy is deliberate. `load` builds a
+    fresh result from it and no caller mutates the grid; making a copy per call
+    would give back most of what the cache saves.
+    """
+
     with zipfile.ZipFile(path) as z:
         shared = []
         if "xl/sharedStrings.xml" in z.namelist():
