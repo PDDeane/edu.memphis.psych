@@ -810,9 +810,29 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       a run, ~2,060 input and ~720 output tokens a call. Six runs is ~3,100 calls,
       6.4M in / 2.3M out -- single-digit dollars on gpt-5-mini and roughly forty
       times that on Opus.
-      STILL BLOCKING A SWEEP: E11's remaining `{fail}` rewrites, E15 and E25 all
-      change prompts on Q4a, Q4c, Q5, Q6 and 1c. Sweeping first and doing them
-      after costs a re-sweep of five of twenty-six items on every side.
+      STILL BLOCKING A SWEEP, updated 2026-08-30: E11 is DONE -- its Q5 and 1c
+      prompt changes have landed and been re-measured -- so what remains is E15
+      (Q6) and E25 (Q4a, Q4c). Sweeping before those costs a re-sweep of three of
+      twenty-six items on every side.
+      LIVE-VERIFIED 2026-08-30 on the current tree, which the earlier end-to-end
+      check no longer covered: score.py changed that day, and Q5 and 1c gained
+      migrated rules the PAPER scorer had never been given. A three-call smoke
+      test through `--backend lo`:
+        the paper prompt for Q5 carries `not_reason` and NOT `wrong_kind`, so
+          `{fail}` and the new `{fail:example_2}` resolve to the PAPER's
+          vocabulary in a live run and not merely in a static render;
+        `reasons_substantial` came back `absent` -- the verdict its newly-arrived
+          rule describes, on the slot the paper scorer never had a rule for;
+        result_cell read both artifacts, paper_runs folded them to the ledger's
+          shape, and the era carried model=gpt-5-mini and the matching
+          prompt_sha f933e0876c3b.
+      AND IT FOUND ONE: score.py called era_stamp with no `backend`, so every
+      per-participant artifact stamped "". The ledger was unaffected, because
+      paper_runs passes it at fold time from sweep_paper.sh -- but the file that
+      survives if a fold is ever redone by hand could not say whether it was the
+      gpt-5-mini run or the Opus one, which is the single distinction `paper` and
+      `paper_opus` exist to keep apart. score.py knows it (`rec["backend"]`, two
+      lines above) and now passes it. Fixed and re-verified.
 
 - [x] E29. **`error_profile` ignores cell exclusions, and its one-sided flag lied.** DONE
       AN AUDIT SUBGOAL. `measured.error_profile` applies corrected gold and
