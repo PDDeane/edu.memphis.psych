@@ -2265,7 +2265,19 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       per-slot check that would catch it is cross_path --slots, which compares
       the two SCORERS to each other and not either of them to gold. Nothing
       compares our slot set against the grader's slot set, and this cell is the
-      demonstration that the gap is real.
+      demonstration that the gap is real. E30 now does; see below.
+      THE ALARM IS FIXED, NOT SILENCED, 2026-08-31. declaration_conflicts had been
+      reporting DUPLICATE_EFFECT_TIE_BREAK as contradicted on the strength of that
+      6/6 web total, and refused four commits over it. It now asks
+      gold_charged_slots first: where the slot sets can be compared and DIFFER, it
+      draws no conclusion, because agreeing on a total while failing different
+      slots is not evidence a divergence has expired. Q6/p5 stops being reported
+      and the entry stays, both for the same reason.
+      NOT AN EXEMPTION -- no cell, item or side is named in the change. Every
+      divergence gets the same protection, and where a comment cannot be read the
+      total still stands, which is the previous behaviour. Verified behaviourally
+      in all three states: slots agreeing still reports, slots unreadable still
+      reports, only slots differing declines.
       THE REAL WORK, then, is two cells' worth of slot-level disagreement on p5:
         state_c1 -- we say the first consequence box matches 4c first, gold says
           it does not. The box is "no longer suffer from being fulfilled by
