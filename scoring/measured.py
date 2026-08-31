@@ -1071,12 +1071,21 @@ def prose_claims(paths: list[str] | None = None) -> list[str]:
                 # side that could not previously run them.
                 # Naming a side is what selects it; saying nothing still means the
                 # default, so no existing sentence changes meaning.
+                # The NEAREST cue owns it, exactly as the nearest item name does
+                # above. This took the last cue in ITERATION order instead, so a
+                # sentence naming both sides -- "Q6 records cli 17/20 and web
+                # 18/20" -- attributed the WEB figure to the cli, because "cli"
+                # sits later in the tuple than "web". Every such sentence read as
+                # a contradiction and the only way to quiet it was to write one
+                # side per line, which is a formatting rule invented by a bug.
                 side = DEFAULT_SIDE
                 low = window.lower()
+                best = -1
                 for cue, s_ in (("web", "web"), ("app", "web"),
                                 ("cli", "cli"), ("harness", "cli")):
-                    if cue in low:
-                        side = s_
+                    at = low.rfind(cue)
+                    if at > best:
+                        best, side = at, s_
                 rec = records(side).get(item)
                 if not rec or rec.get("pending"):
                     continue
@@ -1101,7 +1110,35 @@ def prose_claims(paths: list[str] | None = None) -> list[str]:
 # FOUR 1.25 charges, the third of them unitless, and was reported for two
 # months as implying 6.25 against a row of 5.00. Q6/p4 writes "-2.5:" and
 # "-1.5;" for 4.00 off 10, exactly its recorded 6.00. Both reconcile.
-_DEDUCT_RE = re.compile(r"-\s*(\d+(?:\.\d+)?)\s*(?:pts?\b|points?\b|[:;])", re.I)
+# An itemised deduction in a grader's comment. TWO shapes, because the graders
+# wrote two: "-2 pts", "-1.25:" and so on, and a bare "-1.25 First antecedent
+# does not match ...". Only the first was matched, so a row written the second way
+# had NO parseable deductions and gold_rows_that_do_not_reconcile skipped it
+# entirely -- 3 of the 183 rows with a comment, and Q6/p5 among them, which is
+# the row that turned out to charge different slots from ours while agreeing on
+# the total (E30). A row nobody can read the arithmetic of is the last place to
+# leave unread.
+#
+# The second alternative is deliberately narrow: start of line, then the number,
+# then whitespace, then a LETTER. A bare "-1.25" mid-sentence does not match, and
+# neither does a negative number in prose. Verified across all 183 commented rows
+# -- 180 parse identically to before, the 3 new ones all reconcile, and no row
+# gained a deduction it did not name.
+_DEDUCT_RE = re.compile(
+    r"-\s*(\d+(?:\.\d+)?)\s*(?:pts?\b|points?\b|[:;])"
+    r"|^[ \t]*-[ \t]*(\d+(?:\.\d+)?)[ \t]+(?=[A-Za-z])", re.I | re.M)
+
+
+def deductions_named(feedback: str) -> list[float]:
+    """The deduction amounts a grader's comment itemises, in order.
+
+    Wraps _DEDUCT_RE because it now has two alternatives and so returns pairs:
+    every caller wants the amounts, and one of them was doing
+    `[float(x) for x in _DEDUCT_RE.findall(fb)]`, which becomes a TypeError the
+    moment a second group exists. One accessor, so the next caller cannot get it
+    wrong either.
+    """
+    return [float(a or b) for a, b in _DEDUCT_RE.findall(feedback or "")]
 
 
 def gold_rows_that_do_not_reconcile() -> list[str]:
@@ -1143,7 +1180,7 @@ def gold_rows_that_do_not_reconcile() -> list[str]:
                 score, fb = row.get("score"), (row.get("feedback") or "").strip()
                 if score is None or not fb:
                     continue
-                named = [float(x) for x in _DEDUCT_RE.findall(fb)]
+                named = deductions_named(fb)
                 if not named:
                     continue
                 # 1c's gold is RESTATED FROM ITS VERDICTS by
@@ -1375,6 +1412,11 @@ def preflight() -> dict[str, list[str]]:
             fixture_suspects(),
         "2. gold — these rows do not reconcile with their own comments":
             gold_rows_that_do_not_reconcile(),
+        # Step 2b, beside it and not after the model steps: a cell failing the
+        # wrong slots is a gold-reading question, and tuning a criterion against
+        # one measures the compensating error rather than the criterion.
+        "2b. gold — cells failing DIFFERENT slots from the ones gold charged":
+            gold_slot_disagreements(),
         "3. declarations — contradicted by a recorded measurement":
             declaration_conflicts(),
         # Every side, and labelled. This listed `status()` -- the cli default --
@@ -1686,3 +1728,259 @@ except Exception:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+# ---------------------------------------------------------------------------
+# E30: does our failing SLOT SET match the slots gold actually charged?
+#
+# Every rate in this project compares a cell's TOTAL. So a cell that fails the
+# wrong slots in the right quantity reads as a match everywhere it is looked at,
+# and Q6/p5 is the demonstration: gold charges state_a1, state_c1 and state_c2,
+# we charge state_a1, state_c2 and affect_c2, and both come to 6.25. It read as a
+# 6-of-6 success on the web and a divergence was proposed for retirement on that
+# strength. cross_path --slots does not cover it either -- that compares the two
+# SCORERS, which agree with each other here and differ from the grader together.
+#
+# COVERAGE IS PARTIAL AND DECLARED. Mapping a grader's prose to a slot key is not
+# mechanical: "First consequence does not match 4c" is state_c1 only if you know
+# this item's naming, and the graders wrote for students. So the table below
+# covers the items whose phrasing has been read, every unmapped deduction is
+# REPORTED rather than skipped, and the check says what fraction it examined. The
+# failure being avoided is a check that looks thorough by ignoring what it cannot
+# parse.
+#
+# ONE DEDUCTION CAN COVER SEVERAL SLOTS -- "did not state the second antecedent
+# and how it is being changed" is two at 1.25 -- so a pattern maps to a SET and
+# the amount validates the count. That validation is what catches a mapping
+# mistake in this table, which is otherwise unfalsifiable prose.
+GOLD_SLOT_CHARGES: dict[str, list[tuple[str, tuple[str, ...]]]] = {
+    # Ordered: more specific phrasings first, because several are substrings of
+    # each other ("second consequence" appears in six different charges).
+    "Q6": [
+        (r"did not address your second antecedent being changed and how it will "
+         r"affect your second consequence",
+         ("state_a2", "change_a2", "state_c2", "affect_c2")),
+        (r"did not state each consequence being affected and how it is being "
+         r"affected", ("state_c1", "affect_c1", "state_c2", "affect_c2")),
+        (r"did not state the second antecedent and how it is being changed",
+         ("state_a2", "change_a2")),
+        (r"did not state the second consequence and how it is being affected",
+         ("state_c2", "affect_c2")),
+        (r"did not say how each antecedent is being changed",
+         ("change_a1", "change_a2")),
+        (r"did not say how you would change your second antecedent",
+         ("change_a2",)),
+        (r"did not say how the first consequence.{0,20}is being affected",
+         ("affect_c1",)),
+        (r"did not say how the second consequence.{0,30}is being affected",
+         ("affect_c2",)),
+        # The grader charged 2.5 here, which is TWO slots at 1.25, so this
+        # phrasing covers the second consequence PAIR and not just its effect
+        # box. The amount is the evidence; the pairing is inferred from it, and
+        # the amount check above is what forced the correction.
+        (r"did not address how {{corpus:Q4c/p19:second:0:25:sha=d4d526f38996:shape=C1}} being affected",
+         ("state_c2", "affect_c2")),
+        (r"did not clarify the first consequence being affected", ("affect_c1",)),
+        (r"did not clarify the second consequence being affected", ("affect_c2",)),
+        (r"did not state the first consequence.{0,20}being affected",
+         ("state_c1",)),
+        (r"did not state the second consequence.{0,20}being affected",
+         ("state_c2",)),
+        (r"did not state a second consequence", ("state_c2",)),
+        (r"first antecedent does not match", ("state_a1",)),
+        (r"second antecedent is not the same", ("state_a2",)),
+        (r"first consequence does not match", ("state_c1",)),
+        # Also charged 2.5 -- the pair, not the state box alone.
+        (r"second consequence is not the same", ("state_c2", "affect_c2")),
+        (r"second consequence does not match", ("state_c2",)),
+        (r"missing second antecedent", ("state_a2", "change_a2")),
+        (r"missing second consequence", ("state_c2", "affect_c2")),
+        # "both consequences" charged 2.5, not 5: this grader is counting one
+        # slot per consequence, so it is the two STATE boxes. Read off the amount
+        # rather than the wording, which would have given four slots.
+        (r"missing both consequences", ("state_c1", "state_c2")),
+    ],
+}
+
+
+# The cells KNOWN to fail different slots from the ones gold charged. Declared so
+# a NEW one is a finding, listed so the eight already found are not mistaken for
+# drift, and budgeted so the list can only shrink -- the same bargain as
+# SLOT_RULE_BACKLOG.
+#
+# Eight of Q6's twelve mappable cells are here, which is the point of E30: the
+# item records 17/20 on the cli and 18/20 on the web, and most of that agreement
+# is compensating error at the slot level. Nothing before this check could say so.
+#
+# These are NOT declared as acceptable. Each is a real disagreement about which
+# judgement is wrong, and the pattern across them is worth reading as one thing:
+# on six of the eight we fail FEWER or DIFFERENT state_*/affect_* slots than the
+# grader, and `affect_c2` and `state_a2` recur. That is the `refers_to` channel
+# again -- memory/q6-matching-ceiling.md -- seen from the grader's side for the
+# first time.
+# Deductions that CANNOT map to a slot set, with the reason. Declared rather than
+# quietly skipped: an unread charge was exactly the old behaviour.
+GOLD_SLOT_UNMAPPABLE: dict[tuple[str, int], str] = {
+    ("Q6", 4): "\"-1.5; missing one antecedent\" -- unmappable on TWO counts: it "
+               "does not say WHICH antecedent, and 1.5 is not a whole number of "
+               "this item's 1.25-point slots, so no slot set can account for it. "
+               "NOT A TYPO FOR 1.25, checked rather than assumed: the row is "
+               "score 6.0 = 10 - 2.5 - 1.5 and RECONCILES at 1.5, where 1.25 "
+               "would imply 6.25. Correcting the deduction alone would break the "
+               "row; correcting both would be re-scoring the cell, so this is not "
+               "a CORRECTED_GOLD case -- that table is for a row whose arithmetic "
+               "contradicts ITSELF, and this one does not. "
+               "WHAT IT ACTUALLY SHOWS is that this grader apportioned Q6 "
+               "differently from the sheet: the same comment charges 2.5 for "
+               "\"missing both consequences\" -- 1.25 each -- and 1.5 for one "
+               "antecedent, valuing antecedents above consequences where the "
+               "sheet is a flat 1.25 x 8. Idiosyncratic to this row: every other "
+               "Q6 comment charges an antecedent miss at 1.25.",
+}
+
+
+GOLD_SLOT_DISAGREEMENTS_KNOWN: dict[tuple[str, int], str] = {
+    ("Q6", 2): "gold charges change_a2; we fail nothing. The +1.25 over-credit "
+               "E15 predicted would move and did not.",
+    ("Q6", 5): "gold charges state_a1/state_c1/state_c2; we charge "
+               "state_a1/state_c2/affect_c2. Two disagreements cancelling -- see "
+               "Q28. DUPLICATE_EFFECT_TIE_BREAK's reason is confirmed by this.",
+    ("Q6", 6): "we miss state_a2, which gold charges.",
+    ("Q6", 8): "gold also charges both change_* slots -- the A_NO_CHANGE "
+               "divergence, already declared, seen here per slot.",
+    ("Q6", 9): "we fail state_a1 as well as everything gold charges.",
+    ("Q6", 16): "gold charges affect_c2; we fail nothing.",
+    ("Q6", 17): "we fail state_c1 as well as everything gold charges.",
+    ("Q6", 18): "we fail state_a2 as well as everything gold charges.",
+}
+GOLD_SLOT_DISAGREEMENTS_BUDGET = 8
+
+
+def _our_failing_slots(item: str, pid: int, side: str = DEFAULT_SIDE):
+    """Which SCORED slots our recorded runs failed, per run, for one cell.
+
+    Rebuilt through agreement.satisfied_map rather than read off the artifact,
+    which stores only a `failed_slots` COUNT. Every key is wrapped in a dict on
+    the way in: verdict_of returns "" for a bare string, so passing the artifact's
+    {key: "met"} shape straight through marked every ungrouped slot unsatisfied
+    and inflated the count from 3 to 6.
+    """
+    import agreement as A
+    import olx_prompts as O
+
+    path = _runs_path(item, side)
+    if not path:
+        return []
+    try:
+        spec = A.load_action(f"bmod_handout{_jobs()[item]['handout']}.olx",
+                            O.ACTION[item])
+        runs = json.loads(Path(path).read_text())["runs"]
+    except Exception:
+        return []
+    scored = {s["key"] for s in spec["slots"] if s.get("pts") is not None}
+    out = []
+    for run in runs:
+        for r in (run.get("results") or []):
+            if r.get("participant_id") != pid:
+                continue
+            ch, ans = dict(r.get("checks") or {}), (r.get("answers") or {})
+            rebuilt = {k: dict(verdict=v,
+                               **({"refers_to": ans[k]} if k in ans else {}))
+                       for k, v in ch.items()}
+            sm = A.satisfied_map(spec, rebuilt)
+            out.append(frozenset(k for k, ok in sm.items()
+                                 if not ok and k in scored))
+    return out
+
+
+def gold_slot_disagreements() -> list[str]:
+    """Cells where our failing slots differ from the slots gold charged.
+
+    Reported even when the TOTAL agrees -- especially then, because that is the
+    case nothing else can see.
+    """
+    import re
+    import gold as _gold
+    import handouts as H
+    import olx_prompts as O
+
+    out: list[str] = []
+    examined = skipped = declared = 0
+    seen_disagreeing: set = set()
+    for item, table in sorted(GOLD_SLOT_CHARGES.items()):
+        h = _jobs()[item]["handout"]
+        try:
+            g = H.apply_corrected_gold(
+                {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[h](), h)
+            spec = __import__("agreement").load_action(
+                f"bmod_handout{h}.olx", O.ACTION[item])
+        except Exception:
+            continue
+        pts = {s["key"]: s["pts"] for s in spec["slots"] if s.get("pts") is not None}
+        for pid in sorted(g):
+            row = (g.get(pid) or {}).get(item) or {}
+            fb = (row.get("feedback") or "").strip()
+            if not fb:
+                continue
+            # Split into deduction segments: each starts at a "-<amount>".
+            segs = [s for s in re.split(r"(?=-\s*\d)", fb) if re.match(r"-\s*\d", s)]
+            if not segs:
+                continue
+            charged: set = set()
+            unmapped = []
+            for seg in segs:
+                amt = deductions_named(seg)
+                hit = next((slots for pat, slots in table
+                            if re.search(pat, seg, re.I)), None)
+                if hit is None:
+                    unmapped.append(seg.strip()[:60])
+                    continue
+                charged |= set(hit)
+                # The amount says HOW MANY slots the charge covers. A mismatch is
+                # a bug in the table above, not in the scorer, and saying so here
+                # is what keeps the table honest.
+                want = sum(pts.get(k, 0) for k in hit)
+                if amt and abs(sum(amt[:1]) - want) > 1e-9:
+                    out.append(
+                        f"{item}/p{pid}: the table maps \"{seg.strip()[:44]}\" to "
+                        f"{sorted(hit)} worth {want:g}, but the grader charged "
+                        f"{amt[0]:g} — the MAPPING is wrong, not the score")
+            if unmapped:
+                skipped += 1
+                if (item, pid) not in GOLD_SLOT_UNMAPPABLE:
+                    out.append(
+                        f"{item}/p{pid}: gold charges something the phrase table "
+                        f"does not map — {unmapped}. Add it to GOLD_SLOT_CHARGES, "
+                        f"or to GOLD_SLOT_UNMAPPABLE with the reason; an unread "
+                        f"charge is not a passing cell")
+                continue
+            ours = _our_failing_slots(item, pid)
+            if not ours:
+                continue
+            examined += 1
+            stable = set.intersection(*[set(f) for f in ours]) if ours else set()
+            if stable == charged:
+                continue
+            seen_disagreeing.add((item, pid))
+            if (item, pid) in GOLD_SLOT_DISAGREEMENTS_KNOWN:
+                declared += 1
+                continue
+            out.append(
+                f"{item}/p{pid}: gold charges {sorted(charged)}, we fail "
+                f"{sorted(stable)} in every run — differs on "
+                f"{sorted(charged ^ stable)}. The TOTAL can still agree, which "
+                f"is how this stayed invisible. Declare it in "
+                f"GOLD_SLOT_DISAGREEMENTS_KNOWN with what is wrong, or fix it")
+
+    # A declaration that outlived its cell, and the ratchet.
+    live = {k for k in GOLD_SLOT_DISAGREEMENTS_KNOWN if k[0] in GOLD_SLOT_CHARGES}
+    for item, pid in sorted(live - seen_disagreeing):
+        out.append(
+            f"GOLD_SLOT_DISAGREEMENTS_KNOWN names {item}/p{pid}, but its slot set "
+            f"now MATCHES gold — drop the entry and lower the budget")
+    n = len(GOLD_SLOT_DISAGREEMENTS_KNOWN)
+    if n != GOLD_SLOT_DISAGREEMENTS_BUDGET:
+        verb = "grew to" if n > GOLD_SLOT_DISAGREEMENTS_BUDGET else "is down to"
+        out.append(f"GOLD_SLOT_DISAGREEMENTS_KNOWN {verb} {n} against a budget of "
+                   f"{GOLD_SLOT_DISAGREEMENTS_BUDGET} -- it may only fall")
+    return out
