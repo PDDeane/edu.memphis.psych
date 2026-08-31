@@ -2007,11 +2007,11 @@
         "out": "q6_e15_cli",
         "previous": {
           "denominator": 20,
-          "numerator": 16,
-          "out": "twoside_cli",
-          "prompt_sha": "39ddb377dad0",
+          "numerator": 17,
+          "out": "q6_e15_cli",
+          "prompt_sha": "cb866389c59d",
           "runs": 6,
-          "scorer_sha": "53f6d985f174"
+          "scorer_sha": "7b8f8715488a"
         },
         "prompt_sha": "cb866389c59d",
         "run_totals": [
@@ -2055,11 +2055,11 @@
         "out": "q6_e15_web",
         "previous": {
           "denominator": 20,
-          "numerator": 17,
-          "out": "twoside_web",
-          "prompt_sha": "78c9b1a3c3d0",
+          "numerator": 18,
+          "out": "q6_e15_web",
+          "prompt_sha": "3b72b21974a0",
           "runs": 6,
-          "scorer_sha": "53f6d985f174"
+          "scorer_sha": "7b8f8715488a"
         },
         "prompt_sha": "3b72b21974a0",
         "run_totals": [

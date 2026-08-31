@@ -620,6 +620,8 @@ def enforcement_audit():
         findings.append(("-", "PROMPT ASKS FOR AN IMPOSSIBLE VERDICT", bad))
     for bad in ENF.check_verdict_spaces_are_declared():
         findings.append(("-", "VERDICT SPACES DIVERGE UNDECLARED", bad))
+    for bad in ENF.check_slot_sets_match_gold():
+        findings.append(("-", "SLOT SET DISAGREES WITH GOLD", bad))
     for bad in ENF.check_rule_fail_tokens_agree():
         findings.append(("-", "SLOT RULE FAILS DIFFERENTLY", bad))
     for bad in ENF.check_exclusion_claims_are_data():
@@ -872,6 +874,42 @@ def uncompared_web_rules():
 SELFTEST_EXPECTED = 51
 
 
+def _selftest_input_fingerprint() -> dict:
+    """Hash every file the audit reads, so a mid-run edit can be detected.
+
+    Everything, not just the modules the cases inject into: the checks read the
+    OLX, GOALS.md, the rubric and the ledger, and an edit to any of them moves the
+    baseline. Cheap -- a few dozen small files, hashed once at each end of a
+    fifteen-minute run.
+    """
+    import hashlib
+    import pathlib
+
+    here = pathlib.Path(__file__).resolve().parent
+    out = {}
+    for pat in ("*.py", "*.md", "*.json", "../psychology/*.olx"):
+        for f in sorted(here.glob(pat)):
+            try:
+                out[f.name] = hashlib.sha256(f.read_bytes()).hexdigest()[:12]
+            except OSError:
+                out[f.name] = "unreadable"
+    return out
+
+
+def _selftest_inputs_changed(before: dict) -> list[str]:
+    """Which fingerprinted inputs differ now. Empty means the tree stayed still.
+
+    MEASURED.json is excluded: the audit itself does not write it, but a run
+    recorded between the two fingerprints is a legitimate concurrent action that
+    does not change what any CHECK reads about the source. Anything else moving is
+    a source edit and voids the baseline.
+    """
+    now = _selftest_input_fingerprint()
+    skip = {"MEASURED.json", "PROBED.json", "LEAKAGE_REVIEWED.json"}
+    return sorted(k for k in set(before) | set(now)
+                  if k not in skip and before.get(k) != now.get(k))
+
+
 def enforcement_selftest():
     """Break each rule on purpose and confirm the audit says so.
 
@@ -881,6 +919,20 @@ def enforcement_selftest():
     grader.
     """
     import rubric_h1, rubric_h2
+    # THE INPUTS ARE FINGERPRINTED FIRST. This run takes ~15 minutes and compares
+    # a restored state against a baseline captured at the start, so anything that
+    # edits the source underneath it makes the comparison meaningless -- and the
+    # symptom is indistinguishable from a real failure to restore. That happened
+    # on 2026-08-31: a run reported "restored state is clean: False (6 finding(s),
+    # baseline 3)" with all 51 cases detected and nothing wrong, because files
+    # were edited while it ran.
+    #
+    # The overlap guards added the same day stop a SWEEP and a self-test running
+    # together, in both directions. Neither stops a person editing mid-run, which
+    # is the commonest form of it. This cannot be prevented from inside the
+    # process, so it is DETECTED and the verdict is voided rather than reported as
+    # a failure: a check that cries wolf about its own baseline gets ignored.
+    _inputs = _selftest_input_fingerprint()
     # Captured BEFORE any injection: the findings this corpus carries legitimately.
     _selftest_baseline = len(enforcement_audit()[0])
     cases = []
@@ -1641,7 +1693,16 @@ def enforcement_selftest():
     for label, why in skips:
         print(f"  SKIP  {label:<28} -> {why}")
 
-    print(f"\n  restored state is clean: {clean == baseline} "
+    moved = _selftest_inputs_changed(_inputs)
+    if moved:
+        print(f"\n  *** THE SOURCE MOVED UNDER THIS RUN. The baseline was taken "
+              f"against different files, so\n      \"restored state\" below "
+              f"compares two states that were never comparable and\n      means "
+              f"nothing either way. Re-run it on a quiet tree.")
+        for f in moved:
+            print(f"        changed: {f}")
+    print(f"\n  restored state is clean: {clean == baseline}"
+          f"{' (VOID -- source moved)' if moved else ''} "
           f"({clean} finding(s), baseline {baseline})")
 
     # THE DENOMINATOR DOES NOT FLOAT. It used to be `len(cases)`, so a case that
