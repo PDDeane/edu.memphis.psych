@@ -1831,6 +1831,74 @@ if __name__ == "__main__":
 GOLD_SLOT_CHARGES: dict[str, list[tuple[str, tuple[str, ...]]]] = {
     # Ordered: more specific phrasings first, because several are substrings of
     # each other ("second consequence" appears in six different charges).
+    # Q3's five SMART slots are 1 pt each and the graders' phrasings are close to
+    # canonical, which makes this the cleanest table in the set.
+    "Q3": [
+        (r"for specific", ("specific",)),
+        (r"for measurable|how are you tracking|how will you track|"
+         r"did not say how you will measure", ("measurable",)),
+        (r"for action|actionable", ("action_oriented",)),
+        (r"missing realistic|for realistic", ("realistic",)),
+        (r"for time.?bound", ("time_bound",)),
+    ],
+    # 1a: the baseline sentence is named explicitly, and the all-weeks charge is
+    # 8 = four slots at 2.
+    "1a": [
+        (r"pertaining to the baseline week|sentece pertaining to the baseline",
+         ("baseline_week",)),
+        (r"did not discuss data for each week", 8.0,
+         ("baseline_week", "week_1", "week_2", "week_3")),
+    ],
+    # 3: two example slots at 3 apiece, and "only provided one" names the second.
+    "3": [
+        (r"only provided one example of a change", 3.0, ("example_2",)),
+    ],
+    # 1c's five slots are 2 pts each, so a 2-pt charge is exactly one slot.
+    "1c": [
+        (r"missing graph title", ("title",)),
+        (r"missing legend", ("legend",)),
+        (r"missing x.?axis title", ("x_axis_label",)),
+        (r"missing y.?axis title", ("y_axis_label",)),
+    ],
+    "Q4c": [
+        (r"missing second consequence|listed the same consequence twice|"
+         r"need more explanation on how your second example", ("consequence_2",)),
+        (r"consequences are a direct result", 4.0,
+         ("consequence_1", "consequence_2")),
+    ],
+    "Q4a": [
+        (r"only provided one antecedent|second example is not an antecedent",
+         ("antecedent_2",)),
+        (r'did not use the word "antecedent"|did not use the word .antecedent.',
+         ("keyword",)),
+        (r"examples are not antecedents|an antecedent/trigger is something that "
+         r"causes", ("antecedent_1", "antecedent_2")),
+    ],
+    "Q4b": [
+        (r"did not say why it is a good choice to modify", ("modify_why",)),
+        (r"did not provide two examples|these examples are not what you|"
+         r"behaviors cannot be the same as your antecedents",
+         ("behavior_1", "behavior_2")),
+        (r"second example is not|second behavior|second example is the same",
+         ("behavior_2",)),
+    ],
+    "Q2": [
+        (r"missing a third reason", ("reason_3",)),
+        (r"missing three reasons", ("reason_1", "reason_2", "reason_3")),
+        (r"1 pt per reason", ("reason_1", "reason_2", "reason_3")),
+        # Same phrase, two scopes, told apart by the amount: 2 points is the
+        # inversion slot alone, 5 is that plus all three reasons.
+        (r"wgb should be the opposite|wanted goal behavior should be the opposite",
+         2.0, ("wgb_inverts_utb",)),
+        (r"wgb should be the opposite|wanted goal behavior should be the opposite",
+         5.0, ("wgb_inverts_utb", "reason_1", "reason_2", "reason_3")),
+    ],
+    "Q1": [
+        (r"did not have one sentence describing your utb", ("utb_stated",)),
+        (r"missing a third reason|only provided two reasons", ("reason_3",)),
+        (r"missing two reasons|only provided one reason",
+         ("reason_2", "reason_3")),
+    ],
     "Q6": [
         (r"did not address your second antecedent being changed and how it will "
          r"affect your second consequence",
@@ -1857,9 +1925,14 @@ GOLD_SLOT_CHARGES: dict[str, list[tuple[str, tuple[str, ...]]]] = {
          ("state_c2", "affect_c2")),
         (r"did not clarify the first consequence being affected", ("affect_c1",)),
         (r"did not clarify the second consequence being affected", ("affect_c2",)),
-        (r"did not state the first consequence.{0,20}being affected",
+        # NEGATIVE LOOKAHEAD on "and how": the two-slot forms above are
+        # "did not state the Nth consequence AND HOW it is being affected", and
+        # these narrow ones must not also match them. They did, and first-match
+        # ordering happened to give the right answer -- which is luck, not a
+        # rule, and the ambiguity check exposed it on Q6/p7.
+        (r"did not state the first consequence(?!.{0,30}and how).{0,20}being affected",
          ("state_c1",)),
-        (r"did not state the second consequence.{0,20}being affected",
+        (r"did not state the second consequence(?!.{0,30}and how).{0,20}being affected",
          ("state_c2",)),
         (r"did not state a second consequence", ("state_c2",)),
         (r"first antecedent does not match", ("state_a1",)),
@@ -1895,7 +1968,73 @@ GOLD_SLOT_CHARGES: dict[str, list[tuple[str, tuple[str, ...]]]] = {
 # first time.
 # Deductions that CANNOT map to a slot set, with the reason. Declared rather than
 # quietly skipped: an unread charge was exactly the old behaviour.
+# Cells whose AMBIGUOUS gold charge still disagrees with us on EVERY reading.
+# Separate from GOLD_SLOT_DISAGREEMENTS_KNOWN because the finding is weaker in
+# kind -- a count or a subset, not a named slot -- and mixing them would let a
+# bounded finding be quoted as an exact one.
+GOLD_SLOT_BOUNDS_KNOWN: dict[tuple[str, int], str] = {
+    # 2a, FOUR CELLS, ONE SHAPE: gold charges one `how_*` slot -- "your third
+    # sentece does not explain how your plan was successful" / "need more
+    # explanation on how it was or was not successful" -- and we charge NOTHING.
+    # Gold 4.0 against our 6.0 on all four. This is subgoal Q2's finding ("2a
+    # over-credits hows_given: one rule, five cells") reached from the slot side,
+    # and it is the strongest confirmation of that subgoal available: the
+    # over-credit is not spread over the item, it is one uncharged slot.
+    ("2a", 1): "gold charges one how_* slot; we charge none. 4.0 vs 6.0.",
+    ("2a", 13): "same as 2a/p1.",
+    ("2a", 14): "same as 2a/p1, phrased as \"need more explanation\".",
+    ("2a", 15): "same as 2a/p1, naming the second sentence rather than the third.",
+    ("Q4a", 6): "gold charges one antecedent -- \"how does not stretching lead to "
+                "lack of exercise?\" -- and we charge none.",
+    ("Q4c", 16): "gold charges one consequence slot and we charge none. The "
+                 "comment is Q4b's `modify_why` text on a Q4c row, so WHICH slot "
+                 "is unknowable, but that one was charged is not. Also "
+                 "PER_ITEM_EXCLUDEd on that ground.",
+    # THE ONLY CELL IN THE CORPUS WHERE WE CHARGE MORE THAN GOLD.
+    ("Q5", 4): "gold charges ONE example slot -- \"missing one reason why you "
+               "continue to engage\" -- and we fail BOTH, scoring 0.0 against "
+               "gold's 2.5. Every other disagreement in this accounting runs the "
+               "other way, which makes this one worth reading first: it is the "
+               "only evidence that the leniency is not uniform.",
+}
+
+
 GOLD_SLOT_UNMAPPABLE: dict[tuple[str, int], str] = {
+    # THE COMMON CASE, and it is one shape: the grader named a defect without
+    # saying WHICH of several interchangeable slots it lands on. "missing one
+    # reason" on a three-reason item, "how does X lead to Y?" on a two-antecedent
+    # item. The amount says how many, never which, and picking one would put a
+    # wrong slot set into the comparison while looking precise.
+    ("Q1", 1): "\"missing a reason for why you chose lack of sleep as your UTB\" "
+               "-- one point, but Q1 has three interchangeable reason slots and "
+               "the comment does not say which is missing.",
+    ("Q1", 2): "same shape as Q1/p1: one reason short of three, which one unsaid.",
+    ("Q2", 6): "\"missing one reason\" -- one of three reason slots, unspecified.",
+    ("Q3", 3): "one -1 pt charge NAMES TWO SLOTS: \"For specific, ... For "
+               "measurable, make sure you are tracking your specific goal.\" The "
+               "cell's two charges cover three named slots, so which two were "
+               "deducted is not recoverable. Found by the ambiguity check, which "
+               "exists because first-match mapping had silently taken `specific` "
+               "and dropped `measurable`.",
+    ("Q4a", 3): "\"Need further explanation for how not eating is an antecedent\" "
+                "-- 2 points, so exactly one antecedent slot, but the comment "
+                "describes the response rather than naming first or second.",
+    ("Q4a", 4): "same shape: \"how does grumpy emotions lead to lack of sleep?\" "
+                "names the content, not the slot.",
+    ("Q4a", 6): "same shape: \"how does not stretching lead to lack of exercise?\"",
+    ("Q4c", 4): "\"specify what spending too much time awake means as a "
+                "consequence\" -- 2 points, so one consequence slot, but the "
+                "comment names the content and not which of the two.",
+    ("Q4c", 16): "the comment is \"did not say if this behavior is a good choice "
+                 "for you modify and why\", which is Q4b's `modify_why` test on a "
+                 "Q4c row -- it names no Q4c slot at all. Either the grader "
+                 "carried a comment across items or the charge belongs to Q4b; "
+                 "this cell is ALSO PER_ITEM_EXCLUDEd on that ground, so the "
+                 "exclusion and this entry are the same observation.",
+    ("Q4a", 9): "AMBIGUOUS between antecedent_1 and antecedent_2 -- the phrasing "
+                "matches both the single-slot and the both-slots patterns, and "
+                "the amount does not separate them.",
+
     ("Q6", 4): "\"-1.5; missing one antecedent\" -- unmappable on TWO counts: it "
                "does not say WHICH antecedent, and 1.5 is not a whole number of "
                "this item's 1.25-point slots, so no slot set can account for it. "
@@ -1923,12 +2062,192 @@ GOLD_SLOT_DISAGREEMENTS_KNOWN: dict[tuple[str, int], str] = {
     ("Q6", 6): "we miss state_a2, which gold charges.",
     ("Q6", 8): "gold also charges both change_* slots -- the A_NO_CHANGE "
                "divergence, already declared, seen here per slot.",
-    ("Q6", 9): "we fail state_a1 as well as everything gold charges.",
     ("Q6", 16): "gold charges affect_c2; we fail nothing.",
-    ("Q6", 17): "we fail state_c1 as well as everything gold charges.",
-    ("Q6", 18): "we fail state_a2 as well as everything gold charges.",
+    # Q6/p9, p17 and p18 ALL LEFT on 2026-08-31: their slot sets now MATCH gold.
+    # Three of the eight original entries were artefacts of a pattern overlap in
+    # the Q6 table -- the narrow "did not state the second consequence being
+    # affected" also matched the two-slot "...and how it is being affected", and
+    # first-match ordering decided it. The ratchet reported all three as stale the
+    # moment the overlap was fixed, which is what a ratchet is for, and it is the
+    # argument for the ambiguity check that exposed the overlap.
+    #
+    # ARRIVED with the coverage extension to Q1, Q2, Q3, Q4a and Q4b. All six have
+    # ONE shape: gold charges a slot we CREDIT, so we are lenient relative to the
+    # grader at slot level even where the total agrees. Same direction as Q6's,
+    # and worth reading as one finding rather than six.
+    ("Q1", 10): "gold charges reason_3; we fail nothing.",
+    ("Q2", 7): "gold charges wgb_inverts_utb on top of all three reasons; we fail "
+               "the reasons only. Its 5-point charge covers the inversion slot "
+               "too -- see the amount-keyed entry in GOLD_SLOT_CHARGES.",
+    ("Q3", 10): "gold charges specific AND measurable; we fail specific only.",
+    ("Q3", 19): "gold charges measurable AND action_oriented; we fail measurable "
+                "only. action_oriented is subgoal Q9's slot.",
+    ("Q4a", 14): "gold charges both antecedents; we fail antecedent_2 only.",
+    ("1a", 1): "gold charges all four week slots -- \"did not discuss data for "
+               "each week\" at 8 points -- and we fail baseline_week only. The "
+               "widest slot-level gap found: three slots credited that the grader "
+               "charged.",
+    ("1a", 6): "gold charges baseline_week; we fail nothing.",
+    ("Q4c", 9): "gold charges both consequences; we fail consequence_2 only.",
+    ("Q4c", 20): "gold charges consequence_2; we fail nothing.",
+    ("Q4b", 4): "gold charges both behaviors; we fail behavior_2 only -- the same "
+                "second-box shape subgoal Q18 records for this item.",
+    # Q6/p18 LEFT on 2026-08-31: its slot set now MATCHES gold. It was listed
+    # while a pattern overlap in the Q6 table mis-mapped its charge -- the narrow
+    # "did not state the second consequence being affected" pattern also matched
+    # the two-slot "...and how it is being affected" form, and first-match
+    # ordering decided it. The ratchet reported the entry as stale the moment the
+    # overlap was fixed, which is what the ratchet is for.
 }
-GOLD_SLOT_DISAGREEMENTS_BUDGET = 8
+GOLD_SLOT_DISAGREEMENTS_BUDGET = 15
+
+
+def _table_hits(table, seg: str, amounts: list) -> list:
+    """Which entries of a phrase table match one deduction segment.
+
+    An entry is (pattern, slots) or (pattern, amount, slots). The three-element
+    form matches only when the grader charged that amount, because THE SAME
+    PHRASE CAN COVER DIFFERENT SCOPES: Q2's "your WGB should be the opposite of
+    your UTB" is wgb_inverts_utb alone at 2 points and the whole item at 5. Without
+    the amount the table cannot tell those apart, and the phrase-only version
+    mapped the 5-point charge to a 2-point slot -- caught by the amount check,
+    which is the check earning its place a second time.
+    """
+    import re
+
+    got = []
+    for entry in table:
+        if len(entry) == 3:
+            pat, want, slots = entry
+            if not amounts or abs(amounts[0] - want) > 1e-9:
+                continue
+        else:
+            pat, slots = entry
+        if re.search(pat, seg, re.I):
+            got.append(slots)
+    return got
+
+
+def _slots_are_not_comparable(item: str) -> bool:
+    """Is this item's rubric slot set a DIFFERENT vocabulary from its web sheet's?
+
+    A `derive_from_criteria` item's rubric carries the two or four checks the
+    DEDUCTIONS are written against, while its web sheet asks fourteen criteria the
+    CLI derives them from. "Which slots we failed" and "which slots gold charged"
+    are then not the same kind of thing, and comparing them produces nonsense that
+    looks like a finding: NR reported gold charging `is_nr` against our failing
+    `demonstrates_type` and `targets_goal_behavior`, which is two naming schemes
+    passing each other rather than a disagreement.
+
+    Refused structurally rather than declared, because it is a fact about the
+    item's shape. It is also why WK1, WK2, DAY1 and DAY2 could not be tabled: their
+    gold speaks about the operant TYPE, which is a derived conclusion and not a
+    slot on the sheet at all.
+    """
+    import handouts as H
+
+    try:
+        rub = H.config(_jobs()[item]["handout"])["rubric"].BY_ID[item]
+    except Exception:
+        return False
+    return bool(rub.get("derive_from_criteria"))
+
+
+def gold_charge_bounds(item: str, pid: int):
+    """What gold's comment says about a cell even when the slots are AMBIGUOUS.
+
+    Returns (definite, count) or None: `definite` is the slots named by segments
+    that map unambiguously, and `count` is how many slots the whole comment
+    charges, derived from the AMOUNTS. An ambiguous segment contributes to the
+    count without contributing to `definite` -- "missing one reason" on a
+    three-reason item is one slot, unknown which.
+
+    WHY THIS EXISTS. GOLD_SLOT_UNMAPPABLE cells were skipped entirely, and 6 of
+    the 24 skipped cells disagree with us on the TOTAL. Skipping is not
+    accounting. Two things can be said without disambiguating anything:
+      * if our failing set does not CONTAIN every definitely-charged slot, we
+        credit a slot gold charged, whichever reading is right;
+      * if the SIZE of our failing set differs from gold's count, the two
+        disagree about how many slots failed, whichever ones they were.
+    Q5/p4 is the case that motivated it: gold charges ONE of example_1/example_2
+    and we fail BOTH, so we over-charge by a slot on every reading.
+    """
+    import re
+    import gold as _gold
+    import handouts as H
+    import olx_prompts as O
+
+    # A TABLE IS NOT REQUIRED. Bounds come from the AMOUNTS and the slot points,
+    # so an item with no phrase table still yields a count -- which is how 2b,
+    # D1, D2, Q5 and 1b get accounted for at all. Without a table `definite` is
+    # simply empty, and the size comparison is the whole finding.
+    table = GOLD_SLOT_CHARGES.get(item) or []
+    if _slots_are_not_comparable(item):
+        return None
+    h = _jobs()[item]["handout"]
+    try:
+        g = H.apply_corrected_gold(
+            {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[h](), h)
+        spec, defs = O._slots_attr(h, O.ACTION[item])
+        pts = {s["key"]: s["pts"] for s in O.parse_slots(spec, defs)
+               if s.get("pts")}
+    except Exception:
+        return None
+    row = (g.get(pid) or {}).get(item) or {}
+    fb = row.get("feedback") or ""
+    segs = [s for s in re.split(r"(?=-\s*\d)", fb) if re.match(r"-\s*\d", s)]
+    if not segs:
+        return None
+    # Same reconcile guard as the other readers: a comment that does not describe
+    # the score in force cannot bound anything either.
+    top = max(((g.get(q) or {}).get(item) or {}).get("score") or 0 for q in g)
+    if row.get("score") is None or abs(
+            (top - sum(deductions_named(fb))) - row["score"]) > 1e-9:
+        return None
+
+    unit = min(pts.values()) if pts else None
+    definite: set = set()
+    count = 0
+    for seg in segs:
+        amt = deductions_named(seg)
+        hits = _table_hits(table, seg, amt)
+        if len(set(hits)) == 1:
+            definite |= set(hits[0])
+            count += len(hits[0])
+            continue
+        # Ambiguous or unmatched: the AMOUNT still says how many slots, provided
+        # the item's slots are uniform. They are on every item tabled so far.
+        if not amt or not pts:
+            return None
+        n = _slots_worth(amt[0], sorted(pts.values()))
+        if n is None:
+            return None       # the amount does not determine HOW MANY slots
+        count += n
+    return definite, count
+
+
+def _slots_worth(amount: float, values: list):
+    """How many slots an amount can be, or None if that is not determined.
+
+    Every subset of the slot points that sums to the amount is a possible
+    reading; if they all have the same SIZE, the count is known even though the
+    membership is not. Q1's 1-point charge can only be one of its three 1-point
+    reason slots -- utb_stated is 2 -- so the count is 1 while which reason is
+    unknowable. Requiring uniform slot values instead, as the first version did,
+    threw that away and returned nothing for every mixed-value item.
+    """
+    sizes = set()
+
+    def walk(i: int, left: float, n: int):
+        if abs(left) < 1e-9:
+            sizes.add(n)
+            return
+        if left < -1e-9 or i >= len(values) or len(sizes) > 1:
+            return
+        walk(i + 1, left - values[i], n + 1)      # take this slot
+        walk(i + 1, left, n)                      # skip it
+    walk(0, amount, 0)
+    return sizes.pop() if len(sizes) == 1 else None
 
 
 def gold_charged_slots(item: str, pid: int):
@@ -1950,6 +2269,8 @@ def gold_charged_slots(item: str, pid: int):
     table = GOLD_SLOT_CHARGES.get(item)
     if not table:
         return None
+    if _slots_are_not_comparable(item):
+        return None
     if (item, pid) in GOLD_SLOT_UNMAPPABLE:
         return None
     h = _jobs()[item]["handout"]
@@ -1958,17 +2279,42 @@ def gold_charged_slots(item: str, pid: int):
             {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[h](), h)
     except Exception:
         return None
-    fb = ((g.get(pid) or {}).get(item) or {}).get("feedback") or ""
+    row = (g.get(pid) or {}).get(item) or {}
+    fb = row.get("feedback") or ""
     segs = [s for s in re.split(r"(?=-\s*\d)", fb) if re.match(r"-\s*\d", s)]
     if not segs:
         return None
+
+    # THE COMMENT MUST DESCRIBE THE SCORE IT IS BEING READ AGAINST. A corrected
+    # cell keeps the grader's original prose, so a charge named there may be one
+    # the correction deliberately removed -- Q4a/p17's comment docks the keyword
+    # point and CORRECTED_GOLD[("Q4a", 17)] takes it back, because the graders
+    # charged that point once in seven comparable cases. Reading the comment
+    # anyway reported a charge we correctly do not make.
+    #
+    # Tested by arithmetic rather than by another declaration: if max minus the
+    # named deductions does not equal the score in force, the itemisation is not
+    # describing this score and the slot set derived from it is unusable. That
+    # also covers Q6/p4, corrected the same day.
+    score = row.get("score")
+    top = max(((g.get(q) or {}).get(item) or {}).get("score") or 0 for q in g)
+    named = sum(deductions_named(fb))
+    if score is None or abs((top - named) - score) > 1e-9:
+        return None
     charged: set = set()
     for seg in segs:
-        hit = next((slots for pat, slots in table if re.search(pat, seg, re.I)),
-                   None)
-        if hit is None:
-            return None                 # an unread charge is not an empty one
-        charged |= set(hit)
+        # EVERY match, not the first. `next(...)` took the first pattern that hit
+        # and silently dropped the rest, so a grader charging one point while
+        # naming two slots -- Q3/p3's "For specific, ... For measurable, make sure
+        # you are tracking your specific goal." -- mapped to `specific` alone and
+        # passed the amount check, because one slot is one point on that item.
+        # Silently wrong is worse than unmapped, so a segment naming more than one
+        # distinct slot set is ambiguous and the whole cell goes unread.
+        amt = deductions_named(seg)
+        hits = _table_hits(table, seg, amt)
+        if len(set(hits)) != 1:
+            return None       # unmatched, or ambiguous between several slots
+        charged |= set(hits[0])
     return charged
 
 
@@ -2024,6 +2370,8 @@ def gold_slot_disagreements() -> list[str]:
     examined = skipped = declared = 0
     seen_disagreeing: set = set()
     for item, table in sorted(GOLD_SLOT_CHARGES.items()):
+        if _slots_are_not_comparable(item):
+            continue          # see _slots_are_not_comparable
         h = _jobs()[item]["handout"]
         try:
             g = H.apply_corrected_gold(
@@ -2042,12 +2390,33 @@ def gold_slot_disagreements() -> list[str]:
             segs = [s for s in re.split(r"(?=-\s*\d)", fb) if re.match(r"-\s*\d", s)]
             if not segs:
                 continue
+            # SAME GUARD AS gold_charged_slots: a comment that does not reconcile
+            # with the score in force is not describing it, so neither its slot
+            # set nor its amounts can be checked. Without this, Q4a/p17 reported
+            # its keyword charge as a MAPPING error -- the mapping is right, the
+            # comment simply predates CORRECTED_GOLD[("Q4a", 17)] taking that
+            # point back.
+            top_score = max(((g.get(q) or {}).get(item) or {}).get("score") or 0
+                            for q in g)
+            if (row.get("score") is None
+                    or abs((top_score - sum(deductions_named(fb)))
+                           - row["score"]) > 1e-9):
+                continue
+
             charged: set = set()
             unmapped = []
             for seg in segs:
                 amt = deductions_named(seg)
-                hit = next((slots for pat, slots in table
-                            if re.search(pat, seg, re.I)), None)
+                hits = _table_hits(table, seg, amt)
+                if len(set(hits)) > 1:
+                    # Named several slots under one charge. Which ones the grader
+                    # actually deducted for is not recoverable from the comment,
+                    # and guessing would put a wrong slot set into the comparison.
+                    unmapped.append(
+                        f"AMBIGUOUS between {sorted({s for h in hits for s in h})}"
+                        f": {seg.strip()[:44]}")
+                    continue
+                hit = hits[0] if hits else None
                 if hit is None:
                     unmapped.append(seg.strip()[:60])
                     continue
@@ -2087,6 +2456,37 @@ def gold_slot_disagreements() -> list[str]:
                 f"{sorted(charged ^ stable)}. The TOTAL can still agree, which "
                 f"is how this stayed invisible. Declare it in "
                 f"GOLD_SLOT_DISAGREEMENTS_KNOWN with what is wrong, or fix it")
+
+    # BOUNDED ACCOUNTING for the cells the exact comparison cannot read. Skipping
+    # them was not accounting: 6 of the 24 skipped cells disagree with us on the
+    # TOTAL and the check said nothing about any of them. Two statements survive
+    # ambiguity -- see gold_charge_bounds.
+    for item in sorted(_jobs()):
+        if _slots_are_not_comparable(item):
+            continue
+        for pid in range(1, 21):
+            if gold_charged_slots(item, pid) is not None:
+                continue          # the exact comparison already covered it
+            b = gold_charge_bounds(item, pid)
+            if b is None or (item, pid) in GOLD_SLOT_BOUNDS_KNOWN:
+                continue
+            definite, count = b
+            got = _our_failing_slots(item, pid)
+            if not got:
+                continue
+            stable = set.intersection(*[set(f) for f in got])
+            missed = sorted(definite - stable)
+            if missed:
+                out.append(
+                    f"{item}/p{pid}: gold definitely charges {missed}, which we "
+                    f"credit -- true on every reading of the ambiguous part of "
+                    f"its comment. Declare it in GOLD_SLOT_BOUNDS_KNOWN or fix it")
+            elif len(stable) != count:
+                out.append(
+                    f"{item}/p{pid}: gold charges {count} slot(s) and we fail "
+                    f"{len(stable)} ({sorted(stable)}). WHICH slots gold meant is "
+                    f"ambiguous; the COUNT is not, so the two disagree on every "
+                    f"reading. Declare it in GOLD_SLOT_BOUNDS_KNOWN or fix it")
 
     # A declaration that outlived its cell, and the ratchet.
     live = {k for k in GOLD_SLOT_DISAGREEMENTS_KNOWN if k[0] in GOLD_SLOT_CHARGES}
