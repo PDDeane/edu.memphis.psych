@@ -2199,13 +2199,10 @@ def _cell_scores(item: str, pid: int, side: str = DEFAULT_SIDE) -> list:
     """Every recorded score for one cell, from the side's own artifact."""
     import cross_path as _X
 
-    path = _runs_path(item, side)
-    if not path:
+    doc = _runs_doc(item, side)
+    if doc is None:
         return []
-    try:
-        runs = json.loads(Path(path).read_text())["runs"]
-    except Exception:
-        return []
+    runs = doc.get("runs") or []
     out = []
     for run in runs:
         for r in (run.get("results") or []):
@@ -2230,8 +2227,7 @@ def gold_charged_code(item: str, pid: int):
         return None
     h = _jobs()[item]["handout"]
     try:
-        g = H.apply_corrected_gold(
-            {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[h](), h)
+        g = _corrected_gold(h)
         rub = H.config(h)["rubric"].BY_ID[item]
     except Exception:
         return None
@@ -2291,8 +2287,7 @@ def gold_charge_bounds(item: str, pid: int):
         return None
     h = _jobs()[item]["handout"]
     try:
-        g = H.apply_corrected_gold(
-            {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[h](), h)
+        g = _corrected_gold(h)
         spec, defs = O._slots_attr(h, O.ACTION[item])
         pts = {s["key"]: s["pts"] for s in O.parse_slots(spec, defs)
                if s.get("pts")}
@@ -2380,8 +2375,7 @@ def gold_charged_slots(item: str, pid: int):
         return None
     h = _jobs()[item]["handout"]
     try:
-        g = H.apply_corrected_gold(
-            {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[h](), h)
+        g = _corrected_gold(h)
     except Exception:
         return None
     row = (g.get(pid) or {}).get(item) or {}
@@ -2423,6 +2417,52 @@ def gold_charged_slots(item: str, pid: int):
     return charged
 
 
+@functools.lru_cache(maxsize=None)
+def _corrected_gold(handout: int, rebuild_1c: bool = False):
+    """Corrected gold for one handout, loaded ONCE.
+
+    gold_charged_slots, gold_charge_bounds and gold_charged_code each called
+    apply_corrected_gold on every invocation, so a corpus-wide pass re-loaded and
+    re-corrected the whole gold set once per CELL. That, not the artifact
+    parsing, was the 42 seconds: memoising the artifacts first changed nothing,
+    which is how the real cause was found rather than assumed.
+    """
+    import gold as _gold
+    import handouts as H
+
+    g = H.apply_corrected_gold(
+        {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[handout](), handout)
+    if rebuild_1c:
+        import agreement_app as _APP
+        g, _ = _APP.rebuild_gold_1c({p_: dict(v) for p_, v in g.items()})
+    return g
+
+
+@functools.lru_cache(maxsize=None)
+def _runs_doc(item: str, side: str):
+    """The parsed runs artifact for one (item, side), read ONCE.
+
+    _our_failing_slots and _cell_scores took a cell at a time and re-parsed the
+    whole file for each, so a corpus-wide pass parsed the same multi-megabyte
+    JSON twenty times per item -- 520 parses over the corpus.
+    check_slot_sets_match_gold cost 42 seconds of an 80-second audit because of
+    it, and the SELF-TEST runs that audit fifty-one times, which took the suite
+    from fifteen minutes to over thirty-five.
+
+    Cached on (item, side) rather than on the path, so a re-record during one
+    process is not picked up -- that is correct here, because every caller is a
+    read-only audit and an artifact does not change under a running audit. The
+    self-test's source fingerprint is what catches a tree that moved.
+    """
+    path = _runs_path(item, side)
+    if not path:
+        return None
+    try:
+        return json.loads(Path(path).read_text())
+    except Exception:
+        return None
+
+
 def _our_failing_slots(item: str, pid: int, side: str = DEFAULT_SIDE):
     """Which SCORED slots our recorded runs failed, per run, for one cell.
 
@@ -2435,13 +2475,13 @@ def _our_failing_slots(item: str, pid: int, side: str = DEFAULT_SIDE):
     import agreement as A
     import olx_prompts as O
 
-    path = _runs_path(item, side)
-    if not path:
+    doc = _runs_doc(item, side)
+    if doc is None:
         return []
     try:
         spec = A.load_action(f"bmod_handout{_jobs()[item]['handout']}.olx",
                             O.ACTION[item])
-        runs = json.loads(Path(path).read_text())["runs"]
+        runs = doc["runs"]
     except Exception:
         return []
     scored = {s["key"] for s in spec["slots"] if s.get("pts") is not None}
