@@ -1244,14 +1244,38 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       correction landed, and it happened to be true, confirmed by running the
       check rather than by anything enforcing it. And a NEW raw reader is
       invisible, because the loop is hard-coded rather than driven by the table.
-      THE FIX IS TO DRIVE THE LOOP FROM THE TABLE: ask every module that loads
-      gold whether it reaches the canonical accounting, and treat an entry here as
-      the exemption it claims to be -- which also makes a stale entry visible,
-      since an exempt module that now uses the canonical calls no longer needs
-      exempting. `baseline_h1.py` exists and its declared reason is that it is
-      "unreferenced by any script or module": check that too, because an
-      unreferenced file that is also unchecked is two claims and neither is
-      tested.
+      FIXED 2026-08-31, and it found a stale declaration in the first run.
+      check_gold_accounting_is_uniform now has two halves. It VERIFIES each entry:
+      a bare module must exist and must actually load gold, or the exemption
+      protects nothing; a `module.function` entry must EXIST, must read gold
+      directly, and must NOT call apply_corrected_gold -- because an exempt reader
+      that has adopted the canonical accounting no longer needs excusing, and that
+      is the staleness this table exists to be able to lose. And it DISCOVERS the
+      consumers by scanning rather than listing.
+      THE STALE ENTRY: the table named
+      `enforcement.check_corrections_still_match_the_sheet`, which has never
+      existed. The function is `check_corrected_gold_matches_the_sheet`. Its
+      exemption is legitimate -- it does read gold raw -- but the NAME had been
+      wrong for as long as nothing read the table, which is precisely the failure
+      an inert declaration hides: an exemption naming nothing exempts nothing and
+      reads as coverage. Corrected.
+      THE HARD-CODED LIST MISSED FOUR MODULES. It walked cross_path, measured and
+      compare_runs; scanning finds seven that load gold -- those three plus
+      enforcement, handouts, baseline_h1 and gold itself. So a NEW module comparing
+      gold raw was invisible to this check by construction.
+      `gold.py` IS EXCLUDED STRUCTURALLY, not declared: it DEFINES load_h1/2/3, so
+      requiring it to apply its own corrections would be circular. That is a fact
+      about the module, not a judgement, so it does not belong in the table --
+      detected by looking for `def load_h*` rather than by name.
+      `baseline_h1` STAYS EXEMPT and is now verified: the file exists and does
+      load gold, so the exemption protects something real. Its second claim --
+      that it is "unreferenced by any script or module" -- is still untested here;
+      that is a different check and worth one.
+      VERIFIED BEHAVIOURALLY, per E32's method: emptying the table now produces 3
+      findings and a bogus entry 1, against 0 for the table as declared. So it is
+      READ, and its PROBE_IMPOSSIBLE entry was RETIRED rather than softened -- the
+      probe reports 23 READ and 1 BY DESIGN, the remaining one being
+      PER_ITEM_EXCLUDE under E33.
 
 - [ ] E32. **A registered verifier can enforce nothing about its table. Test it behaviourally.**
       Generalised 2026-08-31 from E31. check_every_declaration_table_has_a_verifier
