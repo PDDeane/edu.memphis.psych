@@ -1187,6 +1187,107 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       disagreeing per slot is a finding to read, not a number to adjust. Q6/p5's
       own two disagreements cannot be fixed independently: correcting state_c1
       alone moves the total off gold, which is why it wants a person.
+      BUILT 2026-08-31. measured.gold_slot_disagreements, wired into the audit as
+      SLOT SET DISAGREES WITH GOLD and into preflight at step 2b, beside the other
+      gold work rather than after the model steps. Three tables registered in
+      DECLARATION_TABLES: GOLD_SLOT_CHARGES (phrase -> slot set, per item),
+      GOLD_SLOT_DISAGREEMENTS_KNOWN (budget 8, may only fall) and
+      GOLD_SLOT_UNMAPPABLE (charges no slot set can account for, with reasons).
+      THE PREREQUISITE IS DONE: _DEDUCT_RE now parses `-1.25 <text>` as well as
+      `-1.25 pts`. Verified across all 183 commented rows -- 180 parse identically,
+      the 3 newly-read rows all RECONCILE, and no row gained a deduction it did
+      not name. Those three were invisible to gold_rows_that_do_not_reconcile too.
+      A `deductions_named` accessor was added because the regex now returns pairs
+      and its one caller would otherwise have become a TypeError.
+      WHAT IT FOUND, and it is the reason the check was worth building: EIGHT of
+      Q6's TWELVE mappable cells fail different slots from the ones gold charged,
+      while the totals agree. Q6 records cli 17/20 and web 18/20, and most of that
+      agreement is compensating error at the slot level. `affect_c2` and
+      `state_a2` recur across the eight -- the `refers_to` channel again, seen
+      from the GRADER's side for the first time rather than by comparing the two
+      scorers to each other.
+      THE AMOUNT CHECK EARNED ITS PLACE IMMEDIATELY. A phrase maps to a SET of
+      slots and the charged amount validates the count, and that caught THREE
+      wrong mappings in the first version of the table -- "missing both
+      consequences" charged 2.5 where four slots would be 5, and two "second
+      consequence" phrasings charged 2.5 where one slot would be 1.25. Without it
+      the table would have been unfalsifiable prose that silently mis-attributed
+      charges and blamed the scorer.
+      TWO REGISTRY DEFECTS FELL OUT: check_every_declaration_table_has_a_verifier
+      could not resolve a table in `measured` at all -- its module map knew only
+      handouts, olx_prompts and enforcement -- so registering the new table was
+      reported as "a table nobody has", indistinguishable from the failure that
+      check exists to catch. And the new check was registered before it was
+      invoked, which CHECK NEVER RUNS caught in the same pass. Both fixed.
+      COVERAGE IS ONE ITEM. Q6 has a phrase table; the other twenty-five do not,
+      and the check says so in its own output rather than reading as thorough.
+      Extending it is per-item prose work, and the eight known disagreements
+      should be read before more are collected -- eight cells on one item is
+      already more than the budget was expected to hold.
+
+- [ ] E31. **RAW_GOLD_READERS is inert: nothing reads it, and it is registered as checked.**
+      Found 2026-08-31 by asking whether entries in it are checked in enforcement.
+      They are not. It is registered in DECLARATION_TABLES against
+      check_gold_accounting_is_uniform, and that function mentions the table only
+      inside its own error MESSAGE: it walks a hard-coded list -- cross_path,
+      measured, compare_runs -- and greps each for apply_corrected_gold,
+      rebuild_gold_1c and scored_exactly.
+      PROVED BEHAVIOURALLY, not by reading: emptying the table, and adding an
+      entry naming a module that does not exist, both leave the verifier's output
+      identical at 0 findings. The table is not consulted at all.
+          enforcement.check_corrections_still_match_the_sheet
+          measured.gold_rows_that_do_not_reconcile
+          baseline_h1
+      TWO CONSEQUENCES. A declared reader is never verified -- nothing checks that
+      gold_rows_that_do_not_reconcile still reads RAW gold, or that its reason
+      still holds; that declaration was RELIED ON on 2026-08-31 when the Q6/p4
+      correction landed, and it happened to be true, confirmed by running the
+      check rather than by anything enforcing it. And a NEW raw reader is
+      invisible, because the loop is hard-coded rather than driven by the table.
+      THE FIX IS TO DRIVE THE LOOP FROM THE TABLE: ask every module that loads
+      gold whether it reaches the canonical accounting, and treat an entry here as
+      the exemption it claims to be -- which also makes a stale entry visible,
+      since an exempt module that now uses the canonical calls no longer needs
+      exempting. `baseline_h1.py` exists and its declared reason is that it is
+      "unreferenced by any script or module": check that too, because an
+      unreferenced file that is also unchecked is two claims and neither is
+      tested.
+
+- [ ] E32. **A registered verifier can enforce nothing about its table. Test it behaviourally.**
+      Generalised 2026-08-31 from E31. check_every_declaration_table_has_a_verifier
+      confirms that a NAMED verifier exists and that the table exists. It cannot
+      see whether the verifier actually reads the table, so a declaration can be
+      registered, pass the registry check, and still be inert -- which is the
+      "reads as coverage and enforces nothing" failure the registry was built to
+      prevent, one level up. RAW_GOLD_READERS is the proven instance.
+      GREPPING DOES NOT WORK, tried and rejected: matching the table's name in the
+      verifier's source gives false NEGATIVES where the name appears only in an
+      error string -- exactly how RAW_GOLD_READERS looked checked -- and false
+      POSITIVES where the verifier legitimately delegates to another module that
+      does read it. On this tree the grep flagged 5 of 22 tables and every one was
+      a delegation: GOLD_CEILINGS and GOLD_DIVERGENCES through
+      measured.declaration_conflicts, the two GOLD_SLOT_* tables through
+      measured.gold_slot_disagreements, SLOT_STRUCTURE_FAMILIES likewise. The one
+      table that IS inert was not among them.
+      THE METHOD, which is the deliverable as much as the check: for each
+      registered table, snapshot it, run its verifiers, then run them again with
+      the table EMPTIED and again with a BOGUS entry added, restoring in between.
+      If all three outputs are identical the verifier does not read it. That
+      catches delegation correctly, because delegation still changes the output.
+      THREE THINGS IT HAS TO HANDLE, or it will be abandoned as noisy:
+        emptying a table can produce findings OF ITS OWN -- a budget constant that
+          no longer matches, a ratchet that reads as "down to 0" -- so compare the
+          output STRUCTURALLY against the unmodified run rather than by count;
+        a bogus entry must be shaped like a real key, which differs per table
+          (tuples for cell tables, strings for module tables), so the generator
+          needs a per-table example or it will crash rather than report;
+        some verifiers are expensive, and running each three times over 22 tables
+          is not something to put in the default audit run. This belongs beside
+          the self-test, on demand, not in the pre-commit path.
+      IT IS NOT A REFACTOR. The output is a list of registered declarations that
+      enforce nothing, and every one of those is a claim the project believes is
+      checked. That is the same class as a SKIPped self-test case, and the same
+      class as the plain-path branch that quietly stopped testing anything.
 
 - [ ] E25. **The `keyword` check is 100% accurate and cannot move a score. Convert it to `derived`.**
       AN AUDIT SUBGOAL, NOT A QC ONE, and it was filed wrong once: its FINDING is

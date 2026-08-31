@@ -4580,6 +4580,15 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "handouts.GOLD_CEILINGS": (
         "why an item cannot reach 100%",
         ("check_declarations_still_have_evidence",)),
+    "measured.GOLD_SLOT_CHARGES": (
+        "which slots each grader phrasing charges",
+        ("check_slot_sets_match_gold",)),
+    "measured.GOLD_SLOT_DISAGREEMENTS_KNOWN": (
+        "cells failing different slots from the ones gold charged",
+        ("check_slot_sets_match_gold",)),
+    "measured.GOLD_SLOT_UNMAPPABLE": (
+        "grader deductions no slot set can account for",
+        ("check_slot_sets_match_gold",)),
     "enforcement.VERDICT_SPACE_DIVERGENCES": (
         "shapes in which the two scorers' verdict spaces differ",
         ("check_verdict_spaces_are_declared",)),
@@ -4744,9 +4753,14 @@ def check_every_declaration_table_has_a_verifier() -> list[str]:
     or deleted is the same hole with a comment over it.
     """
     import handouts as _H
+    import measured as _MEAS
     import olx_prompts as _OP
 
-    mods = {"handouts": _H, "olx_prompts": _OP,
+    # `measured` was absent, so a declaration table living there could not be
+    # resolved and the registry reported it as a table nobody has -- which is
+    # indistinguishable from the failure this check exists to catch. Found by
+    # registering GOLD_SLOT_CHARGES and being told it did not exist.
+    mods = {"handouts": _H, "olx_prompts": _OP, "measured": _MEAS,
             "enforcement": sys.modules[__name__]}
     problems = []
     for path, (what, verifiers) in sorted(DECLARATION_TABLES.items()):
@@ -4878,6 +4892,20 @@ def check_divergence_arithmetic_is_still_true() -> list[str]:
                     f"{rubric_max:g}. The divergence was FIXED and the declaration "
                     f"outlived it; retire the entry")
     return problems
+
+
+def check_slot_sets_match_gold() -> list[str]:
+    """Do we fail the slots gold charged, or just the right NUMBER of them?
+
+    E30. Every rate compares totals, so a cell failing the wrong slots in the
+    right quantity agrees with gold everywhere it is looked at. Q6/p5 is the
+    demonstration and 8 of Q6's 12 mappable cells do it.
+
+    Thresholds and the phrase table live in measured.GOLD_SLOT_CHARGES, next to
+    the gold reading they interpret.
+    """
+    import measured as MEAS
+    return MEAS.gold_slot_disagreements()
 
 
 def check_declarations_still_have_evidence() -> list[str]:
