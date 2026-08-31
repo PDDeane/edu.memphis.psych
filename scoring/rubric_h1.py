@@ -1482,7 +1482,7 @@ ITEMS: list[dict] = [
                         "the antecedent",
                 "codes": {"absent": "C_NO_EFFECT", "not_described": "C_NO_EFFECT"},
                 "rule": (
-                    "What becomes of the consequence is the whole question, and a student who says it STOPS has answered it. Credit a box that says the consequence will not happen any more, will happen less, or has been replaced by the improved state — the causal link does NOT have to be spelled out, because the question already frames everything here as a result of changing the antecedent, and demanding the link costs credit the graders gave. Be as generous about phrasing as everywhere else on this item. `{fail}` is for a box that says nothing about what becomes of the consequence at all — a benefit that never refers back to it — or one that only restates the arrangement the student has just described instead of its effect."' The two effect boxes must be about DIFFERENT consequences. Where both describe the same effect on the same consequence, the student has addressed one consequence twice and only the FIRST of the two can count; the second is `{fail}`. Judge the CONSEQUENCE, not the wording — where 4c lists two consequences of a similar kind, two similar-sounding effects can both be genuine, and a box is only a repeat when it is the same consequence again.'
+                    "What becomes of the consequence is the whole question, and a student who says it STOPS has answered it. Credit a box that says the consequence will not happen any more, will happen less, or has been replaced by the improved state — the causal link does NOT have to be spelled out, because the question already frames everything here as a result of changing the antecedent, and demanding the link costs credit the graders gave. Be as generous about phrasing as everywhere else on this item. `{fail}` is for a box that says nothing about what becomes of the consequence at all — a benefit that never refers back to it — or one that only restates the arrangement the student has just described instead of its effect."
                     "One arrangement in particular keeps reading as an effect and "
                     "is not one: a box that says WHEN the student may do something "
                     "— kept off it `until`, allowed it `only after`, permitted `as "
@@ -1505,7 +1505,7 @@ ITEMS: list[dict] = [
                         "the antecedent",
                 "codes": {"absent": "C_NO_EFFECT", "not_described": "C_NO_EFFECT"},
                 "rule": (
-                    "The same test as `affect_c1` above, applied to this box on its own: credit it when it says the second consequence stops, lessens, or is replaced by the improved state, without requiring the causal link to be spelled out; `{fail}` when it says nothing about what becomes of that consequence, or only restates the arrangement."' The two effect boxes must be about DIFFERENT consequences. Where both describe the same effect on the same consequence, the student has addressed one consequence twice and only the FIRST of the two can count; the second is `{fail}`. Judge the CONSEQUENCE, not the wording — where 4c lists two consequences of a similar kind, two similar-sounding effects can both be genuine, and a box is only a repeat when it is the same consequence again.'
+                    "The same test as `affect_c1` above, applied to this box on its own: credit it when it says the second consequence stops, lessens, or is replaced by the improved state, without requiring the causal link to be spelled out; `{fail}` when it says nothing about what becomes of that consequence, or only restates the arrangement."
                     "One arrangement in particular keeps reading as an effect and "
                     "is not one: a box that says WHEN the student may do something "
                     "— kept off it `until`, allowed it `only after`, permitted `as "
@@ -1515,6 +1515,48 @@ ITEMS: list[dict] = [
                     "box says."
                 ),
             },
+            {
+                # E15. REPORTED, never scored: it carries no points of its own and
+                # exists so `requires` can deny the c2 pair. That is what the
+                # primitive was written for -- slotSheet.ts names Q6 by name:
+                # "the sheet asked each box whether its consequence was named and
+                # whether an effect was described -- but never which antecedent's
+                # change PRODUCES that effect", so a response addressing one
+                # consequence in a run-on sentence banked both pairs from one
+                # clause.
+                #
+                # The text below was AFFECT_C2'S PROSE until 2026-08-30, and
+                # affect_c1's. It is moved rather than copied: asking the question
+                # here and enforcing it through `requires` is one mechanism, where
+                # prose on both effect slots was a request the sheet could not act
+                # on. Leaving both would also confound the measurement -- and if
+                # they ever disagreed, the prose would silently win.
+                "what": "link_c2",
+                "reported": True,
+                "verdicts": ["met", "absent", "unclear"],
+                "desc": "Whether the second consequence pair is about a DIFFERENT "
+                        "consequence from the first",
+                "rule": (
+                    "The two effect boxes must be about DIFFERENT consequences. "
+                    "`met` when the second pair addresses a consequence the first "
+                    "did not. `absent` when both describe the same effect on the "
+                    "same consequence -- the student has addressed one consequence "
+                    "twice, and the graders charged the whole second half. "
+                    "`unclear` when you cannot tell, which denies nothing: a "
+                    "condition answered `unclear` is you declining to say, and "
+                    "reading that as a denial charges the student for your "
+                    "hesitation. Judge the CONSEQUENCE, not the wording -- where "
+                    "4c lists two consequences of a similar kind, two "
+                    "similar-sounding effects can both be genuine, and a box is "
+                    "only a repeat when it is the same consequence again."
+                ),
+            },
+        ],
+        # E15. The mirror of `onlyif`: state_c2 and affect_c2 are CREDITED only
+        # while link_c2 holds. `unclear` is lenient by design -- see the rule.
+        "requires": [
+            {"key": "state_c2", "cond": "link_c2", "lenient": ["unclear"]},
+            {"key": "affect_c2", "cond": "link_c2", "lenient": ["unclear"]},
         ],
         # The four dictionary wordings, verbatim. A_NOT_STATED and C_NOT_STATED
         # have no canonical text there — the dictionary prices "stating each

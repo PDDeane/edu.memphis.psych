@@ -690,7 +690,27 @@ def declaration_conflicts() -> list[str]:
     """
     import handouts as H
 
-    led = records()
+    # EVERY recorded side, not just the CLI. This read `records()` -- which
+    # defaults to `cli` -- so a declaration the WEB had already refuted was
+    # invisible. Q6/p5 is the case that exposed it: after E15 the web scored it
+    # right in 6 of 6 runs while the cli missed one, so the check reported ZERO
+    # conflicts and DUPLICATE_EFFECT_TIE_BREAK stood unchallenged on the strength
+    # of the side that happened to be the default.
+    #
+    # Retirement still requires EVERY measured side to agree, because a
+    # divergence one path still hits is a true statement about that path. What
+    # changes is that a SPLIT is now reported instead of silently resolved in the
+    # default side's favour: a declaration true on one path and false on another
+    # is a finding about the paths, and it was previously unsayable.
+    per_side = {}
+    for _s in SIDES:
+        try:
+            _r = records(_s)
+        except Exception:
+            continue
+        if _r:
+            per_side[_s] = _r
+    led = per_side.get(DEFAULT_SIDE) or {}
     out: list[str] = []
 
     def verdict(what: str, right: int, runs: int, action: str) -> str:
@@ -702,36 +722,81 @@ def declaration_conflicts() -> list[str]:
                 f"{runs} runs cannot settle a per-cell claim (see Q2/p17). Probe "
                 f"it at six passes with controls; if it holds, {lead}")
 
-    for entry in getattr(H, "GOLD_DIVERGENCES", []) or []:
-        for item, pid in entry.get("cells", []):
-            rec = led.get(item)
+    def _sides(item: str, read):
+        """(right, runs) per side for one declaration, from every side with data.
+
+        `read` pulls the pair out of one side's record, so the three declaration
+        kinds below share the side handling instead of each growing its own.
+        """
+        got = {}
+        for s, recs in per_side.items():
+            rec = recs.get(item)
             if not rec or rec.get("pending"):
                 continue
-            right = (rec.get("cells") or {}).get(str(pid))
-            runs = rec.get("runs") or 0
-            if right is None or runs == 0 or right < runs:
+            pair = read(rec)
+            if pair is None:
                 continue
-            out.append(verdict(
+            right, runs = pair
+            if right is None or not runs:
+                continue
+            got[s] = (right, runs)
+        return got
+
+    def split_verdict(what: str, action: str, got: dict) -> str | None:
+        """One message for a declaration measured on more than one side."""
+        against = {s: v for s, v in got.items() if v[0] >= v[1]}
+        if not against:
+            return None
+        holds = {s: v for s, v in got.items() if v[0] < v[1]}
+        if not holds:
+            worst = min(against.values(), key=lambda v: v[1])
+            where = ", ".join(f"{s} {v[0]}/{v[1]}" for s, v in sorted(against.items()))
+            return verdict(f"{what} on EVERY measured side ({where})",
+                           worst[0], worst[1], action)
+        # Split. Not a retirement: the declaration is still true where it holds.
+        a = ", ".join(f"{s} {v[0]}/{v[1]}" for s, v in sorted(against.items()))
+        h = ", ".join(f"{s} {v[0]}/{v[1]}" for s, v in sorted(holds.items()))
+        return (f"{what} on {a}, but still holds on {h}. A declaration true on "
+                f"one path and false on another is a finding about the PATHS: "
+                f"scope the entry to the side it describes, or bring the lagging "
+                f"side up and then {action[:1].lower() + action[1:]}")
+
+    for entry in getattr(H, "GOLD_DIVERGENCES", []) or []:
+        for item, pid in entry.get("cells", []):
+            got = _sides(item, lambda rec, _p=str(pid): (
+                (rec.get("cells") or {}).get(_p), rec.get("runs") or 0))
+            msg = split_verdict(
                 f"GOLD_DIVERGENCES {entry['code']} says we knowingly miss "
-                f"{item}/p{pid}, but the recorded measurement scores it RIGHT "
-                f"every run — the divergence",
-                right, runs, f"Retire the {item}/p{pid} cell from that entry"))
+                f"{item}/p{pid}, but it scores RIGHT every run",
+                f"Retire the {item}/p{pid} cell from that entry", got)
+            if msg:
+                out.append(msg)
 
     for (h, item), _why in (getattr(H, "GOLD_CEILINGS", {}) or {}).items():
-        rec = led.get(item)
-        if not rec or rec.get("pending"):
-            continue
-        num, den, runs = (rec.get("numerator"), rec.get("denominator"),
-                          rec.get("runs") or 0)
-        if not den or num != den or runs == 0:
-            continue
-        out.append(verdict(
+        def _perfect(rec):
+            num, den = rec.get("numerator"), rec.get("denominator")
+            runs = rec.get("runs") or 0
+            if not den or num is None:
+                return None
+            # A ceiling is contradicted only by a PERFECT rate, so the pair fed
+            # to the split logic is (runs, runs) when perfect and (0, runs) when
+            # not -- the same "right >= runs" test the other two kinds use.
+            return ((runs if num == den else 0), runs)
+        got = _sides(item, _perfect)
+        msg = split_verdict(
             f"GOLD_CEILINGS ({h!r}, {item!r}) says this item cannot be perfect, "
-            f"but it recorded {num}/{den} — the ceiling",
-            runs, runs, f"Retire the ({h!r}, {item!r}) ceiling"))
+            f"but it recorded a perfect rate",
+            f"Retire the ({h!r}, {item!r}) ceiling", got)
+        if msg:
+            out.append(msg)
 
-    for item, rec in sorted(led.items()):
-        if rec.get("pending"):
+    # Union across sides, not the cli ledger's keys: an item measured on the web
+    # only would have had its exclusions unchecked entirely.
+    all_items = sorted({i for recs in per_side.values() for i in recs})
+    for item in all_items:
+        rec = led.get(item) or next(
+            (recs[item] for recs in per_side.values() if item in recs), None)
+        if not rec or rec.get("pending"):
             continue
         runs = rec.get("runs") or 0
         job = _jobs().get(item)
@@ -745,10 +810,10 @@ def declaration_conflicts() -> list[str]:
             # catch it.
             continue
         kinds = H.cell_exclusions(job["handout"], item)
-        for pid_s, right in sorted((rec.get("excluded_cells") or {}).items(),
-                                   key=lambda kv: int(kv[0])):
-            if runs == 0 or right < runs:
-                continue
+        excl = sorted({k for recs in per_side.values()
+                       for k in ((recs.get(item) or {}).get("excluded_cells") or {})},
+                      key=int)
+        for pid_s in excl:
             kind = (kinds.get(int(pid_s)) or ("", ""))[0]
             # Not every exclusion is a hypothesis about the model, and only the
             # ones that are can be retired by measuring it.
@@ -767,11 +832,14 @@ def declaration_conflicts() -> list[str]:
             # anyway refutes both.
             if kind == "suspect":
                 continue
-            out.append(verdict(
+            got = _sides(item, lambda rec, _p=pid_s: (
+                (rec.get("excluded_cells") or {}).get(_p), rec.get("runs") or 0))
+            msg = split_verdict(
                 f"{item}/p{pid_s} is EXCLUDED as {kind or 'excluded'}, yet scores "
-                f"right every recorded run — the exclusion",
-                right, runs,
-                f"Remove {item}/p{pid_s} from its exclusion and let it count"))
+                f"right every recorded run",
+                f"Remove {item}/p{pid_s} from its exclusion and let it count", got)
+            if msg:
+                out.append(msg)
     return out
 
 

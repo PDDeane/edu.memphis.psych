@@ -607,6 +607,16 @@ def _credit_fail(item: dict, base: dict, key: str, avoid: str = "") -> dict:
     # non-label value, so the two harnesses disagreed about what "failed" meant
     # and every pair containing a cover member came back sublinear on one side.
     labels = {l for g in item.get("cover", []) if key in g["keys"] for l in g["labels"]}
+    # A LENIENT verdict on a `requires` condition is not a failure either, and for
+    # the same reason the labels are excluded: it establishes nothing and so
+    # denies nothing. Q6's link_c2 is the case. Failing it alone picked `absent`
+    # and cost 2.5 -- both dependents demoted -- but in a PAIR, `avoid` pushed the
+    # choice to `unclear`, which costs nothing, so every pair containing link_c2
+    # came back sublinear and the audit reported six charge-once divergences
+    # against a rule that has none. The probe has to fail the slot, not re-answer
+    # it in a way the primitive is written to forgive.
+    labels |= {v for r in item.get("requires", []) or ()
+               if r.get("cond") == key for v in (r.get("lenient") or ())}
     if vocab:
         now = raw["slots"][key]["verdict"]
         cands = [v for v in vocab if v not in labels] or list(vocab)
@@ -1312,6 +1322,19 @@ PROSE_ONLY_SLOTS = {
         "against -- not a list, not a sibling verdict, not a count. It is also "
         "`reported`, never scored, so no arithmetic depends on it; what it feeds "
         "is the feedback sentence.",
+    # ARRIVED 2026-08-30 with E15, and it is the SLOT the `requires` rule needs:
+    # link_c2 is what the sheet asks so `requires` has something to act on.
+    ("Q6", "link_c2"):
+        "NOT CONVERTIBLE, and it is the OPERAND rather than the rule -- the same "
+        "shape as Q4b's b1_basis. `requires` turns this answer into a denial of "
+        "state_c2 and affect_c2 arithmetically, so the COMBINING is declared and "
+        "only the reading is judged. What is judged is whether two effect boxes "
+        "are about the same consequence: a semantic relation between two "
+        "free-text spans, with no operands to compare. `cover` cannot stand in "
+        "for it -- it says which 4c entry each STATE box names and cannot speak "
+        "for the effect boxes. Until 2026-08-30 this test lived as prose on "
+        "affect_c1 and affect_c2, reaching every scorer as a request none could "
+        "act on.",
     ("1c", "legend"):
         "NOT CONVERTIBLE. The test is whether a set of series names covers the "
         "four plotted periods 'in any reasonable wording', so the matching is "
@@ -1321,7 +1344,7 @@ PROSE_ONLY_SLOTS = {
         "rule needs exactly that, since naming three of four is the `{fail}` case "
         "while naming none is `absent`.",
 }
-PROSE_ONLY_BUDGET = 17
+PROSE_ONLY_BUDGET = 18
 
 
 # WHICH PRIMITIVE SET each "NOT CONVERTIBLE" claim was judged against.
@@ -1365,6 +1388,8 @@ PROSE_ONLY_JUDGED_AGAINST: dict[tuple[str, str], str] = {
     ("Q5", "example_2"): _PRIMS_2026_08_29,
     ("Q5", "reasons_substantial"): _PRIMS_2026_08_29,
     ("1c", "legend"): _PRIMS_2026_08_29,
+    # `requires` is not a new primitive, only a newly USED one, so the same set.
+    ("Q6", "link_c2"): _PRIMS_2026_08_29,
 }
 
 
@@ -1794,13 +1819,15 @@ def check_prior_record_reaches_every_item() -> list[str]:
 # The budget ratchets like the others. It must fall as the two-sided sweep
 # reaches each primitive's items; an entry that outlives the sweep is a real
 # defect, not a pending measurement, and must become a subgoal.
-UNEXERCISED_PRIMITIVES = {
-    "requires": "AUDIT SUBGOAL 15. Implemented on both engines, declared in "
-                "primitives.json, and bound to NO item -- `requires=` has never "
-                "appeared in a handout in any commit. Q6 is the documented "
-                "intended user. Bind it to an item or retire it",
-}
-UNEXERCISED_PRIMITIVES_BUDGET = 1
+# EMPTY as of 2026-08-31. `requires` was the last entry: E15 bound it to Q6 --
+# a new `link_c2` slot plus
+# `requires="state_c2:link_c2:unclear|affect_c2:link_c2:unclear"` -- and it is
+# EXERCISED LIVE, not merely wired. Q6 web 18/20 and cli 17/20 against a 16/20
+# baseline on both sides, 6 runs each, era-checked, 0 cells never agreeing;
+# out/q6_e15_cli and out/q6_e15_web. Every primitive in the registry now has an
+# item that justifies it.
+UNEXERCISED_PRIMITIVES: dict[str, str] = {}
+UNEXERCISED_PRIMITIVES_BUDGET = 0
 
 
 def _primitives_with_live_app_evidence() -> dict:
@@ -1841,7 +1868,25 @@ def _primitives_with_live_app_evidence() -> dict:
             for a in attrs:
                 if a + "=" in m.group(0):
                     users[a].add(item)
-    return {a: sorted(i for i in its if "web" in (led.get(i) or {}))
+    # The web record must be CURRENT, not merely present. An item can carry an
+    # attribute the measurement never ran: Q6 gained `requires` on 2026-08-30 and
+    # its web number dated from before the attribute existed, so this reported
+    # `requires` as live-exercised on a run that could not have exercised it --
+    # the exact fiction the rule was written against, arriving through the check
+    # meant to enforce it. Staleness is decided the way the ledger decides it, by
+    # comparing the recorded prompt fingerprint against the prompt on disk.
+    def _current(item: str) -> bool:
+        rec = (led.get(item) or {}).get("web")
+        if not rec:
+            return False
+        try:
+            import measured as _M
+            was = rec.get("prompt_sha")
+            return bool(was) and was == _M.prompt_sha(item)
+        except Exception:
+            return False        # cannot prove it is current, so do not claim it
+
+    return {a: sorted(i for i in its if _current(i))
             for a, its in users.items()}
 
 
@@ -4462,23 +4507,51 @@ def check_items_are_measured_as_configured() -> list[str]:
     """
     import measured as MEAS
 
+    # EVERY side that has recorded anything, not just the cli default. The two
+    # can genuinely disagree, because `prompt_sha` is side-aware: `_cli_visible`
+    # neutralises the open-tag attributes the python harness never reads, so a
+    # change to one of THOSE leaves the cli fingerprint identical while the web's
+    # moves. Read from the cli alone, this gate would then call an item current
+    # while the number the web column publishes was measured against a different
+    # prompt -- the exact statement it exists to prevent, and unsayable.
+    #
+    # No item is in that state today; the gap is structural, not observed. It is
+    # closed now rather than after, because the failure is silent by construction:
+    # a stale web number looks like a good one.
     problems = []
-    for item, state in MEAS.status():
-        if state.startswith("ABSENT"):
-            problems.append(
-                f"{item} has no entry in MEASURED.json. Sweep it and run "
-                f"`measured.py --record {item} OUT/{item}.runs.json`, or declare "
-                f"`pending` with a reason saying when it will be measured")
-        elif state.startswith("STALE PROMPT"):
-            problems.append(
-                f"{item}: {state}. Its prompt text changed since the recorded "
-                f"measurement, so the recorded number is not this prompt's "
-                f"number — re-sweep and re-record")
-        elif state.startswith("STALE CELLS"):
-            problems.append(
-                f"{item}: {state}. Its denominator changed since the recorded "
-                f"measurement, so the recorded number was computed over a "
-                f"different set of cells — re-sweep and re-record")
+    seen: dict[str, str] = {}
+    for side in MEAS.SIDES:
+        try:
+            rows = MEAS.status(side)
+        except Exception:
+            continue
+        for item, state in rows:
+            if state.startswith("ABSENT"):
+                # ABSENT is reported for the DEFAULT side only. Every item is
+                # expected to have a cli number; the paper sides are swept
+                # separately and their absence is E28's business, not a gap here.
+                if side != MEAS.DEFAULT_SIDE:
+                    continue
+                problems.append(
+                    f"{item} has no entry in MEASURED.json. Sweep it and run "
+                    f"`measured.py --record {item} OUT/{item}.runs.json`, or declare "
+                    f"`pending` with a reason saying when it will be measured")
+            elif state.startswith("STALE PROMPT"):
+                if seen.get(item) == state:
+                    continue          # both sides stale the same way: say it once
+                seen[item] = state
+                problems.append(
+                    f"{item} [{side}]: {state}. Its prompt text changed since the "
+                    f"recorded measurement, so the recorded number is not this "
+                    f"prompt's number — re-sweep and re-record")
+            elif state.startswith("STALE CELLS"):
+                if seen.get(item) == state:
+                    continue
+                seen[item] = state
+                problems.append(
+                    f"{item} [{side}]: {state}. Its denominator changed since the "
+                    f"recorded measurement, so the recorded number was computed "
+                    f"over a different set of cells — re-sweep and re-record")
     return problems
 
 
