@@ -1143,7 +1143,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       `affect_*` slots whose reasons turn on what `cover` already constrains. If
       `requires` lands on Q6, both entries are due for re-judging by this rule.
 
-- [ ] E30. **Nothing compares OUR failing slots against GOLD's charged slots. Only totals.**
+- [x] E30. **Nothing compares OUR failing slots against GOLD's charged slots. Only totals.** DONE
       Filed 2026-08-31 out of Q28, which is the demonstration. Every rate in this
       project compares a cell's TOTAL against gold's total -- `scored_exactly`,
       the ledger, cross_path --gold -- so a cell that fails the WRONG SLOTS in
@@ -1322,7 +1322,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       "the rest are probably like these" is exactly the reasoning that leaves
       coverage on the table.
 
-- [ ] E31. **RAW_GOLD_READERS is inert: nothing reads it, and it is registered as checked.**
+- [x] E31. **RAW_GOLD_READERS is inert: nothing reads it, and it is registered as checked.** DONE
       Found 2026-08-31 by asking whether entries in it are checked in enforcement.
       They are not. It is registered in DECLARATION_TABLES against
       check_gold_accounting_is_uniform, and that function mentions the table only
@@ -1374,7 +1374,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       probe reports 23 READ and 1 BY DESIGN, the remaining one being
       PER_ITEM_EXCLUDE under E33.
 
-- [ ] E32. **A registered verifier can enforce nothing about its table. Test it behaviourally.**
+- [x] E32. **A registered verifier can enforce nothing about its table. Test it behaviourally.** DONE
       Generalised 2026-08-31 from E31. check_every_declaration_table_has_a_verifier
       confirms that a NAMED verifier exists and that the table exists. It cannot
       see whether the verifier actually reads the table, so a declaration can be
@@ -1405,6 +1405,17 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
         some verifiers are expensive, and running each three times over 22 tables
           is not something to put in the default audit run. This belongs beside
           the self-test, on demand, not in the pre-commit path.
+      CLOSED 2026-08-31 with ITS REMAINDER NAMED, not silently. The probe answers
+      the question this subgoal asked -- does each REGISTERED verifier read its
+      table -- and reports 25 of 25 READ. Two neighbouring gaps are E36's, and
+      they are written down because closing without naming them is how a
+      "0 of 25 enforce nothing" line becomes false later:
+        the UNREGISTERED-table scan covers two modules of four, so a declaration
+          in handouts.py or olx_prompts.py is still never asked for;
+        an EMPTY table is skipped by the probe -- `if not val: continue` -- so
+          registering olx_prompts' empty OMIT_CREDIT and OMIT_DEDUCTION will give
+          this probe a CANNOT PROBE row again, and that row is in THIS subgoal's
+          territory even though E36 creates it.
       IT IS NOT A REFACTOR. The output is a list of registered declarations that
       enforce nothing, and every one of those is a claim the project believes is
       checked. That is the same class as a SKIPped self-test case, and the same
@@ -1480,7 +1491,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       checks -- one verifier that cannot be provoked at all, and one that watches
       a snapshot rather than the declaration.
 
-- [ ] E33. **An exclusion added after the last sweep is unwatched until the next one.**
+- [x] E33. **An exclusion added after the last sweep is unwatched until the next one.** DONE
       Found 2026-08-31 by E32's probe, as the reason PER_ITEM_EXCLUDE could not be
       provoked. The staleness verifier -- the exclusions loop in
       measured.declaration_conflicts -- reads the LEDGER's recorded
@@ -1677,7 +1688,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       E36, because they hold ten containers that are prompt data rather than
       declarations and each needs a reason before the scan can include it.
 
-- [ ] E36. **The unregistered-table scan covers two modules of four.**
+- [x] E36. **The unregistered-table scan covers two modules of four.** DONE
       Filed 2026-08-31 from E35. check_every_declaration_table_has_a_verifier has
       two halves: it checks that every REGISTERED table exists and names a real
       verifier, and it scans for tables nobody registered. The second half scanned
@@ -1702,6 +1713,44 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       to declare its entries -- so the honest reason is that the BACKLOG is the
       declaration and SLOT_NOTES is the data it declares, not that SLOT_NOTES is
       uninteresting.
+      DONE 2026-08-31, and it was bigger than "ten containers need reasons".
+      THREE STRUCTURAL FAULTS, not one:
+        the scan covered enforcement and measured, so handouts and olx_prompts --
+          the files that already hold four registered declarations -- were never
+          asked. Now all four.
+        it SKIPPED EMPTY CONTAINERS (`if not val: continue`), so a table could be
+          emptied AND unregistered with nothing noticing. That was not
+          hypothetical: FOUR tables in enforcement.py itself were invisible for
+          exactly that reason -- CITATION_NECESSITY, FIXTURE_GAP_BACKLOG,
+          FIXTURE_GOLD_OVERRIDES and FIXTURE_STRUCTURE_OVERRIDES, each with a
+          real check already reading it, so they were unregistered rather than
+          unverified and the registry could not say so.
+        _NOT_DECLARATIONS exempted by BARE NAME with one blanket comment. Keyed by
+          `module.ATTR` now, with a reason each, because a name exempted for one
+          module was exempted for all of them.
+      THE CONFLICT IS RESOLVED IN THE DOCSTRING'S FAVOUR. olx_prompts says
+      "everything the web sends that the CLI does not is a DEVIATION. Each is
+      declared here -- in WEB_SYSTEM's rule table, RESPONSE / CONTEXT,
+      OMIT_CREDIT / OMIT_DEDUCTION / OMIT_GUIDANCE, or ITEM_NOTES", while
+      _NOT_DECLARATIONS exempted RESPONSE and WEB_SYSTEM as data. Two statements
+      in the tree, disagreeing, with no reason recorded for either. The docstring
+      wins: those tables ARE the contract, and six of them are registered now.
+      WEB_SYSTEM stays exempt for a different reason -- it is a str, which the
+      scan cannot see and a table-shaped check cannot re-test.
+      A REAL VERIFIER, not a name to satisfy the registry:
+      check_prompt_deviation_tables_are_current asks three things no prose
+      judgement is needed for -- every key names a live item, every omitted
+      credit or deduction still exists in the rubric, and every OMIT_GUIDANCE
+      phrase still matches a guidance line. An omission that outlives the line it
+      omits reads as a standing reason for a difference that has gone.
+      IT WAS WRONG ONCE AND THE TABLE WAS RIGHT: it reported CONTEXT's `_utb` and
+      `_wgb` as stale, and those are shared FRAGMENTS several items pull in, read
+      by pseudo-key. A leading underscore is now skipped.
+      COST: the probe went from 25 tables to 35, four of them fixture checks that
+      read every submission, and stopped finishing inside ten minutes. The
+      baseline run is cached per verifier set -- it is the unmutated output, so it
+      is identical for every table sharing those verifiers -- which removes a
+      third of the work. It remains an on-demand check, deliberately.
 
 - [ ] E25. **The `keyword` check is 100% accurate and cannot move a score. Convert it to `derived`.**
       AN AUDIT SUBGOAL, NOT A QC ONE, and it was filed wrong once: its FINDING is
@@ -2623,11 +2672,63 @@ The order below is by diagnosed tractability, not by score. A deterministic miss
 with a named failing check is worth more than a larger gap of unknown shape,
 because it can be fixed or declared; a wobbling cell cannot be either.
 
-- [ ] Q30. **Q5/p4: the ONLY cell where we charge more than gold. Our effect-vs-payoff line is stricter.**
-      Filed 2026-08-31 from E30's accounting, and it earns an entry for being the
-      exception. Twenty-one of the twenty-two declared slot disagreements are us
-      CREDITING a slot gold charged; this is the one that runs the other way, and
-      the single piece of evidence that the leniency is not uniform.
+- [ ] Q31. **SILENT FULL MARKS: nine cells where gold wrote nothing and we deduct.**
+      Filed 2026-08-31, and it is the part of the corpus E30's accounting cannot
+      reach BY CONSTRUCTION. That accounting compares our failing slots against
+      the slots gold's comment itemises; where the grader wrote no comment there
+      is nothing to compare, and only the total says anything is wrong.
+      THIRTY-FOUR cells are wrong at the total. Twenty are declared in the slot
+      and code tables. TEN have no gold comment at all, and NINE of those ten run
+      the SAME WAY -- gold awarded FULL MARKS, silently, and we deducted:
+          1a/p11    gold 8.0 = max     ours 6.0
+          DAY1/p1   gold 4.0 = max     ours 0.0
+          NR/p4     gold 4.0 = max     ours 2.0
+          NR/p20    gold 4.0 = max     ours 0.0
+          Q1/p17    gold 5.0 = max     ours 3.0
+          Q2/p20    gold 5.0 = max     ours 4.0
+          Q4a/p19   gold 5.0 = max     ours 3.0
+          Q4b/p12   gold 5.0 = max     ours 3.5
+          Q4b/p13   gold 5.0 = max     ours 3.5
+      A COMMENT-LESS FULL-MARKS ROW IS A JUDGEMENT, not an absence. The graders
+      itemise when they deduct -- 109 rows do -- so silence plus full marks means
+      "nothing to say about this one". Nine cells where the grader had nothing to
+      say and we found a defect is a claim about our strictness, and it is the
+      MIRROR of everything else in the accounting: the twenty declared cells are
+      almost all us being lenient.
+      THAT MAKES THIS THE BEST AVAILABLE TEST OF OUR FALSE-POSITIVE RATE. Every
+      other subgoal here asks why we miss what gold charges; this asks what we
+      charge that gold does not, on cells gold considered unremarkable.
+      DAY1/p1 IS ALREADY Q27 and is the extreme case -- 0.0 against a silent 4.0,
+      every slot answered `absent` on a response that is present and readable.
+      Read the other eight against it: if they share DAY1/p1's shape, this is one
+      finding and Q27 is its worked example.
+      2a/p16 IS THE ONE EXCEPTION and belongs to Q2, not here: gold docked 2 with
+      no comment and we credit, so it is the item's usual over-credit rather than
+      this pattern.
+      DO NOT START FROM THE RUBRIC. A silent row gives no phrase to argue with, so
+      the only evidence is the response itself -- read the boxes for two or three
+      of these before forming any theory, per QUALITY_CONTROL.md and
+      memory/fixture-defects-found-by-readout.md.
+
+- [ ] Q30. **Where we charge MORE than gold: Q5/p4 and 1c/p11, against a corpus that is otherwise lenient.**
+      Filed 2026-08-31 from E30's accounting, for being the exception. Twenty-one
+      of the twenty-two declared slot disagreements are us CREDITING a slot gold
+      charged; these run the other way, and are the evidence that the leniency is
+      not uniform.
+      THE TITLE ORIGINALLY SAID Q5/p4 WAS THE ONLY ONE. That was true of the 22
+      DECLARED cells and not of the corpus: 1c/p11 does the same and was not
+      declared, because its gold comment does not reconcile and the accounting
+      therefore reads no slots from it. Corrected rather than left, since "the
+      only cell" is exactly the kind of claim a later reader would rely on.
+      1c/p11: gold 6.0, ours 4.0, stable in 6 of 6 runs. We fail `legend`,
+      `x_axis_label` and `y_axis_label`; gold charges the two axis titles and adds
+      "-1 pt: missing baseline data week", which is a 1b charge on a 1c row -- the
+      same cross-item shape as Q4c/p16, where a Q4b comment appears on a Q4c row.
+      So the disagreement is `legend`: we say it is missing and the grader did not.
+      READ THE TWO TOGETHER. Q5/p4 is a RULE being stricter than the corpus;
+      1c/p11 is a single slot judged present by one side and absent by the other,
+      with no rule in dispute. If both hold up they are separate findings, and the
+      shared title is only a filing convenience.
           gold  2.5   "-2.5 pts: missing one reason why you continue to engage"
           ours  0.0   example_1 AND example_2 both `wrong_kind`, 6 of 6 runs
       So gold credits ONE of the two boxes and we reject BOTH, stably.
@@ -2820,6 +2921,14 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       charged -- and the finding holds on every reading.
       DO NOT read the list as seven separate cells to fix. Six of the seven are
       "gold charged one slot, we charged none", which is one behaviour.
+      AND ONE CELL SITS THE OTHER WAY, recorded here because it is Q1's and has no
+      better home: Q1/p9. Gold charges reason_3 and so do we, so the SLOTS agree
+      -- but the total does not, 4.0 against our 3.0. The cause is a COUNT drift,
+      not a slot judgement: `reasons_given` answers 2 in two runs and 1 in four,
+      and the runs that answer 1 fail reason_2 as well. Gold says "only provided
+      two reasons", so the two-answering runs are right. A count that cannot be
+      answered twice the same way is the shape memory/error-profile-by-slot.md
+      calls drift, and no rewrite of a slot rule fixes it.
 
       == THE GATE SLOTS ARE MOSTLY ORTHOGONAL TO CORRECTNESS ==
       Added 2026-08-29 from the completed two-sided sweep, and it bears directly
@@ -2952,6 +3061,26 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       sheet-design one.
 
 - [ ] Q23. **`matches_chosen_type` on WK2, and across the cadence family.**
+      GOLD-SIDE EVIDENCE, rehomed here 2026-08-31 when E35 closed. E35 built the
+      code-level comparison for the criteria-derived items and found five
+      disagreements; closing it would have left them owned by nothing, so they
+      live here, where the type family already does:
+          NR/p15   gold WRONG_TYPE (2)      we charge nothing
+          WK2/p3   gold TYPE_MISMATCH (2)   we charge nothing
+          WK2/p15  gold TYPE_MISMATCH (2)   we charge nothing
+          DAY2/p7  gold WRONG_BEHAVIOR (1)  we charge nothing
+          NR/p11   gold WRONG_TYPE (2)      we charge 4
+      FOUR LENIENT AND ONE HARSH on the same judgement. This entry's own table
+      measures `matches_chosen_type` precision from OUR side -- 73 refusals, 11
+      wrong -- and these are the grader's side of the same question: cells where
+      gold charges the type and we do not, or charge far more.
+      NR/p11 IS THE ONE TO READ FIRST, and it is not a type-rule question yet.
+      Gold says the example IS operant conditioning but of the wrong type, worth
+      2; we charge 4, which is NOT_OC, NOT_EXTERNAL_STIMULUS or BLANK -- the score
+      alone cannot separate them. agreement.score_oc is a cascade that returns at
+      its FIRST failure, so a definitional criterion reading unmet hides the type
+      question entirely. Read which of the four criteria failed before touching
+      any type rule.
       Measured 2026-08-28 over the CLI sweep, 6 runs, exclusions AND corrected gold
       applied (see the caution at the end -- the first version of this table was
       wrong without them):
@@ -3145,6 +3274,11 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           Q4c/p9  gold both consequences     we fail consequence_2 only
           Q6/p8   gold all four c-slots      we fail two
           Q2/p7   gold inversion + 3 reasons we fail the reasons only
+      3/p15 BELONGS HERE TOO, and it adds instability to the picture: gold gives
+      0.0 -- "did not provide two specific examples" -- and we credit example_1,
+      scoring 3.0 in four runs and 0.0 in two. So the first box is credited AND
+      the judgement wobbles, on the same cell. Its comment names no amount, so
+      E30's accounting never saw it; the total is the only evidence.
       AND THE CONTROL IS IN THE SAME ITEMS: 1a/p15, Q4a/p20 and Q4b/p8 carry the
       IDENTICAL gold charge and we fail every member, correctly. So the gradient is
       not a ceiling on what the sheet can express -- it is where the first box gets
@@ -3240,7 +3374,9 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       Gold docks a single `how_*` slot on each cell -- "your third sentece does not
       explain how your plan was successful", "need more explanation on how it was
       or was not successful" -- and WE DOCK NOTHING. Gold 4.0 against our 6.0,
-      identically, on 2a/p1, p13, p14 and p15.
+      identically, on 2a/p1, 2a/p13, 2a/p14 and 2a/p15. Written out in full
+      because a cell-level search for "2a/p13" is how these get found, and
+      "p13" alone is invisible to it.
       FOUR CELLS, NOT FIVE, at slot level. This entry's "five cells" counts the
       cells whose TOTAL is wrong; only four have a gold comment that itemises its
       deduction, so the fifth cannot be read this way. Both numbers are right about
