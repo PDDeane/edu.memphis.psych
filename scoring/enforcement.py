@@ -4659,6 +4659,12 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "measured.GOLD_SLOT_DISAGREEMENTS_KNOWN": (
         "cells failing different slots from the ones gold charged",
         ("check_slot_sets_match_gold",)),
+    "measured.GOLD_CODE_CHARGES": (
+        "which deduction code each grader phrasing charges on a criteria item",
+        ("check_slot_sets_match_gold",)),
+    "measured.GOLD_CODE_KNOWN": (
+        "criteria cells where our deduction code differs from gold's",
+        ("check_slot_sets_match_gold",)),
     "measured.GOLD_SLOT_BOUNDS_KNOWN": (
         "cells whose ambiguous gold charge disagrees with us on every reading",
         ("check_slot_sets_match_gold",)),
@@ -4829,6 +4835,7 @@ def check_every_declaration_table_has_a_verifier() -> list[str]:
     or deleted is the same hole with a comment over it.
     """
     import handouts as _H
+    import importlib
     import measured as _MEAS
     import olx_prompts as _OP
 
@@ -4861,7 +4868,20 @@ def check_every_declaration_table_has_a_verifier() -> list[str]:
                     f"exists -- renamed or deleted, leaving the table unwatched")
 
     # And the other direction: a declaration table that nobody registered.
-    for mod_name, mod in (("enforcement", sys.modules[__name__]),):
+    # `measured` TOO. This scanned only this module, so a declaration table added
+    # to measured.py, handouts.py or olx_prompts.py was never reported as
+    # unregistered -- and that is not hypothetical: four tables were added to
+    # measured.py on 2026-08-31 and the audit asked for none of them. Three were
+    # registered by hand and the fourth was forgotten, with nothing complaining.
+    #
+    # handouts and olx_prompts are NOT scanned yet, and that is a deliberate
+    # scope rather than an oversight: they hold ten uppercase containers that are
+    # prompt-construction data rather than declarations -- CONTEXT, EVIDENCE,
+    # ITEM_NOTES, MATCH_DEF, OMIT_GUIDANCE, REF_IDS, SLOT_NOTES, H1/H2/H3_MARKERS
+    # -- and each needs a _NOT_DECLARATIONS entry with a reason before the scan
+    # can include them without ten standing false findings. Filed as E36.
+    for mod_name, mod in (("enforcement", sys.modules[__name__]),
+                          ("measured", importlib.import_module("measured"))):
         for attr in dir(mod):
             if attr.startswith("_") or not attr.isupper() or attr.endswith("_BUDGET"):
                 continue
@@ -6738,6 +6758,7 @@ PROBE_PROVOCATIONS: dict[str, object] = {
     # emptying already tests. A bogus key is enough here because the check reports
     # any key naming a cell it cannot bound.
     "measured.GOLD_SLOT_BOUNDS_KNOWN": (("zz", 999), "probe"),
+    "measured.GOLD_CODE_KNOWN": (("zz", 999), "probe"),
 }
 
 # Why a table has no provocation. An entry here is a claim that the table CANNOT
