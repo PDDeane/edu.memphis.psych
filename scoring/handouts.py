@@ -213,6 +213,42 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
                "control that makes it decidable: same defect, same model answer "
                "of 0, and gold agrees there.",
     },
+    ("Q6", 4): {
+        "was": 6.0, "score": 6.25,
+        "why":
+            "the comment charges \"-1.5; missing one antecedent\" and Q6 HAS NO "
+            "1.5 DEDUCTION. Every antecedent code in the item's dictionary is "
+            "1.25 -- A_NOT_STATED (\"Did not state the antecedent from question "
+            "4a that is being changed\"), A_MISMATCH, A_NO_CHANGE -- and "
+            "A_NOT_STATED is this defect verbatim. Every other Q6 comment in the "
+            "corpus charges an antecedent miss at 1.25. Two independent sources, "
+            "which is the D2/p11 standard: the dictionary and the same defect's "
+            "treatment elsewhere. "
+            "THE TOTAL IS CORRECTED WITH IT. The row as written reconciles -- 6.0 "
+            "= 10 - 2.5 - 1.5 -- so this is not a row contradicting itself; the "
+            "grader applied an amount the item does not have and then totalled it "
+            "faithfully. Correcting the deduction alone would break the "
+            "arithmetic, so both move: 10 - 2.5 - 1.25 = 6.25. "
+            "AND 6.0 IS NOT REACHABLE ON THIS ITEM, which is the strongest "
+            "evidence and is independent of both the dictionary and our scoring. "
+            "Q6 is eight slots at 1.25, so every attainable total is a multiple "
+            "of 1.25: 0, 1.25, 2.5, 3.75, 5.0, 6.25, 7.5, 8.75, 10. The 1.5 put "
+            "gold OFF the item's own grid; 6.25 is on it. "
+            "IT BUYS NO CELL, checked before filing. The unreachable-gold "
+            "allowance already made 6.25-against-6.0 count as exact, so p4 was "
+            "scored correct before this and is scored correct after: Q6 stays "
+            "17/20 cli and 18/20 web. What changes is the strict direction "
+            "profile -- 16 fewer false over-credit observations across the two "
+            "sides -- and that gold no longer needs the allowance here. The "
+            "flattering direction was the reason to check, not a reason to "
+            "refuse; compare CORRECTED_GOLD[(\"Q6\", 9)], where the rate DID "
+            "rise \"because a cell we score correctly finally counted\". "
+            "CORROBORATION, not the basis: we fail exactly ONE antecedent slot on "
+            "p4, state_a1, stably in 6 of 6 runs -- the shape a single 1.25 "
+            "antecedent charge describes. It does not tell us WHICH antecedent "
+            "the grader meant, so p4 stays in measured.GOLD_SLOT_UNMAPPABLE for "
+            "the slot comparison; what is settled here is the AMOUNT.",
+    },
     ("Q6", 9): {
         "was": 5.0, "score": 3.75,
         "why":
