@@ -622,6 +622,8 @@ def enforcement_audit():
         findings.append(("-", "VERDICT SPACES DIVERGE UNDECLARED", bad))
     for bad in ENF.check_slot_sets_match_gold():
         findings.append(("-", "SLOT SET DISAGREES WITH GOLD", bad))
+    for bad in ENF.check_prompt_deviation_tables_are_current():
+        findings.append(("-", "DECLARED DEVIATION OUTLIVED ITS TARGET", bad))
     for bad in ENF.check_rule_fail_tokens_agree():
         findings.append(("-", "SLOT RULE FAILS DIFFERENTLY", bad))
     for bad in ENF.check_exclusion_claims_are_data():
