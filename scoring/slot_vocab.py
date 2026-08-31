@@ -10,7 +10,29 @@ credit components, and a rule may legitimately mention neither.
 WEB_EXTRAS = ("unclear", "wrong_kind", "incomplete", "duplicate",
               "mismatch", "generic", "tick_values")
 
+# `not_active` is HISTORICAL and kept only so the scan still recognises it: no
+# rubric slot declares it any more. It was Q4b's failing verdict when the paper
+# scorer was told to answer `wrong_kind` while being offered met/absent/not_active
+# -- the incident every docstring here cites -- and those slots declare
+# `wrong_kind` now. Removing it would stop the audit scanning for a token that
+# could still appear in an old rule.
+#
+# `not_antecedent`, `not_consequence` and `not_described` were MISSING until
+# 2026-08-30, and missing here means invisible: KNOWN_VERDICTS is the scan
+# vocabulary, so no check looked for them anywhere. They are the paper-side
+# failing verdicts for Q4a, Q4c and 1c -- the counterparts of the web's
+# `wrong_kind` and `incomplete` -- so a shared `rule` naming one would have
+# instructed the WEB about a token it cannot emit, and passed every check.
+# `wrong_kind` is here because Q4b's behavior_1/behavior_2 declare it; see the
+# warning on SHARED_EXTRAS about what that does and does not mean.
+#
+# Identities are deliberately NOT here: `first`/`second`/`neither`, Q4b's
+# activity/consequence/goal_behaviour/not_doing, and the count values 0-3 are
+# what a slot REPORTS, not a judgement it returns, and scanning prose for
+# backticked `0` would be noise.
 RUBRIC_EXTRAS = ("not_active", "not_reason", "duplicate", "not_a_type",
+                 "not_antecedent", "not_consequence", "not_described",
+                 "wrong_kind",
                  # `unclear` was missing here until 2026-08-30 while TWENTY-ONE
                  # rubric slots declared it, across all three handouts -- Q1's
                  # utb_stated, all five of Q3's, both keyword slots, D1/D2's
@@ -19,10 +41,22 @@ RUBRIC_EXTRAS = ("not_active", "not_reason", "duplicate", "not_a_type",
                  "unclear",
                  "PR", "NR", "PP", "NP")
 
-# Tokens BOTH sides offer. A shared `rule` may name one of these safely -- no
-# scorer is being told about a verdict it cannot emit -- so the neutrality check
-# must not flag them. Derived rather than listed, so it cannot drift from the two
-# lists above.
+# Tokens that appear in both lists. NOT AN EXEMPTION LIST, and it must never be
+# used as one again -- that is what this comment exists to prevent.
+#
+# It was one until 2026-08-30, and it was wrong, because whether a token is
+# shared is a fact about a SLOT and this is a fact about the corpus. `unclear` is
+# in both lists and the two sides disagree about it on SEVENTEEN slots -- 2a's
+# how_*, 2b's sentence_*, 3's example_*, Q1's and Q2's reason_* -- where the web
+# offers it and the paper has only met/absent. Exempting it globally left a rule
+# free to name it on any of those. No rule did, so it stayed latent.
+# `wrong_kind` is the same shape in reverse: shared on Q4b's behavior_*, web-only
+# on Q4a's antecedent_*, Q4c's consequence_* and Q5's example_*.
+#
+# enforcement.check_slot_rules_are_vocabulary_neutral now asks the per-slot
+# question directly, against the OLX sheet and the credit component, and needs no
+# exemption list at all. This is kept because it states something true and useful
+# -- these tokens exist on both sides SOMEWHERE -- and for no other purpose.
 SHARED_EXTRAS = tuple(sorted(set(WEB_EXTRAS) & set(RUBRIC_EXTRAS)))
 
 KNOWN_VERDICTS = ("met", "absent") + WEB_EXTRAS + RUBRIC_EXTRAS

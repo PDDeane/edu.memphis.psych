@@ -1954,12 +1954,17 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
     mapped_keys = {r["key"]: r for r in maps}
     desc = {c["what"]: c["desc"] for c in item["credit"]}
     # `{fail}` is filled with the verdict THIS side offers. The rule text is
-    # shared with score.py, whose vocabulary differs — web `wrong_kind` maps to
-    # paper `not_active`, as enforcement.ALIAS records — so a rule naming one
-    # side's token literally is unreadable on the other. It was: the paper
-    # scorer was told when to answer `wrong_kind` while being offered
-    # met/absent/not_active, so every test was inert and it credited p8's
-    # "avoiding going the gym" that the web and CLI both reject.
+    # shared with score.py, whose vocabulary differs — on Q5's example slots the
+    # web says `wrong_kind` where the rubric says `not_reason`, and on 1c's
+    # legend `incomplete` against `not_described` — so a rule naming one side's
+    # token literally is unreadable on the other. It was: the paper scorer was
+    # told when to answer `wrong_kind` while being offered met/absent/not_active,
+    # so every test was inert and it credited p8's "avoiding going the gym" that
+    # the web and CLI both reject. (`not_active` was Q4b's rubric token then;
+    # those slots declare `wrong_kind` now, which is why the pair no longer
+    # appears anywhere but this note. enforcement.ALIAS does NOT record verdict
+    # pairs — it maps slot KEY names, and an earlier version of this comment said
+    # otherwise, sending a reader looking for a bridge that does not exist.)
     def _fail_token(slot_key: str) -> str:
         for sl in slots:
             if sl["key"] == slot_key:
