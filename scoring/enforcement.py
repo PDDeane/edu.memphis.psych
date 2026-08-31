@@ -4659,6 +4659,45 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "measured.GOLD_SLOT_DISAGREEMENTS_KNOWN": (
         "cells failing different slots from the ones gold charged",
         ("check_slot_sets_match_gold",)),
+    # FOUR TABLES IN THIS MODULE that were invisible until E36 made the scan see
+    # EMPTY containers. All four are empty today and all four have a real check
+    # already reading them -- so they were unregistered rather than unverified,
+    # and the registry could not say so.
+    "enforcement.CITATION_NECESSITY": (
+        "what each registered citation is necessary FOR",
+        ("check_citation_necessity_is_recorded",)),
+    "enforcement.FIXTURE_GAP_BACKLOG": (
+        "fixture gaps accepted for now, with the reason",
+        ("check_fixture_covers_the_response",)),
+    "enforcement.FIXTURE_GOLD_OVERRIDES": (
+        "cells where the fixture and gold disagree on purpose",
+        ("check_fixture_agrees_with_gold",)),
+    "enforcement.FIXTURE_STRUCTURE_OVERRIDES": (
+        "boxes deliberately cut against the response's structure",
+        ("check_fixture_follows_response_structure",)),
+    # olx_prompts' OWN DOCSTRING calls these declared deviations: "everything the
+    # web sends that the CLI does not, or vice versa, is a DEVIATION. Each is
+    # declared here -- in WEB_SYSTEM's rule table, RESPONSE / CONTEXT,
+    # OMIT_CREDIT / OMIT_DEDUCTION / OMIT_GUIDANCE, or ITEM_NOTES." They are
+    # registered on that authority rather than exempted against it.
+    "olx_prompts.RESPONSE": (
+        "how each item's response is presented to the web grader",
+        ("check_prompt_deviation_tables_are_current",)),
+    "olx_prompts.CONTEXT": (
+        "context the web is given that the CLI is not",
+        ("check_prompt_deviation_tables_are_current",)),
+    "olx_prompts.ITEM_NOTES": (
+        "per-item prose the web carries and the CLI does not",
+        ("check_prompt_deviation_tables_are_current",)),
+    "olx_prompts.OMIT_CREDIT": (
+        "credit components deliberately left out of the web prompt",
+        ("check_prompt_deviation_tables_are_current",)),
+    "olx_prompts.OMIT_DEDUCTION": (
+        "deduction codes deliberately left out of the web prompt",
+        ("check_prompt_deviation_tables_are_current",)),
+    "olx_prompts.OMIT_GUIDANCE": (
+        "guidance lines deliberately not carried to the web, with reasons",
+        ("check_prompt_deviation_tables_are_current",)),
     "measured.GOLD_CODE_CHARGES": (
         "which deduction code each grader phrasing charges on a criteria item",
         ("check_slot_sets_match_gold",)),
@@ -4815,6 +4854,75 @@ def check_system_prompts_are_parallel() -> list[str]:
     return problems
 
 
+def check_prompt_deviation_tables_are_current() -> list[str]:
+    """Do the declared web/CLI deviations still name things that exist?
+
+    olx_prompts' module docstring makes these six tables the contract -- "a
+    difference that is in neither place is a bug" -- and until E36 not one of them
+    was registered, so nothing re-tested a single entry. An omission that names a
+    guidance line the rubric no longer has, or a note for an item that has left
+    JOBS, reads as a standing reason for a difference that no longer exists.
+
+    Three things are checkable without judging any prose:
+      * every key names a live item;
+      * every OMIT_CREDIT / OMIT_DEDUCTION key names a credit component or
+        deduction code the rubric still has;
+      * every OMIT_GUIDANCE phrase still matches a guidance line -- which
+        resolve_guidance_omissions already enforces at generation time, so this
+        is the same test asked before a sweep rather than during one.
+    """
+    import olx_prompts as _OP
+
+    problems = []
+    items = set(_OP.ACTION) | set(_OP.SHEET_ONLY)
+    for name in ("RESPONSE", "CONTEXT", "ITEM_NOTES", "OMIT_CREDIT",
+                 "OMIT_DEDUCTION", "OMIT_GUIDANCE"):
+        for key in sorted(getattr(_OP, name, {}) or {}):
+            # A LEADING UNDERSCORE is a shared fragment, not an item. CONTEXT
+            # keys `_utb` and `_wgb` are single fields several items pull in, and
+            # the generator reads them by that pseudo-key -- so requiring every
+            # key to be a live item reported two correct entries as stale. The
+            # table's shape, not a finding.
+            if key.startswith("_"):
+                continue
+            if key not in items:
+                problems.append(
+                    f"olx_prompts.{name} declares a deviation for {key!r}, which "
+                    f"is not a live item -- the item was renamed or dropped and "
+                    f"its deviation was not")
+
+    for item, omitted in sorted((getattr(_OP, "OMIT_GUIDANCE", {}) or {}).items()):
+        if item not in items:
+            continue
+        try:
+            rub = config(HANDOUT[item])["rubric"].BY_ID[item]
+            guidance = " ".join(rub.get("guidance") or [])
+        except Exception:
+            continue
+        for phrase in sorted(omitted):
+            if phrase not in guidance:
+                problems.append(
+                    f"olx_prompts.OMIT_GUIDANCE[{item!r}] omits "
+                    f"\"{phrase[:48]}\", which is no longer in that item's "
+                    f"guidance. The omission outlived the line it omits")
+
+    for name, field in (("OMIT_CREDIT", "credit"), ("OMIT_DEDUCTION", "deductions")):
+        for item, dropped in sorted((getattr(_OP, name, {}) or {}).items()):
+            if item not in items:
+                continue
+            try:
+                rub = config(HANDOUT[item])["rubric"].BY_ID[item]
+            except Exception:
+                continue
+            have = {c.get("what") or c.get("code") for c in (rub.get(field) or [])}
+            for key in sorted(dropped):
+                if key not in have:
+                    problems.append(
+                        f"olx_prompts.{name}[{item!r}] omits {key!r}, which the "
+                        f"rubric no longer has -- the omission outlived its target")
+    return problems
+
+
 def check_every_declaration_table_has_a_verifier() -> list[str]:
     """Is every declaration table re-tested by something?
 
@@ -4874,22 +4982,26 @@ def check_every_declaration_table_has_a_verifier() -> list[str]:
     # measured.py on 2026-08-31 and the audit asked for none of them. Three were
     # registered by hand and the fourth was forgotten, with nothing complaining.
     #
-    # handouts and olx_prompts are NOT scanned yet, and that is a deliberate
-    # scope rather than an oversight: they hold ten uppercase containers that are
-    # prompt-construction data rather than declarations -- CONTEXT, EVIDENCE,
-    # ITEM_NOTES, MATCH_DEF, OMIT_GUIDANCE, REF_IDS, SLOT_NOTES, H1/H2/H3_MARKERS
-    # -- and each needs a _NOT_DECLARATIONS entry with a reason before the scan
-    # can include them without ten standing false findings. Filed as E36.
-    for mod_name, mod in (("enforcement", sys.modules[__name__]),
-                          ("measured", importlib.import_module("measured"))):
+    # ALL FOUR MODULES as of E36. The scan covered enforcement only, then
+    # enforcement and measured; handouts and olx_prompts hold registered
+    # declarations already -- CORRECTED_GOLD, GOLD_DIVERGENCES, PER_ITEM_EXCLUDE,
+    # SCORING_DIVERGENCES -- so they were exactly the files most likely to gain
+    # an unregistered one.
+    for mod_name in ("enforcement", "measured", "handouts", "olx_prompts"):
+        mod = (sys.modules[__name__] if mod_name == _SELF_MODULE
+               else importlib.import_module(mod_name))
         for attr in dir(mod):
             if attr.startswith("_") or not attr.isupper() or attr.endswith("_BUDGET"):
                 continue
             val = getattr(mod, attr)
-            if not isinstance(val, (dict, list)) or not val:
+            # EMPTY COUNTS. `not val` used to skip here, so an emptied table could
+            # also be unregistered with nothing noticing -- and olx_prompts'
+            # OMIT_CREDIT and OMIT_DEDUCTION are empty right now, so the two
+            # tables its own docstring calls declarations were doubly invisible.
+            if not isinstance(val, (dict, list)):
                 continue
             path = f"{mod_name}.{attr}"
-            if path in DECLARATION_TABLES or attr in _NOT_DECLARATIONS:
+            if path in DECLARATION_TABLES or path in _NOT_DECLARATIONS:
                 continue
             problems.append(
                 f"{path} looks like a declaration table and is not in "
@@ -4899,15 +5011,77 @@ def check_every_declaration_table_has_a_verifier() -> list[str]:
     return problems
 
 
-# Upper-case module data that is NOT a declaration: constants, vocabularies and
-# lookup tables assert nothing about the corpus, so nothing can re-test them.
-_NOT_DECLARATIONS = frozenset({
-    "ALIAS", "DEFAULT_VERDICTS", "KNOWN_ACTION_ATTRS", "KNOWN_VERDICTS",
-    "EXCLUSION_KINDS", "ARTIFACT_WRITERS", "GENERATED_ATTRS", "SCORER_PARTS",
-    "MATERIALS", "SUBS", "HANDOUTS", "ITEMS", "BY_ID", "TOTAL", "MAPS",
-    "READS_UTB_CHOICE", "ACTION", "SHEET_ONLY", "HANDOUT", "RESPONSE",
-    "VERBATIM_RULES", "WEB_SYSTEM", "PRIMITIVES_JSON", "DECLARATION_TABLES",
-})
+# Upper-case module data that is NOT a declaration, WITH THE REASON EACH TIME.
+#
+# This was a flat set of bare NAMES under one blanket comment -- "constants,
+# vocabularies and lookup tables assert nothing about the corpus". Two problems,
+# both found by E36:
+#
+#   EXEMPTION BY BARE NAME leaks across modules. "RESPONSE" exempted the name
+#   everywhere, so if one module's CONTEXT were a declaration and another's data,
+#   a single entry would silence both. Keyed by `module.ATTR` now.
+#
+#   NO PER-ENTRY REASON meant the blanket claim covered entries it does not fit.
+#   olx_prompts' own module docstring says "everything the web sends that the CLI
+#   does not is a DEVIATION. Each is declared here -- in WEB_SYSTEM's rule table,
+#   RESPONSE / CONTEXT, OMIT_CREDIT / OMIT_DEDUCTION / OMIT_GUIDANCE, or
+#   ITEM_NOTES". So the docstring calls seven tables declarations while this set
+#   exempted two of them as data. Two statements in the tree, disagreeing, and no
+#   recorded reason for either.
+_NOT_DECLARATIONS: dict[str, str] = {
+    # enforcement: vocabularies and lookups.
+    "enforcement.ALIAS": "maps a CLI slot key to its web name; a naming table, "
+                         "not a claim about the corpus",
+    "enforcement.DEFAULT_VERDICTS": "the verdict list a slot gets when it names "
+                                    "none; a default, not a claim",
+    "enforcement.KNOWN_ACTION_ATTRS": "the attribute allowlist; its own check "
+                                      "(check_action_attributes_are_declared_in"
+                                      "_the_block) reads it as INPUT",
+    "enforcement.KNOWN_VERDICTS": "the scan vocabulary for verdict tokens",
+    "enforcement.EXCLUSION_KINDS": "the kinds an exclusion may have; a schema",
+    "enforcement.ARTIFACT_WRITERS": "which programs write artifacts and what "
+                                    "each must stamp; read as input by the era "
+                                    "check",
+    "enforcement.GENERATED_ATTRS": "which OLX attributes the generator writes",
+    "enforcement.SCORER_PARTS": "the source spans the scorer fingerprint covers",
+    "enforcement.DECLARATION_TABLES": "the registry itself, not a declaration in "
+                                      "it",
+    # handouts / olx_prompts / rubric: structural data.
+    "handouts.MATERIALS": "where the submission files are",
+    "handouts.HANDOUTS": "the handout numbers",
+    "handouts.H1_MARKERS": "the section markers that split a .docx into items. "
+                           "Parsing configuration -- a marker that stops matching "
+                           "breaks the FIXTURE, which the fixture checks own",
+    "handouts.H2_MARKERS": "as H1_MARKERS",
+    "handouts.H3_MARKERS": "as H1_MARKERS, and regexes rather than literals",
+    "olx_prompts.ACTION": "item id -> LLMAction id; a lookup",
+    "olx_prompts.SHEET_ONLY": "items whose grader is a sheet with no action",
+    "olx_prompts.HANDOUT": "item id -> handout number",
+    "olx_prompts.SUBS": "text substitutions applied to generated prose",
+    "olx_prompts.TOTAL": "the points wording",
+    "olx_prompts.MAPS": "parsed `maps` rules; derived from the OLX, not authored",
+    "olx_prompts.READS_UTB_CHOICE": "which items read the chosen UTB",
+    "olx_prompts.VERBATIM_RULES": "prose reproduced identically on both sides -- "
+                                  "the OPPOSITE of a deviation, so there is "
+                                  "nothing to declare",
+    "olx_prompts.PRIMITIVES_JSON": "the path to primitives.json",
+    "olx_prompts.REF_IDS": "minted <Ref> ids, generated and checked by --refs",
+    "olx_prompts.EVIDENCE": "the evidence bundle text for 1c; prompt content",
+    "olx_prompts.MATCH_DEF": "the matching definitions rendered into prompts; "
+                             "prompt content, and its equivalence is covered by "
+                             "the prompt-text checks",
+    "olx_prompts.SLOT_NOTES": "web-only judging prose. NOT waved through: it "
+                              "reaches a prompt and its entries ARE declared -- "
+                              "by enforcement.SLOT_RULE_BACKLOG, which lists them "
+                              "and carries the budget. The BACKLOG is the "
+                              "declaration and this is the data it declares, so "
+                              "registering both would be two names for one claim",
+    "rubric_h1.ITEMS": "the rubric itself", "rubric_h2.ITEMS": "the rubric itself",
+    "rubric_h3.ITEMS": "the rubric itself",
+    "rubric_h1.BY_ID": "an index of the rubric",
+    "rubric_h2.BY_ID": "an index of the rubric",
+    "rubric_h3.BY_ID": "an index of the rubric",
+}
 
 
 def check_divergence_arithmetic_is_still_true() -> list[str]:
@@ -5836,6 +6010,9 @@ _DANGLING = {
 _SEGMENTS_MEMO = None
 
 
+_BOXES_MEMO: dict = {}
+
+
 def _fixture_cells():
     """(handout, item, pid, raw response, boxes) for every multi-box fixture.
 
@@ -5875,12 +6052,29 @@ def _fixture_cells():
                             segs_by_cell.append((h, item["id"], pid, raw))
         _SEGMENTS_MEMO = segs_by_cell
 
-    out = []
-    for h, iid, pid, raw in _SEGMENTS_MEMO:
-        boxes = _span_boxes(iid, pid)
-        if len(boxes) >= 2:
-            out.append((h, iid, pid, raw, boxes))
-    return out
+    # THE BOXES ARE CACHED TOO NOW, but keyed on the `_fixture_boxes` FUNCTION
+    # OBJECT, which is the evidence that they could have changed. The docstring
+    # above is right that a plain cache would make these checks blind to a
+    # patched `_fixture_boxes` -- that is how the self-test injects a defect, and
+    # a probe passing while testing nothing is a failure this project has shipped
+    # twice. Keying on the function means a patch MISSES the cache by
+    # construction: setattr installs a different object, the key changes, and the
+    # boxes are rebuilt against the patched version.
+    #
+    # Worth 20 of the audit's 29 seconds, because three checks each asked for
+    # every cell and rebuilt the same boxes three times over.
+    key = _fixture_boxes
+    cached = _BOXES_MEMO.get(key)
+    if cached is None:
+        cached = {}
+        for h, iid, pid, raw in _SEGMENTS_MEMO:
+            boxes = _span_boxes(iid, pid)
+            if len(boxes) >= 2:
+                cached[(h, iid, pid)] = boxes
+        _BOXES_MEMO.clear()          # one patched version at a time is enough
+        _BOXES_MEMO[key] = cached
+    return [(h, iid, pid, raw, cached[(h, iid, pid)])
+            for h, iid, pid, raw in _SEGMENTS_MEMO if (h, iid, pid) in cached]
 
 
 def _segment_as_scored(handout: int, pid: int) -> dict[str, str]:
@@ -6845,6 +7039,7 @@ def probe_declaration_tables() -> list[str]:
 
     report: list[str] = []
     inert: list[str] = []
+    _base_cache: dict = {}
     for path, (what, verifiers) in sorted(DECLARATION_TABLES.items()):
         mod_name, _, attr = path.partition(".")
         # THIS module, when the probe runs as a script, is `__main__` -- and
@@ -6876,7 +7071,16 @@ def probe_declaration_tables() -> list[str]:
                           f"moved. Declare one")
             continue
 
-        base = run(verifiers)
+        # The BASELINE is cached per verifier set. It is the output with nothing
+        # mutated, so it is identical for every table sharing those verifiers --
+        # and recomputing it per table tripled the cost of a probe that already
+        # runs every verifier three times. That mattered the moment E36 took the
+        # registry from 25 tables to 35, four of them fixture checks that read
+        # every submission: the run stopped finishing inside ten minutes.
+        key = tuple(verifiers)
+        if key not in _base_cache:
+            _base_cache[key] = run(verifiers)
+        base = _base_cache[key]
         saved = copy.deepcopy(table)
         emptied = bogused = None
         try:

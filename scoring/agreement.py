@@ -54,6 +54,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import functools
 import json
 import os
 import re
@@ -541,9 +542,29 @@ def fixture_for(item: str, pid: int) -> dict[str, str]:
     reconstruction would be a second thing to keep in step, and every hand-kept
     mirror in this project has drifted at least once.
     """
+    return dict(_fixture_cached(item, pid))
+
+
+@functools.lru_cache(maxsize=None)
+def _fixture_cached(item: str, pid: int) -> tuple:
+    """One cell's reconstruction, built ONCE per process.
+
+    Rebuilding a fixture means re-reading the .docx and re-running the whole
+    box-splitting pipeline, and THREE audit checks each ask for every cell --
+    check_fixture_agrees_with_gold, check_rule_examples_are_not_corpus and
+    check_consensus_spans_are_disjoint were 30 of the audit's 39 seconds between
+    them, doing the same work three times over.
+
+    In-process, deliberately, rather than a cache on disk keyed to whether the
+    fixtures changed: the repetition is WITHIN one run, so memoising removes it
+    with no staleness risk at all, and a persistent cache would have to fingerprint
+    every .docx, the splitting code, the consensus table and the hand-split rows
+    to be safe. The callers are read-only audits, and `fixture_for` hands back a
+    copy so a caller that mutates its result cannot poison the next one.
+    """
     import agreement_app as AA
     try:
-        return AA.build_jobs(item, [pid])[0]["fixture"]
+        return tuple(AA.build_jobs(item, [pid])[0]["fixture"].items())
     except SystemExit as e:      # a missing consensus/handsplit row for ONE cell
         raise CallFailed(f"no reconstruction for p{pid}/{item}: {e}") from e
 
