@@ -618,6 +618,8 @@ def enforcement_audit():
         findings.append(("-", "SLOT RULE NAMES A VERDICT", bad))
     for bad in ENF.check_prompt_prose_names_only_offered_verdicts():
         findings.append(("-", "PROMPT ASKS FOR AN IMPOSSIBLE VERDICT", bad))
+    for bad in ENF.check_verdict_spaces_are_declared():
+        findings.append(("-", "VERDICT SPACES DIVERGE UNDECLARED", bad))
     for bad in ENF.check_rule_fail_tokens_agree():
         findings.append(("-", "SLOT RULE FAILS DIFFERENTLY", bad))
     for bad in ENF.check_exclusion_claims_are_data():
