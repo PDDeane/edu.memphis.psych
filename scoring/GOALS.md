@@ -1219,11 +1219,108 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       reported as "a table nobody has", indistinguishable from the failure that
       check exists to catch. And the new check was registered before it was
       invoked, which CHECK NEVER RUNS caught in the same pass. Both fixed.
-      COVERAGE IS ONE ITEM. Q6 has a phrase table; the other twenty-five do not,
-      and the check says so in its own output rather than reading as thorough.
-      Extending it is per-item prose work, and the eight known disagreements
-      should be read before more are collected -- eight cells on one item is
-      already more than the budget was expected to hold.
+      COVERAGE EXTENDED 2026-08-31 from one item to EIGHT -- Q1, Q2, Q3, Q4a, Q4b,
+      Q4c, Q6 and 1c -- which is 73 of the 109 cells whose gold comment itemises
+      its deductions, 66%. The check reports its own coverage rather than reading
+      as thorough.
+      THE EXTENSION CHANGED THE MECHANISM THREE TIMES, each because a table this
+      size exposed something one item could not:
+        A SEGMENT MATCHING SEVERAL PATTERNS IS AMBIGUOUS, not the first match.
+          `next(...)` silently took one and dropped the rest, so Q3/p3 -- one
+          -1 pt charge naming both `specific` and `measurable` -- mapped to
+          `specific` alone AND PASSED THE AMOUNT CHECK, because one slot is one
+          point on that item. Silently wrong is worse than unmapped.
+        IT IMMEDIATELY FOUND AN OVERLAP IN THE Q6 TABLE. The narrow "did not state
+          the second consequence being affected" also matched the two-slot
+          "...and how it is being affected" form, and first-match ordering had
+          been giving the right answer by luck. Fixed with a negative lookahead --
+          and the ratchet then reported THREE of the eight known Q6 disagreements
+          as stale, because they were artefacts of the mis-mapping rather than of
+          the scorer. p9, p17 and p18 retired.
+        THE SAME PHRASE CAN COVER DIFFERENT SCOPES, told apart by the AMOUNT. Q2's
+          "your WGB should be the opposite of your UTB" is `wgb_inverts_utb` alone
+          at 2 points and the whole item at 5. The table format gained an optional
+          amount, and the phrase-only version had mapped the 5-point charge to a
+          2-point slot -- caught by the amount check, earning its place twice.
+        A CORRECTED CELL'S COMMENT MAY NOT DESCRIBE ITS SCORE. Q4a/p17's comment
+          docks the keyword point and CORRECTED_GOLD takes it back, because the
+          graders charged that point once in seven comparable cases. Reading the
+          comment anyway reported a charge we correctly do not make. Now tested by
+          arithmetic rather than another declaration: if max minus the named
+          deductions does not equal the score in force, the itemisation is not
+          describing that score and the cell is unread. Covers Q6/p4 too.
+      WHAT THE COVERAGE FOUND: SIX more slot-level disagreements, on Q1, Q2, Q3
+      (twice), Q4a and Q4b, plus two on Q4c -- and they have ONE shape. Gold
+      charges a slot WE CREDIT, on every one. So the scorers are lenient relative
+      to the grader at slot level even where the totals agree, on five items
+      besides Q6. Thirteen cells are now declared, budget 13.
+      COVERAGE, stated against the right denominator: TEN items, 78 of the 91
+      COMPARABLE cells, 85%. It was first reported as "8 items, 66% of 109" and
+      both halves of that were wrong -- the item count because three more items
+      turned out to map cleanly, and the denominator because 18 of the 109 cells
+      cannot be compared at all.
+      EIGHTEEN CELLS ARE NOT COMPARABLE, and it is structural rather than a gap.
+      A `derive_from_criteria` item's rubric carries the two or four checks the
+      DEDUCTIONS are written against, while its web sheet asks fourteen criteria
+      the CLI derives them from. "Which slots we failed" and "which slots gold
+      charged" are then not the same kind of thing. NR is what proved it: tabled
+      on the reasonable-looking rule that naming another operant type charges
+      `is_nr`, it reported gold charging `is_nr` against our failing
+      `demonstrates_type` and `targets_goal_behavior` -- two naming schemes
+      passing each other, dressed as a finding. The table was removed and
+      _slots_are_not_comparable now refuses those eight items (DAY1, DAY2, NP,
+      NR, PP, PR, WK1, WK2) structurally.
+      THAT ALSO EXPLAINS WK1/WK2/DAY1/DAY2 PROPERLY. Their gold speaks about the
+      operant TYPE -- "This is an example of NP" -- which is a derived conclusion,
+      not a slot on the sheet. The first attempt at this note said they were
+      "phrasings that name something other than a slot", which was the symptom;
+      the cause is that the item derives its checks rather than carrying them.
+      THIRTEEN COMPARABLE CELLS REMAIN UNTABLED, each for a stated reason and none
+      of them "the vocabulary is awkward": 2b's "missing a sentence" (one of
+      three, unsaid), D1/D2's "-1 point: Did not provide the entire definition"
+      naming BOTH questions while charging one slot, Q5's "missing one reason" on
+      two 2.5-point example slots, 1b's "missing two weeks of data" (which two).
+      Every one charges fewer slots than it names, so a table could only guess --
+      and guessing is what E30 exists to prevent. They want a per-cell reading,
+      which is Q-subgoal work on the items, not table work.
+      THE COMPLETE ACCOUNTING, 2026-08-31 -- every cell whose gold comment
+      itemises its deductions, with nothing left unexplained:
+          46  slots MATCH gold exactly
+          15  exact slot disagreement          GOLD_SLOT_DISAGREEMENTS_KNOWN
+           7  bounded disagreement             GOLD_SLOT_BOUNDS_KNOWN
+          18  criteria-derived, not comparable E35
+          23  ambiguous, no disagreement found
+         109  total
+      AMBIGUITY IS NOW BOUNDED, NOT SKIPPED, which is what closed the last real
+      gap. GOLD_SLOT_UNMAPPABLE cells used to be dropped entirely -- and 6 of the
+      24 dropped cells disagreed with us on the TOTAL, so the check was silent
+      about the very cells most worth reading. Two statements survive ambiguity:
+      if our failing set does not CONTAIN the definitely-charged slots we credit
+      one gold charged, and if the SIZE differs the two disagree about how many
+      slots failed. Neither needs to know WHICH.
+      gold_charge_bounds derives the count from the AMOUNTS and the slot points,
+      so it works on items with NO phrase table at all -- and a subset-sum over
+      the slot values rather than a uniformity requirement, because Q1's 1-point
+      charge can only be one of its three 1-point reason slots when utb_stated is
+      2, and demanding uniform slot values threw that away.
+      IT FOUND SEVEN CELLS THE EXACT COMPARISON COULD NOT SEE, and six run the
+      same direction as everything else -- gold charges a slot, we charge none.
+      FOUR OF THEM ARE 2a, uniform: gold docks one `how_*` slot and we dock
+      nothing, 4.0 against 6.0. That is subgoal Q2's "2a over-credits hows_given"
+      reached from the slot side, and the strongest confirmation of it available,
+      because it says the over-credit is ONE UNCHARGED SLOT rather than something
+      spread across the item.
+      THE SEVENTH RUNS THE OTHER WAY AND IS THE ONLY ONE THAT DOES. Q5/p4: gold
+      charges ONE example slot and we fail BOTH, 0.0 against 2.5. Every other
+      disagreement in the accounting is us being lenient, which makes this the
+      one piece of evidence that the leniency is not uniform -- read it before
+      concluding the scorers are simply soft.
+      AND THE FIRST STOPPING POINT WAS A GENERALISATION FROM THREE ITEMS. Asked
+      why, the honest answer was that WK2, DAY2 and 2a had been surveyed and the
+      other eight had not. Surveying them found 1a, 3 and NR looking mappable; two
+      of the three were, one was the structural case above. Recorded because
+      "the rest are probably like these" is exactly the reasoning that leaves
+      coverage on the table.
 
 - [ ] E31. **RAW_GOLD_READERS is inert: nothing reads it, and it is registered as checked.**
       Found 2026-08-31 by asking whether entries in it are checked in enforcement.
@@ -1451,6 +1548,72 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       rather than the table. It is now READ, its PROBE_IMPOSSIBLE entry retired,
       and that table is empty: all 24 registered declaration tables are proven to
       be read, with none inert, inconclusive or exempt.
+
+- [ ] E34. **Gold charges a CATEGORY; our sheet charges members. No mechanism expresses that.**
+      Filed 2026-08-31 from E30's slot-level accounting, which is the first thing
+      able to see it: the totals alone showed six unrelated over-credits.
+      THE PATTERN, one charge condemning every member of a group:
+          1a/p1   "did not discuss data for each week"          -8  all 4 weeks
+          Q4a/p14 "Examples are not antecedents"                -4  both antecedents
+          Q4b/p4  "your behaviors cannot be the same as your
+                   antecedents"                                 -3  both behaviors
+          Q4c/p9  "consequences are a direct result of engaging
+                   in your UTB"                                 -4  both consequences
+          Q6/p8   "did not say how EACH antecedent is changed"  -2.5 both change_*
+                  "did not state EACH consequence ... and how"  -5  all four c-slots
+          Q2/p7   "your WGB should be the opposite of your UTB" -5  inversion + 3 reasons
+      In every one the grader made ONE judgement about the KIND of thing offered
+      and charged the whole group. Our sheet asks each box independently and
+      credits the ones that individually pass -- so we fail the second box and
+      credit the first, five items over, and the arithmetic difference is the
+      credited member.
+      IT IS ONE MISSING MECHANISM, not six misses. There is no way on the sheet to
+      say "if the KIND is wrong, no member counts". Q4b is the exception that
+      proves it: `maps` turns its referent test into arithmetic across both
+      behavior slots, which is exactly this shape -- and Q4b/p4 is still here,
+      because `maps` fires on the referent and not on the "same as your
+      antecedents" judgement gold used.
+      THE CANDIDATE IS `forbid` OR A NEW GROUP-LEVEL PRIMITIVE, and the honest
+      first step is neither: it is to check whether the graders APPLY the category
+      charge consistently. If a category judgement is charged wholesale on some
+      cells and per-box on others, a mechanism that always charges wholesale would
+      fix six cells and break the rest. Count both shapes across the corpus before
+      designing anything -- the phrase tables in measured.GOLD_SLOT_CHARGES make
+      that countable now, which it was not before.
+      DO NOT reach for prose. memory/structural-before-wording.md applies, and so
+      does the Q6 record: nine measured wordings on `refers_to` and no movement.
+
+- [ ] E35. **The eight criteria-derived items are outside the slot-level accounting entirely.**
+      Filed 2026-08-31, the one group E30's accounting cannot reach. DAY1, DAY2,
+      NP, NR, PP, PR, WK1 and WK2 are `derive_from_criteria`: their rubric carries
+      the two-to-four checks the DEDUCTIONS are written against, while their sheet
+      asks fourteen criteria the CLI derives those from. So "which slots we
+      failed" is a sheet fact and "which slots gold charged" is a rubric fact, and
+      comparing them produced nonsense that looked like a finding -- NR reported
+      gold charging `is_nr` against our failing `demonstrates_type`.
+      EIGHTEEN CELLS, and FIVE of them disagree with us on the TOTAL, so they are
+      not a quiet corner:
+          WK2/p3   gold 2.0  ours 4.0   "-2 pts: This is NP."
+          WK2/p15  gold 2.0  ours 4.0   "-2 pts: This is an example of NP."
+          NR/p15   gold 2.0  ours 4.0   "-2 pts: This is an example of PR."
+          NR/p11   gold 2.0  ours 0.0   "-2 pts: This is an example of NP."
+          DAY2/p7  gold 3.0  ours 4.0   "-1 pt: make sure the behavior you are
+                                          targeting is spending less time..."
+      THE TYPE CHARGE IS WORTH 2 AND WE GET IT WRONG IN BOTH DIRECTIONS. Three
+      cells credit it where gold charges (4.0 against 2.0) and one zeroes the item
+      where gold charges 2 (0.0 against 2.0). Same judgement, opposite errors,
+      which is the signature of an unstable derived check rather than a threshold
+      set wrong -- and it is subgoal Q23's `matches_chosen_type` family seen from
+      the grader's side.
+      WHAT IT NEEDS IS A DIFFERENT COMPARISON, not a phrase table. Our failing
+      RUBRIC checks have to be recomputed from the criteria the artifact records,
+      the way agreement.py derives them at scoring time, and compared against
+      gold's charge. The artifact holds the fourteen criteria, so this costs no
+      API calls -- it is a second reader beside _our_failing_slots, and
+      _slots_are_not_comparable is the hook it should replace.
+      DO NOT table these items until that exists. NR was tabled on a
+      reasonable-looking rule and had to be removed; the table is not the missing
+      piece.
 
 - [ ] E25. **The `keyword` check is 100% accurate and cannot move a score. Convert it to `derived`.**
       AN AUDIT SUBGOAL, NOT A QC ONE, and it was filed wrong once: its FINDING is
@@ -2371,6 +2534,31 @@ middle.
 The order below is by diagnosed tractability, not by score. A deterministic miss
 with a named failing check is worth more than a larger gap of unknown shape,
 because it can be fixed or declared; a wobbling cell cannot be either.
+
+- [ ] Q29. **Q2's `wgb_is_counterpart` GATES for 5 where gold charges 2, and it flips.**
+      Filed 2026-08-31 from E30's accounting. Q2/p10 is the demonstration and the
+      cheapest possible read: both scorers and the grader agree the WGB is not the
+      opposite of the UTB, and the disagreement is entirely in what that costs.
+          gold  3.0   "-2 pts: your WGB should be the opposite of your UTB"
+          ours  0.0   `wgb_is_counterpart` is a GATE -- failing it takes all 5
+      SO THE SAME JUDGEMENT IS WORTH 2 TO THE GRADER AND 5 TO US, on every cell
+      where it fails. That is not a per-cell miss; it is the wiring.
+      AND THE SLOT IS UNSTABLE, which makes the wiring maximally expensive: over
+      six recorded runs it answered `met` once and `absent` five times, so the
+      cell scores 3.0 in one run and 0.0 in the other five. An unstable judgement
+      on a gate is the worst combination available -- Q21 and Q22 record the same
+      shape on NR's and DAY2's gates, and this is a third instance.
+      TWO THINGS TO SETTLE, in this order:
+        Is the GATE right? Q2's own deduction dictionary is what says whether "not
+          the opposite" is a whole-item failure or a 2-point one. If the
+          dictionary says 2, the gate is ours and not the rubric's, and removing
+          it is a sheet change measurable at 6 runs.
+        Is the SLOT stable enough to gate anything? One flip in six is not a
+          judgement, and `wgb_is_counterpart` is already declared
+          PROSE_ONLY_SLOTS -- "a judgement about what two pieces of prose are
+          ABOUT, with no operand pair that expresses it".
+      DO NOT change both at once. Removing the gate and rewording the slot in one
+      sweep confounds them, and this item has 20 cells to spend.
 
 - [ ] Q28. **Q6/p5: the CLI's one miss is `state_a1` refers_to drift, not a rule.**
       DIAGNOSED 2026-08-31, from the artifacts on disk, no API calls. Two wrong
