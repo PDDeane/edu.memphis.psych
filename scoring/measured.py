@@ -832,11 +832,77 @@ def declaration_conflicts() -> list[str]:
             # exactly this scenario, so the crash hid the very check meant to
             # catch it.
             continue
+        # E33. THE TABLE SAYS WHICH CELLS ARE EXCLUDED; THE ARTIFACT SAYS HOW THEY
+        # SCORED. This loop used to read only the ledger's `excluded_cells`, which
+        # is a snapshot taken when the item was last recorded -- so an exclusion
+        # was invisible to it unless it happened to be in place at the last sweep
+        # AND produced a scored observation. Both halves are now read, and a cell
+        # present in one but not the other is reported rather than skipped,
+        # because "no evidence" is a different state from "no problem" and this
+        # check exists to stop an exclusion outliving its justification.
         kinds = H.cell_exclusions(job["handout"], item)
-        excl = sorted({k for recs in per_side.values()
-                       for k in ((recs.get(item) or {}).get("excluded_cells") or {})},
-                      key=int)
-        for pid_s in excl:
+        now_excluded = set(kinds)
+        recorded = {int(k) for recs in per_side.values()
+                    for k in ((recs.get(item) or {}).get("excluded_cells") or {})}
+
+        # Does gold even have a score for the cell? Without one no measurement can
+        # ever agree or disagree, so the exclusion is unfalsifiable BY DESIGN
+        # rather than merely unmeasured -- 1c's p4/p19/p20 are this, because
+        # rebuild_gold_1c removes their gold rows. Reporting those as "unmeasured"
+        # every run would nag forever about cells nothing can settle.
+        try:
+            import gold as _g
+            _gold_rows = H.apply_corrected_gold(
+                {1: _g.load_h1, 2: _g.load_h2, 3: _g.load_h3}[job["handout"]](),
+                job["handout"])
+            if item == "1c":
+                import agreement_app as _APP
+                _gold_rows, _ = _APP.rebuild_gold_1c(
+                    {p_: dict(v) for p_, v in _gold_rows.items()})
+        except Exception:
+            _gold_rows = {}
+
+        for pid in sorted(now_excluded - recorded):
+            kind = (kinds.get(pid) or ("", ""))[0]
+            if kind == "suspect":
+                continue          # a fact about the input; measurement cannot speak
+            has_gold = ((_gold_rows.get(pid) or {}).get(item) or {}).get(
+                "score") is not None
+            if not has_gold:
+                # `unscoreable` ASSERTS that gold's row is unreachable, so a
+                # missing gold score is the declaration and the evidence agreeing.
+                # Reporting it would nag forever about cells nothing can settle,
+                # and would train the reader to skip this check. 1c's p4/p19/p20
+                # are exactly this: rebuild_gold_1c removes their gold rows and the
+                # exclusion says they are unscoreable. Consistent, so silent.
+                #
+                # Any OTHER kind with no gold row is a real inconsistency: the
+                # exclusion claims something measurement could contradict, and
+                # there is nothing to contradict it with.
+                if kind == "unscoreable":
+                    continue
+                out.append(
+                    f"{item}/p{pid} is EXCLUDED as {kind or 'excluded'}, which is "
+                    f"a claim measurement could refute, but gold has no score for "
+                    f"the cell so nothing can. Either the exclusion is really "
+                    f"`unscoreable` -- say that -- or the missing gold row is the "
+                    f"defect and the exclusion is hiding it")
+            else:
+                out.append(
+                    f"{item}/p{pid} is EXCLUDED as {kind or 'excluded'} but is not "
+                    f"in the last recorded run's excluded cells, so there is NO "
+                    f"evidence either way -- the exclusion was added since that "
+                    f"sweep, or the scorer produced nothing for it. Re-sweep "
+                    f"{item} before trusting the exclusion")
+
+        for pid in sorted(recorded - now_excluded):
+            out.append(
+                f"{item}/p{pid} was recorded as EXCLUDED but the exclusion table "
+                f"no longer lists it. The two sources disagree: a check reading "
+                f"only one of them cannot say which is current. Re-record {item}, "
+                f"or restore the exclusion if dropping it was not intended")
+
+        for pid_s in sorted({str(p) for p in now_excluded & recorded}, key=int):
             kind = (kinds.get(int(pid_s)) or ("", ""))[0]
             # Not every exclusion is a hypothesis about the model, and only the
             # ones that are can be retired by measuring it.

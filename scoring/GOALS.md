@@ -1418,6 +1418,39 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       the snapshot claiming a cell is excluded when the table no longer says so.
       That direction inflates nothing and costs nothing, but it means the two
       sources disagree, and a check reading only one of them cannot say which.
+      FIXED 2026-08-31. The loop reads BOTH: the table for which cells are
+      excluded now, the artifact for how they scored. Four states, and the
+      distinctions are the work -- a check that collapsed them would either miss
+      the gap or nag forever:
+        in both        -- evidence exists; unchanged behaviour, report a cell that
+                          scores right in every run.
+        excluded now, absent from the snapshot, gold HAS a score -- no evidence
+                          either way. Reported: the exclusion was added since that
+                          sweep, or the scorer produced nothing for the cell.
+        excluded now, absent, gold has NO score, kind `unscoreable` -- the
+                          declaration and the evidence AGREE, because that kind
+                          asserts gold's row is unreachable. Silent. 1c's
+                          p4/p19/p20 are this: rebuild_gold_1c removes their gold
+                          rows. Reporting them would nag forever about cells
+                          nothing can settle, which trains the reader to skip the
+                          check.
+        excluded now, absent, gold has NO score, ANY OTHER kind -- inconsistent:
+                          the exclusion claims something measurement could refute
+                          and there is nothing to refute it with. Reported.
+        in the snapshot, no longer excluded -- the two sources disagree. Reported.
+      THAT DISTINCTION WAS FOUND BY READING, not designed. The first version
+      reported all three 1c cells as "unmeasured", which looked like the gap being
+      caught and was actually the check nagging about a permanent state. The cause
+      is that `exc` is only filled when gold has a score for the cell, so a cell
+      whose gold row the 1c rebuild removes can never appear in the snapshot.
+      VERIFIED BY INJECTION in all three reporting states -- an exclusion added
+      since the sweep, a refutable kind with no gold row, and an exclusion dropped
+      since the sweep -- and silent on the clean tree.
+      AND IT CLOSED THE LAST PROBE GAP. PER_ITEM_EXCLUDE was E32's remaining BY
+      DESIGN row, unprobeable precisely because its verifier read the snapshot
+      rather than the table. It is now READ, its PROBE_IMPOSSIBLE entry retired,
+      and that table is empty: all 24 registered declaration tables are proven to
+      be read, with none inert, inconclusive or exempt.
 
 - [ ] E25. **The `keyword` check is 100% accurate and cannot move a score. Convert it to `derived`.**
       AN AUDIT SUBGOAL, NOT A QC ONE, and it was filed wrong once: its FINDING is
