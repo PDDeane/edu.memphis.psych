@@ -1502,9 +1502,19 @@ def main() -> int:
             # this scorer against the web path cell by cell, and without an era on
             # both sides a prompt-version difference reads as a path difference.
             # See measured.era_stamp.
+            # The BACKEND is passed explicitly. era_stamp defaults it to empty,
+            # and this is the only process that knows which one ran: `rec` already
+            # records it two lines up. Left to default it stamped "", so a paper
+            # artifact could not say from its era whether it was the gpt-5-mini
+            # run (side `paper`) or the Opus one (side `paper_opus`) -- the single
+            # distinction the two sides exist to keep apart. paper_runs.py passes
+            # it at fold time from sweep_paper.sh, so the ledger was right; the
+            # per-participant file, which is what survives if a fold is redone by
+            # hand, was not.
             try:
                 import measured as _M
-                rec["era"] = _M.era_stamp([i["item_id"] for i in rec["items"]])
+                rec["era"] = _M.era_stamp([i["item_id"] for i in rec["items"]],
+                                          backend=rec["backend"])
             except Exception as _e:      # never fail a sweep over bookkeeping
                 rec["era"] = {"error": f"{type(_e).__name__}: {_e}"}
             with open(os.path.join(outdir, f"participant_{pid:03d}.json"), "w") as fh:
