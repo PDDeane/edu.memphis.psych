@@ -2535,6 +2535,41 @@ The order below is by diagnosed tractability, not by score. A deterministic miss
 with a named failing check is worth more than a larger gap of unknown shape,
 because it can be fixed or declared; a wobbling cell cannot be either.
 
+- [ ] Q30. **Q5/p4: the ONLY cell where we charge more than gold. Our effect-vs-payoff line is stricter.**
+      Filed 2026-08-31 from E30's accounting, and it earns an entry for being the
+      exception. Twenty-one of the twenty-two declared slot disagreements are us
+      CREDITING a slot gold charged; this is the one that runs the other way, and
+      the single piece of evidence that the leniency is not uniform.
+          gold  2.5   "-2.5 pts: missing one reason why you continue to engage"
+          ours  0.0   example_1 AND example_2 both `wrong_kind`, 6 of 6 runs
+      So gold credits ONE of the two boxes and we reject BOTH, stably.
+      WHAT THE BOXES SAY, read out rather than inferred:
+        first  -- "I continue sleep enough because sleep is good for you, I am
+                  gaining something)". Garbled, and the reason given is a reason
+                  for the GOAL behaviour, not for continuing the unwanted one.
+                  `wrong_kind` looks right here.
+        second -- "I continue to not sleep enough because I get super emotional
+                  and mad when I'm super tired." That is an EFFECT of the
+                  behaviour, and our rule says so in as many words: `{fail}` is
+                  for "an EFFECT of the behaviour rather than a payoff from it".
+                  Gold credited it anyway.
+      SO THE DISAGREEMENT IS THE RULE, NOT THE READING. We applied the effect-vs-
+      payoff distinction exactly as written and gold does not draw it as sharply.
+      That rule is the one E11 migrated on 2026-08-30 -- `example_2`'s text moved
+      from web-only SLOT_NOTES into the shared `rule` -- so this cell is now the
+      only measured evidence about whether the distinction itself is too strict.
+      DO NOT LOOSEN IT ON ONE CELL. Q5 records 19/20 on both sides, so the rule is
+      right on the other nineteen, and the effect-vs-payoff clause exists because
+      example_1/example_2 previously absorbed weak reasons -- see
+      reasons_substantial's rule and the E11 history. The honest question is
+      narrower: does gold EVER charge an effect-dressed-as-reason on this item? If
+      it does, p4 is a grader inconsistency and stays declared; if it never does,
+      the clause is stricter than the corpus and the whole item wants re-measuring
+      after it changes.
+      COUNT THAT FIRST. It costs no API calls: the phrase table for Q5 does not
+      exist yet, but Q5 has only two cells with itemised gold, and the rest of the
+      item's comments can be read directly.
+
 - [ ] Q29. **Q2's `wgb_is_counterpart` GATES for 5 where gold charges 2, and it flips.**
       Filed 2026-08-31 from E30's accounting. Q2/p10 is the demonstration and the
       cheapest possible read: both scorers and the grader agree the WGB is not the
@@ -2685,6 +2720,24 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       check passes and gold still docks, and the observation-level rate that says
       how much of our over-crediting works that way. Subgoal 22 held the second
       view and is folded in here.
+      == THE MECHANISM, NAMED 2026-08-31 BY E30's SLOT-LEVEL ACCOUNTING ==
+      "Every check passes and gold still docks" now has a mechanism rather than a
+      description: WE CREDIT A SLOT GOLD CHARGED, and the comparison says which.
+      Seven cells localise here, each with gold's own itemisation naming the slot:
+          Q1/p10   gold charges reason_3;        we fail nothing
+          Q4c/p20  gold charges consequence_2;   we fail nothing
+          Q6/p2    gold charges change_a2;       we fail nothing
+          Q6/p16   gold charges affect_c2;       we fail nothing
+          Q4a/p6   gold charges one antecedent;  we fail nothing
+          Q4c/p16  gold charges one consequence; we fail nothing
+          Q6/p6    gold charges state_a2 as well as the two we fail
+      THAT IS THE SAME FINDING FROM A NEW DIRECTION, which is the reason to trust
+      it: this subgoal was filed off the observation-level rate, and the slot
+      comparison was built for an unrelated purpose. Q4a/p6 and Q4c/p16 are BOUNDED
+      rather than exact -- gold's comment does not say which slot, only that one was
+      charged -- and the finding holds on every reading.
+      DO NOT read the list as seven separate cells to fix. Six of the seven are
+      "gold charged one slot, we charged none", which is one behaviour.
 
       == THE GATE SLOTS ARE MOSTLY ORTHOGONAL TO CORRECTNESS ==
       Added 2026-08-29 from the completed two-sided sweep, and it bears directly
@@ -3086,6 +3139,21 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           said 2, scored 6 against gold 4      x29
       That is five cells times six runs. `verdict` is unmet once in 120 observations
       and never wrongly; no scoring slot drifts. There is nothing else on this item.
+      THE SLOT-LEVEL EVIDENCE, added 2026-08-31 from E30's accounting, and it says
+      what the count profile could not: the over-credit is ONE UNCHARGED SLOT.
+      Gold docks a single `how_*` slot on each cell -- "your third sentece does not
+      explain how your plan was successful", "need more explanation on how it was
+      or was not successful" -- and WE DOCK NOTHING. Gold 4.0 against our 6.0,
+      identically, on 2a/p1, p13, p14 and p15.
+      FOUR CELLS, NOT FIVE, at slot level. This entry's "five cells" counts the
+      cells whose TOTAL is wrong; only four have a gold comment that itemises its
+      deduction, so the fifth cannot be read this way. Both numbers are right about
+      different things, and the discrepancy is not a defect -- but a reader
+      comparing them needs the reason, which is why it is written here.
+      SO THE TARGET IS NAMED: whatever rule credits a `how_*` slot that gold
+      charges. The four comments agree on what gold wants -- an explanation of HOW
+      the plan was or was not successful -- and the count profile says our `verdict`
+      slot is sound, so the disagreement is entirely in `how_1`/`how_2`.
       THE MECHANISM, exactly: `counts` declares `hows_given` over `how_1` and
       `how_2`, each worth 2.0, with `verdict` worth 2.0 for a total of 6. The model
       answers `hows_given` = 2 in EVERY run of all five cells, both hows are
