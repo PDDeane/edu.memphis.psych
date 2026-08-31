@@ -740,7 +740,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       change prompts on Q4a, Q4c, Q5, Q6 and 1c. Sweeping first and doing them
       after costs a re-sweep of five of twenty-six items on every side.
 
-- [ ] E29. **`error_profile` ignores cell exclusions, and its one-sided flag lied.**
+- [x] E29. **`error_profile` ignores cell exclusions, and its one-sided flag lied.** DONE
       AN AUDIT SUBGOAL. `measured.error_profile` applies corrected gold and
       `rebuild_gold_1c` but never filters EXCLUDED cells: it profiles all 20,
       while every figure the ledger publishes is over 18. On the twelve H2 items
@@ -770,6 +770,27 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       worth looking at, that is a question about whether its EXCLUSION is still
       justified -- a different claim, resting on the citation behind the
       exclusion, not on scores computed from a cell nobody counts.
+      FIXED 2026-08-30. `error_profile` now skips excluded cells -- the same set
+      `record` leaves out -- and names the set it used in its header, e.g.
+      "over 108 observation(s), 18 of 20 cell(s) -- excluding p2, p3". A reader
+      comparing the profile to the ledger can now see WHICH cells it covers
+      without reading the code, which is the whole failure.
+      RE-READ, and the fix did TWO things, not one:
+        It removed false signals. WK1 8 over / 1 under -> 2 over / 1 under; WK1
+          web 8/0 -> 2/0; WK2 11/4 -> 5/4; WK2 web 10/2 -> 4/2. The one-sided
+          flag correctly stops firing on all of them. Nothing to investigate,
+          exactly as the recomputation predicted.
+        It REVEALED a true one it had been masking. DAY1 cli read 7 over / 8
+          under -- two-sided, "the judgement is unstable" -- and is actually
+          1 over / 8 under, now flagged one-sided. The two excluded cells were
+          contributing 6 of the 7 over-credits. DAY1 web is 0 over / 7 under.
+          So DAY1 UNDER-credits on both sides, one-sided, and the masking hid it.
+          Its BY SLOT table names `matches_chosen_type` as tracking the errors
+          (6 in wrong cells against 6 in right). That is a QC question and wants
+          its own subgoal; do not fold it in here.
+      CROSS-CHECKED against the other accounting path: 1c now profiles 17 of 20
+      cells (excluding p4, p19, p20), agreeing with its 16/17 ledger figure, and
+      still reports the ZERO over-credits the rebuild_gold_1c note demands.
 
 - [ ] E15. **`requires` is implemented on BOTH engines and bound to nothing. Q6 is why it exists.**
       Surfaced 2026-08-29 by the new live-exercise check, which listed `requires`
@@ -1851,6 +1872,41 @@ middle.
 The order below is by diagnosed tractability, not by score. A deterministic miss
 with a named failing check is worth more than a larger gap of unknown shape,
 because it can be fixed or declared; a wobbling cell cannot be either.
+
+- [ ] Q27. **DAY1/p1 scores 0.0 against a gold of 4.0, deterministically, on both sides.**
+      Filed 2026-08-30. DAY1 UNDER-credits one-sided -- cli 1 over / 8 under, web
+      0 over / 7 under -- and p1 carries 6 of those 8 and 6 of those 7, failing
+      6 of 6 runs on BOTH scorers. Predicted 0.0 every time; gold is 4.0. The
+      whole item, stably, on one cell.
+      IT WAS INVISIBLE UNTIL E29. The profile counted excluded cells, and p2/p3
+      contributed 6 of DAY1's 7 apparent over-credits, so the item read 7 over /
+      8 under -- two-sided, "the judgement is unstable", nothing to chase. With
+      exclusions applied it is one-sided and points at a single cell.
+      NOT A FIXTURE DEFECT, checked first per QUALITY_CONTROL.md and
+      memory/fixture-defects-found-by-readout.md. All five fields are present;
+      `bmod_h2_day1` reads "{{corpus:DAY1/p1:day1:0:72:sha=b56fbe949d26:shape=S10-0a202020202020}}" The scorers are reading a real answer.
+      NOT Q23's FINDING EITHER, and this is the thing to be careful about. Q23
+      names DAY1/p1 as a `matches_chosen_type` error, and it is listed there as
+      wrong on 4 of 6 runs. But Q23's mechanism is two PICKS that disagree, and
+      here both picks come back EMPTY -- `observed_type=""` and `named_type=""`
+      in all 6 runs -- with `matches_chosen_type=absent` downstream of that, not
+      the cause of it. Do not re-derive Q23 here, and do not fold this into it:
+      an empty pick and a disagreeing pick are different failures.
+      WHAT ACTUALLY HAPPENS: every slot answers `absent` in all 6 runs --
+      names_behavior, contingent, follows_behavior, states_a_contingency -- so
+      the sheet finds no contingency at all and the item collapses to zero. That
+      reading is not obviously wrong: "{{corpus:DAY1/p1:day1:0:65:sha=ed279714b714:shape=S7-0a202020202020,S10-20}}" states no condition on a behaviour. The graders
+      credited it 4.0 anyway.
+      SO THE QUESTION IS WHICH SIDE IS RIGHT, and it is worth asking because the
+      answer is 4 points either way:
+        1. Is the all-slots-`absent` result reaching the blank-answer collapse?
+           enforcement has a check that the collapse is GATED on an actually
+           blank answer -- confirm it is not firing on a non-blank one here.
+        2. If not, is `states_a_contingency` too strict for a plan phrased as a
+           reward-for-a-state rather than an if-then?
+        3. Or is gold generous, in which case this is a CORRECTED_GOLD candidate
+           and needs the citation that justifies it, not an assertion.
+      Answer 1 before 2, and 2 before 3. Do not change prose before then.
 
 - [ ] Q20. **The SHEET CANNOT REFUSE: over-credit with every check passing.**
       Two views of one phenomenon, merged 2026-08-28: cells where every scoring
