@@ -1194,13 +1194,32 @@ def fixture_suspects() -> list[str]:
     import gold as _gold
     import handouts as H
 
-    led = records()
+    # EVERY recorded side. This read the cli ledger alone, so a cell the WEB
+    # missed in every run was never examined -- and a fixture defect is a fact
+    # about the INPUT, which both paths read. Missing it on one path is the same
+    # evidence whichever path noticed.
+    per_side = {}
+    for _s in SIDES:
+        try:
+            _r = records(_s)
+        except Exception:
+            continue
+        if _r:
+            per_side[_s] = _r
     loaders = {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}
     jobs = _jobs()
     out: list[str] = []
-    for item, rec in sorted(led.items()):
-        if rec.get("pending") or not rec.get("cells"):
+    seen: set = set()
+    for item in sorted({i for recs in per_side.values() for i in recs}):
+        # Which sides say this cell was wrong in every run, and where their
+        # artifacts are. A signature has to hold on the side that reports it.
+        sides_for_item = {s: recs[item] for s, recs in per_side.items()
+                          if item in recs
+                          and not recs[item].get("pending")
+                          and recs[item].get("cells")}
+        if not sides_for_item:
             continue
+        rec = sides_for_item.get(DEFAULT_SIDE) or next(iter(sides_for_item.values()))
         h = jobs[item]["handout"]
         try:
             g = H.apply_corrected_gold(loaders[h](), h)
@@ -1210,10 +1229,16 @@ def fixture_suspects() -> list[str]:
             import agreement_app as APP
             g, _ = APP.rebuild_gold_1c({p: dict(v) for p, v in g.items()})
         top = max(((g.get(p) or {}).get(item) or {}).get("score") or 0 for p in g)
-        runs_path = _runs_path(item)
-        for pid_s, right in sorted(rec["cells"].items(), key=lambda kv: int(kv[0])):
-            if right != 0:
-                continue
+        # Union of cells any side got wrong in every run, with the side that
+        # said so -- so a web-only miss is examined instead of skipped.
+        zero: dict[str, str] = {}
+        for s, r in sides_for_item.items():
+            for pid_s, right in (r.get("cells") or {}).items():
+                if right == 0 and pid_s not in zero:
+                    zero[pid_s] = s
+        for pid_s in sorted(zero, key=int):
+            side = zero[pid_s]
+            runs_path = _runs_path(item, side)
             pid = int(pid_s)
             gs = ((g.get(pid) or {}).get(item) or {}).get("score")
             if gs is None or H.gold_divergence(item, pid):
@@ -1229,17 +1254,22 @@ def fixture_suspects() -> list[str]:
             # either a probe or a fixture read.
             if _ever_right(item, pid, gs):
                 continue
+            if (item, pid) in seen:
+                continue
             if gs == top and all(s == 0 for s in got):
-                out.append(f"{item}/p{pid}: gold {gs:g} (full marks) and we award "
-                           f"0 in every run — read the fixture before the rubric")
+                seen.add((item, pid))
+                out.append(f"{item}/p{pid} [{side}]: gold {gs:g} (full marks) and "
+                           f"we award 0 in every run — read the fixture before "
+                           f"the rubric")
             elif gs == 0 and all(s > 0 for s in got):
-                out.append(f"{item}/p{pid}: gold 0 and we award "
+                seen.add((item, pid))
+                out.append(f"{item}/p{pid} [{side}]: gold 0 and we award "
                            f"{'/'.join(f'{s:g}' for s in got)} in every run — "
                            f"read the fixture before the rubric")
     return out
 
 
-def _runs_path(item: str) -> str | None:
+def _runs_path(item: str, side: str = DEFAULT_SIDE) -> str | None:
     """Where the recorded sweep's artifact is, derived from the ledger entry.
 
     The ledger stores the output DIRECTORY name it recorded from, so the artifact
@@ -1247,7 +1277,7 @@ def _runs_path(item: str) -> str | None:
     """
     import paths
 
-    rec = entry(item)
+    rec = entry(item, side)
     out = rec.get("out")
     if not out:
         return None
@@ -1264,6 +1294,7 @@ def _ever_right(item: str, pid: int, gold_score: float) -> bool:
     """
     import glob
 
+    import cross_path as _X
     import handouts as H
     import paths
 
@@ -1274,9 +1305,22 @@ def _ever_right(item: str, pid: int, gold_score: float) -> bool:
             continue
         for run in data.get("runs", []):
             for c in run.get("results", []):
-                if not isinstance(c, dict) or c.get("participant_id") != pid:
+                # Read through result_cell, which knows all THREE artifact
+                # shapes. This matched `participant_id` directly -- the python
+                # harness's key -- so it silently skipped every web artifact
+                # (keyed `cell`) and every paper one (keyed `item_id`), while its
+                # own docstring promised "any artifact on disk". A cell right on
+                # the WEB and never on the cli therefore read as never-right, and
+                # got reported as a fixture suspect: exactly the wasted fixture
+                # read this function exists to prevent, caused by the function.
+                if not isinstance(c, dict):
                     continue
-                s = c.get("score")
+                got = _X.result_cell(c)
+                if got is None:
+                    continue
+                cell_item, cell_pid, s, _ = got
+                if cell_item != item or cell_pid != pid:
+                    continue
                 if s is not None and H.scored_exactly(item, gold_score, s):
                     return True
     return False
@@ -1291,6 +1335,29 @@ def _scores_for(item: str, pid: int, runs_path: str | None) -> list:
         return []
     return [c.get("score") for run in data["runs"] for c in run["results"]
             if c.get("participant_id") == pid]
+
+
+def _staleness_lines() -> list[str]:
+    """Staleness across every recorded side, ABSENT only for the default one.
+
+    ABSENT on a paper side means that sweep has not been run, which is E28's
+    business and not a gap in this item's measurement; reporting it here would
+    put twenty-six standing entries on a list meant to be short enough to read.
+    """
+    out = []
+    for side in SIDES:
+        try:
+            rows = status(side)
+        except Exception:
+            continue
+        for item, state in rows:
+            if not state.startswith(("ABSENT", "STALE", "pending")):
+                continue
+            if state.startswith("ABSENT") and side != DEFAULT_SIDE:
+                continue
+            where = "" if side == DEFAULT_SIDE else f" [{side}]"
+            out.append(f"{item}{where}: {state}")
+    return out
 
 
 def preflight() -> dict[str, list[str]]:
@@ -1310,9 +1377,13 @@ def preflight() -> dict[str, list[str]]:
             gold_rows_that_do_not_reconcile(),
         "3. declarations — contradicted by a recorded measurement":
             declaration_conflicts(),
+        # Every side, and labelled. This listed `status()` -- the cli default --
+        # so a session reading preflight to decide what to sweep next could not
+        # see that the WEB number for an item was measured against a different
+        # prompt. The two can diverge: prompt_sha is side-aware, so a change to
+        # an attribute the harness never reads moves only the web's fingerprint.
         "4. staleness — items not measured as currently configured":
-            [f"{i}: {s}" for i, s in status()
-             if s.startswith(("ABSENT", "STALE", "pending"))],
+            _staleness_lines(),
         "5. record — prose that disagrees with the ledger":
             prose_claims(),
         "6. leakage — rule blocks echoing the cohort, with no verdict filed":
@@ -1335,15 +1406,27 @@ def _unprobed_movers() -> list[str]:
     except Exception:
         return []
     out = []
-    for item, rec in records().items():
-        pending = rec.get("unprobed_movers") or []
-        if not pending:
+    # EVERY recorded side. A cell that moved on the web and was never probed is
+    # the same unmade decision as one that moved on the cli, and the prompt_sha a
+    # probe is filed against is per-side, so the cli's probes do not answer for
+    # the web's movers.
+    for side in SIDES:
+        try:
+            recs = records(side)
+        except Exception:
             continue
-        have = CR.probed_cells(item, rec.get("prompt_sha", ""))
-        left = [p for p in pending if p not in have]
-        if left:
-            out.append(f"{item}: moved cell(s) {', '.join('p%s' % p for p in left)} "
-                       f"never probed at prompt {rec.get('prompt_sha')}")
+        for item, rec in recs.items():
+            pending = rec.get("unprobed_movers") or []
+            if not pending:
+                continue
+            have = CR.probed_cells(item, rec.get("prompt_sha", ""))
+            left = [p for p in pending if p not in have]
+            if left:
+                where = "" if side == DEFAULT_SIDE else f" [{side}]"
+                out.append(
+                    f"{item}{where}: moved cell(s) "
+                    f"{', '.join('p%s' % p for p in left)} never probed at prompt "
+                    f"{rec.get('prompt_sha')}")
     return out
 
 
@@ -1371,25 +1454,56 @@ def report() -> str:
     that has since grown. Handout 1's items were once reported as 12/14 and
     14/15 while their denominators were 19 and 20.
     """
-    led = records()
-    lines, tot_n, tot_d = [], 0, 0
+    # EXPLICITLY TWO-SIDED. This printed one side -- the cli default -- with no
+    # label, so the canonical table said "Q6 17/20" about a project that measures
+    # every item twice, and a reader could not tell which scorer the figure came
+    # from or that another number existed. Any side with data gets a row; the
+    # side is always named, including when only one has any, because an unlabelled
+    # number is how a single-path figure gets quoted as the project's result.
+    per_side = {}
+    for s in SIDES:
+        try:
+            recs = records(s)
+        except Exception:
+            continue
+        if recs:
+            per_side[s] = recs
+    if not per_side:
+        return "no measurements recorded"
+
+    lines: list[str] = []
+    totals = {s: [0, 0] for s in per_side}
     for h in (1, 2, 3):
-        rows = [(i, led.get(i, {})) for i in sorted(_jobs())
-                if _jobs()[i]["handout"] == h]
+        items = [i for i in sorted(_jobs()) if _jobs()[i]["handout"] == h]
         lines.append(f"Handout {h}")
-        for item, rec in rows:
-            if not rec or rec.get("pending"):
-                lines.append(f"  {item:<5} pending")
+        for item in items:
+            got = {s: recs.get(item) for s, recs in per_side.items()
+                   if recs.get(item)}
+            if not got:
+                lines.append(f"  {item:<5} not recorded on any side")
                 continue
-            n, d = rec["numerator"], rec["denominator"]
-            tot_n += n
-            tot_d += d
-            ex = f"  excl {rec['exclusions']}" if rec["exclusions"] else ""
-            lines.append(f"  {item:<5} {n:>3}/{d:<3} {100.0 * n / d:5.1f}%  "
-                         f"median of {rec['runs']} runs {rec['run_totals']}{ex}")
-    if tot_d:
-        lines.append(f"\nTOTAL {tot_n}/{tot_d} = {100.0 * tot_n / tot_d:.1f}% "
-                     f"(sum of per-item medians; not a run of the whole corpus)")
+            for s in (x for x in SIDES if x in got):
+                rec = got[s]
+                if rec.get("pending"):
+                    lines.append(f"  {item:<5} {s:<10} pending")
+                    continue
+                n, d = rec["numerator"], rec["denominator"]
+                totals[s][0] += n
+                totals[s][1] += d
+                ex = f"  excl {rec['exclusions']}" if rec["exclusions"] else ""
+                lines.append(
+                    f"  {item:<5} {s:<10} {n:>3}/{d:<3} {100.0 * n / d:5.1f}%  "
+                    f"median of {rec['runs']} runs {rec['run_totals']}{ex}")
+    live = [(s, n, d) for s, (n, d) in totals.items() if d]
+    if live:
+        lines.append("")
+        for s, n, d in live:
+            lines.append(f"TOTAL {s:<10} {n}/{d} = {100.0 * n / d:.1f}% "
+                         f"(sum of per-item medians; not a run of the whole corpus)")
+        if len(live) > 1:
+            lines.append("The per-side totals are NOT comparable unless every "
+                         "item is recorded on both: a side missing an item is "
+                         "missing its denominator too.")
     return "\n".join(lines)
 
 
