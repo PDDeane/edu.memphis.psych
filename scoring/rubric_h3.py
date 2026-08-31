@@ -256,6 +256,21 @@ ITEMS: list[dict] = [
                 "desc": "The graph has a legend — the key naming the plotted series "
                      "(Baseline / Week 1 / Week 2 / Week 3). A single-series graph with "
                      "no key has no legend",
+                # MIGRATED 2026-08-30 from web-only SLOT_NOTES['1c:legend'],
+                # verbatim except for the verdict token: the note said
+                # `incomplete`, which is the web's extra for this slot, and the
+                # paper's counterpart is `not_described` (see the `codes` below,
+                # which is where score.py reads it from). `{fail}` renders each.
+                # `absent` is named literally on purpose — it is universal, and
+                # it means something DIFFERENT here from the failing verdict:
+                # empty box, not a mis-described legend.
+                "rule": "the NO_LEGEND test. `met` when the series names name all "
+                     "four plotted periods — the baseline and the three intervention "
+                     "weeks — in any reasonable wording ('Baseline, Wk1, Wk2, Wk3' "
+                     "counts). `{fail}` when some are named and some are not, or the "
+                     "count does not match the four series; `absent` when the box is "
+                     "empty or holds something that is not a set of series names. "
+                     "Judge the series names, not the heading",
                 "codes": {"absent": "NO_LEGEND", "not_described": "NO_LEGEND"},
 },
         ],
