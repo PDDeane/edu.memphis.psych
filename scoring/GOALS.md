@@ -1143,6 +1143,51 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       `affect_*` slots whose reasons turn on what `cover` already constrains. If
       `requires` lands on Q6, both entries are due for re-judging by this rule.
 
+- [ ] E30. **Nothing compares OUR failing slots against GOLD's charged slots. Only totals.**
+      Filed 2026-08-31 out of Q28, which is the demonstration. Every rate in this
+      project compares a cell's TOTAL against gold's total -- `scored_exactly`,
+      the ledger, cross_path --gold -- so a cell that fails the WRONG SLOTS in
+      the RIGHT QUANTITY reads as a match on every path that looks at it.
+      THE CASE. Q6/p5, six runs, both sides. Gold's comment charges three slots:
+          -1.25 First antecedent does not match antecedents listed in 4a
+          -1.25 First consequence does not match 4c
+          -1.25 Second consequence does not match 4a   [4c is meant]
+      -- state_a1, state_c1, state_c2. WE fail state_a1, state_c2 and affect_c2.
+      Same 3.75, same 6.25, two disagreements cancelling. It read as a 6-of-6
+      web success and a 5-of-6 cli one, and on that reading the divergence
+      DUPLICATE_EFFECT_TIE_BREAK was proposed for retirement -- wrongly, since
+      gold's comment confirms its stated reason word for word.
+      WHY cross_path --slots DOES NOT COVER IT: that compares the two SCORERS to
+      each other. Both scorers agree with each other here and both differ from
+      the grader in the same place, which is exactly the shape a scorer-to-scorer
+      comparison cannot see. Nothing in the tree compares a slot set to gold's.
+      WHAT EXISTS TO BUILD ON, and its limits:
+        `criterion_rows(item, check)` already asks whether gold's comment charges
+          one criterion, by splitting the check name into words and searching the
+          comment for them. Crude by its own admission -- it prints the comment
+          "so a mis-group is visible" -- but it is the right shape and it works
+          well enough to group rows by hand today.
+        `_DEDUCT_RE` parses the AMOUNTS. It requires `pts`/`points`/`:`/`;` after
+          the number, so it misses comments written as `-1.25 <text>`: 3 of the
+          183 rows with a comment, and Q6/p5 is one of them. Those rows are
+          currently invisible to gold_rows_that_do_not_reconcile as well, which
+          skips a row whose deductions it cannot read. Fix that first -- it is a
+          regex, it is cheap, and it is a prerequisite for anything that reads
+          gold's itemisation.
+      THE HARD PART, stated so it is not discovered late: mapping a grader's prose
+      to a SLOT KEY is not mechanical. "First consequence does not match 4c" is
+      state_c1 only if you know this item's slot naming; the graders wrote for
+      students, not for the sheet. So the check probably cannot be corpus-wide on
+      day one. A defensible first version: only rows whose comment itemises
+      deductions AND whose phrases map through a declared per-item table, with
+      every unmapped row REPORTED as unmapped rather than silently passing --
+      the opposite of today, where an unmappable row is simply not looked at.
+      DO NOT let this become a re-scoring tool. It answers one question -- do we
+      fail the slots gold charged -- and a cell that agrees on total while
+      disagreeing per slot is a finding to read, not a number to adjust. Q6/p5's
+      own two disagreements cannot be fixed independently: correcting state_c1
+      alone moves the total off gold, which is why it wants a person.
+
 - [ ] E25. **The `keyword` check is 100% accurate and cannot move a score. Convert it to `derived`.**
       AN AUDIT SUBGOAL, NOT A QC ONE, and it was filed wrong once: its FINDING is
       about accuracy (240/240) but its DELIVERABLE is a primitive conversion --
@@ -2063,59 +2108,74 @@ The order below is by diagnosed tractability, not by score. A deterministic miss
 with a named failing check is worth more than a larger gap of unknown shape,
 because it can be fixed or declared; a wobbling cell cannot be either.
 
-- [ ] Q28. **Q6/p5: get the CLI to match the web so DUPLICATE_EFFECT_TIE_BREAK can be retired.**
-      Filed 2026-08-31 out of E15. The divergence says we knowingly miss Q6/p5
-      because gold credits both effect boxes and our duplicate rule does not.
-      After `requires` landed, the WEB scores it right in 6 of 6 runs and the CLI
-      in 5 of 6 -- so the declaration is false on one path and true on the other.
-      WHAT STANDS IN THE WAY IS ONE RUN. measured.declaration_conflicts retires a
-      declaration only when EVERY measured side scores the cell right in EVERY
-      run, and that threshold is right: a divergence a path still hits is a true
-      statement about that path. The CLI's single miss scores 7.5 against gold
-      6.25 -- an OVER-credit of 1.25, one slot, in one run of six.
-      SO THE QUESTION IS NARROW: why does the CLI credit one extra slot on p5 in
-      one run when the web never does, on the same prompt with `link_c2` answering
-      `absent` in all twelve runs? Read that run's slot verdicts against the
-      other five before touching a rule. It is one cell, one run, and both
-      artifacts are on disk -- out/q6_e15_cli and out/q6_e15_web -- so this costs
-      no API calls to diagnose.
-      DO NOT retire the entry to make the audit quiet. The check now REPORTS the
-      split rather than resolving it in the default side's favour, which is the
-      honest state; silencing it by scoping the entry to `cli` would record a
-      path difference as a gold disagreement, which is a different claim.
-      WORTH KNOWING FIRST: p5 is described in the divergence as "a textbook
-      parallel answer -- six sentences, one per box, the cleanest split in the
-      corpus".
-      AND IT IS NOT A STABILITY PROBLEM. The six CLI runs were read off disk
-      before filing, and run 4 -- the only miss -- is the only run in which
-      `affect_c2` FAILED on its own, answering `incomplete`. Its score is 7.5.
-      The five runs where `affect_c2` was `met` all scored 6.25, which is gold.
-      So on p5 the CLI LOSES LESS WHEN IT FAILS MORE: an independently failing
-      `affect_c2` produces a higher total than a passing one, with `link_c2`
-      answering `absent` in all six.
-      THE TWO RUNS DIFFER IN ONE VERDICT. Dumped in full: every slot is `met` in
-      both, `confident` is `absent` in both, `link_c2` is `absent` in both, and
-      the ONLY difference is affect_c2 -- `met` in run 1 (score 6.25) and
-      `incomplete` in run 4 (score 7.5). Strictly more failure, 1.25 more credit.
-      A FIRST LEAD WAS WRONG and is recorded so it is not tried again: that
-      `requires` skips a dependent already in `demoted`, so an independently
-      failed slot escapes the denial. That IS score.py's code (score.py:535), but
-      the CLI column is agreement.py, whose `requires` is a plain boolean AND
-      (`out[key] = out[key] and out[cond]`, agreement.py:986) with no such skip.
-      So the asymmetry is not there, and the mechanism is still unidentified.
-      WHERE TO LOOK NEXT, given that: the interaction is between `requires` and
-      something else that reads the same slots, because `requires` alone would
-      deny state_c2 and affect_c2 in BOTH runs and cost the same 2.5 in each.
-      Candidates, cheapest first: `cover` -- state_c1 and state_c2 both answer
-      `met` while the group's labels are first/second, so is_satisfied's
-      non-`met` branch decides them and a duplicate demotion may fire in one run
-      and not the other; and the C_NO_EFFECT code, which affect_c2 shares with
-      affect_c1. Instrument score_slots on the two recorded verdict sets and
-      print what each stage denies. Still no API calls -- both sets are above.
-      IF THAT IS THE BUG it is worth more than one cell: it would mean any
-      `requires` pair scores differently depending on whether its dependent
-      failed independently, on every item that ever carries one. Q6 is the only
-      such item today, which is why it has not been seen before.
+- [ ] Q28. **Q6/p5: the CLI's one miss is `state_a1` refers_to drift, not a rule.**
+      DIAGNOSED 2026-08-31, from the artifacts on disk, no API calls. Two wrong
+      mechanisms were proposed and retracted first; both are recorded because the
+      way they were wrong is the reusable part.
+      THE ANSWER. All six CLI runs answer `state_c1: first` AND `state_c2: first`
+      -- the same cover label twice -- so the greedy claim in
+      agreement.satisfied_map always denies state_c2, and `requires` always
+      denies affect_c2 because link_c2 answers `absent` every run. That is two
+      failures in every run. The five runs that MATCH gold have a third:
+      `state_a1: none`, which is not one of the group's labels and so earns
+      nothing. Run 4 -- the only miss -- answers `state_a1: first`, claims the
+      label, and banks 1.25 the other five do not:
+          runs 1,2,3,5,6   failed 3   score 6.25   = gold
+          run 4            failed 2   score 7.50
+      The arithmetic is exactly 10 - 1.25 x failed_slots throughout.
+      SO IT IS THE `refers_to` CEILING, which memory/q6-matching-ceiling.md
+      already names: "Only 5 of 20 cells returned the same judgement in all three
+      passes, with all the drift in the four state_* slots that carry
+      `refers_to`." p5 is that drift, on state_a1, in one run of six. It is not a
+      `requires` defect, not a codes defect, and not a duplicate-rule defect.
+      TWO RETRACTED LEADS, so neither is tried again:
+        (1) "`requires` skips a dependent already in `demoted`, so an
+            independently failed slot escapes the denial." That code exists at
+            score.py:535 -- but the cli column is agreement.py, whose `requires`
+            is a plain boolean AND (agreement.py:986) with no such skip.
+        (2) "Every Q6 slot offers a verdict with no deduction code -- the web
+            answers `incomplete`/`mismatch` while the rubric's `codes` maps are
+            keyed on the paper's `not_described`/`neither` -- so a failure goes
+            uncharged." The gap is REAL and worth knowing, but it is not a
+            scoring bug: Q6's score is points-based off failed_slots, and the
+            codes carry the FEEDBACK text, not the arithmetic. Confirmed by
+            scoring three verdict sets that differ only in that token and getting
+            one number.
+        BOTH came from reading the artifact's `checks` field and not its
+        `answers` field. The cover references live in `answers`, and on this item
+        they decide almost everything: two of the three failures in every run are
+        cover outcomes. Read both fields before proposing a mechanism.
+      DO NOT RETIRE THE DECLARATION. It was proposed for retirement here and that
+      was WRONG, caught by reading gold's own comment instead of its total. Gold
+      charges three slots on p5:
+          -1.25 First antecedent does not match antecedents listed in 4a
+          -1.25 First consequence does not match 4c
+          -1.25 Second consequence does not match 4a   [4c is meant]
+      so gold fails state_a1, state_c1 and state_c2. WE fail state_a1, state_c2
+      and affect_c2. Same total, DIFFERENT SLOTS: we credit state_c1 where gold
+      charges it, and we charge affect_c2 where gold does not.
+      SO p5's AGREEMENT IS COMPENSATING ERROR, not correctness, and
+      DUPLICATE_EFFECT_TIE_BREAK's stated reason -- "gold credits both effect
+      boxes and our duplicate rule does not" -- is confirmed by gold's comment,
+      which never charges an effect box. The declaration is TRUE and stays.
+      WHICH MEANS `scored_exactly` HID IT. Every rate in this project compares
+      totals, so a cell failing the wrong slots in the right quantity reads as a
+      match on both sides -- and on p5 it read as a 6/6 web success. The
+      per-slot check that would catch it is cross_path --slots, which compares
+      the two SCORERS to each other and not either of them to gold. Nothing
+      compares our slot set against the grader's slot set, and this cell is the
+      demonstration that the gap is real.
+      THE REAL WORK, then, is two cells' worth of slot-level disagreement on p5:
+        state_c1 -- we say the first consequence box matches 4c first, gold says
+          it does not. The box is "{{corpus:Q6/p5:state_c1:96:156:sha=448318110368:shape=S6-0a20202020202020202020}} foods"; 4c first is "{{corpus:Q4c/p5:first:68:128:sha=192652132e50:shape=S3-0a20202020202020202020}} alternatives". Gold's reading is
+          defensible and ours is the looser one.
+        affect_c2 -- we charge it through link_c2 and gold charges nothing on the
+          effect boxes at all. That is the declared divergence, and it is doing
+          exactly what it says.
+      Fixing state_c1 without fixing affect_c2 would BREAK the total, taking p5
+      from 6.25 to 5.0. The two are only safe to touch together, and that is a
+      matching-rule question on `refers_to`, which is the Q6 ceiling. Read
+      memory/q6-matching-ceiling.md before proposing anything.
 
 - [ ] Q27. **DAY1/p1 scores 0.0 against a gold of 4.0, deterministically, on both sides.**
       Filed 2026-08-30. DAY1 UNDER-credits one-sided -- cli 1 over / 8 under, web
