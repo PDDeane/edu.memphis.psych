@@ -1972,6 +1972,32 @@ GOLD_SLOT_CHARGES: dict[str, list[tuple[str, tuple[str, ...]]]] = {
 # Separate from GOLD_SLOT_DISAGREEMENTS_KNOWN because the finding is weaker in
 # kind -- a count or a subset, not a named slot -- and mixing them would let a
 # bounded finding be quoted as an exact one.
+# E35. Criteria-derived cells where our deduction CODE differs from gold's.
+GOLD_CODE_KNOWN: dict[tuple[str, int], str] = {
+    # FOUR LENIENT, ONE HARSH, on the same judgement -- the operant TYPE. That
+    # combination is the signature of an unstable derived check rather than a
+    # threshold set wrong, and it is subgoal Q23's `matches_chosen_type` family
+    # seen from the grader's side for the first time.
+    ("NR", 15): "gold charges WRONG_TYPE (2) -- \"This is an example of PR.\" -- "
+                "and we charge nothing: we accept the example as NR.",
+    ("WK2", 3): "gold charges TYPE_MISMATCH (2) -- \"This is NP.\" -- and we "
+                "charge nothing.",
+    ("WK2", 15): "same as WK2/p3, phrased \"This is an example of NP.\"",
+    ("DAY2", 7): "gold charges WRONG_BEHAVIOR (1) -- the plan targets the wrong "
+                 "behavior -- and we charge nothing.",
+    # THE ONE THAT RUNS THE OTHER WAY, and the more serious of the two directions:
+    # a 4-point charge takes the whole item where gold takes 2.
+    ("NR", 11): "gold charges WRONG_TYPE (2), saying the example IS operant "
+                "conditioning but of the wrong type. We charge 4 -- NOT_OC, "
+                "NOT_EXTERNAL_STIMULUS or BLANK, which the score alone cannot "
+                "separate -- so we reject it as not operant conditioning at all. "
+                "The cascade in agreement.score_oc returns at its FIRST failure, "
+                "so a definitional criterion reading unmet hides the type "
+                "question entirely: read which of the four criteria failed before "
+                "touching the type rule.",
+}
+
+
 GOLD_SLOT_BOUNDS_KNOWN: dict[tuple[str, int], str] = {
     # 2a, FOUR CELLS, ONE SHAPE: gold charges one `how_*` slot -- "your third
     # sentece does not explain how your plan was successful" / "need more
@@ -2151,6 +2177,85 @@ def _slots_are_not_comparable(item: str) -> bool:
     except Exception:
         return False
     return bool(rub.get("derive_from_criteria"))
+
+
+# E35. The eight `derive_from_criteria` items cannot be compared slot by slot --
+# their rubric carries the checks the DEDUCTIONS are written against while their
+# sheet asks fourteen criteria the CLI derives those from. But they CAN be
+# compared by deduction CODE, which is what both sides actually produce:
+# agreement.score_oc is a cascade returning exactly one code, and gold's comments
+# name the same three or four judgements.
+#
+# One table for all eight: they share a vocabulary, because they are the same
+# question asked about four operant types and two cadences.
+GOLD_CODE_CHARGES: list[tuple[str, str]] = [
+    (r"not operant conditioning", "NOT_OC"),
+    (r"this is (an example of )?(np|nr|pp|pr)\b", "WRONG_TYPE"),
+    (r"make sure the behavior you are targeting", "WRONG_BEHAVIOR"),
+]
+
+
+def _cell_scores(item: str, pid: int, side: str = DEFAULT_SIDE) -> list:
+    """Every recorded score for one cell, from the side's own artifact."""
+    import cross_path as _X
+
+    path = _runs_path(item, side)
+    if not path:
+        return []
+    try:
+        runs = json.loads(Path(path).read_text())["runs"]
+    except Exception:
+        return []
+    out = []
+    for run in runs:
+        for r in (run.get("results") or []):
+            got = _X.result_cell(r)
+            if got and got[0] == item and got[1] == pid and got[2] is not None:
+                out.append(got[2])
+    return out
+
+
+def gold_charged_code(item: str, pid: int):
+    """(code, amount) gold's comment charges on a criteria-derived item, or None.
+
+    The amount is what makes this checkable: WRONG_TYPE is 2 and NOT_OC is 4, so a
+    phrase and an amount that disagree mean the table is wrong rather than the
+    scorer -- the same guard the slot tables carry.
+    """
+    import re
+    import gold as _gold
+    import handouts as H
+
+    if not _slots_are_not_comparable(item):
+        return None
+    h = _jobs()[item]["handout"]
+    try:
+        g = H.apply_corrected_gold(
+            {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[h](), h)
+        rub = H.config(h)["rubric"].BY_ID[item]
+    except Exception:
+        return None
+    row = (g.get(pid) or {}).get(item) or {}
+    fb = row.get("feedback") or ""
+    amts = deductions_named(fb)
+    if len(amts) != 1:
+        return None            # more than one charge is a different shape
+    # The comment must describe the score in force, as everywhere else here.
+    if row.get("score") is None or abs(
+            (rub["max"] - amts[0]) - row["score"]) > 1e-9:
+        return None
+    hits = [c for pat, c in GOLD_CODE_CHARGES if re.search(pat, fb, re.I)]
+    if len(set(hits)) != 1:
+        return None
+    code = hits[0]
+    # TYPE_MISMATCH is the cadence items' name for WRONG_TYPE. Same judgement,
+    # different code, and the rubric is what says which exists on this item.
+    codes = {d["code"]: d["pts"] for d in rub["deductions"]}
+    if code == "WRONG_TYPE" and code not in codes and "TYPE_MISMATCH" in codes:
+        code = "TYPE_MISMATCH"
+    if code not in codes or abs(codes[code] - amts[0]) > 1e-9:
+        return None            # phrase and amount disagree: the TABLE is wrong
+    return code, amts[0]
 
 
 def gold_charge_bounds(item: str, pid: int):
@@ -2487,6 +2592,40 @@ def gold_slot_disagreements() -> list[str]:
                     f"{len(stable)} ({sorted(stable)}). WHICH slots gold meant is "
                     f"ambiguous; the COUNT is not, so the two disagree on every "
                     f"reading. Declare it in GOLD_SLOT_BOUNDS_KNOWN or fix it")
+
+    # E35. CODE-LEVEL accounting for the eight criteria-derived items, which the
+    # slot comparison refuses. Both sides charge exactly one deduction code here,
+    # so the comparison is code against code -- and OUR code is recoverable from
+    # the score, because every one of these items has max 4 and charges once.
+    for item in sorted(_jobs()):
+        if not _slots_are_not_comparable(item):
+            continue
+        try:
+            rub = H.config(_jobs()[item]["handout"])["rubric"].BY_ID[item]
+        except Exception:
+            continue
+        codes = {d["code"]: d["pts"] for d in rub["deductions"]}
+        for pid in range(1, 21):
+            got = gold_charged_code(item, pid)
+            if got is None or (item, pid) in GOLD_CODE_KNOWN:
+                continue
+            code, amt = got
+            preds = _cell_scores(item, pid)
+            if not preds:
+                continue
+            ours = sorted(preds)[len(preds) // 2]
+            our_amt = rub["max"] - ours
+            if abs(our_amt - amt) < 1e-9:
+                continue          # same size charge; the codes agree by amount
+            # Which codes could OUR deduction be? Several share an amount, so the
+            # honest report names the candidates rather than picking one.
+            cand = sorted(c for c, v in codes.items()
+                          if abs(v - our_amt) < 1e-9) or ["nothing"]
+            out.append(
+                f"{item}/p{pid}: gold charges {code} ({amt:g}); we charge "
+                f"{our_amt:g} ({' or '.join(cand)}). Both sides charge ONE code on "
+                f"this item, so the two disagree about WHICH judgement failed, not "
+                f"just by how much. Declare it in GOLD_CODE_KNOWN or fix it")
 
     # A declaration that outlived its cell, and the ratchet.
     live = {k for k in GOLD_SLOT_DISAGREEMENTS_KNOWN if k[0] in GOLD_SLOT_CHARGES}
