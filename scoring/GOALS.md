@@ -894,7 +894,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       cells (excluding p4, p19, p20), agreeing with its 16/17 ledger figure, and
       still reports the ZERO over-credits the rebuild_gold_1c note demands.
 
-- [ ] E15. **`requires` is implemented on BOTH engines and bound to nothing. Q6 is why it exists.**
+- [x] E15. **`requires` is implemented on BOTH engines and bound to nothing. Q6 is why it exists.** DONE
       Surfaced 2026-08-29 by the new live-exercise check, which listed `requires`
       as used by NO item. It is not dead code: slotSheet.ts parses and applies it,
       agreement.py and score.py compute it, primitives.json declares it. Only the
@@ -977,18 +977,106 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
           can pass every unit test while the app cannot build the sheet. Fix that
           first, then exercise `requires` live BEFORE closing anything -- the
           rule from subgoal E12/13's episode, now enforced.
-      (b) Baseline first: Q6's CLI six-run median is 16/20, runs
-          [15,15,15,16,16,16]. The web column does not exist yet.
+      (b) Baseline first: Q6's CLI six-run median WAS 16/20, runs
+          [15,15,15,16,16,16], and the web column was 16/20 too. MEASURED
+          2026-08-31 after the change: cli 17/20 [16,16,16,17,17,17] and web
+          18/20 [14,17,18,18,18,18].
       (c) Measure at SIX runs. The note is explicit that a 3-pass sweep cannot
           resolve a two-cell move on this item: only 5 of 20 cells returned the
           same judgement across three passes.
       (d) Predict per cell before measuring. p5 is the target. p2 over-credits
           +1.25 in every recorded run and is the cell a narrower rule has fixed
           twice. p19 and p10 are the historical casualties.
+      IMPLEMENTED 2026-08-30, unmeasured. `link_c2` is a new REPORTED slot -- "the
+      second consequence pair is about a DIFFERENT consequence from the first",
+      met/absent/unclear -- and
+      `requires="state_c2:link_c2:unclear|affect_c2:link_c2:unclear"` denies the
+      pair when it answers `absent`. The duplicate-detection prose was MOVED, not
+      copied: it left affect_c1's and affect_c2's rules and became link_c2's, so
+      one mechanism decides it. Leaving both would confound the measurement and,
+      if they ever disagreed, the prose would silently win.
+      THE E14 GUARD PASSES: check_action_attributes_are_declared_in_the_block
+      reports the LLMAction schema accepts `requires`, so the failure that made
+      `forbid`/`maps` unscorable on the app does not apply here. That is a static
+      result and does not replace the live run.
+      TWO AUDIT DEFECTS FELL OUT OF IT, both fixed:
+        _credit_fail could FAIL A SLOT TO A LENIENT VERDICT. Failing link_c2
+          alone picked `absent` and cost 2.5, but in a PAIR the `avoid` argument
+          pushed it to `unclear` -- which `requires` is written to forgive -- so
+          every pair containing link_c2 read as sublinear and the audit reported
+          SIX charge-once divergences against a rule that has none. Same class as
+          the cover-label case already recorded there: the probe must fail the
+          slot, not re-answer it in a way the primitive forgives. Fixed; Q6's
+          charge_once is now exactly the two declared `requires` pairs.
+        _primitives_with_live_app_evidence ACCEPTED A STALE MEASUREMENT. It
+          counted any item with a `web` ledger entry as evidence, so Q6's number
+          -- recorded before `requires` existed -- was read as proof that
+          `requires` had run live. That is the precise fiction this rule exists to
+          prevent, arriving through the check meant to enforce it. It now requires
+          the recorded prompt_sha to match the prompt on disk. `requires`
+          correctly shows NO evidence, and `cover` correctly drops to none,
+          because Q6 is the only item that carries it and its measurement is now
+          stale. Both are re-established by the same sweep.
+      THE PREDICTION, written before measuring, and it is LESS optimistic than
+      this subgoal's original framing. Q6's over-credit by cell, 6 runs, both
+      sides, exclusions applied:
+          p8 15.0 pts   p2 7.5   p6 3.75 (cli only)   p5 1.25   p4/p16/p18 ~1.25
+        p8 WILL NOT MOVE, and it is half the over-credit on the item. Its 2.5 a
+          run is the two CHANGE slots, declared A_NO_CHANGE -- gold charges both
+          for a scheduling commitment where the antecedent was a not-doing.
+          `requires` gates the CONSEQUENCE pair and cannot reach it.
+        p5 MAY GET WORSE, and this is the one to watch. DUPLICATE_EFFECT_TIE_BREAK
+          says our sheet applies a duplicate rule to the effect boxes and GOLD DOES
+          NOT: p5 writes the cleanest parallel answer in the corpus and gold credits
+          both boxes. Making that rule computed rather than prose makes it fire
+          more reliably, which entrenches the disagreement instead of settling it.
+          The subgoal called p5 "the target"; the divergence record says p5 is
+          where our rule already costs us. Both cannot be right, and the record is
+          the older and more specific claim.
+        p2 IS THE REAL CANDIDATE, and it can overshoot. It over-credits 1.25 a run
+          on both sides -- HALF what `requires` denies. If the c2 pair is the
+          source, the denial takes 2.5 and turns a +1.25 into a -1.25. A sign flip
+          is the outcome to look for, not a win.
+        p6 is the cleanest possible gain: 3.75 over on the CLI only, no
+          declaration standing over it.
+      SO THE HONEST EXPECTATION is neutral-to-small, with a real chance of losing
+      p5 and flipping p2. The case for measuring is not the projected number: it
+      is that the duplicate rule is currently a request no scorer can act on, and
+      after this it is arithmetic the audit can compare between the two.
       IF IT FAILS, the honest outcome is to RETIRE `requires` from
       primitives.json rather than leave a primitive in the registry that nothing
       uses and nothing can use. A registry entry no item can justify is a claim
       about the system that is not true.
+      CLOSED 2026-08-31. Measured at six runs on both sides against the
+      regenerated prompt 3b72b21974a0, era-checked, 0 cells never agreeing:
+          Q6 cli 17/20 [16,16,16,17,17,17]   was 16/20 [15,15,15,16,16,16]
+          Q6 web 18/20 [14,17,18,18,18,18]   was 16/20
+      out/q6_e15_cli, out/q6_e15_web. `link_c2` answered `absent` on 51 of 120
+      cli observations and 61 of 120 web, so `requires` denies the pair on about
+      half the corpus -- it is doing work, not sitting inert. Note the web spread
+      is 4, one run at 14: the median moved but the item is not stable.
+      UNEXERCISED_PRIMITIVES is now EMPTY, budget 1 -> 0. Every primitive in the
+      registry has an item that justifies it, and this one is exercised LIVE, not
+      merely wired -- the standard E12/E13's episode put in place.
+      THE PREDICTION SCORED 2 OF 4, and the misses were the useful part:
+        p8 did not move (15.0 both before and after). Predicted exactly: its
+          over-credit is the two CHANGE slots under A_NO_CHANGE and `requires`
+          gates the consequence pair.
+        p6 improved, 3.75 -> 1.25. Predicted as the cleanest available gain.
+        p2 did not move AT ALL, 7.5 -> 7.5. Predicted to overshoot; `requires`
+          never fired there, so p2's over-credit is not the duplicate-second-pair
+          the prediction assumed. Its cause is still unknown and still the
+          largest unexplained over-credit on the item after p8.
+        p5 got much BETTER, not worse, which is the finding. Predicted to degrade
+          because DUPLICATE_EFFECT_TIE_BREAK records that gold credits both
+          effect boxes and our duplicate rule costs us the cell. Instead:
+              p5 web  5.0/5.0/6.25/6.25/6.25/7.5  ->  6.25 x6   (gold 6.25)
+              p5 cli  5.0/6.25 x4/7.5             ->  6.25 x5, one 7.5
+          `link_c2` answered `absent` in ALL twelve runs. Denying the WHOLE pair
+          arithmetically lands on gold; the prose version denied only affect_c2,
+          and did it inconsistently. The declaration's REASONING was wrong, and
+          trusting it over the mechanism is what made the prediction wrong.
+      See subgoal Q28 for what that costs and what is left to do about it.
 
 - [x] E19. **Re-test PROSE_ONLY_SLOTS' "NOT CONVERTIBLE" claims when the primitive set changes.**
       DONE 2026-08-29, implemented the same day it was filed (249655f).
@@ -1974,6 +2062,48 @@ middle.
 The order below is by diagnosed tractability, not by score. A deterministic miss
 with a named failing check is worth more than a larger gap of unknown shape,
 because it can be fixed or declared; a wobbling cell cannot be either.
+
+- [ ] Q28. **Q6/p5: get the CLI to match the web so DUPLICATE_EFFECT_TIE_BREAK can be retired.**
+      Filed 2026-08-31 out of E15. The divergence says we knowingly miss Q6/p5
+      because gold credits both effect boxes and our duplicate rule does not.
+      After `requires` landed, the WEB scores it right in 6 of 6 runs and the CLI
+      in 5 of 6 -- so the declaration is false on one path and true on the other.
+      WHAT STANDS IN THE WAY IS ONE RUN. measured.declaration_conflicts retires a
+      declaration only when EVERY measured side scores the cell right in EVERY
+      run, and that threshold is right: a divergence a path still hits is a true
+      statement about that path. The CLI's single miss scores 7.5 against gold
+      6.25 -- an OVER-credit of 1.25, one slot, in one run of six.
+      SO THE QUESTION IS NARROW: why does the CLI credit one extra slot on p5 in
+      one run when the web never does, on the same prompt with `link_c2` answering
+      `absent` in all twelve runs? Read that run's slot verdicts against the
+      other five before touching a rule. It is one cell, one run, and both
+      artifacts are on disk -- out/q6_e15_cli and out/q6_e15_web -- so this costs
+      no API calls to diagnose.
+      DO NOT retire the entry to make the audit quiet. The check now REPORTS the
+      split rather than resolving it in the default side's favour, which is the
+      honest state; silencing it by scoping the entry to `cli` would record a
+      path difference as a gold disagreement, which is a different claim.
+      WORTH KNOWING FIRST: p5 is described in the divergence as "a textbook
+      parallel answer -- six sentences, one per box, the cleanest split in the
+      corpus".
+      AND IT IS NOT A STABILITY PROBLEM. The six CLI runs were read off disk
+      before filing, and run 4 -- the only miss -- is the only run in which
+      `affect_c2` FAILED on its own, answering `incomplete`. Its score is 7.5.
+      The five runs where `affect_c2` was `met` all scored 6.25, which is gold.
+      So on p5 the CLI LOSES LESS WHEN IT FAILS MORE: an independently failing
+      `affect_c2` produces a higher total than a passing one, with `link_c2`
+      answering `absent` in all six.
+      THAT IS AN ARITHMETIC LEAD, not a wording one. `requires` demotes a
+      dependent only when it is `not in demoted` already, so a slot that has
+      failed on its own is skipped by the denial -- and if the pair's deduction
+      is charged through a shared code, the two paths through the arithmetic do
+      not cost the same. Read agreement.py's `requires` block against score.py's
+      (score.py:535) and against the C_NO_EFFECT / cover demotions on that cell,
+      with the run-4 verdict set as the input. Still no API calls.
+      IF THAT IS THE BUG it is worth more than one cell: it would mean any
+      `requires` pair scores differently depending on whether its dependent
+      failed independently, on every item that ever carries one. Q6 is the only
+      such item today, which is why it has not been seen before.
 
 - [ ] Q27. **DAY1/p1 scores 0.0 against a gold of 4.0, deterministically, on both sides.**
       Filed 2026-08-30. DAY1 UNDER-credits one-sided -- cli 1 over / 8 under, web
