@@ -2411,11 +2411,23 @@ def ref_delta(handout: int) -> tuple[list[str], list[str], list[str]]:
 def _measurements_in_flight() -> list[str]:
     """Command lines of any harness process that is currently scoring cells.
 
-    Both harnesses read the generated .olx per call, so rewriting it under a
-    running one changes the prompt mid-measurement. Matched by module name rather
-    than by a lock file: a lock is only as good as the last process to release it,
-    and these runs are killed by hand often enough that a stale lock would train
-    everyone to pass --force.
+    `agreement.py` reads the generated .olx per call, so rewriting it under a
+    running one changes the prompt mid-measurement -- the recorded incident that
+    split handout 3's measurement and cost three items.
+
+    THE OTHER TWO DO NOT READ IT PER CALL, and the previous version of this
+    docstring said "both harnesses" do, which was wrong in a way that mattered:
+    it made the omission of `agreement_app.py` from the match look like an
+    oversight rather than a fact about what that harness reads. `agreement_app.py`
+    is served from a DUMPED idmap and validates it once at startup, so a later
+    rewrite cannot change its prompts; `score.py` builds from the rubric. They
+    are matched anyway -- see SWEEPING below -- because both still read gold,
+    exclusions and the era fingerprint from files a generator or a self-test can
+    move under them.
+
+    Matched by module name rather than by a lock file: a lock is only as good as
+    the last process to release it, and these runs are killed by hand often
+    enough that a stale lock would train everyone to pass --force.
     """
     import subprocess
 
@@ -2427,7 +2439,9 @@ def _measurements_in_flight() -> list[str]:
     mine = str(os.getpid())
     busy = []
     SHELLS = {"bash", "sh", "dash", "zsh", "ksh", "-bash", "fish"}
-    HARNESS = {"agreement.py", "agreement_app.py"}
+    # SWEEPING: all three scorers. `score.py` was absent, so a paper sweep was
+    # invisible to every caller of this guard.
+    HARNESS = {"agreement.py", "agreement_app.py", "score.py"}
     for line in out.splitlines()[1:]:
         pid, _, args = line.strip().partition(" ")
         if pid == mine or "olx_prompts" in args:
@@ -2449,12 +2463,88 @@ def _measurements_in_flight() -> list[str]:
         # which is far worse than a false positive.
         idx = next((i for i, tok in enumerate(parts)
                     if os.path.basename(tok) in HARNESS), None)
-        if idx is None or "--items" not in parts:
+        # `--items` OR `--item`: agreement.py takes the plural and
+        # agreement_app.py the singular, so demanding the plural made every WEB
+        # sweep invisible to this guard. score.py takes neither -- it sweeps a
+        # whole handout -- so a --handout run counts as well.
+        if idx is None or not ({"--items", "--item", "--handout"} & set(parts)):
             continue
         if not any(os.path.basename(t).startswith("python") for t in parts[:idx]):
             continue
         busy.append(" ".join(parts[:9]))
     return busy
+
+
+def _selftest_in_flight() -> list[str]:
+    """Command lines of any audit SELF-TEST currently running.
+
+    The mirror of `_measurements_in_flight`, and it closes the other half of the
+    same hazard. `equivalence.py --enforcement --selftest` deliberately injects
+    breakages into rubric_h*.py, enforcement.py and olx_prompts.py and restores
+    them afterwards, so for the ~15 minutes it runs those files intermittently
+    hold text nobody wrote. Every scorer reads some of them live -- agreement.py
+    and score.py build prompts from the rubric, and all three read gold,
+    exclusions and the era fingerprint -- so a sweep started underneath one
+    silently scores some cells against an injected rule.
+
+    Nothing prevented that. The convention was "do not start a sweep while the
+    self-test is running", which is a thing a person remembers, and the recorded
+    incident this project already has -- a mid-run rewrite splitting handout 3's
+    measurement, three items lost -- is the same failure from the other side.
+
+    Detected by process, not a lock file, for the reason
+    `_measurements_in_flight` gives: the self-test is killed by hand often enough
+    that a stale lock would train everyone past the guard.
+    """
+    import subprocess
+
+    try:
+        out = subprocess.run(["ps", "-eo", "pid,args"], capture_output=True,
+                             text=True, check=False).stdout
+    except Exception:                                   # pragma: no cover
+        return []
+    mine = str(os.getpid())
+    SHELLS = {"bash", "sh", "dash", "zsh", "ksh", "-bash", "fish"}
+    busy = []
+    for line in out.splitlines()[1:]:
+        pid, _, args = line.strip().partition(" ")
+        if pid == mine:
+            continue
+        parts = args.split()
+        if not parts or os.path.basename(parts[0]) in SHELLS:
+            continue        # a watcher quoting the command is not the command
+        idx = next((i for i, tok in enumerate(parts)
+                    if os.path.basename(tok) == "equivalence.py"), None)
+        if idx is None or "--selftest" not in parts:
+            continue
+        if not any(os.path.basename(x).startswith("python") for x in parts[:idx]):
+            continue
+        busy.append(" ".join(parts[:9]))
+    return busy
+
+
+def refuse_if_selftest_running(what: str) -> None:
+    """Abort `what` while an audit self-test is mutating the source it reads.
+
+    Called by all three scorers at startup. `ALLOW_SELFTEST_OVERLAP` with a
+    reason is the escape, in the same shape as the commit hook's
+    ALLOW_UNDECLARED: the point is to make the overlap a decision someone stated,
+    not to make it impossible.
+    """
+    busy = _selftest_in_flight()
+    if not busy:
+        return
+    why = os.environ.get("ALLOW_SELFTEST_OVERLAP", "").strip()
+    if why:
+        print(f"{what}: proceeding during a self-test — {why}")
+        return
+    raise SystemExit(
+        f"REFUSING to start {what}: an audit self-test is running and it injects\n"
+        f"breakages into the rubric and enforcement source this run reads live,\n"
+        f"so some cells would be scored against a rule nobody wrote.\n"
+        + "".join(f"    {b}\n" for b in busy)
+        + "Wait for it to finish, or say why:\n"
+        f'    ALLOW_SELFTEST_OVERLAP="..." <your command>')
 
 
 _SECTION_RE = re.compile(r'<Vertical id="[^"]*" title="([^"]*)"')

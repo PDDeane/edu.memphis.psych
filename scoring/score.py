@@ -1438,6 +1438,14 @@ def _assemble(handout: int, path: str, pid: int, results: dict, hint, repairs=No
 
 
 def main() -> int:
+    # NOT WHILE THE AUDIT SELF-TEST IS RUNNING. It injects breakages into the
+    # rubric and enforcement source this process reads live, so an overlapping
+    # sweep scores some cells against a rule nobody wrote -- and says nothing.
+    # The mirror of olx_prompts._measurements_in_flight, which guards the other
+    # direction. See refuse_if_selftest_running for the escape.
+    import olx_prompts as _OP_GUARD
+    _OP_GUARD.refuse_if_selftest_running("this paper sweep")
+
     ap = argparse.ArgumentParser()
     ap.add_argument("--handout", type=int, default=1, choices=sorted(__import__("handouts").HANDOUTS))
     # `lo` sends THIS prompt to lo-blocks' endpoint, i.e. the model the web and
