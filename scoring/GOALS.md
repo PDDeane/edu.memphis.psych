@@ -1549,7 +1549,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       and that table is empty: all 24 registered declaration tables are proven to
       be read, with none inert, inconclusive or exempt.
 
-- [ ] E34. **Gold charges a CATEGORY; our sheet charges members. No mechanism expresses that.**
+- [x] E34. **Gold charges a CATEGORY; our sheet charges members. No mechanism expresses that.** REFUTED
       Filed 2026-08-31 from E30's slot-level accounting, which is the first thing
       able to see it: the totals alone showed six unrelated over-credits.
       THE PATTERN, one charge condemning every member of a group:
@@ -1582,8 +1582,35 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       that countable now, which it was not before.
       DO NOT reach for prose. memory/structural-before-wording.md applies, and so
       does the Q6 record: nine measured wordings on `refers_to` and no movement.
+      REFUTED 2026-08-31 BY ITS OWN FIRST STEP, which is the reason that step was
+      written down before any design. The count it demanded says the mechanism is
+      not missing:
+        22 cells carry a GROUP charge -- one segment covering several slots -- and
+          WE AGREE WITH GOLD ON SIXTEEN OF THEM. A missing mechanism would fail
+          all 22.
+        25 group charges against 76 single-slot charges corpus-wide, so the
+          graders use both shapes about 1 in 4. A mechanism that always charged
+          wholesale would have been wrong 76 times.
+      THE MATCHED PAIRS SETTLE IT. Same item, same gold charge, opposite outcome:
+          1a/p15  we fail all four week slots      1a/p1   we fail one
+          Q4a/p20 we fail both antecedents         Q4a/p14 we fail one
+          Q4b/p8  we fail both behaviors           Q4b/p4  we fail one
+      The sheet can already fail every member of a group -- it does exactly that
+      on p15, p20 and p8. On p1, p14 and p4 we judged the FIRST box acceptable
+      where the grader did not. That is a per-response judgement, not a structural
+      gap, and no primitive would change it.
+      SO THE SIX CELLS BELONG TO Q19, the later-box gradient, which measured the
+      same thing from the other side: "we refuse the later box roughly twice as
+      often as the first". Crediting the FIRST box where gold charges both IS that
+      gradient. Q19 also says "read this before any numbered slot", which is the
+      guidance this subgoal skipped by reaching for a mechanism first.
+      WHAT THE EXERCISE WAS WORTH ANYWAY: the six cells now have gold-side
+      confirmation that Q19 did not have. Q19 measured our refusal RATE by box
+      index; these cells show the grader charging both boxes on the same response
+      where we charge one, which is the same claim with the grader's own
+      itemisation behind it. Moved there rather than lost.
 
-- [ ] E35. **The eight criteria-derived items are outside the slot-level accounting entirely.**
+- [x] E35. **The eight criteria-derived items are outside the slot-level accounting entirely.** DONE
       Filed 2026-08-31, the one group E30's accounting cannot reach. DAY1, DAY2,
       NP, NR, PP, PR, WK1 and WK2 are `derive_from_criteria`: their rubric carries
       the two-to-four checks the DEDUCTIONS are written against, while their sheet
@@ -1614,6 +1641,67 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       DO NOT table these items until that exists. NR was tabled on a
       reasonable-looking rule and had to be removed; the table is not the missing
       piece.
+      DONE 2026-08-31, and the comparison turned out to be simpler than the plan.
+      It is not slots at all: agreement.score_oc is a CASCADE that returns at its
+      first failure and charges exactly ONE deduction code, and gold's comments on
+      these items name the same judgements. So the comparison is CODE against
+      CODE, and our code is recoverable from the score because every one of the
+      eight has max 4 and charges once. No re-derivation of fourteen criteria was
+      needed.
+      GOLD_CODE_CHARGES is one table for all eight -- they share a vocabulary,
+      being the same question asked about four operant types and two cadences --
+      and the AMOUNT validates the phrase as everywhere else: WRONG_TYPE is 2 and
+      NOT_OC is 4, so a phrase and an amount that disagree mean the table is
+      wrong. `TYPE_MISMATCH` is resolved from the rubric, being the cadence items'
+      name for the same judgement.
+      ALL FIVE DISAGREEMENTS NOW HAVE A CODE:
+          NR/p15   gold WRONG_TYPE (2)      we charge nothing
+          WK2/p3   gold TYPE_MISMATCH (2)   we charge nothing
+          WK2/p15  gold TYPE_MISMATCH (2)   we charge nothing
+          DAY2/p7  gold WRONG_BEHAVIOR (1)  we charge nothing
+          NR/p11   gold WRONG_TYPE (2)      we charge 4
+      FOUR LENIENT AND ONE HARSH, on the same judgement, which is the signature of
+      an unstable derived check rather than a threshold set wrong -- and it is
+      subgoal Q23's `matches_chosen_type` family seen from the grader's side.
+      NR/p11 IS THE ONE TO READ FIRST. Gold says the example IS operant
+      conditioning but of the wrong type, worth 2; we charge 4, which is NOT_OC,
+      NOT_EXTERNAL_STIMULUS or BLANK -- the score alone cannot separate them. The
+      cascade returns at its FIRST failure, so a definitional criterion reading
+      unmet hides the type question entirely. Read which of the four criteria
+      failed before touching any type rule.
+      AND IT EXPOSED A REGISTRY BLIND SPOT. check_every_declaration_table_has_a
+      _verifier scanned only enforcement.py for UNREGISTERED tables, so the four
+      tables added to measured.py that day were never asked for -- three were
+      registered by hand and the fourth was forgotten with nothing complaining.
+      The scan now covers measured as well. handouts and olx_prompts are left for
+      E36, because they hold ten containers that are prompt data rather than
+      declarations and each needs a reason before the scan can include it.
+
+- [ ] E36. **The unregistered-table scan covers two modules of four.**
+      Filed 2026-08-31 from E35. check_every_declaration_table_has_a_verifier has
+      two halves: it checks that every REGISTERED table exists and names a real
+      verifier, and it scans for tables nobody registered. The second half scanned
+      only enforcement.py until measured was added, so a declaration table in
+      handouts.py or olx_prompts.py is still invisible to it.
+      NOT A THEORETICAL GAP: four tables were added to measured.py on 2026-08-31
+      and the audit asked for none of them. Three were registered by hand and the
+      fourth was forgotten; nothing said so until the omission was noticed by
+      reading. handouts and olx_prompts hold declarations too -- CORRECTED_GOLD,
+      GOLD_DIVERGENCES, PER_ITEM_EXCLUDE and SCORING_DIVERGENCES are all
+      registered from those modules already -- so the blind spot is real for
+      exactly the files most likely to gain one.
+      WHAT IT COSTS: ten containers would be flagged that are NOT declarations --
+      handouts' H1/H2/H3_MARKERS, and olx_prompts' CONTEXT, EVIDENCE, ITEM_NOTES,
+      MATCH_DEF, OMIT_GUIDANCE, REF_IDS and SLOT_NOTES. Each needs a
+      _NOT_DECLARATIONS entry saying why it is prompt-construction data rather
+      than a claim that can go stale. That is ten short reasons, and writing them
+      is the work; widening the scan without them adds ten standing false findings
+      and the check gets ignored.
+      SLOT_NOTES IS THE ONE TO THINK ABOUT rather than wave through. It is
+      web-only prose that reaches a prompt, and SLOT_RULE_BACKLOG exists precisely
+      to declare its entries -- so the honest reason is that the BACKLOG is the
+      declaration and SLOT_NOTES is the data it declares, not that SLOT_NOTES is
+      uninteresting.
 
 - [ ] E25. **The `keyword` check is 100% accurate and cannot move a score. Convert it to `derived`.**
       AN AUDIT SUBGOAL, NOT A QC ONE, and it was filed wrong once: its FINDING is
@@ -3047,6 +3135,20 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       either of those two, since the charge interaction is the declared part.
 
 - [ ] Q19. **The LATER-BOX gradient, corpus-wide. Read this before any numbered slot.**
+      GOLD-SIDE CONFIRMATION, added 2026-08-31 from E30's slot accounting and E34's
+      refutation. Everything below measures OUR refusal rate by box index. These
+      six cells show the GRADER's itemisation on the same responses, charging both
+      boxes where we charge one:
+          1a/p1   gold all four week slots   we fail baseline_week only
+          Q4a/p14 gold both antecedents      we fail antecedent_2 only
+          Q4b/p4  gold both behaviors        we fail behavior_2 only
+          Q4c/p9  gold both consequences     we fail consequence_2 only
+          Q6/p8   gold all four c-slots      we fail two
+          Q2/p7   gold inversion + 3 reasons we fail the reasons only
+      AND THE CONTROL IS IN THE SAME ITEMS: 1a/p15, Q4a/p20 and Q4b/p8 carry the
+      IDENTICAL gold charge and we fail every member, correctly. So the gradient is
+      not a ceiling on what the sheet can express -- it is where the first box gets
+      the benefit of the doubt and the later one does not.
       Placed ahead of the item-specific subgoals because six of them are about a
       numbered box, and this says which part of that is one problem and which is
       six. Measured 2026-08-28 over the CLI sweep's first seven items, 6 runs each.
