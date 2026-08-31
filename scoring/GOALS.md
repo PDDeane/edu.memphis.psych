@@ -1288,6 +1288,112 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       enforce nothing, and every one of those is a claim the project believes is
       checked. That is the same class as a SKIPped self-test case, and the same
       class as the plain-path branch that quietly stopped testing anything.
+      BUILT 2026-08-31: enforcement.probe_declaration_tables, run as
+      `python3 enforcement.py --probe-declarations`, deliberately off the default
+      path and exiting 1 when a table is inert. Result over the 22 registered
+      tables: 15 READ, 0 INERT, 5 INCONCLUSIVE, 2 unprobeable because empty.
+      THE PROBE WAS WRONG THREE TIMES BEFORE IT WAS RIGHT, and that is the finding
+      worth keeping. It reported, in order, "16 of 22 enforce nothing", then 1,
+      then 0 -- a confident number at every stage of brokenness:
+        (1) run as a script this module is `__main__`, and
+            importlib.import_module("enforcement") builds a SECOND module object
+            with its own copy of every table. The probe mutated the copy while the
+            verifiers read __main__'s, so all twelve enforcement.* tables read
+            INERT. Caught only because PROSE_ONLY_SLOTS was among them and its
+            budget check had fired at me hours earlier, so the claim was known
+            false: emptying it takes its verifier from 0 findings to 18.
+        (2) SILENCE IS NOT INERTNESS. A verifier that reports nothing on the real
+            table also reports nothing when it is emptied, and a bogus key naming
+            nothing real is correctly ignored. Three empty outputs prove the table
+            is currently clean, nothing more. That reading had condemned
+            GOLD_DIVERGENCES and PER_ITEM_EXCLUDE, both of which are read.
+        (3) SOME VERIFIERS TAKE ARGUMENTS. check_countable_families_converted
+            takes `items`; calling it bare raised TypeError identically in every
+            state, so COUNTABLE_EXEMPT read as INERT when the probe had simply
+            never run its verifier. A raising verifier is indistinguishable from
+            an unread table unless the two are recorded separately, which they now
+            are -- __UNCALLABLE__ reports CANNOT PROBE, a gap in the probe rather
+            than evidence about the table.
+      THE METHOD IS NECESSARY AND NOT SUFFICIENT. RAW_GOLD_READERS -- the one
+      table PROVEN inert, in E31 -- comes back INCONCLUSIVE here, because its
+      verifier is silent on the real table. The proof there came from READING the
+      function: it walks a hard-coded module list and names the table only inside
+      an error string. So the behavioural probe cannot confirm E31, and a table
+      whose verifier says nothing needs a reading, not a probe.
+      THE PER-TABLE WORK IS DONE, and every table is now accounted for:
+          22 READ      0 INERT      0 INCONCLUSIVE      2 BY DESIGN
+      over 24 registered tables -- the probe's own two included, since
+      PROBE_PROVOCATIONS and PROBE_IMPOSSIBLE are declarations too and it is the
+      only thing that can verify them. That made the probe RE-ENTRANT: probing
+      them runs the probe, which probes them again, and unguarded it ran until it
+      was killed. The inner call now returns a marker derived from the two tables,
+      which still differs between the emptied and restored states, so both stay
+      tested.
+      A nonsense KEY was never enough -- a verifier that objects only to a
+      WELL-FORMED but WRONG entry ignores garbage and looks inert. So each table
+      declares a PROVOCATION in PROBE_PROVOCATIONS: an entry its verifier must
+      object to. That also makes an EMPTY table probeable, which emptying never
+      could, and it closed both CANNOT PROBE rows.
+      TWO PROVOCATIONS TOOK THREE ATTEMPTS, and the failures are informative:
+        SCORING_DIVERGENCES' verifier parses a claim of the form "sum to N ...
+          max of M" out of `what` + `why` and recomputes it, so an entry
+          asserting no arithmetic gives it nothing to contradict. Then the claim
+          was aimed at 1b, and `_maxes` returns None for a SHEET_ONLY item with no
+          LLMAction grader, so the entry was skipped -- unexaminable rather than
+          false. Retargeted at Q6 it fires.
+      TWO TABLES CANNOT BE PROBED, declared in PROBE_IMPOSSIBLE, and both reasons
+      are findings rather than excuses:
+        RAW_GOLD_READERS -- its verifier never reads it, so NO entry can make it
+          speak. That is E31, and it means the behavioural method is necessary and
+          not sufficient: this table's inertness was provable only by READING the
+          function. Fixing E31 would also make it probeable.
+        PER_ITEM_EXCLUDE -- its staleness verifier reads the LEDGER's recorded
+          `excluded_cells`, not the table as it stands. AN EXCLUSION ADDED AFTER
+          THE LAST SWEEP IS THEREFORE UNWATCHED UNTIL THE NEXT ONE. That is a gap
+          in the CHECK, not in the probe, and it is the more serious of the two:
+          the whole point of that verifier is to stop an exclusion outliving its
+          justification, and it cannot see one that has not been swept since being
+          added. Worth its own subgoal.
+      SO THE PROBE'S REAL OUTPUT IS NOT THE COUNT. It found no inert table that
+      reading had not already found, and it found two structural facts about the
+      checks -- one verifier that cannot be provoked at all, and one that watches
+      a snapshot rather than the declaration.
+
+- [ ] E33. **An exclusion added after the last sweep is unwatched until the next one.**
+      Found 2026-08-31 by E32's probe, as the reason PER_ITEM_EXCLUDE could not be
+      provoked. The staleness verifier -- the exclusions loop in
+      measured.declaration_conflicts -- reads the LEDGER's recorded
+      `excluded_cells`, which is a snapshot taken when the item was last recorded.
+      It does not read handouts.PER_ITEM_EXCLUDE. So an exclusion added today is
+      invisible to it until that item is swept and re-recorded.
+      WHY THAT MATTERS MORE THAN IT SOUNDS. The whole purpose of that check is to
+      stop an exclusion outliving its justification, and QUALITY_CONTROL.md is
+      emphatic about the failure mode: "an exclusion on a cell the scorer gets
+      WRONG must be removed... it is the one that will never remove itself,
+      because the cell it hides is the cell that would otherwise ask for work."
+      The window where a new exclusion is unwatched is exactly the window in which
+      it is most likely to be wrong -- freshly added, on a cell someone has just
+      decided not to look at, with no measurement yet taken against it.
+      IT IS NOT A HYPOTHETICAL WINDOW. Nothing forces a sweep after adding an
+      exclusion, and this project has gone weeks between sweeps of an item. An
+      exclusion added mid-session and then reasoned about all day would be
+      unwatched for that whole day, and the audit would report nothing.
+      THE FIX, and it is not just "read the table instead": the check needs BOTH.
+      The ledger snapshot is what says whether the cell scores right in every run
+      -- that evidence only exists in an artifact -- and the table is what says
+      the cell is currently excluded. Today it takes the intersection implicitly
+      by reading only the snapshot, which silently drops any exclusion the
+      snapshot predates. Read the table for WHICH cells are excluded, and the
+      artifact for HOW they scored, and report a cell that is excluded now and
+      scored right in the last recorded runs, whenever those runs happened.
+      A CELL EXCLUDED SINCE THE LAST SWEEP has no evidence either way and must be
+      reported as UNMEASURED-SINCE-EXCLUDED rather than passed: "no evidence" is
+      the state this whole subgoal is about, and it is the one thing the current
+      check cannot distinguish from "no problem".
+      CHECK THE MIRROR CASE TOO: an exclusion REMOVED since the last sweep leaves
+      the snapshot claiming a cell is excluded when the table no longer says so.
+      That direction inflates nothing and costs nothing, but it means the two
+      sources disagree, and a check reading only one of them cannot say which.
 
 - [ ] E25. **The `keyword` check is 100% accurate and cannot move a score. Convert it to `derived`.**
       AN AUDIT SUBGOAL, NOT A QC ONE, and it was filed wrong once: its FINDING is
