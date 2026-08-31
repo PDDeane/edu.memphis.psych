@@ -4659,6 +4659,9 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "measured.GOLD_SLOT_DISAGREEMENTS_KNOWN": (
         "cells failing different slots from the ones gold charged",
         ("check_slot_sets_match_gold",)),
+    "measured.GOLD_SLOT_BOUNDS_KNOWN": (
+        "cells whose ambiguous gold charge disagrees with us on every reading",
+        ("check_slot_sets_match_gold",)),
     "measured.GOLD_SLOT_UNMAPPABLE": (
         "grader deductions no slot set can account for",
         ("check_slot_sets_match_gold",)),
@@ -6730,6 +6733,11 @@ PROBE_PROVOCATIONS: dict[str, object] = {
     # fires as "no evidence either way". A shape-derived bogus key would NOT --
     # the loop iterates real items, so a nonsense item name is skipped.
     "handouts.PER_ITEM_EXCLUDE": ("1b", {1: "probe: not a real exclusion"}),
+    # Removing a declared bounded finding makes it report again; adding a cell
+    # that agrees does nothing, so the provocation has to be a DELETION -- which
+    # emptying already tests. A bogus key is enough here because the check reports
+    # any key naming a cell it cannot bound.
+    "measured.GOLD_SLOT_BOUNDS_KNOWN": (("zz", 999), "probe"),
 }
 
 # Why a table has no provocation. An entry here is a claim that the table CANNOT
