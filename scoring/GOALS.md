@@ -642,7 +642,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       cell, ~90s amortised, three hours an item, and the only signal is
       `no-cell`. Four of the seven were killed mid-sweep to recover ~12 hours.
 
-- [ ] E27. **The two scorers' verdict vocabularies differ BY DESIGN. Audit what respects that.**
+- [x] E27. **The two scorers' verdict vocabularies differ BY DESIGN. Audit what respects that.** DONE
       Filed 2026-08-30 as "two sources of truth, disagreeing", which was WRONG and
       is corrected here. slot_vocab.py says it plainly: WEB_EXTRAS come from
       slotSheet.ts, RUBRIC_EXTRAS from the credit components' `verdicts` lists,
@@ -684,6 +684,80 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       NEITHER CHANGED A BACKLOG DECISION -- example_2 still names `not_reason`,
       reasons_substantial `wrong_kind`, 1c:legend `incomplete`, all one-side, all
       still blocked on a `{fail}` rewrite. Checked rather than assumed.
+      SUPERSEDED 2026-08-30 BY E11, and the paragraph above is left standing only
+      so this correction has something to point at. All three migrated. The claim
+      that `{fail}` was "workable for reasons_substantial and 1c:legend, not for
+      example_2" was wrong in BOTH directions: example_2's second failure mode is
+      `duplicate`, which both sides offer, and reasons_substantial was the one
+      that needed a new form -- `{fail:key}` -- because the token it names belongs
+      to a SIBLING slot. See E11.
+      THE SECOND SWEEP, 2026-08-30, and it found the exemption itself was wrong:
+        SHARED_EXTRAS WAS A GLOBAL ANSWER TO A PER-SLOT QUESTION. Whether a token
+        is shared is a fact about a SLOT; the intersection of two corpus-wide
+        lists cannot say it. `unclear` is in both lists and the two sides DISAGREE
+        on SEVENTEEN slots -- 2a.how_*, 2b.sentence_*, 3.example_*, Q1.reason_*,
+        Q2.reason_*, D1/D2's add_or_remove and increase_or_decrease -- where the
+        web offers it and the paper has only met/absent. Exempting it globally
+        left a shared rule free to name it on any of those. No rule did, so it was
+        LATENT -- which is how the Q4b instance started.
+        Not a renaming, checked: those slots declare no third token under any
+        name, unlike Q5's `wrong_kind`/`not_reason` and 1c's
+        `incomplete`/`not_described`, which are genuine counterparts. It is a
+        three-valued web slot against a two-valued paper one. Score impact is NIL
+        -- `unclear` is not satisfied, so it deducts exactly as `absent` does --
+        so the asymmetry is diagnostic, not arithmetic. Undeclared all the same.
+        `wrong_kind` IS THE SAME SHAPE IN REVERSE: shared on Q4b's behavior_*,
+        which declare it in the rubric, and web-only on Q4a's antecedent_*, Q4c's
+        consequence_* and Q5's example_*. So RUBRIC_EXTRAS was incomplete without
+        it AND adding it would have exempted it globally, re-opening the hole on
+        six slots to describe two. Neither branch of that is right, which is what
+        made the global form indefensible rather than merely imprecise.
+        FIXED by asking the per-slot question directly:
+        check_slot_rules_are_vocabulary_neutral now reads the OLX sheet (with
+        `pick(NAME)` enums resolved) and the credit component, and requires a
+        literal token to be offered by BOTH for THAT slot. Verified by injection
+        on all three behaviours: the latent `unclear` case is caught, Q4b's
+        genuinely-shared `wrong_kind` is allowed, and Q5's one-sided `wrong_kind`
+        still fires. No exemption list is needed and SHARED_EXTRAS is no longer
+        load-bearing; its comment now says so, so it is not reinstated.
+        THREE TOKENS WERE INVISIBLE TO EVERY CHECK. KNOWN_VERDICTS is the scan
+        vocabulary, and `not_antecedent`, `not_consequence` and `not_described`
+        -- the paper's failing verdicts for Q4a, Q4c and 1c -- were not in it. A
+        shared rule naming one would have instructed the WEB about a token it
+        cannot emit and passed everything. Added. `not_active` is kept and marked
+        HISTORICAL: no slot declares it any more, since Q4b's now declare
+        `wrong_kind`, which is why the pair in every docstring citing that
+        incident no longer exists anywhere else.
+        `desc` IS A THIRD PROSE SOURCE and was unguarded. When a slot has no
+        `rule` and no note, the web falls through to the credit component's
+        `desc` and score.py uses that same `desc` -- so it reaches BOTH scorers
+        under exactly the conditions a `rule` does. Clean today, no `desc` names
+        a verdict, and now checked per-slot so it stays that way.
+        TWO COMMENTS CLAIMED enforcement.ALIAS RECORDS THE VERDICT BRIDGE. It
+        does not, and never did: ALIAS maps slot KEY names (`behavior` ->
+        `names_behavior`) and contains no verdict token at all. A reader taking
+        those comments at face value would go looking for a mapping that has
+        never existed. Corrected in olx_prompts.py and enforcement.py; the bridge
+        is `{fail}`, resolved per side at render time.
+      THE ASYMMETRIES ARE NOW DECLARED, not merely described in a comment. The
+      two verdict spaces differ on 48 slots, in eleven SHAPES, and
+      enforcement.VERDICT_SPACE_DIVERGENCES declares them by shape with
+      check_verdict_spaces_are_declared as its verifier. By shape and not per
+      slot on purpose: 48 entries would read as coverage while enforcing nothing,
+      and what is worth catching is a NEW kind of asymmetry, not the 17th
+      instance of one already understood. Verified by injection -- an
+      undeclared shape is reported, the clean tree is silent.
+      NOT PUT IN SCORING_DIVERGENCES, and that is the interesting part: it looked
+      like the obvious home and is the wrong one. That table's entries suppress
+      findings by ITEM (`undeclared = [f for f in findings if f[0] not in
+      declared]`), so declaring the `unclear` asymmetry there would have silenced
+      every scoring finding on 2a, 2b, 3, Q1, Q2, D1 and D2 -- seven items -- to
+      record a difference that moves no score. Its own comment says a stale
+      exemption is worse than none; an overbroad one is the same failure written
+      forward.
+      CLOSED 2026-08-30. Gates clean (enforcement 0, equivalence 0 undeclared),
+      self-test 51 of 51 with all three vocabulary cases passing, including the
+      one whose mechanism was replaced underneath it.
       THE AUDIT SWEEP THE USER ASKED FOR, done 2026-08-30, is recorded in
       slot_vocab.py beside the lists themselves:
         FIXED   cross_path._slot_diffs compared RAW verdict strings between

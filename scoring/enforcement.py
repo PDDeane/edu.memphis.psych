@@ -2310,34 +2310,195 @@ def check_prompt_prose_names_only_offered_verdicts() -> list[str]:
             key = s["key"]
             if key in rules:
                 continue                      # `rule` wins; the other check owns it
-            note = (O.SLOT_NOTES.get(f"{item_id}:{key}")
-                    or O.SLOT_NOTES.get(key))
-            if not note:
-                continue
+            # What the WEB sheet offers for this slot, needed by both arms below.
             offered = set(s["options"] or ())
             if s.get("picks") is not None:
                 offered |= set(choices.get(s["picks"], []) or ())
-            named = {v for v in KNOWN_VERDICTS if f"`{v}`" in note}
-            missing = sorted(named - offered)
-            if missing:
+
+            note = (O.SLOT_NOTES.get(f"{item_id}:{key}")
+                    or O.SLOT_NOTES.get(key))
+            if note:
+                # A SLOT_NOTES entry is web-only, so the test is against what the
+                # WEB slot offers: it is the only side that will be handed it.
+                named = {v for v in KNOWN_VERDICTS if f"`{v}`" in note}
+                missing = sorted(named - offered)
+                if missing:
+                    problems.append(
+                        f"{item_id}.{key}: the prompt prose tells the model to "
+                        f"answer {missing}, which this slot does not offer -- it "
+                        f"offers {sorted(offered)}. The test is inert: the model "
+                        f"cannot return that token, so it answers something else "
+                        f"and the distinction is lost. Move the text to the "
+                        f"rubric's `rule` and use `{{fail}}`, or name a verdict "
+                        f"the slot has")
+                continue
+
+            # THIRD prose source, and it reaches BOTH scorers. When a slot has
+            # neither a `rule` nor a note, the web falls through to the credit
+            # component's `desc` and score.py uses that same `desc` as its body.
+            # So the test here is the SHARED one, not the web's: a token only one
+            # side offers is wrong on the other, exactly as it would be in a
+            # `rule`. Clean at the time of writing -- no `desc` names a verdict --
+            # which is why it is worth guarding now rather than after it is not.
+            desc = next((c.get("desc") for c in (rubric or {}).get("credit", []) or []
+                         if c["what"] == key), None)
+            if not desc:
+                continue
+            # PER-SLOT, like the `rule` check and for the same reason: whether a
+            # token is shared is a fact about THIS slot, not about the corpus.
+            comp = next((c for c in (rubric or {}).get("credit", []) or []
+                         if c["what"] == key), None)
+            offered_paper = set((comp or {}).get("verdicts") or []) | set(
+                ((comp or {}).get("codes") or {}).keys()) | {"met", "absent"}
+            for grp in (rubric or {}).get("cover", []) or []:
+                if key in (grp.get("keys") or ()):
+                    offered_paper |= set(grp.get("verdicts") or ())
+            named = sorted({v for v in KNOWN_VERDICTS if f"`{v}`" in desc})
+            bad = sorted(v for v in named
+                         if v not in offered_paper or v not in offered)
+            if bad:
                 problems.append(
-                    f"{item_id}.{key}: the prompt prose tells the model to answer "
-                    f"{missing}, which this slot does not offer -- it offers "
-                    f"{sorted(offered)}. The test is inert: the model cannot "
-                    f"return that token, so it answers something else and the "
-                    f"distinction is lost. Move the text to the rubric's `rule` "
-                    f"and use `{{fail}}`, or name a verdict the slot has")
+                    f"{item_id}.{key}: the credit component's `desc` names the "
+                    f"verdict {bad} literally, and `desc` is rendered into BOTH "
+                    f"prompts when the slot has no `rule` and no note. This slot "
+                    f"does not offer it on both sides -- web {sorted(offered)}, "
+                    f"paper {sorted(offered_paper)}. Use `{{fail}}` in a `rule`, "
+                    f"or name only verdicts this slot offers on both")
     return problems
+
+
+# The two scorers' verdict SPACES differ on 48 slots, and they differ in a small
+# number of SHAPES. Declared by shape rather than per slot: 48 entries would be
+# mostly noise, and what is worth catching is a NEW kind of asymmetry appearing,
+# not the 17th instance of one already understood.
+#
+# Filed 2026-08-30 under E27, after `unclear` was found exempted corpus-wide by
+# SHARED_EXTRAS while the two sides disagree about it on seventeen slots. That
+# hole is closed in the neutrality check; this table is the other half -- the
+# asymmetries themselves, written down, so a new one has to be looked at.
+#
+# Key: (frozenset web-only tokens, frozenset paper-only tokens) -> why.
+VERDICT_SPACE_DIVERGENCES: dict[tuple[frozenset, frozenset], str] = {
+    (frozenset({"unclear"}), frozenset()):
+        "17 slots. The web offers a third 'cannot tell' verdict and the paper "
+        "offers only met/absent -- three-valued against two-valued, NOT a "
+        "renaming: those slots declare no third token under any name. Score "
+        "impact is NIL, because `unclear` is not satisfied and so deducts exactly "
+        "as `absent` does; what the paper loses is the DIAGNOSIS, not marks. "
+        "2a.how_*, 2b.sentence_*, 3.example_*, Q1.reason_*, Q2.reason_*, and "
+        "D1/D2's add_or_remove and increase_or_decrease.",
+    (frozenset(), frozenset({"0", "1", "2", "3"})):
+        "The paper encodes a COUNT as its verdict list. Not judgements, so there "
+        "is nothing for the web to offer against them.",
+    (frozenset(), frozenset({"0", "1", "2"})):
+        "Same count encoding, on a slot whose maximum is two.",
+    (frozenset(), frozenset({"no"})):
+        "A boolean answer written as a token. Same as the counts: an encoding, "
+        "not a judgement the other side could return.",
+    (frozenset({"mismatch"}), frozenset({"first", "neither", "second"})):
+        "The paper reports WHICH listed entry is referred to -- a `cover` "
+        "identity -- where the web reports whether it matched at all. Different "
+        "questions, the same deduction; the identity is what `cover` exists for.",
+    # RENAMED COUNTERPARTS. Each pair is one judgement with two names, which is
+    # exactly what `{fail}` renders per side, and is why a shared rule must never
+    # name either half literally.
+    (frozenset({"incomplete"}), frozenset({"not_described"})):
+        "Counterparts: the web's `incomplete` is the paper's `not_described`. 5 "
+        "slots, 1c's chart parts among them.",
+    (frozenset({"wrong_kind"}), frozenset({"not_antecedent"})):
+        "Counterparts on Q4a's antecedent_1/antecedent_2.",
+    (frozenset({"wrong_kind"}), frozenset({"not_consequence"})):
+        "Counterparts on Q4c's consequence_1/consequence_2.",
+    (frozenset({"wrong_kind"}), frozenset({"not_reason"})):
+        "Counterparts on Q5's example_1/example_2. The pair E11 migrated onto "
+        "`{fail}`, and the one whose web prompt named the paper's token for "
+        "months -- see BACKLOG.md:94.",
+    (frozenset({"generic"}), frozenset({"not_described"})):
+        "Counterparts: a generic label is the web's version of not describing it.",
+    (frozenset({"tick_values"}), frozenset({"not_described"})):
+        "Counterparts: missing tick values is the web's version of the same.",
+    (frozenset({"generic", "tick_values"}), frozenset({"not_described"})):
+        "Both web refinements collapse to the paper's single `not_described`.",
+}
+
+
+def check_verdict_spaces_are_declared() -> list[str]:
+    """Does any slot's two verdict spaces differ in an UNDECLARED shape?
+
+    The neutrality check stops a shared `rule` naming a token one side lacks.
+    This is the other half: the asymmetries themselves, so a new one is looked at
+    rather than absorbed. Declared by SHAPE -- (web-only, paper-only) -- because
+    the same asymmetry recurs across many slots and 48 per-slot entries would
+    read as coverage while enforcing nothing.
+
+    A slot the web does not carry is skipped, not reported: paper-only checks are
+    a different kind of difference and have their own declarations.
+    """
+    problems = []
+    for item in all_items():
+        for c in item.get("credit", []) or []:
+            web = _web_slot_options(item["id"], c["what"])
+            if web is None:
+                continue
+            paper = set(c.get("verdicts") or []) | set(
+                (c.get("codes") or {}).keys()) | {"met", "absent"}
+            for grp in item.get("cover", []) or []:
+                if c["what"] in (grp.get("keys") or ()):
+                    paper |= set(grp.get("verdicts") or ())
+            if web == paper:
+                continue
+            shape = (frozenset(web - paper), frozenset(paper - web))
+            if shape in VERDICT_SPACE_DIVERGENCES:
+                continue
+            problems.append(
+                f"{item['id']}.{c['what']}: the two scorers' verdict spaces differ "
+                f"in a shape nothing declares -- web-only {sorted(shape[0])}, "
+                f"paper-only {sorted(shape[1])}. Either make them match, or add "
+                f"the shape to VERDICT_SPACE_DIVERGENCES with the reason and "
+                f"whether it moves a score")
+    return problems
+
+
+def _web_slot_options(item_id: str, key: str) -> set | None:
+    """What the WEB sheet offers for one slot, `pick(NAME)` enums resolved.
+
+    None when the item has no action or the slot is not on the sheet -- a slot
+    that exists only on the rubric side cannot be compared, and reporting it as
+    a mismatch would flag every paper-only check.
+    """
+    import olx_prompts as O
+    handout, action = O.HANDOUT.get(item_id), O.ACTION.get(item_id)
+    if handout is None or action is None:
+        return None
+    try:
+        spec, defaults = O._slots_attr(handout, action)
+        choices = O._choices_attr(handout, action)
+        slots = O.parse_slots(spec, defaults)
+    except Exception:
+        return None
+    for s in slots:
+        if s["key"] == key:
+            opts = set(s["options"] or ()) | {"met", "absent"}
+            if s.get("picks") is not None:
+                opts |= set(choices.get(s["picks"], []) or ())
+            return opts
+    return None
 
 
 def check_slot_rules_are_vocabulary_neutral() -> list[str]:
     """Does any shared `rule` name a verdict token literally?
 
     A `rule` is rendered into BOTH prompts, and the two sides do not share a
-    verdict vocabulary: the web sheet says `wrong_kind` where the rubric says
-    `not_active`, which is what enforcement.ALIAS exists to record. So a rule
-    that names one side's token is unreadable on the other — and unreadable in
-    the worst way, because it still looks like an instruction.
+    verdict vocabulary: on Q5's example slots the web sheet says `wrong_kind`
+    where the rubric says `not_reason`, and on 1c's legend `incomplete` against
+    `not_described`. So a rule that names one side's token is unreadable on the
+    other — and unreadable in the worst way, because it still looks like an
+    instruction.
+
+    ALIAS does NOT record those pairs. It maps slot KEY names (`behavior` ->
+    `names_behavior`) and contains no verdict token at all; two comments claimed
+    it was the verdict bridge, which sent a reader looking for something that has
+    never existed. The bridge is `{fail}`, resolved per side at render time.
 
     That is not hypothetical either. Q4b's five substitution tests were written
     while they lived in SLOT_NOTES, where `wrong_kind` is correct, and moving
@@ -2371,22 +2532,46 @@ def check_slot_rules_are_vocabulary_neutral() -> list[str]:
                 rule = c.get("rule")
                 if not rule:
                     continue
-                # SHARED tokens are safe to name: both sides offer them, so no
-                # scorer is instructed about a verdict it cannot emit. Excluding
-                # them is not a relaxation of the rule -- it is the rule, applied
-                # to the vocabularies as they actually are. `duplicate` and
-                # `unclear` are in both lists.
-                from slot_vocab import SHARED_EXTRAS
-                exempt = ("met", "absent") + SHARED_EXTRAS
-                named = sorted({v for v in KNOWN_VERDICTS
-                                if f"`{v}`" in rule and v not in exempt})
-                if named:
+                # PER-SLOT, not against the global SHARED_EXTRAS intersection.
+                # A token is safe to name only if BOTH sides offer it ON THIS
+                # SLOT, and sharedness is a per-slot property that a corpus-wide
+                # intersection cannot express.
+                #
+                # `wrong_kind` is the proof. Q4b's behavior_1/behavior_2 declare
+                # it in the RUBRIC, so there it is shared and naming it is fine;
+                # on Q4a's antecedent_*, Q4c's consequence_* and Q5's example_*
+                # the web offers it and the paper does not. One token, shared on
+                # two slots and one-sided on six. Adding it to RUBRIC_EXTRAS to
+                # reflect Q4b -- the list IS incomplete without it -- would have
+                # exempted it globally and re-opened the hole on the other six.
+                #
+                # And the global form had already opened one. E27 fixed the
+                # `unclear` misclassification by deriving SHARED_EXTRAS, which is
+                # right for the 21 rubric slots that declare it and wrong for the
+                # SEVENTEEN where the web offers it and the paper does not --
+                # 2a.how_*, 2b.sentence_*, 3.example_* among them. A rule naming
+                # `unclear` on any of those passed. No rule did, so it was latent,
+                # and latent is how the Q4b instance started too.
+                offered_paper = set(c.get("verdicts") or []) | set(
+                    (c.get("codes") or {}).keys()) | {"met", "absent"}
+                for grp in item.get("cover", []) or []:
+                    if c["what"] in (grp.get("keys") or ()):
+                        offered_paper |= set(grp.get("verdicts") or ())
+                offered_web = _web_slot_options(item["id"], c["what"])
+                named = sorted({v for v in KNOWN_VERDICTS if f"`{v}`" in rule})
+                bad = sorted(v for v in named
+                             if v not in offered_paper
+                             or (offered_web is not None and v not in offered_web))
+                if bad:
                     problems.append(
                         f"H{h} {item['id']}.{c['what']}: `rule` names the verdict "
-                        f"{named} literally. The rule is rendered into both prompts "
-                        f"and the two vocabularies differ, so one side gets an "
-                        f"instruction about a token it cannot emit. Use `{{fail}}`, "
-                        f"which each generator fills with its own verdict")
+                        f"{bad} literally, and this SLOT does not offer it on both "
+                        f"sides -- web {sorted(offered_web) if offered_web is not None else 'n/a'}, "
+                        f"paper {sorted(offered_paper)}. The rule is rendered into "
+                        f"both prompts, so one side gets an instruction about a "
+                        f"token it cannot emit. Use `{{fail}}`, which each generator "
+                        f"fills with its own verdict")
+                named = bad
                 # `{fail}` OR `{fail:sibling}`. Testing for the bare literal
                 # reported every rule that uses the qualified form as having lost
                 # its failing condition.
@@ -4322,6 +4507,9 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "handouts.GOLD_CEILINGS": (
         "why an item cannot reach 100%",
         ("check_declarations_still_have_evidence",)),
+    "enforcement.VERDICT_SPACE_DIVERGENCES": (
+        "shapes in which the two scorers' verdict spaces differ",
+        ("check_verdict_spaces_are_declared",)),
     "olx_prompts.SCORING_DIVERGENCES": (
         "where the two scorers deliberately differ",
         ("check_divergence_arithmetic_is_still_true",
