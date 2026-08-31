@@ -1259,6 +1259,31 @@ ITEMS: list[dict] = [
                 "codes": {"absent": "W_ONLY_ONE", "not_reason": "W_NOT_REASON",
                           "duplicate": "W_ONLY_ONE"},
                 "desc": "Second way",
+                # MIGRATED 2026-08-30 from web-only SLOT_NOTES['Q5:example_2'].
+                # The note was recorded as NOT migratable because it "distinguishes
+                # two failure modes" and `{fail}` supplies one. It does distinguish
+                # two, but the second is `duplicate`, which slot_vocab.SHARED_EXTRAS
+                # shows BOTH sides offer — so one placeholder and one literal cover
+                # it, and only the `not_reason`/`wrong_kind` pair needed filling.
+                #
+                # Migrating it also FIXES the web prompt rather than merely moving
+                # it. The note lived in web-only SLOT_NOTES yet named `not_reason`,
+                # which is the RUBRIC's token; the web sheet offers `wrong_kind`.
+                # So the live web prompt listed the slot's verdicts as
+                # met/absent/wrong_kind/duplicate and then, in prose, told the model
+                # when to answer `not_reason` — a token it cannot emit. That dates
+                # to the original import, not to the E11 migrations.
+                "rule": "`met` for a second reason that is genuinely DIFFERENT from "
+                     "the first. `duplicate` when both entries are well-formed but "
+                     "amount to the SAME reason — two entries that each avoid the "
+                     "same discomfort, one naming the distance and one the aching "
+                     "afterwards, are one reason twice, and the graders wrote "
+                     "\"missing a reason\". `absent` only when there is no second "
+                     "entry at all. `{fail}` when there IS a second, distinct entry "
+                     "but it is not a reason for CONTINUING — an EFFECT of the "
+                     "behaviour rather than a payoff from it. When it is present, "
+                     "distinct and a real payoff but merely thin, that is `met` plus "
+                     "`reasons_substantial: absent`",
 },
             {
                 # Reported, never scored — the same shape as `avoidance_frame` on
@@ -1283,6 +1308,28 @@ ITEMS: list[dict] = [
                 "desc": "Whether both reasons are substantial — `absent` reports "
                         "a present-but-weak reason so it can be said in the "
                         "feedback, never deducted",
+                # MIGRATED 2026-08-30 from web-only SLOT_NOTES['reasons_substantial'],
+                # and the reason it could not move before is why `{fail:key}` now
+                # exists. The token this rule names belongs to the EXAMPLE slots,
+                # not to this one: the whole point is that a thin reason must NOT
+                # be sent there. This slot's own failing verdict is `absent`, so a
+                # bare `{fail}` would have rendered "instead of reaching for
+                # `absent`" and inverted the rule. `{fail:example_2}` renders
+                # `wrong_kind` on the web — byte-identical to the note it replaces,
+                # so the web prompt does not move — and `not_reason` on the paper
+                # side, which had never received this rule at all.
+                "rule": "`absent` when a reason is PRESENT but weak — thin, vague, "
+                     "or barely explained. This costs NOTHING; it exists so you can "
+                     "say it in the feedback instead of reaching for "
+                     "`{fail:example_2}`. A reason that gestures at the student's "
+                     "own neglect without naming what they get out of it — \"I keep "
+                     "doing it because I am not looking after myself\" — is thin, "
+                     "and the graders left that kind at FULL marks with a written "
+                     "note. Reserve `{fail:example_2}` for a statement that is not a "
+                     "reason for CONTINUING at all — most often an EFFECT of the "
+                     "behaviour wearing a reason's clothes, like \"because it leaves "
+                     "me irritable and behind on everything\", which is what the "
+                     "behaviour causes rather than what the student gets out of it",
 },
         ],
         "deductions": [
