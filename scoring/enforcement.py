@@ -715,11 +715,6 @@ def all_derive_items() -> list[dict]:
             if it.get("derive_from_criteria") or it.get("derive_from_credit")]
 
 
-if __name__ == "__main__":
-    import json
-    print(json.dumps(cli_signatures(), indent=1))
-
-
 def check_exclusions_agree() -> list[str]:
     """Do the three harnesses exclude the SAME cells, from the same source?
 
@@ -4580,6 +4575,17 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "handouts.GOLD_CEILINGS": (
         "why an item cannot reach 100%",
         ("check_declarations_still_have_evidence",)),
+    # Verified by the probe ITSELF, which is the only thing that can: a
+    # provocation that stops provoking makes its table read INCONCLUSIVE, and a
+    # PROBE_IMPOSSIBLE reason that stops being true makes the table probeable and
+    # its entry stale. The verifier runs on demand (`--probe-declarations`) rather
+    # than in the default audit, because three passes over every table is minutes.
+    "enforcement.PROBE_PROVOCATIONS": (
+        "an entry each verifier must object to, so the table can be probed",
+        ("probe_declaration_tables",)),
+    "enforcement.PROBE_IMPOSSIBLE": (
+        "tables no provocation can move, with the reason",
+        ("probe_declaration_tables",)),
     "measured.GOLD_SLOT_CHARGES": (
         "which slots each grader phrasing charges",
         ("check_slot_sets_match_gold",)),
@@ -6549,3 +6555,326 @@ def check_the_cli_sends_the_apps_prompt() -> list[str]:
     except Exception as exc:
         out.append(f"could not compose the CLI guidance: {exc}")
     return out
+
+
+# ---------------------------------------------------------------------------
+# E32. Does a registered verifier actually READ its table?
+#
+# check_every_declaration_table_has_a_verifier confirms that a NAMED verifier
+# exists and that the table exists. It cannot see whether the verifier consults
+# the table, so a declaration can be registered, pass that check, and still be
+# inert -- the "reads as coverage and enforces nothing" failure the registry was
+# built to prevent, one level up. RAW_GOLD_READERS was found that way.
+#
+# GREPPING DOES NOT WORK, tried and rejected. Matching the table's name in the
+# verifier's source gives false NEGATIVES where the name appears only inside an
+# error string -- exactly how RAW_GOLD_READERS looked checked -- and false
+# POSITIVES where the verifier legitimately delegates to another module that does
+# read it. On this tree a grep flagged 5 of 22 tables and every one was a
+# delegation; the one genuinely inert table was not among them.
+#
+# So the table is MOVED and the verifier re-run. If emptying it and corrupting it
+# both leave the output unchanged, nothing is reading it. Delegation is handled
+# correctly, because a delegated read still changes the output.
+#
+# NOT IN THE DEFAULT AUDIT. Three runs of every verifier over twenty-two tables
+# is minutes, not seconds, and the pre-commit path has to stay usable. Run it with
+# `python3 enforcement.py --probe-declarations`, beside the self-test.
+def _empty_like(obj):
+    """An empty container of the same kind, for the tables that cannot mutate."""
+    if isinstance(obj, dict):
+        return {}
+    if isinstance(obj, list):
+        return []
+    if isinstance(obj, tuple):
+        return ()
+    if isinstance(obj, (set, frozenset)):
+        return type(obj)()
+    return None
+
+
+def _bogus_key(sample):
+    """A key of the same SHAPE as an existing one, naming nothing real.
+
+    Shape matters: the cell tables key on ("Q6", 5) and the module tables on a
+    string, and a probe that fed the wrong shape would raise inside the verifier
+    and be recorded as "cannot probe" -- a false pass for the table.
+    """
+    if isinstance(sample, tuple):
+        return tuple(_bogus_key(x) for x in sample)
+    if isinstance(sample, str):
+        return "zz_not_a_real_declaration"
+    if isinstance(sample, bool):
+        return not sample
+    if isinstance(sample, int):
+        return -987654
+    if isinstance(sample, float):
+        return -987654.0
+    return None
+
+
+# E32, the per-table half. A nonsense KEY is not enough to prove a table is read:
+# a verifier that only objects to a WELL-FORMED but WRONG entry will ignore
+# garbage and look inert. So each table declares a provocation -- an entry the
+# verifier MUST object to -- and the probe adds that instead of guessing a shape.
+#
+# This also makes an EMPTY table probeable, which emptying never could.
+#
+# Two entries below are NOT provocations but recorded limitations, and they are
+# the reason this work was worth doing rather than forcing every row green.
+PROBE_PROVOCATIONS: dict[str, object] = {
+    # A ceiling on an item recorded PERFECT: 1b is 20/20 on both sides, so
+    # "cannot be perfect" is contradicted the moment it is claimed.
+    "handouts.GOLD_CEILINGS": (("1", "1b"),
+                               ("probe: 1b cannot be perfect", "probe")),
+    # A divergence naming a cell we get right in every run.
+    "handouts.GOLD_DIVERGENCES": {"code": "PROBE_ONLY", "cells": [("1b", 1)],
+                                  "why": "probe: 1b/p1 is right every run"},
+    # A divergence claiming the web COMPUTES a check it does not: the arithmetic
+    # verifier reads web_computes and must object.
+    # The arithmetic verifier parses a claim of the form "sum to N ... max of M"
+    # out of `what` + `why` and recomputes it. A provocation therefore has to
+    # STATE a false claim in that form -- an entry asserting no arithmetic gives
+    # the check nothing to contradict, which is how the first attempt at this
+    # provocation looked like an unread table.
+    "olx_prompts.SCORING_DIVERGENCES": {
+        "what": "probe: the slot points sum to 999 against a max of 998",
+        # Q6 and not 1b: `_maxes` returns None for a SHEET_ONLY item with no
+        # LLMAction grader, and the check then skips the entry -- so a provocation
+        # aimed at 1b was silently unexaminable rather than false.
+        "items": ["Q6"], "necessary": False,
+        "enforcement": "probe", "why": "probe"},
+    # A primitive named unexercised while it is bound to a live item.
+    "enforcement.UNEXERCISED_PRIMITIVES": ("cover", "probe: cover is bound to Q6"),
+    "enforcement.HANDCODED_ITEM_RULES": ("probe_item", "probe: not a real rule"),
+
+    # NO PROVOCATION EXISTS for these two, and saying so is the finding.
+    "enforcement.RAW_GOLD_READERS": None,
+    "handouts.PER_ITEM_EXCLUDE": None,
+}
+
+# Why a table has no provocation. An entry here is a claim that the table CANNOT
+# be probed behaviourally, which is stronger than "the probe could not tell", so
+# it carries its reason and is reported as UNPROBEABLE BY DESIGN rather than
+# quietly passing.
+PROBE_IMPOSSIBLE: dict[str, str] = {
+    "enforcement.RAW_GOLD_READERS":
+        "its verifier NEVER reads it -- check_gold_accounting_is_uniform walks a "
+        "hard-coded module list and names the table only inside an error string, "
+        "so no entry can make it speak. This is E31: the table is inert by "
+        "reading, and no behavioural probe can show it. Fixing E31 -- driving the "
+        "loop from the table -- would also make it probeable.",
+    "handouts.PER_ITEM_EXCLUDE":
+        "its staleness verifier reads the LEDGER's `excluded_cells`, recorded at "
+        "sweep time, not the table as it stands now. A stale exclusion added "
+        "today is therefore invisible until the item is next recorded, so a "
+        "provocation cannot fire without re-sweeping. That is a real gap in the "
+        "check, not just in the probe: an exclusion added after the last sweep is "
+        "unwatched until the next one.",
+}
+
+
+_SELF_MODULE = "enforcement"
+
+
+_PROBE_RUNNING = False
+
+
+def probe_declaration_tables() -> list[str]:
+    """Which registered declarations enforce nothing, tested by moving them.
+
+    RE-ENTRANT BY CONSTRUCTION, so it guards. PROBE_PROVOCATIONS and
+    PROBE_IMPOSSIBLE are themselves registered declaration tables and this
+    function is their verifier -- the only thing that can check them -- so probing
+    them runs the probe, which probes them again. Unguarded that ran until it was
+    killed. The inner call returns a cheap marker derived from the two tables
+    instead, which still differs between the emptied and restored states, so both
+    tables remain tested.
+    """
+    global _PROBE_RUNNING
+    import copy
+    import importlib
+    import sys
+
+    if _PROBE_RUNNING:
+        return [f"__NESTED__{len(PROBE_PROVOCATIONS)}:{len(PROBE_IMPOSSIBLE)}"]
+    _PROBE_RUNNING = True
+
+    def run(names):
+        """The verifiers' combined output, sorted, so it compares structurally.
+
+        By CONTENT and not by count: emptying a table produces findings of its
+        own -- a budget constant that no longer matches, a ratchet reading "down
+        to 0" -- and a count comparison would read those as evidence the table is
+        read, which is the opposite of the truth.
+        """
+        import inspect as _i
+
+        out = []
+        for n in names:
+            fn = globals().get(n)
+            if fn is None:
+                out.append(f"__MISSING__{n}")
+                continue
+            # SOME VERIFIERS TAKE ARGUMENTS. check_countable_families_converted
+            # takes `items`, and calling it bare raised TypeError -- identically
+            # in every state, so its table read as INERT when the probe had simply
+            # never run it. A raising verifier looks exactly like an unread table,
+            # which is why the argument list is filled rather than defaulted.
+            try:
+                need = [q for q in _i.signature(fn).parameters.values()
+                        if q.default is _i.Parameter.empty
+                        and q.kind not in (q.VAR_POSITIONAL, q.VAR_KEYWORD)]
+            except (TypeError, ValueError):
+                need = []
+            try:
+                out.extend((fn(*[all_items() for _ in need]) if need else fn())
+                           or [])
+            except Exception as exc:
+                # Recorded distinctly: a verifier this probe cannot call is a gap
+                # in the PROBE, not evidence about the table, and the caller below
+                # must not read the two as the same thing.
+                out.append(f"__UNCALLABLE__{n}:{type(exc).__name__}")
+        return sorted(out)
+
+    report: list[str] = []
+    inert: list[str] = []
+    for path, (what, verifiers) in sorted(DECLARATION_TABLES.items()):
+        mod_name, _, attr = path.partition(".")
+        # THIS module, when the probe runs as a script, is `__main__` -- and
+        # importlib.import_module("enforcement") then builds a SECOND module
+        # object with its own copy of every table. The first version of this probe
+        # mutated that copy while the verifiers read __main__'s, so all twelve
+        # enforcement.* tables reported INERT and the summary said 16 of 22
+        # "enforce nothing". PROSE_ONLY_SLOTS was among them, which is provably
+        # false: emptying it takes its verifier from 0 findings to 18.
+        try:
+            mod = (sys.modules[__name__] if mod_name == _SELF_MODULE
+                   else importlib.import_module(mod_name))
+        except Exception as exc:
+            report.append(f"  CANNOT PROBE  {path}: {mod_name} will not import "
+                          f"({type(exc).__name__})")
+            continue
+        table = getattr(mod, attr, None)
+        if table is None:
+            report.append(f"  CANNOT PROBE  {path}: attribute is absent")
+            continue
+        if path in PROBE_IMPOSSIBLE:
+            report.append(f"  BY DESIGN     {path}: no provocation exists -- "
+                          f"{PROBE_IMPOSSIBLE[path]}")
+            continue
+        prov = PROBE_PROVOCATIONS.get(path)
+        if not table and prov is None:
+            report.append(f"  CANNOT PROBE  {path}: empty, and no provocation is "
+                          f"declared in PROBE_PROVOCATIONS, so nothing can be "
+                          f"moved. Declare one")
+            continue
+
+        base = run(verifiers)
+        saved = copy.deepcopy(table)
+        emptied = bogused = None
+        try:
+            # IN PLACE where the type allows, because a verifier may hold its own
+            # reference to the object; setattr alone would leave that reference
+            # pointing at the original and the probe would report a false INERT.
+            if isinstance(table, (dict, list, set)):
+                table.clear()
+                emptied = run(verifiers)
+                if isinstance(table, dict):
+                    table.update(saved)
+                elif isinstance(table, list):
+                    table.extend(saved)
+                else:
+                    table.update(saved)
+            else:
+                setattr(mod, attr, _empty_like(table))
+                emptied = run(verifiers)
+                setattr(mod, attr, saved)
+
+            # Corrupt rather than empty: a verifier that only ever asks "is this
+            # table non-empty" would pass the emptying test and still not read
+            # what is IN it.
+            if isinstance(table, dict):
+                if prov is not None:
+                    k, v = prov
+                else:
+                    k, v = _bogus_key(next(iter(saved))), next(iter(saved.values()))
+                if k is not None:
+                    table[k] = v
+                    bogused = run(verifiers)
+                    table.pop(k, None)
+            elif isinstance(table, list):
+                table.append(copy.deepcopy(prov if prov is not None else saved[0]))
+                bogused = run(verifiers)
+                table.pop()
+        finally:
+            if isinstance(table, dict):
+                table.clear(); table.update(saved)
+            elif isinstance(table, list):
+                table.clear(); table.extend(saved)
+            elif isinstance(table, set):
+                table.clear(); table.update(saved)
+            else:
+                setattr(mod, attr, saved)
+
+        moved = [x for x in (emptied, bogused) if x is not None]
+        # NO SIGNAL IS NOT INERTNESS. If the verifier reports nothing on the real
+        # table, emptying it also reports nothing, and a bogus key naming nothing
+        # real is correctly ignored -- three empty outputs prove only that the
+        # table is currently clean. Saying INERT there would have condemned
+        # GOLD_DIVERGENCES and PER_ITEM_EXCLUDE, both of which are read.
+        if any(x.startswith("__UNCALLABLE__") for x in base):
+            report.append(
+                f"  CANNOT PROBE  {path}: this probe cannot call "
+                f"{[x.split(':')[0][15:] for x in base if x.startswith('__UNCALLABLE__')]}"
+                f" -- teach it the arguments before believing anything about "
+                f"this table")
+        elif not base and moved and all(not x for x in moved):
+            report.append(
+                f"  INCONCLUSIVE  {path} ({what}): its verifier(s) report nothing "
+                f"on the real table, so emptying and corrupting it cannot be "
+                f"distinguished. Probe it again from a state where it has "
+                f"something to say")
+        elif moved and all(x == base for x in moved):
+            inert.append(path)
+            report.append(
+                f"  INERT         {path} ({what}): its verifier(s) "
+                f"{list(verifiers)} produce identical output with the table "
+                f"emptied{' and corrupted' if bogused is not None else ''} -- "
+                f"nothing reads it, and the registry says it is checked")
+        else:
+            which = []
+            if emptied is not None and emptied != base:
+                which.append("emptying")
+            if bogused is not None and bogused != base:
+                which.append("corrupting")
+            report.append(f"  READ          {path}: {' and '.join(which)} it "
+                          f"changes the output")
+    report.append("")
+    report.append(f"  {len(inert)} of {len(DECLARATION_TABLES)} registered "
+                  f"declaration table(s) enforce nothing"
+                  + (": " + ", ".join(inert) if inert else ""))
+    report.append("  INCONCLUSIVE is not a pass: it means the probe could not "
+                  "tell, and those tables are still unverified.")
+    _PROBE_RUNNING = False
+    return report
+
+
+# MOVED TO THE END. This block sat mid-module, so every function defined below it
+# was invisible to it -- adding a flag that called one raised NameError, because a
+# script runs top to bottom and the guard fires before the rest of the file is
+# read. Nothing depended on its position.
+if __name__ == "__main__":
+    import json
+    import sys
+
+    if "--probe-declarations" in sys.argv:
+        # E32. Deliberately NOT part of the default run: three passes of every
+        # verifier over every table is minutes, and the pre-commit path has to
+        # stay usable. Exits 1 when a registered declaration enforces nothing.
+        lines = probe_declaration_tables()
+        print("DECLARATION PROBE — does each verifier actually read its table?\n")
+        print("\n".join(lines))
+        raise SystemExit(1 if any(l.startswith("  INERT") for l in lines) else 0)
+
+    print(json.dumps(cli_signatures(), indent=1))
