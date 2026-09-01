@@ -4818,7 +4818,54 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       that predates it. Fixing it means making the and-split deterministic, which
       is a classification question like p14's, not a counting rule.
 
-- [ ] Q24. **Q4a's `antecedent_2`: the slot that carries the item's remaining error.**
+- [ ] Q24. **Q4a's ceiling: two cells, both `antecedent_1`, deterministic and opposite.**
+      RETITLED 2026-09-01. It was "Q4a's `antecedent_2`: the slot that carries the
+      item's remaining error", and both halves of that turned out wrong -- the
+      slot is `antecedent_1`, and pooling reduced four cells to two. The original
+      entry and its measurements are kept below, because the route to here is
+      most of the value.
+      WHAT IS ACTUALLY LEFT, over twelve pooled runs:
+          p14  gold 1.0, we score 3.0 in 12 of 12
+               antecedent_1 `met` 12/12   -- we CREDIT box 1, gold charges it
+               antecedent_2 `wrong_kind` 12/12
+          p19  gold 5.0 silent, we score 3.0 in 11 of 12
+               antecedent_1 `wrong_kind` 12/12 -- we REFUSE box 1, gold credits it
+               antecedent_2 `met` 11/12
+      Both cells turn entirely on `antecedent_1`, both are answered the same way
+      every run, and they point OPPOSITE WAYS. No threshold on that slot moves
+      one without moving the other the wrong way, and the one rule anybody
+      proposed -- a consequence test, from Q4b's case (3) -- was refuted before
+      it was written: p10 and p17 carry the same bidirectional state loop on the
+      same utb and gold gives both full marks.
+      SO THE GOAL IS NO LONGER "DIAGNOSE A SLOT". It is to decide whether either
+      cell can be moved at all, and to record the ceiling if not. Two routes, one
+      per cell, and neither is a Q4a rule:
+      (1) p14 IS A GOLD-CONSISTENCY QUESTION. Gold charges box 1 -- "{{corpus:Q4a/p14:first:20:66:sha=bcd1a76b331c:shape=S1-0a20202020202020202020}} rot" -- and credits the same shape
+          at full marks in p10 ("{{corpus:Q4a/p10:first:18:49:sha=e49b0a54724f:shape=A1,A19}} going") and p17
+          ("Feeling {{corpus:Q4a/p17:first:7:31:sha=4ac4f9df70c1}} workout"), all three on `lack of
+          exercise`. Its comment is plural and charges the full 4, which reads as
+          the grader docking the pair on the strength of box 2's unmistakable
+          "afterwards". If that reading holds, the item's gold is internally
+          inconsistent on this shape, and `handouts.CORRECTED_GOLD` is the
+          mechanism -- the same bar Q6/p4 was corrected on, and a high one.
+          DO NOT correct gold to make a number move; the test is whether the row
+          contradicts the grader's own decisions elsewhere in the same item.
+      (2) p19 IS Q31's STRICTNESS QUESTION, not a Q4a one. Gold gave full marks
+          in silence; we refuse "{{corpus:Q4a/p19:first:23:58:sha=ca9d4ea70d5d:shape=S4-20}}" every run.
+          Q31 asks whether a silent full-marks row is a judgement to defer to,
+          and this cell is one of its unstable members -- we score 1.0 once in
+          twelve, charging BOTH antecedents.
+      IF NEITHER ROUTE OPENS, RECORD THE CEILING AND STOP. Q4a would then be at
+      its ceiling with two cells that no rule available to this project can
+      reach, which is a result worth writing down rather than a subgoal worth
+      leaving open. See memory/q6-matching-ceiling.md for the precedent and for
+      what a ceiling entry has to contain.
+      CONTROLS FOR ANY FUTURE ATTEMPT, named now: p2 and p9 are RIGHT at the
+      pooled median and unstable underneath (both spread 3.0/5.0), so they will
+      move under a prompt change and their movement means nothing; p10 and p17
+      are the cells a box-1 rule breaks; and the thirteen cells scoring correctly
+      and stably are the ones that must not move at all.
+
       POOLED, 2026-09-01, THIS SUBGOAL IS TWO CELLS. Of its four, p2 and p9 are
       RIGHT at the pooled median -- both unstable, spread 3.0/5.0, but landing on
       gold -- and only p14 and p19 are wrong. So the "two different failures
