@@ -4831,6 +4831,9 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.RAW_GOLD_READERS": (
         "modules that read gold uncorrected, on purpose",
         ("check_gold_accounting_is_uniform",)),
+    "measured.SIDE_CONTRACT": (
+        "which program and model each ledger side is allowed to be recorded from",
+        ("check_side_contract_is_enforced",)),
     "enforcement.COMPUTE_EXEMPT": (
         "primitives one engine cannot compute",
         ("check_both_engines_compute_the_same_primitives",)),
@@ -5358,6 +5361,43 @@ def check_contains_matcher_agrees_across_engines() -> list[str]:
                        f"{c['text']!r} against {c['words']} -- TS says "
                        f"{'met' if c['met'] else 'absent'}, Python says "
                        f"{'met' if hit else 'absent'}")
+    return out
+
+
+def check_side_contract_is_enforced() -> list[str]:
+    """Does `record` still refuse an artifact from the wrong program or model?
+
+    The contract is the thing that keeps a ledger column meaning one comparison.
+    `cli` is the python scorer on the SAME model as the web, so a web/cli
+    difference isolates the PROGRAM; `paper_opus` exists so that varying the
+    model is never folded into a column that also varies the path.
+
+    Both halves failed on 2026-09-01, undetected at the time: an Opus run was
+    recorded as `cli` and an agreement.py run as `web`. The analysis built on top
+    then concluded the web/cli axis was model-versus-model, which was an artifact
+    of the mislabelling and nothing else. Advice would not have caught it -- the
+    sweep commands looked right -- so it is enforced at the point of recording.
+
+    This asks whether that enforcement is still wired in, rather than re-testing
+    the comparison: the selftest injects the breakages.
+    """
+    import inspect
+
+    import measured as MEAS
+
+    out = []
+    for side in MEAS.SIDES:
+        if side not in MEAS.SIDE_CONTRACT:
+            out.append(f"side {side!r} is recordable but SIDE_CONTRACT does not "
+                       f"say which program and model it may come from")
+    try:
+        src = inspect.getsource(MEAS.record)
+    except Exception as e:
+        return out + [f"cannot read measured.record: {type(e).__name__}: {e}"]
+    if "_check_side_contract" not in src:
+        out.append("measured.record no longer consults _check_side_contract, so "
+                   "an artifact from the wrong model or the wrong program can be "
+                   "recorded into a ledger column in silence")
     return out
 
 
