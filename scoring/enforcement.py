@@ -34,7 +34,7 @@ import sys
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 
 from handouts import config
-from score import build_schema, derive_ledger, derive_oc_ledger
+from score import _computed_keys, build_schema, derive_ledger, derive_oc_ledger
 
 # ---------------------------------------------------------------------------
 # The criteria sheet's inputs, and what makes each one fail.
@@ -645,10 +645,16 @@ def signature(item: dict) -> dict:
         base = _credit_baseline(item)
         # A computed slot is NOT a model input — it is excluded from the schema, so
         # counting it as one made the audit report the CLI as still asking for it.
-        computed = {r["key"] for r in item.get("equals", [])}
-        # Counted members are derived from the count, so they are not asked either.
-        for cr in item.get("counts", []):
-            computed |= set(cr["slots"])
+        #
+        # Sourced from `score._computed_keys`, which reads primitives.json, rather
+        # than the hand-written `equals` + `counts` pair this used to be. That pair
+        # was the same mirror-of-the-registry-kept-by-memory that score.py's own
+        # docstring records having had to fix, and it had already fallen behind by
+        # four primitives: the first `derived` check authored on the CLI path was
+        # reported as ASKED ON CLI ONLY while the schema had correctly dropped it.
+        # The audit was wrong about the code, which is the worst way for it to be
+        # wrong.
+        computed = set(_computed_keys(item))
         inputs = [c["what"] for c in item["credit"] if c["what"] not in computed]
         mk_base = lambda: base
         mk_one = lambda k: _credit_fail(item, base, k)
@@ -1585,9 +1591,65 @@ NO_RUBRIC_COMMENTS = {"3"}
 # declared only on 1c, where it reads the four typed data fields the web page
 # collects and draws its chart from; there is no way to ask a .docx that question,
 # which is the platform-forced 1c deviation already in EQUIVALENCE.md.
-COMPUTE_EXEMPT = {"derived": "1c only, and platform-forced: it reads the web page's "
-                             "typed data fields, which the paper submission has no "
-                             "equivalent of. See EQUIVALENCE.md's 1c deviation."}
+# Scoped BY KIND, not by attribute, since score.py started computing part of
+# `derived`. An attribute-level entry had exactly two settings once that happened
+# -- keep it and the audit stops looking, or drop it and the audit stops knowing
+# that `complete` is still uncomputed on the paper path. Neither states the truth,
+# which is that one kind crossed over and three did not.
+COMPUTE_EXEMPT = {"derived": {
+    "kinds": ("plots", "complete", "present"),
+    "why": "platform-forced: these read the web page's typed data fields, which "
+           "the paper submission has no equivalent of. `contains` is not exempt "
+           "-- it asks whether a word appears in the response text, which the "
+           "paper path does have. See EQUIVALENCE.md's 1c deviation.",
+}}
+
+
+def _exempt_kinds_are_still_uncomputed(attr: str) -> list[str]:
+    """Is a kind-scoped COMPUTE_EXEMPT still telling the truth?
+
+    Two ways it can rot, and both are reported:
+
+      * a kind the exemption calls uncomputable that score.py now computes --
+        the exemption is stale and is hiding a check the audit should be making;
+      * a kind AUTHORED in the OLX that is neither exempt nor implemented -- the
+        web computes it, the paper path silently does not, and no declaration
+        says so. This is the gap the attribute-level entry used to cover for the
+        whole primitive.
+    """
+    if attr != "derived":
+        return []
+    spec = COMPUTE_EXEMPT.get(attr)
+    spec = spec if isinstance(spec, dict) else {}
+    import score as S
+
+    implemented = getattr(S, "DERIVED_KINDS_IMPLEMENTED", frozenset())
+    exempt = set(spec.get("kinds", ()))
+    out = []
+    for kind in sorted(exempt & set(implemented)):
+        out.append(f"COMPUTE_EXEMPT excuses `{attr}`:`{kind}` as uncomputable on "
+                   f"the CLI, but score.py implements it -- drop that kind from "
+                   f"the exemption")
+    for kind in sorted(_authored_derived_kinds() - exempt - set(implemented)):
+        out.append(f"`{attr}`:`{kind}` is authored in the OLX and computed by the "
+                   f"web, but score.py neither implements nor exempts it, so on "
+                   f"the paper path the check is never set and nothing reports it")
+    return out
+
+
+def _authored_derived_kinds() -> set:
+    """Every `derived` kind actually used by an authored sheet."""
+    import olx_prompts as OP
+
+    out = set()
+    for handout in (1, 2, 3):
+        src = OP._src(handout)
+        for m in re.finditer(r'\bderived="([^"]*)"', src, re.S):
+            for entry in m.group(1).split("|"):
+                parts = entry.strip().split(":")
+                if len(parts) > 1 and parts[1].strip():
+                    out.add(parts[1].strip())
+    return out
 
 
 def check_fails_verdict_is_mirrored_in_the_app() -> list[str]:
@@ -1715,9 +1777,17 @@ def check_both_engines_compute_the_same_primitives() -> list[str]:
         if c and not w:
             out.append(f"`{attr}` is computed by score.py and not by agreement.py, "
                        f"so the web scores a check it never set")
-        if attr in COMPUTE_EXEMPT and c:
-            out.append(f"COMPUTE_EXEMPT excuses `{attr}` as uncomputable on the CLI, "
-                       f"but score.py now reads it -- drop the exemption")
+        # A kind-scoped exemption is checked per KIND, because the attribute-level
+        # question ("does score.py mention it?") stopped separating the kind that
+        # crossed over from the three that did not.
+        #
+        # NOT guarded on `attr in COMPUTE_EXEMPT`. It was, and that made the table
+        # unprobeable: emptying it left score.py still reading `derived`, so the
+        # branch above could not fire either, and deleting the whole declaration
+        # produced no finding at all. Every authored kind must be accounted for
+        # whether or not an exemption exists -- the exemption says WHICH kinds are
+        # excused, not whether the question gets asked.
+        out += _exempt_kinds_are_still_uncomputed(attr)
     return out
 
 
@@ -3391,6 +3461,31 @@ def check_web_scorer_exercises_its_sheet() -> list[str]:
                     unprobed.append(f"{here} derived={rule['key']} (names no field)")
                     continue
                 covered.setdefault("derived", []).append(f"{here}/{rule['key']}")
+                # `contains` is probed on the WORD, not on a blanked field.
+                # Emptying one box moves this verdict only when the word lived
+                # exactly there, so the blank-a-field probe reported "reaches no
+                # verdict" against a rule that works perfectly -- the probe
+                # asking its question, not the sheet failing to answer one. The
+                # pair here is the one the rule actually discriminates: text
+                # carrying a listed word against text carrying none.
+                if rule.get("kind") == "contains":
+                    word = (rule.get("words") or [""])[0]
+                    hit = dict(full_fx, **{f: "" for f in fields})
+                    hit[fields[0]] = f"... {word} ..."
+                    miss = dict(full_fx, **{f: "zzz" for f in fields})
+                    try:
+                        a = A.apply_computed(act, {}, hit).get(rule["key"], {})
+                        b = A.apply_computed(act, {}, miss).get(rule["key"], {})
+                    except Exception as e:
+                        problems.append(f"{here}: probing `derived={rule['key']}` "
+                                        f"raised {type(e).__name__}: {e}")
+                        continue
+                    if a.get("verdict") == b.get("verdict"):
+                        problems.append(
+                            f"{here}: `derived={rule['key']}` answers "
+                            f"{a.get('verdict')!r} whether or not the response "
+                            f"contains {word!r} -- the derivation reaches no verdict")
+                    continue
                 short = dict(full_fx, **{fields[0]: ""})
                 try:
                     a = A.apply_computed(act, {}, full_fx).get(rule["key"], {})
@@ -5223,6 +5318,47 @@ def check_prose_numbers_match_the_ledger() -> list[str]:
     import measured as MEAS
 
     return MEAS.prose_claims()
+
+
+def check_contains_matcher_agrees_across_engines() -> list[str]:
+    """The Python and TypeScript `contains` matchers, on one shared table.
+
+    The matcher exists twice on purpose. It cannot be imported into the browser,
+    and it cannot depend on a dictionary or a spell-checker, because the engine
+    the student actually meets has neither -- which is why the rule compares a
+    typed token against the TARGET WORD rather than asking whether it is English.
+
+    Two implementations of one rule is the divergence class this whole project
+    exists to close, so neither side owns the cases: both read
+    `containsCases.json`. The vitest suite asserts the TS side against it and this
+    asserts Python against the identical file, so a change to either engine that
+    is not made to the other fails here.
+    """
+    import json
+
+    import olx_prompts as OP
+    import paths as P
+
+    path = P.LO / "packages/shared/lib/llm/containsCases.json"
+    try:
+        cases = json.loads(path.read_text())
+    except Exception as e:
+        return [f"the shared `contains` case table cannot be read at {path}: "
+                f"{type(e).__name__}: {e} -- the TS side is still asserting "
+                f"against it, so Python is now unchecked"]
+    if len(cases) < 10:
+        return [f"the shared `contains` table has only {len(cases)} case(s), too "
+                f"few to have exercised the matcher -- it is reporting clean "
+                f"because it is barely asking anything"]
+    out = []
+    for c in cases:
+        hit, _typed = OP.contains_hit(c["text"], c["words"])
+        if bool(hit) != bool(c["met"]):
+            out.append(f"`contains` disagrees across engines on {c['why']}: "
+                       f"{c['text']!r} against {c['words']} -- TS says "
+                       f"{'met' if c['met'] else 'absent'}, Python says "
+                       f"{'met' if hit else 'absent'}")
+    return out
 
 
 def check_every_wrong_cell_has_an_owner() -> list[str]:
