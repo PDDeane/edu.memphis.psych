@@ -1,4 +1,4 @@
-"""Put the web sweep and the CLI sweep side by side, item by item.
+"""Put the olx sweep and the python sweep side by side, item by item.
 
 Two harnesses measure the same lo-blocks prompts against the same gold rows:
 
@@ -53,10 +53,10 @@ for _h in (1, 2, 3):
     for _it in config(_h)["rubric"].ITEMS:
         ITEM_HANDOUT[_it["id"]] = _h
 
-# CLI:  "  p1   Q1    gold=4.00 pred=4.00"   (gold may be "  -  ")
+# python:  "  p1   Q1    gold=4.00 pred=4.00"   (gold may be "  -  ")
 _CLI_CELL = re.compile(
     r"^\s+p(\d+)\s+(\S+)\s+gold=\s*(-|[\d.]+)\s+pred=\s*(-|[\d.]+)\s*$")
-# WEB:  "   1   4.00   4.00  +0.00"  under the "pid gold pred diff" header
+# OLX:  "   1   4.00   4.00  +0.00"  under the "pid gold pred diff" header
 _WEB_CELL = re.compile(r"^\s+(\d+)\s+(-|[\d.]+)\s+(-|[\d.]+)\s+[-+][\d.]+\s*$")
 
 
@@ -175,46 +175,46 @@ def collect(webdir: str, clidir: str) -> list[dict]:
     rows = []
     for iid, h in ITEM_HANDOUT.items():
         wlog, clog = f"{webdir}/{iid}.log", f"{clidir}/{iid}.log"
-        web = read_web(wlog) if os.path.exists(wlog) else {}
-        cli = read_cli(clog) if os.path.exists(clog) else {}
-        if not web and not cli:
+        olx = read_web(wlog) if os.path.exists(wlog) else {}
+        python = read_cli(clog) if os.path.exists(clog) else {}
+        if not olx and not python:
             continue
-        both = sorted(set(web) & set(cli))
+        both = sorted(set(olx) & set(python))
         tol = tolerance(iid)
         rows.append({
             "item": iid, "handout": h, "max": item_max(iid), "tol": tol,
             "k": score_affecting_checks(iid),
-            "web_all": stats([p - g for g, p in web.values()], tol),
-            "cli_all": stats([p - g for g, p in cli.values()], tol),
-            "olx": stats([web[i][1] - web[i][0] for i in both], tol),
-            "python": stats([cli[i][1] - cli[i][0] for i in both], tol),
-            # web vs cli: the difference of the two ERRORS, not of the two raw
+            "web_all": stats([p - g for g, p in olx.values()], tol),
+            "cli_all": stats([p - g for g, p in python.values()], tol),
+            "olx": stats([olx[i][1] - olx[i][0] for i in both], tol),
+            "python": stats([python[i][1] - python[i][0] for i in both], tol),
+            # olx vs python: the difference of the two ERRORS, not of the two raw
             # scores. The sides do not always score an item on the same scale —
             # 1c is measured on paper out of 10 but only its three LABEL slots
-            # exist on the web, so agreement.py reports a 6-point subtotal while
+            # exist on the olx, so agreement.py reports a 6-point subtotal while
             # the app reports the full 10, and each side's gold is scaled to
             # match. Differencing raw predictions there compares 6-point scores
             # with 10-point ones and reports a constant 4-point "disagreement"
             # on cells where the two in fact agree exactly. Differencing errors
             # is identical whenever the scales match and correct when they do not.
-            "xx": stats([(web[i][1] - web[i][0]) - (cli[i][1] - cli[i][0])
+            "xx": stats([(olx[i][1] - olx[i][0]) - (python[i][1] - python[i][0])
                          for i in both], tol),
-            "n_web_only": len(set(web) - set(cli)),
-            "n_cli_only": len(set(cli) - set(web)),
-            "rescaled": sorted(i for i in both if abs(web[i][0] - cli[i][0]) > 1e-9),
-            # (web gold, web pred, cli gold, cli pred)
-            "cells": {i: (web[i][0], web[i][1], cli[i][0], cli[i][1]) for i in both},
+            "n_web_only": len(set(olx) - set(python)),
+            "n_cli_only": len(set(python) - set(olx)),
+            "rescaled": sorted(i for i in both if abs(olx[i][0] - python[i][0]) > 1e-9),
+            # (olx gold, olx pred, python gold, python pred)
+            "cells": {i: (olx[i][0], olx[i][1], python[i][0], python[i][1]) for i in both},
         })
     return rows
 
 
 def report(rows: list[dict], webdir: str, clidir: str) -> None:
-    print(f"\nweb ({webdir})  vs  cli ({clidir})\n")
+    print(f"\nweb ({webdir})  vs  python ({clidir})\n")
     hdr = (f"{'item':>5} {'h':>2} {'max':>5} {'k':>2} {'n':>3} {'dvg':>3} │"
            f" {'exact':>6} {'/chk':>5} {'±tol':>6} {'MAE':>5} {'bias':>6} │"
            f" {'exact':>6} {'/chk':>5} {'±tol':>6} {'MAE':>5} {'bias':>6} │"
            f" {'agree':>6} {'MAE':>5}")
-    print(f"{'':>25} │{'olx':^35}│{'python':^35}│{'web vs cli':^13}")
+    print(f"{'':>25} │{'olx':^35}│{'python':^35}│{'olx vs python':^13}")
     print(hdr)
     print("─" * len(hdr))
 
@@ -283,15 +283,15 @@ def report(rows: list[dict], webdir: str, clidir: str) -> None:
             if abs(d) > 1e-9:
                 div.append((abs(d), r["item"], pid, wg, wp, cg, cp))
     if div:
-        print(f"\nCells where web and cli disagree ({len(div)}), largest first:")
+        print(f"\nCells where olx and python disagree ({len(div)}), largest first:")
         print("  (Δ is the gap between the two errors, so it is right even where "
               "the sides score an item on different scales)")
         for d, iid, pid, wg, wp, cg, cp in sorted(div, reverse=True)[:40]:
             better = "olx" if abs(wp - wg) < abs(cp - cg) else (
                 "python" if abs(cp - cg) < abs(wp - wg) else "tie")
             gold = f"{wg:>5.2f}" if abs(wg - cg) < 1e-9 else f"{wg:>5.2f}/{cg:<5.2f}"
-            print(f"  {iid:>5} p{pid:<3} gold {gold}   web {wp:>5.2f} ({wp - wg:+.2f})   "
-                  f"cli {cp:>5.2f} ({cp - cg:+.2f})   Δ{d:>5.2f}  closer: {better}")
+            print(f"  {iid:>5} p{pid:<3} gold {gold}   olx {wp:>5.2f} ({wp - wg:+.2f})   "
+                  f"python {cp:>5.2f} ({cp - cg:+.2f})   Δ{d:>5.2f}  closer: {better}")
 
     # Coverage caveats, printed rather than folded away: a matched-cell table
     # silently drops whatever one side never ran.
@@ -335,23 +335,23 @@ def report(rows: list[dict], webdir: str, clidir: str) -> None:
     scaled = [r for r in rows if r.get("rescaled")]
     if scaled:
         print("\nItems the two sides score on DIFFERENT scales — per-side columns are "
-              "each against their own gold; the web-vs-cli column compares errors:")
+              "each against their own gold; the olx-vs-python column compares errors:")
         for r in scaled:
             wg, _, cg, _ = next(iter(r["cells"].values()))
-            print(f"  {r['item']:>5}  web gold out of {r['max']:.0f}, cli reports a "
-                  f"subtotal (e.g. p{next(iter(r['cells']))}: web {wg:.2f} vs cli {cg:.2f}) "
+            print(f"  {r['item']:>5}  olx gold out of {r['max']:.0f}, python reports a "
+                  f"subtotal (e.g. p{next(iter(r['cells']))}: olx {wg:.2f} vs python {cg:.2f}) "
                   f"— {len(r['rescaled'])}/{r['olx']['n']} cells")
 
     odd = [r for r in rows if r["n_web_only"] or r["n_cli_only"]]
     if odd:
         print("\nCells one side ran and the other did not (excluded above):")
         for r in odd:
-            print(f"  {r['item']:>5}  web-only {r['n_web_only']:>2}   "
-                  f"cli-only {r['n_cli_only']:>2}")
+            print(f"  {r['item']:>5}  olx-only {r['n_web_only']:>2}   "
+                  f"python-only {r['n_cli_only']:>2}")
     if missing:
         print("\nItems missing a side entirely (excluded above):")
         for iid, hw, hc in missing:
-            print(f"  {iid:>5}  web={'yes' if hw else 'NO'}  cli={'yes' if hc else 'NO'}")
+            print(f"  {iid:>5}  olx={'yes' if hw else 'NO'}  python={'yes' if hc else 'NO'}")
 
 
 def detail(rows: list[dict], iid: str) -> None:

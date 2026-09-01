@@ -564,7 +564,7 @@ SCORING_DIVERGENCES = [
                "unchanged. No cell has both entries `absent`.",
     },
     dict(items=["NR", "PR", "PP", "NP"],
-         enforcement=[(i, "CHARGE-ONCE WEB ONLY")
+         enforcement=[(i, "CHARGE-ONCE OLX ONLY")
                       for i in ("NR", "PR", "PP", "NP")],
          what="a three-way conjunction is invisible to the pairwise "
                              "charge-once probe",
@@ -1392,7 +1392,7 @@ SLOT_NOTES = {
     # The three notes that stood here -- Q5:example_2, reasons_substantial and
     # 1c:legend -- MIGRATED 2026-08-30 to the `rule` field on their credit
     # components, where both generators render them. Each was declared here as
-    # web-only BY DESIGN on the grounds that it named one side's verdict token
+    # olx-only BY DESIGN on the grounds that it named one side's verdict token
     # and `{fail}` could not express it. That was right about the constraint and
     # wrong about the conclusion, in the way QUALITY_CONTROL.md now warns about:
     # `nothing can host this` is a fact about today's mechanism, not about the
@@ -1808,7 +1808,7 @@ for _it in config(2)["rubric"].ITEMS:
 
 # The SLOT_NOTES keys the CLI renders too, via _C10_TRIGGER and _criterion_11.
 # check_slot_rules_reach_both_prompts exempts these, and it needs a declaration
-# rather than a list of its own: its whole premise is that SLOT_NOTES is web-only,
+# rather than a list of its own: its whole premise is that SLOT_NOTES is olx-only,
 # which is true of every key EXCEPT the ones named here, and a check carrying its
 # own copy of that exception would go stale the moment this list changed.
 CLI_CRITERIA_NOTES = ("trigger_behavior", "consequence_asserted")
@@ -2010,7 +2010,7 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
             continue
         # The rubric's own per-component `rule` comes FIRST. Slot-specific judging
         # text belongs in a slot-specific field on BOTH sides, and only the rubric
-        # is read by both — SLOT_NOTES is web-only, so a rule parked there reaches
+        # is read by both — SLOT_NOTES is olx-only, so a rule parked there reaches
         # the web and CLI and silently leaves the paper scorer behind. That is
         # exactly what happened to Q4b's five substitution tests.
         note = (rule.get(s["key"])
