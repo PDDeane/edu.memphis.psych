@@ -2693,3 +2693,144 @@ def gold_slot_disagreements() -> list[str]:
         out.append(f"GOLD_SLOT_DISAGREEMENTS_KNOWN {verb} {n} against a budget of "
                    f"{GOLD_SLOT_DISAGREEMENTS_BUDGET} -- it may only fall")
     return out
+
+
+# ---------------------------------------------------------------------------
+# E37. Every cell we get WRONG must have somewhere to live.
+#
+# The accounting that produced this was done by hand: 34 wrong cells found and
+# mapped, 16 orphans chased to none. Doing it once proves nothing about tomorrow,
+# because a cell moves in or out of "wrong" whenever a rule is edited and nothing
+# reports the move. Both directions matter, and closing a subgoal is a third:
+# closing E35 orphaned five cells and it was noticed by reading, not by a check.
+def _live_subgoal_owners() -> dict:
+    """{`item/pN`: [subgoal ids]} for every OPEN subgoal that names a cell.
+
+    Closed subgoals do not count. A finished goal is not a place for a live
+    problem to live, and treating it as one is how five cells were orphaned by a
+    closure that looked clean.
+
+    E30 is excluded by name: it is the ACCOUNTING, and every cell appears in it by
+    construction, so counting it as an owner would make this check vacuous.
+    """
+    import re
+
+    try:
+        text = (Path(__file__).resolve().parent / "GOALS.md").read_text()
+    except OSError:
+        return {}
+    # TWO KINDS OF MENTION, and the asymmetry between them is the point.
+    #
+    # ANY mention makes a subgoal an OWNER: a subgoal listing cells is a home for
+    # them, and being generous here avoids nagging about a cell that is plainly
+    # accounted for.
+    #
+    # Only a TITLE mention makes the subgoal ABOUT that cell. A body mention is
+    # very often history or a control -- Q19 names 1a/p15 and Q4b/p8 precisely
+    # because we score them RIGHT, and a line about "gold corrections earned by
+    # control sets" names D2/p11 and WK1/p7 as past work. Flagging those as
+    # "evidence has gone" would report the subgoal for citing its own controls.
+    # Q11 is what the strict form is for: its TITLE is "Q3/p13: `realistic`
+    # over-charged", and that cell now scores right.
+    owners: dict = {"any": {}, "title": {}}
+    current = None
+    for line in text.splitlines():
+        m = re.match(r"- \[( |x)\] ([EQ]\d+)\.", line)
+        is_title = bool(m)
+        if m:
+            current = None if m.group(1) == "x" or m.group(2) == "E30" else m.group(2)
+        if current is None:
+            continue
+        for cell in re.findall(r"\b([A-Za-z0-9]{1,4})/p(\d{1,2})\b", line):
+            key = f"{cell[0]}/p{cell[1]}"
+            owners["any"].setdefault(key, []).append(current)
+            if is_title:
+                owners["title"].setdefault(key, []).append(current)
+    return owners
+
+
+def _wrong_cells() -> list:
+    """(item, pid, side, gold, ours) for every cell wrong at the recorded median.
+
+    Both sides, because a cell wrong on the web and right on the cli is still a
+    cell we get wrong -- and reading one side is the mistake the whole
+    both-sides sweep of 2026-08-31 was about.
+    """
+    import handouts as H
+
+    out = []
+    for item in sorted(_jobs()):
+        h = _jobs()[item]["handout"]
+        try:
+            g = _corrected_gold(h, rebuild_1c=(item == "1c"))
+        except Exception:
+            continue
+        excluded = set(exclusions(item))
+        for pid in sorted(g):
+            if pid in excluded:
+                continue
+            target = ((g.get(pid) or {}).get(item) or {}).get("score")
+            if target is None:
+                continue
+            for side in SIDES:
+                scores = _cell_scores(item, pid, side)
+                if not scores:
+                    continue
+                ours = sorted(scores)[len(scores) // 2]
+                if not H.scored_exactly(item, target, ours):
+                    out.append((item, pid, side, target, ours))
+    return out
+
+
+def wrong_cells_without_an_owner() -> list[str]:
+    """Cells we get wrong that no live subgoal and no declaration accounts for."""
+    import handouts as H
+
+    owned = _live_subgoal_owners()
+    owners, subjects = owned["any"], owned["title"]
+    wrong = _wrong_cells()
+    seen: set = set()
+    out: list[str] = []
+    for item, pid, side, target, ours in wrong:
+        key = f"{item}/p{pid}"
+        if key in seen:
+            continue
+        seen.add(key)
+        if owners.get(key):
+            continue
+        # A DECLARED MISS IS NOT AN ORPHAN. GOLD_DIVERGENCES already carries the
+        # reason we miss the cell on purpose; demanding a QC subgoal too would be
+        # two names for one claim.
+        if H.gold_divergence(item, pid):
+            continue
+        out.append(
+            f"{key} is WRONG on {side} -- gold {target:g}, we record {ours:g} -- "
+            f"and no OPEN subgoal names it. Every cell we get wrong needs "
+            f"somewhere to live, or the next sweep buries it in a median. Name it "
+            f"in the subgoal that owns its shape, or declare it")
+
+    # The other direction: a subgoal citing a cell that has stopped being wrong.
+    still_wrong = {f"{i}/p{p}" for i, p, *_ in wrong}
+    measured_cells = set()
+    for item in sorted(_jobs()):
+        for pid in range(1, 21):
+            if _cell_scores(item, pid):
+                measured_cells.add(f"{item}/p{pid}")
+    # A CELL CAN BE RIGHT AT THE TOTAL AND STILL BE A LIVE FINDING. Q19 names
+    # 1a/p1 because we credit three week slots the grader charged, and the two
+    # errors cancel to the same total -- which is the whole point of the slot
+    # accounting. Treating "total agrees" as "problem gone" would have retired the
+    # cells that exist precisely because the total hides them.
+    declared_at_slot_level = (set(GOLD_SLOT_DISAGREEMENTS_KNOWN)
+                              | set(GOLD_SLOT_BOUNDS_KNOWN)
+                              | set(GOLD_CODE_KNOWN))
+    slot_live = {f"{i}/p{p_}" for i, p_ in declared_at_slot_level}
+    for key, who in sorted(subjects.items()):
+        if key in still_wrong or key not in measured_cells or key in slot_live:
+            continue
+        out.append(
+            f"{key} is named by OPEN subgoal(s) {sorted(set(who))} but now scores "
+            f"RIGHT at the recorded median on every side. The evidence the "
+            f"subgoal cites has gone: re-read it, and drop the cell or close the "
+            f"subgoal")
+    return out

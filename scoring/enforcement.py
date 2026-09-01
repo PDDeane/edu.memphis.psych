@@ -5225,6 +5225,46 @@ def check_prose_numbers_match_the_ledger() -> list[str]:
     return MEAS.prose_claims()
 
 
+def check_every_wrong_cell_has_an_owner() -> list[str]:
+    """A cell we score wrong that no open subgoal and no declaration accounts for.
+
+    The accounting this automates was built by hand over a long session: itemise
+    gold's comment for all 109 cells, list every cell wrong at the median, and
+    check each one against the subgoals until nothing is unowned. It worked, and
+    the reason it is a CHECK now rather than a note saying "do that again" is
+    that its product decays silently. Cells move as prompts change. A subgoal
+    closes and takes the only home a cell had. The accounting reads as current
+    long after it stops being true, because a finished list looks the same
+    whether or not it still describes the corpus.
+
+    The hand pass also had a defect no amount of care would have caught: it read
+    the CLI median only. Its very first automated run found five cells the cli
+    gets right and the web gets wrong -- DAY2/p8, PR/p15, Q2/p18, Q4a/p9, WK2/p8
+    -- invisible to a one-sided reading and now carried as Q32.
+
+    Both directions are reported, because the accounting decays both ways:
+
+      * a wrong cell no OPEN subgoal names -- work with nowhere to be recorded;
+      * a cell a subgoal is ABOUT that now scores RIGHT -- evidence that has
+        moved out from under a subgoal still being worked. That arm closed Q11,
+        whose `realistic` over-charge was gone.
+
+    Three exemptions, each a real distinction rather than a way to reach zero.
+    A cell in GOLD_DIVERGENCES is a DECLARED miss and is not an orphan. A cell
+    declared at slot or code level stays live even when its total agrees, since
+    compensating slot errors summing to the right total is the whole reason that
+    accounting exists. And only a TITLE mention makes a subgoal ABOUT a cell --
+    body mentions are routinely history or controls, and Q19 names cells
+    precisely because we score them RIGHT.
+
+    MUST BE CHEAP, since it runs on every audit: it reads the recorded ledger and
+    GOALS.md, spawns nothing, and costs about half a second.
+    """
+    import measured as MEAS
+
+    return MEAS.wrong_cells_without_an_owner()
+
+
 def check_gold_tables_have_no_duplicate_keys(src: str | None = None) -> list[str]:
     """A key written twice in one of handouts.py's declaration tables.
 
