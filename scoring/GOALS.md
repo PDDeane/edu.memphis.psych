@@ -776,6 +776,18 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
                 design and must stay so.
 
 - [ ] E28. **A paper sweep the ledger can record, on either model.**
+      FIRST NUMBERS RECORDED 2026-09-01, on two items only: Q4a paper 15/20 and
+      Q4c paper 17/19, six runs each on gpt-5-mini through `--backend lo`, folded
+      by paper_runs.py and recorded on the `paper` side. So the machinery built
+      on 2026-08-30 is confirmed working against the CURRENT corpus, not just the
+      discarded one -- which is what left this goal open with an empty column.
+      THIS DOES NOT CLOSE IT. The deliverable is the corpus, and 24 of 26 items
+      still have no paper number. The scoped run used score.py --items directly
+      rather than sweep_paper.sh, which sweeps all three handouts at ~519 calls a
+      run; the full six-run sweep is ~3,100 calls and is the remaining work.
+      ONE DEFECT FOUND BY THE FIRST REAL FOLD: measured._artifact_program read a
+      folded paper artifact as unclassifiable, and an unclassifiable artifact
+      skipped the side-contract program check entirely. Fixed under E25.
       The third scorer could be RUN and not RECORDED. `cross_path.result_cell`
       read the app's `cell` shape and the harness's `participant_id` shape;
       score.py writes `rN/hM/participant_NNN.json` with an `items[]` list, which
@@ -2025,6 +2037,27 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       per-item lookups then returned empty and the audit reported three declared
       slot disagreements as RESOLVED -- three declarations nearly deleted on a
       false positive. Sweep per item, or split the artifact before recording.
+      AND MEASURED ON THE THIRD ENGINE, 2026-09-01, which this goal implemented
+      and nothing had yet exercised. score.py computes `contains` from the
+      `response` it was already handed, and the paper side of both items now
+      exists -- the FIRST paper column the ledger has ever held:
+          Q4a olx 17/20   python 18/20   paper 15/20
+          Q4c olx 17/19   python 17/19   paper 17/19
+      Six runs each, all three on gpt-5-mini, so the paper figure differs from
+      the other two by PROMPT (the rubric rather than the OLX sheet) and not by
+      model. Q4c is identical across all three engines, which is the strongest
+      statement available that the conversion is behaviour-preserving. Q4a's
+      paper side is three cells below python; that gap is not this goal's -- it
+      predates the conversion and belongs to whatever explains the rubric
+      prompt's Q4a performance.
+      A HOLE IN THE SIDE CONTRACT WAS FOUND BY DOING THIS, and it was the one
+      that mattered. `_artifact_program` classified a FOLDED paper artifact as
+      "" -- paper_runs.py gives it a `runs` array, so the no-runs test missed it,
+      and its results are keyed `_pid`/`credit_checks` rather than `cell` or
+      `participant_id`. An empty classification SKIPS the program check, so the
+      single shape most likely to be filed under the wrong side was the one
+      shape nothing objected to. Fixed and verified: the fold is accepted as
+      `paper`, refused as `python`, refused as `paper_opus`.
       UNBLOCKS E28, which was waiting on this.
 
 
