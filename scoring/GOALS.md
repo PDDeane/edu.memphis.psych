@@ -1752,6 +1752,38 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       is identical for every table sharing those verifiers -- which removes a
       third of the work. It remains an on-demand check, deliberately.
 
+- [ ] E37. **Every wrong cell must have a live owner, and the audit must say so every run.**
+      Filed 2026-08-31. The accounting built across E30/E33/E35 was done BY HAND:
+      34 wrong cells found, mapped to subgoals, 16 orphans chased down to 0. None
+      of that is enforced, so it is true today and unverifiable tomorrow -- and it
+      is exactly the state a cell moves out of silently when a rule is edited.
+      WHAT GOES STALE, in both directions, and neither is visible today:
+        a cell that STARTS being wrong after an edit has no owner and nothing
+          says so. It shows up as one more number in a median.
+        a cell that STOPS being wrong leaves a subgoal citing evidence that has
+          gone -- the same failure the GOLD_SLOT ratchets already catch for the
+          declaration tables, and the same one that retired three Q6 entries the
+          day the pattern overlap was fixed.
+        a subgoal that CLOSES orphans every cell it named. That is not
+          hypothetical: closing E35 orphaned five cells, and it was noticed by
+          hand rather than reported.
+      THE CHECK: for every cell wrong at the recorded median, on either side,
+      require a LIVE subgoal naming it as `item/pN` -- or a standing declaration
+      that says we miss it on purpose. Report orphans, and report the reverse: a
+      live subgoal naming a cell that is no longer wrong.
+      A DECLARED MISS IS NOT AN ORPHAN. GOLD_DIVERGENCES cells are knowingly
+      missed and already carry their reason; demanding a QC subgoal as well would
+      be two names for one claim, which is the mistake SLOT_NOTES/SLOT_RULE_BACKLOG
+      records.
+      IT MUST BE CHEAP, or it will be moved out of the default run and stop being
+      a regular procedure. That is affordable now: the audit went from 80.7s to
+      7.7s on 2026-08-31, and the gold and artifact loads this check needs are the
+      memoised ones.
+      DO NOT MAKE IT A BUDGET. The count of wrong cells is a measurement and will
+      move with every sweep; what must not move is that each has somewhere to
+      live. A ratchet on the NUMBER would create pressure to close subgoals rather
+      than fix cells.
+
 - [ ] E25. **The `keyword` check is 100% accurate and cannot move a score. Convert it to `derived`.**
       AN AUDIT SUBGOAL, NOT A QC ONE, and it was filed wrong once: its FINDING is
       about accuracy (240/240) but its DELIVERABLE is a primitive conversion --
@@ -2709,6 +2741,32 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       the only evidence is the response itself -- read the boxes for two or three
       of these before forming any theory, per QUALITY_CONTROL.md and
       memory/fixture-defects-found-by-readout.md.
+
+- [ ] Q32. **FIVE CELLS THE CLI GETS RIGHT AND THE WEB GETS WRONG.**
+      Filed 2026-08-31 by the E37 ownership check on its FIRST run, and it exists
+      because the hand accounting that preceded it read ONE SIDE. Every cell in
+      E30's itemisation was compared at the cli median. These five are right there
+      and wrong on the web, so nothing in that accounting could see them:
+          DAY2/p8   gold 4.0    cli 4.0    web 0.0
+          PR/p15    gold 4.0    cli 4.0    web 2.0
+          Q2/p18    gold 4.0    cli 4.0    web 2.0
+          Q4a/p9    gold 3.0    cli 3.0    web 5.0
+          WK2/p8    gold 0.0    cli 0.0    web 2.0
+      All six runs on each side, so none of this is a one-run wobble.
+      THE SHAPE IS THE FINDING. Four of the five are the web being HARSHER than
+      the cli, and Q4a/p9 is the web being more lenient -- and DAY2/p8 drops the
+      full four points. These are the same rubric, the same participant text and
+      the same model; the engines differ, so a divergence this size is a defect in
+      one of them rather than a disagreement with the grader. The cli agrees with
+      gold on all five, which says the web is the side to read first.
+      DO NOT ASSUME ONE CAUSE. Five cells across five different items (DAY2, PR,
+      Q2, Q4a, WK2) is not obviously one bug, and three of the five items are
+      `derive_from_criteria` where the web and cli reach the deduction codes by
+      different routes. Start by diffing the two sides' artifacts for DAY2/p8, the
+      largest gap, and check whether the failing slots differ or only the
+      arithmetic over them does.
+      NEXT: diff web vs cli artifacts for DAY2/p8; classify whether the five share
+      a mechanism; then fix or declare each.
 
 - [ ] Q30. **Where we charge MORE than gold: Q5/p4 and 1c/p11, against a corpus that is otherwise lenient.**
       Filed 2026-08-31 from E30's accounting, for being the exception. Twenty-one
@@ -3721,7 +3779,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       -- what it would be recorded in. Unstable rather than stably wrong, so it
       is the weakest of the three: six runs of the criterion before any prose
       change, since a ~3/6 cell can be moved by noise and read as a fix.
-- [ ] Q11. **Q3/p13: `realistic` over-charged.** We charge where gold passed the
+- [x] Q11. **Q3/p13: `realistic` over-charged.** We charge where gold passed the
       MEASURED IN THE TWO-SIDED SWEEP, 6 runs, 2026-08-28. Q3 came out 18/20 at
       100% PER CHECK with a spread of ZERO cells -- so every individual verdict was
       right and the two missed cells are arithmetic on correct judgements. The
@@ -3739,6 +3797,20 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       under-credit in the whole item (1 of 120 observations). Consider closing this
       on the sweep rather than working it, and if it stays open the target is a
       1-in-6 flicker, not a threshold.
+      CLOSED 2026-08-31 ON TWO INDEPENDENT LINES. The E37 ownership check flagged
+      Q3/p13 as a cell this subgoal names that now scores RIGHT at the recorded
+      median -- 3.0 against gold 3.0 on BOTH the web and the cli, six runs each --
+      and the note above had already reached the same verdict from the criterion
+      side three days earlier without the check existing. Closing on one recovered
+      cell would have been the suspect-cell mistake; what justifies it is that the
+      RULE this was filed about is clean corpus-wide, with Q3's error profile
+      running over-credit 11 to under-credit 1.
+      THE RESIDUE, so that closing does not hide it: `realistic=unclear` cost a
+      point in ONE run of six, and that is the ONLY under-credit anywhere in the
+      item -- 1 of 120 observations. That is the noise floor, not a defect, and it
+      is deliberately not being carried as a subgoal. If Q3 is ever measured again
+      and `realistic` reads `unclear` at a rate materially above 1-in-6, THAT is
+      the signal to reopen this; a single flicker is not.
       answer silently, so unlike 9 and 10 the defect is OURS being too strict,
       not too lenient. Gold's silence is the evidence, which makes this the one
       of the three where the credited rows matter most -- there is no gold note

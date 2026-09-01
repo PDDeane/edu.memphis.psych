@@ -646,6 +646,8 @@ def enforcement_audit():
         findings.append(("-", "DECLARATION OUTLIVED ITS EVIDENCE", bad))
     for bad in ENF.check_prose_numbers_match_the_ledger():
         findings.append(("-", "PROSE NUMBER CONTRADICTS THE LEDGER", bad))
+    for bad in ENF.check_every_wrong_cell_has_an_owner():
+        findings.append(("-", "WRONG CELL WITH NO OWNER", bad))
     for bad in ENF.check_the_audit_read_the_corpus():
         findings.append(("-", "AUDIT EXAMINED NOTHING", bad))
     for bad in ENF.check_consensus_spans_are_disjoint():
