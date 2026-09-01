@@ -910,6 +910,49 @@ seam the self-test can replace, as `_handsplit_tables` does.
 subgoal that owns it, or declare it with a reason. Silencing it is not on the
 list.
 
+## 2e. A CLI/WEB DIFFERENCE AT THE MEDIAN IS NOT YET A DIVERGENCE
+
+Two sides are compared at their recorded medians, and the median over six runs is
+a STEP FUNCTION at exactly the halfway point. On a cell the model gets right about
+half the time, 3 of 6 puts the median on the right answer and 2 of 6 puts it on
+the wrong one — so a single observation decides which engine is recorded as
+correct, and the ledger shows a clean "cli right, web wrong" for a cell where the
+two engines are behaving identically.
+
+This is not hypothetical. Q32 was filed as "five cells the cli gets right and the
+web gets wrong" and measured out as ONE divergence and four coin flips:
+
+    cell        gold   cli matches   web matches   medians
+    DAY2/p8      4.0      3 of 6        2 of 6     cli 4 / web 0
+    PR/p15       4.0      3 of 6        2 of 6     cli 4 / web 2
+    Q2/p18       4.0      3 of 6        2 of 6     cli 4 / web 2
+    WK2/p8       0.0      5 of 6        3 of 6     cli 0 / web 2
+    Q4a/p9       3.0      0 of 6        6 of 6     cli 5 / web 3
+
+Three differ by ONE observation. Only the last is a real engine difference, and it
+is obvious once the rate is read rather than the median: 0 of 6 against 6 of 6.
+
+**Before treating a cli/web difference as an engine defect, read the per-run
+agreement rate on both sides.** If they are within a run of each other, no engine
+is at fault and the cell belongs to whichever subgoal owns its unstable slot —
+`measured._runs_doc(item, side)` has the per-run results and the per-run verdicts.
+
+Two traps inside that check:
+
+* **Compare `refers_to` as well as the verdicts.** WK2/p8's web runs have
+  IDENTICAL verdicts and scores of 0, 0, 2, 0, 2, 4: the movement is entirely in
+  the classification answers, `observed_type` and `restriction_authored`. A flip
+  detector reading only `verdicts` reports the cell as stable and turns a
+  scoring-path question into a mystery.
+* **The direction can invert.** Q4a/p9 was cli-right/web-wrong until an unrelated
+  slot left the sheet under E25, and is now web-right/cli-wrong, 6/6 stable both
+  ways. A recorded direction is a fact about a measurement, not a property of the
+  cell.
+
+The ownership check in 2d reports a cell wrong on EITHER side, which is right —
+the cell is still not being scored correctly. What this section governs is the
+diagnosis that follows, not whether the cell gets an owner.
+
 ## 3. Building the model
 
 **READ THE CREDITED ROWS, NOT JUST THE MISSES. `python3 measured.py

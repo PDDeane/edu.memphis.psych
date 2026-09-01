@@ -2840,40 +2840,74 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       of these before forming any theory, per QUALITY_CONTROL.md and
       memory/fixture-defects-found-by-readout.md.
 
-- [ ] Q32. **FIVE CELLS THE CLI GETS RIGHT AND THE WEB GETS WRONG.**
-      Filed 2026-08-31 by the E37 ownership check on its FIRST run, and it exists
-      because the hand accounting that preceded it read ONE SIDE. Every cell in
-      E30's itemisation was compared at the cli median. These five are right there
-      and wrong on the web, so nothing in that accounting could see them:
-          DAY2/p8   gold 4.0    cli 4.0    web 0.0
-          PR/p15    gold 4.0    cli 4.0    web 2.0
-          Q2/p18    gold 4.0    cli 4.0    web 2.0
-          Q4a/p9    gold 3.0    cli 5.0    web 3.0   <- INVERTED, see below
-          WK2/p8    gold 0.0    cli 0.0    web 2.0
-      All six runs on each side, so none of this is a one-run wobble.
-      Q4a/p9 INVERTED ON 2026-09-01, under the E25 keyword conversion. It was
-      filed here as cli-right/web-wrong; it is now web-right/cli-wrong, stable at
-      6/6 on both sides. Nothing about `antecedent_2` was touched -- the only
-      change either engine saw is that `keyword` stopped being asked of the model
-      and became a computed check. A cell that swaps which engine is correct when
-      an UNRELATED slot leaves the sheet is the strongest evidence in this subgoal
-      that the five are a SHEET-LEVEL effect rather than five separate judgement
-      errors, and it is the one to read first. The slot-level half is declared in
-      measured.GOLD_SLOT_BOUNDS_KNOWN.
-      THE SHAPE IS THE FINDING. Four of the five are the web being HARSHER than
-      the cli, and Q4a/p9 is the web being more lenient -- and DAY2/p8 drops the
-      full four points. These are the same rubric, the same participant text and
-      the same model; the engines differ, so a divergence this size is a defect in
-      one of them rather than a disagreement with the grader. The cli agrees with
-      gold on all five, which says the web is the side to read first.
-      DO NOT ASSUME ONE CAUSE. Five cells across five different items (DAY2, PR,
-      Q2, Q4a, WK2) is not obviously one bug, and three of the five items are
-      `derive_from_criteria` where the web and cli reach the deduction codes by
-      different routes. Start by diffing the two sides' artifacts for DAY2/p8, the
-      largest gap, and check whether the failing slots differ or only the
-      arithmetic over them does.
-      NEXT: diff web vs cli artifacts for DAY2/p8; classify whether the five share
-      a mechanism; then fix or declare each.
+- [ ] Q32. **ONE engine divergence and four unstable cells the median disguised.**
+      Filed 2026-08-31 as "five cells the cli gets right and the web gets wrong",
+      and REWRITTEN 2026-09-01 after measuring it, because that premise was wrong
+      for four of the five. What the two-sided medians looked like, against how
+      often each side actually matched gold over the same six runs:
+          cell        gold   cli matches   web matches   medians
+          DAY2/p8      4.0      3 of 6        2 of 6     cli 4 / web 0
+          PR/p15       4.0      3 of 6        2 of 6     cli 4 / web 2
+          Q2/p18       4.0      3 of 6        2 of 6     cli 4 / web 2
+          WK2/p8       0.0      5 of 6        3 of 6     cli 0 / web 2
+          Q4a/p9       3.0      0 of 6        6 of 6     cli 5 / web 3
+      THREE OF THEM DIFFER BY ONE OBSERVATION. 3 of 6 puts the median on the right
+      answer; 2 of 6 puts it on the wrong one. The cells are coin flips on BOTH
+      engines and the median is a step function at exactly the halfway point, so a
+      single run decides which side gets recorded as correct. DAY2/p8 is the
+      clearest: `cadence_is_daily`, a 4-point gate, reads met/met/absent/absent/
+      met/absent on the cli and absent/met/absent/met/absent/absent on the web.
+      Same flip, same rubric, different luck.
+      SO THERE IS ONE REAL DIVERGENCE, AND IT IS Q4a/p9: 0 of 6 against 6 of 6,
+      stable on both sides, the cli scoring 5.0 where gold says 3.0 and the web
+      scoring 3.0. It also INVERTED on 2026-09-01 under E25's keyword conversion --
+      it was cli-right and web-wrong before that, with nothing about
+      `antecedent_2` touched. An unrelated slot leaving the sheet swapped which
+      engine is correct. Declared in measured.GOLD_SLOT_BOUNDS_KNOWN.
+      AND IT IS NOT AN ENGINE DEFECT EITHER, which took one more step to
+      establish. The whole difference is one verdict:
+          cli  antecedent_1 met, antecedent_2 MET          -> 5.0
+          web  antecedent_1 met, antecedent_2 WRONG_KIND   -> 3.0
+      Gold reads "-2 pts: The second example is not an antecedent", so the web is
+      right and the cli is wrong. Both sides are served the SAME prompt body and
+      the SAME slot sheet -- the two recorded prompt shas differ only because
+      `measured._cli_visible` hashes fewer attributes for the cli, a
+      staleness-detection detail and not a difference in what is sent. What
+      differs is the PROVIDER: `--backend cli` calls the claude CLI and
+      `--backend lo` calls the lo-blocks endpoint the browser uses. Same prompt,
+      same sheet, two models, one judgement they disagree on, deterministically.
+      SO THE FIX IS PROMPT CLARITY, NOT CODE. There is nothing to reconcile
+      between the engines here; one model reads this student's second example as
+      a genuine trigger and the other does not. That makes it an
+      `antecedent_2` criterion question -- the same second-box shape Q18 records
+      for Q4b and Q19 records corpus-wide -- and it should be worked there rather
+      than as an equivalence bug. It is the ONE cell in this subgoal that a
+      wording change could move.
+      THE OTHER FOUR ARE INSTABILITY, and each one's flipping slot already has a
+      subgoal. They stay listed here so they keep an owner, but the work is there:
+          DAY2/p8   `cadence_is_daily` flips on both sides          -> Q22
+          Q2/p18    `wgb_inverts_utb` flips on both sides           -> Q17
+          WK2/p8    `matches_chosen_type` flips on the cli; on the
+                    web the VERDICTS are constant and `refers_to`
+                    moves -- observed_type PP/PR, restriction_
+                    authored created/neither                        -> Q23
+          PR/p15    `targets_goal_behavior` flips on both sides     -> Q21 profiles
+                    this same slot at 62% precision, its worst, but is scoped to
+                    NR. PR is its sibling; widening Q21 is preferable to a new
+                    subgoal.
+      THE METHOD LESSON, which is bigger than these five. Comparing two sides at
+      the median MANUFACTURES divergences on any cell near 50%, and four of the
+      five "web defects" here were that artifact. Before reading a cli/web
+      difference as an engine defect, check the per-run agreement rate on both
+      sides: if the two are within one run of each other, there is nothing to fix
+      in either engine and the cell belongs to whichever subgoal owns its unstable
+      slot. Recorded in QUALITY_CONTROL.md 2e.
+      WHAT IS LEFT. Nothing in this subgoal is an equivalence defect: four cells
+      are instability owned elsewhere, and the fifth is a provider disagreement
+      about one judgement. The cells stay listed here so the 2d ownership check
+      keeps finding them a home, but the work belongs to Q22, Q17, Q23, Q21 and
+      the `antecedent_2` wording. This subgoal can close once those name their
+      cells -- ask before closing it.
 
 - [ ] Q30. **Where we charge MORE than gold: Q5/p4 and 1c/p11, against a corpus that is otherwise lenient.**
       Filed 2026-08-31 from E30's accounting, for being the exception. Twenty-one
