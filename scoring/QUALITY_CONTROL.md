@@ -854,6 +854,62 @@ Of the three disciplines in this section, only §2b and §2c are machine-enforce
 §2a rides along on §2c's hook (the inventory is printed with the record) but
 nothing checks that the inventory was ACTED on; that remains a judgement.
 
+## 2d. EVERY WRONG CELL HAS AN OWNER, AND THE AUDIT CHECKS IT
+
+§2b profiles the errors after a sweep. This is what to do with the profile: every
+cell we score wrong is either being worked by an open subgoal or is declared, and
+nothing sits in between. The audit enforces it on every run
+(`enforcement.check_every_wrong_cell_has_an_owner`), so it is not a pass anyone
+has to remember to do.
+
+**Why it is a check and not a procedure.** The accounting behind it was built by
+hand: itemise gold's comment for all 109 cells, list every cell wrong at the
+median, and walk each one against the subgoals until nothing is unowned. That
+worked. The problem is that its product decays SILENTLY. Cells move as prompts
+change. A subgoal closes and takes with it the only home some cell had. A
+finished list reads exactly the same whether or not it still describes the
+corpus, so nothing about a stale accounting looks stale — which is the same
+failure §2c describes for prose, and the same one
+`check_prose_numbers_match_the_ledger` exists to catch.
+
+**The hand pass had a defect care would not have caught.** It compared every cell
+at the CLI median, because that is the default side. Its first automated run
+found five cells the CLI gets right and the WEB gets wrong — DAY2/p8, PR/p15,
+Q2/p18, Q4a/p9, WK2/p8, all six runs on each side — which no amount of diligence
+on a one-sided reading could have surfaced. They are now Q32. Read BOTH sides;
+`measured.SIDES` is the list, and a cell wrong on either is a cell we get wrong.
+
+**Both directions are reported**, because the accounting rots in both:
+
+* a wrong cell no OPEN subgoal names — work with nowhere to be recorded;
+* a cell a subgoal is ABOUT that now scores RIGHT — evidence that moved out from
+  under a subgoal still being worked. This arm closed Q11, whose `realistic`
+  over-charge had gone.
+
+**Three exemptions, each a real distinction rather than a way of reaching zero:**
+
+1. A cell in `GOLD_DIVERGENCES` is a DECLARED miss. A declared miss is not an
+   orphan.
+2. A cell declared at slot or code level stays live EVEN WHEN ITS TOTAL AGREES.
+   Compensating slot errors that sum to the right total are the whole reason the
+   slot accounting exists; retiring them on a matching total would discard
+   precisely the cells that exist because the total hides them.
+3. Only a TITLE mention makes a subgoal ABOUT a cell. Body mentions are
+   routinely history or controls — Q19 names 1a/p15, Q4a/p20 and Q4b/p8 BECAUSE
+   we score them right — so the strict form is used for the "evidence has moved"
+   arm and the generous form for ownership.
+
+**It must stay cheap.** It reads the recorded ledger and GOALS.md, spawns
+nothing, and costs about 0.1s inside the audit (0.44s cold). Do not memoise the
+GOALS.md parse to shave that: the self-test works by breaking something and
+confirming the audit still detects it, and a cache outliving a mutation turns a
+real detection into a silent pass. If it ever does need memoising, do it behind a
+seam the self-test can replace, as `_handsplit_tables` does.
+
+**When it fires, the answer is one of three things** — fix the cell, file a
+subgoal that owns it, or declare it with a reason. Silencing it is not on the
+list.
+
 ## 3. Building the model
 
 **READ THE CREDITED ROWS, NOT JUST THE MISSES. `python3 measured.py
