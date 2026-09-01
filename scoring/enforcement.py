@@ -5519,6 +5519,46 @@ def check_app_and_harness_send_the_same_request() -> list[str]:
         out.append("routes/llm.ts deletes no fields before dispatch, which it used "
                    "to do for `profile` and `activity`; if that stopped, the "
                    "provider now sees fields the harness never sends")
+
+    # THE MESSAGES ARRAY IS COMPARED BY NAME ABOVE, NOT BY CONTENTS, and that is
+    # only safe while it cannot grow. reduxClient extends it inside
+    # `if (toolCalls?.length)` and nowhere else, and the grader is given no
+    # tools, so the app sends the same two messages the harness does. Both
+    # halves of that are asserted, because if either changed the field sets
+    # would still match while the app sent a longer conversation.
+    grew = _re.search(r"if \(toolCalls\?\.length\)\s*\{(.*?)\n      \}", rc, _re.S)
+    extends = _re.findall(r"newMessages = \[", rc)
+    if len(extends) > 1 and not grew:
+        out.append("reduxClient extends `newMessages` outside the tool-call "
+                   "branch, so the app may now send a longer conversation than "
+                   "the harness's two messages while the field sets still match")
+    # SEARCHED IN THE PAYLOAD BLOCK, not the whole file. backends.py line ~208
+    # documents the behaviour in a comment that reads `"tools": []`, so a
+    # file-wide search matched the DOCUMENTATION and stayed quiet when the real
+    # payload was changed -- the check was green by construction until an
+    # injection test broke the payload and nothing happened.
+    if not _re.search(r'"tools":\s*\[\s*\]', m.group(1)):
+        out.append("backends.LoBlocksBackend no longer sends `tools: []`, so the "
+                   "app's tool-call branch could extend the message array and the "
+                   "two engines would send different conversations")
+
+    # THE FIXTURE IS SHARED, AND MUST STAY SHARED. agreement.fixture_for exists
+    # because a SECOND reconstruction was the original defect -- it mapped every
+    # field of an item onto the same section and wrote "(continued above)" into
+    # the rest, showing the model empty boxes. It now delegates to
+    # agreement_app.build_jobs, which is what makes the assembled-prompt
+    # comparison meaningful: both engines fill the template from one source.
+    try:
+        ag = (P.SCORING / "agreement.py").read_text()
+    except Exception:
+        ag = ""
+    fc = _re.search(r"def _fixture_cached\(.*?\n(?=def |\Z)", ag, _re.S)
+    if fc and "import agreement_app" not in fc.group(0):
+        out.append("agreement._fixture_cached no longer imports agreement_app, so "
+                   "the harness may be reconstructing the student's fields "
+                   "separately from the app -- the two engines would assemble "
+                   "identical templates around DIFFERENT text, which the prompt "
+                   "check cannot see because it fills both sides from one fixture")
     return out
 
 
