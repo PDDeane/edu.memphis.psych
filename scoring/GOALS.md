@@ -3035,6 +3035,23 @@ with a named failing check is worth more than a larger gap of unknown shape,
 because it can be fixed or declared; a wobbling cell cannot be either.
 
 - [ ] Q31. **SILENT FULL MARKS: nine cells where gold wrote nothing and we deduct.**
+      POOLED, 2026-09-01, AND THE LIST SPLITS IN TWO -- which is the useful part,
+      because only one half is a false-positive test. Eleven cells are wrong at
+      the pooled median, and their spreads separate them:
+        STABLE, every one of twelve runs deducting where gold said nothing:
+          1a/p11 6.0    DAY1/p1 0.0    NR/p4 2.0    NR/p20 0.0    Q4b/p12 3.5
+        UNSTABLE, deducting only sometimes:
+          D2/p3, DAY2/p8, PR/p15, Q2/p20, Q4a/p19, Q4b/p13
+      THE FIVE STABLE CELLS ARE THE TEST. A cell we deduct on 12 of 12 runs,
+      against a row the graders passed in silence, is a claim about our
+      strictness that no amount of sampling explains. The six unstable ones are
+      claims about variance and belong with the instability subgoals; counting
+      them here inflates the false-positive rate with cells that are sometimes
+      right.
+      Q1/p17 HAS LEFT THIS LIST: it is right when pooled. Its diagnosis survives
+      in Q16 as a slot-level observation -- the `utb_stated` rule's "what they
+      want instead" branch going unapplied -- but it is no longer a cell we score
+      wrong.
       Filed 2026-08-31, and it is the part of the corpus E30's accounting cannot
       reach BY CONSTRUCTION. That accounting compares our failing slots against
       the slots gold's comment itemises; where the grader wrote no comment there
@@ -3655,6 +3672,16 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       sheet-design one.
 
 - [ ] Q23. **`matches_chosen_type` on WK2, and across the cadence family.**
+      POOLED, 2026-09-01, ONLY ONE CELL SURVIVES. WK2/p8, WK2/p11, WK2/p15,
+      NR/p11 and NR/p15 are all RIGHT at the pooled median -- they were recorded
+      as misses on one column each. Pooled, WK2 misses nothing at all.
+      WHAT IS LEFT IS DAY2/p7, and it is not this subgoal's shape: its pooled
+      spread is 0.0 and 4.0 with nothing between, a coin flip on a 4-point item
+      rather than a `matches_chosen_type` threshold set wrong. Read it as an
+      instability -- subgoal Q22's territory, since DAY2's flipping gate is
+      `cadence_is_daily` -- before treating it as evidence here.
+      SO THIS ENTRY IS A CLOSE CANDIDATE. Ask before closing: it names a family,
+      and one cell of a family is thin evidence that the family is fine.
       GOLD-SIDE EVIDENCE, rehomed here 2026-08-31 when E35 closed. E35 built the
       code-level comparison for the criteria-derived items and found five
       disagreements; closing it would have left them owned by nothing, so they
@@ -4804,6 +4831,15 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       is a classification question like p14's, not a counting rule.
 
 - [ ] Q24. **Q4a's `antecedent_2`: the slot that carries the item's remaining error.**
+      POOLED, 2026-09-01, THIS SUBGOAL IS TWO CELLS. Of its four, p2 and p9 are
+      RIGHT at the pooled median -- both unstable, spread 3.0/5.0, but landing on
+      gold -- and only p14 and p19 are wrong. So the "two different failures
+      wearing one slot's name" is now ONE failure: the instability half has gone,
+      and what remains is the stable, opposite-direction antecedent_1 pair.
+      That STRENGTHENS the refutation above rather than reopening it. There is no
+      wording fix, because tightening antecedent_1 fixes p14 and breaks p19; and
+      there is no longer an instability to chase either. p14's pooled spread is
+      a single value, 3.0 across all twelve runs.
       Opened 2026-08-29, on the FIRST measurement of Q4a on the app -- it could
       not run at all before the LLMAction attribute fix (subgoal E14), and the
       olx-only `max` defect had to be cleared before any cell scored on the right
