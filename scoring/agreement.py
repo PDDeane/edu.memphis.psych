@@ -382,7 +382,13 @@ def parse_cover(open_tag: str) -> list[dict]:
 
 
 def parse_derived(open_tag: str) -> list[dict]:
-    """`derived="key:kind:field[,field][:template]"`, '|'-separated."""
+    """`derived="key:kind:field[,field][:template|:words]"`, '|'-separated.
+
+    The fourth segment is read as numbers by `plots`/`complete` and as words by
+    `contains`; both are parsed every time and each kind takes the one it wants,
+    which mirrors slotSheet.ts:parseDerived rather than adding a fifth segment
+    only one kind would use.
+    """
     m = re.search(r'derived="([^"]*)"', open_tag, re.S)
     out = []
     for rule in (r.strip() for r in (m.group(1) if m else "").split("|")):
@@ -394,10 +400,30 @@ def parse_derived(open_tag: str) -> list[dict]:
         out.append({
             "key": parts[0].strip(), "kind": parts[1].strip(),
             "fields": [f.strip() for f in parts[2].split(",") if f.strip()],
-            "template": [[float(x) for x in re.findall(r"-?\d+(?:\.\d+)?", row)]
-                         for row in parts[3].split(";")] if len(parts) > 3 else [],
+            # Empty groups are dropped, as slotSheet.ts's
+            # `.filter(g => g.length > 0)` does. Without it a `contains` rule,
+            # whose fourth segment holds words, parsed its template as `[[]]`
+            # here and `[]` there -- the two engines disagreeing about whether a
+            # template exists, which is exactly the class of divergence this
+            # project closes.
+            "template": [g for g in
+                         ([float(x) for x in re.findall(r"-?\d+(?:\.\d+)?", row)]
+                          for row in parts[3].split(";"))
+                         if g] if len(parts) > 3 else [],
+            # Only `contains` reads this segment as words, and populating it for
+            # the other kinds put junk in the structure: a plots template of
+            # `1,2,3;4,5,6` splits on commas into a token `3;4`, which is not a
+            # number and so survived a numeric filter. Harmless while nothing
+            # else consults it, which is exactly why it would have gone unnoticed.
+            # Case-folded once here, as slotSheet.ts does, so the matcher below
+            # cannot forget to.
+            "words": [w.strip().lower() for w in parts[3].split(",") if w.strip()]
+                     if len(parts) > 3 and parts[1].strip() == "contains" else [],
         })
-    return out
+    # A `contains` rule with no words matches nothing and would score every cell
+    # absent, so drop it like an unknown kind rather than fail everyone quietly.
+    return [r for r in out
+            if r["kind"] != "contains" or r["words"]]
 
 
 def _nums(text: str) -> list[float]:
@@ -433,7 +459,21 @@ def apply_computed(action: dict, checks: dict, fixture: dict) -> dict:
                     f"entry, or the check silently scores unmet on every cell."
                 )
             vals.append(str(fixture.get(f, "") or ""))
-        if rule["kind"] == "present":
+        if rule["kind"] == "contains":
+            # The WHOLE answer is one haystack, because the rubric asks whether
+            # the word appears anywhere in the response -- a student who uses it
+            # in the first box only has still used it. Mirrors
+            # derivedVerdicts.ts:containsVerdict; keep the two together.
+            hit, typed = olx_prompts.contains_hit(" ".join(vals), rule["words"])
+            if hit:
+                v = "met"
+                why = (f'Uses the word "{hit}".' if typed == hit else
+                       f'Uses the word "{hit}" (spelled "{typed}").')
+            else:
+                shown = ", ".join(f'"{w}"' for w in rule["words"])
+                v, why = "absent", (f"None of {shown} appears anywhere in the "
+                                    f"response.")
+        elif rule["kind"] == "present":
             ok = all(v.strip() for v in vals)
             v, why = (("met", "Answered.") if ok else ("absent", "Nothing chosen here."))
         elif rule["kind"] in ("plots", "complete"):

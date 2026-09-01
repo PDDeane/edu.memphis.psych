@@ -2006,6 +2006,21 @@ GOLD_SLOT_BOUNDS_KNOWN: dict[tuple[str, int], str] = {
     # over-credits hows_given: one rule, five cells") reached from the slot side,
     # and it is the strongest confirmation of that subgoal available: the
     # over-credit is not spread over the item, it is one uncharged slot.
+    # Q4a/p9, ADDED 2026-09-01 by the E25 re-measurement, and the reason it is a
+    # bounds entry rather than an exact one is that gold's comment -- "-2 pts: The
+    # second example is not an antecedent" -- names the slot in prose the parser
+    # cannot pin to a key, so the COUNT is certain and the identity is not.
+    #
+    # THE CELL INVERTED. Before the keyword conversion the cli scored it 3.0
+    # (right) and the web 5.0 (wrong); now the web fails `antecedent_2` in all six
+    # runs and scores 3.0, and the cli fails nothing and scores 5.0. Both sides are
+    # stable at 6/6, so this is not noise. The web moved ONTO gold and the cli
+    # moved OFF it, on a cell where nothing about `antecedent_2` was touched --
+    # the only change either side saw is that `keyword` left the sheet.
+    # Owned by Q32, whose entry records the inversion.
+    ("Q4a", 9): "gold charges 1 slot (antecedent_2, in prose); cli fails none "
+                "and scores 5.0 against gold 3.0, while the web fails it and "
+                "agrees. Inverted by the E25 conversion -- see Q32.",
     ("2a", 1): "gold charges one how_* slot; we charge none. 4.0 vs 6.0.",
     ("2a", 13): "same as 2a/p1.",
     ("2a", 14): "same as 2a/p1, phrased as \"need more explanation\".",
