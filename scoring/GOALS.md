@@ -4507,6 +4507,34 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       thirteen cells that are currently right as controls, and state its revert
       rule before the sweep rather than after it.
 
+      THE CANDIDATE IS REFUTED, 2026-09-01, BEFORE ANY CALLS WERE SPENT. Reading
+      every box 1 in the item against its own UTB is what refutes it, and the
+      control survey is the whole argument:
+          p14  gold 1  a1 met  utb lack of exercise
+               "not seeing immediate results, so I tend to bed rot"
+          p10  gold 5  a1 met  utb lack of exercise      <- CORRECT TODAY
+               "I'm tired and I don't feel like going. Laziness takes over me."
+          p17  gold 5  a1 met  utb lack of exercise      <- CORRECT TODAY
+               "Feeling tired and not wanting to workout"
+      All three are the same shape: a bidirectional state loop on the same UTB --
+      not exercising leaves you tired, unfit and resultless, and those states
+      then keep you from exercising. A test that refuses "a state the behaviour
+      produces" cannot separate them, so it fixes one cell and breaks two. That
+      is the Q6 ceiling pattern (memory/q6-matching-ceiling.md) arriving on a
+      different item.
+      AND THERE IS A BETTER READING OF p14 THAT NEEDS NO RULE. Gold's comment is
+      PLURAL -- "Examples are not antecedents" -- and charges the whole 4, which
+      is both boxes. Box 2 is "being in pain AFTERWARDS", unambiguously a
+      consequence. So gold most probably judged the answer on box 2 and docked
+      both, which is the later-box gradient, and Q19 already carries Q4a/p14 for
+      exactly that. On that reading box 1 is not a separate defect and there is
+      nothing here for an antecedent_1 rule to fix.
+      SO Q4a's TWO STABLE CELLS ARE NOW BOTH ACCOUNTED FOR WITHOUT A RULE: p14
+      belongs to Q19's gradient, and p19 is a silent-full-marks cell belonging to
+      Q31. What is left in THIS subgoal is the question of whether our
+      antecedent_1 is too strict on p19, which is Q31's false-positive question
+      and not a wording one.
+
 - [ ] Q26. **DAY1 alone gates on `phrased_directly`. One `!`, undeclared, eight sibling items.**
       Found 2026-08-29 while checking whether DAY1 contradicted subgoal Q20's
       orthogonal-gates finding. It does not contradict it; it is a different
