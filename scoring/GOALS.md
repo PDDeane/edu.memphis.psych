@@ -3639,6 +3639,38 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       Placed ahead of the item-specific subgoals because six of them are about a
       numbered box, and this says which part of that is one problem and which is
       six. Measured 2026-08-28 over the python sweep's first seven items, 6 runs each.
+
+      Q4a/p14 IS THE CELL WHERE THE GRADER'S REASONING IS VISIBLE, recorded here
+      2026-09-01 after Q24 read it out. It is already in the list above; this is
+      the mechanism behind that line.
+          gold 1.0, and the comment is PLURAL: "-4pts: Examples are not
+          antecedents. Remember that antecedents happen before the UTB is
+          exhibited." Four points on a five-point item is BOTH 2-point slots.
+          box 2  "{{corpus:Q4a/p14:second:21:84:sha=2da3c0df2d6f:shape=S9-0a2020202020202020202020202020202020,Cffc000}} well" -- a consequence, and the student's own
+                 "afterwards" settles it. WE AGREE: `antecedent_2` is
+                 `wrong_kind` in 12 of 12 observations across both sides, so the
+                 whole 2-point gap is box 1.
+          box 1  "{{corpus:Q4a/p14:first:20:66:sha=bcd1a76b331c}} rot" -- we
+                 credit it, gold does not.
+      AND NO BOX-1 RULE CAN BE WHAT SEPARATES THEM, which is the finding that
+      sends this cell here rather than to an antecedent_1 subgoal. On the SAME
+      utb -- lack of exercise -- gold gives full marks to two cells of the same
+      shape, and we score both correctly today:
+          p10  gold 5  "{{corpus:Q4a/p10:first:18:76:sha=4cd6a53ced82:shape=A1,A19}}"
+          p17  gold 5  "Feeling {{corpus:Q4a/p17:first:7:31:sha=4ac4f9df70c1}} workout"
+      All three are the same bidirectional state loop: not exercising leaves you
+      tired, unfit and resultless, and those states then keep you from
+      exercising. A rule refusing a state the behaviour produces breaks p10 and
+      p17 to fix p14.
+      SO THE LIKELIEST ACCOUNT IS THIS SUBGOAL'S OWN: the grader saw the
+      unmistakable "afterwards" in box 2 and docked the pair, rather than making
+      a separate finding about box 1. That is the gradient with the reasoning
+      showing.
+      STATED AS AN INFERENCE, because it is one. What is MEASURED is the p10/p17
+      contrast -- same shape, same utb, opposite gold. Why the grader charged
+      both boxes is read off a comment, not observed, and a later reading that
+      explains the same three cells differently should be preferred if it
+      predicts more than this one does.
       TWO CLAIMS, AND ONLY ONE IS UNIVERSAL.
       (1) VOLUME rises with box index, everywhere, no exceptions:
             Q1  reason_2 16 -> reason_3 47
