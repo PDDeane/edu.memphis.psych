@@ -352,7 +352,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       PROSE_ONLY_SLOTS Q4b.b1_basis/b2_basis, and the reopen condition is on the
       retired entry in olx_prompts.
 
-      IT IS A WEB-SIDE CHANGE, consistent with the tie-break: Q4b ties on
+      IT IS A OLX-SIDE CHANGE, consistent with the tie-break: Q4b ties on
       gold-matching, so the olx is the reference and this improves the reference
       side's own accuracy rather than importing the python's reading.
 
@@ -360,7 +360,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       CLOSED 2026-08-30, budget 13 -> 1. The one entry left is `Q1:matches_selected`,
       which is not work: the paper sheet has no such SLOT, because a .docx has no
       closed choice to compare against, and the asymmetry is declared in
-      SCORING_DIVERGENCES. The list IS the declaration of web-only notes, so the
+      SCORING_DIVERGENCES. The list IS the declaration of olx-only notes, so the
       entry stays in it.
       THE LAST THREE went on 2026-08-30, and the recorded reason they could not --
       "each names one side's verdict token, workable for reasons_substantial and
@@ -480,11 +480,11 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       paths that resolved elsewhere and reported all 23 olx prompts as changed.
       TWO REVERTED, and they define the remaining work: `Q5:example_2` and
       `reasons_substantial` name verdict tokens literally -- duplicate/not_reason
-      and wrong_kind. Safe in a web-only note, refused in a shared `rule` by
+      and wrong_kind. Safe in a olx-only note, refused in a shared `rule` by
       check_slot_rules_are_vocabulary_neutral, because the paper scorer would be
       instructed about tokens it cannot emit. `{fail}` fills with ONE verdict and
       example_2 distinguishes two. Rewriting the prose to avoid the tokens changes
-      the WEB prompt on a measured item, so these are a scoring change to be
+      the OLX prompt on a measured item, so these are a scoring change to be
       measured, not a refactor.
       THIRD PASS, same day, prompted by asking WHY the Q5 rewrites would touch the
       olx at all. They would not, and the revert that assumed they would was
@@ -503,7 +503,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       slots run met/absent/not_reason/duplicate and this one runs met/absent. The
       advice names a token nobody on this item can emit, almost certainly a
       leftover from before the example slots gained their own vocabulary, and it
-      is in the WEB prompt today. Left in the backlog: fixing the text changes a
+      is in the OLX prompt today. Left in the backlog: fixing the text changes a
       measured prompt, so it is a scoring change to be measured, not a migration.
       THE TRADE, again: PROSE_ONLY_SLOTS rises as the backlog falls.
       FOURTH PASS, 5 -> 3, and the 1c pair split rather than moving together:
@@ -525,14 +525,14 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       with no credit component is not homeless; it needs a criterion renderer.
       THE PRICE, which is why they are deferred rather than done:
       `_criteria_section` is SHARED, so adding a criterion puts the text in the
-      WEB prompt too. That is a measured scoring change on items with a recorded
+      OLX prompt too. That is a measured scoring change on items with a recorded
       six-run baseline on both sides -- exactly what E2 exists to make possible,
       and exactly what must not be slipped in as a refactor.
       THE THREE THAT REMAIN:
         `Q1:matches_selected` -- not a paper-blind RULE at all. The paper sheet
         has no such SLOT, because a .docx has no closed choice to compare against,
         and the asymmetry is already declared in SCORING_DIVERGENCES. It stays
-        listed because this list IS the declaration of web-only notes; striking it
+        listed because this list IS the declaration of olx-only notes; striking it
         out just made the reach check demand it back.
         `named_type` -- MIGRATABLE, via a criterion renderer on the pattern of
         `_criterion_11`, adding the key to CLI_CRITERIA_NOTES. Not blocked; the
@@ -576,7 +576,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       missing `max="5"` -- and only became visible once Q4a could run (0974736).
       THE GUARD SO IT CANNOT RECUR: enforcement.check_action_attributes_are_declared
       _in_the_block (3235dca). The audit already asked whether the PYTHON harness
-      parses every attribute; nothing asked whether the WEB BLOCK accepts it, and
+      parses every attribute; nothing asked whether the OLX BLOCK accepts it, and
       that is the half the corpus broke on.
       RESULT, all seven on the olx side, era-checked, 0 cells never agreeing:
           Q4a olx 18 of 20  Q4b olx 16 of 19  Q4c olx 17 of 19   (as measured then)
@@ -658,7 +658,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       spec. Both were built on the same false premise, and the second actively
       hid the case the check exists for. RESTORED to its original strictness --
       any literal token from either list, in a shared `rule`, is a finding.
-      THREE MIGRATIONS REVERTED as a consequence, and they are web-only BY DESIGN
+      THREE MIGRATIONS REVERTED as a consequence, and they are olx-only BY DESIGN
       rather than backlog work: `Q5:example_2` (names `not_reason`),
       `reasons_substantial` (`wrong_kind`), `1c:legend` (`incomplete`).
       THE REMAINING WORK IS `{fail}`, not migration. Each needs rewriting around
@@ -707,7 +707,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
         -- `unclear` is not satisfied, so it deducts exactly as `absent` does --
         so the asymmetry is diagnostic, not arithmetic. Undeclared all the same.
         `wrong_kind` IS THE SAME SHAPE IN REVERSE: shared on Q4b's behavior_*,
-        which declare it in the rubric, and web-only on Q4a's antecedent_*, Q4c's
+        which declare it in the rubric, and olx-only on Q4a's antecedent_*, Q4c's
         consequence_* and Q5's example_*. So RUBRIC_EXTRAS was incomplete without
         it AND adding it would have exempted it globally, re-opening the hole on
         six slots to describe two. Neither branch of that is right, which is what
@@ -723,7 +723,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
         THREE TOKENS WERE INVISIBLE TO EVERY CHECK. KNOWN_VERDICTS is the scan
         vocabulary, and `not_antecedent`, `not_consequence` and `not_described`
         -- the paper's failing verdicts for Q4a, Q4c and 1c -- were not in it. A
-        shared rule naming one would have instructed the WEB about a token it
+        shared rule naming one would have instructed the OLX about a token it
         cannot emit and passed everything. Added. `not_active` is kept and marked
         HISTORICAL: no slot declares it any more, since Q4b's now declare
         `wrong_kind`, which is why the pair in every docstring citing that
@@ -1721,7 +1721,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       is the work; widening the scan without them adds ten standing false findings
       and the check gets ignored.
       SLOT_NOTES IS THE ONE TO THINK ABOUT rather than wave through. It is
-      web-only prose that reaches a prompt, and SLOT_RULE_BACKLOG exists precisely
+      olx-only prose that reaches a prompt, and SLOT_RULE_BACKLOG exists precisely
       to declare its entries -- so the honest reason is that the BACKLOG is the
       declaration and SLOT_NOTES is the data it declares, not that SLOT_NOTES is
       uninteresting.
@@ -1853,7 +1853,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       IT EARNED ITS KEEP ON THE FIRST RUN, which is the part worth recording.
       The hand accounting it replaces was thorough and still wrong, because it
       read the python median only -- the default side. The check found five cells
-      the python gets right and the WEB gets wrong (DAY2/p8, PR/p15, Q2/p18,
+      the python gets right and the OLX gets wrong (DAY2/p8, PR/p15, Q2/p18,
       Q4a/p9, WK2/p8, six runs each side), now carried as Q32, and it found one
       subgoal whose evidence had gone (Q11, `realistic` over-charge on Q3/p13,
       right on both sides), now closed. Neither was visible to the pass that
@@ -2197,7 +2197,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
 - [x] E2. **A full two-sided sweep: every item, six runs, BOTH scorers.** DONE
       2026-08-29. 26 of 26 items on both scorers, six runs each, era-checked per
       item.
-          python  451/491 = 91.9%        WEB  457/491 = 93.1%
+          python  451/491 = 91.9%        OLX  457/491 = 93.1%
       THE ANSWER TO THE QUESTION THE GOAL WAS OPENED ON IS NO: the two scorers do
       not disagree. `cross_path` finds ZERO cells out of 491 where the paths never
       agree -- every cell's score sets overlap, which is stricter than comparing
@@ -2264,7 +2264,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       `agreement_app.build_jobs` reconstructs the olx's per-box fixture from the
       same paper block the python segments. So identity was reachable; it just was
       not worth what it cost.
-      Where the wordings differ, the WEB's wins -- unless the difference is
+      Where the wordings differ, the OLX's wins -- unless the difference is
       forced by how the response text is presented, or the olx is CLEARLY WRONG,
       as in the DAY1 contradiction subgoal E6 found and fixed.
       AND THE RULE IS ABOUT WORDING, NOT SCORING (user, 2026-08-28). "OLX wins"
@@ -2273,11 +2273,11 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       matches gold better is the one kept, and the other moves. If the olx matches
       gold better, prefer the olx; if the python does, prefer the python.
       MEASURED, 0 calls, `cross_path.py --gold` over paper_mini_v8 against cli_v8:
-      the WEB-PROMPT path matches gold better overall, 456 cells of 519 against
+      the OLX-PROMPT path matches gold better overall, 456 cells of 519 against
       440. It wins 10 items, ties 15, and loses exactly one -- Q1, where the paper
       scorer is 19 of 20 against the olx's 17. So the olx is the right DEFAULT on
       scoring too, and Q1 is the standing exception.
-      ON A TIE, PREFER THE WEB (user, 2026-08-28) and resolve the divergence that
+      ON A TIE, PREFER THE OLX (user, 2026-08-28) and resolve the divergence that
       way: the olx's reading is the reference and the python converges. It does NOT
       freeze the olx's accuracy -- improving the olx's own rule against gold is
       still the right work, and a change there is a change to the reference side,
@@ -2286,7 +2286,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       someone happened to write a declaration about. Q4b is the live case: 15
       against 15, so the olx wins it.
       A NAMING TRAP worth stating: the artifact directory called `cli_v8` is
-      agreement.py, the WEB prompt scored in python, and `paper_mini_v8` is
+      agreement.py, the OLX prompt scored in python, and `paper_mini_v8` is
       score.py, the path this goal calls the python. Reading the directory names as
       sides inverts the conclusion, so cross_path now prints each side's KIND.
 - [x] E6. **The criteria prose was written twice, and the copies had drifted.**
@@ -2315,7 +2315,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       has no evidence field), `yes`/`no` -> true/false (its criteria are
       booleans), and dropping "one point, and it charges ONLY this" (the engine
       computes the score; its model never sees points).
-      THE WEB WAS CLEARLY WRONG ON DAY1, in two places, and was fixed to match
+      THE OLX WAS CLEARLY WRONG ON DAY1, in two places, and was fixed to match
       what the python had: its criterion 7 said the avoidance reading "never changes
       the score" while its own guidance said "AVOIDANCE FRAMING TAKES THE WHOLE
       ITEM HERE ... the graders scored those zero", and its `consequence_asserted`
@@ -2335,7 +2335,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       Two stale exemptions fell out of the change and were removed, and
       `consequence_asserted` left `check_slot_rules_reach_both_prompts`' BACKLOG
       by being FIXED rather than by rotting: score.py reads it now, so the
-      "SLOT_NOTES is web-only" premise no longer holds for it. Which keys those
+      "SLOT_NOTES is olx-only" premise no longer holds for it. Which keys those
       are is declared in `olx_prompts.CLI_CRITERIA_NOTES` rather than copied into
       the check.
 - [x] E9. **Q4b's `behavior_1`/`behavior_2`: convert the referent test to `forbid`.**
@@ -2362,7 +2362,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       CONVERT THE PAIR TOGETHER. behavior_2 restates behavior_1's conditions for
       the second entry, so converting one alone would have the two entries judged
       by different machinery on the same item.
-      DIRECTION: THE WEB MOVES TO THE python HERE. On p4 the paper path scores 2.0,
+      DIRECTION: THE OLX MOVES TO THE python HERE. On p4 the paper path scores 2.0,
       which IS gold, and the olx scores 3.5. So this is not a case of "olx wording
       wins" -- that rule is about which way to SAY a shared rule, and it does not
       decide which of two answers is right. Gold does, and gold is with the python.
@@ -2663,7 +2663,7 @@ twice, so it is replaced rather than amended.
 
 E14 AND E2 CLOSED 2026-08-29. The block-schema fix landed, all seven blocked
 items were re-measured, and the sweep finished at 26 of 26 on both scorers:
-python 451/491, WEB 457/491, zero cells where the paths never agree.
+python 451/491, OLX 457/491, zero cells where the paths never agree.
 
 THE BASELINE NOW EXISTS, which is what everything below was waiting for. Any
 scoring change from here is measured against a recorded six-run figure on BOTH
@@ -2756,7 +2756,7 @@ reader had in mind. Every cross-reference in this file is now prefixed.
             `--slots` names the slots whose majority verdict differs.
             That last part is what makes it a diagnosis rather than a symptom: it
             localises 1a/p6 to `distinguishes_periods` -- which IS one of the five
-            web-only `1a:*` SLOT_NOTES entries -- and Q4b/p4 to
+            olx-only `1a:*` SLOT_NOTES entries -- and Q4b/p4 to
             `behavior_1`/`behavior_2`, the guidance-prose REJECT test. The tool
             found the responsible rule in both cases without being told about
             either.
@@ -2797,7 +2797,7 @@ reader had in mind. Every cross-reference in this file is now prefixed.
             BEFORE SLOT_NOTES and finds the same string -- so every recorded olx
             number stands and 1a did not go stale. Only the python gained text, which
             is the entire point.
-            THE python NOW RENDERS SHARED RULES AS THE WEB DOES: `rule` REPLACES
+            THE python NOW RENDERS SHARED RULES AS THE OLX DOES: `rule` REPLACES
             `desc` rather than being appended to it. The olx has always done that
             (`rule or SLOT_NOTES or desc`), so the one field written to be read by
             both scorers was being rendered differently by each -- and since these
@@ -3086,7 +3086,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       SO THE DISAGREEMENT IS THE RULE, NOT THE READING. We applied the effect-vs-
       payoff distinction exactly as written and gold does not draw it as sharply.
       That rule is the one E11 migrated on 2026-08-30 -- `example_2`'s text moved
-      from web-only SLOT_NOTES into the shared `rule` -- so this cell is now the
+      from olx-only SLOT_NOTES into the shared `rule` -- so this cell is now the
       only measured evidence about whether the distinction itself is too strict.
       DO NOT LOOSEN IT ON ONE CELL. Q5 records 19/20 on both sides, so the rule is
       right on the other nineteen, and the effect-vs-payoff clause exists because
@@ -3254,9 +3254,14 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           Q4c/p20  gold charges consequence_2;   we fail nothing
           Q6/p2    gold charges change_a2;       we fail nothing
           Q6/p16   gold charges affect_c2;       we fail nothing
-          Q4a/p6   gold charges one antecedent;  we fail nothing
           Q4c/p16  gold charges one consequence; we fail nothing
           Q6/p6    gold charges state_a2 as well as the two we fail
+      Q4a/p6 LEFT THIS LIST on 2026-09-01: it read "gold charges one antecedent;
+      we fail nothing", and we now fail `antecedent_1` against gold's single
+      charge -- so the two agree, and the cell scores 3.0 against gold 3.0 on
+      both OLX-prompt engines. Six of the seven remain. The cell is still wrong
+      on the PAPER scorer, where it over-credits to 5.0, and that half belongs to
+      Q33.
       THAT IS THE SAME FINDING FROM A NEW DIRECTION, which is the reason to trust
       it: this subgoal was filed off the observation-level rate, and the slot
       comparison was built for an unrelated purpose. Q4a/p6 and Q4c/p16 are BOUNDED
@@ -3332,7 +3337,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       direction is lopsided -- it says that for Q3, whose over-credits all have slot
       errors, and it would say it for Q1, whose over-credits have none. Those are
       opposite problems and the hint does not distinguish them.
-      AND CHECK IT ON THE WEB COLUMN. If the same 32 appear there, the sheet is
+      AND CHECK IT ON THE OLX COLUMN. If the same 32 appear there, the sheet is
       missing a check and both scorers inherit it. If they do not, the python's
       arithmetic is crediting something the app refuses, which is an equivalence
       defect rather than a rubric gap.
@@ -3602,7 +3607,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
            -- the largest real instability in the sweep. It is advisory on this item
            and cannot deduct, so its correlation with wrong cells is a marker of
            hard cells, not a cause.
-      ALREADY DECLARED: NR carries "CHARGE-ONCE WEB ONLY (barrier_is_not_this_type,
+      ALREADY DECLARED: NR carries "CHARGE-ONCE OLX ONLY (barrier_is_not_this_type,
       demonstrates_type) cost less together on the olx". Read it before changing
       either of those two, since the charge interaction is the declared part.
 
@@ -3664,7 +3669,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       Q4b's failures localise further to a single option value (`not_doing`, see
       subgoal Q18) -- check whether Q4c's do too, because a shared cause across the
       only two affected items is worth more than two item fixes.
-      AND CHECK IT AGAINST THE WEB COLUMN before acting: if the gradient is the
+      AND CHECK IT AGAINST THE OLX COLUMN before acting: if the gradient is the
       same on both sides it is the prompt or the corpus, and if it differs it is
       the scorer. That comparison costs nothing once the app sweep lands.
 
@@ -3823,7 +3828,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       for the wrong reason.
       CORRECTED, and the correction found something the subgoal did not know.
       The reason said "we give 3.5, 0 of 3". Measured across every artifact that
-      scored this cell: the WEB gives 3.5 in 11 of 12 runs (leak_fix 0/6,
+      scored this cell: the OLX gives 3.5 in 11 of 12 runs (leak_fix 0/6,
       scorer_fix_6run 1/6 — one run reached 5.0), and the python gives 5.0 in SIX of
       six (cli_v7 3/3, cli_v8 3/3). So the cell is not unreachable at all; the two
       PATHS disagree about it, which is a different kind of finding from the one
@@ -4224,7 +4229,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       "related but not inverted", which is the thing the split was built to separate.
       A FINDING TO CARRY, not an action here: ALL THREE of these slots --
       `Q2:wgb_is_counterpart`, `Q2:wgb_inverts_utb`, `Q2:reasons_given` -- have
-      their judging text in SLOT_NOTES, the web-only channel, and are three of the
+      their judging text in SLOT_NOTES, the olx-only channel, and are three of the
       thirteen entries in `enforcement.SLOT_RULE_BACKLOG`. Both columns of THIS
       sweep read them, because agreement.py loads the OLX prompt, so the reach gap
       is not what is causing these errors. But the PAPER scorer never sees them, so
@@ -4368,7 +4373,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
 - [ ] Q24. **Q4a's `antecedent_2`: the slot that carries the item's remaining error.**
       Opened 2026-08-29, on the FIRST measurement of Q4a on the app -- it could
       not run at all before the LLMAction attribute fix (subgoal E14), and the
-      web-only `max` defect had to be cleared before any cell scored on the right
+      olx-only `max` defect had to be cleared before any cell scored on the right
       scale. So this is a channel nobody has ever been able to look at.
       THE SLOT PROFILE NAMES IT. Over 120 observations, olx:
         antecedent_1   unmet 24   in wrong cells  6

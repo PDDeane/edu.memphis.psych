@@ -50,7 +50,7 @@ RUBRIC_EXTRAS = ("not_active", "not_reason", "duplicate", "not_a_type",
 # how_*, 2b's sentence_*, 3's example_*, Q1's and Q2's reason_* -- where the web
 # offers it and the paper has only met/absent. Exempting it globally left a rule
 # free to name it on any of those. No rule did, so it stayed latent.
-# `wrong_kind` is the same shape in reverse: shared on Q4b's behavior_*, web-only
+# `wrong_kind` is the same shape in reverse: shared on Q4b's behavior_*, olx-only
 # on Q4a's antecedent_*, Q4c's consequence_* and Q5's example_*.
 #
 # enforcement.check_slot_rules_are_vocabulary_neutral now asks the per-slot

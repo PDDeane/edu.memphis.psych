@@ -94,12 +94,12 @@ def _olx_only_visible(section: str) -> str:
 
     Everything else on the open tag reaches the CLI from the RUBRIC, not the OLX
     -- `max`, `slots`, `cover`, `equals`, `derived`, `showChecks`. Hashing them
-    into the CLI's fingerprint reports a CLI measurement as stale when a web-only
+    into the CLI's fingerprint reports a CLI measurement as stale when a olx-only
     attribute changed, which is a false positive in the expensive direction: it
     asks for a re-run of a side that cannot have moved.
 
-    That is not hypothetical. Adding `max="5"` to Q4a -- a web-only fix for a
-    web-only defect, since the CLI takes the item max from `item["max"]` -- flagged
+    That is not hypothetical. Adding `max="5"` to Q4a -- a olx-only fix for a
+    olx-only defect, since the CLI takes the item max from `item["max"]` -- flagged
     the CLI side STALE PROMPT and made cross_path refuse a comparison that was
     perfectly valid.
     """
@@ -280,7 +280,7 @@ def status(side: str = DEFAULT_SIDE) -> list[tuple[str, str]]:
         if rec.get("pending"):
             out.append((item, f"pending: {rec['pending']}"))
             continue
-        # PER SIDE. A web-only attribute changing must not report the CLI's
+        # PER SIDE. A olx-only attribute changing must not report the CLI's
         # measurement as stale: the CLI cannot have moved, so asking for a re-run
         # spends a sweep to reproduce a number we already have.
         want_prompt = prompt_sha(item, side)
@@ -1526,7 +1526,7 @@ def fixture_suspects() -> list[str]:
             g, _ = APP.rebuild_gold_1c({p: dict(v) for p, v in g.items()})
         top = max(((g.get(p) or {}).get(item) or {}).get("score") or 0 for p in g)
         # Union of cells any side got wrong in every run, with the side that
-        # said so -- so a web-only miss is examined instead of skipped.
+        # said so -- so a olx-only miss is examined instead of skipped.
         zero: dict[str, str] = {}
         for s, r in sides_for_item.items():
             for pid_s, right in (r.get("cells") or {}).items():
