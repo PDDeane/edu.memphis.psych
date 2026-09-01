@@ -3710,6 +3710,52 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       same on both sides it is the prompt or the corpus, and if it differs it is
       the scorer. That comparison costs nothing once the app sweep lands.
 
+      == 2026-09-01: BOTH OF THOSE WERE DONE, AND THEY ANSWER DIFFERENTLY ==
+      THE OLX COLUMN SAYS IT IS NOT THE SCORER. Volume and precision track each
+      other closely on every item where both sides expose the slots:
+          Q4a  python 24@75% -> 33@72%      olx 23@73% -> 32@65%
+          Q4b  python 23@100% -> 52@67%     olx 26@92% -> 52@67%
+          Q4c  python  6@100% -> 18@66%     olx  7@85% -> 20@55%
+          Q5   python 18@66% -> 27@66%      olx 18@66% -> 28@60%
+      By this entry's own rule that makes it the PROMPT OR THE CORPUS, and rules
+      out an engine-side fix. (Q1 and Q2 show zero volume on the olx side: their
+      slots are cover-grouped and do not appear under these names, so the
+      comparison covers four items, not six.)
+      AND THE SHARED CAUSE IS REAL: BOTH ITEMS LOCALISE TO `wrong_kind`.
+          Q4c.consequence_2   wrong_kind 15 refusals, 15 in wrong cells
+                              absent 12, duplicate 11 -- ZERO in wrong cells
+          Q4b.behavior_2      wrong_kind 89 refusals, 34 in wrong cells
+                              absent 15 -- ZERO in wrong cells
+      `absent` and `duplicate` never land in a wrong cell on either item. That is
+      the shared cause this entry asked for, and it is one option value.
+      BUT THE STATISTIC THAT FOUND IT IS MISLEADING, WHICH IS THE REAL FINDING.
+      "Refusals in wrong cells" counts a refusal against us whenever the CELL is
+      wrong -- including when the refusal is CORRECT and the cell is wrong for
+      the opposite reason. Decomposed per cell, the two items split the same way:
+          Q4c  p9  gold 1.0, ours 3.0, 12 obs -- we are LENIENT. Gold charges
+                   BOTH consequences; our box-2 refusal is RIGHT and incomplete.
+                   Crediting box 2 moves it to 5.0, further from gold.
+               p12 gold 5.0, ours 3.0,  3 obs -- we are STRICT. Crediting fixes it.
+          Q4b  p12 gold 5.0, ours 3.5, 12 obs -- STRICT, crediting fixes
+               p13 gold 5.0, ours 3.5,  8 obs -- STRICT, crediting fixes
+               p4  gold 2.0, ours 3.5, 12 obs -- LENIENT, crediting is worse
+               p20 gold 2.0, ours 3.5,  1 obs -- LENIENT, crediting is worse
+               p17 gold 5.0, ours 2.0,  1 obs -- STRICT, crediting insufficient
+      SO THE BOX-2 PRECISION COLLAPSE IS TWO PHENOMENA WEARING ONE NUMBER:
+        * cells where our box-2 refusal is WRONG -- gold credits the second box.
+          Every one of these is a not-doing: Q4b/p12 and Q4b/p4 are declared
+          under B_NOT_ACTIVE, Q4b/p13 is subgoal Q18's live cell, Q4c/p12 is the
+          same shape. This is a GOLD DISAGREEMENT, not a rule defect.
+        * cells where our box-2 refusal is RIGHT but the cell is still wrong
+          because gold ALSO charged box 1 -- Q4c/p9, Q4b/p4, Q4b/p20. These are
+          this subgoal's own gradient, already in the list above.
+      NEITHER IS FIXED BY LOOSENING `wrong_kind`, and loosening it would break
+      the gradient cells in the direction they are already wrong. The precision
+      number should be recomputed as "refusals CONTRADICTED BY gold's own
+      itemisation" rather than "refusals in wrong cells" before it is used to
+      justify any rule; on this decomposition the two items have 4 contradicted
+      refusals between them, not 49.
+
 - [x] Q1. **Q3's `action` criterion.** The clearest target on the board. Five
       misses, ONE cause: gold charges two criteria and we charge one, and the
       criterion we skip is `action` every time. DONE, +2: the desc credited
