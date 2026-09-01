@@ -16,10 +16,10 @@ scorer never reads. Two such divergences were found by running this comparison a
 a throwaway script on 2026-08-28, both stable in 3 of 3 runs and neither declared
 anywhere:
 
-    1a/p6    paper 0.0 against web 6.0-8.0 -- the whole item, because five `1a:*`
-             SLOT_NOTES entries reach the web prompt and not the CLI's
-    Q4b/p4   paper 2.0 against web 3.5, and GOLD IS 2.0 -- the paper path charges
-             what the graders charged and the web path does not
+    1a/p6    paper 0.0 against olx 6.0-8.0 -- the whole item, because five `1a:*`
+             SLOT_NOTES entries reach the olx prompt and not the python's
+    Q4b/p4   paper 2.0 against olx 3.5, and GOLD IS 2.0 -- the paper path charges
+             what the graders charged and the olx path does not
 
 Neither could have been found by comparing prompt text: both sides are given the
 same guidance verbatim, and the prompt audit reports 0 undeclared gaps. There is
@@ -44,8 +44,8 @@ excludes cells where the paths overlap and merely differ in how often. With thre
 runs a side it is still a coarse test, and it says nothing about WHY.
 
 Some divergence is correct and declared. The two paths are fed the student's work
-differently -- the web has one box per field, the paper scorer one segmented block
-per item -- so 1c, whose web chart is drawn from typed data a paper student cannot
+differently -- the olx has one box per field, the paper scorer one segmented block
+per item -- so 1c, whose olx chart is drawn from typed data a paper student cannot
 supply, diverges on 15 of 20 cells BY DESIGN. Declared items are marked so they
 can be read past rather than rediscovered.
 
@@ -304,13 +304,13 @@ def compare(left: str, right: str, item_filter: str | None = None,
     # about the paths: version and path are confounded in it.
     confounded = set()
     if le.get("items") and re_.get("items"):
-        # PER SIDE, when both artifacts carry the side-aware stamp. The CLI
+        # PER SIDE, when both artifacts carry the side-aware stamp. The python
         # consumes only SOME of an <LLMAction>'s attributes -- it takes the item
         # max, the slots and the cover/equals/derived groups from the RUBRIC --
-        # so a web-only attribute changing leaves the CLI's input untouched.
+        # so a olx-only attribute changing leaves the python's input untouched.
         # Comparing whole-section hashes reports those runs as confounded and
         # asks for a re-run of a side that cannot have moved. Adding `max="5"` to
-        # Q4a, a web-only fix for a web-only defect, did exactly that.
+        # Q4a, a olx-only fix for a olx-only defect, did exactly that.
         #
         # `prompt_sha_python` is the harness's own view. Both artifacts must
         # carry it: an artifact predating the stamp falls back to the
@@ -413,12 +413,12 @@ def _slot_diffs(lvs: list, rvs: list, lkind: str = "", rkind: str = "") -> list:
     # THE TWO SIDES DO NOT SHARE A VERDICT VOCABULARY when one of them is the
     # paper scorer. slot_vocab declares them separately -- WEB_EXTRAS come from
     # slotSheet.ts, RUBRIC_EXTRAS from the credit components' `verdicts` lists --
-    # so `wrong_kind` on the web and `not_reason` in the rubric are counterparts,
+    # so `wrong_kind` on the olx and `not_reason` in the rubric are counterparts,
     # not a disagreement. Comparing the raw strings would report every such slot
     # as divergent, which is a false positive on exactly the comparison this tool
     # exists for.
     #
-    # Harness-vs-app is safe: both serve the web's vocabulary, and the raw tokens
+    # Harness-vs-app is safe: both serve the olx's vocabulary, and the raw tokens
     # carry which failure mode was chosen, which is worth keeping. So the tokens
     # are folded to satisfied/failed ONLY when a paper artifact is involved, and
     # the caller is told, because a folded comparison answers a coarser question.
@@ -493,10 +493,10 @@ def _H_scored_exactly(item, gold_score, pred) -> bool:
 def against_gold(left: str, right: str, item_filter: str | None = None) -> int:
     """Which side matches GOLD more often, per item.
 
-    The tie-break that decides direction. "Web wording wins" settles which way to
+    The tie-break that decides direction. "OLX wording wins" settles which way to
     SAY a shared rule; it never settles which of two answers is right, and gold
-    does -- symmetrically. If the web matches gold better the web is kept and the
-    CLI moves; if the CLI does, the reverse. This measures it instead of arguing
+    does -- symmetrically. If the olx matches gold better the olx is kept and the
+    python moves; if the python does, the reverse. This measures it instead of arguing
     it, from artifacts already on disk.
 
     A side MATCHES a cell when its median score equals gold. Median rather than
@@ -539,12 +539,12 @@ def against_gold(left: str, right: str, item_filter: str | None = None) -> int:
 
     print(f"{lname} ({lkind})  vs  {rname} ({rkind})   -- median against gold")
     # NAME THE SIDE BY KIND, NOT BY DIRECTORY. The corpus has a directory called
-    # `cli_v8` that is agreement.py -- the harness that sends the WEB's prompt and
+    # `cli_v8` that is agreement.py -- the harness that sends the OLX's prompt and
     # derives the score in Python -- while `paper_mini_v8` is score.py, the path the
-    # equivalence goal calls the CLI. Reading the dir names as sides gets the
+    # equivalence goal calls the python. Reading the dir names as sides gets the
     # conclusion exactly backwards, so the kinds are spelled out every run.
-    KIND = {"paper": "score.py, the paper/CLI scorer",
-            "harness": "agreement.py, the WEB prompt scored in python",
+    KIND = {"paper": "score.py, the paper/python scorer",
+            "harness": "agreement.py, the OLX prompt scored in python",
             "app": "agreement_app.py, the web app's own grader"}
     print(f"  {lname} = {KIND.get(lkind, lkind)}")
     print(f"  {rname} = {KIND.get(rkind, rkind)}\n")
