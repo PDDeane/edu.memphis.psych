@@ -91,9 +91,9 @@ item-specific phrase-to-slot vocabulary can be derived from each item's slot
 labels rather than hand-written per item; and whether `gold_slots_1c` should be
 re-expressed in terms of it, which would be the proof that it generalises.
 
-## ~~Q5 `example_2` names a token the web enum does not have~~ FIXED 2026-08-30
+## ~~Q5 `example_2` names a token the olx enum does not have~~ FIXED 2026-08-30
 
-`bmod_handout1.olx:1072` tells the web grader to answer `not_reason` when the
+`bmod_handout1.olx:1072` tells the olx grader to answer `not_reason` when the
 second entry is a real, distinct entry that is not a reason for CONTINUING. The
 same line's `slots=` offers that check `wrong_kind/duplicate`. So the test is
 inert: the model is asked for a token it cannot return, and the diagnosis the
@@ -103,8 +103,8 @@ rule exists to draw never gets drawn. It has to be reading through to `absent` o
 This is the exact failure the `{fail}` placeholder was built to prevent —
 `olx_prompts.py:1682` records the last instance of it, where the paper scorer was
 told when to answer `wrong_kind` while being offered `met/absent/not_active`, and
-"every test was inert and it credited p8's 'avoiding going the gym' that the web
-and CLI both reject." Same slot family, same year.
+"every test was inert and it credited p8's 'avoiding going the gym' that the olx
+and python both reject." Same slot family, same year.
 
 Why the guard missed it: `{fail}` is substituted into the rubric's `rule` text
 only (`olx_prompts.py:1698`). The offending string is a SLOT_NOTES entry
@@ -128,9 +128,9 @@ the rate. Read that section before sweeping.
 FIXED 2026-08-30, by route 1 AND route 2 -- the instance and the class.
 
 The note MIGRATED out of SLOT_NOTES into the rubric's `rule` on Q5's `example_2`
-component, where `{fail}` is substituted per side: the web now renders
+component, where `{fail}` is substituted per side: the olx now renders
 `wrong_kind` and the paper scorer `not_reason`, each its own vocabulary. The
-web prompt changed by exactly that one token and nothing else, confirmed by
+olx prompt changed by exactly that one token and nothing else, confirmed by
 `olx_prompts.py --diff` showing a single changed line. `duplicate` stayed
 literal, which is correct -- slot_vocab.SHARED_EXTRAS shows both sides offer it.
 
@@ -152,7 +152,7 @@ chosen at run time so it does not die silently the day a note migrates.
 SELFTEST_EXPECTED 50 -> 51.
 
 MEASURED, on the regenerated prompt f933e0876c3b and a fresh idmap_v97 proven to
-carry the new line: Q5 cli 19/20 and web 19/20, both unchanged from 19/20, era
+carry the new line: Q5 python 19/20 and olx 19/20, both unchanged from 19/20, era
 checked, 0 cells never agreeing. Neutral, as this entry predicted it would be --
 no counted cell exercises a refusal, so what the fix buys is the distinction
 being drawable, not a different score.
@@ -259,7 +259,7 @@ count it.
 
 `from_scorer` builds these three boxes from `out/h3/participant_NNN.json`, so
 they move whenever the paper scorer is re-run — the reference re-run recorded at
-`EQUIVALENCE.md:1763` already invalidated 2a's web numbers once for exactly this
+`EQUIVALENCE.md:1763` already invalidated 2a's olx numbers once for exactly this
 reason, and Q6 was frozen from a 10-run consensus after its spans moved on 47%
 of slots per rerun. Until 2a is frozen or hash-pinned, any comparison spanning a
 paper re-run is not like-for-like.
@@ -432,7 +432,7 @@ the mistake that created this. And the reported rate will FALL, from 12/12 to
 
 ### A superseded section to annotate
 
-`EQUIVALENCE.md:562` reads Q4c at "CLI 76%, web 65% over 17 cells" and closes
+`EQUIVALENCE.md:562` reads Q4c at "python 76%, olx 65% over 17 cells" and closes
 "Nothing to fix. Left alone." All three parts have moved: the denominator is 12
 counted, not 17; its web-only p13 gap was `keyword: absent` on "conequence",
 which cannot arise now that Q4c's keyword slot is advisory with `pts=None`; and
@@ -472,7 +472,7 @@ to be read on the excluded cells as diagnostics plus a corpus sweep for damage.
 
 ### The dead `not_reason` note, now with evidence
 
-The existing item above is confirmed and can be sharpened. Q5's web slots offer
+The existing item above is confirmed and can be sharpened. Q5's olx slots offer
 `wrong_kind/duplicate` (`bmod_handout1.olx:1001`) and nothing else, so the
 SLOT_NOTES sentence telling the grader to answer `not_reason` is unreachable —
 but refusals are NOT lost: p4 comes back `wrong_kind` on both entries in 6 of 6
@@ -665,7 +665,7 @@ In 10 of 20 cells, `title`/`x`/`y` held the paper scorer's own prose:
     p17/x   "Days of the Week" (axis title beneath the Sunday–Saturday tick
             values)
 
-The web grader's question for those slots is whether the student labelled the
+The olx grader's question for those slots is whether the student labelled the
 axis. The old text answers it, in the scorer's words, inside the student's
 field — the `cited_participants` failure arriving through the fixture instead
 of the prompt. `_ANNOTATED` only matched `"…" — prose`, so a sentence, a
@@ -703,7 +703,7 @@ student's literal legend, which is exactly what the box is for.
 ### p20's labels are now seeded from its own description — SETTLED
 
 The `unscoreable` entry reads: "a written DESCRIPTION of a graph, which on the
-web IS the answer: the labels are typed into fields and the chart is drawn from
+olx IS the answer: the labels are typed into fields and the chart is drawn from
 the four complete weeks". Only the second half was happening. The four weeks
 were seeded; `title`, `x` and `y` were all EMPTY, because there is no chart for
 the paper scorer to read a title off, and p20's whole description belonged to no
@@ -718,7 +718,7 @@ inside the response (@7, @49, @79), the cell carries no audit flag, and the
 exclusion entry says what actually happens.
 
 The cell stays `unscoreable`: gold's 0 is for a graph that was never drawn, and
-seeding the labels is what makes that failure unreachable on the web rather
+seeding the labels is what makes that failure unreachable on the olx rather
 than missed, which is the entry's whole point. It is excluded, so nothing in any
 rate moves.
 
@@ -915,7 +915,7 @@ evidence.
 ### Attempt 2 on the same four items: the gate itself, and why it also failed
 
 After the prose attempt above measured neutral, the fix moved to the layer that
-actually decides the score — the five definitional gates the web reads as slots
+actually decides the score — the five definitional gates the olx reads as slots
 (`names_behavior`, `names_stimulus`, `contingent`, `follows_behavior`,
 `you_arrange_it`). Target: DAY1/p13, gold 0 with "-4 pts: not Operant
 Conditioning", which we credit 4/4/4 with every gate `met`, although the
@@ -1341,7 +1341,7 @@ derives the verdict, rather than judging the slot directly.
               for the consequence to arrive:pick(trigger_target)|...
     expect="targets_own_behavior:trigger_behavior=utb:wgb"
 
-Mirrored on the CLI as an enum property with the same derivation, so the paths
+Mirrored on the python as an enum property with the same derivation, so the paths
 stay in step; the enforcement suite confirmed no divergence. Deliberately short
 on prose, since the previous attempt's ~1000 characters were what knocked a
 committed cadence gain off DAY2/p8.
@@ -1438,7 +1438,7 @@ engine compares.
               for the consequence to arrive:pick(trigger_target)|...
     expect="targets_own_behavior:trigger_behavior=utb:wgb"
 
-Mirrored on the CLI as an enum with the same derivation and the same wording, so
+Mirrored on the python as an enum with the same derivation and the same wording, so
 both generators put the same question.
 
 **The rule that works, after three drafts.** Classify by WHAT KIND OF PHRASE the

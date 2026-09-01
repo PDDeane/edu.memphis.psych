@@ -1,7 +1,47 @@
 {
   "items": {
     "1a": {
-      "cli": {
+      "olx": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 0,
+          "12": 6,
+          "13": 6,
+          "14": 5,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 5,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 1,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 18,
+        "out": "twoside_web",
+        "prompt_sha": "7774b163dc18",
+        "run_totals": [
+          17,
+          17,
+          18,
+          18,
+          18,
+          19
+        ],
+        "runs": 6,
+        "scorer_sha": "8f2c4a9c148c"
+      },
+      "python": {
         "cells": {
           "1": 5,
           "10": 6,
@@ -48,26 +88,28 @@
         ],
         "runs": 6,
         "scorer_sha": "8f2c4a9c148c"
-      },
-      "web": {
+      }
+    },
+    "1b": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 6,
-          "11": 0,
+          "11": 6,
           "12": 6,
           "13": 6,
-          "14": 5,
+          "14": 6,
           "15": 6,
           "16": 6,
           "17": 6,
           "18": 6,
-          "19": 5,
+          "19": 6,
           "2": 6,
           "20": 6,
           "3": 6,
           "4": 6,
           "5": 6,
-          "6": 1,
+          "6": 6,
           "7": 6,
           "8": 6,
           "9": 6
@@ -75,23 +117,21 @@
         "denominator": 20,
         "excluded_cells": {},
         "exclusions": [],
-        "numerator": 18,
+        "numerator": 20,
         "out": "twoside_web",
-        "prompt_sha": "7774b163dc18",
+        "prompt_sha": "5b8b38b4cde9",
         "run_totals": [
-          17,
-          17,
-          18,
-          18,
-          18,
-          19
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
         ],
         "runs": 6,
-        "scorer_sha": "8f2c4a9c148c"
-      }
-    },
-    "1b": {
-      "cli": {
+        "scorer_sha": "4f0592d0beaf"
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -138,50 +178,51 @@
         ],
         "runs": 6,
         "scorer_sha": "4f0592d0beaf"
-      },
-      "web": {
+      }
+    },
+    "1c": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 6,
-          "11": 6,
+          "11": 0,
           "12": 6,
           "13": 6,
           "14": 6,
           "15": 6,
-          "16": 6,
+          "16": 5,
           "17": 6,
           "18": 6,
-          "19": 6,
           "2": 6,
-          "20": 6,
           "3": 6,
-          "4": 6,
           "5": 6,
           "6": 6,
           "7": 6,
-          "8": 6,
+          "8": 5,
           "9": 6
         },
-        "denominator": 20,
+        "denominator": 17,
         "excluded_cells": {},
-        "exclusions": [],
-        "numerator": 20,
-        "out": "twoside_web",
-        "prompt_sha": "5b8b38b4cde9",
-        "run_totals": [
-          20,
-          20,
-          20,
-          20,
-          20,
+        "exclusions": [
+          4,
+          19,
           20
         ],
+        "numerator": 16,
+        "out": "twoside_web",
+        "prompt_sha": "88276a1e030a",
+        "run_totals": [
+          15,
+          15,
+          16,
+          16,
+          16,
+          16
+        ],
         "runs": 6,
-        "scorer_sha": "4f0592d0beaf"
-      }
-    },
-    "1c": {
-      "cli": {
+        "scorer_sha": "4334438d6d55"
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -229,51 +270,50 @@
         ],
         "runs": 6,
         "scorer_sha": "4334438d6d55"
-      },
-      "web": {
+      }
+    },
+    "2a": {
+      "olx": {
         "cells": {
-          "1": 6,
+          "1": 0,
           "10": 6,
-          "11": 0,
+          "11": 6,
           "12": 6,
-          "13": 6,
-          "14": 6,
-          "15": 6,
-          "16": 5,
+          "13": 0,
+          "14": 2,
+          "15": 0,
+          "16": 0,
           "17": 6,
           "18": 6,
+          "19": 6,
           "2": 6,
+          "20": 6,
           "3": 6,
+          "4": 6,
           "5": 6,
           "6": 6,
           "7": 6,
-          "8": 5,
+          "8": 6,
           "9": 6
         },
-        "denominator": 17,
+        "denominator": 20,
         "excluded_cells": {},
-        "exclusions": [
-          4,
-          19,
-          20
-        ],
-        "numerator": 16,
+        "exclusions": [],
+        "numerator": 15,
         "out": "twoside_web",
-        "prompt_sha": "88276a1e030a",
+        "prompt_sha": "8ca6bcea06d8",
         "run_totals": [
           15,
           15,
-          16,
-          16,
+          15,
+          15,
           16,
           16
         ],
         "runs": 6,
-        "scorer_sha": "4334438d6d55"
-      }
-    },
-    "2a": {
-      "cli": {
+        "scorer_sha": "6526989cd34f"
+      },
+      "python": {
         "cells": {
           "1": 0,
           "10": 6,
@@ -320,17 +360,19 @@
         ],
         "runs": 6,
         "scorer_sha": "6526989cd34f"
-      },
-      "web": {
+      }
+    },
+    "2b": {
+      "olx": {
         "cells": {
-          "1": 0,
+          "1": 6,
           "10": 6,
           "11": 6,
           "12": 6,
-          "13": 0,
-          "14": 2,
-          "15": 0,
-          "16": 0,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
           "17": 6,
           "18": 6,
           "19": 6,
@@ -347,23 +389,21 @@
         "denominator": 20,
         "excluded_cells": {},
         "exclusions": [],
-        "numerator": 15,
+        "numerator": 20,
         "out": "twoside_web",
-        "prompt_sha": "8ca6bcea06d8",
+        "prompt_sha": "ff12408f6d76",
         "run_totals": [
-          15,
-          15,
-          15,
-          15,
-          16,
-          16
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
         ],
         "runs": 6,
         "scorer_sha": "6526989cd34f"
-      }
-    },
-    "2b": {
-      "cli": {
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -410,8 +450,10 @@
         ],
         "runs": 6,
         "scorer_sha": "6526989cd34f"
-      },
-      "web": {
+      }
+    },
+    "3": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -439,7 +481,7 @@
         "exclusions": [],
         "numerator": 20,
         "out": "twoside_web",
-        "prompt_sha": "ff12408f6d76",
+        "prompt_sha": "5ab233254952",
         "run_totals": [
           20,
           20,
@@ -450,10 +492,8 @@
         ],
         "runs": 6,
         "scorer_sha": "6526989cd34f"
-      }
-    },
-    "3": {
-      "cli": {
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -500,8 +540,10 @@
         ],
         "runs": 6,
         "scorer_sha": "6526989cd34f"
-      },
-      "web": {
+      }
+    },
+    "D1": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -514,9 +556,7 @@
           "17": 6,
           "18": 6,
           "19": 6,
-          "2": 6,
           "20": 6,
-          "3": 6,
           "4": 6,
           "5": 6,
           "6": 6,
@@ -524,26 +564,30 @@
           "8": 6,
           "9": 6
         },
-        "denominator": 20,
-        "excluded_cells": {},
-        "exclusions": [],
-        "numerator": 20,
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 5,
+          "3": 1
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
         "out": "twoside_web",
-        "prompt_sha": "5ab233254952",
+        "prompt_sha": "385c91cae672",
         "run_totals": [
-          20,
-          20,
-          20,
-          20,
-          20,
-          20
+          18,
+          18,
+          18,
+          18,
+          18,
+          18
         ],
         "runs": 6,
-        "scorer_sha": "6526989cd34f"
-      }
-    },
-    "D1": {
-      "cli": {
+        "scorer_sha": "fa4d1b3a2c1d"
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -594,8 +638,10 @@
         ],
         "runs": 6,
         "scorer_sha": "fa4d1b3a2c1d"
-      },
-      "web": {
+      }
+    },
+    "D2": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -627,7 +673,7 @@
         ],
         "numerator": 18,
         "out": "twoside_web",
-        "prompt_sha": "385c91cae672",
+        "prompt_sha": "d157ef618d52",
         "run_totals": [
           18,
           18,
@@ -638,10 +684,8 @@
         ],
         "runs": 6,
         "scorer_sha": "fa4d1b3a2c1d"
-      }
-    },
-    "D2": {
-      "cli": {
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -692,106 +736,10 @@
         ],
         "runs": 6,
         "scorer_sha": "fa4d1b3a2c1d"
-      },
-      "web": {
-        "cells": {
-          "1": 6,
-          "10": 6,
-          "11": 6,
-          "12": 6,
-          "13": 6,
-          "14": 6,
-          "15": 6,
-          "16": 6,
-          "17": 6,
-          "18": 6,
-          "19": 6,
-          "20": 6,
-          "4": 6,
-          "5": 6,
-          "6": 6,
-          "7": 6,
-          "8": 6,
-          "9": 6
-        },
-        "denominator": 18,
-        "excluded_cells": {
-          "2": 5,
-          "3": 1
-        },
-        "exclusions": [
-          2,
-          3
-        ],
-        "numerator": 18,
-        "out": "twoside_web",
-        "prompt_sha": "d157ef618d52",
-        "run_totals": [
-          18,
-          18,
-          18,
-          18,
-          18,
-          18
-        ],
-        "runs": 6,
-        "scorer_sha": "fa4d1b3a2c1d"
       }
     },
     "DAY1": {
-      "cli": {
-        "cells": {
-          "1": 0,
-          "10": 6,
-          "11": 4,
-          "12": 6,
-          "13": 6,
-          "14": 5,
-          "15": 6,
-          "16": 6,
-          "17": 6,
-          "18": 6,
-          "19": 6,
-          "20": 6,
-          "4": 6,
-          "5": 6,
-          "6": 6,
-          "7": 6,
-          "8": 6,
-          "9": 6
-        },
-        "denominator": 18,
-        "excluded_cells": {
-          "2": 6,
-          "3": 0
-        },
-        "exclusions": [
-          2,
-          3
-        ],
-        "numerator": 17,
-        "out": "nt2_cli",
-        "previous": {
-          "denominator": 18,
-          "numerator": 17,
-          "out": "nt2_cli",
-          "prompt_sha": "409fb683a744",
-          "runs": 6,
-          "scorer_sha": "52fedad3b91b"
-        },
-        "prompt_sha": "409fb683a744",
-        "run_totals": [
-          16,
-          16,
-          16,
-          17,
-          17,
-          17
-        ],
-        "runs": 6,
-        "scorer_sha": "52fedad3b91b"
-      },
-      "web": {
+      "olx": {
         "cells": {
           "1": 0,
           "10": 6,
@@ -842,17 +790,15 @@
         ],
         "runs": 6,
         "scorer_sha": "52fedad3b91b"
-      }
-    },
-    "DAY2": {
-      "cli": {
+      },
+      "python": {
         "cells": {
-          "1": 6,
+          "1": 0,
           "10": 6,
           "11": 4,
-          "12": 5,
+          "12": 6,
           "13": 6,
-          "14": 6,
+          "14": 5,
           "15": 6,
           "16": 6,
           "17": 6,
@@ -862,42 +808,44 @@
           "4": 6,
           "5": 6,
           "6": 6,
-          "7": 0,
-          "8": 3,
+          "7": 6,
+          "8": 6,
           "9": 6
         },
         "denominator": 18,
         "excluded_cells": {
           "2": 6,
-          "3": 6
+          "3": 0
         },
         "exclusions": [
           2,
           3
         ],
-        "numerator": 16,
+        "numerator": 17,
         "out": "nt2_cli",
         "previous": {
           "denominator": 18,
-          "numerator": 16,
+          "numerator": 17,
           "out": "nt2_cli",
-          "prompt_sha": "839d21e12263",
+          "prompt_sha": "409fb683a744",
           "runs": 6,
           "scorer_sha": "52fedad3b91b"
         },
-        "prompt_sha": "839d21e12263",
+        "prompt_sha": "409fb683a744",
         "run_totals": [
-          15,
-          15,
           16,
           16,
+          16,
+          17,
           17,
           17
         ],
         "runs": 6,
         "scorer_sha": "52fedad3b91b"
-      },
-      "web": {
+      }
+    },
+    "DAY2": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -948,10 +896,106 @@
         ],
         "runs": 6,
         "scorer_sha": "52fedad3b91b"
+      },
+      "python": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 4,
+          "12": 5,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 0,
+          "8": 3,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 6
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 16,
+        "out": "nt2_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 16,
+          "out": "nt2_cli",
+          "prompt_sha": "839d21e12263",
+          "runs": 6,
+          "scorer_sha": "52fedad3b91b"
+        },
+        "prompt_sha": "839d21e12263",
+        "run_totals": [
+          15,
+          15,
+          16,
+          16,
+          17,
+          17
+        ],
+        "runs": 6,
+        "scorer_sha": "52fedad3b91b"
       }
     },
     "NP": {
-      "cli": {
+      "olx": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 4,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_web",
+        "prompt_sha": "21557786dd47",
+        "run_totals": [
+          17,
+          17,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "2f11176f1cd0"
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -1002,27 +1046,29 @@
         ],
         "runs": 6,
         "scorer_sha": "2f11176f1cd0"
-      },
-      "web": {
+      }
+    },
+    "NR": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 6,
-          "11": 6,
+          "11": 4,
           "12": 6,
           "13": 6,
-          "14": 4,
-          "15": 6,
+          "14": 6,
+          "15": 5,
           "16": 6,
           "17": 6,
           "18": 6,
           "19": 6,
-          "20": 6,
-          "4": 6,
+          "20": 0,
+          "4": 0,
           "5": 6,
           "6": 6,
           "7": 6,
           "8": 6,
-          "9": 6
+          "9": 5
         },
         "denominator": 18,
         "excluded_cells": {
@@ -1033,23 +1079,21 @@
           2,
           3
         ],
-        "numerator": 18,
+        "numerator": 16,
         "out": "twoside_web",
-        "prompt_sha": "21557786dd47",
+        "prompt_sha": "1c93f1c44b25",
         "run_totals": [
-          17,
-          17,
-          18,
-          18,
-          18,
-          18
+          14,
+          15,
+          15,
+          16,
+          16,
+          16
         ],
         "runs": 6,
-        "scorer_sha": "2f11176f1cd0"
-      }
-    },
-    "NR": {
-      "cli": {
+        "scorer_sha": "eba19bcb286b"
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -1100,54 +1144,54 @@
         ],
         "runs": 6,
         "scorer_sha": "eba19bcb286b"
-      },
-      "web": {
+      }
+    },
+    "PP": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 6,
-          "11": 4,
+          "11": 6,
           "12": 6,
           "13": 6,
           "14": 6,
-          "15": 5,
+          "15": 6,
           "16": 6,
           "17": 6,
           "18": 6,
           "19": 6,
-          "20": 0,
-          "4": 0,
+          "20": 6,
+          "4": 6,
           "5": 6,
-          "6": 6,
+          "6": 5,
           "7": 6,
           "8": 6,
-          "9": 5
+          "9": 6
         },
         "denominator": 18,
         "excluded_cells": {
           "2": 6,
-          "3": 0
+          "3": 6
         },
         "exclusions": [
           2,
           3
         ],
-        "numerator": 16,
+        "numerator": 18,
         "out": "twoside_web",
-        "prompt_sha": "1c93f1c44b25",
+        "prompt_sha": "202b51ea6175",
         "run_totals": [
-          14,
-          15,
-          15,
-          16,
-          16,
-          16
+          17,
+          18,
+          18,
+          18,
+          18,
+          18
         ],
         "runs": 6,
-        "scorer_sha": "eba19bcb286b"
-      }
-    },
-    "PP": {
-      "cli": {
+        "scorer_sha": "2f11176f1cd0"
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -1198,8 +1242,10 @@
         ],
         "runs": 6,
         "scorer_sha": "2f11176f1cd0"
-      },
-      "web": {
+      }
+    },
+    "PR": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -1207,7 +1253,7 @@
           "12": 6,
           "13": 6,
           "14": 6,
-          "15": 6,
+          "15": 2,
           "16": 6,
           "17": 6,
           "18": 6,
@@ -1215,7 +1261,7 @@
           "20": 6,
           "4": 6,
           "5": 6,
-          "6": 5,
+          "6": 6,
           "7": 6,
           "8": 6,
           "9": 6
@@ -1223,29 +1269,27 @@
         "denominator": 18,
         "excluded_cells": {
           "2": 6,
-          "3": 6
+          "3": 0
         },
         "exclusions": [
           2,
           3
         ],
-        "numerator": 18,
+        "numerator": 17,
         "out": "twoside_web",
-        "prompt_sha": "202b51ea6175",
+        "prompt_sha": "4aab3a39db71",
         "run_totals": [
           17,
-          18,
-          18,
-          18,
+          17,
+          17,
+          17,
           18,
           18
         ],
         "runs": 6,
         "scorer_sha": "2f11176f1cd0"
-      }
-    },
-    "PR": {
-      "cli": {
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -1296,54 +1340,50 @@
         ],
         "runs": 6,
         "scorer_sha": "2f11176f1cd0"
-      },
-      "web": {
-        "cells": {
-          "1": 6,
-          "10": 6,
-          "11": 6,
-          "12": 6,
-          "13": 6,
-          "14": 6,
-          "15": 2,
-          "16": 6,
-          "17": 6,
-          "18": 6,
-          "19": 6,
-          "20": 6,
-          "4": 6,
-          "5": 6,
-          "6": 6,
-          "7": 6,
-          "8": 6,
-          "9": 6
-        },
-        "denominator": 18,
-        "excluded_cells": {
-          "2": 6,
-          "3": 0
-        },
-        "exclusions": [
-          2,
-          3
-        ],
-        "numerator": 17,
-        "out": "twoside_web",
-        "prompt_sha": "4aab3a39db71",
-        "run_totals": [
-          17,
-          17,
-          17,
-          17,
-          18,
-          18
-        ],
-        "runs": 6,
-        "scorer_sha": "2f11176f1cd0"
       }
     },
     "Q1": {
-      "cli": {
+      "olx": {
+        "cells": {
+          "1": 6,
+          "10": 0,
+          "11": 3,
+          "12": 6,
+          "13": 6,
+          "14": 5,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 4,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 5,
+          "7": 5,
+          "8": 6,
+          "9": 1
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 17,
+        "out": "twoside_web",
+        "prompt_sha": "08e2163d1613",
+        "run_totals": [
+          16,
+          16,
+          17,
+          17,
+          17,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "6526989cd34f"
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 1,
@@ -1390,50 +1430,50 @@
         ],
         "runs": 6,
         "scorer_sha": "6526989cd34f"
-      },
-      "web": {
+      }
+    },
+    "Q2": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 0,
-          "11": 3,
+          "11": 6,
           "12": 6,
           "13": 6,
-          "14": 5,
+          "14": 6,
           "15": 6,
-          "16": 6,
+          "16": 3,
           "17": 6,
-          "18": 6,
-          "19": 4,
+          "18": 2,
+          "19": 6,
           "2": 6,
-          "20": 6,
+          "20": 0,
           "3": 6,
           "4": 6,
           "5": 6,
-          "6": 5,
-          "7": 5,
+          "6": 6,
+          "7": 3,
           "8": 6,
-          "9": 1
+          "9": 6
         },
         "denominator": 20,
         "excluded_cells": {},
         "exclusions": [],
         "numerator": 17,
         "out": "twoside_web",
-        "prompt_sha": "08e2163d1613",
+        "prompt_sha": "671c74ebe8cb",
         "run_totals": [
+          15,
+          15,
           16,
-          16,
-          17,
           17,
           17,
           18
         ],
         "runs": 6,
         "scorer_sha": "6526989cd34f"
-      }
-    },
-    "Q2": {
-      "cli": {
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 1,
@@ -1480,90 +1520,10 @@
         ],
         "runs": 6,
         "scorer_sha": "6526989cd34f"
-      },
-      "web": {
-        "cells": {
-          "1": 6,
-          "10": 0,
-          "11": 6,
-          "12": 6,
-          "13": 6,
-          "14": 6,
-          "15": 6,
-          "16": 3,
-          "17": 6,
-          "18": 2,
-          "19": 6,
-          "2": 6,
-          "20": 0,
-          "3": 6,
-          "4": 6,
-          "5": 6,
-          "6": 6,
-          "7": 3,
-          "8": 6,
-          "9": 6
-        },
-        "denominator": 20,
-        "excluded_cells": {},
-        "exclusions": [],
-        "numerator": 17,
-        "out": "twoside_web",
-        "prompt_sha": "671c74ebe8cb",
-        "run_totals": [
-          15,
-          15,
-          16,
-          17,
-          17,
-          18
-        ],
-        "runs": 6,
-        "scorer_sha": "6526989cd34f"
       }
     },
     "Q3": {
-      "cli": {
-        "cells": {
-          "1": 6,
-          "10": 1,
-          "11": 6,
-          "12": 6,
-          "13": 5,
-          "14": 6,
-          "15": 6,
-          "16": 6,
-          "17": 6,
-          "18": 6,
-          "19": 0,
-          "2": 6,
-          "20": 6,
-          "3": 6,
-          "4": 6,
-          "5": 6,
-          "6": 6,
-          "7": 6,
-          "8": 6,
-          "9": 6
-        },
-        "denominator": 20,
-        "excluded_cells": {},
-        "exclusions": [],
-        "numerator": 18,
-        "out": "twoside_cli",
-        "prompt_sha": "cb94d03d8b20",
-        "run_totals": [
-          18,
-          18,
-          18,
-          18,
-          18,
-          18
-        ],
-        "runs": 6,
-        "scorer_sha": "8f2c4a9c148c"
-      },
-      "web": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 1,
@@ -1602,10 +1562,50 @@
         ],
         "runs": 6,
         "scorer_sha": "8f2c4a9c148c"
+      },
+      "python": {
+        "cells": {
+          "1": 6,
+          "10": 1,
+          "11": 6,
+          "12": 6,
+          "13": 5,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 0,
+          "2": 6,
+          "20": 6,
+          "3": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 18,
+        "out": "twoside_cli",
+        "prompt_sha": "cb94d03d8b20",
+        "run_totals": [
+          18,
+          18,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "8f2c4a9c148c"
       }
     },
     "Q4a": {
-      "cli": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -1626,34 +1626,34 @@
           "6": 5,
           "7": 6,
           "8": 6,
-          "9": 6
+          "9": 3
         },
         "denominator": 20,
         "excluded_cells": {},
         "exclusions": [],
         "numerator": 17,
-        "out": "twoside_cli",
+        "out": "e25_olx",
         "previous": {
           "denominator": 20,
           "numerator": 18,
-          "out": "q4a_final",
-          "prompt_sha": "c9f18c4b868e",
+          "out": "twoside_web",
+          "prompt_sha": "26ade4488fcd",
           "runs": 6,
-          "scorer_sha": "9decbd34055f"
+          "scorer_sha": "9cf671cbc173"
         },
-        "prompt_sha": "c770299c50d7",
+        "prompt_sha": "ee29a6786797",
         "run_totals": [
-          17,
-          17,
-          17,
+          16,
+          16,
+          16,
           17,
           17,
           18
         ],
         "runs": 6,
-        "scorer_sha": "9cf671cbc173"
+        "scorer_sha": "977b51de8e3e"
       },
-      "web": {
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -1662,11 +1662,11 @@
           "13": 6,
           "14": 0,
           "15": 6,
-          "16": 6,
+          "16": 4,
           "17": 6,
           "18": 6,
           "19": 0,
-          "2": 3,
+          "2": 5,
           "20": 6,
           "3": 6,
           "4": 6,
@@ -1674,28 +1674,75 @@
           "6": 6,
           "7": 6,
           "8": 6,
-          "9": 3
+          "9": 6
         },
         "denominator": 20,
         "excluded_cells": {},
         "exclusions": [],
         "numerator": 18,
-        "out": "twoside_web",
-        "prompt_sha": "26ade4488fcd",
+        "out": "e25_fix_cli",
+        "previous": {
+          "denominator": 20,
+          "numerator": 17,
+          "out": "twoside_cli",
+          "prompt_sha": "c770299c50d7",
+          "runs": 6,
+          "scorer_sha": "9cf671cbc173"
+        },
+        "prompt_sha": "8ae36b77f32b",
         "run_totals": [
           16,
-          16,
-          16,
+          17,
+          18,
           18,
           18,
           18
         ],
         "runs": 6,
-        "scorer_sha": "9cf671cbc173"
+        "scorer_sha": "977b51de8e3e"
       }
     },
     "Q4b": {
-      "cli": {
+      "olx": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 0,
+          "13": 2,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 5,
+          "18": 6,
+          "19": 5,
+          "20": 6,
+          "3": 6,
+          "4": 0,
+          "5": 6,
+          "6": 5,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 19,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 16,
+        "out": "twoside_web",
+        "prompt_sha": "884defb56f26",
+        "run_totals": [
+          15,
+          15,
+          16,
+          16,
+          16,
+          17
+        ],
+        "runs": 6,
+        "scorer_sha": "22f8ceb090da"
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -1741,54 +1788,15 @@
         ],
         "runs": 6,
         "scorer_sha": "22f8ceb090da"
-      },
-      "web": {
-        "cells": {
-          "1": 6,
-          "10": 6,
-          "11": 6,
-          "12": 0,
-          "13": 2,
-          "14": 6,
-          "15": 6,
-          "16": 6,
-          "17": 5,
-          "18": 6,
-          "19": 5,
-          "20": 6,
-          "3": 6,
-          "4": 0,
-          "5": 6,
-          "6": 5,
-          "7": 6,
-          "8": 6,
-          "9": 6
-        },
-        "denominator": 19,
-        "excluded_cells": {},
-        "exclusions": [],
-        "numerator": 16,
-        "out": "twoside_web",
-        "prompt_sha": "884defb56f26",
-        "run_totals": [
-          15,
-          15,
-          16,
-          16,
-          16,
-          17
-        ],
-        "runs": 6,
-        "scorer_sha": "22f8ceb090da"
       }
     },
     "Q4c": {
-      "cli": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 6,
-          "11": 6,
-          "12": 5,
+          "11": 5,
+          "12": 3,
           "13": 6,
           "14": 6,
           "15": 6,
@@ -1802,7 +1810,7 @@
           "5": 6,
           "6": 6,
           "7": 6,
-          "8": 6,
+          "8": 5,
           "9": 0
         },
         "denominator": 19,
@@ -1813,73 +1821,28 @@
           16
         ],
         "numerator": 17,
-        "out": "twoside_cli",
+        "out": "e25_olx",
         "previous": {
           "denominator": 19,
           "numerator": 17,
-          "out": "baseline_20260824",
-          "prompt_sha": "31614b3167c4",
-          "runs": 3,
-          "scorer_sha": "9decbd34055f"
+          "out": "twoside_web",
+          "prompt_sha": "8c39c65bd7e6",
+          "runs": 6,
+          "scorer_sha": "9cf671cbc173"
         },
-        "prompt_sha": "fbc8e17ee92a",
+        "prompt_sha": "15312580770e",
         "run_totals": [
+          15,
+          15,
           16,
-          17,
-          17,
           17,
           17,
           17
         ],
         "runs": 6,
-        "scorer_sha": "9cf671cbc173"
+        "scorer_sha": "977b51de8e3e"
       },
-      "web": {
-        "cells": {
-          "1": 6,
-          "10": 6,
-          "11": 6,
-          "12": 5,
-          "13": 6,
-          "14": 6,
-          "15": 6,
-          "17": 6,
-          "18": 6,
-          "19": 6,
-          "2": 6,
-          "20": 0,
-          "3": 6,
-          "4": 6,
-          "5": 6,
-          "6": 6,
-          "7": 6,
-          "8": 6,
-          "9": 0
-        },
-        "denominator": 19,
-        "excluded_cells": {
-          "16": 0
-        },
-        "exclusions": [
-          16
-        ],
-        "numerator": 17,
-        "out": "twoside_web",
-        "prompt_sha": "8c39c65bd7e6",
-        "run_totals": [
-          16,
-          17,
-          17,
-          17,
-          17,
-          17
-        ],
-        "runs": 6,
-        "scorer_sha": "9cf671cbc173"
-      }
-    },
-    "Q5": {
-      "cli": {
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -1888,46 +1851,51 @@
           "13": 6,
           "14": 6,
           "15": 6,
-          "16": 6,
           "17": 6,
           "18": 6,
           "19": 6,
           "2": 6,
-          "20": 6,
+          "20": 0,
           "3": 6,
-          "4": 0,
+          "4": 6,
           "5": 6,
           "6": 6,
           "7": 6,
           "8": 6,
-          "9": 3
+          "9": 0
         },
-        "denominator": 20,
-        "excluded_cells": {},
-        "exclusions": [],
-        "numerator": 19,
-        "out": "q5_e11_cli",
+        "denominator": 19,
+        "excluded_cells": {
+          "16": 0
+        },
+        "exclusions": [
+          16
+        ],
+        "numerator": 17,
+        "out": "e25_fix_cli",
         "previous": {
-          "denominator": 20,
-          "numerator": 19,
+          "denominator": 19,
+          "numerator": 17,
           "out": "twoside_cli",
-          "prompt_sha": "16eeb6f79daa",
+          "prompt_sha": "fbc8e17ee92a",
           "runs": 6,
-          "scorer_sha": "8f2c4a9c148c"
+          "scorer_sha": "9cf671cbc173"
         },
-        "prompt_sha": "91fa2ac0a43f",
+        "prompt_sha": "4af1ace58225",
         "run_totals": [
-          18,
-          18,
-          18,
-          19,
-          19,
-          19
+          17,
+          17,
+          17,
+          17,
+          17,
+          17
         ],
         "runs": 6,
-        "scorer_sha": "8f2c4a9c148c"
-      },
-      "web": {
+        "scorer_sha": "977b51de8e3e"
+      }
+    },
+    "Q5": {
+      "olx": {
         "cells": {
           "1": 4,
           "10": 6,
@@ -1974,10 +1942,8 @@
         ],
         "runs": 6,
         "scorer_sha": "8f2c4a9c148c"
-      }
-    },
-    "Q6": {
-      "cli": {
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -1985,47 +1951,49 @@
           "12": 6,
           "13": 6,
           "14": 6,
-          "15": 5,
-          "16": 4,
+          "15": 6,
+          "16": 6,
           "17": 6,
-          "18": 3,
+          "18": 6,
           "19": 6,
-          "2": 0,
+          "2": 6,
           "20": 6,
           "3": 6,
-          "4": 5,
-          "5": 5,
-          "6": 5,
+          "4": 0,
+          "5": 6,
+          "6": 6,
           "7": 6,
-          "8": 0,
-          "9": 6
+          "8": 6,
+          "9": 3
         },
         "denominator": 20,
         "excluded_cells": {},
         "exclusions": [],
-        "numerator": 17,
-        "out": "q6_e15_cli",
+        "numerator": 19,
+        "out": "q5_e11_cli",
         "previous": {
           "denominator": 20,
-          "numerator": 17,
-          "out": "q6_e15_cli",
-          "prompt_sha": "cb866389c59d",
+          "numerator": 19,
+          "out": "twoside_cli",
+          "prompt_sha": "16eeb6f79daa",
           "runs": 6,
-          "scorer_sha": "7b8f8715488a"
+          "scorer_sha": "8f2c4a9c148c"
         },
-        "prompt_sha": "cb866389c59d",
+        "prompt_sha": "91fa2ac0a43f",
         "run_totals": [
-          16,
-          16,
-          16,
-          17,
-          17,
-          17
+          18,
+          18,
+          18,
+          19,
+          19,
+          19
         ],
         "runs": 6,
-        "scorer_sha": "7b8f8715488a"
-      },
-      "web": {
+        "scorer_sha": "8f2c4a9c148c"
+      }
+    },
+    "Q6": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 5,
@@ -2072,10 +2040,102 @@
         ],
         "runs": 6,
         "scorer_sha": "7b8f8715488a"
+      },
+      "python": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 5,
+          "16": 4,
+          "17": 6,
+          "18": 3,
+          "19": 6,
+          "2": 0,
+          "20": 6,
+          "3": 6,
+          "4": 5,
+          "5": 5,
+          "6": 5,
+          "7": 6,
+          "8": 0,
+          "9": 6
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 17,
+        "out": "q6_e15_cli",
+        "previous": {
+          "denominator": 20,
+          "numerator": 17,
+          "out": "q6_e15_cli",
+          "prompt_sha": "cb866389c59d",
+          "runs": 6,
+          "scorer_sha": "7b8f8715488a"
+        },
+        "prompt_sha": "cb866389c59d",
+        "run_totals": [
+          16,
+          16,
+          16,
+          17,
+          17,
+          17
+        ],
+        "runs": 6,
+        "scorer_sha": "7b8f8715488a"
       }
     },
     "T1": {
-      "cli": {
+      "olx": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 6
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "twoside_web",
+        "prompt_sha": "e3b7c1d9ab70",
+        "run_totals": [
+          18,
+          18,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "4f0592d0beaf"
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -2126,8 +2186,10 @@
         ],
         "runs": 6,
         "scorer_sha": "4f0592d0beaf"
-      },
-      "web": {
+      }
+    },
+    "T2": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -2159,7 +2221,7 @@
         ],
         "numerator": 18,
         "out": "twoside_web",
-        "prompt_sha": "e3b7c1d9ab70",
+        "prompt_sha": "444071541584",
         "run_totals": [
           18,
           18,
@@ -2170,10 +2232,8 @@
         ],
         "runs": 6,
         "scorer_sha": "4f0592d0beaf"
-      }
-    },
-    "T2": {
-      "cli": {
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -2224,106 +2284,10 @@
         ],
         "runs": 6,
         "scorer_sha": "4f0592d0beaf"
-      },
-      "web": {
-        "cells": {
-          "1": 6,
-          "10": 6,
-          "11": 6,
-          "12": 6,
-          "13": 6,
-          "14": 6,
-          "15": 6,
-          "16": 6,
-          "17": 6,
-          "18": 6,
-          "19": 6,
-          "20": 6,
-          "4": 6,
-          "5": 6,
-          "6": 6,
-          "7": 6,
-          "8": 6,
-          "9": 6
-        },
-        "denominator": 18,
-        "excluded_cells": {
-          "2": 6,
-          "3": 6
-        },
-        "exclusions": [
-          2,
-          3
-        ],
-        "numerator": 18,
-        "out": "twoside_web",
-        "prompt_sha": "444071541584",
-        "run_totals": [
-          18,
-          18,
-          18,
-          18,
-          18,
-          18
-        ],
-        "runs": 6,
-        "scorer_sha": "4f0592d0beaf"
       }
     },
     "WK1": {
-      "cli": {
-        "cells": {
-          "1": 6,
-          "10": 6,
-          "11": 6,
-          "12": 6,
-          "13": 6,
-          "14": 6,
-          "15": 6,
-          "16": 6,
-          "17": 6,
-          "18": 6,
-          "19": 5,
-          "20": 6,
-          "4": 6,
-          "5": 6,
-          "6": 6,
-          "7": 4,
-          "8": 6,
-          "9": 6
-        },
-        "denominator": 18,
-        "excluded_cells": {
-          "2": 6,
-          "3": 0
-        },
-        "exclusions": [
-          2,
-          3
-        ],
-        "numerator": 18,
-        "out": "nt2_cli",
-        "previous": {
-          "denominator": 18,
-          "numerator": 18,
-          "out": "nt2_cli",
-          "prompt_sha": "c97efa3fe4a1",
-          "runs": 6,
-          "scorer_sha": "92cc12585cc2"
-        },
-        "prompt_sha": "c97efa3fe4a1",
-        "run_totals": [
-          17,
-          17,
-          17,
-          18,
-          18,
-          18
-        ],
-        "runs": 6,
-        "scorer_sha": "92cc12585cc2"
-      },
-      "web": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -2374,28 +2338,26 @@
         ],
         "runs": 6,
         "scorer_sha": "92cc12585cc2"
-      }
-    },
-    "WK2": {
-      "cli": {
+      },
+      "python": {
         "cells": {
           "1": 6,
           "10": 6,
-          "11": 3,
+          "11": 6,
           "12": 6,
           "13": 6,
           "14": 6,
-          "15": 1,
+          "15": 6,
           "16": 6,
           "17": 6,
           "18": 6,
-          "19": 6,
+          "19": 5,
           "20": 6,
           "4": 6,
           "5": 6,
           "6": 6,
-          "7": 6,
-          "8": 5,
+          "7": 4,
+          "8": 6,
           "9": 6
         },
         "denominator": 18,
@@ -2407,29 +2369,31 @@
           2,
           3
         ],
-        "numerator": 17,
+        "numerator": 18,
         "out": "nt2_cli",
         "previous": {
           "denominator": 18,
-          "numerator": 17,
+          "numerator": 18,
           "out": "nt2_cli",
-          "prompt_sha": "a890dae8437c",
+          "prompt_sha": "c97efa3fe4a1",
           "runs": 6,
-          "scorer_sha": "52fedad3b91b"
+          "scorer_sha": "92cc12585cc2"
         },
-        "prompt_sha": "a890dae8437c",
+        "prompt_sha": "c97efa3fe4a1",
         "run_totals": [
-          16,
-          16,
-          16,
           17,
           17,
-          17
+          17,
+          18,
+          18,
+          18
         ],
         "runs": 6,
-        "scorer_sha": "52fedad3b91b"
-      },
-      "web": {
+        "scorer_sha": "92cc12585cc2"
+      }
+    },
+    "WK2": {
+      "olx": {
         "cells": {
           "1": 6,
           "10": 6,
@@ -2477,6 +2441,58 @@
           18,
           18,
           18
+        ],
+        "runs": 6,
+        "scorer_sha": "52fedad3b91b"
+      },
+      "python": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 3,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 1,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 5,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 17,
+        "out": "nt2_cli",
+        "previous": {
+          "denominator": 18,
+          "numerator": 17,
+          "out": "nt2_cli",
+          "prompt_sha": "a890dae8437c",
+          "runs": 6,
+          "scorer_sha": "52fedad3b91b"
+        },
+        "prompt_sha": "a890dae8437c",
+        "run_totals": [
+          16,
+          16,
+          16,
+          17,
+          17,
+          17
         ],
         "runs": 6,
         "scorer_sha": "52fedad3b91b"

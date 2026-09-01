@@ -365,13 +365,13 @@ now `check_web_scorer_exercises_its_sheet`, in the audit and in the pre-sweep
 gate, and it costs no calls.
 
 The enforcement audit had a blind spot no injected breakage could reach, and its
-own declaration named it: "the web probe sees that pair because it reads slot
+own declaration named it: "the olx probe sees that pair because it reads slot
 keys". Modelling one side from the SHEET means a scorer that parses a primitive
 correctly and then ignores it is indistinguishable from one that honours it.
 Every selftest case removes something from the sheet, which the probe reads; none
 can remove something from the SCORER.
 
-That is how `onlyif` was dead on the web path while the audit reported the
+That is how `onlyif` was dead on the olx path while the audit reported the
 behaviour present. `score_slots` built its charge-once map from
 `spec.get("onlyif")`, and `spec` there is `merged`, which never carried it, so the
 map was all-True and the guard never fired. Shown with a before column:
@@ -452,8 +452,8 @@ Three free checks would each have caught it alone, and the order matters:
    `item` is the RUBRIC item. Parsing an OLX attribute into the action dict
    could not feed that loop, and the parameter list says so.
 2. **Ask whether the other side already implements it.** `score.py` had honoured
-   `onlyif` from the rubric all along. When the CLI implements a primitive and
-   `equivalence.py --enforcement` reports no divergence, the web side cannot be
+   `onlyif` from the rubric all along. When the python implements a primitive and
+   `equivalence.py --enforcement` reports no divergence, the olx side cannot be
    missing it -- that is what a two-sided audit is for, and it is free.
 3. **Run the before.** One command, now.
 
@@ -871,8 +871,8 @@ failure §2c describes for prose, and the same one
 `check_prose_numbers_match_the_ledger` exists to catch.
 
 **The hand pass had a defect care would not have caught.** It compared every cell
-at the CLI median, because that is the default side. Its first automated run
-found five cells the CLI gets right and the WEB gets wrong — DAY2/p8, PR/p15,
+at the python median, because that is the default side. Its first automated run
+found five cells the python gets right and the WEB gets wrong — DAY2/p8, PR/p15,
 Q2/p18, Q4a/p9, WK2/p8, all six runs on each side — which no amount of diligence
 on a one-sided reading could have surfaced. They are now Q32. Read BOTH sides;
 `measured.SIDES` is the list, and a cell wrong on either is a cell we get wrong.
@@ -908,42 +908,42 @@ seam the self-test can replace, as `_handsplit_tables` does.
 subgoal that owns it, or declare it with a reason. Silencing it is not on the
 list.
 
-## 2e. A CLI/WEB DIFFERENCE AT THE MEDIAN IS NOT YET A DIVERGENCE
+## 2e. A python/WEB DIFFERENCE AT THE MEDIAN IS NOT YET A DIVERGENCE
 
 Two sides are compared at their recorded medians, and the median over six runs is
 a STEP FUNCTION at exactly the halfway point. On a cell the model gets right about
 half the time, 3 of 6 puts the median on the right answer and 2 of 6 puts it on
 the wrong one — so a single observation decides which engine is recorded as
-correct, and the ledger shows a clean "cli right, web wrong" for a cell where the
+correct, and the ledger shows a clean "python right, olx wrong" for a cell where the
 two engines are behaving identically.
 
-This is not hypothetical. Q32 was filed as "five cells the cli gets right and the
-web gets wrong" and measured out as ONE divergence and four coin flips:
+This is not hypothetical. Q32 was filed as "five cells the python gets right and the
+olx gets wrong" and measured out as ONE divergence and four coin flips:
 
-    cell        gold   cli matches   web matches   medians
-    DAY2/p8      4.0      3 of 6        2 of 6     cli 4 / web 0
-    PR/p15       4.0      3 of 6        2 of 6     cli 4 / web 2
-    Q2/p18       4.0      3 of 6        2 of 6     cli 4 / web 2
-    WK2/p8       0.0      5 of 6        3 of 6     cli 0 / web 2
-    Q4a/p9       3.0      0 of 6        6 of 6     cli 5 / web 3
+    cell        gold   python matches   olx matches   medians
+    DAY2/p8      4.0      3 of 6        2 of 6     python 4 / olx 0
+    PR/p15       4.0      3 of 6        2 of 6     python 4 / olx 2
+    Q2/p18       4.0      3 of 6        2 of 6     python 4 / olx 2
+    WK2/p8       0.0      5 of 6        3 of 6     python 0 / olx 2
+    Q4a/p9       3.0      0 of 6        6 of 6     python 5 / olx 3
 
 Three differ by ONE observation. Only the last is a real engine difference, and it
 is obvious once the rate is read rather than the median: 0 of 6 against 6 of 6.
 
-**Before treating a cli/web difference as an engine defect, read the per-run
+**Before treating a python/olx difference as an engine defect, read the per-run
 agreement rate on both sides.** If they are within a run of each other, no engine
 is at fault and the cell belongs to whichever subgoal owns its unstable slot —
 `measured._runs_doc(item, side)` has the per-run results and the per-run verdicts.
 
 Two traps inside that check:
 
-* **Compare `refers_to` as well as the verdicts.** WK2/p8's web runs have
+* **Compare `refers_to` as well as the verdicts.** WK2/p8's olx runs have
   IDENTICAL verdicts and scores of 0, 0, 2, 0, 2, 4: the movement is entirely in
   the classification answers, `observed_type` and `restriction_authored`. A flip
   detector reading only `verdicts` reports the cell as stable and turns a
   scoring-path question into a mystery.
-* **The direction can invert.** Q4a/p9 was cli-right/web-wrong until an unrelated
-  slot left the sheet under E25, and is now web-right/cli-wrong, 6/6 stable both
+* **The direction can invert.** Q4a/p9 was python-right/olx-wrong until an unrelated
+  slot left the sheet under E25, and is now olx-right/python-wrong, 6/6 stable both
   ways. A recorded direction is a fact about a measurement, not a property of the
   cell.
 
