@@ -795,6 +795,20 @@ ITEMS: list[dict] = [
         # the CLI ASKED the model "were no antecedents listed?" -- a
         # question answerable from two verdicts the model has already given,
         # so it cost a judgement and invited the model to contradict itself.
+        # Declared on BOTH sides, exactly as `forbid` below: the OLX carries
+        # `derived="keyword:contains:bmod_h1_q4a_first,bmod_h1_q4a_second:antecedent,trigger"` for the web,
+        # this carries it for score.py. The word is read off the student's own
+        # text rather than judged, so the key leaves the response schema and the
+        # model is never asked something the runtime already knows.
+        #
+        # MEASURED BEFORE CONVERSION, not after: across every recorded run on
+        # both sides, a literal case-folded substring search agreed with the
+        # model's verdict 240 times out of 240. No cell moves.
+        "derived": [{"key": "keyword", "kind": "contains",
+                     # No fields here, unlike the OLX: score.py is handed the
+                     # assembled response text rather than the page's boxes, and
+                     # the rubric asks whether the word appears ANYWHERE in it.
+                     "words": ['antecedent', 'trigger']}],
         "forbid": [{"key": "no_antecedents",
                     "conds": [{"slot": "antecedent_1", "value": "absent"},
                               {"slot": "antecedent_2", "value": "absent"}]}],
@@ -840,8 +854,12 @@ ITEMS: list[dict] = [
                 "what": "keyword",
                 "pts": None,
                 "reported": True,
-                "verdicts": ["met", "absent", "unclear"],
-                "codes": {"absent": "A_NO_KEYWORD", "unclear": "A_NO_KEYWORD"},
+                # `unclear` is gone with the judgement: a literal substring
+                # search either finds the word or does not, so a verdict space
+                # offering a third answer would declare something no engine can
+                # emit. See the `derived` entry on this item.
+                "verdicts": ["met", "absent"],
+                "codes": {"absent": "A_NO_KEYWORD"},
                 "desc": "Uses 'antecedent' or 'trigger' at least once. A_NO_KEYWORD applies whenever neither \"antecedent\" nor \"trigger\" appears anywhere in the response. The graders enforced this inconsistently — one row lost the point and two others kept it — but the dictionary is explicit, so apply it. This is a deliberate divergence from the rows that kept it.",
             },
             {
@@ -1092,6 +1110,23 @@ ITEMS: list[dict] = [
         # the CLI ASKED the model "were no consequences listed?" -- a
         # question answerable from two verdicts the model has already given,
         # so it cost a judgement and invited the model to contradict itself.
+        # Declared on BOTH sides, exactly as `forbid` below: the OLX carries
+        # `derived="keyword:contains:bmod_h1_q4c_first,bmod_h1_q4c_second:consequence"` for the web,
+        # this carries it for score.py. The word is read off the student's own
+        # text rather than judged, so the key leaves the response schema and the
+        # model is never asked something the runtime already knows.
+        #
+        # MEASURED BEFORE CONVERSION, not after: across every recorded run on
+        # both sides, a literal case-folded substring search agreed with the
+        # model's verdict 239 times out of 240. The one difference is p13, who writes "conequence": the word
+        # appears nowhere, so `absent` is literally right, and the model
+        # answered `unclear` in one web run of six. The slot is advisory
+        # here and C_NO_KEYWORD is unreachable, so no score moves either.
+        "derived": [{"key": "keyword", "kind": "contains",
+                     # No fields here, unlike the OLX: score.py is handed the
+                     # assembled response text rather than the page's boxes, and
+                     # the rubric asks whether the word appears ANYWHERE in it.
+                     "words": ['consequence']}],
         "forbid": [{"key": "no_consequences",
                     "conds": [{"slot": "consequence_1", "value": "absent"},
                               {"slot": "consequence_2", "value": "absent"}]}],
@@ -1147,7 +1182,12 @@ ITEMS: list[dict] = [
                 # went unseen because every run since has used --items on other
                 # items; the full-handout sweep is what surfaced it.
                 "reported": True,
-                "verdicts": ["met", "absent", "unclear"],
+                # `unclear` is gone with the judgement, as on Q4a: a literal
+                # substring search either finds the word or does not. It also
+                # removes this item's only recorded flicker -- p13 writes
+                # "conequence", a typo, and the model answered `unclear` in one
+                # web run of six and `absent` in the other five.
+                "verdicts": ["met", "absent"],
                 "codes": {},
                 "desc": "Uses 'consequence' at least once (advisory, not scored). The word \"consequence\" is NOT worth a point here, unlike the keyword on Q4a. Report `keyword: absent` when it appears nowhere — the feedback may mention it — but it costs nothing. IMPLICIT (from gold): no Q4c row in the corpus deducts for it, and none carries a 1-point deduction at all — rows that omit the word keep full credit. Q4a differs and keeps its charge, because a Q4a row there does deduct for the missing keyword.",
             },

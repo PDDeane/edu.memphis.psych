@@ -2082,7 +2082,20 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
                     "student has filled the field it names — a closed choice they "
                     "selected, which states the answer more reliably than prose "
                     "restating it would.")
-        else:
+        elif r.get("kind") == "contains":
+            # This branch exists because the `else` below was a catch-all that
+            # described the CHART. The first `contains` rule authored inherited
+            # it, and the generated prompt told the model this keyword check was
+            # "satisfied when EVERY week of data is present" -- fluent, confident
+            # and false. Kinds are named explicitly here now, and the else says
+            # which kinds it speaks for.
+            words = " or ".join(f'"{w}"' for w in r.get("words", []))
+            body = (f"The grader reads it off the student's own text: satisfied "
+                    f"when {words} appears anywhere in the response, including a "
+                    f"clear misspelling of it, and `absent` when it does not. It "
+                    f"is a word search, not a judgement about whether they "
+                    f"understood the idea — that is what the other checks are for.")
+        else:                             # plots, complete
             body = ("The grader reads it off the page, using the same code that draws "
                     "the chart: satisfied when EVERY week of data is present, `absent` "
                     "when a week is missing or they hold no numbers at all, and "
@@ -2150,6 +2163,124 @@ DERIVED_KINDS = tuple(next(p for p in primitives()["primitives"]
                            if p["attr"] == "derived")["kinds"])
 
 
+# How close a typed word has to be to count as the course's word. Longer targets
+# get a wider budget because a long word has more ways to be fumbled and fewer
+# neighbours to be confused with; `trigger` (7) stays at 1 so that `bigger`, two
+# edits away, cannot satisfy it.
+_FUZZY_MIN_LEN = 9
+
+# At or below this length a target is matched EXACTLY, as a whole token.
+#
+# Three, not two. Both loose arms stop meaning anything on a short word: a budget
+# of 1 against `cat` admits `car`, `can`, `cut` and `bat`, which is one edit in
+# three characters and closer to a rhyme than a spelling; and the substring arm
+# finds `cat` inside `catalogue` and `education`. Neither is evidence a student
+# used the term, so a word this short has to appear as itself.
+_EXACT_MAX_LEN = 3
+
+# Up to this length a transposition is NOT a single edit.
+#
+# A swap moves two characters, which on a four-letter word is half of it -- and
+# the words it reaches are not misspellings but other words: a target of `form`
+# would be satisfied by `from`. Above four the swapped pair is a smaller share of
+# the word and the neighbours it reaches are overwhelmingly typos, so the swap is
+# worth its usual discount there and not here.
+_NO_SWAP_MAX_LEN = 4
+
+
+def _edit_within(a: str, b: str, budget: int, allow_swap: bool = True) -> bool:
+    """Is `a` within `budget` edits of `b`?
+
+    Optimal string alignment (restricted Damerau-Levenshtein) when `allow_swap`,
+    so all four of the ways a word gets mistyped cost the same:
+
+        deletion      antecdent   <- antecedent
+        insertion     antecedennt
+        substitution  antecidcent
+        TRANSPOSITION antecedetn  -- adjacent swap, the commonest slip of all
+
+    Plain Levenshtein charges 2 for that last one. On a long target the budget of
+    2 absorbs it by accident, but `trigger` has a budget of 1, so `trigegr` would
+    have been rejected while `trigge` was accepted -- an inconsistency with no
+    justification, resting on word length rather than on how badly the student
+    missed.
+
+    `allow_swap` is false for short targets, where a swap is too large a share of
+    the word to read as a typo -- see `_NO_SWAP_MAX_LEN`. The caller decides which
+    words get it; this function only counts.
+
+    Bounded and iterative rather than a library call, because this has to exist
+    twice -- here, and in slotSheet.ts's `editWithin` -- and the two have to agree
+    exactly. A dependency would not have survived that: the browser has no aspell
+    and no /usr/share/dict, so the engine the student actually meets could not
+    have replicated a dictionary-based correction.
+    """
+    if abs(len(a) - len(b)) > budget:
+        return False
+    prev2: list = []
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            best = min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb))
+            # The transposition arm: `a[i-2:i]` is `b[j-2:j]` reversed.
+            if (allow_swap and i > 1 and j > 1
+                    and ca == b[j - 2] and a[i - 2] == cb):
+                best = min(best, prev2[j - 2] + 1)
+            cur.append(best)
+        if min(cur) > budget:
+            return False                  # no completion can come back under
+        prev2, prev = prev, cur
+    return prev[-1] <= budget
+
+
+def contains_hit(text: str, words) -> tuple:
+    """`(course word, what they typed)` if the response uses one, else `(None, None)`.
+
+    A SUBSTRING first, which is what carries inflections -- "antecedents",
+    "triggered" -- and is the whole rule for a correctly spelled answer. Only if
+    that finds nothing are whole tokens compared against the target within a
+    bounded edit distance, which is what carries a misspelling.
+
+    NO DICTIONARY, deliberately. The obvious design -- correct the token if it is
+    not a real word -- needs a word list in all three engines, and the browser has
+    none. Comparing against the TARGET instead asks a question every engine can
+    answer identically, and measurement says the dictionary was never doing any
+    work here: the only tokens within edit distance 2 of a target anywhere in the
+    corpus are `antecdent`, `antecdents`, `atecedents` and `conequence`, all four
+    plainly attempts at the word and none of them English.
+    """
+    low = (text or "").lower()
+    words = [str(w).lower() for w in (words or [])]
+    tokens = sorted(set(re.findall(r"[a-z']+", low)))
+    for w in words:
+        if not w:
+            continue
+        if len(w) <= _EXACT_MAX_LEN:
+            # A one- or two-letter target gets an EXACT whole-token match and
+            # nothing else. Both of the other arms break down at this length:
+            # one edit out of two characters is most of the word, so `if` would
+            # be satisfied by `is`, `in`, `it` and `of`; and the substring arm
+            # would find it inside `gift`. Neither is evidence the student used
+            # the term.
+            if w in tokens:
+                return w, w
+            continue
+        if w in low:
+            return w, w
+    for w in words:
+        # Only words long enough to be missed by accident rather than by
+        # coincidence are matched loosely -- four characters and up.
+        if not w or len(w) <= _EXACT_MAX_LEN:
+            continue
+        budget = 2 if len(w) >= _FUZZY_MIN_LEN else 1
+        swap = len(w) > _NO_SWAP_MAX_LEN
+        for tok in tokens:
+            if _edit_within(tok, w, budget, allow_swap=swap):
+                return w, tok
+    return None, None
+
+
 def _counts_attr(handout: int, action: str) -> list[dict]:
     """`counts="key:member,member"` — one count standing in for its member checks."""
     m = re.search(r'\bcounts="([^"]*)"', _sheet_tag(handout, action))
@@ -2174,11 +2305,21 @@ def _derived_attr(handout: int, action: str) -> list[dict]:
         kind = parts[1] if len(parts) > 1 else ""
         targets = [t.strip() for t in (parts[2] if len(parts) > 2 else "").split(",")
                    if t.strip()]
-        template = [[float(n) for n in g.split(",") if n.strip()]
-                    for g in (parts[3] if len(parts) > 3 else "").split(";") if g.strip()]
-        if key and kind in DERIVED_KINDS and targets:
+        # The fourth segment is numbers to `plots`/`complete` and words to
+        # `contains`, so it is read by KIND. Parsing it as a template regardless
+        # raised ValueError on the first `contains` rule authored -- loudly, which
+        # is the good failure, but it is the third parser of this attribute
+        # (slotSheet.ts and agreement.py are the others) and all three have to
+        # agree about what the segment means.
+        tail = parts[3] if len(parts) > 3 else ""
+        words = ([w.strip().lower() for w in tail.split(",") if w.strip()]
+                 if kind == "contains" else [])
+        template = ([] if kind == "contains" else
+                    [[float(n) for n in g.split(",") if n.strip()]
+                     for g in tail.split(";") if g.strip()])
+        if key and kind in DERIVED_KINDS and targets and (kind != "contains" or words):
             out.append({"key": key, "kind": kind, "targets": targets,
-                        "template": template})
+                        "template": template, "words": words})
     return out
 
 
