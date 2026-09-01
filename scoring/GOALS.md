@@ -1752,7 +1752,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       is identical for every table sharing those verifiers -- which removes a
       third of the work. It remains an on-demand check, deliberately.
 
-- [ ] E37. **Every wrong cell must have a live owner, and the audit must say so every run.**
+- [x] E37. **Every wrong cell must have a live owner, and the audit must say so every run.**
       Filed 2026-08-31. The accounting built across E30/E33/E35 was done BY HAND:
       34 wrong cells found, mapped to subgoals, 16 orphans chased down to 0. None
       of that is enforced, so it is true today and unverifiable tomorrow -- and it
@@ -1783,6 +1783,40 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       move with every sweep; what must not move is that each has somewhere to
       live. A ratchet on the NUMBER would create pressure to close subgoals rather
       than fix cells.
+
+      DONE 2026-08-31. The accounting is now
+      `enforcement.check_every_wrong_cell_has_an_owner`, called from
+      `equivalence.py`'s findings list as WRONG CELL WITH NO OWNER, over
+      `measured.wrong_cells_without_an_owner` /`_wrong_cells` /
+      `_live_subgoal_owners`. Self-test 51/51 detected, 0 failed, 0 skipped,
+      restored state clean at baseline 1. Cost 0.098s inside the audit, 0.436s
+      cold, no subprocesses.
+      IT EARNED ITS KEEP ON THE FIRST RUN, which is the part worth recording.
+      The hand accounting it replaces was thorough and still wrong, because it
+      read the CLI median only -- the default side. The check found five cells
+      the CLI gets right and the WEB gets wrong (DAY2/p8, PR/p15, Q2/p18,
+      Q4a/p9, WK2/p8, six runs each side), now carried as Q32, and it found one
+      subgoal whose evidence had gone (Q11, `realistic` over-charge on Q3/p13,
+      right on both sides), now closed. Neither was visible to the pass that
+      preceded it.
+      TWO FALSE-POSITIVE CLASSES WERE FOUND AND FIXED BEFORE WIRING IT IN, and
+      both are recorded in the docstring because both would have made the check
+      dishonest rather than merely noisy:
+        * a cell can be RIGHT at the total and still be a live finding, since
+          compensating slot errors summing to the right total are the whole
+          reason the slot accounting exists. Declared slot/code cells are exempt
+          from the "no longer wrong" arm.
+        * a subgoal that MENTIONS a cell is not a subgoal ABOUT it. Q19 names
+          1a/p15, Q4a/p20 and Q4b/p8 as CONTROLS, precisely because we score
+          them right. Ownership takes any mention; "evidence has moved" takes
+          only a TITLE mention.
+      Documented as QUALITY_CONTROL.md §2d, next to §2b's after-every-sweep
+      error profile, since the two are the same discipline at different grain.
+      NOT DONE, deliberately: the check reads the RECORDED ledger, so it is only
+      as current as the last `measured.py --record`. It cannot tell a cell that
+      improved from a cell that was never re-measured. That is the right
+      boundary -- making it re-measure would put a sweep inside the audit -- but
+      it means a stale ledger reads as a clean accounting.
 
 - [ ] E25. **The `keyword` check is 100% accurate and cannot move a score. Convert it to `derived`.**
       AN AUDIT SUBGOAL, NOT A QC ONE, and it was filed wrong once: its FINDING is
