@@ -1805,8 +1805,28 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       instead" branch is not being applied on the python side -- and Q32 records
       the axis as noise plus a provider difference, which this shows is
       incomplete.
-      NEXT: decide the threshold, add the check, and re-read Q32's five cells
-      against it.
+      A MORE DIRECT CHECK WAS BUILT FIRST, 2026-09-01, on the observation that
+      comparing SCORES is three inferential steps from the thing that might
+      differ. `check_app_and_harness_send_the_same_prompt` compares the prompt
+      body the app SERVES against the body agreement.py SENDS, per item, from an
+      idmap dump. With a current dump it reports ZERO differences across all 23
+      items -- so the two engines grade identical text, and Q1/p17 is not a
+      prompt difference. That leaves substitution or sampling, and narrows this
+      subgoal accordingly.
+      IT FOUND A DEFECT IN THE GUARD IT SITS BESIDE. The app serves the body as a
+      `kids` array SPLIT AROUND EACH `<Ref>` -- 3 segments on Q1, 9 on Q4b, 16 on
+      Q6 -- and agreement_app's own freshness guard read `kids[0]` only. It was
+      therefore inspecting a fraction of the prompt and ignoring the rest,
+      including the box wrapper and the closing instructions that sit nearest the
+      student's answer. Both now join every string kid. My own first hand
+      comparison used the same shortcut and reported four lines missing from the
+      app that were in the OLX all along, which is how it surfaced.
+      THE DUMP'S AGE IS REPORTED SEPARATELY from a divergence, because prompts
+      are regenerated far more often than dumps are taken and a check that is red
+      every ordinary day is a check nobody reads. Older than the .olx and it says
+      so, once, with the curl line to fix it.
+      NEXT: decide the threshold, add the rate check, and re-read Q32's five cells
+      against it. The prompt half is done.
 
 - [ ] E38. **The python's staleness fingerprint ignores four attributes the python reads.**
       Found 2026-09-01 while answering "why is the python served less of the screen

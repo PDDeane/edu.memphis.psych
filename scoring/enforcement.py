@@ -26,6 +26,7 @@ probe.test.ts and diffs the two.
 """
 from __future__ import annotations
 
+import functools
 import pathlib
 import inspect
 import re
@@ -5415,6 +5416,272 @@ def check_recorded_sides_are_readable() -> list[str]:
     import measured as MEAS
 
     return MEAS.sides_recorded_but_unreadable()
+
+
+@functools.lru_cache(maxsize=4)
+def _idmap_parsed(path: str, mtime: float, size: int) -> dict:
+    """The idmap dump's idMap, parsed once per (file, mtime, size).
+
+    The dump is 5.8 MB and json.loads of it costs ~0.18s, which the prompt check
+    paid on every call -- ~9s across the 51 audits the self-test runs. Keyed on
+    mtime AND size rather than path alone, so re-taking the dump invalidates it:
+    the whole point of that check is to notice when the served prompt has moved,
+    and a cache that outlived a re-take would defeat it.
+
+    Safe to cache without a seam, unlike the GOALS.md parse: the self-test
+    injects its breakages into SOURCE, never into this dump.
+    """
+    import json
+
+    return json.loads(pathlib.Path(path).read_text()).get("idMap") or {}
+
+
+def check_app_and_harness_send_the_same_request() -> list[str]:
+    """Do the two engines post the same FIELDS to the provider?
+
+    The prompt check settles the text; this settles everything around it. A
+    difference in `response_format`, in tools, or in a sampling field would leave
+    both sides grading identical text under different conditions, and the only
+    symptom would be verdicts that disagree for no visible reason -- which is
+    exactly what Q1/p17 looked like before this pair of checks existed.
+
+    READ FROM SOURCE, both sides:
+      * `backends.LoBlocksBackend.complete` builds the harness payload.
+      * `reduxClient.tsx` builds the app's, and `routes/llm.ts` then DELETES the
+        fields that are the server's own -- `profile` and `activity` -- before
+        dispatch, and fills `max_completion_tokens` from the resolved profile.
+        Both sides omit `profile`, so both resolve `interactive` and receive the
+        same token ceiling.
+
+    So the provider-visible field sets must match once the deleted ones are
+    removed. This does not compare VALUES -- the schema is compared by
+    `equivalence.py --prompts` against buildSlotSchema, and the messages by
+    check_app_and_harness_send_the_same_prompt -- it asks whether one side has
+    started sending a field the other does not.
+    """
+    import re as _re
+
+    import paths as P
+
+    try:
+        be = (P.SCORING / "backends.py").read_text()
+        rc = (P.LO / "packages/shared/lib/llm/reduxClient.tsx").read_text()
+        rt = (P.LO / "apps/server/src/routes/llm.ts").read_text()
+    except Exception as e:
+        return [f"cannot read both request builders: {type(e).__name__}: {e}"]
+
+    m = _re.search(r"class LoBlocksBackend.*?payload = json\.dumps\(\{(.*?)\}\)\.encode",
+                   be, _re.S)
+    if not m:
+        return ["backends.LoBlocksBackend no longer builds its payload with "
+                "`payload = json.dumps({...}).encode`, so the harness's request "
+                "fields cannot be read and this check is blind"]
+    # TOP-LEVEL keys only. Matching every `"key":` in the block pulled in
+    # `role`, `content`, `schema` and the rest of the nested json_schema, and
+    # reported them all as fields the app fails to send.
+    def _top_keys(src: str, quote: str) -> set:
+        depth, keys = 0, set()
+        for mm in _re.finditer(r'[{}\[\]]|' + quote + r'(\w+)' + quote + r'\s*:', src):
+            tok = mm.group(0)
+            if tok in "{[":
+                depth += 1
+            elif tok in "}]":
+                depth -= 1
+            elif depth == 0 and mm.group(1):
+                keys.add(mm.group(1))
+        return keys
+
+    ours = _top_keys(m.group(1), '"')
+
+    m2 = _re.search(r"fetch\(LLM_ENDPOINT.*?body: JSON\.stringify\(\{(.*?)\}\),",
+                    rc, _re.S)
+    if not m2:
+        return ["reduxClient no longer posts with `body: JSON.stringify({...})`, "
+                "so the app's request fields cannot be read and this check is blind"]
+    body = m2.group(1)
+    theirs = _top_keys(body, "")
+    theirs |= set(_re.findall(r"&&\s*\{\s*(\w+)", body))
+    theirs = {k for k in theirs if k not in ("type",)}   # `type` is inside tools.map
+
+    deleted = set(_re.findall(r"delete body\.(\w+)", rt))
+    visible = {f for f in theirs if f not in deleted}
+    out = []
+    only_app = visible - ours
+    only_harness = ours - visible
+    if only_app:
+        out.append(f"the app posts {sorted(only_app)} to the provider and the "
+                   f"harness does not, so the two engines grade under different "
+                   f"request conditions")
+    if only_harness:
+        out.append(f"the harness posts {sorted(only_harness)} and the app does "
+                   f"not")
+    if not deleted:
+        out.append("routes/llm.ts deletes no fields before dispatch, which it used "
+                   "to do for `profile` and `activity`; if that stopped, the "
+                   "provider now sees fields the harness never sends")
+    return out
+
+
+def check_app_and_harness_send_the_same_prompt() -> list[str]:
+    """Do agreement_app.py and agreement.py send the SAME prompt body?
+
+    THE DIRECT QUESTION, and the audit did not ask it. Everything else compares
+    declarations, or scores, or verdicts -- all of them downstream of the text
+    that actually reaches the model. Q1/p17 was diagnosed on 2026-09-01 by
+    reading per-cell verdicts backwards, three inferential steps from the thing
+    that might have differed, when a body comparison settles it directly and
+    costs nothing.
+
+    THE BODY IS SPLIT AROUND EACH `<Ref>`, and that is the trap. The app serves
+    it as a `kids` array -- 3 segments on Q1, 9 on Q4b, SIXTEEN on Q6 -- and the
+    freshness guard inside agreement_app read `kids[0]` only, so it inspected a
+    fraction of the prompt and ignored the rest, including the box wrapper and
+    the closing instructions that sit nearest the student's own answer. Every
+    string kid is joined here, and the same fix was made there.
+
+    NEEDS A DUMP, and says so rather than passing quietly when there is none: a
+    check that reports clean because it could not look is the failure mode this
+    audit has hit twice in one day (the unreadable `paper` column, and the
+    ownership check reading no data as no problem).
+    """
+    import difflib
+    import glob
+    import json
+    import re as _re
+
+    import agreement as AG
+    import olx_prompts as OP
+    import paths as P
+
+    dumps = sorted(glob.glob(str(P.OUT / "idmap*.json")))
+    if not dumps:
+        return ["no idmap dump under out/, so the app's served prompt cannot be "
+                "compared with the harness's. Produce one with `curl -s "
+                "'http://localhost:8888/api/olxjson?id=all' -o out/idmap.json` "
+                "while the dev server runs"]
+    newest = max(dumps, key=lambda f: pathlib.Path(f).stat().st_mtime)
+    # A DUMP OLDER THAN THE OLX PROVES NOTHING, and saying so once beats
+    # reporting a divergence per item that is really one stale file. The check
+    # would otherwise be red on every ordinary day -- prompts are regenerated far
+    # more often than dumps are taken -- and a check that is always red is a
+    # check nobody reads.
+    dump_at = pathlib.Path(newest).stat().st_mtime
+    olx_at = max(pathlib.Path(P.OLX % h).stat().st_mtime for h in (1, 2, 3))
+    if dump_at < olx_at:
+        return [f"the newest idmap dump ({pathlib.Path(newest).name}) predates the "
+                f"current .olx, so the app's served prompt cannot be compared with "
+                f"the harness's. Re-take it with `curl -s "
+                f"'http://localhost:8888/api/olxjson?id=all' -o out/idmap.json` "
+                f"while the dev server runs, then re-run"]
+    try:
+        st = pathlib.Path(newest).stat()
+        idmap = _idmap_parsed(newest, st.st_mtime, st.st_size)
+    except Exception as e:
+        return [f"{newest} cannot be read as an idmap: {type(e).__name__}: {e}"]
+    strip = lambda s: [l.strip() for l in _re.sub(r"<[^>]+>", "", s or "").splitlines()
+                       if l.strip()]
+    # `<Ref id=... target=...>` straight from the authored OLX, which is what
+    # tells us which field a ref block in the dump resolves to.
+    refmap = {}
+    for h in (1, 2, 3):
+        try:
+            refmap.update(dict(_re.findall(
+                r'<Ref\s+id="([^"]+)"\s+target="([^"]+)"',
+                pathlib.Path(P.OLX % h).read_text())))
+        except Exception:
+            pass
+    # Three participants per item, not twenty: assembly is a property of the
+    # template and the ref set, so it does not vary cell by cell, and the audit
+    # runs on every commit.
+    pids = (1, 9, 17)
+    out = []
+    for item, action in sorted(OP.ACTION.items()):
+        served = None
+        for key, entry in idmap.items():
+            if not key.endswith("/" + action):
+                continue
+            for _loc, val in (entry or {}).items():
+                joined = "".join(k for k in ((val or {}).get("kids") or [])
+                                 if isinstance(k, str))
+                if joined:
+                    served = joined
+            break
+        if served is None:
+            continue                     # item not in this dump; --prompts covers that
+        try:
+            h = OP.HANDOUT[item]
+            mine = AG.load_action(f"bmod_handout{h}.olx", action)["body"]
+        except Exception as e:
+            out.append(f"{item}: cannot read the harness body: {type(e).__name__}: {e}")
+            continue
+        a, b = strip(served), strip(mine)
+        diff = [l for l in difflib.unified_diff(a, b, lineterm="", n=0)
+                if l[:1] in "+-" and l[:3] not in ("---", "+++")]
+        if diff:
+            out.append(f"{item}: the app serves a prompt body the harness does not "
+                       f"send -- {len(diff)} differing line(s), first: "
+                       f"{diff[0][:90]!r}. Either the dump is stale (re-take it) or "
+                       f"the two engines are grading different text")
+            continue
+        # THE ASSEMBLED PROMPT, not just the template. Matching bodies do not
+        # settle it: the body is a template with `<Ref>` holes, and the two sides
+        # fill them separately -- the harness from its reconstructed fixture, the
+        # app by resolving each ref block. A difference in ORDER, in separators,
+        # or in which ref resolves to what would leave the templates identical
+        # and the model reading different text.
+        #
+        # WHAT THIS DOES NOT TEST, stated because the check would otherwise be
+        # read as proving more than it does: both sides are filled from the SAME
+        # fixture here, so this compares ASSEMBLY, not whether the app's page
+        # state holds the same student text the corpus does.
+        for pid in pids:
+            try:
+                fx = AG.fixture_for(item, pid)
+            except Exception:
+                continue                 # item does not cover this participant
+            try:
+                theirs = _assemble_like_the_app(idmap, action, fx, refmap)
+                ours = AG.build_prompt(mine, fx)
+            except Exception as e:
+                out.append(f"{item}/p{pid}: cannot assemble both prompts: "
+                           f"{type(e).__name__}: {e}")
+                break
+            if theirs is None:
+                break
+            x, y = strip(theirs), strip(ours)
+            d2 = [l for l in difflib.unified_diff(x, y, lineterm="", n=0)
+                  if l[:1] in "+-" and l[:3] not in ("---", "+++")]
+            if d2:
+                out.append(f"{item}/p{pid}: the two engines ASSEMBLE the same "
+                           f"template differently -- {len(d2)} differing line(s), "
+                           f"first: {d2[0][:80]!r}")
+                break
+    return out
+
+
+def _assemble_like_the_app(idmap: dict, action: str, fixture: dict,
+                           refmap: dict) -> str | None:
+    """The prompt the app builds: string kids joined, ref blocks resolved.
+
+    Mirrors what the runtime does with the `kids` array -- text segments in
+    order, each `{type: block, id: ...}` replaced by the value of the field its
+    `<Ref>` targets. `(left blank)` for an empty field, matching
+    agreement.build_prompt so an empty box does not read as a difference.
+    """
+    for key, entry in idmap.items():
+        if not key.endswith("/" + action):
+            continue
+        for _loc, val in (entry or {}).items():
+            parts = []
+            for k in (val or {}).get("kids") or []:
+                if isinstance(k, str):
+                    parts.append(k)
+                else:
+                    rid = str((k or {}).get("id", "")).split("/")[-1]
+                    tgt = refmap.get(rid)
+                    parts.append((fixture.get(tgt) or "").strip() or "(left blank)")
+            return "".join(parts)
+    return None
 
 
 def check_every_wrong_cell_has_an_owner() -> list[str]:
