@@ -583,8 +583,8 @@ You must use the word **antecedent** or **trigger** in your answer.
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h1_q4a_btn" label="Check my antecedents">
-      <LLMAction forbid="no_antecedents:antecedent_1=absent,antecedent_2=absent" id="bmod_h1_q4a_llm" target="bmod_h1_q4a_feedback"
-                 slots="antecedent_1:First antecedent is a genuine trigger:wrong_kind@2|antecedent_2:Second antecedent is a genuine trigger:wrong_kind@2|keyword:Uses the word antecedent or trigger:unclear|confident:All judgments confident|!no_antecedents:Nothing was listed at all:met/absent"
+      <LLMAction derived="keyword:contains:bmod_h1_q4a_first,bmod_h1_q4a_second:antecedent,trigger" forbid="no_antecedents:antecedent_1=absent,antecedent_2=absent" id="bmod_h1_q4a_llm" target="bmod_h1_q4a_feedback"
+                 slots="antecedent_1:First antecedent is a genuine trigger:wrong_kind@2|antecedent_2:Second antecedent is a genuine trigger:wrong_kind@2|keyword:Uses the word antecedent or trigger|confident:All judgments confident|!no_antecedents:Nothing was listed at all:met/absent"
                  max="5">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -655,10 +655,11 @@ says the check reports an identity rather than a judgement.
 
 - `antecedent_1` — `met`/`absent`/`wrong_kind`: First valid antecedent
 - `antecedent_2` — `met`/`absent`/`wrong_kind`: Second valid antecedent
-- `keyword` — `met`/`absent`/`unclear`: Uses 'antecedent' or 'trigger' at least once. A_NO_KEYWORD applies whenever neither "antecedent" nor "trigger" appears anywhere in the response. The graders enforced this inconsistently — one row lost the point and two others kept it — but the dictionary is explicit, so apply it. This is a deliberate divergence from the rows that kept it.
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `no_antecedents` **GATE**. The grader computes it from the checks above: it FAILS only when ALL of `antecedent_1` is `absent`, `antecedent_2` is `absent`, and passes otherwise — including when any of them is left unanswered. Answer each of those on its own terms and do not adjust one to suit another; the combination is arithmetic, not a judgement.
+
+DO NOT ANSWER `keyword`. The grader reads it off the student's own text: satisfied when "antecedent" or "trigger" appears anywhere in the response, including a clear misspelling of it, and `absent` when it does not. It is a word search, not a judgement about whether they understood the idea — that is what the other checks are for. It is not in your schema, and none of it is a judgement — the runtime already knows.
 
 A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
 
@@ -883,8 +884,8 @@ You must use the word **consequence** or **consequences** in your answer.
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h1_q4c_btn" label="Check my consequences">
-      <LLMAction forbid="no_consequences:consequence_1=absent,consequence_2=absent" id="bmod_h1_q4c_llm" target="bmod_h1_q4c_feedback"
-                 slots="consequence_1:First consequence follows from the behavior:wrong_kind/duplicate@2|consequence_2:Second consequence follows from the behavior:wrong_kind/duplicate@2|keyword:Uses the word consequence:unclear|confident:All judgments confident|!no_consequences:Nothing was listed at all:met/absent"
+      <LLMAction derived="keyword:contains:bmod_h1_q4c_first,bmod_h1_q4c_second:consequence" forbid="no_consequences:consequence_1=absent,consequence_2=absent" id="bmod_h1_q4c_llm" target="bmod_h1_q4c_feedback"
+                 slots="consequence_1:First consequence follows from the behavior:wrong_kind/duplicate@2|consequence_2:Second consequence follows from the behavior:wrong_kind/duplicate@2|keyword:Uses the word consequence|confident:All judgments confident|!no_consequences:Nothing was listed at all:met/absent"
                  max="5">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -957,10 +958,11 @@ says the check reports an identity rather than a judgement.
 
 - `consequence_1` — `met`/`absent`/`wrong_kind`/`duplicate`: First valid consequence
 - `consequence_2` — `met`/`absent`/`wrong_kind`/`duplicate`: Second valid consequence
-- `keyword` — `met`/`absent`/`unclear`: Uses 'consequence' at least once (advisory, not scored). The word "consequence" is NOT worth a point here, unlike the keyword on Q4a. Report `keyword: absent` when it appears nowhere — the feedback may mention it — but it costs nothing. IMPLICIT (from gold): no Q4c row in the corpus deducts for it, and none carries a 1-point deduction at all — rows that omit the word keep full credit. Q4a differs and keeps its charge, because a Q4a row there does deduct for the missing keyword.
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 DO NOT ANSWER `no_consequences` **GATE**. The grader computes it from the checks above: it FAILS only when ALL of `consequence_1` is `absent`, `consequence_2` is `absent`, and passes otherwise — including when any of them is left unanswered. Answer each of those on its own terms and do not adjust one to suit another; the combination is arithmetic, not a judgement.
+
+DO NOT ANSWER `keyword`. The grader reads it off the student's own text: satisfied when "consequence" appears anywhere in the response, including a clear misspelling of it, and `absent` when it does not. It is a word search, not a judgement about whether they understood the idea — that is what the other checks are for. It is not in your schema, and none of it is a judgement — the runtime already knows.
 
 A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.
 

@@ -1818,7 +1818,7 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       boundary -- making it re-measure would put a sweep inside the audit -- but
       it means a stale ledger reads as a clean accounting.
 
-- [ ] E25. **The `keyword` check is 100% accurate and cannot move a score. Convert it to `derived`.**
+- [x] E25. **The `keyword` check is 100% accurate and cannot move a score. Convert it to `derived`.**
       AN AUDIT SUBGOAL, NOT A QC ONE, and it was filed wrong once: its FINDING is
       about accuracy (240/240) but its DELIVERABLE is a primitive conversion --
       turning a model-judged slot into `derived`. That is the audit's own
@@ -1899,6 +1899,70 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       properties per call across 40 cells x 6 runs, and one less thing for the
       model to be confident about -- `confident` is unmet 73 times on Q4c and 85
       on Q4a, so anything that shortens the sheet is worth pricing.
+
+      DONE 2026-09-01, converted and measured, BEHAVIOUR-PRESERVING ON THE SCORE
+      AND ON EVERY MEDIAN:
+          Q4a cli 17/20 -> 17/20      Q4a web 18/20 -> 18/20
+          Q4c cli 17/19 -> 17/19      Q4c web 17/19 -> 17/19
+      Six runs a side, denominators identical, so this is a like-for-like
+      comparison rather than a re-scoped one. That is the predicted result: the
+      keyword verdict cannot charge on either item, so the only thing the sheet
+      change could move is what the model is asked, and it moved nothing.
+      THE PRIOR WAS CONFIRMED BEFORE THE CONVERSION, not after. Replaying the new
+      matcher over every recorded verdict on both sides agreed with the model 479
+      times in 480, the single difference being Q4c/p13's "conequence".
+      WHAT SHIPPED: a fourth `derived` kind, `contains`, in primitives.json and in
+      all three engines -- slotSheet.ts/derivedVerdicts.ts, agreement.py, and
+      score.py, which reads the `response` it was already handed. Q4a and Q4c
+      carry `derived="keyword:contains:..."`; `unclear` left both verdict spaces,
+      since a search either finds the word or does not.
+      IT MATCHES MISSPELLINGS, which was not in the original plan and came from
+      the p13 case. Optimal string alignment against the TARGET WORD, no
+      dictionary -- deliberately, because derivedVerdicts.ts runs in the student's
+      browser, which has no aspell and no /usr/share/dict, so a dictionary rule
+      could not have been replicated in the engine students actually meet. Four
+      tiers, each measured against the corpus: <=3 chars exact whole-token; 4
+      chars one edit but NO transposition (`from` is one swap from `form`); 5-8
+      one edit including transposition; >=9 two. It changes exactly one cell's
+      feedback and no score.
+      THE TWO ENGINES ARE HELD TOGETHER BY DATA, not by care:
+      containsCases.json is read by the vitest suite and by
+      check_contains_matcher_agrees_across_engines, so drift in either fails.
+      Injection-tested both ways -- flipping a case, and gutting the table.
+      FOUR DEFECTS THE AUDIT FOUND ON THE WAY, all pre-existing or self-inflicted
+      and all fixed:
+        * the generated prompt told the model this keyword check was "satisfied
+          when EVERY week of data is present" -- the `else` branch describing the
+          CHART had become a catch-all for every kind but `present`;
+        * `cli_signatures` built its computed-key set from a hand-written
+          `equals`+`counts` list, the same mirror-of-the-registry score.py had
+          already been fixed for. It had fallen behind by four primitives and was
+          reporting Q4b's `behavior_1`/`behavior_2` as model inputs -- a defect
+          older than this goal;
+        * the `derived` probe blanks one field and expects the verdict to move,
+          which is right for `plots` and wrong for `contains`, so it reported
+          "reaches no verdict" against a rule that works;
+        * COMPUTE_EXEMPT needed narrowing, as this entry predicted. It is now
+          scoped BY KIND rather than deleted -- deleting would have satisfied the
+          check while losing the guarantee that 1c's `complete` is still
+          uncomputed on the paper path. It probes READ now, where it was
+          INCONCLUSIVE before, so the declaration is enforced for the first time.
+      EXERCISED AS E14 DEMANDS: check_action_attributes_are_declared_in_the_block
+      is clean, and llmActionSmoke.test.ts now carries the SHIPPED Q4a and Q4c
+      sheets verbatim -- the synthetic shapes it tested before are exactly what
+      let E14 through -- asserting that `keyword` leaves the schema on both items
+      and that the verdict computes. 2135 TS tests, typecheck clean, self-test
+      51/51.
+      ONE CELL MOVED, AND IT IS NOT A SCORE: Q4a/p9 INVERTED. It was cli-right and
+      web-wrong; it is now web-right and cli-wrong, 6/6 stable on both sides, with
+      nothing about `antecedent_2` touched. Declared in GOLD_SLOT_BOUNDS_KNOWN and
+      recorded in Q32, where it is now the first thing to read.
+      A TRAP WORTH RECORDING: sweeping with `--items Q4a Q4c --out H1.json` writes
+      ONE handout-level artifact, and `_runs_doc` looks for `{item}.runs.json`. The
+      per-item lookups then returned empty and the audit reported three declared
+      slot disagreements as RESOLVED -- three declarations nearly deleted on a
+      false positive. Sweep per item, or split the artifact before recording.
+      UNBLOCKS E28, which was waiting on this.
 
 
 - [x] E26. **Sibling items sharing a slot NAME should share its gate structure, or declare why not.** DONE
@@ -2784,9 +2848,18 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           DAY2/p8   gold 4.0    cli 4.0    web 0.0
           PR/p15    gold 4.0    cli 4.0    web 2.0
           Q2/p18    gold 4.0    cli 4.0    web 2.0
-          Q4a/p9    gold 3.0    cli 3.0    web 5.0
+          Q4a/p9    gold 3.0    cli 5.0    web 3.0   <- INVERTED, see below
           WK2/p8    gold 0.0    cli 0.0    web 2.0
       All six runs on each side, so none of this is a one-run wobble.
+      Q4a/p9 INVERTED ON 2026-09-01, under the E25 keyword conversion. It was
+      filed here as cli-right/web-wrong; it is now web-right/cli-wrong, stable at
+      6/6 on both sides. Nothing about `antecedent_2` was touched -- the only
+      change either engine saw is that `keyword` stopped being asked of the model
+      and became a computed check. A cell that swaps which engine is correct when
+      an UNRELATED slot leaves the sheet is the strongest evidence in this subgoal
+      that the five are a SHEET-LEVEL effect rather than five separate judgement
+      errors, and it is the one to read first. The slot-level half is declared in
+      measured.GOLD_SLOT_BOUNDS_KNOWN.
       THE SHAPE IS THE FINDING. Four of the five are the web being HARSHER than
       the cli, and Q4a/p9 is the web being more lenient -- and DAY2/p8 drops the
       full four points. These are the same rubric, the same participant text and
