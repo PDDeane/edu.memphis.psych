@@ -2936,6 +2936,71 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       of these before forming any theory, per QUALITY_CONTROL.md and
       memory/fixture-defects-found-by-readout.md.
 
+      == 2026-09-01: THE BOXES WERE READ, AND THE ANSWER IS NO ==
+      THE LIST IS TWELVE NOW, NOT NINE, re-derived from the current ledger rather
+      than carried forward: D2/p3, DAY2/p8 and PR/p15 join it, and Q1/p17 is now
+      correct on olx while still wrong on python. DAY2/p8 and PR/p15 are also
+      Q32's unstable cells, so they are in this list by median rather than by a
+      settled judgement.
+      DAY1/p1 DOES NOT SHARE ITS SHAPE WITH THE OTHERS, which is what this entry
+      asked. It is the ONLY broad collapse. Classified by which slots carry the
+      loss:
+          DAY1/p1   gate + four more: contingent, follows_behavior,
+                    matches_chosen_type, consequence_asserted -- UNIQUE
+          NR/p20    ONE GATE, `you_arrange_it`, zeroing four points
+          1a/p11    one slot, week_1            NR/p4    one slot, demonstrates_type
+          Q1/p17    one slot, utb_stated        Q4a/p19  one slot, antecedent_1
+          Q4b/p12   one slot, behavior_2        D2/p3    two slots
+      So Q27 is an OUTLIER, not this pattern's worked example, and the eight
+      single-slot cells are the pattern.
+      AND EVERY ONE OF THOSE SLOTS IS ALREADY OWNED: you_arrange_it and
+      demonstrates_type by Q21, utb_stated by Q16, antecedent_1 by Q24,
+      behavior_2 by Q18. That makes this subgoal a LENS rather than a defect
+      class -- it cross-cuts the slot subgoals instead of naming a mechanism of
+      its own, and no fix belongs here.
+      THE FALSE-POSITIVE TEST RETURNS: OUR REFUSALS ARE DEFENSIBLE. Reading the
+      two extremes out, per this entry's own instruction:
+          DAY1/p1 "I will reward myself with not having to get out of bed right
+                  away daily." No behaviour is named, no contingency is stated,
+                  and the reward is the REMOVAL of an aversive while the student
+                  chose Positive Reinforcement. Our six `absent`s are arguable
+                  on every one of those grounds.
+          NR/p20  "If I go to sleep on time, I will not have to take naps after
+                  school or feel tired during the day." Everything is `met`
+                  except `you_arrange_it`, and not feeling tired is a natural
+                  consequence the student does not arrange -- which is what that
+                  gate asks.
+      So this is not a harshness defect. It is the same finding B_NOT_ACTIVE
+      records for Q4b: GOLD IS MORE LENIENT THAN THE WRITTEN RUBRIC, on cells it
+      passed without comment. `measured.py --refusals` says the same thing from
+      the other direction -- across Q4a, Q4b and Q4c not one refusal is
+      contradicted by a gold comment, because these rows have no comment.
+      WHAT THIS SUBGOAL IS FOR, RESTATED. Not a fix. It is the corpus's answer to
+      "how often do we charge what the graders would not", and the answer is
+      twelve cells, eight of them one slot each, every slot already under a
+      subgoal, with the refusals defensible on the rubric as written. That is a
+      LOW false-positive rate and it is the number to quote when a subgoal
+      proposes loosening a rule to chase gold.
+      HOW STABLE EACH SHAPE IS, checked over all twelve runs a cell has rather
+      than the first -- and the check corrected a claim made here an hour before
+      it was run, which had asserted the single-slot cells were all stable:
+          1a/p11   STABLE 12/12  week_1
+          NR/p20   STABLE 12/12  you_arrange_it
+          Q4b/p12  STABLE 12/12  behavior_2
+          Q4a/p19        11/12   antecedent_1
+          D2/p3           7/12   add_or_remove
+          NR/p4           5/12   demonstrates_type
+          Q1/p17          7/12   (NO unmet scored slot at all)
+      So THREE are fully stable, one nearly so, and three are not -- NR/p4 in
+      particular holds its shape in fewer than half its runs, and any reading of
+      it as "one slot" is a reading of a coin flip.
+      Q1/p17 IS THE ODD ONE AND IS NOT EXPLAINED HERE. In 7 of 12 runs NO scored
+      slot is unmet, and the cell still scores 3.0 against a gold of 5.0. A cell
+      that loses two points with every scored check passing is subgoal Q20's
+      shape, not this one's, and it should be read there -- but Q20's mechanism
+      is "we credit a slot gold charged", which needs a gold comment, and this
+      row has none. Neither entry currently accounts for it.
+
 - [ ] Q33. **Q4a on the PAPER scorer: four cells the other two engines get right.**
       Filed 2026-09-01, on the first paper numbers the ledger has ever held.
       Q4a paper 15/20 against python 18/20 and olx 17/20, six runs each, ALL
