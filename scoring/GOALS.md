@@ -2920,9 +2920,24 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       the SAME slot sheet -- the two recorded prompt shas differ only because
       `measured._cli_visible` hashes fewer attributes for the cli, a
       staleness-detection detail and not a difference in what is sent. What
-      differs is the PROVIDER: `--backend cli` calls the claude CLI and
-      `--backend lo` calls the lo-blocks endpoint the browser uses. Same prompt,
-      same sheet, two models, one judgement they disagree on, deterministically.
+      differs is the MODEL, and backends.py names both: `--backend cli` runs
+      ClaudeCliBackend at `opus`, while `--backend lo` posts to lo-blocks'
+      /api/llm/chat/completions, which LoBlocksBackend's own docstring records as
+      answering AS GPT-5-MINI. Same prompt, same sheet, two different models, one
+      judgement they disagree on, deterministically at 6/6 each. gpt-5-mini is the
+      one that agrees with gold here.
+      SAY THIS PLAINLY, BECAUSE IT GOVERNS THE WHOLE AXIS: on these sweeps "web"
+      and "cli" are not two engines, they are two MODELS running the same prompt
+      through the same code. `measure_one` builds one prompt and one schema and
+      hands both to whichever backend was selected. So a stable web/cli difference
+      is evidence about the models, and an unstable one is evidence about nothing
+      -- neither is an equivalence defect, which is what this subgoal was filed
+      as. The engine-equivalence question is answered elsewhere, by the audit
+      comparing what each SCORER computes, not by comparing two sweeps.
+      NOT EXPLAINED BY E38. That subgoal is about the cli fingerprint failing to
+      notice attribute changes, which is a staleness-detection hole and cannot
+      move a score; and both sides of p9 were swept fresh from the same tree
+      minutes apart, so no stale number is involved.
       SO THE FIX IS PROMPT CLARITY, NOT CODE. There is nothing to reconcile
       between the engines here; one model reads this student's second example as
       a genuine trigger and the other does not. That makes it an
