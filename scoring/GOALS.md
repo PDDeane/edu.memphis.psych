@@ -3035,6 +3035,20 @@ with a named failing check is worth more than a larger gap of unknown shape,
 because it can be fixed or declared; a wobbling cell cannot be either.
 
 - [ ] Q31. **SILENT FULL MARKS: nine cells where gold wrote nothing and we deduct.**
+      SPLIT INTO Q34 AND Q35 ON 2026-09-01, and this entry is superseded by them.
+      Q34 holds the six cells we get wrong in every one of twelve pooled runs --
+      the false-positive test -- and Q35 the five we sometimes get right, which
+      are about variance. The split is measurable rather than a judgement, and
+      keeping them together is what made the "nine cells" figure mean less than
+      it looked. CLOSE THIS ONCE THE TWO ARE BEING WORKED; it is left open only
+      so nothing is orphaned in between.
+      SPLIT INTO Q34 AND Q35 ON 2026-09-01, and this entry is superseded by them.
+      Q34 holds the six cells we get wrong in every one of twelve pooled runs --
+      the false-positive test -- and Q35 the five we sometimes get right, which
+      are about variance. The split is measurable rather than a judgement, and
+      keeping them together is what made the "nine cells" figure mean less than
+      it looked. CLOSE THIS ONCE THE TWO ARE BEING WORKED; it is left open only
+      so nothing is orphaned in between.
       POOLED, 2026-09-01, AND THE LIST SPLITS IN TWO -- which is the useful part,
       because only one half is a false-positive test. Eleven cells are wrong at
       the pooled median, and their spreads separate them:
@@ -3153,6 +3167,78 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       shape, not this one's, and it should be read there -- but Q20's mechanism
       is "we credit a slot gold charged", which needs a gold comment, and this
       row has none. Neither entry currently accounts for it.
+
+- [ ] Q34. **NEVER RIGHT on a row gold passed in silence: six cells, and the false-positive test.**
+      Split from Q31 on 2026-09-01, once pooling made the distinction measurable.
+      These are cells where gold awarded FULL MARKS and wrote nothing, and we
+      deduct in every one of twelve pooled runs:
+          1a/p11   gold 8    ours 6.0     every run
+          DAY1/p1  gold 4    ours 0.0     every run
+          NR/p4    gold 4    ours 2.0     every run
+          NR/p20   gold 4    ours 0.0     every run
+          Q4b/p12  gold 5    ours 3.5     every run
+          Q4a/p19  gold 5    ours 3.0 x11, 1.0 x1 -- it VARIES and is never right
+      Q4a/p19 IS IN THIS LIST BY A CORRECTION MADE WHEN IT WAS DRAWN UP. It moved
+      here from the unstable half because "unstable" has to mean SOMETIMES RIGHT,
+      not merely varying: both of its values miss gold, and the run at 1.0 is
+      further from gold, not nearer. A cell that varies without ever reaching
+      gold is a stable false positive wearing noise.
+      THIS IS THE FALSE-POSITIVE TEST, and the only half of old Q31 that is one.
+      A deduction we make EVERY time, against a row the graders passed without
+      comment, is a claim about our strictness that no amount of sampling
+      explains. The other half is subgoal Q35 and counting the two together
+      inflated the rate with cells that are sometimes right.
+      TWO OF THE SIX HAVE BEEN READ OUT, and both times our refusal was
+      defensible on the rubric AS WRITTEN:
+          DAY1/p1  "I will reward myself with not having to get out of bed right
+                   away daily." No behaviour named, no contingency stated, and
+                   the reward is the REMOVAL of an aversive while the student
+                   chose Positive Reinforcement.
+          NR/p20   everything `met` except `you_arrange_it`, and not feeling
+                   tired is a natural consequence the student does not arrange,
+                   which is what that gate asks.
+      SO THE QUESTION IS NOT "ARE WE TOO HARSH". It is whether a silent
+      full-marks row is a JUDGEMENT to defer to or a grader not engaging, and the
+      evidence so far says gold is more lenient than the written rubric -- the
+      same finding B_NOT_ACTIVE records for Q4b/p12, which is one of these six.
+      That makes it a rubric-versus-gold decision, not a code fix, and it is the
+      number to quote when a subgoal proposes loosening a rule to chase gold.
+      OVERLAPS TO RESPECT, so this does not become a second name for existing
+      work: DAY1/p1 is subgoal Q27's worked example, Q4b/p12 is a DECLARED
+      divergence under B_NOT_ACTIVE, Q4a/p19 is one of Q24's two ceiling cells,
+      and NR/p4 and NR/p20 turn on slots subgoal Q21 owns. What this entry adds
+      is the ACROSS-ITEM pattern none of them can see alone.
+      NEXT: read 1a/p11 and NR/p4 out -- the two never read -- and decide whether
+      all six share DAY1/p1 and NR/p20's shape. If they do, the deliverable is a
+      recorded decision about deferring to silent rows, not a rule change.
+
+- [ ] Q35. **SOMETIMES RIGHT on a row gold passed in silence: five cells of variance, not strictness.**
+      Split from Q31 on 2026-09-01. Same population -- gold gave full marks and
+      wrote nothing -- but here we reach gold in at least one of twelve pooled
+      runs, so the cell is evidence about VARIANCE and not about how strict we
+      are:
+          D2/p3    gold 2   0.0 x4, 1.0 x7, 2.0 x1     right 1 of 12
+          DAY2/p8  gold 4   0.0 x7, 4.0 x5             right 5 of 12
+          PR/p15   gold 4   0.0 x1, 2.0 x6, 4.0 x5     right 5 of 12
+          Q2/p20   gold 5   4.0 x11, 5.0 x1            right 1 of 12
+          Q4b/p13  gold 5   3.5 x8, 5.0 x4             right 4 of 12
+      WHY THIS IS A SEPARATE ENTRY AND NOT A FOOTNOTE. Old Q31 counted these
+      beside the always-wrong cells and called the total a false-positive rate.
+      It is not one: a cell that reaches gold in 5 of 12 runs says our rule can
+      produce the right answer and does not always, which is a different defect
+      with a different fix. Keeping them apart is what makes subgoal Q34's number
+      mean something.
+      EACH BELONGS TO ITS ITEM'S INSTABILITY WORK, and this entry's job is to
+      route them rather than to hold them: DAY2/p8 flips on `cadence_is_daily`,
+      which is subgoal Q22's four-point gate; PR/p15 flips on
+      `targets_goal_behavior`, which subgoal Q21 profiles at its worst precision;
+      Q4b/p13 is subgoal Q18's live not-doing cell. D2/p3 and Q2/p20 have no
+      instability subgoal yet.
+      DO NOT TREAT THE SILENCE AS THE FINDING HERE. Gold saying nothing matters
+      for Q34, where we disagree every time; for these five the disagreement is
+      not consistent enough for gold's silence to be the interesting variable.
+      NEXT: attach D2/p3 and Q2/p20 to an instability owner or say why they need
+      one of their own, then let Q22, Q21 and Q18 carry the rest.
 
 - [ ] Q33. **Q4a on the PAPER scorer: four cells the other two engines get right.**
       Filed 2026-09-01, on the first paper numbers the ledger has ever held.
