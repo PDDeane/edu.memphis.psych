@@ -714,6 +714,21 @@ def _check_side_contract(side: str, doc: dict, runs_path: str) -> list[str]:
     return out
 
 
+def _out_pointer(runs_path: str) -> str:
+    """Where an artifact lives, as a path relative to `paths.OUT`.
+
+    Falls back to the bare directory name for anything outside that tree, which
+    is what every pre-2026-09-01 entry holds and what `_runs_doc` still resolves.
+    """
+    import paths as _p
+
+    d = Path(runs_path).resolve().parent
+    try:
+        return str(d.relative_to(Path(_p.OUT).resolve()))
+    except ValueError:
+        return d.name
+
+
 def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     """Write item's entry FROM a run artifact, so it cannot claim what was not run."""
     import handouts as H
@@ -781,7 +796,14 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
         "numerator": totals[n // 2],
         "denominator": len(per),
         "run_totals": totals,
-        "out": str(Path(runs_path).parent.name),
+        # The artifact's directory RELATIVE TO paths.OUT, not just its basename.
+        # A basename is enough only while every sweep writes into a flat
+        # `out/<dir>/`, and sweep_paper.sh does not: it folds into
+        # `out/<dir>/runs/`, so the basename came out as the literal "runs" and
+        # `_runs_doc` looked for `out/runs/<item>.runs.json`. The paper column was
+        # RECORDED and its per-cell data unreachable -- which the ownership check
+        # then read as "nothing wrong on that side", silently, on five wrong cells.
+        "out": _out_pointer(runs_path),
         # Per cell, how many of the recorded runs scored it right. Keyed by str
         # because JSON keys are strings; read back through `_cells`.
         "cells": {str(p): sum(1 for v in per[p][:n] if v) for p in sorted(per)},
@@ -2924,10 +2946,48 @@ def _wrong_cells() -> list:
             for side in SIDES:
                 scores = _cell_scores(item, pid, side)
                 if not scores:
+                    # A side with no per-cell data is UNREADABLE, not clean, and
+                    # conflating the two is how this function reported zero
+                    # orphans while five Q4a cells were wrong on `paper`: the
+                    # ledger held the numerator, but its `out` pointer named
+                    # "runs" instead of "e25_paper/runs", so every per-cell read
+                    # came back empty and every cell looked fine. Recorded but
+                    # unreadable is reported by
+                    # `sides_recorded_but_unreadable()`, which the audit runs
+                    # beside this one -- silence here must never mean "nothing
+                    # to see".
                     continue
                 ours = sorted(scores)[len(scores) // 2]
                 if not H.scored_exactly(item, target, ours):
                     out.append((item, pid, side, target, ours))
+    return out
+
+
+def sides_recorded_but_unreadable() -> list[str]:
+    """A side with a recorded numerator whose per-cell scores cannot be read.
+
+    The ownership check in `wrong_cells_without_an_owner` walks cells, and a side
+    it cannot read contributes nothing -- which is indistinguishable, in its
+    output, from a side that gets everything right. So the readability of each
+    recorded side is asserted separately rather than inferred from silence.
+
+    This is not hypothetical: the first `paper` column recorded, on 2026-09-01,
+    was unreadable for exactly this reason, and the ownership check reported a
+    clean corpus while five cells were wrong.
+    """
+    out = []
+    for item, rec in sorted((load().get("items") or {}).items()):
+        for side in SIDES:
+            e = (rec or {}).get(side)
+            if not e or e.get("pending") or e.get("numerator") is None:
+                continue
+            doc = _runs_doc(item, side)
+            if doc is None:
+                out.append(
+                    f"{item} [{side}] is recorded at {e['numerator']}/"
+                    f"{e['denominator']} but its artifact cannot be found at "
+                    f"out/{e.get('out')}/{item}.runs.json, so every per-cell "
+                    f"check reads it as having nothing wrong")
     return out
 
 

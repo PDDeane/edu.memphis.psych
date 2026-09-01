@@ -5401,6 +5401,22 @@ def check_side_contract_is_enforced() -> list[str]:
     return out
 
 
+def check_recorded_sides_are_readable() -> list[str]:
+    """Every recorded side must have a findable artifact.
+
+    The ownership check walks cells, so a side whose artifact cannot be read
+    contributes no findings -- identical, in its output, to a side that scores
+    everything right. On 2026-09-01 the first `paper` column recorded was
+    unreadable (its `out` pointer named "runs" rather than "e25_paper/runs",
+    because the pointer stored a basename and sweep_paper.sh folds one level
+    deeper), and the ownership check reported a clean corpus with five Q4a cells
+    wrong. Readability is therefore asserted, not inferred from silence.
+    """
+    import measured as MEAS
+
+    return MEAS.sides_recorded_but_unreadable()
+
+
 def check_every_wrong_cell_has_an_owner() -> list[str]:
     """A cell we score wrong that no open subgoal and no declaration accounts for.
 

@@ -648,6 +648,8 @@ def enforcement_audit():
         findings.append(("-", "PROSE NUMBER CONTRADICTS THE LEDGER", bad))
     for bad in ENF.check_every_wrong_cell_has_an_owner():
         findings.append(("-", "WRONG CELL WITH NO OWNER", bad))
+    for bad in ENF.check_recorded_sides_are_readable():
+        findings.append(("-", "RECORDED SIDE UNREADABLE", bad))
     for bad in ENF.check_contains_matcher_agrees_across_engines():
         findings.append(("-", "MATCHER DIFFERS ACROSS ENGINES", bad))
     for bad in ENF.check_side_contract_is_enforced():

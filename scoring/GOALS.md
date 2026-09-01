@@ -2936,6 +2936,39 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       of these before forming any theory, per QUALITY_CONTROL.md and
       memory/fixture-defects-found-by-readout.md.
 
+- [ ] Q33. **Q4a on the PAPER scorer: four cells the other two engines get right.**
+      Filed 2026-09-01, on the first paper numbers the ledger has ever held.
+      Q4a paper 15/20 against python 18/20 and olx 17/20, six runs each, ALL
+      THREE ON GPT-5-MINI -- so this is the rubric prompt against the OLX sheet,
+      not a model difference. Six Q4a cells are wrong on paper and FOUR of them
+      are paper-only:
+          cell  gold   olx   python   paper
+          p2      5     5.0    5.0     3.0    under-credits 2
+          p6      3     3.0    3.0     5.0    over-credits 2
+          p18     3     3.0    3.0     5.0    over-credits 2
+          p20     1     1.0    1.0     5.0    over-credits 4 -- the whole item
+      Named for the ownership check, which matches `item/pN` and not a bare
+      `pN` in a table: Q4a/p2, Q4a/p6, Q4a/p18 and Q4a/p20 are the four.
+      (Q4a/p14 and Q4a/p19 are wrong on all three sides and belong to Q19
+      and Q31.)
+      THE SHAPE IS THREE OVER-CREDITS AND ONE UNDER-CREDIT, and p20 is the one to
+      read first: gold gives it 1 of 5 and the paper scorer gives it full marks,
+      while both OLX-prompt engines score it 1.0 exactly. A four-point miss on a
+      cell the other two get right is not a threshold being off by a little.
+      Q4c IS THE CONTROL, and it is a strong one: its paper column is 17/19,
+      identical to olx and python, and every cell it misses is missed by all
+      three. So the rubric prompt is not generally worse -- something specific to
+      Q4a's rubric text is.
+      OWNERSHIP IS SATISFIED ON PAPER ONLY. p6 is named by Q20 and p20 by Q19,
+      which is why the audit reports just p2 and p18 as orphans -- but those
+      subgoals are about olx/python behaviour on cells where olx and python are
+      CORRECT. The mention keeps the ownership check quiet without anyone having
+      looked at the paper side, so read this entry rather than trusting that.
+      NEXT: diff rubric_h1's Q4a text against the OLX sheet's, and read p20's
+      paper `credit_checks` and `deductions` against gold's "-2 pts" comment.
+      Both engines that score the OLX sheet agree with gold there, so the
+      question is what the rubric prompt asks that the sheet does not.
+
 - [ ] Q32. **ONE engine divergence and four unstable cells the median disguised.**
       Filed 2026-08-31 as "five cells the python gets right and the olx gets wrong",
       and REWRITTEN 2026-09-01 after measuring it, because that premise was wrong
