@@ -3757,11 +3757,31 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           because gold ALSO charged box 1 -- Q4c/p9, Q4b/p4, Q4b/p20. These are
           this subgoal's own gradient, already in the list above.
       NEITHER IS FIXED BY LOOSENING `wrong_kind`, and loosening it would break
-      the gradient cells in the direction they are already wrong. The precision
-      number should be recomputed as "refusals CONTRADICTED BY gold's own
-      itemisation" rather than "refusals in wrong cells" before it is used to
-      justify any rule; on this decomposition the two items have 4 contradicted
-      refusals between them, not 49.
+      the gradient cells in the direction they are already wrong.
+      THE RECOMPUTED NUMBER IS ZERO, NOT FOUR. `measured.py --refusals ITEM
+      [SIDE]` now counts refusals against gold's own itemisation, and the four
+      cells named above as "refusal WRONG" turn out to be UNDECIDABLE rather than
+      contradicted: gold gave them full marks and wrote NOTHING, so its
+      itemisation has no opinion to contradict us with. Corrected here because
+      the estimate of four was made by hand an hour earlier and the tool
+      disagrees with it:
+          Q4a  antecedent_2 33 refusals: 18 gold agrees, 0 CONTRADICTED, 15 undecidable
+               antecedent_1 24 refusals:  6 gold agrees, 0 CONTRADICTED, 18 undecidable
+          Q4b  behavior_2   52 refusals: 36 gold agrees, 0 CONTRADICTED, 16 undecidable
+               behavior_1   23 refusals: 18 gold agrees, 0 CONTRADICTED,  5 undecidable
+          Q4c  consequence_2 18 refusals: 18 gold agrees, 0 CONTRADICTED, 0 undecidable
+      NOT ONE REFUSAL ON THESE ITEMS IS CONTRADICTED BY A GOLD COMMENT. Every
+      refusal gold has an opinion about, gold agrees with. So the box-2 precision
+      collapse is not evidence of a rule defect at all -- it is entirely (a)
+      correct refusals in cells that are wrong for another reason, which is this
+      subgoal's gradient, and (b) cells where gold awarded full marks silently,
+      which is subgoal Q31 and whose only evidence is the TOTAL.
+      THAT REDIRECTS THE WHOLE SUBGOAL. There is nothing here for a wording
+      change to fix, because there is no cell where the grader said in writing
+      that a refusal of ours was wrong. What is left is Q31's question -- whether
+      a silent full-marks row is a judgement we should defer to -- and the
+      gradient itself, which is about gold charging box 1 as well, not about our
+      box-2 refusals being unjustified.
 
 - [x] Q1. **Q3's `action` criterion.** The clearest target on the board. Five
       misses, ONE cause: gold charges two criteria and we charge one, and the

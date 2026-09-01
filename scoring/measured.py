@@ -2,6 +2,7 @@
 
     python3 measured.py --status                 what is stale, what is pending
     python3 measured.py --record Q1 OUT/Q1.runs.json    after a sweep of Q1
+    python3 measured.py --refusals Q4b                 refusals vs gold's itemisation
 
 An item's published number is only meaningful against two things: the prompt the
 grader was sent, and the set of cells the rate was computed over. Change either
@@ -1115,6 +1116,94 @@ _COUNTING = re.compile(r"exclud|flag|cells|participants|of the rest|"
                        r"rows|boxes|slots|passes|runs", re.I)
 
 
+def refusal_precision(item: str, side: str = DEFAULT_SIDE) -> str:
+    """Per slot: how many of our refusals gold's own itemisation CONTRADICTS.
+
+    THE STATISTIC THIS REPLACES counted a refusal against us whenever the CELL
+    was wrong. That conflates two opposite errors, and subgoal Q19 was framed by
+    the conflation: on Q4c every one of the 15 `wrong_kind` refusals of the
+    second box sat in a wrong cell, which reads as a rule that is always wrong --
+    but 12 of those 15 are p9, where gold charges BOTH consequences, so our
+    refusal is RIGHT and merely incomplete. Crediting the box there moves the
+    cell further from gold, not closer. Counted this way the two affected items
+    have four contradicted refusals between them rather than forty-nine.
+
+    A refusal is CONTRADICTED when gold's comment itemises the cell and does not
+    name that slot -- we charge something the grader did not. It is CORROBORATED
+    when gold names it. Where the comment cannot be itemised the refusal is
+    UNDECIDABLE and is reported separately rather than folded into either, on the
+    same principle as `gold_charged_slots` returning None: not knowing is not the
+    same as knowing there was nothing.
+
+    Ambiguity is honoured. `gold_charge_bounds` gives the slots a comment names
+    for certain and the COUNT it charges in total, so a refusal outside the
+    definite set is only contradicted when the definite set already accounts for
+    every slot gold charged; otherwise it might be the one the ambiguous segment
+    meant, and it is left undecidable.
+    """
+    import collections
+
+    doc = _runs_doc(item, side)
+    if doc is None:
+        return f"{item} [{side}]: no artifact to read"
+    # SCORED SLOTS ONLY, the same restriction `_our_failing_slots` makes. The
+    # first version of this counted every non-`met` answer, which put `keyword`
+    # and `confident` at the top of the table -- 6 and 40 "contradicted"
+    # refusals for two checks that cannot charge anything. A slot that carries no
+    # points cannot contradict gold, because it never charged.
+    import agreement as A
+    import olx_prompts as O
+
+    try:
+        spec = A.load_action(f"bmod_handout{_jobs()[item]['handout']}.olx",
+                             O.ACTION[item])
+        scored = {s["key"] for s in spec["slots"] if s.get("pts") is not None}
+    except Exception as e:
+        return f"{item} [{side}]: cannot read the slot sheet: {type(e).__name__}: {e}"
+    per = collections.defaultdict(lambda: collections.Counter())
+    for run in doc["runs"]:
+        for c in run.get("results") or []:
+            pid = c.get("participant_id") or (
+                c.get("cell", "").split("/")[0].lstrip("pP") if c.get("cell") else None)
+            if pid is None:
+                continue
+            pid = int(pid)
+            named = gold_charged_slots(item, pid)
+            bounds = gold_charge_bounds(item, pid)
+            checks = c.get("checks") or c.get("verdicts") or {}
+            for slot, v in checks.items():
+                if v in (None, "", "met") or slot not in scored:
+                    continue
+                if named is not None:
+                    per[slot]["corroborated" if slot in named else "contradicted"] += 1
+                elif bounds is not None:
+                    definite, count = bounds
+                    if slot in definite:
+                        per[slot]["corroborated"] += 1
+                    elif len(definite) >= count:
+                        per[slot]["contradicted"] += 1
+                    else:
+                        per[slot]["undecidable"] += 1
+                else:
+                    per[slot]["undecidable"] += 1
+    if not per:
+        return f"{item} [{side}]: no refusals recorded"
+    out = [f"{item} [{side}] refusals against GOLD'S OWN ITEMISATION "
+           f"(not against whether the cell scored right)",
+           f"  {'slot':22s} {'refusals':>8s} {'gold agrees':>12s} "
+           f"{'CONTRADICTED':>13s} {'undecidable':>12s}"]
+    for slot in sorted(per, key=lambda s: -sum(per[s].values())):
+        c = per[slot]
+        tot = sum(c.values())
+        out.append(f"  {slot:22s} {tot:8d} {c['corroborated']:12d} "
+                   f"{c['contradicted']:13d} {c['undecidable']:12d}")
+    tot_c = sum(per[s]["contradicted"] for s in per)
+    tot_u = sum(per[s]["undecidable"] for s in per)
+    out.append(f"  A CONTRADICTED refusal charges a slot gold's comment does not "
+               f"name. {tot_c} here, with {tot_u} undecidable.")
+    return "\n".join(out)
+
+
 def error_profile(item: str, runs_path: str) -> str:
     """Where an item's errors COME FROM, by slot. Run after every sweep.
 
@@ -1921,6 +2010,14 @@ def main() -> int:
     if a[:1] == ["--errors"] and len(a) == 3:
         print(error_profile(a[1], a[2]))
         return 0
+    # `--refusals ITEM [SIDE]`. The companion to --errors: that one asks which
+    # slots are unmet in cells that scored wrong, this one asks whether GOLD'S
+    # COMMENT contradicts the refusal. They answer differently whenever a
+    # refusal is right and the cell is wrong for another reason, which is what
+    # framed subgoal Q19 for three days.
+    if a[:1] == ["--refusals"] and len(a) in (2, 3):
+        print(refusal_precision(a[1], a[2] if len(a) == 3 else DEFAULT_SIDE))
+        return 0
     if a[:1] == ["--criterion"] and len(a) == 3:
         print(criterion_rows(a[1], a[2]))
         return 0
@@ -1971,8 +2068,6 @@ def main() -> int:
     return 1
 
 
-if __name__ == "__main__":
-    raise SystemExit(main())
 
 
 # ---------------------------------------------------------------------------
@@ -3043,3 +3138,12 @@ def wrong_cells_without_an_owner() -> list[str]:
             f"subgoal cites has gone: re-read it, and drop the cell or close the "
             f"subgoal")
     return out
+
+# THE ENTRY POINT LIVES AT THE END, and it has to. It used to sit two thirds of
+# the way up, with fifteen `def`s below it, so `main()` ran before those names
+# existed and any CLI command reaching one died with a bare NameError. The
+# commands that predated the split all happened to use functions defined above
+# it, which is why nothing noticed until `--refusals` called `_runs_doc`.
+# enforcement.py had the same defect and the same fix.
+if __name__ == "__main__":
+    raise SystemExit(main())
