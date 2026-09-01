@@ -2272,14 +2272,23 @@ def _idmap_extra_lines(idmap: str, item_id: str, want: str) -> list[str]:
     except Exception:
         return []
     action = (JOBS.get(item_id) or {}).get("grader", "").replace("_grader", "_llm")
+    # EVERY string kid, not `kids[0]`. The body is SPLIT around each <Ref>: Q1
+    # has 3 string segments, Q4b 9 and Q6 SIXTEEN, so reading the first one
+    # inspected a fraction of the prompt and silently ignored the rest. That is
+    # the half where the box wrapper and the closing instructions live -- the
+    # text nearest the student's own answer -- and a change to any of it passed
+    # this guard. Found 2026-09-01 when a hand comparison using the same kids[0]
+    # shortcut reported four lines missing from the app that were present in the
+    # OLX all along.
     body = None
     for key, entry in m.items():
         if not key.endswith("/" + action):
             continue
         for _loc, val in (entry or {}).items():
             kids = (val or {}).get("kids") or []
-            if kids and isinstance(kids[0], str):
-                body = kids[0]
+            joined = "".join(k for k in kids if isinstance(k, str))
+            if joined:
+                body = joined
         break
     if not body:
         return []                       # cannot locate it; stay silent rather than block
