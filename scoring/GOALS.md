@@ -1752,6 +1752,53 @@ is the demonstrated cost: the CLI scores it 5.0 in six runs of six and the web
       is identical for every table sharing those verifiers -- which removes a
       third of the work. It remains an on-demand check, deliberately.
 
+- [ ] E38. **The CLI's staleness fingerprint ignores four attributes the CLI reads.**
+      Found 2026-09-01 while answering "why is the CLI served less of the screen
+      than the web?" -- it is NOT (both backends get the identical prompt from
+      `agreement.build_prompt` and the identical schema; only `backend.complete`
+      differs). But the question exposed something else.
+      `measured._cli_read_attrs` derives the cli fingerprint's keep-list by
+      regexing `_attr(open_tag, "X")` out of agreement.py, and its docstring
+      promises this "cannot go stale: the day the CLI starts reading a new
+      attribute, that attribute starts counting automatically". That holds ONLY
+      for attributes read through `_attr`. These are read off the same open tag by
+      BESPOKE parsers and are invisible to it:
+          agreement.py:257  slots=      agreement.py:369  cover=
+          agreement.py:260  verdicts=   agreement.py:392  derived=
+          agreement.py:338  equals=
+      The kept set is {choices, counts, expect, forbid, maps, onlyif, requires}.
+      DEMONSTRATED, not argued: `_cli_visible` returns a byte-identical string
+      when `derived="...antecedent"` becomes `derived="...trigger"`, and when
+      `slots=` gains a slot. Both change what the CLI sends. A cli measurement
+      would therefore report CURRENT while being stale.
+      THE ROOT OF IT IS A NAME COLLISION. `_cli_visible`'s docstring says these
+      attributes "reach the CLI from the RUBRIC, not the OLX", which is true of
+      score.py -- the rubric-driven paper scorer -- and false of agreement.py,
+      which is what side `cli` actually is. The rationale was written about a
+      different program than the one it guards.
+      E25 SLIPPED THROUGH IT. That goal changed `slots=` AND `derived=` on Q4a and
+      Q4c, and the cli side WAS flagged stale -- but only because the prompt body
+      changed in the same edit. An attribute-only change would have been silent,
+      and this is the exact pattern of a `derived` conversion.
+      THE FIX IS SMALL AND ITS CONSEQUENCE IS NOT. Widening the derivation (union
+      the `_attr` reads with the bespoke `re.search(r'X="')` reads and the
+      excludesKeys primitives that `excluded_keys` reads dynamically) re-hashes
+      every cli record, so all 26 items report STALE PROMPT at once and the audit
+      demands a full cli re-sweep. The numbers themselves are not wrong -- they
+      were taken under those attributes; only the hash never covered them -- so
+      the honest options are:
+        (a) widen the derivation and re-stamp each cli record's prompt_sha
+            WITHOUT re-sweeping, which is correct only where the OLX text has not
+            moved since that item was measured, and needs checking per item
+            against git rather than assumed;
+        (b) widen it and re-sweep the cli side, ~26 items x 6 runs;
+        (c) widen it and declare the re-stamp, item by item, as each is next swept.
+      ASK BEFORE PICKING. (a) is cheapest and is a claim about history; (b) is
+      expensive and assumption-free.
+      NEXT: decide between (a), (b) and (c); then fix `_cli_read_attrs`, correct
+      the `_cli_visible` docstring's score.py/agreement.py confusion, and add a
+      check that every open-tag read in agreement.py is covered by the derivation.
+
 - [x] E37. **Every wrong cell must have a live owner, and the audit must say so every run.**
       Filed 2026-08-31. The accounting built across E30/E33/E35 was done BY HAND:
       34 wrong cells found, mapped to subgoals, 16 orphans chased down to 0. None
