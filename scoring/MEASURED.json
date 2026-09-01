@@ -1680,7 +1680,15 @@
         "excluded_cells": {},
         "exclusions": [],
         "numerator": 15,
-        "out": "runs",
+        "out": "e25_paper/runs",
+        "previous": {
+          "denominator": 20,
+          "numerator": 15,
+          "out": "runs",
+          "prompt_sha": "ee29a6786797",
+          "runs": 6,
+          "scorer_sha": "977b51de8e3e"
+        },
         "prompt_sha": "ee29a6786797",
         "run_totals": [
           14,
@@ -1912,7 +1920,15 @@
           16
         ],
         "numerator": 17,
-        "out": "runs",
+        "out": "e25_paper/runs",
+        "previous": {
+          "denominator": 19,
+          "numerator": 17,
+          "out": "runs",
+          "prompt_sha": "15312580770e",
+          "runs": 6,
+          "scorer_sha": "977b51de8e3e"
+        },
         "prompt_sha": "15312580770e",
         "run_totals": [
           16,
