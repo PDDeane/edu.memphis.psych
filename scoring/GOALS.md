@@ -4468,6 +4468,45 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       not a `requires` candidate (subgoal E15): denying credit would fix the
       over-credits and worsen the under-credits by the same count.
 
+      == 2026-09-01: THE READOUT WAS DONE, AND THE SLOT IN THE TITLE IS WRONG ==
+      This entry said to read p19's boxes out before proposing any rule, and
+      that instruction was right in a way it did not anticipate: BOTH stable
+      cells are decided by `antecedent_1`, not by `antecedent_2`, and in OPPOSITE
+      directions. Twelve of twelve observations each, on both sides:
+          p19  gold 5.0, silent   a1 wrong_kind 12/12   a2 met 11/12   we score 3.0
+               box 1: "My first atecedents is waking up and not feeling motivated"
+               -- gold credits it; we refuse it. WE ARE TOO STRICT.
+          p14  gold 1.0, "-4pts: Examples are not antecedents. Remember that
+               antecedents happen before the UTB is exhibited."
+               a1 met 12/12   a2 wrong_kind 12/12   we score 3.0
+               box 1: "not seeing immediate results, so I tend to bed rot"
+               -- gold refuses it; we credit it. WE ARE TOO LENIENT.
+      NO WORDING CHANGE CAN FIX BOTH. Tightening `antecedent_1` fixes p14 and
+      breaks p19; loosening it does the reverse. That is the same conclusion this
+      entry reached from the by-slot table, arrived at from the cells, and it now
+      names the slot correctly.
+      THE OTHER TWO CELLS HAVE MOVED SINCE THE TABLE ABOVE WAS WRITTEN:
+          p2  was 3/6 with a2 flipping; now 5/6 on BOTH sides, one flip each.
+              Largely resolved, and not worth a rule.
+          p9  was 3/6 with a2 flipping; now python 6/6 RIGHT and olx 3/6, which
+              makes it the side-split cell rather than an instability. It is
+              Q32's, and Q32 records that it inverted under E25.
+      SO THE ITEM'S REMAINING ERROR IS TWO CELLS, BOTH ON antecedent_1, BOTH
+      STABLE, POINTING OPPOSITE WAYS -- which is why 17/20 olx and 18/20 python
+      have not moved despite everything else that changed today.
+      A CANDIDATE, NOT YET TRIED. p14's box 1 -- "not seeing immediate results" --
+      is arguably a CONSEQUENCE of the unwanted behaviour standing in for its
+      antecedent: no exercise, no results, more bed-rotting. Q4b's rule already
+      carries the analogous test as its case (3), that an activity which is
+      likely a consequence of not doing the goal behaviour cannot also be what
+      replaced it. Q4a has no such test. Adding one would address p14 without
+      touching p19, which is the only shape of fix these two cells permit.
+      BEFORE TRYING IT, READ Q18's 2026-09-01 ENTRY. A Q4b vocabulary change that
+      was predicted score-neutral cost two 6/6 cells in opposite directions and
+      was reverted the same day. Any Q4a prompt change must name p2, p9 and the
+      thirteen cells that are currently right as controls, and state its revert
+      rule before the sweep rather than after it.
+
 - [ ] Q26. **DAY1 alone gates on `phrased_directly`. One `!`, undeclared, eight sibling items.**
       Found 2026-08-29 while checking whether DAY1 contradicted subgoal Q20's
       orthogonal-gates finding. It does not contradict it; it is a different
