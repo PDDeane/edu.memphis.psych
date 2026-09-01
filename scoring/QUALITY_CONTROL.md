@@ -874,7 +874,7 @@ failure §2c describes for prose, and the same one
 
 **The hand pass had a defect care would not have caught.** It compared every cell
 at the python median, because that is the default side. Its first automated run
-found five cells the python gets right and the WEB gets wrong — DAY2/p8, PR/p15,
+found five cells the python gets right and the OLX gets wrong — DAY2/p8, PR/p15,
 Q2/p18, Q4a/p9, WK2/p8, all six runs on each side — which no amount of diligence
 on a one-sided reading could have surfaced. They are now Q32. Read BOTH sides;
 `measured.SIDES` is the list, and a cell wrong on either is a cell we get wrong.
@@ -910,7 +910,7 @@ seam the self-test can replace, as `_handsplit_tables` does.
 subgoal that owns it, or declare it with a reason. Silencing it is not on the
 list.
 
-## 2e. A python/WEB DIFFERENCE AT THE MEDIAN IS NOT YET A DIVERGENCE
+## 2e. A python/OLX DIFFERENCE AT THE MEDIAN IS NOT YET A DIVERGENCE
 
 Two sides are compared at their recorded medians, and the median over six runs is
 a STEP FUNCTION at exactly the halfway point. On a cell the model gets right about

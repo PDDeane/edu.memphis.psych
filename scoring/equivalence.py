@@ -509,7 +509,7 @@ def enforcement_audit():
     # what the web's answers are compared AGAINST: for a derive-path item, the
     # CLI's own probed behaviour; for a plain-path item, the CLI's rubric, because
     # there the model authors the ledger and there is no arithmetic to probe.
-    # Leaving the other 16 uncompared meant a web-only enforcement rule on any of
+    # Leaving the other 16 uncompared meant a olx-only enforcement rule on any of
     # them was invisible — which is how D1/D2's `equals` sat undeclared.
     allitems = sorted({**ACTION, **SHEET_ONLY})
     web = web_signatures(allitems)
@@ -613,7 +613,7 @@ def enforcement_audit():
     for bad in ENF.check_slot_rules_backlog_is_being_cleared():
         findings.append(("-", "WEB-ONLY SLOT RULES ACCUMULATING", bad))
     for bad in ENF.check_slot_rules_reach_both_prompts():
-        findings.append(("-", "SLOT RULE WEB ONLY", bad))
+        findings.append(("-", "SLOT RULE OLX ONLY", bad))
     for bad in ENF.check_slot_rules_are_vocabulary_neutral():
         findings.append(("-", "SLOT RULE NAMES A VERDICT", bad))
     for bad in ENF.check_prompt_prose_names_only_offered_verdicts():
@@ -671,7 +671,7 @@ def enforcement_audit():
     for bad in ENF.check_unreachable_gold_is_allowed():
         findings.append(("-", "UNREACHABLE GOLD PENALISED", bad))
     for iid, h, mx, label in uncovered_cli_items():
-        findings.append((iid, "SCORED ON CLI ONLY",
+        findings.append((iid, "SCORED ON PYTHON ONLY",
                          f"H{h} {label} is worth {mx:g} on the CLI and is scored by "
                          f"nothing on the web"))
     never, orphan = unmeasured_items()
@@ -691,7 +691,7 @@ def enforcement_audit():
     for item in allitems:
         w = web.get(item)
         if w is None:
-            findings.append((item, "NO WEB SHEET", "item not probed"))
+            findings.append((item, "NO OLX SHEET", "item not probed"))
             continue
         rub = config(HANDOUT[item])["rubric"].BY_ID[item]
 
@@ -772,14 +772,14 @@ def enforcement_audit():
         # the plain-path branch was already careful to avoid.
         for k in w["computed"]:
             if k in c["inputs"] and k not in must_compute.get(item, []):
-                findings.append((item, "ASKED ON CLI ONLY",
+                findings.append((item, "ASKED ON PYTHON ONLY",
                                  f"web computes `{k}`; the CLI still asks the model"))
         # The mirror. Without it, moving a check into CLI code and leaving the web
         # asking for it looked clean — which is what Q1's count derivation did.
         wasked = {s["key"] for s in w["scored"]} - set(w["computed"])
         for k in c.get("derived_keys") or []:
             if k in wasked and k not in must_compute.get(item, []):
-                findings.append((item, "ASKED ON WEB ONLY",
+                findings.append((item, "ASKED ON OLX ONLY",
                                  f"the CLI derives `{k}`; the web still asks the model"))
 
         # 3. gates, mapped through the vocabulary bridge.
@@ -802,12 +802,12 @@ def enforcement_audit():
             if wk is None:
                 findings.append((item, "UNMAPPED KEY", f"CLI gate `{k}` has no web counterpart"))
             elif wk not in web_gates:
-                findings.append((item, "GATE CLI ONLY",
+                findings.append((item, "GATE PYTHON ONLY",
                                  f"`{k}` zeroes the item on the CLI, not on the web (as `{wk}`)"))
         cli_gate_web_names = {ENF.web_name(k, wkeys) for k in c["gates"]}
         for wk in w["gates"]:
             if wk not in cli_gate_web_names and wk not in w["computed"]:
-                findings.append((item, "GATE WEB ONLY",
+                findings.append((item, "GATE OLX ONLY",
                                  f"`{wk}` zeroes the item on the web, not on the CLI"))
 
         # 4a. `equals` where BOTH sides declare it as data — compared exactly, the
@@ -838,14 +838,14 @@ def enforcement_audit():
                 findings.append((item, "UNMAPPED KEY",
                                  f"charge-once pair ({a}, {b}) has no web counterpart"))
             elif frozenset((wa, wb)) not in web_pairs:
-                findings.append((item, "CHARGE-ONCE CLI ONLY",
+                findings.append((item, "CHARGE-ONCE PYTHON ONLY",
                                  f"({a}, {b}) cost less together on the CLI; the web "
                                  f"charges `{wa}` and `{wb}` in full"))
         cli_pairs = {frozenset(x for x in (ENF.web_name(a, wkeys), ENF.web_name(b, wkeys)) if x)
                      for a, b in c["charge_once"]}
         for wp in web_pairs:
             if wp not in cli_pairs:
-                findings.append((item, "CHARGE-ONCE WEB ONLY",
+                findings.append((item, "CHARGE-ONCE OLX ONLY",
                                  f"({', '.join(sorted(wp))}) cost less together on the web"))
     return findings, cli, web
 
@@ -962,7 +962,7 @@ def enforcement_selftest():
     # The coverage guard. Both misses so far were items the audits did not know
     # existed, so this one is checked by removing an item from the covered set.
     tsaved = SHEET_ONLY.pop("T1")
-    cases.append(("an item leaves the covered set", "SCORED ON CLI ONLY", "T1",
+    cases.append(("an item leaves the covered set", "SCORED ON PYTHON ONLY", "T1",
                   [f for f in enforcement_audit()[0]]))
     SHEET_ONLY["T1"] = tsaved
 
@@ -974,7 +974,7 @@ def enforcement_selftest():
                   [f for f in enforcement_audit()[0]]))
     d1["equals"] = esaved
 
-    # The all-items guard: a web-only enforcement rule on a plain-path item was
+    # The all-items guard: a olx-only enforcement rule on a plain-path item was
     # invisible until the audit covered those too.
     # Both branches of the computed-check guard: T1 is plain-path (the rule has no
     # CLI counterpart at all), 1b is derive-path (the CLI asks for it).
@@ -984,7 +984,7 @@ def enforcement_selftest():
         if "1b" in (d.get("web_computes") or {}):
             wsaved = d.pop("web_computes")
             cases.append(("1b computed check loses its declaration",
-                          "ASKED ON CLI ONLY", "1b",
+                          "ASKED ON PYTHON ONLY", "1b",
                           [f for f in enforcement_audit()[0]]))
             d["web_computes"] = wsaved
             break
@@ -1154,7 +1154,7 @@ def enforcement_selftest():
 
     # The OTHER prose source. The case above guards the rubric's `rule`, where
     # the answer is `{fail}`; SLOT_NOTES is a second source of prompt prose, is
-    # web-only, and gets no substitution. So the guard covered one source and the
+    # olx-only, and gets no substitution. So the guard covered one source and the
     # other went unwatched -- which is how Q5:example_2 sat in the LIVE web prompt
     # naming `not_reason`, a token from the rubric's vocabulary, while its sheet
     # offered `wrong_kind`. Every test in that note was inert, it dated to the
@@ -1366,7 +1366,7 @@ def enforcement_selftest():
     import olx_prompts as _OP2
     _OP2.SLOT_NOTES["Q4b:behavior_1"] = "x" * 400
     cases.append(("a slot rule is added to the web prompt only",
-                  "SLOT RULE WEB ONLY", "-",
+                  "SLOT RULE OLX ONLY", "-",
                   [f for f in enforcement_audit()[0]]))
     del _OP2.SLOT_NOTES["Q4b:behavior_1"]
 
@@ -1539,7 +1539,7 @@ def enforcement_selftest():
             a["counts"] = ""
         return a
     globals()["_web_attrs"] = _drop_counts
-    cases.append(("web Q1 loses `counts`", "ASKED ON WEB ONLY", "Q1",
+    cases.append(("web Q1 loses `counts`", "ASKED ON OLX ONLY", "Q1",
                   [f for f in enforcement_audit()[0]]))
     globals()["_web_attrs"] = _orig
 
@@ -1560,8 +1560,8 @@ def enforcement_selftest():
     KNOWN_ACTION_ATTRS.clear(); KNOWN_ACTION_ATTRS.update(ksaved)
 
     orig = globals()["_web_attrs"]
-    for item, attr, want in (("PR", "onlyif", "CHARGE-ONCE CLI ONLY"),
-                             ("DAY1", "equals", "CHARGE-ONCE CLI ONLY"),
+    for item, attr, want in (("PR", "onlyif", "CHARGE-ONCE PYTHON ONLY"),
+                             ("DAY1", "equals", "CHARGE-ONCE PYTHON ONLY"),
                              ("1c", "derived", "DECLARATION STALE")):
         def drop(i, _item=item, _attr=attr):
             a = orig(i)

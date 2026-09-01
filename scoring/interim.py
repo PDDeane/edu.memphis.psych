@@ -1,7 +1,7 @@
 """Whatever the running sweeps have finished so far, per item, side by side.
 
 head_to_head.py is the final report and needs both columns complete. This one
-reports partial state, which is what you want while a 13-hour web sweep is in
+reports partial state, which is what you want while a 13-hour olx sweep is in
 flight. Reads the RESULT FILES, never summary.txt: sweep scripts append to that,
 so it accumulates lines from earlier runs and a stale row reads exactly like a
 fresh one.
@@ -14,8 +14,8 @@ stored:
 
   paper/O   score.py + Opus         out/h{1,2,3}            (single run)
   paper/m   score.py + gpt-5-mini   out/paper_mini/r*/h*
-  cli/m     shipped prompt + mini   out/cli_v7/<item>.runs.json
-  web/m     real app + mini         out/web_v6/<item>.runs.json
+  python/m     shipped prompt + mini   out/cli_v7/<item>.runs.json
+  olx/m     real app + mini         out/web_v6/<item>.runs.json
 
 A blank cell means that configuration has not produced this item yet.
 
@@ -86,7 +86,7 @@ def paper_mini(h: int) -> dict[str, float]:
     return {k: sum(v) / len(v) for k, v in per.items()}
 
 
-def shipped(h: int, outdir: str, web: bool) -> dict[str, float]:
+def shipped(h: int, outdir: str, olx: bool) -> dict[str, float]:
     """Mean exact over the runs stored in each <item>.runs.json."""
     gold = _gold(h)
     items = [i["id"] for i in config(h)["rubric"].ITEMS]
@@ -100,7 +100,7 @@ def shipped(h: int, outdir: str, web: bool) -> dict[str, float]:
         for run in d.get("runs", []):
             pairs = []
             for c in run.get("results", []):
-                if web:
+                if olx:
                     if not c.get("ok"):
                         continue
                     pid = int(c["cell"].split("/")[0][1:])
@@ -124,18 +124,18 @@ def main() -> int:
     args = ap.parse_args()
 
     cell = lambda v: f"{v:>6.0%}" if v is not None else "     ·"
-    print(f"{'item':>5} {'paper/O':>8} {'paper/m':>8} {'cli/m':>8} {'web/m':>8}")
+    print(f"{'item':>5} {'paper/O':>8} {'paper/m':>8} {'python/m':>8} {'olx/m':>8}")
     print("-" * 42)
-    done = {"paper/O": 0, "paper/m": 0, "cli/m": 0, "web/m": 0}
+    done = {"paper/O": 0, "paper/m": 0, "python/m": 0, "olx/m": 0}
     total = 0
     for h in ([args.handout] if args.handout else sorted(HANDOUTS)):
         po, pm = paper_opus(h), paper_mini(h)
-        cm = shipped(h, str(paths.OUT / "cli_v7"), web=False)
-        wm = shipped(h, str(paths.OUT / "web_v6"), web=True)
+        cm = shipped(h, str(paths.OUT / "cli_v7"), olx=False)
+        wm = shipped(h, str(paths.OUT / "web_v6"), olx=True)
         for it in [i["id"] for i in config(h)["rubric"].ITEMS]:
             total += 1
             for name, src in (("paper/O", po), ("paper/m", pm),
-                              ("cli/m", cm), ("web/m", wm)):
+                              ("python/m", cm), ("olx/m", wm)):
                 if src.get(it) is not None:
                     done[name] += 1
             print(f"{it:>5} {cell(po.get(it))} {cell(pm.get(it))} "
@@ -143,7 +143,7 @@ def main() -> int:
     print("-" * 42)
     print("coverage: " + "  ".join(f"{k} {v}/{total}" for k, v in done.items()))
     print("\n· = not produced yet.  paper/O is a single run; the others are means\n"
-          "over the runs on disk, so a partial web column is a 1-run mean until\n"
+          "over the runs on disk, so a partial olx column is a 1-run mean until\n"
           "that item's three are done.")
     return 0
 

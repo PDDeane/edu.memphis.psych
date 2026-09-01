@@ -71,7 +71,7 @@ INVERTED = {
     # Advisory flags: `yes` meant "a remark is warranted", so the good state was
     # `no`. Relabelled so `met` is the good state. `phrased_directly` keeps its
     # label, which already described the good state — only its KEY named the bad
-    # one. The CLI still calls that input `avoidance_frame`; enforcement.ALIAS
+    # one. The python still calls that input `avoidance_frame`; enforcement.ALIAS
     # carries the correspondence, which is what that table is for.
     "thin_reason": ("reasons_substantial", "Both reasons are substantial"),
     "avoidance_frame": ("phrased_directly",

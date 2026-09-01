@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Build ONE stable parse of each Q6 answer from repeated CLI runs.
+"""Build ONE stable parse of each Q6 answer from repeated python runs.
 
-The problem this solved. Q6's web fixture is eight boxes filled from
+The problem this solved. Q6's olx fixture is eight boxes filled from
 `credit_checks[].evidence`, and those spans were not stable: one rerun apart, the
-CLI's met/unmet verdict was identical on 134 of 136 slots (99%) while the quoted
-span changed on 64 of 136 (47%). The CLI never noticed — it reads the whole block
-and its own score barely moves — but the web fixture IS the spans, so every Q6
-measurement sat on a foundation that shifted under it. Two web runs one CLI
+python's met/unmet verdict was identical on 134 of 136 slots (99%) while the quoted
+span changed on 64 of 136 (47%). The python never noticed — it reads the whole block
+and its own score barely moves — but the olx fixture IS the spans, so every Q6
+measurement sat on a foundation that shifted under it. Two olx runs one python
 rescore apart were not comparable even when nothing else had changed.
 
 So: run the scorer N times, then take the consensus rather than any one run.
@@ -16,7 +16,7 @@ above as past tense. With the frozen table in place, `fixture_for("Q6", pid)`
 is byte-identical across processes for all 20 participants, and an audit of the
 current table finds 158 of 160 slots agreeing on at least 80% of runs. The two
 that do not are p9's `state_c2` and `affect_c2`, tied 5/5, and p9 is declared in
-PER_ITEM_EXCLUDE on BOTH sides — the CLI included, because agreement.py's
+PER_ITEM_EXCLUDE on BOTH sides — the python included, because agreement.py's
 fixture_for imports build_jobs and therefore inherits the same tie-break.
 
 What remains is NOT instability. Q6's score still moves a point or two between
@@ -52,7 +52,7 @@ The verdict is voted too, by plurality, and a slot whose winning verdict is
 the student wrote nothing there.
 
 CHOOSING THE THRESHOLD. It controls how wide the consensus spans come out, and
-that matters: wider boxes hold more text, more slots look filled, and the web
+that matters: wider boxes hold more text, more slots look filled, and the olx
 grades more generously. Measured against the single-run fixture's own width
 (102 filled boxes, 34 overlapping, 105% median retention):
 

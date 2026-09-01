@@ -100,7 +100,7 @@ def main() -> int:
         gold = {k: v for k, v in gold.items() if k not in set(args.exclude)}
         print(f"(excluding participants {sorted(args.exclude)} — mis-transcribed, "
               f"not attributable on any item)\n")
-    # The SAME source the web and CLI harnesses read. This used to be
+    # The SAME source the olx and python harnesses read. This used to be
     # exemplar_drops() alone, with no equivalent of PER_ITEM_EXCLUDE at all —
     # so the paper scorer counted five cells (1c p4/p19/p20, Q4c p16, Q6 p9)
     # that both other harnesses drop as unreachable, and its headline rate was

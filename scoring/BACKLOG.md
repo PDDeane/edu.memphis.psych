@@ -438,7 +438,7 @@ the mistake that created this. And the reported rate will FALL, from 12/12 to
 
 `EQUIVALENCE.md:562` reads Q4c at "python 76%, olx 65% over 17 cells" and closes
 "Nothing to fix. Left alone." All three parts have moved: the denominator is 12
-counted, not 17; its web-only p13 gap was `keyword: absent` on "conequence",
+counted, not 17; its olx-only p13 gap was `keyword: absent` on "conequence",
 which cannot arise now that Q4c's keyword slot is advisory with `pts=None`; and
 three boxes were in fact fixed above.
 

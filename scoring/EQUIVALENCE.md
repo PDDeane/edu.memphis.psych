@@ -281,7 +281,7 @@ graded against what the student actually wrote: someone who ticks "lack of
 sleep" and then writes about exercise is doing the exercise project, and Q4a's
 antecedents are antecedents of *that*. On paper the question cannot arise —
 there is one handwritten answer and nothing to disagree with it — so the python
-keeps sending the underlined hint and this is a web-only refinement, not a
+keeps sending the underlined hint and this is a olx-only refinement, not a
 divergence in what is being judged.
 
 Q2 was also dropped from `UTB_CHOICE` as part of this. It had been getting the
@@ -486,7 +486,7 @@ there is nothing to compare, and a check that compares a thing with itself passe
 forever.
 
 `consequence_asserted` and `trigger_behavior` are now read by BOTH scorers, so
-`check_slot_rules_reach_both_prompts`' premise — SLOT_NOTES is web-only — is
+`check_slot_rules_reach_both_prompts`' premise — SLOT_NOTES is olx-only — is
 false for them. They are exempted through `olx_prompts.CLI_CRITERIA_NOTES` rather
 than through a list inside the check, and `consequence_asserted` left that
 check's BACKLOG by being fixed rather than by rotting.
@@ -697,7 +697,7 @@ is much less likely to arise on screen than on paper. Not unreachable the way 1c
 cells are, so it is not excluded; but the measured gap probably overstates what a live
 cohort would show.
 
-### Q4c: four of six misses are SHARED, and the web-only gap is two cells
+### Q4c: four of six misses are SHARED, and the olx-only gap is two cells
 
 python 76%, olx 65% over 17 cells — and the headline overstates it badly.
 
@@ -708,7 +708,7 @@ the dictionary is explicit, so apply it." Both systems apply it and are wrong ag
 gold on purpose. p9 and p16 are shared misses — the two systems agree with each other
 and differ from the graders.
 
-**The web-only gap is two cells:**
+**The olx-only gap is two cells:**
 
 * **p13** — `keyword: absent` on the olx, `met` on the python. This student wrote
   "conequence", one letter short. The python's model reads through the typo; the olx's
@@ -723,7 +723,7 @@ and differ from the graders.
     minus that and the shared      python 100%  olx 85%
 
 Nothing to fix. Left alone. **[Superseded on all three counts, 2026-08-20.** The
-denominator is 12 counted, not 17. The web-only p13 gap was `keyword: absent` on
+denominator is 12 counted, not 17. The olx-only p13 gap was `keyword: absent` on
 "conequence", which cannot arise now that Q4c's keyword slot is advisory with
 `pts=None`. And three boxes WERE fixed — p13's and both of p16's kept the
 student's enumerator. The readout also found that 12/12 measures only the accept
@@ -731,9 +731,9 @@ side of this item; see the fixture-audit section.**]**
 
 ### DAY2: two cells of cadence judgement, and a larger problem both sides share
 
-python 83%, olx 72% over 18 cells. Five misses, and only two are web-only.
+python 83%, olx 72% over 18 cells. Five misses, and only two are olx-only.
 
-**Both web-only misses are the cadence gate**, which takes the whole item, so two
+**Both olx-only misses are the cadence gate**, which takes the whole item, so two
 judgement calls produce the entire 11-point gap:
 
 * **p8** — "If I meet my goal of going to the gym, I will reward myself by not doing
@@ -756,10 +756,10 @@ loses three cells to it too.
 
 Nothing to fix. Left alone.
 
-### DAY1, WK1, WK2: six web-only cells across 54, split evenly both ways
+### DAY1, WK1, WK2: six olx-only cells across 54, split evenly both ways
 
 python 89/89/94, olx 78/78/83. Eleven misses in total; **five are SHARED** and six are
-web-only, and the web-only ones do NOT lean one way — three too generous, three too
+olx-only, and the olx-only ones do NOT lean one way — three too generous, three too
 strict. There is no systematic bias to correct.
 
 **Too generous** (crediting what gold and the python both reject):
@@ -1347,7 +1347,7 @@ sides (`slotSheet.ts` + `LLMAction`, six new tests).
 
 **The audit could not see Q1's asymmetry, and now can.** Every computed-check test ran
 one way — "the olx computes it, the python asks" — so moving a check into python code while
-the olx still asked for it read as clean. `ASKED ON WEB ONLY` is the mirror, and it
+the olx still asked for it read as clean. `ASKED ON OLX ONLY` is the mirror, and it
 fired on all three reason slots until the olx got `counts` too. In the self-test.
 
 Also fixed: the probe's baseline set every slot to `"met"` regardless of its declared
@@ -1464,7 +1464,7 @@ vacuous. Where both sides declare `equals` as data it is now compared exactly, l
 
 The mode used to compare only the 10 items whose score both sides derive from
 checks, printing the other 16 as "outside the compared set". That was an honest
-label for a real hole: **a web-only enforcement rule on any of those 16 was
+label for a real hole: **a olx-only enforcement rule on any of those 16 was
 invisible**, which is how D1/D2's `equals` gate sat undeclared.
 
 The hole is not closable by probing the python — on the plain path the model authors

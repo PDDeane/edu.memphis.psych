@@ -1068,7 +1068,7 @@ def fill_fail(text: str, item: dict, c: dict) -> str:
     rule, telling the scorer that a thin reason means the box was empty.
 
     Without this the rule could not be shared at all, and it was not: it sat in
-    web-only SLOT_NOTES naming `wrong_kind` literally, so the paper scorer never
+    olx-only SLOT_NOTES naming `wrong_kind` literally, so the paper scorer never
     received it. That is the same shape as every other rule parked there — the
     text reaches one scorer and the audit sees a note, not a gap.
     """

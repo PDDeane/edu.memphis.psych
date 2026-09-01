@@ -19,7 +19,8 @@ decide consistently. Participant `n` is below 20 where a participant is excluded
 as a few-shot exemplar of that item or as mis-transcribed.
 
 **These are Opus numbers.** `score.py` defaults to `--backend cli`, which is Opus;
-the web app and `agreement.py` answer as gpt-5-mini through lo-blocks. The model is
+the web app (side `olx`) and `agreement.py` (side `python`) answer as
+gpt-5-mini through lo-blocks. The model is
 worth roughly 5 points of corpus mean and up to 50 on one item, so a figure here is
 not a figure for what students get. `--backend lo` runs this same prompt on the
 shipped model, and `out/SWEEP_2026-08-12.md` has the full four-way comparison.
@@ -347,7 +348,7 @@ uniformly:
   1.0; the dictionary puts WRONG_DEFINITION at −2. Both implementations score it
   0 — the scorer through WRONG_DEFINITION, the lo-blocks sheet through its
   `matches_chosen_type` gate — so both are 1 point under gold on this cell.
-  Found while auditing D1/D2's arithmetic for a suspected web/CLI divergence
+  Found while auditing D1/D2's arithmetic for a suspected olx/python divergence
   that turned out not to exist; this is the only D1/D2 row where the two
   implementations agree with each other and disagree with the graders.
 
@@ -569,7 +570,7 @@ python3 agreement.py --handout 1 --backend cli   # same prompts, different model
 
 Handout 1 Q6, the same held-out 17 this project reports v7 on:
 
-| Q6 (n=17) | this scorer, v7 | lo-blocks prompt via CLI | lo-blocks prompt via the app |
+| Q6 (n=17) | this scorer, v7 | lo-blocks prompt via python | lo-blocks prompt via the app |
 |---|---|---|---|
 | model | claude-opus-5 | claude-opus-5 | gpt-5-mini (Azure) |
 | exact | **59%** | 47% | 47% |
@@ -588,7 +589,7 @@ The scorer's prompt carries the full deduction table and per-slot guidance; the
 OLX prompt is written for a student audience and carries less. That gap is now
 a number instead of a guess.
 
-Handout 2, PR and NR, 18 participants, via CLI:
+Handout 2, PR and NR, 18 participants, via the python scorer:
 
 | | PR | NR |
 |---|---|---|
@@ -596,7 +597,7 @@ Handout 2, PR and NR, 18 participants, via CLI:
 | MAE | 0.67 | 0.56 |
 | bias | −0.67 | −0.33 |
 
-against 94% for both in this project's v5 — and the negative bias says the web
+against 94% for both in this project's v5 — and the negative bias says the olx
 prompt is **harsher** than the graders, the opposite of the leniency this
 project fought on Q6.
 
