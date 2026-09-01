@@ -799,6 +799,28 @@ almost all of it in CORRECT cells is not the problem however much it dominates
 the eye (`confident`, 99 unmet, 83 of them in cells scored right), and DRIFT
 identifies cells that no wording can fix before calls are spent trying.
 
+### Its companion: `--refusals`, which asks a different question
+
+`--errors` asks which slots are unmet in cells that scored wrong. That is not the
+same as asking whether a refusal was WRONG, and the difference is not academic: a
+refusal can sit in a wrong cell while being correct, because the cell is wrong for
+the opposite reason. Q4c's second box had 15 refusals and all 15 sat in wrong
+cells, which reads as a rule that never fires correctly — but 12 of them are one
+participant where gold charges BOTH boxes, so the refusal is right and merely
+incomplete, and crediting the box moves the cell further from gold.
+
+`measured.py --refusals ITEM [SIDE]` counts each refusal against **gold's own
+itemisation**: corroborated when gold's comment names that slot, CONTRADICTED when
+it itemises the cell and does not, and undecidable when the comment cannot be
+itemised at all. Undecidable is reported separately rather than folded into
+either, for the same reason `gold_charged_slots` returns None instead of an empty
+set — not knowing is not the same as knowing there was nothing.
+
+Run it before using a precision figure to justify a rule. On Q4a, Q4b and Q4c it
+returns ZERO contradicted refusals: every refusal gold has an opinion about, gold
+agrees with, and the apparent collapse is entirely gradient cells plus silent
+full-marks rows.
+
 ## 2c. READ WHAT IS ALREADY RECORDED BEFORE FORMING A HYPOTHESIS
 
 **Before touching a rule, read the comments around it, the draft for that item,
