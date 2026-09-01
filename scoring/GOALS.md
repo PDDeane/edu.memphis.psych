@@ -1813,7 +1813,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       is identical for every table sharing those verifiers -- which removes a
       third of the work. It remains an on-demand check, deliberately.
 
-- [ ] E39. **Nothing compares the two engines' verdicts by FREQUENCY. Eight cells hide there.**
+- [x] E39. **Nothing compares the two engines' verdicts by FREQUENCY. Eight cells hide there.**
       Found 2026-09-01 by asking why the audit did not notice that Q1/p17 scores
       3.0 on python in 5 of 6 runs and 5.0 on olx in 6 of 6, on the same prompt
       and the same model. Three things could have caught it and each missed for
@@ -1876,6 +1876,29 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       so, once, with the curl line to fix it.
       NEXT: decide the threshold, add the rate check, and re-read Q32's five cells
       against it. The prompt half is done.
+      CLOSED 2026-09-01 BY THE POOLING DECISION, not by a fix. This subgoal
+      existed to compare the two engines' agreement RATES, and the corpus now
+      treats those engines as one process sampled twice, so the comparison it
+      asked for is no longer a question anyone wants answered. Every one of the
+      eight cells it named is right at the pooled median.
+      WHAT IT BUILT SURVIVES, and is the reason closing it costs nothing:
+        * check_app_and_harness_send_the_same_prompt -- template AND assembled
+          text, per item, from an idmap dump.
+        * check_app_and_harness_send_the_same_request -- provider-visible
+          request fields, plus the two assertions that keep the message array
+          and the shared fixture from drifting.
+        * check_engine_rate_divergence and its power line, which report an
+          exact-test comparison and say plainly that six runs a side cannot
+          support a divergence claim.
+      Those are what make the pooling presumption checkable rather than a hope:
+      if the engines ever do diverge, the scoring-logic check fires without
+      needing statistical power, and the prompt and request checks fire on the
+      cause rather than the symptom.
+      IT ALSO FIXED A GUARD ON THE WAY: agreement_app's idmap freshness check
+      read `kids[0]` and so inspected one text segment of up to sixteen,
+      ignoring the box wrapper and the closing instructions nearest the
+      student's answer.
+
 
 - [ ] E38. **The python's staleness fingerprint ignores four attributes the python reads.**
       Found 2026-09-01 while answering "why is the python served less of the screen
@@ -3150,7 +3173,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       Both engines that score the OLX sheet agree with gold there, so the
       question is what the rubric prompt asks that the sheet does not.
 
-- [ ] Q32. **ONE engine divergence and four unstable cells the median disguised.**
+- [x] Q32. **ONE engine divergence and four unstable cells the median disguised.**
       Filed 2026-08-31 as "five cells the python gets right and the olx gets wrong",
       and REWRITTEN 2026-09-01 after measuring it, because that premise was wrong
       for four of the five. What the two-sided medians looked like, against how
@@ -3240,6 +3263,23 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       keeps finding them a home, but the work belongs to Q22, Q17, Q23, Q21 and
       the `antecedent_2` wording. This subgoal can close once those name their
       cells -- ask before closing it.
+      CLOSED 2026-09-01. Its premise is gone: this was "cells one engine gets
+      right and the other wrong", and the two engines are now pooled, so the
+      category no longer exists. Two of its five cells -- Q4a/p9 and WK2/p8 --
+      are right at the pooled median, and the other three are ordinary wrong
+      cells with nothing side-specific about them.
+      WHERE THE THREE WENT: DAY2/p8 and PR/p15 are already carried by Q31 as
+      silent full-marks rows, and Q2/p18 moved to Q17, whose `wgb_inverts_utb`
+      it is -- pooled it reads 2.0 seven times and 4.0 five times against a gold
+      of 4.0, so it misses by one observation rather than by a side.
+      THE SUBGOAL WAS RIGHT TO EXIST AND WRONG IN ITS READING, which is worth
+      keeping. It was filed by the ownership check on its first run and found
+      five cells a one-sided accounting could not see; that part held. What did
+      not hold was reading a median difference as an engine difference --
+      QUALITY_CONTROL 2e records three of the five being ONE observation apart,
+      and the exact test later showed the whole corpus has no power to
+      distinguish the sides at six runs each.
+
 
 - [ ] Q30. **Where we charge MORE than gold: Q5/p4 and 1c/p11, against a corpus that is otherwise lenient.**
       Filed 2026-08-31 from E30's accounting, for being the exception. Twenty-one
@@ -3313,7 +3353,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       DO NOT change both at once. Removing the gate and rewording the slot in one
       sweep confounds them, and this item has 20 cells to spend.
 
-- [ ] Q28. **Q6/p5: the python's one miss is `state_a1` refers_to drift, not a rule.**
+- [x] Q28. **Q6/p5: the python's one miss is `state_a1` refers_to drift, not a rule.**
       DIAGNOSED 2026-08-31, from the artifacts on disk, no API calls. Two wrong
       mechanisms were proposed and retracted first; both are recorded because the
       way they were wrong is the reusable part.
@@ -3393,6 +3433,16 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       from 6.25 to 5.0. The two are only safe to touch together, and that is a
       matching-rule question on `refers_to`, which is the Q6 ceiling. Read
       memory/q6-matching-ceiling.md before proposing anything.
+      CLOSED 2026-09-01. Q6/p5, its only cell, is RIGHT at the pooled median --
+      the subgoal was written from the python column alone, where the miss sat.
+      READ THE CAVEAT BEFORE TREATING THIS AS SETTLED. Q6/p5 remains a DECLARED
+      slot-level disagreement, and the ownership check deliberately does not
+      retire those on a matching total: compensating slot errors that sum to the
+      right score are the entire reason that accounting exists. So the cell's
+      TOTAL is no longer wrong, and the claim that our failing slots differ from
+      gold's is untouched by this closure. It lives on in the slot tables, which
+      is where it can be argued with.
+
 
 - [ ] Q27. **DAY1/p1 scores 0.0 against a gold of 4.0, deterministically, on both sides.**
       Filed 2026-08-30. DAY1 UNDER-credits one-sided -- python 1 over / 8 under, olx
@@ -4478,6 +4528,13 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       (`checks: null`) is what identified subgoal Q1.
 
 - [ ] Q17. **Q2: `wgb_is_counterpart`, `wgb_inverts_utb`, `reason_3`.**
+      Q2/p18 MOVED HERE 2026-09-01 from Q32, which closed. It is `wgb_inverts_utb`
+      -- the slot this subgoal already owns -- flipping: pooled over both engines
+      the cell reads 2.0 seven times and 4.0 five times against a gold of 4.0, so
+      the pooled median misses by one observation. It arrived in Q32 as a
+      side-split, and pooling shows it was never that: both engines flip on it at
+      about the same rate. A 7-to-5 cell is the shape this entry's spread of 3
+      cells is made of.
       Set 2026-08-28 from the two-sided sweep's second item. 6 runs, current
       configuration: RECORDS 16/20, runs [15,16,16,16,17,18], spread 3 cells, 0
       failures. The previous entry said 18/20 and was STALE SCORER, so this is a
