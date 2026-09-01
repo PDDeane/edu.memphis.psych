@@ -4311,6 +4311,54 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       The six `b2_basis=none` observations are the only source of `absent`
       (B_ONLY_ONE rather than B_NOT_ACTIVE) and must keep charging that.
 
+      == 2026-09-01: THE QUESTION IS ANSWERED, AND AN ATTEMPT WAS MEASURED AND
+      REVERTED ==
+      P13 IS NEITHER OF THE TWO OPTIONS this entry offered. It is not a third
+      instance of the declared not-doing disagreement, and it is not simply a
+      miss. Read the two cells side by side:
+          p12  "{{corpus:Q4b/p12:second:0:34:sha=50add6bc49ca:shape=C3c}}"      not_doing 6/6, both engines
+          p13  "{{corpus:Q4b/p13:second:25:109:sha=0e7747dbc9b4:shape=S8-0a20202020202020202020202020202020,S14-0a20202020202020202020202020202020,A67}} ADHD"                      python 4/6, olx 4/6
+      p12 is a chosen omission and both engines name it identically. p13 is an
+      INABILITY, and both engines waver on the identical quoted text. The option
+      set is `activity`/`consequence`/`goal_behaviour`/`not_doing`/`none` and
+      NONE of them fits an inability, so the pick is undefined and the
+      oscillation is manufactured by the vocabulary rather than by the model.
+      `not_doing` IS A CATCH-ALL over at least three shapes, which is the finding
+      under the finding:
+          p12  a chosen omission        gold 5.0   the real not_doing
+          p13  an inability            gold 5.0
+          p5   an external barrier --
+               "{{corpus:Q4b/p5:second:50:75:sha=e622fa24ccd8}} home"   gold 3.5, AND WE ARE RIGHT
+          p10  a future intention (2/12)          gold 2.0
+      p5 matters most of those: `wrong_kind` is the CORRECT answer there and gold
+      agrees, so the fallback is not simply too harsh and must not be loosened.
+      THE ATTEMPT: add an `inability` option to both basis slots, described in
+      each rule, and to the OLX `choices`. It was predicted SCORE-NEUTRAL on the
+      grounds that `inability` falls through to the same `wrong_kind` fallback as
+      `not_doing`, so no verdict could change.
+      THAT PREDICTION WAS WRONG, AND WRONG IN THE INSTRUCTIVE WAY. Adding an
+      option to a pick is not additive: it redistributes the WHOLE
+      classification, including probability that used to land on `activity`,
+      which maps to `met`. Measured at six runs on the python side:
+          before  16/19  [15, 16, 16, 16, 17, 17]
+          after   14/19  [14, 14, 14, 14, 15, 15]
+      Two cells that were right in 6 of 6 runs broke, IN OPPOSITE DIRECTIONS --
+      p6 went 3.5 -> 5.0 (over-credit) and p14 went 5.0 -> 3.0 (under-credit) --
+      while p13, the cell the change was for, did not move. Opposite directions
+      is the signature of a prompt perturbation rather than of the vocabulary
+      repair it was meant to be. The olx side was stopped after two runs at
+      16/19 and 16/19, since the python median already met the revert rule.
+      REVERTED, and the tree is byte-identical to the measured state: Q4b's
+      prompt shas are back to 884defb56f26 (olx) and 7945bc093e62 (python), the
+      values the ledger holds, so 16/19 on both sides stands unre-measured.
+      FOR THE NEXT ATTEMPT. The diagnosis survives the revert -- p13 is an
+      inability, the option set has no word for it, and the instability is real.
+      What does not survive is the idea that a new enum value mapping to an
+      existing fallback is free. If this is tried again, hold the OTHER
+      classifications fixed as the control: p6 and p14 at 6/6 are the two cells
+      that broke, and any future attempt should be judged on whether they stay
+      put before anything is claimed about p13.
+
 - [ ] Q16. **Diagnose Q1's wrong calls: `utb_stated`, `reason_2`, `reason_3`.**
       Set 2026-08-28 from the two-sided sweep's first item, so the numbers below are
       6 runs at the CURRENT configuration rather than a recollection.
