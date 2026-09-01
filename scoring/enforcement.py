@@ -5436,6 +5436,102 @@ def _idmap_parsed(path: str, mtime: float, size: int) -> dict:
     return json.loads(pathlib.Path(path).read_text()).get("idMap") or {}
 
 
+def check_engines_score_identical_verdicts_alike() -> list[str]:
+    """Identical verdicts must produce identical scores on both engines.
+
+    The one comparison here that removes the MODEL from the question. Everything
+    else -- rates, medians, wrong cells -- mixes the model's answers with the
+    arithmetic over them, so a difference could be either. Holding the verdict
+    signature fixed leaves only the scoring rules, and a difference there is a
+    defect in one of the two implementations.
+
+    Coverage is reported by `engine_scoring_agreement_line`, because this check
+    being quiet means nothing without it: silence over 221 shared signatures is
+    evidence, and silence over none is an empty comparison wearing the same face.
+    """
+    import measured as MEAS
+
+    d = MEAS.scoring_logic_agreement()
+    return [f"{item}/p{pid}: the two engines produced the SAME verdicts and "
+            f"DIFFERENT scores -- olx {a}, python {b}. The model is not the "
+            f"variable here; the scoring rules are implemented differently"
+            for item, pid, a, b in d["differing"]]
+
+
+def engine_scoring_agreement_line() -> str:
+    """Coverage for the check above, as audit context rather than a finding."""
+    import measured as MEAS
+
+    d = MEAS.scoring_logic_agreement()
+    if not d["matched"]:
+        return ("engine scoring: NO verdict signature was produced by both "
+                "engines, so the identical-verdicts check compared nothing.")
+    return (f"engine scoring: {d['matched']} verdict signature(s) produced by "
+            f"BOTH engines, {len(d['differing'])} of them scored differently. "
+            f"Evidence that the two implementations agree, proportional to that "
+            f"coverage -- not proof, since it says nothing about combinations "
+            f"neither engine reached.")
+
+
+def check_engine_rate_divergence() -> list[str]:
+    """A cell where the two engines' agreement RATES differ beyond chance.
+
+    Reports two different things, because the honest answer at the current run
+    count is about POWER rather than about the engines:
+
+      * any cell significant after correcting for the number of cells compared.
+        None can be today: the smallest p a 6-against-6 split can produce is
+        0.0022 and the Bonferroni threshold over ~516 cells is 0.0001. A cell
+        here would be a real divergence.
+      * whether the test has any power AT ALL. A check that cannot fire is worse
+        than no check, because it reads as evidence of agreement -- the failure
+        this audit hit twice on 2026-09-01, with the unreadable `paper` column
+        and with silence standing for cleanliness. So the absence of power is
+        itself reported, once, as a fact about the design.
+
+    WHY NOT A MEDIAN COMPARISON, which is what E39 first proposed: medians
+    manufacture divergences on cells near 50%, and QUALITY_CONTROL 2e records
+    three of Q32's five being ONE observation apart. The exact test is what
+    separates those from a real difference, and at six runs a side it says none
+    of them is separable.
+    """
+    import measured as MEAS
+
+    d = MEAS.rate_divergence()
+    out = [f"{i}/p{pid}: the engines' agreement rates differ beyond chance -- "
+           f"olx {a}/{na}, python {c}/{nc}, p={pv:.5f} against a corrected "
+           f"threshold of {d['bonferroni']:.5f}"
+           for pv, i, pid, a, na, c, nc in d["flagged"] if pv < d["bonferroni"]]
+    return out
+
+
+def engine_rate_power_line() -> str:
+    """One line of CONTEXT for the audit, not a finding.
+
+    The power fact has to be visible on every run -- a rate check that is silent
+    because it cannot fire reads as evidence the engines agree -- but it is not
+    a defect anyone can fix by editing code, so reporting it as a finding would
+    leave the audit permanently red, and a check that is always red is one
+    nobody reads. It goes where the coverage lines go.
+    """
+    import measured as MEAS
+
+    d = MEAS.rate_divergence()
+    if d["min_p_possible"] is None:
+        return "engine rates: no cell has both sides recorded."
+    blind = d["min_p_possible"] > d["bonferroni"]
+    return (f"engine rates: {d['cells']} cell(s) compared by exact test; "
+            f"{len(d['flagged'])} at uncorrected p<0.05 where chance predicts "
+            f"~{0.05 * d['cells']:.0f}. "
+            + (f"NO POWER at this run count -- smallest possible p "
+               f"{d['min_p_possible']:.5f} against a corrected threshold of "
+               f"{d['bonferroni']:.5f}, so no divergence claim is supportable "
+               f"until the sides are swept deeper (nine runs each would let a "
+               f"PERFECT split register, and nothing less than perfect)."
+               if blind else
+               f"Corrected threshold p<{d['bonferroni']:.5f}."))
+
+
 def check_app_and_harness_send_the_same_request() -> list[str]:
     """Do the two engines post the same FIELDS to the provider?
 

@@ -654,6 +654,10 @@ def enforcement_audit():
         findings.append(("-", "ENGINES SEND DIFFERENT PROMPTS", bad))
     for bad in ENF.check_app_and_harness_send_the_same_request():
         findings.append(("-", "ENGINES SEND DIFFERENT REQUESTS", bad))
+    for bad in ENF.check_engine_rate_divergence():
+        findings.append(("-", "ENGINE RATE DIVERGENCE", bad))
+    for bad in ENF.check_engines_score_identical_verdicts_alike():
+        findings.append(("-", "ENGINES SCORE THE SAME VERDICTS DIFFERENTLY", bad))
     for bad in ENF.check_contains_matcher_agrees_across_engines():
         findings.append(("-", "MATCHER DIFFERS ACROSS ENGINES", bad))
     for bad in ENF.check_side_contract_is_enforced():
@@ -1811,6 +1815,8 @@ def print_enforcement():
     print(f"Coverage: {len({**ACTION, **SHEET_ONLY})} CLI item(s) scored on the web, "
           f"{len({**ACTION, **SHEET_ONLY}) - len(never)} of them measured by "
           f"agreement_app.JOBS.")
+    print(ENF.engine_rate_power_line())
+    print(ENF.engine_scoring_agreement_line())
     print("Run --enforcement --selftest to confirm this audit still detects a removal.")
     return 1 if findings else 0
 
