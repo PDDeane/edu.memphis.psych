@@ -1116,6 +1116,237 @@ _COUNTING = re.compile(r"exclud|flag|cells|participants|of the rest|"
                        r"rows|boxes|slots|passes|runs", re.I)
 
 
+def _artifact_path(item: str, side: str):
+    """Where a recorded side's artifact lives, or None if it is not recorded."""
+    import paths as _p
+
+    e = entry(item, side)
+    if not e or not e.get("out"):
+        return None
+    return Path(_p.OUT) / str(e["out"]) / f"{item}.runs.json"
+
+
+@functools.lru_cache(maxsize=None)
+def _verdict_signatures(item: str, side: str, path: str, mtime: float,
+                        size: int) -> tuple:
+    """((pid, verdicts, answers), score) for every cell in one side's artifact.
+
+    KEYED ON THE ARTIFACT'S mtime AND size, so a fresh sweep of ONE item
+    invalidates only that item's signatures and every other item stays cached.
+    That is the natural invalidation here: the signatures are a pure function of
+    the recorded runs, and the recorded runs change exactly when the file is
+    rewritten.
+
+    `path`, `mtime` and `size` are arguments rather than looked up inside,
+    because lru_cache keys on arguments -- reading the mtime in the body would
+    cache the first value seen and never notice a re-sweep, which is the bug
+    this signature shape exists to avoid.
+    """
+    import cross_path as X
+
+    doc = _runs_doc(item, side)
+    if not doc:
+        return ()
+    out = []
+    for run in doc["runs"]:
+        for c in run.get("results") or []:
+            got = X.result_cell(c)
+            if not got or got[2] is None:
+                continue
+            _it, pid, score, _v = got
+            verd = dict(c.get("checks") or c.get("verdicts") or {})
+            extra = dict(c.get("answers") or c.get("refers_to") or {})
+            out.append(((pid,
+                         tuple(sorted((k, str(v)) for k, v in verd.items() if v)),
+                         tuple(sorted((k, str(v)) for k, v in extra.items() if v))),
+                        round(float(score), 4)))
+    return tuple(out)
+
+
+def _artifact_fingerprint() -> tuple:
+    """(item, side, mtime, size) for every recorded artifact, sorted.
+
+    The cache key for `scoring_logic_agreement`. Re-sweeping ONE item changes
+    one tuple, which invalidates the composed answer while every other item's
+    signatures stay cached in `_verdict_signatures` -- so the recomputation
+    costs that item alone.
+    """
+    # ONE ledger read, not one per (item, side). Going through `entry()` re-read
+    # and re-parsed MEASURED.json 52 times, which WAS the whole warm cost of the
+    # scoring comparison -- 0.023s of stat plus parse, against 0.001s of actual
+    # work. Caching `load()` itself would be the wrong fix: `record` writes the
+    # ledger, so a process-wide cache would need invalidating on every write.
+    import paths as _p
+
+    items = (load().get("items") or {})
+    out = []
+    for item in sorted(_jobs()):
+        rec = items.get(item) or {}
+        for side in ("olx", "python"):
+            e = rec.get(side) or {}
+            if not e.get("out"):
+                continue
+            f = Path(_p.OUT) / str(e["out"]) / f"{item}.runs.json"
+            try:
+                st = f.stat()
+            except OSError:
+                continue
+            out.append((item, side, st.st_mtime, st.st_size))
+    return tuple(out)
+
+
+def scoring_logic_agreement() -> dict:
+    """See `_scoring_logic_agreement`; cached on the artifacts' fingerprint."""
+    d = _scoring_logic_agreement_cached(_artifact_fingerprint())
+    # A copy, so a caller that mutates the result cannot poison the next one --
+    # the same guard `fixture_for` makes for the same reason.
+    return {"matched": d["matched"], "differing": list(d["differing"])}
+
+
+@functools.lru_cache(maxsize=8)
+def _scoring_logic_agreement_cached(_fingerprint: tuple) -> dict:
+    """Where both engines produced the SAME verdicts, did they produce the same score?
+
+    THIS SEPARATES THE SCORER FROM THE MODEL, which nothing else here does. Every
+    other comparison mixes them: a cell scores differently and the cause could be
+    the model answering differently or the arithmetic over those answers
+    differing. Holding the verdicts fixed removes the model from the question --
+    if identical answers ever yield different totals, the two implementations of
+    the scoring rules disagree, and that is a defect rather than sampling.
+
+    NOT PROOF, and worth being plain about. It only covers the verdict
+    combinations both engines happened to produce on the sampled cells, so it
+    cannot speak for a combination neither reached. What it gives is evidence
+    proportional to its coverage, which is why the MATCHED count is returned
+    alongside the differences: silence over 221 shared signatures means
+    something, and silence over none means nothing at all.
+
+    The signature is the verdicts AND the classification answers -- `checks` plus
+    `answers` on the python side, `verdicts` plus `refers_to` on the olx side --
+    because a cover group's score depends on which member a slot refers to, not
+    only on whether it was met.
+    """
+    import collections
+
+    out = {"matched": 0, "differing": []}
+    for item in sorted(_jobs()):
+        by_sig = collections.defaultdict(lambda: collections.defaultdict(set))
+        for side in ("olx", "python"):
+            f = _artifact_path(item, side)
+            try:
+                st = f.stat() if f else None
+            except OSError:
+                st = None
+            if st is None:
+                continue
+            for sig, score in _verdict_signatures(item, side, str(f),
+                                                  st.st_mtime, st.st_size):
+                by_sig[sig][side].add(score)
+        for sig, sides in by_sig.items():
+            if len(sides) < 2:
+                continue
+            out["matched"] += 1
+            if sides["olx"] != sides["python"]:
+                out["differing"].append((item, sig[0], sorted(sides["olx"]),
+                                         sorted(sides["python"])))
+    return out
+
+
+def _fisher_two_tailed(a: int, b: int, c: int, d: int) -> float:
+    """Exact p for the 2x2 table [[a, b], [c, d]], two-tailed.
+
+    Written out rather than imported: scipy is not a dependency here, and the
+    tables are tiny. Sums the probability of every table at least as extreme as
+    the observed one, which is the conventional two-tailed exact test.
+    """
+    from math import comb
+
+    n, r1, r2, c1 = a + b + c + d, a + b, c + d, a + c
+    if not (r1 and r2 and c1 and n - c1):
+        return 1.0
+    pr = lambda x: comb(r1, x) * comb(r2, c1 - x) / comb(n, c1)
+    p0 = pr(a)
+    lo, hi = max(0, c1 - r2), min(r1, c1)
+    return min(1.0, sum(pr(x) for x in range(lo, hi + 1) if pr(x) <= p0 + 1e-12))
+
+
+def rate_divergence(alpha: float = 0.05) -> dict:
+    """Per cell, is the two engines' agreement RATE distinguishable from chance?
+
+    THE QUESTION E39 ASKED, and the answer turns out to be about statistical
+    power rather than about the engines. Comparing medians manufactures
+    divergences -- QUALITY_CONTROL 2e records three of Q32's five being ONE
+    observation apart -- so the comparison is a two-proportion exact test on
+    each cell's right/wrong counts.
+
+    At six runs a side the test can barely fire. The smallest p it can produce
+    is 0.0022, from a perfect 6-against-0 split, and with ~516 comparable cells
+    a Bonferroni threshold sits at 0.0001. So NO cell can reach significance at
+    this run count, whatever the engines do: the ledger cannot support a claim
+    of engine divergence, in either direction.
+
+    Returns the counts rather than a verdict, so the caller decides what to do
+    with a corpus that has no power.
+    """
+    import handouts as H
+
+    jobs = _jobs()
+    out = {"cells": 0, "flagged": [], "alpha": alpha, "min_p_possible": None}
+    for item in sorted(jobs):
+        h = jobs[item]["handout"]
+        try:
+            g = _corrected_gold(h, rebuild_1c=(item == "1c"))
+        except Exception:
+            continue
+        for pid in sorted(g):
+            tgt = ((g.get(pid) or {}).get(item) or {}).get("score")
+            if tgt is None:
+                continue
+            counts = {}
+            for s in ("olx", "python"):
+                sc = _cell_scores(item, pid, s)
+                if not sc:
+                    counts = None
+                    break
+                counts[s] = (sum(1 for v in sc
+                                 if H.scored_exactly(item, tgt, v)), len(sc))
+            if not counts:
+                continue
+            out["cells"] += 1
+            (a, na), (c, nc) = counts["olx"], counts["python"]
+            best = _fisher_two_tailed(na, 0, 0, nc)
+            out["min_p_possible"] = (best if out["min_p_possible"] is None
+                                     else min(out["min_p_possible"], best))
+            pv = _fisher_two_tailed(a, na - a, c, nc - c)
+            if pv < alpha:
+                out["flagged"].append((pv, item, pid, a, na, c, nc))
+    out["flagged"].sort()
+    out["bonferroni"] = alpha / max(out["cells"], 1)
+    return out
+
+
+def rate_divergence_report(alpha: float = 0.05) -> str:
+    """`rate_divergence` as text, for `measured.py --rates`."""
+    d = rate_divergence(alpha)
+    n, bonf = d["cells"], d["bonferroni"]
+    lines = [f"engine agreement RATES over {n} comparable cell(s)",
+             f"  uncorrected alpha {alpha}; Bonferroni over {n} cells: "
+             f"p < {bonf:.5f}",
+             f"  smallest p the recorded run count can produce: "
+             f"{d['min_p_possible']:.5f}"]
+    if d["min_p_possible"] is not None and d["min_p_possible"] > bonf:
+        lines.append("  SO NO CELL CAN REACH SIGNIFICANCE at this run count -- the "
+                     "test has no power here and no divergence claim is "
+                     "supportable from the ledger")
+    lines.append(f"  cells at uncorrected p < {alpha}: {len(d['flagged'])} "
+                 f"(chance alone predicts about {alpha * n:.0f})")
+    for pv, item, pid, a, na, c, nc in d["flagged"]:
+        mark = "  SURVIVES CORRECTION" if pv < bonf else ""
+        lines.append(f"    {item}/p{pid:<3} olx {a}/{na}  python {c}/{nc}  "
+                     f"p={pv:.4f}{mark}")
+    return "\n".join(lines)
+
+
 def refusal_precision(item: str, side: str = DEFAULT_SIDE) -> str:
     """Per slot: how many of our refusals gold's own itemisation CONTRADICTS.
 
@@ -2015,6 +2246,9 @@ def main() -> int:
     # COMMENT contradicts the refusal. They answer differently whenever a
     # refusal is right and the cell is wrong for another reason, which is what
     # framed subgoal Q19 for three days.
+    if a[:1] == ["--rates"] and len(a) == 1:
+        print(rate_divergence_report())
+        return 0
     if a[:1] == ["--refusals"] and len(a) in (2, 3):
         print(refusal_precision(a[1], a[2] if len(a) == 3 else DEFAULT_SIDE))
         return 0
