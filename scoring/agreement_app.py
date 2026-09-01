@@ -2808,6 +2808,21 @@ def main() -> int:
                   f"cannot resolve a difference smaller than that")
 
     if args.out:
+        # THE SAME GUARD agreement.py CARRIES, and this harness never got it.
+        # Its comment there records that a missing output directory cost 720
+        # calls, and a trailing slash another 720. On 2026-09-01 it cost twelve
+        # more runs here: both Q4a and Q4c completed all six passes and then died
+        # on `FileNotFoundError: .../e25_fix_web/Q4a.json` because the directory
+        # did not exist. Every cell had been scored and every result was thrown
+        # away at the last statement. A run's artifact must not depend on someone
+        # having run mkdir.
+        import os as _os
+        out = args.out
+        if out.endswith(("/", _os.sep)) or _os.path.isdir(out):
+            out = _os.path.join(out, f"{args.item}.json")
+            print(f"--out named a directory; writing {out}", file=sys.stderr)
+        _os.makedirs(_os.path.dirname(_os.path.abspath(out)), exist_ok=True)
+        args.out = out
         with open(args.out, "w") as fh:
             json.dump({"item": args.item, "results": results}, fh, indent=2)
         print(f"wrote {args.out}", file=sys.stderr)

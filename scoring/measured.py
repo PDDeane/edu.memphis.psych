@@ -78,7 +78,7 @@ def _section_bounds(text: str, screen_ids: set[str]) -> dict[str, tuple[int, int
 
 
 @functools.lru_cache(maxsize=1)
-def _cli_read_attrs() -> frozenset:
+def _python_read_attrs() -> frozenset:
     """Which <LLMAction> attributes agreement.py actually reads off the open tag.
 
     DERIVED from its source, not listed here, so it cannot go stale: the day the
@@ -89,7 +89,7 @@ def _cli_read_attrs() -> frozenset:
     return frozenset(re.findall(r'_attr\(open_tag,\s*"([^"]+)"\)', src))
 
 
-def _cli_visible(section: str) -> str:
+def _olx_only_visible(section: str) -> str:
     """The section as the CLI SEES it: prompt bodies plus the attributes it reads.
 
     Everything else on the open tag reaches the CLI from the RUBRIC, not the OLX
@@ -103,7 +103,7 @@ def _cli_visible(section: str) -> str:
     the CLI side STALE PROMPT and made cross_path refuse a comparison that was
     perfectly valid.
     """
-    keep = _cli_read_attrs()
+    keep = _python_read_attrs()
 
     def _one(m: re.Match) -> str:
         tag = m.group(0)
@@ -118,8 +118,9 @@ def _cli_visible(section: str) -> str:
 def prompt_sha(item: str, side: str | None = None) -> str:
     """SHA-256 of the OLX text that item's grader is served, to 12 hex chars.
 
-    `side="cli"` hashes only what the CLI consumes -- see `_cli_visible`. Omit it
-    for the web, which is served the tag entire.
+    `side="python"` hashes only what agreement.py consumes -- see
+    `_olx_only_visible`. Omit it for the `olx` side, which is served the tag
+    entire.
     """
     jobs = _jobs()
     job = jobs[item]
@@ -133,8 +134,8 @@ def prompt_sha(item: str, side: str | None = None) -> str:
                        f"{job['handout']}'s OLX")
     a, b = bounds[sid]
     section = text[a:b]
-    if side == "cli":
-        section = _cli_visible(section)
+    if side == "python":
+        section = _olx_only_visible(section)
     return hashlib.sha256(section.encode()).hexdigest()[:12]
 
 
@@ -184,15 +185,17 @@ def load() -> dict:
 #   paper_opus  score.py on Opus -- the headroom experiment, deliberately NOT
 #                                   comparable to the others, since it varies the
 #                                   model and the path at once
-SIDES = ("web", "cli", "paper", "paper_opus")
-DEFAULT_SIDE = "cli"
+SIDES = ("olx", "python", "paper", "paper_opus")
+DEFAULT_SIDE = "python"
 
 
 def _migrate(led: dict) -> dict:
     """Fold a pre-side ledger into the per-side shape, in memory.
 
     The old entry was the record itself: {"numerator": ..., "prompt_sha": ...}.
-    The new one is {"web": {...}, "cli": {...}}, because a two-sided sweep measures
+    The new one is {"olx": {...}, "python": {...}} -- spelled `web` and `cli` until
+    the rename of 2026-09-01, which this function also folds -- because a
+    two-sided sweep measures
     both paths and the old shape had nowhere to put the second -- it could compare
     the paths and record only one of them, which is the whole point of the sweep
     lost at the last step.
@@ -205,6 +208,19 @@ def _migrate(led: dict) -> dict:
     for item, rec in list(items.items()):
         if isinstance(rec, dict) and "numerator" in rec:
             items[item] = {DEFAULT_SIDE: rec}
+        elif isinstance(rec, dict):
+            # The sides were called `web` and `cli` until 2026-09-01. `cli`
+            # collided with the `--backend cli` PROVIDER -- which is Opus, not
+            # the shipped model -- and that collision is how an Opus run came to
+            # be recorded as the python column. The names now say whose rules
+            # score the sheet and cannot be read as a provider flag.
+            #
+            # Migrated on READ, by shape, like the pre-side fold above: a ledger
+            # or a hand-edit still carrying the old key is honoured rather than
+            # having that column silently disappear.
+            for was, now in (("web", "olx"), ("cli", "python")):
+                if was in rec and now not in rec:
+                    rec[now] = rec.pop(was)
     return led
 
 
@@ -554,7 +570,7 @@ def era_stamp(items=None, model: str | None = None,
     for it in items:
         try:
             per[it] = {"prompt_sha": prompt_sha(it), "scorer_sha": scorer_sha(it),
-                       "prompt_sha_cli": prompt_sha(it, "cli")}
+                       "prompt_sha_python": prompt_sha(it, "python")}
         except Exception as e:
             per[it] = {"error": f"{type(e).__name__}: {e}"}
     return {
@@ -599,22 +615,49 @@ def scorer_sha(item: str | None = None) -> str:
 # `participant_id` with absolute points. See cross_path.result_cell, which is
 # where both shapes are read.
 SIDE_CONTRACT = {
-    "web":        ("app",    "gpt-5-mini"),
-    "cli":        ("python", "gpt-5-mini"),
-    "paper":      ("python", "gpt-5-mini"),
-    "paper_opus": ("python", "opus"),
+    "olx":        ("olx_app",       "gpt-5-mini"),
+    "python":     ("olx_python",    "gpt-5-mini"),
+    "paper":      ("rubric_python", "gpt-5-mini"),
+    "paper_opus": ("rubric_python", "opus"),
 }
 
 
-def _artifact_shape(doc: dict) -> str:
-    """"app" or "python", from the first readable result. "" if undecidable."""
+def _artifact_program(doc: dict) -> str:
+    """Which program wrote this artifact: the three are told apart by shape.
+
+    THE LANGUAGE IS NOT THE DISCRIMINATOR, and naming it "python" was a trap
+    worth removing: agreement.py and score.py are BOTH Python, so a contract
+    demanding "python" would have accepted a paper-scorer artifact into the
+    `python` column -- the column that exists to be compared against `olx` on
+    equal terms. What separates them is the PROMPT SOURCE.
+
+        olx_app        results keyed `cell`, score a FRACTION of `sheet_max`
+        olx_python     results keyed `participant_id`, absolute points
+        rubric_python  no `runs` array at all -- score.py writes one
+                       `participant_{pid:03d}.json` per participant, carrying
+                       `items` and `scored_total`
+
+    That last one is why no paper artifact has ever been recordable here, and
+    what subgoal E28 is for. It is detected rather than assumed absent, so the
+    day score.py grows a runs.json the contract already refuses it.
+    """
+    if "runs" not in doc:
+        if "items" in doc or "scored_total" in doc:
+            return "rubric_python"
+        return ""
     for run in doc.get("runs") or ():
         for r in run.get("results") or ():
             if "cell" in r:
-                return "app"
+                return "olx_app"
             if "participant_id" in r:
-                return "python"
+                # `response_chars` is agreement.py's own field. Absent, the entry
+                # is still keyed like agreement.py's, so it is read as such --
+                # but a rubric_python record reaching here would have been caught
+                # by the `runs` test above.
+                return "olx_python"
     return ""
+
+
 
 
 def _check_side_contract(side: str, doc: dict, runs_path: str) -> list[str]:
@@ -636,14 +679,16 @@ def _check_side_contract(side: str, doc: dict, runs_path: str) -> list[str]:
     want_shape, want_model = SIDE_CONTRACT[side]
     era = doc.get("era") or {}
     got_model = (era.get("model") or "").strip()
-    got_shape = _artifact_shape(doc)
+    got_shape = _artifact_program(doc)
     out = []
     if got_shape and got_shape != want_shape:
-        was = {"app": "agreement_app.py", "python": "agreement.py/score.py"}
+        was = {"olx_app": "agreement_app.py (the OLX prompt, scored by the shipped grader)",
+               "olx_python": "agreement.py (the OLX prompt, scored in Python)",
+               "rubric_python": "score.py (the RUBRIC prompt, scored in Python)"}
         out.append(
             f"side {side!r} must be recorded from {was[want_shape]}, but "
             f"{runs_path} was written by {was[got_shape]} (results are keyed "
-            f"{'`cell`' if got_shape == 'app' else '`participant_id`'})")
+            f"{'`cell`' if got_shape == 'olx_app' else '`participant_id`'})")
     if not got_model:
         out.append(
             f"{runs_path} does not say which model produced it, so it cannot be "
@@ -1249,8 +1294,15 @@ def prose_claims(paths: list[str] | None = None) -> list[str]:
                 side = DEFAULT_SIDE
                 low = window.lower()
                 best = -1
-                for cue, s_ in (("web", "web"), ("app", "web"),
-                                ("cli", "cli"), ("harness", "cli")):
+                # BOTH VOCABULARIES are cues. The sides were renamed on
+                # 2026-09-01, and the prose this scans is years of history --
+                # dropping "web"/"cli" as cues would have made every older
+                # sentence resolve to the default side and compared its number
+                # against the wrong column.
+                for cue, s_ in (("web", "olx"), ("app", "olx"),
+                                ("olx", "olx"),
+                                ("cli", "python"), ("harness", "python"),
+                                ("python", "python")):
                     at = low.rfind(cue)
                     if at > best:
                         best, side = at, s_

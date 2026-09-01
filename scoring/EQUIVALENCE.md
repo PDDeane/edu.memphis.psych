@@ -1,35 +1,35 @@
-# Web ↔ CLI equivalence: state, and what is left to do
+# OLX ↔ python equivalence: state, and what is left to do
 
 ## Why this file exists
 
-`agreement_app.py` measures the lo-blocks web prompts against the same gold rows
+`agreement_app.py` measures the lo-blocks olx prompts against the same gold rows
 `baseline.py` uses, so the two implementations can be compared. That comparison
 is only meaningful if both run the **same rubric**.
 
 Run `python3 equivalence.py` for the current table, `--item Q4a` for one item's
-gaps, `--cli Q4a` to print exactly what the paper scorer sends.
+gaps, `--python Q4a` to print exactly what the paper scorer sends.
 
-### Three scorers, and what "CLI" means here
+### Three scorers, and what "python" means here
 
-The project grew a third scorer after this file was named, and the word "CLI"
+The project grew a third scorer after this file was named, and the word "python"
 now carries two senses. Which one is meant is stated at each use from here on;
-where an older passage says "CLI" without qualification it means the **paper**
+where an older passage says "python" without qualification it means the **paper**
 scorer, because that is the only one that existed when it was written.
 
 | name used here | code | prompt | output |
 | --- | --- | --- | --- |
-| **paper** (older passages: "CLI") | `score.py`, measured by `baseline.py` | its own, from `rubric_hN.py` | credit_checks + deductions + advisory_note + safety_flag + escalate |
-| **CLI harness** | `agreement.py`, driven by `sweep_cli.sh` | the SHIPPED `.olx` prompt | a slot sheet — `{checks, feedback}` |
-| **web** | the app itself, driven by `agreement_app.py` | the SHIPPED `.olx` prompt | a slot sheet — `{checks, feedback}` |
+| **paper** (older passages: "python") | `score.py`, measured by `baseline.py` | its own, from `rubric_hN.py` | credit_checks + deductions + advisory_note + safety_flag + escalate |
+| **python harness** | `agreement.py`, driven by `sweep_cli.sh` | the SHIPPED `.olx` prompt | a slot sheet — `{checks, feedback}` |
+| **olx** | the app itself, driven by `agreement_app.py` | the SHIPPED `.olx` prompt | a slot sheet — `{checks, feedback}` |
 
 The distinction matters for reading the rule table below: its left column is the
 **paper** scorer's fields. `agreement.py` has no `escalate`, no `safety_flag`
-and no `advisory_note` — it sends the web's prompt and returns the web's sheet,
+and no `advisory_note` — it sends the olx's prompt and returns the olx's sheet,
 so on every row of that table it belongs in the RIGHT column, not the left.
 
 ## State: structurally equivalent as of 2026-08-02
 
-All 23 web prompt bodies are now **generated** from `rubric_hN.py` by
+All 23 olx prompt bodies are now **generated** from `rubric_hN.py` by
 `olx_prompts.py`, following `score.py:build_prompt`'s skeleton — item header,
 question as asked, credit components with points, deduction code table, all
 guidance bullets, exemplars, cross-item context — copied verbatim.
@@ -40,7 +40,7 @@ guidance bullets, exemplars, cross-item context — copied verbatim.
     python3 olx_prompts.py --refs      # <Ref> ids dropped/added/duplicated
 
 `equivalence.py` reports **0 undeclared gaps** and 3 declared omissions (all on
-1c, all describing `.docx` evidence that has no web analogue). Measured baseline
+1c, all describing `.docx` evidence that has no olx analogue). Measured baseline
 of the equivalent system: **410 cells, 85% exact, MAE 0.33** — see Measurement
 state.
 
@@ -68,7 +68,7 @@ here and to `olx_prompts.py`.
 
 ### 1. The student response arrives per-field
 
-The web has structured input, one box per judgement; the CLI parses one prose
+The olx has structured input, one box per judgement; the python parses one prose
 block. `olx_prompts.RESPONSE` maps the boxes; `## Student response to grade`
 lists them under their on-screen labels. Fixtures for measurement come from
 `out/hN/participant_NNN.json` — see "Fixtures" below.
@@ -80,7 +80,7 @@ prompt as `olx_prompts.WEB_SYSTEM`. Rules 3 and 5 are verbatim and
 `_check_rules_still_match()` asserts it; the other six are re-pointed at fields
 that exist here, because of deviation 3:
 
-| rule | paper (`score.py`) | web |
+| rule | paper (`score.py`) | olx |
 | --- | --- | --- |
 | 1 | credit component by component, quote into `evidence` | check by check, quote into that check's `evidence` |
 | 2 | emit a deduction ledger using exact codes | the deduction table is canonical *wording* for `feedback`; the code is an internal label |
@@ -101,24 +101,24 @@ which left its mapping implied rather than declared, unlike `safety_flag` and
 
 ### 3. Output is a slot sheet
 
-The web grader (`SlotSheetGrader` over `scoreSlotSheet`) consumes
+The olx grader (`SlotSheetGrader` over `scoreSlotSheet`) consumes
 `{checks, feedback}`; the PAPER scorer returns credit_checks + deductions +
 advisory_note + safety_flag + escalate. `agreement.py` returns the
-same `{checks, feedback}` the web does — it is the shipped prompt run from the
+same `{checks, feedback}` the olx does — it is the shipped prompt run from the
 command line, not a second rubric. The sheet is authored in
 the `slots=` attribute and `olx_prompts.py` **reads it** to generate the
 `## The checklist to return` section, so the prompt and the schema cannot drift.
 
 The slot keys already match the rubric's credit `what` names on every item
-except the operant-conditioning ones, where the web sheet is shaped differently
+except the operant-conditioning ones, where the olx sheet is shaped differently
 (`names_behavior` for `behavior`, a `cadence_is_daily` gate rather than a
-`cadence_ok` boolean). `olx_prompts.SLOT_NOTES` maps each web check back to its
+`cadence_ok` boolean). `olx_prompts.SLOT_NOTES` maps each olx check back to its
 numbered paper criterion, so the criteria text stays verbatim and still names
 real checks.
 
 **The type judgement is a classification, not a verdict.** This is the largest
 of those shape differences and the newest, so it is spelled out. The paper
-scorer asks WHICH of the four types something is as a verdict value; the web
+scorer asks WHICH of the four types something is as a verdict value; the olx
 splits that in two — the model answers `refers_to` from a named set, and the
 grader COMPUTES whether that answer is the right one. Ten items are shaped this
 way, not the eight the previous wording implied: D1 and D2 classify as well.
@@ -141,9 +141,9 @@ meant "correct".
 Consequences of this deviation:
 
 * **The deduction table is sent to every item**, including `derive_from_credit`
-  and `derive_from_criteria` items where `build_prompt` omits it. The CLI
+  and `derive_from_criteria` items where `build_prompt` omits it. The python
   applies that canonical wording *after* the call, in
-  `score.py:compose_feedback` (the paper scorer); the web has no post-processing step, so the model
+  `score.py:compose_feedback` (the paper scorer); the olx has no post-processing step, so the model
   must see the wording to be able to use it.
 * **`build_prompt`'s "## Slots to judge" block is not reused.** Its verdict
   paragraph is written for Q6 and describes Q6's verdicts even on 1c, whose
@@ -153,10 +153,10 @@ Consequences of this deviation:
 ### 4. 1c reaches the student as fields, not a file (3 declared omissions)
 
 `SelfMonitorPlot` draws the chart live from the four weeks of data in 1b and the
-labelling fields in 1c. The CLI grades a `.docx` and gets a graph-evidence bundle
+labelling fields in 1c. The python grades a `.docx` and gets a graph-evidence bundle
 (chart XML, embedded images, grouped shape text).
 
-**The bundle has a web analogue, and 1c is passed it.** The chart is generated
+**The bundle has a olx analogue, and 1c is passed it.** The chart is generated
 *from the 1b data*, so the data is what decides whether a graph exists and whose
 it is. `olx_prompts.EVIDENCE` puts the four fields under `## Graph evidence for
 this submission`, in the position `build_prompt` gives the bundle, and the sheet
@@ -226,7 +226,7 @@ graph gate and so states no label verdicts. p18 is now reproduced exactly and
 p15 (baseline and week 3 absent) probably is too, so both are candidates to
 bring back into the comparison. p4, p19 and p20 are gold 0 for a paper-specific
 reason — a template chart, or a written description instead of a figure — and
-their data reconstructs fine, so the web correctly does not zero them; they must
+their data reconstructs fine, so the olx correctly does not zero them; they must
 go on being dropped. The rule would be "a gold-zeroed row is comparable iff the
 reconstruction has no data", which is a fact about the submission rather than
 about the prediction. Widening the gold set is a measurement change and belongs
@@ -236,13 +236,13 @@ Guidance omissions are keyed by the bullet's **opening text**, never by its
 position in the list, and `resolve_guidance_omissions` raises if a fragment
 matches zero or two bullets. An index-keyed draft would have moved the omission
 set onto the axis-titles bullet — the item's most common deduction and one the
-web can judge — on any insertion into `rubric_h3.py`'s guidance, while
+olx can judge — on any insertion into `rubric_h3.py`'s guidance, while
 `equivalence.py` went on reporting zero gaps because it read the same indices.
 
-This makes 1c worth 6 on the web against 10 in the CLI. It is the one item where
+This makes 1c worth 6 on the olx against 10 in the python. It is the one item where
 the two are not measuring the same thing, and its rows are not comparable.
 
-### 5. Web-only context that the rubric does not ask for, removed
+### 5. OLX-only context that the rubric does not ask for, removed
 
 The hand-written prompts passed material the rubric's `context` list does not.
 Extra context is exactly the kind of unattributable difference this work exists
@@ -256,7 +256,7 @@ to remove, so it is gone; re-add any of it deliberately, with a measurement.
 | 1c | the student's goal behavior | `[]` |
 | 2b | both chosen OC types | `2a` |
 
-Conversely, context the rubric DOES ask for and the web was not passing has been
+Conversely, context the rubric DOES ask for and the olx was not passing has been
 added: Q1's prose into Q2/Q3/Q4a/Q4b/Q4c/Q5/Q6, Q2's into Q4b/Q6, the UTB choice
 into Q4b/Q6/D1/D2, the WGB into D1/D2, 2a's three fields into 2b and 3, and 2b
 into 3. The paper Q1 block holds both the chosen UTB and the prose about it, so
@@ -266,11 +266,11 @@ the rubric key `Q1` maps to the closed choice *and* the text area; `_utb` /
 ### 6. Q1's "weak hint" is replaced by the closed choice; later items use the described behavior
 
 `build_prompt` adds a `## Weak hint` section for Q1 and Q2, read from the .docx's
-underline formatting and correct in only 6 of 20 transcriptions. The web asks
+underline formatting and correct in only 6 of 20 transcriptions. The olx asks
 for the UTB as a closed `ChoiceInput` before question 1, so the same fact
 arrives authoritatively as `## The behavior they chose`.
 
-**Q1 only.** Everywhere after it, the web sends the behavior the student
+**Q1 only.** Everywhere after it, the olx sends the behavior the student
 DESCRIBED in question 1 rather than the one they ticked — `bmod_h1_utb_observed`,
 a `SheetValue` over `utb_stated`'s evidence, falling back to the choice until
 question 1 has been checked. Seven prompts carry it (Q2, Q3, Q4a, Q4b, Q4c, Q5,
@@ -280,7 +280,7 @@ The reason is that the two can disagree, and everything after question 1 is
 graded against what the student actually wrote: someone who ticks "lack of
 sleep" and then writes about exercise is doing the exercise project, and Q4a's
 antecedents are antecedents of *that*. On paper the question cannot arise —
-there is one handwritten answer and nothing to disagree with it — so the CLI
+there is one handwritten answer and nothing to disagree with it — so the python
 keeps sending the underlined hint and this is a web-only refinement, not a
 divergence in what is being judged.
 
@@ -314,18 +314,18 @@ prompt. It has two parts, and only the second is conditional:
   **required** `note` to every non-computed check and re-describes `feedback` as
   a one-or-two-sentence opening.
 
-  It also re-describes **`evidence`**, which the CLI treats as an internal audit
-  field and the web now DISPLAYS under its check. The web therefore asks for the
-  shortest verbatim span in quotation marks; the CLI asks only for "quote from
+  It also re-describes **`evidence`**, which the python treats as an internal audit
+  field and the olx now DISPLAYS under its check. The olx therefore asks for the
+  shortest verbatim span in quotation marks; the python asks only for "quote from
   the student, or what you looked for and did not find". Same field, same
   purpose, a stricter contract on the side where a student reads it — and the
-  reason the web does not ask for a quote in the prose: the span is already on
+  reason the olx does not ask for a quote in the prose: the span is already on
   screen, so a note saying "that sentence" would point at something the reader
   cannot identify while the words sit directly above it.
 
 Neither is in the .olx: both are appended at runtime, keyed off `showChecks`.
 `olx_prompts.py` deliberately does not reproduce them — generating them into the
-prompt bodies would send them twice on the web, and would make `--check` demand
+prompt bodies would send them twice on the olx, and would make `--check` demand
 text in the files that the runtime already supplies.
 
 **Scope.** The student-facing half reaches all 23 sheets. The other half is a
@@ -339,15 +339,15 @@ compressing. With checks shown, every comment is pinned to one check and capped
 at two sentences; with them hidden the model has one open field, the whole
 sheet's findings in view, and nothing telling it to stop. These are precisely the
 items chosen to be graded generously, and burying that in six paragraphs is its
-own kind of discouraging. All three items therefore still differ from the CLI —
+own kind of discouraging. All three items therefore still differ from the python —
 by the student-facing block and the length budget. Keying the spell-out rule off `showChecks` would
 have exempted exactly the items whose output is nothing but prose.
 
 **Why it is permitted.** It is a display difference, not a grading one. `note`
 is prose rendered under its own check; it is never scored, and no verdict, point
 value or deduction wording depends on it. The schema property is added, not
-substituted: `verdict` and `evidence` are unchanged, so every check the CLI makes
-the web still makes, in the same words.
+substituted: `verdict` and `evidence` are unchanged, so every check the python makes
+the olx still makes, in the same words.
 
 **Why it needed writing down anyway.** `equivalence.py --enforcement` compares
 scoring behaviour, not prompt text, and is byte-identical across this change. An
@@ -356,7 +356,7 @@ exists for.
 
 **What it may move.** Output length: the model now writes 8-11 notes per item,
 under an `interactive` budget of 16384 that covers reasoning and output together.
-A web-vs-gold figure measured before this change was measured on shorter
+A olx-vs-gold figure measured before this change was measured on shorter
 completions; re-run `agreement_app.py` before comparing across it.
 
 ## `forbid`: the same rule, reached three different ways
@@ -364,19 +364,19 @@ completions; re-run `agreement_app.py` before comparing across it.
 Verified deliberately, after wiring `A_NONE`/`C_NONE` on Q4a/Q4c exposed that the
 two sides did not implement this primitive the same way at all.
 
-**The web** parses `forbid="key:slot=value,slot=value"` from the sheet, computes
+**The olx** parses `forbid="key:slot=value,slot=value"` from the sheet, computes
 the check in `satisfiedMap`, and strips the key from the response schema. General:
 any item can carry a rule and nothing is hand-written per item.
 
-**The CLI** had NO general implementation. `forbid` existed only as a hand-written
+**The python** had NO general implementation. `forbid` existed only as a hand-written
 branch, `if item.get("id") in POLARITY_GATE_ITEMS`, computing one specific
 conjunction for one item family. Its schema-exclusion set covered `equals` keys
 and `counts` members but not `forbid` keys.
 
-**The harness mirror** (`agreement.apply_computed`) was general, like the web.
+**The harness mirror** (`agreement.apply_computed`) was general, like the olx.
 
-So declaring a `forbid` rule on a NEW item produced a three-way split: the web
-computed it, the harness computed it, and the CLI ASKED THE MODEL for it -- a
+So declaring a `forbid` rule on a NEW item produced a three-way split: the olx
+computed it, the harness computed it, and the python ASKED THE MODEL for it -- a
 question answerable from two verdicts the model had already given, which spends a
 judgement and invites it to contradict itself. Nothing compared the two, because
 the enforcement audit compares DECLARATIONS and a hand-written branch declares
@@ -384,8 +384,8 @@ nothing.
 
 **Now:** `score.py` reads `item["forbid"]` from the rubric, computes it beside
 `equals`, and strips the keys from both its schema and its prompt. The rule is
-declared on both sides -- the OLX attribute for the web, the rubric key for the
-CLI -- exactly as `counts` and `equals` already were. The POLARITY_GATE_ITEMS
+declared on both sides -- the OLX attribute for the olx, the rubric key for the
+python -- exactly as `counts` and `equals` already were. The POLARITY_GATE_ITEMS
 branch still stands and should fold into a declared rule on those items; it is
 recorded in `enforcement.HANDCODED_ITEM_RULES` so it cannot be forgotten.
 
@@ -394,10 +394,10 @@ recorded in `enforcement.HANDCODED_ITEM_RULES` so it cannot be forgotten.
 A gate whose slot is COMPUTED cannot be found by behavioural probing: the probe
 fails each INPUT in turn, and a computed key is not an input. `probe.test.ts`
 reports such gates in `declaredGates` rather than `gates`, and the enforcement
-comparison read only the latter -- so a computed gate looked CLI-only when both
+comparison read only the latter -- so a computed gate looked python-only when both
 sides gate. The comparison now accepts either.
 
-The web gate is real and was checked against the app rather than assumed:
+The olx gate is real and was checked against the app rather than assumed:
 `pickGate` fires on `slot.gates && !sat[key] && charged[key]`, and `chargedMap`
 marks every slot chargeable unless an `onlyif` suppresses it. Neither item has
 one, so the third condition is a no-op there. A synthetic both-absent sheet scores
@@ -422,54 +422,54 @@ prose used to exist TWICE: in `score.py:build_prompt` and in
 "score.py:build_prompt's derive_from_criteria block, verbatim."
 
 It had stopped being verbatim. Criterion 5's example read "sleeping more will
-reward me with a rested body" on the CLI and "a rested body, or fitness itself,
-following the behaviour that produces it" on the web; criterion 7's read "the
+reward me with a rested body" on the python and "a rested body, or fitness itself,
+following the behaviour that produces it" on the olx; criterion 7's read "the
 extra chore" against "30 pushups"; criterion 10's WK1 rule was a shorter, older
-version on the CLI than the one the web had grown. Every audit stayed green
+version on the python than the one the olx had grown. Every audit stayed green
 throughout, because each side was self-consistent and this prose is authored in
 the SCORERS rather than in the rubric — so it fell exactly between the prompt
-audit, which asks whether the web carries each RUBRIC element, and the
+audit, which asks whether the olx carries each RUBRIC element, and the
 enforcement audit, which compares DECLARATIONS. Neither has any notion of two
 scorers holding two copies of the same paragraph.
 
 `leakage.py` could not see it either: it scans rubric `guidance`/`rule` strings
-and `SLOT_NOTES`. The CLI's copy had never been scanned, and the two drifted
-examples were precisely the ones the web-side leakage rewrite had replaced.
+and `SLOT_NOTES`. The python's copy had never been scanned, and the two drifted
+examples were precisely the ones the olx-side leakage rewrite had replaced.
 
 **score.py now calls `_criteria_section`.** One source, nothing to keep in step.
 Which criteria get asked follows `build_schema` rather than an item id, so the
 prompt cannot describe a field the answer sheet does not collect — the bug that
 put "put it in `evidence`" in front of a model whose sheet has no evidence field.
 
-Three substitutions remain. Each is forced by the CLI's ANSWER SHEET, not by any
+Three substitutions remain. Each is forced by the python's ANSWER SHEET, not by any
 difference in judging, and these are all of them:
 
 | substitution | why it is forced |
 |---|---|
-| `` `evidence` `` → `` `behavior` `` | the CLI's `oc_analysis` object has no evidence field; the web's checklist does |
-| `` `yes` ``/`` `no` `` → `true`/`false` | its criteria are booleans; the web's checklist answers yes/no |
-| drop "one point, and it charges ONLY this:" | the web's checklist slot carries a point value the model applies; on the CLI the engine computes the score and the model never sees points |
+| `` `evidence` `` → `` `behavior` `` | the python's `oc_analysis` object has no evidence field; the olx's checklist does |
+| `` `yes` ``/`` `no` `` → `true`/`false` | its criteria are booleans; the olx's checklist answers yes/no |
+| drop "one point, and it charges ONLY this:" | the olx's checklist slot carries a point value the model applies; on the python the engine computes the score and the model never sees points |
 
 They are applied by `olx_prompts._as_criterion`, in one place. The list format
 differs too — a numbered criteria sheet against a bulleted checklist — so the
 prefix and trailing period are not the same characters. Nothing else differs:
-191 of 200 CLI criteria sentences are verbatim web text after the substitutions,
+191 of 200 python criteria sentences are verbatim olx text after the substitutions,
 and each of the other 9 was confirmed character-identical in its rule BODY.
 
-### The one place the web was clearly wrong
+### The one place the olx was clearly wrong
 
-Web wording wins wherever the two differ. The exception is where the web is
+OLX wording wins wherever the two differ. The exception is where the olx is
 plainly self-contradictory, and DAY1 was, in two places at once. Criterion 7 said
 the avoidance reading "never changes the score; it flags the answer for a
 phrasing comment", and the `consequence_asserted` note repeated it — while DAY1's
 own guidance said "AVOIDANCE FRAMING TAKES THE WHOLE ITEM HERE. An answer whose
-only claim is about dodging a penalty ... the graders scored those zero." The CLI
-had suppressed the false half; the web shipped both halves and contradicted
+only claim is about dodging a penalty ... the graders scored those zero." The python
+had suppressed the false half; the olx shipped both halves and contradicted
 itself.
 
 That is now `rubric_h2.AVOIDANCE_SCORES` — declared once, on the rubric, read by
 both generators. DAY1 is the only member, DAY2 is unaffected, and DAY1's is the
-only web prompt this work moved; the other 22 are byte-unchanged.
+only olx prompt this work moved; the other 22 are byte-unchanged.
 
 ### What keeps it from growing back
 
@@ -495,8 +495,8 @@ check's BACKLOG by being fixed rather than by rotting.
 
     python3 equivalence.py --scoring
 
-All 23 items were walked: the CLI's ledger (`score_item`, `derive_ledger`,
-`derive_oc_ledger` and each item's deduction costs) against the web's
+All 23 items were walked: the python's ledger (`score_item`, `derive_ledger`,
+`derive_oc_ledger` and each item's deduction costs) against the olx's
 `scoreSlotSheet` over the authored `slots=`. Sixteen items are **exactly
 equivalent** — every deduction cost is reachable by the right check, whole-item
 codes land on gates, and the totals agree: Q2, Q3, Q5, Q6, D1/D2 (totals),
@@ -511,12 +511,12 @@ one.
 
 | divergence | items | forced? |
 | --- | --- | --- |
-| a legend keyed by DAY, not by week | 1c | yes — the web's chart has one orientation |
+| a legend keyed by DAY, not by week | 1c | yes — the olx's chart has one orientation |
 | `UTB_NOT_ON_LIST` (−5) unreachable | Q1 | yes — closed `ChoiceInput` |
 | the "−5, none listed" code has no gate | Q4a Q4b Q4c | yes — see below |
 
 **`targets_*` unscored — FIXED.** `derive_oc_ledger` charges WRONG_TYPE (−2)
-when the type is right but the plan aims at the wrong behaviour; the web charged
+when the type is right but the plan aims at the wrong behaviour; the olx charged
 nothing, because `targets_goal_behavior` / `targets_unwanted_behavior` carried no
 `@n`. They now carry `@2`.
 
@@ -536,7 +536,7 @@ Verified on three constructed NR cases:
 Then measured on the whole NR item, 18 cells, which is where gold has the most
 rows in the −2 band. It changed exactly **one** cell: p11, from 4 to 2 against a
 gold of 2. Worth reading, because it is the `elif` in miniature — the grader
-wrote "-2 pts: This is an example of NP", the web called it NR aimed at the
+wrote "-2 pts: This is an example of NP", the olx called it NR aimed at the
 wrong behaviour, and both land on the same single −2. That is precisely the case
 only one scored check could not express. No row double-charged.
 
@@ -549,16 +549,16 @@ this change: p4 and p14 are type judgements, p20 is a `you_arrange_it` gate
 misfire.
 
 **The "none listed" gate is now recorded as forced, not fixable.** A_NONE /
-B_NONE / C_NONE cost the whole item and the web reaches 0 only when every check
+B_NONE / C_NONE cost the whole item and the olx reaches 0 only when every check
 fails, so a response listing nothing that still uses the keyword keeps a point.
-But **zero of the 20 gold rows sits at 0 on Q4a, Q4b or Q4c** — the CLI can zero
+But **zero of the 20 gold rows sits at 0 on Q4a, Q4b or Q4c** — the python can zero
 them; the graders never did. A gate would fire on no observed case, against a
 reading (the keyword point is separately earned) that is arguably the more
 faithful one.
 
 **`INCOMPLETE_DEFINITION` on D1/D2 — WITHDRAWN, this was never a divergence.**
 It was listed on the reasoning that a definition missing both halves costs 2 on
-the web (two failed checks) and 1 on the CLI, because the code is not
+the olx (two failed checks) and 1 on the python, because the code is not
 `repeatable`. Three things say otherwise:
 
 * The rubric scopes the code to a one-half omission — *"right as far as it goes
@@ -567,17 +567,17 @@ the web (two failed checks) and 1 on the CLI, because the code is not
 * `repeatable` is a statement in the prompt, not an arithmetic cap. The plain
   path in `score_item` sums whatever codes the model returns with no dedup, and
   two entries do not trip the `over_specified` clamp on a two-component item —
-  so the CLI can reach −2 by that route too.
+  so the python can reach −2 by that route too.
 * No corpus row exercises it. Every −1 row on either item omits exactly one
   half: p13 D1 *"when you are removing something desirable"*, p16 D1 *"adding
   something desirable."*, p9 D2 *"Removing a desired stimulus after a particular
-  behavior is exhibited."* The web scores each of those 1, matching gold.
+  behavior is exhibited."* The olx scores each of those 1, matching gold.
 
-**The day-keyed legend** is structural. The web's chart has one orientation —
+**The day-keyed legend** is structural. The olx's chart has one orientation —
 series are the four weeks, the x-axis is the seven days. A paper student who
 plotted it the other way round has a legend naming days, which the graders
-accepted and the web scores as not naming the four series. Confirmed on p11:
-gold 6, web 4. One row, and not a prompt defect.
+accepted and the olx scores as not naming the four series. Confirmed on p11:
+gold 6, olx 4. One row, and not a prompt defect.
 
 What `--scoring` can and cannot do: it checks totals and whether each deduction
 cost is *reachable at all* by some combination of checks, so it catches a
@@ -591,7 +591,7 @@ written", not "the two agree".
 Fixtures come from `out/hN/participant_NNN.json`, the per-component evidence
 `score.py` already extracted for all 20 participants of all three handouts.
 Three regex splitters and a hand-read table were written before anyone noticed
-that data was on disk; it is the decomposition the web's separate fields need.
+that data was on disk; it is the decomposition the olx's separate fields need.
 
 * `from_scorer` — one component, one field. Correct where a component maps to a
   discrete answer.
@@ -610,9 +610,9 @@ that data was on disk; it is the decomposition the web's separate fields need.
 ## Measurement state — the full sweep
 
 `out/web_v2`, all 26 items, 466 cells with gold on both sides, five excluded as
-structurally unreachable on the web. Built from the per-item JSON.
+structurally unreachable on the olx. Built from the per-item JSON.
 
-| | n | CLI | web | cliMAE | webMAE | same score |
+| | n | python | olx | cliMAE | webMAE | same score |
 | --- | --- | --- | --- | --- | --- | --- |
 | **ALL** | 466 | **90.8%** | **87.1%** | 0.17 | 0.29 | **91.2%** |
 | H1 | 133 | 82.0% | 75.2% | 0.24 | 0.39 | 82.0% |
@@ -624,17 +624,17 @@ structurally unreachable on the web. Built from the per-item JSON.
 reference re-run below invalidated every `from_scorer` fixture, 2a's among them.
 Do not quote this list as current.**]**
 All are criteria-path OC items or items whose checks are derived: where both sides run
-the same sheet they are indistinguishable. **D2 and Q6 beat the CLI** (94 vs 89, 62 vs
+the same sheet they are indistinguishable. **D2 and Q6 beat the python** (94 vs 89, 62 vs
 56). **1c and Q1 are level** with it.
 
-Where the web still trails: Q4b (100 vs 75), Q4c (76 vs 65), DAY1/WK1 (89 vs 78),
+Where the olx still trails: Q4b (100 vs 75), Q4c (76 vs 65), DAY1/WK1 (89 vs 78),
 DAY2 (83 vs 72), Q5 (100 vs 88). Every one asks the student for several things at once
-and the web splits them into boxes the reconstruction has to fill — DEVIATION 1, not
+and the olx splits them into boxes the reconstruction has to fill — DEVIATION 1, not
 something the equivalence machinery can close.
 
-**Five cells excluded**, each because the web has REMOVED the failure rather than
+**Five cells excluded**, each because the olx has REMOVED the failure rather than
 missed it: 1c p4/p19/p20 (complete data, no graph or a written description of one — on
-the web that data draws a labelled chart), Q1 p20 (the UTB is a closed choice, so
+the olx that data draws a labelled chart), Q1 p20 (the UTB is a closed choice, so
 "never declared it" cannot arise), Q6 p9 (a documented gold divergence plus a
 consensus tie).
 
@@ -646,41 +646,41 @@ under about two cells says nothing. The corpus figure is one run per cell throug
 
 ### Q4b is the largest remaining gap, and it is DEVIATION 1 with nothing behind it
 
-CLI 100%, web 75% over 16 cells — the biggest per-item difference in the corpus.
+python 100%, olx 75% over 16 cells — the biggest per-item difference in the corpus.
 Investigated and deliberately LEFT ALONE.
 
 **All four misses are one check**: `not_active` on `behavior_1`/`behavior_2`. The
 modify slots agree on every cell, so the `onlyif` work holds. The direction is mostly
-leniency — the web credits what gold rejects on p4, p7 and p20 — but not uniformly:
+leniency — the olx credits what gold rejects on p4, p7 and p20 — but not uniformly:
 on p16 it wrongly rejects.
 
 **Ruled out, in this order:**
 
-* *Fixture* — the `handsplit` boxes are faithful splits of the prose; the CLI reads
+* *Fixture* — the `handsplit` boxes are faithful splits of the prose; the python reads
   the same words.
 * *Context* — all eight refs seeded on every cell: UTB, Q1, Q2, both Q4a antecedents,
   all three Q4b boxes. Nothing empty, so not another `repair_orphans` case.
 * *Guidance* — the ACCEPT and REJECT bullets are byte-identical in the two prompts,
   including the examples that name these very students.
 
-**What is left is the SHAPE of the input.** The CLI reads one prose block and has to
-decide whether there are two activities at all. The web is handed two boxes whose
+**What is left is the SHAPE of the input.** The python reads one prose block and has to
+decide whether there are two activities at all. The olx is handed two boxes whose
 labels assert there are, and judges each alone.
 
 p7 shows it cleanly. That student's own "1)" item is "My unwanted behavior is good to
 modify since when I get interrupted, I get frustrated…" — meta-commentary, which the
 rubric names as REJECT case (b) and cites p7 for by name. The split faithfully puts it
 in `behavior_1`, and under a heading reading "First example is something done during
-the behavior" the model credits it. Reading the whole block, the CLI does not.
+the behavior" the model credits it. Reading the whole block, the python does not.
 
 The story is not uniform, and p16 is the counter-example: its box holds "I am indoors
-watching tv. or my phone.", which appears VERBATIM in the ACCEPT list, and the web
+watching tv. or my phone.", which appears VERBATIM in the ACCEPT list, and the olx
 returned `not_active` anyway. That is not box-priming; that is simply wrong.
 
 **Why nothing was changed.**
 
 * *More prompt text* — the guidance already names p7's shape and p16's example, and
-  the web receives both. Framing changes have never moved the numbers here (three
+  the olx receives both. Framing changes have never moved the numbers here (three
   attempts, all inside noise); a fourth aimed at cases the prompt already describes
   would be the least promising yet.
 * *Re-splitting the fixture* — putting p7's meta-commentary in the modify box would
@@ -689,9 +689,9 @@ returned `not_active` anyway. That is not box-priming; that is simply wrong.
 
 Two of the four (p4, p20) are borderline for gold itself — "scrolling on tiktok" and
 "sleeping in my car" are activities the graders read as outcomes. So the honest count
-is one structural case, one web error, two coin-flips.
+is one structural case, one olx error, two coin-flips.
 
-One thing worth recording rather than acting on: a live web student has a SEPARATE box
+One thing worth recording rather than acting on: a live olx student has a SEPARATE box
 for the modify statement, so p7's confusion — numbering meta-commentary as item 1 —
 is much less likely to arise on screen than on paper. Not unreachable the way 1c's
 cells are, so it is not excluded; but the measured gap probably overstates what a live
@@ -699,7 +699,7 @@ cohort would show.
 
 ### Q4c: four of six misses are SHARED, and the web-only gap is two cells
 
-CLI 76%, web 65% over 17 cells — and the headline overstates it badly.
+python 76%, olx 65% over 17 cells — and the headline overstates it badly.
 
 **Four of the six misses have IDENTICAL verdicts on both sides.** p15 and p17 are the
 documented `C_NO_KEYWORD` divergence, which the rubric declares outright: "the graders
@@ -710,17 +710,17 @@ and differ from the graders.
 
 **The web-only gap is two cells:**
 
-* **p13** — `keyword: absent` on the web, `met` on the CLI. This student wrote
-  "conequence", one letter short. The CLI's model reads through the typo; the web's
+* **p13** — `keyword: absent` on the olx, `met` on the python. This student wrote
+  "conequence", one letter short. The python's model reads through the typo; the olx's
   does not. It is the exact case examined when deciding NOT to replace this check
-  with a regex — and the regex would have failed the same way the web just did, so
+  with a regex — and the regex would have failed the same way the olx just did, so
   the earlier decision stands and this cell is the price of it.
-* **p20** — `consequence_2` judged `met` on the web, `not_consequence` on the CLI.
+* **p20** — `consequence_2` judged `met` on the olx, `not_consequence` on the python.
   An ordinary judgement difference.
 
-    all cells                      CLI 76%   web 65%
-    minus the declared divergence  CLI 87%   web 73%
-    minus that and the shared      CLI 100%  web 85%
+    all cells                      python 76%   olx 65%
+    minus the declared divergence  python 87%   olx 73%
+    minus that and the shared      python 100%  olx 85%
 
 Nothing to fix. Left alone. **[Superseded on all three counts, 2026-08-20.** The
 denominator is 12 counted, not 17. The web-only p13 gap was `keyword: absent` on
@@ -731,13 +731,13 @@ side of this item; see the fixture-audit section.**]**
 
 ### DAY2: two cells of cadence judgement, and a larger problem both sides share
 
-CLI 83%, web 72% over 18 cells. Five misses, and only two are web-only.
+python 83%, olx 72% over 18 cells. Five misses, and only two are web-only.
 
 **Both web-only misses are the cadence gate**, which takes the whole item, so two
 judgement calls produce the entire 11-point gap:
 
 * **p8** — "If I meet my goal of going to the gym, I will reward myself by not doing
-  yard work till the end of the week." The web answered `cadence_is_daily: no` and
+  yard work till the end of the week." The olx answered `cadence_is_daily: no` and
   zeroed it. The prompt covers this shape THREE times over, including "a daily trigger
   whose reward runs to the end of the week is still daily" and an explicit tie-breaker,
   "when it could be read either way, it is daily". It received all of that and went the
@@ -746,23 +746,23 @@ judgement calls produce the entire 11-point gap:
 * **p9** — "If I don't go to the gym out of the 5 days I will reduce the time I allow
   myself to binge watch." Defensible: "out of the 5 days" reads as exactly the
   whole-week tally the guidance names as the one reason to answer `no`. Gold and the
-  CLI read it as daily.
+  python read it as daily.
 
 **The three remaining misses are SHARED, and are the item's real problem**: p7 (gold
-1, both 4), p13 (gold 0, both 4), p14 (gold 0, CLI 2, web 4). Both systems credit
+1, both 4), p13 (gold 0, both 4), p14 (gold 0, python 2, olx 4). Both systems credit
 contingencies the graders refused. That is a rubric-versus-gold question on the OC
-criteria, not a web/CLI one, and it is where DAY2's accuracy actually goes — the CLI
+criteria, not a olx/python one, and it is where DAY2's accuracy actually goes — the python
 loses three cells to it too.
 
 Nothing to fix. Left alone.
 
 ### DAY1, WK1, WK2: six web-only cells across 54, split evenly both ways
 
-CLI 89/89/94, web 78/78/83. Eleven misses in total; **five are SHARED** and six are
+python 89/89/94, olx 78/78/83. Eleven misses in total; **five are SHARED** and six are
 web-only, and the web-only ones do NOT lean one way — three too generous, three too
 strict. There is no systematic bias to correct.
 
-**Too generous** (crediting what gold and the CLI both reject):
+**Too generous** (crediting what gold and the python both reject):
 
 * **DAY1 p6** — "Leaving my headphones at my dorm so I cannot listen to music until I
   can stay consistent with going to the gym." Every gate passed. Criterion 4 names
@@ -772,14 +772,14 @@ strict. There is no systematic bias to correct.
   the other way, after Q4b p16, Q2 p7 and DAY2 p8.
 * **DAY1 p13**, **WK2 p13** — vague answers with no arranged consequence, credited.
 
-**Too strict** (gates firing on answers gold and the CLI accept):
+**Too strict** (gates firing on answers gold and the python accept):
 
 * **WK2 p11** — "If I don't workout for 30 minutes for 2-3 days, I won't get the new
   alo set." **Every gate failed**, zeroing a plain contingency. Not a borderline call;
   a bad read, and the most expensive single cell in these three items.
 * **WK1 p12** — `names_behavior: no` on "If I meet my goal at least 5 days out of the
   week, I will treat myself with a self-care day." The behaviour is referred to
-  indirectly ("meet my goal") rather than named, and the web would not take it.
+  indirectly ("meet my goal") rather than named, and the olx would not take it.
 * **WK1 p19** — `targets_own_behavior: no` on an answer plainly about the student's own
   goal, costing 1.
 
@@ -791,9 +791,9 @@ are the same kind of disagreement (p1 in reverse — both systems reject what go
 accepted).
 
 Taken with DAY2's p7/p13/p14, the H2 example items share one calibration gap: **the OC
-criteria credit contingencies the graders called not-OC.** That costs the CLI as much
-as the web, it is a rubric-versus-gold question rather than a web/CLI one, and it is
-where these items' accuracy actually goes. The web/CLI difference on top of it is six
+criteria credit contingencies the graders called not-OC.** That costs the python as much
+as the olx, it is a rubric-versus-gold question rather than a olx/python one, and it is
+where these items' accuracy actually goes. The olx/python difference on top of it is six
 cells in 54, scattered in both directions.
 
 Nothing to fix on the equivalence side. Left alone.
@@ -802,7 +802,7 @@ Nothing to fix on the equivalence side. Left alone.
 
 The DAY1/WK1/WK2 write-up above concluded that the H2 example items share a
 calibration gap, "the OC criteria credit contingencies the graders called not-OC",
-and called it worth more cells than anything web-specific. **That framing was wrong**,
+and called it worth more cells than anything olx-specific. **That framing was wrong**,
 and checking it took one query I should have run before saying it.
 
 Both systems over-credit on **7 cells across the 8 OC items — none of them on
@@ -831,36 +831,36 @@ divergences" and did not include the largest by cell count. Now six. Anyone meas
 the OC items should subtract those three cells before drawing conclusions — which is
 exactly the mistake made here.
 
-### Q1's `utb_stated` reads the CHOICE on the web, and two prompt bugs behind the count
+### Q1's `utb_stated` reads the CHOICE on the olx, and two prompt bugs behind the count
 
 **The check was scoring rhetorical form.** p17 and p20 both NAME their behaviour in
 the prose — "Lack of exercise can make me gain weight", "the lack of sleep would make
 me more tired" — what they lack is a sentence declaring it as their *target*. On paper
 that distinction did real work: with no dropdown, the prose was the only place the
-target could be identified. On the web the student answers "Which behavior will you
+target could be identified. On the olx the student answers "Which behavior will you
 work on?" from a closed choice BEFORE reaching the box, so requiring the prose to
 declare it again scores form for a fact the interface already holds. It is also the
 one rule the graders could not apply consistently — p17 kept the points, p20 lost
 them, on materially identical answers, which is itself evidence the distinction is
 too slippery to carry 2 of 5.
 
-So the web derives it: `derived="utb_stated:present:bmod_h1_utb"`. Declared per-key
+So the olx derives it: `derived="utb_stated:present:bmod_h1_utb"`. Declared per-key
 in SCORING_DIVERGENCES; the guidance bullet describing the prose test is omitted on
-the web, since it asks for a judgement the web is not given a slot to report. **p20 is
-excluded** — its deduction cannot arise there. p17 needs no exclusion: the web now
+the olx, since it asks for a judgement the olx is not given a slot to report. **p20 is
+excluded** — its deduction cannot arise there. p17 needs no exclusion: the olx now
 agrees with gold on it.
 
 Note this keeps UTB_NOT_STATED **reachable**: a student who skips the choice loses the
 2 points. That also closes the robustness gap where an unselected UTB was absorbed
 silently — `CorrectGrader` on that CapaProblem scores nothing and never fails.
 
-**Two prompt bugs surfaced while chasing the reason-count offset**, where the web read
-one reason fewer than the CLI on every disagreement:
+**Two prompt bugs surfaced while chasing the reason-count offset**, where the olx read
+one reason fewer than the python on every disagreement:
 
-* The web checklist still listed `reason_1`, `reason_2`, `reason_3` individually
+* The olx checklist still listed `reason_1`, `reason_2`, `reason_3` individually
   ALONGSIDE `reasons_given`, while the schema accepted only the count —
-  `_checklist_section` knew about `equals` and `derived` but not `counts`, so the web
-  got two framings of one judgement and no "DO NOT ANSWER" line. The CLI had one.
+  `_checklist_section` knew about `equals` and `derived` but not `counts`, so the olx
+  got two framings of one judgement and no "DO NOT ANSWER" line. The python had one.
 * Q1's new derived line was emitted with **1c's graph wording** ("satisfied when EVERY
   week of data is present"), because the DO NOT ANSWER text was hardcoded to the
   plots/complete kind rather than varying by it.
@@ -869,14 +869,14 @@ With both fixed the counts agree on 14 of 16 cells, up from 13 with a systematic
 one-lower offset on all three. p9 and p16 remain, and are genuine disagreements about
 what counts as a distinct reason rather than a framing artefact.
 
-**Q1: web 76% -> 81%, MAE 0.29 -> 0.19 — now level with the CLI's 81%.**
+**Q1: olx 76% -> 81%, MAE 0.29 -> 0.19 — now level with the python's 81%.**
 
-Corpus: **CLI 90.8% / MAE 0.17, web 87.3% / MAE 0.28, same score on 91.4% of 466
+Corpus: **python 90.8% / MAE 0.17, olx 87.3% / MAE 0.28, same score on 91.4% of 466
 cells.**
 
-### 1c gates on COMPLETE data — the web's equivalent of the graph check
+### 1c gates on COMPLETE data — the olx's equivalent of the graph check
 
-The paper item charges the whole 10 for not supplying a graph. The web draws the
+The paper item charges the whole 10 for not supplying a graph. The olx draws the
 graph, so that exact failure is gone — but the analogous one is not: **a chart
 missing weeks is not the graph the item asks for**, and the runtime can see it. So
 `has_own_graph` changed kind from `plots` to `complete`:
@@ -905,18 +905,18 @@ GRAPH is not the answer the paper item wanted:
   runtime can observe distinguishes them from the sixteen who charted: their per-week
   counts are identical.
 * **p20** — supplied a written DESCRIPTION of a graph, which the rubric names as this
-  item's "did not include" ("Participant 20 wrote exactly that"). On the web a
+  item's "did not include" ("Participant 20 wrote exactly that"). On the olx a
   description IS the answer: those labels are typed into fields and the chart is drawn
   from the four complete weeks, so there is nothing left to fail.
 
 p15 and p18 are deliberately NOT excluded — their data is incomplete, and the
 completeness gate catches both, which is the whole point of adding it.
 
-The distinction that decides the list: an item is excluded when the web has removed
-the failure, not when the web fails to notice it. Every excluded row has complete
+The distinction that decides the list: an item is excluded when the olx has removed
+the failure, not when the olx fails to notice it. Every excluded row has complete
 data; every retained row with a gold 0 has data the gate can see is short.
 
-Corpus after this, honouring the declared exclusions: **CLI 91.0% / MAE 0.16, web
+Corpus after this, honouring the declared exclusions: **python 91.0% / MAE 0.16, olx
 87.2% / MAE 0.29, same score on 90.8% of 468 cells.** H3 agreement is now 95.8%.
 
 ### One registry for the primitives, and a check that all four consult it
@@ -924,7 +924,7 @@ Corpus after this, honouring the declared exclusions: **CLI 91.0% / MAE 0.16, we
 Every primitive has had to be taught to FOUR places — `slotSheet.ts`, the block that
 wires the attribute, `probe.test.ts`, and the prompt generator — and the generator was
 missed twice. `derived` shipped, and later `counts`, with their keys still listed in
-the web checklist while the response schema refused them: the model asked for answers
+the olx checklist while the response schema refused them: the model asked for answers
 it could not return, alongside the thing meant to replace them. **Neither showed up in
 any score**, because the grader ignores surplus verdicts.
 
@@ -999,8 +999,8 @@ either way: a value too tidy for the process that supposedly produced it.
 **A harness bug: the two systems were reading different input.** `score.py` applies
 `repair_orphans`, which moves a block the segmenter filed under the wrong heading to
 the item it belongs to; `agreement_app` never did. H2 p19's DAY2 answer was filed
-under D2, so the web scored DAY2 against an EMPTY box — correctly reporting nothing
-and gating to 0 against a gold of 4 — while the CLI read the 82 characters the
+under D2, so the olx scored DAY2 against an EMPTY box — correctly reporting nothing
+and gating to 0 against a gold of 4 — while the python read the 82 characters the
 student wrote. Measured blast radius: that one participant, two cells in opposite
 directions. **DAY2 56% -> 72%, D2 89% -> 94%.**
 
@@ -1039,7 +1039,7 @@ The first pass measured Q6 at **24%** (MAE 2.56, bias −2.12), six rows at exac
 Q6's fixture never seeded 4a or 4c, so the prompt's context refs resolved to
 empty and every stated antecedent was compared against nothing.
 
-The regeneration added the cross-item context the CLI passes (deviation 5) but
+The regeneration added the cross-item context the python passes (deviation 5) but
 did not teach `build_jobs` to supply it. **An unseeded ref is not "no context",
 it is an empty answer, and the model reads it as one.** The old paraphrased
 prompt was vague about cross-item matching and credited anyway; the faithful
@@ -1085,24 +1085,24 @@ grounds — a prompt that asks for what the schema cannot hold is wrong regardle
 
 Shipped alongside it, and equally unproven: criterion 9's caveat repeated in the
 cadence gate's checklist note, and `unclear` dropped from that gate so a hedge
-cannot silently cost the whole item. Both mirror the CLI (`cadence_ok` is a
+cannot silently cost the whole item. Both mirror the python (`cadence_ok` is a
 boolean defaulting to pass). A third change — relabelling the gate — was tried
 and REVERTED: no evidence, and the run that appeared to test it showed an
 unrelated slot flipping, which is what iterating on three cells looks like.
 
 DAY2's p8 and p9 remain wrong and are the reason to stop here. "…till the end of
 the week" and "…out of the 5 days" both carry real weekly language; gold and the
-CLI read them as daily, the web does not. Pushing wording until two specific
+python read them as daily, the olx does not. Pushing wording until two specific
 rows flip is fitting the corpus, not fixing a rule.
 
-### `unclear` was charged on the web and free on the CLI
+### `unclear` was charged on the olx and free on the python
 
 The one change in this whole exercise with a clean measured effect.
 
-Every CLI boolean in `derive_oc_ledger` defaults to the favourable value —
+Every python boolean in `derive_oc_ledger` defaults to the favourable value —
 `a.get("targets_own_behavior", True)`, `a.get("cadence_ok", True)` — and
 TYPE_MISMATCH is guarded by `named != "unclear"`, so a type the model cannot read
-costs nothing. The web had no such asymmetry: `scoreSlotSheet` satisfies only the
+costs nothing. The olx had no such asymmetry: `scoreSlotSheet` satisfies only the
 FIRST verdict, so an `unclear` was a full deduction, and on D1/D2's gating
 `matches_chosen_type` it cost the whole item.
 
@@ -1128,7 +1128,7 @@ checks with a favourable default (`targets_own_behavior`, `targets_goal_behavior
 
 **All six fixes are on slots this change touched; both regressions are on slots
 it did not.** `you_arrange_it` and `observed_type` keep `unclear` deliberately —
-the CLI fails those too (`bool(a.get("contingent"))` is False when missing), so
+the python fails those too (`bool(a.get("contingent"))` is False when missing), so
 removing it there would over-apply the rule. Their movement is run-to-run
 variance. That asymmetry is the evidence: the change moved what it was aimed at
 and nothing else.
@@ -1168,9 +1168,9 @@ GUIDANCE and its sibling items — not against the `desc`.
 
 ### Asserting response headings — fixed, no measurable effect
 
-The web labelled each response box with what it was supposed to contain
+The olx labelled each response box with what it was supposed to contain
 ("### How (2)"), which asserts the box IS a second explanation of how — the very
-thing the check decides. The CLI sends one undivided block and asserts nothing,
+thing the check decides. The python sends one undivided block and asserts nothing,
 so this was deviation 1 leaking a judgement. Nine items did it. Headings are now
 "### Asked for: How (2)", with a line stating that the heading is the field label
 and not a claim about what arrived.
@@ -1184,19 +1184,19 @@ Two ways the prediction failed, both worth recording:
   REJECT a box that does not do what it was asked, so scores should fall. Five of
   the six moves went UP.
 * **The target cell did not move.** 2a p1 — whose third sentence the rubric names
-  as a deduction case, where the CLI marks `how_2` unmet — came back `met` both
+  as a deduction case, where the python marks `how_2` unmet — came back `met` both
   before and after. The one cell the change was aimed at was unaffected; only its
   quoted evidence got shorter.
 
-The change stands, because the CLI demonstrably sends no such assertion and
+The change stands, because the python demonstrably sends no such assertion and
 parallelism is the goal. But it buys nothing measurable, and I should not have
 implied it would.
 
 ### Q6's positional pairing — the fix worked on its target and cost variance
 
-The web's eight boxes are positional; the rubric's matching is not. The CLI reads
+The olx's eight boxes are positional; the rubric's matching is not. The python reads
 one undivided block and pairs the student's antecedents against 4a's set-wise, so
-splitting the answer made ORDER part of the test — a commitment the CLI never
+splitting the answer made ORDER part of the test — a commitment the python never
 makes. `ITEM_NOTES["Q6"]` now says the pair corresponds to 4a/4c **not in order**:
 a box is `met` if its content is either listed item, `mismatch` only if neither,
 and if only one of the two is addressed anywhere then the other's slots are
@@ -1208,7 +1208,7 @@ variable.
 
 **The target case is fixed, decisively.** p12 addressed both of 4c's consequences
 in the opposite order and lost 5 of 10 on four `mismatch` verdicts, where gold and
-the CLI both gave full marks. All four went `met` in BOTH new runs: 5.00 → 10.00.
+the python both gave full marks. All four went `met` in BOTH new runs: 5.00 → 10.00.
 Four slots against a two-slot band.
 
 **The whole-missing-half rule held.** p17's and p19's `state_a2`/`change_a2` stayed
@@ -1232,7 +1232,7 @@ Do not claim it as an accuracy gain.
 **Unrelated finding, now visible:** p19 is credited `state_c2`/`affect_c2` in every
 run, before and after, on "perform well in my classes and assignments" against
 4c's "cannot focus during my classes". Gold says the second consequence was never
-addressed and took 5 points. That is a stable web-vs-gold disagreement of its own,
+addressed and took 5 points. That is a stable olx-vs-gold disagreement of its own,
 independent of this change — run B's 6.25 was the outlier, not the rule.
 
 ### Grader-side pairing (`cover`): meets baseline, and the corpus cannot test it
@@ -1284,9 +1284,9 @@ checking without saying so** — a lookup that misses and returns something inno
 so the code carries on and reports success. Re-testing every one of them found three
 still live, one of them a bug introduced by the conversion work.
 
-**A typo in an `onlyif` condition silently cancelled the deduction.** The CLI port
+**A typo in an `onlyif` condition silently cancelled the deduction.** The python port
 read the missing slot's verdict as `""`, treated that as a failed condition, and
-suppressed the charge — the exact inverse of the web's rule, which `chargedMap`
+suppressed the charge — the exact inverse of the olx's rule, which `chargedMap`
 spells out: *a typo must not silently stop a check being charged.* An unknown
 condition now suppresses nothing.
 
@@ -1320,14 +1320,14 @@ the point of them: they are all about what happens on the next edit.
 Both were the leftovers from the batched conversion, and each needed a different
 thing. Neither cost accuracy — Q4b gained.
 
-**Q4b: `onlyif` ported to the CLI.** Its blocker was never the mechanism, it was the
+**Q4b: `onlyif` ported to the python.** Its blocker was never the mechanism, it was the
 amount. `B_NO_MODIFY` (-2) covers "did not say IF it is a good choice AND why" while
 `B_NO_MODIFY_WHY` (-1) covers only the second half, so two independent 1-point slots
 charged the right total under two codes at the wrong values. Giving `modify_stated`
 the full 2 and suppressing `modify_why` when it fails emits both codes at their
 dictionary amounts. **94% → 100%, MAE 0.06 → 0.00** — exact on all 16 measured cells.
 `B_NONE` becomes unreachable (never emitted, no gold row at 0), so that divergence is
-gone. The web sheet matches: `modify_stated@2` plus `onlyif` plus `max="5"`, since the
+gone. The olx sheet matches: `modify_stated@2` plus `onlyif` plus `max="5"`, since the
 costs now deliberately exceed the item.
 
 **Q1: a correction to the earlier verdict.** The batch report said converting Q1 cost
@@ -1346,9 +1346,9 @@ divergence is gone as well.
 sides (`slotSheet.ts` + `LLMAction`, six new tests).
 
 **The audit could not see Q1's asymmetry, and now can.** Every computed-check test ran
-one way — "the web computes it, the CLI asks" — so moving a check into CLI code while
-the web still asked for it read as clean. `ASKED ON WEB ONLY` is the mirror, and it
-fired on all three reason slots until the web got `counts` too. In the self-test.
+one way — "the olx computes it, the python asks" — so moving a check into python code while
+the olx still asked for it read as clean. `ASKED ON WEB ONLY` is the mirror, and it
+fired on all three reason slots until the olx got `counts` too. In the self-test.
 
 Also fixed: the probe's baseline set every slot to `"met"` regardless of its declared
 vocabulary, so a counted slot read `met`, parsed as a count of zero, and the all-pass
@@ -1356,7 +1356,7 @@ baseline stopped being full marks — which cascaded into three spurious finding
 now uses each slot's own first verdict.
 
 **The plain path is now empty.** All 26 items derive their score from checks, so
-`--enforcement` compares every one of them against probed CLI behaviour rather than
+`--enforcement` compares every one of them against probed python behaviour rather than
 against a deduction vocabulary — the residual that motivated the conversion is gone.
 The audit's plain-path branch stays for a future item, and the self-test says
 **SKIP** on the case that needs one rather than quietly passing.
@@ -1399,7 +1399,7 @@ with p17 still correctly at 0.
 
 **Three divergences closed, one narrowed.** `UTB_NOT_ON_LIST`, `A_NONE` and `C_NONE`
 were **never once emitted** across the cohort and no gold row sits at 0 on those
-items, so conversion made them unreachable on the CLI too — which is what the web
+items, so conversion made them unreachable on the python too — which is what the olx
 already was, by construction. Q1's reverted, so its entry is back; Q4a/Q4c's is gone
 and the entry now names **Q4b alone**.
 
@@ -1422,10 +1422,10 @@ that branch any more — the guard has to stay tested even when nothing exercise
 
 ### D1/D2 converted: the last fixable divergence is closed, at zero score cost
 
-`matches_chosen_type` is now computed on the CLI too, so the only `necessary: False`
+`matches_chosen_type` is now computed on the python too, so the only `necessary: False`
 entry on the books is gone — **6 declared divergences, 0 fixable.** D1/D2 also move
 from the `rubric` basis to `probe` in `--enforcement`, which is the audit gain: their
-enforcement is now compared against CLI behaviour rather than against a deduction
+enforcement is now compared against python behaviour rather than against a deduction
 vocabulary.
 
 This is the per-item redesign the 16-item conversion was rejected for, done twice.
@@ -1447,11 +1447,11 @@ moved.** A mechanism change that costs nothing is what this should look like.
 component carries `pts`: `baseline.py` and `baseline_h1.py`'s tolerance,
 `agreement.py`'s tolerance and its point set. The first surfaced as a traceback
 mid-table, which is why D1/D2's rows were missing from the first comparison; the
-`agreement.py` pair would have taken the web harness down on the next D1 run. All
+`agreement.py` pair would have taken the olx harness down on the next D1 run. All
 four now skip unscored components.
 
-Two probe bugs on the CLI side, both found by the audit refusing to go clean:
-`inputs` counted computed slots as model-answered (so it reported the CLI as still
+Two probe bugs on the python side, both found by the audit refusing to go clean:
+`inputs` counted computed slots as model-answered (so it reported the python as still
 asking for `matches_chosen_type`), and the credit-path flip forced `"absent"`
 regardless of a slot's vocabulary — which made two flipped operands *agree*, hiding
 the very rule being checked. And `equals`-operand pairs are no longer compared as
@@ -1467,21 +1467,21 @@ checks, printing the other 16 as "outside the compared set". That was an honest
 label for a real hole: **a web-only enforcement rule on any of those 16 was
 invisible**, which is how D1/D2's `equals` gate sat undeclared.
 
-The hole is not closable by probing the CLI — on the plain path the model authors
+The hole is not closable by probing the python — on the plain path the model authors
 the ledger, so there is no arithmetic to flip inputs against. What *is* closable is
-the other direction: the web always **declares** its enforcement, so every declared
+the other direction: the olx always **declares** its enforcement, so every declared
 rule can be checked against the rubric it has to come from.
 
 | basis | items | what is asserted |
 | --- | --- | --- |
-| `probe` | 10 | the CLI's own behaviour, flipping inputs — gates, charge-once, cover, vocabulary |
+| `probe` | 10 | the python's own behaviour, flipping inputs — gates, charge-once, cover, vocabulary |
 | `rubric` | 16 | every declared gate is backed by a whole-item deduction code; every computed check is named in a divergence's `web_computes`; `cover`/`onlyif` require a declaration |
 
 Turning it on surfaced **8 undeclared computed checks** on five items — all real,
 all known-good, none previously written down:
 
-* **D1, D2** — `matches_chosen_type`. The web has both halves as checks and compares
-  them; the CLI reaches `WRONG_DEFINITION` by having the model author the code.
+* **D1, D2** — `matches_chosen_type`. The olx has both halves as checks and compares
+  them; the python reaches `WRONG_DEFINITION` by having the model author the code.
   Marked **not necessary**: converting D1/D2 to `derive_from_credit` would close it,
   at the cost of the rubric redesign recorded below. The only fixable divergence on
   the books.
@@ -1491,30 +1491,30 @@ all known-good, none previously written down:
 Each is now declared per-key rather than by a blanket item exemption, so the
 exemption cannot outlive what it exempts. **7 declared divergences, 9/9 self-test.**
 
-The report says which basis each item used and prints `-` where a CLI count does
+The report says which basis each item used and prints `-` where a python count does
 not exist, rather than `0`, so the weaker basis stays visible: **a rubric-checked
-rule can be justified by the deduction vocabulary without any check that the CLI
+rule can be justified by the deduction vocabulary without any check that the python
 applies it the same way.** That is the residual, and it is the honest limit of
 auditing a model-authored ledger.
 
 ### The measurement guard: scored is not the same as measured
 
 Third instance of one blind spot, closed. The audits checked that the items they
-knew about agreed; then `uncovered_cli_items` checked that the web scores every
-CLI item. Neither checked that a scored item is ever **measured** — an item can be
+knew about agreed; then `uncovered_cli_items` checked that the olx scores every
+python item. Neither checked that a scored item is ever **measured** — an item can be
 graded correctly on screen and contribute to no number at all, which is exactly
 what 1b and T1/T2 were.
 
 `unmeasured_items()` now diffs `agreement_app.JOBS` against `ACTION ∪ SHEET_ONLY`
 in **both** directions:
 
-* **NEVER MEASURED** — the web scores it, no job drives it, so no run reports it.
+* **NEVER MEASURED** — the olx scores it, no job drives it, so no run reports it.
 * **MEASURED, NOT SCORED** — a job exists but nothing grades it, so the run can
   only report a blank.
 
 Both branches were verified to fire (the second by injecting a bogus job), and the
 first is in the self-test: **8/8**. Every run now prints the coverage plainly —
-`26 CLI item(s) scored on the web, 26 of them measured` — so the number is visible
+`26 python item(s) scored on the olx, 26 of them measured` — so the number is visible
 rather than something to re-derive by hand.
 
 `JOBS` is imported inside the function, not at module scope: `agreement_app` pulls
@@ -1578,8 +1578,8 @@ and verified against gold on all 40 T1/T2 cells before any run.
 
 ### The item sets now match, and a guard says so: 125 points / 26 items on both sides
 
-Diffing the two sets found **T1 and T2**, 4 points, scored on the CLI and by nothing
-on the web. They looked graded — `CapaProblem` + `CorrectGrader` over a closed
+Diffing the two sets found **T1 and T2**, 4 points, scored on the python and by nothing
+on the olx. They looked graded — `CapaProblem` + `CorrectGrader` over a closed
 `ChoiceInput` whose four options are the four types — but `CorrectGrader` is the
 *always-correct grader for surveys and ungraded activities*: it emits no score, and
 there is no `weight=` anywhere in Handout 2. The fields existed to feed context to
@@ -1606,7 +1606,7 @@ answering scores 0, as on paper.
 **The guard.** Both misses — 1b and T1/T2 — came from the same blind spot: the
 audits verified that the items they knew about agreed, and nothing verified that
 they knew about every item. `uncovered_cli_items()` now asserts
-`ACTION ∪ SHEET_ONLY == every CLI item id`, and it is in the self-test (7/7). It
+`ACTION ∪ SHEET_ONLY == every python item id`, and it is in the self-test (7/7). It
 would have failed on 1b and on T1/T2 from the day each was written.
 
 Two latent bugs surfaced while wiring this: `_derived_attr` and `_equals_attr` both
@@ -1614,11 +1614,11 @@ matched only `<LLMAction>`, so they returned **silently empty** for a
 `DerivedChecks` element — 1b's and T1/T2's rules were invisible to the generator
 until both were routed through `_sheet_tag`.
 
-### 1b is now scored on the web: `DerivedChecks` + `SlotSheetGrader`
+### 1b is now scored on the olx: `DerivedChecks` + `SlotSheetGrader`
 
-**1b was scored on the CLI (4 points) and not at all on the web** — it wasn't even
-in the measured set. That is a larger CLI/web difference than anything in
-`SCORING_DIVERGENCES`, and it went unlisted because the web's *item set* was being
+**1b was scored on the python (4 points) and not at all on the olx** — it wasn't even
+in the measured set. That is a larger python/olx difference than anything in
+`SCORING_DIVERGENCES`, and it went unlisted because the olx's *item set* was being
 treated as fixed rather than as part of the comparison.
 
 `SlotSheetGrader` could always have scored it; what was missing was a producer of
@@ -1660,14 +1660,14 @@ chart draws with — the exact failure this design avoids. Same objection to
 `SHEET_ONLY` map. `--prompts` prints 1b as `n/a` with a line saying why rather
 than silently omitting it; `--scoring` covers it (24 items now, up from 23) and
 was verified to bite by inflating a slot to `@2`; `--enforcement` lists its
-`derived` rule under "outside the compared set", since 1b is plain-path on the CLI
+`derived` rule under "outside the compared set", since 1b is plain-path on the python
 like D1/D2.
 
 ### 1c's `has_own_graph` is read off the page (`derived`) — the last Goal-2 item
 
 On paper "did the student produce a graph of their own data" is a judgement about a
 .docx: an embedded chart, an image, or prose describing a graph that is not there.
-On the web the chart is **drawn from** the four 1b fields, so the runtime already
+On the olx the chart is **drawn from** the four 1b fields, so the runtime already
 knows the answer, and it was a *gate* worth the whole 10 points.
 
 `derived="has_own_graph:<four field refs>:<template data>"` computes all three
@@ -1684,7 +1684,7 @@ cannot disagree with what the student sees. A second "is this a number" would
 eventually drift, and the drift would be invisible.
 
 **The `mismatch` case nearly got dropped.** My first version returned only
-met/absent, which would have silently retired a check the web deliberately makes:
+met/absent, which would have silently retired a check the olx deliberately makes:
 the worked example sits *on the same screen* as the boxes, so typing its numbers
 reproduces the paper item's "left the template in place" failure. That is a
 comparison of numbers, and the prompt had been handing the model the example's data
@@ -1706,7 +1706,7 @@ parse as `[[0]]` — caught by the "no template" test case.
 
 **Declared, because it is platform-forced**, and the declaration is machine-checked:
 the entry carries `web_computes: {"1c": ["has_own_graph"]}` and `--enforcement`
-asserts the web really does compute it. A stale exemption is worse than none — it
+asserts the olx really does compute it. A stale exemption is worse than none — it
 silences the audit for a difference that has moved.
 
 **And the audit was blind to it at first.** `--enforcement` reported 0 differences
@@ -1715,16 +1715,16 @@ now close that: derived keys join `computed`, and `KNOWN_ACTION_ATTRS` makes an
 `<LLMAction>` attribute the audit does not forward a **finding**. Adding the next
 primitive cannot leave the audit quiet. Self-test is 6/6.
 
-### Q6's CLI vocabulary collapsed onto the web's — and `cover` finally bit
+### Q6's python vocabulary collapsed onto the olx's — and `cover` finally bit
 
-Porting `cover` left the CLI asking two questions for one fact: `verdict`
+Porting `cover` left the python asking two questions for one fact: `verdict`
 (met/absent/mismatch/not_described) **and** `matches` (first/second/neither) on
-the four state slots. The web had always used one field —
+the four state slots. The olx had always used one field —
 `first/second/neither/absent` — which is the same information without the
 redundancy, and without the contradictions the pair admitted (`met` + `neither`
 needed resolving in code; `absent` + `first` was not resolved at all).
 
-The CLI now uses that one field. `verdicts` is declared on the cover group, the
+The python now uses that one field. `verdicts` is declared on the cover group, the
 state slots' `codes` maps are keyed by it (`neither` → `A_MISMATCH`, `absent` →
 `A_NOT_STATED`), and the coverage pass lost its contradiction handling because a
 contradiction is no longer expressible:
@@ -1772,8 +1772,8 @@ mode now covers it.
     python3 equivalence.py --enforcement            # the comparison
     python3 equivalence.py --enforcement --selftest # confirm it still bites
 
-**Probed, not mirrored.** The temptation is a table of "the rules the CLI
-implements", diffed against the web's attributes — but that is a hand-written copy
+**Probed, not mirrored.** The temptation is a table of "the rules the python
+implements", diffed against the olx's attributes — but that is a hand-written copy
 of Python, and the copy is what rots (see the index-keyed guidance omissions).
 Instead both sides are *exercised*: flip one input at a time, then in pairs, and
 read the rules off the losses.
@@ -1785,7 +1785,7 @@ read the rules off the losses.
 | computed | a check the model is never asked for |
 | cover | data on both sides, so compared exactly |
 
-The web half runs through `probe.test.ts` (env-gated on `RUN_SLOT_PROBE`, the
+The olx half runs through `probe.test.ts` (env-gated on `RUN_SLOT_PROBE`, the
 `runner.test.ts` convention) using the shipped `parseSlots`/`scoreSlotSheet`, so
 the thing measured is the thing that runs. Current state — **0 differences**
 across the 10 items both sides derive from checks:
@@ -1800,13 +1800,13 @@ DAY1       4          6/6           1/1     0/0       0/1
 
 The probe found the `elif` on PR/NR/PP/NP and the type comparison on the cadence
 items **from behaviour alone**, which is the point: neither is declared anywhere
-in the CLI.
+in the python.
 
 **Three details worth keeping.** (1) Charge-once pairs are discovered only on the
-CLI. An open-ended search on the web also reports both operands of an `equals` —
+python. An open-ended search on the olx also reports both operands of an `equals` —
 flip them both to the same wrong value and they agree again, so the computed check
-comes back satisfied. Real behaviour, not a rule; the web declares its rules, so
-there is nothing to infer. (2) On the CLI the two type fields fail to *different*
+comes back satisfied. Real behaviour, not a rule; the olx declares its rules, so
+there is nothing to infer. (2) On the python the two type fields fail to *different*
 wrong values for the same reason. (3) Cover labels are claimed per group, not
 globally — sharing one set hands the second group labels the first already took,
 and the all-satisfied baseline silently stops being full marks.
@@ -1817,7 +1817,7 @@ the audit says so — the Q6 coverage that actually went wrong, plus Tier 1's
 `equals` and Tier 2's `onlyif`. 3/3 detected, and it restores clean.
 
 **What it deliberately does not cover**, printed on every run rather than left to
-look like coverage: D1 and D2 declare `equals` on the web while the CLI scores them
+look like coverage: D1 and D2 declare `equals` on the olx while the python scores them
 by a model-authored ledger, so there is no check arithmetic to compare. Those
 reach the same outcome by the model picking a whole-item code — the slot-sheet
 design difference, not drift. The 16 plain-path items are excluded for the same
@@ -1825,10 +1825,10 @@ reason, and `ENF.check_criteria_table_is_complete` fails the audit if an
 `oc_analysis` field is added without deciding how it fails, so the probe cannot
 quietly stop covering something.
 
-### `cover` ported back to the CLI — and a correction to the case for doing it
+### `cover` ported back to the python — and a correction to the case for doing it
 
 Q6 asks the student to change **each of their two** antecedents, so the two state
-slots must name DIFFERENT 4a items. The CLI's verdict vocabulary
+slots must name DIFFERENT 4a items. The python's verdict vocabulary
 (`met`/`absent`/`mismatch`/`not_described`) carries no identity, so nothing could
 check it and no guidance asked the model to. Now the model also reports `matches`
 — `first`, `second`, or `neither` — as a required schema property on the four
@@ -1859,24 +1859,24 @@ carry identities, and exemplar 2 is itself an order-swap (box 1 names 4a's
 **Measured: 0 demotions across 20 cells.** Q6 exact 65% → 65%, one cell moved
 (p4 7.5 → 8.75) and that move is not attributable — coverage fired nowhere. Three
 cells reported swapped pairs (`second, first`), which the mechanism credits, as
-the CLI already did.
+the python already did.
 
-**The correction.** This work was justified by p18: the web's identity report had
-both consequence boxes naming the same 4c item, the CLI scored 8.75 against gold's
+**The correction.** This work was justified by p18: the olx's identity report had
+both consequence boxes naming the same 4c item, the python scored 8.75 against gold's
 7.5, and I attributed the 1.25 to unenforced distinctness. Asked for its own
-identity read, **the CLI called them distinct** (`first`, `second`) — so the
+identity read, **the python called them distinct** (`first`, `second`) — so the
 duplicate is not a stable reading of that answer, and the p18 gap is a judgement
 difference about whether the second consequence was addressed at all, not a
 pairing failure. The recovered point I predicted does not exist.
 
 What survives is the structural argument, the same one `cover` was kept on for the
-web: a double-claim is now unrepresentable rather than unchecked, and ordering is
+olx: a double-claim is now unrepresentable rather than unchecked, and ordering is
 unconstrained for a live student in a way it is not across 16 paper answers. Do
 not cite p18 as evidence for it.
 
-### The CLI asked the model for two values it then discarded — removed
+### The python asked the model for two values it then discarded — removed
 
-The same audit turned on the reference implementation: *does the CLI use the model
+The same audit turned on the reference implementation: *does the python use the model
 to compute anything code could?* Two required schema properties were being thrown
 away on every call.
 
@@ -1890,7 +1890,7 @@ ledger.append({"code": spec["code"], "pts": spec["pts"], "note": d.get("note", "
 ```
 
 The code already knew the model's arithmetic was not to be trusted; it asked
-anyway. That is the same incoherence `equals` removed on the web side, in the
+anyway. That is the same incoherence `equals` removed on the olx side, in the
 reference. It leaked twice over: on **318 of 320** plain-path cells the model also
 echoed the points into the free-form `what` string it authors
 (`"utb_stated (2 pt): ..."`).
@@ -1903,7 +1903,7 @@ a model that volunteers `pts` now produces an *invalid* response, and the habit
 was well established. A two-cell smoke test passed and matched the old reference
 exactly before the full re-run.
 
-### The recalculated reference: net zero, and the web fixtures it invalidates
+### The recalculated reference: net zero, and the olx fixtures it invalidates
 
 Full re-run after the removal — 520 cells, 520 calls, $43.58, 37 min. The old
 reference is preserved at `out/h{1,2,3}_preschema`; nothing was overwritten
@@ -1926,10 +1926,10 @@ Structurally clean too: 520/520 cells scored, `over_specified` 0,
 false` risk did not materialise, so the model dropped the `pts` habit when told
 to.
 
-**What this invalidates.** 7 items' web fixtures are built from CLI output via
+**What this invalidates.** 7 items' olx fixtures are built from python output via
 `from_scorer` — Q3, Q4a, Q4c, Q5, 1c, 2a, 3 — and `CONTEXT_SOURCE` feeds 17 refs
 of cross-item context from the same files. Those fixtures have now shifted, so
-the web numbers in the table below are **not comparable** for those items and
+the olx numbers in the table below are **not comparable** for those items and
 need re-measuring before being read against anything.
 
 Three items are unaffected by construction: **Q6** (frozen consensus, which is
@@ -1983,8 +1983,8 @@ asked the same comparison as a **gate**. `equals="matches_chosen_type:observed_t
 has the grader compute it; the check leaves the response schema entirely, so the
 model is not asked for an answer that would be discarded. The `:unclear` clause
 is not convenience — it mirrors `derive_oc_ledger`'s
-`named != "unclear" && observed != named`, and without it the web charges 2 for
-the model's own hedge, which is [the `unclear` divergence](#unclear-was-charged-on-the-web-and-free-on-the-cli)
+`named != "unclear" && observed != named`, and without it the olx charges 2 for
+the model's own hedge, which is [the `unclear` divergence](#unclear-was-charged-on-the-olx-and-free-on-the-python)
 rebuilt inside the new primitive. A test asserts that failure mode.
 
 *Why no measurement.* Replaying the recorded verdicts: the grader's arithmetic
@@ -2026,7 +2026,7 @@ remains prose is genuine judgement.
 
 ### Q6's fixture is now frozen from a 10-run consensus — no accuracy gain
 
-The CLI was run ten times on Q6 (`out/q6_consensus/run1..10`, ~$13.50) to answer
+The python was run ten times on Q6 (`out/q6_consensus/run1..10`, ~$13.50) to answer
 whether a stable parse of each answer exists. It does, decisively:
 
 * **156 of 160 slots had the same verdict in all ten runs (98%).** Only p4
@@ -2034,7 +2034,7 @@ whether a stable parse of each answer exists. It does, decisively:
   wavered at all.
 * The spans, by contrast, move on 47% of slots per rerun.
 
-So the CLI's JUDGEMENT is near-deterministic and only its QUOTATION drifts —
+So the python's JUDGEMENT is near-deterministic and only its QUOTATION drifts —
 which is the whole of Q6's measurement instability, since the fixture is built
 from quotations. `q6_consensus.py` votes each slot's span word by word across the
 ten runs, independently per slot so overlap survives, and `JOBS["Q6"]` now reads
@@ -2044,7 +2044,7 @@ the frozen result. Fixture hash verified deterministic.
 
 | fixture | exact | MAE | bias | within-pair differing cells |
 | --- | --- | --- | --- | --- |
-| single CLI run | 11/16, 10/16 | 0.64/0.56 | +0.33/+0.41 | 4 |
+| single python run | 11/16, 10/16 | 0.64/0.56 | +0.33/+0.41 | 4 |
 | consensus @0.5 | 8/16, 8/16 | 0.88/0.88 | +0.56/+0.41 | 2 |
 | consensus @0.6 | 8/16, 10/16 | 0.80/0.56 | +0.64/+0.41 | 3 |
 
@@ -2059,27 +2059,27 @@ recorded above were invalidated by exactly that churn.
 Adoption rule, to avoid cherry-picking: the FIRST run of a pair goes into
 `out/web_v1/`, not the better one.
 
-### The web now beats the CLI on Q6, and p5 is the only cell going the other way
+### The olx now beats the python on Q6, and p5 is the only cell going the other way
 
 Reconciling two figures that were reported side by side and are not comparable:
-**CLI 13/20 = 9 on the web's 16 cells + 4 on cells the web excludes.** Three of
+**python 13/20 = 9 on the olx's 16 cells + 4 on cells the olx excludes.** Three of
 those four are Q6's own prompt exemplars (p6, p8, p10), which appear verbatim with
-their verdict sheets — the CLI scoring them exactly is close to tautological, and
+their verdict sheets — the python scoring them exactly is close to tautological, and
 that is why `handouts.excluded()` drops them from any reported baseline. p9 is the
 fourth. On matched cells:
 
 | | exact, same 16 cells |
 | --- | --- |
-| CLI | 9/16 |
-| web | **11/16** |
+| python | 9/16 |
+| olx | **11/16** |
 
-The web is ahead by two. It is right where the CLI is wrong on p11, p17 and p18,
-and wrong where the CLI is right on **p5 alone**.
+The olx is ahead by two. It is right where the python is wrong on p11, p17 and p18,
+and wrong where the python is right on **p5 alone**.
 
 **p5 has no systematic explanation.** Two mechanisms were proposed and both test
 negative:
 
-* *Context fidelity* — the CLI reads the whole 4a section while the web reads two
+* *Context fidelity* — the python reads the whole 4a section while the olx reads two
   extracted spans, so the spans might be lossy. They are not: retention is
   **100%**, the two spans concatenated are the section verbatim.
 * *The identity question being more lenient than the match question* — a forced
@@ -2089,18 +2089,18 @@ negative:
 
 What actually happened is narrower. p5's `state_a1` asks whether "sugar craving
 that leads me to reaching for unhealthy snacks" is the same antecedent as 4a's "I
-commonly keep unhealthy snacks nearby". Gold and the CLI say no — a craving is not
-a stocking habit. The web has never had a stable read on it: across the six
+commonly keep unhealthy snacks nearby". Gold and the python say no — a craving is not
+a stocking habit. The olx has never had a stable read on it: across the six
 pre-`cover` runs it came back `mismatch` three times and `met` three times, an
 even coin flip. The identity framing did not bias it, it **stabilised** it — at
 `first`, i.e. credited, which is the wrong side.
 
-So the web went from intermittently wrong to consistently wrong on one borderline
+So the olx went from intermittently wrong to consistently wrong on one borderline
 call, while gaining stability everywhere else. Not worth chasing: it is one cell
 against three in the other direction, and the underlying judgement is one a
 careful reader could go either way on.
 
-### Q6 on the web: 9.0 → 11.0 of 16, replicated
+### Q6 on the olx: 9.0 → 11.0 of 16, replicated
 
 The `change_*` rule is the first change in this whole exercise with a clearly
 replicated effect. Two runs each, identical frozen fixture (hash
@@ -2118,11 +2118,11 @@ Three cells became consistently correct — p2 (the target case) 7.5/10.0 → 8.
 both times, p17 5.0/3.75 → 5.0 both times, p18 6.25/7.5 → 7.5 both times. Two
 became less stable: p4 and p15 each have one run overshooting downward.
 
-Worth noting the asymmetry with the CLI, where the same rubric change left exact
+Worth noting the asymmetry with the python, where the same rubric change left exact
 agreement at 13/20. Same rule, different effect on the two implementations —
-different n, different excluded cells, and the CLI's own p3/p11 movement. Not
+different n, different excluded cells, and the python's own p3/p11 movement. Not
 over-interpreted here; the point is that a rubric change is the only kind that has
-moved the web materially, and it moved it in the direction the rubric intended.
+moved the olx materially, and it moved it in the direction the rubric intended.
 
 Still caution: n=16 against a 2–4 cell band. Replication across two runs is what
 makes this credible, not the size. Remaining misses, both runs: p4, p5, p15, p16,
@@ -2132,15 +2132,15 @@ p19.
 
 Acting on the finding below — that both implementations credit a `change_*` slot
 when the described change is really a plan to do the goal behaviour — the fix went
-into `rubric_h1.py`, NOT into a prompt. That is the right place: the CLI and the
-generated web prompt both read it, so equivalence is preserved by construction
+into `rubric_h1.py`, NOT into a prompt. That is the right place: the python and the
+generated olx prompt both read it, so equivalence is preserved by construction
 and `equivalence.py` still reports 9/9 guidance verbatim.
 
 The bullet alone fixed p2 and improved calibration sharply, but cost p3 — a 10/10
 answer whose change acts on a belief while naming the gym as its result. The
 contrast case recovered p3 and gave back most of the calibration:
 
-| CLI's own Q6 agreement | exact | MAE | bias |
+| python's own Q6 agreement | exact | MAE | bias |
 | --- | --- | --- | --- |
 | before the bullet | 13/20 | 0.51 | +0.39 |
 | bullet only | 12/20 | 0.45 | **+0.07** |
@@ -2152,26 +2152,26 @@ at n=20 with this much run-to-run movement is not resolvable, and README.md had
 already concluded after six attempts that Q6 rubric tuning was not productive.
 This is the seventh and it returns exact agreement to where it started.
 
-Note the fixture insulation that made this safe: the CLI was rescored twice
-during this work and the web fixture hash never moved, because the frozen
+Note the fixture insulation that made this safe: the python was rescored twice
+during this work and the olx fixture hash never moved, because the frozen
 consensus overrides `from_scorer`. Two rounds earlier the same rescore would have
-invalidated the web comparison outright.
+invalidated the olx comparison outright.
 
-### Q6's over-crediting is the RUBRIC's, not the web's — a correction
+### Q6's over-crediting is the RUBRIC's, not the olx's — a correction
 
 Recorded above as "what Q6 actually gets wrong: it over-credits", attributed to
-the web. That attribution was wrong. Checking the four cells against the CLI:
+the olx. That attribution was wrong. Checking the four cells against the python:
 
-| pid | gold | CLI | web (8 runs) | gold's own reason |
+| pid | gold | python | olx (8 runs) | gold's own reason |
 | --- | --- | --- | --- | --- |
 | p2 | 8.75 | **10.00** | 10.0 ×7, 7.5 ×1 | `change_a2` — "listening to music while working out does not change your antecedent of playing video games" |
 | p4 | 6.00 | **7.50** | 7.5–8.75 | "-2.5: missing both consequences -1.5; missing one antecedent" |
 | p16 | 8.75 | **10.00** | 10.00 ×8 | `affect_c2` — "did not clarify the second consequence being affected" |
 | p19 | 5.00 | **7.50** | 7.50 ×8 | bundles the second antecedent AND its consequence as one −5 |
 
-**The CLI over-credits every one, by the same amount or more.** These are
-rubric-vs-gold disagreements shared by both implementations, so the web is doing
-its job — reproducing the CLI. Only p4, p16 and p19 are stably over gold across
+**The python over-credits every one, by the same amount or more.** These are
+rubric-vs-gold disagreements shared by both implementations, so the olx is doing
+its job — reproducing the python. Only p4, p16 and p19 are stably over gold across
 all eight runs; p2 dipped once.
 
 One is genuinely actionable and one is a gold artifact:
@@ -2183,12 +2183,12 @@ One is genuinely actionable and one is a gold artifact:
   "putting an hour a day Tuesday-Friday". "Listening to music while working out"
   is the same shape against "playing video games". The exemplar is verbatim in
   both prompts and neither applies it. Fixing that is rubric work on the
-  `change_*` slots, and it would move the CLI's own baseline — so it is scoring
+  `change_*` slots, and it would move the python's own baseline — so it is scoring
   improvement, not equivalence, and belongs in its own measured step.
 * **p4's gold does not use its own slot structure.** "−1.5" is not a multiple of
   1.25 on a 1.25-increment item, and gold faults the consequences where both
   implementations fault the antecedents. Nearly inverted, and not reconcilable
-  by anything on the web side.
+  by anything on the olx side.
 
 ### The original (superseded) note on Q6 over-crediting
 
@@ -2196,7 +2196,7 @@ Six runs across three fixtures agree on the direction. Bias is positive in every
 single one (+0.33, +0.41, +0.56, +0.41, +0.64, +0.41), and four cells are over
 gold in **all six** while none is ever under:
 
-| pid | gold | web over by |
+| pid | gold | olx over by |
 | --- | --- | --- |
 | p2 | 8.75 | 1.25 |
 | p4 | 6.00 | 1.50–2.75 |
@@ -2204,14 +2204,14 @@ gold in **all six** while none is ever under:
 | p19 | 5.00 | 2.50 |
 
 That is the signal worth pursuing on this item, and it is not a fixture or
-framing question — the web credits slots the graders did not. p19 is the clearest:
+framing question — the olx credits slots the graders did not. p19 is the clearest:
 it is credited `state_c2`/`affect_c2` on "perform well in my classes and
 assignments" against 4c's "cannot focus during my classes", where gold took 5
 points for the second consequence never being addressed.
 
 ### The same-fixture noise band for Q6, measured properly
 
-Two web runs, identical prompt, identical frozen `out/h1` (fixture hash verified
+Two olx runs, identical prompt, identical frozen `out/h1` (fixture hash verified
 identical before each; `out/h1` re-checksummed after). Results in `out/q6_null/`.
 
 | | exact | MAE | bias |
@@ -2223,9 +2223,9 @@ identical before each; `out/h1` re-checksummed after). Results in `out/q6_null/`
 * **cell level: 2 of 17 disagree between runs (12%)**, each by exactly one slot
   (1.25 pts)
 
-So the web model's Q6 judgement is highly self-consistent, and the churn that has
-made this item so hard to measure comes from the CLI's quotation — 47% of
-evidence spans change per rescore — not from the web. Freeze `out/h1` and Q6 is
+So the olx model's Q6 judgement is highly self-consistent, and the churn that has
+made this item so hard to measure comes from the python's quotation — 47% of
+evidence spans change per rescore — not from the olx. Freeze `out/h1` and Q6 is
 one of the steadier items, not the noisiest.
 
 What that settles about the changes recorded here:
@@ -2241,23 +2241,23 @@ a way single-run misses are not: p2 (+1.25), p4 (+1.5), p9 (−1.25, a documente
 gold divergence), p16 (+1.25), and **p12 (−5.00, four slots)**. p12 is the
 largest stable gap on the item and has never been examined.
 
-### Q6's fixture is not stable across CLI reruns — freeze it before comparing
+### Q6's fixture is not stable across python reruns — freeze it before comparing
 
 `score.py --items Q6` was re-run to populate a new field. One rerun apart, on the
 17 measured participants:
 
-* the CLI's **met/unmet verdict** was identical on **134 of 136** slots (99%);
+* the python's **met/unmet verdict** was identical on **134 of 136** slots (99%);
 * the **evidence span** it quoted changed on **64 of 136** (47%), and on three
   participants all eight changed.
 
-The CLI's own Q6 score was unmoved (13/20 against gold before and after, MAE
-0.51). But the web fixture is built entirely from those spans, so **it inherits
-variance the CLI never sees.** That is a large part of why Q6 has been the
+The python's own Q6 score was unmoved (13/20 against gold before and after, MAE
+0.51). But the olx fixture is built entirely from those spans, so **it inherits
+variance the python never sees.** That is a large part of why Q6 has been the
 noisiest item in every sweep.
 
-Consequence for method: a web Q6 measurement is only comparable to another built
-from the SAME `out/h1` snapshot. Re-scoring the CLI invalidates the comparison
-even when the CLI's own numbers are unchanged. Snapshot `out/h1` alongside any
+Consequence for method: a olx Q6 measurement is only comparable to another built
+from the SAME `out/h1` snapshot. Re-scoring the python invalidates the comparison
+even when the python's own numbers are unchanged. Snapshot `out/h1` alongside any
 Q6 result, or do not compare.
 
 This was learned the hard way: the verdict-filter change below was evaluated in
@@ -2276,13 +2276,13 @@ The verdict is now carried through and trusted — only `absent` empties a box.
 Plain-path items have no verdict and keep the heuristic. Across 160 Q6 checks the
 new rule differs from the old on **3 boxes, all where the heuristic KEPT text it
 should have dropped** ("With falling asleep in class never named…", "Since the
-irritability consequence is never named…") — the CLI's own reasoning being typed
+irritability consequence is never named…") — the python's own reasoning being typed
 into the student's field. Zero boxes went the other way.
 
 **A correction to what this was expected to fix.** p5 and p15 were reported above
 as boxes wrongly emptied where gold says `mismatch`. Gold does say mismatch — but
-the CLI says `absent`, and the empty box was faithfully reporting the CLI. The
-rescore confirms it. So the disagreement is CLI-vs-gold about the KIND of
+the python says `absent`, and the empty box was faithfully reporting the python. The
+rescore confirms it. So the disagreement is python-vs-gold about the KIND of
 failure, which this change cannot touch; Q6's first visible verdict distribution
 is 116 met, 34 absent, 8 mismatch, 2 not_described.
 
@@ -2308,14 +2308,14 @@ already said so: *"Where a component maps to a discrete answer — one of Q6's
 eight slots — the quote is the whole answer and can be used directly."*
 
 The metric was the mistake: "boxes overlapping a sibling" was counted as harm
-when it was fidelity. The generalisable test — **is the web receiving something
-the CLI is not?** — was never satisfied here. Both sides see the same evidence
+when it was fidelity. The generalisable test — **is the olx receiving something
+the python is not?** — was never satisfied here. Both sides see the same evidence
 quotes; this was second-guessing a shared representation on aesthetic grounds,
 which is not equivalence work.
 
 What survived from that round is `_quoted_span`: the scorer sometimes annotates a
 real quote (`"…bad health" — loosely worded, but this is the 4c consequence`) and
-the commentary was landing in the student's box on 9 of Q6's fields. The CLI's
+the commentary was landing in the student's box on 9 of Q6's fields. The python's
 reasoning about the student's text is not the student's text. It is the only
 `from_scorer` item affected — all eight were checked. **[Not true, corrected
 2026-08-20.** Eight boxes of ONE item were checked and the sentence was written
@@ -2332,7 +2332,7 @@ Across the rounds recorded above, a pattern separates them cleanly:
 | change | kind | measured |
 | --- | --- | --- |
 | seeding the unfed context refs | wiring bug | Q6 **24% → 71%** |
-| `unclear` charged where the CLI defaults favourable | arithmetic parity | +4/171, every fix on a touched slot |
+| `unclear` charged where the python defaults favourable | arithmetic parity | +4/171, every fix on a touched slot |
 | cadence sheets' orphaned criteria | prompt/schema coherence | +1/67 — noise |
 | the doubt channel added to ten sheets | schema, provably score-neutral | −4/173 — noise |
 | asserting response headings | prompt framing | 0/156 — flat |
@@ -2407,11 +2407,11 @@ reports. And nothing consumes the signal: grepping `lib/llm/` and
 `components/blocks/grading/` finds no reader of `confident`, so it is published
 in the sheet and dropped. The paper scorer's `escalate` is also wired to two
 triggers this has no equivalent for — an unknown deduction code, and a ledger
-with more deductions than credit components — though the web's strict enum
+with more deductions than credit components — though the olx's strict enum
 schema and one-slot-per-component shape make both faults unrepresentable there.
 
 That is a usable routing signal: it is what the paper scorer's `escalate` exists for, and
-on the web it could gate which responses get a human read. Worth keeping for
+on the olx it could gate which responses get a human read. Worth keeping for
 that alone, independently of the parallelism argument that motivated it.
 
 ### Where the remaining error is
@@ -2440,14 +2440,14 @@ them.
 
 **An alias resolved a deduction to a check that cannot charge.** `web_name`
 matched identity first and consulted `ALIAS` only on a miss. That was sound
-while a CLI key never named a web slot of a different kind — but since `pick`,
-`observed_type` names one on both sides, and on the web it is the
+while a python key never named a olx slot of a different kind — but since `pick`,
+`observed_type` names one on both sides, and on the olx it is the
 classification, not the check carrying the cost. `demonstrates_type` is that
-check. The audit compared the CLI's charge-once pair against a web slot worth
+check. The audit compared the python's charge-once pair against a olx slot worth
 nothing and reported eight differences that were an artefact of its own lookup
 order. Aliases now win over identity, and the identity candidate is listed last.
 
-**The CLI dropped sixteen `pick` and nine `count` slots.** `agreement.py` kept
+**The python dropped sixteen `pick` and nine `count` slots.** `agreement.py` kept
 its own copy of the slot grammar whose filter read `len(opts) > 1`. A slot whose
 answer is not a verdict list — `pick(operant_or_none)`, `count(3)` — resolves to
 zero options, so every one of them was discarded before the schema was built,
@@ -2462,8 +2462,8 @@ that no declared property is unreachable across all of them.
 **`evidence` carried the wrong instruction on every item that shows a
 checklist.** Its description is a ternary on `perCheckNotes`, and the audit's
 literal-scraper only matched a `description:` followed directly by a quote — so
-it silently collected nothing for that field and compared nothing. The CLI had
-the short arm hardcoded and sent it always; the web sends a longer arm asking
+it silently collected nothing for that field and compared nothing. The python had
+the short arm hardcoded and sent it always; the olx sends a longer arm asking
 for a verbatim student quote wherever the student reads the checklist. Both arms
 are now lifted from the TypeScript, and the scraper reads ternary arms as
 alternatives.
@@ -2520,20 +2520,20 @@ sets differ item by item and the handout-wide `exemplar_participants` list
 cannot express that. Q6's own citation list is also wider than the three
 few-shot bodies already registered for it.
 
-**It matters to a published comparison.** Q4b was the largest web/paper gap in
+**It matters to a published comparison.** Q4b was the largest olx/paper gap in
 the corpus, and most of that gap was the citations:
 
 | | before | after dropping the 8 cited |
 | --- | --- | --- |
-| web | 13/19 (68%) | 9/12 (75%) |
+| olx | 13/19 (68%) | 9/12 (75%) |
 | paper+Opus | 17/19 (89%) | 10/12 (83%) |
 
 A 21-point gap becomes 8. Across the whole corpus, dropping all ten items'
-citations moves web 89.3% -> 91.8% and paper+Opus 90.9% -> 92.1%, closing a
+citations moves olx 89.3% -> 91.8% and paper+Opus 90.9% -> 92.1%, closing a
 1.6-point difference to 0.3. Reading either scorer as better than the other on
 these numbers is largely reading which one memorised its own prompt better —
 and Opus, the stronger model, is the one that exploits them: it scored every
-cited Q4b cell correctly, while the web missed three.
+cited Q4b cell correctly, while the olx missed three.
 
 The other nine are deliberately NOT registered here. It is a measurement-policy
 change that moves every denominator in the project, so it wants to be a decision
@@ -2565,7 +2565,7 @@ corpus, because the three exclusions do not mean the same thing:
 Only the rate excludes them; every harness now reports them underneath it.
 
 **It changed the Q4b reading immediately.** The shipped prompt looked like the
-corpus's worst item at 68%. Scored on the cells it should be judged on, the CLI
+corpus's worst item at 68%. Scored on the cells it should be judged on, the python
 returns **12/12 — 100% exact, MAE 0.00** — and every failure is on a self-graded
 cell:
 
@@ -2579,7 +2579,7 @@ not counted in the rate, but run — how they scored:
 ```
 
 Paper+Opus scores **10/10** self-graded cells on handout 1. So the item's
-apparent web/paper gap was never about judging student writing: it was one model
+apparent olx/paper gap was never about judging student writing: it was one model
 reproducing answers held in its own prompt and the other not. The three misses
 are the cells whose text the guidance quotes verbatim — p7's "one sentence about
 why it is good to modify and one about procrastination consequences" is
@@ -2589,7 +2589,7 @@ That is worth keeping as a standing measurement. A `self_graded` miss is a lower
 bound on how much the prompt is failing to carry: if a model cannot apply a rule
 when the answer is written beside it, the rule is not reaching it.
 
-## A declared deviation: 1c has no image on the web
+## A declared deviation: 1c has no image on the olx
 
 score.py's handout-3 prompt asks the model to **Read the student's graph as an
 image**, because on paper a graph is a picture. `ClaudeCliBackend` forwards
@@ -2600,7 +2600,7 @@ So paper+gpt-5-mini scores 1c blind, and blind on a graph item is not noise — 
 is a systematic zero. It returned **0.00 on 11 of 20 cells where gold is 6–10**,
 which reads as 5/17 for the model until you find the cause.
 
-**This is a deviation of the PAPER scorer only.** The web and CLI never look at
+**This is a deviation of the PAPER scorer only.** The olx and python never look at
 an image: 1c is scored from the four weeks of data the student TYPED, through
 
 ```
@@ -2613,7 +2613,7 @@ filtered by it, and are not.
 
 **1c is therefore not comparable between the paper scorer on a tool-less backend
 and anything else** — not between paper+mini and paper+Opus, and not between
-paper+mini and the web. It is excluded from paper+mini's rate entirely and
+paper+mini and the olx. It is excluded from paper+mini's rate entirely and
 printed under `NOT COMPARABLE`, rather than counted as a score.
 
 Two supports keep it honest. `score.py` now stamps `backend` and
@@ -2704,13 +2704,13 @@ it arrived.** `{fail}` keeps a rule vocabulary-neutral, but the two generators
 resolve it independently, and Q6's `state_c*` slots keep their vocabulary on
 the `cover` group rather than on the credit entry. score.py read only the
 credit entry, so a rule about naming the WRONG consequence rendered as
-`mismatch` on the web and `absent` — "the box was empty" — on paper: one rule,
+`mismatch` on the olx and `absent` — "the box was empty" — on paper: one rule,
 two different findings, every prior audit green. `check_rule_fail_tokens_agree`
 now fails when either side's token is outside that side's vocabulary, or when
 one falls back to the generic `absent` while the other names a specific extra.
 
-**4. Measure on the CLI at every stage; it is the cheapest and fastest.** One
-item, three runs, a few minutes. Confirm on the web only when the item looks
+**4. Measure on the python at every stage; it is the cheapest and fastest.** One
+item, three runs, a few minutes. Confirm on the olx only when the item looks
 settled — the two have agreed cell-for-cell on every configuration measured.
 Once an item is clean and aligned, keep going on the cells that still err: form
 an actionable hypothesis about WHY it differs from gold and test that.
@@ -2854,11 +2854,11 @@ on every metric. The primitive stays because it is correct, tested and cheap to
 reuse; the Q6 sheet went back to baseline. Fixing p19 is worth doing when it
 does not cost two other cells.
 
-Two process notes from it. The audit caught the parity gap the moment the CLI
-started applying `requires` and the web probe did not — working as intended. And
+Two process notes from it. The audit caught the parity gap the moment the python
+started applying `requires` and the olx probe did not — working as intended. And
 `_credit_fail` was mis-failing identity slots, flipping `first` to `second`,
 which does not FAIL a cover member but re-answers it and makes its sibling a
-duplicate; the web probe already picked a non-label value, so the two harnesses
+duplicate; the olx probe already picked a non-label value, so the two harnesses
 had disagreed about what "failed" meant for as long as both had existed.
 
 ## The fixture audit: all 26 items read out, box by box
@@ -2957,7 +2957,7 @@ characters. **47 boxes across 13 items** — now fixed; see the section above.
 **The scorer's verdict inside the field being graded — 20 boxes, 10 cells.**
 1c's `title`, `x` and `y` held the paper scorer's SENTENCE about the label
 rather than the label: `"Weeks" appears as a bolded axis title centred beneath
-the day tick values.` The web grader's question for those slots is whether the
+the day tick values.` The olx grader's question for those slots is whether the
 student labelled the axis, and the field it reads answered that question in the
 scorer's words. `_ANNOTATED` matched only `"…" — prose`, so a sentence, a
 parenthetical and a bracketed run-list all passed through whole; `_quoted_span`
@@ -3045,6 +3045,6 @@ a fixture out even when it turns out clean:
   Q4b: 6/7/19) would be self-graded; H2 drops 2 and 3 as mis-transcribed.
 * Six gold divergences are documented in README.md — cases where the graders
   did not apply their own written rule. Both systems reproduce them, so they
-  cost both implementations the same and neither is a web/CLI difference.
+  cost both implementations the same and neither is a olx/python difference.
   Subtract them before reading any over-credit pattern as a calibration
   problem; the sixth was added after exactly that mistake.

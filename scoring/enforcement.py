@@ -1941,7 +1941,7 @@ def _primitives_with_live_app_evidence() -> dict:
     # meant to enforce it. Staleness is decided the way the ledger decides it, by
     # comparing the recorded prompt fingerprint against the prompt on disk.
     def _current(item: str) -> bool:
-        rec = (led.get(item) or {}).get("web")
+        rec = (led.get(item) or {}).get("olx")
         if not rec:
             return False
         try:
@@ -4665,7 +4665,7 @@ def check_items_are_measured_as_configured() -> list[str]:
     import measured as MEAS
 
     # EVERY side that has recorded anything, not just the cli default. The two
-    # can genuinely disagree, because `prompt_sha` is side-aware: `_cli_visible`
+    # can genuinely disagree, because `prompt_sha` is side-aware: `_olx_only_visible`
     # neutralises the open-tag attributes the python harness never reads, so a
     # change to one of THOSE leaves the cli fingerprint identical while the web's
     # moves. Read from the cli alone, this gate would then call an item current

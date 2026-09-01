@@ -42,8 +42,8 @@ DATA = os.path.expanduser(os.environ.get("MOLLY_DATA", "~/molly_data")) + "/out"
 # `sweep` dirs hold <item>.json. Missing ones are skipped, so this runs against
 # whatever has finished.
 SOURCES = [
-    ("web",        "sweep", f"{DATA}/web_v9"),
-    ("cli",        "sweep", f"{DATA}/cli_v8"),
+    ("olx",        "sweep", f"{DATA}/web_v9"),
+    ("python",     "sweep", f"{DATA}/cli_v8"),
     ("paper+mini", "paper", f"{DATA}/paper_mini_v8/r1"),
     ("paper+opus", "paper", f"{DATA}/paper_opus_v8/r1"),
 ]
