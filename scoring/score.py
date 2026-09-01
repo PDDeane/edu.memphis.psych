@@ -120,6 +120,17 @@ SCHEMA = {
 }
 
 
+# Which `derived` kinds THIS scorer can compute, declared rather than inferred.
+#
+# The paper path is handed the assembled response TEXT, not the page, so it can
+# answer "does this word appear anywhere?" and cannot answer anything about named
+# page fields -- `plots`, `complete` and `present` all read typed field contents
+# that a paper submission has no equivalent of. That is a real platform limit, and
+# naming the computable kinds here keeps it a declaration the audit can check
+# instead of a fact buried in a loop.
+DERIVED_KINDS_IMPLEMENTED = frozenset({"contains"})
+
+
 def _computed_keys(item: dict) -> set:
     """Keys the model must NOT be asked, because a primitive computes them.
 
@@ -368,8 +379,34 @@ def derive_ledger(item: dict, raw: dict,
     One slot, one deduction, by construction — the stacking that produced
     participant 9's double-penalty in baseline v1 is unrepresentable here.
     """
-    slots = raw.get("slots") or {}
+    slots = dict(raw.get("slots") or {})
     ledger, checks, unknown = [], [], []
+
+    # Checks read off the student's own text rather than asked of the model.
+    # `_computed_keys` has already dropped these from the schema, so without this
+    # the slot would simply be MISSING and its credit entry would find no verdict
+    # -- the failure mode is a silently unscored check, not an error.
+    #
+    # Only `contains` is implemented here, and deliberately so: the other kinds
+    # (`plots`, `complete`, `present`) read named PAGE FIELDS, which this scorer
+    # does not have -- it is handed the assembled response text. `contains` is the
+    # one kind whose question ("does this word appear anywhere in the response?")
+    # the text alone can answer, which is why it is the kind that made the paper
+    # scorer able to carry a derived check at all.
+    for rule in item.get("derived", []):
+        if rule.get("kind") not in DERIVED_KINDS_IMPLEMENTED:
+            continue
+        from olx_prompts import contains_hit
+
+        hit, typed = contains_hit(response, rule.get("words", []))
+        if hit:
+            v = "met"
+            why = (f'Uses the word "{hit}".' if typed == hit else
+                   f'Uses the word "{hit}" (spelled "{typed}").')
+        else:
+            shown = ", ".join(f'"{w}"' for w in rule.get("words", []))
+            v, why = "absent", f"None of {shown} appears anywhere in the response."
+        slots[rule["key"]] = {"verdict": v, "evidence": why}
 
     # Cover groups: the slots in a group must name DIFFERENT members of the list
     # they refer to. The model reports which one each names; the pairing is done
