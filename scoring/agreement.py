@@ -1829,11 +1829,28 @@ def report(handout: int, results: list[dict], failures: list[tuple], gold: dict)
     return 0
 
 
-def _era_for(items: list) -> dict:
-    """The era stamp, or why it could not be taken. Never fails a sweep."""
+def _era_for(items: list, backend=None) -> dict:
+    """The era stamp, or why it could not be taken. Never fails a sweep.
+
+    THE BACKEND IS PASSED, and it has to be. `era_stamp` falls back to
+    $AZURE_DEPLOYMENT_ID when the writer does not name a model -- its own
+    docstring says the model must be "passed by the WRITER, which is the only
+    thing that knows" -- and this function did not pass it. Every artifact this
+    harness has ever written was therefore stamped `gpt-5-mini`, including the
+    ones produced by `--backend cli`, which runs Opus. Two sweeps on two models
+    both claimed the same one, so nothing downstream could tell them apart and a
+    ledger side could be filled from the wrong model in silence. That is exactly
+    what happened to Q4a and Q4c on 2026-09-01.
+    """
     try:
         import measured
-        return measured.era_stamp(items or None)
+        inner = getattr(backend, "inner", None)
+        model = (getattr(backend, "model", None)
+                 or getattr(inner, "model", None)
+                 or None)          # None lets era_stamp use the deployment id,
+                                   # which is right for the endpoint backends
+        return measured.era_stamp(items or None, model=model,
+                                  backend=getattr(backend, "name", "") or "")
     except Exception as e:
         return {"error": f"{type(e).__name__}: {e}"}
 
@@ -2226,7 +2243,8 @@ def main() -> int:
                     # indistinguishable from scoring path -- see
                     # measured.era_stamp and cross_path.py.
                     "era": _era_for(sorted({r["item"] for p_ in passes
-                                            for r in p_[0] if r.get("item")})),
+                                            for r in p_[0] if r.get("item")}),
+                                    backend),
                     "runs": [{"run": i + 1, "exact": exact_of(p[0]),
                               "results": p[0],
                               "failures": [(a, b, str(c)) for a, b, c in p[1]]}
