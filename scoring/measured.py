@@ -647,6 +647,15 @@ def _artifact_program(doc: dict) -> str:
         return ""
     for run in doc.get("runs") or ():
         for r in run.get("results") or ():
+            # score.py FOLDED by paper_runs.py: it grows a `runs` array, so the
+            # no-runs test above cannot see it, and its results are keyed neither
+            # `cell` nor `participant_id` but `_pid` + `credit_checks`. Without
+            # this branch the function returned "" for a folded paper artifact,
+            # and "" SKIPS the program check -- so the one shape most likely to
+            # be filed under the wrong side was the one shape nothing objected
+            # to. Found by folding the first real paper sweep, not by reasoning.
+            if "credit_checks" in r or ("_pid" in r and "item_id" in r):
+                return "rubric_python"
             if "cell" in r:
                 return "olx_app"
             if "participant_id" in r:
@@ -1299,10 +1308,18 @@ def prose_claims(paths: list[str] | None = None) -> list[str]:
                 # dropping "web"/"cli" as cues would have made every older
                 # sentence resolve to the default side and compared its number
                 # against the wrong column.
+                # `paper` and `opus` are cues too, and their absence was a
+                # silent gap rather than a missing feature: a sentence reading
+                # "Q4a olx 17/20  python 18/20  paper 15/20" had no cue for its
+                # third figure, so the nearest known cue -- `python` -- claimed
+                # it and the check reported a contradiction that was not one.
+                # `opus` sits later in "paper_opus" than `paper` does, so the
+                # rfind-max below resolves that pair correctly.
                 for cue, s_ in (("web", "olx"), ("app", "olx"),
                                 ("olx", "olx"),
                                 ("cli", "python"), ("harness", "python"),
-                                ("python", "python")):
+                                ("python", "python"),
+                                ("paper", "paper"), ("opus", "paper_opus")):
                     at = low.rfind(cue)
                     if at > best:
                         best, side = at, s_
