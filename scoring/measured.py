@@ -590,6 +590,76 @@ def scorer_sha(item: str | None = None) -> str:
     return hashlib.sha256("".join(src).encode()).hexdigest()[:12]
 
 
+# What each SIDE contracts to be, enforced when an artifact is recorded.
+#
+#   ("app"|"python", model)
+#
+# "app" is agreement_app.py, whose results are keyed `cell` and whose score is a
+# FRACTION of sheet_max; "python" is agreement.py or score.py, keyed
+# `participant_id` with absolute points. See cross_path.result_cell, which is
+# where both shapes are read.
+SIDE_CONTRACT = {
+    "web":        ("app",    "gpt-5-mini"),
+    "cli":        ("python", "gpt-5-mini"),
+    "paper":      ("python", "gpt-5-mini"),
+    "paper_opus": ("python", "opus"),
+}
+
+
+def _artifact_shape(doc: dict) -> str:
+    """"app" or "python", from the first readable result. "" if undecidable."""
+    for run in doc.get("runs") or ():
+        for r in run.get("results") or ():
+            if "cell" in r:
+                return "app"
+            if "participant_id" in r:
+                return "python"
+    return ""
+
+
+def _check_side_contract(side: str, doc: dict, runs_path: str) -> list[str]:
+    """Does this artifact come from the program and model the side promises?
+
+    THE DEFAULTS ARE ENFORCED HERE RATHER THAN REMEMBERED. A sweep is
+    gpt-5-mini unless Opus is asked for, and `cli` means the python scorer
+    running the SAME model as the web so the comparison isolates the PROGRAM.
+    Opus belongs to `paper_opus`, which exists precisely so a model change and a
+    path change are never recorded as one number.
+
+    Both halves were violated on 2026-09-01 and neither was noticed at the time:
+    `agreement.py --backend cli` (Opus) was recorded as `cli`, and
+    `agreement.py --backend lo` was recorded as `web`, which is agreement_app.py.
+    The ledger then held one number from the wrong model and one from the wrong
+    program, and the analysis built on top concluded that the web/cli axis was
+    model-versus-model -- a conclusion produced entirely by the mislabelling.
+    """
+    want_shape, want_model = SIDE_CONTRACT[side]
+    era = doc.get("era") or {}
+    got_model = (era.get("model") or "").strip()
+    got_shape = _artifact_shape(doc)
+    out = []
+    if got_shape and got_shape != want_shape:
+        was = {"app": "agreement_app.py", "python": "agreement.py/score.py"}
+        out.append(
+            f"side {side!r} must be recorded from {was[want_shape]}, but "
+            f"{runs_path} was written by {was[got_shape]} (results are keyed "
+            f"{'`cell`' if got_shape == 'app' else '`participant_id`'})")
+    if not got_model:
+        out.append(
+            f"{runs_path} does not say which model produced it, so it cannot be "
+            f"recorded against side {side!r}. Artifacts written before "
+            f"agreement._era_for passed its backend are all unstamped or stamped "
+            f"with the deployment id regardless of `--backend`; re-sweep, or "
+            f"stamp `era.model` by hand if the run's log settles it")
+    elif got_model != want_model:
+        out.append(
+            f"side {side!r} is the {want_model} column and {runs_path} ran on "
+            f"{got_model!r}. A sweep is gpt-5-mini unless Opus was asked for, and "
+            f"an Opus run of the python scorer belongs to `paper_opus`, not here "
+            f"-- recording it as {side!r} varies the model and the path at once")
+    return out
+
+
 def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     """Write item's entry FROM a run artifact, so it cannot claim what was not run."""
     import handouts as H
@@ -605,7 +675,16 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     ex = set(exclusions(item))
     per: dict[int, list[bool]] = {}
     exc: dict[int, list[bool]] = {}
-    for run in json.loads(Path(runs_path).read_text())["runs"]:
+    doc = json.loads(Path(runs_path).read_text())
+    if side not in SIDE_CONTRACT:
+        raise SystemExit(f"unknown side {side!r}; expected one of {SIDES}")
+    bad = _check_side_contract(side, doc, runs_path)
+    if bad and os.environ.get("MEASURED_ALLOW_OFF_CONTRACT") != "1":
+        raise SystemExit(
+            "\n".join(f"REFUSED: {b}" for b in bad)
+            + "\n  Set MEASURED_ALLOW_OFF_CONTRACT=1 to record it anyway, and say "
+              "in the ledger entry why the number is worth keeping off-contract.")
+    for run in doc["runs"]:
         for c in run["results"]:
             # Shape-reading lives in cross_path, which documents all three and
             # owns the app's fraction-of-sheet_max conversion. The ledger must
