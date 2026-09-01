@@ -1116,12 +1116,12 @@ SLOT_RULE_BACKLOG = [
     #     such SLOT, because a .docx has no closed choice to compare against,
     #     and the asymmetry is already declared in SCORING_DIVERGENCES as a
     #     no-penalty check. It is listed here because this list IS the
-    #     declaration of web-only notes -- striking it out just made the
+    #     declaration of olx-only notes -- striking it out just made the
     #     reach check demand it back.
     #   `1c:legend` MIGRATED -- it reached the web only and 1c has a credit
     #     component to host it, unlike has_own_graph beside it.
     #
-    # 2026-08-30, E11 closed out, 4 -> 1. The three "web-only BY DESIGN" entries
+    # 2026-08-30, E11 closed out, 4 -> 1. The three "olx-only BY DESIGN" entries
     # -- Q5:example_2, reasons_substantial, 1c:legend -- MIGRATED. The
     # declaration standing here said they named one side's verdict token and so
     # could never be shared, and that `{fail}` was "workable for
@@ -1132,7 +1132,7 @@ SLOT_RULE_BACKLOG = [
     #   `Q5:example_2` DOES migrate. Its second failure mode is `duplicate`,
     #     which slot_vocab.SHARED_EXTRAS shows both sides offer, so `{fail}`
     #     plus one literal covers both. Migrating it also fixed a live defect:
-    #     the note sat in web-only SLOT_NOTES while naming `not_reason`, the
+    #     the note sat in olx-only SLOT_NOTES while naming `not_reason`, the
     #     RUBRIC's token, so the web prompt listed met/absent/wrong_kind/
     #     duplicate and then told the model when to answer `not_reason`. That
     #     dates to the original import, not to any migration.
@@ -1150,7 +1150,7 @@ SLOT_RULE_BACKLOG = [
     #   `Q1:matches_selected` STAYS. The paper sheet has no such SLOT, because a
     #     .docx has no closed choice to compare against, and the asymmetry is
     #     already declared in SCORING_DIVERGENCES as a no-penalty check. It is
-    #     listed here because this list IS the declaration of web-only notes --
+    #     listed here because this list IS the declaration of olx-only notes --
     #     striking it out just makes the reach check demand it back.
     'Q1:matches_selected',
 ]
@@ -2307,7 +2307,7 @@ def check_artifacts_record_their_era() -> list[str]:
 
 
 def check_slot_rules_backlog_is_being_cleared() -> list[str]:
-    """Is the web-only slot-rule backlog shrinking, or accumulating?
+    """Is the olx-only slot-rule backlog shrinking, or accumulating?
 
     Every entry is a rule two scorers apply and a third does not. `--prompts`
     counts only rubric elements the WEB is missing and has no notion of the web
@@ -2322,13 +2322,13 @@ def check_slot_rules_backlog_is_being_cleared() -> list[str]:
     if n > SLOT_RULE_BACKLOG_BUDGET:
         return [f"SLOT_RULE_BACKLOG holds {n} entries against a budget of "
                 f"{SLOT_RULE_BACKLOG_BUDGET} -- {n - SLOT_RULE_BACKLOG_BUDGET} "
-                f"web-only slot rule(s) were ADDED. Put the text in the credit "
+                f"olx-only slot rule(s) were ADDED. Put the text in the credit "
                 f"component's `rule` field, which both generators render, rather "
                 f"than in SLOT_NOTES, which the paper scorer never sees"]
     if n < SLOT_RULE_BACKLOG_BUDGET:
         return [f"SLOT_RULE_BACKLOG is down to {n} entries but the budget still "
                 f"says {SLOT_RULE_BACKLOG_BUDGET} -- lower it to {n}, or the slack "
-                f"lets a new web-only slot rule in without the audit noticing"]
+                f"lets a new olx-only slot rule in without the audit noticing"]
     return []
 
 
@@ -2381,7 +2381,7 @@ def check_slot_rules_reach_both_prompts() -> list[str]:
         if not slot:                       # unscoped note, applies by slot name
             item_id, slot = None, key
         # Except for the handful score.py's criteria sheet renders itself. The
-        # docstring's premise -- SLOT_NOTES is web-only -- stopped being true for
+        # docstring's premise -- SLOT_NOTES is olx-only -- stopped being true for
         # those when the criteria prose was given one source; `consequence_asserted`
         # left the BACKLOG below by being FIXED rather than by rotting.
         if slot in getattr(OP, "CLI_CRITERIA_NOTES", ()):
@@ -2392,7 +2392,7 @@ def check_slot_rules_reach_both_prompts() -> list[str]:
             continue                       # not a scored slot — nothing to share
         problems.append(
             f"SLOT_NOTES[{key!r}] is {len(note)} chars of judging text on a scored "
-            f"slot of {', '.join(sorted(owners))}. SLOT_NOTES is web-only, so the "
+            f"slot of {', '.join(sorted(owners))}. SLOT_NOTES is olx-only, so the "
             f"paper scorer never sees it. Move it to that credit component's "
             f"`rule` field, which both generators render")
 
@@ -2442,7 +2442,7 @@ def check_prompt_prose_names_only_offered_verdicts() -> list[str]:
 
     `check_slot_rules_are_vocabulary_neutral` polices the rubric's shared `rule`,
     where the answer is `{fail}`. But `rule` is not the only source of prompt
-    prose: SLOT_NOTES is a SECOND one, web-only, and it gets no substitution. So
+    prose: SLOT_NOTES is a SECOND one, olx-only, and it gets no substitution. So
     the guard covered one source and the other went unwatched, which is how
     Q5:example_2 sat in the live web prompt naming `not_reason` -- a token from
     the RUBRIC's vocabulary -- while its sheet offered `wrong_kind`. The test was
@@ -2495,7 +2495,7 @@ def check_prompt_prose_names_only_offered_verdicts() -> list[str]:
             note = (O.SLOT_NOTES.get(f"{item_id}:{key}")
                     or O.SLOT_NOTES.get(key))
             if note:
-                # A SLOT_NOTES entry is web-only, so the test is against what the
+                # A SLOT_NOTES entry is olx-only, so the test is against what the
                 # WEB slot offers: it is the only side that will be handed it.
                 named = {v for v in KNOWN_VERDICTS if f"`{v}`" in note}
                 missing = sorted(named - offered)
@@ -2554,7 +2554,7 @@ def check_prompt_prose_names_only_offered_verdicts() -> list[str]:
 # hole is closed in the neutrality check; this table is the other half -- the
 # asymmetries themselves, written down, so a new one has to be looked at.
 #
-# Key: (frozenset web-only tokens, frozenset paper-only tokens) -> why.
+# Key: (frozenset olx-only tokens, frozenset paper-only tokens) -> why.
 VERDICT_SPACE_DIVERGENCES: dict[tuple[frozenset, frozenset], str] = {
     (frozenset({"unclear"}), frozenset()):
         "17 slots. The web offers a third 'cannot tell' verdict and the paper "
@@ -2604,7 +2604,7 @@ def check_verdict_spaces_are_declared() -> list[str]:
 
     The neutrality check stops a shared `rule` naming a token one side lacks.
     This is the other half: the asymmetries themselves, so a new one is looked at
-    rather than absorbed. Declared by SHAPE -- (web-only, paper-only) -- because
+    rather than absorbed. Declared by SHAPE -- (olx-only, paper-only) -- because
     the same asymmetry recurs across many slots and 48 per-slot entries would
     read as coverage while enforcing nothing.
 
@@ -2629,7 +2629,7 @@ def check_verdict_spaces_are_declared() -> list[str]:
                 continue
             problems.append(
                 f"{item['id']}.{c['what']}: the two scorers' verdict spaces differ "
-                f"in a shape nothing declares -- web-only {sorted(shape[0])}, "
+                f"in a shape nothing declares -- olx-only {sorted(shape[0])}, "
                 f"paper-only {sorted(shape[1])}. Either make them match, or add "
                 f"the shape to VERDICT_SPACE_DIVERGENCES with the reason and "
                 f"whether it moves a score")
@@ -5168,7 +5168,7 @@ _NOT_DECLARATIONS: dict[str, str] = {
     "olx_prompts.MATCH_DEF": "the matching definitions rendered into prompts; "
                              "prompt content, and its equivalence is covered by "
                              "the prompt-text checks",
-    "olx_prompts.SLOT_NOTES": "web-only judging prose. NOT waved through: it "
+    "olx_prompts.SLOT_NOTES": "olx-only judging prose. NOT waved through: it "
                               "reaches a prompt and its entries ARE declared -- "
                               "by enforcement.SLOT_RULE_BACKLOG, which lists them "
                               "and carries the budget. The BACKLOG is the "

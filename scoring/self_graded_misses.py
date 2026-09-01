@@ -99,7 +99,7 @@ def load_sweep(root: str) -> dict[tuple[str, int], float]:
             continue
         rows = d.get("results") or []
         for r in rows:
-            if "cell" in r:                       # web
+            if "cell" in r:                       # olx
                 m = re.match(r"p(\d+)/(.+)$", r["cell"])
                 if not m:
                     continue
@@ -108,7 +108,7 @@ def load_sweep(root: str) -> dict[tuple[str, int], float]:
                 if frac is None or r.get("sheet_max") is None:
                     continue
                 out[(iid, pid)] = round(float(frac) * float(r["sheet_max"]), 2)
-            elif "participant_id" in r:           # cli
+            elif "participant_id" in r:           # python
                 s = _num(r)
                 if s is not None:
                     out[(r["item"], r["participant_id"])] = s
