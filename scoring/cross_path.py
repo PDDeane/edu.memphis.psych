@@ -312,15 +312,27 @@ def compare(left: str, right: str, item_filter: str | None = None,
         # asks for a re-run of a side that cannot have moved. Adding `max="5"` to
         # Q4a, a web-only fix for a web-only defect, did exactly that.
         #
-        # `prompt_sha_cli` is the harness's own view. Both artifacts must carry
-        # it: an artifact predating the stamp falls back to the whole-section
-        # comparison, which is stricter and never wrong, only sometimes coarse.
+        # `prompt_sha_python` is the harness's own view. Both artifacts must
+        # carry it: an artifact predating the stamp falls back to the
+        # whole-section comparison, which is stricter and never wrong, only
+        # sometimes coarse.
+        #
+        # BOTH SPELLINGS ARE READ. The field was `prompt_sha_cli` until the side
+        # rename of 2026-09-01, so every artifact written before then carries the
+        # old key and every one after carries the new. Accepting only the new
+        # spelling would not have raised -- it would have fallen through to the
+        # whole-section comparison and quietly reported confounded eras on runs
+        # that were fine, which is the expensive direction and the exact failure
+        # this block exists to avoid.
+        def _harness_sha(d):
+            return d.get("prompt_sha_python") or d.get("prompt_sha_cli")
+
         for it in set(le["items"]) & set(re_["items"]):
             L, R = le["items"][it] or {}, re_["items"][it] or {}
             harness_pair = "harness" in (lkind, rkind) and "app" in (lkind, rkind)
             a = b = None
-            if harness_pair and L.get("prompt_sha_cli") and R.get("prompt_sha_cli"):
-                a, b = L["prompt_sha_cli"], R["prompt_sha_cli"]
+            if harness_pair and _harness_sha(L) and _harness_sha(R):
+                a, b = _harness_sha(L), _harness_sha(R)
             if a is None:
                 a, b = L.get("prompt_sha"), R.get("prompt_sha")
             if a and b and a != b:
