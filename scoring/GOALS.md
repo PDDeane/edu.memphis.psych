@@ -2959,11 +2959,16 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       identical to olx and python, and every cell it misses is missed by all
       three. So the rubric prompt is not generally worse -- something specific to
       Q4a's rubric text is.
-      OWNERSHIP IS SATISFIED ON PAPER ONLY. p6 is named by Q20 and p20 by Q19,
-      which is why the audit reports just p2 and p18 as orphans -- but those
-      subgoals are about olx/python behaviour on cells where olx and python are
-      CORRECT. The mention keeps the ownership check quiet without anyone having
-      looked at the paper side, so read this entry rather than trusting that.
+      THIS ENTRY OWNS ALL FOUR, and it has to. When the cells were first found,
+      two of them were already mentioned elsewhere -- Q4a/p6 by Q20 and Q4a/p20
+      by Q19 -- so the ownership check reported only Q4a/p2 and Q4a/p18 as
+      orphans and the other two looked accounted for. They were not: both of
+      those subgoals are about olx/python behaviour, on cells where olx and
+      python are CORRECT. A mention is enough to satisfy the check and is not
+      enough to mean someone has looked at the paper side.
+      Q4a/p6 has since LEFT Q20's list -- it was there as "gold charges one
+      antecedent; we fail nothing", and we now fail antecedent_1 and agree with
+      gold on both OLX-prompt engines -- so its paper half is held here alone.
       NEXT: diff rubric_h1's Q4a text against the OLX sheet's, and read p20's
       paper `credit_checks` and `deductions` against gold's "-2 pts" comment.
       Both engines that score the OLX sheet agree with gold there, so the
