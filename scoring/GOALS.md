@@ -103,7 +103,52 @@ declared. WK1/p8 survives six attempts and stays declared. Two new criteria kept
 on their items: `aimed_correctly` on WK2, the cadence fact on DAY2. Handout 2's
 cadence items went DAY1 15->16, DAY2 14->15, WK1 15, WK2 16.
 
-## ACTIVE — enforcing equivalence between the python and olx scorers
+## ACTIVE
+
+  == 2026-09-01: THE olx AND python COLUMNS ARE POOLED FROM HERE ==
+  DECIDED, not proven, and the reasoning is recorded so it can be revisited.
+  The two engines are now taken to be one process sampled twice: 12 runs a cell
+  rather than 6 and 6. What supports it, all built the same day:
+    * the prompt they SEND is identical -- template, assembled text with the
+      student's own work substituted, and the provider-visible request fields.
+    * the scoring LOGIC agrees where it can be compared: 221 verdict signatures
+      were produced by BOTH engines and none scored differently.
+    * the rate data cannot show otherwise. At six runs a side the smallest
+      achievable p is 0.0022 against a corrected threshold of 0.0001, and
+      exactly ONE cell reaches uncorrected p<0.05 where chance predicts 26.
+  If a real divergence appears it surfaces in the scoring-logic check, which
+  needs no power to fire, or in the prompt and request checks.
+  PAPER IS NOT POOLED WITH THEM. It runs the RUBRIC prompt, not the OLX sheet,
+  which is the whole reason it is a separate side; subgoal Q33's cells are paper
+  cells and nothing here touches them.
+  WHAT POOLING CHANGES. Ten cells change status. Written WITHOUT fractions
+  because the ledger still records per side, and `prose_claims` reads an
+  item-plus-fraction as a claim about the recorded column -- correctly, until
+  the ledger itself pools:
+      3    gains a cell, reaching every cell of the item
+      NR   gains two           Q1   gains one          Q4a  gains one
+      WK2  gains one, reaching every cell of the item
+      DAY2 loses one           PR   loses one          Q2   loses one
+  32 cells are wrong at the pooled median, and every one already has an owner.
+  SEVEN CELLS STOP BEING WRONG, and with them the side-split framing: 3/p15,
+  NR/p11, NR/p15, Q1/p17, Q4a/p9, WK2/p8, WK2/p15.
+  SUBGOALS WHOSE EVIDENCE IS AFFECTED, to be worked or closed on this basis:
+      E39  every cell it names is right when pooled. Its subject was the
+           side-rate comparison, which pooling retires by decision. The CHECKS
+           it produced stay as regression guards.
+      Q28  Q6/p5 is right when pooled -- its one cell.
+      Q32  keeps DAY2/p8, PR/p15 and Q2/p18, loses Q4a/p9 and WK2/p8, and its
+           PREMISE -- "cells the one side gets right and the other wrong" -- is
+           gone entirely. The three survivors are ordinary wrong cells.
+      Q23  keeps one cell; pooled, WK2 misses nothing.
+      Q19  keeps 7, loses 1a/p1, 1a/p15, 3/p15, Q4a/p20, Q4b/p8, Q4b/p20, Q4c/p12
+      Q20  keeps 4, loses Q4a/p6, Q6/p6, Q6/p16
+      Q26  keeps 3, loses D2/p11, DAY2/p14, WK1/p7
+      Q31  keeps 11, loses Q1/p17
+  NOT YET DONE: the ownership check still reads per-side medians, so it will
+  disagree with this table until `_wrong_cells` pools the two OLX-prompt sides
+  and keeps paper separate.
+ — enforcing equivalence between the python and olx scorers
 
 The whole project rests on the two sides running the same rubric: every recorded
 number is a comparison, and a comparison is meaningless while the scorers differ
