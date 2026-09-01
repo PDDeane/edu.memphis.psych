@@ -3,9 +3,9 @@
 Two harnesses measure the same lo-blocks prompts against the same gold rows:
 
   sweep_app.sh -> agreement_app.py  the app drives the call and the app's own
-                                    SlotSheetGrader scores it   ("web")
+                                    SlotSheetGrader scores it   ("olx")
   sweep_cli.sh -> agreement.py      this harness sends the prompt and derives
-                                    the score in Python         ("cli")
+                                    the score in Python         ("python")
 
 Neither writes gold into its .json, and the two apply slightly different
 per-item participant exclusions, so this reads each side's own printed log —
@@ -186,8 +186,8 @@ def collect(webdir: str, clidir: str) -> list[dict]:
             "k": score_affecting_checks(iid),
             "web_all": stats([p - g for g, p in web.values()], tol),
             "cli_all": stats([p - g for g, p in cli.values()], tol),
-            "web": stats([web[i][1] - web[i][0] for i in both], tol),
-            "cli": stats([cli[i][1] - cli[i][0] for i in both], tol),
+            "olx": stats([web[i][1] - web[i][0] for i in both], tol),
+            "python": stats([cli[i][1] - cli[i][0] for i in both], tol),
             # web vs cli: the difference of the two ERRORS, not of the two raw
             # scores. The sides do not always score an item on the same scale —
             # 1c is measured on paper out of 10 but only its three LABEL slots
@@ -214,7 +214,7 @@ def report(rows: list[dict], webdir: str, clidir: str) -> None:
            f" {'exact':>6} {'/chk':>5} {'±tol':>6} {'MAE':>5} {'bias':>6} │"
            f" {'exact':>6} {'/chk':>5} {'±tol':>6} {'MAE':>5} {'bias':>6} │"
            f" {'agree':>6} {'MAE':>5}")
-    print(f"{'':>25} │{'web':^35}│{'cli':^35}│{'web vs cli':^13}")
+    print(f"{'':>25} │{'olx':^35}│{'python':^35}│{'web vs cli':^13}")
     print(hdr)
     print("─" * len(hdr))
 
@@ -226,7 +226,7 @@ def report(rows: list[dict], webdir: str, clidir: str) -> None:
 
     missing = []
     for r in rows:
-        w, c, x = r["web"], r["cli"], r["xx"]
+        w, c, x = r["olx"], r["python"], r["xx"]
         if not w["n"] or not c["n"]:
             missing.append((r["item"], bool(w["n"]), bool(c["n"])))
             continue
@@ -249,9 +249,9 @@ def report(rows: list[dict], webdir: str, clidir: str) -> None:
         # single k to take a root by.
         wchk, cchk = [], []
         for r in rows:
-            if r["handout"] not in hs or not r["web"]["n"] or not r["cli"]["n"]:
+            if r["handout"] not in hs or not r["olx"]["n"] or not r["python"]["n"]:
                 continue
-            wv, cv = per_check(r["web"]["exact"], r["k"]), per_check(r["cli"]["exact"], r["k"])
+            wv, cv = per_check(r["olx"]["exact"], r["k"]), per_check(r["python"]["exact"], r["k"])
             for pid, (wg, wp, cg, cp) in r["cells"].items():
                 we.append(wp - wg); ce.append(cp - cg)
                 xe.append((wp - wg) - (cp - cg))
@@ -287,8 +287,8 @@ def report(rows: list[dict], webdir: str, clidir: str) -> None:
         print("  (Δ is the gap between the two errors, so it is right even where "
               "the sides score an item on different scales)")
         for d, iid, pid, wg, wp, cg, cp in sorted(div, reverse=True)[:40]:
-            better = "web" if abs(wp - wg) < abs(cp - cg) else (
-                "cli" if abs(cp - cg) < abs(wp - wg) else "tie")
+            better = "olx" if abs(wp - wg) < abs(cp - cg) else (
+                "python" if abs(cp - cg) < abs(wp - wg) else "tie")
             gold = f"{wg:>5.2f}" if abs(wg - cg) < 1e-9 else f"{wg:>5.2f}/{cg:<5.2f}"
             print(f"  {iid:>5} p{pid:<3} gold {gold}   web {wp:>5.2f} ({wp - wg:+.2f})   "
                   f"cli {cp:>5.2f} ({cp - cg:+.2f})   Δ{d:>5.2f}  closer: {better}")
@@ -300,13 +300,13 @@ def report(rows: list[dict], webdir: str, clidir: str) -> None:
     # whether the prompt judges well. Reading only the raw one made Q4a look like
     # handout 1's weakest-judged item when it is among its strongest.
     hit = [(r, [pid for pid in r["cells"] if (r["item"], pid) in dvg]) for r in rows]
-    hit = [(r, ps) for r, ps in hit if ps and r["web"]["n"] and r["cli"]["n"]]
+    hit = [(r, ps) for r, ps in hit if ps and r["olx"]["n"] and r["python"]["n"]]
     if hit:
         print(f"\nDeclared divergences from gold subtracted "
               f"(handouts.GOLD_DIVERGENCES — decisions, not defects):")
         sub = (f"{'item':>5} {'k':>2} {'n*':>3} {'dvg':>4} │ {'exact*':>7} {'/chk*':>6}"
                f" │ {'exact*':>7} {'/chk*':>6}   codes")
-        print(f"{'':>17} │{'web':^17}│{'cli':^17}")
+        print(f"{'':>17} │{'olx':^17}│{'python':^17}")
         print(sub)
         print("─" * len(sub))
         pool = {"w": [0, 0], "c": [0, 0]}
@@ -340,7 +340,7 @@ def report(rows: list[dict], webdir: str, clidir: str) -> None:
             wg, _, cg, _ = next(iter(r["cells"].values()))
             print(f"  {r['item']:>5}  web gold out of {r['max']:.0f}, cli reports a "
                   f"subtotal (e.g. p{next(iter(r['cells']))}: web {wg:.2f} vs cli {cg:.2f}) "
-                  f"— {len(r['rescaled'])}/{r['web']['n']} cells")
+                  f"— {len(r['rescaled'])}/{r['olx']['n']} cells")
 
     odd = [r for r in rows if r["n_web_only"] or r["n_cli_only"]]
     if odd:
@@ -359,8 +359,8 @@ def detail(rows: list[dict], iid: str) -> None:
     if r is None:
         raise SystemExit(f"no data for {iid}")
     print(f"\n{iid} (handout {r['handout']}, max {r['max']:.2f}, tol {r['tol']:.2f})\n")
-    print(f"{'pid':>4} {'w gold':>7} {'web':>6} {'w err':>7} │ "
-          f"{'c gold':>7} {'cli':>6} {'c err':>7}")
+    print(f"{'pid':>4} {'w gold':>7} {'olx':>6} {'w err':>7} │ "
+          f"{'c gold':>7} {'python':>6} {'c err':>7}")
     print("─" * 55)
     for pid, (wg, wp, cg, cp) in sorted(r["cells"].items()):
         flag = "  <-" if abs((wp - wg) - (cp - cg)) > 1e-9 else ""
