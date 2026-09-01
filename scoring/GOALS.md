@@ -1764,6 +1764,50 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       is identical for every table sharing those verifiers -- which removes a
       third of the work. It remains an on-demand check, deliberately.
 
+- [ ] E39. **Nothing compares the two engines' verdicts by FREQUENCY. Eight cells hide there.**
+      Found 2026-09-01 by asking why the audit did not notice that Q1/p17 scores
+      3.0 on python in 5 of 6 runs and 5.0 on olx in 6 of 6, on the same prompt
+      and the same model. Three things could have caught it and each missed for
+      its own reason:
+        * `cross_path.py` is the cell-by-cell comparator AND THE AUDIT NEVER RUNS
+          IT. Nothing in equivalence.py or enforcement.py invokes it; every
+          mention is in a comment. It is a tool someone remembers to use.
+        * even when run it would not report this cell. Its rule is that the two
+          sides' score SETS must be DISJOINT, and that is deliberate -- it
+          "excludes cells where the paths overlap and merely differ in how
+          often". p17 differs in exactly that way.
+        * `equivalence.py --enforcement` compares DECLARATIONS, which its own
+          docstring says leaves an undeclared behavioural difference invisible.
+          The ownership check saw the cell was wrong on python, but it only asks
+          whether a subgoal names it, and Q16 does.
+      EIGHT CELLS DIFFER BY THREE OR MORE RUNS IN SIX, and every one has
+      OVERLAPPING score sets, so the disjoint rule misses all eight:
+          cell      gold   olx right   python right
+          Q1/p17      5      6/6          1/6
+          3/p15       0      6/6          2/6
+          NP/p12      4      6/6          3/6
+          WK2/p11     2      6/6          3/6
+          WK2/p15     2      4/6          1/6
+          Q1/p11      5      3/6          6/6
+          Q4a/p9      3      3/6          6/6
+          Q4c/p12     5      3/6          6/6
+      IT RUNS BOTH WAYS, which is why this is not a "python is worse" finding:
+      five favour olx and three favour python.
+      THE FIX IS A CHECK, NOT A TOOL. A rate comparison over the recorded
+      artifacts costs nothing -- `_cell_scores` already has both sides -- and
+      belongs beside check_every_wrong_cell_has_an_owner, which walks the same
+      cells. What it must NOT do is report every cell whose medians differ:
+      QUALITY_CONTROL.md 2e records that three of Q32's five "divergences" were
+      one observation apart, and a check with that threshold would be noise. Three
+      of six is the threshold used above and it should be justified or replaced
+      before the check lands.
+      READ Q16 AND Q32 FIRST. Q16 has p17 diagnosed -- the rule's "what they want
+      instead" branch is not being applied on the python side -- and Q32 records
+      the axis as noise plus a provider difference, which this shows is
+      incomplete.
+      NEXT: decide the threshold, add the check, and re-read Q32's five cells
+      against it.
+
 - [ ] E38. **The python's staleness fingerprint ignores four attributes the python reads.**
       Found 2026-09-01 while answering "why is the python served less of the screen
       than the olx?" -- it is NOT (both backends get the identical prompt from
@@ -3055,6 +3099,13 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       clearest: `cadence_is_daily`, a 4-point gate, reads met/met/absent/absent/
       met/absent on the python and absent/met/absent/met/absent/absent on the olx.
       Same flip, same rubric, different luck.
+      SO THERE IS ONE REAL DIVERGENCE, AND IT IS Q4a/p9 -- BUT THE FIGURES BELOW
+      WERE TAKEN ON THE MISLABELLED ARTIFACTS AND ARE SUPERSEDED. Re-swept on
+      contract the same day, Q4a/p9 is python 6 of 6 RIGHT and olx 3 of 6, so it
+      is a RATE difference on an unstable olx side rather than the stable
+      inversion this paragraph describes. It is one of the eight cells subgoal
+      E39 collects. The original text is kept below because the inversion it
+      records is still the reason the cell is interesting.
       SO THERE IS ONE REAL DIVERGENCE, AND IT IS Q4a/p9: 0 of 6 against 6 of 6,
       stable on both sides, the python scoring 5.0 where gold says 3.0 and the olx
       scoring 3.0. It also INVERTED on 2026-09-01 under E25's keyword conversion --
