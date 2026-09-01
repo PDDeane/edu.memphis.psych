@@ -4555,6 +4555,37 @@ because it can be fixed or declared; a wobbling cell cannot be either.
                       slot whose unmet verdicts split near-evenly, so it carries
                       real signal. Subgoal 13 CLOSED BY DECISION on p17 being a coin
                       flip for this slot; that is prior work, not a settled answer.
+      p17 IS NOT A COIN FLIP, 2026-09-01, and the earlier decision rested on
+      pooling the two sides. Split by side it is deterministic and opposite:
+          python  utb_stated absent/unclear in 5 of 6 runs -> 3.0
+          olx     utb_stated met in 6 of 6 runs            -> 5.0
+      Gold is 5.0, silent. Both sides quote the SAME span -- "Lack of exercise
+      can make me gain weight" -- and reach opposite verdicts on it, so this is
+      not two readings of two different things.
+      THE RULE DECIDES IT, AND IT DECIDES FOR `met`. The desc says ownership can
+      be satisfied by "saying what they want instead of it", and that a response
+      built ENTIRELY of effect clauses is absent. The response is not:
+          "Lack of exercise can make me gain weight   <- effect clause, correctly
+                                                         not ownership
+           AND I WANT TO BE IN FIT                    <- what they want instead,
+                                                         which the rule counts"
+      So olx is right, gold agrees, and the python side is WRONG. Its own
+      evidence gives the mechanism away: it quotes only the effect clause, and on
+      one run says it "looked for an explicit statement taking ownership such as
+      'My unwanted target behavior is ...' or 'I chose ...' and did not find" it
+      -- two of the rule's three branches, with the third, "what they want
+      instead", never applied.
+      THAT MAKES p17 A DIAGNOSED UNDER-CREDIT rather than a coin flip, and it is
+      the first cell found where the two OLX-prompt engines disagree
+      DETERMINISTICALLY on a model-judged slot with the same prompt and the same
+      model. Q32 concluded that axis was noise plus one provider difference; this
+      is a third kind and Q32 should not be read as covering it.
+      DO NOT FIX IT BY REWEIGHTING THE PROMPT before reading Q18 and Q24's
+      2026-09-01 entries: three prompt changes were measured on this corpus that
+      day, two were reverted, and the third was refuted before it was written.
+      The rule here is already correct -- the branch exists and is not being
+      applied -- so the lever is emphasis, which is the riskiest kind of change
+      this project makes.
         `reason_2`    unmet 16, 4 in wrong cells.
         `reason_3`    unmet 47, 39 of them in cells that scored CORRECTLY -- so it
                       fires far more often than it explains. Treat a change here as
