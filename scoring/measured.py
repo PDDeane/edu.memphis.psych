@@ -3249,6 +3249,34 @@ def _live_subgoal_owners() -> dict:
     return owners
 
 
+# THE TWO OLX-PROMPT SIDES ARE ONE SAMPLE, decided 2026-09-01. `olx` and
+# `python` send an identical prompt to the same model and score it with logic
+# that agrees on every verdict signature both have produced, so their runs are
+# twelve draws from one process rather than six each from two. Judging a cell
+# separately on each half threw away half the sample and manufactured
+# "divergences" that were one observation apart.
+#
+# `paper` STAYS SEPARATE, and so does `paper_opus`. Paper runs the RUBRIC
+# prompt, not the OLX sheet -- that is the whole reason it is its own column --
+# so pooling it with the other two would average two different questions.
+POOLED_OLX_PROMPT = ("olx", "python")
+_EVALUATED_SIDES = ("olx+python", "paper", "paper_opus")
+
+
+def _pooled_cell_scores(item: str, pid: int, side: str) -> list:
+    """One cell's recorded scores for an EVALUATED side.
+
+    `olx+python` returns both engines' runs concatenated; every other side
+    returns its own, unchanged.
+    """
+    if side != "olx+python":
+        return _cell_scores(item, pid, side)
+    out = []
+    for s in POOLED_OLX_PROMPT:
+        out += _cell_scores(item, pid, s)
+    return out
+
+
 def _wrong_cells() -> list:
     """(item, pid, side, gold, ours) for every cell wrong at the recorded median.
 
@@ -3272,8 +3300,8 @@ def _wrong_cells() -> list:
             target = ((g.get(pid) or {}).get(item) or {}).get("score")
             if target is None:
                 continue
-            for side in SIDES:
-                scores = _cell_scores(item, pid, side)
+            for side in _EVALUATED_SIDES:
+                scores = _pooled_cell_scores(item, pid, side)
                 if not scores:
                     # A side with no per-cell data is UNREADABLE, not clean, and
                     # conflating the two is how this function reported zero

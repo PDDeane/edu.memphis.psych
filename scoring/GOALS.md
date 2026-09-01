@@ -145,9 +145,13 @@ cadence items went DAY1 15->16, DAY2 14->15, WK1 15, WK2 16.
       Q20  keeps 4, loses Q4a/p6, Q6/p6, Q6/p16
       Q26  keeps 3, loses D2/p11, DAY2/p14, WK1/p7
       Q31  keeps 11, loses Q1/p17
-  NOT YET DONE: the ownership check still reads per-side medians, so it will
-  disagree with this table until `_wrong_cells` pools the two OLX-prompt sides
-  and keeps paper separate.
+  DONE: `_wrong_cells` now judges an `olx+python` side built from both engines'
+  runs, with `paper` and `paper_opus` evaluated on their own -- see
+  `measured.POOLED_OLX_PROMPT`. It reports 32 cells wrong pooled and 8 wrong on
+  paper, all owned. The reverse arm now names Q28, whose title cell Q6/p5 is
+  right when pooled; the ownership check itself stays quiet there because Q6/p5
+  is a DECLARED slot-level finding, which "right at the total" deliberately does
+  not retire.
  — enforcing equivalence between the python and olx scorers
 
 The whole project rests on the two sides running the same rubric: every recorded
