@@ -359,10 +359,15 @@ ITEMS: list[dict] = [
                      "why or when the plan did or did not work, or a technique "
                      "leaned on — OR it reports the change with its SIZE: a "
                      "figure, a comparison against the earlier week, or the data. "
-                     "`absent` ONLY when it offers NEITHER, a bare claim that it "
-                     "worked or did not with no reason and no measure behind it. "
-                     "Also `absent` when what the box reports bears on something "
-                     "other than the plan working"},
+                     "`absent` when it offers NEITHER, a bare claim that it worked "
+                     "or did not with no reason and no measure behind it. "
+                     "`absent` ALSO on one COMBINATION, and only when BOTH halves "
+                     "hold together: what the box reports is a bodily or personal "
+                     "state rather than the behaviour itself, AND the condition it "
+                     "attaches that state to is the behaviour NOT being done. "
+                     "Either half ALONE is met: a state attributed to DOING the "
+                     "behaviour explains the outcome, and a box whose subject is "
+                     "the behaviour is met whichever direction it runs"},
             {"what": "how_2", "pts": 2.0,
              "codes": {"absent": "MISSING_HOW"},
              "desc": "The box asked for How (2), judged on its own by the same "
@@ -403,6 +408,16 @@ ITEMS: list[dict] = [
             "the verdict and both explanations\". A rule that charged boxes of that "
             "shape was measured on 2026-09-02 and broke three cells the graders "
             "credit.",
+            "ONE COMBINATION IS ALSO ABSENT, and it must be read as a "
+            "conjunction rather than as either half. A box is absent when what it "
+            "reports is a bodily or personal state rather than the behaviour, AND "
+            "the condition it attaches that state to is the behaviour NOT being "
+            "done. NEITHER HALF WORKS ALONE, which is why the pair is stated: a "
+            "state attributed to DOING the behaviour is an explanation and the "
+            "graders credit it, and a box that says when things went badly is an "
+            "explanation too whenever its subject is the behaviour, which the "
+            "graders also credit. Only the two together — a symptom, tied to not "
+            "doing the thing — fail to say how the plan itself fared.",
             "DEDUCT ONLY WHEN A BOX OFFERS NEITHER — no reason and no measure. Two "
             "shapes were charged. A sentence reporting a bodily or "
             "circumstantial detail that explains nothing about the plan working: the "
