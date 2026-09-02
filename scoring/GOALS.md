@@ -103,7 +103,29 @@ declared. WK1/p8 survives six attempts and stays declared. Two new criteria kept
 on their items: `aimed_correctly` on WK2, the cadence fact on DAY2. Handout 2's
 cadence items went DAY1 15->16, DAY2 14->15, WK1 15, WK2 16.
 
-## ACTIVE
+## PARKED — enforcing equivalence between the olx and python scorers
+
+  SWAPPED WITH THE QUALITY-CONTROL GOAL ON 2026-09-01, because the precondition
+  this goal existed to establish is now established. The THEN section put it
+  exactly: "equivalence is the precondition for every number it produces -- a
+  per-item rate compared against gold means nothing while the two scorers
+  disagree about what the rules are." They no longer do, as far as anything here
+  can show:
+    * the two engines send an IDENTICAL prompt -- template, assembled text with
+      the student's work substituted, and the provider-visible request fields --
+      each checked per item on every audit.
+    * their scoring LOGIC agrees wherever it can be compared: 221 verdict
+      signatures produced by both, none scoring differently.
+    * the columns are POOLED as one process sampled twice, and the rate test
+      says the ledger has no power to distinguish them.
+  ONE SUBGOAL REMAINS OPEN HERE, E28, and it is not a blocker: a corpus-wide
+  paper sweep is a MEASUREMENT the ledger has never held, not a disagreement
+  between engines. It costs ~3,100 calls and can be taken whenever it is wanted.
+  WHAT THIS GOAL LEAVES BEHIND, and what quality control now runs on top of:
+  twelve checks that fire on the cause rather than the symptom -- prompt bodies,
+  assembled prompts, request fields, scoring logic, side contracts, artifact
+  readability, wrong-cell ownership -- plus the pooled accounting itself.
+
 
   == 2026-09-01: THE olx AND python COLUMNS ARE POOLED FROM HERE ==
   DECIDED, not proven, and the reasoning is recorded so it can be revisited.
@@ -3061,7 +3083,30 @@ reader had in mind. Every cross-reference in this file is now prefixed.
       both sides get the same text verbatim -- so it is instead KNOWN, BOUNDED and
       ATTRIBUTABLE, with the sweep as its only real detector. The next conversion
       it points at, Q4b's pair, is a scoring change and belongs in the sweep.
-## PARKED — quality control on the remaining items
+## ACTIVE — quality control on the remaining items
+
+  MADE ACTIVE 2026-09-01, when the equivalence goal above was parked. Nineteen
+  subgoals are open under it, and the pooled re-evaluation of the same day
+  changed what most of them are FOR -- read the pooling note before working any
+  of them, because a cell that looked unstable at six runs a side is usually
+  settled at twelve, and the surviving evidence is disproportionately "we stably
+  disagree with gold" rather than "we are noisy".
+  WHERE THE WORK IS, in the order the evidence supports:
+    Q34  six cells we deduct in EVERY one of twelve runs against a row gold
+         passed in silence. The only false-positive test the corpus offers, and
+         two readouts already say our refusals are defensible on the rubric as
+         written -- which makes it a rubric-versus-gold decision.
+    Q19, Q20  the slot-level findings, untouched by pooling because they compare
+         WHICH slots gold charges against which we fail, not totals.
+    Q2, Q9, Q10, Q14, Q16, Q17, Q29, Q30  per-item questions, each now one or
+         two stable cells rather than a mix of noise and disagreement.
+    Q24, Q33  the two ceiling-shaped entries: Q4a's opposite-direction pair, and
+         the paper scorer's four cells on the rubric prompt.
+  THREE PROMPT CHANGES WERE MEASURED ON 2026-09-01 AND NONE SURVIVED -- two
+  reverted, one refuted before it was written. Read Q18's and Q24's entries for
+  what went wrong before proposing a fourth: state the revert rule and name the
+  controls BEFORE the sweep, not after.
+
 
 Every item is recorded and the preflight is clean, so the work is no longer
 "find the blockers" but "check the numbers we have". SEVENTEEN of twenty-six
@@ -5226,11 +5271,12 @@ because it can be fixed or declared; a wobbling cell cannot be either.
 
 ## THEN
 
-The quality-control goal is PARKED, not closed: nine subgoals remain open under
-it (2, 3, 7, 8, 9, 10, 11, 14, 15) and its section below is unchanged. It was
-displaced rather than finished, because equivalence is the precondition for every
-number it produces -- a per-item rate compared against gold means nothing while
-the two scorers disagree about what the rules are.
+The equivalence goal is PARKED, not closed, and quality control is ACTIVE -- the
+reverse of how this section read until 2026-09-01. The swap happened because the
+precondition stated here was met: a per-item rate compared against gold meant
+nothing while the two scorers disagreed about what the rules are, and they no
+longer do. E28 remains open under equivalence and is a measurement rather than a
+blocker.
 
 Nothing else is parked here. The ACTIVE subgoals above absorbed what used to sit in
 THEN and LATER, and the entries that are no longer true were deleted rather than
