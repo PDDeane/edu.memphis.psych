@@ -4579,12 +4579,25 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       cites the data or the magnitude. p15's "unable to lower my screentime"
       cites neither; p13's "Overall, the plan did end up pretty successful"
       cites neither. All three broken controls cite the magnitude.
-      PREREQUISITE BEFORE ANY RETRY: the fixture must survive the change. Either
-      keep the counted group for score.py's span distribution while the OLX sheet
-      asks per box -- which the engines cannot do without diverging, since the
-      python side scores from the same rubric -- or give the fixture builder its
-      own span distribution that does not depend on the live scoring structure.
-      The second is the right one and is a separate piece of work.
+      PREREQUISITE DONE 2026-09-02: THE FIXTURE NOW SURVIVES THE CHANGE. The
+      builder already had its own dealing logic -- `agreement_app.
+      distribute_counted`, which strips what the non-counted fields claimed and
+      deals the remaining sentences into the first n boxes as contiguous runs, so
+      it never depended on the evidence FORMAT. What it did depend on was
+      `counted_members()`, i.e. on the live rubric: with no `counts` group every
+      member field fell through to `ev.get(comp)`, the placeholder. The dealing
+      groups are now declared in the FIXTURE layer instead, as `dealt` in
+      agreement_app.JOBS -- 2a's hows_given over (how_1, how_2) and item 3's
+      changes_given over (example_1, example_2), the only two in use -- named by
+      scorer COMPONENT, the same vocabulary `from_scorer` already uses. Verified
+      byte-identical: 240 fixtures across six handout-3 items, both harnesses,
+      unchanged hash. And verified decoupled: dropping 2a's `counts` from the
+      rubric now leaves every box exactly as it was.
+      SO THE RETRY IS UNBLOCKED, and the rule to try is the narrower one above --
+      absent only when a box gives neither a cause nor the data/magnitude. Note
+      that removing `counts` still changes the PYTHON side's scoring, so the
+      retry is still a real experiment on both engines; what it no longer does is
+      change the input underneath them.
       IT IS NOW CAUGHT BEFORE THE CALLS, not after.
       `enforcement.check_fixture_boxes_hold_the_students_words` requires every
       scorer-sourced box to appear in the participant's transcribed answer, and

@@ -335,6 +335,8 @@ JOBS = {
         "from_scorer": {"bmod_h3_success_verdict": "verdict",
                         "bmod_h3_success_how1": "how_1",
                         "bmod_h3_success_how2": "how_2"},
+        # DEALT HERE, not read off the rubric's `counts`. See _dealt_members.
+        "dealt": [{"count": "hows_given", "members": ["how_1", "how_2"]}],
     },
     "2b": {
         "handout": 3, "screen": f"{paths.NS}/bmod_h3_assessment", "ns": paths.NS,
@@ -379,6 +381,8 @@ JOBS = {
         "fields": {},
         "from_scorer": {"bmod_h3_improve_first": "example_1",
                         "bmod_h3_improve_second": "example_2"},
+        "dealt": [{"count": "changes_given",
+                   "members": ["example_1", "example_2"]}],
     },
 }
 
@@ -522,6 +526,28 @@ def scorer_verdict(handout: int, pid: int, item: str, comp: str) -> str:
 
 
 PLACEHOLDER_EV = re.compile(r"^\d+ found$")
+
+
+def _dealt_members(spec: dict) -> dict[str, tuple[str, list[str]]]:
+    """{member component: (count slot, ordered members)} from JOBS `dealt`.
+
+    Exactly the shape counted_members() returned, so the dealing code below is
+    unchanged; what differs is where it comes from. Members are named by SCORER
+    COMPONENT, the same vocabulary `from_scorer` already uses -- that is a stable
+    contract with the artifact, not a scoring decision, so depending on it does
+    not reintroduce the coupling this removes.
+
+    A group that stops being declared here does not fail quietly: every member
+    field falls back to the scorer's placeholder evidence, which
+    enforcement.check_fixture_boxes_hold_the_students_words rejects and both
+    sweep harnesses refuse to run on.
+    """
+    out: dict[str, tuple[str, list[str]]] = {}
+    for grp in spec.get("dealt") or ():
+        members = list(grp.get("members") or ())
+        for m in members:
+            out[m] = (grp.get("count"), members)
+    return out
 
 
 def distribute_counted(block: str, claimed: list[str], fields: list[str], n: int) -> dict[str, str]:
@@ -2008,7 +2034,17 @@ def build_jobs(item: str, pids: list[int]) -> list[dict]:
             ev = scorer_evidence(spec["handout"], pid, item)
             # A counted group's member evidence is a placeholder, never a span —
             # see distribute_counted(). Those fields are dealt from the block.
-            cm = counted_members(spec["handout"], item)
+            #
+            # WHICH FIELDS ARE DEALT IS DECLARED IN `dealt`, NOT READ OFF THE
+            # RUBRIC. It used to come from counted_members(), i.e. from the live
+            # scoring structure, and that made the INPUT depend on a scoring
+            # decision: dropping an item's `counts` group silently sent every
+            # member field down the plain path, where `ev.get(comp)` is the
+            # placeholder, so the student's answer became the literal string
+            # "2 found". Q2's structural attempt did exactly that and a 120-call
+            # sweep measured a placeholder. A fixture reconstructs what the
+            # student wrote; it must not move when a scoring rule is edited.
+            cm = _dealt_members(spec)
             plain = {f: c for f, c in fs.items()
                      if isinstance(c, tuple) or c not in cm}
             for field, comp in plain.items():

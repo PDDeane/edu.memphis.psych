@@ -1690,15 +1690,37 @@ def enforcement_selftest():
     # because the check it exercises was written green: its item->handout map was
     # keyed on dict reprs, so it matched nothing and reported a clean corpus. A
     # five-way fire test caught that, and this case keeps it caught.
-    # THE FIXTURE ITSELF. Dropping 2a's counts group is the exact edit that
-    # replaced its boxes with "2 found" and cost a 120-call sweep, so it is the
-    # breakage worth injecting: it is a change to the RUBRIC that corrupts the
-    # INPUT, which no prompt or scoring check looks for.
-    import rubric_h3 as _R3
-    _real_counts = _R3.BY_ID["2a"].get("counts")
-    _scorer_case("a rubric edit replaces the student's answer",
-                 lambda: _R3.BY_ID["2a"].__setitem__("counts", []),
-                 lambda: _R3.BY_ID["2a"].__setitem__("counts", _real_counts),
+    # THE FIXTURE ITSELF, which no prompt or scoring check looks at. Dropping
+    # 2a's `counts` was the edit that replaced its boxes with "2 found" and cost
+    # a 120-call sweep, and that edit CANNOT do it any more -- the dealing groups
+    # moved out of the rubric into JOBS on 2026-09-02 precisely so a scoring
+    # change could not reach the input. So the breakage to inject is the absence
+    # of the new declaration, which is the one thing that still sends a member
+    # field down the placeholder path.
+    #
+    # BOTH FIXTURE CACHES ARE CLEARED on the way in AND out. agreement's is keyed
+    # on (item, pid) alone, so it does not notice an injected change: without the
+    # clear the corrupt fixture survived the restore and "restored state is clean"
+    # failed on a run where nothing was actually left behind.
+    import agreement as _AG
+    import agreement_app as _APP
+
+    def _fx_reset():
+        _AG._fixture_cached.cache_clear()
+        ENF._fixture_built.cache_clear()
+
+    _real_dealt = _APP.JOBS["2a"].get("dealt")
+
+    def _drop_dealt():
+        _APP.JOBS["2a"].pop("dealt", None)
+        _fx_reset()
+
+    def _put_dealt():
+        _APP.JOBS["2a"]["dealt"] = _real_dealt
+        _fx_reset()
+
+    _scorer_case("the fixture stops dealing a counted group",
+                 _drop_dealt, _put_dealt,
                  want="FIXTURE BOX IS NOT THE STUDENT'S WORDS")
 
     # OWNERSHIP, which had no case until 2026-09-02 even though the check is
