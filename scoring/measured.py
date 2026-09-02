@@ -2506,9 +2506,21 @@ GOLD_CODE_KNOWN: dict[tuple[str, int], str] = {
     # seen from the grader's side for the first time.
     ("NR", 15): "gold charges WRONG_TYPE (2) -- \"This is an example of PR.\" -- "
                 "and we charge nothing: we accept the example as NR.",
+    # KEEP THIS ENTRY EVEN THOUGH p3 IS SUSPECT. It was deleted once, on the
+    # reasoning that an excluded cell has no disagreement with gold to declare.
+    # That is wrong: excluded cells are still RUN and still SCORED (see
+    # check_slot_sets_match_gold), they are only left out of the RATE, so
+    # deleting this made the slot comparison start reporting p3 as undeclared.
+    # Declaring a suspect cell and ARGUING FROM one are different acts -- this is
+    # bookkeeping, and only the latter is the error that
+    # enforcement.check_no_declaration_cites_a_suspect_cell forbids.
     ("WK2", 3): "gold charges TYPE_MISMATCH (2) -- \"This is NP.\" -- and we "
                 "charge nothing.",
-    ("WK2", 15): "same as WK2/p3, phrased \"This is an example of NP.\"",
+    # Self-contained on purpose. This read "same as WK2/p3" until that put a
+    # LIVE cell's reasoning inside a suspect one; p15 is scored and counted, so
+    # its argument has to stand on its own.
+    ("WK2", 15): "gold charges TYPE_MISMATCH (2) -- \"This is an example of "
+                 "NP.\" -- and we charge nothing.",
     ("DAY2", 7): "gold charges WRONG_BEHAVIOR (1) -- the plan targets the wrong "
                  "behavior -- and we charge nothing.",
     # THE ONE THAT RUNS THE OTHER WAY, and the more serious of the two directions:

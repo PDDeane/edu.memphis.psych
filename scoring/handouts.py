@@ -213,6 +213,54 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
                "control that makes it decidable: same defect, same model answer "
                "of 0, and gold agrees there.",
     },
+    ("NR", 4): {
+        "was": 4.0, "score": 2.0,
+        "why":
+            "the answer is NEGATIVE PUNISHMENT and the item asks for negative "
+            "reinforcement. \"I will not watch TikTok for each day that I do not "
+            "sleep 8 hours\" withdraws something DESIRABLE when the behaviour "
+            "FAILS; negative reinforcement removes something AVERSIVE when it "
+            "succeeds. TWO SOURCES, the D2/p11 standard. The dictionary: "
+            "WRONG_TYPE (-2), \"This is not Negative Reinforcement\", which on a "
+            "max of 4 gives 2.00. "
+            "THE DECISIVE COMPARATOR IS p9, on this same item. It answers "
+            "\"if I skip a day of the gym I will have to cook a day I am supposed "
+            "to eat\" -- also a consequence applied when the behaviour FAILS -- "
+            "and the graders charged it: \"-2 pts: This is an example of PP\", "
+            "landing on 2.00. That is the same item, the same structural error "
+            "(the student described a different quadrant), the same charge, and "
+            "the SAME SCORE this correction assigns p4. The only difference is "
+            "which wrong quadrant was named: PP for p9, NP for p4. Gold charged "
+            "one and was silent on the other. "
+            "THE GRADERS ARE NOT BLANKET-CREDITING failure-contingent answers, "
+            "which is what would otherwise explain p4's 4.00. Read across the "
+            "four operant-type items, they credit that form exactly where it is "
+            "the CORRECT form -- on PP (p1, p4, p5, p9, p17) and on NP (p4, p5, "
+            "p6, p8, p12, p19), where the consequence belongs on failure -- and "
+            "they charged it on NR, at p9. That is a coherent system applied "
+            "consistently, and p4 is the single row inconsistent with it. "
+            "THE OUTLIER TEST agrees: every other silent full-marks row on this "
+            "item has the form \"if I DO the wanted behaviour, something aversive "
+            "is removed\" -- p6, p7, p8, p12, p17, p18, p19, p20. p4 is the only "
+            "one phrased on FAILING. "
+            "STATED AGAINST ITSELF: the correction GAINS us the cell. We score "
+            "2.00, so this cell moves from wrong to right, and this table's "
+            "preamble warns that the reason to make a correction is the standard "
+            "and never the score. The standard here is the dictionary plus p9; "
+            "the gain is a consequence, not the ground. No item total is quoted "
+            "here on purpose: a rate drifts as prompts change and this sentence "
+            "would not, which is the failure "
+            "`check_prose_numbers_match_the_ledger` exists to catch -- it caught "
+            "the first draft of this line. "
+            "NO SUSPECT CELL IS CITED ABOVE, and an earlier draft of this entry "
+            "did cite two: it argued from p2 and p3 -- byte-identical answers "
+            "with opposite gold rows -- as evidence that this item's gold is "
+            "incoherent, when both are EXCLUDED as suspect precisely because "
+            "identical transcriptions with different gold rows mean at least one "
+            "is MIS-TRANSCRIBED, making them untrustworthy INPUT that is evidence "
+            "for nothing in either direction. `enforcement."
+            "check_no_declaration_cites_a_suspect_cell` now enforces that.",
+    },
     ("Q6", 4): {
         "was": 6.0, "score": 6.25,
         "why":
