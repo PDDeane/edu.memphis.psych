@@ -4584,6 +4584,49 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       that removing `counts` still changes the PYTHON side's scoring, so the
       retry is still a real experiment on both engines; what it no longer does is
       change the input underneath them.
+      == 2026-09-02, SECOND ATTEMPT: MEASURED AND KEPT. 15/20 -> 17/20. ==
+      The narrower rule is in place and swept at six runs on BOTH sides, 240
+      calls: python [17,17,17,18,17,17], olx [17,17,18,18,17,17], pooled median
+      17 of 20. Recorded as `q2_narrower_python` and `q2_narrower_olx`. The
+      fixture preflight passed this time, which is what the first attempt lacked.
+      THE OUTCOME WAS PRE-REGISTERED, cell by cell, before the rule was written,
+      and it came out exactly: p13 and p15 fixed, p1/p14/p16 still wrong, all
+      thirteen controls held -- including p6, the one flagged in advance as the
+      likeliest casualty. Zero CONTRADICTED refusals on either side, so nothing
+      we now charge is a slot gold's comment denies.
+      WHAT THE RULE IS: a How box is met on EITHER ground -- a cause or
+      circumstance, OR the change reported with its size, a figure, a comparison
+      against the earlier week, or the data. It is absent only when it offers
+      NEITHER. That second ground is what the first attempt got wrong: it charged
+      boxes reporting the outcome WITH its magnitude, and the graders credit
+      those. p15's "{{corpus:2a/p15:how1:6:24:sha=9e486c188464}} screentime" and p13's "{{corpus:2a/p13:how2:0:46:sha=446c357de928:shape=S2-0a202020202020}}" offer neither, and both are now charged.
+      THE THREE THAT REMAIN HAVE THREE DIFFERENT CAUSES, which is the useful
+      part -- none of them is the how rule being too loose:
+          p1   THE OFF-TOPIC CLAUSE IS NOT FIRING. how2 reports a bodily effect
+               of NOT sleeping, and the plan was to sleep more, so gold wrote
+               "your third sentece does not explain how your plan was
+               successful". The box does carry a circumstance, so the two-way
+               test credits it, and the desc's third clause -- absent when what
+               the box reports bears on something other than the plan working --
+               charges it in 0 of 12 runs. That clause is the next thing to work
+               on, and it is a clause, not a new rule.
+          p14  A VERDICT-SLOT INSTABILITY, not a how-slot miss. Its verdict box
+               is "{{corpus:2a/p14:verdict:0:104:sha=f83968a50add:shape=S12-0a202020202020202020202020202020}} Three", and we fail
+               `verdict` in 4 of 12 runs -- short of a median, so the cell scores
+               6. Gold's comment is worded as a how-charge but its substance is
+               the unsettled verdict, so the 2 points plausibly belong to
+               NO_VERDICT. This belongs with subgoal Q35, which owns variance.
+          p16  GOLD CHARGED 2 SILENTLY. Both boxes give clean circumstances --
+               "when I had free time", "{{corpus:2a/p16:how2:61:107:sha=9a8cf65b1bf8:shape=S8-0a202020202020202020202020202020,A29}}" -- and nothing in the rubric as written charges either.
+               Which box gold meant is unrecoverable, and every other charged
+               cell on this item names one ("third sentece", "second sentece") or
+               turns on the verdict. This is the mirror of the silent-full-marks
+               pattern and a gold-versus-rubric question, not a rule defect.
+      SO THE CEILING CLAIM IN THIS ENTRY IS REVISED. "15/20 -> 20/20 is the
+      ceiling if the rule can be stated" assumed all five cells were one rule
+      failing. They were not: two were, one is a clause of it, one is the verdict
+      slot, and one is a silent gold charge nobody can localise. 17/20 is what
+      the how rule alone can reach.
       IT IS NOW CAUGHT BEFORE THE CALLS, not after.
       `enforcement.check_fixture_boxes_hold_the_students_words` requires every
       scorer-sourced box to appear in the participant's transcribed answer, and
