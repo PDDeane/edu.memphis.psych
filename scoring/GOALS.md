@@ -3885,6 +3885,18 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       gates. That is the largest single pool of error in handout 2.
 
 - [ ] Q21. **NR: a 4-point GATE running at 71% precision.**
+      POOLED, 2026-09-01, AND THE HEADLINE NUMBER SURVIVES. `you_arrange_it` is
+      refused 66 times across the twelve pooled runs with 18 of those in cells
+      that scored wrong -- 72% precision, against the 71% this entry was opened
+      on. Doubling the sample moved it by a point, so the gate really does run at
+      roughly three refusals in four being right, and that was not an artefact of
+      reading one column.
+      ITS TWO WRONG CELLS ARE NOW SUBGOAL Q34's: NR/p4 and NR/p20 are both rows
+      gold passed in SILENCE and we deduct on every run. NR/p20's readout says
+      our refusal is defensible -- not feeling tired is a natural consequence the
+      student does not arrange, which is what the gate asks -- so the precision
+      figure and the false-positive question point at the same cells from
+      different directions, and neither is a threshold problem.
       MEASURED ON THE APP 2026-08-29, the first time NR has ever scored there --
       it was one of the seven items `forbid` made unrunnable (subgoal Q14). OLX
       16/18, runs [14,15,15,16,16,16], against the python's 15/18. Era checked, 0 of
@@ -4425,6 +4437,20 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       §2c read what is already recorded, the last now enforced by the `--write`
       hook. The full history is in drafts/q1q2_reasons_rule.md.
 - [ ] Q7. **Q4b's per-cell instability, which the item median hides.** Two cells
+      POOLED, 2026-09-01, THE PREMISE IS GONE. This entry exists because a single
+      run could not tell a stable cell from a flickering one, and both cells it
+      names are now settled: Q4b/p17 scores 5.0 in 11 of 12 pooled runs against a
+      gold of 5.0, and Q4b/p19 likewise. Each has ONE outlier in twelve. At six
+      runs a side that read as instability; at twelve it reads as a stable
+      correct cell with a rare miss.
+      SO THE ITEM'S INSTABILITY IS NOT WHERE THIS LOOKED. Q4b's live cells are
+      p4, p12 and p13, and all three are stably WRONG rather than unstable -- p12
+      at 3.5 in every run, which is why it sits in subgoal Q34. The median was
+      not hiding instability here; it was hiding a disagreement.
+      CLOSE CANDIDATE, to ask about: nothing in it is live, and its
+      methodological point -- that a median hides per-cell variance -- is now
+      carried by QUALITY_CONTROL.md 2e and by the pooling note at the top of this
+      file, both of which say it with measurements.
       went from six clean runs to intermittent across two sweeps of IDENTICAL
       prompt text: p17 6/6 -> 4/6, failing `modify_stated`, and p19 6/6 -> 3/6,
       failing `behavior_1`. Neither check had ever failed before. The item's
@@ -4906,6 +4932,15 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       2026-08-28 it prints the LATEST three, which is where the counting rule sits.
 
 - [ ] Q14. **Q1's two live misses: p10 and p18.** Lifted out of subgoal Q12's
+      POOLED, 2026-09-01, THIS IS ONE MISS AND NOT TWO. Q1/p18 scores 5.0 in ALL
+      TWELVE pooled runs against a gold of 5.0 -- it is not a live miss and has
+      not been one since the sides were pooled. Only p10 remains.
+      AND p10 IS STABLY WRONG, which is a sharper claim than the title's "live
+      miss": 5.0 in 11 of 12 runs against a gold of 4.0, reaching gold once. So
+      this is a cell we over-credit almost every time, not a coin flip, and it is
+      worth a rule question rather than more runs.
+      RETITLE WHEN IT IS NEXT WORKED -- "Q1's two live misses" names a cell that
+      is not one.
       prose so they are tracked rather than mentioned. Both are APPLICATION
       failures -- the rule already states the right principle in each case -- so
       §2a offers no structural lever and prose is the last resort, not the first.
