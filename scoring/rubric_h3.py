@@ -344,6 +344,28 @@ ITEMS: list[dict] = [
         # The fixture no longer depends on this declaration: the dealing groups
         # live in agreement_app.JOBS `dealt` since the first attempt corrupted
         # 2a's boxes to the placeholder "2 found" and cost a 120-call sweep.
+        # NO `onlyif` HERE, AND THE REASON IS MEASURED. One was added to stop the
+        # whole-response test stacking on a How (1) refusal, and the arithmetic
+        # audit refused it: gating how_2 on how_1 caps the slot floor at 2.0, so
+        # BLANK's -6 became unreachable and the item CANNOT ZERO. It also created
+        # a transitive charge-once pair (how_1, mechanism_named) that the web's
+        # declared pairs do not model, reported as an engine divergence. Both
+        # findings are the guard's, not the rule's, so the guard went. The
+        # exposure it covered is one cell: p15 already fails how_1, so if the
+        # model also read its mechanism as absent the cell would drop to 2.0
+        # against a gold of 4.0. Its second box names an arrangement the student
+        # set for themself, which the test should read as `met` -- and the sweep
+        # is what says whether it does.
+        # `requires` is the MIRROR of the onlyif above: that one says what may be
+        # CHARGED, this one what may be CREDITED. It is why the whole-response
+        # test does not have to be a `forbid` -- forbid computes a verdict and so
+        # strips its key from the web schema, which would stop the model judging
+        # how_2 at all and lose the two-way rule. `requires` conditions a verdict
+        # the model still gives, and `excludesKeys` is False for exactly that
+        # reason. `unclear` is lenient: doubt about the mechanism establishes
+        # nothing, so it denies nothing.
+        "requires": [{"key": "how_2", "cond": "mechanism_named",
+                      "lenient": ["unclear"]}],
         "credit": [
             {
                 "what": "verdict",
@@ -373,6 +395,33 @@ ITEMS: list[dict] = [
              "desc": "The box asked for How (2), judged on its own by the same "
                      "two-way test as How (1). Either box can fail, both can, and "
                      "one failing says nothing about the other"},
+            # THE WHOLE-RESPONSE TEST, asked as its own question rather than
+            # folded into how_2's prose. `requires` below makes how_2 depend on
+            # it, so the model gives ONE answer per judgement and the refusal
+            # profile can show whether this call is stable -- inside how_2 a
+            # wrong reason and a wrong answer would look identical. It carries no
+            # points of its own: it is an operand, like defines_type on H2.
+            {"what": "mechanism_named",
+             "reported": True,
+             "verdicts": ["met", "absent", "unclear"],
+             # NO EXAMPLES OF THE FAILING SHAPE ARE GIVEN, and that is deliberate.
+             # An earlier wording enumerated the circumstances a weak answer
+             # offers, and leakage.py refused the sweep: the words it borrowed
+             # were the cohort's own -- and worse, they were the distinguishing
+             # words of the two cells this rule is meant to charge. Naming the
+             # criterion abstractly is both safer and more general.
+             "desc": "Does the response, read across ALL THREE boxes, account for "
+                     "HOW the plan produced its result? `met` on either ground: it "
+                     "names something the student PUT IN PLACE so the behaviour "
+                     "would happen — an arrangement, a routine, a stand-in "
+                     "activity, a chosen hour or location — or it states the "
+                     "change together with its SIZE, a number or a comparison "
+                     "against an earlier week. `absent` when the response "
+                     "explains the result only by the surrounding conditions it "
+                     "found itself in, or by asserting the target behaviour over "
+                     "again. The division is between what the student DID so it "
+                     "would work and what was simply the case around them. Answer "
+                     "for the WHOLE response, not for one box"},
         ],
         "deductions": [
             {"code": "BLANK", "pts": 6.0, "text": "did not answer"},

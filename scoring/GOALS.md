@@ -4673,9 +4673,50 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           p16  gold charged 2 SILENTLY and both boxes carry clean circumstances.
                Nothing in the rubric as written charges either, and which box
                gold meant is unrecoverable. A gold-versus-rubric question.
-      SO THE HOW RULE IS DONE at 18/20. What is left on this item is one unstable
-      verdict slot and one silent gold charge, and neither is reachable by
-      editing the how prose. ASK BEFORE CLOSING.
+      == 2026-09-02, FOURTH ATTEMPT: THE MECHANISM TEST. 18 -> 19. ==
+      python [19,17,18,19,20,16], olx [18,20,19,18,18,19], pooled median 19 of
+      20. Recorded as `q2_mech_python` and `q2_mech_olx`. 240 calls.
+      THE RULE, and it is STRUCTURAL rather than prose. A new operand slot
+      `mechanism_named` asks of the WHOLE response whether it accounts for HOW
+      the plan produced its result -- met when it names something the student PUT
+      IN PLACE so the behaviour would happen, or states the change with its SIZE
+      -- and `requires` makes how_2 credited only while that holds, with
+      `unclear` lenient. `requires` is why this needs no prose: it CONDITIONS a
+      verdict the model still gives, where `forbid` would COMPUTE the verdict and
+      strip how_2 from the web schema, losing the two-way rule. The registry
+      splits the primitives on exactly that line -- equals/derived/counts/expect/
+      forbid/maps exclude their keys, cover/onlyif/requires do not -- and calls
+      `requires` the mirror of `onlyif`.
+      IT ANSWERED THE QUESTION THAT MOTIVATED IT. p14 and p16 both gained, both
+      on `mechanism_named` = absent: 12 of 12 on p14, 10 of 12 on p16. The
+      distinction they turn on is the one the readout found: every full-marks
+      cell that does not quantify names an ENABLER -- something arranged,
+      adopted or done so the behaviour would happen -- and p14 and p16 name none,
+      offering only conditions that obtained or the target behaviour restated.
+      AND THE SLOT IS AN EXCELLENT DIAGNOSTIC, which is the second reason to
+      prefer the structural form: 13 of 20 cells answer it 12/12, so the failure
+      localises to a judgement rather than hiding inside how_2 where a wrong
+      reason and a wrong answer look identical.
+      IT COST ONE CONTROL: 2a/p5, gold 6 and we now record 4, on
+      `mechanism_named` = absent in 10 of 12 runs. Its boxes name the plan's
+      CONTENT -- the fixed menu it consisted of -- but only as a complaint about
+      it, and describe no arrangement the student made. The prediction filed
+      before the sweep said p5 would read as met on that content; the model
+      disagrees, and on the rule as worded the model is defensible. p5 was
+      already the only scored-channel noise in the previous sweep's error
+      profile, 1 of 12 on each how box, so it was the cell nearest the line
+      before this rule existed.
+      p15 WAS THE DECLARED EXPOSURE AND IT HELD, 12 of 12 met -- the guard that
+      had covered it was dropped because the arithmetic audit showed it made the
+      item unable to reach 0, and the sweep vindicated dropping it.
+      p2 IS NOW THE NEAREST TO BREAKING, at 4 of 12 absent while its median
+      holds. Its first box cites the graph, which is the SIZE ground, so those
+      four are the model missing a ground it was given.
+      SO ONLY p5 REMAINS WRONG on this item. The obvious next refinement is to
+      let the plan's own CONTENT count as a mechanism, which would credit p5
+      while still charging p14 and p16 -- they name no plan content at all --
+      but that is another 240 calls and has not been measured. ASK BEFORE
+      CLOSING: p5 is this entry's only live cell.
       IT IS NOW CAUGHT BEFORE THE CALLS, not after.
       `enforcement.check_fixture_boxes_hold_the_students_words` requires every
       scorer-sourced box to appear in the participant's transcribed answer, and
