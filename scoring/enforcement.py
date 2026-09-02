@@ -280,6 +280,18 @@ COUNTABLE_EXEMPT = {
                     "only when a period is 'clearly and specifically absent' and names "
                     "the observed case — an answer that opens at the intervention and "
                     "never mentions baseline. `3 of 4` cannot say which is missing.",
+    ("2a", "how"): "MEASURED, not preferred. The count WAS the design and it cost "
+                   "the item 5 of 20 cells: subgoal Q2 recorded one error profile "
+                   "-- `said 2, scored 6 against gold 4`, 29 of 29 -- while the "
+                   "DEDUCT guidance already described both shapes the graders "
+                   "charge. An aggregate answer never has to confront a particular "
+                   "box, so correct prose had nothing to bind to. The graders "
+                   "themselves judge per box and name it ('your third sentece'), "
+                   "against three labelled fields on screen that all 20 cells "
+                   "fill, so nothing relies on content spanning them. The FIXTURE "
+                   "no longer depends on the group either -- the dealing groups "
+                   "live in agreement_app.JOBS `dealt` -- which is what made this "
+                   "conversion testable at all.",
 }
 
 
