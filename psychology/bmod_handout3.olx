@@ -680,7 +680,8 @@ account of something that did not work is worth exactly as much as a success.
       <EndPane>
     <ActionButton id="bmod_h3_success_btn" label="Check my answer">
       <LLMAction id="bmod_h3_success_llm" target="bmod_h3_success_feedback"
-                 slots="verdict:States whether the plan worked:unclear@2|how_1:Whether the How (1) box explains how:unclear@2|how_2:Whether the How (2) box explains how:unclear@2|confident:All judgments confident">
+                 slots="verdict:States whether the plan worked:unclear@2|how_1:Whether the How (1) box explains how:unclear@2|how_2:Whether the How (2) box explains how:unclear@2|mechanism_named:Whether the response points at a mechanism for the change:unclear|confident:All judgments confident"
+                 requires="how_2:mechanism_named:unclear">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -728,6 +729,7 @@ Did the implementation of your behavior modification plan successfully modify yo
 - `verdict` (2 pt): States whether the plan was successful
 - `how_1` (2 pt): The box asked for How (1), judged ON ITS OWN. It is MET on EITHER of two grounds: it names a cause or a circumstance — why or when the plan did or did not work, or a technique leaned on — OR it reports the change with its SIZE: a figure, a comparison against the earlier week, or the data. `absent` when it offers NEITHER, a bare claim that it worked or did not with no reason and no measure behind it. `absent` ALSO on one COMBINATION, and only when BOTH halves hold together: what the box reports is a bodily or personal state rather than the behaviour itself, AND the condition it attaches that state to is the behaviour NOT being done. Either half ALONE is met: a state attributed to DOING the behaviour explains the outcome, and a box whose subject is the behaviour is met whichever direction it runs
 - `how_2` (2 pt): The box asked for How (2), judged on its own by the same two-way test as How (1). Either box can fail, both can, and one failing says nothing about the other
+- `mechanism_named`: Does the response, read across ALL THREE boxes, account for HOW the plan produced its result? `met` on either ground: it names something the student PUT IN PLACE so the behaviour would happen — an arrangement, a routine, a stand-in activity, a chosen hour or location — or it states the change together with its SIZE, a number or a comparison against an earlier week. `absent` when the response explains the result only by the surrounding conditions it found itself in, or by asserting the target behaviour over again. The division is between what the student DID so it would work and what was simply the case around them. Answer for the WHOLE response, not for one box
 
 ## Deduction codes — the course's canonical wording for each gap
 - `BLANK` (-6): did not answer
@@ -750,6 +752,7 @@ says the check reports an identity rather than a judgement.
 - `verdict` — `met`/`absent`/`unclear`: States whether the plan was successful
 - `how_1` — `met`/`absent`/`unclear`: The box asked for How (1), judged ON ITS OWN. It is MET on EITHER of two grounds: it names a cause or a circumstance — why or when the plan did or did not work, or a technique leaned on — OR it reports the change with its SIZE: a figure, a comparison against the earlier week, or the data. `absent` when it offers NEITHER, a bare claim that it worked or did not with no reason and no measure behind it. `absent` ALSO on one COMBINATION, and only when BOTH halves hold together: what the box reports is a bodily or personal state rather than the behaviour itself, AND the condition it attaches that state to is the behaviour NOT being done. Either half ALONE is met: a state attributed to DOING the behaviour explains the outcome, and a box whose subject is the behaviour is met whichever direction it runs
 - `how_2` — `met`/`absent`/`unclear`: The box asked for How (2), judged on its own by the same two-way test as How (1). Either box can fail, both can, and one failing says nothing about the other
+- `mechanism_named` — `met`/`absent`/`unclear`: Does the response, read across ALL THREE boxes, account for HOW the plan produced its result? `met` on either ground: it names something the student PUT IN PLACE so the behaviour would happen — an arrangement, a routine, a stand-in activity, a chosen hour or location — or it states the change together with its SIZE, a number or a comparison against an earlier week. `absent` when the response explains the result only by the surrounding conditions it found itself in, or by asserting the target behaviour over again. The division is between what the student DID so it would work and what was simply the case around them. Answer for the WHOLE response, not for one box
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 ## Context from this student's other answers (read-only)

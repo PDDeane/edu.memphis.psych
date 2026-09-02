@@ -2550,17 +2550,12 @@ GOLD_CODE_KNOWN: dict[tuple[str, int], str] = {
 # 2026-09-02: 8 -> 5 when 2a's conjunction rule made p1, p13 and p15 agree with
 # gold, then 5 -> 3 when the ratchet's FIRST run found Q4a/p6 and Q4a/p9 had
 # been stale for longer. Q20's own text already said p6 agreed; this table was
-# never updated to match, which is the gap the ratchet closes.
-GOLD_SLOT_BOUNDS_BUDGET = 3
+# never updated to match, which is the gap the ratchet closes. 3 -> 2 the same
+# day, when the mechanism rule made 2a/p14 charge the slot gold charged: the
+# ratchet reported it on the first audit after the sweep, unprompted.
+GOLD_SLOT_BOUNDS_BUDGET = 2
 
 GOLD_SLOT_BOUNDS_KNOWN: dict[tuple[str, int], str] = {
-    # SELF-CONTAINED on purpose. This read "same as 2a/p1" until the three
-    # sibling entries were dropped on 2026-09-02, and a cross-reference to a
-    # deleted entry says nothing -- the same defect as WK2/p15's.
-    ("2a", 14): "gold charges one how_* slot -- \"need more explanation on how "
-                "it was or was not successful\" -- and we charge NO how slot; "
-                "4.0 vs 6.0. The live disagreement on this cell is the `verdict` "
-                "slot, which we fail in 3 of 12 pooled runs, short of a median.",
     ("Q4c", 16): "gold charges one consequence slot and we charge none. The "
                  "comment is Q4b's `modify_why` text on a Q4c row, so WHICH slot "
                  "is unknowable, but that one was charged is not. Also "
