@@ -3308,9 +3308,55 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       divergence under B_NOT_ACTIVE, Q4a/p19 is one of Q24's two ceiling cells,
       and NR/p4 and NR/p20 turn on slots subgoal Q21 owns. What this entry adds
       is the ACROSS-ITEM pattern none of them can see alone.
-      NEXT: read 1a/p11 and NR/p4 out -- the two never read -- and decide whether
-      all six share DAY1/p1 and NR/p20's shape. If they do, the deliverable is a
-      recorded decision about deferring to silent rows, not a rule change.
+      == 2026-09-01: BOTH WERE READ. ALL SIX SHARE THE SHAPE. ==
+      1a/p11  gold 8.0 silent, we score 6.0 on `week_1`. The response covers the
+              baseline, week two and week three and never names week one. Our
+              evidence says exactly that. NOTE THE COMPLICATION: the student's
+              "{{corpus:1a/p11:response:203:232:sha=40fceadac0f5}} time" matches WEEK 1's data
+              (60, 60), not the baseline's (30, 30, 30), so they may have
+              described week one while calling it "before I started". On the rule
+              as written -- discuss the data for each week -- the refusal stands.
+      NR/p4   gold 4.0 silent, we score 2.0 on `demonstrates_type`. "{{corpus:NR/p4:nr:0:65:sha=71e4f739c568:shape=S2-0a2020202020202020202020202020}}" That is
+              REMOVING SOMETHING DESIRABLE to decrease an unwanted behaviour,
+              which is negative PUNISHMENT. The item asks for negative
+              reinforcement. This is the strongest of the six: the example does
+              not demonstrate the type the question names, and no reading of the
+              rubric credits it.
+      SO THE ANSWER TO THIS ENTRY'S QUESTION IS YES -- all six are cells where
+      our refusal is defensible on the rubric AS WRITTEN, and gold passed the row
+      without comment. DAY1/p1 names no behaviour and no contingency and rewards
+      by removing an aversive while the student chose Positive Reinforcement;
+      NR/p20 fails only `you_arrange_it` on a consequence nobody arranges;
+      Q4b/p12 is a declared not-doing divergence; Q4a/p19's box 1 FOLLOWS the UTB
+      rather than preceding it.
+      AND THE PROMPT ALREADY INSTRUCTS LENIENCY, which is what makes this a
+      finding rather than a complaint. Q4a's own guidance reads "ACCEPT
+      generously when the example precedes the UTB and a reader can see how it
+      leads there", and we still refuse p19 -- correctly, since its example does
+      not precede the UTB. So the gap is NOT that our prompts lack a generosity
+      instruction. Gold's silence encodes a threshold below even the generous
+      reading the rubric asks for.
+      WHAT FOLLOWS, and it is a decision rather than a fix. Three options, and
+      the first is the default:
+      (a) DEFER TO THE RUBRIC. Accept that these six are cells where the graders
+          were more lenient than the course's own written rules, record them as
+          such, and stop counting them against the scorers. This costs nothing
+          and is honest, but it means six cells are permanently "wrong" against
+          gold.
+      (b) DECLARE THEM, cell by cell, in handouts.GOLD_DIVERGENCES with the
+          reason -- which is what Q4b/p12 already has under B_NOT_ACTIVE. The
+          machinery exists and the bar is a stated reason, not a number.
+      (c) CORRECT THE GOLD where a row contradicts the graders' own decisions
+          elsewhere in the same item. NR/p4 is the only candidate: the response
+          demonstrates the wrong operant type outright, which is not a matter of
+          strictness. The others are judgement calls where gold is simply more
+          generous, and CORRECTED_GOLD is not for disagreeing with a judgement.
+      DO NOT LOOSEN A RULE TO CLOSE THIS. Every one of the six is a refusal the
+      written rubric supports, and three prompt changes measured on 2026-09-01
+      failed for want of exactly that discipline.
+      NEXT: pick between (a), (b) and (c) -- it is a course-owner's decision as
+      much as a scorer's, so ask rather than assume. If (b) or (c), NR/p4 is the
+      one to do first, because its case does not rest on a judgement.
 
 - [ ] Q35. **SOMETIMES RIGHT on a row gold passed in silence: five cells of variance, not strictness.**
       Split from Q31 on 2026-09-01. Same population -- gold gave full marks and
