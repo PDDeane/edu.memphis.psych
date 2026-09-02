@@ -3358,6 +3358,42 @@ def gold_slot_disagreements() -> list[str]:
 # because a cell moves in or out of "wrong" whenever a rule is edited and nothing
 # reports the move. Both directions matter, and closing a subgoal is a third:
 # closing E35 orphaned five cells and it was noticed by reading, not by a check.
+_OWNER_SIDE_CUES: tuple = (
+    # (word-boundary cue, which EVALUATED side it concerns). The vocabulary is
+    # the same one prose_claims scans -- both spellings, because the sides were
+    # renamed on 2026-09-01 and GOALS.md is years of history -- but the semantics
+    # differ on purpose. prose_claims wants the ONE side a sentence's number
+    # belongs to, so it takes the last cue. Ownership wants EVERY side a line
+    # speaks about, so this collects the set.
+    (r"\bolx\b", "olx+python"), (r"\bweb\b", "olx+python"),
+    (r"\bapp\b", "olx+python"), (r"\bpython\b", "olx+python"),
+    (r"\bcli\b", "olx+python"), (r"\bharness\b", "olx+python"),
+    (r"\bboth (sides|scorers|engines)\b", "olx+python"),
+    (r"\bevery side\b", "olx+python"),
+    (r"\bopus\b", "paper_opus"),
+    (r"\bpaper\b", "paper"),
+)
+
+
+def _sides_named(text: str) -> frozenset:
+    """Which evaluated sides a line SPEAKS ABOUT; empty when it says nothing.
+
+    `paper_opus` is removed before the bare `paper` cue runs, so the compound
+    name counts once for the side it actually is rather than for both.
+    """
+    import re
+
+    low = str(text or "").lower()
+    found = set()
+    if "paper_opus" in low:
+        found.add("paper_opus")
+        low = low.replace("paper_opus", " ")
+    for pat, side in _OWNER_SIDE_CUES:
+        if re.search(pat, low):
+            found.add(side)
+    return frozenset(found)
+
+
 def _live_subgoal_owners() -> dict:
     """{`item/pN`: [subgoal ids]} for every OPEN subgoal that names a cell.
 
@@ -3373,7 +3409,7 @@ def _live_subgoal_owners() -> dict:
     try:
         text = (Path(__file__).resolve().parent / "GOALS.md").read_text()
     except OSError:
-        return {}
+        return {"any": {}, "title": {}, "by_side": {}}
     # TWO KINDS OF MENTION, and the asymmetry between them is the point.
     #
     # ANY mention makes a subgoal an OWNER: a subgoal listing cells is a home for
@@ -3387,18 +3423,55 @@ def _live_subgoal_owners() -> dict:
     # "evidence has gone" would report the subgoal for citing its own controls.
     # Q11 is what the strict form is for: its TITLE is "Q3/p13: `realistic`
     # over-charged", and that cell now scores right.
-    owners: dict = {"any": {}, "title": {}}
+    #
+    # AND OWNERSHIP IS PER SIDE, which `any` cannot express. A cell is wrong on a
+    # particular side, and a subgoal about a DIFFERENT side is not a home for it.
+    # 1a/p6 is the case that forced this: we over-credit it on the OLX prompt in
+    # 11 of 12 runs, and every mention of it in this file was about the PAPER
+    # scorer -- "paper 0.0 vs olx 6.0-8.0", Q33's territory. Any-mention
+    # ownership read that as covered, so an 11-of-12 over-credit sat unchased
+    # while the audit reported clean. The side context is the line's own cues if
+    # it has any, else the SUBGOAL TITLE's, else every side: Q33's title says "on
+    # the PAPER scorer", so its body lines inherit paper rather than claiming
+    # everything by omission.
+    owners: dict = {"any": {}, "title": {}, "by_side": {}}
     current = None
+    title_sides: frozenset = frozenset()
     for line in text.splitlines():
         m = re.match(r"- \[( |x)\] ([EQ]\d+)\.", line)
         is_title = bool(m)
         if m:
             current = None if m.group(1) == "x" or m.group(2) == "E30" else m.group(2)
+            title_sides = _sides_named(line) if current else frozenset()
+            # WHICH ITEMS THE TITLE CLAIMS. The subgoal id is stripped first
+            # because the two namespaces COLLIDE: subgoal Q2 and item Q2 are
+            # different things, and reading the id as an item would let every
+            # low-numbered subgoal claim an item it has nothing to do with.
+            body = re.sub(r"^- \[( |x)\] [EQ]\d+\.", "", line)
+            title_items = ({it for it in _jobs()
+                            if re.search(rf"\b{re.escape(it)}\b", body)}
+                           if current else set())
         if current is None:
             continue
+        here = _sides_named(line) or title_sides or frozenset(_EVALUATED_SIDES)
         for cell in re.findall(r"\b([A-Za-z0-9]{1,4})/p(\d{1,2})\b", line):
             key = f"{cell[0]}/p{cell[1]}"
             owners["any"].setdefault(key, []).append(current)
+            # A TITLE THAT NAMES ITS ITEMS CANNOT OWN ANOTHER ITEM'S CELL by an
+            # aside. This is the gap that actually mattered, and it is not the
+            # side gap it was first taken for. 1a/p6 was over-credited on the
+            # pooled OLX prompt in 11 of 12 runs and read as OWNED -- not by a
+            # paper-side subgoal, but by Q17, whose title is "Q2:
+            # `wgb_is_counterpart`..." and whose body mentions the cell purely as
+            # history: "as 1a's five were on 2026-08-28, which cost 1a/p6 the
+            # whole item before the migration". A sentence about a past migration
+            # in a subgoal about a different item is not a home for a live error.
+            # Corpus-wide subgoals keep their reach: Q19 and Q20 name no item in
+            # their titles, so they own cells across items as before.
+            if is_title or not title_items or cell[0] in title_items:
+                for side in here:
+                    owners["by_side"].setdefault(key, {}).setdefault(
+                        side, []).append(current)
             if is_title:
                 owners["title"].setdefault(key, []).append(current)
     return owners
@@ -3633,7 +3706,9 @@ def wrong_cells_without_an_owner() -> list[str]:
         if key in seen:
             continue
         seen.add(key)
-        if owners.get(key):
+        # PER SIDE, not per cell. A subgoal about the paper scorer is not a home
+        # for a cell we get wrong on the OLX prompt -- see _live_subgoal_owners.
+        if (owned["by_side"].get(key) or {}).get(side):
             continue
         # A DECLARED MISS IS NOT AN ORPHAN. GOLD_DIVERGENCES already carries the
         # reason we miss the cell on purpose; demanding a QC subgoal too would be

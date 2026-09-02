@@ -893,7 +893,7 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 53
+SELFTEST_EXPECTED = 54
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1688,6 +1688,17 @@ def enforcement_selftest():
     # because the check it exercises was written green: its item->handout map was
     # keyed on dict reprs, so it matched nothing and reported a clean corpus. A
     # five-way fire test caught that, and this case keeps it caught.
+    # OWNERSHIP, which had no case until 2026-09-02 even though the check is
+    # what keeps a wrong cell from being buried in a median. Emptying the owner
+    # map must make every wrong cell an orphan; if it does not, the check has
+    # stopped reading GOALS.md and would report clean on a file it never opened.
+    _real_owners = _M._live_subgoal_owners
+    _scorer_case("the owner map stops being read",
+                 lambda: setattr(_M, "_live_subgoal_owners",
+                                 lambda: {"any": {}, "title": {}, "by_side": {}}),
+                 lambda: setattr(_M, "_live_subgoal_owners", _real_owners),
+                 want="WRONG CELL WITH NO OWNER")
+
     # The reconstruction every olx slot read depends on. Its faithfulness is
     # checkable only against the python artifacts, which record what the olx ones
     # compute and discard -- so if that comparison stops happening, nothing else
