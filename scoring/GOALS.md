@@ -1900,7 +1900,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       student's answer.
 
 
-- [ ] E38. **The python side's staleness fingerprint ignores five attributes it reads.**
+- [x] E38. **The python side's staleness fingerprint ignores five attributes it reads.**
       Found 2026-09-01 while answering "why is the python side served less of the
       screen than the olx side?" -- it is NOT (both backends get the identical prompt from
       `agreement.build_prompt` and the identical schema; only `backend.complete`
@@ -1949,6 +1949,45 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       NEXT: decide between (a), (b) and (c); then fix `_python_read_attrs`, correct
       the `_olx_only_visible` docstring's score.py/agreement.py confusion, and add a
       check that every open-tag read in agreement.py is covered by the derivation.
+
+      CLOSED 2026-09-01 BY ROUTE (a), re-stamping against git history rather than
+      re-sweeping. The derivation now counts every way that side reads an
+      attribute: the `_attr` helper, the five bespoke `re.search` parsers
+      (`slots`, `verdicts`, `equals`, `cover`, `derived`) and the schema-excluding
+      primitives `excluded_keys` reads dynamically off the registry. `target` is
+      excluded -- it locates the feedback element and is not sent to the model.
+      Twelve attributes now count where seven did.
+      VERIFIED BY THE CASE THE OLD HASH COULD NOT SEE: an attribute-only edit to
+      Q4a's `derived=`, touching no prompt-body text, moves the python-side sha
+      from 3c2b1ef648a1 to f1b06e4445d9. Under the old derivation it moved
+      nothing, which is how E25 nearly slipped through.
+      THE RE-STAMP, and its evidence recorded PER ITEM in a `prompt_sha_basis`
+      field rather than asserted wholesale:
+          git-clean            14 items. The .olx section is identical at the
+                               commit the artifact recorded and now, and the tree
+                               was CLEAN, so the commit is provably what ran.
+          git-dirty-unchanged  10 items. Section identical at that commit and now,
+                               but the tree was dirty, so the sweep could in
+                               principle have run on a transient section. The
+                               window is narrow and the text is stable either
+                               side of it; this is the weaker half of the claim.
+          dirty-moved           2 items, Q5 and Q6. Here git ACTIVELY MISLEADS: the
+                               section differs, and the reason is that both were
+                               swept with uncommitted work live -- Q6's `requires`
+                               rule was in the tree and not in the commit -- so
+                               `era.git` names the state BEFORE what ran. The
+                               current text is what those numbers were measured
+                               against, which subgoals E11 and E15 record
+                               independently. Stamped on that, not on git.
+      SO THE ROUTE'S LIMIT IS WORTH RECORDING: re-stamping against git history is
+      sound only for artifacts written from a clean tree, and 12 of 26 were not.
+      For two of those git returns the WRONG answer rather than no answer, which
+      is the failure mode to watch -- a dirty sweep's commit is a record of what
+      was NOT running. If this is ever done again, prefer artifacts whose era
+      says dirty=False, and fall back to the subgoal that commissioned the sweep.
+      THE AUDIT IS CLEAN AFTER IT: no item reports STALE PROMPT, and the two
+      genuinely uncertain ones are labelled rather than hidden.
+
 
 - [x] E37. **Every wrong cell must have a live owner, and the audit must say so every run.**
       Filed 2026-08-31. The accounting built across E30/E33/E35 was done BY HAND:

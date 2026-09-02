@@ -5701,14 +5701,15 @@ def check_app_and_harness_send_the_same_prompt() -> list[str]:
     # would otherwise be red on every ordinary day -- prompts are regenerated far
     # more often than dumps are taken -- and a check that is always red is a
     # check nobody reads.
+    # THE DUMP'S AGE ONLY MATTERS IF SOMETHING DIFFERS. Returning early on mtime
+    # made the check fire whenever the .olx was merely REWRITTEN -- an injection
+    # test restoring a file byte-for-byte was enough, since content-identical
+    # rewrites move the mtime. Age is now used to EXPLAIN a difference rather
+    # than to pre-empt the comparison: if every body matches, a dump older than
+    # the .olx has told us what we needed anyway.
     dump_at = pathlib.Path(newest).stat().st_mtime
     olx_at = max(pathlib.Path(P.OLX % h).stat().st_mtime for h in (1, 2, 3))
-    if dump_at < olx_at:
-        return [f"the newest idmap dump ({pathlib.Path(newest).name}) predates the "
-                f"current .olx, so the app's served prompt cannot be compared with "
-                f"the harness's. Re-take it with `curl -s "
-                f"'http://localhost:8888/api/olxjson?id=all' -o out/idmap.json` "
-                f"while the dev server runs, then re-run"]
+    stale_dump = dump_at < olx_at
     try:
         st = pathlib.Path(newest).stat()
         idmap = _idmap_parsed(newest, st.st_mtime, st.st_size)
@@ -5754,10 +5755,15 @@ def check_app_and_harness_send_the_same_prompt() -> list[str]:
         diff = [l for l in difflib.unified_diff(a, b, lineterm="", n=0)
                 if l[:1] in "+-" and l[:3] not in ("---", "+++")]
         if diff:
+            why = ("the dump predates the current .olx, so re-take it with `curl "
+                   "-s 'http://localhost:8888/api/olxjson?id=all' -o "
+                   "out/idmap.json' and re-run before reading this as a divergence"
+                   if stale_dump else
+                   "the dump is NOT older than the .olx, so this is a real "
+                   "difference in what the two engines grade")
             out.append(f"{item}: the app serves a prompt body the harness does not "
                        f"send -- {len(diff)} differing line(s), first: "
-                       f"{diff[0][:90]!r}. Either the dump is stale (re-take it) or "
-                       f"the two engines are grading different text")
+                       f"{diff[0][:90]!r}. {why}")
             continue
         # THE ASSEMBLED PROMPT, not just the template. Matching bodies do not
         # settle it: the body is a template with `<Ref>` holes, and the two sides
