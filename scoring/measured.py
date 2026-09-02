@@ -3050,9 +3050,23 @@ def _our_failing_slots(item: str, pid: int, side: str = DEFAULT_SIDE):
     out = []
     for run in runs:
         for r in (run.get("results") or []):
-            if r.get("participant_id") != pid:
+            # BOTH ARTIFACT SHAPES. agreement.py writes participant_id/checks;
+            # agreement_app.py writes cell "p19/Q4a" and `verdicts`, with
+            # per-slot refers_to where the other has `answers`. Reading only the
+            # first shape made this return [] for every olx cell, so every
+            # slot-level readout built on it was silently python-only while
+            # reporting nothing amiss -- the same failure as the `out` pointer
+            # that made the paper column unreadable and read as "nothing wrong".
+            rid = r.get("participant_id")
+            if rid is None and r.get("cell"):
+                head = str(r["cell"]).split("/")[0].lstrip("pP")
+                rid = int(head) if head.isdigit() else None
+            if rid != pid:
                 continue
-            ch, ans = dict(r.get("checks") or {}), (r.get("answers") or {})
+            ch = dict(r.get("checks") or r.get("verdicts") or {})
+            ans = {k: v for k, v in (r.get("answers")
+                                     or r.get("refers_to") or {}).items()
+                   if v is not None}
             rebuilt = {k: dict(verdict=v,
                                **({"refers_to": ans[k]} if k in ans else {}))
                        for k, v in ch.items()}
