@@ -4731,10 +4731,12 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
          "check_declarations_still_have_evidence")),
     "handouts.CORRECTED_GOLD": (
         "the target a cell is measured against",
-        ("check_corrected_gold_matches_the_sheet",)),
+        ("check_corrected_gold_matches_the_sheet",
+         "check_no_declaration_cites_a_suspect_cell")),
     "handouts.GOLD_DIVERGENCES": (
         "cells we knowingly disagree with gold about",
-        ("check_declarations_still_have_evidence",)),
+        ("check_declarations_still_have_evidence",
+         "check_no_declaration_cites_a_suspect_cell")),
     "handouts.GOLD_CEILINGS": (
         "why an item cannot reach 100%",
         ("check_declarations_still_have_evidence",)),
@@ -4754,7 +4756,8 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
         ("check_slot_sets_match_gold",)),
     "measured.GOLD_SLOT_DISAGREEMENTS_KNOWN": (
         "cells failing different slots from the ones gold charged",
-        ("check_slot_sets_match_gold",)),
+        ("check_slot_sets_match_gold",
+         "check_no_declaration_cites_a_suspect_cell")),
     # FOUR TABLES IN THIS MODULE that were invisible until E36 made the scan see
     # EMPTY containers. All four are empty today and all four have a real check
     # already reading them -- so they were unregistered rather than unverified,
@@ -4799,10 +4802,12 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
         ("check_slot_sets_match_gold",)),
     "measured.GOLD_CODE_KNOWN": (
         "criteria cells where our deduction code differs from gold's",
-        ("check_slot_sets_match_gold",)),
+        ("check_slot_sets_match_gold",
+         "check_no_declaration_cites_a_suspect_cell")),
     "measured.GOLD_SLOT_BOUNDS_KNOWN": (
         "cells whose ambiguous gold charge disagrees with us on every reading",
-        ("check_slot_sets_match_gold",)),
+        ("check_slot_sets_match_gold",
+         "check_no_declaration_cites_a_suspect_cell")),
     "measured.GOLD_SLOT_UNMAPPABLE": (
         "grader deductions no slot set can account for",
         ("check_slot_sets_match_gold",)),
@@ -5824,6 +5829,95 @@ def _assemble_like_the_app(idmap: dict, action: str, fixture: dict,
                     parts.append((fixture.get(tgt) or "").strip() or "(left blank)")
             return "".join(parts)
     return None
+
+
+def check_no_declaration_cites_a_suspect_cell() -> list[str]:
+    """A declaration that argues from a cell whose INPUT is untrusted.
+
+    `handouts.suspect` drops a participant from a whole handout because the
+    SUBMISSION cannot be attributed -- handout 2's p2 and p3 carry byte-identical
+    transcriptions with different gold rows, so at least one is mis-transcribed.
+    Those cells are not weak evidence, they are NO evidence: nothing about the
+    marking can be inferred from a row whose input is wrong, in either direction.
+    They cannot show gold is careful and they cannot show gold is incoherent.
+
+    This check exists because a CORRECTED_GOLD entry was written that leaned on
+    exactly that pair. It argued NR's gold was internally incoherent because p2
+    and p3 disagree on identical text, and concluded the item could not be the
+    yardstick for a consistency argument. The contradiction is real and is
+    precisely WHY both are excluded; it says nothing about how the graders mark.
+    The user caught it, having to point out that suspect cells are never
+    evidence. The replacement argument -- NR/p9, same item, same structural
+    error, charged by gold at the same score the correction assigns -- was both
+    simpler and stronger. That is the pattern worth remembering: an argument
+    resting on a suspect cell is usually standing in for a better one that was
+    never looked for, so this check's finding is a prompt to go and find it.
+
+    PROSE is scanned, not structure, because that is where the reasoning lives.
+    A declaration's KEY is already dropped from scoring by `exclusions()`, so the
+    leak can only enter through the WHY. A citation inside a sentence that names
+    the cell as suspect or excluded is allowed -- that is an entry recording the
+    rule rather than breaking it, which this very entry now does.
+    """
+    import handouts as H
+    import measured as M
+
+    home_of: dict[str, int] = {}
+    for hnd in (1, 2, 3):
+        try:
+            for it in H.config(hnd)["rubric"].ITEMS:
+                # ITEMS holds dicts, not id strings. Writing str(it) here keyed
+                # the map on dict reprs, so nothing ever matched and the check
+                # was green by construction -- caught only by the fire test.
+                iid = it.get("id") if isinstance(it, dict) else it
+                if iid:
+                    home_of.setdefault(str(iid), hnd)
+        except Exception:
+            continue
+    suspect = {hnd: set(H.suspect(hnd)) for hnd in (1, 2, 3)}
+
+    def cited(why: str, home: str) -> set[tuple[str, int]]:
+        out: set[tuple[str, int]] = set()
+        for sent in re.split(r"(?<=[.!?;])\s+", str(why or "")):
+            if re.search(r"suspect|exclud", sent, re.I):
+                continue           # naming the rule, not leaning on the cell
+            for it, pid in re.findall(r"\b([A-Za-z][\w]*)\s*/\s*p(\d+)\b", sent):
+                out.add((it, int(pid)))
+            bare = re.sub(r"\b[A-Za-z][\w]*\s*/\s*p\d+\b", " ", sent)
+            for pid in re.findall(r"\bp(\d+)\b", bare):
+                out.add((home, int(pid)))
+        return out
+
+    entries: list[tuple[str, str, str, str]] = []      # table, label, home, why
+    for (it, pid), v in getattr(H, "CORRECTED_GOLD", {}).items():
+        entries.append(("handouts.CORRECTED_GOLD", f"{it}/p{pid}", it,
+                        (v or {}).get("why", "")))
+    for d in getattr(H, "GOLD_DIVERGENCES", []):
+        cells = list((d or {}).get("cells") or [])
+        home = str(cells[0][0]) if cells else ""
+        label = (d or {}).get("code") or (home or "?")
+        entries.append(("handouts.GOLD_DIVERGENCES", str(label), home,
+                        (d or {}).get("why", "")))
+    for name in ("GOLD_SLOT_DISAGREEMENTS_KNOWN", "GOLD_SLOT_BOUNDS_KNOWN",
+                 "GOLD_CODE_KNOWN"):
+        for (it, pid), why in (getattr(M, name, {}) or {}).items():
+            entries.append((f"measured.{name}", f"{it}/p{pid}", it, why))
+
+    out: list[str] = []
+    for table, label, home, why in entries:
+        for it, pid in sorted(cited(why, home)):
+            hnd = home_of.get(it)
+            if hnd is None or pid not in suspect.get(hnd, ()):
+                continue
+            out.append(
+                f"{table} `{label}` argues from {it}/p{pid}, which "
+                f"`handouts.suspect({hnd})` drops because its transcription "
+                f"cannot be trusted. A suspect cell is evidence for nothing in "
+                f"either direction, so this reasoning has a hole in it: either "
+                f"find the argument that does not need it, or say inside the "
+                f"citing sentence that the cell is suspect and why it is being "
+                f"named anyway.")
+    return out
 
 
 def check_every_wrong_cell_has_an_owner() -> list[str]:
