@@ -6302,6 +6302,167 @@ def _gold_corroborates_absence(h: int, iid: str, pid: int, empty: list[str]) -> 
     return all(kind in fb for kind in kinds)
 
 
+def _counts_sig(handout: int, item: str) -> tuple:
+    """The rubric's counted-group shape for one item.
+
+    Part of the fixture cache key, and that is the whole point rather than a
+    detail: handout 3's boxes are rebuilt by score.py's counted-group
+    distribution, so the fixture DEPENDS on this declaration. Caching on
+    (item, pid) alone would have returned the clean fixture after the self-test
+    dropped 2a's `counts`, and the case that proves this check works would have
+    failed while looking like a passing cache.
+    """
+    from handouts import config
+
+    try:
+        spec = config(handout)["rubric"].BY_ID.get(item) or {}
+    except Exception:
+        return ()
+    return tuple((cr.get("key"), tuple(cr.get("slots") or ()))
+                 for cr in (spec.get("counts") or ()))
+
+
+@functools.lru_cache(maxsize=None)
+def _sections_cached(handout: int, pid: int) -> tuple:
+    """One participant's transcribed sections, as a hashable tuple of pairs.
+
+    Independent of any rubric declaration -- it is the .docx transcription -- so
+    unlike the fixture cache this one needs no signature in its key.
+    """
+    import agreement_app as AA
+
+    try:
+        return tuple(sorted((AA.sections_for(handout, pid) or {}).items()))
+    except (Exception, SystemExit):
+        return ()
+
+
+@functools.lru_cache(maxsize=None)
+def _fixture_built(side: str, item: str, pid: int, _sig: tuple):
+    """One assembled fixture, cached. None when it cannot be built.
+
+    Uncached, this check cost the self-test dearly: it assembles a fixture per
+    (item, participant, harness), and the self-test runs the whole audit once per
+    injected breakage, so the same ~500 builds were repeated 55 times.
+    """
+    import agreement as A
+    import agreement_app as AA
+
+    try:
+        if side == "olx":
+            return AA.build_jobs(item, [pid])[0].get("fixture") or {}
+        return A.fixture_for(item, pid) or {}
+    except (Exception, SystemExit):
+        return None
+
+
+def check_fixture_boxes_hold_the_students_words(items=None) -> list[str]:
+    """A fixture box filled with something the student never wrote.
+
+    Handout 3's answer is ONE prose block, and its on-screen boxes are
+    reconstructed by score.py's counted-group distribution: it reads the count
+    slot's evidence, pulls the quoted spans out, and deals them to the members.
+    When there are fewer spans than the count it writes a PLACEHOLDER instead --
+    `score.py`'s `f"{raw_n or '0'} found"`, which is the literal string "2 found".
+
+    So the reconstruction is only as good as the count group being declared. Take
+    `counts` off an item and the distribution stops running, the placeholders are
+    never overwritten, and every scorer-sourced box silently becomes a 7-character
+    stub. The scorers then grade "2 found" as if the student had written it.
+
+    THAT HAPPENED, and it is why this check exists. Subgoal Q2's structural
+    experiment un-derived 2a's two `how` slots so each box could be judged on its
+    own. The rubric edit also removed the count group, which removed the fixture
+    reconstruction with it, and 2a/p4's two boxes went from 246 and 193 characters
+    of the student's answer to "2 found" and "2 found". A 120-call sweep then
+    measured the item at 10/20 against a baseline of 15/20 and the change looked
+    refuted. It had never been tested. The corruption was diagnosed afterwards
+    from the returned rows, which is the wrong end: the user's point was that this
+    belongs BEFORE the calls, and it is now a preflight in both sweep harnesses as
+    well as an audit check.
+
+    NOTHING ELSE CAUGHT IT, and each near-miss is instructive.
+    `check_fixture_covers_the_response` looks for an EMPTY box beside a long
+    unassigned run of the response; a box holding a placeholder is not empty, so
+    the conjunction never fired. `agreement_app.context_value` DOES guard this
+    exact string -- its comment names "2 found" and how it once reached items 3
+    and 2b as read-only context -- but only on the CONTEXT path, and the guard
+    itself asks `counted_members`, so removing the count group disabled the guard
+    and the corruption in one stroke.
+
+    The test is the student's own words: a box sourced from the scorer must appear
+    in the transcribed response for that participant. Real spans are quoted OUT of
+    it and always do; a placeholder never does.
+    """
+    import re as _re
+
+    import agreement as A
+    import agreement_app as AA
+
+    out: list[str] = []
+    norm = lambda t: " ".join(str(t or "").split()).lower()
+    want = set(items or ()) or None
+    for item in sorted(AA.JOBS):
+        if want is not None and item not in want:
+            continue
+        spec = AA.JOBS[item]
+        h = spec.get("handout")
+        boxes = sorted(spec.get("from_scorer") or {})
+        if not boxes:
+            continue
+        for pid in range(1, 21):
+            sec = dict(_sections_cached(h, pid))
+            if not sec:
+                continue
+            # THE SOURCE ITEM'S SECTION, not this item's. A box in `from_scorer`
+            # can belong to ANOTHER item shown as read-only context -- Q5 seeds
+            # Q4c's two consequence boxes -- and comparing those against Q5's own
+            # text reported 72 false positives on a clean tree. CONTEXT_SOURCE
+            # holds the owner.
+            owner = {c: src[1] for c, src in AA.CONTEXT_SOURCE.items()
+                     if src[0] == "scorer"}
+            # THE ASSEMBLED FIXTURE, not the raw evidence. `scorer_evidence`
+            # legitimately holds placeholders and its callers guard them; what
+            # matters is the value that reaches a prompt. Both harnesses are read,
+            # because they assemble independently and either could drift.
+            built = {}
+            # SystemExit, not just Exception. A fixture builder RAISES SystemExit
+            # on an unrelated defect -- Q6/p9's duplicate CONSENSUS_FIXES span is
+            # one -- and SystemExit does not inherit from Exception, so an
+            # `except Exception` here let it escape and killed the whole audit
+            # mid-run. A check that cannot examine a cell must skip it quietly,
+            # never take the harness down with it.
+            for name in ("olx", "python"):
+                got = _fixture_built(name, item, pid, _counts_sig(h, item))
+                if got is not None:
+                    built[name] = got
+            for side, fx in built.items():
+                for comp in boxes:
+                    whole = norm(sec.get(owner.get(comp, item)))
+                    val = str(fx.get(comp) or "")
+                    v = norm(val)
+                    if not whole or not v or v in whole:
+                        continue
+                    # A DISTRIBUTED NEGATION IS STILL THE STUDENT'S WORDS. Q6/p6
+                    # wrote "not attending the gym & stretching as often as I
+                    # should be" and the hand split has to repeat the "not" to
+                    # make the second box stand alone, so the box is a faithful
+                    # reading that is not a verbatim substring. Allowing only a
+                    # LEADING negator keeps the test exact for everything else.
+                    if _re.sub(r"^(not|no|never)\s+", "", v) in whole:
+                        continue
+                    out.append(
+                        f"{item}/p{pid} [{side}]: the fixture box `{comp}` holds "
+                        f"{val[:40]!r}, which does not appear in the student's "
+                        f"transcribed answer. A scorer-sourced box is a SPAN "
+                        f"QUOTED OUT of the response, so text that is not in it "
+                        f"is not the student's -- most likely score.py's "
+                        f"`N found` placeholder, which means this item's "
+                        f"counted-group distribution is not running. Every "
+                        f"scorer reading this box grades what nobody wrote")
+    return out
+
+
 def check_fixture_covers_the_response() -> list[str]:
     """Does the split fixture still contain the student's whole answer?
 

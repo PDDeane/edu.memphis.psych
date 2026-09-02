@@ -1991,6 +1991,12 @@ def main() -> int:
     # exclusions first, which was itself skipped for seven items. So the check
     # runs here, where the probe is actually launched, and the operator has to
     # dismiss it deliberately.
+    # BEFORE ANY CALL. See agreement_app.check_fixture_is_not_corrupt for what
+    # this is for: a rubric edit can silently replace the student's answer with a
+    # placeholder, and a sweep over that measures the placeholder.
+    import agreement_app as _AA
+    _AA.check_fixture_is_not_corrupt(list(args.items or []))
+
     if args.participants and args.runs >= 4 and not args.force_probe:
         try:
             import measured as _meas
