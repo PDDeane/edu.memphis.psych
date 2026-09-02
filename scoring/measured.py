@@ -2545,35 +2545,22 @@ GOLD_CODE_KNOWN: dict[tuple[str, int], str] = {
 }
 
 
+# THE BUDGET, and it may only fall -- the same bargain as
+# GOLD_SLOT_DISAGREEMENTS_BUDGET and SLOT_RULE_BACKLOG. It went 8 -> 5 on
+# 2026-09-02: 8 -> 5 when 2a's conjunction rule made p1, p13 and p15 agree with
+# gold, then 5 -> 3 when the ratchet's FIRST run found Q4a/p6 and Q4a/p9 had
+# been stale for longer. Q20's own text already said p6 agreed; this table was
+# never updated to match, which is the gap the ratchet closes.
+GOLD_SLOT_BOUNDS_BUDGET = 3
+
 GOLD_SLOT_BOUNDS_KNOWN: dict[tuple[str, int], str] = {
-    # 2a, FOUR CELLS, ONE SHAPE: gold charges one `how_*` slot -- "your third
-    # sentece does not explain how your plan was successful" / "need more
-    # explanation on how it was or was not successful" -- and we charge NOTHING.
-    # Gold 4.0 against our 6.0 on all four. This is subgoal Q2's finding ("2a
-    # over-credits hows_given: one rule, five cells") reached from the slot side,
-    # and it is the strongest confirmation of that subgoal available: the
-    # over-credit is not spread over the item, it is one uncharged slot.
-    # Q4a/p9, ADDED 2026-09-01 by the E25 re-measurement, and the reason it is a
-    # bounds entry rather than an exact one is that gold's comment -- "-2 pts: The
-    # second example is not an antecedent" -- names the slot in prose the parser
-    # cannot pin to a key, so the COUNT is certain and the identity is not.
-    #
-    # THE CELL INVERTED. Before the keyword conversion the cli scored it 3.0
-    # (right) and the web 5.0 (wrong); now the web fails `antecedent_2` in all six
-    # runs and scores 3.0, and the cli fails nothing and scores 5.0. Both sides are
-    # stable at 6/6, so this is not noise. The web moved ONTO gold and the cli
-    # moved OFF it, on a cell where nothing about `antecedent_2` was touched --
-    # the only change either side saw is that `keyword` left the sheet.
-    # Owned by Q32, whose entry records the inversion.
-    ("Q4a", 9): "gold charges 1 slot (antecedent_2, in prose); cli fails none "
-                "and scores 5.0 against gold 3.0, while the web fails it and "
-                "agrees. Inverted by the E25 conversion -- see Q32.",
-    ("2a", 1): "gold charges one how_* slot; we charge none. 4.0 vs 6.0.",
-    ("2a", 13): "same as 2a/p1.",
-    ("2a", 14): "same as 2a/p1, phrased as \"need more explanation\".",
-    ("2a", 15): "same as 2a/p1, naming the second sentence rather than the third.",
-    ("Q4a", 6): "gold charges one antecedent -- \"how does not stretching lead to "
-                "lack of exercise?\" -- and we charge none.",
+    # SELF-CONTAINED on purpose. This read "same as 2a/p1" until the three
+    # sibling entries were dropped on 2026-09-02, and a cross-reference to a
+    # deleted entry says nothing -- the same defect as WK2/p15's.
+    ("2a", 14): "gold charges one how_* slot -- \"need more explanation on how "
+                "it was or was not successful\" -- and we charge NO how slot; "
+                "4.0 vs 6.0. The live disagreement on this cell is the `verdict` "
+                "slot, which we fail in 3 of 12 pooled runs, short of a median.",
     ("Q4c", 16): "gold charges one consequence slot and we charge none. The "
                  "comment is Q4b's `modify_why` text on a Q4c row, so WHICH slot "
                  "is unknowable, but that one was charged is not. Also "
@@ -3347,6 +3334,53 @@ def gold_slot_disagreements() -> list[str]:
         verb = "grew to" if n > GOLD_SLOT_DISAGREEMENTS_BUDGET else "is down to"
         out.append(f"GOLD_SLOT_DISAGREEMENTS_KNOWN {verb} {n} against a budget of "
                    f"{GOLD_SLOT_DISAGREEMENTS_BUDGET} -- it may only fall")
+
+    # THE SAME RATCHET FOR THE BOUNDS TABLE, which had none. That gap let three
+    # 2a entries stand asserting "gold charges one how_* slot; we charge none"
+    # on the very day the conjunction rule made us charge the box gold NAMED, in
+    # 12 of 12 runs on both sides. Nothing reported them: the disagreements table
+    # is ratcheted and this one was not, so its entries could only ever be
+    # retired by somebody remembering to look. Two of the three also said "same
+    # as 2a/p1", so the stale claim was propagating by cross-reference.
+    #
+    # A BOUNDS entry claims we disagree on EVERY reading of an ambiguous charge,
+    # so it expires when our slot set becomes CONSISTENT with the bounds: we fail
+    # as many scored slots as gold charged, and every slot gold named for certain
+    # is among them. That is weaker than the disagreements table's exact-set test
+    # on purpose, because the charge itself is weaker -- a count or a subset
+    # rather than a named slot.
+    out += bounds_declarations_that_expired()
+    return out
+
+
+def bounds_declarations_that_expired() -> list[str]:
+    """GOLD_SLOT_BOUNDS_KNOWN entries whose cell now agrees with gold."""
+    import collections
+
+    out: list[str] = []
+    for (item, pid), _why in sorted(GOLD_SLOT_BOUNDS_KNOWN.items()):
+        bounds = gold_charge_bounds(item, pid)
+        if bounds is None:
+            continue
+        definite, count = bounds
+        runs = (_our_failing_slots(item, pid, "olx")
+                + _our_failing_slots(item, pid, "python"))
+        if not runs:
+            continue          # unreadable is not agreement
+        seen = collections.Counter(s for r in runs for s in r)
+        maj = {s for s, k in seen.items() if k > len(runs) / 2}
+        if len(maj) == count and set(definite) <= maj:
+            out.append(
+                f"GOLD_SLOT_BOUNDS_KNOWN names {item}/p{pid}, but we now fail "
+                f"{len(maj)} scored slot(s) -- {sorted(maj) or 'none'} -- against "
+                f"gold's charge of {count}, so the two are CONSISTENT on at least "
+                f"one reading and the entry no longer describes a disagreement. "
+                f"Drop it and lower GOLD_SLOT_BOUNDS_BUDGET")
+    n = len(GOLD_SLOT_BOUNDS_KNOWN)
+    if n != GOLD_SLOT_BOUNDS_BUDGET:
+        verb = "grew to" if n > GOLD_SLOT_BOUNDS_BUDGET else "is down to"
+        out.append(f"GOLD_SLOT_BOUNDS_KNOWN {verb} {n} against a budget of "
+                   f"{GOLD_SLOT_BOUNDS_BUDGET} -- it may only fall")
     return out
 
 

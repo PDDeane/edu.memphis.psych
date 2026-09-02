@@ -895,7 +895,7 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 55
+SELFTEST_EXPECTED = 56
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1690,6 +1690,26 @@ def enforcement_selftest():
     # because the check it exercises was written green: its item->handout map was
     # keyed on dict reprs, so it matched nothing and reported a clean corpus. A
     # five-way fire test caught that, and this case keeps it caught.
+    # THE BOUNDS TABLE'S RATCHET, added 2026-09-02. The disagreements table had
+    # one and this table did not, so three 2a entries stood asserting a
+    # disagreement on the very day the conjunction rule ended it, and the
+    # ratchet's first run found two Q4a entries that had been stale for longer --
+    # with Q20's own text already saying one of them agreed. A stale declaration
+    # subtracts itself from every rate and leaves no trace, so the retirement
+    # path needs a test of its own.
+    _real_bounds = dict(_M.GOLD_SLOT_BOUNDS_KNOWN)
+
+    def _add_stale():
+        _M.GOLD_SLOT_BOUNDS_KNOWN[("Q4a", 6)] = "stale: we now agree with gold"
+
+    def _drop_stale():
+        _M.GOLD_SLOT_BOUNDS_KNOWN.clear()
+        _M.GOLD_SLOT_BOUNDS_KNOWN.update(_real_bounds)
+
+    _scorer_case("a bounds declaration outlives its cell",
+                 _add_stale, _drop_stale,
+                 want="SLOT SET DISAGREES WITH GOLD")
+
     # THE FIXTURE ITSELF, which no prompt or scoring check looks at. Dropping
     # 2a's `counts` was the edit that replaced its boxes with "2 found" and cost
     # a 120-call sweep, and that edit CANNOT do it any more -- the dealing groups
