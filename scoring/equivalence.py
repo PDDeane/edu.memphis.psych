@@ -666,6 +666,8 @@ def enforcement_audit():
         findings.append(("-", "DECLARATION ARGUES FROM A SUSPECT CELL", bad))
     for bad in ENF.check_computed_slot_recovery_is_faithful():
         findings.append(("-", "COMPUTED-SLOT RECOVERY UNFAITHFUL", bad))
+    for bad in ENF.check_fixture_boxes_hold_the_students_words():
+        findings.append(("-", "FIXTURE BOX IS NOT THE STUDENT'S WORDS", bad))
     for bad in ENF.check_the_audit_read_the_corpus():
         findings.append(("-", "AUDIT EXAMINED NOTHING", bad))
     for bad in ENF.check_consensus_spans_are_disjoint():
@@ -893,7 +895,7 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 54
+SELFTEST_EXPECTED = 55
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1688,6 +1690,17 @@ def enforcement_selftest():
     # because the check it exercises was written green: its item->handout map was
     # keyed on dict reprs, so it matched nothing and reported a clean corpus. A
     # five-way fire test caught that, and this case keeps it caught.
+    # THE FIXTURE ITSELF. Dropping 2a's counts group is the exact edit that
+    # replaced its boxes with "2 found" and cost a 120-call sweep, so it is the
+    # breakage worth injecting: it is a change to the RUBRIC that corrupts the
+    # INPUT, which no prompt or scoring check looks for.
+    import rubric_h3 as _R3
+    _real_counts = _R3.BY_ID["2a"].get("counts")
+    _scorer_case("a rubric edit replaces the student's answer",
+                 lambda: _R3.BY_ID["2a"].__setitem__("counts", []),
+                 lambda: _R3.BY_ID["2a"].__setitem__("counts", _real_counts),
+                 want="FIXTURE BOX IS NOT THE STUDENT'S WORDS")
+
     # OWNERSHIP, which had no case until 2026-09-02 even though the check is
     # what keeps a wrong cell from being buried in a median. Emptying the owner
     # map must make every wrong cell an orphan; if it does not, the check has
