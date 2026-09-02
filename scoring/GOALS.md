@@ -3034,7 +3034,7 @@ The order below is by diagnosed tractability, not by score. A deterministic miss
 with a named failing check is worth more than a larger gap of unknown shape,
 because it can be fixed or declared; a wobbling cell cannot be either.
 
-- [ ] Q31. **SILENT FULL MARKS: nine cells where gold wrote nothing and we deduct.**
+- [x] Q31. **SILENT FULL MARKS: nine cells where gold wrote nothing and we deduct.**
       SPLIT INTO Q34 AND Q35 ON 2026-09-01, and this entry is superseded by them.
       Q34 holds the six cells we get wrong in every one of twelve pooled runs --
       the false-positive test -- and Q35 the five we sometimes get right, which
@@ -3165,6 +3165,22 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       shape, not this one's, and it should be read there -- but Q20's mechanism
       is "we credit a slot gold charged", which needs a gold comment, and this
       row has none. Neither entry currently accounts for it.
+
+      CLOSED 2026-09-01, superseded by Q34 and Q35. The pattern it found is real
+      and is not retired -- it is split, on a line pooling made measurable:
+      whether we get the cell wrong EVERY run or only sometimes. Q34 carries the
+      six that are never right, which is the false-positive test this entry was
+      opened to be; Q35 carries the five that sometimes are, which are about
+      variance and were quietly inflating the rate.
+      ITS ONE LOOSE CELL WAS PLACED FIRST. 2a/p16 is named here as belonging to
+      subgoal Q2, and nothing had acted on that, so closing without moving it
+      would have orphaned it. It is now in Q2 with its evidence.
+      WHAT IT GOT RIGHT, worth keeping: that a comment-less full-marks row is a
+      JUDGEMENT rather than an absence, and that reading our refusals against
+      those rows is the only false-positive test the corpus offers. What it got
+      wrong was counting cells that are sometimes right alongside cells that are
+      never right, which made "nine cells" mean less than it looked.
+
 
 - [ ] Q34. **NEVER RIGHT on a row gold passed in silence: six cells, and the false-positive test.**
       Split from Q31 on 2026-09-01, once pooling made the distinction measurable.
@@ -4152,6 +4168,13 @@ because it can be fixed or declared; a wobbling cell cannot be either.
   p18, all credited on access alone.
 
 - [ ] Q2. **2a over-credits `hows_given`: one rule, five cells, 29 of 29 errors.**
+      2a/p16 MOVED HERE 2026-09-01 from Q31, which closed. Q31's own text said it
+      belonged to this entry -- "the item's usual over-credit rather than this
+      pattern" -- and nothing had acted on that, so closing Q31 would have
+      orphaned it. Gold gives 4.0 with NO comment and we score 6.0 in all twelve
+      pooled runs, which is this subgoal's shape exactly: a stable over-credit on
+      2a. It differs from the other four only in gold's silence, and silence is
+      Q34's variable, not this one's.
       Was "Handout 3's 2a, 15/20 with runs [15,15,15] ... six runs first, then read
       the failing checks". The six runs are done and the checks are read, so this
       entry is now the diagnosis rather than the plan. A NEW subgoal was asked for;
