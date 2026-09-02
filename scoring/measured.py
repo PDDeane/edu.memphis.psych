@@ -3063,7 +3063,19 @@ def _our_failing_slots(item: str, pid: int, side: str = DEFAULT_SIDE):
                 rid = int(head) if head.isdigit() else None
             if rid != pid:
                 continue
-            ch = dict(r.get("checks") or r.get("verdicts") or {})
+            # A `None` VERDICT IS NOT RECORDED, NOT FAILED. When a gate fails,
+            # agreement_app.py never asks the downstream scored slots and stores
+            # them as null; agreement.py stores a real verdict for every slot.
+            # Passing the nulls through made satisfied_map read them as
+            # unsatisfied and INVENTED failures out of missing data -- NR/p20
+            # reported barrier_is_not_this_type and demonstrates_type failing on
+            # olx and nothing on python, which read as an engine divergence when
+            # both sides in fact agree unanimously that `you_arrange_it` is
+            # absent, 12 runs out of 12. There is no divergence there to reason
+            # from, and the two engines are pooled precisely because differences
+            # between them are sampling, not program. Unknown stays unknown.
+            raw = dict(r.get("checks") or r.get("verdicts") or {})
+            ch = {k: v for k, v in raw.items() if v is not None}
             ans = {k: v for k, v in (r.get("answers")
                                      or r.get("refers_to") or {}).items()
                    if v is not None}
@@ -3072,7 +3084,7 @@ def _our_failing_slots(item: str, pid: int, side: str = DEFAULT_SIDE):
                        for k, v in ch.items()}
             sm = A.satisfied_map(spec, rebuilt)
             out.append(frozenset(k for k, ok in sm.items()
-                                 if not ok and k in scored))
+                                 if not ok and k in scored and k in ch))
     return out
 
 
