@@ -3271,7 +3271,41 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       never right, which made "nine cells" mean less than it looked.
 
 
-- [ ] Q34. **NEVER RIGHT on a row gold passed in silence: six cells, and the false-positive test.**
+- [ ] Q36. **1a's week-presence rule: we credit a baseline week that is not there
+      (1a/p6), and the label-versus-data question underneath it.**
+      Filed 2026-09-02, split out of Q34 when 1a/p11 was corrected and its
+      counterpart turned out to have no real owner.
+      THE CELL: gold charges 1a/p6 "-2 pts: did not have a sentece pertaining to
+      the baseline week", landing on 6.00. We score 8.00 in 11 of 12 pooled runs
+      -- one olx run reaches 6.0, so the rule CAN fire and mostly does not. GOLD
+      IS RIGHT HERE, checked by reading the response: the overview covers "the
+      first week", "as time went on" and "the last week", and never the
+      pre-intervention baseline. Its "only 40 minutes" matches nothing in the
+      baseline data 0,30,0,0,30,0,0. This is our error, not a gold divergence.
+      WHY IT NEEDED A HOME AT ALL, which is the part worth remembering. Every
+      mention of 1a/p6 in this file was about the PAPER scorer -- "paper 0.0 vs
+      olx 6.0-8.0", Q33's territory -- and `measured.wrong_cells_without_an_owner`
+      grants ownership on ANY mention of a cell, not a side-aware one. So an
+      11-of-12-run over-credit on the OLX-prompt engines read as owned while
+      nothing was chasing it. Narrowing that rule to match on side is separate
+      work and should not be folded in here.
+      THE QUESTION THAT DECIDES BOTH CELLS: does describing a week's numbers
+      under the WRONG LABEL count as discussing that week? 1a/p11 turns on the
+      same question from the other side. Its gold is now corrected 8.0 -> 6.0
+      because one week is undiscussed on either reading, but WHICH week depends on
+      the answer -- we fail `week_1` in all twelve runs, which is the label
+      reading, while the data reading makes it `baseline_week`. The correction
+      settled the score, not the slot. DO NOT cite 1a/p11 as evidence that
+      `week_1` is judged correctly.
+      ORDER OF WORK: read the item's authored wording first and decide whether
+      presence means a labelled sentence or the numbers being described at all.
+      Then check which of the two our per-week check is actually reading. Only
+      then consider changing it -- and note the change would move p6 and could
+      move p11's slot, so measure both.
+      DO NOT REACH FOR Q19 HERE. Q19 is the later-box gradient, where gold
+      charges MORE than we do; both of these run the other way.
+
+- [x] Q34. **NEVER RIGHT on a row gold passed in silence: six cells, and the false-positive test.**
       Split from Q31 on 2026-09-01, once pooling made the distinction measurable.
       These are cells where gold awarded FULL MARKS and wrote nothing, and we
       deduct in every one of twelve pooled runs:
@@ -3315,6 +3349,27 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       score below gold -- disagreement is very nearly SYMMETRIC. No general
       claim that the raters were careless is available; only same-item
       comparators plus our agreement with gold on those comparators.
+      == CLOSED 2026-09-02. FIVE OF THE SIX CORRECTED, THE SIXTH DECLARED. ==
+      1a/p11 was corrected too, after the reasoning above was revisited: the
+      objection recorded there -- that its only comparator is simultaneously one
+      of our own misses -- was made from a summary rather than from the response,
+      and reading it out showed one week undiscussed on EITHER reading, so 8.00 is
+      unsupportable independently of the comparator. See
+      handouts.CORRECTED_GOLD[("1a", 11)].
+      That leaves only Q4b/p12, which is a DECLARED divergence under
+      B_NOT_ACTIVE and which this entry's own comparator test defends rather than
+      overturns -- gold's six behavior_2 charges are a different defect class from
+      p12's omission. A declared miss needs no QC subgoal, so nothing is orphaned
+      by closing.
+      WHAT THIS ENTRY ESTABLISHED, and the reason to read it before proposing any
+      future gold correction: a silent full-marks row can be a grader not
+      engaging, but the readout that finds such rows can only ever produce
+      candidates that would gain us a cell, so that fact discriminates nothing.
+      The corpus-wide counterweight is 16 cells where gold charged and we credit
+      more against 15 the other way. Only same-item comparators, plus our
+      agreement with gold ON those comparators, ever carried a case here.
+      SUCCESSOR: subgoal Q36 owns 1a/p6 and the label-versus-data question that
+      1a/p11's slot still turns on.
       Q4a/p19 IS IN THIS LIST BY A CORRECTION MADE WHEN IT WAS DRAWN UP. It moved
       here from the unstable half because "unstable" has to mean SOMETIMES RIGHT,
       not merely varying: both of its values miss gold, and the run at 1.0 is
