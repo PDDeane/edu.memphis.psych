@@ -664,6 +664,8 @@ def enforcement_audit():
         findings.append(("-", "SIDE CONTRACT UNENFORCED", bad))
     for bad in ENF.check_no_declaration_cites_a_suspect_cell():
         findings.append(("-", "DECLARATION ARGUES FROM A SUSPECT CELL", bad))
+    for bad in ENF.check_computed_slot_recovery_is_faithful():
+        findings.append(("-", "COMPUTED-SLOT RECOVERY UNFAITHFUL", bad))
     for bad in ENF.check_the_audit_read_the_corpus():
         findings.append(("-", "AUDIT EXAMINED NOTHING", bad))
     for bad in ENF.check_consensus_spans_are_disjoint():
@@ -891,7 +893,7 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 52
+SELFTEST_EXPECTED = 53
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1686,6 +1688,17 @@ def enforcement_selftest():
     # because the check it exercises was written green: its item->handout map was
     # keyed on dict reprs, so it matched nothing and reported a clean corpus. A
     # five-way fire test caught that, and this case keeps it caught.
+    # The reconstruction every olx slot read depends on. Its faithfulness is
+    # checkable only against the python artifacts, which record what the olx ones
+    # compute and discard -- so if that comparison stops happening, nothing else
+    # in the harness notices a drift.
+    _real_ac = _A.apply_computed
+    _scorer_case("recovery stops computing a primitive's slot",
+                 lambda: setattr(_A, "apply_computed",
+                                 lambda action, checks, fixture: checks),
+                 lambda: setattr(_A, "apply_computed", _real_ac),
+                 want="COMPUTED-SLOT RECOVERY UNFAITHFUL")
+
     import handouts as _H
     _real_why = _H.CORRECTED_GOLD[("NR", 4)]["why"]
     _scorer_case("a declaration starts citing a suspect cell",

@@ -5831,6 +5831,136 @@ def _assemble_like_the_app(idmap: dict, action: str, fixture: dict,
     return None
 
 
+def check_computed_slot_recovery_is_faithful() -> list[str]:
+    """Does recovering an unrecorded slot reproduce the one that WAS recorded?
+
+    A primitive's key is stripped from the web response schema -- the model must
+    not be asked a question a rule answers -- so agreement_app.py computes it
+    locally and the artifact stores null in both `verdicts` and `evidence`. Same
+    for a counted group's members, which are derived from the count the model
+    does answer. So the olx artifacts are missing verdicts the python ones carry,
+    and `measured._our_failing_slots` was blind to every one of them: NR's
+    `demonstrates_type` and `barrier_is_not_this_type` simply did not appear, so
+    a caller pooling both sides and taking a majority under-weighted them with
+    nothing saying so. It now RECOVERS them, via apply_computed and
+    expand_counted, which is the same pair agreement.py runs on its own path.
+
+    Recovery is only legitimate if it is faithful, and that is checkable without
+    trusting it: the PYTHON artifacts record both the answered fields AND the
+    computed verdicts. So strip the recoverable keys from a python record,
+    recompute them from what remains, and require the recorded values back. At
+    the time of writing that is 4200 of 4200, exactly.
+
+    THE CHECK EXISTS BECAUSE THE FIRST TWO ATTEMPTS WERE WRONG, and neither
+    announced itself. Passing nulls straight through made satisfied_map read
+    "never asked" as "failed" and invented failures -- which was then reported
+    out loud as an engine divergence on NR/p20, where the two sides in fact agree
+    unanimously. Rebuilding from the verdicts alone dropped CLASSIFICATION
+    operands whose verdict is null beside a real `refers_to`, so an `expect` rule
+    compared against nothing and invented the same failure one level down. And
+    recovering with apply_computed alone reproduced 2640 of 4200, every miss a
+    counted member. Each attempt looked plausible and produced a clean-looking
+    number; only reconstructing against a recorded answer separated them.
+    """
+    import agreement as A
+    import measured as MEAS
+    import olx_prompts as O
+
+    tot = ok = 0
+    bad: list[str] = []
+    for item in sorted(MEAS._jobs()):
+        h = MEAS._jobs()[item]["handout"]
+        try:
+            spec = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+        except Exception:
+            continue
+        recover = set(MEAS._computed_slots(spec)) | {
+            k for cr in (spec.get("counts") or []) for k in cr["slots"]}
+        if not recover:
+            continue
+        doc = MEAS._runs_doc(item, "python")
+        if doc is None:
+            continue
+        for run in doc.get("runs") or []:
+            for r in (run.get("results") or []):
+                pid = r.get("participant_id")
+                if pid is None:
+                    continue
+                ch = {k: v for k, v in (r.get("checks") or {}).items()
+                      if v is not None}
+                ans = {k: v for k, v in (r.get("answers") or {}).items()
+                       if v is not None}
+                full = {k: dict(**({"verdict": ch[k]} if k in ch else {}),
+                                **({"refers_to": ans[k]} if k in ans else {}))
+                        for k in set(ch) | set(ans)}
+                stripped = {k: v for k, v in full.items() if k not in recover}
+                try:
+                    back = A.apply_computed(spec, dict(stripped),
+                                            MEAS._fixture_cached(item, pid))
+                    back = A.expand_counted(dict(spec, _slots=spec["slots"]),
+                                            back)
+                except Exception as e:
+                    bad.append(f"{item}/p{pid}: recovery raised "
+                               f"{type(e).__name__}: {e}")
+                    continue
+                for k in sorted(recover):
+                    if k not in ch:
+                        continue            # python did not record it either
+                    tot += 1
+                    got = (back.get(k) or {}).get("verdict")
+                    if str(got) == str(ch[k]):
+                        ok += 1
+                    else:
+                        bad.append(f"{item}/p{pid} `{k}`: recorded {ch[k]!r}, "
+                                   f"recovered {got!r}")
+    if not tot:
+        return ["computed-slot recovery was checked against NOTHING -- no python "
+                "artifact carries a recoverable slot, so the reconstruction "
+                "`measured._our_failing_slots` depends on for every olx cell is "
+                "unverified. A check that examines nothing reports clean."]
+    if bad:
+        head = (f"recovering a computed or counted slot no longer reproduces the "
+                f"recorded verdict: {ok} of {tot} match, {len(bad)} do not. "
+                f"measured._our_failing_slots reconstructs exactly these keys for "
+                f"every olx cell, where nothing is recorded to compare against, so "
+                f"a drift here is invisible on that side. Fix the recovery or the "
+                f"primitive it mirrors")
+        return [head] + [f"    {b}" for b in bad[:8]]
+    return []
+
+
+def computed_recovery_line() -> str:
+    """How much of the reconstruction is verified, for the audit's summary."""
+    import agreement as A
+    import measured as MEAS
+    import olx_prompts as O
+
+    tot = 0
+    items = 0
+    for item in sorted(MEAS._jobs()):
+        h = MEAS._jobs()[item]["handout"]
+        try:
+            spec = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+        except Exception:
+            continue
+        recover = set(MEAS._computed_slots(spec)) | {
+            k for cr in (spec.get("counts") or []) for k in cr["slots"]}
+        if not recover:
+            continue
+        doc = MEAS._runs_doc(item, "python")
+        if doc is None:
+            continue
+        items += 1
+        for run in doc.get("runs") or []:
+            for r in (run.get("results") or []):
+                ch = r.get("checks") or {}
+                tot += sum(1 for k in recover if ch.get(k) is not None)
+    return (f"computed-slot recovery: {tot} recorded verdict(s) across {items} "
+            f"item(s) reproduced from the answered fields alone. That is what "
+            f"licenses reconstructing the same keys for the olx artifacts, which "
+            f"store null for every primitive-answered and counted slot.")
+
+
 def check_no_declaration_cites_a_suspect_cell() -> list[str]:
     """A declaration that argues from a cell whose INPUT is untrusted.
 
