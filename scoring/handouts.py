@@ -82,6 +82,50 @@ OUT = paths.OUT
 # applying it would have made p4 exact and turned p5 and p17 into misses, costing
 # us a cell. The reason to refuse it is the standard, not the score.
 CORRECTED_GOLD: dict[tuple[str, int], dict] = {
+    ("1a", 11): {
+        "was": 8.0, "score": 6.0,
+        "why":
+            "one of the four weeks is undiscussed ON EITHER READING of the "
+            "response, so 8.00 is unsupportable whichever way it is read, and "
+            "that robustness is the whole argument. The item's rule is to discuss "
+            "the data for each week. p11 writes \"Before {{corpus:1a/p11:response:126:150:sha=58f90d956d21:shape=R24-0-20}}"
+            "{{corpus:1a/p11:response:151:219:sha=a4d658a95741:shape=R52-5-5457494345,R58-1-41,R60-4-5745454b,R65-3-464f5220}}"
+            "{{corpus:1a/p11:response:220:232:sha=8c9fbcde23f1:shape=Cf7b}} TIME\", then discusses week two and week three by name "
+            "and correctly. But the baseline data is 0,30,0,0,30,0,30 -- three "
+            "sessions of thirty minutes -- while WEEK 1 is 0-60,0,0,0,0,0-60: "
+            "twice, an hour each, exactly. So either the baseline sentence is "
+            "about the baseline and WEEK 1 is missing, or it reports week 1's "
+            "numbers under a baseline label and the BASELINE is missing. Both "
+            "readings cost one week. Both give 6.00. "
+            "TWO SOURCES, the D2/p11 standard. The item's rule is a per-week "
+            "presence check, four weeks against eight points, so one missing week "
+            "is 2. And the graders' practice on this very item charges exactly "
+            "that: p6 is \"-2 pts: did not have a sentece pertaining to the "
+            "baseline week\", landing on 6.00 for one missing week. Same item, "
+            "same defect, same amount. "
+            "OUR SCORE IS RIGHT AND OUR SLOT MAY NOT BE, which is recorded here "
+            "rather than left for someone to find. We fail `week_1` in all twelve "
+            "pooled runs, unanimously on both engines -- that is the label "
+            "reading. Under the data reading the correct slot is `baseline_week`. "
+            "The correction is to the SCORE, which both readings agree on; which "
+            "week is actually missing is a separate live question and belongs to "
+            "the subgoal that owns 1a's week-presence rule. Do not cite this cell "
+            "as evidence that `week_1` specifically is judged correctly. "
+            "AN EARLIER PASS DECLINED THIS CORRECTION, and the reason it was wrong "
+            "is worth keeping. The argument against was that p11's only comparator "
+            "is p6, and p6 is SIMULTANEOUSLY one of our own misses -- gold charged "
+            "it and we credit 8.00 in 11 of 12 runs -- so the pattern looked like "
+            "mutual carelessness rather than a gold outlier. That reasoning was "
+            "made from a summary of the response instead of the response. Reading "
+            "it out showed the two-reading structure above, which does not depend "
+            "on the comparator at all: no reading of p11 discusses four weeks. p6 "
+            "remains a real error OF OURS and is now owned as one. "
+            "STATED AGAINST ITSELF: the correction GAINS us the cell, and the "
+            "asymmetry recorded in the DAY1/p1 entry applies -- this readout can "
+            "produce no candidate that would not. What carries it is that gold's "
+            "own p6 charge fixes the amount, and that both readings of the "
+            "response agree on it.",
+    },
     ("DAY1", 1): {
         "was": 4.0, "score": 0.0,
         "why":
