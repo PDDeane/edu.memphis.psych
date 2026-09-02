@@ -3280,13 +3280,21 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       first week", "as time went on" and "the last week", and never the
       pre-intervention baseline. Its "only 40 minutes" matches nothing in the
       baseline data 0,30,0,0,30,0,0. This is our error, not a gold divergence.
-      WHY IT NEEDED A HOME AT ALL, which is the part worth remembering. Every
-      mention of 1a/p6 in this file was about the PAPER scorer -- "paper 0.0 vs
-      olx 6.0-8.0", Q33's territory -- and `measured.wrong_cells_without_an_owner`
-      grants ownership on ANY mention of a cell, not a side-aware one. So an
-      11-of-12-run over-credit on the OLX-prompt engines read as owned while
-      nothing was chasing it. Narrowing that rule to match on side is separate
-      work and should not be folded in here.
+      WHY IT NEEDED A HOME AT ALL, which is the part worth remembering -- and
+      the first version of this paragraph got the diagnosis wrong, so both are
+      recorded. It said every mention of 1a/p6 was about the PAPER scorer, and
+      that a side-aware ownership rule was the fix. Neither held. The paper-side
+      mentions are all in CLOSED subgoals (E5, E11), which never counted as
+      owners at all. The actual claim on the cell was Q17's, whose title is "Q2:
+      `wgb_is_counterpart`..." and whose body names 1a/p6 purely as HISTORY: "as
+      1a's five were on 2026-08-28, which cost 1a/p6 the whole item before the
+      migration". So an 11-of-12-run over-credit on the pooled OLX prompt read as
+      owned because a subgoal about a different item mentioned it in an aside
+      about a past migration. FIXED 2026-09-02 in
+      `measured._live_subgoal_owners`: a title that names its own items can no
+      longer own another item's cell, while corpus-wide subgoals that name no
+      item -- Q19, Q20 -- keep their reach. It found one further cell nobody was
+      chasing, DAY2/p7, now listed in Q20.
       THE QUESTION THAT DECIDES BOTH CELLS: does describing a week's numbers
       under the WRONG LABEL count as discussing that week? 1a/p11 turns on the
       same question from the other side. Its gold is now corrected 8.0 -> 6.0
@@ -3862,6 +3870,21 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           Q6/p16   gold charges affect_c2;       we fail nothing
           Q4c/p16  gold charges one consequence; we fail nothing
           Q6/p6    gold charges state_a2 as well as the two we fail
+          DAY2/p7  gold charges WRONG_BEHAVIOR;  we fail nothing
+      DAY2/p7 ARRIVED 2026-09-02 FROM THE OWNERSHIP FIX, not from a sweep. It is
+      the same mechanism as the six above with a CODE in place of a slot, because
+      DAY2 is criteria-derived and has no slot to name: the student's plan rewards
+      reading by "{{corpus:DAY2/p7:day2:56:83:sha=431dfd8eb891}} night" while their target behaviour
+      is spending LESS time on devices, so the reward IS the unwanted behaviour.
+      Gold charges 1 point -- "make sure the behavior you are targeting is
+      spending less time on electronic devices" -- and every one of our checks
+      passes, on both engines, in all twelve pooled runs.
+      IT WAS HIDDEN BY AN OWNERSHIP BUG rather than by a median. Q26, whose title
+      is "DAY1 alone gates on `phrased_directly`", mentioned the cell in passing,
+      and ownership counted ANY mention -- so a subgoal about a different item
+      held the only claim on it. measured.GOLD_CODE_KNOWN records the
+      disagreement, and its own preamble is explicit that those entries are "NOT
+      declared as acceptable", so recording it was never a substitute for a home.
       Q4a/p6 LEFT THIS LIST on 2026-09-01: it read "gold charges one antecedent;
       we fail nothing", and we now fail `antecedent_1` against gold's single
       charge -- so the two agree, and the cell scores 3.0 against gold 3.0 on
