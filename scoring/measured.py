@@ -3,6 +3,7 @@
     python3 measured.py --status                 what is stale, what is pending
     python3 measured.py --record Q1 OUT/Q1.runs.json    after a sweep of Q1
     python3 measured.py --refusals Q4b                 refusals vs gold's itemisation
+    python3 measured.py --silent-refusals              silent full marks we refuse, and their comparators
 
 An item's published number is only meaningful against two things: the prompt the
 grader was sent, and the set of cells the rate was computed over. Change either
@@ -2276,6 +2277,14 @@ def main() -> int:
     if a[:1] == ["--rates"] and len(a) == 1:
         print(rate_divergence_report())
         return 0
+    # `--silent-refusals [SIDE]`. Gold's SILENCES, which no other readout looks
+    # at: every other one starts from a charge and asks whether we agree. This
+    # starts from the absence of a charge and asks whether there should have been
+    # one. Defaults to the pooled side, since a single engine's median is the
+    # noisier basis for calling a cell an outlier.
+    if a[:1] == ["--silent-refusals"] and len(a) in (1, 2):
+        print(silent_full_marks_we_refuse(a[1] if len(a) == 2 else "olx+python"))
+        return 0
     if a[:1] == ["--refusals"] and len(a) in (2, 3):
         print(refusal_precision(a[1], a[2] if len(a) == 3 else DEFAULT_SIDE))
         return 0
@@ -3314,6 +3323,122 @@ def _pooled_cell_scores(item: str, pid: int, side: str) -> list:
     for s in POOLED_OLX_PROMPT:
         out += _cell_scores(item, pid, s)
     return out
+
+
+def silent_full_marks_we_refuse(side: str = "olx+python") -> str:
+    """Cells gold awarded the maximum IN SILENCE that we refuse, and the
+    comparators that say whether the silence was an oversight.
+
+    THE PRINCIPLE, stated by the user after the NR/p4 correction and generalised
+    from it: if a rater awarded full marks with no comment and our scorer refuses,
+    one explanation is that the rater was careless and missed something. That
+    becomes much more likely when the cell is an OUTLIER against the pattern the
+    raters applied elsewhere -- above all to other cells of the SAME ITEM.
+
+    SILENCE IS AMBIGUOUS, which is the whole reason this needs a comparator
+    column rather than a list. It can mean the rater missed the defect, or that
+    they deliberately accepted it -- Q4a's own prompt says "ACCEPT generously",
+    so a silent pass there may be the rubric working as written. What separates
+    the two readings is whether that rater ever charged this defect ELSEWHERE on
+    this item:
+
+      comparators exist  -> the silent cell is the outlier. Carelessness is the
+                            likely story and a gold correction is a candidate.
+                            NR/p4 against p9: same item, same structural error,
+                            gold charged p9 "-2 pts: This is an example of PP",
+                            landing on the very score the correction assigns.
+      no comparators     -> silence IS the pattern on this item, and it is OUR
+                            scorer that is out of step. Not a gold correction --
+                            a divergence, or over-strictness to fix on our side.
+
+    So a row here is a QUESTION, never a verdict. Matching by deduction
+    MAGNITUDE is what makes the scan work corpus-wide: gold's comments itemise
+    into slots on some items and into deduction codes on others
+    (`gold_charged_slots` returns None for all of the operant-type items), while
+    "gold took N points off somewhere on this item" is always readable. The cost
+    is that magnitude cannot tell whether the comparator's defect is the SAME
+    defect, so each comparator's comment is printed for reading rather than
+    counted. That judgement is not mechanisable and the readout does not pretend
+    it is.
+
+    SUSPECT CELLS ARE EXCLUDED FROM BOTH COLUMNS, as candidates and as
+    comparators. A row whose transcription cannot be attributed is evidence for
+    nothing in either direction -- see
+    enforcement.check_no_declaration_cites_a_suspect_cell, which exists because
+    this very correction's first draft argued from two of them.
+    """
+    import statistics
+    import handouts as H
+
+    out = [f"SILENT FULL MARKS WE REFUSE  [{side}]",
+           "gold awarded the maximum with no comment and we charge something.",
+           "A comparator is another cell of the same item where gold DID charge "
+           "the same",
+           "number of points -- read its comment to judge whether the defect is "
+           "the same.",
+           ""]
+    rows: list[tuple] = []
+    for item in sorted(_jobs()):
+        h = _jobs()[item]["handout"]
+        try:
+            maxes = {i["id"]: i["max"] for i in H.config(h)["rubric"].ITEMS}
+            gold = _corrected_gold(h)
+        except Exception:
+            continue
+        top = maxes.get(item)
+        if top is None:
+            continue
+        drop = set(exclusions(item))
+        # Every charge gold made on this item, magnitude -> [(pid, comment)].
+        charged: dict[float, list[tuple[int, str]]] = {}
+        for pid, per in gold.items():
+            if pid in drop:
+                continue
+            row = (per or {}).get(item) or {}
+            sc, fb = row.get("score"), (row.get("feedback") or "").strip()
+            if sc is None or not fb:
+                continue
+            charged.setdefault(round(top - sc, 2), []).append((pid, fb))
+        for pid in sorted(gold):
+            if pid in drop:
+                continue
+            row = (gold.get(pid) or {}).get(item) or {}
+            sc, fb = row.get("score"), (row.get("feedback") or "").strip()
+            if sc is None or fb or abs(sc - top) > 1e-9:
+                continue                      # not a silent full-marks row
+            got = _pooled_cell_scores(item, pid, side)
+            if not got:
+                continue
+            ours = statistics.median(got)
+            if ours >= sc - 1e-9:
+                continue                      # we do not refuse it
+            comps = charged.get(round(top - ours, 2), [])
+            rows.append((item, pid, sc, ours, len(got), comps))
+    if not rows:
+        out.append("  none: no cell has gold at the maximum in silence while we "
+                   "charge.")
+        return "\n".join(out)
+    rows.sort(key=lambda r: (-len(r[5]), r[0], r[1]))
+    out.append(f"  {'cell':<10} {'gold':>5} {'ours':>6} {'runs':>5}  reading")
+    for item, pid, sc, ours, n, comps in rows:
+        verdict = (f"OUTLIER -- gold charged {round(sc - ours, 2)} on "
+                   f"{len(comps)} other cell(s) of this item"
+                   if comps else
+                   f"PATTERN -- gold charged {round(sc - ours, 2)} NOWHERE on "
+                   f"this item; suspect our own rule first")
+        out.append(f"  {item + '/p' + str(pid):<10} {sc:>5.2f} {ours:>6.2f} "
+                   f"{n:>5}  {verdict}")
+        for cpid, fb in comps[:4]:
+            out.append(f"      p{cpid}: {fb[:88]}")
+        if len(comps) > 4:
+            out.append(f"      ... and {len(comps) - 4} more")
+    out += ["",
+            f"{sum(1 for r in rows if r[5])} outlier(s) worth a gold-correction "
+            f"argument; {sum(1 for r in rows if not r[5])} where our own rule is "
+            f"the likelier fault.",
+            "A row is a question, not a verdict. Read the comparator comments "
+            "before declaring anything."]
+    return "\n".join(out)
 
 
 def _wrong_cells() -> list:
