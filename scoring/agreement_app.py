@@ -2298,17 +2298,27 @@ def _idmap_extra_lines(idmap: str, item_id: str, want: str) -> list[str]:
     # rendered as one long bullet, so the rule wordings all sat above the ceiling
     # and passed. Ref markup is stripped from both sides, since the server resolves
     # it into the student's own text and the generated copy still carries the tag.
+    # NUL IS PART OF THE MARKUP. olx_prompts renders a Ref as
+    # "\x00REF:<id>:<target>\x00" (olx_prompts._REF), and stripping only the
+    # REF: body left the two sentinels behind -- `\s` does not match NUL, so the
+    # generated side flattened to "[box begins] \x00 \x00 [box ends]" while the
+    # served side has "[box begins] [box ends]". No substring test could ever
+    # match, so EVERY handout-3 item read as a superset dump and refused to
+    # sweep: 1a, 2a, 2b and 3 alike. Only items whose Ref sits inside a 60-char
+    # run were affected, which is why it looked item-specific.
     def _sentences(text: str) -> set[str]:
-        text = _re.sub(r"<Ref\b[^>]*/?>|REF:[\w.:-]+", " ", text)
-        text = _re.sub(r"\s+", " ", text)
+        text = _re.sub(r"\x00REF:[^\x00]*\x00|<Ref\b[^>]*/?>|REF:[\w.:-]+",
+                       " ", text)
+        text = _re.sub(r"[\s\x00]+", " ", text)
         return {t.strip() for t in _re.split(r"(?<=[.!?])\s+", text)
                 if len(t.strip()) >= 60}
 
     # Substring, not set membership. Resolving a Ref removes a line break, so a
     # heading and the label beneath it merge into one "sentence" in the served copy
     # and would read as extra text on every correct dump.
-    flat = _re.sub(r"\s+", " ",
-                   _re.sub(r"<Ref\b[^>]*/?>|REF:[\w.:-]+", " ", want))
+    flat = _re.sub(r"[\s\x00]+", " ",
+                   _re.sub(r"\x00REF:[^\x00]*\x00|<Ref\b[^>]*/?>|REF:[\w.:-]+",
+                           " ", want))
     return [t for t in _sentences(body) if t not in flat]
 
 
@@ -2344,6 +2354,32 @@ def _idmap_searchable_text(raw: str) -> str:
         return "\n".join(walk(_json.loads(raw)))
     except Exception:
         return raw          # unparseable: fall back rather than pass silently
+
+
+def check_fixture_is_not_corrupt(items: list) -> None:
+    """Refuse to spend calls on a fixture the student did not write.
+
+    THE SWEEP IS THE EXPENSIVE PART, so an input defect has to be caught before
+    it and not diagnosed out of the rows afterwards. 2a's structural experiment
+    removed the item's `counts` group, which also removed score.py's span
+    distribution -- the thing that rebuilds handout 3's boxes -- so every
+    scorer-sourced box collapsed to the placeholder "2 found". 120 calls then
+    measured the item at 10/20 against a baseline of 15/20 and the change read as
+    refuted when it had never been tested at all.
+    """
+    import enforcement
+
+    bad = enforcement.check_fixture_boxes_hold_the_students_words(items)
+    if not bad:
+        return
+    shown = "\n".join(f"    {b}" for b in bad[:4])
+    more = f"\n    ... and {len(bad) - 4} more" if len(bad) > 4 else ""
+    raise SystemExit(
+        f"CORRUPT FIXTURE: {len(bad)} box(es) hold text the student never "
+        f"wrote.\n{shown}{more}\n  Nothing is measured until this is fixed -- a "
+        f"sweep over these inputs produces a number about the placeholder, not "
+        f"about the prompt."
+    )
 
 
 def check_idmap_is_current(idmap: str, item_id: str) -> None:
@@ -2574,6 +2610,7 @@ def main() -> int:
         raise SystemExit("--idmap is required: curl the dev server's "
                          "/api/olxjson?id=all to a file and pass it")
     check_idmap_is_current(idmap, args.item)
+    check_fixture_is_not_corrupt([args.item])
 
     jobs = build_jobs(args.item, pids)
     how_by_cell = {j["cell"]: j["split_how"] for j in jobs}
