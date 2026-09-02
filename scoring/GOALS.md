@@ -3279,6 +3279,40 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           NR/p20   gold 4    ours 0.0     every run
           Q4b/p12  gold 5    ours 3.5     every run
           Q4a/p19  gold 5    ours 3.0 x11, 1.0 x1 -- it VARIES and is never right
+      == 2026-09-02: FOUR OF THE SIX ARE NOW CORRECTED GOLD, TWO SURVIVE. ==
+      The comparator test in `measured.silent_full_marks_we_refuse`, plus a
+      slot-level read of each whole item, decided them one at a time:
+          NR/p4    CORRECTED 4 -> 2. Comparator p9, same item, same structural
+                   error, charged "-2 pts: This is an example of PP" to 2.00.
+          Q4a/p19  CORRECTED 5 -> 3. The student's own Q1 puts box 1 on the
+                   consequence side; gold charges box 1 at -2 on p4 and p6 and
+                   we agree with gold exactly on both.
+          DAY1/p1  CORRECTED 4 -> 0. Contradicts the student's own definition of
+                   the type they chose; gold charged 7 DAY1 cells and we agree
+                   on all 7. See subgoal Q27, whose ordered questions this
+                   answered.
+          NR/p20   CORRECTED 4 -> 0. Comparator p1, nearly the same sentence,
+                   charged to 0.00 with the outside-stimulus rule written out.
+          1a/p11   NOT CORRECTED, and the reason is the useful one. Its only
+                   comparator is p6, which is SIMULTANEOUSLY one of our own
+                   misses -- gold charged p6 -2 for a missing baseline week and
+                   we credit it 8.00. Both sides miss a week once each on this
+                   item, so there is no outlier pattern, only mutual
+                   inconsistency. Q34's own complication still stands too.
+          Q4b/p12  NOT CORRECTED, and the test DEFENDS the existing declaration.
+                   Gold charged behavior_2 six times, but on a different defect
+                   class: p5's box 2 is a circumstance ("often not available"),
+                   p6's a resulting state ("walk around with stiff muscles").
+                   p12's is an OMISSION ("I skip adding fruits"), which is
+                   exactly what B_NOT_ACTIVE declares. GOLD_DIVERGENCES stays.
+      WHAT MAKES THIS ENTRY'S QUESTION HARDER THAN IT LOOKED, and the number to
+      quote before any future correction: the readout only examines cells where
+      gold is silent AND we refuse, so every candidate it can produce would gain
+      us a cell. That fact discriminates nothing. The measured counterweight is
+      that 16 cells have gold charging where we credit more, against 15 where we
+      score below gold -- disagreement is very nearly SYMMETRIC. No general
+      claim that the raters were careless is available; only same-item
+      comparators plus our agreement with gold on those comparators.
       Q4a/p19 IS IN THIS LIST BY A CORRECTION MADE WHEN IT WAS DRAWN UP. It moved
       here from the unstable half because "unstable" has to mean SOMETIMES RIGHT,
       not merely varying: both of its values miss gold, and the run at 1.0 is
@@ -3695,7 +3729,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       is where it can be argued with.
 
 
-- [ ] Q27. **DAY1/p1 scores 0.0 against a gold of 4.0, deterministically, on both sides.**
+- [x] Q27. **DAY1/p1 scores 0.0 against a gold of 4.0, deterministically, on both sides.**
       Filed 2026-08-30. DAY1 UNDER-credits one-sided -- python 1 over / 8 under, olx
       0 over / 7 under -- and p1 carries 6 of those 8 and 6 of those 7, failing
       6 of 6 runs on BOTH scorers. Predicted 0.0 every time; gold is 4.0. The
@@ -3729,6 +3763,34 @@ because it can be fixed or declared; a wobbling cell cannot be either.
         3. Or is gold generous, in which case this is a CORRECTED_GOLD candidate
            and needs the citation that justifies it, not an assertion.
       Answer 1 before 2, and 2 before 3. Do not change prose before then.
+      == 2026-09-02: ALL THREE ANSWERED, IN THAT ORDER. GOLD IS CORRECTED. ==
+      1. NOT THE BLANK-ANSWER COLLAPSE. Six slots come back `met` --
+         cadence_is_daily, names_stimulus, targets_own_behavior, you_arrange_it,
+         consequence_not_a_setup, and phrased_directly on python -- so the sheet
+         made DIFFERENTIATED judgements about a non-blank answer rather than
+         collapsing. THIS ENTRY'S OWN PREMISE HAS EXPIRED: "every slot answers
+         `absent` in all 6 runs" was true of the 2026-08-30 artifacts and is not
+         true of the current ones. Read the verdicts before reusing that line.
+      2. `states_a_contingency` STRICTNESS DOES NOT RESCUE THE CELL, so question
+         2 is answered without needing to settle whether the rule is too strict.
+         Four independent slots are absent -- names_behavior, contingent,
+         follows_behavior, consequence_asserted -- and loosening one of them
+         leaves the other three. The refusal is over-determined.
+      3. SO GOLD IS GENEROUS, and the citation this entry demanded rather than an
+         assertion is now `handouts.CORRECTED_GOLD[("DAY1", 1)]`: 4.0 -> 0.0. The
+         ground is that the student CONTRADICTS THEIR OWN DEFINITION -- they chose
+         Positive Reinforcement and wrote "{{corpus:D1/p1:d1:35:60:sha=1dcbd3b307d1:shape=C1ff7e00}} DESIRED",
+         then rewarded themselves by REMOVING an aversive -- plus gold's own
+         comments on p6 ("what you take away or add has to happen after the
+         behavior is exhibited") and p8 (the example-does-not-match-the-type
+         charge). Gold charged seven DAY1 cells to 0.00 and we score 0.00 on all
+         seven; p1 was the one silent full-marks row.
+      CLOSED 2026-09-02. The three questions above are answered in the order
+      this entry set, the cell is corrected with the citation it demanded rather
+      than an assertion, and DAY1 NOW SCORES 18 OF 18 at the pooled median --
+      there is no residual under-credit to re-scope onto. Note for anyone reading
+      the opening paragraph: its "python 1 over / 8 under, olx 0 over / 7 under"
+      profile is the 2026-08-30 measurement and no longer describes the item.
 
 - [ ] Q20. **The SHEET CANNOT REFUSE: over-credit with every check passing.**
       Two views of one phenomenon, merged 2026-08-28: cells where every scoring
