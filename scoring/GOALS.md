@@ -3764,7 +3764,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       concentrates on one handout, that changes it from a per-cell question into a
       sheet-design one.
 
-- [ ] Q23. **`matches_chosen_type` on WK2, and across the cadence family.**
+- [x] Q23. **`matches_chosen_type` on WK2, and across the cadence family.**
       POOLED, 2026-09-01, ONLY ONE CELL SURVIVES. WK2/p8, WK2/p11, WK2/p15,
       NR/p11 and NR/p15 are all RIGHT at the pooled median -- they were recorded
       as misses on one column each. Pooled, WK2 misses nothing at all.
@@ -3834,6 +3834,20 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       p11 gold is CORRECTED from 1.0 to 0.0 -- the grader charged 1 point for
       writing another quadrant's definition where three independent sources say 2 --
       so a raw comparison read D2 as 0% precise on this slot when it is 100%.
+      CLOSED 2026-09-01. Five of the six cells it names are RIGHT at the pooled
+      median -- WK2/p8, WK2/p11, WK2/p15, NR/p11 and NR/p15 -- each having been
+      recorded as a miss on one column only. Pooled, WK2 misses nothing at all,
+      so the item this subgoal is named for has no error left to explain.
+      THE SURVIVOR IS NOT THIS SUBGOAL'S SHAPE. DAY2/p7 scores 0.0 and 4.0 with
+      nothing between across twelve runs -- a coin flip on a four-point item,
+      which is `cadence_is_daily` and therefore subgoal Q22's gate, not a
+      `matches_chosen_type` threshold set wrong. It stays owned: subgoal Q26
+      names it too.
+      WHAT IT WAS RIGHT ABOUT. The cadence family really does share a slot and
+      really did carry misses; what it could not see, reading one column at a
+      time, was that five of those six misses were sampling. That is the same
+      lesson subgoal Q32 closed on, arrived at from a different item.
+
 
 - [ ] Q22. **`cadence_is_daily`: a 4-point gate that FLIPS, worst on DAY2.**
       Raised 2026-08-28 from the sweep. Filed here rather than as a goal of its own
@@ -4436,7 +4450,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       -- §2a structure before prose, §2b profile errors by slot after every sweep,
       §2c read what is already recorded, the last now enforced by the `--write`
       hook. The full history is in drafts/q1q2_reasons_rule.md.
-- [ ] Q7. **Q4b's per-cell instability, which the item median hides.** Two cells
+- [x] Q7. **Q4b's per-cell instability, which the item median hides.** Two cells
       POOLED, 2026-09-01, THE PREMISE IS GONE. This entry exists because a single
       run could not tell a stable cell from a flickering one, and both cells it
       names are now settled: Q4b/p17 scores 5.0 in 11 of 12 pooled runs against a
@@ -4465,6 +4479,18 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       CREDITED rows: the question is where the line falls, not why two cells
       fail. Do not change prose before that readout -- an item at 16/19 with two
       unstable cells can be made worse by a rule that looks tighter.
+      CLOSED 2026-09-01. Both cells it names are settled at twelve pooled runs --
+      Q4b/p17 and p19 each score gold in 11 of 12, one outlier apiece -- so what
+      read as instability at six runs a side is a stable correct cell. Nothing in
+      the entry is live.
+      AND THE ITEM'S REAL PROBLEM IS THE OPPOSITE OF WHAT THIS LOOKED FOR. Q4b's
+      wrong cells -- p4, p12, p13 -- are stably WRONG, p12 at 3.5 in every one of
+      twelve runs. The median was not hiding variance on this item; it was hiding
+      a disagreement, which is subgoal Q34's and Q19's territory.
+      ITS METHODOLOGICAL POINT SURVIVES ELSEWHERE, with measurements rather than
+      as an assertion: QUALITY_CONTROL.md 2e on why a median comparison
+      manufactures divergences, and the pooling note at the top of this file.
+
 - [x] Q8. **A count slot outside the rubric's `counts` records nothing.**
       `harms_listed` and `benefits_listed` store as `""` in every artifact,
       because `expand_counted` writes a verdict only for keys the RUBRIC names in
