@@ -1900,39 +1900,42 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       student's answer.
 
 
-- [ ] E38. **The python's staleness fingerprint ignores four attributes the python reads.**
-      Found 2026-09-01 while answering "why is the python served less of the screen
-      than the olx?" -- it is NOT (both backends get the identical prompt from
+- [ ] E38. **The python side's staleness fingerprint ignores five attributes it reads.**
+      Found 2026-09-01 while answering "why is the python side served less of the
+      screen than the olx side?" -- it is NOT (both backends get the identical prompt from
       `agreement.build_prompt` and the identical schema; only `backend.complete`
       differs). But the question exposed something else.
-      `measured._python_read_attrs` derives the python fingerprint's keep-list by
+      `measured._python_read_attrs` derives that fingerprint's keep-list by
       regexing `_attr(open_tag, "X")` out of agreement.py, and its docstring
-      promises this "cannot go stale: the day the python starts reading a new
+      promises this "cannot go stale: the day that side starts reading a new
       attribute, that attribute starts counting automatically". That holds ONLY
       for attributes read through `_attr`. These are read off the same open tag by
       BESPOKE parsers and are invisible to it:
           agreement.py:257  slots=      agreement.py:369  cover=
           agreement.py:260  verdicts=   agreement.py:392  derived=
           agreement.py:338  equals=
+      FIVE, not the four an earlier draft of this title said: `slots`,
+      `verdicts`, `equals`, `cover` and `derived`.
       The kept set is {choices, counts, expect, forbid, maps, onlyif, requires}.
       DEMONSTRATED, not argued: `_olx_only_visible` returns a byte-identical string
       when `derived="...antecedent"` becomes `derived="...trigger"`, and when
-      `slots=` gains a slot. Both change what the python sends. A python measurement
+      `slots=` gains a slot. Both change what that side sends, so its measurement
       would therefore report CURRENT while being stale.
       THE ROOT OF IT IS A NAME COLLISION. `_olx_only_visible`'s docstring says these
-      attributes "reach the python from the RUBRIC, not the OLX", which is true of
+      attributes "reach the CLI from the RUBRIC, not the OLX" -- written before the
+      side rename, and true of
       score.py -- the rubric-driven paper scorer -- and false of agreement.py,
       which is what side `python` actually is. The rationale was written about a
       different program than the one it guards.
       E25 SLIPPED THROUGH IT. That goal changed `slots=` AND `derived=` on Q4a and
-      Q4c, and the python side WAS flagged stale -- but only because the prompt body
+      Q4c, and that side WAS flagged stale -- but only because the prompt body
       changed in the same edit. An attribute-only change would have been silent,
       and this is the exact pattern of a `derived` conversion.
       THE FIX IS SMALL AND ITS CONSEQUENCE IS NOT. Widening the derivation (union
       the `_attr` reads with the bespoke `re.search(r'X="')` reads and the
       excludesKeys primitives that `excluded_keys` reads dynamically) re-hashes
-      every python record, so all 26 items report STALE PROMPT at once and the audit
-      demands a full python re-sweep. The numbers themselves are not wrong -- they
+      every python-side record, so all 26 items report STALE PROMPT at once and the audit
+      demands a full re-sweep of that side. The numbers themselves are not wrong -- they
       were taken under those attributes; only the hash never covered them -- so
       the honest options are:
         (a) widen the derivation and re-stamp each python record's prompt_sha
