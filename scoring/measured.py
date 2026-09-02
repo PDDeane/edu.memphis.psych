@@ -82,12 +82,35 @@ def _section_bounds(text: str, screen_ids: set[str]) -> dict[str, tuple[int, int
 def _python_read_attrs() -> frozenset:
     """Which <LLMAction> attributes agreement.py actually reads off the open tag.
 
-    DERIVED from its source, not listed here, so it cannot go stale: the day the
-    CLI starts reading a new attribute, that attribute starts counting toward the
-    CLI's fingerprint automatically.
+    DERIVED from its source, not listed here, so it cannot go stale: the day that
+    side starts reading a new attribute, that attribute starts counting toward its
+    fingerprint automatically.
+
+    THREE WAYS IT READS ONE, and the first version knew only about the first --
+    which is subgoal E38. `_attr(open_tag, "X")` is the helper, but `slots`,
+    `verdicts`, `equals`, `cover` and `derived` each have a bespoke parser with
+    its own `re.search(r'X="...')`, and `excluded_keys` reads EVERY
+    schema-excluding primitive dynamically off the registry. Those five changed
+    what the side sends while leaving its fingerprint byte-identical, so a
+    measurement could go stale in silence -- and nearly did under E25, which
+    edited `slots=` and `derived=` and was flagged only because the prompt body
+    moved in the same commit.
     """
     src = (Path(__file__).resolve().parent / "agreement.py").read_text()
-    return frozenset(re.findall(r'_attr\(open_tag,\s*"([^"]+)"\)', src))
+    out = set(re.findall(r'_attr\(open_tag,\s*"([^"]+)"\)', src))
+    # the bespoke parsers: `re.search(r'X="([^"]*)"', open_tag ...)`
+    out |= set(re.findall(r"""re\.search\(r?['"]\\?b?(\w+)=\\?["']""", src))
+    # `excluded_keys` builds its pattern from the registry, so every
+    # schema-excluding primitive is read whether or not it is named in source.
+    try:
+        import olx_prompts as _op
+
+        out |= set(_op.primitive_attrs(excluding_keys=True))
+    except Exception:
+        pass
+    # `target` is read to locate the feedback element, not to score with, and it
+    # is not part of what the model is sent.
+    return frozenset(a for a in out if a not in ("target",))
 
 
 def _olx_only_visible(section: str) -> str:
@@ -116,7 +139,8 @@ def _olx_only_visible(section: str) -> str:
     return re.sub(r"<LLMAction\b[^>]*>", _one, section, flags=re.S)
 
 
-def prompt_sha(item: str, side: str | None = None) -> str:
+def prompt_sha(item: str, side: str | None = None,
+               olx_text: str | None = None) -> str:
     """SHA-256 of the OLX text that item's grader is served, to 12 hex chars.
 
     `side="python"` hashes only what agreement.py consumes -- see
@@ -126,7 +150,10 @@ def prompt_sha(item: str, side: str | None = None) -> str:
     jobs = _jobs()
     job = jobs[item]
     sid = job["screen"].split("/")[-1]
-    text = _olx(job["handout"])
+    # `olx_text` lets a caller hash a HISTORICAL revision -- the .olx as it stood
+    # at the commit an artifact recorded -- which is what re-stamping a
+    # measurement against git history needs. Omitted, it reads the working tree.
+    text = olx_text if olx_text is not None else _olx(job["handout"])
     screen_ids = {j["screen"].split("/")[-1] for j in jobs.values()
                   if j["handout"] == job["handout"]}
     bounds = _section_bounds(text, screen_ids)
