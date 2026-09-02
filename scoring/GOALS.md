@@ -4528,6 +4528,54 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       15/20 -> 20/20 is the ceiling if the rule can be stated; there is no partial
       credit to collect. CONTROLS: the fifteen cells that already pass, all of which
       answer `hows_given` and would be exposed to a stricter definition.
+      == 2026-09-02: STRUCTURAL ATTEMPT MEASURED. REVERTED. NOT REFUTED. ==
+      The attempt was to UN-DERIVE `how_1`/`how_2` -- drop the count, ask each box
+      directly -- on the reasoning that this entry's own DEDUCT guidance already
+      described both shapes the graders charge and the count still came back 2 on
+      every charged cell, because an aggregate answer never has to confront a
+      particular box. The graders judge per box and say which one ("your third
+      sentece", "your second sentece") against three labelled fields on screen.
+      IT ALSO BROKE THE FIXTURE, which is the first thing to know. Handout 3's
+      answer is ONE prose block and its boxes are rebuilt by score.py's
+      counted-group distribution (score.py:469): it reads the count slot's
+      evidence, pulls the quoted spans out and deals them to the members, writing
+      the placeholder `f"{raw_n} found"` where there are fewer spans than the
+      count. Removing `counts` removed that distribution, so five cells' boxes
+      became the literal string "2 found" -- p4, p13, p14, p19 and p20 -- and the
+      sweep graded a placeholder as if the student had written it. This entry's
+      claim that "ALL FIVE MOVE TOGETHER" is also wrong for a per-box rule: it is
+      true of a count, which is one judgement, and false once each box is asked.
+      WHAT THE 15 UNCORRUPTED CELLS ACTUALLY MEASURED, which is the salvageable
+      half. On those cells the baseline is 12 of 15 and the attempt scored 10 of
+      15 -- still a net loss, but of 2 cells rather than the 5 the raw 10/20
+      suggested:
+          p15  FIXED, 4.0 in 5 of 5. "{{corpus:2a/p15:how1:0:24:sha=76aa568a019e}} screentime" --
+               charged correctly, and the cleanest of the five targets.
+          p16  unmoved at 6.0; p1 wobbles 6/4 and misses at the median.
+          p2, p12, p18  BROKEN controls, each charged one box.
+      AND THE BROKEN CONTROLS NAME THE DEFECT IN THE CRITERION. All three failed
+      on a first box that reports the outcome WITH ITS DATA: "{{corpus:2a/p2:how1:0:88:sha=ed452dcd5f5a:shape=S4-0a202020202020}} data",
+      "{{corpus:2a/p12:how1:13:115:sha=a8c1c607af1f:shape=S11-0a202020202020}} days", "{{corpus:2a/p18:how1:19:72:sha=ffdeb08c54e2:shape=S7-0a202020202020}} data". The criterion written for the attempt -- must give a
+      cause, not restate the outcome -- charges those, and gold credits them. The
+      old guidance says why in as many words: "a verdict that cites the data as
+      its evidence ... covers the verdict and both explanations". Citing the data
+      IS an explanation on this item.
+      SO THE NEXT FORM OF THE RULE IS NARROWER, and p15 versus p2/p12/p18 is the
+      pair that fixes it: a box is absent only when it neither gives a cause NOR
+      cites the data or the magnitude. p15's "{{corpus:2a/p15:how1:6:24:sha=9e486c188464}} screentime"
+      cites neither; p13's "{{corpus:2a/p13:how2:0:46:sha=446c357de928}}"
+      cites neither. All three broken controls cite the magnitude.
+      PREREQUISITE BEFORE ANY RETRY: the fixture must survive the change. Either
+      keep the counted group for score.py's span distribution while the OLX sheet
+      asks per box -- which the engines cannot do without diverging, since the
+      python side scores from the same rubric -- or give the fixture builder its
+      own span distribution that does not depend on the live scoring structure.
+      The second is the right one and is a separate piece of work.
+      IT IS NOW CAUGHT BEFORE THE CALLS, not after.
+      `enforcement.check_fixture_boxes_hold_the_students_words` requires every
+      scorer-sourced box to appear in the participant's transcribed answer, and
+      `agreement_app.check_fixture_is_not_corrupt` runs it as a PREFLIGHT in both
+      sweep harnesses, so a corrupt fixture costs nothing instead of 120 calls.
 - [x] Q3. **Re-measure the 3-run items at six runs, cheapest-first.** CLOSED
       2026-08-28 as SUPERSEDED, at the user's direction, not as finished:
       equivalence subgoal Q2 sweeps every item at six runs on both sides, so the
