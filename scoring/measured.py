@@ -3025,6 +3025,47 @@ def _runs_doc(item: str, side: str):
         return None
 
 
+_FIXTURES: dict = {}
+_COMPUTED_SLOTS: dict = {}
+
+
+def _computed_slots(spec: dict) -> frozenset:
+    """Which slot keys a PRIMITIVE answers rather than the model.
+
+    Sourced from score._computed_keys, which reads primitives.json through
+    olx_prompts.primitive_attrs -- so a new primitive is covered without editing
+    a list here.
+
+    KEYED ON THE SLOT KEYS, because a spec dict is unhashable and carries no name
+    or id -- it holds body/slots/derived/... and nothing identifying. The first
+    version keyed on `spec.get("name") or spec.get("id") or id(spec)`, which
+    therefore ALWAYS fell through to the address. Addresses are reused after
+    collection, so one action could be handed another's computed set; the
+    symptom was two counts of the same corpus disagreeing, 4200 against 3720.
+    The slot-key tuple is stable, unique per action, and cannot be recycled.
+    """
+    name = tuple(s.get("key") for s in (spec.get("slots") or ()))
+    got = _COMPUTED_SLOTS.get(name)
+    if got is None:
+        import score as S
+        try:
+            got = frozenset(S._computed_keys(spec))
+        except Exception:
+            got = frozenset()
+        _COMPUTED_SLOTS[name] = got
+    return got
+
+
+def _fixture_cached(item: str, pid: int) -> dict:
+    """One reconstruction per cell; apply_computed reads its fields."""
+    import agreement as A
+
+    key = (item, pid)
+    if key not in _FIXTURES:
+        _FIXTURES[key] = A.fixture_for(item, pid)
+    return _FIXTURES[key]
+
+
 def _our_failing_slots(item: str, pid: int, side: str = DEFAULT_SIDE):
     """Which SCORED slots our recorded runs failed, per run, for one cell.
 
@@ -3079,12 +3120,52 @@ def _our_failing_slots(item: str, pid: int, side: str = DEFAULT_SIDE):
             ans = {k: v for k, v in (r.get("answers")
                                      or r.get("refers_to") or {}).items()
                    if v is not None}
-            rebuilt = {k: dict(verdict=v,
+            # THE UNION, NOT THE VERDICTS. A CLASSIFICATION slot answers
+            # `refers_to` and can carry a null verdict beside it -- NR/p20's olx
+            # record has verdicts.observed_type null and refers_to.observed_type
+            # "NR". Building this from `ch` alone dropped the operand, so the
+            # `expect` rule downstream compared against nothing and recomputed
+            # demonstrates_type as FAILING where python has it met. That is the
+            # invented-failure bug returning by a side door, one level down.
+            rebuilt = {k: dict(**({"verdict": ch[k]} if k in ch else {}),
                                **({"refers_to": ans[k]} if k in ans else {}))
-                       for k, v in ch.items()}
+                       for k in set(ch) | set(ans)}
+            # RECOMPUTE WHAT THE OLX ARTIFACT NEVER RECORDED. A primitive's key is
+            # stripped from the web response schema -- the model must not be asked
+            # a question a rule answers -- so the app computes it locally and the
+            # artifact stores null in BOTH `verdicts` and `evidence`. Skipping
+            # nulls therefore fixed the invented-failure bug but left this
+            # function blind to every computed slot on the olx side: NR's
+            # `demonstrates_type` (expect) and `barrier_is_not_this_type` (forbid)
+            # were simply invisible, so a caller pooling both sides and taking a
+            # majority under-weighted them without anything saying so.
+            # The values are not lost, only unrecorded: a computed slot is a
+            # function of the answered fields and the fixture, which is exactly
+            # what apply_computed evaluates -- the same call agreement.py makes on
+            # its own path. Faithfulness is verified rather than assumed:
+            # check_olx_computed_slots_are_recoverable rescores every olx cell
+            # from the recomputed map and requires the recorded score back.
+            if _computed_slots(spec) - set(rebuilt):
+                try:
+                    rebuilt = A.apply_computed(spec, rebuilt,
+                                               _fixture_cached(item, pid))
+                    # AND THE COUNTED MEMBERS, which apply_computed does not
+                    # touch. A counted group is the one primitive whose KEY the
+                    # model answers -- 2a's `hows_given` comes back 2 -- while
+                    # `how_1`/`how_2` are DERIVED from that number by
+                    # expand_counted and stored null. Recovering with
+                    # apply_computed alone reproduced only 2640 of 4200 recorded
+                    # verdicts, and all 1560 misses were counted members. This is
+                    # the same misreading expand_counted's own docstring records
+                    # costing 140 calls: members that look unanswered when they
+                    # were plainly charged.
+                    rebuilt = A.expand_counted(
+                        dict(spec, _slots=spec["slots"]), rebuilt)
+                except Exception:
+                    pass          # unrecoverable here; stays unknown, not failed
             sm = A.satisfied_map(spec, rebuilt)
             out.append(frozenset(k for k, ok in sm.items()
-                                 if not ok and k in scored and k in ch))
+                                 if not ok and k in scored and k in rebuilt))
     return out
 
 
