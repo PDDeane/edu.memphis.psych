@@ -4624,9 +4624,41 @@ because it can be fixed or declared; a wobbling cell cannot be either.
                pattern and a gold-versus-rubric question, not a rule defect.
       SO THE CEILING CLAIM IN THIS ENTRY IS REVISED. "15/20 -> 20/20 is the
       ceiling if the rule can be stated" assumed all five cells were one rule
-      failing. They were not: two were, one is a clause of it, one is the verdict
-      slot, and one is a silent gold charge nobody can localise. 17/20 is what
-      the how rule alone can reach.
+      failing. They were not: two were, one was a clause of it, one is the verdict
+      slot, and one is a silent gold charge nobody can localise.
+      == 2026-09-02, THIRD ATTEMPT: THE p1 CLAUSE, AS A CONJUNCTION. 17 -> 18. ==
+      python [18 x6], olx [19,18,18,18,18,19], pooled median 18 of 20. Recorded
+      as `q2_conj_python` and `q2_conj_olx`. 240 calls.
+      THE CLAUSE HAD TO BE A CONJUNCTION, and the first answer given here was that
+      no clause could work at all -- recorded because the reasoning was wrong in
+      an instructive way. p1's two boxes look identical on every single feature: a
+      bodily or personal STATE, attributed by a causal link to the sleep
+      behaviour. Direction alone does not separate them either, because p9 is
+      credited on a not-doing box with an unqualified success verdict. What
+      separates them is the PAIR: charge only when the payload is a state rather
+      than the behaviour AND the condition is the behaviour NOT being done. p1's
+      how1 is a state in the DOING direction, so it is met; p9's how2 is
+      not-doing but its subject is the behaviour, so it is met. Neither half
+      alone survives the corpus; together they fit every box on the item. The
+      claim that the boxes were "structurally indistinguishable" was true only of
+      single-feature predicates, and the user's question is what exposed it.
+      IT CHARGES THE BOX GOLD NAMED, which is stronger than the total. Gold's
+      comments are positional and all three fixed cells now match, 12 of 12 runs
+      on BOTH sides: p1 how_2 against "your third sentece", p13 how_2 against
+      "your third sentece", p15 how_1 against "your second sentece". Zero
+      CONTRADICTED refusals on either side.
+      TWO CELLS REMAIN AND NEITHER IS THE HOW RULE:
+          p14  verdict fails 3 of 12 -- short of a median, so the cell scores 6.
+               Gold's comment reads as a how-charge but its substance is the
+               unsettled verdict ("{{corpus:2a/p14:verdict:0:42:sha=7ec74c73e177}}
+               rate"), so the 2 points plausibly belong to NO_VERDICT. This is
+               variance, and subgoal Q35 owns variance.
+          p16  gold charged 2 SILENTLY and both boxes carry clean circumstances.
+               Nothing in the rubric as written charges either, and which box
+               gold meant is unrecoverable. A gold-versus-rubric question.
+      SO THE HOW RULE IS DONE at 18/20. What is left on this item is one unstable
+      verdict slot and one silent gold charge, and neither is reachable by
+      editing the how prose. ASK BEFORE CLOSING.
       IT IS NOW CAUGHT BEFORE THE CALLS, not after.
       `enforcement.check_fixture_boxes_hold_the_students_words` requires every
       scorer-sourced box to appear in the participant's transcribed answer, and
