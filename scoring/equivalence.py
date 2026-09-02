@@ -662,6 +662,8 @@ def enforcement_audit():
         findings.append(("-", "MATCHER DIFFERS ACROSS ENGINES", bad))
     for bad in ENF.check_side_contract_is_enforced():
         findings.append(("-", "SIDE CONTRACT UNENFORCED", bad))
+    for bad in ENF.check_no_declaration_cites_a_suspect_cell():
+        findings.append(("-", "DECLARATION ARGUES FROM A SUSPECT CELL", bad))
     for bad in ENF.check_the_audit_read_the_corpus():
         findings.append(("-", "AUDIT EXAMINED NOTHING", bad))
     for bad in ENF.check_consensus_spans_are_disjoint():
@@ -889,7 +891,7 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 51
+SELFTEST_EXPECTED = 52
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1678,6 +1680,20 @@ def enforcement_selftest():
                  lambda: setattr(_M, "_behaviour_src", lambda src: src),
                  lambda: setattr(_M, "_behaviour_src", _real_strip),
                  want="STALE-SCORER FLAG UNRELIABLE")
+
+    # A declaration that reasons from a cell whose INPUT is untrusted. This is
+    # the one case here that guards PROSE rather than arithmetic, and it is here
+    # because the check it exercises was written green: its item->handout map was
+    # keyed on dict reprs, so it matched nothing and reported a clean corpus. A
+    # five-way fire test caught that, and this case keeps it caught.
+    import handouts as _H
+    _real_why = _H.CORRECTED_GOLD[("NR", 4)]["why"]
+    _scorer_case("a declaration starts citing a suspect cell",
+                 lambda: _H.CORRECTED_GOLD[("NR", 4)].__setitem__(
+                     "why", _real_why + " Compare p3, which gold credits."),
+                 lambda: _H.CORRECTED_GOLD[("NR", 4)].__setitem__(
+                     "why", _real_why),
+                 want="DECLARATION ARGUES FROM A SUSPECT CELL")
 
     print("SELF-TEST — does the audit notice when a rule is removed?\n")
     baseline = _selftest_baseline
