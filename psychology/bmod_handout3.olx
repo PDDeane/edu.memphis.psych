@@ -675,8 +675,7 @@ account of something that did not work is worth exactly as much as a success.
       <EndPane>
     <ActionButton id="bmod_h3_success_btn" label="Check my answer">
       <LLMAction id="bmod_h3_success_llm" target="bmod_h3_success_feedback"
-                 slots="verdict:States whether the plan worked:unclear@2|hows_given:How many separate explanations of HOW you give:count(2)|how_1:First explanation of how:unclear@2|how_2:Second explanation of how:unclear@2|confident:All judgments confident"
-                 counts="hows_given:how_1,how_2">
+                 slots="verdict:States whether the plan worked:unclear@2|how_1:Whether the How (1) box explains how:unclear@2|how_2:Whether the How (2) box explains how:unclear@2|confident:All judgments confident">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
 
@@ -722,9 +721,8 @@ Did the implementation of your behavior modification plan successfully modify yo
 
 ## Credit components
 - `verdict` (2 pt): States whether the plan was successful
-- `hows_given`: HOW MANY separate pieces of explanation of HOW the plan succeeded or failed the response gives — count CONTENT, not sentences: one compound sentence that states the outcome and explains it can carry two. Ignore any stretch that does not bear on how the plan succeeded or failed. Answer 2 for two or more
-- `how_1` (2 pt): First explanation of HOW it succeeded or failed
-- `how_2` (2 pt): Second explanation of HOW it succeeded or failed
+- `how_1` (2 pt): The box asked for How (1), judged ON ITS OWN. It is MET on EITHER of two grounds: it names a cause or a circumstance — why or when the plan did or did not work, or a technique leaned on — OR it reports the change with its SIZE: a figure, a comparison against the earlier week, or the data. `absent` ONLY when it offers NEITHER, a bare claim that it worked or did not with no reason and no measure behind it. Also `absent` when what the box reports bears on something other than the plan working
+- `how_2` (2 pt): The box asked for How (2), judged on its own by the same two-way test as How (1). Either box can fail, both can, and one failing says nothing about the other
 
 ## Deduction codes — the course's canonical wording for each gap
 - `BLANK` (-6): did not answer
@@ -732,9 +730,9 @@ Did the implementation of your behavior modification plan successfully modify yo
 - `MISSING_HOW` (-2) [repeatable]: -2 pts: missing one sentence describing how your behavior was or was not successfully modified
 
 ## Grading guidance
-- Three 2-point slots: the verdict, then two pieces of explanation of HOW.
-- COUNT CONTENT, NOT SENTENCES. A compound sentence that states the outcome and explains it satisfies more than one slot. Two sentences can earn all six points, and three shapes did. A verdict that cites the data as its evidence, followed by one concrete circumstance under which the plan worked, covers the verdict and both explanations. So does a verdict citing the data, followed by an admission of inconsistency and the progress made anyway — a qualified explanation is still an explanation. And an explanation need not be circumstantial at all: naming the techniques the student relied on, with no situation attached, counts. All three earned 6/6.
-- DEDUCT when a stretch of the answer does NOT bear on how the plan succeeded or failed. Two shapes were charged. A sentence reporting a bodily or circumstantial detail that explains nothing about the plan working: the graders wrote 'your third sentence does not explain how your plan was successful' and took 2 points. And an answer that cannot settle whether it worked at all, hedging the verdict instead of explaining either outcome: 'need more explanation on how it was or was not successful', also 2.
+- Three 2-point slots, judged INDEPENDENTLY: the verdict box, then each of the two How boxes. Do not ask how many explanations the answer contains.
+- A How BOX IS MET ON EITHER OF TWO GROUNDS, and the second is the one to get right. First, a cause or a circumstance: why or when the plan did or did not work. A qualified explanation is still an explanation, and it need not be circumstantial at all — naming the techniques the student leaned on, with no situation attached, counts. Second, the change REPORTED WITH ITS SIZE: a figure, a comparison against the earlier week, or a citation of the data. That is an explanation on this item, not a bare outcome, and the earlier wording of this rubric said so — "a verdict that cites the data as its evidence ... covers the verdict and both explanations". A rule that charged boxes of that shape was measured on 2026-09-02 and broke three cells the graders credit.
+- DEDUCT ONLY WHEN A BOX OFFERS NEITHER — no reason and no measure. Two shapes were charged. A sentence reporting a bodily or circumstantial detail that explains nothing about the plan working: the graders wrote 'your third sentence does not explain how your plan was successful' and took 2 points. And an answer that cannot settle whether it worked at all, hedging the verdict instead of explaining either outcome: 'need more explanation on how it was or was not successful', also 2.
 - Success or failure is irrelevant to the score; only whether it is stated and explained.
 
 ## The checklist to return (`checks`)
@@ -744,10 +742,9 @@ check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
 - `verdict` — `met`/`absent`/`unclear`: States whether the plan was successful
-- `hows_given` — a NUMBER from 0 to 2 (how many, not a judgement): HOW MANY separate pieces of explanation of HOW the plan succeeded or failed the response gives — count CONTENT, not sentences: one compound sentence that states the outcome and explains it can carry two. Ignore any stretch that does not bear on how the plan succeeded or failed. Answer 2 for two or more
+- `how_1` — `met`/`absent`/`unclear`: The box asked for How (1), judged ON ITS OWN. It is MET on EITHER of two grounds: it names a cause or a circumstance — why or when the plan did or did not work, or a technique leaned on — OR it reports the change with its SIZE: a figure, a comparison against the earlier week, or the data. `absent` ONLY when it offers NEITHER, a bare claim that it worked or did not with no reason and no measure behind it. Also `absent` when what the box reports bears on something other than the plan working
+- `how_2` — `met`/`absent`/`unclear`: The box asked for How (2), judged on its own by the same two-way test as How (1). Either box can fail, both can, and one failing says nothing about the other
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
-
-DO NOT ANSWER `how_1`, `how_2` individually. Answer `hows_given` — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.
 
 ## Context from this student's other answers (read-only)
 Use these only where the rubric requires cross-item consistency. Do not grade them here.

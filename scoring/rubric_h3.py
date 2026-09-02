@@ -331,11 +331,19 @@ ITEMS: list[dict] = [
         # stacking the plain path allowed is unrepresentable.
         "derive_from_credit": True,
         "blank_code": "BLANK",
-        # The guidance is "COUNT CONTENT, NOT SENTENCES", so the model counts and
-        # the arithmetic stays here. The two `how` slots are interchangeable
-        # instances behind one code; the verdict slot is a distinct judgement and
-        # stays a judgement.
-        "counts": [{"key": "hows_given", "slots": ["how_1", "how_2"]}],
+        # THE COUNT WAS REMOVED 2026-09-02 (second attempt), and this is what the
+        # comment here said: "The guidance is COUNT CONTENT, NOT SENTENCES, so the
+        # model counts and the arithmetic stays here. The two `how` slots are
+        # interchangeable instances behind one code." Subgoal Q2 measured that
+        # design at 15/20 with a single error profile -- `said 2, scored 6 against
+        # gold 4`, 29 of 29 -- while the DEDUCT guidance below already described
+        # both shapes the graders charge. An aggregate answer never has to
+        # confront a particular box, so correct prose had nothing to bind to.
+        # The graders judge per box and say which one ("your third sentece",
+        # "your second sentece") against three labelled fields on screen.
+        # The fixture no longer depends on this declaration: the dealing groups
+        # live in agreement_app.JOBS `dealt` since the first attempt corrupted
+        # 2a's boxes to the placeholder "2 found" and cost a 120-call sweep.
         "credit": [
             {
                 "what": "verdict",
@@ -344,23 +352,22 @@ ITEMS: list[dict] = [
                 "codes": {"absent": "NO_VERDICT", "unclear": "NO_VERDICT"},
                 "desc": "States whether the plan was successful",
             },
-            {
-                "what": "hows_given",
-                "reported": True,
-                "verdicts": ["2", "1", "0"],
-                "desc": "HOW MANY separate pieces of explanation of HOW the plan "
-                        "succeeded or failed the response gives — count CONTENT, not "
-                        "sentences: one compound sentence that states the outcome and "
-                        "explains it can carry two. Ignore any stretch that does not "
-                        "bear on how the plan succeeded or failed. Answer 2 for two or "
-                        "more",
-            },
             {"what": "how_1", "pts": 2.0,
              "codes": {"absent": "MISSING_HOW"},
-             "desc": "First explanation of HOW it succeeded or failed"},
+             "desc": "The box asked for How (1), judged ON ITS OWN. It is MET on "
+                     "EITHER of two grounds: it names a cause or a circumstance — "
+                     "why or when the plan did or did not work, or a technique "
+                     "leaned on — OR it reports the change with its SIZE: a "
+                     "figure, a comparison against the earlier week, or the data. "
+                     "`absent` ONLY when it offers NEITHER, a bare claim that it "
+                     "worked or did not with no reason and no measure behind it. "
+                     "Also `absent` when what the box reports bears on something "
+                     "other than the plan working"},
             {"what": "how_2", "pts": 2.0,
              "codes": {"absent": "MISSING_HOW"},
-             "desc": "Second explanation of HOW it succeeded or failed"},
+             "desc": "The box asked for How (2), judged on its own by the same "
+                     "two-way test as How (1). Either box can fail, both can, and "
+                     "one failing says nothing about the other"},
         ],
         "deductions": [
             {"code": "BLANK", "pts": 6.0, "text": "did not answer"},
@@ -381,19 +388,23 @@ ITEMS: list[dict] = [
             },
         ],
         "guidance": [
-            "Three 2-point slots: the verdict, then two pieces of explanation of HOW.",
-            "COUNT CONTENT, NOT SENTENCES. A compound sentence that states the outcome and "
-            "explains it satisfies more than one slot. Two sentences can earn all six "
-            "points, and three shapes did. A verdict that cites the data as its "
-            "evidence, followed by one concrete circumstance under which the plan "
-            "worked, covers the verdict and both explanations. So does a verdict "
-            "citing the data, followed by an admission of inconsistency and the "
-            "progress made anyway — a qualified explanation is still an "
-            "explanation. And an explanation need not be circumstantial at all: "
-            "naming the techniques the student relied on, with no situation "
-            "attached, counts. All three earned 6/6.",
-            "DEDUCT when a stretch of the answer does NOT bear on how the plan succeeded "
-            "or failed. Two shapes were charged. A sentence reporting a bodily or "
+            "Three 2-point slots, judged INDEPENDENTLY: the verdict box, then each "
+            "of the two How boxes. Do not ask how many explanations the answer "
+            "contains.",
+            "A How BOX IS MET ON EITHER OF TWO GROUNDS, and the second is the one "
+            "to get right. First, a cause or a circumstance: why or when the plan "
+            "did or did not work. A qualified explanation is still an explanation, "
+            "and it need not be circumstantial at all — naming the techniques the "
+            "student leaned on, with no situation attached, counts. Second, the "
+            "change REPORTED WITH ITS SIZE: a figure, a comparison against the "
+            "earlier week, or a citation of the data. That is an explanation on "
+            "this item, not a bare outcome, and the earlier wording of this rubric "
+            "said so — \"a verdict that cites the data as its evidence ... covers "
+            "the verdict and both explanations\". A rule that charged boxes of that "
+            "shape was measured on 2026-09-02 and broke three cells the graders "
+            "credit.",
+            "DEDUCT ONLY WHEN A BOX OFFERS NEITHER — no reason and no measure. Two "
+            "shapes were charged. A sentence reporting a bodily or "
             "circumstantial detail that explains nothing about the plan working: the "
             "graders wrote 'your third sentence does not explain how your plan was "
             "successful' and took 2 points. And an answer that cannot settle whether it "
