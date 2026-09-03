@@ -1015,7 +1015,11 @@ GOLD_DIVERGENCES: list[dict] = [
     },
     {
         "code": "ANTECEDENT_RULE_APPLIED_AGAINST_ITSELF",
-        "cells": [("Q4a", 14), ("Q4a", 19)],
+        # Q4a/p19 LEFT THIS ENTRY 2026-09-03: it is in CORRECTED_GOLD, and a cell
+        # cannot be both corrected and declared. p14 remains, and note that the
+        # "OPPOSITE directions" this entry is built on now has only one side of
+        # the pair left in it -- read the why below with that in mind.
+        "cells": [("Q4a", 14)],
         "why": "Two cells, deterministic at 0/6 each, where gold departs from the rule "
                "gold itself states -- in OPPOSITE directions, which is why no single "
                "criterion reaches both. "
@@ -1051,90 +1055,34 @@ GOLD_DIVERGENCES: list[dict] = [
                "-- it is the PAIR that cannot both be right under one rule. Ours is the "
                "reading that follows the criterion the graders wrote down.",
     },
-    {
-        "code": "NP_SHAPE_CREDITED_AS_NR", "cells": [("NR", 4)],
-        "why": "p4's answer is \"{{corpus:NR/p4:nr:0:50:sha=9276dcff737b:shape=R50-0-20}}"
-               "{{corpus:NR/p4:nr:51:65:sha=445b398ad93d}}\" Gold gives it 4; we award 2 in EVERY run of every "
-               "build measured this session -- move_v3, move_v4, derive_v2, "
-               "derive_v3, barrier_final, derived_record and the dual_v1 probe, "
-               "0/6 or 0/4 in each. Nothing about it wavers. "
-               "OUR READING. A desirable thing is withdrawn contingent on the "
-               "UNWANTED behaviour, which is negative punishment, so "
-               "`demonstrates_type` fails and WRONG_TYPE charges 2. The two "
-               "independent parses agree and are stable: `stimulus_move` answers "
-               "`taken_desirable` 6/6 and `restriction_authored` answers `created` "
-               "6/6. The engine is not confused about this sentence; it reads it the "
-               "way the sentence reads. "
-               "NOT A FIXTURE FAULT. One complete sentence, every field checked, and "
-               "p4 is not among handout 2's suspect submissions (p2, p3). "
-               "NOT A GOLD ERROR, which is why this is a divergence and not "
-               "CORRECTED_GOLD. The row is a bare 4.0 with EMPTY feedback -- there is "
-               "no itemisation contradicting the score, unlike Q3/p8, Q6/p1 and "
-               "1c/p11. And gold's 4 survives a charitable reading: the standing "
-               "no-TikTok restriction is itself the aversive thing, and sleeping 8 "
-               "hours lifts it, which is negative reinforcement of B. Two defensible "
-               "readings of one sentence; ours is the literal one. "
-               "THREE ROUTES MEASURED AND REVERTED. (1) The barrier conjunction "
-               "cannot fire here and should not: p4's condition is a FAILURE, so "
-               "`trigger_expects` reads `loss`, and the conjunction is exactly what "
-               "correctly charges NR/p14, whose condition is a gain. Gold splits p14 "
-               "(2) from p4 (4) on that same axis. (2) The `stimulus_move` pair reads "
-               "the sentence correctly and therefore denies credit; it also cost NR "
-               "a cell overall and was reverted. (3) A clause was added to criterion "
-               "6's DUAL DESCRIPTIONS telling the model in terms that NR-of-B is an "
-               "available reading of \"X withheld until B\". p4 answered 2 in all "
-               "four probe runs while five guards held 17/17. Permission does not "
-               "change what a sentence most obviously says. "
-               "WHAT IS LEFT, and why it is refused. Crediting p4 means accepting "
-               "\"a desirable thing withdrawn after the unwanted behaviour\" as NR. "
-               "NR's four gold-zero cells and p9 are scored correctly BECAUSE that "
-               "mismatch is caught -- p9 is 6/6 correct on `demonstrates_type` "
-               "failing. Spending five reliable cells to win one is the wrong trade, "
-               "so the money goes the unflattering way: we keep scoring 2 against "
-               "gold's 4.",
-    },
-    {
-        "code": "BEHAVIOR_NEVER_STATED", "cells": [("DAY1", 1)],
-        "why": "p1's daily example is \"{{corpus:DAY1/p1:day1:0:43:sha=cbf992b9e213:shape=R43-0-20}}"
-               "{{corpus:DAY1/p1:day1:44:72:sha=28bc43813174:shape=S1-20}}\" Gold gives it 4; we award 0 in every "
-               "run, and four GATES fail, each defensible about that sentence on its "
-               "own: `names_behavior` (no behaviour of theirs appears in it, not even "
-               "by reference -- \"my goal\", \"my target behavior\" would satisfy "
-               "the slot and none is there), `contingent`, `follows_behavior` and "
-               "`states_a_contingency`. The sentence says what the student will "
-               "RECEIVE and how often, and never what earns it. "
-               "NOT A FIXTURE FAULT. Checked against Participant ID 001's .docx, "
-               "where the sentence spans two paragraphs and the reconstruction joins "
-               "them correctly. The response is what it appears to be. "
-               "NOT A GOLD ERROR, which is why this is a divergence and not "
-               "CORRECTED_GOLD. Gold's 4 survives a charitable reading: the eight "
-               "hours slept is the behaviour and the lie-in afterwards is the "
-               "reward -- related, but distinguishable. The same student wrote "
-               "textbook contingencies on WK1, DAY2 and WK2 and scored 4 on all "
-               "four, so a grader crediting evident understanding on the one "
-               "elliptical answer is ordinary, not a slip. Two defensible readings; "
-               "ours is the literal one. "
-               "MEASURED, and the reason it stays a miss. One instruction was added "
-               "to all four cadence items: where a sentence names its consequence "
-               "explicitly AS a reward or penalty and says how often it recurs, the "
-               "behaviour may be left unsaid and the student's stated goal supplies "
-               "it. It reached two of the four gates -- `contingent` and "
-               "`follows_behavior` both read `met` in one run -- and never moved "
-               "`names_behavior`, which is evaluated first, so the cell stayed 0/3. "
-               "Its carve-out did hold: DAY2/p13 says \"reward myself\" too, names a "
-               "behaviour of its own, and stayed 0/3 CORRECT, so the ellipsis/wrong- "
-               "behaviour distinction is one the model can draw. Net effect on all "
-               "four items was zero, six cells moved a run each in both directions, "
-               "and the ~14 lines were reverted. "
-               "WHAT IS LEFT, and why it is refused. p1 needs the behaviour IMPORTED "
-               "from another field -- Q2's \"wanting to get more sleep\" -- and no "
-               "instruction about how to read THIS sentence can supply that. "
-               "Relaxing `names_behavior` to take the behaviour from the stated goal "
-               "would credit answers that name nothing, on the gate every cadence "
-               "item leans on hardest, for one cell. "
-               "The money goes the unflattering way, as it should: declaring costs "
-               "us the cell and we keep scoring 0 against gold's 4.",
-    },
+    # NP_SHAPE_CREDITED_AS_NR NAMED ("NR", 4) AND WAS REMOVED 2026-09-03. The cell is in
+    # CORRECTED_GOLD, and the two tables make CONTRADICTORY claims: a correction
+    # says gold's number was wrong against the graders' own practice, a
+    # divergence says gold's number stands and we knowingly differ from a
+    # coherent decision. It cannot be both. The correction is the treatment
+    # kept, at the user's direction. Three of the five corrections made that day
+    # landed on cells already declared here -- this one, NP_SHAPE_CREDITED_AS_NR on NR/p4 and BEHAVIOR_NEVER_STATED on DAY1/p1 -- because I
+    # built each from comparator evidence without checking the declaration
+    # tables first, and nothing caught it: the audit compares declarations
+    # against RECORDED data, so while the ledger still held pre-correction
+    # numbers "we knowingly miss this" stayed consistent with what was recorded.
+    # enforcement.check_no_cell_is_both_corrected_and_declared now forbids the
+    # overlap outright, with no run data needed.
+
+    # BEHAVIOR_NEVER_STATED NAMED ("DAY1", 1) AND WAS REMOVED 2026-09-03. The cell is in
+    # CORRECTED_GOLD, and the two tables make CONTRADICTORY claims: a correction
+    # says gold's number was wrong against the graders' own practice, a
+    # divergence says gold's number stands and we knowingly differ from a
+    # coherent decision. It cannot be both. The correction is the treatment
+    # kept, at the user's direction. Three of the five corrections made that day
+    # landed on cells already declared here -- this one, NP_SHAPE_CREDITED_AS_NR on NR/p4 and BEHAVIOR_NEVER_STATED on DAY1/p1 -- because I
+    # built each from comparator evidence without checking the declaration
+    # tables first, and nothing caught it: the audit compares declarations
+    # against RECORDED data, so while the ledger still held pre-correction
+    # numbers "we knowingly miss this" stayed consistent with what was recorded.
+    # enforcement.check_no_cell_is_both_corrected_and_declared now forbids the
+    # overlap outright, with no run data needed.
+
     {
         "code": "DUPLICATE_EFFECT_TIE_BREAK", "cells": [("Q6", 5)],
         "why": "our sheet applies a duplicate rule to the EFFECT boxes and gold does "
@@ -1321,24 +1269,20 @@ GOLD_DIVERGENCES: list[dict] = [
                "measured at +1 cell a run against deleting it. What changes is "
                "that the reason no longer claims we never match gold here.",
     },
-    {
-        # MEASURED, and the measurement is what this entry is FOR. The item's own
-        # ACCEPT bullet quoted p19's phrase as an example that "earned full
-        # credit", so the miss looked like an accept-side gap in the criterion.
-        # Defining both antecedent slots from gold — internal states qualify,
-        # refuse only aftermath / do-instead / a 4c consequence — left p19 at 0 of
-        # 3 and cost p16 a run, so it was reverted. The criterion was never the
-        # cause. The DIRECTION was, and the guidance now states that test instead
-        # of quoting the cell.
-        "code": "A_NOT_ANTECEDENT", "cells": [("Q4a", 19)],
-        "why": "gold credits an antecedent that is an AFTERMATH of the UTB. p19's "
-               "UTB is lack of sleep and its first example is \"{{corpus:Q4a/p19:first:23:40:sha=0d6baee4d7af:shape=R17-0-20}}"
-               "{{corpus:Q4a/p19:first:41:58:sha=aa7b7f69f9a9:shape=S0-20}}\", which happens after sleeping too little and "
-               "so cannot precede the behaviour it results from. Both scorers "
-               "refuse it — 0 of 3 here, 0 of 6 in the stored web runs — and the "
-               "refusal is correct on the criterion both sides share, that an "
-               "antecedent happens BEFORE the UTB.",
-    },
+    # A_NOT_ANTECEDENT NAMED "cells": [("Q4a", 19)] AND WAS REMOVED 2026-09-03. The cell is in
+    # CORRECTED_GOLD, and the two tables make CONTRADICTORY claims: a correction
+    # says gold's number was wrong against the graders' own practice, a
+    # divergence says gold's number stands and we knowingly differ from a
+    # coherent decision. It cannot be both. The correction is the treatment
+    # kept, at the user's direction. Three of the five corrections made that day
+    # landed on cells already declared here -- this one, NP_SHAPE_CREDITED_AS_NR on NR/p4 and BEHAVIOR_NEVER_STATED on DAY1/p1 -- because I
+    # built each from comparator evidence without checking the declaration
+    # tables first, and nothing caught it: the audit compares declarations
+    # against RECORDED data, so while the ledger still held pre-correction
+    # numbers "we knowingly miss this" stayed consistent with what was recorded.
+    # enforcement.check_no_cell_is_both_corrected_and_declared now forbids the
+    # overlap outright, with no run data needed.
+
     {
         "code": "A_NOT_ANTECEDENT", "cells": [("Q4a", 14)],
         "why": "gold refused both of p14's examples (-4 = two refusals) while its "
