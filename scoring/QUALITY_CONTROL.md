@@ -172,6 +172,14 @@ measurement can say anything at all:
 | `unscoreable` | gold's row cannot be reached by any correct answer | yes — a cell that reaches it refutes the claim |
 | `suspect` | the submission was mis-transcribed; the input is another participant's data | **no, ever** |
 
+A suspect cell is also **never evidence in a declaration's reasoning** — not for
+gold and not against it. A `CORRECTED_GOLD` entry was once argued partly on the
+grounds that an item's gold was incoherent, citing the very byte-identical pair
+whose contradiction is *why* both are excluded.
+`enforcement.check_no_declaration_cites_a_suspect_cell` now scans declaration
+prose for such citations, allowing one only inside a sentence that names the cell
+suspect.
+
 A `suspect` cell agreeing with gold is a coincidence between the wrong
 student's answer and this student's score, and it is the single reading that
 must not be taken as reassurance. There is nothing to be right about: the input
@@ -264,6 +272,22 @@ readout that produced them costs an hour to reproduce. The declarations in
 opened.
 
 ---
+
+### The reporting is likelier to be wrong than the model
+
+**Across the longest campaign in this record, nearly every error was an inference
+or a summary error rather than a measurement error.** The item finished with
+per-check accuracies of 100%, 99.4% and 100%; over the same period the person
+driving it had to be corrected on quoting a single-side median, on reporting a
+per-cell median as an item score, on optimism as a standing pattern, on citing
+suspect cells as evidence, on believing a finding's misleading label, and twice on
+proposing a closure the numbers did not support.
+
+That asymmetry is why the fixes in this guide that earn their keep are the ones
+that make honest figures **unavoidable** rather than available: the spread printed
+on every `--record`, the fixture preflight in both harnesses, the table-against-
+table checks that need no run data. Advice is what the reader already agreed with
+before misreading the table.
 
 ## 1. Fixture first
 
@@ -749,6 +773,41 @@ occasionally.
 
 ---
 
+## 2f. A GATE'S REFUSAL IS INFORMATION, AND A NEW CHECK MUST BE SHOWN TO FIRE
+
+**When a gate refuses, read it before working around it.** Every refusal in this
+project's history has been correct, and several were more informative than the
+work they interrupted:
+
+* **leakage.py refused a rule's prose** because it borrowed two words from the
+  cohort. The words were `free` and `felt` — the distinguishing vocabulary of the
+  two cells the rule was written to charge. Enumerating examples of the failing
+  shape had quietly copied the answers being graded. Rewriting abstractly was
+  both safer and a better rule.
+* **the arithmetic audit refused an `onlyif`** with `2a CANNOT ZERO`: the guard
+  capped the slot floor so `BLANK`'s −6 became unreachable. The guard went, and
+  the cell it protected turned out not to need it.
+* **the side contract refused three artifacts** that could not say which model
+  produced them, which is why two items' ledger entries had to be re-swept rather
+  than refreshed from disk.
+* **`CHECK NEVER RUNS`** reported a verifier that was registered but never
+  invoked — "it reads as coverage and enforces nothing".
+
+**And a check is not finished until it has been seen to fail.** Two were written
+here that could not have caught anything:
+
+* `check_no_declaration_cites_a_suspect_cell` was **green by construction**: its
+  item→handout map used `str(item)` where `ITEMS` holds dicts, so it keyed on dict
+  reprs, matched nothing, and reported a clean corpus. A five-way fire test caught
+  it.
+* the fixture check needed **three wrong versions** — reading raw evidence (13
+  findings on a correct tree), comparing a box against the wrong item's section
+  (72 false positives), and a verbatim test that flagged a faithful hand split.
+
+So: inject the breakage the check exists for, confirm the finding appears, restore,
+confirm it clears. Add a self-test case so the retirement path is tested too. A
+check nobody has watched fail is a comment.
+
 ## 2a. TRY THE STRUCTURAL FIX FIRST
 
 **When a cell resists, change the SHAPE of what the model is asked, not the
@@ -850,6 +909,12 @@ judgement. On 2a it produced the item's best measured result.
   slot, and a blank operand is handled by `lenient` rather than by failing.
 * **`derived` kinds are fixed**: `plots`, `complete`, `present`, `contains`. A rule
   naming any other kind is dropped silently on both sides.
+* **Check the item's MARGIN before trusting a slot's stability.** Every gold row
+  on 2a is 6 or 4, so a gold-4 cell tolerates exactly ONE charge: a second one
+  overshoots however defensible it is. p14's `verdict` slot is 83% stable and that
+  was enough to lose the cell in 2 of 12 runs, because `how_2` was already
+  correctly charged. On an item with no margin, slot stability and item accuracy
+  are the same question; on an item with several increments they are not.
 * **A gate is discovered by single flips; a conjunction is not.** That asymmetry is
   why the same three-way rule raises a probe-reach finding when it drives a slot
   and none when it drives a gate — see `olx_prompts.PROBE_REACH_LIMITS`.
