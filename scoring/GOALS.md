@@ -3465,6 +3465,29 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           PR/p15   gold 4   0.0 x1, 2.0 x6, 4.0 x5     right 5 of 12
           Q2/p20   gold 5   4.0 x11, 5.0 x1            right 1 of 12
           Q4b/p13  gold 5   3.5 x8, 5.0 x4             right 4 of 12
+          2a/p14   gold 4   2.0 x2, 4.0 x10            right 10 of 12
+      2a/p14 ARRIVED 2026-09-03 from subgoal Q2, which reached this item's ceiling
+      and could not reach this cell. It is NOT the population's usual shape -- gold
+      charged it and wrote a comment, rather than passing it in silence -- and it is
+      here because the defect is pure VARIANCE and this entry owns variance.
+      WHAT HAPPENS: `mechanism_named` is absent in 12 of 12 runs, correctly, so
+      how_2 is charged and the cell scores 4.0 exactly as gold does. In 2 runs the
+      `verdict` slot ALSO fails and the cell drops to 2.0. Every gold row on 2a is
+      6 or 4, so a gold-4 cell tolerates exactly ONE charge; a second one overshoots
+      however defensible it is.
+      AND THE VERDICT BOX IS GENUINELY THREE-WAY AMBIGUOUS, which is why this is
+      variance and not a rule to fix. It reads "{{corpus:2a/p14:verdict:0:104:sha=f83968a50add:shape=S7-0a202020202020}} Three":
+      the first clause states nothing (`absent`), the second states a verdict badly
+      (`met`), and the whole is garbled (`unclear`). The slot offers exactly those
+      three options and all three are defensible readings of one sentence. The two
+      dissenting runs disagreed with EACH OTHER -- one answered `unclear`, the other
+      `absent` -- and both quoted the same clause as their reason. The 10 that
+      answered `met` are right by the rubric, which says "Success or failure is
+      irrelevant to the score; only whether it is stated and explained".
+      SO THE CANDIDATE FIX IS A HEDGE-TOLERANCE CLAUSE on `verdict` -- a stated
+      verdict counts even where the student also disclaims confidence in it -- worth
+      at most 2 cell-runs in 240 on this item, and worth measuring only if the same
+      hedge pattern costs anything on the sibling items.
       WHY THIS IS A SEPARATE ENTRY AND NOT A FOOTNOTE. Old Q31 counted these
       beside the always-wrong cells and called the total a false-positive rate.
       It is not one: a cell that reaches gold in 5 of 12 runs says our rule can
@@ -4466,7 +4489,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
   answers pointed opposite ways -- demanding a doing would have cost p9, p14 and
   p18, all credited on access alone.
 
-- [ ] Q2. **2a over-credits `hows_given`: one rule, five cells, 29 of 29 errors.**
+- [x] Q2. **2a over-credits `hows_given`: one rule, five cells, 29 of 29 errors.**
       2a/p16 MOVED HERE 2026-09-01 from Q31, which closed. Q31's own text said it
       belonged to this entry -- "the item's usual over-credit rather than this
       pattern" -- and nothing had acted on that, so closing Q31 would have
@@ -4776,11 +4799,53 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       distinction; the model applies it about 60% consistently on exactly the
       two cells that straddle it. p13 also splits 7-5 and is harmless, since its
       how_2 is charged by the conjunction regardless.
-      STILL OPEN, AND NOT TO BE CLOSED ON THE MEDIAN. Nothing is wrong at the
-      pooled median, so no cell would be orphaned -- but p5 and p16 sit at 7 of
-      12 on the single judgement that decides them, in OPPOSITE directions, and
-      two thirds of runs score below 20. Closing on the median would sign off a
-      boundary the model applies about 58% of the time as though it were settled.
+      == 2026-09-03, SEVENTH ATTEMPT: THE SPLIT AGAIN, WITH TWO FIXES. ==
+      python [19,20,19,19,20,20], olx [20,20,20,19,20,20]. Pooled over 12 runs:
+      range 19-20, MEDIAN 20, MEAN 19.7 of 20 (98.3%), 8 of 12 runs perfect.
+      4 wrong cell-runs in 240 observations, down from 14. Recorded as
+      `q2_split2_python` and `q2_split2_olx`.
+      THE FIRST SPLIT FAILED FOR A REASON, NOT ON PRINCIPLE, and the per-ground
+      data said which. Asked separately the model was UNANIMOUS that p16 has no
+      ground -- 12 of 12 absent on each -- which is correct and which the compound
+      question got wrong 5 times in 12. What that split cost was p10, whose only
+      real ground is a bare directional change that `states_size` did not admit:
+      it answered absent 11 of 12 there, and the ground sat at 43.8% met overall.
+      So the split was kept and two things were fixed with it:
+          states_size    widened to admit a stated DIRECTION of change over the
+                         period, not only a figure, a week comparison or the data.
+                         43.8% -> 72.5% met.
+          names_plan_content   reframed from a category question to a CONTRAST
+                         one -- anything about the plan BEYOND the behaviour it
+                         targeted -- since "in particulars" had been left
+                         undefined when its enumeration was stripped for leakage.
+                         49.2% -> 62.9% met, and p5 8/12 -> 12/12.
+      EVERY PRE-REGISTERED PREDICTION HELD: states_size well above 43.8% (72.5%),
+      effective how_2 above the compound's 96.7% (100%), p16 stable at 4.0 with
+      grounds 0/12, 0/12 and 1/12, p10 preserved at 6.0 and now carrying THREE
+      grounds, p5's content ground at 12/12, and the mean above 18.8 (19.7).
+      Per-check accuracy: verdict 100%, how_1 99.4%, how_2 100%.
+      CLOSED 2026-09-03. The earlier objection to closing is gone: it was that the
+      honest measures disagreed with the headline, p5 and p16 sitting at 7 of 12 in
+      OPPOSITE directions while two thirds of runs scored below 20. Now the median
+      (20), the mean (19.7) and the range (19-20) agree, and the two straddling
+      cells are near-unanimous. The residual is four cell-runs in 240: p14 twice on
+      the verdict slot, p5 once on a lone how_1 refusal, p16 once. p14 is handed to
+      subgoal Q35, which owns variance; the other two are single observations with
+      no pattern to chase.
+      WHAT IT COST AND WHAT IT TAUGHT: seven measured attempts, six kept, one
+      corrupt-fixture attempt that measured nothing.
+      15 -> 17 (per-box split, two-way cause-or-size test) -> 18 (state/not-doing
+      conjunction) -> 19 (mechanism `requires`) -> 20 median but 18.8 mean
+      (plan-content ground) -> 19 (three-way split, reverted) -> 20 median and
+      19.7 mean (split with widened size and contrast content).
+      THREE THINGS WORTH CARRYING FORWARD. This entry predicted one rule would
+      recover five cells because "all five move together"; both halves were wrong,
+      and what worked was a sequence of small measured rules. A rule's failure is
+      diagnosed from PER-GROUND data, not from the item total -- reading only the
+      total made me revert a split whose real defect was one ground's wording, and
+      recommend stopping on a boundary that was not marginal at all. And the item
+      total is a per-cell median: it read 20 while the mean was 18.8 and six runs
+      scored 18, so quote the spread.
       WHAT IT COST AND WHAT IT TAUGHT: six measured attempts, five kept.
       15 -> 17 (per-box split plus the two-way cause-or-size test) -> 18
       (the state/not-doing conjunction) -> 19 (the mechanism `requires`) -> 20

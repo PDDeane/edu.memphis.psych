@@ -4852,6 +4852,10 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "measured.SIDE_CONTRACT": (
         "which program and model each ledger side is allowed to be recorded from",
         ("check_side_contract_is_enforced",)),
+    "olx_prompts.PROBE_REACH_LIMITS": (
+        "rules neither instrument can cross-check, so their cross-engine "
+        "agreement is asserted rather than probed",
+        ("check_probe_reach_limits_still_apply",)),
     "enforcement.COMPUTE_EXEMPT": (
         "primitives one engine cannot compute",
         ("check_both_engines_compute_the_same_primitives",)),
@@ -5971,6 +5975,61 @@ def computed_recovery_line() -> str:
             f"item(s) reproduced from the answered fields alone. That is what "
             f"licenses reconstructing the same keys for the olx artifacts, which "
             f"store null for every primitive-answered and counted slot.")
+
+
+def check_probe_reach_limits_still_apply() -> list[str]:
+    """A PROBE_REACH_LIMITS entry whose rule the probe could now reach.
+
+    Each entry claims one thing: the CLI probe cannot construct the state that
+    would reveal a sublinear pair. That claim rests on the SHEET, not on the run
+    data, so it is checkable without re-running the audit -- which matters, since
+    this check runs inside the audit and could not call it back.
+
+    TWO SHAPES MAKE A PAIR UNREACHABLE, and an entry is justified only while its
+    item still has one of them:
+
+      a `forbid` with THREE OR MORE conditions -- the probe flips answered fields
+      in PAIRS, and no pair of flips satisfies a three-condition rule while the
+      third field holds its passing value; or
+
+      a `requires` whose condition is a COMPUTED key -- a computed operand is not
+      an answered field, so no flip can set it at all.
+
+    If an item has neither, the probe can reach its pairs by flipping, and the
+    entry is excusing a finding that would no longer appear. A declaration that
+    outlives its reason is worse than none: it silently claims the audit checked
+    something it did not. Retiring one is cheap -- NR's own entry says it "will
+    stop applying if the rule ever becomes a gate", and this is what notices.
+    """
+    import agreement as A
+    import measured as MEAS
+    import olx_prompts as O
+
+    out: list[str] = []
+    for entry in getattr(O, "PROBE_REACH_LIMITS", []) or []:
+        for item in (entry or {}).get("items") or ():
+            h = (MEAS._jobs().get(item) or {}).get("handout")
+            if h is None:
+                continue
+            try:
+                spec = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+            except Exception:
+                continue
+            wide = any(len(r.get("conds") or ()) >= 3
+                       for r in (spec.get("forbid") or ()))
+            computed = set(MEAS._computed_slots(spec))
+            unflippable = any(r.get("cond") in computed
+                              for r in (spec.get("requires") or ()))
+            if wide or unflippable:
+                continue
+            out.append(
+                f"olx_prompts.PROBE_REACH_LIMITS excuses {item} on the grounds "
+                f"that the CLI probe cannot reach its sublinear pair, but {item} "
+                f"now has no `forbid` of three or more conditions and no "
+                f"`requires` on a computed key -- so a pairwise flip CAN reach "
+                f"it and the excuse no longer holds. Drop the item from the "
+                f"entry and let the audit probe it")
+    return out
 
 
 def check_no_cell_is_both_corrected_and_declared() -> list[str]:

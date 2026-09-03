@@ -364,6 +364,10 @@ ITEMS: list[dict] = [
         # the model still gives, and `excludesKeys` is False for exactly that
         # reason. `unclear` is lenient: doubt about the mechanism establishes
         # nothing, so it denies nothing.
+        "forbid": [{"key": "mechanism_named",
+                    "conds": [{"slot": "names_enabler", "value": "absent"},
+                              {"slot": "states_size", "value": "absent"},
+                              {"slot": "names_plan_content", "value": "absent"}]}],
         "requires": [{"key": "how_2", "cond": "mechanism_named",
                       "lenient": ["unclear"]}],
         "credit": [
@@ -395,43 +399,60 @@ ITEMS: list[dict] = [
              "desc": "The box asked for How (2), judged on its own by the same "
                      "two-way test as How (1). Either box can fail, both can, and "
                      "one failing says nothing about the other"},
-            # ONE COMPOUND OPERAND, restored 2026-09-03 after the three-way
-            # split was measured and lost a cell. The split asked each ground as
-            # its own question, on the theory `parse_forbid` states: "asked one
-            # answer at a time it was stable, asked as one judgement the model
-            # resolved the tension by re-reading which clause was which." That
-            # holds for a CONJUNCTION of conditions, which is what forbid was
-            # built for, and it did NOT transfer to a DISJUNCTION of alternative
-            # grounds. Measured: the item went 20/20 -> 19/20 and per-ground
-            # unanimity came back 14, 16 and 14 of 20 against the compound's 15,
-            # so reliability did not improve either. Asked alone against a
-            # literal list, `states_size` refused p10's "endurance increased over
-            # time" 11 times in 12 -- a change with no figure, no week comparison
-            # and no data citation -- where the compound question had accepted it
-            # 12 of 12. p3 split 6-6 on the same fault and p19 failed it outright,
-            # both surviving only on another ground.
-            {"what": "mechanism_named",
+            # SPLIT AGAIN 2026-09-03, second attempt, with the two fixes the first
+            # split's per-ground data named. That attempt took the item 20 -> 19 and
+            # was reverted; the reason was NOT the split. Asked separately the model
+            # is UNANIMOUS that p16 has no enabler, no size and no plan content --
+            # 12 of 12 on each -- which is correct and which the compound question
+            # gets wrong 5 times in 12. What the split cost was p10, whose only real
+            # ground is a bare directional change that `states_size` did not admit:
+            # it answered absent 11 of 12 there. Effective how_2 accuracy went 96.7%
+            # -> 93.3%, twelve false denials against six, and `states_size` sat at
+            # 43.8% met while the other two grounds ran near 60%.
+            {"what": "names_enabler",
              "reported": True,
              "verdicts": ["met", "absent", "unclear"],
-             "desc": "Does the response, read across ALL THREE boxes, account for "
-                     "HOW the plan produced its result? `met` on any of three "
-                     "grounds. It names something the student PUT IN PLACE so the "
-                     "behaviour would happen — an arrangement, a routine, a "
-                     "stand-in activity, a chosen hour or location. Or it states "
-                     "the change together with its SIZE — a figure, a comparison "
-                     "against the earlier week, or the data — which is the same "
-                     "wording How (1) and How (2) use, and the clause a shorter "
-                     "version of this question dropped. Or it names WHAT THE PLAN "
-                     "CONSISTED OF in particulars, which counts even where the "
-                     "response raises those particulars as a burden rather than "
-                     "as something that worked; naming the behaviour the plan "
-                     "TARGETED, with no particulars attached, is not that ground. "
-                     "`absent` when the response explains the result only by the "
-                     "surrounding conditions it found itself in, or by asserting "
-                     "the target behaviour over again. The division is between "
-                     "what the student DID so it would work and what was simply "
-                     "the case around them. Answer for the WHOLE response, not "
-                     "for one box"},
+             "desc": "Read all three boxes. Does the response name something the "
+                     "student PUT IN PLACE so the behaviour would happen — an "
+                     "arrangement, a routine, a stand-in activity, a chosen hour "
+                     "or location? `absent` when it names only the conditions it "
+                     "found itself in, or only the behaviour the plan targeted"},
+            {"what": "states_size",
+             "reported": True,
+             "verdicts": ["met", "absent", "unclear"],
+             # WIDENED to admit a bare DIRECTION of change. The first split asked
+             # this against a literal list -- a figure, a week comparison, or the
+             # data -- and refused p10's "{{corpus:2a/p10:how1:49:78:sha=b3bf32bf0304}}" 11 times
+             # in 12, which cost the cell, while the compound question had accepted
+             # the same words 12 of 12. A stated rise or fall over the period is a
+             # report of the change and belongs here.
+             "desc": "Read all three boxes. Does the response state the change with "
+                     "its SIZE — a figure, a comparison against the earlier week, "
+                     "or the data — OR state a DIRECTION of change over the period, "
+                     "that something rose or fell, even with no number attached?"},
+            {"what": "names_plan_content",
+             "reported": True,
+             "verdicts": ["met", "absent", "unclear"],
+             # A CONTRAST QUESTION, not a category one. The first split asked whether
+             # the response named the plan's content "in particulars" and left
+             # `particulars` undefined -- the enumeration had been stripped for
+             # leakage -- so p5, the only cell this ground exists for, answered met
+             # just 8 times in 12. Folding the exclusion into the question gives the
+             # model something to compare against.
+             "desc": "Read all three boxes. Does the response say anything about the "
+                     "plan BEYOND naming the behaviour it targeted — what was to be "
+                     "done, in what fixed form, or in what quantity? It counts even "
+                     "where the response raises that as a burden rather than as "
+                     "something that worked. Naming only the targeted behaviour is "
+                     "not this ground"},
+            # COMPUTED from the three above, never asked: absent exactly when all
+            # three are absent. `forbid` strips its key from the schema, which is
+            # right for an operand and is why it cannot be used on how_2 itself.
+            {"what": "mechanism_named",
+             "reported": True,
+             "verdicts": ["met", "absent"],
+             "desc": "Whether the response accounts for HOW the plan produced its "
+                     "result, on any of the three grounds above"},
         ],
         "deductions": [
             {"code": "BLANK", "pts": 6.0, "text": "did not answer"},
