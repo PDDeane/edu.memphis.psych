@@ -667,6 +667,8 @@ def enforcement_audit():
         findings.append(("-", "DECLARATION ARGUES FROM A SUSPECT CELL", bad))
     for bad in ENF.check_no_cell_is_both_corrected_and_declared():
         findings.append(("-", "CELL BOTH CORRECTED AND DECLARED", bad))
+    for bad in ENF.check_gold_is_read_by_item():
+        findings.append(("-", "GOLD READ BY HANDOUT, NOT BY ITEM", bad))
     for bad in ENF.check_probe_reach_limits_still_apply():
         findings.append(("-", "PROBE-REACH EXCUSE OUTLIVED ITS RULE", bad))
     for bad in ENF.check_computed_slot_recovery_is_faithful():
@@ -905,7 +907,7 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 57
+SELFTEST_EXPECTED = 58
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1710,6 +1712,23 @@ def enforcement_selftest():
                      {"code": "PROBE", "cells": [("NR", 4)], "why": "injected"}),
                  lambda: _HH.GOLD_DIVERGENCES.pop(),
                  want="CELL BOTH CORRECTED AND DECLARED")
+
+    # READING GOLD BY HANDOUT INSTEAD OF BY ITEM, added 2026-09-03 after the
+    # mistake was made live: item 1a was looked up against the handout ONE
+    # sheet (the token is spelled out rather than written, because naming a
+    # loader in this file makes it match the gold-consumer regex and trips
+    # GOLD ACCOUNTING NOT UNIFORM against equivalence itself). 1a is a
+    # handout 3 item, and the miss returned `{}` -- the same thing an ungraded
+    # cell returns. This case exercises the ALLOWLIST arm, which was itself
+    # written green: the first predicate matched only the dict spelling of the
+    # loader pick, so cross_path's tuple form walked past it and the arm passed
+    # with the table emptied.
+    _real_allow = dict(ENF.HANDOUT_KEYED_GOLD_READERS)
+    _scorer_case("a module picks a gold loader by handout, undeclared",
+                 lambda: ENF.HANDOUT_KEYED_GOLD_READERS.pop("cross_path"),
+                 lambda: (ENF.HANDOUT_KEYED_GOLD_READERS.clear(),
+                          ENF.HANDOUT_KEYED_GOLD_READERS.update(_real_allow)),
+                 want="GOLD READ BY HANDOUT, NOT BY ITEM")
 
     # THE BOUNDS TABLE'S RATCHET, added 2026-09-02. The disagreements table had
     # one and this table did not, so three 2a entries stood asserting a
