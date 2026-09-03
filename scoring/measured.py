@@ -890,7 +890,13 @@ def sweep_summary(item: str) -> str:
     g = _corrected_gold(h)
     try:
         spec = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
-        scored = [sl["key"] for sl in spec["slots"] if sl.get("pts") is not None]
+        # GATES INCLUDED. They carry no points and can zero the item, so a
+        # per-check table without them omits its most expensive checks -- see
+        # _charging_slots. What they cannot do is be compared against a PARTIAL
+        # gold comment, because gold's vocabulary has no word for a gate; that
+        # restriction is applied per cell below, not by dropping them here.
+        scored = [sl["key"] for sl in spec["slots"]
+                  if sl.get("pts") is not None or sl.get("gates")]
         top = {i["id"]: i["max"] for i in H.config(h)["rubric"].ITEMS}[item]
     except Exception as e:
         return f"  (cannot read {item}'s sheet: {type(e).__name__}: {e})"
@@ -936,15 +942,25 @@ def sweep_summary(item: str) -> str:
         if named is None:
             indet.append(pid)
         else:
-            expect[pid] = {k: (k not in named) for k in scored}
+            # ONLY THE SLOTS GOLD COULD HAVE NAMED. On a FULL-MARKS cell above,
+            # every check passing is implied whatever its kind, so gates are
+            # determinate there and that is where a gate false-positive shows up
+            # (NR/p20, DAY2/p8). On a partial-credit cell the expectation is read
+            # off the grader's prose, and a slot outside that vocabulary would be
+            # scored as expected-to-pass by default -- turning every correct gate
+            # refusal into a false charge. Left out instead, per
+            # _gold_nameable_slots.
+            vocab = _gold_nameable_slots(item)
+            expect[pid] = {k: (k not in named) for k in scored
+                           if not vocab or k in vocab}
 
     out.append("  PERCENT CORRECT BY CHECK")
     tally = {k: [0, 0, 0] for k in scored}          # n, correct, false-charge
     for sd in POOLED_OLX_PROMPT:
         for pid in expect:
             for failed in _our_failing_slots(item, pid, sd):
-                for k in scored:
-                    want = expect[pid][k]
+                for k in expect[pid]:          # not `scored`: a cell contributes
+                    want = expect[pid][k]      # only the slots it can speak to
                     ours = k not in failed
                     tally[k][0] += 1
                     if ours == want:
@@ -1093,6 +1109,15 @@ def declaration_conflicts() -> list[str]:
                 ours = _our_failing_slots(item, pid)
                 if ours:
                     stable = set.intersection(*[set(f) for f in ours])
+                    # AGAINST GOLD'S VOCABULARY ONLY. Declining on a difference
+                    # gold could never have expressed is declining for no reason:
+                    # a GATE is in `stable` and can never be in `charged`, so
+                    # every cell with a firing gate would suppress its own
+                    # conflict report. The harm is silent -- fewer findings, and
+                    # nothing saying why. See _gold_nameable_slots.
+                    _vocab = _gold_nameable_slots(item)
+                    if _vocab:
+                        stable &= _vocab
                     if stable != charged:
                         continue
             out.append(msg)
@@ -1553,7 +1578,26 @@ def refusal_precision(item: str, side: str = DEFAULT_SIDE) -> str:
             for slot, v in checks.items():
                 if v in (None, "", "met") or slot not in scored:
                     continue
-                if named is not None:
+                # OUTSIDE GOLD'S VOCABULARY IS UNDECIDABLE, NOT CONTRADICTED.
+                # A CONTRADICTED refusal means the grader itemised the cell and
+                # did not name this slot. That reading requires the grader to
+                # have been ABLE to name it, and for a GATE they never are --
+                # gates carry no points and no phrase in any table maps to one.
+                # Scored raw, 1a's `distinguishes_periods` came back 11 refusals,
+                # 11 contradicted, 0 corroborated: the worst instrument on the
+                # item, on a slot that agrees with gold every time it fires.
+                # Same alphabet mismatch as gold_slot_disagreements; see
+                # _gold_nameable_slots.
+                # Hoisted above BOTH readings: `definite` comes from the same
+                # prose as `named`, so a gate cannot appear there either and the
+                # bounds branch would call it contradicted whenever the definite
+                # set already accounted for gold's count. Guarded on a non-empty
+                # vocabulary, so an item with no phrase table is unaffected --
+                # there every slot is undecidable already, by the else below.
+                _vocab = _gold_nameable_slots(item)
+                if _vocab and slot not in _vocab:
+                    per[slot]["undecidable"] += 1
+                elif named is not None:
                     per[slot]["corroborated" if slot in named else "contradicted"] += 1
                 elif bounds is not None:
                     definite, count = bounds
@@ -3593,6 +3637,16 @@ def bounds_declarations_that_expired() -> list[str]:
             continue          # unreadable is not agreement
         seen = collections.Counter(s for r in runs for s in r)
         maj = {s for s, k in seen.items() if k > len(runs) / 2}
+        # AGAINST GOLD'S VOCABULARY ONLY. `count` is how many charges the grader
+        # made, so our side has to be counted in the same units. A GATE is not in
+        # those units -- it carries no points and no phrase names it -- and
+        # leaving it in inflates len(maj) so the equality can never hold. That
+        # does not raise a false alarm; it JAMS THE RATCHET, and an entry that
+        # can never expire is the exact failure this function was written to
+        # stop. See _gold_nameable_slots.
+        _vocab = _gold_nameable_slots(item)
+        if _vocab:
+            maj &= _vocab
         if len(maj) == count and set(definite) <= maj:
             out.append(
                 f"GOLD_SLOT_BOUNDS_KNOWN names {item}/p{pid}, but we now fail "
