@@ -26,7 +26,8 @@ from handouts import config
 from olx_prompts import primitives as _primitives
 O_PRIM = _primitives()
 from olx_prompts import (ACTION, HANDOUT, OLX, OMIT_CREDIT, OMIT_DEDUCTION,
-                         SCORING_DIVERGENCES, parse_slots, resolve_guidance_omissions,
+                         SCORING_DIVERGENCES, PROBE_REACH_LIMITS, parse_slots,
+                         resolve_guidance_omissions,
                          _slots_attr, _ACTION_RE, SHEET_ONLY, sheet_id, _sheet_tag)
 import enforcement as ENF
 import paths
@@ -666,6 +667,8 @@ def enforcement_audit():
         findings.append(("-", "DECLARATION ARGUES FROM A SUSPECT CELL", bad))
     for bad in ENF.check_no_cell_is_both_corrected_and_declared():
         findings.append(("-", "CELL BOTH CORRECTED AND DECLARED", bad))
+    for bad in ENF.check_probe_reach_limits_still_apply():
+        findings.append(("-", "PROBE-REACH EXCUSE OUTLIVED ITS RULE", bad))
     for bad in ENF.check_computed_slot_recovery_is_faithful():
         findings.append(("-", "COMPUTED-SLOT RECOVERY UNFAITHFUL", bad))
     for bad in ENF.check_fixture_boxes_hold_the_students_words():
@@ -854,15 +857,20 @@ def enforcement_audit():
                 findings.append((item, "UNMAPPED KEY",
                                  f"charge-once pair ({a}, {b}) has no web counterpart"))
             elif frozenset((wa, wb)) not in web_pairs:
-                findings.append((item, "CHARGE-ONCE PYTHON ONLY",
-                                 f"({a}, {b}) cost less together on the CLI; the web "
-                                 f"charges `{wa}` and `{wb}` in full"))
+                findings.append((item, "CHARGE-ONCE PROBE GAP (web)",
+                                 f"({a}, {b}) is sublinear and the CLI probe found "
+                                 f"it; the web reader does not declare it. A gap in "
+                                 f"what the INSTRUMENTS reach, not a difference in "
+                                 f"what the engines score"))
         cli_pairs = {frozenset(x for x in (ENF.web_name(a, wkeys), ENF.web_name(b, wkeys)) if x)
                      for a, b in c["charge_once"]}
         for wp in web_pairs:
             if wp not in cli_pairs:
-                findings.append((item, "CHARGE-ONCE OLX ONLY",
-                                 f"({', '.join(sorted(wp))}) cost less together on the web"))
+                findings.append((item, "CHARGE-ONCE PROBE GAP (cli)",
+                                 f"({', '.join(sorted(wp))}) is sublinear and the web "
+                                 f"reader declares it; the CLI probe cannot reach it. A "
+                                 f"gap in what the INSTRUMENTS reach, not a difference "
+                                 f"in what the engines score"))
     return findings, cli, web
 
 
@@ -1576,8 +1584,8 @@ def enforcement_selftest():
     KNOWN_ACTION_ATTRS.clear(); KNOWN_ACTION_ATTRS.update(ksaved)
 
     orig = globals()["_web_attrs"]
-    for item, attr, want in (("PR", "onlyif", "CHARGE-ONCE PYTHON ONLY"),
-                             ("DAY1", "equals", "CHARGE-ONCE PYTHON ONLY"),
+    for item, attr, want in (("PR", "onlyif", "CHARGE-ONCE PROBE GAP (web)"),
+                             ("DAY1", "equals", "CHARGE-ONCE PROBE GAP (web)"),
                              ("1c", "derived", "DECLARATION STALE")):
         def drop(i, _item=item, _attr=attr):
             a = orig(i)
@@ -1797,7 +1805,7 @@ def enforcement_selftest():
         print(f"  {'PASS' if ok else 'FAIL'}  {label:<28} -> "
               f"{hit[0][1] if hit else 'NOTHING FIRED'}")
     # Against the BASELINE, not against zero. The corpus legitimately carries
-    # declared divergences -- NR's CHARGE-ONCE WEB ONLY is one -- so counting
+    # declared divergences -- NR's CHARGE-ONCE PROBE GAP is one -- so counting
     # every finding as dirt reported "restored state is clean: False" and exited
     # 1 on a run where all 39 injections were detected and nothing was left
     # behind. A selftest that fails when it passes gets ignored, which is how the
@@ -1899,8 +1907,12 @@ def print_enforcement():
     # never reads clean again, and a permanently dirty audit is how the next real
     # drift goes unnoticed -- the whole value of this output is that empty means
     # nothing moved.
-    excused = {tuple(e) for d in SCORING_DIVERGENCES
-               for e in (d.get("enforcement") or [])}
+    # BOTH TABLES. SCORING_DIVERGENCES excuses a real difference in what the two
+    # sides DO; PROBE_REACH_LIMITS excuses a rule neither instrument can
+    # cross-check, which is a different claim and now lives in its own table.
+    excused = {tuple(e) for d in list(SCORING_DIVERGENCES) + list(PROBE_REACH_LIMITS)
+               for e in (d.get("enforcement") or [])
+               if isinstance(e, (list, tuple)) and len(e) == 2}
     for item, kind, detail in findings:
         if (item, kind) in excused:
             print(f"  {item:<5} {kind:<24} {detail}  [DECLARED]")

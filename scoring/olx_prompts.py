@@ -65,6 +65,79 @@ def primitive_attrs(excluding_keys: bool | None = None) -> list[str]:
     return [p["attr"] for p in primitives()["primitives"]
             if excluding_keys is None or p["excludesKeys"] == excluding_keys]
 
+
+# RULES NEITHER PROBE CAN CROSS-CHECK, which is NOT a list of scoring
+# divergences and used to be filed as one.
+#
+# The enforcement audit verifies a rule two different ways. The web side READS
+# declared rules off the .olx attributes; the CLI side PROBES, flipping answered
+# fields and watching the score move. Those instruments have different reach, so
+# each can find a rule the other cannot -- and when that happens the audit used
+# to report it as "CHARGE-ONCE OLX ONLY" or "PYTHON ONLY", filed in
+# SCORING_DIVERGENCES beside genuine prompt-and-scoring differences.
+#
+# BOTH HALVES OF THAT WERE WRONG. The name reads as a claim that a rule is
+# enforced on one engine only, which would contradict the engine equivalence the
+# whole pooled column rests on -- identical prompt bodies, identical request
+# parameters, and 221 shared verdict signatures scoring identically. It is not a
+# claim about the engines at all. Every entry that was ever filed here says so in
+# its own words: "The behaviour is identical; what differs is what the instrument
+# can reach." And the filing compounded the name: an audit-coverage gap listed as
+# a scoring divergence gets read as one. It got read as one by the assistant that
+# wrote it, twice in a day -- once reporting a probe gap to the user as a possible
+# engine divergence and spending an hour disproving it.
+#
+# So an entry here records ONE fact: this rule's cross-engine agreement is
+# ASSERTED, not probed. That is weaker than a probed rule and the entry should be
+# read as the weaker thing. What backs it instead is
+# enforcement.check_engines_score_identical_verdicts_alike, over the verdict
+# signatures both engines have actually produced.
+PROBE_REACH_LIMITS = [
+    # NARROWED TO NR ALONE 2026-09-03. It listed NR, PR, PP and NP, and
+    # check_probe_reach_limits_still_apply found on its first run that only NR
+    # has the three-way `forbid` the excuse describes -- PR, PP and NP carry no
+    # forbid at all, raise no charge-once finding, and were being excused for
+    # nothing. An excuse wider than its justification silently claims the audit
+    # checked three items it never had to.
+    dict(items=["NR"],
+         enforcement=[("NR", "CHARGE-ONCE PROBE GAP (cli)")],
+         what="a three-way conjunction is invisible to the pairwise "
+              "charge-once probe",
+         why="`barrier_is_not_this_type` fails only when THREE readings coincide -- "
+             "`restriction_authored`=created, `trigger_expects`=gain, "
+             "`restricts`=other_thing -- and `onlyif` keeps it from charging on top "
+             "of `demonstrates_type`, so both sides charge 2 once. The web reader "
+             "sees that pair because it reads slot keys; the CLI probe discovers "
+             "charge-once by flipping answered fields in PAIRS, and no pair of flips "
+             "can satisfy a three-condition rule while the third field holds its "
+             "passing value. So the CLI probe never reaches it. "
+             "The behaviour is identical; what differs is what the instrument can "
+             "reach. The cadence items carry the same conjunction and raise no such "
+             "finding only because there it drives a GATE, and gates are discovered by "
+             "single flips. Widening the probe to triples would multiply its cost by "
+             "the number of inputs and is not worth it for one rule; this entry is "
+             "the cheaper honest option, and it will stop applying if the rule ever "
+             "becomes a gate."),
+    dict(items=["2a"],
+         enforcement=[("2a", "CHARGE-ONCE PROBE GAP (cli)")],
+         what="a COMPUTED operand cannot be flipped, so the pair it makes "
+              "sublinear is unreachable by probing",
+         why="`requires` ties how_2 to `mechanism_named`, which carries no points of "
+             "its own and costs something only by denying how_2. So the two share one "
+             "2-point charge: failing either costs 2 and failing both still costs 2, "
+             "which is what makes the pair sublinear. The web reader takes that "
+             "straight from the declared `requires` rule. The CLI probe cannot: "
+             "`mechanism_named` is computed by `forbid` from three answered grounds, "
+             "so it is not an answered field and no flip can set it, and the state "
+             "that would reveal the pair is never constructed. "
+             "Same shape as the NR entry above and the mirror of its cause -- there a "
+             "conjunction was too wide for a pairwise probe, here an operand is not "
+             "probeable at all. Teaching the probe to synthesise computed-operand "
+             "states would mean a second implementation of `forbid` living inside the "
+             "instrument, which is how an instrument starts disagreeing with the thing "
+             "it measures."),
+]
+
 # Which rubric item each <LLMAction> carries. (equivalence.py holds the same
 # map; it imports this one so the two cannot drift.)
 ACTION = {
@@ -563,28 +636,6 @@ SCORING_DIVERGENCES = [
                "through the new rules, 120 of 120 on Q4a and 60 of 60 on Q4c "
                "unchanged. No cell has both entries `absent`.",
     },
-    dict(items=["NR", "PR", "PP", "NP"],
-         enforcement=[(i, "CHARGE-ONCE OLX ONLY")
-                      for i in ("NR", "PR", "PP", "NP")],
-         what="a three-way conjunction is invisible to the pairwise "
-                             "charge-once probe",
-         necessary=True,
-         why="`barrier_is_not_this_type` fails only when THREE readings coincide -- "
-             "`restriction_authored`=created, `trigger_expects`=gain, "
-             "`restricts`=other_thing -- and `onlyif` keeps it from charging on top "
-             "of `demonstrates_type`, so both sides charge 2 once. The web probe sees "
-             "that pair because it reads slot keys; the CLI probe discovers "
-             "charge-once by flipping answered fields in PAIRS, and no pair of flips "
-             "can satisfy a three-condition rule while the third field holds its "
-             "passing value. So the CLI never discovers the pair and the audit reports "
-             "CHARGE-ONCE WEB ONLY. "
-             "The behaviour is identical; what differs is what the instrument can "
-             "reach. The cadence items carry the same conjunction and raise no such "
-             "finding only because there it drives a GATE, and gates are discovered by "
-             "single flips. Widening the probe to triples would multiply its cost by "
-             "the number of inputs and is not worth it for one rule; this entry is "
-             "the cheaper honest option, and it will stop applying if the rule ever "
-             "becomes a gate."),
     dict(items=["Q1"], what="a no-penalty check compares the prose against the UTB choice",
          necessary=False,
          why="the web asks 'Which behavior will you work on?' as a closed ChoiceInput "
