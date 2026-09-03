@@ -357,6 +357,35 @@ nothing after it — a harness artifact that looks exactly like a prompt defect.
 
 ---
 
+### A RUBRIC EDIT CAN CHANGE THE INPUT, NOT ONLY THE SCORING
+
+**Handout 3's on-screen boxes are a reconstruction, and the rubric drives it.**
+The answer is one prose block; `score.py`'s counted-group distribution pulls the
+quoted spans out of the count slot's evidence and deals them to the members,
+writing the placeholder `f"{n} found"` where there are fewer spans than the count.
+So the fixture depends on the item declaring `counts`.
+
+2a's first structural attempt removed that group. The distribution stopped, the
+placeholders were never overwritten, and five cells' boxes became the literal
+string `"2 found"`. A 120-call sweep then measured the item at 10 of 20 against a
+baseline of 15 and the change read as refuted — **it had never been tested.**
+
+Two things follow, and both are now enforced rather than remembered:
+
+* `enforcement.check_fixture_boxes_hold_the_students_words` requires every
+  scorer-sourced box to appear in the participant's transcribed answer. A real
+  span is quoted OUT of the response and always does; a placeholder never does.
+* `agreement_app.check_fixture_is_not_corrupt` runs it as a **preflight in both
+  sweep harnesses**, so a corrupt fixture costs nothing instead of 120 calls.
+
+Note what did NOT catch it. `check_fixture_covers_the_response` looks for an EMPTY
+box beside a long unassigned run, and a box holding a placeholder is not empty.
+`agreement_app.context_value` guards this very string — its comment names
+`"2 found"` — but only on the read-only CONTEXT path, and its guard asks
+`counted_members`, so removing the count group disabled the guard and caused the
+corruption in one stroke. **The dealing groups now live in the FIXTURE layer, as
+`dealt` in `agreement_app.JOBS`, so a scoring change cannot reach the input.**
+
 ## 2. Measurement discipline
 
 **MODEL NOTHING YOU CAN EXERCISE. A scorer is checked by RUNNING it on
@@ -757,6 +786,110 @@ added? Can an aggregate be split? Can a derived check replace a judgement? If th
 answer to all of those is no, then write prose -- and note in the commit that the
 structural options were considered.
 
+* **2a** is now the longest record of this, and it confirms the rule while
+  correcting two things about how to apply it. Seven measured attempts took the
+  item from 15 of 20 to a 19.7 mean. The structural moves carried it: splitting
+  the `counts` aggregate into per-box slots (+2 cells), a `forbid` conjunction
+  for one cell, an operand slot tied by `requires` (+2). The prose-only attempts
+  moved one cell each at best.
+
+### The recipe book: which primitive expresses which logical shape
+
+**Most structural fixes were missed not because prose was preferred but because
+nobody knew a primitive could say the thing.** `primitives.json` lists nine
+attributes with a one-line summary each; it does not say which logical shape each
+one is FOR. This is that mapping. Each row is a pattern in the item, the attribute
+that expresses it, the OLX attribute syntax, and the measured pitfall.
+
+| you want to say | use | OLX syntax |
+|---|---|---|
+| fail when several answers hold TOGETHER (AND) | `forbid` | `forbid="key:a=v1,b=v2,c=v3"` |
+| met if ANY of several grounds holds (OR) | `forbid` over the negations | `forbid="key:g1=absent,g2=absent,g3=absent"` |
+| B counts only while A holds | `requires` | `requires="B:A[:lenient,...]"` |
+| B may be charged only when A is satisfied | `onlyif` | `onlyif="B:A"` |
+| two model answers must agree | `equals` | `equals="key:left:right[:lenient]"` |
+| one classification must match an authored value | `expect` | `expect="key:pick=value"` |
+| a pick maps to one of SEVERAL named failures | `maps` | `maps="key:pick:v>verdict,..."` |
+| read a fact off the page instead of asking | `derived` | `derived="key:kind:fields:args"` |
+| N interchangeable repeats, counted once | `counts` | `counts="count_key:m1,m2"` |
+| two slots must cover a set of labels, either order | `cover` | `cover="k1,k2:labelA,labelB"` |
+| a failure that takes the whole item | a GATE | `!key` in `slots=` |
+
+**The OR recipe is the one worth spelling out**, because it is not obvious and it
+is what 2a needed. There is no disjunction primitive. You get one by De Morgan:
+declare an operand slot, and `forbid` it only when EVERY ground is absent —
+`NOT(A or B or C)` is `(NOT A) and (NOT B) and (NOT C)`. The operand then reads
+`met` whenever any single ground holds, and `requires` ties the scored slot to it:
+
+    slots="...|g1:...:unclear|g2:...:unclear|g3:...:unclear|mech:Any ground holds"
+    forbid="mech:g1=absent,g2=absent,g3=absent"
+    requires="scored_slot:mech:unclear"
+
+That is three simple questions plus two declared rules, in place of one compound
+judgement. On 2a it produced the item's best measured result.
+
+### Choosing between them, and the pitfalls each one has
+
+* **`counts` versus separate slots.** `counts` asks ONE aggregate question, so two
+  cells needing opposite thresholds can never both be satisfied by any wording —
+  arithmetic, not rhetoric. It cost Q1 eight configurations and ~550 calls and 2a
+  five cells. Use it only where the repeats really are interchangeable AND no cell
+  needs a different threshold from another. **And on handout 3 it also drives the
+  FIXTURE**: score.py's counted-group distribution rebuilds the on-screen boxes,
+  so removing a `counts` group changes the INPUT. See §1.
+* **`onlyif` caps the floor.** It stops a second slot charging on top of a first,
+  which is right when gold charges one fault once — but it also makes the summed
+  deduction unreachable. On 2a it made `BLANK`'s −6 impossible and the arithmetic
+  audit reported `CANNOT ZERO`. Check the floor after adding one.
+* **`requires` versus `forbid` on a slot the MODEL judges.** `forbid` computes the
+  verdict and so strips the key from the schema — layer it on a judged slot and
+  the model stops being asked. `requires` conditions a verdict the model still
+  gives. This is the single distinction that cost 2a an attempt.
+* **`expect` and `equals` need an operand that is answered.** Both read
+  `refers_to` in preference to `verdict`, so the operand must be a classification
+  slot, and a blank operand is handled by `lenient` rather than by failing.
+* **`derived` kinds are fixed**: `plots`, `complete`, `present`, `contains`. A rule
+  naming any other kind is dropped silently on both sides.
+* **A gate is discovered by single flips; a conjunction is not.** That asymmetry is
+  why the same three-way rule raises a probe-reach finding when it drives a slot
+  and none when it drives a gate — see `olx_prompts.PROBE_REACH_LIMITS`.
+
+### Read the `excludesKeys` column before concluding a primitive cannot compose
+
+**A primitive that COMPUTES a verdict strips its key from the web schema; one
+that CONDITIONS a verdict does not.** `primitives.json` records which is which,
+and the split is not arbitrary: `equals`, `derived`, `counts`, `expect`, `forbid`
+and `maps` all compute an answer, so asking the model for it too would give one
+slot two sources of truth. `cover`, `onlyif` and `requires` constrain an answer
+the model still gives.
+
+On 2a I needed to add a computed condition to a slot the model judges, reached
+for `forbid`, found it would stop the model being asked that slot at all, and
+concluded the composition was impossible -- then fell back on prose. It was not
+impossible. `requires` is documented in the registry as the mirror of `onlyif`,
+does exactly that composition, and I had used its twin two steps earlier without
+noticing the pair. **Generalising a limitation from one primitive to the
+mechanism cost an attempt and a prose fallback taken on a false premise.**
+
+### A DISJUNCTION is not a conjunction: split only what is independently statable
+
+`parse_forbid`'s docstring makes the case for splitting a compound judgement:
+"asked one answer at a time it was stable, asked as one judgement the model
+resolved the tension by re-reading which clause was which." That argument is
+about a **conjunction of conditions**, which is what `forbid` exists for.
+
+2a's compound slot held a **disjunction of three alternative grounds**, and
+splitting it made the item WORSE the first time -- 20 to 19, with effective
+`how_2` accuracy falling from 96.7% to 93.3%, twelve false denials against six.
+Asking "is there ANY mechanism" is an easier question than three separate
+near-misses. But the eventual fix WAS the split, once one ground's wording was
+repaired. The rule that survives both results:
+
+> Split a compound judgement when each ground is independently statable, and
+> then MEASURE EACH GROUND'S OWN RATE. A ground that answers `met` on 43.8% of
+> observations is not a criterion the model can apply; it is the reason the
+> split failed.
+
 ## 2b. PROFILE THE ERRORS BY SLOT AFTER EVERY SWEEP
 
 **A median says how many cells are wrong. It never says which JUDGEMENT is
@@ -799,6 +932,41 @@ almost all of it in CORRECT cells is not the problem however much it dominates
 the eye (`confident`, 99 unmet, 83 of them in cells scored right), and DRIFT
 identifies cells that no wording can fix before calls are spent trying.
 
+### And profile the GROUNDS, not just the slots — the item total lies about why
+
+**When a rule offers several grounds, measure each ground's own met-rate. The
+item total cannot tell you which one failed, and reading only the total will make
+you revert the right change.**
+
+2a is the case, and it cost two attempts. A three-way split of one compound
+ground took the item from 20 to 19, so I reverted it and recorded that the split
+had failed on principle. The per-ground data — which was in the same artifact —
+said something different:
+
+    names_enabler        62.5% met
+    states_size          43.8% met     <- the actual defect
+    names_plan_content   49.2% met
+
+    p16 (gold 4, must be charged):  absent 12/12 on EVERY ground
+    p10 (gold 6, must be credited): 3/11, 1/12, 4/12 — no ground at all
+
+Asked separately the model was **unanimous and correct** about p16, which the
+compound question got wrong 5 times in 12. What the split actually cost was p10,
+whose only real ground is a bare directional change that `states_size` did not
+admit. One ground's wording, not the split.
+
+Worse, reading the total led me to tell the user the boundary between two cells
+was "at the noise floor" and to recommend stopping. The per-ground data showed one
+of those cells was not marginal at all. **Fixing the one ground and re-running the
+same split produced the item's best result: median 20, mean 19.7, four wrong
+cell-runs in 240.**
+
+So after a sweep of a multi-ground rule, print three things per ground: its
+met-rate over all observations, its answer distribution on the cells the rule
+exists to decide, and whether any cell that must be CREDITED has no ground at
+all. That last one is the p10 check, and it is the one that says a split is unsafe
+before it costs a cell.
+
 ### Its companion: `--refusals`, which asks a different question
 
 `--errors` asks which slots are unmet in cells that scored wrong. That is not the
@@ -820,6 +988,49 @@ Run it before using a precision figure to justify a rule. On Q4a, Q4b and Q4c it
 returns ZERO contradicted refusals: every refusal gold has an opinion about, gold
 agrees with, and the apparent collapse is entirely gradient cells plus silent
 full-marks rows.
+
+## 2b2. REPORT THE SPREAD; THE HEADLINE IS A PER-CELL MEDIAN
+
+**The ledger's item figure is a median taken PER CELL and then counted, so a cell
+right in seven runs of twelve is recorded as simply right.** On an item with
+several unstable cells that overstates badly, and it is the most flattering
+summary available — which is why it is the one that gets quoted.
+
+2a recorded **20 of 20** on a sweep whose twelve runs scored
+`18 18 18 18 18 18 19 19 20 20 20 20`: median over actual runs **18.5**, mean
+**18.8**, six runs at 18, only four perfect, and two cells right in 7 of 12. In
+one session the same mistake was made three times — a single-side median of
+"17/20" whose two failing cells had medians the item's increment cannot even
+score, the "20/20" above, and a `15 → 17 → 18 → 19 → 20` progression reported
+while run-level scores moved 15 → 18.8.
+
+`measured.record()` now prints `sweep_summary(item)` on every recording, so the
+honest figures arrive with the headline rather than on request:
+
+    CELLS CORRECT PER RUN
+      18 18 18 18 18 18 19 19 20 20 20 20
+      range 18-20 of 20   median 18.5   mean 18.8 (94.2%)
+      18 x6, 19 x2, 20 x4
+    PERCENT CORRECT BY CHECK
+      verdict  180/180  100.0%   how_1  179/180  99.4%   how_2  180/180  100.0%
+      determinate on 15 of 20 cells; INDETERMINATE on [1,13,14,15,16]
+
+Four rules that block the three mistakes above:
+
+1. **Quote the range and the mean beside any median.** They differ by 1.2 cells
+   on 2a, and the mean is what a student would actually get.
+2. **The median it prints is over ACTUAL RUN SCORES.** Both figures are medians;
+   only one describes outcomes that occurred.
+3. **Never quote a single-side median.** `_EVALUATED_SIDES` is
+   `(olx+python, paper, paper_opus)`; a six-run median of a 3–3 split lands on a
+   value no run produced.
+4. **When a change "gains a cell", ask whether it gained a STABLE cell or pushed a
+   coin flip across the median line.** The second is not a gain. 2a's honest
+   progression is 15 → 18.8 mean, not 15 → 20.
+
+Per-check accuracy is claimed only where gold determines it — gold awarded the
+maximum, so every scored slot must be met, or its comment itemises. Cells where
+gold charged and named nothing are printed **INDETERMINATE**, never guessed.
 
 ## 2c. READ WHAT IS ALREADY RECORDED BEFORE FORMING A HYPOTHESIS
 
@@ -1173,6 +1384,26 @@ outlive the row it corrects.
 
 ---
 
+### Read the declaration tables BEFORE writing a correction
+
+**A cell cannot be both corrected and declared.** `CORRECTED_GOLD` says gold's
+number was wrong against the dictionary or the graders' own practice;
+`GOLD_DIVERGENCES` says gold's number STANDS, that it is coherent, and that we
+knowingly differ. Booking a cell in both counts one finding twice.
+
+Three of five corrections written in one session landed on cells already declared:
+DAY1/p1 in `BEHAVIOR_NEVER_STATED`, NR/p4 in `NP_SHAPE_CREDITED_AS_NR`, Q4a/p19 in
+two entries. Each correction was built from comparator evidence by someone who did
+not read the declaration tables first — and `NP_SHAPE_CREDITED_AS_NR` is *named*
+for the finding the NR/p4 correction wrote up at length as new.
+
+**Nothing caught it for a day, and the reason generalises.** Every other
+declaration check compares a table against RECORDED data, so while the ledger held
+pre-correction numbers, "we knowingly miss this cell" stayed true of what was
+recorded. The contradiction surfaced only on re-recording.
+`enforcement.check_no_cell_is_both_corrected_and_declared` is table against table
+and needs no run data, so it fires the moment the second entry is written.
+
 ## 5. Reducing exclusions
 
 ### "Nothing can host this" does not mean "this cannot move"
@@ -1377,6 +1608,36 @@ no rule, not evidence that no rule exists.
 
 ---
 
+### Every declaration table needs a RATCHET, or its entries outlive their reason
+
+**A stale declaration is worse than none: it silently claims the audit checked
+something it did not, and it subtracts itself from every rate with no trace.**
+
+`GOLD_SLOT_DISAGREEMENTS_KNOWN` had a ratchet — an entry whose cell stops
+disagreeing is reported, and the table's size may only fall.
+`GOLD_SLOT_BOUNDS_KNOWN` had none, and it showed: three 2a entries stood asserting
+"gold charges one how_* slot; we charge none" on the very day the rule made us
+charge the box gold NAMED in 12 of 12 runs, and two of them said only "same as
+2a/p1" so the stale claim propagated by cross-reference. Adding the ratchet
+retired those three and then found **two more that had been stale for longer** —
+Q4a/p6 and Q4a/p9, where Q20's own text already recorded that p6 agreed while this
+table was never updated to match. Table 8 → 3, budget 8 → 3.
+
+The same thing happened again the same day with a brand-new table:
+`PROBE_REACH_LIMITS` was created, registered, and its verifier found on its FIRST
+run that the entry it inherited listed four items where only one qualified — the
+other three were excused for nothing.
+
+So when adding a declaration table:
+
+1. Write the verifier with it, and prefer one that tests the entry's **structural
+   precondition** over one that needs run data — it fires sooner and cannot recurse
+   into the audit that calls it.
+2. Give it a **budget that may only fall**, like `GOLD_SLOT_BOUNDS_BUDGET`.
+3. Register it in `enforcement.DECLARATION_TABLES` naming the check that re-tests
+   it. An unregistered table is reported, and so is a check that is **defined but
+   never invoked** — both guards fired during this work.
+
 ## 6. What wastes time
 
 - Tuning a rule while the fixture is wrong.
@@ -1390,6 +1651,28 @@ is bad.
 - Fixing in the prompt what is broken in the harness.
 - Running an experiment whose predicted outcome is failure without saying so
 first.
+- **Concluding a distinction is unstatable after testing only SINGLE features.**
+Twice on 2a. p1's two boxes matched on every individual predicate — payload type,
+causal link, direction, subject — and I reported that no clause could separate
+them. A CONJUNCTION of two of those features did, and the item gained a cell.
+Then p5 versus p16 was called "a boundary at the noise floor" and stopping was
+recommended; the per-ground data showed one of the two was answered correctly
+12 times out of 12 when asked on its own. **Before writing "no rule can express
+this", test at least one conjunction and one contrast framing, and read the
+per-ground rates.**
+- **Reverting a change on the item total.** The three-way split was reverted as a
+failure. Its real defect was one ground's wording, which the per-ground data named
+and the total could not. Re-running the same split with that ground repaired gave
+the best result the item has had.
+- **Refreshing a ledger on one side only.** Re-recording DAY1's olx half while its
+python artifact was refused manufactured a path asymmetry the audit immediately
+reported as a declaration true on one path and false on the other. A uniformly
+stale ledger is better than a half-refreshed one; roll back and re-sweep both.
+- **Naming a finding for what it looks like rather than what it is.**
+`CHARGE-ONCE OLX ONLY` described an audit-coverage gap and read as an engine
+divergence. It was filed among genuine scoring divergences, and the label was
+believed — by its own author, twice in a day, once at the cost of an hour spent
+disproving a divergence that was never claimed.
 
 ---
 
@@ -1401,3 +1684,21 @@ or a corrected row — and the seventh explained. That is a finished first model
 
 Do not stop because a rule failed. Sixteen failures on one channel turned out
 to be sixteen instances of one mistake about where the text went.
+
+### And do not stop on a median
+
+2a was proposed for closure at "20 of 20" while its mean was 18.8, six of twelve
+runs scored 18, and the two cells that decided the boundary sat at 7 of 12 in
+OPPOSITE directions. That is not a finished item; it is a coin flip rounded up.
+Three attempts later the same item closed at **median 20, mean 19.7, range 19–20,
+four wrong cell-runs in 240** — and the case for closing was that the median, the
+mean and the range finally agreed, not that the headline had not moved.
+
+The closing question is therefore not "is the median at ceiling" but:
+
+1. Do the **range, median and mean** agree?
+2. Is every unstable cell either **near-unanimous** or **owned by a subgoal**?
+3. Does every remaining wrong cell have an **owner or a declaration**, so closing
+   orphans nothing? 2a/p14 went to Q35 before Q2 closed for exactly this reason.
+4. Are the per-check accuracies claimed only where **gold determines them**, with
+   the rest reported INDETERMINATE?
