@@ -4712,11 +4712,50 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       p2 IS NOW THE NEAREST TO BREAKING, at 4 of 12 absent while its median
       holds. Its first box cites the graph, which is the SIZE ground, so those
       four are the model missing a ground it was given.
-      SO ONLY p5 REMAINS WRONG on this item. The obvious next refinement is to
-      let the plan's own CONTENT count as a mechanism, which would credit p5
-      while still charging p14 and p16 -- they name no plan content at all --
-      but that is another 240 calls and has not been measured. ASK BEFORE
-      CLOSING: p5 is this entry's only live cell.
+      == 2026-09-02, FIFTH ATTEMPT: THE PLAN-CONTENT GROUND. 19 -> 20 of 20. ==
+      python [19,19,19,20,19,19], olx [18,18,18,17,19,18], pooled median 20 of
+      20. Recorded as `q2_content_python` and `q2_content_olx`. 240 calls.
+      THE THIRD GROUND on `mechanism_named`: it also counts to name WHAT THE PLAN
+      CONSISTED OF in particulars, and that holds even where the response raises
+      those particulars as a burden rather than as something that worked -- which
+      is p5's shape exactly. Naming the behaviour the plan TARGETED, with no
+      particulars, is explicitly NOT the ground, and that exclusion is what keeps
+      p14 and p16 charged. The prediction filed before the sweep was p5 to 6.0
+      for 20/20 with p16 as the new exposure, and it held: p5 gained, p16 stayed
+      at 4.0 on `mechanism_named` absent 9 of 12.
+      THE ITEM IS AT ITS CEILING, and this entry's original 20/20 target is met
+      -- but by a different route than it predicted. It expected one rule to
+      recover five cells at once. What actually happened is four measured rules,
+      each recovering one or two: the per-box split (+2), the two-way
+      cause-or-size test, the state/not-doing conjunction (+1), the mechanism
+      requires (+2, less one control), and this content ground (+1).
+      DO NOT QUOTE A SINGLE-SIDE MEDIAN, and this entry got it wrong first. It
+      read "python alone is 20 and olx alone is 17", from taking each side's six
+      runs per cell and medianing them. That figure is an ARTIFACT and the
+      vocabulary is not sanctioned: `_EVALUATED_SIDES` is (olx+python, paper,
+      paper_opus), and the pooling note says judging a cell on each half
+      separately threw away half the sample and manufactured divergences one
+      observation apart. Two of olx's three "wrong" cells were wrong only
+      because a 3-3 split medians to a midpoint the item cannot score -- p2 to
+      5.0 and p14 to 3.0, neither reachable on a 2-point increment.
+      THE HONEST PER-SIDE FIGURES ARE PER-RUN: olx [18,18,18,17,19,18] and
+      python [19,19,19,20,19,19]. Pooled per cell is 20 of 20, which is the
+      recorded standard.
+      WHAT SURVIVES OF THE CAUTION is about three cells, not about a side. p2,
+      p5 and p14 each split 3-3 across olx's six runs, so the sample really is
+      divided on them; pooling to twelve is what resolves them, which is the
+      concrete case for the pooled column rather than an excuse for it.
+      p5 IS THE LEAST SETTLED CELL IN THE ITEM and should be read as marginal
+      rather than fixed: `mechanism_named` answers met 7 of 12 and absent 5, and
+      5 of the 12 runs still score the cell 4.0 against gold 6. The content
+      ground bought it by making that judgement less decisive, not more --
+      compare p13, which moved the other way, met 9 of 12 to absent 7 of 12,
+      harmlessly since its how_2 is charged by the conjunction regardless.
+      OVERALL STABILITY DID NOT DEGRADE: 15 of 20 cells answer
+      `mechanism_named` unanimously, the same as before this ground was added.
+      ASK BEFORE CLOSING. Nothing on this item is wrong at the pooled median, so
+      there is no cell left to own -- but p5 at 7/12 and olx's three split cells
+      are what a closure would be signing off.
       IT IS NOW CAUGHT BEFORE THE CALLS, not after.
       `enforcement.check_fixture_boxes_hold_the_students_words` requires every
       scorer-sourced box to appear in the participant's transcribed answer, and
