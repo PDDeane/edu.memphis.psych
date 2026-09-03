@@ -1523,18 +1523,20 @@ def refusal_precision(item: str, side: str = DEFAULT_SIDE) -> str:
     doc = _runs_doc(item, side)
     if doc is None:
         return f"{item} [{side}]: no artifact to read"
-    # SCORED SLOTS ONLY, the same restriction `_our_failing_slots` makes. The
-    # first version of this counted every non-`met` answer, which put `keyword`
-    # and `confident` at the top of the table -- 6 and 40 "contradicted"
-    # refusals for two checks that cannot charge anything. A slot that carries no
-    # points cannot contradict gold, because it never charged.
+    # CHARGING SLOTS ONLY -- points OR gates -- via the shared predicate, the
+    # same restriction `_our_failing_slots` makes. The first version of this
+    # counted every non-`met` answer, which put `keyword` and `confident` at the
+    # top of the table -- 6 and 40 "contradicted" refusals for two checks that
+    # cannot charge anything. Narrowing it to `pts is not None` fixed that and
+    # went one slot-class too far: see _charging_slots for the 546 gate-unmet
+    # observations both sites were blind to, and why gates are back in.
     import agreement as A
     import olx_prompts as O
 
     try:
         spec = A.load_action(f"bmod_handout{_jobs()[item]['handout']}.olx",
                              O.ACTION[item])
-        scored = {s["key"] for s in spec["slots"] if s.get("pts") is not None}
+        scored = _charging_slots(spec)
     except Exception as e:
         return f"{item} [{side}]: cannot read the slot sheet: {type(e).__name__}: {e}"
     per = collections.defaultdict(lambda: collections.Counter())
@@ -3080,6 +3082,54 @@ def gold_charged_slots(item: str, pid: int):
 
 
 @functools.lru_cache(maxsize=None)
+def _handout_gold_items(handout: int) -> frozenset:
+    """Which item ids handout `handout`'s gold sheet actually grades."""
+    keys: set = set()
+    for row in _corrected_gold(handout).values():
+        keys |= set(row)
+    return frozenset(keys)
+
+
+def gold_cell(item: str, pid: int, *, rebuild_1c: bool = False) -> dict:
+    """One cell's corrected gold, keyed by ITEM so the handout cannot be picked wrong.
+
+    THE HANDOUT IS DERIVED, NEVER PASSED. Reading gold for an item requires
+    knowing which of the three sheets grades it, and every call site did that
+    lookup by hand: `{1: load_h1, 2: load_h2, 3: load_h3}[h]()`. Pick the wrong
+    `h` and the sheet loads fine, the row lookup misses, and you get `{}` --
+    indistinguishable from "this cell has no gold row". On 2026-09-03 that
+    happened live while reading 1a/p15: 1a is a HANDOUT 3 item, `load_h1` was
+    called for it, and the readout said `gold 1a/p15: {}`. It was caught only
+    because an empty row looked odd on a cell that was under discussion. The same
+    silence on a cell being scanned in bulk reads as "nothing to see", which is
+    how a real disagreement disappears.
+
+    So the mistake is removed rather than detected: callers name the ITEM, and
+    RAISE is the failure mode instead of an empty dict. A handout whose sheet
+    grades no such item is a programming error, not a missing cell, and the two
+    are now distinguishable -- `{}` means only "this participant has no row for
+    this item", which is a real and different thing.
+
+    Verified by enforcement.check_gold_is_read_by_item, which requires this to
+    raise on a wrong pairing and holds the remaining hand-rolled loader sites to
+    a declared allowlist.
+    """
+    jobs = _jobs()
+    if item not in jobs:
+        raise KeyError(f"{item!r} is not an item in agreement_app.JOBS; "
+                       f"gold cannot be read for it")
+    h = jobs[item]["handout"]
+    if item not in _handout_gold_items(h):
+        raise KeyError(
+            f"handout {h}'s gold sheet grades no item {item!r} "
+            f"(it grades {sorted(_handout_gold_items(h))}). JOBS says {item} is "
+            f"a handout-{h} item, so one of the two is wrong -- this is a bug, "
+            f"not a missing cell")
+    rows = _corrected_gold(h, rebuild_1c)
+    return dict((rows.get(pid) or {}).get(item) or {})
+
+
+@functools.lru_cache(maxsize=None)
 def _corrected_gold(handout: int, rebuild_1c: bool = False):
     """Corrected gold for one handout, loaded ONCE.
 
@@ -3127,6 +3177,33 @@ def _runs_doc(item: str, side: str):
 
 _FIXTURES: dict = {}
 _COMPUTED_SLOTS: dict = {}
+
+
+def _charging_slots(spec: dict) -> set:
+    """The slots that can CHARGE a cell: point-bearing ones, and GATES.
+
+    A GATE CARRIES NO POINTS AND IS THE MOST EXPENSIVE INSTRUMENT ON ITS SHEET.
+    `pts=None, gates=True` zeroes the whole item on one unmet verdict, so
+    filtering on `pts is not None` -- which both call sites did -- made every
+    gate in the corpus invisible to the slot profile: 546 gate-unmet run
+    observations across fourteen items, including `you_arrange_it` (four operant
+    items), `cadence_is_daily`/`cadence_is_weekly` (subgoal Q22's whole subject)
+    and `wgb_is_counterpart` (Q29's). A cell zeroed by a gate reported NO FAILING
+    SLOT, which reads as "every scoring check passes" -- the signature of subgoal
+    Q20's over-credit class -- so gate false-positives were liable to be filed as
+    the opposite kind of error.
+
+    THE RESTRICTION IT REPLACES WAS RIGHT ABOUT A DIFFERENT CLASS, and that
+    finding is preserved. Counting every non-`met` answer put `keyword` and
+    `confident` at the top of the contradicted-refusal table with 6 and 40
+    refusals, for two checks that cannot charge anything. Those neither score nor
+    gate, so they stay out, along with the GROUNDS of a computed slot
+    (2a's `names_enabler`, `states_size`, `names_plan_content`, `mechanism_named`)
+    -- a ground feeds a rule, it does not charge. Only slots that can take points
+    off a student are in.
+    """
+    return {s["key"] for s in spec["slots"]
+            if s.get("pts") is not None or s.get("gates")}
 
 
 def _computed_slots(spec: dict) -> frozenset:
@@ -3187,7 +3264,7 @@ def _our_failing_slots(item: str, pid: int, side: str = DEFAULT_SIDE):
         runs = doc["runs"]
     except Exception:
         return []
-    scored = {s["key"] for s in spec["slots"] if s.get("pts") is not None}
+    scored = _charging_slots(spec)
     out = []
     for run in runs:
         for r in (run.get("results") or []):
@@ -3267,6 +3344,36 @@ def _our_failing_slots(item: str, pid: int, side: str = DEFAULT_SIDE):
             out.append(frozenset(k for k, ok in sm.items()
                                  if not ok and k in scored and k in rebuilt))
     return out
+
+
+@functools.lru_cache(maxsize=None)
+def _gold_nameable_slots(item: str) -> frozenset:
+    """The slots an item's gold PHRASE TABLE is capable of naming.
+
+    GOLD AND WE DRAW OUR SLOT SETS FROM DIFFERENT ALPHABETS. Ours comes from the
+    slot sheet; gold's is reconstructed from grader prose through
+    GOLD_SLOT_CHARGES, so a slot no phrase maps to can never appear in it however
+    plainly the grader objected. GATES are the whole class: they carry no points,
+    graders never name them, and no entry in any phrase table produces one.
+
+    So diffing the two sets raw reports a difference that was guaranteed before
+    any cell was read. It did, the hour gates were added to the slot profile:
+    1a/p15 came back as `differs on ['distinguishes_periods']` -- a gate 1a's
+    table cannot express, on a cell where gold and we BOTH score 0.0 and gold's
+    own comment ("did not discuss data for each week") asserts exactly what the
+    gate asserts. Declaring that would have enshrined an artefact of our own
+    reader as a disagreement with a grader.
+
+    A slot outside gold's vocabulary is UNDECIDABLE, not disagreed -- the same
+    doctrine gold_charged_slots states for an unreadable comment: not knowing is
+    not the same as knowing there was nothing.
+    """
+    out: set = set()
+    for entry in GOLD_SLOT_CHARGES.get(item) or ():
+        tail = entry[-1]
+        if isinstance(tail, (tuple, list, set, frozenset)):
+            out |= {s for s in tail if isinstance(s, str)}
+    return frozenset(out)
 
 
 def gold_slot_disagreements() -> list[str]:
@@ -3358,6 +3465,10 @@ def gold_slot_disagreements() -> list[str]:
                 continue
             examined += 1
             stable = set.intersection(*[set(f) for f in ours]) if ours else set()
+            # ONLY WHAT GOLD COULD HAVE SAID. See _gold_nameable_slots: a slot no
+            # phrase maps to cannot appear on gold's side of this comparison, so
+            # keeping it on ours manufactures a difference.
+            stable &= _gold_nameable_slots(item)
             if stable == charged:
                 continue
             seen_disagreeing.add((item, pid))

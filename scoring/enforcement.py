@@ -1972,6 +1972,27 @@ def _primitives_with_live_app_evidence() -> dict:
 # compares a prediction to gold must go through the corrected loader, the 1c
 # rebuild, `scored_exactly` and the ledger's exclusions -- the accounting every
 # published rate uses.
+HANDOUT_KEYED_GOLD_READERS = {
+    # Sites that pick a gold loader by HANDOUT NUMBER rather than by item, which
+    # is legitimate only when the handout is not being derived from an item. See
+    # measured.gold_cell for the failure this table exists to bound: naming the
+    # wrong handout for an item loads a real sheet, misses the row, and returns
+    # `{}` -- which reads exactly like "this cell has no gold row".
+    "cross_path": "iterates all three handouts; no item is in scope",
+    "compare_runs": "takes the handout from the command line, alongside the item",
+    "handouts": "builds the per-handout config; this is where the mapping LIVES",
+    "measured": "_corrected_gold IS the handout-keyed cache gold_cell derives "
+                "onto, and error_profile takes its handout from _jobs()[item]",
+    "enforcement": "audits the sheets themselves, one handout at a time",
+    # baseline_h1 and self_graded_misses were in this table on the day it was
+    # written and EXEMPTED NOTHING -- the first references only load_h1 (one
+    # handout is not a pick) and the second never touches the loaders at all.
+    # Found by firing the check once per entry, the same reverse pass that found
+    # RAW_GOLD_READERS naming a function that had never existed. An entry that
+    # excuses nothing reads as coverage and holds no line.
+}
+
+
 RAW_GOLD_READERS = {
     # RENAMED 2026-08-31: this entry said `check_corrections_still_match_the_sheet`,
     # which has never existed. The function is `check_corrected_gold_matches_the
@@ -4846,6 +4867,9 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.PROSE_ONLY_JUDGED_AGAINST": (
         "the primitive set each NOT CONVERTIBLE claim was judged against",
         ("check_prose_only_claims_are_current",)),
+    "enforcement.HANDOUT_KEYED_GOLD_READERS": (
+        "modules that pick a gold loader by handout number instead of by item",
+        ("check_gold_is_read_by_item",)),
     "enforcement.RAW_GOLD_READERS": (
         "modules that read gold uncorrected, on purpose",
         ("check_gold_accounting_is_uniform",)),
@@ -6030,6 +6054,100 @@ def check_probe_reach_limits_still_apply() -> list[str]:
                 f"it and the excuse no longer holds. Drop the item from the "
                 f"entry and let the audit probe it")
     return out
+
+
+def check_gold_is_read_by_item() -> list[str]:
+    """Reading gold for an ITEM must derive the handout, not name it.
+
+    THE MISTAKE THIS REMOVES was made live on 2026-09-03, mid-readout: item 1a
+    was looked up with `gold.load_h1()`. 1a is a HANDOUT 3 item. The sheet loaded,
+    the row lookup missed, and the readout printed `gold 1a/p15: {}` -- which is
+    the same thing a genuinely ungraded cell prints. It was caught only because
+    an empty row looked wrong on a cell under discussion; in a corpus-wide scan
+    the same silence reads as "nothing to see", and a disagreement disappears.
+
+    Two guarantees, because the accessor is only safe if its premise holds:
+
+      1. EVERY JOBS ITEM IS GRADED BY THE HANDOUT JOBS ASSIGNS IT. This is what
+         lets `gold_cell` derive the sheet at all. If JOBS and the sheet ever
+         disagree the accessor raises rather than returning `{}`, and this check
+         says so before any readout depends on it.
+      2. THE ACCESSOR RAISES ON A BAD PAIRING rather than returning empty. Tested
+         by asking for an item no sheet grades.
+
+    And the hand-rolled `{1: load_h1, 2: load_h2, 3: load_h3}[h]` sites are held
+    to HANDOUT_KEYED_GOLD_READERS, so a new one has to say why it is not using
+    the accessor. Several existing sites are legitimate -- they are handed a
+    handout, or sweep all three -- which is why this is a declared allowlist and
+    not a ban.
+    """
+    import re
+    import measured as M
+    from pathlib import Path as _P
+
+    bad: list[str] = []
+
+    # 1. the accessor's premise, item by item
+    try:
+        jobs = M._jobs()
+    except Exception as e:
+        return [f"cannot read agreement_app.JOBS: {type(e).__name__}: {e}"]
+    for item in sorted(jobs):
+        h = jobs[item].get("handout")
+        try:
+            graded = M._handout_gold_items(h)
+        except Exception as e:
+            bad.append(f"handout {h} (item {item}): gold sheet unreadable: "
+                       f"{type(e).__name__}: {e}")
+            continue
+        if item not in graded:
+            bad.append(
+                f"JOBS puts {item} on handout {h}, but handout {h}'s gold sheet "
+                f"grades no such item. measured.gold_cell derives the sheet from "
+                f"JOBS, so this makes every gold read for {item} a bug rather "
+                f"than a missing cell")
+
+    # 2. RAISE, not {}. A wrong pairing must be distinguishable from an ungraded
+    #    cell, which is the entire point of the accessor.
+    try:
+        got = M.gold_cell("\x00 no such item \x00", 1)
+    except KeyError:
+        pass
+    except Exception as e:
+        bad.append(f"measured.gold_cell raised {type(e).__name__} for an unknown "
+                   f"item; it must raise KeyError so callers can tell a bug from "
+                   f"a missing cell")
+    else:
+        bad.append(f"measured.gold_cell returned {got!r} for an unknown item "
+                   f"instead of raising -- the silent-{{}} failure it exists to "
+                   f"remove is back")
+
+    # 3. the ratchet on hand-rolled loader picks.
+    #    FORM-INDEPENDENT ON PURPOSE. The first version matched the dict spelling
+    #    `{1: load_h1, 2: ...}` and nothing else, so `cross_path`'s tuple form
+    #    `((1, G.load_h1), (2, G.load_h2), ...)` slipped straight past it and the
+    #    arm was GREEN BY CONSTRUCTION -- it reported a clean tree with the
+    #    allowlist emptied. Caught by firing it, which is the only reason it is
+    #    not still passing. Referencing two or more of the three loaders IS
+    #    picking by handout, whatever the syntax around it.
+    pat = re.compile(r"\bload_h([123])\b")
+    for path in sorted(_P(__file__).resolve().parent.glob("*.py")):
+        mod = path.stem
+        src = path.read_text()
+        if re.search(r"^def load_h[123]\b", src, re.M):
+            continue          # gold.py, which DEFINES them
+        if len(set(pat.findall(src))) < 2:
+            continue          # single-handout reference; nothing to pick
+        if mod in HANDOUT_KEYED_GOLD_READERS:
+            continue
+        if any(k.startswith(mod + ".") for k in HANDOUT_KEYED_GOLD_READERS):
+            continue
+        bad.append(
+            f"{mod} picks a gold loader by handout number. Use "
+            f"measured.gold_cell(item, pid), which derives the handout, or "
+            f"declare {mod} in HANDOUT_KEYED_GOLD_READERS with why the handout "
+            f"is not coming from an item")
+    return bad
 
 
 def check_no_cell_is_both_corrected_and_declared() -> list[str]:
