@@ -5973,6 +5973,51 @@ def computed_recovery_line() -> str:
             f"store null for every primitive-answered and counted slot.")
 
 
+def check_no_cell_is_both_corrected_and_declared() -> list[str]:
+    """A cell claimed by CORRECTED_GOLD and by GOLD_DIVERGENCES at once.
+
+    The two tables say OPPOSITE things. A correction says gold's number was
+    wrong -- against the dictionary, or against the graders' own practice on
+    comparable rows -- so the target moves and the cell is then scored against
+    the corrected figure. A divergence says gold's number STANDS, that it is a
+    coherent decision, and that we knowingly differ from it. A cell cannot be
+    both wrong and coherent, and booking it twice double-counts one finding.
+
+    THREE CELLS WERE DOUBLE-BOOKED ON 2026-09-03, which is why this exists:
+    DAY1/p1 in BEHAVIOR_NEVER_STATED, NR/p4 in NP_SHAPE_CREDITED_AS_NR, and
+    Q4a/p19 in both ANTECEDENT_RULE_APPLIED_AGAINST_ITSELF and A_NOT_ANTECEDENT.
+    All three were corrected that day from comparator evidence, by someone who
+    did not read the declaration tables first -- and NP_SHAPE_CREDITED_AS_NR is
+    NAMED for the very finding the correction wrote up at length as new.
+
+    NOTHING CAUGHT IT FOR A DAY, and the reason is worth keeping. Every existing
+    declaration check compares a table against RECORDED data, so while the
+    ledger still held pre-correction numbers "we knowingly miss this cell"
+    remained TRUE of what was recorded. The contradiction only surfaced on
+    re-recording the item against the corrected gold. This check needs no run
+    data at all: it is table against table, so it fires the moment the second
+    entry is written, whatever the ledger says.
+    """
+    import handouts as H
+
+    declared: dict = {}
+    for d in getattr(H, "GOLD_DIVERGENCES", []) or []:
+        for cell in (d or {}).get("cells") or ():
+            declared.setdefault(tuple(cell), []).append((d or {}).get("code"))
+    out: list[str] = []
+    for cell in sorted(set(getattr(H, "CORRECTED_GOLD", {})) & set(declared)):
+        entry = H.CORRECTED_GOLD[cell] or {}
+        out.append(
+            f"{cell[0]}/p{cell[1]} is CORRECTED ({entry.get('was')} -> "
+            f"{entry.get('score')}) and also DECLARED in "
+            f"{sorted(x for x in declared[cell] if x)}. Those tables contradict "
+            f"each other: a correction says gold's number was wrong, a "
+            f"divergence says it stands and we differ from it knowingly. Keep "
+            f"ONE -- drop the cell from the declaration, or revert the "
+            f"correction -- because booking it twice counts one finding twice")
+    return out
+
+
 def check_no_declaration_cites_a_suspect_cell() -> list[str]:
     """A declaration that argues from a cell whose INPUT is untrusted.
 
