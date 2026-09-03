@@ -847,6 +847,124 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     save(led)
     print(f"{item} [{side}]: {totals[n // 2]}/{len(per)} recorded at prompt "
           f"{prompt_sha(item)} over {len(per)} cells (runs {totals})")
+    # PRINTED ON EVERY RECORD, and it takes no `side`: the report pools the
+    # two OLX-prompt halves, so recording either one shows the same honest
+    # spread rather than that half's flattering median.
+    print(sweep_summary(item))
+
+
+def sweep_summary(item: str) -> str:
+    """What a sweep actually produced: the SPREAD of scores and per-check accuracy.
+
+    NEITHER A MEDIAN NOR A SIDE SPLIT, and both exclusions are deliberate.
+
+    THE MEDIAN HERE IS OVER ACTUAL SCORES, which is the distinction that matters.
+    The ledger's headline is a median taken PER CELL and then counted, so a cell
+    right in seven runs of twelve is scored as simply right; 2a read 20 of 20 on
+    2026-09-03 that way while no run above 20 existed and six runs scored 18.
+    This one is the median of the runs that actually happened -- 18.5 for that
+    same sweep -- reported beside the range, the mean and the distribution,
+    because no single number carries a spread.
+
+    And it does not report olx against python. The two are one sample drawn
+    twice -- same prompt, same model -- so a per-side figure throws away half the
+    observations and invites divergence claims one observation apart. Worse, a
+    six-run median of a 3-3 split lands on a value no run produced and that an
+    item's increment may not even permit. Everything here pools the twelve.
+
+    PER-CHECK ACCURACY needs gold's expectation per slot, which is determinate in
+    two situations and no others: gold awarded the maximum, so every scored slot
+    must be met; or gold's comment itemises, so `gold_charged_slots` names the
+    ones it charged. Cells where gold charged something and named nothing are
+    counted as INDETERMINATE and reported as such rather than guessed at, on the
+    same principle as `gold_charged_slots` returning None.
+    """
+    import collections
+    import statistics
+
+    import agreement as A
+    import handouts as H
+    import olx_prompts as O
+
+    h = _jobs()[item]["handout"]
+    g = _corrected_gold(h)
+    try:
+        spec = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+        scored = [sl["key"] for sl in spec["slots"] if sl.get("pts") is not None]
+        top = {i["id"]: i["max"] for i in H.config(h)["rubric"].ITEMS}[item]
+    except Exception as e:
+        return f"  (cannot read {item}'s sheet: {type(e).__name__}: {e})"
+
+    gold, drop = {}, set(exclusions(item))
+    for pid in g:
+        row = (g.get(pid) or {}).get(item) or {}
+        if pid not in drop and row.get("score") is not None:
+            gold[pid] = row["score"]
+
+    # One matrix of scores, pooling the two OLX-prompt sides as one sample.
+    cols: list = []
+    for sd in POOLED_OLX_PROMPT:
+        got = {pid: _cell_scores(item, pid, sd) for pid in gold}
+        n = min((len(v) for v in got.values() if v), default=0)
+        for r in range(n):
+            cols.append({pid: got[pid][r] for pid in gold if got[pid]})
+    if not cols:
+        return f"  (no pooled run data for {item})"
+
+    per_run = [sum(1 for pid, sc in col.items()
+                   if H.scored_exactly(item, gold[pid], sc)) for col in cols]
+    dist = collections.Counter(per_run)
+    N = len(gold)
+    out = [f"  {item}: {len(cols)} runs pooled over {N} cells "
+           f"({' + '.join(POOLED_OLX_PROMPT)} as one sample)",
+           "",
+           "  CELLS CORRECT PER RUN",
+           "    " + " ".join(str(x) for x in sorted(per_run)),
+           f"    range {min(per_run)}-{max(per_run)} of {N}   "
+           f"median {statistics.median(per_run):g}   "
+           f"mean {statistics.mean(per_run):.1f} ({statistics.mean(per_run)/N:.1%})",
+           "    " + ", ".join(f"{k} x{dist[k]}" for k in sorted(dist)),
+           ""]
+
+    # Gold's implied verdict per slot, where it is determinate at all.
+    expect, indet = {}, []
+    for pid, sc in gold.items():
+        if abs(sc - top) < 1e-9:
+            expect[pid] = {k: True for k in scored}
+            continue
+        named = gold_charged_slots(item, pid)
+        if named is None:
+            indet.append(pid)
+        else:
+            expect[pid] = {k: (k not in named) for k in scored}
+
+    out.append("  PERCENT CORRECT BY CHECK")
+    tally = {k: [0, 0, 0] for k in scored}          # n, correct, false-charge
+    for sd in POOLED_OLX_PROMPT:
+        for pid in expect:
+            for failed in _our_failing_slots(item, pid, sd):
+                for k in scored:
+                    want = expect[pid][k]
+                    ours = k not in failed
+                    tally[k][0] += 1
+                    if ours == want:
+                        tally[k][1] += 1
+                    elif want:
+                        tally[k][2] += 1
+    width = max((len(k) for k in scored), default=8)
+    for k in scored:
+        n_, c_, f_ = tally[k]
+        if not n_:
+            out.append(f"    {k:<{width}}  no comparable observations")
+            continue
+        out.append(f"    {k:<{width}}  {c_:>4}/{n_:<4} {c_/n_:>6.1%}   "
+                   f"charged where gold credits: {f_}, "
+                   f"credited where gold charges: {n_ - c_ - f_}")
+    out.append(f"    determinate on {len(expect)} of {N} cells" +
+               (f"; INDETERMINATE on {sorted(indet)} -- gold charged there and "
+                f"named no slot, so no per-check expectation exists"
+                if indet else ""))
+    return "\n".join(out)
 
 
 def declaration_conflicts() -> list[str]:
