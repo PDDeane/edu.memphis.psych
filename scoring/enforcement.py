@@ -1972,6 +1972,15 @@ def _primitives_with_live_app_evidence() -> dict:
 # compares a prediction to gold must go through the corrected loader, the 1c
 # rebuild, `scored_exactly` and the ledger's exclusions -- the accounting every
 # published rate uses.
+GOLD_ALPHABET_EXEMPT = {
+    # Functions that read BOTH a gold-prose slot set and our slot-sheet set
+    # without restricting to gold's vocabulary, on purpose. See
+    # measured._gold_nameable_slots for why that restriction is normally
+    # required: the two sets are drawn from different alphabets, and a slot no
+    # grader phrase can name will differ EVERY time, whatever the cell says.
+}
+
+
 HANDOUT_KEYED_GOLD_READERS = {
     # Sites that pick a gold loader by HANDOUT NUMBER rather than by item, which
     # is legitimate only when the handout is not being derived from an item. See
@@ -4867,6 +4876,10 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.PROSE_ONLY_JUDGED_AGAINST": (
         "the primitive set each NOT CONVERTIBLE claim was judged against",
         ("check_prose_only_claims_are_current",)),
+    "enforcement.GOLD_ALPHABET_EXEMPT": (
+        "functions comparing our slot set against gold's without a vocabulary "
+        "guard, on purpose",
+        ("check_gold_comparisons_share_an_alphabet",)),
     "enforcement.HANDOUT_KEYED_GOLD_READERS": (
         "modules that pick a gold loader by handout number instead of by item",
         ("check_gold_is_read_by_item",)),
@@ -6054,6 +6067,89 @@ def check_probe_reach_limits_still_apply() -> list[str]:
                 f"it and the excuse no longer holds. Drop the item from the "
                 f"entry and let the audit probe it")
     return out
+
+
+def check_gold_comparisons_share_an_alphabet() -> list[str]:
+    """No function may diff OUR slot set against GOLD'S without a vocabulary guard.
+
+    THE TWO SETS COME FROM DIFFERENT ALPHABETS. Ours is read off the slot sheet;
+    gold's is reconstructed from grader prose through GOLD_SLOT_CHARGES. A slot
+    no phrase maps to cannot appear on gold's side for ANY cell -- gates are the
+    whole class, since they carry no points and graders never name them -- so
+    comparing the sets raw reports a difference that was settled before any data
+    was read.
+
+    FOUR SITES HAD IT, found the day gates were added to the slot profile, and
+    each failed differently, which is why this is a static rule rather than a
+    number to watch:
+
+      gold_slot_disagreements  reported 1a/p15 as differing on a gate, on a cell
+                               where both sides score 0.0 and gold's comment
+                               asserts what the gate asserts.
+      refusal_precision        scored 1a's `distinguishes_periods` 11 refusals,
+                               11 CONTRADICTED, 0 corroborated -- the worst
+                               instrument on the item, on a slot that agrees with
+                               gold every time it fires.
+      sweep_summary            would have defaulted every gate to expected-to-
+                               pass on partial-credit cells, turning correct
+                               refusals into false charges in the per-check table
+                               that prints on every recording.
+      bounds_declarations      counted gates against a charge COUNT taken from
+                               prose, so len(maj) could never equal it and the
+                               ratchet JAMMED -- entries that can never expire.
+
+    Two raised a false alarm and two silently lost a signal, so neither "the
+    audit is clean" nor "nothing changed" would have surfaced any of them.
+
+    The rule: a function naming a gold-prose set AND our slot set must also name
+    `_gold_nameable_slots`, or be declared in GOLD_ALPHABET_EXEMPT with why the
+    comparison is legitimate without it.
+    """
+    import re
+    from pathlib import Path as _P
+
+    GOLD = re.compile(r"gold_charged_slots|gold_charge_bounds|gold_charged_code")
+    OURS = re.compile(r"_our_failing_slots|_charging_slots")
+    GUARD = re.compile(r"_gold_nameable_slots")
+
+    # AST SPANS, NOT LINE SCANNING. The first version took a function to end
+    # where the next `def` began, which is wrong for a NESTED def: the body it
+    # built for `measured.split_verdict` ran on into its enclosing function and
+    # picked up names that were never in it. The check's only finding on its
+    # first run was that false positive -- a check whose one alarm is its own
+    # parsing is worse than no check, because it trains you to dismiss it.
+    import ast
+
+    bad: list[str] = []
+    for path in sorted(_P(__file__).resolve().parent.glob("*.py")):
+        src = path.read_text()
+        try:
+            tree = ast.parse(src)
+        except SyntaxError as e:
+            bad.append(f"{path.stem} will not parse: {e}")
+            continue
+        hits = []
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            body = ast.get_source_segment(src, node) or ""
+            if GOLD.search(body) and OURS.search(body) and not GUARD.search(body):
+                hits.append((node.lineno, node.end_lineno, node.name))
+        # innermost only: an enclosing function that merely CONTAINS a guarded
+        # helper should not be reported for its child's names.
+        for lo, hi, fn in hits:
+            if any(l2 > lo and h2 <= hi for l2, h2, _ in hits if (l2, h2) != (lo, hi)):
+                continue
+            if f"{path.stem}.{fn}" in GOLD_ALPHABET_EXEMPT or fn in GOLD_ALPHABET_EXEMPT:
+                continue
+            bad.append(
+                f"{path.stem}.{fn} compares our slot set against gold's without "
+                f"restricting to the slots gold's phrase table can NAME. A gate "
+                f"is in ours and can never be in gold's, so it will differ on "
+                f"every cell. Intersect with measured._gold_nameable_slots(item), "
+                f"or declare {path.stem}.{fn} in GOLD_ALPHABET_EXEMPT with why "
+                f"the raw comparison is sound here")
+    return bad
 
 
 def check_gold_is_read_by_item() -> list[str]:

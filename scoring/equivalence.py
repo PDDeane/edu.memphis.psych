@@ -669,6 +669,8 @@ def enforcement_audit():
         findings.append(("-", "CELL BOTH CORRECTED AND DECLARED", bad))
     for bad in ENF.check_gold_is_read_by_item():
         findings.append(("-", "GOLD READ BY HANDOUT, NOT BY ITEM", bad))
+    for bad in ENF.check_gold_comparisons_share_an_alphabet():
+        findings.append(("-", "SLOT SETS COMPARED ACROSS ALPHABETS", bad))
     for bad in ENF.check_probe_reach_limits_still_apply():
         findings.append(("-", "PROBE-REACH EXCUSE OUTLIVED ITS RULE", bad))
     for bad in ENF.check_computed_slot_recovery_is_faithful():
@@ -907,7 +909,7 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 58
+SELFTEST_EXPECTED = 59
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1712,6 +1714,35 @@ def enforcement_selftest():
                      {"code": "PROBE", "cells": [("NR", 4)], "why": "injected"}),
                  lambda: _HH.GOLD_DIVERGENCES.pop(),
                  want="CELL BOTH CORRECTED AND DECLARED")
+
+    # COMPARING OUR SLOT SET AGAINST GOLD'S WITHOUT A VOCABULARY GUARD, added
+    # 2026-09-03. Four functions had this the day gates entered the slot profile,
+    # and they failed in both directions -- two raised a false alarm (a gate
+    # "differing" from gold on every cell, a correct gate scored 11/11
+    # CONTRADICTED) and two silently lost signal (a jammed ratchet, suppressed
+    # conflict reports). Neither "the audit is clean" nor "nothing changed" would
+    # have surfaced any of them, which is why the rule is static.
+    _real_alpha = dict(ENF.GOLD_ALPHABET_EXEMPT)
+    import pathlib as _pl
+    _mp = _pl.Path(__file__).resolve().parent / "measured.py"
+    _orig_src = _mp.read_text()
+
+    def _unguard():
+        import ast
+        tree = ast.parse(_orig_src)
+        node = next(n for n in ast.walk(tree)
+                    if isinstance(n, ast.FunctionDef)
+                    and n.name == "gold_slot_disagreements")
+        seg = ast.get_source_segment(_orig_src, node)
+        _mp.write_text(_orig_src.replace(
+            seg, seg.replace("_gold_nameable_slots", "_NOPE_"), 1))
+
+    _scorer_case("a slot-set comparison drops its vocabulary guard",
+                 _unguard,
+                 lambda: (_mp.write_text(_orig_src),
+                          ENF.GOLD_ALPHABET_EXEMPT.clear(),
+                          ENF.GOLD_ALPHABET_EXEMPT.update(_real_alpha)),
+                 want="SLOT SETS COMPARED ACROSS ALPHABETS")
 
     # READING GOLD BY HANDOUT INSTEAD OF BY ITEM, added 2026-09-03 after the
     # mistake was made live: item 1a was looked up against the handout ONE
