@@ -664,6 +664,8 @@ def enforcement_audit():
         findings.append(("-", "SIDE CONTRACT UNENFORCED", bad))
     for bad in ENF.check_no_declaration_cites_a_suspect_cell():
         findings.append(("-", "DECLARATION ARGUES FROM A SUSPECT CELL", bad))
+    for bad in ENF.check_no_cell_is_both_corrected_and_declared():
+        findings.append(("-", "CELL BOTH CORRECTED AND DECLARED", bad))
     for bad in ENF.check_computed_slot_recovery_is_faithful():
         findings.append(("-", "COMPUTED-SLOT RECOVERY UNFAITHFUL", bad))
     for bad in ENF.check_fixture_boxes_hold_the_students_words():
@@ -895,7 +897,7 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 56
+SELFTEST_EXPECTED = 57
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1690,6 +1692,17 @@ def enforcement_selftest():
     # because the check it exercises was written green: its item->handout map was
     # keyed on dict reprs, so it matched nothing and reported a clean corpus. A
     # five-way fire test caught that, and this case keeps it caught.
+    # THE TWO GOLD TABLES CONTRADICTING EACH OTHER. Needs no run data, so unlike
+    # every other declaration check it fires the moment the second entry exists
+    # -- which is exactly why three double-booked cells survived a whole day
+    # while the audit read clean.
+    import handouts as _HH
+    _scorer_case("a corrected cell is also declared",
+                 lambda: _HH.GOLD_DIVERGENCES.append(
+                     {"code": "PROBE", "cells": [("NR", 4)], "why": "injected"}),
+                 lambda: _HH.GOLD_DIVERGENCES.pop(),
+                 want="CELL BOTH CORRECTED AND DECLARED")
+
     # THE BOUNDS TABLE'S RATCHET, added 2026-09-02. The disagreements table had
     # one and this table did not, so three 2a entries stood asserting a
     # disagreement on the very day the conjunction rule ended it, and the
