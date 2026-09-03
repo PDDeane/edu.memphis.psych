@@ -395,40 +395,43 @@ ITEMS: list[dict] = [
              "desc": "The box asked for How (2), judged on its own by the same "
                      "two-way test as How (1). Either box can fail, both can, and "
                      "one failing says nothing about the other"},
-            # THE WHOLE-RESPONSE TEST, asked as its own question rather than
-            # folded into how_2's prose. `requires` below makes how_2 depend on
-            # it, so the model gives ONE answer per judgement and the refusal
-            # profile can show whether this call is stable -- inside how_2 a
-            # wrong reason and a wrong answer would look identical. It carries no
-            # points of its own: it is an operand, like defines_type on H2.
+            # ONE COMPOUND OPERAND, restored 2026-09-03 after the three-way
+            # split was measured and lost a cell. The split asked each ground as
+            # its own question, on the theory `parse_forbid` states: "asked one
+            # answer at a time it was stable, asked as one judgement the model
+            # resolved the tension by re-reading which clause was which." That
+            # holds for a CONJUNCTION of conditions, which is what forbid was
+            # built for, and it did NOT transfer to a DISJUNCTION of alternative
+            # grounds. Measured: the item went 20/20 -> 19/20 and per-ground
+            # unanimity came back 14, 16 and 14 of 20 against the compound's 15,
+            # so reliability did not improve either. Asked alone against a
+            # literal list, `states_size` refused p10's "endurance increased over
+            # time" 11 times in 12 -- a change with no figure, no week comparison
+            # and no data citation -- where the compound question had accepted it
+            # 12 of 12. p3 split 6-6 on the same fault and p19 failed it outright,
+            # both surviving only on another ground.
             {"what": "mechanism_named",
              "reported": True,
              "verdicts": ["met", "absent", "unclear"],
-             # NO EXAMPLES OF THE FAILING SHAPE ARE GIVEN, and that is deliberate.
-             # An earlier wording enumerated the circumstances a weak answer
-             # offers, and leakage.py refused the sweep: the words it borrowed
-             # were the cohort's own -- and worse, they were the distinguishing
-             # words of the two cells this rule is meant to charge. Naming the
-             # criterion abstractly is both safer and more general.
              "desc": "Does the response, read across ALL THREE boxes, account for "
-                     "HOW the plan produced its result? `met` on either ground: it "
-                     "names something the student PUT IN PLACE so the behaviour "
-                     "would happen — an arrangement, a routine, a stand-in "
-                     "activity, a chosen hour or location — or it states the "
-                     "change together with its SIZE, a number or a comparison "
-                     "against an earlier week. A THIRD GROUND, added after a "
-                     "sweep charged a cell the graders credit: it also counts to "
-                     "name WHAT THE PLAN CONSISTED OF in particulars, and that "
-                     "ground holds even where the response raises those "
-                     "particulars as a burden rather than as something that "
-                     "worked. Naming the behaviour the plan TARGETED, with no "
-                     "particulars attached, is NOT this ground. `absent` when the "
-                     "response "
-                     "explains the result only by the surrounding conditions it "
-                     "found itself in, or by asserting the target behaviour over "
-                     "again. The division is between what the student DID so it "
-                     "would work and what was simply the case around them. Answer "
-                     "for the WHOLE response, not for one box"},
+                     "HOW the plan produced its result? `met` on any of three "
+                     "grounds. It names something the student PUT IN PLACE so the "
+                     "behaviour would happen — an arrangement, a routine, a "
+                     "stand-in activity, a chosen hour or location. Or it states "
+                     "the change together with its SIZE — a figure, a comparison "
+                     "against the earlier week, or the data — which is the same "
+                     "wording How (1) and How (2) use, and the clause a shorter "
+                     "version of this question dropped. Or it names WHAT THE PLAN "
+                     "CONSISTED OF in particulars, which counts even where the "
+                     "response raises those particulars as a burden rather than "
+                     "as something that worked; naming the behaviour the plan "
+                     "TARGETED, with no particulars attached, is not that ground. "
+                     "`absent` when the response explains the result only by the "
+                     "surrounding conditions it found itself in, or by asserting "
+                     "the target behaviour over again. The division is between "
+                     "what the student DID so it would work and what was simply "
+                     "the case around them. Answer for the WHOLE response, not "
+                     "for one box"},
         ],
         "deductions": [
             {"code": "BLANK", "pts": 6.0, "text": "did not answer"},

@@ -4736,9 +4736,60 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       harmlessly since its how_2 is charged by the conjunction regardless.
       OVERALL STABILITY DID NOT DEGRADE: 15 of 20 cells answer
       `mechanism_named` unanimously, the same as before this ground was added.
-      ASK BEFORE CLOSING. Nothing on this item is wrong at the pooled median, so
-      there is no cell left to own -- but p5 at 7/12 and olx's three split cells
-      are what a closure would be signing off.
+      == 2026-09-03, SIXTH ATTEMPT: THE SPLIT REVERTED, THE CLAUSE KEPT. ==
+      DO NOT QUOTE THIS AS 20/20 WITHOUT THE RUN FIGURES. The recorded standard
+      is the per-cell POOLED MEDIAN and it does read 20 of 20, but that means
+      every cell is right in a MAJORITY of twelve runs, not that every cell is
+      right. The runs themselves are [18,18,20,18,19,18] on olx and
+      [18,20,18,20,19,20] on python: mean 18.83, median 18.5, and only 4 of the
+      12 runs score a perfect 20. Fifteen cells are right in ALL twelve runs;
+      five are right only sometimes -- p2 11/12, p13 11/12, p14 10/12, and
+      p5 and p16 at 7 of 12, which is 58%. A median converts "right more often
+      than not" into "right", and on an item with five unstable cells that
+      inflates the headline. Recorded as `q2_final_python` and `q2_final_olx`.
+      THE THREE-WAY SPLIT WAS A REGRESSION AND IS REVERTED. Asking each ground
+      as its own question took the item 20 -> 19 and did not improve reliability:
+      per-ground unanimity came back 14, 16 and 14 of 20 against the compound's
+      15. The reasoning that motivated it was `parse_forbid`'s -- "asked one
+      answer at a time it was stable, asked as one judgement the model resolved
+      the tension by re-reading which clause was which" -- and that argument is
+      about a CONJUNCTION of conditions, which is what forbid is for. It does
+      not transfer to a DISJUNCTION of alternative grounds, where "is there ANY
+      mechanism" is an easier question than three separate near-misses. Asked
+      alone against a literal list, `states_size` refused p10's "{{corpus:2a/p10:how1:49:78:sha=b3bf32bf0304:shape=S0-0a202020202020}}" 11 times in 12 where the compound question had
+      accepted it 12 of 12; p3 split 6-6 on the same fault and p19 failed it
+      outright, both surviving only on another ground.
+      WHAT THE SPLIT DID BUY WAS ONE CLAUSE, AND THE CLAUSE WAS KEPT. how_1 and
+      how_2 have always said the size ground is "a figure, a comparison against
+      the earlier week, OR THE DATA", and the compound operand dropped the last
+      of those when it was first written. p2 cites the graph without a number, so
+      by the letter of that shortened wording the model was right to answer
+      absent -- 4 of 12 runs. With the clause restored p2 answers absent ONCE in
+      12. That is the whole measured gain of the split, and it needed no split.
+      WHERE THE RESIDUAL NOISE SITS, and it is a boundary rather than a defect.
+      `mechanism_named` is unanimous on 15 of 20 cells, the same as before, and
+      the two unsettled cells pull the SAME judgement in OPPOSITE directions:
+      p5 needs `met` and gets 7 of 12 ("{{corpus:2a/p5:how2:7:25:sha=817ec8ca8be4}} ... gets old" -- plan
+      content named as a burden), while p16 needs `absent` and gets 7 of 12 the
+      other way ("{{corpus:2a/p16:how1:15:61:sha=16e4af8c8cbd}} exercise" --
+      the target behaviour with no particulars). The rule states that
+      distinction; the model applies it about 60% consistently on exactly the
+      two cells that straddle it. p13 also splits 7-5 and is harmless, since its
+      how_2 is charged by the conjunction regardless.
+      STILL OPEN, AND NOT TO BE CLOSED ON THE MEDIAN. Nothing is wrong at the
+      pooled median, so no cell would be orphaned -- but p5 and p16 sit at 7 of
+      12 on the single judgement that decides them, in OPPOSITE directions, and
+      two thirds of runs score below 20. Closing on the median would sign off a
+      boundary the model applies about 58% of the time as though it were settled.
+      WHAT IT COST AND WHAT IT TAUGHT: six measured attempts, five kept.
+      15 -> 17 (per-box split plus the two-way cause-or-size test) -> 18
+      (the state/not-doing conjunction) -> 19 (the mechanism `requires`) -> 20
+      (the plan-content ground) -> 20 (split reverted, clause kept), with one
+      corrupt-fixture attempt in between that measured nothing at all. The
+      entry's own prediction -- one rule recovering five cells because "all five
+      move together" -- was wrong in both halves: the cells did not move
+      together once each box was judged separately, and no single rule was
+      available. Prefer the sequence of small measured rules to the one big one.
       IT IS NOW CAUGHT BEFORE THE CALLS, not after.
       `enforcement.check_fixture_boxes_hold_the_students_words` requires every
       scorer-sourced box to appear in the participant's transcribed answer, and
