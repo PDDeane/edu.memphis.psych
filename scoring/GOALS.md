@@ -6269,6 +6269,39 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       reads it as saying. It generalises to nothing, and should be justified on
       that basis or not written.
 
+      == WRITTEN 2026-09-04, AND THE CLAUSE ALREADY EXISTED ==
+      Re-verified the all-cells pass first rather than trusting this entry: across
+      all 20 Q3 cells, p19 is the ONLY one whose `action_oriented` evidence
+      mentions measuring or tracking. p9, p14 and p18 -- the three this entry
+      feared for -- cite access and nothing else, so the rule cannot reach them.
+      Confirmed independently of the earlier pass, from artifacts, no calls.
+      THE FIX WAS NOT A NEW CLAUSE BUT A BROKEN CONJUNCTION. The desc already said
+      what FAILS is a response that "justifies actionability by pointing at another
+      letter of SMART instead of at any doing -- AND names no doing of its own".
+      p19 does both halves at once: it points at measurability AND names a doing,
+      so the conjunction let it through. The `and` was the defect.
+      REPHRASED ONTO WHAT THE RESPONSE OFFERS AS ITS REASON: if the reason given
+      is that the goal can be MEASURED, this is `absent` even where an activity
+      appears in the same sentence, because an activity named as the means of
+      measuring is answering the measurable criterion and not this one.
+      SAME AXIS AS SUBGOAL Q17's TWO FIXES ON THE SAME DAY -- test what the
+      response NAMES, not what might also be true of it. Three slots, one error
+      shape, which is worth more than any of the three cells.
+      PREDICTED: p19 0 of 12 -> 12 of 12, charging `action_oriented` as gold's
+      comment does in as many words. The 16 met cells and the three already
+      `absent` are untouched, because none of them gives measurability as its
+      reason. NOT YET SWEPT.
+      ONE LEAKAGE VERDICT FILED, and the reason matters: the first draft used the
+      word the cell itself uses for tracking, which the gate caught as borrowed
+      from p19 -- the very cell the change targets. Reworded to the SMART letter's
+      own name, which appears in the graders' comments. The three words the gate
+      then still flagged (access, equipment, plain) all predate this edit and had
+      already been reviewed twice on this block; the verdict lapsed only because
+      editing the prose changed its sha.
+      NOT ADDRESSED HERE: Q3/p10 is right 2 of 12 and Q3/p13 10 of 12, and neither
+      is an `action_oriented` cell -- both answer it `met` and gold's comments
+      charge `specific`. They are not this subgoal's and should be given a home.
+
       doing AND rests its actionability on being able to measure it, so neither
       lever that fixed p8 and p16 reaches it -- not the time clause, and not
       "names no doing of its own". Gold docks it. This is the residual cell most
@@ -6817,6 +6850,82 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       classifications fixed as the control: p6 and p14 at 6/6 are the two cells
       that broke, and any future attempt should be judged on whether they stay
       put before anything is claimed about p13.
+
+      == 2026-09-04: THE PRE-REGISTERED TEST IS REFUTED, AND THE SUBGOAL SPLITS ==
+      Attempted per the plan above and stopped by the all-cells readout, which is
+      the outcome the standing procedure exists to produce. The plan's own test was
+      refuted; a DIFFERENT rule was then written on what the readout does support,
+      and it reaches ONE of this subgoal's two cells. No calls spent.
+      THE TEST THIS ENTRY SETTLED ON was "not `is this a not-doing` but IS IT THE
+      STUDENT'S, IN THE EPISODE". Read against every cell that ever picks
+      `not_doing`, on BOTH boxes, that test credits a cell gold explicitly docks:
+          p8 box 1  "{{corpus:Q4b/p8:first:56:79:sha=12753558179d}} gym"   b1_basis `not_doing` 12 of 12
+      That IS the student's own omission during the unwanted behaviour, so the
+      test says credit it. Gold charges it -- and gold's comment on p8 is the
+      B_NOT_ACTIVE deduction text VERBATIM ("These examples are not what you're
+      actively doing during your UTB. Think about it like this: what are you doing
+      *instead of*..."). So the grader reached for exactly the code we apply, in
+      the rubric's own words. p8 is right 12 of 12 and is not a borderline case.
+      AND THE CONTROL LIST IN THIS ENTRY WAS SCOPED TO THE WRONG BOX. It names p5
+      and p10 as the refusals to keep and states that "p7 picks `none` 12 of 12,
+      p8 `consequence` 12 of 12 ... NONE of them picks `not_doing`". True of
+      b2_basis, FALSE of b1_basis: p7 and p8 both pick `not_doing` on BOX ONE, 12
+      of 12, and both are right 12 of 12. The two basis slots SHARE their option
+      definitions -- b2's rule opens "on the same terms as the first example" -- so
+      a change to what `not_doing` means moves box 1 too, and this entry's controls
+      could not see it.
+      WHAT THE READOUT SUPPORTS IS A PRECEDENCE, AND THE CLAUSE ALREADY EXISTED.
+      b1_basis's case (5) says in as many words: "Credit the concrete activity if
+      the entry names one alongside the avoidance." It was losing to case (4),
+      "classify by the FAILING alternative" -- which b2_basis's short rule repeats
+      WITHOUT case (5)'s carve-out, so on a box holding both an avoidance and an
+      act the failing-alternative instruction won.
+      AND THE DISCRIMINATOR WAS ALREADY IN THE TEXT TOO. It is the CONJUNCTION:
+          p8  box 1  "{{corpus:Q4b/p8:first:31:79:sha=2ee4146beab6:shape=Cc00000}} gym"
+                     genuine alternatives, so case (4) governs, `not_doing` is
+                     RIGHT, and gold charges it
+          p12 box 2  "{{corpus:Q4b/p12:second:0:34:sha=50add6bc49ca}} ... {{corpus:Q4b/p12:second:76:126:sha=4281c899b6ba:shape=S4-0a202020202020202020202020202020202020202020,C7}} bad"
+                     an act with its result, so case (5) governs -> `activity`,
+                     and gold is silent
+      "or" offers two candidate answers; "and" offers ONE answer with what came of
+      it. Case (4) says it "applies only to genuine alternatives" and its own text
+      already resolves the pair -- "a snack eaten and the fruit left to spoil is one
+      substitute with its result attached" -- which is p12 exactly. Nothing new had
+      to be decided; the two rules only had to be put in order.
+      WRITTEN: b2_basis's rule now says to read the conjunction BEFORE applying the
+      failing-alternative rule, and that an avoidance joined by "and" to a concrete
+      act is one entry classified on the ACT. Not yet swept.
+          FIXES   p12, 0 of 12 -> expected 12 of 12
+          HOLDS   p8 (an "or"), p5 (no act at all), p10 (a future intention), p7 (a
+                  consequence that follows) -- each for a stated reason rather than
+                  by being out of scope
+          WATCH   p6 and p14, the two cells the reverted `inability` attempt broke,
+                  and the SPREAD rather than the median
+      AND p13 IS NOT REACHED BY IT, which is the second correction to this entry.
+      Its box names an INABILITY with NO act alongside -- "{{corpus:Q4b/p13:second:25:109:sha=0e7747dbc9b4:shape=S5-0a202020202020,A57}} ADHD" -- so case
+      (5)'s carve-out does not apply and the precedence fix leaves it `not_doing`.
+      p12 AND p13 ARE NOT ONE PROBLEM, and bundling them is what made the plan look
+      like a single rule. p13 is the vocabulary gap the `inability` enum attempt
+      already died on; it stays open with no candidate, and it should not be quoted
+      as something the precedence fix will carry.
+      p7 IS SETTLED, AND IT IS A COMPENSATING PAIR RATHER THAN AGREEMENT -- the
+      third thing this entry had wrong. Its box 1 is a MODIFY statement plus a mood
+      ("frustrated and aggravated ... generally moody"), and its box 2 is
+      "{{corpus:Q4b/p7:first:19:114:sha=786204a6d55f:shape=S10-0a202020202020}}" -- a consequence that FOLLOWS the unwanted behaviour
+      rather than anything done during it. Gold charges -3, which on this sheet is
+      B_NOT_ACTIVE TWICE (the code is `repeatable`), so gold reads BOTH boxes as
+      invalid. We reach the same 2.00 by another route: we see one box, charge it
+      `wrong_kind` at 1.5, and charge B_ONLY_ONE at 1.5 for a second box we think
+      is empty. Same total, different codes. So p7's 12 of 12 must never be quoted
+      as evidence that we agree with gold there, and its gold comment -- "-3 pts:
+      did not provide two examples" -- turns out to name BOTH boxes, not one.
+      THE PICKS ARE IN `answers`, NOT `checks`, and this cost a wrong conclusion
+      before it cost a right one: `b2_basis` reads as empty on the python side and
+      null on the olx side of every artifact, which looked like the picks having
+      never been recorded at all. They are in `answers` (python) and `refers_to`
+      (olx), and the distribution there matches this entry exactly -- `not_doing`
+      16 of 120, `consequence` 30. QUALITY_CONTROL.md 2k, on the item whose whole
+      lever is a pick.
 
 - [ ] Q16. **Diagnose Q1's wrong calls: `utb_stated`, `reason_2`, `reason_3`.**
       Set 2026-08-28 from the two-sided sweep's first item, so the numbers below are

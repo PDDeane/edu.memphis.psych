@@ -881,9 +881,15 @@ ITEMS: list[dict] = [
                         "place or equipment named fails for the same reason. "
                         "What FAILS is a response that "
                         "justifies actionability by pointing at another letter of "
-                        "SMART instead of at any doing — and "
-                        "names no doing of its own, or that only re-labels the "
-                        "goal as actionable without saying what is done",
+                        "SMART instead of at any doing, or that only re-labels the "
+                        "goal as actionable without saying what is done. READ WHAT "
+                        "THE RESPONSE OFFERS AS ITS REASON, and judge that. If the "
+                        "reason given is that the goal can be MEASURED, this is "
+                        "`absent` EVEN WHERE an activity appears in the same "
+                        "sentence: an activity named as the means of measuring is "
+                        "answering the measurable criterion, not this one. A doing "
+                        "must be offered as what makes the goal actionable, not as "
+                        "the means by which progress is watched",
             },
             {
                 "what": "realistic",
@@ -1192,7 +1198,7 @@ ITEMS: list[dict] = [
                 "verdicts": ["activity", "consequence", "goal_behaviour",
                              "not_doing", "none"],
                 "desc": "What the second example IS",
-                "rule": 'ONE ANSWER, on the same terms as the first example: `activity` for something done INSTEAD of the goal behaviour, `none` for an empty box, and otherwise the case it falls under -- `consequence` for a consequence of the unwanted behaviour or an ordinary activity carrying a state that behaviour produced, `goal_behaviour` for the goal behaviour itself done at the wrong time or place, `not_doing` for a naming of the goal behaviour NOT happening rather than of what they did instead. Where the entry offers ALTERNATIVES, classify by the failing one.',
+                "rule": 'ONE ANSWER, on the same terms as the first example: `activity` for something done INSTEAD of the goal behaviour, `none` for an empty box, and otherwise the case it falls under -- `consequence` for a consequence of the unwanted behaviour or an ordinary activity carrying a state that behaviour produced, `goal_behaviour` for the goal behaviour itself done at the wrong time or place, `not_doing` for a naming of the goal behaviour NOT happening rather than of what they did instead. Where the entry offers genuine ALTERNATIVES -- two things joined by "or", either of which might be what they did -- classify by the failing one. BUT AN AVOIDANCE JOINED BY "AND" TO A CONCRETE ACT IS NOT AN ALTERNATIVE, and this is where the two rules are most easily confused: a box saying the goal behaviour did not happen AND naming something the student actually did in that time is ONE entry with its result attached, and it is classified on the ACT -- `activity`. Read the conjunction before applying the failing-alternative rule; applying that rule to an "and" refuses an example the graders credited.',
             },
             {
                 "what": "modify_stated",
