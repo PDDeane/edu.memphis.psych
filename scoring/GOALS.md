@@ -3543,6 +3543,52 @@ because it can be fixed or declared; a wobbling cell cannot be either.
            coverage. Both blindnesses were found by USING the tool on a question
            it had never been pointed at, not by any check.
 
+- [ ] Q40. **`aimed_correctly`: a 4-point gate that exists on WK2 alone, and the
+      sibling check cannot see it.**
+      Filed 2026-09-04 out of subgoal E41's on-the-line list, where WK2/p11 was
+      the last cell without an explanation. Measured from artifacts, no calls.
+      THE SLOT IS ON ONE ITEM OF EIGHT. `aimed_correctly` appears in WK2's sheet
+      and in no other -- not PR, NR, PP, NP, DAY1, WK1 or DAY2 -- and on WK2 it
+      GATES, so an unmet verdict takes the whole 4-point item.
+      AND IT IS ALMOST ALWAYS RIGHT, which is why it has never surfaced: across
+      216 pooled observations it refuses 65 times and only THREE of those are in a
+      cell that scored wrong. 95% precision. Where it refuses, it refuses cells
+      gold scores 0.00 -- the two blanks p10 and p18, p8's dropped-negation
+      answer, p13, p14 and p16 -- and gold agrees every time.
+      THE THREE ARE ALL WK2/p11, and they are the whole of this subgoal's cell
+      work. That cell answers `matches_chosen_type` absent in 8 of 12, which is
+      CORRECT -- gold charges 2 for the type ("-2 pts: This is an example of NP")
+      and 2.0 is what those eight runs score. In the other three
+      `aimed_correctly` ALSO fires, the gate zeroes the item, and the cell reads
+      0.00 against a gold of 2.00. Subgoal Q22's cadence work on that cell is
+      finished -- the cadence gate now fires 0 of 12 there -- so this is the only
+      thing standing between WK2/p11 and 12 of 12.
+      NOTE IT SITS ON THE MEDIAN LINE: E41 bands WK2/p11 `on_the_line` at 6 of 12
+      counted wrong, so a change that moves it by one run is not evidence. Three
+      runs is the size of the effect to look for.
+      THE STRUCTURAL HALF, and it is why this is filed rather than folded into
+      Q22: a slot that exists on ONE item of a family is invisible to
+      `enforcement.check_sibling_slots_share_their_structure`, which compares the
+      COST of a slot NAME across the items that share it. With no sibling carrying
+      `aimed_correctly` there is nothing to differ from, so the check reports
+      clean -- as it does today -- while a 4-point gate sits on one sheet of eight
+      and is declared nowhere. That is the same class of fact as DAY1's
+      `!phrased_directly` (subgoals Q26 and E26), which WAS caught only because
+      seven siblings carried the same slot name.
+      SO THERE ARE TWO QUESTIONS, in this order:
+        1. IS THE GATE'S EXISTENCE INTENTIONAL? Read the record first -- DAY1's
+           `!` turned out to be a measured decision that retired a declared gold
+           divergence, and the comment above it said the opposite. If WK2's gate
+           is deliberate it should be declared with its reason; if it is not, the
+           precision figure above says removing it costs almost nothing and gains
+           three runs of one cell.
+        2. ONLY THEN THE CELL. Whether WK2/p11 needs the gate narrowed or the gate
+           removed depends on (1), and the 95% precision means a narrowing has 62
+           correct refusals to preserve.
+      A COMPANION AUDIT QUESTION IS NOT FILED HERE, deliberately: extending the
+      sibling check to slots present on only ONE member of a declared family is
+      audit machinery and belongs in the E series if it is wanted.
+
 - [ ] Q36. **1a's week-presence rule: we credit a baseline week that is not there
       (1a/p6), and the label-versus-data question underneath it.**
       Filed 2026-09-02, split out of Q34 when 1a/p11 was corrected and its
