@@ -6132,6 +6132,46 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       B_NOT_ACTIVE is a single-cell declaration about p12's not-doing -- which
       is all its `why` ever claimed.
 
+      == THE ALL-CELLS PASS, 2026-09-04, AND THE PLAN IT PRODUCED ==
+      Run per QUALITY_CONTROL.md 2k over all 19 valid Q4b cells, from the recorded
+      artifacts at no call cost. FOUR CELLS EVER PICK `not_doing`, and reading
+      them together is what decides the rule:
+          p5   gold 3.5  not_doing x10  -> 3.5  RIGHT   "{{corpus:Q4b/p5:second:41:75:sha=f2a22e6fa220:shape=S3-0a2020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020}} home"
+          p10  gold 2.0  not_doing x2   -> 2.0  RIGHT   both boxes; "{{corpus:Q4b/p10:second:0:41:sha=3abb0d8c15cd:shape=S2-0a2020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020}}
+                                                        more"
+          p12  gold 5.0  not_doing x12  -> 3.5  wrong   "{{corpus:Q4b/p12:second:0:34:sha=50add6bc49ca:shape=S4-0a2020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020}} ... {{corpus:Q4b/p12:second:76:112:sha=2b4a7ef1624f:shape=S2-0a2020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020}}"
+          p13  gold 5.0  not_doing x8   -> 3.5  wrong   "{{corpus:Q4b/p13:second:25:50:sha=569baa8730e7}}
+                        activity  x4   -> 5.0  right    {{corpus:Q4b/p13:second:51:95:sha=8fb285da732c:shape=S5-0a2020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020,A25}}"
+      THE OBVIOUS RULE IS REFUTED, and stating that is the point of the pass.
+      Making `not_doing` CREDIT the box fixes p13 and p12 and BREAKS p5 in 10 runs
+      of 12 and p10 in 2 -- both currently right, both right BECAUSE the box is
+      refused. Breaking a perfect cell to fix an unstable one is the trade that
+      took this item's spread from 1 cell to 3 the last time it was tried.
+      THE REVISION, because a non-empty BREAKS column is a revision prompt and not
+      a scoping one: the four texts separate cleanly by WHOSE not-doing it is.
+      p5's is a CIRCUMSTANCE outside the student and p10's is a FUTURE INTENTION,
+      neither of them anything the student did in the episode -- gold charges both.
+      p12's is the student's OWN OMISSION with an act in it, and p13's is an
+      INABILITY of the student's own -- gold credits both. So the test is not
+      "is this a not-doing" but "is it the student's, in the episode".
+      PRE-REGISTERED, before anything is written:
+          FIXES   p13, 8 runs of 12 that currently score 3.5 -> 5.0
+                  p12, 12 of 12 -- WHICH RETIRES B_NOT_ACTIVE rather than being a
+                  free gain, because it means the fifth test refuses more than
+                  gold does
+          BREAKS  NONE FOUND, and that is asserted rather than assumed: p5 and
+                  p10 keep their refusals for the reason stated above, and the
+                  other 15 cells pick `activity`, `consequence` or `none` and are
+                  inert
+          WATCH   the SPREAD, not the median. The last rule here traded 1 cell of
+                  spread for 3, and this one moves two cells on a 19-cell item.
+      AND THE OLD DELETION MEASUREMENT DOES NOT GOVERN THIS. B_NOT_ACTIVE's record
+      measured deleting the fifth test ENTIRELY -- p7 3/3 -> 0/3, p8 3/3 -> 0/3
+      lost, p12 and p16 recovered. But p7 picks `none` 12 of 12, p8 `consequence`
+      12 of 12 and p16 `activity` 12 of 12: NONE of them picks `not_doing`, so a
+      change scoped to that one option value cannot reach them. The earlier figure
+      is for a far broader change and must not be quoted against this one.
+
       THE LEVER IS ONE OPTION, NOT THE PROSE: `not_doing` accounts for 16 of
       b2_basis's 120 answers and for both undeclared-shape failures, while
       `consequence` (30 answers) produces one. A change scoped to when `not_doing`
