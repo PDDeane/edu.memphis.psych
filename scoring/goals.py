@@ -51,6 +51,47 @@ CITE = re.compile(r"\b(?:sub)?goal ([A-Z]+)(\d+)\b")
 # goal is never closed without asking; this is where the asking is recorded.
 # Re-opening and re-closing needs a fresh entry, because the second closure is a
 # second decision.
+# GOALS MOVED FROM ONE SERIES TO THE OTHER, old label -> (new label, why). A
+# refile is not a deletion, but it looks exactly like one to the deletion check,
+# so it has to say so -- and the check verifies the new label EXISTS, which is
+# what stops "refiled" becoming a way to make an entry disappear.
+#
+# A REFILED LABEL IS ALSO SPENT. `next_label` allocates from the maximum in use,
+# and a refiled number is cited in commits and in the new entry's own history
+# note, so reissuing it would make two different subgoals answer to one name.
+REFILED: dict[str, tuple[str, str]] = {
+    "Q38": ("E40", "filed in the wrong series on 2026-09-04 and moved the same "
+                   "day. The deliverable decides the series, not the finding "
+                   "(subgoal E25 states the test): this one's deliverable is a "
+                   "change to measured._live_subgoal_owners plus a fire test, "
+                   "which is audit machinery, and subgoal E37 introduced that "
+                   "map in the first place."),
+}
+
+
+# WHICH SECTION EACH SERIES LIVES IN. Exact across the corpus: 35 Q-goals are in
+# the quality-control section and 32 E-goals in the equivalence one, with no
+# exceptions -- so a label filed into the other section is a mistake rather than a
+# style.
+SERIES_SECTION: dict[str, str] = {
+    "Q": "quality control",
+    "E": "enforcing equivalence",
+}
+
+# WHAT THE SERIES MEANS, quoted where the allocator will be read. Subgoal E25's
+# entry states the test and it is not mechanisable: "its FINDING is about accuracy
+# but its DELIVERABLE is a primitive conversion ... That is the audit's own
+# direction of travel." A CONTENT DISCRIMINATOR WAS BUILT AND REJECTED: scoring
+# audit-vocabulary against QC-vocabulary across all 67 entries, Q tops out at 0.42
+# and E's median is 0.35, and the case that motivated it -- E40, misfiled as Q38 --
+# scores 0.30, BELOW the highest Q. It would have confirmed the mistake it was
+# written to catch, so it is not shipped. The judgement stays with the reader; what
+# the code enforces is that the label and the section agree.
+SERIES_TEST = ("the DELIVERABLE decides the series, not the finding: a subgoal "
+               "whose deliverable is a check, a declaration table or the audit's "
+               "own machinery is an E, however much it discusses cells and gold")
+
+
 CLOSURES_APPROVED: dict[str, str] = {
     "Q37": "closed 2026-09-04 on the user's confirmation. Its three items were "
            "done, and its WARNING became structural rather than narrative: "
@@ -86,6 +127,13 @@ def next_label(prefix: str = "Q") -> str:
     """
     text = GOALS.read_text()
     used = [int(m.group(3)) for m in ENTRY.finditer(text) if m.group(2) == prefix]
+    # SPENT LABELS COUNT TOO. A refiled number no longer appears as an entry, so
+    # the maximum drops and the allocator offers it again -- it offered Q38 back
+    # the moment Q38 became E40, while Q38 was still cited in a commit message
+    # and in E40's own history note. Two subgoals answering to one name is the
+    # thing this function exists to prevent.
+    used += [int(l[len(prefix):]) for l in REFILED
+             if l.startswith(prefix) and l[len(prefix):].isdigit()]
     return f"{prefix}{(max(used) + 1) if used else 1}"
 
 
@@ -136,6 +184,15 @@ def check() -> list[str]:
     #    elsewhere and its record is the reason the work is not redone.
     for label, (_state, title) in before.items():
         if label not in now:
+            moved = REFILED.get(label)
+            if moved:
+                if moved[0] in now:
+                    continue                  # declared, and the target exists
+                bad.append(
+                    f"{GOALS.name}: goal {label} is declared REFILED to "
+                    f"{moved[0]}, but {moved[0]} is not an entry in the file. A "
+                    f"refile that points nowhere is a deletion with a note on it")
+                continue
             bad.append(
                 f"{GOALS.name}: goal {label} ('{title[:60]}') was in the committed "
                 f"file and is GONE. Goals are closed with `- [x]`, never deleted — "
@@ -154,10 +211,34 @@ def check() -> list[str]:
     return bad
 
 
+def misfiled_series() -> list[str]:
+    """Entries whose label series does not match the section they are filed in."""
+    out: list[str] = []
+    sec = None
+    for n, line in enumerate(GOALS.read_text().splitlines(), 1):
+        if re.match(r"^## ", line):
+            sec = line[3:]
+            continue
+        m = ENTRY.match(line)
+        if not m:
+            continue
+        want = SERIES_SECTION.get(m.group(2))
+        if want and sec is not None and want not in sec:
+            out.append(
+                f"{GOALS.name}:{n} {m.group(2)}{m.group(3)} is filed under "
+                f"'{sec[:44]}' but the {m.group(2)} series lives in the "
+                f"'{want}' section. Move the entry, or the label is wrong -- "
+                f"{SERIES_TEST}")
+    return out
+
+
 def main(argv: list[str]) -> int:
     if "--next" in argv:
         i = argv.index("--next")
-        print(next_label(argv[i + 1] if len(argv) > i + 1 else "Q"))
+        pre = argv[i + 1] if len(argv) > i + 1 else "Q"
+        print(next_label(pre))
+        print(f"  ({pre} lives in the '{SERIES_SECTION.get(pre, '?')}' section. "
+              f"{SERIES_TEST}.)")
         return 0
     if "--list" in argv:
         for label, (state, title) in entries(GOALS.read_text()).items():
@@ -172,7 +253,7 @@ def main(argv: list[str]) -> int:
         print("\n".join(f"  ! {x}" for x in s) if s
               else "  no open goal quotes a slot figure older than the instrument")
         return 1 if s else 0
-    bad = check()
+    bad = check() + misfiled_series()
     if bad:
         print("\n".join(f"  ! {b}" for b in bad))
         return 1
