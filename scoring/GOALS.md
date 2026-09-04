@@ -6793,6 +6793,49 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       reads `given` = 2 on all twelve runs and only `wgb_inverts_utb` varies,
       `absent` on the seven wrong and `met` on the five right.
 
+      == (d) WRITTEN 2026-09-04: PERSISTENCE IS NOT RESTATEMENT. NOT YET SWEPT ==
+      The corrected attribution above put the reasons count at 9 of the 17 wrong
+      runs, so it was read out in full. ONLY SIX CELLS EVER REJECT A STATEMENT, and
+      the split is total:
+        CORRECT, and each must keep its refusal --
+          p3   rejects both, gold charges -3   the harm of the unwanted behaviour
+          p6   rejects one,  gold charges -1   "become a more active PERSON with
+                                               more motivation and discipline"
+          p18  rejects one,  gold charges -1   a present condition blamed on not
+                                               having done the goal behaviour
+        WRONG, and gold is SILENT on all three --
+          p11  1 of 12   "...will help me SUSTAIN a healthy lifestyle OVER TIME"
+          p14  1 of 12   "...the perfect start into easing my way into BECOMING A
+                          HABIT"
+          p16  3 of 12   "It will also help me get and STAY in better shape"
+      THE THREE WRONG ONES ARE ORDINARY GOODS CARRYING DURATION LANGUAGE, and the
+      model is reading persistence as goal-restatement. A benefit that lasts is
+      still a benefit. The one CORRECT refusal that also uses "become" names a KIND
+      OF PERSON, which is what clause (ii) is actually for.
+      SO CLAUSE (ii) NOW SAYS SO: a good does not become a restatement by being
+      described as LASTING; refuse under that head only where the statement names
+      the goal itself, or the person who performs it, and leaves no good standing.
+      Written into both `rule` and `desc`.
+      SAFE BY CONSTRUCTION ON THE CONTROLS, which is why it was worth writing when
+      three earlier wording attempts on this item were not: none of the three
+      correct refusals is a persistence-good. p3's are harm restatements, p18's is
+      a present condition, and p6's is a person-type. The rule cannot reach them.
+      A POSITIONAL HYPOTHESIS WAS TESTED AND REFUTED FIRST, recorded so it is not
+      re-tried: the rejected statement is the LAST one on p6, p11 and p16, which
+      looked like a late-position effect and would have linked to subgoal Q19's
+      later-box gradient. p14's rejected statement is the FIRST of three. Not
+      positional.
+      AND IT IS THE SAME AXIS ERROR AS (a) AND (b), a third time in one day: (a)
+      refused a statement for CONTAINING A COST, (b) refused a state for what might
+      ALSO PRODUCE IT, and this refused a good for MENTIONING THAT IT CONTINUES.
+      Three slots, one mistake -- judging a statement by a feature it carries
+      rather than by what it names. That pattern is the finding; the three cells
+      are the occasion.
+      PREDICTED: p11 and p14 to 12 of 12, p16 to 12 of 12, p3/p6/p18 unmoved.
+      p6 REMAINS THE ONE TO WATCH anyway, for a different reason: its 8 of 12 is an
+      under-COUNT at the listing stage -- `reasons_listed` reads 2 on a response
+      holding 3, in three python runs -- which this rule does not touch.
+
       Three of this subgoal's cells were being read as merely unstable and are in
       fact RECORDED WRONG -- counted wrong by the per-cell median, not wobbling
       around it. With Q2/p16 claimed below that is four, on an item the ledger

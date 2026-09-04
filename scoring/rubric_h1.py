@@ -733,7 +733,12 @@ ITEMS: list[dict] = [
                         "the GOAL is not a benefit of "
                         "it either: saying they will become the kind of person who "
                         "does the goal behaviour names the goal again and earns "
-                        "nothing. Statements about why the UTB is bad belong to Q1 and "
+                        "nothing. But a good does not become a restatement by being "
+                        "described as LASTING: saying a benefit will continue, or that "
+                        "the behaviour will become settled practice, says how long the "
+                        "good holds rather than naming the goal again, and a benefit "
+                        "that lasts is still a benefit. "
+                        "Statements about why the UTB is bad belong to Q1 and "
                         "earn nothing here either — a response whose reasons are all "
                         "of that kind scores 0. Answer 3 for three or more",
                             # MIGRATED from olx_prompts.SLOT_NOTES 2026-08-29 (E11), verbatim -- the web checklist looks up `rule` first, so its prompt does not move.
@@ -763,10 +768,16 @@ ITEMS: list[dict] = [
                          "naming governs, and the cost that follows is the reason offered FOR it. Do "
                          "not refuse a statement merely because a cost appears in it. (ii) A "
                          "restatement of the goal or of the problem it solves: saying they "
-                         "will become the kind of person who does the goal behaviour names "
+                         "will become the KIND OF PERSON who does the goal behaviour names "
                          "the goal again, not a benefit of it; so is a remark that "
                          "attributes their present condition to not having done the goal "
-                         "behaviour. (iii) A statement that says the same thing as one "
+                         "behaviour. BUT A GOOD DOES NOT BECOME A RESTATEMENT BY BEING "
+                         "DESCRIBED AS LASTING. Saying that a benefit will CONTINUE, or that "
+                         "the behaviour will become settled practice, says HOW LONG the good "
+                         "holds; it does not name the goal again, and a benefit that lasts is "
+                         "still a benefit. Refuse under this head only where the statement "
+                         "names the goal itself, or the person who performs it, and leaves no "
+                         "good of its own standing. (iii) A statement that says the same thing as one "
                          "already counted. Answer 3 for three or more that survive all three "
                          "tests",
 },
