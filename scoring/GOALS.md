@@ -951,6 +951,42 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       thresholds; two implementations of one rule is the class this project keeps
       closing, and it has recurred twice already in the ranking alone.
 
+      == BUILT 2026-09-04, THE SAME DAY IT WAS FILED, WHILE THE SWEEP RAN ==
+      `record()` now takes each of the item's cells' bands FIRST -- before the
+      ledger is loaded or written -- and stores them on the entry as
+      `bands_before`. Taken first because `cell_bands` reads the SAVED ledger, so
+      after `save()` the prior band is gone; it {{corpus:Q4b/p13:modify:42:58:sha=ed0e48693398}} about a
+      measurement that cannot be recovered afterwards, since the artifact keeps
+      the runs and git keeps the entry.
+      IT DERIVES AND DOES NOT RE-DERIVE, which this entry made a condition: the
+      capture calls `cell_bands()` and keeps what it returns. No threshold is
+      repeated at the record site.
+      `band_moves(item, side)` READS IT BACK and reports what moved, and
+      `record()` prints it at the moment the question is asked -- the only moment
+      both bands are in hand. There is also `measured.py --moves [ITEM] [SIDE]`.
+      IT IS SILENT ABOUT WHAT DID NOT MOVE, and explicit about what it cannot
+      know: an entry recorded before this existed reports "no prior band to
+      compare", NOT "did not move". Those are different facts and sharing a
+      channel is what made `rescore_recorded` report 1b, T1 and T2 as evidence
+      that a neutrality claim was false.
+      FIRE-TESTED ON BOTH ARMS, because the useful one is the arm that fires.
+      Recording DAY2's real olx artifact stored bands for all 18 cells and
+      `band_moves` correctly reported no movement, the ledger being restored
+      afterwards so the fire test left no measurement behind. The DETECTION arm
+      was then driven with stored bands that disagree with the current ones, and
+      reported `Q2/p10 perfect -> wrong_by_median (1 of 12)` and `Q2/p16
+      always_wrong -> on_the_line (6 of 12)` while staying silent on the cell that
+      had not moved.
+      THE FIRST REAL USE IS ALREADY QUEUED, by luck of timing: the four-item sweep
+      running when this landed had not yet recorded anything, so Q2, DAY1, WK1 and
+      WK2 will each carry the bands their cells were in BEFORE subgoal Q17's three
+      edits and subgoal Q22's revert -- which is exactly the comparison both of
+      those subgoals pre-registered and would otherwise have had written by hand.
+      NOT DONE, and deliberately: this is not surfaced in `preflight`. It belongs
+      next to a recording rather than next to a readiness check, and there is no
+      case for a third place to read it from until something has been recorded on
+      both sides with bands present.
+
 - [x] E41. **The numerator contains coin flips: 63 cells the per-cell median
       counts RIGHT are not reliably right, and nothing tracks them.**
       FILED AS Q39 AND REFILED AS E41 THE SAME DAY -- the SECOND misfiling of the
