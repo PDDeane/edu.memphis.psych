@@ -473,6 +473,41 @@ ITEMS: list[dict] = [
             # p10 and p17 both answer `absent` today (11 of 12 and 12 of 12) and
             # both are CORRECT -- gold charges each -2 -- so they are the controls
             # this change must not move, not misses.
+            #
+            # == MEASURED, AND THE FIRST FORM OF THIS WAS WRONG ==
+            # The clause above first asked whether the state COULD BE REACHED BY
+            # THIS BEHAVIOUR AND LITTLE ELSE. Swept on the python side, 6 runs:
+            # it made p18 WORSE, from `absent` in 7 of 12 to `absent` in 6 of 6 --
+            # deterministically wrong, which means the model was applying it
+            # confidently. The reason is plain once stated: being in condition has
+            # more than one route, so "and little else" EXCLUDES the very cell the
+            # clause was written to rescue. A reachability test refuses any state
+            # a second behaviour could also produce, which is nearly all of them.
+            #
+            # THE READOUT OF ALL TWENTY CELLS IS WHAT FOUND THE RIGHT AXIS, and it
+            # is the WGB texts rather than the scores that show it. Seventeen cells
+            # name a DOING -- exercise more, work out, eat vegetables, cut screen
+            # time, get eight hours -- and this slot answers `met` on every one, 6
+            # of 6. Only three name something else, and TWO of those are the same
+            # grammatical shape:
+            #   p18  a state, no doing named   gold charges NOTHING
+            #   p10  a state, no doing named   gold charges -2
+            #   p17  a countable target        gold charges -2
+            # So the shape cannot be the test. What separates p18 from p10 is that
+            # p18's state names THE THING THE BEHAVIOUR ACTS ON, so a reader can
+            # tell which behaviour is meant, while p10's names no such thing at all
+            # -- a routine OF WHAT? Those words fit any behaviour whatever. p17 is
+            # handled by the units clause, which was already right.
+            #
+            # SO THE TEST IS WHAT THE STATE NAMES, not what could produce it --
+            # which is the SAME correction `reasons_given` needed in problem (a)
+            # on the same day, where clause (i) refused statements for containing a
+            # cost rather than for naming nothing. Two slots, one error: judging a
+            # statement by what might be true of it instead of by what it says.
+            # Correct on all twenty by construction: the seventeen doings are
+            # untouched, p18 names its thing, p10 names none, p17 is a target in
+            # foreign units, p7 names a different activity.
+            # NOT YET SWEPT in this form.
             {
                 "what": "wgb_inverts_utb",
                 "pts": 2.0,
@@ -530,13 +565,15 @@ ITEMS: list[dict] = [
                         "produce, counted in units the behaviour is not. A goal "
                         "stating the same behaviour's positive STATE PASSES: the "
                         "condition of having done it is the inversion, phrased as "
-                        "a state. The test is whether that state could be reached "
-                        "by this behaviour AND LITTLE ELSE — a condition only the "
-                        "behaviour the UTB names alone would yield is that behaviour's "
-                        "own, while one that any self-improvement would serve names "
-                        "no behaviour and fails. A quantified target in foreign "
-                        "units fails even where a fitting state is named alongside "
-                        "it. Full credit is the same behaviour turned "
+                        "a state. The test is WHAT THE STATE NAMES, not what could "
+                        "produce it: does it name the thing the behaviour acts on, "
+                        "so a reader can tell which behaviour is meant? Then it is "
+                        "that behaviour's own condition. A state naming no such "
+                        "thing — a routine, a habit, a consistency — would fit any "
+                        "behaviour at all and fails. Do not refuse a state merely "
+                        "because some other behaviour could also produce it. A "
+                        "quantified target in foreign units fails even where it "
+                        "names the right thing. Full credit is the same behaviour turned "
                         "around — the UTB names a behaviour there is too much or "
                         "too little of, and the goal says to do that same "
                         "behaviour less, or more. What FAILS is a goal naming "
@@ -557,18 +594,21 @@ ITEMS: list[dict] = [
                          "outcome the behaviour is supposed to produce, in units the "
                          "behaviour is not counted in — is not the behaviour either. But the "
                          "same behaviour's own positive STATE is `met`, and what separates it from the "
-                         "two failures above is WHETHER THAT STATE COULD BE REACHED BY THIS BEHAVIOUR "
-                         "AND LITTLE ELSE. A state that only the behaviour the UTB names would "
-                         "produce is that behaviour's own condition named as a state, the inversion "
-                         "phrased as a condition, and the graders charged nothing for it. A state that "
-                         "ANY self-improvement would serve equally well names no behaviour at all and "
-                         "fails as a general condition — ask whether the words would fit a student "
-                         "working on some entirely different behaviour, and if they would, this is not "
-                         "stated. And a QUANTIFIED TARGET in units the behaviour is not counted in "
-                         "fails EVEN WHERE the response names a fitting state alongside it: once a "
-                         "response commits to a countable target foreign to the behaviour, that is the "
-                         "goal it has set, and a softer phrase added after does not rescue it. So a "
-                         "different measure of the right behaviour fails; the right behaviour's own "
+                         "two failures above is WHAT THE STATE NAMES, not what could bring it about. Do "
+                         "NOT ask whether some other behaviour might also produce it: almost any state "
+                         "has more than one route, and asking that question refuses states the graders "
+                         "credited. Ask instead whether the state NAMES THE THING THE BEHAVIOUR ACTS "
+                         "ON, so that a reader can tell WHICH behaviour is meant — a condition of the "
+                         "very thing the UTB's behaviour is performed on. That is the behaviour's own "
+                         "condition named as a state, and the graders charged nothing for it. What FAILS "
+                         "is a state naming NO such thing at all — a routine, a habit, a consistency, a "
+                         "discipline, with nothing said about what it is a routine OF. Those words would "
+                         "sit unchanged on a student working on any behaviour whatever, so no goal "
+                         "behaviour has been stated and this is `absent`. And a QUANTIFIED TARGET in "
+                         "units the behaviour is not counted in fails EVEN WHERE it does name the right "
+                         "thing: once a response commits to a countable target foreign to the behaviour, "
+                         "that is the goal it has set, and a softer phrase added after does not rescue "
+                         "it. So a different measure of the right behaviour fails; the right behaviour's own "
                          "state passes. A goal naming a DIFFERENT ACTIVITY fails here too — one "
                          "that describes what the student will do INSTEAD never says to do "
                          "less of the behaviour the UTB names. Answer `absent` for that here "
