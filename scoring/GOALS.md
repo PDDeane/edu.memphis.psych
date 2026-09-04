@@ -4797,7 +4797,11 @@ because it can be fixed or declared; a wobbling cell cannot be either.
                                   more strongly than before -- 79, not 45)
           you_arrange_it          66 refusals   7 in wrong cells   89%  (was 71%)
           targets_goal_behavior   31 refusals   5 in wrong cells   84%  (was 62%)
-          phrased_directly       117 refusals  10 in wrong cells   91%  (advisory)
+          phrased_directly       117 refusals  10 in wrong cells   91%
+                                 (advisory ON NR, and on six of its eight
+                                 siblings -- but it GATES on DAY1, deliberately;
+                                 see subgoal Q26. Any statement that this slot
+                                 'cannot deduct' is item-specific.)
       SO THE MONOTONE CLAIM NEEDS RE-MEASURING BEFORE IT IS USED AGAIN. It reads
       "the more often the gate fires, the less precise it is" off PR 100%, PP
       100%, NP 89%, NR 71%. NR's own point has moved to 89%, which puts it level
@@ -6391,6 +6395,58 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       DO NOT "FIX" IT BY MEASUREMENT ALONE. DAY1 scores 17/18 on both engines
       WITH the gate, so removing it is not obviously free; and if it is intentional,
       removing it loses a judgement gold may be making. Decide the intent first.
+
+      == ANSWERED 2026-09-04: (a) INTENTIONAL, AND MEASURED WHEN DECIDED ==
+      The record settles it, and it is in handouts.py's retirement note for
+      ADDED_AVERSIVE_NAMED, not in the OLX: "DAY1/p8 fixed by making avoidance
+      framing GATE on that item. Of the five DAY1 cells where that check answers
+      absent, gold scores four of them 0, so honouring it cost nothing and gained
+      the cell. 9 of 9." So the `!` is what RETIRED a declared gold divergence on
+      2026-08-24. It was a decision, and it was measured.
+      IT COSTS EVEN LESS NOW. Re-checked over twelve pooled runs: exactly five
+      DAY1 cells ever answer `absent` -- p1, p6, p8, p10, p18 -- and gold scores
+      ALL FIVE 0.0, the fifth having arrived when DAY1/p1's gold was corrected. The
+      slot refuses 43 times across 216 observations and coincides with no wrong
+      cell. So Q20's DAY1 numbers stand as real, which is what answer (a) predicted.
+      WHY IT WAS HARD TO ANSWER, which is the reusable part: a comment in
+      olx_prompts.py still described the PRE-2026-08-24 decision -- "its decision
+      is to FLAG AND NEVER DEDUCT" -- citing a declaration that the gating change
+      had itself retired. Read alone it says the `!` is a typo. Both statements
+      were in the record and only one was current. Corrected.
+      TWO STATEMENTS FIXED WITH IT: that comment, and subgoal Q21's precision
+      table, which called `phrased_directly` "advisory, cannot deduct" -- true of
+      NR and false of DAY1. Any claim about this slot is item-specific.
+
+      == AND THE CHECK EXISTS: enforcement.check_sibling_items_agree_on_gates ==
+      Sibling sheets must price a shared slot the same. It compares EFFECTIVE COST
+      (a gate costs the item's max, a point slot its points, an advisory nothing)
+      rather than the `gates` flag, because its first version's first finding was
+      an artefact: `matches_chosen_type` gates on D1/D2 and deducts 2 on the
+      four-point items, and D1/D2 are TWO-point items, so the sheets already agree
+      on what the judgement is worth. Its second was another -- item 3 and Q5
+      sharing the generic names `example_1`/`example_2` across different handouts
+      -- and a RATIO cannot exclude that pair, measured: their Jaccard overlap is
+      0.60 against DAY1/NR's 0.52. Siblinghood is therefore same handout plus at
+      least six shared slots; the operant family shares 11 to 18, those pairs share 3.
+
+      == QUEUED, BEHIND THE Q22 SWEEP: RENAME RATHER THAN DECLARE ==
+      Agreed 2026-09-04. A declaration is a standing exemption that can go stale;
+      a naming invariant cannot. If two sheets price a question differently they
+      are not asking the same question, and the shared name is what made Q21's
+      statement wrong. So DAY1's gated variant is to be RENAMED --
+      `phrased_directly_gate`, suffixed by what DIFFERS rather than by the item,
+      so a second item that ever gates the same check shares the name instead of
+      minting a third -- and olx_prompts.GATE_ASYMMETRIES is then DELETED rather
+      than maintained, with the check becoming a no-exemptions invariant.
+      IT CANNOT BE DONE UNTIL THE SWEEP LANDS. A rename changes prompt text, DAY1
+      is mid-sweep on Q22's cadence rule, and regenerating now would re-point a
+      running measurement at a different prompt. It also moves DAY1's prompt sha,
+      so DAY1 needs re-sweeping on both sides afterwards -- about 240 calls.
+      THE RIPPLE IS 46 REFERENCES and none in the load-bearing tables: 16 in the
+      generated OLX (rewritten by --write), 18 in GOALS.md prose, 5 in
+      enforcement.py, 3 in olx_prompts.py, and one each in canonicalise_verdicts,
+      equivalence and score.py. GOLD_SLOT_CHARGES and PROSE_ONLY_SLOTS name it
+      nowhere, so nothing has to be re-keyed.
 
 
 ## THEN
