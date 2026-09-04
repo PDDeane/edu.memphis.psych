@@ -790,247 +790,6 @@ occasionally.
 
 ---
 
-## 2b1. SPEND NOTHING ON WHAT A FREE CHECK CAN SETTLE FIRST
-
-**Every rule in this guide that can be tested without model calls belongs in the
-PREFLIGHT, not in the reader's memory.** A sweep costs hundreds of calls and an
-hour; the checks that would have stopped a bad one cost seconds and no calls at
-all. The policy is therefore not "run the checks when you remember" but: before
-anything spends, run everything that can run for free, and treat a finding as a
-refusal rather than a note.
-
-This is implemented, not aspirational. `agreement.cheap_checks_gate` is the
-structural suite and both harnesses now run it -- the app side did NOT until
-2026-09-03, which meant a finding that stopped one engine silently let the other
-through. Alongside it, `check_idmap_is_current` refuses a dump that predates the
-current prompt, `check_fixture_is_not_corrupt` refuses a fixture whose boxes are
-not the student's words, and the leakage and probe gates refuse before the first
-call.
-
-**The bar for adding a check to the gate is not "could this break the sweep".**
-It is "could this make the sweep WORTHLESS", and that includes making its reading
-wrong rather than its execution fail:
-
-* a fixture whose boxes hold a placeholder rather than the response measured a
-  placeholder, and the change under test read as refuted when it had never been
-  tested -- 120 calls;
-* an idmap dumped while a reverted rule was live re-measured the reverted rule --
-  a whole sweep;
-* gold read from the wrong handout's sheet, or a slot diff taken against a
-  vocabulary gold cannot use, produce a clean-looking number answering a
-  different question. Both are now in the gate for exactly that reason.
-
-**And the cheapest check of all is reading.** Section 2e's all-cells pass makes no
-calls and killed a rule that had already survived every mechanical gate. Before
-launching, ask what the sweep is supposed to settle, and whether anything on disk
-already settles it -- the artifacts, gold's comments, the responses themselves.
-Several findings in this record were established from artifacts alone, with no
-calls spent, after being proposed as sweeps.
-
-## 2b3. RE-READ EVERY CELL A SUBGOAL OWNS BEFORE ACTING ON IT
-
-**A subgoal's cell list is a claim, and it decays.** Cells get corrected gold,
-the instrument that assigned them gets fixed, other cells get resolved by
-unrelated work. Before writing a rule for a subgoal, read out every cell it owns
-against current data and ask of each one: *is this still an instance of this
-problem?* The ones that are not go to another subgoal with a stated reason.
-
-It is worth the pass because it changes the rule, not just the bookkeeping. On
-Q22 the list of eighteen cells where the gate fired turned out to be:
-
-* THIRTEEN that cost nothing -- eight blank answers where every check fails
-  together, five structural failures where gold also gives zero. They were most
-  of the refusal count the subgoal had been filed on, and every one was correct.
-* ONE that was the rule's PROOF CASE and was not in the entry at all -- the only
-  cell where gold's comment named the defect, right in 12 of 12.
-* THREE whose real defect was a different slot entirely.
-* ONE that was a SUSPECT cell and had never been admissible.
-* Leaving the cells the rule was actually for.
-
-Reading them narrowed the target and produced the discriminator the rule was
-eventually written on. A precision figure computed over the unfiltered list was
-measuring the blanks.
-
-**And read gold's CHARGE, not gold's ADVICE.** A grader comment often docks for
-one thing and then tells the student what a right answer would look like. Every
-feature named in that second half is instruction, not a charge. Reading
-"you should state what you take away at the end of the week" as a cadence
-objection invented a false negative that was not there; the charge was "this is
-not an example of operant conditioning" and nothing else. When a comment both
-charges and advises, the charge is the part with the points attached.
-
-## 2c. A SWEEP DEFAULTS TO python + olx. LAUNCH BOTH UNLESS ASKED FOR ONE
-
-**"Sweep this item" means both engines, without being asked.** They are pooled as
-ONE sample of twelve runs, not compared, so a sweep of one side is not a smaller
-measurement -- it is half a measurement that the ledger will then average against
-six runs from a different era.
-
-**This is a default, not a prohibition.** A one-sided sweep is a legitimate thing
-to ask for -- confirming a single engine's behaviour, re-running a half that
-failed, spending half the calls on a first look -- and when it is asked for, run
-it. What is not legitimate is arriving at one side by omission, or reporting a
-one-sided result as the item's number. If only one side was run, say which, and
-say that the ledger figure still stands on the other side's older runs.
-
-This has now gone wrong in three different ways, which is why it is a rule rather
-than a habit:
-
-* a ledger REFRESHED on one side only, leaving one item's entry half from the new
-  prompt and half from the old;
-* a per-side median quoted as the item's figure, landing on a value no run
-  produced;
-* a prompt change swept on one side while the other still served the previous
-  text -- see the idmap note below, which would have manufactured exactly the
-  engine difference we never reason from.
-
-**Re-take the idmap dump after any prompt change, before the olx sweep** -- the
-app serves the prompt from the dump while the harness parses the .olx directly,
-so between regenerating and re-dumping the two really do send different text.
-This one is ENFORCED, not advised: `agreement_app.check_idmap_is_current`
-refuses to measure against a dump that predates the current prompt, and it exists
-because that gap once silently re-measured a reverted change for a whole sweep.
-Re-dump, confirm the new wording is present and the old wording gone, and let the
-preflight confirm it.
-
-## 2d. KNOW WHICH SOURCE YOU CONSULTED, AND CHECK IT IS THE RIGHT ONE
-
-**The question is not whether a lookup can come back empty. It is whether you
-established that the thing you looked in is the thing that holds the answer.**
-Empty returns are one symptom of getting that wrong; agreeing-by-accident is
-another, and worse, because nothing about it looks like a failure.
-
-This project keeps most of its facts in several parallel sources of the same
-shape -- three gold sheets, four ledger sides, two scoring artifacts, a rubric and
-the .olx generated from it and the idmap dumped from that. Every one of those is a
-valid source of SOMETHING. Consult the wrong member of the family and it answers
-in the right format, with plausible content, and nothing raises:
-
-* a handout-1 gold sheet read for a handout-3 item returned `{}`, which is exactly
-  what an ungraded cell returns;
-* an idmap dumped before a prompt change served a complete, well-formed prompt --
-  the previous one -- and a whole sweep measured a reverted rule;
-* a slot profile read from one artifact shape returned `[]` for every cell of the
-  other engine and reported nothing amiss.
-
-**So the discipline is: derive the source from the question, and assert the
-match.** Not "handle the empty case" -- establish, before reading, that this
-sheet grades this item, that this dump serves this prompt, that this artifact was
-written by this engine. Where the source can be DERIVED, derive it and never
-accept it as a parameter: `gold_cell(item, pid)` computes the handout from the
-item, so the wrong sheet is unreachable rather than guarded. Where it must be
-passed, verify identity at the boundary and REFUSE on mismatch --
-`check_idmap_is_current` and `measured.SIDE_CONTRACT` are both that pattern, and
-both have caught real errors.
-
-Then, and only then, an empty result means what it says. The raise is the
-consequence of knowing the source, not the point.
-
-## 2e. VALIDATE A CANDIDATE RULE AGAINST EVERY VALID CELL BEFORE WRITING IT
-
-**Not against the cells that motivated it, and not against the cells where gold
-speaks. Against ALL of them.** A rule is a claim about every response the item
-will ever see, so the cells that can refute it are mostly the ones nobody was
-looking at -- the cells it currently gets RIGHT.
-
-The pass is cheap and needs no API calls: dump every non-excluded cell of every
-item the rule touches, with the response, gold's score, gold's comment, and what
-the current check answers. Then read them and mark, for each, what the candidate
-rule would answer. Three columns matter and only one of them is the one you were
-thinking about:
-
-  FIXES     cells the rule changes from wrong to right. The motivation.
-  INERT     cells it does not change. Usually the majority, and worth counting --
-            a rule that is inert on 60 of 72 cells is a narrow rule, whatever its
-            prose suggests.
-  BREAKS    cells it changes from RIGHT to wrong. The reason for the pass.
-
-**Q22's cadence rule died in the BREAKS column, on the fourth item read.** The
-rule was "a period coarser than the item's frame contradicts it; a finer one does
-not; a period on the consequence is not the behaviour's cadence; no period stated
-is not a contradiction". It was derived from the eight cells where gold's comment
-speaks to cadence and it classified all eight correctly -- which is exactly why it
-looked finished. Over all 72 valid cells it also:
-
-* broke **DAY2/p9** ("If I don't go to the gym out of the 5 days I will reduce
-  the time I allow myself to binge watch"), where gold gives FULL credit and the
-  current check answers `met` in 12 of 12. The rule reads "out of the 5 days" as
-  coarser than daily and would refuse it -- turning a perfect cell into a wrong
-  one. Its near-twin DAY1/p9, by the SAME participant, is the rule's proof case.
-  The current prose already tells those two apart, 12 of 12 both ways.
-* risked **WK1/p6**, right in 12 of 12 today and held there by a cadence refusal
-  gold never asked for -- gold objects to the contingency's direction. Stop the
-  misfire and the cell falls to whatever else refuses it, which is a gate running
-  at 8 of 12. Right for the wrong reason is a category the totals cannot show you.
-
-Both were invisible from the motivating cells, and both were found by reading
-responses the subgoal had never listed.
-
-**So: no rule is written until its BREAKS column has been read out loud.** If the
-column is empty, say that it was checked and empty -- an unstated absence reads
-as an unperformed check.
-
-**And a non-empty BREAKS column is a REVISION prompt, not a scoping prompt.** The
-first instinct on refutation is to retreat: keep the clauses that survived, drop
-the cells they no longer reach, declare the rest out of scope. Do not stop there.
-A cell that refutes a rule is the most informative cell available, because it is
-the one that knows what the rule got wrong -- so before narrowing anything, ask
-what single statement would account for the WHOLE distribution including the
-refuters.
-
-On Q22 that question had an answer, and it took about ten minutes. The
-directional rule died on DAY2/p9 against DAY1/p9 -- and those two cells are the
-SAME PARTICIPANT writing on two items, which is what made the comparison sharp.
-"5 times out of the week" cannot be judged until occurrences are COUNTED across
-the week; "out of the 5 days" names no count and is judgeable on any one day. So
-the discriminator was never how coarse the period is, it is whether the TRIGGER
-can be evaluated inside one instance of the item's period. That version
-classifies all 72 cells with no contradiction, keeps both refuters, and covers a
-cell the retreat had abandoned. The retreat would have shipped a worse rule with
-a documented loss attached.
-
-Look hardest at refuters that are MINIMAL PAIRS -- same participant, same shape,
-opposite gold. They isolate the variable the way nothing else in the corpus does.
-
-If revision genuinely fails, then narrow -- and the losses go into the
-pre-registration as expected, with their cell ids, BEFORE the sweep. A sweep that
-loses a cell nobody predicted cannot be told apart from a sweep that went wrong.
-
-## 2f. A GATE'S REFUSAL IS INFORMATION, AND A NEW CHECK MUST BE SHOWN TO FIRE
-
-**When a gate refuses, read it before working around it.** Every refusal in this
-project's history has been correct, and several were more informative than the
-work they interrupted:
-
-* **leakage.py refused a rule's prose** because it borrowed two words from the
-  cohort. The words were `free` and `felt` — the distinguishing vocabulary of the
-  two cells the rule was written to charge. Enumerating examples of the failing
-  shape had quietly copied the answers being graded. Rewriting abstractly was
-  both safer and a better rule.
-* **the arithmetic audit refused an `onlyif`** with `2a CANNOT ZERO`: the guard
-  capped the slot floor so `BLANK`'s −6 became unreachable. The guard went, and
-  the cell it protected turned out not to need it.
-* **the side contract refused three artifacts** that could not say which model
-  produced them, which is why two items' ledger entries had to be re-swept rather
-  than refreshed from disk.
-* **`CHECK NEVER RUNS`** reported a verifier that was registered but never
-  invoked — "it reads as coverage and enforces nothing".
-
-**And a check is not finished until it has been seen to fail.** Two were written
-here that could not have caught anything:
-
-* `check_no_declaration_cites_a_suspect_cell` was **green by construction**: its
-  item→handout map used `str(item)` where `ITEMS` holds dicts, so it keyed on dict
-  reprs, matched nothing, and reported a clean corpus. A five-way fire test caught
-  it.
-* the fixture check needed **three wrong versions** — reading raw evidence (13
-  findings on a correct tree), comparing a box against the wrong item's section
-  (72 false positives), and a verbatim test that flagged a faithful hand split.
-
-So: inject the breakage the check exists for, confirm the finding appears, restore,
-confirm it clears. Add a self-test case so the retirement path is tested too. A
-check nobody has watched fail is a comment.
-
 ## 2a. TRY THE STRUCTURAL FIX FIRST
 
 **When a cell resists, change the SHAPE of what the model is asked, not the
@@ -1471,6 +1230,247 @@ Two traps inside that check:
 The ownership check in 2d reports a cell wrong on EITHER side, which is right —
 the cell is still not being scored correctly. What this section governs is the
 diagnosis that follows, not whether the cell gets an owner.
+
+## 2f. SPEND NOTHING ON WHAT A FREE CHECK CAN SETTLE FIRST
+
+**Every rule in this guide that can be tested without model calls belongs in the
+PREFLIGHT, not in the reader's memory.** A sweep costs hundreds of calls and an
+hour; the checks that would have stopped a bad one cost seconds and no calls at
+all. The policy is therefore not "run the checks when you remember" but: before
+anything spends, run everything that can run for free, and treat a finding as a
+refusal rather than a note.
+
+This is implemented, not aspirational. `agreement.cheap_checks_gate` is the
+structural suite and both harnesses now run it -- the app side did NOT until
+2026-09-03, which meant a finding that stopped one engine silently let the other
+through. Alongside it, `check_idmap_is_current` refuses a dump that predates the
+current prompt, `check_fixture_is_not_corrupt` refuses a fixture whose boxes are
+not the student's words, and the leakage and probe gates refuse before the first
+call.
+
+**The bar for adding a check to the gate is not "could this break the sweep".**
+It is "could this make the sweep WORTHLESS", and that includes making its reading
+wrong rather than its execution fail:
+
+* a fixture whose boxes hold a placeholder rather than the response measured a
+  placeholder, and the change under test read as refuted when it had never been
+  tested -- 120 calls;
+* an idmap dumped while a reverted rule was live re-measured the reverted rule --
+  a whole sweep;
+* gold read from the wrong handout's sheet, or a slot diff taken against a
+  vocabulary gold cannot use, produce a clean-looking number answering a
+  different question. Both are now in the gate for exactly that reason.
+
+**And the cheapest check of all is reading.** Section 2j's all-cells pass makes no
+calls and killed a rule that had already survived every mechanical gate. Before
+launching, ask what the sweep is supposed to settle, and whether anything on disk
+already settles it -- the artifacts, gold's comments, the responses themselves.
+Several findings in this record were established from artifacts alone, with no
+calls spent, after being proposed as sweeps.
+
+## 2g. RE-READ EVERY CELL A SUBGOAL OWNS BEFORE ACTING ON IT
+
+**A subgoal's cell list is a claim, and it decays.** Cells get corrected gold,
+the instrument that assigned them gets fixed, other cells get resolved by
+unrelated work. Before writing a rule for a subgoal, read out every cell it owns
+against current data and ask of each one: *is this still an instance of this
+problem?* The ones that are not go to another subgoal with a stated reason.
+
+It is worth the pass because it changes the rule, not just the bookkeeping. On
+Q22 the list of eighteen cells where the gate fired turned out to be:
+
+* THIRTEEN that cost nothing -- eight blank answers where every check fails
+  together, five structural failures where gold also gives zero. They were most
+  of the refusal count the subgoal had been filed on, and every one was correct.
+* ONE that was the rule's PROOF CASE and was not in the entry at all -- the only
+  cell where gold's comment named the defect, right in 12 of 12.
+* THREE whose real defect was a different slot entirely.
+* ONE that was a SUSPECT cell and had never been admissible.
+* Leaving the cells the rule was actually for.
+
+Reading them narrowed the target and produced the discriminator the rule was
+eventually written on. A precision figure computed over the unfiltered list was
+measuring the blanks.
+
+**And read gold's CHARGE, not gold's ADVICE.** A grader comment often docks for
+one thing and then tells the student what a right answer would look like. Every
+feature named in that second half is instruction, not a charge. Reading
+"you should state what you take away at the end of the week" as a cadence
+objection invented a false negative that was not there; the charge was "this is
+not an example of operant conditioning" and nothing else. When a comment both
+charges and advises, the charge is the part with the points attached.
+
+## 2h. A SWEEP DEFAULTS TO python + olx. LAUNCH BOTH UNLESS ASKED FOR ONE
+
+**"Sweep this item" means both engines, without being asked.** They are pooled as
+ONE sample of twelve runs, not compared, so a sweep of one side is not a smaller
+measurement -- it is half a measurement that the ledger will then average against
+six runs from a different era.
+
+**This is a default, not a prohibition.** A one-sided sweep is a legitimate thing
+to ask for -- confirming a single engine's behaviour, re-running a half that
+failed, spending half the calls on a first look -- and when it is asked for, run
+it. What is not legitimate is arriving at one side by omission, or reporting a
+one-sided result as the item's number. If only one side was run, say which, and
+say that the ledger figure still stands on the other side's older runs.
+
+This has now gone wrong in three different ways, which is why it is a rule rather
+than a habit:
+
+* a ledger REFRESHED on one side only, leaving one item's entry half from the new
+  prompt and half from the old;
+* a per-side median quoted as the item's figure, landing on a value no run
+  produced;
+* a prompt change swept on one side while the other still served the previous
+  text -- see the idmap note below, which would have manufactured exactly the
+  engine difference we never reason from.
+
+**Re-take the idmap dump after any prompt change, before the olx sweep** -- the
+app serves the prompt from the dump while the harness parses the .olx directly,
+so between regenerating and re-dumping the two really do send different text.
+This one is ENFORCED, not advised: `agreement_app.check_idmap_is_current`
+refuses to measure against a dump that predates the current prompt, and it exists
+because that gap once silently re-measured a reverted change for a whole sweep.
+Re-dump, confirm the new wording is present and the old wording gone, and let the
+preflight confirm it.
+
+## 2i. KNOW WHICH SOURCE YOU CONSULTED, AND CHECK IT IS THE RIGHT ONE
+
+**The question is not whether a lookup can come back empty. It is whether you
+established that the thing you looked in is the thing that holds the answer.**
+Empty returns are one symptom of getting that wrong; agreeing-by-accident is
+another, and worse, because nothing about it looks like a failure.
+
+This project keeps most of its facts in several parallel sources of the same
+shape -- three gold sheets, four ledger sides, two scoring artifacts, a rubric and
+the .olx generated from it and the idmap dumped from that. Every one of those is a
+valid source of SOMETHING. Consult the wrong member of the family and it answers
+in the right format, with plausible content, and nothing raises:
+
+* a handout-1 gold sheet read for a handout-3 item returned `{}`, which is exactly
+  what an ungraded cell returns;
+* an idmap dumped before a prompt change served a complete, well-formed prompt --
+  the previous one -- and a whole sweep measured a reverted rule;
+* a slot profile read from one artifact shape returned `[]` for every cell of the
+  other engine and reported nothing amiss.
+
+**So the discipline is: derive the source from the question, and assert the
+match.** Not "handle the empty case" -- establish, before reading, that this
+sheet grades this item, that this dump serves this prompt, that this artifact was
+written by this engine. Where the source can be DERIVED, derive it and never
+accept it as a parameter: `gold_cell(item, pid)` computes the handout from the
+item, so the wrong sheet is unreachable rather than guarded. Where it must be
+passed, verify identity at the boundary and REFUSE on mismatch --
+`check_idmap_is_current` and `measured.SIDE_CONTRACT` are both that pattern, and
+both have caught real errors.
+
+Then, and only then, an empty result means what it says. The raise is the
+consequence of knowing the source, not the point.
+
+## 2j. VALIDATE A CANDIDATE RULE AGAINST EVERY VALID CELL BEFORE WRITING IT
+
+**Not against the cells that motivated it, and not against the cells where gold
+speaks. Against ALL of them.** A rule is a claim about every response the item
+will ever see, so the cells that can refute it are mostly the ones nobody was
+looking at -- the cells it currently gets RIGHT.
+
+The pass is cheap and needs no API calls: dump every non-excluded cell of every
+item the rule touches, with the response, gold's score, gold's comment, and what
+the current check answers. Then read them and mark, for each, what the candidate
+rule would answer. Three columns matter and only one of them is the one you were
+thinking about:
+
+  FIXES     cells the rule changes from wrong to right. The motivation.
+  INERT     cells it does not change. Usually the majority, and worth counting --
+            a rule that is inert on 60 of 72 cells is a narrow rule, whatever its
+            prose suggests.
+  BREAKS    cells it changes from RIGHT to wrong. The reason for the pass.
+
+**Q22's cadence rule died in the BREAKS column, on the fourth item read.** The
+rule was "a period coarser than the item's frame contradicts it; a finer one does
+not; a period on the consequence is not the behaviour's cadence; no period stated
+is not a contradiction". It was derived from the eight cells where gold's comment
+speaks to cadence and it classified all eight correctly -- which is exactly why it
+looked finished. Over all 72 valid cells it also:
+
+* broke **DAY2/p9** ("If I don't go to the gym out of the 5 days I will reduce
+  the time I allow myself to binge watch"), where gold gives FULL credit and the
+  current check answers `met` in 12 of 12. The rule reads "out of the 5 days" as
+  coarser than daily and would refuse it -- turning a perfect cell into a wrong
+  one. Its near-twin DAY1/p9, by the SAME participant, is the rule's proof case.
+  The current prose already tells those two apart, 12 of 12 both ways.
+* risked **WK1/p6**, right in 12 of 12 today and held there by a cadence refusal
+  gold never asked for -- gold objects to the contingency's direction. Stop the
+  misfire and the cell falls to whatever else refuses it, which is a gate running
+  at 8 of 12. Right for the wrong reason is a category the totals cannot show you.
+
+Both were invisible from the motivating cells, and both were found by reading
+responses the subgoal had never listed.
+
+**So: no rule is written until its BREAKS column has been read out loud.** If the
+column is empty, say that it was checked and empty -- an unstated absence reads
+as an unperformed check.
+
+**And a non-empty BREAKS column is a REVISION prompt, not a scoping prompt.** The
+first instinct on refutation is to retreat: keep the clauses that survived, drop
+the cells they no longer reach, declare the rest out of scope. Do not stop there.
+A cell that refutes a rule is the most informative cell available, because it is
+the one that knows what the rule got wrong -- so before narrowing anything, ask
+what single statement would account for the WHOLE distribution including the
+refuters.
+
+On Q22 that question had an answer, and it took about ten minutes. The
+directional rule died on DAY2/p9 against DAY1/p9 -- and those two cells are the
+SAME PARTICIPANT writing on two items, which is what made the comparison sharp.
+"5 times out of the week" cannot be judged until occurrences are COUNTED across
+the week; "out of the 5 days" names no count and is judgeable on any one day. So
+the discriminator was never how coarse the period is, it is whether the TRIGGER
+can be evaluated inside one instance of the item's period. That version
+classifies all 72 cells with no contradiction, keeps both refuters, and covers a
+cell the retreat had abandoned. The retreat would have shipped a worse rule with
+a documented loss attached.
+
+Look hardest at refuters that are MINIMAL PAIRS -- same participant, same shape,
+opposite gold. They isolate the variable the way nothing else in the corpus does.
+
+If revision genuinely fails, then narrow -- and the losses go into the
+pre-registration as expected, with their cell ids, BEFORE the sweep. A sweep that
+loses a cell nobody predicted cannot be told apart from a sweep that went wrong.
+
+## 2k. A GATE'S REFUSAL IS INFORMATION, AND A NEW CHECK MUST BE SHOWN TO FIRE
+
+**When a gate refuses, read it before working around it.** Every refusal in this
+project's history has been correct, and several were more informative than the
+work they interrupted:
+
+* **leakage.py refused a rule's prose** because it borrowed two words from the
+  cohort. The words were `free` and `felt` — the distinguishing vocabulary of the
+  two cells the rule was written to charge. Enumerating examples of the failing
+  shape had quietly copied the answers being graded. Rewriting abstractly was
+  both safer and a better rule.
+* **the arithmetic audit refused an `onlyif`** with `2a CANNOT ZERO`: the guard
+  capped the slot floor so `BLANK`'s −6 became unreachable. The guard went, and
+  the cell it protected turned out not to need it.
+* **the side contract refused three artifacts** that could not say which model
+  produced them, which is why two items' ledger entries had to be re-swept rather
+  than refreshed from disk.
+* **`CHECK NEVER RUNS`** reported a verifier that was registered but never
+  invoked — "it reads as coverage and enforces nothing".
+
+**And a check is not finished until it has been seen to fail.** Two were written
+here that could not have caught anything:
+
+* `check_no_declaration_cites_a_suspect_cell` was **green by construction**: its
+  item→handout map used `str(item)` where `ITEMS` holds dicts, so it keyed on dict
+  reprs, matched nothing, and reported a clean corpus. A five-way fire test caught
+  it.
+* the fixture check needed **three wrong versions** — reading raw evidence (13
+  findings on a correct tree), comparing a box against the wrong item's section
+  (72 false positives), and a verbatim test that flagged a faithful hand split.
+
+So: inject the breakage the check exists for, confirm the finding appears, restore,
+confirm it clears. Add a self-test case so the retirement path is tested too. A
+check nobody has watched fail is a comment.
 
 ## 3. Building the model
 
