@@ -922,7 +922,36 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       divergence class this project exists to close, so when this lands the
       ranking must consume the shared map instead of carrying its own resolution.
 
-- [ ] E41. **The numerator contains coin flips: 63 cells the per-cell median
+- [ ] E42. **Nothing records what band a cell was in when a change was measured,
+      so "did this rule gain a stable cell" is still answered by hand.**
+      Filed 2026-09-04 as subgoal E41's declared residual, on closing it. E41
+      built `measured.cell_bands()`, which answers "what band is this cell in
+      NOW"; the question a rule change actually needs is "what band was it in
+      BEFORE", and that is not recorded anywhere.
+      WHY IT MATTERS RATHER THAN BEING TIDINESS. QUALITY_CONTROL.md 2c tells the
+      reader to ask whether a change "gained a STABLE cell or pushed a coin flip
+      across the median line". With the bands derived, that question is now
+      answerable -- but only against TODAY's ledger, so it can be asked before a
+      sweep and not after one. Once the sweep is recorded the prior band is gone,
+      and the comparison the section asks for has to be reconstructed from memory
+      or from a commit message, which is where a figure and its instrument come
+      apart (subgoal Q37's whole subject).
+      IT HAS ALREADY BITTEN TWICE IN ONE DAY, which is the argument for building
+      it: subgoal Q22's WK2/p11 and subgoal Q17's Q2/p16 both needed "was this
+      cell on the line BEFORE the change?" answered, and both times the answer was
+      carried in prose written by hand into the entry, with the band quoted from a
+      run of `cell_bands()` that no artifact preserves.
+      THE DELIVERABLE: record each cell's band alongside the measurement that
+      produced it, so a recorded sweep carries the band its cells were in when it
+      landed, and a later reader can ask what moved without trusting prose. The
+      recording step is where it belongs -- `measured.py --record` already writes
+      the ledger entry and already knows the runs.
+      DO NOT MAKE IT A SECOND BAND IMPLEMENTATION. The bands must come from
+      `cell_bands()` and not be recomputed at record time with their own
+      thresholds; two implementations of one rule is the class this project keeps
+      closing, and it has recurred twice already in the ranking alone.
+
+- [x] E41. **The numerator contains coin flips: 63 cells the per-cell median
       counts RIGHT are not reliably right, and nothing tracks them.**
       FILED AS Q39 AND REFILED AS E41 THE SAME DAY -- the SECOND misfiling of the
       day, and the reminder had already fired. `goals.py --next Q` printed the
@@ -940,6 +969,13 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
            63  INSIDE THE NUMERATOR BUT UNSTABLE
            12  wrong by median
            12  wrong in every run
+      RE-DERIVED 2026-09-04 AFTER DAY2's RE-SWEEP, because these figures move
+      whenever anything is re-recorded and the four above were measured before it:
+          404  perfect      59  unstable      5  on_the_line
+           11  wrong by median             12  wrong in every run
+      The shape of the finding is unchanged -- the unstable band is still five
+      times the wrong-by-median one -- but a figure quoted from this entry should
+      be taken from `measured.cell_bands()`, which is the point of having built it.
       So there are more than TWICE as many counted-right-but-flipping cells as
       counted-wrong ones, and the shakiest end is thin:
            7/12    4 cells      barely above chance, booked as successes
@@ -987,6 +1023,9 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       "Is this cell unstable" has 63 answers; "would one run change what we
       record" has six, and those six are where a rule change is least
       distinguishable from noise.
+      WK2/p11 HAS SINCE LEFT THAT LIST, so it is now five: subgoal Q22's cadence
+      work moved it, which is exactly the use this band was built for -- the cell
+      changed band, and the band said so without anyone re-reading it.
       AND WK2/p11 IS ONE OF SUBGOAL Q22's TARGET CELLS, at 6 of 12 counted wrong.
       Q22's pre-registration expects the cadence rule to fix it; if it lands right
       by ONE run that is not evidence, and the diagnosis has to say so.
@@ -1021,9 +1060,11 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       subgoal Q17 on the evidence that it fails `reason_3`, one of Q17's own
       slots, in exactly 6 of 12 runs. THE OTHER FIVE STILL NEED HOMES, and this
       entry should not be read as providing them.
-      RESIDUAL: "a rule change can be judged against the band a cell was in
-      before it" is now possible by hand and is not automated. Nothing records a
-      cell's band at the time a change was measured.
+      RESIDUAL, REFILED 2026-09-04 AS SUBGOAL E42: "a rule change can be judged
+      against the band a cell was in before it" is possible by hand and is not
+      automated. Nothing records a cell's band at the time a change was measured.
+      It is refiled rather than closed over, because it is the half of this
+      subgoal's deliverable that was never built.
 
       WHAT NOT TO DO: do not re-sweep to "settle" them. Twelve runs is already the
       deepest measurement in this project, and a cell at 7 of 12 is not
@@ -4110,6 +4151,34 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       COUNT THAT FIRST. It costs no API calls: the phrase table for Q5 does not
       exist yet, but Q5 has only two cells with itemised gold, and the rest of the
       item's comments can be read directly.
+
+      == TWO CELLS MOVED HERE 2026-09-04 FROM SUBGOAL E41, WITH EVIDENCE ==
+      Both are over-charges, which is this subgoal's whole subject, and E41 could
+      not close while it was their only owner. Neither was visible to
+      `wrong_cells_without_an_owner`, because both are counted RIGHT by the
+      per-cell median and that check only sees cells wrong by it -- the laundering
+      E41 itself documented, found on E41's own closure.
+        Q5/p9   gold 5.00, we score 2.50 in 4 of 12 runs, failing `example_2`.
+                AND IT ANSWERS THE QUESTION THIS SUBGOAL ASKED ABOVE. "Does gold
+                EVER charge an effect-dressed-as-reason on this item?" Here gold
+                WROTE ABOUT the weakness and charged nothing for it:
+                "Explain how your second reason is a reason you are choosing to
+                not exercise." That is not a silent full-marks row, which is
+                subgoal Q31's class and turns on the total alone. It is a grader
+                who saw the second reason, said so, and declined to deduct -- so
+                on this item the answer to the question above is at least once NO,
+                and the effect-vs-payoff clause is stricter than the grader on a
+                cell gold discussed explicitly.
+        1c/p16  gold 6.00, we score 4.00 in 4 of 12 runs. Gold charges exactly the
+                two axis labels -- "-2 pts: missing x-axis title -2 pts: missing
+                y-axis title" -- and we fail `title` ON TOP of both in a third of
+                runs. `x_axis_label` and `y_axis_label` are correct every time.
+                It is the same shape as 1c/p11 which this subgoal already owns:
+                one extra refusal on a chart slot gold itemised without it.
+      NEITHER IS A REASON TO SWEEP. Both sit at 8 of 12 in the
+      `unstable_counted_right` band, and E41's closing instruction applies -- a
+      cell at 8 of 12 is not under-measured, it is ambiguous, and re-running it
+      buys nothing.
 
 - [ ] Q29. **Q2's `wgb_is_counterpart` GATES for 5 where gold charges 2, and it flips.**
       Filed 2026-08-31 from E30's accounting. Q2/p10 is the demonstration and the
