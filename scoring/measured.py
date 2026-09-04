@@ -3521,7 +3521,20 @@ def rescore_recorded(item: str, side: str) -> tuple[int, list[str], str | None]:
     doc = _runs_doc(item, side)
     if doc is None:
         return 0, [], "no recorded artifact"
-    h = _jobs()[item]["handout"]
+    # THE JOB LOOKUP BELONGS INSIDE THE GUARD, and it was outside it until the
+    # self-test's own "an item leaves JOBS" injection crashed the whole run with
+    # KeyError: '1b' on 2026-09-04. That injection pops an item from the job
+    # table and then runs the full audit, which is exactly the state this has to
+    # survive: a check that raises under a mutation reports NOTHING, so one
+    # unguarded lookup silently disabled all 63 cases rather than failing one.
+    # "Not in the job table" is a not-comparable fact like "no comparable sheet",
+    # so it takes the same third channel -- but with its own words, because the
+    # two are different facts and 2j applies to the reasons as much as to the
+    # channels.
+    try:
+        h = _jobs()[item]["handout"]
+    except KeyError:
+        return 0, [], "not in the job table"
     try:
         spec = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
         rub = H.config(h)["rubric"].BY_ID[item]
