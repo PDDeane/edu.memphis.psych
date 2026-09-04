@@ -3272,7 +3272,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       never right, which made "nine cells" mean less than it looked.
 
 
-- [ ] Q37. **THE SLOT PROFILE WAS BLIND TO GATES, AND TO THE APP'S COUNTS.
+- [x] Q37. **THE SLOT PROFILE WAS BLIND TO GATES, AND TO THE APP'S COUNTS.
       Every slot-level conclusion drawn before 2026-09-03 was drawn through it.**
       Filed 2026-09-03 out of subgoal Q22's readout, which could not be done
       until this was fixed. Two independent blindnesses in
@@ -3321,7 +3321,33 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       `measured._gold_nameable_slots`; outside gold's vocabulary is UNDECIDABLE,
       not disagreed. `enforcement.check_gold_comparisons_share_an_alphabet` makes
       it a static rule with an empty exemption table.
-      WHAT IS LEFT TO DO HERE, since the code is fixed and committed:
+      CLOSED 2026-09-04, and what closed it is that the WARNING stopped being
+      prose. The objection to closing this earlier was that its own text was the
+      only record of why other subgoals' slot figures might be wrong -- so
+      retiring the entry would retire the knowledge. `goals.stale_slot_claims`
+      now dates every slot figure in an OPEN goal against the last change to
+      `_our_failing_slots` / `_charging_slots` / `_gold_nameable_slots` and
+      reports it as preflight step 5b, on the same principle as `prompt_sha` and
+      STALE PROMPT one level up. The knowledge is derived, so it survives this
+      entry.
+      THE BACKLOG IT NAMED IS CLEARED. Fourteen stale slot figures across Q9,
+      Q10, Q16, Q17, Q20, Q21, Q30 and Q35 were re-derived from artifacts on
+      disk, at no call cost. Three had moved substantively rather than merely
+      scaling from six runs to twelve: DAY1's structural gates went from 18/6,
+      23/6, 26/6 to 35/0, 50/0, 56/0, which removes the "DAY1 is the exception"
+      claim from subgoal Q20; 2a's `mechanism_named` went from every run to half;
+      and 1c/p11's gold had been corrected under the entry that cited it. Q14 and
+      Q36 needed nothing -- Q36's figures postdate the fix and Q14 quotes none.
+      AND THE CONVENTION THAT PREVENTS THE NEXT ONE is in the guide, approved:
+      name the cell and the slot, not the count. A figure typed into a sentence
+      has nothing checking it; `measured.py --errors` and `--refusals` regenerate
+      per-slot figures for free.
+      ONE LIMIT, stated so it is not discovered as a surprise: the check matches a
+      slot name and a count on the SAME LINE, so a figure separated from its slot
+      by a line break escapes it. The convention is the remedy, not a cleverer
+      matcher.
+
+      WHAT WAS LEFT TO DO WHEN THIS WAS FILED:
         1. RE-READ the per-slot claims in Q19, Q20, Q21, Q29 against the
            gate-aware profile, the way Q20's seven were re-read. Cheap -- no API
            calls -- and it is the only way to know which of them survive.
