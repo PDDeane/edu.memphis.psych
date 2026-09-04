@@ -675,6 +675,8 @@ def enforcement_audit():
         findings.append(("-", "GUIDE STRUCTURE HAS DRIFTED", bad))
     for bad in ENF.check_guide_lessons_are_approved():
         findings.append(("-", "GUIDE LESSON NOT APPROVED", bad))
+    for bad in ENF.check_goals_record_is_intact():
+        findings.append(("-", "GOALS RECORD DAMAGED", bad))
     for bad in ENF.check_probe_reach_limits_still_apply():
         findings.append(("-", "PROBE-REACH EXCUSE OUTLIVED ITS RULE", bad))
     for bad in ENF.check_computed_slot_recovery_is_faithful():
@@ -913,7 +915,7 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 61
+SELFTEST_EXPECTED = 62
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1718,6 +1720,23 @@ def enforcement_selftest():
                      {"code": "PROBE", "cells": [("NR", 4)], "why": "injected"}),
                  lambda: _HH.GOLD_DIVERGENCES.pop(),
                  want="CELL BOTH CORRECTED AND DECLARED")
+
+    # A GOAL CLOSED WITHOUT THE USER AGREEING, added 2026-09-04. GOALS.md states
+    # that rule itself and nothing enforced it; it was broken once by closing a
+    # subgoal inside a recording step. The injection flips one open checkbox.
+    _gl = _pl2.Path(__file__).resolve().parent / "GOALS.md"
+    _goals_src = _gl.read_text()
+
+    def _close_one():
+        import re as _re
+        m = _re.search(r"^- \[ \] Q\d+\. .*$", _goals_src, _re.M)
+        _gl.write_text(_goals_src.replace(
+            m.group(0), m.group(0).replace("- [ ]", "- [x]", 1), 1))
+
+    _scorer_case("a goal is closed without approval",
+                 _close_one,
+                 lambda: _gl.write_text(_goals_src),
+                 want="GOALS RECORD DAMAGED")
 
     # A LESSON ADDED TO THE GUIDE WITHOUT THE USER'S AGREEMENT, added 2026-09-04
     # on the user's instruction that the asking be enforced rather than
