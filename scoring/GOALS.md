@@ -1871,7 +1871,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       artifacts costs nothing -- `_cell_scores` already has both sides -- and
       belongs beside check_every_wrong_cell_has_an_owner, which walks the same
       cells. What it must NOT do is report every cell whose medians differ:
-      QUALITY_CONTROL.md 2e records that three of Q32's five "divergences" were
+      QUALITY_CONTROL.md 2f records that three of Q32's five "divergences" were
       one observation apart, and a check with that threshold would be noise. Three
       of six is the threshold used above and it should be justified or replaced
       before the check lands.
@@ -2072,7 +2072,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
           1a/p15, Q4a/p20 and Q4b/p8 as CONTROLS, precisely because we score
           them right. Ownership takes any mention; "evidence has moved" takes
           only a TITLE mention.
-      Documented as QUALITY_CONTROL.md §2d, next to §2b's after-every-sweep
+      Documented as QUALITY_CONTROL.md §2e, next to §2b's after-every-sweep
       error profile, since the two are the same discipline at different grain.
       NOT DONE, deliberately: the check reads the RECORDED ledger, so it is only
       as current as the last `measured.py --record`. It cannot tell a cell that
@@ -2577,7 +2577,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       p12 are the cells to watch -- p12 because it is where the two paths already
       disagree 6-of-6 against 11-of-12.
       STOPPED BEFORE IMPLEMENTING, 2026-08-28, on three findings from reading the
-      record first (§2c). The design is ready; the decision is not mine.
+      record first (§2d). The design is ready; the decision is not mine.
       (i) THIS TEST WAS ALREADY MEASURED AND REJECTED. handouts.py records it, in
           prose form, on 3 runs: counted [14,13,13] -> [15,12,14], p4 moving 0/3 ->
           1/3 and the four gold credits holding. Not adopted, and for a reason the
@@ -2621,7 +2621,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       referent test moves and the four judgement conditions stay, the entries
       REMAIN and their reasons must be rewritten to say so.
 
-- [x] E7. **§2c's recorded-comment lookup is blind to all twelve H2 items.** FIXED
+- [x] E7. **§2d's recorded-comment lookup is blind to all twelve H2 items.** FIXED
       2026-08-28. `prior_record` found an item's comments by searching for a literal
       `"id": "DAY1"` line and scanning to the next `"id":`. rubric_h2 builds its
       items from a factory, so no H2 item ever matched and the hook printed "could
@@ -2650,7 +2650,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       general decisions written early and measured findings piling up at the bottom,
       so `block[:3]` was showing the oldest and cutting the newest. Q1 has six runs
       and now surfaces rubric_h1.py:246-279 -- the `reasons_given` counting rule,
-      which is the comment §2c was written about after ~900 calls were spent
+      which is the comment §2d was written about after ~900 calls were spent
       rediscovering it. The earlier blocks are NAMED with their line spans and a
       `sed` command rather than dropped, because a later comment routinely assumes
       an earlier one: "the same rule" and "reverted again" mean nothing without
@@ -2658,7 +2658,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
 
       AS FOUND, for the record: the hook reported `could not read rubric_h2.py:
       StopIteration` on every H2 `--write`, visibly, for as long as rubric_h2 has
-      been a factory. §2c is a discipline the record is supposed to enforce
+      been a factory. §2d is a discipline the record is supposed to enforce
       automatically, and on the handout with the most recorded dead ends it
       enforced nothing. Pre-existing, not caused by the subgoal E6 work that
       surfaced it.
@@ -3717,7 +3717,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       difference as an engine defect, check the per-run agreement rate on both
       sides: if the two are within one run of each other, there is nothing to fix
       in either engine and the cell belongs to whichever subgoal owns its unstable
-      slot. Recorded in QUALITY_CONTROL.md 2e.
+      slot. Recorded in QUALITY_CONTROL.md 2f.
       WHAT IS LEFT. Nothing in this subgoal is an equivalence defect: four cells
       are instability owned elsewhere, and the fifth is a provider disagreement
       about one judgement. The cells stay listed here so the 2d ownership check
@@ -3737,7 +3737,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       keeping. It was filed by the ownership check on its first run and found
       five cells a one-sided accounting could not see; that part held. What did
       not hold was reading a median difference as an engine difference --
-      QUALITY_CONTROL 2e records three of the five being ONE observation apart,
+      QUALITY_CONTROL 2f records three of the five being ONE observation apart,
       and the exact test later showed the whole corpus has no power to
       distinguish the sides at six runs each.
 
@@ -4433,7 +4433,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           DAY1/p11, DAY2/p11, WK2/p15  no period -> met, and gold never charges
                    cadence on any of them.
       THE DIRECTIONAL RULE IS REFUTED, checked against all 72 valid cells of the
-      four items before writing it (QUALITY_CONTROL.md 2j, which this is the case
+      four items before writing it (QUALITY_CONTROL.md 2k, which this is the case
       that produced). It classifies the eight gold-speaking cells correctly and
       then loses two it currently gets right:
         DAY2/p9  BREAKS, and this is the fatal one. "If I don't go to the gym out
@@ -5547,7 +5547,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       analysis, which correctly describes what gold does even though no wording of
       it ever paid for itself; and three disciplines that came out of the failure
       -- §2a structure before prose, §2b profile errors by slot after every sweep,
-      §2c read what is already recorded, the last now enforced by the `--write`
+      §2d read what is already recorded, the last now enforced by the `--write`
       hook. The full history is in drafts/q1q2_reasons_rule.md.
 - [x] Q7. **Q4b's per-cell instability, which the item median hides.** Two cells
       POOLED, 2026-09-01, THE PREMISE IS GONE. This entry exists because a single
@@ -5562,7 +5562,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       not hiding instability here; it was hiding a disagreement.
       CLOSE CANDIDATE, to ask about: nothing in it is live, and its
       methodological point -- that a median hides per-cell variance -- is now
-      carried by QUALITY_CONTROL.md 2e and by the pooling note at the top of this
+      carried by QUALITY_CONTROL.md 2f and by the pooling note at the top of this
       file, both of which say it with measurements.
       went from six clean runs to intermittent across two sweeps of IDENTICAL
       prompt text: p17 6/6 -> 4/6, failing `modify_stated`, and p19 6/6 -> 3/6,
@@ -5587,7 +5587,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       twelve runs. The median was not hiding variance on this item; it was hiding
       a disagreement, which is subgoal Q34's and Q19's territory.
       ITS METHODOLOGICAL POINT SURVIVES ELSEWHERE, with measurements rather than
-      as an assertion: QUALITY_CONTROL.md 2e on why a median comparison
+      as an assertion: QUALITY_CONTROL.md 2f on why a median comparison
       manufactures divergences, and the pooling note at the top of this file.
 
 - [x] Q8. **A count slot outside the rubric's `counts` records nothing.**
@@ -5759,7 +5759,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       THE COST OF NOT READING THE RECORD: eleven configurations and ~900 calls
       went into a merge rule first, while the comment above the component already
       named the conditional, classified every cell with gold < 3, and diagnosed
-      p9. The restoration took ~60 calls. §2c now enforces the check that would
+      p9. The restoration took ~60 calls. §2d now enforces the check that would
       have prevented it.
 - [x] 12b. **Q1/p9 DECLARED: `GARBLED_CLAUSE_READ_LITERALLY`.** Twelve
       configurations, rates 1/6 3/6 6/6 3/6 4/6 2/6 1/6 1/6 4/6 4/6 3/6 1/6. The

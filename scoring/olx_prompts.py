@@ -2773,7 +2773,7 @@ def _items_whose_prompt_changed(handout: int, old: str, new: str) -> list[str]:
 def prior_record(item: str) -> str:
     """Everything already RECORDED about an item, printed where a rule is changed.
 
-    QUALITY_CONTROL.md §2c exists because a day was spent rewriting Q1's
+    QUALITY_CONTROL.md §2d exists because a day was spent rewriting Q1's
     `reasons_given` while the comment directly above the component already named
     gold's conditional structure, classified every cell with gold < 3, and
     diagnosed the one failing cell as a `harms_listed` misclassification rather
@@ -2792,7 +2792,7 @@ def prior_record(item: str) -> str:
     import os.path
 
     h = HANDOUT.get(item)
-    lines = [f"  ---- what is already recorded about {item} (QUALITY_CONTROL.md §2c) ----"]
+    lines = [f"  ---- what is already recorded about {item} (QUALITY_CONTROL.md §2d) ----"]
 
     # 1. Substantial comment blocks about this item in its rubric.
     #
@@ -2801,7 +2801,7 @@ def prior_record(item: str) -> str:
     # only where the rubric is written as a list of literal dicts. rubric_h2 builds
     # its twelve items from a factory, so no H2 item ever matched: the hook printed
     # "could not read rubric_h2.py: StopIteration" on every H2 --write, silently,
-    # and §2c enforced nothing on the handout with the most recorded dead ends.
+    # and §2d enforced nothing on the handout with the most recorded dead ends.
     #
     # A comment counts as being about this item when the item is named within a few
     # lines below it -- which covers a comment above a dict entry, above an
@@ -2870,7 +2870,7 @@ def prior_record(item: str) -> str:
         # THE LATEST BLOCKS, not the first ones. An entry accumulates: the general
         # decisions are written early and the measured findings pile up at the
         # bottom, so `block[:3]` showed the oldest and cut the newest. Q1 has six
-        # runs and the `reasons_given` material -- the comment §2c was written
+        # runs and the `reasons_given` material -- the comment §2d was written
         # about, after ~900 calls were spent rediscovering it -- is in the last
         # two.
         #
@@ -3061,7 +3061,7 @@ def main() -> int:
                       + "; ".join(touched), file=sys.stderr)
                 print(f"H{h}: sweep those items and compare numerators against "
                       f"the last baseline BEFORE committing", file=sys.stderr)
-            # §2c, enforced where it matters: the record is pushed AT the change.
+            # §2d, enforced where it matters: the record is pushed AT the change.
             for it in _items_whose_prompt_changed(h, old, new):
                 print(prior_record(it), file=sys.stderr)
         elif a.check:
