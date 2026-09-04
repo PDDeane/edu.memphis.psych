@@ -51,7 +51,13 @@ CITE = re.compile(r"\b(?:sub)?goal ([A-Z]+)(\d+)\b")
 # goal is never closed without asking; this is where the asking is recorded.
 # Re-opening and re-closing needs a fresh entry, because the second closure is a
 # second decision.
-CLOSURES_APPROVED: dict[str, str] = {}
+CLOSURES_APPROVED: dict[str, str] = {
+    "Q37": "closed 2026-09-04 on the user's confirmation. Its three items were "
+           "done, and its WARNING became structural rather than narrative: "
+           "stale_slot_claims dates every slot figure in an open goal against "
+           "the profile that produced it, so closing the entry no longer loses "
+           "the knowledge that a figure may predate its instrument",
+}
 
 
 def entries(text: str) -> dict[str, tuple[str, str]]:
