@@ -3996,7 +3996,7 @@ def _live_subgoal_owners() -> dict:
     try:
         text = (Path(__file__).resolve().parent / "GOALS.md").read_text()
     except OSError:
-        return {"any": {}, "title": {}, "by_side": {}}
+        return {"any": {}, "title": {}, "subject": {}, "by_side": {}}
     # TWO KINDS OF MENTION, and the asymmetry between them is the point.
     #
     # ANY mention makes a subgoal an OWNER: a subgoal listing cells is a home for
@@ -4021,10 +4021,20 @@ def _live_subgoal_owners() -> dict:
     # it has any, else the SUBGOAL TITLE's, else every side: Q33's title says "on
     # the PAPER scorer", so its body lines inherit paper rather than claiming
     # everything by omission.
-    owners: dict = {"any": {}, "title": {}, "by_side": {}}
+    owners: dict = {"any": {}, "title": {}, "subject": {}, "by_side": {}}
     current = None
     title_sides: frozenset = frozenset()
     for line in text.splitlines():
+        # AN ENTRY ENDS AT THE NEXT ENTRY *OR* THE NEXT HEADING. Without the
+        # heading, the LAST labelled entry of a section swallows everything after
+        # it: subgoal Q26 is the last before `## THEN` and was owning D2/p11,
+        # WK1/p7, Q4b/p12 and DAY2/p7 out of prose that is not its entry at all.
+        # That WEAKENS the check it feeds -- a cell counts as owned by a subgoal
+        # that never discusses it -- which is the opposite of a false alarm and
+        # so leaves no trace. Subgoal E40.
+        if re.match(r"^#{1,3} ", line):
+            current, title_sides, title_items = None, frozenset(), set()
+            continue
         m = re.match(r"- \[( |x)\] ([EQ]\d+)\.", line)
         is_title = bool(m)
         if m:
@@ -4041,9 +4051,33 @@ def _live_subgoal_owners() -> dict:
         if current is None:
             continue
         here = _sides_named(line) or title_sides or frozenset(_EVALUATED_SIDES)
+        # A CELL WRITTEN AS BARE `pN` IS STILL THIS SUBGOAL'S, when its title
+        # names the item. Subgoal E40: matching only `item/pN` lost the cells
+        # subgoals actually own. Q14's cells were written "p10 and p18" and Q18's
+        # as bare `p12` under a title naming Q4b, so Q1/p10 was attributed to Q20
+        # on three passing mentions and Q4b/p12 to Q19 and Q26 on one each, while
+        # the two subgoals those cells are ABOUT owned nothing. Seven open entries
+        # were affected. The audit never noticed because
+        # wrong_cells_without_an_owner asks only whether SOME subgoal owns a cell.
+        #
+        # `subject` is the new, STRONGER claim: the item comes from this entry's
+        # own title, so the entry is about the cell rather than mentioning it.
+        # `any` stays generous -- it exists so no wrong cell goes unlooked-at --
+        # and `title` still means "written out in the title line".
+        resolved = {f"{it}/p{n}" for it in title_items
+                    for n in re.findall(r"(?<![\w/])p(\d{1,2})\b", line)}
+        for key in sorted(resolved):
+            owners["subject"].setdefault(key, []).append(current)
+            if key not in owners["any"] or current not in owners["any"][key]:
+                owners["any"].setdefault(key, []).append(current)
+            for side in here:
+                owners["by_side"].setdefault(key, {}).setdefault(
+                    side, []).append(current)
         for cell in re.findall(r"\b([A-Za-z0-9]{1,4})/p(\d{1,2})\b", line):
             key = f"{cell[0]}/p{cell[1]}"
             owners["any"].setdefault(key, []).append(current)
+            if cell[0] in title_items:
+                owners["subject"].setdefault(key, []).append(current)
             # A TITLE THAT NAMES ITS ITEMS CANNOT OWN ANOTHER ITEM'S CELL by an
             # aside. This is the gap that actually mattered, and it is not the
             # side gap it was first taken for. 1a/p6 was over-credited on the
