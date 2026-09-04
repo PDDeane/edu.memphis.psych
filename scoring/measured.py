@@ -2277,6 +2277,12 @@ def preflight() -> dict[str, list[str]]:
         # conversation. So it is DERIVED here every time preflight runs -- there is
         # no stored ranking to go stale -- and it prints the facts it ordered on
         # rather than a score, because a score cannot be argued with.
+        # STEP 5c. Subgoal E41: the ledger books a cell by its per-cell median, so
+        # a cell one run from crossing that line is recorded as settled. These are
+        # the cells where "the number moved" is the likeliest explanation of a
+        # change, and they are not visible anywhere else.
+        "5c. record — cells one run from changing their own verdict":
+            cells_on_the_median_line(),
         "9. priority — open goals in derived order (facts, not a verdict)":
             _ranked_goals(),
     }
@@ -3407,6 +3413,79 @@ def _runs_doc(item: str, side: str):
 
 _FIXTURES: dict = {}
 _COMPUTED_SLOTS: dict = {}
+
+
+def cell_bands(state: dict | None = None) -> dict:
+    """Every recorded cell's band, pooled over the OLX-prompt sides.
+
+    {cell: (right, runs, band)} where band is one of:
+
+      always_wrong             right in NO run
+      wrong_by_median          counted wrong, but reaches gold sometimes
+      on_the_line              ONE RUN either side of the median -- the verdict
+                               the ledger records would change if a single run
+                               flipped
+      unstable_counted_right   counted right, and not always right
+      perfect                  right in every run
+
+    SUBGOAL E41 EXISTS BECAUSE THE MIDDLE THREE WERE INVISIBLE. The ledger's item
+    figure counts a cell by its per-cell MEDIAN, so a cell right in 7 runs of 12
+    is booked as a success and nothing distinguishes it from one right in 12.
+    Measured when this was written: of 491 cells, 404 are perfect, 63 are counted
+    right while flipping, and only 24 are counted wrong -- so the corpus holds
+    more than twice as many unreliable-but-counted-right cells as wrong ones, and
+    four of the shakiest had no owning subgoal at all because
+    `wrong_cells_without_an_owner` defines "wrong" by the median too.
+
+    `state` is injectable so the band boundaries can be tested on synthetic counts
+    rather than on whatever the corpus happens to contain.
+    """
+    if state is None:
+        state = {}
+        for side in POOLED_OLX_PROMPT:
+            try:
+                led = records(side)
+            except Exception:
+                continue
+            for item, s in led.items():
+                runs = s.get("runs") or 0
+                for pid, n in (s.get("cells") or {}).items():
+                    a = state.setdefault(f"{item}/p{pid}", (0, 0))
+                    state[f"{item}/p{pid}"] = (a[0] + n, a[1] + runs)
+    out = {}
+    for cell, (right, runs) in state.items():
+        if not runs:
+            continue
+        half = runs / 2
+        if right == runs:
+            band = "perfect"
+        elif right == 0:
+            band = "always_wrong"
+        # ON THE LINE: counted right by one run, or counted wrong by one. Those
+        # are the cells whose RECORDED verdict a single run would change, which is
+        # a different and more useful question than "is it unstable".
+        elif right in (int(half) + 1, int(half)) and runs % 2 == 0:
+            band = "on_the_line"
+        elif right > half:
+            band = "unstable_counted_right"
+        else:
+            band = "wrong_by_median"
+        out[cell] = (right, runs, band)
+    return out
+
+
+def cells_on_the_median_line() -> list[str]:
+    """The cells whose recorded verdict one run would change. Preflight step 5c."""
+    rows = [(c, r, n) for c, (r, n, b) in cell_bands().items()
+            if b == "on_the_line"]
+    if not rows:
+        return []
+    out = [f"{len(rows)} cell(s) sit ONE RUN from changing the verdict the ledger "
+           f"records for them — a rule change that moves one is not evidence:"]
+    for cell, r, n in sorted(rows):
+        side = "counted RIGHT" if r > n / 2 else "counted WRONG"
+        out.append(f"    {cell:12} {r}/{n}  {side}")
+    return out
 
 
 def rescore_recorded(item: str, side: str) -> tuple[int, list[str], str | None]:

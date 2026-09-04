@@ -972,6 +972,34 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       the ledger, so "which cells are one run from falling out" should be a
       question the tooling answers. Then the four unowned ones get homes, and a
       rule change can be judged against the band a cell was in before it.
+      == BUILT 2026-09-04, during the WK2 sweep (it touches no prompt) ==
+      `measured.cell_bands` bands every recorded cell from the ledger --
+      always_wrong / wrong_by_median / ON_THE_LINE / unstable_counted_right /
+      perfect -- and `cells_on_the_median_line` is preflight step 5c. The band
+      boundaries are injectable and were fire-tested on synthetic counts from
+      0/12 to 12/12 rather than on whatever the corpus happens to hold, including
+      an odd run count.
+      THE SHARPEST FORM OF THE FINDING IS SMALLER AND MORE USEFUL THAN 63. Six
+      cells sit ONE RUN from changing the verdict the ledger records for them:
+          Q1/p17   7/12 counted RIGHT     Q2/p16   6/12 counted WRONG
+          Q4a/p16  7/12 counted RIGHT     WK2/p11  6/12 counted WRONG
+          Q6/p18   7/12 counted RIGHT     WK2/p15  7/12 counted RIGHT
+      "Is this cell unstable" has 63 answers; "would one run change what we
+      record" has six, and those six are where a rule change is least
+      distinguishable from noise.
+      AND WK2/p11 IS ONE OF SUBGOAL Q22's TARGET CELLS, at 6 of 12 counted wrong.
+      Q22's pre-registration expects the cadence rule to fix it; if it lands right
+      by ONE run that is not evidence, and the diagnosis has to say so.
+      IT ALSO CORRECTED THE RANKING, which had its own thresholds and has now been
+      a duplicate implementation twice. `goals.rank()` consumes these bands, and
+      doing so RECLASSIFIED cells it had been calling merely unstable: Q2/p10 at
+      1/12, Q1/p9 at 3/12, Q2/p7 and Q4b/p13 at 4/12 and Q2/p18 at 5/12 are all
+      RECORDED AS WRONG, not wobbling, so subgoal Q17 rose from seventh to second
+      on three cells that were being understated.
+      RESIDUAL: "a rule change can be judged against the band a cell was in
+      before it" is now possible by hand and is not automated. Nothing records a
+      cell's band at the time a change was measured.
+
       WHAT NOT TO DO: do not re-sweep to "settle" them. Twelve runs is already the
       deepest measurement in this project, and a cell at 7 of 12 is not
       under-measured -- it is genuinely ambiguous, which is a fact about the cell
