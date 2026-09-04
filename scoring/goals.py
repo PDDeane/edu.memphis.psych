@@ -93,6 +93,14 @@ SERIES_TEST = ("the DELIVERABLE decides the series, not the finding: a subgoal "
 
 
 CLOSURES_APPROVED: dict[str, str] = {
+    "E40": "closed 2026-09-04 on the user's confirmation. All four deliverables "
+           "met -- bare `pN` resolves through the title's item in the shared map, "
+           "ownership was fire-tested against the map rather than the regex, "
+           "wrong_cells_without_an_owner held at 0, and the ranking's duplicate "
+           "was deleted. Two defects found while doing it are recorded in the "
+           "entry: the shared map lacked the entry boundary, and deleting the "
+           "duplicate let a paper-side subgoal claim OLX-side cells until "
+           "subject ownership was routed through by_side.",
     "Q37": "closed 2026-09-04 on the user's confirmation. Its three items were "
            "done, and its WARNING became structural rather than narrative: "
            "stale_slot_claims dates every slot figure in an open goal against "
