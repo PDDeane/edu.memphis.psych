@@ -4811,6 +4811,44 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       per-check table now prints gates: DAY2 reads `cadence_is_daily` 125/132
       with 7 false charges and `you_arrange_it` 130/132 with 2.
 
+      == SWEPT AND DIAGNOSED 2026-09-04. FOUR TARGETS OF FIVE, ONE CONTROL LOST ==
+      Both sides, six runs each, against the predictions above.
+      TARGETS:
+          DAY1/p11  cadence 0/12   4.0 x12         12/12 PERFECT  as predicted
+          DAY2/p11  cadence 0/12   2.0 x9, 4.0 x3   9/12          as predicted (~8)
+          WK2/p15   cadence 1/12   2.0 x7, 4.0 x4   7/12          as predicted (~6)
+          WK2/p11   cadence 0/12   2.0 x8, 0.0 x3   8/12 (was 6)  improved; another
+                                                    gate still zeroes three runs
+          DAY2/p8   cadence 5/12   4.0 x7, 0.0 x5   7/12          MISSED
+      CONTROLS: DAY1/p9 12/12 absent and DAY1/p6 12/12 absent both HELD, and
+      WK1/p19 stayed met. WK1/p6 weakened -- absent 4 of 12 where it was 12 of 12
+      -- but the CELL held at 12/12, so the pre-registered risk half-materialised.
+      AND DAY2/p9 BROKE: cadence fires 5 of 12 and the cell fell from 12/12 to
+      7/12.
+      THE RULE'S TWO HALVES PERFORMED OPPOSITELY, which is the finding. Every
+      target whose trigger states NO PERIOD, or only a CONSEQUENCE duration,
+      worked -- DAY1/p11 went to a perfect cell, DAY2/p11 and WK2/p15 landed on
+      their predictions. Every cell that required a NUMBER to be classified as
+      count-or-window failed: DAY2/p8 still fires and DAY2/p9 now fires.
+      DAY2/p9 HAS NOW DEFEATED TWO FORMULATIONS. It was met 12 of 12 under the
+      original prose, broke under the directional draft, and is still broken under
+      the count-versus-window refinement written specifically to protect it. "Out
+      of the 5 days" keeps reading as occasions to tally however the distinction
+      is worded.
+      AND DAY2's UNCHANGED 16/18 IS TWO COIN FLIPS SWAPPED. p8 and p9 are both at
+      7 of 12 -- E41 bands both `on_the_line` -- so neither is evidence either
+      way. The ledger reads +2 cells overall: DAY1 python 17 -> 18 and WK2 olx
+      17 -> 18, with DAY2 and WK1 unmoved.
+      SO THE COUNT-VERSUS-WINDOW CLAUSE IS REVERTED, 2026-09-04, and the ORIGINAL
+      schedule test restored in its place -- "the contingency is plainly settled on
+      the other schedule, a daily slot answered with a whole-period tally" -- which
+      is the formulation that had DAY1/p9 absent 12 of 12 AND DAY2/p9 met 12 of 12.
+      It discriminated the pair correctly and the replacement did not. The two
+      clauses that earned their keep are KEPT: a trigger stating no period passes,
+      and a stretch of time on the CONSEQUENCE never decides. DAY2 is re-sweeping
+      on both sides to test exactly that, with p8 and p9 the pair that decides it
+      and no other item touched.
+
       == THE ENTRY AS FILED 2026-08-28, kept verbatim for the record ==
       (`cadence_is_daily`: a 4-point gate that FLIPS, worst on DAY2.)
       Raised 2026-08-28 from the sweep. Filed here rather than as a goal of its own
@@ -6699,8 +6737,10 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       THE CHECK THIS WANTS IS SUBGOAL E26, split out because it does not depend on
       how this question is answered: whichever way DAY1 goes, sibling items that
       share a slot name should share its gate structure or declare why not.
-      DO NOT "FIX" IT BY MEASUREMENT ALONE. DAY1 scores 17/18 on both engines
-      WITH the gate, so removing it is not obviously free; and if it is intentional,
+      DO NOT "FIX" IT BY MEASUREMENT ALONE. DAY1 previously scored 17/18 on both
+      engines
+      WITH the gate when this was written and scores 18/18 on both now, so
+      removing it is even less obviously free; and if it is intentional,
       removing it loses a judgement gold may be making. Decide the intent first.
 
       == ANSWERED 2026-09-04: (a) INTENTIONAL, AND MEASURED WHEN DECIDED ==
