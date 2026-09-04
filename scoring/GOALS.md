@@ -4415,7 +4415,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           DAY1/p11, DAY2/p11, WK2/p15  no period -> met, and gold never charges
                    cadence on any of them.
       THE DIRECTIONAL RULE IS REFUTED, checked against all 72 valid cells of the
-      four items before writing it (QUALITY_CONTROL.md 2e, which this is the case
+      four items before writing it (QUALITY_CONTROL.md 2j, which this is the case
       that produced). It classifies the eight gold-speaking cells correctly and
       then loses two it currently gets right:
         DAY2/p9  BREAKS, and this is the fatal one. "{{corpus:DAY2/p9:day2:0:116:sha=58afd43fe54a:shape=S7-0a2020202020202020202020202020202020,S21-0a2020202020202020202020202020202020,A8}}" Gold gives FULL credit and
