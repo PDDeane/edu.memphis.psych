@@ -922,6 +922,62 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       divergence class this project exists to close, so when this lands the
       ranking must consume the shared map instead of carrying its own resolution.
 
+- [ ] E41. **The numerator contains coin flips: 63 cells the per-cell median
+      counts RIGHT are not reliably right, and nothing tracks them.**
+      FILED AS Q39 AND REFILED AS E41 THE SAME DAY -- the SECOND misfiling of the
+      day, and the reminder had already fired. `goals.py --next Q` printed the
+      test before this entry was written ("the DELIVERABLE decides the series, not
+      the finding") and it was filed Q anyway, because the FINDING is about
+      scoring quality while the deliverable is a derived band -- the audit's own
+      machinery, like subgoals E37 and E40. Recorded because the section check
+      cannot catch this: a Q label in the quality-control section is CONSISTENT,
+      and a content discriminator was measured and rejected (E40 scored 0.30 on
+      it, below the highest Q). The judgement has no mechanical guard, so the
+      failure mode is worth naming twice.
+      Filed 2026-09-04, measured from artifacts already on disk at no call cost.
+      Across all 491 recorded cells, pooled over the two OLX-prompt sides:
+          404  perfect -- right in every run
+           63  INSIDE THE NUMERATOR BUT UNSTABLE
+           12  wrong by median
+           12  wrong in every run
+      So there are more than TWICE as many counted-right-but-flipping cells as
+      counted-wrong ones, and the shakiest end is thin:
+           7/12    4 cells      barely above chance, booked as successes
+           8/12    8 cells
+           9/12    7 cells
+          10/12   14 cells
+          11/12   30 cells
+      Q4a/p16, Q6/p18, Q1/p17 and WK2/p15 are right in SEVEN runs of twelve.
+      AND FOUR OF THE TWELVE SHAKIEST HAVE NO OWNER AT ALL: 1c/p16, Q4a/p16,
+      Q5/p9, Q6/p18. `wrong_cells_without_an_owner` reports zero because "wrong"
+      is defined by the median, so these sit exactly one notch below the threshold
+      that would make anyone look at them.
+      WHY THIS IS A QUESTION AND NOT AN OBSERVATION, in three parts:
+        AN ITEM'S NUMBER CAN MOVE WITH NOTHING CHANGING. Q4b is 16/19 with four
+          cells at 11/12; one bad run reads 15/19 and a reader looks for a cause
+          that does not exist.
+        IT CORRUPTS THE JUDGEMENT OF RULE CHANGES. QUALITY_CONTROL.md 2c already
+          says to ask whether a change "gained a STABLE cell or pushed a coin flip
+          across the median line" -- but with 63 candidates that is advice nobody
+          can act on, because which cells are candidates is not derivable.
+        IT IS THE HONEST READING OF THE CORPUS. 404 of 491 cells are reliably
+          right. Every item figure in the ledger implies better than that.
+      THIS IS NOT THE REPORTING LESSON ALREADY RECORDED. Section 2c says report
+      the SPREAD OF RUN TOTALS, and `sweep_summary` does. This is one level down:
+      the CELLS composing the numerator include unreliable ones, and no check
+      sees them.
+      THE DELIVERABLE, and the shape is the ranking's: make the instability
+      profile DERIVED rather than a thing someone notices. A cell's band (perfect
+      / unstable-but-counted / wrong-by-median / wrong-always) is computable from
+      the ledger, so "which cells are one run from falling out" should be a
+      question the tooling answers. Then the four unowned ones get homes, and a
+      rule change can be judged against the band a cell was in before it.
+      WHAT NOT TO DO: do not re-sweep to "settle" them. Twelve runs is already the
+      deepest measurement in this project, and a cell at 7 of 12 is not
+      under-measured -- it is genuinely ambiguous, which is a fact about the cell
+      and usually about the response. Section 5: instability is the commonest bad
+      reason to open a declaration, and it is an equally bad reason to spend calls.
+
 - [ ] E28. **A paper sweep the ledger can record, on either model.**
       FIRST NUMBERS RECORDED 2026-09-01, on two items only: Q4a paper 15/20 and
       Q4c paper 17/19, six runs each on gpt-5-mini through `--backend lo`, folded
@@ -3435,52 +3491,6 @@ because it can be fixed or declared; a wobbling cell cannot be either.
            instrument that reports nothing amiss while being blind reads as
            coverage. Both blindnesses were found by USING the tool on a question
            it had never been pointed at, not by any check.
-
-- [ ] Q39. **The numerator contains coin flips: 63 cells the per-cell median
-      counts RIGHT are not reliably right, and nothing tracks them.**
-      Filed 2026-09-04, measured from artifacts already on disk at no call cost.
-      Across all 491 recorded cells, pooled over the two OLX-prompt sides:
-          404  perfect -- right in every run
-           63  INSIDE THE NUMERATOR BUT UNSTABLE
-           12  wrong by median
-           12  wrong in every run
-      So there are more than TWICE as many counted-right-but-flipping cells as
-      counted-wrong ones, and the shakiest end is thin:
-           7/12    4 cells      barely above chance, booked as successes
-           8/12    8 cells
-           9/12    7 cells
-          10/12   14 cells
-          11/12   30 cells
-      Q4a/p16, Q6/p18, Q1/p17 and WK2/p15 are right in SEVEN runs of twelve.
-      AND FOUR OF THE TWELVE SHAKIEST HAVE NO OWNER AT ALL: 1c/p16, Q4a/p16,
-      Q5/p9, Q6/p18. `wrong_cells_without_an_owner` reports zero because "wrong"
-      is defined by the median, so these sit exactly one notch below the threshold
-      that would make anyone look at them.
-      WHY THIS IS A QUESTION AND NOT AN OBSERVATION, in three parts:
-        AN ITEM'S NUMBER CAN MOVE WITH NOTHING CHANGING. Q4b is 16/19 with four
-          cells at 11/12; one bad run reads 15/19 and a reader looks for a cause
-          that does not exist.
-        IT CORRUPTS THE JUDGEMENT OF RULE CHANGES. QUALITY_CONTROL.md 2c already
-          says to ask whether a change "gained a STABLE cell or pushed a coin flip
-          across the median line" -- but with 63 candidates that is advice nobody
-          can act on, because which cells are candidates is not derivable.
-        IT IS THE HONEST READING OF THE CORPUS. 404 of 491 cells are reliably
-          right. Every item figure in the ledger implies better than that.
-      THIS IS NOT THE REPORTING LESSON ALREADY RECORDED. Section 2c says report
-      the SPREAD OF RUN TOTALS, and `sweep_summary` does. This is one level down:
-      the CELLS composing the numerator include unreliable ones, and no check
-      sees them.
-      THE DELIVERABLE, and the shape is the ranking's: make the instability
-      profile DERIVED rather than a thing someone notices. A cell's band (perfect
-      / unstable-but-counted / wrong-by-median / wrong-always) is computable from
-      the ledger, so "which cells are one run from falling out" should be a
-      question the tooling answers. Then the four unowned ones get homes, and a
-      rule change can be judged against the band a cell was in before it.
-      WHAT NOT TO DO: do not re-sweep to "settle" them. Twelve runs is already the
-      deepest measurement in this project, and a cell at 7 of 12 is not
-      under-measured -- it is genuinely ambiguous, which is a fact about the cell
-      and usually about the response. Section 5: instability is the commonest bad
-      reason to open a declaration, and it is an equally bad reason to spend calls.
 
 - [ ] Q36. **1a's week-presence rule: we credit a baseline week that is not there
       (1a/p6), and the label-versus-data question underneath it.**
