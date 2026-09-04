@@ -4889,6 +4889,9 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "measured.SIDE_CONTRACT": (
         "which program and model each ledger side is allowed to be recorded from",
         ("check_side_contract_is_enforced",)),
+    "olx_prompts.GATE_ASYMMETRIES": (
+        "slots a sibling sheet prices differently, on purpose",
+        ("check_sibling_items_agree_on_gates",)),
     "olx_prompts.PROBE_REACH_LIMITS": (
         "rules neither instrument can cross-check, so their cross-engine "
         "agreement is asserted rather than probed",
@@ -6067,6 +6070,108 @@ def check_probe_reach_limits_still_apply() -> list[str]:
                 f"it and the excuse no longer holds. Drop the item from the "
                 f"entry and let the audit probe it")
     return out
+
+
+def check_sibling_items_agree_on_gates() -> list[str]:
+    """A slot shared by sibling items should gate on all of them or none.
+
+    THE SAME QUESTION, ASKED OF THE SAME SHAPE OF ANSWER, SHOULD COST THE SAME.
+    `phrased_directly` gates on DAY1 and is advisory on its seven siblings -- one
+    character of OLX, `!` -- so on DAY1 it can zero a 4-point item and elsewhere
+    it cannot deduct at all. Both engines honour that identically, so it is a
+    RUBRIC asymmetry and no equivalence check would ever see it; it went
+    undeclared from 2026-08-24 until 2026-09-04, and in the meantime subgoal Q21's
+    precision table described the slot as "advisory, cannot deduct", which was
+    true of the item it was measuring and false of DAY1.
+
+    The asymmetry may be entirely right -- DAY1's is, and measurably so. What it
+    may not be is SILENT, because a reader comparing two items' numbers has no way
+    to know they were obtained under different rules. Declared exceptions live in
+    `olx_prompts.GATE_ASYMMETRIES` with their reason.
+    """
+    import collections
+
+    try:
+        import agreement as A
+        import agreement_app as AA
+        import olx_prompts as O
+    except Exception as e:
+        return [f"cannot read the sheets: {type(e).__name__}: {e}"]
+
+    # EFFECTIVE COST, NOT REGIME NAME. The first version compared the `gates`
+    # flag, and its first real finding was an artefact: `matches_chosen_type`
+    # GATES on D1 and D2 and deducts 2 on DAY1/DAY2/WK1/WK2 -- but D1 and D2 are
+    # TWO-POINT items, so a gate there costs exactly the 2 the others deduct. The
+    # sheets already agree on what the judgement is worth and differ only in how
+    # the item's maximum forces it to be expressed. Absolute points is the right
+    # unit because it is the unit GOLD charges in: a wrong type is "-2 pts" on the
+    # four-point items and the whole of a two-point one.
+    cost: dict[str, dict[str, float]] = collections.defaultdict(dict)
+    for item, job in AA.JOBS.items():
+        try:
+            spec = A.load_action(f"bmod_handout{job['handout']}.olx", O.ACTION[item])
+            mx = A.config(job["handout"])["rubric"].BY_ID[item].get("max")
+        except Exception:
+            continue
+        for s in spec.get("slots") or []:
+            if s.get("gates"):
+                c = float(mx) if mx else None      # a gate takes the whole item
+            elif s.get("pts") is not None:
+                c = float(s["pts"])
+            else:
+                c = 0.0                             # advisory: cannot deduct
+            if c is not None:
+                cost[s["key"]][item] = c
+
+    def _how(item: str, slot: str) -> str:
+        return f"{item} {cost[slot][item]:g}pt"
+
+    # AND ONLY BETWEEN SIBLINGS. The second false positive was `example_1` and
+    # `example_2` costing 3 on item 3 and 2.5 on Q5 -- different HANDOUTS, different
+    # questions, sharing nothing but two generic slot names and the universal
+    # `confident`. "The same question" needs evidence, and a RATIO does not supply
+    # it: measured, item 3 and Q5 have a Jaccard overlap of 0.60, HIGHER than DAY1
+    # and NR at 0.52, so any threshold admitting the operant family admits the
+    # unrelated pair too. The absolute shared count separates them cleanly -- the
+    # operant items share 11 to 18 slots (DAY1 and DAY2 share all 18), while 3/Q5
+    # and D1/DAY1 share 3 -- so siblinghood here is: same handout, and more than a
+    # handful of slots in common.
+    slots_of = {i: set(c) for i, c in
+                ((it, {k: v for k, v in cost.items() if it in v}) for it in AA.JOBS)}
+    handout_of = {it: job.get("handout") for it, job in AA.JOBS.items()}
+    MIN_SHARED = 6
+
+    def _siblings(a: str, b: str) -> bool:
+        return (handout_of.get(a) == handout_of.get(b)
+                and len(slots_of.get(a, set()) & slots_of.get(b, set())) >= MIN_SHARED)
+
+    bad: list[str] = []
+    for slot, per_item in sorted(cost.items()):
+        if len(per_item) < 2 or len(set(per_item.values())) < 2:
+            continue
+        # keep only items that are siblings of at least one other item asking it
+        fam = [i for i in per_item
+               if any(_siblings(i, j) for j in per_item if j != i)]
+        per_item = {i: per_item[i] for i in fam}
+        if len(per_item) < 2 or len(set(per_item.values())) < 2:
+            continue
+        undeclared = [i for i in sorted(per_item) if (i, slot) not in O.GATE_ASYMMETRIES]
+        # Only the DEARER side needs excusing: a slot that costs less somewhere is
+        # the same fact seen from the other end, and declaring it twice says
+        # nothing new.
+        dearest = max(per_item.values())
+        undeclared = [i for i in undeclared if per_item[i] == dearest]
+        if not undeclared:
+            continue
+        bad.append(
+            f"`{slot}` costs different amounts on sheets that ask it: "
+            f"{', '.join(_how(i, slot) for i in sorted(per_item))} — an unmet "
+            f"verdict is worth {dearest:g} points on {', '.join(undeclared)} and "
+            f"less elsewhere, so two items' figures were obtained under different "
+            f"rules. Both engines honour it identically, so no equivalence check "
+            f"sees it. Declare it in olx_prompts.GATE_ASYMMETRIES with the reason, "
+            f"or make the sheets agree")
+    return bad
 
 
 def check_goals_record_is_intact() -> list[str]:
