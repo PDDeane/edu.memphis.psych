@@ -3795,6 +3795,16 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       cell scores 3.0 in one run and 0.0 in the other five. An unstable judgement
       on a gate is the worst combination available -- Q21 and Q22 record the same
       shape on NR's and DAY2's gates, and this is a third instance.
+      RE-READ GATE-AWARE 2026-09-03 (subgoal Q37). The shape holds and two
+      numbers change:
+        The gate is absent in 10 of 12 pooled runs, not 5 of 6 -- 5 of 6 on each
+        side independently, so the instability is real and not a side artefact.
+        "THE DISAGREEMENT IS ENTIRELY IN WHAT THAT COSTS" IS TOO STRONG. In 4 of
+        12 runs we also fail all three reason slots, which gold does not charge
+        at all on this cell -- gold charges `wgb_inverts_utb` and nothing else.
+        So a third of the runs carry a second, unrelated disagreement, and a
+        sweep measuring a change to the gate will read those four runs as noise
+        unless the reason slots are watched too. Name them as controls.
       TWO THINGS TO SETTLE, in this order:
         Is the GATE right? Q2's own deduction dictionary is what says whether "not
           the opposite" is a whole-item failure or a 2-point one. If the
@@ -4405,7 +4415,43 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           you_arrange_it         34 refusals   71%   <-- and it GATES
           demonstrates_type      29 refusals   79%
           phrased_directly       64 refusals   80%   advisory, cannot deduct
-      THE FOUR STABLY WRONG CELLS, each with a different cause:
+      RE-READ 2026-09-03 AGAINST THE REFRESH SWEEP AND GATE-AWARE (subgoal Q37).
+      THREE OF THE FOUR CELLS BELOW ARE GONE, and the entry's precision figures
+      with them. This is the largest correction on the page, so the arithmetic:
+        NR/p20  RESOLVED. CORRECTED_GOLD took it 4.00 -> 0.00 on the strength of
+                the p9 comparator, and we fail `you_arrange_it` and score 0.00.
+                The cell now AGREES, 11 of 12 runs. The entry below calls it
+                "pure gate false-positive, the most expensive single error in the
+                sweep"; it was the opposite -- the gate was right and gold was
+                wrong.
+        NR/p4   RESOLVED. CORRECTED_GOLD 4.00 -> 2.00; we fail `demonstrates_type`
+                and score 2.00, matching, 12 of 12.
+        NR/p3   NEVER ADMISSIBLE. p3 is a SUSPECT cell on handout 2 -- the
+                submission is mis-transcribed -- so it is excluded from every
+                profile and cannot be evidence for or against gold in either
+                direction. It should not have been listed. This is the rule
+                `enforcement.check_no_declaration_cites_a_suspect_cell` enforces
+                for the declaration tables; nothing enforces it for GOALS.md
+                prose, and this is what that gap looks like.
+        NR/p11  SURVIVES, halved. The gate fires in 4 of TWELVE, not 4 of 6, and
+                `targets_goal_behavior` fails in 12 of 12 beside it. The
+                charge-size story stands for the four runs the gate fires.
+      AND THE PRECISION TABLE IS SUPERSEDED. Over the refresh sweep, pooled:
+          four structural gates   79 refusals   0 in wrong cells   (HOLDS, and
+                                  more strongly than before -- 79, not 45)
+          you_arrange_it          66 refusals   7 in wrong cells   89%  (was 71%)
+          targets_goal_behavior   31 refusals   5 in wrong cells   84%  (was 62%)
+          phrased_directly       117 refusals  10 in wrong cells   91%  (advisory)
+      SO THE MONOTONE CLAIM NEEDS RE-MEASURING BEFORE IT IS USED AGAIN. It reads
+      "the more often the gate fires, the less precise it is" off PR 100%, PP
+      100%, NP 89%, NR 71%. NR's own point has moved to 89%, which puts it level
+      with NP and collapses most of the range the claim was drawn through. PR, PP
+      and NP have NOT been re-swept and their gold has not been corrected, so
+      this is not yet a refutation -- it is a warning that three of the four
+      points are from a different era than the fourth. Do not build on the
+      gradient until all four are measured together.
+      THE FOUR STABLY WRONG CELLS, each with a different cause (AS FILED; see
+      the re-read above -- three of these four no longer hold):
         p20  gold 4.00, ours 0.00, 6/6. The gate fires and gold's feedback is
              EMPTY -- gold gave full credit and said nothing, so there is no stated
              objection to read. Pure gate false-positive, and the most expensive
@@ -4465,6 +4511,37 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           Q4c/p9  gold both consequences     we fail consequence_2 only
           Q6/p8   gold all four c-slots      we fail two
           Q2/p7   gold inversion + 3 reasons we fail the reasons only
+      RE-READ GATE-AWARE 2026-09-03 (subgoal Q37), and the six do not stand
+      together. Three are exactly as described, in 12 of 12 pooled runs on both
+      sides -- Q4a/p14 `antecedent_2` alone, Q4b/p4 `behavior_2` alone, Q4c/p9
+      `consequence_2` alone -- and so are two of the three controls, Q4a/p20 and
+      Q4b/p8 at 12 of 12. The other three do not say what the list says:
+        1a/p1   REFUTED as gradient evidence. "We fail baseline_week only" is
+                true in ONE run of twelve. In EIGHT we fail all four week slots,
+                which is gold's charge exactly. The cell is UNSTABLE between
+                agreeing with gold and crediting three weeks -- the same defect
+                as 1a/p15 and 1a/p6, and it belongs with them in subgoal Q36, not
+                here. (The `distinguishes_periods` that also appears is a gate
+                gold cannot name; it is not part of any comparison -- see Q37.)
+        Q6/p8   REFUTED IN ITS STATED FORM, and the correction is more useful
+                than the claim. We do not "fail two" of gold's six: we fail FOUR
+                -- affect_c1, affect_c2, state_c1, state_c2 -- in 12 of 12 runs
+                on both sides. What we do not fail is change_a1 AND change_a2,
+                BOTH boxes of one family. So the pattern here is by SLOT FAMILY,
+                not by box index, and a cell where both first and second boxes of
+                one family pass while both of another fail is evidence AGAINST a
+                box-index gradient, not for it.
+        Q2/p7   PARTIAL. "We fail the reasons only" holds in 7 of 12 runs. In 3
+                we also fail `wgb_inverts_utb`, which is gold's charge exactly,
+                and in 2 the `wgb_is_counterpart` gate as well. So a third of the
+                runs already do what the gradient says we fail to do.
+        1a/p15  control holds in 10 of 12, not 12 of 12.
+      WHAT SURVIVES is the Q4-family evidence -- three cells, 12 of 12, three
+      different items, with two clean controls -- which is a narrower claim than
+      "corpus-wide" and is stated on numbered slots that share a shape. The 1a
+      and Q6 lines were carrying weight the data does not support, and Q6/p8 was
+      pointing the opposite way.
+
       3/p15 BELONGS HERE TOO, and it adds instability to the picture: gold gives
       0.0 -- "did not provide two specific examples" -- and we credit example_1,
       scoring 3.0 in four runs and 0.0 in two. So the first box is credited AND
