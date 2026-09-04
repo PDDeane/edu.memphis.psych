@@ -669,6 +669,8 @@ def enforcement_audit():
         findings.append(("-", "CELL BOTH CORRECTED AND DECLARED", bad))
     for bad in ENF.check_gold_is_read_by_item():
         findings.append(("-", "GOLD READ BY HANDOUT, NOT BY ITEM", bad))
+    for bad in ENF.check_written_rules_reach_the_shipped_prompt():
+        findings.append(("-", "RULE WRITTEN BUT NOT DELIVERED", bad))
     for bad in ENF.check_gold_comparisons_share_an_alphabet():
         findings.append(("-", "SLOT SETS COMPARED ACROSS ALPHABETS", bad))
     for bad in ENF.check_guide_structure_is_sound():
@@ -917,7 +919,17 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 63
+# 64 since 2026-09-04, for the new case "a written rule never reaches the
+# shipped prompt" (check_written_rules_reach_the_shipped_prompt).
+#
+# THIS FIGURE IS NOT YET FROM A MEASURED RUN, which the note above says it should
+# be. The suite refuses to run while a measurement is in flight -- it injects
+# breakages into source a sweep reads -- and four items were sweeping when the
+# case was added, so 63 + 1 is arithmetic rather than an observation. Confirm it
+# on the next run: if the suite reports 63 the case is not being constructed, and
+# a case that has not been fired is not a case. That is not a hypothetical here --
+# three cases added earlier the same day had never once executed.
+SELFTEST_EXPECTED = 64
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1837,6 +1849,30 @@ def enforcement_selftest():
                  lambda: (ENF.HANDOUT_KEYED_GOLD_READERS.clear(),
                           ENF.HANDOUT_KEYED_GOLD_READERS.update(_real_allow)),
                  want="GOLD READ BY HANDOUT, NOT BY ITEM")
+
+    # A RULE WRITTEN AND NEVER DELIVERED, added 2026-09-04. This state is
+    # invisible to the staleness reading: `prompt_sha` describes the SHIPPED
+    # prompt, so a rule edited in the rubric and not regenerated leaves it
+    # untouched and the item reads clean. It happened for real the same day --
+    # Q3's and Q4b's rules were written and committed while the staleness list
+    # showed eight flags on four OTHER items and nothing on those two.
+    # The injection removes one generated line from what the shipped file appears
+    # to hold, on an item that IS delivered, so the arm is exercised rather than
+    # riding on the two genuinely-undelivered items in the baseline.
+    import olx_prompts as _OPX
+    _real_src = _OPX._src
+
+    def _undeliver():
+        want = _OPX.build_web_prompt("Q2")
+        line = max((ln.strip() for ln in want.split("\n")), key=len)
+        _OPX._src = lambda h, _l=line: _real_src(h).replace(_l, "", 1)
+
+    def _redeliver():
+        _OPX._src = _real_src
+
+    _scorer_case("a written rule never reaches the shipped prompt",
+                 _undeliver, _redeliver,
+                 want="RULE WRITTEN BUT NOT DELIVERED")
 
     # THE BOUNDS TABLE'S RATCHET, added 2026-09-02. The disagreements table had
     # one and this table did not, so three 2a entries stood asserting a
