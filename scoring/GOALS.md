@@ -658,7 +658,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       (WK2's olx figure is the 2026-08-30 RE-MEASUREMENT on the clean tree. The
       run recorded here measured 17/18, but it ran from a tree we could not
       certify, so DAY1/DAY2/WK1/WK2 were swept again at 6 runs; DAY1 and DAY2
-      came back unchanged, WK1 olx 18/18, WK2 olx 18/18. The ledger holds the
+      came back unchanged, WK1 olx 18/18, WK2 olx 18/18 as measured then. The ledger holds the
       re-measure; the python side of the same sweep has WK1 18/18 and WK2 17/18.)
       divergence this whole goal was opened over, now returns 3.5 on BOTH engines
       where it was python 5.0 / olx 3.5. The equivalence half of that cell is closed;
@@ -4019,6 +4019,25 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       They are not fourteen new cells -- WK1/p7 and DAY2/p7 are already known --
       but they are the first evidence of how much of the family's error this
       class carries, and it settles a question Q22 had answered the other way.
+      WK1/p6 IS ASSIGNED HERE 2026-09-04, out of Q22, and the reasoning is the
+      transferable part. The cell is right in 12 of 12 -- and was held there by a
+      CADENCE refusal gold never asked for. Gold's objection is "Remember that
+      what you take away or add has to happen after the behavior is exhibited",
+      a contingency-DIRECTION defect; the answer is "{{corpus:WK1/p6:wk1:0:93:sha=10f906724b30:shape=S4-0a202020202020,S16-20}} daily",
+      whose only period ("stretching daily") is a daily trigger inside a weekly
+      frame and which any honest reading of Q22's rule calls MET. The refined
+      rule duly stops the gate firing -- 1 of 6 on the first olx sweep, down from
+      12 of 12 -- and the cell falls to whatever else refuses it:
+      `agent_delivers_consequence`, a GATE at 8 of 12, and `matches_chosen_type`
+      at 9 of 12.
+      IT WAS NOT REFINED FOR, DELIBERATELY. Propping the cadence gate back up to
+      keep this cell right would install a misfire to preserve a cell that is
+      right for the wrong reason, which is what QUALITY_CONTROL.md §2l exists to
+      stop. The loss is pre-registered in Q22 instead. What this subgoal owns is
+      the real question: the sheet has no check that asks whether the consequence
+      follows the behaviour or precedes it, which is gold's whole objection, and
+      `agent_delivers_consequence` is not stable enough to stand in for one.
+
       WK2/p8 IS PROPOSED FOR THIS LIST 2026-09-03, from Q22's re-read. Gold 0.00,
       "This is not an example of operant conditioning." The response drops a
       negation the same participant supplies on DAY2 -- "{{corpus:WK2/p8:wk2:0:60:sha=2d7fd2fc40ab:shape=S4-0a202020202020}}" against DAY2's "{{corpus:DAY2/p8:day2:39:82:sha=3333e8a83a54:shape=S2-0a202020202020,C1c0000000}}" -- so the literal reading adds an aversive
@@ -4496,8 +4515,33 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       their `matches_chosen_type` half is Q20's -- and saying so now is what
       stops the sweep being read as a failure.
       CONTROLS THAT MUST NOT MOVE: DAY1/p9 and DAY1/p6 (counts -> absent),
-      WK1/p6 (no endpoint -> absent), DAY2/p9 (no count -> met), WK1/p19, and
-      the eight blanks.
+      DAY2/p9 (a WINDOW, not a count -> met), WK1/p19, and the eight blanks.
+      FIRST SWEEP, olx side only, 2026-09-04. The gate stopped firing on four of
+      the five targets outright -- DAY1/p11, WK2/p11, WK2/p15 and DAY2/p11 all 0
+      of 6 -- and DAY2/p8 fell from 7 of 12 to 1 of 6. DAY1 came back
+      [18,18,18,18,18,18], a perfect item with zero spread. Two controls moved:
+      DAY2/p9 to 4 of 6 absent, and WK1/p6 to 1 of 6.
+      DAY2/p9 WAS REFINED FOR. It is the cell that killed the first draft too, and
+      both drafts read "out of the 5 days" as a count. The distinction the rule
+      now draws is between a number counting OCCASIONS of the behaviour and a
+      number naming the WINDOW it is watched over: the first must be tallied and
+      can exceed the period, the second cannot, and a trigger judgeable on one
+      occasion inside that window passes. DAY1/p9's "5 times" counts occasions;
+      DAY2/p9's "5 days" names the window; WK2/p11's "2-3 days" counts occasions
+      but completes inside one week.
+      WK1/p6 WAS NOT, AND IS NOW SUBGOAL Q20's. Its 12 of 12 rested on a cadence
+      refusal gold never asked for -- gold objects to the contingency's DIRECTION
+      -- so refining the cadence rule to keep it would install a misfire to
+      preserve a cell that is right for the wrong reason. The loss is expected:
+      up to 4 runs on WK1, and it is not evidence against the rule.
+      EXAMPLES WERE WRITTEN INTO THE RULE AND REMOVED, worth recording because
+      the gate passed them. Two illustrations paraphrased DAY1/p9 and DAY2/p9 with
+      a numeral spelled out; leakage.py reported clean. Measured afterwards, the
+      matcher misses them because it discards digits, drops words of three
+      characters or fewer, needs two exclusive bigrams where the overlap was one
+      and zero, and counts only bigrams no other student used -- on an item family
+      whose vocabulary is shared cohort-wide. The rule now states the distinction
+      abstractly. See QUALITY_CONTROL.md §2l.
             THE OLD RULE COULD NOT SEPARATE THESE. "How often is the behaviour checked"
       asks the model to find a cadence, so an answer with no period and an answer
       whose only period is the reward's both hand it the nearest number in the
