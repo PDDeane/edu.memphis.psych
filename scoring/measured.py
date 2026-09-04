@@ -2204,7 +2204,96 @@ def preflight() -> dict[str, list[str]]:
             _leakage_pending(),
         "7. probes — items whose recorded prompt has unprobed moved cells":
             _unprobed_movers(),
+        # STEP 8 IS THE SESSION'S OWN BACKLOG, not the corpus's. The seven above
+        # ask what the CORPUS needs; these ask what THIS session started and set
+        # aside, which is the thing a context boundary loses and nobody else can
+        # see. Standing policy, stated by the user 2026-09-03: at a standstill --
+        # a sweep running, a question asked and unanswered -- clear the set-aside
+        # work first, then name the next subgoal. Enforced here rather than
+        # remembered, because "remember to check" is exactly the instruction that
+        # does not survive a compaction.
+        "8. set aside — finished work not yet recorded, and gates not yet re-run":
+            unrecorded_artifacts() + selftest_owed(),
     }
+
+
+def unrecorded_artifacts() -> list[str]:
+    """Sweeps that COMPLETED and were never recorded into the ledger.
+
+    A finished artifact nobody recorded is the most expensive kind of set-aside
+    work: the calls are already spent, so the only thing between it and a number
+    is one command. It goes unnoticed because nothing about a finished sweep
+    announces itself -- the process exits, the log ends, and the next question
+    moves on.
+    """
+    import json as _json
+    import paths as _paths
+
+    out: list[str] = []
+    # NEWER THAN THE LEDGER, which is what "not yet recorded" actually means.
+    # The first version asked only whether a directory was cited as some entry's
+    # source, and reported FIVE HUNDRED AND SIXTEEN artifacts -- because out/
+    # holds every sweep this project has ever run, and most were measured,
+    # read and deliberately not recorded. A backlog list that reports the whole
+    # history trains the reader to skip it, which is worse than not having one.
+    # Recording rewrites MEASURED.json, so an artifact written after it is a
+    # sweep that finished and has not been recorded SINCE. A sweep that finished
+    # before some later recording drops off the list; that false negative is
+    # worth the signal.
+    try:
+        led = records()
+        seen_out = {(e.get(side) or {}).get("out")
+                    for e in led.values() for side in SIDES if e.get(side)}
+        ledger_at = LEDGER.stat().st_mtime
+    except Exception:
+        return []
+    for path in sorted(_paths.OUT.glob("*/*.runs.json")):
+        item = path.name[: -len(".runs.json")]
+        if item not in _jobs():
+            continue
+        d = path.parent.name
+        if d in seen_out:
+            continue                       # this directory is already the source
+        try:
+            if path.stat().st_mtime <= ledger_at:
+                continue                   # predates the last recording
+        except OSError:
+            continue
+        try:
+            n = len(_json.loads(path.read_text()).get("runs") or [])
+        except Exception:
+            continue
+        out.append(
+            f"{item}: {n} run(s) finished in {d}/ and never recorded — "
+            f"`python3 measured.py --record {item} {path} [olx]`. The calls are "
+            f"already spent; the number is one command away")
+    return out
+
+
+def selftest_owed() -> list[str]:
+    """The enforcement self-test, when the checks have moved since it last passed.
+
+    `equivalence.py --selftest` REFUSES while a measurement is in flight, because
+    it injects breakages into source the sweep reads. That refusal is correct and
+    it is also how the self-test gets forgotten: it is deferred at the moment the
+    checks changed, and the sweep that deferred it ends hours later in a different
+    conversation. So the debt is recorded in state instead of in anyone's memory.
+    """
+    import paths as _paths
+
+    stamp = _paths.SCORING / ".selftest-passed"
+    watched = [_paths.SCORING / "enforcement.py", _paths.SCORING / "equivalence.py"]
+    if not stamp.exists():
+        return ["enforcement self-test has never recorded a pass — run "
+                "`python3 equivalence.py --enforcement --selftest`"]
+    at = stamp.stat().st_mtime
+    moved = [w.name for w in watched if w.exists() and w.stat().st_mtime > at]
+    if not moved:
+        return []
+    return [f"enforcement self-test is OWED: {', '.join(moved)} changed since it "
+            f"last passed. Run `python3 equivalence.py --enforcement --selftest` "
+            f"(it refuses while a sweep is in flight — that is the reason it gets "
+            f"forgotten, not a reason to skip it)"]
 
 
 def _unprobed_movers() -> list[str]:
