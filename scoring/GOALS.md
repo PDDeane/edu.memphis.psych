@@ -651,7 +651,10 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       that is the half the corpus broke on.
       RESULT, all seven on the olx side, era-checked, 0 cells never agreeing:
           Q4a olx 18 of 20  Q4b olx 16 of 19  Q4c olx 17 of 19   (as measured then)
-          NR  olx 16/18     DAY1 olx 17/18    DAY2 olx 16/18    WK2 olx 18/18 Q4b/p12, the
+          NR  olx 16/18     DAY1 olx 17/18    DAY2 olx 16/18    WK2 olx 18/18   (as measured then)
+          Q4b/p12, the
+      (NR was RE-SWEPT 2026-09-03 and now records 18/18 on both sides; the 16/18
+      above is what that era measured and is left as the era's record.)
       (WK2's olx figure is the 2026-08-30 RE-MEASUREMENT on the clean tree. The
       run recorded here measured 17/18, but it ran from a tree we could not
       certify, so DAY1/DAY2/WK1/WK2 were swept again at 6 runs; DAY1 and DAY2
@@ -3271,6 +3274,69 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       never right, which made "nine cells" mean less than it looked.
 
 
+- [ ] Q37. **THE SLOT PROFILE WAS BLIND TO GATES, AND TO THE APP'S COUNTS.
+      Every slot-level conclusion drawn before 2026-09-03 was drawn through it.**
+      Filed 2026-09-03 out of subgoal Q22's readout, which could not be done
+      until this was fixed. Two independent blindnesses in
+      `measured._our_failing_slots`, the function every slot-level readout in the
+      project runs through:
+        GATES. It filtered on `pts is not None`, which excludes every
+              `pts=None, gates=True` slot -- the only slots that can ZERO an item,
+              and so the most expensive instruments on any sheet. 546 gate-unmet
+              run-observations across FOURTEEN items were invisible. A cell zeroed
+              by a gate reported NO FAILING SLOT, which reads as "every check
+              passes" -- the signature of subgoal Q20's over-credit class. Gate
+              false-positives were therefore liable to be filed as the OPPOSITE
+              kind of error, and two of Q20's seven cells needed correcting.
+        COUNTS. `agreement.py` stores a counted answer as the string "3";
+              `agreement_app.py` stores the int 3, and `is_satisfied` calls
+              .strip() on it. So the function RAISED for every olx cell of every
+              item with a counted family. `sweep_summary("Q1")` could not run at
+              all, meaning the per-check table that prints on every recording had
+              never once printed for Q1, and every slot-level readout of its app
+              half was silently python-only.
+      WHAT IT MEANS FOR WHAT IS ALREADY WRITTEN: any per-slot figure in Q19, Q20,
+      Q21, Q22 or Q29 that predates 2026-09-03 was computed through this and is
+      the record of what was believed, not a current measurement. `error_profile`
+      is NOT affected -- it reads every verdict and never filtered -- so Q21's
+      `you_arrange_it` precision table stands. The two are now known to answer
+      different questions, which is worth keeping: error_profile counts REFUSALS
+      by slot, this counts what actually CHARGED a wrong cell, and Q22 is the
+      case where the two gave opposite headlines.
+      AND IT EXPOSED A THIRD DEFECT, one level up, which is the reason to treat
+      this as a subgoal rather than a bug fix. Once gates were IN our slot set,
+      four functions began comparing it against GOLD's slot set -- which is
+      reconstructed from grader prose and can NEVER contain a gate, because gates
+      carry no points and no phrase names one. Two then shouted falsely and two
+      lost signal in silence:
+          gold_slot_disagreements   false alarm: 1a/p15 "differs on
+                                    distinguishes_periods", on a cell where both
+                                    sides score 0.0 and gold's own comment
+                                    asserts what the gate asserts
+          refusal_precision         false alarm: 1a's `distinguishes_periods` at
+                                    11 refusals, 11 CONTRADICTED, 0 corroborated
+          bounds_declarations       silent: gates inflate len(maj), the count can
+                                    never match, and the RATCHET JAMS
+          declaration_conflicts     silent: a firing gate suppressed the cell's
+                                    own conflict report
+      All five sites (with sweep_summary) now intersect with
+      `measured._gold_nameable_slots`; outside gold's vocabulary is UNDECIDABLE,
+      not disagreed. `enforcement.check_gold_comparisons_share_an_alphabet` makes
+      it a static rule with an empty exemption table.
+      WHAT IS LEFT TO DO HERE, since the code is fixed and committed:
+        1. RE-READ the per-slot claims in Q19, Q20, Q21, Q29 against the
+           gate-aware profile, the way Q20's seven were re-read. Cheap -- no API
+           calls -- and it is the only way to know which of them survive.
+        2. `sweep_summary` now carries gates, but only on FULL-MARKS cells, where
+           gold's expectation is determinate for any slot kind. On partial-credit
+           cells a gate is left out rather than defaulted to expected-to-pass.
+           That is the honest treatment and it means gate accuracy is measured on
+           a subset; say so when quoting it.
+        3. The lesson for the guide is already in QUALITY_CONTROL.md: an
+           instrument that reports nothing amiss while being blind reads as
+           coverage. Both blindnesses were found by USING the tool on a question
+           it had never been pointed at, not by any check.
+
 - [ ] Q36. **1a's week-presence rule: we credit a baseline week that is not there
       (1a/p6), and the label-versus-data question underneath it.**
       Filed 2026-09-02, split out of Q34 when 1a/p11 was corrected and its
@@ -3297,6 +3363,25 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       longer own another item's cell, while corpus-wide subgoals that name no
       item -- Q19, Q20 -- keep their reach. It found one further cell nobody was
       chasing, DAY2/p7, now listed in Q20.
+      THREE MORE 1a CELLS ROUTED HERE 2026-09-03, all instability rather than a
+      stated disagreement, and all on the same week-slot judgement this subgoal
+      already owns:
+        1a/p15  gold 0.00 "-8 pts: did not discuss data for each week". We agree
+                in 11 of 12 pooled runs. In ONE olx run only `baseline_week`
+                fails, the three week slots pass, and the cell scores 6.00. The
+                overview -- "an overall lack of change... the first few days I
+                tried but over the course of the week the goal would slip my
+                mind" -- discusses no individual week, and week 3's field is
+                EMPTY, so nothing in that run's judgement is defensible. It is
+                the same question as p6 from the other side: p6 credits a week
+                that is not there, p15 credits three.
+        1a/p14  right in 3 of 6 recorded runs; 1a/p19 in 5 of 6. Unread so far.
+      1a/p15 ALSO CARRIES A FINDING THAT IS NOT ITS OWN, and it is recorded in
+      subgoal Q37 rather than here: the audit reported the cell as differing from
+      gold on `distinguishes_periods`, which is a GATE that gold's phrase table
+      for 1a cannot name at all. That difference was guaranteed before the cell
+      was read and is not evidence about p15. Do not treat it as a defect of this
+      cell.
       THE QUESTION THAT DECIDES BOTH CELLS: does describing a week's numbers
       under the WRONG LABEL count as discussing that week? 1a/p11 turns on the
       same question from the other side. Its gold is now corrected 8.0 -> 6.0
@@ -3905,6 +3990,30 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           Q4c/p16  gold charges one consequence; we fail nothing
           Q6/p6    gold charges state_a2 as well as the two we fail
           DAY2/p7  gold charges WRONG_BEHAVIOR;  we fail nothing
+      FOURTEEN MORE ARRIVED 2026-09-03 from subgoal Q22's readout, which is the
+      first time this class has been counted at the CELL-RUN level rather than
+      cell by cell. In the four cadence items, 14 of 27 wrong cell-runs have
+      every charging check passing -- more than every gate on those sheets put
+      together:
+          WK2/p15  x4     DAY2/p7  x4     WK1/p7   x2
+          DAY2/p11 x2     DAY1/p14 x1     WK2/p8   x1
+      They are not fourteen new cells -- WK1/p7 and DAY2/p7 are already known --
+      but they are the first evidence of how much of the family's error this
+      class carries, and it settles a question Q22 had answered the other way.
+      TWO OF THE SEVEN ABOVE ARE STALE, corrected 2026-09-03 when the slot
+      profile stopped hiding gates (subgoal Q37):
+        Q6/p16   "we fail nothing" is WRONG. We fail `affect_c2` -- the very slot
+                 gold charges -- in 10 of 12 pooled runs, 6 of 6 on the olx side
+                 and 4 of 6 on the python, so this is not a coverage artefact.
+                 The cell does not belong in this class and its real question is
+                 why it is UNSTABLE, not why the sheet cannot refuse.
+        DAY2/p7  "every one of our checks passes, on both engines, in all twelve
+                 pooled runs" is no longer true: `consequence_not_a_setup`, a
+                 GATE and therefore invisible to the old profile, fails in 2 of
+                 12. The class still describes the other 10, and the cell keeps
+                 its place -- but the "all twelve" is gone.
+        Q1/p10   holds, narrowly: `reason_3` fails in 1 run of 12, not 0.
+        Q4c/p20, Q6/p2, Q4c/p16 are unchanged at 0 of 12.
       DAY2/p7 ARRIVED 2026-09-02 FROM THE OWNERSHIP FIX, not from a sweep. It is
       the same mechanism as the six above with a CODE in place of a slot, because
       DAY2 is criteria-derived and has no slot to name: the student's plan rewards
@@ -4156,7 +4265,52 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       lesson subgoal Q32 closed on, arrived at from a different item.
 
 
-- [ ] Q22. **`cadence_is_daily`: a 4-point gate that FLIPS, worst on DAY2.**
+- [ ] Q22. **`cadence_is_daily`: a 4-point gate that FLIPS -- RE-SCOPED 2026-09-03
+      to the 8 cell-runs it actually costs.**
+      THE READOUT REFUTED THIS ENTRY'S HEADLINE and the correction is the useful
+      part. Attributing every wrong cell-run in the four cadence items to the
+      slot that ACTUALLY charged it -- a gate present means the cell was zeroed
+      by it, whatever else was unmet -- gives 27 wrong cell-runs split like this:
+          14  NOTHING UNMET (over-credit)   WK2/p15 x4, DAY2/p7 x4, WK1/p7 x2,
+                                            DAY2/p11 x2, DAY1/p14, WK2/p8
+           8  the CADENCE gate              DAY2/p8 x3, WK2/p11 x3, DAY1/p11,
+                                            WK2/p15
+           3  consequence_not_a_setup       DAY2/p7 x2, DAY1/p11
+           1  you_arrange_it                DAY2/p12
+           1  targets_own_behavior          WK1/p19
+      So the gate is UNDER A THIRD of the cost, and "the largest single pool of
+      error in handout 2" belongs to the 14 over-credits, which are subgoal Q20's
+      class and are now listed there. The 82-refusals-11-wrong figure below is not
+      wrong, it is the wrong question: it counts a slot as imprecise whenever it
+      fires on a wrong cell, INCLUDING cells that were wrong anyway and cells
+      where a second gate fired too. That is the co-occurrence trap this file
+      already spells out in Q21 for `phrased_directly`, landing on the cadence
+      gate itself. Read a precision table with that in mind or do not read it.
+      WHAT REMAINS, and it is worth doing: DAY2/p8 is the case to work -- the gate
+      fires in 7 of 12 pooled runs on a cell gold passed in SILENCE at 4.00. The
+      answer is "If I meet my goal of going to the gym, I will reward myself by
+      not doing yard work till the end of the week", and "till the end of the
+      week" is a CONSEQUENCE DURATION. The rule already says to judge only how
+      often the behaviour is checked and not how long the consequence lasts, so
+      the prose is right and is not operationalised: there is no separate ground
+      the model must answer about WHAT IS BEING CHECKED, so the consequence's
+      horizon is free to leak into the cadence judgement. WK1/p19 is the mirror
+      case gold also passes ("If I complete my daily goal for a week then...") and
+      is a control, not a target.
+      AND `matches_chosen_type` IS NOT THE LEVER HERE despite appearing in the
+      error lists: it is pts=2.0 and NOT a gate on all four items, which is
+      exactly gold's price for a wrong-type answer ("-2 pts: This is an example of
+      NP"). WK2/p11, DAY2/p11 and WK2/p15 fail only when a gate fires ON TOP of a
+      correctly-priced deduction. Charging it differently would break the three
+      cells it currently gets right.
+      NOTE ON THE NUMBERS BELOW: every per-slot figure in the rest of this entry
+      was computed with a GATE-BLIND profile -- see subgoal Q37 -- so treat them
+      as the record of what was believed, not as current measurements. The
+      per-check table now prints gates: DAY2 reads `cadence_is_daily` 125/132
+      with 7 false charges and `you_arrange_it` 130/132 with 2.
+
+      == THE ENTRY AS FILED 2026-08-28, kept verbatim for the record ==
+      (`cadence_is_daily`: a 4-point gate that FLIPS, worst on DAY2.)
       Raised 2026-08-28 from the sweep. Filed here rather than as a goal of its own
       because GOALS.md holds ONE active goal and that is the equivalence sweep;
       promote it if it should displace that.
@@ -4240,7 +4394,11 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       olx too (60 refusals, 12 in wrong cells), and every one of those 12 is
       CO-OCCURRENCE: a slot that cannot deduct cannot have caused the miss. Noted
       because the size of the number invites exactly the wrong conclusion.
-      NR RECORDS 15/18, runs [14,14,15,15,15,16], and carries the worst MAE (0.50)
+      NR RECORDED 15/18 THEN, runs [14,14,15,15,15,16], with the worst MAE (0.50)
+      SUPERSEDED 2026-09-03: the refresh sweep records 18/18 on both sides, pooled
+      runs [15,16,16,16,17,17,18,18,18,18,18,18] -- range 15-18, median 17.5, mean
+      17.1. The per-slot reading below is also GATE-BLIND; see subgoal Q37.
+      The original sentence, kept because the rest of this entry argues from it:
       and bias (-0.39) in the sweep. A ONE-cell drop from the ledger's previous
       16/18, which was itself a six-run figure (`nr_barrier2`), so the comparison
       is like-for-like apart from the prompt change. Under-credit 16 against
