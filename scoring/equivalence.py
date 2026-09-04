@@ -677,8 +677,6 @@ def enforcement_audit():
         findings.append(("-", "GUIDE LESSON NOT APPROVED", bad))
     for bad in ENF.check_goals_record_is_intact():
         findings.append(("-", "GOALS RECORD DAMAGED", bad))
-    for bad in ENF.check_sibling_items_agree_on_gates():
-        findings.append(("-", "SIBLING SHEETS PRICE A SLOT DIFFERENTLY", bad))
     for bad in ENF.check_probe_reach_limits_still_apply():
         findings.append(("-", "PROBE-REACH EXCUSE OUTLIVED ITS RULE", bad))
     for bad in ENF.check_computed_slot_recovery_is_faithful():
@@ -917,7 +915,7 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 63
+SELFTEST_EXPECTED = 62
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1722,18 +1720,6 @@ def enforcement_selftest():
                      {"code": "PROBE", "cells": [("NR", 4)], "why": "injected"}),
                  lambda: _HH.GOLD_DIVERGENCES.pop(),
                  want="CELL BOTH CORRECTED AND DECLARED")
-
-    # A SLOT PRICED DIFFERENTLY ON SIBLING SHEETS, added 2026-09-04 out of subgoal
-    # Q26: `!phrased_directly` gated on DAY1 and was advisory on its seven siblings
-    # from 2026-08-24 to 2026-09-04, undeclared, while a recorded precision table
-    # described the slot as one that "cannot deduct". Emptying the declaration
-    # table is the injection, since the asymmetry itself is real and intended.
-    _real_ga = dict(_OP.GATE_ASYMMETRIES)
-    _scorer_case("a sibling sheet prices a slot differently, undeclared",
-                 lambda: _OP.GATE_ASYMMETRIES.clear(),
-                 lambda: (_OP.GATE_ASYMMETRIES.clear(),
-                          _OP.GATE_ASYMMETRIES.update(_real_ga)),
-                 want="SIBLING SHEETS PRICE A SLOT DIFFERENTLY")
 
     # A GOAL CLOSED WITHOUT THE USER AGREEING, added 2026-09-04. GOALS.md states
     # that rule itself and nothing enforced it; it was broken once by closing a

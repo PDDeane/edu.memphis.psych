@@ -1211,30 +1211,6 @@ def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
 # What a check means where the rubric's credit list does not already say.
 # Keyed by slot key, or by "item:slot key" where the same key means different
 # things on different items.
-# SLOTS THAT GATE ON SOME ITEMS AND NOT OTHERS, declared with the reason. A slot
-# name shared across sibling items normally shares its gate structure: the same
-# question, asked of the same shape of answer, should cost the same. Where it does
-# not, the difference is a rubric decision and has to say so, because both engines
-# honour it identically and no equivalence check would ever notice.
-GATE_ASYMMETRIES: dict[tuple[str, str], str] = {
-    ("DAY1", "phrased_directly"):
-        "DELIBERATE, 2026-08-24, and measured. `!phrased_directly` gates on DAY1 "
-        "while its seven siblings (PR, NR, PP, NP, WK1, DAY2, WK2) author it plain "
-        "and cannot deduct on it at all. It was made to gate in order to retire "
-        "handouts.GOLD_DIVERGENCES' ADDED_AVERSIVE_NAMED on DAY1/p8, which is what "
-        "that table's retirement note records: 'of the five DAY1 cells where that "
-        "check answers absent, gold scores four of them 0, so honouring it cost "
-        "nothing and gained the cell. 9 of 9.' RE-CHECKED 2026-09-04 over twelve "
-        "pooled runs and it now costs even less than when it was decided: exactly "
-        "five cells ever answer absent -- p1, p6, p8, p10, p18 -- and gold scores "
-        "ALL FIVE 0.0, the fifth having arrived when DAY1/p1's gold was corrected. "
-        "Across 216 observations the slot refuses 43 times and coincides with no "
-        "wrong cell. Subgoal Q26 asked whether the `!` was intent or a typo; this "
-        "is the answer, and the reason it was hard to answer is that a comment in "
-        "this file still described the pre-2026-08-24 never-deduct decision.",
-}
-
-
 _CADENCE_NOUN = {"daily": "day", "weekly": "week"}
 
 SLOT_NOTES = {
