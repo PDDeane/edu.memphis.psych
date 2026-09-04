@@ -2618,6 +2618,10 @@ def main() -> int:
     ap.add_argument("--baseline", default=None,
                     help="A previous --out file. Each cell is reported as "
                          "same/improvement/regression against it as it lands.")
+    ap.add_argument("--force-checks", action="store_true",
+                    help="Run despite the call-free structural gate, for the case "
+                         "where this sweep is what settles a finding the checks "
+                         "are reporting. Same meaning as agreement.py's flag.")
     ap.add_argument("--runs", type=int, default=3,
                     help="How many times to drive the item (default 3). One run is "
                          "not a measurement on this side: Q3 measured 16/20, 12/20 "
@@ -2657,6 +2661,15 @@ def main() -> int:
                          "/api/olxjson?id=all to a file and pass it")
     check_idmap_is_current(idmap, args.item)
     check_fixture_is_not_corrupt([args.item])
+    # THE CALL-FREE STRUCTURAL GATE, which this harness did not run at all until
+    # 2026-09-03 while agreement.py did. Both spend the same money on the same
+    # corpus, so a check worth running before one sweep is worth running before
+    # the other; the asymmetry meant a finding that stopped the python side
+    # silently let the app side through. Same `--force-checks` override.
+    if not getattr(args, "force_checks", False):
+        import agreement as _A
+        if _A.cheap_checks_gate():
+            return 1
 
     jobs = build_jobs(args.item, pids)
     how_by_cell = {j["cell"]: j["split_how"] for j in jobs}
