@@ -531,6 +531,37 @@ ITEMS: list[dict] = [
                          "because it repeats another statement already counted. Not scored; "
                          "the second half of the count below",
 },
+            # NARROWED 2026-09-04 (subgoal Q17, problem (a)), from all twenty cells
+            # rather than the two misses. Clause (i) read "a sentence built on the
+            # NEGATIVE ... is a reason to stop the UTB HOWEVER IT IS PHRASED", and
+            # that last phrase is what made it swallow statements gold counts. It
+            # was over-charging on the two cells gold gives FULL MARKS:
+            #   p20  gold 5.0  `reasons_failing` 1 in 11 of 12 -> given 2 -> 4.00
+            #   p16  gold 5.0  `reasons_failing` 1 in  6 of 12 -> given 2 -> 4.00
+            # and `reason_3` is the slot that then goes unpaid, which is why this
+            # read as a `reason_3` problem for as long as nobody looked at the
+            # count feeding it. `reason_3` has no rule of its own -- it is the
+            # count's third expansion slot -- so no wording on it could have
+            # helped.
+            #
+            # THE TEST IS NOW WHAT THE STATEMENT NAMES, not whether a cost appears
+            # in it, and the discriminator was read off the cells where refusing is
+            # CORRECT. All three of those name no good of the goal behaviour at all:
+            #   p3  (-3) both statements take the unwanted behaviour as SUBJECT and
+            #           predicate a cost of it; gold says so in as many words.
+            #   p6  (-1) names a trait the student would acquire -- clause (ii).
+            #   p18 (-1) attributes a present condition to not having done it.
+            # The two misses both NAME a good first and only then reach for a cost
+            # or a further outcome. So this is a narrowing that cannot reach the
+            # three correct refusals: they fail on having named nothing, which the
+            # new text leaves untouched.
+            #
+            # THE ANTI-MERGE HALF is p16's, and its control is p6. p6's CREDITED
+            # statement and p16's REFUSED one name the same kind of bodily good, on
+            # the same handout, one counted and one not. "Thematic overlap alone
+            # does not merge two benefits" was already there and was losing, so the
+            # clause now names the case it kept losing: one area of life holds a
+            # general good and a particular good within it, and that is two.
             {
                 "what": "reasons_given",
                 "reported": True,
@@ -552,7 +583,12 @@ ITEMS: list[dict] = [
                         "A statement that restates the harm of the unwanted "
                         "behaviour is not a benefit of the goal — \"not exercising "
                         "makes me feel lazy\" is a reason to drop the UTB, not a "
-                        "benefit of exercising. Whether one sentence holds one "
+                        "benefit of exercising. What decides this is what the statement NAMES: one "
+                        "whose subject is the unwanted behaviour, or going without the goal "
+                        "behaviour, and whose predicate is a cost of that, names no benefit. One "
+                        "that NAMES a good the goal behaviour brings and then supports it by the "
+                        "cost avoided has named its benefit and COUNTS. Two goods in one area of "
+                        "life are still two. Whether one sentence holds one "
                         "benefit or two is STRUCTURAL: a second half that is a "
                         "knock-on effect of the first is ONE (a benefit, then "
                         "\"WHICH WILL\" and what follows from it), while two "
@@ -567,7 +603,12 @@ ITEMS: list[dict] = [
                             # MIGRATED from olx_prompts.SLOT_NOTES 2026-08-29 (E11), verbatim -- the web checklist looks up `rule` first, so its prompt does not move.
                 "rule": "HOW MANY separate BENEFITS of the goal behaviour — "
                          "`reasons_listed` minus `reasons_failing`, the two counts above. "
-                         "Thematic overlap alone does not merge two benefits. Whether one "
+                         "Thematic overlap alone does not merge two benefits, and neither does "
+                         "belonging to one area of life: a general good and a more particular good "
+                         "within that same area are TWO, and a statement adding a further good the "
+                         "goal behaviour brings counts even where a statement already counted "
+                         "concerns the same part of the student's life. Merge only where the second "
+                         "statement asserts the SAME good over again. Whether one "
                          "sentence holds one benefit or two is STRUCTURAL, not a matter of "
                          "degree. A second half that is a KNOCK-ON EFFECT of the first is "
                          "ONE benefit — a benefit followed by \"which will\" and the further "
@@ -575,12 +616,16 @@ ITEMS: list[dict] = [
                          "costs a point. Two INDEPENDENT benefits merely joined by \"and\" are "
                          "TWO — one about the body and one about mood, in a single sentence, "
                          "is two benefits and counting it as one costs a point. Three kinds "
-                         "of statement do not count at all. (i) A reason the UNWANTED "
-                         "behaviour is bad, rather than a benefit of the wanted one. A "
-                         "sentence built on the NEGATIVE — what NOT doing the goal behaviour "
-                         "costs them — is a reason to stop the UTB however it is phrased, "
-                         "and the graders counted such sentences as ZERO benefits, even "
-                         "where the same fact stated positively would have counted. (ii) A "
+                         "of statement do not count at all, and the test for each is WHAT THE "
+                         "STATEMENT NAMES, not how it is phrased. (i) A reason the UNWANTED "
+                         "behaviour is bad, rather than a benefit of the wanted one: the statement "
+                         "takes the unwanted behaviour, or the absence of the goal behaviour, as its "
+                         "SUBJECT, and what follows is a cost of that. Such a statement names no good "
+                         "the goal behaviour brings, and the graders counted it as ZERO benefits. But "
+                         "a statement that NAMES a good the goal behaviour brings and then supports "
+                         "that good by the cost it avoids HAS named its benefit, and it COUNTS — the "
+                         "naming governs, and the cost that follows is the reason offered FOR it. Do "
+                         "not refuse a statement merely because a cost appears in it. (ii) A "
                          "restatement of the goal or of the problem it solves: saying they "
                          "will become the kind of person who does the goal behaviour names "
                          "the goal again, not a benefit of it; so is a remark that "
