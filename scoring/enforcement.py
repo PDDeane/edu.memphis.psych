@@ -6314,6 +6314,87 @@ def check_gold_comparisons_share_an_alphabet() -> list[str]:
     return bad
 
 
+def check_written_rules_reach_the_shipped_prompt() -> list[str]:
+    """A rule edited in the rubric is not delivered until the .olx carries it.
+
+    THE PROMPT REACHES A SWEEP THROUGH THREE STAGES -- rubric_hN.py, then the
+    .olx that olx_prompts generates, then the idmap dumped off the dev server --
+    and until 2026-09-04 only the LAST TWO were checked. `check_idmap_is_current`
+    covers .olx -> dump and refuses to measure against a stale dump.
+    `olx_prompts.py --check` covers rubric -> .olx. Nothing joined them, so
+    "is every written rule actually delivered?" was not answerable from the
+    audit, and the staleness reading answered it WRONG.
+
+    HOW IT READS WRONG, which is the reason this exists. `measured._staleness_lines`
+    compares each recording's `prompt_sha` against the CURRENT SHIPPED prompt. A
+    rule edited in the rubric and not yet regenerated leaves that sha untouched --
+    so the item does not look stale, because the thing the sha measures has not
+    moved. Found live: Q3's and Q4b's rules were written and committed, the
+    staleness reading showed 8 flags across four OTHER items, and the two items
+    carrying undelivered rules read clean. The only thing that knew was the person
+    who had queued the sweep.
+
+    IT IS NOT A DUPLICATE OF `--check`. That command answers "does the tree
+    differ" for a whole handout and is run by hand; this answers "is a RECORDED
+    item's number now describing a prompt the rubric has moved past", per item,
+    every time the audit runs. The recording condition is what makes it a finding
+    rather than noise: editing a rubric and regenerating a moment later is normal
+    work, and an item with no recording has no number to invalidate.
+
+    DERIVED, NOT MAPPED. The generated prompt comes from `build_web_prompt` and
+    the handout from `measured._jobs`, both existing authorities. `_changed_sections`
+    already computes almost this -- its own docstring says it answers "which items
+    are now unmeasured" -- but it runs only at --write time and prints to stderr,
+    so the answer is transient. It also reports Vertical TITLES rather than item
+    ids, on purpose, and turning titles into ids would be the second copy of a
+    mapping that its comment warns against. So this compares per ITEM instead,
+    by the line-presence test `check_idmap_is_current` uses one stage later.
+
+    WITH ONE DELIBERATE DIFFERENCE FROM THAT TEST, found by fire-testing rather
+    than by reasoning: it caps line length at 130 and this must NOT. A rule
+    renders as ONE line, and the two undelivered rules this check was written for
+    were 1452 and 1227 characters -- so borrowing the cap verbatim made the check
+    report nothing on the exact drift it exists to catch. The cap belongs to the
+    idmap check because a server dump re-wraps text and a long line cannot be
+    matched whole; here the comparison is against the GENERATOR'S OWN output, so
+    a long line either matches exactly or has drifted. Only the lower bound is
+    kept, to skip markup.
+    """
+    import olx_prompts as _OP
+    import measured as _M
+
+    out: list[str] = []
+    try:
+        recorded = {it for side in _M.SIDES for it in _M.records(side)}
+    except Exception as exc:                      # pragma: no cover
+        return [f"cannot read the ledger to find recorded items ({type(exc).__name__}: {exc})"]
+
+    for item in sorted(_OP.ACTION):
+        if item not in recorded:
+            continue                              # no number to invalidate
+        try:
+            h = _M._jobs()[item]["handout"]
+            want = _OP.build_web_prompt(item)
+            shipped = _OP._src(h)
+        except Exception:
+            continue                              # SHEET_ONLY items and the like
+        # Long enough to be prose rather than markup, and never a <Ref>, whose
+        # text the server substitutes per student. NO UPPER BOUND -- see the note
+        # in the docstring; a rule is one line and capping at 130 silenced this.
+        lines = [ln.strip() for ln in want.split("\n")
+                 if len(ln.strip()) > 40
+                 and "REF:" not in ln and "<Ref" not in ln]
+        missing = [ln for ln in lines if ln not in shipped]
+        if missing:
+            out.append(
+                f"{item}: the rubric generates {len(missing)} prompt line(s) the "
+                f"shipped .olx does not carry, so its recorded number describes a "
+                f"prompt the rubric has moved past. Deliver it with "
+                f"`python3 olx_prompts.py --write`, re-dump the idmap, and sweep. "
+                f"First missing line: {missing[0][:90]!r}")
+    return out
+
+
 def check_gold_is_read_by_item() -> list[str]:
     """Reading gold for an ITEM must derive the handout, not name it.
 
