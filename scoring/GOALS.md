@@ -3709,6 +3709,59 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       a different fault: the count arithmetic reported inconsistently, once in 120
       observations. Worth its own line somewhere, not here.
 
+- [ ] Q42. **The reasons scaffold reported an impossible triple, and nothing
+      would have noticed: `listed=0, failing=0, given=3`.**
+      Filed 2026-09-04 out of subgoal Q41, where it was found while checking
+      whether a new zero-listing was an instance of that defect. It is not, and
+      that is what makes it worth its own entry. Measured from artifacts, no calls.
+      WHAT HAPPENED, on Q2/p11, olx run 2. `reasons_given` is DEFINED as
+      `reasons_listed` minus `reasons_failing` -- both slots say so in as many
+      words -- and the run reported 0, 0 and 3. The evidence quoted for BOTH
+      counting slots is the student's entire answer, so the model read the whole
+      response, reported having listed NOTHING, and then reported three valid
+      benefits from the nothing it had listed.
+      THE SCORE WAS RIGHT, WHICH IS THE PROBLEM. `reasons_given` is the scored
+      slot and it answered 3, so the cell took full marks and matched a silent
+      gold. `reasons_listed` and `reasons_failing` are `reported: True` -- they
+      earn nothing and change nothing -- so an impossible triple costs zero points
+      and appears in no rate. It was found by reading a cell for a different
+      reason, which is not a method.
+      IT IS NOT SUBGOAL Q41's DEFECT, and the distinction is the reason both exist:
+      Q41 is a FAILING gate suppressing the scored count, with the model naming the
+      gate as its reason. Here the gate answers `met`, the score is correct, and
+      what is wrong is the reported-only scaffold. A shared symptom -- a zero where
+      statements exist -- with different causes, and reading them together is what
+      the earlier note nearly did.
+      ONE IN 240, AND THE SCAFFOLD IS ON ONE ITEM. Checked every observation of
+      every item carrying the triple: Q2 is the ONLY such item, 240 observations
+      across both sides, and this is the single violation. Q1 carries
+      `reasons_given` and the three expansion slots but NOT `listed`/`failing`, so
+      it cannot show this at all.
+      AND IT CONTRADICTS THE RECORD THE SCAFFOLD RESTS ON. Subgoal Q18's entry
+      keeps this scaffold on the strength of "`listed - failing == given` held on
+      120 of 120 cell-runs", which was the measurement that justified restoring it
+      after an earlier revert. That invariant no longer holds everywhere. One
+      violation in 240 does not overturn the scaffold -- it is still right 239
+      times -- but the claim as written is now false, and a claim that is quoted to
+      justify keeping a structure should not be left standing when it has been
+      falsified.
+      WHAT TO DO, cheapest first:
+        1. DECIDE WHETHER IT IS WORTH A CHECK. `listed - failing == given` is
+           arithmetic over three recorded numbers, so a check costs nothing per
+           run and would fail on exactly this. The counter-argument is that a
+           reported-only slot moves no score, so the check would be guarding
+           bookkeeping -- and the answer to that is that the scaffold exists
+           BECAUSE its bookkeeping was thought reliable.
+        2. CORRECT Q18's "120 of 120" wherever it is quoted, or restate it as the
+           era it was measured in.
+        3. DO NOT SWEEP FOR IT. One in 240 is a rate that needs hundreds of runs to
+           estimate and the observation is already recorded; section 5's rule about
+           instability being a bad reason to spend calls applies exactly.
+      A COMPANION QUESTION, NOT FILED: whether a `reported: True` slot should be
+      allowed to disagree with the slot it defines at all, or whether the engine
+      should recompute rather than trust it. That is machinery and belongs in the
+      E series if it is wanted.
+
 - [ ] Q40. **`aimed_correctly`: a 4-point gate that exists on WK2 alone, and the
       sibling check cannot see it.**
       Filed 2026-09-04 out of subgoal E41's on-the-line list, where WK2/p11 was
