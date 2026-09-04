@@ -357,6 +357,35 @@ ITEMS: list[dict] = [
         "counts": [{"key": "reasons_given",
                     "slots": ["reason_1", "reason_2", "reason_3"]}],
         "credit": [
+            # RE-AIMED 2026-09-04 (subgoal Q17, problem (c)). This gate was being
+            # decided by whether the response MENTIONS the unwanted behaviour, which
+            # is backwards, and the two cells it is wrong on are mirror images:
+            #   p7  gold 0.0  `met` in 10 of 12 -> gate passes -> 2.00, gold wants -5
+            #   p10 gold 3.0  `absent` in 10 of 12 -> zeroed,     gold wants only -2
+            # p7's answer names the unwanted behaviour in order to say what will be
+            # done instead of it, so the model read that mention as engagement and
+            # passed the gate. p10's never mentions the behaviour at all, so the
+            # model read the silence as a different behaviour and failed the gate.
+            # Naming the unwanted behaviour only to put a replacement against it is
+            # the PARADIGM case of the whole-item charge, and saying nothing about it
+            # is no evidence either way, so the test now turns on the ACTIVITY the
+            # goal names and says both of those things outright.
+            #
+            # THE CONTROLS are every cell where this gate passes and is right --
+            # fifteen of twenty, none of which names a replacement activity -- plus
+            # p17, where the gate answers `absent` in 4 of 12 and should not: gold
+            # charges p17 -2 and -3, not this code. p17's score is insensitive
+            # either way (both routes reach 0.00), so it is a slot-correctness
+            # control, not a score control.
+            #
+            # AND p10 CANNOT REACH GOLD ON THIS FIX ALONE -- recorded here so the
+            # sweep is not misread. It carries a SECOND, independent defect:
+            # `reasons_listed` answers 0 in 5 of 12 runs on a response holding three
+            # statements, and gold counts three (it charges nothing for reasons).
+            # The zeros do not track the gate -- gate `absent` pairs with 3 listed
+            # five times and with 0 listed five times -- so fixing the gate exposes
+            # the count rather than curing it. Expect p10 to move from 1 of 12 to
+            # about half, not to 12.
             {
                 "what": "wgb_is_counterpart",
                 "gates": True,
@@ -366,11 +395,30 @@ ITEMS: list[dict] = [
                 # in the right territory that merely fails to invert the behaviour is
                 # WGB_NOT_OPPOSITE on `wgb_inverts_utb` (-2), NOT this. Written as tier (a)
                 # first — "is the direct positive counterpart" — it zeroed p10 (gold 3)
-                # and p18 (gold 4) while correctly zeroing only p17.
+                # and p18 (gold 4) while zeroing only p17, which THAT note called
+                # correct and which is not: gold itemises p17 as -3 for the missing
+                # reasons AND -2 on `wgb_inverts_utb`, so p17 reaches 0.0 without
+                # this whole-item code ever applying. Read off gold's comments on
+                # 2026-09-04, the ONE cell in Q2 that gold charges this code is p7,
+                # whose comment is the WGB_UNRELATED text nearly verbatim ("-5 pts").
+                # So the criterion is priced TWO ways across the item, not three: -5
+                # where the goal is a different behaviour, -2 where it is the right
+                # behaviour badly stated. That IS the two-tier split these slots
+                # were built for, and it is why this gate can be settled on its own.
                 "desc": "The goal behaviour concerns the SAME behaviour as the Q1 UTB. "
-                        "Fail this ONLY when it is a different behaviour altogether: the "
-                        "goal names activities the student will take up instead, and "
-                        "never says to do less of the behaviour the UTB names. "
+                        "Ask what ACTIVITY the goal names. Fail this ONLY when the goal "
+                        "names a DIFFERENT activity — something the student will take up in "
+                        "PLACE of the behaviour the UTB names, never saying to do less of "
+                        "that behaviour. A response that names the unwanted behaviour only "
+                        "to set a different activity against it FAILS this: mentioning the "
+                        "unwanted behaviour is not engaging with it, and a goal offered as "
+                        "a REPLACEMENT for it is the case this check exists for. Conversely, "
+                        "PASS this whenever the goal names no other activity at all — a "
+                        "condition, a state, an outcome or a routine is still an answer "
+                        "about the student's own behaviour, however far from the UTB it may "
+                        "read, and it is charged 2 on `wgb_inverts_utb`, not the whole item. "
+                        "Silence about the unwanted behaviour is NOT evidence of a different "
+                        "behaviour: a goal that never mentions it still passes this. "
                         "A goal in the right territory that simply "
                         "does not invert the behaviour still passes this: that is "
                         "WGB_NOT_OPPOSITE on `wgb_inverts_utb`, worth 2, not the whole item. "
@@ -388,12 +436,17 @@ ITEMS: list[dict] = [
                 # web-only note contradicting the shared desc is the worst shape a
                 # deviation can take, and moving it here is what makes that
                 # impossible: one string, rendered by both generators.
-                "rule": "the WGB_UNRELATED test, and only that: is the goal behavior about "
-                         "a DIFFERENT behavior altogether from the unwanted one? A goal in "
-                         "the right territory that simply fails to invert the behavior still "
-                         "satisfies this — that is WGB_NOT_OPPOSITE on `wgb_inverts_utb`, "
-                         "worth 2, not the whole item. Not satisfied means the whole item is "
-                         "that finding",
+                "rule": "the WGB_UNRELATED test, and only that: does the goal name a "
+                         "DIFFERENT ACTIVITY from the unwanted one — something to take up in PLACE of "
+                         "it? Decide on the activity NAMED, not on whether the unwanted behavior is "
+                         "mentioned. A response that names the unwanted behavior only to set a "
+                         "different activity against it is NOT satisfied: the mention is not "
+                         "engagement, and a goal offered as a replacement is exactly this finding. A "
+                         "goal naming no other activity — a condition, a state, an outcome, a routine "
+                         "— SATISFIES this however unrelated it may read, and is charged 2 on "
+                         "`wgb_inverts_utb` instead. A goal in the right territory that simply fails "
+                         "to invert the behavior satisfies this too. Not satisfied means the whole "
+                         "item is that finding",
 },
             # SHARPENED 2026-09-04 (subgoal Q17, problem (b)). This slot was the
             # ONLY defect on p18: gold 4.0 is -1 for a missing third reason, the
@@ -439,12 +492,15 @@ ITEMS: list[dict] = [
                 # worked example, so the gate passes and `wgb_inverts_utb` has to
                 # catch "reading {{corpus:Q2/p7:response:119:153:sha=9da42b146750:shape=Cdfc0}} games".
                 #
-                # This path reaches the same answer by the OTHER route. The gate
-                # above names p7's text as its own worked example, so the gate
-                # fires and short-circuits: measured 8 of 8 runs, score 0.00,
-                # `wgb_inverts_utb` never even asked. Both implementations are
-                # right on p7 and stable; they are not required to fire the same
-                # slot, only to reach gold.
+                # THAT PREMISE HAS SINCE FAILED, and the paragraph above is kept
+                # only so the reversal is visible. It said the gate fires on p7 and
+                # short-circuits it, measured then at 8 of 8 runs scoring 0.00. Re-
+                # measured 2026-09-04 over 12 pooled runs: the gate answers `met` on
+                # p7 in 10 of 12 and the cell scores 2.00 in 8, because p7 lists no
+                # reasons at all (0 on 12 of 12, which gold agrees with) and -3 off
+                # a passing gate is 2.00. So neither route reaches gold on p7 today.
+                # The fix went onto the GATE, where gold puts the charge, and not
+                # here — see problem (c) in that slot's comment above.
                 #
                 # So there is nothing to gain here and something to lose: on the
                 # shipped side the first draft of that clause carried a general
