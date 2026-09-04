@@ -456,17 +456,13 @@ def rank() -> list[tuple[str, dict, str]]:
     # version of this ranking hit it and reported that NO open goal owned a wrong
     # cell, which degenerated the whole order into citation counts and looked
     # plausible. Ask for each side by name.
-    state: dict[str, tuple[int, int]] = {}
-    for side in M.POOLED_OLX_PROMPT:
-        try:
-            led = M.records(side)
-        except Exception:
-            continue
-        for item, s in led.items():
-            runs = s.get("runs") or 0
-            for pid, n in (s.get("cells") or {}).items():
-                a = state.setdefault(f"{item}/p{pid}", (0, 0))
-                state[f"{item}/p{pid}"] = (a[0] + n, a[1] + runs)
+    # BANDS COME FROM measured.cell_bands, not from thresholds repeated here.
+    # Subgoal E41 made the band derivable and E40's lesson is why this consumes
+    # it rather than recomputing: two implementations of one rule is the
+    # divergence class this project exists to close, and this function has now
+    # been the second copy twice.
+    bands = M.cell_bands()
+    state = {c: (r, n) for c, (r, n, _b) in bands.items()}
 
     # citations between OPEN goals
     cited: dict[str, int] = {l: 0 for l in open_labels}
@@ -620,7 +616,15 @@ def rank() -> list[tuple[str, dict, str]]:
             # matters: "stably wrong ... not a coin flip, and it is worth a rule
             # question rather than more runs". A cell that almost never reaches
             # gold can be fixed or declared; one that lands half the time cannot.
-            (det if right == 0 else stab if right * 12 <= runs else unst).append(cell)
+            band = bands[cell][2]
+            if band == "always_wrong":
+                det.append(cell)
+            elif band == "wrong_by_median" or (band == "on_the_line"
+                                               and right * 2 < runs):
+                # counted wrong and rarely right: fixable or declarable
+                stab.append(cell)
+            else:
+                unst.append(cell)
         for cell, labs in owners["title"].items():
             st = state.get(cell)
             if lab in labs and st is not None and st[0] != st[1]:
