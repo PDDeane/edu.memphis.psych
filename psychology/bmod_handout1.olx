@@ -176,7 +176,7 @@ deduction codes, no point values, no score, and no check keys.
 # Rubric item Q1 — 5 points
 
 ## Question asked of the student
-Define your unwanted target behavior (UTB) and explain WHY you chose this particular UTB for intervention. Requires 1 sentence describing the UTB {{corpus:Q2/p15:response:62:65:sha=6201111b83a0:shape=R3-0-20}}{{corpus:Q2/p15:response:66:114:sha=9a660f49e81b:shape=S5-20}} change this behavior.
+Define your unwanted target behavior (UTB) and explain WHY you chose this particular UTB for intervention. Requires 1 sentence describing the UTB and at least 3 sentences explaining why you chose to change this behavior.
 
 ## Credit components
 - `utb_stated` (2 pt)
@@ -188,7 +188,7 @@ Define your unwanted target behavior (UTB) and explain WHY you chose this partic
 - `reason_3` (1 pt)
 
 ## Deduction codes — the course's canonical wording for each gap
-- `UTB_NOT_ON_LIST` (-5): You did not choose an UTB from the provided list (lack of sleep, lack of exercise, {{corpus:Q1/p12:response:31:69:sha=67aefa440274}} vegetables, {{corpus:Q1/p7:response:9:17:sha=c2c7ae2ad923:shape=R0-1-73,R8-0-20}}{{corpus:Q1/p7:response:18:34:sha=6d2b932a45df}} electronics). Please choose one of these behaviors for you to modify.
+- `UTB_NOT_ON_LIST` (-5): You did not choose an UTB from the provided list (lack of sleep, lack of exercise, {{corpus:Q1/p12:response:31:69:sha=67aefa440274}} vegetables, spending too much time on electronics). Please choose one of these behaviors for you to modify.
 - `UTB_NOT_STATED` (-2): What is your UTB? This needs to be explicitly stated.
 - `REASON_MISSING` (-1) [repeatable]: You did not provide 3 separate reasons as to why you chose to change this UTB. These should be negative consequences of engaging in the UTB.
 
@@ -318,7 +318,7 @@ deduction codes, no point values, no score, and no check keys.
 # Rubric item Q2 — 5 points
 
 ## Question asked of the student
-Define your wanted goal behavior (WGB) that you hope to strengthen. Requires 1 sentence describing the WGB {{corpus:Q2/p15:response:62:111:sha=dd7a8b7daac8:shape=R39-1-20,R49-0-20}}{{corpus:Q2/p15:response:112:125:sha=6258e0ec68f2}} it.
+Define your wanted goal behavior (WGB) that you hope to strengthen. Requires 1 sentence describing the WGB and at least 3 sentences explaining why you chose to strengthen it.
 
 ## Credit components
 - `wgb_is_counterpart` **GATE**: The goal behaviour concerns the SAME behaviour as the Q1 UTB. Ask what ACTIVITY the goal names. Fail this ONLY when the goal names a DIFFERENT activity — something the student will take up in PLACE of the behaviour the UTB names, never saying to do less of that behaviour. A response that names the unwanted behaviour only to set a different activity against it FAILS this: mentioning the unwanted behaviour is not engaging with it, and a goal offered as a REPLACEMENT for it is the case this check exists for. Conversely, PASS this whenever the goal names no other activity at all — a condition, a state, an outcome or a routine is still an answer about the student's own behaviour, however far from the UTB it may read, and it is charged 2 on `wgb_inverts_utb`, not the whole item. Silence about the unwanted behaviour is NOT evidence of a different behaviour: a goal that never mentions it still passes this. A goal in the right territory that simply does not invert the behaviour still passes this: that is WGB_NOT_OPPOSITE on `wgb_inverts_utb`, worth 2, not the whole item. When this DOES fail the goal is unstated and its reasons cannot count either, so WGB_UNRELATED stands INSTEAD of WGB_NOT_OPPOSITE plus reason deductions, never alongside them. Where it fires it costs the whole item
@@ -333,7 +333,7 @@ Define your wanted goal behavior (WGB) that you hope to strengthen. Requires 1 s
 ## Deduction codes — the course's canonical wording for each gap
 - `WGB_UNRELATED` (-5): Your WGB should be the opposite of your UTB. You also need three reasons why you chose the WGB.
 - `WGB_NOT_OPPOSITE` (-2): What is your WGB? This needs to be explicitly stated. Your WGB should be the opposite of your UTB (e.g., UTB = not drinking enough water; WGB = drinking more water).
-- `REASON_MISSING` (-1) [repeatable]: You did not provide 3 separate reasons as to {{corpus:Q2/p15:response:98:125:sha=77b0c1a2cd0c:shape=R3-1-20,R27-0-20}}{{corpus:Q2/p15:response:126:130:sha=1eb79602411e}} WGB. These should be the benefits of engaging in the WGB.
+- `REASON_MISSING` (-1) [repeatable]: You did not provide 3 separate reasons as to why you chose to strengthen this WGB. These should be the benefits of engaging in the WGB.
 
 ## The checklist to return (`checks`)
 Return a verdict for EVERY one of these, in this order, BEFORE you write
@@ -479,18 +479,18 @@ Use the SMART goal acronym to further define your WGB. Each aspect must be discu
 - `measurable` (1 pt): Says how it will be measured
 - `action_oriented` (1 pt): Names something the student will DO, or a concrete circumstance that lets them do it — an activity — a step they will physically carry out, at a stated time or not — or access to a PLACE or EQUIPMENT that lets them do it. Be generous about the doing: a plain statement of what they will physically perform counts, and so does naming somewhere they can go or something they can use. TIME ALONE IS NOT ENOUGH, and this is where the graders drew the line: hours they could give to it, or expect to clear, name neither a doing nor any means of doing it. An answer that leans entirely on how much of the week it could occupy loses this point; an answer naming somewhere to go or something to use keeps it, whatever it says about hours. A bare capability with no activity and no place or equipment named fails for the same reason. What FAILS is a response that justifies actionability by pointing at another letter of SMART instead of at any doing — and names no doing of its own, or that only re-labels the goal as actionable without saying what is done
 - `realistic` (1 pt): Is realistic, or says why it is
-- `time_bound` (1 pt): FOUR WEEKS TOTAL is the test. One week of baseline {{corpus:Q3/p13:timebound:119:122:sha=6201111b83a0:shape=R3-0-20}}{{corpus:Q3/p13:timebound:123:144:sha=b2b91b2b065f}} is how most students phrase it, and any wording that comes to four weeks satisfies this check — the two halves in either order, or a bare "four weeks" with no split named. A duration that does not total four weeks loses the point, whatever else it says
+- `time_bound` (1 pt): FOUR WEEKS TOTAL is the test. One week of baseline {{corpus:Q3/p13:timebound:119:144:sha=b4ef1f64f7b0}} is how most students phrase it, and any wording that comes to four weeks satisfies this check — the two halves in either order, or a bare "four weeks" with no split named. A duration that does not total four weeks loses the point, whatever else it says
 
 ## Deduction codes — the course's canonical wording for each gap
 - `SPECIFIC_NOT_QUANTIFIED` (-1): -1 pt: For specific, you should have a specific, quantifiable goal. (ex. 30 minutes a day).
 - `MEASURABLE_NO_METHOD` (-1): -1 pt: For measurable, how are you tracking your goal? (ex. in a notebook).
 - `ACTION_MISSING` (-1): -1 pt: For action, what do you have to actively do to achieve your goal?
 - `REALISTIC_MISSING` (-1): -1 pt: missing realistic.
-- `TIME_BOUND_WRONG` (-1): -1 pt: For time-bound, you have one week of baseline data {{corpus:Q3/p1:timebound:166:181:sha=d6aa9b9705f2:shape=R15-0-20}}{{corpus:Q3/p1:timebound:109:111:sha=28391d3bc64e}} intervention, or 4 weeks total.
+- `TIME_BOUND_WRONG` (-1): -1 pt: For time-bound, you have one week of baseline data and three weeks of intervention, or 4 weeks total.
 
 ## Grading guidance
 - Award each of the five letters independently, 1 point each.
-- Time-Bound has a near-verbatim expected answer: four weeks total, {{corpus:Q3/p1:timebound:129:140:sha=0a0e842023db:shape=R11-0-20}}{{corpus:Q3/p1:timebound:141:214:sha=6664d8edc53e}} Any other duration loses the point.
+- Time-Bound has a near-verbatim expected answer: four weeks total, one week of baseline data collection and three weeks of intervention data collection. Any other duration loses the point.
 - IMPLICIT (from gold): Measurable must name a tracking METHOD or LOCATION (a notebook, a phone app). Restating the goal is not measuring it. Specific must carry a NUMBER.
 
 ## The checklist to return (`checks`)
@@ -503,7 +503,7 @@ says the check reports an identity rather than a judgement.
 - `measurable` — `met`/`absent`/`unclear`: Says how it will be measured
 - `action_oriented` — `met`/`absent`/`unclear`: Names something the student will DO, or a concrete circumstance that lets them do it — an activity — a step they will physically carry out, at a stated time or not — or access to a PLACE or EQUIPMENT that lets them do it. Be generous about the doing: a plain statement of what they will physically perform counts, and so does naming somewhere they can go or something they can use. TIME ALONE IS NOT ENOUGH, and this is where the graders drew the line: hours they could give to it, or expect to clear, name neither a doing nor any means of doing it. An answer that leans entirely on how much of the week it could occupy loses this point; an answer naming somewhere to go or something to use keeps it, whatever it says about hours. A bare capability with no activity and no place or equipment named fails for the same reason. What FAILS is a response that justifies actionability by pointing at another letter of SMART instead of at any doing — and names no doing of its own, or that only re-labels the goal as actionable without saying what is done
 - `realistic` — `met`/`absent`/`unclear`: Is realistic, or says why it is
-- `time_bound` — `met`/`absent`/`unclear`: FOUR WEEKS TOTAL is the test. One week of baseline {{corpus:Q3/p13:timebound:119:122:sha=6201111b83a0:shape=R3-0-20}}{{corpus:Q3/p13:timebound:123:144:sha=b2b91b2b065f}} is how most students phrase it, and any wording that comes to four weeks satisfies this check — the two halves in either order, or a bare "four weeks" with no split named. A duration that does not total four weeks loses the point, whatever else it says
+- `time_bound` — `met`/`absent`/`unclear`: FOUR WEEKS TOTAL is the test. One week of baseline {{corpus:Q3/p13:timebound:119:144:sha=b4ef1f64f7b0}} is how most students phrase it, and any wording that comes to four weeks satisfies this check — the two halves in either order, or a bare "four weeks" with no split named. A duration that does not total four weeks loses the point, whatever else it says
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
 
 ## Context from this student's other answers (read-only)
@@ -777,7 +777,7 @@ deduction codes, no point values, no score, and no check keys.
 # Rubric item Q4b — 5 points
 
 ## Question asked of the student
-What ARE you actively doing during your unwanted target BEHAVIOR? List and describe two examples. Additionally, state whether {{corpus:Q4b/p15:modify:0:23:sha=6fa65a43725e:shape=R0-1-74,R23-0-20}}{{corpus:Q4b/p15:modify:24:34:sha=0de60378f0ff}} you to modify AND why.
+What ARE you actively doing during your unwanted target BEHAVIOR? List and describe two examples. Additionally, state whether this behavior is a good choice for you to modify AND why.
 
 ## Credit components
 - `behavior_1` (1.5 pt): First example of what they do INSTEAD OF the goal behavior
