@@ -29,11 +29,11 @@ GUIDE = HERE / "QUALITY_CONTROL.md"
 
 # `## 2a. TITLE` / `## 2b2. TITLE` / `## 3. TITLE`. The label is what other files
 # cite, so it is the thing that must stay unique and ordered.
-HEAD = re.compile(r"^(#{2,3}) (\d+)([a-z]\d?|[a-z]?)\. (.+)$", re.M)
+HEAD = re.compile(r"^(#{2,3}) (\d+)([a-z][0-9a-z]*|)\. (.+)$", re.M)
 
 # How the rest of the tree cites a section. Kept deliberately narrow: a bare "2c"
 # in prose is not a citation, and rewriting one would corrupt a sentence.
-REF = re.compile(r"(§ ?|QUALITY_CONTROL(?:\.md)? |[Ss]ection )(\d+[a-z]\d?)\b")
+REF = re.compile(r"(§ ?|QUALITY_CONTROL(?:\.md)? |[Ss]ection )(\d+[a-z][0-9a-z]*)\b")
 
 # Files that may cite the guide. The guide itself is included: it cross-references
 # its own sections.
@@ -51,14 +51,39 @@ def headings(text: str) -> list[tuple[str, str, str]]:
             for m in HEAD.finditer(text)]
 
 
+# THE SUFFIX ALPHABET, and the order is the policy rather than Python's default.
+# Within one position DIGITS rank before LETTERS, and a SHORTER suffix ranks
+# before a longer one. So `2z` precedes `2a0`, and `2a9` precedes `2aa`. Plain
+# string sorting gets both of those backwards, which is why `suffix_key` exists
+# and why nothing here uses `sorted()` on the raw labels.
+_DIGITS = "0123456789"
+_ALPHA = "abcdefghijklmnopqrstuvwxyz"
+
+
+def suffix_key(suffix: str) -> tuple:
+    """Sort key for a subsection suffix, per the ordering policy."""
+    return (len(suffix), tuple((0, _DIGITS.index(c)) if c in _DIGITS
+                               else (1, _ALPHA.index(c)) for c in suffix))
+
+
 def _letters():
-    """a, b, c ... z, then aa, ab ... — enough for any section this will see."""
-    import string
-    for c in string.ascii_lowercase:
-        yield c
-    for a in string.ascii_lowercase:
-        for b in string.ascii_lowercase:
-            yield a + b
+    """The suffix sequence: a..z, then a0..a9 aa..az, b0..b9 ba..bz, ...
+
+    Two characters are only reached when a section has more than 26 subsections,
+    which none currently does -- the wider alphabet exists so that the day one
+    does, the labels stay derivable instead of becoming a judgement call. The
+    first character is always a LETTER; digits appear only in later positions.
+    """
+    width = 1
+    while True:
+        if width == 1:
+            for c in _ALPHA:
+                yield c
+        else:
+            import itertools
+            for combo in itertools.product(_ALPHA, *([_DIGITS + _ALPHA] * (width - 1))):
+                yield "".join(combo)
+        width += 1
 
 
 def plan(text: str) -> dict[str, str]:
@@ -71,7 +96,7 @@ def plan(text: str) -> dict[str, str]:
     out: dict[str, str] = {}
     per_parent: dict[str, list[str]] = {}
     for label, _title, _h in headings(text):
-        m = re.fullmatch(r"(\d+)([a-z]\d?)?", label)
+        m = re.fullmatch(r"(\d+)([a-z][0-9a-z]*)?", label)
         if not m:
             continue
         parent, suffix = m.group(1), m.group(2)
@@ -112,14 +137,16 @@ def check(strict_identifiers: bool = True) -> list[str]:
     #    reader something the document contradicts.
     by_parent: dict[str, list[str]] = {}
     for label in labels:
-        m = re.fullmatch(r"(\d+)([a-z]\d?)?", label)
+        m = re.fullmatch(r"(\d+)([a-z][0-9a-z]*)?", label)
         if m and m.group(2):
             by_parent.setdefault(m.group(1), []).append(m.group(2))
     for parent, suffixes in by_parent.items():
-        if suffixes != sorted(suffixes):
+        if suffixes != sorted(suffixes, key=suffix_key):
             bad.append(
                 f"{GUIDE.name}: section {parent}'s subsections are out of order — "
-                f"{' '.join(suffixes)}. Renumber, or move the sections")
+                f"{' '.join(suffixes)}, which under the ordering policy should be "
+                f"{' '.join(sorted(suffixes, key=suffix_key))}. Run "
+                f"`python3 guide.py --renumber --write`, or move the sections")
 
     # 3. REFERENCES. Every citation anywhere in the tree must resolve.
     known = set(labels)
@@ -135,6 +162,24 @@ def check(strict_identifiers: bool = True) -> list[str]:
                         f"{path.name}:{n} cites §{ref}, which is not a heading in "
                         f"{GUIDE.name}. Fix the citation, or the section was "
                         f"renamed without its references")
+
+    # 3b. BARE REFERENCES. A citation with no prefix -- `(2i)`, `see 2i` -- is
+    #     invisible to REF, so --renumber walks straight past it and it silently
+    #     comes to mean a DIFFERENT section. That is not hypothetical: the first
+    #     renumber left two of them behind, both pointing at the section that
+    #     had taken the label. They cannot be repaired automatically either,
+    #     because the label they carry still resolves -- to the wrong thing. So
+    #     they are refused at writing time instead: use the § form.
+    for n, line in enumerate(text.splitlines(), 1):
+        stripped = REF.sub("", line)
+        for m in re.finditer(r"\((?:see )?(\d+[a-z][0-9a-z]*)\)|\bsee (\d+[a-z][0-9a-z]*)\b",
+                             stripped):
+            ref = m.group(1) or m.group(2)
+            if ref in known:
+                bad.append(
+                    f"{GUIDE.name}:{n} refers to section {ref} without a `§`, so "
+                    f"--renumber cannot follow it and it will come to mean a "
+                    f"different section. Write `§{ref}`")
 
     # 4. IDENTIFIERS. A guide naming a function that no longer exists reads as
     #    coverage of a thing nobody maintains.
