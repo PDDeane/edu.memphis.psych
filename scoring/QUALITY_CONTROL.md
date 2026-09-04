@@ -773,6 +773,80 @@ occasionally.
 
 ---
 
+## 2b3. RE-READ EVERY CELL A SUBGOAL OWNS BEFORE ACTING ON IT
+
+**A subgoal's cell list is a claim, and it decays.** Cells get corrected gold,
+the instrument that assigned them gets fixed, other cells get resolved by
+unrelated work. Before writing a rule for a subgoal, read out every cell it owns
+against current data and ask of each one: *is this still an instance of this
+problem?* The ones that are not go to another subgoal with a stated reason.
+
+It is worth the pass because it changes the rule, not just the bookkeeping. On
+Q22 the list of eighteen cells where the gate fired turned out to be:
+
+* THIRTEEN that cost nothing -- eight blank answers where every check fails
+  together, five structural failures where gold also gives zero. They were most
+  of the refusal count the subgoal had been filed on, and every one was correct.
+* ONE that was the rule's PROOF CASE and was not in the entry at all -- the only
+  cell where gold's comment named the defect, right in 12 of 12.
+* THREE whose real defect was a different slot entirely.
+* ONE that was a SUSPECT cell and had never been admissible.
+* Leaving the cells the rule was actually for.
+
+Reading them narrowed the target and produced the discriminator the rule was
+eventually written on. A precision figure computed over the unfiltered list was
+measuring the blanks.
+
+**And read gold's CHARGE, not gold's ADVICE.** A grader comment often docks for
+one thing and then tells the student what a right answer would look like. Every
+feature named in that second half is instruction, not a charge. Reading
+"you should state what you take away at the end of the week" as a cadence
+objection invented a false negative that was not there; the charge was "this is
+not an example of operant conditioning" and nothing else. When a comment both
+charges and advises, the charge is the part with the points attached.
+
+## 2c. A SWEEP IS python + olx. BOTH SIDES, ALWAYS, WITHOUT BEING ASKED
+
+**Measuring an item means measuring it on both engines.** They are pooled as ONE
+sample of twelve runs, not compared, so a sweep of one side is not a smaller
+measurement -- it is half a measurement that the ledger will then average against
+six runs from a different era. Launch both. Do not wait to be told, and do not
+report a one-sided result as an item's number.
+
+This has now gone wrong in three different ways, which is why it is a rule rather
+than a habit:
+
+* a ledger REFRESHED on one side only, leaving one item's entry half from the new
+  prompt and half from the old;
+* a per-side median quoted as the item's figure, landing on a value no run
+  produced;
+* a prompt change swept on one side while the other still served the previous
+  text -- see the idmap note below, which would have manufactured exactly the
+  engine difference we never reason from.
+
+**And re-take the idmap dump after any prompt change, before the olx sweep.** The
+app serves the prompt from the dump, the harness parses the .olx directly, so
+between regenerating and re-dumping the two genuinely do send different text. The
+audit says so in the finding itself. Re-take it, confirm the new wording is in the
+dump and the old wording is gone, then sweep.
+
+## 2d. A LOOKUP THAT CAN COME BACK EMPTY MUST RAISE INSTEAD
+
+**"Not found" and "wrong question" must not have the same return value.** A gold
+row read against the wrong handout returns `{}` -- identical to a cell that has no
+gold row. The first is a bug, the second is a fact, and a caller cannot tell them
+apart, so the bug reads as "nothing to see here" and a scan silently skips it.
+
+The fix is not to be careful. It is to remove the choice: derive the key rather
+than passing it (`gold_cell(item, pid)` computes the handout from the item), and
+RAISE when the derivation is impossible. Then the only empty return left means
+what it says.
+
+Look for this shape anywhere a lookup takes BOTH a scope and a key -- handout and
+participant, item and slot, side and cell. If the scope can be wrong and the
+result is a bare `{}`, `None` or `[]`, the silence is a defect waiting to be
+believed.
+
 ## 2e. VALIDATE A CANDIDATE RULE AGAINST EVERY VALID CELL BEFORE WRITING IT
 
 **Not against the cells that motivated it, and not against the cells where gold
