@@ -996,6 +996,15 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       1/12, Q1/p9 at 3/12, Q2/p7 and Q4b/p13 at 4/12 and Q2/p18 at 5/12 are all
       RECORDED AS WRONG, not wobbling, so subgoal Q17 rose from seventh to second
       on three cells that were being understated.
+      AND LISTING CELLS HERE LAUNDERED THEM INTO "OWNED", found 2026-09-04 the
+      moment the six on-the-line cells were written down. `owners["any"]` counts
+      any mention, so this entry -- a TOOLING subgoal with no scoring question in
+      it -- became the owner of Q1/p17, Q2/p16, Q4a/p16, Q6/p18, WK2/p11 and
+      WK2/p15, and `wrong_cells_without_an_owner` went on reporting zero. A
+      tooling subgoal is not a home for a scoring defect. Q2/p16 has been moved to
+      subgoal Q17 on the evidence that it fails `reason_3`, one of Q17's own
+      slots, in exactly 6 of 12 runs. THE OTHER FIVE STILL NEED HOMES, and this
+      entry should not be read as providing them.
       RESIDUAL: "a rule change can be judged against the band a cell was in
       before it" is now possible by hand and is not automated. Nothing records a
       cell's band at the time a change was measured.
@@ -3989,6 +3998,11 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       opposite of the UTB, and the disagreement is entirely in what that costs.
           gold  3.0   "-2 pts: your WGB should be the opposite of your UTB"
           ours  0.0   `wgb_is_counterpart` is a GATE -- failing it takes all 5
+      A THIRD OUTCOME EXISTS AND THIS ENTRY DID NOT RECORD IT, noted 2026-09-04:
+      pooled over twelve runs the cell reads 0.0 ten times, 3.0 ONCE -- reaching
+      gold -- and 4.0 once, which OVER-credits. So "the disagreement is entirely
+      in what that costs" is true of ten runs in twelve and not of the other two,
+      and the 4.0 run means the gate is not the only thing moving here.
       SO THE SAME JUDGEMENT IS WORTH 2 TO THE GRADER AND 5 TO US, on every cell
       where it fails. That is not a per-cell miss; it is the wiring.
       AND THE SLOT IS UNSTABLE, which makes the wiring maximally expensive: over
@@ -4293,8 +4307,13 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       AND ONE CELL SITS THE OTHER WAY, recorded here because it is Q1's and has no
       better home: Q1/p9. Gold charges reason_3 and so do we, so the SLOTS agree
       -- but the total does not, 4.0 against our 3.0. The cause is a COUNT drift,
-      not a slot judgement: `reasons_given` answers 2 in two runs and 1 in four,
-      and the runs that answer 1 fail reason_2 as well. Gold says "only provided
+      not a slot judgement: `reasons_given` answered 2 in two runs and 1 in four
+      when this was written, and the runs that answer 1 fail reason_2 as well.
+      RE-DERIVED 2026-09-04 at twelve pooled runs: the cell is right 3 of 12,
+      scoring 3.0 nine times against gold's 4.0, so the count answers 2 in three
+      runs and 1 in nine. The mechanism is unchanged and the rate is worse than
+      the six-run figure showed. E41 bands it `wrong_by_median` -- it is RECORDED
+      WRONG, not wobbling. Gold says "only provided
       two reasons", so the two-answering runs are right. A count that cannot be
       answered twice the same way is the shape memory/error-profile-by-slot.md
       calls drift, and no rewrite of a slot rule fixes it.
@@ -6086,6 +6105,29 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       (`checks: null`) is what identified subgoal Q1.
 
 - [ ] Q17. **Q2: `wgb_is_counterpart`, `wgb_inverts_utb`, `reason_3`.**
+      == RE-EVALUATED 2026-09-04 AFTER E41's RECLASSIFICATION ==
+      Three of this subgoal's cells were being read as merely unstable and are in
+      fact RECORDED WRONG -- counted wrong by the per-cell median, not wobbling
+      around it. With Q2/p16 claimed below that is four, on an item the ledger
+      puts at 17/20 olx and 16/20 python:
+          Q2/p10   1/12   gold 3.0  ours 0.0 x10, 3.0 x1, 4.0 x1   UNDER by 3
+          Q2/p18   5/12   gold 4.0  ours 2.0 x7, 4.0 x5            UNDER by 2
+          Q2/p7    4/12   gold 0.0  ours 2.0 x8, 0.0 x4            OVER  by 2
+          Q2/p16   6/12   gold 5.0  ours 4.0 x6, 5.0 x6            UNDER by 1
+      AND THE DIRECTIONS ARE MIXED, which is the thing to plan around. This entry
+      records the ITEM as lopsided -- under-credit 17 against over-credit 5 -- and
+      that is true at the observation level, but at the CELL level p7 runs the
+      other way. Section 2b: a one-sided profile means a threshold is set wrong, a
+      two-sided one means the judgement is unstable. So NO SINGLE THRESHOLD SERVES
+      ALL FOUR, and a change that fixes p10 and p18 by charging less should be
+      checked against p7, which already charges too little.
+      Q2/p16 IS CLAIMED HERE 2026-09-04, with evidence, having had no owner but the
+      tooling subgoal that listed it. It fails `reason_3` -- one of this entry's
+      three named slots -- in EXACTLY 6 of 12 runs, giving 4.0 six times and 5.0
+      six times against a silent gold of 5.0. That is the starkest coin flip in
+      the corpus and it is counted WRONG, because 6 of 12 does not clear the
+      median. It is also one of the six cells E41 lists as one run from changing
+      its own verdict, so a rule change that "fixes" it by one run is not evidence.
       Q2/p18 MOVED HERE 2026-09-01 from Q32, which closed. It is `wgb_inverts_utb`
       -- the slot this subgoal already owns -- flipping: pooled over both engines
       the cell reads 2.0 seven times and 4.0 five times against a gold of 4.0, so
