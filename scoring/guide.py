@@ -20,7 +20,9 @@ belongs with any placeholder label, run --renumber --write, commit.
 
 from __future__ import annotations
 
+import hashlib
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -273,3 +275,85 @@ def main(argv: list[str]) -> int:
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
+
+
+# ---------------------------------------------------------------- approvals
+
+# LESSONS ADDED TO THE GUIDE WITH THE USER'S EXPLICIT APPROVAL, keyed by the sha
+# of the prose. Re-wording a lesson LAPSES its approval and the check asks again
+# -- the same rule `leakage.py` applies to its waivers, and for the same reason:
+# an approval that survives an edit is an approval of something nobody read.
+#
+# Standing instruction, 2026-09-04: "Asking for permission before adding lessons
+# to the guide should be enforced, not rely on you to remember." So it is state,
+# not a habit. To approve a lesson, paste the sha the finding prints.
+LESSONS_APPROVED: dict[str, str] = {
+    "dc4dba1edfb5": "a gate's silence is not a clearance — approved 2026-09-04, "
+                    "with the closing clause reworded to 'not ... by itself as "
+                    "definitive proof' at the user's direction",
+}
+
+
+def _lesson_leads(text: str) -> dict[str, str]:
+    """The guide's LESSONS, by sha of their prose.
+
+    A lesson in this document is a paragraph whose first line opens in bold --
+    that is the house style for a claim the reader is meant to act on -- or a
+    section heading. Both are what "adding a lesson" means; re-wrapping a
+    paragraph or fixing a figure inside one is not, and must not trip the check.
+    """
+    body = re.sub(r"```.*?```", "", text, flags=re.S)
+    out: dict[str, str] = {}
+    for para in body.split("\n\n"):
+        s = para.strip()
+        if not s:
+            continue
+        if s.startswith("**") or re.match(r"^#{2,3} ", s):
+            norm = " ".join(s.split())
+            out[hashlib.sha256(norm.encode()).hexdigest()[:12]] = norm[:88]
+    return out
+
+
+def unapproved_lessons() -> list[str]:
+    """Lessons present in the working guide that are not in HEAD and not approved.
+
+    The comparison is against the COMMITTED guide, so this asks exactly the
+    question the instruction asks: is this session adding a lesson nobody agreed
+    to? Editing an existing one shows up too, because the sha changes -- which is
+    intended, since a reworded claim is a different claim.
+    """
+    try:
+        # `HEAD:./NAME` -- the `./` makes git resolve the path relative to CWD.
+        # Without it git resolves from the REPO ROOT, the guide is one directory
+        # down, and `git show` returns nothing with a non-zero code. The first
+        # version did that and every lesson in the file looked new: 144 findings
+        # if the returncode had been ignored, and a silent clean because it was
+        # not. Either way the check said nothing true.
+        head = subprocess.run(["git", "show", "HEAD:./QUALITY_CONTROL.md"],
+                              cwd=HERE, capture_output=True, text=True,
+                              timeout=30)
+        if head.returncode != 0:
+            return []                      # no git, or no committed guide yet
+        before = _lesson_leads(head.stdout)
+    except Exception as e:
+        return [f"the lesson-approval check could not read the committed guide: "
+                f"{type(e).__name__}: {e}"]
+    try:
+        now = _lesson_leads(GUIDE.read_text())
+    except Exception as e:
+        # NOT `return []`. The first version swallowed a NameError here and
+        # reported a clean guide -- the check was green by construction and its
+        # own approval table was never consulted. A check that cannot run says so.
+        return [f"the lesson-approval check could not run: "
+                f"{type(e).__name__}: {e}"]
+    out = []
+    for sha, lead in now.items():
+        if sha in before or sha in LESSONS_APPROVED:
+            continue
+        out.append(
+            f"{GUIDE.name} adds an UNAPPROVED lesson: \"{lead}\" — the guide is "
+            f"the project's standing instructions, so a lesson goes in only with "
+            f"the user's agreement. Ask, then record it in "
+            f"guide.LESSONS_APPROVED as \"{sha}\". (A reworded lesson lapses its "
+            f"approval on purpose: the sha changes because the claim changed.)")
+    return out
