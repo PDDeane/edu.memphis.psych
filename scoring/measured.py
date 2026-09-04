@@ -2146,6 +2146,47 @@ def _scores_for(item: str, pid: int, runs_path: str | None) -> list:
             if c.get("participant_id") == pid]
 
 
+# SCORER CHANGES VERIFIED NOT TO MOVE ANY RECORDED SCORE, keyed by the pair of
+# fingerprints they sit between. `scorer_sha` answers "did the code this item's
+# score depends on change?" and cannot answer "could that change alter this
+# item's number?" -- so a real, behavioural change to a check that carries no
+# points flags every item measured before it, and asks for thousands of calls to
+# re-establish numbers that cannot have moved.
+#
+# AN ENTRY HERE IS NOT AN ASSERTION, IT IS A CLAIM WITH A VERIFIER.
+# enforcement.check_scorer_neutrality_is_verified re-scores every recorded cell
+# of the covered items through the CURRENT scorer and refuses the entry if any
+# stored score moves -- from artifacts already on disk, at no call cost. And the
+# key is the fingerprint PAIR, so the moment either side moves the entry lapses
+# and the staleness comes back. That is the prompt_sha idiom applied one level in.
+SCORER_NEUTRAL: dict[tuple[str, str], str] = {
+    # E25, commit 432fe64 (2026-09-01): "convert the keyword check to a derived
+    # `contains` primitive". It changed agreement.apply_computed,
+    # olx_prompts.contains_hit and olx_prompts._edit_within -- real scoring
+    # machinery, not comments -- and flagged 34 STALE SCORER observations across
+    # 17 items. E25's own finding is why it cannot matter: the keyword check is
+    # 100% accurate against a MECHANICAL ground truth (240/240) and carries no
+    # points, and only Q4a and Q4c have such a slot at all, which is why the
+    # flagged set includes items like T1, T2, 1b and PR that have no keyword slot.
+    # VERIFIED 2026-09-04 by re-scoring 2776 recorded cells across 14 items on
+    # both sides: every one reproduces the score its artifact stored.
+    ("6526989cd34f", "5ce4a8b5da28"): "E25's keyword-to-`contains` conversion, "
+        "verified score-neutral by re-scoring 2776 recorded cells",
+    ("2f11176f1cd0", "7d20355c702b"): "the same change, on the operant items",
+    ("4f0592d0beaf", "4454461f7b6a"): "the same change, on the items with no "
+        "slot sheet (1b, T1, T2) -- re-run deterministically instead: 20/20, "
+        "18/18, 18/18 exact",
+    # The remaining pairs are the SAME change seen through other items' closures:
+    # scorer_sha is item-scoped, so one commit produces a different pair for every
+    # distinct closure. All seven items below are in the 2776-cell re-score.
+    ("22f8ceb090da", "992381ed67cf"): "E25, through Q4b's closure",
+    ("4334438d6d55", "bbb4c72ce2a8"): "E25, through 1c's closure",
+    ("7b8f8715488a", "b3b70c8239bc"): "E25, through Q6's closure",
+    ("8f2c4a9c148c", "9f791c8ccf03"): "E25, through Q3's and Q5's closure",
+    ("fa4d1b3a2c1d", "b4860821510d"): "E25, through D1's and D2's closure",
+}
+
+
 def _staleness_lines() -> list[str]:
     """Staleness across every recorded side, ABSENT only for the default one.
 
@@ -2165,6 +2206,13 @@ def _staleness_lines() -> list[str]:
             if state.startswith("ABSENT") and side != DEFAULT_SIDE:
                 continue
             where = "" if side == DEFAULT_SIDE else f" [{side}]"
+            # A SCORER CHANGE DECLARED NEUTRAL, and verified by re-scoring, is
+            # not staleness -- it is a fingerprint that moved for a reason that
+            # cannot reach the number. See SCORER_NEUTRAL.
+            if "STALE SCORER" in state:
+                rec = ((records(side).get(item) or {}).get("scorer_sha"))
+                if (rec, scorer_sha(item)) in SCORER_NEUTRAL:
+                    continue
             out.append(f"{item}{where}: {state}")
     return out
 
@@ -3359,6 +3407,83 @@ def _runs_doc(item: str, side: str):
 
 _FIXTURES: dict = {}
 _COMPUTED_SLOTS: dict = {}
+
+
+def rescore_recorded(item: str, side: str) -> tuple[int, list[str], str | None]:
+    """Re-score every recorded cell through the CURRENT scorer.
+
+    Returns (cells compared, scores that MOVED, why it could not be compared).
+    The third channel is separate on purpose: the first version returned "no
+    comparable sheet" in the mismatch list, and its caller read that as "the
+    score moved" -- so 1b, T1 and T2, which have no slot sheet at all and are
+    scored deterministically from the fixture, were reported as evidence that a
+    neutrality claim was FALSE. Not-comparable and disagrees are different facts
+    and must not share a return channel (QUALITY_CONTROL.md 2j).
+
+    ANSWERS THE QUESTION `scorer_sha` CANNOT. The fingerprint says whether the
+    code an item's score depends on has changed; it cannot say whether the change
+    could move that item's number. This can, from artifacts already on disk, at no
+    call cost: take each recorded cell's verdicts, run today's scorer over them,
+    and require the score the artifact stored.
+
+    ONLY MISSING KEYS ARE RECOVERED. The first version of this called
+    apply_computed unconditionally and OVERWROTE verdicts the artifact already
+    held, which reported Q4b/p17 as a scorer disagreement when the stored 2.0 was
+    arithmetically right -- `wrong_kind` is unsatisfied on both 1.5-point
+    behaviour slots. `_our_failing_slots` guards the same call the same way; the
+    guard is the difference between recovering an unrecorded verdict and
+    inventing one.
+    """
+    import agreement as A
+    import olx_prompts as O
+    import cross_path as X
+    import handouts as H
+
+    doc = _runs_doc(item, side)
+    if doc is None:
+        return 0, [], "no recorded artifact"
+    h = _jobs()[item]["handout"]
+    try:
+        spec = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+        rub = H.config(h)["rubric"].BY_ID[item]
+        scorer = A.SCORERS[spec.get("kind") or "slots"]
+    except Exception as e:
+        return 0, [], f"no comparable sheet ({type(e).__name__})"
+
+    n, bad = 0, []
+    for run in doc["runs"]:
+        for r in (run.get("results") or []):
+            got = X.result_cell(r)
+            if got is None:
+                continue
+            cell_item, pid, stored, vd = got
+            if cell_item != item or stored is None or not vd:
+                continue
+            ch = {k: (v if isinstance(v, str) else str(v))
+                  for k, v in vd.items() if v is not None}
+            ans = {k: v for k, v in (r.get("answers")
+                                     or r.get("refers_to") or {}).items()
+                   if v is not None}
+            rebuilt = {k: dict(**({"verdict": ch[k]} if k in ch else {}),
+                               **({"refers_to": ans[k]} if k in ans else {}))
+                       for k in set(ch) | set(ans)}
+            if _computed_slots(spec) - set(rebuilt):      # the guard
+                try:
+                    rebuilt = A.apply_computed(spec, rebuilt,
+                                               _fixture_cached(item, pid))
+                    rebuilt = A.expand_counted(dict(spec, _slots=spec["slots"]),
+                                               rebuilt)
+                except Exception:
+                    continue
+            try:
+                now, _f = scorer(spec, rub, rebuilt)
+            except Exception:
+                continue
+            n += 1
+            if abs(float(now) - float(stored)) > 1e-9:
+                bad.append(f"{item}/p{pid} [{side}]: artifact stored {stored:g}, "
+                           f"today's scorer gives {now:g}")
+    return n, bad, None
 
 
 def _charging_slots(spec: dict) -> set:
