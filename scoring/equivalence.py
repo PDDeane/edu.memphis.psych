@@ -673,6 +673,8 @@ def enforcement_audit():
         findings.append(("-", "SLOT SETS COMPARED ACROSS ALPHABETS", bad))
     for bad in ENF.check_guide_structure_is_sound():
         findings.append(("-", "GUIDE STRUCTURE HAS DRIFTED", bad))
+    for bad in ENF.check_guide_lessons_are_approved():
+        findings.append(("-", "GUIDE LESSON NOT APPROVED", bad))
     for bad in ENF.check_probe_reach_limits_still_apply():
         findings.append(("-", "PROBE-REACH EXCUSE OUTLIVED ITS RULE", bad))
     for bad in ENF.check_computed_slot_recovery_is_faithful():
@@ -911,7 +913,7 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 60
+SELFTEST_EXPECTED = 61
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1716,6 +1718,18 @@ def enforcement_selftest():
                      {"code": "PROBE", "cells": [("NR", 4)], "why": "injected"}),
                  lambda: _HH.GOLD_DIVERGENCES.pop(),
                  want="CELL BOTH CORRECTED AND DECLARED")
+
+    # A LESSON ADDED TO THE GUIDE WITHOUT THE USER'S AGREEMENT, added 2026-09-04
+    # on the user's instruction that the asking be enforced rather than
+    # remembered. The injection appends a bold-led paragraph, which is the house
+    # style for a claim the reader is meant to act on.
+    _gp2 = _pl2.Path(__file__).resolve().parent / "QUALITY_CONTROL.md"
+    _guide_src2 = _gp2.read_text()
+    _scorer_case("a lesson is added to the guide unapproved",
+                 lambda: _gp2.write_text(
+                     _guide_src2 + "\n\n**AN UNAPPROVED LESSON.** With a body.\n"),
+                 lambda: _gp2.write_text(_guide_src2),
+                 want="GUIDE LESSON NOT APPROVED")
 
     # THE GUIDE'S OWN STRUCTURE, added 2026-09-03 after six hand-labelled
     # sections produced three duplicate labels and an out-of-order section 2.
