@@ -395,6 +395,31 @@ ITEMS: list[dict] = [
                          "worth 2, not the whole item. Not satisfied means the whole item is "
                          "that finding",
 },
+            # SHARPENED 2026-09-04 (subgoal Q17, problem (b)). This slot was the
+            # ONLY defect on p18: gold 4.0 is -1 for a missing third reason, the
+            # reasons count already returns exactly that on 12 of 12, and the cell
+            # still reads 2.00 in 7 runs because this slot answers `absent` in 7.
+            #
+            # THE CAUSE WAS THIS RULE CONTRADICTING ITSELF on that one cell, not a
+            # missing clause. It said a general CONDITION or ROUTINE fails, and an
+            # outcome in foreign units fails, and the behaviour's own positive STATE
+            # passes -- and p18's goal is a state in NO units, so two clauses
+            # reached for it and the model split 7 absent / 5 met. A rule with two
+            # arms over one cell does not need more prose, it needs the arms made
+            # decidable.
+            #
+            # THE TEST ADDED is whether the state could be reached by THIS behaviour
+            # and little else, which separates all three shapes without moving the
+            # two the old text already had right:
+            #   p18 gold 4.0  a state the UTB's behaviour alone yields   -> `met`
+            #   p10 gold 3.0  a state any self-improvement would serve   -> `absent`
+            #   p17 gold 0.0  a countable target in foreign units        -> `absent`
+            # p17 needed the "even where a fitting state is named alongside it"
+            # clause: its answer names a quantity AND a fitting condition after it,
+            # and the graders charged it anyway, so the countable target governs.
+            # p10 and p17 both answer `absent` today (11 of 12 and 12 of 12) and
+            # both are CORRECT -- gold charges each -2 -- so they are the controls
+            # this change must not move, not misses.
             {
                 "what": "wgb_inverts_utb",
                 "pts": 2.0,
@@ -449,7 +474,13 @@ ITEMS: list[dict] = [
                         "produce, counted in units the behaviour is not. A goal "
                         "stating the same behaviour's positive STATE PASSES: the "
                         "condition of having done it is the inversion, phrased as "
-                        "a state. Full credit is the same behaviour turned "
+                        "a state. The test is whether that state could be reached "
+                        "by this behaviour AND LITTLE ELSE — a condition only the "
+                        "behaviour the UTB names alone would yield is that behaviour's "
+                        "own, while one that any self-improvement would serve names "
+                        "no behaviour and fails. A quantified target in foreign "
+                        "units fails even where a fitting state is named alongside "
+                        "it. Full credit is the same behaviour turned "
                         "around — the UTB names a behaviour there is too much or "
                         "too little of, and the goal says to do that same "
                         "behaviour less, or more. What FAILS is a goal naming "
@@ -469,14 +500,23 @@ ITEMS: list[dict] = [
                          "does not say to perform it. A goal naming a DIFFERENT MEASURE — an "
                          "outcome the behaviour is supposed to produce, in units the "
                          "behaviour is not counted in — is not the behaviour either. But the "
-                         "same behaviour's own positive STATE is `met`: a goal naming the "
-                         "condition of HAVING DONE the behaviour is the inversion phrased as "
-                         "a state, and the graders charged nothing for it. So a different "
-                         "measure of the right behaviour fails; the right behaviour's state "
-                         "passes. A goal naming a DIFFERENT ACTIVITY fails here too — one "
+                         "same behaviour's own positive STATE is `met`, and what separates it from the "
+                         "two failures above is WHETHER THAT STATE COULD BE REACHED BY THIS BEHAVIOUR "
+                         "AND LITTLE ELSE. A state that only the behaviour the UTB names would "
+                         "produce is that behaviour's own condition named as a state, the inversion "
+                         "phrased as a condition, and the graders charged nothing for it. A state that "
+                         "ANY self-improvement would serve equally well names no behaviour at all and "
+                         "fails as a general condition — ask whether the words would fit a student "
+                         "working on some entirely different behaviour, and if they would, this is not "
+                         "stated. And a QUANTIFIED TARGET in units the behaviour is not counted in "
+                         "fails EVEN WHERE the response names a fitting state alongside it: once a "
+                         "response commits to a countable target foreign to the behaviour, that is the "
+                         "goal it has set, and a softer phrase added after does not rescue it. So a "
+                         "different measure of the right behaviour fails; the right behaviour's own "
+                         "state passes. A goal naming a DIFFERENT ACTIVITY fails here too — one "
                          "that describes what the student will do INSTEAD never says to do "
                          "less of the behaviour the UTB names. Answer `absent` for that here "
-                         "even though the `wgb_is_counterpart` gate above may also catch it; "
+                         "even though the `wgb_is_counterpart` gate above may also reach it; "
                          "do not pass this check assuming the gate will",
 },
             # A `reasons_listed` / `reasons_failing` scaffold in front of this
