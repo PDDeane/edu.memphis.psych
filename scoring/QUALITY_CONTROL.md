@@ -273,21 +273,36 @@ opened.
 
 ---
 
-### The reporting is likelier to be wrong than the model
+### What is COMPUTED is likelier to be right than what is WRITTEN
 
-**Across the longest campaign in this record, nearly every error was an inference
-or a summary error rather than a measurement error.** The item finished with
-per-check accuracies of 100%, 99.4% and 100%; over the same period the person
-driving it had to be corrected on quoting a single-side median, on reporting a
-per-cell median as an item score, on optimism as a standing pattern, on citing
-suspect cells as evidence, on believing a finding's misleading label, and twice on
-proposing a closure the numbers did not support.
+**The reliable/unreliable line in this project does not fall between the scorer
+and the reporter. It falls between what a program computes and what a language
+model writes.** Everything on the computed side -- the arithmetic, the ledger, the
+per-check tables, the enforcement checks -- has been right nearly every time it
+was doubted. Everything written in prose has been the weak half, and that includes
+BOTH halves of the work: the scoring model's judgements are wrong at a few percent
+per slot, and the summaries, inferences and subgoal entries written about them
+have been wrong more often than that.
 
-That asymmetry is why the fixes in this guide that earn their keep are the ones
-that make honest figures **unavoidable** rather than available: the spread printed
-on every `--record`, the fixture preflight in both harnesses, the table-against-
-table checks that need no run data. Advice is what the reader already agreed with
-before misreading the table.
+The scoring model looks reliable in the record only because a program constrains
+it: a slot sheet, a fixed vocabulary, arithmetic it cannot influence. Where prose
+is unconstrained -- an entry's headline, a precision figure quoted from memory, a
+claim about which cells a subgoal owns -- it drifts, and the drift is invisible
+because prose does not disagree with itself the way two numbers do. Over the
+longest campaign here, one item finished at 100 / 99.4 / 100% per check while the
+entries describing it accumulated a stale precision table, a suspect cell listed
+as evidence, two cells resolved by corrections nobody propagated, and a headline
+the data contradicted.
+
+**So: put the load on the computed side wherever the choice exists.** A number a
+check derives beats the same number typed into a sentence; a table regenerated on
+every recording beats one pasted once. When something must be written down, write
+it so a check can contradict it later -- name cells, name counts, name the
+artifact -- because a claim that cannot be contradicted cannot be maintained
+either. That is why the fixes that earn their keep here make honest figures
+**unavoidable** rather than available: the spread printed on every `--record`, the
+fixture preflight in both harnesses, the prose-number ratchet that reads GOALS.md
+against the ledger.
 
 ## 1. Fixture first
 
@@ -773,6 +788,43 @@ occasionally.
 
 ---
 
+## 2b1. SPEND NOTHING ON WHAT A FREE CHECK CAN SETTLE FIRST
+
+**Every rule in this guide that can be tested without model calls belongs in the
+PREFLIGHT, not in the reader's memory.** A sweep costs hundreds of calls and an
+hour; the checks that would have stopped a bad one cost seconds and no calls at
+all. The policy is therefore not "run the checks when you remember" but: before
+anything spends, run everything that can run for free, and treat a finding as a
+refusal rather than a note.
+
+This is implemented, not aspirational. `agreement.cheap_checks_gate` is the
+structural suite and both harnesses now run it -- the app side did NOT until
+2026-09-03, which meant a finding that stopped one engine silently let the other
+through. Alongside it, `check_idmap_is_current` refuses a dump that predates the
+current prompt, `check_fixture_is_not_corrupt` refuses a fixture whose boxes are
+not the student's words, and the leakage and probe gates refuse before the first
+call.
+
+**The bar for adding a check to the gate is not "could this break the sweep".**
+It is "could this make the sweep WORTHLESS", and that includes making its reading
+wrong rather than its execution fail:
+
+* a fixture whose boxes hold a placeholder rather than the response measured a
+  placeholder, and the change under test read as refuted when it had never been
+  tested -- 120 calls;
+* an idmap dumped while a reverted rule was live re-measured the reverted rule --
+  a whole sweep;
+* gold read from the wrong handout's sheet, or a slot diff taken against a
+  vocabulary gold cannot use, produce a clean-looking number answering a
+  different question. Both are now in the gate for exactly that reason.
+
+**And the cheapest check of all is reading.** Section 2e's all-cells pass makes no
+calls and killed a rule that had already survived every mechanical gate. Before
+launching, ask what the sweep is supposed to settle, and whether anything on disk
+already settles it -- the artifacts, gold's comments, the responses themselves.
+Several findings in this record were established from artifacts alone, with no
+calls spent, after being proposed as sweeps.
+
 ## 2b3. RE-READ EVERY CELL A SUBGOAL OWNS BEFORE ACTING ON IT
 
 **A subgoal's cell list is a claim, and it decays.** Cells get corrected gold,
@@ -805,13 +857,19 @@ objection invented a false negative that was not there; the charge was "this is
 not an example of operant conditioning" and nothing else. When a comment both
 charges and advises, the charge is the part with the points attached.
 
-## 2c. A SWEEP IS python + olx. BOTH SIDES, ALWAYS, WITHOUT BEING ASKED
+## 2c. A SWEEP DEFAULTS TO python + olx. LAUNCH BOTH UNLESS ASKED FOR ONE
 
-**Measuring an item means measuring it on both engines.** They are pooled as ONE
-sample of twelve runs, not compared, so a sweep of one side is not a smaller
+**"Sweep this item" means both engines, without being asked.** They are pooled as
+ONE sample of twelve runs, not compared, so a sweep of one side is not a smaller
 measurement -- it is half a measurement that the ledger will then average against
-six runs from a different era. Launch both. Do not wait to be told, and do not
-report a one-sided result as an item's number.
+six runs from a different era.
+
+**This is a default, not a prohibition.** A one-sided sweep is a legitimate thing
+to ask for -- confirming a single engine's behaviour, re-running a half that
+failed, spending half the calls on a first look -- and when it is asked for, run
+it. What is not legitimate is arriving at one side by omission, or reporting a
+one-sided result as the item's number. If only one side was run, say which, and
+say that the ledger figure still stands on the other side's older runs.
 
 This has now gone wrong in three different ways, which is why it is a rule rather
 than a habit:
@@ -824,28 +882,47 @@ than a habit:
   text -- see the idmap note below, which would have manufactured exactly the
   engine difference we never reason from.
 
-**And re-take the idmap dump after any prompt change, before the olx sweep.** The
-app serves the prompt from the dump, the harness parses the .olx directly, so
-between regenerating and re-dumping the two genuinely do send different text. The
-audit says so in the finding itself. Re-take it, confirm the new wording is in the
-dump and the old wording is gone, then sweep.
+**Re-take the idmap dump after any prompt change, before the olx sweep** -- the
+app serves the prompt from the dump while the harness parses the .olx directly,
+so between regenerating and re-dumping the two really do send different text.
+This one is ENFORCED, not advised: `agreement_app.check_idmap_is_current`
+refuses to measure against a dump that predates the current prompt, and it exists
+because that gap once silently re-measured a reverted change for a whole sweep.
+Re-dump, confirm the new wording is present and the old wording gone, and let the
+preflight confirm it.
 
-## 2d. A LOOKUP THAT CAN COME BACK EMPTY MUST RAISE INSTEAD
+## 2d. KNOW WHICH SOURCE YOU CONSULTED, AND CHECK IT IS THE RIGHT ONE
 
-**"Not found" and "wrong question" must not have the same return value.** A gold
-row read against the wrong handout returns `{}` -- identical to a cell that has no
-gold row. The first is a bug, the second is a fact, and a caller cannot tell them
-apart, so the bug reads as "nothing to see here" and a scan silently skips it.
+**The question is not whether a lookup can come back empty. It is whether you
+established that the thing you looked in is the thing that holds the answer.**
+Empty returns are one symptom of getting that wrong; agreeing-by-accident is
+another, and worse, because nothing about it looks like a failure.
 
-The fix is not to be careful. It is to remove the choice: derive the key rather
-than passing it (`gold_cell(item, pid)` computes the handout from the item), and
-RAISE when the derivation is impossible. Then the only empty return left means
-what it says.
+This project keeps most of its facts in several parallel sources of the same
+shape -- three gold sheets, four ledger sides, two scoring artifacts, a rubric and
+the .olx generated from it and the idmap dumped from that. Every one of those is a
+valid source of SOMETHING. Consult the wrong member of the family and it answers
+in the right format, with plausible content, and nothing raises:
 
-Look for this shape anywhere a lookup takes BOTH a scope and a key -- handout and
-participant, item and slot, side and cell. If the scope can be wrong and the
-result is a bare `{}`, `None` or `[]`, the silence is a defect waiting to be
-believed.
+* a handout-1 gold sheet read for a handout-3 item returned `{}`, which is exactly
+  what an ungraded cell returns;
+* an idmap dumped before a prompt change served a complete, well-formed prompt --
+  the previous one -- and a whole sweep measured a reverted rule;
+* a slot profile read from one artifact shape returned `[]` for every cell of the
+  other engine and reported nothing amiss.
+
+**So the discipline is: derive the source from the question, and assert the
+match.** Not "handle the empty case" -- establish, before reading, that this
+sheet grades this item, that this dump serves this prompt, that this artifact was
+written by this engine. Where the source can be DERIVED, derive it and never
+accept it as a parameter: `gold_cell(item, pid)` computes the handout from the
+item, so the wrong sheet is unreachable rather than guarded. Where it must be
+passed, verify identity at the boundary and REFUSE on mismatch --
+`check_idmap_is_current` and `measured.SIDE_CONTRACT` are both that pattern, and
+both have caught real errors.
+
+Then, and only then, an empty result means what it says. The raise is the
+consequence of knowing the source, not the point.
 
 ## 2e. VALIDATE A CANDIDATE RULE AGAINST EVERY VALID CELL BEFORE WRITING IT
 
