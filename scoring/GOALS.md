@@ -849,6 +849,50 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
                 tokens across sides; _fail_token/_fail_verdict are per-side by
                 design and must stay so.
 
+- [ ] E40. **Cell ownership misses cells written as bare `pN`, so the audit's
+      owner map names the wrong subgoal for seven open entries.**
+      FILED AS Q38 AND REFILED AS E40 THE SAME DAY. The test is the one subgoal
+      E25's entry states -- the DELIVERABLE decides the series, not the finding:
+      "its FINDING is about accuracy but its DELIVERABLE is a primitive
+      conversion ... That is the audit's own direction of travel." This finding
+      looks like bookkeeping about which subgoal owns a cell; its deliverable is a
+      change to `measured._live_subgoal_owners` and a fire test, which is audit
+      machinery. The precedent is unambiguous: subgoal E37 introduced that map
+      ("make the wrong-cell accounting an audit check"), E36 is the same shape
+      (a check's blind spot), and the earlier ownership fix -- item- and
+      side-scoping -- was audit work too. This is the third correction to one
+      instrument and belongs beside the other two.
+      Filed 2026-09-04 out of a check of subgoals Q14 and Q18, which the derived
+      ranking had placed in its bottom tier as owning no wrong cells. Both own
+      cells, and both entries were exactly right about them; the ranking was not.
+      THE GAP: `measured._live_subgoal_owners` recognises a cell only when it is
+      written `item/pN`. An entry whose TITLE names the item and whose prose says
+      bare `pN` is invisible to it. So `Q1/p10` was attributed to subgoal Q20, on
+      three passing mentions, and not to subgoal Q14 -- whose title is "Q1's two
+      live misses: p10 and p18" -- at all; and `Q4b/p12` went to subgoals Q19 and
+      Q26 on one mention each rather than to Q18, which is the subgoal about
+      Q4b's second box.
+      SEVEN OPEN ENTRIES ARE AFFECTED, and the missed attributions are not small:
+          Q14  Q1/p10, Q1/p14          Q18  six Q4b cells including p12 and p4
+          Q16  Q1/p10, p17, p18        Q24  five Q4a cells including p14 and p19
+          Q17  Q2/p7, Q2/p10           Q26  DAY1/p6, p10, p18
+          Q21  NR/p9
+      THE AUDIT IS NOT CURRENTLY HARMED, which is why this is precision rather
+      than a live defect: `wrong_cells_without_an_owner` asks only whether SOME
+      subgoal owns a cell, and it returns 0 either way. What is lost is the
+      ability to say a cell is owned by the WRONG subgoal, which nothing checks.
+      THE DELIVERABLE: resolve bare `pN` against an entry's title item inside the
+      shared owner map; fire-test that ownership moves to the title-owner rather
+      than the most talkative neighbour; confirm
+      `wrong_cells_without_an_owner` does not regress. Note that the map is
+      GENEROUS BY DESIGN -- its own comment records that it exists so no wrong
+      cell goes unlooked-at -- so this must ADD attributions, never remove them.
+      AND THEN DELETE THE RANKING'S COPY. `goals.rank()` already does this
+      locally, because the ranking was the thing visibly wrong and the shared map
+      is read by several checks. Two implementations of one rule is the
+      divergence class this project exists to close, so when this lands the
+      ranking must consume the shared map instead of carrying its own resolution.
+
 - [ ] E28. **A paper sweep the ledger can record, on either model.**
       FIRST NUMBERS RECORDED 2026-09-01, on two items only: Q4a paper 15/20 and
       Q4c paper 17/19, six runs each on gpt-5-mini through `--backend lo`, folded
@@ -3360,39 +3404,6 @@ because it can be fixed or declared; a wobbling cell cannot be either.
            instrument that reports nothing amiss while being blind reads as
            coverage. Both blindnesses were found by USING the tool on a question
            it had never been pointed at, not by any check.
-
-- [ ] Q38. **Cell ownership misses cells written as bare `pN`, so the audit's
-      owner map names the wrong subgoal for seven open entries.**
-      Filed 2026-09-04 out of a check of subgoals Q14 and Q18, which the derived
-      ranking had placed in its bottom tier as owning no wrong cells. Both own
-      cells, and both entries were exactly right about them; the ranking was not.
-      THE GAP: `measured._live_subgoal_owners` recognises a cell only when it is
-      written `item/pN`. An entry whose TITLE names the item and whose prose says
-      bare `pN` is invisible to it. So `Q1/p10` was attributed to subgoal Q20, on
-      three passing mentions, and not to subgoal Q14 -- whose title is "Q1's two
-      live misses: p10 and p18" -- at all; and `Q4b/p12` went to subgoals Q19 and
-      Q26 on one mention each rather than to Q18, which is the subgoal about
-      Q4b's second box.
-      SEVEN OPEN ENTRIES ARE AFFECTED, and the missed attributions are not small:
-          Q14  Q1/p10, Q1/p14          Q18  six Q4b cells including p12 and p4
-          Q16  Q1/p10, p17, p18        Q24  five Q4a cells including p14 and p19
-          Q17  Q2/p7, Q2/p10           Q26  DAY1/p6, p10, p18
-          Q21  NR/p9
-      THE AUDIT IS NOT CURRENTLY HARMED, which is why this is precision rather
-      than a live defect: `wrong_cells_without_an_owner` asks only whether SOME
-      subgoal owns a cell, and it returns 0 either way. What is lost is the
-      ability to say a cell is owned by the WRONG subgoal, which nothing checks.
-      THE DELIVERABLE: resolve bare `pN` against an entry's title item inside the
-      shared owner map; fire-test that ownership moves to the title-owner rather
-      than the most talkative neighbour; confirm
-      `wrong_cells_without_an_owner` does not regress. Note that the map is
-      GENEROUS BY DESIGN -- its own comment records that it exists so no wrong
-      cell goes unlooked-at -- so this must ADD attributions, never remove them.
-      AND THEN DELETE THE RANKING'S COPY. `goals.rank()` already does this
-      locally, because the ranking was the thing visibly wrong and the shared map
-      is read by several checks. Two implementations of one rule is the
-      divergence class this project exists to close, so when this lands the
-      ranking must consume the shared map instead of carrying its own resolution.
 
 - [ ] Q36. **1a's week-presence rule: we credit a baseline week that is not there
       (1a/p6), and the label-versus-data question underneath it.**
@@ -5991,7 +6002,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       all six runs on BOTH engines" says. Q4b/p4 is also right 0 of 12 and
       belongs here for the same reason. Checked because the derived ranking had
       put this subgoal in its bottom tier as owning no wrong cells, which was an
-      attribution defect (subgoal Q38) rather than anything about the work: this
+      attribution defect (subgoal E40) rather than anything about the work: this
       entry writes its cells as bare `pN` under a title naming Q4b, and the owner
       map only recognised `item/pN`.
       MEASURED ON THE APP 2026-08-29, for the first time -- Q4b could not run
@@ -6183,12 +6194,12 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       pooled runs of twelve since the sides were pooled, so the title named a
       cell that is not a miss. `Q1` stays in the title deliberately -- cell
       attribution resolves this entry's bare `pN` references through it (subgoal
-      Q38).
+      E40).
       CHECKED AGAINST THE LEDGER 2026-09-04 AND THIS ENTRY IS EXACT. p10 is right
       1 of 12 against gold 4.0, which is what "5.0 in 11 of 12 runs ... reaching
       gold once" says; p18 is right 12 of 12. Nothing here needs re-reading. It
       was checked because the derived ranking had put this subgoal in its bottom
-      tier as owning no wrong cells -- an attribution defect, now Q38, not a fact
+      tier as owning no wrong cells -- an attribution defect, now E40, not a fact
       about the work.
       POOLED, 2026-09-01, THIS IS ONE MISS AND NOT TWO. Q1/p18 scores 5.0 in ALL
       TWELVE pooled runs against a gold of 5.0 -- it is not a live miss and has
