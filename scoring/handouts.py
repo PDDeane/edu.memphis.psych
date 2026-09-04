@@ -1120,6 +1120,41 @@ GOLD_DIVERGENCES: list[dict] = [
     },
     {
         "code": "ANTECEDENT_REUSED_AS_BEHAVIOR", "cells": [("Q4b", 4)],
+        # p4 is a SECOND Q4b disagreement and it is NOT a ceiling, though this
+        # file said it was for one commit. Gold charges a criterion the rubric
+        # does not carry — "your behaviors cannot be the same as your
+        # antecedents" — and p4's two entries are its own 4a antecedents with the
+        # pair swapped: 4a gives "having grumpy emotions" and "scrolling through
+        # tiktok", 4b gives "scrolling on tiktok instead" and "becoming grumpy".
+        # We credit the first and refuse the second, 3.5 against gold's 2.0.
+        #
+        # The ceiling claim was that no rule can charge this without breaking the
+        # cells gold credits, argued from a lexical sweep: 4b/4a overlap appears
+        # in 13 of 20 cells and gold gives four of them full credit. That was a
+        # prediction about a rule nobody had written, and the sweep over-reports
+        # — its own key-word heuristic flagged p11 and p19, which the grader had
+        # already credited.
+        #
+        # MEASURED, 3 runs, with a sixth test added to both slots: an entry that
+        # names the same THING as one of the student's own 4a antecedents fails,
+        # judged by REFERENT and not by topic.
+        #
+        #   counted   [14, 13, 13] baseline   ->   [15, 12, 14] with the test
+        #   p4        0/3 -> 1/3              the target does move
+        #   p1 p12 p15 p17                    unchanged — the four gold credits held
+        #   spread    1 cell -> 3 cells
+        #
+        # So the rule is possible and the ceiling was wrong. It is not adopted
+        # because of the SPREAD: a mean of 13.67 against 13.33 for three times the
+        # variance is the trade the guide refuses, since a configuration that
+        # swings three cells cannot tell you whether the next change helped.
+        # p4's miss therefore stands as a divergence, with the door open to a
+        # steadier formulation of the same test.
+        #
+        # MOVED HERE 2026-09-04 from B_NOT_ACTIVE, which listed p4 without
+        # describing it. Consolidating the cell meant moving this record, not
+        # deleting it: the third attempt above is measured and appears in no
+        # other entry.
         "why": "p4 gave \"scrolling on tiktok\" and \"becoming grumpy\" as their "
                "active behaviours, having already named \"scrolling through "
                "tiktok\" and \"having grumpy emotions\" as their 4a triggers. Gold "
@@ -1211,37 +1246,14 @@ GOLD_DIVERGENCES: list[dict] = [
         # inference held. What the inference could NOT see is half the picture:
         # the test also costs p16, and it marginally rescues p14. Two of the five
         # cells it moves were invisible from the record.
-        "code": "B_NOT_ACTIVE", "cells": [("Q4b", 12), ("Q4b", 4)],
-        # p4 is a SECOND Q4b disagreement and it is NOT a ceiling, though this
-        # file said it was for one commit. Gold charges a criterion the rubric
-        # does not carry — "your behaviors cannot be the same as your
-        # antecedents" — and p4's two entries are its own 4a antecedents with the
-        # pair swapped: 4a gives "having grumpy emotions" and "scrolling through
-        # tiktok", 4b gives "scrolling on tiktok instead" and "becoming grumpy".
-        # We credit the first and refuse the second, 3.5 against gold's 2.0.
-        #
-        # The ceiling claim was that no rule can charge this without breaking the
-        # cells gold credits, argued from a lexical sweep: 4b/4a overlap appears
-        # in 13 of 20 cells and gold gives four of them full credit. That was a
-        # prediction about a rule nobody had written, and the sweep over-reports
-        # — its own key-word heuristic flagged p11 and p19, which the grader had
-        # already credited.
-        #
-        # MEASURED, 3 runs, with a sixth test added to both slots: an entry that
-        # names the same THING as one of the student's own 4a antecedents fails,
-        # judged by REFERENT and not by topic.
-        #
-        #   counted   [14, 13, 13] baseline   ->   [15, 12, 14] with the test
-        #   p4        0/3 -> 1/3              the target does move
-        #   p1 p12 p15 p17                    unchanged — the four gold credits held
-        #   spread    1 cell -> 3 cells
-        #
-        # So the rule is possible and the ceiling was wrong. It is not adopted
-        # because of the SPREAD: a mean of 13.67 against 13.33 for three times the
-        # variance is the trade the guide refuses, since a configuration that
-        # swings three cells cannot tell you whether the next change helped.
-        # p4's miss therefore stands as a divergence, with the door open to a
-        # steadier formulation of the same test.
+        "code": "B_NOT_ACTIVE", "cells": [("Q4b", 12)],
+        # p4 LEFT THIS ENTRY 2026-09-04. It was declared here AND in
+        # ANTECEDENT_REUSED_AS_BEHAVIOR, and only the second one's reason
+        # describes it -- this entry's `why` is entirely about p12's
+        # not-doing, while p4's pick is `consequence`. The measured record
+        # that sat here moved with it rather than being dropped, which is the
+        # only reason the removal is safe: the comment held a third attempt
+        # recorded nowhere else.
         "why": "gold credits a not-doing as an active behaviour. p12's second "
                "entry is \"I skip adding fruits or vegetables to my meals even "
                "when they are available and let them sit in the refrigerator "
