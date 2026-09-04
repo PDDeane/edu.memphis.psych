@@ -3553,7 +3553,8 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       and could not reach this cell. It is NOT the population's usual shape -- gold
       charged it and wrote a comment, rather than passing it in silence -- and it is
       here because the defect is pure VARIANCE and this entry owns variance.
-      WHAT HAPPENS: `mechanism_named` is absent in 12 of 12 runs, correctly, so
+      WHAT HAPPENS: `mechanism_named` is absent in 6 of 12 pooled runs (it was 12
+      of 12 when this was filed, on the pre-conjunction rule), so
       how_2 is charged and the cell scores 4.0 exactly as gold does. In 2 runs the
       `verdict` slot ALSO fails and the cell drops to 2.0. Every gold row on 2a is
       6 or 4, so a gold-4 cell tolerates exactly ONE charge; a second one overshoots
@@ -3745,7 +3746,8 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       declared, because its gold comment does not reconcile and the accounting
       therefore reads no slots from it. Corrected rather than left, since "the
       only cell" is exactly the kind of claim a later reader would rely on.
-      1c/p11: gold 6.0, ours 4.0, stable in 6 of 6 runs. We fail `legend`,
+      1c/p11: gold 7.0 (it was 6.0 when this was filed; the row has since been
+      corrected), ours 4.0, stable in 12 of 12 pooled runs. We fail `legend`,
       `x_axis_label` and `y_axis_label`; gold charges the two axis titles and adds
       "-1 pt: missing baseline data week", which is a 1b charge on a 1c row -- the
       same cross-item shape as Q4c/p16, where a Q4b comment appears on a Q4c row.
@@ -4112,7 +4114,12 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       none coinciding with a miss. These are four required properties of a strict
       schema, asked on every call, doing no discriminating work.
       DAY1 IS THE EXCEPTION AND IT IS NOT A COUNTEREXAMPLE -- it is a different
-      sheet. `names_behavior` 18/6, `contingent` 23/6, `follows_behavior` 26/6.
+      sheet. RE-DERIVED 2026-09-04 and THE EXCEPTION HAS GONE: `names_behavior`
+      35 refusals with 0 in a wrong cell, `contingent` 50/0, `follows_behavior`
+      56/0 -- so DAY1's structural gates now discriminate no worse than its
+      siblings'. It read 18/6, 23/6, 26/6 when filed, which is what made DAY1 the
+      exception; the DAY1/p1 gold correction is the likeliest cause of the change,
+      and the claim below should not be relied on until it is re-read.
       The cause is structural and was found by looking: DAY1 is the ONLY item of
       eight where `phrased_directly` GATES (`!phrased_directly` in its OLX; the
       other seven author it plain). When any gate fires the item zeroes, so a
@@ -4655,8 +4662,10 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       is in the RULE, not in either implementation, which is what a structural fix
       needs to be true of.
       AND SO DOES THE ORTHOGONALITY of the four structural gates:
-      `names_behavior` 6/0, `names_stimulus` 12/0, `contingent` 14/0,
-      `follows_behavior` 13/0 -- 45 refusals between them, ZERO in a wrong cell.
+      As filed, `names_behavior` was 6/0, `names_stimulus` 12/0, `contingent` 14/0,
+      and `follows_behavior` 13/0 as filed -- 45 refusals between them, ZERO in a
+      wrong cell.
+      (Re-derived above at 79 refusals and still zero.)
       Read that with subgoal Q20: those four are doing no discriminating work here
       at all, while the fifth gate on the same sheet is the most expensive
       instrument on the item.
@@ -4683,8 +4692,8 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       is refused 34 times with 10 of those in wrong cells -- 71% precision -- which
       makes it simultaneously the most expensive instrument on the sheet and one of
       its least precise. Five other slots on this item are 100% precise;
-      `barrier_is_not_this_type`, converted to a declaration today, is 6 refusals
-      and 100%.
+      `barrier_is_not_this_type`, converted to a declaration then, was 6 refusals
+      and 100%, and still is at twelve runs.
       PRECISION RANKING, the order to work in:
           targets_goal_behavior  13 refusals   62%
           you_arrange_it         34 refusals   71%   <-- and it GATES
@@ -4735,7 +4744,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
              "This is an example of NP" -- so gold and we AGREE the type is wrong
              and disagree only about the PRICE. This is a charge-size mismatch, not
              a judgement one.
-        p4   gold 4.00, ours 2.00. `demonstrates_type` refused 6/6, gold silent. It
+        p4   gold was 4.00, ours 2.00. `demonstrates_type` refused 6/6, gold silent then. It
              is COMPUTED, via `expect` from `observed_type`/`stimulus_move` against
              REQUIRED_MOVE's `taken_undesirable`, so the lever is the PICK, not
              prose -- check what the model answers for the move before touching any
@@ -4767,7 +4776,8 @@ because it can be fixed or declared; a wobbling cell cannot be either.
            middle case: three wrong refusals, few enough to read individually.
         2. p4 is arithmetic, not judgement. Read the picks.
         3. p3 goes to subgoal Q20.
-        4. DO NOT TOUCH `phrased_directly` despite 64 refusals and 7 drifting cells
+        4. DO NOT TOUCH `phrased_directly` despite what were 64 refusals and 7
+           drifting cells (117 refusals at twelve runs, 10 in wrong cells)
            -- the largest real instability in the sweep. It is advisory on this item
            and cannot deduct, so its correlation with wrong cells is a marker of
            hard cells, not a cause.
@@ -5666,7 +5676,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       CONFIRMED AND STABLE, 6 of 6. gold 3.0, we predict 4.0 every run. gold's
       note is "-1 pt: For measurable, how are you tracking your goal? -1 pt: For
       action, what do you have to actively do to achieve your goal?" -- and we fail
-      `measurable` in 6 of 6 runs while NEVER failing `action_oriented`. So we
+      `measurable` in 12 of 12 pooled runs while NEVER failing `action_oriented`. So we
       already agree with gold on the slot the subgoal is not about, and the entire
       gap is the missing `action_oriented` deduction. This is the clearest of the
       three and the only one whose premise survives the sweep unchanged.
@@ -5678,7 +5688,10 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       way. Read `--criterion Q3 action_oriented` credited rows FIRST; a rule that
       rejects measurability-as-justification risks p9, p14 and p18, all credited
       on access alone.
-- [ ] Q10. **Q3/p10: `measurable` at ~3/6.** Names tracking methods but no medium
+- [ ] Q10. **Q3/p10: we credit `measurable` where gold docks it.** (The title
+      quoted "~3/6" until 2026-09-04; the entry's own body had already contradicted
+      it, which is why a subgoal names cells and slots rather than counts.)
+      Names tracking methods but no medium
       MEASURED IN THE TWO-SIDED SWEEP, 6 runs, 2026-08-28. Q3 came out 18/20 at
       100% PER CHECK with a spread of ZERO cells -- so every individual verdict was
       right and the two missed cells are arithmetic on correct judgements. The
@@ -5689,8 +5702,9 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       AND THE DIAGNOSIS MOVED, because gold docks TWO points on each of these cells
       and we were reading the first one only:
       RIGHT SLOT, WORSE RATE, AND NO LONGER UNSTABLE. gold 3.0 against our 4.0 in
-      5 of 6 runs. gold docks `specific` AND `measurable`; we fail `specific` in 6
-      of 6 and `measurable` in only ONE of 6. So the cell is not "~3/6" any more --
+      5 of 6 runs. gold docks `specific` AND `measurable`; we fail `specific` in 12
+      of 12 pooled runs and `measurable` in only 2 of 12. So the cell is not the
+      unstable one this entry was opened on --
       we credit `measurable` five times in six, which is stably wrong rather than
       noisy. The recorded caution here was "six runs of the criterion before any
       prose change, since a ~3/6 cell can be moved by noise and read as a fix";
@@ -5880,8 +5894,9 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       which cost 1a/p6 the whole item before the migration -- is the action that
       serves both problems at once. Q2's `reasons_failing` and `reasons_substantial`
       are in that backlog too, unscoped.
-      DO NOT CHASE `confident`: unmet in 117 of 120 observations with 95 in cells
-      that scored correctly. Same noise floor as Q1, confirmed twice.
+      DO NOT CHASE `confident`: unmet in 234 of 240 pooled observations with 190 in
+      cells that scored correctly. Same noise floor as Q1, confirmed twice, and
+      re-derived 2026-09-04 at 12 runs (it read 117 of 120 at six).
       WAIT FOR THE APP COLUMN, for the reason on subgoal Q16: the two sides share
       this prompt and differ only in whose rules score it.
 
@@ -6054,7 +6069,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
         `reason_3`    unmet 47, 39 of them in cells that scored CORRECTLY -- so it
                       fires far more often than it explains. Treat a change here as
                       likely to move right cells, and control for them.
-      DO NOT CHASE `confident`. Unmet in 92 of 120 observations with 79 of those in
+      DO NOT CHASE `confident`. Unmet in 160 of 240 pooled observations, 133 of those in
       cells that scored correctly, and the top drifter at 14 cells changing verdict
       across runs. It fires constantly and predicts nothing; it is the noise floor,
       not a lever.
