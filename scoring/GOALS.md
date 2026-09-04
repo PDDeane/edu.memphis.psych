@@ -3795,6 +3795,25 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       cell scores 3.0 in one run and 0.0 in the other five. An unstable judgement
       on a gate is the worst combination available -- Q21 and Q22 record the same
       shape on NR's and DAY2's gates, and this is a third instance.
+      THREE CADENCE CELLS PROPOSED FOR REASSIGNMENT HERE 2026-09-03, from Q22's
+      cell-by-cell re-read, on the grounds that this subgoal's shape is not
+      Q2-specific and they are the same thing: gold prices a judgement at a
+      PARTIAL charge and one of our GATES zeroes the item on top of a deduction
+      we already made correctly.
+          WK2/p11   gold 2.00 "-2 pts: This is an example of NP."   cadence gate
+          WK2/p15   gold 2.00 "-2 pts: This is an example of NP."   cadence gate
+          DAY2/p11  gold 2.00 "-2 pts: This is an example of PP."   cadence gate
+      On each, `matches_chosen_type` (pts=2.0, NOT a gate) already charges gold's
+      2 correctly; the cadence gate then takes the remaining 2 as well. NR/p11 in
+      subgoal Q21 is a fourth instance, and Q2/p10 below is the fifth. That is
+      five cells across three items and three different gates, which makes this a
+      WIRING question about gates versus partial charges rather than a fact about
+      `wgb_is_counterpart` -- and it should be retitled if these are accepted.
+      NOTE what it does NOT cover: the same three cells also over-credit when
+      `matches_chosen_type` wrongly passes (6 of 12 on WK2/p15, 8 of 12 on
+      DAY2/p11). That half is Q20's and is already listed there. A cell can be in
+      two subgoals for two defects; it must not be in one for both.
+
       RE-READ GATE-AWARE 2026-09-03 (subgoal Q37). The shape holds and two
       numbers change:
         The gate is absent in 10 of 12 pooled runs, not 5 of 6 -- 5 of 6 on each
@@ -4299,6 +4318,75 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       NP"). WK2/p11, DAY2/p11 and WK2/p15 fail only when a gate fires ON TOP of a
       correctly-priced deduction. Charging it differently would break the three
       cells it currently gets right.
+      CELL-BY-CELL RE-READ 2026-09-03, gate-aware, and it sharpens the rule.
+      The gate fires on EIGHTEEN cells across the four items. THIRTEEN OF THEM
+      COST NOTHING and do not belong to this subgoal in any form:
+        EIGHT BLANK ANSWERS -- WK1/p10, WK1/p18, DAY1/p10, DAY1/p18, WK2/p10,
+          WK2/p18, DAY2/p10, DAY2/p18. Gold 0.00 "did not answer", empty string,
+          and EVERY check on the sheet fails together, 12 of 12. A gate firing on
+          an empty string is trivially right.
+        FIVE STRUCTURAL FAILURES -- WK1/p6, WK1/p13, DAY1/p6, WK2/p13, DAY2/p14.
+          Gold 0.00, we 0.00, the cadence gate one of many refusals.
+      THAT IS WHY THE GATE LOOKED EXPENSIVE. Those thirteen contribute most of
+      the "82 refusals across the family" this entry was filed on, and every one
+      is correct. Any precision figure for this gate that does not exclude a
+      blank answer is measuring the blanks.
+      DAY1/p9 IS THE GATE'S PROOF CASE, and it was not in this entry at all. It
+      is the ONLY cell in the family where gold's comment names the cadence --
+      "This is a weekly example." -- on the answer "{{corpus:DAY1/p9:day1:0:143:sha=53be45a54a72:shape=S4-0a202020202020,S17-0a202020202020}}" The cadence gate fires 12 of
+      12 and NOTHING ELSE FAILS, so the gate alone earns gold's 0.00 and the cell
+      is right 12 of 12. Any change to this rule must keep p9. It is the control,
+      and it is a stronger one than WK1/p19 because it is the positive case.
+      SO THE SUBGOAL KEEPS TWO CELLS, both pure false positives -- gold credited
+      in silence and NOTHING but the cadence gate fails:
+          DAY2/p8   fires 7 of 12   gold 4.00
+          DAY1/p11  fires 3 of 12   gold 4.00
+      AND THREE ARE PROPOSED FOR REASSIGNMENT, because the gate is incidental on
+      them and fixing the cadence rule cannot fix the cell:
+          WK2/p11  fires 3 of 12   gold 2.00 "-2 pts: This is an example of NP."
+          WK2/p15  fires 2 of 12   gold 2.00 "-2 pts: This is an example of NP."
+          DAY2/p11 fires 1 of 12   gold 2.00 "-2 pts: This is an example of PP."
+        On all three gold objects to the TYPE and prices it at 2 of 4, and
+        `matches_chosen_type` -- pts=2.0, not a gate -- carries that judgement,
+        failing 12, 6 and 8 times of 12. Each cell therefore has TWO defects and
+        neither is the cadence rule: (a) our gate ZEROES a cell gold priced at a
+        partial charge, which is subgoal Q29's shape exactly -- "the same
+        judgement is worth 2 to the grader and 5 to us" -- and NR/p11 is a third
+        instance of it, so Q29 should be broadened from Q2's gate to the pattern;
+        (b) `matches_chosen_type` passing when it should fail is over-credit with
+        every check passing, and WK2/p15 and DAY2/p11 are ALREADY in the fourteen
+        listed under Q20.
+      THE RULE THAT THE READ-OUT IMPLIES IS DIRECTIONAL, and it is sharper than
+      "judge only how often the behaviour is checked". Gold's own behaviour is
+      consistent across every cell where it speaks:
+          a period COARSER than the item's frame contradicts it;
+          a period FINER than the frame does not;
+          a period attached to the CONSEQUENCE is not the behaviour's cadence;
+          NO period stated at all is not a contradiction.
+      Checked against all eight cells where gold either charges or credits in a
+      way that speaks to cadence -- DAY1/p9, WK1/p19, WK2/p11, DAY2/p8, DAY1/p11,
+      DAY2/p11, WK2/p15, WK2/p8 -- it classifies every one correctly, with no
+      contradictions:
+          DAY1/p9  daily item, "5 times out of the week" -- COARSER -> absent, and
+                   gold charges. The rule keeps the gate's only proof case.
+          WK1/p19  weekly item, "{{corpus:WK1/p19:wk1:5:38:sha=dbf8666c0520}}" -- FINER ->
+                   met, and gold credits 4.00.
+          WK2/p11  weekly item, "for 2-3 days" -- FINER -> met, and gold's charge
+                   is type, not cadence.
+          DAY2/p8  daily item, "{{corpus:DAY2/p8:day2:83:102:sha=ceeef43b24ca}} week" on the CONSEQUENCE ->
+                   met, and gold credits 4.00.
+          DAY1/p11, DAY2/p11, WK2/p15  no period -> met, and gold never charges
+                   cadence on any of them.
+      THE OLD RULE COULD NOT SEPARATE THESE. "How often is the behaviour checked"
+      asks the model to find a cadence, so an answer with no period and an answer
+      whose only period is the reward's both hand it the nearest number in the
+      sentence. Direction and attachment are the two things it never asked for.
+      ONE FALSE NEGATIVE IN THE OTHER DIRECTION, unresolved and not to be
+      forgotten: WK2/p8, where gold DOES object to the cadence ("you should state
+      what undesirable thing will you take away at the end of the week if you do
+      not meet your weekly goal") and our cadence gate never fires at all. The
+      cell is wrong in 4 of 12 runs for other reasons. A directional rule does
+      not obviously fix it, and it should be read before the sweep.
       NOTE ON THE NUMBERS BELOW: every per-slot figure in the rest of this entry
       was computed with a GATE-BLIND profile -- see subgoal Q37 -- so treat them
       as the record of what was believed, not as current measurements. The
