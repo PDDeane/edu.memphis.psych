@@ -3679,6 +3679,38 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       rubrics, it would have caught this at authoring time, and it is machinery,
       so it belongs in the E series if it is wanted.
 
+      == MEASURED 2026-09-04, AND THE OBSERVATION SITE IS NOW GONE ==
+      Subgoal Q17's sweep landed, and it played out exactly as step 2 above warned.
+      p10's ZERO-LISTINGS ARE GONE ENTIRELY: `reasons_listed` reads 3 on 12 of 12
+      and the gate answers `met` 12 of 12, where before it failed in 10 and the
+      count collapsed in 5. The cell is now 12 of 12 against gold.
+      THAT IS NOT EVIDENCE THIS SENTENCE IS HARMLESS, and the entry said so before
+      the sweep: edit (c) removed the TRIGGER by making the gate pass, and left the
+      CAUSE -- the arithmetic sentence in the gate's judging text -- untouched and
+      unmeasured. It is exactly the green result pre-registered as non-confirming.
+      AND NO Q2 CELL CAN SHOW IT ANY MORE, which is the new problem. After edit (c)
+      the gate answers `absent` on ONE cell in twenty, p7, and p7's response holds
+      no reasons at all -- gold agrees, charging "You also need three reasons". So
+      there is no longer a cell on this item where a FAILING gate meets a response
+      that HOLDS reasons, which is the only configuration in which the
+      contamination can act. Step 3 above named p7 as the site to watch; that is
+      now wrong, and p7 cannot serve.
+      SO THIS SUBGOAL NEEDS A ROUTE THAT IS NOT Q2's CELLS. Two exist and neither
+      costs a sweep of its own: probe the gate directly with a constructed response
+      that fails it while listing three benefits, which is what the enforcement
+      probes already do for primitives; or look for the same shape on another item
+      whose gate sits above a count. The check named above would settle the general
+      question without observing the behaviour at all.
+      ONE FALSE ALARM, RECORDED SO IT IS NOT RE-FOUND: the sweep produced a new
+      `reasons_listed` = 0 on Q2/p11, olx run 2, and it is NOT an instance of this
+      defect. The gate answers `met` there, and the run reads listed=0, failing=0,
+      given=3 -- an internally inconsistent triple, since `given` is defined as
+      listed minus failing. The SCORED slot is right and the cell scores full
+      marks; what is wrong is the reported-only slot. This defect suppresses the
+      scored count under a FAILING gate, so a passing gate with a correct score is
+      a different fault: the count arithmetic reported inconsistently, once in 120
+      observations. Worth its own line somewhere, not here.
+
 - [ ] Q40. **`aimed_correctly`: a 4-point gate that exists on WK2 alone, and the
       sibling check cannot see it.**
       Filed 2026-09-04 out of subgoal E41's on-the-line list, where WK2/p11 was
@@ -6622,6 +6654,53 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       Q1 CARRIES THE IDENTICAL SLOT FAMILY and the same `reason_3` profile, and was
       deliberately NOT changed: its cells belong to subgoal Q14. If (a) measures
       well here, carrying it to Q1 is Q14's cheapest move.
+
+      == MEASURED 2026-09-04, BOTH SIDES, 6 RUNS EACH. 16/20 AND 17/20 -> 19/20 ==
+          Q2 python  19/20   runs [18, 17, 19, 19, 19, 19]
+          Q2 olx     19/20   runs [19, 18, 19, 18, 19, 19]
+      THE BREAKS COLUMN, filled from the sweep as pre-registered:
+          p20   1 of 12 -> 12 of 12   (a)   MET, and deterministic
+          p7    4 of 12 -> 12 of 12   (c)   MET, and the gate now answers `absent`
+                                            12 of 12 where it answered `met` in 10
+          p10   1 of 12 -> 12 of 12   (c)   MET
+          p16   6 of 12 ->  9 of 12   (a)   moved 3 runs, still unstable
+          p18   5 of 12 ->  5 of 12   (b)   NOT MOVED AT ALL
+      SO (a) AND (c) LANDED AND (b) DID NOT, and (b) is the one to stop working.
+      Three formulations have now been measured on p18 -- the original text, the
+      reachability clause (which made it 0 of 6, deterministically wrong), and the
+      naming test (which restored it to 5 of 12 and bought nothing). The naming
+      test is not deciding p18 either way; the cell is simply unstable on that
+      judgement. That is three attempts with no gain, which is the shape subgoal
+      Q6's seven measured-and-reverted attempts have, and the honest reading is
+      that p18 is a noise floor rather than a wording gap.
+      AND (b) COST A CONTROL, which is worse than buying nothing: p17 was 12 of 12
+      and is now 11, because `wgb_inverts_utb` answers `met` once in six python
+      runs where it must answer `absent` -- gold charges it -2. The olx side holds
+      at `absent` 6 of 6. This entry named p17 as a control that must not move.
+      THE OTHER COSTS ARE ON (a)'s ACCOUNT and are real, so the item's +3 is a NET
+      figure and should not be quoted as if nothing was lost:
+          p6   11 of 12 ->  8 of 12   and the cause is side-specific: the OLX side
+                                      is stable and CORRECT at listed 3, given 2,
+                                      which is gold's count. The python side reads
+                                      `reasons_listed` as 2 in three of six runs on
+                                      a response holding three, and scores 3.00.
+                                      So p6 is an under-count on one side, not the
+                                      anti-merge clause over-crediting.
+          p11  12 of 12 -> 11 of 12   one olx run charges `reasons_failing` 1
+          p14  12 of 12 -> 11 of 12   one python run charges `reasons_failing` 1
+      THE BANDS MOVED, and this is subgoal E42's first real use -- recorded by the
+      sweep rather than written by hand afterwards:
+          p7   wrong_by_median -> perfect        p10  wrong_by_median -> perfect
+          p20  wrong_by_median -> perfect        p16  on_the_line -> unstable
+          p11  perfect -> unstable_counted_right p14  perfect -> unstable
+          p17  perfect -> unstable_counted_right p18  on_the_line -> wrong_by_median
+      p18's move OUT of `on_the_line` matters for reading it: it is no longer one
+      run from changing its own verdict, so its 5 of 12 is now a stable enough
+      figure to argue from, and it argues that (b) has nothing left to give.
+      WHAT (a) SHOULD CARRY TO Q1 IS NOW A NARROWER CLAIM than this entry offered.
+      (a) fixed p20 outright and moved p16 three runs, and cost p6, p11 and p14 one
+      to three runs between them. Subgoal Q14 should take the clause knowing it is
+      net positive rather than free.
 
       Three of this subgoal's cells were being read as merely unstable and are in
       fact RECORDED WRONG -- counted wrong by the per-cell median, not wobbling
