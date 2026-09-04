@@ -4216,6 +4216,33 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       cell at 8 of 12 is not under-measured, it is ambiguous, and re-running it
       buys nothing.
 
+      == A THIRD CELL MOVED HERE 2026-09-04, FROM SUBGOAL Q9 ==
+      Q3/p13, and it arrives for the same reason as the two above: it is an
+      over-charge, unstable, counted right, and its only live owner was an entry
+      that DISCLAIMED it.
+      THE DEFECT IS `realistic`, firing in 2 of 12 runs. On the other ten the cell
+      scores 3.00 exactly, which is gold: we fail `specific` 12 of 12 and
+      `measurable` 12 of 12, and gold charges exactly those two -- "-1 pt: For
+      specific, you should have a specific, quantifiable goal. -1 pt: For
+      measurable, how are you tracking your goal?" So we agree with gold on
+      everything gold charges, and the instability is a THIRD deduction gold does
+      not make. Nothing about `action_oriented` is involved, which is why it was
+      never subgoal Q9's.
+      HOW IT CAME TO BE OWNED BY Q9 IS THE PART WORTH KEEPING. Q9's entry named it
+      in a line that says, in as many words, that it is NOT that subgoal's --
+      "neither is an `action_oriented` cell ... they are not this subgoal's and
+      should be given a home". The owner map counts ANY mention, so the disclaimer
+      itself made Q9 the owner and `wrong_cells_without_an_owner` stayed silent. A
+      DISCLAIMING MENTION STILL CONFERS OWNERSHIP -- the same laundering subgoal
+      E41 documented for a tooling entry, now arriving through a sentence written
+      to prevent it. The lesson is that handing a cell on requires naming its new
+      home, not announcing that it lacks one.
+      Q3/p10 NEEDED NO MOVE, checked rather than assumed: subgoal Q10's title is
+      "Q3/p10: we credit `measurable` where gold docks it", which is exactly its
+      defect -- gold charges `specific` AND `measurable` there, we charge
+      `specific` 12 of 12 and `measurable` only 2. It was already properly owned
+      and Q9's mention of it is redundant rather than load-bearing.
+
 - [ ] Q29. **Q2's `wgb_is_counterpart` GATES for 5 where gold charges 2, and it flips.**
       Filed 2026-08-31 from E30's accounting. Q2/p10 is the demonstration and the
       cheapest possible read: both scorers and the grader agree the WGB is not the
