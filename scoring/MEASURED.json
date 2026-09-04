@@ -1094,58 +1094,13 @@
           "15": 5,
           "16": 6,
           "17": 6,
-          "18": 6,
+          "18": 5,
           "19": 6,
-          "20": 0,
-          "4": 0,
+          "20": 5,
+          "4": 6,
           "5": 6,
           "6": 6,
-          "7": 6,
-          "8": 6,
-          "9": 5
-        },
-        "denominator": 18,
-        "excluded_cells": {
-          "2": 6,
-          "3": 0
-        },
-        "exclusions": [
-          2,
-          3
-        ],
-        "numerator": 16,
-        "out": "twoside_web",
-        "prompt_sha": "1c93f1c44b25",
-        "prompt_sha_basis": "git-clean",
-        "run_totals": [
-          14,
-          15,
-          15,
-          16,
-          16,
-          16
-        ],
-        "runs": 6,
-        "scorer_sha": "eba19bcb286b"
-      },
-      "python": {
-        "cells": {
-          "1": 6,
-          "10": 6,
-          "11": 2,
-          "12": 6,
-          "13": 6,
-          "14": 6,
-          "15": 3,
-          "16": 6,
-          "17": 6,
-          "18": 6,
-          "19": 6,
-          "20": 0,
-          "4": 0,
-          "5": 6,
-          "6": 6,
-          "7": 6,
+          "7": 5,
           "8": 6,
           "9": 6
         },
@@ -1158,28 +1113,79 @@
           2,
           3
         ],
-        "numerator": 15,
-        "out": "twoside_cli",
+        "numerator": 18,
+        "out": "refresh_NR_olx",
         "previous": {
           "denominator": 18,
           "numerator": 16,
-          "out": "nr_barrier2",
-          "prompt_sha": "9980a1ccd5e1",
+          "out": "twoside_web",
+          "prompt_sha": "1c93f1c44b25",
           "runs": 6,
-          "scorer_sha": "5c0899ad6d04"
+          "scorer_sha": "eba19bcb286b"
         },
-        "prompt_sha": "6a00c6bb913c",
-        "prompt_sha_basis": "git-clean",
+        "prompt_sha": "1c93f1c44b25",
         "run_totals": [
-          14,
-          14,
           15,
-          15,
-          15,
-          16
+          16,
+          17,
+          18,
+          18,
+          18
         ],
         "runs": 6,
-        "scorer_sha": "eba19bcb286b"
+        "scorer_sha": "f00722046629"
+      },
+      "python": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 4,
+          "12": 6,
+          "13": 6,
+          "14": 6,
+          "15": 6,
+          "16": 6,
+          "17": 6,
+          "18": 5,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 5,
+          "8": 6,
+          "9": 5
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "refresh_NR_python",
+        "previous": {
+          "denominator": 18,
+          "numerator": 18,
+          "out": "refresh_NR_python",
+          "prompt_sha": "6a00c6bb913c",
+          "runs": 6,
+          "scorer_sha": "f00722046629"
+        },
+        "prompt_sha": "6a00c6bb913c",
+        "run_totals": [
+          16,
+          16,
+          17,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "f00722046629"
       }
     },
     "PP": {
