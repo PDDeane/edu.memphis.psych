@@ -4414,7 +4414,91 @@ because it can be fixed or declared; a wobbling cell cannot be either.
                    met, and gold credits 4.00.
           DAY1/p11, DAY2/p11, WK2/p15  no period -> met, and gold never charges
                    cadence on any of them.
-      THE OLD RULE COULD NOT SEPARATE THESE. "How often is the behaviour checked"
+      THE DIRECTIONAL RULE IS REFUTED, checked against all 72 valid cells of the
+      four items before writing it (QUALITY_CONTROL.md 2e, which this is the case
+      that produced). It classifies the eight gold-speaking cells correctly and
+      then loses two it currently gets right:
+        DAY2/p9  BREAKS, and this is the fatal one. "{{corpus:DAY2/p9:day2:0:116:sha=58afd43fe54a:shape=S7-0a2020202020202020202020202020202020,S21-0a2020202020202020202020202020202020,A8}}" Gold gives FULL credit and
+                 `cadence_is_daily` answers `met` 12 of 12 with nothing else
+                 failing. The rule reads "out of the 5 days" as coarser than
+                 daily and refuses it -- converting a perfect cell into a wrong
+                 one. Its near-twin is DAY1/p9, BY THE SAME PARTICIPANT, which is
+                 the rule's own proof case: "5 times out of the week... reward
+                 myself... on the weekends", gold 0.00 "This is a weekly
+                 example." The current prose already separates them, 12 of 12
+                 both ways. Whatever it is doing, the directional statement is
+                 not it -- the discriminator looks like whether the TRIGGER can
+                 be evaluated on a single day, and DAY2/p9's is genuinely
+                 ambiguous while DAY1/p9's is not.
+        WK1/p6   RISKED. Right in 12 of 12 today, and held there by a cadence
+                 refusal GOLD NEVER ASKED FOR -- gold's objection is that "what
+                 you take away or add has to happen after the behavior is
+                 exhibited". Its only period, "{{corpus:WK1/p6:wk1:56:93:sha=87acd0089dc5:shape=S6-0a2020202020202020202020202020202020}} daily", sits in the CONSEQUENCE clause, so the
+                 consequence-attachment clause alone is enough to stop the gate.
+                 The cell then falls to `agent_delivers_consequence`, a gate
+                 running 8 of 12, and to `matches_chosen_type` at 9 of 12 -- up
+                 to 4 runs lost. It is right for the wrong reason, which is a
+                 Q20-shaped fact the item total cannot show.
+      THE REVISION THAT ACCOUNTS FOR ALL 72, and it is a better rule than the one
+      it replaces rather than a narrower one. Retreating to the two clauses that
+      survived was the first instinct and it was wrong: it abandoned WK2/p11 and
+      still cost WK1/p6. The refuting pair is the clue, and BOTH CELLS ARE THE
+      SAME PARTICIPANT writing on two items:
+          DAY1/p9  "{{corpus:DAY1/p9:day1:22:65:sha=415d56dd1b38}}"  gold 0.00
+          DAY2/p9  "out of the 5 days"                            gold 4.00
+      "5 times" cannot be judged until occurrences have been COUNTED across the
+      week. "out of the 5 days" names no count and can be judged on any one day.
+      So the question is not how coarse the period is, it is:
+
+        CAN THE TRIGGER BE EVALUATED WITHIN A SINGLE INSTANCE OF THE ITEM'S
+        PERIOD? It cannot if it requires COUNTING occurrences across that
+        period's boundary, or if it has NO DEFINED ENDPOINT. A period attached
+        only to the CONSEQUENCE is not the trigger and does not decide this.
+
+      READ AGAINST EVERY VALID CELL of the four items, this classifies all of
+      them with no contradiction found, and it recovers the two the directional
+      rule lost:
+          DAY1/p9  "5 times out of the week" -- a COUNT -> absent. Gold charges.
+                   The proof case survives.
+          DAY2/p9  no count -> met. Gold credits, and the cell stays 12 of 12.
+          WK1/p6   "{{corpus:WK1/p6:wk1:56:93:sha=87acd0089dc5:shape=S6-20}} daily" on a WEEKLY item
+                   -- NO DEFINED ENDPOINT -> absent. The gate keeps firing and
+                   the cell stays 12 of 12, so the 4-run risk is gone. (It is
+                   still right for a reason gold did not give; that fact belongs
+                   to Q20 and is not fixed here, only left undisturbed.)
+          DAY1/p6  "stay consistent... {{corpus:Q6/p6:change_a1:75:93:sha=d808b781e5fa:shape=R18-0-22}} on a DAILY item -- a
+                   count -> absent. Gold 0.00. Unchanged.
+          WK2/p11  "for 2-3 days" on a WEEKLY item -- judgeable inside one week
+                   -> met. NOW COVERED, where the two-clause retreat abandoned
+                   it.
+          DAY2/p8  trigger "{{corpus:DAY2/p8:day2:5:37:sha=a2a8e03c9ce4}}" is per-occasion;
+                   "{{corpus:DAY2/p8:day2:83:102:sha=ceeef43b24ca}} week" is the CONSEQUENCE -> met.
+          DAY1/p11, DAY2/p11, WK2/p15  no period, per-occasion -> met.
+          WK1/p19, WK2/p8  "{{corpus:WK1/p19:wk1:17:33:sha=770e5ae844ed}} week", "{{corpus:WK2/p8:wk2:61:74:sha=90c5533a1f87:shape=R13-0-22}} -- judgeable
+                   inside one week -> met, and gold credits neither cadence
+                   charge.
+          The remaining ~55 cells state per-occasion or within-period triggers
+          ("each day", "every day I", "if I skip", "{{corpus:WK2/p16:wk2:16:38:sha=6e60140fbc77}}") and
+          are INERT under this rule, with the gate at 0 of 12 on every one.
+      BLANKS ARE EXCLUDED EXPLICITLY: eight cells have no response at all, and a
+      rule about what a trigger states must not be argued to have been satisfied
+      by a trigger that does not exist. Every other check already refuses them;
+      this one is simply not evaluated.
+      SO ALL FIVE TARGET CELLS ARE COVERED -- 16 firings, not 13 -- and the
+      BREAKS column is EMPTY, which is stated because an unstated absence reads
+      as an unperformed check. Expected after the change:
+          DAY2/p8   4.00 (from 4.00 in 5 of 12)      gold 4.00
+          DAY1/p11  4.00 (from 4.00 in 9 of 12)      gold 4.00
+          WK2/p11   2.00                              gold 2.00
+          WK2/p15   2.00 in the 6 runs matches_chosen_type fails, 4.00 otherwise
+          DAY2/p11  2.00 in 8 of 12, 4.00 otherwise
+      WK2/p15 and DAY2/p11 STILL CANNOT REACH 12 OF 12 on this change alone --
+      their `matches_chosen_type` half is Q20's -- and saying so now is what
+      stops the sweep being read as a failure.
+      CONTROLS THAT MUST NOT MOVE: DAY1/p9 and DAY1/p6 (counts -> absent),
+      WK1/p6 (no endpoint -> absent), DAY2/p9 (no count -> met), WK1/p19, and
+      the eight blanks.
+            THE OLD RULE COULD NOT SEPARATE THESE. "How often is the behaviour checked"
       asks the model to find a cadence, so an answer with no period and an answer
       whose only period is the reward's both hand it the nearest number in the
       sentence. Direction and attachment are the two things it never asked for.
