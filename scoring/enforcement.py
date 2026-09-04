@@ -1592,10 +1592,10 @@ def check_prose_only_claims_are_current() -> list[str]:
 
 
 # Items whose rubric entry genuinely carries no substantial comment block, so
-# §2c has nothing to push for them. Verified, not assumed: 1c's and 3's longest
+# §2d has nothing to push for them. Verified, not assumed: 1c's and 3's longest
 # comment runs are three lines against a threshold of four.
 # 1c LEFT this set on 2026-08-30: the E11 migration gave `legend` a `rule`, and
-# the comment recording why it moved is a comment block §2c now finds. The set is
+# the comment recording why it moved is a comment block §2d now finds. The set is
 # for items whose rubric genuinely carries no rationale, and 1c is no longer one.
 NO_RUBRIC_COMMENTS = {"3"}
 
@@ -1842,7 +1842,7 @@ def check_computed_rules_do_not_share_a_key() -> list[str]:
 
 
 def check_prior_record_reaches_every_item() -> list[str]:
-    """Does the §2c hook actually find the record, for every item?
+    """Does the §2d hook actually find the record, for every item?
 
     It did not, for twelve of them, for as long as rubric_h2 has been a factory.
     `prior_record` located an item's comments by searching for a literal
@@ -1851,7 +1851,7 @@ def check_prior_record_reaches_every_item() -> list[str]:
     StopIteration" on every H2 --write. It was visible and nobody read it, which is
     the only kind of failure a printed warning produces.
 
-    §2c is the discipline that the record gets pushed at the moment a rule changes
+    §2d is the discipline that the record gets pushed at the moment a rule changes
     -- it exists because ~900 calls were spent rewriting a rule whose comment
     already contained the answer. A hook that silently finds nothing on the handout
     with the most recorded dead ends is worse than no hook, because the empty
@@ -1869,13 +1869,13 @@ def check_prior_record_reaches_every_item() -> list[str]:
             out.append(f"prior_record({item}) raised {type(e).__name__}: {e}")
             continue
         if "no recorded comments found" in text:
-            out.append(f"§2c cannot read {item}'s rubric: the hook reports a lookup "
+            out.append(f"§2d cannot read {item}'s rubric: the hook reports a lookup "
                        f"failure, so its output reads as 'nothing recorded' when the "
                        f"record may be there")
             continue
         blocks = [l for l in text.splitlines() if ".py:" in l and "rubric_h" in l]
         if not blocks and item not in NO_RUBRIC_COMMENTS:
-            out.append(f"§2c finds no rubric comment block for {item}. Either the "
+            out.append(f"§2d finds no rubric comment block for {item}. Either the "
                        f"lookup broke for its rubric's shape, or the item genuinely "
                        f"has none -- if the latter, add it to NO_RUBRIC_COMMENTS so "
                        f"the silence is declared rather than assumed")
@@ -1885,7 +1885,7 @@ def check_prior_record_reaches_every_item() -> list[str]:
         except Exception:
             continue
         if [l for l in text.splitlines() if ".py:" in l and "rubric_h" in l]:
-            out.append(f"NO_RUBRIC_COMMENTS names {item}, but §2c now finds comment "
+            out.append(f"NO_RUBRIC_COMMENTS names {item}, but §2d now finds comment "
                        f"blocks for it -- drop it from the set")
     return out
 
@@ -3795,13 +3795,13 @@ def check_recorded_answers_are_complete() -> list[str]:
 def check_the_record_is_pushed_at_the_change() -> list[str]:
     """Does `--write` still print the prior record for every item it changes?
 
-    QUALITY_CONTROL.md §2c is the only discipline of the three that a machine can
+    QUALITY_CONTROL.md §2d is the only discipline of the three that a machine can
     enforce, and it is enforced in ONE place: `olx_prompts.main` calls
     `prior_record` for each item whose prompt text moved. Delete that call and the
     guide's paragraph stays true-looking while nothing happens -- which is the
-    exact shape of the failure §2c was written about.
+    exact shape of the failure §2d was written about.
 
-    It matters because §2c cost the most to learn. A day went into rewriting Q1's
+    It matters because §2d cost the most to learn. A day went into rewriting Q1's
     `reasons_given` while the comment above the component already named gold's
     conditional structure, classified every cell with gold < 3, and diagnosed the
     failing cell as a `harms_listed` misclassification. Eleven configurations,
@@ -3823,7 +3823,7 @@ def check_the_record_is_pushed_at_the_change() -> list[str]:
     if "prior_record(" not in src:
         out.append("olx_prompts.main no longer calls prior_record(): a rule can be "
                    "changed and regenerated without the record being shown, which "
-                   "is QUALITY_CONTROL.md §2c unenforced")
+                   "is QUALITY_CONTROL.md §2d unenforced")
     if "_items_whose_prompt_changed(" not in src:
         out.append("olx_prompts.main no longer computes which items changed, so the "
                    "record cannot be scoped to them")
@@ -5548,7 +5548,7 @@ def check_engine_rate_divergence() -> list[str]:
         itself reported, once, as a fact about the design.
 
     WHY NOT A MEDIAN COMPARISON, which is what E39 first proposed: medians
-    manufacture divergences on cells near 50%, and QUALITY_CONTROL 2e records
+    manufacture divergences on cells near 50%, and QUALITY_CONTROL 2f records
     three of Q32's five being ONE observation apart. The exact test is what
     separates those from a real difference, and at six runs a side it says none
     of them is separable.

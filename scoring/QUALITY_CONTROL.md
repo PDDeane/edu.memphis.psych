@@ -1034,7 +1034,7 @@ returns ZERO contradicted refusals: every refusal gold has an opinion about, gol
 agrees with, and the apparent collapse is entirely gradient cells plus silent
 full-marks rows.
 
-## 2b2. REPORT THE SPREAD; THE HEADLINE IS A PER-CELL MEDIAN
+## 2c. REPORT THE SPREAD; THE HEADLINE IS A PER-CELL MEDIAN
 
 **The ledger's item figure is a median taken PER CELL and then counted, so a cell
 right in seven runs of twelve is recorded as simply right.** On an item with
@@ -1079,7 +1079,7 @@ charged and named nothing are printed **INDETERMINATE**, never guessed.
 
 **GATES are in the table, and their accuracy rests on a SMALLER sample than the
 point-bearing slots' — say so when quoting it.** A gate carries no points and no
-grader phrase can name one (2i), so on a partial-credit cell there is nothing to
+grader phrase can name one (§2j), so on a partial-credit cell there is nothing to
 compare it against and it is left out rather than defaulted to expected-to-pass.
 On a FULL-MARKS cell the expectation is determinate for any kind of check —
 full marks implies every one of them passed — so that is where a gate's accuracy
@@ -1087,7 +1087,7 @@ is measured, and that is also where a gate false-positive costs a whole item. A
 gate reading 125/132 is therefore 132 observations drawn from fewer cells than
 the same figure on a scored slot.
 
-## 2c. READ WHAT IS ALREADY RECORDED BEFORE FORMING A HYPOTHESIS
+## 2d. READ WHAT IS ALREADY RECORDED BEFORE FORMING A HYPOTHESIS
 
 **Before touching a rule, read the comments around it, the draft for that item,
 and the goal entry. Prior measured work lives next to the thing it measured, and
@@ -1134,13 +1134,13 @@ writer still calls the hook, that the hook still reports all three sources plus
 the inventory, and that it does not swallow its own lookup failures. That last
 assertion exists because the first version of the hook raised NameError on every
 lookup into a bare `except: pass` and cheerfully reported an empty record — the
-failure mode of §2c occurring inside the mechanism enforcing §2c.
+failure mode of §2d occurring inside the mechanism enforcing §2d.
 
-Of the three disciplines in this section, only §2b and §2c are machine-enforced.
-§2a rides along on §2c's hook (the inventory is printed with the record) but
+Of the three disciplines in this section, only §2b and §2d are machine-enforced.
+§2a rides along on §2d's hook (the inventory is printed with the record) but
 nothing checks that the inventory was ACTED on; that remains a judgement.
 
-## 2d. EVERY WRONG CELL HAS AN OWNER, AND THE AUDIT CHECKS IT
+## 2e. EVERY WRONG CELL HAS AN OWNER, AND THE AUDIT CHECKS IT
 
 §2b profiles the errors after a sweep. This is what to do with the profile: every
 cell we score wrong is either being worked by an open subgoal or is declared, and
@@ -1155,7 +1155,7 @@ worked. The problem is that its product decays SILENTLY. Cells move as prompts
 change. A subgoal closes and takes with it the only home some cell had. A
 finished list reads exactly the same whether or not it still describes the
 corpus, so nothing about a stale accounting looks stale — which is the same
-failure §2c describes for prose, and the same one
+failure §2d describes for prose, and the same one
 `check_prose_numbers_match_the_ledger` exists to catch.
 
 **The hand pass had a defect care would not have caught.** It compared every cell
@@ -1196,7 +1196,7 @@ seam the self-test can replace, as `_handsplit_tables` does.
 subgoal that owns it, or declare it with a reason. Silencing it is not on the
 list.
 
-## 2e. A python/OLX DIFFERENCE AT THE MEDIAN IS NOT YET A DIVERGENCE
+## 2f. A python/OLX DIFFERENCE AT THE MEDIAN IS NOT YET A DIVERGENCE
 
 Two sides are compared at their recorded medians, and the median over six runs is
 a STEP FUNCTION at exactly the halfway point. On a cell the model gets right about
@@ -1239,7 +1239,7 @@ The ownership check in 2d reports a cell wrong on EITHER side, which is right �
 the cell is still not being scored correctly. What this section governs is the
 diagnosis that follows, not whether the cell gets an owner.
 
-## 2f. SPEND NOTHING ON WHAT A FREE CHECK CAN SETTLE FIRST
+## 2g. SPEND NOTHING ON WHAT A FREE CHECK CAN SETTLE FIRST
 
 **Every rule in this guide that can be tested without model calls belongs in the
 PREFLIGHT, not in the reader's memory.** A sweep costs hundreds of calls and an
@@ -1269,14 +1269,14 @@ wrong rather than its execution fail:
   vocabulary gold cannot use, produce a clean-looking number answering a
   different question. Both are now in the gate for exactly that reason.
 
-**And the cheapest check of all is reading.** Section 2j's all-cells pass makes no
+**And the cheapest check of all is reading.** Section 2k's all-cells pass makes no
 calls and killed a rule that had already survived every mechanical gate. Before
 launching, ask what the sweep is supposed to settle, and whether anything on disk
 already settles it -- the artifacts, gold's comments, the responses themselves.
 Several findings in this record were established from artifacts alone, with no
 calls spent, after being proposed as sweeps.
 
-## 2g. RE-READ EVERY CELL A SUBGOAL OWNS BEFORE ACTING ON IT
+## 2h. RE-READ EVERY CELL A SUBGOAL OWNS BEFORE ACTING ON IT
 
 **A subgoal's cell list is a claim, and it decays.** Cells get corrected gold,
 the instrument that assigned them gets fixed, other cells get resolved by
@@ -1308,7 +1308,7 @@ objection invented a false negative that was not there; the charge was "this is
 not an example of operant conditioning" and nothing else. When a comment both
 charges and advises, the charge is the part with the points attached.
 
-## 2h. A SWEEP DEFAULTS TO python + olx. LAUNCH BOTH UNLESS ASKED FOR ONE
+## 2i. A SWEEP DEFAULTS TO python + olx. LAUNCH BOTH UNLESS ASKED FOR ONE
 
 **"Sweep this item" means both engines, without being asked.** They are pooled as
 ONE sample of twelve runs, not compared, so a sweep of one side is not a smaller
@@ -1342,7 +1342,7 @@ because that gap once silently re-measured a reverted change for a whole sweep.
 Re-dump, confirm the new wording is present and the old wording gone, and let the
 preflight confirm it.
 
-## 2i. KNOW WHICH SOURCE YOU CONSULTED, AND CHECK IT IS THE RIGHT ONE
+## 2j. KNOW WHICH SOURCE YOU CONSULTED, AND CHECK IT IS THE RIGHT ONE
 
 **The question is not whether a lookup can come back empty. It is whether you
 established that the thing you looked in is the thing that holds the answer.**
@@ -1375,7 +1375,7 @@ both have caught real errors.
 Then, and only then, an empty result means what it says. The raise is the
 consequence of knowing the source, not the point.
 
-## 2j. VALIDATE A CANDIDATE RULE AGAINST EVERY VALID CELL BEFORE WRITING IT
+## 2k. VALIDATE A CANDIDATE RULE AGAINST EVERY VALID CELL BEFORE WRITING IT
 
 **Not against the cells that motivated it, and not against the cells where gold
 speaks. Against ALL of them.** A rule is a claim about every response the item
@@ -1444,7 +1444,7 @@ If revision genuinely fails, then narrow -- and the losses go into the
 pre-registration as expected, with their cell ids, BEFORE the sweep. A sweep that
 loses a cell nobody predicted cannot be told apart from a sweep that went wrong.
 
-## 2k. A GATE'S REFUSAL IS INFORMATION, AND A NEW CHECK MUST BE SHOWN TO FIRE
+## 2l. A GATE'S REFUSAL IS INFORMATION, AND A NEW CHECK MUST BE SHOWN TO FIRE
 
 **When a gate refuses, read it before working around it.** Not because refusals
 are always right -- this guide records several that were not, and two paragraphs
@@ -1475,7 +1475,7 @@ half and the reason the sentence above is not "trust the gate":
 
 * the slot-set audit reported `1a/p15` as disagreeing with gold on a GATE that
   gold's phrase table cannot name -- a difference guaranteed before the cell was
-  read (see 2i). Declaring it would have recorded an artefact of our own reader
+  read (see §2j). Declaring it would have recorded an artefact of our own reader
   as a disagreement with a grader.
 * `refusal_precision` scored that same slot 11 refusals, 11 CONTRADICTED, 0
   corroborated -- the worst instrument on the item, on a check that agrees with

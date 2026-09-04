@@ -1447,7 +1447,7 @@ def rate_divergence(alpha: float = 0.05) -> dict:
 
     THE QUESTION E39 ASKED, and the answer turns out to be about statistical
     power rather than about the engines. Comparing medians manufactures
-    divergences -- QUALITY_CONTROL 2e records three of Q32's five being ONE
+    divergences -- QUALITY_CONTROL 2f records three of Q32's five being ONE
     observation apart -- so the comparison is a two-proportion exact test on
     each cell's right/wrong counts.
 
