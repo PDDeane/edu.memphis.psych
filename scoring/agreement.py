@@ -1887,6 +1887,15 @@ def cheap_checks_gate(stream=sys.stderr) -> int:
         # sheet's attributes, so a scorer that parses a primitive and ignores
         # it is invisible to every other check here.
         ("SHEET REACHES NO ARITHMETIC", ENF.check_web_scorer_exercises_its_sheet),
+        # ADDED 2026-09-03. Neither of these can break a sweep; both make its
+        # READING wrong, which costs the same calls and is harder to notice.
+        # A sweep whose gold comparison is drawn from the wrong sheet, or whose
+        # slot diff is taken against a vocabulary gold cannot use, produces a
+        # clean-looking number that answers a different question -- and the
+        # checks are free, so there is no reason to learn it afterwards.
+        ("GOLD READ BY HANDOUT, NOT BY ITEM", ENF.check_gold_is_read_by_item),
+        ("SLOT SETS COMPARED ACROSS ALPHABETS",
+         ENF.check_gold_comparisons_share_an_alphabet),
     )
     bad = []
     for label, fn in suite:
