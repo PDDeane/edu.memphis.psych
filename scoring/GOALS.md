@@ -6084,6 +6084,46 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       NOT DECLARED and is the same shape, so it is the live one. Check whether it
       is a third instance of the declared disagreement or a genuine miss before
       touching the rule.
+      == DIAGNOSED 2026-09-04, and p13 IS NOT YET A DECLARATION CANDIDATE ==
+      This entry asked whether p13 is a third instance of the declared
+      disagreement or a genuine miss. It is neither yet, because it is NOT STABLE,
+      and the instability is in the PICK rather than anywhere a rule could reach:
+          p12  b1=activity b2=not_doing  12 of 12   -> 3.5, gold 5.0   right 0/12
+          p13  b1=activity b2=not_doing   8 of 12   -> 3.5
+               b1=activity b2=activity    4 of 12   -> 5.0, gold 5.0   right 4/12
+          p4   b1=activity b2=consequence 12 of 12  -> 3.5, gold 2.0   right 0/12
+      IDENTICALLY ON BOTH SIDES -- p13 is 3.5 four times and 5.0 twice on each --
+      so there is no engine question here, only within-side variance.
+      AND THE TEXT SAYS WHY IT WOBBLES. p13's second entry is "{{corpus:Q4b/p13:second:25:109:sha=0e7747dbc9b4:shape=S3-0a202020202020,A57}} ADHD". That
+      is neither an activity nor cleanly a not-doing: it is an INABILITY, and both
+      readings are defensible, which is what a pick splitting 8-4 looks like.
+      p12's "{{corpus:Q4b/p12:second:0:34:sha=50add6bc49ca}} ... {{corpus:Q4b/p12:second:76:126:sha=4281c899b6ba:shape=S5-0a202020202020}} bad" is a deliberate omission and picks
+      `not_doing` every time.
+      SO DO NOT DECLARE IT. Section 5 of the guide: "the commonest bad reason to
+      open one is instability." Declaring p13 under B_NOT_ACTIVE would assert a
+      disagreement we only two-thirds have. The question to settle first is
+      whether an INABILITY is a not-doing for this criterion -- which is a
+      classification question about one option value, exactly the lever below.
+
+      == AND THE DECLARATIONS FOR p4 AND p12 WERE CHECKED ==
+      p12's STANDS, and its reason needed correcting. B_NOT_ACTIVE claimed "the
+      two paths disagree about it", with the web at 3.5 in 11 of 12 and the CLI at
+      5.0 in 6 of 6. THAT ASYMMETRY HAS CLOSED: subgoal Q10's `maps` conversion
+      made both boxes computed from a pick, and p12 now scores 3.5 on both sides,
+      6 of 6 each. So it is a clean stable disagreement with gold rather than an
+      engine split, and the entry says so.
+      p4's ALSO STANDS, and it is DECLARED TWICE -- which is the open question
+      here rather than a defect to fix blind. It is in ANTECEDENT_REUSED_AS_BEHAVIOR,
+      whose reason describes it exactly, AND in B_NOT_ACTIVE, whose reason is
+      entirely about p12's not-doing and does not describe p4 at all (our pick on
+      p4 is `consequence`, not `not_doing`). REMOVING IT FROM B_NOT_ACTIVE WOULD
+      LOSE MEASURED WORK unless the record moves with it: the comment above that
+      entry's `why` holds a THIRD attempt not recorded in the other one -- a sixth
+      test on both slots judged by REFERENT rather than topic, 3 runs, p4 0/3 ->
+      1/3, the four gold-credited cells holding, and spread 1 cell -> 3, rejected
+      on the spread trade. Consolidating p4 in one declaration means moving that
+      block; it is left for a deliberate step rather than done in passing.
+
       THE LEVER IS ONE OPTION, NOT THE PROSE: `not_doing` accounts for 16 of
       b2_basis's 120 answers and for both undeclared-shape failures, while
       `consequence` (30 answers) produces one. A change scoped to when `not_doing`
