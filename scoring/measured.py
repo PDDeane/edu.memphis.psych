@@ -766,6 +766,27 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     import agreement_app as APP
     import cross_path as X
 
+    # THE BAND EACH CELL WAS IN BEFORE THIS RECORDING REPLACES IT (subgoal E42).
+    # Taken FIRST, before the ledger is loaded or written, because `cell_bands`
+    # reads the SAVED ledger: after `save()` the prior band is gone, and it is the
+    # only thing about a measurement that cannot be recovered afterwards. The run
+    # artifact keeps the runs and git keeps the entry, but "what band was this
+    # cell in when the change landed" was answerable only from prose written by
+    # hand, which is what E42 was filed on.
+    #
+    # DERIVED, NEVER RE-DERIVED. It calls `cell_bands` and keeps what that
+    # returns. The thresholds are not repeated here and must not be: two
+    # implementations of one rule is the class this project keeps closing, and
+    # the ranking alone has grown a duplicate band rule twice.
+    #
+    # POOLED, like the bands themselves, so a python recording's "before" already
+    # includes whatever the olx side had recorded at that moment. That is the
+    # honest reading -- the band as it stood when THIS measurement landed -- and
+    # not a per-side band, which `cell_bands` does not define.
+    bands_before = {cell.split("/p", 1)[1]: band
+                    for cell, (_r, _n, band) in cell_bands().items()
+                    if cell.rsplit("/p", 1)[0] == item}
+
     h = _jobs()[item]["handout"]
     g = H.apply_corrected_gold(
         {1: gold.load_h1, 2: gold.load_h2, 3: gold.load_h3}[h](), h)
@@ -839,6 +860,11 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
         "cells": {str(p): sum(1 for v in per[p][:n] if v) for p in sorted(per)},
         "excluded_cells": {str(p): sum(1 for v in exc[p] if v)
                            for p in sorted(exc)},
+        # {pid: band} as it stood BEFORE this recording -- see the note in
+        # record(). Top level rather than inside `previous`, because a FIRST
+        # recording on one side can still have a pooled band from the other, and
+        # `previous` exists only when this side has been recorded before.
+        "bands_before": bands_before,
     }
     if prior:
         led["items"][item][side]["previous"] = {
@@ -848,6 +874,17 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     save(led)
     print(f"{item} [{side}]: {totals[n // 2]}/{len(per)} recorded at prompt "
           f"{prompt_sha(item)} over {len(per)} cells (runs {totals})")
+    # WHAT MOVED, printed here because this is the moment the question is asked
+    # and the only moment both bands are in hand. `bands_before` was taken from
+    # the ledger as it stood on entry, and `cell_bands` now reads what was just
+    # saved, so this compares the same cells across exactly this recording. A
+    # cell crossing INTO or OUT OF `on_the_line` is the one section 2c warns
+    # about: it says the verdict moved by a single run.
+    moved = band_moves(item, side)
+    for ln in moved:
+        print(f"  band: {ln}")
+    if not moved:
+        print("  band: no cell changed band")
     # PRINTED ON EVERY RECORD, and it takes no `side`: the report pools the
     # two OLX-prompt halves, so recording either one shows the same honest
     # spread rather than that half's flattering median.
@@ -2593,6 +2630,17 @@ def main() -> int:
             print(f"  {item:<5} {s}")
             worst = max(worst, 2 if s.startswith(("ABSENT", "STALE")) else 0)
         return worst
+    if a[:1] == ["--moves"] and len(a) in (1, 2, 3):
+        # `--moves [ITEM] [SIDE]`. Subgoal E42: what each cell's band did across
+        # the last recording. Reads the band stored BY that recording, so it can
+        # answer after the fact -- which `cell_bands` alone cannot.
+        lines = band_moves(a[1] if len(a) > 1 else None,
+                           a[2] if len(a) > 2 else DEFAULT_SIDE)
+        for ln in lines:
+            print(f"  {ln}")
+        if not lines:
+            print("  no cell changed band since it was recorded")
+        return 0
     if a[:1] == ["--record"] and len(a) in (3, 4):
         # `--record ITEM ARTIFACT [SIDE]`. SIDE defaults to DEFAULT_SIDE, which
         # is `python` -- agreement.py, the OLX prompt scored in Python. A
@@ -3413,6 +3461,38 @@ def _runs_doc(item: str, side: str):
 
 _FIXTURES: dict = {}
 _COMPUTED_SLOTS: dict = {}
+
+
+def band_moves(item: str | None = None, side: str = DEFAULT_SIDE) -> list[str]:
+    """What each cell's band did across the last recording, per recorded item.
+
+    SUBGOAL E42's payoff, and the reason the band is stored at all.
+    QUALITY_CONTROL.md 2c tells the reader to ask whether a change "gained a
+    STABLE cell or pushed a coin flip across the median line". That needs the
+    band BEFORE, which `cell_bands` cannot give once the sweep is recorded, so it
+    is read back off the entry and compared with the band now.
+
+    SILENT ABOUT CELLS THAT DID NOT MOVE, and explicit about items recorded
+    before this existed: an entry with no `bands_before` says NOT KNOWN, which is
+    a different fact from "did not move" and must not be reported as one -- the
+    same distinction `rescore_recorded` needed its own third channel for.
+    """
+    now = cell_bands()
+    out: list[str] = []
+    for it, s in sorted(records(side).items()):
+        if item is not None and it != item:
+            continue
+        before = s.get("bands_before")
+        if before is None:
+            out.append(f"{it} [{side}]: recorded before bands were kept "
+                       f"— no prior band to compare")
+            continue
+        for pid, was in sorted(before.items(), key=lambda kv: int(kv[0])):
+            cur = now.get(f"{it}/p{pid}")
+            if cur is None or cur[2] == was:
+                continue
+            out.append(f"{it}/p{pid}: {was} -> {cur[2]}  ({cur[0]} of {cur[1]})")
+    return out
 
 
 def cell_bands(state: dict | None = None) -> dict:
