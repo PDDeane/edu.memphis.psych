@@ -3543,6 +3543,63 @@ because it can be fixed or declared; a wobbling cell cannot be either.
            coverage. Both blindnesses were found by USING the tool on a question
            it had never been pointed at, not by any check.
 
+- [ ] Q41. **A gate's SCORING consequence, written into its JUDGING prompt, is
+      being executed as a judging instruction -- and it silently zeroes a count.**
+      Filed 2026-09-04 out of subgoal Q17, where it was first recorded as "a
+      fourth defect" and mis-diagnosed as independent of the gate. Measured from
+      artifacts, no calls.
+      THE SITE IS ONE SENTENCE in `wgb_is_counterpart`'s desc: "When this DOES
+      fail the goal is unstated and its reasons cannot count either, so
+      WGB_UNRELATED stands INSTEAD of WGB_NOT_OPPOSITE plus reason deductions,
+      never alongside them." Every word of that is TRUE about the arithmetic --
+      the gate zeroes the item, so the reason deductions are moot -- and it is
+      addressed to the wrong reader. It sits in a prompt whose job is to return
+      JUDGEMENTS, and the model executes it: on Q2/p10 `reasons_listed` answers 0
+      on a response that plainly holds three statements, against
+      `reasons_listed`'s own instruction, which is "Count what is on the page".
+      THE MODEL SAYS SO ITSELF, in all five of the runs where it happens, which
+      is what turns this from a suspicion into a finding:
+        "I looked for three statements giving benefits of the goal behaviour but
+         did not count them BECAUSE the goal is about a different behaviour than
+         your unwanted target behavior."
+        "I did not count reasons because the goal behaviour you named is
+         unrelated to the unwanted target behavior, AND THE ITEM'S GATE THEREFORE
+         FAILS."
+      AND IT FIRES ONLY WHERE THE GATE FAILS, which Q17 got wrong. Pooled over 12
+      runs on p10: gate `met` twice, and `reasons_listed` is 3 both times; gate
+      `absent` ten times, and the listing is 0 in five of those and 3 in the other
+      five. Q17 read that 5-and-5 split as evidence the zeros were INDEPENDENT of
+      the gate. They are not independent, they are INTERMITTENT -- the trigger is
+      the gate, and the model propagates it about half the time it fires. A
+      correlation that is present on one side and absent on the other is not
+      independence, and that inference is the mistake to remember here.
+      THE CLASS IS SIZE ONE, measured across all three rubrics, 26 items and
+      SEVEN gates: this is the only slot in the corpus whose desc or rule carries
+      arithmetic-consequence language ("cannot count", "stands INSTEAD", "never
+      alongside", "reason deductions", "costs the whole item"). So the fix is
+      local and cheap. The MECHANISM is not local, which is why this is filed:
+      nothing stops the next gate from explaining its own arithmetic, and the
+      failure is invisible in the score whenever the gate is right, because a
+      zeroed item hides a zeroed count.
+      WHAT TO DO, in this order:
+        1. CUT the arithmetic sentence from the judging text, keeping whatever the
+           SCORER needs in a comment or in the derivation, not in the prompt. The
+           gate's `rule` carries the same thing in shorter form ("Not satisfied
+           means the whole item is that finding") and needs the same treatment.
+        2. DO NOT re-word before reading Q17's sweep. Subgoal Q17's edit (c) makes
+           the gate PASS on p10, which removes this defect's trigger without
+           touching its cause -- so p10 will very likely come back near 12 of 12
+           while the contamination remains live and unmeasured. That is the trap
+           to avoid: a green cell here is not evidence the sentence is harmless.
+        3. FIND A CELL THAT STILL SHOWS IT. The gate is CORRECT and failing on p7,
+           where gold charges the whole item, so p7 is where the contamination can
+           be observed with the gate behaving properly. p7 lists 0 reasons and
+           gold agrees, so the cell score cannot show it -- read the SLOT.
+      A COMPANION AUDIT CHECK IS NOT FILED HERE, deliberately: "no judging field
+      may state what a verdict costs" is a cheap structural check over the three
+      rubrics, it would have caught this at authoring time, and it is machinery,
+      so it belongs in the E series if it is wanted.
+
 - [ ] Q40. **`aimed_correctly`: a 4-point gate that exists on WK2 alone, and the
       sibling check cannot see it.**
       Filed 2026-09-04 out of subgoal E41's on-the-line list, where WK2/p11 was
@@ -6316,13 +6373,22 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       CONTROLS that must not move: p3 (-3 reasons), p6 (-1), p19 (-1), p17 (0.0 by
       -3 and -2), and the eleven cells at 5.0 x 12. p6 is the sharpest of them --
       its CREDITED statement and p16's REFUSED one name the same kind of good.
-      A FOURTH DEFECT WAS FOUND AND IS NOT FIXED: `reasons_listed` answers 0 in 5
-      of 12 runs on p10, a response holding three statements, where gold counts
-      three and charges nothing. The zeros do NOT track the gate -- gate `absent`
-      pairs with 3 listed five times and with 0 listed five times -- so (c) exposes
-      this count rather than curing it. That is why p10 is pre-registered at about
-      half. It is the same slot family as (a) but a different slot and a different
-      direction, so it is left for after the sweep rather than bundled blind.
+      == THE FOURTH DEFECT IS NOW SUBGOAL Q41, AND p10's PREDICTION IS CORRECTED ==
+      `reasons_listed` answers 0 in 5 of 12 runs on p10, a response holding three
+      statements, where gold counts three and charges nothing. This entry first
+      said "the zeros do NOT track the gate", reading the 5-and-5 split across the
+      gate-`absent` runs as independence. That was wrong, and the evidence was
+      already in the artifacts: the zeros occur ONLY on gate-`absent` runs, never
+      on the two gate-`met` runs, and in all five the model states the gate as its
+      reason in so many words. The zeros are gate-TRIGGERED and intermittent, not
+      independent. Q41 owns the cause -- an arithmetic sentence in the gate's
+      judging text.
+      SO p10 IS PRE-REGISTERED NEAR 12, not at about half, and the result is
+      diagnostic either way: if the gate passes 12 of 12 and the zero-listings go
+      with it, edit (c) removes Q41's TRIGGER while leaving its CAUSE live, and a
+      green p10 is NOT evidence that sentence is harmless. If p10 lands near half
+      with zero-listings still present, the contamination is not gate-triggered
+      after all and Q41 must be re-scoped.
       Q1 CARRIES THE IDENTICAL SLOT FAMILY and the same `reason_3` profile, and was
       deliberately NOT changed: its cells belong to subgoal Q14. If (a) measures
       well here, carrying it to Q1 is Q14's cheapest move.
