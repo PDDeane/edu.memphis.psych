@@ -6069,6 +6069,45 @@ def check_probe_reach_limits_still_apply() -> list[str]:
     return out
 
 
+def check_goals_record_is_intact() -> list[str]:
+    """GOALS.md's entries: unique labels, resolving citations, nothing deleted or
+    quietly closed.
+
+    THE LABELS HERE ARE NAMES, NOT POSITIONS, which is why this is not the guide's
+    check with a different regex. `Q22` is cited in commits, memory notes, other
+    subgoals' prose and QUALITY_CONTROL.md, and it has to mean the same entry
+    forever -- so renumbering GOALS.md would be the defect rather than the repair,
+    and `goals.py --next` allocates from the maximum in use so a retired number is
+    never reissued.
+
+    Four things it refuses, each one an error this project has actually made or
+    come close to:
+
+      a DUPLICATE label      leaves every citation of it ambiguous
+      a DANGLING citation    a cited subgoal number with no such entry -- a typo,
+                             or an entry deleted instead of closed. (No example
+                             is spelled out here on purpose: writing one would
+                             BE a dangling citation, and this check found the
+                             first draft of this very docstring.)
+      a DELETED entry        the record is what stops work being redone
+      an UNAPPROVED closure  GOALS.md's own first rule is "NEVER CLOSE A GOAL
+                             WITHOUT ASKING THE USER FIRST", and it was broken by
+                             closing a subgoal inside a recording step. A rule
+                             stated in the file it governs and enforced nowhere
+                             depends on whoever read it last.
+
+    Citations must carry the word `subgoal`/`goal`, and that is load-bearing:
+    `Q1`, `Q2` and `Q4a` are RUBRIC ITEM ids too, so a bare `Q1` in prose is
+    usually an item. Requiring the word is what makes the citation check possible
+    on this corpus.
+    """
+    try:
+        import goals
+    except Exception as e:
+        return [f"goals.py will not import: {type(e).__name__}: {e}"]
+    return goals.check()
+
+
 def check_guide_lessons_are_approved() -> list[str]:
     """A lesson goes into the guide only with the user's agreement.
 
