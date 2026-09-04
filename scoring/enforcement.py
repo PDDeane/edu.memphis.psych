@@ -119,7 +119,13 @@ ALIAS = {
     # The web renamed this to say the good state, and inverted it to match the
     # rest of the vocabulary: `met` is phrased directly. The CLI input keeps the
     # old name and its boolean sense (True = phrased by what is avoided).
-    "avoidance_frame": "phrased_directly",
+    # A TUPLE, not a rename, because the two sheets no longer share a name and
+    # the CLI still has ONE input. web_name() tries each candidate against the
+    # item's own web_keys, so DAY1 resolves to the gated name and the other seven
+    # to the plain one, with no item id anywhere. Same mechanism `observed_type`
+    # uses below, and the alias stays AUTHORITATIVE: if neither candidate is
+    # present the answer is None and the audit reports it.
+    "avoidance_frame": ("phrased_directly_gate", "phrased_directly"),
     # The four example screens ask about ONE authored type, so the web judges
     # "is it this type" where the CLI identifies which of the four it is. Same
     # deduction, different shape — see EQUIVALENCE.md.
@@ -1419,25 +1425,14 @@ SLOT_STRUCTURE_FAMILIES: dict[str, tuple[str, ...]] = {
 # The budget ratchets: an entry is either a decision with a reason or a defect
 # waiting to be fixed, and it must not sit here being neither.
 SLOT_STRUCTURE_DIVERGENCES: dict[tuple[str, str], str] = {
-    ("h2-cadence-and-type", "phrased_directly"):
-        "DELIBERATE, and this entry stopped being a placeholder on 2026-09-04 "
-        "when QC subgoal Q26 decided it. DAY1 authors `!phrased_directly` and the "
-        "other seven author it plain, so on DAY1 alone the slot GATES and can zero "
-        "the 4-point item. THE REASON: the `!` is what RETIRED "
-        "handouts.GOLD_DIVERGENCES' ADDED_AVERSIVE_NAMED on DAY1/p8, and that "
-        "table's own retirement note records the measurement -- 'of the five DAY1 "
-        "cells where that check answers absent, gold scores four of them 0, so "
-        "honouring it cost nothing and gained the cell. 9 of 9.' RE-CHECKED over "
-        "twelve pooled runs and it costs even less now: exactly five cells ever "
-        "answer absent (p1, p6, p8, p10, p18) and gold scores ALL FIVE 0.0, the "
-        "fifth arriving when DAY1/p1's gold was corrected. The slot refuses 43 "
-        "times across 216 observations and coincides with no wrong cell. It was "
-        "hard to decide only because a comment in olx_prompts.py still described "
-        "the PRE-2026-08-24 'flag and never deduct' decision, citing the very "
-        "declaration the gating change had retired; read alone it says the `!` is "
-        "a typo. Both statements were in the record and one was stale.",
 }
-SLOT_STRUCTURE_BUDGET = 1
+# ZERO, and it is meant to stay there. The single entry was DAY1's
+# `phrased_directly`, retired 2026-09-04 by RENAMING the gated variant
+# `phrased_directly_gate` rather than exempting it: if two sheets price a
+# question differently they are not asking the same question, and the shared name
+# is what made a recorded claim about the slot wrong (subgoal Q21's precision
+# table). A new entry here now means someone chose an exemption over a name.
+SLOT_STRUCTURE_BUDGET = 0
 
 
 def _family_slot_structure() -> dict:

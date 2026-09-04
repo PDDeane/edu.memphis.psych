@@ -904,7 +904,7 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
         # The standing decision was to flag and never deduct: an avoidance-framed
         # contingency is structurally sound, so zeroing it looked like punishing
         # phrasing. The cohort disagrees on THIS item. Of the five DAY1 cells
-        # where the web's `phrased_directly` ever answers `absent`, gold scores
+        # where the web's `phrased_directly_gate` ever answers `absent`, gold scores
         # four of them 0 and the fifth we already miss for other reasons, so
         # `absent` predicts gold's zero and honouring it costs nothing. Measured:
         # DAY1 15/18 -> 16/18, p8 from wrong in every run to right in six of six
