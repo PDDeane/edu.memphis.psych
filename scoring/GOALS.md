@@ -6381,17 +6381,25 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       table, which called `phrased_directly` "advisory, cannot deduct" -- true of
       NR and false of DAY1. Any claim about this slot is item-specific.
 
-      == AND THE CHECK EXISTS: enforcement.check_sibling_items_agree_on_gates ==
-      Sibling sheets must price a shared slot the same. It compares EFFECTIVE COST
-      (a gate costs the item's max, a point slot its points, an advisory nothing)
-      rather than the `gates` flag, because its first version's first finding was
-      an artefact: `matches_chosen_type` gates on D1/D2 and deducts 2 on the
-      four-point items, and D1/D2 are TWO-point items, so the sheets already agree
-      on what the judgement is worth. Its second was another -- item 3 and Q5
-      sharing the generic names `example_1`/`example_2` across different handouts
-      -- and a RATIO cannot exclude that pair, measured: their Jaccard overlap is
-      0.60 against DAY1/NR's 0.52. Siblinghood is therefore same handout plus at
-      least six shared slots; the operant family shares 11 to 18, those pairs share 3.
+      == THE CHECK ALREADY EXISTED, AND A DUPLICATE WAS BUILT BEFORE READING IT ==
+      Subgoal E26 built `check_sibling_slots_share_their_structure` on 2026-08-29
+      and CLOSED, with SLOT_STRUCTURE_FAMILIES scoping it to the eight H2 items,
+      SLOT_STRUCTURE_DIVERGENCES holding the declarations and a budget of 1
+      ratcheting them. Its entry for `phrased_directly` was written as UNDECIDED
+      on purpose, naming this subgoal as what would decide it.
+      ON 2026-09-04 A SECOND IMPLEMENTATION OF THE SAME RULE WAS WRITTEN, because
+      this entry's own line "THE CHECK THIS WANTS IS SUBGOAL E26" was read and
+      E26's state was not. It has been removed. The duplicate spent an afternoon
+      rediscovering two false-positive classes that E26's FAMILY SCOPING had
+      already dissolved -- `matches_chosen_type` gating on the two-point items D1
+      and D2 while deducting 2 on the four-point ones (the same price, differently
+      expressed), and item 3 and Q5 sharing the generic names `example_1` and
+      `example_2` across handouts. Neither pair is in a declared family, so E26
+      never had the problem. Two implementations of one rule is the divergence
+      class this project exists to close, and this was one.
+      WHAT SURVIVED IS THE ANSWER, not the machinery: E26's `phrased_directly`
+      entry is no longer a placeholder. It now carries the measured reason above,
+      which is what its own text said would retire it.
 
       == QUEUED, BEHIND THE Q22 SWEEP: RENAME RATHER THAN DECLARE ==
       Agreed 2026-09-04. A declaration is a standing exemption that can go stale;
