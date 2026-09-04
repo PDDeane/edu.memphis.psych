@@ -773,6 +773,58 @@
           "10": 6,
           "11": 6,
           "12": 6,
+          "13": 5,
+          "14": 5,
+          "15": 5,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6,
+          "4": 6,
+          "5": 6,
+          "6": 6,
+          "7": 6,
+          "8": 6,
+          "9": 6
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 6,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "q22b_olx",
+        "previous": {
+          "denominator": 18,
+          "numerator": 18,
+          "out": "q22_olx",
+          "prompt_sha": "2f948a5296e9",
+          "runs": 6,
+          "scorer_sha": "89b4623d6882"
+        },
+        "prompt_sha": "eb1afb4bb933",
+        "run_totals": [
+          16,
+          17,
+          18,
+          18,
+          18,
+          18
+        ],
+        "runs": 6,
+        "scorer_sha": "89b4623d6882"
+      },
+      "python": {
+        "cells": {
+          "1": 6,
+          "10": 6,
+          "11": 6,
+          "12": 6,
           "13": 6,
           "14": 6,
           "15": 6,
@@ -798,73 +850,21 @@
           3
         ],
         "numerator": 18,
-        "out": "q22_olx",
-        "previous": {
-          "denominator": 18,
-          "numerator": 18,
-          "out": "refresh_DAY1_olx",
-          "prompt_sha": "28fb9c770de1",
-          "runs": 6,
-          "scorer_sha": "89b4623d6882"
-        },
-        "prompt_sha": "2f948a5296e9",
-        "run_totals": [
-          18,
-          18,
-          18,
-          18,
-          18,
-          18
-        ],
-        "runs": 6,
-        "scorer_sha": "89b4623d6882"
-      },
-      "python": {
-        "cells": {
-          "1": 6,
-          "10": 6,
-          "11": 4,
-          "12": 6,
-          "13": 6,
-          "14": 6,
-          "15": 4,
-          "16": 6,
-          "17": 6,
-          "18": 6,
-          "19": 6,
-          "20": 6,
-          "4": 6,
-          "5": 6,
-          "6": 6,
-          "7": 6,
-          "8": 6,
-          "9": 6
-        },
-        "denominator": 18,
-        "excluded_cells": {
-          "2": 6,
-          "3": 0
-        },
-        "exclusions": [
-          2,
-          3
-        ],
-        "numerator": 17,
-        "out": "refresh_DAY1_python",
+        "out": "q22b_python",
         "previous": {
           "denominator": 18,
           "numerator": 17,
-          "out": "nt2_cli",
+          "out": "refresh_DAY1_python",
           "prompt_sha": "55cb554fa0e8",
           "runs": 6,
-          "scorer_sha": "52fedad3b91b"
+          "scorer_sha": "89b4623d6882"
         },
-        "prompt_sha": "55cb554fa0e8",
+        "prompt_sha": "5b9f4796b118",
         "run_totals": [
-          17,
-          17,
-          17,
-          17,
+          18,
+          18,
+          18,
+          18,
           18,
           18
         ],
@@ -877,8 +877,8 @@
         "cells": {
           "1": 6,
           "10": 6,
-          "11": 6,
-          "12": 5,
+          "11": 5,
+          "12": 6,
           "13": 6,
           "14": 6,
           "15": 6,
@@ -891,8 +891,8 @@
           "5": 6,
           "6": 6,
           "7": 0,
-          "8": 5,
-          "9": 2
+          "8": 4,
+          "9": 3
         },
         "denominator": 18,
         "excluded_cells": {
@@ -904,22 +904,22 @@
           3
         ],
         "numerator": 16,
-        "out": "q22_olx",
+        "out": "q22b_olx",
         "previous": {
           "denominator": 18,
           "numerator": 16,
-          "out": "nt2_web",
-          "prompt_sha": "625fa3b49156",
+          "out": "q22_olx",
+          "prompt_sha": "e4b3a1c7227d",
           "runs": 6,
-          "scorer_sha": "52fedad3b91b"
+          "scorer_sha": "89b4623d6882"
         },
-        "prompt_sha": "e4b3a1c7227d",
+        "prompt_sha": "b19432cb6738",
         "run_totals": [
+          15,
           15,
           16,
           16,
-          16,
-          16,
+          17,
           17
         ],
         "runs": 6,
@@ -944,7 +944,7 @@
           "6": 6,
           "7": 0,
           "8": 3,
-          "9": 6
+          "9": 4
         },
         "denominator": 18,
         "excluded_cells": {
@@ -956,27 +956,26 @@
           3
         ],
         "numerator": 16,
-        "out": "nt2_cli",
+        "out": "q22b_python",
         "previous": {
           "denominator": 18,
           "numerator": 16,
           "out": "nt2_cli",
-          "prompt_sha": "839d21e12263",
+          "prompt_sha": "486d1cb9bc7a",
           "runs": 6,
           "scorer_sha": "52fedad3b91b"
         },
-        "prompt_sha": "486d1cb9bc7a",
-        "prompt_sha_basis": "git-dirty-unchanged",
+        "prompt_sha": "f67bf4a6c654",
         "run_totals": [
-          15,
-          15,
+          14,
+          14,
           16,
           16,
           17,
           17
         ],
         "runs": 6,
-        "scorer_sha": "52fedad3b91b"
+        "scorer_sha": "89b4623d6882"
       }
     },
     "NP": {
@@ -2465,8 +2464,8 @@
           "20": 6,
           "4": 6,
           "5": 6,
-          "6": 4,
-          "7": 6,
+          "6": 6,
+          "7": 5,
           "8": 6,
           "9": 6
         },
@@ -2480,19 +2479,19 @@
           3
         ],
         "numerator": 18,
-        "out": "q22_olx",
+        "out": "q22b_olx",
         "previous": {
           "denominator": 18,
           "numerator": 18,
-          "out": "nt2_web",
-          "prompt_sha": "c5d4b1fd4293",
+          "out": "q22_olx",
+          "prompt_sha": "9c022f2ce360",
           "runs": 6,
-          "scorer_sha": "92cc12585cc2"
+          "scorer_sha": "a62b05634aa7"
         },
-        "prompt_sha": "9c022f2ce360",
+        "prompt_sha": "978041bc93a2",
         "run_totals": [
           17,
-          17,
+          18,
           18,
           18,
           18,
@@ -2503,7 +2502,7 @@
       },
       "python": {
         "cells": {
-          "1": 6,
+          "1": 5,
           "10": 6,
           "11": 6,
           "12": 6,
@@ -2513,12 +2512,12 @@
           "16": 6,
           "17": 6,
           "18": 6,
-          "19": 5,
+          "19": 6,
           "20": 6,
           "4": 6,
           "5": 6,
           "6": 6,
-          "7": 4,
+          "7": 6,
           "8": 6,
           "9": 6
         },
@@ -2532,27 +2531,26 @@
           3
         ],
         "numerator": 18,
-        "out": "nt2_cli",
+        "out": "q22b_python",
         "previous": {
           "denominator": 18,
           "numerator": 18,
           "out": "nt2_cli",
-          "prompt_sha": "c97efa3fe4a1",
+          "prompt_sha": "f84e11bd7085",
           "runs": 6,
           "scorer_sha": "92cc12585cc2"
         },
-        "prompt_sha": "f84e11bd7085",
-        "prompt_sha_basis": "git-dirty-unchanged",
+        "prompt_sha": "70ef30cb5167",
         "run_totals": [
           17,
-          17,
-          17,
+          18,
+          18,
           18,
           18,
           18
         ],
         "runs": 6,
-        "scorer_sha": "92cc12585cc2"
+        "scorer_sha": "a62b05634aa7"
       }
     },
     "WK2": {
@@ -2560,11 +2558,11 @@
         "cells": {
           "1": 6,
           "10": 6,
-          "11": 3,
+          "11": 4,
           "12": 6,
           "13": 6,
           "14": 6,
-          "15": 6,
+          "15": 5,
           "16": 6,
           "17": 6,
           "18": 6,
@@ -2574,7 +2572,7 @@
           "5": 6,
           "6": 6,
           "7": 6,
-          "8": 5,
+          "8": 6,
           "9": 6
         },
         "denominator": 18,
@@ -2586,22 +2584,22 @@
           2,
           3
         ],
-        "numerator": 17,
-        "out": "q22_olx",
+        "numerator": 18,
+        "out": "q22b_olx",
         "previous": {
           "denominator": 18,
-          "numerator": 18,
-          "out": "nt2_web",
-          "prompt_sha": "30257a2eb310",
+          "numerator": 17,
+          "out": "q22_olx",
+          "prompt_sha": "3c4b21703e2c",
           "runs": 6,
-          "scorer_sha": "52fedad3b91b"
+          "scorer_sha": "89b4623d6882"
         },
-        "prompt_sha": "3c4b21703e2c",
+        "prompt_sha": "28f6eea0e18c",
         "run_totals": [
           17,
           17,
           17,
-          17,
+          18,
           18,
           18
         ],
@@ -2612,11 +2610,11 @@
         "cells": {
           "1": 6,
           "10": 6,
-          "11": 3,
+          "11": 4,
           "12": 6,
           "13": 6,
           "14": 6,
-          "15": 1,
+          "15": 2,
           "16": 6,
           "17": 6,
           "18": 6,
@@ -2626,7 +2624,7 @@
           "5": 6,
           "6": 6,
           "7": 6,
-          "8": 5,
+          "8": 6,
           "9": 6
         },
         "denominator": 18,
@@ -2639,27 +2637,26 @@
           3
         ],
         "numerator": 17,
-        "out": "nt2_cli",
+        "out": "q22b_python",
         "previous": {
           "denominator": 18,
           "numerator": 17,
           "out": "nt2_cli",
-          "prompt_sha": "a890dae8437c",
+          "prompt_sha": "254b65fc7f81",
           "runs": 6,
           "scorer_sha": "52fedad3b91b"
         },
-        "prompt_sha": "254b65fc7f81",
-        "prompt_sha_basis": "git-dirty-unchanged",
+        "prompt_sha": "e4acfbc22f85",
         "run_totals": [
           16,
-          16,
-          16,
           17,
           17,
-          17
+          17,
+          17,
+          18
         ],
         "runs": 6,
-        "scorer_sha": "52fedad3b91b"
+        "scorer_sha": "89b4623d6882"
       }
     }
   },
