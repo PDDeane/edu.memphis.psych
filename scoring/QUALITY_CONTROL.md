@@ -773,6 +773,75 @@ occasionally.
 
 ---
 
+## 2e. VALIDATE A CANDIDATE RULE AGAINST EVERY VALID CELL BEFORE WRITING IT
+
+**Not against the cells that motivated it, and not against the cells where gold
+speaks. Against ALL of them.** A rule is a claim about every response the item
+will ever see, so the cells that can refute it are mostly the ones nobody was
+looking at -- the cells it currently gets RIGHT.
+
+The pass is cheap and needs no API calls: dump every non-excluded cell of every
+item the rule touches, with the response, gold's score, gold's comment, and what
+the current check answers. Then read them and mark, for each, what the candidate
+rule would answer. Three columns matter and only one of them is the one you were
+thinking about:
+
+  FIXES     cells the rule changes from wrong to right. The motivation.
+  INERT     cells it does not change. Usually the majority, and worth counting --
+            a rule that is inert on 60 of 72 cells is a narrow rule, whatever its
+            prose suggests.
+  BREAKS    cells it changes from RIGHT to wrong. The reason for the pass.
+
+**Q22's cadence rule died in the BREAKS column, on the fourth item read.** The
+rule was "a period coarser than the item's frame contradicts it; a finer one does
+not; a period on the consequence is not the behaviour's cadence; no period stated
+is not a contradiction". It was derived from the eight cells where gold's comment
+speaks to cadence and it classified all eight correctly -- which is exactly why it
+looked finished. Over all 72 valid cells it also:
+
+* broke **DAY2/p9** ("{{corpus:DAY2/p9:day2:0:95:sha=4f42e6b8fa63:shape=S14-0a2020,A8}}"), where gold gives FULL credit and the
+  current check answers `met` in 12 of 12. The rule reads "out of the 5 days" as
+  coarser than daily and would refuse it -- turning a perfect cell into a wrong
+  one. Its near-twin DAY1/p9, by the SAME participant, is the rule's proof case.
+  The current prose already tells those two apart, 12 of 12 both ways.
+* risked **WK1/p6**, right in 12 of 12 today and held there by a cadence refusal
+  gold never asked for -- gold objects to the contingency's direction. Stop the
+  misfire and the cell falls to whatever else refuses it, which is a gate running
+  at 8 of 12. Right for the wrong reason is a category the totals cannot show you.
+
+Both were invisible from the motivating cells, and both were found by reading
+responses the subgoal had never listed.
+
+**So: no rule is written until its BREAKS column has been read out loud.** If the
+column is empty, say that it was checked and empty -- an unstated absence reads
+as an unperformed check.
+
+**And a non-empty BREAKS column is a REVISION prompt, not a scoping prompt.** The
+first instinct on refutation is to retreat: keep the clauses that survived, drop
+the cells they no longer reach, declare the rest out of scope. Do not stop there.
+A cell that refutes a rule is the most informative cell available, because it is
+the one that knows what the rule got wrong -- so before narrowing anything, ask
+what single statement would account for the WHOLE distribution including the
+refuters.
+
+On Q22 that question had an answer, and it took about ten minutes. The
+directional rule died on DAY2/p9 against DAY1/p9 -- and those two cells are the
+SAME PARTICIPANT writing on two items, which is what made the comparison sharp.
+"5 times out of the week" cannot be judged until occurrences are COUNTED across
+the week; "out of the 5 days" names no count and is judgeable on any one day. So
+the discriminator was never how coarse the period is, it is whether the TRIGGER
+can be evaluated inside one instance of the item's period. That version
+classifies all 72 cells with no contradiction, keeps both refuters, and covers a
+cell the retreat had abandoned. The retreat would have shipped a worse rule with
+a documented loss attached.
+
+Look hardest at refuters that are MINIMAL PAIRS -- same participant, same shape,
+opposite gold. They isolate the variable the way nothing else in the corpus does.
+
+If revision genuinely fails, then narrow -- and the losses go into the
+pre-registration as expected, with their cell ids, BEFORE the sweep. A sweep that
+loses a cell nobody predicted cannot be told apart from a sweep that went wrong.
+
 ## 2f. A GATE'S REFUSAL IS INFORMATION, AND A NEW CHECK MUST BE SHOWN TO FIRE
 
 **When a gate refuses, read it before working around it.** Every refusal in this
