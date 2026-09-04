@@ -4029,6 +4029,18 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       They are not fourteen new cells -- WK1/p7 and DAY2/p7 are already known --
       but they are the first evidence of how much of the family's error this
       class carries, and it settles a question Q22 had answered the other way.
+      WK2/p8 IS PROPOSED FOR THIS LIST 2026-09-03, from Q22's re-read. Gold 0.00,
+      "This is not an example of operant conditioning." The response drops a
+      negation the same participant supplies on DAY2 -- "I will be doing yard
+      during the weekend If I had met my goal" against DAY2's "I will reward
+      myself by NOT doing yard work" -- so the literal reading adds an aversive
+      after the wanted behaviour and the charitable one removes it. We take the
+      literal reading in 5 of 6 python runs and score 0.00 with gold; in the
+      sixth every check passes and we score 4.00. The mechanism is this
+      subgoal's, with the wrinkle that the ambiguity is in the STUDENT'S sentence
+      rather than in the sheet's reach -- worth keeping distinct from the six
+      above, where the response is clear and the sheet has no check for what gold
+      objected to.
       TWO OF THE SEVEN ABOVE ARE STALE, corrected 2026-09-03 when the slot
       profile stopped hiding gates (subgoal Q37):
         Q6/p16   "we fail nothing" is WRONG. We fail `affect_c2` -- the very slot
@@ -4397,12 +4409,36 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       asks the model to find a cadence, so an answer with no period and an answer
       whose only period is the reward's both hand it the nearest number in the
       sentence. Direction and attachment are the two things it never asked for.
-      ONE FALSE NEGATIVE IN THE OTHER DIRECTION, unresolved and not to be
-      forgotten: WK2/p8, where gold DOES object to the cadence ("you should state
-      what undesirable thing will you take away at the end of the week if you do
-      not meet your weekly goal") and our cadence gate never fires at all. The
-      cell is wrong in 4 of 12 runs for other reasons. A directional rule does
-      not obviously fix it, and it should be read before the sweep.
+      WK2/p8 WAS READ AS A FALSE NEGATIVE HERE AND IS NOT ONE. The claim was
+      that gold objects to the cadence and our gate never fires. Reading the
+      comment again: "This is not an example of operant conditioning. For NR, you
+      should state what undesirable thing will you take away at the end of the
+      week if you do not meet your weekly goal." That is a TYPE objection
+      followed by CORRECTIVE INSTRUCTION. "At the end of the week" and "weekly
+      goal" describe what a correct NR answer on this weekly item would look
+      like; they are not a charge that the student's cadence was wrong. Gold
+      docks the full 4 for "not operant conditioning", not for a period.
+      SO THE DIRECTIONAL RULE COVERS THIS CELL TOO, and the count is nine with no
+      contradictions rather than eight with an exception: the answer checks the
+      goal "4 days a week", which is FINER than the weekly frame, so the rule
+      says met -- and `cadence_is_weekly` answers `met` in 12 runs of 12, with no
+      drift at all. Gate and gold agree completely here.
+      WHAT IS ACTUALLY WRONG WITH WK2/p8 IS Q20's, and it is proposed for
+      reassignment there. The answer is "I will be doing yard during the weekend
+      If I had met my goal 4 days a week for 1 hour" -- and the SAME participant
+      writes on DAY2 "If I meet my goal of going to the gym, I will reward myself
+      by NOT doing yard work till the end of the week". The WK2 sentence is the
+      DAY2 sentence with the negation dropped, so read literally it adds an
+      aversive after the wanted behaviour, which is not operant conditioning at
+      all -- gold's reading -- while read charitably it removes one, which is NR.
+      Our scorer takes the literal reading in 5 of 6 python runs and the
+      charitable one in 1, scoring 0.0 and 4.0 respectively; gold is 0.0. So the
+      cell is over-credit with every check passing in the runs it is wrong, which
+      is Q20's class, and the instability is in `matches_chosen_type` and
+      `consequence_not_a_setup`, not in any cadence judgement.
+      THE LESSON IS ABOUT READING GOLD, not about the gate: a comment that tells
+      the student what a right answer WOULD look like is not charging them for
+      each feature it names. Read the charge, not the advice.
       NOTE ON THE NUMBERS BELOW: every per-slot figure in the rest of this entry
       was computed with a GATE-BLIND profile -- see subgoal Q37 -- so treat them
       as the record of what was believed, not as current measurements. The
