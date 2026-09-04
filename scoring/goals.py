@@ -163,6 +163,10 @@ def main(argv: list[str]) -> int:
         for label, (state, title) in entries(GOALS.read_text()).items():
             print(f"  [{state}] {label:5} {title[:70]}")
         return 0
+    if "--rank" in argv:
+        for i, (lab, _f, why) in enumerate(rank(), 1):
+            print(f"  {i:>2}. {lab:5} {why}")
+        return 0
     if "--slot-claims" in argv:
         s = stale_slot_claims()
         print("\n".join(f"  ! {x}" for x in s) if s
@@ -303,6 +307,167 @@ def stale_slot_claims(instrument_at: int | None = None) -> list[str]:
             f"if it is meant as an era record, or drop the count and name the cell "
             f"and slot instead")
     return out
+
+
+# ------------------------------------------------------------------- ranking
+
+def rank() -> list[tuple[str, dict, str]]:
+    """Open goals in priority order, DERIVED rather than remembered.
+
+    Standing instruction, 2026-09-04: "Knowing what the rank order of goals is,
+    and redoing it when something happens that would affect the ranking, is
+    something that ought to be happening automatically." So there is no stored
+    ranking to go stale -- it is recomputed from the ledger and the goal file
+    every time it is asked for, and it prints the FACTS it ordered on rather than
+    a score, because a score cannot be argued with.
+
+    The ordering follows this project's own guide (§0): a DETERMINISTIC miss with
+    a named failing check is worth more than a larger gap of unknown shape,
+    "because it can be fixed or declared; a wobbling cell cannot be either". So,
+    in order:
+
+      deterministic wrong cells    a cell wrong in EVERY pooled run
+      cells the TITLE claims       ownership stated rather than mentioned in passing
+      citations from other OPEN    how many other subgoals are waiting on it
+      items to sweep               fewer is cheaper to settle
+      unstable cells               counted, but last: they cannot be measured against
+
+    What it deliberately does NOT do is decide anything. It cannot read whether a
+    candidate fix exists, and that has decided more of this project's priorities
+    than any count -- so the output is an ordering to argue with, not an answer.
+    """
+    import re as _re
+    try:
+        import measured as M
+    except Exception as e:
+        return [("", {}, f"cannot rank: measured will not import: {type(e).__name__}")]
+
+    text = GOALS.read_text()
+    open_labels = [l for l, (st, _t) in entries(text).items() if st == " "]
+    try:
+        owners = M._live_subgoal_owners()
+    except Exception as e:
+        return [("", {}, f"cannot rank: {type(e).__name__}: {e}")]
+
+    # PER CELL, POOLED OVER THE OLX-PROMPT SIDES. `records()` takes a SIDE and
+    # defaults to one, so `records()[item]["olx"]` is None rather than an error --
+    # the trap measured.py records at its own declaration_conflicts, where reading
+    # one side made a declaration the other side had refuted invisible. The first
+    # version of this ranking hit it and reported that NO open goal owned a wrong
+    # cell, which degenerated the whole order into citation counts and looked
+    # plausible. Ask for each side by name.
+    state: dict[str, tuple[int, int]] = {}
+    for side in M.POOLED_OLX_PROMPT:
+        try:
+            led = M.records(side)
+        except Exception:
+            continue
+        for item, s in led.items():
+            runs = s.get("runs") or 0
+            for pid, n in (s.get("cells") or {}).items():
+                a = state.setdefault(f"{item}/p{pid}", (0, 0))
+                state[f"{item}/p{pid}"] = (a[0] + n, a[1] + runs)
+
+    # citations between OPEN goals
+    cited: dict[str, int] = {l: 0 for l in open_labels}
+    label = None
+    for line in text.splitlines():
+        m = ENTRY.match(line)
+        if m:
+            label = f"{m.group(2)}{m.group(3)}"
+        for pre, num in CITE.findall(line):
+            tgt = f"{pre}{num}"
+            if tgt in cited and label != tgt and label in open_labels:
+                cited[tgt] += 1
+
+    # PRIMARY OWNERSHIP, NOT MENTION. `owners["any"]` repeats a label once per
+    # MENTION and is generous on purpose -- it exists so no wrong cell can be
+    # left with nobody looking at it. For ranking that is the wrong instrument:
+    # the first version credited DAY2/p7 to four subgoals at once and gave Q26,
+    # which is about one character of DAY1's OLX, two deterministic cells it has
+    # nothing to do with. A subgoal that mentions a cell five times is discussing
+    # it; one that mentions it once in an aside is not. So the owner is whoever
+    # mentions it MOST among open goals, ties shared.
+    # AND AN ENTRY ENDS WHERE THE NEXT ENTRY *OR* THE NEXT HEADING BEGINS. Bounding
+    # only at the next entry makes the LAST labelled entry of a section swallow
+    # everything after it: Q26's body measured 8223 characters that way and
+    # contained other subgoals' cells, which is how a subgoal about one character
+    # of DAY1's OLX came to own a Q4b cell. Counted here rather than by changing
+    # measured._live_subgoal_owners, which is generous ON PURPOSE -- it exists so
+    # that no wrong cell is left unlooked-at, and narrowing it would weaken the
+    # audit that depends on it.
+    CELL = _re.compile(r"\b([A-Za-z0-9]+)/p(\d+)\b")
+    lines = text.splitlines()
+    bounds: dict[str, list[str]] = {}
+    cur = None
+    for line in lines:
+        m = ENTRY.match(line)
+        if m:
+            cur = f"{m.group(2)}{m.group(3)}"
+            bounds[cur] = [line]
+            continue
+        if _re.match(r"^#{1,3} ", line):
+            cur = None                      # a heading ends the entry
+            continue
+        if cur:
+            bounds[cur].append(line)
+
+    mentions: dict[str, dict[str, int]] = {}
+    for lab, body in bounds.items():
+        if lab not in open_labels:
+            continue
+        for line in body:
+            for it, pid in CELL.findall(line):
+                cell = f"{it}/p{pid}"
+                mentions.setdefault(cell, {})
+                mentions[cell][lab] = mentions[cell].get(lab, 0) + 1
+
+    primary: dict[str, tuple] = {}
+    for cell, counts in mentions.items():
+        top = max(counts.values())
+        primary[cell] = tuple(l for l, c in counts.items() if c == top)
+
+    rows = []
+    for lab in open_labels:
+        det, unst, items, titled = [], [], set(), 0
+        for cell in primary:
+            if lab not in primary[cell]:
+                continue
+            st = state.get(cell)
+            if st is None:
+                continue
+            right, runs = st
+            if right == runs:
+                continue                      # cell is correct; nothing owed
+            items.add(cell.split("/")[0])
+            (det if right == 0 else unst).append(cell)
+        for cell, labs in owners["title"].items():
+            st = state.get(cell)
+            if lab in labs and st is not None and st[0] != st[1]:
+                titled += 1
+        facts = {"deterministic": sorted(det), "unstable": sorted(unst),
+                 "items": sorted(items), "titled": titled, "cited_by": cited[lab]}
+        rows.append((lab, facts))
+
+    rows.sort(key=lambda r: (-len(r[1]["deterministic"]), -r[1]["titled"],
+                             -r[1]["cited_by"], len(r[1]["items"]),
+                             -len(r[1]["unstable"]), r[0]))
+    out = []
+    for lab, f in rows:
+        why = []
+        if f["deterministic"]:
+            why.append(f"{len(f['deterministic'])} deterministic ({', '.join(f['deterministic'][:3])})")
+        if f["titled"]:
+            why.append(f"{f['titled']} claimed by title")
+        if f["cited_by"]:
+            why.append(f"{f['cited_by']} open goal(s) cite it")
+        if f["unstable"]:
+            why.append(f"{len(f['unstable'])} unstable ({', '.join(f['unstable'][:3])})")
+        if f["items"]:
+            why.append(f"{len(f['items'])} item(s) to sweep")
+        out.append((lab, f, "; ".join(why) or "no wrong cell currently attributed"))
+    return out
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
