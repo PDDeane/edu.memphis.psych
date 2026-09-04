@@ -2223,7 +2223,25 @@ def preflight() -> dict[str, list[str]]:
         # does not survive a compaction.
         "8. set aside — finished work not yet recorded, and gates not yet re-run":
             unrecorded_artifacts() + selftest_owed(),
+        # STEP 9 IS NOT OUTSTANDING WORK, IT IS THE ORDER TO DO IT IN. Standing
+        # instruction 2026-09-04: knowing the rank order, and redoing it when
+        # something changes it, should happen automatically rather than being a
+        # conversation. So it is DERIVED here every time preflight runs -- there is
+        # no stored ranking to go stale -- and it prints the facts it ordered on
+        # rather than a score, because a score cannot be argued with.
+        "9. priority — open goals in derived order (facts, not a verdict)":
+            _ranked_goals(),
     }
+
+
+def _ranked_goals() -> list[str]:
+    """goals.rank(), formatted; never blocks preflight on its own."""
+    try:
+        import goals
+        return [f"{i:>2}. {lab:5} {why}"
+                for i, (lab, _f, why) in enumerate(goals.rank(), 1)]
+    except Exception as e:
+        return [f"ranking unavailable: {type(e).__name__}: {e}"]
 
 
 def unrecorded_artifacts() -> list[str]:
