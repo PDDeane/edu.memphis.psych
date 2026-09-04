@@ -194,7 +194,8 @@ def load() -> dict:
 # The trap: the artifact directory holding the CLI column is called `cli_v8`, but
 # the harness inside it talks to the web endpoint, so a glance at the log reads
 # "web". The prompt is the web's on BOTH sides; what differs is whose rules score
-# it. An unlabelled number is a `cli` number.
+# it. An unlabelled number is a `python` number (DEFAULT_SIDE), which is what
+# `cli` was renamed to on 2026-09-01.
 # THE THREE SCORERS, and which is which matters more than it looks -- see the
 # comment below. `paper` was added 2026-08-30, when the third scorer finally had
 # a harness that could produce a recordable artifact: before that a paper sweep
@@ -2414,8 +2415,20 @@ def main() -> int:
             worst = max(worst, 2 if s.startswith(("ABSENT", "STALE")) else 0)
         return worst
     if a[:1] == ["--record"] and len(a) in (3, 4):
-        # `--record ITEM ARTIFACT [SIDE]`. SIDE defaults to the web-prompt path,
-        # so a two-sided sweep records the CLI half with an explicit `cli`.
+        # `--record ITEM ARTIFACT [SIDE]`. SIDE defaults to DEFAULT_SIDE, which
+        # is `python` -- agreement.py, the OLX prompt scored in Python. A
+        # two-sided sweep therefore records its APP half with an explicit `olx`.
+        #
+        # THIS COMMENT SAID THE OPPOSITE until 2026-09-03, and named a side that
+        # no longer exists: "SIDE defaults to the web-prompt path, so a two-sided
+        # sweep records the CLI half with an explicit `cli`". Both halves were
+        # wrong after the web/cli -> olx/python rename -- the default is the
+        # python half, not the app half, and `cli` is not in SIDES, so following
+        # the instruction literally fails. Harmless only because the SIDE
+        # CONTRACT refuses the mismatch by reading who wrote the artifact; it
+        # caught exactly this, on this line, the first time NR's app half was
+        # recorded. A stale comment beside a working guard is still a trap for
+        # whoever reads the comment and not the guard.
         record(a[1], a[2], a[3] if len(a) == 4 else DEFAULT_SIDE)
         # The error profile is PRINTED, not offered. A median says how many cells
         # are wrong and never which judgement is wrong, and those point at
@@ -3337,7 +3350,19 @@ def _our_failing_slots(item: str, pid: int, side: str = DEFAULT_SIDE):
             # from, and the two engines are pooled precisely because differences
             # between them are sampling, not program. Unknown stays unknown.
             raw = dict(r.get("checks") or r.get("verdicts") or {})
-            ch = {k: v for k, v in raw.items() if v is not None}
+            # THE TWO WRITERS SPELL A COUNT DIFFERENTLY. agreement.py stores a
+            # `counts` answer as the STRING "3"; agreement_app.py stores the INT
+            # 3. is_satisfied calls .strip() on the verdict, so the int reached it
+            # and raised AttributeError -- for EVERY olx cell of every item with a
+            # counted family. Q1 was the case: sweep_summary("Q1") could not run
+            # at all, so the per-check table that prints on every recording had
+            # never once printed for it, and every slot-level readout of Q1's app
+            # half was silently python-only. Same class as the null-verdict trap
+            # above -- a difference in COVERAGE and FORMAT between the writers,
+            # never in judgement -- so it is normalised here rather than reasoned
+            # from.
+            ch = {k: (v if isinstance(v, str) else str(v))
+                  for k, v in raw.items() if v is not None}
             ans = {k: v for k, v in (r.get("answers")
                                      or r.get("refers_to") or {}).items()
                    if v is not None}
