@@ -1490,6 +1490,30 @@ half and the reason the sentence above is not "trust the gate":
 In all three the refusal still pointed at something real; it just was not what it
 said. That is why the rule is READ it, not obey it.
 
+**A GATE'S SILENCE IS NOT A CLEARANCE, which is the converse and the easier half
+to forget.** On 2026-09-04 two examples were written into the cadence rule that
+paraphrased the very two cells the rule targets — a numeral spelled out, a
+preposition swapped — and `leakage.py` passed them. They were removed on
+judgement, not on the gate's verdict, and then the matcher was measured to find
+out why it missed them. Four independent reasons, none of them a bug:
+
+* `_content` keeps only `[a-z']+`, so DIGITS are discarded entirely — a corpus
+  numeral and a spelled-out one can never align;
+* words of three characters or fewer are dropped, which reduced one target
+  response's whole phrase to TWO tokens and a single bigram;
+* `MIN_EXCLUSIVE` is 2, and the measured overlap was one bigram for one pair and
+  zero for the other;
+* only bigrams NO OTHER STUDENT used count, and this item family's vocabulary is
+  shared cohort-wide, so almost nothing on it can be exclusive to one student.
+
+The gate is built to catch near-verbatim borrowing of DISTINCTIVE prose, and it
+does. It cannot catch a paraphrase that keeps the structure and swaps the
+countable words, and it is weakest precisely where the cohort's answers use the
+same vocabulary — which is where a rule is most tempted to quote one. So when a
+rule's prose enumerates examples of the shape it is judging, check them against
+the responses by eye, and do not read a passing gate by itself as definitive proof
+that there is nothing there.
+
 **And a check is not finished until it has been seen to fail.** Two were written
 here that could not have caught anything:
 

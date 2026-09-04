@@ -6069,6 +6069,32 @@ def check_probe_reach_limits_still_apply() -> list[str]:
     return out
 
 
+def check_guide_lessons_are_approved() -> list[str]:
+    """A lesson goes into the guide only with the user's agreement.
+
+    THE GUIDE IS THE PROJECT'S STANDING INSTRUCTIONS. Adding to it is not the
+    same kind of act as recording a measurement or filing a subgoal: it changes
+    what everyone is told to do next time. Standing instruction, 2026-09-04, after
+    a lesson was added without asking: "Asking for permission before adding
+    lessons to the guide should be enforced, not rely on you to remember."
+
+    So it is state. `guide.unapproved_lessons` compares the working guide against
+    the COMMITTED one and requires every new lesson -- a bold-led paragraph or a
+    heading, which is the house style for a claim the reader is meant to act on --
+    to appear in `guide.LESSONS_APPROVED`, keyed by the sha of its prose. Editing
+    a lesson lapses its approval on purpose: the sha changes because the claim
+    changed, which is the rule leakage.py already applies to its waivers.
+
+    Reflowing a paragraph or correcting a figure inside one does not trip this;
+    only adding or rewriting a lesson's own claim does.
+    """
+    try:
+        import guide
+    except Exception as e:
+        return [f"guide.py will not import: {type(e).__name__}: {e}"]
+    return guide.unapproved_lessons()
+
+
 def check_guide_structure_is_sound() -> list[str]:
     """The quality-control guide's own structure, checked the way it asks code to be.
 
