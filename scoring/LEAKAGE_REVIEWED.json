@@ -14,6 +14,11 @@
   "note": "Operant vocabulary and the handout's own words, not students'. 'withheld' is the technical term for withholding a reinforcer; 'Remember that what you take away or add has to happen after the behaviour' quotes the HANDOUT's instruction to the student, so the shared words travel from us to them. 'advance' and 'ever' are ordinary English. Surfaced only because this block sits in eight prompts and each copy used to vouch for the others.",
   "verdict": "vocabulary"
  },
+ "0bf2307f13f7": {
+  "label": "Q3 credit.desc :: Names something the student will DO, or a concrete c",
+  "note": "access/equipment/plain all stood in this desc BEFORE this edit -- 'access to a PLACE or EQUIPMENT' and 'a plain statement of what they will physically perform' -- and are the instructor's rubric wording, as verdicts d5fb35244bc3 and 16afd3c3e4ef already recorded for this same block. The verdict lapsed only because editing the block changed its sha. The one word this edit DID borrow was 'tracked', from p19, the very cell the change targets; it was reworded to 'measured' -- the SMART letter's own name, which appears in the graders' own comments -- rather than reviewed away.",
+  "verdict": "vocabulary"
+ },
  "1644f5c45fc4": {
   "label": "1c credit.desc :: The x-axis is labelled \u2014 an AXIS TITLE, not the tick",
   "note": "'{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} and the Sunday/Monday tick values are the handout's own axis labels.",
