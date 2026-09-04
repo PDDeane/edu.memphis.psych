@@ -681,6 +681,8 @@ def enforcement_audit():
         findings.append(("-", "PROBE-REACH EXCUSE OUTLIVED ITS RULE", bad))
     for bad in ENF.check_computed_slot_recovery_is_faithful():
         findings.append(("-", "COMPUTED-SLOT RECOVERY UNFAITHFUL", bad))
+    for bad in ENF.check_scorer_neutrality_is_verified():
+        findings.append(("-", "SCORER-NEUTRALITY CLAIM IS FALSE", bad))
     for bad in ENF.check_fixture_boxes_hold_the_students_words():
         findings.append(("-", "FIXTURE BOX IS NOT THE STUDENT'S WORDS", bad))
     for bad in ENF.check_the_audit_read_the_corpus():
@@ -915,7 +917,7 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 62
+SELFTEST_EXPECTED = 63
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1720,6 +1722,19 @@ def enforcement_selftest():
                      {"code": "PROBE", "cells": [("NR", 4)], "why": "injected"}),
                  lambda: _HH.GOLD_DIVERGENCES.pop(),
                  want="CELL BOTH CORRECTED AND DECLARED")
+
+    # A SCORER-NEUTRALITY CLAIM THAT IS NOT TRUE, added 2026-09-04. The table
+    # suppresses STALE SCORER for a fingerprint pair; the injection declares a
+    # pair whose covered cells DO move, by pointing an entry at a sha no item is
+    # recorded at -- which is the spent-exemption arm and the one that rots
+    # silently.
+    _real_neutral = dict(_M.SCORER_NEUTRAL)
+    _scorer_case("a scorer-neutrality entry excuses nothing",
+                 lambda: _M.SCORER_NEUTRAL.__setitem__(
+                     ("deadbeefcafe", "f00dbaadf00d"), "injected"),
+                 lambda: (_M.SCORER_NEUTRAL.clear(),
+                          _M.SCORER_NEUTRAL.update(_real_neutral)),
+                 want="SCORER-NEUTRALITY CLAIM IS FALSE")
 
     # A GOAL CLOSED WITHOUT THE USER AGREEING, added 2026-09-04. GOALS.md states
     # that rule itself and nothing enforced it; it was broken once by closing a

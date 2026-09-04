@@ -4895,6 +4895,9 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.RAW_GOLD_READERS": (
         "modules that read gold uncorrected, on purpose",
         ("check_gold_accounting_is_uniform",)),
+    "measured.SCORER_NEUTRAL": (
+        "scorer changes verified not to move any recorded score",
+        ("check_scorer_neutrality_is_verified",)),
     "measured.SIDE_CONTRACT": (
         "which program and model each ledger side is allowed to be recorded from",
         ("check_side_contract_is_enforced",)),
@@ -5891,6 +5894,68 @@ def _assemble_like_the_app(idmap: dict, action: str, fixture: dict,
                     parts.append((fixture.get(tgt) or "").strip() or "(left blank)")
             return "".join(parts)
     return None
+
+
+def check_scorer_neutrality_is_verified() -> list[str]:
+    """Every SCORER_NEUTRAL entry must still reproduce the scores it excuses.
+
+    THE ENTRY IS A CLAIM, NOT A PERMISSION. `measured.SCORER_NEUTRAL` suppresses
+    STALE SCORER for a fingerprint pair on the grounds that the code change
+    between them cannot move a recorded number. That is checkable without
+    spending anything: the verdicts are on disk, so re-score every cell the entry
+    covers through today's scorer and require the score the artifact stored.
+
+    So the approval cannot rot in either direction. If the claim was wrong, this
+    says which cell moved. If the scorer later changes in a way that DOES move a
+    score, the fingerprints move with it, the pair stops matching, and the
+    staleness returns on its own -- the same reason `prompt_sha` is keyed the way
+    it is.
+
+    An entry naming a pair no item is recorded at is reported too: it excuses
+    nothing, and an exemption that protects nothing reads as coverage.
+    """
+    import measured as M
+
+    bad: list[str] = []
+    covered = 0
+    unreachable: list[str] = []
+    for (rec, now), why in sorted(M.SCORER_NEUTRAL.items()):
+        items = []
+        for side in M.POOLED_OLX_PROMPT:
+            try:
+                rows = M.records(side)
+            except Exception:
+                continue
+            for item, s in rows.items():
+                if s.get("scorer_sha") == rec:
+                    items.append((item, side))
+        if not items:
+            bad.append(
+                f"SCORER_NEUTRAL declares {rec} -> {now} ({why[:48]}...), but no "
+                f"recorded item sits at {rec}. The pair is spent -- drop it, or it "
+                f"reads as coverage of something")
+            continue
+        for item, side in items:
+            if M.scorer_sha(item) != now:
+                continue                      # a different pair's business
+            n, moved, why = M.rescore_recorded(item, side)
+            covered += n
+            if why:
+                # NOT COMPARABLE IS NOT DISAGREEMENT. 1b, T1 and T2 have no slot
+                # sheet -- they are scored deterministically from the fixture, so
+                # there are no model verdicts to re-score. Their neutrality is
+                # established by RE-RUNNING them, which costs nothing, and the
+                # entry says so.
+                unreachable.append(f"{item} [{side}]: {why}")
+                continue
+            for line in moved:
+                bad.append(
+                    f"SCORER_NEUTRAL claims {rec} -> {now} moves no score, but "
+                    f"{line}. The claim is false: either the change is not "
+                    f"neutral, or the recorded number predates something else")
+    check_scorer_neutrality_is_verified.cells = covered
+    check_scorer_neutrality_is_verified.unreachable = unreachable
+    return bad
 
 
 def check_computed_slot_recovery_is_faithful() -> list[str]:
