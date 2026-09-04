@@ -497,15 +497,64 @@ def rank() -> list[tuple[str, dict, str]]:
             st = state.get(cell)
             if lab in labs and st is not None and st[0] != st[1]:
                 titled += 1
+        gaps = _unmeasured_for(lab)
+        # COST IN SWEEPS, the unit that actually gets spent: an item measured on
+        # both sides is two. Reported rather than folded into a score, because a
+        # cost estimate is the part of a ranking most worth arguing with -- E28's
+        # own entry puts its real figure at ~3,100 calls, which one sweep of the
+        # whole corpus buys more cheaply than 24 separate ones.
+        # A WRONG CELL needs the item swept on BOTH sides; a GAP already names the
+        # one side it is missing, so counting it twice overstated E28 at 48 when
+        # the work is 24 item-sides -- and its own entry puts the real figure at
+        # ~3,100 calls, because one paper sweep covers every item at once.
+        n_items = len({c.split("/")[0] for c in det + unst}) * 2 + len(gaps)
         facts = {"deterministic": sorted(det), "unstable": sorted(unst),
                  "items": sorted(items), "titled": titled, "cited_by": cited[lab],
-                 "unmeasured": _unmeasured_for(lab)}
+                 "unmeasured": gaps, "sweeps": n_items * 2}
         rows.append((lab, facts))
 
-    rows.sort(key=lambda r: (-len(r[1]["unmeasured"]),
-                             -len(r[1]["deterministic"]), -r[1]["titled"],
-                             -r[1]["cited_by"], len(r[1]["items"]),
-                             -len(r[1]["unstable"]), r[0]))
+    # TIERS, because cost is not commensurable with evidence and pretending it is
+    # means inventing weights. A DETERMINISTIC miss on one or two items can be
+    # fixed or declared for a few hundred calls; a corpus-wide gap cannot be
+    # touched for less than thousands. So: cheap-and-deterministic first, then
+    # deterministic at any price, then the gaps, then cells that only wobble.
+    #
+    # THE FIRST VERSION PUT never-measured FIRST OUTRIGHT, which sent a ~3,100
+    # call job to the top of a list whose next four entries cost a few hundred
+    # each. Surfacing a gap and preferring it are different things.
+    CHEAP = 4                                # sweeps, i.e. two items on two sides
+
+    def _tier(f: dict) -> int:
+        if f["deterministic"] and f["sweeps"] <= CHEAP:
+            return 0
+        if f["deterministic"]:
+            return 1
+        if f["unmeasured"]:
+            return 2
+        if f["unstable"]:
+            return 3
+        # NOTHING ATTRIBUTED RANKS LAST, and it took a fix to get there: tier 3
+        # sorted on COST, so goals owning no cells at all (cost 0) came out above
+        # goals owning unstable ones. Cheap is only a virtue when something is
+        # being bought.
+        return 4
+
+    # WITHIN A DETERMINISTIC TIER, COST LEADS. Sorting on evidence first put a
+    # 28-sweep subgoal above an 8-sweep one on the strength of having more wrong
+    # cells, which is the opposite of "cheap deterministic wins above expensive
+    # calls": five cells settled for 28 sweeps is worse value than two settled
+    # for eight, and the cheap one also gets answered sooner. Evidence still
+    # breaks ties, and it still leads in the tiers where nothing is cheap.
+    def _key(r):
+        lab, f = r
+        tier = _tier(f)
+        if tier in (0, 1):
+            return (tier, f["sweeps"], -len(f["deterministic"]),
+                    -f["titled"], -f["cited_by"], lab)
+        return (tier, -len(f["unmeasured"]), -len(f["unstable"]),
+                f["sweeps"], -f["titled"], -f["cited_by"], lab)
+
+    rows.sort(key=_key)
     out = []
     for lab, f in rows:
         why = []
@@ -520,8 +569,8 @@ def rank() -> list[tuple[str, dict, str]]:
             why.append(f"{f['cited_by']} open goal(s) cite it")
         if f["unstable"]:
             why.append(f"{len(f['unstable'])} unstable ({', '.join(f['unstable'][:3])})")
-        if f["items"]:
-            why.append(f"{len(f['items'])} item(s) to sweep")
+        if f["sweeps"]:
+            why.append(f"~{f['sweeps']} sweep(s) to settle")
         out.append((lab, f, "; ".join(why) or "no wrong cell currently attributed"))
     return out
 
