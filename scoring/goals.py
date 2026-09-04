@@ -427,6 +427,58 @@ def rank() -> list[tuple[str, dict, str]]:
         top = max(counts.values())
         primary[cell] = tuple(l for l, c in counts.items() if c == top)
 
+    # NEVER MEASURED OUTRANKS EVERYTHING, because it is the one state where there
+    # is nothing to rank ON. An item with no number has no wrong cells, so it looks
+    # from the ledger exactly like an item with nothing owed -- which is how E28
+    # sat at the bottom of the first ranking while 24 of 26 items had no `paper`
+    # figure at all. A gap is not an absence of work; it is work nobody has
+    # started.
+    #
+    # SIDE-AWARE, via measured._sides_named, which the owner map already uses to
+    # decide which side a goal speaks about. A goal naming the paper side is asking
+    # about paper numbers; one that mentions olx in passing is not asking for a
+    # fresh sweep of the corpus. And a goal that names a side but NO item is
+    # corpus-wide by construction -- E28's deliverable IS the corpus -- while one
+    # that names items is scoped to them.
+    all_items = set(M._jobs())
+    ITEM_TOK = _re.compile(r"(?<![\w/])(" + "|".join(sorted(
+        (_re.escape(i) for i in all_items), key=len, reverse=True)) + r")(?![\w/])")
+
+    def _measured_on(item: str, side: str) -> bool:
+        try:
+            if side == "olx+python":
+                return any(item in M.records(s) for s in M.POOLED_OLX_PROMPT)
+            return item in M.records(side)
+        except Exception:
+            return True                       # unknown is not a gap
+
+    def _unmeasured_for(lab: str) -> list[str]:
+        # THE SIDE COMES FROM THE TITLE, not the body. Reading the body put
+        # `[paper]` gaps on Q17, Q19, Q20 and Q36, none of which is asking for a
+        # paper sweep -- they mention the word once in passing. A goal whose
+        # SUBJECT is a side says so where it says what it is about: E28 is "A
+        # PAPER sweep the ledger can record", Q33 is "Q4a on the PAPER scorer".
+        body = bounds.get(lab) or []
+        title = body[0] if body else ""
+        sides = M._sides_named(title)
+        if not sides:
+            return []                        # not a side-scoped goal; nothing owed
+        # SCOPE FROM THE TITLE TOO, for the same reason as the side. Scoping from
+        # the BODY undercounted E28 at 7 gaps instead of 24: its deliverable is
+        # the whole corpus and its title names no item, but its prose mentions a
+        # handful, so the scope collapsed onto those. A title that names items is
+        # scoped to them (Q33 is "Q4a on the PAPER scorer" and Q4a HAS a paper
+        # number, so it owes nothing there); a title that names none, while naming
+        # a side, is corpus-wide.
+        named = ((set(ITEM_TOK.findall(title)) | {
+            c.split("/")[0] for c in primary if lab in primary[c]}) & all_items)
+        # `& all_items` on BOTH halves: the cell-derived set was not filtered, so
+        # prose like "p10/p18" produced an "item" called p10, which is measured
+        # nowhere and therefore counted as a gap.
+        scope = sorted(named) if named else sorted(all_items)
+        return [f"{i}[{s}]" for s in sorted(sides) for i in scope
+                if not _measured_on(i, s)]
+
     rows = []
     for lab in open_labels:
         det, unst, items, titled = [], [], set(), 0
@@ -446,15 +498,20 @@ def rank() -> list[tuple[str, dict, str]]:
             if lab in labs and st is not None and st[0] != st[1]:
                 titled += 1
         facts = {"deterministic": sorted(det), "unstable": sorted(unst),
-                 "items": sorted(items), "titled": titled, "cited_by": cited[lab]}
+                 "items": sorted(items), "titled": titled, "cited_by": cited[lab],
+                 "unmeasured": _unmeasured_for(lab)}
         rows.append((lab, facts))
 
-    rows.sort(key=lambda r: (-len(r[1]["deterministic"]), -r[1]["titled"],
+    rows.sort(key=lambda r: (-len(r[1]["unmeasured"]),
+                             -len(r[1]["deterministic"]), -r[1]["titled"],
                              -r[1]["cited_by"], len(r[1]["items"]),
                              -len(r[1]["unstable"]), r[0]))
     out = []
     for lab, f in rows:
         why = []
+        if f["unmeasured"]:
+            why.append(f"{len(f['unmeasured'])} NEVER MEASURED "
+                       f"({', '.join(f['unmeasured'][:3])})")
         if f["deterministic"]:
             why.append(f"{len(f['deterministic'])} deterministic ({', '.join(f['deterministic'][:3])})")
         if f["titled"]:
