@@ -288,6 +288,12 @@ if __name__ == "__main__":
 # to the guide should be enforced, not rely on you to remember." So it is state,
 # not a habit. To approve a lesson, paste the sha the finding prints.
 LESSONS_APPROVED: dict[str, str] = {
+    # Keyed on the LEAD PARAGRAPH, which is what _lesson_leads hashes: the lead
+    # carries the claim, so editing it lapses the approval while re-wrapping the
+    # supporting paragraphs does not.
+    "e7b934bfa4f1": "name the cell and the slot, not the count — approved "
+                    "2026-09-04, after fourteen slot figures in open goals were "
+                    "left standing by one instrument fix",
     "dc4dba1edfb5": "a gate's silence is not a clearance — approved 2026-09-04, "
                     "with the closing clause reworded to 'not ... by itself as "
                     "definitive proof' at the user's direction",
