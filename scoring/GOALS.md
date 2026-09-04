@@ -5102,6 +5102,38 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       11 of them wrong, and every one costs a full 4-point item because the check
       gates. That is the largest single pool of error in handout 2.
 
+      == THE REVERT IS MEASURED, 2026-09-04, BOTH SIDES: IT BOUGHT BACK p9 AND
+      == DID NOT BUY p8 ==
+      The 2026-09-03 sweep of the rewritten cadence rule met four of five targets
+      and did two things at once on DAY2: it left p8 wrong and it BROKE p9, which
+      had been right. Both landed at 7 of 12, one run either side of the median.
+      The count/window clause was reverted to the original schedule test and DAY2
+      re-swept on both sides. Recorded:
+          DAY2 python  15/18   runs [16,16,15,15,15,15]
+          DAY2 olx     16/18   runs [16,17,15,16,17,14]
+      AND THE CELL-LEVEL READ IS THE POINT, because the item totals moved by one
+      and would support either story:
+          DAY2/p9   7 of 12  ->  8 of 12   RECOVERED, counted right again
+          DAY2/p8   7 of 12  ->  5 of 12   still wrong, and further from the line
+      So the revert did what it was for -- p9 was collateral and is back -- and p8
+      was never touched by it. p8 remains this subgoal's live target and is now
+      the ONLY cadence cell in the family that is wrong for a cadence reason.
+      DO NOT READ p8's MOVE AS A REGRESSION. It sat at 7 of 12 before and 5 of 12
+      now, and subgoal E41 banded it `on_the_line` at the time: a cell one run from
+      changing its own verdict cannot be moved two runs by a change that does not
+      mention it. The honest reading is that p8 is unstable around a wrong answer,
+      not that the revert cost it anything.
+      WHAT DAY2 STILL CARRIES, from the same recording, so the next reader does
+      not re-derive it: p7 is 0 of 12 and always wrong -- it is subgoal Q20's
+      over-credit class, not a cadence cell -- while p11, p12 and p13 are all at
+      10 of 12, counted right and unstable. Nothing there is a cadence defect.
+      DAY1, WK1 AND WK2 ARE STILL ON THE OLD MEASUREMENT. The revert moved the
+      prompt for all four items and only DAY2 was re-swept, so those three carry
+      STALE PROMPT flags on both sides and their figures in this entry predate the
+      rule they are now scored by. They are being re-swept together with subgoal
+      Q26's DAY1 rename, which moves DAY1's prompt again -- one measurement rather
+      than two.
+
 - [ ] Q21. **NR: a 4-point GATE running at 71% precision.**
       POOLED, 2026-09-01, AND THE HEADLINE NUMBER SURVIVES. `you_arrange_it` is
       refused 66 times across the twelve pooled runs with 18 of those in cells
@@ -7121,6 +7153,54 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       enforcement.py, 3 in olx_prompts.py, and one each in canonicalise_verdicts,
       equivalence and score.py. GOLD_SLOT_CHARGES and PROSE_ONLY_SLOTS name it
       nowhere, so nothing has to be re-keyed.
+
+      == DONE 2026-09-04. SIX EDITS, AND THE RIPPLE ESTIMATE ABOVE WAS WRONG
+      == TWICE -- IN BOTH DIRECTIONS ==
+      WRONG THE EXPENSIVE WAY: the slot is NOT in the generated OLX. The `slots="..."`
+      attribute is HAND-AUTHORED and `olx_prompts.py --write` only PRESERVES it --
+      `_slots_attr()` reads it back out of the file with a regex. So "16 in the
+      generated OLX (rewritten by --write)" was the one part that --write could
+      not do, and the authored attribute in psychology/bmod_handout2.olx had to be
+      edited directly.
+      WRONG THE CHEAP WAY: `enforcement.ALIAS` IS a load-bearing table -- it is
+      how one CLI input finds its web slot -- but it already supported this by
+      design. Its single functional consumer `web_name()` takes a TUPLE of
+      candidates and the item's OWN web_keys, so `("phrased_directly_gate",
+      "phrased_directly")` resolves per item with no item id anywhere: verified
+      DAY1 -> phrased_directly_gate, WK1 and DAY2 -> phrased_directly. That is the
+      mechanism `observed_type` already used, and the alias stays AUTHORITATIVE,
+      so a future removal of either name is reported rather than silently matched.
+      AND THE RENAME FOUND A LIVE SELF-CONTRADICTION IN DAY1's SHIPPED PROMPT,
+      which is the strongest argument for renaming over declaring that this
+      subgoal could have produced. SLOT_NOTES is keyed by SLOT NAME, so DAY1's
+      checklist rendered the heading "`phrased_directly` **GATE**" and then the
+      siblings' note under it -- "Never changes a verdict; it earns a comment on
+      phrasing". A gate whose own prompt says it never changes a verdict. That is
+      the SAME defect rubric_h2.AVOIDANCE_SCORES was declared to fix, whose
+      comment records "the web prompt carried both sentences and contradicted
+      itself" -- but that override was written for `consequence_asserted` only,
+      so criterion 7's own note went on contradicting itself for another eleven
+      days. A shared name made a per-item note impossible; two names make it
+      automatic.
+      THE SIX EDITS: DAY1's authored slot in the OLX; ALIAS to a tuple; a
+      `phrased_directly_gate` entry in SLOT_NOTES saying it costs the whole item;
+      the SLOT_STRUCTURE_DIVERGENCES entry DELETED; SLOT_STRUCTURE_BUDGET 1 -> 0
+      with a note that a new entry now means someone chose an exemption over a
+      name; and score.py's comment kept true.
+      NOT TOUCHED, and each for a reason: rubric_h2.AVOIDANCE_SCORES stays -- it
+      is the declaration that the costing is intended, read by BOTH scorers, and
+      the rename does not replace it. canonicalise_verdicts.py stays -- it is the
+      one-time migration that PERFORMED the avoidance_frame -> phrased_directly
+      rename and is not consulted at scoring time. The CLI input keeps the name
+      `avoidance_frame`: there is still one input, and one input with two web
+      names is what ALIAS is for.
+      VERIFIED: SLOT_STRUCTURE_DIVERGENCES is now empty with budget 0,
+      `check_sibling_slots_share_their_structure` is clean with NO exemptions,
+      `olx_prompts.py --check` reports the .olx matches the generator, --refs
+      reports no dropped or duplicated ids, and enforcement.py exits 0.
+      DAY1's PROMPT SHA HAS MOVED, as this entry predicted, and DAY1 is being
+      re-swept on both sides together with WK1 and WK2 -- which were already owed
+      a re-sweep for subgoal Q22's revert. One measurement, not two.
 
 
 ## THEN
