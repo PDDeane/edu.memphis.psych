@@ -6069,6 +6069,34 @@ def check_probe_reach_limits_still_apply() -> list[str]:
     return out
 
 
+def check_guide_structure_is_sound() -> list[str]:
+    """The quality-control guide's own structure, checked the way it asks code to be.
+
+    THE GUIDE IS AN INSTRUCTION MANUAL THAT OTHER FILES CITE BY SECTION, so a
+    duplicated or renamed label breaks a reference the same way a renamed function
+    does -- silently, and only for the reader who follows it. On 2026-09-03 six
+    sections were inserted with hand-typed labels, three collided with labels that
+    already existed, and section 2 ran 2b1, 2b3, 2c, 2d, 2e, 2f, 2a, 2b, 2b2, 2c,
+    2d, 2e. It was found by eye, two commits after the guide gained the line "what
+    is COMPUTED is likelier to be right than what is WRITTEN".
+
+    Delegates to guide.check(), which settles five things without model calls:
+    duplicate labels, subsection ORDER against document order, every §-citation in
+    the tree resolving, every backticked identifier still existing in the tree,
+    and emphasis balance per PARAGRAPH (per LINE reported 140 issues in a
+    hard-wrapped document and every one was the checker's).
+
+    `python3 guide.py --renumber --write` is the repair: it derives labels from
+    document order and rewrites every citation to match, so inserting a section
+    no longer requires anyone to know what the labels currently are.
+    """
+    try:
+        import guide
+    except Exception as e:
+        return [f"guide.py will not import: {type(e).__name__}: {e}"]
+    return guide.check()
+
+
 def check_gold_comparisons_share_an_alphabet() -> list[str]:
     """No function may diff OUR slot set against GOLD'S without a vocabulary guard.
 
