@@ -60,6 +60,11 @@ CITE = re.compile(r"\b(?:sub)?goal ([A-Z]+)(\d+)\b")
 # and a refiled number is cited in commits and in the new entry's own history
 # note, so reissuing it would make two different subgoals answer to one name.
 REFILED: dict[str, tuple[str, str]] = {
+    "Q39": ("E41", "the second misfiling of 2026-09-04, and the `--next` reminder "
+                   "had already printed the test. Its FINDING is 63 unstable "
+                   "cells inside the numerator; its DELIVERABLE is a derived "
+                   "instability band, which is audit machinery like E37's "
+                   "wrong-cell accounting and E40's owner map."),
     "Q38": ("E40", "filed in the wrong series on 2026-09-04 and moved the same "
                    "day. The deliverable decides the series, not the finding "
                    "(subgoal E25 states the test): this one's deliverable is a "
