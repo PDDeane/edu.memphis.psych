@@ -1334,6 +1334,18 @@ SLOT_NOTES = {
     # own — the DO NOT ANSWER block generated for the rule says what it means and
     # names the expected type out loud. Left here as a marker so the next person
     # does not re-add a note for a check the model never sees.
+    # DAY1's GATED variant. Same judgement, opposite consequence, so it cannot
+    # share the note below: that one closes with "never changes a verdict", which
+    # was rendered under a "**GATE**" heading on DAY1 until the slot was renamed
+    # on 2026-09-04. rubric_h2.AVOIDANCE_SCORES declares the costing and stays;
+    # this is the prose that had to agree with it.
+    "phrased_directly_gate": "criterion 7 (the CLI calls this input `avoidance_frame`) — "
+                        "`absent` when the contingency is phrased by what is AVOIDED, `met` "
+                        "when it is phrased directly. ON THIS ITEM IT COSTS THE WHOLE ITEM: "
+                        "the guidance for this screen says avoidance framing takes the item "
+                        "and the graders scored those zero, so unlike its siblings this check "
+                        "is not advisory. It is the ONLY check that judges this phrasing: no "
+                        "other check may fail an answer for it",
     "phrased_directly": "criterion 7 (the CLI calls this input `avoidance_frame`) — `absent` "
                         "when the contingency is phrased by what is AVOIDED, `met` when it is "
                         "phrased directly. Never changes a verdict; it earns a comment on "
