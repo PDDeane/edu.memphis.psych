@@ -1076,8 +1076,18 @@ Four rules that block the three mistakes above:
    progression is 15 → 18.8 mean, not 15 → 20.
 
 Per-check accuracy is claimed only where gold determines it — gold awarded the
-maximum, so every scored slot must be met, or its comment itemises. Cells where
-gold charged and named nothing are printed **INDETERMINATE**, never guessed.
+maximum, so every check must be met, or its comment itemises. Cells where gold
+charged and named nothing are printed **INDETERMINATE**, never guessed.
+
+**GATES are in the table, and their accuracy rests on a SMALLER sample than the
+point-bearing slots' — say so when quoting it.** A gate carries no points and no
+grader phrase can name one (2i), so on a partial-credit cell there is nothing to
+compare it against and it is left out rather than defaulted to expected-to-pass.
+On a FULL-MARKS cell the expectation is determinate for any kind of check —
+full marks implies every one of them passed — so that is where a gate's accuracy
+is measured, and that is also where a gate false-positive costs a whole item. A
+gate reading 125/132 is therefore 132 observations drawn from fewer cells than
+the same figure on a scored slot.
 
 ## 2c. READ WHAT IS ALREADY RECORDED BEFORE FORMING A HYPOTHESIS
 
@@ -1439,8 +1449,14 @@ loses a cell nobody predicted cannot be told apart from a sweep that went wrong.
 
 ## 2k. A GATE'S REFUSAL IS INFORMATION, AND A NEW CHECK MUST BE SHOWN TO FIRE
 
-**When a gate refuses, read it before working around it.** Every refusal in this
-project's history has been correct, and several were more informative than the
+**When a gate refuses, read it before working around it.** Not because refusals
+are always right -- this guide records several that were not, and two paragraphs
+below are checks whose early versions produced 13 and 72 false findings -- but
+because a refusal is information either way. Either the work is wrong, or the
+CHECK is, and both are worth knowing before the refusal is stepped over. What
+must never happen is working around one without establishing which.
+
+Refusals that turned out to be right, several of them more informative than the
 work they interrupted:
 
 * **leakage.py refused a rule's prose** because it borrowed two words from the
@@ -1456,6 +1472,23 @@ work they interrupted:
   than refreshed from disk.
 * **`CHECK NEVER RUNS`** reported a verifier that was registered but never
   invoked — "it reads as coverage and enforces nothing".
+
+**And refusals that turned out to be the CHECK being wrong**, which is the other
+half and the reason the sentence above is not "trust the gate":
+
+* the slot-set audit reported `1a/p15` as disagreeing with gold on a GATE that
+  gold's phrase table cannot name -- a difference guaranteed before the cell was
+  read (see 2i). Declaring it would have recorded an artefact of our own reader
+  as a disagreement with a grader.
+* `refusal_precision` scored that same slot 11 refusals, 11 CONTRADICTED, 0
+  corroborated -- the worst instrument on the item, on a check that agrees with
+  gold every time it fires.
+* a new check's first and only finding was its own line-based parsing mistaking a
+  nested `def` for a top-level one. A check whose one alarm is an artefact trains
+  the reader to dismiss it.
+
+In all three the refusal still pointed at something real; it just was not what it
+said. That is why the rule is READ it, not obey it.
 
 **And a check is not finished until it has been seen to fail.** Two were written
 here that could not have caught anything:
