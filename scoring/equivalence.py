@@ -1925,7 +1925,18 @@ def enforcement_selftest():
     total = built + len(skips)
     print(f"  {detected} detected, {bad} failed, {len(skips)} skipped, "
           f"{total} of {SELFTEST_EXPECTED} expected.")
+    # STAMP THE PASS. measured.selftest_owed reads this file's mtime against
+    # enforcement.py and equivalence.py, so a change to the checks that has not
+    # been re-tested shows up in `measured.py --preflight` instead of relying on
+    # anyone remembering. Written only on a CLEAN, COMPLETE run: a suite that
+    # lost a case or failed one has not established anything to stamp.
     short = total != SELFTEST_EXPECTED
+    if not bad and not short:
+        try:
+            (_pl.Path(__file__).resolve().parent / ".selftest-passed").write_text(
+                f"{detected} detected, 0 failed, {total} of {SELFTEST_EXPECTED}\n")
+        except OSError:
+            pass
     if short:
         verb = "LOST" if total < SELFTEST_EXPECTED else "GAINED"
         print(f"\n  *** THE SUITE {verb} {abs(total - SELFTEST_EXPECTED)} CASE(S): "
