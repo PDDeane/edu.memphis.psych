@@ -502,62 +502,42 @@ def rank() -> list[tuple[str, dict, str]]:
         if cur:
             bounds[cur].append(line)
 
-    # A CELL WRITTEN AS BARE `pN` STILL BELONGS TO THE ENTRY THAT NAMES ITS ITEM.
-    # Matching only `item/pN` lost the cells that subgoals actually own: Q14's
-    # title is "Q1's two live misses: p10 and p18" and Q18's body says `p12` under
-    # a title naming Q4b, so Q1/p10 was attributed to Q20 (three passing mentions)
-    # and Q4b/p12 to Q19 and Q26, while the two subgoals whose whole subject those
-    # cells are came out owning NOTHING and sorted to the bottom tier -- which
-    # reads as "closable". Seven open entries are affected this way.
+    # OWNERSHIP COMES FROM THE SHARED MAP, not from a second copy of the rule.
+    # This function carried its own bare-`pN` resolution while subgoal E40 was
+    # open, because the ranking was the thing visibly wrong and the shared map is
+    # read by several checks. E40 landed the resolution there -- with the entry
+    # boundary and the `subject` map -- so the copy is deleted. Two
+    # implementations of one rule is the divergence class this project exists to
+    # close, and E40's own entry required this deletion.
     #
-    # Resolved against the TITLE's item only. A body names many items, so
-    # resolving there would attach every bare `pN` to all of them.
-    BARE = _re.compile(r"(?<![\w/])p(\d+)\b")
-
-    mentions: dict[str, dict[str, int]] = {}
-    titled_by: dict[str, set] = {}
-    for lab, body in bounds.items():
-        if lab not in open_labels:
-            continue
-        title = body[0] if body else ""
-        # THE TITLE'S ITEM, from a bare name OR from a full cell reference in it.
-        # ITEM_TOK excludes an item followed by `/`, on purpose, so that the `Q1`
-        # of `Q1/p10` is not read as a bare item mention -- which means a title
-        # written "Q1/p10: ..." yields NO item and its bare `pN` references stop
-        # resolving. That happened the moment Q14 was retitled to name its cell
-        # properly: p14 silently left the entry. A title that names a cell names
-        # its item too.
-        t_items = ((set(ITEM_TOK.findall(title))
-                    | {it for it, _pid in CELL.findall(title)}) & all_items)
-        for line in body:
-            for it, pid in CELL.findall(line):
-                cell = f"{it}/p{pid}"
-                mentions.setdefault(cell, {})
-                mentions[cell][lab] = mentions[cell].get(lab, 0) + 1
-        # bare pN, resolved through the title's item(s)
-        joined = "\n".join(body)
-        for pid in set(BARE.findall(joined)):
-            for it in t_items:
-                cell = f"{it}/p{pid}"
-                mentions.setdefault(cell, {})
-                mentions[cell].setdefault(lab, 0)
-                titled_by.setdefault(cell, set()).add(lab)
-        # a cell named in full IN THE TITLE is owned by title too
-        for it, pid in CELL.findall(title):
-            titled_by.setdefault(f"{it}/p{pid}", set()).add(lab)
-
-    # TITLE OWNERSHIP WINS OUTRIGHT. Ownership stated in a title is not the same
-    # kind of claim as a mention in a paragraph, and letting them compete on count
-    # meant a corpus-wide subgoal citing a cell three times outranked the subgoal
-    # the cell is about.
+    # `subject` means the entry's TITLE names the item and the cell appears in
+    # the entry: it is about the cell. `any` is every mention and is generous on
+    # purpose, so it decides only when nothing claims the cell as its subject.
+    owned = M._live_subgoal_owners()
     primary: dict[str, tuple] = {}
-    for cell, counts in mentions.items():
-        owners_by_title = titled_by.get(cell, set()) & set(counts)
-        if owners_by_title:
-            primary[cell] = tuple(sorted(owners_by_title))
+    for cell, labs in owned["any"].items():
+        # AND OWNERSHIP MUST BE FOR THE SIDE THE FIGURES COME FROM. The cells
+        # counted wrong here are the POOLED OLX-PROMPT ones, so a subgoal about
+        # the paper scorer is not a home for them -- which is the whole reason
+        # the shared map carries `by_side`. Without this, Q33 ("Q4a on the PAPER
+        # scorer") claimed Q4a/p14 and Q4a/p19 the moment bare-`pN` resolution
+        # landed, and rose to second place on cells that are wrong on a side it
+        # is not about.
+        for_side = {l for s in ("olx+python",)
+                    for l in (owned["by_side"].get(cell, {}).get(s) or [])}
+        subj = [l for l in dict.fromkeys(owned["subject"].get(cell, []))
+                if l in open_labels and l in for_side]
+        if subj:
+            primary[cell] = tuple(sorted(subj))
+            continue
+        counts: dict[str, int] = {}
+        for l in labs:
+            if l in open_labels:
+                counts[l] = counts.get(l, 0) + 1
+        if not counts:
             continue
         top = max(counts.values())
-        primary[cell] = tuple(l for l, c in counts.items() if c == top)
+        primary[cell] = tuple(sorted(l for l, c in counts.items() if c == top))
 
     # NEVER MEASURED OUTRANKS EVERYTHING, because it is the one state where there
     # is nothing to rank ON. An item with no number has no wrong cells, so it looks
