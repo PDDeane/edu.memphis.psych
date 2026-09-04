@@ -6755,6 +6755,44 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       to three runs between them. Subgoal Q14 should take the clause knowing it is
       net positive rather than free.
 
+      == A BY-SLOT READING OF THIS SWEEP WAS PRODUCED AND WAS WRONG. CORRECTED ==
+      Recorded because the ERROR is more reusable than the result, and because the
+      first version would have sent the next attempt at the wrong slot.
+      THE FIRST ATTRIBUTION blamed, for each wrong cell-run, EVERY charge present
+      on it. That produced "`reasons_failing` = 1 is the item's real defect: it
+      fires 28 times and is wrong in 15, worse than a coin flip, and is the
+      proximate cause of 15 of the 17 wrong runs".
+      IT IS NOT, and p18 is why. p18 charges `reasons_given` = 2 on all twelve
+      runs, and GOLD CHARGES THE SAME: its comment is "-1 pt: missing a third
+      reason", so gold's own count is 2. That -1 is a charge gold makes too, and it
+      appears on p18's SEVEN WRONG RUNS only because the cell is wrong for another
+      reason entirely. Counting it as a cause inflated the count slot by seven.
+      THIS IS THE CO-OCCURRENCE TRAP SUBGOAL Q22 ALREADY WROTE DOWN -- "it counts a
+      slot as imprecise whenever it fires on a wrong cell, INCLUDING cells that
+      were wrong anyway" -- walked into on the same day that sentence was quoted.
+      Reading it is not the same as applying it.
+      THE METHOD THAT WORKS is a WITHIN-CELL contrast: for each cell, compare the
+      verdicts on its RIGHT runs against those on its WRONG runs, and blame only
+      what DIFFERS. A verdict identical across both cannot be the cause, whatever
+      it charges. It needs no gold arithmetic and no assumption about which charge
+      gold intended.
+      THE CORRECTED ATTRIBUTION, 17 wrong cell-runs of 240:
+           9  the reasons count      p6 x4, p16 x3, p11 x1, p14 x1
+           8  `wgb_inverts_utb`      p18 x7, p17 x1
+      -- `reasons_failing` and `reasons_given` co-vary by definition, so they are
+      ONE judgement and not two. `reasons_failing` = 1 is right on p18's seven, so
+      its real precision is about 20 of 28 rather than the 13 of 28 first reported.
+      SO THE ITEM HAS TWO NEAR-EVEN ERROR SOURCES, not one dominant one, and the
+      next attempt on Q2 cannot be aimed from the first table. The direction is
+      still one-sided -- 15 UNDER against 2 OVER -- so section 2b's "a threshold is
+      set wrong rather than a judgement being unstable" still holds; it now applies
+      to BOTH slots rather than singling out the count.
+      AND THIS ENTRY'S p18 CLAIM STANDS UNCHANGED. "The count is already right on
+      12 of 12; inverts is the whole defect" was checked against the new artifacts
+      when the correction above was proposed, and it is still exactly true: p18
+      reads `given` = 2 on all twelve runs and only `wgb_inverts_utb` varies,
+      `absent` on the seven wrong and `met` on the five right.
+
       Three of this subgoal's cells were being read as merely unstable and are in
       fact RECORDED WRONG -- counted wrong by the per-cell median, not wobbling
       around it. With Q2/p16 claimed below that is four, on an item the ledger
