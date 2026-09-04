@@ -2200,6 +2200,15 @@ def preflight() -> dict[str, list[str]]:
             _staleness_lines(),
         "5. record — prose that disagrees with the ledger":
             prose_claims(),
+        # STEP 5b. The same question one level down. `prose_claims` compares an
+        # ITEM figure against the ledger; this compares a SLOT figure against the
+        # INSTRUMENT that produced it, which nothing did until 2026-09-04 -- the
+        # knowledge that a figure came from a blind profile lived as narrative in
+        # one subgoal entry, and would have died when that entry closed. It is
+        # STALENESS, not contradiction, which is why it reports here beside step 4
+        # rather than blocking a commit through the audit.
+        "5b. record — slot figures older than the profile that computed them":
+            _stale_slot_claims(),
         "6. leakage — rule blocks echoing the cohort, with no verdict filed":
             _leakage_pending(),
         "7. probes — items whose recorded prompt has unprobed moved cells":
@@ -2294,6 +2303,15 @@ def selftest_owed() -> list[str]:
             f"last passed. Run `python3 equivalence.py --enforcement --selftest` "
             f"(it refuses while a sweep is in flight — that is the reason it gets "
             f"forgotten, not a reason to skip it)"]
+
+
+def _stale_slot_claims() -> list[str]:
+    """Delegates to goals.stale_slot_claims; never blocks preflight on its own."""
+    try:
+        import goals
+        return goals.stale_slot_claims()
+    except Exception as e:
+        return [f"slot-claim dating unavailable: {type(e).__name__}: {e}"]
 
 
 def _unprobed_movers() -> list[str]:
