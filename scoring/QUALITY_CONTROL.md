@@ -1302,6 +1302,25 @@ Reading them narrowed the target and produced the discriminator the rule was
 eventually written on. A precision figure computed over the unfiltered list was
 measuring the blanks.
 
+**NAME THE CELL AND THE SLOT, NOT THE COUNT.** A subgoal entry that says "we
+fail `you_arrange_it` on p11" cannot go stale. One that says "34 refusals, 71%
+precision" always can, because it is a claim about what a program computed and
+the program changes. Fourteen such figures in this project were left standing by
+a single instrument fix, and the only record of why they were suspect was a
+paragraph inside one subgoal -- which would have died when that subgoal closed.
+
+So quote a count only where the count IS the finding, and where you do, expect to
+re-derive it. The readouts exist for that: `measured.py --errors ITEM ARTIFACT`
+and `--refusals ITEM` regenerate per-slot figures from the artifacts on disk, at
+no call cost. `goals.stale_slot_claims` (preflight step 5b) dates every slot
+figure in an OPEN goal against the last change to the profile that produced it,
+and a line meant as an era record is marked historical in the same vocabulary
+`prose_claims` uses.
+
+This is the same rule as §2j one level down, and the same reason: put the load on
+what a program derives, because a figure typed into a sentence has nothing
+checking it.
+
 **And read gold's CHARGE, not gold's ADVICE.** A grader comment often docks for
 one thing and then tells the student what a right answer would look like. Every
 feature named in that second half is instruction, not a charge. Reading
