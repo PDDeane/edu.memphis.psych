@@ -1736,6 +1736,16 @@ def enforcement_selftest():
                           _M.SCORER_NEUTRAL.update(_real_neutral)),
                  want="SCORER-NEUTRALITY CLAIM IS FALSE")
 
+    # BOUND HERE, ABOVE ITS FIRST USE. This import sat ~50 lines BELOW the three
+    # cases that use it, which made `_pl2` a local for the whole function and
+    # raised UnboundLocalError on the first of them. So the three cases added on
+    # 2026-09-04 -- goal closed without approval, lesson added without approval,
+    # guide structure -- had NEVER ONCE EXECUTED, and because the raise aborts the
+    # suite they also took every case after them down. Found only by running the
+    # suite; `--enforcement` alone never reaches this function. A case that has
+    # not been fired is not a case.
+    import pathlib as _pl2
+
     # A GOAL CLOSED WITHOUT THE USER AGREEING, added 2026-09-04. GOALS.md states
     # that rule itself and nothing enforced it; it was broken once by closing a
     # subgoal inside a recording step. The injection flips one open checkbox.
@@ -1791,7 +1801,6 @@ def enforcement_selftest():
     # have surfaced any of them, which is why the rule is static.
     _real_alpha = dict(ENF.GOLD_ALPHABET_EXEMPT)
     import pathlib as _pl
-    import pathlib as _pl2
     _mp = _pl.Path(__file__).resolve().parent / "measured.py"
     _orig_src = _mp.read_text()
 
