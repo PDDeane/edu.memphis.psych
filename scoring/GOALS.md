@@ -3795,26 +3795,29 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       cell scores 3.0 in one run and 0.0 in the other five. An unstable judgement
       on a gate is the worst combination available -- Q21 and Q22 record the same
       shape on NR's and DAY2's gates, and this is a third instance.
-      THREE CADENCE CELLS PROPOSED FOR REASSIGNMENT HERE 2026-09-03, from Q22's
-      cell-by-cell re-read, on the grounds that this subgoal's shape is not
-      Q2-specific and they are the same thing: gold prices a judgement at a
-      PARTIAL charge and one of our GATES zeroes the item on top of a deduction
-      we already made correctly.
-          WK2/p11   gold 2.00 "-2 pts: This is an example of NP."   cadence gate
-          WK2/p15   gold 2.00 "-2 pts: This is an example of NP."   cadence gate
-          DAY2/p11  gold 2.00 "-2 pts: This is an example of PP."   cadence gate
-      On each, `matches_chosen_type` (pts=2.0, NOT a gate) already charges gold's
-      2 correctly; the cadence gate then takes the remaining 2 as well. NR/p11 in
-      subgoal Q21 is a fourth instance, and Q2/p10 below is the fifth. That is
-      five cells across three items and three different gates, which makes this a
-      WIRING question about gates versus partial charges rather than a fact about
-      `wgb_is_counterpart` -- and it should be retitled if these are accepted.
-      NOTE what it does NOT cover: the same three cells also over-credit when
-      `matches_chosen_type` wrongly passes (6 of 12 on WK2/p15, 8 of 12 on
-      DAY2/p11). That half is Q20's and is already listed there. A cell can be in
-      two subgoals for two defects; it must not be in one for both.
+      THREE CADENCE CELLS WERE PROPOSED FOR THIS SUBGOAL 2026-09-03 AND THE
+      PROPOSAL WAS WITHDRAWN THE SAME DAY. WK2/p11, WK2/p15 and DAY2/p11 all show
+      this shape -- gold prices a judgement at a PARTIAL charge, a point-bearing
+      slot makes that charge correctly, and a GATE zeroes the item on top -- but
+      the cadence gate should not be firing on any of them at all under the
+      directional rule Q22 then derived, so they are false positives of that rule
+      rather than instances of this wiring. They stay in Q22.
+      WHAT SURVIVES IS THE COUNTERFACTUAL, and it is worth recording because it
+      is measured rather than argued. On every cell of this shape, removing the
+      gate lands exactly on gold:
+          Q2/p10    gate fires -> 0.00   does not fire -> 3.00   gold 3.00
+          NR/p11    gate fires -> 0.00   does not fire -> 2.00   gold 2.00
+      NR/p11 (subgoal Q21, `you_arrange_it`) is therefore a SECOND INSTANCE on a
+      different item with a different gate, and the pattern is two cells rather
+      than the five briefly claimed. Two is enough to say the question is not
+      `wgb_is_counterpart`-specific; it is not enough to retitle this subgoal
+      around it. Look for more before broadening.
+      AND THE FIX IS NOT "REMOVE THE GATE", which Q21 already measured: PR and PP
+      are perfect items that depend on `you_arrange_it` firing 18 times each
+      without a single error. The question is narrower -- whether a gate should
+      zero a cell on which a point-bearing slot has ALREADY made gold's charge.
 
-      RE-READ GATE-AWARE 2026-09-03 (subgoal Q37). The shape holds and two
+      RE-READ GATE-AWARE 2026-09-03 (subgoal Q37). The shape holds and two      RE-READ GATE-AWARE 2026-09-03 (subgoal Q37). The shape holds and two
       numbers change:
         The gate is absent in 10 of 12 pooled runs, not 5 of 6 -- 5 of 6 on each
         side independently, so the instability is real and not a side artefact.
@@ -4351,22 +4354,46 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       in silence and NOTHING but the cadence gate fails:
           DAY2/p8   fires 7 of 12   gold 4.00
           DAY1/p11  fires 3 of 12   gold 4.00
-      AND THREE ARE PROPOSED FOR REASSIGNMENT, because the gate is incidental on
-      them and fixing the cadence rule cannot fix the cell:
+      AND THREE MORE BELONG HERE AFTER ALL. They were proposed for reassignment
+      to subgoal Q29 earlier the same day, on the grounds that gold objects to
+      the TYPE on each and the cadence firing is incidental:
           WK2/p11  fires 3 of 12   gold 2.00 "-2 pts: This is an example of NP."
           WK2/p15  fires 2 of 12   gold 2.00 "-2 pts: This is an example of NP."
           DAY2/p11 fires 1 of 12   gold 2.00 "-2 pts: This is an example of PP."
-        On all three gold objects to the TYPE and prices it at 2 of 4, and
-        `matches_chosen_type` -- pts=2.0, not a gate -- carries that judgement,
-        failing 12, 6 and 8 times of 12. Each cell therefore has TWO defects and
-        neither is the cadence rule: (a) our gate ZEROES a cell gold priced at a
-        partial charge, which is subgoal Q29's shape exactly -- "the same
-        judgement is worth 2 to the grader and 5 to us" -- and NR/p11 is a third
-        instance of it, so Q29 should be broadened from Q2's gate to the pattern;
-        (b) `matches_chosen_type` passing when it should fail is over-credit with
-        every check passing, and WK2/p15 and DAY2/p11 are ALREADY in the fourteen
-        listed under Q20.
-      THE RULE THAT THE READ-OUT IMPLIES IS DIRECTIONAL, and it is sharper than
+      THE PROPOSAL IS WITHDRAWN, and the reason is worth keeping because it is
+      the order the work was done in. The reassignment was reasoned from the
+      cells; the DIRECTIONAL RULE was derived afterwards, from gold's comments;
+      and applied back to these three it says the gate should never have fired on
+      any of them:
+          WK2/p11   "for 2-3 days" on a WEEKLY item -- FINER than the frame
+          WK2/p15   no period on the behaviour; "for a hour" is the CONSEQUENCE's
+          DAY2/p11  no period stated at all
+      So they are cadence FALSE POSITIVES, the same class as DAY2/p8 and
+      DAY1/p11, and the rule predicts all five together. A cell was moved out on
+      the strength of a rule that had not been written yet, and writing it moved
+      the cell back.
+      WHAT DOES NOT COME BACK is their other half: `matches_chosen_type` wrongly
+      PASSING (6 of 12 on WK2/p15, 8 of 12 on DAY2/p11) is over-credit with every
+      check passing, and stays in subgoal Q20. Two defects, two subgoals, and the
+      cadence rule fixes exactly one of them.
+      THE FIVE CELLS AND WHAT THE RULE PREDICTS FOR EACH, pre-registered before
+      any sweep:
+          DAY2/p8   gate stops firing (consequence horizon)   gold 4.00, expect 4.00
+          DAY1/p11  gate stops firing (no period)             gold 4.00, expect 4.00
+          WK2/p11   gate stops firing (finer period)          gold 2.00, expect 2.00
+                    -- only if `matches_chosen_type` keeps failing, which it does
+                    12 of 12 here
+          WK2/p15   gate stops firing (consequence duration)  gold 2.00, expect
+                    2.00 in the 6 runs matches_chosen_type fails, 4.00 in the
+                    others -- this cell CANNOT reach 12 of 12 on a cadence fix
+                    alone, and saying so now is what stops the sweep being read
+                    as a failure
+          DAY2/p11  gate stops firing (no period)             same caveat, 8 of 12
+      CONTROLS THAT MUST NOT MOVE: DAY1/p9 (the gate's only proof case, right 12
+      of 12 on the gate alone), WK1/p19, and the thirteen no-cost cells above --
+      if a blank answer stops failing the cadence check, the rule has gone wrong
+      in a way the item totals will not show.
+            THE RULE THAT THE READ-OUT IMPLIES IS DIRECTIONAL, and it is sharper than
       "judge only how often the behaviour is checked". Gold's own behaviour is
       consistent across every cell where it speaks:
           a period COARSER than the item's frame contradicts it;
