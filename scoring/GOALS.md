@@ -4934,9 +4934,11 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       the count-versus-window refinement written specifically to protect it. "Out
       of the 5 days" keeps reading as occasions to tally however the distinction
       is worded.
-      AND DAY2's UNCHANGED 16/18 IS TWO COIN FLIPS SWAPPED. p8 and p9 are both at
-      7 of 12 -- E41 bands both `on_the_line` -- so neither is evidence either
-      way. The ledger reads +2 cells overall: DAY1 python 17 -> 18 and WK2 olx
+      AND DAY2's STANDING STILL WAS TWO COIN FLIPS SWAPPED, when it was 16/18.
+      p8 and p9 were both at 7 of 12 -- E41 bands both `on_the_line` -- so neither
+      was evidence either way. The 2026-09-04 revert then re-swept it: the python
+      side records 15/18, runs [16,16,15,15,15,15], with p8 at 2 of 6 and p9 at 4;
+      the olx half is still in flight, so the pooled figure is not settled yet. The ledger reads +2 cells overall: DAY1 python 17 -> 18 and WK2 olx
       17 -> 18, with DAY2 and WK1 unmoved.
       SO THE COUNT-VERSUS-WINDOW CLAUSE IS REVERTED, 2026-09-04, and the ORIGINAL
       schedule test restored in its place -- "the contingency is plainly settled on
@@ -6269,7 +6271,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
 - [ ] Q17. **Q2: `wgb_is_counterpart`, `wgb_inverts_utb`, `reason_3`.**
       == RE-EVALUATED 2026-09-04 AFTER E41's RECLASSIFICATION ==
       == AND THE ALL-CELLS PASS SPLITS THIS SUBGOAL IN THREE ==
-      Run 2026-09-04 over all 19 valid Q2 cells, profiling both inversion slots
+      Run 2026-09-04 over all 20 valid Q2 cells, profiling both inversion slots
       and the failing-slot sets, at no call cost. THE FOUR WRONG CELLS ARE NOT ONE
       PROBLEM, and this entry's framing -- "the two worst cells are one rule
       failing both ways" -- pointed at the HARD pair while the tractable one sat
@@ -6288,17 +6290,75 @@ because it can be fixed or declared; a wobbling cell cannot be either.
         (c) THE INVERSION BOUNDARY, which is the pair this entry already names.
               p10  gold 3.0  `wgb_is_counterpart` absent 10 of 12 -> gate -> 0.0
               p7   gold 0.0  both slots mostly `met`              -> 2.0
-      AND GOLD PRICES THE SAME CRITERION THREE WAYS, which is why (c) is not a
-      wording question: it charges p7 the whole FIVE ("-5 pts: your WGB should be
-      the opposite of your UTB, so your WGB is to spend less..."), p10 only TWO on
-      the same sentence, and p17 the whole item. No single charge size for the
-      inversion criterion matches gold across the three, so (c) is coupled to the
-      gate-versus-partial-charge question subgoal Q29 owns and should not be
-      attempted as prose here.
-      START WITH (a). It is one slot, one direction, two cells, gold silent on
-      both, and it is the same slot Q1 shows behaving the same way -- which this
-      entry already notes "points at the counting structure rather than either
-      item's wording".
+      == THE THREE-PRICES PREMISE WAS WRONG, CORRECTED 2026-09-04 ==
+      This entry previously read "GOLD PRICES THE SAME CRITERION THREE WAYS" and
+      deferred (c) on that basis, as coupled to the gate-versus-partial-charge
+      question subgoal Q29 owns. It is not. That reading took p17's TOTAL of 0.0
+      for a whole-item charge; gold itemises p17 as "-3 pts: missing three reasons"
+      AND "-2 pts: your wanted goal behavior should be the opposite of your UTB",
+      which reaches 0.0 with no whole-item code applying at all. Read off gold's
+      own comments, the ONE cell in Q2 gold charges the whole-item code is p7,
+      whose comment is the WGB_UNRELATED text nearly verbatim ("-5 pts: your WGB
+      should be the opposite of your UTB, so your WGB is to spend less...").
+      SO THE CRITERION IS PRICED TWO WAYS, not three: FIVE where the goal is about
+      a different behaviour, TWO where it is the right behaviour badly stated. That
+      is exactly the two-tier split these two slots were built for, so (c) is
+      settleable on its own and is NOT coupled to Q29. The lesson is section 2k's:
+      an itemised gold comment is the evidence, and a cell total is not.
+
+      == ALL THREE PROBLEMS EDITED 2026-09-04, THREE SEPARATE COMMITS, NOT YET SWEPT ==
+      One commit each so each stays revertible and separately attributable. The
+      three target sets are DISJOINT, so ONE Q2 sweep on both sides attributes all
+      three by cell -- there is no need to spend three sweeps to tell them apart.
+        (a) 4da9515  `reasons_given` clause (i) + the anti-merge clause + the desc.
+            reason_3 HAS NO RULE OF ITS OWN -- it is the count's third expansion
+            slot -- so the over-charging this entry recorded against it was never
+            reachable by wording on it. The slot returning the wrong answer is
+            `reasons_failing`. Clause (i) said a sentence built on the negative is
+            a reason to stop the UTB "however it is phrased", and that clause is
+            what swallowed statements gold counts. The test is now what the
+            statement NAMES. Discriminator read off the CORRECT refusals, not the
+            misses: p3, p6 and p18 each name no good of the goal behaviour at all,
+            so a narrowing cannot reach them.
+        (b) 724d3be  `wgb_inverts_utb`. The cause was the rule contradicting itself
+            on p18 rather than a missing clause -- a general condition fails, a
+            foreign-unit outcome fails, the behaviour's own state passes, and p18 is
+            a state in NO units, so two arms reached for it and the model split 7
+            absent / 5 met. The added test is whether the state could be reached by
+            THIS behaviour and little else.
+        (c) 2a84994  `wgb_is_counterpart`. The gate was being decided by whether the
+            response MENTIONS the unwanted behaviour, which is backwards. p7 names
+            it in order to say what will be done instead, so the mention read as
+            engagement and the gate passed; p10 never mentions it, so the silence
+            read as a different behaviour and the gate failed. Naming it only to put
+            a replacement against it is the paradigm case of the whole-item charge;
+            saying nothing about it is no evidence either way. The test now turns on
+            the ACTIVITY the goal names.
+
+      PRE-REGISTERED, and the BREAKS column is to be filled from the sweep, not
+      from this entry:
+        cell  now       gold  expected after      why it is not a coin flip
+        p20   1 of 12   5.0   near 12             `reasons_failing` 1 in 11 of 12
+        p16   6 of 12   5.0   near 12 BUT         on_the_line per E41: a one-run
+                                                  move is NOT evidence here
+        p18   5 of 12   4.0   near 12             count already right on 12 of 12,
+                                                  inverts is the whole defect
+        p7    4 of 12   0.0   near 12             gate is the whole defect; lists 0
+                                                  reasons on 12 of 12 and gold agrees
+        p10   1 of 12   3.0   ABOUT HALF, not 12  see the second defect below
+      CONTROLS that must not move: p3 (-3 reasons), p6 (-1), p19 (-1), p17 (0.0 by
+      -3 and -2), and the eleven cells at 5.0 x 12. p6 is the sharpest of them --
+      its CREDITED statement and p16's REFUSED one name the same kind of good.
+      A FOURTH DEFECT WAS FOUND AND IS NOT FIXED: `reasons_listed` answers 0 in 5
+      of 12 runs on p10, a response holding three statements, where gold counts
+      three and charges nothing. The zeros do NOT track the gate -- gate `absent`
+      pairs with 3 listed five times and with 0 listed five times -- so (c) exposes
+      this count rather than curing it. That is why p10 is pre-registered at about
+      half. It is the same slot family as (a) but a different slot and a different
+      direction, so it is left for after the sweep rather than bundled blind.
+      Q1 CARRIES THE IDENTICAL SLOT FAMILY and the same `reason_3` profile, and was
+      deliberately NOT changed: its cells belong to subgoal Q14. If (a) measures
+      well here, carrying it to Q1 is Q14's cheapest move.
 
       Three of this subgoal's cells were being read as merely unstable and are in
       fact RECORDED WRONG -- counted wrong by the per-cell median, not wobbling
@@ -6895,7 +6955,8 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           it, with the reason, and subgoal Q20's DAY1 numbers stand as real.
       (b) A SLIP -- someone typed `!` once. Then DAY1 has been scoring on a
           harsher sheet than its siblings for as long as the slot has existed, and
-          its 17/18 is a number obtained under different rules from DAY2's 16/18.
+          its 17/18 was a number obtained under different rules from DAY2's, which
+          previously stood at 16/18 and now records 15/18 on the python side.
       READ THE RECORD BEFORE DECIDING (memory/read-the-record-first.md): check the
       commit that introduced the `!` and the rubric comment above the component.
       The precision table in subgoal Q21 already lists `phrased_directly` as
