@@ -996,6 +996,22 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       1/12, Q1/p9 at 3/12, Q2/p7 and Q4b/p13 at 4/12 and Q2/p18 at 5/12 are all
       RECORDED AS WRONG, not wobbling, so subgoal Q17 rose from seventh to second
       on three cells that were being understated.
+      THE FIVE ARE HOMED, 2026-09-04, each on the slot that charges it:
+          Q1/p17   -> subgoal Q16   `utb_stated` in 5 of 12, one of Q16's three
+                                    named slots; it already owned the cell
+          Q4a/p16  -> subgoal Q19   `antecedent_2` in 5 of 12, a later box
+          Q6/p18   -> subgoal Q19   `affect_c2`, `state_a2`, `state_c2` in 7 of
+                                    12, all second boxes
+          WK2/p11  -> subgoal Q22   keeps it, but its cadence work is DONE (0 of
+                                    12) and the residual is `aimed_correctly`
+                                    firing in 3 of 12, which NOBODY owns
+          WK2/p15  -> subgoal Q20   already listed there; the defect is
+                                    `matches_chosen_type` failing to fire in 4 of
+                                    12, an under-refusal
+      SO ONE THING IS STILL UNOWNED and it is a SLOT rather than a cell:
+      `aimed_correctly`. It zeroes WK2/p11 in three runs and appears in no
+      subgoal's title or slot list.
+
       AND LISTING CELLS HERE LAUNDERED THEM INTO "OWNED", found 2026-09-04 the
       moment the six on-the-line cells were written down. `owners["any"]` counts
       any mention, so this entry -- a TOOLING subgoal with no scoring question in
@@ -4820,6 +4836,19 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           WK2/p11   cadence 0/12   2.0 x8, 0.0 x3   8/12 (was 6)  improved; another
                                                     gate still zeroes three runs
           DAY2/p8   cadence 5/12   4.0 x7, 0.0 x5   7/12          MISSED
+      AND WK2/p11's RESIDUAL IS NOT CADENCE ANY MORE, found 2026-09-04 from E41's
+      on-the-line list. The cadence gate now fires 0 of 12 there, so this
+      subgoal's work on that cell is DONE. What is left is `matches_chosen_type`
+      failing in 8 of 12 -- which is CORRECT, gold charges 2 for the type -- and
+      `aimed_correctly` ALSO failing in 3 of 12, which zeroes the item and is what
+      the three wrong runs are. `aimed_correctly` is owned by nobody and is not
+      this subgoal's slot; it needs a home of its own before that cell can reach
+      12 of 12.
+      WK2/p15's RESIDUAL IS THE OPPOSITE and belongs to subgoal Q20, where it is
+      already listed: `matches_chosen_type` fails in 7 of 12 giving gold's 2.0, and
+      in the other 4 NOTHING fails and the cell over-credits to 4.0. Under-refusal,
+      not cadence.
+
       CONTROLS: DAY1/p9 12/12 absent and DAY1/p6 12/12 absent both HELD, and
       WK1/p19 stayed met. WK1/p6 weakened -- absent 4 of 12 where it was 12 of 12
       -- but the CELL held at 12/12, so the pre-registered risk half-materialised.
@@ -5062,6 +5091,22 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           Q4c/p9  gold both consequences     we fail consequence_2 only
           Q6/p8   gold all four c-slots      we fail two
           Q2/p7   gold inversion + 3 reasons we fail the reasons only
+      TWO CELLS ASSIGNED HERE 2026-09-04, from subgoal E41's on-the-line list,
+      where they had no owner but the tooling entry that listed them. Both are
+      LATER-BOX refusals on cells gold passes, which is this subgoal's shape seen
+      from the other side -- we refuse a second box gold credits, rather than
+      crediting one gold charges:
+        Q4a/p16  gold 5.00 SILENT, right 7 of 12. Fails `antecedent_2` in 5 of 12
+                 and nothing in the other 7. Not subgoal Q24's, whose title names
+                 `antecedent_1`.
+        Q6/p18   gold 6.25, "-2.5 pts: did not address how the second consequence
+                 ...", right 7 of 12. Fails `affect_c2`, `state_a2` and `state_c2`
+                 in 7 of 12 -- ALL second boxes, so unlike Q6/p8 this one IS
+                 gradient-shaped: gold charges the second consequence once and we
+                 charge three second-box slots for it.
+      BOTH SIT ON THE MEDIAN LINE at 7 of 12, so a change that moves either by one
+      run is not evidence about the gradient (E41).
+
       RE-READ GATE-AWARE 2026-09-03 (subgoal Q37), and the six do not stand
       together. Three are exactly as described, in 12 of 12 pooled runs on both
       sides -- Q4a/p14 `antecedent_2` alone, Q4b/p4 `behavior_2` alone, Q4c/p9
@@ -6144,6 +6189,38 @@ because it can be fixed or declared; a wobbling cell cannot be either.
 
 - [ ] Q17. **Q2: `wgb_is_counterpart`, `wgb_inverts_utb`, `reason_3`.**
       == RE-EVALUATED 2026-09-04 AFTER E41's RECLASSIFICATION ==
+      == AND THE ALL-CELLS PASS SPLITS THIS SUBGOAL IN THREE ==
+      Run 2026-09-04 over all 19 valid Q2 cells, profiling both inversion slots
+      and the failing-slot sets, at no call cost. THE FOUR WRONG CELLS ARE NOT ONE
+      PROBLEM, and this entry's framing -- "the two worst cells are one rule
+      failing both ways" -- pointed at the HARD pair while the tractable one sat
+      in the same list:
+        (a) `reason_3` OVER-CHARGING on cells gold gives FULL MARKS.
+              p20  gold 5.0  fails `reason_3` alone in 11 of 12  -> 4.0
+              p16  gold 5.0  fails `reason_3` alone in  6 of 12  -> 4.0
+            Both inversion slots answer `met` 12 of 12 on BOTH cells, so neither
+            has anything to do with the inversion criterion. One slot, one
+            direction, two cells, and gold charges nothing on either. This is the
+            tractable half and it was invisible while the four were read together.
+        (b) `wgb_inverts_utb` OVER-CHARGING on one cell.
+              p18  gold 4.0  fails `reason_3` 12 of 12 AND `wgb_inverts_utb` in 7
+            `reason_3` is CORRECT here -- gold charges exactly the third reason --
+            so the defect is the inversion slot firing on top of a right answer.
+        (c) THE INVERSION BOUNDARY, which is the pair this entry already names.
+              p10  gold 3.0  `wgb_is_counterpart` absent 10 of 12 -> gate -> 0.0
+              p7   gold 0.0  both slots mostly `met`              -> 2.0
+      AND GOLD PRICES THE SAME CRITERION THREE WAYS, which is why (c) is not a
+      wording question: it charges p7 the whole FIVE ("-5 pts: your WGB should be
+      the opposite of your UTB, so your WGB is to spend less..."), p10 only TWO on
+      the same sentence, and p17 the whole item. No single charge size for the
+      inversion criterion matches gold across the three, so (c) is coupled to the
+      gate-versus-partial-charge question subgoal Q29 owns and should not be
+      attempted as prose here.
+      START WITH (a). It is one slot, one direction, two cells, gold silent on
+      both, and it is the same slot Q1 shows behaving the same way -- which this
+      entry already notes "points at the counting structure rather than either
+      item's wording".
+
       Three of this subgoal's cells were being read as merely unstable and are in
       fact RECORDED WRONG -- counted wrong by the per-cell median, not wobbling
       around it. With Q2/p16 claimed below that is four, on an item the ledger
