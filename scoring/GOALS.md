@@ -4139,21 +4139,27 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       (refusals / of which in a WRONG cell). Hundreds of refusals, essentially
       none coinciding with a miss. These are four required properties of a strict
       schema, asked on every call, doing no discriminating work.
-      DAY1 IS THE EXCEPTION AND IT IS NOT A COUNTEREXAMPLE -- it is a different
-      sheet. RE-DERIVED 2026-09-04 and THE EXCEPTION HAS GONE: `names_behavior`
-      35 refusals with 0 in a wrong cell, `contingent` 50/0, `follows_behavior`
-      56/0 -- so DAY1's structural gates now discriminate no worse than its
-      siblings'. It read 18/6, 23/6, 26/6 when filed, which is what made DAY1 the
-      exception; the DAY1/p1 gold correction is the likeliest cause of the change,
-      and the claim below should not be relied on until it is re-read.
-      The cause is structural and was found by looking: DAY1 is the ONLY item of
-      eight where `phrased_directly` GATES (`!phrased_directly` in its OLX; the
-      other seven author it plain). When any gate fires the item zeroes, so a
-      second gating slot makes every other gate's unmet status co-occur with a
-      wrong cell. HYPOTHESIS, NOT YET CONFIRMED: DAY1's six-apiece counts are that
-      artefact rather than those gates discriminating. Test it by checking whether
-      those cells are wrong on runs where `phrased_directly` is MET. Subgoal 24
-      owns the asymmetry itself.
+      DAY1 WAS THE EXCEPTION AND IS NOW EVIDENCE FOR THE RULE. Re-derived
+      2026-09-04 over the refresh sweep: DAY1's four structural gates refuse 167
+      times across 216 pooled observations and NOT ONCE in a cell that scored
+      wrong -- there is no wrong-cell row in the cross-tabulation at all. As filed
+      the same three read 18, 23 and 26 refusals with SIX apiece in wrong cells,
+      which is what made DAY1 the counterexample.
+      AND THAT RESOLVES THE HYPOTHESIS THIS PARAGRAPH USED TO CARRY, which is the
+      part worth keeping. It said: DAY1 is the only item of eight where
+      `phrased_directly` GATES (`!phrased_directly` in its OLX; the other seven
+      author it plain), so a second gating slot makes every other gate's unmet
+      status CO-OCCUR with a wrong cell, and the six-apiece counts are that
+      artefact rather than those gates discriminating. The test proposed was to
+      check whether the cells are wrong on runs where `phrased_directly` is met.
+      The DAY1/p1 gold correction answered it instead, and answered it cleanly:
+      correcting ONE row took all three counts to zero. If those gates had been
+      discriminating, a change to what one cell's gold says could not do that. The
+      artefact reading is the one the data supports.
+      `phrased_directly` STILL REFUSES 43 TIMES on DAY1 and coincides with nothing
+      wrong, so the asymmetry costs nothing today -- but it remains undeclared, and
+      subgoal Q26 owns that question, which is a rubric one rather than a scoring
+      one.
       WHAT THIS DOES NOT SAY: that the gates are useless. A gate that never fires
       wrongly may be holding a floor nobody has tried removing -- PP and NP sit at
       100% on both engines WITH these gates in place, and subgoal Q21 records a
