@@ -671,6 +671,8 @@ def enforcement_audit():
         findings.append(("-", "GOLD READ BY HANDOUT, NOT BY ITEM", bad))
     for bad in ENF.check_gold_comparisons_share_an_alphabet():
         findings.append(("-", "SLOT SETS COMPARED ACROSS ALPHABETS", bad))
+    for bad in ENF.check_guide_structure_is_sound():
+        findings.append(("-", "GUIDE STRUCTURE HAS DRIFTED", bad))
     for bad in ENF.check_probe_reach_limits_still_apply():
         findings.append(("-", "PROBE-REACH EXCUSE OUTLIVED ITS RULE", bad))
     for bad in ENF.check_computed_slot_recovery_is_faithful():
@@ -909,7 +911,7 @@ def uncompared_web_rules():
 # the two SKIP lines I remembered", and the ratchet immediately reported a
 # lost case. Only the plain-path case skips -- the `{fail}` injection site
 # still exists on Q6, so that case is built.
-SELFTEST_EXPECTED = 59
+SELFTEST_EXPECTED = 60
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1715,6 +1717,23 @@ def enforcement_selftest():
                  lambda: _HH.GOLD_DIVERGENCES.pop(),
                  want="CELL BOTH CORRECTED AND DECLARED")
 
+    # THE GUIDE'S OWN STRUCTURE, added 2026-09-03 after six hand-labelled
+    # sections produced three duplicate labels and an out-of-order section 2.
+    # Nothing caught it; it was found by eye. The injection duplicates a label,
+    # which is the exact failure.
+    _gp = _pl2.Path(__file__).resolve().parent / "QUALITY_CONTROL.md"
+    _guide_src = _gp.read_text()
+
+    def _dup_label():
+        import re as _re
+        m = _re.search(r"^## (\d+[a-z]\d?)\. (.+)$", _guide_src, _re.M)
+        _gp.write_text(_guide_src + f"\n\n## {m.group(1)}. Injected duplicate\n")
+
+    _scorer_case("the guide grows a duplicate section label",
+                 _dup_label,
+                 lambda: _gp.write_text(_guide_src),
+                 want="GUIDE STRUCTURE HAS DRIFTED")
+
     # COMPARING OUR SLOT SET AGAINST GOLD'S WITHOUT A VOCABULARY GUARD, added
     # 2026-09-03. Four functions had this the day gates entered the slot profile,
     # and they failed in both directions -- two raised a false alarm (a gate
@@ -1724,6 +1743,7 @@ def enforcement_selftest():
     # have surfaced any of them, which is why the rule is static.
     _real_alpha = dict(ENF.GOLD_ALPHABET_EXEMPT)
     import pathlib as _pl
+    import pathlib as _pl2
     _mp = _pl.Path(__file__).resolve().parent / "measured.py"
     _orig_src = _mp.read_text()
 
