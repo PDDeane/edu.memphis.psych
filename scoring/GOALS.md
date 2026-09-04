@@ -6146,7 +6146,8 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       made both boxes computed from a pick, and p12 now scores 3.5 on both sides,
       6 of 6 each. So it is a clean stable disagreement with gold rather than an
       engine split, and the entry says so.
-      p4's ALSO STANDS, and it is DECLARED TWICE -- which is the open question
+      p4's ALSO STANDS, AND ITS DOUBLE DECLARATION IS NOW CONSOLIDATED. It was
+      declared twice, and only one of the two described it. That was the question
       here rather than a defect to fix blind. It is in ANTECEDENT_REUSED_AS_BEHAVIOR,
       whose reason describes it exactly, AND in B_NOT_ACTIVE, whose reason is
       entirely about p12's not-doing and does not describe p4 at all (our pick on
@@ -6155,8 +6156,15 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       entry's `why` holds a THIRD attempt not recorded in the other one -- a sixth
       test on both slots judged by REFERENT rather than topic, 3 runs, p4 0/3 ->
       1/3, the four gold-credited cells holding, and spread 1 cell -> 3, rejected
-      on the spread trade. Consolidating p4 in one declaration means moving that
-      block; it is left for a deliberate step rather than done in passing.
+      on the spread trade.
+      DONE 2026-09-04, AND THE ORDER WAS THE POINT: the comment block moved into
+      ANTECEDENT_REUSED_AS_BEHAVIOR above its `why` and was verified intact --
+      the "p4 0/3 -> 1/3" and "spread 1 cell -> 3 cells" lines are still there
+      -- and only THEN was p4 removed from B_NOT_ACTIVE's cells. Both entries
+      carry a note saying where the record went and why the removal was safe.
+      p4 is now declared once, under the code whose reason describes it, and
+      B_NOT_ACTIVE is a single-cell declaration about p12's not-doing -- which
+      is all its `why` ever claimed.
 
       THE LEVER IS ONE OPTION, NOT THE PROSE: `not_doing` accounts for 16 of
       b2_basis's 120 answers and for both undeclared-shape failures, while
