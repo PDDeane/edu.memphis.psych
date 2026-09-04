@@ -253,14 +253,20 @@ def stale_slot_claims(instrument_at: int | None = None) -> list[str]:
     if not keys:
         return ["cannot read the corpus's slot keys, so slot claims cannot be dated"]
     if instrument_at is None:
+        # `-L :func:file`, NOT `-S token`. The pickaxe matches TEXTUAL
+        # occurrences, so a docstring that merely NAMES one of these functions
+        # moved the instrument date and back-dated a figure re-derived hours
+        # earlier -- which is how this check produced its first false alarm, on a
+        # line the same session had just corrected. `-L` follows the function's
+        # own definition, which is the thing whose behaviour matters.
         stamps = []
         for tok in _PROFILE_TOKENS:
             try:
-                r = subprocess.run(["git", "log", "-1", "--format=%at", "-S", tok,
-                                    "--", "measured.py"], cwd=HERE,
-                                   capture_output=True, text=True, timeout=30)
+                r = subprocess.run(["git", "log", "-1", "--format=%at",
+                                    "-L", f":{tok}:measured.py"], cwd=HERE,
+                                   capture_output=True, text=True, timeout=60)
                 if r.returncode == 0 and r.stdout.strip():
-                    stamps.append(int(r.stdout.split()[0]))
+                    stamps.append(int(r.stdout.splitlines()[0].strip()))
             except Exception:
                 pass
         if not stamps:
@@ -396,6 +402,9 @@ def rank() -> list[tuple[str, dict, str]]:
     # measured._live_subgoal_owners, which is generous ON PURPOSE -- it exists so
     # that no wrong cell is left unlooked-at, and narrowing it would weaken the
     # audit that depends on it.
+    all_items = set(M._jobs())
+    ITEM_TOK = _re.compile(r"(?<![\w/])(" + "|".join(sorted(
+        (_re.escape(i) for i in all_items), key=len, reverse=True)) + r")(?![\w/])")
     CELL = _re.compile(r"\b([A-Za-z0-9]+)/p(\d+)\b")
     lines = text.splitlines()
     bounds: dict[str, list[str]] = {}
@@ -412,18 +421,60 @@ def rank() -> list[tuple[str, dict, str]]:
         if cur:
             bounds[cur].append(line)
 
+    # A CELL WRITTEN AS BARE `pN` STILL BELONGS TO THE ENTRY THAT NAMES ITS ITEM.
+    # Matching only `item/pN` lost the cells that subgoals actually own: Q14's
+    # title is "Q1's two live misses: p10 and p18" and Q18's body says `p12` under
+    # a title naming Q4b, so Q1/p10 was attributed to Q20 (three passing mentions)
+    # and Q4b/p12 to Q19 and Q26, while the two subgoals whose whole subject those
+    # cells are came out owning NOTHING and sorted to the bottom tier -- which
+    # reads as "closable". Seven open entries are affected this way.
+    #
+    # Resolved against the TITLE's item only. A body names many items, so
+    # resolving there would attach every bare `pN` to all of them.
+    BARE = _re.compile(r"(?<![\w/])p(\d+)\b")
+
     mentions: dict[str, dict[str, int]] = {}
+    titled_by: dict[str, set] = {}
     for lab, body in bounds.items():
         if lab not in open_labels:
             continue
+        title = body[0] if body else ""
+        # THE TITLE'S ITEM, from a bare name OR from a full cell reference in it.
+        # ITEM_TOK excludes an item followed by `/`, on purpose, so that the `Q1`
+        # of `Q1/p10` is not read as a bare item mention -- which means a title
+        # written "Q1/p10: ..." yields NO item and its bare `pN` references stop
+        # resolving. That happened the moment Q14 was retitled to name its cell
+        # properly: p14 silently left the entry. A title that names a cell names
+        # its item too.
+        t_items = ((set(ITEM_TOK.findall(title))
+                    | {it for it, _pid in CELL.findall(title)}) & all_items)
         for line in body:
             for it, pid in CELL.findall(line):
                 cell = f"{it}/p{pid}"
                 mentions.setdefault(cell, {})
                 mentions[cell][lab] = mentions[cell].get(lab, 0) + 1
+        # bare pN, resolved through the title's item(s)
+        joined = "\n".join(body)
+        for pid in set(BARE.findall(joined)):
+            for it in t_items:
+                cell = f"{it}/p{pid}"
+                mentions.setdefault(cell, {})
+                mentions[cell].setdefault(lab, 0)
+                titled_by.setdefault(cell, set()).add(lab)
+        # a cell named in full IN THE TITLE is owned by title too
+        for it, pid in CELL.findall(title):
+            titled_by.setdefault(f"{it}/p{pid}", set()).add(lab)
 
+    # TITLE OWNERSHIP WINS OUTRIGHT. Ownership stated in a title is not the same
+    # kind of claim as a mention in a paragraph, and letting them compete on count
+    # meant a corpus-wide subgoal citing a cell three times outranked the subgoal
+    # the cell is about.
     primary: dict[str, tuple] = {}
     for cell, counts in mentions.items():
+        owners_by_title = titled_by.get(cell, set()) & set(counts)
+        if owners_by_title:
+            primary[cell] = tuple(sorted(owners_by_title))
+            continue
         top = max(counts.values())
         primary[cell] = tuple(l for l, c in counts.items() if c == top)
 
@@ -440,9 +491,6 @@ def rank() -> list[tuple[str, dict, str]]:
     # fresh sweep of the corpus. And a goal that names a side but NO item is
     # corpus-wide by construction -- E28's deliverable IS the corpus -- while one
     # that names items is scoped to them.
-    all_items = set(M._jobs())
-    ITEM_TOK = _re.compile(r"(?<![\w/])(" + "|".join(sorted(
-        (_re.escape(i) for i in all_items), key=len, reverse=True)) + r")(?![\w/])")
 
     def _measured_on(item: str, side: str) -> bool:
         try:
@@ -481,7 +529,7 @@ def rank() -> list[tuple[str, dict, str]]:
 
     rows = []
     for lab in open_labels:
-        det, unst, items, titled = [], [], set(), 0
+        det, stab, unst, items, titled = [], [], [], set(), 0
         for cell in primary:
             if lab not in primary[cell]:
                 continue
@@ -492,7 +540,13 @@ def rank() -> list[tuple[str, dict, str]]:
             if right == runs:
                 continue                      # cell is correct; nothing owed
             items.add(cell.split("/")[0])
-            (det if right == 0 else unst).append(cell)
+            # THREE BUCKETS, NOT TWO. `right == 0` alone bucketed a cell that
+            # reaches gold ONCE in twelve with genuine coin-flips -- Q1/p10 is
+            # right 1 of 12 and its own subgoal makes the distinction that
+            # matters: "stably wrong ... not a coin flip, and it is worth a rule
+            # question rather than more runs". A cell that almost never reaches
+            # gold can be fixed or declared; one that lands half the time cannot.
+            (det if right == 0 else stab if right * 12 <= runs else unst).append(cell)
         for cell, labs in owners["title"].items():
             st = state.get(cell)
             if lab in labs and st is not None and st[0] != st[1]:
@@ -507,8 +561,9 @@ def rank() -> list[tuple[str, dict, str]]:
         # one side it is missing, so counting it twice overstated E28 at 48 when
         # the work is 24 item-sides -- and its own entry puts the real figure at
         # ~3,100 calls, because one paper sweep covers every item at once.
-        n_items = len({c.split("/")[0] for c in det + unst}) * 2 + len(gaps)
-        facts = {"deterministic": sorted(det), "unstable": sorted(unst),
+        n_items = len({c.split("/")[0] for c in det + stab + unst}) * 2 + len(gaps)
+        facts = {"deterministic": sorted(det), "stably_wrong": sorted(stab),
+                 "unstable": sorted(unst),
                  "items": sorted(items), "titled": titled, "cited_by": cited[lab],
                  "unmeasured": gaps, "sweeps": n_items * 2}
         rows.append((lab, facts))
@@ -525,9 +580,10 @@ def rank() -> list[tuple[str, dict, str]]:
     CHEAP = 4                                # sweeps, i.e. two items on two sides
 
     def _tier(f: dict) -> int:
-        if f["deterministic"] and f["sweeps"] <= CHEAP:
+        fixable = f["deterministic"] + f["stably_wrong"]
+        if fixable and f["sweeps"] <= CHEAP:
             return 0
-        if f["deterministic"]:
+        if fixable:
             return 1
         if f["unmeasured"]:
             return 2
@@ -549,8 +605,9 @@ def rank() -> list[tuple[str, dict, str]]:
         lab, f = r
         tier = _tier(f)
         if tier in (0, 1):
-            return (tier, f["sweeps"], -len(f["deterministic"]),
-                    -f["titled"], -f["cited_by"], lab)
+            return (tier, f["sweeps"],
+                    -len(f["deterministic"]) - len(f["stably_wrong"]),
+                    -len(f["deterministic"]), -f["titled"], -f["cited_by"], lab)
         return (tier, -len(f["unmeasured"]), -len(f["unstable"]),
                 f["sweeps"], -f["titled"], -f["cited_by"], lab)
 
@@ -563,6 +620,9 @@ def rank() -> list[tuple[str, dict, str]]:
                        f"({', '.join(f['unmeasured'][:3])})")
         if f["deterministic"]:
             why.append(f"{len(f['deterministic'])} deterministic ({', '.join(f['deterministic'][:3])})")
+        if f["stably_wrong"]:
+            why.append(f"{len(f['stably_wrong'])} stably wrong "
+                       f"({', '.join(f['stably_wrong'][:3])})")
         if f["titled"]:
             why.append(f"{f['titled']} claimed by title")
         if f["cited_by"]:
