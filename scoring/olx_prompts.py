@@ -1211,6 +1211,8 @@ def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
 # What a check means where the rubric's credit list does not already say.
 # Keyed by slot key, or by "item:slot key" where the same key means different
 # things on different items.
+_CADENCE_NOUN = {"daily": "day", "weekly": "week"}
+
 SLOT_NOTES = {
     "confident": "`absent` if any judgement above was a close call — this is rule 8's channel",
     # Web-only, and unscored on purpose. The web asks for the unwanted target
@@ -1494,17 +1496,20 @@ SLOT_NOTES = {
     # the criterion pre-empts. The criteria section is far from the point of
     # decision; the checklist is where the verdict is committed.
     "cadence_is_daily":
-        "criterion 9 (`cadence_ok`). Judge how often the BEHAVIOUR IS CHECKED, not "
-        "how long the consequence lasts — a daily trigger whose reward runs to the "
-        "end of the week is still daily. This gate takes the whole item, so answer "
-        "`no` only when the contingency is plainly settled on the weekly schedule, "
-        "e.g. a daily slot answered with a whole-week tally. When it could be read "
-        "either way, it is daily",
+        "criterion 9 (`cadence_ok`). Can the TRIGGER be settled inside ONE day? "
+        "Answer `no` in exactly two cases: the trigger only becomes true once "
+        "occurrences are added up across more than one day, or it names no endpoint "
+        "at all. Everything else is `yes` — including a trigger that states no "
+        "period, and one whose CONSEQUENCE runs on for a week. This gate takes the "
+        "whole item; when it could be read either way, answer `yes`",
     "cadence_is_weekly":
-        "criterion 9 (`cadence_ok`). Judge how often the BEHAVIOUR IS CHECKED, not "
-        "how long the consequence lasts. This gate takes the whole item, so answer "
-        "`no` only when the contingency is plainly settled on the daily schedule. "
-        "When it could be read either way, it is weekly",
+        "criterion 9 (`cadence_ok`). Can the TRIGGER be settled inside ONE week? "
+        "Answer `no` in exactly two cases: the trigger only becomes true once "
+        "occurrences are added up across more than one week, or it names no endpoint "
+        "at all. Everything else is `yes` — including a trigger settled more often "
+        "than weekly, one that states no period, and one whose CONSEQUENCE runs on "
+        "past the week. This gate takes the whole item; when it could be read either "
+        "way, answer `yes`",
 }
 
 
@@ -1948,11 +1953,20 @@ def _criteria_section(item: dict, trigger_slot: bool = False,
             "Positive Punishment). Use `unclear` only when neither says. Reported, never "
             "scored — but the grader compares it against the type the example actually "
             "is, so report it accurately rather than helpfully.\n"
-            f"9. `cadence_ok` — is the TRIGGER evaluated {item['cadence']}? Judge only "
-            "how often the behaviour is checked, not how long the consequence lasts: a "
-            "daily trigger whose reward runs to the end of the week is still daily. Set "
-            "this false only when the contingency is plainly settled on the other "
-            "schedule — e.g. a daily slot answered with a whole-week tally.\n"
+            f"9. `cadence_ok` — can the TRIGGER be settled inside ONE "
+            f"{_CADENCE_NOUN[item['cadence']]}? It can whenever a single "
+            f"{_CADENCE_NOUN[item['cadence']]} of the student's own record decides "
+            "it, however short the behaviour or its window. There are exactly TWO "
+            "ways it cannot, and nothing else sets this false:\n"
+            f"   (a) the trigger only becomes true once occurrences are added up "
+            f"across MORE than one {_CADENCE_NOUN[item['cadence']]} — a stated "
+            "number of times reached over a longer span;\n"
+            "   (b) the trigger names no endpoint at all, so no amount of the "
+            "record ever settles it.\n"
+            "   A stretch of time attached to the CONSEQUENCE never decides this: a "
+            "trigger settled each day whose reward then runs on for a week is still "
+            "daily. A trigger that states NO period is settled by the question "
+            "itself and passes. When it could be read either way, it passes.\n"
             + (_C10_TRIGGER if trigger_slot else
                "10. `targets_own_behavior` — is it aimed at this student's own UTB/WGB "
                "rather than some clearly different behaviour?\n")
