@@ -5805,6 +5805,42 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       already agree with gold on the slot the subgoal is not about, and the entire
       gap is the missing `action_oriented` deduction. This is the clearest of the
       three and the only one whose premise survives the sweep unchanged.
+      == THE ALL-CELLS PASS, 2026-09-04, AND IT ANSWERS THIS ENTRY'S OWN FEAR ==
+      Run per QUALITY_CONTROL.md 2k over all 19 valid Q3 cells, reading the ACTION
+      field of each against its `action_oriented` verdict, from recorded artifacts
+      at no call cost. The result is a one-line corpus fact:
+      p19 IS THE ONLY CELL WHOSE ACTION FIELD JUSTIFIES ITSELF BY MEASURABILITY.
+      "{{corpus:Q3/p19:action:28:153:sha=9a49dde86a23:shape=S13-0a202020202020,S23-20}}" No other cell's action
+      field mentions measuring or tracking at all. The slot answers `absent`
+      already on p8, p16 and p20, and `met` on the other sixteen.
+      SO THE FEAR THIS ENTRY RECORDED DOES NOT MATERIALISE. It warned that "a rule
+      that rejects measurability-as-justification risks p9, p14 and p18, all
+      credited on access alone", and their action fields are:
+          p9   "{{corpus:Q3/p9:action:59:116:sha=16b38509467f}}"
+          p14  "{{corpus:Q3/p14:action:41:105:sha=8271acd79140}}"
+          p18  "{{corpus:Q3/p18:action:45:101:sha=d821fb9df6ad}}"
+      None of the three cites measurability, so a rule keyed on THAT cannot reach
+      them. The risk was real for a broader rule -- one demanding more than access
+      -- and that is not the rule the corpus supports.
+      PRE-REGISTERED, before anything is written:
+          FIXES   p19 only. We predict 4.0 in 12 of 12, charging `measurable`
+                  alone; gold's 3.0 charges measurable AND action, in as many
+                  words. Adding the action charge lands exactly on gold.
+          BREAKS  NONE FOUND, asserted rather than assumed: 18 of 19 cells never
+                  cite measurability in their action field, and the three already
+                  answering `absent` are untouched either way.
+          WATCH   the spread, and `action_oriented`'s credited rows -- 16 cells
+                  depend on this slot answering `met`, so a rule that widens
+                  beyond the measurability citation has 16 ways to go wrong.
+      AND THE HONEST WEAKNESS: THE RULE WOULD REST ON ONE CELL. That is the exact
+      objection recorded against ANTECEDENT_REUSED_AS_BEHAVIOR -- "the scoring
+      dictionary states no such rule; it was inferred from this cell" -- and it
+      applies here too. What makes this different is the direction: gold docks
+      p19 EXPLICITLY, with a comment naming the action criterion, so the rule is
+      not inferred from a silence. It makes the criterion say what gold plainly
+      reads it as saying. It generalises to nothing, and should be justified on
+      that basis or not written.
+
       doing AND rests its actionability on being able to measure it, so neither
       lever that fixed p8 and p16 reaches it -- not the time clause, and not
       "names no doing of its own". Gold docks it. This is the residual cell most
