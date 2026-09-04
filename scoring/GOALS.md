@@ -849,7 +849,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
                 tokens across sides; _fail_token/_fail_verdict are per-side by
                 design and must stay so.
 
-- [ ] E40. **Cell ownership misses cells written as bare `pN`, so the audit's
+- [x] E40. **Cell ownership misses cells written as bare `pN`, so the audit's
       owner map names the wrong subgoal for seven open entries.**
       FILED AS Q38 AND REFILED AS E40 THE SAME DAY. The test is the one subgoal
       E25's entry states -- the DELIVERABLE decides the series, not the finding:
@@ -881,7 +881,36 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       than a live defect: `wrong_cells_without_an_owner` asks only whether SOME
       subgoal owns a cell, and it returns 0 either way. What is lost is the
       ability to say a cell is owned by the WRONG subgoal, which nothing checks.
-      THE DELIVERABLE: resolve bare `pN` against an entry's title item inside the
+      CLOSED 2026-09-04. All four deliverables met, and the two things found
+      while meeting them are the part worth keeping.
+      THE RESOLUTION: `measured._live_subgoal_owners` gained a `subject` map --
+      the item comes from the entry's own TITLE, so the entry is ABOUT the cell
+      rather than mentioning it. `any` stays generous, because it exists so no
+      wrong cell goes unlooked-at, and `title` still means "written out in the
+      title line". Ownership now lands where it belongs: Q4b/p12 and Q4b/p4 on
+      subgoal Q18, Q1/p10 on Q14 and Q16, Q2/p10 on Q29 and Q17, NR/p9 on Q21.
+      `wrong_cells_without_an_owner` held at 0 throughout, so nothing lost its
+      only home.
+      FIRST THING FOUND: THE SHARED MAP HAD THE ENTRY-BOUNDARY DEFECT TOO, which
+      the ranking's local copy had already fixed and which nothing would have
+      surfaced. Without a heading boundary the last labelled entry of a section
+      swallows the prose after it, so subgoal Q26 was owning D2/p11, WK1/p7,
+      Q4b/p12 and DAY2/p7 out of text that is not its entry. That direction of
+      error WEAKENS the check it feeds -- a cell counts as owned by a subgoal that
+      never discusses it -- so it produces no finding and leaves no trace. Fixed
+      by resetting at a `##` heading; Q26 now owns five DAY1 cells and nothing
+      else.
+      SECOND: DELETING THE DUPLICATE INTRODUCED A REGRESSION, caught by diffing
+      the ranking before and after rather than by any check. Subgoal Q33 ("Q4a on
+      the PAPER scorer") claimed Q4a/p14 and Q4a/p19 and rose to second place --
+      cells wrong on the OLX prompt, a side Q33 is not about. Subject ownership is
+      now constrained through the map's own `by_side` to the side the figures come
+      from, which is what `by_side` was built for. Q24 keeps those cells.
+      AND THE RANKING'S COPY IS GONE, which this entry required: `goals.rank()`
+      consumes `subject` and `by_side` from the shared map, so the rule exists
+      once.
+
+      THE DELIVERABLE AS FILED: resolve bare `pN` against an entry's title item inside the
       shared owner map; fire-test that ownership moves to the title-owner rather
       than the most talkative neighbour; confirm
       `wrong_cells_without_an_owner` does not regress. Note that the map is
