@@ -3564,13 +3564,20 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       much as a scorer's, so ask rather than assume. If (b) or (c), NR/p4 is the
       one to do first, because its case does not rest on a judgement.
 
-- [ ] Q35. **SOMETIMES RIGHT on a row gold passed in silence: five cells of variance, not strictness.**
+- [ ] Q35. **SOMETIMES RIGHT on a row gold passed in silence: variance, not strictness.**
+      (The title said "five cells" until 2026-09-04, by which point six were
+      listed -- the same reason a subgoal names cells and slots rather than
+      counts.)
       Split from Q31 on 2026-09-01. Same population -- gold gave full marks and
       wrote nothing -- but here we reach gold in at least one of twelve pooled
       runs, so the cell is evidence about VARIANCE and not about how strict we
       are:
           D2/p3    gold 2   0.0 x4, 1.0 x7, 2.0 x1     right 1 of 12
-          DAY2/p8  gold 4   0.0 x7, 4.0 x5             right 5 of 12
+          DAY2/p8  gold 4   -- SEE SUBGOAL Q22, which owns this cell as a cadence
+                   target. Do not read a figure for it from here: DAY2's ledger is
+                   mid-refresh (new olx runs beside pre-change python ones), so any
+                   pooled count for it today mixes two prompts. It read 0.0 x7,
+                   4.0 x5 when filed.
           PR/p15   gold 4   0.0 x1, 2.0 x6, 4.0 x5     right 5 of 12
           Q2/p20   gold 5   4.0 x11, 5.0 x1            right 1 of 12
           Q4b/p13  gold 5   3.5 x8, 5.0 x4             right 4 of 12
@@ -3778,6 +3785,15 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       "-1 pt: missing baseline data week", which is a 1b charge on a 1c row -- the
       same cross-item shape as Q4c/p16, where a Q4b comment appears on a Q4c row.
       So the disagreement is `legend`: we say it is missing and the grader did not.
+      AND THE GOLD CORRECTION DOES NOT BREAK THAT, checked 2026-09-04 because the
+      row moved to 7.0 under an entry written against 6.0. Every 1c slot is worth
+      2, so the item's attainable scores are 0, 2, 4, 6, 8, 10 and SEVEN IS NOT
+      AMONG THEM -- gold's 7.0 is 10 minus two axis titles minus that 1-point 1b
+      charge, which no configuration of this sheet can produce. The
+      unreachable-gold allowance already covers it: 6.0 and 8.0 are the nearest
+      attainable and both count exact against 7.0. So dropping `legend` still
+      fixes the cell, 4.0 to 6.0, and the conclusion above stands unchanged.
+      Recorded so the next reader does not redo the arithmetic.
       READ THE TWO TOGETHER. Q5/p4 is a RULE being stricter than the corpus;
       1c/p11 is a single slot judged present by one side and absent by the other,
       with no rule in dispute. If both hold up they are separate findings, and the
