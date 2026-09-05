@@ -5104,6 +5104,47 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       concentrates on one handout, that changes it from a per-cell question into a
       sheet-design one.
 
+      == 2026-09-04: THE DETECTOR WAS RUN CORPUS-WIDE. NEITHER TRIGGER FIRED ==
+      Run over all 26 items and both OLX-prompt sides, through `exclusions` and
+      `_our_failing_slots` rather than the raw artifacts -- this entry's own lesson,
+      applied. No calls. THE STABLE CLASS IS SIX CELLS, up from four:
+          DAY2/p7   12 of 12   gold 3.00     Q4c/p20  12 of 12   gold 3.00
+          Q6/p2     12 of 12   gold 8.75     1a/p6    11 of 12   gold 6.00   NEW
+          Q1/p10    11 of 12   gold 4.00     Q2/p6     9 of 12   gold 4.00   NEW
+      IT DID NOT GROW PAST A HANDFUL and it does NOT concentrate on one handout --
+      member RUNS split 54 on handout 1, 28 on handout 2, 12 on handout 3, across
+      six different items. So by this entry's own test it stays a per-cell question,
+      and the sheet-design reading is not licensed by the data. Seventeen further
+      cells reach the class in 1 to 4 runs of 12 and are noise at that rate; they
+      are not listed, deliberately, since listing them would make them look owned.
+      AND THE FRAMING NEEDS A THIRD OPTION, which 1a/p6 supplies. This entry says
+      the options are "a NEW check, or a declared divergence", on the reasoning
+      that "the sheet is fully satisfied, so there is no verdict to flip". 1a/p6 is
+      a counterexample: the sheet HAS a slot for gold's objection --
+      `baseline_week` -- and that slot answers `met`, so the sheet is satisfied and
+      the check exists. What was wrong was the slot's RULE, which credited a bare
+      contrast naming no time period. Subgoal Q36 narrowed it on 2026-09-04 and the
+      fix is queued. So the third option is: A SLOT WHOSE RULE IS TOO NARROW TO
+      REACH THE CASE, and it is cheaper than either of the two this entry names.
+      Q2/p6 IS NEW FOR A DIFFERENT AND INSTRUCTIVE REASON: it was NOT a member
+      before today. It scored 4.00 -- gold's own figure -- by two errors cancelling,
+      an over-listing against a wrong refusal (subgoal Q44). Subgoal Q17's edit (d)
+      removed the wrong refusal, and the cell now over-credits cleanly to 5.00 with
+      every charging slot passing. THE CLASS GAINED A CELL BECAUSE A DIFFERENT
+      DEFECT WAS FIXED, which is worth stating: a compensating pair coming apart
+      looks exactly like a new instance of this class, and the remedy is Q44's
+      listing half rather than anything of this entry's.
+      SO TWO OF THE SIX ALREADY HAVE RULES AIMED AT THEM -- 1a/p6 from subgoal Q36
+      and Q2/p6 from subgoal Q44 -- which is evidence AGAINST the "needs a new
+      check" reading and for reading each member on its own terms first.
+      OWNERSHIP IS UNEVEN AND SHOULD BE FIXED BEFORE ANY OF THEM IS WORKED: this
+      entry owns DAY2/p7, Q4c/p20, Q6/p2 and Q1/p10, and owns NEITHER of the two
+      new members. 1a/p6 is held by subgoals Q17, Q19 and Q36, and Q2/p6 by Q17 and
+      Q44. That is not a defect to repair by adding mentions here -- naming them
+      would make this entry a fourth owner of cells other subgoals are actively
+      working -- but a reader of this list should know that two of its six are
+      being handled elsewhere.
+
 - [x] Q23. **`matches_chosen_type` on WK2, and across the cadence family.**
       POOLED, 2026-09-01, ONLY ONE CELL SURVIVES. WK2/p8, WK2/p11, WK2/p15,
       NR/p11 and NR/p15 are all RIGHT at the pooled median -- they were recorded
