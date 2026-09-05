@@ -3794,6 +3794,56 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       a different fault: the count arithmetic reported inconsistently, once in 120
       observations. Worth its own line somewhere, not here.
 
+- [ ] Q45. **The four example items look finished and eleven of their cells are
+      not reliably right. `you_arrange_it` GATES all four and flips on five.**
+      Filed 2026-09-04 out of subgoal Q35, which found PR/p15 had nowhere to go:
+      subgoal Q21 profiles this slot family on NR ALONE, and PR, PP and NP have no
+      instability owner at all. Measured from artifacts, no calls.
+      THE ITEMS READ AS DONE, which is why nobody has looked:
+          PR  python 18/18   olx 17/18       PP  python 18/18   olx 18/18
+          NR  python 18/18   olx 18/18       NP  python 17/18   olx 18/18
+      AND ELEVEN OF THEIR SEVENTY-TWO CELLS ARE NOT PERFECT: one wrong by median
+      and TEN counted right while flipping. That is subgoal E41's thesis arriving
+      at item scale -- the medians are finished and the cells underneath are not --
+      and it is the reason this is a subgoal rather than a footnote.
+      SEVEN OF THE ELEVEN HAVE NO OWNER AT ALL: NR/p7, NR/p15, NR/p18, PP/p6,
+      NP/p5, NP/p12 and NP/p14. `wrong_cells_without_an_owner` reports zero because
+      every one of them is counted RIGHT by the median -- the same blind spot E41
+      documented, on a whole family of items.
+      ONE SLOT DOMINATES, AND IT IS A GATE ON ALL FOUR. `you_arrange_it` is
+      `gates=True` with no points on PR, NR, PP and NP alike, so an unmet verdict
+      takes the entire 4-point item. It flips on FIVE of the eleven cells:
+          NR/p7    met 11, absent 1        NR/p11   met 8, unclear 4
+          NR/p18   met 10, unclear 1, absent 1     NR/p20   absent 11, met 1
+          NP/p12   met 9, unclear 2, absent 1
+      No other slot flips on more than two. `unclear` appears in three of the five,
+      which is worth noting on its own: the gate is not swinging between yes and no
+      so much as failing to decide.
+      THE REST OF THE SPREAD, for whoever reads this next:
+          targets_goal_behavior      2 cells (PR/p15, NR/p7)
+          phrased_directly           2 cells (NR/p9, NP/p14)
+          targets_unwanted_behavior  2 cells (NP/p5, NP/p14)
+          names_behavior             1 (PR/p15)      demonstrates_type  1 (NR/p9)
+      THE ONE CELL THAT IS ACTUALLY WRONG is PR/p15, handed here by subgoal Q35:
+      `targets_goal_behavior` answers `absent` in 7 of 12 on a row gold passed in
+      SILENCE at 4.00, so we refuse what gold credits. It is the only cell in the
+      family below its median, and the only one where a rule change has a score to
+      aim at.
+      DO NOT SWEEP FOR THE OTHER TEN. Section 5's rule applies exactly: they are
+      counted right, and re-running them buys an estimate of a rate rather than a
+      fix. If `you_arrange_it` is the lever, it will show on PR/p15 and on the
+      gate's own text, not in more runs.
+      WHERE TO START, and it is free: read `you_arrange_it`'s rule against the five
+      cells that flip, and against subgoal Q21's NR precision profile, which is the
+      only place this slot family has been studied. Q21 found it running at 71% on
+      NR; this entry says the same slot is the family's largest instability and
+      that three of the four items were never examined.
+      A COMPANION QUESTION, DELIBERATELY NOT FILED: whether `unclear` should be a
+      permitted verdict on a GATE at all. Three of the five flipping cells reach it,
+      and on a gate it is indistinguishable in cost from `absent` -- the item is
+      zeroed either way -- so the vocabulary offers a hedge that the arithmetic does
+      not honour. That is a sheet-design question and belongs in the E series.
+
 - [ ] Q44. **Q2/p6 is right 8 times in 12 and never once for the right reason.
       LOW PRIORITY, filed so a compensating pair is not read as agreement.**
       Filed 2026-09-04 at the user's direction, out of subgoal Q17's sweep. No
@@ -4258,24 +4308,31 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       negative-phrasing clause. It was a real variance cell and it is now
       `unstable_counted_right`, which is subgoal E41's class rather than this
       entry's.
-      PR/p15's ROUTE DOES NOT EXIST, and this is the correction that matters most
-      for whoever reads this next. The entry says it "flips on
-      `targets_goal_behavior`, which subgoal Q21 profiles at its worst precision".
-      The slot is right -- `targets_goal_behavior` is `absent` in 7 of 12 on a row
-      gold passed in silence at 4.00 -- but Q21 is scoped to NR and names only NR
-      cells. PR is a sibling item, not Q21's. So PR/p15 has no owner but this
-      entry, and it STAYS HERE until an instability subgoal for the four example
-      items exists.
+      PR/p15's ROUTE DID NOT EXIST, AND NOW IT DOES. The entry sent it to subgoal
+      Q21 on the strength of `targets_goal_behavior`, and the slot reading is right
+      -- `absent` in 7 of 12 on a row gold passed in silence at 4.00 -- but Q21 is
+      scoped to NR and names only NR cells. PR is a sibling item, not Q21's.
+      SO SUBGOAL Q45 WAS FILED for the four example items' instability, and PR/p15
+      MOVES THERE. It is the only cell in that family below its median, which makes
+      it the one place a rule change there has a score to aim at.
       Q4b/p13 AND DAY2/p8 ARE PROPERLY ROUTED and need nothing: subgoal Q18 owns
       the first, subgoal Q22 the second, and both appear in those entries.
-      SO WHAT THIS ENTRY HOLDS IS TWO CELLS:
-          PR/p15   5 of 12   `targets_goal_behavior` absent in 7, gold silent
-          2a/p14  10 of 12   the three-way-ambiguous `verdict` box
-      Both have a named candidate already written above -- a hedge-tolerance clause
-      for 2a/p14, worth at most 2 cell-runs in 240 -- and neither is worth a sweep
-      on its own. The honest state is that this entry is now a two-cell variance
-      record rather than a population, and it should be closed into whatever owns
-      the example items if such a subgoal is ever filed.
+      SO WHAT THIS ENTRY HOLDS IS ONE CELL: 2a/p14, at 10 of 12, on the
+      three-way-ambiguous `verdict` box. Its candidate -- a hedge-tolerance clause,
+      worth at most 2 cell-runs in 240 on this item -- is written above and is not
+      worth a sweep on its own.
+      AND THAT MAKES THIS A CLOSURE CANDIDATE, with one thing to settle first.
+      2a/p14 is counted RIGHT, so if this entry closes with the cell still named
+      here it is orphaned SILENTLY -- `wrong_cells_without_an_owner` only sees
+      cells wrong by the median, which is subgoal E41's laundering exactly. Either
+      2a/p14 gets a home or this entry records it as a ceiling in terms someone can
+      act on: the verdict box admits three defensible readings of one garbled
+      sentence, the two dissenting runs disagreed with EACH OTHER, and the rubric
+      says success or failure is irrelevant to the score.
+      D2/p3 MUST ALSO STOP BEING NAMED HERE before closing, for the same reason in
+      reverse: it is suspect input, the owner map counts any mention, and a
+      subgoal that has been closed should not be the reason a suspect cell reads
+      as owned.
 
 - [ ] Q33. **Q4a on the PAPER scorer: four cells the other two engines get right.**
       Filed 2026-09-01, on the first paper numbers the ledger has ever held.
