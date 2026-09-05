@@ -5306,6 +5306,33 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       Q26's DAY1 rename, which moves DAY1's prompt again -- one measurement rather
       than two.
 
+      == DAY1 AND WK1 RE-SWEPT 2026-09-04, BOTH SIDES. THE REVERT COST NOTHING ==
+          DAY1 python  18/18   runs [18, 18, 17, 18, 18, 18]   previously 18
+          DAY1 olx     18/18   runs [17, 18, 18, 18, 18, 18]   previously 18
+          WK1  python  18/18   runs [18, 18, 17, 18, 18, 18]   previously 18
+          WK1  olx     18/18   runs [16, 18, 18, 18, 18, 18]   previously 18
+      Both items held their numbers across BOTH changes -- the cadence revert and,
+      on DAY1, subgoal Q26's slot rename. That is the result this re-sweep was for:
+      the entry could not say whether the reverted rule held on the three items it
+      had not measured, and it does.
+      THE CONTROLS HELD, and they were the reason to be careful:
+          DAY1/p9   the gate's PROOF CASE, the only cell whose gold comment names
+                    the cadence -- perfect, as this entry requires of any change
+          DAY1/p11  a target of the first attempt -- perfect
+      WK1/p19 SLIPPED ONE RUN, 12 of 12 to 11 of 12, and it is this entry's named
+      mirror control ("If I complete my daily goal for a week then..."). One run on
+      a cell that was perfect is not evidence of anything by itself, but it is the
+      control, so it is recorded rather than passed over.
+      WHAT REMAINS NON-PERFECT ON THESE TWO ITEMS, and none of it is cadence:
+          DAY1/p14  10 of 12   listed in this entry's over-credit group, subgoal Q20's
+          WK1/p6    10 of 12   handed to subgoal Q20 on 2026-09-03
+          WK1/p19   11 of 12   the control above
+      SO THIS SUBGOAL IS DOWN TO ONE CELL: DAY2/p8, at 5 of 12. DAY1, WK1 and their
+      controls are settled, DAY2/p9 recovered, and every other cadence cell in the
+      family is perfect or belongs to Q20. The entry's own diagnosis of p8 -- that
+      "till the end of the week" is a CONSEQUENCE DURATION and the rule has no
+      separate ground for what is being CHECKED -- is now the whole of the subgoal.
+
 - [ ] Q21. **NR: a 4-point GATE running at 71% precision.**
       POOLED, 2026-09-01, AND THE HEADLINE NUMBER SURVIVES. `you_arrange_it` is
       refused 66 times across the twelve pooled runs with 18 of those in cells
@@ -7633,6 +7660,34 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       DAY1's PROMPT SHA HAS MOVED, as this entry predicted, and DAY1 is being
       re-swept on both sides together with WK1 and WK2 -- which were already owed
       a re-sweep for subgoal Q22's revert. One measurement, not two.
+
+      == MEASURED 2026-09-04. THE RENAME COST NOTHING AND CHANGED NOTHING ==
+          DAY1 python  18/18   runs [18, 18, 17, 18, 18, 18]   previously 18
+          DAY1 olx     18/18   runs [17, 18, 18, 18, 18, 18]   previously 18
+      The prompt sha moved and the NUMBER did not, on either side. That is what a
+      rename should do, and it is worth stating because it was not guaranteed: the
+      shipped prompt changed in three ways at once -- the slot's NAME, its
+      checklist heading, and the note under it, which now says the check costs the
+      whole item where it used to say "never changes a verdict".
+      THE SLOT'S BEHAVIOUR REPRODUCES THE DECISION THIS ENTRY RECORDED. Under its
+      new name `phrased_directly_gate` it answers `absent` 40 times in 240 pooled
+      observations, on EXACTLY the five cells the entry names -- p1, p6, p8, p10
+      and p18 -- and gold scores ALL FIVE 0.0. So the gate still coincides with no
+      wrong cell: DAY1's only non-perfect cell is p14, which never answers `absent`
+      here. Answer (a), INTENTIONAL, is confirmed on a second independent
+      measurement and under the corrected prose.
+      TWO OF THE FIVE ARE UNSTABLE and it does not matter, which is the useful
+      detail: p1 answers `absent` in 3 of 12 and p6 in 1 of 12, while p8, p10 and
+      p18 answer it 12 of 12. Since gold scores all five 0.0, the item reaches gold
+      whether the gate fires or not on those two -- they are already zero by other
+      routes. A gate can be unstable and harmless when everything it guards is
+      failing anyway, and a precision figure that counted p1 and p6 as firings
+      would be measuring nothing.
+      SO THE ONLY THING LEFT HERE IS THE CLOSURE QUESTION. The rename is done and
+      measured, GATE_ASYMMETRIES is gone, SLOT_STRUCTURE_DIVERGENCES is empty with
+      its budget at 0, the sibling check is clean with no exemptions, and the
+      self-contradiction in DAY1's shipped note is fixed. Nothing in this entry is
+      outstanding.
 
 
 ## THEN
