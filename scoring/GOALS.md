@@ -5895,6 +5895,40 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       "{{corpus:DAY2/p8:day2:83:102:sha=ceeef43b24ca}} week" is a CONSEQUENCE DURATION and the rule has no
       separate ground for what is being CHECKED -- is now the whole of the subgoal.
 
+      == 2026-09-05: THE EVIDENCE PROVES THE DIAGNOSIS, AND ARGUES FOR WAITING ==
+      This entry says p8's problem is that "there is no separate ground the model
+      must answer about WHAT IS BEING CHECKED, so the consequence's horizon is free
+      to leak into the cadence judgement". THE MODEL'S OWN EVIDENCE FIELD SETTLES
+      IT: on the runs where `cadence_is_daily` answers `absent`, the clause it
+      quotes as its reason is "{{corpus:DAY2/p8:day2:0:37:sha=c5ff9106af66}}" -- WHICH NAMES
+      NO PERIOD AT ALL. It is refusing a trigger for failing to be daily when the
+      trigger states no cadence either way, and the only period in the sentence,
+      "{{corpus:DAY2/p8:day2:83:102:sha=ceeef43b24ca}} week", belongs to the consequence.
+      THE TWO CONTROLS QUOTE A PERIOD AND ARE BOTH RIGHT, which is what makes the
+      contrast evidence rather than a story:
+          DAY1/p9  quotes "5 times out of the week"  -> absent, correct, 12 of 12
+          WK1/p19  quotes "for a week"               -> met, correct, 11 of 12
+      So the slot works when a period is stated and misfires when one is not.
+      THE STRUCTURAL FIX IS A GROUND FOR THE TRIGGER'S PERIOD, asked separately and
+      with an explicit NONE STATED value, so a trigger that names no period cannot
+      be refused for naming the wrong one. That is the same decomposition subgoals
+      Q14 and Q18 received on 2026-09-05 -- split a conflated judgement into two
+      asked separately -- and it is the third instance of one remedy in a day.
+      IT IS NOT WRITTEN YET, DELIBERATELY, and the reason is this entry's own
+      warning: "WK1's 20 refusals at 100% and DAY1's 26 at 92% both depend on this
+      gate firing correctly. A change that relaxes it risks two items to fix two."
+      A cadence change reaches FOUR items where Q14's reaches one and Q18's reaches
+      one. Two structural changes are already written and unmeasured; writing a
+      third with four items of blast radius before either is measured would mean
+      four items moving at once with nothing to attribute the movement to.
+      AND ONE CELL WOULD BE AT RISK IN A WAY THIS ENTRY HAS NOT RECORDED: DAY2/p9
+      quotes "out of the 5 days" and is `met` in 8 of 12 against a gold of 4.00,
+      while DAY1/p9 quotes "5 times out of the week" and is correctly `absent`
+      against a gold of 0.00. GOLD TREATS TWO DAYS-WITHIN-A-WEEK TRIGGERS
+      DIFFERENTLY on the two items, so any ground that judges the trigger's period
+      has to reproduce that, and p9 is the cell it would break. Read both answers in
+      full before writing the ground.
+
 - [ ] Q21. **NR: a 4-point GATE running at 71% precision.**
       POOLED, 2026-09-01, AND THE HEADLINE NUMBER SURVIVES. `you_arrange_it` is
       refused 66 times across the twelve pooled runs with 18 of those in cells
