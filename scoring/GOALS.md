@@ -7795,6 +7795,44 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       antecedent_1 is too strict on p19, which is Q31's false-positive question
       and not a wording one.
 
+      == 2026-09-04: BOTH ROUTES ARE CLOSED, AND THE CEILING IS ONE CELL ==
+      Worked per this entry's own instruction -- "IF NEITHER ROUTE OPENS, RECORD
+      THE CEILING AND STOP". Neither opens, and the reason for p19 is not the one
+      this entry expected. No calls.
+      ROUTE 2 IS GONE BECAUSE GOLD MOVED. Every paragraph above says "p19 gold 5.0
+      silent" and treats it as subgoal Q31's silent-full-marks question. That is
+      STALE: p19's gold was corrected 5.00 -> 3.00 in `handouts.CORRECTED_GOLD`,
+      on the student's own causal claim -- their Q1 says not sleeping makes them
+      unmotivated, so box 1's "waking up and not feeling motivated" runs in the
+      consequence direction -- with p20 as the same-UTB comparator. We score 3.00.
+      WE AGREE WITH GOLD ON p19 NOW, in 11 of 12 runs. There is no strictness
+      question left, and subgoal Q31 is CLOSED in any case, so the hand-off this
+      entry recorded had nowhere to land.
+      AND THE LEDGER HAD NOT NOTICED. The correction was made and Q4a was never
+      re-recorded, so the recorded per-cell count still said p19 was right 0 of 12
+      -- computed against the OLD gold -- while the artifacts scored against the
+      CURRENT gold give 11 of 12. Re-recorded 2026-09-04 from the same artifacts,
+      no calls: python 18/20 -> 19/20, olx 17/20 -> 18/20, and E42's band line
+      caught the move (`always_wrong -> unstable_counted_right`). CHECKED ACROSS
+      THE WHOLE TABLE: of the 14 CORRECTED_GOLD cells, p19 was the ONLY stale one.
+      A one-cell bookkeeping miss, not a systemic gap -- but nothing checks for it,
+      which is worth an E-series check if it ever happens twice.
+      ROUTE 1 STAYS CLOSED on the reading this entry already reached: gold's
+      comment on p14 is PLURAL and charges the whole 4, box 2 is unambiguously a
+      consequence ("being in pain AFTERWARDS"), so the row is most probably judged
+      on box 2 and docked as a pair. That is subgoal Q19's later-box gradient, and
+      Q19 owns the cell. Correcting gold here would be correcting it to make a
+      number move, which this entry's own route (1) forbids.
+      SO THE CEILING IS ONE CELL, p14, and it is not this subgoal's to fix:
+          p14   0 of 12   gold 1.00, we score 3.00, `antecedent_1` met 12 of 12
+      The three comparators refute any box-1 rule and are unchanged: p10 and p17
+      carry the same bidirectional state loop on the same UTB and gold gives both
+      full marks, 12 of 12 correct today.
+      WHAT REMAINS IN THIS SUBGOAL IS NOTHING. p19 agrees with gold, p14 is Q19's,
+      p2 (10 of 12) and p9 (9 of 12) are counted RIGHT and unstable, which is
+      subgoal E41's class and not a defect list. Q4a stands at 19/20 and 18/20.
+      IT IS A CLOSURE CANDIDATE, not closed -- that is the user's call.
+
 - [ ] Q26. **DAY1 alone gates on `phrased_directly`. One `!`, undeclared, eight sibling items.**
       Found 2026-08-29 while checking whether DAY1 contradicted subgoal Q20's
       orthogonal-gates finding. It does not contradict it; it is a different
