@@ -99,6 +99,11 @@
   "note": "'limit' in 'ADDING a privilege for staying within a limit is PR, not NR' and 'commonly' in 'the most commonly missed'. Ordinary English in senses unrelated to the students' use.",
   "verdict": "vocabulary"
  },
+ "7158ee013365": {
+  "label": "Q1 credit.desc :: HOW MANY statements name a BENEFIT the student expec",
+  "note": "hard and wish both stood in this desc BEFORE the 2026-09-04 edit -- 'how hard the behaviour has been to change' and 'however much it sounds like a wish' -- and are the instructor's rubric wording about what does not count as a benefit, exactly as verdict 81a9f56bd0d8 recorded for this same block. The verdict lapsed only because editing the prose changed its sha. The clause added here borrows nothing from the corpus: it was written against Q1/p10 and deliberately names no state, condition or domain that any response uses.",
+  "verdict": "vocabulary"
+ },
  "7331ef355578": {
   "label": "SLOT_NOTES matches_chosen_type",
   "note": "compared/established are the note's own prose about criteria 6 and 8.",
