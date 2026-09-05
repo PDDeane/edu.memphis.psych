@@ -3885,6 +3885,18 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       both at once. Fixing the refusal alone converts a cell that is right by
       accident into one that is wrong on the record.
 
+      == INHERITS SUBGOAL Q20's MECHANISM (A), 2026-09-04 ==
+      Q20's class was found to be three mechanisms, and this cell is one of the two
+      where AN INSTRUMENT EXISTS AND REPORTS WRONGLY -- `reasons_listed` answering
+      3 on a two-statement response, which is defect 1 above. Q2/p6 joined Q20's
+      class only on 2026-09-04, when subgoal Q17's edit (d) removed the refusal
+      that had been cancelling the over-listing; before that the two errors hid
+      each other and the cell scored gold's own 4.00.
+      THAT IS WHY THIS ENTRY'S ORDER MATTERS. Q20 lists the cell as an over-credit
+      with every charging slot passing, which is exactly what an unfixed listing
+      produces. Fixing the listing removes it from Q20's class as well as fixing
+      the cell.
+
 - [ ] Q43. **Q2/p18: the inversion boundary that three rule formulations could
       not move. LOW PRIORITY, and filed to stop it absorbing effort.**
       Moved out of subgoal Q17 on 2026-09-04 at the user's direction, after the
@@ -4084,6 +4096,18 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       p15 IS EFFECTIVELY SETTLED at 11 of 12: its one bad run credits three week
       slots on an answer gold scores 0.00 by the gate. Nothing here to change --
       section 5's rule about instability applies.
+
+      == INHERITS SUBGOAL Q20's MECHANISM (B), 2026-09-04 ==
+      1a/p6 is a member of Q20's "every check passes and gold still docks" class,
+      and reading it against the other five is what showed Q20's framing to be
+      incomplete. Q20 says the only remedies are a NEW check or a declared
+      divergence, because a satisfied sheet has no verdict to flip. This cell
+      refutes that: `baseline_week` IS the check for gold's objection, it answers
+      `met`, and what was wrong was its RULE -- which credited a former quantity
+      that named no period. A third remedy exists and is the cheapest of the three:
+      NARROW THE RULE OF A SLOT THAT ALREADY ASKS THE RIGHT QUESTION.
+      Q20 has been re-scoped to the cells where no check asks at all, and this one
+      is no longer among them.
 
 - [x] Q34. **NEVER RIGHT on a row gold passed in silence: six cells, and the false-positive test.**
       Split from Q31 on 2026-09-01, once pooling made the distinction measurable.
@@ -4833,7 +4857,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       the opening paragraph: its "python 1 over / 8 under, olx 0 over / 7 under"
       profile is the 2026-08-30 measurement and no longer describes the item.
 
-- [ ] Q20. **The SHEET CANNOT REFUSE: over-credit with every check passing.**
+- [ ] Q20. **The SHEET CANNOT REFUSE: gold objects to something no check asks about.**
       Two views of one phenomenon, merged 2026-08-28: cells where every scoring
       check passes and gold still docks, and the observation-level rate that says
       how much of our over-crediting works that way. Subgoal 22 held the second
@@ -5018,7 +5042,47 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       arithmetic is crediting something the app refuses, which is an equivalence
       defect rather than a rubric gap.
 
-      == ANSWERED 2026-09-04: THE SAME CLASS IS ON BOTH SIDES. IT IS A RUBRIC GAP ==
+      == RE-SCOPED 2026-09-04: THE CLASS WAS THREE MECHANISMS, AND ONLY ONE IS THIS
+      == SUBGOAL'S. NOTHING NEW WAS FILED, BECAUSE TWO ALREADY HAD OWNERS ==
+      "Every check passes and gold still docks" described the SYMPTOM. Asked of each
+      of the six stable members whether an INSTRUMENT for gold's objection exists,
+      the class splits three ways, and only the last is this entry's:
+        (A) A COUNT OVER-REPORTS. The instrument exists and returns the wrong
+            number, so its expansion slots all pass and nothing refuses.
+              Q1/p10  gold "only provided two reasons"; `benefits_listed` = 3 in
+                      11 of 12, should be 2
+              Q2/p6   gold "missing one reason"; `reasons_listed` = 3 in 9 of 12
+                      on a TWO-statement response
+        (B) A SLOT'S RULE IS TOO NARROW to reach the case. The check exists and
+            answers `met`.
+              1a/p6   gold "did not have a sentece pertaining to the baseline
+                      week"; `baseline_week` = met in 11 of 12
+        (C) NO CHECK ASKS ABOUT IT AT ALL, which is what this entry is now for:
+              Q4c/p20  gold wants more explanation that the second example is a
+                       consequence -- EVERY slot met on EVERY run
+              DAY2/p7  gold objects that the reward IS the unwanted behaviour --
+                       no slot asks; the item is criteria-derived
+              Q6/p2    gold objects that the change does not affect the
+                       antecedent -- DECLARED, the change_a1/change_a2 ceiling
+      SO THE "NO TUNING CAN REACH THESE" CLAIM BELOW IS TRUE OF THREE CELLS, NOT
+      SIX. For (A) and (B) there is a verdict to flip and tuning is exactly the
+      remedy -- which is why all three already have rules written or owed.
+      AND NOTHING WAS FILED FOR (A) OR (B), deliberately, because each already has
+      an owner whose TITLE states the mechanism:
+          Q1/p10 -> subgoal Q14, "a restatement of the goal counted as a reason",
+                    whose rule was written 2026-09-04 and is queued
+          Q2/p6  -> subgoal Q44, which names the listing over-count as its first
+                    of two defects
+          1a/p6  -> subgoal Q36, whose title names the cell, rule written and queued
+      Filing new entries for them would have made this subgoal a fourth owner of
+      cells three others are actively working, which is the laundering that E41
+      documented and that three separate entries hit today. THE MERGE IS THE
+      ANSWER, not a split.
+      WHAT THIS SUBGOAL NOW OWNS is (C): two live cells, Q4c/p20 and DAY2/p7, plus
+      Q6/p2 which is already declared. That is the population for which a NEW CHECK
+      or a DECLARED DIVERGENCE really are the only two options.
+
+      == THE SAME CLASS IS ON BOTH SIDES. IT IS A RUBRIC GAP ==
       Run per side over all 26 items, no calls:
           python   85 over-credit observations,  44 with NO charging slot unmet (52%)
           olx      86 over-credit observations,  50 with NO charging slot unmet (58%)
@@ -7767,6 +7831,18 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       PREDICTED: p10 from 1 of 12 toward 12; the other nine unmoved. p9 is NOT
       expected to move and must not be read as a target -- it is a declared
       divergence and its defect is `harms_listed`, not this slot.
+
+      == INHERITS SUBGOAL Q20's MECHANISM (A), 2026-09-04 ==
+      Q20's "sheet cannot refuse" class was found to be three mechanisms, and
+      Q1/p10 is one of the two where AN INSTRUMENT EXISTS AND REPORTS WRONGLY:
+      `benefits_listed` answers 3 in 11 of 12 where gold's count is 2, so the
+      three expansion slots all pass and nothing refuses. Q20 keeps only the cells
+      where NO check asks about gold's objection; this cell has one and it
+      miscounts. Nothing was filed -- this entry's title already names the
+      mechanism, and the rule written here on 2026-09-04 targets exactly it.
+      SO A GREEN RESULT HERE ALSO SHRINKS Q20's CLASS by one, and that is the test
+      to watch: if p10's count goes to 2 and the cell reaches gold, the class was
+      never six.
 
 - [x] Q24. **Q4a's ceiling: two cells, both `antecedent_1`, deterministic and opposite.**
       RETITLED 2026-09-01. It was "Q4a's `antecedent_2`: the slot that carries the
