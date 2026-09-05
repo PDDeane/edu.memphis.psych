@@ -3818,6 +3818,35 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       because a clause here reaches four sheets, and subgoal Q26's rename is the
       recent reminder that a slot shared by siblings is not a per-item edit.
 
+      == READ OUT 2026-09-05 ACROSS ALL FOUR ITEMS. THE MECHANISM HOLDS AND THE
+      == OBVIOUS CLAUSE IS REFUTED ==
+      THE CELL IS EXACTLY AS DESCRIBED. Their Q1 UTB {{corpus:Q1/p15:response:28:67:sha=b952f0ce299b:shape=S5-0a202020202020,R3-1-2253}} devices", their Q2 goal is "{{corpus:Q2/p7:response:98:153:sha=f6bcf00852bf:shape=S5-0a202020202020}} games", and the DAY2 plan is "{{corpus:DAY2/p7:day2:0:90:sha=3e5ec1080c30:shape=S6-0a202020202020}}" The reward IS
+      the unwanted behaviour, gold charges its 1 point for exactly that, and
+      `targets_own_behavior` answers `met` on 12 of 12 because the plan IS aimed at
+      their goal. The slot's question is satisfied; gold's objection is about the
+      CONSEQUENCE, which the slot does not ask about.
+      AND THE OBVIOUS CLAUSE -- refuse a plan whose reward is the unwanted
+      behaviour -- IS REFUTED BY ONE CELL, found by reading every answer on all
+      four items rather than the target alone:
+          WK1/p1  gold 4.00, right 12 of 12.  UTB "lack of sleep".
+                  "{{corpus:WK1/p1:wk1:0:118:sha=26396e44cef6:shape=S13-0a202020202020202020202020202020202020,S15-20,C7bec00006f00000000000000}}"
+      The reward is staying up late, which is the unwanted behaviour, and GOLD
+      PASSES IT IN FULL. So the rule cannot be "the reward must not be the UTB".
+      WHAT SEPARATES THEM, offered as the next hypothesis rather than as a rule:
+      p7's reward is STANDING PERMISSION to resume the behaviour ("{{corpus:DAY2/p7:day2:56:83:sha=431dfd8eb891:shape=S2-0a202020202020}} night"), while WK1/p1's is a BOUNDED, one-off deviation that the
+      sentence itself ties back to the goal ("so I can sleep in on Saturday"). That
+      is a real distinction and it rests on ONE cell each way, which is thin for a
+      clause on a slot four items share.
+      SO IT IS NOT WRITTEN. `targets_own_behavior` refuses almost nowhere else --
+      across the four items it is non-`met` only on the blanks and on four cells
+      that are already right -- so there is no control set to validate a change
+      against beyond the two cells above. Section 5's caution applies: the evidence
+      for the clause is one cell, and the evidence against it is one cell.
+      THE CHEAPER ROUTE, if this is picked up: gold charges p7 exactly 1 point and
+      the slot costs exactly 1, so a DECLARED divergence records the disagreement
+      at its true size without risking WK1/p1. That is the same trade subgoal Q48
+      faces on Q4c/p20 and subgoal Q24 recorded as its ceiling.
+
 - [ ] Q47. **Q6: `change_a1`/`change_a2` credit a change that does not address the
       antecedent. Two cells, one slot family, ELEVEN working controls.**
       Filed 2026-09-04 out of subgoal Q20, and it is the best-evidenced rule
@@ -4810,6 +4839,37 @@ because it can be fixed or declared; a wobbling cell cannot be either.
           ABOUT, with no operand pair that expresses it".
       DO NOT change both at once. Removing the gate and rewording the slot in one
       sweep confounds them, and this item has 20 cells to spend.
+
+      == BOTH QUESTIONS ANSWERED 2026-09-05, AND NEITHER ANSWER IS "REMOVE THE
+      == GATE" ==
+      QUESTION 1 -- IS THE GATE RIGHT? Q2's deduction dictionary carries BOTH codes:
+          WGB_UNRELATED     5.0   the whole item
+          WGB_NOT_OPPOSITE  2.0   the partial charge gold used on p10
+      So a five-point whole-item charge for "not the opposite" IS the rubric's, not
+      ours, and this entry's framing -- "the same judgement is worth 2 to the
+      grader and 5 to us ... that is the wiring" -- was wrong in an instructive
+      way. The two codes are TIERS of one criterion, and the real question was
+      never whether a gate should exist but WHICH TIER a cell falls in.
+      QUESTION 2 -- IS THE SLOT STABLE ENOUGH TO GATE? It is now. On p10
+      `wgb_is_counterpart` answered `met` on 12 of 12 in the 2026-09-04 sweep,
+      where this entry recorded it flipping five-to-one.
+      AND THE DEMONSTRATION CELL IS FIXED. Q2/p10 was 1 of 12 and is 12 of 12
+      PERFECT. Subgoal Q17's edit (c) re-aimed the gate on the ACTIVITY the goal
+      names rather than on whether the unwanted behaviour is mentioned, and the
+      gate stopped firing on a cell gold charges at the 2-point tier.
+      THAT IS THE COUNTERFACTUAL THIS ENTRY RECORDED, DELIVERED BY A DIFFERENT
+      ROUTE. The entry measured "gate does not fire -> 3.00, gold 3.00" and
+      concluded the fix could not be "remove the gate", because subgoal Q21 shows
+      PR and PP depend on their gate firing 18 times each without error. Re-aiming
+      achieved the same score WITHOUT removing anything -- so the third option the
+      entry could not see was that the gate was not mis-wired but MIS-AIMED.
+      WHAT REMAINS IS NOT THIS SUBGOAL'S. NR/p11 is 8 of 12 with `you_arrange_it`
+      answering `unclear` in 4 runs, and it now belongs to subgoals Q21 and Q45 --
+      Q45 records `unclear` on a GATE as its own question, since on a gate it costs
+      exactly what `absent` costs. The three cadence cells were already withdrawn
+      to subgoal Q22, and WK2/p15 is covered by Q22's 2026-09-05 readout.
+      SO THIS IS A CLOSURE CANDIDATE. Its question is answered, its demonstration
+      cell is perfect, and every cell it still names has a live owner elsewhere.
 
 - [x] Q28. **Q6/p5: the python's one miss is `state_a1` refers_to drift, not a rule.**
       DIAGNOSED 2026-08-31, from the artifacts on disk, no API calls. Two wrong
@@ -5928,6 +5988,42 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       DIFFERENTLY on the two items, so any ground that judges the trigger's period
       has to reproduce that, and p9 is the cell it would break. Read both answers in
       full before writing the ground.
+
+      == ALL FOUR ITEMS READ OUT 2026-09-05. THE DIAGNOSIS HOLDS AND COVERS TWO
+      == CELLS, NOT ONE ==
+      Every answer on DAY1, DAY2, WK1 and WK2 read against its cadence verdict, not
+      just the cells that fail. No calls.
+      THE TWO FAILING CELLS ARE THE SAME SHAPE, which this entry did not know:
+          DAY2/p8   trigger "{{corpus:DAY2/p8:day2:0:37:sha=c5ff9106af66}}" -- NO period.
+                    The only period is the consequence's "{{corpus:DAY2/p8:day2:83:102:sha=ceeef43b24ca}} week".
+          WK2/p15   trigger "{{corpus:WK2/p15:wk2:0:25:sha=95cff3b0a2d6}}" -- NO period. The only
+                    period is the consequence's "for a hour".
+      Both wobble, and in both the slot is reaching past the trigger into the
+      consequence for a period the trigger does not state.
+      AND A PERIOD-LESS TRIGGER IS OTHERWISE JUDGED CORRECTLY, which is what makes
+      this a scoping failure rather than a missing rule. Four cells state no period
+      in the trigger AND none anywhere else, and all four are `met` 12 of 12 and
+      right: DAY1/p7 "{{corpus:DAY1/p7:day1:10:32:sha=f2c26c66ef87}} hours", DAY1/p11 "if I workout for 30
+      minutes", DAY1/p19 "if I sleep 8 hours", DAY2/p11 "{{corpus:DAY2/p11:day2:0:26:sha=dd86f6b15ae7:shape=A8}}
+      minutes". So the slot handles a silent trigger correctly UNLESS a period word
+      appears elsewhere in the sentence.
+      EVERY CELL WHOSE PERIOD IS IN THE TRIGGER IS ALREADY RIGHT, on all four
+      items -- DAY1/p6 and p9 refuse a weekly trigger on a daily sheet, WK1/p19 and
+      the ten weekly-trigger cells on WK2 accept theirs. There is no cell the
+      scoping change would move from right to wrong that this readout can find.
+      SO THE GROUND IS WORTH BUILDING and it buys two cells: p8 lands on gold's 4.00
+      by ceasing to be zeroed, and WK2/p15 lands on gold's 2.00 because this entry
+      already records it as failing "only when a gate fires ON TOP of a
+      correctly-priced deduction" -- `matches_chosen_type` charges its 2 correctly,
+      so removing the spurious gate leaves exactly gold's score.
+      THE RULE ALREADY SAYS IT, which is why a ground rather than more prose: "judge
+      only how often the behaviour is checked, not how long the consequence lasts"
+      is in the shared criteria text and is losing. That is the same failure mode as
+      subgoals Q14 and Q18 on 2026-09-04, and the same remedy -- name the span the
+      judgement applies to instead of describing it.
+      STILL NOT WRITTEN, for the sequencing reason above: two structural changes are
+      unmeasured and this one reaches four items. It should go in the batch AFTER
+      they are measured, and its controls are named here.
 
 - [ ] Q21. **NR: a 4-point GATE running at 71% precision.**
       POOLED, 2026-09-01, AND THE HEADLINE NUMBER SURVIVES. `you_arrange_it` is
