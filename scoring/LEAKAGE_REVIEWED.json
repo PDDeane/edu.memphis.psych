@@ -69,6 +69,11 @@
   "note": "function/gains is the operant-conditioning frame's own vocabulary.",
   "verdict": "vocabulary"
  },
+ "475cb4ce2da4": {
+  "label": "1a credit.rule :: is the BEFORE state given \u2014 the level the behaviour ",
+  "note": "nights, rate and starts all stood in this rule BEFORE the 2026-09-04 addition -- 'the rate the behaviour ran at', 'up past midnight most nights' in the rule's own worked example, and 'starts the clock at the intervention'. None is new prose and none is borrowed; the verdict lapsed only because editing the block changed its sha. Two words the addition DID borrow were caught and reworded rather than reviewed away: 'places' echoed p16, and 'improved upon' echoed p5 and p6 -- p6 being the very cell this change targets, which is the borrowing that would have mattered most.",
+  "verdict": "vocabulary"
+ },
  "4cbec78f7d8c": {
   "label": "WK2 guidance :: IMPLICIT (from gold): advisory notes without deducti",
   "note": "'notes' and 'related' from 'advisory notes without deduction are common' - a statement about how the GRADERS wrote, not about any response. Ordinary English.",
