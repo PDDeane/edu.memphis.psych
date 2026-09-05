@@ -3794,6 +3794,91 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       a different fault: the count arithmetic reported inconsistently, once in 120
       observations. Worth its own line somewhere, not here.
 
+- [ ] Q46. **DAY2/p7: `targets_own_behavior` credits a reward that IS the
+      unwanted behaviour. The slot costs exactly what gold charges.**
+      Filed 2026-09-04 out of subgoal Q20, whose class dissolved when each cell was
+      asked whether an instrument exists. This one's does. No calls.
+      THE ENTRY THAT SENT IT HERE SAID THE OPPOSITE, and that is the finding worth
+      carrying: Q20 recorded DAY2 as "criteria-derived and has no slot to name", so
+      the cell sat for two days as proof the sheet could not refuse. DAY2 has
+      `targets_own_behavior` at pts=1.0, and gold charges EXACTLY 1 point -- "make
+      sure the behavior you are targeting is spending less time on electronic
+      devices". The slot answers `met` on 12 of 12.
+      THE CELL: gold 3.00, we score 4.00 on every run. The plan rewards reading by
+      "{{corpus:DAY2/p7:day2:56:83:sha=431dfd8eb891}} night" while the target behaviour is spending
+      LESS time on devices, so the reward IS the unwanted behaviour. The slot asks
+      whether the plan is "aimed at your own target or goal behavior" and answers
+      yes, because it is aimed at a behaviour of the student's -- it does not ask
+      whether the CONSEQUENCE undoes the target.
+      SO THE RULE QUESTION IS NARROW: should `targets_own_behavior` refuse a plan
+      whose reward is itself the unwanted behaviour? That is one clause on a
+      1-point slot, and gold's charge is the same size, so a fix lands exactly.
+      MEASURE IT AGAINST EVERY DAY2 CELL FIRST, and against the sibling items that
+      carry the same slot -- WK1, WK2 and DAY1 all have `targets_own_behavior` --
+      because a clause here reaches four sheets, and subgoal Q26's rename is the
+      recent reminder that a slot shared by siblings is not a per-item edit.
+
+- [ ] Q47. **Q6: `change_a1`/`change_a2` credit a change that does not address the
+      antecedent. Two cells, one slot family, ELEVEN working controls.**
+      Filed 2026-09-04 out of subgoal Q20, and it is the best-evidenced rule
+      question on this board rather than the ceiling Q20 called it. No calls.
+      Q20 RECORDED Q6/p2 AS "DECLARED, the change_a1/change_a2 ceiling". IT IS NOT
+      DECLARED: `handouts.gold_divergence("Q6", 2)` returns nothing and
+      `corrected_gold` is None. A cell described as declared for two days, and
+      treated as unreachable on that basis, was never in any table.
+      THE CRITERION IS THE ITEM'S CENTRAL ONE, not an edge case. Gold charges the
+      change/affect criterion on THIRTEEN of Q6's twenty cells, and OUR SHEET GETS
+      ELEVEN OF THEM RIGHT -- usually by failing exactly the right slot, `affect_c2`
+      or `change_a2` answering `absent` where gold charges it. The slots work.
+      THE TWO MISSES ARE THE SUBGOAL:
+          p2   0 of 12   gold 8.75   all four of change_a1/a2, affect_c1/c2 `met`
+               gold: "did not say how you would change your second antecedent
+               (video games) ... {{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd:shape=C1}} does not
+               change your {{corpus:Q6/p2:state_a2:17:50:sha=7f56e7f06c95:shape=R33-0-22}}
+          p8   0 of 12   gold 2.50   change_a1 and change_a2 both `met`
+               gold: "did not say how each antecedent is being changed"
+      BOTH ARE THE SAME SHAPE: a change is stated, and it does not act on the
+      antecedent it names. p8 names "{{corpus:Q6/p8:state_a1:38:87:sha=2abb3dabb60a:shape=S8-0a202020202020}}" and then states {{corpus:Q6/p8:change_a1:18:31:sha=bd6a150dc6a6}} Tuesday to Friday -- a schedule, not a
+      change to the laziness. p2 names video games and offers music while working
+      out.
+      SO THE RULE IS: does the stated change ACT ON the antecedent named, or merely
+      accompany it? Eleven cells already answer that correctly and are the control
+      set -- an unusually strong one, since they include cells where the same slots
+      correctly answer `absent`.
+      WATCH `affect_c2` SEPARATELY. It is the more commonly charged half and it is
+      already working; this subgoal is about the `change_a*` pair, and a clause
+      touching both risks eleven cells to fix two.
+
+- [ ] Q48. **Q4c/p20: gold's only explanation charge in twenty cells, against four
+      cells of the same shape it passed in silence.**
+      Filed 2026-09-04 out of subgoal Q20. It is a GOLD question, not a sheet one,
+      and it is the one member of Q20's class where our instrument is right.
+      GOLD CHARGES "-2 pts: need more explanation on how your second example is a
+      direct consequence of lack of sleep". We score 5.00 on every run with
+      `consequence_2` `met`, and the answer names two real consequences of lack of
+      sleep -- feeling grumpy, and finishing homework late.
+      THE COMPARATORS ARE DECISIVE AND ON THE SAME ITEM. Gold passed these in
+      SILENCE at full marks, and none explains its link either:
+          p19  same UTB, lack of sleep -- "{{corpus:Q4c/p19:first:47:89:sha=baaf88844b42:shape=S9-0a202020202020202020202020202020}} things ... {{corpus:Q4c/p19:second:26:79:sha=e4726ebdd864}}"
+          p3   "gaining unwanted weight ... {{corpus:Q4c/p3:second:54:92:sha=4f98c830057b}}
+               breath"
+          p14  "{{corpus:Q4c/p14:first:37:66:sha=ac7cf2ef2f32}} it ... {{corpus:Q4c/p14:second:41:74:sha=5c735c23a114:shape=S4-0a202020202020202020202020202020,R48-0-22}}
+          p17  "{{corpus:Q4c/p17:first:0:38:sha=b2209775deb0}} ... {{corpus:Q4c/p17:second:0:26:sha=b1f4534ddeaf:shape=S3-0a202020202020202020202020202020}}"
+      Every one is a bare assertion of a consequence with no account of HOW it
+      follows, which is exactly what p20 was charged for. p19 is the strongest: same
+      unwanted behaviour, same two-part structure, one charged and one not.
+      A NEW CHECK IS REFUTED, and this is why the cell left Q20: a rule requiring
+      the link to be explained would break p19, p3, p14 and p17 -- four cells that
+      are right today -- to fix one. Q4c stands at 18/20 and 17/20.
+      SO THE QUESTION IS WHETHER GOLD'S CHARGE SURVIVES, and the standard is
+      already set: `handouts.CORRECTED_GOLD` requires that the row CONTRADICT the
+      grader's own decisions elsewhere in the same item, which is how Q4a/p19 was
+      corrected 5.00 -> 3.00. Read p20 against p19 and decide.
+      DO NOT CORRECT GOLD TO MAKE A NUMBER MOVE. That correction would gain the
+      cell, which is the reason to be careful rather than pleased -- the table's own
+      preamble says so, and the Q4a/p19 entry states the objection against itself.
+      If the charge stands, this is a declared divergence instead.
+
 - [ ] Q45. **The four example items look finished and eleven of their cells are
       not reliably right. `you_arrange_it` GATES all four and flips on five.**
       Filed 2026-09-04 out of subgoal Q35, which found PR/p15 had nowhere to go:
@@ -4857,7 +4942,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       the opening paragraph: its "python 1 over / 8 under, olx 0 over / 7 under"
       profile is the 2026-08-30 measurement and no longer describes the item.
 
-- [ ] Q20. **The SHEET CANNOT REFUSE: gold objects to something no check asks about.**
+- [x] Q20. **The SHEET CANNOT REFUSE: gold objects to something no check asks about.**
       Two views of one phenomenon, merged 2026-08-28: cells where every scoring
       check passes and gold still docks, and the observation-level rate that says
       how much of our over-crediting works that way. Subgoal 22 held the second
@@ -5122,11 +5207,25 @@ because it can be fixed or declared; a wobbling cell cannot be either.
                          address its antecedent -- 11 controls available
           Q4c/p20        whether gold's lone explanation charge survives comparison
                          with p19, p3, p14 and p17
-      THIS SUBGOAL IS NOW A CLOSURE CANDIDATE, and what it should be closed ON is
-      the finding rather than the cells: the class it was built to name does not
-      exist. That is worth more than the six cells were, because it says the sheet
-      is not missing checks -- it is applying the ones it has too leniently, which
-      is a tractable problem and a different project.
+      CLOSED 2026-09-04 ON THE FINDING RATHER THAN THE CELLS: the class this entry
+      was built to name does not exist. That is worth more than the six cells were,
+      because it says the sheet is not missing checks -- it is applying the ones it
+      has too leniently, which is tractable and a different project.
+      ALL SIX CELLS HAVE OWNERS, named here so none is orphaned by the closure:
+          Q1/p10   subgoal Q14   a count over-reports; rule written and queued
+          Q2/p6    subgoal Q44   a count over-reports; the listing half is owed
+          1a/p6    subgoal Q36   a slot's rule too narrow; written and queued
+          DAY2/p7  subgoal Q46   `targets_own_behavior` credits a reward that IS
+                                 the unwanted behaviour, at exactly gold's price
+          Q6/p2    subgoal Q47   with Q6/p8, `change_a*` credits a change that does
+                                 not act on its antecedent -- eleven controls
+          Q4c/p20  subgoal Q48   a GOLD question: the only explanation charge in
+                                 twenty cells, against four of the same shape
+                                 passed in silence
+      THE ELEVEN OPEN SUBGOALS THAT CITE THIS ONE should be read with the finding
+      rather than the class: a citation of "the sheet cannot refuse" now means "an
+      instrument exists and is too lenient", which is a different instruction to
+      whoever follows it.
 
       == THE SAME CLASS IS ON BOTH SIDES. IT IS A RUBRIC GAP ==
       Run per side over all 26 items, no calls:
