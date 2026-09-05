@@ -8146,6 +8146,36 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       olx side lost a cell. That alone is reason to REVERT it before trying the
       narrower hypothesis.
 
+      == REVERTED 2026-09-05, AND THE REVERT COSTS Q1 ITS VALID NUMBER ==
+      The clause is out of `benefits_listed` and the slot is BYTE-IDENTICAL to its
+      pre-2026-09-04 state, checked by loading the pre-change module beside the
+      current one and comparing `desc` and `rule` directly rather than by reading
+      the diff.
+      THE REVERT WAS NOT DELIVERED UNTIL IT WAS REGENERATED, which the new check
+      `check_written_rules_reach_the_shipped_prompt` caught: with the rubric
+      reverted and the .olx not rewritten, Q1's prompt sha still MATCHED its
+      recording and nothing looked wrong. After `--write` and an idmap re-dump the
+      sha returns to exactly the pre-change value on both sides.
+      AND THAT LEAVES Q1 STALE WITH NO WAY BACK. The sweep was recorded BEFORE the
+      revert, so the ledger holds 17/20 and 16/20 for a prompt that no longer
+      exists, and the prompt that does exist was last measured at 17/20 and 17/20 --
+      a recording the ledger keeps only in its `previous` block. Re-recording that
+      measurement is REFUSED by `measured.SIDE_CONTRACT`: the twoside_cli and
+      twoside_web artifacts predate era-stamping and "do not say which model
+      produced" them. The refusal is correct and was not overridden -- a number of
+      unknown provenance against a current prompt is exactly what that contract
+      exists to stop.
+      SO Q1 CARRIES TWO STALE-PROMPT FLAGS UNTIL SOMEONE RE-SWEEPS IT, about 240
+      calls, and that is the honest state rather than a defect to paper over. The
+      17/20 and 17/20 figures are not lost -- they are in the `previous` block and
+      in git -- they are simply not re-recordable.
+      THE LESSON, which is general and cost nothing to learn here: REVERT BEFORE
+      RECORDING, not after. Subgoal Q18's 2026-09-01 revert did it in that order
+      and its entry notes the consequence -- "the tree is byte-identical to the
+      measured state ... so 16/19 on both sides stands unre-measured". Recording
+      first and reverting second leaves the ledger describing a prompt that has
+      been deleted.
+
 - [x] Q24. **Q4a's ceiling: two cells, both `antecedent_1`, deterministic and opposite.**
       RETITLED 2026-09-01. It was "Q4a's `antecedent_2`: the slot that carries the
       item's remaining error", and both halves of that turned out wrong -- the
