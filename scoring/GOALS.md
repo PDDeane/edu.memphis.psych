@@ -7634,7 +7634,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       expected to move and must not be read as a target -- it is a declared
       divergence and its defect is `harms_listed`, not this slot.
 
-- [ ] Q24. **Q4a's ceiling: two cells, both `antecedent_1`, deterministic and opposite.**
+- [x] Q24. **Q4a's ceiling: two cells, both `antecedent_1`, deterministic and opposite.**
       RETITLED 2026-09-01. It was "Q4a's `antecedent_2`: the slot that carries the
       item's remaining error", and both halves of that turned out wrong -- the
       slot is `antecedent_1`, and pooling reduced four cells to two. The original

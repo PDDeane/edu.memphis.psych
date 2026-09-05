@@ -111,6 +111,23 @@ SERIES_TEST = ("the DELIVERABLE decides the series, not the finding: a subgoal "
 
 
 CLOSURES_APPROVED: dict[str, str] = {
+    "Q24": "closed 2026-09-04 on the user's instruction, as the entry's own "
+           "standing rule required -- 'IF NEITHER ROUTE OPENS, RECORD THE CEILING "
+           "AND STOP'. Neither opened. Route 2 dissolved rather than failed: the "
+           "entry treated p19 as a silent-full-marks cell of subgoal Q31's, and "
+           "p19's gold had since been corrected 5.00 -> 3.00, so we AGREE with it "
+           "in 11 of 12 runs (and Q31 is closed, so the hand-off had nowhere to "
+           "land). Route 1 stays closed on the entry's own reading: gold's plural "
+           "comment on p14 charges both boxes, box 2 is unambiguously a "
+           "consequence, so the row belongs to subgoal Q19's later-box gradient, "
+           "which owns the cell. The ceiling is one cell that no box-1 rule can "
+           "reach -- p10 and p17 carry the same shape on the same UTB at full "
+           "marks, 12 of 12 correct -- and p2 and p9 are counted right and "
+           "unstable, which is E41's class. Found while closing, and fixed: the "
+           "p19 correction had never been applied to the ledger, so Q4a was "
+           "recorded a cell short on both sides. Re-recorded from the existing "
+           "artifacts at no call cost, 18/20 -> 19/20 python and 17/20 -> 18/20 "
+           "olx. Of the 14 CORRECTED_GOLD cells that was the only stale one.",
     "E41": "closed 2026-09-04 on the user's instruction (\"do steps 1-4 on E41 so "
            "it can be closed\"), after the check for whether it was SAFE to close "
            "found that it was not yet. Closing would have orphaned 1c/p16 and "
