@@ -239,6 +239,42 @@ ITEMS: list[dict] = [
                         "change, or background explaining how it came about. "
                         "Answer 3 for three or more",
             },
+            # SUBGOAL Q14's STRUCTURAL ATTEMPT, 2026-09-05, after a wording fix on
+            # `benefits_listed` failed to move Q1/p10 at all. The diagnosis was that
+            # the state/doing axis CANNOT separate p10's "my goal for this year is
+            # more active" from Q2/p18's "get back in shape", which gold credits --
+            # so no wording on that axis can work, and section 2a says try structure
+            # first.
+            #
+            # THE STRUCTURE IS THE ONE Q2 ALREADY HAS. `benefits_listed` was doing
+            # two jobs: COUNT the statements offered, and JUDGE which are benefits.
+            # Q2 splits exactly that into `reasons_listed` and `reasons_failing`, and
+            # subgoal Q18 records the split reproducing the graders' own
+            # decomposition on its hard cell. Q1 had no judging step at all, which is
+            # why the judgement had to be smuggled into the count's wording and kept
+            # colliding with other rules.
+            #
+            # IT IS SURGICAL BECAUSE OF THE CONDITIONAL. `reasons_given` uses the
+            # benefits limb ONLY when `harms_listed` is 0, which across Q1 is true of
+            # p10 and p16 alone -- and of p9 in a third of runs, a declared
+            # divergence. On the other eight cells reporting benefits the limb is
+            # discarded whole, so this slot cannot reach them. One target, one
+            # control, eight inert.
+            {
+                "what": "benefits_failing",
+                "reported": True,
+                "verdicts": ["0", "1", "2", "3"],
+                "desc": "Of the statements counted above as benefits, HOW MANY are "
+                        "not one: they name the GOAL rather than a good it brings. "
+                        "A statement saying what the student wants to DO, or calling "
+                        "something their goal or their aim, is the goal named again "
+                        "however much it also reads as a state. Judge each statement "
+                        "on its own; this is a count, not a verdict",
+                "rule": "of those, HOW MANY are not a benefit — naming the GOAL "
+                        "rather than a good that comes of reaching it. The clearest "
+                        "case is a response that CALLS IT the goal in its own words. "
+                        "Not scored; the second half of the count below",
+            },
             {
                 "what": "reasons_given",
                 "reported": True,
@@ -281,7 +317,8 @@ ITEMS: list[dict] = [
                         "counts above. If `harms_listed` is 1 or more the answer IS "
                         "`harms_listed`, and benefits do not add to it — a response with "
                         "one harm and two benefits counts 1. Only when `harms_listed` "
-                        "is 0 does the answer become `benefits_listed` instead. "
+                        "is 0 does the answer become `benefits_listed` MINUS "
+                        "`benefits_failing`. "
                         "Never answer 0 when the student offered anything "
                         "of either kind. Answer 3 for three or more",
             },
@@ -1211,11 +1248,50 @@ ITEMS: list[dict] = [
                 "rule": 'ONE ANSWER, and it says what the entry IS. The engine turns it into this example\'s verdict, so do not judge whether the example earns credit -- classify it and the arithmetic follows.\n  `activity` -- something they did INSTEAD of the goal behaviour. This is the answer that earns the point.\n  `none` -- the box is empty, or names nothing at all.\n  `consequence` -- cases (1) and (3) below.\n  `goal_behaviour` -- case (2) below.\n  `not_doing` -- case (5) below.\nWHERE THE ENTRY OFFERS ALTERNATIVES, case (4): classify by the FAILING alternative, because one qualifying alternative does not rescue the rest.\nThe cases, unchanged: (1) (1) The entry names a CONSEQUENCE of the unwanted behaviour — a state they ended up in, or something they then had to do — rather than something they did INSTEAD of the goal behaviour. (2) The entry IS the goal behaviour, done at the wrong time, in the wrong place, or badly: you cannot do something instead of itself. If the goal is to sleep enough, sleeping in the car is not something done instead of sleeping — it is that sleep, displaced. Keep this apart from a RIVAL choice, which IS a substitute: if the goal is to eat fruit, eating chips counts, because chips are not fruit. The question is whether they did a different thing that crowded the goal out, or the goal itself gone wrong. (3) The entry names an ordinary activity that CARRIES a state the unwanted behaviour produced — an everyday activity reported together with the discomfort or dullness it is being carried out under. The activity is incidental there: they would be doing it anyway, and what the sentence actually reports is the state, which is a consequence. Test it by asking whether the activity would have happened regardless of the goal behaviour. If it would, nothing was displaced and the entry is not a substitute — an activity that is LIKELY A CONSEQUENCE of not doing the goal behaviour cannot also be what replaced it. (4) Where the entry offers ALTERNATIVES — two or more things joined by "or", either of which might be what they did — every alternative must pass the tests above. One qualifying alternative does not rescue the rest: "I am tired in class OR catching up on chores" fails, because being tired is a state the behaviour produced. This applies only to genuine alternatives. A sentence that names an activity AND THEN what came of it is judged on the activity: a snack eaten and the fruit left to spoil is one substitute with its result attached, not two alternatives — and several near-synonyms for the same choice are one substitute described three ways. (5) NAMING A FAILURE TO ACT IS NOT NAMING A SUBSTITUTE. "I procrastinate", "I avoid going", "I neglect it", "I put it off" all describe the goal behaviour NOT happening; they do not say what the student was doing in that time, which is what the question asks. Credit the concrete activity if the entry names one alongside the avoidance, and treat the not-doing as failing the test — including when it is one alternative among several',
             },
             {
+                "what": "b2_names_act",
+                "reported": True,
+                "verdicts": ["met", "absent"],
+                # SUBGOAL Q18's STRUCTURAL ATTEMPT, 2026-09-05, after the
+                # precedence fix moved the PICK and not the cell: `b2_basis` went
+                # from `not_doing` 12 of 12 to 8 not_doing / 2 activity / 2
+                # consequence, so the "and" carve-out was applied twice in twelve
+                # and opened a third reading.
+                #
+                # THE PICK CONFLATES TWO QUESTIONS and always has: does the box
+                # name an act the student performed, and is it the goal behaviour's
+                # absence? Case (5) says credit the act when both are present;
+                # case (4) says classify by the failing alternative. Stating which
+                # outranks which did not work, twice. So the first question is
+                # asked SEPARATELY here, before the pick, and the pick's rule reads
+                # the answer instead of re-deriving it.
+                #
+                # BOX 2 ONLY, deliberately. The evidence is entirely box 2's --
+                # p12 and p13 -- while p7 and p8 pick `not_doing` on BOX ONE and are
+                # right 12 of 12. Adding the same decomposition to box 1 would put
+                # two correct cells at risk for no cell in return, which is the
+                # trade subgoal Q18 already made once and reverted.
+                "desc": "Does the second box name something the student ACTUALLY "
+                        "DID in that time, besides any statement that the goal "
+                        "behaviour did not happen? `met` when a performed act is "
+                        "named alongside the not-doing — the thing they were doing "
+                        "instead, or what they let happen. `absent` when the box "
+                        "names only the absence, a circumstance, a consequence, or "
+                        "an intention. This is not a judgement about whether the "
+                        "act EARNS credit; it asks only whether one is there",
+                "rule": "does the second box name an act the student PERFORMED, "
+                        "besides any statement that the goal behavior did not "
+                        "happen? `met` if a performed act is named alongside the "
+                        "not-doing; `absent` if the box names only the absence, a "
+                        "circumstance, something that followed, or something "
+                        "intended later. Not scored, and not a judgement of whether "
+                        "the act earns the point — only whether one is present",
+            },
+            {
                 "what": "b2_basis",
                 "verdicts": ["activity", "consequence", "goal_behaviour",
                              "not_doing", "none"],
                 "desc": "What the second example IS",
-                "rule": 'ONE ANSWER, on the same terms as the first example: `activity` for something done INSTEAD of the goal behaviour, `none` for an empty box, and otherwise the case it falls under -- `consequence` for a consequence of the unwanted behaviour or an ordinary activity carrying a state that behaviour produced, `goal_behaviour` for the goal behaviour itself done at the wrong time or place, `not_doing` for a naming of the goal behaviour NOT happening rather than of what they did instead. Where the entry offers genuine ALTERNATIVES -- two things joined by "or", either of which might be what they did -- classify by the failing one. BUT AN AVOIDANCE JOINED BY "AND" TO A CONCRETE ACT IS NOT AN ALTERNATIVE, and this is where the two rules are most easily confused: a box saying the goal behaviour did not happen AND naming something the student actually did in that time is ONE entry with its result attached, and it is classified on the ACT -- `activity`. Read the conjunction before applying the failing-alternative rule; applying that rule to an "and" refuses an example the graders credited.',
+                "rule": 'ONE ANSWER, on the same terms as the first example: `activity` for something done INSTEAD of the goal behaviour, `none` for an empty box, and otherwise the case it falls under -- `consequence` for a consequence of the unwanted behaviour or an ordinary activity carrying a state that behaviour produced, `goal_behaviour` for the goal behaviour itself done at the wrong time or place, `not_doing` for a naming of the goal behaviour NOT happening rather than of what they did instead. FIRST READ `b2_names_act`. If it is `met`, the box names an act the student performed and the answer is `activity` -- that answer is settled and the alternatives rule below does not apply to it. Only when `b2_names_act` is `absent` do the remaining cases arise. Where the entry offers genuine ALTERNATIVES -- two things joined by "or", either of which might be what they did -- classify by the failing one. BUT AN AVOIDANCE JOINED BY "AND" TO A CONCRETE ACT IS NOT AN ALTERNATIVE, and this is where the two rules are most easily confused: a box saying the goal behaviour did not happen AND naming something the student actually did in that time is ONE entry with its result attached, and it is classified on the ACT -- `activity`. Read the conjunction before applying the failing-alternative rule; applying that rule to an "and" refuses an example the graders credited.',
             },
             {
                 "what": "modify_stated",
