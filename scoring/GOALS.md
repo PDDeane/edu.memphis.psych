@@ -5098,9 +5098,55 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       cells three others are actively working, which is the laundering that E41
       documented and that three separate entries hit today. THE MERGE IS THE
       ANSWER, not a split.
-      WHAT THIS SUBGOAL NOW OWNS is (C): two live cells, Q4c/p20 and DAY2/p7, plus
-      Q6/p2 which is already declared. That is the population for which a NEW CHECK
-      or a DECLARED DIVERGENCE really are the only two options.
+      == AND THEN (C) TURNED OUT TO BE EMPTY. THE FOUNDING PREMISE IS FALSE ==
+      Asked of the last three cells whether an instrument really is absent, rather
+      than assuming it from "every check passes". It is present in all three, and
+      in two of them it costs EXACTLY what gold charges:
+        DAY2/p7   `targets_own_behavior`, pts=1.0, answers `met` on 12 of 12 --
+                  and gold charges exactly 1 point, "make sure the behavior you
+                  are targeting is spending less time on electronic devices". The
+                  entry says DAY2 "is criteria-derived and has no slot to name".
+                  It has one, at the right price, giving the wrong answer.
+        Q6/p2     `change_a2` answers `met` on 12 of 12 where gold charges -1.25
+                  for exactly that. AND IT IS NOT DECLARED -- `gold_divergence`
+                  returns nothing and `corrected_gold` is None, so this entry's
+                  "DECLARED, the change_a1/change_a2 ceiling" is wrong.
+        Q4c/p20   `consequence_2` answers `met`, and here the instrument is right
+                  and GOLD IS THE OUTLIER (below).
+      SO EVERY ONE OF THE SIX HAS AN INSTRUMENT, and "the sheet cannot refuse" is
+      not what is happening in any of them. What varies is whether the instrument
+      MISCOUNTS (A), JUDGES TOO LENIENTLY (B), or is right while gold is
+      inconsistent. There is no cell in this corpus where gold objects to something
+      the sheet has no check for.
+      Q6/p2 IS THE BEST-EVIDENCED OF THEM ALL, which is the opposite of a ceiling.
+      Gold charges the change/affect criterion on THIRTEEN of Q6's twenty cells,
+      and we get ELEVEN of those right -- usually by failing exactly the right slot.
+      The two misses are p2 and p8, both with `change_a1`/`change_a2` answering
+      `met` where gold says the change was not stated or does not address the
+      antecedent. Two cells, one slot family, eleven working controls: that is a
+      rule question with more evidence behind it than most on this board.
+      Q4c/p20 IS A GOLD QUESTION, NOT A SHEET ONE. Gold's "-2 pts: need more
+      explanation on how your second example is a direct consequence" is the ONLY
+      explanation charge in twenty cells, and the cells it passed in SILENCE are
+      the same shape -- p19, same UTB of lack of sleep, bare assertions with no
+      link explained ("I feel tired all day", "I can not focus during my classes"),
+      full marks. So do p3, p14 and p17. A check requiring explanation would break
+      most of the item. This is the silent-gold-outlier test in reverse and p20 is
+      the outlier: a CORRECTED_GOLD candidate on the same standard as Q4a/p19, or a
+      declared divergence, but NOT a new check.
+      HOW TO SOLVE THIS SUBGOAL, therefore: not by writing a new check. Its cells
+      route to three ordinary questions, none of which is "the sheet has no check":
+          DAY2/p7        why `targets_own_behavior` credits a reward that IS the
+                         unwanted behaviour -- a rule question on a 1-point slot
+          Q6/p2 + p8     why `change_a1`/`change_a2` credit a change that does not
+                         address its antecedent -- 11 controls available
+          Q4c/p20        whether gold's lone explanation charge survives comparison
+                         with p19, p3, p14 and p17
+      THIS SUBGOAL IS NOW A CLOSURE CANDIDATE, and what it should be closed ON is
+      the finding rather than the cells: the class it was built to name does not
+      exist. That is worth more than the six cells were, because it says the sheet
+      is not missing checks -- it is applying the ones it has too leniently, which
+      is a tractable problem and a different project.
 
       == THE SAME CLASS IS ON BOTH SIDES. IT IS A RUBRIC GAP ==
       Run per side over all 26 items, no calls:
