@@ -18,13 +18,64 @@ cleaned immediately and swept later, so the ledger stays honest in between).
 OVERRIDE: `ALLOW_UNDECLARED="<reason>" git commit ...`. The reason is printed and
 required to be non-trivial. An override with no reason is refused, because a
 switch that is easier to flip than to explain gets flipped.
+
+AND THE OVERRIDE IS RECORDED, added 2026-09-04. Until then the reason was printed
+to stderr and then gone: not in the commit, not in a file, not in git. Seven
+commits were waved through in one day and the only way to answer "what did we
+wave through, and why?" was to ask the person who had typed it. A gate careful
+enough to demand a non-trivial reason and then discard it is keeping the ceremony
+and losing the evidence.
+
+The record goes into OVERRIDES.md and is STAGED INTO THE SAME COMMIT it excuses,
+so the exception travels with the change rather than sitting beside it -- `git
+log -p OVERRIDES.md` then reads as the history of what the audit was asked to
+ignore. It records the findings VERBATIM, not just the reason: a reason written
+about four findings is not evidence about a fifth that appeared with it.
 """
 import os
 import subprocess
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 STATE_ONLY = ("ITEM UNMEASURED AS CONFIGURED",)
+LOG = os.path.join(HERE, "OVERRIDES.md")
+
+
+def _record(blocking: list[str], state: list[str], reason: str) -> str:
+    """Append the override to OVERRIDES.md and stage it. Returns a status line.
+
+    Staging is deliberate: an override recorded in the WORKING TREE only would be
+    committed later, or never, and would drift away from the change it excuses.
+    If staging fails the commit still proceeds -- refusing here would turn a
+    bookkeeping problem into a blocked commit, which is the wrong trade -- but it
+    says so loudly, because an unrecorded override is the state this exists to end.
+    """
+    head = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
+                          capture_output=True, text=True, cwd=HERE).stdout.strip()
+    stamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    entry = [f"\n## {stamp}  (parent {head or 'unknown'})\n",
+             f"\n**Reason given:** {reason}\n",
+             f"\n**Findings waved through ({len(blocking)}):**\n\n"]
+    entry += [f"- `{l.strip()}`\n" for l in blocking]
+    if state:
+        entry.append(f"\n{len(state)} non-blocking measurement-state flag(s) also "
+                     f"present; those are excluded by design and are not overrides.\n")
+    try:
+        new = not os.path.exists(LOG)
+        with open(LOG, "a") as fh:
+            if new:
+                fh.write("# Overrides of the enforcement gate\n\nEvery commit that "
+                         "used `ALLOW_UNDECLARED`, with the findings it waved through "
+                         "and the reason given. Written by precommit_gate.py; do not "
+                         "edit by hand.\n")
+            fh.writelines(entry)
+        add = subprocess.run(["git", "add", LOG], capture_output=True, text=True, cwd=HERE)
+        if add.returncode:
+            return f"WARNING: recorded in {os.path.basename(LOG)} but could not stage it"
+        return f"recorded in {os.path.basename(LOG)} and staged into this commit"
+    except OSError as exc:
+        return f"WARNING: could NOT record this override ({exc})"
 
 
 def main() -> int:
@@ -47,7 +98,10 @@ def main() -> int:
           "the difference.\nTo commit anyway, say why:\n"
           '    ALLOW_UNDECLARED="..." git commit ...', file=sys.stderr)
     if len(reason) >= 15:
+        state = [l for l in lines if l not in blocking]
+        status = _record(blocking, state, reason)
         print(f"\npre-commit: OVERRIDDEN — {reason}", file=sys.stderr)
+        print(f"pre-commit: {status}", file=sys.stderr)
         return 0
     if reason:
         print(f"\npre-commit: override refused, the reason given is {len(reason)} "
