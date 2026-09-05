@@ -3990,6 +3990,15 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       produces. Fixing the listing removes it from Q20's class as well as fixing
       the cell.
 
+      == CONFIRMED 2026-09-05, EXACTLY AS PREDICTED ==
+      Subgoal Q17's edit (d) landed and p6 fell from 8 of 12 to 3 of 12, scoring
+      5.00 against a gold of 4.00. THIS ENTRY SAID IT WOULD and why: the refusal
+      that had been cancelling the over-listing is gone, so the listing defect is
+      now visible in the score instead of hidden by it.
+      SO THE TWO DEFECTS ARE NO LONGER OPTIONAL TO FIX TOGETHER. `reasons_listed`
+      reading 3 on a two-statement response is now the ONLY thing wrong with the
+      cell, and it is worth a cell on an item that just lost one.
+
 - [ ] Q43. **Q2/p18: the inversion boundary that three rule formulations could
       not move. LOW PRIORITY, and filed to stop it absorbing effort.**
       Moved out of subgoal Q17 on 2026-09-04 at the user's direction, after the
@@ -4204,6 +4213,20 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       NARROW THE RULE OF A SLOT THAT ALREADY ASKS THE RIGHT QUESTION.
       Q20 has been re-scoped to the cells where no check asks at all, and this one
       is no longer among them.
+
+      == MEASURED 2026-09-05: THE RULE LANDED EXACTLY, AND 1a IS NOW PERFECT ==
+          1a python  20/20  (was 19)     1a olx  20/20  (was 18)
+      1a/p6 went 1 of 12 to TWELVE OF TWELVE, `baseline_week` answering `absent` on
+      every run. BOTH NAMED CONTROLS HELD, which is what makes this evidence rather
+      than luck: p11 -- the cell this entry warned could move -- stayed 12 of 12
+      with its baseline still `met`, and p10, the "The first week, I did nothing"
+      case that SHAPED the rule by forcing the period arm, also stayed met 12 of 12.
+      1a/p1 gained a cell as well, unstable -> perfect.
+      WHY THIS ONE WORKED, recorded because two rules written the same day did not:
+      it narrowed ONE clause that had no competitor. `baseline_week` had a single
+      test and the change sharpened it. The two that failed -- subgoals Q14 and Q18
+      -- both tried to fix a clause that was LOSING TO ANOTHER CLAUSE, and in both
+      cases stating the precedence did not make it win.
 
 - [x] Q34. **NEVER RIGHT on a row gold passed in silence: six cells, and the false-positive test.**
       Split from Q31 on 2026-09-01, once pooling made the distinction measurable.
@@ -7053,6 +7076,19 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       way. Read `--criterion Q3 action_oriented` credited rows FIRST; a rule that
       rejects measurability-as-justification risks p9, p14 and p18, all credited
       on access alone.
+
+      == MEASURED 2026-09-05: THE RULE LANDED ==
+          Q3 python 18/20 (unchanged)    Q3 olx 19/20 (was 18)
+      Q3/p19 went 0 of 12 to TEN of 12 -- `always_wrong` to
+      `unstable_counted_right`. The three cells this entry feared for, p9, p14 and
+      p18, are all 12 of 12: none cites measurability, so the rule could not reach
+      them, exactly as predicted.
+      IT IS NOT 12 OF 12, and the residue is worth a line: two runs still credit
+      `action_oriented`. The clause decides the cell in ten runs and not in two,
+      which is a wording-strength question rather than a wrong axis -- unlike
+      subgoals Q14 and Q18, whose cells did not move at all.
+      Q3/p10 IS UNTOUCHED at 4 of 12 and is subgoal Q10's, as recorded: its defect
+      is `measurable`, which this rule does not address.
 - [ ] Q10. **Q3/p10: we credit `measurable` where gold docks it.** (The title
       quoted "~3/6" until 2026-09-04; the entry's own body had already contradicted
       it, which is why a subgoal names cells and slots rather than counts.)
@@ -7539,6 +7575,19 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       WAIT FOR THE APP COLUMN, for the reason on subgoal Q16: the two sides share
       this prompt and differ only in whose rules score it.
 
+      == (d) MEASURED 2026-09-05: TWO TARGETS EXACT, ONE SHORT, THE ITEM DOWN ONE ==
+          Q2 python 18/20 (was 19)    Q2 olx 18/20 (was 19)
+          p11  11 of 12 -> 12 of 12   MET     p14  11 of 12 -> 12 of 12   MET
+          p16   9 of 12 -> 10 of 12   SHORT of the predicted 12
+          p6    8 of 12 ->  3 of 12   as pre-registered, and it is the whole loss
+      THE ITEM LOST A CELL AND THE PREDICTION SAID IT WOULD. p6 is subgoal Q44's
+      compensating pair coming apart: the wrong refusal is gone, the over-listing is
+      exposed, and the cell reads 5.00 against a gold of 4.00. Nothing else moved
+      down. So (d) is a net gain in correctness and a net loss of one on the
+      scoreboard, which is the honest way to state it.
+      p16 AT 10 OF 12 IS THE OPEN RESIDUE of the persistence clause -- it moved one
+      run, not three.
+
 - [ ] Q18. **Q4b: the `not_doing` classification on the SECOND box.**
       CHECKED AGAINST THE LEDGER 2026-09-04 AND THIS ENTRY IS EXACT. Q4b/p12 is
       right 0 of 12 against gold 5.0 -- deterministic, and what "returns 3.5 in
@@ -7834,6 +7883,28 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       16 of 120, `consequence` 30. QUALITY_CONTROL.md 2k, on the item whose whole
       lever is a pick.
 
+      == MEASURED 2026-09-05: THE PRECEDENCE FIX MOVED THE PICK, NOT THE CELL ==
+          Q4b python 16/19 (unchanged)   Q4b olx 16/19 (unchanged)
+          Q4b/p12  0 of 12 -> 2 of 12.  Predicted near 12.
+      IT IS NOT A NULL RESULT, and the pick shows why. `b2_basis` was `not_doing`
+      on 12 of 12 before; it is now `not_doing` 8, `activity` 2, `consequence` 2.
+      So the "and" carve-out DID reach the judgement -- two runs reclassified to
+      `activity` and scored right -- but it decides the box in 2 runs of 12 rather
+      than 12, and it opened a THIRD reading, `consequence`, that was not there.
+      THE MECHANISM WAS RIGHT AND THE CLAUSE IS TOO WEAK. The conjunction test is
+      being applied and losing most of the time to the failing-alternative rule it
+      was written to outrank -- the same failure mode as subgoal Q14's, on the same
+      day. Both tried to fix a clause that LOSES to another clause, and in both
+      cases stating the precedence did not make it win.
+      p13 DID NOT MOVE, at 3 of 12, exactly as this entry predicted: its box names
+      an inability with no act alongside, so the carve-out cannot apply. That
+      prediction holding is the one clean result here.
+      WHAT TO TRY NEXT, if anything: not more precedence prose. Either the two rules
+      merge into a single ordered test the model reads once, or the
+      failing-alternative rule is scoped so it cannot reach an "and" at all. Both
+      are structural rather than wording changes, which is section 2a's order and
+      the opposite of what was tried.
+
 - [ ] Q16. **Diagnose Q1's wrong calls: `utb_stated`, `reason_2`, `reason_3`.**
       Set 2026-08-28 from the two-sided sweep's first item, so the numbers below are
       6 runs at the CURRENT configuration rather than a recollection.
@@ -8045,6 +8116,35 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       SO A GREEN RESULT HERE ALSO SHRINKS Q20's CLASS by one, and that is the test
       to watch: if p10's count goes to 2 and the cell reaches gold, the class was
       never six.
+
+      == MEASURED 2026-09-05: THE RULE DID NOT MOVE THE CELL ==
+          Q1 python 17/20 (unchanged)   Q1 olx 16/20 (was 17)
+          Q1/p10  1 of 12 -> 1 of 12.  `benefits_listed` still answers 3 in 11 of 12.
+      NOT A NEAR MISS -- NO MOVEMENT AT ALL. The model still lists all three
+      statements, including "my goal for this year is more active".
+      AND THE REASON IS A COLLISION WITH SUBGOAL Q17's WORK ON THE SAME DAY, which
+      is the finding worth keeping. This rule says a goal named as a STATE is still
+      the goal, and asks what the change is IN -- a benefit is a change the
+      behaviour PRODUCES, the goal restated is a change in the DOING. But "more
+      active" is BOTH: you become more active BY exercising, so it reads as a
+      produced state. That is precisely the shape Q17(b) decided must be CREDITED
+      on Q2 -- "a state the behaviour brings about counts even when it is a change
+      in the student" -- after gold contradicted the person-arm on Q2/p6.
+      TWO RULES WRITTEN THE SAME DAY TAKE OPPOSITE POSITIONS ON ONE LINGUISTIC
+      SHAPE, and gold backs both: Q2/p18's "get back in shape" is credited,
+      Q1/p10's "more active" is charged. Different items and different slots, so
+      neither is wrong -- but NO RULE PHRASED ON THE STATE/DOING AXIS CAN SEPARATE
+      THEM, because the axis does not distinguish them.
+      SO THE NEXT ATTEMPT MUST NOT BE ON THAT AXIS. What distinguishes p10 is not
+      the grammar: the student says "MY GOAL for this year is more active",
+      naming it AS the goal in those words, while p18 names a condition without
+      claiming it as the goal. A rule keyed on the response CALLING IT the goal
+      would reach p10 and leave p18 alone. One cell of evidence, which is the
+      honest status.
+      AND THE RULE TOUCHED CELLS IT WAS NOT AIMED AT, in both directions: p5 and
+      p18 fell from perfect to 11 and 9 of 12 while p17 rose from 7 to 11, and the
+      olx side lost a cell. That alone is reason to REVERT it before trying the
+      narrower hypothesis.
 
 - [x] Q24. **Q4a's ceiling: two cells, both `antecedent_1`, deterministic and opposite.**
       RETITLED 2026-09-01. It was "Q4a's `antecedent_2`: the slot that carries the
