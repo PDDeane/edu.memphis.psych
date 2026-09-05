@@ -7451,6 +7451,41 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       whose rules score it, so the same profile on the olx side separates "the
       prompt asks badly" from "one scorer applies it differently". Acting on the python
       column alone would be tuning a prompt against one of its two readers.
+      == READ TOGETHER WITH SUBGOAL Q14 ON 2026-09-04: THEY ARE NOT ONE QUESTION ==
+      The proposal was to treat Q14 and this entry as a single "count stability"
+      question, on the observation that seven Q1 cells return more than one value
+      for `reasons_given`, and that the two counted-wrong ones, p9 and p10, both
+      miss gold's count of 2 by one in OPPOSITE directions. Read against every
+      cell, that is wrong three times over.
+      FIRST, THE COUNT SLOT IS NEVER THE DEFECT. `reasons_given` is a faithful
+      function of the two counts above it in ALL 240 observations -- zero runs
+      where it is not `harms_listed` when that is 1 or more, else
+      `benefits_listed`. Nothing is to be gained by looking at the arithmetic.
+      SECOND, p9 AND p10 FAIL ON DIFFERENT SLOTS, so no one change reaches both:
+          p9   (1,2)->1 nine times, (0,2)->2 three times   `harms_listed` is 1
+                                                            where it should be 0
+          p10  (0,3)->3 eleven times, (0,2)->2 once         `benefits_listed` is 3
+                                                            where it should be 2
+      THIRD, p9 IS ALREADY DECLARED, which the line below this block has said all
+      along: GARBLED_CLAUSE_READ_LITERALLY, twelve configurations. Its second
+      sentence is genuinely garbled and reading it as a harm is the declared
+      behaviour. So the ONE live counted-wrong count cell on Q1 is p10, and p10 is
+      subgoal Q14's, whose title already names its mechanism exactly.
+      WHAT THIS ENTRY KEEPS IS p17, AND IT IS NOT A COUNT CELL: its count is stable
+      at 3 on 12 of 12 and only `utb_stated` varies -- `met` on the right runs,
+      `absent`/`unclear` on the wrong. That is this entry's own title slot. E41
+      bands it `on_the_line` at 7 of 12, so a change moving it by one run is not
+      evidence.
+      AND THE HALO IS SUBGOAL E41's CLASS, not a defect list: p6, p7, p11, p14 and
+      p19 all wobble in `harms_listed` by one and are all counted RIGHT.
+      THE STRUCTURAL FACT UNDER ALL OF IT, worth having if this ever needs a change
+      rather than a diagnosis: THE CONDITIONAL AMPLIFIES `harms_listed`. Once harms
+      reaches 1 the benefits are discarded whole, so a single spurious harm costs
+      more than one from the count -- on p9 it throws away two correct benefits and
+      takes the count from 2 to 1. A slot that is unstable by one can therefore
+      move the answer by two, and that is a property of the scaffold rather than of
+      the judgement.
+
       ALREADY RECORDED, do not rediscover: Q1/p9 is a declared divergence
       (GARBLED_CLAUSE_READ_LITERALLY, twelve configurations); p10 and p18 are
       subgoal Q14; the `harms_listed` ASSERTION-vs-AVOIDANCE clause and the two-tier
@@ -7499,6 +7534,33 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       two-tier conditional made the harm count load-bearing and exposed a wobble
       that predates it. Fixing it means making the and-split deterministic, which
       is a classification question like p14's, not a counting rule.
+
+      == CONFIRMED FROM THE SCAFFOLD 2026-09-04, AND THE MECHANISM IS EXACTLY THE
+      == TITLE'S ==
+      Read while testing whether this entry and subgoal Q16 are one "count
+      stability" question. They are not -- Q16 records why -- but the reading
+      confirms this one outright.
+      p10's COUNT COMES FROM `benefits_listed`, NOT from the count slot.
+      `reasons_given` is a faithful function of the two counts above it on all 240
+      Q1 observations, and p10 reads (harms 0, benefits 3) -> 3 in eleven of
+      twelve, against gold's 2. So the whole gap is one benefit too many.
+      AND THE EXTRA ONE IS THE RESTATEMENT THIS ENTRY IS NAMED FOR. The response
+      offers "my goal for this year is more active", "I wanted to feel more
+      confident in myself", and "I want to create a balance and healthy routine".
+      Gold counts two. The first names the GOAL -- being more active is the goal
+      behaviour, not a reason for choosing it -- and it is the one gold does not
+      count.
+      THE FIX IS A CLAUSE Q2 ALREADY HAS AND Q1 DOES NOT. Q2's `reasons_given`
+      carries a restatement head; Q1's `benefits_listed` carries no such test at
+      all, so nothing tells it to refuse a statement that names the goal again.
+      That is a real transfer between the two items, and a NARROWER one than
+      subgoal Q17 suggested when it offered to carry its clause (a) here: (a) is
+      the cost/anti-merge clause and does not apply, because Q1's scaffold counts
+      harms and benefits rather than listing and failing.
+      MEASURE IT AGAINST THE ELEVEN CELLS WHERE `benefits_listed` IS NON-ZERO
+      before writing, since a restatement head can only subtract: p3, p6, p9, p11,
+      p14, p16, p17, p18, p19 and p10 itself all report benefits, and every one of
+      them except p10 is counted right today.
 
 - [ ] Q24. **Q4a's ceiling: two cells, both `antecedent_1`, deterministic and opposite.**
       RETITLED 2026-09-01. It was "Q4a's `antecedent_2`: the slot that carries the
