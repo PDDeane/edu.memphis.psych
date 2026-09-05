@@ -111,6 +111,21 @@ SERIES_TEST = ("the DELIVERABLE decides the series, not the finding: a subgoal "
 
 
 CLOSURES_APPROVED: dict[str, str] = {
+    "Q20": "closed 2026-09-04 on the user's instruction, on the FINDING rather "
+           "than the cells. Asked of each of its six stable members whether an "
+           "instrument for gold's objection exists, instead of inferring absence "
+           "from 'every check passes'. All six have one. Two are counts that "
+           "over-report (Q1/p10, Q2/p6), three are slots answering `met` where "
+           "gold charges (1a/p6, Q6/p2, DAY2/p7 -- the last at pts=1.0 against "
+           "gold's 1 point), and one is an instrument that is RIGHT while gold is "
+           "the outlier (Q4c/p20). So the class the entry was built to name does "
+           "not exist: the sheet is not missing checks, it is applying the ones it "
+           "has too leniently. Two of the entry's own claims were false and are "
+           "corrected in it: DAY2 'has no slot to name' (it has one, at the right "
+           "price) and Q6/p2 being 'DECLARED' (gold_divergence and corrected_gold "
+           "both return nothing). All six cells are routed to owners before "
+           "closing -- Q14, Q44, Q36, and the newly filed Q46, Q47 and Q48 -- so "
+           "nothing is orphaned.",
     "Q35": "closed 2026-09-04 on the user's instruction, after the routing it "
            "asked for emptied it. Of its six cells: Q2/p20 was FIXED the same day "
            "by subgoal Q17's edit (a), 1 of 12 to 11; Q4b/p13 and DAY2/p8 were "
