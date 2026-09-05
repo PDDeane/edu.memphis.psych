@@ -7550,17 +7550,39 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       Gold counts two. The first names the GOAL -- being more active is the goal
       behaviour, not a reason for choosing it -- and it is the one gold does not
       count.
-      THE FIX IS A CLAUSE Q2 ALREADY HAS AND Q1 DOES NOT. Q2's `reasons_given`
-      carries a restatement head; Q1's `benefits_listed` carries no such test at
-      all, so nothing tells it to refuse a statement that names the goal again.
+      THE FIX IS NOT A NEW CLAUSE -- CORRECTED 2026-09-04, SAME DAY. This entry
+      first said Q1's `benefits_listed` "carries no such test at all". It does:
+      the slot says in as many words "Do NOT count a restatement of the goal". The
+      head exists and LOSES, which is a different problem and a different fix.
+      WHAT IT LOSES TO IS THE SLOT'S OWN MAIN AXIS. `benefits_listed` sorts on
+      GETS versus DOES -- a benefit is something the student GETS, a statement of
+      what they intend to DO is not. p10's extra statement offers the goal as a
+      STATE, and a state reads as something GOT, so the main test counts it and the
+      restatement line never bites. The rule is not missing a clause; two of its
+      clauses disagree and the wrong one wins.
       That is a real transfer between the two items, and a NARROWER one than
       subgoal Q17 suggested when it offered to carry its clause (a) here: (a) is
       the cost/anti-merge clause and does not apply, because Q1's scaffold counts
       harms and benefits rather than listing and failing.
-      MEASURE IT AGAINST THE ELEVEN CELLS WHERE `benefits_listed` IS NON-ZERO
-      before writing, since a restatement head can only subtract: p3, p6, p9, p11,
-      p14, p16, p17, p18, p19 and p10 itself all report benefits, and every one of
-      them except p10 is counted right today.
+      MEASURED AGAINST EVERY CELL REPORTING BENEFITS BEFORE WRITING, since this
+      can only subtract. Ten cells report them -- p3, p6, p9, p11, p14, p16, p17,
+      p18, p19 and p10 -- and all but p10 are counted right today. THREE WOULD BE
+      ENDANGERED by a careless head, and all three are protected explicitly:
+          p16  "I will overall be a healthier person"   a change in the STUDENT
+          p18  "my body to stay in shape and healthy"   a LASTING state
+          p14  "exercising helps keep my heart in check"  the behaviour named as
+                                                          the CAUSE of a good
+      The first two are the same look-alikes subgoal Q17 established on Q2 the same
+      day, arriving on a different item and a different slot -- which is the
+      strongest evidence available that they are general rather than Q2's quirk.
+      WRITTEN 2026-09-04, NOT YET SWEPT. `benefits_listed` now says a goal named as
+      a STATE is still the goal, that the GETS/DOES test alone does not settle it,
+      and that the question is WHAT THE CHANGE IS IN -- a benefit is a change the
+      behaviour PRODUCES, the goal restated is a change in the DOING. The three
+      cells above are named as counting, in those terms.
+      PREDICTED: p10 from 1 of 12 toward 12; the other nine unmoved. p9 is NOT
+      expected to move and must not be read as a target -- it is a declared
+      divergence and its defect is `harms_listed`, not this slot.
 
 - [ ] Q24. **Q4a's ceiling: two cells, both `antecedent_1`, deterministic and opposite.**
       RETITLED 2026-09-01. It was "Q4a's `antecedent_2`: the slot that carries the
