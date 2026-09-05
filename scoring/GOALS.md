@@ -5018,6 +5018,30 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       arithmetic is crediting something the app refuses, which is an equivalence
       defect rather than a rubric gap.
 
+      == ANSWERED 2026-09-04: THE SAME CLASS IS ON BOTH SIDES. IT IS A RUBRIC GAP ==
+      Run per side over all 26 items, no calls:
+          python   85 over-credit observations,  44 with NO charging slot unmet (52%)
+          olx      86 over-credit observations,  50 with NO charging slot unmet (58%)
+      The rates are the same within noise, and more decisively THE STABLE CELLS ARE
+      SHARED. All six majority-class members are clean on BOTH engines:
+          Q4c/p20  6/6 and 6/6     Q6/p2    6/6 and 6/6     DAY2/p7  6/6 and 6/6
+          1a/p6    5/6 and 6/6     Q1/p10   5/6 and 6/6     Q2/p6    4/6 and 5/6
+      SO IT IS NOT AN EQUIVALENCE DEFECT. The python's arithmetic is not crediting
+      something the app refuses; both scorers pass the same sheet and gold objects
+      to something the sheet does not ask about. That is the reading this entry
+      hoped to distinguish, and it is settled in favour of the rubric gap.
+      THE CELLS THAT APPEAR ON ONE SIDE ONLY ARE NOISE, and their shape says so:
+      five python-only and nine olx-only, EVERY one of them a 1-or-2-run member.
+      Not one side-specific cell reaches a majority. A real one-sided defect would
+      show as a stable member on one engine and absent on the other, and none does.
+      DO NOT COMPARE 52% WITH THE 38% ABOVE. The older figure was measured over the
+      python sweep's FOURTEEN scored items at six runs; this is all twenty-six over
+      twelve pooled runs, through `exclusions` and `_our_failing_slots`. The
+      over-credit COUNTS are close (84 then, 85 now), which is suggestive, but the
+      denominators are not the same population and the clean-fraction is not a
+      like-for-like comparison. What is comparable is python against olx, measured
+      the same way in the same run, and those agree.
+
 
       == VIEW TWO: the individual cells ==
       Opened on PR/p3 as asked, and generalised by detector rather than by eye,
