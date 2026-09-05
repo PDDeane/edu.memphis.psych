@@ -133,7 +133,7 @@ continuing it.
       <EndPane>
     <ActionButton id="bmod_h1_q1_btn" label="Check my answer">
       <LLMAction id="bmod_h1_q1_llm" target="bmod_h1_q1_feedback"
-                 slots="matches_selected:Same behavior you selected above:matches/differs|utb_stated:Your unwanted target behavior stated explicitly:unclear@2|harms_listed:How many statements name a negative effect of the behavior:count(3)|benefits_listed:How many name a benefit you expect from changing:count(3)|reasons_given:How many separate reasons you give:count(3)|reason_1:First reason — a negative effect of the behavior:unclear@1|reason_2:Second reason:unclear@1|reason_3:Third reason:unclear@1|confident:All judgments confident"
+                 slots="matches_selected:Same behavior you selected above:matches/differs|utb_stated:Your unwanted target behavior stated explicitly:unclear@2|harms_listed:How many statements name a negative effect of the behavior:count(3)|benefits_listed:How many name a benefit you expect from changing:count(3)|benefits_failing:How many of those are not a benefit but the goal named again:count(3)|reasons_given:How many separate reasons you give:count(3)|reason_1:First reason — a negative effect of the behavior:unclear@1|reason_2:Second reason:unclear@1|reason_3:Third reason:unclear@1|confident:All judgments confident"
                  counts="reasons_given:reason_1,reason_2,reason_3">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -733,7 +733,7 @@ Your antecedents from 4a were:
       <LLMAction id="bmod_h1_q4b_llm" target="bmod_h1_q4b_feedback"
                  maps="behavior_1:b1_basis:activity~met,none~absent,*~wrong_kind|behavior_2:b2_basis:activity~met,none~absent,*~wrong_kind"
                  choices="instead_of_basis:activity,consequence,goal_behaviour,not_doing,none"
-                 slots="behavior_1:First example is something done INSTEAD OF the goal behavior:wrong_kind@1.5|behavior_2:Second example is something done INSTEAD OF the goal behavior:wrong_kind@1.5|b1_basis:What the first example IS:pick(instead_of_basis)|b2_basis:What the second example IS:pick(instead_of_basis)|modify_stated:Says whether it is a good choice to modify@2|modify_why:Gives a reason why@1|confident:All judgments confident"
+                 slots="behavior_1:First example is something done INSTEAD OF the goal behavior:wrong_kind@1.5|behavior_2:Second example is something done INSTEAD OF the goal behavior:wrong_kind@1.5|b1_basis:What the first example IS:pick(instead_of_basis)|b2_names_act:The second box names something you actually did, besides the goal behavior not happening|b2_basis:What the second example IS:pick(instead_of_basis)|modify_stated:Says whether it is a good choice to modify@2|modify_why:Gives a reason why@1|confident:All judgments confident"
                  onlyif="modify_why:modify_stated"
                  max="5">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
