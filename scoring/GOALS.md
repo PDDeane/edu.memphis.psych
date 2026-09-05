@@ -4778,7 +4778,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       `specific` 12 of 12 and `measurable` only 2. It was already properly owned
       and Q9's mention of it is redundant rather than load-bearing.
 
-- [ ] Q29. **Q2's `wgb_is_counterpart` GATES for 5 where gold charges 2, and it flips.**
+- [x] Q29. **Q2's `wgb_is_counterpart` GATES for 5 where gold charges 2, and it flips.**
       Filed 2026-08-31 from E30's accounting. Q2/p10 is the demonstration and the
       cheapest possible read: both scorers and the grader agree the WGB is not the
       opposite of the UTB, and the disagreement is entirely in what that costs.
