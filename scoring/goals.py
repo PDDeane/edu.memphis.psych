@@ -111,6 +111,22 @@ SERIES_TEST = ("the DELIVERABLE decides the series, not the finding: a subgoal "
 
 
 CLOSURES_APPROVED: dict[str, str] = {
+    "Q35": "closed 2026-09-04 on the user's instruction, after the routing it "
+           "asked for emptied it. Of its six cells: Q2/p20 was FIXED the same day "
+           "by subgoal Q17's edit (a), 1 of 12 to 11; Q4b/p13 and DAY2/p8 were "
+           "already owned by subgoals Q18 and Q22; PR/p15 moved to the newly filed "
+           "subgoal Q45, because the route this entry prescribed did not exist "
+           "(Q21 is scoped to NR and PR is a sibling item); and one cell was a "
+           "SUSPECT one that was never evidence at all -- handout 2's byte-identical "
+           "transcriptions -- now removed and deliberately not named, since the "
+           "owner map counts any mention. The last cell, 2a/p14, is recorded as a "
+           "CEILING rather than handed on: no open subgoal names any 2a cell or the "
+           "`verdict` slot, the item's own subgoal Q2 already closed at its ceiling "
+           "and handed this cell here, and the defect is one slot in two runs where "
+           "the two dissenting runs disagreed with EACH OTHER on a garbled sentence "
+           "the rubric declares irrelevant. Closing with a counted-RIGHT cell is "
+           "the hazard and the entry says so: wrong_cells_without_an_owner will not "
+           "report 2a/p14, so the written record is the only protection.",
     "Q24": "closed 2026-09-04 on the user's instruction, as the entry's own "
            "standing rule required -- 'IF NEITHER ROUTE OPENS, RECORD THE CEILING "
            "AND STOP'. Neither opened. Route 2 dissolved rather than failed: the "
