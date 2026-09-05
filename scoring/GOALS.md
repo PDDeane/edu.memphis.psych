@@ -3986,6 +3986,55 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       DO NOT REACH FOR Q19 HERE. Q19 is the later-box gradient, where gold
       charges MORE than we do; both of these run the other way.
 
+      == WORKED 2026-09-04. THE QUESTION IS ANSWERED AND THE RULE IS WRITTEN ==
+      Done in the order this entry set: the authored wording first, then which
+      reading each slot implements, then the cells. No calls.
+      THE AUTHORED WORDING ASKS FOR BOTH, which is why the two readings could
+      coexist unnoticed: "one sentence per week is the expectation, covering the
+      baseline week and the three intervention weeks."
+      AND OUR SLOTS ALREADY SPLIT ON IT, deliberately and in writing. `week_1/2/3`
+      take the ARC reading in as many words -- "Judge the arc, not the label...
+      covers all three intervention weeks even if it names one of them or none".
+      `baseline_week` takes a PRESENCE reading. So the label-versus-data question
+      is not open across the item; it is settled differently for the baseline than
+      for the three weeks, on purpose.
+      SO p6 IS NOT THAT QUESTION AFTER ALL. Its `baseline_week` is credited on
+      "{{corpus:1a/p6:response:126:220:sha=b55be28ab009:shape=S13-0a202020202020}} minutes" -- a bare CONTRAST inside a sentence about the
+      improvement. It names no period at all, so neither reading credits it: it is
+      not a week described under the wrong label, it is a quantity with no time
+      attached.
+      THE CORPUS SETTLES IT WITHOUT A JUDGEMENT CALL. Seventeen cells credit this
+      slot and sixteen are right, and every one of the sixteen LOCATES the figure
+      in time -- "{{corpus:1a/p3:response:75:106:sha=6b4a762ccb38}} intervention", "During the
+      baseline week", "{{corpus:1a/p9:response:67:97:sha=8876a93a6f21}} data", "during the recording
+      of my baseline", and eleven more of that shape.
+      p10 IS THE EXCEPTION THAT SHAPED THE RULE: "{{corpus:1a/p10:response:45:75:sha=ebd0fc9ed25b}}"
+      No before-phrase and no figure, and it is correct 12 of 12 against a gold of
+      8.00. It names a PERIOD. So the test cannot be "gives a figure" or "says
+      before" -- it has to be that a reader can tell WHICH STRETCH the statement is
+      about, which p10 passes and p6 fails.
+      WRITTEN, into `baseline_week`'s rule: the before state must be LOCATED IN
+      TIME, by naming that period or by naming the first week as a period of its
+      own -- enough on its own even with no figure attached -- and is `absent` when
+      a former quantity appears only as the contrast a later figure is set against.
+      NOT YET SWEPT.
+          FIXES   p6, 1 of 12 -> expected near 12
+          BREAKS  none found, and asserted rather than assumed: all sixteen correct
+                  credits name a period or a before-phrase, and p10 is protected by
+                  the period arm explicitly. p1 and p15 answer `absent` already and
+                  are untouched.
+          WATCH   p11, which this entry warned could move. Its baseline evidence is
+                  "{{corpus:1a/p11:response:119:153:sha=632722a67943}} routine..." -- an explicit
+                  locator -- so the change should not reach it. If p11's slot moves,
+                  the rule is wider than intended.
+      AND THE OTHER TWO CELLS ARE NOT THIS SLOT, so they stay open here: p14's
+      instability is `week_2` answering `unclear` in 4 of 12, and p19's is `week_1`
+      once. Both are the ARC judgement on a middle stretch, which is a different
+      question from the one just settled, and both are counted RIGHT today.
+      p15 IS EFFECTIVELY SETTLED at 11 of 12: its one bad run credits three week
+      slots on an answer gold scores 0.00 by the gate. Nothing here to change --
+      section 5's rule about instability applies.
+
 - [x] Q34. **NEVER RIGHT on a row gold passed in silence: six cells, and the false-positive test.**
       Split from Q31 on 2026-09-01, once pooling made the distinction measurable.
       These are cells where gold awarded FULL MARKS and wrote nothing, and we
