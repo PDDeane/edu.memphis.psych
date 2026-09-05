@@ -317,3 +317,148 @@ the time and what turned out to be true are both on the record.
 - `! -     RULE WRITTEN BUT NOT DELIVERED Q1: the rubric generates 1 prompt line(s) the shipped .olx does not carry, so its recorded number describes a prompt the rubric has moved past. Deliver it with `python3 olx_prompts.py --write`, re-dump the idmap, and sweep. First missing line: '- `benefits_listed` — a NUMBER from 0 to 3 (how many, not a judgement): HOW MANY statement'`
 
 2 non-blocking measurement-state flag(s) also present; those are excluded by design and are not overrides.
+
+## 2026-09-04 22:32:54  (parent a9d246d)
+
+**Reason given:** Unchanged set from ab81fb1: seven maps findings clearing when Q4b's olx side records, four Q2 findings superseded by the running sweep, and the written-but-undelivered rules awaiting a --write that sweep blocks. This commit files a goal and routes a cell; it spends nothing.
+
+**Findings waved through (136):**
+
+- `! -     GOAL RETIRED WITHOUT A LIVE RUN - [x] E10. **A FIX that retires Q4b's declaration, not just the declaration.** DONE, dec is CLOSED and names maps, which no live APP run has ever exercised. Closing on unit tests alone retires a claim, not a capability -- `maps` passed 8 unit tests and could not score a single cell. Add `EXERCISED: <item> -- <where the live result lives>`, declare it in UNEXERCISED_PRIMITIVES with a reason, or reopen the goal`
+- `! -     GOAL RETIRED WITHOUT A LIVE RUN - [x] E14. **`forbid` and `maps` cannot score on the APP at all. Seven items.** FIXED is CLOSED and names maps, which no live APP run has ever exercised. Closing on unit tests alone retires a claim, not a capability -- `maps` passed 8 unit tests and could not score a single cell. Add `EXERCISED: <item> -- <where the live result lives>`, declare it in UNEXERCISED_PRIMITIVES with a reason, or reopen the goal`
+- `! -     GOAL RETIRED WITHOUT A LIVE RUN - [x] E15. **`requires` is implemented on BOTH engines and bound to nothing. Q6 is why i is CLOSED and names maps, which no live APP run has ever exercised. Closing on unit tests alone retires a claim, not a capability -- `maps` passed 8 unit tests and could not score a single cell. Add `EXERCISED: <item> -- <where the live result lives>`, declare it in UNEXERCISED_PRIMITIVES with a reason, or reopen the goal`
+- `! -     GOAL RETIRED WITHOUT A LIVE RUN - [x] E19. **Re-test PROSE_ONLY_SLOTS' "NOT CONVERTIBLE" claims when the primitive set c is CLOSED and names maps, which no live APP run has ever exercised. Closing on unit tests alone retires a claim, not a capability -- `maps` passed 8 unit tests and could not score a single cell. Add `EXERCISED: <item> -- <where the live result lives>`, declare it in UNEXERCISED_PRIMITIVES with a reason, or reopen the goal`
+- `! -     GOAL RETIRED WITHOUT A LIVE RUN - [x] E34. **Gold charges a CATEGORY; our sheet charges members. No mechanism expresses  is CLOSED and names maps, which no live APP run has ever exercised. Closing on unit tests alone retires a claim, not a capability -- `maps` passed 8 unit tests and could not score a single cell. Add `EXERCISED: <item> -- <where the live result lives>`, declare it in UNEXERCISED_PRIMITIVES with a reason, or reopen the goal`
+- `! -     GOAL RETIRED WITHOUT A LIVE RUN - [x] E13. **The self-test degrades silently: a lost case looks like a passing run.** DO is CLOSED and names maps, which no live APP run has ever exercised. Closing on unit tests alone retires a claim, not a capability -- `maps` passed 8 unit tests and could not score a single cell. Add `EXERCISED: <item> -- <where the live result lives>`, declare it in UNEXERCISED_PRIMITIVES with a reason, or reopen the goal`
+- `! -     GOAL RETIRED WITHOUT A LIVE RUN - [x] E2. **A full two-sided sweep: every item, six runs, BOTH scorers.** DONE is CLOSED and names maps, which no live APP run has ever exercised. Closing on unit tests alone retires a claim, not a capability -- `maps` passed 8 unit tests and could not score a single cell. Add `EXERCISED: <item> -- <where the live result lives>`, declare it in UNEXERCISED_PRIMITIVES with a reason, or reopen the goal`
+- `! -     SLOT SET DISAGREES WITH GOLD Q2/p17: gold charges ['reason_1', 'reason_2', 'reason_3', 'wgb_inverts_utb'], we fail ['reason_1', 'reason_2', 'reason_3'] in every run — differs on ['wgb_inverts_utb']. The TOTAL can still agree, which is how this stayed invisible. Declare it in GOLD_SLOT_DISAGREEMENTS_KNOWN with what is wrong, or fix it`
+- `! -     SLOT SET DISAGREES WITH GOLD Q3/p16: gold charges ['action_oriented', 'specific'], we fail ['specific'] in every run — differs on ['action_oriented']. The TOTAL can still agree, which is how this stayed invisible. Declare it in GOLD_SLOT_DISAGREEMENTS_KNOWN with what is wrong, or fix it`
+- `! -     SLOT SET DISAGREES WITH GOLD Q3/p17: gold charges ['measurable'], we fail [] in every run — differs on ['measurable']. The TOTAL can still agree, which is how this stayed invisible. Declare it in GOLD_SLOT_DISAGREEMENTS_KNOWN with what is wrong, or fix it`
+- `! -     SLOT SET DISAGREES WITH GOLD Q3/p20: gold charges ['action_oriented', 'measurable', 'specific'], we fail ['action_oriented', 'specific'] in every run — differs on ['measurable']. The TOTAL can still agree, which is how this stayed invisible. Declare it in GOLD_SLOT_DISAGREEMENTS_KNOWN with what is wrong, or fix it`
+- `! -     SLOT SET DISAGREES WITH GOLD Q2/p6: gold charges 1 slot(s) and we fail 0 ([]). WHICH slots gold meant is ambiguous; the COUNT is not, so the two disagree on every reading. Declare it in GOLD_SLOT_BOUNDS_KNOWN or fix it`
+- `! -     SLOT SET DISAGREES WITH GOLD GOLD_SLOT_DISAGREEMENTS_KNOWN names Q2/p7, but its slot set now MATCHES gold — drop the entry and lower the budget`
+- `! -     SLOT SET DISAGREES WITH GOLD GOLD_SLOT_DISAGREEMENTS_KNOWN names Q3/p19, but its slot set now MATCHES gold — drop the entry and lower the budget`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER GOALS.md:2515 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER GOALS.md:2515 says Q4a 17/20, but the recorded olx measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER GOALS.md:2591 says Q4a 17/20, but the recorded olx measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER GOALS.md:2591 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER GOALS.md:4349 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER GOALS.md:4349 says Q4a 17/20, but the recorded olx measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER GOALS.md:7006 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER GOALS.md:7007 says Q2 19/20, but the recorded olx measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER GOALS.md:7929 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:109 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:110 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:132 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:133 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:134 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:135 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:161 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:162 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:163 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:164 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:165 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:166 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:167 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:168 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:169 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:170 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:171 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:172 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:173 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:174 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:175 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:201 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:202 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:203 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:204 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:205 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:206 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:207 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:208 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:209 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:210 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:211 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:212 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:213 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:214 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:215 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:216 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:217 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:218 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:219 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:220 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:221 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:222 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:223 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:224 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:225 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:226 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:227 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:228 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:229 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:230 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:256 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:257 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:258 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:259 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:260 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:261 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:262 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:263 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:264 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:265 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:266 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:267 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:268 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:269 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:270 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:271 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:272 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:273 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:274 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:275 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:276 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:277 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:278 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:279 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:280 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:281 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:282 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:283 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:284 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:285 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:286 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:287 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:288 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:289 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:290 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:291 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:292 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:293 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:294 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:295 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:296 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:297 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:298 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:299 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:300 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:301 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:302 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:303 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:304 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:305 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:306 says Q4a 17/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:307 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:308 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:309 says Q4a 18/20, but the recorded python measurement is 19/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:310 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:311 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:312 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:313 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:314 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     PROSE NUMBER CONTRADICTS THE LEDGER OVERRIDES.md:315 says Q2 19/20, but the recorded python measurement is 18/20 — update the sentence, or re-record if the sweep is newer`
+- `! -     RULE WRITTEN BUT NOT DELIVERED 1a: the rubric generates 1 prompt line(s) the shipped .olx does not carry, so its recorded number describes a prompt the rubric has moved past. Deliver it with `python3 olx_prompts.py --write`, re-dump the idmap, and sweep. First missing line: '- `baseline_week` — `met`/`absent`/`unclear`: is the BEFORE state given — the level the be'`
+- `! -     RULE WRITTEN BUT NOT DELIVERED Q1: the rubric generates 1 prompt line(s) the shipped .olx does not carry, so its recorded number describes a prompt the rubric has moved past. Deliver it with `python3 olx_prompts.py --write`, re-dump the idmap, and sweep. First missing line: '- `benefits_listed` — a NUMBER from 0 to 3 (how many, not a judgement): HOW MANY statement'`
+
+2 non-blocking measurement-state flag(s) also present; those are excluded by design and are not overrides.
