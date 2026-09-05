@@ -4229,7 +4229,7 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       much as a scorer's, so ask rather than assume. If (b) or (c), NR/p4 is the
       one to do first, because its case does not rest on a judgement.
 
-- [ ] Q35. **SOMETIMES RIGHT on a row gold passed in silence: variance, not strictness.**
+- [x] Q35. **SOMETIMES RIGHT on a row gold passed in silence: variance, not strictness.**
       (The title said "five cells" until 2026-09-04, by which point six were
       listed -- the same reason a subgoal names cells and slots rather than
       counts.)
@@ -4237,7 +4237,6 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       wrote nothing -- but here we reach gold in at least one of twelve pooled
       runs, so the cell is evidence about VARIANCE and not about how strict we
       are:
-          D2/p3    gold 2   0.0 x4, 1.0 x7, 2.0 x1     right 1 of 12
           DAY2/p8  gold 4   -- SEE SUBGOAL Q22, which owns this cell as a cadence
                    target. Do not read a figure for it from here: DAY2's ledger is
                    mid-refresh (new olx runs beside pre-change python ones), so any
@@ -4280,24 +4279,25 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       route them rather than to hold them: DAY2/p8 flips on `cadence_is_daily`,
       which is subgoal Q22's four-point gate; PR/p15 flips on
       `targets_goal_behavior`, which subgoal Q21 profiles at its worst precision;
-      Q4b/p13 is subgoal Q18's live not-doing cell. D2/p3 and Q2/p20 have no
-      instability subgoal yet.
+      Q4b/p13 is subgoal Q18's live not-doing cell.
       DO NOT TREAT THE SILENCE AS THE FINDING HERE. Gold saying nothing matters
       for Q34, where we disagree every time; for these five the disagreement is
       not consistent enough for gold's silence to be the interesting variable.
       == WORKED 2026-09-04: THE POPULATION IS TWO CELLS, NOT SIX ==
       The routing above was done, and three of the six left this entry for reasons
       the entry did not anticipate. No calls.
-      D2/p3 IS A SUSPECT CELL AND WAS NEVER EVIDENCE. Handout 2's p2 and p3 have
-      BYTE-IDENTICAL transcriptions with different gold rows, so at least one is
-      mis-transcribed and neither can be attributed -- `handouts.suspect(2)`
-      returns both. It is excluded from the ledger and absent from
-      `measured.cell_bands` entirely, which is why no band could ever be quoted for
-      it. Its distribution is recorded above as though it said something about our
-      variance; it says something about the transcription. REMOVED from the
-      population, and the instruction to "attach D2/p3 to an instability owner"
-      was wrong -- routing it would have given a suspect cell a home and made it
-      look owned.
+      ONE OF THE SIX WAS A SUSPECT CELL AND WAS NEVER EVIDENCE. Handout 2's p2
+      and p3 have BYTE-IDENTICAL transcriptions with different gold rows, so at
+      least one is mis-transcribed and neither can be attributed --
+      `handouts.suspect(2)` returns both. The cell is excluded from the ledger and
+      absent from `measured.cell_bands` entirely, which is why no band could ever
+      be quoted for it. Its distribution was recorded here as though it said
+      something about our variance; it says something about the transcription.
+      REMOVED, and DELIBERATELY NOT NAMED anywhere in this entry: the owner map
+      counts any mention, so writing the id even to disown it would keep a suspect
+      cell reading as owned. That is the same trap that put Q3/p13 in subgoal Q9,
+      and the instruction this entry used to carry -- attach it to an instability
+      owner -- would have made it worse by giving it a home.
       NOTHING WOULD HAVE CAUGHT THAT. `check_no_declaration_cites_a_suspect_cell`
       reads the DECLARATION TABLES and not GOALS.md, so a subgoal arguing from a
       suspect cell is unchecked. The rule exists (memory/suspect-cells-are-never-
@@ -4317,22 +4317,47 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       it the one place a rule change there has a score to aim at.
       Q4b/p13 AND DAY2/p8 ARE PROPERLY ROUTED and need nothing: subgoal Q18 owns
       the first, subgoal Q22 the second, and both appear in those entries.
-      SO WHAT THIS ENTRY HOLDS IS ONE CELL: 2a/p14, at 10 of 12, on the
-      three-way-ambiguous `verdict` box. Its candidate -- a hedge-tolerance clause,
-      worth at most 2 cell-runs in 240 on this item -- is written above and is not
-      worth a sweep on its own.
-      AND THAT MAKES THIS A CLOSURE CANDIDATE, with one thing to settle first.
-      2a/p14 is counted RIGHT, so if this entry closes with the cell still named
-      here it is orphaned SILENTLY -- `wrong_cells_without_an_owner` only sees
-      cells wrong by the median, which is subgoal E41's laundering exactly. Either
-      2a/p14 gets a home or this entry records it as a ceiling in terms someone can
-      act on: the verdict box admits three defensible readings of one garbled
-      sentence, the two dissenting runs disagreed with EACH OTHER, and the rubric
-      says success or failure is irrelevant to the score.
-      D2/p3 MUST ALSO STOP BEING NAMED HERE before closing, for the same reason in
-      reverse: it is suspect input, the owner map counts any mention, and a
-      subgoal that has been closed should not be the reason a suspect cell reads
-      as owned.
+      == 2a/p14 IS A CEILING, RECORDED 2026-09-04 SO CLOSING DOES NOT LOSE IT ==
+      It is the last cell here, and it has no better home. Checked exhaustively
+      rather than assumed: NO open subgoal names any 2a cell or the `verdict` slot
+      except this one. Subgoal Q2 is the item's own entry, it named 2a/p14 among
+      six, and it CLOSED at the item's ceiling -- which is how the cell arrived
+      here on 2026-09-03. Subgoal Q31 held 2a/p16, not this. Filing a third home
+      for a cell that has already outlived two would be bookkeeping, not work.
+      THE CELL: gold 4.00, "-2 pts: need more explanation on how it was or was not
+      successful". We score 4.00 in 10 of 12 and 2.00 in 2. Everything else on the
+      sheet is STABLE -- `names_enabler`, `names_plan_content` and `states_size`
+      are `absent` on 12 of 12, and `mechanism_named` is `absent` wherever it is
+      answered, which is what produces gold's own 4.00. The entire defect is one
+      slot in two runs:
+          verdict   met x10   unclear x1   absent x1
+      WHY NO RULE REACHES IT. The box reads "{{corpus:2a/p14:verdict:0:104:sha=f83968a50add:shape=S7-0a202020202020}} Three".
+      The first clause states nothing, the second states a verdict badly, and the
+      whole is garbled -- and the slot's vocabulary is exactly `met`/`absent`/
+      `unclear`, so all three verdicts are defensible readings of one sentence. THE
+      TWO DISSENTING RUNS DISAGREED WITH EACH OTHER, one answering `unclear` and
+      one `absent`, both quoting the same clause. A rule that fixes this must pick
+      one of three readings of a sentence the graders' own rubric declares
+      irrelevant to: "Success or failure is irrelevant to the score; only whether
+      it is stated and explained."
+      SO THE CANDIDATE IS NOT WORTH ITS RISK. A hedge-tolerance clause on `verdict`
+      -- a stated verdict counts even where the student disclaims confidence in it
+      -- is written above and would be worth at most 2 cell-runs in 240 on this
+      item. Any prose touching `verdict` reaches all twenty 2a cells, of which
+      nineteen are right today. That is the trade subgoal Q18 made and reverted the
+      same day, and subgoal Q6's seven attempts are the longer version.
+      WHAT WOULD CHANGE THIS, if anyone returns: not a wording change. Either
+      evidence that the same hedge pattern costs something on a SIBLING item --
+      2b or 3 -- which would make it a family rule rather than one cell, or a gold
+      reading establishing that the graders do credit a disclaimed verdict, which
+      would make our 10 runs wrong rather than our 2.
+      CLOSING WITH A CELL THAT IS COUNTED RIGHT is the hazard here, and it is
+      stated so the next reader does not have to rediscover it: 2a/p14 is
+      `unstable_counted_right`, so `wrong_cells_without_an_owner` will NOT report
+      it once this entry closes. It is not lost, it is written down -- which is the
+      only protection that check cannot give.
+      THE SUSPECT CELL IS NO LONGER NAMED HERE, done 2026-09-04, so it no longer
+      reads as owned by anything.
 
 - [ ] Q33. **Q4a on the PAPER scorer: four cells the other two engines get right.**
       Filed 2026-09-01, on the first paper numbers the ledger has ever held.
