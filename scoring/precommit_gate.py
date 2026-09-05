@@ -67,8 +67,14 @@ def _record(blocking: list[str], state: list[str], reason: str) -> str:
             if new:
                 fh.write("# Overrides of the enforcement gate\n\nEvery commit that "
                          "used `ALLOW_UNDECLARED`, with the findings it waved through "
-                         "and the reason given. Written by precommit_gate.py; do not "
-                         "edit by hand.\n")
+                         "and the reason given. Entries are written by "
+                         "precommit_gate.py and are never rewritten.\n\nA reason can "
+                         "turn out to be wrong -- the first one recorded here was -- "
+                         "so CORRECTIONS ARE APPENDED as their own dated section "
+                         "under the entry they correct. What was believed at the time "
+                         "and what turned out to be true both stay on the record; "
+                         "editing an entry to make it right afterwards would destroy "
+                         "the only evidence that anyone was ever mistaken.\n")
             fh.writelines(entry)
         add = subprocess.run(["git", "add", LOG], capture_output=True, text=True, cwd=HERE)
         if add.returncode:
