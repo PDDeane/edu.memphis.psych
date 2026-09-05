@@ -4235,8 +4235,47 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       DO NOT TREAT THE SILENCE AS THE FINDING HERE. Gold saying nothing matters
       for Q34, where we disagree every time; for these five the disagreement is
       not consistent enough for gold's silence to be the interesting variable.
-      NEXT: attach D2/p3 and Q2/p20 to an instability owner or say why they need
-      one of their own, then let Q22, Q21 and Q18 carry the rest.
+      == WORKED 2026-09-04: THE POPULATION IS TWO CELLS, NOT SIX ==
+      The routing above was done, and three of the six left this entry for reasons
+      the entry did not anticipate. No calls.
+      D2/p3 IS A SUSPECT CELL AND WAS NEVER EVIDENCE. Handout 2's p2 and p3 have
+      BYTE-IDENTICAL transcriptions with different gold rows, so at least one is
+      mis-transcribed and neither can be attributed -- `handouts.suspect(2)`
+      returns both. It is excluded from the ledger and absent from
+      `measured.cell_bands` entirely, which is why no band could ever be quoted for
+      it. Its distribution is recorded above as though it said something about our
+      variance; it says something about the transcription. REMOVED from the
+      population, and the instruction to "attach D2/p3 to an instability owner"
+      was wrong -- routing it would have given a suspect cell a home and made it
+      look owned.
+      NOTHING WOULD HAVE CAUGHT THAT. `check_no_declaration_cites_a_suspect_cell`
+      reads the DECLARATION TABLES and not GOALS.md, so a subgoal arguing from a
+      suspect cell is unchecked. The rule exists (memory/suspect-cells-are-never-
+      evidence.md) and its enforcement stops at the tables. Worth an E-series check
+      if it is wanted; it is cheap, since `suspect()` is already the authority.
+      Q2/p20 IS RESOLVED and leaves the population: subgoal Q17's edit (a) took it
+      from 1 of 12 to 11 of 12 on 2026-09-04 by narrowing the reasons count's
+      negative-phrasing clause. It was a real variance cell and it is now
+      `unstable_counted_right`, which is subgoal E41's class rather than this
+      entry's.
+      PR/p15's ROUTE DOES NOT EXIST, and this is the correction that matters most
+      for whoever reads this next. The entry says it "flips on
+      `targets_goal_behavior`, which subgoal Q21 profiles at its worst precision".
+      The slot is right -- `targets_goal_behavior` is `absent` in 7 of 12 on a row
+      gold passed in silence at 4.00 -- but Q21 is scoped to NR and names only NR
+      cells. PR is a sibling item, not Q21's. So PR/p15 has no owner but this
+      entry, and it STAYS HERE until an instability subgoal for the four example
+      items exists.
+      Q4b/p13 AND DAY2/p8 ARE PROPERLY ROUTED and need nothing: subgoal Q18 owns
+      the first, subgoal Q22 the second, and both appear in those entries.
+      SO WHAT THIS ENTRY HOLDS IS TWO CELLS:
+          PR/p15   5 of 12   `targets_goal_behavior` absent in 7, gold silent
+          2a/p14  10 of 12   the three-way-ambiguous `verdict` box
+      Both have a named candidate already written above -- a hedge-tolerance clause
+      for 2a/p14, worth at most 2 cell-runs in 240 -- and neither is worth a sweep
+      on its own. The honest state is that this entry is now a two-cell variance
+      record rather than a population, and it should be closed into whatever owns
+      the example items if such a subgoal is ever filed.
 
 - [ ] Q33. **Q4a on the PAPER scorer: four cells the other two engines get right.**
       Filed 2026-09-01, on the first paper numbers the ledger has ever held.
