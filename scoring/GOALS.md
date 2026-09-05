@@ -922,6 +922,91 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       divergence class this project exists to close, so when this lands the
       ranking must consume the shared map instead of carrying its own resolution.
 
+- [ ] E43. **The reasons scaffold reported an impossible triple, and nothing
+      would have noticed: `listed=0, failing=0, given=3`.**
+      Filed 2026-09-04 out of subgoal Q41, where it was found while checking
+      whether a new zero-listing was an instance of that defect. It is not, and
+      that is what makes it worth its own entry. Measured from artifacts, no calls.
+      WHAT HAPPENED, on Q2/p11, olx run 2. `reasons_given` is DEFINED as
+      `reasons_listed` minus `reasons_failing` -- both slots say so in as many
+      words -- and the run reported 0, 0 and 3. The evidence quoted for BOTH
+      counting slots is the student's entire answer, so the model read the whole
+      response, reported having listed NOTHING, and then reported three valid
+      benefits from the nothing it had listed.
+      THE SCORE WAS RIGHT, WHICH IS THE PROBLEM. `reasons_given` is the scored
+      slot and it answered 3, so the cell took full marks and matched a silent
+      gold. `reasons_listed` and `reasons_failing` are `reported: True` -- they
+      earn nothing and change nothing -- so an impossible triple costs zero points
+      and appears in no rate. It was found by reading a cell for a different
+      reason, which is not a method.
+      IT IS NOT SUBGOAL Q41's DEFECT, and the distinction is the reason both exist:
+      Q41 is a FAILING gate suppressing the scored count, with the model naming the
+      gate as its reason. Here the gate answers `met`, the score is correct, and
+      what is wrong is the reported-only scaffold. A shared symptom -- a zero where
+      statements exist -- with different causes, and reading them together is what
+      the earlier note nearly did.
+      ONE IN 240, AND THE SCAFFOLD IS ON ONE ITEM. Checked every observation of
+      every item carrying the triple: Q2 is the ONLY such item, 240 observations
+      across both sides, and this is the single violation. Q1 carries
+      `reasons_given` and the three expansion slots but NOT `listed`/`failing`, so
+      it cannot show this at all.
+      AND IT CONTRADICTS THE RECORD THE SCAFFOLD RESTS ON. Subgoal Q18's entry
+      keeps this scaffold on the strength of "`listed - failing == given` held on
+      120 of 120 cell-runs", which was the measurement that justified restoring it
+      after an earlier revert. That invariant no longer holds everywhere. One
+      violation in 240 does not overturn the scaffold -- it is still right 239
+      times -- but the claim as written is now false, and a claim that is quoted to
+      justify keeping a structure should not be left standing when it has been
+      falsified.
+      WHAT TO DO, cheapest first:
+        1. DECIDE WHETHER IT IS WORTH A CHECK. `listed - failing == given` is
+           arithmetic over three recorded numbers, so a check costs nothing per
+           run and would fail on exactly this. The counter-argument is that a
+           reported-only slot moves no score, so the check would be guarding
+           bookkeeping -- and the answer to that is that the scaffold exists
+           BECAUSE its bookkeeping was thought reliable.
+        2. CORRECT Q18's "120 of 120" wherever it is quoted, or restate it as the
+           era it was measured in.
+        3. DO NOT SWEEP FOR IT. One in 240 is a rate that needs hundreds of runs to
+           estimate and the observation is already recorded; section 5's rule about
+           instability being a bad reason to spend calls applies exactly.
+      A COMPANION QUESTION, NOT FILED: whether a `reported: True` slot should be
+      allowed to disagree with the slot it defines at all, or whether the engine
+      should recompute rather than trust it. That is machinery and belongs in the
+      E series if it is wanted.
+      == FILED AS Q42 AND REFILED AS E43 THE SAME DAY -- THE THIRD OF 2026-09-04 ==
+      Q38 became E40, Q39 became E41, and this is the third, with the `--next`
+      reminder having printed the test before each one. The FINDING here is a
+      scoring fault -- a count reported impossibly -- but the DELIVERABLE is a
+      check plus a decision about what the engine should trust, which is the
+      audit's own machinery. `goals.misfiled_series` cannot catch any of the three:
+      it compares a label against its SECTION, and a Q entry sitting in the
+      quality-control section is consistent. Three misfilings of one kind, all
+      caught by hand, is itself the argument for the discriminator E41 tried and
+      rejected -- or for accepting that this judgement has no mechanical guard and
+      making the reminder harder to walk past.
+
+      == THE COMPANION QUESTION, MOVED IN 2026-09-04 RATHER THAN LEFT UNFILED ==
+      Should a `reported: True` slot be ALLOWED to disagree with the slot it
+      defines, or should the engine recompute rather than trust it?
+      `reasons_given` is documented as `reasons_listed` minus `reasons_failing`,
+      and the engine takes all three from the model and scores the third. So the
+      model can return a triple that cannot be arithmetic, and did.
+      THE TWO ANSWERS DIFFER IN WHAT THEY COST. Recomputing makes the arithmetic
+      unbreakable and throws away information: the scaffold exists so the model
+      DECOMPOSES its judgement, and Q18's record shows the decomposition doing real
+      work -- it reproduced the graders' own reading on p18, 3 listed, 1 restating
+      the problem, 2 counting. If the engine simply derives `given`, a model that
+      miscounts the parts silently gets the total it computes from them, which may
+      be worse than one that reports an obviously impossible triple. Checking
+      instead of recomputing keeps the decomposition AND makes the contradiction
+      loud, at the cost of a check that fires on something scoring nothing.
+      IT IS NOT A Q2 QUESTION. Q2 is the only item carrying this scaffold today, so
+      whichever way it goes it governs one item -- but it also governs how the next
+      count-bearing sheet is built, which is why it belongs in the E series with
+      the primitive work rather than beside a cell.
+
+
 - [ ] E42. **Nothing records what band a cell was in when a change was measured,
       so "did this rule gain a stable cell" is still answered by hand.**
       Filed 2026-09-04 as subgoal E41's declared residual, on closing it. E41
@@ -3709,58 +3794,92 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       a different fault: the count arithmetic reported inconsistently, once in 120
       observations. Worth its own line somewhere, not here.
 
-- [ ] Q42. **The reasons scaffold reported an impossible triple, and nothing
-      would have noticed: `listed=0, failing=0, given=3`.**
-      Filed 2026-09-04 out of subgoal Q41, where it was found while checking
-      whether a new zero-listing was an instance of that defect. It is not, and
-      that is what makes it worth its own entry. Measured from artifacts, no calls.
-      WHAT HAPPENED, on Q2/p11, olx run 2. `reasons_given` is DEFINED as
-      `reasons_listed` minus `reasons_failing` -- both slots say so in as many
-      words -- and the run reported 0, 0 and 3. The evidence quoted for BOTH
-      counting slots is the student's entire answer, so the model read the whole
-      response, reported having listed NOTHING, and then reported three valid
-      benefits from the nothing it had listed.
-      THE SCORE WAS RIGHT, WHICH IS THE PROBLEM. `reasons_given` is the scored
-      slot and it answered 3, so the cell took full marks and matched a silent
-      gold. `reasons_listed` and `reasons_failing` are `reported: True` -- they
-      earn nothing and change nothing -- so an impossible triple costs zero points
-      and appears in no rate. It was found by reading a cell for a different
-      reason, which is not a method.
-      IT IS NOT SUBGOAL Q41's DEFECT, and the distinction is the reason both exist:
-      Q41 is a FAILING gate suppressing the scored count, with the model naming the
-      gate as its reason. Here the gate answers `met`, the score is correct, and
-      what is wrong is the reported-only scaffold. A shared symptom -- a zero where
-      statements exist -- with different causes, and reading them together is what
-      the earlier note nearly did.
-      ONE IN 240, AND THE SCAFFOLD IS ON ONE ITEM. Checked every observation of
-      every item carrying the triple: Q2 is the ONLY such item, 240 observations
-      across both sides, and this is the single violation. Q1 carries
-      `reasons_given` and the three expansion slots but NOT `listed`/`failing`, so
-      it cannot show this at all.
-      AND IT CONTRADICTS THE RECORD THE SCAFFOLD RESTS ON. Subgoal Q18's entry
-      keeps this scaffold on the strength of "`listed - failing == given` held on
-      120 of 120 cell-runs", which was the measurement that justified restoring it
-      after an earlier revert. That invariant no longer holds everywhere. One
-      violation in 240 does not overturn the scaffold -- it is still right 239
-      times -- but the claim as written is now false, and a claim that is quoted to
-      justify keeping a structure should not be left standing when it has been
-      falsified.
-      WHAT TO DO, cheapest first:
-        1. DECIDE WHETHER IT IS WORTH A CHECK. `listed - failing == given` is
-           arithmetic over three recorded numbers, so a check costs nothing per
-           run and would fail on exactly this. The counter-argument is that a
-           reported-only slot moves no score, so the check would be guarding
-           bookkeeping -- and the answer to that is that the scaffold exists
-           BECAUSE its bookkeeping was thought reliable.
-        2. CORRECT Q18's "120 of 120" wherever it is quoted, or restate it as the
-           era it was measured in.
-        3. DO NOT SWEEP FOR IT. One in 240 is a rate that needs hundreds of runs to
-           estimate and the observation is already recorded; section 5's rule about
-           instability being a bad reason to spend calls applies exactly.
-      A COMPANION QUESTION, NOT FILED: whether a `reported: True` slot should be
-      allowed to disagree with the slot it defines at all, or whether the engine
-      should recompute rather than trust it. That is machinery and belongs in the
-      E series if it is wanted.
+- [ ] Q44. **Q2/p6 is right 8 times in 12 and never once for the right reason.
+      LOW PRIORITY, filed so a compensating pair is not read as agreement.**
+      Filed 2026-09-04 at the user's direction, out of subgoal Q17's sweep. No
+      calls; everything below is read off recorded artifacts and the submission.
+      THE RESPONSE HOLDS TWO REASON STATEMENTS, not three, and GOLD COUNTS BOTH.
+      Gold is 4.00 with the comment "-1 pt: missing one reason", and on a sheet
+      where each missing reason costs 1 of 3, that is `reasons_given` = 2. So the
+      correct decomposition is listed 2, failing 0, given 2.
+      NO RUN PRODUCES IT. Across 12 pooled runs:
+          listed 2, failing 1, given 1  -> 3.00   python x3      WRONG
+          listed 3, failing 1, given 2  -> 4.00   python x3, olx x6
+      The eight runs that match gold do so by TWO ERRORS CANCELLING: the listing
+      finds a third statement that is not there, and the rejection then removes
+      one, arriving at 2 by the wrong route. The three that score 3.00 have the
+      listing RIGHT and are marked wrong. So the cell is most accurate exactly
+      where it scores worst.
+      THIS IS THE SHAPE ALREADY RECORDED ON Q4b/p7 in subgoal Q18 -- gold reaching
+      a total by one route and the sheet by another -- and it has the same
+      consequence: p6's 8 of 12 must never be quoted as evidence that we agree with
+      gold here, and a change that fixes the LISTING alone would move the cell to
+      3.00 on every run and look like a regression.
+      WHAT IT COST TODAY, which is the argument for filing rather than noting: p6
+      was used as a CONTROL for subgoal Q17's rule (d) on the belief that its
+      refusal was correct. It is not -- gold accepts the statement being refused --
+      and (d) was written to PRESERVE that refusal. The rule had to be reopened and
+      the person-clause dropped once the submission was read. A control asserted
+      from a score rather than from gold's arithmetic is not a control.
+      THE TWO DEFECTS, separable and neither urgent:
+        1. `reasons_listed` reads 3 on a two-statement response in 9 of 12 runs.
+           The likely cause is that the box opens with the WGB sentence -- "{{corpus:Q2/p6:response:30:120:sha=358d18ce2832:shape=S0-0a2020202020202020202020,S14-0a2020202020202020202020}} week" -- which is a goal statement, not a reason, and is
+           being counted as one. That is a segmentation judgement, not a counting
+           one.
+        2. `reasons_failing` = 1 refuses a statement gold credits. That half was
+           addressed by dropping clause (ii)'s person-arm on 2026-09-04 and is
+           pending measurement; if it lands, p6 should read listed 3, failing 0,
+           given 3 -> 5.00, which is WORSE than today. The two defects must be
+           fixed TOGETHER or not at all.
+      SO THE ORDER MATTERS AND IS THE WHOLE PLAN: fix the listing first, or fix
+      both at once. Fixing the refusal alone converts a cell that is right by
+      accident into one that is wrong on the record.
+
+- [ ] Q43. **Q2/p18: the inversion boundary that three rule formulations could
+      not move. LOW PRIORITY, and filed to stop it absorbing effort.**
+      Moved out of subgoal Q17 on 2026-09-04 at the user's direction, after the
+      third formulation was measured. Q17 keeps p18 only where it serves as a
+      CONTROL for the reasons rules; the inversion problem is here.
+      THE CELL. Gold 4.00 -- "-1 pt: missing a third reason" -- and we score 2.00
+      in 7 of 12 pooled runs. `wgb_inverts_utb` answers `absent` in exactly those
+      7 and `met` in the other 5. Nothing else varies.
+      THE COUNT IS NOT INVOLVED, checked twice because it is the obvious suspect:
+      `reasons_given` reads 2 on ALL TWELVE runs, and gold's own count is 2, so the
+      -1 it produces is a charge gold also makes. The whole gap is the -2.
+      THREE FORMULATIONS, ALL MEASURED, NONE BETTER THAN THE FIRST:
+          original text                     5 of 12
+          "reachable by this behaviour and
+           little else"                     0 of 6   -- DETERMINISTICALLY WRONG,
+                                            because being in condition has more
+                                            than one route, so the clause excluded
+                                            the very cell it was written for
+          "what the state NAMES"            5 of 12  -- restored the first figure
+                                            and bought nothing
+      THE SECOND ATTEMPT ALSO COST A CONTROL that has not been recovered: p17 was
+      12 of 12 and is 11, because this slot now answers `met` once in six python
+      runs where gold charges -2. So the slot is imperfect on TWO cells, and the
+      cheapest thing anyone does here next may be to reconsider that clause rather
+      than to write a fourth.
+      WHY IT IS HARD, and the reason this is low priority rather than open work:
+      the three cells that turn on this slot are all STATES rather than doings, and
+      gold prices them differently with no wording that separates them --
+          p18  "get back in shape"                    gold charges NOTHING
+          p10  "{{corpus:Q2/p10:response:31:56:sha=2bd894e2eb1a}}"            gold charges -2
+          p17  "{{corpus:Q2/p17:response:10:38:sha=634e47a1ef90}} ..."     gold charges -2
+      p10 and p17 are both correct today, 11 of 12 and 11 of 12, so any change must
+      hold them. Seventeen further cells name a DOING and answer `met` 12 of 12;
+      they are inert but they are also 17 ways to go wrong.
+      IT IS NO LONGER ON THE LINE, which is what makes 5 of 12 worth quoting: E42's
+      band record shows p18 moving `on_the_line` -> `wrong_by_median` across the
+      2026-09-04 sweep. It is stably wrong rather than one run from flipping, so
+      the figure is arguable rather than noise -- and what it argues is that the
+      model finds this boundary genuinely ambiguous, not badly worded.
+      WHAT WOULD ACTUALLY SETTLE IT, if it is ever picked up: not more prose. Either
+      a STRUCTURAL split -- a separate ground asking what KIND of thing the goal
+      names, so the state/doing judgement is answered once and explicitly rather
+      than inside the inversion test -- or a gold reading that establishes whether
+      the graders were drawing a line at all between p18 and p10. Section 2a's
+      order applies: structure before wording, and three wordings have now failed.
 
 - [ ] Q40. **`aimed_correctly`: a 4-point gate that exists on WK2 alone, and the
       sibling check cannot see it.**
@@ -6824,10 +6943,33 @@ because it can be fixed or declared; a wobbling cell cannot be either.
       Three slots, one mistake -- judging a statement by a feature it carries
       rather than by what it names. That pattern is the finding; the three cells
       are the occasion.
-      PREDICTED: p11 and p14 to 12 of 12, p16 to 12 of 12, p3/p6/p18 unmoved.
-      p6 REMAINS THE ONE TO WATCH anyway, for a different reason: its 8 of 12 is an
-      under-COUNT at the listing stage -- `reasons_listed` reads 2 on a response
-      holding 3, in three python runs -- which this rule does not touch.
+      == (d) WAS ADJUSTED BEFORE IT SWEPT, BECAUSE ITS CONTROL WAS NOT ONE ==
+      The version above kept clause (ii)'s "become the KIND OF PERSON who does the
+      goal behaviour" arm, and named p6's refusal as the CORRECT case that
+      justified it. Reading p6's actual submission showed that is false. Its box
+      holds TWO reason statements and gold's 4.00 is 5 - 1, so GOLD COUNTS BOTH --
+      including the one we refuse, "{{corpus:Q2/p6:response:287:356:sha=74be54d3066d:shape=S8-0a202020202020}} involved". Gold credits exactly the statement the
+      person-arm exists to reject.
+      SO THE ARM HAD NO SUPPORTING CELL AT ALL. Checked across the item: the only
+      refusals gold endorses are p3's, which name the harm of the unwanted
+      behaviour, and p18's, which attributes a present condition to not having done
+      it. Nothing supports refusing a change in the student, and one cell
+      contradicts it.
+      CLAUSE (ii) IS NOW THE PROBLEM-RESTATEMENT HEAD ONLY, with both look-alikes
+      named as NOT it: a good is not a restatement for being described as LASTING,
+      nor for being a CHANGE IN THE STUDENT rather than in their circumstances.
+      PREDICTED, revised: p11, p14 and p16 to 12 of 12; p3 and p18 unmoved, since
+      neither is a persistence-good or a change-in-the-student.
+      p6 IS NOW EXPECTED TO GET WORSE, and that is correct rather than a
+      regression: it should read listed 3, failing 0, given 3 -> 5.00 against a
+      gold of 4.00. It scores 4.00 today only because an over-LISTING and a wrong
+      refusal cancel. Removing the wrong refusal exposes the over-listing, which is
+      subgoal Q44, and the two must be fixed together or not at all.
+      THE LESSON IS ABOUT CONTROLS, not about this slot: p6 was accepted as a
+      control because its SCORE matched gold in 8 of 12 runs. A control has to be
+      established from gold's ARITHMETIC -- what gold's comment says it charged and
+      for what -- because a cell can match on the total while disagreeing about
+      every part of it.
 
       Three of this subgoal's cells were being read as merely unstable and are in
       fact RECORDED WRONG -- counted wrong by the per-cell median, not wobbling
