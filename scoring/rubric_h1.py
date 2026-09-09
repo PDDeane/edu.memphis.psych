@@ -86,21 +86,19 @@ ITEMS: list[dict] = [
                 # Both now answer `absent` on both, matching gold on p20 and not on
                 # p17. That is a CEILING, recorded in handouts.GOLD_CEILINGS, not a
                 # divergence — a divergence would imply we chose to disagree.
-                "desc": "The unwanted target behavior is identified as the student's "
-                        "own target, not merely mentioned as the cause of some effect. "
-                        "Judge ONLY the response text the student wrote. Where the UTB "
-                        "also appears in this prompt as a separate field or context "
-                        "line, that does NOT satisfy this check — the question is "
-                        "whether the RESPONSE names the behaviour as its target. "
-                        "The test is OWNERSHIP, not first-person pronouns, and "
-                        "it can be satisfied anywhere in the response: naming the "
-                        "behaviour as theirs (\"My unwanted target behavior is "
-                        "X\"), choosing it (\"I chose X\"), or saying what they "
-                        "want instead of it. A clause that says only what the "
-                        "behaviour DOES TO them — it makes them tired, it leaves "
-                        "them behind — is an EFFECT and is not ownership, however "
-                        "many times \"me\" appears in it. A response built "
-                        "entirely of such clauses is `absent`"
+                "desc": "The unwanted target behavior is identified as the student's own "
+                        "target, not merely mentioned as the cause of some effect. Judge "
+                        "ONLY the response text the student wrote. Where the UTB also "
+                        "appears in this prompt as a separate field or context line, that "
+                        "does NOT satisfy this check — the question is whether the RESPONSE "
+                        "names the behaviour as its target. The test is OWNERSHIP, not "
+                        "first-person pronouns, and it can be satisfied anywhere in the "
+                        "response: naming the behaviour as theirs (\"My unwanted target "
+                        "behavior is X\"), choosing it (\"I chose X\"), or saying what they "
+                        "want instead of it. A clause that says only what the behaviour "
+                        "DOES TO them — it makes them tired, it leaves them behind — is an "
+                        "EFFECT and is not ownership, however many times \"me\" appears in "
+                        "it. A response built entirely of such clauses is `absent`."
             },
             # Q1 HAS NO GOLD CEILING. It had an entry in handouts.GOLD_CEILINGS
             # claiming `reasons_given` was unwinnable on p6 and p10 "for every model
@@ -453,16 +451,45 @@ ITEMS: list[dict] = [
                         "PASS this whenever the goal names no other activity at all — a "
                         "condition, a state, an outcome or a routine is still an answer "
                         "about the student's own behaviour, however far from the UTB it may "
-                        "read, and it is charged 2 on `wgb_inverts_utb`, not the whole item. "
+                        "read. "
                         "Silence about the unwanted behaviour is NOT evidence of a different "
                         "behaviour: a goal that never mentions it still passes this. "
                         "A goal in the right territory that simply "
-                        "does not invert the behaviour still passes this: that is "
-                        "WGB_NOT_OPPOSITE on `wgb_inverts_utb`, worth 2, not the whole item. "
-                        "When this DOES fail the goal is unstated and its reasons cannot "
-                        "count either, so WGB_UNRELATED stands INSTEAD of "
-                        "WGB_NOT_OPPOSITE plus reason deductions, never alongside them. "
-                        "Where it fires it costs the whole item",
+                        "does not invert the behaviour still passes this.",
+                # SUBGOAL Q41, 2026-09-08. FOUR ARITHMETIC STATEMENTS REMOVED FROM
+                # THIS DESC, and the reason is that this field is read by a grader
+                # whose job is to return a JUDGEMENT -- and the model EXECUTED them.
+                # On Q2/p10 `reasons_listed` answered 0 on a response holding three
+                # statements, against its own instruction "Count what is on the
+                # page", and said why in all five runs where it happened: "I did
+                # not count reasons because ... THE ITEM'S GATE THEREFORE FAILS."
+                #   CUT, pure stake, no judging content at all:
+                #     "When this DOES fail the goal is unstated and its reasons
+                #      cannot count either, so WGB_UNRELATED stands INSTEAD of
+                #      WGB_NOT_OPPOSITE plus reason deductions, never alongside
+                #      them."                       <- the declared site
+                #     "Where it fires it costs the whole item"
+                #   TRIMMED, keeping the judging half and dropping the amount:
+                #     "... and it is charged 2 on `wgb_inverts_utb`, not the whole
+                #      item"  -> the PASS instruction before it is untouched
+                #     "... that is WGB_NOT_OPPOSITE on `wgb_inverts_utb`, worth 2,
+                #      not the whole item"  -> and what remains, "still passes
+                #      this", is what the `rule` already says in its own words.
+                # NOTHING WAS RELOCATED, because nothing needed to be: every fact
+                # these sentences stated is already declared structurally --
+                # deductions WGB_UNRELATED 5.0 / WGB_NOT_OPPOSITE 2.0 /
+                # REASON_MISSING 1.0, `gates: True` on this slot, and
+                # codes absent/unclear -> WGB_UNRELATED. The prose was explanatory
+                # duplication of code, which is exactly why the wrong reader could
+                # act on it.
+                # NO CELL IS EXPECTED TO MOVE. After subgoal Q17's edit (c) the gate
+                # fails on ONE cell in twenty (p7) and p7 holds no reasons, so no
+                # Q2 cell has a failing gate meeting a response that HOLDS reasons
+                # -- the only configuration in which the contamination can act. A
+                # green sweep here proves nothing, which the entry pre-registered
+                # before the edit. THE DELIVERABLE IS
+                # `enforcement.check_no_judging_field_states_what_a_verdict_costs`
+                # going silent.
                             # MIGRATED from olx_prompts.SLOT_NOTES 2026-08-29 (E11), verbatim.
                 # ITS HISTORY, carried over from the note it replaced rather than
                 # lost with it: the note once read "is it the direct positive
@@ -480,10 +507,17 @@ ITEMS: list[dict] = [
                          "different activity against it is NOT satisfied: the mention is not "
                          "engagement, and a goal offered as a replacement is exactly this finding. A "
                          "goal naming no other activity — a condition, a state, an outcome, a routine "
-                         "— SATISFIES this however unrelated it may read, and is charged 2 on "
-                         "`wgb_inverts_utb` instead. A goal in the right territory that simply fails "
-                         "to invert the behavior satisfies this too. Not satisfied means the whole "
-                         "item is that finding",
+                         "— SATISFIES this however unrelated it may read. A goal in the right "
+                         "territory that simply fails to invert the behavior satisfies this too.",
+                # SUBGOAL Q41, 2026-09-08, the same treatment as the desc above and
+                # for the same reason -- this field is read by a JUDGING grader.
+                #   TRIMMED: "and is charged 2 on `wgb_inverts_utb` instead" -- the
+                #     SATISFIES instruction it hung off is untouched.
+                #   CUT:     "Not satisfied means the whole item is that finding" --
+                #     pure stake. The gate's arithmetic is `gates: True` plus
+                #     codes absent/unclear -> WGB_UNRELATED at 5.0, all declared.
+                # The entry named this field explicitly: "The gate's `rule` carries
+                # the same thing in shorter form and needs the same treatment."
 },
             # SHARPENED 2026-09-04 (subgoal Q17, problem (b)). This slot was the
             # ONLY defect on p18: gold 4.0 is -1 for a missing third reason, the
@@ -546,10 +580,86 @@ ITEMS: list[dict] = [
             # foreign units, p7 names a different activity.
             # NOT YET SWEPT in this form.
             {
+                "what": "wgb_names",
+                "verdicts": ["doing", "own_state", "general_state",
+                             "outcome_measure", "other_activity", "none"],
+                # SUBGOAL Q43, 2026-09-05. The STRUCTURAL split that entry asks
+                # for by name: "a separate ground asking what KIND of thing the
+                # goal names, so the state/doing judgement is answered once and
+                # explicitly rather than inside the inversion test".
+                #
+                # THREE WORDINGS OF THE INVERSION TEST HAVE BEEN MEASURED and none
+                # beat the first (5 of 12, then 0 of 6, then 5 of 12 again). The
+                # second was deterministically wrong because "reachable by this
+                # behaviour and little else" excluded the very cell it was written
+                # for -- being in condition has more than one route. That is a test
+                # about ROUTES, and it kept colliding with itself.
+                #
+                # THE GOLD READING SETTLES THAT THE LINE IS REAL, done 2026-09-05
+                # over all twenty cells with no calls. Gold charges this criterion
+                # on exactly THREE, and each is a different kind of thing:
+                #     p7   a DIFFERENT ACTIVITY from the one the unwanted names
+                #     p10  a GENERAL CONDITION that names no behaviour
+                #     p17  an OUTCOME MEASURE in units the behaviour is not in
+                # and it is silent on the other seventeen, INCLUDING p18, whose
+                # goal is the bodily condition that doing the behaviour produces.
+                # So the graders were drawing a line, and it is a line about what
+                # KIND of thing is named -- which is why a parse can carry it and
+                # three tests about routes could not.
+                #
+                # THE RISK IS SMALL BECAUSE THE EASY CELLS ARE EASY. Sixteen of the
+                # seventeen credited cells name a plain doing in so many words, so
+                # they classify without judgement; the hard reading is confined to
+                # the four cells that name a state or a target, which is exactly
+                # where every error on this slot lives.
+                "desc": "What KIND of thing the goal names: an activity the student "
+                        "will do, a condition that doing that activity is what "
+                        "produces, a general condition that working on almost "
+                        "any behaviour would serve, a countable target in units the behaviour is not "
+                        "counted in, a different activity, or nothing",
+                "rule": (
+                    "name what KIND of thing the goal is, and quote it. Do not judge "
+                    "whether it is a good goal here; the engine decides that from "
+                    "this answer.\n"
+                    "  * `doing` — it names something the student will DO. Most "
+                    "answers are this and it needs no thought.\n"
+                    "  * `own_state` — it names a condition of the student that "
+                    "doing the named activity is what brings about, so that naming "
+                    "the condition names the activity by implication.\n"
+                    "  * `general_state` — it names a condition that working on "
+                    "almost any behaviour would serve equally well. Test it: would the "
+                    "words fit a student working on some entirely different "
+                    "behaviour? If they would, answer this.\n"
+                    "  * `outcome_measure` — it commits to a countable target in "
+                    "units the behaviour itself is not counted in. Answer this even "
+                    "where a fitting condition is named alongside; the countable "
+                    "target is the goal that has been set.\n"
+                    "  * `other_activity` — it names an activity, but a different "
+                    "one from the behaviour at issue.\n"
+                    "  * `none` — no goal is stated at all."
+                ),
+            },
+            {
+                # `unclear` REMOVED 2026-09-05, from the verdict list and the
+                # codes. It was UNREACHABLE from MAPS["Q2"], which emits only
+                # met/absent from `wgb_names`; it shared `absent`'s
+                # WGB_NOT_OPPOSITE code, so it was score-identical to it; and
+                # neither the rule nor the desc ever told the grader to use it.
+                # IT COULD NOT CHANGE A SCORE -- both engines score this slot
+                # FROM the map (lo-blocks' satisfiedMap overwrites the
+                # grader's answer, and that runtime has no verdict-to-code
+                # mapping of its own). It could only corrupt the RECORD, and
+                # did: 4 of 120 olx observations in q44_olx.
+                # IT ALSO RESTORES A TWO-OPTION INVARIANT slotSheet.ts LEANS ON:
+                # positional verdicts were ambiguous, "every computed check in
+                # the current content has exactly two options, so those coincide
+                # and the three implementations agreed by luck; the disagreement
+                # appears on the first three-option computed check". This slot
+                # was that check. See enforcement.check_mapped_slots_* (E46).
                 "what": "wgb_inverts_utb",
                 "pts": 2.0,
-                "verdicts": ["met", "absent", "unclear"],
-                "codes": {"absent": "WGB_NOT_OPPOSITE", "unclear": "WGB_NOT_OPPOSITE"},
+                "verdicts": ["met", "absent"],
+                "codes": {"absent": "WGB_NOT_OPPOSITE"},
                 # Was "WGB explicitly stated", which asked a DIFFERENT question
                 # from the one this slot charges. It charges WGB_NOT_OPPOSITE —
                 # tier (b) — but every answer states some goal, so it returned
@@ -765,8 +875,12 @@ ITEMS: list[dict] = [
                         "benefit or two is STRUCTURAL: a second half that is a "
                         "knock-on effect of the first is ONE (a benefit, then "
                         "\"WHICH WILL\" and what follows from it), while two "
-                        "independent benefits merely joined by \"and\" are TWO (one "
-                        "about the body, say, AND one about mood). A restatement of "
+                        'independent benefits merely joined by "and" are TWO -- BUT ONLY '
+                        'WHERE EACH HALF NAMES A GOOD OF ITS OWN, its own subject with its '
+                        'own predicate, as the counting rule below requires. A second half '
+                        'that names no thing of its own, and only says matters will generally '
+                        'improve, extends the first half, and the pair is ONE. A restatement '
+                        'of '
                         "the PROBLEM the goal solves is not a benefit of "
                         "it either: a remark attributing their present condition to "
                         "not having done the goal behaviour names the harm again and "
@@ -794,10 +908,16 @@ ITEMS: list[dict] = [
                          "sentence holds one benefit or two is STRUCTURAL, not a matter of "
                          "degree. A second half that is a KNOCK-ON EFFECT of the first is "
                          "ONE benefit — a benefit followed by \"which will\" and the further "
-                         "good it leads to is one, not two, and counting such a chain as two "
+                         "good it leads to is one, not two, and treating such a chain as two "
                          "costs a point. Two INDEPENDENT benefits merely joined by \"and\" are "
-                         "TWO — one about the body and one about mood, in a single sentence, "
-                         "is two benefits and counting it as one costs a point. Three kinds "
+                         "TWO, in a single sentence, and merging them costs a point — "
+                         "BUT ONLY WHERE EACH HALF NAMES A GOOD OF ITS OWN, some particular "
+                         "thing that gets better, each with its own predicate. A second half "
+                         "that names nothing of its own — one that says only, in general "
+                         "terms, that the student will be or feel better, after a first half "
+                         "that has already named the particular good — adds no second benefit and "
+                         "the sentence holds ONE. Ask what the second half NAMES; an \"and\" "
+                         "is not itself a second benefit. Three kinds "
                          "of statement do not count at all, and the test for each is WHAT THE "
                          "STATEMENT NAMES, not how it is phrased. (i) A reason the UNWANTED "
                          "behaviour is bad, rather than a benefit of the wanted one: the statement "
@@ -895,7 +1015,49 @@ ITEMS: list[dict] = [
                 "pts": 1.0,
                 "verdicts": ["met", "absent", "unclear"],
                 "codes": {"absent": "MEASURABLE_NO_METHOD", "unclear": "MEASURABLE_NO_METHOD"},
-                "desc": "Says how it will be measured",
+                "desc": "Says how it will be measured, naming what will HOLD the "
+                        "record and not only that a count will be kept",
+                # SUBGOAL Q10, 2026-09-05. The slot had no rule at all -- only the
+                # bare desc "Says how it will be measured" -- and a box saying it
+                # will measure, count or track something satisfies that on its
+                # face. Gold asks for more, in the same words every time it
+                # charges: "how are you TRACKING your goal?", with an example of a
+                # thing the record is kept in.
+                #
+                # READ OUT ACROSS ALL TWENTY CELLS, and the split is near-total.
+                # Every cell gold credits names something that HOLDS the record --
+                # a book, a device, a chart, an application, a written plan. Every
+                # cell gold charges names measuring or tracking and stops there.
+                # The one apparent exception, p3, is not one: its measurable
+                # sentence sits inside gold's `specific` charge rather than being a
+                # second deduction, and the box does name a capture device.
+                #
+                # THE TARGET IS p10, right 4 of 12. We fail `specific` alone in 8
+                # of 12 and score 4.00 against a gold of 3.00; in the 2 runs we
+                # also fail this slot we land exactly on gold. Its box is thick
+                # with measuring language -- measure how long, record which part,
+                # take evidence each week -- and names nothing that holds any of
+                # it. p17 gains too: it is already right 11 of 12 by failing this
+                # slot, and one stray run credits it.
+                #
+                # NOT AN ADEQUACY TEST. It does not ask whether the measurement is
+                # a good one, only whether the box names what the record goes into
+                # -- the same reading question that makes Q6's `affect_c*` work.
+                "rule": (
+                    "Credit a box that names WHAT WILL HOLD THE RECORD -- the "
+                    "thing the count is written into, or whatever else captures "
+                    "and holds it. Naming it is enough; it does not have to be "
+                    "described, and no timing or amount is required here. "
+                    "`{fail}` when the box says only THAT the student will measure, "
+                    "count, track, log or keep evidence, without naming anything "
+                    "that holds what is kept."
+                    "One kind of box in particular keeps reading as an answer and "
+                    "is not one: a box thick with measuring language -- how long, "
+                    "how many, how often, which part, what progress -- is naming "
+                    "WHAT IS COUNTED, not what the count goes into. Those words "
+                    "describe the quantity; this check asks for the place. A box "
+                    "may name several quantities and still answer `{fail}`."
+                ),
             },
             {
                 "what": "action_oriented",
@@ -951,6 +1113,13 @@ ITEMS: list[dict] = [
                 "verdicts": ["met", "absent", "unclear"],
                 "codes": {"absent": "REALISTIC_MISSING", "unclear": "REALISTIC_MISSING"},
                 "desc": "Is realistic, or says why it is",
+                "rule": (
+                    'THE BAR IS LOW, AND THE TWO ARMS ARE ALTERNATIVES: `met` where the goal is '
+                    'plainly workable as stated, OR where any reason for thinking so is given. '
+                    'DO NOT WEIGH THE REASON -- a thin or circular one counts, since this asks '
+                    'whether a reason was given and not whether it persuades. `absent` only '
+                    'where none is given and the goal is not plainly workable. '
+                ),
             },
             {
                 "what": "time_bound",
@@ -1049,17 +1218,149 @@ ITEMS: list[dict] = [
                      # No fields here, unlike the OLX: score.py is handed the
                      # assembled response text rather than the page's boxes, and
                      # the rubric asks whether the word appears ANYWHERE in it.
-                     "words": ['antecedent', 'trigger']}],
+                     "words": ['antecedent', 'trigger'],
+                     # ADOPTED FROM THE .olx 2026-09-08 so `derived=` is
+                     # generated rather than hand-authored. Called `fields`
+                     # because that is the name `agreement.apply_computed`
+                     # already reads (`rule["fields"]`); a second name would
+                     # be a third vocabulary for one fact.
+                     # THE COMMENT ABOVE STILL HOLDS AND IS NOT CONTRADICTED:
+                     # score.py reads the assembled response and asks whether
+                     # the word appears anywhere in it. VERIFIED, not assumed
+                     # -- its derived handler reads only `kind` and `words`
+                     # and never touches `fields`, so this key is inert on
+                     # that path. An earlier version of this edit invented
+                     # `olx_fields` on the strength of the comment alone,
+                     # without checking the consumer.
+                     "fields": ['bmod_h1_q4a_first', 'bmod_h1_q4a_second']}],
         "forbid": [{"key": "no_antecedents",
                     "conds": [{"slot": "antecedent_1", "value": "absent"},
                               {"slot": "antecedent_2", "value": "absent"}]}],
         "credit": [
+            {
+                "what": "antecedent_kind_1",
+                "verdicts": ["before", "unlinked", "aftermath", "not_doing", "already_a_consequence", "none"],
+                # SUBGOAL Q33, 2026-09-05. `antecedent_1` and `antecedent_2` had
+                # NO rule; the four rejection grounds lived in item guidance as a
+                # PROSE LIST the model weighed, and one of them is wrong.
+                #
+                # ALL FIVE UNSTABLE CELLS FLIP ON ONE BOUNDARY -- met against
+                # wrong_kind on a single antecedent slot -- and the majority
+                # verdict is correct on every one, so this is noise around a right
+                # answer. SEVEN of the nine wrong runs are on p16 and p2, and both
+                # over-refuse a SUBSTITUTE ACTIVITY.
+                #
+                # GUIDANCE CASE (b) IS THE SOURCE AND GOLD DOES NOT DO IT. It says
+                # to reject "what the student does INSTEAD of the goal behaviour,
+                # which belongs to 4b". Of the five responses containing "instead",
+                # gold CREDITS four -- p5, p8, p12, p16 -- and charges only p3,
+                # whose clause is "instead of exercising I would just NOT exercise",
+                # the goal behaviour not happening rather than a rival activity.
+                # So the substitute ground is deleted here, not qualified: today
+                # has twice shown that qualifying a competing clause does not stick.
+                #
+                # `unlinked` IS WHY THIS WORKS AND A NAIVE KIND-PARSE WOULD NOT.
+                # p4 is 12 of 12 right, refused for OPACITY -- gold asks "how does
+                # grumpy emotions lead to lack of sleep?" -- not for kind. Without
+                # this option p4 classifies `before`, earns the point, and a
+                # perfect cell breaks.
+                "desc": "What KIND of thing the first box names: something that "
+                        "comes before the behaviour, something whose link to it "
+                        "cannot be seen, an aftermath, the goal behaviour not "
+                        "happening, a consequence already listed in 4c, or nothing",
+                "rule": (
+                    "name what KIND of thing the entry is, and quote it. Do not "
+                    "judge whether it earns the point; the engine decides that from "
+                    "this answer. Read it against the behaviour THIS student named "
+                    "as unwanted -- the same words can be a trigger for one "
+                    "behaviour and an aftermath of another.\n"
+                    "  * `before` — it happens before the unwanted behaviour and a "
+                    "reader can see how it leads there. A circumstance or a state of "
+                    "mind counts as readily as an event, and so does a rival "
+                    "activity the student turns to. Most entries are this.\n"
+                    "  * `unlinked` — it is the right shape but a reader CANNOT see "
+                    "how it leads to THIS behaviour. TWO CASES. FIRST, it could precede "
+                    "almost anything: nothing in the entry ties it to this behaviour. "
+                    "Ask \"how does that lead to the behaviour they named?\" and answer "
+                    "this when the entry gives no way to tell. Brevity alone is not this. "
+                    "SECOND, the entry names something the student does INSTEAD OF the "
+                    "goal behaviour and claims it has the same effect. A SUBSTITUTE for "
+                    "the behaviour is not a TRIGGER of it, however the student explains "
+                    "it. An entry naming something that LEADS TO the unwanted behaviour "
+                    "-- it opens the way to the behaviour, or stands between the student "
+                    "and the goal -- is `before`, and a thin explanation does not "
+                    "make it `unlinked`.\n"
+                    "  * `aftermath` — it happens AFTER the behaviour or follows "
+                    "from it: something the behaviour left behind.\n"
+                    '`aftermath` COVERS THE GOAL BEHAVIOUR TOO, not only the unwanted one. An '
+                    'entry naming what follows from DOING the goal behaviour -- its payoff '
+                    'not yet showing, or a cost incurred by having done it -- names something '
+                    'a behaviour left behind, so answer `aftermath` rather than `before`, '
+                    'even though the next episode of the unwanted behaviour comes after it. '
+                    'THIS IS NARROW BY DESIGN: it turns on the entry naming a result OF THE '
+                    'GOAL BEHAVIOUR. A state the student is simply in, however it arose, is a '
+                    '`before` in the ordinary way. '
+                    "  * `not_doing` — it names the goal behaviour NOT HAPPENING "
+                    "rather than anything that brings the unwanted one on.\n"
+                    "  * `already_a_consequence` — it is one of the consequences "
+                    "listed in 4c.\n"
+                    "  * `none` — the box names nothing at all."
+                ),
+            },
             {
                 "what": "antecedent_1",
                 "pts": 2.0,
                 "verdicts": ["met", "absent", "not_antecedent"],
                 "codes": {"absent": "A_ONLY_ONE", "not_antecedent": "A_NOT_ANTECEDENT"},
                 "desc": "First valid antecedent",
+            },
+            {
+                "what": "antecedent_kind_2",
+                "verdicts": ["before", "unlinked", "aftermath", "not_doing", "already_a_consequence", "none"],
+                # SUBGOAL Q33 -- the SAME parse for the second box, stated in full
+                # rather than pointed at. Four of the five unstable cells flip on
+                # antecedent_2, so the box that is read hardest is the one that
+                # most needs the grounds named rather than weighed.
+                "desc": "What KIND of thing the second box names -- the same six "
+                        "as the first box, judged on this box on its own terms",
+                "rule": (
+                    "name what KIND of thing the entry is, and quote it. Do not "
+                    "judge whether it earns the point; the engine decides that from "
+                    "this answer. Read it against the behaviour THIS student named "
+                    "as unwanted -- the same words can be a trigger for one "
+                    "behaviour and an aftermath of another.\n"
+                    "  * `before` — it happens before the unwanted behaviour and a "
+                    "reader can see how it leads there. A circumstance or a state of "
+                    "mind counts as readily as an event, and so does a rival "
+                    "activity the student turns to. Most entries are this.\n"
+                    "  * `unlinked` — it is the right shape but a reader CANNOT see "
+                    "how it leads to THIS behaviour. TWO CASES. FIRST, it could precede "
+                    "almost anything: nothing in the entry ties it to this behaviour. "
+                    "Ask \"how does that lead to the behaviour they named?\" and answer "
+                    "this when the entry gives no way to tell. Brevity alone is not this. "
+                    "SECOND, the entry names something the student does INSTEAD OF the "
+                    "goal behaviour and claims it has the same effect. A SUBSTITUTE for "
+                    "the behaviour is not a TRIGGER of it, however the student explains "
+                    "it. An entry naming something that LEADS TO the unwanted behaviour "
+                    "-- it opens the way to the behaviour, or stands between the student "
+                    "and the goal -- is `before`, and a thin explanation does not "
+                    "make it `unlinked`.\n"
+                    "  * `aftermath` — it happens AFTER the behaviour or follows "
+                    "from it: something the behaviour left behind.\n"
+                    '`aftermath` COVERS THE GOAL BEHAVIOUR TOO, not only the unwanted one. An '
+                    'entry naming what follows from DOING the goal behaviour -- its payoff '
+                    'not yet showing, or a cost incurred by having done it -- names something '
+                    'a behaviour left behind, so answer `aftermath` rather than `before`, '
+                    'even though the next episode of the unwanted behaviour comes after it. '
+                    'THIS IS NARROW BY DESIGN: it turns on the entry naming a result OF THE '
+                    'GOAL BEHAVIOUR. A state the student is simply in, however it arose, is a '
+                    '`before` in the ordinary way. '
+                    "  * `not_doing` — it names the goal behaviour NOT HAPPENING "
+                    "rather than anything that brings the unwanted one on.\n"
+                    "  * `already_a_consequence` — it is one of the consequences "
+                    "listed in 4c.\n"
+                    "  * `none` — the box names nothing at all."
+                ),
             },
             {
                 "what": "antecedent_2",
@@ -1148,12 +1449,18 @@ ITEMS: list[dict] = [
             "depends on which UTB the example is offered for: the same words can be a "
             "trigger for one behaviour and an aftermath of another, so check the direction "
             "against the student's own UTB before crediting.",
-            "REJECT decisively in three cases. (a) The example is an AFTERMATH of the UTB "
-            "— phrased as happening afterwards or as its result, such as a pain or a "
-            "difficulty the behaviour left behind. "
-            "(b) The example is what the student does INSTEAD of the goal behaviour, which "
-            "belongs to 4b — a substitute activity, or a different way of pursuing the same "
-            "end. (c) The example is a consequence already listed in 4c.",
+            # SUBGOAL Q33, 2026-09-05. The three-case list is GONE: its grounds are
+            # now the options of `antecedent_kind_1`/`_2` above, so a reader picks
+            # one rather than weighing three, and case (b) is DROPPED entirely
+            # because gold does not apply it -- of the five responses containing
+            # "instead" it credits four and charges only the one whose clause is
+            # the goal behaviour NOT HAPPENING. A rival activity the student turns
+            # to is an antecedent on this item, whatever 4b also asks about.
+            "A RIVAL ACTIVITY THE STUDENT TURNS TO IS AN ANTECEDENT HERE. That the "
+            "same activity would also answer 4b does not disqualify it: the graders "
+            "credited entries naming what the student does instead, and refused only "
+            "entries naming the goal behaviour NOT HAPPENING, which is a different "
+            "thing from naming something else they did.",
             # MEASURED AND REVERTED: EQUIVALENCE_DEF imported here as
             # MATCH_DEF["Q4a"], on the reading that "does this lead to the UTB?"
             # is a matching question -- gold's own rejections all turn on it
@@ -1206,7 +1513,9 @@ ITEMS: list[dict] = [
         # B_NO_MODIFY's full 2 points a hedge there costs the whole sub-area: p14 and
         # p17 both went to 3.0 against a gold of 5.0 on `unclear` alone. The sheet's
         # `uncertain` check is where doubt belongs.
-        "onlyif": [{"key": "modify_why", "cond": "modify_stated"}],
+        "onlyif": [{"key": "modify_why", "cond": "modify_stated"},
+                   # The repeat charge is chargeable ONLY where the box
+                   ],
         "credit": [
             {
                 "what": "behavior_1",
@@ -1242,56 +1551,165 @@ ITEMS: list[dict] = [
             # sweep unable to say which of the two moved a cell.
             {
                 "what": "b1_basis",
-                "verdicts": ["activity", "consequence", "goal_behaviour",
-                             "not_doing", "none"],
+                "verdicts": ['activity', 'consequence', 'goal_behaviour', 'not_doing', 'none'],
                 "desc": "What the first example IS",
-                "rule": 'ONE ANSWER, and it says what the entry IS. The engine turns it into this example\'s verdict, so do not judge whether the example earns credit -- classify it and the arithmetic follows.\n  `activity` -- something they did INSTEAD of the goal behaviour. This is the answer that earns the point.\n  `none` -- the box is empty, or names nothing at all.\n  `consequence` -- cases (1) and (3) below.\n  `goal_behaviour` -- case (2) below.\n  `not_doing` -- case (5) below.\nWHERE THE ENTRY OFFERS ALTERNATIVES, case (4): classify by the FAILING alternative, because one qualifying alternative does not rescue the rest.\nThe cases, unchanged: (1) (1) The entry names a CONSEQUENCE of the unwanted behaviour — a state they ended up in, or something they then had to do — rather than something they did INSTEAD of the goal behaviour. (2) The entry IS the goal behaviour, done at the wrong time, in the wrong place, or badly: you cannot do something instead of itself. If the goal is to sleep enough, sleeping in the car is not something done instead of sleeping — it is that sleep, displaced. Keep this apart from a RIVAL choice, which IS a substitute: if the goal is to eat fruit, eating chips counts, because chips are not fruit. The question is whether they did a different thing that crowded the goal out, or the goal itself gone wrong. (3) The entry names an ordinary activity that CARRIES a state the unwanted behaviour produced — an everyday activity reported together with the discomfort or dullness it is being carried out under. The activity is incidental there: they would be doing it anyway, and what the sentence actually reports is the state, which is a consequence. Test it by asking whether the activity would have happened regardless of the goal behaviour. If it would, nothing was displaced and the entry is not a substitute — an activity that is LIKELY A CONSEQUENCE of not doing the goal behaviour cannot also be what replaced it. (4) Where the entry offers ALTERNATIVES — two or more things joined by "or", either of which might be what they did — every alternative must pass the tests above. One qualifying alternative does not rescue the rest: "I am tired in class OR catching up on chores" fails, because being tired is a state the behaviour produced. This applies only to genuine alternatives. A sentence that names an activity AND THEN what came of it is judged on the activity: a snack eaten and the fruit left to spoil is one substitute with its result attached, not two alternatives — and several near-synonyms for the same choice are one substitute described three ways. (5) NAMING A FAILURE TO ACT IS NOT NAMING A SUBSTITUTE. "I procrastinate", "I avoid going", "I neglect it", "I put it off" all describe the goal behaviour NOT happening; they do not say what the student was doing in that time, which is what the question asks. Credit the concrete activity if the entry names one alongside the avoidance, and treat the not-doing as failing the test — including when it is one alternative among several',
+                "rule": "ONE ANSWER, and it says what the entry IS. The engine turns it "
+                        "into this example's verdict, so do not judge whether the example "
+                        "earns credit -- classify it and the arithmetic follows.\n"
+                        "  `activity` -- something they did INSTEAD of the goal behaviour. "
+                        "This is the answer that earns the point.\n"
+                        "  `none` -- the box is empty, or names nothing at all.\n"
+                        "  `consequence` -- cases (1) and (3) below.\n"
+                        "  `goal_behaviour` -- case (2) below.\n"
+                        "  `not_doing` -- case (5) below.\n"
+                        "WHERE THE ENTRY OFFERS ALTERNATIVES, case (4): classify by the "
+                        "FAILING alternative, because one qualifying alternative does not "
+                        "rescue the rest.\n"
+                        "The cases, unchanged: (1) (1) The entry names a CONSEQUENCE of the "
+                        "unwanted behaviour — a state they ended up in, or something they "
+                        "then had to do — rather than something they did INSTEAD of the "
+                        "goal behaviour. (2) The entry IS the goal behaviour, done at the "
+                        "wrong time, in the wrong place, or badly: you cannot do something "
+                        "instead of itself. If the goal is to sleep enough, sleeping in the "
+                        "car is not something done instead of sleeping — it is that sleep, "
+                        "displaced. Keep this apart from a RIVAL choice, which IS a "
+                        "substitute: if the goal is to eat fruit, eating chips counts, "
+                        "because chips are not fruit. The question is whether they did a "
+                        "different thing that crowded the goal out, or the goal itself gone "
+                        "wrong. (3) The entry names an ordinary activity that CARRIES a "
+                        "state the unwanted behaviour produced — an everyday activity "
+                        "reported together with the discomfort or dullness it is being "
+                        "carried out under. The activity is incidental there: they would be "
+                        "doing it anyway, and what the sentence actually reports is the "
+                        "state, which is a consequence. Test it by asking whether the "
+                        "activity would have happened regardless of the goal behaviour. If "
+                        "it would, nothing was displaced and the entry is not a substitute "
+                        "— an activity that is LIKELY A CONSEQUENCE of not doing the goal "
+                        "behaviour cannot also be what replaced it. (4) Where the entry "
+                        "offers ALTERNATIVES — two or more things joined by \"or\", either of "
+                        "which might be what they did — every alternative must pass the "
+                        "tests above. One qualifying alternative does not rescue the rest: "
+                        "\"I am tired in class OR catching up on chores\" fails, because "
+                        "being tired is a state the behaviour produced. This applies only "
+                        "to genuine alternatives. A sentence that names an activity AND "
+                        "THEN what came of it is judged on the activity: a snack eaten and "
+                        "the fruit left to spoil is one substitute with its result "
+                        "attached, not two alternatives — and several near-synonyms for the "
+                        "same choice are one substitute described three ways. (5) NAMING A "
+                        "FAILURE TO ACT IS NOT NAMING A SUBSTITUTE. \"I procrastinate\", \"I "
+                        "avoid going\", \"I neglect it\", \"I put it off\" all describe the goal "
+                        "behaviour NOT happening; they do not say what the student was "
+                        "doing in that time, which is what the question asks. Credit the "
+                        "concrete activity if the entry names one alongside the avoidance, "
+                        "and treat the not-doing as failing the test — including when it is "
+                        "one alternative among several",
             },
             {
-                "what": "b2_names_act",
+                "what": "b2_names_besides",
                 "reported": True,
-                "verdicts": ["met", "absent"],
-                # SUBGOAL Q18's STRUCTURAL ATTEMPT, 2026-09-05, after the
-                # precedence fix moved the PICK and not the cell: `b2_basis` went
-                # from `not_doing` 12 of 12 to 8 not_doing / 2 activity / 2
-                # consequence, so the "and" carve-out was applied twice in twelve
-                # and opened a third reading.
+                "verdicts": ["an_act", "a_result", "nothing"],
+                # SUBGOAL Q18's SECOND STRUCTURAL ATTEMPT, 2026-09-05, drafted after
+                # the FIRST one was measured and reverted the same day. The lesson
+                # is in the shape of this slot, so it is recorded here.
                 #
-                # THE PICK CONFLATES TWO QUESTIONS and always has: does the box
-                # name an act the student performed, and is it the goal behaviour's
-                # absence? Case (5) says credit the act when both are present;
-                # case (4) says classify by the failing alternative. Stating which
-                # outranks which did not work, twice. So the first question is
-                # asked SEPARATELY here, before the pick, and the pick's rule reads
-                # the answer instead of re-deriving it.
+                # WHAT FAILED. `b2_names_act` asked met/absent -- "does the box name
+                # something the student actually did?" -- and `b2_basis` was told
+                # that `met` SETTLES the answer as `activity`. That made it
+                # DISPOSITIVE, and it fired almost everywhere: `met` on 72 of 114
+                # cell-runs. "I walk around campus with stiff muscles" and "I am
+                # mostly late for classroom" ARE things the student did, so p6 went
+                # 6/6 -> 0/6 and p20 6/6 -> 1/6, both by flipping a correct
+                # `consequence` to `activity`. Q4b fell from 16-17/19 to 13-14/19
+                # and p12, the target, did not move. The precursor did not inform
+                # the pick, it overrode it.
                 #
-                # BOX 2 ONLY, deliberately. The evidence is entirely box 2's --
-                # p12 and p13 -- while p7 and p8 pick `not_doing` on BOX ONE and are
-                # right 12 of 12. Adding the same decomposition to box 1 would put
-                # two correct cells at risk for no cell in return, which is the
-                # trade subgoal Q18 already made once and reverted.
-                "desc": "Does the second box name something the student ACTUALLY "
-                        "DID in that time, besides any statement that the goal "
-                        "behaviour did not happen? `met` when a performed act is "
-                        "named alongside the not-doing — the thing they were doing "
-                        "instead, or what they let happen. `absent` when the box "
-                        "names only the absence, a circumstance, a consequence, or "
-                        "an intention. This is not a judgement about whether the "
-                        "act EARNS credit; it asks only whether one is there",
-                "rule": "does the second box name an act the student PERFORMED, "
-                        "besides any statement that the goal behavior did not "
-                        "happen? `met` if a performed act is named alongside the "
-                        "not-doing; `absent` if the box names only the absence, a "
-                        "circumstance, something that followed, or something "
-                        "intended later. Not scored, and not a judgement of whether "
-                        "the act earns the point — only whether one is present",
+                # THE CORRECTION IS THE PRIVILEGE, NOT THE QUESTION. This slot may
+                # rule `not_doing` OUT; it may not rule `activity` IN. The choice
+                # between `activity` and `consequence` stays where it already works
+                # -- 124 and 67 answers respectively, and the cells carrying them
+                # are right. Only the 22 `not_doing` answers are reachable, which is
+                # 5 cells of 20; the other 14 cannot move whatever this answers.
+                #
+                # THE THREE-WAY ANSWER IS WHAT MAKES THAT POSSIBLE. A binary forces
+                # the reader to call a consequence an act or an act a consequence,
+                # and then something downstream has to undo it. Naming `a_result`
+                # separately lets a box that names BOTH -- an ordinary activity
+                # carrying a state the behaviour produced, which is case (3) below
+                # -- be reported honestly without that report deciding anything.
+                #
+                # THE TWO CELLS THAT MUST NOT MOVE are p5, whose second box is a
+                # CIRCUMSTANCE ("they are often not available in my home"), and p10,
+                # whose second box is an INTENTION ("I will begin to have discipline
+                # ... creating a routine"). Neither names an act, so both answer
+                # `a_result` or `nothing` and keep the `consequence` they already
+                # give 9 of 12 and 8 of 12. Both are 12 of 12 today.
+                #
+                # TIE-BREAK ADDED 2026-09-06, from the readout of the valid sweep.
+                # THE PICK WAS AMBIGUOUS BY CONSTRUCTION on p12, whose box reads
+                # "I skip adding fruits or vegetables to my meals even when they
+                # are available AND LET THEM SIT in the refrigerator UNTIL THEY GO
+                # BAD". `an_act` is defined as "did OR LET HAPPEN", so "let them
+                # sit" matches it exactly, while "until they go bad" reads as
+                # `a_result`. One answer was demanded of a box that holds both, and
+                # the grader split 7:5 -- p12's five RIGHT runs are precisely its
+                # five `an_act/activity` runs.
+                # This entry's own comment half-saw it: naming `a_result`
+                # separately was meant to let a box naming BOTH "be reported
+                # honestly", which a single-answer pick cannot do.
+                # p6 IS THE CONTROL AND IS SAFE: its box also names an act -- "I
+                # walk around campus with stiff muscles" -- gold CHARGES it, and we
+                # are right 11 of 12 via `an_act/consequence`, because `b2_basis`
+                # refuses it under the ordinary-activity-carrying-a-state case. The
+                # pick does not decide the verdict, which is why a tie-break toward
+                # `an_act` cannot credit p6.
+                # p13 IS DELIBERATELY NOT ADDRESSED HERE. Its box names an
+                # inability, not an act, so `a_result` is honest; its problem is
+                # that `b2_basis` then answers `not_doing`, which is a different
+                # question and must not be bundled with this one.
+                "desc": "Besides any statement that the goal behaviour did not "
+                        "happen, what else does the second box name? `an_act` for "
+                        "something the student DID or LET HAPPEN in that time; "
+                        "`a_result` for a state, a feeling, or a circumstance that "
+                        "followed from the absence; `nothing` when the box names "
+                        "only the absence. Report what is there. This does NOT "
+                        "decide whether the example earns the point",
+                "rule": "besides any statement that the goal behavior did not happen, what "
+                        "else does the second box name? `an_act` for something the student "
+                        "did or let happen in that time; `a_result` for a state, feeling or "
+                        "circumstance that followed from the absence; `nothing` when only "
+                        "the absence is named. Report what is there and do not weigh "
+                        "whether it earns credit -- that is the next check's work, and "
+                        "naming an act here does not settle it.",
             },
             {
                 "what": "b2_basis",
-                "verdicts": ["activity", "consequence", "goal_behaviour",
-                             "not_doing", "none"],
+                "verdicts": ['activity', 'consequence', 'goal_behaviour', 'not_doing', 'none'],
                 "desc": "What the second example IS",
-                "rule": 'ONE ANSWER, on the same terms as the first example: `activity` for something done INSTEAD of the goal behaviour, `none` for an empty box, and otherwise the case it falls under -- `consequence` for a consequence of the unwanted behaviour or an ordinary activity carrying a state that behaviour produced, `goal_behaviour` for the goal behaviour itself done at the wrong time or place, `not_doing` for a naming of the goal behaviour NOT happening rather than of what they did instead. FIRST READ `b2_names_act`. If it is `met`, the box names an act the student performed and the answer is `activity` -- that answer is settled and the alternatives rule below does not apply to it. Only when `b2_names_act` is `absent` do the remaining cases arise. Where the entry offers genuine ALTERNATIVES -- two things joined by "or", either of which might be what they did -- classify by the failing one. BUT AN AVOIDANCE JOINED BY "AND" TO A CONCRETE ACT IS NOT AN ALTERNATIVE, and this is where the two rules are most easily confused: a box saying the goal behaviour did not happen AND naming something the student actually did in that time is ONE entry with its result attached, and it is classified on the ACT -- `activity`. Read the conjunction before applying the failing-alternative rule; applying that rule to an "and" refuses an example the graders credited.',
+                "rule": "ONE ANSWER, on the same terms as the first example: `activity` for "
+                        "something done INSTEAD of the goal behaviour, `none` for an empty "
+                        "box, FIRST READ `b2_names_besides`. CHOOSE `not_doing` ONLY WHEN "
+                        "IT ANSWERS `nothing`: that verdict is for a box that names the "
+                        "goal behaviour not happening AND NOTHING ELSE. When it answers "
+                        "`an_act` or `a_result` the box names something beyond the absence, "
+                        "so classify THAT something by the cases below -- and note that "
+                        "this does not make the answer `activity`, because an ordinary "
+                        "activity carrying a state the unwanted behaviour produced is still "
+                        "`consequence` under case (3). and otherwise the case it falls "
+                        "under -- `consequence` for a consequence of the unwanted behaviour "
+                        "or an ordinary activity carrying a state that behaviour produced, "
+                        "`goal_behaviour` for the goal behaviour itself done at the wrong "
+                        "time or place, `not_doing` for a naming of the goal behaviour NOT "
+                        "happening rather than of what they did instead. Where the entry "
+                        "offers genuine ALTERNATIVES -- two things joined by \"or\", either "
+                        "of which might be what they did -- classify by the failing one. "
+                        "BUT AN AVOIDANCE JOINED BY \"AND\" TO A CONCRETE ACT IS NOT AN "
+                        "ALTERNATIVE, and this is where the two rules are most easily "
+                        "confused: a box saying the goal behaviour did not happen AND "
+                        "naming something the student actually did in that time is ONE "
+                        "entry with its result attached, and it is classified on the ACT -- "
+                        "`activity`. Read the conjunction before applying the "
+                        "failing-alternative rule; applying that rule to an \"and\" refuses "
+                        "an example the graders credited.",
             },
             {
                 "what": "modify_stated",
@@ -1406,7 +1824,21 @@ ITEMS: list[dict] = [
                      # No fields here, unlike the OLX: score.py is handed the
                      # assembled response text rather than the page's boxes, and
                      # the rubric asks whether the word appears ANYWHERE in it.
-                     "words": ['consequence']}],
+                     "words": ['consequence'],
+                     # ADOPTED FROM THE .olx 2026-09-08 so `derived=` is
+                     # generated rather than hand-authored. Called `fields`
+                     # because that is the name `agreement.apply_computed`
+                     # already reads (`rule["fields"]`); a second name would
+                     # be a third vocabulary for one fact.
+                     # THE COMMENT ABOVE STILL HOLDS AND IS NOT CONTRADICTED:
+                     # score.py reads the assembled response and asks whether
+                     # the word appears anywhere in it. VERIFIED, not assumed
+                     # -- its derived handler reads only `kind` and `words`
+                     # and never touches `fields`, so this key is inert on
+                     # that path. An earlier version of this edit invented
+                     # `olx_fields` on the strength of the comment alone,
+                     # without checking the consumer.
+                     "fields": ['bmod_h1_q4c_first', 'bmod_h1_q4c_second']}],
         "forbid": [{"key": "no_consequences",
                     "conds": [{"slot": "consequence_1", "value": "absent"},
                               {"slot": "consequence_2", "value": "absent"}]}],
@@ -1415,6 +1847,44 @@ ITEMS: list[dict] = [
                 "what": "consequence_1",
                 "pts": 2.0,
                 "verdicts": ["met", "absent", "not_consequence", "duplicate"],
+                # SUBGOAL Q19, 2026-09-05. The slot had NO rule at all -- only the
+                # desc below -- the fifth instance of that asymmetry found today.
+                # The three heads are each forced by a named cell and together
+                # reproduce gold on all twenty.
+                #
+                # TWO SIMPLER RULES WERE TRIED AND REFUTED FIRST:
+                #   "a consequence must be DIRECT" -- refuted by p7, p2 and p12,
+                #     which each reach their consequence through an unstated step
+                #     and are credited in silence. (That refutation is what the
+                #     now-RETRACTED DISTAL_CONSEQUENCE_CHARGED_ONCE rested on.)
+                #   "a consequence must name a STATE" -- refuted by p8, whose
+                #     bare other-activity carries no endpoint and is credited.
+                #
+                # p8 AGAINST p4 SETTLES IT: near-identical phrasing, opposite
+                # verdicts. p8's is what the student does in the time not going to
+                # the gym frees; p4's restates a behaviour of NOT SLEEPING ENOUGH,
+                # and gold says so -- "specify what spending too much time awake
+                # MEANS as a consequence". Neither domain nor bareness decides it.
+                "rule": (
+                    "a consequence names a STATE OR CONDITION THE STUDENT ENDS UP "
+                    "IN because of the behaviour -- how they feel, how their body "
+                    "is, where they stand. Credit that wherever it appears, and do "
+                    "not ask how many steps lie between: a state reached by a "
+                    "route the entry leaves unsaid is still the state it names. "
+                    "AN ENTRY THAT NAMES ANOTHER ACTIVITY rather than a state "
+                    "counts in two cases and fails otherwise. (a) It is WHAT THEY "
+                    "DO IN THE TIME THE BEHAVIOUR FREES -- the thing taken up in "
+                    "its place; credit it as it stands. (b) The entry SAYS WHAT "
+                    "THAT ACTIVITY LEADS TO -- any clause carrying the reader on "
+                    "to a state, however brief; credit it on the strength of that "
+                    "clause. `{fail}` for an activity that is neither: named on "
+                    "its own, not taken up in the behaviour's place, with nothing "
+                    "said about where it leads. AND `{fail}` for an entry that "
+                    "RESTATES THE BEHAVIOUR rather than naming anything following "
+                    "from it -- saying of a behaviour there is too little of that "
+                    "there is too much of its opposite says nothing new, and the "
+                    "graders asked such an entry what it MEANT as a consequence."
+                ),
                 "codes": {"absent": "C_ONLY_ONE", "not_consequence": "C_NOT_CONSEQUENCE", "duplicate": "C_DUPLICATE"},
                 "desc": "First valid consequence",
             },
@@ -1422,6 +1892,18 @@ ITEMS: list[dict] = [
                 "what": "consequence_2",
                 "pts": 2.0,
                 "verdicts": ["met", "absent", "not_consequence", "duplicate"],
+                # SUBGOAL Q19 -- the SAME test as `consequence_1`, stated rather
+                # than pointed at, because the gradient this entry chases is the
+                # sheet reading one box harder than the other.
+                "rule": (
+                    "the same test as `consequence_1` above, applied to this box "
+                    "on its own terms and NO MORE CLOSELY: a STATE the student "
+                    "ends up in counts however indirectly it is reached; another "
+                    "ACTIVITY counts when it is what they do in the time the "
+                    "behaviour frees, or when the entry says what it leads to; "
+                    "`{fail}` for an activity that is neither, and for an entry "
+                    "that only restates the behaviour."
+                ),
                 "codes": {"absent": "C_ONLY_ONE", "not_consequence": "C_NOT_CONSEQUENCE", "duplicate": "C_DUPLICATE"},
                 "desc": "Second valid consequence",
             },
@@ -1600,6 +2082,16 @@ ITEMS: list[dict] = [
                      "afterwards, are one reason twice, and the graders wrote "
                      "\"missing a reason\". `absent` only when there is no second "
                      "entry at all. `{fail}` when there IS a second, distinct entry "
+                     # SUBGOAL Q30 REVERTED 2026-09-06. The rewritten clause was
+                     # measured and lost on BOTH sides, 19/20 -> 18/20 each, and
+                     # it NEVER REACHED ITS TARGET: p4 was pre-registered
+                     # 0/12 -> near 12 and stayed 0/12, `example_2` answering
+                     # wrong_kind/wrong_kind in all twelve runs. The damage was
+                     # its own verdict: five cells each lost a run to
+                     # met/duplicate on the slot it edited. Unlike Q2's
+                     # `unclear`, `duplicate` is LOAD-BEARING here -- p6 answers
+                     # met/duplicate 12/12 at gold 2.50 and is right -- so the
+                     # verdict is not the fault; the clause made it over-fire.
                      "but it is not a reason for CONTINUING — an EFFECT of the "
                      "behaviour rather than a payoff from it. When it is present, "
                      "distinct and a real payoff but merely thin, that is `met` plus "
@@ -1768,6 +2260,31 @@ ITEMS: list[dict] = [
                 "pts": 1.25,
                 "desc": "States HOW the first antecedent is being changed",
                 "codes": {"absent": "A_NO_CHANGE", "not_described": "A_NO_CHANGE"},
+                # SUBGOAL Q47, 2026-09-05: A RULE WAS ADDED HERE AND MEASURED
+                # AND REVERTED THE SAME DAY. It is the SEVENTH attempt on this
+                # criterion (the tenth wording on the item as a whole, which is
+                # the count the q6-matching-ceiling note keeps) and the FIRST
+                # structural one -- it asked the READING question its sibling
+                # `affect_c1` asks, what becomes of the antecedent, rather than
+                # another adequacy discriminator. The framing did not save it.
+                #
+                # MEASURED, 6 runs both sides:  python 17/20 -> 15/20
+                #                               olx    18/20 -> 16/20
+                # SIX PERFECT CELLS MOVED -- p1, p3, p9, p12, p14, p20 -- and
+                # p4 went 11/12 -> 7/12, p6 11/12 -> 7/12, p16 9/12 -> 6/12.
+                # Gains on p15 (10 -> 12) and p18 (7 -> 10) nowhere near cover it.
+                #
+                # AND IT NEVER FIRED ON ITS OWN TARGET. p2 was pre-registered
+                # 0/12 -> 8.75 = gold; it stayed 0/12 with `change_a1/change_a2`
+                # answering `met/met` in all twelve runs. The rule damaged six
+                # cells it was not aimed at and left the one it was aimed at
+                # untouched, which is the opposite of the failure mode predicted
+                # for it.
+                #
+                # DO NOT WRITE AN ELEVENTH WORDING HERE. The measured record now
+                # says the channel resists BOTH framings, discriminator and
+                # reading alike. See handouts.GOLD_CEILINGS[("1","Q6")] and the
+                # q6-matching-ceiling note, which is the running tally.
             },
             {
                 "what": "state_a2",
@@ -1780,6 +2297,7 @@ ITEMS: list[dict] = [
                 "pts": 1.25,
                 "desc": "States HOW the second antecedent is being changed",
                 "codes": {"absent": "A_NO_CHANGE", "not_described": "A_NO_CHANGE"},
+                # SUBGOAL Q47 -- reverted with `change_a1`; see the record there.
             },
             {
                 "what": "state_c1",
@@ -2196,6 +2714,32 @@ ITEMS: list[dict] = [
 # once in prose form and rejected for THREE TIMES THE VARIANCE. Adding it here would
 # confound that experiment with this mechanism change; it stays subgoal 10.
 MAPS: dict[str, list[dict]] = {
+
+    # SUBGOAL Q33: both antecedent verdicts are COMPUTED from the kind parses
+    # above. `before` is the only kind that earns the point; `none` is an empty
+    # box; every other kind is the A_NOT_ANTECEDENT charge, which is what the
+    # fallback carries.
+    "Q4a": [
+        {"key": "antecedent_1", "pick": "antecedent_kind_1",
+         "pairs": [{"value": "before", "verdict": "met"},
+                   {"value": "none", "verdict": "absent"}],
+         "fallback": "not_antecedent"},
+        {"key": "antecedent_2", "pick": "antecedent_kind_2",
+         "pairs": [{"value": "before", "verdict": "met"},
+                   {"value": "none", "verdict": "absent"}],
+         "fallback": "not_antecedent"},
+    ],
+    # SUBGOAL Q43: the inversion verdict is COMPUTED from the kind of thing
+    # the goal names -- see `wgb_names` above. `doing` and `own_state` are the
+    # two that name the behaviour; everything else fails, which is what the
+    # fallback carries. `unclear` is deliberately unreachable here: the pick
+    # always returns one of six, so the slot no longer has a way to abstain.
+    "Q2": [
+        {"key": "wgb_inverts_utb", "pick": "wgb_names",
+         "pairs": [{"value": "doing", "verdict": "met"},
+                   {"value": "own_state", "verdict": "met"}],
+         "fallback": "absent"},
+    ],
     "Q4b": [
         {"key": "behavior_1", "pick": "b1_basis",
          "pairs": [{"value": "activity", "verdict": "met"},
@@ -2220,3 +2764,97 @@ for _it in ITEMS:
 
 BY_ID = {it["id"]: it for it in ITEMS}
 TOTAL = sum(it["max"] for it in ITEMS)  # 45.0 scored; +5 upload = 50
+
+# THE SLOT SHEET, ADOPTED FROM THE .olx ON 2026-09-08 so that a design change
+# never needs a hand edit to the generated file. `slots=` was the LAST large
+# hand-authored attribute: 217 clauses, 14,159 characters, and 159 of those
+# clauses carried an option list the rubric could not supply -- so this is not a
+# reconciliation like `equals` or `onlyif` were, it MOVES the slot sheet's
+# primary definition here. Transcribed field-wise (never as a raw string) after
+# proving the parse round-trips losslessly on all 23 items, so
+# `olx_prompts.slots_attr_for` reproduces every attribute byte-for-byte and the
+# switch-on changed no prompt and moved no prompt_sha.
+#   key   the slot id            gate  True where the .olx wrote a `!` prefix
+#   label the short prose the grader sees beside the id
+#   seg   field 3: an option list, `pick(set)` or `count(n)`
+#   pts   the `@N` suffix
+# ORDER IS PART OF THE DESIGN and is the order of this list -- see the
+# SLOT_OPTIONS note above; a reorder is a real prompt change with its own sweep.
+SLOT_SPEC: dict[str, list[dict]] = {
+    'Q1': [
+        {'key': 'matches_selected', 'label': 'Same behavior you selected above', 'seg': 'matches/differs'},
+        {'key': 'utb_stated', 'label': 'Your unwanted target behavior stated explicitly', 'seg': 'unclear', 'pts': '2'},
+        {'key': 'harms_listed', 'label': 'How many statements name a negative effect of the behavior', 'seg': 'count(3)'},
+        {'key': 'benefits_listed', 'label': 'How many name a benefit you expect from changing', 'seg': 'count(3)'},
+        {'key': 'benefits_failing', 'label': 'How many of those are not a benefit but the goal named again', 'seg': 'count(3)'},
+        {'key': 'reasons_given', 'label': 'How many separate reasons you give', 'seg': 'count(3)'},
+        {'key': 'reason_1', 'label': 'First reason — a negative effect of the behavior', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'reason_2', 'label': 'Second reason', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'reason_3', 'label': 'Third reason', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    'Q2': [
+        {'key': 'wgb_is_counterpart', 'label': 'Goal behavior is the opposite of your unwanted behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'wgb_names', 'label': 'What kind of thing your goal names', 'seg': 'pick(wgb_kind)'},
+        {'key': 'wgb_inverts_utb', 'label': 'Goal behavior states the opposite of your unwanted behavior', 'pts': '2'},
+        {'key': 'reasons_listed', 'label': 'How many statements you offer as reasons', 'seg': 'count(3)'},
+        {'key': 'reasons_failing', 'label': 'How many of those are not a benefit of the goal', 'seg': 'count(3)'},
+        {'key': 'reasons_given', 'label': 'How many separate benefits you give', 'seg': 'count(3)'},
+        {'key': 'reason_1', 'label': 'First benefit of the goal behavior', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'reason_2', 'label': 'Second benefit', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'reason_3', 'label': 'Third benefit', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    'Q3': [
+        {'key': 'specific', 'label': 'Specific — a quantified daily or weekly goal', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'measurable', 'label': 'Measurable — names a tracking method or place', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'action_oriented', 'label': 'Action-Oriented — something you will physically do', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'realistic', 'label': 'Realistic — why it is achievable for you', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'time_bound', 'label': 'Time-Bound — four weeks, one baseline plus three', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    'Q4a': [
+        {'key': 'antecedent_kind_1', 'label': 'What kind of thing your first box names', 'seg': 'pick(ant_kind)'},
+        {'key': 'antecedent_1', 'label': 'First antecedent is a genuine trigger', 'seg': 'wrong_kind', 'pts': '2'},
+        {'key': 'antecedent_kind_2', 'label': 'What kind of thing your second box names', 'seg': 'pick(ant_kind)'},
+        {'key': 'antecedent_2', 'label': 'Second antecedent is a genuine trigger', 'seg': 'wrong_kind', 'pts': '2'},
+        {'key': 'keyword', 'label': 'Uses the word antecedent or trigger'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+        {'key': 'no_antecedents', 'label': 'Nothing was listed at all', 'gate': True, 'seg': 'met/absent'},
+    ],
+    'Q4b': [
+        {'key': 'behavior_1', 'label': 'First example is something done INSTEAD OF the goal behavior', 'seg': 'wrong_kind', 'pts': '1.5'},
+        {'key': 'behavior_2', 'label': 'Second example is something done INSTEAD OF the goal behavior', 'seg': 'wrong_kind', 'pts': '1.5'},
+        {'key': 'b1_basis', 'label': 'What the first example IS', 'seg': 'pick(instead_of_basis)'},
+        {'key': 'b2_names_besides', 'label': 'Besides the absence, what else the second box names', 'seg': 'pick(besides_kind)'},
+        {'key': 'b2_basis', 'label': 'What the second example IS', 'seg': 'pick(instead_of_basis)'},
+        {'key': 'modify_stated', 'label': 'Says whether it is a good choice to modify', 'pts': '2'},
+        {'key': 'modify_why', 'label': 'Gives a reason why', 'pts': '1'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    'Q4c': [
+        {'key': 'consequence_1', 'label': 'First consequence follows from the behavior', 'seg': 'wrong_kind/duplicate', 'pts': '2'},
+        {'key': 'consequence_2', 'label': 'Second consequence follows from the behavior', 'seg': 'wrong_kind/duplicate', 'pts': '2'},
+        {'key': 'keyword', 'label': 'Uses the word consequence'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+        {'key': 'no_consequences', 'label': 'Nothing was listed at all', 'gate': True, 'seg': 'met/absent'},
+    ],
+    'Q5': [
+        {'key': 'example_1', 'label': 'First reason you keep doing it', 'seg': 'wrong_kind/duplicate', 'pts': '2.5'},
+        {'key': 'example_2', 'label': 'Second, different reason', 'seg': 'wrong_kind/duplicate', 'pts': '2.5'},
+        {'key': 'reasons_substantial', 'label': 'Both reasons are substantial'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    'Q6': [
+        {'key': 'state_a1', 'label': 'First antecedent named and matching 4a', 'seg': 'mismatch', 'pts': '1.25'},
+        {'key': 'change_a1', 'label': 'How the first antecedent will be changed', 'seg': 'incomplete', 'pts': '1.25'},
+        {'key': 'state_a2', 'label': 'Second antecedent named and matching 4a', 'seg': 'mismatch', 'pts': '1.25'},
+        {'key': 'change_a2', 'label': 'How the second antecedent will be changed', 'seg': 'incomplete', 'pts': '1.25'},
+        {'key': 'state_c1', 'label': 'First consequence named and matching 4c', 'seg': 'mismatch', 'pts': '1.25'},
+        {'key': 'affect_c1', 'label': 'How the first consequence is affected', 'seg': 'incomplete', 'pts': '1.25'},
+        {'key': 'state_c2', 'label': 'Second consequence named and matching 4c', 'seg': 'mismatch', 'pts': '1.25'},
+        {'key': 'affect_c2', 'label': 'How the second consequence is affected', 'seg': 'incomplete', 'pts': '1.25'},
+        {'key': 'link_c2', 'label': 'The second consequence pair is about a DIFFERENT consequence from the first', 'seg': 'unclear'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+}

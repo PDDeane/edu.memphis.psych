@@ -200,6 +200,27 @@ ITEMS: list[dict] = [
         "id": "1c",
         "label": "1c",
         "max": 10.0,
+        # ADOPTED FROM THE .olx 2026-09-08, the twelfth and last hand-authored
+        # sheet attribute. `template` is the WORKED EXAMPLE'S OWN DATA, one row
+        # per field: `agreement.apply_computed` answers `mismatch` when the
+        # student's plotted numbers equal it exactly, because that means they
+        # graphed the example instead of their own weeks. `complete` also
+        # answers `absent` when SOME but not all of the fields hold numbers.
+        # The numbers were transcribed from what ships, so generating this
+        # attribute changed no prompt.
+        "derived": [
+            {"key": "has_own_graph", "kind": "complete",
+             # `fields`, the name `agreement.apply_computed` reads. score.py
+             # cannot compute a `complete` check at all (its
+             # DERIVED_KINDS_IMPLEMENTED covers `contains` only), so there is
+             # no second consumer to scope this key away from.
+             "fields": ["bmod_h3_baseline", "bmod_h3_wk1",
+                        "bmod_h3_wk2", "bmod_h3_wk3"],
+             "template": [[8, 10, 8, 12, 6, 10, 0],
+                          [32, 20, 22, 28, 30, 32, 10],
+                          [30, 28, 26, 30, 32, 32, 30],
+                          [25, 26, 30, 32, 32, 28, 32]]},
+        ],
         "increment": 2.0,
         # Scored from the graph evidence bundle, not from prose. Five
         # independent 2-point slots — the same shape as Handout 1's Q6, so it
@@ -251,6 +272,51 @@ ITEMS: list[dict] = [
                 "codes": {"absent": "NO_Y_AXIS", "not_described": "NO_Y_AXIS"},
             },
             {
+                "what": "series_box_holds",
+                "reported": True,
+                "verdicts": ["period_names", "other_real_names",
+                             "software_placeholders", "nothing"],
+                # SUBGOAL Q30, 2026-09-06. The reading moves into a PICK and the
+                # VERDICT becomes computed -- the split subgoals Q33 and Q43 made.
+                # WHY: read out over all twenty cells, `legend` recognises THE
+                # FOUR PERIOD NAMES AND NOTHING ELSE --
+                #   14 cells  "Baseline, Week 1..." (incl. "Baselline",
+                #             "BaseLine", "Week One")        -> met 12/12
+                #    4 cells  empty box                      -> absent 12/12
+                #    1 cell   "Series1, Series2" (p12)       -> incomplete 12/12
+                #    1 cell   "Sunday, Monday, ..." (p11)    -> absent 12/12
+                # The rule's general clause -- any real names the student chose,
+                # "including one that shows the chart was plotted the other way
+                # round" -- has EXACTLY ONE cell to prove itself on and fails
+                # there. It was reworded and measured; 1c has been swept since and
+                # p11 is unmoved at 0/12.
+                # A PICK PASSES THE TEST THE Q6 RECORD SETS: the categories
+                # separate mechanically. A list of weekday names is plainly real
+                # names, not placeholders, not empty -- no honest competing
+                # classification, unlike Q6/p2 where `met_differently` was
+                # defensible and the pick credited the cell anyway.
+                # THE 14 PERIOD CELLS ARE SAFE BY CONSTRUCTION: period_names maps
+                # to `met`, which is what they already answer.
+                "desc": "What the series box holds",
+                "rule": (
+                    "ONE ANSWER, naming what is in the box. Do not judge whether "
+                    "it makes a good legend -- say what it holds and the "
+                    "arithmetic follows.\n"
+                    "  `period_names` -- the four periods the assignment asks "
+                    "for: baseline and the three weeks, however spelled or "
+                    "abbreviated.\n"
+                    "  `other_real_names` -- any OTHER names the student chose and "
+                    "typed themselves. Days of the week, session numbers, "
+                    "activity names all count. This is the answer when the chart "
+                    "was plotted the other way round, with the periods along the "
+                    "bottom and something else as the series.\n"
+                    "  `software_placeholders` -- names the spreadsheet supplies "
+                    "when nobody typed any: `Series1`, `Series2`, `Column1` and "
+                    "the like.\n"
+                    "  `nothing` -- the box is empty."
+                ),
+            },
+            {
                 "what": "legend",
                 "pts": 2.0,
                 "desc": "The graph has a legend — the key naming the plotted series "
@@ -264,13 +330,37 @@ ITEMS: list[dict] = [
                 # `absent` is named literally on purpose — it is universal, and
                 # it means something DIFFERENT here from the failing verdict:
                 # empty box, not a mis-described legend.
-                "rule": "the NO_LEGEND test. `met` when the series names name all "
-                     "four plotted periods — the baseline and the three intervention "
-                     "weeks — in any reasonable wording ('Baseline, Wk1, Wk2, Wk3' "
-                     "counts). `{fail}` when some are named and some are not, or the "
-                     "count does not match the four series; `absent` when the box is "
-                     "empty or holds something that is not a set of series names. "
-                     "Judge the series names, not the heading",
+                # SUBGOAL Q30, 2026-09-05. The rule used to require the series names
+                # to be the four PERIODS, and the item's question does not: it asks
+                # for "a title, both axis labels, and a legend". p11 labels its
+                # series with day names -- a real legend of the student's own, on a
+                # chart plotted the other way round -- and gold charged x, y and the
+                # baseline week while leaving the legend alone. We charged it 2, and
+                # that is the whole of the cell's 4.00-against-6.00 gap.
+                #
+                # THE FIXTURE IS NOT THE CAUSE and this was checked before the rule
+                # was touched: `series` comes from `sim` and holds the student's
+                # literal legend, which is exactly what the box is for. handouts.py
+                # and BACKLOG.md both record it, the second having already corrected
+                # a stale note that explained the cell away.
+                #
+                # p12 IS THE SUPPORTING CELL and it is why the failing verdict stays:
+                # its series read "Series1, Series2", the software's own placeholders,
+                # gold charges it, and we agree 12 of 12. So the line gold draws is
+                # between a legend that NAMES the student's series and one that names
+                # nothing -- not between naming the periods and naming anything else.
+                "rule": "the NO_LEGEND test. `met` when the box holds the student's "
+                     "own names for the series they plotted, whatever those names "
+                     "refer to — the four periods ('Baseline, Wk1, Wk2, Wk3') are "
+                     "the common case and count, and so does any other set of real "
+                     "names the student chose, including one that shows the chart "
+                     "was plotted the other way round. The question asks for a "
+                     "legend, not for particular names. `{fail}` when the names are "
+                     "the SOFTWARE'S PLACEHOLDERS rather than the student's — "
+                     "'Series1', 'Series2' and the like name nothing and are what "
+                     "appears when no names were ever typed; `absent` when the box "
+                     "is empty or holds something that is not a set of series names "
+                     "at all. Judge the series names, not the heading",
                 "codes": {"absent": "NO_LEGEND", "not_described": "NO_LEGEND"},
 },
         ],
@@ -637,3 +727,96 @@ ITEMS: list[dict] = [
 
 BY_ID = {it["id"]: it for it in ITEMS}
 TOTAL = sum(it["max"] for it in ITEMS)  # 40.0 scored; +10 upload = 50
+
+
+MAPS: dict[str, list] = {
+    # SUBGOAL Q30. Emits the SHEET's vocabulary -- met/absent/INCOMPLETE -- not
+    # the rubric's `codes` key `not_described`. Subgoal E27 declares that pair as
+    # counterparts by design ("the web's `incomplete` is the paper's
+    # `not_described`, 5 slots, 1c's chart parts"), and subgoal E52's rule is that
+    # a map emits what the GRADER is offered, which is the sheet's vocabulary.
+    "1c": [
+        {"key": "legend", "pick": "series_box_holds",
+         "pairs": [{"value": "period_names", "verdict": "met"},
+                   {"value": "other_real_names", "verdict": "met"},
+                   {"value": "software_placeholders", "verdict": "incomplete"},
+                   {"value": "nothing", "verdict": "absent"}],
+         "fallback": "absent"},
+    ],
+}
+
+# ATTACHING IT IS A SEPARATE STEP, AND IT WAS MISSING. Defining MAPS does
+# nothing on its own: the generator reads `maps` off the ITEM SPEC, so the table
+# has to be hung on the item. rubric_h1 has carried this loop since maps existed;
+# this module got the table under subgoal Q30 and not the loop, so `maps=""` in
+# the sheet stayed empty, `olx_prompts.py --check` reported H3 "up to date"
+# because the generator correctly emitted nothing, and the pick `series_box_holds`
+# had no route to the `legend` verdict at all.
+#
+# NOTHING WOULD HAVE CAUGHT IT. The sheet declared the slot, the rubric declared
+# the map, both halves passed every static gate, and E46's unreachable-verdict
+# check compares a map against a verdict list -- with no map attached there is
+# nothing for it to compare. It was found only because subgoal Q30's own sweep
+# script asserted that the pick, the choices group and the maps rule all live in
+# ONE action, and refused at that step before spending ~230 calls.
+for _it in ITEMS:
+    if _it["id"] in MAPS:
+        _it["maps"] = MAPS[_it["id"]]
+
+# THE SLOT SHEET, ADOPTED FROM THE .olx ON 2026-09-08 so that a design change
+# never needs a hand edit to the generated file. `slots=` was the LAST large
+# hand-authored attribute: 217 clauses, 14,159 characters, and 159 of those
+# clauses carried an option list the rubric could not supply -- so this is not a
+# reconciliation like `equals` or `onlyif` were, it MOVES the slot sheet's
+# primary definition here. Transcribed field-wise (never as a raw string) after
+# proving the parse round-trips losslessly on all 23 items, so
+# `olx_prompts.slots_attr_for` reproduces every attribute byte-for-byte and the
+# switch-on changed no prompt and moved no prompt_sha.
+#   key   the slot id            gate  True where the .olx wrote a `!` prefix
+#   label the short prose the grader sees beside the id
+#   seg   field 3: an option list, `pick(set)` or `count(n)`
+#   pts   the `@N` suffix
+# ORDER IS PART OF THE DESIGN and is the order of this list -- see the
+# SLOT_OPTIONS note above; a reorder is a real prompt change with its own sweep.
+SLOT_SPEC: dict[str, list[dict]] = {
+    '1a': [
+        {'key': 'distinguishes_periods', 'label': 'Separates the time periods at all', 'gate': True, 'seg': 'unclear'},
+        {'key': 'baseline_week', 'label': 'Covers the baseline week', 'seg': 'unclear', 'pts': '2'},
+        {'key': 'week_1', 'label': 'Covers week 1', 'seg': 'unclear', 'pts': '2'},
+        {'key': 'week_2', 'label': 'Covers week 2', 'seg': 'unclear', 'pts': '2'},
+        {'key': 'week_3', 'label': 'Covers week 3', 'seg': 'unclear', 'pts': '2'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    '1c': [
+        {'key': 'has_own_graph', 'label': 'Your 1b data produces a graph of your own', 'gate': True, 'seg': 'mismatch', 'pts': '2'},
+        {'key': 'title', 'label': 'Title saying what is measured and over what period', 'seg': 'generic', 'pts': '2'},
+        {'key': 'x_axis_label', 'label': 'X-axis label naming what the axis represents', 'seg': 'tick_values', 'pts': '2'},
+        {'key': 'y_axis_label', 'label': 'Y-axis label naming what the axis represents', 'seg': 'tick_values/generic', 'pts': '2'},
+        {'key': 'series_box_holds', 'label': 'What your series box holds', 'seg': 'pick(series_kind)'},
+        {'key': 'legend', 'label': 'Legend naming all four series you plotted', 'seg': 'incomplete', 'pts': '2'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    '2a': [
+        {'key': 'verdict', 'label': 'States whether the plan worked', 'seg': 'unclear', 'pts': '2'},
+        {'key': 'how_1', 'label': 'Whether the How (1) box explains how', 'seg': 'unclear', 'pts': '2'},
+        {'key': 'how_2', 'label': 'Whether the How (2) box explains how', 'seg': 'unclear', 'pts': '2'},
+        {'key': 'names_enabler', 'label': 'Whether the response names something put in place', 'seg': 'unclear'},
+        {'key': 'states_size', 'label': 'Whether the response states the size or direction of the change', 'seg': 'unclear'},
+        {'key': 'names_plan_content', 'label': 'Whether the response says anything about the plan beyond the behaviour', 'seg': 'unclear'},
+        {'key': 'mechanism_named', 'label': 'Whether any mechanism ground holds'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    '2b': [
+        {'key': 'sentences_given', 'label': 'How many substantive assessment sentences you give', 'seg': 'count(3)'},
+        {'key': 'sentence_1', 'label': 'First substantive assessment sentence', 'seg': 'unclear', 'pts': '2'},
+        {'key': 'sentence_2', 'label': 'Second substantive sentence', 'seg': 'unclear', 'pts': '2'},
+        {'key': 'sentence_3', 'label': 'Third substantive sentence', 'seg': 'unclear', 'pts': '2'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    '3': [
+        {'key': 'changes_given', 'label': 'How many distinct changes you propose', 'seg': 'count(2)'},
+        {'key': 'example_1', 'label': 'First specific change', 'seg': 'unclear', 'pts': '3'},
+        {'key': 'example_2', 'label': 'Second, different change', 'seg': 'unclear', 'pts': '3'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+}
