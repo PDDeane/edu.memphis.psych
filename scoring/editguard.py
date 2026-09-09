@@ -1,0 +1,614 @@
+#!/usr/bin/env python3
+"""A slice-bounded edit must not take a slice out of the wrong thing.
+
+WHY THIS MODULE EXISTS. Three times in two days an edit computed as "from this
+anchor to the next closing brace / the next definition" swallowed something
+between the two ends that nobody was looking at:
+
+  1. Rewriting `GOLD_CODE_KNOWN`'s NR/11 entry with a slice bounded by "the next
+     dict key" took the table's closing brace, the comment beneath it, AND
+     `GOLD_SLOT_BOUNDS_KNOWN`'s declaration line. The file still parsed. The
+     symptom -- one table loading 7 keys instead of 5 -- was NOTICED, called
+     unexplained, and moved past. It resurfaced as a NameError in `--preflight`.
+  2. The same slice had also taken `GOLD_SLOT_BOUNDS_BUDGET`. Found only when
+     preflight was next run, which was after the table had been "restored".
+  3. Replacing this package's own probe helpers by index slice took
+     `_slot_aliases` and `_OPERANT_GATE` with them. Caught in seconds only
+     because the very next command imported the module.
+
+The common shape: the edit is correct about what it MEANT to change, the file
+still parses, and what went missing is a NAME nothing in the changed region
+mentions. Parsing proves syntax, not survival. So the invariant to enforce is
+not "the file parses" but "no definition disappeared that I did not say I was
+deleting" -- and it is mechanical, which is the only kind of guard that helps at
+2am on the fourth occurrence.
+
+TWO LAYERS, deliberately:
+
+  safe_write()        PREVENTION, at write time. Refuses the write if a
+                      top-level definition or method vanishes and was not named
+                      in `dropping=`. Use it for every programmatic edit.
+  DEFINITIONS.json    DETECTION, at gate time, via
+                      `enforcement.check_no_definition_vanished()`. Catches a
+                      deletion made by any route -- a plain Write, an editor, a
+                      hand-run script -- and catches it at the next gate instead
+                      of at the next NameError. Same pattern as
+                      DESIGNED_TEXT_SHA.json: an inventory of record, and a
+                      deliberate command to change it.
+
+There is no `--regenerate-everything` here, on purpose. An inventory that agrees
+with whatever the tree currently says enforces nothing; that is exactly why the
+design-sha file has no bulk accept either.
+"""
+from __future__ import annotations
+
+import ast
+import json
+import os
+import pathlib
+import sys
+import tempfile
+
+HERE = pathlib.Path(__file__).parent
+INVENTORY = HERE / "DEFINITIONS.json"
+
+# Modules whose definitions are inventoried. The whole package: a helper deleted
+# out of a one-off script is as capable of silently changing a measurement as one
+# deleted out of `measured.py`, and the check costs milliseconds.
+def modules() -> list:
+    return sorted(p for p in HERE.glob("*.py"))
+
+
+def definitions(text: str) -> set:
+    """Every name this module defines that another module could reference.
+
+    Top-level functions, classes and assignments, plus `Class.method` -- a lost
+    method is the same failure one scope down. Names inside a function body are
+    deliberately excluded: they are private to it and change constantly.
+    """
+    out: set = set()
+    try:
+        tree = ast.parse(text)
+    except SyntaxError as e:
+        raise ValueError(f"does not parse: {e}") from None
+
+    def _targets(node) -> list:
+        if isinstance(node, ast.Assign):
+            return [t.id for t in node.targets if isinstance(t, ast.Name)]
+        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            return [node.target.id]
+        return []
+
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            out.add(node.name)
+        elif isinstance(node, ast.ClassDef):
+            out.add(node.name)
+            for sub in node.body:
+                if isinstance(sub, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    out.add(f"{node.name}.{sub.name}")
+                for t in _targets(sub):
+                    out.add(f"{node.name}.{t}")
+        else:
+            out.update(_targets(node))
+    return out
+
+
+def container_key_shapes(text: str) -> dict:
+    """For each module-level dict literal, the SHAPES of its keys.
+
+    A shape is ("tuple", n) for a tuple key of length n, or ("name", type) for
+    anything else. Returned as {container_name: {shape: count}}.
+
+    WHY SHAPE. A declaration table in this project is keyed consistently --
+    `PROSE_ONLY_SLOTS` by (item, slot), `DESIGNED_TEXT` by (item, slot, field),
+    `GOLD_CEILINGS` by (handout, item). So a key whose arity differs from every
+    other key in the same table is almost always an entry that landed in the
+    wrong table, which is the one failure `definitions()` cannot see: nothing is
+    dropped, the file parses, and the entry is simply somewhere else.
+    """
+    import ast
+
+    out = {}
+    tree = ast.parse(text)
+    for node in tree.body:
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+            continue
+        val = node.value
+        if not isinstance(val, ast.Dict):
+            continue
+        targets = ([node.target] if isinstance(node, ast.AnnAssign)
+                   else node.targets)
+        names = [x.id for x in targets if isinstance(x, ast.Name)]
+        if not names:
+            continue
+        shapes = {}
+        for k in val.keys:
+            if k is None:                      # **spread
+                continue
+            if isinstance(k, ast.Tuple):
+                s = ("tuple", len(k.elts))
+            else:
+                s = ("other", type(k).__name__)
+            shapes[s] = shapes.get(s, 0) + 1
+        if shapes:
+            out[names[0]] = shapes
+    return out
+
+
+def misplacements(before_text: str, new_text: str) -> list[str]:
+    """Entries this edit adds to a table whose keys are shaped differently.
+
+    FOUND THE HARD WAY 2026-09-08: four `("Q4b", slot, "desc"): text` entries
+    aimed at `DESIGNED_TEXT` landed in `PROSE_ONLY_SLOTS`, which is keyed by
+    two-tuples. The anchor matched an earlier `("Q4b", ` in a different table.
+    NOTHING CAUGHT IT: no definition vanished, the file parsed, and the entries
+    read back as absent from the table that was supposed to hold them -- so the
+    only symptom was a later check quietly reporting nothing.
+
+    `dropping=` guards the mirror case (a slice that takes too much). This
+    guards a slice that puts its addition in the wrong place, which is the same
+    class from the other end and the one `safe_write` could not see.
+
+    ONLY A NEW INHOMOGENEITY IS REFUSED. A table that already mixes shapes goes
+    on mixing them: this must not turn into a global tidiness rule that blocks
+    every unrelated write, which is how a guard gets disabled.
+    """
+    try:
+        was = container_key_shapes(before_text)
+    except SyntaxError:
+        return []
+    try:
+        now = container_key_shapes(new_text)
+    except SyntaxError:
+        return []
+    out = []
+    for name, shapes in now.items():
+        if len(shapes) < 2:
+            continue                            # homogeneous, nothing to say
+        old = was.get(name) or {}
+        if len(old) >= 2:
+            continue                            # already mixed before this edit
+        added = {s: n for s, n in shapes.items() if s not in old}
+        if not added:
+            continue
+        kept = sorted(old) or sorted(shapes)
+        out.append(
+            f"{name} is keyed by {kept[0]} and this edit adds "
+            f"{sorted(added)} to it. A key shaped unlike every other key in the "
+            f"same table is usually an entry that landed in the WRONG table -- "
+            f"check the anchor. If the mix is intended, pass "
+            f"allow_mixed_keys=True")
+    return out
+
+
+def container_entries(text: str) -> dict:
+    """{container_name: {key_source: True}} for every module-level dict literal.
+
+    Keys are rendered with `ast.unparse`, so `("Q4b", "a1_kind", "desc")` reads
+    back exactly as it appears in the source and can be named in `dropping=`.
+
+    WHY THIS EXISTS ALONGSIDE `definitions()`. That function guards module-level
+    NAMES: it catches a slice that eats a whole declaration. It cannot see an
+    edit that removes an ENTRY from a declaration table, because the table's
+    name survives -- and a table entry is exactly what the declarations in this
+    project are made of.
+
+    FOUND 2026-09-08, reverting Q4b's eighth attempt. Four DESIGNED_TEXT entries
+    had to go. The cut located each key by character offset and then searched for
+    the entry's closing "'," -- but `a1_kind`'s text contains an apostrophe, so
+    `repr` had written the value in DOUBLE quotes and the search ran PAST the
+    entry into the next one. It would have removed a neighbouring declaration
+    silently. It only failed safe because an assert on the NEXT key fired before
+    `safe_write` was reached, so nothing was written. That is luck, not a guard.
+    """
+    import ast
+
+    out = {}
+    tree = ast.parse(text)
+    for node in tree.body:
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+            continue
+        if not isinstance(node.value, ast.Dict):
+            continue
+        targets = ([node.target] if isinstance(node, ast.AnnAssign)
+                   else node.targets)
+        names = [x.id for x in targets if isinstance(x, ast.Name)]
+        if not names:
+            continue
+        keys = {}
+        for k in node.value.keys:
+            if k is None:
+                continue
+            try:
+                keys[ast.unparse(k)] = True
+            except Exception:
+                pass
+        if keys:
+            out[names[0]] = keys
+    return out
+
+
+def lost_entries(before_text: str, new_text: str, dropping=()) -> list[str]:
+    """Declaration-table entries this edit removes and did not declare.
+
+    `dropping=` names them as `CONTAINER[key]`, e.g.
+        dropping=['DESIGNED_TEXT[("Q4b", "a1_kind", "desc")]']
+    which is the same contract `definitions()` uses one level up: say what you
+    mean to remove, and an undeclared removal is refused rather than trusted.
+    """
+    try:
+        was = container_entries(before_text)
+        now = container_entries(new_text)
+    except SyntaxError:
+        return []
+    declared = set(dropping)
+    out = []
+    for name, keys in was.items():
+        gone = set(keys) - set(now.get(name) or {})
+        for k in sorted(gone):
+            if f"{name}[{k}]" in declared or name in declared:
+                continue
+            out.append(f"{name}[{k}]")
+    return out
+
+
+def duplicate_keys(text: str) -> list[str]:
+    """Keys a module-level dict literal defines MORE THAN ONCE.
+
+    A dict literal keeps the LAST occurrence and discards the earlier ones in
+    silence. So registering an entry whose key already exists does nothing, and
+    nothing says so.
+
+    FOUND 2026-09-08 registering a Q4c candidate: the key
+    ("Q4c", "consequence_1", "rule_addition") already held cycle 2's reverted
+    habit-head text 280 lines further down. The new entry was inserted at the
+    top of DESIGNED_TEXT, the old one won, and reading the value back returned
+    the OLD text. Two failures in one: a reverted attempt's design of record
+    outliving it, and a new one silently discarded.
+
+    `lost_entries` cannot see this -- nothing is lost, and the key set is
+    unchanged -- so it needs its own check.
+    """
+    import ast
+    import collections
+
+    out = []
+    for node in ast.parse(text).body:
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+            continue
+        if not isinstance(node.value, ast.Dict):
+            continue
+        targets = ([node.target] if isinstance(node, ast.AnnAssign)
+                   else node.targets)
+        names = [x.id for x in targets if isinstance(x, ast.Name)]
+        if not names:
+            continue
+        seen = collections.Counter()
+        for k in node.value.keys:
+            if k is None:
+                continue
+            try:
+                seen[ast.unparse(k)] += 1
+            except Exception:
+                pass
+        for key, n in seen.items():
+            if n > 1:
+                out.append(f"{names[0]}[{key}] is defined {n} times")
+    return out
+
+
+def _string_constants(text: str) -> list:
+    """Every string constant in the module, as the PARSER sees them.
+
+    Adjacent string literals are joined by Python at parse time, so a wrapped
+    prose field is ONE constant however many source lines it spans. That is what
+    makes the comparison in `lost_prose` possible: losing a source line does not
+    change the number of constants, it shortens one of them.
+    """
+    import ast
+
+    out = []
+    for node in ast.walk(ast.parse(text)):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            out.append(node.value)
+    return out
+
+
+def _contiguous_deletion(before: str, after: str) -> str | None:
+    """The chunk removed if `after` is `before` with ONE contiguous cut, else None."""
+    if len(after) >= len(before):
+        return None
+    head = 0
+    while head < len(after) and before[head] == after[head]:
+        head += 1
+    tail = 0
+    while (tail < len(after) - head
+           and before[len(before) - 1 - tail] == after[len(after) - 1 - tail]):
+        tail += 1
+    cut = before[head:len(before) - tail]
+    return cut if before[:head] + cut + before[len(before) - tail:] == before else None
+
+
+def lost_prose(before_text: str, after_text: str, dropping=()) -> list[str]:
+    """Prose that vanished from inside a string field, unannounced.
+
+    THE BLIND SPOT THIS CLOSES, demonstrated 2026-09-09. `definitions` guards
+    module-level NAMES and `lost_entries` guards declaration-table ENTRIES.
+    NEITHER SEES A LINE DISAPPEAR FROM INSIDE A WRAPPED PROSE FIELD -- the file
+    parses, every name survives, every table entry survives, and the shipped
+    prompt is silently short.
+
+    IT HAD ALREADY HAPPENED AND SHIPPED FOR ELEVEN HOURS. Between 23:16 and 23:37
+    on 2026-09-08 an edit aimed at Q1 and Q2 deleted ONE LINE from each of Q4c's
+    `consequence_1` and `consequence_2`:
+
+        'CONCURRENCE IS NOT CONSEQUENCE. An entry whose only link to the behaviour '
+
+    leaving both slots shipping a decapitated sentence -- "...what it MEANT as a
+    consequence.is that the two happen at the same time -- ...". Tested against
+    the guards that existed: definitions 6 before and 6 after, `lost_entries` [],
+    `duplicate_keys` [], `misplacements` []. All clean, all blind. Q4c was swept
+    against that text the next day, and its p4 -- the one cell whose judgement runs
+    through the damaged region -- read wrong_by_median off a corrupted prompt.
+
+    Reports a cut only when the field is otherwise UNCHANGED around it, so a
+    rewritten field is not flagged as a loss: the test is `after == before` with
+    one contiguous run removed. Declare an intended removal by passing any
+    distinctive substring of it in `dropping`.
+    """
+    import collections
+
+    before = collections.Counter(_string_constants(before_text))
+    after = collections.Counter(_string_constants(after_text))
+    gone = list((before - after).elements())
+    arrived = list((after - before).elements())
+    # PROSE DECLARATIONS CARRY A `prose:` PREFIX so the three consumers of
+    # `dropping` cannot be confused for one another: bare names belong to
+    # `definitions`, NAME[key] to `lost_entries`, and `prose:<substring>` here.
+    # Without the prefix the idle check reads a prose substring as a module-level
+    # name that failed to vanish and refuses a correct write -- which it did on
+    # the first attempt to declare the Q4c concurrence removal.
+    declared = tuple(d[len("prose:"):] for d in dropping
+                     if isinstance(d, str) and d.startswith("prose:"))
+    out = []
+    # A PLAUSIBILITY FLOOR, or the pairing invents cuts. Every removed constant is
+    # tried against every added one, so a short literal that merely CHANGED can be
+    # paired with an unrelated one and reported as a deletion: replacing
+    # "apps/server" with "apps/server/src/index.ts" was reported as 11 chars
+    # vanishing, because the 11-char original also "contiguously deletes" down to
+    # some other short constant. The real case this exists for is a 74-char line
+    # lost from a ~1600-char prose field, so require the field to be prose-sized
+    # and MOSTLY INTACT -- which is what distinguishes a lost line from a rewrite.
+    PROSE_MIN = 120
+    KEPT_MIN = 0.5
+    for old in gone:
+        if len(old) < PROSE_MIN:
+            continue
+        for new in arrived:
+            if len(new) < KEPT_MIN * len(old):
+                continue
+            cut = _contiguous_deletion(old, new)
+            if cut is None or not cut.strip():
+                continue
+            if any(d and (d in cut or cut.strip() in d) for d in declared):
+                continue
+            out.append(
+                f"{len(cut)} chars vanished from inside a string field and were "
+                f"not declared -- {cut.strip()[:90]!r}. The name, the table entry "
+                f"and the parse all survive a cut like this, so nothing else "
+                f"reports it. If the removal is intended, pass a distinctive "
+                f"substring of it in dropping=; if not, the slice took more than "
+                f"it was aimed at")
+            break
+    return out
+
+
+def safe_write(path, new_text: str, dropping=(),
+               allow_mixed_keys: bool = False) -> dict:
+    """Write `new_text` to `path` unless a definition would vanish unannounced.
+
+    `dropping` names what this edit intends to remove. Naming something that
+    does NOT disappear is also refused -- an intent that did not happen is a
+    sign the edit landed somewhere other than where it was aimed, which is the
+    very failure this guards.
+
+    Returns {path, added, dropped}. Raises RuntimeError on refusal, with the
+    lost names listed: on the real cases those lists read
+    `GOLD_SLOT_BOUNDS_KNOWN, GOLD_SLOT_BOUNDS_BUDGET` and
+    `_slot_aliases, _OPERANT_GATE`, which is the whole diagnosis in one line.
+    """
+    p = pathlib.Path(path)
+    if p.suffix != ".py":
+        # The definition invariant is a Python one. A prose file gets the atomic
+        # write and nothing else -- the first version parsed everything handed to
+        # it and refused a QUALITY_CONTROL.md edit for "leading zeros in decimal
+        # integer literals", which is a section number.
+        return _atomic(p, new_text)
+    before = definitions(p.read_text()) if p.exists() else set()
+    after = definitions(new_text)          # raises if the new text is unparseable
+    dropping = set(dropping)
+    lost = before - after - dropping
+    if lost:
+        raise RuntimeError(
+            f"REFUSING to write {p.name}: {len(lost)} definition(s) would "
+            f"vanish and were not declared -- {', '.join(sorted(lost))}. If the "
+            f"removal is intended, pass dropping={sorted(lost)!r}; if not, the "
+            f"slice took more than it was aimed at")
+    for dup in duplicate_keys(new_text):
+        raise RuntimeError(
+            f"REFUSING to write {p.name}: {dup}. A dict literal keeps the LAST "
+            f"occurrence and discards the earlier ones SILENTLY, so a new entry "
+            f"under an existing key does nothing and reads back as the old "
+            f"value. Drop the stale entry -- usually a reverted attempt's "
+            f"design of record -- or edit it in place.")
+    gone = lost_entries(p.read_text() if p.exists() else "", new_text, dropping)
+    if gone:
+        raise RuntimeError(
+            f"REFUSING to write {p.name}: {len(gone)} declaration-table "
+            f"entr(ies) would vanish and were not declared -- "
+            f"{', '.join(gone[:6])}{' ...' if len(gone) > 6 else ''}. A slice "
+            f"that removes a table entry can silently take its NEIGHBOUR: "
+            f"`repr` uses double quotes when the value contains an apostrophe, "
+            f"so an offset search for the closing \"',\" runs past the entry. "
+            f"If the removal is intended, pass dropping={gone!r}; if not, cut on "
+            f"line boundaries instead of character offsets")
+    if not allow_mixed_keys:
+        for bad in misplacements(p.read_text() if p.exists() else "", new_text):
+            raise RuntimeError(f"REFUSING to write {p.name}: {bad}")
+    for bad in lost_prose(p.read_text() if p.exists() else "", new_text, dropping):
+        raise RuntimeError(f"REFUSING to write {p.name}: {bad}")
+    # AND THE IDLE CHECK FOR PROSE, for the same reason the one below exists: a
+    # declaration that did not happen means the edit landed somewhere other than
+    # where it was aimed. Tested by whether the declared text is STILL PRESENT
+    # afterwards, which is the prose analogue of "still defined".
+    stale_prose = [d for d in dropping
+                   if isinstance(d, str) and d.startswith("prose:")
+                   and d[len("prose:"):].strip()
+                   and d[len("prose:"):] in new_text]
+    if stale_prose:
+        raise RuntimeError(
+            f"REFUSING to write {p.name}: declared dropping "
+            f"{', '.join(sorted(stale_prose))}, but that text is STILL PRESENT "
+            f"afterwards -- the edit did not land where it was aimed")
+    # THE IDLE CHECK IS ABOUT DEFINITIONS ONLY. `dropping` serves TWO guards --
+    # module-level names (this one) and declaration-table entries
+    # (`lost_entries`) -- and a table-entry declaration is written NAME[key], a
+    # form that can never appear in the definitions set. Testing it here made
+    # every correctly-declared entry drop read as "still defined afterwards",
+    # which blocked three legitimate writes on 2026-09-08 before the cause was
+    # found. Entry declarations are validated by `lost_entries`; exclude them.
+    idle = {d for d in dropping
+            if "[" not in d and not d.startswith("prose:")} - (before - after)
+    if idle:
+        raise RuntimeError(
+            f"REFUSING to write {p.name}: declared dropping "
+            f"{', '.join(sorted(idle))}, but {'it' if len(idle) == 1 else 'they'} "
+            f"{'is' if len(idle) == 1 else 'are'} still defined afterwards -- the "
+            f"edit did not land where it was aimed")
+    out = _atomic(p, new_text)
+    out.update({"added": sorted(after - before), "dropped": sorted(dropping)})
+    return out
+
+
+def _atomic(p, text: str) -> dict:
+    """Write via tempfile + fsync + replace, for the same reason
+    `measured.save()` does: a half-written module that still parses is the worst
+    of both worlds."""
+    fd, tmp = tempfile.mkstemp(dir=str(p.parent), prefix=f".{p.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as fh:
+            fh.write(text)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp, p)
+    except BaseException:
+        pathlib.Path(tmp).unlink(missing_ok=True)
+        raise
+    return {"path": str(p), "added": [], "dropped": []}
+
+
+def _inventory() -> dict:
+    try:
+        return json.loads(INVENTORY.read_text()).get("modules") or {}
+    except Exception:
+        return {}
+
+
+def vanished() -> list:
+    """Definitions the inventory records and the tree no longer defines.
+
+    Reported by `enforcement.check_no_definition_vanished`. An UNPARSEABLE
+    module is reported too, and first: `goals.py` was once left unparseable by an
+    edit whose text was written before it was checked, and every downstream
+    reader then failed with a confusing error instead of that one.
+    """
+    inv = _inventory()
+    if not inv:
+        return ["DEFINITIONS.json is missing or unreadable -- run "
+                "`python3 editguard.py --seed` to write the inventory of record"]
+    out = []
+    live = {}
+    for p in modules():
+        try:
+            live[p.name] = definitions(p.read_text())
+        except ValueError as e:
+            out.append(f"{p.name}: UNPARSEABLE -- {e}")
+    for name in sorted(inv):
+        if name not in live:
+            if not (HERE / name).exists():
+                out.append(f"{name}: the whole MODULE is gone, and the inventory "
+                           f"records {len(inv[name])} definition(s) in it")
+            continue
+        lost = set(inv[name]) - live[name]
+        if lost:
+            out.append(
+                f"{name}: {len(lost)} definition(s) VANISHED -- "
+                f"{', '.join(sorted(lost))}. Nothing here says the file is "
+                f"broken; it parses. Either the removal was deliberate (accept "
+                f"it: `python3 editguard.py --accept {name} <NAME>`) or a slice "
+                f"took more than it was aimed at")
+    return out
+
+
+def seed(force: bool = False) -> str:
+    if INVENTORY.exists() and not force:
+        return f"{INVENTORY.name} already exists -- refusing to overwrite it"
+    doc = {"_README": (
+        "The definitions of record for this package: top-level names and "
+        "Class.method, per module. enforcement.check_no_definition_vanished() "
+        "refuses a sweep when a recorded name is no longer defined, which is how "
+        "a slice-bounded edit that ate a neighbouring declaration gets caught at "
+        "the next gate instead of at the next NameError. Removing a definition "
+        "on purpose is fine -- accept it one name at a time with "
+        "`python3 editguard.py --accept MODULE NAME`. There is no bulk "
+        "regenerate, deliberately: an inventory that agrees with the tree "
+        "whatever the tree says enforces nothing."),
+        "modules": {}}
+    for p in modules():
+        try:
+            doc["modules"][p.name] = sorted(definitions(p.read_text()))
+        except ValueError as e:
+            return f"REFUSING to seed: {p.name} {e}"
+    INVENTORY.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
+    n = sum(len(v) for v in doc["modules"].values())
+    return f"seeded {INVENTORY.name}: {n} definitions across {len(doc['modules'])} modules"
+
+
+def accept(module: str, name: str) -> str:
+    """Record that `name` was removed from `module` on purpose. One at a time."""
+    try:
+        doc = json.loads(INVENTORY.read_text())
+    except Exception as e:
+        return f"cannot read {INVENTORY.name}: {e}"
+    names = doc.get("modules", {}).get(module)
+    if names is None:
+        return f"{module} is not in the inventory"
+    if name not in names:
+        return f"{module} does not record `{name}` -- nothing to accept"
+    live = definitions((HERE / module).read_text()) if (HERE / module).exists() else set()
+    if name in live:
+        return (f"REFUSING: `{name}` is still defined in {module}. Accepting a "
+                f"removal that did not happen would hide the next real one")
+    doc["modules"][module] = [n for n in names if n != name]
+    INVENTORY.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
+    return f"accepted removal of {module}:{name}"
+
+
+def main(argv: list) -> int:
+    if len(argv) >= 2 and argv[1] == "--seed":
+        print("  " + seed(force="--force" in argv))
+        return 0
+    if len(argv) == 4 and argv[1] == "--accept":
+        msg = accept(argv[2], argv[3])
+        print("  " + msg)
+        return 1 if msg.startswith(("REFUS", "cannot")) else 0
+    bad = vanished()
+    for b in bad:
+        print(f"  {b}")
+    print(f"  {len(bad)} finding(s)")
+    return 1 if bad else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))

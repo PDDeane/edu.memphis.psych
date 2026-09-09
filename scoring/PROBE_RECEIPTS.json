@@ -1,0 +1,21 @@
+{
+ "receipts": [
+  {
+   "item": "WK2",
+   "slot": "aimed_correctly",
+   "sha": "9a4c8a53a1a4",
+   "question": "Does the consequence point the RIGHT WAY for the arrangement this answer actually describes -- something added or taken away AFTER the behaviour, in the direction that would change it? Answer `absent` when it is pointed the wrong way: an aversive for MEETING the goal, or a reward for MISSING it.\nJUDGE THE ARRANGEMENT DESCRIBED, NOT THE TYPE THE STUDENT NAMED. An answer that describes a sound arrangement but labels it with the wrong type is `met` here. The mismatch between the two is a different check's charge, and taking the whole item for it here would charge one fault twice.\nAnswer `unclear` only when the answer names no consequence to judge at all.",
+   "head": "**GATE** \u2014 `met`/`absent`/`unclear`",
+   "verdict": "PROCEED",
+   "note": "gate had NO text; probed 20/20 against gold",
+   "stamp": "2026-09-07",
+   "cells": {
+    "p11": "met 4/4",
+    "p3": "met 4/4",
+    "p15": "met 4/4",
+    "gold0": "all still refuse"
+   }
+  }
+ ],
+ "_README": "Probes that were run, and the sha of the string each one ASKED. enforcement.check_probe_receipts_match_shipping() refuses a sweep whose probe measured text that no longer ships. Written by probe.write_receipt(); never hand-edit a sha."
+}
