@@ -1214,6 +1214,43 @@ def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
 _CADENCE_NOUN = {"daily": "day", "weekly": "week"}
 
 SLOT_NOTES = {
+    # WK2's `aimed_correctly` GATE, given text 2026-09-07 (subgoal Q40). It had
+    # NONE: absent from WK2's rubric credit list, no desc, no rule, no note -- so
+    # `probe.question_for` returned the empty string and the shipped prompt line
+    # was the identifier alone. A 4-point gate inferring its own meaning from its
+    # name, which is why it ran at 95% precision and wobbled on exactly the cell
+    # where the name is ambiguous (WK2/p11: aimed correctly FOR THE TYPE CHOSEN,
+    # or aimed correctly AS AN ARRANGEMENT?).
+    # IT REACHES BOTH MEASURED ENGINES AND NOT `paper`: this table is read by the
+    # web and CLI generators, not by score.py. Paper has no number on 24 of 26
+    # items (subgoal E28), so nothing measured is left behind today -- but it is a
+    # real asymmetry and is why the text is ALSO in enforcement.DESIGNED_TEXT,
+    # where a reader will find it from the slot.
+    "WK2:aimed_correctly": "Does the consequence point the RIGHT WAY for the arrangement this answer actually describes -- something added or taken away AFTER the behaviour, in the direction that would change it? Answer `absent` when it is pointed the wrong way: an aversive for MEETING the goal, or a reward for MISSING it.\nJUDGE THE ARRANGEMENT DESCRIBED, NOT THE TYPE THE STUDENT NAMED. An answer that describes a sound arrangement but labels it with the wrong type is `met` here. The mismatch between the two is a different check's charge, and taking the whole item for it here would charge one fault twice.\nAnswer `unclear` only when the answer names no consequence to judge at all.",
+    # WK2's `named_type`, given text 2026-09-07 (subgoal Q55). Like
+    # `aimed_correctly` above it shipped the EMPTY STRING -- sha e3b0c44298fc
+    # -- so the prompt line was the identifier and its five verdicts alone.
+    # D1 and D2 carry text for the same key (sha 726c3d975e02) and WK2 and
+    # DAY1 do not, which is the asymmetry that hid it.
+    # THE DEFECT IT FIXES, measured: WK2/p15's TYPE box is blank while its
+    # DEFINITION box names Positive Punishment by defining it. With no text,
+    # the slot answers `unclear` in 5 of 12 runs, and `unclear` CANCELS a
+    # charge gold makes -- `matches_chosen_type` then reads `met` and the cell
+    # scores 4.00 against gold's 2.00. The correlation is exact: `PP` -> 2.00 =
+    # gold (7 runs), `unclear` -> 4.00 wrong (5 runs).
+    # NOTE WHAT D1/D2's TEXT WOULD HAVE DONE: it says "`unclear` only if it is
+    # blank or unreadable", which on p15 prescribes the WRONG answer. Copying
+    # the sibling text would have entrenched the defect, so this is written
+    # from the cells, not from the sibling.
+    # PROBED AND GATED before shipping: 72 calls, 18 cells (p2 and p3 dropped
+    # by exclusions), every cell unanimous 4 of 4 -- target p15 reads PP, the
+    # genuinely-blank pair p10/p18 keep `unclear`, all ten full-marks cells
+    # keep their type. `probe.control_gate` reproduces the ledger on 17 of 18
+    # cell-slots (p14 skipped: the ledger itself wobbles). It is the one probe
+    # of that day the control gate did not void.
+    # REACHES the web and CLI generators, NOT score.py -- same asymmetry as
+    # `aimed_correctly`, and `paper` has no WK2 number to lose (subgoal E28).
+    "WK2:named_type": "WHICH of the four types the student CLAIMS -- not whether the claim is right, which another check decides.\nREAD BOTH BOXES. The type may be NAMED in the type box, or it may be named only by the DEFINITION the student wrote: a definition that describes adding an unpleasant thing after a behaviour, or taking a wanted thing away, names a type as surely as writing its name does. Where the two disagree, report what the TYPE BOX says.\nAnswer `unclear` ONLY when NEITHER box names a type -- both empty, or a bare label with nothing after it. A blank type box is not by itself an absent type.",
     "confident": "`absent` if any judgement above was a close call — this is rule 8's channel",
     # Web-only, and unscored on purpose. The web asks for the unwanted target
     # behavior twice — once as a closed choice before question 1, once in the
@@ -1363,7 +1400,8 @@ SLOT_NOTES = {
     # `onlyif` attribute), so both checks are answered honestly.
     "targets_goal_behavior":
         "is the plan aimed at INCREASING their wanted goal behavior, rather than "
-        "reinforcing the unwanted one? Answer what is true of the example even if it "
+        "reinforcing the unwanted one? "
+        "Answer what is true of the example even if it "
         "turned out to be a different type than this item asks for — where that makes "
         "this finding redundant the grader drops it, and it charges nothing twice",
     "targets_unwanted_behavior":
@@ -1410,62 +1448,13 @@ SLOT_NOTES = {
         "words THE STUDENT used for the behaviour, from their own unwanted-behaviour or goal statement, beside the trigger you quoted, and say "
         "whether they are equivalent by the definition given above. If they are "
         "not, answer `other`.",
-    # The whole point of this slot is to stop `not_reason` absorbing weak reasons,
-    # so it says so, and says where the boundary is with the case that DOES deduct.
-    # Three non-`met` verdicts now, so the boundaries have to be drawn or the new
-    # one sits unused — which is exactly how tier (b) on Q2 stayed unreachable.
-    # This line used to carry the generosity rule and NOTHING ELSE — "count
-    # separately even when thematically related" — while both exclusions sat in
-    # guidance[4]. p18's three statements ARE thematically related, so the model
-    # answered 3 in 5 runs of 5 on both sides, exactly as instructed, against a
-    # gold of 2. The generosity rule stays; it is why p6 counts correctly. What it
-    # needed was its two boundaries, with the cases quoted.
-    # MEASURED, and the trade is recorded because it did not move the item rate.
-    # The one-sentence rule below started as a blanket "ONE SENTENCE IS ONE
-    # BENEFIT", added for p19 ("{{corpus:Q2/p19:response:299:347:sha=b7788ea9f103:shape=C1ef8000000}}
-    # learning" — a knock-on chain, correctly one). That over-generalised: it also
-    # collapsed p6's "{{corpus:Q2/p6:response:169:198:sha=23d76ae5248d:shape=Ce00000}} better", two independent
-    # benefits, and took p6 from sometimes-right to 0/3. Splitting the rule on
-    # STRUCTURE (knock-on = one, coordinated = two) fixed it: p6 8/8 and p19 8/8
-    # on single-cell runs, and p6's decomposition became the graders' own,
-    # listed 3 / failing 1 / given 2.
-    #
-    # It cost p20, stably, on both measured paths (CLI 2/3 -> 0/3, web 1/3 ->
-    # 0/3), and the item mean did not move: 17.3-18.3 across all four prompt
-    # variants tried, which is inside what a 3-run 20-cell measurement resolves.
-    #
-    # p20 IS DIAGNOSED AND THE FIX IS NOT APPLIED. Its three statements each NAME
-    # a benefit and then explain it by contrast — "strengthen my intelligence
-    # {{corpus:Q2/p20:response:142:180:sha=7718d04e03c8}} sleep...", "{{corpus:Q2/p20:response:371:388:sha=949f1763fb21}} bank",
-    # "{{corpus:Q2/p20:response:419:450:sha=9b9c33768505}} deprive...". Gold credits all three. Test
-    # (i) below rejects one of them as harm-framing, but (i) should fire only when
-    # a statement names NO benefit at all: that is p3, "{{corpus:Q2/p3:response:45:70:sha=f60c7d9ca83d}}
-    # me feel lazy", which gold credits ZERO. Sharpening (i) to "names no benefit
-    # at all" reconciles p3 with p20 and conflicts with none of p6, p14, p17, p18,
-    # p19. It was left undone deliberately: Q2's count has four or five borderline
-    # cells and every refinement so far has traded some for others, so the next
-    # attempt should be measured PER CELL at power (8+ runs on p3 and p20) rather
-    # than by another full sweep.
-    # The opener USED to be "Count generously about theme", which the model reads
-    # before the tests that follow and which undercuts them: on p18 it returned 3
-    # on two runs of three while the note already named p18's own failing sentence
-    # under (ii). p19's failure was not covered at all — one sentence with a
-    # knock-on clause counted as two benefits, stably in 3 of 3 runs.
-    # The scaffold in front of the count. Its arithmetic held on 120 of 120
-    # cell-runs the first time it was tried, so the two parts are asked as
-    # reported slots and the count stays the scored one, rather than teaching a
-    # `present - failing` primitive to seven consumers.
-    # The three notes that stood here -- Q5:example_2, reasons_substantial and
-    # 1c:legend -- MIGRATED 2026-08-30 to the `rule` field on their credit
-    # components, where both generators render them. Each was declared here as
-    # olx-only BY DESIGN on the grounds that it named one side's verdict token
-    # and `{fail}` could not express it. That was right about the constraint and
-    # wrong about the conclusion, in the way QUALITY_CONTROL.md now warns about:
-    # `nothing can host this` is a fact about today's mechanism, not about the
-    # rule. Measuring the tokens instead of assuming them showed example_2's
-    # second failure mode is `duplicate`, which BOTH sides offer, and that
-    # reasons_substantial's blocker was different from the recorded one -- it
-    # names a SIBLING slot's token, which is why `{fail:key}` now exists.
+    # `trigger_settles` WAS HERE AND IS GONE, reverted 2026-09-05 the day it was
+    # written. The pick answered `week_end` in 7 of 12 on DAY2/p8 -- a trigger
+    # stating no period, the exact reading it was written to stop -- and split
+    # 7/5 on DAY1/p9, subgoal Q22's declared proof case, which had answered
+    # `absent` 12 of 12 as a boolean. Naming the kinds did not make the reading
+    # easier; it gave a sharper instrument to a question that was not the
+    # problem. See rubric_h2.EXPECT for the full measurement.
     "reasons_listed":
         "how many statements the response OFFERS as reasons, counted off the page "
         "before judging any of them. This is not scored; it is the first half of "
@@ -1512,6 +1501,27 @@ SLOT_NOTES = {
     # of the week" as a weekly cadence on a plainly daily trigger — the exact case
     # the criterion pre-empts. The criteria section is far from the point of
     # decision; the checklist is where the verdict is committed.
+    # DAY1 KEEPS THIS RULE, UNCHANGED, AND THAT IS THE POINT. The daily gate was
+    # split on 2026-09-05: DAY2 carries `cadence_is_daily_counted` below, DAY1 this.
+    # DAY1 stands at 18/18 on both sides (p2/p3 suspect, excluded), so a shared
+    # rewording had no upside here and a measured downside: the reverted cadence
+    # edit took DAY1 to 17/18 on both sides, breaking p9 (perfect -> 3/6) and
+    # p15 (perfect -> 1/6 python, -> 0/6 olx).
+    #
+    # p15 IS THE REASON THE SPLIT IS STRUCTURAL RATHER THAN TIDINESS. This gate
+    # answers `met` on p15 in all six baseline runs and never refuses it, yet p15
+    # collapsed anyway when the wording changed. The blast radius of a reword is
+    # NOT the cells the gate refuses -- it is every cell on the item. That is the
+    # `q6-matching-ceiling` result (prose does not steer where it names) reproduced
+    # here, and it is why sharing one rule across two items is unsafe and not
+    # merely unnecessary.
+    #
+    # The four cadence items are DELIBERATELY not parallel and this is the fifth
+    # such divergence, not a break from the pattern: agent_delivers_consequence is
+    # WK1 alone, aimed_correctly WK2 alone, avoidance_frame gates on DAY1 alone as
+    # phrased_directly_gate, states_a_contingency is on all but WK1, and
+    # CONTINGENCY/POLARITY/CADENCE_BARRIER_ITEMS in rubric_h2 all exclude WK1.
+    # check_sibling_slots_share_their_structure reports nothing on any of them.
     "cadence_is_daily":
         "criterion 9 (`cadence_ok`). Can the TRIGGER be settled inside ONE day? "
         "Answer `no` in exactly two cases: the contingency is plainly settled on "
@@ -1520,6 +1530,71 @@ SLOT_NOTES = {
         "including a trigger that states no "
         "period, and one whose CONSEQUENCE runs on for a week. This gate takes the "
         "whole item; when it could be read either way, answer `yes`",
+    # NARROWED TO BLANKS ONLY, 2026-09-06, on a readout of every refusal this
+    # gate makes on DAY2. It has NEVER ONCE correctly refused a non-blank answer
+    # on this item:
+    #     p10, p18   BLANK, gold 0.00, refused 12/12   correct
+    #     p8         gold 4.00, refused 9/12           WRONG, costs 4
+    #     p9         gold 4.00, refused 8/12           WRONG, costs 4
+    # Those two cells account for SEVENTEEN of DAY2's wrong runs -- every one of
+    # them -- and the item has no cell where refusing real text is right.
+    #
+    # DAY1 IS THE OPPOSITE AND KEEPS ITS COUNTING CLAUSE: it refuses p6 and p9,
+    # both genuine multi-day counts, both gold 0.00, both correct. That is the
+    # asymmetry every shared wording was hiding, and it is why the split had to
+    # come first -- narrowing a SHARED slot would have stripped DAY1's clause and
+    # cost it two cells.
+    #
+    # THE COUNTING PROSE DID NOT STEER WHERE IT NAMED. The removed text told the
+    # grader in as many words that a period on the CONSEQUENCE is not the
+    # trigger, and p8 -- "{{corpus:DAY2/p8:day2:46:98:sha=c0c013a7277e}}
+    # the week" -- was refused anyway 9 times in 12. A clause that names its own
+    # counter-example and is ignored is not fixed by more clauses.
+    #
+    # p7 IS NOT THIS SLOT'S AND NEVER WAS. It is gold 3.00 of 4.00 -- a ONE point
+    # charge -- and this gate takes the whole item, so refusing it would score
+    # 0.00 and be further from gold than the 4.00 we already give. It belongs to
+    # subgoal Q46 and `targets_own_behavior`, which costs exactly 1.
+    #
+    # THE EXPOSURE, STATED: a DAY2 answer that IS a multi-day tally would now
+    # pass. No such cell exists in the measured corpus. This is narrowing on
+    # evidence with the risk named, not a claim that it cannot occur.
+    # DAY2 ONLY. See the DAY1 entry above for why this is a separate slot.
+    #
+    # THE SPLIT REMOVES THE CONSTRAINT THAT DEFEATED THE EARLIER ATTEMPTS. The
+    # refuting pair below is one participant on two items, and while a single
+    # shared rule had to separate them, no wording could. It no longer has to:
+    # DAY1/p9 is judged by DAY1's rule, which already refuses it correctly in all
+    # six baseline runs at gold 0.00. Only DAY2/p9 is this rule's to win.
+    # SUBGOAL Q22, written 2026-09-05 from the revision its own entry designed and
+    # read against all 72 valid cells before anything was written. THE QUESTION IS
+    # COUNTING, NOT SETTLEMENT TIME, and that distinction is the whole rule: an
+    # earlier attempt asked WHEN the trigger could be settled and had to be
+    # reverted, because "out of the week" reads as a weekly settlement either way
+    # and it could not separate the refuting pair.
+    #
+    # THE REFUTING PAIR IS THE SAME PARTICIPANT ON TWO ITEMS, which is why no
+    # coarseness test survives:
+    #     DAY1/p9  "{{corpus:DAY1/p9:day1:22:65:sha=415d56dd1b38}}"   gold 0.00
+    #     DAY2/p9  "out of the 5 days"                             gold 4.00
+    # "5 times" cannot be judged until occurrences have been COUNTED across the
+    # week. "out of the 5 days" names no count and can be judged on any one day.
+    #
+    # THE GATE'S WHOLE ERROR SURFACE IS TWO CELLS. Measured over the pre-edit
+    # artifacts, `cadence_is_daily` refuses on FOUR of DAY2's eighteen counted
+    # cells: p10 and p18 are blank answers at gold 0.00 and correct, and p8 and p9
+    # are gold 4.00 and wrong. Fourteen cells never see it refuse. A rule wider
+    # than this is aimed at nothing.
+    "cadence_is_daily_counted":
+        "criterion 9 (`cadence_ok`). IS THERE A TRIGGER TO CHECK AT ALL? Answer "
+        "`no` in ONE case only: the answer names no condition whatever, so there "
+        "is nothing that could ever be decided. Everything else is `yes`. "
+        "DO NOT REFUSE AN ANSWER OVER HOW OFTEN IT WOULD BE CHECKED. A condition "
+        "that names a tally, a span of days, a target the student is working "
+        "towards, or no period at all is `yes` here, and so is one whose reward "
+        "runs on for a week. None of that belongs to this check on this screen. "
+        "This gate takes the whole item; when it could be read either way, "
+        "answer `yes`",
     "cadence_is_weekly":
         "criterion 9 (`cadence_ok`). Can the TRIGGER be settled inside ONE week? "
         "Answer `no` in exactly two cases: the contingency is plainly settled on "
@@ -1947,8 +2022,17 @@ def _criteria_section(item: dict, trigger_slot: bool = False,
         "happens) and as NP of not-B (X is withheld while B is absent). Both are "
         "correct readings. When the arrangement admits both and one of them is the "
         "type under discussion, report that one; do not mark it a mismatch.\n"
+        # A SECOND QUOTATION, REMOVED 2026-09-06 (subgoal Q22). The example that
+        # stood here was DAY1/p8's own answer almost word for word -- p8 wrote "so
+        # {{corpus:DAY1/p8:day1:92:137:sha=a1e650eda63f}} it" and this said "so I
+        # don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87}} it". leakage.py's OWN DOCSTRING
+        # names that leak as one of the two it was built after and treats it as
+        # fixed. It was fixed in the prose the tool SCANS and survived here, in
+        # `_criteria_section`, which is not in `authored()`'s corpus -- so the
+        # repair and the blind spot were the same event. Replacement checked
+        # against every handout-2 response, whole and by fragment.
         "7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED "
-        "when the behaviour occurs (\"so I don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87}} it\") "
+        "when the behaviour occurs (\"so I do not owe the jar a dollar when I slip\") "
         "rather than by what is added or removed after it. "
         # Suppressed where the reading gates the item: saying it never changes the
         # score there contradicts the guidance, which says it takes the whole item.
@@ -1965,11 +2049,30 @@ def _criteria_section(item: dict, trigger_slot: bool = False,
             # this accurately, and the web was never given the example. Merged
             # here, in the one place both generators read, and the note deleted so
             # the web renders it once.
+            # THE WORKED EXAMPLE WAS A QUOTATION AND IS NOW INVENTED. Subgoal Q22,
+            # 2026-09-06: the phrase that used to sit here was a VERBATIM substring
+            # of ONE student's definition field -- the same field this criterion
+            # reads, on the item where that cell is the one wrong cell. So the
+            # prompt showed the grader the answer to the cell it was grading, and
+            # the runs that answered this slot "correctly" may have been matching
+            # the example rather than reading. WHY leakage.gate() SCORED IT 0 --
+            # and the first explanation written here was wrong, so it is corrected
+            # rather than deleted: it is NOT that the phrase is built from common
+            # words. leakage.py compares BIGRAMS and its own docstring names "a
+            # RUN of shared bigrams concentrated in a single student" as the tell
+            # for a quotation, which is exactly this leak's shape; it would have
+            # caught it at once. It never looked. `authored()` collects rubric
+            # guidance, rubric rules, credit desc/rule and SLOT_NOTES, and this
+            # text is none of those -- it is built by `_criteria_section`, which
+            # reaches the shipped prompt and is outside the scanned corpus. Filed
+            # as its own goal. The replacement was checked against every
+            # handout-2 response, whole and by fragment.
             "8. `named_type` — which of the four the student SAID they would use. Read "
             "the type slot in the context below; if it is blank or garbled, fall back to "
-            "their DEFINITION, which usually states the type plainly (\"{{corpus:D2/p15:d2:28:41:sha=561e03f6a586:shape=R13-0-20}}"
-            "{{corpus:D2/p15:d2:42:110:sha=bd23c4b2e196}}\" is "
-            "Positive Punishment). Use `unclear` only when neither says. Reported, never "
+            "their DEFINITION, which usually states the type plainly (a definition "
+            "reading \"something they would rather avoid turns up each time the "
+            "behaviour appears\" states Positive Punishment). Use `unclear` only when "
+            "neither says. Reported, never "
             "scored — but the grader compares it against the type the example actually "
             "is, so report it accurately rather than helpfully.\n"
             f"9. `cadence_ok` — can the TRIGGER be settled inside ONE "
@@ -1985,6 +2088,33 @@ def _criteria_section(item: dict, trigger_slot: bool = False,
             "trigger settled each day whose reward then runs on for a week is still "
             "daily. A trigger that states NO period is settled by the question "
             "itself and passes. When it could be read either way, it passes.\n"
+            # SUBGOAL Q22, 2026-09-06. ONE SENTENCE, AND ITS SCOPE IS PROVABLE
+            # BEFORE IT IS MEASURED. Twenty-one cells across the four items have
+            # a trigger that POINTS AT the student's own goal, and the gate
+            # answers `met` 12 of 12 on EIGHTEEN of them -- it handles the
+            # construction right 86% of the time. All eighteen RESTATE A PERIOD
+            # beside the reference ("{{corpus:DAY1/p2:day1:12:32:sha=63679f96eb02:shape=Cee000}} DAY", "my goal OF 8
+            # HOURS OF SLEEP", "my WEEKLY goal", "{{corpus:WK1/p12:wk1:18:44:sha=4406e9756267:shape=C3b778fb}}
+            # WEEK"), so this sentence cannot reach them. The two that do not
+            # restate one are DAY2/p8 and WK2/p15, and they are exactly the two
+            # cells where the gate refuses what gold credits.
+            #
+            # THE SIGNATURE THAT IDENTIFIES THE FAULT: the two fail in OPPOSITE
+            # directions -- p8 imports a WEEKLY goal onto a daily item, p15 a
+            # DAILY goal onto a weekly one. No bias toward either schedule could
+            # produce both; only resolving the reference can.
+            #
+            # NOT A NEW CATEGORY, DELIBERATELY. A `trigger_settles` pick was
+            # built for this gate and REVERTED on 2026-09-05, failing on DAY2/p8
+            # itself: it asked WHAT PERIOD settles the trigger without fixing
+            # WHICH SPAN the trigger is, and inherited the same confusion. This
+            # names the span instead, and adds no option to a judgement that is
+            # already right on eighteen of twenty-one.
+            "   A trigger that POINTS AT the student's own goal without "
+            "restating that goal's schedule states no period of its own. Reading "
+            "what the goal says elsewhere does not make the goal's schedule the "
+            "trigger's: such a trigger is settled by the question itself and "
+            "passes, exactly as one that names no period at all.\n"
             + (_C10_TRIGGER if trigger_slot else
                "10. `targets_own_behavior` — is it aimed at this student's own UTB/WGB "
                "rather than some clearly different behaviour?\n")
@@ -2569,14 +2699,332 @@ def maps_attr_for(item_id: str) -> str | None:
     return "|".join(out)
 
 
+def _pick_verdicts(item_id: str, slot: str) -> list[str] | None:
+    """A pick slot's option list, from the RUBRIC. None means NOT DECLARED.
+
+    Two homes, because the corpus has two: an item's own `credit` entry, and the
+    rubric module's `SLOT_OPTIONS` table, which is where handout 2 keeps
+    `restriction_authored`, `trigger_expects`, `restricts`, `trigger_behavior`
+    and `stimulus_move`.
+
+    RETURNING None RATHER THAN [] IS THE WHOLE CONTRACT. `named_type` and
+    `observed_type` -- twelve slot-instances across the cadence items -- have NO
+    rubric source at all: their sets `operant_or_unclear` and `operant_or_none`
+    exist only in the .olx. A generator that read "not declared" as "declared
+    empty" would DELETE them from the attribute and break every cadence item.
+    The same None/[] conflation produced Q6's phantom STALE CELLS and a false
+    refusal in `probe.control_gate` on the same day.
+    """
+    rub = config(HANDOUT[item_id])["rubric"]
+    for c in (rub.BY_ID.get(item_id) or {}).get("credit") or []:
+        if c["what"] == slot and c.get("verdicts"):
+            return list(c["verdicts"])
+    so = getattr(rub, "SLOT_OPTIONS", {}) or {}
+    if slot in so:
+        return list(so[slot])
+    return None
+
+
+def choices_attr_for(item_id: str) -> str | None:
+    """The `choices=` attribute value, from the rubric where a source exists.
+
+    WHY THIS IS GENERATED NOW. It was hand-authored, and `slots=` binds a slot to
+    a set (`b1_basis:...:pick(instead_of_basis)`) while `choices=` lists the set's
+    members. So adding a sixth value to a rubric pick reached the generated RULE
+    PROSE and never the ENUM: on 2026-09-08 Q4b shipped a rule describing
+    `a_listed_trigger` while the checklist head still read "one of
+    activity/consequence/goal_behaviour/not_doing/none". The grader was told about
+    an option it was forbidden to pick, 32 probe calls measured a menu that did
+    not contain the thing under test, and nothing complained. Designed text
+    reaching the prompt but not the attribute is the same class as an
+    unregenerated .olx or a stale idmap.
+
+    PRESERVES WHAT IT CANNOT SOURCE. A set whose slots have no rubric declaration
+    keeps the .olx's own membership verbatim -- see `_pick_verdicts`. Order is
+    the .olx's for preserved sets and the rubric's for generated ones, so a
+    switch-on rewrites only the sets that actually differ.
+    """
+    h = HANDOUT[item_id]
+    # ACTION is the map the other generators use; _sheet_tag raises SystemExit
+    # (NOT an Exception) for an unknown id, so the guard has to be BaseException.
+    action = ACTION.get(item_id)
+    if not action:
+        return None
+    try:
+        tag = _sheet_tag(h, action)
+    except BaseException:
+        return None
+    have = _choices_attr(h, action)
+    if not have:
+        return None
+    import re as _re
+    ms = _re.search(r'\bslots="([^"]*)"', tag)
+    if not ms:
+        return None
+    # set name -> the slots that pick from it
+    users: dict[str, list[str]] = {}
+    for part in ms.group(1).split("|"):
+        m = _re.search(r"pick\(([^)]+)\)", part)
+        if m:
+            users.setdefault(m.group(1), []).append(part.split(":")[0])
+    out = []
+    # A SET `slots=` USES BUT `choices=` LACKS IS A NEW GROUP, and it has to be
+    # ADDED, not merely regenerated. This loop read `have.items()` -- the sets
+    # the .olx ALREADY declares -- so a pick group introduced in the rubric could
+    # never reach the attribute at all. Found 2026-09-08 shipping Q4b's
+    # `pick(points_at)`: `slots=` gained it on the first write and `choices=`
+    # never would have, so the two new slots had no menu, no verdict could
+    # satisfy them, and `check_web_scorer_exercises_its_sheet` correctly reported
+    # that no synthetic sheet reached Q4b's maximum (2.0 of 5.0) -- which blocked
+    # every probe on the handout, not just Q4b's.
+    #
+    # That is the same defect this function was written to end, one level up:
+    # designed text reaching the prompt but not the attribute. It caught a new
+    # VALUE in an existing set and was blind to a new SET.
+    order = list(have) + [g for g in users if g not in have]
+    for setname in order:
+        members = have.get(setname, [])
+        sourced = [v for v in (_pick_verdicts(item_id, s)
+                               for s in users.get(setname, [])) if v]
+        if not users.get(setname):
+            # NOTHING PICKS FROM THIS SET. Not the same as "declared nowhere":
+            # `named_type`/`observed_type` have no rubric source but ARE used by
+            # slots, and dropping those would break every cadence item. A set
+            # with no users at all is a leftover -- reverting Q4b's pointing
+            # slots on 2026-09-08 stranded `points_at:neither,first,second` in
+            # the attribute with no slot able to pick from it.
+            continue
+        if not sourced:
+            if not members:
+                # A new set with no rubric source: refuse rather than invent a
+                # menu. `_pick_verdicts` returning None means NOT DECLARED, and
+                # guessing an option list would put a verdict the designer never
+                # wrote into a scored prompt.
+                raise SystemExit(
+                    f"{item_id}: `slots=` binds {users[setname]} to choice-set "
+                    f"'{setname}', which the .olx does not declare and the "
+                    f"rubric does not source. Declare its options in the slot's "
+                    f"`credit` verdicts or in SLOT_OPTIONS; the generator will "
+                    f"not invent a menu.")
+            out.append(f"{setname}:{','.join(members)}")     # preserved verbatim
+            continue
+        # ORDER IS PART OF THE DESIGN. An earlier version of this function
+        # emitted the .olx's order whenever the SET matched, to avoid
+        # moving four cadence prompt_shas over a cosmetic reordering. That
+        # kept a second source of truth alive for one fact. The right fix
+        # was the other direction: rubric_h2.SLOT_OPTIONS now DECLARES the
+        # order that ships (`restriction_authored` was the only slot that
+        # differed), so the rubric governs and this exception is gone.
+        if any(sorted(x) != sorted(sourced[0]) for x in sourced):
+            # Two slots share a set and their rubric lists disagree: refuse
+            # rather than pick one, because either choice silently rewrites the
+            # other slot's menu.
+            raise SystemExit(
+                f"{item_id}: slots {users[setname]} share choice-set "
+                f"'{setname}' but declare different verdicts in the rubric: "
+                f"{sourced}. Reconcile them; the generator will not choose.")
+        # Membership really differs: keep the .olx's order for members that
+        # survive and append the new ones in rubric order, so the diff is the
+        # change and nothing else.
+        want = sourced[0]
+        kept = [m for m in members if m in want]
+        added = [v for v in want if v not in members]
+        out.append(f"{setname}:{','.join(kept + added)}")
+    return "|".join(out)
+
+
+def derived_attr_for(item_id: str) -> str | None:
+    """`derived="key:kind:fields:payload"`, '|'-separated, from the RUBRIC.
+
+    THE TWELFTH AND LAST hand-authored sheet attribute, generated 2026-09-08.
+    `fields` is the name `agreement.apply_computed` already reads
+    (`rule["fields"]`), so there is one vocabulary for one fact.
+
+    THE COMMENT ON Q4a/Q4c'S ENTRIES -- "No fields here, unlike the OLX:
+    score.py is handed the assembled response text" -- describes score.py's
+    BEHAVIOUR and is not a prohibition on the key. VERIFIED before adopting it:
+    score.py's derived handler reads only `kind` and `words`, never `fields`, so
+    the key is inert on that path; and it cannot compute `complete` at all, its
+    DERIVED_KINDS_IMPLEMENTED covering `contains` only.
+
+    Payload by kind: the word list for `contains`; for `complete`/`plots` the
+    WORKED EXAMPLE'S data, rows joined by ';' and values by ',', which
+    `apply_computed` compares against to answer `mismatch` when a student
+    graphed the example instead of their own weeks.
+
+    A rule with no `fields` emits nothing rather than a malformed clause: there
+    is no box list to tell the web about, and inventing one would put a field id
+    into a prompt on a guess.
+    """
+    rules = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("derived") or []
+    out = []
+    for r in rules:
+        fields = r.get("fields")
+        if not fields:
+            continue
+        if r["kind"] == "contains":
+            payload = ",".join(r["words"])
+        elif r["kind"] in ("complete", "plots"):
+            payload = ";".join(
+                ",".join(str(int(v)) if float(v) == int(v) else str(v)
+                         for v in row)
+                for row in r.get("template") or [])
+        else:
+            continue
+        out.append(f"{r['key']}:{r['kind']}:{','.join(fields)}:{payload}")
+    return "|".join(out) or None
+
+
+def slots_attr_for(item_id: str) -> str | None:
+    """`slots="[!]key:label[:seg][@pts]"`, '|'-separated, from the RUBRIC.
+
+    THE LAST LARGE HAND-AUTHORED ATTRIBUTE, generated 2026-09-08. It reads
+    `rubric.SLOT_SPEC`, adopted from the .olx that day: 217 clauses over 23
+    items, 159 of which carried an option list the rubric could not supply, so
+    the adoption MOVED the slot sheet's primary definition into the rubric
+    rather than reconciling two copies of it. Emission mirrors `parse_slots`
+    exactly, and the parse was proved to round-trip losslessly on all 23 items
+    before a line was written, which is why switching this on moved no
+    prompt_sha.
+    """
+    spec = getattr(config(HANDOUT[item_id])["rubric"], "SLOT_SPEC", {}) or {}
+    rules = spec.get(item_id)
+    if not rules:
+        return None
+    out = []
+    for f in rules:
+        clause = ("!" if f.get("gate") else "") + f["key"]
+        if f.get("label") or f.get("seg") is not None:
+            clause += ":" + (f.get("label") or "")
+        if f.get("seg") is not None:
+            clause += ":" + f["seg"]
+        if f.get("pts") is not None:
+            clause += "@" + str(f["pts"])
+        out.append(clause)
+    return "|".join(out)
+
+
+def equals_attr_for(item_id: str) -> str | None:
+    """`equals="key:left,right:lenient,..."`, '|'-separated, from the RUBRIC."""
+    rules = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("equals") or []
+    if not rules:
+        return None
+    out = []
+    for r in rules:
+        spec = f"{r['key']}:{r['left']},{r['right']}"
+        if r.get("lenient"):
+            spec += ":" + ",".join(r["lenient"])
+        out.append(spec)
+    return "|".join(out)
+
+
+def onlyif_attr_for(item_id: str) -> str | None:
+    """`onlyif="key:cond"`, '|'-separated, from the RUBRIC."""
+    rules = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("onlyif") or []
+    if not rules:
+        return None
+    return "|".join(f"{r['key']}:{r['cond']}" for r in rules)
+
+
+def max_attr_for(item_id: str) -> str | None:
+    """`max="N"` from the RUBRIC -- but ONLY where the .olx already carries it.
+
+    THE VALUE IS GENERATED AND THE PRESENCE IS PRESERVED, which inverts this
+    module's usual rule and is deliberate. The rubric declares `max` for all 23
+    items; the .olx carries the attribute on 11 and the app computes the rest
+    from the slots' points. Emitting it everywhere would ADD an attribute to
+    twelve items, moving twelve prompt_shas and invalidating twelve items'
+    measurements for ZERO behavioural change. Checked first: where it does ship,
+    the value matches the rubric on all 11, so this is a no-op.
+    """
+    import re as _re
+
+    action = ACTION.get(item_id)
+    if not action:
+        return None
+    try:
+        tag = _sheet_tag(HANDOUT[item_id], action)
+    except BaseException:
+        return None
+    if not _re.search(r'\bmax="', tag):
+        return None                    # absent by authoring: leave it absent
+    m = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("max")
+    if m is None:
+        return None
+    return str(int(m)) if float(m) == int(m) else str(m)
+
+
+def counts_attr_for(item_id: str) -> str | None:
+    """`counts="key:slotA,slotB,..."`, '|'-separated, from the RUBRIC.
+
+    STAGE 1 OF MAKING EVERY SHEET ATTRIBUTE GENERATED, 2026-09-08, on the user's
+    instruction that a design change must never need a hand edit to the .olx.
+    Twelve attributes exist; four were generated (forbid, expect, maps, choices)
+    and eight were hand-authored. `counts`, `requires` and `cover` are the three
+    whose rubric declaration and .olx attribute cover EXACTLY the same items, so
+    they convert with no reconciliation and no prompt change.
+    """
+    rules = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("counts") or []
+    if not rules:
+        return None
+    return "|".join(f"{r['key']}:{','.join(r['slots'])}" for r in rules)
+
+
+def requires_attr_for(item_id: str) -> str | None:
+    """`requires="key:cond:lenient,..."`, '|'-separated, from the RUBRIC."""
+    rules = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("requires") or []
+    if not rules:
+        return None
+    out = []
+    for r in rules:
+        spec = f"{r['key']}:{r['cond']}"
+        if r.get("lenient"):
+            spec += ":" + ",".join(r["lenient"])
+        out.append(spec)
+    return "|".join(out)
+
+
+def cover_attr_for(item_id: str) -> str | None:
+    """`cover="keyA,keyB:labelA,labelB"`, '|'-separated, from the RUBRIC.
+
+    The rubric entry also carries `of` and `verdicts`; neither belongs in this
+    attribute -- `of` is documentation and `verdicts` reaches the grader through
+    `slots=`/`choices=`. Emitting them would invent an attribute the parser does
+    not read, so they are deliberately dropped here and NOT lost: `parse_cover`
+    reads only keys and labels.
+    """
+    rules = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("cover") or []
+    if not rules:
+        return None
+    return "|".join(f"{','.join(r['keys'])}:{','.join(r['labels'])}" for r in rules)
+
+
 GENERATED_ATTRS = (("forbid", forbid_attr_for), ("expect", expect_attr_for),
-                   ("maps", maps_attr_for))
+                   ("maps", maps_attr_for),
+                   ("choices", choices_attr_for),
+                   ("counts", counts_attr_for),
+                   ("requires", requires_attr_for),
+                   ("cover", cover_attr_for),
+                   ("equals", equals_attr_for),
+                   ("onlyif", onlyif_attr_for),
+                   ("max", max_attr_for),
+                   ("slots", slots_attr_for),
+                   ("derived", derived_attr_for))
 
 
-def render(handout: int) -> tuple[str, dict]:
-    """The .olx source with every generated prompt body substituted in."""
+def render(handout: int) -> tuple[str, dict, list[str]]:
+    """The .olx source with every generated prompt body substituted in.
+
+    Returns (src, minted, cleared). `cleared` names the generated attributes
+    EMPTIED because their rubric declaration has gone -- subgoal E44. It is a
+    return value rather than a print because `--check` and `--diff` call this
+    too, and a clear is a real difference they should report as one.
+    """
     src = _src(handout)
     minted: dict = {}
+    # Attributes emptied because their declaration has gone -- reported by
+    # the caller so a silent clear cannot look like a no-op. See E44.
+    cleared: list[str] = []
     for item_id, action in ACTION.items():
         if HANDOUT[item_id] != handout:
             continue
@@ -2595,9 +3043,41 @@ def render(handout: int) -> tuple[str, dict]:
         def _sub(m: re.Match) -> str:
             head = m.group(1)
             for name, want in wants:
-                if want is None:
-                    continue
                 pat_attr = re.compile(r'%s="([^"]*)"' % name)
+                if want is None:
+                    # SUBGOAL E44's writer half. This used to `continue`, which
+                    # LEFT an attribute the generator owns pointing at a rule
+                    # that no longer exists. Reverting the cadence edit on
+                    # 2026-09-05 removed EXPECT for three items and left their
+                    # `expect=` behind, so two slots were computed from picks
+                    # that had been deleted -- never satisfiable, the items could
+                    # not reach their own maximum, and `--check` called the file
+                    # up to date throughout because the generator does not own
+                    # what it did not write. Eight queued sweeps woke into that
+                    # tree and exited without spending a call, which was luck.
+                    #
+                    # NOW IT CLEARS, but only where the attribute is GENERATED
+                    # rather than hand-authored, and that distinction is not
+                    # guessable from the file -- it is declared, in
+                    # enforcement.HAND_AUTHORED_ATTRS, with a reason per entry.
+                    # The four `demonstrates_type` rules on PR/NR/PP/NP are the
+                    # standing case: they are authored here on purpose because
+                    # the CLI reaches that fact through REQUIRED_MOVE, and
+                    # clearing them would silently drop a rule from the web.
+                    #
+                    # Emptied rather than DELETED: the writer's other arm makes
+                    # a missing attribute a hard error when a declaration exists,
+                    # so leaving `name=""` keeps the slot for the next
+                    # declaration instead of demanding it be re-added by hand.
+                    import enforcement as _ENF
+                    if (item_id, name) in _ENF.HAND_AUTHORED_ATTRS:
+                        continue
+                    cur = pat_attr.search(head)
+                    if cur is None or not cur.group(1).strip():
+                        continue
+                    cleared.append(f"{item_id}.{name}")
+                    head = pat_attr.sub(lambda _: '%s=""' % name, head, count=1)
+                    continue
                 if not pat_attr.search(head):
                     raise SystemExit(
                         f"{item_id} declares `{name}` in the rubric but "
@@ -2608,7 +3088,7 @@ def render(handout: int) -> tuple[str, dict]:
             return head + "\n" + body + "      " + m.group(3)
 
         src = pat.sub(_sub, src, count=1)
-    return src, minted
+    return src, minted, cleared
 
 
 _REF_TAG = re.compile(r'<Ref\b[^>]*?id="([^"]+)"[^>]*?target="([^"]+)"[^>]*?/>')
@@ -2621,7 +3101,7 @@ def ref_delta(handout: int) -> tuple[list[str], list[str], list[str]]:
     not ask for; every one belongs in EQUIVALENCE.md's deviation list.
     """
     old = dict(_REF_TAG.findall(_src(handout)))
-    new_src, _ = render(handout)
+    new_src, _, _ = render(handout)
     new_pairs = _REF_TAG.findall(new_src)
     new = dict(new_pairs)
     dupes = [rid for rid in new if [r for r, _ in new_pairs].count(rid) > 1]
@@ -3056,11 +3536,20 @@ def main() -> int:
 
     rc = 0
     for h in (1, 2, 3):
-        new, minted = render(h)
+        new, minted, cleared = render(h)
         old = _src(h)
         if minted:
             print(f"H{h}: minted {len(minted)} new ref id(s): "
                   + ", ".join(sorted(minted.values())), file=sys.stderr)
+        if cleared:
+            # E44. Loud on purpose: an emptied attribute means a rule that WAS
+            # reaching the web has stopped, and the items it governed need
+            # re-sweeping. Silence here is how three orphans survived a revert.
+            print(f"H{h}: CLEARED {len(cleared)} orphaned attribute(s) whose "
+                  f"rubric declaration has gone: " + ", ".join(sorted(cleared)),
+                  file=sys.stderr)
+            print(f"H{h}: those slots are no longer computed -- re-sweep the "
+                  f"items before trusting their numbers", file=sys.stderr)
         if new == old:
             print(f"H{h}: up to date", file=sys.stderr)
             continue
