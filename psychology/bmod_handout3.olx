@@ -564,7 +564,7 @@ Present your data in a figure/graph at the end of the handout. The graph needs a
 ## Credit components
 - `has_own_graph` **GATE**: The student supplied their OWN graph of their OWN data
 - `title` (2 pt): The graph has a title, and A DEFAULT PLACEHOLDER IS NOT ONE: spreadsheet software inserts "Chart Title" when the student never types one, and that counts as missing. A graph carrying that literal text has no title, and the graders deducted the point for it
-- `x_axis_label` (2 pt): The x-axis is labelled — an AXIS TITLE, not the tick values. "Sunday, Monday, ..." along the bottom is tick data; "Days of the Week" is the label. This distinction is the single most common deduction on this item: nine of the twenty gold rows lost points for a missing axis title. A default placeholder is not a label either — spreadsheet software inserts "Axis Title" when the student never types one, and that counts as missing
+- `x_axis_label` (2 pt): The x-axis is labelled — an AXIS TITLE, not the tick values. "Sunday, Monday, ..." along the bottom is tick data; "{{corpus:1c/p2:x:0:4:sha=e08c0aa8f558:shape=R4-0-20}}{{corpus:1c/p2:x:5:16:sha=93a929ee8ebb:shape=C80}}" is the label. This distinction is the single most common deduction on this item: nine of the twenty gold rows lost points for a missing axis title. A default placeholder is not a label either — spreadsheet software inserts "Axis Title" when the student never types one, and that counts as missing
 - `y_axis_label` (2 pt): The y-axis is labelled — same test as `x_axis_label`: an axis TITLE naming what the axis represents, not its tick values, and not the software's default "Axis Title" placeholder
 - `series_box_holds`: What the series box holds
 - `legend` (2 pt): The graph has a legend — the key naming the plotted series (Baseline / Week 1 / Week 2 / Week 3). A single-series graph with no key has no legend
@@ -600,7 +600,7 @@ check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
 - `title` — `met`/`absent`/`generic`: The graph has a title, and A DEFAULT PLACEHOLDER IS NOT ONE: spreadsheet software inserts "Chart Title" when the student never types one, and that counts as missing. A graph carrying that literal text has no title, and the graders deducted the point for it
-- `x_axis_label` — `met`/`absent`/`tick_values`: The x-axis is labelled — an AXIS TITLE, not the tick values. "Sunday, Monday, ..." along the bottom is tick data; "Days of the Week" is the label. This distinction is the single most common deduction on this item: nine of the twenty gold rows lost points for a missing axis title. A default placeholder is not a label either — spreadsheet software inserts "Axis Title" when the student never types one, and that counts as missing
+- `x_axis_label` — `met`/`absent`/`tick_values`: The x-axis is labelled — an AXIS TITLE, not the tick values. "Sunday, Monday, ..." along the bottom is tick data; "{{corpus:1c/p2:x:0:4:sha=e08c0aa8f558:shape=R4-0-20}}{{corpus:1c/p2:x:5:16:sha=93a929ee8ebb:shape=C80}}" is the label. This distinction is the single most common deduction on this item: nine of the twenty gold rows lost points for a missing axis title. A default placeholder is not a label either — spreadsheet software inserts "Axis Title" when the student never types one, and that counts as missing
 - `y_axis_label` — `met`/`absent`/`tick_values`/`generic`: The y-axis is labelled — same test as `x_axis_label`: an axis TITLE naming what the axis represents, not its tick values, and not the software's default "Axis Title" placeholder
 - `series_box_holds` — one of `period_names`/`other_real_names`/`software_placeholders`/`nothing` in `refers_to` (WHICH it is, not whether it is right): ONE ANSWER, naming what is in the box. Do not judge whether it makes a good legend -- say what it holds and the arithmetic follows.
   `period_names` -- the four periods the assignment asks for: baseline and the three weeks, however spelled or abbreviated.
@@ -746,7 +746,7 @@ Did the implementation of your behavior modification plan successfully modify yo
 
 ## Deduction codes — the course's canonical wording for each gap
 - `BLANK` (-6): did not answer
-- `NO_VERDICT` (-2): -2 pts: did not answer if the implementation of your behavior modification plan successfully modified your behavior or not
+- `NO_VERDICT` (-2): -2 pts: did not answer if the implementation of your {{corpus:2a/p1:verdict:25:33:sha=08bf2418cca9:shape=R8-0-20}}{{corpus:2a/p1:verdict:34:73:sha=01bf2bdf0aa5}} your behavior or not
 - `MISSING_HOW` (-2) [repeatable]: -2 pts: missing one sentence describing how your behavior was or was not successfully modified
 
 ## Grading guidance
