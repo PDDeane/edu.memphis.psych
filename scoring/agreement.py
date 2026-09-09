@@ -510,6 +510,30 @@ def apply_computed(action: dict, checks: dict, fixture: dict) -> dict:
     # `equals` (two answers agree) nor `expect` (one answer against a value) can
     # express. Placed before `expect` for no reason but reading order; the three
     # read only answers the model gave, never each other.
+    # ORDER MATCHES THE APP, and the order IS part of the semantics: this
+    # function mirrors slotSheet.satisfiedMap, where the sequence is equals,
+    # EXPECT, forbid, maps -- `maps` last "so a mapped check may read a pick
+    # that an earlier rule wrote". This mirror ran `expect` LAST until
+    # 2026-09-08, so the two engines resolved a key written by both `maps`
+    # and `expect` in OPPOSITE directions: the app let maps win, this side
+    # let expect win, and expect REPLACES a verdict rather than overriding
+    # it on failure -- a box correctly failing as `consequence` came out
+    # `met`. Measured before the move: NO key is written by two computed
+    # primitives and NO `expect` reads a mapped key, so the divergence was
+    # latent and this reorder changes no current score. It was found by
+    # testing whether `expect` could override `maps` for a Q4b design, and
+    # the answer -- differently on each engine -- was the defect.
+    for rule in action.get("expect", []):
+        entry = checks.get(rule["left"]) or {}
+        got = str(entry.get("refers_to") or entry.get("verdict") or "").strip()
+        ok = got in rule["lenient"] or (bool(got) and got == rule["value"])
+        o = opts(rule["key"])
+        checks[rule["key"]] = {
+            "verdict": o[0] if ok else (rule.get("fails")
+                                        or (o[1] if len(o) > 1 else "no")),
+            "evidence": f"{rule['left']}={got or '?'}, wanted {rule['value']}",
+        }
+
     for rule in action.get("forbid", []):
         hit = all(answer_of(checks, c["slot"]) == c["value"] for c in rule["conds"])
         o = opts(rule["key"])
@@ -540,16 +564,6 @@ def apply_computed(action: dict, checks: dict, fixture: dict) -> dict:
             "evidence": f"{rule['pick']}={got or '?'}" + ("" if v else " — unmapped"),
         }
 
-    for rule in action.get("expect", []):
-        entry = checks.get(rule["left"]) or {}
-        got = str(entry.get("refers_to") or entry.get("verdict") or "").strip()
-        ok = got in rule["lenient"] or (bool(got) and got == rule["value"])
-        o = opts(rule["key"])
-        checks[rule["key"]] = {
-            "verdict": o[0] if ok else (rule.get("fails")
-                                        or (o[1] if len(o) > 1 else "no")),
-            "evidence": f"{rule['left']}={got or '?'}, wanted {rule['value']}",
-        }
     return checks
 
 
@@ -1249,7 +1263,17 @@ def score_oc_cadence(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     if not yes("you_arrange_it"):
         return max(0.0, item["max"] - codes["NOT_EXTERNAL_STIMULUS"]), 1
 
-    cadence_key = "cadence_is_daily" if spec["cadence"] == "daily" else "cadence_is_weekly"
+    # Resolved against the item's OWN slot keys rather than named outright,
+    # the same mechanism enforcement.web_name uses for the avoidance_frame and
+    # observed_type aliases, and for the same reason: the daily pair no longer
+    # shares one name. DAY1 keeps `cadence_is_daily`; DAY2 carries
+    # `cadence_is_daily_counted`, which asks the counting question. Candidates are
+    # mutually exclusive across the sheets, so the order is not load-bearing --
+    # but the fallback is, and it is the FIRST candidate so an item whose sheet
+    # has neither still raises on a missing slot instead of silently ungating.
+    _cad = ("cadence_is_daily", "cadence_is_daily_counted") if spec["cadence"] == "daily" else ("cadence_is_weekly",)
+    _have = {s["key"] for s in spec["slots"]}
+    cadence_key = next((k for k in _cad if k in _have), _cad[0])
     if not yes(cadence_key):
         return max(0.0, item["max"] - codes["CADENCE_MISMATCH"]), 1
 
@@ -1896,6 +1920,53 @@ def cheap_checks_gate(stream=sys.stderr) -> int:
         ("GOLD READ BY HANDOUT, NOT BY ITEM", ENF.check_gold_is_read_by_item),
         ("SLOT SETS COMPARED ACROSS ALPHABETS",
          ENF.check_gold_comparisons_share_an_alphabet),
+        # ADDED 2026-09-06, subgoals E47/E48/E49/E50/E52. Each of these makes a
+        # sweep's READING wrong rather than breaking it, which is the class this
+        # suite already exists for -- and each has now cost real calls:
+        #   RUBRIC SLOT NEVER REACHES THE SHEET: subgoal Q18 spent ~240 calls on
+        #   a prompt whose rule said "FIRST READ b2_names_besides" for a slot the
+        #   grader was never asked to answer. That sweep HAD a guard; it counted
+        #   the name's appearances in the FILE and passed on the generator's own
+        #   prose.
+        #   SHEET SLOT REACHES NO RUBRIC ELEMENT: the reverse, which nothing
+        #   asked until 2026-09-06.
+        #   MAPPED SLOT HAS AN UNREACHABLE VERDICT: Q2 offered `unclear` where
+        #   its map emits met/absent, and five divergences survived a full sweep
+        #   while the check -- reading the RUBRIC instead of the SHEET -- said
+        #   clean.
+        #   PROMPT NAMES A COHORT CASE: a rule naming p10 is a rule tuned to p10.
+        # THEY LIVE HERE RATHER THAN IN A SWEEP SCRIPT because a script only runs
+        # what its author remembered. scoring/sweep_gate.py carries the same set
+        # for a script that wants them earlier; this is the copy that cannot be
+        # forgotten.
+        ("RUBRIC SLOT NEVER REACHES THE SHEET",
+         ENF.check_rubric_slots_reach_the_sheet),
+        ("SHEET SLOT REACHES NO RUBRIC ELEMENT",
+         ENF.check_sheet_slots_reach_the_rubric),
+        ("MAPPED SLOT HAS AN UNREACHABLE VERDICT",
+         ENF.check_mapped_slots_have_no_unreachable_verdict),
+        ("PROMPT NAMES A COHORT CASE", ENF.check_no_case_names_in_prompts),
+        ("MAPS TABLE IS NOT ATTACHED", ENF.check_maps_tables_are_attached),
+        ("EXCLUDED CELL REACHES A VERDICT PATH",
+         ENF.check_verdict_paths_drop_excluded_cells),
+        ("SHIPPED TEXT DIFFERS FROM DESIGN",
+         ENF.check_shipped_text_matches_design),
+        ("PROMPT FIELD IS NOT THE DESIGNED TEXT",
+         ENF.check_every_prompt_field_is_designed),
+        ("PROBE MEASURED TEXT THAT NO LONGER SHIPS",
+         ENF.check_probe_receipts_match_shipping),
+        ("DESIGN IS A PARAPHRASE OF ITS OWN EVIDENCE",
+         ENF.check_designed_text_is_the_measured_text),
+        ("DESIGNED TEXT DOES NOT SHIP",
+         ENF.check_every_designed_entry_ships),
+        ("NEW SLOT ABOUT TO BE SWEPT UNPROBED",
+         ENF.check_new_slots_were_probed),
+        ("PROBED WORDING IS NOT RECORDED IN FULL",
+         ENF.check_probed_fields_keep_their_text),
+        ("DEFINITION VANISHED FROM THE PACKAGE",
+         ENF.check_no_definition_vanished),
+        ("A SCRATCHPAD COPY SHADOWS A PACKAGE MODULE",
+         ENF.check_no_module_shadow_in_scratchpad),
     )
     bad = []
     for label, fn in suite:
