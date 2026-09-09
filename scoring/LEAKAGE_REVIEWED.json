@@ -69,6 +69,11 @@
   "note": "function/gains is the operant-conditioning frame's own vocabulary.",
   "verdict": "vocabulary"
  },
+ "3e8a1914a232": {
+  "label": "Q2 credit.rule :: HOW MANY separate BENEFITS of the goal behaviour \u2014 `",
+  "note": "The flagged bigram is 'rather than', a general-purpose connective. It sits in clause (i) of this rule ('a reason the UNWANTED behaviour is bad, rather than a benefit of the wanted one'), which long predates the 2026-09-05 edit; the verdict lapsed only because editing a different clause changed the block's sha. It is a contrast connective the rule needs to state its own distinction, not vocabulary borrowed from p2 -- the rule shares no content word, example or construction with that response, and p2 is credited 5.00 with all three reasons counted, so nothing about it is being cued. The 2026-09-05 change itself introduced no cohort wording: 'counting' and 'improves' were flagged on the first pass and were reworded to 'treating'/'merging' and 'the particular good' before this verdict was filed.",
+  "verdict": "vocabulary"
+ },
  "475cb4ce2da4": {
   "label": "1a credit.rule :: is the BEFORE state given \u2014 the level the behaviour ",
   "note": "nights, rate and starts all stood in this rule BEFORE the 2026-09-04 addition -- 'the rate the behaviour ran at', 'up past midnight most nights' in the rule's own worked example, and 'starts the clock at the intervention'. None is new prose and none is borrowed; the verdict lapsed only because editing the block changed its sha. Two words the addition DID borrow were caught and reworded rather than reviewed away: 'places' echoed p16, and 'improved upon' echoed p5 and p6 -- p6 being the very cell this change targets, which is the borrowing that would have mattered most.",
@@ -93,6 +98,11 @@
   "label": "1a guidance :: THE BAR IS THE ARC, NOT A SENTENCE COUNT. This item ",
   "note": "across/average/pair are graph-reading vocabulary the item cannot avoid; the handout asks for a baseline average.",
   "verdict": "vocabulary"
+ },
+ "5d79519455e5": {
+  "label": "Q4b credit.rule :: ONE ANSWER, and it says what the entry IS. The engin",
+  "note": "Same prose as 2197c8bef713, re-hashed by subgoal Q19's addition of case (6) and the repeats_antecedent pick value. The nine flagged words are ALL in the inherited text and NONE in the new case, which adds only structural vocabulary (trigger/screen/part/headings/repeat/subject). Verified word by word: chips, chores, eaten and everyday were each cleared at the prior sha -- chips as an invented rival choice in a worked example, chores used by three students which is this tool's own domain-vocabulary signal, eaten and everyday ordinary English about activities. The new case quotes no response and names no cohort case.",
+  "verdict": "coincidence"
  },
  "62000e2c25a3": {
   "label": "WK2 guidance :: WAS THE UNDESIRABLE THING CREATED BY THE PLAN, OR AL",
@@ -204,6 +214,11 @@
   "note": "Credit description carried over from the instructor's rubric (molly_scoring/scorer). equipment/plain/possible are its wording, not a student's.",
   "verdict": "vocabulary"
  },
+ "d7b2581720b1": {
+  "label": "Q4b credit.rule :: ONE ANSWER, and it says what the entry IS. The engin",
+  "note": "Same prose as 5d79519455e5 and 2197c8bef713 before it, re-hashed by a byte-exact restore from backup after the Q19 revert -- the wrapper had collapsed its newlines. Content unchanged from the twice-cleared version. The flagged words are the block's own invented worked examples about fruit and snacks, which the earlier reviews cleared word by word; none is a quotation and none names a participant.",
+  "verdict": "coincidence"
+ },
  "d8af2b73b674": {
   "label": "Q4a guidance :: REJECT decisively in three cases. (a) The example is",
   "note": "pain/difficulty are this block's category words for after-effects, not lifted objects.",
@@ -219,10 +234,20 @@
   "note": "'help reach' comes from our own invented bare-intent example ('this should help me reach my goal'); 'meeting goal' is clause (c)'s 'meeting the goal', unavoidable in a rule about meeting a goal. Both land on p12's HANDOUT 3 answers, not their cadence answers, which concern fruit and Starbucks and share nothing with this rule. No borrowed content.",
   "verdict": "coincidence"
  },
+ "f2a36aed6c37": {
+  "label": "SLOT_NOTES cadence_is_daily_counted",
+  "note": "Two ordinary words, each used in a different sense from the answer that owns it, and neither taken from a trigger this gate reads. 'across' is p3's 'walk across campus', a physical traversal; the rule means a temporal boundary ('counting occurrences across the day's boundary') -- and p3 is suspect on handout 2, excluded from measurement. 'number' is p6's 'a certain number of days without stretching', in bmod_h1_utb, a handout-1 background field; p6's DAY2 trigger is 'for each day I attend the gym for at least forty minutes' and contains no such word. The clause 'A NUMBER IN THE TRIGGER IS NOT AUTOMATICALLY A COUNT' was written about triggers in general and cannot have been tuned on a field the gate never reads.",
+  "verdict": "vocabulary"
+ },
  "f6b0c5bfdb86": {
   "label": "SLOT_NOTES 1a:week_2",
   "note": "last/middle are ordinary English for positions in a week sequence.",
   "verdict": "coincidence"
+ },
+ "f7648cbb3cbc": {
+  "label": "SLOT_NOTES cadence_is_daily_counted",
+  "note": "Two ordinary words, each in a different sense from the answer that owns it, and both from HANDOUT 3 fields this gate never reads. 'decided' is p10's 'some days I decided to take things slow' in bmod_h3_success_how2 -- a personal choice; the rule uses it passively, of a condition that could be adjudicated ('nothing that could ever be decided'). 'towards' is p5's 'slip towards the end of my intervention' in bmod_h3_success_how1/how2 -- temporal; the rule uses it directionally, of 'a target the student is working towards'. This gate reads DAY2's trigger field on handout 2 and cannot have been tuned on handout 3 reflections.",
+  "verdict": "vocabulary"
  },
  "f7da4a99f560": {
   "label": "1c guidance :: FIRST DECIDE WHOSE GRAPH IT IS. The blank handout sh",

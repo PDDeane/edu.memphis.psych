@@ -101,8 +101,24 @@ MIN_EXCLUSIVE = 2
 # Rarity is the usable proxy. A word the assignment itself uses is shared by
 # necessity; a word a handful of students happen to use is theirs. The threshold
 # is a fraction of the cohort rather than a count, so it survives a corpus of a
-# different size.
-MAX_STUDENTS_FOR_INFORMATIVE = 6
+# different size. See the correction above: 4 of 20, not 6.
+# LOWERED 6 -> 4 on 2026-09-06. The user's objection was that the detector fired
+# on "words, bigrams and verbatim sequences that are nothing but high frequency,
+# utterly ordinary words", and the measurement agreed: at 6 the word report gave
+# 24 findings, at 4 it gives 1. The 23 that went were words a QUARTER of the
+# cohort used -- food (5 students), goals (6), commonly, completing, leaving,
+# average, turn. A word five students wrote is the assignment's subject matter,
+# not one student's phrasing.
+#
+# 4 IS THE FLOOR THE KNOWN CASES SET, not a round number: `procrastinating` is 2
+# students and the valence objects `snack` and `music` are 4 each, so anything
+# below 4 loses the leak this filter was built for.
+#
+# AND THE EXAMPLE JUSTIFYING IT WAS WRONG. The note below said "'phone' is in
+# three students' answers"; phone is in FIFTEEN, so this filter never could have
+# caught it and never did. Corrected rather than deleted, because the reasoning
+# it was offered for still holds -- it just needed a case that is true.
+MAX_STUDENTS_FOR_INFORMATIVE = 4
 
 
 def _content(text: str) -> list[str]:
@@ -185,7 +201,215 @@ def authored(items: tuple[str, ...]) -> dict[str, str]:
             blocks[f"SLOT_NOTES {key}"] = str(note)
     except Exception:
         pass
+    # EVERYTHING ELSE THE GRADER READS. Subgoal E54. The four containers above
+    # are where prompt prose is AUTHORED; they are not where it all ENDS UP. The
+    # numbered criteria list is built by olx_prompts._criteria_section and is in
+    # none of them, so about 40% of each cadence prompt was never compared with
+    # the corpus -- and two verbatim student quotations were living in it, one of
+    # them the DAY1/p8 leak this module's own docstring cites as its founding
+    # case and treats as fixed. It was fixed in the prose scanned here and
+    # survived in the prose that was not, so the repair and the blind spot were
+    # the same event.
+    #
+    # THE FIX DERIVES THE CORPUS FROM THE RENDERED PROMPT rather than from the
+    # sources, which is the move `enforcement.check_no_case_names_in_prompts`
+    # already makes for cohort names and for the same stated reason: reading the
+    # sources leaves whichever route nobody thought of. Safe to do here because
+    # `build_web_prompt` renders responses as REF placeholders and embeds no
+    # student text -- verified over both handouts before this was written.
+    #
+    # The remainder is added as its OWN block rather than replacing the granular
+    # ones, so every existing review sha keeps its verdict.
+    # AGAINST A SNAPSHOT, NOT THE GROWING DICT. Computed in place, each item's
+    # remainder landed in `blocks` and then counted as "already covered" for the
+    # next item, so DAY1 got 13,602 chars and WK2 got 496 of the SAME shared
+    # criteria text -- coverage that silently depended on which items were passed
+    # and in what order. The shared prose is now reported once per item; that is
+    # deliberate duplication, and it costs nothing, because the review ledger
+    # keys on the sha of the prose itself, so identical text takes ONE verdict to
+    # clear on all four.
+    baseline = dict(blocks)
+    for item in items:
+        for label, text in _prompt_remainder(item, baseline):
+            blocks[f"{item} prompt :: {label}"] = text
     return blocks
+
+
+def _norm(s: str) -> str:
+    return re.sub(r"\s+", " ", str(s)).strip().lower()
+
+
+MIN_VERBATIM_WORDS = 6
+
+
+def coverage_gaps() -> list[str]:
+    """Lines of a SHIPPED prompt that look like prose and are scanned by nothing.
+
+    THE PROOF E54 ASKED FOR, rather than the assertion. Widening the corpus to
+    `build_web_prompt` is only worth anything if the widening is COMPLETE, and
+    "I derived it from the prompt" is not a measurement -- the first version of
+    that derivation dropped every numbered criterion by splitting on sentence
+    boundaries, and looked fine.
+
+    Measured over all 26 items, 2,199 prompt lines: 1,871 sit in a scanned
+    block, 127 are the item's own question or deduction text (excluded on
+    purpose -- a student echoing the question is the instrument working), 120 are
+    short headings, and 81 are headings and `REF:` placeholders. ZERO carry
+    prose. This function keeps that true.
+
+    A line counts as prose if it has six or more words and is not a heading, a
+    section label or a REF placeholder -- deliberately loose, because a false
+    positive here costs a glance and a false negative costs the whole point of
+    the widening.
+    """
+    import olx_prompts as OP
+    out: list[str] = []
+    for item in sorted(_specs().keys()):
+        try:
+            prompt = OP.build_web_prompt(item)
+        except Exception:
+            continue
+        scanned = _norm(" ".join(authored((item,)).values()))
+        spec = _specs()[item]
+        own = [_norm(spec.get("question") or "")]
+        own += [_norm(d.get("text") or "") for d in (spec.get("deductions") or [])]
+        own = [x for x in own if x]
+        for raw in prompt.splitlines():
+            line = raw.strip()
+            s = _norm(line)
+            if not s or s in scanned:
+                continue
+            if any(s in o or o in s for o in own):
+                continue
+            if line.startswith("#") or "REF:" in line or line.endswith(":"):
+                continue
+            if len(s.split()) >= 6:
+                out.append(f"{item}: prose line scanned by nothing -- {line[:90]!r}")
+    return out
+
+
+def verbatim_findings(items: tuple[str, ...]) -> list[dict]:
+    """Blocks sharing a long VERBATIM word-span with exactly one student.
+
+    THE BIGRAM METHOD CANNOT SEE THIS SHAPE, and the leak that founded this
+    module is the proof. Criterion 7 quoted DAY1/p8 as "so I don't have to do 30
+    pushups if I miss it" against p8's "so I don't have do an extra 30 pushups if
+    I miss it". Run that through `_content` -- which drops stopwords and words of
+    three letters or fewer -- and the prompt keeps ["don't","pushups","miss"] and
+    p8 keeps ["don't","extra","pushups","miss"]. ONE shared bigram, "pushups
+    miss", against MIN_EXCLUSIVE = 2. The tool could never have flagged it at any
+    granularity or any scope, and it did not: that leak was found BY HAND.
+
+    So this is not a coverage gap like the corpus one -- it is a DETECTOR gap. A
+    quotation whose distinctive content is stopwords, numbers and short words is
+    invisible to a content-bigram filter, and quoted EXAMPLES are exactly the
+    place such phrasing lives, because they are written to sound like a student.
+
+    Raw spans, no stopword filter, no length filter: the longest run of words
+    appearing verbatim in both an authored block and one student's response.
+    Six words is the threshold `enforcement.check_rule_examples_are_not_corpus`
+    already uses for the same purpose on a narrower corpus.
+    """
+    blocks = authored(items)
+    responses = cohort(items)
+    by_student: dict[int, str] = {}
+    for (item, pid, field), text in responses.items():
+        by_student[pid] = by_student.get(pid, "") + " " + text
+
+    def words(s: str) -> list[str]:
+        return re.findall(r"[a-z0-9']+", (s or "").lower())
+
+    student_spans: dict[int, set[str]] = {}
+    for pid, text in by_student.items():
+        w = words(text)
+        student_spans[pid] = {" ".join(w[i:i + MIN_VERBATIM_WORDS])
+                              for i in range(len(w) - MIN_VERBATIM_WORDS + 1)}
+
+    out: list[dict] = []
+    for label, text in blocks.items():
+        w = words(text)
+        spans = {" ".join(w[i:i + MIN_VERBATIM_WORDS])
+                 for i in range(len(w) - MIN_VERBATIM_WORDS + 1)}
+        for pid, ss in student_spans.items():
+            shared = spans & ss
+            if not shared:
+                continue
+            # Exclusive to this student, same rule the bigram filter uses: a span
+            # several students wrote is the assignment's phrasing, not a quotation.
+            excl = [s for s in shared
+                    if sum(1 for q in student_spans if s in student_spans[q]) == 1]
+            if excl:
+                out.append({"label": label, "sha": sha(text), "student": pid,
+                            "spans": sorted(excl)[:3], "n": len(excl)})
+    return out
+
+
+def _prompt_remainder(item: str, blocks: dict[str, str]) -> list[tuple[str, str]]:
+    """The shipped prompt minus what `blocks` covers, cut into PASSAGES.
+
+    Returns [(label, text), ...] -- one entry per contiguous passage, not one
+    per prompt. Subgoal E54.
+
+    WHY PASSAGES AND NOT ONE BLOCK. The first version returned the whole
+    remainder as a single ~13KB string. That re-hashes on ANY edit anywhere
+    inside it, so its review verdict lapses immediately and a finding points at
+    a third of a prompt. Neither is reviewable: a verdict on 13KB says almost
+    nothing and survives almost nothing.
+
+    AND THE FIRST VERSION SHREDDED THE STRUCTURE IT NEEDED. It split on
+    `(?<=[.!?])\\s+`, which cuts "7. `avoidance_frame` -- true if..." at the
+    period after the 7, so not one numbered criterion survived intact and the
+    natural boundaries were invisible. Splitting is LINE-based now: the shipped
+    prompt is already line-structured, and a line is never half a sentence.
+
+    A passage starts at a numbered criterion, a heading, an ALL-CAPS lead-in, a
+    lettered sub-clause, or a blank line -- the places the prompt itself changes
+    subject. Edit one criterion and only that criterion's sha moves.
+    """
+    try:
+        import olx_prompts as OP
+        prompt = OP.build_web_prompt(item)
+    except Exception:
+        return []
+    covered = _norm(" ".join(blocks.values()))
+    spec = (_specs().get(item) or {})
+    own = [spec.get("question") or ""]
+    own += [d.get("text") or "" for d in (spec.get("deductions") or [])]
+    own = [_norm(x) for x in own if _norm(x)]
+
+    BOUNDARY = re.compile(r"^\s*(\d+\.\s|#{1,4}\s|\([a-z]\)|[A-Z][A-Z ,\'`-]{11,})")
+    passages: list[list[str]] = []
+    for raw in prompt.splitlines():
+        line = raw.rstrip()
+        s = _norm(line)
+        if not s:
+            passages.append([])          # blank line ends a passage
+            continue
+        if len(s) < 25 or s in covered or any(s in o or o in s for o in own):
+            continue
+        if not passages or BOUNDARY.match(line):
+            passages.append([])
+        passages[-1].append(line.strip())
+
+    out: list[tuple[str, str]] = []
+    for lines in passages:
+        if not lines:
+            continue
+        text = "\n".join(lines)
+        # A PASSAGE TOO SHORT TO CARRY A BIGRAM RUN IS MERGED, NOT DROPPED.
+        # Dropping it was the first behaviour and it silently un-scanned prose:
+        # `coverage_gaps` found Q1's "- The UTB must be one of the four from the
+        # closed list.", which is a bullet standing alone between boundaries and
+        # falls just under the threshold. The threshold exists so tiny fragments
+        # do not each become a block, not so text escapes the corpus -- so it
+        # joins the passage above it and the corpus stays whole.
+        if out and len(_norm(text)) < 60:
+            label, prev = out[-1]
+            out[-1] = (label, prev + "\n" + text)
+            continue
+        label = re.sub(r"\s+", " ", lines[0]).strip()[:46]
+        out.append((label, text))
+    return out
 
 
 def _domain_words(items: tuple[str, ...]) -> set[str]:
@@ -223,6 +447,52 @@ def _segments(text: str) -> list[str]:
     return out or ([" ".join((text or "").split())] if text else [])
 
 
+# Quoted and parenthesised spans -- where WORKED EXAMPLES live, and where every
+# leak this project has actually found was hiding: "procrastinating" in
+# trigger_behavior's example list, "a phone, a snack, an evening out, music" in
+# the valence examples, DAY1/p8's sentence in criterion 7, WK2/p15's definition
+# in criterion 8. All four were quoted illustrations, because an illustration is
+# written to sound like a student and that is exactly when someone reaches for a
+# student's words.
+#
+# Backticks are NOT example delimiters here: `activity`, `met`, `wrong_kind` are
+# slot and verdict names, our own vocabulary, and including them put the whole
+# controlled vocabulary into the detector's mouth.
+#
+# WHY NARROW AT ALL. The word and bigram reports fire on RARITY AMONG STUDENTS,
+# and with twenty short answers that flags ordinary English -- "analysis",
+# "food", "goals", "average", "turn", "commonly", "leaving". Measured over the
+# corpus, 83% of authored prose is outside any example span, and none of the
+# known leaks is out there. Narrowing to examples keeps every real case and
+# drops most of the noise.
+_EXAMPLE_SPAN = re.compile(r'"[^"]{6,}"|\u201c[^\u201d]{6,}\u201d|\([^)]{6,}\)')
+
+
+def _examples_only(blocks: dict[str, str]) -> dict[str, str]:
+    """Each block reduced to its worked-example spans; empty ones dropped."""
+    out: dict[str, str] = {}
+    for label, text in blocks.items():
+        spans = " ".join(_EXAMPLE_SPAN.findall(text or ""))
+        if spans.strip():
+            out[label] = spans
+    return out
+
+
+def _assignment_words() -> set:
+    """Every word the instrument itself says -- questions, deduction texts,
+    guidance, rules. A student using these is echoing the assignment, so their
+    appearing in our prose is not a borrowing. 1,222 words, and they accounted
+    for 56 of the 90 words flagged before this existed."""
+    pool: list[str] = []
+    for spec in _specs().values():
+        pool.append(str(spec.get("question") or ""))
+        pool += [str(d.get("text") or "") for d in (spec.get("deductions") or [])]
+        g = spec.get("guidance") or []
+        pool += [str(x) for x in (g if isinstance(g, list) else [g])]
+        pool += [str(r) for r in (spec.get("rules") or [])]
+    return set(re.findall(r"[a-z']+", " ".join(pool).lower()))
+
+
 def word_findings(items: tuple[str, ...]) -> list[dict]:
     """Authored blocks re-using a CONCRETE word from a few students' answers.
 
@@ -234,9 +504,9 @@ def word_findings(items: tuple[str, ...]) -> list[dict]:
     for (_item, pid, _f), text in responses.items():
         for w in set(_content(text)):
             students.setdefault(w, set()).add(pid)
-    domain = _domain_words(items)
+    domain = _domain_words(items) | _assignment_words()
     reviews = load_reviews()
-    blocks = authored(items)
+    blocks = _examples_only(authored(items))
     # OUR OWN vocabulary, derived rather than hand-kept: every word used in some
     # OTHER authored block. Rarity alone is not informativeness -- with twenty
     # students and short answers, ordinary English words like "already" or
@@ -293,10 +563,30 @@ def findings(items: tuple[str, ...]) -> list[dict]:
             students.setdefault(b, set()).add(pid)
             where.setdefault(b, set()).add(f"{item}/p{pid}")
 
+    # A BIGRAM OF TWO ORDINARY WORDS IS NOT EVIDENCE. Exclusivity alone let
+    # 'fixed schedule', 'many times', 'look like', 'keep doing' and 'whole week'
+    # stand as findings -- stock English that one student happened to be the only
+    # one to write. So a shared bigram now counts only if at least ONE of its two
+    # words is itself informative: rare across the cohort, and not part of the
+    # assignment's own vocabulary or the item's domain words. The verbatim
+    # detector carries the long-quotation cases, so tightening here loses nothing
+    # the tool can otherwise see.
+    per_word: dict[str, set[int]] = {}
+    for (item, pid, _field), text in responses.items():
+        for w in set(_content(text)):
+            per_word.setdefault(w, set()).add(pid)
+    ordinary = _domain_words(items) | _assignment_words()
+
+    def _informative_pair(bigram: str) -> bool:
+        return any(w not in ordinary
+                   and 0 < len(per_word.get(w, ())) <= MAX_STUDENTS_FOR_INFORMATIVE
+                   for w in bigram.split())
+
     reviews = load_reviews()
     out: list[dict] = []
-    for label, text in authored(items).items():
-        shared = _bigrams(_content(text)) & set(students)
+    for label, text in _examples_only(authored(items)).items():
+        shared = {b for b in _bigrams(_content(text)) & set(students)
+                  if _informative_pair(b)}
         # Only bigrams no other student used. Anything two students wrote is the
         # handout's language, however striking it looks.
         exclusive: dict[int, list[str]] = {}
@@ -353,7 +643,48 @@ def gate(items: tuple[str, ...], stream=sys.stderr) -> int:
     because no other block in scope used them. The same prose passes at ALL.
     A leak is a leak whatever is being measured, so the audit does not narrow.
     """
+    # THE VERBATIM CHECK REFUSES OUTRIGHT, unlike the bigram report. It has no
+    # review ledger and needs none: a six-word span appearing verbatim in a
+    # prompt and in exactly ONE student's answer is not vocabulary and not
+    # coincidence, and measured over all 26 items on a clean tree it finds
+    # NOTHING. So a hit is a fault, not a judgement call, and there is nobody to
+    # ask about it -- rewrite the example.
+    for v in verbatim_findings(items or CADENCE):
+        print(f"REFUSING: {v['label']} shares a {MIN_VERBATIM_WORDS}-word verbatim "
+              f"span with p{v['student']} AND NO OTHER STUDENT: "
+              f"{v['spans'][0]!r}", file=stream)
+        return 1
+
     pending = unreviewed()
+    # THE NEW CORPUS REPORTS BUT DOES NOT YET REFUSE. Subgoal E54 widened the
+    # scanned prose by about 40% (olx_prompts._criteria_section and everything
+    # else that reaches the shipped prompt), and that first pass raises 23
+    # findings on blocks nobody has ever read. Promoting them straight to a
+    # refusal would have blocked five queued sweeps behind an unscoped check --
+    # the exact failure this series keeps recording: E48's first cut was 12
+    # findings with 10 false, E49's 119 with 1 real, E52's 39 with ~37 by design,
+    # and a check whose false positives outnumber its true ones gets switched off
+    # and takes the real finding with it.
+    #
+    # NOT A SUPPRESSION: every remainder finding is PRINTED, under its own label
+    # and sha, so the report shows exactly what the old corpus was blind to. What
+    # is deferred is only the exit code.
+    #
+    # TO PROMOTE IT, and this is the remaining work on E54: the blocks are far
+    # too coarse to verdict honestly. One remainder block is ~13KB of a whole
+    # prompt, so it re-hashes on ANY edit anywhere inside it and its waiver
+    # lapses immediately -- a verdict on a block that large says almost nothing
+    # and survives almost nothing. Split the remainder into contiguous passages
+    # first, so a finding points at a passage and a verdict outlives an unrelated
+    # edit; THEN flip this to gating.
+    # PROMOTED TO GATING 2026-09-06, once there was nothing to promote OVER.
+    # These reported without refusing while 57 passages stood unread -- blocking
+    # every sweep behind an unscoped check is the failure this series keeps
+    # recording. After the example-span narrowing, the assignment-vocabulary
+    # exclusion, the 6->4 threshold and the bigram informativeness test, the
+    # count is ZERO, so gating them costs nothing today and catches the next one.
+    # They keep the review ledger: a passage finding can be dispositioned like
+    # any other block. Only `verbatim_findings` refuses without appeal.
     if not pending:
         return 0
     print(f"REFUSING to sweep: {len(pending)} rule block(s) share wording with "
