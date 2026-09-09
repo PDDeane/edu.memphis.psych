@@ -519,6 +519,47 @@ def _example_use_item(
                 "what": "targets_own_behavior",
                 "pts": 1.0,
                 "desc": "Targets the student's own UTB or WGB",
+                # SUBGOAL Q46, 2026-09-06. DAY2 ONLY, and the scope is measured:
+                # across all four items this slot's refusals are the blanks (p10,
+                # p18 everywhere) plus WK1/p7, which is CORRECT at 9/12. DAY2 is
+                # the only item where it CREDITS where gold charges, so a shared
+                # rule would risk 54 right cells to win one -- the arithmetic that
+                # made the cadence split right.
+                #
+                # THE ENTRY'S ORIGINAL DIAGNOSIS WAS WRONG AND THIS IS NOT IT.
+                # Q46 read gold as objecting to the REWARD; both of gold's
+                # comments are about the TRIGGER -- "make sure the BEHAVIOR YOU
+                # ARE TARGETING is spending less time on electronic devices"
+                # (DAY2/p7) and "your UTB is not procrastination" (WK1/p7). The
+                # reward clause was refuted by WK1/p1, which was never a
+                # counter-example to the question gold actually asks.
+                #
+                # THE BLIND SPOT IS THE DESC ABOVE: "UTB or WGB", with no rule at
+                # all. DAY2/p7's condition names the GOAL, so `met` is correct BY
+                # THE DESC. It is too permissive by exactly one case.
+                #
+                # READ OUT OVER ALL SIXTEEN NON-BLANK DAY2 CELLS: every credited
+                # cell's condition names the UTB itself, or a goal that INVERTS
+                # it -- p15 "{{corpus:1a/p15:response:95:113:sha=dcb20a166074}}", p12 and p5 "consume more", p8
+                # and p9 the gym goals. p7 alone names a goal that SUBSTITUTES
+                # for the UTB, reading books against too much screen time. p15 is
+                # the control that matters: SAME UTB as p7, and unaffected.
+                **({"rule": (
+                    "Does the plan bear on the student's own unwanted behaviour? "
+                    "Answer `met` in two cases. FIRST, the CONDITION names the "
+                    "unwanted behaviour itself — doing it, or failing to stop "
+                    "doing it. SECOND, the CONDITION names the student's goal "
+                    "behaviour AND that goal is the unwanted behaviour TURNED "
+                    "AROUND: the same behaviour, with more of it or less of it. "
+                    "The unwanted behaviour and the goal are both on this screen; "
+                    "compare what they name. "
+                    "Answer `absent` when the condition names a DIFFERENT PURSUIT "
+                    "from the one the unwanted behaviour names — one that would "
+                    "crowd it out rather than reverse it. Taking up more of "
+                    "another pursuit is not doing less of this one, however "
+                    "sensible the plan is. "
+                    "This check is worth ONE point and never takes the whole item."
+                )} if item_id == "DAY2" else {}),
             },
             {
                 # Added to spend the item's one unchargeable point. These four
@@ -948,19 +989,85 @@ for _it in ITEMS:
     if _it["id"] in FORBID:
         _it["forbid"] = FORBID[_it["id"]]
 
-# WK1's `expect`, declared once. The model names WHICH behaviour the trigger
-# identifies -- `utb`, `wgb` or `other` -- and the engine decides whether that
-# counts as the student's own; asked as a parse rather than as a judgement,
-# because two earlier versions asked "is it aimed at your own behaviour?" and the
-# model answered inconsistently on the two cells that matter.
+# The cadence items' `expect` rules, declared once. The model names WHICH
+# behaviour the trigger identifies -- `utb`, `wgb` or `other` -- and the engine
+# decides whether that counts as the student's own; asked as a parse rather than
+# as a judgement, because two earlier versions asked "is it aimed at your own
+# behaviour?" and the model answered inconsistently on the two cells that matter.
 #
 # `utb` with `wgb` lenient: either the behaviour they are cutting or the one they
 # are building is their own. Only `other` is not.
+#
+# `targets_own_behavior` NOW ON ALL FOUR, not WK1 alone. All four items are built
+# by _cadence_item and all four declare WRONG_BEHAVIOR at 1.0 -- but only the item
+# with this declaration could ever CHARGE it, because score.py falls through to
+# `a.get("targets_own_behavior", True)` when no rule parses the slot. So three of
+# four siblings carried a deduction code that no answer could reach. That is what
+# DAY2/p7 measures: gold charges WRONG_BEHAVIOR (its comment itemises -1 against a
+# max of 4, the plan targeting reading while the UTB is screen time), the cell
+# scores 0/12, and our sheet holds the matching 1.0 code and cannot fire it.
+# score.build_schema's own comment already claimed "WK1 and DAY2 derive this from
+# a CLASSIFICATION" -- the intent was recorded and the wiring never landed.
+#
+# The CADENCE rule is the same conversion applied to the gate next door, and it is
+# structural for the same reason. `cadence_ok` is asked as a BOOLEAN JUDGEMENT
+# ("can the trigger be settled inside ONE day?"), and DAY2/p8 shows what that
+# costs: when it fails the cell scores 0.0, when it passes 4.0 = gold, and it
+# fails in 6 of 12 runs. The prose has already been sharpened twice -- the slot
+# note says duration is not cadence and a tie goes to daily, and the DAY2-only
+# guidance says in as many words that "an answer keyed to `{{corpus:NR/p2:nr:0:17:sha=bd6ad50ff8db:shape=C1}}` is
+# daily even when the goal itself is a weekly total". The model overrides both,
+# because it is being asked to weigh a whole item at once. So ask the FACT instead
+# and let the engine decide, exactly as WK1 does for the behaviour:
+#
+#   each_day   -- each day either counts toward it or does not
+#   week_end   -- the student must WAIT FOR THE WEEK TO END before it can be
+#                 settled at all: a whole-week tally scored on Sunday
+#   not_stated -- the trigger names no period of its own
+#
+# `each_day` with `not_stated` lenient keeps the gate's existing default, which
+# both slot notes state outright ("when it could be read either way, answer
+# `yes`"). Only `week_end` fails, which is the one case the note already calls the
+# real one. Keyed by the item's WEB name (`cadence_is_daily`) rather than the
+# rubric's `cadence_ok`: expect_attr_for emits the key literally into the .olx and
+# the web's slot carries the per-cadence name, so a rule keyed `cadence_ok` would
+# generate an attribute matching no slot. score.py derives the same key from
+# item["cadence"]. ALIAS's cadence_ok -> (cadence_is_daily, cadence_is_weekly) is
+# what makes the two names one slot for the audit.
+#
+# DAILY ITEMS ONLY. The weekly gate's leniency runs the other way -- its note
+# admits "a count that completes inside the week, a trigger settled more often
+# than weekly, one that states no period" -- so the same three options do not
+# partition it and the measured defect is not there. WK1/WK2 keep the boolean
+# until that is read out on its own.
 #
 # The other four `expect` rules on this handout (`demonstrates_type` on
 # NP/NR/PP/PR) are deliberately NOT declared here: the CLI reaches that fact
 # through `expected_type` and REQUIRED_MOVE, which are already rubric
 # declarations, and a second declaration of one fact is what this work removes.
+# REVERTED 2026-09-05, the day it was written. MEASURED AND IT FAILED BOTH WAYS:
+# neither target moved and both named controls broke.
+#   DAY2/p7  0 of 12 -> 0 of 12. `trigger_behavior` answers `wgb` 12 of 12, so
+#            targets_own_behavior stays `met` and WRONG_BEHAVIOR never fires.
+#            The parse reached the slot and not the judgement.
+#   DAY2/p8  5 of 12 -> 5 of 12, band on_the_line -> wrong_by_median.
+#            `trigger_settles` answers `week_end` in 7 of 12 on a trigger that
+#            states no period -- the exact reading the pick was written to stop.
+#   DAY1/p15 PERFECT -> 1 of 12. `trigger_behavior` = `other` in 11 of 12. This
+#            cell was named in the pre-registration as the test of whether the
+#            rule reads the trigger too literally. It does: the trigger names
+#            assignments while the behaviour the plan CONTROLS is the UTB.
+#   DAY1/p9  PERFECT -> 7 of 12. Subgoal Q22's declared proof case, whose entry
+#            says "any change to this rule must keep p9". `trigger_settles`
+#            splits 7/5 where `cadence_is_daily` answered `absent` 12 of 12.
+# Item totals: DAY1 18 -> 17 on both sides, DAY2 olx 16 -> 15, WK1/WK2 unchanged.
+# Net -2 cells, zero gains. Found by subgoal E42's recorded bands, which is what
+# that entry was built for -- the comparison would otherwise have been by hand.
+#
+# WHAT TO CARRY: a PARSE is not automatically safer than a judgement. Q47, Q43
+# and Q10 each replaced a judgement whose GROUNDS were confusable; here the
+# grounds were already clear and what was wrong was the slot's AIM -- so naming
+# the kinds gave the model a sharper instrument pointed at the wrong question.
 EXPECT: dict[str, list[dict]] = {
     "WK1": [{"key": "targets_own_behavior", "left": "trigger_behavior",
              "value": "utb", "lenient": ["wgb"]}],
@@ -981,7 +1088,20 @@ for _it in ITEMS:
 # readings in its conditions, `oc_gates` names its own gate keys, `expect` names
 # the slot it parses, and `move_pick` is declared below.
 SLOT_OPTIONS: dict[str, list[str]] = {
-    "restriction_authored": ["created", "relieved", "neither"],
+    # ORDER IS PART OF THE DESIGN, and this line is RECONCILED TO WHAT SHIPS
+    # rather than the other way round (2026-09-08). The grader reads this
+    # enum as text, so its order is a prompt variable; leaving the rubric
+    # and the .olx disagreeing kept a SECOND SOURCE for one fact, which is
+    # what the `maps` conversion comment in olx_prompts warns against.
+    # The .olx ships relieved,created,neither on DAY1, DAY2, NR and WK2, so
+    # adopting that order changes NO prompt, moves NO prompt_sha and
+    # invalidates no measurement -- including the WK2 sweep that had just
+    # come back 18/18 on both sides. `choices=` is generated from here now,
+    # so from this point a deliberate reorder is a real prompt change with
+    # its own re-sweep, which is the correct cost for it to have.
+    # ADOPTED, NOT CHOSEN: nobody has measured whether a different order
+    # reads better. If someone wants one, that is a designed change.
+    "restriction_authored": ["relieved", "created", "neither"],
     "trigger_expects": ["gain", "loss", "none"],
     "restricts": ["target_behavior", "other_thing"],
     "trigger_behavior": ["utb", "wgb", "other"],
@@ -998,5 +1118,227 @@ for _it in ITEMS:
     if _it["id"] in MOVE_PICK_ITEMS:
         _it["move_pick"] = True
 
+# ADOPTED 2026-09-08, and the ADOPTION IS THE POINT. These clauses were SHIPPING
+# in the .olx with NO rubric declaration at all -- so no design change could
+# express them, and `olx_prompts.py --write` could not regenerate them. Eight
+# clauses across eight items had behaviour with no design of record, which is the
+# subgoal Q19 class in reverse. The text below is transcribed from what ships, so
+# generating these attributes changes NO prompt and moves NO prompt_sha; from
+# here they flow from the rubric like `maps` and `choices`.
+# NOT A DESIGN DECISION: nobody chose these here, they were already in force.
+TYPE_MATCH_ITEMS = ("DAY1", "DAY2", "WK1", "WK2")
+for _it in ITEMS:
+    if _it["id"] in TYPE_MATCH_ITEMS:
+        # `matches_chosen_type` is met when the type OBSERVED in the example
+        # equals the type the student NAMED, and `unclear` on either side is
+        # lenient -- the rubric will not charge a mismatch it cannot establish.
+        _it["equals"] = [{"key": "matches_chosen_type",
+                          "left": "observed_type", "right": "named_type",
+                          "lenient": ["unclear"]}]
+
+# Per item, because the shipped clauses are NOT uniform: PR and NR gate the
+# goal-behaviour check, NP and PP the unwanted-behaviour one, and NR alone also
+# gates its barrier check. Deriving membership from a type list would put a gate
+# on a check the item does not ask.
+# THE FOUR TYPE ITEMS' `expect` CLAUSES, adopted 2026-09-08 -- and found by the
+# check the user asked for rather than by the inventory that preceded it.
+# `expect` was ALREADY in GENERATED_ATTRS, so the earlier pass never compared it:
+# a generator returns None when the rubric is silent, and `render()` then keeps
+# whatever the .olx authored. That convention is what let four hand-authored
+# clauses survive UNDER A GENERATED ATTRIBUTE'S NAME, invisible to
+# `olx_prompts.py --check`, which only asks whether the file matches what
+# render() would write. `check_olx_attributes_are_all_generated` asks the
+# different question -- is every attribute PRODUCED from the rubric -- and named
+# all four in its first run.
+# WHAT THEY SAY: `demonstrates_type` is met when the type observed in the example
+# is THIS item's type. PR is the exception and asks its two-bit move pick
+# instead, which is why this is a per-item table and not a loop over the types.
+_EXPECT_SHIPPED = {
+    "NP": [{"key": "demonstrates_type", "left": "observed_type", "value": "NP"}],
+    "NR": [{"key": "demonstrates_type", "left": "observed_type", "value": "NR"}],
+    "PP": [{"key": "demonstrates_type", "left": "observed_type", "value": "PP"}],
+    "PR": [{"key": "demonstrates_type", "left": "stimulus_move",
+            "value": "given_desirable"}],
+}
+for _it in ITEMS:
+    if _it["id"] in _EXPECT_SHIPPED:
+        _it["expect"] = _EXPECT_SHIPPED[_it["id"]]
+
+_ONLYIF_SHIPPED = {
+    "NP": [{"key": "targets_unwanted_behavior", "cond": "demonstrates_type"}],
+    "PP": [{"key": "targets_unwanted_behavior", "cond": "demonstrates_type"}],
+    "PR": [{"key": "targets_goal_behavior", "cond": "demonstrates_type"}],
+    "NR": [{"key": "targets_goal_behavior", "cond": "demonstrates_type"},
+           {"key": "barrier_is_not_this_type", "cond": "demonstrates_type"}],
+}
+for _it in ITEMS:
+    if _it["id"] in _ONLYIF_SHIPPED:
+        _it["onlyif"] = _ONLYIF_SHIPPED[_it["id"]]
+
 BY_ID = {it["id"]: it for it in ITEMS}
 TOTAL = sum(it["max"] for it in ITEMS)  # 40.0 scored; +10 upload = 50
+
+# THE SLOT SHEET, ADOPTED FROM THE .olx ON 2026-09-08 so that a design change
+# never needs a hand edit to the generated file. `slots=` was the LAST large
+# hand-authored attribute: 217 clauses, 14,159 characters, and 159 of those
+# clauses carried an option list the rubric could not supply -- so this is not a
+# reconciliation like `equals` or `onlyif` were, it MOVES the slot sheet's
+# primary definition here. Transcribed field-wise (never as a raw string) after
+# proving the parse round-trips losslessly on all 23 items, so
+# `olx_prompts.slots_attr_for` reproduces every attribute byte-for-byte and the
+# switch-on changed no prompt and moved no prompt_sha.
+#   key   the slot id            gate  True where the .olx wrote a `!` prefix
+#   label the short prose the grader sees beside the id
+#   seg   field 3: an option list, `pick(set)` or `count(n)`
+#   pts   the `@N` suffix
+# ORDER IS PART OF THE DESIGN and is the order of this list -- see the
+# SLOT_OPTIONS note above; a reorder is a real prompt change with its own sweep.
+SLOT_SPEC: dict[str, list[dict]] = {
+    'D1': [
+        {'key': 'defines_type', 'label': 'Which type this definition describes', 'seg': 'pick(operant_or_unclear)'},
+        {'key': 'named_type', 'label': 'Which type you chose', 'seg': 'pick(operant_or_unclear)'},
+        {'key': 'matches_chosen_type', 'label': 'Definition matches the type you chose', 'gate': True},
+        {'key': 'add_or_remove', 'label': 'Says whether something is added or taken away', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'increase_or_decrease', 'label': 'Says whether the behavior increases or decreases', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    'D2': [
+        {'key': 'defines_type', 'label': 'Which type this definition describes', 'seg': 'pick(operant_or_unclear)'},
+        {'key': 'named_type', 'label': 'Which type you chose', 'seg': 'pick(operant_or_unclear)'},
+        {'key': 'matches_chosen_type', 'label': 'Definition matches the type you chose', 'gate': True},
+        {'key': 'add_or_remove', 'label': 'Says whether something is added or taken away', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'increase_or_decrease', 'label': 'Says whether the behavior increases or decreases', 'seg': 'unclear', 'pts': '1'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    'DAY1': [
+        {'key': 'names_behavior', 'label': 'Names a behavior of yours the plan acts on', 'gate': True, 'seg': 'unclear'},
+        {'key': 'names_stimulus', 'label': 'Names what is added or taken away', 'gate': True, 'seg': 'unclear'},
+        {'key': 'contingent', 'label': 'The consequence depends on that behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'follows_behavior', 'label': 'The consequence arrives after the behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'you_arrange_it', 'label': 'Something you arrange, not an automatic result', 'gate': True, 'seg': 'unclear'},
+        {'key': 'observed_type', 'label': 'Which of the four types this actually is', 'seg': 'pick(operant_or_none)'},
+        {'key': 'phrased_directly_gate', 'label': 'Phrased directly rather than by what is avoided', 'gate': True},
+        {'key': 'named_type', 'label': 'Which of the four you said you would use', 'seg': 'pick(operant_or_unclear)'},
+        {'key': 'cadence_is_daily', 'label': 'Checked each day rather than against the week', 'gate': True},
+        {'key': 'matches_chosen_type', 'label': 'Matches your first chosen type', 'pts': '2'},
+        {'key': 'states_a_contingency', 'label': 'A condition on your behavior, a clause granting or withholding something, and the consequence delivered afterwards', 'gate': True},
+        {'key': 'trigger_expects', 'label': 'Which way a working plan would run from your condition', 'seg': 'pick(valence_or_none)'},
+        {'key': 'restriction_authored', 'label': 'Whether the undesirable thing was created by the plan or was already there', 'seg': 'pick(authorship)'},
+        {'key': 'consequence_not_a_setup', 'label': 'Not a restriction the plan sets up that your success then lifts', 'gate': True},
+        {'key': 'restricts', 'label': 'What the plan holds back, if it holds anything back', 'seg': 'pick(restriction_target)'},
+        {'key': 'targets_own_behavior', 'label': 'Aimed at your own target or goal behavior', 'pts': '1'},
+        {'key': 'consequence_asserted', 'label': 'The consequence is asserted to follow from the behavior', 'pts': '1'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    'DAY2': [
+        {'key': 'names_behavior', 'label': 'Names a behavior of yours the plan acts on', 'gate': True, 'seg': 'unclear'},
+        {'key': 'names_stimulus', 'label': 'Names what is added or taken away', 'gate': True, 'seg': 'unclear'},
+        {'key': 'contingent', 'label': 'The consequence depends on that behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'follows_behavior', 'label': 'The consequence arrives after the behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'you_arrange_it', 'label': 'Something you arrange, not an automatic result', 'gate': True, 'seg': 'unclear'},
+        {'key': 'observed_type', 'label': 'Which of the four types this actually is', 'seg': 'pick(operant_or_none)'},
+        {'key': 'phrased_directly', 'label': 'Phrased directly rather than by what is avoided'},
+        {'key': 'named_type', 'label': 'Which of the four you said you would use', 'seg': 'pick(operant_or_unclear)'},
+        {'key': 'cadence_is_daily_counted', 'label': 'Checked each day rather than against the week', 'gate': True},
+        {'key': 'matches_chosen_type', 'label': 'Matches your second chosen type', 'pts': '2'},
+        {'key': 'states_a_contingency', 'label': 'A condition on your behavior, a clause granting or withholding something, and the consequence delivered afterwards', 'gate': True},
+        {'key': 'trigger_expects', 'label': 'Which way a working plan would run from your condition', 'seg': 'pick(valence_or_none)'},
+        {'key': 'restriction_authored', 'label': 'Whether the undesirable thing was created by the plan or was already there', 'seg': 'pick(authorship)'},
+        {'key': 'consequence_not_a_setup', 'label': 'Not a restriction the plan sets up that your success then lifts', 'gate': True},
+        {'key': 'restricts', 'label': 'What the plan holds back, if it holds anything back', 'seg': 'pick(restriction_target)'},
+        {'key': 'targets_own_behavior', 'label': 'Aimed at your own target or goal behavior', 'pts': '1'},
+        {'key': 'consequence_asserted', 'label': 'The consequence is asserted to follow from the behavior', 'pts': '1'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    'NP': [
+        {'key': 'names_behavior', 'label': 'Names a behavior of yours the plan acts on', 'gate': True, 'seg': 'unclear'},
+        {'key': 'names_stimulus', 'label': 'Names what is added or taken away', 'gate': True, 'seg': 'unclear'},
+        {'key': 'contingent', 'label': 'The consequence depends on that behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'follows_behavior', 'label': 'The consequence arrives after the behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'you_arrange_it', 'label': 'Something you arrange, not an automatic result', 'gate': True},
+        {'key': 'observed_type', 'label': 'Which of the four types this example shows', 'seg': 'pick(operant_or_none)'},
+        {'key': 'demonstrates_type', 'label': 'Your example demonstrates Negative Punishment', 'pts': '2'},
+        {'key': 'targets_unwanted_behavior', 'label': 'Aimed at decreasing your unwanted behavior', 'pts': '2'},
+        {'key': 'phrased_directly', 'label': 'Phrased directly rather than by what is avoided'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    'NR': [
+        {'key': 'names_behavior', 'label': 'Names a behavior of yours the plan acts on', 'gate': True, 'seg': 'unclear'},
+        {'key': 'names_stimulus', 'label': 'Names what is added or taken away', 'gate': True, 'seg': 'unclear'},
+        {'key': 'contingent', 'label': 'The consequence depends on that behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'follows_behavior', 'label': 'The consequence arrives after the behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'you_arrange_it', 'label': 'Something you arrange, not an automatic result', 'gate': True},
+        {'key': 'observed_type', 'label': 'Which of the four types this example shows', 'seg': 'pick(operant_or_none)'},
+        {'key': 'demonstrates_type', 'label': 'Your example demonstrates Negative Reinforcement', 'pts': '2'},
+        {'key': 'targets_goal_behavior', 'label': 'Aimed at increasing your goal behavior', 'pts': '2'},
+        {'key': 'restriction_authored', 'label': 'Whether the undesirable thing was created by the plan or was already there', 'seg': 'pick(authorship)'},
+        {'key': 'trigger_expects', 'label': 'Which way a working plan would run from your condition', 'seg': 'pick(valence_or_none)'},
+        {'key': 'restricts', 'label': 'What the plan holds back, if it holds anything back', 'seg': 'pick(restriction_target)'},
+        {'key': 'barrier_is_not_this_type', 'label': 'Not a restriction the plan sets up that your success then lifts', 'pts': '2'},
+        {'key': 'phrased_directly', 'label': 'Phrased directly rather than by what is avoided'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    'PP': [
+        {'key': 'names_behavior', 'label': 'Names a behavior of yours the plan acts on', 'gate': True, 'seg': 'unclear'},
+        {'key': 'names_stimulus', 'label': 'Names what is added or taken away', 'gate': True, 'seg': 'unclear'},
+        {'key': 'contingent', 'label': 'The consequence depends on that behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'follows_behavior', 'label': 'The consequence arrives after the behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'you_arrange_it', 'label': 'Something you arrange, not an automatic result', 'gate': True},
+        {'key': 'observed_type', 'label': 'Which of the four types this example shows', 'seg': 'pick(operant_or_none)'},
+        {'key': 'demonstrates_type', 'label': 'Your example demonstrates Positive Punishment', 'pts': '2'},
+        {'key': 'targets_unwanted_behavior', 'label': 'Aimed at decreasing your unwanted behavior', 'pts': '2'},
+        {'key': 'phrased_directly', 'label': 'Phrased directly rather than by what is avoided'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    'PR': [
+        {'key': 'names_behavior', 'label': 'Names a behavior of yours the plan acts on', 'gate': True, 'seg': 'unclear'},
+        {'key': 'names_stimulus', 'label': 'Names what is added or taken away', 'gate': True, 'seg': 'unclear'},
+        {'key': 'contingent', 'label': 'The consequence depends on that behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'follows_behavior', 'label': 'The consequence arrives after the behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'you_arrange_it', 'label': 'Something you arrange, not an automatic result', 'gate': True},
+        {'key': 'observed_type', 'label': 'Which of the four types this example shows', 'seg': 'pick(operant_or_none)'},
+        {'key': 'demonstrates_type', 'label': 'Your example demonstrates Positive Reinforcement', 'pts': '2'},
+        {'key': 'targets_goal_behavior', 'label': 'Aimed at increasing your goal behavior', 'pts': '2'},
+        {'key': 'stimulus_move', 'label': 'Whether the thing is given or taken away, and whether it is wanted', 'seg': 'pick(move)'},
+        {'key': 'phrased_directly', 'label': 'Phrased directly rather than by what is avoided'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    'WK1': [
+        {'key': 'names_behavior', 'label': 'Names a behavior of yours the plan acts on', 'gate': True, 'seg': 'unclear'},
+        {'key': 'names_stimulus', 'label': 'Names what is added or taken away', 'gate': True, 'seg': 'unclear'},
+        {'key': 'contingent', 'label': 'The consequence depends on that behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'follows_behavior', 'label': 'The consequence arrives after the behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'you_arrange_it', 'label': 'Something you arrange, not an automatic result', 'gate': True, 'seg': 'unclear'},
+        {'key': 'observed_type', 'label': 'Which of the four types this actually is', 'seg': 'pick(operant_or_none)'},
+        {'key': 'phrased_directly', 'label': 'Phrased directly rather than by what is avoided'},
+        {'key': 'named_type', 'label': 'Which of the four you said you would use', 'seg': 'pick(operant_or_unclear)'},
+        {'key': 'cadence_is_weekly', 'label': 'Checked against the week rather than each day', 'gate': True},
+        {'key': 'matches_chosen_type', 'label': 'Matches your first chosen type', 'pts': '2'},
+        {'key': 'agent_delivers_consequence', 'label': 'A person is named who adds or removes the thing', 'gate': True},
+        {'key': 'trigger_behavior', 'label': 'Which behaviour must happen, or fail to happen, for the consequence to arrive', 'seg': 'pick(trigger_target)'},
+        {'key': 'targets_own_behavior', 'label': 'Aimed at your own target or goal behavior', 'pts': '1'},
+        {'key': 'consequence_asserted', 'label': 'The consequence is asserted to follow from the behavior', 'pts': '1'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+    'WK2': [
+        {'key': 'names_behavior', 'label': 'Names a behavior of yours the plan acts on', 'gate': True, 'seg': 'unclear'},
+        {'key': 'names_stimulus', 'label': 'Names what is added or taken away', 'gate': True, 'seg': 'unclear'},
+        {'key': 'contingent', 'label': 'The consequence depends on that behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'follows_behavior', 'label': 'The consequence arrives after the behavior', 'gate': True, 'seg': 'unclear'},
+        {'key': 'you_arrange_it', 'label': 'Something you arrange, not an automatic result', 'gate': True, 'seg': 'unclear'},
+        {'key': 'observed_type', 'label': 'Which of the four types this actually is', 'seg': 'pick(operant_or_none)'},
+        {'key': 'phrased_directly', 'label': 'Phrased directly rather than by what is avoided'},
+        {'key': 'named_type', 'label': 'Which of the four you said you would use', 'seg': 'pick(operant_or_unclear)'},
+        {'key': 'cadence_is_weekly', 'label': 'Checked against the week rather than each day', 'gate': True},
+        {'key': 'matches_chosen_type', 'label': 'Matches your second chosen type', 'pts': '2'},
+        {'key': 'aimed_correctly', 'label': 'The consequence points the right way for the type chosen', 'gate': True, 'seg': 'unclear'},
+        {'key': 'states_a_contingency', 'label': 'A condition on your behavior, a clause granting or withholding something, and the consequence delivered afterwards', 'gate': True},
+        {'key': 'trigger_expects', 'label': 'Which way a working plan would run from your condition', 'seg': 'pick(valence_or_none)'},
+        {'key': 'restriction_authored', 'label': 'Whether the undesirable thing was created by the plan or was already there', 'seg': 'pick(authorship)'},
+        {'key': 'consequence_not_a_setup', 'label': 'Not a restriction the plan sets up that your success then lifts', 'gate': True},
+        {'key': 'restricts', 'label': 'What the plan holds back, if it holds anything back', 'seg': 'pick(restriction_target)'},
+        {'key': 'targets_own_behavior', 'label': 'Aimed at your own target or goal behavior', 'pts': '1'},
+        {'key': 'consequence_asserted', 'label': 'The consequence is asserted to follow from the behavior', 'pts': '1'},
+        {'key': 'confident', 'label': 'All judgments confident'},
+    ],
+}
