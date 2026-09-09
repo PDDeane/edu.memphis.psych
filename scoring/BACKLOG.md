@@ -746,6 +746,39 @@ Series2" is the spreadsheet default the student left in place, which is why
 gold charges the legend. p2, p10 and p11's titles are plain text and were left
 untouched by the extractor, as intended.
 
+## Q6/p1's c-boxes hold the wrong item's consequence — NOT repaired, note it against the next re-freeze
+
+Found 2026-09-07 by subgoal Q49's fixture readout, reading all 20 Q6 cells' boxes
+against the `.docx`. It is the only real mis-assignment the readout found; the
+other eight boxes it flagged turned out to be the declared same-element overlap or
+faithfully empty.
+
+The student wrote two numbered items. As cut:
+
+| box | holds |
+| --- | --- |
+| `state_a1` | "I am going to change my streaming service usage" |
+| `change_a1` | "by dedicating one hour a day to it **and by doing that I would not get stuck binging shows.**" |
+| `state_c1` | "I believe that would give me more time to sleep by doing this." — **item 2's sentence** |
+| `state_c2` | EMPTY — although item 2 has exactly that sentence |
+| `change_a2` | repeats `state_a2`'s sentence before adding its own |
+
+So item 1's own consequence is welded into `change_a1`, and item 2's consequence
+sits in item 1's c-box while item 2's is empty.
+
+**Why it is not being fixed.** Q6/p1 is **perfect, 12 of 12**: the scrambled boxes
+produce the right score, and gold's charge is on the FIRST consequence twice
+(-1.25 state, -1.25 affect) which our engine lands. All four fixture audits pass
+clean on Q6 — disjointness, coverage, agrees-with-gold, holds-the-students-words —
+because coverage holds: item 1's consequence IS assigned, just to `change_a1`.
+Only the assignment is arguable, and Q6's fixture is the frozen 10-run consensus
+whose churn already invalidated two published comparisons. Right for the wrong
+reason is worth writing down; it is not worth risking a perfect cell on the item
+with nine reverted wordings behind it.
+
+Same disposition, and the same reasoning, as project memory
+`q4a-p18-duplicate-antecedent`.
+
 ## The enumerator defect survives in 20 boxes of three declared items
 
 Swept after the six-item audit closed, with a pattern that catches what the

@@ -790,6 +790,384 @@ occasionally.
 
 ---
 
+## 2a-1. NEVER LET A SLICE-BOUNDED EDIT CHOOSE ITS OWN END
+
+**Every programmatic edit to a `.py` file in this package goes through
+`editguard.safe_write(path, text, dropping=())`.** It refuses the write if a
+top-level definition or `Class.method` would disappear without being named in
+`dropping`, and refuses just as hard if a name you DECLARED you were dropping is
+still there afterwards -- that means the edit landed somewhere other than where
+it was aimed.
+
+**This is not a style preference. It is the third occurrence in two days.**
+
+| the edit | what it ate | how it was found |
+|---|---|---|
+| rewrite `GOLD_CODE_KNOWN`'s NR/11 entry, sliced to "the next dict key" | the closing brace, a comment, and `GOLD_SLOT_BOUNDS_KNOWN`'s declaration | a NameError in `--preflight`, days later |
+| the same slice | `GOLD_SLOT_BOUNDS_BUDGET` | the next `--preflight` run, after the table had been "restored" |
+| replace `probe.py`'s helpers, sliced by index to the next anchor | `_slot_aliases`, `_OPERANT_GATE` | seconds, by luck: the next command imported the module |
+
+**The file parsed every time.** `ast.parse` proves syntax, not survival, and a
+module that parses while missing a table is worse than one that will not import
+at all -- the first symptom of the `GOLD_SLOT_BOUNDS_KNOWN` loss was
+`GOLD_CODE_KNOWN` loading seven keys instead of five, which WAS noticed, called
+unexplained, and moved past. Anything unexplained in a declaration table is a
+deletion until proven otherwise.
+
+**Two layers, and both are needed.** `safe_write` cannot see an edit made by any
+other route, so `DEFINITIONS.json` holds the inventory of record (1044 names
+across 43 modules) and `enforcement.check_no_definition_vanished()` **refuses a
+sweep** when a recorded name is gone. Removing something on purpose is one
+command per name: `python3 editguard.py --accept MODULE NAME`, which itself
+refuses if the name is still defined. There is no bulk regenerate, for the same
+reason `DESIGNED_TEXT_SHA.json` has none.
+
+**Prefer an anchored replace to a slice at all.** `s.replace(exact_old, new, 1)`
+guarded by `assert s.count(exact_old) == 1` cannot run past its own end. Reach
+for index arithmetic only when the region has no unique boundary, and then read
+what sits between the two ends before writing.
+
+## 2a-4. BEFORE CLOSING A GOAL, ASK WHAT THE CLOSURE WOULD DROP
+
+**Run `measured.orphans_if_closed("<label>")` BEFORE the closure, re-home whatever
+it lists, close, then run the two owner checks again to confirm.** All three
+steps: the first is the only one that can see the problem, the last is the only
+one that can prove it is gone.
+
+**Why the obvious check does not work.** `wrong_cells_without_an_owner` and
+`unstable_cells_without_an_owner` ask whether an OPEN subgoal names a cell. The
+entry you are about to close is still open and still naming its cells, so both
+read ZERO and the closure looks clean -- then they name the orphans a minute
+later, once the record is already inconsistent. This caught the same person twice
+on 2026-09-07: subgoal E45's closure dropped Q5/p9 that way, and subgoal Q19's
+dropped six cells, TWO OF THEM WRONG.
+
+**And do not answer it with a regex over the entry's prose.** Tried the same day,
+repeatedly, and wrong every time: a pattern over `Item/pN` citations said Q16,
+Q18 and Q33 named 1, 2 and 6 cells and that none of ten at-risk cells was among
+them -- preflight named all ten within minutes; it said only WK2/p15 was
+sole-owned by E55 and missed PR/p15, a WRONG cell; and it said WK2/p8 was
+sole-owned by Q40 when subgoal Q55 names it too. Entries cite cells in per-item
+tables the pattern cannot see (§2a-3).
+
+**A cell can also be orphaned by getting BETTER.** Q4b/p1 improved from 6 of 12 to
+11 of 12 in a re-sweep and lost its owner, because the entries discussing it were
+discussing a 6-of-12 cell. The checks ask "is anyone responsible", not "did the
+reason someone was responsible go away", so a re-sweep is a second moment to run
+them.
+
+## 2a-3. USE THE PREPARED CLASSIFIER, NOT A NONCE ONE
+
+**If a function in this package already answers the question, call it. Do not
+write a regex over prose to re-derive what a checked, fire-tested reader already
+computes.** The user made this standing procedure on 2026-09-07, after three
+nonce classifiers of mine were wrong in a single afternoon and each one produced
+a confident, actionable, false answer:
+
+| nonce classifier | what it said | what was true |
+|---|---|---|
+| regex for gold's change-box charges (`did not say how`) | Q6/p1 and p6 are charged on that axis | neither is -- p1's four charges are all about CONSEQUENCES, p6's are matching-4a. p6 is the exact cell a clause of mine had broken, and the classifier would have justified breaking it |
+| regex for "avoidance wording" in Q4b's behaviour boxes | 14 of 19 cells name an avoidance | the item's own TEMPLATE is "When I am not exercising, I am ..." -- the flag was matching the scaffold, not the entry |
+| regex for `Item/pN` citations, to find which goal owns a cell | Q16, Q18 and Q33 named 1, 2 and 6 cells, none of them the ten at risk | entries cite cells in per-item TABLES ("p10  gold ...") under an item heading, which the pattern cannot see. Closing those three orphaned TEN cells, and `--preflight` step 5e named all ten within minutes |
+
+**The prepared readers, and what each is the authority on:**
+
+| question | call this |
+|---|---|
+| is this cell wrong / unstable, and how often | `measured.cell_bands()` |
+| does any open subgoal own this cell | `measured.wrong_cells_without_an_owner()`, `measured.unstable_cells_without_an_owner()` -- run BEFORE a closure, not after |
+| is this cell declared, and by which table | `measured.declarations_for(item, pid)` |
+| what did a run actually answer | `cross_path.result_cell()` -- never a side's raw fields |
+| what question does the grader see | `probe.question_for(item, slot)` |
+| does this text leak corpus vocabulary | `leakage.gate()`, `word_findings()`, `verbatim_findings()` |
+| is this participant's input trustworthy **whatever the item** | `handouts.suspect(handout)` — handout-wide, and NOT the per-item answer |
+| is this cell dropped **on this item** | `measured.exclusions(item)` — wraps `PER_ITEM_EXCLUDE`; see the trap below |
+| does gold CREDIT this box, so a rule firing on it is a real cost | `measured.probe_falsifiers(item, slot)` |
+| which cells may a probe not read as evidence at all | `measured.probe_unusable(item)` |
+| the whole per-cell picture behind those two | `measured.gold_box_status(item)` |
+| does prose in the repo still match the ledger | `measured.prose_claims()` |
+
+**A PRE-REGISTERED SET IS A CLASSIFIER TOO, and typing it out by hand is the
+nonce version.** Added 2026-09-07, after a Q4c probe hand-typed `NAMED_FALSIFIERS`
+and `excluded` as literals in the script and got two things wrong at once:
+
+* It called **`handouts.suspect(1)`** for the dropped cells. That reader answers
+  *"participants whose input cannot be trusted, **whatever the item**"* and
+  returns `[]`. Q4c/p16 is dropped PER ITEM, and only `exclusions(item)` sees it,
+  so the probe ran 20 cells while calling it 19 and quoted an excluded cell.
+  **Across all of handout 1, Q4c is the only item where the two readers disagree**
+  — which is exactly why this survived: it is invisible on every other item.
+* It listed **Q4c/p4's first box as gold-credited**, so the rule firing there read
+  as a cost. Gold charges that box in its own words — *"specify what spending too
+  much time awake means as a consequence"* — and we already answer `wrong_kind`
+  on it 9 of 12 runs. Refusing it is **agreement**, and the probe reported it as
+  damage.
+
+`gold_box_status(item)` now classifies every cell as `excluded`, `no_gold`,
+`full_marks`, `charged_slots_known` or `charged_box_unknown`, and the last of
+those returns an **empty** credited set on purpose: when gold charges a cell and
+the phrase table cannot say which slot, **no box in it may be called credited**,
+because we do not know. An empty set means "we do not know", never "gold charged
+nothing" — the same distinction `gold_charged_slots` keeps by returning `None`.
+
+**Pass the slot.** `probe_falsifiers(item)` alone still lists the TARGET cell
+whenever some *other* slot of it is credited — Q4c/p9 is a key there, because gold
+charges both consequence boxes while its two remaining slots are fine. Read the
+pid list from `probe_falsifiers(item, slot)` instead.
+
+**Why a nonce classifier is worse than no classifier.** It answers in the same
+shape as the real one and carries none of the review. Every one of the three
+above was written to save a minute, produced a table that looked like evidence,
+and pointed the work at a wrong conclusion -- and two of them were caught only
+because a prepared check contradicted them afterwards. If no prepared reader
+exists and the question is worth asking twice, WRITE ONE and fire-test it, which
+is what `declarations_for` was on the same day.
+
+## 2a-1c. CLEAN UP THE SCRATCHPAD AS A STAGE OF THE CYCLE, NOT AFTERWARDS
+
+**A scratchpad copy of a package module is live ammunition.** A file named
+exactly `enforcement.py` or `agreement.py` in a working directory will be
+imported instead of the real one by any script that puts that directory first on
+`sys.path` — and it will not error, it will quietly answer with old code.
+
+**What it cost, 2026-09-07.** A script listing the queued probes did
+`sys.path.insert(0, SCRATCHPAD)` then `import enforcement`, and got a 09-05 copy
+**1425 lines shorter** than the live module. `DESIGNED_TEXT` was added after that
+copy was taken, so the traceback read *"module 'enforcement' has no attribute
+'DESIGNED_TEXT'"* — which looks exactly like a table someone had clobbered. Four
+shadows were sitting there: `agreement.py` (55 lines behind), `enforcement.py`
+(1425), `olx_prompts.py` (138), and `oc_grid.py` carrying a superseded
+`derive_oc_ledger` signature. A script importing any of them would have
+**measured old code and said nothing.**
+
+This is the same family as a stale idmap or an unregenerated `.olx`: *the thing
+you consulted was not the thing that ships.* Those two doors are already
+enforced — `check_idmap_is_current`, `prompt_sha` — and this is the third.
+
+**THE CYCLE HAS SIX STAGES, and the sixth is not optional:**
+
+1. build (from `DESIGNED_TEXT`, never a retyped string)
+2. `leakage.gate((ITEM,))` **on the built tree**
+3. `olx_prompts.py --write` — it REFUSES while a measurement is in flight, and
+   that refusal is correct; never `--force` past it
+4. confirm the text is in `measured._olx(h)` and `prompt_sha` MOVED — a rubric
+   edit alone ships nothing
+5. `faithful_probe.py ITEM <cells>` — the sweep's own envelope
+6. **keep or revert, then DELETE the snapshot and any module-named copy**
+
+**Name a snapshot so it cannot shadow.** `<module>.before_<tag>.py` or
+`<module>.pre_<tag>.py` — those basenames cannot satisfy an `import <module>`, so
+a cycle may hold one open until it keeps or reverts. An EXACT basename match never
+may. `enforcement.check_no_module_shadow_in_scratchpad` reports exact matches
+only, and is wired into the sweep gate: a sweep will not start while one exists.
+
+## 2a-1b. A PROBE MUST REPRODUCE THE LEDGER BEFORE ITS RESULT MEANS ANYTHING
+
+**Run the UNMODIFIED text in the probe's own envelope first, and require it to
+give the answers the ledger already records. If it does not, the probe is void
+and no edit may be attributed through it.** `probe.control_gate(item, slots,
+observed, runs=)` — 0 to trust, 1 to refuse — against
+`probe.recorded_answers(item, slots, cells)`.
+
+**Every other control in this package asks "is this the right STRING?"** —
+`DESIGNED_TEXT_SHA` (designed == shipped), `question_for` + `field_sha` (probed ==
+shipped), `prompt_sha` (baseline == measured). **None of them asks "is this the
+right PROMPT."** On Q4c the shipped assembled prompt is 9438 characters carrying
+twelve checklist lines — both consequence slots, the `keyword` advisory, the
+`no_consequences` gate, five deduction codes including the `C_NOT_CONSEQUENCE`
+charge gold actually levies on the target cell, and a `confident` slot. The
+`consequence_1` rule text is 1085 of those characters: **eleven per cent.** A
+probe that hand-builds an envelope around the correct string is asking a
+different question, and it will answer it confidently.
+
+**What it cost before the guard existed, all on 2026-09-07.** A retrospective
+gate over the recent probes (`scratchpad/retro_gate.py`, no calls) put **six of
+seven readable ones VOID**:
+
+| probe | non-target cell-slots that disagree with the ledger |
+|---|---|
+| Q44 route 5, subtract duplicate reasons | 8 of 19 — and the TARGET too: its envelope counted p6 at 4 where the shipped prompt counts 3 (8/12), so "does subtracting one duplicate take p6 from 3 to 2" was untestable in it |
+| Q44 earlier, the reasons count | 3 of 19, two at 12/12 |
+| Q40's `aimed_correctly` first text | 2 of 17, both at 12/12 — **but a SWEEP settled Q40** (WK2/p11 4/11 → 12/12), so the conclusion stands on sweep evidence, not on this probe |
+| Q47 engagement wording, 1st | 4 of 38 |
+| Q47 engagement wording, 2nd | 2 of 38 |
+| Q47 `change_a*` mirroring `affect_c*` | 2 of 10 |
+| Q47 engagement wording, 3rd | **0 of 38 — clean** |
+| Q56's habit head | 1 of 38 — p11/`consequence_2` `met` against the ledger's `duplicate` 12/12, on a cell no candidate touched. Independent of the A/B that first exposed it |
+| Q19's consequence boundary | 1 of 17 — the same p11 duplicate |
+| Q19's two Q4b report-slot arms | **NOT GATEABLE** — they probe CANDIDATE slots reverted out of the tree, so the ledger has no baseline (36 cell-slots of `None`). A probe of a NEW slot must be gated on an EXISTING slot measured in the same call |
+
+**`None` is absence, not a verdict.** `measured.slot_answer` returns `None` for a
+slot the shipped prompt never answered, and an early version of the gate stringified
+that into a baseline of `"None"` — which would have **falsely refused** every probe
+of a new slot. The gate now skips those and says so.
+
+**A disagreement does not prove the envelope drifted.** Either it drifted, or the
+candidate moved a cell the probe reported as held — and the probe's own falsifier
+report was then wrong. Both disqualify the verdict, which is why the gate is
+sound either way. Label such a probe "cannot support its verdict", not "envelope
+drift".
+
+**Two rules the gate itself has to follow.** A cell whose LEDGER answer is
+unstable cannot convict an envelope — four probe runs can differ from a pooled
+mode by sampling alone — so only a mode the shipped prompt holds at **75% or
+more** counts, and the rest are printed and skipped. And a probe that PASSES is
+not thereby correct: the envelope may still differ where the ledger is silent.
+Passing means *not disqualified*.
+
+**A VOID probe's verdict cannot be cited for or against anything, and that
+includes DEAD ON REACH** — an unfaithful envelope is exactly what manufactures a
+false negative. Q44's fifth route is **unmeasured, not dead**.
+
+## 2a-2. CHECK A PROPOSED RULE AGAINST ALL VALID GOLDS, BEFORE THE PROBE
+
+**Read gold's charge on EVERY valid cell of the item and write the two sets down
+-- the cells gold charges on your criterion, and the cells it credits -- before
+you word anything.** It costs no calls, it is the only thing that tells you what
+the rule is allowed to do, and on 2026-09-07 the user made it standing
+procedure after three edits in one day were measured against hand-picked cell
+sets.
+
+**What a hand-picked set hides.** Q19's report slot was probed on six cells,
+passed, swept, and fired on FOUR MORE the probe had never looked at -- p13, p16,
+p20, p8 -- one of which (p13) fell 4/12 to 0/12. The all-cells probe that found
+them cost 76 calls; the sweep that would have found them cost ~230. And the same
+free readout showed gold names that criterion exactly ONCE in the item, on p4,
+which is a standard no probe can give you.
+
+**Read the FULL gold text, never a summary and never a keyword match.** Two
+errors in one hour, both mine, both from not doing this:
+* Reading truncated one-line notes, I told the user "gold never charges that the
+  change is inadequate" on Q6 -- and Q6/p2's full note says the opposite in
+  gold's own words: *"Listening to music while working out does not change your
+  antecedent of playing video games and not wanting to stop."*
+* A regex for change-box charges matched `"did not say how"`, which also appears
+  in CONSEQUENCE charges, so p1 and p6 were reported as charged when neither is.
+  p6 is the exact cell a clause of mine had broken; the classifier would have
+  justified breaking it.
+
+**READ EACH CELL IN THE LIGHT OF THE DECLARATIONS, NOT AGAINST RAW GOLD.** The
+standard is gold AS AMENDED, and two tables amend it in opposite directions:
+
+| table | what it means for the expectation |
+|---|---|
+| `handouts.GOLD_DIVERGENCES` | **our answer is the endorsed one**; gold is the outlier. The cell must keep OUR verdict, so it is a FALSIFIER for any new rule -- a fire there is a regression |
+| `measured.GOLD_SLOT_DISAGREEMENTS_KNOWN` | recorded and ratcheted: acknowledged, NOT endorsed. Still a live target |
+| `CORRECTED_GOLD`, `GOLD_CODE_KNOWN`, `GOLD_SLOT_BOUNDS_KNOWN`, `SILENT_GOLD_DIVERGENCES`, `GOLD_CEILINGS` | each replaces or bounds the expectation for the cells it names -- read them all before writing the table |
+
+**Bought on 2026-09-07, in the same hour.** A rescore was proposed for Q6/p8 to
+bring it to gold's 2.5 -- and `A_NO_CHANGE` already declares OUR credit to be the
+reading we endorse, gold having applied the item's pedagogical point beyond the
+literal text. The proposal would have contradicted a standing declaration to
+chase a number, and it would have made a declared cell into a defect. Its
+neighbour p2 IS live, because p2 sits only in the ratchet table, which records a
+disagreement rather than blessing it. Same item, same criterion, opposite
+dispositions -- and nothing in the raw gold distinguishes them.
+
+**The output is a table, and it is the pre-registration.** One row per valid
+cell: what gold charges, what your criterion predicts, and whether they agree.
+Where they disagree, either the criterion is wrong or the cell is a gold
+divergence to declare -- and deciding which is cheaper before a sweep than after.
+Cells with NO gold are invalid for the check and must be named as such rather
+than quietly dropped.
+
+**Then probe on all valid cells, not on the interesting ones.** The probe's cell
+set should be the same set the table covers, so a fire anywhere shows up.
+
+## 2a0. PROBE BEFORE YOU SWEEP
+
+**Before spending a sweep on a new rule, slot or pick, ask the grader the
+question ON ITS OWN, on a handful of cells including the target, and see whether
+it can answer it at all.** A sweep costs ~230 calls per item and answers "did
+the item total move". A probe costs ~30 and answers the prior question — *will
+the grader even apply this?* — which is what most failed edits here actually
+died of.
+
+**GET THE QUESTION FROM `probe.question_for(item, slot)`. Never retype it.**
+That function lifts the string out of `olx_prompts.build_web_prompt()` -- the
+same call the sweep renders from -- so a probe cannot ask something the sweep
+will not. Retyping is what cost the Q19 sweep: a probe passed 23 of 24, the slot
+then shipped with a `desc` that dropped the question's comparison clause and
+turned a yes/no into a which-one, and the sweep over-fired on nine cells.
+Reconstructing the string by hand is not safer for being careful -- the checklist
+note is `rule` OR `SLOT_NOTES` OR `desc`, in that order, and on 20 of the 68
+asked slots the obvious `rule or desc` shortcut lifts the wrong text.
+
+**Both graders count.** A slot answered deterministically is measured on the
+sweep and judged in the ledger exactly like an LLM-answered one; only the grader
+differs. `question_for` returns `kind="derived"` for those, lifting the
+`expect`/`equals`/`derived`/`maps`/`forbid` clause from the shipping `.olx`, and
+`kind="composite"` for a rubric criterion the sheet answers under other names
+(the four `is_*` types, `is_operant_conditioning`'s five-part gate, the count
+aggregates behind `reason_*`/`sentence_*`/`example_*`). Probe a derived slot by
+EVALUATING its rule over the cells: no backend, no calls, no rate limit, which
+makes it the cheapest probe available and the one most worth writing. All 116
+credit slots resolve; none is unprobeable.
+
+**Then leave a receipt.** `probe.write_receipt(item, slot, q, cells=..., verdict=...)`
+records the sha of the string actually asked, and
+`enforcement.check_probe_receipts_match_shipping()` **refuses a sweep** whose
+probe measured text that no longer ships. A stale probe is worse than no probe,
+because it reads as evidence.
+
+**The failure a probe catches is REACH, and it is the common one.** On
+2026-09-06 three edits were measured and reverted in one day, and none of them
+was wrong about the text:
+
+| edit | what happened |
+|---|---|
+| Q45, `targets_goal_behavior` clause | target cell 5/12 → **5/12**; the clause never fired |
+| Q47's 11th, `change_a*_does` pick | fired, answered sensibly, sorted both targets into CREDITING categories |
+| Q19, `repeats_antecedent` value | target answered `activity` **12/12**; the new value never chosen |
+
+Each diagnosis was sound. Each cost a sweep to discover that the grader had a
+competing true reading and preferred it. A probe would have shown that for a
+tenth of the calls.
+
+**What a probe is.** A standalone script that sends the new question and the
+cell's own text through the SAME backend the app uses (`backends.make_backend
+("lo")`, gpt-5-mini via localhost), with a schema forcing the answer, N runs per
+cell. It touches NOTHING in the tree — no rubric edit, no `--write`, no `.olx`
+lock — so it cannot disturb a queued sweep and needs no revert.
+`scratchpad/probe_q4b_report.py` is the worked example.
+
+**Choose the cells the way a sweep chooses controls**: the target, plus the
+negatives that must NOT fire. A probe whose only cell is the target proves
+nothing — if the question is loose enough to fire everywhere it will fire on the
+target too.
+
+**How to read it, and the asymmetry is the point:**
+
+- **Fails on the target** → *decisive*. If the grader cannot answer correctly
+  with nothing else to do, it will not do better inside a checklist of ten
+  questions. Do not spend the sweep.
+- **Fires on a negative** → the definition is wrong, and that is free to fix and
+  re-probe.
+- **Passes** → *necessary, not sufficient*. The probe asks in ISOLATION; the
+  shipped prompt asks amid competing questions. A pass licenses the sweep; it
+  does not predict it.
+
+**PROBE THE EXACT STRING THAT WILL SHIP — not a paraphrase of the same
+question.** This is the one rule here bought with a wasted sweep. On 2026-09-06
+subgoal Q19's report slot was probed with a carefully written question and then
+built with a `desc` that dropped its comparison clause and turned a yes/no into
+a which-one. The probe passed 23 of 24; the sweep over-fired on nine cells and
+cost ~230 calls; and a re-probe with the SHIPPED string reproduced the failure
+standalone in 24. The probe was honest about the question it asked and the
+question it asked was not the one that shipped.
+
+So build the slot FIRST, render the prompt, and probe the rendered text — or at
+minimum diff the probe's string against the `desc` the checklist will show. And
+note WHICH field you probed: the grader answers the checklist line, which comes
+from `desc`; a `rule` rendered elsewhere in the criteria section is present and
+in the wrong place. A short desc plus a long rule is the house pattern and it is
+safe only when the short desc is self-contained.
+
+**It does not replace the free work that comes first.** Read the fixture, read
+the cell against its siblings, and check the prediction against the text — a
+prediction that fails on paper never needed a probe either. The order is:
+read, predict, probe, sweep.
+
 ## 2a. TRY THE STRUCTURAL FIX FIRST
 
 **When a cell resists, change the SHAPE of what the model is asked, not the
