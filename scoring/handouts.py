@@ -82,6 +82,36 @@ OUT = paths.OUT
 # applying it would have made p4 exact and turned p5 and p17 into misses, costing
 # us a cell. The reason to refuse it is the standard, not the score.
 CORRECTED_GOLD: dict[tuple[str, int], dict] = {
+    # 1c/p11, 2026-09-06. GOLD CONTRADICTS ITSELF HERE, and the correction does
+    # not need us to prefer our reading to the rater's -- it needs only the
+    # rater's own comment and the rater's own treatment of five sibling cells.
+    # THE COMMENT AND THE NUMBER DISAGREE. "-2 pts: missing x-axis title -2 pts:
+    # missing y-axis title. -1 pt: missing baseline data week" sums to -5, which
+    # is 5.00 out of 10. The recorded number is 7.00, which implies -3. One of
+    # the two is wrong on gold's own arithmetic.
+    # THE FIVE SIBLINGS SETTLE WHICH. p5, p6, p9, p10 and p16 carry the IDENTICAL
+    # comment -- both axis titles missing, nothing else -- with both fields empty,
+    # and every one of them scores 6.00. p11 carries those same two charges PLUS
+    # a third and scores HIGHER, which cannot be right whichever way the third
+    # charge is read. p12 carries the two plus more and scores 2.00, so the item's
+    # arithmetic runs the expected direction everywhere except here.
+    # THE THIRD CHARGE IS UNSUPPORTED TWICE OVER. `bmod_h3_baseline` holds seven
+    # values ({{corpus:1a/p6:baseline:0:19:sha=66e4f9120272}} 30), so the baseline week is present; and 1c HAS
+    # NO ONE-POINT CRITERION -- its five slots are 2.00 each and every deduction
+    # is 2.00 or 10.00, which is why 7.00 is the only unreachable gold in the
+    # item. No consistent rule could produce it and no slot could reproduce the
+    # charge, because the thing said to be missing is in the submission.
+    # WHAT IS **NOT** CLAIMED: that the axis charges are wrong. Both fields ARE
+    # empty, both charges stand, and the corrected score keeps them. Only the
+    # third charge is dropped.
+    ("1c", 11): {"was": 7.0, "score": 6.0,
+                 "why": "gold's own comment sums to -5 (5.00) against a recorded "
+                        "7.00 (-3), and five sibling cells with the identical "
+                        "two-axis comment all score 6.00. The extra -1 is for a "
+                        "criterion 1c does not have, charged against baseline "
+                        "data the submission contains, and it is what makes 7.00 "
+                        "the item's only unreachable gold. Both axis charges are "
+                        "supported and are kept."},
     ("1a", 11): {
         "was": 8.0, "score": 6.0,
         "why":
@@ -973,9 +1003,103 @@ def exemplar_drops(handout: int) -> dict[str, list[int]]:
 #                                      score them. A divergence is still scored;
 #                                      we just knowingly disagree.
 #
-# Q6/9 and Q1/20 appear here for the record and are also in PER_ITEM_EXCLUDE, so
-# they never reach a comparison. The other seven do.
+# CORRECTED 2026-09-07: THIS SAID Q6/9 AND Q1/20 ARE "also in PER_ITEM_EXCLUDE,
+# so they never reach a comparison". Neither is, and both do. PER_ITEM_EXCLUDE
+# has an EMPTY dict for Q6 and no Q1 key at all, and the ledger scores both cells
+# -- Q6/p9 at 11 of 12, Q1/p20 perfect. Nor is either of them in the list below:
+# its Q6 and Q1 entries are Q6/5, Q6/8 and Q1/9. So the sentence named the wrong
+# cells AND asserted an exclusion that does not exist, which is the worst
+# combination for a reader deciding whether a cell counts as evidence.
+# What is true: every cell in this list is still SCORED, and a divergence records
+# that we knowingly disagree with gold -- our answer is the endorsed one. That is
+# the opposite of an exclusion, and reading it as one led to a proposal on
+# 2026-09-07 to rescore Q6/p8 towards gold, against its own A_NO_CHANGE entry.
 GOLD_DIVERGENCES: list[dict] = [
+    # RE-INSTATED 2026-09-07 on the user's instruction, after the retraction
+    # below was FALSIFIED BY MEASUREMENT. It was retracted 2026-09-05 saying "the
+    # rule now carries it, so there is nothing left to declare"; the rule does
+    # not carry it -- `consequence_2` answers `met` 12 of 12 and the cell scores
+    # 5.00 against gold's 3.00, deterministically, on both sides.
+    # THREE HYPOTHESES DIED ON IT, all measured, so a fourth should read these
+    # first:
+    #   (1) ENDPOINT-PRESENT ("the entry says what it leads to") -- killed free by
+    #       an all-golds readout: ELEVEN cells gold gives full marks also state no
+    #       endpoint in the second box, so that is not the discriminator.
+    #   (2) STATE-versus-ACTIVITY -- read cleanly across all nineteen valid cells
+    #       and then failed its probe (76 calls): the target answered `wrong_kind`
+    #       1 of 4, and it credited p9 where gold charges -4 and cost p11 its
+    #       `duplicate` in 3 of 4.
+    #   (3) The shipped rule itself, at 0 of 12.
+    # WHY NO RULE REACHES IT, from the grader's own words on the probe: it
+    # classifies the box CORRECTLY as an activity and then credits it because "it
+    # explicitly states what lack of sleep leads to" -- satisfying the activity
+    # clause's escape FROM THE BOX'S OPENING FRAME, "{{corpus:Q4c/p20:second:0:29:sha=2fe8e7695f70}}
+    # {{corpus:Q4c/p19:first:23:46:sha=cafc57786aaa}} ...". Every box on this item opens that way because
+    # the item asks for consequences, so the escape is satisfied by the prompt's
+    # own scaffolding on all twenty cells.
+    # AND OUR CREDIT IS THE ANSWER CONSISTENT WITH GOLD'S OWN TREATMENT, which is
+    # what makes this a divergence rather than a ceiling: the 2026-09-05
+    # retraction itself recorded that "p7, p2 and p12 reach their consequence
+    # through an unstated step and are credited". Gold demands directness here and
+    # waives it three times elsewhere; finishing work late IS a consequence of not
+    # sleeping. We keep the credit.
+    {
+        "code": "DISTAL_CONSEQUENCE_CHARGED_ONCE", "cells": [("Q4c", 20)],
+        "why": (
+            "gold charges the second example -2 for needing \"more explanation on "
+            "how your second example is a direct consequence of lack of sleep\", "
+            "and credits the same unstated-step shape on p2, p7 and p12. The "
+            "demand is a sufficiency-of-EXPLANATION judgement applied once in "
+            "twenty cells; three measured attempts to capture it each failed, two "
+            "of them damaging cells gold credits. We credit the box and leave the "
+            "2 points unclaimed."),
+    },
+    # OFF_DOMAIN_CONSEQUENCE_CHARGED_ONCE (Q4c/p9) WAS RETRACTED 2026-09-05,
+    # within the hour it was written, for the same reason as the note below.
+    # It argued that gold contradicts itself between p9 ("Gaining bad eating
+    # habits", charged) and p2 ("{{corpus:Q4c/p2:second:42:88:sha=3333293295bd:shape=C36fe00000000}}
+    # GAINING WEIGHT", credited) -- same behaviour domain, same off-domain
+    # content, opposite verdicts. THE DOMAIN IS NOT THE DIFFERENCE: p2 states
+    # where the activity LEADS and p9 does not, which is subgoal Q19's endpoint
+    # head. Both cells are decided by the rule, so neither is a divergence.
+    # THE RETRACTION WAS ITSELF REFUTED 2026-09-07 and the divergence is
+    # RE-INSTATED below. p2 was the only comparator it tested, and p2 is the one
+    # off-domain cell that DOES carry an endpoint. Read against all nineteen
+    # valid cells, p8's first box is p9's exact shape with no endpoint at all --
+    # "{{corpus:Q4c/p8:first:53:110:sha=0463b65e03dd}} games" for a
+    # lack-of-exercise UTB -- and gold gives p8 full marks. A retraction tested
+    # against one comparator records a rule that may not exist, which is the
+    # mirror of the lesson recorded below for p20.
+    # DISTAL_CONSEQUENCE_CHARGED_ONCE (Q4c/p20) WAS RETRACTED 2026-09-05, the
+    # same day it was filed, and the retraction is the useful record. It rested
+    # on "gold does not apply DIRECTNESS consistently" -- true, and the wrong
+    # frame. p7, p2 and p12 reach their consequence through an unstated step and
+    # are credited, which refutes a directness test but says nothing about what
+    # gold IS doing. Under the frame subgoal Q19 found -- a STATE the student
+    # ends up in, or another ACTIVITY rescued by being taken up in the
+    # behaviour's place or by a stated endpoint -- those three are credited by
+    # the endpoint head and p20 is charged, with no inconsistency anywhere. The
+    # rule now carries it, so there is nothing left to declare.
+    # THE LESSON: refuting one candidate rule is not evidence that the criterion
+    # is unwinnable. It is evidence about that candidate. A divergence filed on
+    # the strength of a single refutation records a ceiling that may not exist.
+    # THE RE-INSTATEMENT WRITTEN HERE ON 2026-09-07 WAS WITHDRAWN THE SAME HOUR,
+    # under one question from the user -- "is it really a true gold divergence?"
+    # It rested on p8, p17 and p10 being p9's shape and silently credited. THEY
+    # ARE NOT: every one of them is what the student does IN THE TIME NOT
+    # EXERCISING FREES -- games, the phone, laziness -- which is the activity
+    # clause's case (a), and p10 states where it leads as well. p9's box is not.
+    # AND THE STUDENT'S OWN WORD SETTLES IT: "{{corpus:Q4c/p9:first:0:32:sha=1ff07498db12:shape=Cf8000000}}
+    # not exercising" asserts something CONCURRENT with the behaviour, not
+    # following from it, which is exactly what gold charges -- "consequences are
+    # a direct result of engaging in your UTB". Gold is right on this box; we
+    # credit it by reading a HABIT as a STATE, and the state branch then forbids
+    # asking where it leads. THAT IS A LIVE RULE ROUTE, NOT A CEILING, and it is
+    # recorded in subgoal Q56. TWICE-LEARNED LESSON, both directions in one
+    # afternoon: a divergence argued from a comparator set is only as good as the
+    # comparators, and silent full marks are the weakest evidence in the corpus
+    # -- they were read here as gold ACCEPTING a shape, which is weaker still
+    # than the reverse reading `silent_full_marks_we_refuse` is careful about.
     {
         "code": "GARBLED_CLAUSE_READ_LITERALLY",
         "cells": [("Q1", 9)],
@@ -1119,6 +1243,79 @@ GOLD_DIVERGENCES: list[dict] = [
                "incumbent wording is the only one carrying none of it.",
     },
     {
+        "code": "FAILURE_TO_ACT_CREDITED", "cells": [("Q4b", 13)],
+        # DECLARED 2026-09-08. The warrant is the ITEM'S OWN criterion, not a
+        # judgement of ours, and it does not depend on which failing category
+        # the grader picks -- `maps` sends everything but `activity`/`none` to
+        # `wrong_kind`, so the verdict alone cannot say, and all three
+        # candidates are independently warranted by the same rule:
+        #   `not_doing`       case (5), quoted in full below
+        #   `goal_behaviour`  case (2), "you cannot do something instead of
+        #                     itself ... if the goal is to sleep enough,
+        #                     sleeping in the car is not something done instead
+        #                     of sleeping" -- trying and failing to sleep is
+        #                     that same displacement
+        #   `consequence`     case (1), a state they ended up in
+        #
+        # WHAT IS MEASURED, AND WHAT CHANGED. The ledger already answered
+        # `behavior_2 = wrong_kind` on 3 of 12 runs BEFORE any edit: the
+        # criterion was firing, inconsistently. Adding Q4b's antecedent
+        # classifiers (`a1_kind`/`a2_kind`, the eighth attempt on
+        # ANTECEDENT_REUSED_AS_BEHAVIOR) took it to 8 of 8 across two prompt
+        # lengths, and an isolation arm with the pointing slots REMOVED showed
+        # the classifiers alone do it -- they prime the act-versus-state
+        # distinction that case (5) turns on. So this declares a criterion
+        # applied CONSISTENTLY, not a new judgement.
+        #
+        # WHAT IS NOT CLAIMED, because two standards exist and this rests on
+        # the weaker-known one. p13 is NOT an outlier by
+        # `measured.py --silent-refusals`, which names p12 on this item and not
+        # p13. It is also the ONLY cell in the corpus whose second box names an
+        # inability, so there is no comparison class and the OUTLIER route to a
+        # declaration is unavailable. The warrant is criterion-consistency --
+        # the same basis on which DISTAL_CONSEQUENCE_CHARGED_ONCE was
+        # re-instated.
+        #
+        # WHAT WOULD FALSIFY IT: a cell whose box names a failure to act and
+        # which gold CHARGES. That would show gold applies case (5)
+        # inconsistently rather than waiving it, and this entry should be
+        # withdrawn. Checked: p13 is the only such box, so this entry is
+        # unfalsified and untested at the same time. Say so rather than let a
+        # reader discover it.
+        #
+        # AND READ THIS BEFORE TRUSTING THE CASE ATTRIBUTION: `b1_basis` and
+        # `b2_basis` are PICKS, and their answers appear in NEITHER `verdicts`
+        # NOR `refers_to` in any of the five probe artifacts -- 0 of 20 runs.
+        # `maps` must read them at scoring time, so they exist; they are simply
+        # not recorded. The specific case above is therefore INFERRED from the
+        # `maps` fallback and the box's text, never read from the record. That
+        # blindness is what made p13 take three passes to diagnose.
+        #
+        # THE ACCOUNTING, stated because a declaration that improves a number
+        # deserves the scrutiny: this converts the eighth attempt from +1/-1 to
+        # +1/-0. We are declaring a cell BECAUSE we changed the prompt and it
+        # moved. The defence is that the criterion was already firing there a
+        # quarter of the time, on a box its own case list describes.
+        "why": "p13's second box reads \"{{corpus:Q4b/p13:second:0:36:sha=663fea98fdb0:shape=R36-0-20}}"
+               "{{corpus:Q4b/p13:second:37:95:sha=9e808d72ac6a:shape=R39-1-27,R58-0-20}}"
+               "{{corpus:Q4b/p13:second:96:109:sha=be63db751856}} ADHD.\" The criterion `behavior_2` applies is "
+               "\"Second example of what they do INSTEAD OF the goal "
+               "behavior\", and `b*_basis`'s rule enumerates the failing "
+               "cases. Case (5), verbatim: \"NAMING A FAILURE TO ACT IS NOT "
+               "NAMING A SUBSTITUTE. 'I procrastinate', 'I avoid going', 'I "
+               "neglect it', 'I put it off' all describe the goal behaviour NOT "
+               "happening; they do not say what the student was doing in that "
+               "time, which is what the question asks. Credit the concrete "
+               "activity if the entry names one alongside the avoidance, and "
+               "treat the not-doing as failing the test.\" The box names the "
+               "goal behaviour not happening and no concrete activity alongside "
+               "it. And case (5)'s own example vocabulary is this student's: "
+               "p13's SECOND ANTECEDENT literally reads \"i procrastinate\". "
+               "Gold gives the cell 5.00 in silence; we answer 3.50, charging "
+               "`behavior_2` 1.5. Gold waives its own rule here, whichever of "
+               "the three failing categories the box is read under.",
+    },
+    {
         "code": "ANTECEDENT_REUSED_AS_BEHAVIOR", "cells": [("Q4b", 4)],
         # p4 is a SECOND Q4b disagreement and it is NOT a ceiling, though this
         # file said it was for one commit. Gold charges a criterion the rubric
@@ -1171,7 +1368,234 @@ GOLD_DIVERGENCES: list[dict] = [
                "while misfiring on p6 and p20 (spread 4), and a guidance clause "
                "fixed p4 but broke p1, p14 and p16 on surface wording and took the "
                "spread to 5. Both times the model matched the 4a SENTENCE rather "
-               "than the trigger in it.",
+               "than the trigger in it. "
+               "A SEVENTH WAS MEASURED 2026-09-08, 80 CALLS, AND IT IS THE "
+               "FIRST TO REACH ITS TARGET. Two scored slots `b1_points_at`/"
+               "`b2_points_at`, verdicts `neither`/`first`/`second` with "
+               "`neither` first and satisfying, pts 1.5 each, charged only where "
+               "`onlyif` says the box otherwise earned its point. p4 answered "
+               "`b1=second`, `b2=first` -- CROSSED, 4 of 4 -- which is exactly "
+               "the shape p4 has and which no earlier attempt achieved. "
+               "AND IT STILL LOST SIX CELLS TO GAIN ONE. Counting `onlyif` "
+               "suppression properly: gain p4; lose p1, p11, p13, p15, p16 "
+               "(-3.0, both boxes) and p17. FOUR OF THE SIX ARE PERFECT CELLS. "
+               "`onlyif` DID work -- it protected p5, p6, p8, p10 and p20, whose "
+               "answers fired on boxes already failing their basis and cost "
+               "nothing, so the probe's own 11 'misses' over-counted the damage "
+               "by five. "
+               "THE CEILING IS NOW ARITHMETIC, NOT A LEXICAL PREDICTION. Gold "
+               "charges the repeat on exactly TWO cells in the corpus -- p2 "
+               "(\"-1.5 pts: Your second behavior (video games) is the same as "
+               "your second antecedent\") and p4 (\"-3 pts: your behaviors "
+               "cannot be the same as your antecedents\") -- and p2 HAS NO GOLD "
+               "SCORE. So the maximum any pointing rule can ever gain is ONE "
+               "CELL, on an item at 17/19, while permanently exposing the cells "
+               "gold credits to a 1.5 charge gold levies nowhere. That is the "
+               "reason to stop, and it holds against every future wording. "
+               "DO NOT READ THE TARGET OFF `gold_box_status`: it attributes p4's "
+               "3.0 to behavior_1/behavior_2 because B_NOT_ACTIVE and B_REPEATS "
+               "both cost 1.5, so the arithmetic cannot separate them and the "
+               "phrase table lands on the wrong pair. Reading the classifier "
+               "instead of gold's words produced a confident \"this rule has no "
+               "target in the corpus\", which was wrong. "
+               "WHY THE SIX FAILED, and it confirms this entry's own diagnosis a "
+               "third time: every false positive shares a TOPIC OR OBJECT with "
+               "its antecedent while occupying a different ROLE -- p1 friends, "
+               "p13 and p15 the phone, p11 asthma symptoms. The antecedent is "
+               "what prompts; the box is what the student does. p4 is the "
+               "opposite shape, the antecedent being ITSELF the activity the box "
+               "restates near-verbatim. The desc stated the principle (\"pick "
+               "out THE SAME THING\") and never operationalised it, so the "
+               "grader matched subject matter. "
+               "AND THE FIGURE THIS ENTRY GAVE FOR THAT IS TOO STRONG. It says "
+               "p4 \"is the ONLY one who names an ordinary activity\". Reading "
+               "all 40 antecedents out on 2026-09-08: about EIGHT name an act -- "
+               "p2a2 \"always playing video games\", p3a2 \"I would just not "
+               "eat\", p4a2 \"scrolling through tiktok\", p5a1 \"I keep "
+               "unhealthy snacks nearby\", p8a1 \"stay {{corpus:Q4a/p8:first:95:114:sha=8b51760794ea}} "
+               "games\", p13a1 \"I {{corpus:Q4a/p13:first:16:34:sha=316654111512}} phone\", p13a2 \"i "
+               "procrastinate\", p20a2 \"waking up late and forgetting "
+               "items\". The rest are states, feelings, circumstances or "
+               "absences. The claim was inherited and requoted without being "
+               "re-read, which is the drifted-quantity fault this project keeps "
+               "finding: `goals.py --citations` verifies that a citation "
+               "RESOLVES, never that its NUMBER is still true. "
+               "THE CORRECTED FACT IS STILL THE SAME ARGUMENT, and sharper. The "
+               "identity question is only MEANINGFUL where the antecedent names "
+               "an ACT: on the other ~32 the two texts belong to different "
+               "CATEGORIES, so \"is this the same thing?\" has no literal "
+               "answer and the grader falls back on shared topic -- which is "
+               "exactly what p1 (friends), p13/p15 (the phone) and p11 (asthma) "
+               "did. And gold charges the repeat only where BOTH hold: the "
+               "antecedent is an act AND the box restates that act. Eight cells "
+               "satisfy the first, two satisfy both. "
+               "SO AN EIGHTH ATTEMPT MUST BE CATEGORICAL, NOT BETTER PROSE: "
+               "classify the ANTECEDENT with a pick, the way `b1_basis` already "
+               "classifies the box, and ask about identity only where the "
+               "category permits it. That is the `structural before wording` "
+               "rule, and no rewording can substitute for it -- five of the "
+               "seven attempts so far were rewordings and all five matched on "
+               "topic. It would still be worth at most one cell. "
+               "REVERTED CLEAN: prompt_sha back to 3d38d258ebc0, the pre-attempt "
+               "value, so Q4b's 17/19 measurement stands rather than going "
+               "stale; slots, deduction, onlyif, DESIGNED_TEXT and both sha "
+               "entries all removed. "
+               "TWO MORE WERE MEASURED 2026-09-07, MAKING FOUR, and neither "
+               "attempt knew this entry existed -- which is the real finding, and "
+               "is why `measured.declarations_for` and the gate's declared-cell "
+               "listing now exist. THIRD: a report-slot pair "
+               "(`b1_names_antecedent`/`b2_names_antecedent`) routing to "
+               "`repeats_antecedent`, probed on six cells (clean) and SWEPT -- p4 "
+               "went 0/12 to 12/12 scoring gold exactly, and it fired on p13 "
+               "(which FELL 4/12 to 0/12), p16, p20 and p8, the item down 3 "
+               "against its pre-sweep baseline. FOURTH: three further wordings "
+               "probed on ALL 19 valid cells, FOUR of them, and the arms are "
+               "named because two of them were nearly confounded: (a) "
+               "DISPOSITION PLUS SAMENESS, fires p13 4/8, p20 3/8, p8 1/8 -- "
+               "three cells, the best of the four; (b) the VERBATIM base plus "
+               "a report-framing sentence and WITHOUT (a)'s clauses, five "
+               "cells: p13 4, p20 4, p8 3, p15 3, p16 1; (c) (a) PLUS that "
+               "same framing sentence, which is the arm that isolates it -- "
+               "four cells: p13 4, p20 4, p1 2, p8 1. COMPARING (b) WITH (a) "
+               "SUGGESTED THE FRAMING HAD OVERRIDDEN THE DISPOSITION CLAUSE "
+               "AND BROKEN p15; (c) REFUTES THAT -- p15 stays at 0/8 with both "
+               "present, so (b)'s p15 was the MISSING disposition clause and "
+               "not interference. The framing is mildly harmful and additive, "
+               "costing p1 and a run of p20. And (d) STRICT IDENTITY -- the test made "
+               "word-level rather than thematic, on gold's own \"cannot be the "
+               "SAME as\" phrasing -- which held the target at 7 of 8, SILENCED "
+               "p20 and p16 (p20 had fired in every other arm AND in both prior "
+               "attempts), and still fired on p8 4/8, p13 2/8, p15 2/8 and p10 "
+               "1/8: four cells, against the best arm's three. THE PRIOR "
+               "DIAGNOSIS REPRODUCED EXACTLY: every wording matched the 4a "
+               "sentence's topic rather than the trigger in it -- \"being on my "
+               "phone\", \"late for classroom\", \"at home playing games\" -- and "
+               "p20 misfired in the earlier attempts too. FOUR IMPLEMENTATIONS, "
+               "ALL WORSE THAN NOT HAVING IT. "
+               "FIFTH IMPLEMENTATION 2026-09-08, AND IT WAS THE MECHANISM THIS "
+               "ENTRY ASKED FOR rather than a wording -- so the escape clause "
+               "has now been spent once. A SIXTH `b1_basis`/`b2_basis` value, "
+               "`a_listed_trigger`, added to the closed classification set the "
+               "two picks already answer, with `maps` converting it through its "
+               "existing `fallback: wrong_kind` so NO scoring language entered "
+               "the prompt and NO arithmetic changed. It asked the grader to "
+               "CLASSIFY among six competing categories instead of answering a "
+               "standalone \"does this repeat?\", which is what the diagnosis "
+               "above -- every wording matched the 4a SENTENCE rather than the "
+               "trigger in it -- says the four failures were. "
+               "MEASURED IN agreement.py'S OWN ENVELOPE (faithful_probe.py, 8 "
+               "cells x 4 runs), with the value verified present in the RENDERED "
+               ".olx body and not merely in the rubric: CHOSEN ZERO TIMES IN 32 "
+               "RESULTS. p4 unmoved at 3.5 against gold 2.00, `b1_basis` = "
+               "activity 4/4 and `b2_basis` = consequence 4/4, exactly as "
+               "before. AND NOT FREE: p13's `b2_basis` split three ways and "
+               "p20's wobbled, so the extra option and its prose destabilised "
+               "cells the value never touched. REVERTED, tree back to sha "
+               "3d38d258ebc0. "
+               "TWO BUILD DEFECTS COST TWO EARLIER RUNS OF THIS SAME PROBE: "
+               "`choices=` in the .olx was HAND-AUTHORED while the rule prose "
+               "was generated, so the first run offered five options while the "
+               "rule described six; and the second read the DESIGN view, which "
+               "leads the rendered body by one `--write` pass. `choices` is "
+               "generated from the rubric now and "
+               "`enforcement.check_pick_choices_match_rubric` catches the gap "
+               "before any call is spent. "
+               "STILL SETTLED, and now on stronger ground: a mechanism was "
+               "brought and it did not reach. A SIXTH attempt needs something "
+               "that changes what the grader can SEE, not how it is asked. "
+               "SUCH AN ATTEMPT IS DRAFTED AND BLOCKED, 2026-09-08, and the "
+               "blocker was found for ZERO CALLS by reading the primitive "
+               "instead of assuming it. THE DRAFT: show 4a's two antecedents "
+               "as a LABELLED list and have each behaviour box report WHICH it "
+               "names -- `first`/`second`/`neither` -- an identity report, not "
+               "a sameness judgement, which is the question Q6 already asks of "
+               "these same 4a boxes at 19-of-20 stability, and which survives "
+               "p4's CROSSING (its first box repeats 4a's SECOND and its "
+               "second repeats 4a's FIRST, so any position-paired presentation "
+               "hides the cell). Registered as "
+               "DESIGNED_TEXT[('Q4b','b1_basis','refers_to_addition')], sha "
+               "d57fdecdcc78. "
+               "WHY `cover` CANNOT CARRY IT: `agreement.satisfied_map` credits a "
+               "covered slot for NAMING a label -- `ok = v in g['labels'] and v "
+               "not in claimed` -- and its own docstring says a verdict outside "
+               "the labels, `neither` or `absent`, EARNS NOTHING. Q4b needs the "
+               "inverse: `neither` is the good answer. Wiring `cover` here "
+               "would credit exactly the boxes that repeat an antecedent and "
+               "fail every box that does not -- inverted scoring that would "
+               "have looked plausible until the sweep. "
+               "WHAT DOES CARRY IT, and what is left to decide: `expect` "
+               "resolves as `out[x] = met if bag[y] == want else absent` "
+               "(measured.derived_verdicts), so "
+               "`expect=\"behavior_1:b1_points_at=neither\"` says exactly the "
+               "right thing. BUT `behavior_1` is ALREADY written by `maps` from "
+               "`b1_basis`, and two rules cannot write one key. So the sixth "
+               "attempt needs one of: a new pointer slot plus a new scored key "
+               "(which changes the item max); replacing `b1_basis` as the pick "
+               "feeding `behavior_1` (losing a classification that works); or a "
+               "verified ordering in which `expect` overrides `maps` -- NOT "
+               "assumed, and not yet read. "
+               "READ 2026-09-08, AND ALL THREE ROUTES ARE NOW CLOSED -- the sixth "
+               "attempt died on an ENGINE CONSTRAINT, not on a measurement, and "
+               "for zero calls. Route 1 changes the item max that gold fixes at 5. "
+               "Route 2 replaces `b1_basis` as the pick feeding `behavior_1` and "
+               "loses the classification that makes 11 of 19 cells perfect. ROUTE "
+               "3 IS REFUTED: `expect` does not override a verdict on failure, it "
+               "REPLACES it, so layering it over `maps` on one key resolves by LOOP "
+               "ORDER -- and the two engines ordered them OPPOSITELY. "
+               "`slotSheet.satisfiedMap` runs equals, expect, forbid, MAPS LAST, so "
+               "on the app the pointer would simply be IGNORED and the rule would "
+               "do nothing; `agreement.apply_computed` ran expect last, so on the "
+               "mirror the pointer would have DESTROYED the basis classification -- "
+               "tested synthetically, a box correctly failing as `consequence` came "
+               "out `met`. "
+               "SO THE ATTEMPT PAID FOR ITSELF WITHOUT BEING RUN. The mirror was "
+               "reordered to match the app the same day (measured latent first: NO "
+               "key is written by two computed primitives and NO `expect` reads a "
+               "mapped key, so the reorder changed no score), and "
+               "`enforcement.check_one_writer_per_computed_key` now refuses the "
+               "collision at authoring time -- it would have refused this design "
+               "before a line of it was written. "
+               "WHAT A SEVENTH ATTEMPT WOULD NEED: a pointer slot that is REPORTED "
+               "ONLY, plus a scored key of its own -- which the item max forbids -- "
+               "or a primitive that CHARGES on a condition without replacing an "
+               "existing verdict. No such primitive exists today. The pointing "
+               "IDEA is not refuted. "
+               "AND THE CLAIM THAT THE ENGINE CANNOT EXPRESS IT IS WITHDRAWN THE SAME "
+               "DAY, under one question -- could a COMBINATION of primitives do it? It "
+               "can, and two premises of the refusal were wrong. "
+               "(i) A NEW SCORED SLOT DOES NOT CHANGE THE ITEM MAX: the score is max "
+               "MINUS lost, where lost accumulates each unsatisfied slot pts, and the "
+               "max is AUTHORED -- Q4b declares max 5.0 while its credit pts already "
+               "sum to 6.0. The max is not the credit total and never was, which is "
+               "what route 1 was refused on. "
+               "(ii) NO `expect` IS NEEDED AT ALL: a slot is satisfied on its FIRST "
+               "option, so a pick whose first option is the GOOD answer charges its "
+               "points on any other -- no second writer on `behavior_1`, hence no "
+               "loop-order collision. "
+               "THE DESIGN THAT FOLLOWS, using only primitives already in use: "
+               "`b1_points_at`/`b2_points_at` as SCORED picks, options "
+               "`neither`/`first`/`second` with `neither` FIRST and pts 1.5 each -- "
+               "exactly gold's per-box charge on p4, which is -3 for two boxes; plus "
+               "`onlyif: b1_points_at : behavior_1` so the repeat charge is chargeable "
+               "ONLY where the box otherwise earned its point, which stops a box that "
+               "is both `wrong_kind` on its basis AND a repeat costing 3.0 where gold "
+               "costs 1.5. `onlyif` does precisely that -- everything is chargeable "
+               "except a check whose onlyif condition failed -- and it became a "
+               "GENERATED attribute on 2026-09-08, so it flows from the rubric now. "
+               "WHAT REMAINS TRUE from the refuted analysis: `cover` credits coverage "
+               "and cannot charge on a match; `expect` REPLACES a verdict rather than "
+               "overriding it, and the two engines ordered it oppositely until the "
+               "mirror was reordered, with `check_one_writer_per_computed_key` now "
+               "refusing the collision. Those findings stand on their own -- they were "
+               "simply not the reason the pointing design was impossible, because it "
+               "is not. "
+               "SO A SEVENTH ATTEMPT IS AVAILABLE AND UNTRIED, and it is the first one "
+               "that changes WHAT THE GRADER IS SHOWN rather than how it is asked. It "
+               "needs the labelled 4a presentation, the two picks above, and a probe "
+               "whose falsifier set includes the four cells attempt 3 broke -- p13, "
+               "p16, p20 and p8 -- because reach is already proven there and PRECISION "
+               "is the whole bet.",
+
     },
     {
         "code": "REASON_FOR_WRONG_BEHAVIOR", "cells": [("Q5", 4)],
@@ -1186,7 +1610,21 @@ GOLD_DIVERGENCES: list[dict] = [
                "families — classify it `not_reason` and score 0, in near-identical "
                "words. The rule 2 / rule 3 boundary added to the guidance places it "
                "in rule 3 as well, so this divergence is the deliberate consequence "
-               "of drawing that line, not an oversight left in it.",
+               "of drawing that line, not an oversight left in it. "
+               "READ OUT 2026-09-07, on closing subgoal Q52, and it "
+               "widens the ground from this cell to the ITEM: gold CAN "
+               "express this charge — W_NOT_REASON, 2.5, \"These are not "
+               "examples of why you continue to engage in the UTB\" — and "
+               "fires it on ZERO of twenty cells. The only four cells gold "
+               "charges are p13 and p17 (\"did not answer\", W_NONE) and "
+               "p4 and p6 (\"missing one reason …\", which is W_ONLY_ONE's "
+               "shape, not W_NOT_REASON's). So we are not disagreeing with "
+               "one rater on one box: we apply a distinction the corpus "
+               "never applies. That is PATTERN, not OUTLIER, so the outlier "
+               "test that licensed the 1c/p11 correction cannot run here "
+               "either — the same ground PR/p15 was declared on, reached "
+               "from the opposite direction (there the code set could not "
+               "express the charge; here it can and gold never uses it).",
     },
     {
         "code": "A_NO_CHANGE",
@@ -1404,6 +1842,52 @@ def gold_divergence_cells() -> dict[tuple[str, int], str]:
 # so it remains a real ceiling.
 GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
     ("1", "Q6"): (
+        "AND THE AUDIT LEAVES ONE CANDIDATE ALIVE, which is why this ceiling is annotated rather than re-asserted. The ONLY gated engagement probe -- the third arm, 0 of 38 disagreements -- answers `met` 4 of 4 on BOTH targets, p2 and p8, so ITS negative stands: the wording that carries gold's own leniency explicitly does not reach. The arms that DID reach the targets are the voided ones. So the open question is not \"can anything reach\" but \"does ARM 2 reach in the real envelope\" -- arm 2 being the wording that fixed p3/a1 and p10/a1 (4/4 to 0/4 and 3/4 to 0/4) while keeping the target, at the cost of one run. `faithful_probe.py Q6 2,8,3,5,6,16,19,4,10` settles it in agreement.py's own envelope for ~36 calls. NOT RUN YET: it needs a --write, and the WK2 sweeps were in flight. ",
+        "EVIDENCE BASE AUDITED 2026-09-07 under QUALITY_CONTROL.md 2a-1b, and it "
+        "is thinner than the entry below reads. The SWEPT attempts stand -- a "
+        "sweep measures the shipped prompt by construction, and p3 and p5 were "
+        "lost in one. THE PROBED attempts do not: `probe.control_gate` VOIDS {{corpus:1a/p13:response:0:3:sha=b344d80e24a3:shape=R0-1-74,R3-0-20}}"
+        "{{corpus:1a/p13:response:212:228:sha=7a9524f2762a}} engagement wordings (4 and 2 non-target cell-slots "
+        "disagreeing with the ledger, several at 12 of 12) and the "
+        "`change_a*`-mirrors-`affect_c*` attempt (2, both 12 of 12 on p6). Only "
+        "ARM 2 IS NOW MEASURED TOO, 2026-09-08, IN agreement.py'S OWN ENVELOPE, "
+        "and it is a CLEAN NEGATIVE rather than a voided one -- so this channel "
+        "has no live candidate left. 12 cells x 4 runs, shipped into `change_a1` "
+        "and `change_a2` (which carry NO rule today, only a desc -- the structural "
+        "asymmetry the subgoal was filed on) and verified present in the RENDERED "
+        ".olx body. "
+        "IT DOES NOT REACH EITHER TARGET: p2 and p8 answer `met` 4 of 4 on BOTH "
+        "boxes, so both stay 0 of 4 against gold 8.75 and 2.50. `incomplete` fired "
+        "TWICE in 96 box-runs, on p4/change_a2 and p16/change_a2, 1 of 4 each. Arm "
+        "3 -- the only OTHER arm the control gate did not void -- reached the same "
+        "verdict, so both gated arms agree the wording does not move the targets. "
+        "AND THE COST IS COLLATERAL, which is the finding worth keeping. Four cells "
+        "got worse (p5 10/12->3/4, p16 10/12->2/4, p4 10/12->3/4, p1 12/12->3/4) "
+        "and on p5 and p1 BOTH change_a slots answer `met` 4 of 4, unchanged: the "
+        "rule never fired on them. 1073 characters of new rule text moved answers "
+        "on slots it does not govern. SECOND MEASURED INSTANCE IN ONE DAY -- Q4b's "
+        "sixth `b1_basis` value was chosen ZERO times in 32 results and still "
+        "destabilised p13 and p20. Adding text is not free even when the text is "
+        "never used, which project memory `q6-matching-ceiling` asserted in other "
+        "words and is now measured on the change_a* channel as well. "
+        "THE WIDENED FALSIFIER SET CAUGHT IT AND THE NARROW ONE WOULD NOT: p1 and "
+        "p15 were ABSENT from the original cell list and are two of the four cells "
+        "arm 2 moved. `probe_falsifiers` lists cells whose gold CREDIT is certain; "
+        "`gold_charge_bounds` lists cells gold CHARGES, and a stricter rule flips "
+        "those. The two sets were disjoint on Q4c and cost a cell there before "
+        "`faithful_probe` was taught to demand both. "
+        "REVERTED AND VERIFIED: out of the .olx, both slots desc-only again, Q6 "
+        "back at prompt_sha ee48e032d3a1 exactly and unstale, so its 16/20 and "
+        "18/20 still measure the shipping tree. "
+        "INCIDENTAL, SEEN WHILE VERIFYING: `question_for` reports both prompt "
+        "sections now, and for these desc-only slots it shows the SAME SENTENCE "
+        "TWICE -- the `## Credit components` line and the checklist line are "
+        "identical. Real in the prompt, not a reader bug: a slot with no rule gets "
+        "its desc echoed rather than elaborated. ",
+        "the THIRD engagement wording is clean, at 0 of 38. So this ceiling rests "
+        "on the sweeps plus one gated probe, and a future attempt has fewer "
+        "corpses to clear than the count implies. The ceiling itself is NOT "
+        "narrowed on this: the swept evidence is untouched.",
         "`change_a1`/`change_a2`: whether a stated action actually CHANGES the "
         "antecedent it is paired with, rather than improving the goal behaviour, "
         "cannot be scored consistently against gold, and the cells that go wrong "
@@ -1412,21 +1896,22 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "which gold refuses in terms — \"{{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd}} does "
         "not change your antecedent of {{corpus:Q6/p2:state_a2:31:69:sha=953a77829719:shape=R38-0-20}}"
         "{{corpus:Q6/p2:state_a2:70:74:sha=6c45cb72a36e}}\" — while both scorers credit it. "
-        "MEASURED, three wordings, none of which separates it. A rule asking "
-        "whether the action improves the goal behaviour instead of the trigger "
-        "fixed p2 and cost p3 and p5, both of which state a real action followed "
-        "by a purpose clause (\"by X, which will help me Y\") that reads as goal "
-        "language. Ignoring the purpose clause and testing the trigger's object, "
-        "occasion and supply held p3 and p5 and lost p2. Naming p2's shape "
-        "concretely — an action improving the conditions of the exercise while the "
-        "trigger is a different activity — held p3 and lost p5. "
-        "The reason is that p5's credited action changes the SUPPLY at the trigger "
-        "moment while p2's changes a different activity, and both read as "
-        "providing something more pleasant. A_NO_CHANGE predicted exactly this: it "
-        "records that a test of this shape \"would flag six credited cells (p2, "
-        "p3, p5, p6, p16, p19) to catch this one\", and p2, p3 and p5 are the "
-        "three that moved. Six attempts across the project now, three of them "
-        "measured here. "
+        "THE ATTEMPT LOG THAT SAT HERE HAS MOVED, 2026-09-06. This table is for "
+        "criteria GOLD decides inconsistently -- its stated purpose is to stop a "
+        "ceiling reading as headroom -- and a list of OUR failed rules is not "
+        "that. Eleven attempts have been measured and reverted on this criterion, "
+        "ten wordings and one schema change; the running tally, with what each "
+        "cost, is in memory/q6-matching-ceiling.md and in subgoal Q47. "
+        "WHAT BELONGS HERE IS THE GOLD CLAIM ALONE, and it is stated above: gold "
+        "charges p2 for a change it calls inadequate while crediting p3 and p5 "
+        "for changes of similar thinness, so WHICH cells go wrong depends on "
+        "which consistent rule you adopt. "
+        "ONE PIECE OF EVIDENCE BEARS ON THAT CLAIM AND IS KEPT: the 2026-09-06 "
+        "schema attempt forced the grader to CLASSIFY what each box does, and it "
+        "put p2, p3 and p5 in the SAME category. The model does not separate them "
+        "either, which is at least as consistent with the distinction being hard "
+        "to state as with gold being inconsistent. TREAT THIS CEILING AS "
+        "UNCONFIRMED rather than established. "
         "p10 WAS listed here as the same criterion in its other form — a borderline "
         "flip on `change_a1`, answering `incomplete` on 1 of 3 passes and `met` on "
         "3 of 3 in the next sweep. That reading was WRONG, and it is left here "
@@ -1461,7 +1946,14 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "a criterion cannot be scored: it can equally mean the prompt never told "
         "the grader how to decide. "
         "Q6's practical maximum is therefore 19 of its 20 counted cells, p2 being "
-        "the one. See scoring/QUALITY_CONTROL.md for the method.",
+        "the one. "
+        "The seventh and eighth attempts, 2026-09-05 and 2026-09-06, are "
+        "recorded with the rest in memory/q6-matching-ceiling.md and subgoal "
+        "Q47. The eighth is the one worth reading before proposing another: "
+        "it changed the SCHEMA rather than the prose, forcing the grader to "
+        "classify what each box does, and the classification credited both "
+        "target cells anyway. "
+        "See scoring/QUALITY_CONTROL.md for the method.",
         "`state_c1`/`state_c2`: a consequence box that describes the ANTECEDENT "
         "going away, credited as though it named a listed consequence. p5 is the "
         "cell. Its 4c lists worsening overall health and harder-to-reach fitness "
@@ -1508,31 +2000,44 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "over-credit moves cells the rule was never scoped to touch. See the Q6 "
         "guidance comment in rubric_h1 for the full account.",
     ),
-    ("1", "Q3"): (
-        "`action_oriented`: five answers justify the goal by CAPABILITY rather "
-        "than by naming an action, and gold splits them — p14 (\"my {{corpus:Q3/p14:action:63:77:sha=e1ed3fd8af96:shape=R14-0-20}}"
-        "{{corpus:Q3/p14:action:78:108:sha=6ffe1a32e5b6}} house\") and p18 (\"{{corpus:Q3/p18:action:64:84:sha=a23e8ae750f0:shape=R20-0-20}}"
-        "{{corpus:Q3/p18:action:85:101:sha=0fddaf85b380}}\") are CREDITED, while p8 (\"I will be able to make time\"), "
-        "p16 (\"{{corpus:Q3/p16:action:58:90:sha=d23f7525fb29}}\") and p20 (\"{{corpus:Q3/p20:action:80:97:sha=3664422a464d}} "
-        "asleep\") are DEDUCTED. Same claim, opposite verdicts. Any consistent rule "
-        "gets at most 3 of those 5, so >=2 cells are unwinnable and 18/20 is the "
-        "ceiling. Measured: the other four SMART slots are 0-2 errors each, this "
-        "one is 4-5, and a 'labelled Action section' rule matches gold on only "
-        "12/20 — worse than the models manage without it. "
-        "MEASURED AGAIN 2026-08-23, and the ceiling holds with the cells "
-        "redistributed. Defining the slot from gold's own decisions — an activity "
-        "or a concrete enabling circumstance counts, grounding actionability in "
-        "another SMART letter does not — took p14 and p18 from 0-1 of 3 to 3 of 3 "
-        "and left p16 credited, which is the direction that keeps four cells "
-        "right and one wrong rather than the reverse. p19 is the one cell in this "
-        "family that is NOT part of the ceiling: it grounds actionability in "
-        "measurability while naming the goal behaviour itself as the doing, so "
-        "the grader finds an action and credits it, 0 of 3. A clause saying that "
-        "the goal RESTATED is not the action would separate it — the same \"you "
-        "cannot do something instead of itself\" logic Q4b's `behavior_*` rule "
-        "carries — with p13's \"{{corpus:Q3/p13:action:58:101:sha=0eb12399ea3c}}\" as "
-        "the control that must keep its credit. Untried.",
-    ),
+    # ("1", "Q3") RETIRED 2026-09-08, REFUTED BY MEASUREMENT ON ITS OWN TERMS.
+    # It claimed: five answers justify the goal by CAPABILITY rather than by
+    # naming an action, gold splits them -- p14 ("{{corpus:Q3/p14:action:60:90:sha=d13fd8076b26}}
+    # {{corpus:Q3/p14:action:91:114:sha=ef5c3179ffeb}}") and p18 ("{{corpus:Q3/p18:action:64:101:sha=0a6783d08090}}")
+    # CREDITED; p8 ("I will be able to make time"), p16 ("{{corpus:Q3/p16:action:58:81:sha=8a9ede6beba9}}
+    # my hands") and p20 ("{{corpus:Q3/p20:action:80:97:sha=3664422a464d}} asleep") DEDUCTED -- and that since
+    # this is the SAME CLAIM with opposite verdicts, "any consistent rule gets at
+    # most 3 of those 5, so >=2 cells are unwinnable and 18/20 is the ceiling".
+    # BOTH HALVES ARE NOW FALSE, and the second matters more than the first.
+    #   THE BOUND: Q3 records 20/20 on olx (runs [18,19,19,20,20,20]) and 19/20
+    #   on python ([19,19,19,19,19,20]). Both sides beat 18/20.
+    #   THE PREMISE: `action_oriented` reproduces gold's split on ALL FIVE, on
+    #   the slot itself and not by compensating errors --
+    #       p8  DEDUCTED -> absent 12/12      p14 CREDITED -> met 12/12
+    #       p16 DEDUCTED -> absent 11/12      p18 CREDITED -> met 12/12
+    #       p20 DEDUCTED -> absent 12/12
+    #   A consistent rule gets 5 of 5, not "at most 3". So the five are NOT the
+    #   same claim: a real distinction exists between naming a concrete enabling
+    #   circumstance and asserting a capability, gold was drawing it, and the
+    #   slot's own definition -- rewritten 2026-08-23 from gold's decisions --
+    #   found it. The entry's later paragraph already recorded that rewrite
+    #   taking p14 and p18 "from 0-1 of 3 to 3 of 3" and still concluded the
+    #   ceiling held; it did not go back and re-read the other three.
+    # WHAT THIS COST AND WHY IT IS WRITTEN OUT: a ceiling ends an inquiry. This
+    # one asserted two unwinnable cells for sixteen days after the rule that wins
+    # them had shipped. THE LESSON IS THE ONE THE DAY'S OTHER RETRACTION TAUGHT
+    # (OFF_DOMAIN_CONSEQUENCE_CHARGED_ONCE, Q4c/p9): a bound argued from a
+    # comparator set is only as good as the comparator set, and re-reading five
+    # ledger rows costs nothing and settles it.
+    # CARRIED FORWARD, BECAUSE IT IS STILL TRUE AND STILL UNTRIED: p19 is NOT
+    # part of the refuted family. It grounds actionability in MEASURABILITY while
+    # naming the goal behaviour itself as the doing, so the grader finds an action
+    # and credits it -- 0 of 3 when last read, and p19 is 11/12 today. A clause
+    # saying THE GOAL RESTATED IS NOT THE ACTION would separate it -- the same
+    # "you cannot do something instead of itself" logic Q4b's `behavior_*` rule
+    # carries -- with p13's "{{corpus:Q3/p13:action:58:101:sha=0eb12399ea3c}}" as the
+    # control that must keep its credit. That proposal needs a QC owner now that
+    # this entry is gone; it is not a ceiling and never was.
     # ("2", "DAY2") RETIRED 2026-08-24. It read: p7's gold is 1.00 while its
     # comment itemises only "-1 pt", which implies 3.00, so 1.00 is unreachable
     # by any scorer that charges the stated deduction — and WK1 p7 is the same
