@@ -514,7 +514,9 @@ include it with your handout in Canvas, or screenshot the chart.
       <EndPane>
     <ActionButton id="bmod_h3_graph_btn" label="Check my labelling">
       <LLMAction id="bmod_h3_graph_llm" target="bmod_h3_graph_feedback"
-                 slots="!has_own_graph:Your 1b data produces a graph of your own:mismatch@2|title:Title saying what is measured and over what period:generic@2|x_axis_label:X-axis label naming what the axis represents:tick_values@2|y_axis_label:Y-axis label naming what the axis represents:tick_values/generic@2|legend:Legend naming all four series you plotted:incomplete@2|confident:All judgments confident"
+                 choices="series_kind:period_names,other_real_names,software_placeholders,nothing"
+                 maps="legend:series_box_holds:period_names~met,other_real_names~met,software_placeholders~incomplete,nothing~absent,*~absent"
+                 slots="!has_own_graph:Your 1b data produces a graph of your own:mismatch@2|title:Title saying what is measured and over what period:generic@2|x_axis_label:X-axis label naming what the axis represents:tick_values@2|y_axis_label:Y-axis label naming what the axis represents:tick_values/generic@2|series_box_holds:What your series box holds:pick(series_kind)|legend:Legend naming all four series you plotted:incomplete@2|confident:All judgments confident"
                  derived="has_own_graph:complete:bmod_h3_baseline,bmod_h3_wk1,bmod_h3_wk2,bmod_h3_wk3:8,10,8,12,6,10,0;32,20,22,28,30,32,10;30,28,26,30,32,32,30;25,26,30,32,32,28,32">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -564,6 +566,7 @@ Present your data in a figure/graph at the end of the handout. The graph needs a
 - `title` (2 pt): The graph has a title, and A DEFAULT PLACEHOLDER IS NOT ONE: spreadsheet software inserts "Chart Title" when the student never types one, and that counts as missing. A graph carrying that literal text has no title, and the graders deducted the point for it
 - `x_axis_label` (2 pt): The x-axis is labelled — an AXIS TITLE, not the tick values. "Sunday, Monday, ..." along the bottom is tick data; "Days of the Week" is the label. This distinction is the single most common deduction on this item: nine of the twenty gold rows lost points for a missing axis title. A default placeholder is not a label either — spreadsheet software inserts "Axis Title" when the student never types one, and that counts as missing
 - `y_axis_label` (2 pt): The y-axis is labelled — same test as `x_axis_label`: an axis TITLE naming what the axis represents, not its tick values, and not the software's default "Axis Title" placeholder
+- `series_box_holds`: What the series box holds
 - `legend` (2 pt): The graph has a legend — the key naming the plotted series (Baseline / Week 1 / Week 2 / Week 3). A single-series graph with no key has no legend
 
 ## Deduction codes — the course's canonical wording for each gap
@@ -599,8 +602,14 @@ says the check reports an identity rather than a judgement.
 - `title` — `met`/`absent`/`generic`: The graph has a title, and A DEFAULT PLACEHOLDER IS NOT ONE: spreadsheet software inserts "Chart Title" when the student never types one, and that counts as missing. A graph carrying that literal text has no title, and the graders deducted the point for it
 - `x_axis_label` — `met`/`absent`/`tick_values`: The x-axis is labelled — an AXIS TITLE, not the tick values. "Sunday, Monday, ..." along the bottom is tick data; "Days of the Week" is the label. This distinction is the single most common deduction on this item: nine of the twenty gold rows lost points for a missing axis title. A default placeholder is not a label either — spreadsheet software inserts "Axis Title" when the student never types one, and that counts as missing
 - `y_axis_label` — `met`/`absent`/`tick_values`/`generic`: The y-axis is labelled — same test as `x_axis_label`: an axis TITLE naming what the axis represents, not its tick values, and not the software's default "Axis Title" placeholder
-- `legend` — `met`/`absent`/`incomplete`: the NO_LEGEND test. `met` when the series names name all four plotted periods — the baseline and the three intervention weeks — in any reasonable wording ('Baseline, Wk1, Wk2, Wk3' counts). `incomplete` when some are named and some are not, or the count does not match the four series; `absent` when the box is empty or holds something that is not a set of series names. Judge the series names, not the heading
+- `series_box_holds` — one of `period_names`/`other_real_names`/`software_placeholders`/`nothing` in `refers_to` (WHICH it is, not whether it is right): ONE ANSWER, naming what is in the box. Do not judge whether it makes a good legend -- say what it holds and the arithmetic follows.
+  `period_names` -- the four periods the assignment asks for: baseline and the three weeks, however spelled or abbreviated.
+  `other_real_names` -- any OTHER names the student chose and typed themselves. Days of the week, session numbers, activity names all count. This is the answer when the chart was plotted the other way round, with the periods along the bottom and something else as the series.
+  `software_placeholders` -- names the spreadsheet supplies when nobody typed any: `Series1`, `Series2`, `Column1` and the like.
+  `nothing` -- the box is empty.
 - `confident` — `met`/`absent`: `absent` if any judgement above was a close call — this is rule 8's channel
+
+DO NOT ANSWER `legend`. The grader computes it from `series_box_holds`: `period_names` makes it `met`, `other_real_names` makes it `met`, `software_placeholders` makes it `incomplete`, `nothing` makes it `absent`, and anything else makes it `absent`. Answer `series_box_holds` on its own terms -- what the entry IS -- and the verdict follows. It is arithmetic, not a second judgement.
 
 DO NOT ANSWER `has_own_graph` **GATE**. The grader reads it off the page, using the same code that draws the chart: satisfied when EVERY week of data is present, `absent` when a week is missing or they hold no numbers at all, and `mismatch` when they are the worked example's own numbers rather than a record of this student's behaviour. Copied WORDING is still yours to judge, on the label checks. It is not in your schema, and none of it is a judgement — the runtime already knows.
 
