@@ -2418,6 +2418,104 @@ def check_fixture_is_not_corrupt(items: list) -> None:
     )
 
 
+LOBLOCKS = "/home/pdeane/code/update/lo-blocks"
+
+
+def server_code_is_stale() -> list[str]:
+    """Source files newer than the dev server that is about to be measured.
+
+    THE IDMAP CHECK BELOW GUARDS THE CONTENT. Nothing guarded the CODE, and on
+    2026-09-09 that cost 19 mis-scored observations across four items.
+
+    WHAT HAPPENED. `slotSheet.ts` computes a mapped check from its pick --
+    `out[r.key] = spec ? isSatisfied(spec, mappedVerdict(r, checks)) : false` --
+    and `mappedVerdict` reads `refers_to ?? verdict`, so a migrated pick resolves
+    correctly. Run against 1c/p8's real payload the current code returns `met`
+    and AWARDS legend's 2 points, scoring the cell 8.0, which is gold. The
+    running server scored it 6.0: it charged the model's raw `absent` instead.
+    The server had been up since 2026-08-29 11:55, `slotSheet.ts` was modified
+    2026-08-31 22:23, and the process runs a plain tsx loader with NO watch flag.
+    So the code was three days behind the repo while serving CURRENT content --
+    which is exactly the combination the idmap check cannot see, because the
+    content it verifies was fresh.
+    THE COST FELL ONLY ON MAPPED SLOTS, which is why it hid so long: `maps=`
+    appears on four LLMActions (Q2 wgb_inverts_utb, Q4a antecedent_1/_2, Q4b
+    behavior_1/_2, 1c legend) and nowhere in handout 2. Every other slot the app
+    answers directly, so every other number was right.
+    AND THE PYTHON SIDE WAS UNAFFECTED, which is what made it look like an
+    engine disagreement: `agreement.py` parses and applies `maps` itself, so it
+    read 0 off-map where the app read 19. That difference was a stale server, not
+    two engines -- the trap `never-reason-from-side-differences` names.
+
+    Compares mtimes against the process start time, so it costs nothing and needs
+    no request. Returns a list of findings; the caller decides whether to refuse.
+    """
+    import glob
+    import os
+    import pathlib
+
+    procs = glob.glob("/proc/[0-9]*/cmdline")
+    started = None
+    for path in procs:
+        try:
+            with open(path, "rb") as fh:
+                cmd = fh.read().decode("utf-8", "replace")
+        except OSError:
+            continue
+        # MATCH ON THE EXECUTABLE, NOT THE COMMAND TEXT. Testing only the command
+        # string matched THIS SESSION'S OWN SHELL -- a bash process that had just
+        # grepped for those words -- and reported that shell's start time as the
+        # server's, so the check read fresh while a three-day-old process held
+        # the port. A cmdline substring is not a process identity. And the
+        # missing `import pathlib` below made every real candidate raise inside
+        # the try and fall through to "no server found", which is how a wired
+        # check can be confidently wrong in both directions at once.
+        try:
+            exe = os.path.realpath(pathlib.Path(path).with_name("exe"))
+        except OSError:
+            continue
+        if os.path.basename(exe) != "node":
+            continue
+        if "apps/server/src/index.ts" in cmd and "lo-blocks" in cmd:
+            # THE PROCESS START TIME, not the mtime of /proc/<pid> -- that
+            # directory's mtime is not the start time and the first version of
+            # this check read 0 findings against a server known to be three days
+            # stale. field 22 of /proc/<pid>/stat is starttime in clock ticks
+            # since boot; boot itself is `btime` in /proc/stat.
+            try:
+                stat = pathlib.Path(path).with_name("stat").read_text()
+                ticks = float(stat.rsplit(")", 1)[1].split()[19])
+                hz = os.sysconf("SC_CLK_TCK")
+                btime = next(
+                    float(ln.split()[1])
+                    for ln in pathlib.Path("/proc/stat").read_text().splitlines()
+                    if ln.startswith("btime "))
+                started = btime + ticks / hz
+            except Exception:
+                continue
+            break
+    if started is None:
+        return ["no lo-blocks server process found, so its code cannot be dated "
+                "-- start one, or measure knowing the code is unverified"]
+    newer = []
+    for pat in ("packages/shared/lib/llm/*.ts", "apps/server/src/**/*.ts"):
+        for f in glob.glob(os.path.join(LOBLOCKS, pat), recursive=True):
+            if f.endswith((".test.ts", ".d.ts")):
+                continue
+            if os.path.getmtime(f) > started:
+                newer.append(os.path.relpath(f, LOBLOCKS))
+    if not newer:
+        return []
+    return [f"THE DEV SERVER IS RUNNING STALE CODE: {len(newer)} source file(s) "
+            f"are newer than the process that will answer this sweep -- "
+            f"{', '.join(sorted(newer)[:4])}"
+            f"{' ...' if len(newer) > 4 else ''}. It runs a plain tsx loader with "
+            f"no watch flag, so nothing reloaded them. Restart it before "
+            f"measuring: the last time this went unnoticed the server was three "
+            f"days behind and silently charged every MAPPED slot from the model's "
+            f"raw answer instead of computing it from its pick."]
+
+
 def check_idmap_is_current(idmap: str, item_id: str) -> None:
     """Refuse to measure against a dump that predates the current prompt.
 
@@ -2440,12 +2538,35 @@ def check_idmap_is_current(idmap: str, item_id: str) -> None:
     """
     import olx_prompts as _OP
 
+    # TWO REASONS THIS CAN FAIL, AND THEY ARE NOT THE SAME FACT. Found
+    # 2026-09-09: T1 and T2 printed an unverifiable-freshness notice carrying a
+    # bare KeyError on their own id, and the run continued UNVERIFIED -- the
+    # exact silence this check exists to end.
+    #
+    # (1) THE ITEM HAS NO GENERATED LLM PROMPT. `olx_prompts.ACTION` holds 23
+    #     items; T1, T2 and 1b are not among them, because they are TYPE-CHOICE
+    #     items graded by a sheet grader (`bmod_h2_t1_sheet_grader`) rather than
+    #     by an <LLMAction> with a slot sheet. There is nothing in the dump for
+    #     this check to compare, so skipping is CORRECT -- but it must SAY that,
+    #     rather than implying a verification was attempted and failed.
+    # (2) ANYTHING ELSE is a real failure of a check whose own docstring records
+    #     that an unverified dump cost a whole sweep. Skipping quietly there is
+    #     the dangerous case, so it REFUSES.
+    if item_id not in getattr(_OP, "ACTION", {}):
+        print(f"(no idmap check for {item_id}: it has no generated LLMAction "
+              f"prompt -- a type-choice item graded by its sheet grader, so the "
+              f"dump carries no prompt text to compare)", file=sys.stderr)
+        return
     try:
         want = _OP.build_web_prompt(item_id)
-    except Exception as exc:                      # pragma: no cover
-        print(f"(cannot verify idmap freshness for {item_id}: {exc})",
-              file=sys.stderr)
-        return
+    except Exception as exc:
+        raise SystemExit(
+            f"CANNOT CHECK THE DUMP for {item_id}: building its prompt raised "
+            f"{type(exc).__name__}: {exc}\n"
+            f"  {item_id} IS in olx_prompts.ACTION, so a prompt is expected and "
+            f"this is a real failure, not an item without one. Refusing rather "
+            f"than measuring against an unchecked dump -- see this check's "
+            f"docstring for the sweep that cost.")
     lines = [ln.strip() for ln in want.split("\n")
              if 40 < len(ln.strip()) < 130
              and "REF:" not in ln and "<Ref" not in ln]
