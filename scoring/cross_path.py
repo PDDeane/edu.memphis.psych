@@ -163,6 +163,41 @@ def _load_paper(root: str) -> tuple[dict, dict, dict]:
     return scores, verdicts, eras
 
 
+def result_picks(r: dict) -> dict:
+    """One `results[]` entry -> {slot: pick answer}, for EITHER artifact shape.
+
+    A `pick` slot does not answer a verdict; it answers WHICH thing it refers to,
+    and THE TWO ENGINES STORE THAT UNDER DIFFERENT KEYS:
+
+        olx     `refers_to`  every slot, with null for the ones that do not pick
+        python  `answers`    only the slots that DO pick, no nulls
+
+    Same information, different encoding -- the same divergence class as the
+    verdict-absence one (`enforcement.VERDICT_ABSENCE_ENCODING`, olx None vs
+    python '').
+
+    WHY THIS EXISTS, found 2026-09-09. There was no accessor, so every reader
+    hand-rolled `r.get("refers_to")` -- which is present on olx and ABSENT on
+    python -- and therefore silently saw ONE SIDE. That produced a false machinery
+    gap three separate times, each filed as a different item's problem: subgoal
+    Q58 recorded that 1c's `series_box_holds` "is recorded on ONE SIDE ONLY ... so
+    on the side where the flips actually happen THE SOURCE PICK IS NOT RECORDED AT
+    ALL", and the same conclusion was drawn about Q4b's `b1_basis`/`b2_basis` and
+    Q6's refers_to channel. ALL THREE WERE THE READER. The picks are recorded on
+    both sides for all thirteen pick-bearing items; only the key name differs.
+    A one-key read also reports a pick as 6 runs when 12 exist, which is how a
+    stable pick can look like an unobservable one.
+
+    Empty dict when the entry has neither key, so a caller can pool over sides
+    without knowing which shape it holds -- which is the whole point.
+    """
+    for key in ("refers_to", "answers"):
+        got = r.get(key)
+        if isinstance(got, dict):
+            return {k: v for k, v in got.items() if v not in (None, "")}
+    return {}
+
+
 def result_cell(r: dict) -> tuple | None:
     """One `results[]` entry -> (item, participant, points_or_None, verdicts).
 
