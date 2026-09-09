@@ -1117,6 +1117,27 @@ def _slot_body(item: dict, c: dict) -> str:
         return fill_fail(c["rule"], item, c)
     note = (SLOT_NOTES.get(f"{item['id']}:{c['what']}")
             or SLOT_NOTES.get(c["what"]))
+    # NOT WHERE THE NOTE DESCRIBES A PROTOCOL THIS SCORER DOES NOT IMPLEMENT.
+    # MEASURED 2026-09-09, A/B against the pre-conversion scorer: Q6 fell 13/20
+    # to 10/20 on a single run and FOUR of the five moved cells were
+    # OVER-credits. Cause, not guess: `cover` on the web reads `refers_to` and
+    # falls back to the verdict, so its notes tell the grader "`met` if this box
+    # names an antecedent at all, then set `refers_to` to WHICH of 4a's two it
+    # is". Paper implements the UN-MIGRATED spelling -- derive_ledger's cover
+    # branch reads the VERDICT and compares it against the labels, and the paper
+    # schema offers `first`/`second`/`neither`/`absent` with no `refers_to` field
+    # at all. So the note lowered the bar to "names one at all" while the
+    # matching half it hands to `refers_to` was never collected, and the credit
+    # loop passed boxes that cover would have demoted.
+    #
+    # A cover member is the test because that IS the divergent protocol. WK2's
+    # two notes are not cover members and measured 19/20 against 19/20, so they
+    # keep arriving. Migrating paper to `refers_to` would let these through too,
+    # and is the real parallel fix; until then a note that presumes it is worse
+    # than the desc it would replace.
+    if note and any(c["what"] in (g.get("keys") or ())
+                    for g in (item.get("cover") or ())):
+        return c["desc"]
     if not note:
         return c["desc"]
     # DESC *AND* NOTE, because that is what the web renders and the first version
