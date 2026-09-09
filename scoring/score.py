@@ -247,12 +247,14 @@ def build_schema(item: dict) -> dict:
                 "enum": ["PR", "NR", "PP", "NP", "unclear"],
             }
             props["cadence_ok"] = {"type": "boolean"}
-            # WK1 and DAY2 derive this from a CLASSIFICATION, mirroring the
-            # web's pick + expect: the model names which behaviour the trigger
+            # WK1 derives this from a CLASSIFICATION, mirroring
+            # the web's pick + expect: the model names which behaviour the trigger
             # identifies and the engine compares it against the student's own.
             # Judged directly, the slot answered `met` on every pass of the cells
             # gold charges, because their own behaviour is in the sentence as the
-            # PRIZE rather than as the trigger.
+            # PRIZE rather than as the trigger. It was WK1 alone until 2026-09-05,
+            # which left the other three declaring WRONG_BEHAVIOR at 1.0 with no
+            # answer able to reach it — DAY2/p7 is that gap, measured at 0/12.
             # DAY2 only. Derived by reading all 64 counted cadence answers: the
             # nine over-credited cells that are not valence inversions share one
             # property — they state no contingency. They describe what the
@@ -1087,6 +1089,69 @@ def fill_fail(text: str, item: dict, c: dict) -> str:
     return FAIL_RE.sub(sub, text)
 
 
+
+
+def _slot_body(item: dict, c: dict) -> str:
+    """The judging text for one slot, resolved the way the WEB resolves it.
+
+    olx_prompts renders `rule or SLOT_NOTES[item:key] or SLOT_NOTES[key] or
+    desc`; this side rendered `rule or desc`, so judging text parked in
+    SLOT_NOTES reached the web and the CLI harness and LEFT THE PAPER SCORER
+    BEHIND. That is the same failure the comment in build_prompt records for
+    Q4b's five substitution tests, and on 2026-09-09 it was still live on six
+    slots: Q6's state_a1/a2/c1/c2 (627 chars, the pointing slots subgoal Q63 is
+    about) and WK2's aimed_correctly and named_type (1,247 chars, the first of
+    which is subgoal Q40's measured win -- WK2/p11 from 4 of 11 to 12 of 12).
+
+    NOT EVERY SLOT_NOTES ENTRY WAS MISSING, and the difference is worth keeping:
+    DAY1's consequence_asserted and D1/D2's named_type already arrive through
+    `_criterion_11` and the criteria section, TRANSFORMED by `_as_criterion`
+    rather than copied. A head-match test reports them absent and a
+    longest-shared-phrase test reports them carried; only the six above were
+    genuinely missing. Resolving through the same chain the web uses is what
+    makes that distinction unnecessary to maintain by hand.
+    """
+    from olx_prompts import SLOT_NOTES
+
+    if c.get("rule"):
+        return fill_fail(c["rule"], item, c)
+    note = (SLOT_NOTES.get(f"{item['id']}:{c['what']}")
+            or SLOT_NOTES.get(c["what"]))
+    if not note:
+        return c["desc"]
+    # DESC *AND* NOTE, because that is what the web renders and the first version
+    # of this function silently dropped the desc. The web has two lines per slot
+    # -- the checklist line carrying the DESC with its points, and the answerable
+    # line carrying `rule or SLOT_NOTES[...]` -- so a slot with a note shows both
+    # there. Paper has ONE line, and returning `note or desc` made the note
+    # REPLACE the desc: Q6's four `state_*` slots gained their note today and lost
+    # "States the first antecedent being changed, and it matches 4a" in the same
+    # edit. Reaching parity on one axis while quietly breaking another is not
+    # parity, and only a before/after read of the paper prompt shows it.
+    body = fill_fail(note, item, c)
+    desc = (c.get("desc") or "").strip()
+    return f"{desc} {body}" if desc and desc not in body else body
+
+def _oc_slot_notes(item: dict, asked: dict) -> str:
+    """SLOT_NOTES text for the oc_analysis slots THIS prompt actually collects."""
+    from olx_prompts import CLI_CRITERIA_NOTES, SLOT_NOTES
+
+    lines = []
+    for key in asked:
+        # olx_prompts.CLI_CRITERIA_NOTES is the DECLARATION of which keys the
+        # criteria machinery already renders for the CLI. Read it rather than
+        # keeping a copy: its own comment says a second list "would go stale the
+        # moment this list changed", and this file briefly held exactly that.
+        if key in CLI_CRITERIA_NOTES:
+            continue
+        note = SLOT_NOTES.get(f"{item['id']}:{key}")
+        if note:
+            lines.append(f"- `{key}`: {' '.join(note.split())}")
+    if not lines:
+        return ""
+    return "## Notes on individual slots\n" + "\n".join(lines) + "\n"
+
+
 def build_prompt(
     item: dict,
     response: str,
@@ -1123,6 +1188,20 @@ def build_prompt(
             consequence_slot="consequence_asserted" in asked,
             avoidance_scores=bool(item.get("avoidance_scores")),
         ))
+        # PER-SLOT JUDGING TEXT FOR THE OC SHEET. The criteria section carries
+        # the numbered criteria; it does not carry text parked against an
+        # individual oc_analysis slot, so anything in SLOT_NOTES for one of them
+        # reached the web and left this scorer behind. Measured 2026-09-09:
+        # WK2's `aimed_correctly` (659 chars -- subgoal Q40's measured win, which
+        # took WK2/p11 from 4 of 11 to 12 of 12) and `named_type` (588) were
+        # required properties of THIS schema that this prompt never mentioned.
+        #
+        # `consequence_asserted` and `trigger_behavior` are EXCLUDED because the
+        # criteria machinery already renders them -- `_criterion_11` and
+        # `_C10_TRIGGER` read the same SLOT_NOTES keys and pass them through
+        # `_as_criterion`. Adding them here would print each twice, in two
+        # different renderings, which is worse than the gap being closed.
+        parts.append(_oc_slot_notes(item, asked))
         parts.append("")
     elif item.get("derive_from_credit"):
         computed = _computed_keys(item)      # not asked; see build_schema
@@ -1164,8 +1243,7 @@ def build_prompt(
             # produced "Discusses the baseline week is the BEFORE state given".
             # No audit compared the two renderings, because both sides carried the
             # text and the audit asks only whether it is CARRIED.
-            body = (fill_fail(c['rule'], item, c)
-                    if c.get("rule") else c['desc'])
+            body = _slot_body(item, c)
             parts.append(f"- `{c['what']}`{worth}{vocab}: {body}")
         for cr in item.get("counts", []):
             members = ", ".join(f"`{k}`" for k in cr["slots"])
@@ -1210,8 +1288,7 @@ def build_prompt(
         parts.append("## Credit components")
         for c in item["credit"]:
             # Same rule-replaces-desc as above; see the note there.
-            body = (fill_fail(c['rule'], item, c)
-                    if c.get("rule") else c['desc'])
+            body = _slot_body(item, c)
             parts.append(f"- `{c['what']}` ({c['pts']:g} pt): {body}")
         parts.append("")
 
