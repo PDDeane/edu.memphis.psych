@@ -115,6 +115,18 @@ _TYPE_FIELDS = ("observed_type", "named_type", "trigger_behavior")
 # The same rule wears different names on the two sides. Kept explicit and small;
 # an unmapped key is REPORTED, never assumed equivalent.
 ALIAS = {
+    # 1b's FOUR PERIOD SLOTS, declared 2026-09-06 (subgoal E53). The mirror
+    # records `baseline`/`week_1`/`week_2`/`week_3` and the app records the same
+    # four judgements as `..._data`. Measured before declaring: 1b is 20/20 on
+    # BOTH sides with the medians identical on all twenty cells, so this is a
+    # naming difference and nothing more. It went unnoticed because every check
+    # in the audit read declarations rather than artifacts; E53's is the first to
+    # compare what the two engines actually answered, and these were four of its
+    # findings.
+    "baseline": ("baseline", "baseline_data"),
+    "week_1": ("week_1", "week_1_data"),
+    "week_2": ("week_2", "week_2_data"),
+    "week_3": ("week_3", "week_3_data"),
     "behavior": "names_behavior",
     # The web renamed this to say the good state, and inverted it to match the
     # rest of the vocabulary: `met` is phrased directly. The CLI input keeps the
@@ -139,7 +151,10 @@ ALIAS = {
     "stimulus": "names_stimulus",
     "stimulus_is_arranged": "you_arrange_it",
     "targets_intended_behavior": ("targets_goal_behavior", "targets_unwanted_behavior"),
-    "cadence_ok": ("cadence_is_daily", "cadence_is_weekly"),
+    # THREE candidates, not two: the daily gate is split. DAY1 keeps the plain
+    # name, DAY2 carries the counted variant. Mutually exclusive per sheet, so
+    # web_name resolves each item to exactly one and the order is free.
+    "cadence_ok": ("cadence_is_daily", "cadence_is_daily_counted", "cadence_is_weekly"),
     "stimulus_move": ("demonstrates_type", "stimulus_move"),
 }
 
@@ -211,6 +226,28 @@ def check_criteria_table_is_complete(items: list[dict]) -> list[str]:
     return problems
 
 
+@functools.lru_cache(maxsize=1)
+def _sheet_slots() -> dict:
+    """item id -> its SLOT_SPEC entry, across all three rubrics.
+
+    SLOT_SPEC has been the PRIMARY definition of the slot sheet since 2026-09-08;
+    before that the sheet was a hand-authored `slots=` attribute and there was no
+    table to consult, which is why the checks below reached for the credit list.
+
+    A plain function on purpose. This was first written as a dict subclass filling
+    itself from `__missing__`, which never ran: `__missing__` fires for `d[key]`
+    and NOT for `d.get(key, default)`, so every lookup returned the default and
+    the check went on reporting all ten names as unknown. Nothing distinguished
+    that from a real finding.
+    """
+    import rubric_h1, rubric_h2, rubric_h3
+    out = {}
+    for mod in (rubric_h1, rubric_h2, rubric_h3):
+        for iid, spec in (getattr(mod, "SLOT_SPEC", {}) or {}).items():
+            out.setdefault(iid, spec)
+    return out
+
+
 def check_slot_codes_exist(items: list[dict]) -> list[str]:
     """Every code a slot maps a verdict to must be in that item's deduction list.
 
@@ -238,12 +275,32 @@ def check_slot_codes_exist(items: list[dict]) -> list[str]:
                 if k not in names:
                     problems.append(f"{it['id']}: counts names `{k}`, which is not a "
                                     f"credit component")
+        # `onlyif` IS KEYED BY THE SHEET, NOT BY THE CREDIT LIST, and testing it
+        # against credit names reported ten false gaps. Both evaluators key the
+        # charge map on the SHEET's slots -- agreement.py writes
+        # `charged = {sl["key"]: True for sl in spec["slots"]}` and
+        # slotSheet.chargedMap does the same -- so a name is live iff the sheet
+        # has it. On PR/NR/PP/NP the two tables come apart BY DESIGN: the rubric
+        # holds COMPOSITES (`is_operant_conditioning`, `is_pr`) while the sheet
+        # ENUMERATES the sub-checks, and it is the sheet's
+        # `targets_goal_behavior...@2` that carries the points. All ten reported
+        # names were live sheet slots implementing charge-once -- the arithmetic
+        # `score.py:derive_oc_ledger` writes as `elif` and `llm/onlyif.test.ts`
+        # exists to pin.
+        #
+        # Checking `cond` matters more than checking `key`. agreement.py
+        # suppresses nothing for an UNKNOWN condition, deliberately, so a typo'd
+        # cond does not fail loudly -- it makes the rule inert and the item
+        # charges twice for one cause.
+        sheet = {s["key"] for s in _sheet_slots().get(it["id"], ())}
+        universe = sheet | {c["what"] for c in it.get("credit", [])}
         for r in it.get("onlyif", []):
-            names = {c["what"] for c in it.get("credit", [])}
             for k in (r["key"], r["cond"]):
-                if k not in names:
-                    problems.append(f"{it['id']}: onlyif names `{k}`, which is not a "
-                                    f"credit component")
+                if k not in universe:
+                    problems.append(f"{it['id']}: onlyif names `{k}`, which is neither "
+                                    f"a slot on its sheet nor a credit component, so "
+                                    f"the rule is inert and the charge is never "
+                                    f"suppressed")
     return problems
 
 
@@ -1254,6 +1311,24 @@ def slot_basis(item: dict) -> dict:
 # list's whole point, because a declaration is something the enforcement audit can
 # compare between the two scorers and prose is not.
 PROSE_ONLY_SLOTS = {
+    ("Q3", "realistic"):
+        "NOT CONVERTIBLE, and a FIRST DEFINITION rather than a conversion. "
+        "`realistic` shipped THIRTY-ONE characters with no rule at all, while "
+        "its scored siblings carried specific 35, time_bound 329, measurable "
+        "731 and action_oriented 1404. A 351-character rule added 2026-09-09 "
+        "took Q3 from 19/20 to 20/20 on BOTH sides, Q3/p13 crossing 5 of 12 to "
+        "12 of 12 PERFECT. WHAT IT TESTS IS WHETHER A GROUND FOR REALISM WAS "
+        "OFFERED AT ALL, at a deliberately low bar -- a thin or circular one "
+        "still counts -- which is a judgement about the presence and shape of "
+        "prose, not a relation between slots. No primitive expresses \"a reason "
+        "was given, however weak\": `expect` compares answers, `equals` compares "
+        "two picks, `counts` counts members, `maps` translates one pick. "
+        "Declared because the check is right that it is prose-only.",
+    ("Q4b", "b2_names_besides"):
+        "NOT CONVERTIBLE. Asking what a box names BESIDES the goal behaviour's "
+        "absence -- an act, a result, or nothing -- is a reading of what the "
+        "sentence contains. There is no operand: the question is whether "
+        "anything beyond the absence is present at all.",
     # behavior_1 and behavior_2 LEFT this list on 2026-08-28: they are computed by
     # `maps` now, not judged, so they are no longer prose-only. The prose did not
     # disappear -- it moved to the picks below, which is where the residual
@@ -1267,6 +1342,43 @@ PROSE_ONLY_SLOTS = {
         "not-doing -- has no operands to compare, so it stays a judgement.",
     ("Q4b", "b2_basis"):
         "NOT CONVERTIBLE, same as b1_basis for the second example.",
+    # SUBGOAL Q10, 2026-09-05. Same shape as the entries below: the slot was
+    # given a rule at all for the first time, and a rule is what makes it
+    # prose+rule.
+    # SUBGOAL Q19, 2026-09-05. `consequence_1` and `consequence_2` were given a
+    # rule for the first time; a rule is what makes them prose+rule.
+    ("Q4c", "consequence_1"):
+        "NOT CONVERTIBLE. The test has three heads -- a STATE the student ends "
+        "up in, another ACTIVITY rescued by being taken up in the behaviour's "
+        "place or by a stated endpoint, and a restatement of the behaviour -- and "
+        "each is a reading of what a sentence NAMES. There is no operand to "
+        "compare against: the endpoint head turns on whether a clause carries the "
+        "reader on to a state, which no primitive expresses.",
+    ("Q4c", "consequence_2"):
+        "NOT CONVERTIBLE, same as consequence_1 for the second box.",
+    # SUBGOAL Q33, 2026-09-05. The antecedent VERDICTS became primitives -- they
+    # are computed by `maps` from these picks -- and the reading moved here.
+    ("Q4a", "antecedent_kind_1"):
+        "NOT CONVERTIBLE. Naming WHICH KIND of thing a box states -- something "
+        "before the behaviour, something whose link to it cannot be seen, an "
+        "aftermath, the goal behaviour not happening, a consequence already "
+        "listed, or nothing -- is a reading of the sentence. The `unlinked` "
+        "option in particular asks whether a reader can see how the entry leads "
+        "to THIS behaviour, which has no operand anywhere. The verdict it feeds "
+        "IS now computable, which is the point of the split.",
+    ("Q4a", "antecedent_kind_2"):
+        "NOT CONVERTIBLE, same as antecedent_kind_1 for the second box.",
+    ("Q3", "measurable"):
+        "NOT CONVERTIBLE. The question is whether the box NAMES something that "
+        "holds the record, as against merely saying a count will be kept. That "
+        "is a reading of what a sentence names and there is nothing to compare "
+        "it against: no list of acceptable holders can be authored without "
+        "quoting the cohort, which the leakage gate forbids and which would "
+        "make the rule a lookup of this year's answers.",
+    # `change_a1`/`change_a2` were listed here by subgoal Q47 on 2026-09-05 and
+    # removed the same day: the rule that put them here was measured, lost six
+    # perfect cells, never fired on its target, and was reverted. With no rule
+    # they are bare descs again and not prose+rule. The record is in rubric_h1.
     ("Q6", "affect_c1"):
         "NOT CONVERTIBLE. `cover` already constrains WHICH listed entry is referred "
         "to; what is left is whether the answer states HOW the consequence is "
@@ -1299,17 +1411,35 @@ PROSE_ONLY_SLOTS = {
         "is about a DIFFERENT behaviour from the unwanted one -- a judgement about "
         "what two pieces of prose are ABOUT, with no operand pair that expresses "
         "it. `cover` cannot help: there is no list to pair against.",
-    ("Q2", "wgb_inverts_utb"):
-        "NOT CONVERTIBLE. Two ways to fail and both are readings: no goal stated "
-        "at all, or one stated that does not invert the named behaviour. The "
-        "second is a semantic relation between two free-text spans, which is the "
-        "same thing memory/q6-matching-ceiling.md records nine failed wordings "
-        "against on a different item.",
+    # ("Q2", "wgb_inverts_utb") REPLACED 2026-09-05 by ("Q2", "wgb_names").
+    # Subgoal Q43 converted the slot itself into a PRIMITIVE: its verdict is now
+    # computed by `maps` from the `wgb_names` pick, so it no longer carries a
+    # prose-only rule and the audit can compare it between the two scorers. The
+    # prose moved one slot along rather than disappearing, which is why the
+    # budget does not fall -- but the judging is now a classification the engine
+    # scores, which is what this list exists to encourage.
+    ("Q2", "wgb_names"):
+        "NOT CONVERTIBLE. Naming WHICH KIND of thing a goal states -- a doing, "
+        "the condition that doing it produces, a general condition, a countable "
+        "target, a different activity, or nothing -- is a reading of what the "
+        "sentence names, and there is no operand to compare it against. The "
+        "verdict it feeds IS now computable, which is the point of the split.",
     ("Q2", "reasons_failing"):
         "NOT CONVERTIBLE as it stands, and it is a COUNT of judgements rather than "
         "a judgement: how many listed statements are not a benefit of the goal "
         "behaviour. `counts` already expands the members; what it cannot express "
         "is the test each member is counted against.",
+    # Q1's twin of the entry above, added 2026-09-05 with subgoal Q14's structural
+    # fix. The two are the SAME SLOT on two items by construction: Q1's
+    # `benefits_listed` was counting AND judging, and the remedy was to give it the
+    # split Q2 already had. So the argument transfers verbatim rather than being
+    # re-derived, and if one of them ever converts, both should.
+    ("Q1", "benefits_failing"):
+        "NOT CONVERTIBLE as it stands, for exactly the reason Q2.reasons_failing "
+        "is not: it is a COUNT of judgements rather than a judgement -- how many "
+        "of the statements counted as benefits name the GOAL instead of a good it "
+        "brings. `counts` expands the members; what no primitive expresses is the "
+        "test each member is counted against.",
     ("D1", "defines_type"):
         "NOT CONVERTIBLE. The slot classifies a DEFINITION into PR/NR/PP/NP by "
         "reading what it says -- something added or removed, behaviour increased "
@@ -1355,16 +1485,8 @@ PROSE_ONLY_SLOTS = {
         "for the effect boxes. Until 2026-08-30 this test lived as prose on "
         "affect_c1 and affect_c2, reaching every scorer as a request none could "
         "act on.",
-    ("1c", "legend"):
-        "NOT CONVERTIBLE. The test is whether a set of series names covers the "
-        "four plotted periods 'in any reasonable wording', so the matching is "
-        "semantic, not literal, and `counts` cannot carry it for the same reason "
-        "COUNTABLE_EXEMPT gives for 1a's weeks: the four periods are NAMED and not "
-        "interchangeable, so `3 of 4` cannot say which is missing -- and here the "
-        "rule needs exactly that, since naming three of four is the `{fail}` case "
-        "while naming none is `absent`.",
 }
-PROSE_ONLY_BUDGET = 18
+PROSE_ONLY_BUDGET = 25
 
 
 # WHICH PRIMITIVE SET each "NOT CONVERTIBLE" claim was judged against.
@@ -1386,8 +1508,19 @@ PROSE_ONLY_BUDGET = 18
 _PRIMS_2026_08_29 = "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
 
 PROSE_ONLY_JUDGED_AGAINST: dict[tuple[str, str], str] = {
+    ("Q3", "realistic"): "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires",
+    # Stamped 2026-09-06 against the registry as it stands. Subgoal
+    # Q18: each of these is a READING that survives every primitive above --
+    # the computable half of the change family moved OUT into `maps`, and what
+    # is left is the classification the map reads.
+    ("Q4b", "b2_names_besides"): "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires",
     ("Q4b", "b1_basis"): _PRIMS_2026_08_29,
     ("Q4b", "b2_basis"): _PRIMS_2026_08_29,
+    ("Q4c", "consequence_1"): _PRIMS_2026_08_29,
+    ("Q4c", "consequence_2"): _PRIMS_2026_08_29,
+    ("Q4a", "antecedent_kind_1"): _PRIMS_2026_08_29,
+    ("Q4a", "antecedent_kind_2"): _PRIMS_2026_08_29,
+    ("Q3", "measurable"): _PRIMS_2026_08_29,
     ("Q6", "affect_c1"): _PRIMS_2026_08_29,
     ("Q6", "affect_c2"): _PRIMS_2026_08_29,
     ("1a", "distinguishes_periods"): _PRIMS_2026_08_29,
@@ -1398,8 +1531,9 @@ PROSE_ONLY_JUDGED_AGAINST: dict[tuple[str, str], str] = {
     ("D1", "defines_type"): _PRIMS_2026_08_29,
     ("D2", "defines_type"): _PRIMS_2026_08_29,
     ("Q2", "wgb_is_counterpart"): _PRIMS_2026_08_29,
-    ("Q2", "wgb_inverts_utb"): _PRIMS_2026_08_29,
+    ("Q2", "wgb_names"): _PRIMS_2026_08_29,
     ("Q2", "reasons_failing"): _PRIMS_2026_08_29,
+    ("Q1", "benefits_failing"): _PRIMS_2026_08_29,
     # Judged on 2026-08-30 against the SAME registry -- `requires` was the last
     # primitive added and it predates both dates -- so they carry the same
     # constant rather than a new one spelling out an identical string. The check
@@ -1407,7 +1541,6 @@ PROSE_ONLY_JUDGED_AGAINST: dict[tuple[str, str], str] = {
     # mirrors here drift.
     ("Q5", "example_2"): _PRIMS_2026_08_29,
     ("Q5", "reasons_substantial"): _PRIMS_2026_08_29,
-    ("1c", "legend"): _PRIMS_2026_08_29,
     # `requires` is not a new primitive, only a newly USED one, so the same set.
     ("Q6", "link_c2"): _PRIMS_2026_08_29,
 }
@@ -2379,14 +2512,36 @@ def check_slot_rules_backlog_is_being_cleared() -> list[str]:
     return []
 
 
+def _note_reaches(note: str, prompt: str) -> bool:
+    """Is `note`'s text present in `prompt`, allowing for placeholder filling?
+
+    A head-match is NOT good enough and the false answers it gave are on the
+    record: it reported Q1's `benefits_failing` and DAY1's `consequence_asserted`
+    as missing from prompts that carry them in full, because each generator
+    prefixes the text differently. Match on the note's own literal SEGMENTS
+    instead -- the spans between `{fail}`-style placeholders, which each side
+    fills with its own vocabulary -- so what is compared is the wording neither
+    generator is free to change.
+    """
+    import re
+
+    norm = lambda s: " ".join(s.split())
+    hay = norm(prompt)
+    segs = [norm(s) for s in re.split(r"\{[^}]*\}", note)]
+    segs = [s for s in segs if len(s) >= 40]
+    if not segs:                     # a short note, or all placeholder
+        segs = [norm(note)]
+    return all(s in hay for s in segs)
+
+
 def check_slot_rules_reach_both_prompts() -> list[str]:
     """Does per-slot judging text reach the PAPER prompt as well as the web's?
 
     The web checklist and the paper component list are each a slot-specific
     field, and only the rubric is read by both generators. Text parked in
-    `olx_prompts.SLOT_NOTES` therefore reaches the web and the CLI harness and
-    silently leaves score.py behind — the two sides go on applying different
-    rules while every existing audit stays green, because `--prompts` only ever
+    `olx_prompts.SLOT_NOTES` used to reach the web and the CLI harness and
+    silently leave score.py behind — the two sides going on applying different
+    rules while every existing audit stayed green, because `--prompts` only ever
     counts rubric elements the WEB is MISSING. It has no notion of the web
     carrying something the paper does not.
 
@@ -2394,63 +2549,129 @@ def check_slot_rules_reach_both_prompts() -> list[str]:
     for a day: the web and CLI moved from 69% to 88% on them and the paper
     scorer never saw them, with `--item Q4b` reporting "missing 0/4, 0/5, 0/3".
 
-    So: any SLOT_NOTES entry naming a scored slot of an item is a finding. The
-    rubric's per-component `rule` field is the shared home, and both generators
-    render it into their own slot-specific position.
+    THIS CHECK MEASURES REACH; IT USED TO MEASURE LOCATION. Until 2026-09-09 it
+    asked "is this text in SLOT_NOTES?" and called that a gap, because SLOT_NOTES
+    was olx-only and the two questions had the same answer. They no longer do:
+    score.py's `_slot_body` now reads SLOT_NOTES through the same
+    `rule or SLOT_NOTES[item:key] or SLOT_NOTES[key] or desc` chain the web uses,
+    so text can sit in SLOT_NOTES and reach both prompts. A location check would
+    have gone on reporting six migrations as owed after they were delivered, and
+    -- worse in the other direction -- it never saw Q6's four `state_*` notes at
+    all, which were real judging text that reached only the web while sitting
+    below the mapping-length threshold. Build both prompts and look.
+
+    Both directions are findings. A note the PAPER carries and the web does not
+    is the same defect wearing the other hat, and neither generator is the
+    privileged one.
 
     Mapping notes are exempt. SLOT_NOTES' documented job is to point a web check
     at its numbered paper criterion, and such a note carries no judging text of
     its own — it is short and refers to a criterion. The heuristic is length,
     which is crude but errs the right way: a long note is doing more than
-    mapping.
+    mapping. It is the reason Q6's four were invisible here, so it buys its
+    exemption at a known price.
     """
     import olx_prompts as OP
     import rubric_h1, rubric_h2, rubric_h3
+    import score as SC
 
     MAPPING_MAX = 220        # a "see criterion N" pointer, not a rule
     BACKLOG = SLOT_RULE_BACKLOG
 
     problems = []
-    scored = {}
+    scored, by_id = {}, {}
     for mod in (rubric_h1, rubric_h2, rubric_h3):
         for item in mod.ITEMS:
+            by_id[item["id"]] = item
             for c in item.get("credit", []) or []:
                 scored.setdefault(item["id"], set()).add(c["what"])
 
+    built: dict[str, tuple] = {}
+
+    # A BUILD FAILURE IS A FINDING, NOT A HAYSTACK. The first run of this check
+    # passed the item DICT to build_web_prompt, which takes an id; the exception
+    # was caught and its text used as the prompt to search, so every entry came
+    # back "paper only" or "dead text" and all four lines were reports on the
+    # bug. Failures are collected and raised as their own problems.
+    failed: list[str] = []
+
+    def prompts(item_id):
+        if item_id not in built:
+            item = by_id[item_id]
+            try:
+                web = OP.build_web_prompt(item_id)
+            except Exception as exc:
+                web, _ = None, failed.append(
+                    f"{item_id}: the WEB prompt does not build ({type(exc).__name__}: "
+                    f"{exc}), so no reach can be measured on it")
+            try:
+                paper = SC.build_prompt(item, "STUDENT RESPONSE", {}, None)
+            except Exception as exc:
+                paper, _ = None, failed.append(
+                    f"{item_id}: the PAPER prompt does not build ({type(exc).__name__}: "
+                    f"{exc}), so no reach can be measured on it")
+            built[item_id] = (web, paper)
+        return built[item_id]
+
     seen_backlog = set()
-    for key, note in (getattr(OP, "SLOT_NOTES", {}) or {}).items():
+    for key, note in sorted((getattr(OP, "SLOT_NOTES", {}) or {}).items()):
         if len(note) <= MAPPING_MAX:
-            continue
-        if key in BACKLOG:
-            seen_backlog.add(key)
             continue
         item_id, _, slot = key.partition(":")
         if not slot:                       # unscoped note, applies by slot name
             item_id, slot = None, key
-        # Except for the handful score.py's criteria sheet renders itself. The
-        # docstring's premise -- SLOT_NOTES is olx-only -- stopped being true for
-        # those when the criteria prose was given one source; `consequence_asserted`
-        # left the BACKLOG below by being FIXED rather than by rotting.
+        # The keys the criteria machinery renders IN ITS OWN WORDS, via
+        # `_criterion_11` and `_C10_TRIGGER`. A verbatim reach test cannot see a
+        # paraphrase, and fuzzy matching here would be a guess machine: this is
+        # what olx_prompts.CLI_CRITERIA_NOTES declares, and reading it is how the
+        # exception stays in one place.
         if slot in getattr(OP, "CLI_CRITERIA_NOTES", ()):
             continue
         owners = ([item_id] if item_id and item_id in scored
                   else [i for i, s in scored.items() if slot in s])
         if not owners:
             continue                       # not a scored slot — nothing to share
+
+        short = []
+        for owner in sorted(owners):
+            web, paper = prompts(owner)
+            if web is None or paper is None:
+                continue               # reported by `failed`, not guessed at
+            in_web = _note_reaches(note, web)
+            in_paper = _note_reaches(note, paper)
+            if in_web and in_paper:
+                continue
+            if in_web:
+                short.append(f"{owner}: web only, paper scorer never sees it")
+            elif in_paper:
+                short.append(f"{owner}: paper only, the web never sees it")
+            else:
+                short.append(f"{owner}: NEITHER prompt carries it — dead text")
+        if not short:
+            if key in BACKLOG:
+                problems.append(
+                    f"BACKLOG names SLOT_NOTES[{key!r}], which now reaches BOTH "
+                    f"prompts on every item that scores it. Drop it from BACKLOG")
+            continue
+        if key in BACKLOG:
+            seen_backlog.add(key)
+            continue
         problems.append(
             f"SLOT_NOTES[{key!r}] is {len(note)} chars of judging text on a scored "
-            f"slot of {', '.join(sorted(owners))}. SLOT_NOTES is olx-only, so the "
-            f"paper scorer never sees it. Move it to that credit component's "
-            f"`rule` field, which both generators render")
+            f"slot, and it does not reach both prompts — {'; '.join(short)}. Put it "
+            f"on that credit component's `rule` field, which both generators "
+            f"render, or declare it in SLOT_RULE_BACKLOG with the reason")
 
     # A backlog entry that has gone means the list is rotting: either it was
     # migrated (good — remove it from BACKLOG) or its note shrank below the
     # mapping threshold (also worth knowing).
     for stale in sorted(set(BACKLOG) - seen_backlog):
+        if any(stale in p for p in problems):
+            continue                       # already reported as reaching both
         problems.append(
             f"BACKLOG names SLOT_NOTES[{stale!r}], which no longer qualifies. If it "
             f"was migrated to a `rule` field, drop it from BACKLOG")
-    return problems
+    return sorted(set(failed)) + problems
 
 
 def _olx_slot_verdicts(item_id: str, slot: str) -> set:
@@ -4846,6 +5067,9 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "measured.GOLD_CODE_CHARGES": (
         "which deduction code each grader phrasing charges on a criteria item",
         ("check_slot_sets_match_gold",)),
+    "measured.SILENT_GOLD_DIVERGENCES": (
+        "silent-gold full marks we refuse, read out and declared",
+        ("check_no_declaration_cites_a_suspect_cell",)),
     "measured.GOLD_CODE_KNOWN": (
         "criteria cells where our deduction code differs from gold's",
         ("check_slot_sets_match_gold",
@@ -5538,6 +5762,56 @@ def engine_scoring_agreement_line() -> str:
             f"neither engine reached.")
 
 
+def check_paper_scorer_agrees_on_identical_verdicts() -> list[str]:
+    """Does score.py's arithmetic match the web mirror's on the same verdicts?
+
+    THE PAPER SIDE WAS NEVER IN THE LOGIC COMPARISON. `scoring_logic_agreement`
+    -- the one instrument that separates the SCORER from the MODEL -- iterates
+    `for side in ("olx", "python")`, so its "223 verdict signatures, 0 scored
+    differently" says nothing whatever about the paper scorer. It could not
+    simply be extended: it matches whole verdict SIGNATURES, and paper records a
+    different slot set (on Q4a python records `antecedent_kind_1/2` and
+    `confident`, paper records neither), so nothing would ever collide and the
+    pair reported 0 shared signatures -- indistinguishable from agreement.
+
+    See measured.paper_scorer_agreement for the method: run each paper cell's
+    recorded verdicts through `agreement.score_slots` rather than matching keys.
+
+    COVERAGE IS THE LIMIT AND IT IS REPORTED, not hidden. Only items with a
+    recorded paper artifact can be compared. Two items agreeing is evidence about
+    two items.
+    """
+    import measured as MEAS
+
+    d = MEAS.paper_scorer_agreement()
+    out = []
+    for item, pid, paper, web in d["differing"]:
+        out.append(
+            f"{item}/p{pid}: the SAME verdicts score {paper:g} on the paper path "
+            f"and {web:g} through the web mirror's arithmetic. The model is held "
+            f"fixed here, so this is the two scoring implementations disagreeing, "
+            f"not sampling")
+    for e in d["errors"]:
+        out.append(f"paper verdicts could not be scored by the web mirror -- {e}")
+    return out
+
+
+def paper_scorer_agreement_line() -> str:
+    """Coverage for the check above, as audit context rather than a finding."""
+    import measured as MEAS
+
+    d = MEAS.paper_scorer_agreement()
+    if not d["items"]:
+        return ("paper scoring: NO item has a recorded paper artifact, so the "
+                "paper scorer's arithmetic is compared against nothing.")
+    return (f"paper scoring: {d['agree']} paper cell(s) across {len(d['items'])} "
+            f"item(s) ({', '.join(d['items'])}) re-scored through the web mirror's "
+            f"arithmetic on their own recorded verdicts, {len(d['differing'])} "
+            f"differing. The other {len(MEAS._jobs()) - len(d['items'])} items have "
+            f"no paper artifact and are UNCOMPARED -- sweep the paper side to widen "
+            f"this.")
+
+
 def check_engine_rate_divergence() -> list[str]:
     """A cell where the two engines' agreement RATES differ beyond chance.
 
@@ -5951,6 +6225,2357 @@ def check_scorer_neutrality_is_verified() -> list[str]:
     check_scorer_neutrality_is_verified.cells = covered
     check_scorer_neutrality_is_verified.unreachable = unreachable
     return bad
+
+
+# Generated attributes that are HAND-AUTHORED on purpose, with the reason. An
+# attribute in the .olx whose `*_attr_for` returns None is otherwise an ORPHAN --
+# see check_generated_attributes_have_a_declaration. Keep this table small: every
+# entry is a place where the rubric is NOT the single source, which is the thing
+# the generator conversions exist to remove.
+HAND_AUTHORED_ATTRS: dict[tuple[str, str], str] = {
+    ("PR", "expect"): "the four `demonstrates_type` rules stay authored in the "
+                      ".olx because the CLI reaches that fact through "
+                      "`expected_type` and REQUIRED_MOVE, both already rubric "
+                      "declarations -- declaring them again would be a SECOND "
+                      "source for one fact. olx_prompts.expect_attr_for says so "
+                      "in its own docstring.",
+    ("NR", "expect"): "same as PR: `demonstrates_type` reaches the CLI through "
+                      "REQUIRED_MOVE.",
+    ("PP", "expect"): "same as PR.",
+    ("NP", "expect"): "same as PR.",
+}
+
+
+def check_generated_attributes_have_a_declaration() -> list[str]:
+    """An .olx attribute the generator OWNS, with no rubric rule behind it.
+
+    SUBGOAL E44. `olx_prompts.GENERATED_ATTRS` names three attributes the
+    generator writes -- `forbid`, `expect`, `maps` -- each from a `*_attr_for`
+    that returns None when the rubric declares no rule. The writer then does
+    `if want is None: continue`, which LEAVES the attribute alone rather than
+    clearing it. That is right while an attribute is hand-authored and the rubric
+    has never claimed it. It is wrong the moment a declaration is REMOVED: the
+    attribute was generated, nothing backs it now, and nothing removes it.
+
+    WHAT IT COST. Reverting the cadence edit on 2026-09-05 deleted `EXPECT` for
+    DAY1/DAY2/WK2 and removed the picks those rules parsed. The .olx kept
+    `expect="targets_own_behavior:trigger_behavior=...|cadence_is_daily:
+    trigger_settles=..."`, so both the aim slot and the cadence gate were computed
+    from operands that no longer existed -- never satisfiable -- and the items
+    could not reach 4.00 at all. `olx_prompts.py --check` reported "up to date"
+    throughout, because the generator does not own an attribute it did not write.
+    Eight queued sweeps then woke into that tree and exited without spending a
+    call, which was luck: the cheap-checks gate caught it only because the orphan
+    happened to make a GATE unsatisfiable.
+
+    THAT LUCK IS THE REASON THIS EXISTS. An orphaned `expect` on a slot that
+    merely SCORES, or an orphaned `maps` whose pick survives but whose rule has
+    changed, leaves the arithmetic reachable and passes in silence. `maps` is the
+    newest of the three and two items gained one on 2026-09-05, so the exposure is
+    live and growing.
+
+    Reports an attribute PRESENT with no rule and no HAND_AUTHORED_ATTRS entry.
+    The reverse -- a rule with no attribute to write into -- is already a hard
+    error in the writer, and drift between the two is what `--check` compares.
+    """
+    import re
+
+    import olx_prompts as OP
+
+    out: list[str] = []
+    for item_id, action in sorted(OP.ACTION.items()):
+        handout = OP.HANDOUT[item_id]
+        try:
+            tag = OP._sheet_tag(handout, action)
+        except SystemExit:
+            continue                      # a missing sheet is another check's
+        for name, fn in OP.GENERATED_ATTRS:
+            m = re.search(r'%s="([^"]*)"' % name, tag)
+            if m is None or not m.group(1).strip():
+                continue                  # absent, or an empty placeholder
+            if fn(item_id) is not None:
+                continue                  # the rubric backs it
+            if (item_id, name) in HAND_AUTHORED_ATTRS:
+                continue
+            out.append(
+                f"{item_id} carries a `{name}=` attribute the generator OWNS, and "
+                f"no rubric rule produces it: {m.group(1)[:70]!r}. Either the "
+                f"declaration was removed and this is an ORPHAN pointing at "
+                f"operands that may no longer exist -- `--write` will not clear "
+                f"it, and `--check` will call the file up to date -- or it is "
+                f"hand-authored on purpose, which belongs in "
+                f"enforcement.HAND_AUTHORED_ATTRS with the reason")
+    return out
+
+
+def _maps_specs() -> list[tuple]:
+    """(item, spec) for every `maps` entry in every rubric. Subgoal E46."""
+    out = []
+    for name in ("rubric_h1", "rubric_h2", "rubric_h3"):
+        try:
+            mod = __import__(name)
+        except Exception:
+            continue
+        for item, specs in (getattr(mod, "MAPS", None) or {}).items():
+            for s in specs:
+                out.append((item, mod, s))
+    return out
+
+
+def _maps_emits(spec: dict) -> set:
+    """Every verdict a map can produce: its pairs, plus its fallback."""
+    e = {p["verdict"] for p in spec.get("pairs") or []}
+    if spec.get("fallback"):
+        e.add(spec["fallback"])
+    return e
+
+
+
+
+# WHAT IS DESIGNED MUST BE WHAT SHIPS. Exact prompt text a subgoal committed to,
+# keyed (item, slot, field), compared against the live rubric before any call.
+#
+# THIS TABLE EXISTS BECAUSE OF ONE WASTED SWEEP AND A WRONG EXPLANATION. On
+# 2026-09-06 subgoal Q19 designed a report slot and recorded its `desc` as PROSE
+# IN A GOAL ENTRY. At build time the string was RE-TYPED into the rubric, and the
+# re-typing dropped the question's comparison clause and turned a yes/no into a
+# which-one:
+#     DESIGNED  "does this box name, as the thing the student is doing, THE SAME
+#                ACT THAT AN ANTECEDENT BOX NAMES AS ITS TRIGGER?"
+#     SHIPPED   "WHICH ANTECEDENT, IF ANY, does this box name as the thing the
+#                student is doing?"
+# The probe passed 23 of 24 on the designed wording. The sweep over-fired on nine
+# cells and cost ~230 calls. The first explanation offered was a "prompt-load
+# effect" -- a hand-wave that would have ended the investigation -- and a
+# re-probe with the SHIPPED string reproduced the failure standalone in 24 calls.
+#
+# NOTHING COULD HAVE CAUGHT IT. Every other gate here asks whether the shipped
+# text is WELL-FORMED -- that the slot reaches the sheet, that its verdicts are
+# reachable, that no map dangles, that no cohort words leak. None asks whether it
+# is THE TEXT SOMEBODY DECIDED ON, because the decision lived in prose and prose
+# is not comparable. A design recorded where no check can read it is a design
+# that ships by memory.
+#
+# HOW TO USE IT: when a subgoal commits to exact prompt wording, put the string
+# HERE, verbatim, and have the entry point at this table instead of restating the
+# words. Then the build cannot drift, and if the design is deliberately revised
+# the revision happens in one place and is visible in the diff.
+DESIGNED_TEXT: dict[tuple[str, str, str], str] = {
+    ("Q4a", "antecedent_kind_1", "rule_addition"): '`aftermath` COVERS THE GOAL BEHAVIOUR TOO, not only the unwanted one. An entry naming what follows from DOING the goal behaviour -- its payoff not yet showing, or a cost incurred by having done it -- names something a behaviour left behind, so answer `aftermath` rather than `before`, even though the next episode of the unwanted behaviour comes after it. THIS IS NARROW BY DESIGN: it turns on the entry naming a result OF THE GOAL BEHAVIOUR. A state the student is simply in, however it arose, is a `before` in the ordinary way.',
+    ("Q4a", "antecedent_kind_2", "rule_addition"): '`aftermath` COVERS THE GOAL BEHAVIOUR TOO, not only the unwanted one. An entry naming what follows from DOING the goal behaviour -- its payoff not yet showing, or a cost incurred by having done it -- names something a behaviour left behind, so answer `aftermath` rather than `before`, even though the next episode of the unwanted behaviour comes after it. THIS IS NARROW BY DESIGN: it turns on the entry naming a result OF THE GOAL BEHAVIOUR. A state the student is simply in, however it arose, is a `before` in the ordinary way.',
+    # Q2 `reasons_given` desc, registered 2026-09-09 BEFORE the build. Q44's
+    # seventh route, and the FIRST that is a repair rather than a new test.
+    # Q2/p6: band 3/12, gold 4.00, python 1/6 and olx 2/6, Q2's only wrong cell.
+    #
+    # THE DEFECT IS TWO SHIPPED CLAUSES CONTRADICTING EACH OTHER ACROSS THE TWO
+    # PROMPT SECTIONS, which is why reading either field alone looked consistent
+    # and why six earlier routes missed it. The desc illustrated the `and`-split
+    # with "(one about the body, say, AND one about mood)" -- UNQUALIFIED. The
+    # rule qualifies the same split: "BUT ONLY WHERE EACH HALF NAMES A GOOD OF
+    # ITS OWN, some particular thing that gets better, each with its own
+    # predicate." And p6's sentence IS the desc's example verbatim in shape --
+    # a body good AND a mood good -- on a cell gold counts as ONE. The concrete
+    # example instructed the split, the abstract qualification forbade it, and
+    # the example won in 8 of 12 runs. Q44 suspected the clause was generalised
+    # from p6 during the 2026-08-24 de-citation campaign (whose own summary
+    # lists `Q2/p6 2/3 -> 3/3`); what it missed is that the surviving text is
+    # the EXAMPLE, sitting in the other section from the qualification.
+    #
+    # SO THIS REMOVES A MIS-CHOSEN ILLUSTRATION AND ADDS NO TEST. That is the
+    # opposite of route 3, which added a distinct-content test and broke p11,
+    # p16 and p18. What the slot tests is unchanged; the qualification already
+    # shipped in the rule can now operate instead of being contradicted.
+    # GOLD IS SELF-CONSISTENT ON THIS BOUNDARY, which is why p6 is fixable and
+    # not declarable: p9 splits four conjuncts, each naming a distinct thing
+    # with its own predicate, and takes 5.00; p11 splits three at 12/12; p6's
+    # second half names no object at all and gold folds it into the first.
+    #
+    # ABORT IF ANY OF p9, p11, p14, p18, p19 LOSES A COUNT. Compare all twenty
+    # cells and read by SCORE via probe.score_impact, never by verdict count --
+    # Q2 is 18/20 and 19/20, so a one-cell move in the item total is not
+    # evidence either way, and two probes today mis-reported by counting flips.
+    # The replacement paraphrases the structural shape and quotes neither p9's
+    # nor p11's wording; screened clean at the three-or-fewer-students mark.
+    ("Q2", "reasons_given", "desc"): 'HOW MANY of the listed statements are a real benefit of the GOAL behaviour: `reasons_listed` minus `reasons_failing`. A statement that restates the harm of the unwanted behaviour is not a benefit of the goal — "not exercising makes me feel lazy" is a reason to drop the UTB, not a benefit of exercising. What decides this is what the statement NAMES: one whose subject is the unwanted behaviour, or going without the goal behaviour, and whose predicate is a cost of that, names no benefit. One that NAMES a good the goal behaviour brings and then supports it by the cost avoided has named its benefit and COUNTS. Two goods in one area of life are still two. Whether one sentence holds one benefit or two is STRUCTURAL: a second half that is a knock-on effect of the first is ONE (a benefit, then "WHICH WILL" and what follows from it), while two independent benefits merely joined by "and" are TWO -- BUT ONLY WHERE EACH HALF NAMES A GOOD OF ITS OWN, its own subject with its own predicate, as the counting rule below requires. A second half that names no thing of its own, and only says matters will generally improve, extends the first half, and the pair is ONE. A restatement of the PROBLEM the goal solves is not a benefit of it either: a remark attributing their present condition to not having done the goal behaviour names the harm again and earns nothing. Two things resemble that and are NOT it. A good does not become a restatement by being described as LASTING: saying a benefit will continue, or that the behaviour will become settled practice, says how long the good holds, and a benefit that lasts is still a benefit. Nor does a good become a restatement by being a CHANGE IN THE STUDENT rather than in their circumstances: a capacity or a disposition the behaviour builds in the one who does it is a benefit the graders credited. Statements about why the UTB is bad belong to Q1 and earn nothing here either — a response whose reasons are all of that kind scores 0. Answer 3 for three or more',
+    # Q3 `realistic`, registered 2026-09-09 BEFORE the build. Aimed at Q3/p13,
+    # 5 of 12, gold 3.00 and we score 2.00 -- the ONLY median-wrong cell in the
+    # corpus with NO history of failed attempts and no declaration.
+    #
+    # THE SLOT IS UNDER-SPECIFIED RELATIVE TO EVERY SCORED SIBLING. Q3's slots
+    # carry: specific 35 chars, measurable 731, action_oriented 1404,
+    # time_bound 329, and `realistic` THIRTY-ONE -- "Is realistic, or says why
+    # it is", with no rule at all. So this is NORMALISATION, not load-adding:
+    # 351 chars puts it between time_bound and measurable. (The 63 chars a
+    # reader sees is `probe.question_for` returning BOTH prompt sections, which
+    # for a desc this short are the same string twice -- not a duplication bug.)
+    #
+    # THE DIRECTION IS GENEROUS, WHICH IS WHAT GOLD REQUIRES. `realistic`
+    # answers `met` 12 of 12 on EIGHTEEN of twenty cells. Only two move: p9,
+    # blank justification, `absent` 12/12 and correctly refused; and p13, which
+    # splits THREE WAYS -- met 5 / unclear 3 / absent 4. Gold gives p13 3.00 and
+    # the met reading is what produces 3.00, so OUR REFUSALS ARE THE ERROR and
+    # the slot's own wording already licenses crediting: "or says why it is".
+    # WHY p13 IS THE ONE THAT SPLITS: every credited justification names a
+    # capability or a resource -- control over the behaviour, a paid membership,
+    # a gym on campus, produce in every grocery store, thirty minutes that fit.
+    # p13's is the only one in twenty that instead asserts the OUTCOME is
+    # likely: "I am much more likely to be better rested than otherwise." With
+    # 31 characters of instruction the grader has no basis to choose, so it
+    # splits. The clause says the thin reason still counts.
+    #
+    # FALSIFIER: p9 must stay `absent` -- it offers no reason at all and gold
+    # charges it. CONTROLS: the eighteen cells at `met` 12/12 must not move.
+    # Leakage-screened: no content word in the clause is used by three or fewer
+    # students, which is the pattern the gate flags.
+    # AND A SIBLING GAP WORTH RECORDING: `specific` carries 35 characters, the
+    # same near-empty shape. It has not flapped yet, so it is a latent case of
+    # this defect rather than a live one.
+    ("Q3", "realistic", "rule"): 'THE BAR IS LOW, AND THE TWO ARMS ARE ALTERNATIVES: `met` where the goal is plainly workable as stated, OR where any reason for thinking so is given. DO NOT WEIGH THE REASON -- a thin or circular one counts, since this asks whether a reason was given and not whether it persuades. `absent` only where none is given and the goal is not plainly workable.',
+    # WK2's `named_type`, registered 2026-09-07 (subgoal Q55). Lifted from
+    # `scratchpad/candidate_wk2_named.txt` -- the same file the probe read and
+    # the same file the build read, so design, probe and shipped text are one
+    # string by construction and not by inspection.
+    # IT ALSO REPLACES NOTHING: sha e3b0c44298fc, the empty string, exactly as
+    # `aimed_correctly` did below. D1 and D2 carry text for the same key and
+    # WK2 and DAY1 do not -- and D1/D2's text says "`unclear` only if it is
+    # blank or unreadable", which on WK2/p15 prescribes the WRONG answer, so
+    # this is written from the cells rather than copied from the sibling.
+    # DAY1 STILL SHIPS THE EMPTY STRING for this slot and is NOT touched here:
+    # nothing has measured a DAY1 cell of p15's shape, and a second item is a
+    # second measurement, not a free ride on this one.
+    ("WK2", "named_type", "desc"): "WHICH of the four types the student CLAIMS -- not whether the claim is right, which another check decides.\nREAD BOTH BOXES. The type may be NAMED in the type box, or it may be named only by the DEFINITION the student wrote: a definition that describes adding an unpleasant thing after a behaviour, or taking a wanted thing away, names a type as surely as writing its name does. Where the two disagree, report what the TYPE BOX says.\nAnswer `unclear` ONLY when NEITHER box names a type -- both empty, or a bare label with nothing after it. A blank type box is not by itself an absent type.",
+    # WK2's `aimed_correctly` gate, REGISTERED BEFORE THE BUILD on 2026-09-07 --
+    # the order this table exists to enforce, and the order Q4b's report slot did
+    # not follow. Lifted from `scratchpad/candidate_wk2_aimed.txt`, the file the
+    # probe read; nothing retyped.
+    # WHAT IT REPLACES IS NOTHING AT ALL. `probe.question_for` returned the EMPTY
+    # STRING for this slot -- sha e3b0c44298fc -- because it is absent from WK2's
+    # rubric credit list and carries no desc, no rule and no SLOT_NOTES. A gate
+    # that takes the whole 4-point item shipped as its own identifier:
+    #   - `aimed_correctly` **GATE** -- `met`/`absent`/`unclear`
+    # Sentence 1 is `rubric_h2.OC_GATES`' own declared message for this gate,
+    # turned from feedback into a question. Sentence 2 is the reading BACKLOG.md
+    # records the slot ALREADY using on WK2/p8 -- "answers `aimed_correctly: met`
+    # because the fault is already accounted for". Sentence 3 covers the blanks.
+    # PROBED ON ALL 20 CELLS BEFORE BUILDING: target p11 `met` 4/4 (it refuses in
+    # 5 of 11 today), p3/p15 held, no gold-4.00 cell moved, and every gold-0 cell
+    # still refuses. scratchpad/probe_wk2_aimed.json.
+    ("WK2", "aimed_correctly", "desc"):
+        "Does the consequence point the RIGHT WAY for the arrangement this answer actually describes -- something added or taken away AFTER the behaviour, in the direction that would change it? Answer `absent` when it is pointed the wrong way: an aversive for MEETING the goal, or a reward for MISSING it.\nJUDGE THE ARRANGEMENT DESCRIBED, NOT THE TYPE THE STUDENT NAMED. An answer that describes a sound arrangement but labels it with the wrong type is `met` here. The mismatch between the two is a different check's charge, and taking the whole item for it here would charge one fault twice.\nAnswer `unclear` only when the answer names no consequence to judge at all.",
+    # SUBGOAL Q19's REPORT SLOT IS GONE FROM HERE, 2026-09-07, and the reason
+    # matters because this table's standing policy is the opposite. A design is
+    # normally KEPT after a revert so the next attempt starts from the decision
+    # rather than from memory -- right when the DESIGN was sound and the BUILD
+    # drifted, which is what happened to this slot the first time round.
+    # IT IS WRONG HERE. The design itself was then measured TWICE and refuted
+    # both times: the probed wording fired on p13, p20 and p8, where gold charges
+    # nothing on the behaviour boxes; a second wording adding a disposition
+    # clause and a sameness clause fixed p16 and still fired on those three.
+    # Gold names this criterion exactly ONCE in the item, on p4 -- "your
+    # behaviors cannot be the same as your antecedents" -- so the standard is
+    # fire-on-p4-and-nowhere-else, and neither wording met it.
+    # A design of record pointing the next attempt at a wording measured to
+    # contradict gold on three cells is worse than no entry. Both texts and both
+    # results live in GOALS.md under Q19, where a FAILURE can be recorded beside
+    # them. Nothing is lost; what is removed is the false suggestion that this
+    # wording is ready to build.
+}
+
+
+DESIGNED_SHA_FILE = "DESIGNED_TEXT_SHA.json"
+
+
+def _designed_shas() -> dict:
+    import json
+    try:
+        raw = json.loads((pathlib.Path(__file__).parent / DESIGNED_SHA_FILE).read_text())
+    except Exception:
+        return {}
+    return raw.get("fields") or {}
+
+
+def check_every_prompt_field_is_designed() -> list[str]:
+    """MANDATORY: every rubric desc/rule the graders read must match its
+    design-of-record sha. Reported as PROMPT FIELD IS NOT THE DESIGNED TEXT.
+
+    THE OPT-IN VERSION WAS NOT ENOUGH, and the user said so: DESIGNED_TEXT only
+    guards wording somebody chose to enter, so it cannot police a field nobody
+    thought to write down -- which is exactly the case that cost a sweep. This
+    covers ALL 145 desc/rule fields across the three rubrics.
+
+    SHA RATHER THAN FULL TEXT, and the reason is reviewability. 47KB of duplicated
+    prose in a table is not read; 145 short lines are, and a change shows up as
+    one line in a diff. The cost is that a sha detects drift without recovering
+    the original, which is why DESIGNED_TEXT still exists for wording a subgoal
+    explicitly commits to -- that tier keeps the words.
+
+    THREE FAILURE KINDS, reported separately because they mean different things:
+      CHANGED  -- the field exists and its text no longer matches. Either an
+                  intended edit that has not been accepted, or a drift.
+      MISSING  -- a new field with no design of record. A slot added without a
+                  decision recorded is the Q19 case in embryo.
+      STALE    -- a sha for a field that no longer exists, usually after a
+                  revert. Harmless, reported so the file does not silently rot.
+
+    There is deliberately NO bulk regenerate. `measured.py
+    --accept-design-change ITEM SLOT FIELD` rewrites ONE sha and prints what
+    changed. Bulk regeneration would make the file agree with anything.
+    """
+    import handouts as H
+    want = _designed_shas()
+    live: dict[str, str] = {}
+    for h in (1, 2, 3):
+        try:
+            items = H.config(h)["rubric"].ITEMS
+        except Exception:
+            continue
+        for it in items:
+            for c in it.get("credit") or []:
+                for f in ("desc", "rule"):
+                    v = c.get(f)
+                    if v:
+                        live[f"{it['id']}|{c['what']}|{f}"] = _field_sha(v)
+    out: list[str] = []
+    for key in sorted(live):
+        if key not in want:
+            out.append(f"MISSING design of record: {key.replace('|', '/')} is a "
+                       f"prompt field with no entry in {DESIGNED_SHA_FILE}. A slot "
+                       f"added without a decision recorded is how re-typing drifts")
+        elif want[key] != live[key]:
+            out.append(f"CHANGED without acceptance: {key.replace('|', '/')} "
+                       f"designed {want[key]}, ships {live[key]}. If the edit is "
+                       f"intended: python3 measured.py --accept-design-change "
+                       f"{key.replace('|', ' ')}")
+    for key in sorted(set(want) - set(live)):
+        out.append(f"STALE design of record: {key.replace('|', '/')} is in "
+                   f"{DESIGNED_SHA_FILE} and no longer in the rubric -- drop it "
+                   f"if the revert is permanent")
+    return out
+
+
+def _field_sha(text) -> str:
+    import hashlib
+    return hashlib.sha256(re.sub(r"\s+", " ", str(text)).strip().encode()).hexdigest()[:12]
+
+
+def check_no_definition_vanished() -> list[str]:
+    """A definition the inventory records and the tree no longer defines.
+    Reported as DEFINITION VANISHED FROM THE PACKAGE.
+
+    THE GUARD AGAINST A SLICE-BOUNDED EDIT TAKING A SLICE OUT OF THE WRONG
+    THING. Three times in two days an edit bounded by "the next brace" or "the
+    next definition" ate a neighbouring declaration; the file still parsed every
+    time, which is why nothing caught it. Twice it went unnoticed until a
+    NameError -- once in `--preflight`, days later, and the deleted name was
+    `GOLD_SLOT_BOUNDS_BUDGET`, whose absence had already been SEEN as "this
+    table loads 7 keys instead of 5" and moved past unexplained.
+
+    `editguard.safe_write` prevents it at write time. This catches it at gate
+    time, whatever route the edit took, because a plain Write or a hand-run
+    script bypasses the writer and not this. See `editguard.py` for the full
+    account and `DEFINITIONS.json` for the inventory.
+    """
+    import editguard
+
+    return editguard.vanished()
+
+
+VERDICT_HEDGES = {"unclear"}
+"""Verdicts offered so a grader can decline, which carry no charge either side.
+
+Exempt from the pairing below BY DESIGN: the web offers `unclear` on 26 slots
+whose `codes` map has no entry for it, and that is a hedge with no deduction
+rather than a missing code.
+"""
+
+VERDICT_PAIRS: dict[str, dict[str, str]] = {
+    # THE BRIDGE THE CODE SAID DID NOT EXIST. `olx_prompts` line ~2173:
+    # "the web says `wrong_kind` where the rubric says `not_reason`, and on 1c's
+    # legend `incomplete` against `not_described` ... enforcement.ALIAS does NOT
+    # record verdict pairs -- it maps slot KEY names, and an earlier version of
+    # this comment said otherwise, sending a reader looking for a bridge that
+    # does not exist." This is that bridge, authored 2026-09-08.
+    # WHY IT HAS TO BE PER SLOT: `not_described` pairs with `incomplete` on
+    # 1c/legend, with `generic` on 1c/title and with `tick_values` on
+    # 1c/x_axis_label. A global token map would be wrong three ways on one item.
+    # WEB TOKEN -> PAPER TOKEN. The web token is what the prompt offers (the
+    # generated `slots=` field 3); the paper token is a `codes` key, which is
+    # score.py's failure vocabulary -- it reads them for exactly that, see
+    # score.py "`not_described` is the paper-side counterpart of the web sheet's
+    # `incomplete`".
+    # SEEDED WHERE FORCED, NOT GUESSED: identical names pair with themselves,
+    # then a single remaining token on each side pairs with the other. 62 of 63
+    # slots were forced; the 63rd is reported by the check below rather than
+    # invented here.
+    '1a/baseline_week': {'absent': 'absent'},
+    '1a/distinguishes_periods': {'absent': 'absent'},
+    '1a/week_1': {'absent': 'absent'},
+    '1a/week_2': {'absent': 'absent'},
+    '1a/week_3': {'absent': 'absent'},
+    '1c/has_own_graph': {'absent': 'absent', 'mismatch': 'mismatch'},
+    '1c/legend': {'absent': 'absent', 'incomplete': 'not_described'},
+    '1c/title': {'absent': 'absent', 'generic': 'not_described'},
+    '1c/x_axis_label': {'absent': 'absent', 'tick_values': 'not_described'},
+    # AUTHORED 2026-09-08, the one pairing the mechanical seeding refused --
+    # and it is MANY-TO-ONE ON PURPOSE, which is why no rule could force it.
+    # A y-axis can fail BOTH ways this item distinguishes, and its desc says so
+    # in as many words: an axis TITLE naming what the axis represents, "not its
+    # tick values, and not the software's default 'Axis Title' placeholder".
+    # Its siblings each carry one of the two modes -- x_axis_label only
+    # `tick_values`, title only `generic` -- so the web offers y_axis_label
+    # three failing verdicts against the paper side's one.
+    # NOTHING IS LOST BY COLLAPSING THEM, and that is the ground for the
+    # pairing rather than convenience: `codes` maps BOTH `absent` and
+    # `not_described` to NO_Y_AXIS, and NO_Y_AXIS is 2.0 -- the same charge
+    # whichever way the label fails. The web's extra distinction is DESCRIPTIVE,
+    # feeding better feedback, not a second deduction. So the paper scorer can
+    # express the charge; it just cannot say which of the two reasons applied.
+    # THE SEEDING RULE'S LIMIT, recorded so it is not mistaken for a bug: it
+    # pairs identical names, then a SINGLE remaining token on each side. A
+    # legitimate two-to-one needs a human to say that collapsing loses no
+    # charge, which is exactly what the check asked for.
+    '1c/y_axis_label': {'absent': 'absent', 'tick_values': 'not_described',
+                        'generic': 'not_described'},
+    '2a/how_1': {'absent': 'absent'},
+    '2a/how_2': {'absent': 'absent'},
+    '2a/verdict': {'absent': 'absent'},
+    '2b/sentence_1': {'absent': 'absent'},
+    '2b/sentence_2': {'absent': 'absent'},
+    '2b/sentence_3': {'absent': 'absent'},
+    '3/example_1': {'absent': 'absent'},
+    '3/example_2': {'absent': 'absent'},
+    'D1/add_or_remove': {'absent': 'absent'},
+    'D1/increase_or_decrease': {'absent': 'absent'},
+    'D1/matches_chosen_type': {'absent': 'absent'},
+    'D2/add_or_remove': {'absent': 'absent'},
+    'D2/increase_or_decrease': {'absent': 'absent'},
+    'D2/matches_chosen_type': {'absent': 'absent'},
+    'DAY1/consequence_asserted': {'absent': 'no'},
+    'DAY2/consequence_asserted': {'absent': 'no'},
+    'Q1/reason_1': {'absent': 'absent'},
+    'Q1/reason_2': {'absent': 'absent'},
+    'Q1/reason_3': {'absent': 'absent'},
+    'Q1/utb_stated': {'absent': 'absent'},
+    'Q2/reason_1': {'absent': 'absent'},
+    'Q2/reason_2': {'absent': 'absent'},
+    'Q2/reason_3': {'absent': 'absent'},
+    'Q2/wgb_inverts_utb': {'absent': 'absent'},
+    'Q2/wgb_is_counterpart': {'absent': 'absent'},
+    'Q3/action_oriented': {'absent': 'absent'},
+    'Q3/measurable': {'absent': 'absent'},
+    'Q3/realistic': {'absent': 'absent'},
+    'Q3/specific': {'absent': 'absent'},
+    'Q3/time_bound': {'absent': 'absent'},
+    'Q4a/antecedent_1': {'absent': 'absent', 'wrong_kind': 'not_antecedent'},
+    'Q4a/antecedent_2': {'absent': 'absent', 'wrong_kind': 'not_antecedent'},
+    'Q4a/keyword': {'absent': 'absent'},
+    'Q4a/no_antecedents': {'absent': 'absent'},
+    'Q4b/behavior_1': {'absent': 'absent', 'wrong_kind': 'wrong_kind'},
+    'Q4b/behavior_2': {'absent': 'absent', 'wrong_kind': 'wrong_kind'},
+    'Q4b/modify_stated': {'absent': 'absent'},
+    'Q4b/modify_why': {'absent': 'absent'},
+    'Q4c/consequence_1': {'absent': 'absent', 'duplicate': 'duplicate', 'wrong_kind': 'not_consequence'},
+    'Q4c/consequence_2': {'absent': 'absent', 'duplicate': 'duplicate', 'wrong_kind': 'not_consequence'},
+    'Q4c/no_consequences': {'absent': 'absent'},
+    'Q5/example_1': {'absent': 'absent', 'duplicate': 'duplicate', 'wrong_kind': 'not_reason'},
+    'Q5/example_2': {'absent': 'absent', 'duplicate': 'duplicate', 'wrong_kind': 'not_reason'},
+    'Q6/affect_c1': {'absent': 'absent', 'incomplete': 'not_described'},
+    'Q6/affect_c2': {'absent': 'absent', 'incomplete': 'not_described'},
+    'Q6/change_a1': {'absent': 'absent', 'incomplete': 'not_described'},
+    'Q6/change_a2': {'absent': 'absent', 'incomplete': 'not_described'},
+    'Q6/state_a1': {'absent': 'absent', 'mismatch': 'neither'},
+    'Q6/state_a2': {'absent': 'absent', 'mismatch': 'neither'},
+    'Q6/state_c1': {'absent': 'absent', 'mismatch': 'neither'},
+    'Q6/state_c2': {'absent': 'absent', 'mismatch': 'neither'},
+    'WK1/consequence_asserted': {'absent': 'no'},
+    'WK2/consequence_asserted': {'absent': 'no'},
+}
+
+
+def check_no_recorded_run_is_an_api_error() -> list[str]:
+    """A run whose FEEDBACK IS AN ERROR, recorded in the ledger as a score.
+
+    FOUND 2026-09-08 while asking why six of subgoal Q57's cells had five or more
+    fields varying at once. They did not: each had ONE run in which a rate-limit
+    rejection was recorded as a scored run --
+
+        feedback: 'Error: LLM error (429): Azure API error: 429 ("Your requests
+                   to gpt-5-mini for gpt-5-mini in eastus have exceeded ...'
+
+    247 characters where a real run carries 2,500-4,900, no verdicts returned,
+    and the scorer produced a number anyway.
+
+    IT DOES NOT FAIL SAFE, which is why this is a refusal and not a note. Across
+    the 18 such runs the recorded score was 0.00 seven times, 4.00 NINE TIMES --
+    full marks -- 2.00 once and None once. So the error biases in BOTH
+    directions: it zeroes some cells and CREDITS others. A defect that only
+    zeroed would at least be conservative.
+
+    ALL 18 WERE ON THE `olx` SIDE, all HTTP 429, one per affected cell, 0.30% of
+    5,907 recorded cell-runs. That is small enough to have hidden for weeks and
+    large enough to have invented an entire tier of subgoal Q57 and one of
+    subgoal Q50's cells (WK1/p1, whose 8-of-9 was this and nothing else).
+
+    An error is not a measurement. `measured.record` should refuse an artifact
+    carrying one, the way it refuses an off-contract artifact; this check is what
+    catches any that are already recorded.
+    """
+    import cross_path as X
+    import measured as M
+
+    out = []
+    for item in sorted(M._jobs()):
+        for side in M.SIDES:
+            try:
+                doc = M._runs_doc(item, side)
+            except Exception:
+                continue
+            if not doc:
+                continue
+            for n, run in enumerate(doc.get("runs") or []):
+                for r in (run.get("results") or []):
+                    fb = str(r.get("feedback") or "")
+                    if not (fb.startswith("Error:") or "Azure API error" in fb):
+                        continue
+                    try:
+                        _, pid, score, _ = X.result_cell(r)
+                    except Exception:
+                        pid, score = None, None
+                    head = fb.split("(", 2)[0].strip()[:60]
+                    out.append(
+                        f"{item}/p{pid} [{side}] run {n} is recorded with score "
+                        f"{score} but its feedback is an API ERROR ({head}). An "
+                        f"error is not a measurement -- it returned no verdicts, "
+                        f"so the score is whatever the scorer produces from "
+                        f"nothing. Re-run the cell or drop the run; do not pool "
+                        f"it.")
+    return out
+
+
+VERDICT_ABSENCE_ENCODING = {
+    # HOW EACH ENGINE WRITES "NO VERDICT HERE", measured 2026-09-08 over every
+    # recorded run: olx `None` 7,080 times and NOTHING ELSE, python the empty
+    # string 3,535 times and NOTHING ELSE. Each side is perfectly consistent
+    # with itself and perfectly divergent from the other.
+    "olx": None,
+    "python": "",
+}
+
+# (item, slot) pairs where both sides recorded an absent verdict and therefore
+# disagree on its spelling. 32 pairs across 13 items, measured 2026-09-08. This
+# is ONE encoding difference manifesting 32 times, not 32 defects, which is why
+# the scope is declared rather than reported cell by cell.
+VERDICT_ABSENCE_SCOPE = 32
+
+
+def check_engines_encode_an_unrecorded_verdict_alike() -> list[str]:
+    """Do the two engines spell "no verdict here" the same way? They do not.
+
+    FOUND 2026-09-08, and found as a bug in a READER rather than in either
+    engine. Diffing DAY1/p14's fields against the pooled mode put every python
+    run 7-8 fields off it, which briefly looked like a python-side defect. It
+    was not: `named_type`, `observed_type`, `restriction_authored`, `restricts`
+    and `trigger_expects` hold `None` on the olx side and `""` on the python
+    side, on the same cell with the same sheet, and both mean THE SAME THING.
+    The two sides score 471/491 EACH -- exactly level.
+
+    That is the standing rule working as designed: a side difference is never
+    itself a premise, and the reader is the first suspect. The reader was wrong.
+
+    SO WHAT THIS CHECK IS FOR. The divergence is total, systematic and now
+    DECLARED above, so reporting it 32 times would be noise. What is worth
+    guarding is a CHANGE: a side growing a second spelling (a literal "n/a",
+    "null", "-"), a side becoming internally inconsistent, or the scope moving.
+    Any of those means a new encoding has appeared and every comparison built on
+    the old assumption is quietly wrong again.
+
+    NORMALISE BEFORE COMPARING. Any reader that diffs verdicts across sides must
+    map both spellings to one absent value first; `no_verdict` below is that
+    predicate, so the rule lives in one place rather than in each caller.
+    """
+    import collections
+
+    import cross_path as X
+    import measured as M
+
+    out = []
+    spellings = collections.defaultdict(collections.Counter)
+    pairs = set()
+    for item in sorted(M._jobs()):
+        enc = collections.defaultdict(lambda: collections.defaultdict(set))
+        for side in ("olx", "python"):
+            try:
+                doc = M._runs_doc(item, side)
+            except Exception:
+                continue
+            for run in (doc or {}).get("runs") or []:
+                for r in (run.get("results") or []):
+                    try:
+                        _, _, _, v = X.result_cell(r)
+                    except Exception:
+                        continue
+                    for k, x in (v or {}).items():
+                        if not no_verdict(x):
+                            continue
+                        spellings[side][repr(x)] += 1
+                        enc[k][side].add(repr(x))
+        for k, d in enc.items():
+            if len(d) == 2 and d["olx"] != d["python"]:
+                pairs.add((item, k))
+
+    for side, want in VERDICT_ABSENCE_ENCODING.items():
+        seen = set(spellings.get(side, {}))
+        if not seen:
+            continue
+        if seen != {repr(want)}:
+            out.append(
+                f"side {side!r} now spells an absent verdict {sorted(seen)} but "
+                f"VERDICT_ABSENCE_ENCODING declares only {repr(want)}. A second "
+                f"spelling means every cross-side verdict comparison is reading "
+                f"a difference that is not there -- normalise with "
+                f"`enforcement.no_verdict` and update the declaration")
+    if pairs and len(pairs) != VERDICT_ABSENCE_SCOPE:
+        out.append(
+            f"the olx/python absent-verdict encoding now diverges on "
+            f"{len(pairs)} (item, slot) pair(s); VERDICT_ABSENCE_SCOPE declares "
+            f"{VERDICT_ABSENCE_SCOPE}. Re-read the declaration above before "
+            f"trusting any field-level diff across the two sides")
+    return out
+
+
+def no_verdict(x) -> bool:
+    """Is this value one of the two spellings of "no verdict here"?
+
+    THE ONE PLACE THAT RULE LIVES. olx writes `None`, python writes `""` --
+    see `VERDICT_ABSENCE_ENCODING`. Every reader that compares verdicts across
+    the two sides must go through this, or it will report a difference that is
+    only a spelling.
+    """
+    return x is None or (isinstance(x, str) and not x.strip())
+
+
+def check_no_recorded_run_is_verdictless() -> list[str]:
+    """A recorded run that judged NOTHING, whatever the provider said about it.
+
+    THE PROVIDER-INDEPENDENT SIBLING of
+    `check_no_recorded_run_is_api_error`, which is string-based and so can only
+    catch a failure that says so in English. This one asks the structural
+    question instead: did the run come back with any verdicts at all?
+
+    WHY IT IS WORTH HAVING FOR ONE ROW. WK1/p1's HTTP 429 was the ONLY row in
+    6,147 with `score` null AND an empty verdict set -- the loud version of a
+    defect whose seventeen other instances recorded a plausible NUMBER and a
+    full verdict set. The pass that found WK1/p1 found exactly one because it
+    was looking for the failure mode it already knew. A future failure carrying
+    no error text would slip the string test and land here.
+
+    NOT the same as empty feedback, which is NOT a defect: 528 recorded rows
+    have none, almost all on the derived items, which make no LLM call.
+    """
+    import cross_path as X
+    import measured as M
+
+    out = []
+    for item in sorted(M._jobs()):
+        for side in M.SIDES:
+            try:
+                doc = M._runs_doc(item, side)
+            except Exception:
+                continue
+            for n, run in enumerate((doc or {}).get("runs") or []):
+                for r in (run.get("results") or []):
+                    try:
+                        _, pid, score, verdicts = X.result_cell(r)
+                    except Exception:
+                        continue
+                    if verdicts:
+                        continue
+                    out.append(
+                        f"{item}/p{pid} [{side}] run {n} is recorded with score "
+                        f"{score} and NO VERDICTS AT ALL. A run that judged "
+                        f"nothing is not a measurement -- re-run the cell or "
+                        f"drop the run; do not pool it.")
+    return out
+
+
+def check_one_writer_per_computed_key() -> list[str]:
+    """A slot whose verdict two computed primitives both write.
+
+    WHY IT IS A DEFECT AND NOT A PREFERENCE. `expect` does not override a verdict
+    on failure -- it REPLACES it. So a key written by both `maps` and `expect`
+    resolves by LOOP ORDER, and on 2026-09-08 the two engines ordered them
+    oppositely: `slotSheet.satisfiedMap` runs equals, expect, forbid, MAPS LAST
+    ("so a mapped check may read a pick that an earlier rule wrote"), while
+    `agreement.apply_computed` ran expect last. Same rubric, same answers, two
+    different scores -- and on the python side a box correctly failing as
+    `consequence` came out `met`, because the expect clause overwrote the mapped
+    verdict wholesale. The mirror was reordered to match the app the same day;
+    this check is what stops the collision being authored in the first place.
+
+    FOUND BY TESTING A DESIGN RATHER THAN BY AUDIT: subgoal Q19's Q4b pointing
+    proposal needed `expect="behavior_1:b1_points_at=neither"` layered over the
+    existing `maps` from `b1_basis`. Reading the primitive answered the design
+    question (no) and exposed the divergence (yes) for zero calls.
+
+    ALSO REPORTS THE READ-AFTER-WRITE CASE, which order decides just as much: an
+    `expect` or `equals` clause whose OPERAND is a key another primitive writes
+    reads a different value depending on where its loop sits. Both engines now
+    agree on the order, so this is a warning rather than a divergence -- but a
+    rubric that relies on it is relying on the order, and the order should not be
+    load-bearing in authored data.
+    """
+    import collections
+
+    import measured as M
+    from handouts import config
+
+    COMPUTED = ("equals", "expect", "forbid", "maps", "derived", "counts")
+    out = []
+    for item in sorted(M._jobs()):
+        h = M._jobs()[item]["handout"]
+        it = config(h)["rubric"].BY_ID.get(item) or {}
+        writers = collections.defaultdict(list)
+        for prim in COMPUTED:
+            for r in it.get(prim) or []:
+                key = r.get("key")
+                if key:
+                    writers[key].append(prim)
+        for key, prims in sorted(writers.items()):
+            if len(prims) > 1:
+                out.append(
+                    f"{item}/{key} is written by {sorted(prims)} -- TWO computed "
+                    f"primitives on one key. `expect` REPLACES a verdict rather "
+                    f"than overriding it, so which one wins is decided by loop "
+                    f"order, and that is not something authored data may rely "
+                    f"on. Give the second rule its own key.")
+        written = set(writers)
+        for prim in ("expect", "equals"):
+            for r in it.get(prim) or []:
+                for operand in ("left", "right"):
+                    o = r.get(operand)
+                    if o and o in written:
+                        out.append(
+                            f"{item}/{r['key']}'s `{prim}` reads `{o}`, which "
+                            f"{sorted(writers[o])} also writes -- a "
+                            f"read-after-write whose value depends on loop "
+                            f"order. Both engines agree on the order today; do "
+                            f"not make it load-bearing.")
+    return out
+
+
+def check_verdict_vocabularies_correspond() -> list[str]:
+    """A failing verdict one engine can express and the other cannot.
+
+    WHAT THIS IS NOT, because the obvious version is 48 false positives. A
+    `codes` key that the prompt never offers is NOT a dead code, and a prompt
+    verdict with no `codes` entry is NOT unmapped: the two engines have
+    DIFFERENT verdict vocabularies on purpose, and `codes` IS the paper
+    vocabulary. Scanning for equality reports 22 "dead codes" and 26 "unmapped
+    verdicts" that are all by design -- measured 2026-09-08 before this check
+    was written, which is why it is written against a declared pairing instead.
+
+    WHAT IT IS: every failing verdict on each side must have a counterpart on
+    the other, via `VERDICT_PAIRS`, with `VERDICT_HEDGES` exempt. A web verdict
+    with no paper counterpart is a charge the paper scorer CANNOT EXPRESS -- the
+    shape that once told score.py when to answer `wrong_kind` while offering it
+    met/absent/not_active, so every test was inert and it credited a Q4b box
+    both other engines reject.
+    """
+    import olx_prompts as OP
+
+    import measured as M
+    from handouts import config
+
+    out = []
+    for item in sorted(M._jobs()):
+        h = M._jobs()[item]["handout"]
+        rub = config(h)["rubric"].BY_ID.get(item) or {}
+        spec = (getattr(config(h)["rubric"], "SLOT_SPEC", {}) or {}).get(item) or []
+        off = {f["key"]: OP.resolve_options(f.get("seg"), ["met", "absent", "unclear"])
+               for f in spec}
+        for c in rub.get("credit") or []:
+            codes = c.get("codes") or {}
+            opts = [o for o in (off.get(c["what"]) or []) if o]
+            if not codes or not opts:
+                continue
+            key = f"{item}/{c['what']}"
+            web = [o for o in opts[1:] if o not in VERDICT_HEDGES]
+            paper = [k for k in sorted(codes) if k not in VERDICT_HEDGES]
+            pairs = VERDICT_PAIRS.get(key)
+            if pairs is None:
+                out.append(
+                    f"{key} has no entry in VERDICT_PAIRS: the web offers "
+                    f"{web} and the paper vocabulary is {paper}, and nothing "
+                    f"declares which corresponds to which. Author the pairing.")
+                continue
+            for w in web:
+                if w not in pairs:
+                    out.append(
+                        f"{key}: the web can answer `{w}` and NOTHING ON THE "
+                        f"PAPER SIDE corresponds -- a charge score.py cannot "
+                        f"express. Web {web}, paper {paper}.")
+            for pp in paper:
+                if pp not in set(pairs.values()):
+                    out.append(
+                        f"{key}: the paper vocabulary has `{pp}` and no web "
+                        f"verdict maps to it -- a charge the app cannot "
+                        f"produce. Web {web}, paper {paper}.")
+    return out
+
+
+def check_olx_attributes_are_all_generated() -> list[str]:
+    """A sheet attribute in the .olx that the RUBRIC does not produce.
+
+    STRICT, and it is the guarantee the 2026-09-08 conversion exists to make: an
+    item's slot sheet must be derivable from the design, so a design change is a
+    rubric edit and never a hand edit to a generated file. Two failures are
+    reported, and they are different faults:
+
+      UNACCOUNTED -- the attribute is on the tag and NO generator claims it. That
+        is a hand-authored attribute, and it means some behaviour has no design
+        of record. Eight such clauses were found this way on 2026-09-08 (`equals`
+        on the four cadence items, `onlyif` on NP/NR/PP/PR) -- shipping, scoring,
+        and undeclared, so `--write` could not regenerate them and no design
+        change could express them.
+      DIVERGED -- a generator claims it and produces something else. That is the
+        window between a rubric edit and `--write`, which is where 32 probe calls
+        were lost measuring a five-option menu while the rule described six.
+
+    WHY IT IS NOT MERELY `--check`. `olx_prompts.py --check` compares the file to
+    what `render()` WOULD write, so it goes quiet the moment the file is
+    regenerated -- including for an attribute render() copies through untouched.
+    This asks the different question: is every attribute PRODUCED BY A GENERATOR
+    from the rubric? An attribute nobody generates passes --check forever.
+    """
+    import re
+
+    import measured as M
+    import olx_prompts as OP
+
+    gens = dict(OP.GENERATED_ATTRS)
+    skip = {"id", "target"}
+    out = []
+    for item in sorted(M._jobs()):
+        action = OP.ACTION.get(item)
+        if not action:
+            continue
+        try:
+            tag = OP._sheet_tag(OP.HANDOUT[item], action)
+        except BaseException:
+            continue
+        for m in re.finditer(r'\b([a-z_]+)="([^"]*)"', tag):
+            name, have = m.group(1), m.group(2)
+            if name in skip:
+                continue
+            fn = gens.get(name)
+            if fn is None:
+                out.append(
+                    f"{item}: `{name}=` is HAND-AUTHORED -- no generator in "
+                    f"olx_prompts.GENERATED_ATTRS produces it, so a design "
+                    f"change cannot reach it and `--write` cannot regenerate "
+                    f"it. Give the rubric the fact and add a generator.")
+                continue
+            try:
+                gen = fn(item)
+            except BaseException as exc:
+                out.append(f"{item}: the generator for `{name}=` raised "
+                           f"{type(exc).__name__}: {str(exc)[:80]}")
+                continue
+            if (gen or None) != (have or None):
+                out.append(
+                    f"{item}: `{name}=` DIVERGED from the rubric -- the .olx has "
+                    f"{have[:60]!r} and the generator produces {str(gen)[:60]!r}. "
+                    f"Run `olx_prompts.py --write` (it may need two passes) and "
+                    f"confirm the rendered body, not just the attribute.")
+    return out
+
+
+def check_no_judging_field_states_what_a_verdict_costs() -> list[str]:
+    """A JUDGING field that explains its own ARITHMETIC to the grader.
+
+    SUBGOAL Q41 NAMED THIS CHECK AND DELIBERATELY DID NOT FILE IT: "no judging
+    field may state what a verdict costs is a cheap structural check over the
+    three rubrics, it would have caught this at authoring time, and it is
+    machinery". Filed 2026-09-08 because the entry's OBSERVATION SITE IS GONE --
+    after subgoal Q17's edit (c) the Q2 gate fails on one cell in twenty and that
+    cell lists no reasons, so there is no longer a configuration in which the
+    contamination can be watched. A structural check settles the general question
+    without observing the behaviour at all, which is the only route left that
+    costs nothing.
+
+    THE DEFECT IT GENERALISES. `Q2/wgb_is_counterpart`'s desc tells a JUDGING
+    grader "its reasons cannot count either, so WGB_UNRELATED stands INSTEAD of
+    WGB_NOT_OPPOSITE plus reason deductions, never alongside them". Every word is
+    true of the arithmetic and it is addressed to the wrong reader: the model
+    EXECUTES it, and on Q2/p10 `reasons_listed` answered 0 on a response holding
+    three statements, against that slot's own "Count what is on the page". The
+    model said so in all five runs where it happened -- "I did not count reasons
+    because ... THE ITEM'S GATE THEREFORE FAILS."
+
+    WHY A PHRASE SCAN IS THE RIGHT INSTRUMENT HERE, when scanning prose usually
+    is not: the target is AUTHORED text we control, not student writing or gold
+    comments, so the vocabulary is finite and a false positive is a sentence
+    worth re-reading anyway. It is fire-tested against the known site, which it
+    must flag, and against the rest of the corpus, which it must not.
+    """
+    import re
+
+    from handouts import config
+
+    PAT = re.compile(
+        r"cannot count|stands INSTEAD|never alongside|reason deductions|"
+        r"costs the whole item|the whole item is that finding|zeroes the item|"
+        r"is charged \d|worth \d(?! of)", re.I)
+    out = []
+    for h in (1, 2, 3):
+        for item in config(h)["rubric"].ITEMS:
+            for c in item.get("credit") or []:
+                for field in ("desc", "rule"):
+                    txt = c.get(field)
+                    if not txt:
+                        continue
+                    hits = sorted({m.group(0).lower() for m in PAT.finditer(txt)})
+                    if hits:
+                        out.append(
+                            f"{item['id']}/{c['what']}/{field} tells a JUDGING "
+                            f"grader what a verdict COSTS: {hits}. Arithmetic "
+                            f"belongs in the derivation or a comment, not in a "
+                            f"prompt whose job is to return judgements -- the "
+                            f"model executes it (subgoal Q41).")
+    return out
+
+
+def check_pick_choices_match_rubric() -> list[str]:
+    """A pick slot whose RUBRIC options are not the menu the grader is offered.
+
+    `slots=` binds a slot to a choice-set -- `b1_basis:...:pick(instead_of_basis)`
+    -- and `choices=` lists that set's members. `choices` is now generated
+    (`olx_prompts.choices_attr_for`), so this check exists to catch the state
+    BETWEEN a rubric edit and a `--write`, which is exactly where 32 probe calls
+    were lost on 2026-09-08: Q4b shipped a rule describing `a_listed_trigger`
+    while the checklist head still read "one of activity/consequence/
+    goal_behaviour/not_doing/none". The grader was told about an option it was
+    forbidden to pick, every answer came back from the old five, and the probe
+    read as "the mechanism does not fire" when the mechanism was never offered.
+
+    A slot with NO rubric source is not a finding: `named_type` and
+    `observed_type` -- twelve instances across the cadence items -- keep their
+    sets in the .olx alone, and `_pick_verdicts` returns None for them so the
+    generator preserves rather than deletes. Silence about those is deliberate;
+    the day one gains a rubric home, this check starts comparing it.
+    """
+    import re
+
+    import measured as M
+    import olx_prompts as OP
+
+    out = []
+    for item in sorted(M._jobs()):
+        action = OP.ACTION.get(item)
+        if not action:
+            continue
+        try:
+            tag = OP._sheet_tag(OP.HANDOUT[item], action)
+        except BaseException:
+            continue
+        ms = re.search(r'\bslots="([^"]*)"', tag)
+        mc = re.search(r'\bchoices="([^"]*)"', tag)
+        if not ms:
+            continue
+        sets = OP.parse_choices(mc.group(1) if mc else "")
+        for part in ms.group(1).split("|"):
+            m = re.search(r"pick\(([^)]+)\)", part)
+            if not m:
+                continue
+            slot, setname = part.split(":")[0], m.group(1)
+            want = OP._pick_verdicts(item, slot)
+            if want is None:
+                continue                    # no rubric source: preserved, not a finding
+            have = sets.get(setname) or []
+            if sorted(want) != sorted(have):
+                out.append(
+                    f"{item}/{slot} picks from '{setname}': the rubric declares "
+                    f"{sorted(want)} but the .olx offers {sorted(have)}. The "
+                    f"grader cannot answer what it is not offered -- run "
+                    f"`olx_prompts.py --write` and confirm the checklist head "
+                    f"lists it.")
+    return out
+
+
+def check_no_module_shadow_in_scratchpad() -> list[str]:
+    """A scratchpad file whose basename SHADOWS a package module.
+
+    WHY THIS IS A REAL DEFECT AND NOT TIDINESS. On 2026-09-07 a listing script
+    did `sys.path.insert(0, SCRATCHPAD)` and then `import enforcement`. It got a
+    09-05 copy 1425 lines shorter than the live module, and `DESIGNED_TEXT` --
+    added after that copy was taken -- simply did not exist. The traceback said
+    "module 'enforcement' has no attribute 'DESIGNED_TEXT'", which reads like a
+    clobbered table. THE STALE COPIES WERE agreement.py (55 lines behind),
+    enforcement.py (1425), olx_prompts.py (138) and oc_grid.py (an old
+    `derive_oc_ledger` signature) -- so a script that imported any of them would
+    have MEASURED OLD CODE and said nothing.
+
+    This is the same family as a stale idmap or an unregenerated .olx: the thing
+    you consulted was not the thing that ships. Those two are enforced already
+    (`check_idmap_is_current`, `prompt_sha`); this closes the third door.
+
+    REVERT SNAPSHOTS ARE NOT FLAGGED and must not be: they are named
+    `<module>.before_<tag>.py` or `<module>.pre_<tag>.py`, so their basename
+    cannot satisfy an `import <module>`. Only an EXACT basename match can, and
+    only that is reported. A cycle legitimately holds a snapshot open until it
+    keeps or reverts its edit -- see QUALITY_CONTROL.md 2a-1c.
+    """
+    import glob
+
+    here = pathlib.Path(__file__).resolve().parent
+    mine = {p.name for p in here.glob("*.py")}
+    out = []
+    for pat in ("/tmp/claude-*/*/*/scratchpad", "/tmp/claude-*/*/scratchpad"):
+        for d in glob.glob(pat):
+            for f in sorted(glob.glob(d + "/*.py")):
+                b = pathlib.Path(f).name
+                if b in mine:
+                    live = here / b
+                    same = (live.read_bytes() == pathlib.Path(f).read_bytes()
+                            if live.exists() else False)
+                    out.append(
+                        f"{f} shadows the package module {b}"
+                        + ("" if same else " AND DIFFERS FROM IT")
+                        + " -- any script putting that directory first on "
+                          "sys.path imports this instead of the live module. "
+                          "Delete it; rename a snapshot to "
+                          f"{b[:-3]}.before_<tag>.py if it is still needed.")
+    return out
+
+
+def check_closure_ceilings_are_declared() -> list[str]:
+    """A closure note calls a cell a CEILING and no table says so.
+    Reported as CEILING RECORDED ONLY IN PROSE.
+
+    THE USER'S QUESTION, 2026-09-07: "Should ceilings ever only be recorded in a
+    closure note? When we close a goal, shouldn't ceilings be declared
+    somewhere?" No, and 2a/p14 is the proof. Subgoal Q35 closed it as a ceiling
+    with three good reasons, wrote them in its closure note, and for days the
+    cell passed `unstable_cells_without_an_owner` ONLY BECAUSE subgoal Q50
+    happened to name it. Being owned by accident is not being declared: if Q50
+    closes, a check re-litigates a decision a human already made, and the only
+    protection is that somebody remembers reading the note.
+
+    A CLOSURE NOTE IS NOT A DECLARATION. It is prose in a table keyed by goal
+    label; nothing indexes it by cell, so no check can consult it and no reader
+    diagnosing that cell will find it unless they already know which closed goal
+    to read.
+
+    ACCEPTED HOMES, any one of which satisfies this: `DECLARED_CEILING_CELLS`
+    (cell-level), `GOLD_CEILINGS` (item-level), `GOLD_DIVERGENCES`,
+    `GOLD_SLOT_DISAGREEMENTS_KNOWN`, `SILENT_GOLD_DIVERGENCES`,
+    `GOLD_CODE_KNOWN`, `GOLD_SLOT_BOUNDS_KNOWN`, `PER_ITEM_EXCLUDE`. The point is
+    that the cell is findable FROM THE CELL, not which table holds it.
+
+    DELIBERATELY NARROW MATCHING. It wants a cell citation within 200 characters
+    of ceiling language OF THE CLOSING KIND -- "as a CEILING", "recorded as a
+    ceiling" -- not every use of the word, because these notes discuss ceilings
+    constantly ("the item's own subgoal already closed at its ceiling"). A
+    hand-rolled pattern over prose is what QUALITY_CONTROL.md 2a-3 warns about;
+    there is no prepared reader for this question, so this one is written once,
+    kept narrow, and fire-tested.
+    """
+    import ast
+    import re
+
+    import goals as GO
+    import handouts as H
+    import measured as M
+
+    declared = set(getattr(M, "DECLARED_CEILING_CELLS", {}))
+    for name in ("GOLD_SLOT_DISAGREEMENTS_KNOWN", "SILENT_GOLD_DIVERGENCES",
+                 "GOLD_CODE_KNOWN", "GOLD_SLOT_BOUNDS_KNOWN"):
+        for k in (getattr(M, name, {}) or {}):
+            if isinstance(k, tuple) and len(k) >= 2:
+                declared.add((k[0], k[1]))
+    for d in getattr(H, "GOLD_DIVERGENCES", []):
+        try:
+            for it, pid in ast.literal_eval(str(d.get("cells") or "[]")):
+                declared.add((it, pid))
+        except Exception:
+            pass
+    items_ceiled = {k[1] for k in (getattr(H, "GOLD_CEILINGS", {}) or {})
+                    if isinstance(k, tuple) and len(k) >= 2}
+    for item, cells in (getattr(H, "PER_ITEM_EXCLUDE", {}) or {}).items():
+        for pid in cells or {}:
+            declared.add((item, pid))
+
+    ceil = re.compile("as a CEILING|as a ceiling|recorded as a ceiling"
+                      "|closes as a ceiling|closed as a ceiling")
+    cell = re.compile(r"\b(1[abc]|2[ab]|3|Q\d[abc]?|D[12]|DAY[12]|WK[12]"
+                      r"|N[RP]|P[RP])/p(\d+)\b")
+    out = []
+    for label, note in sorted((getattr(GO, "CLOSURES_APPROVED", {}) or {}).items()):
+        text = str(note)
+        for m in ceil.finditer(text):
+            window = text[max(0, m.start() - 200): m.end() + 200]
+            for c in cell.finditer(window):
+                item, pid = c.group(1), int(c.group(2))
+                if (item, pid) in declared or item in items_ceiled:
+                    continue
+                out.append(
+                    f"{label} closed calling {item}/p{pid} a ceiling and NO table "
+                    f"says so -- the reason lives only in that closure note, "
+                    f"where no check can read it and no reader of the cell will "
+                    f"find it. Add it to measured.DECLARED_CEILING_CELLS with the "
+                    f"note's own reasoning")
+    return sorted(set(out))
+
+
+def check_probed_fields_keep_their_text() -> list[str]:
+    """A field with probe evidence whose wording is detectable but not
+    RECOVERABLE. Reported as PROBED WORDING IS NOT RECORDED IN FULL.
+
+    E56(d), decided 2026-09-07. `DESIGNED_TEXT_SHA.json` holds 145 field shas and
+    `DESIGNED_TEXT` holds full text for a handful, so for most fields a drift is
+    DETECTABLE and the original is not recoverable. Recording all 145 verbatim
+    was rejected: 47KB of duplicated prose nobody reads, and a table that big
+    goes stale in a way a sha cannot.
+
+    THE SET THAT EARNS FULL TEXT IS THE SET WITH EVIDENCE. A field somebody
+    probed has a measured result attached to one exact string; if that string is
+    only a sha, the result cannot be reproduced or compared and the probe's ~30
+    calls buy nothing durable. So: any field with a probe receipt must also have
+    its text in DESIGNED_TEXT. Everything else stays sha-only, deliberately.
+
+    Silent today, because the Q4b revert removed the only two receipts on record
+    -- which is the honest state, not a passing grade. It speaks the moment a
+    probe is run and its wording is not written down.
+    """
+    import probe as PR
+
+    out = []
+    for r in PR.receipts():
+        key = (r.get("item"), r.get("slot"), "desc")
+        if key not in DESIGNED_TEXT:
+            out.append(
+                f"{r['item']}/{r['slot']}: a probe measured this wording "
+                f"({r['sha']}, verdict {r.get('verdict') or 'none'}) and only its "
+                f"sha is recorded. A sha detects drift; it cannot reproduce the "
+                f"string the result belongs to. Put the text in DESIGNED_TEXT "
+                f"(full text is for fields with evidence; the other 145 stay "
+                f"sha-only by decision)")
+    return out
+
+
+def check_no_slot_is_both_asked_and_computed() -> list[str]:
+    """WITHDRAWN 2026-09-09, the same day it was written. ALWAYS RETURNS [].
+
+    Its premise was false. It reported a slot listed in `slots=` that also has a
+    `maps=` entry as contradictory, and proposed dropping it from `slots=`.
+    THE DESIGN REQUIRES BOTH: `slots=` supplies the SPEC -- vocabulary, points,
+    gating -- and `maps=` supplies the COMPUTATION. `slotSheet.ts` reads
+    `out[r.key] = spec ? isSatisfied(spec, mappedVerdict(r, checks)) : false`, so
+    a mapped slot removed from `slots=` has no spec, resolves to FALSE, and has
+    its points CHARGED. Acting on this check would have cost `legend`'s 2 points
+    on every 1c cell, and the same on Q2, Q4a and Q4b's mapped slots.
+
+    WHAT THE 19 OFF-MAP OBSERVATIONS ACTUALLY WERE. The dev server had run since
+    2026-08-29 11:55 under a plain tsx loader with no --watch, while
+    `slotSheet.ts` was modified 2026-08-31 22:23. It served CURRENT content on
+    STALE code, which no check could see: the idmap check verifies content, and
+    the content was fresh. Run against 1c/p8's real payload the current code
+    returns `met` and awards the points, scoring 8.0 = gold; the server returned
+    6.0. NOT A BUG IN EITHER REPO.
+
+    KEPT AS A FUNCTION RATHER THAN DELETED so that anyone who finds the idea
+    plausible again reads why it is wrong before re-deriving it. The real guard
+    is `agreement_app.server_code_is_stale`.
+    """
+    return []
+
+
+def check_every_designed_entry_ships() -> list[str]:
+    """A DESIGNED_TEXT entry whose text is NOT in the prompt its item ships.
+
+    THE GAP THIS CLOSES, found 2026-09-09: SIX OF TWELVE ENTRIES DID NOT SHIP,
+    and nothing said so. The three existing links all key off
+    `DESIGNED_TEXT_SHA.json`, which holds the rubric's own desc/rule FIELDS --
+    so a FRAGMENT key (`rule_addition`, `desc_addition`, `refers_to_addition`,
+    `rule_replacement`) never enters that inventory, and
+    `check_designed_text_is_the_measured_text` skips it at `if want is None:
+    continue`. That check also looks up only the literal field "desc", so an
+    entry registered against `rule` was never compared either. The result was
+    half the table holding reverted attempts' designs of record, indistinguishable
+    from live ones.
+
+    WHY THAT IS NOT COSMETIC. A design of record is what a later reader BUILDS
+    FROM. Three times on 2026-09-08/09 a stale or malformed entry was read back
+    as live: a Q4c registration read cycle 2's reverted text, and a fragment
+    registered under a whole-field key refused the probes on Q1, Q3 AND Q2 at
+    once, because preflight is handout-global. An entry that does not ship is
+    either a revert nobody finished or a build that silently did not land, and
+    those are the two cases this reports.
+
+    Compares on WHITESPACE-NORMALISED text: the rubric wraps its literals across
+    source lines, so the shipped prompt never matches a registered string
+    character-for-character. Built from `olx_prompts.build_web_prompt`, the same
+    call `probe.question_for` and the sweep render from, so what is checked is
+    what ships rather than a copy of it.
+    """
+    import olx_prompts as OP
+
+    out = []
+    for key in sorted(DESIGNED_TEXT):
+        item, slot, field = key
+        want = " ".join(DESIGNED_TEXT[key].split())
+        try:
+            shipped = " ".join(OP.build_web_prompt(item).split())
+        except Exception as exc:
+            out.append(
+                f"{item}/{slot}.{field}: cannot build {item}'s prompt to check "
+                f"its design against -- {type(exc).__name__}: {exc}")
+            continue
+        if want not in shipped:
+            out.append(
+                f"{item}/{slot}.{field}: DESIGNED_TEXT holds {len(want)} chars "
+                f"that are NOT in {item}'s shipped prompt. Either the revert that "
+                f"retired this design never dropped its entry, or a build did not "
+                f"land -- drop the entry if the attempt was reverted, rebuild if "
+                f"it was not")
+    return out
+
+
+def check_designed_text_is_the_measured_text() -> list[str]:
+    """A slot with a probe receipt whose DESIGNED_TEXT is not what was probed.
+    Reported as DESIGN IS A PARAPHRASE OF ITS OWN EVIDENCE.
+
+    E56(c). THE FAILURE THIS EXISTS FOR, on 2026-09-07: Q4b's two report slots
+    were registered in `DESIGNED_TEXT` from GOALS.md's condensed ACCOUNT of the
+    design rather than from `probe_q4b_report.py`, the file that was run. The
+    entry kept the comparison target and dropped the two clauses that make the
+    test work -- the two-part antecedent instruction and the occasion exclusion --
+    so a build FAITHFUL TO THE DESIGN OF RECORD would still have over-fired, and
+    the design-sha check would have certified it. A design taken from a SUMMARY
+    of the evidence is not the evidence.
+
+    The other three checks in this family all compare the tree against a
+    DECLARATION. This one compares the DECLARATION against the MEASUREMENT, which
+    is the only direction that catches a design nobody measured:
+
+      check_every_prompt_field_is_designed   shipped == designed
+      probe.question_for                     probed == shipped, at probe time
+      check_probe_receipts_match_shipping    probed == shipped, at sweep time
+      THIS CHECK                             designed == probed
+
+    Silent when a slot has no receipt: most fields were never probed and this is
+    not a demand that they be. It speaks only where evidence EXISTS and the
+    design disagrees with it.
+    """
+    import probe as PR
+
+    out = []
+    for r in PR.receipts():
+        key = (r.get("item"), r.get("slot"), "desc")
+        want = DESIGNED_TEXT.get(key)
+        if want is None:
+            continue
+        # COMPARE AGAINST THE DESIGNED FIELD AS PROBED, which is the receipt's
+        # `checklist_sha`, NOT its `sha`. Those were the same thing until
+        # 2026-09-08, when `probe.question_for` was changed to return BOTH
+        # prompt sections -- the rubric summary line as well as the checklist
+        # line -- because 56 of 179 asked slots were under-reported by the
+        # checklist alone. That fix moved `sha` onto the ASSEMBLED question and
+        # left this check comparing a raw rubric field against a two-section
+        # string, which can never be equal: the design became a "paraphrase" of
+        # its own evidence BY ARITHMETIC, for every slot registered after that
+        # change. WK2/aimed_correctly still passed only because its receipt
+        # predates it.
+        #
+        # So each check now compares what it actually means:
+        #   check_probe_receipts_match_shipping   the ASSEMBLED question, which
+        #       is what the grader saw -- `sha`
+        #   THIS CHECK                            the DESIGNED FIELD as probed
+        #       -- `checklist_sha`, which is `_field_sha` of the rubric text
+        # Falling back to `sha` keeps receipts written before the split honest
+        # rather than silently unchecked.
+        probed = r.get("checklist_sha") or r.get("sha")
+        if _field_sha(want) != probed:
+            out.append(
+                f"{r['item']}/{r['slot']}: DESIGNED_TEXT is {_field_sha(want)} but "
+                f"the probe that is its only evidence asked {probed}. The design "
+                f"was not lifted from the artifact that measured it -- take it from "
+                f"the probe script, not from a summary of the result")
+    return out
+
+
+def check_new_slots_were_probed() -> list[str]:
+    """An answerable slot the ledger has never seen, with no probe receipt.
+    Reported as NEW SLOT ABOUT TO BE SWEPT UNPROBED.
+
+    E56(a). The vacuous-pass half: with no receipt on record
+    `check_probe_receipts_match_shipping` is clean because there is nothing to
+    compare, and a clean result there reads exactly like a verified one. Asked
+    directly -- "are we sweeping the same prompt as the one we last probed?" --
+    the gate could not answer and its silence looked like a yes.
+
+    DELIBERATELY NARROW. It does NOT ask every changed field for a probe: the
+    criterion-8 leak fix changed every prompt in the corpus for a good reason and
+    a check demanding a probe per field would have refused all of it. What it
+    asks about is a slot that is ANSWERABLE, is not in the last recording's cell
+    data, and has no receipt -- a brand new question about to be measured for the
+    first time. That is the Q19 shape precisely, and it is the one case where the
+    probe is nearly free and the sweep is ~230 calls.
+    """
+    import agreement_app as _A
+    import measured as M
+    import probe as PR
+
+    out = []
+    # `agreement_app.JOBS` is the item list every other check in this file uses
+    # (see the `_A.JOBS` sites above); the first cut called a `_jobs()` that does
+    # not exist here and the check died inside its own iteration.
+    for item in sorted(_A.JOBS):
+        try:
+            import olx_prompts as O
+
+            if item not in O.ACTION:
+                continue          # no judging prompt: no answerable slot to probe
+            asked = set(PR._entries(O.build_web_prompt(item)))
+        except Exception:
+            continue
+        # WHICH SLOTS THE LAST RECORDING ACTUALLY SAW, read from the artifact.
+        # The first cut read `rec["cells"][pid]["slots"]`, and a `cells` entry is
+        # an INT -- the run count -- so the set was always empty and the check
+        # was inert while reporting clean. A check that has never fired is worth
+        # nothing; this one is fire-tested by hiding the receipts.
+        seen = set()
+        for side in ("python", "olx"):
+            try:
+                doc = M._runs_doc(item, side)
+            except Exception:
+                continue
+            # `_runs_doc` RETURNS None for an item with nothing recorded on this
+            # side rather than raising, so the except above never sees it and
+            # `.get` raised AttributeError -- which the runner reports as "the
+            # check itself raised", i.e. as coverage that is not there.
+            if not doc:
+                continue
+            for run in doc.get("runs") or []:
+                for c in run.get("results") or []:
+                    seen |= set(c.get("checks") or c.get("verdicts") or {})
+                    seen |= set(c.get("answers") or c.get("refers_to") or {})
+        if not seen:
+            continue                      # never recorded: nothing to compare
+        probed = {r["slot"] for r in PR.receipts(item)}
+        for slot in sorted(asked - seen - probed):
+            out.append(
+                f"{item}/{slot} is an answerable slot the last recording never "
+                f"saw and no probe has ever asked. A new question costs ~30 calls "
+                f"to probe standalone and ~230 to learn from a sweep: "
+                f"`python3 probe.py {item} {slot}` (QUALITY_CONTROL.md 2a0)")
+    return out
+
+
+def check_probe_receipts_match_shipping() -> list[str]:
+    """A probe was run, read, and acted on -- and the string it asked no longer
+    ships. Reported as PROBE MEASURED TEXT THAT NO LONGER SHIPS.
+
+    THE BACKSTOP UNDER `probe.question_for`. That function makes probe/sweep
+    identity structural: it lifts the question out of `build_web_prompt`, so a
+    probe cannot ask a string the sweep does not render. What construction cannot
+    cover is TIME -- probe on Monday, edit the desc on Tuesday, sweep on
+    Wednesday citing Monday's result. The receipt records the sha actually asked;
+    this compares it against the sha shipping now.
+
+    That is the Q19 failure exactly, and it is worth being precise about which
+    half each mechanism catches, because they are not interchangeable:
+
+      DESIGNED_TEXT_SHA  shipped == designed. Silent on Q19: the shipped desc
+                         WAS the designed desc. The probe was the odd one out.
+      probe.question_for probed == shipped, by construction, at probe time.
+      THIS CHECK         probed == shipped, at SWEEP time.
+
+    A receipt for a slot that no longer exists is reported too, at lower stakes:
+    a reverted slot's probe is stale by definition, and the entry should be
+    dropped rather than left to look like evidence for the next attempt.
+    """
+    import probe as PR
+
+    out = []
+    for r in PR.receipts():
+        item, slot, was = r.get("item"), r.get("slot"), r.get("sha")
+        try:
+            now = PR.question_for(item, slot)
+        except LookupError as e:
+            out.append(
+                f"{item}/{slot}: a probe recorded verdict "
+                f"{r.get('verdict') or '(none)'} on a slot that is no longer "
+                f"asked -- {str(e).splitlines()[0]}. Drop the receipt or rebuild "
+                f"the slot; it is not evidence for the next attempt")
+            continue
+        except Exception as e:
+            out.append(f"{item}/{slot}: the receipt could not be checked -- "
+                       f"{type(e).__name__}: {e}")
+            continue
+        if now["sha"] != was:
+            out.append(
+                f"{item}/{slot}: PROBED {was}, SHIPS {now['sha']} -- the probe "
+                f"answered a different question from the one the sweep will ask, "
+                f"which is what cost the Q19 sweep. Re-probe the shipping string "
+                f"(`python3 probe.py {item} {slot}`) before spending calls, or "
+                f"restore the text that was probed")
+    return out
+
+
+def check_shipped_text_matches_design() -> list[str]:
+    """A slot whose live text differs from the wording its subgoal designed.
+
+    Reported as SHIPPED TEXT DIFFERS FROM DESIGN.
+
+    Compares DESIGNED_TEXT against the rubric, on normalised whitespace so
+    re-wrapping is not a finding. A slot named here and ABSENT from the rubric is
+    NOT reported: designs are filed before they are built, and after a revert the
+    entry should keep its text so the next attempt starts from the decision
+    rather than from memory. What is refused is a slot that EXISTS and says
+    something else.
+    """
+    import handouts as H
+    out: list[str] = []
+    for (item, slot, field), want in sorted(DESIGNED_TEXT.items()):
+        spec = None
+        for h in (1, 2, 3):
+            try:
+                spec = H.config(h)["rubric"].BY_ID.get(item)
+            except Exception:
+                continue
+            if spec:
+                break
+        if not spec:
+            continue
+        got = next((c.get(field) for c in (spec.get("credit") or [])
+                    if c.get("what") == slot), None)
+        if got is None:
+            continue                      # designed, not yet built -- not a fault
+        norm = lambda x: re.sub(r"\s+", " ", str(x)).strip()
+        if norm(got) == norm(want):
+            continue
+        w, g = norm(want), norm(got)
+        i = next((n for n, (a, b) in enumerate(zip(w, g)) if a != b), min(len(w), len(g)))
+        out.append(
+            f"{item}/{slot}.{field} SHIPS text its subgoal did not design. "
+            f"First divergence at char {i}:\n"
+            f"        designed: ...{w[max(0, i - 40):i + 60]!r}\n"
+            f"        shipped : ...{g[max(0, i - 40):i + 60]!r}")
+    return out
+
+
+def check_verdict_paths_drop_excluded_cells() -> list[str]:
+    """A cell excluded from the RATE must not appear in a REVERT decision.
+
+    Reported as EXCLUDED CELL REACHES A VERDICT PATH.
+
+    WHY, and it is a user instruction rather than an inference: "We should not
+    have let results on any exclusion affect a revert decision." On 2026-09-06
+    subgoal Q30's 1c readout printed p4, p19 and p20 as movers -- all three
+    declared in `handouts.PER_ITEM_EXCLUDE` as unreachable on the web, because
+    their typed data DRAWS the chart and the paper's "no graph" failure cannot
+    occur there. `sweep_readout` dropped `handouts.suspect` and had never heard
+    of PER_ITEM_EXCLUDE. The item TOTALS were exclusion-aware so the verdict was
+    not numerically wrong, but three cells were listed as findings and were then
+    reasoned about as live ones.
+
+    THE PRINCIPLE: a number that cannot count toward the rate cannot count toward
+    keeping or reverting an edit, and printing it in a verdict report invites
+    exactly that. Suspect cells already had this rule --
+    `check_no_declaration_cites_a_suspect_cell` enforces the same thing for
+    declarations -- and per-item exclusions did not.
+
+    This asserts it by RUNNING the reporter, not by reading it: for every item
+    with exclusions, call `sweep_readout.readout` and check that no excluded
+    cell's row appears. A check that greps the source would pass on a reporter
+    that consults the table and then ignores it.
+    """
+    import contextlib
+    import io
+    import handouts as H
+    out: list[str] = []
+    try:
+        import sweep_readout as SR
+    except Exception as e:
+        return [f"(sweep_readout unavailable: {e})"]
+    table = getattr(H, "PER_ITEM_EXCLUDE", {}) or {}
+    for item, cells in sorted(table.items()):
+        before = {str(p): 12 for p in range(1, 21)}
+        buf = io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf):
+                SR.readout(item, before)
+        except Exception as e:
+            out.append(f"{item}: readout raised {type(e).__name__}: {e}")
+            continue
+        lines = [ln.strip() for ln in buf.getvalue().splitlines()]
+        for pid in sorted(cells):
+            if any(ln.startswith(f"p{pid} ") for ln in lines):
+                out.append(
+                    f"{item}/p{pid} is PER_ITEM_EXCLUDEd yet sweep_readout prints "
+                    f"it as a mover -- an excluded cell must not reach a "
+                    f"keep/revert decision")
+    return out
+
+
+def check_maps_tables_are_attached() -> list[str]:
+    """A rubric module defines MAPS and never hangs it on the item spec.
+
+    Reported as MAPS TABLE IS NOT ATTACHED.
+
+    WHY THIS EXISTS, and it is the cheapest check in the file. Defining `MAPS`
+    does nothing on its own -- the generator reads `maps` off the ITEM SPEC, so
+    the table has to be attached by the `for _it in ITEMS` loop at the bottom of
+    the module. rubric_h1 has carried that loop for as long as maps have
+    existed. rubric_h3 was given a MAPS table under subgoal Q30 on 2026-09-06 and
+    NOT the loop, and every surface stayed green: the sheet declared the slot,
+    the rubric declared the map, `olx_prompts.py --check` reported H3 "up to
+    date" -- correctly, because the generator was emitting nothing and the empty
+    `maps=""` in the sheet was exactly what it should produce from an item spec
+    with no `maps` key.
+
+    NOTHING ELSE COULD HAVE CAUGHT IT. E46's unreachable-verdict check compares a
+    map against a verdict list; with no map attached there is nothing to compare,
+    so it passes. E48 and E49 ask whether SLOTS reach the sheet and the rubric,
+    and both slots did. The defect is in the wiring BETWEEN two things that are
+    each individually well-formed, which is the shape no per-side check sees.
+
+    It was found by subgoal Q30's own sweep script asserting that the pick, the
+    choices group and the maps rule all live in ONE action -- a bespoke guard in
+    a scratchpad file, which is precisely the arrangement `sweep_gate.py` exists
+    to replace. The guard refused before spending ~230 calls; this check moves
+    that knowledge into the repo so the next module to grow a MAPS table does not
+    depend on someone having written the same assertion by hand.
+    """
+    out: list[str] = []
+    for name in ("rubric_h1", "rubric_h2", "rubric_h3"):
+        try:
+            mod = __import__(name)
+        except Exception:
+            continue
+        maps = getattr(mod, "MAPS", None) or {}
+        by_id = getattr(mod, "BY_ID", None) or {}
+        for item in sorted(maps):
+            spec = by_id.get(item)
+            if spec is None:
+                out.append(f"{name}: MAPS[{item!r}] names an item that does not "
+                           f"exist in BY_ID")
+            elif "maps" not in spec:
+                out.append(f"{name}: MAPS[{item!r}] is defined but never attached "
+                           f"to the item spec, so the generator emits no `maps` "
+                           f"and the pick has no route to its verdict")
+    return out
+
+
+def check_mapped_slots_have_no_unreachable_verdict() -> list[str]:
+    """A mapped slot offering a verdict its map can never emit. Subgoal E46.
+
+    AN AUTHORING-TIME CHECK, and the cheap half of the pair. When `maps` computes
+    a slot's verdict from a pick, the slot's own verdict list is what the APP
+    still offers the grader. Any value in that list the map cannot produce is a
+    verdict that is DEAD on the python mirror -- which derives the slot and never
+    consults the grader -- and LIVE on the app, which will answer the slot
+    directly when the map does not determine it. That is a guaranteed divergence
+    surface, authored in, and it costs nothing to see before a sweep.
+
+    FOUND BY MEASUREMENT FIRST, which is why the check exists. Q2's
+    `wgb_inverts_utb` carries `met`/`absent`/`unclear` while MAPS["Q2"] emits only
+    `met` and `absent`. Over 120 olx observations the orphan was used four times.
+    The python side disagreed with its map ZERO times in the same 120.
+
+    THE OTHER MAPPED SLOTS PASS, and they are the evidence the invariant is the
+    project's own practice rather than a new rule: Q4a's `antecedent_1`/`_2` and
+    Q4b's `behavior_1`/`_2` each carry exactly three verdicts and their map emits
+    exactly those three, the third being the fallback. None has ever diverged.
+
+    A THIRD VERDICT IS NOT THE PROBLEM -- AN UNREACHABLE ONE IS. Q4a's
+    `not_antecedent` and Q4b's `wrong_kind` do real work and carry their own
+    deduction codes, distinct from `absent`'s. Q2's `unclear` shares
+    `WGB_NOT_OPPOSITE` with `absent`, is never named in the slot's rule or desc,
+    and cannot be reached from the pick. It is a duplicate the app can still pick.
+    """
+    out: list[str] = []
+    for item, mod, spec in _maps_specs():
+        slot = next((c for c in (mod.BY_ID.get(item, {}).get("credit") or [])
+                     if c.get("what") == spec["key"]), None)
+        if not slot:
+            continue
+        # THE SHEET IS THE AUTHORITY ON WHAT THE GRADER MAY ANSWER, not the
+        # rubric. Subgoal E52: this line read `slot["verdicts"]` and that hole
+        # let the exact fault it was built for survive a whole sweep. On
+        # 2026-09-06 `unclear` was dropped from Q2's RUBRIC list, this check went
+        # clean, and the SHEET still declared `wgb_inverts_utb:...:unclear@2`, so
+        # the grader kept answering it -- five divergences, at an IDENTICAL
+        # prompt_sha, with the audit reporting nothing. A check that reads the
+        # side the grader does not see is checking the wrong document.
+        # E27's helper, not a second copy. `_olx_slot_verdicts` returns only the
+        # EXTRA verdict the sheet spells out (met/absent are implicit), so the
+        # offered set is that plus the two. A duplicate reader was written here
+        # first and deleted: two functions answering "what does the sheet offer"
+        # is how the rubric and the sheet came to disagree in the first place.
+        extra = _olx_slot_verdicts(item, spec["key"])
+        offered = ({"met", "absent"} | set(extra)) if extra else None
+        emits = _maps_emits(spec)
+        # A DECLARED COUNTERPART IS NOT AN ORPHAN. Subgoal E27 established that
+        # the two engines' verdict vocabularies differ BY DESIGN and recorded
+        # every pair in VERDICT_SPACE_DIVERGENCES. Q4a's sheet offers
+        # `wrong_kind` where its map emits `not_antecedent`, and the table says
+        # in as many words: "Counterparts on Q4a's antecedent_1/antecedent_2".
+        # The engines charge at nearly the same rate -- 39 against 44 over the
+        # same runs -- so they agree on the judgement and differ on the name.
+        # The first version of this line reported that as a fault, which is the
+        # false-positive class this whole family keeps falling into: a naive
+        # rubric-vs-sheet comparison reports 39 mismatches of which about 37 are
+        # E27's design.
+        for web, paper in VERDICT_SPACE_DIVERGENCES:
+            if emits & set(paper):
+                emits = emits | set(web)
+            if emits & set(web):
+                emits = emits | set(paper)
+        orphan = (offered if offered is not None
+                  else set(slot.get("verdicts") or [])) - emits
+        if not orphan:
+            continue
+        codes = slot.get("codes") or {}
+        dup = [v for v in sorted(orphan)
+               if v in codes and list(codes.values()).count(codes[v]) > 1]
+        out.append(
+            f"{item}/{spec['key']} offers verdict(s) {sorted(orphan)} that "
+            f"MAPS cannot emit (it produces {sorted(_maps_emits(spec))} from "
+            f"`{spec['pick']}`). The python mirror derives this slot and can "
+            f"never answer that; the app can, and will. "
+            + (f"{dup} duplicate(s) another verdict's deduction code, so removing "
+               f"them is score-neutral by construction. " if dup else "")
+            + "Give the map a pair or fallback for it, or drop it from the slot")
+    return out
+
+
+def _same_verdict(a, b) -> bool:
+    """Are these two verdicts the SAME judgement under a different name?
+
+    Subgoal E52. The engines' vocabularies differ by design and subgoal E27
+    recorded every pair in VERDICT_SPACE_DIVERGENCES -- the app's `wrong_kind`
+    is the mirror's `not_antecedent` on Q4a, its `not_consequence` on Q4c, its
+    `not_reason` on Q5. Comparing the names alone reported SEVEN counterpart
+    shapes as divergences on top of the real ones, which is the false-positive
+    class this family keeps falling into: 37 of 39 rubric-vs-sheet mismatches in
+    the corpus are E27's design, not defects.
+    """
+    if a == b:
+        return True
+    for web, paper in VERDICT_SPACE_DIVERGENCES:
+        if (a in web and b in paper) or (a in paper and b in web):
+            return True
+    return False
+
+
+def historical_map_divergences() -> list[str]:
+    """Map divergences in artifacts the prompt has moved past. Subgoal E52.
+
+    Kept reachable so the evidence is not lost when the alarm is silenced. These
+    are facts about prompts that no longer exist: real when recorded, and not
+    something anyone can act on now.
+    """
+    import json
+    import pathlib as _pl
+
+    import measured as M
+    import paths as _paths
+
+    root = _pl.Path(getattr(_paths, "OUT", "/home/pdeane/molly_data/out"))
+    out: list[str] = []
+    for item, _mod, s in _maps_specs():
+        for path in sorted(root.glob(f"*/{item}.runs.json")):
+            try:
+                doc = json.loads(path.read_text())
+                era = (doc.get("era") or {}).get("items", {}).get(item, {})
+                if era.get("prompt_sha") == M.prompt_sha(item, "olx"):
+                    continue
+            except Exception:
+                continue
+            for run in doc.get("runs") or []:
+                for r in run.get("results") or []:
+                    pick = M.slot_answer(r, s["pick"])
+                    v = M.slot_verdict(r, s["key"])
+                    if pick is None or v is None:
+                        continue
+                    want = next((q["verdict"] for q in s["pairs"]
+                                 if q["value"] == pick), s.get("fallback"))
+                    if v == want or _same_verdict(v, want):
+                        continue
+                    out.append(f"{path.parent.name}: {item}/{s['key']} "
+                               f"recorded {v!r} on pick {pick!r}, map said {want!r} "
+                               f"(prompt superseded)")
+    return out
+
+
+def check_mapped_slots_agree_with_their_map() -> list[str]:
+    """An artifact where a mapped slot's verdict is not what its map computes.
+
+    THE HALF WITH TEETH, and the reason the authoring check above is not enough.
+    A grader can override the map using a verdict the map CAN emit, and no
+    authoring check can see that. Measured on Q2's olx side: of five
+    disagreements in 120 observations, one was `doing -> absent` where the map
+    says `met` -- a value squarely inside the map's range. The authoring check
+    would have passed it.
+
+    IT READS ARTIFACTS, NOT THE LIVE LEDGER, for subgoal E43's reason: a fault
+    that appears in one run and is superseded by the next sweep disappears from
+    the ledger while remaining true of what was recorded. The ledger is where a
+    number lives; the artifacts are where the behaviour is.
+
+    IT IS A SCORING FAULT. THIS DOCSTRING TWICE SAID OTHERWISE AND WAS WRONG.
+    The claim was that both engines score from the map, so only the RECORD is
+    damaged. It was based on reading lo-blocks' `satisfiedMap`, which assigns
+    `out[r.key] = isSatisfied(spec, mappedVerdict(r, checks))` and looks
+    decisive. MEASUREMENT SAYS OTHERWISE, and measurement wins:
+        Q2/p1   run 0  recorded `unclear`, map says `met`  -> scored 3.0 / gold 5.0
+        Q2/p3   run 3  recorded `unclear`, map says `met`  -> scored 0.0 / gold 2.0
+        Q2/p19  run 1  recorded `absent`,  map says `met`  -> scored 2.0 / gold 4.0
+        Q2/p10  runs 1,5 recorded `unclear`, map says `absent` -> UNCHANGED
+    Every divergent run is a wrong run, and p10 is the control: there the mapped
+    verdict was `absent` too, `unclear` is score-equivalent to `absent` on that
+    slot, and nothing moved. So the app scores from the RECORDED verdict and the
+    mirror from the MAP, and the two genuinely differ.
+    THE LESSON IS ABOUT METHOD, NOT ABOUT MAPS. A source reading that looks
+    conclusive was preferred over a measurement that could have been run in one
+    command, and the false conclusion was reported as settled. Where the two are
+    available, align verdicts to scores PER RUN before believing either.
+    """
+    import json
+    import pathlib as _pl
+    import measured as _M
+    import paths as _paths
+
+    specs = _maps_specs()
+    if not specs:
+        return []
+    _seen_item: dict = {}
+    by_item: dict = {}
+    for item, _mod, s in specs:
+        by_item.setdefault(item, []).append(s)
+    root = _pl.Path(getattr(_paths, "OUT", "/home/pdeane/molly_data/out"))
+    if not root.is_dir():
+        return []
+    tally: dict = {}
+    for path in sorted(root.glob("*/*.runs.json")):
+        item = path.name[: -len(".runs.json")]
+        if item not in by_item:
+            continue
+        try:
+            doc = json.loads(path.read_text())
+        except Exception:
+            continue
+        for ri, run in enumerate(doc.get("runs") or [], 1):
+            for r in run.get("results") or []:
+                for s in by_item[item]:
+                    # SUBGOAL E47: the canonical readers, not a hand-rolled
+                    # lookup. `slot_answer` tries the PICK fields first because a
+                    # python result stores a pick's value in `answers` and an
+                    # EMPTY STRING for the same key in `checks`; `slot_verdict`
+                    # never accepts a pick, which is what this check requires.
+                    pick = _M.slot_answer(r, s["pick"])
+                    if pick is None:
+                        continue
+                    v = _M.slot_verdict(r, s["key"])
+                    if v is None:
+                        continue
+                    want = next((q["verdict"] for q in s["pairs"]
+                                 if q["value"] == pick), s.get("fallback"))
+                    if v == want or _same_verdict(v, want):
+                        continue
+                    k = (path.parent.name, item, s["key"], pick, v, want)
+                    tally[k] = tally.get(k, 0) + 1
+                    _seen_item[path.parent.name] = item
+    # LIVE OR HISTORICAL, and the check decides rather than the reader. Subgoal
+    # E43 argued -- rightly -- that this must read ARTIFACTS and not the ledger,
+    # because a fault superseded by the next sweep vanishes from the ledger while
+    # remaining true of what was recorded. The cost of that is a finding list
+    # that never shrinks: on 2026-09-06 all ten were in artifacts whose prompt had
+    # since changed, and an audit that reports ten permanent "defects" is one
+    # nobody reads.
+    # SO A DIVERGENCE IS REPORTED WHEN ITS ARTIFACT STILL DESCRIBES THE CURRENT
+    # PROMPT. Anything older is a fact about a prompt that no longer exists; it is
+    # not deleted -- `historical_map_divergences()` lists it on demand -- but it
+    # is not an open issue either. The evidence stays, the alarm stops.
+    def _is_live(dirname: str, item_id: str) -> bool:
+        import json as _j
+        try:
+            import measured as _M
+            doc = _j.loads((root / dirname / f"{item_id}.runs.json").read_text())
+            era = (doc.get("era") or {}).get("items", {}).get(item_id, {})
+            return era.get("prompt_sha") == _M.prompt_sha(item_id, "olx")
+        except Exception:
+            return True          # unreadable: report it rather than hide it
+
+    out: list[str] = []
+    for (d, item, key, pick, got, want), n in sorted(tally.items(),
+                                                     key=lambda kv: -kv[1]):
+        if not _is_live(d, item):
+            continue
+        out.append(
+            f"{d}: {item}/{key} was RECORDED {got!r} on pick {pick!r} where "
+            f"MAPS computes {want!r}, x{n}. THE SCORE FOLLOWS THE RECORDED "
+            f"VERDICT ON THE APP AND THE MAP ON THE MIRROR, so the two engines "
+            f"score the same answer differently -- measured per run, every "
+            f"divergent run is a wrong run unless the recorded verdict happens "
+            f"to be score-equivalent to the mapped one")
+    return out
+
+
+# SLOTS THE SHEET ASKS AND THE RUBRIC DELIBERATELY DOES NOT DEFINE. Subgoal E49.
+# The reverse-direction check reports a sheet slot with no rubric element,
+# because the app would otherwise be putting a question to the grader that the
+# python scorer never reads. That is usually a defect. It is not always one: an
+# UNSCORED slot whose only job is to shape FEEDBACK has nothing for the mirror to
+# mirror, since the mirror does not produce feedback at all.
+# Keep this table small, and require the two facts that make the claim checkable:
+# the slot carries NO points, and something in the generator consumes it.
+ONE_SIDED_SCORED_SLOTS_BUDGET = 0
+
+# Subgoal E53. Slots where the two engines score the SAME judgement through a
+# different DECOMPOSITION -- one enumerates per item, the other counts -- so
+# neither an alias nor a derivation rule can reconcile the names, and there is
+# nothing to fix. Declared rather than excluded silently, because "the app does
+# not answer this scored slot" is exactly the shape of a real defect and a reader
+# who meets it undeclared cannot tell the two apart.
+#
+# EVERY ENTRY WAS MEASURED BEFORE IT WAS WRITTEN, per-cell medians on both
+# sides. If a future change makes one of these diverge, the declaration is wrong
+# and the check will not catch it -- the per-cell comparison is what catches it,
+# and it lives in the sweep readouts.
+DECOMPOSITION_DIVERGENCES: dict[tuple[str, str], str] = {
+    **{("2b", f"sentence_{n}"):
+       "The mirror enumerates the three sentences as `sentence_1/2/3`; the app "
+       "answers the COUNT `sentences_given` and charges from it. Measured: 2b is "
+       "20/20 on both sides with identical medians on all twenty cells."
+       for n in (1, 2, 3)},
+    **{("3", f"example_{n}"):
+       "The mirror enumerates the examples as `example_1/2`; the app answers the "
+       "COUNT `changes_given`. Measured: python 19/20, olx 20/20, and the single "
+       "cell whose medians differ (p15) is one the APP gets right and the mirror "
+       "does not -- so the decomposition is not costing the app anything."
+       for n in (1, 2)},
+    **{(item, f"reason_{n}"):
+       "The mirror enumerates the reasons as `reason_1/2/3`; the app scores the "
+       "reasons scaffold in aggregate. Measured: Q1 18/20 and Q2 19/20 on BOTH "
+       "sides, with Q2 identical on every cell and Q1 differing on two (p6, p17) "
+       "for reasons subgoals Q16 and Q44 own, not this one."
+       for item in ("Q1", "Q2") for n in (1, 2, 3)},
+    ("NR", "barrier_is_not_this_type"):
+        "NR-only slot the mirror answers and the app never does. Measured: NR is "
+        "18/18 python and 17/18 olx with the per-cell medians IDENTICAL on all "
+        "twenty cells, so the app reaches the same judgement through the type "
+        "criterion it does answer. Kept declared rather than aliased because "
+        "there is no app-side name to alias it to.",
+}
+
+
+def check_scored_slots_are_answered_by_both_engines() -> list[str]:
+    """A slot the sheet gives POINTS to, answered by one engine and never the other.
+
+    Reported as SCORED SLOT ANSWERED BY ONE ENGINE ONLY. Subgoal E53.
+
+    THE QUESTION NO OTHER CHECK ASKS. E48 asks whether a rubric slot reaches the
+    sheet; E49 the reverse; E46 whether a mapped slot offers an emittable
+    verdict. All three read DECLARATIONS. This one reads ARTIFACTS and asks
+    whether the declaration was honoured -- whether a slot carrying points
+    actually got an answer from both engines over runs already on disk. A slot
+    can be correctly declared on both sides, pass every static check, and still
+    be answered by only one grader, and then the two engines reach their totals
+    by different routes on a criterion one of them cannot express.
+
+    IT IS ARTIFACT-SHAPED, so it belongs beside measured.py's preflight step 5f
+    rather than in sweep_gate.py, which is static and runs before any artifact
+    exists. Where it CAN run early is the equivalence audit and
+    agreement.cheap_checks_gate.
+
+    USE slot_answer, NOT slot_verdict, AND THE REASON IS ON THE RECORD. The first
+    measurement of this reported 37 one-sided pairs; a share of them --
+    `observed_type`, `stimulus_move` -- were PICKS, which `slot_verdict` refuses
+    by design, so the check was inventing gaps out of its own reader. Reading
+    them as answers, both engines answer both slots on every item. The 26 SCORED
+    findings survived that correction unchanged, which is the only reason they
+    are trusted here.
+
+    THE EXCLUSIONS ARE THE WORK, per this series' repeated lesson. A slot the
+    app answers under an ALIASED name is not a gap -- `enforcement.ALIAS`
+    already declares `observed_type` for `demonstrates_type` and
+    `stimulus_is_arranged` for `you_arrange_it` -- and an APP_ONLY_SLOTS entry is
+    a declared one-sided slot by construction.
+    """
+    import measured as M
+
+    def _pointed() -> dict[str, float]:
+        out: dict[str, float] = {}
+        base = pathlib.Path(__file__).resolve().parent.parent.joinpath("psychology")
+        for h in (1, 2, 3):
+            try:
+                text = base.joinpath(f"bmod_handout{h}.olx").read_text()
+            except Exception:
+                continue
+            for m in re.finditer(r'<LLMAction\b[^>]*>', text, re.S):
+                s = re.search(r'slots="([^"]*)"', m.group(0))
+                if not s:
+                    continue
+                for entry in s.group(1).split("|"):
+                    name = entry.split(":")[0].lstrip("!")
+                    pts = float(entry.rsplit("@", 1)[1]) if "@" in entry else 0.0
+                    out[name] = max(out.get(name, 0.0), pts)
+        return out
+
+    def _alias_names(key: str) -> set[str]:
+        names = {key}
+        for left, right in (ALIAS or {}).items():
+            group = {left} | (set(right) if isinstance(right, (tuple, list))
+                              else {right})
+            if key in group:
+                names |= group
+        return names
+
+    def _derived() -> set[str]:
+        """Slots the SHEET derives with an `expect` rule.
+
+        THE EXCLUSION THAT STOPPED A WRONG FIX. Without it this check reported
+        `demonstrates_type` on PR/NR/PP/NP as "the app makes the judgement and
+        cannot charge for it", and the next step would have been to add a MAPS
+        entry connecting `observed_type` to it. That would have DOUBLE-CHARGED a
+        criterion that already works. The sheet declares
+        `expect="demonstrates_type:observed_type=NR"` and the app honours it: on
+        NR/p4, olx runs with `targets_goal_behavior` = `met` and
+        `demonstrates_type` = null still score 2.0, which is only possible if the
+        type charge landed. The verdict is DERIVED AND CHARGED, and merely not
+        written back into the artifact -- a recording gap, not a scoring gap.
+        """
+        base = pathlib.Path(__file__).resolve().parent.parent.joinpath("psychology")
+        names: set[str] = set()
+        for h in (1, 2, 3):
+            try:
+                text = base.joinpath(f"bmod_handout{h}.olx").read_text()
+            except Exception:
+                continue
+            # THREE ATTRIBUTES DERIVE A VERDICT, NOT ONE. The first cut read only
+            # `expect` and left `matches_chosen_type` -- declared `equals` on SIX
+            # items -- reported as a scoring gap, which is the same misreading
+            # this exclusion exists to stop, one attribute over. `derived` is the
+            # third. Read all three or the check tells a confident lie about
+            # whichever one was forgotten.
+            for attr in ("expect", "equals", "derived"):
+                for m in re.finditer(rf'{attr}="([^"]*)"', text):
+                    for rule in m.group(1).split("|"):
+                        if rule.strip():
+                            names.add(rule.split(":")[0].strip())
+        return names
+
+    pointed = _pointed()
+    derived = _derived()
+    out: list[str] = []
+    for item in sorted(M.records("olx").keys()):
+        docs = {}
+        for side in ("python", "olx"):
+            try:
+                docs[side] = M._runs_doc(item, side)
+            except Exception:
+                docs = {}
+                break
+        if len(docs) != 2:
+            continue
+        keys: set[str] = set()
+        for doc in docs.values():
+            for run in doc["runs"]:
+                for r in run["results"]:
+                    keys |= set(r.get("verdicts") or {})
+                    keys |= set(r.get("checks") or {})
+                    keys |= set(r.get("answers") or {})
+        for key in sorted(keys):
+            if pointed.get(key, 0.0) <= 0:
+                continue
+            if (item, key) in APP_ONLY_SLOTS:
+                continue
+            if (item, key) in DECOMPOSITION_DIVERGENCES:
+                continue
+            names = _alias_names(key)
+            direct = {}
+            via = {}
+            for side, doc in docs.items():
+                rs = [r for run in doc["runs"] for r in run["results"]]
+                direct[side] = any(M.slot_answer(r, key) is not None for r in rs)
+                via[side] = {n for n in names - {key}
+                             if any(M.slot_answer(r, n) is not None for r in rs)}
+            if direct["python"] == direct["olx"]:
+                continue
+            has = "python" if direct["python"] else "olx"
+            lacks = "olx" if direct["python"] else "python"
+            # AN ALIAS ONLY EXCUSES THE GAP IF THE POINTS CAN STILL BE CHARGED.
+            # `demonstrates_type` is the case that forced this: the app answers
+            # its declared alias `observed_type` in 120 of 120, so a naive alias
+            # exclusion clears it -- but `observed_type` carries NO POINTS and no
+            # MAPS entry connects the two, so the app makes the judgement and can
+            # never charge for it. That is the 1c defect exactly (a pick answered,
+            # a scored verdict unmapped, every static surface green), and
+            # excluding it would hide the very thing this check exists to find.
+            excused = [n for n in sorted(via[lacks]) if pointed.get(n, 0.0) > 0]
+            if excused:
+                continue
+            # THE KEY *OR ANY OF ITS ALIASES* MAY BE THE DERIVED ONE. 1b forced
+            # this: the sheet derives `week_1_data` and the mirror scores
+            # `week_1`, so testing only the scored key missed the derivation and
+            # reported three findings on an item that is 20/20 on BOTH sides with
+            # identical medians on all twenty cells.
+            if key in derived or (names & derived):
+                # Derived by an `expect` rule and charged; only the write-back is
+                # missing. Reported as a RECORDING gap so the artifact reader
+                # knows the field is unreliable, never as a scoring gap.
+                out.append(
+                    f"{item}/{key} carries {pointed[key]:g} point(s) and is DERIVED "
+                    f"by a sheet `expect` rule, but {lacks} never writes the derived "
+                    f"verdict into its artifact -- a RECORDING gap, not a scoring "
+                    f"gap: the charge lands. Do not map it; read it from the "
+                    f"`expect` source instead")
+                continue
+            unscored = sorted(via[lacks])
+            if unscored:
+                out.append(
+                    f"{item}/{key} carries {pointed[key]:g} point(s) and is never "
+                    f"answered by {lacks}; {lacks} answers only the UNSCORED alias "
+                    f"{','.join(unscored)}, and no map connects them -- so {lacks} "
+                    f"makes the judgement and cannot charge for it")
+            else:
+                out.append(
+                    f"{item}/{key} carries {pointed[key]:g} point(s), is answered "
+                    f"by {has} and NEVER by {lacks} under any declared alias")
+    # THE RATCHET, ON THE UNDECLARED COUNT ONLY. A recording gap is a documented
+    # fact about the artifacts and is meant to stay visible, so it is reported
+    # but not counted here; what may only fall is the number of one-sided scored
+    # slots nobody has explained. Set to 0 on 2026-09-06 once the twelve
+    # decomposition divergences were declared and the four 1b names aliased.
+    undeclared = [x for x in out if "RECORDING gap" not in x]
+    if len(undeclared) != ONE_SIDED_SCORED_SLOTS_BUDGET:
+        verb = "grew to" if len(undeclared) > ONE_SIDED_SCORED_SLOTS_BUDGET else "is down to"
+        out.append(
+            f"UNDECLARED one-sided scored slots {verb} {len(undeclared)} against a "
+            f"budget of {ONE_SIDED_SCORED_SLOTS_BUDGET} -- it may only fall. "
+            f"Declare each in DECOMPOSITION_DIVERGENCES with the per-cell "
+            f"measurement, alias it, or fix it")
+    return out
+
+
+APP_ONLY_SLOTS: dict[tuple[str, str], str] = {
+    ("Q1", "matches_selected"):
+        "UNSCORED, and it drives FEEDBACK rather than a score. The sheet spells "
+        "it `Same behavior you selected above:matches/differs` with no @pts, and "
+        "olx_prompts instructs the grader that when it answers `differs` the "
+        "FIRST sentence of `feedback` must address the mismatch. The python "
+        "mirror produces no feedback, so there is nothing for it to define. "
+        "Wiring it into the rubric would add a slot that can never change a "
+        "number, which is the opposite of what the rubric is for.",
+}
+
+
+# THE EIGHT CRITERIA-DERIVED ITEMS. Subgoal E35 established that their rubric
+# holds COMPOSITES (`is_operant_conditioning`, `is_nr`) while the sheet
+# enumerates the sub-checks, so nearly every slot on them looks orphaned in the
+# reverse direction. That asymmetry is the design, not a defect, and a check
+# that does not know it is useless on a third of the corpus.
+_CRITERIA_DERIVED = ("DAY1", "DAY2", "WK1", "WK2", "PR", "NR", "PP", "NP")
+
+
+def check_sheet_slots_reach_the_rubric() -> list[str]:
+    """A slot the SHEET asks that no rubric element defines. Subgoal E49.
+
+    THE REVERSE OF E48, and the direction nothing checked. E48 asserts every
+    rubric slot has an entry in `slots=`; this asserts the sheet asks nothing the
+    rubric has never heard of. If the two sides are meant to be parallel in
+    content and logic, both directions have to hold.
+
+    WHY IT IS THE HARDER DIRECTION, measured before it was built: a naive version
+    reports 119 orphans of which ONE is real. A check whose false positives
+    outnumber its true ones by 118 is switched off within a day and takes the
+    real finding with it -- the same trap as E48's first cut (12 findings, 10
+    false) and E52's (39 mismatches, ~37 by design). The three exclusions are
+    therefore load-bearing, and each was measured rather than assumed:
+
+      `confident` -- present on all 22 items, a meta-slot with no rubric element
+      and no points. By design.
+      THE EIGHT CRITERIA-DERIVED ITEMS -- see `_CRITERIA_DERIVED` above.
+      ALIASED NAMES -- a CLI key need not carry its web name; `web_name` is the
+      authority, as it is for E48.
+
+    THE ONE REAL FINDING it was built to catch: Q1's `matches_selected`, spelled
+    in the sheet as "Same behavior you selected above:matches/differs" and
+    appearing ZERO times in rubric_h1, score.py and agreement.py. The app asks
+    the grader a question the python scorer never reads and no rubric element
+    defines. Whether that is dead weight in the prompt or a check the mirror is
+    missing is a disposition this check does not make -- it reports.
+    """
+    import re
+    import olx_prompts as O
+
+    out: list[str] = []
+    for item_id, action in sorted(O.ACTION.items()):
+        if item_id in _CRITERIA_DERIVED:
+            continue
+        try:
+            src = O._src(O.HANDOUT[item_id])
+        except Exception:
+            continue
+        m = re.search(O._ACTION_RE % re.escape(action), src, re.S)
+        if not m:
+            continue
+        spec = re.search(r'\bslots="([^"]*)"', m.group(1))
+        if not spec:
+            continue
+        have = [s.split(":")[0].lstrip("!").strip()
+                for s in spec.group(1).split("|") if s.strip()]
+        mod = _rubric_module(item_id)
+        if mod is None:
+            continue
+        rubric = {c.get("what") for c in (mod.BY_ID.get(item_id, {}).get("credit") or [])}
+        for key in have:
+            if key == "confident" or key in rubric:
+                continue
+            if (item_id, key) in APP_ONLY_SLOTS:
+                continue
+            if any(web_name(r, set(have)) == key for r in rubric):
+                continue
+            out.append(
+                f"{item_id}/{key} is asked by the SHEET and defined by no rubric "
+                f"element, so the app puts a question to the grader that the "
+                f"python scorer never reads. Wire it into the rubric, remove it "
+                f"from the sheet, or declare it as deliberately app-only")
+    return out
+
+
+def check_rubric_slots_reach_the_sheet() -> list[str]:
+    """A rubric slot with no entry in its item's `slots=` list. Subgoal E48.
+
+    THE GENERATOR OWNS THE PROSE; THE SHEET OWNS THE SLOT LIST. `GENERATED_ATTRS`
+    covers `forbid`, `expect` and `maps` -- attributes the rubric fully
+    determines -- and deliberately leaves `slots=` authored, because that
+    attribute carries four things the rubric has no field for: a short
+    grader-facing LABEL, the `!` gate marker, an `@` points override, and the
+    `pick(group)` binding to `choices=`. Neither file is derivable from the
+    other, so the boundary is right.
+    WHAT WAS MISSING IS THE ASSERTION THAT THEY AGREE. Nothing checked that a
+    rubric slot has anywhere to land, so adding one produced a prompt that
+    INSTRUCTS THE GRADER TO READ A SLOT IT IS NEVER ASKED TO ANSWER.
+
+    MEASURED, and it cost a sweep. On 2026-09-05 subgoal Q18 added
+    `b2_names_besides` to Q4b's rubric and rewrote `b2_basis`'s rule to say
+    "FIRST READ `b2_names_besides`". The slot never reached `slots=`. The sweep
+    ran, spent ~240 calls, and recorded Q4b at 17/19 on both sides against a
+    prompt with a dangling reference -- its own targets moved incoherently
+    (p12 2/12 -> 6/12 while p6, p8, p14 and p20 all broke) because the rule asked
+    for an answer that did not exist. `enforcement.py` exited 0 throughout and
+    `check_slot_rules_reach_both_prompts` reported nothing.
+    THE SWEEP'S OWN GUARD WAS TOO WEAK AND IS THE LESSON. It asserted
+    `olx.count("b2_names_besides") > 0`, which PASSED -- on the two prose
+    mentions the generator had just written. Presence in the FILE is not presence
+    in the SLOT LIST, and a guard that cannot tell them apart certifies the fault
+    it exists to stop.
+    """
+    import re
+    import olx_prompts as O
+
+    out: list[str] = []
+    # ALL TWENTY-SIX ITEMS, AND THE PREPARED READER. This iterated `O.ACTION`,
+    # which is 23 -- so 1b, T1 and T2, the SHEET_ONLY items that carry a slot
+    # sheet without an LLMAction, were never reconciled in either direction.
+    # equivalence.py has always used `{**ACTION, **SHEET_ONLY}` for exactly this
+    # reason. Checked by hand when the gap was found on 2026-09-09: all three
+    # match exactly (1b's four `*_data` slots, T1/T2's `type_stated`), so nothing
+    # was hiding there -- the gap was latent, and closing it keeps it that way.
+    #
+    # `_slots_attr` + `parse_slots` rather than a local regex over the source:
+    # it is the reader `build_web_prompt` uses, it resolves an action id and a
+    # sheet id alike, and a hand-rolled `slots="..."` search cannot read the
+    # sheet-only form at all.
+    for item_id, action in sorted({**O.ACTION, **O.SHEET_ONLY}.items()):
+        try:
+            have = {s["key"] for s in O.parse_slots(
+                *O._slots_attr(O.HANDOUT[item_id], action))}
+        except Exception:
+            continue
+        if not have:
+            continue
+        mod = _rubric_module(item_id)
+        if mod is None:
+            continue
+        for c in (mod.BY_ID.get(item_id, {}).get("credit") or []):
+            key = c.get("what")
+            if not key or key in have:
+                continue
+            # A SLOT WITH NO VERDICT LIST IS NOT ANSWERED, IT IS COMPUTED.
+            # `is_operant_conditioning`, `is_nr` and their kin carry `pts` and no
+            # `verdicts`: the engine derives them from the sub-checks and no
+            # grader ever sees them, so their absence from `slots=` is the
+            # design. Only a slot the model must ANSWER can be missing from the
+            # list in the sense this check means.
+            if not c.get("verdicts"):
+                continue
+            # A CLI SLOT NEED NOT CARRY ITS WEB NAME. `is_operant_conditioning`,
+            # `is_nr` and their kin are rubric-side composites that reach the
+            # sheet under other names, and ALIAS is the authority on which. A
+            # first version of this check skipped that and reported twelve
+            # findings, ten of them slots that DO reach the sheet -- a check
+            # whose false positives outnumber its true ones gets suppressed, and
+            # then the one real finding goes with it.
+            if web_name(key, have):
+                continue
+            out.append(
+                f"{item_id}/{key} is a rubric slot with NO entry in the sheet's "
+                f"`slots=` list, so the grader is never asked to answer it. Any "
+                f"rule naming it -- and the generator will write those rules into "
+                f"the prompt -- points at an answer that cannot exist. Add it to "
+                f"`slots=` (with its label, and a `pick(group)` if it takes one), "
+                f"or remove it from the rubric")
+    return out
+
+
+def _rubric_module(item_id: str):
+    """The rubric module that defines an item. Subgoal E48."""
+    for name in ("rubric_h1", "rubric_h2", "rubric_h3"):
+        try:
+            mod = __import__(name)
+        except Exception:
+            continue
+        if item_id in getattr(mod, "BY_ID", {}):
+            return mod
+    return None
+
+
+# A COHORT CASE NAME IN A SHIPPED PROMPT. Subgoal E50. `pN` is how this project
+# names a participant everywhere -- goals, ledger, artifacts, readouts -- so it
+# is one careless paste away from a rule, and a rule naming a case is a rule
+# TUNED TO THAT CASE. `leakage.py` catches borrowed WORDS; nothing caught a
+# borrowed CELL. The corpus was clean when this was written (0 of 26 SLOT_NOTES
+# blocks, 0 rubric rule/desc fields), which is the right moment to nail it down:
+# an invariant installed while it already holds costs nothing and never has to
+# be argued about afterwards.
+_CASE_NAME = re.compile(r"(?<![\w/])p\d{1,2}\b")
+
+
+def check_no_case_names_in_prompts() -> list[str]:
+    """A participant id in text the grader is shown. Subgoal E50.
+
+    READS THE RENDERED PROMPT, not the sources, because that is what ships and
+    it catches every route in -- a SLOT_NOTES block, a rubric `rule` or `desc`, a
+    criteria note, or a hand-authored line in the sheet. Checking the sources
+    would leave whichever route nobody thought of.
+
+    WHY IT MATTERS MORE THAN IT LOOKS. A rule that names p10 is not merely untidy:
+    it is evidence the rule was written against one cell, which is the failure
+    mode this project has measured over and over -- ten reverted wordings on Q6,
+    three on Q2's inversion boundary, each one a clause aimed at a cell it could
+    see. A case name in the prompt is that habit reaching the student-facing side.
+
+    IT IS NOT THE SAME AS LEAKAGE. `leakage.py` asks whether a rule echoes the
+    cohort's WORDS. This asks whether it names a cohort MEMBER. A rule can be
+    perfectly free of borrowed vocabulary and still say "unlike p10" -- and no
+    check saw that until this one.
+    """
+    out: list[str] = []
+    try:
+        import olx_prompts as _O
+    except Exception:
+        return []
+    for item_id in sorted(getattr(_O, "ACTION", {})):
+        try:
+            text = _O.build_web_prompt(item_id, {})
+        except Exception:
+            continue
+        hits = sorted(set(_CASE_NAME.findall(text)))
+        if not hits:
+            continue
+        out.append(
+            f"{item_id}: the shipped prompt names cohort case(s) {hits}. A rule "
+            f"that names a case is a rule tuned to that case, and the grader is "
+            f"being shown it. State the DISTINCTION the cell taught instead of "
+            f"the cell -- the evidence belongs in GOALS.md, not in the prompt")
+    return out
+
+
+def check_count_scaffolds_are_arithmetic() -> list[str]:
+    """A count scaffold that reports a triple its own definition forbids.
+
+    `reasons_given` is DEFINED as `reasons_listed` minus `reasons_failing` -- all
+    three slots say so in as many words -- and the engine takes all three from the
+    model and scores the third. So the model can return a triple that cannot be
+    arithmetic, and has: Q2/p11 reported 0 listed, 0 failing and 3 given, with the
+    student's whole answer quoted as evidence for BOTH counting slots. It read the
+    response, said it had listed nothing, and then found three benefits in the
+    nothing.
+
+    THE SCORE WAS RIGHT, WHICH IS WHY NOTHING NOTICED. Only `reasons_given` is
+    scored; `listed` and `failing` are `reported: True`, earning nothing and
+    changing nothing, so an impossible triple costs zero points and appears in no
+    rate. It was found by reading a cell for an unrelated reason, which is not a
+    method -- hence this.
+
+    WHY CHECK RATHER THAN RECOMPUTE, which was subgoal E43's open question. The
+    scaffold exists so the model DECOMPOSES its judgement, and that decomposition
+    does real work: on Q2/p18 it reproduced the graders' own reading, 3 listed, 1
+    restating the problem, 2 counting. Deriving `given` from the other two would
+    make the arithmetic unbreakable and throw that away -- a model that miscounts
+    the parts would silently get the total computed from them, which is worse than
+    one that reports a triple you can see is impossible. Checking keeps the
+    decomposition and makes the contradiction loud.
+
+    IT READS EVERY ARTIFACT, NOT THE LIVE LEDGER, and that is deliberate. When
+    this was measured on 2026-09-05 the CURRENT Q2 artifacts held 0 violations in
+    240 observations -- the run carrying p11's triple had been superseded by a
+    later sweep -- while the full set of recorded artifacts held FOUR in 1,260,
+    in three distinct shapes:
+        q17b_olx   run2 p11   0 - 0 != 3   listed nothing, credited three
+        cli_v7     run2 p6    2 - 1 != 2   off by one
+        q17_python run1 p6    2 - 1 != 2   the same cell, the other engine
+        twoside_cli run6 p10  3 - 0 != 0   listed three, credited none
+    A check reading only the live ledger would have reported clean and the defect
+    would have vanished with the next sweep, as it already had once.
+    """
+    import json
+    import pathlib as _pl
+    import paths as _paths
+
+    stems = ("reasons", "benefits", "harms")
+    out: list[str] = []
+    root = _pl.Path(getattr(_paths, "OUT", "/home/pdeane/molly_data/out"))
+    if not root.is_dir():
+        return []
+    for path in sorted(root.glob("*/*.runs.json")):
+        try:
+            doc = json.loads(path.read_text())
+        except Exception:
+            continue                      # an unreadable artifact is another check's
+        for ri, run in enumerate(doc.get("runs") or [], 1):
+            for r in run.get("results") or []:
+                a = r.get("answers") or r.get("refers_to") or {}
+                v = r.get("checks") or r.get("verdicts") or {}
+
+                def _n(key):
+                    x = a.get(key)
+                    if x is None and isinstance(v, dict):
+                        y = v.get(key)
+                        x = y.get("verdict") if isinstance(y, dict) else y
+                    try:
+                        return int(str(x))
+                    except Exception:
+                        return None
+
+                for stem in stems:
+                    L, F, G = _n(f"{stem}_listed"), _n(f"{stem}_failing"), _n(f"{stem}_given")
+                    if None in (L, F, G) or L - F == G:
+                        continue
+                    cell = r.get("participant_id") or r.get("cell")
+                    out.append(
+                        f"{path.parent.name}/{path.name} run {ri} cell {cell}: "
+                        f"`{stem}_listed` {L} minus `{stem}_failing` {F} is not "
+                        f"`{stem}_given` {G}, and the slots define it as exactly "
+                        f"that. Only the third is scored, so this costs nothing and "
+                        f"shows in no rate -- which is why it needs a check rather "
+                        f"than a reader")
+    return out
 
 
 def check_computed_slot_recovery_is_faithful() -> list[str]:

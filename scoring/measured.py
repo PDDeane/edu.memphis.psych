@@ -290,7 +290,209 @@ def sides_recorded(item: str) -> list:
 
 
 def save(led: dict) -> None:
-    LEDGER.write_text(json.dumps(led, indent=2, sort_keys=True) + "\n")
+    """Write the ledger ATOMICALLY -- temp file in the same directory, then
+    os.replace, which is atomic on POSIX.
+
+    WHY THIS IS NOT PARANOIA. `--record` is read-modify-write, and on 2026-09-06
+    SEVEN sweep scripts were queued at once, each recording between two and eight
+    entries when its measurement finished. The scripts serialise on the .olx
+    lock, but only for the WRITE phase: a script's `--write` can succeed the
+    moment the previous script's measurement PROCESSES exit, which is before that
+    script has finished recording. A plain write_text in that window loses one
+    side's recording silently and leaves a syntactically perfect ledger, so
+    nothing downstream can tell. The old call also truncated the file before
+    serialising, so an exception mid-dump left NO ledger at all -- 22 items of
+    measurement, gone, with no copy on disk.
+
+    Serialise first, replace second: the ledger is either fully the old one or
+    fully the new one, and never a half of either.
+    """
+    import os
+    import tempfile
+    text = json.dumps(led, indent=2, sort_keys=True) + "\n"
+    fd, tmp = tempfile.mkstemp(dir=str(LEDGER.parent), prefix=".ledger.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as fh:
+            fh.write(text)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp, LEDGER)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def _cells_from_artifact(item: str, side: str, out: str | None):
+    """Per-cell right-counts rebuilt from a recorded artifact, or None.
+
+    Mirrors what `record` stores in `cells`: for each participant, how many runs
+    scored gold exactly. Used by `restore_previous`, whose `previous` summary
+    does not carry them.
+    """
+    if not out:
+        return None
+    import pathlib as _pl
+    path = _pl.Path(OUT_DIR) / out / f"{item}.runs.json" if "OUT_DIR" in globals() \
+        else _pl.Path("/home/pdeane/molly_data/out") / out / f"{item}.runs.json"
+    if not path.exists():
+        return None
+    try:
+        doc = json.loads(path.read_text())
+    except Exception:
+        return None
+    per: dict[str, int] = {}
+    for run in doc.get("runs") or []:
+        for r in run.get("results") or []:
+            pid = r.get("participant_id") or int(
+                str(r.get("cell", "p0/")).split("/")[0][1:])
+            g = gold_cell(item, pid)
+            if not g or g.get("score") is None:
+                continue
+            got = r.get("score")
+            if got is None:
+                got = _score_from_result(item, r) if "_score_from_result" in globals() else None
+            if got is None:
+                continue
+            per[str(pid)] = per.get(str(pid), 0) + (1 if abs(got - g["score"]) < 1e-9 else 0)
+    return per or None
+
+
+def accept_design_change(item: str, slot: str, field: str) -> int:
+    """Record a DELIBERATE change to one prompt field's design. 0 on success.
+
+        python3 measured.py --accept-design-change Q4b b1_basis rule
+
+    Prints the designed sha and the shipped text before rewriting, so accepting
+    is an act with something to read rather than a rubber stamp. Refuses if the
+    field does not exist, or if it already matches -- there is nothing to accept.
+    """
+    import json
+    import pathlib
+    import re
+    import textwrap
+
+    import handouts as H
+    import enforcement as E
+    spec = None
+    for h in (1, 2, 3):
+        try:
+            spec = H.config(h)["rubric"].BY_ID.get(item)
+        except Exception:
+            continue
+        if spec:
+            break
+    if not spec:
+        print(f"REFUSING: no rubric item {item!r}", file=sys.stderr)
+        return 1
+    got = next((c.get(field) for c in (spec.get("credit") or [])
+                if c.get("what") == slot), None)
+    if got is None:
+        print(f"REFUSING: {item}/{slot} has no {field!r} to accept. If the slot "
+              f"was reverted, drop its line from {E.DESIGNED_SHA_FILE} instead.",
+              file=sys.stderr)
+        return 1
+    path = pathlib.Path(__file__).parent / E.DESIGNED_SHA_FILE
+    doc = json.loads(path.read_text())
+    key = f"{item}|{slot}|{field}"
+    new = E._field_sha(got)
+    old = (doc.get("fields") or {}).get(key)
+    if old == new:
+        print(f"{key} already matches its design of record ({new}); nothing to accept")
+        return 0
+    print(f"ACCEPTING a design change to {item}/{slot}.{field}")
+    print(f"    designed sha : {old or '(none -- new field)'}")
+    print(f"    shipping sha : {new}")
+    print(f"    the text now shipping, in full:\n")
+    for line in textwrap.wrap(re.sub(r"\s+", " ", str(got)), 92):
+        print(f"      {line}")
+    doc.setdefault("fields", {})[key] = new
+    path.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
+    print(f"\n    recorded. {E.DESIGNED_SHA_FILE} now carries "
+          f"{len(doc['fields'])} field(s).")
+    return 0
+
+
+def restore_previous(item: str, side: str = DEFAULT_SIDE) -> int:
+    """Put back the recording a REVERT made current again. 0 on success, 1 if refused.
+
+        python3 measured.py --restore-previous Q6 olx
+
+    WHY THIS EXISTS. A reverted edit usually returns the prompt to the EXACT sha
+    it had before, and the ledger already holds a real measurement taken at that
+    sha, in `previous`. Re-sweeping to recover it spends ~230 calls to reproduce
+    a number we have. Before this existed the alternative was hand-editing the
+    ledger, which is how a number gets into it that nothing ever measured.
+
+    THE GUARD IS THE WHOLE POINT AND IT IS NOT OPTIONAL: the CURRENT prompt sha
+    must equal the sha the previous recording was taken at. If it does not, the
+    revert did not land where it started -- something else changed the prompt too
+    -- and putting the old number back would assert a measurement of a prompt
+    that has never been run. That is indistinguishable from fabrication once it
+    is in the file, so it is refused rather than warned about.
+
+    IT IS NOT AN UNDO. It restores ONE side of ONE item from the entry's own
+    `previous`, and it does not chain: there is one previous, so a second call
+    after a second edit has nothing older to reach for and refuses.
+    """
+    if side not in SIDES:
+        print(f"REFUSING: {side!r} is not one of {SIDES}", file=sys.stderr)
+        return 1
+    led = load()
+    entry = ((led.get("items") or {}).get(item) or {}).get(side)
+    if not entry:
+        print(f"REFUSING: no {side} recording for {item}", file=sys.stderr)
+        return 1
+    prev = entry.get("previous") or {}
+    if not prev.get("prompt_sha"):
+        print(f"REFUSING: {item}/{side} has no previous recording to restore",
+              file=sys.stderr)
+        return 1
+    current = prompt_sha(item, side)
+    if prev["prompt_sha"] != current:
+        print(f"REFUSING: {item}/{side} is at prompt {current} but the previous "
+              f"recording was taken at {prev['prompt_sha']}. The revert did not "
+              f"return the prompt to where that number was measured, so restoring "
+              f"it would assert a measurement that was never run. Re-sweep instead.",
+              file=sys.stderr)
+        return 1
+    if entry.get("prompt_sha") == current:
+        print(f"{item}/{side} is already current at {current}; nothing to restore")
+        return 0
+    # `previous` IS A SUMMARY, NOT A FULL ENTRY -- six keys, and NO `cells`. And
+    # `cell_bands` reads exactly that field, so promoting the summary verbatim
+    # removed the item from EVERY cell-level check while leaving correct totals
+    # in place. That happened to Q6 on 2026-09-06: four imperfect cells,
+    # including TWO at 0 of 12, vanished from `cell_bands` and therefore from
+    # `wrong_cells_without_an_owner`, which then reported zero orphans while two
+    # always-wrong cells were invisible. The ledger looked healthier for having
+    # lost data.
+    #
+    # So rebuild the per-cell counts from the artifact the summary names. If that
+    # cannot be done, REFUSE: a totals-only entry is worse than a stale one,
+    # because a stale entry is flagged and a cells-less entry is silently skipped.
+    cells = _cells_from_artifact(item, side, prev.get("out"))
+    if cells is None:
+        print(f"REFUSING: {item}/{side}'s previous recording carries no per-cell "
+              f"counts and its artifact ({prev.get('out')!r}) cannot be read. "
+              f"Restoring totals alone would drop the item out of cell_bands and "
+              f"every check built on it. Re-sweep instead.", file=sys.stderr)
+        return 1
+
+    was = f"{entry.get('numerator')}/{entry.get('denominator')} @ {entry.get('prompt_sha')}"
+    restored = dict(prev)
+    restored["cells"] = cells
+    # The restored recording becomes current; what it replaces becomes `previous`,
+    # so the entry still records that the reverted attempt happened.
+    restored["previous"] = {k: v for k, v in entry.items() if k != "previous"}
+    led["items"][item][side] = restored
+    save(led)
+    print(f"{item}/{side}: restored {prev.get('numerator')}/{prev.get('denominator')} "
+          f"@ {prev['prompt_sha']} (was {was}); the reverted attempt is kept as "
+          f"`previous`")
+    return 0
 
 
 def status(side: str = DEFAULT_SIDE) -> list[tuple[str, str]]:
@@ -744,6 +946,77 @@ def _check_side_contract(side: str, doc: dict, runs_path: str) -> list[str]:
     return out
 
 
+def _check_runs_are_measurements(doc: dict, runs_path: str) -> list[str]:
+    """Is every run in this artifact a MEASUREMENT, or is one of them a failure?
+
+    ADDED 2026-09-08 as the PREVENTION for a defect `enforcement` could only
+    detect after the fact. 18 of 6,147 recorded cell-runs carried a
+    247-character feedback --
+
+        Error: LLM error (429): Azure API error: 429 ("Your requests to
+        gpt-5-mini ... have exceeded ...
+
+    -- where a real run on those items carries 2,500-4,900, and were RECORDED AS
+    SCORED RUNS. An error is not a measurement, so it must not reach the ledger.
+
+    TWO ARMS, because the string test alone is provider-shaped:
+
+      1. THE FEEDBACK IS AN ERROR. Matches an `Error:` prefix or an embedded
+         `Azure API error`. Deliberately narrow: a corpus-wide scan for
+         error|timeout|rate limit|429|500|502|503|overloaded|unavailable|
+         refused|exception|traceback|truncat|could not parse|invalid json|
+         empty response|no response returned 42 rows, of which 18 were the 429s
+         and 24 were LEGITIMATE GRADER PROSE -- "fix small typographical
+         errors", a student's own "The one exception was stretching",
+         "unavailable" describing an authored deprivation, "*No response* -- the
+         box is empty". Widening it would buy 24 false positives and nothing.
+
+      2. THE RUN RETURNED NO VERDICTS AT ALL, whatever the provider said. This
+         is the provider-independent arm and it is what the string test cannot
+         do. WK1/p1's rejected run was the ONE row in 6,147 with `score` null
+         AND an empty verdict set, so the signal is real and it is rare.
+         NOT the same as empty feedback: 528 rows have that, almost all on the
+         derived items, which make no LLM call and are perfectly valid.
+
+    WHY IT MUST REFUSE RATHER THAN WARN. A 429 does not fail safe. Across the 18
+    the recorded score was 0.00 seven times, 4.00 NINE TIMES -- full marks --
+    2.00 once and null once, so the defect INFLATED cells as well as deflating
+    them, and it did so while carrying a FULL, well-formed verdict set that
+    every contract and sha check accepted. On DAY2/p12 the verdicts were
+    identical to three runs scoring 4.00 and the recorded score was 2.00: the
+    score did not follow the verdicts at all. Nothing downstream can tell such a
+    run from a judgement, which is exactly why the gate belongs here, at the one
+    door into the ledger.
+
+    Shares `record`'s existing MEASURED_ALLOW_OFF_CONTRACT escape, because the
+    honest use of it is the same: record it anyway and say in the entry why the
+    number is worth keeping.
+    """
+    import cross_path as X
+
+    out = []
+    for n, run in enumerate((doc.get("runs") or [])):
+        for r in (run.get("results") or []):
+            fb = str(r.get("feedback") or "")
+            try:
+                _, pid, score, verdicts = X.result_cell(r)
+            except Exception:
+                pid, score, verdicts = None, None, None
+            if fb.startswith("Error:") or "Azure API error" in fb:
+                head = fb.split("(", 2)[0].strip()[:60]
+                out.append(
+                    f"{runs_path} run {n}, cell p{pid}: recorded with score "
+                    f"{score} but its feedback is an API ERROR ({head}). An "
+                    f"error is not a measurement -- re-run the cell or drop the "
+                    f"run; do not pool it")
+            elif not verdicts:
+                out.append(
+                    f"{runs_path} run {n}, cell p{pid}: recorded with score "
+                    f"{score} and NO VERDICTS AT ALL. Whatever the provider "
+                    f"said, a run that judged nothing is not a measurement")
+    return out
+
+
 def _out_pointer(runs_path: str) -> str:
     """Where an artifact lives, as a path relative to `paths.OUT`.
 
@@ -799,6 +1072,10 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     if side not in SIDE_CONTRACT:
         raise SystemExit(f"unknown side {side!r}; expected one of {SIDES}")
     bad = _check_side_contract(side, doc, runs_path)
+    # AND: is every run a measurement? An API error carries a full, well-formed
+    # verdict set, so the contract check above accepts it -- see
+    # `_check_runs_are_measurements` for the 18 that got in this way.
+    bad += _check_runs_are_measurements(doc, runs_path)
     if bad and os.environ.get("MEASURED_ALLOW_OFF_CONTRACT") != "1":
         raise SystemExit(
             "\n".join(f"REFUSED: {b}" for b in bad)
@@ -1363,8 +1640,15 @@ def _verdict_signatures(item: str, side: str, path: str, mtime: float,
             if not got or got[2] is None:
                 continue
             _it, pid, score, _v = got
-            verd = dict(c.get("checks") or c.get("verdicts") or {})
-            extra = dict(c.get("answers") or c.get("refers_to") or {})
+            # THE PREPARED ACCESSORS, not a hand-rolled key list. This read
+            # `c.get("checks") or c.get("verdicts")` and the PAPER artifact spells
+            # its verdicts `credit_checks`, so every paper cell signed as
+            # `(pid, (), ())` -- 120 empty signatures per item, matching nothing,
+            # while `result_cell` two lines up had already returned the verdicts
+            # correctly and they were being thrown away as `_v`. The paper column
+            # was invisible here and read as "nothing to compare".
+            verd = dict(_v or {})
+            extra = dict(X.result_picks(c) or {})
             out.append(((pid,
                          tuple(sorted((k, str(v)) for k, v in verd.items() if v)),
                          tuple(sorted((k, str(v)) for k, v in extra.items() if v))),
@@ -1402,6 +1686,105 @@ def _artifact_fingerprint() -> tuple:
                 continue
             out.append((item, side, st.st_mtime, st.st_size))
     return tuple(out)
+
+
+def _ENF():
+    """enforcement, imported lazily -- it imports measured at module scope."""
+    import enforcement as _E
+    return _E
+
+
+def paper_scorer_agreement() -> dict:
+    """Do the PAPER and WEB scorers turn the same verdicts into the same score?
+
+    THE QUESTION `scoring_logic_agreement` CANNOT ASK. That one matches whole
+    verdict SIGNATURES between two sides, which requires both to have recorded
+    the same slot KEYS. Paper never does: on Q4a the python side records
+    `antecedent_kind_1/2` and `confident` and the paper side records neither, so
+    the sorted tuples cannot collide and the pair reported 0 shared signatures --
+    no evidence at all, for either answer. It compares `olx` against `python` and
+    the paper scorer has never been in it.
+
+    So drive the OTHER engine instead of matching keys: take each paper cell's
+    recorded verdicts and run them through `agreement.score_slots`, the web
+    mirror's arithmetic. Identical verdicts must give an identical score. A key
+    the paper side never recorded is simply unanswered, which both engines
+    already handle, so the differing slot sets stop being an obstacle.
+
+    IT SEPARATES THE SCORER FROM THE MODEL. Every rate comparison mixes them --
+    a cell differs and it could be the model or the arithmetic. Holding the
+    verdicts fixed leaves only the arithmetic.
+
+    Coverage is the caveat and is returned with the result: only items with a
+    recorded paper artifact can be compared, and at the time of writing that is
+    Q4a and Q4c. Silence over two items is not silence over twenty-six.
+    """
+    import agreement as A
+    import cross_path as X
+    import handouts as H
+    import olx_prompts as O
+
+    out = {"agree": 0, "differing": [], "errors": [], "items": []}
+    for item in sorted(_jobs()):
+        doc = _runs_doc(item, "paper")
+        if not doc:
+            continue
+        h = _jobs()[item]["handout"]
+        try:
+            spec = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+            rub = H.config(h)["rubric"].BY_ID[item]
+        except Exception:
+            continue
+        out["items"].append(item)
+        for run in doc.get("runs") or []:
+            for c in run.get("results") or []:
+                got = X.result_cell(c)
+                if not got or got[2] is None:
+                    continue
+                _i, pid, paper_score, verd = got
+                if not verd:
+                    continue
+                # NAMES DIFFER ACROSS THE SIDES AND ALIAS IS THE AUTHORITY.
+                # Feeding paper's own keys straight into the web mirror's scorer
+                # would land an aliased slot as an unrecognised key, which
+                # `satisfied_map` reads as UNANSWERED -- so the slot silently
+                # stops counting and the two sides can agree for the wrong
+                # reason, or differ for no reason at all. `check_rubric_slots_
+                # reach_the_sheet` learned this the expensive way: its first
+                # version skipped web_name and reported twelve findings of which
+                # ten were slots that do reach the sheet.
+                #
+                # Q4a and Q4c -- the only items with a paper artifact today --
+                # happen to need no translation, so this changes nothing now and
+                # is here so the first aliased item to be swept is not silently
+                # mis-scored.
+                webkeys = {s["key"] for s in spec["slots"]}
+                checks, unresolved = {}, []
+                for k, v in verd.items():
+                    name = k if k in webkeys else _ENF().web_name(k, webkeys)
+                    if name is None:
+                        unresolved.append(k)
+                        continue
+                    checks[name] = {"verdict": v}
+                if unresolved:
+                    # NEVER dropped in silence: an unmapped key is the exact thing
+                    # this comparison would otherwise hide.
+                    out["errors"].append(
+                        f"{item}/p{pid}: paper records {sorted(unresolved)}, which "
+                        f"neither names a sheet slot nor resolves through "
+                        f"enforcement.ALIAS -- so the web mirror cannot be given "
+                        f"the same verdicts and the two are not comparable here")
+                    continue
+                try:
+                    web_score, _f = A.score_slots(spec, rub, checks)
+                except Exception as exc:
+                    out["errors"].append(f"{item}/p{pid}: {type(exc).__name__}: {exc}")
+                    continue
+                if abs(web_score - float(paper_score)) < 1e-9:
+                    out["agree"] += 1
+                else:
+                    out["differing"].append((item, pid, float(paper_score), web_score))
+    return out
 
 
 def scoring_logic_agreement() -> dict:
@@ -1818,6 +2201,272 @@ def error_profile(item: str, runs_path: str) -> str:
     return "\n".join(out)
 
 
+def _goals_record_lines() -> set:
+    """GOALS.md line numbers whose figures are a RECORD, not a live claim.
+
+    A number inside a CLOSED entry is the measurement that closed the goal. It
+    is supposed to say what was true then, and this project's own convention
+    says so explicitly -- Q16's and Q22's closure notes keep sentences that were
+    false by closing time and write the correction above them, deliberately,
+    "as the record of what was true when written". Reporting those as staleness
+    invites exactly the edit that would destroy the record: 11 of the 15 lines
+    this check flagged on 2026-09-07 were in closed entries.
+
+    A number in an OPEN entry written BEFORE the item was last recorded is a
+    snapshot too -- it was true when typed and the ledger has moved since.
+
+    `goals.py.slot_figures_predating_the_instrument` already draws both of these
+    lines, with git blame author-time and the `- [x]`/`- [ ]` entry state, for
+    SLOT figures. This is the same distinction one level up, so it uses the same
+    two signals rather than inventing a third.
+    """
+    import re as _re
+    import subprocess
+
+    try:
+        bl = subprocess.run(["git", "blame", "--line-porcelain", "GOALS.md"],
+                            cwd=str(Path(__file__).parent), capture_output=True,
+                            text=True, timeout=300)
+        if bl.returncode != 0:
+            return set()
+    except Exception:
+        # No blame available (no git, shallow checkout, timeout) means no
+        # exemption, which errs toward reporting. A false staleness report costs
+        # a read; a missed one costs a wrong number quoted as current.
+        return set()
+
+    rows, at = [], 0
+    for row in bl.stdout.splitlines():
+        if row.startswith("author-time "):
+            at = int(row.split()[1])
+        elif row.startswith("\t"):
+            rows.append((at, row[1:]))
+    entry = _re.compile(r"^- \[([ x])\] \*?\*?(Q|E)(\d+)")
+    out, state = set(), " "
+    for n, (when, text) in enumerate(rows, 1):
+        m = entry.match(text)
+        if m:
+            state = m.group(1)
+        if state == "x":
+            out.add(n)
+            continue
+        out.add(("when", n, when))
+    return out
+
+
+def stale_sides(item: str) -> dict:
+    """Sides whose recorded numbers for `item` measure a prompt that no longer
+    ships. `{side: reason}`, empty when every side is current.
+
+    Reuses `status()` rather than re-deriving the comparison -- QUALITY_CONTROL.md
+    2a-3, and the fourth nonce classifier of 2026-09-07 is the reason that rule
+    exists.
+    """
+    out = {}
+    for side in SIDES:
+        try:
+            for it, why in status(side):
+                # STALE ONLY. The first cut also triggered on ABSENT, and the
+                # paper sides are unrecorded for nearly every item, so every
+                # item in the corpus reported stale -- a banner that fires
+                # always says nothing. An absent measurement is not a stale one:
+                # it makes no claim to correct.
+                if it == item and "STALE" in why:
+                    out[side] = why
+        except Exception:
+            continue
+    return out
+
+
+_STALE_WARNED: set = set()
+
+
+def warn_if_stale(item: str, where: str = "") -> str:
+    """Print a loud banner when a reader is about to quote a stale entry.
+
+    THE GAP THIS CLOSES. `sweep_readout`'s baseline guard refuses a before/after
+    whose snapshot measures a different prompt from the tree. It does nothing
+    about a reader QUOTING a stale entry, and on 2026-09-07 that let Q4b/p16 be
+    reported as a defect at "1 of 12" when those runs measured the REVERTED
+    report-slot wording -- the cell's answers still carried
+    `b1_names_antecedent`, a slot that no longer exists. The numbers were real
+    and described a prompt nobody could reach.
+    Returns the banner text (also printed to stderr) or "" when current.
+    """
+    bad = stale_sides(item)
+    if not bad:
+        return ""
+    # ONCE PER PROCESS PER ITEM. The first cut warned on every `cell_bands()`
+    # call, and `cell_bands` is called by nearly everything: one script printed
+    # 12 items x 4 lines TWICE and buried the per-cell readout it existed to
+    # produce. A diagnostic that hides the result it annotates is worse than
+    # none. Silenced by repetition, not by severity -- the first warning still
+    # carries the full reason.
+    if item in _STALE_WARNED:
+        return ""
+    _STALE_WARNED.add(item)
+    # NAME WHICH KIND OF STALE. The first wording said "do NOT measure the
+    # current prompt" for every case, and that is wrong for more than half of
+    # them: of the twelve items stale on 2026-09-07 only five were PROMPT-stale,
+    # while 1b, 2b, 3, D1, D2, T1 and T2 were SCORER-stale -- their prompts never
+    # moved, the code their score depends on did. Telling someone to re-sweep a
+    # prompt that never changed is the wrong instruction, and a banner that
+    # misdescribes what it found is worse than a quieter one.
+    kinds = set()
+    for why in bad.values():
+        kinds.add("PROMPT" if "STALE PROMPT" in why else
+                  "SCORER" if "STALE SCORER" in why else
+                  "CELLS" if "STALE CELLS" in why else "OTHER")
+    what = "/".join(sorted(kinds))
+    lines = [f"*** STALE ({what}): {item}'s recorded runs are not a measurement "
+             f"of the current tree{(' -- ' + where) if where else ''} ***"]
+    for side, why in sorted(bad.items()):
+        lines.append(f"      {side}: {why}")
+    if kinds == {"SCORER"}:
+        lines.append("      The PROMPT is unchanged -- what moved is the scoring "
+                     "code. The runs' verdicts still stand; the SCORES computed "
+                     "from them may not, so re-score or re-sweep before citing a "
+                     "figure. Do not re-word a prompt on this evidence.")
+    elif "PROMPT" in kinds:
+        lines.append("      Any per-cell figure below describes a prompt that no "
+                     "longer ships. Re-sweep before citing it as a defect.")
+    else:
+        lines.append("      Read the per-side reason above before citing any "
+                     "figure from this item.")
+    txt = "\n".join(lines)
+    print(txt, file=sys.stderr)
+    return txt
+
+
+def derived_verdicts(item: str, result: dict) -> dict:
+    """The DERIVED verdicts a recorded app result does not write down.
+
+    E55's cheap route to its own objective. The app honours the sheet's
+    `expect="X:Y=VALUE"` clauses -- subgoal E53 measured that the charge lands --
+    but records X as None, so a per-slot readout can see only half the sample on
+    every derived slot. On NR that is `barrier_is_not_this_type`,
+    `demonstrates_type` and `targets_goal_behavior`, 120 runs each.
+
+    READ-SIDE, AND DELIBERATELY NOT A WRITE. The obvious fix is to fill
+    `verdicts` in the stored artifact, and it is the wrong one: a reader treats
+    `verdicts` as WHAT THE GRADER ANSWERED, and a value this function inferred is
+    not that. Guessing a derivation's semantics slightly wrong would put false
+    evidence into a file that later readers trust -- worse than the null it
+    replaces. So this computes on demand, returns a SEPARATE dict, and every
+    value carries the clause it came from.
+
+    Returns {slot: (verdict, "expect=...")} for slots the result leaves null and
+    the sheet derives from a pick it DOES record. Silent for anything whose
+    inputs are also missing -- half a derivation is not a verdict.
+    """
+    import re
+
+    import olx_prompts as O
+
+    bag = {}
+    for b in ("checks", "verdicts", "answers", "refers_to"):
+        for k, v in (result.get(b) or {}).items():
+            if v is not None:
+                bag[k] = v
+    try:
+        _h, tag = None, None
+        import probe as _P
+
+        _h, tag = _P._element(item, "observed_type")
+    except Exception:
+        return {}
+    if not tag:
+        return {}
+    out = {}
+    for m in re.finditer(r'expect="([^"]*)"', tag):
+        for clause in m.group(1).split("|"):
+            # X:Y=VALUE -- X is met when the pick Y equals VALUE
+            mm = re.match(r"\s*([A-Za-z0-9_]+)\s*:\s*([A-Za-z0-9_]+)\s*=\s*(.+)\s*$",
+                          clause)
+            if not mm:
+                continue
+            x, y, want = mm.group(1), mm.group(2), mm.group(3).strip()
+            if bag.get(x) is not None or y not in bag:
+                continue
+            out[x] = ("met" if str(bag[y]) == want else "absent",
+                      f'expect="{clause.strip()}"')
+    return out
+
+
+def orphans_if_closed(label: str) -> dict:
+    """What closing `label` would drop on the floor -- asked BEFORE the closure.
+
+    THE GAP THIS CLOSES, and it caught the same person twice in one day. The
+    owner checks ask "does an OPEN subgoal name this cell". While the entry you
+    are about to close is still open, it still names them, so both checks read
+    ZERO and the closure looks clean -- then name the orphans a minute later.
+    E45's closure dropped Q5/p9 that way; Q19's dropped six cells the same way,
+    two of them WRONG. Running the checks again afterwards works, but only after
+    the record is already inconsistent.
+
+    Returns {"wrong": [...], "unstable": [...]} -- the findings that would appear
+    if `label` were closed now, and an empty pair means the closure is clean.
+    Re-home what it lists FIRST, then close, then run the checks again to confirm.
+    """
+    return {"wrong": wrong_cells_without_an_owner(excluding=label),
+            "unstable": unstable_cells_without_an_owner(excluding=label)}
+
+
+def declarations_for(item: str, pid: int) -> list:
+    """Every declaration touching one cell, from every table, in one call.
+
+    WHY THIS EXISTS, and it cost a sweep on 2026-09-07. Q19's fourth attempt
+    spent four wordings, ~72 probe calls and a ~230-call sweep making the engine
+    charge Q4b/p4 -- a cell `handouts.GOLD_DIVERGENCES` already declares as
+    ANTECEDENT_REUSED_AS_BEHAVIOR, whose entry says the rule "rests on one cell",
+    that "the scoring dictionary states no such rule; it was inferred from this
+    cell", and that TWO implementations had already been measured and "both were
+    worse than not having it" -- misfiring on p6 and p20, and on p1, p14 and p16.
+    Today's attempts misfired on p13, p20, p16 and p8. Same shape, same cells,
+    third and fourth time.
+    Nothing announced it. The declaration was keyed by the exact cell the whole
+    time, and the tables are spread across two modules and six names, so knowing
+    to look means already knowing the answer. The user's rule: retesting a
+    declared divergence is FINE -- what is not fine is not knowing it is one, so
+    there is no point at which to give up.
+
+    Returns a list of (table, code_or_key, text) for the cell. Read it BEFORE
+    proposing a rule aimed at that cell, and print it in any probe that targets
+    it (`sweep_gate` prints it per item).
+    """
+    import ast
+
+    import handouts as H
+
+    out = []
+    cell = (item, pid)
+    for d in getattr(H, "GOLD_DIVERGENCES", []):
+        try:
+            cells = ast.literal_eval(str(d.get("cells") or "[]"))
+        except Exception:
+            continue
+        if cell in [tuple(c) for c in cells]:
+            out.append(("GOLD_DIVERGENCES", d.get("code"), str(d.get("why") or "")))
+    for name in ("CORRECTED_GOLD", "GOLD_CODE_KNOWN", "GOLD_SLOT_BOUNDS_KNOWN",
+                 "GOLD_SLOT_DISAGREEMENTS_KNOWN", "SILENT_GOLD_DIVERGENCES"):
+        tbl = globals().get(name) or {}
+        for k, v in tbl.items():
+            if tuple(k)[:2] == cell if isinstance(k, tuple) else False:
+                out.append((name, k, str(v)))
+    if (item, pid) in DECLARED_CEILING_CELLS:
+        out.append(("DECLARED_CEILING_CELLS", (item, pid),
+                    DECLARED_CEILING_CELLS[(item, pid)]))
+    try:
+        import handouts as _H
+
+        for pid_ in (getattr(_H, "PER_ITEM_EXCLUDE", {}) or {}).get(item, {}) or {}:
+            if pid_ == pid:
+                out.append(("PER_ITEM_EXCLUDE", (item, pid), "cell DROPPED"))
+    except Exception:
+        pass
+    return out
+
+
 def prose_claims(paths: list[str] | None = None) -> list[str]:
     """Numbers written into the repo that disagree with the recorded measurement.
 
@@ -1837,11 +2486,31 @@ def prose_claims(paths: list[str] | None = None) -> list[str]:
     """
     import paths as _paths
 
+    # OVERRIDES.md is EXCLUDED, and the reason is a defect this check caused.
+    # That file is machine-written by precommit_gate._record: it archives the gate
+    # findings a commit waved through, VERBATIM. Those quoted findings contain
+    # fractions ("says Q2 19/20, but the recorded ... is 18/20"), so this check
+    # read its own archived output back as fresh prose claims -- and the gate then
+    # recorded THOSE findings too. Each run therefore flagged everything the
+    # previous run had written down, and the file DOUBLED per commit:
+    # 7,697 -> 15,377 -> 30,739 -> 61,470 -> 122,909 lines, reaching 246,227 of
+    # which only 606 were genuine. It is an archive of what was believed at a past
+    # moment, which is exactly what _HISTORICAL exempts elsewhere; a stale figure
+    # in it is the POINT of the record, not a staleness to report.
     files = paths or [str(p) for p in (
-        list((_paths.SCORING).glob("*.md")) + [_paths.SCORING / "handouts.py"])]
+        [p for p in (_paths.SCORING).glob("*.md") if p.name != "OVERRIDES.md"]
+        + [_paths.SCORING / "handouts.py"])]
     led = records()
     jobs = set(_jobs())
     out: list[str] = []
+    _marks = _goals_record_lines()
+    _records_lines = {x for x in _marks if isinstance(x, int)}
+    _line_written = {x[1]: x[2] for x in _marks if not isinstance(x, int)}
+
+    def _iso(ts: int) -> str:
+        import datetime
+        return datetime.datetime.fromtimestamp(ts).date().isoformat()
+
     for path in files:
         try:
             text = Path(path).read_text()
@@ -1906,6 +2575,13 @@ def prose_claims(paths: list[str] | None = None) -> list[str]:
                 # way to tell, and getting it wrong yields a confident lie.
                 if _COUNTING.search(window):
                     continue
+                if Path(path).name == "GOALS.md":
+                    if lineno in _records_lines:
+                        continue                      # a closed entry: a record
+                    when = _line_written.get(lineno)
+                    stamped = str(rec.get("recorded") or rec.get("stamp") or "")
+                    if when and stamped[:10] and _iso(when) < stamped[:10]:
+                        continue                      # typed before the recording
                 out.append(
                     f"{Path(path).name}:{lineno} says {item} {num}/{den}, but the "
                     f"recorded {side} measurement is "
@@ -2216,7 +2892,12 @@ SCORER_NEUTRAL: dict[tuple[str, str], str] = {
     # The remaining pairs are the SAME change seen through other items' closures:
     # scorer_sha is item-scoped, so one commit produces a different pair for every
     # distinct closure. All seven items below are in the 2776-cell re-score.
-    ("22f8ceb090da", "992381ed67cf"): "E25, through Q4b's closure",
+    # Q4b's pair ("22f8ceb090da" -> "992381ed67cf") was DROPPED 2026-09-05: Q18's
+    # structural edit (b2_names_act) re-staled Q4b, moving its scorer_sha past the
+    # transition this pair covered, so no recorded item sits at the `was` sha any
+    # more. The gate refuses a spent pair because it reads as coverage of a
+    # difference that is no longer there. E25 itself is unaffected -- Q4b is in the
+    # 2776-cell re-score above, and this line was only its item-scoped view of it.
     ("4334438d6d55", "bbb4c72ce2a8"): "E25, through 1c's closure",
     ("7b8f8715488a", "b3b70c8239bc"): "E25, through Q6's closure",
     ("8f2c4a9c148c", "9f791c8ccf03"): "E25, through Q3's and Q5's closure",
@@ -2320,9 +3001,67 @@ def preflight() -> dict[str, list[str]]:
         # change, and they are not visible anywhere else.
         "5c. record — cells one run from changing their own verdict":
             cells_on_the_median_line(),
+        # STEP 5d. Subgoal E42's residual, added 2026-09-05. 5c asks which cells
+        # are ONE RUN from moving; this asks which ones ALREADY DID, and in the
+        # wrong direction. The two are the same worry at different times: 5c is
+        # a warning before a sweep, this is the bill after one.
+        # E42 DEFERRED THIS DELIBERATELY -- "there is no case for a third place
+        # to read it from until something has been recorded on both sides with
+        # bands present" -- and that condition is now met on ten items, so the
+        # deferral has expired rather than been overruled.
+        # IT BELONGS HERE RATHER THAN ONLY BESIDE A RECORDING because a session
+        # that lands several sweeps sees each `record()` print its own moves and
+        # then loses them to scrollback. On 2026-09-05 that is exactly what
+        # happened: DAY1/p9 and p15 went out of `perfect` and the item total
+        # moved by one, which reads as noise until the bands are read together.
+        "5d. record — cells the last recording moved to a WORSE band":
+            band_regressions(),
+        # STEP 5e. Subgoal E45. 5c warns which cells are one run from moving and
+        # 5d bills the ones that already did; this asks a different question of
+        # the same class -- does anyone OWN the unstable ones at all. A cell can
+        # sit at 9 of 12 indefinitely without ever being wrong by the median, so
+        # neither 5c nor 5d nor wrong_cells_without_an_owner will ever name it.
+        "5e. record — unstable cells no open subgoal names":
+            unstable_cells_without_an_owner(),
+        # STEP 5f. Subgoal E46. The 5-series asks whether a recorded number means
+        # what it says; this asks whether a MAPPED slot was recorded outside its
+        # own map. It belongs here rather than only in the equivalence audit
+        # because that audit is run deliberately and this appears after a
+        # RECORDING: a Q4b divergence sat in an artifact from 2026-08-29 and was
+        # found on 2026-09-06, by writing a check for an unrelated reason. Eight
+        # days, several sweeps, nothing routine looking.
+        "5f. record — mapped slots recorded outside their map":
+            _mapped_slot_disagreements(),
+        # STEP 5g. Subgoal E53, and it is 5f's question one level up. 5f asks
+        # whether a mapped slot was recorded outside its map; this asks whether a
+        # SCORED slot was recorded by both engines at all. It has to read
+        # artifacts, so it cannot live in sweep_gate.py, and it appears after a
+        # RECORDING for 5f's own reason: `matches_chosen_type` has been null in
+        # every app result on six items for as long as there have been artifacts,
+        # and nothing routine looked.
+        "5g. record — scored slots only one engine ever answers":
+            _one_sided_scored_slots(),
         "9. priority — open goals in derived order (facts, not a verdict)":
             _ranked_goals(),
     }
+
+
+def _one_sided_scored_slots() -> list[str]:
+    """enforcement.check_scored_slots_are_answered_by_both_engines; never blocks."""
+    try:
+        import enforcement as E
+        return E.check_scored_slots_are_answered_by_both_engines()
+    except Exception as e:
+        return [f"(check unavailable: {e})"]
+
+
+def _mapped_slot_disagreements() -> list[str]:
+    """enforcement.check_mapped_slots_agree_with_their_map; never blocks."""
+    try:
+        import enforcement as E
+        return E.check_mapped_slots_agree_with_their_map()
+    except Exception as e:                       # never block a preflight
+        return [f"(could not read: {e})"]
 
 
 def _ranked_goals() -> list[str]:
@@ -2641,6 +3380,15 @@ def main() -> int:
         if not lines:
             print("  no cell changed band since it was recorded")
         return 0
+    if a[:1] == ["--accept-design-change"] and len(a) == 4:
+        # `--accept-design-change ITEM SLOT FIELD`. ONE field, deliberately: a
+        # bulk regenerate would make DESIGNED_TEXT_SHA.json agree with anything
+        # and enforce nothing, which is the whole reason it exists.
+        raise SystemExit(accept_design_change(a[1], a[2], a[3]))
+    if a[:1] == ["--restore-previous"] and len(a) in (2, 3):
+        # `--restore-previous ITEM [SIDE]`. For a REVERT that returned the prompt
+        # to a sha we have already measured.
+        raise SystemExit(restore_previous(a[1], a[2] if len(a) == 3 else DEFAULT_SIDE))
     if a[:1] == ["--record"] and len(a) in (3, 4):
         # `--record ITEM ARTIFACT [SIDE]`. SIDE defaults to DEFAULT_SIDE, which
         # is `python` -- agreement.py, the OLX prompt scored in Python. A
@@ -2667,8 +3415,24 @@ def main() -> int:
             print(error_profile(a[1], a[2]))
         except Exception as e:                       # never block a recording
             print(f"  (error profile unavailable: {type(e).__name__}: {e})")
-        for c in declaration_conflicts():
+        # SCOPED TO THE ITEM JUST RECORDED, and the rest reported as a count.
+        # `declaration_conflicts()` is corpus-wide and takes no item, so every
+        # `--record` used to print every conflict in the project directly under
+        # the item's own output. Recording WK2, 1b, T1 and T2 each announced
+        # "GOLD_CEILINGS ('1','Q3') says this item cannot be perfect" -- about
+        # Q3, under four items that are not Q3. A corpus-wide report printed
+        # under a per-item action reads as being about that item, which is the
+        # same scoping fault `leakage.gate` carries and the reason the staleness
+        # banner was made once-per-item.
+        _conf = declaration_conflicts()
+        _mine = [c for c in _conf if f"'{a[1]}'" in c or f" {a[1]} " in c]
+        for c in _mine:
             print(f"  DECLARATION EXPIRED? {c}")
+        _other = len(_conf) - len(_mine)
+        if _other:
+            print(f"  ({_other} declaration conflict(s) elsewhere in the corpus, "
+                  f"not about {a[1]} -- `measured.declaration_conflicts()` lists "
+                  f"them)")
         return 0
     if a[:1] == ["--errors"] and len(a) == 3:
         print(error_profile(a[1], a[2]))
@@ -2934,31 +3698,73 @@ GOLD_CODE_KNOWN: dict[tuple[str, int], str] = {
     # its argument has to stand on its own.
     ("WK2", 15): "gold charges TYPE_MISMATCH (2) -- \"This is an example of "
                  "NP.\" -- and we charge nothing.",
+    # CORRECTED 2026-09-08, AND THE DIRECTION HAS INVERTED. This entry said
+    # "we charge nothing", i.e. we score 4.00 where gold charges 1 and gives
+    # 3.00. Re-read from the ledger: we score 3.00 in 8 of 11 runs -- AGREEING
+    # with gold and charging the point -- 4.00 in 1 run, and 0.00 in 2 runs,
+    # both on the olx side. So the "charge nothing" case is now the minority and
+    # the cell's remaining error is OVER-charging: a gate taking the whole
+    # 4-point item where gold takes 1. A reader consulting this entry to decide
+    # whether p7 is safe was being told the wrong failure direction.
+    #
+    # ITS OWNER IS SUBGOAL Q46, WHICH IS CLOSED -- "DAY2/p7:
+    # `targets_own_behavior` credits a reward that IS the ...". Subgoal Q50 also
+    # names the cell, so the ownership readers read zero and nothing is
+    # orphaned. Recorded here so the next reader does not re-derive that chain:
+    # the cell's history runs Q20 (closed on the FINDING that an instrument
+    # exists for gold's objection, at pts=1.0 against gold's 1 point) -> Q46
+    # (filed for this cell, closed) -> Q50 (the register). Q20's closure is NOT
+    # reopenable on this cell: p7 still erring CONFIRMS its thesis that the
+    # sheet "is not missing checks, it is applying the ones it has too
+    # leniently" rather than contradicting it.
     ("DAY2", 7): "gold charges WRONG_BEHAVIOR (1) -- the plan targets the wrong "
-                 "behavior -- and we charge nothing.",
+                 "behavior. WE NOW CHARGE IT AND AGREE: 3.00 in 8 of 11 runs. "
+                 "The residue runs the OTHER WAY -- 0.00 in 2 olx runs, a gate "
+                 "taking the whole item where gold takes 1 -- plus one 4.00 run "
+                 "that is the original under-charge. Owner: Q46 (closed); "
+                 "register: Q50.",
     # THE ONE THAT RUNS THE OTHER WAY, and the more serious of the two directions:
     # a 4-point charge takes the whole item where gold takes 2.
-    ("NR", 11): "gold charges WRONG_TYPE (2), saying the example IS operant "
-                "conditioning but of the wrong type. We charge 4 -- NOT_OC, "
-                "NOT_EXTERNAL_STIMULUS or BLANK, which the score alone cannot "
-                "separate -- so we reject it as not operant conditioning at all. "
-                "The cascade in agreement.score_oc returns at its FIRST failure, "
-                "so a definitional criterion reading unmet hides the type "
-                "question entirely: read which of the four criteria failed before "
-                "touching the type rule.",
+    # RE-MEASURED AND REWRITTEN 2026-09-06 (subgoal Q45). The entry below was
+    # STALE: it said we charge 4 and reject the example as not operant
+    # conditioning. We charge 2, the same as gold, and we reach it by a different
+    # and arguably better route.
+    ("NR", 11): "gold charges WRONG_TYPE (2) and names the type NP: \"This is an "
+                "example of NP.\" We charge 2 as well, via `targets_goal_behavior` "
+                "= `absent` in 12 of 12 -- the plan targets the WRONG BEHAVIOUR. "
+                "Same number, different reason. THE LABEL IS THE SHAKY HALF, NOT "
+                "THE SCORE: \"If I don't workout 2-3 days then I won't have to "
+                "study more\" REMOVES an aversive contingent on a behaviour, which "
+                "is negative reinforcement -- of not working out. Calling it NP "
+                "would need studying to be the desirable thing taken away. Our "
+                "`observed_type` = NR in 12 of 12 is defensible on the mechanics. "
+                "THE OUTLIER TEST WAS RUN AND GOLD IS NOT THE OUTLIER: p6 (\"Every "
+                "day I go to the gym, I will not have to study\") and p19 are the "
+                "SAME structure with the condition NOT inverted, and gold gives "
+                "both 4.00; p9 is the other inverted case and gold charges 2 there "
+                "too, where we AGREE with its PP label. Gold is consistent that an "
+                "inverted condition fails to demonstrate NR of the goal behaviour, "
+                "and 2 is the right charge. So this is a CODE difference, not a "
+                "gold error and not a defect. DO NOT UNSCORE `targets_goal_behavior` "
+                "TO FIX PR/p15: it is the accurate charge here, and removing it "
+                "takes this cell from 7 of 11 to zero.",
 }
 
 
-# THE BUDGET, and it may only fall -- the same bargain as
-# GOLD_SLOT_DISAGREEMENTS_BUDGET and SLOT_RULE_BACKLOG. It went 8 -> 5 on
-# 2026-09-02: 8 -> 5 when 2a's conjunction rule made p1, p13 and p15 agree with
-# gold, then 5 -> 3 when the ratchet's FIRST run found Q4a/p6 and Q4a/p9 had
-# been stale for longer. Q20's own text already said p6 agreed; this table was
-# never updated to match, which is the gap the ratchet closes. 3 -> 2 the same
-# day, when the mechanism rule made 2a/p14 charge the slot gold charged: the
-# ratchet reported it on the first audit after the sweep, unprompted.
-GOLD_SLOT_BOUNDS_BUDGET = 2
-
+# Cells whose AMBIGUOUS gold charge still disagrees with us on EVERY reading.
+# Separate from GOLD_CODE_KNOWN because the finding is weaker in kind -- a count
+# or a subset, not a named slot -- and mixing them would let a bounded finding be
+# quoted as an exact one.
+#
+# THIS TABLE'S DECLARATION LINE WAS DELETED BY ACCIDENT on 2026-09-06 and is
+# restored here. Rewriting GOLD_CODE_KNOWN's ("NR", 11) entry used a slice that
+# ran to the NEXT dict key, which swallowed this table's closing brace, comment
+# and `GOLD_SLOT_BOUNDS_KNOWN: ... = {` line -- so its two entries were absorbed
+# into GOLD_CODE_KNOWN and the name went undefined. The file still PARSED and the
+# only symptom was GOLD_CODE_KNOWN loading 7 keys instead of 5, which was noticed
+# and not explained at the time; `wrong_cells_without_an_owner` then raised
+# NameError. A slice bounded by "the next key" is not bounded by the end of the
+# value it means to replace.
 GOLD_SLOT_BOUNDS_KNOWN: dict[tuple[str, int], str] = {
     ("Q4c", 16): "gold charges one consequence slot and we charge none. The "
                  "comment is Q4b's `modify_why` text on a Q4c row, so WHICH slot "
@@ -2969,8 +3775,42 @@ GOLD_SLOT_BOUNDS_KNOWN: dict[tuple[str, int], str] = {
                "continue to engage\" -- and we fail BOTH, scoring 0.0 against "
                "gold's 2.5. Every other disagreement in this accounting runs the "
                "other way, which makes this one worth reading first: it is the "
-               "only evidence that the leniency is not uniform.",
+               "only evidence that the leniency is not uniform."
+               ' LIVE ROUTE FOUND 2026-09-09, the first on this cell. REACH IS FAVOURABLE '
+               'AND MEASURED: only four Q5 cells ever answer `wrong_kind` -- p4 12/12 on '
+               'BOTH example slots, p9 4/12, p14 1/12, p19 1/12 -- and on those three, all '
+               'gold 5.00, the wrong_kind runs are the ERROR. So a loosening scoped to '
+               '`wrong_kind` gains this cell and firms three others, and it cannot reach '
+               'the gold-0.00 controls p13 and p17, which answer `absent` 24 of 24. BUT IT '
+               'MUST NOT BE A BLANKET LOOSENING: gold is 2.50 and each example carries '
+               '2.50, so EXACTLY ONE of the two must be credited -- crediting both scores '
+               '5.00 and is wrong in the other direction, which is how a naive fix would '
+               'read as a win on the slot and a loss on the cell. THE DISCRIMINATOR IS '
+               'WHICH BEHAVIOUR THE ANSWER IS ABOUT. The first names the GOAL behaviour -- '
+               "'I continue sleep enough because sleep is good for you, I am gaining "
+               "something)' -- so it is not a reason for continuing the UNWANTED one at "
+               'any strictness, and our refusal of it agrees with gold. The second names '
+               "the unwanted behaviour and gives a because-clause for it: 'I continue to "
+               'not sleep enough because I get super emotional and mad when I am super '
+               "tired.' What it names is an EFFECT of the behaviour rather than a gain or "
+               'an escape, which is why we refuse it on the criterion as written -- and '
+               'gold credits it. SO THE RULE WOULD SAY that a because-clause offered for '
+               'the unwanted behaviour counts even where what it names is an effect rather '
+               'than a payoff, while a statement about the GOAL behaviour never counts. '
+               'AND NOTE THE SHAPE OF THE SLOT: example_1 ships FIFTY characters of '
+               "checklist against example_2's 629 -- the same under-specification that "
+               "Q3's `realistic` had at 31 characters, where a first rule took the item "
+               'from 19/20 to 20/20 the same day. STILL A JUDGEMENT CALL, stated so it is '
+               "not oversold: the clause credits something the criterion's own words "
+               "exclude, so it buys gold agreement at the cost of the criterion's "
+               'coherence. Probe before building.',
 }
+# DELETED BY ACCIDENT with this table's declaration line on 2026-09-06 and
+# restored here. The same bad slice took the closing brace, the comment, the
+# `GOLD_SLOT_BOUNDS_KNOWN` line AND this constant; restoring the table alone left
+# `preflight` raising NameError on every run, which is how it was found. Two is
+# the table's size and the ratchet may only fall.
+GOLD_SLOT_BOUNDS_BUDGET = 2
 
 
 GOLD_SLOT_UNMAPPABLE: dict[tuple[str, int], str] = {
@@ -3028,15 +3868,102 @@ GOLD_SLOT_UNMAPPABLE: dict[tuple[str, int], str] = {
 
 
 GOLD_SLOT_DISAGREEMENTS_KNOWN: dict[tuple[str, int], str] = {
+    # == ELEVENTH ATTEMPT, MEASURED 2026-09-08, AND IT IS THE FIRST TO REACH ==
+    # == THIS CELL. IT DIED ON PROMPT LOAD, NOT ON THE CRITERION.            ==
+    # This entry says "No wording separates them; leave the 1.25 unclaimed",
+    # having measured three arms that each asked HOW STRONGLY the change acts on
+    # the antecedent. THAT WAS THE WRONG QUESTION. Gold's comment names a
+    # SUBJECT-MATTER mismatch -- "Listening to music while working out does not
+    # change your antecedent of PLAYING VIDEO GAMES" -- the change is in the
+    # exercise domain and the antecedent is about gaming. Read out against
+    # `gold_charge_bounds` on all 21 change_a slots, that test predicts 20: it
+    # charges p2/a2 and p8/a2 and credits p3/a2, p4/a2, p10/a2, p16/a1 and
+    # p16/a2 -- the very cells arms 1 and 2 broke.
+    # SHIPPED AND PROBED, 20 cells x 6 runs: p2 went from ALWAYS_WRONG 0/12 to
+    # 5 of 6, with `change_a2` answering `incomplete` 5 of 6 -- the verdict the
+    # rule was designed to produce, on the cell gold charges. p18 also gained,
+    # 6/12 -> 5/6. TEN PRIOR WORDINGS NEVER MOVED p2 AT ALL.
+    # AND THE ITEM STILL COULD NOT CARRY IT:
+    #     by median    17/20 -> 18/20   (+1)
+    #     run-level    82.1% -> 79.2%   (-2.9 points)
+    # ONE genuine false positive, p5 10/12 -> 1/6: `change_a1` answers
+    # `incomplete` where gold credits "keeping healthy alternatives close by"
+    # against "sugar craving" -- the grader reads craving-versus-environment as
+    # different things where the pre-registration predicted a match.
+    # EIGHT MORE CELLS LOST RUNS WHILE THE RULE NEVER FIRED ON THEM: p4, p6, p9,
+    # p10, p12, p14, p15, p16. On p9, p10, p12, p14 and p15 both change_a slots
+    # are STABLE at 6 of 6 and the cells degraded anyway. That is prompt load.
+    # SO THE CEILING IS LOAD, NOT THE CRITERION, and that is now measured THREE
+    # TIMES on this item -- the eighth attempt (p2 improved 0/3 -> 3/6 and ten
+    # stable cells moved), cycle 3's tenth (better [6,10,15], worse [5,16,4,1]),
+    # and this one (p2 gained and EIGHT stable cells lost runs). It explains why
+    # ten wordings failed while each looked right on the cell it targeted.
+    # REVERTED because +1 median sits inside this item's own noise floor -- the
+    # record measures an UNCHANGED prompt moving 3 of 20 cells, and this probe
+    # moved 3 medians -- against a -2.9 point decline across eight independent
+    # cells. WHAT IS NEW AND SHOULD NOT BE LOST: the criterion question is
+    # ANSWERED. A wording that separates p2 from p4 and p16 exists. The next
+    # attempt must be SHORTER, not different -- the constraint is characters,
+    # not semantics.
+    # == TWELFTH ATTEMPT, MEASURED 2026-09-09: THE COMPRESSION LOST THE ==
+    # == TARGET AND MADE THE ITEM WORSE. THE 422/131 CONTRAST WAS A FALSE ==
+    # == DICHOTOMY OF MY OWN MAKING.                                      ==
+    # The eleventh attempt (422 chars) FIRED on p2 -- 0/12 to 5/6 with
+    # `change_a2` = `incomplete` 5 of 6 -- and cost eight cells to prompt load.
+    # The twelfth compressed the same criterion to 131 chars on the reasoning
+    # that the slot's checklist line had grown tenfold, 48 -> 470.
+    # IT WAS WORSE ON EVERY MEASURE:
+    #     incumbent (no rule)   median 17/20   run-level 82.1%
+    #     v1  422 chars         median 18/20   run-level 79.2%   p2 FIRED 5/6
+    #     v2  131 chars         median 13/20   run-level 68.3%   p2 NEVER FIRED
+    # p2's `change_a2` answered `met` 6 of 6 -- the target untouched -- and p5's
+    # `change_a1` went from `incomplete` 5/6 to 6/6, so the one genuine false
+    # positive became DETERMINISTIC. better [10,12], worse [4,5,6,9,14,15,16,18,19].
+    # WHAT THE COMPRESSION ACTUALLY CUT, and this is the lesson. The rule had
+    # four parts: the TEST (64 chars), an OPERATIVE clause (123) -- "a change
+    # that names a different ACTIVITY, PLACE OR OBJECT from the one the
+    # antecedent names HAS NOT CHANGED THAT ANTECEDENT" -- a GLOSS on it (123),
+    # and the anti-adequacy guard (107). The compression kept the test, the
+    # gloss and the guard, and dropped THE OPERATIVE CLAUSE: the only one that
+    # names the verdict consequence and the only concrete one. What shipped
+    # stated a requirement and never said what follows from failing it.
+    # THAT IS THE SAME FAILURE MODE RECORDED ELSEWHERE TODAY: on Q4b's
+    # `reasons_given` the concrete example beat the abstract qualification, and
+    # subgoal Q64's proposal died because an abstract test does not fire. An
+    # abstract requirement with no named consequence fires on nothing.
+    # SO "422 OR 131" WAS NOT THE CHOICE. A THIRTEENTH ATTEMPT AT 297 CHARS --
+    # test + operative clause + guard, dropping only the gloss -- is queued and
+    # is a real discriminator: if p2 fires, the operative clause was carrying it
+    # and 297 is the answer; if it does not, the gloss was carrying it, the
+    # criterion needs all 422, and the line closes on measurement.
     ("Q6", 2): "gold charges change_a2; we fail nothing. The +1.25 over-credit "
-               "E15 predicted would move and did not.",
+               "E15 predicted would move and did not. "
+               "WHY IT IS NOT WINNABLE, measured 2026-09-07 in THREE probe "
+               "arms over 240 calls under subgoal Q47. THIS IS A CEILING, NOT "
+               "A DIVERGENCE IN OUR FAVOUR: gold is RIGHT here and we are "
+               "wrong -- 'Listening to music while working out does not change "
+               "your antecedent of playing video games and not wanting to "
+               "stop.' The obstacle is that gold applies that same test "
+               "LENIENTLY two cells over. Arm 1 (the change must ACT ON the "
+               "antecedent the box names) reached this target 4 of 4 and left "
+               "declared Q6/p8 alone, but fired on p3, p4, p10 and p16, which "
+               "gold credits. Arm 2 dropped its goal-behaviour trigger and "
+               "fixed exactly p3 and p10, leaving p4/a2 4/4 and p16/a2 3/4 -- "
+               "both readings CORRECT about the text, since tracking a "
+               "situation only monitors it and a change named in four words "
+               "says nothing about how it works. Arm 3 carried gold's leniency "
+               "explicitly and fixed p4 and p16 -- AND LOST THIS TARGET "
+               "ENTIRELY, 0 of 4. The reason is structural: what decides this "
+               "cell is exactly what crediting p4 and p16 tells the grader to "
+               "ignore, because all three changes are weakly aimed at their "
+               "antecedent and gold charges one and credits two. No wording "
+               "separates them; leave the 1.25 unclaimed. THIRTEENTH ATTEMPT MEASURED AND REVERTED 2026-09-09, and it is the third independent confirmation that THIS CHANNEL'S CEILING IS PROMPT LOAD RATHER THAN JUDGEMENT. A 297-character `rule` on change_a1/change_a2 -- the middle version, written after the user's correction that the 131-vs-422 contrast was a FALSE DICHOTOMY and that the compression had dropped the operative clause. It REACHED ITS TARGET: p2 went 0/12 to 4/6, the first attempt of thirteen to move this cell at all, and p15 and p18 also improved. IT COST EIGHT CELLS (p4, p5, p6, p9, p10, p12, p14, p16), so 3 better against 8 worse. THE DIAGNOSTIC IS IN THE VERDICTS, NOT THE TOTALS: on most of the eight damaged cells change_a1 AND change_a2 both answer `met` 6 of 6 -- the rule never fired on them -- so the losses are in OTHER slots that the added text displaced. That is the same signature the arm-2 audit recorded ('1073 characters of new rule text moved answers on slots it does not govern') and the same one Q4b's sixth b1_basis value showed. Reverted to desc-only, both slots, and the four stale DESIGNED_TEXT entries and two DESIGNED_TEXT_SHA shas dropped with it. So the target IS reachable and the collateral is the barrier: any future attempt must ADD NO NET TEXT.",
     ("Q6", 5): "gold charges state_a1/state_c1/state_c2; we charge "
                "state_a1/state_c2/affect_c2. Two disagreements cancelling -- see "
                "Q28. DUPLICATE_EFFECT_TIE_BREAK's reason is confirmed by this.",
     ("Q6", 6): "we miss state_a2, which gold charges.",
     ("Q6", 8): "gold also charges both change_* slots -- the A_NO_CHANGE "
                "divergence, already declared, seen here per slot.",
-    ("Q6", 16): "gold charges affect_c2; we fail nothing.",
     # Q6/p9, p17 and p18 ALL LEFT on 2026-08-31: their slot sets now MATCH gold.
     # Three of the eight original entries were artefacts of a pattern overlap in
     # the Q6 table -- the narrow "did not state the second consequence being
@@ -3050,18 +3977,16 @@ GOLD_SLOT_DISAGREEMENTS_KNOWN: dict[tuple[str, int], str] = {
     # grader at slot level even where the total agrees. Same direction as Q6's,
     # and worth reading as one finding rather than six.
     ("Q1", 10): "gold charges reason_3; we fail nothing.",
-    ("Q2", 7): "gold charges wgb_inverts_utb on top of all three reasons; we fail "
-               "the reasons only. Its 5-point charge covers the inversion slot "
-               "too -- see the amount-keyed entry in GOLD_SLOT_CHARGES.",
-    ("Q3", 10): "gold charges specific AND measurable; we fail specific only.",
-    ("Q3", 19): "gold charges measurable AND action_oriented; we fail measurable "
-                "only. action_oriented is subgoal Q9's slot.",
+    # ("Q3", 10) was dropped 2026-09-05: subgoal Q10's holder rule ended the
+    # disagreement it recorded. p10 went 4/12 -> 12/12 and `measurable` now
+    # answers absent 9 / unclear 3 where it used to credit, so gold and the
+    # sheet agree. Q10 pre-registered this removal as its own success signal.
+    # ("Q3", 19) DROPPED 2026-09-05: subgoal Q9's rule landed, we now fail
+    # `action_oriented` there as gold does, and the slot sets MATCH. The entry
+    # had said "action_oriented is subgoal Q9's slot" -- it was, and Q9 is
+    # closed on the result (p19 went 0 of 12 to 10 of 12). Budget lowered with
+    # it, which is what this table's budget is for.
     ("Q4a", 14): "gold charges both antecedents; we fail antecedent_2 only.",
-    ("1a", 1): "gold charges all four week slots -- \"did not discuss data for "
-               "each week\" at 8 points -- and we fail baseline_week only. The "
-               "widest slot-level gap found: three slots credited that the grader "
-               "charged.",
-    ("1a", 6): "gold charges baseline_week; we fail nothing.",
     ("Q4c", 9): "gold charges both consequences; we fail consequence_2 only.",
     ("Q4c", 20): "gold charges consequence_2; we fail nothing.",
     ("Q4b", 4): "gold charges both behaviors; we fail behavior_2 only -- the same "
@@ -3072,8 +3997,29 @@ GOLD_SLOT_DISAGREEMENTS_KNOWN: dict[tuple[str, int], str] = {
     # the two-slot "...and how it is being affected" form, and first-match
     # ordering decided it. The ratchet reported the entry as stale the moment the
     # overlap was fixed, which is what the ratchet is for.
+    # THREE ENTRIES LEFT ON 2026-09-09, 12 -> 9, AND ALL THREE WERE ARTEFACTS OF
+    # THE INSTRUMENT RATHER THAN OF GOLD. Until that day gold_slot_disagreements
+    # compared gold's charge against the UNANIMOUS INTERSECTION of our runs, on
+    # the python side alone. An intersection is a lower bound, so a slot we fail
+    # in 10 or 11 runs of 12 drops out of it entirely and the cell reads as
+    # "gold charged something we credit". That is what these three recorded --
+    # two of them in so many words, "we fail nothing":
+    #   ("1a", 1)  we now fail all four week slots, 11-12 of 12 pooled; the cell
+    #              is 12/12 PERFECT. The entry called it "the widest slot-level
+    #              gap found".
+    #   ("Q2", 7)  wgb_inverts_utb 9 of 12 pooled, on top of all three reasons --
+    #              gold's set exactly. 12/12 PERFECT.
+    #   ("Q6", 16) affect_c2 11 of 12 pooled, which is gold's single charge.
+    # The comparison now pools both engines and takes the MAJORITY, which is the
+    # rule bounds_declarations_that_expired had used all along -- so an entry
+    # could be created by one rule and never retired by the other. See
+    # _our_typical_failing_slots.
+    #   ("Q1", 10) IS DELIBERATELY STILL HERE. It reads the same way (reason_3
+    #              10 of 12 against gold's reason_3) but Q1 is mid-re-sweep, so
+    #              its artefacts are about to be replaced. Re-check and drop it
+    #              then; do not act on a rate that is being measured.
 }
-GOLD_SLOT_DISAGREEMENTS_BUDGET = 15
+GOLD_SLOT_DISAGREEMENTS_BUDGET = 9
 
 
 def _table_hits(table, seg: str, amounts: list) -> list:
@@ -3365,6 +4311,112 @@ def gold_charged_slots(item: str, pid: int):
     return charged
 
 
+def gold_box_status(item: str) -> dict:
+    """Per-cell, per-slot: does gold CREDIT this box, CHARGE it, or say nothing?
+
+    A PROBE'S PRE-REGISTRATION MUST BE DERIVED FROM THIS AND NOT TYPED OUT.
+    Written 2026-09-07 after a Q4c probe hand-typed its own falsifier set and got
+    two things wrong in one script:
+
+      * it treated Q4c/p4's first box as gold-CREDITED, so the rule "over-firing"
+        there read as a cost. Gold charges that box in its own words -- "specify
+        what spending too much time awake means as a consequence" -- and we
+        already answer `wrong_kind` on it 9 of 12 runs. Refusing it is AGREEMENT.
+      * it took the dropped-cell list from `handouts.suspect(1)`, which is the
+        HANDOUT-WIDE reader ("participants whose input cannot be trusted, whatever
+        the item") and returns []. Q4c/p16 is excluded PER ITEM, and only
+        `exclusions(item)` sees it. Across all of handout 1 Q4c is the ONLY item
+        where the two answers differ, so the mistake is invisible everywhere else.
+
+    Returns {pid: {"status", "gold", "max", "charged", "credited"}} where
+    `charged` and `credited` are slot-name sets over the item's credit list.
+
+        excluded             `exclusions(item)` drops it. Not evidence in EITHER
+                             direction -- see the suspect-cells rule in
+                             QUALITY_CONTROL.md.
+        no_gold              gold has no number for the cell.
+        full_marks           gold charges nothing, so EVERY slot is credited.
+                             THE ONLY CELLS A FALSIFIER MAY BE DRAWN FROM.
+        charged_slots_known  gold charges and `gold_charged_slots` names which;
+                             the rest of the slots are credited.
+        charged_box_unknown  gold charges and WHICH SLOT IS NOT READABLE. Then
+                             `credited` is EMPTY ON PURPOSE: no slot here may be
+                             called gold-credited, because we do not know. An
+                             empty set is "we do not know", never "gold charged
+                             nothing" -- the same distinction `gold_charged_slots`
+                             keeps by returning None.
+    """
+    import handouts as H
+
+    h = _jobs()[item]["handout"]
+    rub = H.config(h)["rubric"].BY_ID[item]
+    slots = {c["what"] for c in rub["credit"]}
+    top = float(rub["max"])
+    dropped = set(exclusions(item))
+
+    out: dict[int, dict] = {}
+    for pid in range(1, 21):
+        rec = {"status": "", "gold": None, "max": top,
+               "charged": set(), "credited": set()}
+        if pid in dropped:
+            rec["status"] = "excluded"
+            out[pid] = rec
+            continue
+        g = gold_cell(item, pid) or {}
+        rec["gold"] = g.get("score")
+        if rec["gold"] is None:
+            rec["status"] = "no_gold"
+        elif abs(rec["gold"] - top) < 1e-9:
+            rec["status"] = "full_marks"
+            rec["credited"] = set(slots)
+        else:
+            named = gold_charged_slots(item, pid)
+            if named:
+                rec["status"] = "charged_slots_known"
+                rec["charged"] = set(named)
+                rec["credited"] = slots - set(named)
+            else:
+                rec["status"] = "charged_box_unknown"
+        out[pid] = rec
+    return out
+
+
+def probe_falsifiers(item: str, slot: str | None = None):
+    """Falsifiers a probe may legitimately claim, and gold's credit is CERTAIN.
+
+    Only cells where gold credits the box outright: full marks, or a charge whose
+    slots are named so the REST are known credited. A rule firing on one of these
+    is a real cost. Everything else is in `probe_unusable`, and a probe counting
+    those as falsifiers reports costs it cannot substantiate -- Q4c/p4 exactly.
+
+    Without `slot`: {pid: credited slot names}. PASS THE SLOT when the probe is
+    about one slot, and read the pid list from that: the bare mapping still holds
+    the TARGET cell whenever some OTHER slot of it is credited, and a caller
+    reading its keys as "the falsifier cells" gets the target back in the set.
+    Q4c/p9 is the case in point -- gold charges both consequence boxes, its two
+    remaining slots are credited, so p9 is a key here and is NOT a falsifier for
+    a consequence rule.
+    """
+    st = gold_box_status(item)
+    if slot is None:
+        return {pid: r["credited"] for pid, r in st.items() if r["credited"]}
+    return sorted(pid for pid, r in st.items() if slot in r["credited"])
+
+
+def probe_unusable(item: str) -> dict:
+    """{pid: why} cells a probe must NOT read as evidence of a cost.
+
+    Kept as a separate call so a probe has to look at it. Silence about these is
+    how a readout claims coverage it does not have.
+    """
+    why = {"excluded": "dropped by exclusions(item) -- not evidence either way",
+           "no_gold": "gold has no number for this cell",
+           "charged_box_unknown": "gold charges this cell but which slot is not "
+                                  "readable, so no box here counts as credited"}
+    return {pid: why[r["status"]] for pid, r in gold_box_status(item).items()
+            if r["status"] in why}
+
+
 @functools.lru_cache(maxsize=None)
 def _handout_gold_items(handout: int) -> frozenset:
     """Which item ids handout `handout`'s gold sheet actually grades."""
@@ -3495,6 +4547,63 @@ def band_moves(item: str | None = None, side: str = DEFAULT_SIDE) -> list[str]:
     return out
 
 
+# Worst to best. `band_regressions` reports a cell that moved DOWN this order and
+# says nothing about one that moved up, because a gain needs no one's attention
+# and a loss does. Kept beside `cell_bands`, whose docstring defines the bands, so
+# the ordering cannot drift from the definitions it orders.
+_BAND_ORDER = ("always_wrong", "wrong_by_median", "on_the_line",
+               "unstable_counted_right", "perfect")
+
+
+def band_regressions(side: str | None = None) -> list[str]:
+    """Cells the last recording moved to a WORSE band, across every recorded item.
+
+    SUBGOAL E42's residual, built 2026-09-05. `band_moves` reports every move on
+    one item and one side and is what a reader calls when they already know which
+    recording they are asking about. This asks the question a session has when it
+    does NOT know: did anything I landed make a cell worse, anywhere?
+
+    IT EXISTS BECAUSE IT WOULD HAVE PAID FOR ITSELF THE DAY IT WAS WRITTEN. The
+    cadence edit of 2026-09-05 took DAY1/p9 and DAY1/p15 from `perfect` to
+    `on_the_line` and `wrong_by_median`, against pre-registrations naming both as
+    controls. The item TOTAL moved by one, which reads as noise; the band moves
+    said plainly that two perfect cells had gone. Nothing surfaced that until the
+    bands were read by hand.
+
+    A LOSS OUT OF `perfect` IS CALLED OUT SEPARATELY, because it is the one move
+    with no innocent reading: an unstable cell drifting a band is often the
+    number moving, but a cell that was right in every run and now is not was made
+    worse by something.
+
+    Silent about items with no stored band -- that is `band_moves`'s NOT KNOWN and
+    is not a regression.
+    """
+    now = cell_bands()
+    out: list[str] = []
+    for sd in ((side,) if side else SIDES):
+        try:
+            recorded = records(sd)
+        except Exception:
+            continue
+        for it, s in sorted(recorded.items()):
+            before = (s or {}).get("bands_before")
+            if not before:
+                continue
+            for pid, was in sorted(before.items(), key=lambda kv: int(kv[0])):
+                cur = now.get(f"{it}/p{pid}")
+                if cur is None or cur[2] == was:
+                    continue
+                try:
+                    if _BAND_ORDER.index(cur[2]) >= _BAND_ORDER.index(was):
+                        continue
+                except ValueError:
+                    continue      # an unknown band name is another check's business
+                lost = " — was RIGHT IN EVERY RUN" if was == "perfect" else ""
+                out.append(f"{it}/p{pid} [{sd}]: {was} -> {cur[2]} "
+                           f"({cur[0]} of {cur[1]}){lost}")
+    return out
+
+
 def cell_bands(state: dict | None = None) -> dict:
     """Every recorded cell's band, pooled over the OLX-prompt sides.
 
@@ -3533,6 +4642,17 @@ def cell_bands(state: dict | None = None) -> dict:
                     a = state.setdefault(f"{item}/p{pid}", (0, 0))
                     state[f"{item}/p{pid}"] = (a[0] + n, a[1] + runs)
     out = {}
+    # WARN ABOUT WHAT THIS IS ABOUT TO REPORT. A band is only as current as the
+    # entry it was computed from, and nothing used to say so -- see
+    # `warn_if_stale`. Printed to stderr, once per stale item, so no caller that
+    # parses stdout is affected.
+    _seen_stale = set()
+    for cell in state:
+        it = str(cell).split("/")[0]
+        if it not in _seen_stale:
+            _seen_stale.add(it)
+            warn_if_stale(it, where="cell_bands")
+
     for cell, (right, runs) in state.items():
         if not runs:
             continue
@@ -3867,6 +4987,55 @@ def _gold_nameable_slots(item: str) -> frozenset:
     return frozenset(out)
 
 
+def _our_typical_failing_slots(item: str, pid: int) -> tuple[set, dict, int]:
+    """The scored slots we TYPICALLY fail on a cell, pooled over both engines.
+
+    Returns (majority set, per-slot run counts, runs pooled), the set already
+    narrowed to gold's own vocabulary by `_gold_nameable_slots`.
+
+    WHY MAJORITY AND NOT THE UNANIMOUS INTERSECTION, which is what
+    `gold_slot_disagreements` used until 2026-09-09. An intersection is a LOWER
+    BOUND on what we fail, so instability can only ever make our set SMALLER --
+    and that biases the comparison in one direction. It manufactures
+    under-charging (a slot we fail in 5 runs of 6 drops out and gold looks like
+    it charged something we credit) and it is structurally BLIND to
+    over-charging (a slot we fail in 11 of 12 can never enter the set unless it
+    is unanimous). Six of the nine findings it reported were cells that fail
+    exactly gold's slots in 4 or 5 runs of 6, and Q1/p9 -- where we charge
+    `reason_2` and gold does not, on a cell the ledger independently bands 2/12
+    wrong -- was invisible to it.
+
+    WHY POOLED. `_our_failing_slots`' own docstring states the principle: "the
+    two engines are pooled precisely because differences between them are
+    sampling, not program". The exact comparison simply never did it and ran on
+    the python side alone, at half the sample the ledger bands these same cells
+    on. Pooling also absorbs a one-engine artifact correctly -- 1c/p16's `title`
+    is a majority failure on python and not when both engines are counted.
+
+    THIS IS THE RULE THE RETIREMENT SIDE ALREADY USED.
+    `bounds_declarations_that_expired` has always pooled both engines, taken the
+    strict majority and filtered to gold's vocabulary. So one table's entries
+    were CREATED by the intersection rule and RETIRED by this one, which is two
+    rules wearing one name: an entry could be created and then never be
+    retirable. Both sides now call this function.
+    """
+    import collections
+
+    runs = _our_failing_slots(item, pid, "olx") + _our_failing_slots(item, pid, "python")
+    if not runs:
+        return set(), {}, 0
+    counts = collections.Counter(s for r in runs for s in set(r))
+    maj = {s for s, k in counts.items() if k * 2 > len(runs)}
+    # AGAINST GOLD'S VOCABULARY ONLY. A slot no phrase maps to cannot appear on
+    # gold's side of the comparison, so keeping it on ours manufactures a
+    # difference; and where the test is on the COUNT, a gate carrying no points
+    # inflates our side so the equality can never hold. See _gold_nameable_slots.
+    vocab = _gold_nameable_slots(item)
+    if vocab:
+        maj &= vocab
+    return maj, dict(counts), len(runs)
+
+
 def gold_slot_disagreements() -> list[str]:
     """Cells where our failing slots differ from the slots gold charged.
 
@@ -3951,26 +5120,26 @@ def gold_slot_disagreements() -> list[str]:
                         f"or to GOLD_SLOT_UNMAPPABLE with the reason; an unread "
                         f"charge is not a passing cell")
                 continue
-            ours = _our_failing_slots(item, pid)
-            if not ours:
+            stable, _counts, _n = _our_typical_failing_slots(item, pid)
+            if not _n:
                 continue
             examined += 1
-            stable = set.intersection(*[set(f) for f in ours]) if ours else set()
-            # ONLY WHAT GOLD COULD HAVE SAID. See _gold_nameable_slots: a slot no
-            # phrase maps to cannot appear on gold's side of this comparison, so
-            # keeping it on ours manufactures a difference.
-            stable &= _gold_nameable_slots(item)
             if stable == charged:
                 continue
             seen_disagreeing.add((item, pid))
             if (item, pid) in GOLD_SLOT_DISAGREEMENTS_KNOWN:
                 declared += 1
                 continue
+            # THE DISTRIBUTION, NEVER A BARE SET. The set is a majority over
+            # pooled runs, and quoting it alone rounds each slot's majority up to
+            # certainty -- the same misreading as quoting a median alone.
+            spread = ", ".join(f"{s} {_counts.get(s, 0)}/{_n}"
+                               for s in sorted(charged | stable))
             out.append(
-                f"{item}/p{pid}: gold charges {sorted(charged)}, we fail "
-                f"{sorted(stable)} in every run — differs on "
-                f"{sorted(charged ^ stable)}. The TOTAL can still agree, which "
-                f"is how this stayed invisible. Declare it in "
+                f"{item}/p{pid}: gold charges {sorted(charged)}, we typically fail "
+                f"{sorted(stable)} — differs on {sorted(charged ^ stable)} "
+                f"(pooled over {_n} runs: {spread}). The TOTAL can still agree, "
+                f"which is how this stayed invisible. Declare it in "
                 f"GOLD_SLOT_DISAGREEMENTS_KNOWN with what is wrong, or fix it")
 
     # BOUNDED ACCOUNTING for the cells the exact comparison cannot read. Skipping
@@ -3987,10 +5156,9 @@ def gold_slot_disagreements() -> list[str]:
             if b is None or (item, pid) in GOLD_SLOT_BOUNDS_KNOWN:
                 continue
             definite, count = b
-            got = _our_failing_slots(item, pid)
-            if not got:
+            stable, _counts, _n = _our_typical_failing_slots(item, pid)
+            if not _n:
                 continue
-            stable = set.intersection(*[set(f) for f in got])
             missed = sorted(definite - stable)
             if missed:
                 out.append(
@@ -4078,22 +5246,13 @@ def bounds_declarations_that_expired() -> list[str]:
         if bounds is None:
             continue
         definite, count = bounds
-        runs = (_our_failing_slots(item, pid, "olx")
-                + _our_failing_slots(item, pid, "python"))
-        if not runs:
+        # THE SHARED RULE. This function pooled, took the majority and filtered
+        # to gold's vocabulary while the DETECTION side used a python-only
+        # unanimous intersection, so entries were created by one rule and retired
+        # by another. Both now call _our_typical_failing_slots.
+        maj, _seen, _n = _our_typical_failing_slots(item, pid)
+        if not _n:
             continue          # unreadable is not agreement
-        seen = collections.Counter(s for r in runs for s in r)
-        maj = {s for s, k in seen.items() if k > len(runs) / 2}
-        # AGAINST GOLD'S VOCABULARY ONLY. `count` is how many charges the grader
-        # made, so our side has to be counted in the same units. A GATE is not in
-        # those units -- it carries no points and no phrase names it -- and
-        # leaving it in inflates len(maj) so the equality can never hold. That
-        # does not raise a false alarm; it JAMS THE RATCHET, and an entry that
-        # can never expire is the exact failure this function was written to
-        # stop. See _gold_nameable_slots.
-        _vocab = _gold_nameable_slots(item)
-        if _vocab:
-            maj &= _vocab
         if len(maj) == count and set(definite) <= maj:
             out.append(
                 f"GOLD_SLOT_BOUNDS_KNOWN names {item}/p{pid}, but we now fail "
@@ -4153,7 +5312,7 @@ def _sides_named(text: str) -> frozenset:
     return frozenset(found)
 
 
-def _live_subgoal_owners() -> dict:
+def _live_subgoal_owners(excluding: str = '') -> dict:
     """{`item/pN`: [subgoal ids]} for every OPEN subgoal that names a cell.
 
     Closed subgoals do not count. A finished goal is not a place for a live
@@ -4210,7 +5369,13 @@ def _live_subgoal_owners() -> dict:
         m = re.match(r"- \[( |x)\] ([EQ]\d+)\.", line)
         is_title = bool(m)
         if m:
-            current = None if m.group(1) == "x" or m.group(2) == "E30" else m.group(2)
+            # `excluding` lets a caller ask what the field looks like WITHOUT
+            # one still-open entry -- see `orphans_if_closed`. Without it the
+            # owner checks are blind to exactly the cells a closure is about to
+            # drop, because the entry is still open and still naming them.
+            current = (None if m.group(1) == "x" or m.group(2) == "E30"
+                       or (excluding and m.group(2) == excluding)
+                       else m.group(2))
             title_sides = _sides_named(line) if current else frozenset()
             # WHICH ITEMS THE TITLE CLAIMS. The subgoal id is stripped first
             # because the two namespaces COLLIDE: subgoal Q2 and item Q2 are
@@ -4297,6 +5462,61 @@ def _pooled_cell_scores(item: str, pid: int, side: str) -> list:
         out += _cell_scores(item, pid, s)
     return out
 
+
+# Cells where gold awarded FULL MARKS IN SILENCE, we charge, and the disagreement
+# has been read out and DECLARED rather than left as an open question. Subgoal
+# Q45.
+#
+# WHY A SEPARATE TABLE. `silent_full_marks_we_refuse` reports these as questions
+# and rightly does not resolve them; GOLD_CODE_KNOWN cannot hold them, because
+# its check skips any cell where gold charged nothing (`if got is None:
+# continue`), so a declaration filed there would suppress nothing and sit unread.
+# CORRECTED_GOLD is also wrong: these are cells we are NOT correcting.
+SILENT_GOLD_DIVERGENCES: dict[tuple[str, int], str] = {
+    ("PR", 15): (
+        "DECLARED ON THE TARGETING GROUND. gold 4.00 in silence; we score 2.00 in "
+        "8 of 12 runs, 4.00 in 3, 0.00 in 1. The charge is `targets_goal_behavior` "
+        "= `absent`: the plan is \"Only allow myself to binge your favorite show "
+        "after you finish homework or a workout\" against a stated goal of "
+        "cutting screen time, so the REWARD IS THE BEHAVIOUR BEING REDUCED and "
+        "the condition names homework instead of the goal. "
+        "OUR ENGINE REASONS THIS EXPLICITLY -- read the feedback, not the "
+        "evidence quote, which is what misled the first reading: five of the nine "
+        "refusing runs say it in plain words (\"that reward gives you screen "
+        "time, so it does not target your stated goal of cutting screen time\"). "
+        "THE THREE RUNS THAT AGREE WITH GOLD ARE THE ERRONEOUS ONES: one infers "
+        "the plan \"supports your goal to cut screen time\", and two are diverted "
+        "into the pronoun wording and never reach the targeting question. "
+        "WHY IT IS DECLARED AND NOT CORRECTED. gold charges 2.00 NOWHERE on PR, "
+        "so `silent_full_marks_we_refuse` reads it PATTERN rather than OUTLIER, "
+        "and the outlier test that licensed the 1c/p11 correction cannot run. "
+        "PR's four deduction codes -- NOT_OC, WRONG_TYPE, NOT_EXTERNAL_STIMULUS, "
+        "BLANK -- contain NO charge for targeting the wrong behaviour, so gold "
+        "structurally could not express this even had the rater seen it. Every "
+        "other route is closed and measured: the scoped clause was too weak "
+        "(target 5/12 -> 5/12, and its removal cost 2 runs); unscoring the slot "
+        "is refused by NR/p11, where the same slot is the accurate charge; the "
+        "fixture is faithful and the student's style consistent across four items. "
+        "COHERENCE NOTE, AND IT IS A FINDING RATHER THAN A HYPOTHESIS. The "
+        "response mixes agents inside one contingency -- \"allow MYSELF\" arranges "
+        "the reward, \"YOU finish homework\" performs the behaviour -- so as an "
+        "operant example it does not close: it reinforces someone else's "
+        "homework. It is the ONLY mixed-agent answer in 160 operant cells. "
+        "NEITHER SIDE HAS A CRITERION FOR IT: gold has no code, and our gates "
+        "each pass on their own clause (`you_arrange_it` met 12/12, "
+        "`names_behavior` met 11/12) because nothing compares the agents across "
+        "them. IT IS ALREADY COSTING ACCURACY: the engine notices it in five "
+        "runs' FEEDBACK (\"the pronouns are ambiguous\", \"make the plan "
+        "explicitly about your own behaviour\") and in two of those the wording "
+        "question crowds out the targeting judgement, producing 4.00. "
+        "IF COHERENCE WERE A GATE ON IDENTIFYING OPERANT CONDITIONING AT ALL, "
+        "this cell would plausibly score 0.00 -- meaning OUR 2.00 is probably not "
+        "right either, and the reader missed the same thing. That cannot be "
+        "settled here: it needs SCORED EXAMPLES OF INCOHERENT RESPONSES, and this "
+        "corpus contains exactly one. Revisit when there are more; a "
+        "single-instance criterion has no negatives to validate against and is "
+        "untestable by construction."),
+}
 
 def silent_full_marks_we_refuse(side: str = "olx+python") -> str:
     """Cells gold awarded the maximum IN SILENCE that we refuse, and the
@@ -4399,6 +5619,8 @@ def silent_full_marks_we_refuse(side: str = "olx+python") -> str:
                    if comps else
                    f"PATTERN -- gold charged {round(sc - ours, 2)} NOWHERE on "
                    f"this item; suspect our own rule first")
+        if (item, pid) in SILENT_GOLD_DIVERGENCES:
+            verdict = "DECLARED divergence -- SILENT_GOLD_DIVERGENCES; " + verdict
         out.append(f"  {item + '/p' + str(pid):<10} {sc:>5.2f} {ours:>6.2f} "
                    f"{n:>5}  {verdict}")
         for cpid, fb in comps[:4]:
@@ -4485,11 +5707,11 @@ def sides_recorded_but_unreadable() -> list[str]:
     return out
 
 
-def wrong_cells_without_an_owner() -> list[str]:
+def wrong_cells_without_an_owner(excluding: str = '') -> list[str]:
     """Cells we get wrong that no live subgoal and no declaration accounts for."""
     import handouts as H
 
-    owned = _live_subgoal_owners()
+    owned = _live_subgoal_owners(excluding)
     owners, subjects = owned["any"], owned["title"]
     wrong = _wrong_cells()
     seen: set = set()
@@ -4507,6 +5729,19 @@ def wrong_cells_without_an_owner() -> list[str]:
         # reason we miss the cell on purpose; demanding a QC subgoal too would be
         # two names for one claim.
         if H.gold_divergence(item, pid):
+            continue
+        # AND NEITHER IS A *SILENT* DECLARED MISS. This check read only
+        # GOLD_DIVERGENCES, so a cell declared in SILENT_GOLD_DIVERGENCES was
+        # reported as an orphan the moment its subgoal closed -- which happened
+        # to PR/p15 on 2026-09-07, minutes after E55 closed, on a cell whose
+        # disposition had been filed with a written reason earlier the same day.
+        # The two tables say the same thing about ownership: somebody decided,
+        # and the decision is findable FROM THE CELL. They differ in whether gold
+        # said anything, not in whether we owe an owner.
+        # DECLARED_CEILING_CELLS is included for the same reason (subgoal E45).
+        if (item, pid) in SILENT_GOLD_DIVERGENCES:
+            continue
+        if (item, pid) in DECLARED_CEILING_CELLS:
             continue
         out.append(
             f"{key} is WRONG on {side} -- gold {target:g}, we record {ours:g} -- "
@@ -4539,6 +5774,411 @@ def wrong_cells_without_an_owner() -> list[str]:
             f"subgoal cites has gone: re-read it, and drop the cell or close the "
             f"subgoal")
     return out
+
+# CELL-LEVEL CEILINGS, machine-readable. Subgoal E45's last unmet constraint:
+# "IT MUST NOT FIRE ON A DECLARED CELL ... It needs a way to say DECLARED-CEILING,
+# or Q35's decision gets re-litigated by machinery every run."
+# `unstable_cells_without_an_owner`'s own docstring names the gap it closes -- "a
+# ceiling recorded only in a CLOSURE NOTE is not visible here -- 2a/p14 is exactly
+# that case, and it passes only because subgoal Q50 names it. That is a real gap."
+# Being owned BY ACCIDENT is not being declared: if Q50 ever closes, the cell
+# fires and a closed subgoal's decision is re-argued by a check.
+# THIS IS NOT `GOLD_DIVERGENCES`. A divergence says our answer is the endorsed one
+# and gold is the outlier. A CEILING says the cell cannot be settled either way --
+# a weaker and different claim, and conflating them would let a ceiling be cited
+# as if we had been vindicated.
+DECLARED_CEILING_CELLS: dict[tuple[str, int], str] = {
+    ("2a", 14): (
+        "Subgoal Q35 closed this as a CEILING rather than handing it on, and its "
+        "note gives three reasons: no open subgoal names any 2a cell or the "
+        "`verdict` slot; the item's own subgoal Q2 had already closed at its "
+        "ceiling and handed this cell here; and the defect is ONE SLOT IN TWO RUNS "
+        "where THE TWO DISSENTING RUNS DISAGREED WITH EACH OTHER, on a garbled "
+        "sentence the rubric declares irrelevant. Two runs that disagree with each "
+        "other are not a defect with a direction, so there is nothing for a rule "
+        "to aim at. Q35 also wrote down the hazard of closing on a counted-RIGHT "
+        "cell, which is what E45 was filed to instrument."),
+}
+
+
+def ceiling_declarations_that_expired() -> list[str]:
+    """A cell declared a ceiling that has since gone PERFECT or gone WRONG.
+
+    The same ratchet as `GOLD_SLOT_DISAGREEMENTS_KNOWN`'s expiry check: a
+    declaration is a claim about the present, and a claim nothing tests decays
+    into folklore. A ceiling cell that is now perfect should lose its entry; one
+    that has gone WRONG is no longer a counted-right cell hiding from the wrong-
+    cell check, so it needs a real owner instead.
+    """
+    out = []
+    bands = cell_bands()
+    for (item, pid), why in sorted(DECLARED_CEILING_CELLS.items()):
+        band = (bands.get(f"{item}/p{pid}") or (None, None, None))[2]
+        if band == "perfect":
+            out.append(f"{item}/p{pid} is declared a CEILING but is now PERFECT -- "
+                       f"drop the entry; the ceiling it recorded is gone")
+        elif band in ("always_wrong", "wrong_by_median"):
+            out.append(f"{item}/p{pid} is declared a CEILING and is now WRONG by "
+                       f"the median -- it is no longer hidden from "
+                       f"`wrong_cells_without_an_owner`, so give it an owner and "
+                       f"drop the ceiling")
+    return out
+
+
+UNSTABLE_UNOWNED_BUDGET = 0
+# SUBGOAL E45. Zero, and it starts there because subgoal Q50 took the ten cells
+# this check was built to find. A budget that starts at today's count never fires
+# until things get worse; this one is satisfied today, so it fires on the FIRST
+# unstable cell nobody writes down. Raise it only with the cell named and a
+# reason, the way PROSE_ONLY_BUDGET is raised.
+
+
+def unstable_cells_without_an_owner(excluding: str = '') -> list[str]:
+    """Unstable cells no open subgoal names. Preflight step 5e. Subgoal E45.
+
+    THE SIBLING CANNOT SEE THESE. `wrong_cells_without_an_owner` asks whether a
+    cell WRONG by the recorded median has an owner. A cell counted RIGHT at
+    9 of 12 is a latent wrong cell -- it answers differently on identical input
+    and is one run from the median moving -- and nothing asked about it. That is
+    the other half of subgoal E41's laundering finding: E41 built `cell_bands` so
+    the coin flips are visible, and this asks whether anyone owns them.
+
+    THEY SURFACE BY ACCIDENT OTHERWISE. On 2026-09-05 ten such cells were found
+    only because closing subgoal Q10 pushed a NEIGHBOURING cell (Q3/p13) over the
+    line into wrong, which made the sibling speak. Nothing else would have.
+
+    OWNERSHIP HERE IS `any`, NOT `by_side`, AND THAT IS A DELIBERATE WEAKENING.
+    The sibling demands per-side ownership because a paper-side subgoal is no
+    home for a cell we get wrong on olx. Applying that standard here has a cost
+    the sibling never pays: `by_side` is populated only from a bare `pN` under a
+    title naming the item (subgoal E40), so satisfying it for cells spread across
+    six items forces a SIX-ITEM TITLE -- and then every bare `pN` in that entry
+    claims a cell on all six. Measured the day this was written: subgoal Q30's
+    title gained one item and claimed eleven cells, Q50's claimed three it did
+    not mean. A standard that can only be met by masking future orphans is the
+    wrong standard, so this one accepts a passing mention and says so. Both
+    standards report 0 today; the choice is about which failure mode is bought,
+    not about which is currently satisfiable.
+
+    A DECLARED CELL IS NOT AN ORPHAN, on the sibling's own reasoning: a
+    GOLD_DIVERGENCES entry already carries the reason, and demanding a subgoal
+    too would be two names for one claim. Note that a ceiling recorded only in a
+    CLOSURE NOTE is not visible here -- 2a/p14 is exactly that case, and it
+    passes only because subgoal Q50 names it. That is a real gap and Q35 wrote
+    it down: the written record is the only protection for such a cell.
+    """
+    import handouts as H
+
+    owners = _live_subgoal_owners(excluding)["any"]
+    out: list[str] = []
+    for key, (right, total, band) in sorted(cell_bands().items()):
+        if band not in ("unstable_counted_right", "on_the_line"):
+            continue
+        item, _, tail = key.partition("/p")
+        try:
+            pid = int(tail)
+        except ValueError:
+            continue
+        # A DECLARED CEILING IS NOT AN ORPHAN. E45's constraint, and the reason
+        # the table exists rather than the closure note being re-read by hand.
+        if (item, pid) in DECLARED_CEILING_CELLS:
+            continue
+        # SUSPECT CELLS ARE NEVER EVIDENCE, so they are never a debt either.
+        if pid in set(H.suspect(_handout_of(item))):
+            continue
+        if H.gold_divergence(item, pid):
+            continue
+        if owners.get(key):
+            continue
+        out.append(
+            f"{key} is UNSTABLE at {right} of {total} ({band}) and no OPEN "
+            f"subgoal names it. It is counted RIGHT, so "
+            f"wrong_cells_without_an_owner will never mention it, and it can "
+            f"drift for weeks unread. Name it, declare it, or record that the "
+            f"rate is noise and it is watched")
+    if len(out) <= UNSTABLE_UNOWNED_BUDGET:
+        return []
+    return out
+
+
+def _handout_of(item: str) -> int:
+    """Which handout an item belongs to, for the suspect list. Subgoal E45."""
+    for h in (1, 2, 3):
+        try:
+            if item in _handout_gold_items(h):
+                return h
+        except Exception:
+            continue
+    return 0
+
+
+# THE FIELD A RESULT RECORDS A SLOT IN DEPENDS ON WHAT KIND OF SLOT IT IS AND
+# WHICH ENGINE WROTE IT, and every consumer used to re-type the lookup. That is
+# subgoal E47: eleven places rolled their own two-line version and two of them
+# were wrong in opposite directions.
+#
+#   python results   `answers` holds PICK values; `checks` holds VERDICTS -- and
+#                    `checks` ALSO carries the pick key with an EMPTY STRING.
+#   olx results      `refers_to` holds picks; `verdicts` holds verdicts, and a
+#                    verdict may be a bare string or {"verdict": ...}.
+#
+# THE TWO FAILURE MODES, both met on 2026-09-05:
+#   `r.get("checks") or r.get("verdicts")` -- `checks` is a truthy dict, so this
+#   never consults `verdicts`; and for a PICK, `checks[key]` is `''`, so the real
+#   answer in `answers` is never reached. This is what made a readout report Q2's
+#   `wgb_names` as never answered on the python side when it answered `doing` 97
+#   times, and that wrong reading was reported as fact.
+#   `r.get("answers") or r.get("refers_to")` -- the same shape the other way: if
+#   `answers` exists but lacks the key, `refers_to` is never tried.
+# An empty string is ABSENCE here, not a value. That single rule is what both
+# hand-rolled forms got wrong.
+
+
+def slot_answer(result: dict, key: str):
+    """What a run's result records for one slot, whatever field it lives in.
+
+    Tries the PICK fields before the VERDICT fields, because a python result
+    carries a pick's real value in `answers` and a placeholder `''` for the same
+    key in `checks`. Returns None when the slot was not answered at all -- which
+    is a real and important state: it is how a rubric slot that never reached the
+    sheet's `slots=` list looks from the artifact side.
+    """
+    for where in ("answers", "refers_to", "checks", "verdicts"):
+        d = result.get(where)
+        if not isinstance(d, dict):
+            continue
+        v = d.get(key)
+        if isinstance(v, dict):
+            v = v.get("refers_to", v.get("verdict"))
+        if v not in (None, ""):
+            return _same_shape(v)
+    # THE PAPER SCORER IS A THIRD SHAPE. score.py writes `credit_checks` as a
+    # LIST of {what, met, ...} rather than a verdict map, so none of the four
+    # fields above exists on its results. cross_path.py already knew this and
+    # folded it to met/absent; this reader did not, and would have returned None
+    # for every paper cell -- silently, exactly the failure mode it was built to
+    # stop. Subgoal E28 is 24 items of paper measurement waiting to be read.
+    for c in (result.get("credit_checks") or []):
+        if isinstance(c, dict) and c.get("what") == key:
+            return "met" if c.get("met") else "absent"
+    return None
+
+
+def _same_shape(v):
+    """One spelling per answer, whichever engine wrote it. Subgoal E47.
+
+    THE TWO WRITERS SPELL A COUNT DIFFERENTLY -- agreement.py stores it as the
+    STRING "3", agreement_app.py as the INT 3 -- and measured.py has said so in a
+    comment since the day `is_satisfied` raised AttributeError on the int. The
+    canonical reader did NOT act on it, so every cross-engine tally counted one
+    answer twice: `Counter` over twelve identical runs returned
+    `{'3': 6, 3: 6}`, which reads as a slot flipping 6-6 when nothing moved.
+    ON 2026-09-06 THAT MISREAD FOUR OF Q1's SLOTS AT ONCE -- `harms_listed`,
+    `reasons_given` and two others were reported as flipping on cells where they
+    are stable, and the error was caught only because a "flip" of exactly 6-6 on
+    four slots at once looked too tidy to be real.
+    Numbers normalise to `str`; everything else is returned unchanged, so a
+    verdict like `met` is untouched and a count like 3 and "3" become one answer.
+    """
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, (int, float)):
+        return str(v)
+    return v
+
+
+def slot_verdict(result: dict, key: str):
+    """The VERDICT a result records for one slot, never its pick value.
+
+    Separate from `slot_answer` on purpose. A mapped slot has a pick and a
+    verdict under DIFFERENT keys, but nothing stops a future sheet from using one
+    name for both, and a check that means "what verdict was recorded" must not
+    silently accept a pick. `enforcement.check_mapped_slots_agree_with_their_map`
+    is exactly that check.
+    """
+    for where in ("checks", "verdicts"):
+        d = result.get(where)
+        if not isinstance(d, dict):
+            continue
+        v = d.get(key)
+        if isinstance(v, dict):
+            v = v.get("verdict")
+        if v not in (None, ""):
+            return v
+    return None
+
+
+def slot_block(source: str, what: str) -> str | None:
+    """The FULL dict literal for one rubric slot, PARSED not scanned. Subgoal E52.
+
+    WHY THIS EXISTS. Four errors in one session came from reading a slot out of
+    source with a FIXED SPAN -- `t[i:i+900]`, `find(..., i, i+3000)`, a regex to
+    the next `"what":`. All silent, two of them producing confident wrong claims:
+    subgoal Q30's edit was declared "not in rubric_h1" because a fixed-span
+    extract compared byte-identical across twelve commits (it was there,
+    uncommitted, in `example_2`'s failing clause), and a readout reported Q2's
+    `wgb_names` as never answered on python when it answered `doing` 97 times.
+    A span cannot know where a literal ends: it truncates, so two slots compare
+    equal on a shared prefix, or it over-reads and reports a neighbour's change.
+
+    A HAND-ROLLED BRACE COUNTER WAS TRIED FIRST AND WAS WORSE, which is why the
+    parser is not over-engineering. Counting braces while tracking quotes looks
+    sufficient until a COMMENT contains an apostrophe -- "the slot's own prose" --
+    which opens a string that never closes. `wgb_inverts_utb` came back at 25,934
+    characters having swallowed `reasons_given` and run to the item's closing
+    brace. Python source is not scannable by eye or by regex; it is parseable.
+
+    `ast` DOES NOT IMPORT THE MODULE, it only parses text, so this works on any
+    revision `git show` can produce. A revision too broken to parse is too broken
+    to compare anyway, and returns None rather than a plausible wrong answer.
+
+    Returns None when the slot is absent -- a real answer, distinct from present
+    and empty.
+    """
+    import ast
+
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return None
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Dict):
+            continue
+        for key, val in zip(node.keys, node.values):
+            if (isinstance(key, ast.Constant) and key.value == "what"
+                    and isinstance(val, ast.Constant) and val.value == what):
+                return ast.get_source_segment(source, node)
+    return None
+
+
+def slot_blocks_differ(a: str, b: str, what: str) -> bool:
+    """Did one slot's literal change between two revisions of a file?"""
+    return slot_block(a, what) != slot_block(b, what)
+
+
+def set_slot_field(path: str, item: str, what: str, field: str,
+                   new_value: str, expect_contains: str = "") -> bool:
+    """Replace one field of one rubric slot, editing the VALUE not the source.
+
+    Subgoal E47. Every failed edit on 2026-09-06 was a source WRITE, and every
+    one failed the same way: a multi-line string literal was hand-written and
+    matched against source whose line breaks fall wherever the original author
+    put them. `"A response built entirely of such clauses is `absent`"` is ONE
+    sentence in the value and TWO lines in the file, broken after "built".
+    Matching the sentence finds nothing; matching the lines requires knowing
+    where someone else pressed return.
+
+    SO THIS NEVER MATCHES SOURCE TEXT. It parses with `ast`, finds the dict whose
+    `"what"` is `what`, locates `field`, and replaces exactly that value's source
+    segment with a freshly wrapped literal. Line breaks in the original are
+    irrelevant because the whole literal is replaced.
+
+    `expect_contains` is a precondition on the CURRENT value -- the safe form of
+    an anchor. It asserts what you believe you are editing without requiring you
+    to reproduce its formatting.
+
+    Returns True on success. Raises rather than writing a half-edit.
+    """
+    import ast
+    import pathlib
+
+    src = pathlib.Path(path).read_text()
+    tree = ast.parse(src)
+    target = None
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Dict):
+            continue
+        keys = {k.value: v for k, v in zip(node.keys, node.values)
+                if isinstance(k, ast.Constant)}
+        if keys.get("what") is None or getattr(keys["what"], "value", None) != what:
+            continue
+        if field not in keys:
+            raise KeyError(f"{item}/{what} has no field {field!r}")
+        target = keys[field]
+        break
+    if target is None:
+        raise KeyError(f"no slot {what!r} found in {path}")
+    old = ast.get_source_segment(src, target)
+    if old is None:
+        raise ValueError("could not locate the field's source segment")
+    # THE NODE ALREADY HOLDS THE JOINED VALUE. Implicitly-concatenated literals
+    # parse to ONE Constant, so the precondition reads `target.value` -- never
+    # `literal_eval` of the source segment, which is indented and raises.
+    current = target.value if isinstance(target, ast.Constant) else ""
+    if expect_contains and expect_contains not in (current or ""):
+        raise AssertionError(
+            f"{item}/{what}.{field} does not contain {expect_contains!r} -- "
+            f"the value is not what the caller believed")
+    indent = " " * 24
+    import textwrap
+    # NON-STRING FIELDS GO THROUGH repr, NOT THE WRAPPER. `verdicts` and
+    # `choices` are LISTS, and _wrap_for_literal calls textwrap on the value --
+    # which raises AttributeError on a list, mid-edit, AFTER an earlier field in
+    # the same loop has already been written. That is the worst shape a failure
+    # can take here: a half-applied edit that still parses. Adding a rule case
+    # and its new pick value is one change in two fields, so this path has to
+    # handle both kinds or callers hand-edit around it, which is what this
+    # function exists to stop.
+    if isinstance(new_value, str):
+        body = "".join(f'{indent}"{line}"\n'
+                       for line in _wrap_for_literal(new_value))
+        lit = body.strip()
+    else:
+        lit = repr(new_value)
+    i = src.index(old)
+    pathlib.Path(path).write_text(src[:i] + lit + src[i + len(old):])
+    ast.parse(pathlib.Path(path).read_text())          # never leave it unparseable
+    return True
+
+
+def _wrap_for_literal(value: str, width: int = 66) -> list:
+    """Wrap a value into literal-sized pieces, PRESERVING IT EXACTLY.
+
+    THIS FUNCTION CORRUPTED PROMPT TEXT and the damage was silent. The first
+    version handed the whole value to `textwrap.wrap`, which:
+
+      * COLLAPSES ALL WHITESPACE, newlines included. Q4b's `b1_basis` rule lists
+        its pick values one per line; a round-trip through here turned
+        "\\n  `activity` -- something they did INSTEAD" into
+        " `activity` -- something they did INSTEAD" and flattened the list into a
+        paragraph. Nothing reported it: the file still parsed, the rule still
+        read sensibly, and the only symptom was a prompt sha that would not
+        return after a revert.
+      * SPLITS ON HYPHENS. "failing-alternative" came back as
+        "failing- alternative" in `b2_basis`.
+
+    So an edit made through set_slot_field changed text the caller never touched,
+    and a REVERT through it could not restore the original bytes -- which is how
+    this was found: `--restore-previous` refused, correctly, because the prompt
+    had not come back to the sha its measurement was taken at.
+
+    Now: split on newlines FIRST and re-emit them as explicit escapes, wrap each
+    line separately, and never break a hyphenated word. A value with no newlines
+    and no hyphens wraps exactly as before, so existing literals are unaffected.
+    """
+    import textwrap
+
+    def esc(s: str) -> str:
+        return s.replace("\\", "\\\\").replace('"', '\\"')
+
+    out: list = []
+    lines = value.split("\n")
+    for li, line in enumerate(lines):
+        last_line = li == len(lines) - 1
+        if not line:
+            out.append("" if last_line else "\\n")
+            continue
+        pieces = textwrap.wrap(line, width, break_long_words=False,
+                               break_on_hyphens=False) or [""]
+        for pi, piece in enumerate(pieces):
+            s = esc(piece)
+            if pi < len(pieces) - 1:
+                s += " "          # the wrap ate a space; put it back
+            elif not last_line:
+                s += "\\n"        # the split ate a newline; put it back
+            out.append(s)
+    return out
+
 
 # THE ENTRY POINT LIVES AT THE END, and it has to. It used to sit two thirds of
 # the way up, with fifteen `def`s below it, so `main()` ran before those names
