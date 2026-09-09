@@ -683,6 +683,69 @@ def enforcement_audit():
         findings.append(("-", "PROBE-REACH EXCUSE OUTLIVED ITS RULE", bad))
     for bad in ENF.check_computed_slot_recovery_is_faithful():
         findings.append(("-", "COMPUTED-SLOT RECOVERY UNFAITHFUL", bad))
+    for bad in ENF.check_count_scaffolds_are_arithmetic():
+        findings.append(("-", "COUNT SCAFFOLD IS NOT ARITHMETIC", bad))
+    for bad in ENF.check_generated_attributes_have_a_declaration():
+        findings.append(("-", "GENERATED ATTRIBUTE HAS NO DECLARATION", bad))
+    for bad in ENF.check_no_case_names_in_prompts():
+        findings.append(("-", "PROMPT NAMES A COHORT CASE", bad))
+    for bad in ENF.check_sheet_slots_reach_the_rubric():
+        findings.append(("-", "SHEET SLOT REACHES NO RUBRIC ELEMENT", bad))
+    for bad in ENF.check_rubric_slots_reach_the_sheet():
+        findings.append(("-", "RUBRIC SLOT NEVER REACHES THE SHEET", bad))
+    for bad in ENF.check_mapped_slots_have_no_unreachable_verdict():
+        findings.append(("-", "MAPPED SLOT HAS AN UNREACHABLE VERDICT", bad))
+    for bad in ENF.check_maps_tables_are_attached():
+        findings.append(("-", "MAPS TABLE IS NOT ATTACHED", bad))
+    for bad in ENF.check_verdict_paths_drop_excluded_cells():
+        findings.append(("-", "EXCLUDED CELL REACHES A VERDICT PATH", bad))
+    for bad in ENF.check_shipped_text_matches_design():
+        findings.append(("-", "SHIPPED TEXT DIFFERS FROM DESIGN", bad))
+    for bad in ENF.check_every_prompt_field_is_designed():
+        findings.append(("-", "PROMPT FIELD IS NOT THE DESIGNED TEXT", bad))
+    for bad in ENF.check_probe_receipts_match_shipping():
+        findings.append(("-", "PROBE MEASURED TEXT THAT NO LONGER SHIPS", bad))
+    for bad in ENF.check_designed_text_is_the_measured_text():
+        findings.append(("-", "DESIGN IS A PARAPHRASE OF ITS OWN EVIDENCE", bad))
+    for bad in ENF.check_every_designed_entry_ships():
+        findings.append(("-", "DESIGNED TEXT DOES NOT SHIP", bad))
+    for bad in ENF.check_new_slots_were_probed():
+        findings.append(("-", "NEW SLOT ABOUT TO BE SWEPT UNPROBED", bad))
+    for bad in ENF.check_probed_fields_keep_their_text():
+        findings.append(("-", "PROBED WORDING IS NOT RECORDED IN FULL", bad))
+    for bad in ENF.check_closure_ceilings_are_declared():
+        findings.append(("-", "CEILING RECORDED ONLY IN PROSE", bad))
+    for bad in ENF.check_no_definition_vanished():
+        findings.append(("-", "DEFINITION VANISHED FROM THE PACKAGE", bad))
+    for bad in ENF.check_no_module_shadow_in_scratchpad():
+        findings.append(("-", "A SCRATCHPAD COPY SHADOWS A PACKAGE MODULE", bad))
+    for bad in ENF.check_pick_choices_match_rubric():
+        findings.append(("-", "PICK OPTIONS NOT OFFERED TO THE GRADER", bad))
+    # WITHDRAWN but still INVOKED: it returns [] by design, and a defined-but-
+    # never-called check trips `CHECK NEVER RUNS`. Its docstring is the record
+    # of why the idea is wrong; deleting it would invite re-deriving it.
+    for bad in ENF.check_no_slot_is_both_asked_and_computed():
+        findings.append(("-", "SLOT IS BOTH ASKED AND COMPUTED", bad))
+    for bad in ENF.check_no_judging_field_states_what_a_verdict_costs():
+        findings.append(("-", "JUDGING FIELD STATES WHAT A VERDICT COSTS", bad))
+    for bad in ENF.check_olx_attributes_are_all_generated():
+        findings.append(("-", "OLX ATTRIBUTE NOT GENERATED FROM THE RUBRIC", bad))
+    for bad in ENF.check_verdict_vocabularies_correspond():
+        findings.append(("-", "VERDICT ONE ENGINE CANNOT EXPRESS", bad))
+    for bad in ENF.check_one_writer_per_computed_key():
+        findings.append(("-", "TWO COMPUTED PRIMITIVES WRITE ONE KEY", bad))
+    for bad in ENF.check_no_recorded_run_is_an_api_error():
+        findings.append(("-", "API ERROR RECORDED AS A SCORED RUN", bad))
+    for bad in ENF.check_no_recorded_run_is_verdictless():
+        findings.append(("-", "VERDICTLESS RUN RECORDED AS A SCORE", bad))
+    for bad in ENF.check_engines_encode_an_unrecorded_verdict_alike():
+        findings.append(("-", "ABSENT-VERDICT ENCODING DIVERGED", bad))
+    for bad in ENF.check_scored_slots_are_answered_by_both_engines():
+        findings.append(("-", "SCORED SLOT ANSWERED BY ONE ENGINE ONLY", bad))
+    for bad in ENF.check_mapped_slots_agree_with_their_map():
+        findings.append(("-", "RECORDED VERDICT DISAGREES WITH ITS MAP", bad))
+    for bad in ENF.check_paper_scorer_agrees_on_identical_verdicts():
+        findings.append(("-", "PAPER SCORER DISAGREES ON IDENTICAL VERDICTS", bad))
     for bad in ENF.check_scorer_neutrality_is_verified():
         findings.append(("-", "SCORER-NEUTRALITY CLAIM IS FALSE", bad))
     for bad in ENF.check_fixture_boxes_hold_the_students_words():
@@ -929,7 +992,13 @@ def uncompared_web_rules():
 # on the next run: if the suite reports 63 the case is not being constructed, and
 # a case that has not been fired is not a case. That is not a hypothetical here --
 # three cases added earlier the same day had never once executed.
-SELFTEST_EXPECTED = 64
+# Raised 64 -> 65 on 2026-09-05 for subgoal E43's INVERTED case, "the
+# count-scaffold check goes blind". Inverted cases count here exactly as
+# ordinary ones do: `total` is constructed-or-skipped, and an inverted case
+# whose precondition vanishes becomes a SKIP, which is still counted. That is
+# the point -- a case that stops testing anything must not be able to leave the
+# tally looking full.
+SELFTEST_EXPECTED = 66
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1113,8 +1182,14 @@ def enforcement_selftest():
     import rubric_h1
     # BOTH antecedent slots, since either one keeps the code alive — the reason the
     # first version of this injection fired nothing.
+    # `startswith("antecedent_")` ALSO MATCHES THE PICKS. Subgoal Q33 added
+    # `antecedent_kind_1`/`_2`, which carry no `codes` because they charge
+    # nothing -- the verdict they feed does -- and this line raised KeyError the
+    # first time the self-test ran after them. The filter meant the two SCORED
+    # antecedent slots; requiring `codes` says so, and stays right if another
+    # `antecedent_*` reporting slot is added later.
     slots = [c for c in rubric_h1.BY_ID["Q4a"]["credit"]
-             if c["what"].startswith("antecedent_")]
+             if c["what"].startswith("antecedent_") and c.get("codes")]
     saved = [(list(c["verdicts"]), dict(c["codes"])) for c in slots]
     for c in slots:
         c["verdicts"] = ["met", "absent"]
@@ -1642,11 +1717,30 @@ def enforcement_selftest():
     # the first draft of these eight cases did.
     ANY_ITEM = "-"
 
-    def _scorer_case(label, install, restore, want=WANT):
+    # `inverted` is for a check whose findings are STANDING -- true of the corpus
+    # with nothing installed. Subgoal E43's COUNT SCAFFOLD IS NOT ARITHMETIC is
+    # the first: four violating artifacts are on disk and are not going away, so
+    # the usual assertion ("install a breakage, the finding appears") is true with
+    # the breakage installed AND removed, and tests nothing. The failure that
+    # matters there is the check going BLIND, so the case installs a blinding and
+    # asserts the finding DISAPPEARS. Recorded as a distinct arm rather than a
+    # second helper because the two share everything but the sense of the test,
+    # and the matcher below has to know which it is looking at.
+    def _scorer_case(label, install, restore, want=WANT, inverted=False):
+        if inverted:
+            # The finding must be present BEFORE the blinding, or the case is
+            # vacuous: a check that never fires would "pass" it. Assert the
+            # precondition and record it, so a corpus that stops carrying the
+            # violation degrades to a SKIP rather than to a silent PASS.
+            pre = [f for f in enforcement_audit()[0]
+                   if f[0] == ANY_ITEM and f[1] == want]
+            if not pre:
+                cases.append((label, want, ANY_ITEM, None))
+                return
         install()
         try:
             cases.append((label, want, ANY_ITEM,
-                          [f for f in enforcement_audit()[0]]))
+                          [f for f in enforcement_audit()[0]], inverted))
         finally:
             restore()
 
@@ -1949,6 +2043,38 @@ def enforcement_selftest():
                  lambda: setattr(_A, "apply_computed", _real_ac),
                  want="COMPUTED-SLOT RECOVERY UNFAITHFUL")
 
+    # SUBGOAL E43. The check's findings are STANDING -- four violating artifacts
+    # are on disk -- so this is the INVERTED arm: blind the check and assert it
+    # goes silent. Blinding at the enforcement function rather than at the files
+    # keeps the artifacts untouched; a case that edited them would be testing the
+    # corpus rather than the check, and would leave a measurement behind.
+    # SUBGOAL E44. The ordinary arm works here: with nothing installed the tree
+    # is clean, so removing a declaration while its attribute stays in the .olx
+    # makes the finding appear. That is the exact shape of the 2026-09-05 revert
+    # that left three orphans and cost eight sweeps their turn.
+    import rubric_h2 as _R2E44
+    _real_expect_wk1 = _R2E44.BY_ID["WK1"].get("expect")
+    def _drop_wk1_expect():
+        _R2E44.EXPECT.pop("WK1", None)
+        _R2E44.BY_ID["WK1"].pop("expect", None)
+    def _restore_wk1_expect():
+        _R2E44.EXPECT["WK1"] = [{"key": "targets_own_behavior",
+                                 "left": "trigger_behavior",
+                                 "value": "utb", "lenient": ["wgb"]}]
+        if _real_expect_wk1 is not None:
+            _R2E44.BY_ID["WK1"]["expect"] = _real_expect_wk1
+    _scorer_case("a rubric declaration is removed, its attribute is not",
+                 _drop_wk1_expect, _restore_wk1_expect,
+                 want="GENERATED ATTRIBUTE HAS NO DECLARATION")
+
+    import enforcement as _ENF43
+    _real_scaffold = _ENF43.check_count_scaffolds_are_arithmetic
+    _scorer_case("the count-scaffold check goes blind",
+                 lambda: setattr(_ENF43, "check_count_scaffolds_are_arithmetic",
+                                 lambda: []),
+                 lambda: setattr(_ENF43, "check_count_scaffolds_are_arithmetic",
+                                 _real_scaffold),
+                 want="COUNT SCAFFOLD IS NOT ARITHMETIC", inverted=True)
     import handouts as _H
     _real_why = _H.CORRECTED_GOLD[("NR", 4)]["why"]
     _scorer_case("a declaration starts citing a suspect cell",
@@ -1958,15 +2084,28 @@ def enforcement_selftest():
                      "why", _real_why),
                  want="DECLARATION ARGUES FROM A SUSPECT CELL")
 
+    _inverted_skips: list[tuple[str, str]] = []
     print("SELF-TEST — does the audit notice when a rule is removed?\n")
     baseline = _selftest_baseline
     bad = 0
-    for label, want, item, found in cases:
+    for case in cases:
+        label, want, item, found = case[0], case[1], case[2], case[3]
+        inverted = case[4] if len(case) > 4 else False
+        if found is None:
+            # An inverted case whose precondition was absent. It tests nothing,
+            # and saying PASS here would be the failure mode this whole file
+            # exists to prevent.
+            _inverted_skips.append((label, f"{want} was not already firing, so a "
+                                          f"blinding test would be vacuous"))
+            continue
         hit = [f for f in found if f[0] == item and f[1] == want]
-        ok = bool(hit)
+        ok = (not hit) if inverted else bool(hit)
         bad += not ok
-        print(f"  {'PASS' if ok else 'FAIL'}  {label:<28} -> "
-              f"{hit[0][1] if hit else 'NOTHING FIRED'}")
+        if inverted:
+            got = "STILL FIRED" if hit else "went silent, as it must"
+        else:
+            got = hit[0][1] if hit else "NOTHING FIRED"
+        print(f"  {'PASS' if ok else 'FAIL'}  {label:<28} -> {got}")
     # Against the BASELINE, not against zero. The corpus legitimately carries
     # declared divergences -- NR's CHARGE-ONCE PROBE GAP is one -- so counting
     # every finding as dirt reported "restored state is clean: False" and exited
@@ -1987,6 +2126,10 @@ def enforcement_selftest():
     if _site is None:
         skips.append(("shared rule names a verdict",
                       "no rule carries `{fail}` to inject into"))
+    # An inverted case whose precondition vanished is a SKIP, and it joins the
+    # counted list rather than printing on its own -- the whole point of that
+    # list is that a case which tests nothing is not allowed to scroll past.
+    skips = skips + _inverted_skips
     for label, why in skips:
         print(f"  SKIP  {label:<28} -> {why}")
 
@@ -2091,11 +2234,25 @@ def print_enforcement():
         if (item, kind) in excused:
             print(f"  {item:<5} {kind:<24} {detail}  [DECLARED]")
     findings = [f for f in findings if (f[0], f[1]) not in excused]
+    # A RECORDING GAP IS NOT AN UNDECLARED DIFFERENCE, and counting it as one
+    # contradicted the check that produces it.
+    # `check_scored_slots_are_answered_by_both_engines` ratchets on its UNDECLARED
+    # findings only -- `undeclared = [x for x in out if "RECORDING gap" not in x]`,
+    # budget 0 -- because a recording gap is a documented fact about the ARTIFACTS
+    # (the derived verdict is not written back; the charge still lands) and is
+    # meant to stay visible without reading as an unexplained scoring difference.
+    # This audit was counting all fourteen, so enforcement said 0 undeclared and
+    # equivalence said fourteen about the same measurement.
+    documented = [f for f in findings if "RECORDING gap" in f[2]]
+    findings = [f for f in findings if "RECORDING gap" not in f[2]]
+    for item, kind, detail in documented:
+        print(f"  {item:<5} {kind:<24} {detail}  [DOCUMENTED]")
     for item, kind, detail in findings:
         print(f"! {item:<5} {kind:<24} {detail}")
     print(f"{'  nothing flagged' if not findings else ''}")
     print(f"\n{len(findings)} UNDECLARED enforcement difference(s); "
-          f"{len(SCORING_DIVERGENCES)} declared in olx_prompts.SCORING_DIVERGENCES.")
+          f"{len(SCORING_DIVERGENCES)} declared in olx_prompts.SCORING_DIVERGENCES"
+          f"{f'; {len(documented)} documented recording gap(s)' if documented else ''}.")
     print(f"All {len({**ACTION, **SHEET_ONLY})} items are compared. {len(cli)} of them "
           f"against the CLI's probed behaviour;\nthe rest against its rubric, which is the "
           "weaker basis — a rule can be justified\nby the deduction vocabulary without any "
@@ -2111,6 +2268,7 @@ def print_enforcement():
           f"agreement_app.JOBS.")
     print(ENF.engine_rate_power_line())
     print(ENF.engine_scoring_agreement_line())
+    print(ENF.paper_scorer_agreement_line())
     print("Run --enforcement --selftest to confirm this audit still detects a removal.")
     return 1 if findings else 0
 
