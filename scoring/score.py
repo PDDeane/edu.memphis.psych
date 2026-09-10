@@ -132,6 +132,34 @@ SCHEMA = {
 DERIVED_KINDS_IMPLEMENTED = frozenset({"contains"})
 
 
+# ITEMS WHERE A MAPPED VERDICT IS ASKED AS WELL AS MAPPED, because THE WEB ASKS
+# IT. `maps` is in primitive_attrs(excluding_keys=True), so paper excluded the
+# mapped key from its schema and derived the verdict from the pick alone. The
+# web does not: `buildSlotSchema` asks mapped slots, `satisfiedMap` also
+# computes them, and where the two disagree the SCORE FOLLOWS THE RECORDED
+# VERDICT -- which is what `enforcement.check_mapped_slots_agree_with_their_map`
+# exists to report. So the map is a cross-check there and the sole source here.
+#
+# THE COST, MEASURED ON Q4a. `antecedent_1/2` map from `antecedent_kind_1/2`
+# (before->met, none->absent, fallback->not_antecedent). Paper answers
+# `kind=before` on p18 and p20 and derives `met`/`met`, scoring 5.00 in all six
+# runs against gold 3.00 and 1.00. The web leaves the kind blank, charges
+# `antecedent_2=absent` on p18 and `antecedent_1/2=not_antecedent` on p20, and
+# is 12/12 RIGHT on both. Same slot, different weight: on paper the pick is
+# load-bearing and one lenient answer takes the whole check with it, while on
+# the web it is advisory because the verdict is asked separately.
+#
+# THE OPPOSITE FIX WAS TRIED ON THE WEB AND REVERTED. lo-blocks b6d3f070 added
+# `maps` to buildSlotSchema's computed set -- stop asking what can be computed,
+# which is the right instinct -- and it CHARGED POINTS WRONGLY: Q4a went flat
+# 1.00 on 120/120 cells, Q4b flat 2.00 on 114. Reverted as 44d5a818. The web
+# must keep asking, so the alignment has to come from this side.
+#
+# Scoped rather than global: `_computed_keys` reaches every item with `maps`,
+# Q4b's `b*_basis` family included, and this is measured on Q4a only.
+ASK_MAPPED_VERDICT_ITEMS = ("Q4a",)
+
+
 def _computed_keys(item: dict) -> set:
     """Keys the model must NOT be asked, because a primitive computes them.
 
@@ -169,6 +197,11 @@ def _computed_keys(item: dict) -> set:
             # its prompt already instructs the grader whose graph it is. So the
             # honest translation is to ASK -- not to declare an asymmetry.
             if attr == "derived" and rule.get("kind") in _EXEMPT_KINDS():
+                continue
+            # A MAPPED KEY THE WEB ASKS IS ASKED HERE TOO. See
+            # ASK_MAPPED_VERDICT_ITEMS for the measurement and for why the
+            # mirror-image fix on the web was reverted.
+            if attr == "maps" and item.get("id") in ASK_MAPPED_VERDICT_ITEMS:
                 continue
             if rule.get("key"):
                 out.add(rule["key"])
@@ -631,6 +664,13 @@ def derive_ledger(item: dict, raw: dict,
     # olx_prompts.parse_maps for why two `forbid` rules cannot substitute.
     for rule in item.get("maps", []):
         from olx_prompts import mapped_verdict
+        # THE RECORDED VERDICT WINS, where the slot was asked at all. Overwriting
+        # it would make asking pointless: the model would answer the check and
+        # the pick would still decide it. This is the web's own precedence, the
+        # one check_mapped_slots_agree_with_their_map reports against.
+        if ((slots.get(rule["key"]) or {}).get("verdict")
+                and item.get("id") in ASK_MAPPED_VERDICT_ITEMS):
+            continue
         entry = slots.get(rule["pick"]) or {}
         got = str(entry.get("refers_to") or entry.get("verdict") or "").strip()
         v = mapped_verdict(rule, got)
