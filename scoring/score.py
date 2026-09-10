@@ -1384,7 +1384,30 @@ def _answer_inventory(item_id: str) -> str:
             "",
             "An answer they did not write is `absent`: there is nothing in it "
             "to quote or to judge as falling short, so its evidence says what "
-            "you looked for and did not find."]
+            "you looked for and did not find.",
+            "",
+            # EACH CHECK ON ITS OWN PART. Paper's divergences from the other
+            # side, on every item examined on 2026-09-09, are one error: an
+            # answer credited from text belonging to a DIFFERENT answer. Its own
+            # evidence quotes say so, naming the wrong heading verbatim -- Q3/p8
+            # credited action-oriented while quoting "My goal is SPECIFIC
+            # because I plan to work out at least 4 days a week", and Q3/p20 did
+            # the same from its Specific sentence. Q3/p9 credited `realistic`
+            # from the Actionable sentence on a response with no realistic
+            # section at all, which gold charges as missing. The other side
+            # cannot make this error because each answer has its own field.
+            # CONDITIONAL, and that matters: 13 of Q3's 20 responses label all
+            # five aspects and 6 label none, and the unlabelled ones score
+            # correctly today. So this fires on the labels when they are there
+            # and says nothing when they are not.
+            "Where the student has labelled parts of their answer to match the "
+            "names above, judge each answer on the part they labelled for it, "
+            "and never on what they wrote for another -- a sentence that opens "
+            "by naming a different one of these answers belongs to that one. "
+            "Where they label nothing, read the whole response for each.",
+            "",
+            "The evidence you quote for an answer must come from that answer's "
+            "own part of the response."]
     return "\n".join(out) + "\n"
 
 
