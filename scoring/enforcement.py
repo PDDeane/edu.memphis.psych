@@ -5812,6 +5812,131 @@ def paper_scorer_agreement_line() -> str:
             f"this.")
 
 
+# A MECHANISM MAY NOT VARY BY ITEM. Only rubric CONTENT may. An engine that
+# behaves differently on Q4a than on Q6 is two engines, and every divergence
+# this file exists to catch becomes unfalsifiable: a number measured on one item
+# stops being evidence about the scorer at all.
+#
+# WHAT COUNTS AS A VIOLATION: a module-level container of ITEM IDS in an engine
+# module, or a comparison of an item's id against a literal id. Both gate
+# behaviour on WHICH item is being scored rather than on what the item declares.
+#
+# WHAT DOES NOT: a per-item value read from the rubric or the sheet. `maps`,
+# `derived`, SLOT_SPEC, RESPONSE and the rest differ by item BY DESIGN -- that
+# is content, and the engine treats all of it the same way.
+#
+# DECLARED, WITH THE REASON EACH ONE GIVES FOR ITSELF, and ratcheted: the budget
+# only goes down. Two of these call themselves temporary in their own comments,
+# which is the point of writing them down here -- an experiment that is never
+# generalised is just an item-dependent engine with a comment.
+ITEM_GATED_MECHANISMS: dict[tuple[str, str], str] = {
+    ("olx_prompts", "UTB_CHOICE"):
+        "Q1 keeps the choice section because comparing the chosen and described "
+        "UTB IS its job (`matches_selected`). The closest of the four to being "
+        "content rather than mechanism -- but it is still a hard-coded id list, "
+        "and it would be content if it were derived from the item's own "
+        "components instead.",
+    ("olx_prompts", "TERSE_CREDIT"):
+        "Its own comment: 'Q1 only, as an experiment. If it pays, the same is "
+        "worth trying corpus-wide.' RETIRE BY measuring it corpus-wide, or by "
+        "dropping it. Note the opposite result is on record for "
+        "`cadence_is_daily`, so generalising is not obviously safe.",
+    ("olx_prompts", "RELAX_UTB_AUTHORITY"):
+        "Its own comment: 'Q1 only, to keep the measurement clean; Q2 carries "
+        "the same section and would need its own re-measurement if this is "
+        "generalised.' RETIRE BY measuring Q2 and generalising.",
+    ("score", "LABELLED_PARTS_ITEMS"):
+        "The labelled-parts clause, measured on Q3 (+1.3 cells) and shipped "
+        "there alone. This one is PROMPT TEXT gated by item, so the honest "
+        "resolutions are to make it uniform or to move it into the rubric as "
+        "per-item content. RETIRE BY measuring it on the other >=2-answer "
+        "items -- Q6 is the known hard case, where 5 of 19 responses label "
+        "anything and p19 mislabels the cell gold charges.",
+}
+ITEM_GATED_BUDGET = 4
+
+_ENGINE_MODULES = ("score", "agreement", "agreement_app", "olx_prompts")
+
+
+def check_engine_mechanisms_are_not_item_dependent() -> list[str]:
+    """No engine mechanism may be gated on WHICH item is being scored.
+
+    THE RULE IS THE USER'S AND IT IS ABOUT EVIDENCE, not tidiness: if the engine
+    behaves differently per item, a measurement on one item says nothing about
+    the engine, and "paper agrees with the web" stops being a claim that can be
+    tested corpus-wide.
+
+    IT WAS BROKEN THE DAY IT WAS STATED. `ASK_MAPPED_VERDICT_ITEMS = ("Q4a",)`
+    gated whether a mapped verdict is ASKED -- the web asks all six, uniformly --
+    and was scoped to one item because only that item measured a gain. Scoping a
+    MECHANISM to where it happens to pay is how an engine becomes item-shaped.
+    It was made uniform; this check is what stops the next one.
+
+    Two patterns are caught: a module-level container of item ids, and a
+    comparison of an item's `id` against a literal id.
+    """
+    import ast
+
+    import handouts as _H
+
+    ids = {it["id"] for h in (1, 2, 3) for it in _H.config(h)["rubric"].ITEMS}
+    out, found = [], set()
+    for mod in _ENGINE_MODULES:
+        try:
+            src = pathlib.Path(f"{mod}.py").read_text()
+            tree = ast.parse(src)
+        except Exception as e:
+            out.append(f"{mod}.py: cannot be parsed for item-gating "
+                       f"({type(e).__name__}: {e}) -- the check cannot run, "
+                       f"which is not the same as passing")
+            continue
+        for node in tree.body:            # module level only
+            if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+                continue
+            val = node.value
+            if not isinstance(val, (ast.Tuple, ast.List, ast.Set)):
+                continue
+            elts = [e.value for e in val.elts
+                    if isinstance(e, ast.Constant) and isinstance(e.value, str)]
+            if not elts or not all(e in ids for e in elts):
+                continue
+            targets = ([node.target] if isinstance(node, ast.AnnAssign)
+                       else node.targets)
+            for tgt in targets:
+                if not isinstance(tgt, ast.Name):
+                    continue
+                found.add((mod, tgt.id))
+                if (mod, tgt.id) not in ITEM_GATED_MECHANISMS:
+                    out.append(
+                        f"{mod}.{tgt.id} = {elts} gates a MECHANISM on which "
+                        f"item is being scored. Only rubric CONTENT may vary by "
+                        f"item. Make it uniform, derive it from what the item "
+                        f"declares, or declare it in ITEM_GATED_MECHANISMS with "
+                        f"what would retire it")
+        for node in ast.walk(tree):       # `item["id"] == "Q4a"` and friends
+            if not isinstance(node, ast.Compare):
+                continue
+            lits = [c.value for c in [node.left, *node.comparators]
+                    if isinstance(c, ast.Constant) and isinstance(c.value, str)
+                    and c.value in ids]
+            if not lits:
+                continue
+            seg = ast.get_source_segment(src, node) or ""
+            if '"id"' in seg or "'id'" in seg or ".id" in seg:
+                out.append(
+                    f"{mod}.py:{node.lineno}: `{seg[:70]}` branches on a "
+                    f"literal item id. A mechanism may not vary by item")
+    stale = [k for k in ITEM_GATED_MECHANISMS if k not in found]
+    for k in sorted(stale):
+        out.append(f"ITEM_GATED_MECHANISMS declares {k[0]}.{k[1]}, which no "
+                   f"longer exists -- drop the declaration")
+    n = len(found & set(ITEM_GATED_MECHANISMS))
+    if n > ITEM_GATED_BUDGET:
+        out.append(f"ITEM_GATED_MECHANISMS holds {n} against a budget of "
+                   f"{ITEM_GATED_BUDGET}; an item-gated mechanism was added")
+    return out
+
+
 def check_paper_prompt_is_stamped() -> list[str]:
     """The paper column's prompt sha must be the PAPER prompt's.
 
