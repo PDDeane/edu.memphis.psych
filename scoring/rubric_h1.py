@@ -1060,6 +1060,43 @@ ITEMS: list[dict] = [
                 ),
             },
             {
+                # BANKED 2026-09-10: THIS BAR IS NOT THE PROBLEM, and two ways of
+                # helping the PAPER scorer apply it were measured and both died.
+                # Gold charges this slot on exactly four cells -- p8, p16, p19,
+                # p20 -- and the web charges all four (227/228 checks, 20/20).
+                # Paper charges p8 and p20 and misses p16 and p19 five runs in
+                # six, always by CREDITING where gold charges, never the reverse.
+                #
+                # DEAD 1, REPETITION. This slot has no `rule`, so the whole
+                # 1404-char bar is the desc -- and the web renders desc on the
+                # checklist line AND again on the answerable line (which falls
+                # back to desc), so the web states the bar TWICE and paper once.
+                # Stating it twice on paper: 21/27 -> 22/27 cell-runs over three
+                # runs on nine cells, p19 unmoved, one cell-run of movement
+                # against a noise floor that has moved three of twenty cells on
+                # an UNCHANGED prompt. Not shipped.
+                #
+                # DEAD 2, POINTING AT THE LABEL. Never run, because the reach
+                # check refused it: paper ALREADY quotes the right sentence. On
+                # both cells, all six observations, its evidence is byte-identical
+                # to the web's box -- "Actionable/Action Oriented: My goal is
+                # actionable because I have a lot of time on my hands to exercise
+                # multiple times a week" -- and it answers `met` anyway. There is
+                # nothing for a targeting rule to fix; the judgement is wrong on
+                # text already in hand.
+                #
+                # WHAT THE TWO CELLS ACTUALLY ARE, and they are not one thing.
+                # p19 is this bar's LAST clause being ignored: "if the reason
+                # given is that the goal can be MEASURED, this is `absent` EVEN
+                # WHERE an activity appears in the same sentence" describes p19
+                # verbatim. Surfacing that clause out of the tail of a very long
+                # paragraph is the one live lever, and it is a SHARED field, so
+                # it needs the web measured too. p16 is not a compliance failure
+                # at all: "a lot of time on my hands to exercise" leans on time
+                # AND names an activity, and this bar says both "TIME ALONE IS
+                # NOT ENOUGH" and "be generous about the doing". Paper's reading
+                # is defensible on the words as written; deciding it needs gold's
+                # intent, not a translation fix.
                 "what": "action_oriented",
                 "pts": 1.0,
                 "verdicts": ["met", "absent", "unclear"],
