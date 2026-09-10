@@ -71,6 +71,65 @@
         "runs": 6,
         "scorer_sha": "1bfeeccd11dd"
       },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "unstable_counted_right",
+          "15": "unstable_counted_right",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "unstable_counted_right",
+          "2": "perfect",
+          "20": "perfect",
+          "3": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "2": 3,
+          "20": 3,
+          "3": 3,
+          "4": 3,
+          "5": 3,
+          "6": 1,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 19,
+        "out": "screen3_folded",
+        "prompt_sha": "89d02a44f6c4",
+        "run_totals": [
+          19,
+          19,
+          20
+        ],
+        "runs": 3,
+        "scorer_sha": "1bfeeccd11dd"
+      },
       "python": {
         "bands_before": {
           "1": "perfect",
@@ -214,6 +273,65 @@
         "runs": 6,
         "scorer_sha": "4454461f7b6a"
       },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "2": "perfect",
+          "20": "perfect",
+          "3": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "2": 3,
+          "20": 3,
+          "3": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 20,
+        "out": "screen3_folded",
+        "prompt_sha": "a7269358a838",
+        "run_totals": [
+          20,
+          20,
+          20
+        ],
+        "runs": 3,
+        "scorer_sha": "4855e3357cf9"
+      },
       "python": {
         "bands_before": {
           "1": "perfect",
@@ -353,6 +471,63 @@
           16
         ],
         "runs": 6,
+        "scorer_sha": "cb001e4857e9"
+      },
+      "paper": {
+        "bands_before": {
+          "1": "unstable_counted_right",
+          "10": "perfect",
+          "11": "unstable_counted_right",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "unstable_counted_right",
+          "15": "perfect",
+          "16": "unstable_counted_right",
+          "17": "perfect",
+          "18": "perfect",
+          "2": "perfect",
+          "3": "unstable_counted_right",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "unstable_counted_right",
+          "9": "unstable_counted_right"
+        },
+        "cells": {
+          "1": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0,
+          "13": 0,
+          "14": 2,
+          "15": 3,
+          "16": 0,
+          "17": 0,
+          "18": 3,
+          "2": 0,
+          "3": 0,
+          "5": 3,
+          "6": 1,
+          "7": 0,
+          "8": 0,
+          "9": 3
+        },
+        "denominator": 17,
+        "excluded_cells": {},
+        "exclusions": [
+          4,
+          19,
+          20
+        ],
+        "numerator": 5,
+        "out": "screen3_folded",
+        "prompt_sha": "713d4e09f066",
+        "run_totals": [
+          4,
+          5,
+          6
+        ],
+        "runs": 3,
         "scorer_sha": "cb001e4857e9"
       },
       "python": {
@@ -495,6 +670,65 @@
         "runs": 6,
         "scorer_sha": "9a38bbefad49"
       },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "unstable_counted_right",
+          "15": "perfect",
+          "16": "unstable_counted_right",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "2": "perfect",
+          "20": "perfect",
+          "3": "perfect",
+          "4": "perfect",
+          "5": "unstable_counted_right",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 2,
+          "15": 3,
+          "16": 2,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "2": 3,
+          "20": 1,
+          "3": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 19,
+        "out": "screen3_folded",
+        "prompt_sha": "39daccebfec5",
+        "run_totals": [
+          18,
+          19,
+          19
+        ],
+        "runs": 3,
+        "scorer_sha": "9a38bbefad49"
+      },
       "python": {
         "bands_before": {
           "1": "perfect",
@@ -608,6 +842,65 @@
         "runs": 6,
         "scorer_sha": "6526989cd34f"
       },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "2": "perfect",
+          "20": "perfect",
+          "3": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "2": 3,
+          "20": 3,
+          "3": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 20,
+        "out": "screen3_folded",
+        "prompt_sha": "4f6e5d37b3a5",
+        "run_totals": [
+          20,
+          20,
+          20
+        ],
+        "runs": 3,
+        "scorer_sha": "d362079a8290"
+      },
       "python": {
         "cells": {
           "1": 6,
@@ -699,6 +992,65 @@
         ],
         "runs": 6,
         "scorer_sha": "6526989cd34f"
+      },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "unstable_counted_right",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "2": "perfect",
+          "20": "perfect",
+          "3": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 0,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "2": 3,
+          "20": 3,
+          "3": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 19,
+        "out": "screen3_folded",
+        "prompt_sha": "bacec4cf0525",
+        "run_totals": [
+          19,
+          19,
+          19
+        ],
+        "runs": 3,
+        "scorer_sha": "d362079a8290"
       },
       "python": {
         "cells": {
@@ -795,6 +1147,67 @@
         ],
         "runs": 6,
         "scorer_sha": "fa4d1b3a2c1d"
+      },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "20": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "20": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 3,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "screen3_folded",
+        "prompt_sha": "e39a8c8c2a75",
+        "run_totals": [
+          18,
+          18,
+          18
+        ],
+        "runs": 3,
+        "scorer_sha": "409aef2cef1d"
       },
       "python": {
         "cells": {
@@ -895,6 +1308,67 @@
         ],
         "runs": 6,
         "scorer_sha": "fa4d1b3a2c1d"
+      },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "20": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "20": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 1,
+          "3": 2
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "screen3_folded",
+        "prompt_sha": "3a02aa83367a",
+        "run_totals": [
+          18,
+          18,
+          18
+        ],
+        "runs": 3,
+        "scorer_sha": "409aef2cef1d"
       },
       "python": {
         "cells": {
@@ -1021,6 +1495,67 @@
           18
         ],
         "runs": 6,
+        "scorer_sha": "c07432916ffa"
+      },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "unstable_counted_right",
+          "15": "unstable_counted_right",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "20": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "unstable_counted_right",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "20": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 3,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "screen3_folded",
+        "prompt_sha": "0bf8998fc0c5",
+        "run_totals": [
+          18,
+          18,
+          18
+        ],
+        "runs": 3,
         "scorer_sha": "c07432916ffa"
       },
       "python": {
@@ -1164,6 +1699,67 @@
           18
         ],
         "runs": 6,
+        "scorer_sha": "c07432916ffa"
+      },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "unstable_counted_right",
+          "12": "unstable_counted_right",
+          "13": "unstable_counted_right",
+          "14": "perfect",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "20": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "unstable_counted_right",
+          "8": "unstable_counted_right",
+          "9": "unstable_counted_right"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 2,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "20": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 0,
+          "8": 3,
+          "9": 1
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 3,
+          "3": 3
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 16,
+        "out": "screen3_folded",
+        "prompt_sha": "e62632971c82",
+        "run_totals": [
+          15,
+          16,
+          17
+        ],
+        "runs": 3,
         "scorer_sha": "c07432916ffa"
       },
       "python": {
@@ -1310,6 +1906,67 @@
         "runs": 6,
         "scorer_sha": "9ec093c37c91"
       },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "unstable_counted_right",
+          "13": "perfect",
+          "14": "unstable_counted_right",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "20": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 2,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "20": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 3,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "nppp3_folded",
+        "prompt_sha": "a1190042190f",
+        "run_totals": [
+          17,
+          18,
+          18
+        ],
+        "runs": 3,
+        "scorer_sha": "9ec093c37c91"
+      },
       "python": {
         "bands_before": {
           "1": "perfect",
@@ -1452,6 +2109,67 @@
           18
         ],
         "runs": 6,
+        "scorer_sha": "317b07fb22e9"
+      },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "unstable_counted_right",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "unstable_counted_right",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "unstable_counted_right",
+          "19": "perfect",
+          "20": "unstable_counted_right",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "unstable_counted_right",
+          "8": "perfect",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "20": 3,
+          "4": 3,
+          "5": 1,
+          "6": 3,
+          "7": 2,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 3,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 17,
+        "out": "screen3_folded",
+        "prompt_sha": "8c710443d76d",
+        "run_totals": [
+          17,
+          17,
+          17
+        ],
+        "runs": 3,
         "scorer_sha": "317b07fb22e9"
       },
       "python": {
@@ -1743,6 +2461,67 @@
         "runs": 6,
         "scorer_sha": "9ec093c37c91"
       },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "wrong_by_median",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "20": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 1,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "20": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 3,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 17,
+        "out": "screen3_folded",
+        "prompt_sha": "c8755d23ad61",
+        "run_totals": [
+          17,
+          17,
+          18
+        ],
+        "runs": 3,
+        "scorer_sha": "9ec093c37c91"
+      },
       "python": {
         "bands_before": {
           "1": "perfect",
@@ -1885,6 +2664,65 @@
         "runs": 6,
         "scorer_sha": "d362079a8290"
       },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "unstable_counted_right",
+          "11": "unstable_counted_right",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "unstable_counted_right",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "unstable_counted_right",
+          "18": "perfect",
+          "19": "unstable_counted_right",
+          "2": "perfect",
+          "20": "perfect",
+          "3": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "on_the_line",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "unstable_counted_right"
+        },
+        "cells": {
+          "1": 3,
+          "10": 2,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 2,
+          "18": 3,
+          "19": 3,
+          "2": 3,
+          "20": 3,
+          "3": 3,
+          "4": 3,
+          "5": 3,
+          "6": 2,
+          "7": 3,
+          "8": 3,
+          "9": 1
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 18,
+        "out": "screen3_folded",
+        "prompt_sha": "eb65f6285d9a",
+        "run_totals": [
+          18,
+          18,
+          19
+        ],
+        "runs": 3,
+        "scorer_sha": "d362079a8290"
+      },
       "python": {
         "bands_before": {
           "1": "perfect",
@@ -2025,6 +2863,65 @@
           20
         ],
         "runs": 6,
+        "scorer_sha": "d362079a8290"
+      },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "perfect",
+          "16": "unstable_counted_right",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "2": "perfect",
+          "20": "unstable_counted_right",
+          "3": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "wrong_by_median",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "unstable_counted_right"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "2": 3,
+          "20": 3,
+          "3": 3,
+          "4": 3,
+          "5": 3,
+          "6": 2,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 20,
+        "out": "screen3_folded",
+        "prompt_sha": "9b1f7ce43c91",
+        "run_totals": [
+          19,
+          20,
+          20
+        ],
+        "runs": 3,
         "scorer_sha": "d362079a8290"
       },
       "python": {
@@ -2382,6 +3279,28 @@
         "scorer_sha": "63212ea1aecb"
       },
       "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "always_wrong",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "unstable_counted_right",
+          "2": "perfect",
+          "20": "perfect",
+          "3": "wrong_by_median",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "unstable_counted_right",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
         "cells": {
           "1": 6,
           "10": 6,
@@ -2392,42 +3311,42 @@
           "15": 6,
           "16": 6,
           "17": 6,
-          "18": 3,
-          "19": 0,
-          "2": 2,
+          "18": 5,
+          "19": 6,
+          "2": 6,
           "20": 0,
           "3": 6,
           "4": 6,
           "5": 6,
-          "6": 3,
+          "6": 1,
           "7": 6,
           "8": 6,
-          "9": 4
+          "9": 5
         },
         "denominator": 20,
         "excluded_cells": {},
         "exclusions": [],
-        "numerator": 15,
-        "out": "e25_paper/runs",
+        "numerator": 17,
+        "out": "q4a_mapped_folded",
         "previous": {
           "denominator": 20,
-          "numerator": 15,
-          "out": "runs",
-          "prompt_sha": "ee29a6786797",
-          "runs": 6,
-          "scorer_sha": "977b51de8e3e"
+          "numerator": 16,
+          "out": "screen3_folded",
+          "prompt_sha": "c7dc1588393a",
+          "runs": 3,
+          "scorer_sha": "63212ea1aecb"
         },
-        "prompt_sha": "ee29a6786797",
+        "prompt_sha": "b923dac0dd7d",
         "run_totals": [
-          14,
-          14,
-          15,
-          15,
           16,
-          16
+          16,
+          17,
+          17,
+          17,
+          18
         ],
         "runs": 6,
-        "scorer_sha": "977b51de8e3e"
+        "scorer_sha": "63212ea1aecb"
       },
       "python": {
         "bands_before": {
@@ -2566,6 +3485,63 @@
           18
         ],
         "runs": 6,
+        "scorer_sha": "7f5122075d18"
+      },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "wrong_by_median",
+          "13": "unstable_counted_right",
+          "14": "perfect",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "unstable_counted_right",
+          "20": "unstable_counted_right",
+          "3": "perfect",
+          "4": "always_wrong",
+          "5": "perfect",
+          "6": "unstable_counted_right",
+          "7": "perfect",
+          "8": "unstable_counted_right",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 1,
+          "13": 1,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 2,
+          "20": 3,
+          "3": 3,
+          "4": 0,
+          "5": 3,
+          "6": 3,
+          "7": 2,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 19,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 16,
+        "out": "screen3_folded",
+        "prompt_sha": "28d0d576298e",
+        "run_totals": [
+          15,
+          16,
+          17
+        ],
+        "runs": 3,
         "scorer_sha": "7f5122075d18"
       },
       "python": {
@@ -2711,25 +3687,46 @@
         "scorer_sha": "63212ea1aecb"
       },
       "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "unstable_counted_right",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "2": "perfect",
+          "20": "always_wrong",
+          "3": "perfect",
+          "4": "wrong_by_median",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "always_wrong"
+        },
         "cells": {
-          "1": 6,
-          "10": 6,
-          "11": 6,
-          "12": 6,
-          "13": 6,
-          "14": 6,
-          "15": 6,
-          "17": 6,
-          "18": 6,
-          "19": 6,
-          "2": 6,
+          "1": 3,
+          "10": 3,
+          "11": 2,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "2": 3,
           "20": 0,
-          "3": 6,
-          "4": 5,
-          "5": 6,
-          "6": 6,
-          "7": 6,
-          "8": 6,
+          "3": 3,
+          "4": 1,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
           "9": 0
         },
         "denominator": 19,
@@ -2739,27 +3736,24 @@
         "exclusions": [
           16
         ],
-        "numerator": 17,
-        "out": "e25_paper/runs",
+        "numerator": 16,
+        "out": "screen3_folded",
         "previous": {
           "denominator": 19,
           "numerator": 17,
-          "out": "runs",
+          "out": "e25_paper/runs",
           "prompt_sha": "15312580770e",
           "runs": 6,
           "scorer_sha": "977b51de8e3e"
         },
-        "prompt_sha": "15312580770e",
+        "prompt_sha": "5dda029c4676",
         "run_totals": [
+          15,
           16,
-          17,
-          17,
-          17,
-          17,
           17
         ],
-        "runs": 6,
-        "scorer_sha": "977b51de8e3e"
+        "runs": 3,
+        "scorer_sha": "63212ea1aecb"
       },
       "python": {
         "bands_before": {
@@ -2905,6 +3899,65 @@
         "runs": 6,
         "scorer_sha": "1bfeeccd11dd"
       },
+      "paper": {
+        "bands_before": {
+          "1": "unstable_counted_right",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "unstable_counted_right",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "unstable_counted_right",
+          "2": "perfect",
+          "20": "perfect",
+          "3": "perfect",
+          "4": "always_wrong",
+          "5": "perfect",
+          "6": "unstable_counted_right",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "unstable_counted_right"
+        },
+        "cells": {
+          "1": 2,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "2": 3,
+          "20": 3,
+          "3": 3,
+          "4": 0,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 19,
+        "out": "screen3_folded",
+        "prompt_sha": "909320d1b631",
+        "run_totals": [
+          18,
+          19,
+          19
+        ],
+        "runs": 3,
+        "scorer_sha": "1bfeeccd11dd"
+      },
       "python": {
         "bands_before": {
           "1": "unstable_counted_right",
@@ -3045,6 +4098,65 @@
           18
         ],
         "runs": 6,
+        "scorer_sha": "430426922f63"
+      },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "unstable_counted_right",
+          "11": "perfect",
+          "12": "unstable_counted_right",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "unstable_counted_right",
+          "16": "unstable_counted_right",
+          "17": "perfect",
+          "18": "on_the_line",
+          "19": "perfect",
+          "2": "always_wrong",
+          "20": "perfect",
+          "3": "perfect",
+          "4": "unstable_counted_right",
+          "5": "unstable_counted_right",
+          "6": "unstable_counted_right",
+          "7": "perfect",
+          "8": "always_wrong",
+          "9": "unstable_counted_right"
+        },
+        "cells": {
+          "1": 2,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 0,
+          "16": 2,
+          "17": 0,
+          "18": 1,
+          "19": 0,
+          "2": 0,
+          "20": 3,
+          "3": 3,
+          "4": 0,
+          "5": 2,
+          "6": 0,
+          "7": 3,
+          "8": 0,
+          "9": 1
+        },
+        "denominator": 20,
+        "excluded_cells": {},
+        "exclusions": [],
+        "numerator": 11,
+        "out": "screen3_folded",
+        "prompt_sha": "84110be8ce13",
+        "run_totals": [
+          9,
+          11,
+          12
+        ],
+        "runs": 3,
         "scorer_sha": "430426922f63"
       },
       "python": {
@@ -3189,6 +4301,67 @@
           18
         ],
         "runs": 6,
+        "scorer_sha": "4855e3357cf9"
+      },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "20": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "20": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 3,
+          "3": 3
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "screen3_folded",
+        "prompt_sha": "fb9d1b01b201",
+        "run_totals": [
+          18,
+          18,
+          18
+        ],
+        "runs": 3,
         "scorer_sha": "4855e3357cf9"
       },
       "python": {
@@ -3337,6 +4510,67 @@
         "runs": 6,
         "scorer_sha": "4855e3357cf9"
       },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "20": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "20": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 3,
+          "3": 3
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "screen3_folded",
+        "prompt_sha": "95827d163c74",
+        "run_totals": [
+          18,
+          18,
+          18
+        ],
+        "runs": 3,
+        "scorer_sha": "4855e3357cf9"
+      },
       "python": {
         "bands_before": {
           "1": "perfect",
@@ -3483,6 +4717,67 @@
         "runs": 6,
         "scorer_sha": "9b6fdee4c850"
       },
+      "paper": {
+        "bands_before": {
+          "1": "unstable_counted_right",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "20": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "unstable_counted_right",
+          "8": "unstable_counted_right",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 2,
+          "18": 3,
+          "19": 3,
+          "20": 3,
+          "4": 3,
+          "5": 3,
+          "6": 2,
+          "7": 2,
+          "8": 3,
+          "9": 2
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 3,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 17,
+        "out": "screen3_folded",
+        "prompt_sha": "8c7f6a668fcc",
+        "run_totals": [
+          15,
+          17,
+          18
+        ],
+        "runs": 3,
+        "scorer_sha": "9b6fdee4c850"
+      },
       "python": {
         "bands_before": {
           "1": "perfect",
@@ -3627,6 +4922,67 @@
           18
         ],
         "runs": 6,
+        "scorer_sha": "c07432916ffa"
+      },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "20": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "unstable_counted_right",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 2,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "20": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 2,
+          "9": 3
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 3,
+          "3": 0
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 17,
+        "out": "screen3_folded",
+        "prompt_sha": "50b2db103bd4",
+        "run_totals": [
+          17,
+          17,
+          18
+        ],
+        "runs": 3,
         "scorer_sha": "c07432916ffa"
       },
       "python": {
