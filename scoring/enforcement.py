@@ -5861,6 +5861,78 @@ ITEM_GATED_BUDGET = 0
 _ENGINE_MODULES = ("score", "agreement", "agreement_app", "olx_prompts")
 
 
+# Counted references, for the arm below. `both` is the one that matters: it is
+# the only word that asserts a number without naming it.
+# PLURAL ONLY, and only these words. The first version also took "either",
+# "neither" and the singular, and 7 of its 8 findings were noise: "either
+# answer" and "neither answer" are idiomatic for "whichever one" rather than
+# references to a structure, and "the two you DO answer" matches `answer` as a
+# VERB. What survives the tightening is the one real case, WK2's "READ BOTH
+# BOXES" on a one-box item.
+_COUNT_WORDS = {"both": 2, "all three": 3, "all four": 4,
+                "the two": 2, "the three": 3, "the four": 4}
+
+
+def check_paper_prompt_has_no_box_deixis() -> list[str]:
+    """The paper grader must never be told to read a BOX. It has none.
+
+    THE WEB HAS BOXES AND THIS SCORER DOES NOT, BY DESIGN -- the paper
+    submission arrives as one block. `score._describe_boxes` translates the
+    deixis, and for a long time it translated only the forms that point at a
+    PARTICULAR box, leaving 25 distinct phrases across six items untouched:
+    indefinite ("a box"), plural ("all three boxes"), named by role ("the type
+    box"), and definite ones whose slot could not resolve its own box.
+
+    THE COST WAS CONCENTRATED WHERE IT HURT MOST. Six of the corpus's fourteen
+    worst-agreeing slots carried one -- 1c/series_box_holds 33%, Q6/affect_c2
+    52%, Q6/state_c2 63%, Q6/link_c2 66%, Q6/affect_c1 82%, 2a/states_size 82%
+    -- which is all four of Q6's worst on the item with a documented ceiling.
+    A bar attached to nothing is just a lower bar, and this check exists so
+    that stops being something a person has to notice.
+
+    TWO ARMS. The first is absolute: no `box` survives into a paper prompt. The
+    second catches what the translation cannot -- a phrase naming MORE answers
+    than the item asks for. WK2's `named_type` says "READ BOTH BOXES" and WK2
+    has ONE box, so it points outside the box structure entirely; translating
+    it to "READ BOTH ANSWERS" keeps the arithmetic wrong, and
+    `_describe_boxes`' own docstring says such a phrase "needs rewording or a
+    declaration" rather than a silent substitution.
+    """
+    import re as _re
+
+    import handouts as _H
+    import score as _SC
+    from olx_prompts import RESPONSE
+
+    out = []
+    for it in all_items():
+        iid = it["id"]
+        try:
+            prompt = _SC.build_prompt(it, "x", {"(fingerprint)": ""}, "(fingerprint)")
+        except Exception as e:
+            out.append(f"{iid}: paper prompt does not build ({type(e).__name__}: "
+                       f"{e}) -- this check cannot run, which is not passing")
+            continue
+        for m in _re.finditer(r"\bboxe?s?\b", prompt, _re.I):
+            s, e = max(0, m.start() - 70), min(len(prompt), m.end() + 70)
+            out.append(f"{iid}: the paper prompt says {m.group(0)!r} -- it has no "
+                       f"boxes: \u2026{' '.join(prompt[s:e].split())}\u2026")
+        n_answers = len(RESPONSE.get(iid) or [])
+        if not n_answers:
+            continue
+        for word, k in _COUNT_WORDS.items():
+            for m in _re.finditer(rf"\b{word}\b(?:\s+\w+){{0,2}}\s+answers\b",
+                                  prompt, _re.I):
+                if k > n_answers:
+                    s = max(0, m.start() - 70)
+                    out.append(
+                        f"{iid}: the prompt says {m.group(0)!r} but the item asks "
+                        f"for {n_answers} answer(s) -- the phrase points outside "
+                        f"the structure and needs rewording, not translating: "
+                        f"\u2026{' '.join(prompt[s:m.end() + 60].split())}\u2026")
+    return out
+
+
 def check_prompts_carry_no_process_history() -> list[str]:
     """Shipped prose must not tell the grader about OUR process.
 
