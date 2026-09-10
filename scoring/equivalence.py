@@ -744,6 +744,8 @@ def enforcement_audit():
         findings.append(("-", "SCORED SLOT ANSWERED BY ONE ENGINE ONLY", bad))
     for bad in ENF.check_mapped_slots_agree_with_their_map():
         findings.append(("-", "RECORDED VERDICT DISAGREES WITH ITS MAP", bad))
+    for bad in ENF.check_paper_reproduces_web_scores():
+        findings.append(("-", "PAPER AND WEB SCORE THE SAME JUDGMENTS DIFFERENTLY", bad))
     for bad in ENF.check_paper_scorer_agrees_on_identical_verdicts():
         findings.append(("-", "PAPER SCORER DISAGREES ON IDENTICAL VERDICTS", bad))
     for bad in ENF.check_scorer_neutrality_is_verified():
@@ -2026,9 +2028,19 @@ def enforcement_selftest():
     # map must make every wrong cell an orphan; if it does not, the check has
     # stopped reading GOALS.md and would report clean on a file it never opened.
     _real_owners = _M._live_subgoal_owners
+    # THE STUB TAKES ITS SHAPE FROM THE REAL FUNCTION, and its ARITY is `*a`.
+    # Hand-written as `lambda: {"any": {}, "title": {}, "by_side": {}}` it had
+    # drifted twice over: `_live_subgoal_owners` grew an `excluding` parameter,
+    # so `wrong_cells_without_an_owner` called the stub with one argument and
+    # raised TypeError, and it had grown a fourth key (`subject`) that the stub
+    # did not return. The TypeError aborted enforcement_selftest partway through
+    # -- every arm after this one silently never ran, which is the one failure a
+    # self-test cannot afford. Reading the keys off `_real_owners()` means the
+    # stub cannot fall behind the thing it stands in for again.
+    _empty_owners = {k: {} for k in _real_owners()}
     _scorer_case("the owner map stops being read",
                  lambda: setattr(_M, "_live_subgoal_owners",
-                                 lambda: {"any": {}, "title": {}, "by_side": {}}),
+                                 lambda *a, **k: {k2: {} for k2 in _empty_owners}),
                  lambda: setattr(_M, "_live_subgoal_owners", _real_owners),
                  want="WRONG CELL WITH NO OWNER")
 
@@ -2269,6 +2281,7 @@ def print_enforcement():
     print(ENF.engine_rate_power_line())
     print(ENF.engine_scoring_agreement_line())
     print(ENF.paper_scorer_agreement_line())
+    print(ENF.paper_reproduces_web_line())
     print("Run --enforcement --selftest to confirm this audit still detects a removal.")
     return 1 if findings else 0
 
