@@ -21,6 +21,7 @@ Usage:
 
 from __future__ import annotations
 
+import functools
 import argparse
 import glob
 import json
@@ -153,9 +154,32 @@ def _computed_keys(item: dict) -> set:
                 # baseline comparison caught immediately.
                 out.update(rule.get("slots") or ())
                 continue
+            # A `derived` KIND THIS SCORER CANNOT COMPUTE MUST BE ASKED, not
+            # excluded. `enforcement.COMPUTE_EXEMPT` declares which kinds read
+            # the web page's typed fields and so have no paper analogue --
+            # `plots`, `complete`, `present`. Excluding the key AND being unable
+            # to compute it left the slot never set, and derive_ledger reads an
+            # unset slot as `absent`: on 1c that is `has_own_graph`, a GATE
+            # worth the whole ten points, so a perfect answer scored 0. Measured
+            # over six runs, 1c sat at 5.0/20 against the web's 15.9 -- 10.9 of
+            # a 26.9-cell corpus gap in one slot.
+            #
+            # The web DERIVES it because the web has the four typed data fields
+            # to derive it from. Paper has the drawn figure and image tools, and
+            # its prompt already instructs the grader whose graph it is. So the
+            # honest translation is to ASK -- not to declare an asymmetry.
+            if attr == "derived" and rule.get("kind") in _EXEMPT_KINDS():
+                continue
             if rule.get("key"):
                 out.add(rule["key"])
     return out
+
+
+def _EXEMPT_KINDS() -> frozenset:
+    """`derived` kinds declared to have no paper analogue. See COMPUTE_EXEMPT."""
+    import enforcement as _E
+
+    return frozenset((_E.COMPUTE_EXEMPT.get("derived") or {}).get("kinds", ()))
 
 
 def _slot_options(slot: str) -> list:
@@ -195,6 +219,49 @@ def _expect_operand(item: dict, key: str) -> str | None:
         if rule.get("key") == key:
             return rule.get("left")
     return None
+
+
+@functools.lru_cache(maxsize=None)
+def _web_vocab(item_id: str, key: str) -> tuple:
+    """The WEB's option list for this slot, in the rubric's tokens.
+
+    Paper's enum used to fall back to a hard-coded
+    ["met","absent","mismatch","not_described"] whenever the rubric declared no
+    `verdicts`. That default is not the web's list, and the difference is not
+    cosmetic: it offered `mismatch` on nine slots the web has no such option for
+    (1c's three labels, 2a's two how_*, Q6's change_a*/affect_c*) -- a token that
+    cannot appear on the other side and that carries no code here, so it charges
+    through derive_ledger's "fall back to the first code" path. It also LEFT OUT
+    `unclear` on seven slots where the web offers it, so the paper grader could
+    not decline where the web grader could.
+
+    `enforcement.VERDICT_PAIRS` is the declared web->rubric token bridge and
+    supplies the renames (`incomplete` -> `not_described`). Reading the sheet
+    means the two sides offer the same answers by construction rather than by a
+    table someone keeps in step.
+
+    Returns () when the sheet has no options for the slot, so the caller keeps
+    its existing behaviour rather than inventing an empty enum.
+    """
+    import agreement as _A
+    import enforcement as _E
+    import olx_prompts as _O
+
+    try:
+        h = _O.HANDOUT[item_id]
+        spec = _A.load_action(f"bmod_handout{h}.olx", _O.ACTION[item_id])
+    except Exception:
+        return ()
+    opts = next((s.get("options") for s in spec["slots"] if s["key"] == key), None)
+    if not opts:
+        return ()
+    pairs = _E.VERDICT_PAIRS.get(f"{item_id}/{key}") or {}
+    out = []
+    for o in opts:
+        tok = pairs.get(o, o)
+        if tok not in out:
+            out.append(tok)
+    return tuple(out)
 
 
 def build_schema(item: dict) -> dict:
@@ -373,7 +440,13 @@ def build_schema(item: dict) -> dict:
     # members are derived, so they leave the schema the way a computed check does.
     for cr in item.get("counts", []):
         computed |= set(cr["slots"])
-    slots = {c["what"]: _slot(grouped.get(c["what"]) or c.get("verdicts"))
+    # The COVER vocabulary first (that shape is the item's own), then the WEB's
+    # list translated into rubric tokens, then the rubric's declaration. The
+    # hard-coded default in `_slot` is now the last resort rather than the
+    # common case.
+    slots = {c["what"]: _slot(grouped.get(c["what"])
+                              or list(_web_vocab(item["id"], c["what"]))
+                              or c.get("verdicts"))
              for c in item["credit"] if c["what"] not in computed}
     schema = json.loads(json.dumps(SCHEMA))  # deep copy
     del schema["properties"]["credit_checks"]
@@ -388,6 +461,13 @@ def build_schema(item: dict) -> dict:
         r for r in schema["required"] if r not in ("credit_checks", "deductions")
     ] + ["slots"]
     return schema
+
+
+def _hedges() -> frozenset:
+    """Verdicts a grader may decline with, which carry no charge on either side."""
+    import enforcement as _E
+
+    return frozenset(getattr(_E, "VERDICT_HEDGES", ()) or ())
 
 
 def derive_ledger(item: dict, raw: dict,
@@ -659,6 +739,25 @@ def derive_ledger(item: dict, raw: dict,
         # is not a component of the score and can never produce a deduction.
         # Suppressed: its finding is already carried by the code that subsumes it.
         if met or comp.get("reported") or comp["what"] in suppressed:
+            continue
+        # A DECLARED HEDGE CHARGES NOTHING, ON THIS SIDE TOO.
+        # `enforcement.VERDICT_HEDGES` exists because the web offers `unclear` on
+        # 26 slots whose `codes` map has no entry for it, and there an absent
+        # entry means NO DEDUCTION. Here the fallback just below invents one from
+        # the slot's first code, so the same answer costs points on one side and
+        # nothing on the other.
+        #
+        # It became reachable when paper's enum started being derived from the
+        # sheet: that restored `unclear` on eight SCORED slots -- D1/D2's
+        # add_or_remove and increase_or_decrease, Q4b's modify_stated and
+        # modify_why, 2a's how_1 and how_2 -- and without this the parity fix
+        # would have charged every hedge it enabled. Q5's reasons_substantial is
+        # `reported` and never reached the ledger either way.
+        #
+        # Only when the slot was NOT demoted: a demotion names its own verdict
+        # and that one is a finding, not a decline.
+        if (dem is None and verdict in _hedges()
+                and verdict not in (comp.get("codes") or {})):
             continue
         code = comp.get("codes", {}).get(dem[0] if dem else verdict)
         if code is None:
@@ -1115,6 +1214,180 @@ def fill_fail(text: str, item: dict, c: dict) -> str:
 
 
 
+_DEICTIC = re.compile(
+    r"\b(this box|the other box|the (first|second|third) box)\b", re.I)
+
+
+def _describe_boxes(item: dict, c: dict, text: str) -> str:
+    """Turn the web's box deixis into something a FLAT response can be read for.
+
+    THE WEB HAS BOXES AND THIS SCORER DOES NOT, BY DESIGN. olx_prompts emits one
+    `[box begins]/[box ends]` pair per input with an `### Asked for:` heading, so
+    "this box" points at something on the page. The paper prompt shows the
+    student's section as one block -- a deliberate divergence, not a gap -- and
+    against a flat block "this box" has no referent at all.
+
+    That is not cosmetic. Q6's `state_*` notes are built on it: "`met` if this
+    box names an antecedent at all". Carried verbatim they measured 13/20 -> 9,
+    with the moved cells OVER-credited, because a bar attached to nothing is just
+    a lower bar.
+
+    MECHANICAL, so none of this needs declaring. `olx_prompts.RESPONSE[item]` is
+    the box list the web renders from -- (label, target) in page order -- and the
+    label carries the framing ("state_a1 — the first antecedent being changed").
+    A slot finds its box by target suffix, or failing that by the ordinal in its
+    own name. `this box`/`the other box` resolve to the slot's OWN box, and an
+    ordinal phrase to that position in the list.
+
+    A phrase that does not resolve is LEFT ALONE rather than guessed at. WK2's
+    `named_type` says "both boxes" and WK2 has one box, so it points outside the
+    box structure; that one needs rewording or a declaration, and silently
+    substituting something plausible would hide it.
+    """
+    from olx_prompts import RESPONSE
+
+    boxes = []
+    for label, target in (RESPONSE.get(item["id"]) or []):
+        desc = label.split("\u2014", 1)[1].strip() if "\u2014" in label else label.strip()
+        boxes.append((target, desc))
+    if not boxes:
+        return text
+    slot = c["what"]
+    own = next((d for tgt, d in boxes if tgt.endswith(slot)), None)
+    if own is None:
+        m = re.search(r"_(?:a|b|c)?([123])$", slot)
+        if m and len(boxes) >= int(m.group(1)):
+            own = boxes[int(m.group(1)) - 1][1]
+
+    def sub(m: "re.Match") -> str:
+        phrase, ordinal = m.group(1).lower(), m.group(2)
+        if ordinal:
+            i = {"first": 0, "second": 1, "third": 2}[ordinal.lower()]
+            if i >= len(boxes):
+                return m.group(0)
+            d = boxes[i][1]
+            # lowercased: the label is written as a heading ("Second antecedent")
+            # and lands mid-sentence here. An all-caps token is left alone.
+            d = d[0].lower() + d[1:] if d[:2] != d[:2].upper() else d
+            return f"the {d}"
+        if own is None:
+            return m.group(0)
+        return f"the `{slot}` answer ({own})"
+
+    return _DEICTIC.sub(sub, text)
+
+
+def _paper_vocab(item: dict, c: dict, text: str) -> str:
+    """Rewrite a note's WEB answer protocol into the one paper actually offers.
+
+    The web splits a cover member's answer in two -- a verdict and `refers_to`
+    naming WHICH listed item the box addresses. Paper folds the identity INTO
+    the verdict, so its enum is the cover group's own `verdicts`
+    (first/second/neither/absent) and there is no second field. Untranslated the
+    note tells the grader to answer `met`, a token this schema does not offer at
+    all, and to fill a field that does not exist: measured, Q6 13/20 -> 9 with
+    four of five moved cells OVER-credited.
+
+    BOTH HALVES COME FROM DECLARATIONS, so none of this is a hand-kept table.
+    `enforcement.VERDICT_PAIRS` is the web->rubric token bridge and already
+    carries `Q6/state_a1: {absent: absent, mismatch: neither}`. What it does not
+    carry is `met`, and correctly so -- that one is a FIELD-SHAPE difference
+    rather than a rename, and the cover group supplies it: `met` on the web means
+    "it names one", which on paper is spelled by answering WHICH one, i.e. any of
+    `labels`.
+    """
+    import enforcement as _E
+
+    grp = next((g for g in (item.get("cover") or ())
+                if c["what"] in (g.get("keys") or ())), None)
+    if not grp:
+        return text
+    labels = list(grp.get("labels") or [])
+    vocab = list(grp.get("verdicts") or [])
+    if not labels or not vocab:
+        return text
+    out = text.replace("`met`", " or ".join(f"`{l}`" for l in labels))
+    # bare "verdict", not "the verdict": the note says both "set `refers_to` to"
+    # and "the expected `refers_to`", and only the bare form reads in both.
+    out = out.replace("`refers_to`", "verdict")
+    # The declared renames, web token -> rubric token, for THIS slot.
+    for web_tok, paper_tok in (_E.VERDICT_PAIRS.get(f"{item['id']}/{c['what']}")
+                               or {}).items():
+        if web_tok != paper_tok:
+            out = out.replace(f"`{web_tok}`", f"`{paper_tok}`")
+    # The web's "neither of them" spelling for a cover pick.
+    if "neither" in vocab:
+        out = out.replace("`none`", "`neither`")
+    # Only if the note has not already enumerated it. Q6's note ends "...`first`,
+    # `second`, or `neither` if it is neither of them", so appending the list
+    # again said the same thing twice in one breath.
+    if all(f"`{v}`" in out for v in vocab):
+        return out
+    return (f"{out} Answer with ONE value from "
+            f"{', '.join('`%s`' % v for v in vocab)} -- there is no separate "
+            f"field on this side.")
+
+
+def _answer_inventory(item_id: str) -> str:
+    """How many answers this item asks for, and how to read one block for them.
+
+    THE STRUCTURE THIS SCORER IS NOT GIVEN. A paper submission arrives as one
+    continuous block of prose under the item's heading -- deliberately, and it
+    is the one real divergence between the sides -- so nothing in the text says
+    where one answer stops and the next begins. The grader has to infer the
+    count, and on Q6 it does not: p7 wrote a SINGLE antecedent/consequence pair,
+    and paper answered `met` or `not_described` for `affect_c2` on 10 of 12
+    disagreements, reading the first pair's sentence a second time. `affect_c2`
+    agreed with the other side 43% of the time, the worst slot in the corpus
+    once the instrument's own bugs were out of the way.
+
+    Its own note is what invites that: "The same test as `affect_c1` above,
+    applied to this box on its own" presumes a separate box to apply it to.
+
+    MECHANICAL, from `olx_prompts.RESPONSE[item]` -- the answers the handout
+    asks for, in order, with the framing already written for each. Nothing here
+    is per-item text, and nothing describes the other side: the grader is told
+    what it asks for, that it arrives as one block, and what to do with an
+    answer that is not there.
+
+    Emitted only above two answers. A single-answer item has no ambiguity about
+    which answer is which and gets nothing.
+    """
+    from olx_prompts import RESPONSE
+
+    answers = []
+    for label, _target in (RESPONSE.get(item_id) or []):
+        key, desc = ((label.split("—", 1)[0].strip().strip("`"),
+                      label.split("—", 1)[1].strip())
+                     if "—" in label else (None, label.strip()))
+        if desc:
+            answers.append((key, desc))
+    if len(answers) < 2:
+        return ""
+
+    n = len(answers)
+    out = [f"## The {n} answers this item asks for",
+           "In the order the handout asks for them:"]
+    # NUMBERED, and the slot id kept where the source has one. Q6's descriptions
+    # repeat -- "how it will be changed" is both the second answer and the sixth
+    # -- so a bare list could not say which was meant.
+    for i, (key, desc) in enumerate(answers, 1):
+        out.append(f"{i}. {('`%s` -- ' % key) if key else ''}{desc}")
+    out += ["",
+            "Everything the student wrote for this item reaches you as ONE "
+            "continuous block of text. Decide which of these answers they "
+            f"actually wrote. They may have written fewer than {n}, and they "
+            "may have run more than one of them into a single sentence.",
+            "",
+            "Each answer must be a DISTINCT thing they wrote. If the text "
+            "supplies only one, do not count that one statement twice.",
+            "",
+            "An answer they did not write is `absent`: there is nothing in it "
+            "to quote or to judge as falling short, so its evidence says what "
+            "you looked for and did not find."]
+    return "\n".join(out) + "\n"
+
+
 def _slot_body(item: dict, c: dict) -> str:
     """The judging text for one slot, resolved the way the WEB resolves it.
 
@@ -1154,19 +1427,21 @@ def _slot_body(item: dict, c: dict) -> str:
     else:
         note = (SLOT_NOTES.get(f"{item['id']}:{c['what']}")
                 or SLOT_NOTES.get(c["what"]))
-        # A COVER MEMBER KEEPS ITS DESC ALONE. Q6's note sets a LOWER bar than
-        # the desc it accompanies -- "`met` if this box names an antecedent at
-        # all" against "States the first antecedent being changed, AND IT MATCHES
-        # 4a" -- and measurement says the lower bar wins wherever the note is
-        # present: 13/20 for desc alone against 10 (note, unmigrated), 11
-        # (migrated, no note) and 9 (note, with or without desc).
-        if note and any(c["what"] in (g.get("keys") or ())
-                        for g in (item.get("cover") or ())):
-            note = None
-        body = fill_fail(note, item, c) if note else ""
+        body = _paper_vocab(item, c, fill_fail(note, item, c)) if note else ""
     if not body:
-        return c["desc"]
-    return f"{desc} {body}" if desc and desc not in body else body
+        return _describe_boxes(item, c, c["desc"])
+    # THE WEB'S TWO LINES, KEPT AS TWO ROLES. olx_prompts renders the desc on
+    # the checklist line (what the criterion IS) and the rule/note on the
+    # answerable line (HOW to answer it). Concatenated with a space they read as
+    # one sentence, and on Q6 they read as a contradictory one: "States the first
+    # antecedent being changed, and it matches 4a `first` or `second` if ... names
+    # an antecedent at all". Same two texts, opposite bars, no break between them.
+    if desc and desc not in body:
+        stop = "" if desc.rstrip().endswith((".", "!", "?", ":")) else "."
+        out = f"{desc}{stop} HOW TO ANSWER: {body}"
+    else:
+        out = body
+    return _describe_boxes(item, c, out)
 
 def _oc_slot_notes(item: dict, asked: dict) -> str:
     """SLOT_NOTES text for the oc_analysis slots THIS prompt actually collects."""
@@ -1378,6 +1653,8 @@ def build_prompt(
             "the prose.\n"
         )
 
+    parts.append(_answer_inventory(item["id"]))
+
     if extra:
         parts.append(f"## Graph evidence for this submission\n{extra}\n")
         return "\n".join(parts)
@@ -1474,6 +1751,24 @@ def score_item(
         "deductions": ledger,
         "unknown_codes": unknown,
         "credit_checks": checks,
+        # THE MODEL'S OWN ANSWERS ON THE CRITERIA PATH, which were being thrown
+        # away. A `derive_from_credit` item keeps them: `credit_checks` carries
+        # one `verdict` per slot, so a later reader can see what the grader
+        # judged. A `derive_from_criteria` item does not -- derive_oc_ledger
+        # returns DERIVED checks ({what, met, evidence}) and the raw
+        # `oc_analysis` was read for one field and dropped, so every criteria
+        # item recorded `verdict: None` on every check.
+        #
+        # That is a RECORDING gap and it blocks the comparison that matters now.
+        # With the scoring arithmetic shown to agree on 3106 of 3120 cells, what
+        # is left to compare between the sides is the JUDGMENTS -- and on the
+        # eight criteria items there was nothing recorded to compare. Storing
+        # the answers ALONGSIDE the derived checks rather than filling
+        # `verdict`: subgoal E55 settled that inferred values must not be put
+        # where readers expect answered ones, and these are answered ones, so
+        # they get their own field.
+        "oc_analysis": (raw.get("oc_analysis") or None
+                        if item.get("derive_from_criteria") else None),
         "feedback": compose_feedback(
             item,
             {

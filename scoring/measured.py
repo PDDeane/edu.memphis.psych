@@ -1755,10 +1755,36 @@ def _web_credit_slots(item: dict, verd: dict, picks: dict, web_keys: set) -> dic
         if w is None:
             continue
         v, pick = verd.get(w), picks.get(w)
-        if key in cover and pick:
+        # BLANK IS MISSING, NOT AN ANSWER. `_our_failing_slots` records the trap:
+        # "a python result stores a pick's value in `answers` and an EMPTY STRING
+        # for the same key in `checks`". Testing `v is None` let that empty
+        # string through as the verdict, so every pick on the python side
+        # compared blank against a real answer and scored 0% -- a perfect zero,
+        # which is the tell for an instrument fault rather than a divergence. It
+        # halved every pick's apparent agreement in the pooled readout
+        # (Q4a/antecedent_kind_1 read 45% where olx alone reads 89%).
+        blank = not str(v if v is not None else "").strip()
+        # A COVER MEMBER'S VERDICT OUTRANKS ITS LABEL. The web answers two
+        # fields -- a verdict and `refers_to` -- and paper folds them into one,
+        # so the fold has to respect which field carries the information. An
+        # EMPTY box is `('absent', 'none')`, and reading the label first turned
+        # that into `neither`: a different paper verdict with a different code
+        # (`A_MISMATCH` against `A_NOT_STATED`), meaning "named something, but
+        # not one of the listed items" rather than "named nothing".
+        #
+        # p7/Q6 is the case. The student wrote ONE antecedent/consequence pair,
+        # so the fixture hands the web four empty second-position boxes and it
+        # records `('absent','none')` on each. Paper, judging the same response,
+        # says `absent` -- and agreed all along. The label-first fold reported it
+        # as a divergence on state_a2 and state_c2 across most of the corpus.
+        if key in cover and not blank and str(v).strip() != "met":
+            pass                       # the failing verdict IS the answer
+        elif key in cover and pick:
             v = "neither" if pick == "none" else pick
-        elif v is None and pick is not None:
+        elif blank and pick is not None:
             v = pick
+        elif blank:
+            continue
         if v is None:
             continue
         pairs = E.VERDICT_PAIRS.get(f"{item['id']}/{key}") or {}
