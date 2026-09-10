@@ -155,8 +155,31 @@ DERIVED_KINDS_IMPLEMENTED = frozenset({"contains"})
 # 1.00 on 120/120 cells, Q4b flat 2.00 on 114. Reverted as 44d5a818. The web
 # must keep asking, so the alignment has to come from this side.
 #
-# Scoped rather than global: `_computed_keys` reaches every item with `maps`,
-# Q4b's `b*_basis` family included, and this is measured on Q4a only.
+# SCOPED RATHER THAN GLOBAL, AND THE OTHER FIVE MAPPED SLOTS WERE CHECKED
+# BEFORE LEAVING THEM OUT. There are six in the corpus: Q4a's two, Q2's
+# `wgb_inverts_utb`, Q4b's `behavior_1/2`, and 1c's `legend`.
+#
+# ASKING CAN ONLY ADD CHARGES -- it hands the grader a second chance to REFUSE
+# what the pick credited -- so it helps only where all three hold: paper
+# OVER-credits, the web CHARGES the mapped slot, and the divergence is
+# PAPER-ONLY. That is Q4a/p18 exactly. Counted over the 3-run corpus screen and
+# the web's twelve runs, no cell on any other item has the shape:
+#
+#   Q2    no wrong cell at all -- paper 19.7 against the web's 18.9, recorded
+#         20/20. Nothing to refuse, and its `wgb_names` pick is one of the
+#         project's wins (p18 3/12 -> 12/12 by naming the kind). Pure downside.
+#   Q4b   CONTRAINDICATED. Its three wrong cells are wrong ON BOTH SIDES --
+#         p4 and p12 score 3.5 on paper AND on the web against gold 2.0 and
+#         5.0 -- so they are a shared judgement question, not a translation
+#         defect. And two are UNDER-credits, which another chance to charge
+#         moves further from gold, not closer.
+#   1c    the mapped slot is not what is broken: paper scores 0.0 on nine cells
+#         where the web hits gold, which is the `has_own_graph` GATE collapsing
+#         the item on a backend that cannot see the figure. Asking `legend`
+#         cannot lift a gated zero. Declared not-comparable.
+#
+# So the test for adding an item here is that signature, not the presence of a
+# `maps` rule.
 ASK_MAPPED_VERDICT_ITEMS = ("Q4a",)
 
 
