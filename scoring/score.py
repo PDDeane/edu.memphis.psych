@@ -322,20 +322,36 @@ def build_schema(item: dict) -> dict:
     if not item.get("derive_from_credit"):
         return SCHEMA
 
-    def _slot(vocab: list[str] | None) -> dict:
-        # A slot in a cover group answers WHICH of the referenced items it names,
-        # and that identity is its verdict — there is no second question. The
-        # pairing is `derive_ledger`'s.
+    def _slot(vocab: list[str] | None, labels: list[str] | None = None) -> dict:
+        # A COVER MEMBER ANSWERS TWO THINGS, as it does on the web: a verdict
+        # (did this box name one at all) and `refers_to` (WHICH of the referenced
+        # items it names). This used to fold the identity into the verdict, which
+        # is the un-migrated spelling, and it is what made Q6's slot notes
+        # unusable here: they say "`met` if this box names an antecedent at all,
+        # then set `refers_to` to WHICH of 4a's two it is", and paper collected no
+        # such field. Carrying them measured 13/20 -> 10/20 with four of five
+        # moved cells OVER-credited. slotSheet.ts reads `refers_to ?? verdict`;
+        # derive_ledger now does the same.
+        props: dict = {
+            "verdict": {
+                "type": "string",
+                "enum": (["met", "absent"] if labels
+                         else vocab or ["met", "absent", "mismatch", "not_described"]),
+            },
+            "evidence": {"type": "string"},
+        }
+        if labels:
+            props["refers_to"] = {
+                "type": "string",
+                "enum": list(labels) + ["none"],
+                "description": "WHICH of the referenced items this box names, or "
+                               "`none`. Not a judgement -- the verdict says whether "
+                               "they answered, this says what they answered ABOUT.",
+            }
         return {
             "type": "object",
-            "properties": {
-                "verdict": {
-                    "type": "string",
-                    "enum": vocab or ["met", "absent", "mismatch", "not_described"],
-                },
-                "evidence": {"type": "string"},
-            },
-            "required": ["verdict", "evidence"],
+            "properties": props,
+            "required": list(props),
             "additionalProperties": False,
         }
 
@@ -423,7 +439,10 @@ def derive_ledger(item: dict, raw: dict,
     for group in item.get("cover", []):
         claimed: dict[str, str] = {}
         for key in group["keys"]:
-            v = ((slots.get(key) or {}).get("verdict") or "").strip()
+            # `refers_to ?? verdict` -- the migrated field first, the old spelling
+            # as fallback so artifacts recorded before the migration still read.
+            entry = slots.get(key) or {}
+            v = str(entry.get("refers_to") or entry.get("verdict") or "").strip()
             if v not in group["labels"]:
                 continue          # `absent` or `neither`: already failing on its own
             if v in claimed:
@@ -564,7 +583,12 @@ def derive_ledger(item: dict, raw: dict,
             "evidence": f"{rule['left']}={got or '?'}, wanted {rule['value']}",
         }
 
-    satisfying = {k: g["labels"] for g in item.get("cover", []) for k in g["keys"]}
+    # `met` JOINS THE LABELS, it does not replace them. Post-migration a cover
+    # member answers met/absent and says WHICH in `refers_to`; a pre-migration
+    # artifact spells the identity in the verdict. Accepting both keeps every
+    # recorded run readable, which is why the migration needs no re-scoring pass.
+    satisfying = {k: list(g["labels"]) + ["met"]
+                  for g in item.get("cover", []) for k in g["keys"]}
 
     # `requires`: a check is CREDITED only while its condition holds — the mirror
     # of the charge-once rule below, and applied here, after the cover demotions,
@@ -1094,63 +1118,54 @@ def fill_fail(text: str, item: dict, c: dict) -> str:
 def _slot_body(item: dict, c: dict) -> str:
     """The judging text for one slot, resolved the way the WEB resolves it.
 
-    olx_prompts renders `rule or SLOT_NOTES[item:key] or SLOT_NOTES[key] or
-    desc`; this side rendered `rule or desc`, so judging text parked in
-    SLOT_NOTES reached the web and the CLI harness and LEFT THE PAPER SCORER
-    BEHIND. That is the same failure the comment in build_prompt records for
-    Q4b's five substitution tests, and on 2026-09-09 it was still live on six
-    slots: Q6's state_a1/a2/c1/c2 (627 chars, the pointing slots subgoal Q63 is
-    about) and WK2's aimed_correctly and named_type (1,247 chars, the first of
-    which is subgoal Q40's measured win -- WK2/p11 from 4 of 11 to 12 of 12).
+    THE WEB RENDERS TWO LINES PER SLOT AND THIS SIDE HAS ONE, so it must carry
+    both. olx_prompts writes a checklist line holding the DESC with its points,
+    and an answerable line holding `rule or SLOT_NOTES[item:key] or
+    SLOT_NOTES[key]`. This function used to return the first of those that
+    existed, so wherever a slot had a rule or a note the DESC was dropped -- 22
+    slots across ten items (1a, 1c, D1, D2, Q2, Q3, Q4a, Q4b, Q5, Q6).
 
-    NOT EVERY SLOT_NOTES ENTRY WAS MISSING, and the difference is worth keeping:
-    DAY1's consequence_asserted and D1/D2's named_type already arrive through
+    IT HAS A MEASURED PRICE AND Q2 IS WHERE IT WAS PAID. `wgb_is_counterpart`'s
+    desc says "The goal behaviour concerns the SAME behaviour as the Q1 UTB ...
+    Fail this ONLY when the goal names a DIFFERENT activity"; its rule says "does
+    the goal name a DIFFERENT ACTIVITY from the unwanted one?". The rule alone is
+    a question whose YES means failure, and without the desc's framing the model
+    inverts it: 8 of 20 paper cells scored 0 on WGB_UNRELATED, a whole-item
+    deduction, and every one of them had a "lack of X" UTB whose goal is the SAME
+    activity -- the exact case the desc exists to protect. Gold gives those cells
+    4 or 5.
+
+    The desc goes FIRST, as the web orders it, and is skipped when the judging
+    text already contains it so nothing is said twice.
+
+    NOT EVERY SLOT_NOTES ENTRY WAS EVER MISSING, and the difference is worth
+    keeping: DAY1's consequence_asserted and D1/D2's named_type arrive through
     `_criterion_11` and the criteria section, TRANSFORMED by `_as_criterion`
     rather than copied. A head-match test reports them absent and a
-    longest-shared-phrase test reports them carried; only the six above were
-    genuinely missing. Resolving through the same chain the web uses is what
-    makes that distinction unnecessary to maintain by hand.
+    longest-shared-phrase test reports them carried; only Q6's four state_* and
+    WK2's two were genuinely missing. Resolving through the same chain the web
+    uses is what makes that distinction unnecessary to maintain by hand.
     """
     from olx_prompts import SLOT_NOTES
 
-    if c.get("rule"):
-        return fill_fail(c["rule"], item, c)
-    note = (SLOT_NOTES.get(f"{item['id']}:{c['what']}")
-            or SLOT_NOTES.get(c["what"]))
-    # NOT WHERE THE NOTE DESCRIBES A PROTOCOL THIS SCORER DOES NOT IMPLEMENT.
-    # MEASURED 2026-09-09, A/B against the pre-conversion scorer: Q6 fell 13/20
-    # to 10/20 on a single run and FOUR of the five moved cells were
-    # OVER-credits. Cause, not guess: `cover` on the web reads `refers_to` and
-    # falls back to the verdict, so its notes tell the grader "`met` if this box
-    # names an antecedent at all, then set `refers_to` to WHICH of 4a's two it
-    # is". Paper implements the UN-MIGRATED spelling -- derive_ledger's cover
-    # branch reads the VERDICT and compares it against the labels, and the paper
-    # schema offers `first`/`second`/`neither`/`absent` with no `refers_to` field
-    # at all. So the note lowered the bar to "names one at all" while the
-    # matching half it hands to `refers_to` was never collected, and the credit
-    # loop passed boxes that cover would have demoted.
-    #
-    # A cover member is the test because that IS the divergent protocol. WK2's
-    # two notes are not cover members and measured 19/20 against 19/20, so they
-    # keep arriving. Migrating paper to `refers_to` would let these through too,
-    # and is the real parallel fix; until then a note that presumes it is worse
-    # than the desc it would replace.
-    if note and any(c["what"] in (g.get("keys") or ())
-                    for g in (item.get("cover") or ())):
-        return c["desc"]
-    if not note:
-        return c["desc"]
-    # DESC *AND* NOTE, because that is what the web renders and the first version
-    # of this function silently dropped the desc. The web has two lines per slot
-    # -- the checklist line carrying the DESC with its points, and the answerable
-    # line carrying `rule or SLOT_NOTES[...]` -- so a slot with a note shows both
-    # there. Paper has ONE line, and returning `note or desc` made the note
-    # REPLACE the desc: Q6's four `state_*` slots gained their note today and lost
-    # "States the first antecedent being changed, and it matches 4a" in the same
-    # edit. Reaching parity on one axis while quietly breaking another is not
-    # parity, and only a before/after read of the paper prompt shows it.
-    body = fill_fail(note, item, c)
     desc = (c.get("desc") or "").strip()
+    if c.get("rule"):
+        body = fill_fail(c["rule"], item, c)
+    else:
+        note = (SLOT_NOTES.get(f"{item['id']}:{c['what']}")
+                or SLOT_NOTES.get(c["what"]))
+        # A COVER MEMBER KEEPS ITS DESC ALONE. Q6's note sets a LOWER bar than
+        # the desc it accompanies -- "`met` if this box names an antecedent at
+        # all" against "States the first antecedent being changed, AND IT MATCHES
+        # 4a" -- and measurement says the lower bar wins wherever the note is
+        # present: 13/20 for desc alone against 10 (note, unmigrated), 11
+        # (migrated, no note) and 9 (note, with or without desc).
+        if note and any(c["what"] in (g.get("keys") or ())
+                        for g in (item.get("cover") or ())):
+            note = None
+        body = fill_fail(note, item, c) if note else ""
+    if not body:
+        return c["desc"]
     return f"{desc} {body}" if desc and desc not in body else body
 
 def _oc_slot_notes(item: dict, asked: dict) -> str:
