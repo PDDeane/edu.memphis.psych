@@ -2219,7 +2219,15 @@
         "exclusions": [],
         "numerator": 18,
         "out": "q3lab_folded",
-        "prompt_sha": "200e1305205e",
+        "previous": {
+          "denominator": 20,
+          "numerator": 18,
+          "out": "q3lab_folded",
+          "prompt_sha": "200e1305205e",
+          "runs": 6,
+          "scorer_sha": "1bfeeccd11dd"
+        },
+        "prompt_sha": "0c0b78e8438a",
         "run_totals": [
           17,
           17,

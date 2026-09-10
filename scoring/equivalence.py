@@ -746,6 +746,8 @@ def enforcement_audit():
         findings.append(("-", "RECORDED VERDICT DISAGREES WITH ITS MAP", bad))
     for bad in ENF.check_paper_reproduces_web_scores():
         findings.append(("-", "PAPER AND WEB SCORE THE SAME JUDGMENTS DIFFERENTLY", bad))
+    for bad in ENF.check_paper_prompt_is_stamped():
+        findings.append(("-", "PAPER PROMPT IS NOT STAMPED BY ITS OWN SHA", bad))
     for bad in ENF.check_paper_scorer_agrees_on_identical_verdicts():
         findings.append(("-", "PAPER SCORER DISAGREES ON IDENTICAL VERDICTS", bad))
     for bad in ENF.check_scorer_neutrality_is_verified():
