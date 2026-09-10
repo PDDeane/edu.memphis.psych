@@ -1416,6 +1416,72 @@ def _paper_vocab(item: dict, c: dict, text: str) -> str:
 
 
 
+# PAPER-ONLY text an item needs because of how a PAPER submission arrives.
+# The mirror of `olx_prompts.ITEM_NOTES`, which does the same job for the web
+# and says of itself: "Web-only text an item needs because of how its screen is
+# built. Additions, not paraphrases: they say something about the web that the
+# rubric cannot know." There was no paper counterpart, so a paper-side
+# instruction had nowhere to live except an id list gating a mechanism -- which
+# is the thing that must never vary by item.
+#
+# THE MECHANISM IS UNIFORM AND THE CONTENT IS PER ITEM. Every item is offered
+# the same slot; what goes in it differs because the ITEMS differ, exactly as
+# `guidance`, `credit` and `maps` differ. That is content, and content may vary.
+# An id list that switches a mechanism on and off is not, and
+# `enforcement.check_engine_mechanisms_are_not_item_dependent` still refuses it.
+#
+# EACH ENTRY IS A DECLARED WEB/PAPER DIVERGENCE and needs its own measurement.
+# WHY EACH ENTRY IS PAPER-ONLY. Required beside every key below, for the same
+# reason its web twin requires one: a note earns a side table only by saying
+# something true of THIS side and not the other. Anything sayable to both is
+# rubric content and belongs in `guidance`.
+PAPER_ITEM_NOTES_WHY: dict[str, str] = {
+    "Q3": "Tells the grader to judge each answer on the part the student "
+          "labelled for it. The WEB CANNOT NEED THIS: there each answer has "
+          "its own input box, so the partition is structural and no "
+          "instruction can improve it. Paper receives one continuous block and "
+          "must infer the partition, which is the divergence this note exists "
+          "for -- and the defect it treats was measured only here (16.5 -> "
+          "17.8 over six runs).",
+}
+
+PAPER_ITEM_NOTES: dict[str, str] = {
+    # JUDGE EACH ANSWER ON ITS OWN LABELLED PART. Q3's paper divergences were
+    # one error: an answer credited from text belonging to a DIFFERENT answer,
+    # with the evidence quoting the wrong heading verbatim -- p8 credited
+    # action_oriented while quoting "My goal is SPECIFIC because I plan to work
+    # {{corpus:Q3/p8:specific:54:75:sha=b75c43a72941}} week". The web cannot make this error: each answer
+    # has its own box.
+    #
+    # MEASURED HERE AND NOWHERE ELSE: paper 16.5 -> 17.8 over six runs, the gap
+    # to the web -3.4 -> -2.1, cross-aspect evidence quoting 6/598 -> 1/600.
+    #
+    # WHY Q3 AND NOT THE OTHER EIGHT >=2-ANSWER ITEMS. It keys on the student
+    # LABELLING their parts, and the label rate decides whether it can act at
+    # all -- Q3 19/20, 2a 15/20, 1c 7/19, Q4c 2/20, and Q4b, Q6, Q5 and `3` at
+    # ZERO of ~20. Shipped to all nine on 2026-09-10 it cost about four cells:
+    # Q4b -2, Q5 -1, 2a -1, with Q4c, 1c and `3` flat and Q6 unchanged at 10/20.
+    # On the four zero-label items it is INERT BY CONSTRUCTION -- its own
+    # fallback is "read the whole response for each" -- so what it bought there
+    # was a hundred words of instruction that cannot apply, and the picks
+    # drifted under them: Q4b/p12 lost its occasional `activity` and stuck at
+    # 3.5, while p6 and p20 gained one and started over-crediting.
+    #
+    # 2a AND 1c ARE THE UNMEASURED CANDIDATES, at 15/20 and 7/19 labels. 2a lost
+    # a cell in that sweep but also took the deixis change, so its loss is not
+    # attributed. Add either only with its own six runs.
+    "Q3": (
+        "Where the student has labelled parts of their answer to match the "
+        "names above, judge each answer on the part they labelled for it, and "
+        "never on what they wrote for another -- a sentence that opens by "
+        "naming a different one of these answers belongs to that one. Where "
+        "they label nothing, read the whole response for each.\n\n"
+        "The evidence you quote for an answer must come from that answer's own "
+        "part of the response."
+    ),
+}
+
+
 def _answer_inventory(item_id: str) -> str:
     """How many answers this item asks for, and how to read one block for them.
 
@@ -1477,35 +1543,6 @@ def _answer_inventory(item_id: str) -> str:
             "An answer they did not write is `absent`: there is nothing in it "
             "to quote or to judge as falling short, so its evidence says what "
             "you looked for and did not find."]
-
-    # EACH CHECK ON ITS OWN PART, ON EVERY ITEM THAT ASKS FOR MORE THAN ONE
-    # ANSWER. This was gated to Q3 alone, where it was measured (+1.3 cells,
-    # 16.5 -> 17.8 over six runs) -- but A MECHANISM MAY NOT VARY BY ITEM, and
-    # scoping one to where it happens to pay is how an engine becomes
-    # item-shaped. The clause is not item-specific content: it is a general
-    # instruction for reading a flat response, and the defect it treats -- an
-    # answer credited from text belonging to a DIFFERENT answer -- was found on
-    # every item examined, not only on Q3.
-    #
-    # IT IS STILL CONDITIONAL, ON THE RIGHT THING: what the student did. "Where
-    # they label nothing, read the whole response for each" is decided per
-    # submission, not by which item is being scored. That is the legitimate
-    # kind of gate; an id list is not.
-    #
-    # THE KNOWN RISK IS Q6, and it is a risk to MEASURE rather than to design
-    # around: 5 of its 19 responses label anything at all, and p19 labels
-    # "(New C)" over the very text gold charges, so keying on labels there
-    # could confine the grader to a mislabel.
-    out += ["",
-            "Where the student has labelled parts of their answer to match "
-            "the names above, judge each answer on the part they labelled "
-            "for it, and never on what they wrote for another -- a sentence "
-            "that opens by naming a different one of these answers belongs "
-            "to that one. Where they label nothing, read the whole response "
-            "for each.",
-            "",
-            "The evidence you quote for an answer must come from that "
-            "answer's own part of the response."]
 
     return "\n".join(out) + "\n"
 
@@ -1776,6 +1813,11 @@ def build_prompt(
         )
 
     parts.append(_answer_inventory(item["id"]))
+
+    # THE UNIFORM MECHANISM: every item is offered a paper-side note, and the
+    # ones that declare content get it. See PAPER_ITEM_NOTES.
+    if item["id"] in PAPER_ITEM_NOTES:
+        parts.append(PAPER_ITEM_NOTES[item["id"]] + "\n")
 
     if extra:
         parts.append(f"## Graph evidence for this submission\n{extra}\n")

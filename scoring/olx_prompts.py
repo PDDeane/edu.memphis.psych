@@ -717,6 +717,28 @@ SCORING_DIVERGENCES = [
 # Web-only text an item needs because of how its screen is built. Additions,
 # not paraphrases: they say something about the web that the rubric cannot
 # know, and each is a deviation recorded in EQUIVALENCE.md.
+# WHY EACH ENTRY IS WEB-ONLY. Required beside every key in ITEM_NOTES: this
+# table is WEB-ONLY BY CONSTRUCTION, and a note earns its place here only by
+# saying something that is true of the web and not of paper. A note that could
+# be said to BOTH graders is not a side note at all -- it is rubric content,
+# and it belongs in `guidance` where both sides get it. Enforced by
+# enforcement.check_side_notes_are_side_specific.
+ITEM_NOTES_WHY: dict[str, str] = {
+    "Q1": "Governs the FIRST SENTENCE of the `feedback` field on a "
+          "`matches_selected` mismatch. Paper has neither: its schema has no "
+          "`feedback` property (score.compose_feedback builds feedback in code "
+          "from the deduction ledger) and `matches_selected` is not one of its "
+          "Q1 slots.",
+    "Q6": "Explains the web's TWO-FIELD encoding -- a `verdict` and a separate "
+          "`refers_to` that takes `first`/`second`/`none`. Paper has one field "
+          "and is told so in its own words by score._paper_vocab: 'Answer with "
+          "ONE value from `first`, `second`, `neither`, `absent` -- there is no "
+          "separate field on this side.' Mirrored in substance, not copied.",
+    "1c": "Describes SelfMonitorPlot drawing the chart live from 1b's data, and "
+          "the worked example sitting on the same screen. The paper student "
+          "draws their own figure; there is no component and no screen.",
+}
+
 ITEM_NOTES: dict[str, str] = {
     # A mismatch reframes everything after it: the rest of the feedback is about
     # a behavior the student may not think they are being asked about, and a
