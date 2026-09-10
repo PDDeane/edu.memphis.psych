@@ -1360,7 +1360,47 @@ def _describe_boxes(item: dict, c: dict, text: str) -> str:
             return m.group(0)
         return f"the `{slot}` answer ({own})"
 
-    return _DEICTIC.sub(sub, text)
+    text = _DEICTIC.sub(sub, text)
+    # RESIDUAL: EVERY BOX THAT IS LEFT IS AN ANSWER. `_DEICTIC` resolves the
+    # forms that point at a PARTICULAR box -- "this box", "the second box" --
+    # and deliberately leaves alone anything it cannot resolve. What survived
+    # was not a handful of stragglers: 25 distinct phrases across six items,
+    # in four shapes the pattern was never going to cover -- indefinite ("a
+    # box", "an empty box"), plural ("all three boxes", "the two effect
+    # boxes"), named by role ("the type box", "the verdict box"), and definite
+    # ones on slots whose own box does not resolve ("the series box").
+    #
+    # THEY ALL MEAN THE SAME THING ON PAPER. Each web box is one answer, and
+    # `_answer_inventory` has already named the answers this item asks for, so
+    # "box" -> "answer" is faithful for every one of the four shapes without
+    # needing to resolve WHICH box is meant.
+    #
+    # IT MATTERS BECAUSE OF WHERE THEY WERE. Six of the corpus's fourteen
+    # worst-agreeing slots carried one: 1c/series_box_holds at 33% agreement,
+    # Q6/affect_c2 at 52%, state_c2 63%, link_c2 66%, affect_c1 82%, and
+    # 2a/states_size 82% -- all four of Q6's worst, on the item with a
+    # documented ceiling. Each was telling the paper grader to read boxes it
+    # does not have. `_describe_boxes`' own record says Q6's `state_*` notes
+    # carried verbatim measured 13/20 -> 9.
+    #
+    # WHAT THIS DOES NOT FIX, and the check reports instead: a phrase naming
+    # MORE boxes than the item has. WK2's "READ BOTH BOXES" on a one-box item
+    # becomes "READ BOTH ANSWERS", which is still wrong about the arithmetic.
+    return _BOX_WORD.sub(_as_answer, text)
+
+
+_BOX_WORD = re.compile(r"\bboxes\b|\bbox\b", re.I)
+
+
+def _as_answer(m: "re.Match") -> str:
+    """`box`/`boxes` -> `answer`/`answers`, keeping the original casing."""
+    w = m.group(0)
+    base = "answers" if w.lower() == "boxes" else "answer"
+    if w.isupper():
+        return base.upper()
+    if w[0].isupper():
+        return base.capitalize()
+    return base
 
 
 def _paper_vocab(item: dict, c: dict, text: str) -> str:
@@ -1616,7 +1656,15 @@ def _oc_slot_notes(item: dict, asked: dict) -> str:
             continue
         note = SLOT_NOTES.get(f"{item['id']}:{key}")
         if note:
-            lines.append(f"- `{key}`: {' '.join(note.split())}")
+            # THE THIRD AND LAST PATH BOX DEIXIS TRAVELS. A criteria item's
+            # slot notes come through here, not through `_slot_body` and not
+            # through `_criteria_section`, so WK2's `named_type` -- "READ BOTH
+            # BOXES" -- survived translating both of those. WK2 has ONE box, so
+            # the phrase is also wrong about the count; that part is not
+            # translatable and is reported by
+            # enforcement.check_paper_prompt_has_no_box_deixis instead.
+            lines.append(f"- `{key}`: "
+                         f"{_BOX_WORD.sub(_as_answer, ' '.join(note.split()))}")
     if not lines:
         return ""
     return "## Notes on individual slots\n" + "\n".join(lines) + "\n"
@@ -1652,12 +1700,18 @@ def build_prompt(
         # -- the failure that put "put it in `evidence`" in front of a model
         # whose sheet has no evidence field.
         asked = build_schema(item)["properties"]["oc_analysis"]["properties"]
-        parts.append(_criteria_section(
+        # TRANSLATED ON THE WAY IN. `_criteria_section` is SHARED with the web
+        # -- deliberately, so the two cannot drift -- which means it speaks the
+        # web's language, boxes included. WK2's `named_type` says "READ BOTH
+        # BOXES" and reached the paper grader untouched: the criteria items do
+        # not go through `_slot_body`, so translating the slots left this whole
+        # family standing. Same residual rule as everywhere else.
+        parts.append(_BOX_WORD.sub(_as_answer, _criteria_section(
             item,
             trigger_slot="trigger_behavior" in asked,
             consequence_slot="consequence_asserted" in asked,
             avoidance_scores=bool(item.get("avoidance_scores")),
-        ))
+        )))
         # PER-SLOT JUDGING TEXT FOR THE OC SHEET. The criteria section carries
         # the numbered criteria; it does not carry text parked against an
         # individual oc_analysis slot, so anything in SLOT_NOTES for one of them
@@ -1773,7 +1827,14 @@ def build_prompt(
     if item["guidance"]:
         parts.append("## Grading guidance")
         for g in item["guidance"]:
-            parts.append(f"- {g}")
+            # GUIDANCE CARRIES BOX DEIXIS TOO, and it was the last place it
+            # survived. `_describe_boxes` runs over SLOT bodies, so translating
+            # the slots left 15 references standing in guidance alone -- all of
+            # 2a's four bullets among them, on an item whose worst slot is one
+            # of the three that say "Read all three boxes". No slot is in scope
+            # here, so the pointing forms cannot be resolved to a particular
+            # answer; the residual translation is what applies.
+            parts.append(f"- {_BOX_WORD.sub(_as_answer, g)}")
         parts.append("")
 
     if item.get("exemplars"):
