@@ -754,6 +754,8 @@ def enforcement_audit():
         findings.append(("-", "A SIDE NOTE IS NOT SIDE-SPECIFIC", bad))
     for bad in ENF.check_prompts_carry_no_process_history():
         findings.append(("-", "SHIPPED PROSE CARRIES OUR PROCESS", bad))
+    for bad in ENF.check_paper_prompt_has_no_box_deixis():
+        findings.append(("-", "PAPER PROMPT REFERS TO A BOX", bad))
     for bad in ENF.check_paper_scorer_agrees_on_identical_verdicts():
         findings.append(("-", "PAPER SCORER DISAGREES ON IDENTICAL VERDICTS", bad))
     for bad in ENF.check_scorer_neutrality_is_verified():

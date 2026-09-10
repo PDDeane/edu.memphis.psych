@@ -566,6 +566,17 @@ ITEMS: list[dict] = [
             "Three 2-point slots, judged INDEPENDENTLY: the verdict box, then each "
             "of the two How boxes. Do not ask how many explanations the answer "
             "contains.",
+            # WHY THE SECOND GROUND IS HERE, kept OUT of the bullet. This
+            # guidance used to close with a sentence citing an older draft of
+            # the rubric and then reporting a dated sweep -- the date, a cell
+            # count, and our own vocabulary -- as the ARGUMENT FOR the rule.
+            # It shipped to BOTH graders, neither of which can act on any of
+            # it, and the rule itself is complete in the two sentences before.
+            # Paraphrased rather than quoted here on purpose: reproducing the
+            # sentence verbatim would leave the very text the edit removes
+            # sitting in the file, which is what editguard refused twice.
+            # The finding that caught it:
+            # enforcement.check_prompts_carry_no_process_history.
             "A How BOX IS MET ON EITHER OF TWO GROUNDS, and the second is the one "
             "to get right. First, a cause or a circumstance: why or when the plan "
             "did or did not work. A qualified explanation is still an explanation, "
@@ -573,11 +584,7 @@ ITEMS: list[dict] = [
             "student leaned on, with no situation attached, counts. Second, the "
             "change REPORTED WITH ITS SIZE: a figure, a comparison against the "
             "earlier week, or a citation of the data. That is an explanation on "
-            "this item, not a bare outcome, and the earlier wording of this rubric "
-            "said so — \"a verdict that cites the data as its evidence ... covers "
-            "the verdict and both explanations\". A rule that charged boxes of that "
-            "shape was measured on 2026-09-02 and broke three cells the graders "
-            "credit.",
+            "this item, not a bare outcome.",
             "ONE COMBINATION IS ALSO ABSENT, and it must be read as a "
             "conjunction rather than as either half. A box is absent when what it "
             "reports is a bodily or personal state rather than the behaviour, AND "
