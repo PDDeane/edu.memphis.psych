@@ -1694,6 +1694,175 @@ def _ENF():
     return _E
 
 
+# `avoidance_frame` is the one field whose SENSE flips between the sides, and
+# ALIAS records why in prose: "The web renamed this to say the good state, and
+# inverted it: `met` is phrased directly. The CLI input keeps the old name and
+# its boolean sense (True = phrased by what is avoided)." The NAME mapping is
+# machine-readable there; the inversion is not, so it is named here and nowhere
+# else.
+_INVERTED_SENSE = frozenset({"avoidance_frame"})
+
+
+def _web_slot_names(item_id: str, handout: int) -> set:
+    """Every slot key the WEB sheet offers for an item, LLMAction or sheet-only."""
+    import agreement as A
+    import olx_prompts as O
+
+    if item_id in O.SHEET_ONLY:
+        return {s["key"] for s in O.parse_slots(*O._slots_attr(handout, O.SHEET_ONLY[item_id]))}
+    spec = A.load_action(f"bmod_handout{handout}.olx", O.ACTION[item_id])
+    return {s["key"] for s in spec["slots"]}
+
+
+def _web_credit_slots(item: dict, verd: dict, picks: dict, web_keys: set) -> dict:
+    """The web's judgments as paper's `slots`, in paper's names and tokens.
+
+    THREE THINGS A NAIVE PASS DROPS, and a dropped slot is not a missing score
+    but a WRONG one: `derive_ledger` reads an absent slot as `absent` and
+    charges it. Each of these was measured as an apparent scorer disagreement
+    before being recognised as a reader bug.
+
+      * A COMPUTED key (maps/expect/equals/forbid, and counted members) is
+        recorded null on the web because nothing asks the model for it. Omit it
+        and let derive_ledger compute it from the operands.
+      * A `derived` kind paper CANNOT compute -- the ones COMPUTE_EXEMPT
+        declares, which read the web page's typed fields -- is a platform gap
+        rather than arithmetic, so the web's recorded value is passed THROUGH.
+      * A PICK answers `refers_to`, not `verdict`; and a cover member folds the
+        identity into the verdict on this side.
+    """
+    import enforcement as E
+
+    exempt = set((E.COMPUTE_EXEMPT.get("derived") or {}).get("kinds", ()))
+    computed = set()
+    for kind in ("maps", "expect", "equals", "forbid"):
+        for r in item.get(kind) or ():
+            if isinstance(r, dict) and r.get("key"):
+                computed.add(r["key"])
+    for r in item.get("derived") or ():
+        if isinstance(r, dict) and r.get("key") and r.get("kind") not in exempt:
+            computed.add(r["key"])
+    for cr in item.get("counts") or ():
+        computed.update(cr.get("slots") or ())
+    cover = {k for g in (item.get("cover") or ()) for k in g["keys"]}
+
+    out = {}
+    for c in item.get("credit") or []:
+        key = c["what"]
+        if key in computed:
+            continue
+        w = key if key in web_keys else E.web_name(key, web_keys)
+        if w is None:
+            continue
+        v, pick = verd.get(w), picks.get(w)
+        if key in cover and pick:
+            v = "neither" if pick == "none" else pick
+        elif v is None and pick is not None:
+            v = pick
+        if v is None:
+            continue
+        pairs = E.VERDICT_PAIRS.get(f"{item['id']}/{key}") or {}
+        out[key] = {"verdict": str(pairs.get(v, v)), "evidence": "x"}
+    return out
+
+
+def _web_oc_analysis(item: dict, verd: dict, picks: dict, web_keys: set) -> dict:
+    """The web's judgments as paper's `oc_analysis`, READ OFF PAPER'S SCHEMA.
+
+    Hand-listing the fields got it wrong: it omitted `trigger_behavior` and
+    `agent_delivers_consequence`, which WK1 asks for by those exact names and
+    the web answers under them, and the two dropped operands read as a scorer
+    disagreement on 35 cells. The field list comes from `build_schema`, the
+    names from `enforcement.web_name`, and the conversion from the TYPE the
+    schema declares.
+    """
+    import enforcement as E
+    import score as SC
+
+    props = (SC.build_schema(item)["properties"]
+             .get("oc_analysis", {}).get("properties", {}))
+    out = {}
+    for field, spec in props.items():
+        w = field if field in web_keys else E.web_name(field, web_keys)
+        if w is None:
+            continue
+        if spec.get("type") == "boolean":
+            v = verd.get(w)
+            if v is None:
+                continue
+            met = str(v).strip() == "met"
+            out[field] = (not met) if field in _INVERTED_SENSE else met
+        elif spec.get("enum") or picks.get(w) is not None:
+            v = picks.get(w) or verd.get(w)
+            if v:
+                out[field] = str(v)
+        elif str(verd.get(w) or "").strip() == "met":
+            # free text: derive_oc_ledger only tests whether it is non-empty
+            out[field] = "named"
+    return out
+
+
+def web_judgments_through_paper() -> dict:
+    """Do the web's judgments produce the web's score in PAPER's arithmetic?
+
+    THE WIDE DIRECTION. `paper_scorer_agreement` asks the same question the
+    other way round and can only use items with a recorded PAPER artifact --
+    two of them, 240 cells. Every item has a recorded olx sweep, so this covers
+    the corpus: 26 items and ~3,100 cells. Holding the judgments fixed removes
+    the model, so a difference here is the two scoring implementations
+    disagreeing rather than sampling.
+
+    Measured 2026-09-09 at 3106 of 3120, with 24 of 26 items identical on every
+    cell. The 14 exceptions are the KNOWN off-map recording divergence, not a
+    new finding: 1c's `legend` verdict sits off its own map on 19 cells and 13
+    of those are score-affecting, which is exactly the caveat
+    `check_mapped_slots_agree_with_their_map` states.
+    """
+    import cross_path as X
+    import handouts as H
+    import score as SC
+
+    out = {"agree": 0, "differing": [], "errors": [], "items": []}
+    for item_id in sorted(_jobs()):
+        handout = _jobs()[item_id]["handout"]
+        item = H.config(handout)["rubric"].BY_ID.get(item_id)
+        doc = _runs_doc(item_id, "olx")
+        if not item or not doc:
+            continue
+        try:
+            web_keys = _web_slot_names(item_id, handout)
+        except Exception:
+            continue
+        out["items"].append(item_id)
+        for run in doc.get("runs") or []:
+            for r in run.get("results") or []:
+                got = X.result_cell(r)
+                if not got or got[2] is None:
+                    continue
+                _i, pid, web_score, verd = got
+                picks = X.result_picks(r) or {}
+                try:
+                    if item.get("derive_from_criteria"):
+                        raw = {"oc_analysis": _web_oc_analysis(item, verd or {}, picks, web_keys)}
+                        led, _c, _u, _adv = SC.derive_oc_ledger(item, raw)
+                    else:
+                        slots = _web_credit_slots(item, verd or {}, picks, web_keys)
+                        if not slots:
+                            continue
+                        led, _c, _u = SC.derive_ledger(item, {"slots": slots},
+                                                       "the student's response")
+                except Exception as exc:
+                    out["errors"].append(f"{item_id}/p{pid}: {type(exc).__name__}: {exc}")
+                    continue
+                paper = max(0.0, min(item["max"],
+                                     item["max"] - sum(d["pts"] for d in led)))
+                if abs(paper - float(web_score)) < 1e-9:
+                    out["agree"] += 1
+                else:
+                    out["differing"].append((item_id, pid, float(web_score), paper))
+    return out
+
+
 def paper_scorer_agreement() -> dict:
     """Do the PAPER and WEB scorers turn the same verdicts into the same score?
 

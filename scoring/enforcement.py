@@ -5812,6 +5812,49 @@ def paper_scorer_agreement_line() -> str:
             f"this.")
 
 
+def check_paper_reproduces_web_scores() -> list[str]:
+    """The web's own judgments, run through PAPER's arithmetic. Do they score alike?
+
+    THE WIDE HALF OF THE SCORER COMPARISON.
+    `check_paper_scorer_agrees_on_identical_verdicts` asks this the other way
+    round and is limited to items with a recorded PAPER artifact -- two of them.
+    Every item has an olx sweep, so this direction covers 26 items and ~3,100
+    cells. The model is held fixed either way, so a difference is the two
+    implementations of the scoring rules disagreeing, not sampling.
+
+    See measured.web_judgments_through_paper for the translation and for the
+    three reader bugs that had to be fixed before its numbers meant anything --
+    each one dropped a slot, and a dropped slot is charged rather than skipped.
+    """
+    import measured as MEAS
+
+    d = MEAS.web_judgments_through_paper()
+    out = []
+    for item, pid, web, paper in d["differing"]:
+        out.append(
+            f"{item}/p{pid}: the web's own judgments score {web:g} on the web and "
+            f"{paper:g} through the paper scorer's arithmetic. The judgments are "
+            f"held fixed, so this is the two scoring implementations disagreeing")
+    for e in d["errors"]:
+        out.append(f"the web's judgments could not be scored by the paper path -- {e}")
+    return out
+
+
+def paper_reproduces_web_line() -> str:
+    """Coverage for the check above, as audit context rather than a finding."""
+    import measured as MEAS
+
+    d = MEAS.web_judgments_through_paper()
+    n = d["agree"] + len(d["differing"])
+    if not n:
+        return "paper-vs-web arithmetic: no olx artifact could be replayed."
+    return (f"paper-vs-web arithmetic: {d['agree']} of {n} cell(s) across "
+            f"{len(d['items'])} item(s) score IDENTICALLY when the web's own "
+            f"judgments are run through the paper scorer "
+            f"({100 * d['agree'] / n:.2f}%). Holding the judgments fixed removes "
+            f"the model, so what is left is the arithmetic.")
+
+
 def check_engine_rate_divergence() -> list[str]:
     """A cell where the two engines' agreement RATES differ beyond chance.
 
