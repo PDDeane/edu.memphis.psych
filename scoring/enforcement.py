@@ -5900,6 +5900,104 @@ def check_prompts_carry_no_process_history() -> list[str]:
     return out
 
 
+def check_side_notes_are_side_specific() -> list[str]:
+    """A side's item notes must be that side's ONLY, and must need to be.
+
+    TWO TABLES, EACH SIDE-ONLY BY CONSTRUCTION: `olx_prompts.ITEM_NOTES` for
+    the web and `score.PAPER_ITEM_NOTES` for paper. The mechanism is uniform --
+    every item is offered a note and the ones that declare content get it --
+    and what differs between items is what they SAY, which is content and may
+    vary. That distinction is the same one
+    `check_engine_mechanisms_are_not_item_dependent` draws.
+
+    THE RULE THIS ENFORCES: a note earns a side table only by saying something
+    true of THAT side and not the other. A note that could be said to both
+    graders is not a side note at all -- it is rubric content, and belongs in
+    `guidance`, where both sides get it. Without this, a side table becomes the
+    place where anything measured on one side and not the other quietly lands,
+    and the two engines drift apart one convenience at a time.
+
+    THREE ARMS, and the first two are exact. (1) NEITHER MODULE MAY READ THE
+    OTHER'S TABLE -- side-only means side-only. (2) A note's text must not turn
+    up in the other side's built prompt for that item. (3) Every key must carry
+    a WHY beside it, in `ITEM_NOTES_WHY` / `PAPER_ITEM_NOTES_WHY`, saying what
+    makes it side-specific; prose cannot be judged mechanically, so the
+    requirement is that the reason is written down and can be read.
+    """
+    import ast
+    import pathlib as _pl
+
+    import olx_prompts as _O
+    import score as _SC
+
+    out = []
+    pairs = (("web", "ITEM_NOTES", _O.ITEM_NOTES, getattr(_O, "ITEM_NOTES_WHY", {}),
+              "score.py", "PAPER_ITEM_NOTES"),
+             ("paper", "PAPER_ITEM_NOTES", _SC.PAPER_ITEM_NOTES,
+              getattr(_SC, "PAPER_ITEM_NOTES_WHY", {}), "olx_prompts.py", "ITEM_NOTES"))
+
+    for side, name, table, why, foreign_mod, foreign_name in pairs:
+        # (1) the other side's module must not read this table
+        try:
+            src = _pl.Path(foreign_mod).read_text()
+        except Exception:
+            src = ""
+        # PARSED, NOT SCANNED, and two bugs of mine are why. A substring test
+        # reports PAPER_ITEM_NOTES as a reference to ITEM_NOTES because the one
+        # contains the other. A word-boundary test then still fires on PROSE --
+        # score.py's own comment says "the mirror of `olx_prompts.ITEM_NOTES`",
+        # which is a citation, not a use. Only a NAME or ATTRIBUTE node is a
+        # reference; comments and docstrings never reach the AST.
+        try:
+            tree = ast.parse(src)
+        except Exception:
+            tree = None
+        used = tree is not None and any(
+            (isinstance(n, ast.Name) and n.id == name)
+            or (isinstance(n, ast.Attribute) and n.attr == name)
+            for n in ast.walk(tree))
+        if used:
+            out.append(f"{foreign_mod} READS {name}, which is {side}-only "
+                       f"by construction -- a side note must not reach the "
+                       f"other engine")
+        # (3) every key needs a stated reason
+        for iid in sorted(table):
+            if not (why.get(iid) or "").strip():
+                out.append(f"{name}[{iid!r}] has no entry in {name}_WHY. Say "
+                           f"what makes it true of the {side} and not the other "
+                           f"side, or move it to the rubric's `guidance` where "
+                           f"both graders get it")
+        for iid in sorted(why):
+            if iid not in table:
+                out.append(f"{name}_WHY[{iid!r}] explains a note that no longer "
+                           f"exists -- drop it")
+
+    # (2) no note's text may appear in the other side's prompt
+    for iid, text in sorted(_SC.PAPER_ITEM_NOTES.items()):
+        probe = " ".join(text.split())[:60]
+        try:
+            web = " ".join(_O.build_web_prompt(iid).split())
+        except Exception:
+            continue
+        if probe and probe in web:
+            out.append(f"PAPER_ITEM_NOTES[{iid!r}] also appears in the WEB "
+                       f"prompt -- it is not paper-specific")
+    for iid, text in sorted(_O.ITEM_NOTES.items()):
+        probe = " ".join(text.split())[:60]
+        it = next((x for x in all_items() if x["id"] == iid), None)
+        if it is None:
+            continue
+        try:
+            paper = " ".join(_SC.build_prompt(
+                it, "x", {"(fingerprint)": ""}, "(fingerprint)").split())
+        except Exception:
+            continue
+        if probe and probe in paper:
+            out.append(f"ITEM_NOTES[{iid!r}] also appears in the PAPER prompt "
+                       f"-- it is not web-specific")
+    return out
+
+
 def check_engine_mechanisms_are_not_item_dependent() -> list[str]:
     """No engine mechanism may be gated on WHICH item is being scored.
 
@@ -5916,6 +6014,16 @@ def check_engine_mechanisms_are_not_item_dependent() -> list[str]:
 
     Two patterns are caught: a module-level container of item ids, and a
     comparison of an item's `id` against a literal id.
+
+    WHAT IS NOT A VIOLATION, and the distinction is the whole point: a table
+    mapping an item to its CONTENT. `olx_prompts.ITEM_NOTES` and
+    `score.PAPER_ITEM_NOTES` are dicts of item -> text, offered to every item by
+    one uniform rule -- "if this item declares a note, emit it" -- and what
+    differs between items is what they say, exactly as `guidance`, `credit` and
+    `maps` differ. Content may vary by item; that is what a rubric IS. A
+    MECHANISM may not, and an id list switching behaviour on and off is a
+    mechanism wearing content's clothes, which is why only the list forms are
+    matched here and a dict is left alone.
     """
     import ast
 

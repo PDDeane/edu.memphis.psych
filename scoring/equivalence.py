@@ -750,6 +750,8 @@ def enforcement_audit():
         findings.append(("-", "PAPER PROMPT IS NOT STAMPED BY ITS OWN SHA", bad))
     for bad in ENF.check_engine_mechanisms_are_not_item_dependent():
         findings.append(("-", "A MECHANISM VARIES BY ITEM", bad))
+    for bad in ENF.check_side_notes_are_side_specific():
+        findings.append(("-", "A SIDE NOTE IS NOT SIDE-SPECIFIC", bad))
     for bad in ENF.check_prompts_carry_no_process_history():
         findings.append(("-", "SHIPPED PROSE CARRIES OUR PROCESS", bad))
     for bad in ENF.check_paper_scorer_agrees_on_identical_verdicts():
