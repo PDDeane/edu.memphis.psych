@@ -1328,6 +1328,40 @@ def _paper_vocab(item: dict, c: dict, text: str) -> str:
             f"field on this side.")
 
 
+# THE ONE PER-ITEM CLAUSE THIS SCORER SHIPS. A list rather than an inline
+# `if item_id == "Q3"` so that what it reaches is readable in one place and
+# adding an item is a visible edit with a measurement attached to it.
+#
+# WHAT IT SAYS, in `_answer_inventory` below: where the student labelled the
+# parts of their answer, judge each answer on its own labelled part and quote
+# evidence from that part.
+#
+# THE DEFECT IT TREATS. Paper's divergences from the other side, on every item
+# examined on 2026-09-09, were one error: an answer credited from text belonging
+# to a DIFFERENT answer, with its own evidence quotes naming the wrong heading
+# verbatim. Q3/p8 credited action_oriented quoting "My goal is SPECIFIC because
+# I plan to work out at least 4 days a week"; Q3/p20 did the same from its
+# Specific sentence; Q3/p9 credited `realistic` from the Actionable sentence on
+# a response with no realistic section at all, which gold charges as missing.
+# The other side cannot make this error: there, each answer has its own field.
+#
+# MEASURED ON Q3, AND NOWHERE ELSE: paper 16.5 -> 17.8 over six runs, runs
+# [17, 17, 18, 18, 18, 19], the gap to the web -3.4 -> -2.1, cross-aspect
+# evidence quoting 6/598 -> 1/600 quotes. Q3 carries the labels it keys on --
+# 13 of its 20 responses label all five aspects, 6 label none, and those 6
+# score correctly without it.
+#
+# IT SHIPPED GLOBALLY FOR ONE DAY and that was wrong two ways: it put text
+# measured on one item into eight others, and it staled the Q4a and Q4c paper
+# columns. A clause measured on one item is evidence about one item.
+#
+# Q6 IS THE ARGUMENT AGAINST GLOBAL, not merely an unmeasured case: only 5 of
+# its 19 responses label anything, and p19 labels "(New C)" over the very text
+# gold charges -- so keying on labels there would confine the grader to a
+# mislabel. Any item added here needs its own six runs first.
+LABELLED_PARTS_ITEMS = ("Q3",)
+
+
 def _answer_inventory(item_id: str) -> str:
     """How many answers this item asks for, and how to read one block for them.
 
@@ -1345,10 +1379,13 @@ def _answer_inventory(item_id: str) -> str:
     applied to this box on its own" presumes a separate box to apply it to.
 
     MECHANICAL, from `olx_prompts.RESPONSE[item]` -- the answers the handout
-    asks for, in order, with the framing already written for each. Nothing here
-    is per-item text, and nothing describes the other side: the grader is told
-    what it asks for, that it arrives as one block, and what to do with an
-    answer that is not there.
+    asks for, in order, with the framing already written for each. Nothing
+    describes the other side: the grader is told what it asks for, that it
+    arrives as one block, and what to do with an answer that is not there.
+
+    ONE CLAUSE IS PER-ITEM, and it is the exception to that: the labelled-parts
+    instruction at the end ships only for the items in LABELLED_PARTS_ITEMS.
+    That declaration carries the measurement and the reason it is not global.
 
     Emitted only above two answers. A single-answer item has no ambiguity about
     which answer is which and gets nothing.
@@ -1384,30 +1421,24 @@ def _answer_inventory(item_id: str) -> str:
             "",
             "An answer they did not write is `absent`: there is nothing in it "
             "to quote or to judge as falling short, so its evidence says what "
-            "you looked for and did not find.",
-            "",
-            # EACH CHECK ON ITS OWN PART. Paper's divergences from the other
-            # side, on every item examined on 2026-09-09, are one error: an
-            # answer credited from text belonging to a DIFFERENT answer. Its own
-            # evidence quotes say so, naming the wrong heading verbatim -- Q3/p8
-            # credited action-oriented while quoting "My goal is SPECIFIC
-            # because I plan to work out at least 4 days a week", and Q3/p20 did
-            # the same from its Specific sentence. Q3/p9 credited `realistic`
-            # from the Actionable sentence on a response with no realistic
-            # section at all, which gold charges as missing. The other side
-            # cannot make this error because each answer has its own field.
-            # CONDITIONAL, and that matters: 13 of Q3's 20 responses label all
-            # five aspects and 6 label none, and the unlabelled ones score
-            # correctly today. So this fires on the labels when they are there
-            # and says nothing when they are not.
-            "Where the student has labelled parts of their answer to match the "
-            "names above, judge each answer on the part they labelled for it, "
-            "and never on what they wrote for another -- a sentence that opens "
-            "by naming a different one of these answers belongs to that one. "
-            "Where they label nothing, read the whole response for each.",
-            "",
-            "The evidence you quote for an answer must come from that answer's "
-            "own part of the response."]
+            "you looked for and did not find."]
+
+    # EACH CHECK ON ITS OWN PART -- for the declared items only. The clause,
+    # its measurement and the argument against shipping it everywhere are in
+    # LABELLED_PARTS_ITEMS above. It is CONDITIONAL twice over: on the item
+    # being declared, and then on the student having labelled anything.
+    if item_id in LABELLED_PARTS_ITEMS:
+        out += ["",
+                "Where the student has labelled parts of their answer to match "
+                "the names above, judge each answer on the part they labelled "
+                "for it, and never on what they wrote for another -- a sentence "
+                "that opens by naming a different one of these answers belongs "
+                "to that one. Where they label nothing, read the whole response "
+                "for each.",
+                "",
+                "The evidence you quote for an answer must come from that "
+                "answer's own part of the response."]
+
     return "\n".join(out) + "\n"
 
 
