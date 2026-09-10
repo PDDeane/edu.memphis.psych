@@ -121,6 +121,74 @@ MIN_EXCLUSIVE = 2
 MAX_STUDENTS_FOR_INFORMATIVE = 4
 
 
+# LANGUAGE FROM OUR OWN PROCESS, LEAKING INTO THE PROMPT. The sibling problem to
+# the one this module was built for. There, the cohort's words get into a rule
+# and the rule stops generalising; here, the MAINTAINER'S words get in and the
+# grader is told about our sweeps, our dates and our ledger -- none of which it
+# can act on, and all of which it must nonetheless read and weigh.
+#
+# The case that prompted this: 2a's second guidance bullet ended "A rule that
+# charged boxes of that shape was measured on 2026-09-02 and broke three cells
+# the graders credit." The RULE is stated completely in the two sentences before
+# it; that sentence is the ARGUMENT FOR the rule, addressed to whoever next
+# edits the rubric. It shipped to both sides.
+PROCESS_PATTERNS = {
+    "a dated measurement":      r"\b20\d\d-\d\d-\d\d\b",
+    "a measurement reported":   (r"\b(was|were) measured\b|\bmeasured on\b"
+                                 r"|\bre-?measured\b|\bbroke \w+ cells?\b"
+                                 r"|\b\w+ cells the graders\b|\b\d+ ?/ ?\d+ cells?\b"),
+    "our process vocabulary":   (r"\bsub-?goal\b|\bsweeps?\b|\bswept\b"
+                                 r"|\bre-?sweep\b|\breverted\b|\bthe ledger\b"),
+    "our code or artefacts":    (r"\bscore\.py\b|\bagreement\.py\b|\bolx_prompts\b"
+                                 r"|\bslotSheet\b|\bprompt sha\b|\bthe \.olx\b"),
+    "this rubric's own history": (r"\bearlier wording\b|\bthis rubric (said|used to)\b"
+                                  r"|\ban earlier version of this rubric\b"),
+}
+
+# CONVENTIONS, NOT ACCIDENTS -- deliberate and pervasive, so they are declared
+# rather than reported. Each is maintainer vocabulary by origin, and each is a
+# CORPUS-WIDE prompt change to remove, needing its own measurement on both
+# sides. Listed so the decision stays visible instead of being lost in the
+# noise floor of a check that reports a hundred hits.
+PROMPT_CONVENTIONS_DECLARED = {
+    r"\bthe graders\b":
+        "~104 uses. Refers to the human raters whose practice the rubric "
+        "encodes -- 'the graders charged nothing for it'. Arguably it conveys "
+        "the STANDARD to the model rather than our process, which is why it is "
+        "declared and not condemned. Removing it is a corpus-wide rewrite.",
+    r"\bIMPLICIT \(from gold\)\b":
+        "~23 uses. A provenance annotation marking a rule read off gold rather "
+        "than authored. 'From gold' names OUR artefact and means nothing to a "
+        "grader; the rule after the colon is what it needs. A candidate for "
+        "removal, measured.",
+    r"\bthis rubric\b|\bthe rubric\b":
+        "~47 uses, mostly self-reference to the criteria the grader is being "
+        "given, which is legible to it. The HISTORY uses -- 'the earlier "
+        "wording of this rubric' -- are caught separately above.",
+}
+
+
+def process_findings(items: tuple) -> list[dict]:
+    """Authored prose carrying language from our process rather than the task.
+
+    Reuses `authored`, so it sees exactly what a grader sees: rubric `guidance`
+    and `rule` strings and `olx_prompts.SLOT_NOTES`. A hit is reported with the
+    block it came from and the phrase in context; the declared conventions above
+    are not reported.
+    """
+    import re as _re
+
+    out = []
+    for key, text in authored(items).items():
+        for name, pat in PROCESS_PATTERNS.items():
+            for m in _re.finditer(pat, text, _re.I):
+                s, e = max(0, m.start() - 70), min(len(text), m.end() + 70)
+                out.append({"block": str(key), "kind": name,
+                            "phrase": m.group(0),
+                            "context": " ".join(text[s:e].split())})
+    return out
+
+
 def _content(text: str) -> list[str]:
     return [w for w in re.findall(r"[a-z']+", (text or "").lower())
             if w not in STOP and len(w) > 3]
