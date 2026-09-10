@@ -155,32 +155,45 @@ DERIVED_KINDS_IMPLEMENTED = frozenset({"contains"})
 # 1.00 on 120/120 cells, Q4b flat 2.00 on 114. Reverted as 44d5a818. The web
 # must keep asking, so the alignment has to come from this side.
 #
-# SCOPED RATHER THAN GLOBAL, AND THE OTHER FIVE MAPPED SLOTS WERE CHECKED
-# BEFORE LEAVING THEM OUT. There are six in the corpus: Q4a's two, Q2's
-# `wgb_inverts_utb`, Q4b's `behavior_1/2`, and 1c's `legend`.
+# A MAPPED VERDICT IS ASKED, ON EVERY ITEM, BECAUSE THE WEB ASKS IT ON EVERY
+# ITEM. `buildSlotSchema`'s computed set is `equals + derived + counts + expect +
+# forbid` -- `maps` is passed in and deliberately left out -- so the web asks all
+# six mapped slots in the corpus and also computes them in `satisfiedMap`, and
+# where the two disagree the SCORE FOLLOWS THE RECORDED VERDICT. Paper had
+# `maps` in primitive_attrs(excluding_keys=True), so it never asked and derived
+# the verdict from the pick alone: the map was a cross-check there and the sole
+# source here.
 #
-# ASKING CAN ONLY ADD CHARGES -- it hands the grader a second chance to REFUSE
-# what the pick credited -- so it helps only where all three hold: paper
-# OVER-credits, the web CHARGES the mapped slot, and the divergence is
-# PAPER-ONLY. That is Q4a/p18 exactly. Counted over the 3-run corpus screen and
-# the web's twelve runs, no cell on any other item has the shape:
+# THIS WAS SCOPED TO Q4a FOR ONE COMMIT AND THAT WAS WRONG. It made paper handle
+# mapped slots two ways depending on the item while the web handles them one
+# way -- a fresh asymmetry, of the kind the rest of this file exists to remove.
+# The argument for scoping was that only Q4a measured a gain, which optimises
+# the score rather than matching the engine, and the reasoning under it was
+# false: I claimed asking "can only add charges", but every map ends in a
+# FALLBACK that charges (`*->wrong_kind` on Q4b, `*->not_antecedent` on Q4a,
+# `*->absent` on Q2 and 1c), so deriving can OVER-charge and asking relieves it.
 #
-#   Q2    no wrong cell at all -- paper 19.7 against the web's 18.9, recorded
-#         20/20. Nothing to refuse, and its `wgb_names` pick is one of the
-#         project's wins (p18 3/12 -> 12/12 by naming the kind). Pure downside.
-#   Q4b   CONTRAINDICATED. Its three wrong cells are wrong ON BOTH SIDES --
-#         p4 and p12 score 3.5 on paper AND on the web against gold 2.0 and
-#         5.0 -- so they are a shared judgement question, not a translation
-#         defect. And two are UNDER-credits, which another chance to charge
-#         moves further from gold, not closer.
-#   1c    the mapped slot is not what is broken: paper scores 0.0 on nine cells
-#         where the web hits gold, which is the `has_own_graph` GATE collapsing
-#         the item on a backend that cannot see the figure. Asking `legend`
-#         cannot lift a gated zero. Declared not-comparable.
+# THE MEASURED CASE, Q4a. `antecedent_1/2` map from `antecedent_kind_1/2`
+# (before->met, none->absent, *->not_antecedent). Paper answered `kind=before`
+# on p18 and p20 and derived met/met, scoring 5.00 in all six runs against gold
+# 3.00 and 1.00; the web asks the verdict, charges it, and is 12/12 on both.
+# Asking took Q4a 16/20 -> 17/20 and p18 0/3 -> 5/6, with no casualty among the
+# 15 cells perfect on both sides. p20 did not move: reach was fixed and the
+# judgement is still wrong, which no plumbing change reaches.
 #
-# So the test for adding an item here is that signature, not the presence of a
-# `maps` rule.
-ASK_MAPPED_VERDICT_ITEMS = ("Q4a",)
+# WHAT THE OTHER FOUR LOOK LIKE, so a later reader knows they were examined and
+# not forgotten. Q4b's derived and the web's asked verdicts largely COINCIDE --
+# p4 derives `wrong_kind` where the web recorded `wrong_kind` 12/12, p12 splits
+# 2:1 against the web's 8:4 -- so the pick is a faithful proxy there and little
+# should change. Q2 has no wrong cell at all (paper 19.7 against the web's
+# 18.9). 1c's gap is its `has_own_graph` GATE on a backend that cannot see the
+# figure, not `legend`; asking cannot lift a gated zero.
+#
+# THE OPPOSITE FIX ON THE WEB WAS TRIED AND REVERTED: lo-blocks b6d3f070 added
+# `maps` to the computed set -- stop asking what can be computed, the right
+# instinct -- and CHARGED POINTS WRONGLY, Q4a flat 1.00 on 120/120 cells and Q4b
+# flat 2.00 on 114. Reverted as 44d5a818. So the direction is fixed: paper asks
+# what the web asks, never the reverse.
 
 
 def _computed_keys(item: dict) -> set:
@@ -221,10 +234,9 @@ def _computed_keys(item: dict) -> set:
             # honest translation is to ASK -- not to declare an asymmetry.
             if attr == "derived" and rule.get("kind") in _EXEMPT_KINDS():
                 continue
-            # A MAPPED KEY THE WEB ASKS IS ASKED HERE TOO. See
-            # ASK_MAPPED_VERDICT_ITEMS for the measurement and for why the
-            # mirror-image fix on the web was reverted.
-            if attr == "maps" and item.get("id") in ASK_MAPPED_VERDICT_ITEMS:
+            # A MAPPED KEY IS ASKED, NOT EXCLUDED -- the web asks all of them.
+            # See the note above `_computed_keys` for the measurement.
+            if attr == "maps":
                 continue
             if rule.get("key"):
                 out.add(rule["key"])
@@ -691,8 +703,7 @@ def derive_ledger(item: dict, raw: dict,
         # it would make asking pointless: the model would answer the check and
         # the pick would still decide it. This is the web's own precedence, the
         # one check_mapped_slots_agree_with_their_map reports against.
-        if ((slots.get(rule["key"]) or {}).get("verdict")
-                and item.get("id") in ASK_MAPPED_VERDICT_ITEMS):
+        if (slots.get(rule["key"]) or {}).get("verdict"):
             continue
         entry = slots.get(rule["pick"]) or {}
         got = str(entry.get("refers_to") or entry.get("verdict") or "").strip()
@@ -1277,8 +1288,20 @@ def fill_fail(text: str, item: dict, c: dict) -> str:
 
 
 
+# THE BARE `the box` WAS MISSING AND IT COST THE Q4a `none` OPTION. The pattern
+# covered "this box", "the other box" and the ordinals, so 13 of Q4a's 15 box
+# references translated and TWO did not -- both of them the `none` bullet, "the
+# box names nothing at all", which is the option that says an answer is not
+# there at all. Against a flat response that condition CANNOT BE OBSERVED: there
+# is no box to be empty, a missing second antecedent just means the prose stops,
+# and the sibling option `before` advertises "Most entries are this". So the
+# grader picked `before` where the web picks `none` 12 of 12, and Q4a/p18 took
+# full marks against gold 3.00.
+#
+# Ordinals stay ahead of the bare form in the alternation: "the first box" must
+# resolve to the FIRST box, not to the slot's own.
 _DEICTIC = re.compile(
-    r"\b(this box|the other box|the (first|second|third) box)\b", re.I)
+    r"\b(this box|the other box|the (first|second|third) box|the box)\b", re.I)
 
 
 def _describe_boxes(item: dict, c: dict, text: str) -> str:
@@ -1391,38 +1414,6 @@ def _paper_vocab(item: dict, c: dict, text: str) -> str:
             f"field on this side.")
 
 
-# THE ONE PER-ITEM CLAUSE THIS SCORER SHIPS. A list rather than an inline
-# `if item_id == "Q3"` so that what it reaches is readable in one place and
-# adding an item is a visible edit with a measurement attached to it.
-#
-# WHAT IT SAYS, in `_answer_inventory` below: where the student labelled the
-# parts of their answer, judge each answer on its own labelled part and quote
-# evidence from that part.
-#
-# THE DEFECT IT TREATS. Paper's divergences from the other side, on every item
-# examined on 2026-09-09, were one error: an answer credited from text belonging
-# to a DIFFERENT answer, with its own evidence quotes naming the wrong heading
-# verbatim. Q3/p8 credited action_oriented quoting "My goal is SPECIFIC because
-# I plan to work out at least 4 days a week"; Q3/p20 did the same from its
-# Specific sentence; Q3/p9 credited `realistic` from the Actionable sentence on
-# a response with no realistic section at all, which gold charges as missing.
-# The other side cannot make this error: there, each answer has its own field.
-#
-# MEASURED ON Q3, AND NOWHERE ELSE: paper 16.5 -> 17.8 over six runs, runs
-# [17, 17, 18, 18, 18, 19], the gap to the web -3.4 -> -2.1, cross-aspect
-# evidence quoting 6/598 -> 1/600 quotes. Q3 carries the labels it keys on --
-# 13 of its 20 responses label all five aspects, 6 label none, and those 6
-# score correctly without it.
-#
-# IT SHIPPED GLOBALLY FOR ONE DAY and that was wrong two ways: it put text
-# measured on one item into eight others, and it staled the Q4a and Q4c paper
-# columns. A clause measured on one item is evidence about one item.
-#
-# Q6 IS THE ARGUMENT AGAINST GLOBAL, not merely an unmeasured case: only 5 of
-# its 19 responses label anything, and p19 labels "(New C)" over the very text
-# gold charges -- so keying on labels there would confine the grader to a
-# mislabel. Any item added here needs its own six runs first.
-LABELLED_PARTS_ITEMS = ("Q3",)
 
 
 def _answer_inventory(item_id: str) -> str:
@@ -1446,9 +1437,10 @@ def _answer_inventory(item_id: str) -> str:
     describes the other side: the grader is told what it asks for, that it
     arrives as one block, and what to do with an answer that is not there.
 
-    ONE CLAUSE IS PER-ITEM, and it is the exception to that: the labelled-parts
-    instruction at the end ships only for the items in LABELLED_PARTS_ITEMS.
-    That declaration carries the measurement and the reason it is not global.
+    THE LABELLED-PARTS CLAUSE AT THE END SHIPS FOR EVERY ITEM THIS EMITS FOR.
+    It was briefly gated to Q3, where it was measured, until that was seen for
+    an item-dependent MECHANISM. It stays conditional on what the STUDENT did,
+    which is decided per submission.
 
     Emitted only above two answers. A single-answer item has no ambiguity about
     which answer is which and gets nothing.
@@ -1486,21 +1478,34 @@ def _answer_inventory(item_id: str) -> str:
             "to quote or to judge as falling short, so its evidence says what "
             "you looked for and did not find."]
 
-    # EACH CHECK ON ITS OWN PART -- for the declared items only. The clause,
-    # its measurement and the argument against shipping it everywhere are in
-    # LABELLED_PARTS_ITEMS above. It is CONDITIONAL twice over: on the item
-    # being declared, and then on the student having labelled anything.
-    if item_id in LABELLED_PARTS_ITEMS:
-        out += ["",
-                "Where the student has labelled parts of their answer to match "
-                "the names above, judge each answer on the part they labelled "
-                "for it, and never on what they wrote for another -- a sentence "
-                "that opens by naming a different one of these answers belongs "
-                "to that one. Where they label nothing, read the whole response "
-                "for each.",
-                "",
-                "The evidence you quote for an answer must come from that "
-                "answer's own part of the response."]
+    # EACH CHECK ON ITS OWN PART, ON EVERY ITEM THAT ASKS FOR MORE THAN ONE
+    # ANSWER. This was gated to Q3 alone, where it was measured (+1.3 cells,
+    # 16.5 -> 17.8 over six runs) -- but A MECHANISM MAY NOT VARY BY ITEM, and
+    # scoping one to where it happens to pay is how an engine becomes
+    # item-shaped. The clause is not item-specific content: it is a general
+    # instruction for reading a flat response, and the defect it treats -- an
+    # answer credited from text belonging to a DIFFERENT answer -- was found on
+    # every item examined, not only on Q3.
+    #
+    # IT IS STILL CONDITIONAL, ON THE RIGHT THING: what the student did. "Where
+    # they label nothing, read the whole response for each" is decided per
+    # submission, not by which item is being scored. That is the legitimate
+    # kind of gate; an id list is not.
+    #
+    # THE KNOWN RISK IS Q6, and it is a risk to MEASURE rather than to design
+    # around: 5 of its 19 responses label anything at all, and p19 labels
+    # "(New C)" over the very text gold charges, so keying on labels there
+    # could confine the grader to a mislabel.
+    out += ["",
+            "Where the student has labelled parts of their answer to match "
+            "the names above, judge each answer on the part they labelled "
+            "for it, and never on what they wrote for another -- a sentence "
+            "that opens by naming a different one of these answers belongs "
+            "to that one. Where they label nothing, read the whole response "
+            "for each.",
+            "",
+            "The evidence you quote for an answer must come from that "
+            "answer's own part of the response."]
 
     return "\n".join(out) + "\n"
 

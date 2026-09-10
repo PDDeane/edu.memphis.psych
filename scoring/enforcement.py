@@ -5830,30 +5830,33 @@ def paper_scorer_agreement_line() -> str:
 # which is the point of writing them down here -- an experiment that is never
 # generalised is just an item-dependent engine with a comment.
 ITEM_GATED_MECHANISMS: dict[tuple[str, str], str] = {
-    ("olx_prompts", "UTB_CHOICE"):
-        "Q1 keeps the choice section because comparing the chosen and described "
-        "UTB IS its job (`matches_selected`). The closest of the four to being "
-        "content rather than mechanism -- but it is still a hard-coded id list, "
-        "and it would be content if it were derived from the item's own "
-        "components instead.",
-    ("olx_prompts", "TERSE_CREDIT"):
-        "Its own comment: 'Q1 only, as an experiment. If it pays, the same is "
-        "worth trying corpus-wide.' RETIRE BY measuring it corpus-wide, or by "
-        "dropping it. Note the opposite result is on record for "
-        "`cadence_is_daily`, so generalising is not obviously safe.",
-    ("olx_prompts", "RELAX_UTB_AUTHORITY"):
-        "Its own comment: 'Q1 only, to keep the measurement clean; Q2 carries "
-        "the same section and would need its own re-measurement if this is "
-        "generalised.' RETIRE BY measuring Q2 and generalising.",
-    ("score", "LABELLED_PARTS_ITEMS"):
-        "The labelled-parts clause, measured on Q3 (+1.3 cells) and shipped "
-        "there alone. This one is PROMPT TEXT gated by item, so the honest "
-        "resolutions are to make it uniform or to move it into the rubric as "
-        "per-item content. RETIRE BY measuring it on the other >=2-answer "
-        "items -- Q6 is the known hard case, where 5 of 19 responses label "
-        "anything and p19 mislabels the cell gold charges.",
+    # RETIRED 2026-09-10, both FIXED rather than declared:
+    #   olx_prompts.UTB_CHOICE   -> derived from the rubric's own
+    #       `reads_utb_choice`, already True on Q1 AND Q2. The list said Q1,
+    #       score.py honoured the flag for both, so the sides disagreed on Q2
+    #       because the engine contradicted the rubric.
+    #   olx_prompts.TERSE_CREDIT -> deleted. Q1 alone got a credit list with no
+    #       descriptions, an "experiment" never generalised, and score.py never
+    #       implemented it -- so Q1 was the one item whose two sides were asked
+    #       different questions.
+    #   olx_prompts.RELAX_UTB_AUTHORITY -> deleted, heading uniform as "from the
+    #       list". Its own declaration already judged "(authoritative)" WRONG --
+    #       it asserts authority over the judgement and contradicts
+    #       `utb_stated`'s rule -- and scoped the correction to Q1 "to keep the
+    #       measurement clean", which is how wording known to be wrong stayed
+    #       shipped on the other 25. It was inert until UTB_CHOICE was derived
+    #       from the rubric, at which point Q2 started receiving the word Q1 had
+    #       been spared: fixing one item-gated mechanism activated the next.
+    #   score.LABELLED_PARTS_ITEMS -> deleted, the clause now ships on every
+    #       item that asks for more than one answer. It was gated to Q3 because
+    #       that is where it was measured, which is the same score-optimising
+    #       argument the other three used. It stays conditional on what the
+    #       STUDENT did -- "where they label nothing, read the whole response"
+    #       -- which is decided per submission and is the legitimate kind of
+    #       gate. Q6 is the known risk and is being measured, not designed
+    #       around.
 }
-ITEM_GATED_BUDGET = 4
+ITEM_GATED_BUDGET = 0
 
 _ENGINE_MODULES = ("score", "agreement", "agreement_app", "olx_prompts")
 

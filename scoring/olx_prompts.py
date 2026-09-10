@@ -346,7 +346,6 @@ CONTEXT: dict[str, list[tuple[str, str]]] = {
 # exists to prevent. That guard keys on component id, so pointing context at a
 # different component walked straight past it. Q1 keeps the section because
 # comparing the two IS its job (`matches_selected`).
-UTB_CHOICE = ("Q1",)
 
 # Ref ids already in the .olx, kept so component ids stay stable across the
 # rewrite: (action id, target) -> ref id. Anything not here is minted below.
@@ -1710,21 +1709,6 @@ MATCH_DEF = {
 # note the opposite result is on record for `cadence_is_daily`, where repeating a
 # caveat NEAR THE DECISION POINT was measured as a win. Repetition close to the
 # verdict helped there; duplication across two sections may not be the same thing.
-TERSE_CREDIT = {"Q1"}
-
-
-# Items where the chosen-behaviour section drops the word "authoritative".
-#
-# That word was aimed at a comparison the model never sees: score.py reads a
-# "weak hint" out of the .docx's underline formatting, right in only 6 of 20
-# transcriptions, and the closed choice is reliable by contrast. As prompt text
-# it instead asserts authority over the JUDGEMENT, which now contradicts
-# `utb_stated`'s own rule that the field does not satisfy the check. Nothing
-# slot-specific is added here to compensate — the rule stays in the slot's desc.
-#
-# Q1 only, to keep the measurement clean; Q2 carries the same section and would
-# need its own re-measurement if this is generalised.
-RELAX_UTB_AUTHORITY = {"Q1"}
 
 
 def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
@@ -1768,10 +1752,20 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
             worth = (" **GATE**" if c.get("gates")
                      else "" if c.get("pts") is None
                      else f" ({c['pts']:g} pt)")
-            if item_id in TERSE_CREDIT:
-                p.append(f"- `{c['what']}`{worth}")
-            else:
-                p.append(f"- `{c['what']}`{worth}: {c['desc']}")
+            # EVERY ITEM GETS THE DESC. This was `if item_id in TERSE_CREDIT`
+            # -- Q1 alone got a bare `- \`slot\` (2 pt)` while the other 25 got
+            # the description too. Its own comment called it "Q1 only, as an
+            # experiment. If it pays, the same is worth trying corpus-wide", and
+            # it never was. A MECHANISM MAY NOT VARY BY ITEM: only rubric
+            # content may, and an experiment that is never generalised is just
+            # an item-dependent engine with a comment on it.
+            #
+            # IT ALSO MADE Q1 THE ONE ITEM WHOSE TWO SIDES WERE ASKED DIFFERENT
+            # QUESTIONS. score.py never implemented it, so on Q1 the web showed
+            # a bare checklist while paper showed desc AND rule for every slot
+            # -- which is exactly the paper-vs-web comparison Q1 is supposed to
+            # supply evidence for.
+            p.append(f"- `{c['what']}`{worth}: {c['desc']}")
         p.append("")
 
     # The deduction table goes to EVERY item, including the two shapes where
@@ -1825,13 +1819,32 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
     # as two different answers.
     seen: set[str] = set()
 
-    if item_id in UTB_CHOICE:
-        p.append(
-            ("## The behavior they chose from the list\n"
-             if item_id in RELAX_UTB_AUTHORITY else
-             "## The behavior they chose (authoritative)\n")
-            + "Chosen from the four on the list, before question 1."
-        )
+    # THE RUBRIC ALREADY DECLARES THIS, so read it instead of hard-coding ids.
+    # `UTB_CHOICE = ("Q1",)` was a mechanism list that DISAGREED with the
+    # content: `reads_utb_choice` is True on Q1 AND Q2, score.py honours it for
+    # both, and the web rendered the section for Q1 only. So the two sides
+    # differed on Q2 because a list in the engine contradicted the rubric.
+    # RELAX_UTB_AUTHORITY's own comment -- "Q2 carries the same section and
+    # would need its own re-measurement" -- reads as confused until you see
+    # that Q2 declared the section and was excluded from receiving it.
+    if item.get("reads_utb_choice"):
+        # "FROM THE LIST" FOR EVERY ITEM. This was `RELAX_UTB_AUTHORITY =
+        # {"Q1"}`, so Q1 read "from the list" and everyone else "(authoritative)"
+        # -- and that word was already judged WRONG by its own declaration: it
+        # was aimed at a comparison the model never sees (score.py's weak hint,
+        # right in only 6 of 20 transcriptions) and as prompt text it asserts
+        # authority over the JUDGEMENT instead, contradicting `utb_stated`'s own
+        # rule that the field does not satisfy the check. It was scoped to Q1
+        # "to keep the measurement clean", which is how wording known to be
+        # wrong stayed shipped everywhere else.
+        #
+        # IT ONLY STARTED TO BITE when UTB_CHOICE was derived from the rubric's
+        # `reads_utb_choice`: Q2 declares that flag, so Q2 began receiving the
+        # section AND the word Q1 had been spared. Fixing one item-gated
+        # mechanism activated the next -- which is the argument for the rule
+        # rather than against it.
+        p.append("## The behavior they chose from the list\n"
+                 + "Chosen from the four on the list, before question 1.")
         p.append(_ref(action, "bmod_h1_utb", minted) + "\n")
         seen.add("bmod_h1_utb")
 
