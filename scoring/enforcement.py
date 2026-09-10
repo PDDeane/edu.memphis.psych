@@ -5861,6 +5861,45 @@ ITEM_GATED_BUDGET = 0
 _ENGINE_MODULES = ("score", "agreement", "agreement_app", "olx_prompts")
 
 
+def check_prompts_carry_no_process_history() -> list[str]:
+    """Shipped prose must not tell the grader about OUR process.
+
+    THE SIBLING OF leakage.py's ORIGINAL PROBLEM. There, the cohort's words get
+    into a rule and the rule stops generalising. Here the MAINTAINER'S words get
+    in: the grader is told about a sweep, a date, a cell count or an earlier
+    draft of the rubric -- none of which it can act on, all of which it must
+    read and weigh, and none of which anybody decided to say to it.
+
+    FOUND BY ACCIDENT, while tracing box deixis. 2a's second guidance bullet
+    ended "A rule that charged boxes of that shape was measured on 2026-09-02
+    and broke three cells the graders credit." The RULE is complete in the two
+    sentences before it; that one is the ARGUMENT FOR it, addressed to whoever
+    next edits the rubric, and it shipped to BOTH sides.
+
+    Scanned over `leakage.authored`, which is exactly what a grader sees, and
+    deduplicated per (item, kind, phrase) because a bullet appears both on its
+    own and inside the assembled prompt. The pervasive CONVENTIONS -- "the
+    graders", "IMPLICIT (from gold)", "the rubric" -- are declared in
+    `leakage.PROMPT_CONVENTIONS_DECLARED` rather than reported: each is a
+    corpus-wide rewrite needing its own measurement, and burying one real
+    accident under 174 deliberate uses is how a check gets ignored.
+    """
+    import leakage as _L
+
+    items = tuple(it["id"] for it in all_items())
+    seen, out = set(), []
+    for f in _L.process_findings(items):
+        item = str(f["block"]).split()[0]
+        key = (item, f["kind"], f["phrase"].lower())
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(f"{item}: shipped prose carries {f['kind']} -- "
+                   f"{f['phrase']!r} in \u2026{f['context'][:110]}\u2026. The grader "
+                   f"cannot act on this; move it to a comment beside the rule")
+    return out
+
+
 def check_engine_mechanisms_are_not_item_dependent() -> list[str]:
     """No engine mechanism may be gated on WHICH item is being scored.
 
