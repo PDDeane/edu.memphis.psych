@@ -1057,8 +1057,64 @@ def _out_pointer(runs_path: str) -> str:
         return d.name
 
 
+def _refuse_unreachable(item: str, runs_path: str, side: str) -> None:
+    """Refuse to record an artifact the ledger will not be able to read back.
+
+    THE LEDGER STORES A POINTER, NOT THE RUNS. `_out_pointer` writes the
+    artifact's directory RELATIVE TO paths.OUT, and falls back to the bare
+    directory NAME for anything outside that tree -- which resolves only if a
+    directory of that name happens to exist under paths.OUT. Fold somewhere else
+    and the column records fine, reads back as nothing, and every downstream
+    check silently agrees that there is nothing wrong on that side.
+
+    THAT IS NOT HYPOTHETICAL, TWICE. `record`'s own comment already describes it
+    costing five wrong cells when sweep_paper.sh folded into `out/<dir>/runs/`
+    and the basename came out as the literal "runs". On 2026-09-10 it happened
+    again at full scale: all 26 paper columns were folded into a scratchpad
+    directory, recorded without complaint, and every one of them had unreachable
+    per-cell data. `check_mapped_slots_agree_with_their_map` reported the same
+    count before and after -- having read zero paper rows.
+
+    Checked here because this is the moment the path is in hand. The artifact
+    itself is proof it exists; what needs proving is that the POINTER finds it.
+    """
+    import paths as _p
+
+    ptr = _out_pointer(runs_path)
+    resolved = Path(_p.OUT) / ptr / f"{item}.runs.json"
+    if resolved.exists():
+        # AND IT MUST BE THIS ARTIFACT. Resolving is not enough: the fallback is
+        # a bare directory NAME, so folding to `somewhere_else/foo` while an
+        # unrelated `out/foo` exists would point the column at the wrong runs --
+        # a worse failure than an unreadable one, because it reads.
+        try:
+            here = json.loads(Path(runs_path).read_text())
+            there = json.loads(resolved.read_text())
+        except Exception:
+            return                      # unreadable is the caller's problem below
+        def shape(d):
+            runs = d.get("runs") or []
+            return (len(runs), [len(r.get("results") or []) for r in runs])
+        if shape(here) != shape(there) and Path(runs_path).resolve() != resolved.resolve():
+            raise SystemExit(
+                f"REFUSED: {item} [{side}] would record `out` = {ptr!r}, which "
+                f"resolves to {resolved} -- a DIFFERENT artifact from the one "
+                f"passed ({runs_path}): {shape(there)} runs/results against "
+                f"{shape(here)}. The column would read back someone else's runs."
+            )
+        return
+    raise SystemExit(
+        f"REFUSED: {item} [{side}] would record `out` = {ptr!r}, which resolves "
+        f"to {resolved} and does not exist. The artifact is at {runs_path}, "
+        f"OUTSIDE paths.OUT ({_p.OUT}), so the column would read back as nothing "
+        f"and every check over it would silently find nothing wrong. Fold or copy "
+        f"the artifact under paths.OUT and record from there."
+    )
+
+
 def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     """Write item's entry FROM a run artifact, so it cannot claim what was not run."""
+    _refuse_unreachable(item, runs_path, side)
     import handouts as H
     import gold
     import agreement_app as APP
@@ -6184,6 +6240,15 @@ def slot_answer(result: dict, key: str):
     # stop. Subgoal E28 is 24 items of paper measurement waiting to be read.
     for c in (result.get("credit_checks") or []):
         if isinstance(c, dict) and c.get("what") == key:
+            # THE RECORDED VALUE, not a met/absent fold of the `met` flag. That
+            # fold DISCARDED what was actually answered, so a pick came back as
+            # `absent` where the artifact said `before` -- and
+            # check_mapped_slots_agree_with_their_map was handed a wrong pick
+            # and a null verdict on the same row, from the two readers its own
+            # comment calls canonical.
+            v = c.get("verdict")
+            if v not in (None, ""):
+                return _same_shape(v)
             return "met" if c.get("met") else "absent"
     return None
 
@@ -6211,6 +6276,33 @@ def _same_shape(v):
     return v
 
 
+@functools.lru_cache(maxsize=None)
+def _pick_slots(item_id: str) -> frozenset:
+    """Slots that answer a PICK rather than a verdict, for one item.
+
+    DECLARED, not guessed: SLOT_SPEC carries each sheet slot's `seg`, and a
+    segment of the form `pick(setname)` means the slot answers WHICH member of
+    that set it refers to. Read with `olx_prompts.pick_set`, which is the parser
+    the web uses on the same string, so the two sides cannot drift on what
+    counts as a pick.
+
+    Needed because the PAPER artifact stores a pick's value in the same
+    `verdict` field as a real verdict, so `slot_verdict` cannot tell them apart
+    from the artifact alone -- and its whole contract is that it never returns a
+    pick.
+    """
+    import olx_prompts as O
+    import rubric_h1
+    import rubric_h2
+    import rubric_h3
+
+    for mod in (rubric_h1, rubric_h2, rubric_h3):
+        spec = (getattr(mod, "SLOT_SPEC", {}) or {}).get(item_id)
+        if spec:
+            return frozenset(d["key"] for d in spec if O.pick_set(d.get("seg")))
+    return frozenset()
+
+
 def slot_verdict(result: dict, key: str):
     """The VERDICT a result records for one slot, never its pick value.
 
@@ -6229,6 +6321,25 @@ def slot_verdict(result: dict, key: str):
             v = v.get("verdict")
         if v not in (None, ""):
             return v
+    # THE PAPER SCORER IS A THIRD SHAPE and this reader did not know it, while
+    # `slot_answer` below did. So every check meaning "what verdict was
+    # recorded" skipped every paper row and returned its findings anyway --
+    # indistinguishable from having looked. That is how an off-map verdict this
+    # project INTRODUCED went unreported by the check written to catch exactly
+    # it: Q4a/p18 recorded `antecedent_kind_2` = `before`, which the map sends
+    # to `met`, beside an answered `antecedent_2` = `absent`, five runs of six.
+    for c in (result.get("credit_checks") or []):
+        if not isinstance(c, dict) or c.get("what") != key:
+            continue
+        # THE CONTRACT HOLDS: never a pick. Paper writes a pick's value into the
+        # same `verdict` field as a real verdict, so they are indistinguishable
+        # in the artifact and must be separated by the SHEET.
+        if key in _pick_slots(result.get("item_id") or ""):
+            return None
+        v = c.get("verdict")
+        if v not in (None, ""):
+            return v
+        return "met" if c.get("met") else "absent"
     return None
 
 
