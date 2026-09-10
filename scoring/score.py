@@ -1718,6 +1718,56 @@ def build_prompt(
     return "\n".join(parts)
 
 
+
+def fingerprint_text(item_id: str) -> str:
+    """Everything THIS scorer asks about `item_id`, minus the submission.
+
+    WHY IT EXISTS. `measured.prompt_sha` hashed the .olx section a WEB grader is
+    served and had no paper branch, so `prompt_sha(item, "paper")` returned the
+    web's hash -- for Q3 the paper and olx shas were the same twelve characters.
+    Every paper-only element was therefore unstamped, and on 2026-09-10 that was
+    seven of them at once: the labelled-parts clause, `_answer_inventory`,
+    `_slot_body`'s desc+rule merge (the Q2 9/20 -> 20/20 fix), `_computed_keys`'
+    exempt-derived skip, `_web_vocab`'s enums, `derive_ledger`'s hedge fix and
+    SYSTEM_TMPL. All shipped, none moved a sha, and the labelled-parts clause
+    shipped GLOBALLY for a day without staling one paper column.
+
+    `scorer_sha` does not cover it either: its closure for Q3 is 25 parts across
+    agreement/olx_prompts/handouts and none in this file, and it is deliberately
+    prose-insensitive -- which is right for behaviour and wrong for a prompt,
+    where the prose IS the behaviour.
+
+    WHAT IS FIXED SO IT HASHES THE TEXT AND NOT THE SUBMISSION: an empty
+    response, so the response section is its constant blank marker. The
+    conditional blocks are rendered rather than skipped -- a one-key context and
+    a placeholder hint -- because their instruction prose is prompt text that
+    would otherwise be hashed only for the items that happen to receive them.
+
+    The schema is included: `build_schema` carries the per-slot verdict enums,
+    and narrowing an enum changes what the grader may answer as surely as
+    rewording the question does.
+
+    NOT COVERED, and stated rather than left to be discovered: the graph-evidence
+    section, which `build_prompt` renders only when `extra` is passed and which
+    is per-submission. Its header is one constant line.
+    """
+    import json
+
+    import handouts as H
+
+    for h in (1, 2, 3):
+        cfg = H.config(h)
+        item = next((i for i in cfg["rubric"].ITEMS if i["id"] == item_id), None)
+        if item is None:
+            continue
+        return "\n".join([
+            SYSTEM_TMPL.format(blurb=cfg["blurb"]),
+            build_prompt(item, "", {"(fingerprint)": ""}, "(fingerprint)"),
+            json.dumps(build_schema(item), sort_keys=True),
+        ])
+    raise KeyError(f"{item_id}: not in handout 1, 2 or 3's rubric")
+
+
 _LEADING_PTS = re.compile(r"^-\s*[\d.]+\s*pts?\s*:\s*", re.I)
 
 

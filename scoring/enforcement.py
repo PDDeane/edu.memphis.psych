@@ -5812,6 +5812,60 @@ def paper_scorer_agreement_line() -> str:
             f"this.")
 
 
+def check_paper_prompt_is_stamped() -> list[str]:
+    """The paper column's prompt sha must be the PAPER prompt's.
+
+    WHAT WENT WRONG. `measured.prompt_sha` hashes the .olx section a web grader
+    is served and had no paper branch, so it returned the WEB's hash for
+    `side="paper"` -- Q3's paper and olx shas were the same twelve characters.
+    Nothing the paper scorer alone decides was stamped by anything: not
+    `_answer_inventory`, not `LABELLED_PARTS_ITEMS`, not `_slot_body`'s
+    desc+rule merge, not the verdict enums in `build_schema`. On 2026-09-10 all
+    of those changed, none moved a sha, and the labelled-parts clause shipped
+    GLOBALLY for a day without staling a single paper column. `scorer_sha` does
+    not cover it either: its closure holds no part from score.py, and it is
+    prose-insensitive by design -- right for behaviour, wrong for a prompt.
+
+    THREE THINGS ARE CHECKED, and the second is the one that would have caught
+    it: the fingerprint must BUILD for every item, no item's paper sha may equal
+    its olx sha, and no recorded paper column may be stamped with the hash the
+    olx side currently reports. That last one only catches a FRESH borrowed
+    stamp -- once the .olx moves, a historical borrowed stamp is
+    indistinguishable from an honestly stale one, which is why the invariant is
+    enforced at the source instead of being left to the ledger to notice.
+    """
+    import measured as M
+    import score as SC
+
+    out = []
+    for it in all_items():
+        item = it["id"]
+        try:
+            SC.fingerprint_text(item)
+        except Exception as e:
+            out.append(f"{item}: score.fingerprint_text does not build "
+                       f"({type(e).__name__}: {e}) -- the paper prompt cannot "
+                       f"be stamped, so a paper sweep would record unstamped")
+            continue
+        try:
+            paper, olx = M.prompt_sha(item, "paper"), M.prompt_sha(item, "olx")
+        except Exception as e:
+            out.append(f"{item}: prompt_sha failed ({type(e).__name__}: {e})")
+            continue
+        if paper == olx:
+            out.append(f"{item}: the paper and olx prompt shas are both "
+                       f"{paper} -- the paper side is borrowing the web's "
+                       f"stamp, so a paper-only prompt change stales nothing")
+        for side in ("paper", "paper_opus"):
+            rec = (M.load().get("items", {}).get(item, {}) or {}).get(side)
+            if rec and rec.get("prompt_sha") == olx:
+                out.append(f"{item} [{side}]: recorded at prompt_sha {olx}, "
+                           f"which is the OLX side's current hash -- that "
+                           f"column is stamped with the web's prompt and "
+                           f"cannot say what produced it; re-record it")
+    return out
+
+
 def check_paper_reproduces_web_scores() -> list[str]:
     """The web's own judgments, run through PAPER's arithmetic. Do they score alike?
 

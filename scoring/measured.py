@@ -147,7 +147,28 @@ def prompt_sha(item: str, side: str | None = None,
     `side="python"` hashes only what agreement.py consumes -- see
     `_olx_only_visible`. Omit it for the `olx` side, which is served the tag
     entire.
+
+    THE PAPER SIDES ARE NOT SERVED THE .OLX AT ALL and had no branch here, so
+    they were stamped with the WEB's hash: for Q3 the paper and olx shas were
+    the same string, and every paper-only prompt element went unstamped. They
+    hash `score.fingerprint_text` instead, which is that scorer's own prompt.
+    A paper prompt change now reads STALE PROMPT, which is what it is -- not
+    STALE SCORER, and no longer nothing at all.
     """
+    if side in ("paper", "paper_opus"):
+        if olx_text is not None:
+            # The historical-revision path cannot serve these sides: the paper
+            # prompt is built from the rubric and this file's own code, not from
+            # the .olx, so a past .olx says nothing about it. Refused rather
+            # than answered with the CURRENT prompt under a historical caller's
+            # name, which is the failure this whole branch exists to end.
+            raise ValueError(
+                f"prompt_sha({item!r}, {side!r}): olx_text cannot re-stamp a "
+                f"paper side -- its prompt does not come from the .olx"
+            )
+        import score as SC
+        return hashlib.sha256(
+            SC.fingerprint_text(item).encode()).hexdigest()[:12]
     jobs = _jobs()
     job = jobs[item]
     sid = job["screen"].split("/")[-1]
@@ -801,8 +822,12 @@ def era_stamp(items=None, model: str | None = None,
     per = {}
     for it in items:
         try:
+            # ALL THREE PROMPTS, one per prompt source. `prompt_sha_paper`
+            # was missing entirely, so reading it off an era returned None and
+            # looked like an unstamped artifact rather than an absent field.
             per[it] = {"prompt_sha": prompt_sha(it), "scorer_sha": scorer_sha(it),
-                       "prompt_sha_python": prompt_sha(it, "python")}
+                       "prompt_sha_python": prompt_sha(it, "python"),
+                       "prompt_sha_paper": prompt_sha(it, "paper")}
         except Exception as e:
             per[it] = {"error": f"{type(e).__name__}: {e}"}
     return {
@@ -1149,8 +1174,12 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
             ("numerator", "denominator", "runs", "out", "prompt_sha", "scorer_sha")
         }
     save(led)
+    # THE SIDE'S OWN PROMPT, not `prompt_sha(item)`. Unsided, this printed the
+    # OLX hash while storing the recorded side's -- so a paper recording
+    # announced a sha that was not the one it wrote, which is the confusion the
+    # paper branch exists to end.
     print(f"{item} [{side}]: {totals[n // 2]}/{len(per)} recorded at prompt "
-          f"{prompt_sha(item)} over {len(per)} cells (runs {totals})")
+          f"{prompt_sha(item, side)} over {len(per)} cells (runs {totals})")
     # WHAT MOVED, printed here because this is the moment the question is asked
     # and the only moment both bands are in hand. `bands_before` was taken from
     # the ledger as it stood on entry, and `cell_bands` now reads what was just
