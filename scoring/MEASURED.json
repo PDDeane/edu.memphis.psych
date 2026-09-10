@@ -2317,6 +2317,67 @@
         "runs": 6,
         "scorer_sha": "9ec093c37c91"
       },
+      "paper": {
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "unstable_counted_right",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "20": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "unstable_counted_right",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
+        "cells": {
+          "1": 3,
+          "10": 3,
+          "11": 3,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3,
+          "20": 3,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3
+        },
+        "denominator": 18,
+        "excluded_cells": {
+          "2": 3,
+          "3": 3
+        },
+        "exclusions": [
+          2,
+          3
+        ],
+        "numerator": 18,
+        "out": "pp5_folded",
+        "prompt_sha": "3c04782a99c4",
+        "run_totals": [
+          18,
+          18,
+          18
+        ],
+        "runs": 3,
+        "scorer_sha": "9ec093c37c91"
+      },
       "python": {
         "bands_before": {
           "1": "perfect",
