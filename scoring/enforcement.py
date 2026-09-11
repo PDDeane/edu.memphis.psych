@@ -6070,6 +6070,137 @@ def check_side_notes_are_side_specific() -> list[str]:
     return out
 
 
+# ISSUES SET ASIDE ON PURPOSE — KNOWN, NOT NOW.
+#
+# There were three things you could do with a finding and none of them fit
+# "we have seen this and are not dealing with it today":
+#
+#   fix it        — the finding goes away because the defect does
+#   DECLARE it    — SCORING_DIVERGENCES, GOLD_DIVERGENCES and the rest, each of
+#                   which asserts the difference is INTENDED. Declaring a thing
+#                   you mean to fix later is a lie that outlives the intention,
+#                   and this project has already found declarations that "were
+#                   stale precisely because they described an intention" rather
+#                   than a behaviour.
+#   OVERRIDE it   — ALLOW_UNDECLARED, which is per-COMMIT, not per-issue. It
+#                   records the reason to OVERRIDES.md and lets one commit
+#                   through; the next commit must say it again. Used habitually
+#                   it turns the gate advisory, which is how detection power is
+#                   lost quietly.
+#
+# PARKED is the missing fourth: per-ISSUE, persistent, visible, and silent. A
+# parked finding is still computed and still printed -- tagged [PARKED] with its
+# reason -- but it does not carry the `! ` prefix, so it does not count toward
+# the undeclared total and does not block a commit. The difference from a
+# declaration is the claim being made: a declaration says "this is right"; a
+# park says "this is wrong and we are not fixing it yet".
+#
+# KEYED (item, kind) to match the audit's own finding shape, so an entry is
+# greppable and reads in the same vocabulary as the line it silences.
+#
+# WHAT PARKING DOES NOT DO, and this is deliberate. It silences the AGGREGATE
+# alarm -- the undeclared count and the commit gate. It does NOT reach inside an
+# individual check's own budget or ratchet (ITEM_GATED_BUDGET,
+# SELFTEST_EXPECTED, a check's internal `len(out) > N`). Those are each a
+# contract that check makes about itself, and a mechanism that could quietly
+# relax any of them from one table would be a master key to the whole audit.
+# Parking something whose check also ratchets means raising that budget too,
+# deliberately and visibly.
+PARKED_UNDECLARED: dict[tuple[str, str], str] = {}
+
+# Ratcheted like every other table here. A park is cheap to add and easy to
+# forget, which is the failure mode: a parking lot nobody empties becomes a
+# second declaration table with none of the review. Raise this only with the
+# entry, and lower it when one is retired.
+PARKED_BUDGET = 0
+
+
+# How far a side's own verdicts may fail to reproduce its own score before the
+# comparison built on them is untrustworthy. Not zero: an artifact can carry a
+# cell the scorer no longer accepts. But a harness reproducing a THIRD of a
+# side's own scores is measuring itself.
+MIRROR_CONTROL_FLOOR = 0.90
+
+
+def check_mirror_reproduces_its_own_scores() -> list[str]:
+    """THE CONTROL every cross-scorer comparison rests on and none of them ran.
+
+    `paper_scorer_agreement` drives the web mirror with PAPER's verdicts and
+    reports where the two disagree. That is only evidence if the mirror can
+    reproduce the WEB's scores from the WEB's own verdicts -- otherwise a
+    "disagreement" says nothing about the paper scorer, and the harness is
+    reporting its own defects as findings about something else.
+
+    It could not. Measured 2026-09-11 on the cadence items: DAY1 47/120,
+    DAY2 34/120, WK1 30/120, WK2 35/120 -- a harness reproducing under a third
+    of one side's own scores, while emitting 1,410 findings about the other
+    side, which was 94% of the entire audit's output.
+
+    THE CAUSE, and it is a real divergence rather than a harness bug alone:
+    `slotSheet.ts:failedGate` fails a gate only when the slot is ALSO CHARGED --
+    `if (slot.gates && !sat[slot.key] && charged[slot.key])` -- while the python
+    mirror's generic gate loop asks only whether the slot is satisfied. An
+    UNANSWERED gate therefore zeroes the item here and does not there. Every one
+    of DAY1's 73 failures was the single unanswered gate
+    `consequence_not_a_setup`, each scoring 4.0 on the web and 0.0 in the
+    mirror. Treating an unanswered slot as uncharged lifts reproduction to
+    118/120, 106/120, 115/120 and 110/120.
+
+    It rarely bites in production because each side scores its own model's
+    response, where the slots are usually answered -- which is why `olx` and
+    `python` agree in the ledger and this went unseen until a harness fed one
+    side's artifact to the other's arithmetic.
+    """
+    import measured as MEAS
+
+    out = []
+    try:
+        d = MEAS.mirror_self_control()
+    except AttributeError:
+        return ["measured.mirror_self_control is missing, so the control that "
+                "every cross-scorer comparison depends on cannot run"]
+    for side, item, ok, n in d:
+        if not n:
+            continue
+        rate = ok / n
+        if rate < MIRROR_CONTROL_FLOOR:
+            out.append(
+                f"{item} [{side}]: the mirror reproduces only {ok}/{n} "
+                f"({rate:.0%}) of this side's OWN scores from its OWN recorded "
+                f"verdicts. Until that is ~100%, any cross-scorer finding on "
+                f"this item is measuring the harness, not the scorers")
+    return out
+
+
+def check_parked_entries_still_apply() -> list[str]:
+    """A parked issue that no longer occurs, or has outgrown its budget.
+
+    Two ways a parking lot rots. An entry whose finding has since been fixed
+    goes on silencing a line nobody produces any more -- harmless until the same
+    (item, kind) recurs for a different reason and is silenced on sight. And a
+    table that grows without the budget moving is a table nobody is reading.
+
+    The first arm needs the audit's live finding set, which `equivalence.py`
+    owns, so it is checked there and reported here; this function covers the
+    budget and the shape.
+    """
+    out = []
+    if len(PARKED_UNDECLARED) > PARKED_BUDGET:
+        out.append(
+            f"PARKED_UNDECLARED holds {len(PARKED_UNDECLARED)} entr(ies) against "
+            f"a budget of {PARKED_BUDGET}. An issue was parked without raising "
+            f"the budget -- raise it deliberately with the entry, or unpark")
+    for key, why in sorted(PARKED_UNDECLARED.items()):
+        if not isinstance(key, tuple) or len(key) != 2:
+            out.append(f"PARKED_UNDECLARED key {key!r} is not (item, kind)")
+        if len((why or "").strip()) < 30:
+            out.append(
+                f"PARKED_UNDECLARED[{key!r}] gives no usable reason. Say what the "
+                f"issue is and what would unpark it -- a park with no reason is "
+                f"an override that never expires")
+    return out
+
+
 def check_engine_mechanisms_are_not_item_dependent() -> list[str]:
     """No engine mechanism may be gated on WHICH item is being scored.
 
