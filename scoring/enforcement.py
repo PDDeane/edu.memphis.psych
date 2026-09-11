@@ -6887,7 +6887,14 @@ DESIGNED_TEXT: dict[tuple[str, str, str], str] = {
     # DAY1 STILL SHIPS THE EMPTY STRING for this slot and is NOT touched here:
     # nothing has measured a DAY1 cell of p15's shape, and a second item is a
     # second measurement, not a free ride on this one.
-    ("WK2", "named_type", "desc"): "WHICH of the four types the student CLAIMS -- not whether the claim is right, which another check decides.\nREAD BOTH BOXES. The type may be NAMED in the type box, or it may be named only by the DEFINITION the student wrote: a definition that describes adding an unpleasant thing after a behaviour, or taking a wanted thing away, names a type as surely as writing its name does. Where the two disagree, report what the TYPE BOX says.\nAnswer `unclear` ONLY when NEITHER box names a type -- both empty, or a bare label with nothing after it. A blank type box is not by itself an absent type.",
+    # UPDATED 2026-09-10 with the rewording that removed "read both
+    # boxes" from a one-box item. The design is LIVE -- the note still
+    # ships, it just names the type and the definition instead of
+    # counting boxes -- so the design of record follows it. Left under
+    # the "desc" key it was registered with: `named_type` is a CRITERION
+    # and has no desc, which is why --accept-design-change refuses it,
+    # and re-keying the fragment is its own cleanup.
+    ("WK2", "named_type", "desc"): 'WHICH of the four types the student CLAIMS -- not whether the claim is right, which another check decides.\nREAD BOTH THE TYPE THEY NAMED AND THE DEFINITION THEY WROTE. The type may be named outright, or it may be named only by the DEFINITION: a definition that describes adding an unpleasant thing after a behaviour, or taking a wanted thing away, names a type as surely as writing its name does. Where the two disagree, report what the NAMED TYPE says.\nAnswer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label with nothing after it. A blank type is not by itself an absent type.',
     # WK2's `aimed_correctly` gate, REGISTERED BEFORE THE BUILD on 2026-09-07 --
     # the order this table exists to enforce, and the order Q4b's report slot did
     # not follow. Lifted from `scratchpad/candidate_wk2_aimed.txt`, the file the
