@@ -1112,6 +1112,78 @@ def _refuse_unreachable(item: str, runs_path: str, side: str) -> None:
     )
 
 
+def append_runs(item: str, new_runs_path: str, side: str = DEFAULT_SIDE) -> None:
+    """Add runs to an existing column instead of replacing it.
+
+    WHY THIS EXISTS. `record` overwrites, so the only way to take a 3-run column
+    to 6 was to sweep 6 fresh and throw the first 3 away. Across the corpus that
+    was ~5,900 calls where ~2,900 would do: most columns are short by exactly
+    the three runs a screen produced, and runs are independent samples of the
+    same prompt -- there is nothing about the first three that stops them being
+    the first three of six.
+
+    WHEN IT IS LEGITIMATE, and the answer is narrow. Runs may be pooled only if
+    they are samples of THE SAME THING: same prompt, same scoring code, same
+    model and backend, same cells. That is exactly what `stale_sides` already
+    decides, so a stale column is REFUSED here rather than extended -- if the
+    prompt moved, the old runs describe a tree that no longer exists and the
+    honest move is to discard them, which is what `record` is for.
+
+    The merged artifact is written under paths.OUT with the canonical name so
+    `_runs_path` can find it and `_refuse_unreachable` accepts it; the ledger's
+    `out` then points at the pooled file, which is what later readers get.
+    """
+    import cross_path
+    import paths
+
+    bad = stale_sides(item)
+    if side in bad:
+        raise SystemExit(
+            f"REFUSED: {item} [{side}] is stale -- {bad[side]}. Runs may only be "
+            f"pooled when they sample the SAME prompt, scorer and cells; a stale "
+            f"column's earlier runs describe a tree that no longer exists. "
+            f"Re-sweep and `--record` it instead, which replaces rather than adds")
+    old_path = _runs_path(item, side)
+    if not old_path:
+        raise SystemExit(
+            f"REFUSED: {item} [{side}] has no reachable artifact to append to. "
+            f"Record it first")
+    old = json.loads(Path(old_path).read_text())
+    new = json.loads(Path(new_runs_path).read_text())
+    for key in ("model", "backend"):
+        a = ((old.get("era") or {}).get(key) or "")
+        b = ((new.get("era") or {}).get(key) or "")
+        if a != b:
+            raise SystemExit(
+                f"REFUSED: {item} [{side}] existing runs ran on {key}={a!r} and "
+                f"the new ones on {key}={b!r}. Pooling them would average two "
+                f"different experiments")
+
+    def cells(doc):
+        out = set()
+        for run in doc.get("runs") or ():
+            for r in run.get("results") or ():
+                c = cross_path.result_cell(r)
+                if c:
+                    out.add(c[1])
+        return out
+
+    if cells(old) != cells(new):
+        raise SystemExit(
+            f"REFUSED: {item} [{side}] the two artifacts cover different cells "
+            f"({sorted(cells(old) ^ cells(new))} differ) -- pooling them would "
+            f"report a denominator no single run measured")
+
+    merged = dict(new)                      # newer era: git, dirty, timestamp
+    merged["runs"] = (old.get("runs") or []) + (new.get("runs") or [])
+    dest = Path(paths.OUT) / f"pooled_{side}" / f"{item}.runs.json"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(json.dumps(merged))
+    print(f"  pooled {len(old.get('runs') or [])} + {len(new.get('runs') or [])} "
+          f"= {len(merged['runs'])} run(s) for {item} [{side}]")
+    record(item, str(dest), side)
+
+
 def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     """Write item's entry FROM a run artifact, so it cannot claim what was not run."""
     _refuse_unreachable(item, runs_path, side)
@@ -3669,6 +3741,11 @@ def main() -> int:
         # `--restore-previous ITEM [SIDE]`. For a REVERT that returned the prompt
         # to a sha we have already measured.
         raise SystemExit(restore_previous(a[1], a[2] if len(a) == 3 else DEFAULT_SIDE))
+    if a[:1] == ["--append"] and len(a) in (3, 4):
+        # `--append ITEM ARTIFACT [SIDE]`: pool with what is already recorded
+        # rather than replacing it. Refuses a stale column -- see append_runs.
+        append_runs(a[1], a[2], a[3] if len(a) == 4 else DEFAULT_SIDE)
+        return 0
     if a[:1] == ["--record"] and len(a) in (3, 4):
         # `--record ITEM ARTIFACT [SIDE]`. SIDE defaults to DEFAULT_SIDE, which
         # is `python` -- agreement.py, the OLX prompt scored in Python. A
