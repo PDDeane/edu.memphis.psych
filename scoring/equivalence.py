@@ -752,6 +752,10 @@ def enforcement_audit():
         findings.append(("-", "A MECHANISM VARIES BY ITEM", bad))
     for bad in ENF.check_side_notes_are_side_specific():
         findings.append(("-", "A SIDE NOTE IS NOT SIDE-SPECIFIC", bad))
+    for bad in ENF.check_mirror_reproduces_its_own_scores():
+        findings.append(("-", "MIRROR CANNOT REPRODUCE ITS OWN SCORES", bad))
+    for bad in ENF.check_parked_entries_still_apply():
+        findings.append(("-", "PARKING LOT NEEDS ATTENTION", bad))
     for bad in ENF.check_prompts_carry_no_process_history():
         findings.append(("-", "SHIPPED PROSE CARRIES OUR PROCESS", bad))
     for bad in ENF.check_paper_prompt_has_no_box_deixis():
@@ -2267,12 +2271,27 @@ def print_enforcement():
     # equivalence said fourteen about the same measurement.
     documented = [f for f in findings if "RECORDING gap" in f[2]]
     findings = [f for f in findings if "RECORDING gap" not in f[2]]
+    # PARKED: known, not now. Still computed, still printed, but without the
+    # `! ` prefix -- so it neither counts as undeclared nor blocks a commit.
+    # See enforcement.PARKED_UNDECLARED for why this is not a declaration.
+    parked = [f for f in findings if (f[0], f[1]) in ENF.PARKED_UNDECLARED]
+    findings = [f for f in findings if (f[0], f[1]) not in ENF.PARKED_UNDECLARED]
     for item, kind, detail in documented:
         print(f"  {item:<5} {kind:<24} {detail}  [DOCUMENTED]")
+    for item, kind, detail in parked:
+        print(f"  {item:<5} {kind:<24} {detail}  [PARKED]")
+    # A park that silences nothing is a park that will silence the NEXT thing to
+    # appear under that key, unseen. Reported where the live finding set is.
+    live = {(f[0], f[1]) for f in parked}
+    for key in sorted(k for k in ENF.PARKED_UNDECLARED if k not in live):
+        print(f"! {key[0]:<5} {'PARK MATCHES NOTHING':<24} "
+              f"PARKED_UNDECLARED{list(key)} silences a finding that no longer "
+              f"occurs -- unpark it")
     for item, kind, detail in findings:
         print(f"! {item:<5} {kind:<24} {detail}")
     print(f"{'  nothing flagged' if not findings else ''}")
-    print(f"\n{len(findings)} UNDECLARED enforcement difference(s); "
+    print(f"\n{len(findings)} UNDECLARED enforcement difference(s)"
+          + (f"; {len(parked)} PARKED" if parked else "") + "; "
           f"{len(SCORING_DIVERGENCES)} declared in olx_prompts.SCORING_DIVERGENCES"
           f"{f'; {len(documented)} documented recording gap(s)' if documented else ''}.")
     print(f"All {len({**ACTION, **SHEET_ONLY})} items are compared. {len(cli)} of them "

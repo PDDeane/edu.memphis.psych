@@ -1168,11 +1168,24 @@ def append_runs(item: str, new_runs_path: str, side: str = DEFAULT_SIDE) -> None
                     out.add(c[1])
         return out
 
-    if cells(old) != cells(new):
+    # A SUBSET IS ALLOWED; A SUPERSET IS NOT. The ledger's `runs` is
+    # `min(observations across cells)`, so ONE cell missing from one run caps
+    # the whole column -- NR/python holds 6 runs and reads 5 because four cells
+    # came back without a usable score once. Lifting that minimum means running
+    # those four cells again, not all twenty, and the artifact from a
+    # `--participants` sweep covers only them. Pooling it adds observations
+    # where they are missing and leaves every other cell untouched, which is
+    # precisely the top-up and costs nothing extra.
+    #
+    # A cell the existing column does NOT have is still refused: that would
+    # raise the denominator to something no run measured, which is the failure
+    # the strict check was written for.
+    extra = cells(new) - cells(old)
+    if extra:
         raise SystemExit(
-            f"REFUSED: {item} [{side}] the two artifacts cover different cells "
-            f"({sorted(cells(old) ^ cells(new))} differ) -- pooling them would "
-            f"report a denominator no single run measured")
+            f"REFUSED: {item} [{side}] the new artifact covers cell(s) "
+            f"{sorted(extra)} that the recorded column does not -- pooling "
+            f"would report a denominator no run measured")
 
     merged = dict(new)                      # newer era: git, dirty, timestamp
     merged["runs"] = (old.get("runs") or []) + (new.get("runs") or [])
@@ -2043,6 +2056,63 @@ def web_judgments_through_paper() -> dict:
                     out["agree"] += 1
                 else:
                     out["differing"].append((item_id, pid, float(web_score), paper))
+    return out
+
+
+def mirror_self_control() -> list:
+    """(side, item, reproduced, total) — can a side's arithmetic reproduce its own scores?
+
+    THE CONTROL FOR EVERY CROSS-SCORER COMPARISON. Driving one side's verdicts
+    through the other's arithmetic only means something if the arithmetic can
+    first reproduce ITS OWN side's scores from ITS OWN recorded verdicts. That
+    was never checked, and it fails: see
+    enforcement.check_mirror_reproduces_its_own_scores for the measurement and
+    the cause.
+
+    Deliberately built the way the production path builds it --
+    `dict(job, slots=..., cover=..., requires=...)`, the job first -- because
+    reading `load_action` alone omits `kind` and `cadence`, which live on the
+    job, and a control assembled differently from production is not a control.
+    """
+    import agreement as A
+    import cross_path as X
+    import handouts as H
+    import olx_prompts as O
+
+    jobs = {j["item"]: j for _h, b in A.BLOCKS.items() for j in b.values()}
+    out = []
+    for item in sorted(_jobs()):
+        job = jobs.get(item) or {}
+        scorer = A.SCORERS.get(job.get("kind"))
+        if scorer is None:                 # type_stated / data_presence: no mirror
+            continue
+        try:
+            action = A.load_action(job["olx"], O.ACTION[item])
+            rub = H.config(_jobs()[item]["handout"])["rubric"].BY_ID[item]
+        except Exception:
+            continue
+        merged = dict(job, slots=action["slots"], cover=action["cover"],
+                      requires=action["requires"])
+        for side in ("olx", "python"):
+            doc = _runs_doc(item, side)
+            if not doc:
+                continue
+            ok = n = 0
+            for run in doc.get("runs") or ():
+                for r in run.get("results") or ():
+                    c = X.result_cell(r)
+                    if not c or c[2] is None:
+                        continue
+                    checks = {k: {"verdict": v}
+                              for k, v in (c[3] or {}).items() if v is not None}
+                    try:
+                        s, _f = scorer(merged, rub, checks)
+                    except Exception:
+                        continue
+                    n += 1
+                    ok += abs(s - float(c[2])) < 1e-9
+            if n:
+                out.append((side, item, ok, n))
     return out
 
 
