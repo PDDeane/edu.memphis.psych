@@ -1271,7 +1271,16 @@ SLOT_NOTES = {
     # of that day the control gate did not void.
     # REACHES the web and CLI generators, NOT score.py -- same asymmetry as
     # `aimed_correctly`, and `paper` has no WK2 number to lose (subgoal E28).
-    "WK2:named_type": "WHICH of the four types the student CLAIMS -- not whether the claim is right, which another check decides.\nREAD BOTH BOXES. The type may be NAMED in the type box, or it may be named only by the DEFINITION the student wrote: a definition that describes adding an unpleasant thing after a behaviour, or taking a wanted thing away, names a type as surely as writing its name does. Where the two disagree, report what the TYPE BOX says.\nAnswer `unclear` ONLY when NEITHER box names a type -- both empty, or a bare label with nothing after it. A blank type box is not by itself an absent type.",
+    # NAMED, NOT COUNTED. This used to open its second sentence by telling the
+    # grader to read both boxes, and WK2 has ONE box -- so the phrase pointed
+    # outside the box structure. The two things meant are the TYPE the student
+    # named and the DEFINITION they wrote, which reach WK2 as CONTEXT from T2
+    # and D2. `score._describe_boxes` had always flagged this shape as needing
+    # rewording rather than substitution: translating it on the paper side gave
+    # "READ BOTH ANSWERS", which kept the arithmetic wrong because paper has one
+    # answer here too, and check_paper_prompt_has_no_box_deixis reported it.
+    # Naming the two makes the note true on BOTH sides and needs no translation.
+    "WK2:named_type": "WHICH of the four types the student CLAIMS -- not whether the claim is right, which another check decides.\nREAD BOTH THE TYPE THEY NAMED AND THE DEFINITION THEY WROTE. The type may be named outright, or it may be named only by the DEFINITION: a definition that describes adding an unpleasant thing after a behaviour, or taking a wanted thing away, names a type as surely as writing its name does. Where the two disagree, report what the NAMED TYPE says.\nAnswer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label with nothing after it. A blank type is not by itself an absent type.",
     "confident": "`absent` if any judgement above was a close call — this is rule 8's channel",
     # Web-only, and unscored on purpose. The web asks for the unwanted target
     # behavior twice — once as a closed choice before question 1, once in the
