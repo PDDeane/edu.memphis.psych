@@ -451,7 +451,17 @@ def score_impact(item_id: str, pid: int, slot: str, verdict,
         for r in run.get("results") or []:
             got = X.result_cell(r)
             if got and got[1] == pid:
-                raw = {k: ({"verdict": v} if not isinstance(v, dict) else v)
+                # A COUNT GOES IN `count`, decided by the slot spec. The
+                # artifact flattens `count` and `verdict` into one column, so
+                # rebuilding everything as `verdict` leans on expand_counted's
+                # legacy fallback to read a count back -- and a reconstruction
+                # that needs that fallback reads every counted member as ABSENT
+                # the moment it is removed. Measured 2026-09-13: Q1 scored 0 of
+                # 120 that way.
+                _counted = {sl["key"] for sl in act["slots"]
+                            if sl.get("count_max") is not None}
+                raw = {k: (v if isinstance(v, dict)
+                           else {("count" if k in _counted else "verdict"): v})
                        for k, v in (got[3] or {}).items() if v is not None}
                 break
         if raw:
