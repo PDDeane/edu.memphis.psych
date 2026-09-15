@@ -1843,7 +1843,7 @@ def gold_divergence_cells() -> dict[tuple[str, int], str]:
 GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
     ("1", "Q6"): (
         "AND THE AUDIT LEAVES ONE CANDIDATE ALIVE, which is why this ceiling is annotated rather than re-asserted. The ONLY gated engagement probe -- the third arm, 0 of 38 disagreements -- answers `met` 4 of 4 on BOTH targets, p2 and p8, so ITS negative stands: the wording that carries gold's own leniency explicitly does not reach. The arms that DID reach the targets are the voided ones. So the open question is not \"can anything reach\" but \"does ARM 2 reach in the real envelope\" -- arm 2 being the wording that fixed p3/a1 and p10/a1 (4/4 to 0/4 and 3/4 to 0/4) while keeping the target, at the cost of one run. `faithful_probe.py Q6 2,8,3,5,6,16,19,4,10` settles it in agreement.py's own envelope for ~36 calls. NOT RUN YET: it needs a --write, and the WK2 sweeps were in flight. ",
-        "EVIDENCE BASE AUDITED 2026-09-07 under QUALITY_CONTROL.md 2a-1b, and it "
+        "EVIDENCE BASE AUDITED 2026-09-07 under QUALITY_CONTROL.md 2b-1b, and it "
         "is thinner than the entry below reads. The SWEPT attempts stand -- a "
         "sweep measures the shipped prompt by construction, and p3 and p5 were "
         "lost in one. THE PROBED attempts do not: `probe.control_gate` VOIDS {{corpus:1a/p13:response:0:3:sha=b344d80e24a3:shape=R0-1-74,R3-0-20}}"

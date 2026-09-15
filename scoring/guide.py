@@ -297,6 +297,64 @@ LESSONS_APPROVED: dict[str, str] = {
     "dc4dba1edfb5": "a gate's silence is not a clearance — approved 2026-09-04, "
                     "with the closing clause reworded to 'not ... by itself as "
                     "definitive proof' at the user's direction",
+    # NINETEEN APPROVED 2026-09-12, on the user's explicit instruction, after
+    # `guide.py --renumber --write` was run to fix the ordering drift the
+    # structure check reported (section 2 ran `2a0 a b c ... l`, and under the
+    # ordering policy a SHORTER suffix ranks first, so `2a0` belongs last).
+    #
+    # EIGHTEEN OF THE NINETEEN ARE LABEL CHURN, NOT NEW CLAIMS. The renumber
+    # shifted every section-2 label by one place (2a0->2a, then 2a->2b ... 2l->2m)
+    # and rewrote the §-citations inside five lesson paragraphs to match. The
+    # lead-paragraph sha covers the label as well as the claim, so each lapsed
+    # mechanically. VERIFIED BEFORE ASKING: 21 sections before and after, the
+    # TITLE SEQUENCE identical, no title text changed, and all 95 genuine guide
+    # citations in the tree still resolve to the SAME section title they did
+    # before -- checked by resolving each citation against the committed guide
+    # and the working one and comparing what it lands on, not by trusting the
+    # tool's own report.
+    #
+    # ONE IS A REAL REWORD and is named here so the approval is not silent about
+    # it: `3a02295a18f1`, the PRE-REGISTERED SET lesson, which cited
+    # `NAMED_FALSIFIERS` as if it were a live identifier. It never was -- it was
+    # a literal a throwaway Q4c probe script typed, which is the lesson's own
+    # point -- and the structure check flags a backticked name that exists
+    # nowhere in the tree. Reworded to "its own falsifier set"; the claim is
+    # unchanged.
+    #
+    # THE INTERACTION IS WORTH FIXING RATHER THAN RE-APPROVING EVERY TIME: the
+    # structure check tells you to run --renumber, and running it lapses every
+    # lesson it touches. Making the lead sha label-insensitive would end that,
+    # on the same reasoning as `_behaviour_src` for scorer_sha.
+    "4e0888720473": "## 2a. PROBE BEFORE YOU SWEEP — label only (was 2a0)",
+    "8e5dc027cff1": "## 2b. TRY THE STRUCTURAL FIX FIRST — label only (was 2a)",
+    "1d2092b2f604": "## 2c. PROFILE THE ERRORS BY SLOT — label only (was 2b)",
+    "21e723c6fdc6": "## 2d. REPORT THE SPREAD — label only (was 2c)",
+    "140ef0130dd9": "## 2e. READ WHAT IS ALREADY RECORDED — label only (was 2d)",
+    "459948c42ccc": "## 2f. EVERY WRONG CELL HAS AN OWNER — label only (was 2e)",
+    "b957d13c0a15": "## 2g. A python/OLX DIFFERENCE IS NOT YET A DIVERGENCE — "
+                    "label only (was 2f)",
+    "d5a65db97ec8": "## 2h. SPEND NOTHING ON WHAT A FREE CHECK CAN SETTLE — "
+                    "label only (was 2g)",
+    "21d6caf0f291": "## 2i. RE-READ EVERY CELL A SUBGOAL OWNS — label only (was 2h)",
+    "fac2991aa726": "## 2j. A SWEEP DEFAULTS TO python + olx — label only (was 2i)",
+    "55a254255bc3": "## 2k. KNOW WHICH SOURCE YOU CONSULTED — label only (was 2j)",
+    "038a4c230875": "## 2l. VALIDATE A CANDIDATE RULE AGAINST EVERY VALID CELL — "
+                    "label only (was 2k)",
+    "67780d2652b6": "## 2m. A GATE'S REFUSAL IS INFORMATION — label only (was 2l)",
+    "1e692480d251": "and do not answer it with a regex over the entry's prose — "
+                    "unchanged claim, its §-citation renumbered",
+    "ee82bc200e36": "GATES rest on a smaller sample — unchanged claim, its "
+                    "§-citation renumbered",
+    "4d5c09fdf8af": "ENFORCED, not advised — unchanged claim, its §-citation "
+                    "renumbered",
+    "4f85adc3eac0": "why it is a check and not a procedure — unchanged claim, "
+                    "its §-citation renumbered",
+    "09319c21e55c": "and the cheapest check of all is reading — unchanged claim, "
+                    "its §-citation renumbered",
+    "3a02295a18f1": "a pre-registered set is a classifier too — THE ONE REAL "
+                    "REWORD: dropped the phantom identifier `NAMED_FALSIFIERS`, "
+                    "which named a throwaway probe's literal and existed nowhere "
+                    "in the tree; the claim is unchanged",
 }
 
 
