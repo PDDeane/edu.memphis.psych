@@ -848,7 +848,7 @@ Q18 and Q33 named 1, 2 and 6 cells and that none of ten at-risk cells was among
 them -- preflight named all ten within minutes; it said only WK2/p15 was
 sole-owned by E55 and missed PR/p15, a WRONG cell; and it said WK2/p8 was
 sole-owned by Q40 when subgoal Q55 names it too. Entries cite cells in per-item
-tables the pattern cannot see (§2a-3).
+tables the pattern cannot see (§2b-3).
 
 **A cell can also be orphaned by getting BETTER.** Q4b/p1 improved from 6 of 12 to
 11 of 12 in a re-sweep and lost its owner, because the entries discussing it were
@@ -888,8 +888,8 @@ a confident, actionable, false answer:
 | does prose in the repo still match the ledger | `measured.prose_claims()` |
 
 **A PRE-REGISTERED SET IS A CLASSIFIER TOO, and typing it out by hand is the
-nonce version.** Added 2026-09-07, after a Q4c probe hand-typed `NAMED_FALSIFIERS`
-and `excluded` as literals in the script and got two things wrong at once:
+nonce version.** Added 2026-09-07, after a Q4c probe hand-typed its own falsifier set
+and its own excluded list as literals in the script and got two things wrong at once:
 
 * It called **`handouts.suspect(1)`** for the dropped cells. That reader answers
   *"participants whose input cannot be trusted, **whatever the item**"* and
@@ -1074,7 +1074,7 @@ than quietly dropped.
 **Then probe on all valid cells, not on the interesting ones.** The probe's cell
 set should be the same set the table covers, so a fire anywhere shows up.
 
-## 2a0. PROBE BEFORE YOU SWEEP
+## 2a. PROBE BEFORE YOU SWEEP
 
 **Before spending a sweep on a new rule, slot or pick, ask the grader the
 question ON ITS OWN, on a handful of cells including the target, and see whether
@@ -1168,7 +1168,7 @@ the cell against its siblings, and check the prediction against the text — a
 prediction that fails on paper never needed a probe either. The order is:
 read, predict, probe, sweep.
 
-## 2a. TRY THE STRUCTURAL FIX FIRST
+## 2b. TRY THE STRUCTURAL FIX FIRST
 
 **When a cell resists, change the SHAPE of what the model is asked, not the
 wording of the question. Structural fixes have worked in this project; wording
@@ -1315,7 +1315,7 @@ repaired. The rule that survives both results:
 > observations is not a criterion the model can apply; it is the reason the
 > split failed.
 
-## 2b. PROFILE THE ERRORS BY SLOT AFTER EVERY SWEEP
+## 2c. PROFILE THE ERRORS BY SLOT AFTER EVERY SWEEP
 
 **A median says how many cells are wrong. It never says which JUDGEMENT is
 wrong, and those point at different work.** `measured.py --record` now prints
@@ -1414,7 +1414,7 @@ returns ZERO contradicted refusals: every refusal gold has an opinion about, gol
 agrees with, and the apparent collapse is entirely gradient cells plus silent
 full-marks rows.
 
-## 2c. REPORT THE SPREAD; THE HEADLINE IS A PER-CELL MEDIAN
+## 2d. REPORT THE SPREAD; THE HEADLINE IS A PER-CELL MEDIAN
 
 **The ledger's item figure is a median taken PER CELL and then counted, so a cell
 right in seven runs of twelve is recorded as simply right.** On an item with
@@ -1459,7 +1459,7 @@ charged and named nothing are printed **INDETERMINATE**, never guessed.
 
 **GATES are in the table, and their accuracy rests on a SMALLER sample than the
 point-bearing slots' — say so when quoting it.** A gate carries no points and no
-grader phrase can name one (§2j), so on a partial-credit cell there is nothing to
+grader phrase can name one (§2k), so on a partial-credit cell there is nothing to
 compare it against and it is left out rather than defaulted to expected-to-pass.
 On a FULL-MARKS cell the expectation is determinate for any kind of check —
 full marks implies every one of them passed — so that is where a gate's accuracy
@@ -1467,7 +1467,7 @@ is measured, and that is also where a gate false-positive costs a whole item. A
 gate reading 125/132 is therefore 132 observations drawn from fewer cells than
 the same figure on a scored slot.
 
-## 2d. READ WHAT IS ALREADY RECORDED BEFORE FORMING A HYPOTHESIS
+## 2e. READ WHAT IS ALREADY RECORDED BEFORE FORMING A HYPOTHESIS
 
 **Before touching a rule, read the comments around it, the draft for that item,
 and the goal entry. Prior measured work lives next to the thing it measured, and
@@ -1504,7 +1504,7 @@ so and measure against it -- but do not discover it after the fact.
 **ENFORCED, not advised.** `olx_prompts.py --write` prints the prior record for
 every item whose prompt text it changes: the substantial comment blocks inside
 that item's rubric entry, anything naming it in `drafts/`, `BACKLOG.md` and
-`GOALS.md`, and the structural inventory §2a asks for -- which primitives the
+`GOALS.md`, and the structural inventory §2b asks for -- which primitives the
 item already carries and which are available and unused. You cannot change a rule
 and regenerate without the record being put in front of you at the moment it
 matters, which is the only moment it does.
@@ -1514,15 +1514,15 @@ writer still calls the hook, that the hook still reports all three sources plus
 the inventory, and that it does not swallow its own lookup failures. That last
 assertion exists because the first version of the hook raised NameError on every
 lookup into a bare `except: pass` and cheerfully reported an empty record — the
-failure mode of §2d occurring inside the mechanism enforcing §2d.
+failure mode of §2e occurring inside the mechanism enforcing §2e.
 
-Of the three disciplines in this section, only §2b and §2d are machine-enforced.
-§2a rides along on §2d's hook (the inventory is printed with the record) but
+Of the three disciplines in this section, only §2c and §2e are machine-enforced.
+§2b rides along on §2e's hook (the inventory is printed with the record) but
 nothing checks that the inventory was ACTED on; that remains a judgement.
 
-## 2e. EVERY WRONG CELL HAS AN OWNER, AND THE AUDIT CHECKS IT
+## 2f. EVERY WRONG CELL HAS AN OWNER, AND THE AUDIT CHECKS IT
 
-§2b profiles the errors after a sweep. This is what to do with the profile: every
+§2c profiles the errors after a sweep. This is what to do with the profile: every
 cell we score wrong is either being worked by an open subgoal or is declared, and
 nothing sits in between. The audit enforces it on every run
 (`enforcement.check_every_wrong_cell_has_an_owner`), so it is not a pass anyone
@@ -1535,7 +1535,7 @@ worked. The problem is that its product decays SILENTLY. Cells move as prompts
 change. A subgoal closes and takes with it the only home some cell had. A
 finished list reads exactly the same whether or not it still describes the
 corpus, so nothing about a stale accounting looks stale — which is the same
-failure §2d describes for prose, and the same one
+failure §2e describes for prose, and the same one
 `check_prose_numbers_match_the_ledger` exists to catch.
 
 **The hand pass had a defect care would not have caught.** It compared every cell
@@ -1576,7 +1576,7 @@ seam the self-test can replace, as `_handsplit_tables` does.
 subgoal that owns it, or declare it with a reason. Silencing it is not on the
 list.
 
-## 2f. A python/OLX DIFFERENCE AT THE MEDIAN IS NOT YET A DIVERGENCE
+## 2g. A python/OLX DIFFERENCE AT THE MEDIAN IS NOT YET A DIVERGENCE
 
 Two sides are compared at their recorded medians, and the median over six runs is
 a STEP FUNCTION at exactly the halfway point. On a cell the model gets right about
@@ -1619,7 +1619,7 @@ The ownership check in 2d reports a cell wrong on EITHER side, which is right �
 the cell is still not being scored correctly. What this section governs is the
 diagnosis that follows, not whether the cell gets an owner.
 
-## 2g. SPEND NOTHING ON WHAT A FREE CHECK CAN SETTLE FIRST
+## 2h. SPEND NOTHING ON WHAT A FREE CHECK CAN SETTLE FIRST
 
 **Every rule in this guide that can be tested without model calls belongs in the
 PREFLIGHT, not in the reader's memory.** A sweep costs hundreds of calls and an
@@ -1649,14 +1649,14 @@ wrong rather than its execution fail:
   vocabulary gold cannot use, produce a clean-looking number answering a
   different question. Both are now in the gate for exactly that reason.
 
-**And the cheapest check of all is reading.** Section 2k's all-cells pass makes no
+**And the cheapest check of all is reading.** Section 2l's all-cells pass makes no
 calls and killed a rule that had already survived every mechanical gate. Before
 launching, ask what the sweep is supposed to settle, and whether anything on disk
 already settles it -- the artifacts, gold's comments, the responses themselves.
 Several findings in this record were established from artifacts alone, with no
 calls spent, after being proposed as sweeps.
 
-## 2h. RE-READ EVERY CELL A SUBGOAL OWNS BEFORE ACTING ON IT
+## 2i. RE-READ EVERY CELL A SUBGOAL OWNS BEFORE ACTING ON IT
 
 **A subgoal's cell list is a claim, and it decays.** Cells get corrected gold,
 the instrument that assigned them gets fixed, other cells get resolved by
@@ -1695,7 +1695,7 @@ figure in an OPEN goal against the last change to the profile that produced it,
 and a line meant as an era record is marked historical in the same vocabulary
 `prose_claims` uses.
 
-This is the same rule as §2j one level down, and the same reason: put the load on
+This is the same rule as §2k one level down, and the same reason: put the load on
 what a program derives, because a figure typed into a sentence has nothing
 checking it.
 
@@ -1707,7 +1707,7 @@ objection invented a false negative that was not there; the charge was "this is
 not an example of operant conditioning" and nothing else. When a comment both
 charges and advises, the charge is the part with the points attached.
 
-## 2i. A SWEEP DEFAULTS TO python + olx. LAUNCH BOTH UNLESS ASKED FOR ONE
+## 2j. A SWEEP DEFAULTS TO python + olx. LAUNCH BOTH UNLESS ASKED FOR ONE
 
 **"Sweep this item" means both engines, without being asked.** They are pooled as
 ONE sample of twelve runs, not compared, so a sweep of one side is not a smaller
@@ -1741,7 +1741,7 @@ because that gap once silently re-measured a reverted change for a whole sweep.
 Re-dump, confirm the new wording is present and the old wording gone, and let the
 preflight confirm it.
 
-## 2j. KNOW WHICH SOURCE YOU CONSULTED, AND CHECK IT IS THE RIGHT ONE
+## 2k. KNOW WHICH SOURCE YOU CONSULTED, AND CHECK IT IS THE RIGHT ONE
 
 **The question is not whether a lookup can come back empty. It is whether you
 established that the thing you looked in is the thing that holds the answer.**
@@ -1774,7 +1774,7 @@ both have caught real errors.
 Then, and only then, an empty result means what it says. The raise is the
 consequence of knowing the source, not the point.
 
-## 2k. VALIDATE A CANDIDATE RULE AGAINST EVERY VALID CELL BEFORE WRITING IT
+## 2l. VALIDATE A CANDIDATE RULE AGAINST EVERY VALID CELL BEFORE WRITING IT
 
 **Not against the cells that motivated it, and not against the cells where gold
 speaks. Against ALL of them.** A rule is a claim about every response the item
@@ -1844,7 +1844,7 @@ If revision genuinely fails, then narrow -- and the losses go into the
 pre-registration as expected, with their cell ids, BEFORE the sweep. A sweep that
 loses a cell nobody predicted cannot be told apart from a sweep that went wrong.
 
-## 2l. A GATE'S REFUSAL IS INFORMATION, AND A NEW CHECK MUST BE SHOWN TO FIRE
+## 2m. A GATE'S REFUSAL IS INFORMATION, AND A NEW CHECK MUST BE SHOWN TO FIRE
 
 **When a gate refuses, read it before working around it.** Not because refusals
 are always right -- this guide records several that were not, and two paragraphs
@@ -1875,7 +1875,7 @@ half and the reason the sentence above is not "trust the gate":
 
 * the slot-set audit reported `1a/p15` as disagreeing with gold on a GATE that
   gold's phrase table cannot name -- a difference guaranteed before the cell was
-  read (see §2j). Declaring it would have recorded an artefact of our own reader
+  read (see §2k). Declaring it would have recorded an artefact of our own reader
   as a disagreement with a grader.
 * `refusal_precision` scored that same slot 11 refusals, 11 CONTRADICTED, 0
   corroborated -- the worst instrument on the item, on a check that agrees with

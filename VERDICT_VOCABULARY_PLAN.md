@@ -7,10 +7,33 @@ can check every judgement it is given.
 
 > 26 blocks · 182 slots · 25 vocabularies today — 2 repos — baseline: `web_v6`, `web_v7_run1`
 
+> # RETIRED 2026-09-13 — COMPLETE, NOT A DEPENDENCY
+>
+> Verified stage by stage against the tree; the disposition is recorded in
+> `RUBRIC_MIGRATION_PLAN.md` §12. **Nothing here is owed.** Do not sequence work around this
+> document, and do not read the status table below as current.
+>
+> - **07 (Handout 2 rework) is DONE**, though the table below says otherwise. Its evidence was a
+>   grep count: 21 occurrences of `matches_chosen_type`. That count meant legacy identity
+>   vocabularies on 2026-08-20; today it counts a slot already at the target shape — all six
+>   items have `observed_type`/`named_type` as PICKS answering `refers_to`, with the computed key
+>   plain `met`/`absent`. **The marker outlived the thing it described.**
+> - **04 is done in the content**: the four surviving `counts=` groups recorded 0 non-numeric
+>   values in 480 observations. One dead fallback remains in `countedVerdicts`, folded into that
+>   plan's stage 3a as optional cleanup.
+> - **08 is subsumed**: the rubric object is the door it wanted to close.
+> - **10 was already superseded**, so no sweep is owed — in particular none against
+>   `web_v6`/`web_v7_run1`.
+> - Its one named defect (`not_reason` on Q5's `example_2`) is **fixed**: 0 occurrences.
+>
+> Kept rather than deleted because the reframing below — *a verdict judges content; it is not the
+> content* — is the reasoning behind the shape the sheets now have, and that argument is worth
+> having on the record.
+
 *Retrieved 2026-08-20 from the artifact published 2026-08-13
 (`https://claude.ai/code/artifact/379e952f-24d3-4e76-92e5-ecad514ce92b`) and converted to
-markdown. **Largely executed** — see "Execution status as retrieved" at the foot of this file for
-what has landed and what has not.*
+markdown. Status table at the foot is **as retrieved on 2026-08-20 and now stale** — see the
+retirement notice above.*
 
 ---
 

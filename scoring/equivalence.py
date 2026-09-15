@@ -497,6 +497,35 @@ def web_signatures(items):
     return {r["item"]: r for r in json.load(open(pout))}
 
 
+def _audit_findings_fresh() -> list[tuple]:
+    """The audit's RAW findings, computed in a FRESH interpreter.
+
+    For a self-test case whose injection is only fatal on a code path that
+    earlier work in this process can steer away from. Importing the audit again
+    in-process cannot recover that: the module objects, their caches and every
+    global the previous audits populated are all still there. A new interpreter
+    is the only way to guarantee the injected source is the source that runs.
+
+    Returns tuples of strings, which is all the case comparison needs -- it
+    matches on `f[0]` (the mark) and `f[1]` (the title).
+    """
+    import json as _json
+    import os as _os
+    import subprocess as _sp
+    import sys as _sys
+    code = ("import json, equivalence as E\n"
+            "print('FINDINGS:' + json.dumps("
+            "[[str(x) for x in f] for f in E.enforcement_audit()[0]]))")
+    r = _sp.run([_sys.executable, "-c", code],
+                cwd=_os.path.dirname(_os.path.abspath(__file__)),
+                capture_output=True, text=True)
+    for ln in r.stdout.splitlines():
+        if ln.startswith("FINDINGS:"):
+            return [tuple(f) for f in _json.loads(ln[len("FINDINGS:"):])]
+    raise RuntimeError("the fresh-interpreter audit produced no findings line:\n"
+                       + r.stdout[-800:] + r.stderr[-800:])
+
+
 def enforcement_audit():
     """Do the two sides enforce the same rules? Probed, not mirrored.
 
@@ -748,6 +777,26 @@ def enforcement_audit():
         findings.append(("-", "PAPER AND WEB SCORE THE SAME JUDGMENTS DIFFERENTLY", bad))
     for bad in ENF.check_paper_prompt_is_stamped():
         findings.append(("-", "PAPER PROMPT IS NOT STAMPED BY ITS OWN SHA", bad))
+    for bad in ENF.check_web_code_is_stamped_by_its_own_sha():
+        findings.append(("-", "WEB COLUMN IS NOT STAMPED BY THE APP'S OWN CODE", bad))
+    for bad in ENF.check_web_code_neutrality_is_verified():
+        findings.append(("-", "WEB-CODE NEUTRALITY CLAIM IS FALSE", bad))
+    for bad in ENF.check_every_sweep_is_recorded():
+        findings.append(("-", "A SWEEP ON DISK WAS NEVER RECORDED", bad))
+    for bad in ENF.check_engines_offer_the_same_verdicts():
+        findings.append(("-", "ENGINES OFFER THE GRADER DIFFERENT VERDICTS", bad))
+    for bad in ENF.check_engines_send_the_same_request():
+        findings.append(("-", "ENGINES SEND A DIFFERENT REQUEST", bad))
+    for bad in ENF.check_engines_read_a_response_the_same_way():
+        findings.append(("-", "ENGINES READ ONE RESPONSE DIFFERENTLY", bad))
+    for bad in ENF.check_engines_reach_the_model_identically():
+        findings.append(("-", "ENGINES PUT A DIFFERENT REQUEST ON THE WIRE", bad))
+    for bad in ENF.check_every_failing_verdict_has_a_charge():
+        findings.append(("-", "A FAILING VERDICT NOTHING CHARGES", bad))
+    for bad in ENF.check_students_see_what_each_check_decided():
+        findings.append(("-", "A CHECK SCORED THE STUDENT AND TOLD THEM NOTHING", bad))
+    for bad in ENF.check_paper_feedback_explains_its_deductions():
+        findings.append(("-", "PAPER FEEDBACK DOES NOT EXPLAIN ITS OWN CHARGE", bad))
     for bad in ENF.check_engine_mechanisms_are_not_item_dependent():
         findings.append(("-", "A MECHANISM VARIES BY ITEM", bad))
     for bad in ENF.check_side_notes_are_side_specific():
@@ -942,8 +991,22 @@ def enforcement_audit():
         # condition has denied its dependent, failing the dependent too costs
         # nothing more. Declared, like `onlyif`, so CLI discovery has a match.
         web_pairs |= {frozenset((r["key"], r["cond"])) for r in w.get("requires", [])}
+        # THE `not c.get("equals")` GUARD WAS DROPPED 2026-09-12. It excluded the
+        # web's equals-derived pair from `web_pairs` exactly when the CLI also
+        # declared equals -- so on DAY1, DAY2, WK1 and WK2 the pair
+        # (named_type, observed_type) was declared by the web as
+        # `matches_chosen_type`, discovered by the CLI probe, verified IDENTICAL
+        # on both sides by 4a immediately above, and then reported as a gap in
+        # what the web reader declares. Four standing findings for a rule both
+        # sides declare and agree on.
+        #
+        # The guard's premise was that a criteria-path item keeps its equals
+        # comparison in Python and so exposes none to compare; `cli_signatures`
+        # now returns it for those items, so the premise is simply false.
+        # Nothing is hidden by removing it: a real disagreement between the two
+        # equals declarations is caught by 4a, which raises EQUALS DIFFERS.
         web_pairs |= {frozenset(e["operands"]) for e in w["equals"]
-                      if e["key"] not in gating and not c.get("equals")}
+                      if e["key"] not in gating}
         for a, b in c["charge_once"]:
             wa, wb = ENF.web_name(a, wkeys), ENF.web_name(b, wkeys)
             if wa is None or wb is None:
@@ -1014,7 +1077,19 @@ def uncompared_web_rules():
 # whose precondition vanishes becomes a SKIP, which is still counted. That is
 # the point -- a case that stops testing anything must not be able to leave the
 # tally looking full.
-SELFTEST_EXPECTED = 66
+# RAISED 66 -> 69 ON 2026-09-12, deliberately and with the cases named, because
+# this constant is TWO-SIDED: fewer means a case was lost and the suite would
+# report success at a smaller denominator, more means one was added and the
+# constant was not raised, "leaving slack a later loss can hide in". The three
+# added cover the checks landed that day, each measured PASS on the run that
+# raised this:
+#   a forgiven verdict loses its declaration   -> A FAILING VERDICT NOTHING CHARGES
+#   one engine sends a sampling parameter      -> ENGINES PUT A DIFFERENT REQUEST ON THE WIRE
+#   the engines read one response differently  -> ENGINES READ ONE RESPONSE DIFFERENTLY
+# All three are FORWARD cases (inject the condition, expect the finding) rather
+# than blinding cases: each check is clean at baseline, and blinding a check that
+# finds nothing is vacuous -- it would pass without testing anything.
+SELFTEST_EXPECTED = 71
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1037,6 +1112,71 @@ def _selftest_input_fingerprint() -> dict:
             except OSError:
                 out[f.name] = "unreadable"
     return out
+
+
+_SELFTEST_REPAIR_MAX = 4_000_000          # bytes; OVERRIDES.md is ~50MB and is
+                                          # machine-appended, never injected into
+
+
+# THE FILES CASES ACTUALLY INJECT INTO. A case writing a file not named here
+# must add it, and the run's own "source moved" check will say so.
+#
+# DECLARED, NOT "EVERYTHING THAT MOVED". The first version snapshotted every
+# .py/.md/.json/.olx and restored anything that differed -- which cannot tell
+# "a case failed to restore its injection" from "a person edited the tree while
+# the run was going". Measured 2026-09-14 in the migration sandbox: it reverted
+# three live edits mid-run and left the rubric half-migrated, with a superseded
+# file restored and the files that replaced it already deleted. Repairing what
+# the run did not break is not a safety net, it is a second writer (T5).
+_SELFTEST_INJECTS = ("agreement.py", "measured.py", "GOALS.md", "QUALITY_CONTROL.md")
+
+
+def _selftest_snapshot() -> dict:
+    """The BYTES of every file a case could inject into, kept for repair.
+
+    The fingerprint above DETECTS damage; this UNDOES it. They are separate on
+    purpose: a run must be able to say the tree moved AND leave it as it found
+    it, because reporting damage is not the same as not doing it.
+    """
+    import pathlib
+    here = pathlib.Path(__file__).resolve().parent
+    out = {}
+    for name in _SELFTEST_INJECTS:
+        f = here / name
+        try:
+            if f.exists() and f.stat().st_size <= _SELFTEST_REPAIR_MAX:
+                out[str(f.resolve())] = f.read_bytes()
+        except OSError:
+            pass
+    return out
+
+
+def _selftest_repair(snapshot: dict) -> list[str]:
+    """Put back anything a case mutated and failed to restore. Returns names.
+
+    THE CASES RESTORE THEIR OWN INJECTIONS AND ONE OF THEM DOES NOT. Measured on
+    a quiet tree 2026-09-14: `agreement.py` was injected and never written
+    again, while three other injected files were restored correctly after it.
+    So a per-case `finally` is not a guarantee, and a self-test that leaves an
+    unbound name inside `report()` has done more harm than the run was worth --
+    it parses, it imports, it passes every audit, and it surfaces at the end of
+    a full measurement.
+
+    It does NOT make the run pass. A repaired file is named and the exit code
+    still fails: the case that failed to restore is a defect to fix, not a thing
+    to absorb silently.
+    """
+    import pathlib
+    repaired = []
+    for path, want in snapshot.items():
+        f = pathlib.Path(path)
+        try:
+            if f.read_bytes() != want:
+                f.write_bytes(want)
+                repaired.append(f.name)
+        except OSError:
+            pass
+    return sorted(repaired)
 
 
 def _selftest_inputs_changed(before: dict) -> list[str]:
@@ -1076,6 +1216,12 @@ def enforcement_selftest():
     # process, so it is DETECTED and the verdict is voided rather than reported as
     # a failure: a check that cries wolf about its own baseline gets ignored.
     _inputs = _selftest_input_fingerprint()
+    # BOTH, at the same instant: the hashes say whether the tree moved, the bytes
+    # put it back. The atexit hook covers the paths a `finally` does not -- an
+    # early return, a raise before the report, interpreter shutdown.
+    _snapshot = _selftest_snapshot()
+    import atexit as _atexit
+    _atexit.register(lambda: _selftest_repair(_snapshot))
     # Captured BEFORE any injection: the findings this corpus carries legitimately.
     _selftest_baseline = len(enforcement_audit()[0])
     cases = []
@@ -1468,15 +1614,61 @@ def enforcement_selftest():
     import importlib as _importlib
     import agreement as _A3
     _asrc = open(_A3.__file__).read()
-    open(_A3.__file__, "w").write(
-        _asrc.replace("    all_abs, all_err, all_hit = [], [], []",
-                      "    all_abs, all_err = [], []"))
-    _importlib.reload(_A3)
-    cases.append(("a reporter crashes on an unbound name",
-                  "REPORTER CRASHES", "-",
-                  [f for f in enforcement_audit()[0]]))
-    open(_A3.__file__, "w").write(_asrc)
-    _importlib.reload(_A3)
+    _amut = _asrc.replace("    all_abs, all_err, all_hit = [], [], []",
+                          "    all_abs, all_err = [], []")
+    if _amut == _asrc:
+        raise RuntimeError("the reporter-crash injection matched nothing -- "
+                           "report() was edited and this case now tests NOTHING")
+    # IN A SUBPROCESS, and RESTORED IN A `finally`. Measured 2026-09-13/14, and
+    # both halves were wrong:
+    #
+    #   THE INJECTION IS ONLY CONDITIONALLY FATAL. `all_hit` is referenced in
+    #   exactly two places inside report(), and both are guarded -- once inside
+    #   `for iid in items:` and once behind `if all_abs:`. Unbinding it therefore
+    #   raises only if THIS call reaches those lines. Run first in a fresh
+    #   interpreter it does, and the case passes; run after a full audit in the
+    #   same process it did not, and the case reported NOTHING FIRED while the
+    #   audit was working perfectly -- 68 of 69 for a fault that was not there.
+    #
+    #   THE RESTORE WAS UNGUARDED. It sat after the append, so any non-normal
+    #   exit left the mutated `agreement.py` on disk: the run then reported
+    #   "restored state is clean (VOID -- source moved)" and the NEXT thing to
+    #   read the tree inherited an injected NameError. Not theoretical -- a
+    #   baseline capture froze it as a 28th finding on 2026-09-13.
+    try:
+        open(_A3.__file__, "w").write(_amut)
+        _importlib.reload(_A3)
+        cases.append(("a reporter crashes on an unbound name",
+                      "REPORTER CRASHES", "-",
+                      _audit_findings_fresh()))
+    finally:
+        open(_A3.__file__, "w").write(_asrc)
+        _importlib.reload(_A3)
+
+    # A NEUTRALITY PAIR WHOSE TARGET SHA THE TREE NEVER REACHED. The pair is not
+    # spent -- items DO sit at its `was` sha -- so the spent-pair branch stays
+    # quiet, and every item is then skipped for not being at `now`. The claim is
+    # verified against nothing and the audit reads clean. Both live pairs were in
+    # exactly that state on 2026-09-14, covering 0 cells while appearing to cover
+    # three columns; re-pointing them at the sha the tree reached turned that into
+    # 360 cells of real verification.
+    #
+    # Injected by moving the target to a sha nothing can be at. RESTORED IN A
+    # `finally`, because a case that leaves a declaration table mutated poisons
+    # every case after it -- see the reporter-crash case above, which learned it
+    # the expensive way.
+    import measured as _M10
+    _nsaved = dict(_M10.SCORER_NEUTRAL)
+    try:
+        _M10.SCORER_NEUTRAL.clear()
+        _M10.SCORER_NEUTRAL.update(
+            {(_rec, "0" * 12): _why for (_rec, _n), _why in _nsaved.items()})
+        cases.append(("a neutrality pair's target was never reached",
+                      "SCORER-NEUTRALITY CLAIM IS FALSE", "-",
+                      [f for f in enforcement_audit()[0]]))
+    finally:
+        _M10.SCORER_NEUTRAL.clear()
+        _M10.SCORER_NEUTRAL.update(_nsaved)
 
     # An exclusion rationale that asserts a point figure only in prose. Q6's p9
     # read "the CLI's error here is exactly -2.50" through every run measuring
@@ -1927,14 +2119,40 @@ def enforcement_selftest():
     _orig_src = _mp.read_text()
 
     def _unguard():
+        # THE TARGET IS FOUND, NOT NAMED. This injection named
+        # `gold_slot_disagreements`, which stopped naming either slot set when
+        # the audit was reworked (00c529b) -- so `seg.replace` changed nothing,
+        # the file was rewritten byte-identical, and the case reported FAIL while
+        # injecting nothing at all. A selftest case that cannot fail is worse
+        # than a missing one: it reads as a detection gap in the audit when the
+        # audit is fine, and it had gone stale silently.
+        #
+        # So pick whatever function actually carries all three patterns the check
+        # keys on -- a gold set, our set, and the guard -- and REFUSE to run if
+        # the mutation would be a no-op, which is the failure mode that hid here.
         import ast
+        import re as _re
+        _G = _re.compile(r"gold_charged_slots|gold_charge_bounds|gold_charged_code")
+        _O = _re.compile(r"_our_failing_slots|_charging_slots")
         tree = ast.parse(_orig_src)
-        node = next(n for n in ast.walk(tree)
-                    if isinstance(n, ast.FunctionDef)
-                    and n.name == "gold_slot_disagreements")
-        seg = ast.get_source_segment(_orig_src, node)
-        _mp.write_text(_orig_src.replace(
-            seg, seg.replace("_gold_nameable_slots", "_NOPE_"), 1))
+        cands = []
+        for n in ast.walk(tree):
+            if not isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            body = ast.get_source_segment(_orig_src, n) or ""
+            if _G.search(body) and _O.search(body) and "_gold_nameable_slots" in body:
+                cands.append((len(body), n.name, body))
+        if not cands:
+            raise RuntimeError(
+                "no guarded gold-vs-ours comparison is left in measured.py, so "
+                "this case has nothing to unguard -- retire it or repoint it")
+        # Smallest span, so a guarded CHILD is chosen over the function that
+        # merely encloses it; the check reports innermost-only for that reason.
+        _n, _name, seg = min(cands)
+        mutated = seg.replace("_gold_nameable_slots", "_NOPE_")
+        if mutated == seg or _orig_src.count(seg) != 1:
+            raise RuntimeError(f"injection into {_name} would not change the file")
+        _mp.write_text(_orig_src.replace(seg, mutated, 1))
 
     _scorer_case("a slot-set comparison drops its vocabulary guard",
                  _unguard,
@@ -2110,6 +2328,55 @@ def enforcement_selftest():
                      "why", _real_why),
                  want="DECLARATION ARGUES FROM A SUSPECT CELL")
 
+    # THE THREE CHECKS ADDED 2026-09-12, each clean at baseline -- so they need
+    # the forward direction (introduce the condition, verify it is reported)
+    # rather than the blinding direction, which is vacuous against a check that
+    # currently finds nothing.
+    import enforcement as _ENFX
+
+    _real_uncharged = dict(_ENFX.UNCHARGED_VERDICTS)
+    _scorer_case("a forgiven verdict loses its declaration",
+                 lambda: _ENFX.UNCHARGED_VERDICTS.clear(),
+                 lambda: (_ENFX.UNCHARGED_VERDICTS.clear(),
+                          _ENFX.UNCHARGED_VERDICTS.update(_real_uncharged)),
+                 want="A FAILING VERDICT NOTHING CHARGES")
+
+    # The envelope around the prompt: a sampling parameter on one engine only.
+    # Patched at the CAPTURE, so the real capture path is exercised and only its
+    # answer is perturbed -- a check that compared nothing would pass a stub.
+    _real_env = _ENFX._app_envelope
+
+    def _envelope_with_temperature():
+        import copy
+        got, why = _real_env()
+        if why:
+            return got, why
+        got = copy.deepcopy(got)
+        got.setdefault("body", {})["temperature"] = 0.7
+        return got, ""
+
+    _scorer_case("one engine starts sending a sampling parameter",
+                 lambda: setattr(_ENFX, "_app_envelope", _envelope_with_temperature),
+                 lambda: setattr(_ENFX, "_app_envelope", _real_env),
+                 want="ENGINES PUT A DIFFERENT REQUEST ON THE WIRE")
+
+    # One recorded response read to two different scores. Patched at the
+    # COMPARISON rather than the scorer, because driving the app's scorer for
+    # 5,668 payloads costs minutes and the thing under test here is whether a
+    # difference is REPORTED once found.
+    _real_interp = _ENFX._interpretation_comparison
+
+    def _interp_with_a_difference():
+        d = dict(_real_interp())
+        d["differ"] = list(d.get("differ") or []) + [("Q1", 17, "olx", 3.0, 5.0)]
+        return d
+
+    _scorer_case("the engines read one response to different scores",
+                 lambda: setattr(_ENFX, "_interpretation_comparison",
+                                 _interp_with_a_difference),
+                 lambda: setattr(_ENFX, "_interpretation_comparison", _real_interp),
+                 want="ENGINES READ ONE RESPONSE DIFFERENTLY")
+
     _inverted_skips: list[tuple[str, str]] = []
     print("SELF-TEST — does the audit notice when a rule is removed?\n")
     baseline = _selftest_baseline
@@ -2159,16 +2426,38 @@ def enforcement_selftest():
     for label, why in skips:
         print(f"  SKIP  {label:<28} -> {why}")
 
+    # A MOVED SOURCE IS A FAILURE, NOT AN INCONCLUSIVE RESULT. This printed
+    # "(VOID -- source moved)" and went on to exit 0, which is how a run that
+    # left `agreement.py` carrying its own reporter-crash injection reported
+    # "70 of 70 expected" and stamped itself passed. Measured on a quiet tree,
+    # 2026-09-14: one file changed at 17:02:28 and was never restored across
+    # the remaining 29 minutes, while three other injected files were restored
+    # correctly after it.
+    #
+    # Either cause deserves a non-zero exit. If something ELSE edited the tree,
+    # the run proved nothing and must not be recorded as a pass. If a case
+    # failed to restore its own injection, the tree is now broken in a way that
+    # parses, imports and passes every audit -- the exact property the
+    # reporter-crash case exists to demonstrate is dangerous.
     moved = _selftest_inputs_changed(_inputs)
+    repaired = _selftest_repair(_snapshot) if moved else []
+    if repaired:
+        print(f"\n  *** REPAIRED {len(repaired)} file(s) a case mutated and did "
+              f"not restore:\n      " + ", ".join(repaired)
+              + "\n      The tree is as it was found. The run still FAILS: a case "
+                "that does not\n      undo its own injection is a defect, not "
+                "something to absorb.")
     if moved:
-        print(f"\n  *** THE SOURCE MOVED UNDER THIS RUN. The baseline was taken "
-              f"against different files, so\n      \"restored state\" below "
-              f"compares two states that were never comparable and\n      means "
-              f"nothing either way. Re-run it on a quiet tree.")
+        print(f"\n  *** THE SOURCE MOVED UNDER THIS RUN, so this run FAILS. The "
+              f"baseline was taken\n      against different files, so \"restored "
+              f"state\" below compares two states\n      that were never "
+              f"comparable. Either something else edited the tree -- re-run it\n"
+              f"      on a quiet one -- or a case did not restore its own "
+              f"injection.")
         for f in moved:
             print(f"        changed: {f}")
     print(f"\n  restored state is clean: {clean == baseline}"
-          f"{' (VOID -- source moved)' if moved else ''} "
+          f"{' (FAILED -- source moved, see above)' if moved else ''} "
           f"({clean} finding(s), baseline {baseline})")
 
     # THE DENOMINATOR DOES NOT FLOAT. It used to be `len(cases)`, so a case that
@@ -2193,7 +2482,10 @@ def enforcement_selftest():
     # anyone remembering. Written only on a CLEAN, COMPLETE run: a suite that
     # lost a case or failed one has not established anything to stamp.
     short = total != SELFTEST_EXPECTED
-    if not bad and not short:
+    # NOT STAMPED IF THE TREE MOVED. `measured.selftest_owed` reads this file's
+    # mtime to decide whether the checks have been re-tested, so stamping a run
+    # that damaged the tree records a pass that never happened.
+    if not bad and not short and not moved:
         try:
             (_pl.Path(__file__).resolve().parent / ".selftest-passed").write_text(
                 f"{detected} detected, 0 failed, {total} of {SELFTEST_EXPECTED}\n")
@@ -2212,7 +2504,7 @@ def enforcement_selftest():
     # fully passing selftest exit 1 whenever the corpus carried its one declared
     # divergence -- the same off-by-a-baseline the message above already fixed,
     # left behind in the exit code where it was less visible.
-    return 1 if (bad or clean != baseline or short) else 0
+    return 1 if (bad or clean != baseline or short or moved) else 0
 
 
 def print_enforcement():
@@ -2309,6 +2601,7 @@ def print_enforcement():
           f"agreement_app.JOBS.")
     print(ENF.engine_rate_power_line())
     print(ENF.engine_scoring_agreement_line())
+    print(ENF.engine_interpretation_line())
     print(ENF.paper_scorer_agreement_line())
     print(ENF.paper_reproduces_web_line())
     print("Run --enforcement --selftest to confirm this audit still detects a removal.")

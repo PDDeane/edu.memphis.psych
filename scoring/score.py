@@ -189,11 +189,28 @@ DERIVED_KINDS_IMPLEMENTED = frozenset({"contains"})
 # 18.9). 1c's gap is its `has_own_graph` GATE on a backend that cannot see the
 # figure, not `legend`; asking cannot lift a gated zero.
 #
-# THE OPPOSITE FIX ON THE WEB WAS TRIED AND REVERTED: lo-blocks b6d3f070 added
-# `maps` to the computed set -- stop asking what can be computed, the right
-# instinct -- and CHARGED POINTS WRONGLY, Q4a flat 1.00 on 120/120 cells and Q4b
-# flat 2.00 on 114. Reverted as 44d5a818. So the direction is fixed: paper asks
-# what the web asks, never the reverse.
+# SETTLED THE OTHER WAY, 2026-09-11, AND EVERYTHING ABOVE IS THE OLD STATE.
+# Paper no longer asks a mapped key, because the WEB no longer asks one either --
+# the rule "paper asks what the web asks" is intact; what changed is the web.
+#
+# b6d3f070 was not this design failing. `scoreSlotSheet` takes `maps` as its
+# ELEVENTH positional parameter and `SlotSheetGrader` passed ten, so the map
+# never reached the scorer: the app was asking a mapped slot and then scoring
+# whatever verdict came back, while `satisfiedMap` stood ready to compute one and
+# was never given the rules. Remove the ask on top of that and the key has a
+# verdict from NEITHER source, so every mapped check is charged -- which is
+# exactly the flat 1.00 and flat 2.00 that got it reverted. The call site is
+# fixed now (and `_ScoreTable` was dropping `requires` and `forbid` too, so the
+# table a student read could disagree with their mark).
+#
+# WHAT THE MEASUREMENT SAYS, and it is not the Q4a-only result above: the python
+# engine has been derive-only all along, so the two designs have been running
+# side by side on every item that carries a `maps` rule. Over 1c, Q2, Q4a and
+# Q4b, suspect cells dropped, they agree cell for cell -- 70/76 by median and
+# 415/456 by run, IDENTICAL both ways, with 1c/p3 gaining and 1c/p16 losing. A
+# same-engine check agrees: asking python too scored 69/76 against its own 70/76.
+# So the ask buys nothing, and not asking removes a whole class of divergence by
+# making it unrepresentable rather than merely detected.
 
 
 def _computed_keys(item: dict) -> set:
@@ -233,10 +250,6 @@ def _computed_keys(item: dict) -> set:
             # its prompt already instructs the grader whose graph it is. So the
             # honest translation is to ASK -- not to declare an asymmetry.
             if attr == "derived" and rule.get("kind") in _EXEMPT_KINDS():
-                continue
-            # A MAPPED KEY IS ASKED, NOT EXCLUDED -- the web asks all of them.
-            # See the note above `_computed_keys` for the measurement.
-            if attr == "maps":
                 continue
             if rule.get("key"):
                 out.add(rule["key"])
@@ -960,7 +973,24 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
     observed = a.get("observed_type", "none")
     if item.get("cadence"):
         named = a.get("named_type", "unclear")
-        checks.append({"what": "matches_chosen_type", "met": observed == named, "evidence": f"observed {observed}, named {named}"})
+        # RECORD WHAT IS CHARGED. `met` was a bare `observed == named`, which
+        # contradicts the very next branch: an `unclear` naming is deliberately
+        # NOT charged (no type was chosen, so nothing can mismatch), yet the
+        # check went on record as failed. The web says the same thing the other
+        # way round -- its `equals` rule carries `lenient: ["unclear"]` on all
+        # four cadence items and resolves the slot to `met` -- so both engines
+        # already agreed to excuse it and only this line dissented.
+        #
+        # It cost exactly one cell, WK1/p6, and it read as the two scoring
+        # implementations disagreeing 4 against 2 when they do not disagree at
+        # all. The leniency stays visible in `evidence`, which names both types.
+        lenient_type = named == "unclear"
+        checks.append({"what": "matches_chosen_type",
+                       "met": lenient_type or observed == named,
+                       "verdict": "met" if (lenient_type or observed == named)
+                                  else "absent",
+                       "evidence": f"observed {observed}, named {named}"
+                                   + (" (unclear: not charged)" if lenient_type else "")})
         if not a.get("cadence_ok", True):
             add("CADENCE_MISMATCH")
             return ledger, checks, unknown, advisory

@@ -128,6 +128,22 @@ ALIAS = {
     "week_2": ("week_2", "week_2_data"),
     "week_3": ("week_3", "week_3_data"),
     "behavior": "names_behavior",
+    # The paper scorer's operant vocabulary, declared 2026-09-11. These six were
+    # the whole of `paper_scorer_agreement`'s 840 "not comparable" errors, and
+    # they are names, not rules: the first two appear on ALL EIGHT operant items
+    # and the four `is_*` each appear ONLY on their own item (PR x96, NR x90,
+    # PP x51, NP x48, and never on another), so nothing here needs an item id to
+    # resolve. Declared with the aliases and then MEASURED, the way the 1b four
+    # were -- if any of these named a different rule, driving the paper verdicts
+    # through the web arithmetic would disagree on score, and it does not.
+    "operant_behavior": "names_behavior",
+    "contingent_on_behavior": "contingent",
+    # Paper asks the type question by name ("is this positive reinforcement?"),
+    # the web asks it as one slot. Same judgement, one per item.
+    "is_pr": "demonstrates_type",
+    "is_nr": "demonstrates_type",
+    "is_pp": "demonstrates_type",
+    "is_np": "demonstrates_type",
     # The web renamed this to say the good state, and inverted it to match the
     # rest of the vocabulary: `met` is phrased directly. The CLI input keeps the
     # old name and its boolean sense (True = phrased by what is avoided).
@@ -1311,6 +1327,31 @@ def slot_basis(item: dict) -> dict:
 # list's whole point, because a declaration is something the enforcement audit can
 # compare between the two scorers and prose is not.
 PROSE_ONLY_SLOTS = {
+    # DECLARED 2026-09-12. Both are judged by a per-slot `rule` and by nothing
+    # computable, which is what this table is for: saying so, rather than leaving
+    # the audit to ask whether a primitive was forgotten.
+    ("1c", "series_box_holds"):
+        "A CLASSIFICATION OF WHAT THE STUDENT WROTE, which no page datum can "
+        "supply. Its rule says `ONE ANSWER, naming what is in the box. Do not "
+        "judge whether it makes a good legend -- say what it holds and the "
+        "arithmetic follows`, and the four values it picks between -- "
+        "period_names, other_real_names, software_placeholders, nothing -- are "
+        "distinctions about the WORDS in the box, not about the data behind the "
+        "chart. The arithmetic that does follow is already a primitive: `legend` "
+        "is a `maps` target computed from this pick, so the computable half is "
+        "expressed and this is the irreducible half. It is `reported: True` and "
+        "carries no points, so nothing is charged on it directly.",
+    ("DAY2", "targets_own_behavior"):
+        "A TWO-CASE READING OF THE STUDENT'S CONDITION, stated in prose because "
+        "the cases are about what the condition NAMES: `met` when the condition "
+        "names the unwanted behaviour itself, OR when it names the goal "
+        "behaviour and that goal is the unwanted one's counterpart. The second "
+        "case needs the two behaviours compared for opposition, which is a "
+        "judgement about meaning and not a comparison any field supports. WK1 "
+        "expresses the same question as an `expect` over `trigger_behavior` "
+        "because THERE the sheet asks for a parse of which behaviour the trigger "
+        "names; DAY2's sheet has no such pick, so on this item there is nothing "
+        "for a primitive to read. Worth 1 point.",
     ("Q3", "realistic"):
         "NOT CONVERTIBLE, and a FIRST DEFINITION rather than a conversion. "
         "`realistic` shipped THIRTY-ONE characters with no rule at all, while "
@@ -1486,7 +1527,12 @@ PROSE_ONLY_SLOTS = {
         "affect_c1 and affect_c2, reaching every scorer as a request none could "
         "act on.",
 }
-PROSE_ONLY_BUDGET = 25
+# RAISED 25 -> 27 on 2026-09-12 for two slots the audit had been reporting as
+# UNDECLARED, not for two new prose rules: `1c.series_box_holds` and
+# `DAY2.targets_own_behavior` were already judged by prose and by nothing
+# computable, and the budget moves because the DECLARATION was written, not
+# because the corpus grew. Lower it whenever one converts to a primitive.
+PROSE_ONLY_BUDGET = 27
 
 
 # WHICH PRIMITIVE SET each "NOT CONVERTIBLE" claim was judged against.
@@ -1508,6 +1554,12 @@ PROSE_ONLY_BUDGET = 25
 _PRIMS_2026_08_29 = "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires"
 
 PROSE_ONLY_JUDGED_AGAINST: dict[tuple[str, str], str] = {
+    # Stamped 2026-09-12 against the registry as it stands today, which is the
+    # same nine attributes as 2026-08-29 -- no primitive has been added since, so
+    # these two claims are judged against everything that exists. If one is added,
+    # both expire and must be re-read rather than assumed to survive it.
+    ("1c", "series_box_holds"): _PRIMS_2026_08_29,
+    ("DAY2", "targets_own_behavior"): _PRIMS_2026_08_29,
     ("Q3", "realistic"): "counts,cover,derived,equals,expect,forbid,maps,onlyif,requires",
     # Stamped 2026-09-06 against the registry as it stands. Subgoal
     # Q18: each of these is a READING that survives every primitive above --
@@ -1729,12 +1781,16 @@ def check_prose_only_claims_are_current() -> list[str]:
 
 
 # Items whose rubric entry genuinely carries no substantial comment block, so
-# §2d has nothing to push for them. Verified, not assumed: 1c's and 3's longest
+# §2e has nothing to push for them. Verified, not assumed: 1c's and 3's longest
 # comment runs are three lines against a threshold of four.
 # 1c LEFT this set on 2026-08-30: the E11 migration gave `legend` a `rule`, and
-# the comment recording why it moved is a comment block §2d now finds. The set is
+# the comment recording why it moved is a comment block §2e now finds. The set is
 # for items whose rubric genuinely carries no rationale, and 1c is no longer one.
-NO_RUBRIC_COMMENTS = {"3"}
+# EMPTIED 2026-09-12: §2d now finds comment blocks for item 3, so the exemption
+# describes nothing. An entry for an item that HAS comments reads as coverage of
+# a gap that has closed -- the same fault as a spent SCORER_NEUTRAL pair -- and
+# would suppress a real finding if item 3's comments were ever removed again.
+NO_RUBRIC_COMMENTS: set[str] = set()
 
 
 # A key-excluding primitive the CLI cannot compute, with the reason. `derived` is
@@ -1979,7 +2035,7 @@ def check_computed_rules_do_not_share_a_key() -> list[str]:
 
 
 def check_prior_record_reaches_every_item() -> list[str]:
-    """Does the §2d hook actually find the record, for every item?
+    """Does the §2e hook actually find the record, for every item?
 
     It did not, for twelve of them, for as long as rubric_h2 has been a factory.
     `prior_record` located an item's comments by searching for a literal
@@ -1988,7 +2044,7 @@ def check_prior_record_reaches_every_item() -> list[str]:
     StopIteration" on every H2 --write. It was visible and nobody read it, which is
     the only kind of failure a printed warning produces.
 
-    §2d is the discipline that the record gets pushed at the moment a rule changes
+    §2e is the discipline that the record gets pushed at the moment a rule changes
     -- it exists because ~900 calls were spent rewriting a rule whose comment
     already contained the answer. A hook that silently finds nothing on the handout
     with the most recorded dead ends is worse than no hook, because the empty
@@ -2006,13 +2062,13 @@ def check_prior_record_reaches_every_item() -> list[str]:
             out.append(f"prior_record({item}) raised {type(e).__name__}: {e}")
             continue
         if "no recorded comments found" in text:
-            out.append(f"§2d cannot read {item}'s rubric: the hook reports a lookup "
+            out.append(f"§2e cannot read {item}'s rubric: the hook reports a lookup "
                        f"failure, so its output reads as 'nothing recorded' when the "
                        f"record may be there")
             continue
         blocks = [l for l in text.splitlines() if ".py:" in l and "rubric_h" in l]
         if not blocks and item not in NO_RUBRIC_COMMENTS:
-            out.append(f"§2d finds no rubric comment block for {item}. Either the "
+            out.append(f"§2e finds no rubric comment block for {item}. Either the "
                        f"lookup broke for its rubric's shape, or the item genuinely "
                        f"has none -- if the latter, add it to NO_RUBRIC_COMMENTS so "
                        f"the silence is declared rather than assumed")
@@ -2022,7 +2078,7 @@ def check_prior_record_reaches_every_item() -> list[str]:
         except Exception:
             continue
         if [l for l in text.splitlines() if ".py:" in l and "rubric_h" in l]:
-            out.append(f"NO_RUBRIC_COMMENTS names {item}, but §2d now finds comment "
+            out.append(f"NO_RUBRIC_COMMENTS names {item}, but §2e now finds comment "
                        f"blocks for it -- drop it from the set")
     return out
 
@@ -3802,6 +3858,36 @@ def check_web_scorer_exercises_its_sheet() -> list[str]:
 # the CLI ASK the model a question the web computed -- and the only reason it
 # surfaced is that the prompt-text audit noticed the extra question.
 HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
+    # ONE ENTRY, ADDED 2026-09-12 AFTER THE ALTERNATIVE WAS TRIED AND REVERTED.
+    # The obvious fix is the one the seven cleared entries used: move the datum
+    # onto the rubric item and read it as CONTENT, the way `reads_utb_choice` is
+    # read. It was implemented -- `rubric_h1.PAPER_NOTES` attaching a
+    # `paper_note` key -- and then reverted, because it trades a guarantee for a
+    # convention.
+    #
+    # WHY THIS ONE STAYS IN score.py. `PAPER_ITEM_NOTES` is paper-only BY
+    # CONSTRUCTION: no other engine imports this module, so the web cannot read
+    # it whatever anyone does later. In the shared rubric it would be paper-only
+    # only for as long as nothing looks for the key -- and the standing
+    # instruction for this split was that a paper note be paper-only
+    # NECESSARILY, not by naming convention. Measured during the attempt: the
+    # generated .olx did not carry the text and `prompt_sha(Q3,'olx')` did not
+    # move, so nothing leaked -- but "did not leak today" is the weaker property.
+    #
+    # AND THE ITEM-KEYING HERE IS CONTENT, NOT MECHANISM. The mechanism is
+    # uniform: every item is offered a paper-side note and the ones that declare
+    # text get it. What varies by item is which items declare text -- exactly
+    # one, Q3 -- and `PAPER_ITEM_NOTES_WHY` records why it and not the other
+    # eight >=2-answer items (it keys on the student LABELLING their parts, and
+    # the label rate is Q3 19/20 against Q4b, Q6, Q5 and `3` at zero).
+    #
+    # WHAT WOULD CLEAR IT: a way for score.py to read a paper-only per-item
+    # declaration that the shared rubric cannot carry -- a paper-side companion
+    # to the rubric, rather than a key inside it. Until then this is a declared
+    # hand-coding, which is what this table is for.
+    ("build_prompt", "PAPER_ITEM_NOTES"):
+        "the paper-only per-item note; kept in score.py so it CANNOT reach the "
+        "web, after moving it to the rubric was tried and reverted on 2026-09-12",
     # EMPTY, 2026-08-28. All seven went, and the last five were the ones this
     # table called "schema shape, not scoring" -- true, and beside the point: the
     # schema is what the model is ASKED, so a shape keyed by item id is a rule
@@ -3842,7 +3928,13 @@ HANDCODED_ITEM_RULES: dict[tuple[str, str], str] = {
 # nothing about its own size. That is how the SLOT_NOTES backlog got to eighteen.
 #
 # Lower this as entries go. Raising it is the finding.
-HANDCODED_BUDGET = 0
+# RAISED 0 -> 1 on 2026-09-12, deliberately and once. The table reached zero on
+# 2026-08-28 and the ratchet exists so it does not quietly refill; this entry is
+# the exception that was argued rather than assumed -- the alternative fix was
+# built, measured and reverted because it moved a paper-only string into the
+# shared rubric. Lower it the moment a paper-side per-item declaration exists
+# that the rubric does not have to carry.
+HANDCODED_BUDGET = 1
 
 
 def check_handcoded_rules_are_being_cleared() -> list[str]:
@@ -4020,13 +4112,13 @@ def check_recorded_answers_are_complete() -> list[str]:
 def check_the_record_is_pushed_at_the_change() -> list[str]:
     """Does `--write` still print the prior record for every item it changes?
 
-    QUALITY_CONTROL.md §2d is the only discipline of the three that a machine can
+    QUALITY_CONTROL.md §2e is the only discipline of the three that a machine can
     enforce, and it is enforced in ONE place: `olx_prompts.main` calls
     `prior_record` for each item whose prompt text moved. Delete that call and the
     guide's paragraph stays true-looking while nothing happens -- which is the
-    exact shape of the failure §2d was written about.
+    exact shape of the failure §2e was written about.
 
-    It matters because §2d cost the most to learn. A day went into rewriting Q1's
+    It matters because §2e cost the most to learn. A day went into rewriting Q1's
     `reasons_given` while the comment above the component already named gold's
     conditional structure, classified every cell with gold < 3, and diagnosed the
     failing cell as a `harms_listed` misclassification. Eleven configurations,
@@ -4048,7 +4140,7 @@ def check_the_record_is_pushed_at_the_change() -> list[str]:
     if "prior_record(" not in src:
         out.append("olx_prompts.main no longer calls prior_record(): a rule can be "
                    "changed and regenerated without the record being shown, which "
-                   "is QUALITY_CONTROL.md §2d unenforced")
+                   "is QUALITY_CONTROL.md §2e unenforced")
     if "_items_whose_prompt_changed(" not in src:
         out.append("olx_prompts.main no longer computes which items changed, so the "
                    "record cannot be scoped to them")
@@ -4060,7 +4152,7 @@ def check_the_record_is_pushed_at_the_change() -> list[str]:
     for needle, what in (("rubric_h", "the comment blocks in the rubric"),
                          ("GOALS.md", "the goal entries"),
                          ("drafts", "the item drafts"),
-                         ("PRIMITIVES in use", "the structural inventory (§2a)")):
+                         ("PRIMITIVES in use", "the structural inventory (§2b)")):
         if needle not in body:
             out.append(f"prior_record no longer reports {what}")
     if "except Exception:\n            pass" in body:
@@ -5007,6 +5099,53 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "handouts.GOLD_CEILINGS": (
         "why an item cannot reach 100%",
         ("check_declarations_still_have_evidence",)),
+    "enforcement.UNCHARGED_VERDICTS": (
+        "verdicts the paper ledger deliberately does not charge",
+        ("check_every_failing_verdict_has_a_charge",)),
+    # TEN REGISTERED 2026-09-12. Every one already had a check that re-tests it;
+    # what was missing was the registration saying WHICH, so a reader could not
+    # tell a watched table from an unwatched one. Three of them --
+    # ITEM_GATED_MECHANISMS, PARKED_UNDECLARED and ITEM_NOTES_WHY -- were created
+    # in recent sessions and never registered, which is how the debt accrues:
+    # the table gets a check on the day it is written and the registry does not.
+    #
+    # Only checks that genuinely RE-TEST each table are listed. Several others
+    # merely mention one in passing (check_no_module_shadow_in_scratchpad reads
+    # DESIGNED_TEXT, check_scorer_neutrality_is_verified reads
+    # HAND_AUTHORED_ATTRS) and listing those would make the registry claim
+    # coverage it does not have -- the same fault as a spent SCORER_NEUTRAL pair.
+    "enforcement.APP_ONLY_SLOTS": (
+        "slots the app asks that the rubric deliberately does not define",
+        ("check_scored_slots_are_answered_by_both_engines",
+         "check_sheet_slots_reach_the_rubric")),
+    "enforcement.DECOMPOSITION_DIVERGENCES": (
+        "slots one engine decomposes and the other does not",
+        ("check_scored_slots_are_answered_by_both_engines",)),
+    "enforcement.DESIGNED_TEXT": (
+        "the prompt text a design decision put there, by field",
+        ("check_designed_text_is_the_measured_text", "check_every_designed_entry_ships",
+         "check_shipped_text_matches_design", "check_probed_fields_keep_their_text")),
+    "enforcement.HAND_AUTHORED_ATTRS": (
+        "sheet attributes written by hand rather than generated",
+        ("check_generated_attributes_have_a_declaration",)),
+    "enforcement.ITEM_GATED_MECHANISMS": (
+        "mechanisms that vary by item, which the uniformity rule forbids",
+        ("check_engine_mechanisms_are_not_item_dependent",)),
+    "enforcement.PARKED_UNDECLARED": (
+        "findings deliberately deferred rather than declared",
+        ("check_parked_entries_still_apply",)),
+    "enforcement.VERDICT_ABSENCE_ENCODING": (
+        "how each engine spells 'no verdict here'",
+        ("check_engines_encode_an_unrecorded_verdict_alike",)),
+    "enforcement.VERDICT_PAIRS": (
+        "verdict tokens that mean the same thing on the two sides",
+        ("check_verdict_vocabularies_correspond",)),
+    "measured.DECLARED_CEILING_CELLS": (
+        "cells declared unreachable, with the reason",
+        ("check_closure_ceilings_are_declared",)),
+    "olx_prompts.ITEM_NOTES_WHY": (
+        "why an item carries a web-only note",
+        ("check_side_notes_are_side_specific",)),
     # Verified by the probe ITSELF, which is the only thing that can: a
     # provocation that stops provoking makes its table read INCONCLUSIVE, and a
     # PROBE_IMPOSSIBLE reason that stops being true makes the table probeable and
@@ -5117,6 +5256,9 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "measured.SCORER_NEUTRAL": (
         "scorer changes verified not to move any recorded score",
         ("check_scorer_neutrality_is_verified",)),
+    "measured.WEB_CODE_NEUTRAL": (
+        "web rendering-code changes verified not to move any recorded score",
+        ("check_web_code_neutrality_is_verified",)),
     "measured.SIDE_CONTRACT": (
         "which program and model each ledger side is allowed to be recorded from",
         ("check_side_contract_is_enforced",)),
@@ -6290,6 +6432,1437 @@ def check_engine_mechanisms_are_not_item_dependent() -> list[str]:
     return out
 
 
+def _runs_files(root, pattern: str) -> list:
+    """Every artifact matching `pattern`, in BOTH layouts a sweep writes.
+
+    A sweep driven by `--out foo` writes `foo/<item>.runs.json`; one driven by a
+    sweep script writes `foo/runs/<item>.runs.json`, and `measured.record`
+    reaches the second only because the out path is handed to it explicitly. The
+    audit had no such help: every check globbed `*/<item>.runs.json`, one level,
+    so the nested layout was invisible to all of them.
+
+    That is the shape of a check going quiet rather than wrong. On 2026-09-15 a
+    paper sweep of all 26 items landed in `paper_0914/runs/`, correctly stamped
+    with today's `paper_render_sha` -- and `check_paper_feedback_explains_its_deductions`
+    reported all 26 items unattributable, because the only artifact it could see
+    was an undated `pooled_paper/` from an earlier era. The freshest measurement
+    on disk counted for nothing.
+
+    Defined once so the two layouts cannot drift apart again.
+    """
+    return sorted(set(root.glob(pattern)) | set(root.glob(f"*/runs/{pattern.split('/')[-1]}")))
+
+
+def check_paper_feedback_explains_its_deductions() -> list[str]:
+    """On the PAPER side: does a deduction that costs points say why?
+
+    THE PAPER ANALOGUE, and deliberately a different question. The web renders a
+    checklist, so its failure is a tick beside no words. score.py renders a
+    DEDUCTION LEDGER -- "-2 pts: reason" -- so full credit correctly prints
+    nothing, and the failure is a charge whose reason is missing: the rubric has
+    no text for the code and the model wrote no note, and the student reads a
+    number with nothing after it.
+
+    It also reports `unknown_codes`, which score.py records on every result and
+    nothing has ever read. A code the scorer cannot interpret is dropped, so it
+    costs no points -- but it means the grader answered in a vocabulary the
+    rubric does not define, and dropping it silently is how that stays invisible.
+
+    Attributed through `paper_render_sha`, for the reason the web check is: a
+    wording fix moves neither the prompt nor the score, so an artifact written
+    before one is otherwise indistinguishable from one written after.
+    """
+    import json
+    import pathlib as _pl
+    import re as _re
+
+    import handouts as H
+    import measured as M
+    import paths as _paths
+
+    root = _pl.Path(getattr(_paths, "OUT", "/home/pdeane/molly_data/out"))
+    want = M.paper_render_sha()
+    EMPTY = _re.compile(r"-\s*[\d.]+\s*pts?:\s*$")
+    reasonless: dict = {}
+    unknown: dict = {}
+    benign: dict = {}
+    unattributable: set = set()
+    # ONE ATTRIBUTABLE ARTIFACT IS ENOUGH. The loop below adds an item to
+    # `unattributable` on every artifact whose stamp is stale -- and the corpus
+    # keeps every artifact it has ever written, so a single undated archival
+    # directory condemned an item no matter how fresh its newest measurement
+    # was. The message has always said "no paper artifact attributable", which
+    # is the right question; the set was answering "some paper artifact is not".
+    # On 2026-09-15 that reported all 26 items unattributable on the morning a
+    # correctly-stamped sweep of all 26 landed. Same fault, same session, as the
+    # web-side check that needed this exact set.
+    attributed: set = set()
+    for item in sorted(M._jobs()):
+        try:
+            cfg = H.config(M._jobs()[item]["handout"])["rubric"].BY_ID[item]
+        except Exception:
+            continue
+        texts = {d["code"]: d.get("text", "") for d in cfg.get("deductions") or []}
+        by_what = {c["what"]: c for c in cfg.get("credit") or []}
+        for path in _runs_files(root, f"*/{item}.runs.json"):
+            try:
+                doc = json.loads(path.read_text())
+            except Exception:
+                continue
+            results = [r for run in (doc.get("runs") or [])
+                       for r in (run.get("results") or [])]
+            if not results or "item_id" not in results[0]:
+                continue                       # not the paper scorer's to answer for
+            era = doc.get("era") or {}
+            stamp = ((era.get("items") or {}).get(item, {}) or {}).get(
+                "paper_render_sha", era.get("paper_render_sha"))
+            if stamp != want:
+                unattributable.add(item)
+                continue
+            attributed.add(item)
+            for r in results:
+                if r.get("item_id") != item:
+                    continue
+                for d in r.get("deductions") or []:
+                    if not (texts.get(d.get("code")) or "").strip() \
+                            and not (d.get("note") or "").strip():
+                        k = (item, str(d.get("code")))
+                        reasonless[k] = reasonless.get(k, 0) + 1
+                for line in str(r.get("feedback") or "").splitlines():
+                    if EMPTY.search(line.strip()):
+                        k = (item, "<a charge with no words after it>")
+                        reasonless[k] = reasonless.get(k, 0) + 1
+                for code in r.get("unknown_codes") or []:
+                    # ONLY WHERE A CHARGE WAS POSSIBLE. `unknown_codes` is
+                    # dominated by structure, not defect: a CLASSIFICATION slot
+                    # is a credit component with no `codes`, no points and no
+                    # met/absent vocabulary, so it is never "met", reaches the
+                    # unknown branch on every cell, and is recorded harmlessly --
+                    # 594 entries across the corpus, every one of them an
+                    # unscored component. Reporting those would make this check
+                    # permanently red and bury the case that matters: a slot
+                    # that COULD have cost points failing in a way the rubric
+                    # has no words for, where the student is charged nothing and
+                    # told nothing about a real miss.
+                    comp = by_what.get(str(code).split(":")[0])
+                    if not comp or not (comp.get("pts") or comp.get("gates")):
+                        benign[item] = benign.get(item, 0) + 1
+                        continue
+                    k = (item, str(code))
+                    unknown[k] = unknown.get(k, 0) + 1
+    out = []
+    for (item, code), n in sorted(reasonless.items(), key=lambda kv: -kv[1]):
+        out.append(f"{item}: a deduction charged points as {code!r} and the "
+                   f"student read no reason for it -- x{n}")
+    for (item, code), n in sorted(unknown.items(), key=lambda kv: -kv[1]):
+        out.append(f"{item}: the paper scorer answered {code!r}, which the "
+                   f"rubric defines no code for, so it was dropped -- x{n}. It "
+                   f"cost nothing; it means the grader is answering in a "
+                   f"vocabulary the rubric does not share")
+    unattributable -= attributed
+    if unattributable:
+        out.append(f"{len(unattributable)} item(s) have no paper artifact "
+                   f"attributable to today's feedback wording, so what their "
+                   f"students read cannot be checked ({', '.join(sorted(unattributable))})")
+    return out
+
+
+def _render_code_unchanged_since(artifact: "pathlib.Path") -> bool:
+    """Has the RENDERING SOURCE stood still since this artifact was written?
+
+    THE FALLBACK FOR ARTIFACTS WITH NO PARTS MAP, and the reason it is needed.
+    `web_code_sha("render")` hashes the functions named by `measured._web_parts`,
+    so the fingerprint moves when OUR LIST changes as well as when lo-blocks
+    does. Measured 2026-09-14: `slotSheet.ts` was byte-identical in both trees
+    and untouched since 2026-09-13 14:05, the shipped `.olx` was unchanged, and
+    the render stamp had still moved -- so 25 of 26 artifacts written AFTER that
+    edit were reported unattributable to a renderer that had not changed. The
+    remedy the finding implied was a ~3,100-call sweep to chase our own
+    bookkeeping.
+
+    This asks the question the fingerprint was standing in for, with evidence
+    that does not route through the ledger at all: if the rendering source has
+    not been modified since the artifact was written, the code that produced it
+    IS the code running now, whatever our list says.
+
+    MTIME OF THE SOURCE, WHICH IS WHAT MTIME IS GOOD FOR. The same session
+    learned that an ARTIFACT's mtime is a poor proxy for when its runs happened,
+    because a pooled file is dated by its assembly. That objection does not apply
+    to a source file being asked when it last changed. It is still weaker than a
+    stamp -- `era.web_parts` is the real fix and applies to everything written
+    from now on -- so this is the fallback, not the primary.
+    """
+    import pathlib as _pl
+
+    import paths as _P
+
+    try:
+        return _pl.Path(_P.SLOTSHEET_TS).stat().st_mtime < artifact.stat().st_mtime
+    except OSError:
+        return False                      # undeterminable stays unattributable
+
+
+def check_students_see_what_each_check_decided() -> list[str]:
+    """Does the student read a REASON beside every check that scored them?
+
+    THE AUDIT COMPARES ENGINES, DECLARATIONS AND SCORES, and never once asked
+    what reached the student. It is a different question with a different answer:
+    a check can score perfectly and still render `- ✓ **Matches your first chosen
+    type** — not reported`, a tick against no words, on a check carrying half the
+    item. Scoring reads an operand as `refers_to ?? verdict`; three DISPLAY paths
+    read only `.verdict`, and every shipped `equals`, `expect` and `maps` operand
+    is a classification, which answers `refers_to`. The score was right and the
+    explanation was blank, on 1046 recorded lines across 11 checks and 11 items.
+
+    READ FROM THE ARTIFACTS, not from the renderer, for the reason subgoal E43
+    gives: what a student SAW is a fact about a recorded run, and re-deriving it
+    from today's code would report what they would see now. Aggregated per
+    (item, check) rather than per line, because 1046 standing findings is a list
+    nobody reads and 11 is one somebody fixes.
+
+    Live artifacts only, via _artifact_prompt_state: a blank line under a prompt
+    that no longer exists is history, and this is a defect report, not an archive.
+    """
+    import json
+    import pathlib as _pl
+    import re as _re
+
+    import measured as M
+    import paths as _paths
+
+    MARKED = _re.compile(r"^- ([\u2713\u00b7]) \*\*(.+?)\*\* \u2014 (.*)$")
+    root = _pl.Path(getattr(_paths, "OUT", "/home/pdeane/molly_data/out"))
+    def _app_wrote_it(doc: dict) -> bool:
+        """Did the APP write this artifact? `cell` is its key, as result_cell says.
+
+        The check gates on the WEB renderer, so a paper or harness artifact can
+        never match and would be counted unattributable for ever -- conservative,
+        but it conflates sides and pads the one line this check emits with items
+        whose web column is fine. The paper scorer composes its own feedback and
+        gets its own check; see check_paper_feedback_explains_its_deductions.
+        """
+        for run in doc.get("runs") or []:
+            for r in run.get("results") or []:
+                return "cell" in r
+        return False
+    tally: dict = {}
+    looked = 0
+    unattributable: set = set()
+    attributed: set = set()
+    for item in sorted(M._jobs()):
+        for path in _runs_files(root, f"*/{item}.runs.json"):
+            try:
+                doc = json.loads(path.read_text())
+            except Exception:
+                continue
+            if _artifact_prompt_state(doc, item) is False:
+                continue                       # prompt superseded: history
+            # ATTRIBUTABLE TO TODAY'S RENDERER, OR NOT AT ALL. A display fix
+            # moves neither `prompt_sha` nor the score, so an artifact written
+            # before one looks exactly like an artifact written after it. Saying
+            # "the student saw this" about text produced by code that has since
+            # been repaired is a false report: `counts` members rendered "not
+            # reported" until the app was fixed, and those artifacts still do.
+            if not _app_wrote_it(doc):
+                continue                       # not the web's renderer to answer for
+            era = doc.get("era") or {}
+            stamp = ((era.get("items") or {}).get(item, {}) or {}).get(
+                "web_render_sha", era.get("web_render_sha"))
+            if stamp != M.web_code_sha("render", item) and \
+                    not _render_code_unchanged_since(path):
+                unattributable.add(item)
+                continue
+            # ONE ATTRIBUTABLE ARTIFACT IS ENOUGH. The message says an item has
+            # NO artifact attributable to today's renderer, and the set was
+            # accumulating on the FIRST artifact that failed -- so an item with a
+            # current sweep was still reported because some older artifact of the
+            # same item did not attribute. Every item has many artifacts and most
+            # are old, which is why this reported the whole corpus.
+            attributed.add(item)
+            looked += 1
+            for run in doc.get("runs") or []:
+                for r in run.get("results") or []:
+                    for line in str(r.get("feedback") or "").splitlines():
+                        m = MARKED.match(line.strip())
+                        if m and m.group(3).strip().startswith("not reported"):
+                            key = (item, m.group(2))
+                            tally[key] = tally.get(key, 0) + 1
+    out = []
+    # ONE attributable artifact is enough: the message says an item has NO
+    # artifact attributable, and the set accumulates on every artifact that
+    # fails. Every item has many and most are old.
+    unattributable -= attributed
+    if unattributable:
+        out.append(
+            f"{len(unattributable)} item(s) have no artifact attributable to "
+            f"today's renderer, so what their students see cannot be checked at "
+            f"all ({', '.join(sorted(unattributable))}). Each is answered by its "
+            f"next sweep, which stamps `web_render_sha`; until then this check is "
+            f"silent about them rather than guessing from text an older renderer "
+            f"produced")
+    if not looked:
+        return out or ["no readable artifact carries rendered feedback, so what "
+                       "the student saw cannot be checked -- sweep, or say why not"]
+    return out + [
+        f"{item}: the student read a tick or a cross beside "
+        f"'{label}' with the words 'not reported' -- x{n}. That check scored "
+        f"them and told them nothing. A computed check has no verdict of its "
+        f"own, so its line must render what it was computed FROM"
+        for (item, label), n in sorted(tally.items(), key=lambda kv: -kv[1])
+    ]
+
+
+def _request_capture() -> tuple:
+    """({cell: {prompt, schema}}, why_not). Captured from the APP, then cached.
+
+    Runs lo-blocks' promptcapture.test.ts, which renders each real screen, seeds
+    the fixture and clicks the real button with `callLLMJson` MOCKED -- so it
+    records the assembled request and spends no tokens and no endpoint. 26 items
+    in one vitest run, ~26s.
+
+    CACHED AGAINST WHAT COULD CHANGE IT: the app's schema-building fingerprint,
+    the .olx files and the idmap dump. An ordinary audit re-reads the cache and
+    costs nothing; the capture re-runs only when one of those moves. Without a
+    cache this would put ~26s on every commit for an answer that changes rarely.
+    """
+    import hashlib
+    import json
+    import os
+    import subprocess
+
+    import measured as M
+    import paths as P
+
+    lo = P.LO
+    runner = lo / "packages/shared/lib/llm/promptcapture.test.ts"
+    if not runner.exists():
+        return {}, f"{runner} is missing, so the app's own request cannot be read"
+    if not (lo / "node_modules").is_dir():
+        return {}, f"{lo}/node_modules is absent, so the capture cannot be run"
+    dumps = sorted(P.OUT.glob("idmap*.json"))
+    if not dumps:
+        return {}, ("no idmap dump under out/, so the app cannot be rendered -- "
+                    "take one with `curl -s 'http://localhost:8888/api/olxjson?id=all'`")
+    idmap = max(dumps, key=lambda f: f.stat().st_mtime)
+    try:
+        key = hashlib.sha256("|".join([
+            M.web_code_sha("ask"), str(idmap), str(int(idmap.stat().st_mtime)),
+            *(str(int((P.OLX % h and __import__("pathlib").Path(P.OLX % h)).stat().st_mtime))
+              for h in (1, 2, 3)),
+        ]).encode()).hexdigest()[:16]
+    except Exception as e:
+        return {}, f"the capture key cannot be computed: {type(e).__name__}: {e}"
+    cache = P.OUT / "request_capture.json"
+    if cache.exists():
+        try:
+            got = json.loads(cache.read_text())
+            if got.get("key") == key:
+                return got.get("capture") or {}, ""
+        except Exception:
+            pass                            # unreadable cache: re-capture
+    # BUILD THE JOBS HERE, one cell per item, because the capture needs a real
+    # fixture to render and the fixture is this package's job, not lo-blocks'.
+    try:
+        import agreement_app as AA
+        jobs = []
+        for item in sorted(AA.JOBS):
+            excl = set(M.exclusions(item) or [])
+            pid = next((p for p in range(1, 21) if p not in excl), 1)
+            jobs += AA.build_jobs(item, [pid])
+    except Exception as e:
+        return {}, f"the capture jobs cannot be built: {type(e).__name__}: {e}"
+    import tempfile
+    tmp = tempfile.mkdtemp(prefix="reqcap_")
+    jf, of = os.path.join(tmp, "jobs.json"), os.path.join(tmp, "out.json")
+    json.dump(jobs, open(jf, "w"))
+    env = {**os.environ, "RUN_PROMPT_CAPTURE": "1", "JOBS_JSON": jf,
+           "IDMAP_JSON": str(idmap), "PROMPT_OUT": of}
+    try:
+        r = subprocess.run(
+            ["npx", "vitest", "run", "packages/shared/lib/llm/promptcapture.test.ts"],
+            cwd=lo, env=env, capture_output=True, text=True, timeout=900)
+    except Exception as e:
+        return {}, f"the capture run failed: {type(e).__name__}: {e}"
+    if not os.path.exists(of):
+        tail = (r.stderr or r.stdout or "")[-300:]
+        return {}, f"the capture produced no file (exit {r.returncode}): {tail}"
+    capture = json.load(open(of))
+    try:
+        cache.write_text(json.dumps({"key": key, "capture": capture}))
+    except Exception:
+        pass
+    return capture, ""
+
+
+def _recorded_payloads() -> tuple:
+    """({item: sheet}, [payload]), one payload per recorded cell on either side.
+
+    A PAYLOAD IS WHAT THE MODEL ANSWERED, reconstructed from the record: the
+    verdict, the classification and the evidence, per slot. Computed slots are
+    left out -- the model is never asked for one, so it is not part of a
+    response, and including it would feed each engine its own prior conclusion
+    and guarantee agreement.
+    """
+    import agreement as A
+    import cross_path as X
+    import measured as M
+    import olx_prompts as O
+
+    jobs = {j["item"]: j for _h, b in A.BLOCKS.items() for j in b.values()}
+    sheets, payloads = {}, []
+    for item in sorted(M._jobs()):
+        job = jobs.get(item) or {}
+        if A.SCORERS.get(job.get("kind")) is None:
+            continue                       # type_stated / data_presence: no scorer
+        try:
+            act = A.load_action(job["olx"], O.ACTION[item])
+        except Exception:
+            continue                       # sheet-grader item: no <LLMAction>
+        sheets[item] = {k: (act.get(k) or []) for k in
+                        ("slots", "cover", "equals", "onlyif", "counts",
+                         "expect", "requires", "forbid", "maps")}
+        # `derived` IS NOT EXCLUDED, and the asymmetry is the app scorer's shape
+        # rather than an oversight: `scoreSlotSheet` takes maps/equals/expect/
+        # forbid rules and recomputes those itself, but has no `derived`
+        # parameter -- the app computes a derived verdict upstream from the
+        # student's fields and SUPPLIES it. Dropping it fed the app a starved
+        # sheet while `apply_computed` rebuilt it for the harness from the
+        # fixture, which on 1c failed a gate and read as 216 engine
+        # disagreements. It is input to both scorers, so both get it.
+        computed = {r["key"] for f in ("maps", "equals", "expect", "forbid")
+                    for r in (act.get(f) or [])}
+        counted = {sl["key"] for sl in act["slots"]
+                   if sl.get("count_max") is not None}
+        for side in ("olx", "python"):
+            doc = M._runs_doc(item, side)
+            for ri, run in enumerate((doc or {}).get("runs") or []):
+                for ci, r in enumerate(run.get("results") or []):
+                    c = X.result_cell(r)
+                    if not c or c[2] is None:
+                        continue
+                    picks = dict(X.result_picks(r) or {})
+                    ev = r.get("evidence") or {}
+                    checks = {}
+                    for k, v in (c[3] or {}).items():
+                        if k in computed:
+                            continue
+                        d = {}
+                        # A COUNT IS NOT A VERDICT, and WHICH slot is a count is
+                        # decided by the SLOT SPEC -- not by sniffing the value's
+                        # type. The record flattens `count` and `verdict` into one
+                        # column, and the two sides flatten differently: the app
+                        # writes an int, the harness writes a string like "2". A
+                        # type test therefore caught the app's counts and missed
+                        # the harness's, which then arrived as `verdict` and --
+                        # once expand_counted's legacy fallback was removed --
+                        # scored every counted member absent. 454 cells across
+                        # Q1, Q2, 2b and 3 failed their own control that way.
+                        if k in counted:
+                            d["count"] = v
+                        elif v not in (None, ""):
+                            d["verdict"] = v
+                        if picks.get(k) is not None:
+                            d["refers_to"] = picks[k]
+                        if ev.get(k):
+                            d["evidence"] = ev[k]
+                        if d:
+                            checks[k] = d
+                    smax = r.get("sheet_max") or r.get("max")
+                    if not smax:
+                        continue
+                    payloads.append({"id": f"{item}|{side}|{ri}|{ci}|{c[1]}",
+                                     "item": item, "side": side, "pid": c[1],
+                                     "checks": checks, "max": float(smax),
+                                     "recorded": round(float(c[2]), 4),
+                                     # What this side RECORDED for a computed
+                                     # key, kept out of the payload but needed to
+                                     # tell a reconstruction failure from the
+                                     # documented case where a side scored a
+                                     # recorded verdict its own rules now
+                                     # recompute. See the control below.
+                                     "was_recorded": {k: v for k, v in
+                                                      (c[3] or {}).items()
+                                                      if k in computed and v}})
+    return sheets, payloads
+
+
+def _app_scores(sheets: dict, payloads: list) -> tuple:
+    """({id: {score,max}}, why_not) from the APP'S OWN scorer, cached.
+
+    Cached against what could change the answer: the app's scoring fingerprint
+    and the artifacts the payloads come from. An ordinary audit re-reads the
+    cache; the capture re-runs when the app's scorer or a sweep moves.
+    """
+    import hashlib
+    import json
+    import os
+    import subprocess
+    import tempfile
+
+    import measured as M
+    import paths as P
+
+    lo = P.LO
+    runner = lo / "packages/shared/lib/llm/scorecapture.test.ts"
+    if not runner.exists():
+        return {}, f"{runner} is missing, so the app's own scorer cannot be run"
+    if not (lo / "node_modules").is_dir():
+        return {}, f"{lo}/node_modules is absent, so the app's scorer cannot be run"
+    try:
+        # THE PAYLOADS THEMSELVES, not their count. Keyed on the count alone,
+        # a change to how a payload is RECONSTRUCTED -- the count/verdict fix
+        # below, say -- leaves the key identical and the stale capture is served
+        # back as if it had been re-scored.
+        key = hashlib.sha256("|".join([
+            M.web_code_sha("score"),
+            hashlib.sha256(json.dumps(
+                [[p["id"], p["checks"], p["max"]] for p in payloads],
+                sort_keys=True).encode()).hexdigest(),
+            # THE SHEETS TOO. Keyed on the payloads alone, a change to the RULES
+            # -- a slot gaining a `free` list, say -- leaves the key identical
+            # and the stale capture is served back as though it had been
+            # re-scored, which reports the app disagreeing with a rule it was
+            # never given.
+            hashlib.sha256(json.dumps(sheets, sort_keys=True,
+                                      default=str).encode()).hexdigest(),
+            *(f"{i}:{sd}:{mt}:{sz}" for i, sd, mt, sz in M._artifact_fingerprint()),
+        ]).encode()).hexdigest()[:16]
+    except Exception as e:
+        return {}, f"the score-capture key cannot be computed: {type(e).__name__}: {e}"
+    cache = P.OUT / "score_capture.json"
+    if cache.exists():
+        try:
+            got = json.loads(cache.read_text())
+            if got.get("key") == key:
+                return got.get("scores") or {}, ""
+        except Exception:
+            pass
+    tmp = tempfile.mkdtemp(prefix="scorecap_")
+    inp, outp = os.path.join(tmp, "in.json"), os.path.join(tmp, "out.json")
+    json.dump({"sheets": sheets,
+               "payloads": [{k: p[k] for k in ("id", "item", "checks", "max")}
+                            for p in payloads]}, open(inp, "w"))
+    env = {**os.environ, "RUN_SCORE_CAPTURE": "1",
+           "SCORE_IN": inp, "SCORE_OUT": outp}
+    try:
+        r = subprocess.run(
+            ["npx", "vitest", "run",
+             "packages/shared/lib/llm/scorecapture.test.ts"],
+            cwd=lo, env=env, capture_output=True, text=True, timeout=1800)
+    except Exception as e:
+        return {}, f"the score capture failed: {type(e).__name__}: {e}"
+    if not os.path.exists(outp):
+        tail = (r.stderr or r.stdout or "")[-300:]
+        return {}, f"the score capture produced no file (exit {r.returncode}): {tail}"
+    scores = json.load(open(outp))
+    try:
+        cache.write_text(json.dumps({"key": key, "scores": scores}))
+    except Exception:
+        pass
+    return scores, ""
+
+
+def _interpretation_comparison() -> dict:
+    """See `_interpretation_comparison_cached`; cached on the artifacts' fingerprint.
+
+    MEMOISED because the audit's own selftest calls it once per case. It re-scores
+    every recorded response through the harness -- 5,668 of them -- and that side
+    has no cache of its own, so an uncached call took the suite from ~40 minutes
+    to ~80 as soon as this check joined it. Keyed on the artifacts exactly as
+    `scoring_logic_agreement` is, so a re-sweep still invalidates it; a copy is
+    returned so a caller that mutates the result cannot poison the next one.
+    """
+    import measured as M
+
+    d = _interpretation_comparison_cached(M._artifact_fingerprint())
+    return {"n": d["n"], "differ": list(d["differ"]), "errors": list(d["errors"]),
+            "control": {k: list(v) for k, v in d["control"].items()},
+            "rules_moved": d.get("rules_moved", 0), "stale": d.get("stale", 0),
+            "why_not": d.get("why_not", "")}
+
+
+@functools.lru_cache(maxsize=4)
+def _interpretation_comparison_cached(_fingerprint: tuple) -> dict:
+    """Run every recorded response through BOTH engines and compare the scores."""
+    import agreement as A
+    import handouts as H
+    import measured as M
+    import olx_prompts as O
+
+    sheets, payloads = _recorded_payloads()
+    if not payloads:
+        return {"why_not": "no recorded response could be read", "n": 0}
+    app, why_not = _app_scores(sheets, payloads)
+    if why_not:
+        return {"why_not": why_not, "n": 0}
+
+    jobs = {j["item"]: j for _h, b in A.BLOCKS.items() for j in b.values()}
+    cache = {}
+    out = {"n": 0, "differ": [], "control": {"olx": [0, 0], "python": [0, 0]},
+           "errors": [], "why_not": ""}
+    for p in payloads:
+        item = p["item"]
+        if item not in cache:
+            job = jobs[item]
+            act = A.load_action(job["olx"], O.ACTION[item])
+            rub = H.config(M._jobs()[item]["handout"])["rubric"].BY_ID[item]
+            cache[item] = (job, act, rub,
+                           dict(job, slots=act["slots"], cover=act["cover"],
+                                requires=act["requires"]))
+        job, act, rub, merged = cache[item]
+        a = app.get(p["id"])
+        if not a or a.get("error"):
+            out["errors"].append(f"{item}/p{p['pid']}: the app's scorer could not "
+                                 f"score a recorded response: "
+                                 f"{(a or {}).get('error', 'no result')}")
+            continue
+        try:
+            filled = A.apply_computed(act, {k: dict(v) for k, v in p["checks"].items()},
+                                      A.fixture_for(item, p["pid"]))
+            mine, _f = A.SCORERS[job["kind"]](merged, rub, filled)
+        except Exception as e:
+            out["errors"].append(f"{item}/p{p['pid']}: the harness's scorer could "
+                                 f"not score a recorded response: "
+                                 f"{type(e).__name__}: {e}")
+            continue
+        out["n"] += 1
+        # FRACTIONS, because the app scores out of its sheet's max and the
+        # harness out of the item's. cross_path.result_cell converts between the
+        # two for exactly this reason; comparing raw numbers would report every
+        # item whose sheet max differs from its item max.
+        af = a["score"] / a["max"] if a["max"] else 0.0
+        mf = mine / float(p["max"]) if p["max"] else 0.0
+        if abs(af - mf) > 1e-6:
+            out["differ"].append((item, p["pid"], p["side"],
+                                  round(af * p["max"], 3), round(mine, 3)))
+        # THE CONTROL. Each engine must first reproduce the score its OWN side
+        # recorded from that side's own response. Without it a clean comparison
+        # means nothing: two scorers that both misread the record identically
+        # agree perfectly. Both of this session's cross-engine comparisons were
+        # wrong on the first pass and the control is what caught them.
+        side = p["side"]
+        own = af * p["max"] if side == "olx" else mine
+        # EXCLUDED FROM THE CONTROL, not silently passed: where a side recorded a
+        # verdict for a computed key and today's rules compute a different one,
+        # that side scored the RECORDED verdict and this rescoring cannot
+        # reproduce it. That is a rules-moved fact, already reported by
+        # `RECORDED VERDICT DISAGREES WITH ITS MAP`, and counting it here would
+        # report the same thing twice and make a real control failure invisible
+        # among it. 1c/legend is the whole of it today.
+        # A STALE side is not a measurement of the current tree -- the ledger
+        # says exactly that -- so re-scoring its runs by today's rules and
+        # calling the mismatch a control failure reports the staleness twice and
+        # buries a real reconstruction fault among it. Q1 is the live case: its
+        # `free` declaration moved `prompt_sha`, so p17's recorded 3.0 and
+        # today's 5.0 are both right, for different trees.
+        if _side_is_stale(item, side):
+            out["stale"] = out.get("stale", 0) + 1
+        elif any(str(filled.get(k, {}).get("verdict") or "") != str(v)
+                 for k, v in (p.get("was_recorded") or {}).items()):
+            out["rules_moved"] = out.get("rules_moved", 0) + 1
+        else:
+            out["control"][side][1] += 1
+            out["control"][side][0] += abs(own - p["recorded"]) < 1e-6
+    return out
+
+
+def _app_envelope() -> tuple:
+    """(body, why_not) -- the POST body the APP builds, captured from its own code.
+
+    `fetch` is mocked, so nothing is sent. A FIXED probe prompt, because the
+    envelope does not depend on the content and the content is already compared
+    by `check_engines_send_the_same_request`; this isolates everything AROUND it.
+    """
+    import json
+    import os
+    import subprocess
+    import tempfile
+
+    import paths as P
+
+    lo = P.LO
+    runner = lo / "packages/shared/lib/llm/envelopecapture.test.ts"
+    if not runner.exists():
+        return {}, f"{runner} is missing, so the app's envelope cannot be read"
+    if not (lo / "node_modules").is_dir():
+        return {}, f"{lo}/node_modules is absent, so the app's envelope cannot be read"
+    out = os.path.join(tempfile.mkdtemp(prefix="envcap_"), "env.json")
+    env = {**os.environ, "RUN_ENVELOPE_CAPTURE": "1", "ENVELOPE_OUT": out}
+    try:
+        r = subprocess.run(
+            ["npx", "vitest", "run",
+             "packages/shared/lib/llm/envelopecapture.test.ts"],
+            cwd=lo, env=env, capture_output=True, text=True, timeout=600)
+    except Exception as e:
+        return {}, f"the envelope capture failed: {type(e).__name__}: {e}"
+    if not os.path.exists(out):
+        tail = (r.stderr or r.stdout or "")[-300:]
+        return {}, f"the envelope capture produced no file (exit {r.returncode}): {tail}"
+    return json.load(open(out)), ""
+
+
+def _harness_envelope(prompt: str, schema: dict) -> tuple:
+    """(body, why_not) -- the POST body the HARNESS builds, captured from its own code.
+
+    `urlopen` is replaced, so nothing is sent: the backend is driven exactly as a
+    sweep drives it and the request is taken at the boundary. Reading the payload
+    out of the source by eye is what this replaces -- the same distinction that
+    made `_request_capture` necessary.
+    """
+    import json
+    import urllib.request
+
+    import agreement as A
+
+    seen = {}
+
+    class _Stop(Exception):
+        pass
+
+    def _fake(req, *a, **k):
+        seen["body"] = json.loads(req.data.decode())
+        seen["url"] = req.full_url
+        seen["headers"] = dict(req.headers)
+        raise _Stop()
+
+    real = urllib.request.urlopen
+    urllib.request.urlopen = _fake
+    try:
+        A.LoBlocksBackend().complete(prompt, schema, retries=0)
+    except Exception:
+        pass                               # _Stop, or the retry loop giving up
+    finally:
+        urllib.request.urlopen = real
+    if "body" not in seen:
+        return {}, "the harness backend built no request to capture"
+    return seen, ""
+
+
+# A key one engine sends and the other does not is a difference UNLESS the
+# server strips it before forwarding. Each entry names the key and is checked
+# against `routes/llm.ts` actually deleting it -- a declaration that stops being
+# true stops being accepted.
+_ENVELOPE_STRIPPED = ("activity", "profile")
+
+
+# A verdict a scored slot can answer, that the paper ledger deliberately does
+# NOT charge. The web fails anything that is not the satisfying verdict, so an
+# entry here is a real difference between the engines -- it is declared, with the
+# measurement that settled it, rather than repaired.
+UNCHARGED_VERDICTS: dict[tuple[str, str, str], str] = {
+    ("Q1", "utb_stated", "unclear"):
+        "GOLD BACKS THE PAPER SIDE, so aligning the engines here would make the "
+        "scorer wrong. `unclear` fires on exactly one cell in the corpus -- p17 "
+        "-- and gold gives p17 full marks (5.00), which is what the paper scorer "
+        "returns and the web does not: the web charges the full 2 points for "
+        "\"could not tell\". p20, the cell this check exists to catch, answers "
+        "`absent` in 11 of 11 runs, so nothing it should catch escapes. Charging "
+        "`unclear` was measured and reverted; see rubric_h1.py's note on the "
+        "`codes` entry.",
+}
+
+
+def check_every_failing_verdict_has_a_charge() -> list[str]:
+    """Can a scored slot answer something the paper ledger charges nothing for?
+
+    THE AUTHORING FORM of a difference that otherwise waits for the model to
+    produce it. The web fails anything that is not the satisfying verdict; the
+    paper ledger charges only what a deduction CODE names. So a third verdict
+    with no code is scored by one engine and forgiven by the other -- and it
+    stays invisible until the model happens to answer it, which for Q1's
+    `unclear` took 62 observations and one cell.
+
+    Read off the RUBRIC rather than the artifacts, so a new verdict added to a
+    slot is caught when it is authored instead of a sweep later. That is the
+    difference between this and `check_paper_reproduces_web_scores`, which finds
+    the same fault only where a run happened to exercise it.
+
+    An entry in UNCHARGED_VERDICTS is a decision, not a silence: Q1's is there
+    because gold sides with the paper scorer, so charging would be the defect.
+    """
+    import handouts as H
+    import measured as M
+
+    out = []
+    for item_id in sorted(M._jobs()):
+        try:
+            item = H.config(M._jobs()[item_id]["handout"])["rubric"].BY_ID.get(item_id)
+        except Exception:
+            continue
+        if not item:
+            continue
+        for c in item.get("credit") or []:
+            verdicts = list(c.get("verdicts") or [])
+            if not c.get("pts") or len(verdicts) < 2:
+                continue
+            codes = c.get("codes") or {}
+            what = c.get("what")
+            # FROM THE SHEET, not only the rubric. The grader answers the SHEET,
+            # and the two can differ: `unclear` was dropped from Q2's rubric, the
+            # audit went clean, and the grader kept answering it because the
+            # option was still declared in slots=. Reading the rubric alone makes
+            # this check blind in exactly the direction that already cost a
+            # measurement.
+            try:
+                offered = _olx_slot_verdicts(item_id, what) or set()
+            except Exception:
+                offered = set()
+            for v in sorted(offered):
+                if v not in verdicts:
+                    verdicts.append(v)
+            # THE SATISFYING VERDICT, by lo-blocks' rule: `met` where the slot
+            # offers it, else the FIRST option. Mirrored from isSatisfied rather
+            # than assumed positional -- the two rules differ the moment a slot
+            # lists `met` anywhere but first.
+            sat = "met" if "met" in verdicts else (verdicts[0] if verdicts else None)
+            for v in verdicts:
+                if v == sat or _same_verdict(v, sat):
+                    continue
+                # A DECLARED COUNTERPART IS COVERAGE. The two engines' verdict
+                # vocabularies differ by design -- the app's `wrong_kind` is the
+                # mirror's `not_antecedent` on Q4a, `not_consequence` on Q4c,
+                # `not_reason` on Q5 -- and E27 recorded every pair. Comparing the
+                # NAMES alone reported seven counterpart shapes as gaps the first
+                # time this check read the sheet, which is the false-positive
+                # class this family keeps falling into.
+                if any(_same_verdict(v, k) for k in codes):
+                    continue
+                if (item_id, what, v) in UNCHARGED_VERDICTS:
+                    continue
+                out.append(
+                    f"{item_id}/{what} can answer {v!r}, and the paper ledger has "
+                    f"no deduction code for it -- so paper charges 0 where the web "
+                    f"charges the slot's full {c['pts']} points. Give it a code, or "
+                    f"declare it in enforcement.UNCHARGED_VERDICTS with the "
+                    f"measurement that says forgiving it is right")
+            # THE REVERSE DIRECTION, which nothing checked: a verdict the paper
+            # ledger CHARGES that the web counts as satisfying. It costs points on
+            # paper and nothing on the web -- silent OVER-credit on the side
+            # students are actually graded by. None exists today; that is a
+            # measurement, not a guarantee.
+            if sat is not None and any(_same_verdict(sat, k) for k in codes):
+                out.append(
+                    f"{item_id}/{what}: the paper ledger charges {sat!r} via "
+                    f"{codes[sat]}, and the web treats {sat!r} as SATISFYING -- so "
+                    f"the same answer loses points on paper and keeps them on the "
+                    f"web, which is the direction that over-credits a student")
+            # THE POSITIONAL FALLBACK. isSatisfied reads `met` by NAME where the
+            # slot offers it and options[0] by POSITION otherwise, and its own
+            # comment rests on the two agreeing "on every slot in the current
+            # content". That is a measured coincidence with nothing re-testing it:
+            # a slot listing `met` anywhere but first flips meaning on the web and
+            # nowhere else.
+            if "met" in verdicts and verdicts[0] != "met":
+                out.append(
+                    f"{item_id}/{what} lists `met` at position {verdicts.index('met')}, "
+                    f"not first. lo-blocks' isSatisfied reads `met` by NAME and every "
+                    f"other vocabulary by POSITION, so this slot is the case where "
+                    f"those two rules stop agreeing -- and the paper ledger has no "
+                    f"positional rule at all")
+    for (item_id, what, v) in sorted(UNCHARGED_VERDICTS):
+        try:
+            item = H.config(M._jobs()[item_id]["handout"])["rubric"].BY_ID.get(item_id)
+        except Exception:
+            continue
+        hit = [c for c in (item or {}).get("credit") or [] if c.get("what") == what]
+        if not hit:
+            out.append(f"UNCHARGED_VERDICTS names {item_id}/{what}, which the "
+                       f"rubric no longer scores -- drop the declaration")
+        elif v not in (hit[0].get("verdicts") or []):
+            out.append(f"UNCHARGED_VERDICTS names {item_id}/{what}={v!r}, which "
+                       f"the slot can no longer answer -- drop the declaration")
+        elif v in (hit[0].get("codes") or {}):
+            out.append(f"UNCHARGED_VERDICTS says {item_id}/{what}={v!r} is not "
+                       f"charged, but the rubric now charges it -- drop the "
+                       f"declaration")
+    return out
+
+
+def check_engines_reach_the_model_identically() -> list[str]:
+    """Do the two engines put the SAME request on the wire?
+
+    THE LAST PLACE AN ENGINE DIFFERENCE COULD HIDE. The prompt and schema are
+    compared by `check_engines_send_the_same_request`, the reading of the
+    response by `check_engines_read_a_response_the_same_way`, the arithmetic by
+    `check_engines_score_identical_verdicts_alike`. All three compare CONTENT.
+    None compares the envelope around it -- `model`, `max_completion_tokens`,
+    `temperature`, `top_p`, `seed`, the endpoint -- and a difference in any of
+    those moves every score on every item while leaving the prompt audit
+    perfectly clean. It is the explanation that would have survived every check
+    this package had, which is why it needed one of its own.
+
+    Both bodies are CAPTURED from the two code paths, not read out of the source
+    by eye: `fetch` is mocked on one side and `urlopen` on the other, so nothing
+    is sent and nothing is spent.
+
+    Server-side injection is compared too, because the body that leaves the
+    process is not the body that reaches the provider: the route deletes
+    `activity` and `profile`, injects `max_completion_tokens` from the resolved
+    profile, and sets `model`. Those are identical for both engines only while
+    neither sends `profile` and no PMSS rule keyed on the guest/authorized class
+    sets a generation property -- both of which are checked here rather than
+    assumed, since the app may carry a session the harness does not.
+    """
+    import json
+    import re
+
+    import paths as P
+
+    app, why_app = _app_envelope()
+    if why_app:
+        return [f"the two engines' requests could not be compared: {why_app}"]
+    body_app = app.get("body") or {}
+    probe = (body_app.get("messages") or [{}])[0].get("content") or "PROBE"
+    schema = (((body_app.get("response_format") or {}).get("json_schema") or {})
+              .get("schema") or {})
+    mine, why_mine = _harness_envelope(probe, schema)
+    if why_mine:
+        return [f"the two engines' requests could not be compared: {why_mine}"]
+    body_mine = mine.get("body") or {}
+
+    out = []
+    route = P.LO / "apps/server/src/routes/llm.ts"
+    src = route.read_text() if route.exists() else ""
+    for key in _ENVELOPE_STRIPPED:
+        if not re.search(rf"delete\s+body\.{re.escape(key)}\b", src):
+            out.append(f"`{key}` is declared as stripped by the server, but "
+                       f"{route.name} no longer deletes it -- so it now reaches "
+                       f"the provider on one engine and not the other")
+
+    for key in sorted(set(body_app) | set(body_mine)):
+        a, b = body_app.get(key, "<absent>"), body_mine.get(key, "<absent>")
+        if a == b or key in _ENVELOPE_STRIPPED:
+            continue
+        # The PROMPT and SCHEMA are compared by their own check, against every
+        # item rather than one probe; reporting them here would duplicate it.
+        if key in ("messages", "response_format"):
+            continue
+        out.append(f"the engines send a different `{key}`: app "
+                   f"{json.dumps(a)[:90]}, harness {json.dumps(b)[:90]}. Same "
+                   f"model, same prompt -- and a different request")
+
+    if str(app.get("url", "")).split("/api/")[-1] != \
+       str(mine.get("url", "")).split("/api/")[-1]:
+        out.append(f"the engines post to different routes: app "
+                   f"{app.get('url')}, harness {mine.get('url')}")
+
+    # `profile` decides max_completion_tokens and the model. Neither engine sends
+    # one, so both resolve the same default -- a check rather than a comment,
+    # because one engine gaining a profile would silently re-point the other.
+    for name, b in (("app", body_app), ("harness", body_mine)):
+        if b.get("profile"):
+            out.append(f"the {name} now sends profile={b['profile']!r}, which "
+                       f"selects the model and token cap; the other engine does "
+                       f"not, so they no longer resolve the same configuration")
+
+    pmss = P.LO / "config/server.pmss"
+    if pmss.exists():
+        txt = re.sub(r"/\*.*?\*/", "", pmss.read_text(), flags=re.S)
+        for sel, block in re.findall(r"([^{}]+)\{([^}]*)\}", txt):
+            if not re.search(r"\.(guest|authorized)\b", sel):
+                continue
+            for prop in ("llm-model", "llm-provider", "llm-max-tokens"):
+                if re.search(rf"\b{prop}\s*:", block):
+                    out.append(
+                        f"PMSS rule `{sel.strip()}` sets `{prop}`, which is a "
+                        f"GENERATION property keyed on authentication. The app "
+                        f"carries a session the harness does not, so the two "
+                        f"engines would resolve different ones and every "
+                        f"comparison between them would be measuring that")
+    return out
+
+
+def _side_is_stale(item: str, side: str) -> bool:
+    """Is this side's recorded artifact a measurement of the CURRENT tree?"""
+    import measured as M
+
+    try:
+        e = M.entry(item, side)
+        if not e:
+            return False
+        return (e.get("prompt_sha") not in (None, M.prompt_sha(item, side))
+                or e.get("scorer_sha") not in (None, M.scorer_sha(item, side)))
+    except Exception:
+        return False
+
+
+def check_engines_read_a_response_the_same_way() -> list[str]:
+    """Does one raw response score the same through either engine?
+
+    THE LAYER BETWEEN THE TWO CHECKS THAT ALREADY EXIST.
+    `check_engines_send_the_same_request` compares what goes to the model;
+    `check_engines_score_identical_verdicts_alike` compares the arithmetic over
+    verdicts BOTH engines happened to produce. Neither covers the step in
+    between: reading one raw response into checks. A difference there -- a
+    verdict taken from the wrong field, a blank operand failing on one side and
+    unknown on the other -- surfaces as a rate difference and gets read as the
+    model, because the prompts are identical and nothing compares the responses
+    as INPUTS.
+
+    Stronger than the signature comparison in the way that matters: it runs
+    EVERY recorded response through both engines, including the ones only one
+    engine ever produced, where a signature match is impossible by construction.
+    Q4b: 34 shared signatures against 1440 payloads.
+
+    NEVER SILENTLY CLEAN -- a capture that cannot run says so, and the per-side
+    control is reported by `engine_interpretation_line` rather than assumed.
+    """
+    d = _interpretation_comparison()
+    if d.get("why_not"):
+        return [f"the two engines' reading of a recorded response could not be "
+                f"compared: {d['why_not']}"]
+    out = list(d["errors"])
+    for item, pid, side, app_s, mine in d["differ"]:
+        out.append(f"{item}/p{pid}: ONE recorded response, scored {app_s} by the "
+                   f"app's scorer and {mine} by the harness's. The response is "
+                   f"held fixed, so this is the two engines READING it "
+                   f"differently, not the model (from the {side} artifact)")
+    for side, (ok, n) in sorted(d["control"].items()):
+        if n and ok != n:
+            out.append(f"the {side} control FAILED: {ok}/{n} recorded cells "
+                       f"reproduce their own recorded score from their own "
+                       f"recorded response. Until that is 100% this comparison "
+                       f"is measuring the reconstruction, not the engines")
+    return out
+
+
+def engine_interpretation_line() -> str:
+    """Coverage for the check above, as audit context rather than a finding."""
+    d = _interpretation_comparison()
+    if d.get("why_not"):
+        return f"engine reading: NOT COMPARED -- {d['why_not']}"
+    ctl = ", ".join(f"{s} {ok}/{n}" for s, (ok, n) in sorted(d["control"].items()) if n)
+    moved = (d.get("rules_moved") or 0) + (d.get("stale") or 0)
+    moved_s = (f" {moved} cell(s) left OUT of the control, where a side scored a "
+               f"recorded verdict its own rules now recompute." if moved else "")
+    return (f"engine reading: {d['n']} recorded response(s) scored by BOTH "
+            f"engines, {len(d['differ'])} of them scored differently. Controls "
+            f"(each engine reproducing its own recorded score): {ctl}.{moved_s} This is "
+            f"every recorded response, not only the verdict combinations both "
+            f"engines reached.")
+
+
+def check_engines_send_the_same_request() -> list[str]:
+    """Do the two engines send the SAME assembled prompt and the SAME schema?
+
+    THE DEEP FORM of check_engines_offer_the_same_verdicts, and the one that
+    found the divergence in the first place. Everything else compares a PART:
+    the served body, the rubric elements, the schema's property names read out of
+    buildSlotSchema's source. This compares the strings that actually go on the
+    wire -- the app's, captured out of the running blocks, against the harness's,
+    built by agreement.py -- because a difference can live in the assembly rather
+    than in any part.
+
+    NEVER SILENTLY CLEAN. A capture that returns nothing looks exactly like "no
+    difference", which is the failure mode this check is most at risk of: the
+    same shape cost me an hour when a hand-rolled idmap reader returned 0 chars
+    and I nearly reported it as evidence. So a capture that cannot run says so
+    and names what is missing, rather than passing.
+
+    WHITESPACE IS REPORTED SEPARATELY from text, because they are different
+    facts: the two assemblers indent wrapped lines differently (58 characters on
+    Q4b), which is worth knowing and is not the same as asking a different
+    question.
+    """
+    import json
+
+    import agreement as A
+    import olx_prompts as O
+
+    capture, why_not = _request_capture()
+    if why_not:
+        return [f"the two engines' actual requests could not be compared: {why_not}"]
+    out = []
+    for cell, got in sorted(capture.items()):
+        pid_s, item = cell.split("/", 1)
+        if str(got.get("schema", "")).startswith("__ERROR__"):
+            out.append(f"{item}: the app could not be driven to a request: "
+                       f"{got['schema'][:120]}")
+            continue
+        try:
+            pid = int(pid_s.lstrip("p"))
+            h = O.HANDOUT[item]
+            act = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+            mine = (A.build_prompt(act["body"], A.fixture_for(item, pid))
+                    + A.checklist_guidance(act["show_checks"]))
+            my_schema = A.build_schema(act["slots"], act["excluded"],
+                                       act["show_checks"], act["cover"], act["choices"])
+        except Exception as e:
+            out.append(f"{item}: the harness's own request cannot be built: "
+                       f"{type(e).__name__}: {e}")
+            continue
+        theirs = got.get("prompt") or ""
+        if theirs != mine:
+            same_words = theirs.split() == mine.split()
+            kind = ("identical apart from WHITESPACE" if same_words
+                    else "DIFFERENT TEXT")
+            out.append(
+                f"{item}: the app and the harness send different prompts -- "
+                f"{kind} ({len(theirs)} chars vs {len(mine)}). The body, the "
+                f"rubric elements and the schema's property names can all match "
+                f"while the assembled string does not")
+        norm = lambda o: json.dumps(o, sort_keys=True)
+        try:
+            if norm(json.loads(got.get("schema") or "{}")) != norm(my_schema):
+                out.append(
+                    f"{item}: the app and the harness send different SCHEMAS. "
+                    f"A verdict one side offers and the other does not is a "
+                    f"different question, and the answers are not comparable")
+        except Exception as e:
+            out.append(f"{item}: the captured schema cannot be read: "
+                       f"{type(e).__name__}: {e}")
+    return out
+
+
+def check_engines_offer_the_same_verdicts() -> list[str]:
+    """Do both engines offer the grader the SAME verdict list, slot by slot?
+
+    FOUND 2026-09-12 BY CAPTURING WHAT EACH ENGINE ACTUALLY SENDS, and invisible
+    to every instrument that existed. The three that look like they cover it do
+    not: `check_app_and_harness_send_the_same_prompt` compares the BODY TEXT,
+    `equivalence.py --item` compares which RUBRIC ELEMENTS appear, and
+    `schema_divergences` compares `build_schema` against a REGEX READING OF
+    `buildSlotSchema`'s SOURCE -- property names and order. A verdict enum is
+    built from runtime slot data and appears in none of those, so all three were
+    clean while the two engines were asking different questions.
+
+    THE DIVERGENCE THEY MISSED. A slot that names no verdicts of its own falls
+    back to a DEFAULT, and the two defaults disagree:
+
+        slotSheet.ts   DEFAULT_VERDICTS = ['met', 'absent']
+        agreement.py   "met,absent,unclear"        (the `verd_m else` literal)
+
+    So on every item with no `verdicts=` attribute, the harness offers `unclear`
+    and the app does not. On Q4b that is `modify_stated` (2 pts), `modify_why`
+    (1 pt) and `confident`; `is_satisfied` requires exactly `met`, so an
+    `unclear` COSTS THE POINTS on one side and cannot be said on the other.
+    goals.py records the same mechanism doing real damage on Q2's
+    `wgb_inverts_utb` -- "an extra option to reach for", five divergences in 120.
+
+    CHEAP ON PURPOSE, because it runs on every audit: each side's own code path
+    supplies its own default, the slots are parsed twice in Python, and nothing
+    is launched. The deeper instrument -- capturing the assembled prompt and the
+    real schema out of the running app -- is
+    lo-blocks/packages/shared/lib/llm/promptcapture.test.ts, which mocks the
+    provider call and so costs nothing but is too heavy for an audit.
+    """
+    import re as _re
+
+    import agreement as A
+    import olx_prompts as O
+    import paths as P
+
+    try:
+        ts = open(P.SLOTSHEET_TS).read()
+    except OSError as e:
+        return [f"cannot read {P.SLOTSHEET_TS}: {e}"]
+    m = _re.search(r"export const DEFAULT_VERDICTS\s*=\s*\[([^\]]*)\]", ts)
+    if not m:
+        return ["DEFAULT_VERDICTS not found in slotSheet.ts -- this audit is stale"]
+    app_default = [v.strip().strip("'\"") for v in m.group(1).split(",") if v.strip()]
+
+    out = []
+    for item, action_id in sorted(O.ACTION.items()):
+        try:
+            h = O.HANDOUT[item]
+            olx = open(P.OLX % h).read()
+            el = _re.search(r"<LLMAction\b[^>]*\bid=\"%s\".*?</LLMAction>"
+                            % _re.escape(action_id), olx, _re.S)
+            if not el:
+                continue
+            open_tag = el.group(0)[:el.group(0).index(">") + 1]
+            spec = _re.search(r'slots="([^"]*)"', open_tag, _re.S)
+            if not spec:
+                continue
+            verd = _re.search(r'verdicts="([^"]*)"', open_tag, _re.S)
+            # The app's own fallback, and the harness's own, each via its own path.
+            app_defaults = ([v.strip() for v in verd.group(1).split(",") if v.strip()]
+                            if verd else app_default)
+            app_slots = {s["key"]: s.get("options") or []
+                         for s in O.parse_slots(spec.group(1), app_defaults)}
+            py_slots = {s["key"]: s.get("options") or []
+                        for s in A.load_action(f"bmod_handout{h}.olx", action_id)["slots"]}
+        except Exception as e:
+            out.append(f"{item}: cannot compare verdict lists: {type(e).__name__}: {e}")
+            continue
+        # ONLY WHAT THE GRADER IS ASKED. A COMPUTED slot -- an `equals`, `maps`,
+        # `derived`, `expect` or `forbid` target -- is excluded from both sides'
+        # response schemas, so the two sheets can declare different verdict lists
+        # for it and no grader will ever see either. Verified against the real
+        # captured requests: of 76 slots where the declarations differ, 19 are
+        # computed and absent from the app's schema; the other 57 are genuinely
+        # offered, 13 of them on slots that carry points. Reporting the 19 would
+        # be claiming a difference in a question nobody is asked.
+        try:
+            excluded = set(A.load_action(f"bmod_handout{h}.olx", action_id)["excluded"])
+        except Exception:
+            excluded = set()
+        silent = 0
+        for key in sorted(set(app_slots) & set(py_slots)):
+            a, p = app_slots[key], py_slots[key]
+            if a != p and key in excluded:
+                silent += 1
+                continue
+            if a != p:
+                out.append(
+                    f"{item}.{key}: the app offers {a} and the harness offers {p}. "
+                    f"The two engines are asking the grader a different question, "
+                    f"so their answers are not comparable on this slot -- and a "
+                    f"verdict only one side can say is one only that side can be "
+                    f"charged for")
+        if silent:
+            out.append(
+                f"{item}: {silent} computed slot(s) also declare different "
+                f"verdict lists on the two sides. No grader is asked them, so "
+                f"nothing can answer differently -- recorded rather than "
+                f"reported as a divergence, so the count is not silently lost")
+    return out
+
+
+def check_every_sweep_is_recorded() -> list[str]:
+    """Is there a NEWER measurement on disk than the one the ledger records?
+
+    THE GAP THIS CLOSES, measured 2026-09-14 and paid for the same day. A
+    fifteen-item re-sweep finished, nothing recorded it, and the next audit read
+    the OLD artifacts: eleven cells reported as "PAPER AND WEB SCORE THE SAME
+    JUDGMENTS DIFFERENTLY", ten of which had already been resolved by the sweep,
+    plus a 26-item aggregate saying no column could be dated against the app's
+    own code -- because the columns pointed at artifacts written before that
+    stamp existed. Every one of those findings was about a STALE POINTER, not
+    about the tree, and nothing in the audit said so.
+
+    Recording is not bookkeeping that can wait. Until it happens the ledger
+    describes a measurement that has been superseded, and every check reading
+    `_runs_doc` is reading the superseded one. The failure is silent and it
+    points AWAY from the cause: it invites you to debug a scoring difference
+    that no longer exists.
+
+    WHAT COUNTS AS NEWER, and why mtime rather than the shas. An artifact whose
+    stamps match today's could still be the one already recorded, and an
+    artifact whose stamps differ could be an older run that is legitimately
+    superseded. What makes a sweep unrecorded is that it was WRITTEN after the
+    artifact the ledger points at, for the same column, by the program that side
+    contracts to. Mtime says exactly that and nothing else.
+    """
+    import json
+
+    import measured as M
+    import paths as P
+
+    out = []
+    for item in sorted(M._jobs()):
+        for side in ("olx", "python", "paper", "paper_opus"):
+            rec = M.entry(item, side)
+            if not rec:
+                continue
+            recorded = M._runs_path(item, side)
+            # DATE THE RUNS, NOT THE FILE. `era.measured_at` says when the
+            # grader ran; mtime says when someone last wrote the file, and for a
+            # pooled or folded artifact those are different dates. Preferring
+            # mtime made `pooled_paper` -- an assembly containing a FAILED
+            # cell-fill -- look newer than the clean measurement it superseded.
+            # Fall back to mtime only when there is no stamp, and say so.
+            floor, floor_dated = 0.0, False
+            if recorded:
+                rp = pathlib.Path(recorded)
+                floor = rp.stat().st_mtime
+                try:
+                    rdoc = json.loads(rp.read_text())
+                    at = ((rdoc.get("era") or {}).get("measured_at") or "")
+                    if at:
+                        import datetime as _dt
+                        floor = _dt.datetime.fromisoformat(at).timestamp()
+                        floor_dated = True
+                except Exception:
+                    pass
+            # THE CONTRACT IS A PAIR, (shape, model), and comparing only the
+            # shape advised recording an OPUS artifact into the `paper` column:
+            # `pooled_paper_opus` has the right shape and the wrong model, and
+            # `--record` would refuse it on the same contract. Decision 11.3
+            # excludes paper_opus from acceptance outright, so the advice was
+            # not merely useless -- it pointed at work that must not be done.
+            want_shape, want_model = M.SIDE_CONTRACT[side]
+            newer, incomplete = [], []
+            for cand in _runs_files(P.OUT, f"*/{item}.runs.json"):
+                try:
+                    doc = json.loads(cand.read_text())
+                    at = ((doc.get("era") or {}).get("measured_at") or "")
+                    if at:
+                        import datetime as _dt
+                        when = _dt.datetime.fromisoformat(at).timestamp()
+                    else:
+                        # UNDATEABLE. It cannot show it is newer, so it does not
+                        # get to displace a dated measurement -- and if the
+                        # RECORDED one is itself undated, neither can claim
+                        # recency and mtime is all there is.
+                        if floor_dated:
+                            continue
+                        when = cand.stat().st_mtime
+                    if when <= floor:
+                        continue
+                except Exception:
+                    continue
+                if M._artifact_program(doc) != want_shape:
+                    continue
+                got_model = (doc.get("era") or {}).get("model") or ""
+                if want_model not in got_model:
+                    continue        # right shape, wrong model: another column's
+                # A SWEEP WITH FAILED CELLS IS NOT A RECORDABLE SWEEP, and
+                # saying "record this" about one sends the reader at a refusal.
+                # `pooled_paper` is newer than the NP/PP columns and carries six
+                # cells the provider never returned JSON for -- the recorded
+                # 3-run artifacts are CLEAN, so the newer one is worse, not
+                # later. Report it as needing a cell-fill, not as a backlog.
+                dead = sum(1 for run in (doc.get("runs") or [])
+                           for c in (run.get("results") or [])
+                           if c.get("score") is None
+                           and not (c.get("checks") or c.get("verdicts")))
+                (incomplete if dead else newer).append(
+                    f"{cand.parent.name} ({dead} failed cell(s))" if dead
+                    else cand.parent.name)
+            if incomplete:
+                out.append(
+                    f"{item} [{side}]: a NEWER sweep exists and cannot be "
+                    f"recorded -- {', '.join(incomplete[:3])}. The provider "
+                    f"returned nothing parseable for those cells, so the run "
+                    f"judged nothing there. Fill them with a cell-level sweep "
+                    f"and re-fold BEFORE recording; until then the older, "
+                    f"complete artifact is the better measurement and is "
+                    f"correctly the one recorded")
+            if newer:
+                out.append(
+                    f"{item} [{side}]: {len(newer)} sweep artifact(s) on disk are "
+                    f"NEWER than the one recorded"
+                    + (f" ({rec.get('out')})" if rec.get("out") else " (none recorded)")
+                    + f" -- {', '.join(newer[:3])}"
+                    + (" ..." if len(newer) > 3 else "")
+                    + ". Record it: until then every check reads the superseded "
+                      "measurement, and the findings it produces describe a tree "
+                      "that has already moved on")
+    return out
+
+
+def check_web_code_neutrality_is_verified() -> list[str]:
+    """Every WEB_CODE_NEUTRAL entry must still reproduce the scores it excuses.
+
+    THE SIBLING OF `check_scorer_neutrality_is_verified`, for the other sha
+    space. `WEB_CODE_NEUTRAL` suppresses a web-scoring-code mismatch on the
+    grounds that the change cannot move a recorded number. That is checkable
+    without spending anything -- the verdicts are on disk -- so re-score every
+    cell the entry covers through today's scorer and require the score the
+    artifact stored.
+
+    The approval cannot rot in either direction. If the claim was wrong this says
+    which cell moved. If the app's scoring later changes in a way that DOES move
+    a score, the fingerprints move with it, the pair stops matching, and the
+    finding returns on its own.
+
+    A SPENT PAIR IS REPORTED, not silently tolerated: an entry no column sits at
+    is coverage of a difference that is no longer there.
+    """
+    import measured as M
+
+    bad: list[str] = []
+    covered = 0
+    for (rec, now), why in sorted(M.WEB_CODE_NEUTRAL.items()):
+        items = []
+        for item in sorted(M._jobs()):
+            doc = M._runs_doc(item, "olx")
+            if not doc:
+                continue
+            era = doc.get("era") or {}
+            per = (era.get("items") or {}).get(item, {}) or {}
+            got = per.get("web_score_sha", era.get("web_score_sha"))
+            if got == rec:
+                items.append(item)
+        if not items:
+            bad.append(
+                f"WEB_CODE_NEUTRAL declares {rec} -> {now} ({why[:48]}...), but no "
+                f"recorded column sits at {rec}. The pair is spent -- drop it, or "
+                f"it reads as coverage of something")
+            continue
+        for item in items:
+            try:
+                if M.web_code_sha("score", item) != now:
+                    continue              # a different pair's business
+            except Exception:
+                continue
+            n, moved, why_not = M.rescore_recorded(item, "olx")
+            covered += n
+            if why_not:
+                bad.append(f"{item}: {rec} -> {now} cannot be verified -- {why_not}")
+            for m in moved:
+                bad.append(
+                    f"{item}: WEB_CODE_NEUTRAL claims {rec} -> {now} moves no "
+                    f"score, but {m}")
+    return bad
+
+
+def check_web_code_is_stamped_by_its_own_sha() -> list[str]:
+    """Does every recorded WEB column say which app code produced it?
+
+    THE THIRD BORROWED-STAMP HOLE, and the same shape as the first two. The
+    `.olx` says what the grader is shown; it does not say how lo-blocks turns
+    that into a SCHEMA or a SCORE. `buildSlotSchema` decides what is asked and
+    `scoreSlotSheet` and its call sites decide what it is worth, and no stamp
+    covered either -- so an edit to the app could change every web prompt, or
+    every web score, and leave 26 columns reading `ok`.
+
+    ASK AND SCORE ARE REPORTED SEPARATELY because the remedies differ. A changed
+    ASK invalidates the recorded ANSWERS: nothing but a re-sweep can fix it. A
+    changed SCORE invalidates only the arithmetic over answers that still stand,
+    which re-scoring can settle and SCORER_NEUTRAL can absorb.
+
+    Columns recorded before the stamp existed are reported ONCE, in aggregate.
+    They are a backfill debt, not 26 separate defects, and burying a live
+    mismatch under two dozen standing lines is how a list stops being read.
+    """
+    import measured as M
+
+    try:
+        want_ask, want_score = M.web_code_sha("ask"), M.web_code_sha("score")
+    except SystemExit as e:
+        return [f"the web-code fingerprint cannot be computed: {e}"]
+
+    out, unstamped = [], []
+    for item in sorted(M._jobs()):
+        doc = M._runs_doc(item, "olx")
+        if not doc:
+            continue
+        era = doc.get("era") or {}
+        # PER ITEM first: the stamps moved into `era.items[<id>]` when they were
+        # scoped by primitive. The top-level pair is the corpus-wide view and is
+        # read only as a fallback, for artifacts written in between.
+        per = (era.get("items") or {}).get(item, {}) or {}
+        got_ask = per.get("web_ask_sha", era.get("web_ask_sha"))
+        got_score = per.get("web_score_sha", era.get("web_score_sha"))
+        if not got_ask and not got_score:
+            unstamped.append(item)
+            continue
+        want_ask = M.web_code_sha("ask", item)
+        want_score = M.web_code_sha("score", item)
+        if got_ask and got_ask != want_ask:
+            out.append(
+                f"{item}: recorded against app schema code {got_ask}, now "
+                f"{want_ask}. `buildSlotSchema` has changed, so the ANSWERS in "
+                f"this column were given to a different question -- re-sweep; "
+                f"re-scoring cannot reach it")
+        if got_score and got_score != want_score and \
+                (got_score, want_score) not in M.WEB_CODE_NEUTRAL:
+            out.append(
+                f"{item}: recorded against app scoring code {got_score}, now "
+                f"{want_score}. The answers still stand; the numbers computed "
+                f"from them may not -- re-score, and declare the pair in "
+                f"measured.WEB_CODE_NEUTRAL if every recorded cell reproduces")
+    if unstamped:
+        out.append(
+            f"{len(unstamped)} web column(s) predate the app-code stamp and "
+            f"cannot be dated against lo-blocks at all ({', '.join(unstamped)}). "
+            f"Each is re-stamped by its next sweep; until then a change to "
+            f"`buildSlotSchema` or `scoreSlotSheet` is invisible to them")
+    return out
+
+
 def check_paper_prompt_is_stamped() -> list[str]:
     """The paper column's prompt sha must be the PAPER prompt's.
 
@@ -6404,7 +7977,7 @@ def check_engine_rate_divergence() -> list[str]:
         itself reported, once, as a fact about the design.
 
     WHY NOT A MEDIAN COMPARISON, which is what E39 first proposed: medians
-    manufacture divergences on cells near 50%, and QUALITY_CONTROL 2f records
+    manufacture divergences on cells near 50%, and QUALITY_CONTROL 2g records
     three of Q32's five being ONE observation apart. The exact test is what
     separates those from a real difference, and at six runs a side it says none
     of them is separable.
@@ -6721,8 +8294,17 @@ def _assemble_like_the_app(idmap: dict, action: str, fixture: dict,
 
     Mirrors what the runtime does with the `kids` array -- text segments in
     order, each `{type: block, id: ...}` replaced by the value of the field its
-    `<Ref>` targets. `(left blank)` for an empty field, matching
-    agreement.build_prompt so an empty box does not read as a difference.
+    `<Ref>` targets. AN EMPTY FIELD RESOLVES TO NOTHING, which is what the app
+    does; captured from the running blocks to be sure of it.
+
+    IT USED TO PAD WITH `(left blank)`, and the reason given was "matching
+    agreement.build_prompt so an empty box does not read as a difference" -- i.e.
+    this model of the APP was calibrated to agree with the HARNESS. That is why
+    it never found the divergence it exists to find: the harness padded, the app
+    did not, and the check had been taught the harness's answer. A model of the
+    thing under test, tuned to the thing it is tested against, can only ever
+    report clean. Fixed 2026-09-12 when a capture of the real app showed the two
+    assembled prompts differ on 60 cells across 18 items.
     """
     for key, entry in idmap.items():
         if not key.endswith("/" + action):
@@ -6735,7 +8317,7 @@ def _assemble_like_the_app(idmap: dict, action: str, fixture: dict,
                 else:
                     rid = str((k or {}).get("id", "")).split("/")[-1]
                     tgt = refmap.get(rid)
-                    parts.append((fixture.get(tgt) or "").strip() or "(left blank)")
+                    parts.append((fixture.get(tgt) or "").strip())
             return "".join(parts)
     return None
 
@@ -6779,8 +8361,29 @@ def check_scorer_neutrality_is_verified() -> list[str]:
                 f"recorded item sits at {rec}. The pair is spent -- drop it, or it "
                 f"reads as coverage of something")
             continue
+        # DOES THE DECLARED TARGET STILL EXIST? A pair names a transition
+        # `rec -> now`. Items recorded at `rec` are found above, so the pair does
+        # not read as spent -- but if NONE of them now sits at `now`, every one is
+        # skipped below and the pair verifies NOTHING while the audit reports
+        # clean. Measured 2026-09-14: both live pairs declare
+        # `6526989cd34f -> ...` over three columns whose scorer has since moved to
+        # a third sha entirely, so `cells covered` was 0 and no finding said so.
+        #
+        # That is C1's failure mode wearing a different hat. The usual one is a
+        # check whose SOURCE vanished; this is a check whose TARGET vanished, and
+        # it is quieter, because the declaration still looks live in the table.
+        if items and not any(M.scorer_sha(i, sd) == now for i, sd in items):
+            at = sorted({M.scorer_sha(i, sd) for i, sd in items})
+            bad.append(
+                f"SCORER_NEUTRAL declares {rec} -> {now} ({why[:48]}...), and "
+                f"{len(items)} recorded item(s) DO sit at {rec} -- but none of "
+                f"them is at {now} any more; they are at {', '.join(at)}. The "
+                f"pair is not spent, it is UNTESTABLE: every item is skipped and "
+                f"the claim is verified against nothing. Re-point it at the sha "
+                f"the tree actually reached, or retire it")
+            continue
         for item, side in items:
-            if M.scorer_sha(item) != now:
+            if M.scorer_sha(item, side) != now:
                 continue                      # a different pair's business
             n, moved, why = M.rescore_recorded(item, side)
             covered += n
@@ -7347,7 +8950,18 @@ VERDICT_ABSENCE_ENCODING = {
 # disagree on its spelling. 32 pairs across 13 items, measured 2026-09-08. This
 # is ONE encoding difference manifesting 32 times, not 32 defects, which is why
 # the scope is declared rather than reported cell by cell.
-VERDICT_ABSENCE_SCOPE = 32
+# RE-MEASURED 2026-09-11: 37, up from the 32 measured on 2026-09-08. Not five
+# new defects and not a new encoding -- the same single difference (olx `None`,
+# python `""`) manifesting in five more places. Every one of the 37 is a
+# CLASSIFICATION slot: `observed_type`, `named_type`, `stimulus_move`,
+# `antecedent_kind_1/2`, `b1_basis`, `b2_basis`, `b2_names_besides`, `wgb_names`,
+# `trigger_expects`, `trigger_behavior`, `restricts`, `restriction_authored`.
+# A pick answers `refers_to`, so its `verdict` is absent on BOTH sides by
+# construction, and the two sides spell that absence differently -- which is why
+# the count tracks how many picks have been recorded on both sides rather than
+# anything about agreement. Re-measure and restate when it moves again; a number
+# that drifts without explanation is what this declaration exists to prevent.
+VERDICT_ABSENCE_SCOPE = 37
 
 
 def check_engines_encode_an_unrecorded_verdict_alike() -> list[str]:
@@ -7805,7 +9419,7 @@ def check_no_module_shadow_in_scratchpad() -> list[str]:
     `<module>.before_<tag>.py` or `<module>.pre_<tag>.py`, so their basename
     cannot satisfy an `import <module>`. Only an EXACT basename match can, and
     only that is reported. A cycle legitimately holds a snapshot open until it
-    keeps or reverts its edit -- see QUALITY_CONTROL.md 2a-1c.
+    keeps or reverts its edit -- see QUALITY_CONTROL.md 2b-1c.
     """
     import glob
 
@@ -7858,7 +9472,7 @@ def check_closure_ceilings_are_declared() -> list[str]:
     of ceiling language OF THE CLOSING KIND -- "as a CEILING", "recorded as a
     ceiling" -- not every use of the word, because these notes discuss ceilings
     constantly ("the item's own subgoal already closed at its ceiling"). A
-    hand-rolled pattern over prose is what QUALITY_CONTROL.md 2a-3 warns about;
+    hand-rolled pattern over prose is what QUALITY_CONTROL.md 2b-3 warns about;
     there is no prepared reader for this question, so this one is written once,
     kept narrow, and fire-tested.
     """
@@ -8150,7 +9764,7 @@ def check_new_slots_were_probed() -> list[str]:
                 f"{item}/{slot} is an answerable slot the last recording never "
                 f"saw and no probe has ever asked. A new question costs ~30 calls "
                 f"to probe standalone and ~230 to learn from a sweep: "
-                f"`python3 probe.py {item} {slot}` (QUALITY_CONTROL.md 2a0)")
+                f"`python3 probe.py {item} {slot}` (QUALITY_CONTROL.md 2a)")
     return out
 
 
@@ -8452,6 +10066,52 @@ def _same_verdict(a, b) -> bool:
     return False
 
 
+def _artifact_prompt_state(doc: dict, item_id: str):
+    """Is this artifact's prompt the CURRENT one FOR THE SIDE THAT WROTE IT?
+
+    True, False, or None when the file cannot be dated at all.
+
+    PER SIDE, because an era carries three prompt stamps and an artifact is only
+    comparable against its own. Both liveness tests read `era['prompt_sha']` --
+    the OLX stamp -- whatever wrote the file, so a paper artifact was dated by
+    the WEB's prompt: it read LIVE while its own prompt had moved on, and could
+    read historical for a `.olx` edit that never touched the paper scorer. That
+    is the same borrowed-sha fault `prompt_sha` itself carried until 2026-09-10,
+    surviving in the one place that still hard-coded the side.
+
+    The writer is told apart exactly as cross_path.result_cell tells it apart --
+    `cell` is the app, `item_id` is score.py, `participant_id` is the harness --
+    because a second way of making that distinction is a second way to get it
+    wrong. UNDATABLE IS NOT HISTORICAL: an artifact with no stamp for its own
+    side returns None, and each caller decides, so a missing field can never
+    silence an alarm.
+    """
+    import measured as M
+
+    era = (doc.get("era") or {}).get("items", {}).get(item_id, {})
+    first = None
+    for run in doc.get("runs") or []:
+        for r in run.get("results") or []:
+            first = r
+            break
+        if first is not None:
+            break
+    if first is None:
+        return None
+    if "cell" in first:
+        side, stamp = "olx", era.get("prompt_sha")
+    elif "item_id" in first:
+        side, stamp = "paper", era.get("prompt_sha_paper")
+    else:
+        side, stamp = "python", era.get("prompt_sha_python")
+    if not stamp:
+        return None
+    try:
+        return stamp == M.prompt_sha(item_id, side)
+    except Exception:
+        return None
+
+
 def historical_map_divergences() -> list[str]:
     """Map divergences in artifacts the prompt has moved past. Subgoal E52.
 
@@ -8468,12 +10128,11 @@ def historical_map_divergences() -> list[str]:
     root = _pl.Path(getattr(_paths, "OUT", "/home/pdeane/molly_data/out"))
     out: list[str] = []
     for item, _mod, s in _maps_specs():
-        for path in sorted(root.glob(f"*/{item}.runs.json")):
+        for path in _runs_files(root, f"*/{item}.runs.json"):
             try:
                 doc = json.loads(path.read_text())
-                era = (doc.get("era") or {}).get("items", {}).get(item, {})
-                if era.get("prompt_sha") == M.prompt_sha(item, "olx"):
-                    continue
+                if _artifact_prompt_state(doc, item) is not False:
+                    continue              # current, or undatable: not historical
             except Exception:
                 continue
             for run in doc.get("runs") or []:
@@ -8541,13 +10200,32 @@ def check_mapped_slots_agree_with_their_map() -> list[str]:
     if not root.is_dir():
         return []
     tally: dict = {}
-    for path in sorted(root.glob("*/*.runs.json")):
+    for path in _runs_files(root, "*/*.runs.json"):
         item = path.name[: -len(".runs.json")]
         if item not in by_item:
             continue
         try:
             doc = json.loads(path.read_text())
         except Exception:
+            continue
+        # ATTRIBUTABLE TO TODAY'S APP CODE, OR NOT EVIDENCE OF TODAY'S BEHAVIOUR.
+        # This check retains a fault a later sweep did not reproduce, which is
+        # right -- the artifacts are where the behaviour is. It only holds while
+        # the old observation is COMPARABLE: the map is applied by lo-blocks'
+        # scoring path, so an artifact that cannot say which app code produced it
+        # cannot distinguish "it happened once" from "it happened under code that
+        # no longer exists".
+        #
+        # Measured 2026-09-14: all four surviving findings came from
+        # `rr_1c_olx` and `pooled_olx`, which carry NO `web_score_sha` at all and
+        # sit on different commits, while today's sweep of the same two items on
+        # stamped, current code reproduces none of them. The prompt filter below
+        # already refuses an artifact answering a prompt that no longer ships;
+        # this is the same rule for the code that scores the answer.
+        era = doc.get("era") or {}
+        per = (era.get("items") or {}).get(item, {}) or {}
+        got_score = per.get("web_score_sha", era.get("web_score_sha"))
+        if not got_score or got_score != _M.web_code_sha("score", item):
             continue
         for ri, run in enumerate(doc.get("runs") or [], 1):
             for r in run.get("results") or []:
@@ -8584,12 +10262,13 @@ def check_mapped_slots_agree_with_their_map() -> list[str]:
     def _is_live(dirname: str, item_id: str) -> bool:
         import json as _j
         try:
-            import measured as _M
             doc = _j.loads((root / dirname / f"{item_id}.runs.json").read_text())
-            era = (doc.get("era") or {}).get("items", {}).get(item_id, {})
-            return era.get("prompt_sha") == _M.prompt_sha(item_id, "olx")
         except Exception:
             return True          # unreadable: report it rather than hide it
+        # Not `is True`: an artifact that cannot be dated stays an open finding,
+        # the same way an unreadable one does. Only a prompt shown to have MOVED
+        # silences the alarm.
+        return _artifact_prompt_state(doc, item_id) is not False
 
     out: list[str] = []
     for (d, item, key, pick, got, want), n in sorted(tally.items(),
@@ -9118,6 +10797,8 @@ def check_count_scaffolds_are_arithmetic() -> list[str]:
     """
     import json
     import pathlib as _pl
+
+    import measured as _MEAS
     import paths as _paths
 
     stems = ("reasons", "benefits", "harms")
@@ -9125,11 +10806,28 @@ def check_count_scaffolds_are_arithmetic() -> list[str]:
     root = _pl.Path(getattr(_paths, "OUT", "/home/pdeane/molly_data/out"))
     if not root.is_dir():
         return []
-    for path in sorted(root.glob("*/*.runs.json")):
+    for path in _runs_files(root, "*/*.runs.json"):
         try:
             doc = json.loads(path.read_text())
         except Exception:
             continue                      # an unreadable artifact is another check's
+        # ATTRIBUTABLE TO TODAY'S APP CODE, as `check_mapped_slots_agree_with_
+        # their_map` now requires. The count scaffold is computed by the app's
+        # scoring path, so an artifact that cannot say which app code produced it
+        # cannot distinguish "the arithmetic was wrong" from "the arithmetic was
+        # different then". Measured 2026-09-14: the only surviving finding came
+        # from `twoside_cli`, which carries no `web_score_sha`, no model and no
+        # `measured_at` -- undateable by anything but file mtime.
+        _item = path.name[: -len(".runs.json")]
+        _era = doc.get("era") or {}
+        _per = (_era.get("items") or {}).get(_item, {}) or {}
+        _got = _per.get("web_score_sha", _era.get("web_score_sha"))
+        try:
+            _want = _MEAS.web_code_sha("score", _item)
+        except Exception:
+            continue                      # not a scored item: nothing to attribute
+        if not _got or _got != _want:
+            continue
         for ri, run in enumerate(doc.get("runs") or [], 1):
             for r in run.get("results") or []:
                 a = r.get("answers") or r.get("refers_to") or {}
@@ -9219,7 +10917,17 @@ def check_computed_slot_recovery_is_faithful() -> list[str]:
                       if v is not None}
                 ans = {k: v for k, v in (r.get("answers") or {}).items()
                        if v is not None}
-                full = {k: dict(**({"verdict": ch[k]} if k in ch else {}),
+                # Route by the SLOT SPEC, not by the column the artifact
+                # happens to use: the artifact flattens `count` and `verdict`
+                # into one column, so a counting group's number arrives under
+                # `checks`. Wrapping it as `verdict` leaves expand_counted
+                # reading no count at all, which silently recovers every member
+                # as unmet. Fourth site to need this after the 2026-09-13
+                # fallback removal -- the other three are mirror_self_control,
+                # _recorded_payloads and probe.
+                count_keys = {cr["key"] for cr in (spec.get("counts") or [])}
+                full = {k: dict(**({("count" if k in count_keys else "verdict"):
+                                    ch[k]} if k in ch else {}),
                                 **({"refers_to": ans[k]} if k in ans else {}))
                         for k in set(ch) | set(ans)}
                 stripped = {k: v for k, v in full.items() if k not in recover}

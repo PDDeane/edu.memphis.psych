@@ -54,6 +54,18 @@ ITEMS: list[dict] = [
                 # this check exists to catch, answers `absent` in 11 of 11 runs, so
                 # nothing it should catch escapes.
                 "codes": {"absent": "UTB_NOT_STATED"},
+                # DECLARED FREE, so both engines agree instead of defaulting in
+                # opposite directions. The paper ledger charges only what a CODE
+                # names, so `unclear` already cost nothing here; the web fails
+                # anything that is not `met` and took the full 2 points. Gold
+                # settles which is right -- p17, the only cell that ever answers
+                # `unclear`, gets full marks -- so the WEB was the wrong one, and
+                # this carries the decision into the sheet where its scorer can
+                # read it. Derived from nothing: a free verdict is declared, never
+                # inferred from a missing code, because a code keyed on a
+                # counterpart name (Q4a's `not_antecedent` for the sheet's
+                # `wrong_kind`) would look missing and forgive a real failure.
+                "free": ["unclear"],
                 # OPEN DECISION. Removing `derived=` made both sides ANSWER this
                 # check, but they still see different evidence: the web/agreement.py
                 # Q1 prompt carries `REF:bmod_h1_q1_ref_utb`, handing the model the
@@ -241,7 +253,7 @@ ITEMS: list[dict] = [
             # `benefits_listed` failed to move Q1/p10 at all. The diagnosis was that
             # the state/doing axis CANNOT separate p10's "my goal for this year is
             # more active" from Q2/p18's "get back in shape", which gold credits --
-            # so no wording on that axis can work, and section 2a says try structure
+            # so no wording on that axis can work, and section 2b says try structure
             # first.
             #
             # THE STRUCTURE IS THE ONE Q2 ALREADY HAS. `benefits_listed` was doing
@@ -581,6 +593,17 @@ ITEMS: list[dict] = [
             # NOT YET SWEPT in this form.
             {
                 "what": "wgb_names",
+                # A CLASSIFICATION, NOT A SCORED CHECK. It carries no points, gates
+                # nothing and declares no `codes`, so it has no route into the
+                # deduction vocabulary and can never tell a student anything. It
+                # exists so a computed check can READ it. Without `reported` the
+                # ledger walks it on every cell, finds it "not met" (a pick has no
+                # met/absent vocabulary, so it never is), finds no code, and files
+                # `wgb_names:<verdict>` into `unknown_codes` -- 594 entries across the
+                # corpus, every one structural. That buried the case the field is
+                # FOR: a chargeable slot failing in a way the rubric cannot word.
+                # Changes no score: nothing here was ever chargeable.
+                "reported": True,
                 "verdicts": ["doing", "own_state", "general_state",
                              "outcome_measure", "other_activity", "none"],
                 # SUBGOAL Q43, 2026-09-05. The STRUCTURAL split that entry asks
@@ -1276,6 +1299,17 @@ ITEMS: list[dict] = [
         "credit": [
             {
                 "what": "antecedent_kind_1",
+                # A CLASSIFICATION, NOT A SCORED CHECK. It carries no points, gates
+                # nothing and declares no `codes`, so it has no route into the
+                # deduction vocabulary and can never tell a student anything. It
+                # exists so a computed check can READ it. Without `reported` the
+                # ledger walks it on every cell, finds it "not met" (a pick has no
+                # met/absent vocabulary, so it never is), finds no code, and files
+                # `antecedent_kind_1:<verdict>` into `unknown_codes` -- 594 entries across the
+                # corpus, every one structural. That buried the case the field is
+                # FOR: a chargeable slot failing in a way the rubric cannot word.
+                # Changes no score: nothing here was ever chargeable.
+                "reported": True,
                 "verdicts": ["before", "unlinked", "aftermath", "not_doing", "already_a_consequence", "none"],
                 # SUBGOAL Q33, 2026-09-05. `antecedent_1` and `antecedent_2` had
                 # NO rule; the four rejection grounds lived in item guidance as a
@@ -1353,6 +1387,17 @@ ITEMS: list[dict] = [
             },
             {
                 "what": "antecedent_kind_2",
+                # A CLASSIFICATION, NOT A SCORED CHECK. It carries no points, gates
+                # nothing and declares no `codes`, so it has no route into the
+                # deduction vocabulary and can never tell a student anything. It
+                # exists so a computed check can READ it. Without `reported` the
+                # ledger walks it on every cell, finds it "not met" (a pick has no
+                # met/absent vocabulary, so it never is), finds no code, and files
+                # `antecedent_kind_2:<verdict>` into `unknown_codes` -- 594 entries across the
+                # corpus, every one structural. That buried the case the field is
+                # FOR: a chargeable slot failing in a way the rubric cannot word.
+                # Changes no score: nothing here was ever chargeable.
+                "reported": True,
                 "verdicts": ["before", "unlinked", "aftermath", "not_doing", "already_a_consequence", "none"],
                 # SUBGOAL Q33 -- the SAME parse for the second box, stated in full
                 # rather than pointed at. Four of the five unstable cells flip on
@@ -1588,6 +1633,17 @@ ITEMS: list[dict] = [
             # sweep unable to say which of the two moved a cell.
             {
                 "what": "b1_basis",
+                # A CLASSIFICATION, NOT A SCORED CHECK. It carries no points, gates
+                # nothing and declares no `codes`, so it has no route into the
+                # deduction vocabulary and can never tell a student anything. It
+                # exists so a computed check can READ it. Without `reported` the
+                # ledger walks it on every cell, finds it "not met" (a pick has no
+                # met/absent vocabulary, so it never is), finds no code, and files
+                # `b1_basis:<verdict>` into `unknown_codes` -- 594 entries across the
+                # corpus, every one structural. That buried the case the field is
+                # FOR: a chargeable slot failing in a way the rubric cannot word.
+                # Changes no score: nothing here was ever chargeable.
+                "reported": True,
                 "verdicts": ['activity', 'consequence', 'goal_behaviour', 'not_doing', 'none'],
                 "desc": "What the first example IS",
                 "rule": "ONE ANSWER, and it says what the entry IS. The engine turns it "
@@ -1720,6 +1776,17 @@ ITEMS: list[dict] = [
             },
             {
                 "what": "b2_basis",
+                # A CLASSIFICATION, NOT A SCORED CHECK. It carries no points, gates
+                # nothing and declares no `codes`, so it has no route into the
+                # deduction vocabulary and can never tell a student anything. It
+                # exists so a computed check can READ it. Without `reported` the
+                # ledger walks it on every cell, finds it "not met" (a pick has no
+                # met/absent vocabulary, so it never is), finds no code, and files
+                # `b2_basis:<verdict>` into `unknown_codes` -- 594 entries across the
+                # corpus, every one structural. That buried the case the field is
+                # FOR: a chargeable slot failing in a way the rubric cannot word.
+                # Changes no score: nothing here was ever chargeable.
+                "reported": True,
                 "verdicts": ['activity', 'consequence', 'goal_behaviour', 'not_doing', 'none'],
                 "desc": "What the second example IS",
                 "rule": "ONE ANSWER, on the same terms as the first example: `activity` for "

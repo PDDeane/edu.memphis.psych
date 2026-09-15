@@ -245,6 +245,49 @@ def _fmt(v) -> str:
     return f"{v:.2f}" if isinstance(v, (int, float)) else "  -  "
 
 
+def default_verdicts() -> list[str]:
+    """The verdict list a slot gets when it names none, READ FROM slotSheet.ts.
+
+    THE DEFAULTS DISAGREED, and nothing could see it. This was the literal
+    "met,absent,unclear" while the app's `DEFAULT_VERDICTS` is ['met', 'absent'],
+    so on every slot with no `verdicts=` attribute the harness offered the grader
+    a third option the app does not -- 57 slots across the corpus, 13 of them
+    carrying points, including `matches_chosen_type`, which is 2 of 4 on D1, D2,
+    WK1 and WK2. The two engines were asking different questions and every
+    existing instrument was structurally blind to it: the body comparison reads
+    TEXT, `--item` reads RUBRIC ELEMENTS, and `schema_divergences` reads
+    buildSlotSchema's SOURCE, where an enum built from runtime slot data never
+    appears. It was found by capturing what each engine actually sends.
+
+    WHY THE APP'S LIST WINS. The app is what students are graded by and this
+    harness exists to mirror it; and an `unclear` here is not free -- is_satisfied
+    requires `met`, so the extra option silently CHARGES, which is the one
+    behaviour nobody has argued for (score.py: "A DECLARED HEDGE CHARGES
+    NOTHING, ON THIS SIDE TOO"). Where a hedge genuinely belongs an author says
+    so in the slot's own third segment; the default is for slots that did not.
+
+    NO RECORDED NUMBER MOVES. Measured over 2,902 recorded python runs before
+    changing it: a grader took the extra option ONCE, on NR.you_arrange_it, and
+    that run was wrong. So this re-stamps the python prompt without re-measuring
+    anything -- see the ledger note rather than re-sweeping the corpus for it.
+
+    READ, NOT COPIED, so the two cannot drift apart again: a second literal is
+    what created this. Fails loudly rather than falling back to a guess.
+    """
+    import re as _re
+
+    ts = _ts_source()
+    m = _re.search(r"export const DEFAULT_VERDICTS\s*=\s*\[([^\]]*)\]", ts)
+    if not m:
+        raise SystemExit(
+            f"DEFAULT_VERDICTS not found in {paths.SLOTSHEET_TS} -- the harness "
+            f"cannot know what verdicts the app offers a slot that names none")
+    out = [v.strip().strip("'\"") for v in m.group(1).split(",") if v.strip()]
+    if not out:
+        raise SystemExit("DEFAULT_VERDICTS in slotSheet.ts is empty")
+    return out
+
+
 def load_action(olx_file: str, action_id: str) -> dict:
     """Pull one <LLMAction> out of the .olx: prompt body, slots, verdicts."""
     path = os.path.join(OLX_DIR, olx_file)
@@ -259,12 +302,21 @@ def load_action(olx_file: str, action_id: str) -> dict:
             raise SystemExit(f"{action_id} has no slots= attribute; nothing to measure")
         verd_m = re.search(r'verdicts="([^"]*)"', open_tag, re.S)
         body = el[len(open_tag):].rsplit("</LLMAction>", 1)[0]
+        _free = olx_prompts.parse_free(_attr(open_tag, "free"))
+        _slots = parse_slots(
+            slots_m.group(1),
+            ([v.strip() for v in verd_m.group(1).split(",") if v.strip()]
+             if verd_m else default_verdicts()),
+        )
+        # ON THE SLOT, mirroring SlotSpec.free in slotSheet.ts. Carried with the
+        # slots rather than beside them because every scorer is handed `slots`
+        # and the mirrors rebuild their spec without sheet-level keys.
+        for _s in _slots:
+            if _free.get(_s["key"]):
+                _s["free"] = list(_free[_s["key"]])
         return {
             "body": body,
-            "slots": parse_slots(
-                slots_m.group(1),
-                [v.strip() for v in (verd_m.group(1) if verd_m else "met,absent,unclear").split(",") if v.strip()],
-            ),
+            "slots": _slots,
             "equals": parse_equals(open_tag),
             "derived": parse_derived(open_tag),
             "cover": parse_cover(open_tag),
@@ -276,6 +328,14 @@ def load_action(olx_file: str, action_id: str) -> dict:
             "choices": olx_prompts.parse_choices(_attr(open_tag, "choices")),
             "expect": olx_prompts.parse_expect(_attr(open_tag, "expect")),
             "forbid": olx_prompts.parse_forbid(_attr(open_tag, "forbid")),
+            # Verdicts that cost NOTHING, so both engines stop defaulting in
+            # opposite directions on a verdict neither enumerates. See
+            # olx_prompts.free_attr_for. Also attached to each SLOT below, which
+            # is how it actually reaches the scorers: `merged` is rebuilt as
+            # dict(job, slots=..., ...) in four places and none of them would
+            # carry a sheet-level key, so a mirror would quietly score by the old
+            # default while production forgave.
+            "free": olx_prompts.parse_free(_attr(open_tag, "free")),
             "maps": olx_prompts.parse_maps(_attr(open_tag, "maps")),
             # Was MISSING, and the omission was silent: the expansion at
             # `for cr in item.get("counts", [])` ran zero times, so counted
@@ -642,10 +702,26 @@ def build_prompt(body: str, fixture: dict[str, str]) -> str:
                 f"item's JOBS entry in agreement_app.py — rendering a placeholder "
                 f"scores the check unmet on every cell instead of saying so."
             )
-        return (fixture.get(key) or "").strip() or "(left blank)"
+        # AN EMPTY BOX RENDERS EMPTY, as it does on the page. This substituted
+        # the literal "(left blank)", which the app never shows: on 60 cells
+        # across 18 items -- 1c 13/20 and Q6 11/20 -- the harness was TELLING the
+        # grader a box was empty while the app left it to notice. Measured before
+        # changing it, difference-in-differences against the app over the
+        # recorded runs: -2.2% (no detectable effect, point estimate against the
+        # placeholder), so nothing is lost by matching the page.
+        return (fixture.get(key) or "").strip()
 
     text = html.unescape(_REF.sub(fill, body))
-    return re.sub(r"\n[ \t]+", "\n", text).strip()
+    # NO DEDENT. `re.sub(r"\n[ \t]+", "\n", ...)` stripped the leading spaces
+    # from every wrapped line, so the harness sent the numbered rules flush left
+    # where the app indents their continuations -- 58 characters on Q4b, and a
+    # difference on 20 of the 23 items that make a call.
+    #
+    # THE TWO LINES TOGETHER WERE THE WHOLE DIFFERENCE. With the placeholder gone
+    # and the dedent gone, `build_prompt` + `checklist_guidance` reproduces the
+    # string the app assembles BYTE FOR BYTE -- verified on Q4b, 2b, 3, Q6 and 1c
+    # against prompts captured out of the running blocks.
+    return text.strip()
 
 
 def _guidance_block(fn_name: str) -> str:
@@ -1063,6 +1139,69 @@ def satisfied_map(spec: dict, checks: dict) -> dict[str, bool]:
     return out
 
 
+def count_keys(spec: dict) -> set:
+    """Which slots hold a NUMBER rather than a judgement. ONE authority.
+
+    THE FIVE RECONSTRUCTION SITES DID NOT AGREE ON THIS, which is the part of
+    T11 that is easy to miss. Two of them asked `spec["counts"]` -- the rules
+    whose MEMBERS are derived from a count -- and two asked whether the slot
+    carries `count_max`. Those are different sets: on Q1 the counts-rule names
+    `reasons_given` alone, while `count_max` also covers `reasons_listed`,
+    `reasons_failing`, `benefits_listed`, `benefits_failing` and `harms_listed`.
+
+    `count_max` is the RIGHT question here and the other is a subset of it. The
+    question a reconstruction asks is not "does this group derive members from a
+    number" but "is the recorded value a number at all" -- and every `count_max`
+    slot answers a number, whether or not anything is derived from it. Routing by
+    the narrower set leaves five Q1 slots and two Q2 slots wrapped as `verdict`.
+    """
+    return {sl["key"] for sl in (spec.get("slots") or [])
+            if sl.get("count_max") is not None}
+
+
+def rebuild_sheet(spec: dict, checks: dict, answers: dict | None = None) -> dict:
+    """Rebuild a RECORDED cell into a sheet, routing every key by the slot spec.
+
+    THE ARTIFACT FLATTENS `count` AND `verdict` INTO ONE COLUMN, so a reader
+    holding a recorded value cannot tell from the data which it has; the only
+    authority is the spec. A reader that guesses `verdict` for a counting group
+    hands `expand_counted` no count, every member recovers as unmet, and the cell
+    scores at its FLOOR -- silently, and looking exactly like a real engine
+    disagreement. On 2026-09-13 that was reported out loud as the paper and web
+    scorers differing on 456 cells, on items whose sides agree unanimously.
+
+    SIX OCCURRENCES ACROSS SEVEN SITES is what made this a helper rather than a
+    convention. Removing `expand_counted`'s legacy `count ?? verdict` fallback
+    was right -- it let a wrong reconstruction still score -- but that fallback
+    was also the only reader that understood the flattened shape, so deleting it
+    broke every reconstruction at once. Three sites were fixed and named in its
+    comment; two more were missed BECAUSE that comment reads as a complete list;
+    and two others (`rescore_recorded`, `_our_failing_slots`) were wrong all
+    along, masked by a guard that happened to skip `expand_counted` on the side
+    where the members were recorded anyway.
+
+    So no site builds `{"verdict": v}` for a recorded cell any more. A value that
+    is already a dict is passed through untouched -- some callers hold rows that
+    were stored in sheet shape -- and `refers_to` rides along from `answers`,
+    which a CLASSIFICATION slot carries beside a null verdict.
+    """
+    answers = answers or {}
+    counted = count_keys(spec)
+    out: dict = {}
+    for k in set(checks) | set(answers):
+        entry: dict = {}
+        if k in checks:
+            v = checks[k]
+            if isinstance(v, dict):
+                entry.update(v)
+            else:
+                entry["count" if k in counted else "verdict"] = v
+        if k in answers:
+            entry["refers_to"] = answers[k]
+        out[k] = entry
+    return out
+
+
 def expand_counted(item: dict, checks: dict) -> dict:
     """Resolve counted members from their count, returning a NEW sheet.
 
@@ -1077,7 +1216,19 @@ def expand_counted(item: dict, checks: dict) -> dict:
     out = dict(checks)
     for cr in item.get("counts", []):
         got = out.get(cr["key"]) or {}
-        raw = got.get("count", got.get("verdict", ""))
+        # `count` ONLY. The legacy `verdict` fallback was removed 2026-09-13: the
+        # schema has asked for `count` on every counting slot since that
+        # migration ("How many. A number, not a judgement."), so no production
+        # path supplies one in `verdict`. What DID rely on it was every
+        # RECONSTRUCTION that rebuilds a recorded cell -- the artifact flattens
+        # `count` and `verdict` into one column, and rebuilding everything as
+        # `verdict` needed the fallback to read it back. Those now route counts
+        # by the slot spec (mirror_self_control, _recorded_payloads, probe).
+        #
+        # Keeping the fallback was not free: it let a reconstruction be WRONG and
+        # still score, so the mirror silently dropped ~456 olx cells whose counts
+        # arrived as ints and reported 100% over what remained.
+        raw = got.get("count", "")
         try:
             n = int(str(raw).strip())
         except (TypeError, ValueError):
@@ -1186,6 +1337,16 @@ def score_slots(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
                 f"credit component names."
             )
         if not sat[slot["key"]]:
+            # A DECLARED-FREE verdict is unsatisfied and costs nothing. Without
+            # this the mirror charges a slot the paper ledger forgives, because
+            # the two encode failure with opposite defaults: `isSatisfied` fails
+            # everything that is not the satisfying verdict, while a deduction
+            # ledger charges only what a CODE names. Q1's `utb_stated` answers
+            # `unclear` on p17, gold gives that cell full marks, and charging it
+            # is the engines disagreeing rather than the student being wrong.
+            _v = str((checks.get(slot["key"]) or {}).get("verdict") or "").strip()
+            if _v and _v in (slot.get("free") or []):
+                continue
             if not charged.get(slot["key"], True):
                 # `onlyif` — this check may not be CHARGED while its condition
                 # fails, mirroring slotSheet.chargedMap. Without it Q4b charged
