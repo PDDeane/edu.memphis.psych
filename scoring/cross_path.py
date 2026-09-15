@@ -232,8 +232,20 @@ def result_cell(r: dict) -> tuple | None:
         # folded to met/absent so the shape matches the other two readers and
         # nothing downstream has to know which scorer it came from.
         s = r.get("score")
-        checks = {c.get("what"): ("met" if c.get("met") else "absent")
-                  for c in (r.get("credit_checks") or []) if c.get("what")}
+        # KEEP THE VERDICT, do not fold to met/absent. The fold was written to
+        # make the three readers share a shape, but a cover-group slot answers a
+        # LABEL -- Q6 records `state_a1: "first"` -- and "first" folded to "met"
+        # matches none of the group's labels, so both members earn nothing and
+        # the cell scores exactly half. That was 85 of Q6's cells, plus Q1 and
+        # Q2. The other two readers already return the raw verdict string, so
+        # preserving it makes this branch MORE alike, not less; `met` stays the
+        # fallback for an entry recorded before the verdict field existed.
+        checks = {}
+        for c in (r.get("credit_checks") or []):
+            if not c.get("what"):
+                continue
+            v = (c.get("verdict") or "").strip()
+            checks[c["what"]] = v or ("met" if c.get("met") else "absent")
         return (r["item_id"], r.get("_pid"),
                 None if s is None else float(s), checks)
     pid = r.get("participant_id")                     # the python harness

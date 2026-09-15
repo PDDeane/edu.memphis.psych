@@ -220,7 +220,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       missing point.
       **A_NONE and C_NONE are now REACHABLE**, per the rule that a code gold
       specifies should be wired rather than declared away. Done with the `forbid`
-      primitive (§2a: structure before prose), which is built for "fails when a
+      primitive (§2b: structure before prose), which is built for "fails when a
       COMBINATION holds": the computed check fails exactly when BOTH entries are
       `absent` -- nothing listed at all -- which is what the codes name, and is
       distinct from entries written but of the wrong kind, which the -2 codes
@@ -2032,7 +2032,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       before touching the arithmetic.
       IF IT IS EVER CHANGED, the change is scoring arithmetic on EVERY Q1 cell
       and eleven of twenty are currently perfect, so it is a sweep-and-compare-
-      all-twenty edit under QUALITY_CONTROL.md 2a-2, not a wording tweak.
+      all-twenty edit under QUALITY_CONTROL.md 2b-2, not a wording tweak.
       WHY IT IS FILED AT ALL: the amplification is invisible in the slot texts --
       `harms_listed` reads as one counted slot among several, and nothing says its
       precision is load-bearing in a way `benefits_listed`'s is not. A reader
@@ -2710,7 +2710,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       built `measured.cell_bands()`, which answers "what band is this cell in
       NOW"; the question a rule change actually needs is "what band was it in
       BEFORE", and that is not recorded anywhere.
-      WHY IT MATTERS RATHER THAN BEING TIDINESS. QUALITY_CONTROL.md 2c tells the
+      WHY IT MATTERS RATHER THAN BEING TIDINESS. QUALITY_CONTROL.md 2d tells the
       reader to ask whether a change "gained a STABLE cell or pushed a coin flip
       across the median line". With the bands derived, that question is now
       answerable -- but only against TODAY's ledger, so it can be asked before a
@@ -2835,13 +2835,13 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
         AN ITEM'S NUMBER CAN MOVE WITH NOTHING CHANGING. Q4b is 16/19 with four
           cells at 11/12; one bad run reads 15/19 and a reader looks for a cause
           that does not exist.
-        IT CORRUPTS THE JUDGEMENT OF RULE CHANGES. QUALITY_CONTROL.md 2c already
+        IT CORRUPTS THE JUDGEMENT OF RULE CHANGES. QUALITY_CONTROL.md 2d already
           says to ask whether a change "gained a STABLE cell or pushed a coin flip
           across the median line" -- but with 63 candidates that is advice nobody
           can act on, because which cells are candidates is not derivable.
         IT IS THE HONEST READING OF THE CORPUS. 404 of 491 cells are reliably
           right. Every item figure in the ledger implies better than that.
-      THIS IS NOT THE REPORTING LESSON ALREADY RECORDED. Section 2c says report
+      THIS IS NOT THE REPORTING LESSON ALREADY RECORDED. Section 2d says report
       the SPREAD OF RUN TOTALS, and `sweep_summary` does. This is one level down:
       the CELLS composing the numerator include unreliable ones, and no check
       sees them.
@@ -2916,7 +2916,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       reason to open a declaration, and it is an equally bad reason to spend calls.
 
 - [ ] E28. **A paper sweep the ledger can record, on either model.**
-      FIRST NUMBERS RECORDED 2026-09-01, on two items only: Q4a paper 15/20 and
+      FIRST NUMBERS RECORDED 2026-09-01, on two items only: Q4a paper was 15/20 and
       Q4c paper 17/19, six runs each on gpt-5-mini through `--backend lo`, folded
       by paper_runs.py and recorded on the `paper` side. So the machinery built
       on 2026-08-30 is confirmed working against the CURRENT corpus, not just the
@@ -3023,7 +3023,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       `orphans_if_closed('Q53')` returned zero wrong and zero unstable while Q53
       was the only entry naming them. That is a THIRD blind spot in the closure
       checks, after "counted right by the median" (subgoal E41) and "a cell that
-      got BETTER loses its owner" (QUALITY_CONTROL.md 2a). A paper-only defect is
+      got BETTER loses its owner" (QUALITY_CONTROL.md 2b). A paper-only defect is
       invisible to both prepared readers, so re-homing it has to be done by
       reading the entry, which is what happened here.
       THREE OF FOUR NOW POINT ONE WAY: p18 and p20 have `paper` OVER-crediting
@@ -3977,7 +3977,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       artifacts costs nothing -- `_cell_scores` already has both sides -- and
       belongs beside check_every_wrong_cell_has_an_owner, which walks the same
       cells. What it must NOT do is report every cell whose medians differ:
-      QUALITY_CONTROL.md 2f records that three of Q32's five "divergences" were
+      QUALITY_CONTROL.md 2g records that three of Q32's five "divergences" were
       one observation apart, and a check with that threshold would be noise. Three
       of six is the threshold used above and it should be justified or replaced
       before the check lands.
@@ -4178,7 +4178,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
           1a/p15, Q4a/p20 and Q4b/p8 as CONTROLS, precisely because we score
           them right. Ownership takes any mention; "evidence has moved" takes
           only a TITLE mention.
-      Documented as QUALITY_CONTROL.md §2e, next to §2b's after-every-sweep
+      Documented as QUALITY_CONTROL.md §2f, next to §2c's after-every-sweep
       error profile, since the two are the same discipline at different grain.
       NOT DONE, deliberately: the check reads the RECORDED ledger, so it is only
       as current as the last `measured.py --record`. It cannot tell a cell that
@@ -4683,7 +4683,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       p12 are the cells to watch -- p12 because it is where the two paths already
       disagree 6-of-6 against 11-of-12.
       STOPPED BEFORE IMPLEMENTING, 2026-08-28, on three findings from reading the
-      record first (§2d). The design is ready; the decision is not mine.
+      record first (§2e). The design is ready; the decision is not mine.
       (i) THIS TEST WAS ALREADY MEASURED AND REJECTED. handouts.py records it, in
           prose form, on 3 runs: counted [14,13,13] -> [15,12,14], p4 moving 0/3 ->
           1/3 and the four gold credits holding. Not adopted, and for a reason the
@@ -4727,7 +4727,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       referent test moves and the four judgement conditions stay, the entries
       REMAIN and their reasons must be rewritten to say so.
 
-- [x] E7. **§2d's recorded-comment lookup is blind to all twelve H2 items.** FIXED
+- [x] E7. **§2e's recorded-comment lookup is blind to all twelve H2 items.** FIXED
       2026-08-28. `prior_record` found an item's comments by searching for a literal
       `"id": "DAY1"` line and scanning to the next `"id":`. rubric_h2 builds its
       items from a factory, so no H2 item ever matched and the hook printed "could
@@ -4756,7 +4756,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       general decisions written early and measured findings piling up at the bottom,
       so `block[:3]` was showing the oldest and cutting the newest. Q1 has six runs
       and now surfaces rubric_h1.py:246-279 -- the `reasons_given` counting rule,
-      which is the comment §2d was written about after ~900 calls were spent
+      which is the comment §2e was written about after ~900 calls were spent
       rediscovering it. The earlier blocks are NAMED with their line spans and a
       `sed` command rather than dropped, because a later comment routinely assumes
       an earlier one: "the same rule" and "reverted again" mean nothing without
@@ -4764,7 +4764,7 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
 
       AS FOUND, for the record: the hook reported `could not read rubric_h2.py:
       StopIteration` on every H2 `--write`, visibly, for as long as rubric_h2 has
-      been a factory. §2d is a discipline the record is supposed to enforce
+      been a factory. §2e is a discipline the record is supposed to enforce
       automatically, and on the handout with the most recorded dead ends it
       enforced nothing. Pre-existing, not caused by the subgoal E6 work that
       surfaced it.
@@ -5642,7 +5642,7 @@ reader had in mind. Every cross-reference in this file is now prefixed.
       FIRST STEP, AND IT IS FREE: read out `named_type`'s nine flapping cells and
       WK2's 588-character text side by side, and check whether WK2's wording
       transfers or whether the daily/weekly items need their own. No calls until
-      that readout is done -- QUALITY_CONTROL.md 2a-3.
+      that readout is done -- QUALITY_CONTROL.md 2b-3.
 
       == RE-MEASURED 2026-09-08 AND THE DIAGNOSIS IS BACKWARDS. THE UNDEFINED ==
       == SLOT IS STABLE; THE DEFINED ONE FLAPS. NO CALLS.                    ==
@@ -5719,7 +5719,7 @@ reader had in mind. Every cross-reference in this file is now prefixed.
       per-slot increment -- so this is one slot answering differently, not a
       compound judgement.
       WHY IT IS THE MOST TRACTABLE THING IN THE REGISTER: one slot, one item, no
-      cross-item interaction, and 1c is 17/17 by the median -- so all eight are
+      cross-item interaction, and 1c counts every one of its cells right by the pooled median -- so all eight are
       counted RIGHT today and none is a scoring defect yet. That makes it the
       cheapest place to learn what makes a slot bistable, on cells where being
       wrong costs nothing.
@@ -6205,6 +6205,13 @@ p16 REMAINS SEPARATE, as the entry already says: its error is `title`.
       against Q4a's 21 and 23. Read the pick, not the derived verdict, and confirm on the
       python side where the map is honoured.
 - [ ] Q63. **Q6: six cells in the consequence-matching slots -- the residue of an otherwise reliable mechanism.**
+      RELATED PARKED REVISION, different cell, same mechanism:
+      `~/.claude/plans/snoopy-crafting-corbato.md` argues about the state-slot
+      matching rule behind Q6/p17. p17 is NOT one of the six below and is now
+      perfect on both web sides, so the plan is not a route for this subgoal --
+      but its argument about how the state slots match is the same machinery
+      these six turn on. REVIEW IT AGAINST CURRENT STATE FIRST: its cell figures
+      are from 2026-08-17 and its target cell has since resolved.
       Filed 2026-09-08 out of subgoal Q50's analysis. Measured from the ledger,
       no calls.
           Q6/p4     10/12  gold 6.25  swing 1.25/10.0  state_a2,link_c2
@@ -6984,7 +6991,7 @@ should be measured once, not three times.
       == CLOSED 2026-09-07. closed 2026-09-07 on the user's instruction, as a
       CEILING rather than a win or a divergence in our favour -- and the
       distinction is the point. THREE PROBE ARMS, 240 calls, all 20 cells scored
-      against gold AS AMENDED (QUALITY_CONTROL.md 2a-2/2a-3). ARM 1, the
+      against gold AS AMENDED (QUALITY_CONTROL.md 2b-2/2a-3). ARM 1, the
       engagement test -- where the antecedent names something OTHER than the
       absence of the goal behaviour the change must ACT ON that thing -- reached
       the target Q6/p2 `incomplete` 4 of 4 and left DECLARED Q6/p8 at `met` 4/4 on
@@ -7080,7 +7087,7 @@ should be measured once, not three times.
       a SCHEDULE is a plan. Gold credits p6's schedule -- its antecedent IS "{{corpus:Q6/p6:state_a1:0:21:sha=641b355f6e09:shape=S0-0a202020202020}}", so a commitment to attend engages it directly -- and
       charges p8's, whose antecedents are laziness and video games that {{corpus:Q6/p8:change_a1:18:31:sha=bd6a150dc6a6:shape=S2-0a202020202020}} leaves untouched. The axis is ENGAGEMENT WITH THE NAMED ANTECEDENT, not
       form and not adequacy, and it separates p6 from p8 without naming either.
-      NEXT STEP: probe on ALL valid cells (QUALITY_CONTROL.md 2a-2), pre-register
+      NEXT STEP: probe on ALL valid cells (QUALITY_CONTROL.md 2b-2), pre-register
       the two sets above, and only then sweep.
 
       == 2026-09-07: THIS ENTRY'S CENTRAL PREMISE IS REFUTED. MEASURED, NO CALLS. ==
@@ -7162,7 +7169,7 @@ should be measured once, not three times.
       check the candidate against gold on ALL valid cells BEFORE the probe -- the
       user's instruction of 2026-09-07, and it would have killed the trap clause
       for free.
-      SO: PROBE BEFORE SWEEPING (QUALITY_CONTROL.md 2a0). `change_a1`/`change_a2`
+      SO: PROBE BEFORE SWEEPING (QUALITY_CONTROL.md 2a). `change_a1`/`change_a2`
       are `kind="asked"`, so `probe.question_for` lifts them; p2's and p8's boxes
       are already read out and clean. ~28 calls against ~240.
       ONE QUESTION HANDED HERE FROM Q49, since this entry owns `affect_c*`: where
@@ -7439,7 +7446,7 @@ should be measured once, not three times.
 
       == WORKED 2026-09-08. (a) IS DONE, (b) IS FORECLOSED ON EVIDENCE, AND (c) ==
       == IS THE ONE LIVE PIECE -- BUT NOT FOR THE REASON THIS ENTRY GIVES.      ==
-      (a) THE RE-SWEEP HAPPENED. Q1 is CLEAN on both sides at 17/20 -- the
+      (a) THE RE-SWEEP HAPPENED. Q1 was CLEAN on both sides at 17/20 -- the
       staleness the entry was written under is gone, and every rate above is
       superseded. Refreshed:
           p5   11/12 -> 10/12      p14  7/12 -> 9/12
@@ -7627,7 +7634,7 @@ should be measured once, not three times.
       `probe.control_gate` reproduces the ledger on 17 of 18 cell-slots, with
       p14 skipped because the LEDGER's own answer wobbles (`NR` only 7 of 12).
       That is the difference between this result and the six voided ones -- see
-      QUALITY_CONTROL.md 2a-1b.
+      QUALITY_CONTROL.md 2b-1b.
       NEXT, IN THIS ORDER, and the order is the lesson from Q56's failure the same
       afternoon: build the text into the rubric; run `leakage.gate(("WK2",))` on
       the BUILT tree (the pre-build injection check is worthless -- it reads clean
@@ -7762,7 +7769,7 @@ should be measured once, not three times.
          2026-09-05 retraction and this re-instatement failed the same way.
       == AMENDED SAME DAY: THE NEGATIVE RESULT BELOW IS VOID. THE HEAD IS ==
       == UNTESTED, NOT REFUTED. READ THIS BEFORE THE SECTION IT AMENDS. ==
-      `probe.control_gate` (QUALITY_CONTROL.md 2a-1b) refuses the probe's
+      `probe.control_gate` (QUALITY_CONTROL.md 2b-1b) refuses the probe's
       envelope on TWO independent grounds, neither of which is about the rule:
         p9/consequence_2   the A/B's CONTROL arm -- the shipped text, unmodified,
                            sha 57f9b432d2f6 -- answered `met` 4 of 4 where the
@@ -7883,7 +7890,7 @@ should be measured once, not three times.
       `charged_box_unknown` returning an EMPTY credited set on purpose -- gold
       charges the cell and the table cannot say which box, so no box in it counts
       as credited. Fire-tested on both mistakes and registered in
-      QUALITY_CONTROL.md 2a-3, whose new rule is: A PRE-REGISTERED SET IS A
+      QUALITY_CONTROL.md 2b-3, whose new rule is: A PRE-REGISTERED SET IS A
       CLASSIFIER TOO, AND TYPING IT OUT BY HAND IS THE NONCE VERSION.
       WHAT THE ATTEMPT DID BUY, and it is not nothing: the head is measured
       SAFE -- it costs no gold-credited box on any of the nineteen cells -- and
@@ -7893,7 +7900,7 @@ should be measured once, not three times.
       anything. It is reverted rather than kept because a rule that changes
       answers without fixing its target is prose in a prompt.
       STATE OF THE CELL: Q4c/p9 stays 0 of 12 and stays in the ratchet only. It is
-      NOT declared, NOT endorsed, and NOT a ceiling. Q4c is 17 of 19 on both sides
+      NOT declared, NOT endorsed, and NOT a ceiling. Q4c was 17 of 19 on both sides
       with the tree back to sha 57f9b432d2f6. The next step is a DIRECTION head on
       `consequence_2` -- a box naming what follows from the GOAL behaviour is not a
       consequence of the unwanted one -- pre-registered off `probe_falsifiers`
@@ -7982,7 +7989,7 @@ should be measured once, not three times.
       returned 0 -- because preflight's actual wording is "and no OPEN subgoal
       names it". BOTH WERE NONCE CLASSIFIERS, AND BOTH WERE WRONG, on the same day
       the user made using the prepared reader standing procedure
-      (QUALITY_CONTROL.md 2a-3). `measured.wrong_cells_without_an_owner()` named
+      (QUALITY_CONTROL.md 2b-3). `measured.wrong_cells_without_an_owner()` named
       all five the moment it was called, and ten unstable cells had already been
       caught the same way an hour earlier. The rule is not "grep more carefully":
       it is CALL THE PREPARED READER BEFORE A CLOSURE, and the two to call are
@@ -8054,13 +8061,13 @@ should be measured once, not three times.
       the only thing naming them. The prepared readers were right about what they
       measure and blind to what they do not. That is now three blind spots on the
       record: laundering by median (subgoal E41), a cell that loses its owner by
-      GETTING BETTER (QUALITY_CONTROL.md 2a), and a defect on a side the bands do
+      GETTING BETTER (QUALITY_CONTROL.md 2b), and a defect on a side the bands do
       not pool. A PAPER-ONLY CELL MUST BE RE-HOMED BY READING THE ENTRY.
       WHAT THE ENTRY GOT RIGHT AND IS WORTH KEEPING: its account of why the five
       were missed -- a hand-rolled regex for `Item/pN` citations and a grep of
       preflight output for wording that preflight does not use. Both were nonce
       classifiers, both were wrong, and the standing procedure that came out of it
-      is QUALITY_CONTROL.md 2a-3.
+      is QUALITY_CONTROL.md 2b-3.
 
 - [x] Q52. **Q5/p4: the effect-vs-payoff rule, and the only cell in the corpus
       where we charge MORE than gold. Perfectly stable, 0 of 12.**
@@ -9367,8 +9374,115 @@ per-cell claim.
       4.00, and this entry is no closer to it than before. What is now known is
       that a scoped prose clause on `targets_goal_behavior` is not the lever.
 
+- [ ] Q67. **Q4a/p3: gold charges one antecedent slot, we charge none, and the paper scorer already reaches gold.**
+      Filed 2026-09-12 on the user's instruction, from the audit's SLOT SET
+      DISAGREES WITH GOLD arm. Measured from the ledger, no calls.
+          gold 3.00, charges 1 slot -- WHICH one is unknowable from the comment,
+          the COUNT is not, which is what makes this a disagreement on every
+          reading rather than an interpretation argument.
+          our stable failing set is EMPTY over 12 pooled runs; `antecedent_2`
+          fires 5 of 12, so the signal exists and is sub-majority.
+          olx     median 4.00   right 3/6
+          python  median 5.00   right 2/6
+          paper   median 3.00   right 5/6
+      READ THE PAPER COLUMN FIRST. It reaches gold's 3.00 in five runs of six
+      while the two web engines sit at 4.00-5.00 and agree with gold in two or
+      three. The same rubric and the same student answer, so whatever paper is
+      doing on this cell is a live route and does not have to be invented: find
+      what it charges that the others credit before proposing any rule.
+      NOT A CEILING AND NOT A DIVERGENCE. We are not claiming gold is wrong, and
+      nothing here says the cell is unreachable -- one of our own scorers reaches
+      it most of the time.
+
+- [ ] Q68. **Q4c/p4: gold charges one consequence slot, we charge none; `consequence_1` fires in a third of runs.**
+      Filed 2026-09-12 on the user's instruction, from the same audit arm as Q67
+      and the same shape. Measured from the ledger, no calls.
+          gold 3.00, charges 1 slot, identity ambiguous, count not.
+          our stable failing set is EMPTY over 12 pooled runs; `consequence_1`
+          fires 4 of 12.
+          olx     median 5.00   right 2/6
+          python  median 5.00   right 2/6
+          paper   median 4.00   right 3/6
+      NO COLUMN REACHES GOLD HERE, which is the difference from Q67 and the
+      reason to read that one first: there the answer exists somewhere in our own
+      output and here it does not. A route found on Q67 may or may not transfer;
+      `consequence_1` at 4 of 12 is the only candidate this cell offers.
+      THE TWO ARE ONE SHAPE, filed separately because the evidence differs. Both
+      are cells where gold charges exactly one slot and we charge none -- the
+      leniency direction that every other entry in this accounting runs, with
+      Q5/p4 the single counter-example.
+
+- [ ] Q66. **The paper scorer's nine unowned wrong cells: eight on gpt-5-mini, one on Opus.**
+      PARKED REVISION for Q6/p17, one of the eight below:
+      `~/.claude/plans/snoopy-crafting-corbato.md` (2026-08-17), "Fix Q6/p17 --
+      and the state-slot matching rule behind it". REVIEW IT AGAINST CURRENT
+      STATE BEFORE ACTING; checked 2026-09-13, MOST OF ITS PREMISE HAS GONE.
+      It was written against "p17 scores 3.75 against a gold of 5.00"; gold is
+      now 3.75 and the cell reads 12/12 PERFECT on the web and python sides. So
+      the discrepancy it set out to fix no longer exists there, and only the
+      PAPER side -- 1 of 6, the row below -- is still wrong. What may survive is
+      its reasoning about the state-slot matching rule, and its verification that
+      p17 is not a transcription error (checked at the .docx: its 4c segment is
+      byte-identical to document line 48, its Q6 segment to line 59, and it is
+      not in `suspect`). Read it for THAT, not for its scores.
+      Filed 2026-09-11 on the user's instruction to give every unowned wrong cell
+      a home. Measured from the recorded artifacts, no calls.
+          1a/p6    3 of 6   gold 6.00   MISSING_WEEK
+          2a/p18   1 of 6   gold 6.00   MISSING_HOW
+          2a/p20   1 of 6   gold 6.00   MISSING_HOW
+          Q3/p9    2 of 6   gold 2.00   SPECIFIC_NOT_QUANTIFIED, MEASURABLE_NO_METHOD
+          Q6/p17   1 of 6   gold 3.75   A_NOT_STATED, A_NO_CHANGE, C_NOT_STATED
+          Q6/p19   0 of 6   gold 5.00   A_NOT_STATED, A_NO_CHANGE
+          WK1/p6   3 of 6   gold 0.00   TYPE_MISMATCH, NOT_OC, CADENCE_MISMATCH
+      And one on the Opus column, which is a different question and is kept apart
+      for that reason:
+          1c/p7    1 of 6   gold 10.00  NO_LEGEND        (paper_opus)
+    Q4b/p7   3 of 6   gold 2.00   B_NOT_ACTIVE, B_ONLY_ONE
+        ADDED 2026-09-15 from the paper sweep of that date, the first
+        paper measurement the ledger could record since the prompts moved.
+        A COIN FLIP, not a steady miss: the six runs read
+        3.5 3.5 3.5 2.0 2.0 2.0 -- three exactly at gold and three a point
+        and a half above, so the item is deciding `B_NOT_ACTIVE` differently
+        on identical input rather than reading the answer wrongly every time.
+        That shape belongs with this subgoal's others and not with Q62: Q62
+        is Q4b's BEHAVIOUR-slot variance on the web and python sides, six
+        cells that do not include p7, and this is the paper scorer.
+      WHY A NEW ENTRY RATHER THAN AN EXISTING ONE. Every open subgoal that names
+      these items is about WEB-side variance and names different cells: Q58 holds
+      1c's legend cluster (p3, p5, p6, p8, p10, p11, p13, p16 -- not p7), Q63 holds
+      Q6's consequence-matching six (p4, p9, p10, p12, p15, p18 -- not p17 or p19),
+      and Q65 holds handout 2's sixteen, which are DAY/NR/NP/PP cells and not WK1.
+      Filing these there would have been ownership by proximity: the item matches
+      and the cell does not, which is the shape subgoal E40 already had to unpick
+      once. These eight are a PAPER-side accuracy set and had no home at all.
+      WHAT THE CODES SAY, since they are the evidence and not decoration. Six of
+      the seven gpt-5-mini cells are charged by a NAMED deduction the rubric
+      defines, so this is not a scaffolding fault: the scorer is applying a real
+      rule and reaching a different answer from the grader. Q6/p19 at 0 of 6 and
+      the two 2a cells at 1 of 6 are the deterministic ones and should be read
+      first -- a cell that never agrees is a rule question, where 3 of 6 is a
+      stability question.
+      1c/p7 IS NOT PART OF THAT PATTERN. It is wrong ONLY on Opus, charged
+      NO_LEGEND 5 times in 6 while gpt-5-mini scores it right, which is the
+      reverse of the 1c gate cells declared in DECLARED_CEILING_CELLS where Opus
+      is the one that succeeds. Two opposite model effects on one item is worth
+      more than either cell alone.
+      NOT A CEILING CLAIM. Nothing here is declared unreachable; they are wrong,
+      unexplained, and now owned.
+
 - [ ] Q44. **Q2/p6 is right 8 times in 12 and never once for the right reason.
       LOW PRIORITY, filed so a compensating pair is not read as agreement.**
+      PARKED REVISION: `~/.claude/plans/greedy-exploring-eich.md` (2026-09-08).
+      A worked, pre-registered edit for this cell -- replace the `reasons_given`
+      DESC's example, which is p6's own sentence and contradicts the rule's
+      qualification two fields away. REVIEW IT AGAINST CURRENT STATE BEFORE
+      ACTING ON ANY OF IT; the plan is a snapshot and parts have already moved.
+      Checked 2026-09-13: the premise HOLDS -- p6 is still wrong_by_median
+      against gold 4.00 -- but the numbers in its pre-registration table have
+      drifted (it records p6 3/12, p9 11/12, p18 10/12; today they are 4/12,
+      12/12, 11/12), so its abort condition must be re-baselined before a probe,
+      not copied. Its "Sequencing" section names four queued sweep jobs by pid
+      that are long finished. Re-read the ROUTE, re-measure the NUMBERS.
       Filed 2026-09-04 at the user's direction, out of subgoal Q17's sweep. No
       calls; everything below is read off recorded artifacts and the submission.
       THE RESPONSE HOLDS TWO REASON STATEMENTS, not three, and GOLD COUNTS BOTH.
@@ -9412,7 +9526,7 @@ per-cell claim.
       The sameness-report probe returned "DEAD ON REACH -- even asked on its own,
       the sameness report does not give p6 2. FIFTH route dead; declare the cell."
       THAT VERDICT IS VOID and must not be counted as a measured attempt.
-      `probe.control_gate` (QUALITY_CONTROL.md 2a-1b) refuses it: the probe's own
+      `probe.control_gate` (QUALITY_CONTROL.md 2b-1b) refuses it: the probe's own
       envelope disagrees with the ledger on EIGHT of nineteen non-target
       cell-slots for the very slot it measured, six of them where the shipped
       prompt is unanimous at 12 of 12 --
@@ -9488,7 +9602,7 @@ per-cell claim.
       reason, and is being counted as one." IT IS NOT. The runs that list 3 and the
       runs that list 2 QUOTE IDENTICAL EVIDENCE -- the same two sentences -- and THE
       GOAL SENTENCE IS IN NEITHER. The model is not counting it.
-      THE ALL-GOLDS CHECK AGREES (QUALITY_CONTROL.md 2a-2): five cells -- p9, p11,
+      THE ALL-GOLDS CHECK AGREES (QUALITY_CONTROL.md 2b-2): five cells -- p9, p11,
       p12, p14, p20 -- OPEN with the goal sentence, list 3, and take full marks. The
       model generally excludes it, so a clause telling it to would change nothing.
       WHAT IS ACTUALLY HAPPENING IS A SPLIT INSIDE ONE STATEMENT. p6's first reason
@@ -9683,7 +9797,7 @@ per-cell claim.
       a STRUCTURAL split -- a separate ground asking what KIND of thing the goal
       names, so the state/doing judgement is answered once and explicitly rather
       than inside the inversion test -- or a gold reading that establishes whether
-      the graders were drawing a line at all between p18 and p10. Section 2a's
+      the graders were drawing a line at all between p18 and p10. Section 2b's
       order applies: structure before wording, and three wordings have now failed.
 
       == PICKED UP 2026-09-05. THE GOLD READING FIRST, THEN THE SPLIT. No calls. ==
@@ -9819,7 +9933,7 @@ per-cell claim.
       language is what licenses it: 'This is an example of NP' (mistyped but IS
       operant conditioning -- p3, p11, p15) versus 'This example is not Operant
       Conditioning' (p13, p14, p16). PROBED ON ALL 20 CELLS BEFORE BUILDING
-      (QUALITY_CONTROL.md 2a-2/2a0): target `met` 4/4, p3 and p15 held, no
+      (QUALITY_CONTROL.md 2b-2/2a): target `met` 4/4, p3 and p15 held, no
       gold-4.00 cell moved, every gold-0 cell still refused, and the probe carried
       a LOST-REFUSAL line specifically because those cells are perfect by other
       means and a gate that can no longer refuse anything would have passed a
@@ -9923,7 +10037,7 @@ per-cell claim.
       clobbers real verdicts with None -- which made `aimed_correctly` read as
       unrecorded on every olx run and produced the confident wrong finding that
       the gate explained only one run of ten. Merge PREFERRING NON-NULL, or use a
-      prepared reader (QUALITY_CONTROL.md 2a-3, memory `artifact-accessors`).
+      prepared reader (QUALITY_CONTROL.md 2b-3, memory `artifact-accessors`).
       NEXT STEP IS A PROBE, NOT AN EDIT. The narrowing is one clause and must be
       checked against ALL valid WK2 cells first (2a-2): it must leave p13/p14/p16's
       refusals reachable and p3/p15's `met` untouched.
@@ -10618,7 +10732,7 @@ per-cell claim.
       difference as an engine defect, check the per-run agreement rate on both
       sides: if the two are within one run of each other, there is nothing to fix
       in either engine and the cell belongs to whichever subgoal owns its unstable
-      slot. Recorded in QUALITY_CONTROL.md 2f.
+      slot. Recorded in QUALITY_CONTROL.md 2g.
       WHAT IS LEFT. Nothing in this subgoal is an equivalence defect: four cells
       are instability owned elsewhere, and the fifth is a provider disagreement
       about one judgement. The cells stay listed here so the 2d ownership check
@@ -10638,7 +10752,7 @@ per-cell claim.
       keeping. It was filed by the ownership check on its first run and found
       five cells a one-sided accounting could not see; that part held. What did
       not hold was reading a median difference as an engine difference --
-      QUALITY_CONTROL 2f records three of the five being ONE observation apart,
+      QUALITY_CONTROL 2g records three of the five being ONE observation apart,
       and the exact test later showed the whole corpus has no power to
       distinguish the sides at six runs each.
 
@@ -11006,7 +11120,7 @@ per-cell claim.
            Q10 had and Q45 lacked: p3, p8 and p12 have EMPTY titles and answer
            `absent`, a different value, so they keep charging; p13 must stay
            `met`. Four controls against one target, all readable before a call.
-        4. PROBE BEFORE SWEEPING (QUALITY_CONTROL.md 2a0): ask the title question
+        4. PROBE BEFORE SWEEPING (QUALITY_CONTROL.md 2a): ask the title question
            standalone on p16 plus p13, p3, p8, p12.
       AND AN INSTRUMENT FAULT FOUND ON THE WAY, fixed at the user's instruction:
       the readout PRINTED p4, p19 and p20 as movers. All three are declared in
@@ -11308,7 +11422,7 @@ per-cell claim.
       at 9 of 12.
       IT WAS NOT REFINED FOR, DELIBERATELY. Propping the cadence gate back up to
       keep this cell right would install a misfire to preserve a cell that is
-      right for the wrong reason, which is what QUALITY_CONTROL.md §2l exists to
+      right for the wrong reason, which is what QUALITY_CONTROL.md §2m exists to
       stop. The loss is pre-registered in Q22 instead. What this subgoal owns is
       the real question: the sheet has no check that asks whether the consequence
       follows the behaviour or precedes it, which is gold's whole objection, and
@@ -11891,7 +12005,7 @@ per-cell claim.
           DAY1/p11, DAY2/p11, WK2/p15  no period -> met, and gold never charges
                    cadence on any of them.
       THE DIRECTIONAL RULE IS REFUTED, checked against all 72 valid cells of the
-      four items before writing it (QUALITY_CONTROL.md 2k, which this is the case
+      four items before writing it (QUALITY_CONTROL.md 2l, which this is the case
       that produced). It classifies the eight gold-speaking cells correctly and
       then loses two it currently gets right:
         DAY2/p9  BREAKS, and this is the fatal one. "{{corpus:DAY2/p9:day2:0:116:sha=58afd43fe54a:shape=S7-0a2020202020202020202020202020202020,S21-0a2020202020202020202020202020202020,A8}}" Gold gives FULL credit and
@@ -11998,7 +12112,7 @@ per-cell claim.
       characters or fewer, needs two exclusive bigrams where the overlap was one
       and zero, and counts only bigrams no other student used -- on an item family
       whose vocabulary is shared cohort-wide. The rule now states the distinction
-      abstractly. See QUALITY_CONTROL.md §2l.
+      abstractly. See QUALITY_CONTROL.md §2m.
             THE OLD RULE COULD NOT SEPARATE THESE. "How often is the behaviour checked"
       asks the model to find a cadence, so an answer with no period and an answer
       whose only period is the reward's both hand it the nearest number in the
@@ -13310,7 +13424,7 @@ per-cell claim.
       instead: does the box name a DOING (activity -> an endpoint is required) or
       a CONDITION the student is left in (state -> indirectness waived)?
       BEFORE ANY PROBE: this is a four-cell readout and it is done above, but the
-      all-golds check (QUALITY_CONTROL.md 2a-2) must cover every valid Q4c cell,
+      all-golds check (QUALITY_CONTROL.md 2b-2) must cover every valid Q4c cell,
       because the boundary clause touches both consequence slots on all twenty.
       NOTE Q4c IS STALE ON THE `paper` SIDE ONLY -- olx and python are current, so
       these figures are citable.
@@ -14391,8 +14505,8 @@ per-cell claim.
       restoration kept by adding one classification clause; the mirror-pair
       analysis, which correctly describes what gold does even though no wording of
       it ever paid for itself; and three disciplines that came out of the failure
-      -- §2a structure before prose, §2b profile errors by slot after every sweep,
-      §2d read what is already recorded, the last now enforced by the `--write`
+      -- §2b structure before prose, §2c profile errors by slot after every sweep,
+      §2e read what is already recorded, the last now enforced by the `--write`
       hook. The full history is in drafts/q1q2_reasons_rule.md.
 - [x] Q7. **Q4b's per-cell instability, which the item median hides.** Two cells
       POOLED, 2026-09-01, THE PREMISE IS GONE. This entry exists because a single
@@ -14407,7 +14521,7 @@ per-cell claim.
       not hiding instability here; it was hiding a disagreement.
       CLOSE CANDIDATE, to ask about: nothing in it is live, and its
       methodological point -- that a median hides per-cell variance -- is now
-      carried by QUALITY_CONTROL.md 2f and by the pooling note at the top of this
+      carried by QUALITY_CONTROL.md 2g and by the pooling note at the top of this
       file, both of which say it with measurements.
       went from six clean runs to intermittent across two sweeps of IDENTICAL
       prompt text: p17 6/6 -> 4/6, failing `modify_stated`, and p19 6/6 -> 3/6,
@@ -14432,7 +14546,7 @@ per-cell claim.
       twelve runs. The median was not hiding variance on this item; it was hiding
       a disagreement, which is subgoal Q34's and Q19's territory.
       ITS METHODOLOGICAL POINT SURVIVES ELSEWHERE, with measurements rather than
-      as an assertion: QUALITY_CONTROL.md 2f on why a median comparison
+      as an assertion: QUALITY_CONTROL.md 2g on why a median comparison
       manufactures divergences, and the pooling note at the top of this file.
 
 - [x] Q8. **A count slot outside the rubric's `counts` records nothing.**
@@ -14518,7 +14632,7 @@ per-cell claim.
       gap is the missing `action_oriented` deduction. This is the clearest of the
       three and the only one whose premise survives the sweep unchanged.
       == THE ALL-CELLS PASS, 2026-09-04, AND IT ANSWERS THIS ENTRY'S OWN FEAR ==
-      Run per QUALITY_CONTROL.md 2k over all 19 valid Q3 cells, reading the ACTION
+      Run per QUALITY_CONTROL.md 2l over all 19 valid Q3 cells, reading the ACTION
       field of each against its `action_oriented` verdict, from recorded artifacts
       at no call cost. The result is a one-line corpus fact:
       p19 IS THE ONLY CELL WHOSE ACTION FIELD JUSTIFIES ITSELF BY MEASURABILITY.
@@ -14767,7 +14881,7 @@ per-cell claim.
       THE COST OF NOT READING THE RECORD: eleven configurations and ~900 calls
       went into a merge rule first, while the comment above the component already
       named the conditional, classified every cell with gold < 3, and diagnosed
-      p9. The restoration took ~60 calls. §2d now enforces the check that would
+      p9. The restoration took ~60 calls. §2e now enforces the check that would
       have prevented it.
 - [x] 12b. **Q1/p9 DECLARED: `GARBLED_CLAUSE_READ_LITERALLY`.** Twelve
       configurations, rates 1/6 3/6 6/6 3/6 4/6 2/6 1/6 1/6 4/6 4/6 3/6 1/6. The
@@ -14789,7 +14903,7 @@ per-cell claim.
       Two reasons for closing rather than working it. Its methodological content
       -- read WHICH check failed before blaming the rule you happen to be editing
       -- is now printed automatically after every sweep by the BY SLOT table
-      (§2b), so it no longer needs a goal entry to survive. And it is not the
+      (§2c), so it no longer needs a goal entry to survive. And it is not the
       best target: ranked by how often they are wrong, the non-declared cells go
       p10 1/6, p18 3/6, p6 4/6, p17 4/6, p7 5/6, p14 5/6.
       NOT SOLVED, and deliberately not buried: gold credits a UTB named inside a
@@ -14887,7 +15001,7 @@ per-cell claim.
       counted right, on an item where three formulations have already been
       measured and two of them cost controls. If p16 and p17 come back at 12 of 12
       the residue was noise; if they hold at 10 of 12 the question is whether a
-      10-of-12 cell is worth an edit at all, which section 2b answers no.
+      10-of-12 cell is worth an edit at all, which section 2c answers no.
       == RE-EVALUATED 2026-09-04 AFTER E41's RECLASSIFICATION ==
       == AND THE ALL-CELLS PASS SPLITS THIS SUBGOAL IN THREE ==
       Run 2026-09-04 over all 20 valid Q2 cells, profiling both inversion slots
@@ -14922,7 +15036,7 @@ per-cell claim.
       SO THE CRITERION IS PRICED TWO WAYS, not three: FIVE where the goal is about
       a different behaviour, TWO where it is the right behaviour badly stated. That
       is exactly the two-tier split these two slots were built for, so (c) is
-      settleable on its own and is NOT coupled to Q29. The lesson is section 2k's:
+      settleable on its own and is NOT coupled to Q29. The lesson is section 2l's:
       an itemised gold comment is the evidence, and a cell total is not.
 
       == ALL THREE PROBLEMS EDITED 2026-09-04, THREE SEPARATE COMMITS, NOT YET SWEPT ==
@@ -15064,7 +15178,7 @@ per-cell claim.
       its real precision is about 20 of 28 rather than the 13 of 28 first reported.
       SO THE ITEM HAS TWO NEAR-EVEN ERROR SOURCES, not one dominant one, and the
       next attempt on Q2 cannot be aimed from the first table. The direction is
-      still one-sided -- 15 UNDER against 2 OVER -- so section 2b's "a threshold is
+      still one-sided -- 15 UNDER against 2 OVER -- so section 2c's "a threshold is
       set wrong rather than a judgement being unstable" still holds; it now applies
       to BOTH slots rather than singling out the count.
       AND THIS ENTRY'S p18 CLAIM STANDS UNCHANGED. "The count is already right on
@@ -15149,7 +15263,7 @@ per-cell claim.
       AND THE DIRECTIONS ARE MIXED, which is the thing to plan around. This entry
       records the ITEM as lopsided -- under-credit 17 against over-credit 5 -- and
       that is true at the observation level, but at the CELL level p7 runs the
-      other way. Section 2b: a one-sided profile means a threshold is set wrong, a
+      other way. Section 2c: a one-sided profile means a threshold is set wrong, a
       two-sided one means the judgement is unstable. So NO SINGLE THRESHOLD SERVES
       ALL FOUR, and a change that fixes p10 and p18 by charging less should be
       checked against p7, which already charges too little.
@@ -15373,7 +15487,7 @@ per-cell claim.
       is all its `why` ever claimed.
 
       == THE ALL-CELLS PASS, 2026-09-04, AND THE PLAN IT PRODUCED ==
-      Run per QUALITY_CONTROL.md 2k over all 19 valid Q4b cells, from the recorded
+      Run per QUALITY_CONTROL.md 2l over all 19 valid Q4b cells, from the recorded
       artifacts at no call cost. FOUR CELLS EVER PICK `not_doing`, and reading
       them together is what decides the rule:
           p5   gold 3.5  not_doing x10  -> 3.5  RIGHT   "{{corpus:Q4b/p5:second:41:75:sha=f2a22e6fa220:shape=S3-0a2020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020}} home"
@@ -15545,7 +15659,7 @@ per-cell claim.
       null on the olx side of every artifact, which looked like the picks having
       never been recorded at all. They are in `answers` (python) and `refers_to`
       (olx), and the distribution there matches this entry exactly -- `not_doing`
-      16 of 120, `consequence` 30. QUALITY_CONTROL.md 2k, on the item whose whole
+      16 of 120, `consequence` 30. QUALITY_CONTROL.md 2l, on the item whose whole
       lever is a pick.
 
       == MEASURED 2026-09-05: THE PRECEDENCE FIX MOVED THE PICK, NOT THE CELL ==
@@ -15567,7 +15681,7 @@ per-cell claim.
       WHAT TO TRY NEXT, if anything: not more precedence prose. Either the two rules
       merge into a single ordered test the model reads once, or the
       failing-alternative rule is scoped so it cannot reach an "and" at all. Both
-      are structural rather than wording changes, which is section 2a's order and
+      are structural rather than wording changes, which is section 2b's order and
       the opposite of what was tried.
 
       == MEASURED 2026-09-06 alongside subgoal Q19's rule. THE TIE-BREAK WORKED ==
@@ -15660,7 +15774,7 @@ per-cell claim.
           said 3, scored 3 against gold 5    x5   under
           said 2, scored 4 against gold 5    x4   under
           said 1, scored 3 against gold 4    x4   under
-      THE STRUCTURAL OBSERVATION, and where to start (§2a): the first two lines
+      THE STRUCTURAL OBSERVATION, and where to start (§2b): the first two lines
       have the model saying THE SAME COUNT, 3, and the cell scoring 5 in one group
       and 3 in the other. The count is therefore not deciding the score -- the
       gating slots are. Look there before any wording, because a rule that changes
@@ -15810,7 +15924,7 @@ per-cell claim.
       is not one.
       prose so they are tracked rather than mentioned. Both are APPLICATION
       failures -- the rule already states the right principle in each case -- so
-      §2a offers no structural lever and prose is the last resort, not the first.
+      §2b offers no structural lever and prose is the last resort, not the first.
       Run `measured.py --errors Q1 <artifact>` and read the record the `--write`
       hook prints BEFORE touching either.
       **p10, gold 4, correct in 1 of 6 runs -- the worst non-declared cell.** It
