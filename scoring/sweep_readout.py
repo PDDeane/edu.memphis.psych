@@ -51,6 +51,23 @@ NOISE_NOTE = ("measured 2026-09-06: an unchanged prompt moved 3 of 20 cells, "
               "one by 4 runs of 6")
 
 
+import pathlib as _pathlib
+
+# DERIVED, NEVER NAMED (trap T32). These inserts used to carry this tree's
+# absolute path as a literal, at position 0. Here that happened to be correct --
+# the path names the directory the file is already in -- so it was harmless and
+# invisible. It was NOT harmless in the migration sandbox, which is a copy of
+# this tree: there the literal still named THIS directory, won ahead of the
+# sandbox's own, and made a dry-run audit execute live modules. A traceback was
+# found walking out of the sandbox's enforcement.py into live's agreement.py,
+# three lines below one of these inserts, and because the selftest writes module
+# files by path, a sandbox run could write the live tree.
+#
+# The line is fixed HERE, where it is correct, precisely because being correct by
+# coincidence is what let it be copied into a place where it was not.
+_OWN_DIR = str(_pathlib.Path(__file__).resolve().parent)
+
+
 def _dropped(item: str, handout) -> set:
     """Cells that MUST NOT appear as evidence: suspect AND per-item excluded.
 
@@ -64,7 +81,7 @@ def _dropped(item: str, handout) -> set:
     live ones. A number that cannot count toward the rate cannot count toward
     keeping or reverting an edit either, and printing it invites exactly that.
     """
-    sys.path.insert(0, "/home/pdeane/code/edu.memphis.psych/scoring")
+    sys.path.insert(0, _OWN_DIR)
     import handouts as H
     out = set(H.suspect(handout)) if handout else set()
     out |= set((getattr(H, "PER_ITEM_EXCLUDE", {}) or {}).get(item, {}))
@@ -72,7 +89,7 @@ def _dropped(item: str, handout) -> set:
 
 def readout(item: str, before: dict) -> int:
     """0 if the edit is safe to keep, 1 if the evidence says revert."""
-    sys.path.insert(0, "/home/pdeane/code/edu.memphis.psych/scoring")
+    sys.path.insert(0, _OWN_DIR)
     import handouts as H
     import measured as M
 
@@ -225,7 +242,7 @@ def slot_profile(item: str, slots: tuple, cells: tuple = ()) -> int:
 
     _M.warn_if_stale(item, where="readout")
 
-    sys.path.insert(0, "/home/pdeane/code/edu.memphis.psych/scoring")
+    sys.path.insert(0, _OWN_DIR)
     import collections
 
     import handouts as H
@@ -298,7 +315,7 @@ def cell_texts(item: str, cells: tuple = (), fields: tuple = ()) -> int:
 
     _M.warn_if_stale(item, where="readout")
 
-    sys.path.insert(0, "/home/pdeane/code/edu.memphis.psych/scoring")
+    sys.path.insert(0, _OWN_DIR)
     import textwrap
 
     import agreement as A

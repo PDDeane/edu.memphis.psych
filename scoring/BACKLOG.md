@@ -151,9 +151,12 @@ return" -> PROMPT ASKS FOR AN IMPOSSIBLE VERDICT), with the site and the token
 chosen at run time so it does not die silently the day a note migrates.
 SELFTEST_EXPECTED 50 -> 51.
 
-MEASURED, on the regenerated prompt f933e0876c3b and a fresh idmap_v97 proven to
-carry the new line: Q5 python 19/20 and olx 19/20, both unchanged from 19/20, era
-checked, 0 cells never agreeing. Neutral, as this entry predicted it would be --
+MEASURED AT THE TIME, on the regenerated prompt f933e0876c3b and a fresh
+idmap_v97 proven to carry the new line: Q5 python WAS 19/20 and olx WAS 19/20,
+both unchanged from 19/20 at the time, era checked, 0 cells never agreeing. That prompt has since
+been superseded and both sides now read 18/20 on the 2026-09-14 sweeps; the
+figures above are the record of what f933e0876c3b measured, not a claim about the
+current configuration. Neutral, as this entry predicted it would be --
 no counted cell exercises a refusal, so what the fix buys is the distinction
 being drawable, not a different score.
 
@@ -1563,3 +1566,168 @@ each does so for a different upstream reason — a consequence made of the targe
 behaviour, a backwards contingency, and this rule collision. They do not share a
 criterion, which is why five separate attempts at a single new gate found
 nothing.
+
+## Owed when the 2026-09-13 sweep finishes — two items, both deferred because
+## editing them mid-sweep could invalidate the run silently
+
+Found 2026-09-13 while mutation-testing the lo-blocks changes. Seven of eight
+mutations were caught; these two are what the eighth exposed. Both touch files a
+running sweep depends on, so neither was done at the time.
+
+**1. The grader's call site is untested, and it is the defect that actually
+happened.** `SlotSheetGrader.gradeSlotSheet` forwards eleven arguments to
+`scoreSlotSheet`, and `maps` -- the eleventh -- was once not passed at all: the
+scorer defaulted it to `[]`, no mapped check was ever computed, and every cell
+scored flat. Deleting `payload.maps` from that call TODAY still passes the whole
+suite. `sheetRoundTrip.test.ts` exercises `sheetFromJson` (the hand-copied
+payload, which is how `expect` was lost) and then calls `scoreSlotSheet` ITSELF,
+so the grader's own argument list is never exercised.
+
+*Fix:* export `gradeSlotSheet` and assert it forwards every rule -- score a sheet
+whose result DEPENDS on each rule family in turn, so dropping any argument moves
+a number. A rendering test would also work and is slower.
+
+*Why deferred:* `SlotSheetGrader.ts` lives under `components/`, which
+`server_code_is_stale` does not glob (item 2), so editing it mid-sweep makes the
+tree diverge from the running server with NOTHING to report it.
+
+**2. `server_code_is_stale` has a blind spot: `components/blocks/**`.** It globs
+`packages/shared/lib/llm/*.ts` and `apps/server/src/**/*.ts` only. That omits
+`components/blocks/action/LLMAction.ts` (builds the request) and
+`components/blocks/grading/SlotSheetGrader.ts` (scores it) -- both squarely "code
+that decides a score". On 2026-09-13 all of them happened to predate the server
+start, so the sweep was honest; a mid-sweep edit to either would have been
+invisible. Widen the glob, then re-check that no item is stale.
+
+**Recreating the mutation harness** (removed because its 17 copied test files
+polluted the default run, 105 -> 122):
+
+    cp -r packages/shared/lib/llm packages/shared/lib/llm_mut
+    rm -f packages/shared/lib/llm_mut/{runner,promptcapture}.test.ts
+    # vitest.mut.config.ts: spread ./vitest.config, then resolve.alias
+    #   '@/lib/llm/slotSheet' -> packages/shared/lib/llm_mut/slotSheet.ts
+    #   '@/components/blocks/grading/SlotSheetGrader' -> a copy of it
+    #   '@' -> packages/shared
+    npx vitest run --config vitest.mut.config.ts packages/shared/lib/llm_mut/
+
+Mutate the COPY, never live source: restoring a file byte-identically still moves
+its mtime, which is exactly what `server_code_is_stale` compares -- doing that on
+2026-09-13 made the guard cry stale for about a minute while a sweep was running.
+
+## `legendRender.test.ts` gets as far as "Loading…" — 2026-09-13
+
+OUR test, for OUR component (`SelfMonitorPlot`, added in `dc23a594`). It is
+`skipIf(!IDMAP)`, so it has never run in CI and rotted unnoticed — a skipped test
+cannot tell you it has stopped working.
+
+**Three real defects found and fixed** while trying to exercise it:
+
+1. the content namespace was renamed `psych` -> `edu.memphis.psych`; the test kept
+   the old one, so `RenderOLX` matched nothing
+2. `initConfig()` was never called, so rendering threw "Config not initialized"
+3. the idMap was dispatched into the store but never passed to `RenderOLX` as
+   `baseIdMap`, so it reported "No content source provided"
+
+**Still blocked.** With all three fixed it renders
+`Loading edu.memphis.psych/bmod_h3_graph...` and stays there past a 3s wait, so
+both cases see 0 figures where they expect 2.
+
+**Ruled out, each measured rather than assumed:**
+
+- *jsdom cannot render plots* — FALSE. A real `Plot.plot()` call renders an `<svg>`
+  under jsdom. (Note it returns a bare `<svg>`, not a `<figure>`; Plot only wraps
+  in `<figure>` when there is a legend or caption, which may matter for the
+  assertion once the screen renders.)
+- *the idmap is stale* — no: identical failure on v143, v144 and v145.
+- *the LOAD_OLXJSON dispatch shape is stale* — no: `runner.test.ts` uses the same
+  shape and renders these very screens on every sweep.
+- *a missing locale* — the content IS locale-keyed (`{'en-Latn-US': block}`), but
+  dispatching SET_LOCALE did not change the symptom. That dispatch was removed
+  rather than left in as an unproven fix.
+
+**Further eliminated 2026-09-13, second pass:**
+
+- *the ids are wrong* — no. `agreement_app.build_jobs('1c')` returns exactly
+  `ns='edu.memphis.psych'`, `screen='edu.memphis.psych/bmod_h3_graph'`, the same
+  pair this test now uses, and the sweep renders it every run.
+- *it needs longer* — no. Polling for a `<figure>` every 250ms for 15 SECONDS
+  leaves it on "Loading ...". The gate either resolves at once or never.
+- *an import side-effect* — no. The only import `runner.test.ts` has and this does
+  not is `@/lib/llm/reduxClient`; adding it changes nothing.
+- *the store dispatch reaches RenderOLX* — NO, and this is the sharp end. Without
+  `baseIdMap` the render says "No content source provided" even though
+  LOAD_OLXJSON was dispatched exactly as `runner.test.ts` dispatches it. With
+  `baseIdMap` it gets to "Loading" and stops.
+
+**APPROVED 2026-09-13, to be done WHEN THE SWEEP FINISHES:** instrument
+`useRenderedBlock`'s `depsReady` (and `olxResult.loading` beside it) to find which
+of the two is holding the spinner. Deferred only because it edits
+`lib/player/client/useRenderedBlock.tsx` -- live render code the dev server has
+loaded -- and a mid-sweep edit would leave the tree diverged from the process
+being measured. Note `components/` and `lib/player/` are BOTH outside
+`server_code_is_stale`'s glob (see the guard item above), so nothing would warn.
+
+**The one suspect left** is `useRenderedBlock`: the spinner is returned when
+`olxResult.loading || !depsReady`, where `depsReady` comes from
+`useBlocksReadyForSources([source], blockRegistry)` -- lazy block-chunk readiness.
+1c's screen carries `SelfMonitorPlot`/`ObservablePlot`, the heaviest chunks in the
+content. Instrument those two booleans and the answer falls out; that needs an
+edit to `lib/player/client/useRenderedBlock.tsx`, which is why it stopped here
+while a sweep was running.
+
+**Worth keeping in mind for when it renders:** the assertion counts `<figure>`
+elements, but Plot returns a bare `<svg>` unless there is a legend or caption. If
+the screen renders and the count is still 0, that is the next thing to check, not
+a second bug.
+
+## Every artifact glob was one level deep, and the audit could not see a sweep's own output — FIXED 2026-09-15
+
+A sweep writes `<dir>/runs/<item>.runs.json`. Every check that looked for
+artifacts globbed `<dir>/<item>.runs.json` — **one level** — so the nested layout
+was invisible to all of them. `measured.record` reaches it only because the out
+path is handed to it explicitly; nothing that goes LOOKING for artifacts had that
+help.
+
+**How it surfaced.** The paper sweep of 2026-09-15 covered all 26 items and
+landed in `paper_0914/runs/`, correctly stamped with the day's
+`paper_render_sha`. `check_paper_feedback_explains_its_deductions` then reported
+**all 26 items unattributable** — on the morning the freshest paper measurement
+in the corpus arrived. The only artifact it could see was an undated
+`pooled_paper/` from an earlier era, so the newest evidence on disk counted for
+nothing and the oldest decided the finding.
+
+**The shape worth keeping.** This is a check going QUIET rather than wrong. The
+finding it emitted was real in form — those items genuinely had no *visible*
+attributable artifact — and the sentence gave no hint that the search had missed
+a directory. Nothing about a glob that is one level too shallow looks shallow.
+
+**Fixed** by `enforcement._runs_files(root, pattern)`, which unions both layouts
+and is defined ONCE so they cannot drift apart again. Applied at all nine sites:
+six in `enforcement.py` (`check_paper_feedback_explains_its_deductions`,
+`check_students_see_what_each_check_decided`, `check_every_sweep_is_recorded`,
+`historical_map_divergences`, `check_mapped_slots_agree_with_their_map`,
+`check_count_scaffolds_are_arithmetic`) and three in `measured.py`
+(`_ever_right`, `unrecorded_artifacts`, `criterion_rows`).
+
+**A SECOND defect sat underneath it, and the glob fix alone did not clear the
+finding.** The check added an item to `unattributable` on EVERY artifact whose
+stamp was stale, while its message said the items had *no* attributable artifact.
+Those are different claims, and the corpus keeps every artifact it has ever
+written — so one undated archival directory condemned an item no matter how fresh
+its newest measurement was. The same fault, in the same session, as the web-side
+check that needed an `attributed` set; this one now keeps that set too and
+reports only items with nothing attributable at all.
+
+**Fire-tested both ways rather than assumed:** move the feedback wording and all
+26 items report; restore it and the check is clean. The repair did not blind it.
+
+**Scope measured before the change, not after:** 895 artifacts sit at one level
+in 339 directories, 29 at `<dir>/runs/` in three — `opus_1c_0915/runs`,
+`paper_0914/runs`, `e25_paper/runs`, all recent. Widening surfaced no new
+findings anywhere, which is why the fix went in as a widening rather than as a
+narrowing of what counts as an artifact.
+
+**Owed:** the nested layout is now read by nine call sites and written by the
+sweep scripts, and nothing asserts the two agree. A check that a sweep's declared
+out-path is reachable by `_runs_files` would have caught this the day the layout
+was introduced, and belongs with whatever owns sweep plumbing.

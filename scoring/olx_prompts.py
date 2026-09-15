@@ -3042,7 +3042,49 @@ def cover_attr_for(item_id: str) -> str | None:
     return "|".join(f"{','.join(r['keys'])}:{','.join(r['labels'])}" for r in rules)
 
 
-GENERATED_ATTRS = (("forbid", forbid_attr_for), ("expect", expect_attr_for),
+def free_attr_for(item_id: str) -> str | None:
+    """`free="slot:verdict,verdict|slot:verdict"` -- verdicts that cost NOTHING.
+
+    THE TWO ENGINES DEFAULT IN OPPOSITE DIRECTIONS and this is what removes the
+    default. lo-blocks' `isSatisfied` credits only the satisfying verdict and
+    fails everything else, so the web charges a slot's whole points for any
+    third verdict; the paper ledger charges only what a deduction CODE names, so
+    the same verdict costs nothing there. They agree only while the two
+    enumerations happen to be complements, which nothing enforces -- Q1's
+    `utb_stated` went 62 observations before the model answered `unclear` and
+    exposed it.
+
+    DECLARED, NEVER INFERRED. The obvious derivation -- "a verdict with no code
+    is free" -- is wrong: a code keyed on the counterpart name reads as missing.
+    Q4a's sheet answers `wrong_kind` where its rubric code says
+    `not_antecedent`, the same judgement under two names, and inferring would
+    forgive a real 2-point failure on every antecedent slot. So the rubric says
+    `free` beside `codes` and this only transcribes it.
+    """
+    item = config(HANDOUT[item_id])["rubric"].BY_ID[item_id]
+    out = []
+    for c in item.get("credit") or []:
+        free = [v for v in (c.get("free") or []) if v]
+        if free:
+            out.append(f"{c['what']}:{','.join(free)}")
+    return "|".join(out) or None
+
+
+def parse_free(spec: str) -> dict[str, list[str]]:
+    """`slot:verdict,verdict|slot:verdict` -> {slot: [verdict, ...]}."""
+    out: dict[str, list[str]] = {}
+    for entry in (spec or "").split("|"):
+        entry = entry.strip()
+        if not entry or ":" not in entry:
+            continue
+        key, _, vs = entry.partition(":")
+        vals = [v.strip() for v in vs.split(",") if v.strip()]
+        if key.strip() and vals:
+            out[key.strip()] = vals
+    return out
+
+
+GENERATED_ATTRS = (("free", free_attr_for), ("forbid", forbid_attr_for), ("expect", expect_attr_for),
                    ("maps", maps_attr_for),
                    ("choices", choices_attr_for),
                    ("counts", counts_attr_for),
@@ -3218,7 +3260,23 @@ def _measurements_in_flight() -> list[str]:
             continue
         if not any(os.path.basename(t).startswith("python") for t in parts[:idx]):
             continue
-        busy.append(" ".join(parts[:9]))
+        # THE MIRROR OF THE SELF-TEST GUARD, and the direction that was never
+        # paid for. A process is machine-wide, so this matched a sweep ANYWHERE:
+        # a run here refused every self-test in an isolated copy -- a migration
+        # dry run, a scratch worktree -- which is what such a copy does all day,
+        # and the self-test is how a disposition is shown to still fire.
+        #
+        # `_selftest_source_root` resolves any process's script, absolute if it
+        # said so and otherwise against its own cwd; the name is about where it
+        # was first needed rather than what it does. UNDETERMINABLE STAYS
+        # REFUSED: if /proc is unreadable the answer is None and the caller
+        # treats it as ours, because scoring cells against a rule nobody wrote
+        # is far worse than a wait.
+        root = _selftest_source_root(pid, parts[idx])
+        if root is not None and root != _OUR_ROOT:
+            continue        # a sweep on ANOTHER tree cannot read our source
+        busy.append(" ".join(parts[:9])
+                    + ("" if root else "   [tree undetermined]"))
     return busy
 
 
@@ -3266,8 +3324,44 @@ def _selftest_in_flight() -> list[str]:
             continue
         if not any(os.path.basename(x).startswith("python") for x in parts[:idx]):
             continue
-        busy.append(" ".join(parts[:9]))
+        root = _selftest_source_root(pid, parts[idx])
+        if root is not None and root != _OUR_ROOT:
+            continue        # a selftest on ANOTHER tree cannot touch our source
+        busy.append(" ".join(parts[:9])
+                    + ("" if root else "   [tree undetermined]"))
     return busy
+
+
+_OUR_ROOT = os.path.dirname(os.path.realpath(__file__))
+
+
+def _selftest_source_root(pid: str, tok: str) -> str | None:
+    """WHICH scoring tree is that self-test mutating? None if undeterminable.
+
+    THE GUARD USED TO MATCH ON THE PROCESS ALONE, and a process is machine-wide.
+    A self-test run against an ISOLATED COPY -- a migration dry run, a scratch
+    worktree -- therefore refused every sweep on the REAL tree, which it cannot
+    touch by construction. Measured 2026-09-13, and it was expensive: a dry-run
+    self-test started at 23:03:01 and fifteen live items refused inside fifteen
+    seconds, losing the back half of a sweep that had been running six hours.
+
+    The question the guard means to ask is not "is a self-test running" but "is a
+    self-test mutating THE SOURCE I AM ABOUT TO READ". So resolve the
+    `equivalence.py` the other process is running -- absolute if it said so,
+    otherwise against its own cwd -- and compare directories.
+
+    UNDETERMINABLE STAYS REFUSED. If /proc is unreadable the answer is None and
+    the caller treats it as ours, because the failure this guard prevents is
+    scoring cells against a rule nobody wrote, and that is far worse than a
+    sweep that waits.
+    """
+    if os.path.isabs(tok):
+        return os.path.dirname(os.path.realpath(tok))
+    try:
+        cwd = os.readlink(f"/proc/{pid}/cwd")
+    except OSError:
+        return None
+    return os.path.dirname(os.path.realpath(os.path.join(cwd, tok)))
 
 
 def refuse_if_selftest_running(what: str) -> None:
@@ -3286,9 +3380,10 @@ def refuse_if_selftest_running(what: str) -> None:
         print(f"{what}: proceeding during a self-test — {why}")
         return
     raise SystemExit(
-        f"REFUSING to start {what}: an audit self-test is running and it injects\n"
-        f"breakages into the rubric and enforcement source this run reads live,\n"
-        f"so some cells would be scored against a rule nobody wrote.\n"
+        f"REFUSING to start {what}: an audit self-test is running against THIS\n"
+        f"tree ({_OUR_ROOT}) and it injects breakages into the rubric and\n"
+        f"enforcement source this run reads live, so some cells would be scored\n"
+        f"against a rule nobody wrote. A self-test on a COPY does not refuse.\n"
         + "".join(f"    {b}\n" for b in busy)
         + "Wait for it to finish, or say why:\n"
         f'    ALLOW_SELFTEST_OVERLAP="..." <your command>')
@@ -3314,7 +3409,7 @@ def _items_whose_prompt_changed(handout: int, old: str, new: str) -> list[str]:
 def prior_record(item: str) -> str:
     """Everything already RECORDED about an item, printed where a rule is changed.
 
-    QUALITY_CONTROL.md §2d exists because a day was spent rewriting Q1's
+    QUALITY_CONTROL.md §2e exists because a day was spent rewriting Q1's
     `reasons_given` while the comment directly above the component already named
     gold's conditional structure, classified every cell with gold < 3, and
     diagnosed the one failing cell as a `harms_listed` misclassification rather
@@ -3325,7 +3420,7 @@ def prior_record(item: str) -> str:
     So the record is pushed at the moment the rule changes -- the only moment it
     matters -- rather than left somewhere to be consulted by whoever remembers.
 
-    Also prints the STRUCTURAL inventory (§2a): which primitives this item
+    Also prints the STRUCTURAL inventory (§2b): which primitives this item
     already carries and which are available but unused, so "is there a primitive
     for this" is answered before prose is written rather than after.
     """
@@ -3333,7 +3428,7 @@ def prior_record(item: str) -> str:
     import os.path
 
     h = HANDOUT.get(item)
-    lines = [f"  ---- what is already recorded about {item} (QUALITY_CONTROL.md §2d) ----"]
+    lines = [f"  ---- what is already recorded about {item} (QUALITY_CONTROL.md §2e) ----"]
 
     # 1. Substantial comment blocks about this item in its rubric.
     #
@@ -3342,7 +3437,7 @@ def prior_record(item: str) -> str:
     # only where the rubric is written as a list of literal dicts. rubric_h2 builds
     # its twelve items from a factory, so no H2 item ever matched: the hook printed
     # "could not read rubric_h2.py: StopIteration" on every H2 --write, silently,
-    # and §2d enforced nothing on the handout with the most recorded dead ends.
+    # and §2e enforced nothing on the handout with the most recorded dead ends.
     #
     # A comment counts as being about this item when the item is named within a few
     # lines below it -- which covers a comment above a dict entry, above an
@@ -3411,7 +3506,7 @@ def prior_record(item: str) -> str:
         # THE LATEST BLOCKS, not the first ones. An entry accumulates: the general
         # decisions are written early and the measured findings pile up at the
         # bottom, so `block[:3]` showed the oldest and cut the newest. Q1 has six
-        # runs and the `reasons_given` material -- the comment §2d was written
+        # runs and the `reasons_given` material -- the comment §2e was written
         # about, after ~900 calls were spent rediscovering it -- is in the last
         # two.
         #
@@ -3461,7 +3556,7 @@ def prior_record(item: str) -> str:
             lines.append(f"    (record lookup in {where} failed: "
                          f"{type(e).__name__}: {e})")
 
-    # 3. The structural inventory (§2a): what this item already uses.
+    # 3. The structural inventory (§2b): what this item already uses.
     try:
         tag = _sheet_tag(h, ACTION[item])
         have = [a for a in ("counts", "equals", "cover", "onlyif", "requires",
@@ -3470,7 +3565,7 @@ def prior_record(item: str) -> str:
         free = [a for a in ("counts", "equals", "cover", "onlyif", "requires",
                             "expect", "forbid", "derived") if a not in have]
         lines.append(f"    PRIMITIVES in use: {', '.join(have) or 'none'}")
-        lines.append(f"    available, unused: {', '.join(free)}   (§2a: structure before prose)")
+        lines.append(f"    available, unused: {', '.join(free)}   (§2b: structure before prose)")
     except Exception:
         pass
     return "\n".join(lines)
@@ -3611,7 +3706,7 @@ def main() -> int:
                       + "; ".join(touched), file=sys.stderr)
                 print(f"H{h}: sweep those items and compare numerators against "
                       f"the last baseline BEFORE committing", file=sys.stderr)
-            # §2d, enforced where it matters: the record is pushed AT the change.
+            # §2e, enforced where it matters: the record is pushed AT the change.
             for it in _items_whose_prompt_changed(h, old, new):
                 print(prior_record(it), file=sys.stderr)
         elif a.check:

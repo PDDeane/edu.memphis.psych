@@ -441,18 +441,37 @@ def _definition_item(item_id: str, label: str, ordinal: str, type_ctx: str) -> d
                         f"type than the one they chose is WRONG_DEFINITION (-2), not "
                         f"merely incomplete",
 },
+            # `unclear` IS CHARGED, and it is spelled out because the two
+            # engines default in opposite directions on a verdict nobody names.
+            # The SHEET offers `unclear` here (slots= carries `seg: unclear`)
+            # while this list carried only met/absent, so the web -- which fails
+            # anything that is not `met` -- took the point and the paper ledger,
+            # which charges only what a CODE names, took nothing. It has never
+            # fired in the corpus, so no score moves today; it would have
+            # diverged silently the first time it did, which is how Q1's
+            # `utb_stated` went 62 observations before anyone saw it.
+            #
+            # CHARGED rather than forgiven, on the code's own words:
+            # INCOMPLETE_DEFINITION is "-1 point: Did not provide the entire
+            # definition (Is something being added or taken away?)", which is
+            # what `unclear` on this slot means. Q1's `unclear` went the other
+            # way because GOLD settled it there -- p17 gets full marks. There is
+            # no such evidence here, and charging is what the shipped web already
+            # does to students.
             {
                 "what": "add_or_remove",
                 "pts": 1.0,
-                "verdicts": ["met", "absent"],
-                "codes": {"absent": "INCOMPLETE_DEFINITION"},
+                "verdicts": ["met", "absent", "unclear"],
+                "codes": {"absent": "INCOMPLETE_DEFINITION",
+                          "unclear": "INCOMPLETE_DEFINITION"},
                 "desc": "States whether something is added or taken away",
             },
             {
                 "what": "increase_or_decrease",
                 "pts": 1.0,
-                "verdicts": ["met", "absent"],
-                "codes": {"absent": "INCOMPLETE_DEFINITION"},
+                "verdicts": ["met", "absent", "unclear"],
+                "codes": {"absent": "INCOMPLETE_DEFINITION",
+                          "unclear": "INCOMPLETE_DEFINITION"},
                 "desc": "States whether the behaviour increases or decreases",
             },
         ],

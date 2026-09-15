@@ -538,6 +538,31 @@ def status(side: str = DEFAULT_SIDE) -> list[tuple[str, str]]:
         # spends a sweep to reproduce a number we already have.
         want_prompt = prompt_sha(item, side)
         if rec.get("prompt_sha") != want_prompt:
+            # DEMOTION. `prompt_sha` hashes the served tag entire, so an
+            # attribute-only edit moves it while the model's question is
+            # byte-identical -- and STALE PROMPT is priced at a re-sweep,
+            # ~120 calls per item per side, to re-sample something that did not
+            # change. Where the recorded ASK matches the current one, the runs
+            # still answer today's question and only the derived scores are
+            # suspect, which is precisely STALE SCORER and clears by re-record
+            # for nothing.
+            #
+            # NOT a dismissal: the attribute that moved may well change scoring
+            # (`maps=`, `forbid=`, `free=` all do), so the column still has to be
+            # re-recorded. Calling it fresh would freeze a score the shipped
+            # rules disagree with.
+            #
+            # Demoted only on a POSITIVE match of two recorded, non-empty
+            # fingerprints. A column with no `ask_sha` -- every column recorded
+            # before this existed -- falls through to the conservative verdict.
+            _rec_ask, _now_ask = rec.get("ask_sha"), ask_sha(item, side)
+            if _rec_ask and _now_ask and _rec_ask == _now_ask:
+                out.append((item, f"STALE SCORER — the prompt sha moved "
+                                  f"({rec.get('prompt_sha')} -> {want_prompt}) but "
+                                  f"the ASK did not ({_now_ask}), so the tag changed "
+                                  f"around an unchanged question; re-record, do not "
+                                  f"re-sweep"))
+                continue
             out.append((item, f"STALE PROMPT — measured at "
                               f"{rec.get('prompt_sha')}, now {want_prompt}"))
             continue
@@ -546,7 +571,7 @@ def status(side: str = DEFAULT_SIDE) -> list[tuple[str, str]]:
         # radius is COMPUTED rather than guessed. The guess it replaces -- "does
         # this sheet author any computed primitive" -- was true of twenty-one
         # items, which is indistinguishable from a global flag.
-        want = scorer_sha(item)
+        want = scorer_sha(item, side)
         if rec.get("scorer_sha") not in (None, want):
             out.append((item, f"STALE SCORER — measured at "
                               f"{rec.get('scorer_sha')}, now {want}; the code "
@@ -604,6 +629,101 @@ _BY_PRIMITIVE = {
 # quotes and the one an unknown-shaped item falls back to, was missing a part that
 # every per-item fingerprint had. A fallback that is meant to be conservative and
 # is quietly narrower than the scoped case is worse than no fallback.
+# THE PAPER SIDE'S ARITHMETIC, which SCORER_PARTS has never covered. Everything
+# above this line lives in agreement/olx_prompts/handouts -- the WEB path -- so a
+# change to score.py moved no fingerprint and staled nothing, and the paper
+# columns carried the WEB's scorer_sha as if it described them. That is the same
+# hole `prompt_sha` had until 2026-09-10, when the paper prompt was found to be
+# borrowing the web's stamp, and it is closed the same way: per SIDE.
+#
+# Scoped by BRANCH, for the reason the web side is scoped per item -- score.py
+# picks one of these paths per item and the other cannot reach its number, so an
+# edit to the operant ledger must not stale the eighteen slot-sheet items. The
+# closures are small and exact: derive_oc_ledger + _expect_rule + _forbid_rule,
+# and derive_ledger + _hedges.
+PAPER_SIDES = ("paper", "paper_opus")
+_PAPER_BY_BRANCH = {
+    "derive_from_criteria": (("score", "derive_oc_ledger"),
+                             ("score", "_expect_rule")),
+    "derive_from_credit": (("score", "derive_ledger"),),
+}
+
+
+# The paper scorer's own student-facing composer. Neither `prompt_sha(.., paper)`
+# nor `scorer_sha(.., paper)` covers it -- one hashes what the grader is asked,
+# the other how its answers become a score, and neither says how the result is
+# WORDED to the student. The web needed a third fingerprint for the same reason.
+_PAPER_RENDER_FNS = (("score", "compose_feedback"),)
+
+
+# WHAT THE HARNESS ASKS, which no fingerprint covered. `prompt_sha` hashes the
+# `.olx` and `scorer_sha` hashes the SCORING functions; `build_prompt`,
+# `checklist_guidance` and `build_schema` are in neither, so an edit to any of
+# them changed every python prompt and moved nothing. That is not hypothetical:
+# the verdict-default fix was detected only because `default_verdicts` happened
+# to join `load_action`'s closure, and the `(left blank)` and dedent fixes -- 60
+# cells across 18 items, plus 20 items' indentation -- would have moved NO stamp
+# at all. Third instance of one hole today: the paper prompt had it until
+# `prompt_sha_paper`, the app had it until `web_code_sha`, this is the harness's.
+#
+# NOT SCOPED PER ITEM, and that is correct here rather than lazy: every item
+# passes through all four of these, so there is no primitive to scope by and a
+# single fingerprint is not a "global flag" in the sense `_parts_for` guards
+# against -- it is genuinely global behaviour.
+_HARNESS_ASK_FNS = (("agreement", "build_prompt"),
+                    ("agreement", "checklist_guidance"),
+                    ("agreement", "build_schema"),
+                    ("agreement", "default_verdicts"))
+
+
+def harness_ask_sha() -> str:
+    """Fingerprint of the code that builds what the HARNESS asks, 12 hex."""
+    import hashlib
+    import importlib
+    import inspect
+
+    out = []
+    for mod, name in _scoped_closure(_HARNESS_ASK_FNS):
+        try:
+            got = inspect.getsource(getattr(importlib.import_module(mod), name))
+            out.append(_behaviour_src(got))
+        except Exception:
+            out.append(f"<missing {mod}.{name}>")
+    return hashlib.sha256("".join(out).encode()).hexdigest()[:12]
+
+
+def paper_render_sha(item: str | None = None) -> str:
+    """Fingerprint of the code that words the PAPER scorer's feedback, 12 hex."""
+    import hashlib
+    import importlib
+    import inspect
+
+    out = []
+    for mod, name in _scoped_closure(_PAPER_RENDER_FNS):
+        try:
+            got = inspect.getsource(getattr(importlib.import_module(mod), name))
+            out.append(_behaviour_src(got))
+        except Exception:
+            out.append(f"<missing {mod}.{name}>")
+    return hashlib.sha256("".join(out).encode()).hexdigest()[:12]
+
+
+def _paper_parts(item: str | None) -> tuple:
+    """The paper scorer's arithmetic for one item, or all of it when None."""
+    every = tuple(dict.fromkeys(p for ps in _PAPER_BY_BRANCH.values() for p in ps))
+    if item is None:
+        return every
+    try:
+        import handouts as H
+        cfg = H.config(_jobs()[item]["handout"])["rubric"].BY_ID[item]
+    except Exception:
+        return every                      # unknown shape: assume all of it
+    for flag, parts in _PAPER_BY_BRANCH.items():
+        if cfg.get(flag):
+            return parts
+    return every                          # neither branch declared: assume all
+
+
 SCORER_PARTS = tuple(dict.fromkeys(
     _ALWAYS
     + tuple(_BY_KIND.values())
@@ -781,6 +901,202 @@ def _scoped_closure(roots: tuple) -> tuple:
         if p in roots or p not in _SCOPED_PARTS))
 
 
+def _ts_top_fn(src: str, name: str) -> str:
+    """A TOP-LEVEL TypeScript function's source, by LINE anchor.
+
+    `function NAME(` at column 0 through the first line that is exactly `}`.
+
+    NOT by brace-matching from the signature, which is what the first version
+    did and it silently truncated: `choices: Record<string, string[]> = {}` is a
+    parameter DEFAULT, so the matcher opened on that brace and closed on the
+    same one, returning 15 lines of signature for a 136-line function. A hash
+    over that would never move for an edit to the body -- detection that does
+    not detect, which is the fault this whole helper exists to prevent. Object
+    literal RETURN TYPES (`scoreSlotSheet`'s is one) break it the same way.
+
+    Raises rather than returning None: a fingerprint that quietly covers nothing
+    is worse than one that stops the run.
+    """
+    import re as _re
+
+    lines = src.splitlines()
+    pat = _re.compile(r"^(?:export\s+)?function\s+%s\s*\(" % _re.escape(name))
+    for i, line in enumerate(lines):
+        if not pat.match(line):
+            continue
+        for j in range(i + 1, len(lines)):
+            if lines[j] == "}":
+                block = "\n".join(lines[i:j + 1])
+                if block.count("{") != block.count("}"):
+                    raise SystemExit(
+                        f"_ts_top_fn({name!r}): braces unbalanced over lines "
+                        f"{i + 1}-{j + 1}; the line anchor did not find the end")
+                return block
+    raise SystemExit(f"_ts_top_fn: no top-level `function {name}` in the source")
+
+
+def _ts_behaviour(text: str) -> str:
+    """TypeScript with its PROSE removed, the analogue of `_behaviour_src`.
+
+    Whole-line `//` comments only. An end-of-line `//` can live inside a string
+    literal, and this file's descriptions are instruction text sent to a grader,
+    so stripping there could silently change what is hashed.
+    """
+    import re as _re
+
+    text = _re.sub(r"/\*.*?\*/", "", text, flags=_re.S)
+    text = _re.sub(r"(?m)^\s*//[^\n]*$", "", text)
+    return _re.sub(r"\s+", " ", text).strip()
+
+
+# The web code that decides what the grader is ASKED, and the web code that
+# decides how the answers SCORE. Split, because they fail differently: an ask
+# change invalidates the recorded ANSWERS, a scoring change invalidates only the
+# numbers computed from them and can be shown score-neutral by re-scoring.
+_WEB_ASK_FNS = ("buildSlotSchema",)
+# The BASE is what every item passes through whatever it authors. `mappedVerdict`
+# and `countedVerdicts` are NOT here: they run only for an item that declares the
+# primitive, so they are scoped below -- listing them in both places would leave
+# the scoping inert, which it was until this line was corrected.
+_WEB_SCORE_FNS = ("satisfiedMap", "chargedMap", "failedGate", "scoreSlotSheet",
+                  "isSatisfied")
+# And the code that decides what the STUDENT READS. A third kind, because it
+# fails a third way: a render change alters neither the question asked nor the
+# score, so neither of the other two stamps moves and an artifact written before
+# a display fix is indistinguishable from one written after it. That is not
+# hypothetical -- `counts` members rendered "not reported" until the app was
+# fixed, and the old artifacts still say so, which read as a live defect.
+_WEB_RENDER_FNS = ("composeSlotFeedback", "displayVerdict")
+
+# SCOPED BY PRIMITIVE, exactly as `_BY_PRIMITIVE` scopes the python scorer. A
+# helper that only runs for a primitive the item does not author cannot change
+# what that item's student reads, so it must not move that item's fingerprint --
+# otherwise one repair to `expectedVerdict` restamps all 26 columns and the
+# stamp becomes a global flag, which is the thing per-item scoping exists to
+# prevent (see _scoped_closure, where the same mistake cost ~1800 calls).
+_WEB_BY_PRIMITIVE = {
+    "equals": {"render": ("computedVerdict",)},
+    "expect": {"render": ("expectedVerdict",)},
+    "maps": {"render": ("mappedVerdict",), "score": ("mappedVerdict",)},
+    "counts": {"render": ("countedVerdicts",), "score": ("countedVerdicts",)},
+    "forbid": {"render": ("forbidden",)},
+}
+
+
+def _web_parts(kind: str, item: str | None) -> tuple:
+    """The app functions THIS item's answer passes through, for one kind."""
+    base = {"ask": _WEB_ASK_FNS, "score": _WEB_SCORE_FNS,
+            "render": _WEB_RENDER_FNS}[kind]
+    every = tuple(dict.fromkeys(
+        base + tuple(n for m in _WEB_BY_PRIMITIVE.values()
+                     for n in m.get(kind, ()))))
+    if item is None:
+        return every                      # the corpus-wide view the header quotes
+    try:
+        import agreement as A
+        import olx_prompts as O
+        job = next(j for _h, b in A.BLOCKS.items() for j in b.values()
+                   if j["item"] == item)
+        action = A.load_action(job["olx"], O.ACTION[item])
+    except Exception:
+        return every                      # unknown shape: assume all of it
+    names = list(base)
+    for prim, by_kind in _WEB_BY_PRIMITIVE.items():
+        if action.get(prim):
+            names.extend(by_kind.get(kind, ()))
+    return tuple(dict.fromkeys(names))
+
+
+def web_code_parts(kind: str = "ask", item: str | None = None) -> dict:
+    """Each app function's own digest: {name: sha}. The unit of comparison.
+
+    WHY THIS EXISTS, AND WHY THE AGGREGATE ALONE WAS WRONG. `web_code_sha`
+    concatenates the functions named by `_web_parts` and hashes the result, so
+    the fingerprint depends on TWO things: lo-blocks' code, and OUR LIST of
+    which functions to hash. The list lives here, in the ledger. Adding a
+    function to it -- refining our model of what renders -- moves the sha for
+    every artifact ever stamped, and the audit then reports that 26 items have
+    no artifact attributable to today's renderer.
+
+    Measured 2026-09-14: exactly that happened. `slotSheet.ts` was byte-identical
+    in both trees and untouched since 2026-09-13, the shipped `.olx` was
+    unchanged, and the render fingerprint had still moved -- because this file
+    had. A measurement instrument moving is not evidence about what students
+    saw, and the remedy the finding implied was a ~3,100-call sweep to chase it.
+
+    So compare PER FUNCTION, on the intersection of what both sides recorded: a
+    name we did not hash before simply was not compared, while a function both
+    sides hashed and that differs is a real change with a real remedy.
+    """
+    import hashlib
+    from pathlib import Path
+
+    import paths
+
+    if kind not in ("ask", "score", "render"):
+        raise SystemExit(f"web_code_parts: unknown kind {kind!r}")
+    src = Path(paths.SLOTSHEET_TS).read_text()
+    out = {}
+    for n in _web_parts(kind, item):
+        try:
+            body = _ts_behaviour(_ts_top_fn(src, n))
+        except SystemExit:
+            body = f"<missing {n}>"
+        out[n] = hashlib.sha256(body.encode()).hexdigest()[:12]
+    return out
+
+
+def web_code_sha(kind: str = "ask", item: str | None = None) -> str:
+    """Fingerprint of the APP's own schema/scoring code, 12 hex.
+
+    THE HOLE THIS CLOSES. `prompt_sha` hashes the `.olx` and `scorer_sha` hashes
+    this repo's python; NEITHER covers lo-blocks, where the schema the grader
+    actually answers is built and where the score is actually computed. So a
+    change to `buildSlotSchema` altered every web prompt in the corpus and moved
+    no fingerprint at all, and a change to `scoreSlotSheet`'s call sites changed
+    every web score the same way. Recorded columns went on reading `ok`.
+
+    That is not hypothetical: `scoreSlotSheet` takes `maps` as its ELEVENTH
+    positional parameter and SlotSheetGrader passes ten, so the map never
+    reaches the scorer -- which is why the app scores a mapped slot's recorded
+    verdict, and why lo-blocks b6d3f070 went flat when it stopped asking for one.
+    """
+    import hashlib
+
+    import paths
+
+    if kind not in ("ask", "score", "render"):
+        raise SystemExit(f"web_code_sha: unknown kind {kind!r}")
+    src = Path(paths.SLOTSHEET_TS).read_text()
+    names = _web_parts(kind, item)
+    parts = [_ts_behaviour(_ts_top_fn(src, n)) for n in names]
+    if kind == "score":
+        # THE CALL SITES BELONG TO THE SCORER. Omitting an argument changes the
+        # score without touching a single line of slotSheet.ts, which is exactly
+        # the live defect: `_ScoreTable` passes eight of eleven and loses
+        # `requires`, `forbid` and `maps`.
+        import re as _re
+        for f in (paths.LO / "packages/shared/components/blocks/grading/SlotSheetGrader.ts",
+                  paths.LO / "packages/shared/components/blocks/grading/ScoreTable/_ScoreTable.tsx"):
+            try:
+                text = Path(f).read_text()
+            except Exception:
+                parts.append(f"<missing {f.name}>")
+                continue
+            for m in _re.finditer(r"scoreSlotSheet\(", text):
+                depth, k = 0, m.end() - 1
+                while k < len(text):
+                    if text[k] == "(":
+                        depth += 1
+                    elif text[k] == ")":
+                        depth -= 1
+                        if depth == 0:
+                            break
+                    k += 1
+                parts.append(_ts_behaviour(text[m.start():k + 1]))
+    return hashlib.sha256("".join(parts).encode()).hexdigest()[:12]
+
+
 def era_stamp(items=None, model: str | None = None,
               backend: str | None = None) -> dict:
     """What an artifact must record to be comparable with another artifact.
@@ -827,10 +1143,42 @@ def era_stamp(items=None, model: str | None = None,
             # looked like an unstamped artifact rather than an absent field.
             per[it] = {"prompt_sha": prompt_sha(it), "scorer_sha": scorer_sha(it),
                        "prompt_sha_python": prompt_sha(it, "python"),
-                       "prompt_sha_paper": prompt_sha(it, "paper")}
+                       "prompt_sha_paper": prompt_sha(it, "paper"),
+                       # The paper scorer's own arithmetic, for the same reason
+                       # `prompt_sha_paper` is here: an era that records only the
+                       # web's fingerprint cannot date a paper artifact.
+                       "scorer_sha_paper": scorer_sha(it, "paper"),
+                       # PER ITEM, so a helper this item never calls cannot
+                       # stale it. The top-level pair stays as the corpus view.
+                       "web_ask_sha": web_code_sha("ask", it),
+                       "web_score_sha": web_code_sha("score", it),
+                       "web_render_sha": web_code_sha("render", it),
+                       "paper_render_sha": paper_render_sha(it),
+                       "harness_ask_sha": harness_ask_sha()}
         except Exception as e:
             per[it] = {"error": f"{type(e).__name__}: {e}"}
     return {
+        # WHEN IT WAS MEASURED, not when the file was last written. Added
+        # 2026-09-14 after an artifact assembled from older runs read as NEWER
+        # than the clean data it superseded: `pooled_paper` pooled a failed
+        # cell-fill and its mtime was the assembly date, so a freshness test on
+        # file dates preferred the worse measurement. mtime dates the FILE; this
+        # dates the RUNS.
+        #
+        # 179 of 335 artifact directories carry no era at all and none carries a
+        # time, so they cannot be dated by anything but mtime and are therefore
+        # not trustworthy as evidence of recency. Treat an undateable artifact
+        # as REPLACEABLE: a newer stamped measurement supersedes it, and nothing
+        # is owed to a number nobody can place in time.
+        "measured_at": __import__("datetime").datetime.now().astimezone().isoformat(timespec="seconds"),
+        # The APP's own code, which no other stamp covers. See web_code_sha.
+        "web_ask_sha": web_code_sha("ask"),
+        "web_score_sha": web_code_sha("score"),
+        "web_render_sha": web_code_sha("render"),
+        # THE PARTS, NOT ONLY THE AGGREGATE. The aggregate moves when OUR list of
+        # functions changes; the parts let a reader compare the functions both
+        # sides actually hashed and ignore the ones only one side knew about.
+        "web_parts": {k: web_code_parts(k) for k in ("ask", "score", "render")},
         "git": _git("rev-parse", "HEAD") or "unknown",
         "dirty": bool(_git("status", "--porcelain")),
         # Empty when the writer did not say and the environment does not know.
@@ -841,12 +1189,102 @@ def era_stamp(items=None, model: str | None = None,
     }
 
 
-def scorer_sha(item: str | None = None) -> str:
+def safe_to_rerecord(item: str, side: str) -> tuple:
+    """(ok, why) — may this column be re-recorded instead of re-swept?
+
+    THE GUARD A BATCH RE-RECORD NEEDS. `record` stamps the CURRENT shas onto
+    whatever runs it finds, so re-recording a column whose PROMPT really moved
+    marks it fresh while its verdicts answer a question that no longer ships --
+    destroying the evidence that a sweep was owed. Q1 was mis-stamped exactly
+    that way on 2026-09-12 by a batch that selected on scorer-staleness alone;
+    only a control failure in the interpretation check caught it.
+
+    So: re-record when the ask is unchanged (or the prompt sha never moved), and
+    refuse when it moved and cannot be shown to be the same question.
+    """
+    rec = entry(item, side)
+    if not rec:
+        return False, "not recorded"
+    if rec.get("prompt_sha") == prompt_sha(item, side):
+        return True, "prompt unchanged"
+    rec_ask, now_ask = rec.get("ask_sha"), ask_sha(item, side)
+    if rec_ask and now_ask and rec_ask == now_ask:
+        return True, "prompt sha moved but the ask did not"
+    if not rec_ask:
+        return False, ("the prompt sha moved and this column carries no recorded "
+                       "ask_sha, so the question cannot be shown unchanged -- "
+                       "re-sweep, which also stamps one")
+    return False, "the ask itself moved -- re-sweep"
+
+
+def ask_sha(item: str, side: str | None = None) -> str:
+    """SHA-256 of WHAT THE MODEL IS ASKED for this item, 12 hex — or "" if it has none.
+
+    `prompt_sha` hashes the served `.olx` tag ENTIRE, attributes included. That is
+    deliberately conservative -- an attribute can change scoring -- but it means a
+    tag-only edit reads as STALE PROMPT while the model's question is byte-identical,
+    and a STALE PROMPT is priced at a re-sweep. Adding `free=` to one tag on
+    2026-09-12 did exactly that: ~120 calls per side to re-sample a question that had
+    not moved.
+
+    This hashes the ASK instead: the assembled prompt and the response schema, over
+    every included cell. Two columns with the same `ask_sha` were asked the same
+    thing, whatever their tags look like, and the difference between them is at most
+    a SCORER difference -- which a re-record clears for nothing. See
+    `_staleness_lines`, which demotes on exactly this.
+
+    PROMPT *AND* SCHEMA, not the prose alone: a schema change alters what the model
+    may answer without touching a word, so a text-only comparison would wave a real
+    prompt change through.
+
+    "" FOR THE PAPER SIDES, which are not served the `.olx` at all -- their prompt is
+    `score.fingerprint_text`, which `prompt_sha` already hashes directly, so there is
+    no gap between tag and ask to close. A paper prompt change is genuinely a
+    re-sweep and must never be demoted.
+    """
+    import hashlib
+    import json as _json
+
+    if side in PAPER_SIDES:
+        return ""
+    try:
+        import agreement as A
+        import olx_prompts as O
+
+        job = _jobs()[item]
+        act = A.load_action(f"bmod_handout{job['handout']}.olx", O.ACTION[item])
+        schema = A.build_schema(act["slots"], act["excluded"], act["show_checks"],
+                                act["cover"], act["choices"])
+        parts = [_json.dumps(schema, sort_keys=True)]
+        excl = set(exclusions(item) or [])
+        for pid in sorted(set(range(1, 21)) - excl):
+            try:
+                fx = A.fixture_for(item, pid)
+            except Exception:
+                continue
+            parts.append(A.build_prompt(act["body"], fx)
+                         + A.checklist_guidance(act["show_checks"]))
+        return hashlib.sha256("\x00".join(parts).encode()).hexdigest()[:12]
+    except Exception:
+        # NOT an exception swallowed into a false "unchanged": an empty string is
+        # read as "no ask recorded", which suppresses the demotion and leaves the
+        # conservative prompt_sha verdict standing.
+        return ""
+
+
+def scorer_sha(item: str | None = None, side: str | None = None) -> str:
     """SHA-256 of the code that turns THIS item's answers into a score, 12 hex.
 
     Prose-insensitive and scoped: see `_behaviour_src` and `_parts_for`. Called
     with no item it fingerprints the whole path, which is what the ledger header
     and the reports quote.
+
+    PER SIDE, exactly as `prompt_sha` is. The paper sides are scored by score.py
+    and nothing else, so they fingerprint score.py's ledger branch for this item
+    and not the web's scorers -- otherwise a web-only scorer edit would report
+    the paper measurement as stale, spending a sweep to reproduce a number that
+    could not have moved, and a score.py edit would report nothing at all. See
+    PAPER_SIDES and _paper_parts.
     """
     import hashlib
     import importlib
@@ -854,7 +1292,8 @@ def scorer_sha(item: str | None = None) -> str:
     src = []
     # The CLOSURE of the scoped roots, not the roots alone -- minus the parts the
     # scoping deliberately left out for THIS item. See _scoped_closure.
-    for mod, name in _scoped_closure(_parts_for(item)):
+    roots = _paper_parts(item) if side in PAPER_SIDES else _parts_for(item)
+    for mod, name in _scoped_closure(roots):
         try:
             got = inspect.getsource(getattr(importlib.import_module(mod), name))
             src.append(_behaviour_src(got))
@@ -1284,7 +1723,12 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     prior = (led.get("items", {}).get(item, {}) or {}).get(side)
     led.setdefault("items", {}).setdefault(item, {})[side] = {
         "prompt_sha": prompt_sha(item, side),
-        "scorer_sha": scorer_sha(item),
+        # What the model was ASKED, so a later tag-only edit can be demoted from
+        # STALE PROMPT to STALE SCORER instead of buying a sweep. See ask_sha.
+        # A column recorded before this existed carries no `ask_sha` and is never
+        # demoted -- it gets one from its next sweep, exactly as the era stamps do.
+        "ask_sha": ask_sha(item, side),
+        "scorer_sha": scorer_sha(item, side),
         "exclusions": exclusions(item),
         "runs": n,
         "numerator": totals[n // 2],
@@ -1325,7 +1769,7 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     # and the only moment both bands are in hand. `bands_before` was taken from
     # the ledger as it stood on entry, and `cell_bands` now reads what was just
     # saved, so this compares the same cells across exactly this recording. A
-    # cell crossing INTO or OUT OF `on_the_line` is the one section 2c warns
+    # cell crossing INTO or OUT OF `on_the_line` is the one section 2d warns
     # about: it says the verdict moved by a single run.
     moved = band_moves(item, side)
     for ln in moved:
@@ -2103,14 +2547,62 @@ def mirror_self_control() -> list:
                     c = X.result_cell(r)
                     if not c or c[2] is None:
                         continue
-                    checks = {k: {"verdict": v}
-                              for k, v in (c[3] or {}).items() if v is not None}
+                    # REJOIN THE PICKS. The two sides record a classification
+                    # in a SEPARATE top-level field -- `refers_to` on the app,
+                    # `answers` on the harness -- while `result_cell` returns
+                    # only the verdict map. Feeding the verdicts alone drops
+                    # every pick, so `derived`/`equals`/`expect`/`maps` recompute
+                    # from an empty operand and the mirror reproduced 43% of the
+                    # app's own scores. It is not a scoring disagreement; it is
+                    # reading half the record. With the picks back it is 100%.
+                    picks = (r.get("refers_to") if side == "olx"
+                             else r.get("answers")) or {}
+                    # A COUNT GOES IN `count`, DECIDED BY THE SLOT SPEC and not
+                    # by sniffing the value's type. The artifact flattens `count`
+                    # and `verdict` into one column, so a reconstruction that puts
+                    # everything back as `verdict` silently depends on
+                    # expand_counted's legacy fallback to read it again -- and
+                    # removing that fallback then reads every counted member as
+                    # absent, which measures the reconstruction rather than the
+                    # engines. Q1 read 0/120 that way. The schema has asked for
+                    # `count` since the counts migration; only this rebuild
+                    # un-migrated it.
+                    # T11: `agreement.count_keys` is the ONE authority on
+                    # which slots hold a number. This carried its own copy of
+                    # the rule -- the duplication the helper exists to end.
+                    _counted = A.count_keys(action)
+                    checks = {
+                        k: {("count" if k in _counted else "verdict"): v,
+                            **({"refers_to": picks[k]}
+                               if picks.get(k) is not None else {})}
+                        for k, v in (c[3] or {}).items()
+                        if v is not None or picks.get(k) is not None
+                    }
                     try:
+                        # Uniform across sides, per the no-item-dependent-
+                        # mechanism rule: the app records the verdicts it ASKED
+                        # (null where a slot was computed or suppressed), so the
+                        # computed families must be filled before scoring. On the
+                        # harness side they are already filled and refilling them
+                        # is idempotent -- measured at 2908/2908 either way -- so
+                        # one path serves both rather than a per-side branch.
+                        # Fill-only, exactly as paper_scorer_agreement does
+                        # it -- ONE rule for every side, content differing and
+                        # mechanism not. The app records a computed slot as
+                        # null, so on almost every cell there is nothing to put
+                        # back and this is identical to letting the computation
+                        # win. Where the app DID record one it scored that, and
+                        # restoring it is what the app did: 1c/`legend`, the
+                        # last 10 cells short of a perfect control.
+                        filled = A.apply_computed(
+                            action, dict(checks), A.fixture_for(item, c[1]))
+                        filled.update(checks)
+                        checks = filled
                         s, _f = scorer(merged, rub, checks)
                     except Exception:
                         continue
                     n += 1
-                    ok += abs(s - float(c[2])) < 1e-9
+                    ok += abs(s - float(c[2])) < 1e-6
             if n:
                 out.append((side, item, ok, n))
     return out
@@ -2146,14 +2638,32 @@ def paper_scorer_agreement() -> dict:
     import handouts as H
     import olx_prompts as O
 
-    out = {"agree": 0, "differing": [], "errors": [], "items": []}
+    # DISPATCH ON THE ITEM'S KIND, and build the spec the way production does.
+    # This drove `score_slots` at every item and passed the bare action as the
+    # spec. Both were wrong for the eight operant items: `oc`/`oc_cadence` have
+    # their own scorer, `cadence` lives on the JOB and not on the action, and
+    # score_slots walking an oc rubric raises on the first credit component the
+    # slot sheet does not carry. It read as 285 "errors" and 330 cells scoring
+    # 0.0 against a paper score of 4.0 -- an engine disagreement that was really
+    # the wrong engine. Same rule as mirror_self_control: a control assembled
+    # differently from production is not a control.
+    jobs = {j["item"]: j for _h, b in A.BLOCKS.items() for j in b.values()}
+    out = {"agree": 0, "differing": [], "errors": [], "items": [], "skipped": [],
+           "supplemented": 0}
     for item in sorted(_jobs()):
         doc = _runs_doc(item, "paper")
         if not doc:
             continue
         h = _jobs()[item]["handout"]
+        job = jobs.get(item) or {}
+        scorer = A.SCORERS.get(job.get("kind"))
+        if scorer is None:          # type_stated / data_presence: no mirror
+            out["skipped"].append(item)
+            continue
         try:
-            spec = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+            action = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+            spec = dict(job, slots=action["slots"], cover=action["cover"],
+                        requires=action["requires"])
             rub = H.config(h)["rubric"].BY_ID[item]
         except Exception:
             continue
@@ -2181,13 +2691,65 @@ def paper_scorer_agreement() -> dict:
                 # is here so the first aliased item to be swept is not silently
                 # mis-scored.
                 webkeys = {s["key"] for s in spec["slots"]}
+                # ROUTE COUNTS BY THE SLOT SPEC. The artifact flattens `count`
+                # and `verdict` into ONE column, so a counting group's NUMBER
+                # arrives here beside real verdicts. Wrapping it as `verdict`
+                # leaves expand_counted reading no count, every member recovers
+                # unmet, and the cell scores at its floor -- which reads as the
+                # paper and web scorers disagreeing when they do not. FIFTH site
+                # to need this after the 2026-09-13 fallback removal; it is not
+                # named in that comment, which is why it was missed.
+                count_keys = {cr["key"] for cr in (action.get("counts") or [])}
+                def _wrap(nm, val):
+                    return {("count" if nm in count_keys else "verdict"): val}
                 checks, unresolved = {}, []
                 for k, v in verd.items():
                     name = k if k in webkeys else _ENF().web_name(k, webkeys)
                     if name is None:
                         unresolved.append(k)
                         continue
-                    checks[name] = {"verdict": v}
+                    checks[name] = _wrap(name, v)
+                # SUPPLEMENT FROM `oc_analysis`, WHICH IS WHERE THE PAPER
+                # SCORER PUTS THE REST OF ITS JUDGEMENT. `credit_checks` holds
+                # only the checks that carried credit; the full analysis --
+                # including `cadence_ok`, `avoidance_frame`, `states_a_
+                # contingency`, `aimed_correctly` -- sits in `oc_analysis` and no
+                # reader had ever looked at it. That, and nothing else, was the
+                # "paper never records the cadence gate" coverage gap: it records
+                # it, one field over. ALIAS already carried every name needed
+                # (`cadence_ok` -> the three cadence gates, `avoidance_frame` ->
+                # phrased_directly*), so this adds no mapping, only the read.
+                #
+                # THREE GUARDS, because oc_analysis is a wider vocabulary than
+                # the sheet: a field already answered by `credit_checks` is never
+                # overridden (what was CHARGED wins); a boolean is converted
+                # through enforcement._PASS rather than by assuming True means
+                # met, which is what makes `avoidance_frame` inverted correctly
+                # -- its passing value IS False; and a value the slot does not
+                # offer as an option is skipped rather than forced, so free text
+                # like `behavior: "walking to class"` cannot land as a verdict.
+                oc = c.get("oc_analysis") or {}
+                if oc:
+                    enf = _ENF()
+                    offered = {s["key"]: (s.get("options") or [])
+                               for s in spec["slots"]}
+                    for k, v in oc.items():
+                        name = k if k in webkeys else enf.web_name(k, webkeys)
+                        if name is None or name in checks:
+                            continue
+                        if isinstance(v, bool):
+                            want = enf._PASS.get(k)
+                            vd = ("met" if (v == want if isinstance(want, bool)
+                                            else v) else "absent")
+                        elif isinstance(v, str) and v.strip():
+                            vd = v.strip()
+                        else:
+                            continue
+                        opts = offered.get(name) or []
+                        if opts and vd not in opts:
+                            continue
+                        checks[name] = _wrap(name, vd)
+                        out["supplemented"] += 1
                 if unresolved:
                     # NEVER dropped in silence: an unmapped key is the exact thing
                     # this comparison would otherwise hide.
@@ -2197,8 +2759,67 @@ def paper_scorer_agreement() -> dict:
                         f"enforcement.ALIAS -- so the web mirror cannot be given "
                         f"the same verdicts and the two are not comparable here")
                     continue
+                # AN UNANSWERED GATE IS NOT A DISAGREEMENT. A gating slot the
+                # paper side never recorded reads as unsatisfied, which takes the
+                # whole item to 0.0 -- so the mirror reports 0.0 against a paper
+                # 4.0 and it looks like the two engines disagree about the answer
+                # when they were never given the same question. That was all 330
+                # of the differences left on DAY1/DAY2/WK1/WK2, and the cause is
+                # one real coverage gap: the paper scorer does not judge cadence
+                # at all (`cadence_is_daily`, `cadence_is_daily_counted`,
+                # `cadence_is_weekly` -- every cell of all four items), while the
+                # web gates the entire item on it. Reported, in the same breath
+                # as the unmapped keys and for the same reason, never dropped.
+                # DERIVE WHAT THE WEB DERIVES, then put the recorded verdicts
+                # back. `consequence_not_a_setup` is not a question either engine
+                # asks -- the web COMPUTES it from `restriction_authored`,
+                # `trigger_expects` and `restricts`, all three of which paper
+                # records in oc_analysis. Withholding it left 102 cells gated to
+                # 0.0 on a judgement paper had in fact supplied the inputs for.
+                #
+                # THE COMPUTED VALUE WINS, on the computed slots only, which is
+                # what `apply_computed` already does: it starts from `checks` and
+                # overwrites nothing but the `derived`/`equals`/`expect`/`forbid`/
+                # `maps` targets. Those are slots the web mirror NEVER takes from
+                # a grader, so a recorded verdict for one is not a competing
+                # judgement -- it is the other engine's own rendering of the same
+                # rule, and scoring it as if it were independent double-counts.
+                # Same rule as mirror_self_control, which is the point: a
+                # mechanism that behaved one way for `olx` and another for
+                # `paper` would be side-dependent, and only CONTENT may vary.
+                #
+                # This is what WK1/p6 was. `matches_chosen_type` is an `equals`
+                # target carrying `lenient: ["unclear"]`, so the web resolves it
+                # to `met` and scores 4; paper charges nothing and scores 4; the
+                # two agree. Only paper's RECORD of the check said otherwise, and
+                # letting that record win reported a 4-against-2 disagreement
+                # between engines that do not disagree. score.py no longer writes
+                # that record, and this no longer reads it.
+                # FILL-ONLY: compute, then put the recorded verdicts back. A
+                # slot a side actually ANSWERED is that side's judgement and is
+                # what its score followed; a computed family exists to supply the
+                # slots nobody answered. Letting the computation win instead
+                # credits 1c/`legend` on the map where both the app and paper
+                # scored the recorded `incomplete` -- 95 cells, an engine
+                # disagreement invented by the reconstruction.
                 try:
-                    web_score, _f = A.score_slots(spec, rub, checks)
+                    filled = A.apply_computed(action, dict(checks),
+                                              A.fixture_for(item, pid))
+                    filled.update(checks)
+                    checks = filled
+                except Exception:
+                    pass
+                ungated = sorted(s["key"] for s in spec["slots"]
+                                 if s.get("gates") and s["key"] not in checks)
+                if ungated:
+                    out["errors"].append(
+                        f"{item}/p{pid}: the web sheet GATES on {ungated}, which "
+                        f"the paper scorer never records -- an unanswered gate "
+                        f"scores the item 0.0, so this cell cannot be compared "
+                        f"(it is a coverage gap, not a disagreement)")
+                    continue
+                try:
+                    web_score, _f = scorer(spec, rub, checks)
                 except Exception as exc:
                     out["errors"].append(f"{item}/p{pid}: {type(exc).__name__}: {exc}")
                     continue
@@ -2289,7 +2910,7 @@ def rate_divergence(alpha: float = 0.05) -> dict:
 
     THE QUESTION E39 ASKED, and the answer turns out to be about statistical
     power rather than about the engines. Comparing medians manufactures
-    divergences -- QUALITY_CONTROL 2f records three of Q32's five being ONE
+    divergences -- QUALITY_CONTROL 2g records three of Q32's five being ONE
     observation apart -- so the comparison is a two-proportion exact test on
     each cell's right/wrong counts.
 
@@ -3242,7 +3863,8 @@ def _ever_right(item: str, pid: int, gold_score: float) -> bool:
     import handouts as H
     import paths
 
-    for path in glob.glob(str(paths.OUT / "*" / f"{item}.runs.json")):
+    for path in (glob.glob(str(paths.OUT / "*" / f"{item}.runs.json"))
+                 + glob.glob(str(paths.OUT / "*" / "runs" / f"{item}.runs.json"))):
         try:
             data = json.loads(Path(path).read_text())
         except (OSError, ValueError):
@@ -3294,7 +3916,32 @@ def _scores_for(item: str, pid: int, runs_path: str | None) -> list:
 # stored score moves -- from artifacts already on disk, at no call cost. And the
 # key is the fingerprint PAIR, so the moment either side moves the entry lapses
 # and the staleness comes back. That is the prompt_sha idiom applied one level in.
+# Web-code transitions whose arithmetic provably cannot move a recorded score.
+#
+# THE SIBLING OF `SCORER_NEUTRAL`, AND KEYED IN A DIFFERENT SHA SPACE, which is
+# exactly why it has to be its own table. `SCORER_NEUTRAL` is keyed on
+# `scorer_sha` -- this repo's python. This is keyed on `web_code_sha("score")`
+# -- lo-blocks' scoring path. `check_web_code_is_stamped_by_its_own_sha` used to
+# advise "declare the pair in SCORER_NEUTRAL", and that advice could not be
+# followed: no recorded item ever sits at a web-code sha, so the entry read as
+# SPENT the moment it was written and produced a second finding instead of
+# clearing the first. Measured 2026-09-14 by trying it.
+#
+# THE ENTRY IS A CLAIM, NOT A PERMISSION -- the same contract as its sibling.
+# `check_web_code_neutrality_is_verified` re-scores every cell the pair covers
+# on every audit and fails if one moves, so the approval cannot rot: if the claim
+# was wrong it says which cell, and if the app's scoring changes again the
+# fingerprints move and the pair stops matching on its own.
+WEB_CODE_NEUTRAL: dict[tuple[str, str], str] = {
+}
+
+
 SCORER_NEUTRAL: dict[tuple[str, str], str] = {
+    # THIRTEEN PAIRS DROPPED 2026-09-12, spent exactly as Q4b's was: the
+    # verdict-default and `free` work moved every item's scorer_sha past the
+    # transitions they covered, so no recorded side sits at their `was` sha any
+    # more. A spent pair reads as coverage of a difference that is no longer
+    # there, which is why the gate refuses one.
     # E25, commit 432fe64 (2026-09-01): "convert the keyword check to a derived
     # `contains` primitive". It changed agreement.apply_computed,
     # olx_prompts.contains_hit and olx_prompts._edit_within -- real scoring
@@ -3305,12 +3952,25 @@ SCORER_NEUTRAL: dict[tuple[str, str], str] = {
     # flagged set includes items like T1, T2, 1b and PR that have no keyword slot.
     # VERIFIED 2026-09-04 by re-scoring 2776 recorded cells across 14 items on
     # both sides: every one reproduces the score its artifact stored.
-    ("6526989cd34f", "5ce4a8b5da28"): "E25's keyword-to-`contains` conversion, "
-        "verified score-neutral by re-scoring 2776 recorded cells",
-    ("2f11176f1cd0", "7d20355c702b"): "the same change, on the operant items",
-    ("4f0592d0beaf", "4454461f7b6a"): "the same change, on the items with no "
-        "slot sheet (1b, T1, T2) -- re-run deterministically instead: 20/20, "
-        "18/18, 18/18 exact",
+    # RE-POINTED 2026-09-14, and MERGED with the pair that stood below. Both
+    # declared the same change through different item closures, and those
+    # closures have since converged: `3`/olx, `2b`/python and `3`/python all now
+    # sit at `29a76b0416e1`, so re-pointing both would have produced one key
+    # twice -- a duplicate, where the second silently overwrites the first.
+    #
+    # THE OLD TARGETS WERE NEVER REACHED. The tree moved past `5ce4a8b5da28` and
+    # `a2ef0d9c0e94` to a third sha, so every recorded item was skipped and both
+    # pairs verified NOTHING while the audit read clean -- coverage theatre, now
+    # caught by the untestable-pair branch of
+    # `check_scorer_neutrality_is_verified`.
+    #
+    # RE-VERIFIED on the sha the tree actually reached: 360 recorded cells across
+    # the three columns, 0 that fail to reproduce their stored score. That number
+    # was 346 failures an hour earlier, and every one was `rescore_recorded`
+    # routing a counted group's NUMBER as a verdict (T11) -- fixed, not excused.
+    ("6526989cd34f", "29a76b0416e1"): "E25's keyword-to-`contains` conversion "
+        "plus the verdict-default alignment, through 2b's and 3's closure; "
+        "re-verified score-neutral on 360 recorded cells, 0 moved",
     # The remaining pairs are the SAME change seen through other items' closures:
     # scorer_sha is item-scoped, so one commit produces a different pair for every
     # distinct closure. All seven items below are in the 2776-cell re-score.
@@ -3320,10 +3980,41 @@ SCORER_NEUTRAL: dict[tuple[str, str], str] = {
     # more. The gate refuses a spent pair because it reads as coverage of a
     # difference that is no longer there. E25 itself is unaffected -- Q4b is in the
     # 2776-cell re-score above, and this line was only its item-scoped view of it.
-    ("4334438d6d55", "bbb4c72ce2a8"): "E25, through 1c's closure",
-    ("7b8f8715488a", "b3b70c8239bc"): "E25, through Q6's closure",
-    ("8f2c4a9c148c", "9f791c8ccf03"): "E25, through Q3's and Q5's closure",
-    ("fa4d1b3a2c1d", "b4860821510d"): "E25, through D1's and D2's closure",
+    # SIX PAIRS DROPPED 2026-09-12, all of them E25's change seen through a
+    # different item's closure. No recorded item sits at any of their `was` shas
+    # any more -- every column has been re-recorded or re-swept past that
+    # transition -- so each one claimed to excuse a difference that is no longer
+    # there. That is what the audit means by a SPENT pair, and it is not
+    # harmless: a spent entry reads as coverage, so the next reader checking
+    # whether E25 is accounted for finds six lines saying yes about columns none
+    # of them describes. Dropped rather than rewritten, because the one pair that
+    # still has a column at its `was` sha is the line above, and E25 itself is
+    # recorded there with the 2776-cell re-score that verified it.
+    #
+    # The shas are kept in this note so the history stays findable:
+    #   2f11176f1cd0 -> 7d20355c702b   the operant items
+    #   4f0592d0beaf -> 4454461f7b6a   the items with no slot sheet (1b, T1, T2)
+    #   4334438d6d55 -> bbb4c72ce2a8   1c's closure
+    #   7b8f8715488a -> b3b70c8239bc   Q6's closure
+    #   8f2c4a9c148c -> 9f791c8ccf03   Q3's and Q5's closure
+    #   fa4d1b3a2c1d -> b4860821510d   D1's and D2's closure
+    # THE VERDICT-DEFAULT ALIGNMENT, 2026-09-12. `agreement.load_action` fell back
+    # to the literal "met,absent,unclear" for a slot naming no verdicts of its
+    # own, while the app's `DEFAULT_VERDICTS` is ['met', 'absent']. So the two
+    # engines offered the grader different vocabularies on 57 slots, 13 of them
+    # scored -- including `matches_chosen_type`, 2 of 4 points on D1/D2/WK1/WK2.
+    # `default_verdicts()` now READS the app's list out of slotSheet.ts, so the
+    # two cannot drift again, and joining load_action's closure moved the
+    # fingerprint for all 26 items on both web-side columns.
+    #
+    # IT CANNOT REACH A RECORDED NUMBER, measured twice and both ways round:
+    #   * before the change, over 2,902 recorded python runs, a grader took the
+    #     extra `unclear` option ONCE (NR.you_arrange_it) -- 0.03%;
+    #   * after it, re-scoring every recorded cell through the new code
+    #     reproduces the stored score EXACTLY, olx 2304/2304 and python
+    #     2908/2908.
+    # So no column is re-swept for this. What changes is what a FUTURE sweep
+    # asks, which is the point of the change.
 }
 
 
@@ -3351,7 +4042,7 @@ def _staleness_lines() -> list[str]:
             # cannot reach the number. See SCORER_NEUTRAL.
             if "STALE SCORER" in state:
                 rec = ((records(side).get(item) or {}).get("scorer_sha"))
-                if (rec, scorer_sha(item)) in SCORER_NEUTRAL:
+                if (rec, scorer_sha(item, side)) in SCORER_NEUTRAL:
                     continue
             out.append(f"{item}{where}: {state}")
     return out
@@ -3520,13 +4211,22 @@ def unrecorded_artifacts() -> list[str]:
     # before some later recording drops off the list; that false negative is
     # worth the signal.
     try:
-        led = records()
-        seen_out = {(e.get(side) or {}).get("out")
-                    for e in led.values() for side in SIDES if e.get(side)}
+        # ACROSS SIDES, from the raw ledger. This read `records()`, which
+        # returns ONE side's record per item already flattened, and then indexed
+        # each one by side AGAIN -- so every lookup missed and `seen_out` was the
+        # empty set. The "already the source" filter below therefore never fired
+        # once, and the list was held down by the mtime threshold alone. Silent
+        # while the recorded artifacts happened to predate the ledger; the moment
+        # a migration rewrote them it reported 13 recorded artifacts as
+        # un-recorded sweeps and told the reader to re-record what was already in.
+        seen_out = {(rec.get(side) or {}).get("out")
+                    for rec in (load().get("items") or {}).values() if rec
+                    for side in SIDES if rec.get(side)}
         ledger_at = LEDGER.stat().st_mtime
     except Exception:
         return []
-    for path in sorted(_paths.OUT.glob("*/*.runs.json")):
+    for path in sorted(set(_paths.OUT.glob("*/*.runs.json"))
+                       | set(_paths.OUT.glob("*/runs/*.runs.json"))):
         item = path.name[: -len(".runs.json")]
         if item not in _jobs():
             continue
@@ -4403,7 +5103,11 @@ GOLD_SLOT_DISAGREEMENTS_KNOWN: dict[tuple[str, int], str] = {
     # ONE shape: gold charges a slot we CREDIT, so we are lenient relative to the
     # grader at slot level even where the total agrees. Same direction as Q6's,
     # and worth reading as one finding rather than six.
-    ("Q1", 10): "gold charges reason_3; we fail nothing.",
+    # ("Q1", 10) DROPPED 2026-09-11, on the condition its own retention note set:
+    # "Q1 is mid-re-sweep ... Re-check and drop it then". The re-sweep has landed
+    # and the audit reports the slot set now MATCHES gold, so the disagreement
+    # this entry recorded is gone. Budget lowered with it, which is what this
+    # table's budget is for.
     # ("Q3", 10) was dropped 2026-09-05: subgoal Q10's holder rule ended the
     # disagreement it recorded. p10 went 4/12 -> 12/12 and `measurable` now
     # answers absent 9 / unclear 3 where it used to credit, so gold and the
@@ -4441,12 +5145,8 @@ GOLD_SLOT_DISAGREEMENTS_KNOWN: dict[tuple[str, int], str] = {
     # rule bounds_declarations_that_expired had used all along -- so an entry
     # could be created by one rule and never retired by the other. See
     # _our_typical_failing_slots.
-    #   ("Q1", 10) IS DELIBERATELY STILL HERE. It reads the same way (reason_3
-    #              10 of 12 against gold's reason_3) but Q1 is mid-re-sweep, so
-    #              its artefacts are about to be replaced. Re-check and drop it
-    #              then; do not act on a rate that is being measured.
 }
-GOLD_SLOT_DISAGREEMENTS_BUDGET = 9
+GOLD_SLOT_DISAGREEMENTS_BUDGET = 8
 
 
 def _table_hits(table, seg: str, amounts: list) -> list:
@@ -4946,7 +5646,7 @@ def band_moves(item: str | None = None, side: str = DEFAULT_SIDE) -> list[str]:
     """What each cell's band did across the last recording, per recorded item.
 
     SUBGOAL E42's payoff, and the reason the band is stored at all.
-    QUALITY_CONTROL.md 2c tells the reader to ask whether a change "gained a
+    QUALITY_CONTROL.md 2d tells the reader to ask whether a change "gained a
     STABLE cell or pushed a coin flip across the median line". That needs the
     band BEFORE, which `cell_bands` cannot give once the sweep is recorded, so it
     is read back off the entry and compared with the band now.
@@ -5124,7 +5824,7 @@ def rescore_recorded(item: str, side: str) -> tuple[int, list[str], str | None]:
     score moved" -- so 1b, T1 and T2, which have no slot sheet at all and are
     scored deterministically from the fixture, were reported as evidence that a
     neutrality claim was FALSE. Not-comparable and disagrees are different facts
-    and must not share a return channel (QUALITY_CONTROL.md 2j).
+    and must not share a return channel (QUALITY_CONTROL.md 2k).
 
     ANSWERS THE QUESTION `scorer_sha` CANNOT. The fingerprint says whether the
     code an item's score depends on has changed; it cannot say whether the change
@@ -5183,9 +5883,7 @@ def rescore_recorded(item: str, side: str) -> tuple[int, list[str], str | None]:
             ans = {k: v for k, v in (r.get("answers")
                                      or r.get("refers_to") or {}).items()
                    if v is not None}
-            rebuilt = {k: dict(**({"verdict": ch[k]} if k in ch else {}),
-                               **({"refers_to": ans[k]} if k in ans else {}))
-                       for k in set(ch) | set(ans)}
+            rebuilt = A.rebuild_sheet(spec, ch, ans)   # T11: one router
             if _computed_slots(spec) - set(rebuilt):      # the guard
                 try:
                     rebuilt = A.apply_computed(spec, rebuilt,
@@ -5342,9 +6040,7 @@ def _our_failing_slots(item: str, pid: int, side: str = DEFAULT_SIDE):
             # `expect` rule downstream compared against nothing and recomputed
             # demonstrates_type as FAILING where python has it met. That is the
             # invented-failure bug returning by a side door, one level down.
-            rebuilt = {k: dict(**({"verdict": ch[k]} if k in ch else {}),
-                               **({"refers_to": ans[k]} if k in ans else {}))
-                       for k in set(ch) | set(ans)}
+            rebuilt = A.rebuild_sheet(spec, ch, ans)   # T11: one router
             # RECOMPUTE WHAT THE OLX ARTIFACT NEVER RECORDED. A primitive's key is
             # stripped from the web response schema -- the model must not be asked
             # a question a rule answers -- so the app computes it locally and the
@@ -5475,8 +6171,16 @@ def gold_slot_disagreements() -> list[str]:
     import olx_prompts as O
 
     out: list[str] = []
-    examined = skipped = declared = 0
+    examined = skipped = declared = owned = 0
     seen_disagreeing: set = set()
+    # AN OPEN SUBGOAL IS A DECLARATION. A cell somebody is actively working does
+    # not also owe an entry in GOLD_SLOT_DISAGREEMENTS_KNOWN: that table says
+    # "we have decided to live with this", and a live subgoal says the opposite
+    # -- that the decision has not been made yet. Demanding both makes the audit
+    # ask a cell's owner to declare it settled before they have settled it, and
+    # the honest answer (an open goal naming it) then reads as an omission.
+    # Read once, not per cell: _live_subgoal_owners re-reads GOALS.md each call.
+    _owners = _live_subgoal_owners()["any"]
     for item, table in sorted(GOLD_SLOT_CHARGES.items()):
         if _slots_are_not_comparable(item):
             continue          # see _slots_are_not_comparable
@@ -5557,6 +6261,9 @@ def gold_slot_disagreements() -> list[str]:
             if (item, pid) in GOLD_SLOT_DISAGREEMENTS_KNOWN:
                 declared += 1
                 continue
+            if _owners.get(f"{item}/p{pid}"):
+                owned += 1
+                continue          # an open subgoal owns it -- see above
             # THE DISTRIBUTION, NEVER A BARE SET. The set is a majority over
             # pooled runs, and quoting it alone rounds each slot's majority up to
             # certainty -- the same misreading as quoting a median alone.
@@ -5582,6 +6289,9 @@ def gold_slot_disagreements() -> list[str]:
             b = gold_charge_bounds(item, pid)
             if b is None or (item, pid) in GOLD_SLOT_BOUNDS_KNOWN:
                 continue
+            if _owners.get(f"{item}/p{pid}"):
+                owned += 1
+                continue          # an open subgoal owns it -- see above
             definite, count = b
             stable, _counts, _n = _our_typical_failing_slots(item, pid)
             if not _n:
@@ -6214,6 +6924,15 @@ def wrong_cells_without_an_owner(excluding: str = '') -> list[str]:
 # and gold is the outlier. A CEILING says the cell cannot be settled either way --
 # a weaker and different claim, and conflating them would let a ceiling be cited
 # as if we had been vindicated.
+_1C_GATE_CEILING = (
+    "1c's `has_own_graph` gate, worth the whole item: the shipped gpt-5-mini "
+    "paper run answers it `absent` and scores 0.00 in 6 runs of 6. The SAME "
+    "prompt and fixture on Opus answers the gate `met` 6 of 6 and scores gold "
+    "exactly, so the rubric, the item and the arithmetic all reach this cell -- "
+    "the model does not. A MODEL ceiling, evidenced by the paper_opus column, "
+    "which exists to tell a model ceiling from a rubric one. Not a structural "
+    "limit: that reading is contradicted by the Opus result.")
+
 DECLARED_CEILING_CELLS: dict[tuple[str, int], str] = {
     ("2a", 14): (
         "Subgoal Q35 closed this as a CEILING rather than handing it on, and its "
@@ -6225,6 +6944,30 @@ DECLARED_CEILING_CELLS: dict[tuple[str, int], str] = {
         "other are not a defect with a direction, so there is nothing for a rule "
         "to aim at. Q35 also wrote down the hazard of closing on a counted-RIGHT "
         "cell, which is what E45 was filed to instrument."),
+    # 1c's GATED ZEROS, declared 2026-09-11. `has_own_graph` is a GATE worth the
+    # whole ten points, and on these four cells the gpt-5-mini paper run answers
+    # it `absent` and scores 0.00 in six runs of six, against gold 10, 10, 2, 10.
+    #
+    # A MODEL CEILING, AND THE OPUS COLUMN IS WHAT SAYS SO. That column exists to
+    # answer exactly this question -- sweep_paper.sh: "is the ceiling the rubric
+    # or the model" -- and on the SAME prompt and the SAME fixture Opus answers
+    # the gate `met` 6 of 6 on all four and scores gold EXACTLY: 10, 10, 2, 10.
+    # So the item, the rubric and the paper arithmetic all reach these cells; the
+    # shipped model does not resolve whether the student drew their own graph.
+    #
+    # DELIBERATELY NOT CALLED A STRUCTURAL LIMIT, which is how they were first
+    # described to me and how score.py still words it ("a backend that cannot see
+    # the figure"). That reading is falsified by the row above: a later reader
+    # citing a structural limit here would be citing something the evidence
+    # already contradicts, and would stop looking for the fix -- which is a model
+    # or a prompt that settles the gate, not a change to the rubric.
+    #
+    # NOT `GOLD_DIVERGENCES`: we are not claiming gold is the outlier. Gold is
+    # right and we miss it, for a reason we can name.
+    ("1c", 1): _1C_GATE_CEILING,
+    ("1c", 2): _1C_GATE_CEILING,
+    ("1c", 12): _1C_GATE_CEILING,
+    ("1c", 17): _1C_GATE_CEILING,
 }
 
 

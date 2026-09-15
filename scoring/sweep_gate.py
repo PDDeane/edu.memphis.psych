@@ -26,9 +26,26 @@ sweep PRODUCED, so it cannot run before one; it is preflight step 5f instead.
 import sys
 
 
+import pathlib as _pathlib
+
+# DERIVED, NEVER NAMED (trap T32). These inserts used to carry this tree's
+# absolute path as a literal, at position 0. Here that happened to be correct --
+# the path names the directory the file is already in -- so it was harmless and
+# invisible. It was NOT harmless in the migration sandbox, which is a copy of
+# this tree: there the literal still named THIS directory, won ahead of the
+# sandbox's own, and made a dry-run audit execute live modules. A traceback was
+# found walking out of the sandbox's enforcement.py into live's agreement.py,
+# three lines below one of these inserts, and because the selftest writes module
+# files by path, a sandbox run could write the live tree.
+#
+# The line is fixed HERE, where it is correct, precisely because being correct by
+# coincidence is what let it be copied into a place where it was not.
+_OWN_DIR = str(_pathlib.Path(__file__).resolve().parent)
+
+
 def gate(items: tuple[str, ...]) -> int:
     """0 to proceed, 1 to refuse."""
-    sys.path.insert(0, "/home/pdeane/code/edu.memphis.psych/scoring")
+    sys.path.insert(0, _OWN_DIR)
     import enforcement as E
     import leakage as L
 
@@ -235,7 +252,7 @@ def gate(items: tuple[str, ...]) -> int:
             else:
                 print(f"    probe receipts for {_it}: NONE on record -- this gate "
                       f"verified nothing about probe/sweep identity. Fine for a "
-                      f"re-measurement; for a new question, probe first (2a0).")
+                      f"re-measurement; for a new question, probe first (QUALITY_CONTROL.md 2a).")
     except Exception as _e:
         print(f"    probe receipts: could not be read ({type(_e).__name__}: {_e})")
 
@@ -268,7 +285,7 @@ def gate(items: tuple[str, ...]) -> int:
     # THE LAST THING SAID BEFORE THE CALLS. Not a gate -- nothing here can tell
     # whether a probe was run -- but this is the only place every sweep passes
     # through, and the question it asks is the one three reverted edits on
-    # 2026-09-06 failed to ask. See QUALITY_CONTROL.md section 2a0.
+    # 2026-09-06 failed to ask. See QUALITY_CONTROL.md section 2a.
     print("    -- before you spend this: has the new question been PROBED? A "
           "standalone\n"
           "       ask on the target plus its negatives costs ~30 calls and "
@@ -276,7 +293,7 @@ def gate(items: tuple[str, ...]) -> int:
           "       grader apply this at all', which is what most reverted edits "
           "here died of.\n"
           "       Worked example: scratchpad/probe_q4b_report.py. Guide: "
-          "QUALITY_CONTROL.md 2a0.")
+          "QUALITY_CONTROL.md 2a.")
     return 0
 
 
