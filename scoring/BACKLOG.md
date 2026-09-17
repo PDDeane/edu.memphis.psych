@@ -6,6 +6,113 @@ Work items, not enforced declarations. The enforced backlogs — `SLOT_NOTES`
 so a check fails when one goes stale. Nothing here is checked; it is a list of
 things a person has to decide to do.
 
+## The history rewrite holds BOTH properties; the trade was a bug, not a trade
+
+**SETTLED 2026-09-16.** Every commit's python generates its paired `.olx`, and
+every version still expands byte-for-byte to its original. Measured across the
+whole history:
+
+| | result |
+|---|---|
+| student sentences in history (concatenation-aware, 803 `.py` blobs) | **0** |
+| every version expands to its original | **35126 / 35126** |
+| `olx_prompts.py --check` at each generator+content state | **0 regressions** (107 clean, 6 error identically in the original, 1 no generator) |
+| python + olx still compile | **0 regressions** across 29341 file-version pairs |
+
+**THIS WAS FIRST RECORDED AS A TRADE, AND THAT WAS WRONG.** The entry here used
+to say we had chosen byte-reversibility and accepted `--check` failing at 42 of
+113 states, explaining it as an unavoidable disagreement: the generator and the
+mechanical substitution segmenting the same sentence differently, one taking
+`Q6/p8:change_a1:0:36` and leaving "Tuesday-Friday." as literal text while the
+other took `0:53`. That story was coherent, matched the evidence, and was false.
+There were two ordinary bugs underneath it.
+
+**1. The shim never ran on the path that matters.** The wrapper that converts a
+reference on its way into the .olx was APPENDED to `olx_prompts.py` -- below
+`if __name__ == "__main__": raise SystemExit(main())`. A module run as a script
+executes top to bottom and exits inside `main()`, so the wrapper below it was
+never defined. `--write` and `--check` are exactly that path. The two sibling
+shims sit on modules nobody runs directly, which is why they worked and this one
+silently did nothing. Moving it above the guard took most of the states clean on
+its own.
+
+**2. A literal seam collapsed to a space instead of to nothing.** Python's
+implicit concatenation joins adjacent string literals with NOTHING between them;
+the only bytes that survive are the ones INSIDE the quotes. The rule collapsed a
+quote-bearing separator to a single space, which is right whenever the source
+reads `"... word "` -- nearly everywhere -- and wrong where a line wrapped
+immediately after a hyphen, with no space in either literal. It turned
+`Tuesday-Friday.` into `Tuesday- Friday.`: one character, and it was the entire
+byte-for-byte proof.
+
+**WHAT ACTUALLY RESOLVES THE SEGMENTATION DIFFERENCE.** With those repaired, each
+commit's own generator writes its handouts, and the result is kept ONLY if it
+still expands to the original blob; a handout that fails that test is thrown away
+and the filtered bytes are restored for that file alone. 37 handout-versions are
+the generator's, 44 kept their filtered bytes, and the proof cannot regress in
+either case. Where a state still reports out of date -- commits #437-#441 among
+them -- **the original history reports out of date too**, verified side by side.
+A rewrite reproduces history's verdicts; it does not improve them.
+
+**THE LESSON IS ABOUT THE EXPLANATION, NOT THE BUG.** A plausible account of why
+something cannot be fixed is the most expensive thing to be wrong about, because
+it stops the search. Two failures had merged into one symptom and the symptom
+had a tidy story. What broke it was not more analysis but one control: does the
+ORIGINAL survive its own `--write` unchanged? It did, exactly, which meant
+nothing about regeneration was inherently lossy and the loss was ours.
+
+
+## Five definitions sit below a main guard, and are dead on the script path
+
+**FOUND 2026-09-16** by `check_no_module_defines_names_after_its_main_guard`,
+added after the same mistake cost the history rewrite a day:
+
+| module | name | guard |
+|---|---|---|
+| `guide.py` | `LESSONS_APPROVED`, `_lesson_leads`, `unapproved_lessons` | 276 |
+| `probe.py` | `recorded_answers`, `control_gate` | 569 |
+
+A module run as a script executes top to bottom and exits inside
+`raise SystemExit(main())`, so a definition below that line exists **only when
+the module is imported**. `probe.control_gate` is the guard that voided two
+probes for measuring their own envelopes; run `probe.py` directly and it is not
+there at all.
+
+**Not fixed yet, deliberately.** Adopting the rewritten history replaces the
+working tree, so an edit made now is discarded. The fix is mechanical — move
+each definition above the guard, which strictly adds availability and changes
+nothing for importers — and it should land **immediately after the rewrite is
+adopted**, because until it does the audit carries five findings that the
+migration's neutrality comparison would otherwise have to absorb as noise.
+
+
+## Nine hard-coded paths that `paths.py` already resolves
+
+**FOUND 2026-09-16** by `check_no_module_hardcodes_a_path_that_paths_py_resolves`.
+`paths.LO` is `os.environ.get("LO_BLOCKS", ...)` so the tree being measured can
+be chosen; these ignore that:
+
+| where | literal | should be |
+|---|---|---|
+| `agreement_app.py:1648` | `/home/pdeane/code/update/lo-blocks` | `paths.LO` — **unconditional** |
+| `enforcement.py:4304` | `/home/pdeane/code/update/lo-blocks` | `paths.LO` — **unconditional** |
+| `enforcement.py` ×5, `measured.py` ×2 | `/home/pdeane/molly_data/out` | `paths.OUT` — fallback for a missing attribute |
+
+**Why this is not cosmetic.** The migration runs on THIS tree, with a copy kept
+for rollback — so these literals are right today, **by coincidence**. They stay
+right only while nobody points the harness at a sandbox, a second checkout, or
+the backup copy; the moment someone does, the literal wins over `$LO_BLOCKS` and
+the run succeeds against the wrong tree while every gate passes. That is exactly
+what the dry run's own scripts did: eleven named their sandbox literally, and on
+a live tree they would have migrated the sandbox and reported success.
+
+The seven fallbacks deserve a second look rather than a mechanical fix: if
+`paths` has no `OUT`, silently reading the developer's own artifact directory is
+the least safe available behaviour. Failing closed is the right default.
+
+**Not fixed yet**, for the same reason as the main-guard findings: adopting the
+rewritten history replaces the working tree. Land both immediately after.
+
 ## Generalise the per-slot gold summary to every item
 
 `agreement.gold_slots_1c(feedback)` reads the grader's verdict on all five of
@@ -220,8 +327,7 @@ prompt, so it needs a corpus sweep, not a 2a probe.
 `handouts.py` said gold's 6.0 was unreachable because `join_aware` strips the
 template verdict the student copied, so "no verdict of p18's own survives". The
 record never agreed: `verdict` came back **`met` in 6 of 6 passes**, every one
-citing "{{corpus:2a/p18:how1:0:72:sha=83a2672f3aa9}}
-data" — a sentence the student did write — and the cell scores gold's 6.0 in 5
+citing [[corpus 2a/p18 verdict 0:77 sha=6d41c38a4671]] — a sentence the student did write — and the cell scores gold's 6.0 in 5
 of the 6. The item's own guidance licenses that reading in terms ("a verdict
 that cites the data as its evidence ... covers the verdict and both
 explanations", one of three shapes it says earned 6/6). The copied sentence was
@@ -305,7 +411,7 @@ Two things follow, and the second is the one to act on.
 
 * **The prompt reproduces a counted cell's own answer, undetected.**
   `check_rule_examples_are_not_corpus` needs an 8-word shared run; this phrase
-  is six, and its neighbours in the same bullet ("long {{corpus:Q4a/p15:first:14:43:sha=7d2e226fbc73:shape=S4-0a2020}} filled", "{{corpus:Q4a/p15:second:0:26:sha=b39ebb0b59d3:shape=C1}} me") are p15's. p15 is declared,
+  is six, and its neighbours in the same bullet ("long {{corpus:Q4a/p15:first:14:43:sha=7d2e226fbc73:shape=S4-0a2020}} filled", [[corpus Q4a/p15 second 0:29 sha=ee91313d5faa]]) are p15's. p15 is declared,
   p19 is not — and p19 is the cell that misses. The check's docstring already
   says it is a floor rather than a guarantee; this is what falls through it.
 * **`antecedent_1` and `antecedent_2` carry no `rule` field at all.** Every
@@ -391,10 +497,10 @@ the two reject channels behave differently — and the prompt quotes the very
 cells that test them:
 
 * **The category test works.** The REJECT bullet's example is p9's own
-  "{{corpus:Q4c/p9:second:0:86:sha=ffcd2e47f756:shape=S12-0a2020}} body", and `consequence_2` comes back `wrong_kind` on exactly that
+  [[corpus Q4c/p9 second 0:91 sha=12edb7359b67]], and `consequence_2` comes back `wrong_kind` on exactly that
   text, 6 of 6. A benefit of the goal behaviour is being caught.
 * **The sufficiency test does not.** The DEDUCT bullet quotes p20's
-  "{{corpus:Q4c/p20:second:54:80:sha=106b406ee2c5:shape=S0-0a2020}}" and records that the grader wrote "need more explanation on
+  [[corpus Q4c/p20 second 53:80 sha=28c59f23b412]] and records that the grader wrote "need more explanation on
   how your second example is a direct consequence". Our grader answers `met` on
   that sentence in 6 of 6 passes. "The causal link is left for the reader to
   guess" is a different judgement from "this is not a consequence at all", and
@@ -407,16 +513,16 @@ excluded cells as a diagnostic and swept corpus-wide for damage elsewhere.
 ### p9's residual gap is a gold shape that is already declared elsewhere
 
 Our 3.0 against gold's 1.0 is not the cited example: `consequence_2` is refused
-as designed. It is `consequence_1`, "{{corpus:Q4c/p9:first:0:47:sha=649fd6c0427a:shape=S5-0a}}", which gold also refused — its -4 is two refusals while its
+as designed. It is `consequence_1`, [[corpus Q4c/p9 first 0:47 sha=649fd6c0427a]], which gold also refused — its -4 is two refusals while its
 commentary accounts for one. That is the same shape as Q4a/p14, which
 `handouts.GOLD_DIVERGENCES` already declares in those words. Q4c/p9 has no such
 entry, and should get one if its citation is ever removed; while the citation
 stands, the `self_graded` exclusion covers it.
 
 For the record, the fixture is not the cause: p9 is one run-on line with a
-single comma, and the split leaves "while not exercising" with the clause that
+single comma, and the split leaves [[corpus Q4c/p9 first 26:47 sha=5a8116110b45]] with the clause that
 comma attaches it to. Splitting the other way leaves `first` as a bare
-"Gaining bad eating habits", which is creditable too.
+[[corpus Q4c/p9 first 0:25 sha=3b3d3ba759d6]], which is creditable too.
 
 ### Two cited cells the scorer misses anyway
 
@@ -491,12 +597,12 @@ We refuse both entries (`wrong_kind` twice, 0.0 in every pass); gold deducts
 2.5. Two things are worth having written down before anyone re-opens it.
 
 * **The guidance's account of gold's row does not match the row.** The
-  `W_NOT_REASON` bullet says p4's second entry — "{{corpus:Q5/p4:second:31:83:sha=342a4d43bd2e:shape=S4-0a2020,A46}} tired" — "cost participant 4 2.5 points". Gold's row
+  `W_NOT_REASON` bullet says p4's second entry — [[corpus Q5/p4 second 30:89 sha=066bb253c410]] — "cost participant 4 2.5 points". Gold's row
   reads "-2.5 pts: missing one reason why you continue to engage in lack of
   sleep", which is `W_ONLY_ONE`'s wording, not `W_NOT_REASON`'s. Both cost 2.5,
   so no score can separate them, and the guidance is describing a charge gold's
   own words do not make.
-* **p4's first box is the student's text, checked.** It reads "{{corpus:Q5/p4:first:0:78:sha=f7407ff462b1:shape=S1-0a2020}}" — a
+* **p4's first box is the student's text, checked.** It reads [[corpus Q5/p4 first 0:78 sha=f7407ff462b1]] — a
   missing negation that inverts the sentence. The submission itself says that
   (`doc_lines`, line 51), so this is not a transcription loss and the cell is
   not `suspect`. Our refusal and gold's credit are both defensible on those
@@ -528,7 +634,7 @@ Item 3's was the clearest to read: its question ends `... so you should not
 say, "Nothing will be changed"). (6 points: 3 points per example)`, the stem
 strip takes the words, and the `")"` that closed the parenthetical survived
 into 15 of 20 `first` boxes. Checked against the submission — the student's own
-line begins "{{corpus:3/p1:first:0:29:sha=29ebb0f7a822}} room", so the character was the
+line begins [[corpus 3/p1 first 0:34 sha=c74f9db00506]], so the character was the
 template's.
 
 **Fixed at the seam, in `segment.strip_orphan_head`.** One normalisation where
@@ -573,9 +679,8 @@ now joins those runs.
 Five cells repaired — p4, p6, p9, p16 and p19 — all one defect: `second` opened
 with a sentence that elaborates the FIRST change, so box 2 began before change 2
 did. p4's opened "I hate school!" (about change 1's extra-schoolwork
-punishment); p6's "{{corpus:3/p6:first:303:352:sha=bbf115c1a2ba}}
-effective."; p9's "{{corpus:3/p9:first:275:323:sha=77075afddf4e:shape=A11}} ..."; p16's
-"{{corpus:3/p16:first:129:148:sha=28364ff781d5:shape=A8}} ... {{corpus:3/p16:first:180:204:sha=cad7a69987aa}}"; p19's two sentences about
+punishment); p6's [[corpus 3/p6 first 303:363 sha=c6c5c183da18]]; p9's [[corpus 3/p9 first 274:323 sha=3cd4971bdd49]]; p16's
+[[corpus 3/p16 first 128:204 sha=33fcf121734d]]; p19's two sentences about
 the screen-time limit it had just proposed. Each boundary moved to the sentence
 that opens change 2, and the union of each pair is unchanged — asserted cell by
 cell before the entries were written. Declared in
@@ -596,7 +701,7 @@ entries are per-cell and independent.
 ### p3 earns its 6.0 from one box, and that is a real gap
 
 p3's `second` is empty and `first` holds the entire response, because its two
-changes sit inside ONE sentence — "{{corpus:3/p3:first:455:581:sha=008fda0a2efa:shape=S6-0a,S22-0a}}" — and nothing anchors a second box. Gold gives 6.0 and so do we, in every
+changes sit inside ONE sentence — [[corpus 3/p3 first 454:581 sha=836b9bc148af]] — and nothing anchors a second box. Gold gives 6.0 and so do we, in every
 pass, but the credit comes from a count made inside box 1 while the box the
 rubric calls "Second specific change" is empty.
 
@@ -695,7 +800,7 @@ not exist, and the shapes are now enumerated in `_quoted_span`'s docstring.
 (not the prose, which is empty), faults x and y exactly as gold does, and
 returns 6.0. Exact match, so there is nothing here to exclude." Six passes
 return **4.0** against an effective gold of 6.0. The extra deduction is
-`legend: absent`, on `"{{corpus:1c/p11:series:0:63:sha=bb9a6fb8ffd3:shape=S5-0a}}"` — the student labelled their series with day names, and gold
+`legend: absent`, on `[[corpus 1c/p11 series 0:63 sha=bb9a6fb8ffd3]]` — the student labelled their series with day names, and gold
 charged x, y and the missing baseline week without charging the legend.
 
 The conclusion may survive (nothing here needs excluding), but the reason given
@@ -712,7 +817,7 @@ were seeded; `title`, `x` and `y` were all EMPTY, because there is no chart for
 the paper scorer to read a title off, and p20's whole description belonged to no
 box.
 
-Closed by seeding the three labels from the student's own words — "{{corpus:1c/p20:title:0:27:sha=d794c8f137de:shape=S0-0a}}", "Days (or Weeks)", "Hours of Sleep" — in
+Closed by seeding the three labels from the student's own words — [[corpus 1c/p20 title 0:27 sha=d794c8f137de]], "Days (or Weeks)", "Hours of Sleep" — in
 `agreement_app.CONSENSUS_FIXES`, which is what they would have typed into the
 three fields. The scaffolding they wrote around them ("Title:", "X-axis label:",
 "Y-axis label:", "Legend:") stays out of the boxes, like every other label in
@@ -750,9 +855,9 @@ The student wrote two numbered items. As cut:
 
 | box | holds |
 | --- | --- |
-| `state_a1` | "{{corpus:Q6/p1:state_a1:0:47:sha=03f77acdb76b}}" |
-| `change_a1` | "{{corpus:Q6/p1:change_a1:0:34:sha=125e26254d77}} **{{corpus:Q6/p1:change_a1:35:82:sha=1f94512e80cc}} shows.**" |
-| `state_c1` | "{{corpus:Q6/p1:state_c1:0:62:sha=547f7670047a}}" — **item 2's sentence** |
+| `state_a1` | [[corpus Q6/p1 state_a1 0:47 sha=03f77acdb76b]] |
+| `change_a1` | [[corpus Q6/p1 change_a1 0:34 sha=125e26254d77]] |
+| `state_c1` | [[corpus Q6/p1 state_c1 0:62 sha=547f7670047a]] — **item 2's sentence** |
 | `state_c2` | EMPTY — although item 2 has exactly that sentence |
 | `change_a2` | repeats `state_a2`'s sentence before adding its own |
 
@@ -770,7 +875,7 @@ reason is worth writing down; it is not worth risking a perfect cell on the item
 with nine reverted wordings behind it.
 
 Same disposition, and the same reasoning, as project memory
-`q4a-p18-duplicate-antecedent`.
+BACKLOG.md (Q4a/p18).
 
 ## The enumerator defect survives in 20 boxes of three declared items
 
@@ -833,12 +938,12 @@ It matters more than the enumerators for two reasons. The grader is asked
 whether the goal is measurable and shown an instruction, so a refusal there is
 guaranteed and means nothing. And gold docks p19 exactly that point — "-1 pt:
 For measurable, how are you tracking your goal? (ex. in a notebook)" — while the
-student's own sentence says "{{corpus:Q3/p19:measurable:43:145:sha=504d8ac8b9af:shape=S10-0a}} time". Whatever our scorer
+student's own sentence says [[corpus Q3/p19 measurable 43:150 sha=6d860c05da6a]]. Whatever our scorer
 returns for `measurable`, it is not returning it about the student's answer, and
 if it agrees with gold it agrees for the wrong reason.
 
 **Repaired.** `measurable` now holds the student's own "{{corpus:Q3/p19:measurable:0:83:sha=4148ed277c0c:shape=S2-0a}} ..." and `specific`
-holds only "{{corpus:Q3/p19:specific:0:100:sha=10eaefa02315:shape=S13-0a}}" Both lines of template scaffolding drop out and
+holds only [[corpus Q3/p19 specific 0:100 sha=10eaefa02315]] Both lines of template scaffolding drop out and
 belong to no box, which is correct; the other three boxes were already right,
 and all five now hold their own aspect in document order with no audit flag.
 
@@ -862,9 +967,9 @@ student's own words, and gold gives the cell full credit.
 Surfaced by the marker strip, which took the "1) " off `state_a1` and left what
 was underneath visible:
 
-    [state_a1]  "{{corpus:Q6/p18:state_a1:0:50:sha=c9250d345b28}}"
-    [change_a1] "{{corpus:Q6/p18:change_a1:0:106:sha=e8781011c827:shape=S14-0a2020202020202020202020202020202020}}"
-    [state_a2]  "{{corpus:Q6/p18:state_a2:0:60:sha=c6293ae612e6}}"
+    [state_a1]  [[corpus Q6/p18 state_a1 0:50 sha=c9250d345b28]]
+    [change_a1] [[corpus Q6/p18 change_a1 0:106 sha=e8781011c827]]
+    [state_a2]  [[corpus Q6/p18 state_a2 0:60 sha=c6293ae612e6]]
 
 `state_a1` ends on its comma and `state_a2` opens lowercase mid-sentence, so
 both antecedent-naming boxes are fragments of sentences whose main clauses live
@@ -978,8 +1083,7 @@ observed a second time on a single-gate, single-item edit. Reverted.
 
 **What this establishes.** The criteria layer IS where the score is decided —
 that part of the diagnosis held. What does not work is steering a NAMED FIELD by
-describing it better: the model's reading of "{{corpus:DAY1/p13:day1:26:48:sha=0a299977f146}} playing
-video games" as an arranged removal is stable across every phrasing tried, and
+describing it better: the model's reading of [[corpus DAY1/p13 day1 25:71 sha=bc1027d1ef92]] as an arranged removal is stable across every phrasing tried, and
 sharpening the field's description moves other fields instead. Two measured
 attempts, opposite layers, same neutral result.
 
@@ -1063,7 +1167,7 @@ p8's first chosen type is PP, their second NR (gold's own comments say so).
 | DAY2 | 4 | 0 | **gold** — cadence misjudged, see below |
 | WK2 | 0 | 2/2/4 | **gold** — the contingency runs backwards |
 
-**WK2 is a real over-credit and is no longer declared.** "{{corpus:WK2/p8:wk2:0:80:sha=b1483eea3dd9:shape=S4-0a}} hour" puts the chore
+**WK2 is a real over-credit and is no longer declared.** [[corpus WK2/p8 wk2 0:85 sha=7c5a9ef6a6ad]] puts the chore
 AFTER SUCCESS: meeting the goal earns yard work. Their daily answer for the same
 type is the correct inverse, which is what makes this a slip rather than a
 style. We score 2 or 4 because `matches_chosen_type` goes absent in some runs and
@@ -1179,7 +1283,7 @@ the avoidance gate, 9 of 9); WK2's is attached to success instead of failure
 so nothing is wrong with it.
 
 **The distinguishing feature, for anyone tempted by a new rule**: every cell that
-must stay correct names BOTH SIDES in one canonical conditional — "{{corpus:PR/p2:pr:0:48:sha=6c9624661ff5:shape=S3-0a,C1}} the movies". TEST 1 and the two gates added on
+must stay correct names BOTH SIDES in one canonical conditional — [[corpus PR/p2 pr 0:48 sha=6c9624661ff5]] / [[corpus PR/p3 pr 0:48 sha=6c9624661ff5]]. TEST 1 and the two gates added on
 2026-08-24 already enforce that. The rule tried here reached past it for a defect
 WK1 does not have, which is why it broke p1.
 
@@ -1193,25 +1297,25 @@ Recorded after a false negative of my own making. I first concluded no gate coul
 match gold here, on the grounds that WK1/p5 scores 4 while stating "no
 contingency at all" — and that was an artifact of reading only the FIRST LINE of
 each response. p5 has two sentences, and the second is a textbook weekly NR
-contingency: "{{corpus:WK1/p5:wk1:62:164:sha=bcb2f8e5c91b:shape=S5-20,S13-0a}}" p5 is correctly scored by everyone, and
+contingency: [[corpus WK1/p5 wk1 61:164 sha=6473c5fa76bc]] p5 is correctly scored by everyone, and
 proves nothing about gates.
 
 Read in full, WK1's countable cells separate perfectly on one feature — whether
 the answer names SOMEONE WHO DELIVERS the consequence:
 
-    gold 4   p1  "{{corpus:WK1/p1:wk1:49:87:sha=8d68ef1ac8b9:shape=S5-20}}"
-             p4  "{{corpus:WK1/p4:wk1:56:91:sha=50343f5b996f}}"
-             p5  "{{corpus:WK1/p5:wk1:108:135:sha=deaa7bffadae}} one chore"
-             p9  "{{corpus:WK1/p9:wk1:46:83:sha=441a5dbfab7f}}"
-             p11 "{{corpus:PR/p11:pr:22:49:sha=44f5be7c8687}} alo set"
-             p12 "{{corpus:WK1/p12:wk1:51:87:sha=1601ce28c9c1}} day"
-             p14 "{{corpus:WK1/p14:wk1:86:132:sha=364885d56dfc}} nice"
+    gold 4   p1  [[corpus WK1/p1 wk1 48:87 sha=9acb583a85f7]]
+             p4  [[corpus WK1/p4 wk1 56:91 sha=50343f5b996f]]
+             p5  [[corpus WK1/p5 wk1 108:145 sha=9b3b1f7b12b6]]
+             p9  [[corpus WK1/p9 wk1 46:83 sha=441a5dbfab7f]]
+             p11 [[corpus WK1/p11 wk1 43:78 sha=d8be473a6345]]
+             p12 [[corpus WK1/p12 wk1 51:91 sha=b0273f13aefa]]
+             p14 [[corpus WK1/p14 wk1 86:137 sha=112a104d8d8c]]
 
     gold 0   p6  "{{corpus:WK1/p6:wk1:0:50:sha=465f4decda26}} pops..."
                  — a substitution; nobody delivers anything
-             p8  "{{corpus:WK1/p8:wk1:107:136:sha=8740f4342e10}} stacking"
+             p8  [[corpus WK1/p8 wk1 106:145 sha=18320b482a21]]
                  — no agent; the tally grows by itself
-             p13 "{{corpus:WK1/p13:wk1:0:51:sha=848ae9e56f72}}"
+             p13 [[corpus WK1/p13 wk1 0:51 sha=848ae9e56f72]]
                  — a plan; nothing is delivered contingently
 
 Seven of seven credited, three of three zeroed. The rule is not grammatical
@@ -1234,7 +1338,7 @@ treats anything other than satisfied as a failure, so `unclear` zeroes the item.
 
 Both cells came back uncertain twice out of three, and the median rose only
 because p8's coin landed better than p11's. The model cannot reliably separate
-"{{corpus:WK1/p8:wk1:107:136:sha=8740f4342e10}} stacking" (no agent) from "{{corpus:PR/p11:pr:22:49:sha=44f5be7c8687:shape=S6-0a}} alo set" (an agent, but modal and passive-ish), which is the distinction the
+[[corpus WK1/p8 wk1 106:145 sha=18320b482a21]] (no agent) from [[corpus WK1/p11 wk1 43:78 sha=d8be473a6345]] (an agent, but modal and passive-ish), which is the distinction the
 paper reading rests on. Reverted.
 
 **The design trap, which generalises past this item.** Writing a slot as
@@ -1288,7 +1392,7 @@ that states the consequence:
   (a) its SUBJECT — is a person there, as the subject of an active verb or the
       agent of a `by`-passive?
   (b) its VERB — does it say that person brings the thing about or takes it away,
-      read broadly enough to include granting oneself a privilege ("{{corpus:WK1/p1:wk1:56:72:sha=d6d0e13bdc92:shape=S2-0a202020202020}} hour", "skip one chore")?
+      read broadly enough to include granting oneself a privilege ([[corpus WK1/p1 wk1 55:77 sha=4c2bef145233]], "skip one chore")?
 
 and answers `absent` when the subject is the CONSEQUENCE ITSELF with a verb of
 accumulation ("the press-ups will just keep stacking"), when there is no finite
@@ -1300,7 +1404,7 @@ clause, or when the answer is off the point entirely.
             controls p4 and p11 6/6
 
 **The verb list is where the first version went wrong, and it is a general
-warning.** Written as a list of transfer verbs, it excluded "{{corpus:WK1/p1:wk1:49:87:sha=8d68ef1ac8b9:shape=S4-0a,S5-20}}" — a student granting themselves a privilege — and put a
+warning.** Written as a list of transfer verbs, it excluded [[corpus WK1/p1 wk1 48:87 sha=9acb583a85f7]] — a student granting themselves a privilege — and put a
 correct cell at 3/6. I had noticed that case on paper, marked it "marginal", and
 waved it through. Widening the test from "is the verb on this list" to "does a
 person make the thing happen or stop happening" fixed it at 6/6. A closed list
@@ -1406,8 +1510,8 @@ Anyone retrying this must first make the harness persist `refers_to` alongside
 does, and the same blind spot has been sitting under `observed_type` all along.
 
 **A real reason WK1/p7 may be unfixable, found while reading its context.** p7's
-UTB response is "{{corpus:Q1/p7:response:0:27:sha=fd875dec0a64:shape=R8-1-27}}{{corpus:Q1/p7:response:27:54:sha=e207b8a916a2:shape=A26}} {{corpus:Q1/p7:response:55:128:sha=90fbce1afce7:shape=S1-0a,R0-5-53494e4345,R8-3-454e44,R12-2-5550,R15-15-50524f4352415354494e4154494e47,R73-0-22}} The grader is
-handed that whole paragraph as `_utb`. So when the weekly answer triggers on "{{corpus:WK1/p7:wk1:0:38:sha=6faf4f5c97b3:shape=S0-0a,C1}} week", a rule asking whether the trigger
+UTB response is [[corpus Q1/p7 response 17:128 sha=f09523e1e6f4]] The grader is
+handed that whole paragraph as `_utb`. So when the weekly answer triggers on [[corpus WK1/p7 wk1 0:43 sha=6dcf7407edcc]], a rule asking whether the trigger
 names the student's UTB can answer `utb` on good evidence — the word is in the
 text it compares against. Gold's "your UTB is not procrastination" is true of the
 CHOSEN BEHAVIOUR and false of the paragraph we supply. That is a context
@@ -1428,17 +1532,17 @@ nothing needed inventing. This retroactively un-blinds `observed_type` and
 
 With it, the classification experiment became readable, and it had never failed:
 
-    p7   trigger_behavior = 'utb'   quote: "{{corpus:WK1/p7:wk1:12:43:sha=5e1f6a6d53e1}}"
-    p12  trigger_behavior = 'wgb'   quote: "{{corpus:WK1/p12:wk1:5:37:sha=121d9d3fe5b0}}"
+    p7   trigger_behavior = 'utb'   quote: [[corpus WK1/p7 wk1 11:43 sha=ea8a643dda0e]]
+    p12  trigger_behavior = 'wgb'   quote: [[corpus WK1/p12 wk1 5:37 sha=121d9d3fe5b0]]
 
 The model located each trigger exactly, quoted it, and the expect rule computed
 correctly. It classified procrastination as p7's UTB because THEIR OWN UTB
-PARAGRAPH SAYS SO — "{{corpus:Q1/p7:response:0:27:sha=fd875dec0a64:shape=R8-1-27}}{{corpus:Q1/p7:response:27:54:sha=e207b8a916a2:shape=A26}} {{corpus:Q1/p7:response:55:90:sha=f7ae905d33ad:shape=S0-0a,C3fffb71f}} daily..." — and `_utb` hands the grader that whole
+PARAGRAPH SAYS SO — [[corpus Q1/p7 response 17:90 sha=64e183613be0]] — and `_utb` hands the grader that whole
 paragraph. Not a criterion failure and not a plumbing failure: a context one.
 
 **DAY2/p7 is not a `targets_own_behavior` failure at all, and this is the finding
 to keep.** Its trigger is "having {{corpus:DAY2/p7:day2:10:33:sha=9dea65fda79b:shape=R23-0-22}}, and p7's stated goal
-is "{{corpus:Q2/p7:response:88:153:sha=ff038d8a7f4b}} games". So
+is [[corpus Q2/p7 response 88:159 sha=e2f81bb708fb]]. So
 the trigger IS their wanted goal behaviour; the model classifies `wgb` 6 of 6 and
 is RIGHT. Gold's "-1 pt: make sure the behavior you are targeting is spending
 less time on electronic devices" asks them to target the UTB, while the item's
@@ -1454,7 +1558,7 @@ each independently correct and cannot both be held:
     narrow reading only            p7 5/6 `other`   p19 3/6 (over-corrected)
     + "a reference counts as naming"  p7 2/6 `utb`   p19 6/6 `wgb`
 
-p19's trigger is "{{corpus:WK1/p19:wk1:0:38:sha=5e7c12c5248e:shape=C1}}", a pure reference, so
+p19's trigger is [[corpus WK1/p19 wk1 0:38 sha=5e7c12c5248e]], a pure reference, so
 the reference rule is needed for it; p7's is "{{corpus:WK1/p7:wk1:12:43:sha=5e1f6a6d53e1}}",
 which the narrow rule is needed to exclude. Adding the second — "answer `other`
 ONLY when the trigger names a different activity outright" — made the model
@@ -1507,8 +1611,7 @@ exactly like a model that cannot hold two rules.
 
 **NOT extended to DAY2, on measurement.** DAY2's p7 classifies `wgb` 6 of 6 and
 is RIGHT to: its trigger is "having {{corpus:DAY2/p7:day2:10:33:sha=9dea65fda79b:shape=R23-0-22}} and the student's
-stated goal is "{{corpus:Q2/p7:response:88:153:sha=ff038d8a7f4b}}
-games". So the criterion has nothing to fix there, and the sweep priced what it
+stated goal is [[corpus Q2/p7 response 88:159 sha=e2f81bb708fb]]. So the criterion has nothing to fix there, and the sweep priced what it
 would cost anyway — median 15 (recorded) -> 14, with p9, p12 and p13 all handed
 back, each named by the regression-against-recorded check. The slot was removed
 from DAY2 and the OLX restored from HEAD so that item is byte-identical to what
@@ -1527,8 +1630,8 @@ the agent parse and the trigger classification. It did not fire. The slot read
 `met` in all three runs and the cell scored 2, 4, 4 against a gold of 0. Median
 matched the recorded 15, and one coupling regression appeared on p8. Reverted.
 
-**CORRECTION, same day.** The paragraphs below identified DAY2/p14 as "{{corpus:DAY2/p16:day2:0:47:sha=0cde22e921aa:shape=S2-0a}} weight". That is DAY2/p16. DAY2/p14 reads
-"{{corpus:DAY2/p14:day2:0:122:sha=e4c8876c0ff1:shape=S17-0a}} whatnot" — the antecedent-
+**CORRECTION, same day.** The paragraphs below identified DAY2/p14 as [[corpus DAY2/p16 day2 0:54 sha=d4b2d634e70d]]. That is DAY2/p16. DAY2/p14 reads
+[[corpus DAY2/p14 day2 0:130 sha=9e1912b9c1a4]] — the antecedent-
 manipulation case, not an automatic-result one. The cell id was carried from
 memory instead of re-read, so the note was aimed at a cell whose defect it does
 not describe, which is why it never fired. The rule-collision analysis below is
@@ -1542,7 +1645,7 @@ resolve it:
     meeting the goal SPARED the student something they would otherwise have had
     to do".
   * `NOT_EXTERNAL_STIMULUS` zeroes a consequence that is "simply the behaviour's
-    own automatic result", canonical zero "{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=S6-0a20202020}} body".
+    own automatic result", canonical zero [[corpus PR/p1 pr 0:47 sha=543798ac2cea]].
 
 Walking to avoid weight gain satisfies BOTH descriptions. Gold applies the
 second; the model applies the first, which the rubric states just as plainly.

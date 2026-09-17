@@ -62,7 +62,7 @@ from segment import segment
 import paths
 
 OUTDIR = f"{paths.OUT}/h3_sim"
-MEDIA_DIR = "/tmp/claude-1000/molly_scoring_media"
+MEDIA_DIR = str(paths.media_dir())
 TEMPLATE_MARKERS = ("water consumption", "ounces of water")
 
 DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]

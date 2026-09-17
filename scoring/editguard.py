@@ -330,6 +330,82 @@ def _contiguous_deletion(before: str, after: str) -> str | None:
     return cut if before[:head] + cut + before[len(before) - tail:] == before else None
 
 
+LABEL_MIN = 12          # shorter first arguments are not registry labels
+
+
+def labelled_calls(text: str) -> dict:
+    """Every call whose first argument is a distinctive string -> the callee.
+
+    `_scorer_case("a MAPS table is defined but never attached", ...)` is how a
+    selftest case is registered, and it is typical: this codebase names things
+    by passing a sentence as the first argument to a registrar. That sentence is
+    the thing's identity, and it lives INSIDE a function body.
+    """
+    out: dict = {}
+    try:
+        tree = ast.parse(text)
+    except SyntaxError as e:
+        raise ValueError(f"does not parse: {e}") from None
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.Call) and node.args):
+            continue
+        first = node.args[0]
+        if not (isinstance(first, ast.Constant) and isinstance(first.value, str)):
+            continue
+        if len(first.value) < LABEL_MIN:
+            continue
+        fn_name = (node.func.attr if isinstance(node.func, ast.Attribute)
+                   else getattr(node.func, "id", None))
+        if fn_name:
+            out[first.value] = fn_name
+    return out
+
+
+def lost_labels(before_text: str, after_text: str, dropping=()) -> list[str]:
+    """A registered, named thing that vanished from inside a function body.
+
+    THE THIRD BLIND SPOT, and the one that cost a check its proof on 2026-09-15.
+    `definitions` guards module-level NAMES and deliberately ignores everything
+    inside a function body, because those are private and churn. `lost_entries`
+    guards declaration-table ENTRIES. `lost_prose` guards LINES INSIDE A STRING.
+    None of them sees a CALL disappear from inside a function.
+
+    WHAT HAPPENED. A new selftest case had just been added, registering
+    `check_every_rubric_element_is_consumed` -- the case that proves the check
+    fires. Minutes later the retirement of a neighbouring check cut a block that
+    began one comment ABOVE the new case, and took it. The file parsed, every
+    module-level name survived, no table entry moved, no string was cut: all
+    four guards clean. The audit kept the new check and lost the only thing that
+    proved it could fail, which is the exact condition the retired check had
+    been in.
+
+    It was caught by `SELFTEST_EXPECTED`, a ratchet on the COUNT -- 85 built
+    against 86 expected. That works only where a count exists. This reports the
+    loss by NAME, wherever it happens.
+
+    Declare an intended removal as `call:<the label>`, or any distinctive part
+    of it -- the fourth `dropping` prefix, kept distinct for the reason the
+    others are: bare names to `definitions`, NAME[key] to `lost_entries`,
+    `prose:` to `lost_prose`, `call:` here.
+    """
+    before, after = labelled_calls(before_text), labelled_calls(after_text)
+    declared = tuple(d[len("call:"):] for d in dropping
+                     if isinstance(d, str) and d.startswith("call:"))
+    out = []
+    for label, fn_name in before.items():
+        if label in after:
+            continue
+        if any(d and (d in label or label in d) for d in declared):
+            continue
+        out.append(
+            f"{fn_name}({label[:60]!r}...) vanished from inside a function body "
+            f"and was not declared. The parse, the module-level names, the "
+            f"table entries and the string fields all survive a cut like this, "
+            f"so nothing else reports it. If the removal is intended, pass "
+            f"call:<label> in dropping=; if not, the slice took a neighbour")
+    return out
+
+
 def lost_prose(before_text: str, after_text: str, dropping=()) -> list[str]:
     """Prose that vanished from inside a string field, unannounced.
 
@@ -458,6 +534,8 @@ def safe_write(path, new_text: str, dropping=(),
             raise RuntimeError(f"REFUSING to write {p.name}: {bad}")
     for bad in lost_prose(p.read_text() if p.exists() else "", new_text, dropping):
         raise RuntimeError(f"REFUSING to write {p.name}: {bad}")
+    for bad in lost_labels(p.read_text() if p.exists() else "", new_text, dropping):
+        raise RuntimeError(f"REFUSING to write {p.name}: {bad}")
     # AND THE IDLE CHECK FOR PROSE, for the same reason the one below exists: a
     # declaration that did not happen means the edit landed somewhere other than
     # where it was aimed. Tested by whether the declared text is STILL PRESENT
@@ -471,6 +549,18 @@ def safe_write(path, new_text: str, dropping=(),
             f"REFUSING to write {p.name}: declared dropping "
             f"{', '.join(sorted(stale_prose))}, but that text is STILL PRESENT "
             f"afterwards -- the edit did not land where it was aimed")
+    # AND FOR LABELS. "Still registered afterwards" is the call analogue, and it
+    # catches the case where a retirement names one case and cuts another.
+    after_labels = labelled_calls(new_text)
+    stale_calls = [d for d in dropping
+                   if isinstance(d, str) and d.startswith("call:")
+                   and d[len("call:"):].strip()
+                   and any(d[len("call:"):] in lb for lb in after_labels)]
+    if stale_calls:
+        raise RuntimeError(
+            f"REFUSING to write {p.name}: declared dropping "
+            f"{', '.join(sorted(stale_calls))}, but that call is STILL "
+            f"REGISTERED afterwards -- the edit did not land where it was aimed")
     # THE IDLE CHECK IS ABOUT DEFINITIONS ONLY. `dropping` serves TWO guards --
     # module-level names (this one) and declaration-table entries
     # (`lost_entries`) -- and a table-entry declaration is written NAME[key], a
@@ -479,7 +569,8 @@ def safe_write(path, new_text: str, dropping=(),
     # which blocked three legitimate writes on 2026-09-08 before the cause was
     # found. Entry declarations are validated by `lost_entries`; exclude them.
     idle = {d for d in dropping
-            if "[" not in d and not d.startswith("prose:")} - (before - after)
+            if "[" not in d and not d.startswith(("prose:", "call:"))
+            } - (before - after)
     if idle:
         raise RuntimeError(
             f"REFUSING to write {p.name}: declared dropping "

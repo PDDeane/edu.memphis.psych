@@ -421,7 +421,7 @@ prose used to exist TWICE: in `score.py:build_prompt` and in
 `olx_prompts._criteria_section`, whose docstring described itself as
 "score.py:build_prompt's derive_from_criteria block, verbatim."
 
-It had stopped being verbatim. Criterion 5's example read "{{corpus:PR/p1:pr:0:42:sha=34e8b80f4178:shape=S2-0a,C1}} body" on the python and "a rested body, or fitness itself,
+It had stopped being verbatim. Criterion 5's example read [[corpus PR/p1 pr 0:47 sha=543798ac2cea]] on the python and "a rested body, or fitness itself,
 following the behaviour that produces it" on the olx; criterion 7's read "the
 extra chore" against "30 pushups"; criterion 10's WK1 rule was a shorter, older
 version on the python than the one the olx had grown. Every audit stayed green
@@ -568,9 +568,7 @@ the olx (two failed checks) and 1 on the python, because the code is not
   two entries do not trip the `over_specified` clamp on a two-component item —
   so the python can reach −2 by that route too.
 * No corpus row exercises it. Every −1 row on either item omits exactly one
-  half: p13 D1 *"when {{corpus:D1/p13:d1:5:31:sha=9eabd4d89ad2}} desirable"*, p16 D1 *"adding
-  something desirable."*, p9 D2 *"Removing a desired stimulus after a particular
-  behavior is exhibited."* The olx scores each of those 1, matching gold.
+  half: p13 D1 *[[corpus D1/p13 d1 0:41 sha=0b432b4eca1b]]*, p16 D1 *[[corpus D1/p16 d1 0:27 sha=0bedbac96df6]]*, p9 D2 *[[corpus D2/p9 d2 0:69 sha=033f3485e11c]]* The olx scores each of those 1, matching gold.
 
 **The day-keyed legend** is structural. The olx's chart has one orientation —
 series are the four weeks, the x-axis is the seven days. A paper student who
@@ -666,12 +664,12 @@ on p16 it wrongly rejects.
 decide whether there are two activities at all. The olx is handed two boxes whose
 labels assert there are, and judges each alone.
 
-p7 shows it cleanly. That student's own "1)" item is "{{corpus:Q4b/p7:modify:0:85:sha=277012b710a5:shape=S5-0a}}…" — meta-commentary, which the
+p7 shows it cleanly. That student's own "1)" item is [[corpus Q4b/p7 modify 0:85 sha=277012b710a5]] — meta-commentary, which the
 rubric names as REJECT case (b) and cites p7 for by name. The split faithfully puts it
 in `behavior_1`, and under a heading reading "First example is something done during
 the behavior" the model credits it. Reading the whole block, the python does not.
 
-The story is not uniform, and p16 is the counter-example: its box holds "{{corpus:Q4b/p16:first:0:31:sha=ea106136dcab:shape=S2-0a}} phone.", which appears VERBATIM in the ACCEPT list, and the olx
+The story is not uniform, and p16 is the counter-example: its box holds [[corpus Q4b/p16 first 0:38 sha=b400463aa325]], which appears VERBATIM in the ACCEPT list, and the olx
 returned `not_active` anyway. That is not box-priming; that is simply wrong.
 
 **Why nothing was changed.**
@@ -733,13 +731,13 @@ python 83%, olx 72% over 18 cells. Five misses, and only two are olx-only.
 **Both olx-only misses are the cadence gate**, which takes the whole item, so two
 judgement calls produce the entire 11-point gap:
 
-* **p8** — "{{corpus:DAY2/p8:day2:0:108:sha=9b3f489db805:shape=S16-0a2020}}" The olx answered `cadence_is_daily: no` and
+* **p8** — [[corpus DAY2/p8 day2 0:108 sha=9b3f489db805]] The olx answered `cadence_is_daily: no` and
   zeroed it. The prompt covers this shape THREE times over, including "a daily trigger
   whose reward runs to the end of the week is still daily" and an explicit tie-breaker,
   "when it could be read either way, it is daily". It received all of that and went the
   other way — the same class as Q4b's p16 and Q2's p7, where the prompt names the case
   and the model does not follow it. More text will not help.
-* **p9** — "{{corpus:DAY2/p9:day2:0:95:sha=4f42e6b8fa63:shape=S18-0a2020,A8}}." Defensible: "out of the 5 days" reads as exactly the
+* **p9** — [[corpus DAY2/p9 day2 0:89 sha=8db4bb08899f]] Defensible: "out of the 5 days" reads as exactly the
   whole-week tally the guidance names as the one reason to answer `no`. Gold and the
   python read it as daily.
 
@@ -759,7 +757,7 @@ strict. There is no systematic bias to correct.
 
 **Too generous** (crediting what gold and the python both reject):
 
-* **DAY1 p6** — "{{corpus:DAY1/p6:day1:0:106:sha=15a19c9bc3c7:shape=S13-0a2020,S15-20}} gym." Every gate passed. Criterion 4 names
+* **DAY1 p6** — [[corpus DAY1/p6 day1 0:106 sha=15a19c9bc3c7]] Every gate passed. Criterion 4 names
   this exact shape: it fails "when the plan is purely to remove a temptation or set up
   the environment in advance, which is an antecedent manipulation rather than a
   consequence." The fourth instance of the prompt naming a case and the model going
@@ -768,9 +766,9 @@ strict. There is no systematic bias to correct.
 
 **Too strict** (gates firing on answers gold and the python accept):
 
-* **WK2 p11** — "{{corpus:WK2/p11:wk2:0:76:sha=a268481e3820:shape=S14-0a2020,A8,A53}}" **Every gate failed**, zeroing a plain contingency. Not a borderline call;
+* **WK2 p11** — "If I don[[corpus WK2/p11 wk2 9:53 sha=7e470e88f8aa]]t {{corpus:WK2/p11:wk2:56:76:sha=12dea3a69f2a:shape=S2-0a2020,R22-0-22}} **Every gate failed**, zeroing a plain contingency. Not a borderline call;
   a bad read, and the most expensive single cell in these three items.
-* **WK1 p12** — `names_behavior: no` on "{{corpus:WK1/p12:wk1:0:92:sha=b4fa34d9b68e:shape=S11-0a2020}}" The behaviour is referred to
+* **WK1 p12** — `names_behavior: no` on [[corpus WK1/p12 wk1 0:92 sha=b4fa34d9b68e]] The behaviour is referred to
   indirectly ("meet my goal") rather than named, and the olx would not take it.
 * **WK1 p19** — `targets_own_behavior: no` on an answer plainly about the student's own
   goal, costing 1.
@@ -801,8 +799,7 @@ Both systems over-credit on **7 cells across the 8 OC items — none of them on
 PR/NR/PP/NP**, all on the four intervention-plan items. They decompose:
 
 * **3 cells are a DELIBERATE divergence already recorded in the code.** p8's DAY1,
-  WK1 and WK2 answers state their contingency by what is AVOIDED ("so I don't have to
-  {{corpus:DAY1/p8:day1:105:127:sha=902613cf68e4}} if..."). `derive_oc_ledger` says outright: "the graders zeroed
+  WK1 and WK2 answers state their contingency by what is AVOIDED ("[[corpus DAY1/p8 day1 104:130 sha=fdab95974d4c]]..."). `derive_oc_ledger` says outright: "the graders zeroed
   two of these on participant 8 for what was really a phrasing problem. Flag for
   review, never deduct." Both systems refuse to follow gold BY DESIGN, and both attach
   an advisory note saying so. Not a gap — a decision.
@@ -826,7 +823,7 @@ exactly the mistake made here.
 ### Q1's `utb_stated` reads the CHOICE on the olx, and two prompt bugs behind the count
 
 **The check was scoring rhetorical form.** p17 and p20 both NAME their behaviour in
-the prose — "{{corpus:Q1/p17:response:0:40:sha=9086cd1358c1}}", "{{corpus:Q1/p20:response:0:36:sha=7f8a552a724d:shape=S5-0a}} tired" — what they lack is a sentence declaring it as their *target*. On paper
+the prose — [[corpus Q1/p17 response 0:40 sha=9086cd1358c1]], [[corpus Q1/p20 response 0:42 sha=985d50a12bff]] — what they lack is a sentence declaring it as their *target*. On paper
 that distinction did real work: with no dropdown, the prose was the only place the
 target could be identified. On the olx the student answers "Which behavior will you
 work on?" from a closed choice BEFORE reaching the box, so requiring the prose to
@@ -1220,8 +1217,8 @@ ordering differs from 4a/4c's, and ordering is unconstrained on a real form.
 Do not claim it as an accuracy gain.
 
 **Unrelated finding, now visible:** p19 is credited `state_c2`/`affect_c2` in every
-run, before and after, on "{{corpus:Q6/p19:affect_c1:83:113:sha=08b436c3987d}} assignments" against
-4c's "cannot focus during my classes". Gold says the second consequence was never
+run, before and after, on [[corpus Q6/p19 affect_c1 83:125 sha=cd352a4926ea]] against
+4c's [[corpus Q4c/p19 second 35:59 sha=4b0a1d20acd8]]. Gold says the second consequence was never
 addressed and took 5 points. That is a stable olx-vs-gold disagreement of its own,
 independent of this change — run B's 6.25 was the outlier, not the rule.
 
@@ -2077,7 +2074,7 @@ negative:
   does not: state slots are faulted at **26%** under the identity framing against
   **27%** under the old one.
 
-What actually happened is narrower. p5's `state_a1` asks whether "{{corpus:Q6/p5:state_a1:38:98:sha=8bd5d4dd9d6d:shape=S1-0a}}" is the same antecedent as 4a's "{{corpus:Q4a/p5:first:28:60:sha=a29da18fd67a:shape=S0-0a}} nearby". Gold and the python say no — a craving is not
+What actually happened is narrower. p5's `state_a1` asks whether [[corpus Q6/p5 state_a1 38:98 sha=8bd5d4dd9d6d]] is the same antecedent as 4a's [[corpus Q4a/p5 first 28:67 sha=35a81e2b3bda]]. Gold and the python say no — a craving is not
 a stocking habit. The olx has never had a stable read on it: across the six
 pre-`cover` runs it came back `mismatch` three times and `met` three times, an
 even coin flip. The identity framing did not bias it, it **stabilised** it — at
@@ -2168,7 +2165,7 @@ One is genuinely actionable and one is a gold artifact:
   that the change described does not change the named antecedent, and the item's
   own exemplar #2 is exactly this case — *"A plan to perform the WGB is not a
   change to the antecedent, so both change slots are `not_described`"*, on
-  "{{corpus:Q6/p8:change_a1:10:31:sha=59e2c4a3daa0}} Tuesday-Friday". "{{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd:shape=C1}}"
+  "{{corpus:Q6/p8:change_a1:10:31:sha=59e2c4a3daa0}} Tuesday-Friday". [[corpus Q6/p2 affect_c2 2:39 sha=e7e6d110d334]]
   is the same shape against "playing video games". The exemplar is verbatim in
   both prompts and neither applies it. Fixing that is rubric work on the
   `change_*` slots, and it would move the python's own baseline — so it is scoring
@@ -2193,8 +2190,7 @@ gold in **all six** while none is ever under:
 
 That is the signal worth pursuing on this item, and it is not a fixture or
 framing question — the olx credits slots the graders did not. p19 is the clearest:
-it is credited `state_c2`/`affect_c2` on "{{corpus:Q6/p19:affect_c1:83:113:sha=08b436c3987d}}
-assignments" against 4c's "cannot focus during my classes", where gold took 5
+it is credited `state_c2`/`affect_c2` on [[corpus Q6/p19 affect_c1 83:125 sha=cd352a4926ea]] against 4c's [[corpus Q4c/p19 second 35:59 sha=4b0a1d20acd8]], where gold took 5
 points for the second consequence never being addressed.
 
 ### The same-fixture noise band for Q6, measured properly
@@ -2990,7 +2986,7 @@ Q4a/p18 repeats one antecedent verbatim as its second; the fixture leaves
 `second` empty and that is now a declared divergence from verbatim
 reproduction, self-enforcing because `_gold_corroborates_absence` reads gold's
 "only provided one antecedent" as the licence on every run. Contrast 2a/p13,
-whose `how2` holds the "{{corpus:2a/p13:how2:0:46:sha=446c357de928}}" that
+whose `how2` holds the [[corpus 2a/p13 how2 0:46 sha=446c357de928]] that
 gold explicitly charges as not-an-explanation: there the box must hold it, and
 the grader must judge it.
 

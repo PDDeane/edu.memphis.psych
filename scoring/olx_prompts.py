@@ -980,7 +980,7 @@ def parse_maps(spec: str | None) -> list[dict]:
     """
     out = []
     for rule in (spec or "").split("|"):
-        parts = [x.strip() for x in rule.split(":")]
+        parts = [x.strip() for x in _split_keeping_refs(rule)]
         if len(parts) < 3:
             continue
         key, pick, raw = parts[0], parts[1], parts[2]
@@ -1015,6 +1015,30 @@ def mapped_verdict(rule: dict, answer: str | None) -> str | None:
     return rule.get("fallback")
 
 
+# Colons inside a `{{corpus:...}}` reference belong to the reference, not to the
+# colon-delimited grammars below. `slots=` is `name:description:verdicts@weight`
+# split on EVERY colon, so a description carrying
+# `{{corpus:Q4b/p20:modify:17:40:sha=...}}` shifts every later field and the
+# verdict list comes out as `Q4b`/`p20` instead of `met`/`absent`. The generator
+# WRITES that attribute from the rubric description, so it misreads its own
+# output. Measured over a history whose descriptions carry references: 107 of
+# 114 generator states.
+#
+# Hide the reference's colons for the duration of the split; the grammar is
+# unchanged for anything that is not a reference. THREE sites parse this way --
+# `parse_equals`, `parse_slots` and `check_scorer_voice_in_labels` -- and
+# `slotSheet.ts` parses the same attribute in the engine. All of them need it,
+# or the page and the scorer disagree about what a verdict list is.
+_REF_COLON_RE = re.compile("[{][{]corpus:[^}]*[}][}]")
+_COLON_HOLD = chr(0)
+
+
+def _split_keeping_refs(entry: str) -> list[str]:
+    """Split on the grammar's colons, never on a reference's."""
+    held = _REF_COLON_RE.sub(lambda m: m.group(0).replace(":", _COLON_HOLD), entry)
+    return [x.replace(_COLON_HOLD, ":") for x in held.split(":")]
+
+
 def parse_equals(spec: str) -> list[dict]:
     """Mirror of lo-blocks parseEquals (packages/shared/lib/llm/slotSheet.ts).
 
@@ -1028,7 +1052,7 @@ def parse_equals(spec: str) -> list[dict]:
         entry = entry.strip()
         if not entry:
             continue
-        parts = [p.strip() for p in entry.split(":")]
+        parts = [p.strip() for p in _split_keeping_refs(entry)]
         key = parts[0] if parts else ""
         ops = parts[1] if len(parts) > 1 else ""
         lenient = parts[2] if len(parts) > 2 else ""
@@ -1094,7 +1118,7 @@ def parse_expect(spec: str | None) -> list[dict]:
     """Mirror of slotSheet.ts:parseExpect."""
     out = []
     for rule in (spec or "").split("|"):
-        parts = [x.strip() for x in rule.split(":")]
+        parts = [x.strip() for x in _split_keeping_refs(rule)]
         if len(parts) < 2:
             continue
         key, lhs = parts[0], parts[1]
@@ -1119,7 +1143,7 @@ def parse_requires(spec: str | None) -> list[dict]:
     """
     out = []
     for rule in (spec or "").split("|"):
-        parts = [x.strip() for x in rule.split(":")]
+        parts = [x.strip() for x in _split_keeping_refs(rule)]
         if len(parts) >= 2 and parts[0] and parts[1]:
             out.append({"key": parts[0], "cond": parts[1],
                         "lenient": [v.strip() for v in
@@ -1208,7 +1232,7 @@ def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
         if m:
             pts = float(m.group(1))
             entry = entry[: m.start()].strip()
-        parts = [p.strip() for p in entry.split(":")]
+        parts = [p.strip() for p in _split_keeping_refs(entry)]
         raw_key = parts[0]
         label = parts[1] if len(parts) > 1 and parts[1] else raw_key
         seg = parts[2] if len(parts) > 2 else None
@@ -1347,10 +1371,8 @@ SLOT_NOTES = {
     # "quote such a behavior" alone reads too literally, and this is a GATE, so a
     # literal reading costs the whole item. Students routinely point at the
     # behaviour instead of restating it — it is already named elsewhere on the
-    # handout — and the graders accept that: participant 15's "{{corpus:NR/p2:nr:0:17:sha=bd6ad50ff8db}}
-    # {{corpus:WK1/p15:wk1:18:82:sha=0f68e1c460d0}} want"
-    # earned full credit on WK1, and their "{{corpus:WK2/p15:wk2:0:32:sha=4d06a923d530}}
-    # {{corpus:WK2/p15:wk2:33:58:sha=c9e195b27719}}" lost 2 on WK2 for being the wrong TYPE, not for
+    # handout — and the graders accept that: participant 15's [[corpus WK1/p15 wk1 0:87 sha=a4d75ace1105]]
+    # earned full credit on WK1, and their [[corpus WK2/p15 wk2 0:58 sha=9f0ac2991a93]] lost 2 on WK2 for being the wrong TYPE, not for
     # failing to name a behaviour. Left literal, the verdict is a coin flip: the
     # same answer drew `no` from one run and `yes` from another, and each `no`
     # zeroed 4 points.
@@ -1491,13 +1513,11 @@ SLOT_NOTES = {
         "the count below",
 
     # Narrow on purpose, and the pattern is quoted because near-twins of it earn
-    # full credit: "{{corpus:DAY1/p15:day1:40:72:sha=e23fe0094031}} when I am caught up on
-    # assignments" is `yes`, so nothing about withholding or about "until"/"when"
+    # full credit: [[corpus DAY1/p15 day1 85:120 sha=c7b3bbb7cac7]] is `yes`, so nothing about withholding or about "until"/"when"
     # may trigger this. Only bare juxtaposition does.
     #
     # It USED to charge a second pattern — a "consequence" that is only the absence
-    # of a penalty, quoting p8's "so I don't have to {{corpus:DAY1/p8:day1:105:132:sha=f154f6b814a1}}
-    # miss it". That was withdrawn, because it collided with criterion 7:
+    # of a penalty, quoting p8's "[[corpus DAY1/p8 day1 104:140 sha=3851fd4fde26]]". That was withdrawn, because it collided with criterion 7:
     # `avoidance_frame` claims the same shape. ITS DECISION IS NO LONGER "FLAG AND
     # NEVER DEDUCT", and this comment said so until 2026-09-04: never-deduct was
     # the decision handouts.GOLD_DIVERGENCES declared as ADDED_AVERSIVE_NAMED, and
@@ -1542,7 +1562,7 @@ SLOT_NOTES = {
     # answers `met` on p15 in all six baseline runs and never refuses it, yet p15
     # collapsed anyway when the wording changed. The blast radius of a reword is
     # NOT the cells the gate refuses -- it is every cell on the item. That is the
-    # `q6-matching-ceiling` result (prose does not steer where it names) reproduced
+    # `Q6_MATCHING_CEILING.md` result (prose does not steer where it names) reproduced
     # here, and it is why sharing one rule across two items is unsafe and not
     # merely unnecessary.
     #
@@ -1577,8 +1597,7 @@ SLOT_NOTES = {
     #
     # THE COUNTING PROSE DID NOT STEER WHERE IT NAMED. The removed text told the
     # grader in as many words that a period on the CONSEQUENCE is not the
-    # trigger, and p8 -- "{{corpus:DAY2/p8:day2:46:98:sha=c0c013a7277e}}
-    # the week" -- was refused anyway 9 times in 12. A clause that names its own
+    # trigger, and p8 -- [[corpus DAY2/p8 day2 45:107 sha=484b5850d00e]] -- was refused anyway 9 times in 12. A clause that names its own
     # counter-example and is ignored is not fixed by more clauses.
     #
     # p7 IS NOT THIS SLOT'S AND NEVER WAS. It is gold 3.00 of 4.00 -- a ONE point
@@ -1959,7 +1978,25 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
         "would show them words they never wrote."
     )
 
-    return "\n".join(p).rstrip() + "\n"
+    out = "\n".join(p).rstrip() + "\n"
+    # CONVERT, DO NOT RESOLVE. This used to call `expand_prose` here, on the
+    # reasoning that `--write` emits what a web grader is sent, so a rubric
+    # reference "has to become the words". That put the student's sentences into
+    # the .olx -- the file the reference mechanism exists to keep them out of --
+    # and it is not what the grader sees anyway: the page is BUILT, and
+    # `resolveCorpusRefs.ts` resolves on the way through, exactly as
+    # `measured._olx` does when the scorer reads the same file.
+    #
+    # The old comment warned that leaving a reference would make `--check`
+    # compare a reference against the text it stands for and report every item
+    # out of date for ever. That is true only while the two sides disagree about
+    # the FORM. Converting makes both sides carry the reference, so `--check`
+    # compares like with like -- and measured across the rewritten history, the
+    # expanding version reported 42 of 113 states out of date for this reason.
+    if "[[corpus " in out:
+        import corpus_resolve
+        out = corpus_resolve.to_olx(out, corpus_resolve.load())
+    return out
 
 
 # Criteria 10 and 11 as the CLI asks them, DERIVED from the web's own wording in
@@ -2068,8 +2105,8 @@ def _criteria_section(item: dict, trigger_slot: bool = False,
         "type under discussion, report that one; do not mark it a mismatch.\n"
         # A SECOND QUOTATION, REMOVED 2026-09-06 (subgoal Q22). The example that
         # stood here was DAY1/p8's own answer almost word for word -- p8 wrote "so
-        # {{corpus:DAY1/p8:day1:92:137:sha=a1e650eda63f}} it" and this said "so I
-        # don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87}} it". leakage.py's OWN DOCSTRING
+        # I don[[corpus DAY1/p8 day1 98:140 sha=1a3cc263964d]] and this said "so I
+        # don[[corpus DAY1/p8 day1 116:140 sha=456d55015056]]. leakage.py's OWN DOCSTRING
         # names that leak as one of the two it was built after and treats it as
         # fixed. It was fixed in the prose the tool SCANS and survived here, in
         # `_criteria_section`, which is not in `authored()`'s corpus -- so the
@@ -2137,8 +2174,7 @@ def _criteria_section(item: dict, trigger_slot: bool = False,
             # a trigger that POINTS AT the student's own goal, and the gate
             # answers `met` 12 of 12 on EIGHTEEN of them -- it handles the
             # construction right 86% of the time. All eighteen RESTATE A PERIOD
-            # beside the reference ("{{corpus:DAY1/p2:day1:12:32:sha=63679f96eb02:shape=Cee000}} DAY", "my goal OF 8
-            # HOURS OF SLEEP", "my WEEKLY goal", "{{corpus:WK1/p12:wk1:18:44:sha=4406e9756267:shape=C3b778fb}}
+            # beside the reference ([[corpus DAY1/p2 day1 11:36 sha=0f7b2a982187]] / [[corpus DAY1/p3 day1 11:36 sha=0f7b2a982187]], [[corpus DAY2/p1 day2 16:44 sha=b87716a5a0da]], "my WEEKLY goal", "{{corpus:WK1/p12:wk1:18:44:sha=4406e9756267:shape=C3b778fb}}
             # WEEK"), so this sentence cannot reach them. The two that do not
             # restate one are DAY2/p8 and WK2/p15, and they are exactly the two
             # cells where the gate refuses what gold credits.
@@ -2557,7 +2593,7 @@ def _derived_attr(handout: int, action: str) -> list[dict]:
     d = re.search(r'\bderived="([^"]*)"', _sheet_tag(handout, action))
     out = []
     for entry in (d.group(1) if d else "").split("|"):
-        parts = [p.strip() for p in entry.strip().split(":")]
+        parts = [p.strip() for p in _split_keeping_refs(entry.strip())]
         key = parts[0] if parts else ""
         kind = parts[1] if len(parts) > 1 else ""
         targets = [t.strip() for t in (parts[2] if len(parts) > 2 else "").split(",")
@@ -2607,7 +2643,7 @@ def check_scorer_voice_in_labels() -> list[str]:
         src = _src(h)
         for m in re.finditer(r'slots="([^"]*)"', src, re.S):
             for entry in m.group(1).split("|"):
-                parts = entry.split(":")
+                parts = _split_keeping_refs(entry)
                 if len(parts) < 2:
                     continue
                 key = parts[0].lstrip("!").strip()
@@ -2810,7 +2846,7 @@ def choices_attr_for(item_id: str) -> str | None:
     for part in ms.group(1).split("|"):
         m = _re.search(r"pick\(([^)]+)\)", part)
         if m:
-            users.setdefault(m.group(1), []).append(part.split(":")[0])
+            users.setdefault(m.group(1), []).append(_split_keeping_refs(part)[0])
     out = []
     # A SET `slots=` USES BUT `choices=` LACKS IS A NEW GROUP, and it has to be
     # ADDED, not merely regenerated. This loop read `have.items()` -- the sets
@@ -3232,6 +3268,8 @@ def _measurements_in_flight() -> list[str]:
     # SWEEPING: all three scorers. `score.py` was absent, so a paper sweep was
     # invisible to every caller of this guard.
     HARNESS = {"agreement.py", "agreement_app.py", "score.py"}
+    SHELLS = {"bash", "sh", "dash", "zsh", "ksh", "-bash", "fish"}
+
     for line in out.splitlines()[1:]:
         pid, _, args = line.strip().partition(" ")
         if pid == mine or "olx_prompts" in args:

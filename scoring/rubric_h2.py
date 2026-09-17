@@ -590,8 +590,8 @@ def _example_use_item(
                 # and nothing existed to take a partial bite out of them.
                 #
                 # Deliberately NARROW. The over-credited cells do not share one
-                # statable property: "{{corpus:DAY2/p14:day2:22:55:sha=e4b4855d80e6}}" (gold 0)
-                # and "{{corpus:DAY1/p15:day1:40:72:sha=e23fe0094031}} when I am caught up"
+                # statable property: [[corpus DAY2/p14 day2 21:55 sha=167ea32bec3b]] (gold 0)
+                # and [[corpus DAY1/p15 day1 39:72 sha=9a84fbcadfd4]]
                 # (gold 4) are structurally alike, so no criterion separates
                 # them. What IS statable is the pair of patterns below, and the
                 # slot claims only those.
@@ -852,9 +852,7 @@ def _example_use_item(
             #
             # The cue that actually separates the cells is syntactic, and a parse
             # is something the model does crisply. Every gold-4 cell puts an
-            # ANIMATE AGENT in subject position governing a verb of transfer — "I
-            # will treat myself to a movie", "{{corpus:WK1/p9:wk1:46:79:sha=3c6319f18560}}
-            # set", "{{corpus:WK1/p5:wk1:108:135:sha=deaa7bffadae}} one chore". The gold-0 cell this
+            # ANIMATE AGENT in subject position governing a verb of transfer — [[corpus WK1/p4 wk1 60:91 sha=09b694b3b2a9]], [[corpus WK1/p9 wk1 45:83 sha=67c0b40a587a]], [[corpus WK1/p5 wk1 107:145 sha=6d9fe5ed4583]]. The gold-0 cell this
             # gate is for puts the CONSEQUENCE ITSELF in subject position with an
             # aspectual verb: the penalty "will just keep stacking". No agent, no
             # transfer verb. The other gold-0 cells are already caught elsewhere —
