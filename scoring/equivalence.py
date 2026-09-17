@@ -664,6 +664,8 @@ def enforcement_audit():
         findings.append(("-", "REPORTER CRASHES", bad))
     for bad in ENF.check_rubric_items_are_unique():
         findings.append(("-", "RUBRIC ITEMS NOT UNIQUE", bad))
+    for bad in ENF.check_olx_corpus_references():
+        findings.append(("-", "OLX QUOTES A STUDENT THROUGH A REFERENCE", bad))
     for bad in ENF.check_consensus_fixes_have_no_duplicate_cells():
         findings.append(("-", "TWO FIXES FOR ONE CELL", bad))
     for bad in ENF.check_corrected_gold_matches_the_sheet():
@@ -748,6 +750,28 @@ def enforcement_audit():
         findings.append(("-", "DEFINITION VANISHED FROM THE PACKAGE", bad))
     for bad in ENF.check_no_module_shadow_in_scratchpad():
         findings.append(("-", "A SCRATCHPAD COPY SHADOWS A PACKAGE MODULE", bad))
+    for bad in ENF.check_no_module_defines_names_after_its_main_guard():
+        findings.append(("-", "DEFINED BELOW THE MAIN GUARD, DEAD ON THE SCRIPT PATH", bad))
+    for bad in ENF.check_one_definition_of_what_counts_as_student_text():
+        findings.append(("-", "A SECOND DEFINITION OF WHAT COUNTS AS STUDENT TEXT", bad))
+    for bad in ENF.check_the_export_is_not_used_to_decide_whose_words_these_are():
+        findings.append(("-", "THE CITATION EXPORT USED TO CLASSIFY TEXT", bad))
+    for bad in ENF.check_filesystem_locations_come_from_paths_py():
+        findings.append(("-", "A FILESYSTEM LOCATION SPELLED INSTEAD OF RESOLVED", bad))
+    for bad in ENF.check_every_item_has_a_findable_slot_sheet():
+        findings.append(("-", "AN ITEM'S SLOT SHEET CANNOT BE FOUND", bad))
+    for bad in ENF.check_probe_unreachable_pairs_still_apply():
+        findings.append(("-", "A DECLARED PROBE GAP NO LONGER APPLIES", bad))
+    for bad in ENF.check_no_unresolved_reference_reaches_the_page():
+        findings.append(("-", "AN UNRESOLVED REFERENCE REACHED THE BUILT PAGE", bad))
+    for bad in ENF.check_every_reference_has_the_data_that_resolves_it():
+        findings.append(("-", "A REFERENCE WITHOUT THE DATA THAT RESOLVES IT", bad))
+    for bad in ENF.check_no_file_points_into_a_developers_notes():
+        findings.append(("-", "A FILE POINTS INTO A DEVELOPER'S PRIVATE NOTES", bad))
+    for bad in ENF.check_reference_grammars_agree():
+        findings.append(("-", "THE TWO REFERENCE RESOLVERS DISAGREE", bad))
+    for bad in ENF.check_slot_grammars_agree():
+        findings.append(("-", "THE TWO SLOT-SHEET PARSERS DISAGREE", bad))
     for bad in ENF.check_pick_choices_match_rubric():
         findings.append(("-", "PICK OPTIONS NOT OFFERED TO THE GRADER", bad))
     # WITHDRAWN but still INVOKED: it returns [] by design, and a defined-but-
@@ -1021,6 +1045,14 @@ def enforcement_audit():
         cli_pairs = {frozenset(x for x in (ENF.web_name(a, wkeys), ENF.web_name(b, wkeys)) if x)
                      for a, b in c["charge_once"]}
         for wp in web_pairs:
+            # DECLARED, WITH ITS REASON, AND RE-TESTED. See
+            # enforcement.PROBE_UNREACHABLE_PAIRS: the probe finds a sublinear pair
+            # by arithmetic, and some pairs produce no sublinearity for it to find.
+            # That is a limit of the instrument, not a disagreement between the
+            # engines -- but it belongs on the record as a decision rather than in
+            # a remark inside a selftest comment.
+            if (item, wp) in ENF.PROBE_UNREACHABLE_PAIRS:
+                continue
             if wp not in cli_pairs:
                 findings.append((item, "CHARGE-ONCE PROBE GAP (cli)",
                                  f"({', '.join(sorted(wp))}) is sublinear and the web "
@@ -1089,7 +1121,10 @@ def uncompared_web_rules():
 # All three are FORWARD cases (inject the condition, expect the finding) rather
 # than blinding cases: each check is clean at baseline, and blinding a check that
 # finds nothing is vacuous -- it would pass without testing anything.
-SELFTEST_EXPECTED = 71
+# 72 as of 2026-09-16: the scored-slot check gained a case. It reads
+# ARTIFACTS rather than sheets, so it is blinded by dropping a slot from one
+# engine's recorded runs -- see the case for why a check at zero needs one.
+SELFTEST_EXPECTED = 72
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1580,7 +1615,12 @@ def enforcement_selftest():
     def _filling(item, pid):
         bx = dict(_real_fb6(item, pid))
         if item == "Q6" and pid == 9:
-            bx["state_c2"] = "Instead I hope I will get more motivated after seeing my progress."
+            # INVENTED TEXT, not a student's. The check fires on a box holding
+            # ANYTHING where gold reports nothing, so the content is irrelevant
+            # to what is being tested -- and a real sentence here was a copy of
+            # Q6/p9's own words sitting in the repo for no reason. If this ever
+            # stops firing, the cause is the check, not the wording.
+            bx["state_c2"] = "placeholder text for a box gold records as empty"
         return bx
     _E6._fixture_boxes = _filling
     cases.append(("a box holds text gold says was never written",
@@ -1720,19 +1760,25 @@ def enforcement_selftest():
     ENF._segment_as_scored = _real_seg
     ENF._SEGMENTS_MEMO = None
 
-    # The duplicate-CELL guard. CONSENSUS_FIXES is a dict literal, so a repeated
-    # (item, pid) is resolved by Python before any check runs: the later entry
-    # wins, the earlier one vanishes, and the boxes it meant to fill read as
-    # empty — indistinguishable from the repair having been considered and
-    # rightly skipped. That happened to Q6/p8 while its consequence boxes were
-    # being assigned. No loaded object can show it, so the check parses the
-    # source and the injection gives it a source with a duplicate in it.
+    # The duplicate-CELL guard. A repeated cell key is resolved before any check
+    # runs: the later entry wins, the earlier one vanishes, and the boxes it
+    # meant to fill read as empty — indistinguishable from the repair having been
+    # considered and rightly skipped. That happened to Q6/p8 while its
+    # consequence boxes were being assigned. No loaded object can show it, so the
+    # check reads the raw source and the injection hands it one with a duplicate.
+    #
+    # NOW JSON, not a .py dict literal: the corrections moved to
+    # CONSENSUS_SPANS.json when their 102 values stopped being stored as student
+    # text. The hazard is unchanged -- `json.load` discards a repeated key just
+    # as silently as Python does -- so this case moved with the check rather than
+    # being retired. A case that keeps testing the old file would pass forever
+    # against a source nothing reads.
     import tempfile as _tf
-    _dup = _tf.NamedTemporaryFile("w", suffix=".py", delete=False)
-    _dup.write("CONSENSUS_FIXES = {\n"
-               '    ("Q6", 8): [("set", "state_c1", "one")],\n'
-               '    ("Q6", 8): [("set", "change_a2", "two")],\n'
-               "}\n")
+    _dup = _tf.NamedTemporaryFile("w", suffix=".json", delete=False)
+    _dup.write('{\n'
+               '  "Q6/p8": [["slice", "state_c1", "Q6", 0, 3, "aaaaaaaaaaaa"]],\n'
+               '  "Q6/p8": [["slice", "change_a2", "Q6", 4, 7, "bbbbbbbbbbbb"]]\n'
+               '}\n')
     _dup.close()
     ENF._CONSENSUS_SOURCE = _dup.name
     cases.append(("two CONSENSUS_FIXES entries for one cell",
@@ -1903,6 +1949,43 @@ def enforcement_selftest():
         cases.append((f"web {item} loses `{attr}`", want, item,
                       [f for f in enforcement_audit()[0]]))
         globals()["_web_attrs"] = orig
+
+    # THE SCORED-SLOT CHECK READS ARTIFACTS, so blinding a SHEET cannot test it.
+    # Blind one ENGINE instead: drop a scored slot from the olx side's recorded
+    # runs and the check must say that python answers it and olx never does.
+    #
+    # WHY THIS CASE EXISTS. `_pointed` and `_derived` were keyed on the bare slot
+    # name across all three handouts, and slot names are item-scoped: 1b's
+    # `week_1` resolved to 1a's same-named slot and inherited its 2 points and
+    # its derivation. Fixing that took the check to zero findings -- and a check
+    # at zero because it stopped looking reads exactly like one at zero because
+    # the tree is clean (QUALITY_CONTROL.md 6a). This is what tells them apart.
+    import measured as _M
+    _runs_orig = _M._runs_doc
+
+    def _blind_olx(item, side, _o=_runs_orig):
+        import copy
+        doc = _o(item, side)
+        if item == "1a" and side == "olx":
+            doc = copy.deepcopy(doc)
+            for run in doc["runs"]:
+                for r in run["results"]:
+                    for field in ("verdicts", "checks", "answers"):
+                        (r.get(field) or {}).pop("week_1", None)
+        return doc
+
+    _M._runs_doc = _blind_olx
+    # AGAINST ITEM "-", not "1a". The check is item-aware in what it REPORTS --
+    # the text names 1a/week_1 -- but `enforcement_audit` files it as a
+    # behavioural finding with no item id, exactly as the scorer injections below
+    # do. The first version of this case asserted "1a" and the suite said
+    # NOTHING FIRED while the finding was there all along, which is the same
+    # silent-installation failure the case exists to catch. Counting the
+    # injections that FIRE is what found it.
+    cases.append(("olx is blinded to a scored slot",
+                  "SCORED SLOT ANSWERED BY ONE ENGINE ONLY", "-",
+                  [f for f in enforcement_audit()[0]]))
+    _M._runs_doc = _runs_orig
 
     # ── INJECTIONS INTO THE SCORER, not into the sheet ───────────────────────
     #

@@ -1425,7 +1425,7 @@ PROSE_ONLY_SLOTS = {
         "to; what is left is whether the answer states HOW the consequence is "
         "affected, which is a reading of a sentence's claim and has no operands to "
         "compare. Seven measured rule attempts are recorded in "
-        "memory/q6-matching-ceiling.md; none of them was arithmetic.",
+        "Q6_MATCHING_CEILING.md; none of them was arithmetic.",
     ("Q6", "affect_c2"):
         "NOT CONVERTIBLE, same as affect_c1 for the second consequence.",
     ("1a", "distinguishes_periods"):
@@ -1502,7 +1502,7 @@ PROSE_ONLY_SLOTS = {
         "NOT CONVERTIBLE, and on two counts. Whether a second entry is genuinely "
         "DIFFERENT from the first is a semantic relation between two free-text "
         "spans -- the same shape as Q2:wgb_inverts_utb and the `refers_to` channel "
-        "that memory/q6-matching-ceiling.md records seven failed wordings against. "
+        "that Q6_MATCHING_CEILING.md records seven failed wordings against. "
         "Whether an entry is a payoff for CONTINUING or an EFFECT of the behaviour "
         "is a second reading, of one span against no operand at all. `cover` "
         "cannot pair them: both spans are free text, and neither is a list.",
@@ -4301,7 +4301,8 @@ def check_action_attributes_are_declared_in_the_block() -> list[str]:
     """
     import re as _re
 
-    lo = pathlib.Path("/home/pdeane/code/update/lo-blocks")
+    import paths as _p
+    lo = _p.LO
     block = lo / "packages/shared/components/blocks/action/LLMAction.ts"
     try:
         src = block.read_text()
@@ -4642,10 +4643,8 @@ MULTI_BLOCK_DECLARED: dict[str, str] = {
     "Q6": "eight boxes: two antecedents, each with its change, consequence and "
           "effect. Every cell read out and corrected; all fixture checks clean. "
           "p18\'s two antecedent boxes are DECLARED as sentence fragments and "
-          "are correct that way: `state_a1` ends on its comma (\"To change my "
-          "first trigger (after-school fatigue),\") and `state_a2` opens "
-          "lowercase (\"to handle my second antecedent, which is phone "
-          "distractions.\"), because p18 names each antecedent in a subordinate "
+          "are correct that way: `state_a1` ends on its comma ([[corpus Q6/p18 state_a1 0:50 sha=c9250d345b28]]) and `state_a2` opens "
+          "lowercase ([[corpus Q6/p18 state_a2 0:60 sha=c6293ae612e6]]), because p18 names each antecedent in a subordinate "
           "clause and puts the change in the main one. A clause-level split has "
           "to cut there; both boxes name their antecedent, which is what "
           "`state_a*` is scored on; and gold\'s 7.5 charges only the second "
@@ -4703,7 +4702,7 @@ MULTI_BLOCK_DECLARED: dict[str, str] = {
           "sentence boundary is missing (p9, p15, and p3, whose orphaned full "
           "stop is left where the scorer\'s quote ended). p5 and p6 keep each "
           "reason\'s parenthetical function label (\"(Gaining something.)\", "
-          "\"(I am escaping a task.)\") with the reason it labels, which is what "
+          "[[corpus Q5/p6 first 118:142 sha=9a07ac713b57]]) with the reason it labels, which is what "
           "the question asks the student to supply. p4\'s first box reads \"I "
           "continue sleep enough\" — checked against the submission, that is the "
           "student\'s own missing negation, not a transcription loss",
@@ -4879,6 +4878,68 @@ def check_single_box_fixtures_are_verbatim() -> list[str]:
 _CONSENSUS_SOURCE: str | None = None
 
 
+# Every `{{corpus:...}}` still standing in a served .olx. The count may FALL and
+# may not RISE, like the other budgets here.
+# 0 as of 2026-09-16. Handout 2's worked non-example was a real student's
+# sentence, carried into the page through a reference -- which kept the words
+# out of the FILE but still made a student's writing the thing every reader is
+# taught from, and made the page unrenderable without $MOLLY_DATA. It is now an
+# invented sentence with the same defect being taught ("Going to bed earlier
+# will reward me with feeling rested" -- the reward is just what the behaviour
+# does), checked against the whole response space for collisions.
+#
+# The budget ratchets DOWN and never up: a new reference in an .olx is a
+# finding, not a precedent.
+OLX_CORPUS_REF_BUDGET = 0
+
+
+def check_olx_corpus_references() -> list[str]:
+    """A served .olx that cannot be rendered without the student corpus.
+
+    THE MECHANISM IS A CONCESSION, NOT A SOLUTION, and this check exists to keep
+    saying so. A `{{corpus:...}}` reference takes a student's sentence out of the
+    repo -- which is the point -- but it leaves the handout DEPENDENT on
+    `$MOLLY_DATA` to render at all, and it leaves the sentence itself still being
+    shown to whoever reads the page. It buys privacy in the repository and buys
+    nothing about whether a real answer should be the worked example in the first
+    place.
+
+    THE FIX EACH ONE IS WAITING FOR is an invented example that teaches the same
+    point, at which case the reference disappears and the dependency with it.
+    That is why the budget ratchets DOWN only: a reference removed is progress
+    and must not be spendable on a new one somewhere else.
+
+    Reported per reference, with its cell named, so the readout says which
+    student's words are still load-bearing rather than only how many.
+    """
+    import re as _re
+
+    import olx_prompts as _O
+    out = []
+    for h in (1, 2, 3):
+        try:
+            src = _O._src(h)
+        except Exception as exc:                       # pragma: no cover
+            out.append(f"handout {h}: cannot read the .olx ({exc})")
+            continue
+        for m in _re.finditer(r"\{\{corpus:([A-Za-z0-9]+)/p(\d+):([A-Za-z0-9_]+):"
+                              r"(\d+):(\d+)(?::sha=[0-9a-f]+)?\}\}", src):
+            out.append(f"handout {h} still quotes {m.group(1)}/p{m.group(2)} "
+                       f"{m.group(3)} through a corpus reference: the page cannot "
+                       f"render without $MOLLY_DATA, and a student's sentence is "
+                       f"still the worked example. Replace it with an invented "
+                       f"one and the reference goes away")
+    if len(out) > OLX_CORPUS_REF_BUDGET:
+        out.append(f"OLX corpus references: {len(out)} against a budget of "
+                   f"{OLX_CORPUS_REF_BUDGET}. The budget ratchets DOWN -- lower it "
+                   f"when one is retired, never raise it to fit a new one")
+    elif len(out) < OLX_CORPUS_REF_BUDGET:
+        out.append(f"OLX corpus references: {len(out)}, BELOW the budget of "
+                   f"{OLX_CORPUS_REF_BUDGET} -- lower OLX_CORPUS_REF_BUDGET to "
+                   f"{len(out)} so the ground gained is held")
+    return out
+
+
 def check_consensus_fixes_have_no_duplicate_cells() -> list[str]:
     """Two entries for the same (item, pid) in CONSENSUS_FIXES.
 
@@ -4894,36 +4955,43 @@ def check_consensus_fixes_have_no_duplicate_cells() -> list[str]:
     did nothing, and the boxes it was meant to fill read as empty — which looked
     exactly like the repair having been considered and correctly skipped.
     """
-    import ast
+    # RE-POINTED 2026-09-15 TO CONSENSUS_SPANS.json. The corrections moved out of
+    # the dict literal when their 102 values -- student sentences, the largest
+    # store of response text in the repo -- were replaced by spans resolved from
+    # the corpus. The HAZARD DID NOT MOVE WITH THEM: `json.load` resolves a
+    # repeated key exactly as Python does, keeping the last and discarding the
+    # earlier one with no error, so the same silent loss is available in the new
+    # file and the same check is still the only thing that can see it. Reading
+    # the loaded object can never find it; only the raw text can.
+    import json
     import os
+    import re as _re
 
     src = _CONSENSUS_SOURCE or os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "agreement_app.py")
+        os.path.dirname(os.path.abspath(__file__)), "CONSENSUS_SPANS.json")
     try:
-        tree = ast.parse(open(src).read())
+        raw = open(src).read()
     except Exception as exc:                    # pragma: no cover
-        return [f"cannot parse agreement_app.py to check CONSENSUS_FIXES: {exc}"]
+        return [f"cannot read {os.path.basename(src)}: {exc}"]
+    try:
+        loaded = json.loads(raw)
+    except Exception as exc:
+        return [f"{os.path.basename(src)} is not valid JSON: {exc}"]
 
-    node = None
-    for stmt in ast.walk(tree):
-        targets = getattr(stmt, "targets", []) or ([stmt.target] if hasattr(stmt, "target") else [])
-        for t in targets:
-            if isinstance(t, ast.Name) and t.id == "CONSENSUS_FIXES":
-                node = stmt.value
-    if not isinstance(node, ast.Dict):
-        return ["CONSENSUS_FIXES is not a dict literal — this check is stale"]
-
+    # Count the keys as WRITTEN, then compare with what survived the load. A
+    # difference is a duplicate, whatever its spelling or ordering.
+    written = _re.findall(r'^\s*"([^"]+)"\s*:', raw, _re.M)
     seen, dupes = set(), []
-    for k in node.keys:
-        try:
-            key = ast.literal_eval(k)
-        except Exception:
-            continue
+    for key in written:
         if key in seen:
-            dupes.append(f"CONSENSUS_FIXES has TWO entries for {key}. A dict "
-                         f"literal keeps only the last, so the other one is "
-                         f"silently doing nothing — merge them into one entry")
+            dupes.append(f"CONSENSUS_SPANS has TWO entries for {key!r}. JSON "
+                         f"keeps only the last, so the other one is silently "
+                         f"doing nothing — merge them into one entry")
         seen.add(key)
+    if not dupes and len(written) != len(loaded):
+        dupes.append(f"CONSENSUS_SPANS has {len(written)} written key(s) but "
+                     f"{len(loaded)} after loading — a duplicate is being "
+                     f"discarded and this check could not name it")
     return dupes
 
 
@@ -5084,6 +5152,16 @@ def check_items_are_measured_as_configured() -> list[str]:
 # 5" outlived the fix that made it false, with the whole audit green: no check
 # owned it, and nothing said one was missing.
 DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
+    "enforcement.PROBE_UNREACHABLE_PAIRS": (
+        "charge-once pairs the web declares and the CLI probe cannot discover",
+        ("check_probe_unreachable_pairs_still_apply",)),
+    # Registered 2026-09-16 with the check that re-tests it. The entries are
+    # absolute literals that are PATTERNS -- globs a check searches FOR --
+    # rather than locations anything reads from, which is the whole reason
+    # they are exempt from the no-hard-coded-paths rule.
+    "enforcement.ABSOLUTE_PATH_EXCEPTIONS": (
+        "absolute literals that are patterns, not locations",
+        ("check_filesystem_locations_come_from_paths_py",)),
     "handouts.PER_ITEM_EXCLUDE": (
         "cells dropped from every rate",
         ("check_exclusion_claims_are_data", "check_citations_match_exclusions",
@@ -6248,6 +6326,12 @@ def check_side_notes_are_side_specific() -> list[str]:
 # relax any of them from one table would be a master key to the whole audit.
 # Parking something whose check also ratchets means raising that budget too,
 # deliberately and visibly.
+# EMPTY as of 2026-09-16, and the entry that used to be here left instructions
+# for its own removal: "the fix is an invented example that teaches the same
+# point, and then the reference and this park go together". Handout 2's worked
+# non-example is now invented, the reference is gone, and the `corpus_data:`
+# frontmatter went with it -- so the page renders without the corpus again.
+# A park that outlives its finding is a declaration nobody reviewed.
 PARKED_UNDECLARED: dict[tuple[str, str], str] = {}
 
 # Ratcheted like every other table here. A park is cheap to add and easy to
@@ -6340,6 +6424,681 @@ def check_parked_entries_still_apply() -> list[str]:
                 f"PARKED_UNDECLARED[{key!r}] gives no usable reason. Say what the "
                 f"issue is and what would unpark it -- a park with no reason is "
                 f"an override that never expires")
+    return out
+
+
+def check_no_module_defines_names_after_its_main_guard() -> list[str]:
+    """Nothing that DEFINES a name may sit below `if __name__ == "__main__":`.
+
+    A MODULE RUN AS A SCRIPT NEVER REACHES IT. Execution goes top to bottom, and
+    `raise SystemExit(main())` inside the guard ends the process; anything below
+    is defined only when the module is IMPORTED. So a definition placed there is
+    live on one path and dead on the other, and the two paths disagree silently.
+
+    THE COST, MEASURED. The history rewrite appended a wrapper to
+    `olx_prompts.py` that converts a corpus reference on its way into the .olx,
+    and appended it below the guard. `--write` and `--check` are exactly the
+    script path, so the wrapper never ran there -- while `measured._olx`, which
+    imports the module, got it. `--check` then compared a file holding
+    references against a generator emitting words and called 42 of 113 states out
+    of date. That was recorded as an unavoidable trade between byte-reversibility
+    and generator consistency, with a persuasive explanation, and it was neither:
+    the code that would have reconciled them was never executed.
+
+    Imports and `__all__` are fine -- they bind nothing new that a script path
+    would miss in a way that changes behaviour. What this catches is a `def`, a
+    `class`, or an assignment appearing after the guard.
+    """
+    import ast
+    from pathlib import Path as _P
+    out = []
+    for path in sorted(_P(__file__).resolve().parent.glob("*.py")):
+        f = path.name
+        try:
+            tree = ast.parse(path.read_text())
+        except SyntaxError:
+            continue                      # a separate check owns parse failures
+        guard_line = None
+        for node in tree.body:
+            if (isinstance(node, ast.If) and isinstance(node.test, ast.Compare)
+                    and isinstance(node.test.left, ast.Name)
+                    and node.test.left.id == "__name__"):
+                guard_line = node.lineno
+        if guard_line is None:
+            continue
+        for node in tree.body:
+            if node.lineno <= guard_line:
+                continue
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                out.append(f"{f}: `{node.name}` is defined at line {node.lineno}, "
+                           f"BELOW the main guard at {guard_line} -- it never exists "
+                           f"when the module is run as a script")
+            elif isinstance(node, (ast.Assign, ast.AnnAssign)):
+                tgt = getattr(node, "target", None) or (node.targets[0] if getattr(node, "targets", None) else None)
+                name = getattr(tgt, "id", "<expr>")
+                if name.startswith("_") or name == "<expr>":
+                    continue
+                out.append(f"{f}: `{name}` is assigned at line {node.lineno}, "
+                           f"BELOW the main guard at {guard_line} -- dead on the "
+                           f"script path")
+    return out
+
+
+# An absolute literal that is a PATTERN rather than a location. Declared here
+# with its reason, in the same spirit as NOT_STUDENT_TEXT: the exception is
+# visible and argued, not silent.
+ABSOLUTE_PATH_EXCEPTIONS = {
+    "/tmp/claude-*/*/*/scratchpad":
+        "a GLOB used to find scratchpad copies of these modules, not a location "
+        "anything is read from or written to; the check that owns it is looking "
+        "for stray edits, so the pattern IS the subject",
+    "/tmp/claude-*/*/scratchpad": "the same glob, one directory shallower",
+}
+
+
+def _run_grammar_script(name: str, what: str) -> list[str]:
+    """Run a standalone equivalence script and report what it says.
+
+    THE SCRIPTS EXISTED AND NOTHING RAN THEM. `check_ref_grammars.py` was
+    invoked only by the migration's stage 03b gate and
+    `check_slot_grammars.py` only by hand, so between migrations the two
+    resolvers could drift for weeks with nothing to notice. A check nobody
+    invokes is the same defect as a check that never ran -- see
+    `check_every_check_is_invoked`, which catches it one level down and could
+    not see these, because they are files rather than functions.
+    """
+    import os as _os
+    import subprocess
+    import sys as _sys
+    from pathlib import Path as _P
+
+    import paths as _p
+
+    script = _P(__file__).resolve().parent / name
+    if not script.exists():
+        return [f"{name} is missing -- nothing compares {what}"]
+
+    # HAND THE CHILD THE LOCATION THIS PROCESS ALREADY KNOWS. `corpus_resolve`
+    # refuses to guess where the export lives -- deliberately, because it carries
+    # student text and must never default to somewhere inside a checkout -- so it
+    # reads $CORPUS_REFS or $MOLLY_DATA and exits if neither is set. The child
+    # inherited whatever the invoking shell happened to have, so running the
+    # audit from a shell without $MOLLY_DATA made this check fail EVERY time,
+    # on an unset variable rather than on anything about the two grammars.
+    #
+    # THAT IS NOT A BASELINE, IT IS A CHECK THAT CANNOT PASS. `paths.DATA`
+    # resolves the same directory with a fallback and is what the rest of the
+    # codebase uses; passing it down gives the comparison a fair chance to run
+    # while leaving `corpus_resolve` as strict as it was. An explicit setting in
+    # the environment still wins, so a deliberate override is not overridden.
+    env = dict(_os.environ)
+    env.setdefault("MOLLY_DATA", str(_p.DATA))
+    if not env.get("CORPUS_REFS") and not (_p.DATA / "corpus_refs.json").exists():
+        return [f"{name} cannot run: no export at {_p.DATA / 'corpus_refs.json'} "
+                f"and $CORPUS_REFS is unset, so {what} was NOT compared -- which "
+                f"is not the same as their agreeing"]
+
+    r = subprocess.run([_sys.executable, str(script)], cwd=str(script.parent),
+                       capture_output=True, text=True, timeout=1800, env=env)
+    txt = (r.stdout or "") + (r.stderr or "")
+    if r.returncode == 0:
+        return []
+    lines = [l.strip() for l in txt.splitlines() if l.strip()]
+    return [f"{name}: {l[:150]}" for l in lines[:6]] or [f"{name} failed with no output"]
+
+
+# Charge-once pairs the WEB reader declares and the CLI probe cannot discover.
+#
+# NOT A DIFFERENCE IN WHAT THE ENGINES SCORE. The probe finds a sublinear pair
+# by arithmetic: it fails each slot singly, then in pairs, and calls the pair
+# charge-once when `both < single[a] + single[b]`. A pair produces no observable
+# sublinearity when one side is already a gate, or ignored, or its loss is
+# masked by another deduction -- so the probe cannot see a rule the web declares
+# outright. The two engines agree; one instrument reaches the rule and the other
+# does not.
+#
+# DECLARED RATHER THAN TOLERATED IN A COMMENT. Both of these were accepted
+# already -- the selftest names NR's as a legitimate declared divergence when it
+# computes its clean baseline -- but that acceptance lived in a sentence inside
+# a different module. A reader meeting the finding could not tell an accepted
+# limit of the probe from a new defect, which is the distinction
+# DECOMPOSITION_DIVERGENCES exists to preserve, one instrument over.
+#
+# EACH ENTRY NAMES WHY THE PROBE CANNOT REACH IT, so a THIRD one shows up as
+# new rather than joining a list nobody re-reads. The table ratchets: it may
+# shrink, and an addition wants the same measurement these had.
+PROBE_UNREACHABLE_PAIRS: dict[tuple[str, frozenset], str] = {
+    ("2a", frozenset({"how_2", "mechanism_named"})):
+        "The web charges the pair once. In the CLI ledger `mechanism_named` is "
+        "already carried by the deduction that `how_2` triggers, so failing both "
+        "loses exactly what failing one loses and the arithmetic shows no "
+        "sublinearity for the probe to find. Declared 2026-09-16.",
+    ("NR", frozenset({"barrier_is_not_this_type", "demonstrates_type"})):
+        "The web charges the pair once. `demonstrates_type` is DERIVED on NR -- "
+        "the sheet declares `expect=\"demonstrates_type:observed_type=NR\"` -- so "
+        "the CLI probe never fails it independently and the pair cannot appear "
+        "in its arithmetic. Named in equivalence.py's selftest as a legitimate "
+        "declared divergence since before this table existed; moved here so it "
+        "is a decision with a reason rather than a remark. Declared 2026-09-16.",
+}
+
+
+def check_probe_unreachable_pairs_still_apply() -> list[str]:
+    """Every declared probe gap must still be a gap, and still be real.
+
+    A DECLARATION WITHOUT A VERIFIER IS A SILENCER. `PROBE_UNREACHABLE_PAIRS`
+    stops a finding being reported, so it has to be re-tested or it becomes a
+    place where a real divergence can hide: the entry would go on suppressing
+    the finding long after the reason for it had gone.
+
+    Two ways an entry can rot, and they fail in opposite directions:
+
+      * THE PROBE LEARNS TO REACH IT. If the CLI probe now discovers the pair,
+        the gap has closed and the entry is stale -- it should be deleted so the
+        instruments are known to agree, which is a stronger claim than the
+        declaration made.
+      * THE WEB STOPS DECLARING IT. Then there is no pair to be unreachable, and
+        the entry is describing a rule that no longer exists.
+    """
+    out = []
+    try:
+        cli = cli_signatures()          # defined here, not in equivalence
+    except Exception as e:
+        return [f"cannot read the CLI probe ({type(e).__name__}: {e}) -- these "
+                f"declarations cannot be re-tested, which is not the same as "
+                f"their being sound"]
+    for (item, pair), why in sorted(PROBE_UNREACHABLE_PAIRS.items(),
+                                    key=lambda kv: (kv[0][0], sorted(kv[0][1]))):
+        c = cli.get(item)
+        if c is None:
+            out.append(f"{item}: declared a probe-unreachable pair "
+                       f"({', '.join(sorted(pair))}) but the probe has no signature "
+                       f"for the item at all -- the declaration cannot be re-tested")
+            continue
+        reached = {frozenset((a, b)) for a, b in c.get("charge_once", ())}
+        names = {frozenset(pair)}
+        if any(p & pair == pair for p in reached) or pair in names & reached:
+            out.append(f"{item}: ({', '.join(sorted(pair))}) is declared UNREACHABLE "
+                       f"by the CLI probe, but the probe now finds it. The gap has "
+                       f"closed -- delete the entry rather than leave it suppressing "
+                       f"a finding that would no longer fire")
+    return out
+
+
+def check_every_item_has_a_findable_slot_sheet() -> list[str]:
+    """Every item's slot sheet must be reachable by id, or checks go blind on it.
+
+    SLOTS HANG OFF TWO DIFFERENT ELEMENTS. Twenty-three items are graded by an
+    `<LLMAction>` and are listed in `olx_prompts.ACTION`; three more -- 1b, T1
+    and T2 -- carry their sheet on a `<DerivedChecks>` and are listed in
+    `SHEET_ONLY`. A reader that walks only `<LLMAction>` sees 23 of 26 items and
+    reports nothing about the rest.
+
+    THAT IS NOT HYPOTHETICAL. `check_scored_slots_are_answered_by_both_engines`
+    built its points map from `<LLMAction>` elements alone, so 1b's own slots
+    were invisible to it; `week_1` resolved instead to the SAME-NAMED slot on
+    1a, inheriting 2 points and a derivation that belong to a different item.
+    Three findings resulted, wrong in every particular, and nothing flagged the
+    blindness itself -- the check simply never saw the sheet it needed.
+
+    So this asks the prior question: for each item, is there an element in the
+    handouts carrying its sheet, under the id the mapping gives? An item whose
+    sheet cannot be found is not a scoring fault; it is a hole in what every
+    sheet-reading check can see, and it should be loud rather than silent.
+    """
+    import pathlib as _pl
+    import re as _re
+    try:
+        import olx_prompts as _O
+    except Exception as e:
+        return [f"olx_prompts will not import ({type(e).__name__}), so no item's "
+                f"sheet can be located -- this check cannot run, which is not a pass"]
+
+    want = dict(_O.ACTION)
+    want.update(getattr(_O, "SHEET_ONLY", {}) or {})
+    if not want:
+        return ["no item-to-element mapping at all; ACTION and SHEET_ONLY are both "
+                "empty, so every sheet-reading check is looking at nothing"]
+
+    base = _pl.Path(__file__).resolve().parent.parent / "psychology"
+    blob = ""
+    for h in (1, 2, 3):
+        try:
+            blob += (base / f"bmod_handout{h}.olx").read_text()
+        except OSError:
+            continue
+    if not blob:
+        return ["no handout .olx could be read; sheet discovery cannot run"]
+
+    out = []
+    for item, eid in sorted(want.items()):
+        m = _re.search(r'<\w+\b[^>]*id="%s"[^>]*>' % _re.escape(eid), blob, _re.S)
+        if not m:
+            out.append(f"{item}: no element with id={eid!r} in any handout -- every "
+                       f"check that reads slot sheets is blind to this item")
+        elif 'slots="' not in m.group(0):
+            out.append(f"{item}: element id={eid!r} exists but carries no `slots=` "
+                       f"attribute, so the item has no readable sheet")
+    return out
+
+
+def check_no_file_points_into_a_developers_notes() -> list[str]:
+    r"""No file in this repository may cite a Claude memory.
+
+    A POINTER ONLY ONE PERSON CAN FOLLOW IS NOT A CITATION. Those notes live
+    outside every checkout, under one developer's home directory, private to that
+    machine and rewritten whenever they learn something. A comment in
+    `handouts.py` saying the evidence is "recorded in" one of them tells a second
+    reader that evidence exists and gives them no way to reach it, and tells a
+    future reader nothing at all once the note is renamed.
+
+    WHAT TO DO INSTEAD, AND IT IS NOT A WHOLESALE COPY. Move the PART the pointer
+    is actually about into the document that owns it -- the guide section, the
+    backlog entry, the item's own record -- and cite that. Of the nine notes cited
+    here, seven resolved to a QUALITY_CONTROL.md section that already said the
+    same thing; one needed a new file, `Q6_MATCHING_CEILING.md`, because
+    twenty-four call sites cited it and nothing in the repository held it.
+
+    SCREEN BEFORE YOU COPY. This repository is public and those notes are not
+    written with that in mind: one of the nine carried a 29-word student sentence.
+    Run the text through the corpus scan before it lands, as any other prose would.
+
+    THE FOUR FORMS ARE THE PATTERNS BELOW, AND ARE DELIBERATELY NOT SPELLED OUT
+    IN THIS DOCSTRING. Prose naming them literally is itself a file pointing at
+    that store, so the first version of this check reported its own explanation --
+    five findings, every one of them this function. The handouts use the same
+    trick for the frontmatter marker, and for the same reason.
+
+    A bare slug inside an HTML anchor is a section anchor in this repository's own
+    documents and is NOT flagged: the defect is a pointer out of the tree, not a
+    word that resembles one.
+    """
+    import re as _re
+    import paths as _p
+
+    root = _p.REPO
+    pats = [
+        # WRITTEN AS A CHARACTER CLASS SO THIS LINE DOES NOT MATCH ITSELF.
+        # Spelled plainly, the pattern IS an instance of what it looks for, and
+        # this function reports its own source as a finding.
+        (_re.compile(r"\.claude[/]projects"), "a path into a developer's Claude directory"),
+        (_re.compile(r"\bmemory/[a-z0-9-]+\.md"), "a memory file path"),
+        (_re.compile(r"\bmemory\s+`[a-z0-9-]+`"), "a memory cited by name"),
+        (_re.compile(r"\[\[[a-z0-9]+(?:-[a-z0-9]+)+\]\]"), "a memory wiki-link"),
+    ]
+    exts = (".py", ".md", ".olx", ".json", ".ts", ".tsx", ".sh", ".txt", ".yaml", ".yml")
+    out, scanned = [], 0
+    for f in sorted(root.rglob("*")):
+        if not f.is_file() or f.suffix.lower() not in exts:
+            continue
+        if ".git" in f.parts or "node_modules" in f.parts:
+            continue
+        try:
+            text = f.read_text(errors="replace")
+        except OSError:
+            continue
+        scanned += 1
+        for rx, what in pats:
+            for m in rx.finditer(text):
+                line = text.count("\n", 0, m.start()) + 1
+                out.append(f"{f.relative_to(root)}:{line}: {what} "
+                           f"({m.group(0)!r}) -- move the part this is about into "
+                           f"a document in this repository and cite that")
+    if not scanned:
+        return [f"no text files found under {root}; nothing was scanned, which "
+                f"is not the same as nothing pointing outside the tree"]
+    return out
+
+
+def check_every_reference_has_the_data_that_resolves_it() -> list[str]:
+    """A `{{corpus:...}}` in an .olx requires `corpus_data:` in that file's frontmatter.
+
+    THE REFERENCE AND ITS POINTER ARE ONE UNIT, AND NOTHING ELSE HOLDS THEM
+    TOGETHER. A reference names a span; `corpus_data:` names the export the span
+    lives in. Split them and the build cannot resolve the file at all -- it stops
+    with "carries {{corpus:...}} references and no `corpus_data:` in its
+    frontmatter", which is a hard failure of the whole content build, not of one
+    page. So the cost of the omission is paid by every handout at once.
+
+    WHY THIS IS NOT COVERED BY THE BUILT-PAGE CHECK. Its sibling,
+    `check_no_unresolved_reference_reaches_the_page`, reads the BUILT output. A
+    file that fails to build produces no output to read, so the reference never
+    reaches a page and that check is silent -- correctly, on its own terms. The
+    two findings are opposite shapes: one is a reference that got through, this
+    is a reference that cannot get through. Neither implies the other.
+
+    MEASURED, NOT HYPOTHETICAL. Found 2026-09-16 by the first comparative build
+    run against the rewritten history: `consent.olx` carried one reference and no
+    frontmatter, and a census across all 506 commits found five such blobs in
+    four paths. The earlier by-hand check had printed only the three handouts, so
+    the file was never in view -- which is why this reads EVERY .olx in the tree
+    rather than a named list.
+
+    AN EMPTY TREE IS NOT A CLEAN TREE. If no .olx can be found, the scan proves
+    nothing and says so, rather than returning the same `[]` a healthy repo does.
+    """
+    import re as _re
+    import paths as _p
+
+    root = _p.OLX_DIR
+    if not root.exists():
+        return [f"{root} does not exist, so no .olx could be read; that is NOT "
+                f"the same as every reference having its data"]
+
+    files = sorted(root.rglob("*.olx"))
+    if not files:
+        return [f"no .olx found under {root}; the scan covered nothing, which "
+                f"cannot be reported as agreement"]
+
+    out = []
+    for f in files:
+        try:
+            text = f.read_text(errors="replace")
+        except OSError as exc:
+            out.append(f"{f.name}: cannot be read ({exc}), so whether its "
+                       f"references resolve is unknown")
+            continue
+        if "{{corpus:" not in text:
+            continue
+        # THE BUILD'S OWN RULE, COPIED EXACTLY. `resolveCorpusRefs.corpusDataPath`
+        # reads `olx.slice(0, 4000)` and matches `/^\s*corpus_data:\s*(\S+)\s*$/m`
+        # -- a head-of-file scan, with no frontmatter fence parsed at all. Any
+        # other rule here makes this check disagree with the very thing it is
+        # predicting, in one direction or the other.
+        #
+        # MEASURED, AND IT WAS WRONG THE OTHER WAY FIRST. This asked for a `---`
+        # fence at the start of the file, and every .olx in this tree wraps its
+        # frontmatter in an HTML comment (`<!--`, then `---`), so the fence never
+        # began at byte 0 and all fifteen reference-carrying files reported
+        # missing data -- including the three handouts that plainly carry it.
+        if not _re.search(r"^\s*corpus_data:\s*(\S+)\s*$", text[:4000], _re.M):
+            n = text.count("{{corpus:")
+            out.append(f"{f.relative_to(root.parent)}: carries {n} reference(s) "
+                       f"but no `corpus_data:` in its frontmatter -- the content "
+                       f"build refuses this file, and with it the whole build")
+    return out
+
+
+def check_no_unresolved_reference_reaches_the_page() -> list[str]:
+    """No `{{corpus:...}}` may survive into what a student is served.
+
+    THE GRAMMAR CHECKS TEST THE PARSERS. THIS TESTS THE ARTEFACT. When the two
+    resolvers last diverged the build did not fail -- the TypeScript regex simply
+    did not match a reference carrying a shape, so the build reported "0 file(s)
+    with references", passed, and would have copied a literal `{{corpus:...}}`
+    onto the page. A probe-based equivalence check makes that unlikely; only
+    reading the built output makes it visible.
+
+    Both stages are read: `.stage/content`, which the resolver writes, and
+    `static-content`, the JSON the page loads. A reference surviving into either
+    is a disclosure of the citation and a rendering failure at once.
+
+    THREE OUTCOMES, AND TWO OF THEM ARE NOT PASSES. An unresolved reference is
+    the finding this exists for. But a build directory that is ABSENT means the
+    page was never built, and one OLDER than the content it claims to render is
+    not evidence about that content -- reporting either as clean is how a check
+    becomes decoration.
+    """
+    import os
+    import pathlib as _pl
+    import paths as _p
+
+    lo = _p.LO
+    if not lo.exists():
+        return [f"$LO_BLOCKS does not exist ({lo}); the built page cannot be read, "
+                f"which is NOT the same as it being clean"]
+
+    newest_src = 0.0
+    for f in list(_p.OLX_DIR.glob("*.olx")):
+        newest_src = max(newest_src, f.stat().st_mtime)
+
+    out = []
+    for rel, what in ((".stage/content", "the resolver's staged output"),
+                      ("apps/static/public/static-content", "the JSON the page loads")):
+        root = lo / rel
+        if not root.exists():
+            out.append(f"{rel} does not exist -- {what} has never been built, so "
+                       f"this check cannot see what a student would receive")
+            continue
+        newest_built = max((p.stat().st_mtime for p in root.rglob("*") if p.is_file()),
+                           default=0.0)
+        if newest_src and newest_built < newest_src:
+            hrs = (newest_src - newest_built) / 3600
+            out.append(f"{rel} is {hrs:.0f}h older than the newest .olx -- it is not "
+                       f"evidence about the content this tree now holds; rebuild")
+        # DOES THIS ARTEFACT EVEN CONTAIN OUR CONTENT? The resolver stages only
+        # `./content`; a MOUNTED source -- which is how this repository's
+        # handouts reach the engine -- is scanned in `--check` mode and NOT
+        # staged in `--out` mode. So `.stage/content` can be spotless and say
+        # nothing whatever about these handouts. Reporting that as clean is the
+        # exact shape of failure this check exists to catch, one level up.
+        ours = [h.stem for h in _p.OLX_DIR.glob("bmod_handout*.olx")]
+        if ours and not any(
+                o in q.name or o in q.read_text(errors="replace")[:200000]
+                for q in root.rglob("*") if q.is_file()
+                and q.suffix.lower() in (".olx", ".json", ".xml")
+                for o in [ours[0]]):
+            out.append(f"{rel} does not contain this repository's handouts at all "
+                       f"-- it is {what}, but not of OUR content, so it cannot "
+                       f"show whether a reference of ours reached a page")
+            continue
+
+        hits = []
+        for p in root.rglob("*"):
+            # WHAT CAN ACTUALLY REACH A PAGE. `.olx` is rendered and `.json` is
+            # what the page loads; a `.md` sitting in the staged tree is repo
+            # documentation that is never served as a page, and flagging it
+            # would report `BACKLOG.md` -- which cites the corpus in prose, on
+            # purpose -- as a rendering failure.
+            #
+            # And the OLX form only: `[[corpus ...]]` is the PROSE form, correct
+            # in a rubric or a note. `{{corpus:...}}` is the one that must be
+            # resolved before anybody sees it.
+            if not p.is_file() or p.suffix.lower() not in (".olx", ".json", ".xml"):
+                continue
+            try:
+                text = p.read_text(errors="replace")
+            except OSError:
+                continue
+            if "{{corpus:" in text:
+                hits.append(p.relative_to(root))
+        for h in hits[:8]:
+            out.append(f"{rel}/{h} still holds a literal corpus reference -- it "
+                       f"reached the page unresolved")
+        if len(hits) > 8:
+            out.append(f"{rel}: and {len(hits) - 8} more file(s) with literal references")
+    return out
+
+
+def check_reference_grammars_agree() -> list[str]:
+    """The two corpus-reference resolvers must accept and produce the same thing.
+
+    Python resolves when the scorer reads a file; the engine resolves when the
+    page is built. When they last diverged the failure was SILENT in the worst
+    direction: the TypeScript regex required `}}` straight after `sha=`, so a
+    reference carrying a shape did not match at all, the build reported "0
+    file(s) with references" and passed -- and would have copied a literal
+    `{{corpus:...}}` onto a page a student reads.
+    """
+    return _run_grammar_script("check_ref_grammars.py",
+                               "the two corpus-reference grammars")
+
+
+def check_slot_grammars_agree() -> list[str]:
+    """The two slot-sheet parsers must read the same attribute the same way.
+
+    `olx_prompts.parse_slots` says in its own docstring that it mirrors
+    `slotSheet.ts`, which was a promise nothing checked. A corpus reference's
+    colons collide with `name:description:verdicts@weight`, and when only the
+    Python side was fixed the grader and the student saw DIFFERENT verdict
+    vocabularies for the same slot -- each internally consistent, neither
+    complaining.
+    """
+    return _run_grammar_script("check_slot_grammars.py",
+                               "the two slot-sheet grammars")
+
+
+def check_filesystem_locations_come_from_paths_py() -> list[str]:
+    """No module may spell a filesystem location. `paths.py` resolves them.
+
+    A LITERAL PATH DOES NOT FAIL ON THE WRONG MACHINE OR THE WRONG TREE -- IT
+    SUCCEEDS ON IT. That is the whole problem: `paths.LO` is
+    `os.environ.get("LO_BLOCKS", ...)` so a sandbox, a second checkout or a
+    backup can be measured deliberately, and a module that spells the path
+    instead ignores that choice in silence. Every gate passes, against the wrong
+    thing.
+
+    THE FAILURES THIS CLASS HAS ALREADY CAUSED, all of which looked like success:
+
+      * the migration dry run's own scripts named their sandbox literally --
+        eleven of them. Run against the live tree they would have edited the
+        sandbox and reported every stage green;
+      * seventeen TypeScript verifiers imported the assembler by absolute path
+        into that sandbox, and would have broken silently the day it was deleted;
+      * `MEDIA_DIR = "/tmp/claude-1000/..."` bakes in a numeric UID, so it is
+        correct for exactly one account on one machine.
+
+    A FALLBACK IS THE SAME DEFECT WEARING A SAFER FACE.
+    `getattr(_paths, "OUT", "/home/<user>/molly_data/out")` fires precisely when
+    the configuration is missing, and then reads the developer's own artifact
+    directory rather than saying so. Use `paths.require()`, which names the
+    environment variable it wants. Failing loudly is the point.
+
+    Patterns that are the SUBJECT of a check rather than a location it uses are
+    declared in `ABSOLUTE_PATH_EXCEPTIONS` above, with their reason.
+    """
+    import ast
+    from pathlib import Path as _P
+    ROOTS = ("/home/", "/Users/", "/tmp/", "/var/", "/opt/", "~/")
+    out = []
+    for path in sorted(_P(__file__).resolve().parent.glob("*.py")):
+        if path.name == "paths.py":
+            continue
+        try:
+            src = path.read_text()
+            tree = ast.parse(src)
+        except (SyntaxError, OSError):
+            continue
+        prose = set()
+        for n in ast.walk(tree):
+            if isinstance(n, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef,
+                              ast.ClassDef)):
+                if ast.get_docstring(n, clean=False) is not None:
+                    f = n.body[0]
+                    prose.update(range(f.lineno, (f.end_lineno or f.lineno) + 1))
+        for n in ast.walk(tree):
+            if not (isinstance(n, ast.Constant) and isinstance(n.value, str)):
+                continue
+            v = n.value
+            root = next((r for r in ROOTS if v.startswith(r)), None)
+            # A BARE PREFIX IS NOT A LOCATION. `"/home/"` with nothing after it
+            # is a prefix being tested against, and the first version of this
+            # check reported its OWN `ROOTS` tuple six times.
+            if n.lineno in prose or root is None or len(v) <= len(root):
+                continue
+            if v in ABSOLUTE_PATH_EXCEPTIONS:
+                continue
+            hint = ("paths.LO" if "lo-blocks" in v else
+                    "paths.OUT" if "molly_data/out" in v else
+                    "paths.DATA" if "molly_data" in v else
+                    "paths.py (add an accessor there)")
+            out.append(f"{path.name}:{n.lineno} spells a filesystem location "
+                       f"{v!r} -- use {hint}, or declare it in "
+                       f"ABSOLUTE_PATH_EXCEPTIONS with a reason")
+    return out
+
+
+def check_the_export_is_not_used_to_decide_whose_words_these_are() -> list[str]:
+    """`corpus_refs.json` RESOLVES references. It does not classify text.
+
+    THE TWO ARE DIFFERENT CORPORA AND THE DIFFERENCE IS NOT SMALL. The export
+    holds only the spans something already CITED -- 715 entries, 40,766
+    characters. The response space is `corpus_ref._index()`: every box of every
+    cell for all 20 participants, 1023 entries and 118,804 characters, about
+    three times larger. A sentence a student wrote that reached this repository
+    and that nobody ever referenced is absent from the export entirely.
+
+    SO A SCAN BUILT ON THE EXPORT CANNOT FIND IT. The history rewrite's leak
+    scans were built that way, and reported zero student sentences remaining on a
+    history that still carried 653 distinctive 4-grams. The check that got it
+    right -- `precommit_gate.is_student` -- decides against `_index()`, and the
+    difference between those two reference sets is the entire gap between "the
+    quotes we knew about are gone" and "nobody's words are here".
+
+    Reading the export to RESOLVE a reference is correct and is what it is for;
+    `corpus_resolve` and `corpus_ref` own that. Any other module reaching for it
+    is almost certainly about to classify with it.
+    """
+    import ast
+    from pathlib import Path as _P
+    out = []
+    OWNED = {"corpus_resolve.py", "corpus_ref.py"}
+    for path in sorted(_P(__file__).resolve().parent.glob("*.py")):
+        if path.name in OWNED:
+            continue
+        try:
+            src = path.read_text()
+            ast.parse(src)
+        except (SyntaxError, OSError):
+            continue
+        # PROSE IS NOT USE. A docstring explaining the rule names the export by
+        # necessity -- this check's own docstring does -- and flagging that makes
+        # the check fire on its own explanation.
+        tree = ast.parse(src)
+        prose = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                prose.update(range(node.lineno, (node.end_lineno or node.lineno) + 1))
+        for i, line in enumerate(src.splitlines(), 1):
+            if line.lstrip().startswith("#") or i in prose:
+                continue
+            if "corpus_refs.json" in line or "CORPUS_REFS" in line:
+                out.append(f"{path.name}:{i} reaches for the reference EXPORT. "
+                           f"To resolve a reference call corpus_resolve.load(); to "
+                           f"decide whether text is a student's use "
+                           f"corpus_ref._index(), which is the whole response space")
+    return out
+
+
+def check_one_definition_of_what_counts_as_student_text() -> list[str]:
+    """The scrubber and the scan must not each decide what a quotation is.
+
+    TWO INSTRUMENTS WITH ONE BLIND SPOT AGREE WITH EACH OTHER. The history
+    rewrite's leak scan shared the substitution matcher's pattern, so both missed
+    sentences written across string-literal seams and both reported a clean
+    history that still held 137 of them. The same shape recurred at a different
+    layer: the table was seeded from the quotes our prose had CITED, the scan
+    matched against that same table, and "no student text remains" could only
+    ever mean "the ones we already knew about are gone" -- 653 distinctive
+    4-grams were still there.
+
+    So the rule lives in ONE place. `precommit_gate` decides against the corpus
+    (`corpus_ref._index()`, every box of every cell), and any other component
+    that has to judge whether a run of words is somebody's writing imports that
+    decision rather than reimplementing it. What this check refuses is a SECOND
+    definition: a module that grows its own stopword list, its own minimum word
+    count, or its own corpus path.
+    """
+    import ast
+    from pathlib import Path as _P
+    out = []
+    OWNED = {"precommit_gate.py", "corpus_ref.py"}
+    SIGNS = ("FUNCTION_WORDS", "STOPWORDS", "MIN_CONTENT", "MIN_QUOTE_WORDS")
+    for path in sorted(_P(__file__).resolve().parent.glob("*.py")):
+        f = path.name
+        if f in OWNED:
+            continue
+        try:
+            tree = ast.parse(path.read_text())
+        except SyntaxError:
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Assign):
+                for t in node.targets:
+                    if isinstance(t, ast.Name) and t.id in SIGNS:
+                        out.append(f"{f}:{node.lineno} defines `{t.id}` -- a SECOND "
+                                   f"definition of what counts as student text. "
+                                   f"Import the one in precommit_gate instead")
     return out
 
 
@@ -6480,7 +7239,9 @@ def check_paper_feedback_explains_its_deductions() -> list[str]:
     import measured as M
     import paths as _paths
 
-    root = _pl.Path(getattr(_paths, "OUT", "/home/pdeane/molly_data/out"))
+    root, _why = _paths.out_root_or_reason()
+    if root is None:
+        return [f"{_why} -- this check cannot run, which is NOT the same as passing"]
     want = M.paper_render_sha()
     EMPTY = _re.compile(r"-\s*[\d.]+\s*pts?:\s*$")
     reasonless: dict = {}
@@ -6631,7 +7392,9 @@ def check_students_see_what_each_check_decided() -> list[str]:
     import paths as _paths
 
     MARKED = _re.compile(r"^- ([\u2713\u00b7]) \*\*(.+?)\*\* \u2014 (.*)$")
-    root = _pl.Path(getattr(_paths, "OUT", "/home/pdeane/molly_data/out"))
+    root, _why = _paths.out_root_or_reason()
+    if root is None:
+        return [f"{_why} -- this check cannot run, which is NOT the same as passing"]
     def _app_wrote_it(doc: dict) -> bool:
         """Did the APP write this artifact? `cell` is its key, as result_cell says.
 
@@ -8597,7 +9360,7 @@ DESIGNED_TEXT: dict[tuple[str, str, str], str] = {
     # capability or a resource -- control over the behaviour, a paid membership,
     # a gym on campus, produce in every grocery store, thirty minutes that fit.
     # p13's is the only one in twenty that instead asserts the OUTCOME is
-    # likely: "I am much more likely to be better rested than otherwise." With
+    # likely: [[corpus Q3/p13 realistic 36:83 sha=9e97e908c0fe]] With
     # 31 characters of instruction the grader has no basis to choose, so it
     # splits. The clause says the thin reason still counts.
     #
@@ -9507,7 +10270,9 @@ def check_closure_ceilings_are_declared() -> list[str]:
                       r"|N[RP]|P[RP])/p(\d+)\b")
     out = []
     for label, note in sorted((getattr(GO, "CLOSURES_APPROVED", {}) or {}).items()):
-        text = str(note)
+        # See measured._live_subgoal_owners: a corpus reference names a cell
+        # whose words are quoted, and must not read as a citation of it.
+        text = re.sub(r"\[\[corpus[^\]]*\]\]", " ", str(note))
         for m in ceil.finditer(text):
             window = text[max(0, m.start() - 200): m.end() + 200]
             for c in cell.finditer(window):
@@ -10125,7 +10890,9 @@ def historical_map_divergences() -> list[str]:
     import measured as M
     import paths as _paths
 
-    root = _pl.Path(getattr(_paths, "OUT", "/home/pdeane/molly_data/out"))
+    root, _why = _paths.out_root_or_reason()
+    if root is None:
+        return [f"{_why} -- this check cannot run, which is NOT the same as passing"]
     out: list[str] = []
     for item, _mod, s in _maps_specs():
         for path in _runs_files(root, f"*/{item}.runs.json"):
@@ -10196,7 +10963,9 @@ def check_mapped_slots_agree_with_their_map() -> list[str]:
     by_item: dict = {}
     for item, _mod, s in specs:
         by_item.setdefault(item, []).append(s)
-    root = _pl.Path(getattr(_paths, "OUT", "/home/pdeane/molly_data/out"))
+    root, _why = _paths.out_root_or_reason()
+    if root is None:
+        return [f"{_why} -- this check cannot run, which is NOT the same as passing"]
     if not root.is_dir():
         return []
     tally: dict = {}
@@ -10368,22 +11137,55 @@ def check_scored_slots_are_answered_by_both_engines() -> list[str]:
     """
     import measured as M
 
-    def _pointed() -> dict[str, float]:
-        out: dict[str, float] = {}
+    def _sheets_by_item() -> dict[str, str]:
+        """item id -> the opening tag of the element carrying its slot sheet.
+
+        BOTH KINDS. `olx_prompts.ACTION` covers the 23 items graded by an
+        `<LLMAction>`; `SHEET_ONLY` covers the three whose sheet hangs off a
+        `<DerivedChecks>` instead (1b, T1, T2). Reading only LLMActions made 1b's
+        own slots invisible -- see the scoping note in `_pointed`.
+        """
+        import olx_prompts as _O
+        want = {**{i: e for i, e in _O.ACTION.items()},
+                **{i: e for i, e in getattr(_O, "SHEET_ONLY", {}).items()}}
         base = pathlib.Path(__file__).resolve().parent.parent.joinpath("psychology")
+        blob = ""
         for h in (1, 2, 3):
             try:
-                text = base.joinpath(f"bmod_handout{h}.olx").read_text()
+                blob += base.joinpath(f"bmod_handout{h}.olx").read_text()
             except Exception:
                 continue
-            for m in re.finditer(r'<LLMAction\b[^>]*>', text, re.S):
-                s = re.search(r'slots="([^"]*)"', m.group(0))
-                if not s:
-                    continue
-                for entry in s.group(1).split("|"):
-                    name = entry.split(":")[0].lstrip("!")
-                    pts = float(entry.rsplit("@", 1)[1]) if "@" in entry else 0.0
-                    out[name] = max(out.get(name, 0.0), pts)
+        out = {}
+        for item, eid in want.items():
+            m = re.search(r'<\w+\b[^>]*id="%s"[^>]*>' % re.escape(eid), blob, re.S)
+            if m:
+                out[item] = m.group(0)
+        return out
+
+    def _pointed() -> dict[tuple[str, str], float]:
+        """(item, slot) -> points. ITEM-SCOPED, and that is the whole point.
+
+        THIS MAP USED TO BE KEYED ON THE BARE SLOT NAME, with `max()` across all
+        three handouts, and slot names are ITEM-scoped. `week_1` is 1a's "Covers
+        week 1" at 2 points AND -- through `ALIAS` -- 1b's "Week 1 data present"
+        at 1. So 1b's slot inherited 1a's weight, and `max()` guaranteed the
+        larger one won.
+
+        It inherited 1a's DERIVATION too, and the result was three findings that
+        were wrong in every particular: they reported 2 points where the slot
+        carries 1, claimed a derivation by an `expect` rule when handout 3 has no
+        `expect` attribute at all, and said the app never records the slot when
+        it records it under the aliased name the table already reconciles.
+        """
+        out: dict[tuple[str, float], float] = {}
+        for item, tag in _sheets_by_item().items():
+            m = re.search(r'slots="([^"]*)"', tag)
+            if not m:
+                continue
+            for entry in m.group(1).split("|"):
+                name = entry.split(":")[0].lstrip("!")
+                pts = float(entry.rsplit("@", 1)[1]) if "@" in entry else 0.0
+                out[(item, name)] = max(out.get((item, name), 0.0), pts)
         return out
 
     def _alias_names(key: str) -> set[str]:
@@ -10395,8 +11197,8 @@ def check_scored_slots_are_answered_by_both_engines() -> list[str]:
                 names |= group
         return names
 
-    def _derived() -> set[str]:
-        """Slots the SHEET derives with an `expect` rule.
+    def _derived() -> set[tuple[str, str]]:
+        """(item, slot) the SHEET derives with an `expect`/`equals`/`derived` rule.
 
         THE EXCLUSION THAT STOPPED A WRONG FIX. Without it this check reported
         `demonstrates_type` on PR/NR/PP/NP as "the app makes the judgement and
@@ -10409,13 +11211,13 @@ def check_scored_slots_are_answered_by_both_engines() -> list[str]:
         type charge landed. The verdict is DERIVED AND CHARGED, and merely not
         written back into the artifact -- a recording gap, not a scoring gap.
         """
-        base = pathlib.Path(__file__).resolve().parent.parent.joinpath("psychology")
-        names: set[str] = set()
-        for h in (1, 2, 3):
-            try:
-                text = base.joinpath(f"bmod_handout{h}.olx").read_text()
-            except Exception:
-                continue
+        # ITEM-SCOPED for the same reason `_pointed` is: a derivation belongs to
+        # the sheet that declares it. Read across all three handouts at once, a
+        # slot derived on ONE item excused every same-named slot on every other
+        # -- and that is how 1b's `week_1` was reported as "DERIVED by a sheet
+        # `expect` rule" when handout 3 declares no `expect` attribute at all.
+        out: set[tuple[str, str]] = set()
+        for item, tag in _sheets_by_item().items():
             # THREE ATTRIBUTES DERIVE A VERDICT, NOT ONE. The first cut read only
             # `expect` and left `matches_chosen_type` -- declared `equals` on SIX
             # items -- reported as a scoring gap, which is the same misreading
@@ -10423,11 +11225,11 @@ def check_scored_slots_are_answered_by_both_engines() -> list[str]:
             # third. Read all three or the check tells a confident lie about
             # whichever one was forgotten.
             for attr in ("expect", "equals", "derived"):
-                for m in re.finditer(rf'{attr}="([^"]*)"', text):
+                for m in re.finditer(rf'{attr}="([^"]*)"', tag):
                     for rule in m.group(1).split("|"):
                         if rule.strip():
-                            names.add(rule.split(":")[0].strip())
-        return names
+                            out.add((item, rule.split(":")[0].strip()))
+        return out
 
     pointed = _pointed()
     derived = _derived()
@@ -10450,7 +11252,12 @@ def check_scored_slots_are_answered_by_both_engines() -> list[str]:
                     keys |= set(r.get("checks") or {})
                     keys |= set(r.get("answers") or {})
         for key in sorted(keys):
-            if pointed.get(key, 0.0) <= 0:
+            # ALIASES TOO. The mirror and the app can name the same slot
+            # differently -- `week_1` against `week_1_data` -- so the points are
+            # whichever of the item's own aliased names the sheet carries.
+            pts = max((pointed.get((item, n), 0.0) for n in _alias_names(key)),
+                      default=0.0)
+            if pts <= 0:
                 continue
             if (item, key) in APP_ONLY_SLOTS:
                 continue
@@ -10476,7 +11283,9 @@ def check_scored_slots_are_answered_by_both_engines() -> list[str]:
             # never charge for it. That is the 1c defect exactly (a pick answered,
             # a scored verdict unmapped, every static surface green), and
             # excluding it would hide the very thing this check exists to find.
-            excused = [n for n in sorted(via[lacks]) if pointed.get(n, 0.0) > 0]
+            excused = [n for n in sorted(via[lacks])
+                       if max((pointed.get((item, a), 0.0)
+                               for a in _alias_names(n)), default=0.0) > 0]
             if excused:
                 continue
             # THE KEY *OR ANY OF ITS ALIASES* MAY BE THE DERIVED ONE. 1b forced
@@ -10484,12 +11293,12 @@ def check_scored_slots_are_answered_by_both_engines() -> list[str]:
             # `week_1`, so testing only the scored key missed the derivation and
             # reported three findings on an item that is 20/20 on BOTH sides with
             # identical medians on all twenty cells.
-            if key in derived or (names & derived):
+            if any((item, n) in derived for n in names | {key}):
                 # Derived by an `expect` rule and charged; only the write-back is
                 # missing. Reported as a RECORDING gap so the artifact reader
                 # knows the field is unreliable, never as a scoring gap.
                 out.append(
-                    f"{item}/{key} carries {pointed[key]:g} point(s) and is DERIVED "
+                    f"{item}/{key} carries {pts:g} point(s) and is DERIVED "
                     f"by a sheet `expect` rule, but {lacks} never writes the derived "
                     f"verdict into its artifact -- a RECORDING gap, not a scoring "
                     f"gap: the charge lands. Do not map it; read it from the "
@@ -10498,13 +11307,13 @@ def check_scored_slots_are_answered_by_both_engines() -> list[str]:
             unscored = sorted(via[lacks])
             if unscored:
                 out.append(
-                    f"{item}/{key} carries {pointed[key]:g} point(s) and is never "
+                    f"{item}/{key} carries {pts:g} point(s) and is never "
                     f"answered by {lacks}; {lacks} answers only the UNSCORED alias "
                     f"{','.join(unscored)}, and no map connects them -- so {lacks} "
                     f"makes the judgement and cannot charge for it")
             else:
                 out.append(
-                    f"{item}/{key} carries {pointed[key]:g} point(s), is answered "
+                    f"{item}/{key} carries {pts:g} point(s), is answered "
                     f"by {has} and NEVER by {lacks} under any declared alias")
     # THE RATCHET, ON THE UNDECLARED COUNT ONLY. A recording gap is a documented
     # fact about the artifacts and is meant to stay visible, so it is reported
@@ -10803,7 +11612,9 @@ def check_count_scaffolds_are_arithmetic() -> list[str]:
 
     stems = ("reasons", "benefits", "harms")
     out: list[str] = []
-    root = _pl.Path(getattr(_paths, "OUT", "/home/pdeane/molly_data/out"))
+    root, _why = _paths.out_root_or_reason()
+    if root is None:
+        return [f"{_why} -- this check cannot run, which is NOT the same as passing"]
     if not root.is_dir():
         return []
     for path in _runs_files(root, "*/*.runs.json"):
@@ -11932,8 +12743,7 @@ def check_fixture_boxes_hold_the_students_words(items=None) -> list[str]:
                     if not whole or not v or v in whole:
                         continue
                     # A DISTRIBUTED NEGATION IS STILL THE STUDENT'S WORDS. Q6/p6
-                    # wrote "not attending the gym & stretching as often as I
-                    # should be" and the hand split has to repeat the "not" to
+                    # wrote [[corpus Q6/p6 state_a2 3:38 sha=d7d19592b8a2]] and the hand split has to repeat the "not" to
                     # make the second box stand alone, so the box is a faithful
                     # reading that is not a verbatim substring. Allowing only a
                     # LEADING negator keeps the test exact for everything else.
@@ -11959,8 +12769,7 @@ def check_fixture_covers_the_response() -> list[str]:
     asserts no row swallows another, but nothing asserted that a split PRESERVES
     the response.
 
-    It does not always. p5's Q6 ends "When I have more fruits and vegetables
-    available to me, I hope that I will no longer feel the need to satisfy my
+    It does not always. p5's Q6 ends "[[corpus Q6/p5 state_c2 0:112 sha=6d2b4490a7d6]]
     craving of unhealthy snacks. Instead, I hope to eat fruits and vegetables
     more often" — a complete second consequence, and both of its boxes are
     EMPTY. About 200 characters never reach the scorer, which then correctly
@@ -12064,7 +12873,7 @@ def _locate(raw: str, box: str) -> int:
     """Where `box` starts in `raw`, ignoring whitespace differences, or -1.
 
     A hand-split or a scorer quote can differ from the response by a space that
-    nobody typed: Q4b/p7's `second` box reads "2) Also, I get myself ..." where
+    nobody typed: Q4b/p7's `second` box reads [[corpus Q4b/p7 first 0:18 sha=1608aa905e2c]] where
     the student wrote "2)Also". An exact search misses it, the box counts as
     unlocated, and its whole 33-word sentence is reported as belonging to no box
     — a fixture defect that is really a matching defect.
@@ -12267,9 +13076,7 @@ def _longest_unassigned(raw: str, boxes, n: int = 5) -> tuple[int, str]:
 # student really did write the same words twice, so two boxes holding them is a
 # true transcription and the grader's own machinery handles it.
 CONSENSUS_OVERLAP_BACKLOG: dict[tuple, str] = {
-    # 2a/p20. One sentence, "My sleep duration increased over time, as shown by
-    # the higher number of hours during the intervention weeks compared to the
-    # baseline week", states the outcome AND supplies the evidence for it. The
+    # 2a/p20. One sentence, [[corpus 2a/p20 how1 0:137 sha=797bcfeaa08e]], states the outcome AND supplies the evidence for it. The
     # `verdict` box holds its main clause; `how1` holds the whole sentence, so
     # the containment is total. It is faithful for the reason the item's own
     # rubric gives — "one compound sentence that states the outcome and explains
@@ -12280,7 +13087,7 @@ CONSENSUS_OVERLAP_BACKLOG: dict[tuple, str] = {
     # fragment shape "Q6's overlapping fixture boxes are FAITHFUL" in
     # EQUIVALENCE.md records as taking Q6 from 11/17 to 3/17.
     # 2a/p18. Two sentences, and the first does verdict duty and how duty at
-    # once — "My exercise intake increased from 0 to 3 session a week, as shown
+    # once — "[[corpus 2a/p18 how1 0:65 sha=bc45c9fc7f7b]]
     # by the data" — so `verdict` and `how1` hold it together. Same shape as p20
     # below and licensed by the same guidance bullet, and gold's 6.0 credits
     # both the verdict and two hows on those two sentences.
@@ -12318,8 +13125,7 @@ def _cover_groups(item_id: str) -> list[set[str]]:
     text is an expected input, not a defect — it is the case the mechanism was
     built to resolve.
 
-    Q6/p6 is that case. One conjoined phrase, "not attending the gym &
-    stretching as often as I should be", names both of 4a's triggers under a
+    Q6/p6 is that case. One conjoined phrase, [[corpus Q6/p6 state_a1 0:21 sha=641b355f6e09]] & [[corpus Q6/p6 state_a2 0:38 sha=53450ef3ac65]], names both of 4a's triggers under a
     single "not", so neither half can be split off without inverting it. The
     scorer labelled both boxes `first` and cover demoted the second, as
     designed. That carried a per-cell declaration; the fact is in the slot
@@ -12367,8 +13173,7 @@ def check_consensus_spans_are_disjoint() -> list[str]:
     does not re-charge the effect (see the no-double-jeopardy note in
     handouts.CORRECTED_GOLD).
 
-    Measured, on p4, 2026-08-19. Its `state_c2` held "I hope that I will no longer
-    be up late" and `affect_c2` the whole sentence that is a superset of it. Split
+    Measured, on p4, 2026-08-19. Its `state_c2` held [[corpus Q6/p4 state_c1 0:39 sha=1fa67f2118a0]] and `affect_c2` the whole sentence that is a superset of it. Split
     faithfully -- the conjunction broken and the negation repeated on the second
     conjunct, so it reads as a negation and not an assertion -- `affect_c2` fell
     from `met` 9 of 9 to `incomplete` 7 of 9, and the cell lost 1.25 in every
@@ -12446,7 +13251,7 @@ def check_consensus_spans_are_disjoint() -> list[str]:
                 # a box holding a FRAGMENT lifted out of a neighbour's sentence.
                 # Q6/p14 had two, both 19 characters — `affect_c2` set to "not be
                 # that severe.", sliced off the end of change_a2's sentence, and
-                # `affect_c1` holding "I work out (new A)." that change_a1 also
+                # `affect_c1` holding [[corpus Q6/p14 change_a1 62:82 sha=589165ef389c]] that change_a1 also
                 # held. The scorer answered `incomplete` about the fragment,
                 # correctly, and the cell lost 1.25 that gold awards. Lowering the
                 # floor to 5 surfaces nothing else in the corpus, so 10 is free.
@@ -12487,7 +13292,7 @@ FIXTURE_STRUCTURE_OVERRIDES: dict[tuple[str, int, str], str] = {
     # Q6/p2 was the opposite — a real cut wearing an override. Its note claimed
     # extending `change_a1` would swallow "the next sentence, which no box
     # needs". It is not the next sentence: it is the rest of the SAME one, the
-    # clause "when I have the time to fix my bad day by myself", which belonged
+    # clause [[corpus Q6/p2 change_a1 173:222 sha=c8f08b0233f6]], which belonged
     # to no box at all. The box now runs to its own full stop.
 }
 
@@ -12512,8 +13317,7 @@ def _response_parts(raw: str) -> list[int]:
 
 
 # Words a clause does not end on. A box finishing here was cut mid-clause: p5's
-# `state_a1` ended "... I hope that I", its `state_c1` trailed off into "Instead,
-# I hope that I will", p4's `state_a2` stopped at "that leads to me not" and its
+# `state_a1` ended "... I hope that I", its `state_c1` trailed off into [[corpus Q6/p5 affect_c1 0:27 sha=7e72ce8b5a47]], p4's `state_a2` stopped at [[corpus Q6/p4 state_a2 55:76 sha=9b1ec9750da6]] and its
 # `state_c1` at "everywhere. o I". Function words only — a clause ending on a
 # noun, verb or adjective is finished, whether or not a full stop follows.
 _DANGLING = {
@@ -12654,9 +13458,8 @@ def check_fixture_follows_response_structure() -> list[str]:
     things a clause-level layout rules out:
 
       * a box ENDING on a function word — cut mid-clause. p5's `state_a1` ended
-        "... I hope that I"; p4's `state_a2` stopped at "that leads to me not".
-      * a box CROSSING a part boundary — p4's `state_c1` held "I won't be falling
-        asleep everywhere. o I", the tail of part one plus the opening of part two.
+        "... I hope that I"; p4's `state_a2` stopped at [[corpus Q6/p4 state_a2 55:76 sha=9b1ec9750da6]].
+      * a box CROSSING a part boundary — p4's `state_c1` held [[corpus Q6/p4 affect_c1 90:128 sha=dae67124dfc9]], the tail of part one plus the opening of part two.
 
     A box contained in its same-element sibling is exempt from the first: a
     `state_cN` that is the opening of `affect_cN`'s sentence is the permitted

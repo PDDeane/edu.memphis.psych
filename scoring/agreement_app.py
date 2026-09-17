@@ -609,8 +609,7 @@ def scorer_evidence(handout: int, pid: int, item: str) -> dict[str, str]:
     Those are dropped — an empty field is the right fixture for something the
     student did not write, and a description of an absence is not their words.
 
-    It also sometimes annotates a real quote: `"I hope I don't suffer the
-    consequences of bad health" — loosely worded, but this is the 4c
+    It also sometimes annotates a real quote: `[[corpus Q6/p9 state_c1 9:62 sha=03879cc80fbe]] — loosely worded, but this is the 4c
     consequence`. The commentary is the scorer's reasoning, not the student's
     words, so only the quoted span is kept. Leaving it in put the CLI's own
     analysis into the student's box on 10 of Q6's 117 filled fields, and the
@@ -662,883 +661,103 @@ def scorer_evidence(handout: int, pid: int, item: str) -> dict[str, str]:
 # Two forms. ("swap", a, b) exchanges two boxes whose spans are both correct and
 # merely sit in the wrong places. ("set", field, text) assigns a span outright,
 # quoted in full so the correction is auditable against the response.
-CONSENSUS_FIXES: dict[tuple[str, int], list[tuple]] = {
-    # p4 wrote antecedent-1 -> change -> consequence, then antecedent-2 ->
-    # change -> consequence. The consensus put the FIRST pair's consequence in
-    # the c2 boxes (document positions 157 and 219) and the SECOND pair's in the
-    # c1 boxes (both at 389), inverting both pairs. Nothing is dropped or
-    # duplicated; the two clauses are simply exchanged, which scrambles exactly
-    # the antecedent-to-consequence linkage the affect_c* rules judge.
-    # p4 writes part 1 in three clauses and part 2 in two, and the consensus
-    # respected neither. `state_c1` held "I won't be falling asleep everywhere.
-    # o I" — a slice from the MIDDLE of part 1's last sentence plus the two
-    # characters that open part 2. `affect_c1` began mid-phrase at "be happier",
-    # orphaning "which I hope will help me to". `state_a2` stopped at "that leads
-    # to me not", orphaning "sleeping the full 8 or 9 hours" — the same asymmetry
-    # as p5, where state_a1 runs through its parallel clause and state_a2 does
-    # not. Fourteen words belonged to no box, both stretches mid-sentence cuts
-    # rather than the connectives a clause split rightly discards.
-    #
-    #   part 1  @0    antecedent   @105 change   @127 consequence   @157 effect
-    #   part 2  @259  antecedent   @367 change   @389 consequence AND effect
-    #
-    # Part 2's c-boxes share one sentence because the student wrote only one
-    # there; that is the permitted same-element overlap, not a duplication.
-    # Q6/p2. `change_a1` stopped at "... something to look forward to", and the
-    # rest of its own sentence — "when I have the time to fix my bad day by
-    # myself." — belonged to NO box. It carried a structure override saying the
-    # phrase was complete and that extending it would swallow the next sentence.
-    # The phrase does read complete, because "to" there is a phrasal particle,
-    # but the sentence does not end at it. Runs to its own full stop now, ending
-    # at 307 where affect_c1 starts at 308.
-    ("Q6", 2): [
-        ("set", "change_a1",
-         "by turning my anger and sadness into motivation to work out and "
-         "better myself. Turing these negative emotions into fuel to work out "
-         "will give me something to look forward to when I have the time to fix "
-         "my bad day by myself."),
-    ],
+class _ConsensusFixes:
+    """The cell corrections, resolved from the corpus instead of copied from it.
 
-    # 2a/p1. how1 swallowed BOTH explanations — the sleep/patience one and the
-    # physical-health one — leaving how2 empty. Two distinct HOWs, two boxes.
-    ("2a", 1): [
-        ("set", "how1",
-         "I am a lot more patient than I have been due to the amount of sleep I am getting."),
-        ("set", "how2",
-         "I have not had the best days with my physical health. I did find that on days I didn’t get a lot of rest my stomach would hurt or be unsettled for a little bit."),
-    ],
-    # 2a/p5. how1 began mid-sentence at "I feel that I started to slip", dropping the
-    # clause it depends on. Restored to the whole sentence.
-    ("2a", 5): [
-        ("set", "how1",
-         "The simplicity of the plan makes it seem much easier than it actually is, and I feel that I started to slip towards the end of my intervention due to burnout."),
-    ],
-    # 2a/p15. how1 held both explanations and how2 was empty, same shape as p1.
-    ("2a", 15): [
-        ("set", "how1",
-         "I was unable to lower my screentime."),
-        ("set", "how2",
-         "I found my reinforcement I set for myself a little unreasonable."),
-    ],
-    # 2a/p16. p16 labels its own sentences ("Sentence 1:", "Sentence 2:"). how1 held a
-    # string that appears NOWHERE in the response — sentence 1's label welded to
-    # sentence 2's text. Set to sentence 2 with the label stripped.
-    ("2a", 16): [
-        ("set", "how1",
-         "It worked well when I had free time and would just get up and exercise."),
-        # how2 kept the label the other two boxes had stripped, so the grader read
-        # "Sentence 3: On the other hand ..." — the student's own scaffolding
-        # served back as their words, and inconsistently, since verdict and how1
-        # start after theirs. Stripped like the others.
-        ("set", "how2",
-         "On the other hand, it was hard for me to get up and exercise when I "
-         "had a busy day or didn\u2019t feel motivated enough to exercise."),
-    ],
-    # 2a/p20. how1 began ", as shown by the higher number of hours ..." — a
-    # comma-initial adjunct cut out of the verdict's own sentence, which is not a
-    # clause and cannot be judged as an explanation on its own. The response is
-    # two sentences and gold gives it 6.0, so both hows come from them; how1 now
-    # holds the whole first sentence, which CONTAINS the verdict box's clause.
-    # The item's own guidance licenses exactly that shape — "a verdict that cites
-    # the data as its evidence, followed by one concrete circumstance under which
-    # the plan worked, covers the verdict and both explanations", one of three
-    # shapes it says earned 6/6. verdict is left untouched; the containment is
-    # declared in enforcement.CONSENSUS_OVERLAP_BACKLOG.
-    ("2a", 20): [
-        ("set", "how1",
-         "My sleep duration increased over time, as shown by the higher number "
-         "of hours during the intervention weeks compared to the baseline week."),
-    ],
-    # The enumerator strip, third and last group: Q4b's fourteen boxes and Q6's
-    # five. Same defect as 2a/p16, Q4c/p13+p16, Q5/p1+p16 and Q3/p6 — the
-    # student's own list marker served back as the opening of their answer, and
-    # inconsistently, since most cells of each item start at the first word.
-    #
-    # Both items are declared and were declared BEFORE the box-by-box pass, which
-    # is how they kept theirs: a MULTI_BLOCK_DECLARED entry records that someone
-    # read the SPLIT, not that every box was normalised.
-    #
-    # Applied here rather than at each item's source, deliberately. Q4b's fixture
-    # is the hand-split JSON and Q6's is the frozen 10-run consensus, both in
-    # MOLLY_DATA and neither in git; the note further down this block records what
-    # editing data outside the repo cost last time — a p7 fix invisible to anyone
-    # who clones this. A declared correction is reviewable and reversible, and it
-    # leaves the consensus frozen, which is the property Q6 was frozen FOR.
-    #
-    # Q6 must be re-measured because of this: it is the item with the longest
-    # measured history in the corpus, and five of its boxes now serve different
-    # text. Q4b likewise. Nothing else about any box changes — only the marker
-    # comes off — and the markers are left belonging to no box, as they are in
-    # every other item.
-    #
-    # Q6/p18's `state_a1` is left ending on its comma ("To change my first
-    # trigger (after-school fatigue),"). That is a mid-clause cut in a frozen
-    # box, a different defect from this one, and it is recorded in
-    # scoring/BACKLOG.md rather than repaired in passing.
-    ("Q4b", 1): [
-        ("set", "first",
-         "When I’m on my phone sometimes, I say I will only stay up "
-         "for 30 minutes then waste two hours just scrolling on "
-         "Instagram."),
-        ("set", "second",
-         "Sometimes me and my friends will stay up late playing card "
-         "games and I would go to bed around one in the morning."),
-    ],
-    ("Q4b", 8): [
-        ("set", "first",
-         "When I am not at the gym, I am at home playing games or "
-         "just avoiding going the gym,"),
-    ],
-    ("Q4b", 10): [
-        ("set", "first",
-         "I will ultimately feel more confident in myself. This is "
-         "something I struggle with and going to the gym will be a "
-         "good first step for me to create an healthy relationship "
-         "with myself. I will start to feel less insecure at the end "
-         "of the day."),
-        ("set", "second",
-         "I will begin to have discipline in myself more. I will be "
-         "creating an routine for myself even though I won’t like "
-         "doing it. This will help with my laziness and will "
-         "encourage me to fight the urge to not do what I need to do."),
-    ],
-    ("Q4b", 13): [
-        ("set", "first",
-         "the first thing is i get distracted and multitask from "
-         "getting work dine and being on my phone"),
-        ("set", "second",
-         "the second thing is that my brain is telling me to go to "
-         "sleep, but i couldn’t physically do it because of my ADHD."),
-    ],
-    ("Q4b", 17): [
-        ("set", "first",
-         "When I am not exercising I am eating or being busy running "
-         "errands or shopping for my self."),
-        ("set", "second",
-         "When I am not exercising im on my phone instead of spending "
-         "my time with doing my daily exercise."),
-    ],
-    ("Q4b", 18): [
-        ("set", "first",
-         "During my unwanted behavior, I am often sedentary on my bed "
-         "or couch, mindlessly scrolling through various social media "
-         "feeds for extended periods of time."),
-        ("set", "second",
-         "Additionally, I find myself choosing to nap or watch "
-         "television instead of putting on my workout clothes and "
-         "starting my exercise routine."),
-    ],
-    ("Q4b", 19): [
-        ("set", "second",
-         "When I am not getting enough sleep I rely on caffeine to "
-         "get me through my day."),
-    ],
-    ("Q4b", 20): [
-        ("set", "first",
-         "when i am not getting enough sleep, i am mostly go to sleep "
-         "in my car or in the classroom."),
-        ("set", "second",
-         "When i a, not getting enough sleep, i am mostly late for "
-         "classroom or doing past due assignments."),
-    ],
-    ("Q6", 20): [
-        ("set", "state_a1",
-         "One antecedent of my unwanted target behavior is feeling "
-         "lazy when I am sleep deprived."),
-        ("set", "state_a2",
-         "Another trigger for my unwanted target behavior is waking "
-         "up late and rushing, which leads to forgetting things for "
-         "school."),
-    ],
-    # Q3/p6 bullets four of its five aspects, and all four boxes kept the "- ".
-    # `specific`, the one aspect it does not bullet, starts at the student's
-    # first word — so the cell served four boxes opening with punctuation and
-    # one without, which is the enumerator defect already fixed in 2a, Q4c and
-    # Q5. Stripped; nothing else about the boxes changes, and the four bullets
-    # now belong to no box.
-    #
-    # This cell writes no aspect LABELS ("Measurable:"), unlike p1 and p19, so
-    # there is no label question here — only the bullet. It is a counted cell,
-    # gold 3.0, and the two points gold takes off are on `specific` and
-    # `timebound`, one of which is the box that never had a bullet.
-    ("Q3", 6): [
-        ("set", "measurable",
-         "My goal is measurable because I will create a board with a count of "
-         "how many days I attend the gym, while making a side note on that "
-         "board of how often I am stretching daily."),
-        ("set", "action",
-         "My goal is also action-oriented because I will have to attend the gym "
-         "days and then exercise."),
-        ("set", "realistic",
-         "Adding on, my goal is also realistic because it is possible to walk "
-         "to a gym more than one time a week, and I\u2019ll have control over "
-         "how often I go."),
-        ("set", "timebound",
-         "Atlas, my behavior intervention plan is time-bound, as it is designed "
-         "to occur over three months, with one month of data collection and two "
-         "months of intervention data collection."),
-    ],
-    # Q3/p19 typed the handout's own scaffolding above its answer, and the
-    # anchored split took it for content: `measurable` held the printed
-    # INSTRUCTION "You must discuss and label each aspect of the SMART goal for
-    # full credit.", and `specific` held the printed QUESTION plus BOTH the
-    # specific and the measurable sentences. So the grader was asked whether the
-    # goal is measurable and shown an instruction, while the student's own
-    # measurable sentence sat in the specific box — and gold docks p19 that exact
-    # point ("-1 pt: For measurable, how are you tracking your goal?") while the
-    # sentence answers it. No check saw it: the response was fully covered, just
-    # covered wrongly.
-    #
-    # Each box now holds its own aspect, labelled the way this item's students
-    # label them and the way p19's other three boxes already are. Both lines of
-    # template text drop out and belong to no box, which is correct. The "_"
-    # after "Measureable:" is the fill-in rule the student typed over and is kept
-    # deliberately — `timebound` has the same one, and stripping it here alone
-    # would make the cell inconsistent with itself; it goes with the corpus-wide
-    # residue fix instead.
-    ("Q3", 19): [
-        ("set", "specific",
-         "Specific: My goal is specific because i plan to get 8 hours of sleep "
-         "per night by tracking my sleep."),
-        ("set", "measurable",
-         "Measureable:_My goal is measurable because i will track how long I "
-         "sleep each night by going to sleep at the same time, and waking up at "
-         "the same time."),
-    ],
-    # 1c/p20 wrote its graph out as prose instead of drawing one: "Title: Sleep
-    # Duration Over 4 Weeks X-axis label: Days (or Weeks) Y-axis label: Hours of
-    # Sleep Legend: Baseline Week 1 Week 2 Week 3". The paper scorer records no
-    # title or axis evidence for it — there is no chart to read them off — so all
-    # three label boxes came out empty while the whole description belonged to no
-    # box. That made the cell's `unscoreable` entry untrue about its own
-    # mechanism: it says "the labels are typed into fields and the chart is drawn
-    # from the four complete weeks", and only the second half was happening.
-    # Seeded from the student's own labels, which is what they would have typed
-    # into the three fields. The scaffolding ("Title:", "X-axis label:",
-    # "Y-axis label:", "Legend:") stays out, like every other label in the
-    # corpus, and `series` was already correct from `sim`.
-    ("1c", 20): [
-        ("set", "title", "Sleep Duration Over 4 Weeks"),
-        ("set", "x", "Days (or Weeks)"),
-        ("set", "y", "Hours of Sleep"),
-    ],
-    # Item 3, five cells with one defect: `second` opened with a sentence that
-    # elaborates the FIRST change, so box 2 began before the second change did.
-    # p4's opened "I hate school!" (about change 1's extra-schoolwork punishment),
-    # p6's "That would have made my modification results more effective.", p9's
-    # "Some days I'm ready to go home after working out ...", p16's "If I don't
-    # exercise ... I would take away sweets" and p19's two sentences about the
-    # screen-time limit it had just proposed. Each boundary moves to the sentence
-    # that actually opens change 2 ("I could also consider ...", "Another change
-    # I could have made ...", "Another operant conditioning I would try ...",
-    # "Another punishment could be ...", "I would also change ..."). Nothing
-    # enters or leaves either box: the union of the pair is identical, asserted
-    # cell by cell before these were written. All five score 6.0 against a gold
-    # of 6.0 today, so they need re-measuring — the count is judged over the
-    # whole response, which is why the mis-cut cost nothing.
-    ("3", 4): [
-        ("set", "first",
-         "There are a few changes I would make to improve my "
-         "behavior intervention plan. First, I might choose a "
-         "different weekly operant conditioning principle—positive "
-         "punishment—that might be more powerful and enticing. For "
-         "instance, if I did not sleep enough one night, I could make "
-         "myself do extra schoolwork. I hate school!"),
-        ("set", "second",
-         "I could also consider setting two daily alarms on my phone "
-         "with different tones to try to help me go to bed at certain "
-         "times. Lastly, I noticed that I never withheld TikTok from "
-         "myself, so next time, I would choose another example of "
-         "negative punishment, one that I would be more likely to "
-         "follow through with doing. An alternative punishment could "
-         "be that if I did not sleep enough, I would not allow myself "
-         "to watch TV with my friends or by myself that night."),
-    ],
-    ("3", 6): [
-        ("set", "first",
-         "In my opinion, there could have been some slight changes "
-         "made to my modification plan. One of those changes being "
-         "the way I chose to discipline myself. Instead of creating a "
-         "chore every Sunday that I may not like doing, I could have "
-         "put myself on a high-protein diet and cut off "
-         "sweets/unhealthy foods. That would have made my "
-         "modification results more effective."),
-        ("set", "second",
-         "Another change I could have made would be the amount of "
-         "time I chose to spend at the gym. Although I did reach my "
-         "goal, if I kept increasing the timeframe I spent working "
-         "out, I would be more motivated to keep exercising on my own "
-         "without having to discipline myself."),
-    ],
-    ("3", 9): [
-        ("set", "first",
-         "There are a few changes I would make to improve my behavior "
-         "modification plan. First, I would choose a different "
-         "operant conditioning type, which I would choose positive "
-         "punishment. For example the day I didn’t go to the gym I "
-         "will add 30 minutes to my workout the next day. Some days "
-         "I’m ready to go home after working out because sometimes I "
-         "feel like I am rushing myself enough time to get myself "
-         "situated for the night."),
-        ("set", "second",
-         "Another operant conditioning I would try is negative "
-         "punishment. If I skip a day or at least not do 30 minutes "
-         "of exercising I will limit my screen time on my phone."),
-    ],
-    ("3", 16): [
-        ("set", "first",
-         "I will make many changes next time I try this. I would do "
-         "positive punishment because I feel like that is most "
-         "effective for me. If I don’t exercise as much as I said I "
-         "would then I would take away sweets because it is more "
-         "realistic than taking away electronics. I love sweets but I "
-         "have cut them out before so I feel that it may work better."),
-        ("set", "second",
-         "Another punishment could be taking away going out to eat "
-         "with my boyfriend unless I exercise that day."),
-    ],
-    ("3", 19): [
-        ("set", "first",
-         "There are a few things that I would do differently to "
-         "improve my behavior modification plan. The first would be "
-         "to set a screen time limit for myself. This would help me "
-         "improve by not having access to social media after a "
-         "certain time. This would make it more likely that I would "
-         "sleep at the same time."),
-        ("set", "second",
-         "I would also change my positive punishment, which is if I "
-         "did not meet my sleep goal for that night, I would have to "
-         "finish all my homework for that day."),
-    ],
-    # Q5/p1 and p16. The same enumerator defect as Q4c/p13+p16, third item to
-    # carry it: p1 kept "1) " and "2) " in BOTH boxes and p16 kept the "2. " it
-    # is the only cell to write, while p8, p10, p12, p18, p19 and p20 all start
-    # after their markers ("_2)", "1)_", "1.", "2)_"). Stripped.
-    ("Q5", 1): [
-        ("set", "first",
-         "I believe that I miss out on sleep at night because I get so consumed "
-         "with stuff on my phone."),
-        ("set", "second",
-         "I think that with all the extra time I have I get distracted and stay "
-         "up because I feel like I have the time to do so."),
-    ],
-    ("Q5", 16): [
-        ("set", "second",
-         "Another reason I continue is because I like being lazy at times."),
-    ],
-    # Q4c/p13 and p16. Three boxes kept the student's ENUMERATOR inside them
-    # while the other eight cells of the item strip theirs — p13's `first` opened
-    # "1) I end up facing ...", p16 held "1. One consequence ..." and "2. Another
-    # consequence ...", and p12, whose response has p16's exact "1."/"2." shape,
-    # starts after the marker. Serving one cell's list numbers back as its words
-    # and not another's is the 2a/p16 defect ("Sentence 3:") in a second item.
-    # Stripped; nothing else about these boxes changes, and p13's `second` stays
-    # empty, which is what gold's "missing second consequence" charges.
-    ("Q4c", 13): [
-        ("set", "first",
-         "I end up facing the conequence of being tired the next day."),
-    ],
-    ("Q4c", 16): [
-        ("set", "first",
-         "One consequence is gaining weight. If I keep being lazy laying down."),
-        ("set", "second",
-         "Another consequence is the risk of getting addicted to electronics, "
-         "and my screen time then continues to rise."),
-    ],
-    # Q4a/p10. `second` dropped part 2's closing clause ("I am a beginner at the end of
-    # the day ..."). A numbered part keeps all of its own clauses.
-    ("Q4a", 10): [
-        ("set", "second",
-         "Another antecedent is I’m scared that I will embarrass myself at the gym because I don’t know what I am doing fully. I am a beginner at the end of the day, and this is a challenge of some sorts."),
-    ],
-    # Q4a/p17. `first` dropped part 1's second sentence, same rule.
-    ("Q4a", 17): [
-        ("set", "first",
-         "Feeing tired and not wanting to workout. And pushing it to the the next day, i don’t end up doing it the day after ."),
-    ],
-    # Q5/p11. both boxes truncated: `first` lost part 1's third sentence, `second` was cut
-    # mid-clause at "recover from stress". Each part keeps all three of its clauses.
-    ("Q5", 11): [
-        ("set", "first",
-         "One reason I continue to engage in my unwanted target behavior is to escape discomfort and fear caused by my asthma symptoms. When I feel shortness of breath or chest tightness, avoiding exercise helps me feel safer and more comfortable in the moment. This allows me to avoid the fear of triggering an asthma attack, even though it prevents me from improving my physical health."),
-        ("set", "second",
-         "Another reason is because I feel physically and mentally exhausted after a long college day. After attending classes, studying, and completing assignments, I often feel drained and unmotivated to exercise. Resting feels more rewarding because it helps me relax and recover from stress, even though avoiding exercise can negatively affect my health and energy in the long term."),
-    ],
-    # 2a/p18 is NOT fixed here, and the reason is worth keeping. This entry
-    # once set `verdict` to "The behavior modification plan was successful."
-    # That sentence is the first line of the TEMPLATE'S WORKED EXAMPLE, which
-    # p18 copied verbatim; `join_aware` strips it as boilerplate, exactly as it
-    # is meant to. The fix was made while the audit was reading segments WITHOUT
-    # join_aware, so the example text was still sitting in the response and read
-    # as the student's own verdict — putting template prose into a scored box.
-    #
-    # What remains is a real disagreement, not a fixture defect. Gold gives this
-    # cell a full 6.0, crediting the copied sentence the grader saw on paper.
-    # After template subtraction no verdict survives, so the paper scorer quotes
-    # the nearest thing — which is how1's sentence, and why `verdict` and `how1`
-    # overlap. Whether that made the cell unscoreable was a SCORING decision,
-    # and it is now taken: NO. The cell is counted. Six passes credit the
-    # verdict on the student's own first sentence and five of them reach gold's
-    # 6.0, so the exclusion was hiding a cell we score correctly; the overlap is
-    # declared in enforcement.CONSENSUS_OVERLAP_BACKLOG instead.
+    This was 877 lines of dict literal whose values were 102 student sentences --
+    the largest single store of response text in the repo. They are not edits:
+    measured, 91 of the 93 that carry text are an exact substring of the RAW
+    SECTION the fixture was split from, one more once whitespace is normalised,
+    and the last is two spans of one section joined. Every one is a
+    RE-SEGMENTATION -- a person read the submission, saw the split had put the
+    wrong clause in the wrong box, and typed the right clause out by hand.
 
-    # Q4b/p7. The student numbers two items: (1) a statement that the behaviour
-    # is good to modify, with its reason, and (2) procrastinating. The hand-split
-    # cut item 1 in half — `modify` held only "... I get frustrated and
-    # aggravated", with a full stop the student never wrote — leaving "which
-    # makes not fun to be around and generally moody ..." in no box and `first`
-    # empty while `second` held item 2.
-    #
-    # Gold is 2.0, "-3 pts: did not provide two examples", so the grader read ONE
-    # example. Reading item 1 as the modify statement and item 2 as that single
-    # example assigns every word, respects the clause boundaries, and agrees with
-    # the grader's own count. The alternative — splitting item 1 at "which" to
-    # manufacture a first example — cuts mid-clause and credits two examples
-    # where gold says one.
-    ("Q4b", 7): [
-        ("set", "modify",
-         "My unwanted behavior is good to modify since when I get interrupted, I "
-         "get frustrated and aggravated which makes not fun to be around and "
-         "generally moody for a while when playing my games."),
-        ("set", "first",
-         "Also, I get myself procrastinating on activities that I was supposed to "
-         "complete hours ago which forces me to rush to meet deadlines and "
-         "eventually stretches my schedule to more than I can handle."),
-        ("set", "second", ""),
-    ],
+    So `CONSENSUS_SPANS.json` names the spans and the text is read from
+    `$MOLLY_DATA` at build time. The same bytes reach the scorer; none of them
+    live here. `fixture_edits.py --verify` re-resolves every span, and each one
+    carries the sha of the text it was written against, so a corpus that moves
+    under a span is a refusal rather than a silent re-scoring.
 
-    # --- EXTENDS, worked cell by cell -------------------------------------
-    # p8: change_a2 stopped at "... some progress in the". The response ends
-    # "... in the near future." and nothing competes for the tail.
-    #
-    # The consequence boxes stay EMPTY, and the attempt to fill them is recorded
-    # because the reasoning for it was half right and the measurement settled it.
-    #
-    # Two clauses sit in no box — "Which then makes me wish I would have just
-    # gone to the gym, since at times I feel super unmotivated ..." and "which
-    # can lead to health problems later in life." They were assigned to state_c1
-    # and state_c2 on the argument that an empty box makes the FIXTURE do the
-    # scoring: the scorer's evidence read "There is no text in this box", so it
-    # was reporting an absence rather than judging the student, and it landed on
-    # gold's own answer for the wrong reason.
-    #
-    # MEASURED, and reverted. The prediction was that both clauses would read
-    # `mismatch` — same score, better reasoning. Instead state_c1 came back `met`
-    # with refers_to `second`, matching "I feel super unmotivated" to 4c's "0
-    # motivation to do anything", in all three runs. p8 went +2.50 -> +3.75: its
-    # error had been EXACTLY the declared A_NO_CHANGE divergence, and the
-    # assignment added a second, undeclared disagreement.
-    #
-    # Gold's wording is the reason the empty boxes are right after all: "-5 pts:
-    # did not state each consequence being affected AND how it is being affected
-    # by changing your antecedents" — one bundled deduction over all four slots.
-    # Both clauses hang off the ANTECEDENT sentences and describe what the
-    # current behaviour leads to; neither says what becomes of a consequence once
-    # the antecedent changes. `state_c*` asks for the consequence BEING AFFECTED,
-    # so this text does not belong in it. Wrong text in the box is a worse fault
-    # than a right score for a thin reason.
-    ("Q6", 8): [
-        ("set", "change_a2",
-         "Instead, go out and conduct exercise multiple days a week. I also help "
-         "my progress in the gym by eating clean so I can see some progress in "
-         "the near future."),
-    ],
+    LAZY, PER CELL. Resolving everything at import would make every consumer of
+    this module require the corpus, including the ones that only want JOBS.
 
-    # p19 is ONE sentence describing ONE pair, and the student labelled every
-    # element themselves: "(orig A) ... (newA), so I am not feeling unmotivated
-    # all day.(C) Instead, I feel refreshed (WGB) ... assignments(New C)."
-    #
-    # JUDGEMENT, not a mechanical repair. "(New C)" marks the NEW consequence
-    # after the change, not a SECOND one, and there is no second antecedent
-    # anywhere — so the c2 boxes were holding pieces of the first pair's
-    # narrative. Emptying them says the student addressed one pair, which is
-    # what gold says too ("-5 pts: did not address your second antecedent being
-    # changed and how it will affect your second consequence"). state_c1 gives
-    # back the "Instead, I" it took from the following clause, and affect_c1
-    # runs to the end of the sentence it owns.
-    ("Q6", 19): [
-        # `state_a1` opened on a single "_" — the template's blank rule, which
-        # `clean` only collapses in runs of two or more and which
-        # `segment.strip_orphan_head` now takes off the RESPONSE. This value comes
-        # from the frozen consensus rather than from a section, so it is stripped
-        # here, the same way item 3's three set values were.
-        ("set", "state_a1",
-         "I am going to change my antecedents of waking up and not feeling "
-         "motivated (orig A)"),
-        ("set", "state_c1", "so I am not feeling unmotivated all day.(C)"),
-        ("set", "affect_c1",
-         "Instead, I feel refreshed (WGB) when I get enough sleep, I will feel "
-         "motivated and perform well in my classes and assignments(New C)."),
-        ("set", "state_c2", ""),
-        ("set", "affect_c2", ""),
-    ],
+    A DECLARED CELL THAT CANNOT BE RESOLVED IS FATAL, not empty. Returning `[]`
+    would build the fixture WITHOUT its correction -- a cell that scores, and
+    scores the mis-segmented text, with nothing in the output saying so. That is
+    the failure mode this file exists to prevent, so it raises instead.
+    """
 
-    # p18's c2 boxes were in the WRONG HALF of the response. Both held slices
-    # of part one's consequence sentence — state_c2 "rather than tired and
-    # guilty.", affect_c2 "will lead to a more positive consequence ..." — while
-    # part two's own consequence sentence, at @464, belonged to no box at all.
-    # That is the p5 defect again, and it is what generated all four of this
-    # cell's cross-element overlap findings.
-    #
-    #   part 2  @296 change   @403 antecedent   @464 consequence
-    #
-    # It also explains the scoring. p18's 4c second consequence is "personal
-    # dissatisfaction and guilt", and part one's sentence contains "guilty", so
-    # the borrowed text was being credited. The student's actual part-two
-    # sentence names focus and a SMART goal, not that consequence — which is
-    # what the graders charged ("-2.5 pts: did not address how the second
-    # consequence is being affected"). state_c2 and affect_c2 share the sentence
-    # as the permitted same-element overlap, since that is all part two has.
-    #
-    # REVISED: both consequence pairs now put the sentence in the NAMING box and
-    # leave the fate box blank. Each part of this response has exactly one
-    # consequence sentence, so sharing it left the scorer unable to reproduce
-    # gold's asymmetry — gold charges affect_c2 ALONE, and with the same words in
-    # both boxes the scorer accepts or refuses them together. It reached gold's
-    # 7.50 by refusing state_a2 and state_c2 while crediting the affect_c2 gold
-    # refuses: two errors cancelling.
-    #
-    # Blanking the fate boxes discards no text — the sentence stays whole in the
-    # naming box. Neither part says what BECOMES of a 4c consequence; both name an
-    # improved state ("feeling energized", "able to focus"), which is why gold's
-    # only charge is that the second consequence's fate went unaddressed. Same
-    # treatment as p15.
-    ("Q6", 18): [
-        # `state_a1` opened "1) To change my first trigger ...". The marker came
-        # off with the rest of the corpus's. The box still ENDS on its comma, and
-        # that is DECLARED rather than repaired: p18 names each antecedent in a
-        # subordinate clause and puts the change in the main one, so `state_a1`
-        # and `change_a1` are two halves of one sentence and so are `state_a2`
-        # and `change_a2`. Both halves being fragments is fine here — each names
-        # its antecedent, which is what the slot scores. See Q6's entry in
-        # enforcement.MULTI_BLOCK_DECLARED and the section in
-        # scoring/BACKLOG.md.
-        ("set", "state_a1",
-         "To change my first trigger (after-school fatigue),"),
-        ("set", "change_a2",
-         "either move my phone to a separate room or put it in \"Do Not "
-         "Disturb\" mode during my allotted workout time"),
-        ("set", "state_c1",
-         "This change in antecedent will lead to a more positive consequence of "
-         "feeling energized and done rather than tired and guilty."),
-        # affect_c1 KEEPS the sentence, shared with state_c1: gold CREDITS it.
-        # p18's two consequence pairs are not the same case — gold charges the
-        # SECOND pair's fate alone ("-2.5 pts" = state_c2 + affect_c2) — so
-        # blanking affect_c1 here cost 1.25 gold awards. Measured 5.00 x3 before
-        # this was put back. S2 earns both slots honestly: "tired and guilty"
-        # echoes 4c's two consequences, and "will lead to a more positive
-        # consequence" is the fate.
-        ("set", "affect_c1",
-         "This change in antecedent will lead to a more positive consequence of "
-         "feeling energized and done rather than tired and guilty."),
-        ("set", "state_c2",
-         "I will be able to focus on my training and achieve my SMART goal for "
-         "the day if this distraction is eliminated."),
-        ("set", "affect_c2", ""),
-    ],
+    def __init__(self, path):
+        self._path = path
+        self._raw = None
+        self._cache: dict = {}
 
-    # p10, made symmetric with its own part one. The student writes two parts,
-    # and part one assigns cleanly: change_a1 spans S1+S2 (the change AND its
-    # immediate result), state_c1/affect_c1 share S3 (the consequence). Part two
-    # did not follow: change_a2 held only S1, state_c2 held a slice of PART
-    # ONE's S1, and part two's S2 and S3 belonged to nothing.
-    #
-    #   part 1  S1+S2 -> change_a1     S3 -> state_c1 = affect_c1
-    #   part 2  S1+S2+S3 -> change_a2  S4 -> state_c2 = affect_c2
-    #
-    # An earlier attempt put part two's S2 ("reduce my anxiety and increase my
-    # confidence") into state_c2 and measured 8.75 -> 6.25. That was the wrong
-    # clause: by symmetry with part one, S2 belongs with the CHANGE, and the
-    # consequence box takes the part's last sentence. 4c's second consequence is
-    # "repeating the same cycle of laziness", which S4's "healthier lifestyle
-    # habits and help fix how I think about myself" answers and S2 does not.
-    #
-    # REVISED, and the earlier arrangement above is what it revises. The antecedent
-    # boxes now take one sentence each instead of the state box holding a fragment
-    # of the change box's first sentence:
-    #
-    #   part 1  S1 -> state_a1   S2 -> change_a1
-    #   part 2  S4 -> state_a2   S5+S6 -> change_a2
-    #
-    # The consequence repairs below are unchanged and load-bearing: without them
-    # state_c1 begins at "hoping", orphaning "I\u2019m", and runs on to grab the
-    # "2) I" opening part two, while state_c2 holds a slice of PART ONE.
-    ("Q6", 10): [
-        # The "1)_" and "2) " that used to open these two came off with the rest
-        # of the corpus's list markers; nothing else about them changed.
-        ("set", "state_a1",
-         "Changing my laziness will help me have discipline in getting up and "
-         "going to the gym."),
-        ("set", "change_a1",
-         "This will result me in creating a routine for myself instead of not "
-         "going to the gym at all."),
-        ("set", "state_a2",
-         "I can research beginner friendly workouts to help with my fear of "
-         "embarrassment at the gym."),
-        ("set", "change_a2",
-         "This will help reuduce my anxiety and increase my confidence to try "
-         "newer things in the gym. It all about taking baby steps."),
-        ("set", "state_c1",
-         "I\u2019m hoping this will slowly put me in a good standing mentally and "
-         "physically."),
-        ("set", "affect_c1",
-         "I\u2019m hoping this will slowly put me in a good standing mentally and "
-         "physically."),
-        ("set", "state_c2",
-         "This will lead to healthier lifestyle habits and help fix how I think "
-         "about myself."),
-    ],
+    def _spans(self) -> dict:
+        if self._raw is None:
+            import json
+            with open(self._path) as fh:
+                self._raw = json.load(fh)
+        return self._raw
 
-    # --- TRIMS -------------------------------------------------------------
-    # Nine boxes that had taken the HEAD of the following sentence. Where a box
-    # ends "... flexibility. To" or "... physically. 2) I", the response says
-    # unambiguously where the boundary goes: cut at the stop, and the head
-    # belongs to whichever box owns that sentence. Verified as a set — structure
-    # mismatches 14 -> 6 with overlaps and coverage unchanged.
-    #
-    # The opposite direction is NOT mechanical and is not done here. Where a box
-    # stops mid-clause, how far it should reach is a judgement about which box
-    # owns the rest: extending them all cleared the remaining six mismatches and
-    # created two new OVERLAPS, swallowing clauses their neighbours hold.
-    # p6: both antecedent boxes grabbed the "To" that opens "To do that, I will
-    # make it mandatory ..."; change_a1 already begins there
-    #
-    # The change boxes are split at "while", a clause boundary. `change_a2` used
-    # to hold "I will make it mandatory ... three times a week" — a strict
-    # SUBSTRING of `change_a1`, which held the whole sentence — and both were
-    # credited: 2.5 points for one commitment. `cover` cannot catch that. The
-    # sheet declares cover="state_a1,state_a2:first,second|state_c1,state_c2:
-    # first,second", so it governs the STATE slots only; state_a2's duplicate IS
-    # demoted, the change duplicate is not, and p6 landed on gold's 6.25 with a
-    # slot right for the wrong reason.
-    #
-    # The sentence carries two commitments, one per trigger, and 4a names them:
-    # "not stretching" is the FIRST trigger, "not being motivated; I miss workout
-    # days" the second. So the stretching clause answers a1 and the gym clause
-    # answers a2 — which is what state_a1's `refers_to: first` says too. The
-    # opening adjunct "To do that," goes with the main clause it modifies, which
-    # is change_a2's; leaving it stranded pushed the unassigned run over the
-    # coverage check's threshold for no reason a reader could act on.
-    ("Q6", 6): [
-        # S1 split at the ampersand, S2 split at "while", so each element carries
-        # its own trigger and its own change: a1 is the gym, a2 is stretching.
-        #
-        # state_a2 prepends "not", the one non-verbatim word in the corpus. The
-        # response reads "not attending the gym & stretching as often as I should
-        # be" — a single negation heading the conjunction — so the stretching half
-        # cannot carry it without being written out. Distributing it is what the
-        # sentence means, and leaving it off would make the box read as a positive.
-        #
-        # The point of the split is to let the RIGHT mechanism produce gold's 6.25.
-        # 4a lists "not stretching" and "not being motivated"; "not attending the
-        # gym" is on neither list — it is what the motivation trigger CAUSES. So
-        # state_a1 should answer `refers_to: none` and be demoted, which is gold's
-        # own reason ("second antecedent is not the same as mentioned in 4a"),
-        # rather than the identical-text collision that produced the right total by
-        # accident.
-        # MEASURED ALTERNATIVE, rejected 2026-08-18. Collapsing this back into one
-        # box -- the whole conjunction verbatim in state_a1, state_a2 EMPTY, the
-        # change boxes untouched -- was tried because it invents no word and needs
-        # no reading of gold's ordinals. It scored 3.75, 3.75, 5.00 against gold's
-        # 6.25: a regression in all three passes.
-        #
-        # The cause is worth more than the result. Emptying state_a2 cost BOTH
-        # CHANGE SLOTS, not just the naming slot it emptied: with no second
-        # antecedent named, "while stretching daily" has nothing to be the change
-        # TO, and change_a1 went with it in two passes of three. The slots are not
-        # independent -- a naming slot is load-bearing for the change slot beside
-        # it, and emptying one box silently reprices two others. Any future fixture
-        # change that empties a naming box should expect to lose its change box as
-        # well, and predictions that treat slots as separable (mine did) will be
-        # wrong in the same direction.
-        ("set", "state_a1", "not attending the gym"),
-        ("set", "change_a1",
-         "To do that, I will make it mandatory for myself to attend the gym at "
-         "least three times a week"),
-        ("set", "state_a2", "not stretching as often as I should be"),
-        ("set", "change_a2", "while stretching daily."),
-    ],
-    # p9: both consequence boxes grabbed "Instead I hope I", the head of the next
-    # sentence, which affect_c1's own span already covers
-    # p9 is one pair, like p19. The trailing "Instead I hope I will get more
-    # motivated after seeing my progress." is the EFFECT on the first
-    # consequence, not a second consequence — and gold says so outright:
-    # "missing second consequences". state_c2 was holding it while affect_c1 held
-    # only a slice of state_c1's sentence. Caught by
-    # check_fixture_agrees_with_gold; the other four checks passed it.
-    ("Q6", 9): [
-        ("set", "state_c1",
-         "With this I hope I don\u2019t suffer the consequences of bad health."),
-        # affect_c1 must carry the clause that says what BECOMES of the
-        # consequence, and in this response that clause is inseparable from the
-        # naming: "I hope I don't suffer the consequences of bad health" states
-        # the consequence and its fate in one breath. Given only the sentence
-        # after it, the scorer answered `incomplete` — correctly, since "I will
-        # get more motivated" names a NEW state rather than the fate of the old
-        # one — and lost a slot gold credits. state_c1 and affect_c1 are
-        # siblings, so one clause answering both is expected and the overlap
-        # check exempts it.
-        ("set", "affect_c1",
-         "With this I hope I don\u2019t suffer the consequences of bad health. "
-         "Instead I hope I will get more motivated after seeing my progress."),
-        ("set", "state_c2", ""),
-        ("set", "affect_c2", ""),
-    ],
-    # p11: state_c1 ran into "Instead, I hope that I will have improved ...", which
-    # affect_c1 already holds in full
-    ("Q6", 11): [
-        ("set", "state_c1",
-         "A), I hope that I will no longer experience the consequence of "
-         "reduced physical fitness and low endurance (original C)."),
-    ],
-    # p15's first-consequence pair came out of the consensus table holding ONE
-    # sentence twice: state_c1 the whole of "Which in turn will lead me to being
-    # more productive and getting my assignments done on time." and affect_c1 the
-    # same minus its lead-in. Not a split error — the paper scorer was asked which
-    # consequence is affected and how, had only that sentence to answer either
-    # with, and quoted it for both. state_c1 and affect_c1 are siblings, so the
-    # checks permit the sharing and nothing flagged it.
-    #
-    # It made gold's judgement unreachable. Gold credits the naming and refuses the
-    # fate — "did not clarify the first consequence being affected" — which the
-    # scorer cannot reproduce when both boxes show it the same words: it accepts or
-    # refuses them as a unit.
-    #
-    # The sentence is a conjunction of two improved states, so it splits at "and"
-    # and each box gets its own. Both halves verbatim, cut at a non-sentence
-    # boundary.
-    ("Q6", 15): [
-        # Whole sentence in state_c1, affect_c1 blank: the student names improved
-        # states and never says what becomes of a 4c consequence, so the fate box
-        # has nothing of its own to hold.
-        ("set", "state_c1",
-         "Which in turn will lead me to being more productive and getting my "
-         "assignments done on time."),
-        ("set", "affect_c1", ""),
-    ],
+    def _resolve(self, key):
+        item, pid = key
+        entries = self._spans().get(f"{item}/p{pid}")
+        if entries is None:
+            return None
+        import fixture_edits as FE
+        sections = FE._sections(item, pid)
+        out = []
+        for e in entries:
+            text, status = FE.resolve(e, item, pid, sections)
+            if status != "ok":
+                raise SystemExit(
+                    f"CONSENSUS_SPANS[{item}/p{pid}] {e[1]}: {status}\n"
+                    f"The correction cannot be resolved, so the fixture would be "
+                    f"built from the very text this span was written to replace. "
+                    f"Read the cell; do not re-derive the span from a guess.")
+            out.append(("set", e[1], text))
+        return out
 
-    # p14 lays out as four sentences, two pairs: S1 antecedent+change, S2 the first
-    # consequence and its fate, S3 the second antecedent+change, S4 the second
-    # consequence and its fate. Each c-box takes the sentence that answers it;
-    # state and affect of one element are siblings, so sharing a sentence is
-    # expected and the overlap check exempts it.
-    #
-    # An earlier fix left three faults here, and its comment justified only the
-    # first. `affect_c1` KEPT "I work out (new A)." — the tail of S1, which
-    # change_a1 also holds, so two different elements shared it. `state_c1` began
-    # mid-word at "more(WGB)". Worst, `affect_c2` was set to "not be that severe.",
-    # a 19-character fragment sliced off the END OF S3 — part of change_a2's own
-    # sentence — while S4, which actually states what becomes of the second
-    # consequence, sat wholly in state_c2. Shown that fragment the scorer answered
-    # `incomplete`, which is right about the box and wrong about the student, and
-    # it cost p14 the 1.25 that gold awards.
-    #
-    # Both overlaps escaped the audit because the disjointness check skips any pair
-    # where a box is under 25 characters, and both fragments were 19.
-    ("Q6", 14): [
-        ("set", "state_c1",
-         "I hope setting this new trigger, I will be able to work out more(WGB), so it won't lead to the consequence of gaining weight."),
-        ("set", "affect_c1",
-         "I hope setting this new trigger, I will be able to work out more(WGB), so it won't lead to the consequence of gaining weight."),
-        ("set", "state_c2",
-         "I hope setting this new trigger, I will be able to function well, so it won't lead to the consequences of me not able to release tension because I didn’t go."),
-        ("set", "affect_c2",
-         "I hope setting this new trigger, I will be able to function well, so it won't lead to the consequences of me not able to release tension because I didn’t go."),
-    ],
+    def get(self, key, default=None):
+        if key not in self._cache:
+            got = self._resolve(key)
+            if got is None:
+                return default
+            self._cache[key] = got
+        return self._cache[key]
 
-    # p4 writes five sentences in two pairs:
-    #   S1  antecedent + change            S4  antecedent + change
-    #   S2  an effect                      S5  an effect, conjoined under one
-    #   S3  another effect                     negation
-    #
-    # Two things the earlier assignment got wrong about that shape.
-    #
-    # FIRST, `state_c1` held S2 -- "which I hope will help me to be happier" --
-    # which names no consequence at all; it is a hoped-for outcome. The template
-    # wants a 4c consequence in that box, so putting an effect clause there tells
-    # the grader a consequence was named when the student went straight to the
-    # effect. It scored `met` with `refers_to: none` in 5 of 9 passes, which is the
-    # fixture manufacturing a naming and the cover logic then discarding it. S2
-    # belongs with S3 in `affect_c1`, and `state_c1` is EMPTY: this student named
-    # no first consequence. Gold says so too -- its charge is "missing both
-    # consequences", corrected here to one missing, and this is the one.
-    #
-    # SECOND, `affect_c2` held the whole of S5 while `state_c2` held a strict
-    # PREFIX of it -- the truncation overlap that check_consensus_spans_are_disjoint
-    # cannot see, because state_cN/affect_cN containment is its permitted case.
-    # S5 is "I hope that I will no longer be up late and getting so tired": ONE
-    # negation, "no longer", scoping a conjunction of [up late] and [getting so
-    # tired]. Split at the conjunction, and the negation has to be REPEATED on the
-    # second conjunct, or "getting so tired" reads as an assertion that they will
-    # be tired -- the opposite of what the sentence says. Same principle as p6,
-    # where "not attending the gym & stretching as often as I should be" needed
-    # "not" distributed onto the stretching half. These are the corpus's only two
-    # non-verbatim words, and both are one negation carried across one split.
-    ("Q6", 4): [
-        ("set", "state_c1",
-         "I hope that I will no longer be up late and getting so tired."),
-        ("set", "affect_c1",
-         "which I hope will help me to be happier. When I start sleeping, I will "
-         "become happier, and I won\u2019t be falling asleep everywhere."),
-        ("set", "state_a2",
-         "I am going to change my antecedent of going to bed late that leads to me "
-         "not sleeping the full 8 or 9 hours"),
-        ("set", "state_c2", ""),
-        ("set", "affect_c2", ""),
-    ],
+    def __getitem__(self, key):
+        got = self.get(key)
+        if got is None:
+            raise KeyError(key)
+        return got
 
-    # p5 writes the two halves in exactly parallel three-clause form:
-    #   part 1  @0    antecedent + change ("... BY keeping healthy alternatives close by")
-    #           @199  "When I manage my snacking habits ... no longer suffer from"
-    #           @363  "Instead, I hope that I will satisfy my craving with fruits"
-    #   part 2  @438  antecedent + change ("... BY buying myself more fruits")
-    #           @738  "When I have more fruits and vegetables available to me ..."
-    #           @880  "Instead, I hope to eat fruits and vegetables more often ..."
-    #
-    # The consensus emptied BOTH c2 boxes (the scorer called them `absent` in
-    # all ten runs) and the tail recovery then swept every remaining clause
-    # into state_c2 as one lump, leaving affect_c2 empty. That recovered the
-    # words but not the shape: the student wrote an "Instead, I hope ..."
-    # effect clause at @880 exactly parallel to part 1's at @363. Split at the
-    # sentence boundary, part 2 now mirrors part 1 box for box.
-    ("Q6", 5): [
-        ("set", "state_c2",
-         "When I have more fruits and vegetables available to me, I hope that I "
-         "will no longer feel the need to satisfy my craving of unhealthy snacks."),
-        ("set", "affect_c2",
-         "Instead, I hope to eat fruits and vegetables more often, so I can keep "
-         "myself healthy."),
-        # ... and change_a2 runs to its sentence end, as change_a1 does. Part 1
-        # keeps "which I hope will help me to eat more fruits and veggies" inside
-        # the change clause; without the parallel tail here those nine words
-        # belonged to no box at all.
-        # Part 1 had the same three faults p4's did. `state_a1` ran 289 chars,
-        # swallowing the change clause and most of the next sentence to end
-        # mid-phrase at "I hope that I"; `state_c1` began mid-sentence at "and
-        # keep fruits and vegetables close to me" and then ran past its own end,
-        # trailing off into "Instead, I hope that I will" and duplicating the
-        # opening of affect_c1. Trimmed to whole clauses so part 1 mirrors part 2.
-        ("set", "state_a1",
-         "I am going to change my antecedent of sugar craving that leads me to "
-         "reaching for unhealthy snacks"),
-        ("set", "state_c1",
-         "When I manage my snacking habits and keep fruits and vegetables close "
-         "to me, I hope that I will no longer suffer from being fulfilled by "
-         "unhealthy and fatty foods."),
-        # state_a2 stopped at "in my home", while state_a1 runs through its
-        # parallel "that leads me to reaching for unhealthy snacks". That
-        # asymmetry left seven words belonging to no box; part 1's shape decides
-        # the boundary.
-        ("set", "state_a2",
-         "I am going to change my antecedent of not having any fruits or "
-         "vegetables available in my home that leads to me consuming unhealthy "
-         "alternatives"),
-        ("set", "change_a2",
-         "by buying myself more fruits and vegetables for the pantry so I can "
-         "fulfil my new dietary requirements, which will help me eat more fruits "
-         "and vegetables."),
-    ],
-}
+    def __contains__(self, key):
+        return f"{key[0]}/p{key[1]}" in self._spans()
+
+    def __iter__(self):
+        for cell in self._spans():
+            item, pid = cell.split("/p")
+            yield (item, int(pid))
+
+    def __len__(self):
+        return len(self._spans())
+
+    def keys(self):
+        return list(self)
+
+    def items(self):
+        for key in self:
+            yield key, self[key]
+
+    def values(self):
+        for key in self:
+            yield self[key]
+
+
+CONSENSUS_FIXES = _ConsensusFixes(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                  "CONSENSUS_SPANS.json"))
 
 
 def _unclaimed_tail(raw: str, boxes: list[str]) -> str:
@@ -1643,7 +862,7 @@ def anchored_split(raw: str, spans: list[tuple[str, str]]) -> dict[str, str]:
             hits.append((at, field, None))
     # Every anchor snaps back to the START of the sentence carrying it. A quote
     # located mid-sentence otherwise cuts the PRECEDING slice mid-clause: p6's
-    # `realistic` was found at "my goal is also realistic ...", so `action` ran
+    # `realistic` was found at [[corpus Q3/p6 realistic 10:36 sha=7158f61cd68d]], so `action` ran
     # up to it and ended "... then exercise. - Adding on,". Snapping moves the
     # boundary to the sentence break, which gives each box whole clauses on both
     # sides and drops nothing.
@@ -2127,9 +1346,7 @@ def build_jobs(item: str, pids: list[int]) -> list[dict]:
             # discards on the reasoning that "an empty field is the right fixture
             # for something the student did not write". That reasoning fails
             # whenever the scorer was WRONG about the absence. p5's Q6 ends with
-            # a complete second consequence — "I hope that I will no longer feel
-            # the need to satisfy my craving of unhealthy snacks. Instead, I hope
-            # to eat fruits and vegetables more often" — and the scorer called
+            # a complete second consequence — [[corpus Q6/p5 state_c2 55:141 sha=ae4cfd7ffee1]] — and the scorer called
             # both c2 slots `absent` in all ten runs, so the consensus froze two
             # empty boxes and about 200 characters never reached ANY scorer. The
             # graders read the whole answer and charged "does not MATCH".
@@ -2428,7 +1645,7 @@ def check_fixture_is_not_corrupt(items: list) -> None:
     )
 
 
-LOBLOCKS = "/home/pdeane/code/update/lo-blocks"
+LOBLOCKS = str(paths.LO)
 
 
 def server_code_is_stale() -> list[str]:
@@ -2455,7 +1672,7 @@ def server_code_is_stale() -> list[str]:
     AND THE PYTHON SIDE WAS UNAFFECTED, which is what made it look like an
     engine disagreement: `agreement.py` parses and applies `maps` itself, so it
     read 0 off-map where the app read 19. That difference was a stale server, not
-    two engines -- the trap `never-reason-from-side-differences` names.
+    two engines -- the trap QUALITY_CONTROL.md §2g names.
 
     Compares mtimes against the process start time, so it costs nothing and needs
     no request. Returns a list of findings; the caller decides whether to refuse.

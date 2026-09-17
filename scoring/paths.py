@@ -35,6 +35,7 @@ layout:
 from __future__ import annotations
 
 import os
+import tempfile
 import sys
 from pathlib import Path
 
@@ -87,6 +88,45 @@ def require(path: Path, what: str, env: str) -> Path:
             f"Set {env} to point at it. See scoring/paths.py."
         )
     return path
+
+
+# Scratch space for generated media. NOT a literal: `/tmp/claude-1000/...`
+# bakes in a numeric UID, so it is correct for one account on one machine and
+# silently wrong (or unwritable) for every other.
+MEDIA = Path(os.environ.get("MOLLY_MEDIA",
+                            Path(tempfile.gettempdir()) / f"molly_scoring_media_{os.getuid()}"))
+
+
+def media_dir() -> Path:
+    """The media scratch directory, created on demand."""
+    MEDIA.mkdir(parents=True, exist_ok=True)
+    return MEDIA
+
+
+def out_root() -> Path:
+    """The artifact directory, or a refusal naming the variable that fixes it.
+
+    NEVER FALL BACK TO A LITERAL HERE. Seven call sites used to write
+    `getattr(paths, "OUT", "/home/<user>/molly_data/out")`, which fires exactly
+    when the configuration is missing and then reads the DEVELOPER's own
+    artifacts -- a harness pointed at a sandbox, a second checkout or a backup
+    silently measures the wrong directory and passes. Worse inside a CHECK: a
+    directory that does not exist yields no files, the check finds nothing, and
+    reporting nothing reads as reporting clean.
+    """
+    return require(OUT, "Artifact directory", "MOLLY_OUT")
+
+
+def out_root_or_reason() -> tuple[Path | None, str]:
+    """For CHECKS, which must not exit the process.
+
+    `require` calls `sys.exit`, which is right for a script and wrong for one
+    check inside an audit of a hundred. This returns the reason instead, so the
+    caller can report "the check could not run" -- which is not the same as
+    passing, and must never be rendered as one.
+    """
+    return (OUT, "") if OUT.exists() else (
+        None, f"Artifact directory not found: {OUT}. Set MOLLY_OUT to point at it.")
 
 
 def data_root() -> Path:

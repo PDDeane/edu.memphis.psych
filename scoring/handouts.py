@@ -118,9 +118,7 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
             "one of the four weeks is undiscussed ON EITHER READING of the "
             "response, so 8.00 is unsupportable whichever way it is read, and "
             "that robustness is the whole argument. The item's rule is to discuss "
-            "the data for each week. p11 writes \"Before I started thinking about "
-            "my routine, I realized that I worked out on average TWICE A WEEK FOR "
-            "AN HOUR EACH TIME\", then discusses week two and week three by name "
+            "the data for each week. p11 writes [[corpus 1a/p11 response 118:237 sha=5f18605562ca]], then discusses week two and week three by name "
             "and correctly. But the baseline data is 0,30,0,0,30,0,30 -- three "
             "sessions of thirty minutes -- while WEEK 1 is 0-60,0,0,0,0,0-60: "
             "twice, an hour each, exactly. So either the baseline sentence is "
@@ -161,10 +159,7 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
         "why":
             "the example contradicts the definition the STUDENT THEMSELF wrote "
             "two boxes earlier, so this needs no reading of intent at all. They "
-            "chose Positive Reinforcement and defined it: \"I will use Positive "
-            "Reinforcement, which is ADDING SOMETHING DESIRED to increase my "
-            "wanted goal behavior.\" Their example is \"I will reward myself with "
-            "not having to get out of bed right away daily\" -- which REMOVES an "
+            "chose Positive Reinforcement and defined it: [[corpus D1/p1 d1 0:105 sha=aa56416d6692]] Their example is [[corpus DAY1/p1 day1 0:71 sha=51410938ded8]] -- which REMOVES an "
             "aversive, the opposite operation, and names no contingency: \"daily\", "
             "not \"if I meet my goal\". Both defects are stated on the page. "
             "TWO SOURCES, the D2/p11 standard, and both of gold's own comments "
@@ -205,16 +200,14 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
         "why":
             "what is removed is a FEELING, not an outside stimulus the student "
             "arranges, and the student says so in their own summary sentence. The "
-            "answer is \"If I go to sleep on time, I will not have to take naps "
-            "after school or feel tired during the day. REMOVING THE FEELING OF "
-            "TIREDNESS will encourage me to keep getting enough sleep.\" Negative "
+            "answer is \"[[corpus NR/p20 nr 0:160 sha=b5759914a34e]]tting enough sleep.\" Negative "
             "reinforcement requires that the thing withdrawn be an external "
             "stimulus under the student's control; tiredness lifts by itself once "
             "they sleep, so nobody arranges its removal. We fail the "
             "`you_arrange_it` gate in all twelve pooled runs, unanimously on both "
             "engines, and a failed gate takes the item to 0.00. "
             "THE COMPARATOR IS p1, ON THIS ITEM, AND IT IS NEARLY THE SAME "
-            "SENTENCE. p1 answers \"If I meet my goal, I will not be tired\" and "
+            "SENTENCE. p1 answers [[corpus NR/p1 nr 0:38 sha=61db92bf69e6]] and "
             "gold charged it to 0.00 with the rule written out: \"Rememeber that "
             "what you take away after your wanted goal behavior has to be EASILY "
             "CONTROLLED BY YOU and be an OUTSIDE STIMULUS.\" Same item, same "
@@ -253,9 +246,7 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
         "why":
             "box 1 is a CONSEQUENCE of the UTB and the item asks for antecedents, "
             "and the student's own words settle the direction. p19's UTB is \"lack "
-            "of sleep\"; box 1 reads \"My first atecedents is waking up and not "
-            "feeling motivated\", while their Q1 says \"Not getting enough sleep "
-            "makes me feel tired and unmotivated\". So the response itself states "
+            "of sleep\"; box 1 reads [[corpus Q4a/p19 first 0:58 sha=fc81ce6805e4]], while their Q1 says [[corpus Q1/p19 response 45:106 sha=463c4d80abcb]]. So the response itself states "
             "that the lack of sleep causes the lack of motivation, which is the "
             "opposite of the relation Q4a asks for. This needs no reading of "
             "intent -- it is the student's own causal claim, quoted back. "
@@ -283,8 +274,7 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
             "1.00 would leave this cell WRONG, since we score 3.00. It is not "
             "proposed, for a substantive reason: p20's box 2 states its direction "
             "outright (\"by getting little sleep things get forgotten\"), whereas "
-            "p19's box 2, \"forgetting to do important assignments/things in my "
-            "day\", supports a legitimate forward reading -- forget the work, do "
+            "p19's box 2, [[corpus Q4a/p19 second 20:76 sha=39846b07cfd1]], supports a legitimate forward reading -- forget the work, do "
             "it late, lose sleep -- and Q4a's own guidance instructs \"ACCEPT "
             "generously when the example precedes the UTB and a reader can see how "
             "it leads there\". So box 1 is charged because the student stated the "
@@ -316,9 +306,7 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
                "three score 2 (p9, p20), none scores 5 (p2, p4, p5, p11, p12, p14, p15). "
                "p19 is the exact control -- the SAME pair, measurable and action -- and "
                "scores 3. p8 is the only row in twenty where the sum does not match. "
-               "The submission supports both deductions: \"I will keep track of my gains "
-               "in the gym\" names no method, and \"This is achievable because I will be "
-               "able to make time\" describes achievability rather than any action. A "
+               "The submission supports both deductions: [[corpus Q3/p8 measurable 44:85 sha=23a06b5ac373]] names no method, and [[corpus Q3/p8 action 27:82 sha=97296733b498]] describes achievability rather than any action. A "
                "SLIP, not an unwritten deduction -- the grader wrote both charges and "
                "subtracted one. THE CORRECTION COSTS US THE CELL: we score 4.00, which "
                "matched the uncorrected row 3/3, and against 3.00 we are now wrong. It "
@@ -349,8 +337,7 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
     },
     # ("Q6", 4) RETIRED 2026-08-19. It raised p4 from 6.00 to 7.50 on the reading
     # that gold had missed one of two consequences the student named. The second
-    # naming was not the student's: `state_c2` held "I hope that I will no longer
-    # be up late" and `affect_c2` held the whole sentence it is a prefix OF, so one
+    # naming was not the student's: `state_c2` held "[[corpus Q6/p4 state_c1 0:39 sha=1fa67f2118a0]]" and `affect_c2` held the whole sentence it is a prefix OF, so one
     # clause was occupying two boxes and the correction was reasoning from our own
     # duplication. Assign the sentence to one pair and leave the other empty --
     # which is what the response supports, one consequence addressed and one not --
@@ -440,15 +427,13 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
         "was": 4.0, "score": 2.0,
         "why":
             "the answer is NEGATIVE PUNISHMENT and the item asks for negative "
-            "reinforcement. \"I will not watch TikTok for each day that I do not "
-            "sleep 8 hours\" withdraws something DESIRABLE when the behaviour "
+            "reinforcement. [[corpus NR/p4 nr 0:64 sha=56592052aff2]] withdraws something DESIRABLE when the behaviour "
             "FAILS; negative reinforcement removes something AVERSIVE when it "
             "succeeds. TWO SOURCES, the D2/p11 standard. The dictionary: "
             "WRONG_TYPE (-2), \"This is not Negative Reinforcement\", which on a "
             "max of 4 gives 2.00. "
             "THE DECISIVE COMPARATOR IS p9, on this same item. It answers "
-            "\"if I skip a day of the gym I will have to cook a day I am supposed "
-            "to eat\" -- also a consequence applied when the behaviour FAILS -- "
+            "[[corpus NR/p9 nr 52:126 sha=751b9de086d9]] -- also a consequence applied when the behaviour FAILS -- "
             "and the graders charged it: \"-2 pts: This is an example of PP\", "
             "landing on 2.00. That is the same item, the same structural error "
             "(the student described a different quadrant), the same charge, and "
@@ -534,10 +519,7 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
         "was": 5.0, "score": 3.75,
         "why":
             "gold credits `state_a1`, which names a THIRD antecedent p9 never "
-            "listed. Their 4a gives \"Thinking about exercising makes me want to go "
-            "less to the gym\" and \"Not going on a run with a friend because I know "
-            "I will get tired easily\"; Q6 says \"my antecedent of using my free time "
-            "in bed watching a movie or show\". Watching a movie in bed appears in "
+            "listed. Their 4a gives [[corpus Q4a/p9 first 0:61 sha=30cbbcedd8bd]] and [[corpus Q4a/p9 second 0:71 sha=aa0957993cf2]]; Q6 says [[corpus Q6/p9 state_a1 20:88 sha=b38ab6a83c4c]]. Watching a movie in bed appears in "
             "neither entry, so the box names an antecedent that is not on the list "
             "at all -- not a reworded one, which is the distinction this item's own "
             "rule turns on. The scoring dictionary is explicit that the antecedents "
@@ -565,8 +547,7 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
         "score": 3.75,
         "why": "gold credits `state_c1`, which names a consequence p17 never "
                "listed. Their 4c gives \"gaining weight quickly\" and \"becoming "
-               "lazy and am not productive\"; Q6 says \"my consequence of feeling "
-               "unhealthy and stressed from not moving enough\". Weight gain LEADS "
+               "lazy and am not productive\"; Q6 says [[corpus Q6/p17 state_c1 28:100 sha=c4a9c05d7b3e]]. Weight gain LEADS "
                "TO feeling unhealthy rather than being a kind of it, \"stressed\" "
                "appears nowhere in 4c, and \"not moving enough\" is the behaviour "
                "rather than a consequence. "
@@ -755,7 +736,7 @@ HANDOUTS: dict[int, dict] = {
             # This item is genuinely noisy — a 3-cell spread before and after — so read
             # its floor, not its mean.
             # Q4a IS GONE, all four. Its citations were quote-bearing: the
-            # "instead of exercising I would just not eat" do-instead example, gold's
+            # [[corpus Q4a/p3 second 24:67 sha=7ccb6f502905]] do-instead example, gold's
             # own two opacity questions with p4 and p6 named, and the keyword
             # inconsistency naming p17. Rewritten as rules — refuse a substitute
             # activity or another route to the same end; ask whether a reader can see
@@ -1033,8 +1014,7 @@ GOLD_DIVERGENCES: list[dict] = [
     # WHY NO RULE REACHES IT, from the grader's own words on the probe: it
     # classifies the box CORRECTLY as an activity and then credits it because "it
     # explicitly states what lack of sleep leads to" -- satisfying the activity
-    # clause's escape FROM THE BOX'S OPENING FRAME, "Another consequence of me not
-    # getting enough sleep is ...". Every box on this item opens that way because
+    # clause's escape FROM THE BOX'S OPENING FRAME, [[corpus Q4c/p20 second 0:53 sha=21407d303656]]. Every box on this item opens that way because
     # the item asks for consequences, so the escape is satisfied by the prompt's
     # own scaffolding on all twenty cells.
     # AND OUR CREDIT IS THE ANSWER CONSISTENT WITH GOLD'S OWN TREATMENT, which is
@@ -1057,8 +1037,7 @@ GOLD_DIVERGENCES: list[dict] = [
     # OFF_DOMAIN_CONSEQUENCE_CHARGED_ONCE (Q4c/p9) WAS RETRACTED 2026-09-05,
     # within the hour it was written, for the same reason as the note below.
     # It argued that gold contradicts itself between p9 ("Gaining bad eating
-    # habits", charged) and p2 ("eating more calories than I burn LEADING TO ME
-    # GAINING WEIGHT", credited) -- same behaviour domain, same off-domain
+    # habits", charged) and p2 ([[corpus Q4c/p2 second 41:103 sha=12b7e333ed32]], credited) -- same behaviour domain, same off-domain
     # content, opposite verdicts. THE DOMAIN IS NOT THE DIFFERENCE: p2 states
     # where the activity LEADS and p9 does not, which is subgoal Q19's endpoint
     # head. Both cells are decided by the rule, so neither is a divergence.
@@ -1105,8 +1084,7 @@ GOLD_DIVERGENCES: list[dict] = [
         "cells": [("Q1", 9)],
         "why": "The cell turns on ONE ungrammatical clause whose literal sense is the "
                "opposite of what the student meant, and both readings are defensible. "
-               "THE TEXT: \"I want to exercise more because it will better my health in "
-               "the future and have unwanted complications to have to with my health.\" "
+               "THE TEXT: [[corpus Q1/p9 response 148:278 sha=cdcc576ba1da]] "
                "Read literally it says exercising will HAVE unwanted complications; gold "
                "reads the intended \"avoid having\". "
                "WHY IT DECIDES THE CELL: gold counts p9 as offering NO harms and two "
@@ -1153,8 +1131,7 @@ GOLD_DIVERGENCES: list[dict] = [
                "lack of sleep?\"; p20 \"An antecedent/trigger is something that causes "
                "you to engage in the UTB\". All three demand that the example show how "
                "it leads to THE UTB, and we score all three exactly right, 6/6 each. "
-               "p14 (gold 1, we score 3): \"not seeing immediate results, so I tend to "
-               "bed rot\" STATES that link and names the UTB as its effect -- bed-rotting "
+               "p14 (gold 1, we score 3): [[corpus Q4a/p14 first 19:70 sha=4835583a57b5]] STATES that link and names the UTB as its effect -- bed-rotting "
                "is lack of exercise -- so by the rule above it qualifies, and our "
                "`antecedent_1` reads `met` 6/6. Gold rejected both examples for -4. "
                "p19 (gold 5, we score 3): \"waking up and not feeling motivated\" states "
@@ -1296,9 +1273,8 @@ GOLD_DIVERGENCES: list[dict] = [
         # +1/-0. We are declaring a cell BECAUSE we changed the prompt and it
         # moved. The defence is that the criterion was already firing there a
         # quarter of the time, on a box its own case list describes.
-        "why": "p13's second box reads \"the second thing is that my brain is "
-               "telling me to go to sleep, but i couldn't physically do it "
-               "because of my ADHD.\" The criterion `behavior_2` applies is "
+        "why": "p13's second box reads [[corpus Q4b/p13 second 0:115 sha=19e3b7677557]]. "
+               "The criterion `behavior_2` applies is "
                "\"Second example of what they do INSTEAD OF the goal "
                "behavior\", and `b*_basis`'s rule enumerates the failing "
                "cases. Case (5), verbatim: \"NAMING A FAILURE TO ACT IS NOT "
@@ -1410,10 +1386,8 @@ GOLD_DIVERGENCES: list[dict] = [
                "AND THE FIGURE THIS ENTRY GAVE FOR THAT IS TOO STRONG. It says "
                "p4 \"is the ONLY one who names an ordinary activity\". Reading "
                "all 40 antecedents out on 2026-09-08: about EIGHT name an act -- "
-               "p2a2 \"always playing video games\", p3a2 \"I would just not "
-               "eat\", p4a2 \"scrolling through tiktok\", p5a1 \"I keep "
-               "unhealthy snacks nearby\", p8a1 \"stay home and play video "
-               "games\", p13a1 \"I get sucked into my phone\", p13a2 \"i "
+               "p2a2 \"always playing video games\", p3a2 [[corpus Q4a/p3 second 46:67 sha=f02fb0c2f773]], p4a2 \"scrolling through tiktok\", p5a1 [[corpus Q4a/p5 first 38:67 sha=f08f6145ef7c]], p8a1 \"stay home and play video "
+               "games\", p13a1 [[corpus Q4a/p13 first 13:40 sha=23ff0f851d94]], p13a2 \"i "
                "procrastinate\", p20a2 \"waking up late and forgetting "
                "items\". The rest are states, feelings, circumstances or "
                "absences. The claim was inherited and requoted without being "
@@ -1599,8 +1573,7 @@ GOLD_DIVERGENCES: list[dict] = [
     },
     {
         "code": "REASON_FOR_WRONG_BEHAVIOR", "cells": [("Q5", 4)],
-        "why": "p4's first entry reads \"I continue sleep enough because sleep is "
-               "good for you, I am gaining something)\" — it names the OPPOSITE of "
+        "why": "p4's first entry reads [[corpus Q5/p4 first 0:78 sha=f7407ff462b1]] — it names the OPPOSITE of "
                "the unwanted behaviour and gives a reason to change rather than a "
                "payoff for continuing. Gold credited it and charged only the second "
                "entry, so 2.5 of 5. Reproducing that needs a scorer to read through "
@@ -1643,9 +1616,7 @@ GOLD_DIVERGENCES: list[dict] = [
             "instead: an antecedent change alters what triggers the unwanted "
             "behaviour, it does not resolve to do the wanted one.\n\n"
             "Declared rather than chased because p6 is the same shape and gold "
-            "CREDITS it. p6's antecedent is \"not attending the gym & stretching as "
-            "often as I should\" and its change is \"I will make it mandatory for "
-            "myself to attend the gym at least three times a week\" — an absence-framed "
+            "CREDITS it. p6's antecedent is [[corpus Q6/p6 state_a2 3:35 sha=28bcc2cde013]] and its change is [[corpus Q6/p6 change_a1 11:93 sha=747d274a1055]] — an absence-framed "
             "antecedent answered with a scheduling commitment, exactly like p8. No "
             "textual feature separates them, and three attempts confirmed it: a prose "
             "acts-on rule moved one of p8's two slots and stuck on the other; a "
@@ -1693,9 +1664,7 @@ GOLD_DIVERGENCES: list[dict] = [
         # only reason the removal is safe: the comment held a third attempt
         # recorded nowhere else.
         "why": "gold credits a not-doing as an active behaviour. p12's second "
-               "entry is \"I skip adding fruits or vegetables to my meals even "
-               "when they are available and let them sit in the refrigerator "
-               "until they go bad\" — it names no activity that displaced the "
+               "entry is [[corpus Q4b/p12 second 0:130 sha=a96444a8304b]] — it names no activity that displaced the "
                "goal, which is what the question asks for, and `behavior_*`'s "
                "fifth test refuses it in terms. Gold gives 5.0. "
                "THE REASON THIS ENTRY USED TO GIVE WAS FALSE and is corrected "
@@ -1762,7 +1731,7 @@ GOLD_DIVERGENCES: list[dict] = [
     #   WK1/p8  fixed last, after eight attempts, by asking the grader for a PARSE
     #           instead of a judgement. The cue is syntactic: every gold-4 cell on
     #           the item puts an animate agent in subject position governing a verb
-    #           that brings the thing about ("I will treat myself to a movie"),
+    #           that brings the thing about ([[corpus WK1/p4 wk1 60:91 sha=09b694b3b2a9]]),
     #           while p8 puts the PENALTY in subject position with an accumulation
     #           verb ("the press-ups will just keep stacking") — nobody imposes
     #           anything. 6 of 6 probed, controls holding, WK1 up from 15 to 17.
@@ -1775,10 +1744,9 @@ GOLD_DIVERGENCES: list[dict] = [
     # not wobble.
     # WK2/p8 REMOVED from this entry 2026-08-24, and NOT declared anywhere else.
     # It was carried as a third instance of avoidance framing and is not that at
-    # all: "I will be doing yard during the weekend If I had met my goal 4 days a
-    # week for 1 hour" puts the chore AFTER SUCCESS, so meeting the goal earns
+    # all: [[corpus WK2/p8 wk2 0:85 sha=7c5a9ef6a6ad]] puts the chore AFTER SUCCESS, so meeting the goal earns
     # yard work. Their daily answer for the same type is the correct inverse
-    # ("...I will reward myself by not doing yard work"), which is what makes the
+    # ([[corpus DAY2/p8 day2 40:82 sha=940abdeb2cbc]]), which is what makes the
     # weekly one a slip rather than a style. The submission was checked against
     # the source .docx line by line: the text is transcribed faithfully, no "not"
     # was lost, so there is nothing to fix in the fixture.
@@ -1868,7 +1836,7 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "on slots it does not govern. SECOND MEASURED INSTANCE IN ONE DAY -- Q4b's "
         "sixth `b1_basis` value was chosen ZERO times in 32 results and still "
         "destabilised p13 and p20. Adding text is not free even when the text is "
-        "never used, which project memory `q6-matching-ceiling` asserted in other "
+        "never used, which `Q6_MATCHING_CEILING.md` asserted in other "
         "words and is now measured on the change_a* channel as well. "
         "THE WIDENED FALSIFIER SET CAUGHT IT AND THE NARROW ONE WOULD NOT: p1 and "
         "p15 were ABSENT from the original cell list and are two of the four cells "
@@ -1901,7 +1869,7 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "ceiling reading as headroom -- and a list of OUR failed rules is not "
         "that. Eleven attempts have been measured and reverted on this criterion, "
         "ten wordings and one schema change; the running tally, with what each "
-        "cost, is in memory/q6-matching-ceiling.md and in subgoal Q47. "
+        "cost, is in Q6_MATCHING_CEILING.md and in subgoal Q47. "
         "WHAT BELONGS HERE IS THE GOLD CLAIM ALONE, and it is stated above: gold "
         "charges p2 for a change it calls inadequate while crediting p3 and p5 "
         "for changes of similar thinness, so WHICH cells go wrong depends on "
@@ -1934,8 +1902,7 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "interval of [27%, 81%], flipping between 2.50 and 3.75 on identical input "
         "-- and it is RETIRED as of 2026-08-20. Defining \"matches\" before the "
         "credit components that use the word, with antonym pinned to the two ends "
-        "of ONE scale, took p9 to 9 of 9 at nine passes. Its `state_c1` reads \"I "
-        "hope I do not suffer the consequences of bad health\" against a listed "
+        "of ONE scale, took p9 to 9 of 9 at nine passes. Its `state_c1` reads [[corpus Q6/p9 state_c1 24:62 sha=682e83e1e48c]] against a listed "
         "\"better health\": resolve the negation and those are the SAME state, not "
         "opposite ones, and the flipping was the grader having no rule that said "
         "so. It was never an unwinnable criterion; it was an undefined term. "
@@ -1948,7 +1915,7 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "Q6's practical maximum is therefore 19 of its 20 counted cells, p2 being "
         "the one. "
         "The seventh and eighth attempts, 2026-09-05 and 2026-09-06, are "
-        "recorded with the rest in memory/q6-matching-ceiling.md and subgoal "
+        "recorded with the rest in Q6_MATCHING_CEILING.md and subgoal "
         "Q47. The eighth is the one worth reading before proposing another: "
         "it changed the SCHEMA rather than the prose, forcing the grader to "
         "classify what each box does, and the classification credited both "
@@ -1972,8 +1939,7 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "alone: refusing the box without also crediting the flip takes p5 to 5.00. "
         "THREE FURTHER ATTEMPTS, 2026-08-20, all reverted, and the last of them "
         "closes the most promising hypothesis. The diagnosis looked exact: p5's "
-        "4c-1 reads \"worsening my overall health BY turning to unhealthy "
-        "alternatives\", so the CONSEQUENCE is the health clause and the trailing "
+        "4c-1 reads [[corpus Q4c/p5 first 76:141 sha=dcf5f360448d]], so the CONSEQUENCE is the health clause and the trailing "
         "\"by ...\" names the behaviour -- and both c-state boxes were matching "
         "that trailing clause, which is exactly why the family reads 1 against "
         "gold's 0. A clause was added to the match definition saying so: an entry "
@@ -2002,10 +1968,8 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
     ),
     # ("1", "Q3") RETIRED 2026-09-08, REFUTED BY MEASUREMENT ON ITS OWN TERMS.
     # It claimed: five answers justify the goal by CAPABILITY rather than by
-    # naming an action, gold splits them -- p14 ("my early mornings are free and
-    # my gym is near my house") and p18 ("I have access to the university's gym")
-    # CREDITED; p8 ("I will be able to make time"), p16 ("I have a lot of time on
-    # my hands") and p20 ("i am able to full asleep") DEDUCTED -- and that since
+    # naming an action, gold splits them -- p14 ([[corpus Q3/p14 action 59:114 sha=be78a80d205b]]) and p18 ([[corpus Q3/p18 action 63:101 sha=6f121f09ecc7]])
+    # CREDITED; p8 ([[corpus Q3/p8 action 54:82 sha=9d019f797fb8]]), p16 ([[corpus Q3/p16 action 57:90 sha=ccb895361cb8]]) and p20 ("i am able to full asleep") DEDUCTED -- and that since
     # this is the SAME CLAIM with opposite verdicts, "any consistent rule gets at
     # most 3 of those 5, so >=2 cells are unwinnable and 18/20 is the ceiling".
     # BOTH HALVES ARE NOW FALSE, and the second matters more than the first.
@@ -2035,7 +1999,7 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
     # and credits it -- 0 of 3 when last read, and p19 is 11/12 today. A clause
     # saying THE GOAL RESTATED IS NOT THE ACTION would separate it -- the same
     # "you cannot do something instead of itself" logic Q4b's `behavior_*` rule
-    # carries -- with p13's "I can take my medication before I go to bed" as the
+    # carries -- with p13's [[corpus Q3/p13 action 57:101 sha=c15db424cdd3]] as the
     # control that must keep its credit. That proposal needs a QC owner now that
     # this entry is gone; it is not a ceiling and never was.
     # ("2", "DAY2") RETIRED 2026-08-24. It read: p7's gold is 1.00 while its
@@ -2137,8 +2101,7 @@ PER_ITEM_EXCLUDE: dict[str, dict[int, str | dict]] = {
         #
         # The record never agreed. Six passes over web_v8 and web_v9 return
         # `verdict: met` every time, cited to a sentence the student DID write
-        # ("My exercise intake increased from 0 to 3 session a week, as shown by
-        # the data"), and the cell scores gold's 6.0 in five of the six. The
+        # ([[corpus 2a/p18 verdict 0:77 sha=6d41c38a4671]]), and the cell scores gold's 6.0 in five of the six. The
         # item's own guidance licenses that reading in terms: "a verdict that
         # cites the data as its evidence, followed by one concrete circumstance
         # under which the plan worked, covers the verdict and both

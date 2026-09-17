@@ -28,3 +28,7 @@ venv/
 # Editors / OS
 .DS_Store
 *.swp
+
+# Frozen prompt oracles embed the responses they scored (433 student spans).
+# They live under $MOLLY_DATA; see migration/migration_paths.py GOLDENS.
+migration/goldens/

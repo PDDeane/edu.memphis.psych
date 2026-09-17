@@ -168,8 +168,7 @@ On the held-out 17, comparing like for like against v6:
 | failed slots detected (of 41) | 35 | **37** |
 
 Prose guidance had twice failed to move this item; exemplars moved it 12
-points. The decisive one is participant 8: its answer says "I will be putting
-an hour a day from Tuesday-Friday", which reads like a described change but is
+points. The decisive one is participant 8: its answer says [[corpus Q6/p8 change_a1 0:36 sha=3d9188d12f04]], which reads like a described change but is
 a plan to perform the *goal behaviour*, not a change to the *antecedent* — the
 grader marked every change slot absent. That distinction is very hard to state
 as a rule and obvious from a worked case.
@@ -204,12 +203,11 @@ here, never a deduction.
 **Q4b (v5) was the largest single win: 74% → 95% exact, MAE 0.39 → 0.05.**
 The fix was recognising that the graders judge *framing*, not category. They
 accept anything presented as happening during the UTB episode — including
-internal states ("my brain is telling me to go to sleep but I couldn't") and
-coping behaviours ("I rely on caffeine") — and reject only statements framed
-as outcomes of it ("I walk around campus with stiff muscles") or that are not
+internal states ([[corpus Q4b/p13 second 24:62 sha=57b6f5e4d651]]) and
+coping behaviours ([[corpus Q4b/p19 second 34:53 sha=364386d19a9f]]) — and reject only statements framed
+as outcomes of it ([[corpus Q4b/p6 second 40:80 sha=beab1a44caa4]]) or that are not
 examples at all. A second refinement: a trigger and the student's *response*
-to that trigger are distinct, so "friends calling me" in 4a and "talking with
-friends" in 4b do not violate the A≠B≠C rule.
+to that trigger are distinct, so "friends calling me" in 4a and [[corpus Q4b/p15 second 42:63 sha=56f150db6fc8]] in 4b do not violate the A≠B≠C rule.
 
 **Q6 is the weakest item and has been through two fixes.** v3 fixed a real bug
 — the scorer stacked two deduction codes on one 1.25-point slot, so a response
@@ -271,13 +269,12 @@ further rubric work is finding them.
 
 **Seventh attempt, and the advice above still holds.** A ninth guidance bullet
 was added — "A CHANGE TO THE ANTECEDENT, NOT A PLAN TO DO THE GOAL BEHAVIOUR" —
-because participant 2's "listening to music as I work out" against an antecedent
+because participant 2's [[corpus Q6/p2 change_a2 3:35 sha=46d6919d787c]] against an antecedent
 of playing video games is exactly the failure the 2.5/10 exemplar demonstrates,
 and neither the scorer nor the lo-blocks prompt was applying it. It fixed p2.
 
 In isolation it also pulled p4 from +1.50 to +0.25 and p19 from +2.50 to +1.25,
-taking bias to +0.07 — but it cost p3, a 10/10 response whose "by motivating
-myself to get up and go, this will help me go to the gym" acts on the belief
+taking bias to +0.07 — but it cost p3, a 10/10 response whose [[corpus Q6/p3 change_a1 0:70 sha=2aa4dbd3d492]] acts on the belief
 while merely NAMING the gym. Adding p3 as a contrast case recovered it and kept
 p2 fixed, at the price of most of the p4/p19 calibration:
 
@@ -295,9 +292,8 @@ Six known, deliberate divergences from gold, all cases where the graders
 applied their own written rule inconsistently and the scorer applies it
 uniformly:
 
-* `A_MISMATCH` on Q6, participant 9 — their 4a lists "thinking about exercising
-  makes me want to go less to the gym" and "not going on a run with a friend",
-  while their Q6 changes "using my free time in bed watching a movie or show":
+* `A_MISMATCH` on Q6, participant 9 — their 4a lists [[corpus Q4a/p9 first 0:61 sha=30cbbcedd8bd]] and [[corpus Q4a/p9 second 0:32 sha=077172afc802]],
+  while their Q6 changes [[corpus Q6/p9 state_a1 38:88 sha=9322bfb263af]]:
   a third antecedent. The dictionary is explicit ("This is a different
   antecedent from what you listed in question 4a. The antecedents must match
   up."), so `state_a1` is a mismatch. Gold scored it met and deducted only for
@@ -312,12 +308,11 @@ uniformly:
 * `UTB_NOT_STATED` on Q1 — participant 20 lost 2 points for never naming the
   UTB, participant 17 did not, on materially identical responses.
 
-* `A_NOT_ANTECEDENT` on Q4a, participant 14 — their first trigger is "not seeing
-  immediate results, so I tend to bed rot", which the graders rejected along with
+* `A_NOT_ANTECEDENT` on Q4a, participant 14 — their first trigger is [[corpus Q4a/p14 first 20:70 sha=05efb371d288]], which the graders rejected along with
   their second. Gold is 1.0, i.e. both examples refused at 2 points each with the
   keyword point kept. But this item's own guidance says to accept generously when
   an example precedes the UTB and a reader can see how it leads there, and that a
-  state of mind qualifies — which "not seeing immediate results" is. The lo-blocks
+  state of mind qualifies — which [[corpus Q4a/p14 first 19:48 sha=03df22d0785f]] is. The lo-blocks
   prompt credited it in five runs out of five, with `antecedent_1: met` every
   time, so this is a stable reading rather than noise.
 
@@ -331,8 +326,7 @@ uniformly:
 * `AVOIDANCE FRAMING` on DAY1, WK1 and WK2, participant 8 — the largest of these
   by cell count, and it was missing from this list until an audit of the H2
   example items went looking for a calibration gap and found a decision instead.
-  Their contingencies are stated by what is AVOIDED ("so I don't have to do an
-  extra 30 pushups if..."), which is structurally sound: a consequence is still
+  Their contingencies are stated by what is AVOIDED ("[[corpus DAY1/p8 day1 104:130 sha=fdab95974d4c]]..."), which is structurally sound: a consequence is still
   arranged and still contingent. The graders read the phrasing as a failure and
   wrote "This is not an example of operant conditioning" on all three. score.py
   refuses to follow them — "flag for review, never deduct" — and attaches an
@@ -342,8 +336,7 @@ uniformly:
   before concluding the criteria are too permissive.
 
 * `WRONG_DEFINITION` on D2, participant 11 — they chose Negative Reinforcement
-  and defined it as "When you take away something desired, to decrease a
-  behavior", which is Negative Punishment. The grader diagnosed it correctly and
+  and defined it as [[corpus D2/p11 d2 0:60 sha=84a6f19171a6]], which is Negative Punishment. The grader diagnosed it correctly and
   wrote "This is the definition of NP", but charged −1 and left the score at
   1.0; the dictionary puts WRONG_DEFINITION at −2. Both implementations score it
   0 — the scorer through WRONG_DEFINITION, the lo-blocks sheet through its
@@ -385,8 +378,7 @@ The naming/definition items (T1, D1, T2, D2) were solved from the start at
 a real operant-conditioning contingency?* — so the calibration went into the
 shared `_EXAMPLE_RULES` and moved all six at once. The largest single error was
 over-applying "must be an external stimulus": the graders accept **removing an
-unpleasant obligation** as a negative reinforcer ("I will not have to wake up
-early"), and the scorer had been zeroing those. NR alone went 72% → 94%.
+unpleasant obligation** as a negative reinforcer ([[corpus NR/p7 nr 45:77 sha=484103a57049]]), and the scorer had been zeroing those. NR alone went 72% → 94%.
 
 ### v5 — enforcing the definition, and the avoidance rule
 
@@ -407,8 +399,7 @@ times across the cohort.
 Three further rules recovered regressions the enforcement introduced, each
 from the handout's own instructions rather than from the labels:
 
-* **Reinforcement must act on the WGB, punishment on the UTB.** "If I don't
-  work out then I won't have to study more" is formally negative reinforcement
+* **Reinforcement must act on the WGB, punishment on the UTB.** [[corpus NR/p11 nr 27:59 sha=175ccdc983b3]] is formally negative reinforcement
   — of the *unwanted* behaviour. `targets_intended_behavior` catches it (-2).
 * **"Withhold X until B" is dual-describable** — as PR of B and as NP of not-B.
   Both readings are correct, so credit whichever type the student named.
@@ -417,8 +408,7 @@ from the handout's own instructions rather than from the labels:
   is what their weekly example must be judged against.
 
 Net v4 → v5: three cells gained, one lost. The loss is participant 15's PR,
-where `targets_intended_behavior` fires on "only allow myself to binge my
-favourite show after I finish homework" — the reward is screen time, which is
+where `targets_intended_behavior` fires on [[corpus PR/p15 pr 0:26 sha=c2542984b780]] — the reward is screen time, which is
 that student's UTB, and the reinforced behaviour is not their WGB. The rule is
 right; gold is lenient there.
 
@@ -606,7 +596,7 @@ against a gold 4.0, and both verdict sheets read `names_behavior: no` while
 also reporting `observed_type: PR` — self-contradictory, since an example
 cannot be Positive Reinforcement without a behaviour to reinforce. The
 `names_behavior` gate is being read too literally against answers that refer to
-the goal behaviour indirectly ("if I meet my goal, I will ..."), and because it
+the goal behaviour indirectly ([[corpus NR/p1 nr 0:25 sha=4ae499f0c7c6]]), and because it
 gates, one wrong verdict costs the whole item. Fixing it is prompt work, and it
 should be re-measured here rather than assumed.
 

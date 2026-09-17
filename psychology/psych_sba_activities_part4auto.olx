@@ -54,61 +54,49 @@ Let's check in with Annie to see how things went.
 
 Annie's roommate tracked Johnny's bedtime over 5 babysitting sessions:
     </Markdown>
-    <ObservablePlot id="fba3_week1_chart" title="Johnny's Bedtimes (Week 1–2)" format="js"><![CDATA[
-const data = [
-  { date: "9/5", bedtimeIndex: 0 },
-  { date: "9/6", bedtimeIndex: 0 },
-  { date: "9/7", bedtimeIndex: 1 },
-  { date: "9/8", bedtimeIndex: 2 },
-  { date: "9/9", bedtimeIndex: 2 }
-];
-
-function formatBedtimeLabel(index) {
-  const labels = {
-    "-0.25": "7:45 PM",
-    0: "8:00 PM",
-    1: "8:30 PM",
-    2: "9:00 PM",
-    "2.25": "9:15 PM"
-  };
-  return labels[index] ?? `${index}`;
-}
-
-return Plot.plot({
-  width: 680,
-  height: 300,
-  marginLeft: 72,
-  marginBottom: 48,
-  marks: [
-    Plot.lineY(data, {
-      x: "date",
-      y: "bedtimeIndex",
-      stroke: "#111827",
-      curve: "linear",
-      strokeWidth: 3,
-      clip: false
-    }),
-    Plot.dot(data, {
-      x: "date",
-      y: "bedtimeIndex",
-      stroke: "#111827",
-      fill: "#111827",
-      r: 4,
-      clip: false
-    })
-  ],
-  x: {
-    label: "Date",
-    ticks: data.map((d) => d.date)
-  },
-  y: {
-    label: "Bedtime",
-    domain: [-0.25, 2.25],
-    ticks: [0, 1, 2],
-    tickFormat: formatBedtimeLabel
-  }
-});
-]]></ObservablePlot>
+    <ObservablePlot id="fba3_week1_chart" title="Johnny's Bedtimes (Week 1–2)">
+width: 680
+height: 300
+marginLeft: 72
+marginBottom: 48
+marks:
+  - type: lineY
+    data:
+      - {date: "9/5", bedtime: "8:00 PM"}
+      - {date: "9/6", bedtime: "8:00 PM"}
+      - {date: "9/7", bedtime: "8:30 PM"}
+      - {date: "9/8", bedtime: "9:00 PM"}
+      - {date: "9/9", bedtime: "9:00 PM"}
+    x: date
+    y: bedtime
+    stroke: "#111827"
+    clip: false
+    curve: linear
+    strokeWidth: 3
+  - type: dot
+    data:
+      - {date: "9/5", bedtime: "8:00 PM"}
+      - {date: "9/6", bedtime: "8:00 PM"}
+      - {date: "9/7", bedtime: "8:30 PM"}
+      - {date: "9/8", bedtime: "9:00 PM"}
+      - {date: "9/9", bedtime: "9:00 PM"}
+    x: date
+    y: bedtime
+    stroke: "#111827"
+    clip: false
+    fill: "#111827"
+    r: 4
+x:
+  label: Date
+  domain: ["9/5", "9/6", "9/7", "9/8", "9/9"]
+y:
+  label: Bedtime
+  # REVERSED ON PURPOSE. The JS spec this replaces plotted a numeric
+  # bedtimeIndex, where 0 sat at the BOTTOM, so a later bedtime rose up the
+  # chart. An ordinal domain renders its first entry at the TOP -- measured, not
+  # assumed -- so listing the latest bedtime first keeps the picture the same.
+  domain: ["9:00 PM", "8:30 PM", "8:00 PM"]
+</ObservablePlot>
     <Markdown>
 The data shows that something isn't working. **Before reading the explanation, look at the graph and write what you think went wrong.** Consider: Is the plan itself flawed, or is something else going on?
     </Markdown>
@@ -482,61 +470,49 @@ Format the plan with these sections:
 
 After implementing the modifications, Annie's roommate tracked another 5 sessions:
 </Markdown>
-<ObservablePlot id="fba3_week3_chart" title="Johnny's Bedtimes (Week 3–4)" format="js"><![CDATA[
-const data = [
-  { date: "9/19", bedtimeIndex: 0 },
-  { date: "9/20", bedtimeIndex: 1 },
-  { date: "9/24", bedtimeIndex: 0 },
-  { date: "9/25", bedtimeIndex: 0 },
-  { date: "9/26", bedtimeIndex: 0 }
-];
-
-function formatBedtimeLabel(index) {
-  const labels = {
-    "-0.25": "7:45 PM",
-    0: "8:00 PM",
-    1: "8:30 PM",
-    2: "9:00 PM",
-    "2.25": "9:15 PM"
-  };
-  return labels[index] ?? `${index}`;
-}
-
-return Plot.plot({
-  width: 680,
-  height: 300,
-  marginLeft: 72,
-  marginBottom: 48,
-  marks: [
-    Plot.lineY(data, {
-      x: "date",
-      y: "bedtimeIndex",
-      stroke: "#111827",
-      curve: "linear",
-      strokeWidth: 3,
-      clip: false
-    }),
-    Plot.dot(data, {
-      x: "date",
-      y: "bedtimeIndex",
-      stroke: "#111827",
-      fill: "#111827",
-      r: 4,
-      clip: false
-    })
-  ],
-  x: {
-    label: "Date",
-    ticks: data.map((d) => d.date)
-  },
-  y: {
-    label: "Bedtime",
-    domain: [-0.25, 2.25],
-    ticks: [0, 1, 2],
-    tickFormat: formatBedtimeLabel
-  }
-});
-]]></ObservablePlot>
+<ObservablePlot id="fba3_week3_chart" title="Johnny's Bedtimes (Week 3–4)">
+width: 680
+height: 300
+marginLeft: 72
+marginBottom: 48
+marks:
+  - type: lineY
+    data:
+      - {date: "9/19", bedtime: "8:00 PM"}
+      - {date: "9/20", bedtime: "8:30 PM"}
+      - {date: "9/24", bedtime: "8:00 PM"}
+      - {date: "9/25", bedtime: "8:00 PM"}
+      - {date: "9/26", bedtime: "8:00 PM"}
+    x: date
+    y: bedtime
+    stroke: "#111827"
+    clip: false
+    curve: linear
+    strokeWidth: 3
+  - type: dot
+    data:
+      - {date: "9/19", bedtime: "8:00 PM"}
+      - {date: "9/20", bedtime: "8:30 PM"}
+      - {date: "9/24", bedtime: "8:00 PM"}
+      - {date: "9/25", bedtime: "8:00 PM"}
+      - {date: "9/26", bedtime: "8:00 PM"}
+    x: date
+    y: bedtime
+    stroke: "#111827"
+    clip: false
+    fill: "#111827"
+    r: 4
+x:
+  label: Date
+  domain: ["9/19", "9/20", "9/24", "9/25", "9/26"]
+y:
+  label: Bedtime
+  # REVERSED ON PURPOSE. The JS spec this replaces plotted a numeric
+  # bedtimeIndex, where 0 sat at the BOTTOM, so a later bedtime rose up the
+  # chart. An ordinal domain renders its first entry at the TOP -- measured, not
+  # assumed -- so listing the latest bedtime first keeps the picture the same.
+  domain: ["9:00 PM", "8:30 PM", "8:00 PM"]
+</ObservablePlot>
 <Markdown>
 **The modified intervention was a success!**
 
