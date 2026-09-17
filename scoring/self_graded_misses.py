@@ -36,7 +36,7 @@ from handouts import config, cell_exclusions, gold_divergence_cells
 import paths
 
 OUT = os.path.join(os.path.dirname(paths.__file__), "..")
-DATA = os.path.expanduser(os.environ.get("MOLLY_DATA", "~/molly_data")) + "/out"
+DATA = str(paths.OUT)
 
 # label -> (kind, path). `paper` dirs hold participant_*.json per handout;
 # `sweep` dirs hold <item>.json. Missing ones are skipped, so this runs against

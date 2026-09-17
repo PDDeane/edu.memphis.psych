@@ -118,7 +118,7 @@ ITEMS: list[dict] = [
             # LOCATABLE and merely conditional — see below — and the scaffold now
             # scores both cells. A `utb_stated` sub-entry went with it: p17/p20 look
             # alike and gold splits them, but gpt-5-mini matches gold on BOTH
-            # (reading p17's "{{corpus:Q1/p17:response:45:64:sha=9b9dc5f41af2}}" as claiming the behaviour), so the
+            # (reading p17's [[corpus Q1/p17 response 44:64 sha=374803fa28e8]] as claiming the behaviour), so the
             # line is locatable there too and only Opus misses it, answering `absent`
             # on both in 8 of 8 runs. A cell one model misses is a MODEL limit and
             # does not belong in a table about gold's inconsistency.
@@ -139,8 +139,7 @@ ITEMS: list[dict] = [
             # WHAT TO ATTACK NEXT, if the shipped paths matter more than the paper
             # scorer: the two CLASSIFICATION counts, not the rule. gpt-5-mini executes
             # the conditional but is unstable underneath it — `benefits_listed`
-            # flickers 2<->3 on p10 (the goal restatement "{{corpus:Q1/p10:response:117:141:sha=e4f5396e86db}}
-            # more active" leaking in) and `harms_listed` 2<->3 on p19 (the coordinate
+            # flickers 2<->3 on p10 (the goal restatement [[corpus Q1/p10 response 116:153 sha=0b310cee6173]] leaking in) and `harms_listed` 2<->3 on p19 (the coordinate
             # "tired and unmotivated" splitting only half the time). That instability
             # is why the shipped means are flat and their spreads grew: the scaffold
             # gives a weaker model two things to get wrong instead of one.
@@ -167,9 +166,9 @@ ITEMS: list[dict] = [
             # REVERTED, on `harms_listed`: a coordinate-scope clause saying two
             # DIFFERENT effects joined by "and" are two while one effect in two
             # settings is one. It fixed p19 outright (3/6 -> 8/8) and cost more than
-            # it bought: p6 fell 6/6 -> 4/8 because "{{corpus:Q1/p6:response:521:547:sha=fbf0b3dad913}} achy"
+            # it bought: p6 fell 6/6 -> 4/8 because [[corpus Q1/p6 response 520:552 sha=3d733ff369ab]]
             # started splitting, and p5 fell 6/6 -> 1/8 because the clause overrode
-            # the knock-on rule on "snacking ... {{corpus:Q1/p5:response:220:243:sha=a56d4f5cc177}} weight".
+            # the knock-on rule on [[corpus Q1/p5 response 219:250 sha=ce06de084fd2]].
             # Net about -0.45 cells. To keep p19 it would have to separate two
             # genuinely different effects from two adjectives for one effect
             # ("tired and unmotivated" = 2, "sore and achy" = 1), which is the same
@@ -179,15 +178,14 @@ ITEMS: list[dict] = [
             #
             # p6 IS FIXED BUT MARGINAL. Two observations that have to be held
             # together: on isolated single-cell runs after the revert it sits at 4 of
-            # 8, `harms_listed` flickering 1<->2 on "{{corpus:Q1/p6:response:521:547:sha=fbf0b3dad913}} achy";
+            # 8, `harms_listed` flickering 1<->2 on [[corpus Q1/p6 response 520:552 sha=3d733ff369ab]];
             # in the item runs that followed it is not an error on either model. So it
             # lands on the right answer when scored as part of the item, but it is
             # close enough to the boundary that repeated single-cell measurement
             # catches it falling off. Do not read the 4/8 as an open regression — an
             # earlier version of this note called it one, which was too pessimistic —
             # and do not read the item runs as proof it is solid either. p9 is
-            # also unstable for a different reason: the model reads "have unwanted
-            # complications to have to with my health" as a harm, so harms_listed is 1
+            # also unstable for a different reason: the model reads [[corpus Q1/p9 response 223:277 sha=eee45a3d69fc]] as a harm, so harms_listed is 1
             # and tier one applies, giving 1 where gold wants 2. Its text is garbled
             # enough that the reading is defensible.
             #
@@ -251,8 +249,7 @@ ITEMS: list[dict] = [
             },
             # SUBGOAL Q14's STRUCTURAL ATTEMPT, 2026-09-05, after a wording fix on
             # `benefits_listed` failed to move Q1/p10 at all. The diagnosis was that
-            # the state/doing axis CANNOT separate p10's "{{corpus:Q1/p10:response:117:141:sha=e4f5396e86db}}
-            # more active" from Q2/p18's "get back in shape", which gold credits --
+            # the state/doing axis CANNOT separate p10's [[corpus Q1/p10 response 116:153 sha=0b310cee6173]] from Q2/p18's "get back in shape", which gold credits --
             # so no wording on that axis can work, and section 2b says try structure
             # first.
             #
@@ -290,11 +287,9 @@ ITEMS: list[dict] = [
                 "reported": True,
                 "verdicts": ["3", "2", "1", "0"],
                 # The thematic generosity is RIGHT here and is kept: gold really
-                # does count "makes me tired" / "makes me grumpy" / "it shows
-                # through my emotions" as three. What was missing is the
+                # does count "makes me tired" / "makes me grumpy" / [[corpus Q1/p4 response 153:182 sha=81519702b502]] as three. What was missing is the
                 # STRUCTURAL boundary — p5 was counted 3 by splitting one sentence
-                # at its `which`: "{{corpus:Q1/p5:response:161:207:sha=302325c46580}}
-                # like candy" + "{{corpus:Q1/p5:response:220:243:sha=a56d4f5cc177}} weight". Gold counts that
+                # at its `which`: [[corpus Q1/p5 response 160:218 sha=c06fd245ce0d]] + [[corpus Q1/p5 response 219:250 sha=ce06de084fd2]]. Gold counts that
                 # sentence once, so p5 is 2. Same shape as Q2 p19; see the
                 # knock-on rule on Q2's `reasons_given`.
                 # WAS a harms-dominate conditional: "if `harms_listed` is 1 or
@@ -320,7 +315,7 @@ ITEMS: list[dict] = [
                 # response offers no harms at all. Deleting it was the error.
                 # The remaining failures are CLASSIFICATION, not arithmetic:
                 # p9 is correct in exactly the runs where harms_listed reads 0
-                # ("{{corpus:Q1/p9:response:229:270:sha=a62bb25947c3}} health" is not a
+                # ([[corpus Q1/p9 response 228:277 sha=921f14bb0793]] is not a
                 # harm gold sees), and p14 needs the heart-disease clause read AS
                 # a harm to reach three.
                 "desc": "HOW MANY reasons count. The rule is CONDITIONAL on the two "
@@ -876,8 +871,7 @@ ITEMS: list[dict] = [
                 # statements naming a benefit count separately even when
                 # thematically related". That instructs the WRONG answer. The
                 # handout does print "at least 3 sentences", but gold does not
-                # score it that way: on p18 it rejects "{{corpus:Q2/p18:response:122:147:sha=123ca2f427fe}}
-                # {{corpus:Q2/p18:response:148:194:sha=688640edf4ec}} shape" as
+                # score it that way: on p18 it rejects [[corpus Q2/p18 response 121:200 sha=a34643434ffe]] as
                 # restating the problem and counts 2 of 3. The rule below is read
                 # off gold's own comments — p3 states the kind test in as many
                 # words, "The reasons listed are why you chose to intervene on
@@ -1102,9 +1096,7 @@ ITEMS: list[dict] = [
                 # DEAD 2, POINTING AT THE LABEL. Never run, because the reach
                 # check refused it: paper ALREADY quotes the right sentence. On
                 # both cells, all six observations, its evidence is byte-identical
-                # to the web's box -- "{{corpus:Q3/p13:action:0:38:sha=0e1979c5617d:shape=C10000000}}
-                # {{corpus:Q3/p16:action:39:102:sha=f75d7ccf2d03}}
-                # multiple times a week" -- and it answers `met` anyway. There is
+                # to the web's box -- [[corpus Q3/p16 action 0:124 sha=1298205d4453]] -- and it answers `met` anyway. There is
                 # nothing for a targeting rule to fix; the judgement is wrong on
                 # text already in hand.
                 #
@@ -1115,7 +1107,7 @@ ITEMS: list[dict] = [
                 # verbatim. Surfacing that clause out of the tail of a very long
                 # paragraph is the one live lever, and it is a SHARED field, so
                 # it needs the web measured too. p16 is not a compliance failure
-                # at all: "{{corpus:Q3/p16:action:65:102:sha=f5c9eb84d8e6}}" leans on time
+                # at all: [[corpus Q3/p16 action 64:102 sha=e7d70da3c49a]] leans on time
                 # AND names an activity, and this bar says both "TIME ALONE IS
                 # NOT ENOUGH" and "be generous about the doing". Paper's reading
                 # is defensible on the words as written; deciding it needs gold's
@@ -1325,7 +1317,7 @@ ITEMS: list[dict] = [
                 # to reject "what the student does INSTEAD of the goal behaviour,
                 # which belongs to 4b". Of the five responses containing "instead",
                 # gold CREDITS four -- p5, p8, p12, p16 -- and charges only p3,
-                # whose clause is "{{corpus:Q4a/p3:second:25:63:sha=7e0e1a0630c3:shape=C3800000000}} exercise",
+                # whose clause is [[corpus Q4a/p3 second 24:63 sha=d71168fe090f]],
                 # the goal behaviour not happening rather than a rival activity.
                 # So the substitute ground is deleted here, not qualified: today
                 # has twice shown that qualifying a competing clause does not stick.
@@ -1551,8 +1543,7 @@ ITEMS: list[dict] = [
             # CAUSES you to engage in the UTB"). The clause said the stated
             # effect must BE the UTB, with things that merely cause, accompany,
             # amount to or evidence it excluded as a second thing. Six runs over
-            # seven cells: p14's `antecedent_1` stayed `met` 6/6 -- "so I tend to
-            # bed rot" still reads as leading to lack of exercise -- so the
+            # seven cells: p14's `antecedent_1` stayed `met` 6/6 -- [[corpus Q4a/p14 first 49:70 sha=1690427ecb57]] still reads as leading to lack of exercise -- so the
             # target never moved. And p9's `antecedent_2` flipped from
             # `wrong_kind` to `met` 5/6, costing 0.67 cells: its example NAMES
             # the behaviour ("Not going on a run..."), which is exactly why it
@@ -1709,8 +1700,7 @@ ITEMS: list[dict] = [
                 # something the student actually did?" -- and `b2_basis` was told
                 # that `met` SETTLES the answer as `activity`. That made it
                 # DISPOSITIVE, and it fired almost everywhere: `met` on 72 of 114
-                # cell-runs. "{{corpus:Q4b/p6:second:41:72:sha=ca4722977c72}} muscles" and "I am
-                # {{corpus:Q4b/p20:second:41:66:sha=6c2bff8123f5}}" ARE things the student did, so p6 went
+                # cell-runs. [[corpus Q4b/p6 second 40:80 sha=beab1a44caa4]] and [[corpus Q4b/p20 second 35:66 sha=56f1b641b577]] ARE things the student did, so p6 went
                 # 6/6 -> 0/6 and p20 6/6 -> 1/6, both by flipping a correct
                 # `consequence` to `activity`. Q4b fell from 16-17/19 to 13-14/19
                 # and p12, the target, did not move. The precursor did not inform
@@ -1731,17 +1721,14 @@ ITEMS: list[dict] = [
                 # -- be reported honestly without that report deciding anything.
                 #
                 # THE TWO CELLS THAT MUST NOT MOVE are p5, whose second box is a
-                # CIRCUMSTANCE ("{{corpus:Q4b/p5:second:41:75:sha=f2a22e6fa220}} home"), and p10,
-                # whose second box is an INTENTION ("{{corpus:Q4b/p10:second:0:31:sha=8b7c761d190e}}
-                # ... creating a routine"). Neither names an act, so both answer
+                # CIRCUMSTANCE ([[corpus Q4b/p5 second 40:80 sha=6720ead5c883]]), and p10,
+                # whose second box is an INTENTION ([[corpus Q4b/p10 second 0:31 sha=8b7c761d190e]]). Neither names an act, so both answer
                 # `a_result` or `nothing` and keep the `consequence` they already
                 # give 9 of 12 and 8 of 12. Both are 12 of 12 today.
                 #
                 # TIE-BREAK ADDED 2026-09-06, from the readout of the valid sweep.
                 # THE PICK WAS AMBIGUOUS BY CONSTRUCTION on p12, whose box reads
-                # "{{corpus:Q4b/p12:second:0:61:sha=f1385dcf5db2}}
-                # {{corpus:Q4b/p12:second:62:126:sha=cfa192e25171:shape=Cdef800003bddc000}}
-                # BAD". `an_act` is defined as "did OR LET HAPPEN", so "let them
+                # [[corpus Q4b/p12 second 0:130 sha=a96444a8304b]]. `an_act` is defined as "did OR LET HAPPEN", so "let them
                 # sit" matches it exactly, while "until they go bad" reads as
                 # `a_result`. One answer was demanded of a box that holds both, and
                 # the grader split 7:5 -- p12's five RIGHT runs are precisely its
@@ -1749,8 +1736,7 @@ ITEMS: list[dict] = [
                 # This entry's own comment half-saw it: naming `a_result`
                 # separately was meant to let a box naming BOTH "be reported
                 # honestly", which a single-answer pick cannot do.
-                # p6 IS THE CONTROL AND IS SAFE: its box also names an act -- "I
-                # {{corpus:Q4b/p6:second:43:72:sha=b9b668b7051a}} muscles" -- gold CHARGES it, and we
+                # p6 IS THE CONTROL AND IS SAFE: its box also names an act -- [[corpus Q4b/p6 second 40:80 sha=beab1a44caa4]] -- gold CHARGES it, and we
                 # are right 11 of 12 via `an_act/consequence`, because `b2_basis`
                 # refuses it under the ordinary-activity-carrying-a-state case. The
                 # pick does not decide the verdict, which is why a tie-break toward
@@ -2367,7 +2353,7 @@ ITEMS: list[dict] = [
                 # SUBGOAL Q47, 2026-09-05: A RULE WAS ADDED HERE AND MEASURED
                 # AND REVERTED THE SAME DAY. It is the SEVENTH attempt on this
                 # criterion (the tenth wording on the item as a whole, which is
-                # the count the q6-matching-ceiling note keeps) and the FIRST
+                # the count Q6_MATCHING_CEILING.md keeps) and the FIRST
                 # structural one -- it asked the READING question its sibling
                 # `affect_c1` asks, what becomes of the antecedent, rather than
                 # another adequacy discriminator. The framing did not save it.
@@ -2388,7 +2374,7 @@ ITEMS: list[dict] = [
                 # DO NOT WRITE AN ELEVENTH WORDING HERE. The measured record now
                 # says the channel resists BOTH framings, discriminator and
                 # reading alike. See handouts.GOLD_CEILINGS[("1","Q6")] and the
-                # q6-matching-ceiling note, which is the running tally.
+                # Q6_MATCHING_CEILING.md, which is the running tally.
             },
             {
                 "what": "state_a2",
@@ -2538,8 +2524,7 @@ ITEMS: list[dict] = [
             # The largest single semantic pattern is NOT inversion, which the
             # eighth attempt targeted. It is the reverse error: a consequence box
             # that describes the ANTECEDENT going away being credited as a
-            # consequence -- "{{corpus:Q6/p5:state_c1:89:136:sha=e0a4db106e90}}
-            # unhealthy and fatty foods" against a listed consequence of
+            # consequence -- [[corpus Q6/p5 state_c1 88:162 sha=03d1bcd49908]] against a listed consequence of
             # worsening health, where stopping the snacking is the plan, not its
             # consequence. Four boxes across three cells.
             #
@@ -2709,8 +2694,8 @@ ITEMS: list[dict] = [
             # worth a rule.
             #
             # It also named two examples, "{{corpus:Q6/p6:state_a1:0:21:sha=641b355f6e09}}" against a trigger
-            # of "{{corpus:Q4a/p6:second:21:56:sha=98e4d82db22b}} days" and "{{corpus:Q6/p4:state_a2:38:55:sha=e101f3f9ce13}}"
-            # against "{{corpus:Q4a/p4:second:21:71:sha=a628cc785942}} early",
+            # of [[corpus Q4a/p6 second 20:61 sha=b3802f2bbe6a]] and "{{corpus:Q6/p4:state_a2:38:55:sha=e101f3f9ce13}}"
+            # against [[corpus Q4a/p4 second 20:77 sha=2469570e2d3d]],
             # and said "Gold refuses both". Gold refuses ONE. Measured on per-family
             # counts against corrected gold: on the first cell we and gold both
             # credit one antecedent of two, so the refusal is consistent with gold;
@@ -2746,8 +2731,7 @@ ITEMS: list[dict] = [
             # SCOPING CONSTRAINT FOR ANY INVERSION RULE ADDED LATER. The two rules
             # reach for the SAME textual relation from opposite directions, and the
             # cell where the rule costs us is exactly the cell where they collide.
-            # p4's 4a reads "{{corpus:Q4a/p4:second:21:71:sha=a628cc785942}}
-            # EARLY" and its Q6 box says "{{corpus:Q6/p4:state_a2:38:55:sha=e101f3f9ce13:shape=C1e000}}" -- the same state with
+            # p4's 4a reads [[corpus Q4a/p4 second 20:77 sha=2469570e2d3d]] and its Q6 box says "{{corpus:Q6/p4:state_a2:38:55:sha=e101f3f9ce13:shape=C1e000}}" -- the same state with
             # the polarity flipped. This rule refuses it on POSITION, because it is
             # the Y half; an inversion rule would credit it on MEANING, because the
             # attribute matches and only the sign differs. Surveyed across the

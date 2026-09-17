@@ -32,9 +32,9 @@ from the very cell the rule was written to fix, so the gain it reports is
 circular. This is not hypothetical here. Two recorded gains were found to rest
 on quoted prose *after* they had been measured, reported and committed:
 
-* DAY1's avoidance-framing rule contained "I will push myself to {{corpus:DAY1/p8:day1:76:104:sha=140d96680ba2:shape=S3-0a2020}} to do the extra chore" — DAY1/p8 with "30 pushups" changed to
+* DAY1's avoidance-framing rule contained [[corpus DAY1/p8 day1 75:104 sha=3d615ba39d28]] — DAY1/p8 with "30 pushups" changed to
   "the extra chore". p8 is the cell that rule took from 0/9 to 9/9.
-* WK1's agent rule contained "{{corpus:WK1/p1:wk1:49:87:sha=8d68ef1ac8b9:shape=S5-20}}", which is
+* WK1's agent rule contained [[corpus WK1/p1 wk1 48:87 sha=9acb583a85f7]], which is
   WK1/p1 verbatim, and "the extra laps will keep stacking up", which is WK1/p8
   with the noun swapped. The item had been recorded as perfect on that rule.
 
@@ -322,14 +322,14 @@ sentence, and never let a table of one-line excerpts stand in for the text. The
 
 The failure is not hypothetical and it is not cheap. On 2026-08-24 a survey of
 WK1 was built with `sed -n '7p'` — the first response line of each cell — and
-p5 came back as "{{corpus:DAY1/p5:day1:0:61:sha=0b73ad1bff21}}"
+p5 came back as [[corpus WK1/p5 wk1 0:61 sha=0b73ad1bff21]]
 On that basis it was reported as an answer gold credits with 4 while stating no
 consequence, no conditional and no contingency at all, and that single "fact"
 was used to argue that gold on this item was not reproducible by any rule, that
 no gate could ever match it, and that a declared divergence was therefore
 correct. The argument was written up and stated to the user.
 
-p5 has a second sentence: "{{corpus:WK1/p5:wk1:62:164:sha=bcb2f8e5c91b:shape=S5-20,S11-0a}}" A textbook weekly
+p5 has a second sentence: [[corpus WK1/p5 wk1 61:164 sha=6473c5fa76bc]] A textbook weekly
 contingency. Read in full, the item's ten gold-bearing cells separate PERFECTLY
 on a single feature, and the rule that had just been declared unreachable was
 sitting in plain view.
@@ -665,7 +665,7 @@ Two corollaries worth the words:
 
 - **A closed list in a rule is a boundary you are promising to defend.** The
   first syntactic version listed transfer verbs — give, buy, treat, withhold —
-  and so excluded "{{corpus:WK1/p1:wk1:49:87:sha=8d68ef1ac8b9:shape=S5-20}}", a student granting
+  and so excluded [[corpus WK1/p1 wk1 48:87 sha=9acb583a85f7]], a student granting
   themselves a privilege, putting a correct cell at 3 of 6. The case had been
   noticed on paper, marked "marginal", and waved through. Widening from "is the
   verb on this list" to "does a person make the thing happen or stop happening"
@@ -1798,7 +1798,7 @@ is not a contradiction". It was derived from the eight cells where gold's commen
 speaks to cadence and it classified all eight correctly -- which is exactly why it
 looked finished. Over all 72 valid cells it also:
 
-* broke **DAY2/p9** ("{{corpus:DAY2/p9:day2:0:95:sha=4f42e6b8fa63:shape=S14-0a2020,A8}}"), where gold gives FULL credit and the
+* broke **DAY2/p9** ([[corpus DAY2/p9 day2 0:95 sha=4f42e6b8fa63]]), where gold gives FULL credit and the
   current check answers `met` in 12 of 12. The rule reads "out of the 5 days" as
   coarser than daily and would refuse it -- turning a perfect cell into a wrong
   one. Its near-twin DAY1/p9, by the SAME participant, is the rule's proof case.
@@ -1935,7 +1935,7 @@ Q3's `action_oriented` is the case that earned the rule. The three misses --
 p8 "hours I can make", p16 "hours I have", p19 grounds it in measurability --
 all justify actionability with something that is not a doing, which points
 straight at demanding a doing. That change would have cost THREE cells: p9 is
-credited on "a car", p14 on "{{corpus:Q3/p14:action:91:114:sha=ef5c3179ffeb}}", p18 on "{{corpus:Q3/p18:action:71:97:sha=4b1ed59f418c:shape=S2-0a}} gym", none of which names a doing either. The sixteen credited rows
+credited on "a car", p14 on [[corpus Q3/p14 action 90:114 sha=d4443bb53f34]], p18 on "{{corpus:Q3/p18:action:71:97:sha=4b1ed59f418c:shape=S2-0a}} gym", none of which names a doing either. The sixteen credited rows
 are what contain the actual rule -- an activity OR access to a place or thing,
 never available time -- and narrowing to that took the item from 16/20 to 18/20
 with all five guards holding at 6/6.
@@ -2414,6 +2414,233 @@ believed — by its own author, twice in a day, once at the cost of an hour spen
 disproving a divergence that was never claimed.
 
 ---
+
+## 6a. Trusting an instrument
+
+### A test that cannot fail reads exactly like a test that keeps passing
+
+**`check_maps_tables_are_attached` was a tautology for two stages and nobody
+could tell** — the check has since been RETIRED, with a declaration recording
+why, so this is a lesson about how it failed and not a claim about anything
+still running. A refactor made the table it compared a DERIVATION of the thing
+it compared against, so the two could never disagree. Its findings were zero, its
+audit line looked like every other clean line, and the only thing that knew was
+its selftest case: the injection was installed and NOTHING FIRED.
+
+When a check goes quiet, ask whether it still CAN speak. The audit cannot answer
+that about itself — a green line means "found nothing", and "found nothing" and
+"stopped looking" are the same line.
+
+Writing the missing cases made the point twice over. Twenty-eight rubric-reading
+checks had none; of the injections written for them, THIRTEEN did not fire on
+the first attempt, and every failure was silent — installed cleanly, changed
+nothing, and would have joined the suite as proof of something it never tested.
+The causes were all small and all specific: a bare word where the check matches
+backticks, a key typed as a string where the table uses ints, a participant
+outside the range the readout prints, both branches of a two-branch test forced
+the harmless way. **Count the injections that FIRE, never the ones written.**
+
+### A verifier must not share the scrubber's rule
+
+A substitution matched file text with words joined by `\s+`. The scan that
+verified it used the same pattern. They agreed with each other and both missed
+137 student sentences — written across adjacent string literals, where the file
+holds a quote, a newline, indentation and another quote between two words, and
+Python joins them only at import. (That count is the one this episode found. The
+history has since been rewritten against the whole response space and measures
+**27** distinctive student 4-grams, with a positive control of **2107** on the
+original — the lesson is the shared blind spot, not the number.)
+
+"0 found across 1640 blobs" was never evidence the history was clean. It was
+evidence that two copies of one assumption agreed. Where the thing being checked
+is Python, read it the way Python does: parse it, and look at the string
+constants the parser has already joined.
+
+### A count that holds steady can be hiding a swap
+
+The audit's raw finding set was 32 before a deletion and 32 after, which reads
+as "unchanged". It was four findings leaving as four arrived, and the departures
+only became visible once the arrivals were fixed.
+
+Compare the SET across any step that can both add and remove — and a step that
+deletes a source does both at once, which is when the count is least
+informative. Record the set beside the number: a baseline you cannot reproduce
+is not a baseline, only a memory of one.
+
+## 6b. A CHECK THAT COMPARES BYTES CANNOT TELL YOU THE THING RUNS
+
+Stage 08 acceptance had four instruments and all four passed: frozen prompt
+oracles, `fingerprint_text`, the served `idmap` prompt, the corpus replay. Every
+one of them compares bytes against a frozen copy. That is exactly the right way
+to prove a migration changed nothing — and it is no evidence at all that the
+result works, because **a handout that renders nothing has the same bytes as one
+that renders.**
+
+The gap is not theoretical. The first end-to-end simulation ran on port 8899 and
+reported 26 items scored, 0 failed, every diff +0.00. It was a scorer-side run:
+it reads the `.olx` and calls the grader directly. The UI on that port could not
+boot at all — the engine's port map in lo-blocks
+(`packages/shared/lib/state/store.ts`) throws on an unlisted port — so the same green run
+would have been produced by a release whose every page was the words "Failed to
+start."
+
+**So ask of each instrument: what would it say if the thing were broken?** If
+the answer is "the same as now", it is a neutrality check, not an acceptance
+check, and it needs a partner that actually runs the thing. Two now do: one
+simulated student through every item on the scorer side, and one clicking
+through the course and all three handouts in a browser — answering every
+question, pressing every feedback button, advancing to the end of each handout.
+
+Two corollaries, both paid for:
+
+* **Absence is not a pass.** Both rows report NOT RUN when their artefact is
+  missing, in the same idiom the corpus-replay row already used. A check that
+  quietly returns success when its input vanished is the C1 failure mode.
+* **A green run on a configuration that cannot exercise the claim is not
+  evidence about the claim.** Record which half was exercised.
+
+## 6c. A SCAN CAN ONLY FIND WHAT ITS REFERENCE SET CONTAINS
+
+The history rewrite reported **0 student sentences remaining**, twice, by two
+instruments that looked independent. Scanned against the whole student response
+space afterwards, it still carried **915 distinct student 4-grams** (3123 in the
+original — so it had removed 71%, not all).
+
+*Those are the numbers from the rewrite that was current when this was written.
+Rebuilding the table against the whole response space took the same history to
+**27** against a control of **2107**. The figures below are kept as measured,
+because the lesson is what they showed at the time; the residue itself has
+moved.*
+
+**The reference set was the defect.** The substitution table was seeded from the
+quotes our own prose had CITED. Both leak scans then matched against that same
+table. So "no student text remains" could only ever mean *"the sentences we
+already knew about are gone"* — a true statement that answers a different
+question. `corpus_refs.json` is the same trap in data form: it holds the **715
+cited spans (40,766 chars)**, while the response space is `corpus_ref._index()`
+— **1023 boxes, 118,804 chars**.
+
+What it missed was not an edge case but the normal shape of the data: the repo
+carries whole student *responses*, so replacing the cited fragments left the
+student's connecting sentences sitting verbatim between the references:
+
+    {{corpus:Q6/p8:state_a1:0:103}} Which then makes me wish I would have just
+    gone to the gym. {{corpus:Q6/p8:change_a1:0:53}} {{corpus:Q6/p8:change_a1:54:108:sha=bc805c563129:shape=S6-0a20202020}} {{corpus:Q6/p8:state_a2:0:47:sha=ce81132d390c:shape=S7-0a20202020}} {{corpus:Q6/p8:state_a2:48:67}}, {{corpus:Q6/p8:state_a2:69:98:sha=86e03b170080}} ...
+
+**Three rules, each of which would have caught it.**
+
+* **Name the reference set out loud.** "No student text" is not a finding;
+  "no match against the 1023 boxes of `_index()`" is. If the scope cannot be
+  stated, the claim cannot be checked.
+* **Run the positive control.** Scan a corpus you KNOW is dirty — here the
+  original history, which returns 3123 — before believing a zero. An untested
+  scanner returns zero for two reasons and they look identical. This is the C1
+  failure mode with a different mask.
+* **Ask which direction the search runs.** "Find our quotes and remove them"
+  bounds the result by what we already recorded. "Find everything a student
+  wrote and remove it" bounds it by the data. Only the second can be complete.
+
+**Four words is the working threshold** — the point at which copying from a
+unique source is reliably detectable — not eight. At n=8 the same history showed
+312 rather than 915, which understates it by two thirds.
+
+**But judge a four-gram by its CONTENT WORDS.** An exact four-word sequence
+carrying two function words and two content words is still likely unique to one
+author: the improbability is in the exact sequence, so the function words are
+part of the evidence and must stay in the match. Judged after stripping them,
+the same run is two content words, which matches text nobody quoted. So keep
+them in the comparison and require **≥2 content words** to call a run a
+quotation (`content_words.py`). Measured both ways on the same history: 915 raw
+4-gram hits, **653 distinctive**; on the original control, 3123 raw and **2151
+distinctive**. About 30% of the raw signal is function-word noise — enough to
+argue a real residue away with, in either direction.
+
+A later correction, from the same rule: **a numeral is not a content word.**
+Handout 3 asks for a week of counts, so student fields hold runs like
+`3, 4, 2, 5, 3, 4, 6`, and those match ordinary code — a ten-character span of
+one student's baseline data was substituted into `errs, exact, within, esc, n =
+[], {}, 0, 0, 0`, breaking `baseline.py` at eight commits and the generator at
+108 states. Digits still take part in the MATCH; they cannot be what makes a run
+distinctive.
+
+The rule must govern the SCRUBBER and the SCAN alike. Two components disagreeing
+about what counts as a quotation is the same failure as two instruments sharing
+one blind spot, and it is how this was missed the first time.
+
+## 6d. QUOTING A STUDENT IN AN `.olx` — THE PROCEDURE, AND WHY THE ANSWER IS USUALLY NO
+
+The handouts are served to students and this repository is public, so a
+student's sentence in an `.olx` is a disclosure. The corpus-reference mechanism
+exists so the FILE can hold a citation while the PAGE shows the words. It works,
+and it is still the second-best answer.
+
+### First: can the example be invented instead?
+
+**Usually yes, and that is the fix.** Handout 2 taught that a reinforcer must be
+an outside thing you control, and its worked NON-example was a real student's
+sentence, carried in by reference. The reference kept the words out of the file
+and still made a student's writing the thing every reader is taught from — and
+made the page unrenderable without the corpus. It was replaced with an invented
+sentence carrying the same defect, and the reference went away entirely.
+
+**And the quote came from a question in that same handout.** `PR/p1` is
+participant 1's answer to the Positive Reinforcement item — `bmod_h2_pr`, whose
+box sits twenty-five lines BELOW the instructions that quoted it. So every later
+student met a classmate's answer to the question they were about to answer, on
+the page where they answered it. That is worse than a disclosure in two ways:
+it is the tightest re-identification context available, and it contaminates the
+instrument, because answers written after that text went in are not independent
+of it.
+
+**So check the provenance, not just the words.** Before quoting, ask which
+question the sentence answered and whether the reader is about to answer it.
+A replacement must clear the same bar: the invented sentence that replaced this
+one is a sleep example, while the box it precedes asks "{{corpus:NR/p1:nr:0:20:sha=2850093cabf3}}
+will..." — it does not pattern the answer to its own question.
+
+**Check an invented replacement for collisions before using it.** A sentence you
+made up can coincide with one a student wrote. Scan the candidate against the
+whole response space with course text subtracted
+(`scripts/history_rewrite/scan_full_corpus.py`); three candidates were checked
+for that handout and all three came back clean, which is what licensed picking
+one. A near-paraphrase of the original is NOT a replacement — it still derives
+from that student's writing.
+
+### If a real quotation is genuinely required
+
+1. **Build the reference with `corpus_ref.make_ref`. Never format one by hand.**
+   Every harness that hand-formatted one eventually formatted a bad one —
+   `None:None` spans that parse, look like citations, and resolve to nothing.
+2. **Declare where the spans live**, in the file's frontmatter:
+   `corpus_data: $MOLLY_DATA/corpus_refs.json`. Without it the build refuses
+   rather than render an unresolved reference.
+3. **Export the spans**: `python3 scoring/corpus_ref.py --export-olx-data <path>`.
+   The export holds only the spans actually cited.
+4. **Lower the budget afterwards.** `OLX_CORPUS_REF_BUDGET` in `enforcement.py`
+   ratchets DOWN and never up, so the count you leave becomes the new ceiling.
+
+### What the mechanism costs, stated plainly
+
+* **The page cannot render without the corpus.** The lo-blocks resolver
+  (`packages/shared/scripts/resolveCorpusRefs.ts`) throws when the variable named
+  in the frontmatter is unset — and it throws whenever the DECLARATION is
+  present, references or not. So when the last reference in a file goes, **remove
+  the frontmatter too**, or the dependency outlives the thing it existed for.
+* **References interact with attribute grammars.** A reference is colon-heavy,
+  and the slot-sheet attribute is `name:description:verdicts@weight` split on
+  colons — so a reference in a slot description silently shifted the verdict list
+  to the cell id. Both parsers now protect a reference's colons, and
+  `check_slot_grammars.py` refuses a divergence between them. Any NEW
+  colon-delimited or pipe-delimited attribute must be checked the same way.
+* **Two resolvers must agree.** Python resolves when the scorer reads the file;
+  the engine resolves when the page is built. `check_ref_grammars.py` is what
+  stops them drifting.
+
+### The rule in one line
+
+**A reference is for text that must be exact and is somebody else's. Everything
+else should be invented — and an invented example is checked against the corpus
+before it is trusted.**
 
 ## 7. When to stop
 

@@ -28,7 +28,7 @@ them apart; a person must.
   students, which is the signal that it is vocabulary and not a quotation.
 
   COINCIDENCE — an invented example landing on a stock phrasing a student also
-  used. "this should {{corpus:NR/p12:nr:123:139:sha=d881672437f8}} goal" was written here independently and
+  used. [[corpus NR/p12 nr 122:144 sha=2e09b5b8b588]] was written here independently and
   collides with DAY2/p17. Usually one student, usually one short pair.
 
   QUOTATION — a rule example traceable to one student, often the very cell the
@@ -360,7 +360,7 @@ def verbatim_findings(items: tuple[str, ...]) -> list[dict]:
     """Blocks sharing a long VERBATIM word-span with exactly one student.
 
     THE BIGRAM METHOD CANNOT SEE THIS SHAPE, and the leak that founded this
-    module is the proof. Criterion 7 quoted DAY1/p8 as "so I don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87:shape=S0-0a20202020}} it" against p8's "{{corpus:DAY1/p8:day1:89:137:sha=df3811e737eb:shape=S9-0a20202020}} it". Run that through `_content` -- which drops stopwords and words of
+    module is the proof. Criterion 7 quoted DAY1/p8 as "so I don't have to do {{corpus:DAY1/p8:day1:117:137:sha=aa91092efc87:shape=S0-0a20202020}} it" against p8's [[corpus DAY1/p8 day1 88:140 sha=4f42a43154c2]]. Run that through `_content` -- which drops stopwords and words of
     three letters or fewer -- and the prompt keeps ["don't","pushups","miss"] and
     p8 keeps ["don't","extra","pushups","miss"]. ONE shared bigram, "pushups
     miss", against MIN_EXCLUSIVE = 2. The tool could never have flagged it at any

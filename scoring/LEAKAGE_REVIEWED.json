@@ -26,7 +26,7 @@
  },
  "16afd3c3e4ef": {
   "label": "Q3 credit.desc :: action_oriented, narrowed so time alone does not count",
-  "note": "equipment and plain both stood in this desc BEFORE the narrowing -- 'access, equipment, or time they already have' and 'a plain statement of what they will physically perform' -- so neither is new prose and neither is borrowed; the verdict lapsed only because editing the block changed its sha, which is the mechanism working as designed. The words the check DID catch in the new prose were real and were removed: 'free' and 'arrange' echoed p14's 'my early mornings are free' and p11's 'I'll arrange times', both CONTROL cells for this very change, and 'resting' echoed p11 as well. Rewritten to 'hours they could give to it, or expect to clear' and 'an answer that leans entirely on'.",
+  "note": "equipment and plain both stood in this desc BEFORE the narrowing -- 'access, equipment, or time they already have' and 'a plain statement of what they will physically perform' -- so neither is new prose and neither is borrowed; the verdict lapsed only because editing the block changed its sha, which is the mechanism working as designed. The words the check DID catch in the new prose were real and were removed: 'free' and 'arrange' echoed p14's [[corpus Q3/p14 action 59:86 sha=6c856d604bab]] and p11's 'I'll arrange times', both CONTROL cells for this very change, and 'resting' echoed p11 as well. Rewritten to 'hours they could give to it, or expect to clear' and 'an answer that leans entirely on'.",
   "verdict": "coincidence"
  },
  "1fb57dec8a6a": {
@@ -56,7 +56,7 @@
  },
  "345ea55418a2": {
   "label": "SLOT_NOTES 1a:baseline_week",
-  "note": "'in {{corpus:1a/p6:response:7:27:sha=ffb845e9e43e}} plan I was still up past midnight most nights' is invented -- 'past midnight' appears in no response. beginning/rate/starts are the note's own timing vocabulary.",
+  "note": "[[corpus 1a/p6 response 6:27 sha=a9a891b82b86]] is invented -- 'past midnight' appears in no response. beginning/rate/starts are the note's own timing vocabulary.",
   "verdict": "coincidence"
  },
  "3790507d6152": {
@@ -236,7 +236,7 @@
  },
  "f2a36aed6c37": {
   "label": "SLOT_NOTES cadence_is_daily_counted",
-  "note": "Two ordinary words, each used in a different sense from the answer that owns it, and neither taken from a trigger this gate reads. 'across' is p3's 'walk across campus', a physical traversal; the rule means a temporal boundary ('counting occurrences across the day's boundary') -- and p3 is suspect on handout 2, excluded from measurement. 'number' is p6's '{{corpus:Q1/p6:response:453:485:sha=74ff3f0a7a96}} stretching', in bmod_h1_utb, a handout-1 background field; p6's DAY2 trigger is '{{corpus:DAY2/p6:day2:51:99:sha=4c95da9f1f0e:shape=S6-20}} minutes' and contains no such word. The clause 'A NUMBER IN THE TRIGGER IS NOT AUTOMATICALLY A COUNT' was written about triggers in general and cannot have been tuned on a field the gate never reads.",
+  "note": "Two ordinary words, each used in a different sense from the answer that owns it, and neither taken from a trigger this gate reads. 'across' is p3's 'walk across campus', a physical traversal; the rule means a temporal boundary ('counting occurrences across the day's boundary') -- and p3 is suspect on handout 2, excluded from measurement. 'number' is p6's '{{corpus:Q1/p6:response:453:485:sha=74ff3f0a7a96}} stretching', in bmod_h1_utb, a handout-1 background field; p6's DAY2 trigger is [[corpus DAY2/p6 day2 50:107 sha=6431c63d8d3e]] and contains no such word. The clause 'A NUMBER IN THE TRIGGER IS NOT AUTOMATICALLY A COUNT' was written about triggers in general and cannot have been tuned on a field the gate never reads.",
   "verdict": "vocabulary"
  },
  "f6b0c5bfdb86": {
@@ -246,7 +246,7 @@
  },
  "f7648cbb3cbc": {
   "label": "SLOT_NOTES cadence_is_daily_counted",
-  "note": "Two ordinary words, each in a different sense from the answer that owns it, and both from HANDOUT 3 fields this gate never reads. 'decided' is p10's '{{corpus:2a/p10:how2:9:48:sha=aa267dc31790}}' in bmod_h3_success_how2 -- a personal choice; the rule uses it passively, of a condition that could be adjudicated ('nothing that could ever be decided'). 'towards' is p5's '{{corpus:2a/p5:how1:103:142:sha=4159ca8259e4}}' in bmod_h3_success_how1/how2 -- temporal; the rule uses it directionally, of 'a target the student is working towards'. This gate reads DAY2's trigger field on handout 2 and cannot have been tuned on handout 3 reflections.",
+  "note": "Two ordinary words, each in a different sense from the answer that owns it, and both from HANDOUT 3 fields this gate never reads. 'decided' is p10's [[corpus 2a/p10 how2 8:48 sha=19ac9f18bf02]] in bmod_h3_success_how2 -- a personal choice; the rule uses it passively, of a condition that could be adjudicated ('nothing that could ever be decided'). 'towards' is p5's [[corpus 2a/p5 how1 102:142 sha=12feac8b7b56]] in bmod_h3_success_how1/how2 -- temporal; the rule uses it directionally, of 'a target the student is working towards'. This gate reads DAY2's trigger field on handout 2 and cannot have been tuned on handout 3 reflections.",
   "verdict": "vocabulary"
  },
  "f7da4a99f560": {

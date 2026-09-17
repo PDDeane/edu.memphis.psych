@@ -7,6 +7,20 @@ template. This matters beyond tidiness: Handout 1's template carries a worked
 AND an example graph. A scorer that reads those as student work scores them.
 """
 
+# THE SECTION HEADINGS BELOW ARE NOT REFERENCED, AND CANNOT BE.
+#
+# `{{corpus:Q1/p3:response:0:27:sha=c8e59699d1a0:shape=C81008}} is` and `{{corpus:Q2/p3:response:0:23:sha=d743f1f68d1a:shape=C8408}} is` are the
+# handout's own headings: this module matches them to split a submission, and
+# they ship in the .olx because the student reads them. Reword either and the
+# segmenter stops finding the section it names.
+#
+# They also appear IN the corpus -- at Q1/p3 and Q2/p3 -- because a student who
+# types into the template carries the heading along with the answer. So the
+# student-text detector flags them and `precommit_gate._launders` REFUSES to let
+# them be declared as ours: by text alone the heading and the answer are the
+# same string, and no exemption can tell them apart. They stay flagged, counted
+# by the ratchet, and are left exactly as they are.
+
 from __future__ import annotations
 
 import difflib
@@ -49,7 +63,7 @@ H2_MARKERS: list[tuple[str, str]] = [
     ("PP", r"Example of Positive Punishment"),
     ("NP", r"Example of Negative Punishment"),
     # Loose on the trailing verb phrase: participant 9's transcription reads
-    # "Second type of Operant Conditioning I pan to use".
+    # [[corpus 3/p9 second 7:30 sha=1dadc902fe5c]].
     ("T1", r"First type of Operant Conditioning"),
     ("D1", r"^\W*Definition"),
     ("DAY1", r"^\W*Daily Example"),

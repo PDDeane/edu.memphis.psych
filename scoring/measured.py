@@ -57,8 +57,21 @@ def _jobs() -> dict:
 
 
 def _olx(handout: int) -> str:
+    """The handout's OLX, with corpus references RESOLVED.
+
+    The file on disk may carry `{{corpus:...}}` where a student's words used to
+    sit. Every reader of this function -- `prompt_sha`, `_section_bounds`,
+    `olx_prompts --check`, the equivalence audit -- must see what a grader sees,
+    so the expansion happens here, once, at the single point where the file is
+    read. Resolve anywhere later and the fingerprints would move while nothing
+    about the served prompt had changed.
+    """
     import paths
-    return (paths.OLX_DIR / f"bmod_handout{handout}.olx").read_text()
+    text = (paths.OLX_DIR / f"bmod_handout{handout}.olx").read_text()
+    if "{{corpus:" in text:
+        import corpus_ref
+        text = corpus_ref.expand(text)
+    return text
 
 
 def _section_bounds(text: str, screen_ids: set[str]) -> dict[str, tuple[int, int]]:
@@ -356,8 +369,12 @@ def _cells_from_artifact(item: str, side: str, out: str | None):
     if not out:
         return None
     import pathlib as _pl
-    path = _pl.Path(OUT_DIR) / out / f"{item}.runs.json" if "OUT_DIR" in globals() \
-        else _pl.Path("/home/pdeane/molly_data/out") / out / f"{item}.runs.json"
+    import paths as _paths
+    # NO LITERAL FALLBACK. `OUT_DIR` absent means the module was loaded without
+    # its configuration, and reading the developer's own artifacts then is the
+    # least safe answer available -- it succeeds, quietly, on the wrong tree.
+    _root = _pl.Path(OUT_DIR) if "OUT_DIR" in globals() else _paths.OUT
+    path = _root / out / f"{item}.runs.json"
     if not path.exists():
         return None
     try:
@@ -3968,9 +3985,37 @@ SCORER_NEUTRAL: dict[tuple[str, str], str] = {
     # the three columns, 0 that fail to reproduce their stored score. That number
     # was 346 failures an hour earlier, and every one was `rescore_recorded`
     # routing a counted group's NUMBER as a verdict (T11) -- fixed, not excused.
-    ("6526989cd34f", "29a76b0416e1"): "E25's keyword-to-`contains` conversion "
-        "plus the verdict-default alignment, through 2b's and 3's closure; "
-        "re-verified score-neutral on 360 recorded cells, 0 moved",
+    # RE-KEYED TWICE ON 2026-09-16, and the pair now spans THREE pieces of work.
+    # It was ("6526989cd34f" -> "29a76b0416e1"), then "45b539e6082e", and lapsed
+    # both times the way this table is designed to lapse: the `now` side moves
+    # whenever the scorer closure changes, for any reason at all.
+    #
+    # THE SECOND LAPSE IS THE INSTRUCTIVE ONE. Nothing about scoring changed --
+    # what moved it was making `_pointed()` and `_derived()` item-scoped, the
+    # charge-once probe-gap work and three new audit checks. A re-key is cheap and
+    # a wrong claim is not, so the rule this table runs on is that the pair is
+    # re-pointed and RE-VERIFIED by `check_scorer_neutrality_is_verified`, which
+    # re-scores every recorded cell the pair covers from artifacts on disk. It is
+    # never carried forward on the strength of the last verification.
+    # What moved it was maintenance, not scoring work -- the `parse_slots` colon
+    # fix, the `paths.OUT` replacements and an undefined `_re` -- but
+    # `scorer_sha` cannot know that, which is the whole reason the claim is
+    # re-verified rather than asserted.
+    #
+    # THE TEXT NAMES BOTH TRANSITIONS ON PURPOSE. Carrying the old wording over
+    # would have absorbed the later edits under a rationale written for E25's,
+    # and a reader would have had no way to see that the pair had widened.
+    # DROPPED 2026-09-17, SPENT. Every recorded column was re-recorded that day
+    # after the scorer moved, so no item sits at `6526989cd34f` any longer and
+    # the pair covers nothing. A pair whose `was` side is unoccupied verifies
+    # nothing while reading like coverage, which is what this table exists to
+    # refuse -- `check_scorer_neutrality_is_verified` said so, and the commit
+    # gate stopped on it.
+    #
+    # WHAT IT CLAIMED IS NOT LOST; it is now stronger. All 52 recorded columns
+    # were re-derived from artifacts on disk and 0 scores moved, so the
+    # transition this pair asserted to be score-neutral is recorded as a
+    # measurement rather than as a declaration.
     # The remaining pairs are the SAME change seen through other items' closures:
     # scorer_sha is item-scoped, so one commit produces a different pair for every
     # distinct closure. All seven items below are in the 2776-cell re-score.
@@ -4408,7 +4453,7 @@ def criterion_rows(item: str, check: str) -> str:
     justify actionability with something that is not a doing, which suggests
     demanding a doing -- and that would have cost p9, p14 and p18, three cells
     gold credits on ACCESS alone, because the sixteen credited rows show gold
-    accepting "a car", "{{corpus:Q3/p14:action:91:114:sha=ef5c3179ffeb}}", "{{corpus:Q3/p18:action:71:97:sha=4b1ed59f418c}}
+    accepting "a car", [[corpus Q3/p14 action 90:114 sha=d4443bb53f34]], "{{corpus:Q3/p18:action:71:97:sha=4b1ed59f418c}}
     gym". The rule the corpus actually draws was activity-or-access, never time,
     and only the credited rows contain it.
 
@@ -4429,7 +4474,8 @@ def criterion_rows(item: str, check: str) -> str:
     ours: dict[int, list[str]] = {}
     art = rec.get("out")
     if art:
-        for cand in Path("/home/pdeane/molly_data/out").glob(f"{art}*/{item}.runs.json"):
+        import paths as _paths2
+        for cand in _paths2.OUT.glob(f"{art}*/{item}.runs.json"):
             try:
                 runs = json.loads(cand.read_text())["runs"]
             except Exception:
@@ -4794,7 +4840,7 @@ GOLD_SLOT_CHARGES: dict[str, list[tuple[str, tuple[str, ...]]]] = {
 # judgement is wrong, and the pattern across them is worth reading as one thing:
 # on six of the eight we fail FEWER or DIFFERENT state_*/affect_* slots than the
 # grader, and `affect_c2` and `state_a2` recur. That is the `refers_to` channel
-# again -- memory/q6-matching-ceiling.md -- seen from the grader's side for the
+# again -- Q6_MATCHING_CEILING.md -- seen from the grader's side for the
 # first time.
 # Deductions that CANNOT map to a slot set, with the reason. Declared rather than
 # quietly skipped: an unread charge was exactly the old behaviour.
@@ -4860,13 +4906,12 @@ GOLD_CODE_KNOWN: dict[tuple[str, int], str] = {
                 "example of NP.\" We charge 2 as well, via `targets_goal_behavior` "
                 "= `absent` in 12 of 12 -- the plan targets the WRONG BEHAVIOUR. "
                 "Same number, different reason. THE LABEL IS THE SHAKY HALF, NOT "
-                "THE SCORE: \"If {{corpus:NR/p11:nr:3:48:sha=1429fcccff3a:shape=R5-1-27,R35-1-27,R45-0-20}}"
-                "{{corpus:NR/p11:nr:49:54:sha=0c87ed818fb9}} more\" REMOVES an aversive contingent on a behaviour, which "
+                "THE SCORE: \"If I don[[corpus NR/p11 nr 9:38 sha=e1b75e9659eb]]t have to "
+                "study more\" REMOVES an aversive contingent on a behaviour, which "
                 "is negative reinforcement -- of not working out. Calling it NP "
                 "would need studying to be the desirable thing taken away. Our "
                 "`observed_type` = NR in 12 of 12 is defensible on the mechanics. "
-                "THE OUTLIER TEST WAS RUN AND GOLD IS NOT THE OUTLIER: p6 (\"Every "
-                "{{corpus:NR/p6:nr:6:45:sha=04f61abf1379}} study\") and p19 are the "
+                "THE OUTLIER TEST WAS RUN AND GOLD IS NOT THE OUTLIER: p6 ([[corpus NR/p6 nr 0:51 sha=2bbc383b1db1]]) and p19 are the "
                 "SAME structure with the condition NOT inverted, and gold gives "
                 "both 4.00; p9 is the other inverted case and gold charges 2 there "
                 "too, where we AGREE with its PP label. Gold is consistent that an "
@@ -4914,12 +4959,12 @@ GOLD_SLOT_BOUNDS_KNOWN: dict[tuple[str, int], str] = {
                '5.00 and is wrong in the other direction, which is how a naive fix would '
                'read as a win on the slot and a loss on the cell. THE DISCRIMINATOR IS '
                'WHICH BEHAVIOUR THE ANSWER IS ABOUT. The first names the GOAL behaviour -- '
-               "'{{corpus:Q5/p4:first:0:67:sha=a10ba401dde4:shape=R67-0-20}}"
-               "{{corpus:Q5/p4:first:68:78:sha=f528a805c61e}}' -- so it is not a reason for continuing the UNWANTED one at "
+               "'[[corpus Q5/p4 first 0:67 sha=a10ba401dde4]] "
+               "something)' -- so it is not a reason for continuing the UNWANTED one at "
                'any strictness, and our refusal of it agrees with gold. The second names '
-               "the unwanted behaviour and gives a because-clause for it: '{{corpus:Q5/p4:second:0:13:sha=c2a1ec552de9:shape=R13-0-20}}"
-               '{{corpus:Q5/p4:second:14:73:sha=3661504b1d87}} I am super '
-               "tired.' What it names is an EFFECT of the behaviour rather than a gain or "
+               "the unwanted behaviour and gives a because-clause for it: "
+               "[[corpus Q5/p4 second 0:75 sha=a501964853b1]] "
+               "What it names is an EFFECT of the behaviour rather than a gain or "
                'an escape, which is why we refuse it on the criterion as written -- and '
                'gold credits it. SO THE RULE WOULD SAY that a because-clause offered for '
                'the unwanted behaviour counts even where what it names is an effect rather '
@@ -6492,6 +6537,16 @@ def _live_subgoal_owners(excluding: str = '') -> dict:
     owners: dict = {"any": {}, "title": {}, "subject": {}, "by_side": {}}
     current = None
     title_sides: frozenset = frozenset()
+    # A CORPUS REFERENCE IS A CITATION OF TEXT, NOT A CLAIM OF OWNERSHIP.
+    # `[[corpus Q5/p4 first 0:53 sha=...]]` names the cell whose WORDS are being
+    # quoted, and the cell-mention regex below reads `Q5/p4` out of it exactly as
+    # if the entry had said the subgoal covers that cell. Measured when the
+    # references landed: five cells became "owned" by a subgoal that only quoted
+    # them, and fifteen ownership lists inflated -- which would have taken five
+    # genuine orphans off `wrong_cells_without_an_owner` without a word in the
+    # output. Strip the references first; an entry that really owns the cell says
+    # so in its own prose, which is still scanned.
+    text = re.sub(r"\[\[corpus[^\]]*\]\]", " ", text)
     for line in text.splitlines():
         # AN ENTRY ENDS AT THE NEXT ENTRY *OR* THE NEXT HEADING. Without the
         # heading, the LAST labelled entry of a section swallows everything after
@@ -6613,8 +6668,7 @@ SILENT_GOLD_DIVERGENCES: dict[tuple[str, int], str] = {
     ("PR", 15): (
         "DECLARED ON THE TARGETING GROUND. gold 4.00 in silence; we score 2.00 in "
         "8 of 12 runs, 4.00 in 3, 0.00 in 1. The charge is `targets_goal_behavior` "
-        "= `absent`: the plan is \"Only {{corpus:PR/p15:pr:5:45:sha=b2f2f34ad2b7:shape=R40-0-20}}"
-        "{{corpus:PR/p15:pr:46:76:sha=024950f0ef2b}} workout\" against a stated goal of "
+        "= `absent`: the plan is [[corpus PR/p15 pr 0:84 sha=86b42667bbba]] against a stated goal of "
         "cutting screen time, so the REWARD IS THE BEHAVIOUR BEING REDUCED and "
         "the condition names homework instead of the goal. "
         "OUR ENGINE REASONS THIS EXPLICITLY -- read the feedback, not the "
