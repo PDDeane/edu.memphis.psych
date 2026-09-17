@@ -20,7 +20,7 @@
           "3": "perfect",
           "4": "perfect",
           "5": "perfect",
-          "6": "perfect",
+          "6": "unstable_counted_right",
           "7": "perfect",
           "8": "perfect",
           "9": "perfect"
@@ -54,11 +54,11 @@
         "out": "full_0912_olx",
         "previous": {
           "denominator": 20,
-          "numerator": 20,
-          "out": "q14_olx",
+          "numerator": 19,
+          "out": "full_0912_olx",
           "prompt_sha": "89137e99f2de",
           "runs": 6,
-          "scorer_sha": "86ef29a09d7f"
+          "scorer_sha": "12aae8965f1b"
         },
         "prompt_sha": "89137e99f2de",
         "run_totals": [
@@ -70,7 +70,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "86ef29a09d7f"
+        "scorer_sha": "12aae8965f1b"
       },
       "paper": {
         "ask_sha": "",
@@ -162,7 +162,7 @@
           "3": "perfect",
           "4": "perfect",
           "5": "perfect",
-          "6": "perfect",
+          "6": "unstable_counted_right",
           "7": "perfect",
           "8": "perfect",
           "9": "perfect"
@@ -200,7 +200,7 @@
           "out": "q14_python",
           "prompt_sha": "0dea69c98eb0",
           "runs": 6,
-          "scorer_sha": "5a1fb03878db"
+          "scorer_sha": "12aae8965f1b"
         },
         "prompt_sha": "0dea69c98eb0",
         "run_totals": [
@@ -212,7 +212,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "86ef29a09d7f"
+        "scorer_sha": "12aae8965f1b"
       }
     },
     "1b": {
@@ -270,10 +270,10 @@
         "previous": {
           "denominator": 20,
           "numerator": 20,
-          "out": "topup_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "5b8b38b4cde9",
           "runs": 6,
-          "scorer_sha": "b5e7bcba90bc"
+          "scorer_sha": "8479c5e0961e"
         },
         "prompt_sha": "5b8b38b4cde9",
         "run_totals": [
@@ -285,7 +285,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "b5e7bcba90bc"
+        "scorer_sha": "8479c5e0961e"
       },
       "paper": {
         "ask_sha": "",
@@ -415,7 +415,7 @@
           "out": "topup_py",
           "prompt_sha": "5b8b38b4cde9",
           "runs": 6,
-          "scorer_sha": "ae051509bb12"
+          "scorer_sha": "8479c5e0961e"
         },
         "prompt_sha": "5b8b38b4cde9",
         "run_totals": [
@@ -427,7 +427,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "b5e7bcba90bc"
+        "scorer_sha": "8479c5e0961e"
       }
     },
     "1c": {
@@ -486,7 +486,7 @@
           "out": "full_0912_olx",
           "prompt_sha": "b04e7f8c59e0",
           "runs": 6,
-          "scorer_sha": "15355d28f253"
+          "scorer_sha": "3757da63f6b7"
         },
         "prompt_sha": "b04e7f8c59e0",
         "run_totals": [
@@ -498,7 +498,7 @@
           17
         ],
         "runs": 6,
-        "scorer_sha": "15355d28f253"
+        "scorer_sha": "3757da63f6b7"
       },
       "paper": {
         "ask_sha": "",
@@ -641,23 +641,23 @@
       "python": {
         "ask_sha": "19cf15f49b1e",
         "bands_before": {
-          "1": "unstable_counted_right",
+          "1": "perfect",
           "10": "perfect",
-          "11": "unstable_counted_right",
+          "11": "perfect",
           "12": "perfect",
           "13": "perfect",
-          "14": "unstable_counted_right",
+          "14": "perfect",
           "15": "perfect",
-          "16": "unstable_counted_right",
+          "16": "wrong_by_median",
           "17": "perfect",
           "18": "perfect",
           "2": "perfect",
-          "3": "unstable_counted_right",
+          "3": "perfect",
           "5": "perfect",
           "6": "perfect",
           "7": "perfect",
-          "8": "unstable_counted_right",
-          "9": "unstable_counted_right"
+          "8": "perfect",
+          "9": "perfect"
         },
         "cells": {
           "1": 6,
@@ -693,7 +693,7 @@
           "out": "q30_python",
           "prompt_sha": "d93243ef7c18",
           "runs": 6,
-          "scorer_sha": "9fefa1a34d6f"
+          "scorer_sha": "3757da63f6b7"
         },
         "prompt_sha": "d93243ef7c18",
         "run_totals": [
@@ -705,7 +705,7 @@
           17
         ],
         "runs": 6,
-        "scorer_sha": "15355d28f253"
+        "scorer_sha": "3757da63f6b7"
       }
     },
     "2a": {
@@ -717,8 +717,8 @@
           "11": "perfect",
           "12": "perfect",
           "13": "perfect",
-          "14": "unstable_counted_right",
-          "15": "unstable_counted_right",
+          "14": "on_the_line",
+          "15": "perfect",
           "16": "unstable_counted_right",
           "17": "perfect",
           "18": "perfect",
@@ -763,10 +763,10 @@
         "previous": {
           "denominator": 20,
           "numerator": 20,
-          "out": "pooled_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "2e02173a40de",
           "runs": 6,
-          "scorer_sha": "fcd5bd726c95"
+          "scorer_sha": "c5b1fc1de757"
         },
         "prompt_sha": "2e02173a40de",
         "run_totals": [
@@ -778,7 +778,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "fcd5bd726c95"
+        "scorer_sha": "c5b1fc1de757"
       },
       "paper": {
         "ask_sha": "",
@@ -859,8 +859,8 @@
           "11": "perfect",
           "12": "perfect",
           "13": "perfect",
-          "14": "unstable_counted_right",
-          "15": "unstable_counted_right",
+          "14": "on_the_line",
+          "15": "perfect",
           "16": "unstable_counted_right",
           "17": "perfect",
           "18": "perfect",
@@ -908,7 +908,7 @@
           "out": "pooled_python",
           "prompt_sha": "5d708dca8e68",
           "runs": 6,
-          "scorer_sha": "300a021b4713"
+          "scorer_sha": "c5b1fc1de757"
         },
         "prompt_sha": "5d708dca8e68",
         "run_totals": [
@@ -920,7 +920,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "fcd5bd726c95"
+        "scorer_sha": "c5b1fc1de757"
       }
     },
     "2b": {
@@ -978,10 +978,10 @@
         "previous": {
           "denominator": 20,
           "numerator": 20,
-          "out": "topup_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "ff12408f6d76",
           "runs": 6,
-          "scorer_sha": "29a76b0416e1"
+          "scorer_sha": "186094e6de77"
         },
         "prompt_sha": "ff12408f6d76",
         "run_totals": [
@@ -993,7 +993,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "29a76b0416e1"
+        "scorer_sha": "186094e6de77"
       },
       "paper": {
         "ask_sha": "",
@@ -1067,6 +1067,29 @@
         "scorer_sha": "4cb39e2e1767"
       },
       "python": {
+        "ask_sha": "db52c04f721c",
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "perfect",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "2": "perfect",
+          "20": "perfect",
+          "3": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
         "cells": {
           "1": 6,
           "10": 6,
@@ -1097,13 +1120,12 @@
         "previous": {
           "denominator": 20,
           "numerator": 20,
-          "out": "scorer_fix_6run",
-          "prompt_sha": "ff12408f6d76",
+          "out": "twoside_cli",
+          "prompt_sha": "7ad04c548d60",
           "runs": 6,
-          "scorer_sha": "08ba16711c07"
+          "scorer_sha": "6526989cd34f"
         },
         "prompt_sha": "7ad04c548d60",
-        "prompt_sha_basis": "git-clean",
         "run_totals": [
           20,
           20,
@@ -1113,7 +1135,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "6526989cd34f"
+        "scorer_sha": "186094e6de77"
       }
     },
     "3": {
@@ -1126,7 +1148,7 @@
           "12": "perfect",
           "13": "perfect",
           "14": "perfect",
-          "15": "unstable_counted_right",
+          "15": "on_the_line",
           "16": "perfect",
           "17": "perfect",
           "18": "perfect",
@@ -1171,10 +1193,10 @@
         "previous": {
           "denominator": 20,
           "numerator": 20,
-          "out": "twoside_web",
+          "out": "full_0912_olx",
           "prompt_sha": "5ab233254952",
           "runs": 6,
-          "scorer_sha": "6526989cd34f"
+          "scorer_sha": "29a76b0416e1"
         },
         "prompt_sha": "5ab233254952",
         "run_totals": [
@@ -1186,7 +1208,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "29a76b0416e1"
+        "scorer_sha": "186094e6de77"
       },
       "paper": {
         "ask_sha": "",
@@ -1260,6 +1282,29 @@
         "scorer_sha": "4cb39e2e1767"
       },
       "python": {
+        "ask_sha": "9e733b0f5181",
+        "bands_before": {
+          "1": "perfect",
+          "10": "perfect",
+          "11": "perfect",
+          "12": "perfect",
+          "13": "perfect",
+          "14": "perfect",
+          "15": "on_the_line",
+          "16": "perfect",
+          "17": "perfect",
+          "18": "perfect",
+          "19": "perfect",
+          "2": "perfect",
+          "20": "perfect",
+          "3": "perfect",
+          "4": "perfect",
+          "5": "perfect",
+          "6": "perfect",
+          "7": "perfect",
+          "8": "perfect",
+          "9": "perfect"
+        },
         "cells": {
           "1": 6,
           "10": 6,
@@ -1289,14 +1334,13 @@
         "out": "twoside_cli",
         "previous": {
           "denominator": 20,
-          "numerator": 20,
-          "out": "scorer_fix_6run",
-          "prompt_sha": "5ab233254952",
+          "numerator": 19,
+          "out": "twoside_cli",
+          "prompt_sha": "de0ef1444dde",
           "runs": 6,
-          "scorer_sha": "08ba16711c07"
+          "scorer_sha": "6526989cd34f"
         },
         "prompt_sha": "de0ef1444dde",
-        "prompt_sha_basis": "git-dirty-unchanged",
         "run_totals": [
           19,
           19,
@@ -1306,7 +1350,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "6526989cd34f"
+        "scorer_sha": "186094e6de77"
       }
     },
     "D1": {
@@ -1366,7 +1410,7 @@
         "previous": {
           "denominator": 18,
           "numerator": 18,
-          "out": "topup_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "385c91cae672",
           "runs": 6,
           "scorer_sha": "a6e935ca32bd"
@@ -1381,7 +1425,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "a6e935ca32bd"
+        "scorer_sha": "57632a935796"
       },
       "paper": {
         "ask_sha": "",
@@ -1515,7 +1559,7 @@
           "out": "topup_py",
           "prompt_sha": "70e332f7047b",
           "runs": 6,
-          "scorer_sha": "69fe41d985db"
+          "scorer_sha": "a6e935ca32bd"
         },
         "prompt_sha": "70e332f7047b",
         "run_totals": [
@@ -1527,7 +1571,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "a6e935ca32bd"
+        "scorer_sha": "57632a935796"
       }
     },
     "D2": {
@@ -1551,7 +1595,7 @@
           "6": "perfect",
           "7": "perfect",
           "8": "perfect",
-          "9": "unstable_counted_right"
+          "9": "perfect"
         },
         "cells": {
           "1": 6,
@@ -1587,7 +1631,7 @@
         "previous": {
           "denominator": 18,
           "numerator": 18,
-          "out": "topup_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "d157ef618d52",
           "runs": 6,
           "scorer_sha": "a6e935ca32bd"
@@ -1602,7 +1646,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "a6e935ca32bd"
+        "scorer_sha": "57632a935796"
       },
       "paper": {
         "ask_sha": "",
@@ -1697,7 +1741,7 @@
           "6": "perfect",
           "7": "perfect",
           "8": "perfect",
-          "9": "unstable_counted_right"
+          "9": "perfect"
         },
         "cells": {
           "1": 6,
@@ -1736,7 +1780,7 @@
           "out": "topup_py",
           "prompt_sha": "ddb2ea894ad8",
           "runs": 6,
-          "scorer_sha": "69fe41d985db"
+          "scorer_sha": "a6e935ca32bd"
         },
         "prompt_sha": "ddb2ea894ad8",
         "run_totals": [
@@ -1748,7 +1792,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "a6e935ca32bd"
+        "scorer_sha": "57632a935796"
       }
     },
     "DAY1": {
@@ -1760,7 +1804,7 @@
           "11": "perfect",
           "12": "perfect",
           "13": "perfect",
-          "14": "unstable_counted_right",
+          "14": "perfect",
           "15": "unstable_counted_right",
           "16": "perfect",
           "17": "perfect",
@@ -1771,7 +1815,7 @@
           "5": "perfect",
           "6": "perfect",
           "7": "perfect",
-          "8": "unstable_counted_right",
+          "8": "perfect",
           "9": "perfect"
         },
         "cells": {
@@ -1808,7 +1852,7 @@
         "previous": {
           "denominator": 18,
           "numerator": 18,
-          "out": "err429fix_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "d92726a40ca3",
           "runs": 6,
           "scorer_sha": "639ce88fed28"
@@ -1823,7 +1867,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "639ce88fed28"
+        "scorer_sha": "35997b90bfc9"
       },
       "paper": {
         "ask_sha": "",
@@ -1906,7 +1950,7 @@
           "11": "perfect",
           "12": "perfect",
           "13": "perfect",
-          "14": "unstable_counted_right",
+          "14": "perfect",
           "15": "unstable_counted_right",
           "16": "perfect",
           "17": "perfect",
@@ -1917,7 +1961,7 @@
           "5": "perfect",
           "6": "perfect",
           "7": "perfect",
-          "8": "unstable_counted_right",
+          "8": "perfect",
           "9": "perfect"
         },
         "cells": {
@@ -1957,7 +2001,7 @@
           "out": "pooled_python",
           "prompt_sha": "03d6c21d4dbe",
           "runs": 6,
-          "scorer_sha": "367fa21f3ebb"
+          "scorer_sha": "639ce88fed28"
         },
         "prompt_sha": "03d6c21d4dbe",
         "run_totals": [
@@ -1969,7 +2013,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "639ce88fed28"
+        "scorer_sha": "35997b90bfc9"
       }
     },
     "DAY2": {
@@ -1979,7 +2023,7 @@
           "1": "perfect",
           "10": "perfect",
           "11": "unstable_counted_right",
-          "12": "unstable_counted_right",
+          "12": "perfect",
           "13": "unstable_counted_right",
           "14": "perfect",
           "15": "perfect",
@@ -1991,9 +2035,9 @@
           "4": "perfect",
           "5": "perfect",
           "6": "perfect",
-          "7": "unstable_counted_right",
-          "8": "unstable_counted_right",
-          "9": "unstable_counted_right"
+          "7": "perfect",
+          "8": "perfect",
+          "9": "on_the_line"
         },
         "cells": {
           "1": 6,
@@ -2028,8 +2072,8 @@
         "out": "full_0912_olx",
         "previous": {
           "denominator": 18,
-          "numerator": 17,
-          "out": "err429fix_olx",
+          "numerator": 18,
+          "out": "full_0912_olx",
           "prompt_sha": "7a9a9909f863",
           "runs": 6,
           "scorer_sha": "639ce88fed28"
@@ -2044,7 +2088,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "639ce88fed28"
+        "scorer_sha": "35997b90bfc9"
       },
       "paper": {
         "ask_sha": "",
@@ -2125,7 +2169,7 @@
           "1": "perfect",
           "10": "perfect",
           "11": "unstable_counted_right",
-          "12": "unstable_counted_right",
+          "12": "perfect",
           "13": "unstable_counted_right",
           "14": "perfect",
           "15": "perfect",
@@ -2137,9 +2181,9 @@
           "4": "perfect",
           "5": "perfect",
           "6": "perfect",
-          "7": "unstable_counted_right",
-          "8": "unstable_counted_right",
-          "9": "unstable_counted_right"
+          "7": "perfect",
+          "8": "perfect",
+          "9": "on_the_line"
         },
         "cells": {
           "1": 6,
@@ -2178,7 +2222,7 @@
           "out": "pooled_python",
           "prompt_sha": "3573c1a83d6a",
           "runs": 6,
-          "scorer_sha": "367fa21f3ebb"
+          "scorer_sha": "639ce88fed28"
         },
         "prompt_sha": "3573c1a83d6a",
         "run_totals": [
@@ -2190,7 +2234,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "639ce88fed28"
+        "scorer_sha": "35997b90bfc9"
       }
     },
     "NP": {
@@ -2250,7 +2294,7 @@
         "previous": {
           "denominator": 18,
           "numerator": 18,
-          "out": "err429fix_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "d69e03991431",
           "runs": 6,
           "scorer_sha": "6ab6f1fe76ce"
@@ -2265,7 +2309,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "6ab6f1fe76ce"
+        "scorer_sha": "ec7e3866ecae"
       },
       "paper": {
         "ask_sha": "",
@@ -2399,7 +2443,7 @@
           "out": "pooled_python",
           "prompt_sha": "7feebf5ba1a2",
           "runs": 6,
-          "scorer_sha": "59adf4554736"
+          "scorer_sha": "6ab6f1fe76ce"
         },
         "prompt_sha": "7feebf5ba1a2",
         "run_totals": [
@@ -2411,7 +2455,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "6ab6f1fe76ce"
+        "scorer_sha": "ec7e3866ecae"
       }
     },
     "NR": {
@@ -2429,12 +2473,12 @@
           "17": "perfect",
           "18": "unstable_counted_right",
           "19": "perfect",
-          "20": "unstable_counted_right",
+          "20": "perfect",
           "4": "perfect",
           "5": "perfect",
           "6": "perfect",
-          "7": "unstable_counted_right",
-          "8": "perfect",
+          "7": "perfect",
+          "8": "unstable_counted_right",
           "9": "perfect"
         },
         "cells": {
@@ -2470,8 +2514,8 @@
         "out": "full_0912_olx",
         "previous": {
           "denominator": 18,
-          "numerator": 17,
-          "out": "leakfix4_olx",
+          "numerator": 18,
+          "out": "full_0912_olx",
           "prompt_sha": "fc5a95b9524e",
           "runs": 6,
           "scorer_sha": "dcc26dbd0cf8"
@@ -2486,7 +2530,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "dcc26dbd0cf8"
+        "scorer_sha": "ba0cef73dbba"
       },
       "paper": {
         "ask_sha": "",
@@ -2575,12 +2619,12 @@
           "17": "perfect",
           "18": "unstable_counted_right",
           "19": "perfect",
-          "20": "unstable_counted_right",
+          "20": "perfect",
           "4": "perfect",
           "5": "perfect",
           "6": "perfect",
-          "7": "unstable_counted_right",
-          "8": "perfect",
+          "7": "perfect",
+          "8": "unstable_counted_right",
           "9": "perfect"
         },
         "cells": {
@@ -2620,7 +2664,7 @@
           "out": "leakfix4_python",
           "prompt_sha": "015ad184bbb5",
           "runs": 5,
-          "scorer_sha": "ff31fb6604ab"
+          "scorer_sha": "dcc26dbd0cf8"
         },
         "prompt_sha": "015ad184bbb5",
         "run_totals": [
@@ -2631,7 +2675,7 @@
           18
         ],
         "runs": 5,
-        "scorer_sha": "dcc26dbd0cf8"
+        "scorer_sha": "ba0cef73dbba"
       }
     },
     "PP": {
@@ -2652,7 +2696,7 @@
           "20": "perfect",
           "4": "perfect",
           "5": "perfect",
-          "6": "unstable_counted_right",
+          "6": "perfect",
           "7": "perfect",
           "8": "perfect",
           "9": "perfect"
@@ -2691,7 +2735,7 @@
         "previous": {
           "denominator": 18,
           "numerator": 18,
-          "out": "err429fix_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "16620edaa2f2",
           "runs": 6,
           "scorer_sha": "6ab6f1fe76ce"
@@ -2706,7 +2750,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "6ab6f1fe76ce"
+        "scorer_sha": "ec7e3866ecae"
       },
       "paper": {
         "ask_sha": "",
@@ -2798,7 +2842,7 @@
           "20": "perfect",
           "4": "perfect",
           "5": "perfect",
-          "6": "unstable_counted_right",
+          "6": "perfect",
           "7": "perfect",
           "8": "perfect",
           "9": "perfect"
@@ -2840,7 +2884,7 @@
           "out": "pooled_python",
           "prompt_sha": "71aa8b0d0155",
           "runs": 6,
-          "scorer_sha": "59adf4554736"
+          "scorer_sha": "6ab6f1fe76ce"
         },
         "prompt_sha": "71aa8b0d0155",
         "run_totals": [
@@ -2852,7 +2896,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "6ab6f1fe76ce"
+        "scorer_sha": "ec7e3866ecae"
       }
     },
     "PR": {
@@ -2912,7 +2956,7 @@
         "previous": {
           "denominator": 18,
           "numerator": 17,
-          "out": "err429fix_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "f7fdcdb77979",
           "runs": 6,
           "scorer_sha": "6ab6f1fe76ce"
@@ -2927,7 +2971,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "6ab6f1fe76ce"
+        "scorer_sha": "ec7e3866ecae"
       },
       "paper": {
         "ask_sha": "",
@@ -3061,7 +3105,7 @@
           "out": "pooled_python",
           "prompt_sha": "ae5813da1211",
           "runs": 6,
-          "scorer_sha": "59adf4554736"
+          "scorer_sha": "6ab6f1fe76ce"
         },
         "prompt_sha": "ae5813da1211",
         "run_totals": [
@@ -3073,7 +3117,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "6ab6f1fe76ce"
+        "scorer_sha": "ec7e3866ecae"
       }
     },
     "Q1": {
@@ -3081,11 +3125,11 @@
         "ask_sha": "42d78f494b00",
         "bands_before": {
           "1": "perfect",
-          "10": "on_the_line",
+          "10": "wrong_by_median",
           "11": "perfect",
           "12": "perfect",
           "13": "perfect",
-          "14": "unstable_counted_right",
+          "14": "perfect",
           "15": "perfect",
           "16": "perfect",
           "17": "on_the_line",
@@ -3096,7 +3140,7 @@
           "3": "perfect",
           "4": "perfect",
           "5": "perfect",
-          "6": "unstable_counted_right",
+          "6": "wrong_by_median",
           "7": "unstable_counted_right",
           "8": "perfect",
           "9": "wrong_by_median"
@@ -3131,7 +3175,7 @@
         "previous": {
           "denominator": 20,
           "numerator": 17,
-          "out": "full_0912_olx",
+          "out": "q1_render_0914",
           "prompt_sha": "7bc511629036",
           "runs": 6,
           "scorer_sha": "29a76b0416e1"
@@ -3146,7 +3190,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "29a76b0416e1"
+        "scorer_sha": "186094e6de77"
       },
       "paper": {
         "ask_sha": "",
@@ -3223,14 +3267,14 @@
         "ask_sha": "42d78f494b00",
         "bands_before": {
           "1": "perfect",
-          "10": "on_the_line",
+          "10": "wrong_by_median",
           "11": "perfect",
           "12": "perfect",
           "13": "perfect",
-          "14": "unstable_counted_right",
+          "14": "perfect",
           "15": "perfect",
           "16": "perfect",
-          "17": "wrong_by_median",
+          "17": "on_the_line",
           "18": "unstable_counted_right",
           "19": "unstable_counted_right",
           "2": "perfect",
@@ -3238,10 +3282,10 @@
           "3": "perfect",
           "4": "perfect",
           "5": "perfect",
-          "6": "on_the_line",
-          "7": "perfect",
+          "6": "wrong_by_median",
+          "7": "unstable_counted_right",
           "8": "perfect",
-          "9": "on_the_line"
+          "9": "wrong_by_median"
         },
         "cells": {
           "1": 6,
@@ -3276,7 +3320,7 @@
           "out": "pooled_python",
           "prompt_sha": "328b1de9fd00",
           "runs": 6,
-          "scorer_sha": "fe385fbee2e3"
+          "scorer_sha": "29a76b0416e1"
         },
         "prompt_sha": "328b1de9fd00",
         "run_totals": [
@@ -3288,7 +3332,7 @@
           19
         ],
         "runs": 6,
-        "scorer_sha": "29a76b0416e1"
+        "scorer_sha": "186094e6de77"
       }
     },
     "Q2": {
@@ -3307,7 +3351,7 @@
           "18": "unstable_counted_right",
           "19": "unstable_counted_right",
           "2": "perfect",
-          "20": "unstable_counted_right",
+          "20": "perfect",
           "3": "perfect",
           "4": "unstable_counted_right",
           "5": "perfect",
@@ -3346,7 +3390,7 @@
         "previous": {
           "denominator": 20,
           "numerator": 19,
-          "out": "pooled_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "fb9c948040ae",
           "runs": 6,
           "scorer_sha": "29a76b0416e1"
@@ -3361,7 +3405,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "29a76b0416e1"
+        "scorer_sha": "186094e6de77"
       },
       "paper": {
         "ask_sha": "",
@@ -3449,7 +3493,7 @@
           "18": "unstable_counted_right",
           "19": "unstable_counted_right",
           "2": "perfect",
-          "20": "unstable_counted_right",
+          "20": "perfect",
           "3": "perfect",
           "4": "unstable_counted_right",
           "5": "perfect",
@@ -3491,7 +3535,7 @@
           "out": "pooled_python",
           "prompt_sha": "e1978d153375",
           "runs": 6,
-          "scorer_sha": "fe385fbee2e3"
+          "scorer_sha": "29a76b0416e1"
         },
         "prompt_sha": "e1978d153375",
         "run_totals": [
@@ -3503,7 +3547,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "29a76b0416e1"
+        "scorer_sha": "186094e6de77"
       }
     },
     "Q3": {
@@ -3561,7 +3605,7 @@
         "previous": {
           "denominator": 20,
           "numerator": 20,
-          "out": "q3olxside_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "200e1305205e",
           "runs": 6,
           "scorer_sha": "86ef29a09d7f"
@@ -3576,7 +3620,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "86ef29a09d7f"
+        "scorer_sha": "12aae8965f1b"
       },
       "paper": {
         "ask_sha": "",
@@ -3706,7 +3750,7 @@
           "out": "q3realistic_python",
           "prompt_sha": "f53ec970e021",
           "runs": 6,
-          "scorer_sha": "5a1fb03878db"
+          "scorer_sha": "86ef29a09d7f"
         },
         "prompt_sha": "f53ec970e021",
         "run_totals": [
@@ -3718,7 +3762,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "86ef29a09d7f"
+        "scorer_sha": "12aae8965f1b"
       }
     },
     "Q4a": {
@@ -3738,7 +3782,7 @@
           "19": "unstable_counted_right",
           "2": "perfect",
           "20": "perfect",
-          "3": "wrong_by_median",
+          "3": "on_the_line",
           "4": "perfect",
           "5": "perfect",
           "6": "unstable_counted_right",
@@ -3775,8 +3819,8 @@
         "out": "full_0912_olx",
         "previous": {
           "denominator": 20,
-          "numerator": 18,
-          "out": "pooled_olx",
+          "numerator": 19,
+          "out": "full_0912_olx",
           "prompt_sha": "02c2b528ea6d",
           "runs": 6,
           "scorer_sha": "19d6bf7a0198"
@@ -3791,7 +3835,7 @@
           19
         ],
         "runs": 6,
-        "scorer_sha": "19d6bf7a0198"
+        "scorer_sha": "f2875216c5ec"
       },
       "paper": {
         "ask_sha": "",
@@ -3880,7 +3924,7 @@
           "19": "unstable_counted_right",
           "2": "perfect",
           "20": "perfect",
-          "3": "wrong_by_median",
+          "3": "on_the_line",
           "4": "perfect",
           "5": "perfect",
           "6": "unstable_counted_right",
@@ -3921,7 +3965,7 @@
           "out": "pooled_python",
           "prompt_sha": "5cb2736d16a7",
           "runs": 6,
-          "scorer_sha": "6b73b155b127"
+          "scorer_sha": "19d6bf7a0198"
         },
         "prompt_sha": "5cb2736d16a7",
         "run_totals": [
@@ -3933,7 +3977,7 @@
           19
         ],
         "runs": 6,
-        "scorer_sha": "19d6bf7a0198"
+        "scorer_sha": "f2875216c5ec"
       }
     },
     "Q4b": {
@@ -3943,21 +3987,21 @@
           "1": "perfect",
           "10": "perfect",
           "11": "perfect",
-          "12": "wrong_by_median",
-          "13": "unstable_counted_right",
+          "12": "on_the_line",
+          "13": "wrong_by_median",
           "14": "perfect",
           "15": "perfect",
           "16": "perfect",
           "17": "perfect",
           "18": "perfect",
           "19": "unstable_counted_right",
-          "20": "unstable_counted_right",
+          "20": "perfect",
           "3": "perfect",
           "4": "always_wrong",
           "5": "perfect",
           "6": "unstable_counted_right",
           "7": "perfect",
-          "8": "unstable_counted_right",
+          "8": "perfect",
           "9": "perfect"
         },
         "cells": {
@@ -3989,7 +4033,7 @@
         "previous": {
           "denominator": 19,
           "numerator": 17,
-          "out": "rr_Q4b_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "ebd92b544df4",
           "runs": 6,
           "scorer_sha": "22c8c11e0fe0"
@@ -4004,7 +4048,7 @@
           17
         ],
         "runs": 6,
-        "scorer_sha": "22c8c11e0fe0"
+        "scorer_sha": "3cc72a4e4e87"
       },
       "paper": {
         "ask_sha": "",
@@ -4081,7 +4125,7 @@
           "1": "perfect",
           "10": "perfect",
           "11": "perfect",
-          "12": "wrong_by_median",
+          "12": "on_the_line",
           "13": "wrong_by_median",
           "14": "perfect",
           "15": "perfect",
@@ -4089,13 +4133,13 @@
           "17": "perfect",
           "18": "perfect",
           "19": "unstable_counted_right",
-          "20": "unstable_counted_right",
+          "20": "perfect",
           "3": "perfect",
           "4": "always_wrong",
           "5": "perfect",
-          "6": "perfect",
+          "6": "unstable_counted_right",
           "7": "perfect",
-          "8": "unstable_counted_right",
+          "8": "perfect",
           "9": "perfect"
         },
         "cells": {
@@ -4127,7 +4171,7 @@
         "previous": {
           "denominator": 19,
           "numerator": 17,
-          "out": "q4bclean_python",
+          "out": "q4b_python_newrender",
           "prompt_sha": "3d38d258ebc0",
           "runs": 6,
           "scorer_sha": "22c8c11e0fe0"
@@ -4142,7 +4186,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "22c8c11e0fe0"
+        "scorer_sha": "3cc72a4e4e87"
       }
     },
     "Q4c": {
@@ -4202,7 +4246,7 @@
         "previous": {
           "denominator": 19,
           "numerator": 16,
-          "out": "rq_q4c_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "fb1e21a2dd16",
           "runs": 6,
           "scorer_sha": "19d6bf7a0198"
@@ -4217,7 +4261,7 @@
           17
         ],
         "runs": 6,
-        "scorer_sha": "19d6bf7a0198"
+        "scorer_sha": "f2875216c5ec"
       },
       "paper": {
         "ask_sha": "",
@@ -4351,7 +4395,7 @@
           "out": "rq_q4c_python",
           "prompt_sha": "f581e8dda7c3",
           "runs": 6,
-          "scorer_sha": "6b73b155b127"
+          "scorer_sha": "19d6bf7a0198"
         },
         "prompt_sha": "f581e8dda7c3",
         "run_totals": [
@@ -4363,30 +4407,30 @@
           17
         ],
         "runs": 6,
-        "scorer_sha": "19d6bf7a0198"
+        "scorer_sha": "f2875216c5ec"
       }
     },
     "Q5": {
       "olx": {
         "ask_sha": "06385281d64c",
         "bands_before": {
-          "1": "unstable_counted_right",
+          "1": "wrong_by_median",
           "10": "perfect",
           "11": "perfect",
           "12": "perfect",
           "13": "perfect",
-          "14": "unstable_counted_right",
+          "14": "perfect",
           "15": "perfect",
-          "16": "perfect",
+          "16": "unstable_counted_right",
           "17": "perfect",
           "18": "perfect",
-          "19": "unstable_counted_right",
-          "2": "perfect",
+          "19": "perfect",
+          "2": "unstable_counted_right",
           "20": "perfect",
           "3": "perfect",
           "4": "always_wrong",
           "5": "perfect",
-          "6": "unstable_counted_right",
+          "6": "perfect",
           "7": "perfect",
           "8": "perfect",
           "9": "unstable_counted_right"
@@ -4420,8 +4464,8 @@
         "out": "full_0912_olx",
         "previous": {
           "denominator": 20,
-          "numerator": 19,
-          "out": "q5_e11_web",
+          "numerator": 18,
+          "out": "full_0912_olx",
           "prompt_sha": "f933e0876c3b",
           "runs": 6,
           "scorer_sha": "86ef29a09d7f"
@@ -4436,7 +4480,7 @@
           19
         ],
         "runs": 6,
-        "scorer_sha": "86ef29a09d7f"
+        "scorer_sha": "12aae8965f1b"
       },
       "paper": {
         "ask_sha": "",
@@ -4512,18 +4556,18 @@
       "python": {
         "ask_sha": "06385281d64c",
         "bands_before": {
-          "1": "on_the_line",
+          "1": "wrong_by_median",
           "10": "perfect",
           "11": "perfect",
           "12": "perfect",
           "13": "perfect",
           "14": "perfect",
           "15": "perfect",
-          "16": "perfect",
+          "16": "unstable_counted_right",
           "17": "perfect",
           "18": "perfect",
           "19": "perfect",
-          "2": "perfect",
+          "2": "unstable_counted_right",
           "20": "perfect",
           "3": "perfect",
           "4": "always_wrong",
@@ -4562,8 +4606,8 @@
         "out": "q30_python",
         "previous": {
           "denominator": 20,
-          "numerator": 19,
-          "out": "q5_e11_cli",
+          "numerator": 18,
+          "out": "q30_python",
           "prompt_sha": "403ceabeb5f9",
           "runs": 6,
           "scorer_sha": "86ef29a09d7f"
@@ -4578,7 +4622,7 @@
           19
         ],
         "runs": 6,
-        "scorer_sha": "86ef29a09d7f"
+        "scorer_sha": "12aae8965f1b"
       }
     },
     "Q6": {
@@ -4590,12 +4634,12 @@
           "11": "perfect",
           "12": "unstable_counted_right",
           "13": "perfect",
-          "14": "perfect",
-          "15": "unstable_counted_right",
+          "14": "unstable_counted_right",
+          "15": "perfect",
           "16": "unstable_counted_right",
           "17": "perfect",
-          "18": "on_the_line",
-          "19": "perfect",
+          "18": "unstable_counted_right",
+          "19": "unstable_counted_right",
           "2": "always_wrong",
           "20": "perfect",
           "3": "perfect",
@@ -4636,7 +4680,7 @@
         "previous": {
           "denominator": 20,
           "numerator": 18,
-          "out": "q6_e15_web",
+          "out": "full_0912_olx",
           "prompt_sha": "3b72b21974a0",
           "runs": 6,
           "scorer_sha": "10401a8c5ba7"
@@ -4651,7 +4695,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "10401a8c5ba7"
+        "scorer_sha": "58bab0a5b69f"
       },
       "paper": {
         "ask_sha": "",
@@ -4725,15 +4769,15 @@
         "ask_sha": "8a4a124a57b4",
         "bands_before": {
           "1": "perfect",
-          "10": "perfect",
+          "10": "unstable_counted_right",
           "11": "perfect",
           "12": "unstable_counted_right",
           "13": "perfect",
-          "14": "perfect",
+          "14": "unstable_counted_right",
           "15": "perfect",
           "16": "unstable_counted_right",
           "17": "perfect",
-          "18": "on_the_line",
+          "18": "unstable_counted_right",
           "19": "unstable_counted_right",
           "2": "always_wrong",
           "20": "perfect",
@@ -4774,8 +4818,8 @@
         "out": "q6ord_python",
         "previous": {
           "denominator": 20,
-          "numerator": 16,
-          "out": "q47rev_python",
+          "numerator": 17,
+          "out": "q6ord_python",
           "prompt_sha": "ee48e032d3a1",
           "runs": 6,
           "scorer_sha": "10401a8c5ba7"
@@ -4790,7 +4834,7 @@
           17
         ],
         "runs": 6,
-        "scorer_sha": "10401a8c5ba7"
+        "scorer_sha": "58bab0a5b69f"
       }
     },
     "T1": {
@@ -4850,7 +4894,7 @@
         "previous": {
           "denominator": 18,
           "numerator": 18,
-          "out": "rq_T1_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "e3b7c1d9ab70",
           "runs": 6,
           "scorer_sha": "b5e7bcba90bc"
@@ -4865,7 +4909,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "b5e7bcba90bc"
+        "scorer_sha": "8479c5e0961e"
       },
       "paper": {
         "ask_sha": "",
@@ -4999,7 +5043,7 @@
           "out": "rq_T1_python",
           "prompt_sha": "e3b7c1d9ab70",
           "runs": 6,
-          "scorer_sha": "ae051509bb12"
+          "scorer_sha": "b5e7bcba90bc"
         },
         "prompt_sha": "e3b7c1d9ab70",
         "run_totals": [
@@ -5011,7 +5055,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "b5e7bcba90bc"
+        "scorer_sha": "8479c5e0961e"
       }
     },
     "T2": {
@@ -5071,7 +5115,7 @@
         "previous": {
           "denominator": 18,
           "numerator": 18,
-          "out": "rq_T2_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "444071541584",
           "runs": 6,
           "scorer_sha": "b5e7bcba90bc"
@@ -5086,7 +5130,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "b5e7bcba90bc"
+        "scorer_sha": "8479c5e0961e"
       },
       "paper": {
         "ask_sha": "",
@@ -5220,7 +5264,7 @@
           "out": "rq_T2_python",
           "prompt_sha": "444071541584",
           "runs": 6,
-          "scorer_sha": "ae051509bb12"
+          "scorer_sha": "b5e7bcba90bc"
         },
         "prompt_sha": "444071541584",
         "run_totals": [
@@ -5232,7 +5276,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "b5e7bcba90bc"
+        "scorer_sha": "8479c5e0961e"
       }
     },
     "WK1": {
@@ -5253,7 +5297,7 @@
           "20": "perfect",
           "4": "perfect",
           "5": "perfect",
-          "6": "perfect",
+          "6": "unstable_counted_right",
           "7": "unstable_counted_right",
           "8": "unstable_counted_right",
           "9": "perfect"
@@ -5292,7 +5336,7 @@
         "previous": {
           "denominator": 18,
           "numerator": 18,
-          "out": "rq2_WK1_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "80ab1897c42f",
           "runs": 6,
           "scorer_sha": "b98a3c3c508c"
@@ -5307,7 +5351,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "b98a3c3c508c"
+        "scorer_sha": "0e68da1210a7"
       },
       "paper": {
         "ask_sha": "",
@@ -5399,7 +5443,7 @@
           "20": "perfect",
           "4": "perfect",
           "5": "perfect",
-          "6": "perfect",
+          "6": "unstable_counted_right",
           "7": "unstable_counted_right",
           "8": "unstable_counted_right",
           "9": "perfect"
@@ -5441,7 +5485,7 @@
           "out": "rq2_WK1_python",
           "prompt_sha": "20840bba16cc",
           "runs": 6,
-          "scorer_sha": "998e8307b8ef"
+          "scorer_sha": "b98a3c3c508c"
         },
         "prompt_sha": "20840bba16cc",
         "run_totals": [
@@ -5453,7 +5497,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "b98a3c3c508c"
+        "scorer_sha": "0e68da1210a7"
       }
     },
     "WK2": {
@@ -5513,7 +5557,7 @@
         "previous": {
           "denominator": 18,
           "numerator": 18,
-          "out": "pooled_olx",
+          "out": "full_0912_olx",
           "prompt_sha": "308fdab3343e",
           "runs": 6,
           "scorer_sha": "639ce88fed28"
@@ -5528,7 +5572,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "639ce88fed28"
+        "scorer_sha": "35997b90bfc9"
       },
       "paper": {
         "ask_sha": "",
@@ -5662,7 +5706,7 @@
           "out": "pooled_python",
           "prompt_sha": "d39df39bdf90",
           "runs": 6,
-          "scorer_sha": "367fa21f3ebb"
+          "scorer_sha": "639ce88fed28"
         },
         "prompt_sha": "d39df39bdf90",
         "run_totals": [
@@ -5674,7 +5718,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "639ce88fed28"
+        "scorer_sha": "35997b90bfc9"
       }
     }
   },

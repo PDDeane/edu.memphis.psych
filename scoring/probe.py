@@ -315,7 +315,7 @@ def question_for(item_id: str, slot: str) -> dict:
         # which makes it the cheapest probe available and the one most worth
         # writing. Refusing these was the first cut's mistake: it left 42 of 110
         # credit slots, and every slot of 1b, T1 and T2, unprobeable in a project
-        # whose whole method is probe-before-sweep.
+        # whose whole method is QUALITY_CONTROL.md §2a.
         d = _derivation(item_id, slot)
         if d:
             return d
@@ -566,10 +566,13 @@ def main(argv: list) -> int:
     return 0
 
 
-if __name__ == "__main__":
-    raise SystemExit(main(sys.argv))
-
-
+# MOVED ABOVE THE MAIN GUARD 2026-09-16. Everything below
+# `if __name__ == "__main__":` exists ONLY when this module is imported -- a
+# script run ends inside `main()` and never reaches it. `probe.control_gate` is
+# the guard that voids a probe measuring its own envelope, and it simply was not
+# there when probe.py was run directly. Nothing reported that; the parse, the
+# imports and every table survived. `check_no_module_defines_names_after_its_main_guard`
+# is what reports it now.
 def recorded_answers(item: str, slots: tuple, cells: tuple = ()) -> dict:
     """What the LEDGER says the shipped prompt answers, per cell and slot.
 
@@ -707,3 +710,7 @@ def control_gate(item: str, slots: tuple, observed: dict, *,
               f"envelope is not disqualified; it is not thereby proven equivalent "
               f"where the ledger is silent.", file=stream)
     return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
