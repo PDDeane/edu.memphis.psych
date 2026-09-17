@@ -21,6 +21,7 @@ Usage:
 
 from __future__ import annotations
 
+import paths
 import functools
 import argparse
 import glob
@@ -361,7 +362,7 @@ def build_schema(item: dict) -> dict:
         # model cannot credit an example without first stating what the
         # behaviour is, what the stimulus is, and whether the stimulus is
         # contingent, subsequent, and arranged. Participant 13 was credited for
-        # "{{corpus:WK1/p13:wk1:0:51:sha=848ae9e56f72}}" — no behaviour,
+        # [[corpus WK1/p13 wk1 0:51 sha=848ae9e56f72]] — no behaviour,
         # no contingency — precisely because prose guidance let that step be
         # skipped.
         props = {
@@ -1158,7 +1159,7 @@ def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], lis
     return ledger, checks, unknown, advisory
 
 
-MEDIA_DIR = "/tmp/claude-1000/molly_scoring_media"
+MEDIA_DIR = str(paths.media_dir())
 
 
 def oc_passing_sheet(item: dict) -> dict:
@@ -1519,8 +1520,7 @@ PAPER_ITEM_NOTES: dict[str, str] = {
     # JUDGE EACH ANSWER ON ITS OWN LABELLED PART. Q3's paper divergences were
     # one error: an answer credited from text belonging to a DIFFERENT answer,
     # with the evidence quoting the wrong heading verbatim -- p8 credited
-    # action_oriented while quoting "My goal is SPECIFIC because I plan to work
-    # {{corpus:Q3/p8:specific:54:75:sha=b75c43a72941}} week". The web cannot make this error: each answer
+    # action_oriented while quoting [[corpus Q3/p8 specific 10:80 sha=2aaae6fc2b69]]. The web cannot make this error: each answer
     # has its own box.
     #
     # MEASURED HERE AND NOWHERE ELSE: paper 16.5 -> 17.8 over six runs, the gap
@@ -1714,8 +1714,7 @@ def build_prompt(
         # ONE SOURCE for this prose. It used to live here in full, while
         # olx_prompts._criteria_section held a second copy whose docstring called
         # it "score.py:build_prompt's derive_from_criteria block, verbatim". It
-        # was not verbatim any more: criterion 5's example had drifted ("sleeping
-        # {{corpus:PR/p1:pr:9:42:sha=39dac706d4b0}} body" here against "a rested body, or
+        # was not verbatim any more: criterion 5's example had drifted ([[corpus PR/p1 pr 0:47 sha=543798ac2cea]] here against "a rested body, or
         # fitness itself, following the behaviour that produces it" there),
         # criterion 7's had too ("the extra chore" against "30 pushups"), and
         # criterion 10's WK1 rule here was an older, shorter version of the one
@@ -1916,7 +1915,14 @@ def build_prompt(
 
     body = response.strip() or "(the student left this item blank)"
     parts.append(f"## Student response to grade (item {item['id']})\n{body}")
-    return "\n".join(parts)
+    # RESOLVE BEFORE THE GRADER SEES IT. Rubric guidance may cite a cell by
+    # reference instead of quoting it; the repository holds the address and the
+    # prompt must hold the words, or the model is asked to judge a placeholder.
+    out = "\n".join(parts)
+    if "[[corpus " in out:
+        import corpus_ref
+        out = corpus_ref.expand_prose(out)
+    return out
 
 
 

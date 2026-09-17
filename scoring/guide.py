@@ -273,10 +273,13 @@ def main(argv: list[str]) -> int:
     return 1 if bad else 0
 
 
-if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
-
-
+# MOVED ABOVE THE MAIN GUARD 2026-09-16. Everything below
+# `if __name__ == "__main__":` exists ONLY when this module is imported -- a
+# script run ends inside `main()` and never reaches it. `probe.control_gate` is
+# the guard that voids a probe measuring its own envelope, and it simply was not
+# there when probe.py was run directly. Nothing reported that; the parse, the
+# imports and every table survived. `check_no_module_defines_names_after_its_main_guard`
+# is what reports it now.
 # ---------------------------------------------------------------- approvals
 
 # LESSONS ADDED TO THE GUIDE WITH THE USER'S EXPLICIT APPROVAL, keyed by the sha
@@ -291,6 +294,86 @@ LESSONS_APPROVED: dict[str, str] = {
     # Keyed on the LEAD PARAGRAPH, which is what _lesson_leads hashes: the lead
     # carries the claim, so editing it lapses the approval while re-wrapping the
     # supporting paragraphs does not.
+    # ---- SECTION 6a, FIVE LESSONS, approved 2026-09-16 on the user's explicit
+    # instruction, with two conditions they attached and which were applied
+    # BEFORE these shas were taken:
+    #   * a claim naming a RETIRED check must say so, so it does not read as a
+    #     statement about anything still running;
+    #   * the "137 student sentences" figure is dated to its episode, with the
+    #     current measurement (27 distinctive 4-grams, control 2107) beside it.
+    "19732406f345": "section 6a, Trusting an instrument — approved 2026-09-16",
+    "a5d16755c6c6": "a test that cannot fail reads exactly like a test that "
+                    "keeps passing — approved 2026-09-16",
+    "0fa976bebb1f": "the `check_maps_tables_are_attached` tautology — approved "
+                    "2026-09-16, reworded first to record that the check has "
+                    "since been RETIRED. The earlier sha b25d9743f409 lapsed on "
+                    "that rewording, which is the mechanism working",
+    "366591905758": "a verifier must not share the scrubber's rule — approved "
+                    "2026-09-16. Its lead is the heading, so dating the 137 "
+                    "figure in the body did NOT lapse it; the claim is unchanged",
+    "1aede813577a": "a count that holds steady can be hiding a swap — approved "
+                    "2026-09-16",
+    # ---- SECTION 6b, TWO LESSONS, approved 2026-09-16 on the user's explicit
+    # instruction. The evidence is reproduced, not reported: the 26-of-26 green
+    # scorer run on port 8899 was re-run and the UI on that port was confirmed
+    # unable to boot at all, so the same green result would have come from a
+    # release whose every page read "Failed to start."
+    "ca23974ab235": "section 6b, a check that compares bytes cannot tell you "
+                    "the thing runs — approved 2026-09-16",
+    "fdffdc4d812f": "ask of each instrument what it would say if the thing were "
+                    "broken; if the answer is 'the same as now' it is a "
+                    "neutrality check, not an acceptance check — approved "
+                    "2026-09-16",
+    # ---- SECTION 6c, FIVE LESSONS, approved 2026-09-16 on the user's explicit
+    # instruction. The section's figures were DATED to their episode first, at
+    # the user's earlier direction, with the current measurement beside them.
+    #
+    # Two of these shas differ from the ones first shown, because that dating
+    # edited their LEADS and so lapsed them -- the mechanism behaving exactly as
+    # designed, and worth leaving on the record rather than tidying away.
+    "8b64eea3c49a": "section 6c, a scan can only find what its reference set "
+                    "contains — approved 2026-09-16",
+    "c531700cb2c0": "the reference set was the defect: a table seeded from our "
+                    "own citations can only ever confirm that what we already "
+                    "knew about is gone — approved 2026-09-16",
+    "8fc7967231d8": "name the reference set; run the positive control; ask which "
+                    "direction the search runs — approved 2026-09-16",
+    "9b86053c4670": "four words is the working threshold, not eight — approved "
+                    "2026-09-16 (lead re-taken after the figures were dated)",
+    "6f1648e9d943": "judge a four-gram by its CONTENT WORDS, >=2 required, with "
+                    "the function words staying IN the match — the user's rule, "
+                    "approved 2026-09-16. The lead now also carries the "
+                    "correction that a NUMERAL is not a content word, which cost "
+                    "8 SyntaxErrors and 108 generator states before it was found",
+    # ---- SECTION 6d, TEN LESSONS, approved 2026-09-16 on the user's explicit
+    # instruction, after a split sentence in the section was repaired -- which
+    # re-flowed it and lapsed every sha first shown. The section is the standing
+    # procedure for quoting a student in an .olx, and its answer is usually NO.
+    "291b4bce493a": "section 6d, quoting a student in an .olx — approved 2026-09-16",
+    "a1b05c20feec": "first ask whether the example can be invented instead — "
+                    "approved 2026-09-16",
+    "cadec605120f": "usually it can, and that is the fix — approved 2026-09-16",
+    "97c9e68f0548": "the quote came from a question in the SAME handout: PR/p1 "
+                    "answered `bmod_h2_pr`, whose box sits 25 lines below the "
+                    "instructions that quoted it. The user found this; it is why "
+                    "the section exists in its present form. Approved 2026-09-16",
+    "da9896cd4107": "check the PROVENANCE, not just the words: which question "
+                    "did the sentence answer, and is the reader about to answer "
+                    "it — approved 2026-09-16",
+    "fe5c1050c54b": "check an invented replacement for collisions before using "
+                    "it; a near-paraphrase is not a replacement — approved "
+                    "2026-09-16",
+    "92cb2525cbc2": "the four-step procedure when a real quotation is required: "
+                    "make_ref never by hand, declare corpus_data, export the "
+                    "spans, lower the budget — approved 2026-09-16",
+    "4dfa9c6b517a": "what the mechanism costs: the page cannot render without "
+                    "the corpus, references collide with attribute grammars, and "
+                    "two resolvers must agree — approved 2026-09-16",
+    "81d3496d4056": "the rule in one line — approved 2026-09-16",
+    "c9030d30b0e0": "a reference is for text that must be exact and is somebody "
+                    "else's; everything else should be invented, and an invented "
+                    "example is checked against the corpus before it is trusted "
+                    "— approved 2026-09-16",
     "e7b934bfa4f1": "name the cell and the slot, not the count — approved "
                     "2026-09-04, after fourteen slot figures in open goals were "
                     "left standing by one instrument fix",
@@ -421,3 +504,7 @@ def unapproved_lessons() -> list[str]:
             f"guide.LESSONS_APPROVED as \"{sha}\". (A reworded lesson lapses its "
             f"approval on purpose: the sha changes because the claim changed.)")
     return out
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

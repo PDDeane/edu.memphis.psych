@@ -679,6 +679,16 @@ Freeze all web prompt bodies and all 26 paper `fingerprint_text` values as golde
 audit's **full finding set** and the selftest's injected-breakage count. Add `rubric` to the
 sheet-attribute registry.
 
+> **Preserved for this stage.** `migration/stage00_*.py`. The dry run's goldens
+> are in `migration/goldens/` — **for diffing, not for acceptance**: re-freeze
+> from the current tree first (`DRIFT.md`, row A/B/C/E/G). Its final enforcement
+> state is `goldens/audit_baseline.json` (28 findings) and its selftest sentinel
+> is `$MOLLY_DATA/migration_reference/.selftest-passed` (`114 detected, 0 failed`). Run
+> **§11.13 must be decided before this stage freezes anything** — the seven
+> `paths.OUT` fallbacks become part of the baseline on the day it is frozen.
+> `migration/preflight.py` before anything: it refuses while the rubric still
+> carries student text, and while any stage is unacknowledged against `DRIFT.md`.
+
 Adding a sheet attribute is **four steps, not one**, and each is guarded by a different check —
 measured 2026-09-12 while adding `free=`, which cost one finding per step missed:
 
@@ -744,11 +754,16 @@ run and recorded** -- this stage edits `primitives.json` and `LLMAction`'s schem
 
 **01 · Disposition pass over the 62 coupled checks** — *no behaviour change, no code moved*
 For each: re-point, re-express, or retire-with-declaration. Written down before anything moves.
-
 **Recount before starting.** The figure moves with the tree — it was 72 of 125 on 2026-09-11 and
 73 of 135 two days later, and 69 of 140 by script on 2026-09-14 once prose-only mentions stopped
 counting — so stage 01 begins by re-running the §0 measurement, not by trusting
 the number printed here. Four consumers landed on 2026-09-12 alone and each needs a disposition:
+
+> **Preserved for this stage.** `migration/stage01_recount_coupling.py`,
+> `stage01_gate.py`, golden `goldens/stage01_coupling.json`. **Recount — do not
+> scale.** The dry run measured 73 of 135 and live now has more checks;
+> `preflight.check_stage01_recounts_rather_than_scaling` refuses those numbers
+> appearing as values.
 
 - **`free=`** — a sheet attribute *and* a rubric field (`free` beside `codes` on a credit entry),
   carrying the verdicts a scored slot forgives. It is R9's shape exactly: stage 03b must decide
@@ -776,6 +791,16 @@ deferral that survives stage 03 is a defect, not a decision.
 Pure leaf module in lo-blocks, options object, no block or React imports — the discipline
 `slotSheet.ts` already follows. Content-neutral by construction (C2), and measured to be so: no
 generator branches on a literal item id (checked 2026-09-14 by `stage02_assembler_surface.py`).
+
+> **Preserved for this stage, and it is the half that lives outside this repo.**
+> The assembler itself is `$MOLLY_DATA/migration_reference/engine/packages/shared/lib/llm/` —
+> `promptAssembler.ts` (327 lines) + `.types.ts` (282) + test, `attributeAssembler`
+> (222) + test, `materialiseRubric` (155) + `.md` + test, `itemTemplate` (141) +
+> `.md` + test. **These exist nowhere else**: the dry-run lo-blocks was copied
+> without `.git`. Verifiers: `migration/verify/*.ts` (their imports were absolute
+> sandbox paths and are now `@/lib/...`). Goldens: `all26_inputs.json`,
+> `attr_inputs.json`, `criteria_frame.json`, `criteria_slice.json`,
+> `fragments.json`, `slice_2b_*`, `type_items.json`, `type_template.json`.
 
 **IT ASSEMBLES BOTH HALVES — PROSE AND ATTRIBUTES.** §2a already says the build produces "prompt
 body **and** sheet attributes, both produced from the rubric object", but this stage's gate used to
@@ -831,6 +856,19 @@ defect. Compare whole bodies, or append a sentinel and cut at it.
 Two sub-steps, in this order, because the block types are **engine** and the rubric instance is
 **content** — O1 forbids landing them together.
 
+> **Preserved for this stage.** The whole rubric block family —
+> `$MOLLY_DATA/migration_reference/engine/packages/shared/components/blocks/rubric/`, **31 files**: Rubric,
+> Item, Slot, Segment, Verdicts, Deduction, Credit, Counts, Cover, Equals,
+> Expect, Forbid, Onlyif, Requires, Derived, Map, Frame, Param, Context,
+> Guidance, Question, ItemTemplate, plus tests and `.md`. Also
+> `Course.test.ts`, `Course.render.test.tsx`, and `engine_modified.patch` —
+> **read it, do not apply it**: it mixes migration work with live drift and would
+> revert live's corpus-reference build pipeline. `blockRegistryAutogen.ts`,
+> `blockMetadataAutogen.json` and `pegExtensions.json` are GENERATED — regenerate
+> them, or the new blocks are inert and say nothing about why (T12).
+> `stage03b_gate.py` now runs `check_ref_grammars.py`, which is the only thing
+> keeping the Python and TypeScript resolvers from drifting apart.
+
 **3a · the block types (lo-blocks).** SIX new types -- `<Rubric>`, `<Verdicts>`, `<Frame>`,
 `<Segment>`, `<Deduction>`, `<Item>` -- plus a change to the `<Course>` that ALREADY EXISTS.
 Accepted and ignored: nothing in `psychology/` uses them yet, and the engine must tolerate that
@@ -867,6 +905,21 @@ assignments.
 Scripted, idempotent, writing through `editguard.safe_write`, refusing to write unless every item
 still assembles to its golden. Two copies exist and are asserted equal.
 **Gate:** all 26 byte-equal; second run reports no edits; `DEFINITIONS.json` accepts are explicit.
+
+> **Before quoting any student in the generated `.olx`, read
+> `scoring/QUALITY_CONTROL.md` §6d** — the procedure, and why the answer is
+> usually to invent the example instead. The migration writes a NEW public
+> file from rubric prose, so this is the stage where the question arises.
+>
+> **Preserved for this stage.** `migration/stage04_migrate_rubric.py`,
+> `stage04_gate.py`. The dry run's output is `$MOLLY_DATA/migration_reference/olx/bmod_rubric.olx`,
+> `bmod_rubric_pr.olx`, `bmod_course.olx` — **diff against them, do not install
+> them**: the first two carry 47 and 3 distinctive student 4-grams because they
+> predate corpus references. Scoring-side diff: `$MOLLY_DATA/migration_reference/migration_changes.patch`
+> (33 files, ~12k lines, includes deleting `rubric_h1/h2/h3.py`).
+> **Re-freeze `goldens/prompt_oracles.json` first** — the `prompt_sha` slice now
+> holds references, so every family differs from a pre-rewrite baseline because
+> the REWRITE changed it, not the migration (`DRIFT.md`, stages 04/05).
 
 **THE FIGURE IS 23 ASSEMBLED AND 26 READ.** `T1`, `T2` and `1b` have no
 `<LLMAction>` and therefore no prompt body; the other 23 do. Stages 00, 02 and 03b
@@ -917,6 +970,11 @@ changes; their input's provenance does.
 affected column re-recorded** · audit finding-set identical · coverage assertions non-zero ·
 **every spent `SCORER_NEUTRAL` pair re-pointed or dropped** · **every cache key audited against
 the new source**.
+
+> **Preserved for this stage.** `migration/stage05_complete_rubric.py`,
+> `stage05_rubric_equivalence.py`, `stage05_gate.py`, golden
+> `goldens/rubric_oracle.json`. Same re-freeze rule as 04;
+> `preflight.check_oracles_were_refrozen_for_stages_04_05` enforces it.
 
 The re-record is not optional bookkeeping: changing what `olx_prompts` reads moves `scorer_sha`
 for every item, which leaves 26 columns per web side `STALE SCORER` and therefore 26+
@@ -990,6 +1048,15 @@ rubric data. At no point is there one unverified copy. After 6c **no scorer hold
 its own** — the condition the whole migration exists to reach, and the point at which
 `rubric_hN.py` can be deleted rather than merely bypassed.
 
+> **Preserved for this stage.** `migration/products/selftest_injections.py`
+> (the 28 injections — scanned clean, so it lives in this repo),
+> `stage06_freeze_rubric_oracle.py`, `stage06b_*`, `stage06c_*`, and
+> `$MOLLY_DATA/migration_reference/pre_selftest/` — six modules whose bytes are in **no commit**
+> (`enforcement.py` 13,381 lines, `equivalence.py`, `measured.py`,
+> `olx_prompts.py`, `probe.py`, `sweep_gate.py`), the only record of what they
+> looked like before this stage. Recompute `SELFTEST_EXPECTED` from the
+> registered injections; the dry run's 114 was against 135 checks.
+
 > **6c CANNOT PRECEDE THE DISPOSITIONS (O2).** Thirty checks read the rubric modules
 > (`rubric_hN.py`, `SLOT_SPEC`, `all_items`) — the count is the prepared tool's
 > (`stage01_recount_coupling.py`), not a hand scan, which said 42. Deleting them at 6c while stage
@@ -1039,6 +1106,28 @@ carried:
 Anything 6b ADDS must be answerable from whichever source is being served, or `dual` stops being a
 verification step and becomes a way to run half-migrated (T23).
 
+**6b IS COMPLETE — gate met 2026-09-15**, on `migration/stage06b_gate.py`:
+
+| row | result |
+|---|---|
+| no module reached as DATA outside the accessor (AST, not grep) | clean |
+| no module reached as TEXT or by STRING import | clean |
+| only `handouts.py` still imports them — that is 6c's step | `['handouts.py']` |
+| selftest: every case constructed and detected | **86 detected, 0 failed, 0 skipped, 86 of 86** |
+| audit RAW finding-set identical to the baseline | 28 findings, unchanged |
+
+*Scripts saved off:* `migration/stage06b_gate.py` and
+`migration/stage06b_validate_injections.py`.
+
+*Two couplings were found only AFTER 6b had twice been certified complete by a
+token scan*, and both are why the gate reads text rather than imports:
+`olx_prompts.prior_record` read `rubric_hN.py` as TEXT (migrated to
+`RUBRIC_DECISIONS.md`, T29), and `check_maps_tables_are_attached` reached the
+modules by STRING through `__import__("rubric_h1")` inside a `try/except:
+continue` — after 6c's delete that import would have raised, the `continue`
+would have swallowed it for all three handouts, and the check would have
+returned `[]` and reported success.
+
 *6c.* The delete list is a decision in its own right and is **not yet written**; see §11.10.
 
 **What 06 costs that 05 did not.** The paper `scorer_sha` genuinely moves here, because `score.py`
@@ -1061,6 +1150,13 @@ model.
 The dispositions for checks reading a **deleted** source were applied in 6b (O2); what remains here
 is the rest of stage 01's list plus the prose. Add the EQUIVALENCE.md limit section (§8).
 
+> **Preserved for this stage.** `migration/stage07_prose_mentions.py` — now
+> strips corpus references BEFORE counting mentions, because a reference is a
+> citation, not a claim about where a structure lives, and "rebasing" one would
+> either resolve it or repoint it at the wrong cell. The dry run's decisions are
+> in `$MOLLY_DATA/migration_reference/products/RUBRIC_DECISIONS.md` (2,464 lines; outside this repo — 66
+> distinctive student 4-grams).
+
 Update `QUALITY_CONTROL.md` and `GOALS.md` where they name moved structures.
 
 **AMENDED 2026-09-14 — re-derive §0's baseline-numbers table UNCONDITIONALLY, not "if this
@@ -1080,6 +1176,13 @@ and a live sweep is a *contingency* priced per item that fails byte-equality, no
 **Gate:** every §7a instrument green · any item that failed byte-equality swept and declared ·
 **every artifact that swept item supersedes retired** (O4), since the all-artifact checks cannot be
 cleared by sweeping at any price.
+
+> **Preserved for this stage.** `migration/stage08_acceptance.py` (six rows),
+> `e2e_session.sh`, `student_session.sh`, `student_session.spec.ts`. Certified
+> browser result: `migration/goldens/student_session_certified.json`; the dry
+> run's scorer-side evidence is `$MOLLY_DATA/migration_reference/sessions/e2e_session_p1/` (26 items).
+> The non-circular served-prompt claim needs a dump that PREDATES the work —
+> `$MOLLY_DATA/out/idmap_v145.json`, 2026-09-12, confirmed present.
 
 **AMENDED 2026-09-14 — 08's entry condition moved at 06.** Stage 06 moves the paper `scorer_sha`
 for the eight handout-2 columns named above, so §7a's instruments cannot be green until those are
@@ -2011,6 +2114,37 @@ isolated where every path is relative. One absolute path inside one function is
 enough to undo it, and it will be invisible to any check that looks at imports
 rather than at calls.
 
+**T33 · Probing a check in isolation validates nothing about the suite.** Each
+of 06b's sixteen selftest cases was probed alone first — install the breakage,
+call that one check, watch it fire. All sixteen passed. Three then broke the
+SUITE, because a case does not call its check: it calls `enforcement_audit()`,
+which scores every item through both engines, so an injection must leave the
+rubric valid for **all** of that, not merely for the check it targets.
+
+* `{"key": ..., "of": [...]}` fired `check_one_writer_per_computed_key` and then
+  crashed the scorer on `rule["left"]` — `KeyError`, 86 cases in.
+* the repaired rule then needed a slot carrying `verdicts`; `state_a1` has
+  `codes` and raised `KeyError: 'verdicts'`.
+* a credit row named `orphan_slot_zz` fired its own check and took the audit down
+  two cases later: `agreement.score_slots` treats a rubric credit name with no
+  matching sheet slot as a hard `CallFailed`.
+
+Each cost a ~90-minute suite run, one failure per run, and each looked like a
+new problem rather than the same one.
+
+*Mitigation.* `migration/stage06b_validate_injections.py` runs every injection
+against the FULL audit in one pass — install, whole audit, report
+fired/didn't-fire/crashed, restore — so sixteen cases are validated in one sitting
+instead of sixteen runs. Run it after touching any injection and before the suite.
+
+*And the corollary worth keeping:* the injection that finally fires is the
+documentation of what the check actually reads. Four first attempts did not fire,
+and each failure was the check's real contract asserting itself — a slot with no
+`verdicts` is COMPUTED, not asked; the unreachable-verdict check takes its offered
+set from the `.olx`, so the injection must REMOVE a map pair; box deixis only
+fires from fields that reach `build_prompt`; and a check with standing findings
+needs the inverted arm.
+
 **T29 · Re-deriving an extraction rule loses what the original found.** Stage
 06b moved the rubric commentary out of `rubric_hN.py` into
 `RUBRIC_DECISIONS.md`, so `olx_prompts.prior_record` — which read the modules as
@@ -2484,6 +2618,37 @@ never run again. So:
    them.
 6. Delete the three modules, declaring every dropped name to `editguard`.
 
+**THE LAST EQUIVALENCE READING — taken 2026-09-15, step 3 of the ordering above.**
+
+This is the final evidence that the object says what the modules said. After step
+5 the modules are gone, `differences()` has no left-hand side, and
+`stage05_rubric_equivalence.py` can never run again. Recorded here because a
+migration that deletes its own baseline without writing down the last reading has
+destroyed the only proof it was faithful.
+
+| handout | items | byte-identical from both provenances | differences |
+|---|---:|---:|---:|
+| 1 | 8 | 8 | **0** |
+| 2 | 12 | 12 | **0** |
+| 3 | 6 | 6 | **0** |
+| **total** | **26** | **26** | **0** |
+
+*What was read, by content hash, so the reading can be attributed to exact bytes:*
+
+| artifact | chars | sha256[:12] |
+|---|---:|---|
+| `psychology/bmod_rubric.olx` (emitted) | 196,957 | `e0cfc8592890` |
+| `scoring/rubric_h1.py` | 202,906 | `60674dd0eea1` |
+| `scoring/rubric_h2.py` | 87,873 | `40508e98282f` |
+| `scoring/rubric_h3.py` | 50,676 | `34b74ca4143a` |
+
+`stage05_rubric_equivalence.py` reports **PASS — the rubric object says
+everything the modules say**, h1/h2/h3 each 0 differences. The frozen
+`goldens/rubric_oracle.json` was independently re-verified the same day against
+all 15 frozen keys and still matches the modules, so the comparison survives the
+delete in the stronger form: not "do these two current sources agree", but "does
+the object still say what the modules said on the day they were deleted".
+
 *The superseded framing:*
 
 `6c` is described as "delete the Python rubric data". The delete list had never
@@ -2542,6 +2707,141 @@ parses, imports and passes every audit.
 
 ---
 
+### 11.13 · NO HARD-CODED PATHS — **DECIDED 2026-09-16: fail closed. 12 findings cleared.**
+
+**The policy: no module spells a filesystem location. `paths.py` resolves them,
+and an exception is declared with its reason.** A literal path does not fail on
+the wrong machine or the wrong tree — it SUCCEEDS on it, which is why this class
+of defect keeps arriving disguised as a passing run.
+
+`check_filesystem_locations_come_from_paths_py` (2026-09-16) reports **12**,
+in four kinds:
+
+| kind | where | why it bites |
+|---|---|---|
+| **unconditional** | `agreement_app.py:1648`, `enforcement.py:4304` — `/home/pdeane/code/update/lo-blocks` | ignores `$LO_BLOCKS`; measures the wrong checkout in silence |
+| **UID baked in** | `score.py:1161`, `simulate_h3.py:65` — `MEDIA_DIR = "/tmp/claude-1000/..."` | correct for one account on one machine |
+| **duplicated resolution** | `self_graded_misses.py:39` — `os.environ.get("MOLLY_DATA", "~/molly_data")` | re-implements `paths.DATA`, and will drift from it |
+| **fallback** | `enforcement.py` ×5, `measured.py` ×2 | **the design question below** |
+
+The first three kinds are bugs and want fixing. **The seven fallbacks are a
+design question, not a typo:**
+
+    enforcement.py:6758, 6909, 10405, 10476, 11083
+    measured.py:373, 4445
+        root = _pl.Path(getattr(_paths, "OUT", "/home/pdeane/molly_data/out"))
+
+The fallback fires when `paths` has **no `OUT` attribute at all**. Three
+behaviours are available and they are not equivalent:
+
+| | behaviour when `paths.OUT` is absent |
+|---|---|
+| **(a) as written** | silently read the developer's own artifact directory |
+| **(b) fail closed** | raise, naming `$MOLLY_OUT` — `paths.require()` already exists for this |
+| **(c) resolve** | `os.environ["MOLLY_OUT"]`, i.e. duplicate `paths.py` badly |
+
+**(a) is the least safe available behaviour and it is what ships.** A harness
+pointed at a sandbox, a second checkout, or the backup copy gets the developer's
+live artifacts instead, and nothing says so: the run succeeds, against the wrong
+tree. That is the same shape as the dry run's eleven literal sandbox paths, and
+the same shape as the `.selftest-passed`/oracle staleness traps — **a wrong
+answer that looks exactly like a right one.**
+
+**Why it must be decided BEFORE stage 00 and not after.** Stage 00 freezes the
+enforcement baseline. Whatever these checks do on the day of the freeze becomes
+the baseline every later stage is compared against, so changing them afterwards
+moves the finding set and makes neutrality unreadable — and leaving them means
+the migration's own measurements can silently come from the wrong directory.
+
+**DECIDED: (b), fail closed — and done.** `check_filesystem_locations_come_from_paths_py`
+now reports **0**. What changed:
+
+* `paths.out_root()` — for scripts. Uses the existing `require()`, which exits
+  naming `MOLLY_OUT`.
+* `paths.out_root_or_reason()` — **for checks, which must not exit the process.**
+  It returns the reason, and the five call sites now report *"this check cannot
+  run, which is NOT the same as passing."* This is the half that mattered: the
+  old fallback did not merely read the wrong directory, it read one that might
+  not exist, found no files, reported nothing — and **nothing read as clean.**
+* `paths.MEDIA` / `media_dir()` — replaces `MEDIA_DIR = "/tmp/claude-1000/..."`
+  in `score.py` and `simulate_h3.py`, which baked in a numeric UID and was
+  correct for one account on one machine.
+* `agreement_app.LOBLOCKS`, `enforcement`'s lo-blocks literal, and
+  `self_graded_misses`' duplicated `MOLLY_DATA` resolution all now use `paths`.
+
+Two glob PATTERNS remain, declared in `ABSOLUTE_PATH_EXCEPTIONS` with their
+reason: they are the subject of a check, not locations it reads from.
+
+**The policy stands after the fix**: the check is registered in the audit, so a
+new literal is a finding rather than a habit.
+
+### 11.14 · A corpus reference inside `slots=` — **DECIDED 2026-09-16: hide the reference's colons. Fixed both sides.**
+
+The slot-sheet attribute is colon-delimited — `name:description:verdicts@weight`
+joined by `|` — and `parse_slots` splits on **every** colon:
+
+    parts = [p.strip() for p in entry.split(":")]
+    raw_key, label, seg = parts[0], parts[1], parts[2]
+
+A corpus reference is colon-heavy by construction, so a description carrying one
+shifts every later field:
+
+    modify_stated:Says whether it is {{corpus:Q4b/p20:modify:17:40:sha=f3f224b807af}}
+                  |__ label ends at the first colon inside the reference
+                                      |__ "Q4b/p20" is then read as the VERDICTS
+
+The generator duly emits ``- `modify_stated` — `Q4b`/`p20`:`` where the rubric
+says `met`/`absent`. Measured across the rewritten history: **107 of 114
+generator states**.
+
+**THIS IS NOT ONLY A REWRITE PROBLEM.** The generator writes that attribute FROM
+the rubric description, so the moment any slot description contains a reference —
+which is the whole direction of travel — the generator misreads what it just
+wrote. The live tree has the same latent defect today; the rewrite merely got
+there first.
+
+**The fix is in the parser, and it must land in BOTH.** `olx_prompts.parse_slots`
+says in its own docstring that it mirrors `packages/shared/lib/llm/slotSheet.ts`.
+Splitting the key off the LEFT and the verdict segment off the RIGHT lets a
+description hold anything:
+
+    key, rest = entry.split(":", 1)
+    label, seg = rest.rsplit(":", 1) if ":" in rest else (rest, None)
+
+Changing one side only creates precisely the Python/TypeScript divergence that
+`check_ref_grammars.py` exists to catch — and that check covers the REFERENCE
+grammar, not this one, so it would not notice. **A second equivalence check is
+owed for the slot-sheet grammar.**
+
+**Why before stage 04.** Stage 04 migrates the rubric data and stage 05 makes
+the build generate from it; both compare `.olx` bytes and `prompt_sha`. With this
+unfixed, every slot description carrying a reference produces a wrong verdict
+list in the generated body, and the byte comparison fails for a reason that has
+nothing to do with the migration.
+
+**DECIDED AND DONE — and the historical states WERE fixed.** The claim above was
+wrong: each commit's generator can be reached, because the rewrite already
+backdates a shim into every commit. The parser fix rides the same rails.
+
+| where | what |
+|---|---|
+| `olx_prompts.py` | three sites — `parse_equals`, `parse_slots`, `check_scorer_voice_in_labels` — now share `_split_keeping_refs` |
+| `slotSheet.ts` | **seven** sites, not one: slots, onlyif, cover, derived, equals, labels. All use `splitKeepingRefs` |
+| every historical commit | the `parse_slots` wrapper is injected by `shims.py`, so each commit's own generator parses correctly |
+| `check_slot_grammars.py` | **the second equivalence check.** Feeds seven probe specs through both parsers and compares key, label, options and points |
+
+**Measured:** generator regressions across the rewritten history went from **108
+to 0** (chain17). `--check` on the live tree is unchanged at 0 out of date, so
+the fix is a no-op on today's content — which is what a latent-defect fix should
+be.
+
+**The second equivalence check earned its place immediately.** Run after the
+Python fix and before the TypeScript one, it caught three divergences — the
+grader and the student would have seen different verdict vocabularies for the
+same slot, each side internally consistent and neither complaining. That is the
+same failure `check_ref_grammars.py` exists to prevent, one grammar over, and it
+would not have been noticed without a check of its own.
+
 ## 12 · `VERDICT_VOCABULARY_PLAN.md` is RETIRED — it is not a dependency
 
 Verified against the tree on **2026-09-13**, stage by stage. It is not a companion to sequence
@@ -2571,3 +2871,425 @@ is optional: leaving it costs nothing but a branch nothing takes.
 *Supersedes the 2026-08-14 draft, which assumed render-time assembly and a codebase without the
 audit complex. Companion to the verdict-standardisation plan (`VERDICT_VOCABULARY_PLAN.md`),
 retired in §12 — verified complete, owes no sweep, not a dependency.*
+
+---
+
+# Appendix · THE DRY RUN AS EXECUTED, and the traps it walked into
+
+Carried over verbatim from `~/code/migration_dryrun/psych/RUBRIC_MIGRATION_PLAN.md`
+before that directory was deleted. It is here because it existed **only there**:
+the two copies of this plan diverged after the 2026-09-13 fork, live gaining the
+§11.5–11.12 decisions and the sandbox gaining these records and traps.
+
+**Trap numbering:** the sandbox and live each grew a T12 and a T13 about
+different things. The sandbox's two are renumbered **T27** and **T28** here;
+live's originals keep their numbers. Everything else keeps the number it was
+recorded under, because the QC guide and the scripts cite them.
+
+#### 06c AS EXECUTED — 2026-09-15/16
+
+| gate item | state |
+|---|---|
+| `fingerprint_text` builds for all 26 | 26/26 |
+| no-rubric-constants guard | 0 |
+| `check_paper_prompt_is_stamped` | 0 |
+| every rubric-reading check demonstrably firing | **28/28 against the full audit** |
+| selftest | 86/86 before the new cases, raised to 114 |
+| corpus replay identical | NOT RE-RUN since the delete |
+| every affected column re-recorded (O3) | NOT VERIFIED |
+| `paper_opus` inherits 06 | NOT VERIFIED |
+
+**WHAT THE DELETE COST: NOTHING, and it took two wrong passes to see that.** The
+audit read 28 against §0's 32, and the gap looked like four findings going down
+with the modules. `migration/goldens/audit_baseline.json`, frozen at 11:13 that
+morning, already recorded 28 WITH THE FULL SET: earlier stages had removed those
+four legitimately. 06c ADDED four -- three `DEFINITION VANISHED`, one unapproved
+guide lesson -- and fixing them left a set IDENTICAL to the frozen baseline.
+See T12 and T13, both of which were first written the wrong way round.
+
+**What 06c did cost was a blind check, and no count would ever have shown it.**
+`check_maps_tables_are_attached` became a tautology: 06c made `MAPS` a
+derivation of the per-item field, so "declared but not attached" stopped being
+representable and the check could only pass. A check that cannot fail moves no
+number -- its findings were already zero. Its SELFTEST CASE said so, reporting
+`NOTHING FIRED`, which is the whole argument for the gate's wording. It is
+retired with its declaration in place and replaced by
+`check_every_rubric_element_is_consumed`, which guards the same class one layer
+up: an element authored in the rubric that `read_rubric` never matches.
+
+Twenty-eight rubric-reading checks had no case at all. Each now has one, every
+one shown to fire against the FULL audit, and all 28 are installed in the suite
+with `SELFTEST_EXPECTED` counting them.
+
+**Scripts:** `stage06c_validate_injections.py` (the 28 against the full audit),
+`stage06c_c1_probe.py` (a recorded negative result -- see its header),
+`stage06c_dump_findings.py` (writes the finding SET, which T13 says to keep).
+`scoring/selftest_injections.py` holds the injections themselves.
+
+**07 · Rebase the prose, and the dispositions that needed no live source** — *no behaviour change*
+The dispositions for checks reading a **deleted** source were applied in 6b (O2); what remains here
+is the rest of stage 01's list plus the prose. Add the EQUIVALENCE.md limit section (§8). Update
+`QUALITY_CONTROL.md` and `GOALS.md` where they name moved structures, and the **baseline-numbers
+table in §0** if this migration changed what the audit reports.
+**Gate:** selftest accounts for **exactly** `SELFTEST_EXPECTED` breakages, the constant raised
+deliberately if cases were added · every retirement
+carries a declaration · all four `.md` hook-ins still parse.
+
+#### 07 AS EXECUTED — 2026-09-16
+
+| gate item | state |
+|---|---|
+| every retirement carries a declaration | 3 of 3 — the MAPS check (in place + `editguard.accept`), `RUBRIC_SOURCE` (`handouts.py:30`), the maps-detach selftest case |
+| all four `.md` hook-ins still parse | `goals.check()` 0; closure-ceilings, guide-structure, guide-lessons, divergence-arithmetic, prose-numbers all 0 |
+| selftest accounts for exactly `SELFTEST_EXPECTED` | re-running after the prose edits; the pre-edit run was 114/114, 0 failed |
+
+**The prose rebase.** `EQUIVALENCE.md` 3 → 1 (the survivor names the old module
+as history AND the new home); `BACKLOG.md` 4 → 0 (`file:line` citations
+re-pointed at structures); `GOALS.md` 36 → 26, all historical, under a header
+note that says so. See T17: the log keeps its own tense.
+
+**The limit section** (`EQUIVALENCE.md`, forward-referenced from §2 and never
+written) says what the migration made MORE true: before 06, the rubric and the
+sheet were authored separately, so a divergence could occasionally expose a
+rubric error. One source removes that accidental guard by design. Agreement
+between the engines now carries exactly zero information about whether the
+rubric is right, and the section names what does carry it -- gold, the fixture
+readout, the per-cell error profile.
+
+**Scripts:** `stage07_prose_mentions.py` (mentions split by tense),
+`stage07_gate.py` (the three conditions, with the selftest row READ from the
+suite's own log rather than re-derived).
+
+**08 · Acceptance — by default, ZERO calls**
+Because the bytes never changed, there is nothing for a sweep to discover: it would re-sample the
+same distribution and return its own noise. Acceptance is the four zero-call instruments of §7a,
+and a live sweep is a *contingency* priced per item that fails byte-equality, not a scheduled cost.
+**Gate:** every §7a instrument green · any item that failed byte-equality swept and declared ·
+**every artifact that swept item supersedes retired** (O4), since the all-artifact checks cannot be
+cleared by sweeping at any price.
+
+---
+
+#### 08 AS EXECUTED — 2026-09-16
+
+| instrument | result |
+|---|---|
+| prompt oracles (web + paper bytes) | UNCHANGED across 26 items, both sides; leak gate clean |
+| `idmap` served-prompt | 23/23 current against `idmap_v145.json` |
+| corpus replay | 5668 recorded responses, 0 scored differently; controls olx 2705/2706, python 2908/2908; 2640 paper cells, 0 differing |
+| enforcement neutrality | 28 findings, SET-identical to the frozen baseline |
+| items failing byte-equality | none — the sweep contingency never triggered |
+| O4 sweep-then-retire | vacuous, no sweep spent |
+| **e2e session (scorer)** | **26/26 items scored, 0 without a usable cell** |
+| **student session (browser)** | **4/4: course page + three handouts, 55 screens, 0 DisplayErrors** |
+
+**Acceptance cost: ZERO calls for the four byte instruments**, against ~9,400 for
+the sweep the first draft scheduled as a matter of course. The two session rows
+are not free — a few dozen calls between them — and they are the only rows that
+RUN the release rather than compare it. See T21: all four byte instruments pass
+unchanged on a build whose handouts do not render, because a page that renders
+nothing has the same bytes as one that renders.
+
+| the student session, certified 2026-09-16 | screens | inputs answered | feedback presses | not required |
+|---|---|---|---|---|
+| handout 1 | 11 | 25 | 10 | 1 — submit/PDF |
+| handout 2 | 37 | 32 | 33 | 1 — submit/PDF |
+| handout 3 |  7 | 12 |  7 | 2 — `Print this page`, submit/PDF |
+
+Zero required-but-silent buttons. Handout 3 screen 2 carries a printer AND a
+grader: `Check my labelling` was required and answered, `Print this page` was
+excused because it CALLED `window.print`, which the harness observes by stubbing
+it rather than inferring from markup. Frozen at
+`migration/goldens/student_session_certified.json`.
+
+**The idmap dump PREDATES the migration**, and that is what makes the claim
+non-circular: `idmap_v145.json` is from 2026-09-12, four days before this stage,
+and every one of the 23 generated prompts still matches it line for line with
+nothing extra. Checking against a dump taken afterwards would have proved only
+that the tree agrees with itself.
+
+**Scripts:** `stage08_acceptance.py` (six rows now — the four byte instruments
+plus the two sessions, each session READ from the artefact its own script left
+behind and reported NOT RUN when absent, because absence is not a pass);
+`e2e_session.sh` (scorer side, all 26 items); `student_session.sh` +
+`student_session.spec.ts` (browser side). The replay row is read from an audit
+LOG rather than re-derived -- the same rule as
+`stage06b_gate.py` and `stage07_gate.py`. See T20 for why it chdirs first.
+
+### T27 · Compare the finding SET, and against the RIGHT baseline
+
+06c deleted the rubric modules and the audit read 28 where §0 recorded 32. Four
+findings looked as though they had vanished with the modules, and two
+measurement passes went into naming them.
+
+**They had not.** `migration/goldens/audit_baseline.json` — frozen at 11:13 on
+2026-09-15, before the delete — already recorded 28, with the full set. The four
+had been removed by EARLIER stages doing their job. What 06c actually did was
+ADD four (three `DEFINITION VANISHED`, one unapproved guide lesson); fixing
+those returned the tree to a set IDENTICAL to the frozen 28.
+
+*Mitigation.* Two rules, and the second is the one that cost the time.
+
+1. Compare the SET, never the count — a step that deletes a source can add and
+   remove at once, which is when a count says least.
+2. Compare against the LAST FROZEN baseline, not against §0. §0 is the number at
+   stage 00; every stage since has legitimately moved it. A drift measured
+   against the wrong reference produces a real-looking gap and a search for a
+   cause that does not exist.
+
+### T28 · Look for the artifact the migration already makes
+
+While hunting the four findings of T12 I concluded the baseline set was
+unreconstructible — the dry run is off git, §0 records numbers rather than sets,
+and the commit the sandbox was made from returns 869 findings, whole check
+families apart. That conclusion was WRONG, and I recorded it here as a trap
+before checking.
+
+`stage00_freeze_oracles.py` writes `migration/goldens/`, and that directory
+already held `audit_baseline.json` with the full finding set — created by this
+migration, for exactly this question. Two passes of hand-rolled measurement went
+into a question one `ls` would have answered.
+
+*Mitigation.* Before building an instrument, look in `migration/goldens/` and at
+the stage-00 scripts for one that already exists. This is the same standing rule
+as preferring a prepared accessor to a hand-rolled scan: the reason a hand-rolled
+one is worse is not only that it is slower to write, but that it can be wrong in
+a way the prepared one has already been made right.
+
+### T14 · An injection that installs and proves nothing
+
+Of the 28 written at 06c, THIRTEEN did not fire on the first attempt, and every
+failure was silent -- installed cleanly, changed nothing, and would have entered
+the suite as a case proving its check works. The causes were all small and all
+specific: a bare verdict word where the check matches `` `backticks` ``; a
+`chdir` that would have held for the whole audit; a string key where the table
+uses ints; a participant outside the readout's range; both branches forced the
+harmless way; a note no item scores, so the check skips it; `ITEM:slot` keys
+parsed as dotted; writing a real file the movement guard watches.
+
+*Mitigation.* Probe every injection before trusting it, and count only the ones
+that FIRE. "Written" is not a number worth reporting. This is the same failure
+as the check it guards: a case that cannot fail reads exactly like a case that
+keeps passing.
+
+### T15 · A single-check probe is weaker than the audit
+
+One injection passed its own check and then killed the whole audit: it made
+`agreement.load_action` raise for every caller, which is right for the check
+that REPORTS a load failure and fatal for the other checks that load sheets.
+`stage06b_validate_injections.py`'s docstring already records three of these
+from 06b, each costing a ~90-minute suite run to find.
+
+*Mitigation.* `stage06c_validate_injections.py` runs every injection against the
+full audit in one pass and reports fired / missed / crashed / left-dirty. Run it
+before the suite, never after.
+
+### T16 · Two instruments, one blind spot, agreeing with each other
+
+Not a rubric-migration trap, but it happened during 06c and the shape
+generalises. A substitution matched file text with words joined by `\s+`; the
+scan that VERIFIED the substitution used the same pattern. They agreed, and both
+missed 137 sentences written across adjacent string literals, where the file
+holds a quote, a newline, indentation and another quote between two words.
+
+*Mitigation.* A verifier must not share the scrubber's matching rule. Where the
+thing being checked is Python, read it the way Python does -- parse, and look at
+the string constants the parser has already joined.
+
+### T17 · A log rewritten to match today stops being a record
+
+`GOALS.md` names `rubric_hN` thirty-six times. Ten are claims about where a
+thing IS; twenty-six are entries describing where it WAS when they were written
+-- "`unclear` was removed from rubric_h1's `verdicts`" is a true sentence about
+2026-08 and a false one about the module list. Rewriting all thirty-six would
+have made the file agree with the present and stop being a log.
+
+*Mitigation.* Split by tense (`stage07_prose_mentions.py`), rebase only the
+present-tense claims, and put ONE note at the head saying the older entries name
+the layout of their time and why they were left. The same applies to `file:line`
+citations into a deleted module: re-point them at the STRUCTURE, never at new
+line numbers, which will be stale again the next time the file moves.
+
+### T18 · An edit that reports success and changes nothing
+
+The seam-aware matcher was built, the edit script printed its success line, and
+the rebuild ran for fifteen minutes with the OLD matcher. The `old` string being
+replaced had omitted a trailing `, re.I)`, so it matched nothing. The tell was
+that the counts came back IDENTICAL -- a different matcher cannot produce the
+same number of variants as the one it replaces.
+
+It happened three times in one night in three forms: an edit that changed no
+bytes, thirteen injections that installed and fired nothing, and a leak scan
+that shared the scrubber's own blind spot. All three reported success.
+
+*Mitigation.* Verify the EFFECT, never the report. Re-read the file and assert
+the new text is present and the old text is gone; then check that the number the
+change was supposed to move actually moved. An unchanged number after a change
+is a failed change until proven otherwise.
+
+### T19 · A gate item can stay open while every gate passes
+
+§3.2 — compact tag versus byte-identical `.olx` — is a STAGE 00 gate item, and
+the plan says so in bold, because "take early proved too weak: nothing stopped
+the sequence beginning with them open". The sequence then ran from 00 to 08 with
+it open. Every stage gate passed. Acceptance passed. Nothing failed, because at
+each stage the byte-identical path was simply the one in front of us, and the
+decision that should have chosen it was never made.
+
+It surfaced only when the completion criteria were read for their own sake,
+after the last stage gate was already met -- and the check that found it was
+reading §11 for `DECIDED` markers, not running anything.
+
+*Mitigation.* A decision is discharged when it is RECORDED, not when the work
+that depended on it happens to be finished. Before declaring a plan complete,
+re-read its decision list and confirm each carries a verdict; a gate item with
+no marker is open however well the stages went. The default that got taken is
+not the same as the decision that should have been made, even when it is the
+same path -- because nobody priced the alternative, and the record cannot show
+that anyone did.
+
+### T20 · The audit is cwd-sensitive, and says so rather than lying
+
+`check_engine_mechanisms_are_not_item_dependent` reads the engine sources by
+RELATIVE path. Run the audit from anywhere but `scoring/` and it reports four
+`cannot be parsed for item-gating` findings -- 28 becomes 32, and a neutrality
+gate comparing against the frozen baseline FAILS on a tree that is perfectly
+fine. The first version of `stage08_acceptance.py` did exactly that.
+
+The check is behaving correctly and the wording is the reason it was diagnosable
+in minutes: *"the check cannot run, which is not the same as passing"*. A check
+that returned `[]` on a missing file would have passed the gate silently and
+told nobody the engines were never examined.
+
+*Mitigation.* Any script that calls `enforcement_audit()` chdirs to `scoring/`
+first. And when a count differs from a frozen baseline, check the ENVIRONMENT
+before the tree: the same four checks that read relative paths also read
+`$MOLLY_DATA` and `$LO_BLOCKS`, and `paths.py` refuses outright if those point
+outside the sandbox.
+
+### T21 · Every acceptance instrument compared bytes, and none of them ran it
+
+Stage 08 finished with four instruments passing and the release unopened. Each
+one compares bytes: the frozen prompt oracles, `fingerprint_text`, the served
+`idmap` prompt, the corpus replay. All four can pass on a release whose handouts
+do not render — because a handout that renders nothing has the same bytes as one
+that renders.
+
+The scorer-side session (`e2e_session.sh`) closed half of that: it drives all 26
+items through `agreement_app.py`, so a rubric that stops producing a cell shows
+up. It still never opens a page. It cannot see an input that will not take text,
+a Next button that dead-ends, or a feedback button that answers nothing — which
+is how a student actually meets a broken release, and none of which is a byte
+difference.
+
+**So a second session drives the UI** (`student_session.sh`): the course page,
+then each handout, filling every input on every screen, pressing every feedback
+button and waiting for a reply, taking Next to the last screen, and failing on
+any DisplayError. Both report NOT RUN rather than PASS when their artefact is
+missing.
+
+### T22 · A non-standard port silently forbids the whole UI
+
+The instruction was to run the acceptance server on a port other than the
+standard one, and the port was taken as a free parameter. It is not.
+`WS_PORT_MAP` in `packages/shared/lib/state/store.ts` maps page port to
+event-server port and — deliberately, with a comment saying so — throws on any
+port not listed. On 8899 the client never boots: every page is the string
+"Failed to start. Check the console for details."
+
+This did not surface for a long time because the first simulation was the
+scorer-side one, which never loads a page. It passed 26 of 26 on a port where
+the UI could not have rendered at all. **A green run on a port nothing renders
+on is not evidence about rendering.** The port must be added to the map first;
+Vite serves that module, so no server restart is needed.
+
+### T22a · STATUS of the port edit: sandbox-only, deliberately not upstreamed
+
+`packages/shared/lib/state/store.ts` in the **dry-run** lo-blocks carries one
+added line:
+
+    [8899, 0],    // dry-run acceptance server (stage 08), same origin
+
+It is **not** in the live tree and is not proposed for it. The map's own comment
+says the table "really belongs in config (e.g. PMSS) rather than hard-coded
+here", and adding acceptance ports one at a time is the habit that comment warns
+against. What the sandbox needs is a port; what lo-blocks needs is for the
+routing table to come from configuration — a change with its own owner, its own
+review, and no business being smuggled in under a migration dry run.
+
+**So the entry is a known, recorded divergence between the sandbox and live**,
+and anyone reproducing stage 08 on a non-standard port must add their port
+there first or every page will read "Failed to start." (T22).
+
+### T23 · Waiting for the DOM to go quiet catches the quiet BEFORE the content
+
+The screen walker waited for "no DOM mutation for 700ms and no spinner". It
+reported handouts 2 and 3 as zero blocks, zero buttons, one screen — and they
+looked broken. They were merely slower to load than handout 1, and the wait was
+satisfied by the still moment before their content arrived.
+
+A quiescence test says "nothing is changing", which is equally true before the
+work starts and after it finishes. Anchor on something the content must produce
+— here `[class*="lo-tag-"]`, the per-block class the renderer always emits — and
+only then wait for quiet.
+
+### T24 · A reporter that buffers turns seven minutes of work into an empty file
+
+The first UI run was `--reporter=line` piped through `grep`. Both buffer when
+stdout is not a terminal, so after seven minutes of real browser work the output
+file held zero bytes and there was nothing to diagnose. The wrapper now writes
+the JSON reporter to a file, and the acceptance row reads that file rather than
+scraped console text.
+
+### T25 · Three times the SIMULATION was broken, not the thing simulated
+
+Every failure the browser session reported on its first complete run was a
+defect in the test, and each looked exactly like a product defect:
+
+* **"`Check` never answered."** `Correctness` renders a SINGLE EMOJI — `?`
+  before submitting, then a tick or a cross. Nothing grows; one glyph replaces
+  another. A detector waiting for the feedback text to get longer can never see
+  a CapaProblem answer, and it reported an instant, correct response as silence
+  on every MCQ screen of handouts 1 and 2. The check now also accepts the
+  correctness glyph changing to a SETTLED verdict, and explicitly refuses the
+  hourglass and question mark so a *pending* grade cannot pass as an answer.
+* **"`Submit here then save to PDF` never answered."** It prints. It is not a
+  grader and has nothing to say back. Requiring a reply from it failed handout 1
+  for behaving correctly. A reply is now required only on a screen that holds a
+  grading block, and exempt presses are reported rather than dropped.
+* **"The radio would not accept a click."** `ChoiceInput` hides the native
+  control (`opacity: 0; width: 0; pointer-events: none`) behind a styled label.
+  Playwright says "Element is outside of the viewport", and `force: true` does
+  NOT help — force skips actionability checks, not layout. Click the label,
+  which is what a student clicks anyway.
+
+The pattern is worth more than the three fixes: **when a simulation reports that
+a working product is broken, suspect the simulation first** — the same order of
+suspicion as QUALITY_CONTROL.md §1. Here it cost two full runs,
+and the same mistake in the history rewrite cost far more.
+
+### T25a · CERTIFIED: what the browser session actually established
+
+Run of 2026-09-16, one simulated student, 55 screens, zero DisplayErrors:
+
+| handout | screens | inputs answered | feedback presses | not required |
+|---|---|---|---|---|
+| 1 | 11 | 25 | 10 | 1 — submit/PDF |
+| 2 | 37 | 32 | 33 | 1 — submit/PDF |
+| 3 |  7 | 12 |  7 | 2 — `Print this page`, submit/PDF |
+
+**Zero required-but-silent buttons.** The exemptions are recorded with their
+reason rather than dropped, and handout 3 screen 2 is the one that matters: it
+carries the printer AND a grader. `Check my labelling` was required and
+answered; `Print this page` was exempted because it CALLED `window.print`, which
+the harness observes by stubbing it. A per-screen rule would have demanded
+feedback from the printer and failed the handout for behaving correctly — the
+defect was caught by review before it ever ran, not by the run.
+
+### T26 · A browser global in a node test file
+
+`CSS.escape` was used to quote a radio's `name`. Playwright test files run in
+NODE, where `CSS` does not exist, so the first radio screen of every handout
+died with `ReferenceError: CSS is not defined` — reported as a handout failure.
+The ternary was meaningless anyway (`CSS.escape ? name : name`).
+
