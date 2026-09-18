@@ -2311,6 +2311,10 @@ def main() -> int:
     return 0
 
 
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
 # --- corpus reference resolution (backdated) ---
 # The paper prompt is assembled from rubric guidance, which may cite a cell by
 # reference. Unresolved, the grader is asked to score the reference itself.
@@ -2322,7 +2326,3 @@ try:                                            # pragma: no cover
         return _corpus_resolve.expand(_orig(*a, **kw))
 except Exception:
     pass
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

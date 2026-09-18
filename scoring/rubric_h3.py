@@ -54,7 +54,7 @@ ITEMS: list[dict] = [
             # not the one the guidance anticipated: it warns against requiring one
             # sentence per week, but the model's actual mistake is treating a
             # PARTIAL list of week names as exhaustive. p11 names only "week two"
-            # and p14 only "{{corpus:1a/p14:response:293:316:sha=3df2d6dade26}}"; gold gave both the full 8,
+            # and p14 only "{{corpus:1a/p14:response:293:310:sha=ec846aa28581}} Three"; gold gave both the full 8,
             # and both systems docked 2 for the week that went unnamed. The label
             # is not the evidence -- the arc is.
             {
@@ -185,7 +185,7 @@ ITEMS: list[dict] = [
             },
         ],
         "guidance": [
-            "One point per week of data present: {{corpus:1c/p1:series:0:32:sha=d1f3e922817c:shape=C4040401}}.",
+            "One point per week of data present: {{corpus:1c/p1:series:0:30:sha=358b9831a419:shape=C4040401}} 3.",
             "This is a presence check, not a quality judgement. Any legible daily figures "
             "for a week earn its point — hours, minutes, ounces, servings, tallies, a "
             "table, or a prose list. Do not deduct for formatting, units, or gaps within "
@@ -551,7 +551,7 @@ ITEMS: list[dict] = [
                 "pts": 2.0,
                 "text": (
                     "-2 pts: did not answer if the implementation of your {{corpus:2a/p1:verdict:25:33:sha=08bf2418cca9:shape=R8-0-20}}"
-                    "{{corpus:2a/p1:verdict:34:73:sha=01bf2bdf0aa5}} your behavior or not"
+                    "{{corpus:2a/p1:verdict:34:64:sha=9c121e7c10c6}} modified your behavior or not"
                 ),
             },
             {

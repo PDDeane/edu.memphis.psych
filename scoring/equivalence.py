@@ -2310,7 +2310,7 @@ def enforcement_selftest():
     # a 120-call sweep, and that edit CANNOT do it any more -- the dealing groups
     # moved out of the rubric into JOBS on 2026-09-02 precisely so a scoring
     # change could not reach the input. So the breakage to inject is the absence
-    # of the new declaration, which {{corpus:Q4b/p13:modify:42:63:sha=ae62a6d034c3}} still sends a member
+    # of the new declaration, which {{corpus:Q4b/p13:modify:42:58:sha=ed0e48693398}} that still sends a member
     # field down the placeholder path.
     #
     # BOTH FIXTURE CACHES ARE CLEARED on the way in AND out. agreement's is keyed

@@ -269,7 +269,7 @@ further rubric work is finding them.
 
 **Seventh attempt, and the advice above still holds.** A ninth guidance bullet
 was added — "A CHANGE TO THE ANTECEDENT, NOT A PLAN TO DO THE GOAL BEHAVIOUR" —
-because participant 2's [[corpus Q6/p2 change_a2 3:35 sha=46d6919d787c]] against an {{corpus:Q6/p2:state_a2:17:50:sha=7f56e7f06c95:shape=S0-0a}} is exactly the failure the 2.5/10 exemplar demonstrates,
+because participant 2's [[corpus Q6/p2 change_a2 3:35 sha=46d6919d787c]] against an {{corpus:Q6/p2:state_a2:17:44:sha=d17695839bf3:shape=S0-0a}} games is exactly the failure the 2.5/10 exemplar demonstrates,
 and neither the scorer nor the lo-blocks prompt was applying it. It fixed p2.
 
 In isolation it also pulled p4 from +1.50 to +0.25 and p19 from +2.50 to +1.25,
@@ -508,7 +508,7 @@ Two traps, both of which cost points if missed:
    matching the grader's "Did not provide a graph" on participant 4 — whose
    file *does* contain a chart.
 2. **A written description of a graph is not a graph.** Participant 20 typed
-   "Title: {{corpus:1c/p20:title:0:27:sha=d794c8f137de}} / X-axis label: Days / Y-axis label:
+   "Title: {{corpus:1c/p20:title:0:21:sha=4255bd050210}} Weeks / X-axis label: Days / Y-axis label:
    Hours of Sleep / Legend: ..." with no plotted data, and their only image was
    the template's example. The first run credited this 10/10; naming the
    distinction (tidy `label:` prose versus tick values jammed into the text)

@@ -6914,7 +6914,7 @@ should be measured once, not three times.
                trigger names the UTB itself                            4.00, 12/12
           p12  UTB insufficient fruit/veg, goal "consume more"         INVERSION
           p5   UTB not eating fruit/veg, goal "eating more"            INVERSION
-          p8   goal "gym {{corpus:WK2/p8:wk2:61:74:sha=90c5533a1f87:shape=R13-0-22}} against UTB lack of exercise   INVERSION
+          p8   goal "gym {{corpus:WK2/p8:wk2:61:74:sha=90c5533a1f87}}" against UTB lack of exercise   INVERSION
           p9   same shape                                             INVERSION
           p7   UTB devices, goal "connect with family, read books"     SUBSTITUTE
                trigger names the goal                                  3.00, 0/12
@@ -7005,7 +7005,7 @@ should be measured once, not three times.
       OBSTACLE IS STRUCTURAL, NOT VERBAL: what decides p2 is exactly what
       crediting p4 and p16 instructs the grader to ignore, because all three
       changes are weakly aimed at their antecedent and gold charges one while
-      crediting two. GOLD IS RIGHT ON p2 AND WE ARE WRONG -- '{{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd:shape=S2-0a202020202020,C1}} does not change your {{corpus:Q6/p2:state_a2:17:50:sha=7f56e7f06c95:shape=R33-0-27}} --
+      crediting two. GOLD IS RIGHT ON p2 AND WE ARE WRONG -- '{{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd:shape=S2-0a202020202020,C1}} does not change your {{corpus:Q6/p2:state_a2:17:44:sha=d17695839bf3}} games' --
       so this is NOT a divergence to declare in our favour, unlike Q16, Q18 and
       Q33 which closed today on gold contradicting itself. The 1.25 is left
       unclaimed and the measured reason is written into
@@ -7029,7 +7029,8 @@ should be measured once, not three times.
       never charges 'the change is inadequate' -- not once in twenty cells". That
       was read from one-line gold summaries. Q6/p2's FULL note says the opposite,
       in gold's own words: "-1.25 pts: did not say how you would change your
-      second antecedent (video games) to affect {{corpus:Q6/p14:affect_c1:91:125:sha=5231e3d9abc1:shape=S3-0a202020202020}} {{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd:shape=Cefefbedff}} DOES NOT CHANGE YOUR {{corpus:Q6/p2:state_a2:17:69:sha=e9b581bb54c5:shape=S0-0a202020202020,C37f777df7f603ff}} STOP." That is exactly this
+      second antecedent (video games) to affect {{corpus:Q6/p14:affect_c1:91:117:sha=8f379fadb8bd}}
+      weight. {{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd:shape=Cefefbedff}} DOES NOT CHANGE YOUR {{corpus:Q6/p2:state_a2:17:44:sha=d17695839bf3:shape=S0-0a202020202020,C1f7f603ff}} GAMES AND NOT WANTING TO STOP." That is exactly this
       entry's original diagnosis, stated by the grader. The entry was right; the
       refutation was an artefact of reading summaries, the same class of error as
       reading the wrong artifact field.
@@ -7191,7 +7192,7 @@ should be measured once, not three times.
           p2   0 of 12   gold 8.75   all four of change_a1/a2, affect_c1/c2 `met`
                gold: "did not say how you would change your second antecedent
                (video games) ... {{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd:shape=C1}} does not
-               change your {{corpus:Q6/p2:state_a2:17:50:sha=7f56e7f06c95:shape=R33-0-22}}
+               change your {{corpus:Q6/p2:state_a2:17:44:sha=d17695839bf3}} games"
           p8   0 of 12   gold 2.50   change_a1 and change_a2 both `met`
                gold: "did not say how each antecedent is being changed"
       BOTH ARE THE SAME SHAPE: a change is stated, and it does not act on the
@@ -9078,7 +9079,7 @@ per-cell claim.
           p19  same UTB, lack of sleep -- [[corpus Q4c/p19 first 47:96 sha=70b53588e3ec]] ... [[corpus Q4c/p19 second 26:79 sha=e4726ebdd864]]
           p3   "gaining unwanted weight ... {{corpus:Q4c/p3:second:54:92:sha=4f98c830057b}}
                breath"
-          p14  "{{corpus:Q4c/p14:first:37:66:sha=ac7cf2ef2f32}} it ... {{corpus:Q4c/p14:second:41:74:sha=5c735c23a114:shape=S4-0a202020202020202020202020202020,R48-0-22}}
+          p14  "{{corpus:Q4c/p14:first:37:66:sha=ac7cf2ef2f32}} it ... {{corpus:Q4c/p14:second:41:74:sha=5c735c23a114:shape=S4-0a202020202020202020202020202020}}"
           p17  [[corpus Q4c/p17 first 0:38 sha=b2209775deb0]] ... [[corpus Q4c/p17 second 0:26 sha=b1f4534ddeaf]]
       Every one is a bare assertion of a consequence with no account of HOW it
       follows, which is exactly what p20 was charged for. p19 is the strongest: same
@@ -9602,7 +9603,8 @@ per-cell claim.
       p12, p14, p20 -- OPEN with the goal sentence, list 3, and take full marks. The
       model generally excludes it, so a clause telling it to would change nothing.
       WHAT IS ACTUALLY HAPPENING IS A SPLIT INSIDE ONE STATEMENT. p6's first reason
-      sentence carries two benefits joined by "and" -- a {{corpus:Q2/p6:response:169:198:sha=23d76ae5248d:shape=S2-0a202020202020,Ce00000}}ing better -- and the 3-runs count them as two. So the boundary in dispute
+      sentence carries two benefits joined by "and" -- {{corpus:Q2/p6:response:167:193:sha=b4605c3ae210:shape=C3800000}}
+      feeling better -- and the 3-runs count them as two. So the boundary in dispute
       is STATEMENT versus EFFECT, and gold counts statements: "-1 pt: missing one
       reason" on a 1-point-per-reason sheet means TWO.
       THAT BOUNDARY IS ANSWERED THE OTHER WAY ON A SIBLING SLOT, which is why no
@@ -10958,7 +10960,7 @@ per-cell claim.
       series-list.
       GOLD'S THIRD CHARGE WAS READ, AND IT CHANGES THE CELL FROM HARD TO NARROW.
       "-1 pt: missing baseline data week" is charged against a `bmod_h3_baseline`
-      field holding seven values ({{corpus:1a/p6:baseline:0:19:sha=66e4f9120272}} 30) -- the data is there --
+      field holding seven values (0, 30, {{corpus:1a/p6:baseline:7:19:sha=f53e49b8684d}} 30) -- the data is there --
       AND 1c HAS NO ONE-POINT CRITERION AT ALL. Its five slots are worth 2.0 each
       against a max of 10, and every deduction is 2.0 or 10.0, so the only
       reachable scores are 10, 8, 6, 4, 2, 0.
@@ -12048,7 +12050,7 @@ per-cell claim.
                    the cell stays 12 of 12, so the 4-run risk is gone. (It is
                    still right for a reason gold did not give; that fact belongs
                    to Q20 and is not fixed here, only left undisturbed.)
-          DAY1/p6  "stay consistent... {{corpus:Q6/p6:change_a1:75:93:sha=d808b781e5fa:shape=R18-0-22}} on a DAILY item -- a
+          DAY1/p6  "stay consistent... {{corpus:DAY1/p6:day1:111:129:sha=d808b781e5fa}}" on a DAILY item -- a
                    count -> absent. Gold 0.00. Unchanged.
           WK2/p11  "for 2-3 days" on a WEEKLY item -- judgeable inside one week
                    -> met. NOW COVERED, where the two-clause retreat abandoned
@@ -12056,7 +12058,7 @@ per-cell claim.
           DAY2/p8  trigger [[corpus DAY2/p8 day2 4:37 sha=4e16eed4d823]] is per-occasion;
                    "{{corpus:DAY2/p8:day2:83:102:sha=ceeef43b24ca}} week" is the CONSEQUENCE -> met.
           DAY1/p11, DAY2/p11, WK2/p15  no period, per-occasion -> met.
-          WK1/p19, WK2/p8  "{{corpus:WK1/p19:wk1:17:33:sha=770e5ae844ed}} week", "{{corpus:WK2/p8:wk2:61:74:sha=90c5533a1f87:shape=R13-0-22}} -- judgeable
+          WK1/p19, WK2/p8  "{{corpus:WK1/p19:wk1:17:33:sha=770e5ae844ed}} week", "{{corpus:WK2/p8:wk2:61:74:sha=90c5533a1f87}}" -- judgeable
                    inside one week -> met, and gold credits neither cadence
                    charge.
           The remaining ~55 cells state per-occasion or within-period triggers
@@ -12120,7 +12122,7 @@ per-cell claim.
       docks the full 4 for "not operant conditioning", not for a period.
       SO THE DIRECTIONAL RULE COVERS THIS CELL TOO, and the count is nine with no
       contradictions rather than eight with an exception: the answer checks the
-      goal "{{corpus:WK2/p8:wk2:61:74:sha=90c5533a1f87:shape=R13-0-22}}, which is FINER than the weekly frame, so the rule
+      goal "{{corpus:WK2/p8:wk2:61:74:sha=90c5533a1f87}}", which is FINER than the weekly frame, so the rule
       says met -- and `cadence_is_weekly` answers `met` in 12 runs of 12, with no
       drift at all. Gate and gold agree completely here.
       WHAT IS ACTUALLY WRONG WITH WK2/p8 IS Q20's, and it is proposed for
@@ -12508,7 +12510,7 @@ per-cell claim.
       CONTROLS THAT MUST NOT MOVE, and they are named because the last attempt
       broke two of them:
           DAY1/p9   a COUNT -> absent, gold 0.00. THE PROOF CASE.
-          DAY1/p6   "stay consistent... {{corpus:Q6/p6:change_a1:75:93:sha=d808b781e5fa:shape=R18-0-22}} a count -> absent.
+          DAY1/p6   "stay consistent... {{corpus:DAY1/p6:day1:111:129:sha=d808b781e5fa}}" a count -> absent.
           WK1/p6    no defined endpoint -> absent, cell stays right.
           WK2/p11   "for 2-3 days" judgeable inside one week -> met.
           the fourteen DAY2 cells the gate never refuses -- all still `met`.
@@ -13568,9 +13570,9 @@ per-cell claim.
               B1 [[corpus Q4b/p4 first 37:69 sha=2cca8e241cbc]]        = X  -> refuse  MATCHES gold
           p14 A1 [[corpus Q4a/p14 first 20:70 sha=05efb371d288]]
               B1 [[corpus Q4b/p14 first 26:66 sha=5075ed6feea4]]= Y  -> credit  MATCHES gold (charge 0)
-          p12 A1 "cravings ... {{corpus:Q4a/p12:first:68:109:sha=a721ac196a87:shape=R0-5-5748494348,R6-4-4c454144,R11-2-4d45,R14-2-544f,R41-0-22}}
+          p12 A1 "cravings ... {{corpus:Q4a/p12:first:68:101:sha=b2e61d192e6a:shape=Cdbdf}} instead"
               B1 [[corpus Q4b/p12 first 45:75 sha=057aa89f95b4]]       = Y  -> credit  MATCHES gold (charge 0)
-          p5  A2 "{{corpus:Q4a/p5:second:21:66:sha=dd476abc27b6}}" (bare X)
+          p5  A2 "{{corpus:Q4a/p5:second:21:56:sha=09c1c46dd980}} available" (bare X)
               B2 [[corpus Q4b/p5 second 41:80 sha=382b0c96acfa]] = X  -> refuse  MATCHES gold's -1.5
           p1, p16, p18 all repeat Y                             -> credit  MATCHES gold
       p14 AND p12 ARE THE REASON THIS IS WORTH MEASURING: a crude "the behavior
@@ -13664,7 +13666,7 @@ per-cell claim.
         Q19's FALSIFIERS -- the cells a crude overlap rule would break. Each names
         what the trigger LED TO, not the trigger, and each must keep `activity`:
           p14  10/12   A1 [[corpus Q4a/p14 first 49:70 sha=1690427ecb57]] / B1 "I am bed-rotting"
-          p12  (also)  A1 "...{{corpus:Q4a/p12:first:68:101:sha=b2e61d192e6a:shape=R0-5-5748494348,R6-4-4c454144,R11-2-4d45,R14-2-544f,R33-0-22}} / B1 [[corpus Q4b/p12 first 45:64 sha=15678a3d843c]]
+          p12  (also)  A1 "...{{corpus:Q4a/p12:first:68:101:sha=b2e61d192e6a:shape=Cdbdf}}" / B1 [[corpus Q4b/p12 first 45:64 sha=15678a3d843c]]
           p15  12/12   A2 [[corpus Q4a/p15 second 0:29 sha=ee91313d5faa]] / B2 [[corpus Q4b/p15 second 38:63 sha=a7fb29e03179]]
           p13   6/12   A1 is itself behavior-shaped; already unstable, must not fall
         Q18's CONTROLS
@@ -13696,7 +13698,7 @@ per-cell claim.
       BUT THE CATEGORY IS REAL, AND THIS IS THE PART WORTH KEEPING. It fired on
       p5, which was NOT a declared cell: `b2_basis` = `repeats_antecedent` in 9
       of 12, on the box [[corpus Q4b/p5 second 41:80 sha=382b0c96acfa]] against the
-      antecedent "{{corpus:Q4a/p5:second:21:66:sha=dd476abc27b6}}". That IS a
+      antecedent "{{corpus:Q4a/p5:second:21:56:sha=09c1c46dd980}} available". That IS a
       repeat, gold charges it, and p5 held at 12/12 because the new value maps to
       the same verdict the old reading produced. So the grader CAN apply the
       category, and applies it to exactly the right kind of box. It simply does
@@ -13757,7 +13759,7 @@ per-cell claim.
         MUST ANSWER `neither`, and each is the X/Y test in a different disguise:
           p14  A1 [[corpus Q4a/p14 first 20:70 sha=05efb371d288]] / B1 "I am
                bed-rotting" -- B1 names the RESULT clause, not the trigger
-          p12  A1 "cravings ... {{corpus:Q4a/p12:first:68:101:sha=b2e61d192e6a:shape=R0-5-5748494348,R6-4-4c454144,R11-2-4d45,R14-2-544f,R33-0-22}} / B1 [[corpus Q4b/p12 first 45:64 sha=15678a3d843c]] -- again the led-to clause
+          p12  A1 "cravings ... {{corpus:Q4a/p12:first:68:101:sha=b2e61d192e6a:shape=Cdbdf}}" / B1 [[corpus Q4b/p12 first 45:64 sha=15678a3d843c]] -- again the led-to clause
           p15  A2 [[corpus Q4a/p15 second 0:29 sha=ee91313d5faa]] / B2 [[corpus Q4b/p15 second 38:78 sha=834b72be96f6]] -- a DIFFERENT act (their action, not the
                student's), and the closest call in the set
       == THE READING WAS DONE, 2026-09-06. FOUR PREDICTIONS HOLD; THE ==
@@ -13766,7 +13768,7 @@ per-cell claim.
         p4  A2's trigger act is "scrolling through tiktok" (the [[corpus Q4a/p4 second 47:77 sha=54e15a41c74b]] is the led-to clause) and B1 is [[corpus Q4b/p4 first 37:69 sha=2cca8e241cbc]] -- an act, the same act. `second`.
         p14 [[corpus Q4a/p14 first 20:70 sha=05efb371d288]] / "I am
             bed-rotting" = the so-clause. `neither`.
-        p12 "cravings ... {{corpus:Q4a/p12:first:68:101:sha=b2e61d192e6a:shape=R0-5-5748494348,R6-4-4c454144,R11-2-4d45,R14-2-544f,R33-0-22}} / [[corpus Q4b/p12 first 45:64 sha=15678a3d843c]] = the lead-clause. `neither`.
+        p12 "cravings ... {{corpus:Q4a/p12:first:68:101:sha=b2e61d192e6a:shape=Cdbdf}}" / [[corpus Q4b/p12 first 45:64 sha=15678a3d843c]] = the lead-clause. `neither`.
         p15 [[corpus Q4a/p15 second 0:29 sha=ee91313d5faa]] / [[corpus Q4b/p15 second 38:63 sha=a7fb29e03179]] -- the
             student's act, not the trigger's. `neither`, and the closest call as
             predicted.
@@ -13782,7 +13784,7 @@ per-cell claim.
       would also reach p11, whose A1 names [[corpus Q4a/p11 first 0:66 sha=23aa8ac6f0d9]] and whose B1 repeats that phrase verbatim.
       p11 is gold 4.00 and right 11 of 12, and gold charges it only for the
       modify-why. The narrow wording gets p11 RIGHT, because p11's ACT is
-      "avoiding exercise ... {{corpus:Q4b/p11:first:204:222:sha=b02b57998628:shape=R18-0-22}} and the symptoms are the
+      "avoiding exercise ... {{corpus:Q4b/p11:first:204:222:sha=b02b57998628}}" and the symptoms are the
       OCCASION. Keep the narrow wording and lose the control.
       SO THE SHAPE IS ONE POSITIVE AND EIGHTEEN NEGATIVES, which is subgoal Q10's
       winning shape rather than a weakness: `measurable` had to fire on p10 and
@@ -13790,7 +13792,7 @@ per-cell claim.
       would reach them. It reached none. Here the evidence is the same -- the
       report must answer `second` on p4 and `neither` on every other cell -- and
       EIGHTEEN NEGATIVES ARE CHECKABLE FOR FREE, as four of them now have been.
-      WHAT CANNOT BE CHECKED WITHOUT CALLS {{corpus:Q4b/p13:modify:42:63:sha=ae62a6d034c3}} killed the last
+      WHAT CANNOT BE CHECKED WITHOUT CALLS {{corpus:Q4b/p13:modify:42:58:sha=ed0e48693398}} that killed the last
       three attempts: whether the grader answers the report at all on p4. The
       negatives prove the DEFINITION is right; only a sweep proves the REACH.
       THAT IS THE HONEST COST TO WEIGH: ~230 calls on an item where a pick, a

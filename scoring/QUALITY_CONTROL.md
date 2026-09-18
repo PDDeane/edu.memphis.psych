@@ -1038,7 +1038,7 @@ errors in one hour, both mine, both from not doing this:
 * Reading truncated one-line notes, I told the user "gold never charges that the
   change is inadequate" on Q6 -- and Q6/p2's full note says the opposite in
   gold's own words: *"{{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd:shape=C1}} does not change your
-  {{corpus:Q6/p2:state_a2:17:69:sha=e9b581bb54c5}} stop."*
+  {{corpus:Q6/p2:state_a2:17:44:sha=d17695839bf3}} games and not wanting to stop."*
 * A regex for change-box charges matched `"did not say how"`, which also appears
   in CONSEQUENCE charges, so p1 and p6 were reported as charged when neither is.
   p6 is the exact cell a clause of mine had broken; the classifier would have
@@ -2525,7 +2525,7 @@ carries whole student *responses*, so replacing the cited fragments left the
 student's connecting sentences sitting verbatim between the references:
 
     {{corpus:Q6/p8:state_a1:0:103}} Which then makes me wish I would have just
-    gone to the gym. {{corpus:Q6/p8:change_a1:0:53}} {{corpus:Q6/p8:change_a1:54:108:sha=bc805c563129:shape=S6-0a20202020}} {{corpus:Q6/p8:state_a2:0:47:sha=ce81132d390c:shape=S7-0a20202020}} {{corpus:Q6/p8:state_a2:48:67}}, {{corpus:Q6/p8:state_a2:69:98:sha=86e03b170080}} ...
+    gone to the gym. {{corpus:Q6/p8:change_a1:0:53}} {{corpus:Q6/p8:change_a1:54:108:sha=bc805c563129:shape=S6-0a20202020}} {{corpus:Q6/p8:state_a2:0:47:sha=ce81132d390c:shape=S7-0a20202020}} {{corpus:Q6/p8:state_a2:48:67}}, rather than {{corpus:Q4c/p8:second:23:39:sha=eddaae950aa8}}, ...
 
 **Three rules, each of which would have caught it.**
 
@@ -2595,7 +2595,7 @@ of it.
 **So check the provenance, not just the words.** Before quoting, ask which
 question the sentence answered and whether the reader is about to answer it.
 A replacement must clear the same bar: the invented sentence that replaced this
-one is a sleep example, while the box it precedes asks "{{corpus:NR/p1:nr:0:20:sha=2850093cabf3}}
+one is a sleep example, while the box it precedes asks "{{corpus:NR/p2:nr:0:17:sha=bd6ad50ff8db}}, I
 will..." — it does not pattern the answer to its own question.
 
 **Check an invented replacement for collisions before using it.** A sentence you

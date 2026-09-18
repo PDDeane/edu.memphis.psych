@@ -279,7 +279,7 @@ NOT_STUDENT_TEXT: dict[str, str] = {
     "I continue to [UTB] because X":
         "the handout's TEMPLATE, with its placeholder still in it -- [UTB] is "
         "the scaffold's own token and no student ever typed it",
-    "{{corpus:NR/p1:nr:0:25:sha=4ae499f0c7c6:shape=C1}} ...":
+    "{{corpus:NR/p2:nr:0:17:sha=bd6ad50ff8db:shape=C1}}, I will ...":
         "a template STUB quoted in README.md to show the contingency shape the "
         "items ask for; the trailing ellipsis marks it as a form, not an answer",
     "When I am not exercising, I am ...":

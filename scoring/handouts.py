@@ -96,7 +96,7 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
     # charge is read. p12 carries the two plus more and scores 2.00, so the item's
     # arithmetic runs the expected direction everywhere except here.
     # THE THIRD CHARGE IS UNSUPPORTED TWICE OVER. `bmod_h3_baseline` holds seven
-    # values ({{corpus:1a/p6:baseline:0:19:sha=66e4f9120272}} 30), so the baseline week is present; and 1c HAS
+    # values (0, 30, {{corpus:1a/p6:baseline:7:19:sha=f53e49b8684d}} 30), so the baseline week is present; and 1c HAS
     # NO ONE-POINT CRITERION -- its five slots are 2.00 each and every deduction
     # is 2.00 or 10.00, which is why 7.00 is the only unreachable gold in the
     # item. No consistent rule could produce it and no slot could reproduce the
@@ -264,7 +264,7 @@ CORRECTED_GOLD: dict[tuple[str, int], dict] = {
             "also answers on \"lack of sleep\", and both its boxes run in the "
             "consequence direction -- \"i {{corpus:Q4a/p20:first:25:59:sha=eba6c9aecdf7:shape=R34-0-20}}"
             "{{corpus:Q4a/p20:first:60:81:sha=2e07aeae757e}} lazy\" and \"waking {{corpus:Q4a/p20:second:28:50:sha=86cdd47c358a:shape=R22-0-20}}"
-            "{{corpus:Q4a/p20:second:51:103:sha=1bf773b2a1fd}} forgotten\". "
+            "{{corpus:Q4a/p20:second:51:60:sha=feb5a2a47815}} school, by {{corpus:Q4a/p20:second:72:103:sha=68ba6541d719}} forgotten\". "
             "Gold charged it -4, both boxes, with the rule written out. Same item, "
             "same UTB, same error, and the row that states it explicitly was "
             "charged double while p19 was passed in silence. "
@@ -1146,7 +1146,7 @@ GOLD_DIVERGENCES: list[dict] = [
                "unexplained state on the ground that these behaviours are CYCLICAL -- a "
                "state that follows one occurrence and precedes the next -- would reach "
                "p19, but p20's second example is the same shape (\"waking {{corpus:Q4a/p20:second:28:39:sha=397f8fcdc8bf:shape=R11-0-20}}"
-               "{{corpus:Q4a/p20:second:40:60:sha=f6d8ac32f3ce}} school\" against lack of sleep) and gold REJECTS it; "
+               "{{corpus:Q4a/p20:second:40:50:sha=fc97e072d707}} items for school\" against lack of sleep) and gold REJECTS it; "
                "p20 is 6/6 correct at gold 1, and crediting both its examples would score "
                "it 5. One cell won, one worth four points lost. "
                "NOT FIXTURE FAULTS: both responses are complete and neither student is "
@@ -1608,8 +1608,8 @@ GOLD_DIVERGENCES: list[dict] = [
             "antecedent was stated as not doing the goal behaviour. p8's first "
             "antecedent is \"{{corpus:Q6/p8:state_a1:38:87:sha=2abb3dabb60a}}\" and "
             "the change is \"{{corpus:Q6/p8:change_a1:10:31:sha=59e2c4a3daa0}} from Tuesday-Friday\"; the second "
-            "is \"staying {{corpus:Q6/p8:state_a2:39:93:sha=92366fb71e73}} gym\" "
-            "and the change is \"{{corpus:Q6/p8:change_a2:9:52:sha=02595bb7f918}} week\". "
+            "is \"staying home and playing video games, rather than {{corpus:Q4c/p8:second:23:39:sha=eddaae950aa8}}\" "
+            "and the change is \"{{corpus:Q6/p8:change_a2:9:27:sha=bfc0a265c4d1}} exercise multiple days a week\". "
             "Read literally each change DOES negate the antecedent as the student "
             "framed it, because the student framed the antecedent as the absence of "
             "the goal behaviour. The graders applied the item's pedagogical point "
@@ -1862,8 +1862,8 @@ GOLD_CEILINGS: dict[tuple[str, str], tuple[str, ...]] = {
         "depend on which rule you adopt. p2 is over-credited: its second "
         "antecedent is a pastime and its change makes the exercise more pleasant, "
         "which gold refuses in terms — \"{{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd}} does "
-        "not change your antecedent of {{corpus:Q6/p2:state_a2:31:69:sha=953a77829719:shape=R38-0-20}}"
-        "{{corpus:Q6/p2:state_a2:70:74:sha=6c45cb72a36e}}\" — while both scorers credit it. "
+        "not change your {{corpus:Q6/p2:state_a2:17:44:sha=d17695839bf3}} games and not wanting to "
+        "stop\" — while both scorers credit it. "
         "THE ATTEMPT LOG THAT SAT HERE HAS MOVED, 2026-09-06. This table is for "
         "criteria GOLD decides inconsistently -- its stated purpose is to stop a "
         "ceiling reading as headroom -- and a list of OUR failed rules is not "
@@ -2037,7 +2037,7 @@ def gold_ceiling(handout: int, item: str) -> tuple[str, ...]:
 #   1c, "missing baseline data week" (p11, -1): the only instance in 20 rows,
 #   and unreachable on the web by construction. The chart is drawn by
 #   SelfMonitorPlot from the four data fields, so a populated baseline series is
-#   necessarily plotted — p11's `baseline` field holds "{{corpus:1a/p6:baseline:0:19:sha=66e4f9120272}} 30",
+#   necessarily plotted — p11's `baseline` field holds "0, 30, {{corpus:1a/p6:baseline:7:19:sha=f53e49b8684d}} 30",
 #   which is why their 1b scored a full 4.0. The grader is marking a series
 #   absent from a hand-drawn paper graph whose data table contained it. Adding a
 #   slot for it would have no reachable failing state: with baseline data present
@@ -2136,7 +2136,7 @@ PER_ITEM_EXCLUDE: dict[str, dict[int, str | dict]] = {
             "four weeks, but the three label fields were EMPTY until the "
             "fixture audit found it: there is no chart for the paper scorer to "
             "read a title off, so it recorded none, and the student's own "
-            "\"Title: {{corpus:1c/p20:title:0:27:sha=d794c8f137de}} X-axis label: Days (or "
+            "\"Title: {{corpus:1c/p20:title:0:21:sha=4255bd050210}} Weeks X-axis label: Days (or "
             "Weeks) Y-axis label: Hours of Sleep\" belonged to no box. Seeded "
             "from that description in agreement_app.CONSENSUS_FIXES",
         # p11 is NOT a fourth: asked twice now, settled both times. Its "-1 pt:

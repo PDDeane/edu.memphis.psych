@@ -411,7 +411,8 @@ Two things follow, and the second is the one to act on.
 
 * **The prompt reproduces a counted cell's own answer, undetected.**
   `check_rule_examples_are_not_corpus` needs an 8-word shared run; this phrase
-  is six, and its neighbours in the same bullet ("long {{corpus:Q4a/p15:first:14:43:sha=7d2e226fbc73:shape=S4-0a2020}} filled", [[corpus Q4a/p15 second 0:29 sha=ee91313d5faa]]) are p15's. p15 is declared,
+  is six, and its neighbours in the same bullet ("{{corpus:Q6/p15:state_a1:42:60:sha=62509878f808}} that need
+  to be filled", [[corpus Q4a/p15 second 0:29 sha=ee91313d5faa]]) are p15's. p15 is declared,
   p19 is not — and p19 is the cell that misses. The check's docstring already
   says it is a floor rather than a guarantee; this is what falls through it.
 * **`antecedent_1` and `antecedent_2` carry no `rule` field at all.** Every
@@ -767,7 +768,7 @@ In 10 of 20 cells, `title`/`x`/`y` held the paper scorer's own prose:
             tick values.
     p13/y   "Hours of sleep" appears as the rotated axis title to the left of
             the numeric tick values in image1.png.
-    p6/title  ['Time', ' {{corpus:1c/p6:title:5:33:sha=90d22ddc95fc:shape=R28-0-275d}} — a typed title naming
+    p6/title  ['Time', ' {{corpus:1c/p6:title:5:27:sha=951281e2eda4}} Weeks'] — a typed title naming
             the student's behaviour and time span, not the default 'Chart
             Title' placeholder.
     p17/x   "Days of the Week" (axis title beneath the Sunday–Saturday tick
@@ -926,7 +927,7 @@ it for content:
                   for full credit."
     [specific]   "(How is your wanted goal behavior: Specific, Measurable,
                   Actionable/Action-Oriented, Realistic, and Time-Bound?)
-                  {{corpus:Q3/p19:specific:0:78:sha=9156e5c27e31:shape=S11-0a202020202020202020202020202020202020}} ... Measureable: My {{corpus:Q3/p19:measurable:16:83:sha=77e770a31945:shape=S2-0a202020202020202020202020202020202020}} ..."
+                  {{corpus:Q3/p19:specific:0:78:sha=9156e5c27e31:shape=S11-0a202020202020202020202020202020202020}} ... Measureable: {{corpus:Q3/p19:measurable:13:55:sha=5201a18c372b:shape=S3-0a202020202020202020202020202020202020}} how long I sleep each night ..."
 
 So `measurable` holds a printed INSTRUCTION, `specific` holds the printed
 QUESTION plus two of the five aspects, and the student's real measurable
@@ -942,7 +943,7 @@ student's own sentence says [[corpus Q3/p19 measurable 43:150 sha=6d860c05da6a]]
 returns for `measurable`, it is not returning it about the student's answer, and
 if it agrees with gold it agrees for the wrong reason.
 
-**Repaired.** `measurable` now holds the student's own "{{corpus:Q3/p19:measurable:0:83:sha=4148ed277c0c:shape=S2-0a}} ..." and `specific`
+**Repaired.** `measurable` now holds the student's own "Measureable:_{{corpus:Q3/p19:measurable:13:55:sha=5201a18c372b:shape=S2-0a}} how long I sleep each night ..." and `specific`
 holds only [[corpus Q3/p19 specific 0:100 sha=10eaefa02315]] Both lines of template scaffolding drop out and
 belong to no box, which is correct; the other three boxes were already right,
 and all five now hold their own aspect in document order with no audit flag.
@@ -1232,7 +1233,7 @@ recorded here is worth more than a line saying we disagree.
 The most promising hypothesis yet about gold's zero on WK1/p8, and it is wrong.
 
 The reading: p8's unwanted behaviour is a lack of exercise, their goal is to work
-out four days a week, and the penalty they set for {{corpus:Q4c/p8:first:19:42:sha=7ac6426f11ad}} extra
+out four days a week, and the penalty they set for {{corpus:Q4c/p8:first:19:39:sha=d9e32b32668d}} is extra
 press-ups — which is exercise. So the punisher is made of the goal behaviour and
 is not aversive TO THEM, which is exactly what gold's comment asks for ("state
 what UNDESIRABLE thing will you add"). It also explained why the same plan earns
@@ -1541,7 +1542,7 @@ PARAGRAPH SAYS SO — [[corpus Q1/p7 response 17:90 sha=64e183613be0]] — and `
 paragraph. Not a criterion failure and not a plumbing failure: a context one.
 
 **DAY2/p7 is not a `targets_own_behavior` failure at all, and this is the finding
-to keep.** Its trigger is "having {{corpus:DAY2/p7:day2:10:33:sha=9dea65fda79b:shape=R23-0-22}}, and p7's stated goal
+to keep.** Its trigger is "having {{corpus:DAY2/p7:day2:10:28:sha=d9dd77c5e534}} read", and p7's stated goal
 is [[corpus Q2/p7 response 88:159 sha=e2f81bb708fb]]. So
 the trigger IS their wanted goal behaviour; the model classifies `wgb` 6 of 6 and
 is RIGHT. Gold's "-1 pt: make sure the behavior you are targeting is spending
@@ -1610,7 +1611,7 @@ IN A LATER CLAUSE SILENTLY REPEALING AN EARLIER CARVE-OUT. From outside it looks
 exactly like a model that cannot hold two rules.
 
 **NOT extended to DAY2, on measurement.** DAY2's p7 classifies `wgb` 6 of 6 and
-is RIGHT to: its trigger is "having {{corpus:DAY2/p7:day2:10:33:sha=9dea65fda79b:shape=R23-0-22}} and the student's
+is RIGHT to: its trigger is "having {{corpus:DAY2/p7:day2:10:28:sha=d9dd77c5e534}} read" and the student's
 stated goal is [[corpus Q2/p7 response 88:159 sha=e2f81bb708fb]]. So the criterion has nothing to fix there, and the sweep priced what it
 would cost anyway — median 15 (recorded) -> 14, with p9, p12 and p13 all handed
 back, each named by the regression-against-recorded check. The slot was removed

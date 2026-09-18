@@ -4675,7 +4675,7 @@ MULTI_BLOCK_DECLARED: dict[str, str] = {
           "scorer. Those three were the defect: in 10 of 20 cells they held the "
           "scorer\'s own sentence about the label (\"Weeks\" appears as a bolded "
           "axis title centred beneath the day tick values.) or its extracted "
-          "text RUNS ([\'Time\', \' {{corpus:1c/p6:title:5:33:sha=90d22ddc95fc}}\']) instead of "
+          "text RUNS ([\'Time\', \' {{corpus:1c/p6:title:5:27:sha=951281e2eda4}} Weeks\']) instead of "
           "the label. Fixed in `_quoted_span`, not per cell, and verified "
           "against the served fixtures of all 26 items: exactly 20 boxes move, "
           "all of them 1c\'s. p15 and p18 are empty by right (gold \"did not "

@@ -1,10 +1,5 @@
 <!--
 ---
-# Where the referenced spans live. The build resolves this file's corpus
-# references against it, and refuses rather than render an unresolved one.
-# (The marker syntax is deliberately not written out here: a comment
-#  containing it reads as a reference to anything scanning by substring.)
-corpus_data: $MOLLY_DATA/corpus_refs.json
 description: Behavior Modification Assignment Handout 3 - presenting and graphing intervention data, and analysing whether the behavior was successfully modified
 category: psychology
 index: 12
@@ -23,7 +18,7 @@ license: AGPL
 Behavior Modification Assignment, Handout 3 of 3.
 
 Item 1b (the data) is split into four TextAreas, one per week. On paper this is
-scored one point per week present — {{corpus:1c/p1:series:0:32:sha=d1f3e922817c:shape=C4040401}} — so four
+scored one point per week present — {{corpus:1c/p1:series:0:30:sha=358b9831a419:shape=C4040401}} 3 — so four
 fields map exactly onto the four credit slots, and a missing week is visible
 rather than buried in a wall of text. Each field holds seven comma-separated
 numbers, Sunday through Saturday, because 1c plots them.
@@ -40,7 +35,7 @@ only capture the four labelling elements as text and let the LLM check them,
 because lo-blocks has no file-upload block and a chart image made in a
 spreadsheet could not be submitted here. Capturing labels is NOT a substitute
 for a graph: on the paper version one student submitted exactly that — "Title:
-{{corpus:1c/p20:title:0:27:sha=d794c8f137de}} / X-axis label: Days / Y-axis label: Hours of
+{{corpus:1c/p20:title:0:21:sha=4255bd050210}} Weeks / X-axis label: Days / Y-axis label: Hours of
 Sleep / Legend: Baseline, Week 1..." — with no plotted data, and was correctly
 scored zero. Now the labels and the plotted data are the same artifact, so that
 failure mode is not reachable.
@@ -375,7 +370,7 @@ scatterplot with a trend line. Then make sure it carries all four of these:
 1. a **title**
 2. an **x-axis label**
 3. a **y-axis label**
-4. a **legend** naming the series ({{corpus:1c/p1:series:0:32:sha=d1f3e922817c}})
+4. a **legend** naming the series ({{corpus:1c/p1:series:0:30:sha=358b9831a419}} 3)
 
 Here is a worked example, using the water-drinking data from the sample
 handout. Notice that the title says what is being measured and over how long,
@@ -483,7 +478,7 @@ key will read "Series 1, Series 2, ..." and it is not a legend.
 &nbsp;
     </Markdown>
     <TextArea id="bmod_h3_graph_series" rows="1"
-              placeholder="{{corpus:1c/p1:series:0:32:sha=d1f3e922817c}}" />
+              placeholder="{{corpus:1c/p1:series:0:30:sha=358b9831a419}} 3" />
 
     <SelfMonitorPlot id="bmod_h3_student_plot"
                      target="bmod_h3_baseline,bmod_h3_wk1,bmod_h3_wk2,bmod_h3_wk3"
@@ -501,7 +496,7 @@ Your graph above is your figure for this item. Print this page to PDF and
 include it with your handout in Canvas, or screenshot the chart.
     </Markdown>
 
-    <!-- ignoreSubmitLock: printing {{corpus:Q4b/p13:modify:42:63:sha=ae62a6d034c3}} must still work after
+    <!-- ignoreSubmitLock: printing {{corpus:Q4b/p13:modify:42:58:sha=ed0e48693398}} that must still work after
          the handout is handed in. Submitting freezes the inputs and the
          feedback buttons; a student who then wants another copy of their graph
          page is not editing anything. -->
@@ -564,7 +559,7 @@ Present your data in a figure/graph at the end of the handout. The graph needs a
 ## Credit components
 - `has_own_graph` **GATE**: The student supplied their OWN graph of their OWN data
 - `title` (2 pt): The graph has a title, and A DEFAULT PLACEHOLDER IS NOT ONE: spreadsheet software inserts "Chart Title" when the student never types one, and that counts as missing. A graph carrying that literal text has no title, and the graders deducted the point for it
-- `x_axis_label` (2 pt): The x-axis is labelled — an AXIS TITLE, not the tick values. "Sunday, Monday, ..." along the bottom is tick data; "{{corpus:1c/p2:x:0:4:sha=e08c0aa8f558:shape=R4-0-20}}{{corpus:1c/p2:x:5:16:sha=93a929ee8ebb:shape=C80}}" is the label. This distinction is the single most common deduction on this item: nine of the twenty gold rows lost points for a missing axis title. A default placeholder is not a label either — spreadsheet software inserts "Axis Title" when the student never types one, and that counts as missing
+- `x_axis_label` (2 pt): The x-axis is labelled — an AXIS TITLE, not the tick values. "Sunday, Monday, ..." along the bottom is tick data; "Days of the Week" is the label. This distinction is the single most common deduction on this item: nine of the twenty gold rows lost points for a missing axis title. A default placeholder is not a label either — spreadsheet software inserts "Axis Title" when the student never types one, and that counts as missing
 - `y_axis_label` (2 pt): The y-axis is labelled — same test as `x_axis_label`: an axis TITLE naming what the axis represents, not its tick values, and not the software's default "Axis Title" placeholder
 - `series_box_holds`: What the series box holds
 - `legend` (2 pt): The graph has a legend — the key naming the plotted series (Baseline / Week 1 / Week 2 / Week 3). A single-series graph with no key has no legend
@@ -600,7 +595,7 @@ check's verdicts are listed with the satisfied one first, unless a note above
 says the check reports an identity rather than a judgement.
 
 - `title` — `met`/`absent`/`generic`: The graph has a title, and A DEFAULT PLACEHOLDER IS NOT ONE: spreadsheet software inserts "Chart Title" when the student never types one, and that counts as missing. A graph carrying that literal text has no title, and the graders deducted the point for it
-- `x_axis_label` — `met`/`absent`/`tick_values`: The x-axis is labelled — an AXIS TITLE, not the tick values. "Sunday, Monday, ..." along the bottom is tick data; "{{corpus:1c/p2:x:0:4:sha=e08c0aa8f558:shape=R4-0-20}}{{corpus:1c/p2:x:5:16:sha=93a929ee8ebb:shape=C80}}" is the label. This distinction is the single most common deduction on this item: nine of the twenty gold rows lost points for a missing axis title. A default placeholder is not a label either — spreadsheet software inserts "Axis Title" when the student never types one, and that counts as missing
+- `x_axis_label` — `met`/`absent`/`tick_values`: The x-axis is labelled — an AXIS TITLE, not the tick values. "Sunday, Monday, ..." along the bottom is tick data; "Days of the Week" is the label. This distinction is the single most common deduction on this item: nine of the twenty gold rows lost points for a missing axis title. A default placeholder is not a label either — spreadsheet software inserts "Axis Title" when the student never types one, and that counts as missing
 - `y_axis_label` — `met`/`absent`/`tick_values`/`generic`: The y-axis is labelled — same test as `x_axis_label`: an axis TITLE naming what the axis represents, not its tick values, and not the software's default "Axis Title" placeholder
 - `series_box_holds` — one of `period_names`/`other_real_names`/`software_placeholders`/`nothing` in `refers_to` (WHICH it is, not whether it is right): ONE ANSWER, naming what is in the box. Do not judge whether it makes a good legend -- say what it holds and the arithmetic follows.
   `period_names` -- the four periods the assignment asks for: baseline and the three weeks, however spelled or abbreviated.
@@ -746,7 +741,7 @@ Did the implementation of your behavior modification plan successfully modify yo
 
 ## Deduction codes — the course's canonical wording for each gap
 - `BLANK` (-6): did not answer
-- `NO_VERDICT` (-2): -2 pts: did not answer if the implementation of your {{corpus:2a/p1:verdict:25:33:sha=08bf2418cca9:shape=R8-0-20}}{{corpus:2a/p1:verdict:34:73:sha=01bf2bdf0aa5}} your behavior or not
+- `NO_VERDICT` (-2): -2 pts: did not answer if the implementation of your behavior modification plan successfully modified your behavior or not
 - `MISSING_HOW` (-2) [repeatable]: -2 pts: missing one sentence describing how your behavior was or was not successfully modified
 
 ## Grading guidance

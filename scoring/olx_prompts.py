@@ -827,7 +827,8 @@ ITEM_NOTES: dict[str, str] = {
         "DATA is those numbers, the GRADER detects it: it compares the fields against "
         "the example itself and sets `has_own_graph` to `mismatch`, zeroing the item "
         "exactly as on paper. You are not asked about that, and you should not discuss "
-        "it. What IS yours is when only the WORDING is copied — a title of 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=S1-20220a202020202020202022,R38-0-27}} from a student who did not track water, or a y-axis of 'Ounces of "
+        "it. What IS yours is when only the WORDING is copied — a title of 'Water {{corpus:1c/p5:title:5:21:sha=39f1f7fdd115:shape=R16-0-20}}"
+        "{{corpus:1c/p5:title:22:32:sha=65ebb904a388}}' from a student who did not track water, or a y-axis of 'Ounces of "
         "Water per Day' — that is `generic` on the label, like an untouched 'Chart "
         "Title'. Their own graph names their own behaviour: hours of sleep, minutes of "
         "exercise, servings.\n\n"
@@ -1333,7 +1334,7 @@ SLOT_NOTES = {
     #   shipped-prompt CLI   18.3 -> 18.3  (no change)            9/12 -> 15/15
     #   web                  19.0 -> 18.3  (worse)                2/3  -> 3/3
     #
-    # On the web it bought p7 and lost p17: "{{corpus:Q2/p17:response:10:42:sha=efb4fb832473}} stay
+    # On the web it bought p7 and lost p17: "{{corpus:Q2/p17:response:10:38:sha=634e47a1ef90}} and stay
     # fit" started coming back `met` (1/3, from 3/3). That is the p17/p18 pair —
     # the carve-out below says a STATE of the same behaviour passes, and any extra
     # pressure on the different-activity side leaks across to make p17 a state too.
@@ -1623,7 +1624,7 @@ SLOT_NOTES = {
     #
     # THE REFUTING PAIR IS THE SAME PARTICIPANT ON TWO ITEMS, which is why no
     # coarseness test survives:
-    #     DAY1/p9  "{{corpus:DAY1/p9:day1:22:65:sha=415d56dd1b38}}"   gold 0.00
+    #     DAY1/p9  "{{corpus:DAY1/p9:day1:22:49:sha=9ae2f65f5caa}} stay consistent"   gold 0.00
     #     DAY2/p9  "out of the 5 days"                             gold 4.00
     # "5 times" cannot be judged until occurrences have been COUNTED across the
     # week. "out of the 5 days" names no count and can be judged on any one day.
@@ -3752,6 +3753,10 @@ def main() -> int:
     return rc if a.check else 0
 
 
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
 # --- corpus reference resolution (backdated) ---
 # CONVERT HERE, DO NOT RESOLVE. What `--write` emits goes INTO the .olx, and the
 # .olx is the file the reference mechanism exists to keep the words out of. This
@@ -3809,7 +3814,3 @@ try:                                            # pragma: no cover
         return _corpus_resolve.to_olx(_orig(*a, **kw), _corpus_resolve.load())
 except Exception:
     pass
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

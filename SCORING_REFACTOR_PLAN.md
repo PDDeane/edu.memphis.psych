@@ -96,28 +96,81 @@ or excluded while building the rubric, it is metadata and belongs here.
 
 ---
 
-## 1 · Entry conditions — hard, and none of them are met
+## 1 · Entry conditions — hard
+
+*Revised 2026-09-18. The migration conditions are gone: the migration was
+completed in full in the dry run and is not being redone here, so gating this
+refactor on its stages gated it on work that will not happen. What the migration
+leaves behind is not a stage list but a tree — see condition 3.*
 
 No code is written for this refactor until **all** of the following hold. They
 are listed in the order they can be satisfied.
 
-1. **The re-sweep is finished.** Fifteen items; nine done at the time of
-   writing, `1a` in flight, five behind it.
-2. **The queued live self-test has run and reported clean**, with its tree
-   checksum showing no residue. (There is an open defect here: a self-test run
-   leaves `agreement.py` carrying an injected mutation. See §6-T3.)
-3. **All current work is committed.**
-4. **The rubric migration is complete** through its own stages and gates.
-5. **The migration is committed.**
+1. **The re-sweep is finished.** — **MET as of 2026-09-18.** All 26 ledger items
+   read `ok` in `measured.py --status`, 5-6 runs each, nothing stale. (The
+   original text here said "fifteen items; nine done, `1a` in flight, five behind
+   it"; that was true when written and is not now.)
+2. **The live self-test has run and reported clean**, with its tree checksum
+   showing no residue.
+3. **The work this refactor will measure is committed.** Not "all current work" —
+   that is too vague to gate on, and the answer differs per repository.
 
-Condition 4 is not merely sequencing. Several decisions below cannot be taken
-until the migration has settled how the rubric is read at all — see §4.
+   As measured 2026-09-18:
+
+   * `edu.memphis.psych` — clean apart from this document.
+   * `molly_scoring` — **not a git repository at all**; it is a directory of
+     handout `.docx`/`.pptx` source material. It cannot be "committed" and does
+     not belong in this condition. (Recorded because an earlier reading of this
+     plan reported it clean, which was a `git status` failing and its empty
+     output being counted as a pass.)
+   * `update/lo-blocks` — **38 uncommitted paths** (22 tracked-modified, 16
+     untracked) on `pdeane/content-8-26`, whose HEAD is `44d5a818` of 2026-09-09.
+     The reflog confirms HEAD has not moved since and no branch carries later
+     work.
+
+   **What those 38 are — and are not.** They are the continuation of the slot-sheet
+   engine line already committed on this branch: `forbid` (2026-08-25), a computed
+   rule naming its verdict (08-28), `maps` (08-28), `LLMAction: declare forbid and
+   maps` (08-29), `contains` (09-01), `buildSlotSchema` (09-09). The working tree
+   carries the next increment — `slotSheet.ts` +179 lines, plus `maps`, `equals`,
+   `runner` and round-trip tests. **This is not "the rubric migration": the
+   migration has not been performed on the live tree and is not planned until
+   after this refactor.** An earlier revision of this section called them "the
+   migration's engine", which was wrong.
+
+   Three of the 38 are not that work either, and belong to the history-rewrite and
+   simulation of 2026-09-17/18: `SelfMonitorPlot/legendRender.test.ts` (the p20
+   student-data scrub), `packages/shared/lib/testing/` (a `preloadBlocks` helper),
+   and `packages/shared/scripts/resolveCorpusRefs.ts`. They should be separated
+   from the engine increment rather than swept into one commit.
+
+   Why this gates the refactor at all: on 2026-09-18 a historical student
+   simulation failed with `Invalid attributes for <LLMAction>: 'free'` against the
+   COMMITTED engine and passed against the working tree. The engine the refactor
+   reads is therefore not the engine in git, and §2's inventory must be
+   re-measured against whichever tree it will actually read.
+
+4. **The self-test refuses to run while another self-test is running.**
+   ADDED 2026-09-18, and it is not a theoretical hardening: two self-tests were
+   started on the live tree that day and **both ran**, neither refusing. Neither
+   the live tree nor the dry run contains a locking primitive (`flock`, `O_EXCL`
+   or a pid file), so §11.11's claim that this was "fixed in the dry run" does
+   not hold — this is code to be written, not ported. Until it exists, condition
+   2's gate is unfalsifiable in the way §11.11 describes: a run can damage the
+   tree and still report success.
 
 ---
 
 ## 2 · The inventory — what actually has to move
 
 Measured 2026-09-14 on the live tree, not estimated.
+
+> **RE-MEASURE BEFORE USING THESE NUMBERS (noted 2026-09-18).** This inventory
+> was taken against a tree that does not contain lo-blocks' 38 uncommitted
+> migration paths (condition 3). Whether those land or are declared out of scope
+> changes what "the engine" is, and therefore what has to move out of it. No
+> table below should be acted on until it has been recounted against the tree
+> this refactor will actually read.
 
 ### 2.1 Item-bearing tables in the engine's own source
 
@@ -350,7 +403,15 @@ So a program that needs a directive is given a rubric, finds the metadata, finds
 the course guide, and resolves any general principle from there. It never has to
 know which course it is working on as a fact about itself.
 
-## 4 · Open decisions, several blocked on the migration
+## 4 · Open decisions
+
+*Revised 2026-09-18: the heading used to read "several blocked on the
+migration". With the migration finished in the dry run, nothing here is blocked
+on it any more — but nothing is automatically answered either. Every decision
+below that cites a migration stage as its blocker must be RE-EXAMINED against
+what the dry run actually settled, and answered or restated. Treating "the
+migration is done" as "the decision is made" would be the same mistake as
+treating a tree diff as proof a fix works.*
 
 **4.1 · Does the rubric attribute naming the metadata file fit C2?**
 The migration's constraint C2 forbids course vocabulary in lo-blocks. An

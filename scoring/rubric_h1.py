@@ -106,7 +106,7 @@ ITEMS: list[dict] = [
                         "names the behaviour as its target. The test is OWNERSHIP, not "
                         "first-person pronouns, and it can be satisfied anywhere in the "
                         "response: naming the behaviour as theirs (\"{{corpus:Q5/p11:first:35:53:sha=0129ca5aa2d6:shape=R0-1-4d,R18-0-20}}"
-                        "{{corpus:Q5/p11:first:54:65:sha=1e08d70f6cb2}} X\"), choosing it (\"I chose X\"), or saying what they "
+                        "{{corpus:Q5/p11:first:54:62:sha=08bf2418cca9}} is X\"), choosing it (\"I chose X\"), or saying what they "
                         "want instead of it. A clause that says only what the behaviour "
                         "DOES TO them — it makes them tired, it leaves them behind — is an "
                         "EFFECT and is not ownership, however many times \"me\" appears in "
@@ -385,7 +385,7 @@ ITEMS: list[dict] = [
         "question": (
             "Define your wanted goal behavior (WGB) that you hope to strengthen. Requires 1 "
             "sentence describing the WGB {{corpus:Q2/p15:response:62:111:sha=dd7a8b7daac8:shape=R39-1-20,R49-0-20}}"
-            "{{corpus:Q2/p15:response:112:125:sha=6258e0ec68f2}} it."
+            "{{corpus:Q2/p15:response:112:114:sha=663ea1bfffe5}} strengthen it."
         ),
         # Derived, not model-authored: one slot, one deduction.
         # The gate mirrors the web's `wgb_is_counterpart`. Unlike Q1's, this
@@ -1228,7 +1228,7 @@ ITEMS: list[dict] = [
         "guidance": [
             "Award each of the five letters independently, 1 point each.",
             "Time-Bound has a near-verbatim expected answer: four weeks total, {{corpus:Q3/p1:timebound:129:140:sha=0a0e842023db:shape=R11-0-20}}"
-            "{{corpus:Q3/p1:timebound:141:214:sha=6664d8edc53e}} Any "
+            "{{corpus:Q3/p1:timebound:141:149:sha=8ba8496a2525}} data collection and three weeks of intervention data collection. Any "
             "other duration loses the point.",
             "IMPLICIT (from gold): Measurable must name a tracking METHOD or LOCATION (a "
             "notebook, a phone app). Restating the goal is not measuring it. Specific must "

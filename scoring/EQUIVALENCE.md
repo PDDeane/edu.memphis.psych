@@ -2149,7 +2149,7 @@ the olx. That attribution was wrong. Checking the four cells against the python:
 
 | pid | gold | python | olx (8 runs) | gold's own reason |
 | --- | --- | --- | --- | --- |
-| p2 | 8.75 | **10.00** | 10.0 ×7, 7.5 ×1 | `change_a2` — "{{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd}} does not change your {{corpus:Q6/p2:state_a2:17:50:sha=7f56e7f06c95:shape=R33-0-22}} |
+| p2 | 8.75 | **10.00** | 10.0 ×7, 7.5 ×1 | `change_a2` — "{{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd}} does not change your {{corpus:Q6/p2:state_a2:17:44:sha=d17695839bf3}} games" |
 | p4 | 6.00 | **7.50** | 7.5–8.75 | "-2.5: missing both consequences -1.5; missing one antecedent" |
 | p16 | 8.75 | **10.00** | 10.00 ×8 | `affect_c2` — "did not clarify the second consequence being affected" |
 | p19 | 5.00 | **7.50** | 7.50 ×8 | bundles the second antecedent AND its consequence as one −5 |

@@ -5046,7 +5046,7 @@ GOLD_SLOT_DISAGREEMENTS_KNOWN: dict[tuple[str, int], str] = {
     # having measured three arms that each asked HOW STRONGLY the change acts on
     # the antecedent. THAT WAS THE WRONG QUESTION. Gold's comment names a
     # SUBJECT-MATTER mismatch -- "{{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd:shape=C1}} does not
-    # change your {{corpus:Q6/p2:state_a2:17:50:sha=7f56e7f06c95:shape=R14-7-504c4159494e47,R22-5-564944454f,R28-5-47414d455322}} -- the change is in the
+    # change your {{corpus:Q6/p2:state_a2:17:44:sha=d17695839bf3:shape=C7dfc000}} GAMES" -- the change is in the
     # exercise domain and the antecedent is about gaming. Read out against
     # `gold_charge_bounds` on all 21 change_a slots, that test predicts 20: it
     # charges p2/a2 and p8/a2 and credits p3/a2, p4/a2, p10/a2, p16/a1 and
@@ -5114,8 +5114,8 @@ GOLD_SLOT_DISAGREEMENTS_KNOWN: dict[tuple[str, int], str] = {
                "arms over 240 calls under subgoal Q47. THIS IS A CEILING, NOT "
                "A DIVERGENCE IN OUR FAVOUR: gold is RIGHT here and we are "
                "wrong -- '{{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd:shape=C1}} does not change "
-               "your antecedent of {{corpus:Q6/p2:state_a2:31:69:sha=953a77829719:shape=R38-0-20}}"
-               "{{corpus:Q6/p2:state_a2:70:74:sha=6c45cb72a36e}}.' The obstacle is that gold applies that same test "
+               "your {{corpus:Q6/p2:state_a2:17:44:sha=d17695839bf3}} games and not wanting to "
+               "stop.' The obstacle is that gold applies that same test "
                "LENIENTLY two cells over. Arm 1 (the change must ACT ON the "
                "antecedent the box names) reached this target 4 of 4 and left "
                "declared Q6/p8 alone, but fired on p3, p4, p10 and p16, which "
@@ -7465,6 +7465,10 @@ def _wrap_for_literal(value: str, width: int = 66) -> list:
 # commands that predated the split all happened to use functions defined above
 # it, which is why nothing noticed until `--refusals` called `_runs_doc`.
 # enforcement.py had the same defect and the same fix.
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
 # --- corpus reference resolution (backdated) ---
 # `_olx` hands the handout's OLX to prompt_sha, section slicing and the audit.
 # Resolving HERE means every fingerprint sees the words the file used to hold,
@@ -7477,7 +7481,3 @@ try:                                            # pragma: no cover
         return _corpus_resolve.expand(_orig(handout))
 except Exception:
     pass
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

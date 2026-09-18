@@ -444,8 +444,9 @@ def _quoted_span(ev: str) -> str:
       ['A', ' B'] — prose        the chart's text RUNS, as extracted
       'A', ' B'                  the same runs without the brackets
 
-    The runs are joined, not comma-separated: `['Time', ' {{corpus:1c/p6:title:5:33:sha=90d22ddc95fc:shape=S4-0a20202020}}']` is one title the spreadsheet split in two, and the student typed
-    "Time {{corpus:1c/p6:title:5:33:sha=90d22ddc95fc}}".
+    The runs are joined, not comma-separated: `['Time', ' {{corpus:1c/p6:title:5:27:sha=951281e2eda4}}
+    Weeks']` is one title the spreadsheet split in two, and the student typed
+    "{{corpus:1c/p6:title:0:27:sha=d95a4974746c}} Weeks".
 
     Only the FIRST double-quoted run is taken, because the scorer's commentary
     quotes things too — p1's title annotation ends "not the default \"Chart
