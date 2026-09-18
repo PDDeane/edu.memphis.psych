@@ -1124,7 +1124,7 @@ def uncompared_web_rules():
 # 72 as of 2026-09-16: the scored-slot check gained a case. It reads
 # ARTIFACTS rather than sheets, so it is blinded by dropping a slot from one
 # engine's recorded runs -- see the case for why a check at zero needs one.
-SELFTEST_EXPECTED = 72
+SELFTEST_EXPECTED = 71
 
 # HOW MANY CASES ARE ALLOWED TO TEST NOTHING. A two-sided ratchet in the same
 # idiom as SELFTEST_EXPECTED: vacancy may FALL freely and may not RISE.
@@ -2651,6 +2651,21 @@ def enforcement_selftest():
     # An inverted case whose precondition vanished is a SKIP, and it joins the
     # counted list rather than printing on its own -- the whole point of that
     # list is that a case which tests nothing is not allowed to scroll past.
+    # AN INVERTED SKIP IS ALREADY IN `cases`. `_scorer_case` appends
+    # `(label, want, ANY_ITEM, None)` before returning, so `len(cases)` counts it;
+    # adding it again through `skips` counted the SAME case twice and inflated
+    # `total` by one. That is how SELFTEST_EXPECTED came to be 72 for a suite of
+    # 71: the 64 -> 65 raise on 2026-09-05 added one for a case `len(cases)` was
+    # already counting.
+    #
+    # It matters because this constant is a TWO-SIDED ratchet whose point is that
+    # "fewer means a case was lost". An arithmetic that can quietly add one masks
+    # exactly the loss it exists to catch -- and it did: the suite read
+    # `72 of 72 expected` while one case tested nothing.
+    #
+    # So the conditional skips (`plain`, `_site`) are added -- they are NOT in
+    # `cases` -- and the inverted skips are printed but not re-counted.
+    _conditional_skips = list(skips)
     skips = skips + _inverted_skips
     for label, why in skips:
         print(f"  SKIP  {label:<28} -> {why}")
@@ -2738,9 +2753,9 @@ def enforcement_selftest():
     # must equal SELFTEST_EXPECTED exactly. Fewer means a case was lost; more
     # means one was added and the constant was not raised, which leaves room for
     # a later loss to hide inside the slack.
-    built = len(cases)
+    built = len(cases)              # includes inverted skips, which hold found=None
     detected = built - bad
-    total = built + len(skips)
+    total = built + len(_conditional_skips)
     print(f"  {detected} detected, {bad} failed, {len(skips)} skipped, "
           f"{total} of {SELFTEST_EXPECTED} expected.")
     # STAMP THE PASS. measured.selftest_owed reads this file's mtime against
