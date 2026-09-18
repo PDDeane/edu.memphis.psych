@@ -1126,6 +1126,16 @@ def uncompared_web_rules():
 # engine's recorded runs -- see the case for why a check at zero needs one.
 SELFTEST_EXPECTED = 72
 
+# HOW MANY CASES ARE ALLOWED TO TEST NOTHING. A two-sided ratchet in the same
+# idiom as SELFTEST_EXPECTED: vacancy may FALL freely and may not RISE.
+#
+# Not zero, and not a hard failure, because one skip is legitimate -- the
+# plain-path case skips when the corpus holds no item outside the derive-path
+# branch, and a corpus is not a defect. Set to what the suite carries once the
+# two 2026-09-18 repairs land; lower it whenever the run says it can be lowered.
+SELFTEST_VACANT_MAX = 1
+
+
 
 def _selftest_input_fingerprint() -> dict:
     """Hash every file the audit reads, so a mid-run edit can be detected.
@@ -1228,6 +1238,45 @@ def _selftest_inputs_changed(before: dict) -> list[str]:
                   if k not in skip and before.get(k) != now.get(k))
 
 
+def _finding_key(f):
+    """A finding's identity, for comparing one audit against another.
+
+    `(item, rule)` is the semantic identity, with a slice of the detail so two
+    different violations of one rule on one item stay distinct. Stringified
+    because a finding's tail may hold unhashable parts.
+    """
+    parts = tuple(str(x) for x in (f[:3] if isinstance(f, (list, tuple)) else (f,)))
+    return parts[:2] + (parts[2][:160],) if len(parts) > 2 else parts
+
+
+def _vacancy_report(records, skips):
+    """Which cases could not have tested anything. A pure function, so it is
+
+    testable without a three-hour run.
+
+    TWO FAILURE STATES, NOT ONE. A case is vacuous if its injection moved no
+    finding (zero delta), OR if it was SKIPPED -- a skip never reaches a
+    before/after comparison at all. Measured 2026-09-18: the neutrality case
+    failed with a zero delta because the table it mutated was empty, and the
+    count-scaffold case was skipped because the finding it blinds no longer fires.
+    A design that compared only deltas would have caught the first and missed the
+    second, which is half the evidence that motivated this report.
+
+    It asserts a DIFFERENCE, never a particular finding: asserting the right
+    finding is the suite's job, and a report that also did it would acquire the
+    suite's dependence on the tree's incidental state.
+    """
+    rows = []
+    for r in records:
+        vacuous = not (r["added"] or r["removed"])
+        rows.append({**r, "verdict": "VACUOUS (injection moved nothing)" if vacuous
+                     else "ok", "vacuous": vacuous})
+    for label, why in skips:
+        rows.append({"label": label, "added": [], "removed": [], "skipped": True,
+                     "verdict": f"VACUOUS (skipped: {why})", "vacuous": True})
+    return rows
+
+
 def enforcement_selftest():
     """Break each rule on purpose and confirm the audit says so.
 
@@ -1277,7 +1326,14 @@ def enforcement_selftest():
     import atexit as _atexit
     _atexit.register(lambda: _selftest_repair(_snapshot))
     # Captured BEFORE any injection: the findings this corpus carries legitimately.
-    _selftest_baseline = len(enforcement_audit()[0])
+    #
+    # THE SET AS WELL AS THE COUNT. The count alone cannot tell a case that changed
+    # nothing from one that added a finding and removed another -- both leave the
+    # total where it was. The vacancy report (below) needs to know whether the
+    # injection moved ANYTHING, so it compares sets.
+    _baseline_findings = enforcement_audit()[0]
+    _selftest_baseline = len(_baseline_findings)
+    _baseline_keys = {_finding_key(f) for f in _baseline_findings}
     cases = []
 
     saved = rubric_h1.BY_ID["Q6"].pop("cover")
@@ -2540,9 +2596,23 @@ def enforcement_selftest():
     print("SELF-TEST — does the audit notice when a rule is removed?\n")
     baseline = _selftest_baseline
     bad = 0
+    # Per-case record for the vacancy report. Built from data the suite ALREADY
+    # has -- a standalone auditor would re-run `enforcement_audit()` before and
+    # after every case, and the audit takes minutes against a suite that is
+    # already ~3 hours.
+    _records = []
     for case in cases:
         label, want, item, found = case[0], case[1], case[2], case[3]
         inverted = case[4] if len(case) > 4 else False
+        if found is not None:
+            _keys = {_finding_key(f) for f in found}
+            _records.append({
+                "label": label, "want": want, "item": str(item),
+                "inverted": bool(inverted), "skipped": False,
+                "n_baseline": len(_baseline_keys), "n_found": len(_keys),
+                "added": sorted("|".join(k) for k in (_keys - _baseline_keys))[:8],
+                "removed": sorted("|".join(k) for k in (_baseline_keys - _keys))[:8],
+            })
         if found is None:
             # An inverted case whose precondition was absent. It tests nothing,
             # and saying PASS here would be the failure mode this whole file
@@ -2584,6 +2654,44 @@ def enforcement_selftest():
     skips = skips + _inverted_skips
     for label, why in skips:
         print(f"  SKIP  {label:<28} -> {why}")
+
+    # THE VACANCY REPORT. Beside the "N detected, M failed" line, not instead of
+    # it: that line answers "did the right thing fire", this one answers "could
+    # anything have fired at all". Both defects found on 2026-09-18 were invisible
+    # to the first question and obvious to the second.
+    _vac = _vacancy_report(_records, skips)
+    _vacuous = [r for r in _vac if r["vacuous"]]
+    try:
+        import json as _json_v
+        import paths as _paths_v
+        _rec_path = _paths_v.OUT / "selftest_cases.json"
+        _rec_path.parent.mkdir(parents=True, exist_ok=True)
+        _rec_path.write_text(_json_v.dumps(_vac, indent=1))
+        print(f"\n  per-case record -> {_rec_path}")
+    except Exception as _e_v:                                  # pragma: no cover
+        print(f"\n  per-case record NOT written: {_e_v}")
+    print(f"  vacancy: {len(_vac)} cases, {len(_vacuous)} vacuous "
+          f"(ratchet {SELFTEST_VACANT_MAX})")
+    for _r in _vacuous:
+        print(f"    VACUOUS  {_r['label'][:44]:<44} {_r['verdict'][:46]}")
+    # A RATCHET, NOT A HARD FAIL. Failing on any vacancy would make the suite
+    # permanently red for a reason nobody can fix: `plain-path computed check`
+    # SKIPS by design when the corpus holds no item outside the derive-path
+    # branch, and a corpus is not a defect. Failing on GROWTH catches the thing
+    # that actually goes wrong -- a case quietly stopping testing, which is how
+    # the neutrality case ran vacuous for an unknown period while the suite
+    # printed `72 of 72 expected`.
+    #
+    # It may FALL freely: repairing a case should never require editing a budget.
+    if len(_vacuous) > SELFTEST_VACANT_MAX:
+        bad += 1
+        print(f"\n  *** VACANCY ROSE: {len(_vacuous)} cases test nothing, against "
+              f"SELFTEST_VACANT_MAX={SELFTEST_VACANT_MAX}. A case that stopped "
+              f"testing is not a case. Repair it, or lower nothing -- the ratchet "
+              f"only moves down.")
+    elif len(_vacuous) < SELFTEST_VACANT_MAX:
+        print(f"  vacancy fell below the ratchet: lower SELFTEST_VACANT_MAX to "
+              f"{len(_vacuous)} so the gain is protected.")
 
     # A MOVED SOURCE IS A FAILURE, NOT AN INCONCLUSIVE RESULT. This printed
     # "(VOID -- source moved)" and went on to exit 0, which is how a run that
