@@ -43,27 +43,18 @@ SCHEMA_VERSION = 1
 HERE = os.path.dirname(os.path.abspath(__file__))
 HANDOUTS = (1, 2, 3)
 
-# The derivations this tool can actually perform. A candidate absent from here is
-# CARRIED, not dropped -- the list is what the tool can prove, not what someone
-# believed was derivable.
+# THE DERIVATIONS LIVE IN THE READER. Imported, never redefined: the export
+# decides what to DROP and `coursedata.py` REBUILDS it, which is one question
+# asked from two sides. Two implementations that must agree is the defect T5.1 had
+# to be redesigned to avoid, and it would fail the same way here -- the export
+# dropping something the reader cannot rebuild loses it silently.
 #
-# MOVES TO THE READER AT STAGE 3, and lives there alone. A2a says the reader
-# recomputes derived values; this tool decides what to drop. Those are the same
-# question asked from two sides, and two implementations that must agree is the
-# defect T5.1 already had to be redesigned to avoid. From Stage 3 this table is
-# imported from `coursedata.py`, and the export drops exactly what the reader can
-# rebuild -- no more, and never by a different rule.
-#
-# IT IS ALSO THE MEASURE OF A2a's PROGRESS. §9.0 called twelve names derived; this
-# proves two. The other ten -- SLOT_SPEC, OC_GATES, FORBID, SLOT_OPTIONS and the
-# six *_ITEMS index lists -- are carried until the reader can rebuild them, so
-# A2a is two-twelfths honoured today and the file is larger than A2a intends. Each
-# derivation written in the reader moves one value out of the file, with T5.1
-# proving equivalence as it goes.
-DERIVATIONS = {
-    "BY_ID": lambda items: {it["id"]: it for it in items},
-    "TOTAL": lambda items: sum(it["max"] for it in items),
-}
+# A candidate absent from that table is CARRIED, not dropped. The table is what
+# can be PROVEN rebuildable, never what someone believed was derivable: §9.0
+# called twelve names derived and two are proven, so A2a is two-twelfths honoured
+# and this file is larger than A2a intends until the reader learns the rest.
+sys.path.insert(0, HERE)
+from coursedata import DERIVATIONS          # noqa: E402  (after sys.path)
 
 
 def _load(handout: int):
