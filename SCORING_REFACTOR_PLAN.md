@@ -1698,8 +1698,11 @@ The cycle, with its proof at every turn:
    is caught the moment it is written, not when something downstream misreads it;
 5. repeat until every value is either authored or rebuilt.
 
-**A2a's progress is therefore countable**: twelve names §9.0 called derived, two
-proven so far. The schema is finished when that number stops moving, not before —
+**A2a's progress is therefore countable** — and it was counted on 2026-09-18: of
+the twelve names §9.0 called derived, TWO are derivable, sixteen candidates are
+authored literals, and one derives from another literal. **The cycle is short, not
+a dozen turns**, because there are no outstanding values provably derivable from
+items. The schema is finished when that number stops moving, not before —
 and a schema declared final while the reader is still learning to rebuild things
 would have to be reopened, which is the state §5.2's gate ("no field is `TBD`")
 exists to prevent.
@@ -2061,6 +2064,40 @@ The sequence this implies, and it should be read as A2a's progress meter:
    gains an entry and that value leaves the file;
 3. **T5.1 throughout** — so a wrong derivation is caught when it is written, not
    when something downstream misreads it.
+
+#### MEASURED 2026-09-18 — §9.0's "derived" list was wrong about ten of twelve
+
+Every candidate was classified by HOW IT IS DEFINED, by AST:
+
+| | count | which |
+|---|---|---|
+| derivable from `ITEMS` | **2** | `BY_ID`, `TOTAL` |
+| **authored literals** | **16** | `SLOT_SPEC`×3, `MAPS`×2, `OC_GATES`, `FORBID`, `SLOT_OPTIONS`, `EXPECT`, `REQUIRED_MOVE`, `AVOIDANCE_SCORES`, `READS_UTB_CHOICE`, and the `*_ITEMS` index tuples |
+| derived from another AUTHORED literal | 1 | `BARRIER_PICK_ITEMS = CADENCE_BARRIER_ITEMS + ('NR',)` |
+
+**Why §9.0 got it wrong**, which is worth knowing because the same test would
+misfire again: it searched the assignment's source for `ITEMS`, `for `, `sum(` or
+`BY_ID`. It matched `"for "` inside PROSE LABELS —
+`'Realistic — why it is achievable for you'` — and `ITEMS` inside the variable's
+OWN NAME, `CADENCE_BARRIER_ITEMS`. Neither is a computation.
+
+**`SLOT_SPEC` is the sharpest case and settles it.** All three are plain literals,
+and **47 of its 52 labels appear nowhere in `ITEMS`** — `"Says whether it is a good
+choice to modify"` exists only there. No derivation can invent authored prose. Had
+the export acted on §9.0's list it would have dropped 269 source lines including 47
+unrecoverable labels, and the loss would have surfaced only when something tried to
+render a slot sheet.
+
+**What this does and does not change.** A2a's DECISION stands — do not store what
+can be recomputed. A2a's EXPECTATION was wrong: almost nothing can be. The course
+file is therefore about the size the rubric modules are, and that is correct rather
+than a shortfall. The Stage 2/3 cycle (§11.2a) is accordingly SHORT — there are not
+a dozen derivations to write, there are none outstanding that are provably
+derivable from items.
+
+*This is the recomputation design paying for itself twice: once by refusing to act
+on a wrong list, and once by producing the measurement that showed the list was
+wrong.*
 
 #### The tagging is applied at STAGE 4, not here
 
