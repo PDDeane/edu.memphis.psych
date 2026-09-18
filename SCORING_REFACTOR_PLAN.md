@@ -1877,6 +1877,33 @@ tool for finding vacuous tests that has never caught one is not known to work.
   case quietly stopping testing — and the ratchet catches exactly that, while
   falling freely so repairing a case never requires editing a budget.
 
+#### The defect T0.1's first real run exposed — a RATCHET COUNTING ITSELF WRONG
+
+Repairing the two cases made the suite report `71 of 72 expected` and
+`*** THE SUITE LOST 1 CASE`. Nothing was lost. `total = built + len(skips)` where
+`built = len(cases)` — and an inverted case whose precondition is absent is
+appended to `cases` with `found=None` AND added to `skips`, so the same case was
+counted twice.
+
+**`SELFTEST_EXPECTED` has therefore been one too high since 2026-09-05**, when it
+was raised 64 -> 65 "for subgoal E43's INVERTED case": that raise added one for a
+case `len(cases)` was already counting.
+
+Why it matters beyond the number: this constant is a TWO-SIDED ratchet whose
+stated purpose is that *fewer means a case was lost*. An arithmetic that can
+quietly add one masks exactly the loss it exists to catch — **and it did**, for
+the whole period the neutrality case was injecting nothing while the suite printed
+`72 of 72 expected`.
+
+Fixed by correcting the arithmetic rather than lowering the constant to match:
+conditional skips (`plain`, `_site`) are counted because they are NOT in `cases`;
+inverted skips are printed but not re-counted. `SELFTEST_EXPECTED` is now 71.
+
+*The general lesson, and it is the fourth of its kind in this work: a count that
+looks right and measures the wrong thing is the recurring defect here — the
+baseline that was a length not a set, the 53 branches that were 13, the 188 words
+that were 30, and now a ratchet that counted one case twice.*
+
 #### The artifact it leaves
 
 `$MOLLY_OUT/selftest_cases.json` — per case: label, want, item, inverted, baseline
