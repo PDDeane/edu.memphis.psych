@@ -2002,6 +2002,37 @@ module's**. It drops only what recomputation reproduces EXACTLY; anything else i
 carried as authored data regardless of what §9.0 guessed. The comparison is
 reported, so the §9.0 list is corrected by this run rather than left standing.
 
+#### BUILT 2026-09-18 — and what it showed about A2a
+
+The export works and is deterministic (byte-identical on re-run; keys sorted
+within an entry, items in rubric order). 26 items, 223,680 bytes.
+
+**But §9.0 called TWELVE names derived and this tool can prove TWO.** It drops only
+what a known derivation reproduces exactly — `BY_ID` and `TOTAL` — and CARRIES the
+other ten (`SLOT_SPEC`, `OC_GATES`, `FORBID`, `SLOT_OPTIONS` and the six `*_ITEMS`
+index lists), because refusing to drop what it cannot recompute is the whole point
+of deciding by recomputation.
+
+So **A2a is two-twelfths honoured today**, and the file is larger than A2a intends.
+That is not a defect in the export; it is where the derivations actually live. Each
+one is 78 source lines in h1 and 149 in h2 for `SLOT_SPEC` alone, implicit inside
+the rubric modules, and writing them is Stage 3's work — the READER is where a
+derivation belongs.
+
+**DECIDED 2026-09-18: `DERIVATIONS` moves into `coursedata.py` at Stage 3 and lives
+there alone.** The export decides what to drop; the reader rebuilds it. Those are
+one question asked from two sides, and two implementations that must agree is
+exactly the defect T5.1 had to be redesigned to avoid. From Stage 3 the export
+imports the table from the reader and drops precisely what the reader can rebuild.
+
+The sequence this implies, and it should be read as A2a's progress meter:
+
+1. **now** — 18 values carried, 2 proven derivable;
+2. **Stage 3** — each derivation written in the reader; as it lands, `DERIVATIONS`
+   gains an entry and that value leaves the file;
+3. **T5.1 throughout** — so a wrong derivation is caught when it is written, not
+   when something downstream misreads it.
+
 #### The tagging is applied at STAGE 4, not here
 
 The rubric modules hold no GENERATOR fields — those are `olx_prompts.py`'s 12
