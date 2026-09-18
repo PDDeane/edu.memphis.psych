@@ -3360,7 +3360,20 @@ def _selftest_in_flight() -> list[str]:
                     if os.path.basename(tok) == "equivalence.py"), None)
         if idx is None or "--selftest" not in parts:
             continue
-        if not any(os.path.basename(x).startswith("python") for x in parts[:idx]):
+        # THE PROCESS ITSELF, NOT ITS WRAPPER. This asked only whether SOME python
+        # token appeared before `equivalence.py`, which is also true of a wrapper:
+        # `timeout 90 env VAR=x python3 -u equivalence.py --enforcement --selftest`
+        # keeps the whole command line on the `timeout` process, so the wrapper was
+        # reported as a second self-test. Harmless while only sweeps consulted this
+        # -- but the self-test now consults it too (see `enforcement_selftest`), and
+        # a run launched under `timeout` would have found its own parent and refused
+        # ITSELF. Measured 2026-09-18: a refusal listed both the real run and the
+        # refusing run's own `timeout` wrapper.
+        #
+        # argv[0] is the discriminator: the mutating process is always python; a
+        # wrapper never is. `env` does not matter either way, since it execs into
+        # python and keeps no process of its own.
+        if not os.path.basename(parts[0]).startswith("python"):
             continue
         root = _selftest_source_root(pid, parts[idx])
         if root is not None and root != _OUR_ROOT:

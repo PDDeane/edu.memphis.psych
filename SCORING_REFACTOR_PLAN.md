@@ -11,7 +11,8 @@ at all.
 
 `scoring/` should contain a scoring **engine** and no psychology: every fact
 about this course, its handouts, its items and its rubric moves into a readable
-JSON file that lives beside the rubric in the content directory, and every
+JSON file that lives in `courses/<course-id>/` (AMENDED 2026-09-18 by §10.5,
+which supersedes the original "beside the rubric in the content directory"), and every
 program reads those facts from that file instead of from a table in its own
 source.
 
@@ -151,6 +152,11 @@ are listed in the order they can be satisfied.
    re-measured against whichever tree it will actually read.
 
 4. **The self-test refuses to run while another self-test is running.**
+   — **MET 2026-09-18, the same day it was added.** `enforcement_selftest` now
+   calls `refuse_if_selftest_running` before the fingerprint and before any
+   injection; a second run exits 1 naming the first. The detector was also fixed:
+   it matched a wrapper process (`timeout ... python3 ... equivalence.py
+   --selftest`), so a single run under `timeout` would have refused ITSELF.
    ADDED 2026-09-18, and it is not a theoretical hardening: two self-tests were
    started on the live tree that day and **both ran**, neither refusing. Neither
    the live tree nor the dry run contains a locking primitive (`flock`, `O_EXCL`
@@ -572,11 +578,16 @@ why it is a question rather than a plan.
 
 ## 5 · Stages
 
+> **RENUMBERED 2026-09-18.** These were Stages A-G. §9 and §10 then introduced
+> GOALS A-I, and "Stage G" and "Goal G" meant different things on the same page —
+> a reader could not tell whether a cross-reference meant the prose artifacts or
+> generalising the programs. Stages are now NUMBERED, goals stay lettered.
+
 Each stage ends with a gate. The shape follows the migration's discipline: no
 stage changes behaviour and shape at once, and every stage is verified against
 a frozen baseline rather than by inspection.
 
-### 5.1 · Stage A — widen the inventory and freeze a baseline
+### 5.1 · Stage 1 — widen the inventory and freeze a baseline
 Write the scan that finds course-specific content by **all** its markers, not
 only item ids: item ids, slot keys, deduction codes, handout numbers, and
 per-file prose review for the stragglers. Produce a reviewed list, table by
@@ -603,7 +614,7 @@ finding-set as a MULTISET, the self-test case count, `prompt_sha` per item per
 side, and `scorer_sha` per item per side; and the closure/definition inventory
 above produced and reviewed.
 
-### 5.2 · Stage B — design the schema against the real content
+### 5.2 · Stage 2 — design the schema against the real content
 Draft the JSON schema by fitting it to the *hardest* tables first
 (`GOLD_DIVERGENCES`, `CORRECTED_GOLD`, `PROSE_ONLY_SLOTS`, `DESIGNED_TEXT`),
 not the easiest. Decide the readability conventions and where each table's
@@ -612,28 +623,39 @@ rationale prose lands.
 example; no field is `TBD`; a person can read a sample file and say what it
 means.
 
-### 5.3 · Stage C — the reader, and dual-source verification
+### 5.3 · Stage 3 — the reader, and dual-source verification
 Build the metadata reader and have every consumer go through one accessor, with
 a mode that reads **both** the old table and the new file and asserts they agree
 — the migration's `dual` pattern, which is what caught its own gaps.
 **Gate:** the reader reproduces every moved table exactly; `dual` runs the whole
 suite with zero differences; the audit finding-set is unchanged.
 
-### 5.4 · Stage D — move the tables, engine untouched
+### 5.4 · Stage 4 — move the tables, engine untouched
 Emit the metadata file, flip the accessor to read it, delete the tables. One
 group at a time, smallest first.
 **Gate:** finding-set identical; no fingerprint moves except where a table is
 genuinely inside a scorer's closure — and where it does move, the affected
 columns are re-recorded.
 
-### 5.5 · Stage E — `GOALS.md`
-Convert to the `goals` key, port `goals.py` and the four other readers, and
-**keep a human-editable path** and the ACTIVE line in `--preflight`.
+### 5.5 · Stage 5 — `GOALS.md`
+
+> **CORRECTED 2026-09-18.** This stage said "convert to the `goals` key", which was
+> §3.3's plan: the specific half moving INTO the metadata JSON. §10.4 supersedes
+> both — each prose artifact becomes a GENERAL file and a COURSE-SPECIFIC PROSE
+> file that incorporates the general one by reference (G1c), and neither half
+> becomes a JSON key. §3.3's second requirement stands and is the reason: both
+> halves must remain human-readable and human-editable.
+>
+> **This stage is also blocked** by §10.4.1: `GOALS.md` has 9 headings across
+> 16,516 lines and must be RESTRUCTURED into anchorable sections first.
+
+Split `GOALS.md` general/specific per §10.4, port `goals.py` and the four other
+readers, and **keep a human-editable path** and the ACTIVE line in `--preflight`.
 **Gate:** all 112 entries round-trip; `check`, `next_label`, `misfiled_series`
 and `stale_slot_claims` behave identically on the same corpus; a person can still
 edit the active goal mid-task without tooling.
 
-### 5.6 · Stage F — split `QUALITY_CONTROL.md` in two
+### 5.6 · Stage 6 — split `QUALITY_CONTROL.md` in two
 Separate the general guide from a course guide. Give the GENERAL guide stable
 anchors; move every course-specific passage into the course guide with a
 reference back to the principle it applies; teach the nine readers to reach the
@@ -645,7 +667,7 @@ was given; no reader has a hardcoded handout number; and both documents still
 read start-to-finish as guides rather than as databases.
 
 
-### 5.7 · Stage G — generalise the programs
+### 5.7 · Stage 7 — generalise the programs
 The remaining pass: every program that touches the rubric, `GOALS.md` or
 `QUALITY_CONTROL.md` takes the rubric as an input rather than assuming this
 course.
@@ -745,3 +767,1955 @@ designed against before any code was written.
 
 **Next action when the entry conditions are met:** stage A's widened inventory.
 Nothing before that.
+
+---
+
+## 9 · One JSON file, generic code — the goal stated in terms of DATA and PROCEDURE
+
+*Added 2026-09-18 on the user's instruction. The goals below are DECIDED, and as
+of the same day so are all eight implementation choices — A1c, A2a, A3a, B1a,
+B2a, C1b, C2a, C3c. The options NOT taken are kept under each decision rather
+than deleted: a choice whose alternatives have been erased cannot be re-argued
+when the reason for it stops holding.*
+
+**The shape these eight decisions add up to:**
+
+* One JSON file for the course (A3a), holding only authored data — every derived
+  value is recomputed by the reader (A2a).
+* `rubric_h2`'s builders survive as an AUTHORING tool that generates the expanded,
+  canonical JSON; no reader ever instantiates a template (A1c).
+* Everything an item needs, including what the prompt generator needs, lives on
+  that item's entry (B2a), reached through one module that owns the file (B1a).
+* Gold lives in a SECOND file by the same mechanism (C1b), so the rubric file
+  carries no student-derived content and needs no per-read leak judgement.
+* Migration proceeds module by module, each step proved by its table count
+  reaching zero (C2a), measured by grep and gated by an enforcement check (C3c).
+
+**One consequence of B2a to hold on to.** Folding the generator's tables into each
+item's entry means an item entry carries rubric facts AND generator hints in the
+same object. That is the price of "everything about Q1 in one place", and it was
+chosen knowingly. The reader (B1a) must therefore expose them through SEPARATE
+accessors — `rubric_for(item)` and `slot_notes(item, slot)` — so that a consumer
+of the rubric never has to know the generator's fields exist, even though they
+sit in the same entry. If that discipline slips, the two concerns will grow into
+each other and B2b becomes the repair.
+
+### 9.0 · What was measured first
+
+Measured on the live tree, 2026-09-18, by AST parse rather than by reading:
+
+| module | lines | functions | what they are |
+|---|---|---|---|
+| `rubric_h1.py` | 2,949 | **0** | pure data |
+| `rubric_h3.py` | 830 | **0** | pure data |
+| `rubric_h2.py` | 1,362 | 4 (650 lines, 47%) | **data builders**, not scoring rules |
+
+`rubric_h2`'s four functions — `_example_item`, `_type_item`, `_definition_item`,
+`_example_use_item` — are parameterised templates for repeated item shapes. They
+run at import and return plain dicts.
+
+**The consequence that matters: all three rubrics' `ITEMS` are ALREADY
+JSON-serialisable.** 26 items, ~171,000 characters (h1 62k, h2 86k, h3 23k). The
+builders are not an obstacle to serialisation; they are a question about the
+FORM of the file, not its feasibility.
+
+Beyond `ITEMS`, each module exports more names. Sorted by whether they can be
+recomputed:
+
+* **Derived** — `BY_ID`, `TOTAL`, `SLOT_SPEC` (h1, h2), `OC_GATES`, `FORBID`,
+  `SLOT_OPTIONS`, the `*_ITEMS` index lists, `_MOVE_RULE`, `_EXAMPLE_RULES`.
+* **Independent, and therefore authored data that must be carried** — `MAPS`
+  (h1, h3), `READS_UTB_CHOICE`, `REQUIRED_MOVE`, `_OC_FRAME`, `_EXPECTS_RULE`,
+  `_AUTHORED_RULE`, `_RESTRICTS_RULE`, `_HELD_BACK_RULE`, `AVOIDANCE_SCORES`,
+  `_BARRIER_CONDS`, `EXPECT`, `_EXPECT_SHIPPED`, `_ONLYIF_SHIPPED`, `SLOT_SPEC`
+  (h3).
+
+*That split was made by a crude test (does the assignment mention `ITEMS`, a
+loop, `sum(` or `BY_ID`) and is a starting point, not a finding. Each name must be
+confirmed by hand before anything is dropped as derivable.*
+
+### 9.1 · GOAL A — the rubric is data in JSON; the code that applies it is generic
+
+**DECIDED.** `rubric_h1.py`, `rubric_h2.py` and `rubric_h3.py` stop being Python.
+The facts they carry — form, item, and rubric points — move into the one JSON
+file. What remains is generic code that reads that file and does what those three
+modules do today, so the same processes can be applied to new content without
+writing a new `rubric_hN.py`.
+
+The test of success is not that the file exists. It is that **a new handout, or a
+new course, can be scored by adding data and changing no Python.**
+
+**DECIDED A1 (A1c) — what happens to `rubric_h2`'s builders.**
+
+* **A1a · Expand them.** Serialise the built items. The file carries every item in
+  full; the 405-line `_example_use_item` becomes four near-identical blocks.
+  Simplest reader, largest and most repetitive file, and an edit to a shared shape
+  must be made four times.
+* **A1b · A template mechanism in the schema.** The file carries a template and
+  its instantiations. Keeps the factoring that made the builders worth writing,
+  but adds an instantiation step to every reader and a second thing to validate.
+* **A1c · CHOSEN — Expand, and keep the builders as an authoring tool.** The JSON is
+  expanded and canonical; the builders survive outside the pipeline to GENERATE
+  that JSON when a new item of the same shape is added. Readers stay simple, the
+  factoring stays available, and the generated file is checked in.
+
+**DECIDED A2 (A2a) — derived values.**
+
+* **A2a · CHOSEN — Store only authored data; recompute `BY_ID`, `TOTAL`, `SLOT_SPEC` etc.
+  in the reader.** Smaller file, no chance of a stale derived value, and the
+  reader owns the derivation rules.
+* **A2b · Store everything, derived included.** The file is a complete picture
+  and needs no reader logic, but every derived value is a thing that can go stale
+  against the data it came from.
+* **A2c · Store derived values AND verify them on load.** Complete file, stale
+  values caught at read time rather than at use; costs a validation pass on every
+  read.
+
+**DECIDED A3 (A3a) — one file or one per handout.**
+
+* **A3a · CHOSEN — One file for the whole course** (as §3.1 settled for the rubric).
+* **A3b · One file per handout, plus a course file naming them.** Smaller diffs
+  and fewer merge conflicts; more files to keep in step.
+
+### 9.2 · GOAL B — the prompt generator's course tables move to the same file
+
+**DECIDED, with a constraint the user set: those tables live in the SAME JSON file
+as the rubric, and `olx_prompts.py` reaches them through functions rather than
+reading the file itself.**
+
+`olx_prompts.py` exists to turn the rubric into prompts and should need no course
+knowledge. Measured 2026-09-18, it holds **12 module-level tables naming this
+course's items**:
+
+| table | lines | item ids |
+|---|---|---|
+| `SLOT_NOTES` | 396 | 16 |
+| `REF_IDS` | 164 | **190** |
+| `SCORING_DIVERGENCES` | 130 | 6 |
+| `ITEM_NOTES` | 98 | 2 |
+| `RESPONSE` | 49 | 63 |
+| `PROBE_REACH_LIMITS` | 45 | 4 |
+| *(6 smaller)* | | |
+
+**DECIDED B1 (B1a) — where the accessors live.**
+
+* **B1a · CHOSEN — A single `coursedata.py` module** that owns the file and exposes
+  `slot_notes(item, slot)`, `ref_ids(item)`, and so on. One reader, one place to
+  change, one import for every consumer.
+* **B1b · Accessors on a loaded object** — `course = load_course(); course.ref_ids(...)`.
+  Testable with a fixture course and no module-level state, but every caller must
+  be handed the object.
+* **B1c · Accessors beside the data they serve**, one module per concern. Keeps
+  each accessor near its schema section; multiplies the modules that own the file.
+
+**DECIDED B2 (B2a) — how the tables are keyed in the file.**
+
+* **B2a · CHOSEN — By item id, folded INTO each item's entry.** `SLOT_NOTES` for `Q1`
+  becomes a field on `Q1`. Everything about an item is in one place; the item
+  entry grows and mixes rubric with generator hints.
+* **B2b · As sibling sections keyed by item id**, parallel to `items`. The rubric
+  stays exactly what it is; a reader must join two sections.
+* **B2c · By PURPOSE, not by item** — a `prompts` section holding what the
+  generator needs. Matches who consumes it; splits an item's facts across sections.
+
+### 9.3 · GOAL C — the remaining tables and modules
+
+**DECIDED in direction: all psychology-, course-, handout- and question-specific
+data ends up in the one JSON file, and the modules that use it become generic.**
+The route is OPEN pending A and B, because C is large enough that the shape
+chosen there decides most of it.
+
+Measured scope (plan §2.1, and a floor rather than a ceiling): **46 tables,
+3,986 lines, across 8 modules**, and **15 modules import a rubric**. The largest
+are `handouts.GOLD_DIVERGENCES` (784 lines), `handouts.CORRECTED_GOLD` (522),
+`handouts.HANDOUTS` (281), `goals.CLOSURES_APPROVED` (234),
+`handouts.GOLD_CEILINGS` (210), `enforcement.PROSE_ONLY_SLOTS` (201).
+
+### 9.2a · B2a's enforcement obligation — REQUIRED, not a convention
+
+B2a puts rubric facts and prompt-generator hints in the same item entry. The only
+thing keeping them apart is then the accessor boundary, and a boundary that is
+merely documented is a boundary that erodes: the first caller that reaches past
+`rubric_for(item)` into `item["slot_notes"]` because it is right there will not be
+noticed, and the second will cite the first.
+
+**So the separation is enforced, in the same framework as the other 135 checks
+(this is what C3c's "gate" half means for B2a).** Three obligations:
+
+1. **The schema declares which group each field belongs to.** Every field on an
+   item entry is either RUBRIC or GENERATOR — no field is unclassified, and a new
+   field that names no group fails validation rather than defaulting. Without the
+   declaration the check below has nothing to check against.
+
+2. **`coursedata.py` exposes each group only through its own accessors.**
+   `rubric_for(item)` returns the rubric fields and NOT the generator fields;
+   `slot_notes(item, slot)`, `ref_ids(item)` and their kin return generator fields
+   and NOT the rubric. Neither returns the raw entry. An accessor that hands back
+   the whole dict defeats the boundary while appearing to honour it, and is the
+   most likely way this fails.
+
+3. **An enforcement check fails the gate when a module crosses the boundary.**
+   Its subject is every module except `coursedata.py`: no other module may index a
+   generator field off a rubric entry, or a rubric field off a generator result.
+   It must also fail on the raw-entry escape — a module obtaining an item entry
+   from anything other than an accessor.
+
+**What failure should look like.** The check names the module, the field and the
+group it belongs to, so the fix is obvious: use the other accessor, or declare the
+field in the group it actually belongs to. A check that reports only "boundary
+violated" would send the reader back to this section to work out what that means.
+
+**The repair if it erodes anyway.** If the check has to be suppressed for a real
+case, that is evidence the two concerns do not in fact separate at the field
+level, and B2b — sibling sections keyed by item id — is the designed fallback. It
+is kept above for exactly this reason.
+
+**DECIDED C1 (C1b) — does gold belong in this file at all?**
+
+* **C1a · Yes, one file holds everything.** One place to look, one schema.
+  But `GOLD_DIVERGENCES` and `CORRECTED_GOLD` are about student submissions in a
+  PUBLIC repository (§4.3), and merging them into the shipped rubric file puts
+  that judgement on the critical path of every read.
+* **C1b · CHOSEN — No — gold is a second file**, same mechanism, different file, and the
+  leak rules apply to it alone. The rubric file can then be public without a
+  per-read judgement.
+* **C1c · One file, with gold in a section that is stripped on publication.**
+  One authoring artifact; a build step that can fail open.
+
+**DECIDED C2 (C2a) — order of migration.**
+
+* **C2a · CHOSEN — By module** — take `olx_prompts.py` to zero course tables, then the
+  next module. Each step is provable: the module's table count reaches zero.
+* **C2b · By table kind** — move all gold, then all slot metadata, then all notes.
+  Each step gives one schema section its final shape across every consumer.
+* **C2d · By handout** — everything for handout 1, then 2, then 3. A whole handout
+  is scorable from the file early, which is the closest thing to an end-to-end
+  proof; but every module is touched three times.
+
+**DECIDED C3 (C3c) — how a module is proved free of course data.**
+
+* **C3a · A test that greps the module for item ids** — cheap, and it is the
+  measurement §2.1 already uses, so the number is comparable over time.
+* **C3b · An enforcement check** in the existing framework, so a new course table
+  fails the gate rather than being noticed later.
+* **C3c · CHOSEN — Both** — the grep as the metric, the check as the gate.
+
+---
+
+## 10 · What §9 does not reach — the other three kinds of embedding, and the proof
+
+*Added 2026-09-18 after a review of §9 against the tree. §9 moves TABLES. Measured
+below: tables are one of four ways psychology is embedded in `scoring/`, and the
+goal — "generic code, applicable to other datasets" — has no test at all. Goals D-I
+are DECIDED in direction; the choices under each are OPEN unless marked otherwise.*
+
+### 10.0 · What was measured, 2026-09-18, by AST parse over 50 modules
+
+| embedding | measure | where it is worst |
+|---|---|---|
+| tables (§9) | 46 tables, 3,986 lines | `handouts.py`, `enforcement.py` |
+| **literal item ids in CODE** | **53** comparisons/lookups | `equivalence.py` 28, `measured.py` 7, `agreement.py` 3 |
+| **course vocabulary in DOCSTRINGS** | ~**30** words (a first count of 188 was inflated — see 10.3.0) | `operant`, `utb`, `behavior_1`, `reinforcement` |
+| **modules named for a course artifact** | **9** | `gold_slots_q6.py`, `baseline_h1.py`, `score_h1.py`, `simulate_h3.py`, `rubric_h{1,2,3}.py`, `handouts.py`, `gold.py` |
+| **prose artifacts** | ~24,000 lines | `GOALS.md` 16,516 · `EQUIVALENCE.md` 3,036 · `QUALITY_CONTROL.md` 2,674 · `BACKLOG.md` 1,840 |
+
+**Why this matters to C2a.** C2a proves a module clean when its table count reaches
+zero. A module can reach zero and still compare against `"Q6"`, still be named
+`gold_slots_q6.py`, and still explain behaviour modification in its docstring. The
+per-module proof must therefore be widened — see 10.6 — or the migration will
+report success against a definition that does not mean what it says.
+
+### 10.1 · GOAL D — the 53 literal item ids in code
+
+**DECIDED:** every one is either expressed as data or declared to be engine
+behaviour. None may remain as an unexplained literal.
+
+#### 10.1.0 · The 53 are four unrelated populations, not one
+
+Measured 2026-09-18 by AST, after an earlier reading of this section treated them
+as a single problem:
+
+| group | count | where | what it actually is |
+|---|---|---|---|
+| self-test fixtures | **28** | `equivalence.py`, all inside `enforcement_selftest` | fault injection naming an item to damage — **D2, not D1** |
+| **item `1c`** | **13** | `measured`, `agreement`, `agreement_app`, `olx_prompts`, `enforcement`, `compare_runs` | one item with a genuinely different shape, asserted in six modules |
+| builder conditionals | **5** | `rubric_h2.py`, `if item_id == "DAY2"` | data variation inside a data builder — **dissolved by A1c** |
+| item `Q6` | **4** | `gold_slots_q6.py`, `q6_consensus.py` | modules that exist for one question — **E1** |
+
+**Three of the four groups are already answered by decisions taken elsewhere.**
+Expanding the builders (A1c) turns `if item_id == "DAY2"` into the DAY2 entry
+simply carrying that text. The `Q6` references belong to modules named for Q6 and
+move with them (E1). The 28 are self-test fixtures (D2).
+
+**So D's real scope is `1c`** — handout 3's graph item: eight boxes rather than
+prose, a `rebuild_1c` gold path, a `series_box_holds` check, a
+`GRAPH_UNREACHABLE_1C` exclusion list. Not a scattering of quirks; one item whose
+shape differs, asserted in six places.
+
+#### 10.1.1 · DECIDED D1 — the rule: properties become flags, behaviour becomes named strategies
+
+The sites are not all asking the same kind of question, so one mechanism fits them
+badly. `PER_ITEM_EXCLUDE["1c"]` asks about a PROPERTY of the item; `rebuild_1c`
+selects a BEHAVIOUR. The rule is therefore:
+
+1. **A property of the item becomes a declared field on the item.**
+   `boxes: 8`, `derives_from_series: true`. The code asks the item what it is,
+   never what it is called. No interpreter, greppable, testable.
+2. **A choice of behaviour becomes a NAMED STRATEGY the item selects**, with the
+   implementations held in an engine registry — `gold: "rebuild_series"`. The
+   file says WHICH, never HOW, so the behaviour stays in Python where it can be
+   tested, and a new course selects from what exists or adds an implementation.
+3. **Anything that is neither is DECLARED ENGINE BEHAVIOUR**, in a table the gate
+   reads, with a reason. A site that cannot be stated as a property or a strategy
+   is a fact about the engine, and saying so is better than inventing a flag to
+   hide it.
+
+*Rejected, and why:* a **predicate language in the file** (the former D1b) was
+considered and rejected as clearly disproportionate — designing, testing and
+securing an evaluator for thirteen references to one item is a fixed large cost
+against a variety that does not exist. **Flags alone** (former D1a) would wrap
+`rebuild_1c` in a boolean the engine must still branch on, moving the branch
+rather than removing it. **Strategies alone** (former D1c) would produce
+single-member strategies wrapping what is only a property. **Open-ended
+case-by-case** (former D1d) is what this rule replaces: the same freedom, but with
+a stated test, so "what should this be?" has an answer rather than a discussion.
+
+#### 10.1.2 · DECIDED D1x (D1x-c) — who decides property vs behaviour, and when
+
+The rule has one soft edge: a site can often be argued either way
+(`series_box_holds` is a check the engine runs, but "this item's boxes hold a
+series" is also a property).
+
+* **D1x-a · At migration time, by whoever moves the site**, recorded in the
+  declaration table. Fastest; the boundary drifts with whoever is working.
+* **D1x-b · Property first, strategy only when a property cannot express it.**
+  A default that resolves most arguments without discussion, and biases toward the
+  simpler mechanism. Risks flags that are really behaviour in disguise.
+* **D1x-c · CHOSEN — Strategy first, property only for values the engine never
+  branches on.** The sharper test — if the engine branches on it, it is behaviour
+  and belongs in a registry — and it keeps branches out of the engine by
+  construction. Produces more strategies, some of them thin.
+
+**What choosing D1x-c commits us to.** The test is mechanical rather than a
+judgement call: *does any engine code branch on this value?* If yes it is a
+strategy, whatever it looks like. So `series_box_holds` is a strategy, because the
+engine branches on it; `boxes: 8` stays a property, because nothing branches on
+the number — it is read and used.
+
+This is the strictest of the three and it was chosen for a reason worth keeping:
+the whole goal of Goal D is that the engine stops deciding things by item
+identity. A rule that lets a branch survive as a flag reaches the letter of that
+goal while missing it, and the flag vocabulary then becomes the place where course
+shape accumulates — which is precisely the weakness recorded against flags-alone
+above.
+
+**The cost, accepted knowingly:** more strategies than the other two rules would
+produce, and some of them thin — a registry entry wrapping a few lines. A thin
+strategy is the price of a branch-free engine, and it is preferred to a flag that
+the engine must branch on anyway.
+
+**The check this implies** (it belongs with 10.7's widened per-module proof): a
+declared PROPERTY that appears in an engine branch is a rule violation, and the
+gate should say so. Without that, D1x-c is a convention and drifts back to D1x-b
+the first time a property is convenient.
+
+#### 10.1.3 · DECIDED D2 (D2d) — the 28 self-test fixtures
+
+All 28 sit inside `enforcement_selftest` (1,360 lines, 27 case functions). Each
+case wraps a real function, mutates the data for ONE named item, and asserts that
+a particular enforcement check fires. The item choices are not arbitrary but
+neither are they declared: `_drop_counts` needs an item that HAS a `counts` field
+(it uses Q1), `_drop_dealt` needs a job that is `dealt` (2a), `_filling` needs a
+box that gold records as EMPTY and therefore a specific cell (Q6/p9).
+
+* **D2a · Generic fixture selection.** Fixtures pick by shape — the first item
+  with `counts`, the first `dealt` job. The only option under which the self-test
+  runs against the Goal I fixture course, and it turns each case's precondition
+  into code rather than leaving it implicit in a literal. But it is the most work;
+  several cases need a conjunction (item AND participant AND an empty box) that is
+  real query code living inside the instrument that tests everything else; and it
+  makes COVERAGE DRIFT SILENTLY — damaging "the first item with counts" is Q1
+  today and Q2 after a content edit, so a regression that only reproduces on Q1
+  stops being caught with nobody noticing.
+* **D2b · Fixtures declared in the course file.** Explicit, reviewable, pinned,
+  cheap. Rejected on the governing principle: it would make the ENGINE's self-test
+  require a section in every COURSE file, so a course omitting it could not run
+  the self-test — general pointing at specific, which §0 forbids. It also puts
+  test scaffolding into the shipped course artifact, and still never says WHY Q1.
+* **D2c · Exempt the self-test.** Free, and honest that a fixture naming its
+  target is not the sin an engine branching on identity is. But it leaves 28 of
+  the 53 permanently course-bound and the self-test unable to run against the
+  fixture course — the acceptance test for genericity would exclude the module
+  that verifies the checks.
+* **D2d · CHOSEN — D2c now, D2a as the destination, in that order.** The
+  self-test is exempted from the gate FOR NOW, and made generic AFTER its own
+  defects are fixed.
+
+**Why the sequence rather than either end of it.** §11.11 records two open defects
+in this instrument: a case that does not restore its own injection, and guards
+that do not stop two self-tests running at once — the second confirmed on
+2026-09-18 by starting two on the live tree and watching both proceed. This is the
+instrument every gate depends on. Making its fixtures query-based while it is
+known untrustworthy adds a NEW way for it to be quietly wrong — a query silently
+selecting a different target — to a component that already has two. Fix what is
+broken, then generalise.
+
+**What this commits us to, so "for now" does not become "forever":**
+
+1. The exemption is NAMED and SCOPED — `enforcement_selftest` only, never
+   `equivalence.py` as a whole — and the gate REPORTS the exemption rather than
+   passing in silence, so the 28 stay visible in the count.
+2. The exemption is CONDITIONAL on entry condition 4 (the concurrency guard) and
+   on §11.11's restore defect. When both close, the exemption expires and D2a is
+   the work that replaces it.
+3. D2a's coverage-drift weakness is answered when it is done, not deferred: a
+   shape-selected fixture must REPORT the target it chose, so a silent change of
+   target appears in the run's own output.
+4. Until D2a lands, Goal I's fixture course is NOT expected to run the enforcement
+   self-test, and 10.6 must say so rather than appearing to cover it.
+
+### 10.2 · GOAL E — modules named for a course artifact
+
+**DECIDED:** a generic engine contains no module named for a question, a handout
+or a course.
+
+#### 10.2.0 · The nine are four different problems
+
+Measured 2026-09-18 (lines, share of lines inside defs, and how many modules
+import it):
+
+| module | lines | code | importers | what it is |
+|---|---|---|---|---|
+| `gold_slots_q6.py` | 276 | 72% | **0** | reads Q6's per-slot gold out of grader comments |
+| `q6_consensus.py` | 241 | 53% | **0** | CLI — one stable parse of each Q6 answer |
+| `baseline_h1.py` | 218 | 83% | **0** | CLI — scorer vs the 20 gold rows for handout 1 |
+| `score_h1.py` | 507 | 72% | **0** | CLI — score handout 1, one item at a time |
+| `simulate_h3.py` | 452 | 61% | 2 | reconstruct a handout 3 session from paper |
+| `rubric_h1.py` | 2,949 | **0%** | 6 | pure data |
+| `rubric_h3.py` | 830 | **0%** | 3 | pure data |
+| `rubric_h2.py` | 1,362 | 47% | 7 | data + builders |
+| `gold.py` | 176 | 44% | 6 | gold access |
+| `handouts.py` | 2,354 | **10%** | **21** | the hub: 1,875 lines of constants |
+
+Two facts drive the decision. **Four modules have no importers at all** — they are
+command-line tools, not library code, so nothing is coupled to them and a rename
+cannot break a caller. And **`handouts.py` is 90% data with 21 importers**, its
+bulk being `GOLD_DIVERGENCES` (771), `CORRECTED_GOLD` (503), `HANDOUTS` (281) and
+`GOLD_CEILINGS` (206) — all of which leave for the gold file under C1b anyway.
+
+#### 10.2.1 · DECIDED E1 — per group, not one treatment
+
+A single option fits none of these well, so the decision is made per group. The
+three mechanisms (E1a rename-and-parameterise, E1b merge-per-kind, E1c
+split-engine-from-data) are kept as the vocabulary.
+
+| group | modules | decision | why |
+|---|---|---|---|
+| **rubrics** | `rubric_h{1,2,3}.py` | **already A1c** | they become the course JSON; no E decision is owed |
+| **the hub** | `handouts.py`, `gold.py` | **E1c** | the only option that addresses 1,875 lines of constants behind 21 importers — and largely free, since C1b moves the gold tables out regardless |
+| **item-shaped reader** | `gold_slots_q6.py` | **E1c** | 72% code, but the SHAPE it parses is Q6's: split into a generic grader-comment reader plus Q6's shape as data |
+| **CLI tools** | `q6_consensus.py`, `baseline_h1.py`, `score_h1.py` | **E1a** | zero importers, so a rename cannot break a caller and a split buys nothing; parameterise by handout/item |
+| **genuinely specific** | `simulate_h3.py` | **E1a, or left alone with a declaration** | reconstructing seven daily numbers and three axis labels from a paper chart IS handout-3-shaped work; a generic name would be a lie |
+
+**Why not E1b anywhere.** Merging per kind was rejected on the measurement: the
+four CLI tools have NO importers, so merging them yields no dependency
+simplification while carrying the largest merge risk — the biggest change for the
+smallest structural gain. If `baseline_h1` and `score_h1` turn out to share real
+logic, that is a refactor to make on its merits, not a reason to merge modules
+nothing depends on.
+
+**The trap E1a carries, and the check for it.** Renaming `score_h1.py` to
+`score_handout.py` while it still assumes handout 1's item shapes satisfies Goal E
+and defeats it. So a module renamed under E1a is not "done" until it runs against
+a SECOND handout — which is what Goal I's fixture course is for. Until then it is
+renamed, not generalised, and the plan should not count it.
+
+**`simulate_h3.py` is the one place a course-shaped module may survive**, because
+its subject matter is a specific artifact. If it is left, it carries a written
+declaration saying so — an undeclared exception is how "no course-named modules"
+quietly becomes "no course-named modules except the ones we kept".
+
+### 10.3 · GOAL F — course vocabulary in engine docstrings
+
+**DECIDED:** engine documentation explains the ENGINE. Course facts cited as
+illustration are marked as illustrations; course facts that are really
+specification move to the course prose.
+
+#### 10.3.0 · The number was wrong, and correcting it changes the goal
+
+An earlier revision of this section said **188 course-vocabulary words in
+docstrings** and listed `enforcement.py` 44, `measured.py` 19 and so on. That
+count came from a regex, and the regex was wrong in two ways. Re-measured
+2026-09-18:
+
+| word | count | verdict |
+|---|---|---|
+| `handout` | **127** | **NOT course vocabulary.** A handout is a STRUCTURAL unit the engine will have whatever the course is, and most uses are usage documentation — `python3 agreement.py --handout 1`. Counting it made the problem look five times bigger than it is. |
+| `behaviour` | 35 | **mostly ordinary software English.** `_behaviour_src` is "a function's source with its prose removed, so only behaviour is hashed"; "the caller keeps its existing behaviour". Nothing to do with behaviour modification. |
+| `operant` | 9 | real |
+| `utb` | 8 | real |
+| `behavior_1`, `behavior_n` | 7 | real — course slot names |
+| `reinforcement`, `psychology`, others | ~6 | real |
+
+**The genuine population is on the order of 30 words, not 188.** Recorded because
+the inflated figure would have justified a far larger intervention than the
+evidence supports — and because the same regex is the one C3a would use as a
+metric, so it has to be fixed there too or the gate inherits the error.
+
+#### 10.3.1 · The mechanisms, named by WHICH WAY THEY POINT
+
+An earlier revision of this section said F1c was "move the explanation to the
+course file and leave the engine docstring pointing at it". **That violates §0** —
+it is a general artifact pointing at a specific one, and it fails §0's own test:
+a reader who has never heard of this psychology course would hit a pointer they
+cannot resolve. It is retracted.
+
+The mechanisms are therefore distinguished by direction of reference, not by kind
+of sentence:
+
+1. **Concept naming — the engine names VOCABULARY, never a course.** The docstring
+   names the field or strategy it consumes: *"Gate on the criteria the item
+   declares in `oc_definition`, then classify by type."* General, complete, and no
+   reference leaves the engine. This is what F1c should have said.
+2. **Generic incident — the engine may record WHAT WENT WRONG, stated without the
+   course.** See 10.3.2.
+3. **Anchor include — the course file incorporates general sections by
+   reference** (Goal G). Points the right way by construction.
+4. **The course JSON** — machine-readable facts, reached only through
+   `coursedata.py` accessors (B1a).
+
+#### 10.3.2 · DECIDED F1 — no course-derived sentence survives in general prose
+
+**Course-derived illustrations are FORBIDDEN in engine prose, marked or not.** The
+`e.g. (psych):` marker considered above is rejected: a convention that permits
+course content in a general artifact decays into a rubber stamp, and §0's failure
+mode is accumulation that "looks reasonable" one addition at a time.
+
+Each sentence is therefore handled by what it is:
+
+* **Specification** — the contract the code implements. The docstring names the
+  concept (mechanism 1); the content lives in the course JSON and is explained in
+  the course prose. Example: `score.derive_oc_ledger`'s "criteria 1-3 of the
+  definition (an operant, a contingency, correct temporal order) ... only if it
+  passes do we ask which of the four types it is" becomes a docstring about
+  gating on declared criteria, with the criteria themselves course-side.
+* **Incident and history** — moves to **the project changelog**, which is where a
+  record of what happened belongs and which no general artifact points at.
+  Example: `measured.report`'s "Handout 1's items were once reported as 12/14 and
+  14/15 while their denominators were 19 and 20."
+* **SPLIT, where the incident is the argument for the code.** Some incidents are
+  not decoration — they are why the function is written as it is, and deleting
+  them loses the reason. In that case the sentence is split: **a GENERIC statement
+  of the failure stays in the engine prose, and the course-specific instance goes
+  to the changelog.** `measured.report` keeps *"a reported figure is most easily
+  wrong in two ways: the best run quoted instead of the median, and a denominator
+  that has since grown"* — which is true of any course, justifies the median, and
+  names nothing. The 12/14 instance goes to the changelog.
+
+**The test for whether a split is owed:** *does the generic statement still
+justify the code?* If yes, split and keep the generic half. If the sentence only
+persuades because of its specific numbers, it is history and belongs wholly in the
+changelog.
+
+**F1a (rewrite everything generically) remains rejected** where it would destroy a
+contract — a reader who cannot see WHICH definition the code implements cannot
+check the implementation. Under the rule above that case does not arise: the
+contract is not rewritten, it MOVES, and the docstring names the concept instead.
+
+### 10.4 · GOAL G — the prose artifacts, GENERAL and COURSE-SPECIFIC
+
+**DECIDED, and the shape is the user's, 2026-09-18:** each of these files becomes
+**two** files — a GENERAL file holding the structure that should always be there,
+and a COURSE-SPECIFIC file holding what comes from this course, its handouts, its
+items and its student responses. **The course-specific file incorporates the
+general file in pieces, BY REFERENCE** — it does not copy it, and it does not
+replace it.
+
+This supersedes §3.3 and §3.4, which proposed a split for `GOALS.md` and
+`QUALITY_CONTROL.md` alone and did not say how the halves relate. The same
+treatment now applies to `EQUIVALENCE.md` and `BACKLOG.md`.
+
+**DECIDED G1 (G1c) — what "by reference" is, mechanically.**
+
+* **G1a · Anchor include** — the course file names a section of the general file
+  by a stable anchor. No build step; the reader follows the pointer. *An earlier
+  revision called this "a convention this repo already uses". It is not: measured
+  2026-09-18, exactly ONE anchor pair exists, and both halves sit in this plan six
+  lines apart. It is a demonstration, never a working cross-file mechanism.*
+* **G1b · Transclusion at build time** — a generated combined document, with the
+  two sources authoritative. Readers see one document; there is a build to run and
+  a generated artifact that can go stale.
+* **G1c · CHOSEN — Reference with a checked contract** — anchors as in G1a, plus
+  a gate that fails when a referenced anchor does not exist or a general section is
+  orphaned. Same authoring cost as G1a; the pointers cannot rot silently.
+
+**Why, and what the gate is for.** G1a's only fatal weakness is silent rot across
+four files and ~24,000 lines, and there is no evidence the bare convention
+survives use — it has never been used. The check is cheap (a few lines: collect
+`qc:` definitions, collect `see: qc:` references, diff the two sets) and it fits
+C3c's decided shape, where a rule that matters gets a gate rather than a
+convention.
+
+**The orphan half is the valuable half.** A dangling reference is an ordinary
+broken link. An ORPHANED general section — one no course file points at — is the
+signal that something placed in the general file is not actually general, which is
+the failure §0 describes and the one no test otherwise catches.
+
+**The gate's known soft edge:** a general section legitimately used by no course
+YET is not wrong. So orphans WARN and danglers FAIL, and an orphan that is
+deliberate carries a declaration rather than an exemption list — exemption lists
+erode, and §0's failure mode is precisely erosion that looks reasonable one entry
+at a time.
+
+**What G1c does NOT fix:** the reading experience. Following a pointer into a
+16,516-line file is still that, which is why 10.4.1 is a prerequisite rather than
+a nicety.
+
+#### 10.4.1 · PREREQUISITE — `GOALS.md` has no structure to anchor to
+
+Measured 2026-09-18:
+
+| file | lines | headings | lines per section |
+|---|---|---|---|
+| `GOALS.md` | 16,516 | **9** | ~1,800 |
+| `EQUIVALENCE.md` | 3,036 | 88 | ~35 |
+| `BACKLOG.md` | 1,840 | 56 | ~33 |
+| `QUALITY_CONTROL.md` | 2,674 | 52 | ~51 |
+
+Three of the four are already finely structured and can be split and anchored as
+they stand. **`GOALS.md` cannot**: nine headings across 16,516 lines means there is
+almost nothing to anchor TO, and a pointer into a 1,800-line section is not a
+reference, it is a direction to go looking.
+
+**So restructuring `GOALS.md` is a PREREQUISITE of Goal G, not a consequence of
+it** — and on the measurement it is the larger job. It must be done before the
+general/specific split, because the split has to cut along section boundaries that
+do not currently exist, and inventing them during the split would mean deciding
+what is general and where the seams are at the same time.
+
+It is also the file where the split matters most: `GOALS.md` is 112 entries of
+prose + structure, machine-parsed, read or written by five modules (§2.2, §2.3).
+
+**Sequencing this adds to Goal G:**
+
+1. Restructure `GOALS.md` into sections at a granularity a pointer can usefully
+   name, with its machine-parsed contract unchanged — the five modules that read
+   it must not notice.
+2. Then split each of the four files general/specific.
+3. Then place anchors and turn on the G1c gate.
+
+Doing 3 before 1 would gate a mechanism that cannot yet be used on the file that
+needs it most.
+
+**DECIDED G2 (G2c) — the machine-written log becomes structured data, LATE.**
+
+Measured 2026-09-18: `OVERRIDES.md` is 48 MB / 257,216 lines, TRACKED in git,
+append-only, written by the pre-commit gate and read by five modules
+(`precommit_gate`, `goals`, `enforcement`, `equivalence`, `measured`). Each entry
+is a commit that used `ALLOW_UNDECLARED`, the findings it waved through, and the
+reason given.
+
+*Checked first, because this repository is public: **zero** lines carry
+student-style first-person phrasing across all 257,216. The 333 quoted runs of 80+
+characters are finding text — check names, slot sets, goal titles. G2 is a
+structure question, not a leak question.*
+
+* **G2a · Leave it entirely course-side.** Simplest, and defensible on content —
+  every line names this course's findings. But it makes the course directory the
+  home of a 48 MB machine artifact sitting beside a hand-authored rubric, and it
+  leaves the FORMAT undocumented anywhere general, so a second course's gate would
+  re-derive it from this file.
+* **G2b · A general format description, log stays course-side.** Separates format
+  (engine) from entries (course). Rejected as likely decorative: a documented
+  format that drifts from what `precommit_gate.py` actually writes is worse than
+  none, and nothing would hold the two together.
+* **G2c · CHOSEN — it is not prose.** 48 MB of Markdown that is machine-written,
+  machine-read by five modules and never read end-to-end by a person is a database
+  in a document's clothes. The record becomes structured data (JSONL, appended);
+  the `.md` becomes a RENDERING produced on demand.
+
+**Why G2c.** It is what §0's second governing principle already says — *the JSON
+is machine-owned, the `.md` files are ours* — applied to a file that is machine-
+owned and in the wrong format for that rule. It also achieves G2b's aim in a form
+that CANNOT drift: the format becomes a schema the writer and all five readers
+share, rather than a description beside them. And it removes prose-parsing from
+five modules.
+
+**Sequenced LATE, and this is part of the decision.** G2c modifies the pre-commit
+gate — the thing standing between this PUBLIC repository and a student-text leak.
+Breaking it is the worst failure available in this refactor: not a wrong number,
+but student text in a public repo. So:
+
+1. **Not part of Goal G's main sequence.** G proceeds on the four prose files
+   without it.
+2. **Not started until the fixture course (Goal I) exists**, so the converted gate
+   can be exercised against a second dataset before it is trusted with the first.
+3. **The gate's leak check is not touched by this work.** The conversion changes
+   how the RECORD is written, never what the gate refuses. If a step requires
+   changing the refusal logic, that step is out of scope and stops.
+4. **The 48 MB stays readable throughout.** The renderer lands before the old file
+   is retired, so there is never a window where the audit record exists only in a
+   form nobody can open — an audit log whose value is partly that anyone can read
+   it should not become tool-only even briefly.
+
+### 10.5 · GOAL H — the course files get their own directory
+
+**DECIDED, the user's instruction:** the JSON file and the course-specific prose
+files live together in their own directory, separate from the engine.
+
+**DECIDED H1 (H1c) — `courses/<course-id>/`, and gold OUTSIDE the repository.**
+
+* **H1a · Beside the content, in `psychology/`.** What §0 currently says. Keeps
+  rubric and metadata together, and lo-blocks already mounts that directory. But it
+  makes a content directory the home of scoring configuration, and gives no home to
+  the four course-specific `.md` files from Goal G, which are not content lo-blocks
+  renders.
+* **H1b · A sibling of `scoring/`, e.g. `course/`.** Easy to find and obviously
+  separate from the engine. Rejected for its name: a directory called `course/` in
+  a repo holding one course works until there are two, which is §0's accumulation
+  trap with a different shape.
+* **H1c · CHOSEN — `courses/<course-id>/`**, e.g. `courses/edu.memphis.psych/`.
+
+**Why.** A second course becomes a new DIRECTORY rather than a new convention,
+which is precisely Goal I's acceptance test — the fixture course is
+`courses/fixture/` and needs no structural argument. It makes the course id, which
+§0 already uses to tie rubric and metadata together, the organising principle of
+the filesystem too. And it is the only layout that FAILS visibly if someone
+assumes a single course, rather than working fine until the second one arrives.
+
+**Its cost, accepted:** it builds for a plurality that does not exist yet, and it
+changes how lo-blocks mounts content — `content-sources.local.yaml` currently
+points at a root containing `psychology/`.
+
+#### 10.5.1 · §0 is AMENDED, not silently contradicted
+
+§0 says the metadata file "lives beside the rubric in the content directory". H1c
+supersedes that. The two identifiers in §0 are untouched and do the work they
+always did — the metadata names its rubric, the rubric names its metadata — so
+neither artifact is found by filename arithmetic and the pair may now live in
+different directories without weakening anything. **§0 must be edited to say so.**
+A plan that contradicts its own opening section in section 10 is a plan whose
+reader cannot tell which part is current.
+
+#### 10.5.2 · Two locations, not one — gold lives OUTSIDE the repository
+
+The course data does not all live in one place, and the plan should stop implying
+it does:
+
+| artifact | location | why |
+|---|---|---|
+| course JSON (rubric, item data, generator fields) | `courses/<id>/` **in the repo** | publishable; it is the thing the engine reads |
+| course prose, general/specific split (Goal G) | `courses/<id>/` **in the repo** | publishable |
+| **gold, divergences, corrected gold (C1b)** | **`$COURSE_DATA/courses/<id>/`, outside the repo** | derived from student submissions; this repository is PUBLIC |
+
+This is not a new rule, it is the existing one: `.gitignore` states that nothing
+derived from student submissions belongs in this repo, and `migration_goldens` was
+already moved out of it after being found to hold 433 student spans. C1b's gold
+file inherits that, and putting it under the same `courses/<id>/` name OUTSIDE the
+repo keeps the two halves legible as one course without putting either in the
+wrong place.
+
+#### 10.5.3 · `MOLLY_DATA` should be renamed `COURSE_DATA`
+
+**DECIDED.** The variable is named after one course's data set; under H1c it holds
+`courses/<id>/` for any number of them, so the name becomes wrong exactly when the
+refactor succeeds. `COURSE_DATA` says what it is.
+
+The rename is mechanical but not free — `MOLLY_DATA` appears in `paths.py`, in
+runbooks, in shell environments and in this plan — so:
+
+* it is a SEPARATE step, not folded into another goal, because a rename touching
+  environment variables fails in ways that look like missing data;
+* `MOLLY_DATA` is honoured as a fallback for a declared period, with the reader
+  preferring `COURSE_DATA` and warning when it finds only the old name — an
+  environment variable that silently stops being read gives an empty result
+  rather than an error, and empty results here look like a clean pass;
+* `MOLLY_OUT` and any other `MOLLY_*` names are renamed in the same step, so the
+  repo does not end up with both vocabularies.
+
+### 10.6 · GOAL I — the proof: a second dataset
+
+**DECIDED, and this is the gap that matters most.** The success test in §9.1 is
+*"a new handout, or a new course, can be scored by adding data and changing no
+Python."* There is exactly ONE course in this repository and no fixture course
+anywhere. **Genericity cannot be demonstrated against a single instance**: every
+abstraction fits the dataset that shaped it, and the assumptions that were never
+parameterised are found by the SECOND course, not the first. Every stage in §5 and
+§9 is provable except the goal itself.
+
+*Scope note, from D2d: until the self-test's fixtures are made generic, the
+fixture course is NOT expected to run `enforcement_selftest`. The acceptance test
+therefore covers scoring end-to-end but not the enforcement self-test, and says so
+rather than appearing to cover it.*
+
+**DECIDED I1 (I1a, sized by shape coverage) and I2 (I2c for stage one, I1b later).**
+
+#### What the fixture must cover, and why "minimal" is the wrong size
+
+Measured 2026-09-18: the 26 items produce **19 distinct key-shapes**. Seven fields
+are universal (`id`, `label`, `max`, `increment`, `question`, `credit`,
+`deductions`); after that it fragments — `guidance` on 25 items, `context` 23,
+`derive_from_credit` 18, `blank_code` 11, `derive_from_criteria` 8.
+
+**A two-item fixture would cover 2 of 19 shapes and prove almost nothing.** So the
+fixture is sized by SHAPE COVERAGE, not by item count: it carries at least one
+item of every key-shape the engine claims to handle, and the coverage is
+measured and reported rather than asserted. An engine change that introduces a
+shape the fixture does not cover is an engine change that has not been tested.
+
+* **I1a · CHOSEN for stage one — a fixture course, invented content, sized by
+  shape coverage.** Available now: no checkout, no PAT, no content negotiation, no
+  leak surface. Its known weakness is recorded rather than wished away: **it is
+  written by the same hand that abstracts the engine, at the same time, so it will
+  encode some of the assumptions it exists to test.** Shape coverage narrows that
+  but does not remove it. A fixture that passes proves the engine handles the
+  fixture.
+* **I1b · DEFERRED, not rejected — a real second course, when one is available.**
+  Two exist as declared content sources in lo-blocks: `edu.memphis.writing`
+  (public) and `edu.gsu.interdisciplinary` (non-public, needs a PAT). Neither is
+  checked out here and neither is known to carry a scored assignment. A real course
+  is the only thing that can FALSIFY the abstraction, because its shapes were not
+  chosen by us — so it is scheduled as a second acceptance round when one becomes
+  available, not dropped.
+* **I1c · REJECTED — a fixture stripped from the psych course.** It inherits
+  exactly the assumptions it exists to test: psych's item shapes, field vocabulary
+  and gating structure, so the engine fits it by construction. It also carries a
+  live leak risk the invented fixture does not — stripping and renaming
+  student-derived gold is how partially-scrubbed data reaches a public repo, and
+  that has happened in this project once already.
+
+#### I2 — when
+
+* **I2c · CHOSEN for stage one — the fixture is built LAST, as acceptance**, with
+  I1a as the baseline the stage is measured against.
+* **A second acceptance round with I1b** follows when a real alternative course
+  becomes available. The first round establishes that the engine is course-shaped
+  no longer; the second establishes that it is course-INDEPENDENT. They are
+  different claims and the plan should not let the first stand for the second.
+* I2a (first) and I2b (at the first module boundary) are not taken: designing the
+  fixture before any migration means guessing where the seams are, and the fixture
+  would then encode today's shape as the target.
+
+#### What now depends on the fixture, and therefore lands after stage one
+
+I2c puts the fixture at the END of stage one, so everything sequenced after it
+moves with it. Recorded here because these dependencies were agreed separately and
+would otherwise look independent:
+
+* **G2c** (`OVERRIDES.md` to structured data) — explicitly "not started until the
+  fixture course exists", because it modifies the pre-commit gate.
+* **E1a's renamed modules** — renamed is not generalised until one runs against a
+  second handout; until then the plan counts them as renamed.
+* **D2a** (generic self-test fixtures) — already sequenced behind the self-test's
+  own defects, and the fixture course is what it would finally run against.
+
+**The risk I2c carries, stated plainly:** the expensive discovery — that something
+migrated early was never general — arrives at the end. That is the price of not
+guessing the seams in advance, and it is mitigated only by C2a's per-module proof
+and C3c's gate catching the cheap failures as they happen.
+
+### 10.7 · The per-module proof, widened
+
+**DECIDED:** C2a's "clean" is redefined. A module is clean when **all** hold:
+
+1. no course table (§2.1's measure, C3a's grep),
+2. **no literal course id in code** (the 53),
+3. **no unmarked course vocabulary in docstrings** (the 188),
+4. **no course artifact in its own name** (the 9),
+
+and C3c's enforcement check gates all four, not just the first. A definition of
+"clean" that stops at tables would let every module pass while the engine stayed
+a psychology program.
+
+---
+
+## 11 · The order of work
+
+*Added 2026-09-18. §5 listed stages and §§9-10 took fourteen decisions, but nothing
+said which happens when, and several decisions created dependencies on each other
+that are invisible from where they are written. This is the single ordering; where
+it disagrees with a stage description, this section is current.*
+
+### 11.0 · Before anything
+
+| # | gate | status |
+|---|---|---|
+| E1 | re-sweep finished | **MET** — 26 items `ok` |
+| E2 | live self-test clean, no residue | **run in flight**; the last full run left the tree clean but reported 1 failed case and 1 skipped, both since repaired |
+| E3 | lo-blocks engine increment committed | **MET** — `59d64720`, `92d6ab30` |
+| E4 | self-test refuses a concurrent run | **MET** — guard added and verified |
+
+**E2 is the only open gate**, and it now means something narrower than "the
+self-test passes": the two defective cases (a vacuous neutrality fixture, a
+skipped inverted case) must be repaired and the suite re-run clean.
+
+### 11.1 · Stage 0 — repair the instrument (IN PROGRESS)
+
+1. ~~concurrency guard~~ **done**
+2. ~~neutrality case builds its own pair~~ **done, verified firing**
+3. **count-scaffold case builds its own precondition** — writes a synthetic
+   `*.runs.json` with an impossible triple, confirms the finding fires, blinds the
+   check, confirms it stops. Must carry `web_score_sha` or the check's own
+   attributability filter skips it and the case is vacuous for a new reason.
+4. **full self-test re-run, clean** — closes E2.
+
+*Nothing else starts until Stage 0 closes. Every later stage is verified by this
+instrument; repairing it afterwards would invalidate whatever it had already
+certified.*
+
+### 11.2 · Stage 1 — widen the inventory, freeze a baseline
+
+Re-measure §2.1 against the tree that now includes the committed engine increment
+(§1 condition 3 requires it). The scan must count all four embeddings from §10.7,
+not tables alone: **tables, literal ids, unmarked course vocabulary, course-named
+modules.** §10.3.0's correction is part of this — the vocabulary regex counted
+`handout` (127) and software-sense `behaviour` (35) and made the problem look five
+times larger than it is.
+
+### 11.3 · Stage 2 — schema, against the hardest tables first
+
+Fit the schema to `GOLD_DIVERGENCES`, `CORRECTED_GOLD`, `PROSE_ONLY_SLOTS`,
+`DESIGNED_TEXT`. Decisions already binding on it: **A2a** (authored data only,
+derived recomputed), **A3a** (one file per course), **B2a** (generator fields on the
+item entry), **§9.2a** (every field declares RUBRIC or GENERATOR, unclassified
+fails), **C1b** (gold is a SECOND file), **H1c** (`courses/<id>/`).
+
+### 11.4 · Stage 3 — the reader
+
+`coursedata.py` (**B1a**), with per-group accessors and **no accessor returning a
+raw entry** (§9.2a). Dual-source verification: the reader and the existing modules
+must agree on the live course before anything is deleted.
+
+### 11.5 · Stage 4 — move the tables, module by module (**C2a**)
+
+`olx_prompts.py` first — 12 tables, 190 ids. A module is done when §10.7's four
+counts reach zero, gated by **C3c** (grep as metric, enforcement check as gate),
+including D1x-c's rule that **a declared property appearing in an engine branch is
+a violation**.
+
+Goal D's real scope is `1c` (13 references, six modules) — properties become
+fields, behaviour becomes named strategies. The other three groups are handled
+elsewhere: `rubric_h2`'s 5 dissolve under **A1c**, `Q6`'s 4 move under **E1**, and
+the 28 self-test fixtures are exempt under **D2d** until Stage 8.
+
+### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
+
+`rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
+generates the expanded canonical JSON.
+
+### 11.7 · Stage 6 — modules (**E1**, per group)
+
+`handouts.py` and `gold.py` split (**E1c**) — cheap once C1b has taken the gold
+tables. `gold_slots_q6.py` splits. The three CLI tools rename (**E1a**).
+`simulate_h3.py` may stay, with a written declaration.
+
+### 11.8 · Stage 7 — prose (**Goal G**)
+
+**Blocked on restructuring `GOALS.md`** (§10.4.1): 9 headings over 16,516 lines,
+nothing to anchor to. Then split all four files general/specific, then place
+anchors and turn on the **G1c** gate — danglers fail, orphans warn.
+Docstrings under **F1**: no course-derived sentence survives in general prose;
+incidents split, generic half stays, specific half to the changelog.
+
+### 11.9 · Stage 8 — the fixture course (**I1a**, **I2c**)
+
+Sized by SHAPE COVERAGE — at least one item of each of the 19 key-shapes, coverage
+measured and reported. This is the acceptance test for stage one, and it unblocks
+three things deliberately parked behind it: **G2c** (`OVERRIDES.md` to structured
+data, because it touches the pre-commit gate), **D2a** (generic self-test
+fixtures, which retires D2d's exemption), and **E1a's renamed modules**, which are
+renamed and not generalised until one runs against a second handout.
+
+### 11.10 · Stage 9 — the rename
+
+`MOLLY_DATA` → `COURSE_DATA` (§10.5.3), separately from everything else, with the
+old name honoured and warned about for a declared period.
+
+### 11.11 · Stage 10 — the second course (**I1b**), when one exists
+
+`edu.memphis.writing` or `edu.gsu.interdisciplinary`. Stage 8 establishes the
+engine is course-SHAPED no longer; only this establishes it is course-INDEPENDENT.
+Not scheduled — it waits on availability, and the plan should not pretend
+otherwise.
+
+### 11.12 · What the order is protecting
+
+* **The instrument before the work.** Stage 0 first, because everything later is
+  certified by it.
+* **Measure before design.** Stage 1 before Stage 2, because the schema is fitted
+  to what is actually there — and two of this plan's own measurements shrank
+  sharply under scrutiny (53 branches to ~13, 188 docstring words to ~30).
+* **The reader before the deletions.** Stage 3 before Stage 4: dual-source
+  verification needs both sources.
+* **The proof last, knowingly.** I2c puts the fixture at the end, so the expensive
+  discovery — something migrated early was never general — arrives late. That was
+  chosen over designing the fixture against seams that did not exist yet.
+
+---
+
+## 12 · The tooling, keyed to the stage that needs it
+
+*Added 2026-09-18. One design per tool, to be reviewed one at a time.*
+
+**The governing constraint, established before designing any of them:** this repo
+already has `enforcement.py` with **149 registered checks**, `guide.py` doing
+structural checks on `QUALITY_CONTROL.md`, `sweep_gate.py` gating sweeps, and
+`editguard.py` guarding writes. **A gate belongs in that machinery, not in a new
+script.** A new script is warranted only for work that produces or transforms an
+artifact. Eleven tools follow: four scripts, four checks, two converters, one
+module.
+
+### 12.0 · THE RULE FOR EVERY GATE DISCOVERED LATER
+
+**A gate found during the work goes into the existing enforcement mechanism. It is
+never a one-off.** This list is not expected to be complete — the work will turn up
+rules that need enforcing, exactly as it already has: §9.2a's accessor boundary,
+D1x-c's property-not-branched-on rule and G1c's anchor contract were all discovered
+while deciding something else, and each became a check rather than a note.
+
+Concretely, a new gate is registered as:
+
+* a `check_*` function in `enforcement.py`, so it runs with the other 149 and fails
+  a commit rather than being remembered; or
+* an addition to `guide.py` when it is a structural rule about the prose artifacts;
+  or
+* an addition to `sweep_gate.py` when it must hold before a sweep spends calls.
+
+**Why this is a rule and not a preference.** A one-off script is run by whoever
+remembers it, and this project has the evidence: §11.11's self-test defects went
+unnoticed because nothing gated them; the enforcement self-test itself contained a
+case that had silently stopped testing anything; and the convention "do not start a
+sweep while the self-test is running" was a thing a person had to remember until
+`refuse_if_selftest_running` made it a refusal. A check that lives outside the gate
+is a convention with a filename.
+
+**What that requires of each gate:** it must be cheap enough to run every time
+(the audit already runs 149), it must name the module, the field and the rule when
+it fails, and it must be tested by a self-test case that proves it fires — which,
+per T0.1, must not be vacuous.
+
+---
+
+### T0.1 · the self-test's own vacancy report — NOT a script — STAGE 0
+
+*Revised on review, 2026-09-18. First designed as a standalone
+`selftest_case_audit.py`; three objections retired that shape — see "why not a
+script" below.*
+
+**Why.** On 2026-09-18 one case failed with `NOTHING FIRED` because the table it
+mutated was empty (`dict(SCORER_NEUTRAL)` had no entries, so the comprehension
+iterated zero times and the injection injected nothing), and a second was SKIPPED
+because the finding it blinds was not firing. Both had been testing nothing for an
+unknown period while the suite reported `72 of 72 expected`.
+
+**What it is.** A report the SELF-TEST emits, from data it already has. Each case
+already computes the findings before and after its injection in order to assert the
+right one fired; the report records that delta per case and fails the run when any
+case could not have tested anything.
+
+**Two failure states, not one.**
+
+1. **Zero delta** — the injection changed no finding. The neutrality case.
+2. **SKIPPED** — the case's precondition was absent, so no comparison happened at
+   all. The count-scaffold case. *A skip never reaches a before/after comparison,
+   so a design that only compared deltas would have caught the first failure and
+   missed the second — which is half the evidence that motivated this.*
+
+Both are vacancy. Both fail the run.
+
+**Output.** Per case: `name, findings before, findings after, delta, verdict`, and
+a summary line of the form `N cases, M vacuous` — with a non-zero exit when M > 0.
+The existing `70 detected, 1 failed, 1 skipped, 72 of 72 expected` line stays; this
+sits beside it and answers a different question, which is not "did the right thing
+fire" but "could anything have fired at all".
+
+**Why not a script (§12.0, and two practical objections).**
+
+* §12.0 says a gate belongs in the existing machinery, not in a one-off run by
+  whoever remembers it. An `enforcement.py` check is the usual home, but this one
+  audits the SELF-TEST, so making it a check means the audit checking its own
+  self-test — and proving that check fires would require deliberately making a case
+  vacuous. Emitting it FROM the self-test keeps §12.0's intent without the
+  circularity.
+* **Cost.** A standalone auditor would re-run `enforcement_audit()` before and
+  after every case. The audit takes minutes alone and the suite is ~3 hours over 72
+  cases; re-running it per case could double or triple that. The self-test already
+  has these findings in hand, so consuming them is free.
+
+**The failure it must not have.** It must not depend on the tree's incidental
+state, or it acquires the disease it diagnoses. It asserts a DIFFERENCE, never a
+specific finding.
+
+**Verification.** Both known-vacuous cases must be flagged BEFORE they are
+repaired — the neutrality case by zero delta, the count-scaffold case by skip. A
+tool for finding vacuous tests that has never caught one is not known to work.
+
+### T1.1 · `course_inventory.py` — the four-embedding scan — STAGE 1
+
+*Revised on review, 2026-09-18: four objections, recorded below with the design
+they produced.*
+
+**Why.** §2.1 counted tables and called itself a floor. §10.7 redefined "clean" as
+four counts. Nothing measures all four, and two ad-hoc measurements made for this
+plan were WRONG IN THE SAME DIRECTION: 53 "branches" were really 13 plus three
+other populations, and 188 "course words" were ~30 once `handout` (127) and
+software-sense `behaviour` (35) came out.
+
+**What it does.** Per module, by AST: (1) module-level tables whose literals name
+course items; (2) literal course ids in code; (3) unmarked course vocabulary in
+docstrings; (4) course artifacts in the module's own name.
+
+#### The item ids come from DATA, never from a pattern in this tool
+
+**The objection that reshaped it.** To find `Q1`, `WK2`, `1c`, the scan needs this
+course's item ids. The ad-hoc version hard-coded
+`Q\d+[a-c]?|WK[12]|DAY[12]|PR|NR|...` — which is EXACTLY the embedding the tool
+exists to detect. A scan that hard-codes this course's identifiers to find this
+course's identifiers passes its own test forever and finds NOTHING in a second
+course.
+
+So the id list is an INPUT: read from the course file once it exists, from the
+rubric modules until then, and **the tool carries no id pattern of its own**. The
+same rule governs the vocabulary list: every term carries a one-line justification
+in the source, and a term without one fails the tool's self-test. `handout` and
+software-sense `behaviour` are excluded BY DECLARATION, with their counts (127, 35)
+recorded as the reason.
+
+#### It reports populations; it does not guess them
+
+Today's decomposition — 28 self-test fixtures, 13 for `1c`, 5 builder
+conditionals, 4 for `Q6` — was done BY HAND, by reading enclosing functions and
+modules. Some of that automates ("is this inside `enforcement_selftest`?") and some
+does not ("is this a data builder or an engine branch?").
+
+**Where it cannot decide, it reports the raw hit with its enclosing function and
+leaves the classification to a person.** A wrong split is worse than none: C2a's
+per-module proof would then count the wrong things and report clean modules that
+are not.
+
+#### Its JSON is an INTERFACE, not a report
+
+T4.1 reads this output to gate Stage 4, so the shape is a contract: it carries a
+`schema_version`, and the gate REFUSES an unknown version rather than reading it.
+A gate that reads a changed shape may report zero findings, and zero findings looks
+exactly like success.
+
+**Output.** The versioned JSON, plus a readable table for a person to classify each
+finding per §5.1: *rubric content*, *metadata (moves)*, *engine (stays)*,
+*undecided*.
+
+**Verification — exact numbers, not approximations.** The first run fixes an
+expected count per category, and the tool is tested against those exact figures
+thereafter. Today's hand counts are the starting point but are NOT the assertion:
+46 tables, 9 course-named modules, and id/vocabulary figures that the first run
+must establish precisely. **Where the tool disagrees with the hand count, that is a
+finding to resolve, not a tolerance to widen** — one of the two hand counts this
+plan already corrected was out by a factor of six.
+
+### T2.1 · `rubric_export.py` — builders to canonical JSON — STAGE 2, used at 5
+
+*Revised on review, 2026-09-18: four objections, recorded with the design they
+produced.*
+
+**Why.** A1c: `rubric_h2`'s four builders survive as an AUTHORING tool that
+generates the expanded canonical JSON; no reader ever instantiates a template.
+
+**What it does.** Imports the three rubric modules, expands `ITEMS`, decides what is
+derived by MEASUREMENT rather than by the list in §9.0, and writes
+`courses/<id>/course.json`.
+
+#### Derived-or-authored is decided by recomputation, not by the §9.0 list
+
+§9.0 sorted the module exports into "derived" and "independent" using a substring
+test — does the assignment mention `ITEMS`, a loop, `sum(` or `BY_ID` — and says in
+as many words that it is "a starting point, not a finding".
+
+**An export that acts on that list can silently LOSE data**: drop something that is
+not in fact derivable and the value is gone, and T5.1 would only catch it if the
+reader's recomputation happened to differ from the original.
+
+So for each candidate the export **recomputes the value and compares it to the
+module's**. It drops only what recomputation reproduces EXACTLY; anything else is
+carried as authored data regardless of what §9.0 guessed. The comparison is
+reported, so the §9.0 list is corrected by this run rather than left standing.
+
+#### The tagging is applied at STAGE 4, not here
+
+The rubric modules hold no GENERATOR fields — those are `olx_prompts.py`'s 12
+tables, which move under B2a in Stage 4, after this. If T2.1 tagged fields at Stage
+2, every field would be RUBRIC, the tagging would be trivially uniform, and
+**T2.2's check would pass vacuously** — the exact failure T0.1 exists to catch,
+reproduced in a new place. The schema declares the two groups from the start; the
+interesting classifications arrive with the generator fields.
+
+#### Deterministic means an ORDER that is pinned
+
+"Byte-identical on re-run" is not free: Python dicts are insertion-ordered and the
+builders construct in loops, so a refactor that changes iteration order changes the
+file without changing its meaning — a large diff with no content, which reviewers
+learn to skim. The export emits **sorted keys within an entry, and items in RUBRIC
+order** (not alphabetical: rubric order is how a person reads them).
+
+#### What expansion makes permanent
+
+Expanding the builders bakes in their conditionals — the 5 `if item_id == "DAY2"`
+cases become DAY2's text and nothing else. That is the intent. It also means **a
+bug in a builder becomes permanent data** once the modules retire. Two consequences:
+T5.1 runs while the modules still exist (already required), and the modules are
+retired by DELETION IN GIT, never by rewriting in place, so the oracle stays
+readable in history.
+
+**Output.** One file, ~171KB expanded, deterministic under the pinned order.
+
+**The failure it must not have.** Silently dropping a field it does not recognise.
+Anything neither reproduced by recomputation nor classifiable is an ERROR, never an
+omission.
+
+**Verification.** T5.1's equivalence proof, plus the recomputation report above —
+which is itself a correction of §9.0 and should be read as one.
+
+### T2.2 · `check_course_schema_is_complete` — an enforcement check — STAGE 2
+
+*Revised on review, 2026-09-18. Grown to cover §9.2a's obligation 3, which had
+fallen between two designs.*
+
+**Why.** §9.2a sets three obligations and the first draft of this section covered
+only the first. Obligation 2 (accessors expose each group separately) belongs to
+T3.1, which is a module and cannot gate itself. Obligation 3 (no module crosses the
+boundary) was assigned to nothing: T4.1 gates course DATA sitting in a module,
+which is a different thing from a module reaching across the accessor boundary.
+**A rule with no tool is a comment.** This check now carries both 1 and 3.
+
+#### Part A — the declaration (obligation 1), reported in BOTH directions
+
+* **An undeclared field is a VIOLATION.** A field on an item entry that no group
+  names fails the check. This is the rule: §9.2a says a new field naming no group
+  fails validation rather than defaulting.
+* **A stale declaration is a CLEANUP.** A group naming a field that does not exist
+  is reported separately and does not fail by itself.
+
+They are reported apart because they mean different things, and merging them would
+let a real violation hide in a list of tidying.
+
+#### Part B — the boundary (obligation 3)
+
+By AST over every module except `coursedata.py`: no module may index a GENERATOR
+field off a rubric result, or a RUBRIC field off a generator result, and none may
+obtain a raw item entry from anything other than an accessor. The raw-entry escape
+is the one to watch — it defeats the boundary while appearing to honour it.
+
+**Failure message names the module, the field, and the group it belongs to**, so
+the fix is either "use the other accessor" or "declare the field where it actually
+belongs". "Boundary violated" would send the reader back to §9.2a to decode it.
+
+#### The self-test case, and why it needs writing now
+
+At Stage 2 there are no GENERATOR fields, so Part A is satisfied by tagging
+everything RUBRIC and **the check passes while proving nothing** until Stage 4 —
+a check whose first real exercise is two stages away is one nobody has watched
+fail.
+
+So it ships with self-test cases that construct their own conditions, per T0.1:
+
+1. add a field in NEITHER group → Part A must fire;
+2. declare a group member that does not exist → the cleanup report must list it,
+   and the check must NOT fail on it alone;
+3. make a module read a GENERATOR field off a rubric result → Part B must fire;
+4. make a module take a raw entry → Part B must fire.
+
+Each is injected and restored by the case itself. None depends on the tree
+containing a suitable example, which is how the neutrality case became vacuous.
+
+#### Gold is in scope, and a missing `$COURSE_DATA` is an ALARM
+
+C1b puts gold in a second file, under `$COURSE_DATA/courses/<id>/`, outside this
+public repository. **This check validates that file too** — an ungated schema is an
+ungated schema wherever it lives.
+
+That means the check assumes `$COURSE_DATA` exists. **When it does not, the check
+FAILS LOUDLY — it does not skip and it does not pass.** The message says the
+variable is unset or the path is absent, and that gold could not be validated.
+
+This is deliberate and it is the project's own rule: a check that cannot run is not
+the same as a check that passed. `check_count_scaffolds_are_arithmetic` already
+says exactly that when its output root is missing — *"this check cannot run, which
+is NOT the same as passing"* — and this follows it. The cost is that anyone with
+the repo and not the data gets a failure; that is the intended signal, because
+scoring without the gold data is not a state to proceed quietly from.
+
+**Why a check and not a script.** §12.0: it runs with the other 149, so an
+unclassified field or a boundary crossing fails a commit rather than being noticed
+later.
+
+### T3.1 · `coursedata.py` — the reader — STAGE 3
+
+*Revised on review, 2026-09-18: five objections, recorded with the design they
+produced.*
+
+**Why.** B1a: a single module owns the file.
+
+**What it does.** Loads `courses/<id>/course.json` and, lazily, the separate gold
+file (C1b); recomputes what is genuinely derivable (A2a); and exposes SEPARATE
+accessors per group — `rubric_for(item)`, `slot_notes(item, slot)`, `ref_ids(item)`
+(§9.2a obligation 2).
+
+#### The boundary is a MECHANISM, not a rule
+
+"No accessor returns a raw entry" is not enforceable by intention: Python has no
+private data, so an accessor returning the inner dict hands the caller everything,
+and `rubric_for(item)["slot_notes"]` then works. **T2.2's AST check would not
+necessarily see it** — that is a runtime subscript on a returned value, not a
+declared field access — so the boundary would hold only by convention, which is
+what §9.2a exists to avoid.
+
+Therefore every accessor returns **a copy, or a read-only view, containing only the
+fields of the requested group**. A caller cannot reach a field of the other group
+because it is not in what they were handed.
+
+#### Copies are required because the code MUTATES
+
+This is not hygiene. The existing code mutates these structures in place:
+`enforcement_selftest` does `rubric_h1.BY_ID["Q6"].pop("cover")` and restores it;
+`_drop_dealt` pops from `JOBS`. If the reader hands out shared dicts, one caller's
+mutation corrupts every later reader in the same process — and the self-test is
+BUILT on doing exactly that.
+
+#### A2a's recomputation hides a port, and one value that cannot be recomputed
+
+The reader recomputes `BY_ID`, `TOTAL`, `SLOT_SPEC` and the `*_ITEMS` index lists.
+Those derivations currently live in the rubric modules — `SLOT_SPEC` is 78 source
+lines in h1 and 149 in h2 — so "the reader recomputes" is a real port, not a
+one-liner.
+
+**And h3's `SLOT_SPEC` is INDEPENDENT, not derived** (§9.0). It must be carried as
+authored data. T2.1's recomputation test is what will confirm that, and this design
+states the expectation now so it arrives as a confirmation rather than a surprise.
+
+#### Load once per process, and do not watch the file
+
+149 enforcement checks plus a sweep call these accessors constantly; re-reading and
+re-deriving a ~171KB file per call is not viable, and a cache that watches for
+changes reintroduces the staleness this project has already been bitten by (a
+long-lived dev server serving fresh content from stale code cost 19 observations).
+
+So: **loaded once per process, never re-read.** A process that outlives an edit to
+the course file is a process to restart, and that is the documented expectation
+rather than something clever.
+
+#### Gold loads LAZILY; only gold accessors fail without it
+
+T2.2 fails loudly when `$COURSE_DATA` is missing, because validating gold is its
+job. The READER must be subtler: the rubric lives in the repo and `rubric_for()`
+has no reason to need gold.
+
+So gold is loaded on first use by a gold accessor. Someone with the repo and not
+the data keeps the whole rubric side of the reader; only a gold call fails, and it
+fails saying which variable is unset and which path was tried.
+
+**The failure it must not have.** An accessor handing back the whole entry. It
+defeats the boundary while appearing to honour it, and is the most likely way B2a
+fails.
+
+### T3.2 · `dual_source_verify.py` — reader vs incumbent — STAGE 3
+
+*Revised on review, 2026-09-18: five objections, recorded with the design they
+produced.*
+
+**What it does.** Compares what `coursedata.py` returns against what the existing
+modules return TODAY, in both directions, and reports how much it actually
+compared. Runs before any table is deleted.
+
+**Why it matters.** Stage 4 deletes tables. A reader that agrees on 99% of keys
+looks right and silently changes 1% of scores.
+
+#### The key inventory comes from T1.1, not from this tool
+
+"Every item, slot and gold row" is not an enumeration. The incumbent side is 46
+tables across 8 modules with incompatible key shapes — `GOLD_DIVERGENCES` keyed one
+way, `PER_ITEM_EXCLUDE["Q4c"][16]` another, `CORRECTED_GOLD[("NR", 4)]` another —
+and no single iteration reaches them all.
+
+Enumerating them is exactly T1.1's job, so **this tool consumes T1.1's output**
+rather than re-deriving it. Two inventories would eventually disagree about what
+exists, and the disagreement would appear as a verification result.
+
+#### BOTH directions, because the dangerous gap is the reader's
+
+Comparing only "for each key the reader knows, does the incumbent agree?" **passes
+when the reader is missing keys entirely** — and Stage 4 then deletes a table whose
+contents were never carried across.
+
+So: keys the incumbent has and the reader lacks are reported as a FAILURE, not an
+absence. Keys the reader has and the incumbent lacks are reported too; they are
+usually a migration in progress, but they are never silent.
+
+#### Coverage is reported, and zero coverage cannot exit 0
+
+At the start of Stage 4 almost nothing is in the JSON. A run comparing zero keys
+and exiting 0 reads as "verified" — T0.1's vacancy problem in a new tool.
+
+Output therefore leads with **`N keys compared, M tables not yet migrated`**, and
+the tool REFUSES to exit 0 when coverage is zero. A partial run is a legitimate
+state during Stage 4; a partial run that looks complete is not.
+
+#### Comparison is by VALUE, in the pinned order
+
+T3.1 returns copies rather than the incumbent's own objects, so identity
+comparison is meaningless. Values are compared after normalising to T2.1's pinned
+order (sorted keys within an entry, items in rubric order), so the two tools cannot
+disagree about what "the same" means.
+
+#### Gold is in scope and its absence is LOUD
+
+`GOLD_DIVERGENCES` (771 lines) and `CORRECTED_GOLD` (503) are where a silent 1%
+difference actually changes scores, so they are the most important half to verify —
+and they live under `$COURSE_DATA`, outside the repo.
+
+**If the gold data is absent this tool FAILS; it does not verify the repo half and
+report success.** Unlike T2.2, where a missing `$COURSE_DATA` is obviously fatal to
+the check's purpose, the danger here is that comparing only the repo half still
+produces a plausible green result — which is precisely the shape of failure this
+tool exists to prevent.
+
+### T4.1 · `check_module_has_no_course_data` — an enforcement check — STAGE 4
+
+*Revised on review, 2026-09-18: five objections, recorded with the design they
+produced.*
+
+**What it does.** C3c's gate half: a module declared MIGRATED must have zero count
+in §10.7's categories. T1.1 is the metric half.
+
+#### It RUNS the scan; it does not read yesterday's answer
+
+The first draft had the check read T1.1's JSON. **A gate reading a cached
+measurement passes while the thing it measures changes underneath** — edit a module
+to add a course table and the JSON, written earlier, still says zero.
+
+This project has already paid for that shape once: a dev server reloading CONTENT
+but not CODE mis-scored every mapped slot for 19 observations while looking healthy.
+
+So **T1.1 is an importable module** and the check calls it; the CLI is a thin
+wrapper over the same code. The scan is AST work over ~50 files and is cheap enough
+to run in the gate that already runs 149 checks. T1.1's versioned JSON remains the
+interface for humans and for T3.2 — but the gate never trusts it.
+
+#### The MIGRATED list lives in the engine
+
+Which modules are migrated is state: a list updated as Stage 4 proceeds. It is
+course-INDEPENDENT — a fact about the engine, not about psychology — so it lives in
+the engine beside the check, never in the course file. §0's rule decides this: the
+course file may not be where the engine records its own progress.
+
+#### A ratchet as well as a whitelist
+
+A list of migrated modules is a whitelist, and whitelists rot: a module can be
+migrated and never declared, and nothing notices. So the check ALSO carries a
+ratchet on the total counts across all modules, in the idiom this repo already uses
+for `STUDENT_TEXT_BUDGET.json` — the totals may fall and may not rise.
+
+The two catch different failures. The whitelist proves a specific module is done;
+the ratchet catches a regression anywhere, including in modules nobody has declared
+yet, which is most of them for most of Stage 4.
+
+#### The D2d exemption expires by MECHANISM
+
+"Expiring when D2a lands" is a sentence, and sentences do not expire. D2d makes the
+exemption conditional on two things: the concurrency guard (MET 2026-09-18) and
+§11.11's restore defect.
+
+So the check names those conditions and **fails when they are satisfied while the
+exemption is still present**. An exemption that outlives its reason is how "for
+now" becomes "forever", which §12.0 and this project's own history both say is the
+default outcome.
+
+#### The module-NAME category is a separate check
+
+§10.7's fourth category — no course artifact in the module's own name — cannot be
+gated from a module's contents: renaming `gold_slots_q6.py` changes the file's
+identity, so the rule is about the repository's file list, not about any one
+module.
+
+It is therefore its own small check over the module names, not a category folded in
+here. Folding it in would mean a per-module check that fails for a reason the
+module's own contents cannot fix.
+
+### T4.2 · the property ratchet — a narrower check than first designed — STAGE 4
+
+*Rewritten on review, 2026-09-18. The first design said it would search engine code
+for any branch on a declared PROPERTY. Reconsidering the scope changed what it is
+for, and shrank it.*
+
+#### What reconsidering found: a single branch on a property is NOT a genericity defect
+
+`if caps.boxes == 8:` is fine. A second course with six boxes works — the branch
+reads the value and behaves correctly, and nothing is course-bound. Contrast
+`if item == "1c":`, which a second course can never satisfy — and **T4.1 already
+catches that**, because it is a literal course id in code.
+
+So D1x-c is not protecting against any individual branch. The harm §10.1.1 actually
+names is different and narrower:
+
+> the flag vocabulary then becomes the place where course shape accumulates
+
+The failure is **ACCUMULATION**. One flag is harmless; forty narrow booleans —
+`derives_from_series`, `needs_utb_gate`, `blank_code_applies` — mean the engine is
+psychology-shaped again in a new vocabulary, and a second course must set flags it
+cannot interpret.
+
+#### Part A — the ratchet, which is the part that matters
+
+A count of DECLARED PROPERTIES that appear in any branch anywhere. **It may fall.
+It may not rise without a declaration naming the new property and why a strategy
+would not do.**
+
+This targets accumulation rather than instances, is completely decidable (it is a
+syntactic question, not a dataflow one), and uses the idiom already in this repo:
+`STUDENT_TEXT_BUDGET.json`, and T4.1's own ratchet.
+
+#### Part B — a narrow, SOUND check, advertised as narrow
+
+Direct forms only: an attribute access or subscript of a declared property inside a
+branch condition. It must cover **truthiness**, which is the most natural way to
+write the violation and which a comparison-only check would miss entirely:
+
+    if item.derives_from_series:          # caught
+    if not caps.blank_code:               # caught
+    if caps.boxes == 8:                   # caught
+    n = caps.boxes; ...; if n == 8:       # NOT caught — indirection
+
+`coursedata.py` is exempt: the reader MUST branch on properties to recompute
+derived values and choose accessor paths, so gating it would fail the one module
+that has to do this.
+
+#### It does NOT claim completeness, and that is deliberate
+
+Indirection through a local is undecidable without dataflow analysis. The first
+design said it "searches engine code for a branch on it", which reads as coverage
+it cannot have.
+
+**A gate that catches only naive violations while announcing the rule enforced is
+worse than no gate**, because it converts "be careful here" into "the check
+passed". So the known blind spots are listed in the check's own failure output, and
+the rule stays in §10.1.2 as a design principle that a reviewer applies — the gate
+enforces the enforceable part and says so.
+
+#### Its self-test cases exercise what it claims
+
+Per §12.0 and T0.1, each case constructs its own condition and exercises a form the
+check CLAIMS to catch — comparison, truthiness, negation, subscript. A case using
+only the `==` form would pass while the check stayed blind to the others, which is
+the vacancy T0.1 exists to prevent, one level up.
+
+### T5.1 · `rubric_equivalence.py` — the JSON reproduces the modules — STAGE 5
+
+*Revised on review, 2026-09-18: four objections, one of them a contradiction
+between this design's stated purpose and its stated mechanism.*
+
+**What it does.** Loads `ITEMS` from `rubric_h{1,2,3}.py`, loads
+`courses/<id>/course.json` **directly with `json.load`**, and asserts the authored
+fields match in T2.1's canonical form.
+
+#### It must NOT read through `coursedata.py` — the first draft did, and that broke its own purpose
+
+The design says this tool compares DATA against the modules while T3.2 compares the
+READER against the modules, "because a reader bug and an export bug produce the same
+symptom, and the two proofs separate them" — and then specified loading the JSON
+*via `coursedata.py`*.
+
+**That defeats the separation entirely.** Both tools would run through the reader, a
+reader bug would fail both identically, and the thing the second proof exists to
+isolate would be invisible. The JSON is loaded directly. No reader.
+
+*(This is the same class of error as an accessor returning a raw entry: a stated
+boundary and an implementation that quietly disagree with each other.)*
+
+#### Deep equality is impossible, because A2a removes fields ON PURPOSE
+
+The JSON omits derived values by decision, so module `ITEMS` and JSON items will
+differ — the modules carry fields the file does not. A "deep equality" assertion
+would fail on every item for a designed reason.
+
+Recomputing the missing values here would mean either duplicating the reader's
+derivation rules (which drift) or calling the reader (which is objection 1). So the
+scopes are split and do not overlap:
+
+* **T5.1 compares the AUTHORED fields**, JSON against modules, directly.
+* **T3.2 covers the DERIVED values**, through the reader, where the derivation
+  rules actually live.
+
+Between them every field is proved once, by the tool that can prove it without
+borrowing the thing under test.
+
+#### It asserts T2.1's canonical form, not a looser normalisation
+
+"Normalising only key order" would let it pass on data that is not byte-
+reproducible, so a later re-export produces a diff nobody expects. It asserts
+exactly what T2.1 emits: sorted keys within an entry, items in rubric order.
+
+#### Not a per-commit check — an acceptance step and a pre-deletion gate
+
+It imports all three rubric modules, which means RUNNING `rubric_h2`'s builders,
+on every invocation. The gate already runs 149 checks and this answers a question
+that changes only when the export or the modules change.
+
+So it runs: at Stage 5 acceptance, and again as the gate immediately before the
+modules are deleted. **Until they are deleted the modules are the oracle**, and the
+last run of this tool is what licenses removing them.
+
+### T7.1 · `goals_restructure.py` — make `GOALS.md` anchorable — STAGE 7
+
+*Revised on review, 2026-09-18. The first draft rested on a FALSE PREMISE, found by
+reading the parser rather than the plan.*
+
+**Why.** §10.4.1: 9 headings across 16,516 lines. A pointer into an 1,800-line
+section is a direction to go looking, not a reference.
+
+#### The false premise: `goals.py` DOES parse headings
+
+The first draft said the tool "moves and adds headings" while the machine-parsed
+contract stays unchanged, and named that contract as the `ENTRY` regex
+`^- \[([ x])\] ([A-Z]+)(\d+)\. (.*)$`.
+
+**`goals.py` also parses `^## `.** `misfiled_series()` tracks the current section
+from `## ` lines and checks each entry's label series against `SERIES_SECTION`,
+reporting an entry filed under the wrong section. So:
+
+* **adding a `##` heading changes SECTION MEMBERSHIP** for every entry beneath it —
+  insert one mid-section and the entries after it are suddenly filed under a new
+  name, and `misfiled_series()` fires on entries nobody moved;
+* **the contract is `ENTRY` + `^## ` + `SERIES_SECTION`'s series-to-section map**,
+  not the entry regex alone.
+
+#### Therefore: new granularity is `###`, never `##`
+
+`misfiled_series()` matches `^## ` only, so `###` sub-headings are invisible to it.
+The nine top-level sections STAY AS THEY ARE, and the anchorable granularity
+arrives beneath them.
+
+That is a constraint on the result, not a preference: a restructuring that adds
+`##` headings would be correct-looking and would break a check that has nothing to
+do with it.
+
+#### The proof is on (entry, section) PAIRS, not on entries or on return values
+
+"All 112 entries parse identically" is necessary and weak — `ENTRY` captures state,
+series, number and text, so an entry can keep all four while moving between
+sections.
+
+Equally, asserting `misfiled_series()` returns the same list is weak: it could
+return empty before and after while entries moved, because the move happened to
+stay consistent with `SERIES_SECTION`.
+
+So the round-trip proof asserts **the (entry, section) pair for all 112 entries is
+unchanged**, and separately that `check`, `next_label`, `misfiled_series` and
+`stale_slot_claims` return identical results on the same corpus.
+
+#### It places the anchors, because otherwise this is two passes
+
+G1c needs `<!-- qc:NAME -->` on the sections a course file will reference. If this
+tool only restructures, anchoring is a second pass over the same 16,516 lines by
+someone who has to re-derive where the seams are.
+
+**Output.** The restructured file with anchors placed, plus the round-trip proof
+above.
+
+**The failure it must not have.** Reflowing prose. It moves lines and adds headings
+and anchors; it does not rewrite lines, because a diff that touches every line
+cannot be reviewed — and this file is read by five modules and by people.
+
+### T7.2 · the anchor gate — anchors as STABLE ALIASES — STAGE 7
+
+*Revised on review, 2026-09-18. The first draft proposed a referencing scheme
+alongside one that already exists and is maintained.*
+
+#### What already exists, and why it is not enough
+
+`guide.py` maintains NUMERIC SECTION LABELS on `QUALITY_CONTROL.md` — `## 0. The
+order of operations`, `## 1. Fixture first` — with `headings()` parsing
+`(label, title, hashes)`, `renumber()` deriving labels from document order and
+rewriting both headings and citations, and `_cited_by()` scanning every `.py`,
+`.md` and `.olx` for references.
+
+That is a working, machine-checked citation mechanism over this exact file. The
+`<!-- qc:NAME -->` convention proposed by G1c has **one instance, both halves in
+this plan, six lines apart.**
+
+**Two schemes over one file would be the worst outcome**: a section carrying both a
+number and an anchor, `renumber()` maintaining one of them, references free to use
+either, and no answer to which is authoritative when they disagree.
+
+#### Why an anchor is still needed: `renumber()` rewrites labels
+
+`renumber()` derives labels FROM DOCUMENT ORDER, so inserting a section renumbers
+everything after it and every citation must be rewritten in the same pass. Inside
+one repo that is fine — `_cited_by()` can find every citer and fix it.
+
+It is NOT fine across directories. A course file in `courses/<id>/` pointing at the
+general guide is a citer `renumber()` cannot see, so a renumber silently
+invalidates pointers — and G1c's dangling check would then fire on work that was
+correct when it was written.
+
+#### The design: numbers for structure, anchors for cross-file references
+
+* **Numeric labels stay** as the human-facing structure `guide.py` already
+  maintains. In-file citations keep using them.
+* **An anchor is added only to a section a course file actually references.** It is
+  a stable alias, immune to renumbering.
+* **`renumber()` must PRESERVE anchors** — it rewrites labels and citations today,
+  and would otherwise destroy the aliases on its next run. This is the change most
+  likely to be missed, because `renumber()` looks unrelated to anchoring.
+* **Cross-file references use anchors, never numbers.**
+
+The gate then means: a `see: qc:NAME` with no matching `qc:NAME` FAILS; an anchor
+nothing points at WARNS, since an unused alias is a section someone thought was
+general and no course needed. A deliberate orphan carries a declaration, never an
+exemption list.
+
+#### The scope question: `guide.py` is built for ONE file
+
+`HEAD`, `_cited_by` and `renumber` are all shaped around `QUALITY_CONTROL.md`. Goal
+G covers four, and they are not alike: `GOALS.md` is parsed by a DIFFERENT module
+whose heading sensitivity T7.1 had to discover, and `BACKLOG.md` and
+`EQUIVALENCE.md` have their own structures.
+
+So the work splits:
+
+* **the anchor gate is its own check**, reading all four files, because it is one
+  rule over four documents;
+* **`guide.py` keeps its numbering job** for `QUALITY_CONTROL.md` and gains only
+  the requirement to preserve anchors;
+* generalising `guide.py`'s numbering to the other three is NOT part of this and
+  should not be attempted while proving the anchor mechanism.
+
+### T7.3 · `check_general_prose_has_no_course_vocabulary` — a check — STAGE 7
+
+*Revised on review, 2026-09-18: four gaps, including a destination that did not
+exist.*
+
+**What it does.** Enforces F1's PRECONDITION: no course vocabulary appears in
+general prose.
+
+#### What counts as "general prose"
+
+Defined, because after G's split the course halves are SUPPOSED to be full of
+psychology and a gate that read them would fire on correct work:
+
+* the GENERAL half of each of the four split files, and
+* every module docstring outside `courses/`.
+
+It therefore runs **after** Stage 7's split, not alongside it — before the split
+there is no general half to check.
+
+#### It enforces the precondition, not the decision
+
+§10.3.2 sorts a sentence into *specification* (moves to the course file),
+*incident* (moves to the changelog) or *split* (generic half stays). **A word list
+cannot tell those apart.** This check says only "a course word appears here"; which
+of the three remedies applies is a human decision.
+
+Stated because the first draft read as though the check enforced F1. It enforces
+the condition that makes F1 checkable, and the plan should not claim more.
+
+#### `behaviour` must be phrased unambiguously — DECIDED
+
+T1.1 excludes software-sense `behaviour` by WORD, not by sense. In a measurement
+that is acceptable; in a GATE it is a false negative on the single most likely
+course word to appear — "the student's target behaviour" would pass.
+
+**So surviving uses must be unambiguous: `code behaviour`, `runtime behaviour`, a
+function's behaviour.** A bare `behaviour` in general prose fails the check and is
+rephrased. This costs a small rewording in ~35 places and removes a blind spot
+that would otherwise sit exactly where the risk is highest.
+
+#### The changelog is CREATED in Stage 7 — DECIDED
+
+F1 sends incidents to "the project changelog". **No such file exists** — nothing in
+the repo carries one and the plan named no path. A gate that strips sentences from
+docstrings while their destination is undefined produces DELETIONS, not moves, and
+the evidence in those sentences is the thing most worth keeping: *"Handout 1's
+items were once reported as 12/14 and 14/15 while their denominators were 19 and
+20"* is a recorded defect, not decoration.
+
+So Stage 7 creates it, and it is a prerequisite of this check rather than a
+consequence:
+
+* it lives with the course material it describes (`courses/<id>/`), because an
+  incident in this course's scoring is course-specific by construction;
+* each entry keeps the date and the numbers, since a generic retelling loses the
+  evidence;
+* the generic half of a SPLIT sentence stays in the engine prose and the changelog
+  carries the instance — per §10.3.2's split rule.
+
+**No sentence is removed from general prose until the changelog exists to receive
+it.**
+
+### T8.1 · the fixture course — STAGE 8
+
+*Revised on review, 2026-09-18. The first draft sized the fixture against the PSYCH
+course's shapes, which is the criticism that rejected I1c, arriving by another
+route.*
+
+**Why.** I1a: the acceptance test for stage one. Sized by shape coverage, because
+26 items produce 19 distinct key-shapes and a two-item fixture would cover 2.
+
+#### The shapes come from the SCHEMA, not from the psych items
+
+The "19 key-shapes" were derived by looking at which optional fields the 26 psych
+items happen to use. **A fixture covering those 19 proves the engine handles
+PSYCHOLOGY's shapes** — which is exactly why I1c (a fixture stripped from the psych
+course) was rejected: it inherits the assumptions it exists to test. Sizing against
+the same 19 arrives at the same failure by another route.
+
+So coverage is measured against **what the SCHEMA declares the engine accepts**.
+The difference between the two sets is itself a finding, and the fixture reports
+both:
+
+* a schema field **no psych item uses** is untested today, and the fixture is the
+  first thing that exercises it;
+* a psych shape **the schema cannot express** is a migration bug, found before the
+  rubric modules are deleted rather than after.
+
+#### A fixture is a course AND submissions AND gold
+
+Items alone score nothing. Exercising `agreement.py`, the graders and the gold path
+that C1b split into a second file requires invented **submissions** and an invented
+**gold set** as well as the course.
+
+That is materially more work than "generate a course file", and it is stated here
+so Stage 8 is planned for what it is.
+
+#### Invented gold must be DERIVABLE BY INSPECTION
+
+Gold is what the scorer is measured against. Invented answers with invented scores
+make every disagreement meaningless — a scorer bug and a badly-chosen gold row look
+identical.
+
+So the fixture's items carry scoring rules simple enough that **the correct score
+is obvious to a reader**, and a disagreement is therefore unambiguously the
+engine's fault. A fixture whose gold requires judgement has recreated the problem
+the real corpus already has.
+
+#### CHECKED IN, with the generator kept for deliberate regeneration
+
+A generator that runs on every use drifts with the code it tests — the fixture
+adapts to the bug and the test keeps passing. The same argument as A1c: the
+expanded artifact is canonical and checked in, the generator is an authoring tool.
+
+#### Scoreable WITHOUT live LLM calls
+
+If fixture items carry `LLMAction` prompts, an end-to-end run costs real Azure
+calls — the historical student simulation made 73+ per state, which is why it was
+replaced by a fast variant.
+
+**An acceptance test too expensive to run often becomes a test run once, at the
+end** — which is the risk I2c already carries and should not have doubled. So the
+fixture scores against stubbed or recorded responses by default, with the live-LLM
+path a deliberate, occasional variant.
+
+**What it must say out loud.** Which schema shapes it does NOT cover. A fixture
+reporting full coverage while the schema has grown a field is the failure mode.
+
+### T9.1 · the `MOLLY_*` rename — a fallback, a sed pass, and a check — STAGE 9
+
+*Revised on review, 2026-09-18. Designed as a script; measuring the scope showed
+the script is the trivial part and the real work is elsewhere.*
+
+**Scope, measured 2026-09-18:** 16 files, 67 references — `MOLLY_DATA` 48,
+`MOLLY_OUT` 18, and **`MOLLY_MEDIA` 1**, which the first design did not know
+existed. A pass that renames two of the three creates exactly the mixed vocabulary
+it exists to prevent, and the single occurrence is the easiest to miss.
+
+#### Part 1 — the fallback in `paths.py`, which is the actual deliverable
+
+`COURSE_DATA` preferred; `MOLLY_DATA` honoured when it is the only one set;
+**a warning emitted ONCE PER PROCESS**, not per read — `paths.DATA` is read
+constantly and a per-read warning produces thousands of lines that get filtered,
+which is the same as no warning.
+
+**This is the deliverable, not a transition courtesy**, because the variables live
+where a repo-wide rename cannot reach: shells, runbooks, cron entries, and the
+command lines of background jobs. Renaming 67 references in the repo does not
+change a single one of those.
+
+#### Part 2 — the rename itself is a `sed` pass with review
+
+67 mechanical replacements across 16 files, every one visible in a diff. This does
+not want a program. All three names go in ONE pass — `MOLLY_DATA`, `MOLLY_OUT`,
+`MOLLY_MEDIA` — so the repo never holds both vocabularies even briefly.
+
+#### Part 3 — a check, so the old name cannot come back
+
+Per §12.0: after the rename, a check fails on any new `MOLLY_*` in the repo.
+Without it the old name returns by copy-paste from a runbook and nobody notices
+until the fallback is removed — at which point the failure is an empty result, and
+**empty results in this project look like clean passes.**
+
+#### The expiry needs a criterion, not a date
+
+"Honoured for a declared period" expires the way §10.1.2's and D2d's sentences
+would have: not at all. The fallback is removed when the WARNING HAS NOT FIRED in
+normal use for a stated stretch of work — evidence that nothing is still setting
+the old name — and not on a date that passes unnoticed.
+
+### T10.1 / T10.2 · the `OVERRIDES.md` converters — G2c, AFTER STAGE 8
+
+*Revised on review, 2026-09-18: five objections, three of them couplings found by
+reading the file's consumers rather than the design.*
+
+**What they do.** Convert the 48 MB `OVERRIDES.md` to appended JSONL, and render
+JSONL back to a readable document on demand.
+
+**The constraints from G2c, not negotiable:** the renderer lands BEFORE the old
+file retires, so the audit record is never tool-only; the pre-commit gate's REFUSAL
+logic is untouched — this changes how the record is WRITTEN, never what the gate
+REFUSES; and if a step requires touching the refusal logic, the step stops.
+
+#### `git log -p` is the audit trail, and same-commit staging must survive
+
+`precommit_gate.py` states that the record is "STAGED INTO THE SAME COMMIT", so
+`git log -p OVERRIDES.md` reads as the history of what the audit was told to
+ignore. That is what makes the log evidence rather than a file.
+
+JSONL improves it — one line per entry diffs better than a prose block — but the
+staging behaviour is a property to PRESERVE explicitly, not a detail to
+reimplement.
+
+#### Three modules special-case this file, and conversion changes what they see
+
+* `equivalence.py:1152` — `_SELFTEST_REPAIR_MAX = 4_000_000  # bytes; OVERRIDES.md
+  is ~50MB`: the self-test's snapshot-and-repair net is bounded because of this
+  file.
+* `measured.py:3561` — globs `*.md` and excludes `OVERRIDES.md` BY NAME, with a
+  comment that the exclusion exists because of a defect that check caught.
+
+**After conversion a `.jsonl` is not matched by `*.md` at all**, so that exclusion
+becomes silently redundant and the check's scope changes without anyone editing it.
+A check written because of a defect must not have its scope changed by a file
+rename happening elsewhere.
+
+So the conversion carries an explicit pass over these three consumers, each
+re-decided rather than left to fall out: the repair bound, the glob exclusion, and
+any other reader the pass finds.
+
+#### The converter needs a COUNT-PRESERVATION proof
+
+257,216 lines of markdown written by an appender over months, in a format that has
+probably drifted since the first entry, parsed by something written afterwards. A
+converter can silently drop or merge entries and the result still looks like a log.
+
+So: **entries in equals entries out**, and every original block reconstructable
+from its record. The raw `.md` stays in git history — it will be there regardless —
+and is the oracle for that proof.
+
+#### G2c does not shrink the repository
+
+The 48 MB remains in git history forever. Conversion stops the file GROWING as
+markdown; it recovers nothing already committed. Stated so no one expects a size
+win and is surprised.
+
+#### The rendered document is NOT committed
+
+Rendering to a committed file would leave the repo carrying both representations —
+96 MB and two artifacts to keep in step, which is the state G2c exists to leave.
+Render on demand, to a gitignored path.
+
