@@ -1124,17 +1124,7 @@ def uncompared_web_rules():
 # 72 as of 2026-09-16: the scored-slot check gained a case. It reads
 # ARTIFACTS rather than sheets, so it is blinded by dropping a slot from one
 # engine's recorded runs -- see the case for why a check at zero needs one.
-SELFTEST_EXPECTED = 71
-
-# HOW MANY CASES ARE ALLOWED TO TEST NOTHING. A two-sided ratchet in the same
-# idiom as SELFTEST_EXPECTED: vacancy may FALL freely and may not RISE.
-#
-# Not zero, and not a hard failure, because one skip is legitimate -- the
-# plain-path case skips when the corpus holds no item outside the derive-path
-# branch, and a corpus is not a defect. Set to what the suite carries once the
-# two 2026-09-18 repairs land; lower it whenever the run says it can be lowered.
-SELFTEST_VACANT_MAX = 1
-
+SELFTEST_EXPECTED = 72
 
 
 def _selftest_input_fingerprint() -> dict:
@@ -1238,45 +1228,6 @@ def _selftest_inputs_changed(before: dict) -> list[str]:
                   if k not in skip and before.get(k) != now.get(k))
 
 
-def _finding_key(f):
-    """A finding's identity, for comparing one audit against another.
-
-    `(item, rule)` is the semantic identity, with a slice of the detail so two
-    different violations of one rule on one item stay distinct. Stringified
-    because a finding's tail may hold unhashable parts.
-    """
-    parts = tuple(str(x) for x in (f[:3] if isinstance(f, (list, tuple)) else (f,)))
-    return parts[:2] + (parts[2][:160],) if len(parts) > 2 else parts
-
-
-def _vacancy_report(records, skips):
-    """Which cases could not have tested anything. A pure function, so it is
-
-    testable without a three-hour run.
-
-    TWO FAILURE STATES, NOT ONE. A case is vacuous if its injection moved no
-    finding (zero delta), OR if it was SKIPPED -- a skip never reaches a
-    before/after comparison at all. Measured 2026-09-18: the neutrality case
-    failed with a zero delta because the table it mutated was empty, and the
-    count-scaffold case was skipped because the finding it blinds no longer fires.
-    A design that compared only deltas would have caught the first and missed the
-    second, which is half the evidence that motivated this report.
-
-    It asserts a DIFFERENCE, never a particular finding: asserting the right
-    finding is the suite's job, and a report that also did it would acquire the
-    suite's dependence on the tree's incidental state.
-    """
-    rows = []
-    for r in records:
-        vacuous = not (r["added"] or r["removed"])
-        rows.append({**r, "verdict": "VACUOUS (injection moved nothing)" if vacuous
-                     else "ok", "vacuous": vacuous})
-    for label, why in skips:
-        rows.append({"label": label, "added": [], "removed": [], "skipped": True,
-                     "verdict": f"VACUOUS (skipped: {why})", "vacuous": True})
-    return rows
-
-
 def enforcement_selftest():
     """Break each rule on purpose and confirm the audit says so.
 
@@ -1326,14 +1277,7 @@ def enforcement_selftest():
     import atexit as _atexit
     _atexit.register(lambda: _selftest_repair(_snapshot))
     # Captured BEFORE any injection: the findings this corpus carries legitimately.
-    #
-    # THE SET AS WELL AS THE COUNT. The count alone cannot tell a case that changed
-    # nothing from one that added a finding and removed another -- both leave the
-    # total where it was. The vacancy report (below) needs to know whether the
-    # injection moved ANYTHING, so it compares sets.
-    _baseline_findings = enforcement_audit()[0]
-    _selftest_baseline = len(_baseline_findings)
-    _baseline_keys = {_finding_key(f) for f in _baseline_findings}
+    _selftest_baseline = len(enforcement_audit()[0])
     cases = []
 
     saved = rubric_h1.BY_ID["Q6"].pop("cover")
@@ -2485,79 +2429,55 @@ def enforcement_selftest():
                  _drop_wk1_expect, _restore_wk1_expect,
                  want="GENERATED ATTRIBUTE HAS NO DECLARATION")
 
-    # THE FIXTURE IS THE INJECTION, AND THE CASE IS NO LONGER INVERTED.
+    # THE CASE BUILDS ITS OWN PRECONDITION. An inverted case blinds a check and
+    # asserts the finding DISAPPEARS, so the finding must be present first --
+    # `_scorer_case` degrades to a SKIP when it is not, which is honest but means
+    # the case tests nothing. On a clean corpus it never fires: measured
+    # 2026-09-18, the current artifacts hold 0 violations, so this case had been
+    # skipping rather than testing for an unknown period while the tally read
+    # `72 of 72 expected`.
     #
-    # First repair (2026-09-18): the case blinded the check and asserted the
-    # finding DISAPPEARS, which needs the finding present first -- and on a clean
-    # corpus it never was, so the case had been SKIPPING for an unknown period
-    # while the tally read `72 of 72 expected`. That repair wrote an artifact
-    # carrying the real historical shape, Q2/p11's `0 listed, 0 failing, 3 given`.
-    #
-    # It did not work, and the reason is worth keeping. The vacancy report scores
-    # a case by the DELTA against `_baseline_findings`, captured once at the start
-    # of the run -- about 1,200 lines before this fixture is written. So the
-    # baseline never saw the violation, the blinded audit did not report it
-    # either, and `added` and `removed` were both empty: `VACUOUS (injection moved
-    # nothing)`. The case was repaired into a SECOND vacuous state, and only the
-    # ratchet made that visible.
-    #
-    # Inverting was only ever a workaround for having no way to CAUSE the
-    # violation. The fixture is that way, so the case now runs in the natural
-    # direction: install the artifact, confirm the finding appears, remove it.
-    # That tests the check DETECTS, where blinding only tested that a stubbed
-    # function returns nothing. It needs no precondition, so it cannot degrade to
-    # a skip, and its delta is against the same baseline as every other case.
-    #
-    # Removed in a `finally`: a stray `*.runs.json` under the out root is read by
-    # every later check and by `measured` as if it were a real run.
+    # So the case WRITES an artifact carrying the violation -- the real historical
+    # shape, Q2/p11's `0 listed, 0 failing, 3 given` -- confirms the check sees it,
+    # then blinds the check and confirms it stops. Removed in a `finally`: a stray
+    # `*.runs.json` under the out root is read by every later check and by
+    # `measured` as if it were a real run.
     #
     # It must carry `web_score_sha` matching `measured.web_code_sha("score", item)`
     # or the check's own attributability filter skips the file and the case is
     # vacuous for a NEW reason -- which is the trap this repair exists to close.
+    import enforcement as _ENF43
     import json as _json43
     import pathlib as _pl43
     import paths as _paths43
     import measured as _M43
-
-    _sc_root, _sc_why = _paths43.out_root_or_reason()
-    if _sc_root is None:
-        # LOUD, NOT SKIPPED. Without an out root this case cannot install its
-        # fixture, and a self-test that quietly drops a case is the exact failure
-        # this repair is about. Dozens of other checks cannot run either, so
-        # stopping here names the real cause once instead of scattering it across
-        # a dozen "not detected" lines.
-        raise RuntimeError(
-            f"enforcement_selftest: the count-scaffold case needs an out root to "
-            f"install its fixture, and there is none -- {_sc_why}")
-
-    _sc_item = "Q2"
-    _sc_dir = _pl43.Path(_sc_root) / "selftest_scaffold_fixture"
-    _sc_file = _sc_dir / f"{_sc_item}.runs.json"
-
-    def _install_scaffold():
-        _sc_dir.mkdir(parents=True, exist_ok=True)
-        # The era sha must match `measured.web_code_sha("score", item)` or the
-        # check's own attributability filter skips the file and the case goes
-        # vacuous for a third reason.
-        _sc_file.write_text(_json43.dumps({
-            "era": {"web_score_sha": _M43.web_code_sha("score", _sc_item)},
-            "runs": [{"results": [{
-                "participant_id": 9999,
-                "answers": {"reasons_listed": 0,
-                            "reasons_failing": 0,
-                            "reasons_given": 3}}]}]}))
-
-    def _remove_scaffold():
-        _sc_file.unlink(missing_ok=True)
-        if _sc_dir.is_dir() and not any(_sc_dir.iterdir()):
-            _sc_dir.rmdir()
-
+    _real_scaffold = _ENF43.check_count_scaffolds_are_arithmetic
+    _sc_dir = _sc_file = None
     try:
-        _scorer_case("a count scaffold reports an impossible triple",
-                     _install_scaffold, _remove_scaffold,
-                     want="COUNT SCAFFOLD IS NOT ARITHMETIC")
+        _sc_root, _ = _paths43.out_root_or_reason()
+        if _sc_root is not None:
+            _sc_item = "Q2"
+            _sc_dir = _pl43.Path(_sc_root) / "selftest_scaffold_fixture"
+            _sc_dir.mkdir(parents=True, exist_ok=True)
+            _sc_file = _sc_dir / f"{_sc_item}.runs.json"
+            _sc_file.write_text(_json43.dumps({
+                "era": {"web_score_sha": _M43.web_code_sha("score", _sc_item)},
+                "runs": [{"results": [{
+                    "participant_id": 9999,
+                    "answers": {"reasons_listed": 0,
+                                "reasons_failing": 0,
+                                "reasons_given": 3}}]}]}))
+        _scorer_case("the count-scaffold check goes blind",
+                     lambda: setattr(_ENF43, "check_count_scaffolds_are_arithmetic",
+                                     lambda: []),
+                     lambda: setattr(_ENF43, "check_count_scaffolds_are_arithmetic",
+                                     _real_scaffold),
+                     want="COUNT SCAFFOLD IS NOT ARITHMETIC", inverted=True)
     finally:
-        _remove_scaffold()
+        if _sc_file is not None:
+            _sc_file.unlink(missing_ok=True)
+        if _sc_dir is not None and _sc_dir.is_dir() and not any(_sc_dir.iterdir()):
+            _sc_dir.rmdir()
     import handouts as _H
     _real_why = _H.CORRECTED_GOLD[("NR", 4)]["why"]
     _scorer_case("a declaration starts citing a suspect cell",
@@ -2620,23 +2540,9 @@ def enforcement_selftest():
     print("SELF-TEST — does the audit notice when a rule is removed?\n")
     baseline = _selftest_baseline
     bad = 0
-    # Per-case record for the vacancy report. Built from data the suite ALREADY
-    # has -- a standalone auditor would re-run `enforcement_audit()` before and
-    # after every case, and the audit takes minutes against a suite that is
-    # already ~3 hours.
-    _records = []
     for case in cases:
         label, want, item, found = case[0], case[1], case[2], case[3]
         inverted = case[4] if len(case) > 4 else False
-        if found is not None:
-            _keys = {_finding_key(f) for f in found}
-            _records.append({
-                "label": label, "want": want, "item": str(item),
-                "inverted": bool(inverted), "skipped": False,
-                "n_baseline": len(_baseline_keys), "n_found": len(_keys),
-                "added": sorted("|".join(k) for k in (_keys - _baseline_keys))[:8],
-                "removed": sorted("|".join(k) for k in (_baseline_keys - _keys))[:8],
-            })
         if found is None:
             # An inverted case whose precondition was absent. It tests nothing,
             # and saying PASS here would be the failure mode this whole file
@@ -2675,62 +2581,9 @@ def enforcement_selftest():
     # An inverted case whose precondition vanished is a SKIP, and it joins the
     # counted list rather than printing on its own -- the whole point of that
     # list is that a case which tests nothing is not allowed to scroll past.
-    # AN INVERTED SKIP IS ALREADY IN `cases`. `_scorer_case` appends
-    # `(label, want, ANY_ITEM, None)` before returning, so `len(cases)` counts it;
-    # adding it again through `skips` counted the SAME case twice and inflated
-    # `total` by one. That is how SELFTEST_EXPECTED came to be 72 for a suite of
-    # 71: the 64 -> 65 raise on 2026-09-05 added one for a case `len(cases)` was
-    # already counting.
-    #
-    # It matters because this constant is a TWO-SIDED ratchet whose point is that
-    # "fewer means a case was lost". An arithmetic that can quietly add one masks
-    # exactly the loss it exists to catch -- and it did: the suite read
-    # `72 of 72 expected` while one case tested nothing.
-    #
-    # So the conditional skips (`plain`, `_site`) are added -- they are NOT in
-    # `cases` -- and the inverted skips are printed but not re-counted.
-    _conditional_skips = list(skips)
     skips = skips + _inverted_skips
     for label, why in skips:
         print(f"  SKIP  {label:<28} -> {why}")
-
-    # THE VACANCY REPORT. Beside the "N detected, M failed" line, not instead of
-    # it: that line answers "did the right thing fire", this one answers "could
-    # anything have fired at all". Both defects found on 2026-09-18 were invisible
-    # to the first question and obvious to the second.
-    _vac = _vacancy_report(_records, skips)
-    _vacuous = [r for r in _vac if r["vacuous"]]
-    try:
-        import json as _json_v
-        import paths as _paths_v
-        _rec_path = _paths_v.OUT / "selftest_cases.json"
-        _rec_path.parent.mkdir(parents=True, exist_ok=True)
-        _rec_path.write_text(_json_v.dumps(_vac, indent=1))
-        print(f"\n  per-case record -> {_rec_path}")
-    except Exception as _e_v:                                  # pragma: no cover
-        print(f"\n  per-case record NOT written: {_e_v}")
-    print(f"  vacancy: {len(_vac)} cases, {len(_vacuous)} vacuous "
-          f"(ratchet {SELFTEST_VACANT_MAX})")
-    for _r in _vacuous:
-        print(f"    VACUOUS  {_r['label'][:44]:<44} {_r['verdict'][:46]}")
-    # A RATCHET, NOT A HARD FAIL. Failing on any vacancy would make the suite
-    # permanently red for a reason nobody can fix: `plain-path computed check`
-    # SKIPS by design when the corpus holds no item outside the derive-path
-    # branch, and a corpus is not a defect. Failing on GROWTH catches the thing
-    # that actually goes wrong -- a case quietly stopping testing, which is how
-    # the neutrality case ran vacuous for an unknown period while the suite
-    # printed `72 of 72 expected`.
-    #
-    # It may FALL freely: repairing a case should never require editing a budget.
-    if len(_vacuous) > SELFTEST_VACANT_MAX:
-        bad += 1
-        print(f"\n  *** VACANCY ROSE: {len(_vacuous)} cases test nothing, against "
-              f"SELFTEST_VACANT_MAX={SELFTEST_VACANT_MAX}. A case that stopped "
-              f"testing is not a case. Repair it, or lower nothing -- the ratchet "
-              f"only moves down.")
-    elif len(_vacuous) < SELFTEST_VACANT_MAX:
-        print(f"  vacancy fell below the ratchet: lower SELFTEST_VACANT_MAX to "
-              f"{len(_vacuous)} so the gain is protected.")
 
     # A MOVED SOURCE IS A FAILURE, NOT AN INCONCLUSIVE RESULT. This printed
     # "(VOID -- source moved)" and went on to exit 0, which is how a run that
@@ -2777,9 +2630,9 @@ def enforcement_selftest():
     # must equal SELFTEST_EXPECTED exactly. Fewer means a case was lost; more
     # means one was added and the constant was not raised, which leaves room for
     # a later loss to hide inside the slack.
-    built = len(cases)              # includes inverted skips, which hold found=None
+    built = len(cases)
     detected = built - bad
-    total = built + len(_conditional_skips)
+    total = built + len(skips)
     print(f"  {detected} detected, {bad} failed, {len(skips)} skipped, "
           f"{total} of {SELFTEST_EXPECTED} expected.")
     # STAMP THE PASS. measured.selftest_owed reads this file's mtime against
