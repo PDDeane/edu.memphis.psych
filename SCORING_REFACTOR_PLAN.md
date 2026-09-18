@@ -1657,7 +1657,10 @@ skipped inverted case) must be repaired and the suite re-run clean.
    `*.runs.json` with an impossible triple, confirms the finding fires, blinds the
    check, confirms it stops. Must carry `web_score_sha` or the check's own
    attributability filter skips it and the case is vacuous for a new reason.
-4. **full self-test re-run, clean** — closes E2.
+4. **T0.1, the vacancy report** — BUILT 2026-09-18. §12 assigned it to Stage 0
+   and this list omitted it, so the sequence disagreed with the tooling section
+   about what Stage 0 contains.
+5. **full self-test re-run, clean** — closes E2.
 
 *Nothing else starts until Stage 0 closes. Every later stage is verified by this
 instrument; repairing it afterwards would invalidate whatever it had already
@@ -1849,6 +1852,39 @@ specific finding.
 **Verification.** Both known-vacuous cases must be flagged BEFORE they are
 repaired — the neutrality case by zero delta, the count-scaffold case by skip. A
 tool for finding vacuous tests that has never caught one is not known to work.
+
+#### BUILT 2026-09-18 — what writing it changed
+
+* **The baseline was a COUNT, not a set.** `_selftest_baseline = len(...)`, so a
+  delta computed from it cannot tell a case that changed nothing from one that
+  added a finding and removed another — it would have reported a WORKING case as
+  vacuous. `_baseline_keys` now captures the set alongside the count. Third time in
+  this work that a measurement was weaker than it looked.
+* **Verification needed no 3-hour run.** The agreed approach was to check out the
+  pre-repair code and run it. Unnecessary: the defective run's OUTPUT is recorded,
+  and both rules are decidable from it — the neutrality case reported
+  `NOTHING FIRED` against `baseline 0`, so its delta was provably zero, and the
+  count-scaffold case is in the `SKIP` list verbatim. Verifying against what
+  happened beats re-enacting it.
+* **`_vacancy_report` is a PURE FUNCTION** taking records and skips. That was the
+  point of emitting a per-case record, and it paid immediately: every behaviour
+  here was tested in seconds, against a suite that takes three hours.
+* **DECIDED: a RATCHET, not a hard fail** (`SELFTEST_VACANT_MAX`, same idiom as
+  `SELFTEST_EXPECTED` and `HANDCODED_BUDGET`). A hard fail would make the suite
+  permanently red for a reason nobody can fix: the `plain-path computed check`
+  case SKIPS by design when the corpus holds no item outside the derive-path
+  branch, and a corpus is not a defect. Growth is what actually goes wrong — a
+  case quietly stopping testing — and the ratchet catches exactly that, while
+  falling freely so repairing a case never requires editing a budget.
+
+#### The artifact it leaves
+
+`$MOLLY_OUT/selftest_cases.json` — per case: label, want, item, inverted, baseline
+and found counts, and the findings added and removed. Written every run, consumed
+by the report, and reusable by anything later that wants to know what a case
+actually did.
+
+---
 
 ### T1.1 · `course_inventory.py` — the four-embedding scan — STAGE 1
 
