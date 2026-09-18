@@ -1675,6 +1675,35 @@ modules.** §10.3.0's correction is part of this — the vocabulary regex counte
 `handout` (127) and software-sense `behaviour` (35) and made the problem look five
 times larger than it is.
 
+### 11.2a · STAGES 2 AND 3 CYCLE — they are not sequential
+
+*Added 2026-09-18, on the user's observation, after T2.1 was built.*
+
+The order in §11 reads as Stage 2 then Stage 3. **It is a loop**, and pretending
+otherwise would have the schema settled before anything proved where the data can
+live.
+
+T2.1 drops a value only when it can recompute it. A2a says the READER recomputes.
+So each derivation written in the reader lets the export drop one more value, which
+changes the file, which changes what the schema has to describe — and `SLOT_SPEC`
+alone is 78 source lines in h1 and 149 in h2, so this is a dozen iterations, not a
+formality.
+
+The cycle, with its proof at every turn:
+
+1. the reader gains a derivation;
+2. `DERIVATIONS` (which lives in the reader from Stage 3) gains an entry;
+3. the export drops that value on its next run;
+4. **T5.1 proves the JSON still reproduces the modules** — so a wrong derivation
+   is caught the moment it is written, not when something downstream misreads it;
+5. repeat until every value is either authored or rebuilt.
+
+**A2a's progress is therefore countable**: twelve names §9.0 called derived, two
+proven so far. The schema is finished when that number stops moving, not before —
+and a schema declared final while the reader is still learning to rebuild things
+would have to be reopened, which is the state §5.2's gate ("no field is `TBD`")
+exists to prevent.
+
 ### 11.3 · Stage 2 — schema, against the hardest tables first
 
 Fit the schema to `GOLD_DIVERGENCES`, `CORRECTED_GOLD`, `PROSE_ONLY_SLOTS`,
@@ -2152,6 +2181,32 @@ produced.*
 file (C1b); recomputes what is genuinely derivable (A2a); and exposes SEPARATE
 accessors per group — `rubric_for(item)`, `slot_notes(item, slot)`, `ref_ids(item)`
 (§9.2a obligation 2).
+
+#### BUILT 2026-09-18 — and the cycle proved safe
+
+The reader works: 26 items, `rubric_for("Q1")` returns 14 RUBRIC fields and no
+generator fields, `TOTAL` for handout 1 rebuilds to 45.0 (matching the module's own
+comment), `BY_ID` to 8 keys for handout 1's 8 items.
+
+**Nested mutation was the test that mattered.** A shallow copy would pass
+"mutating the returned dict does not leak" and fail on
+`rubric_for("Q1")["credit"][0]["pts"] = -999`, which reaches into the loaded
+document through a shared inner object. Both are tested; both hold.
+
+**Gold is genuinely independent.** With `COURSE_DATA` and `MOLLY_DATA` both unset,
+`gold()` refuses with the variable and path it tried while `items()` still returns
+all 26 — which is the split T3.1's review asked for and T2.2 deliberately does not
+make.
+
+**The cycle with T2.1 is safe against a WRONG derivation.** `DERIVATIONS` now lives
+here and the export imports it. Adding a deliberately incorrect derivation for
+`MAPS` (returning `{}`) did NOT cause the export to drop it: recomputation
+differed, so the value was carried, and the report said why. A bad derivation in
+the reader cannot lose data in the file — it can only fail to save space.
+
+That is the property that makes the Stage 2/3 loop (§11.2a) safe to run a dozen
+times: each pass can only move a value from "carried" to "dropped" when the reader
+demonstrably rebuilds it.
 
 #### The boundary is a MECHANISM, not a rule
 
