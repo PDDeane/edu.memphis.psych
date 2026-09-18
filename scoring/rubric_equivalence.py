@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+"""Prove the course JSON reproduces the rubric modules, while they are still the oracle.
+
+T5.1. The rubric modules are deleted at Stage 5, and the last run of this tool is
+what licenses removing them. Until then they are the truth and this file is the
+copy.
+
+IT DOES NOT READ THROUGH `coursedata.py`, AND THAT IS THE POINT. T3.2 compares the
+READER against the modules; this compares the DATA against the modules. A reader
+bug and an export bug produce the same symptom, and only two independent proofs
+separate them -- so loading the JSON through the reader here would make both tools
+fail identically on a reader bug and hide the very thing the second proof exists to
+isolate. (The first draft of this design specified exactly that, which is the same
+class of error as an accessor returning a raw entry: a stated boundary and an
+implementation that quietly disagree.)
+
+DEEP EQUALITY IS IMPOSSIBLE AND ITS ABSENCE IS NOT A DEFECT. A2a removes derived
+values on purpose, so the modules carry fields the file does not. A blanket
+equality assertion would fail on every item for a designed reason. The scopes are
+therefore split and do not overlap:
+
+    T5.1 -- the AUTHORED fields, JSON against modules, directly
+    T3.2 -- the DERIVED values, through the reader, where the rules live
+
+Between them every field is proved once, by the tool that can prove it without
+borrowing the thing under test.
+
+MEASURED 2026-09-18: 2 of 18 candidates are derivable (`BY_ID`, `TOTAL`); the rest
+are authored literals. So "the authored fields" is very nearly everything, and this
+tool carries almost the whole proof.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+HANDOUTS = (1, 2, 3)
+
+# Rebuilt by the reader rather than stored, so their absence from the file is
+# correct. Named here INDEPENDENTLY of the reader: this tool must not import the
+# thing it is proving the file against.
+DERIVED_BY_DESIGN = {"BY_ID", "TOTAL"}
+
+
+def _canonical(x):
+    """T2.1's pinned form: sorted keys within an entry, lists in place."""
+    if isinstance(x, dict):
+        return {str(k): _canonical(v) for k, v in sorted(x.items(), key=lambda kv: str(kv[0]))}
+    if isinstance(x, (list, tuple)):
+        return [_canonical(v) for v in x]
+    return x
+
+
+def _diff(a, b, path="") -> list[str]:
+    """Every difference, with its path. Not a bool: 'they differ' is unactionable."""
+    out = []
+    if type(a) is not type(b) and not (isinstance(a, (int, float))
+                                       and isinstance(b, (int, float))):
+        return [f"{path or '<root>'}: module has {type(a).__name__}, "
+                f"file has {type(b).__name__}"]
+    if isinstance(a, dict):
+        for k in sorted(set(a) | set(b), key=str):
+            if k not in a:
+                out.append(f"{path}.{k}: ONLY IN FILE")
+            elif k not in b:
+                out.append(f"{path}.{k}: ONLY IN MODULE -- the export lost it")
+            else:
+                out += _diff(a[k], b[k], f"{path}.{k}")
+    elif isinstance(a, list):
+        if len(a) != len(b):
+            out.append(f"{path}: module has {len(a)} entries, file has {len(b)}")
+        for i, (x, y) in enumerate(zip(a, b)):
+            out += _diff(x, y, f"{path}[{i}]")
+    elif a != b:
+        out.append(f"{path}: module {a!r:.60} != file {b!r:.60}")
+    return out
+
+
+def compare(course_file: str) -> tuple[list[str], dict]:
+    sys.path.insert(0, HERE)
+    doc = json.load(open(course_file))          # DIRECT. No reader.
+    by_id = {str(it["id"]): it for it in doc.get("items", [])}
+    problems, counts = [], {"items": 0, "fields": 0, "authored_values": 0}
+
+    for h in HANDOUTS:
+        mod = __import__(f"rubric_h{h}")
+        for it in list(getattr(mod, "ITEMS", []) or []):
+            iid = str(it["id"])
+            counts["items"] += 1
+            if iid not in by_id:
+                problems.append(f"item {iid}: IN MODULE, ABSENT FROM FILE")
+                continue
+            want = _canonical(it)
+            got = {k: v for k, v in _canonical(by_id[iid]).items() if k != "handout"}
+            counts["fields"] += len(want)
+            problems += _diff(want, got, f"item {iid}")
+
+        # the module-level authored values the export carried
+        block = doc.get("handouts", {}).get(str(h), {}).get("authored", {})
+        exports = {n: getattr(mod, n) for n in dir(mod)
+                   if n.isupper() and not n.startswith("_") and n != "ITEMS"}
+        for name, value in sorted(exports.items()):
+            if name in DERIVED_BY_DESIGN:
+                if name in block:
+                    problems.append(f"h{h} {name}: stored in the file although it is "
+                                    f"rebuilt by the reader -- A2a says do not store it")
+                continue
+            counts["authored_values"] += 1
+            if name not in block:
+                problems.append(f"h{h} {name}: IN MODULE, ABSENT FROM FILE -- "
+                                f"neither carried nor derivable")
+                continue
+            problems += _diff(_canonical(value), _canonical(block[name]), f"h{h}.{name}")
+
+    extra = set(by_id) - {str(it["id"]) for h in HANDOUTS
+                          for it in (getattr(__import__(f"rubric_h{h}"), "ITEMS", []) or [])}
+    for iid in sorted(extra):
+        problems.append(f"item {iid}: IN FILE, ABSENT FROM MODULES")
+    return problems, counts
+
+
+def main(argv: list[str]) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--course-file", default=os.path.join(
+        HERE, "..", "courses", "edu.memphis.psych", "course.json"))
+    args = ap.parse_args(argv)
+
+    if not os.path.exists(args.course_file):
+        print(f"  REFUSING: no course file at {args.course_file}. A missing file is "
+              f"not an equivalent one.")
+        return 2
+
+    problems, counts = compare(args.course_file)
+    print(f"  compared {counts['items']} items, {counts['fields']} item fields, "
+          f"{counts['authored_values']} module-level authored values")
+    if not problems:
+        print("  EQUIVALENT — the file reproduces the modules on every authored field.")
+        print("  (Derived values are T3.2's, through the reader: "
+              f"{sorted(DERIVED_BY_DESIGN)})")
+        return 0
+    print(f"  {len(problems)} DIFFERENCE(S):")
+    for p in problems[:40]:
+        print(f"    {p}")
+    if len(problems) > 40:
+        print(f"    ... and {len(problems) - 40} more")
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))

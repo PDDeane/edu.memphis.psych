@@ -2538,6 +2538,32 @@ borrowing the thing under test.
 reproducible, so a later re-export produces a diff nobody expects. It asserts
 exactly what T2.1 emits: sorted keys within an entry, items in rubric order.
 
+#### BUILT 2026-09-18 — equivalent, and proven capable of failing
+
+`26 items, 333 item fields, 18 module-level authored values — EQUIVALENT.`
+
+**A proof that passes on its first run is exactly when to distrust it**, so each
+failure mode was induced on a copy of the file. All seven are caught, each naming
+the path:
+
+| induced | reported |
+|---|---|
+| an item deleted from the file | `item Q1: IN MODULE, ABSENT FROM FILE` |
+| a changed scalar | `item Q1.max: module 5.0 != file 99.0` |
+| a changed NESTED value | `item Q1.credit[0].pts: module 2.0 != file -1` |
+| a field dropped from an item | `item Q1.guidance: ONLY IN MODULE -- the export lost it` |
+| an authored value not carried | `h1 MAPS: IN MODULE, ABSENT FROM FILE` |
+| a DERIVED value wrongly stored | `h1 TOTAL: stored ... A2a says do not store it` |
+| an item in the file but not the modules | `item ZZ9: IN FILE, ABSENT FROM MODULES` |
+
+The nested case is the one a shallow comparison would miss, and the "derived value
+wrongly stored" case is the one that enforces A2a from the other direction — the
+file must not carry what the reader rebuilds.
+
+It names `DERIVED_BY_DESIGN` itself rather than importing the reader's
+`DERIVATIONS`. That duplication is deliberate and is the point of the tool: this
+proof must not borrow the thing it is proving the file against.
+
 #### Not a per-commit check — an acceptance step and a pre-deletion gate
 
 It imports all three rubric modules, which means RUNNING `rubric_h2`'s builders,
