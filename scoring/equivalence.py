@@ -2485,55 +2485,79 @@ def enforcement_selftest():
                  _drop_wk1_expect, _restore_wk1_expect,
                  want="GENERATED ATTRIBUTE HAS NO DECLARATION")
 
-    # THE CASE BUILDS ITS OWN PRECONDITION. An inverted case blinds a check and
-    # asserts the finding DISAPPEARS, so the finding must be present first --
-    # `_scorer_case` degrades to a SKIP when it is not, which is honest but means
-    # the case tests nothing. On a clean corpus it never fires: measured
-    # 2026-09-18, the current artifacts hold 0 violations, so this case had been
-    # skipping rather than testing for an unknown period while the tally read
-    # `72 of 72 expected`.
+    # THE FIXTURE IS THE INJECTION, AND THE CASE IS NO LONGER INVERTED.
     #
-    # So the case WRITES an artifact carrying the violation -- the real historical
-    # shape, Q2/p11's `0 listed, 0 failing, 3 given` -- confirms the check sees it,
-    # then blinds the check and confirms it stops. Removed in a `finally`: a stray
-    # `*.runs.json` under the out root is read by every later check and by
-    # `measured` as if it were a real run.
+    # First repair (2026-09-18): the case blinded the check and asserted the
+    # finding DISAPPEARS, which needs the finding present first -- and on a clean
+    # corpus it never was, so the case had been SKIPPING for an unknown period
+    # while the tally read `72 of 72 expected`. That repair wrote an artifact
+    # carrying the real historical shape, Q2/p11's `0 listed, 0 failing, 3 given`.
+    #
+    # It did not work, and the reason is worth keeping. The vacancy report scores
+    # a case by the DELTA against `_baseline_findings`, captured once at the start
+    # of the run -- about 1,200 lines before this fixture is written. So the
+    # baseline never saw the violation, the blinded audit did not report it
+    # either, and `added` and `removed` were both empty: `VACUOUS (injection moved
+    # nothing)`. The case was repaired into a SECOND vacuous state, and only the
+    # ratchet made that visible.
+    #
+    # Inverting was only ever a workaround for having no way to CAUSE the
+    # violation. The fixture is that way, so the case now runs in the natural
+    # direction: install the artifact, confirm the finding appears, remove it.
+    # That tests the check DETECTS, where blinding only tested that a stubbed
+    # function returns nothing. It needs no precondition, so it cannot degrade to
+    # a skip, and its delta is against the same baseline as every other case.
+    #
+    # Removed in a `finally`: a stray `*.runs.json` under the out root is read by
+    # every later check and by `measured` as if it were a real run.
     #
     # It must carry `web_score_sha` matching `measured.web_code_sha("score", item)`
     # or the check's own attributability filter skips the file and the case is
     # vacuous for a NEW reason -- which is the trap this repair exists to close.
-    import enforcement as _ENF43
     import json as _json43
     import pathlib as _pl43
     import paths as _paths43
     import measured as _M43
-    _real_scaffold = _ENF43.check_count_scaffolds_are_arithmetic
-    _sc_dir = _sc_file = None
-    try:
-        _sc_root, _ = _paths43.out_root_or_reason()
-        if _sc_root is not None:
-            _sc_item = "Q2"
-            _sc_dir = _pl43.Path(_sc_root) / "selftest_scaffold_fixture"
-            _sc_dir.mkdir(parents=True, exist_ok=True)
-            _sc_file = _sc_dir / f"{_sc_item}.runs.json"
-            _sc_file.write_text(_json43.dumps({
-                "era": {"web_score_sha": _M43.web_code_sha("score", _sc_item)},
-                "runs": [{"results": [{
-                    "participant_id": 9999,
-                    "answers": {"reasons_listed": 0,
-                                "reasons_failing": 0,
-                                "reasons_given": 3}}]}]}))
-        _scorer_case("the count-scaffold check goes blind",
-                     lambda: setattr(_ENF43, "check_count_scaffolds_are_arithmetic",
-                                     lambda: []),
-                     lambda: setattr(_ENF43, "check_count_scaffolds_are_arithmetic",
-                                     _real_scaffold),
-                     want="COUNT SCAFFOLD IS NOT ARITHMETIC", inverted=True)
-    finally:
-        if _sc_file is not None:
-            _sc_file.unlink(missing_ok=True)
-        if _sc_dir is not None and _sc_dir.is_dir() and not any(_sc_dir.iterdir()):
+
+    _sc_root, _sc_why = _paths43.out_root_or_reason()
+    if _sc_root is None:
+        # LOUD, NOT SKIPPED. Without an out root this case cannot install its
+        # fixture, and a self-test that quietly drops a case is the exact failure
+        # this repair is about. Dozens of other checks cannot run either, so
+        # stopping here names the real cause once instead of scattering it across
+        # a dozen "not detected" lines.
+        raise RuntimeError(
+            f"enforcement_selftest: the count-scaffold case needs an out root to "
+            f"install its fixture, and there is none -- {_sc_why}")
+
+    _sc_item = "Q2"
+    _sc_dir = _pl43.Path(_sc_root) / "selftest_scaffold_fixture"
+    _sc_file = _sc_dir / f"{_sc_item}.runs.json"
+
+    def _install_scaffold():
+        _sc_dir.mkdir(parents=True, exist_ok=True)
+        # The era sha must match `measured.web_code_sha("score", item)` or the
+        # check's own attributability filter skips the file and the case goes
+        # vacuous for a third reason.
+        _sc_file.write_text(_json43.dumps({
+            "era": {"web_score_sha": _M43.web_code_sha("score", _sc_item)},
+            "runs": [{"results": [{
+                "participant_id": 9999,
+                "answers": {"reasons_listed": 0,
+                            "reasons_failing": 0,
+                            "reasons_given": 3}}]}]}))
+
+    def _remove_scaffold():
+        _sc_file.unlink(missing_ok=True)
+        if _sc_dir.is_dir() and not any(_sc_dir.iterdir()):
             _sc_dir.rmdir()
+
+    try:
+        _scorer_case("a count scaffold reports an impossible triple",
+                     _install_scaffold, _remove_scaffold,
+                     want="COUNT SCAFFOLD IS NOT ARITHMETIC")
+    finally:
+        _remove_scaffold()
     import handouts as _H
     _real_why = _H.CORRECTED_GOLD[("NR", 4)]["why"]
     _scorer_case("a declaration starts citing a suspect cell",
