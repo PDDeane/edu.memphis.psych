@@ -2344,6 +2344,70 @@ Output therefore leads with **`N keys compared, M tables not yet migrated`**, an
 the tool REFUSES to exit 0 when coverage is zero. A partial run is a legitimate
 state during Stage 4; a partial run that looks complete is not.
 
+#### BUILT 2026-09-18 as `reader_equivalence.py` — and the inventory source above is WRONG
+
+`50 values compared through the reader, 65 tables not yet migrated — EQUIVALENT.`
+`--self-test`: **9 of 9 failure modes caught.**
+
+**The design's key-inventory rule was corrected before the tool was written**
+(approved 2026-09-18). "Consume T1.1's output rather than re-deriving it" has the
+right reasoning and the wrong source. T1.1 answers *which tables embed course
+ids* — an **embedding** census, sized to bound the renaming work. This tool needs
+*what does the module hold that must be carried* — a **completeness** census.
+Measured, they differ: handout 2 holds 27 module-level names where T1.1 lists 15.
+`SLOT_OPTIONS` is absent from T1.1 **and is carried by the export**; `BY_ID` and
+`TOTAL` are absent and are the two values the reader rebuilds. All three would
+have gone unverified while the run printed success.
+
+It does not borrow the export's rule either (`isupper() and not startswith("_")`),
+which would agree with the export by construction and go blind wherever the
+export is blind. Instead **every module-level name is enumerated by reflection and
+every one must be accounted for** — compared through the reader, or carrying a
+written justification keyed by `(handout, name)` so a new private table in a new
+module cannot inherit a justification written for a different one. Unaccounted is
+a FAILURE.
+
+T1.1 is still consumed — for the `65 tables not yet migrated` line, which is
+exactly the question an embedding census answers.
+
+##### What the completeness census found immediately
+
+`rubric_h2._HELD_BACK_RULE` is **dead**: 686 characters of authored scoring
+prose, defined at `rubric_h2.py:155`, referenced nowhere, absent from every
+item's text, and written for a `held_back_is` slot that no item uses. T1.1's
+inventory would never have looked at it — it names no course ids.
+
+It is reported and left in place. **A migration tool is the wrong place to decide
+that authored scoring text is dead**, so this is owed as a content decision:
+delete it, or find the item whose guidance lost it. It ships nowhere today either
+way, so no measured result depends on the answer.
+
+##### `handout` is invented by the export, so it is declared and checked
+
+No module item records its handout — the module it is written in *is* the
+handout, and that fact is lost the moment the items are pooled. The export
+synthesises the field. `EXPORT_ADDED` names it rather than quietly ignoring it,
+and the tool checks it holds the RIGHT value, because an invented field deserves
+more scrutiny than a carried one, not less.
+
+##### Three of the nine controls caught defects in the TOOL, not the data
+
+This is the argument for negative controls stated as a measurement:
+
+1. **A check that could never fire.** The `handout` check was unreachable: the
+   served items were *filtered* by handout, so a wrong value removed the item
+   instead of mismatching it. It reported "missing" and never compared the value.
+2. **Coverage that could never reach zero.** `BY_ID` and `TOTAL` rebuild happily
+   from an empty pool — `{}` and `0` — so a file with nothing migrated still
+   reported "2 values compared" per handout and the refusal was unreachable.
+   **T0.1's vacancy defect, reappearing inside the guard written against it.**
+   Rebuilding a value from no inputs proves nothing.
+3. **The same bug twice.** The empty-pool guard was first gated on the *module's*
+   items, which are never empty. The pool that matters is the *reader's*.
+
+The controls live in the tool as `--self-test`, not in a scratch file, because
+controls kept outside the tool rot the moment the tool changes.
+
 #### Comparison is by VALUE, in the pinned order
 
 T3.1 returns copies rather than the incumbent's own objects, so identity
