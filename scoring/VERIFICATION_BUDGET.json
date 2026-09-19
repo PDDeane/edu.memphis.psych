@@ -1,0 +1,12 @@
+{
+ "_what": "declaration tables no check verifies, by presence or content. May shrink, never grow.",
+ "unverified": [
+  "HAND_AUTHORED_ATTRS",
+  "PROBE_PROVOCATIONS",
+  "PROBE_UNREACHABLE_PAIRS",
+  "SLOT_STRUCTURE_FAMILIES"
+ ],
+ "uncallable_check": [
+  "COUNTABLE_EXEMPT"
+ ]
+}

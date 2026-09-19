@@ -2922,6 +2922,33 @@ What it does prove is the positive direction. Where corruption DOES move a check
 that table's contents are verified, and `DESIGNED_TEXT` — the table governing
 what prompt text ships — is one of the two.
 
+#### `check_declaration_tables_are_verified` — the finding turned into a gate
+
+162 checks. `VERIFICATION_BUDGET.json` records the four tables nothing
+validates — `HAND_AUTHORED_ATTRS`, `PROBE_PROVOCATIONS`,
+`PROBE_UNREACHABLE_PAIRS`, `SLOT_STRUCTURE_FAMILIES` — plus the one whose check
+cannot be called bare, `COUNTABLE_EXEMPT`.
+
+**It gates the direction, not the state.** The set may shrink and may not grow,
+so a NEW declaration table has to be checkable by something before it is added,
+and a table that becomes unverifiable is reported. Fixing the existing four is
+separate work; stopping a fifth is not.
+
+##### The expensive half is deliberately not in the gate
+
+Measuring sensitivity re-runs every consuming check **twice per table**. Inside
+an audit that already runs 160 checks, that would add minutes to every commit.
+So `table_sensitivity.py --tighten` measures and records; the check only
+compares — the same split T4.1 uses, and for the same reason: **a gate that can
+lower its own bar is not a ratchet.**
+
+`--tighten` refuses if a table has BECOME unverified, because *a table nothing
+checks is not a baseline to record*.
+
+Both halves of the gate were exercised: a recorded table that no longer exists is
+caught, and a missing budget file fails rather than passing — *nothing recording
+which tables are verified is not the same as all of them being verified*.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
