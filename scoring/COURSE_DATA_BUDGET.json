@@ -39,9 +39,10 @@
   "course_schema.py": 0,
   "coursedata.py": 0,
   "cross_path.py": 0,
+  "declaration_source.py": 7,
   "docx_text.py": 1,
   "editguard.py": 0,
-  "enforcement.py": 24,
+  "enforcement.py": 17,
   "equivalence.py": 0,
   "faithful_probe.py": 0,
   "fixture_edits.py": 0,
@@ -67,6 +68,7 @@
   "precommit_gate.py": 1,
   "probe.py": 2,
   "property_ratchet.py": 0,
+  "prose_split.py": 0,
   "prose_vocabulary.py": 0,
   "q6_consensus.py": 1,
   "reader_equivalence.py": 4,
@@ -87,6 +89,7 @@
   "stamp_legacy_artifacts.py": 0,
   "structure_kids.py": 0,
   "sweep_gate.py": 0,
-  "sweep_readout.py": 0
+  "sweep_readout.py": 0,
+  "table_sensitivity.py": 0
  }
 }

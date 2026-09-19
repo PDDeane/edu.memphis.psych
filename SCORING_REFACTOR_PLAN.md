@@ -2793,6 +2793,43 @@ two helpers would still be reported as unconsumed.
 under `$COURSE_DATA/out`, and nothing here is worth a write outside the tree
 being worked on.
 
+#### `enforcement.py`: 17 tables → 10, once there was a test to move them by
+
+`12 of 12 consuming checks IDENTICAL after the migration`, and
+`table_sensitivity.py` re-run afterwards shows the moved tables are **still
+sensitive** — so the test that licensed the move is still live against the
+course-file-backed version.
+
+Seven moved. **Six did not, for two different reasons, and the difference is the
+point:**
+
+* **`CONSENSUS_OVERLAP_BACKLOG` is keyed by PARTICIPANT** — `('2a', 18, 'how1',
+  'verdict')`, participants 18 and 20. C1b puts anything keyed by a participant
+  in the gold file, outside this public repository. Found by checking every key
+  for integer parts before exporting, not after.
+* **Five are NOT SENSITIVE** — `SLOT_STRUCTURE_FAMILIES`, `HAND_AUTHORED_ATTRS`,
+  `COUNTABLE_EXEMPT`, `PROBE_UNREACHABLE_PAIRS`, `PROBE_PROVOCATIONS`. Emptying
+  them moves no check, so nothing would report the loss. They stay until
+  something would.
+
+##### Tuple keys, and why not a separator
+
+Six of the seven are keyed by tuples — `("Q4a", "antecedent_kind_1",
+"rule_addition")` — and JSON has string keys only. **Joining the parts with a
+separator would be lossless only until a part contained the separator**, and
+would then stop round-tripping silently. The file holds `[[key, value], …]`, so
+a key stored as a LIST comes back as the tuple it was. The round trip is asserted
+on all seven, not assumed.
+
+##### The same dependency mistake, a second time
+
+Extracting the tables left `_PRIMS_2026_08_29` behind and
+`DECOMPOSITION_DIVERGENCES` is built from it — a `NameError` on first import.
+**That is exactly what happened moving `MATCH_DEF` out of `olx_prompts`**, where
+`EQUIVALENCE_DEF` was left behind. A table is not self-contained just because it
+is a table, and the loud failure is the good case: the quiet one is a table that
+imports and is subtly wrong.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
