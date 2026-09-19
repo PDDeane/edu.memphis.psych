@@ -20,6 +20,14 @@ their loss, because a migration nothing can check is a migration nobody can trus
 """
 from __future__ import annotations
 
+# `JOBS` composes screen ids from `paths.NS`, so the builder needs it. Noted
+# rather than passed over: those ids therefore embed the course id --
+# `edu.memphis.psych/bmod_h1_q1` -- which the course file already carries in its
+# own `course` field. De-namespacing them is a real Goal-D improvement and a
+# SEPARATE change: a move and a reshape done together cannot be attributed when
+# one of them breaks.
+import paths
+
 # CARRIED WITH THE TABLES. DECOMPOSITION_DIVERGENCES is built from it, and the
 # extraction left it behind -- a NameError on the first import, which is the
 # loud version of this mistake. The same thing happened moving MATCH_DEF out of
@@ -764,4 +772,303 @@ CONTEXT_SOURCE = {
     "bmod_h3_success_how1":     ("scorer", "2a", "how_1"),
     "bmod_h3_success_how2":     ("scorer", "2a", "how_2"),
     "bmod_h3_assessment_response": ("section", "2b"),
+}
+
+
+# ---------------------------------------------------------------------------
+# STAGE 4, from `agreement_app.py`. The per-item JOB definitions the app
+# builds its run list from -- which screen, which grader, which fields,
+# which button. Course content: another course would have its own.
+# ---------------------------------------------------------------------------
+# Which screen carries each item, and which paper section feeds each field.
+# Fixtures only — no judgement about what anything is worth.
+JOBS = {
+    # Handout 1. `_utb_choice` resolves the closed ChoiceInput; a "split" pair is
+    # fed from one paper block, which holds both entries the web version asks for.
+    "Q1": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q1", "ns": paths.NS,
+        "button": "Check my answer",
+        "feedback": "bmod_h1_q1_feedback", "grader": "bmod_h1_q1_grader",
+        "fields": {
+                   "bmod_h1_utb": "_utb_choice",
+                   "bmod_h1_q1_response": "Q1",
+        },
+        "split": {
+
+        },
+    },
+    "Q2": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q2", "ns": paths.NS,
+        "button": "Check my answer",
+        "feedback": "bmod_h1_q2_feedback", "grader": "bmod_h1_q2_grader",
+        "fields": {
+                   "bmod_h1_utb": "_utb_choice",
+                   "bmod_h1_q2_response": "Q2",
+        },
+        "split": {
+
+        },
+    },
+    "Q4a": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q4a", "ns": paths.NS,
+        "button": "Check my antecedents",
+        "feedback": "bmod_h1_q4a_feedback", "grader": "bmod_h1_q4a_grader",
+        "fields": {"bmod_h1_utb": "_utb_choice"},
+        "from_scorer": {"bmod_h1_q4a_first": "antecedent_1",
+                        "bmod_h1_q4a_second": "antecedent_2"},
+    },
+    "Q4c": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q4c", "ns": paths.NS,
+        "button": "Check my consequences",
+        "feedback": "bmod_h1_q4c_feedback", "grader": "bmod_h1_q4c_grader",
+        "fields": {"bmod_h1_utb": "_utb_choice"},
+        "from_scorer": {"bmod_h1_q4c_first": "consequence_1",
+                        "bmod_h1_q4c_second": "consequence_2"},
+    },
+    "Q5": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q5", "ns": paths.NS,
+        "button": "Check my answer",
+        "feedback": "bmod_h1_q5_feedback", "grader": "bmod_h1_q5_grader",
+        "fields": {"bmod_h1_utb": "_utb_choice"},
+        "from_scorer": {"bmod_h1_q5_first": "example_1",
+                        "bmod_h1_q5_second": "example_2",
+                        "bmod_h1_q4c_first": "consequence_1",
+                        "bmod_h1_q4c_second": "consequence_2"},
+    },
+    "Q6": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q6", "ns": paths.NS,
+        "button": "Check my answer",
+        "feedback": "bmod_h1_q6_feedback", "grader": "bmod_h1_q6_grader",
+        "fields": {"bmod_h1_utb": "_utb_choice"},
+        # The spans come from a CONSENSUS of ten CLI runs, frozen in a file, not
+        # from whatever the last rescore happened to quote. The CLI's verdicts are
+        # near-deterministic (156 of 160 slots unanimous across ten runs) but its
+        # quotations are not (47% of spans move per rerun), and the fixture IS the
+        # spans — so before this, two web runs one rescore apart were not
+        # comparable. See q6_consensus.py for how the vote works and why the
+        # slots are allowed to overlap.
+        "consensus": str(paths.OUT / "q6_consensus" / "consensus.json"),
+        # Eight components, eight boxes, NO splitting — and do not "fix" the
+        # overlap between siblings. 36 of 117 filled boxes share text with a
+        # sibling (`state_c1` and `affect_c1` are often one sentence, or one
+        # inside the other) and that is FAITHFUL: a single sentence can both
+        # name the consequence and say how it is affected, which is exactly what
+        # this item's guidance tells the grader to allow ("PRESENCE IS NOT
+        # WORDING"). Switching to the anchored split to remove the overlap
+        # slices those sentences into fragments — p9's `affect_c1` became "With
+        # this" — and took the item from 11/17 to 3/17, bias -0.13 to -0.94.
+        # anchored_split's docstring was right: here the quote IS the answer.
+        "from_scorer": {
+            "bmod_h1_q6_state_a1": "state_a1", "bmod_h1_q6_change_a1": "change_a1",
+            "bmod_h1_q6_state_c1": "state_c1", "bmod_h1_q6_affect_c1": "affect_c1",
+            "bmod_h1_q6_state_a2": "state_a2", "bmod_h1_q6_change_a2": "change_a2",
+            "bmod_h1_q6_state_c2": "state_c2", "bmod_h1_q6_affect_c2": "affect_c2",
+        },
+    },
+
+    # Handout 2. Every item declares the same fallback: 7 of 20 transcriptions
+    # leave this handout's restatement of the behaviour and goal empty, and
+    # without them the model judges a contingency against a goal it cannot see.
+    "PR": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_pr_screen", "ns": paths.NS,
+        "button": "Check my Positive Reinforcement example",
+        "feedback": "bmod_h2_pr_feedback", "grader": "bmod_h2_pr_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_pr": "PR"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "NR": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_nr_screen", "ns": paths.NS,
+        "button": "Check my Negative Reinforcement example",
+        "feedback": "bmod_h2_nr_feedback", "grader": "bmod_h2_nr_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_nr": "NR"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "PP": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_pp_screen", "ns": paths.NS,
+        "button": "Check my Positive Punishment example",
+        "feedback": "bmod_h2_pp_feedback", "grader": "bmod_h2_pp_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_pp": "PP"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "NP": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_np_screen", "ns": paths.NS,
+        "button": "Check my Negative Punishment example",
+        "feedback": "bmod_h2_np_feedback", "grader": "bmod_h2_np_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_np": "NP"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "D1": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_d1_screen", "ns": paths.NS,
+        "button": "Check my definition",
+        "feedback": "bmod_h2_d1_feedback", "grader": "bmod_h2_d1_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_t1": "T1", "bmod_h2_t1": "T1",
+                   "bmod_h2_d1": "D1"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "DAY1": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_day1_screen", "ns": paths.NS,
+        "button": "Check my daily example",
+        "feedback": "bmod_h2_day1_feedback", "grader": "bmod_h2_day1_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_t1": "T1", "bmod_h2_d1": "D1",
+                   "bmod_h2_day1": "DAY1"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "WK1": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_wk1_screen", "ns": paths.NS,
+        "button": "Check my weekly example",
+        "feedback": "bmod_h2_wk1_feedback", "grader": "bmod_h2_wk1_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_t1": "T1", "bmod_h2_d1": "D1",
+                   "bmod_h2_wk1": "WK1"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "D2": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_d2_screen", "ns": paths.NS,
+        "button": "Check my definition",
+        "feedback": "bmod_h2_d2_feedback", "grader": "bmod_h2_d2_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_t2": "T2", "bmod_h2_t2": "T2",
+                   "bmod_h2_d2": "D2"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "DAY2": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_day2_screen", "ns": paths.NS,
+        "button": "Check my daily example",
+        "feedback": "bmod_h2_day2_feedback", "grader": "bmod_h2_day2_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_t2": "T2", "bmod_h2_d2": "D2",
+                   "bmod_h2_day2": "DAY2"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+    "WK2": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_wk2_screen", "ns": paths.NS,
+        "button": "Check my weekly example",
+        "feedback": "bmod_h2_wk2_feedback", "grader": "bmod_h2_wk2_grader",
+        "fields": {"bmod_h1_utb": "_utb", "bmod_h1_q2_response": "_wgb",
+                   "bmod_h2_t2": "T2", "bmod_h2_d2": "D2",
+                   "bmod_h2_wk2": "WK2"},
+        "fallback": {"_utb": (1, "Q1"), "_wgb": (1, "Q2")},
+    },
+
+    # ---- the last seven, each needing a split the two-way one cannot do ----
+    "Q3": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q3", "ns": paths.NS,
+        "button": "Check my SMART goal",
+        "feedback": "bmod_h1_q3_feedback", "grader": "bmod_h1_q3_grader",
+        "fields": {"bmod_h1_utb": "_utb_choice", "bmod_h1_q2_response": "Q2"},
+        "from_scorer": {
+            "bmod_h1_q3_specific": "specific",
+            "bmod_h1_q3_measurable": "measurable",
+            "bmod_h1_q3_action": "action_oriented",
+            "bmod_h1_q3_realistic": "realistic",
+            "bmod_h1_q3_timebound": "time_bound",
+        },
+        # Q3's aspects are discursive: the evidence quote is one sentence of a
+        # longer answer, so it anchors a slice rather than replacing it.
+        "anchored": True,
+    },
+    "Q4b": {
+        "handout": 1, "screen": f"{paths.NS}/bmod_h1_q4b", "ns": paths.NS,
+        "button": "Check my answer",
+        "feedback": "bmod_h1_q4b_feedback", "grader": "bmod_h1_q4b_grader",
+        "fields": {"bmod_h1_utb": "_utb_choice", "bmod_h1_q2_response": "Q2"},
+        "split": {"Q4a": ("bmod_h1_q4a_first", "bmod_h1_q4a_second")},
+        "handsplit": str(paths.HANDSPLIT / "Q4b.json"),
+    },
+    "1a": {
+        "handout": 3, "screen": f"{paths.NS}/bmod_h3_overview", "ns": paths.NS,
+        "button": "Check my overview",
+        "feedback": "bmod_h3_overview_feedback", "grader": "bmod_h3_overview_grader",
+        "fields": {"bmod_h3_overview_response": "1a"},
+        # The four weekly boxes come from simulate_h3, which recovers what the
+        # student would have typed from the chart they submitted.
+        "sim": {"bmod_h3_baseline": "baseline", "bmod_h3_wk1": "week_1",
+                "bmod_h3_wk2": "week_2", "bmod_h3_wk3": "week_3"},
+    },
+    "1c": {
+        "handout": 3, "screen": f"{paths.NS}/bmod_h3_graph", "ns": paths.NS,
+        "button": "Check my labelling",
+        "feedback": "bmod_h3_graph_feedback", "grader": "bmod_h3_graph_grader",
+        "fields": {},
+        "fallback": {"_wgb": (1, "Q2")},
+        # The four data fields are seeded as well as the three labels. 1c's sheet
+        # gates on `has_own_graph`, which the web asks of the DATA — no numbers,
+        # no chart — rather than of a submitted file. Leave them unseeded and
+        # every cell gates to zero, which would read as a prompt collapse and is
+        # not one. p18 (all four weeks absent) and p15 (baseline and week 3) are
+        # the corpus rows where this actually fires; both are gold 0.
+        # The legend comes from the reconstruction, not from `from_scorer`: the
+        # scorer's `legend` evidence is a verdict in prose ("Legend element
+        # present: True") for the chart-part rows, not the series names a
+        # student would have typed. simulate_h3 recovers those literally.
+        "sim": {"bmod_h3_baseline": "baseline", "bmod_h3_wk1": "week_1",
+                "bmod_h3_wk2": "week_2", "bmod_h3_wk3": "week_3",
+                "bmod_h3_graph_series": "graph_series"},
+        "from_scorer": {"bmod_h3_graph_title": "title",
+                        "bmod_h3_graph_x": "x_axis_label",
+                        "bmod_h3_graph_y": "y_axis_label"},
+    },
+    "2a": {
+        "handout": 3, "screen": f"{paths.NS}/bmod_h3_success", "ns": paths.NS,
+        "button": "Check my answer",
+        "feedback": "bmod_h3_success_feedback", "grader": "bmod_h3_success_grader",
+        "fields": {"bmod_h3_overview_response": "1a"},
+        "from_scorer": {"bmod_h3_success_verdict": "verdict",
+                        "bmod_h3_success_how1": "how_1",
+                        "bmod_h3_success_how2": "how_2"},
+        # DEALT HERE, not read off the rubric's `counts`. See _dealt_members.
+        "dealt": [{"count": "hows_given", "members": ["how_1", "how_2"]}],
+    },
+    "2b": {
+        "handout": 3, "screen": f"{paths.NS}/bmod_h3_assessment", "ns": paths.NS,
+        "button": "Check my assessment",
+        "feedback": "bmod_h3_assessment_feedback", "grader": "bmod_h3_assessment_grader",
+        "fields": {"bmod_h3_assessment_response": "2b",
+                   "bmod_h2_t1": "_t1", "bmod_h2_t2": "_t2"},
+        # The types the student chose are in Handout 2, which this item asks them
+        # to reflect on; `_t1`/`_t2` exist only to be filled from there.
+        "fallback": {"_t1": (2, "T1"), "_t2": (2, "T2")},
+    },
+    # Three items whose every verdict is DERIVED from the student's fields, so
+    # there is no prompt, no button and no LLM call: DerivedChecks publishes the
+    # sheet as soon as the fields are seeded and SlotSheetGrader scores it. They
+    # are deterministic, which is why they are worth having in the corpus —
+    # whatever they measure, they measure the same way every run.
+    #
+    # All three were scored on the CLI and by nothing on the web until now.
+    "T1": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_first", "ns": paths.NS,
+        "feedback": "bmod_h2_t1_checks", "grader": "bmod_h2_t1_sheet_grader",
+        "fields": {"bmod_h2_t1": "_type_choice:T1"},
+    },
+    "T2": {
+        "handout": 2, "screen": f"{paths.NS}/bmod_h2_second", "ns": paths.NS,
+        "feedback": "bmod_h2_t2_checks", "grader": "bmod_h2_t2_sheet_grader",
+        "fields": {"bmod_h2_t2": "_type_choice:T2"},
+    },
+    # The same four data fields 1c seeds, from the same reconstruction — 1b scores
+    # their presence and 1c gates on whether they plot at all.
+    "1b": {
+        "handout": 3, "screen": f"{paths.NS}/bmod_h3_data", "ns": paths.NS,
+        "feedback": "bmod_h3_data_checks", "grader": "bmod_h3_data_grader",
+        "fields": {},
+        "sim": {"bmod_h3_baseline": "baseline", "bmod_h3_wk1": "week_1",
+                "bmod_h3_wk2": "week_2", "bmod_h3_wk3": "week_3"},
+    },
+    "3": {
+        "handout": 3, "screen": f"{paths.NS}/bmod_h3_improve", "ns": paths.NS,
+        "button": "Check my answer",
+        "feedback": "bmod_h3_improve_feedback", "grader": "bmod_h3_improve_grader",
+        "fields": {},
+        "from_scorer": {"bmod_h3_improve_first": "example_1",
+                        "bmod_h3_improve_second": "example_2"},
+        "dealt": [{"count": "changes_given",
+                   "members": ["example_1", "example_2"]}],
+    },
 }
