@@ -187,6 +187,8 @@ any rule written as guidance prose (subgoal E15, under the parked goal). Q4b/p12
 is the demonstrated cost: the python scores it 5.0 in six runs of six and the olx
 3.5 in eleven of twelve, and nothing anywhere declares that.
 
+### E1
+<!-- qc:E1 -->
 - [x] E1. **Declare the mechanical flags -- or wire them up.** Three findings, all
       pre-existing except the first, none declared:
       **Q4a TOTAL, olx 4 vs python 5.** The two antecedent slots carry 2 points each
@@ -245,6 +247,9 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       mechanisms.
       Q4a and Q4c are marked STALE PROMPT and NOT swept, by instruction. They join
       subgoal E2's list, which is now TEN items.
+
+### E10
+<!-- qc:E10 -->
 - [x] E10. **A FIX that retires Q4b's declaration, not just the declaration.** DONE, declaration RETIRED.
       User, 2026-08-28: "I want more than a declaration. I want a fix that allows us
       to retire the declaration." The declaration says the INSTEAD-OF test is prose
@@ -427,6 +432,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       gold-matching, so the olx is the reference and this improves the reference
       side's own accuracy rather than importing the python's reading.
 
+### E11
+<!-- qc:E11 -->
 - [x] E11. **Empty SLOT_RULE_BACKLOG: thirteen rules the paper scorer cannot see.** DONE
       CLOSED 2026-08-30, budget 13 -> 1. The one entry left is `Q1:matches_selected`,
       which is not work: the paper sheet has no such SLOT, because a .docx has no
@@ -634,6 +641,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       it, and Q4b's five substitution tests are the recorded case of getting it
       wrong.
 
+### E14
+<!-- qc:E14 -->
 - [x] E14. **`forbid` and `maps` cannot score on the APP at all. Seven items.** FIXED
       2026-08-29, verified end to end, all seven re-measured and comparable.
       ROOT CAUSE, one line: LLMAction's zod attribute schema is `.strict()` and
@@ -716,6 +725,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       cell, ~90s amortised, three hours an item, and the only signal is
       `no-cell`. Four of the seven were killed mid-sweep to recover ~12 hours.
 
+### E27
+<!-- qc:E27 -->
 - [x] E27. **The two scorers' verdict vocabularies differ BY DESIGN. Audit what respects that.** DONE
       Filed 2026-08-30 as "two sources of truth, disagreeing", which was WRONG and
       is corrected here. slot_vocab.py says it plainly: WEB_EXTRAS come from
@@ -849,6 +860,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
                 tokens across sides; _fail_token/_fail_verdict are per-side by
                 design and must stay so.
 
+### E40
+<!-- qc:E40 -->
 - [x] E40. **Cell ownership misses cells written as bare `pN`, so the audit's
       owner map names the wrong subgoal for seven open entries.**
       FILED AS Q38 AND REFILED AS E40 THE SAME DAY. The test is the one subgoal
@@ -922,6 +935,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       divergence class this project exists to close, so when this lands the
       ranking must consume the shared map instead of carrying its own resolution.
 
+### E44
+<!-- qc:E44 -->
 - [x] E44. **A GENERATED attribute is never cleared when its rubric declaration
       goes away.** CLOSED 2026-09-05 on the user's instruction, filed and
       finished the same day, both halves done.
@@ -1031,6 +1046,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       are not standing, so removing a declaration while its attribute stays makes
       the finding appear. SELFTEST_EXPECTED 65 -> 66.
 
+### E47
+<!-- qc:E47 -->
 - [x] E47. **Eleven places re-typed the same artifact reader, and two of them
       were wrong in opposite directions.** DELIVERED 2026-09-05; open only on the
       consumers still to be converted.
@@ -1101,6 +1118,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       reads a checks dict; nothing read a RESULT. The gap was never noticed
       because each site looked correct on its own.
 
+### E50
+<!-- qc:E50 -->
 - [x] E50. **No cohort case name may appear in a shipped prompt.** DELIVERED
       2026-09-06, on the user's instruction, while the invariant already held.
       Filed after a leakage verdict note cited p10 and p5 and the user asked
@@ -1138,6 +1157,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       cannot go positive proves nothing. Verify the planted text actually reaches
       the artifact under test before believing either result.
 
+### E52
+<!-- qc:E52 -->
 - [x] E52. **The mapped-slot checks were reading the rubric, and the grader
       answers the sheet.** DELIVERED 2026-09-06.
       Filed on the user's instruction after `unclear` was "dropped" from Q2 and
@@ -1191,6 +1212,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       a pick's introduction. It cannot compare what was never written down, and
       the alternative -- inferring the pick -- would invent the evidence.
 
+### E51
+<!-- qc:E51 -->
 - [x] E51. **"Any perfect cell that moved" is a noise detector, not a
       regression test. It fired on six of seven sweeps.** DELIVERED 2026-09-06.
       Filed on the user's instruction after the abort condition every sweep
@@ -1254,6 +1277,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       for another shows as no change. This test answers "did it hurt", not "did it
       help" -- for that, read the TARGET cell against its pre-registration.
 
+### E49
+<!-- qc:E49 -->
 - [x] E49. **The slot correspondence is checked in ONE direction only. The other
       direction has a live orphan: Q1/matches_selected.**
       Filed 2026-09-06 on the user's observation, immediately after subgoal E48
@@ -1330,6 +1355,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       is not duplicated here: the mapped-slot checks now read the sheet and honour
       E27's declared counterparts.
 
+### E48
+<!-- qc:E48 -->
 - [x] E48. **A rubric slot with no entry in `slots=`: the prompt tells the grader
       to read an answer it is never asked for.** DELIVERED 2026-09-05.
       Filed out of subgoal Q18, which it cost a sweep.
@@ -1370,6 +1397,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       on both sides against the corrected sheet and must be discarded rather than
       interpreted.
 
+### E46
+<!-- qc:E46 -->
 - [x] E46. **A mapped slot's RECORDED verdict need not be the one that scored,
       and two items have artifacts proving it.**
       Filed 2026-09-05 out of subgoal Q43's sweep, where Q2's `wgb_inverts_utb`
@@ -1489,6 +1518,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       app scores from the RECORDED verdict, the mirror from the MAP. Where a
       source reading and a measurement are both available, measure first.
 
+### E54
+<!-- qc:E54 -->
 - [x] E54. **leakage.py scans four kinds of prose and the shipped prompt is
       built from five. About 40% of each cadence prompt has never been audited,
       and TWO verbatim student quotations were living in the unscanned part --
@@ -1728,6 +1759,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       DOES NOT OWN A CELL. The cells touched belong to Q22 (WK2/p15) and to
       whoever owns DAY1/p8; this entry is machinery.
 
+### E56
+<!-- qc:E56 -->
 - [x] E56. **What is DESIGNED must be what SHIPS, and what was PROBED must be
       what is SWEPT. Three shas, and the guard against an edit eating its
       neighbour.**
@@ -1937,6 +1970,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
           The other 145 stay sha-only BY DECISION: 47KB of duplicated prose is
           not read, and a table that size goes stale in a way a sha cannot.
 
+### E57
+<!-- qc:E57 -->
 - [x] E57. **The two-tier reason rule gives `harms_listed` ZERO TOLERANCE: one
       spurious harm discards two correct benefits and costs a whole point.**
       == CLOSED 2026-09-07. closed 2026-09-07 on the user's instruction, and the
@@ -2038,6 +2073,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       precision is load-bearing in a way `benefits_listed`'s is not. A reader
       diagnosing a wrong Q1 cell should know that a +-1 there is a full point.
 
+### E55
+<!-- qc:E55 -->
 - [x] E55. **Retire the decomposition divergences: make both engines cut the
       same item into the same pieces. Twelve declared pairs, and every one of
       them blinds a per-slot readout on one side.**
@@ -2212,6 +2249,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       DOES NOT OWN A CELL. The cells on these items belong to Q16, Q44 and Q45;
       this entry is machinery.
 
+### E53
+<!-- qc:E53 -->
 - [x] E53. **A slot the sheet declares, the app is asked, and the app never
       answers: `matches_chosen_type` is `null` in 480 of 480 app results across
       all four cadence items, while the mirror answers it 480 of 480 and charges
@@ -2414,6 +2453,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       DOES NOT OWN A CELL. WK2/p15 belongs to subgoal Q22, which is where the
       cell-level work and the `named_type` fallback live. This entry is machinery.
 
+### E45
+<!-- qc:E45 -->
 - [x] E45. **An UNSTABLE cell needs an owner too, and nothing asks. Ten have none.**
       == CLOSED 2026-09-07. closed 2026-09-07 on the user's instruction, with
       every condition the entry set for itself verified by the PREPARED readers
@@ -2575,6 +2616,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       closes and drops it, this check will report a cell that was decided months
       ago. Q35 said the written record was the only protection and it still is.
 
+### E43
+<!-- qc:E43 -->
 - [x] E43. **The reasons scaffold reported an impossible triple, and nothing
       would have noticed: `listed=0, failing=0, given=3`.**
       Filed 2026-09-04 out of subgoal Q41, where it was found while checking
@@ -2698,6 +2741,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       the primitive work rather than beside a cell.
 
 
+### E42
+<!-- qc:E42 -->
 - [x] E42. **Nothing records what band a cell was in when a change was measured.**
       CLOSED 2026-09-05 on the user's instruction, residual done first.
       DELIVERED: `record()` captures `bands_before` from `cell_bands()` before
@@ -2794,6 +2839,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       eight of them are losses out of `perfect`, and they are the accumulated
       cost of this session's edits that nothing had totalled up.
 
+### E41
+<!-- qc:E41 -->
 - [x] E41. **The numerator contains coin flips: 63 cells the per-cell median
       counts RIGHT are not reliably right, and nothing tracks them.**
       FILED AS Q39 AND REFILED AS E41 THE SAME DAY -- the SECOND misfiling of the
@@ -2915,6 +2962,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       and usually about the response. Section 5: instability is the commonest bad
       reason to open a declaration, and it is an equally bad reason to spend calls.
 
+### E28
+<!-- qc:E28 -->
 - [ ] E28. **A paper sweep the ledger can record, on either model.**
       FIRST NUMBERS RECORDED 2026-09-01, on two items only: Q4a paper was 15/20 and
       Q4c paper 17/19, six runs each on gpt-5-mini through `--backend lo`, folded
@@ -3033,6 +3082,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       DO NOT re-home these to a scoring subgoal: `paper` has no number on 24 of 26
       items, so the denominator does not exist yet.
 
+### E29
+<!-- qc:E29 -->
 - [x] E29. **`error_profile` ignores cell exclusions, and its one-sided flag lied.** DONE
       AN AUDIT SUBGOAL. `measured.error_profile` applies corrected gold and
       `rebuild_gold_1c` but never filters EXCLUDED cells: it profiles all 20,
@@ -3085,6 +3136,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       cells (excluding p4, p19, p20), agreeing with its 16/17 ledger figure, and
       still reports the ZERO over-credits the rebuild_gold_1c note demands.
 
+### E15
+<!-- qc:E15 -->
 - [x] E15. **`requires` is implemented on BOTH engines and bound to nothing. Q6 is why it exists.** DONE
       Surfaced 2026-08-29 by the new live-exercise check, which listed `requires`
       as used by NO item. It is not dead code: slotSheet.ts parses and applies it,
@@ -3269,6 +3322,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
           trusting it over the mechanism is what made the prediction wrong.
       See subgoal Q28 for what that costs and what is left to do about it.
 
+### E19
+<!-- qc:E19 -->
 - [x] E19. **Re-test PROSE_ONLY_SLOTS' "NOT CONVERTIBLE" claims when the primitive set changes.**
       DONE 2026-08-29, implemented the same day it was filed (249655f).
       `PROSE_ONLY_JUDGED_AGAINST` stamps each of the nine entries with the
@@ -3334,6 +3389,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       `affect_*` slots whose reasons turn on what `cover` already constrains. If
       `requires` lands on Q6, both entries are due for re-judging by this rule.
 
+### E30
+<!-- qc:E30 -->
 - [x] E30. **Nothing compares OUR failing slots against GOLD's charged slots. Only totals.** DONE
       Filed 2026-08-31 out of Q28, which is the demonstration. Every rate in this
       project compares a cell's TOTAL against gold's total -- `scored_exactly`,
@@ -3514,6 +3571,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       "the rest are probably like these" is exactly the reasoning that leaves
       coverage on the table.
 
+### E31
+<!-- qc:E31 -->
 - [x] E31. **RAW_GOLD_READERS is inert: nothing reads it, and it is registered as checked.** DONE
       Found 2026-08-31 by asking whether entries in it are checked in enforcement.
       They are not. It is registered in DECLARATION_TABLES against
@@ -3566,6 +3625,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       probe reports 23 READ and 1 BY DESIGN, the remaining one being
       PER_ITEM_EXCLUDE under E33.
 
+### E32
+<!-- qc:E32 -->
 - [x] E32. **A registered verifier can enforce nothing about its table. Test it behaviourally.** DONE
       Generalised 2026-08-31 from E31. check_every_declaration_table_has_a_verifier
       confirms that a NAMED verifier exists and that the table exists. It cannot
@@ -3683,6 +3744,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       checks -- one verifier that cannot be provoked at all, and one that watches
       a snapshot rather than the declaration.
 
+### E33
+<!-- qc:E33 -->
 - [x] E33. **An exclusion added after the last sweep is unwatched until the next one.** DONE
       Found 2026-08-31 by E32's probe, as the reason PER_ITEM_EXCLUDE could not be
       provoked. The staleness verifier -- the exclusions loop in
@@ -3752,6 +3815,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       and that table is empty: all 24 registered declaration tables are proven to
       be read, with none inert, inconclusive or exempt.
 
+### E34
+<!-- qc:E34 -->
 - [x] E34. **Gold charges a CATEGORY; our sheet charges members. No mechanism expresses that.** REFUTED
       Filed 2026-08-31 from E30's slot-level accounting, which is the first thing
       able to see it: the totals alone showed six unrelated over-credits.
@@ -3813,6 +3878,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       where we charge one, which is the same claim with the grader's own
       itemisation behind it. Moved there rather than lost.
 
+### E35
+<!-- qc:E35 -->
 - [x] E35. **The eight criteria-derived items are outside the slot-level accounting entirely.** DONE
       Filed 2026-08-31, the one group E30's accounting cannot reach. DAY1, DAY2,
       NP, NR, PP, PR, WK1 and WK2 are `derive_from_criteria`: their rubric carries
@@ -3880,6 +3947,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       E36, because they hold ten containers that are prompt data rather than
       declarations and each needs a reason before the scan can include it.
 
+### E36
+<!-- qc:E36 -->
 - [x] E36. **The unregistered-table scan covers two modules of four.** DONE
       Filed 2026-08-31 from E35. check_every_declaration_table_has_a_verifier has
       two halves: it checks that every REGISTERED table exists and names a real
@@ -3944,6 +4013,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       is identical for every table sharing those verifiers -- which removes a
       third of the work. It remains an on-demand check, deliberately.
 
+### E39
+<!-- qc:E39 -->
 - [x] E39. **Nothing compares the two engines' verdicts by FREQUENCY. Eight cells hide there.**
       Found 2026-09-01 by asking why the audit did not notice that Q1/p17 scores
       3.0 on python in 5 of 6 runs and 5.0 on olx in 6 of 6, on the same prompt
@@ -4031,6 +4102,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       student's answer.
 
 
+### E38
+<!-- qc:E38 -->
 - [x] E38. **The python side's staleness fingerprint ignores five attributes it reads.**
       Found 2026-09-01 while answering "why is the python side served less of the
       screen than the olx side?" -- it is NOT (both backends get the identical prompt from
@@ -4120,6 +4193,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       genuinely uncertain ones are labelled rather than hidden.
 
 
+### E37
+<!-- qc:E37 -->
 - [x] E37. **Every wrong cell must have a live owner, and the audit must say so every run.**
       Filed 2026-08-31. The accounting built across E30/E33/E35 was done BY HAND:
       34 wrong cells found, mapped to subgoals, 16 orphans chased down to 0. None
@@ -4186,6 +4261,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       boundary -- making it re-measure would put a sweep inside the audit -- but
       it means a stale ledger reads as a clean accounting.
 
+### E25
+<!-- qc:E25 -->
 - [x] E25. **The `keyword` check is 100% accurate and cannot move a score. Convert it to `derived`.**
       AN AUDIT SUBGOAL, NOT A QC ONE, and it was filed wrong once: its FINDING is
       about accuracy (240/240) but its DELIVERABLE is a primitive conversion --
@@ -4370,6 +4447,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       UNBLOCKS E28, which was waiting on this.
 
 
+### E26
+<!-- qc:E26 -->
 - [x] E26. **Sibling items sharing a slot NAME should share its gate structure, or declare why not.** DONE
       2026-08-29. `check_sibling_slots_share_their_structure` reads the OLX slot
       specs -- not a run artifact, so it needs no sweep -- groups slots by NAME
@@ -4422,6 +4501,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       product, not a sweep that makes every slot identical.
 
 
+### E12
+<!-- qc:E12 -->
 - [x] E12. **`--selftest` without `--enforcement` silently scores nothing.** DONE
       2026-08-29 (2c87cc6). It is now a usage error naming the correct
       invocation, not a fallthrough that runs the prompt audit and exits 0. An
@@ -4460,6 +4541,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       has this bug, and `--slots`/`--gold` on `cross_path.py` deserve the same
       look.
 
+### E13
+<!-- qc:E13 -->
 - [x] E13. **The self-test degrades silently: a lost case looks like a passing run.** DONE
       2026-08-29 (2c87cc6). The denominator was `len(cases)`, so a case that
       stopped being CONSTRUCTED took the denominator down with it: 48/48 and
@@ -4503,6 +4586,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       the denominator float. A ratchet, like HANDCODED_ITEM_RULES' budget: the
       number may only go DOWN by decision, never by accident.
 
+### E2
+<!-- qc:E2 -->
 - [x] E2. **A full two-sided sweep: every item, six runs, BOTH scorers.** DONE
       2026-08-29. 26 of 26 items on both scorers, six runs each, era-checked per
       item.
@@ -4598,6 +4683,9 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       agreement.py, the OLX prompt scored in python, and `paper_mini_v8` is
       score.py, the path this goal calls the python. Reading the directory names as
       sides inverts the conclusion, so cross_path now prints each side's KIND.
+
+### E6
+<!-- qc:E6 -->
 - [x] E6. **The criteria prose was written twice, and the copies had drifted.**
       Found while establishing subgoal E2's precondition. `score.py:build_prompt`
       held the `derive_from_criteria` block and `olx_prompts._criteria_section`
@@ -4647,6 +4735,9 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       "SLOT_NOTES is olx-only" premise no longer holds for it. Which keys those
       are is declared in `olx_prompts.CLI_CRITERIA_NOTES` rather than copied into
       the check.
+
+### E9
+<!-- qc:E9 -->
 - [x] E9. **Q4b's `behavior_1`/`behavior_2`: convert the referent test to `forbid`.**
       CLOSED WITHOUT IMPLEMENTING, and replaced by subgoal E10 plus a declaration.
       The asymmetry is now declared in `olx_prompts.SCORING_DIVERGENCES`, which
@@ -4727,6 +4818,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       referent test moves and the four judgement conditions stay, the entries
       REMAIN and their reasons must be rewritten to say so.
 
+### E7
+<!-- qc:E7 -->
 - [x] E7. **§2e's recorded-comment lookup is blind to all twelve H2 items.** FIXED
       2026-08-28. `prior_record` found an item's comments by searching for a literal
       `"id": "DAY1"` line and scanning to the next `"id":`. rubric_h2 builds its
@@ -4769,6 +4862,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       enforced nothing. Pre-existing, not caused by the subgoal E6 work that
       surfaced it.
 
+### E3
+<!-- qc:E3 -->
 - [x] E3. **Seven scoring rules the two sides implement separately.** Widened
       from POLARITY_GATE_ITEMS once the audit's new hand-coded check listed them
       all. Every one is DECLARED on the olx and HAND-WRITTEN in `score.py` as an
@@ -4852,6 +4947,8 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       once the code was read beside it, and the audit cannot check an exemption's
       PROSE -- only that the branch it names still exists.
 
+### E4
+<!-- qc:E4 -->
 - [x] E4. **Hash the scoring-path helpers, then re-stamp.** DONE. The three named
       helpers were the symptom; the fault was that the fingerprint hashed a LIST
       OF ROOTS and hashing a function does not hash its callees. `measured._closure`
@@ -4897,6 +4994,9 @@ is the demonstrated cost: the python scores it 5.0 in six runs of six and the ol
       the scoping may drop only an item-dependent part. Proved to fire -- 13
       findings when `_closure` is reduced to returning its roots, naming
       `apply_computed -> answer_of` first, which is the original defect.
+
+### E8
+<!-- qc:E8 -->
 - [x] E8. **Clear the seven entries left in HANDCODED_ITEM_RULES.** DONE, table EMPTY, budget 0. Set 2026-08-28
       at the user's direction: do it even though all seven are non-scoring, so the
       table empties rather than settling into a permanent backlog. They are five
@@ -5000,6 +5100,8 @@ subgoals are Q<n>. Both goals had independently numbered 1..N and six numbers
 collided, so "subgoal 14" meant two different things depending on which goal the
 reader had in mind. Every cross-reference in this file is now prefixed.
 
+### E5
+<!-- qc:E5 -->
 - [x] E5. **The enforcement audit cannot see a rule written as guidance prose.**
       MOVED here from quality control, where it was subgoal E15: it is an
       equivalence-enforcement defect, not an item's scoring problem, and it
@@ -5194,6 +5296,8 @@ reader had in mind. Every cross-reference in this file is now prefixed.
       it points at, Q4b's pair, is a scoring change and belongs in the sweep.
 ## ACTIVE — quality control on the remaining items
 
+### Q57
+<!-- qc:Q57 -->
 - [x] Q57. **Handout 2: a whole-item GATE that fires differently on identical input, and the 2-point charge that does the same. 16 cells.**
       Filed 2026-09-08 out of subgoal Q50's analysis. Measured from the ledger,
       no calls. THE HIGHEST-VALUE GROUP IN THE REGISTER: every cell in the first
@@ -5520,6 +5624,8 @@ reader had in mind. Every cross-reference in this file is now prefixed.
       as was just done for WK1/p7, before any wording is proposed. DAY1/p15 and
       PP/p6 are the cleanest, having no verdict movement at all.
 
+### Q64
+<!-- qc:Q64 -->
 - [x] Q64. **The SAME-THING criterion class: `named_type` ships the EMPTY STRING on three items, and it is the pick a computed sameness test compares. 2 cells, NOT the 9 this was filed as.**
       Filed 2026-09-08 out of the seventh attempt on Q4b's repeat criterion,
       which asked a SAME-THING question in prose and lost six cells to gain one.
@@ -5702,6 +5808,9 @@ reader had in mind. Every cross-reference in this file is now prefixed.
       the Q40 precedent does not transfer -- Q40's slot was textless AND unstable. That
       also settles whether WK2's registered 588-character `named_type` needs a probe: it
       does not, and it is the one shipped design in DESIGNED_TEXT resting on no receipt.
+
+### Q58
+<!-- qc:Q58 -->
 - [ ] Q58. **1c/`legend`: one slot, one item, eight cells. The cleanest single-slot cluster in the corpus.**
       Filed 2026-09-08 out of subgoal Q50's analysis. Measured from the ledger,
       no calls.
@@ -5807,6 +5916,9 @@ p16 REMAINS SEPARATE, as the entry already says: its error is `title`.
       open. THAT IS ALSO THE ANSWER TO WHETHER 1c NEEDS A GOAL OF ITS OWN: it does not --
       it needs this one held open until the fix is measured, because a new goal would
       duplicate an entry that already names the mechanism.
+
+### Q59
+<!-- qc:Q59 -->
 - [x] Q59. **Q5: `example_2` and `reasons_substantial` move TOGETHER on five cells. Two slots, one judgement.**
       Filed 2026-09-08 out of subgoal Q50's analysis. Measured from the ledger,
       no calls.
@@ -5877,6 +5989,8 @@ p16 REMAINS SEPARATE, as the entry already says: its error is `title`.
       declared. CLOSURE PROPOSED once the running probes land; p9 either declared
       or left watched, and `reasons_substantial` explicitly kept.
 
+### Q60
+<!-- qc:Q60 -->
 - [x] Q60. **Q1 and Q2: the +-1 counting drift. Thirteen cells, one mechanism, and it is variance rather than specification.**
       Filed 2026-09-08 out of subgoal Q50's analysis. Measured from the ledger,
       no calls.
@@ -5967,6 +6081,8 @@ p16 REMAINS SEPARATE, as the entry already says: its error is `title`.
       defect, and a named fix under measurement. The Q2 half belongs to Q44 and
       p17 to Q54.
 
+### Q61
+<!-- qc:Q61 -->
 - [ ] Q61. **Q4a: four cells where several antecedent slots move at once.**
       Filed 2026-09-08 out of subgoal Q50's analysis. Measured from the ledger,
       no calls.
@@ -6093,6 +6209,9 @@ p16 REMAINS SEPARATE, as the entry already says: its error is `title`.
       aftermath OF. Note also that `already_a_consequence` is chosen 2 times in 474
       slot-observations (0.4%) against `before` at 78.7%, so it is very nearly
       unreachable and cannot carry a fix on its own.
+
+### Q62
+<!-- qc:Q62 -->
 - [ ] Q62. **Q4b: six cells of behaviour-slot variance, distinct from the repeat criterion.**
       Filed 2026-09-08 out of subgoal Q50's analysis. Measured from the ledger,
       no calls.
@@ -6202,6 +6321,9 @@ p16 REMAINS SEPARATE, as the entry already says: its error is `title`.
       the same defect Q61 does -- though far more mildly, 1 off-map observation of 120
       against Q4a's 21 and 23. Read the pick, not the derived verdict, and confirm on the
       python side where the map is honoured.
+
+### Q63
+<!-- qc:Q63 -->
 - [ ] Q63. **Q6: six cells in the consequence-matching slots -- the residue of an otherwise reliable mechanism.**
       RELATED PARKED REVISION, different cell, same mechanism:
       `~/.claude/plans/snoopy-crafting-corbato.md` argues about the state-slot
@@ -6434,6 +6556,9 @@ STRUCTURAL, in the sense subgoal Q1's `harms_listed` analysis proposes: make the
 grader ENUMERATE what it matched rather than report a pick, so the match becomes
 auditable instead of asserted. That is one proposal serving three slots, and it
 should be measured once, not three times.
+
+### Q31
+<!-- qc:Q31 -->
 - [x] Q31. **SILENT FULL MARKS: nine cells where gold wrote nothing and we deduct.**
       SPLIT INTO Q34 AND Q35 ON 2026-09-01, and this entry is superseded by them.
       Q34 holds the six cells we get wrong in every one of twelve pooled runs --
@@ -6582,6 +6707,8 @@ should be measured once, not three times.
       never right, which made "nine cells" mean less than it looked.
 
 
+### Q37
+<!-- qc:Q37 -->
 - [x] Q37. **THE SLOT PROFILE WAS BLIND TO GATES, AND TO THE APP'S COUNTS.
       Every slot-level conclusion drawn before 2026-09-03 was drawn through it.**
       Filed 2026-09-03 out of subgoal Q22's readout, which could not be done
@@ -6671,6 +6798,8 @@ should be measured once, not three times.
            coverage. Both blindnesses were found by USING the tool on a question
            it had never been pointed at, not by any check.
 
+### Q41
+<!-- qc:Q41 -->
 - [x] Q41. **A gate's SCORING consequence, written into its JUDGING prompt, is
       being executed as a judging instruction -- and it silently zeroes a count.**
       Filed 2026-09-04 out of subgoal Q17, where it was first recorded as "a
@@ -6830,6 +6959,8 @@ should be measured once, not three times.
       NOTHING RE-HOMED: `orphans_if_closed('Q41')` reads zero wrong and zero
       unstable, before and after.
 
+### Q46
+<!-- qc:Q46 -->
 - [x] Q46. **DAY2/p7: `targets_own_behavior` credits a reward that IS the
       unwanted behaviour. The slot costs exactly what gold charges.**
       Filed 2026-09-04 out of subgoal Q20, whose class dissolved when each cell was
@@ -6984,6 +7115,8 @@ should be measured once, not three times.
       misses and neither is this rule's business. p9 belongs to subgoal Q22
       (`cadence_is_daily_counted` absent in 8 of 12).
 
+### Q47
+<!-- qc:Q47 -->
 - [x] Q47. **Q6: `change_a1`/`change_a2` credit a change that does not address the
       antecedent. Two cells, one slot family, ELEVEN working controls.**
       == CLOSED 2026-09-07. closed 2026-09-07 on the user's instruction, as a
@@ -7332,6 +7465,8 @@ should be measured once, not three times.
       asserts its prompt rather than showing it is what the sha machinery exists
       to prevent.
 
+### Q51
+<!-- qc:Q51 -->
 - [x] Q51. **Q4a/p3: we credit two antecedents where gold charges one for being
       unexplained, and the pick already has the value that would say so.**
       Filed 2026-09-06 after an orphan audit found it: it was WRONG on both sides
@@ -7385,6 +7520,8 @@ should be measured once, not three times.
       p14 UNCHANGED AT 0/12 exactly as predicted; it is subgoal Q19's and is a
       different fault.
 
+### Q54
+<!-- qc:Q54 -->
 - [ ] Q54. **Q1: nine of twenty cells imperfect, the two slots responsible are
       identified, and neither wants a new rule.**
       Filed 2026-09-07. The item-level owner Q1 lost when subgoal Q16 closed the
@@ -7524,6 +7661,9 @@ should be measured once, not three times.
       falsifiers derived from `probe_falsifiers('Q1','utb_stated')` rather than typed.
       That is a different slot from the one that just failed, so the failure is not
       evidence against it.
+
+### Q55
+<!-- qc:Q55 -->
 - [x] Q55. **WK2's `named_type` reads `unclear` at a low rate on eight cells,
       and each time it does the 2-point type charge silently disappears.**
       Filed 2026-09-07 out of subgoal Q40's cell work, which found it and said in
@@ -7677,6 +7817,8 @@ should be measured once, not three times.
       NOTHING RE-HOMED: WK2 has no wrong cell and no unstable cell left, and both
       owner checks read 0 before and after.
 
+### Q56
+<!-- qc:Q56 -->
 - [ ] Q56. **Two wrong cells orphaned by subgoal Q19's closure, and they are
       different problems that only shared an owner.**
       Filed 2026-09-07. Measured from the ledger, no calls.
@@ -7953,6 +8095,9 @@ should be measured once, not three times.
       that wobble, with a standing instruction not to sweep for them; a cell that has
       gone WRONG is outside it, which is the same reasoning that sent Q5/p4 to its own
       subgoal rather than into Q50. p4 needs a declaration or a home of its own.
+
+### Q53
+<!-- qc:Q53 -->
 - [x] Q53. **Five wrong cells orphaned by the 2026-09-07 closures, and the
       reason they were not caught before those closures.**
       Filed 2026-09-07. Measured from the ledger, no calls.
@@ -8066,6 +8211,8 @@ should be measured once, not three times.
       classifiers, both were wrong, and the standing procedure that came out of it
       is QUALITY_CONTROL.md 2b-3.
 
+### Q52
+<!-- qc:Q52 -->
 - [x] Q52. **Q5/p4: the effect-vs-payoff rule, and the only cell in the corpus
       where we charge MORE than gold. Perfectly stable, 0 of 12.**
       Filed 2026-09-06 out of subgoal Q30 as that entry closed. Q30 was titled
@@ -8144,6 +8291,8 @@ should be measured once, not three times.
       the work: no clause, no re-reading and no correction is available, and the
       disagreement is now written where the next reader will hit it.
 
+### Q50
+<!-- qc:Q50 -->
 - [ ] Q50. **The variable-cell register: cells that answer differently on
       identical input, are counted RIGHT by the median, and would otherwise
       be owned by nobody.**
@@ -8775,6 +8924,8 @@ should be measured once, not three times.
       They are counted right, and E51's net rule cannot separate "helped here, hurt
       there" from "no effect".
 
+### Q65
+<!-- qc:Q65 -->
 - [ ] Q65. **The cells a closure orphaned: handout 2's sixteen, from subgoal Q57.**
   Filed 2026-09-09 out of subgoal Q50's rebuild, on the user's instruction to
   split the catch-all role out of the register. Measured from the ledger, no
@@ -8842,6 +8993,9 @@ AND A CAUTION ON THE COUNTS: most of these cells are 1-of-10 or 1-of-11 wrong. A
 rate one run decides the band, so the grouping says WHICH SLOT MOVED, not that the slot
 is unreliable. Only NR/p11 (4 of 11) and DAY2/p7 (3 of 10) are shaky enough to carry a
 per-cell claim.
+
+### Q49
+<!-- qc:Q49 -->
 - [x] Q49. **Q6's seven unstable cells: the drift is in the MATCHING channel, and
       the first deliverable is a fixture readout, not a rule.**
       == CLOSED 2026-09-07. closed 2026-09-07 on the user's instruction,
@@ -9056,6 +9210,8 @@ per-cell claim.
       ONLY IF ALL THE FIXTURES ARE CLEAN does this become a rule question, and then
       it is the tenth attempt and needs that note read in full first.
 
+### Q48
+<!-- qc:Q48 -->
 - [x] Q48. **Q4c/p20: gold's only explanation charge in twenty cells.** CLOSED
       2026-09-05 on the user's instruction, its question answered and declared.
       THE QUESTION WAS "does gold's charge survive?" and it does. The cell is
@@ -9130,6 +9286,8 @@ per-cell claim.
       WHAT REMAINS ON Q4c IS p9, and it is subgoal Q19's, not this one: gold charges
       both consequences there and we fail `consequence_2` only.
 
+### Q45
+<!-- qc:Q45 -->
 - [x] Q45. **The four example items look finished and eleven of their cells are
       not reliably right. `you_arrange_it` GATES all four and flips on five.**
       Filed 2026-09-04 out of subgoal Q35, which found PR/p15 had nowhere to go:
@@ -9370,6 +9528,8 @@ per-cell claim.
       4.00, and this entry is no closer to it than before. What is now known is
       that a scoped prose clause on `targets_goal_behavior` is not the lever.
 
+### Q67
+<!-- qc:Q67 -->
 - [ ] Q67. **Q4a/p3: gold charges one antecedent slot, we charge none, and the paper scorer already reaches gold.**
       Filed 2026-09-12 on the user's instruction, from the audit's SLOT SET
       DISAGREES WITH GOLD arm. Measured from the ledger, no calls.
@@ -9390,6 +9550,8 @@ per-cell claim.
       nothing here says the cell is unreachable -- one of our own scorers reaches
       it most of the time.
 
+### Q68
+<!-- qc:Q68 -->
 - [ ] Q68. **Q4c/p4: gold charges one consequence slot, we charge none; `consequence_1` fires in a third of runs.**
       Filed 2026-09-12 on the user's instruction, from the same audit arm as Q67
       and the same shape. Measured from the ledger, no calls.
@@ -9408,6 +9570,8 @@ per-cell claim.
       leniency direction that every other entry in this accounting runs, with
       Q5/p4 the single counter-example.
 
+### Q66
+<!-- qc:Q66 -->
 - [ ] Q66. **The paper scorer's nine unowned wrong cells: eight on gpt-5-mini, one on Opus.**
       PARKED REVISION for Q6/p17, one of the eight below:
       `~/.claude/plans/snoopy-crafting-corbato.md` (2026-08-17), "Fix Q6/p17 --
@@ -9466,6 +9630,8 @@ per-cell claim.
       NOT A CEILING CLAIM. Nothing here is declared unreachable; they are wrong,
       unexplained, and now owned.
 
+### Q44
+<!-- qc:Q44 -->
 - [ ] Q44. **Q2/p6 is right 8 times in 12 and never once for the right reason.
       LOW PRIORITY, filed so a compensating pair is not read as agreement.**
       PARKED REVISION: `~/.claude/plans/greedy-exploring-eich.md` (2026-09-08).
@@ -9749,6 +9915,9 @@ per-cell claim.
           check over-count. Where each half names a thing of its own, they are TWO
           however briefly put. This test applies WITHIN one sentence; a whole
           sentence offered as its own reason is counted on its own terms.
+
+### Q43
+<!-- qc:Q43 -->
 - [x] Q43. **Q2/p18: the inversion boundary that three rule formulations could
       not move. LOW PRIORITY, and filed to stop it absorbing effort.**
       Moved out of subgoal Q17 on 2026-09-04 at the user's direction, after the
@@ -9901,6 +10070,8 @@ per-cell claim.
       SO THE ENTRY IS CLOSEABLE and left open only because closing needs the
       user's say. The residual is instability, which subgoal Q50 owns.
 
+### Q40
+<!-- qc:Q40 -->
 - [x] Q40. **`aimed_correctly`: a 4-point gate that exists on WK2 alone, and the
       sibling check cannot see it.**
       == CLOSED 2026-09-07. closed 2026-09-07 on the user's instruction, on a
@@ -10055,6 +10226,8 @@ per-cell claim.
       sibling check to slots present on only ONE member of a declared family is
       audit machinery and belongs in the E series if it is wanted.
 
+### Q36
+<!-- qc:Q36 -->
 - [x] Q36. **1a's week-presence rule: we credit a baseline week that is not there
       (1a/p6), and the label-versus-data question underneath it.**
       == CLOSED 2026-09-07. closed 2026-09-07 on the user's instruction, on the
@@ -10224,6 +10397,8 @@ per-cell claim.
       -- both tried to fix a clause that was LOSING TO ANOTHER CLAUSE, and in both
       cases stating the precedence did not make it win.
 
+### Q34
+<!-- qc:Q34 -->
 - [x] Q34. **NEVER RIGHT on a row gold passed in silence: six cells, and the false-positive test.**
       Split from Q31 on 2026-09-01, once pooling made the distinction measurable.
       These are cells where gold awarded FULL MARKS and wrote nothing, and we
@@ -10368,6 +10543,8 @@ per-cell claim.
       much as a scorer's, so ask rather than assume. If (b) or (c), NR/p4 is the
       one to do first, because its case does not rest on a judgement.
 
+### Q35
+<!-- qc:Q35 -->
 - [x] Q35. **SOMETIMES RIGHT on a row gold passed in silence: variance, not strictness.**
       (The title said "five cells" until 2026-09-04, by which point six were
       listed -- the same reason a subgoal names cells and slots rather than
@@ -10498,6 +10675,8 @@ per-cell claim.
       THE SUSPECT CELL IS NO LONGER NAMED HERE, done 2026-09-04, so it no longer
       reads as owned by anything.
 
+### Q33
+<!-- qc:Q33 -->
 - [x] Q33. **Q4a on the PAPER scorer: four cells the other two engines get right.**
       == CLOSED 2026-09-07. closed 2026-09-07 on the user's instruction. Its only
       remaining wrong cell, Q4a/p14, is a DECLARED divergence -- A_NOT_ANTECEDENT,
@@ -10643,6 +10822,8 @@ per-cell claim.
       NOTE THIS IS THE OLX/PYTHON SIDE. The paper question above is untouched and
       still unmeasured; the two halves of this subgoal are now independent.
 
+### Q32
+<!-- qc:Q32 -->
 - [x] Q32. **ONE engine divergence and four unstable cells the median disguised.**
       Filed 2026-08-31 as "five cells the python gets right and the olx gets wrong",
       and REWRITTEN 2026-09-01 after measuring it, because that premise was wrong
@@ -10751,6 +10932,8 @@ per-cell claim.
       distinguish the sides at six runs each.
 
 
+### Q30
+<!-- qc:Q30 -->
 - [x] Q30. **Where we charge MORE than gold: Q5/p4, 1c/p11 and Q3/p13, against a corpus that is otherwise lenient.**
       Filed 2026-08-31 from E30's accounting, for being the exception. Twenty-one
       of the twenty-two declared slot disagreements are us CREDITING a slot gold
@@ -11129,6 +11312,8 @@ per-cell claim.
       0 against the fixed one. Wired into the equivalence audit and
       `agreement.cheap_checks_gate`.
 
+### Q29
+<!-- qc:Q29 -->
 - [x] Q29. **Q2's `wgb_is_counterpart` GATES for 5 where gold charges 2, and it flips.**
       Filed 2026-08-31 from E30's accounting. Q2/p10 is the demonstration and the
       cheapest possible read: both scorers and the grader agree the WGB is not the
@@ -11222,6 +11407,8 @@ per-cell claim.
       SO THIS IS A CLOSURE CANDIDATE. Its question is answered, its demonstration
       cell is perfect, and every cell it still names has a live owner elsewhere.
 
+### Q28
+<!-- qc:Q28 -->
 - [x] Q28. **Q6/p5: the python's one miss is `state_a1` refers_to drift, not a rule.**
       DIAGNOSED 2026-08-31, from the artifacts on disk, no API calls. Two wrong
       mechanisms were proposed and retracted first; both are recorded because the
@@ -11313,6 +11500,8 @@ per-cell claim.
       is where it can be argued with.
 
 
+### Q27
+<!-- qc:Q27 -->
 - [x] Q27. **DAY1/p1 scores 0.0 against a gold of 4.0, deterministically, on both sides.**
       Filed 2026-08-30. DAY1 UNDER-credits one-sided -- python 1 over / 8 under, olx
       0 over / 7 under -- and p1 carries 6 of those 8 and 6 of those 7, failing
@@ -11376,6 +11565,8 @@ per-cell claim.
       the opening paragraph: its "python 1 over / 8 under, olx 0 over / 7 under"
       profile is the 2026-08-30 measurement and no longer describes the item.
 
+### Q20
+<!-- qc:Q20 -->
 - [x] Q20. **The SHEET CANNOT REFUSE: gold objects to something no check asks about.**
       Two views of one phenomenon, merged 2026-08-28: cells where every scoring
       check passes and gold still docks, and the observation-level rate that says
@@ -11792,6 +11983,8 @@ per-cell claim.
       working -- but a reader of this list should know that two of its six are
       being handled elsewhere.
 
+### Q23
+<!-- qc:Q23 -->
 - [x] Q23. **`matches_chosen_type` on WK2, and across the cadence family.**
       POOLED, 2026-09-01, ONLY ONE CELL SURVIVES. WK2/p8, WK2/p11, WK2/p15,
       NR/p11 and NR/p15 are all RIGHT at the pooled median -- they were recorded
@@ -11877,6 +12070,8 @@ per-cell claim.
       lesson subgoal Q32 closed on, arrived at from a different item.
 
 
+### Q22
+<!-- qc:Q22 -->
 - [x] Q22. **`cadence_is_daily`: a 4-point gate that FLIPS -- RE-SCOPED 2026-09-03
       to the 8 cell-runs it actually costs.**
       THE READOUT REFUTED THIS ENTRY'S HEADLINE and the correction is the useful
@@ -12824,6 +13019,8 @@ per-cell claim.
       without first fixing WHICH SPAN is the trigger. The clause above names the
       span instead, which is the half that attempt never touched.
 
+### Q21
+<!-- qc:Q21 -->
 - [x] Q21. **NR: a 4-point GATE running at 71% precision.**
       POOLED, 2026-09-01, AND THE HEADLINE NUMBER SURVIVES. `you_arrange_it` is
       refused 66 times across the twelve pooled runs with 18 of those in cells
@@ -12976,6 +13173,8 @@ per-cell claim.
       demonstrates_type) cost less together on the olx". Read it before changing
       either of those two, since the charge interaction is the declared part.
 
+### Q19
+<!-- qc:Q19 -->
 - [x] Q19. **The LATER-BOX gradient, corpus-wide. Read this before any numbered slot.**
       == CLOSED 2026-09-07. closed 2026-09-07 on the user's instruction, having
       been NARROWED twice and ending with its last live cell DECLARED. THE ENTRY'S
@@ -13897,6 +14096,8 @@ per-cell claim.
       correctly standalone and wobbles inside a long prompt. Two independent
       instances now. If anything is worth building, it is a measurement of THAT.
 
+### Q1
+<!-- qc:Q1 -->
 - [x] Q1. **Q3's `action` criterion.** The clearest target on the board. Five
       misses, ONE cause: gold charges two criteria and we charge one, and the
       criterion we skip is `action` every time. DONE, +2: the desc credited
@@ -13927,6 +14128,8 @@ per-cell claim.
   answers pointed opposite ways -- demanding a doing would have cost p9, p14 and
   p18, all credited on access alone.
 
+### Q2
+<!-- qc:Q2 -->
 - [x] Q2. **2a over-credits `hows_given`: one rule, five cells, 29 of 29 errors.**
       2a/p16 MOVED HERE 2026-09-01 from Q31, which closed. Q31's own text said it
       belonged to this entry -- "the item's usual over-credit rather than this
@@ -14297,6 +14500,9 @@ per-cell claim.
       scorer-sourced box to appear in the participant's transcribed answer, and
       `agreement_app.check_fixture_is_not_corrupt` runs it as a PREFLIGHT in both
       sweep harnesses, so a corrupt fixture costs nothing instead of 120 calls.
+
+### Q3
+<!-- qc:Q3 -->
 - [x] Q3. **Re-measure the 3-run items at six runs, cheapest-first.** CLOSED
       2026-08-28 as SUPERSEDED, at the user's direction, not as finished:
       equivalence subgoal Q2 sweeps every item at six runs on both sides, so the
@@ -14331,6 +14537,9 @@ per-cell claim.
       rubric key, and the fingerprint flagged them because `expand_counted`
       moved, not because arithmetic changed. Q4b and 2a are running; 2b and 3
       are next.
+
+### Q4
+<!-- qc:Q4 -->
 - [x] Q4. **The leakage detector's shared-prose blind spot.** Found twice today:
       the word check suppresses any word appearing in ANOTHER authored block, so
       prose duplicated across items is invisible to it -- the whole of
@@ -14361,6 +14570,9 @@ per-cell claim.
       OPTION 2 TAKEN: prompts are clean now, the eight handout-2 items read STALE
       PROMPT, and the ~960 calls to re-measure them are deferred rather than
       spent. The ledger tells the truth about what is unmeasured.
+
+### Q5
+<!-- qc:Q5 -->
 - [x] Q5. **Q4b/p12's declared divergence.** Accurate today, but its stated reason
       says we never matched gold there and cli_v7/cli_v8 both scored it 3/3. A
       declaration whose reason is false is a declaration that will be trusted
@@ -14384,6 +14596,8 @@ per-cell claim.
       stated reason, and the refusing test measured +1 cell a run against deleting
       it. Only the false claim is gone.
 
+### Q6
+<!-- qc:Q6 -->
 - [x] Q6. **Make the `reasons_given` rewrite live, then measure it.** DRAFTED,
       not live: `drafts/q1q2_reasons_rule.md` holds the replacement text, the
       per-cell evidence, the rejected alternative and the test plan. Diagnosed
@@ -14492,6 +14706,9 @@ per-cell claim.
       -- §2b structure before prose, §2c profile errors by slot after every sweep,
       §2e read what is already recorded, the last now enforced by the `--write`
       hook. The full history is in drafts/q1q2_reasons_rule.md.
+
+### Q7
+<!-- qc:Q7 -->
 - [x] Q7. **Q4b's per-cell instability, which the item median hides.** Two cells
       POOLED, 2026-09-01, THE PREMISE IS GONE. This entry exists because a single
       run could not tell a stable cell from a flickering one, and both cells it
@@ -14533,6 +14750,8 @@ per-cell claim.
       as an assertion: QUALITY_CONTROL.md 2g on why a median comparison
       manufactures divergences, and the pooling note at the top of this file.
 
+### Q8
+<!-- qc:Q8 -->
 - [x] Q8. **A count slot outside the rubric's `counts` records nothing.**
       `harms_listed` and `benefits_listed` store as `""` in every artifact,
       because `expand_counted` writes a verdict only for keys the RUBRIC names in
@@ -14583,6 +14802,9 @@ per-cell claim.
       editing one changes scores while every item still reads current. Closing
       that re-stamps all 26 ledger entries, which is a decision about the ledger
       rather than a fix, and ten items are already stale. Carried as subgoal Q16.
+
+### Q9
+<!-- qc:Q9 -->
 - [x] Q9. **Q3/p19: actionability grounded in measurability.** CLOSED
       2026-09-05 on the user's instruction, on its own measured result.
       DELIVERED: Q3/p19 went 0 of 12 to 10 of 12, `always_wrong` to
@@ -14705,6 +14927,9 @@ per-cell claim.
       subgoals Q14 and Q18, whose cells did not move at all.
       Q3/p10 IS UNTOUCHED at 4 of 12 and is subgoal Q10's, as recorded: its defect
       is `measurable`, which this rule does not address.
+
+### Q10
+<!-- qc:Q10 -->
 - [x] Q10. **Q3/p10: we credit `measurable` where gold docks it.** (The title
       quoted "~3/6" until 2026-09-04; the entry's own body had already contradicted
       it, which is why a subgoal names cells and slots rather than counts.)
@@ -14791,6 +15016,8 @@ per-cell claim.
       is the lesson: a structural move works when the grounds are confusable and
       the slot can already SEE the target cell. Q47's could not.
 
+### Q11
+<!-- qc:Q11 -->
 - [x] Q11. **Q3/p13: `realistic` over-charged.** We charge where gold passed the
       MEASURED IN THE TWO-SIDED SWEEP, 6 runs, 2026-08-28. Q3 came out 18/20 at
       100% PER CHECK with a spread of ZERO cells -- so every individual verdict was
@@ -14827,6 +15054,9 @@ per-cell claim.
       not too lenient. Gold's silence is the evidence, which makes this the one
       of the three where the credited rows matter most -- there is no gold note
       to read, only the absence of a deduction.
+
+### Q12
+<!-- qc:Q12 -->
 - [x] Q12. **Q1's exclusion failures: p6, p10, p16.** Not a counting problem, and
       three rewrites of the counting rule have now been blamed for it. The model
       credits things the rubric already excludes: background about how the
@@ -14877,6 +15107,9 @@ per-cell claim.
       handouts.GOLD_DIVERGENCES. Q1 was recorded at 17/20 as of the 2026-08-28 sweep
       (18/20 when this was written) and cannot exceed nineteen of
       its twenty cells while this stands.
+
+### Q13
+<!-- qc:Q13 -->
 - [x] Q13. **Q1/p17: `utb_stated` is a coin flip.** CLOSED BY DECISION, not by
       success, and with the number: p17 is **4/6** under the committed
       configuration, `utb_stated` reading absent in two runs of six and costing 2
@@ -14917,6 +15150,8 @@ per-cell claim.
       [15,15,15,16,16,17]. The check-level data the 3-run artifact lacked
       (`checks: null`) is what identified subgoal Q1.
 
+### Q17
+<!-- qc:Q17 -->
 - [x] Q17. **Q2/p16 and Q2/p17: the residue after (a)-(d). SCOPED DOWN
       2026-09-05 -- everything else this entry owned has landed or moved.**
       WHAT THIS SUBGOAL IS NOW, and the rest of the entry below is the record
@@ -15344,6 +15579,8 @@ per-cell claim.
       checkbox flips: three closures today each orphaned every cell their PROSE
       named, not just their headline cells.
 
+### Q18
+<!-- qc:Q18 -->
 - [x] Q18. **Q4b: the `not_doing` classification on the SECOND box.**
       == CLOSED 2026-09-07. closed 2026-09-07 on the user's instruction. Its only
       remaining wrong cell, Q4b/p12, is a DECLARED divergence -- B_NOT_ACTIVE --
@@ -15684,6 +15921,8 @@ per-cell claim.
       still stands -- the box genuinely names both an act and its result, and
       forcing one answer is now measured as the wrong way to resolve that.
 
+### Q16
+<!-- qc:Q16 -->
 - [x] Q16. **Diagnose Q1's wrong calls: `utb_stated`, `reason_2`, `reason_3`.**
       == CLOSED 2026-09-07. closed 2026-09-07 on the user's instruction. Its only
       remaining wrong cell, Q1/p9, is a DECLARED divergence --
@@ -15879,6 +16118,8 @@ per-cell claim.
       p9 (4/12) and p6 (5/12) ARE UNTOUCHED and remain this entry's live cells;
       they are `reasons_given` and were never this sentence's business.
 
+### Q14
+<!-- qc:Q14 -->
 - [x] Q14. **Q1/p10: a restatement of the goal counted as a reason.** Lifted out of subgoal Q12's
       RETITLED 2026-09-04, which this entry had asked for: "'Q1's two live
       misses' names a cell that is not one." Q1/p18 has been right in twelve
@@ -16067,6 +16308,8 @@ per-cell claim.
       first and reverting second leaves the ledger describing a prompt that has
       been deleted.
 
+### Q24
+<!-- qc:Q24 -->
 - [x] Q24. **Q4a's ceiling: two cells, both `antecedent_1`, deterministic and opposite.**
       RETITLED 2026-09-01. It was "Q4a's `antecedent_2`: the slot that carries the
       item's remaining error", and both halves of that turned out wrong -- the
@@ -16266,6 +16509,8 @@ per-cell claim.
       17/20 as of 2026-09-06; it was 19/20 and 18/20 when this was written.
       IT IS A CLOSURE CANDIDATE, not closed -- that is the user's call.
 
+### Q26
+<!-- qc:Q26 -->
 - [x] Q26. **DAY1 alone gates on `phrased_directly`. One `!`, undeclared, eight sibling items.**
       Found 2026-08-29 while checking whether DAY1 contradicted subgoal Q20's
       orthogonal-gates finding. It does not contradict it; it is a different

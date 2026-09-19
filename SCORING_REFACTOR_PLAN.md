@@ -3808,6 +3808,45 @@ So the round-trip proof asserts **the (entry, section) pair for all 112 entries 
 unchanged**, and separately that `check`, `next_label`, `misfiled_series` and
 `stale_slot_claims` return identical results on the same corpus.
 
+#### BUILT AND APPLIED 2026-09-19 — 112 anchors, and the net reverted it twice
+
+`16,516 lines -> 16,761. 112 ### headings + 112 <!-- qc:LABEL --> anchors added.
+6 ## sections unchanged. 245 lines inserted, 0 altered.` Idempotent: a second run
+adds nothing. `goals.py` after: `check` 0, `misfiled_series` 0, `next_label` Q69.
+
+Granularity is one heading per ENTRY, and the entry's own label is the anchor
+name — it is already the stable alias G1c wants, so nothing had to be invented.
+
+##### The tool reverted its own work twice, and was right both times
+
+It writes, re-runs `goals.py`, and restores the original if any result moves.
+
+1. **Headings carried the entry's bolded title** — which reads better and
+   duplicated prose into the file. `stale_slot_claims()` scans open entries'
+   prose for slot-level figures, so the duplication created new prose for it to
+   read. Headings now carry **the label and nothing else**; the human-readable
+   title is on the entry line immediately below, so only the duplication is lost.
+2. **The net's own criterion was wrong.** After the fix it still reverted, and the
+   diff showed why: 14 claims before, 14 after, with `GOALS.md:5747` become
+   `GOALS.md:5856`. Inserting lines moves every line below them. What must not
+   change is WHICH claims are reported, so line numbers are normalised and
+   everything else compared exactly.
+
+The second is the more useful lesson. **A net that fires is not the same as a net
+that is right**, and the way to tell is to read what moved rather than to weaken
+the net until it passes. Had I loosened the comparison at step 1, step 1's real
+defect would have shipped.
+
+##### What the round trip actually asserts
+
+Four things, because the obvious three are each insufficient alone: every
+`(entry, SECTION)` pair unchanged — an entry can keep state, series, number and
+text while moving between sections; the `## ` count unchanged, since
+`misfiled_series()` reads those; every original line still present **in order, as
+a subsequence**, which is what "inserts only, never rewrites" means mechanically;
+and `check`, `next_label`, `misfiled_series`, `stale_slot_claims` identical
+modulo line numbers.
+
 #### It places the anchors, because otherwise this is two passes
 
 G1c needs `<!-- qc:NAME -->` on the sections a course file will reference. If this
