@@ -2702,6 +2702,31 @@ these tables currently sit in a PUBLIC repository. Second, Stage 4 cannot reach
 the gold file exists, so **Stage 5's deletion of the rubric modules is gated on
 C1b**, which the sequence in §11 does not currently say.
 
+#### The audit's verdict on tonight's work, and three findings it returned
+
+A full `enforcement_audit()` over the dry run after Stages 4, 7 and 9: **10
+findings, 1 parked, 9 live** — and seven of the nine were mine.
+
+1. **`DATA_MODULES` and `OLD_ENV_NAMES_ALLOWED` were declaration-shaped tables
+   with no verifier named.** The same check caught `MIGRATED_MODULES` and
+   `D2D_EXEMPTION` the day they were added. Registered.
+2. **`olx_corpus.DECLARED_ROOTS` spelled four absolute paths.**
+   `check_filesystem_locations_come_from_paths_py` was right, and its own
+   docstring says why: *a literal path does not fail on the wrong tree, it
+   SUCCEEDS on it.* The answer was in the check's name — `paths.py` is where
+   locations are resolved — so the corpus roots moved there as
+   `paths.CORPUS_ROOTS`, resolved, with `$CODE_HOME` and `$COURSE_ROOTS`
+   overriding. The *declaration* of which trees count stays in `olx_corpus`,
+   where the reasoning lives; only the resolving moved.
+3. **`check_no_old_environment_names` fired on this plan** — which documents the
+   rename and therefore has to name what was renamed. **The same shape as the
+   anchor gate failing on the plan's own `see: qc:NAME` example**: a convention's
+   specification uses the convention. Both plan files are declared, with that
+   reason.
+
+The two remaining live findings are stale build artifacts in lo-blocks
+(`.stage/content` 40h older than its source), which predate tonight.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
