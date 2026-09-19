@@ -156,6 +156,24 @@ def generator_items() -> dict[str, dict]:
             for it in _load()["items"]}
 
 
+def declaration(name: str) -> dict:
+    """A scoring declaration table, with its TUPLE KEYS restored.
+
+    The file holds `[[key, value], ...]` because six of the seven tables are
+    keyed by tuples and JSON has string keys only. A key stored as a LIST comes
+    back as the tuple it was: joining the parts with a separator would have been
+    lossless only until a part contained the separator.
+    """
+    raw = _load().get("declarations", {}).get(name)
+    if raw is None:
+        raise KeyError(
+            f"coursedata: no declaration {name!r} in {course_path()}. If it is a "
+            f"new table, the export must carry it; if it was removed, the reader "
+            f"of it must go too.")
+    return {tuple(k) if isinstance(k, list) else k: copy.deepcopy(v)
+            for k, v in raw}
+
+
 def generator_value(name: str):
     """A course-level generator value, by name. An ACCESSOR, not a raw entry.
 
