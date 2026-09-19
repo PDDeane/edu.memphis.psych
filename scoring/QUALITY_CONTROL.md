@@ -2612,7 +2612,7 @@ from that student's writing.
    Every harness that hand-formatted one eventually formatted a bad one —
    `None:None` spans that parse, look like citations, and resolve to nothing.
 2. **Declare where the spans live**, in the file's frontmatter:
-   `corpus_data: $MOLLY_DATA/corpus_refs.json`. Without it the build refuses
+   `corpus_data: $COURSE_DATA/corpus_refs.json`. Without it the build refuses
    rather than render an unresolved reference.
 3. **Export the spans**: `python3 scoring/corpus_ref.py --export-olx-data <path>`.
    The export holds only the spans actually cited.

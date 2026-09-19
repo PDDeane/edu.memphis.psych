@@ -115,7 +115,7 @@ def roots_inside_the_data_store() -> list[str]:
     """A declared corpus root that sits inside $COURSE_DATA. Refused.
 
     THE DATA ROOT HOLDS COPIES OF THE SOURCE. Measured 2026-09-18:
-    `$MOLLY_DATA` carries 63 `.py` files and six `.olx` -- `migration_reference/`
+    `$COURSE_DATA` carries 63 `.py` files and six `.olx` -- `migration_reference/`
     preserves a whole engine half and three rubric `.olx`, and
     `pre_scrub_backup_.../psychology/` holds three course files and a PARTIAL,
     STALE copy of `scoring/` (20 files identical to the live tree, five
@@ -127,7 +127,7 @@ def roots_inside_the_data_store() -> list[str]:
     counted as a second course, and three parallel checkouts counted as three
     more -- and the third time should be prevented rather than diagnosed.
     """
-    data = os.environ.get("COURSE_DATA") or os.environ.get("MOLLY_DATA")
+    data = os.environ.get("COURSE_DATA") or os.environ.get("COURSE_DATA")
     if not data:
         return []
     data = os.path.abspath(os.path.expanduser(data))

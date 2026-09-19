@@ -1117,7 +1117,7 @@ def check_handsplit_rows_are_disjoint() -> list[str]:
     quote that read oddly.
 
     Skips silently when the corpus is not on this machine. The tables live in
-    $MOLLY_DATA, outside both repositories by design, so a checkout without the
+    $COURSE_DATA, outside both repositories by design, so a checkout without the
     student data must not fail this audit — it simply has nothing to check.
     """
     import os
@@ -4883,7 +4883,7 @@ _CONSENSUS_SOURCE: str | None = None
 # 0 as of 2026-09-16. Handout 2's worked non-example was a real student's
 # sentence, carried into the page through a reference -- which kept the words
 # out of the FILE but still made a student's writing the thing every reader is
-# taught from, and made the page unrenderable without $MOLLY_DATA. It is now an
+# taught from, and made the page unrenderable without $COURSE_DATA. It is now an
 # invented sentence with the same defect being taught ("Going to bed earlier
 # will reward me with feeling rested" -- the reward is just what the behaviour
 # does), checked against the whole response space for collisions.
@@ -4899,7 +4899,7 @@ def check_olx_corpus_references() -> list[str]:
     THE MECHANISM IS A CONCESSION, NOT A SOLUTION, and this check exists to keep
     saying so. A `{{corpus:...}}` reference takes a student's sentence out of the
     repo -- which is the point -- but it leaves the handout DEPENDENT on
-    `$MOLLY_DATA` to render at all, and it leaves the sentence itself still being
+    `$COURSE_DATA` to render at all, and it leaves the sentence itself still being
     shown to whoever reads the page. It buys privacy in the repository and buys
     nothing about whether a real answer should be the worked example in the first
     place.
@@ -4926,7 +4926,7 @@ def check_olx_corpus_references() -> list[str]:
                               r"(\d+):(\d+)(?::sha=[0-9a-f]+)?\}\}", src):
             out.append(f"handout {h} still quotes {m.group(1)}/p{m.group(2)} "
                        f"{m.group(3)} through a corpus reference: the page cannot "
-                       f"render without $MOLLY_DATA, and a student's sentence is "
+                       f"render without $COURSE_DATA, and a student's sentence is "
                        f"still the worked example. Replace it with an invented "
                        f"one and the reference goes away")
     if len(out) > OLX_CORPUS_REF_BUDGET:
@@ -6547,9 +6547,9 @@ def _run_grammar_script(name: str, what: str) -> list[str]:
     # HAND THE CHILD THE LOCATION THIS PROCESS ALREADY KNOWS. `corpus_resolve`
     # refuses to guess where the export lives -- deliberately, because it carries
     # student text and must never default to somewhere inside a checkout -- so it
-    # reads $CORPUS_REFS or $MOLLY_DATA and exits if neither is set. The child
+    # reads $CORPUS_REFS or $COURSE_DATA and exits if neither is set. The child
     # inherited whatever the invoking shell happened to have, so running the
-    # audit from a shell without $MOLLY_DATA made this check fail EVERY time,
+    # audit from a shell without $COURSE_DATA made this check fail EVERY time,
     # on an unset variable rather than on anything about the two grammars.
     #
     # THAT IS NOT A BASELINE, IT IS A CHECK THAT CANNOT PASS. `paths.DATA`
@@ -6558,7 +6558,7 @@ def _run_grammar_script(name: str, what: str) -> list[str]:
     # while leaving `corpus_resolve` as strict as it was. An explicit setting in
     # the environment still wins, so a deliberate override is not overridden.
     env = dict(_os.environ)
-    env.setdefault("MOLLY_DATA", str(_p.DATA))
+    env.setdefault("COURSE_DATA", str(_p.DATA))
     if not env.get("CORPUS_REFS") and not (_p.DATA / "corpus_refs.json").exists():
         return [f"{name} cannot run: no export at {_p.DATA / 'corpus_refs.json'} "
                 f"and $CORPUS_REFS is unset, so {what} was NOT compared -- which "
@@ -15087,6 +15087,56 @@ def check_general_prose_has_no_course_vocabulary() -> list[str]:
         return [f"the prose vocabulary check cannot be read: {exc}"]
     got = PV.check()
     return got["blocked"] + got["findings"]
+
+
+# The ONE place the old environment names may still appear: the table in
+# `paths.py` that honours them. Everything else was renamed in Stage 9.
+OLD_ENV_NAMES_ALLOWED = {
+    "scoring/paths.py": "the fallback table itself -- it is what honours the old "
+                        "names, so it has to know them",
+}
+
+
+def check_no_old_environment_names() -> list[str]:
+    """`MOLLY_*` does not come back after Stage 9's rename.
+
+    Without this the old name returns by copy-paste from a runbook and nobody
+    notices until the fallback is removed -- at which point the failure is an
+    EMPTY RESULT, and empty results in this project look like clean passes.
+
+    The fallback in `paths.py` is deliberately not a transition courtesy: these
+    variables live in shells, cron entries and the command lines of jobs already
+    running, where a repo-wide rename cannot reach. This check governs the repo;
+    the fallback governs everything else.
+    """
+    import os
+    import re
+
+    repo = os.path.dirname(_HERE_DIR)
+    pat = re.compile(r"\bMOLLY_(?:DATA|OUT|MEDIA)\b")
+    out = []
+    for dirpath, dirnames, filenames in os.walk(repo):
+        dirnames[:] = [d for d in dirnames
+                       if d not in (".git", "node_modules", "__pycache__")]
+        for fn in filenames:
+            if not fn.endswith((".py", ".md", ".sh", ".json", ".yaml", ".olx")):
+                continue
+            path = os.path.join(dirpath, fn)
+            rel = os.path.relpath(path, repo)
+            if rel in OLD_ENV_NAMES_ALLOWED:
+                continue
+            try:
+                hits = pat.findall(open(path, errors="ignore").read())
+            except OSError:
+                continue
+            if hits:
+                out.append(
+                    f"{rel} uses {sorted(set(hits))} -- Stage 9 renamed these to "
+                    f"COURSE_*. The old name is still honoured at runtime by "
+                    f"paths.env_renamed, but it must not return to the repo: when "
+                    f"the fallback goes, the failure is an empty result, and empty "
+                    f"results here look like clean passes.")
+    return out
 
 
 if __name__ == "__main__":

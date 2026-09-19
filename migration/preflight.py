@@ -89,7 +89,7 @@ def check_the_products_exist() -> list[str]:
     TWO OF THEM CANNOT LIVE IN THIS REPOSITORY. `RUBRIC_DECISIONS.md` carries 66
     distinctive student 4-grams and `rubric_reader.py` one, because the dry run
     wrote them before the references existed; this repository is public. They
-    are kept in `$MOLLY_DATA/migration_reference/products/` and the real run must
+    are kept in `$COURSE_DATA/migration_reference/products/` and the real run must
     regenerate them WITH references rather than copying those in. See
     products/README.md.
     """
@@ -97,11 +97,11 @@ def check_the_products_exist() -> list[str]:
     here = MP.MIGRATION / "products"
     if not (here / "selftest_injections.py").exists():
         out.append("products/selftest_injections.py is missing")
-    ref = Path(os.environ.get("MOLLY_DATA", "/home/pdeane/molly_data")) / "migration_reference"
+    ref = Path(os.environ.get("COURSE_DATA", "/home/pdeane/molly_data")) / "migration_reference"
     for w in ("products/RUBRIC_DECISIONS.md", "products/rubric_reader.py",
               "olx/bmod_rubric.olx", "migration_changes.patch"):
         if not (ref / w).exists():
-            out.append(f"$MOLLY_DATA/migration_reference/{w} is missing -- the dry "
+            out.append(f"$COURSE_DATA/migration_reference/{w} is missing -- the dry "
                        f"run's reference copy is gone and cannot be diffed against")
     return out
 

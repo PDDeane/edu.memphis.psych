@@ -45,7 +45,7 @@ OLX = re.compile(r"\{\{corpus:(?P<item>[A-Za-z0-9]+)/p(?P<pid>\d+):"
                  r"(?::sha=(?P<sha>[0-9a-f]{6,64}))?"
                  r"(?::alt=(?P<alt>[A-Za-z0-9/,_]+))?"
                  r"(?::shape=(?P<shape>[0-9A-Za-z,\-]+))?\}\}")
-ENV = "CORPUS_REFS"          # path to the export; falls back to $MOLLY_DATA
+ENV = "CORPUS_REFS"          # path to the export; falls back to $COURSE_DATA
 
 
 def sha12(s):
@@ -54,18 +54,18 @@ def sha12(s):
 
 def export_path(explicit=None):
     """Where the spans live. Explicit argument, then $CORPUS_REFS, then
-    $MOLLY_DATA/corpus_refs.json. No default inside a checkout, ever: the export
+    $COURSE_DATA/corpus_refs.json. No default inside a checkout, ever: the export
     carries student text and belongs beside the corpus."""
     if explicit:
         return explicit
     if os.environ.get(ENV):
         return os.environ[ENV]
-    root = os.environ.get("MOLLY_DATA")
+    root = os.environ.get("COURSE_DATA")
     if root:
         return os.path.join(root, "corpus_refs.json")
     raise SystemExit(
         "corpus_resolve: no export located. Set $CORPUS_REFS to the file written "
-        "by `corpus_ref.py --export-olx-data`, or $MOLLY_DATA to the directory "
+        "by `corpus_ref.py --export-olx-data`, or $COURSE_DATA to the directory "
         "holding corpus_refs.json.")
 
 
