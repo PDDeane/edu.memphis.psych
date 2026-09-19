@@ -6255,8 +6255,7 @@
      },
      "grader": "bmod_h1_q1_grader",
      "handout": 1,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h1_q1",
+     "screen": "bmod_h1_q1",
      "split": {}
     }
    ],
@@ -6271,8 +6270,7 @@
      },
      "grader": "bmod_h1_q2_grader",
      "handout": 1,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h1_q2",
+     "screen": "bmod_h1_q2",
      "split": {}
     }
    ],
@@ -6290,8 +6288,7 @@
      },
      "grader": "bmod_h1_q4a_grader",
      "handout": 1,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h1_q4a"
+     "screen": "bmod_h1_q4a"
     }
    ],
    [
@@ -6308,8 +6305,7 @@
      },
      "grader": "bmod_h1_q4c_grader",
      "handout": 1,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h1_q4c"
+     "screen": "bmod_h1_q4c"
     }
    ],
    [
@@ -6328,8 +6324,7 @@
      },
      "grader": "bmod_h1_q5_grader",
      "handout": 1,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h1_q5"
+     "screen": "bmod_h1_q5"
     }
    ],
    [
@@ -6353,8 +6348,7 @@
      },
      "grader": "bmod_h1_q6_grader",
      "handout": 1,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h1_q6"
+     "screen": "bmod_h1_q6"
     }
    ],
    [
@@ -6383,8 +6377,7 @@
      },
      "grader": "bmod_h2_pr_grader",
      "handout": 2,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h2_pr_screen"
+     "screen": "bmod_h2_pr_screen"
     }
    ],
    [
@@ -6413,8 +6406,7 @@
      },
      "grader": "bmod_h2_nr_grader",
      "handout": 2,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h2_nr_screen"
+     "screen": "bmod_h2_nr_screen"
     }
    ],
    [
@@ -6443,8 +6435,7 @@
      },
      "grader": "bmod_h2_pp_grader",
      "handout": 2,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h2_pp_screen"
+     "screen": "bmod_h2_pp_screen"
     }
    ],
    [
@@ -6473,8 +6464,7 @@
      },
      "grader": "bmod_h2_np_grader",
      "handout": 2,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h2_np_screen"
+     "screen": "bmod_h2_np_screen"
     }
    ],
    [
@@ -6504,8 +6494,7 @@
      },
      "grader": "bmod_h2_d1_grader",
      "handout": 2,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h2_d1_screen"
+     "screen": "bmod_h2_d1_screen"
     }
    ],
    [
@@ -6536,8 +6525,7 @@
      },
      "grader": "bmod_h2_day1_grader",
      "handout": 2,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h2_day1_screen"
+     "screen": "bmod_h2_day1_screen"
     }
    ],
    [
@@ -6568,8 +6556,7 @@
      },
      "grader": "bmod_h2_wk1_grader",
      "handout": 2,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h2_wk1_screen"
+     "screen": "bmod_h2_wk1_screen"
     }
    ],
    [
@@ -6599,8 +6586,7 @@
      },
      "grader": "bmod_h2_d2_grader",
      "handout": 2,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h2_d2_screen"
+     "screen": "bmod_h2_d2_screen"
     }
    ],
    [
@@ -6631,8 +6617,7 @@
      },
      "grader": "bmod_h2_day2_grader",
      "handout": 2,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h2_day2_screen"
+     "screen": "bmod_h2_day2_screen"
     }
    ],
    [
@@ -6663,8 +6648,7 @@
      },
      "grader": "bmod_h2_wk2_grader",
      "handout": 2,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h2_wk2_screen"
+     "screen": "bmod_h2_wk2_screen"
     }
    ],
    [
@@ -6686,8 +6670,7 @@
      },
      "grader": "bmod_h1_q3_grader",
      "handout": 1,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h1_q3"
+     "screen": "bmod_h1_q3"
     }
    ],
    [
@@ -6702,8 +6685,7 @@
      "grader": "bmod_h1_q4b_grader",
      "handout": 1,
      "handsplit": "/home/pdeane/molly_data/handsplit/Q4b.json",
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h1_q4b",
+     "screen": "bmod_h1_q4b",
      "split": {
       "Q4a": {
        "__tuple__": [
@@ -6724,8 +6706,7 @@
      },
      "grader": "bmod_h3_overview_grader",
      "handout": 3,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h3_overview",
+     "screen": "bmod_h3_overview",
      "sim": {
       "bmod_h3_baseline": "baseline",
       "bmod_h3_wk1": "week_1",
@@ -6755,8 +6736,7 @@
      },
      "grader": "bmod_h3_graph_grader",
      "handout": 3,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h3_graph",
+     "screen": "bmod_h3_graph",
      "sim": {
       "bmod_h3_baseline": "baseline",
       "bmod_h3_graph_series": "graph_series",
@@ -6790,8 +6770,7 @@
      },
      "grader": "bmod_h3_success_grader",
      "handout": 3,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h3_success"
+     "screen": "bmod_h3_success"
     }
    ],
    [
@@ -6820,8 +6799,7 @@
      },
      "grader": "bmod_h3_assessment_grader",
      "handout": 3,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h3_assessment"
+     "screen": "bmod_h3_assessment"
     }
    ],
    [
@@ -6833,8 +6811,7 @@
      },
      "grader": "bmod_h2_t1_sheet_grader",
      "handout": 2,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h2_first"
+     "screen": "bmod_h2_first"
     }
    ],
    [
@@ -6846,8 +6823,7 @@
      },
      "grader": "bmod_h2_t2_sheet_grader",
      "handout": 2,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h2_second"
+     "screen": "bmod_h2_second"
     }
    ],
    [
@@ -6857,8 +6833,7 @@
      "fields": {},
      "grader": "bmod_h3_data_grader",
      "handout": 3,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h3_data",
+     "screen": "bmod_h3_data",
      "sim": {
       "bmod_h3_baseline": "baseline",
       "bmod_h3_wk1": "week_1",
@@ -6888,8 +6863,7 @@
      },
      "grader": "bmod_h3_improve_grader",
      "handout": 3,
-     "ns": "edu.memphis.psych",
-     "screen": "edu.memphis.psych/bmod_h3_improve"
+     "screen": "bmod_h3_improve"
     }
    ]
   ],
