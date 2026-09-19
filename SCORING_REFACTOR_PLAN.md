@@ -3001,6 +3001,44 @@ is the one to watch — it defeats the boundary while appearing to honour it.
 the fix is either "use the other accessor" or "declare the field where it actually
 belongs". "Boundary violated" would send the reader back to §9.2a to decode it.
 
+#### BUILT 2026-09-18 as `course_schema.py` — clean, and honest that it proves nothing yet
+
+`30 fields declared (0 generator), 0 violations, 0 cleanups.` `--self-test`: 4/4
+conditions caught. Gated by `check_course_schema_is_complete` (158 checks).
+
+Every item field is already in a declared group and no declaration is stale, so
+**Part A passes on real data by having nothing to find**, and Part B has no
+cross-group field to look for while `GENERATOR_FIELDS` is empty. The run says so
+in its own output rather than reporting a clean bill:
+
+> `NOTE: GENERATOR_FIELDS is empty, so Part A cannot yet fail on real data and
+> Part B has no cross-group field to find. The self-test is what exercises this
+> check until Stage 4.`
+
+All four conditions are therefore constructed and injected by the check itself —
+including two that need a module on disk, so it writes a probe module, scans it,
+and removes it in a `finally`.
+
+##### A defect found on the way: `gold_path()` was silently relative
+
+`coursedata.gold_path()` read `$COURSE_DATA`/`$MOLLY_DATA` directly and fell back
+to `""`, so with the variable unset it returned **`courses/<id>/gold.json`** — a
+relative path resolving against whatever the working directory happened to be.
+It would have reported "gold is not available" while never having looked in the
+right place, and would have FOUND a file if one ever sat beside the caller.
+
+`paths.DATA` already carries the default and every other reader goes through it.
+`coursedata.data_root()` now does too, and with no root at all the path is
+returned named (`<COURSE_DATA-unset>/…`) rather than silently relative.
+
+##### Where the alarm sits, and where it does not
+
+A missing `$COURSE_DATA` is a **failure**, in the project's own idiom — *a check
+that cannot run is not a check that passed*. But `$COURSE_DATA` present with
+**no gold file yet** is NOT a failure: C1b's export is Stage 5 work, and failing
+here would gate Stage 2 on a later stage's output. The distinction is in the code
+with the reason attached.
+
 #### The self-test case, and why it needs writing now
 
 At Stage 2 there are no GENERATOR fields, so Part A is satisfied by tagging

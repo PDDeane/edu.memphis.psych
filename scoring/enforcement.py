@@ -14985,6 +14985,28 @@ def check_property_vocabulary_has_not_grown() -> list[str]:
     return PR.verify(PR.scan())
 
 
+def check_course_schema_is_complete() -> list[str]:
+    """Every item field is in a declared group, and no module crosses the boundary.
+
+    §9.2a obligations 1 and 3. Obligation 2 belongs to `coursedata`, which cannot
+    gate itself. Obligation 3 had been assigned to no tool at all, and a rule with
+    no tool is a comment.
+
+    Part A reports an undeclared field as a VIOLATION and a stale declaration as a
+    CLEANUP, separately -- merging them would let a real violation hide in a list
+    of tidying. Part B catches a GENERATOR field read off a rubric result, and the
+    raw-entry escape, which defeats the boundary while still calling the reader.
+
+    Until Stage 4 fills GENERATOR_FIELDS this cannot fail on real data, which is
+    why `course_schema.py --self-test` constructs all four conditions itself.
+    """
+    try:
+        import course_schema as CS
+    except Exception as exc:                      # pragma: no cover
+        return [f"the course schema check cannot be read: {exc}"]
+    return CS.check()["violations"]
+
+
 if __name__ == "__main__":
     import json
     import sys

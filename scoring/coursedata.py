@@ -151,8 +151,36 @@ def derived(name: str, handout: int | None = None):
         f"must carry it.")
 
 
+def data_root() -> str | None:
+    """The course-data root, or None. RESOLVED THE WAY `paths` RESOLVES IT.
+
+    `gold_path` used to read the environment directly and fall back to `""`,
+    which made an unset variable produce a RELATIVE path -- `courses/<id>/
+    gold.json` resolving against whatever the working directory happened to be.
+    A wrong path that looks like a path is worse than none: it reports "gold is
+    not available" while never having looked in the right place, and it would
+    find a file if one ever sat beside the caller.
+
+    `paths.DATA` already carries the default (`~/molly_data`) and every other
+    reader in this package goes through it.
+    """
+    root = os.environ.get("COURSE_DATA")
+    if root:
+        return root
+    try:
+        import paths
+
+        return str(paths.DATA)
+    except Exception:                             # pragma: no cover
+        return os.environ.get("MOLLY_DATA") or None
+
+
 def gold_path() -> str:
-    root = os.environ.get("COURSE_DATA") or os.environ.get("MOLLY_DATA") or ""
+    root = data_root()
+    if root is None:
+        # Named, not silently relative: the caller gets a path it can report.
+        return os.path.join("<COURSE_DATA-unset>", "courses",
+                            "edu.memphis.psych", "gold.json")
     return os.path.join(root, "courses", "edu.memphis.psych", "gold.json")
 
 
