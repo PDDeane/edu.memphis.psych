@@ -1166,8 +1166,12 @@ broken, then generalise.
    `equivalence.py` as a whole — and the gate REPORTS the exemption rather than
    passing in silence, so the 28 stay visible in the count.
 2. The exemption is CONDITIONAL on entry condition 4 (the concurrency guard) and
-   on §11.11's restore defect. When both close, the exemption expires and D2a is
-   the work that replaces it.
+   on the self-test's restore defect. When both close, the exemption expires and
+   D2a is the work that replaces it. **BOTH CLOSED 2026-09-18**, and T4.1's
+   `check_module_has_no_course_data` detected it the day it was written. The
+   finding is PARKED with its reason and D2a is owed — see T4.1's record. (The
+   cross-reference above read "§11.11's restore defect"; that section was
+   renumbered to Stage 10 and the pointer was stale.)
 3. D2a's coverage-drift weakness is answered when it is done, not deferred: a
    shape-selected fixture must REPORT the target it chose, so a silent change of
    target appears in the run's own output.
@@ -2477,6 +2481,80 @@ So the check names those conditions and **fails when they are satisfied while th
 exemption is still present**. An exemption that outlives its reason is how "for
 now" becomes "forever", which §12.0 and this project's own history both say is the
 default outcome.
+
+#### BUILT 2026-09-18 — three checks, a ratchet file, and an exemption that expired on contact
+
+`152 checks registered (was 149). 55 modules, 200 embeddings baselined. 11/11
+negative controls caught. Scan cost 2s` — cheap enough for the gate, as assumed.
+
+| check | what it gates |
+|---|---|
+| `check_module_has_no_course_data` | whitelist + ratchet over §10.7 categories 1–3 |
+| `check_no_module_is_named_for_a_course_artifact` | category 4, ratcheted at today's 9 |
+| `check_every_enforcement_check_is_registered` | **unplanned** — see below |
+
+##### The registration check was not in the design, and should have been
+
+149 checks were defined and 149 were called, matched **by discipline alone** —
+nothing enforced it. This tool added three checks, any one of which could have
+been left unwired with nothing to notice, and a check nobody calls is worse than
+no check: it reads as coverage, passes review, and never runs. Run before wiring,
+it named all three, including itself.
+
+##### Two bugs, both found by refusing a first clean number
+
+1. **`_exempt` excused 117 of 230 embeddings.** It compared `entry.get("in")`
+   against `D2D_EXEMPTION.get(module)`; for any module *not* in the exemption both
+   sides are `None`, so every module-level embedding in every module compared
+   equal and was excused. **A `None == None` is how a narrow exemption becomes a
+   general one.** Caught only because the printed totals refused to reconcile with
+   the budget's sum — 230 against 113.
+2. **The expiry predicate was keyed on the wrong name.** It looked for
+   `_selftest_in_flight`, which is the helper *inside* `olx_prompts`; the call in
+   `equivalence.py` is `refuse_if_selftest_running`, and the helper's name appears
+   there only in a comment. The condition read False, the exemption looked alive,
+   and the expiry silently did not fire — a false negative in exactly the place
+   the predicate's own docstring warns a structural test can have one.
+
+##### The name check had to be ratcheted, or it could never have been added
+
+Unratcheted it fails from the moment it exists, since the nine modules are still
+named for questions and handouts today. That would mean adding it only *after*
+the GOAL E work it gates — a gate that gates nothing. Baselined instead:
+`named_modules` may shrink and may not grow, and a stale entry is reported so a
+reduction cannot be quietly undone.
+
+##### The writer is in T1.1, the gate is in enforcement — deliberately
+
+`course_inventory.py --tighten` writes `COURSE_DATA_BUDGET.json`; the check only
+ever reads it. **A gate that can lower its own bar is not a ratchet.** `--tighten`
+refuses a count that rose, because baselining a regression turns a ratchet into a
+record of whatever happened to be true.
+
+#### The D2d exemption EXPIRED on the day this check was written
+
+Both conditions are closed, and the check says so:
+
+```
+True  enforcement_selftest calls refuse_if_selftest_running
+True  snapshot/repair net installed and a moved source FAILS
+→ the D2d exemption has OUTLIVED ITS REASON
+```
+
+**Decided 2026-09-18: parked, not declared, and D2a is owed and scheduled.**
+`PARKED_UNDECLARED[("-", "MIGRATED MODULE HOLDS COURSE DATA")]` carries the reason
+and `PARKED_BUDGET` goes 0 → 1. The finding stays computed and printed; what the
+park silences is the commit gate, not the measurement. The difference from a
+declaration is the claim: a declaration would say the 30 course-bound fixtures are
+right, and they are not — they are wrong and D2a is what fixes them.
+
+`check_parked_entries_still_apply` reports the park if the finding ever disappears
+first, so the park cannot outlive its own reason the way the exemption did.
+
+**D2a, now owed:** each of the 30 fixtures in `enforcement_selftest` selects its
+target BY SHAPE — the first item with `counts`, the first `dealt` job — and
+**reports the target it chose**, so D2a's coverage-drift weakness shows up in the
+run's own output instead of silently. The park goes when D2a lands.
 
 #### The module-NAME category is a separate check
 
