@@ -5209,6 +5209,12 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.ITEM_GATED_MECHANISMS": (
         "mechanisms that vary by item, which the uniformity rule forbids",
         ("check_engine_mechanisms_are_not_item_dependent",)),
+    "enforcement.MIGRATED_MODULES": (
+        "modules declared free of course data, and what makes the claim true",
+        ("check_module_has_no_course_data",)),
+    "enforcement.D2D_EXEMPTION": (
+        "the one function exempted from the course-data rule, by decision D2d",
+        ("check_module_has_no_course_data",)),
     "enforcement.PARKED_UNDECLARED": (
         "findings deliberately deferred rather than declared",
         ("check_parked_entries_still_apply",)),
