@@ -3908,6 +3908,43 @@ nothing points at WARNS, since an unused alias is a section someone thought was
 general and no course needed. A deliberate orphan carries a declaration, never an
 exemption list.
 
+#### BUILT 2026-09-19 as `anchors.py`, gated — and two of its own rules were wrong first
+
+`112 anchors across 1 prose file, 0 cross-file references, every reference
+resolves.` Gated by `check_cross_file_anchors_resolve` (159 checks).
+
+##### A citation form has to be writable ABOUT
+
+Matching a bare `qc:NAME` made every sentence DESCRIBING the convention into a
+live pointer. On its first run the gate failed on **this plan's own text** and on
+the tool's own docstring. Requiring `see: qc:NAME` was not enough either, because
+the plan specifies the form *using* the form — "a `see: qc:NAME` with no matching
+anchor FAILS" is documentation, not a reference.
+
+The resolution is the design's own: **citers are course files**, under
+`courses/<id>/`. That is not a convenience — it is exactly the set `_cited_by()`
+cannot see, which is the entire reason anchors exist. Scoping to it removes the
+specification-text problem by construction rather than by exception.
+
+##### A check satisfied by writing prose about the thing it checks
+
+The renumber-safety check first grepped `guide.py` for `qc:` and reported that
+renumbering had no anchor-preserving rule. **Adding a docstring to `renumber()`
+made it pass.** Nothing about the code had changed.
+
+What can be verified is not a promise about `renumber()` but **where the anchors
+are**: every anchor sits on its own line, so a heading rewrite cannot reach one.
+`anchors_are_renumber_safe()` checks that, and it demonstrably fires on an anchor
+sharing a heading line. The property is now structural instead of promised, and
+the promise is not needed.
+
+##### Unused aliases are summarised, not listed
+
+T7.1 anchors every GOALS.md entry so that any of them CAN be pointed at, which
+makes "pointed at by nothing yet" the normal state until courses exist to do the
+pointing. 112 identical warnings would bury the danglers that matter, so the
+count is reported per file and only danglers fail.
+
 #### The scope question: `guide.py` is built for ONE file
 
 `HEAD`, `_cited_by` and `renumber` are all shaped around `QUALITY_CONTROL.md`. Goal
