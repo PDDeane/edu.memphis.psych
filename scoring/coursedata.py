@@ -136,6 +136,10 @@ def _detag(x):
     if isinstance(x, dict):
         if set(x) == {"__tuple__"}:
             return tuple(_detag(v) for v in x["__tuple__"])
+        if set(x) == {"__frozenset__"}:
+            # A frozenset key: see `rubric_export._key`. Sorted on the way out,
+            # unordered again on the way back, which is what it always was.
+            return frozenset(_detag(v) for v in x["__frozenset__"])
         if set(x) == {"__dict__"}:
             # KEYS GO THROUGH `_detag` TOO. This tag exists because the key was
             # not a string -- a participant id, or a (item, cell) tuple -- so
@@ -201,8 +205,21 @@ def declaration(name: str) -> dict:
             f"coursedata: no declaration {name!r} in {course_path()}. If it is a "
             f"new table, the export must carry it; if it was removed, the reader "
             f"of it must go too.")
-    return {tuple(k) if isinstance(k, list) else k: _detag(copy.deepcopy(v))
-            for k, v in raw}
+    # THE KEY GOES THROUGH `_detag` TOO, not just the value. A key part can be
+    # tagged -- `PROBE_UNREACHABLE_PAIRS` is keyed by (item, frozenset) and the
+    # frozenset reaches the file as `{"__frozenset__": [...]}` -- and decoding
+    # only the value would hand back a tuple with a raw dict inside it, which is
+    # unhashable in some shapes and simply wrong in the rest. The same omission
+    # existed on the gold side for `__dict__` and was found the same way: by a
+    # key that did not look up.
+    return {_detag_key(k): _detag(copy.deepcopy(v)) for k, v in raw}
+
+
+def _detag_key(k):
+    """One stored key, restored: a list becomes a tuple, tags are inverted."""
+    if isinstance(k, list):
+        return tuple(_detag_key(x) for x in k)
+    return _detag(k)
 
 
 def course_id() -> str:

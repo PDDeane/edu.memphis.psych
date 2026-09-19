@@ -241,6 +241,10 @@ DECLARATION_TABLES = ("PROSE_ONLY_SLOTS", "PROSE_ONLY_JUDGED_AGAINST",
                       # RAISES as an unread table. The established probe says
                       # READ: emptying it changes the output.
                       "COUNTABLE_EXEMPT",
+                      # PROBE_UNREACHABLE_PAIRS moved 2026-09-19, once `_key`
+                      # could hold a frozenset. Before that `json.dumps`
+                      # refused it and the table could not be exported at all.
+                      "PROBE_UNREACHABLE_PAIRS",
                       # from score.py and agreement_app.py
                       "PAPER_ITEM_NOTES", "PAPER_ITEM_NOTES_WHY",
                       "CONTEXT_SOURCE", "JOBS", "HANDOUT_FIELDS")
@@ -269,7 +273,29 @@ def _pairs(table: dict) -> list:
     `rubric_equivalence` and the reader both round-trip this, and the round trip
     is asserted rather than assumed -- see `--verify-declarations`.
     """
-    return [[list(k) if isinstance(k, tuple) else k, v] for k, v in table.items()]
+    return [[_key(k), v] for k, v in table.items()]
+
+
+def _key(k):
+    """One declaration key, in a form JSON holds and `coursedata._detag` inverts.
+
+    A FROZENSET IS TAGGED, NOT LISTED. `PROBE_UNREACHABLE_PAIRS` is keyed by
+    `(item, frozenset({slot, slot}))` -- a pair of slots the probe cannot reach
+    separately, where which one comes first is meaningless. `json.dumps` refuses
+    a frozenset outright, so this table could not be exported at all; storing it
+    as a bare list instead would export fine and come back a TUPLE, turning an
+    unordered pair into an ordered one and losing every lookup.
+
+    SORTED INSIDE THE TAG, because a frozenset has no order of its own and an
+    arbitrary iteration order would rewrite the file on every export for no
+    reason. The decoder rebuilds a frozenset, where the order means nothing
+    again.
+    """
+    if isinstance(k, frozenset):
+        return {"__frozenset__": sorted(_key(x) for x in k)}
+    if isinstance(k, (tuple, list)):
+        return [_key(x) for x in k]
+    return k
 
 
 def build(course_id: str) -> tuple[dict, list[dict]]:
