@@ -1662,6 +1662,65 @@ items of that one shape. Measured against this repository:
 Eleven files in the course carry a `ChoiceInput` and **not one of those items is
 scored by this engine**.
 
+##### The exhaustive census — 122 blocks, and the scoring ones are a quarter of it
+
+*Taken 2026-09-18 over every block declaration in
+`packages/shared/components/blocks`. **Caveat, stated rather than hidden:** the
+authoritative registry is `blockMetadataAutogen.json`, generated at build time and
+not committed, and the generator will not run in a clone without installed
+dependencies. This census reads the source declarations instead — `core({name:})`
+and `createGrader({base:})` — and should be re-confirmed against a built tree
+before anything depends on the exact number.*
+
+| | count |
+|---|---|
+| block definitions (PascalCase) | **122** |
+| graders | 16 |
+| gradable inputs | 14 |
+| **everything else** | **95** |
+
+##### The other 95 are the course's STRUCTURE, and items are encountered INSIDE them
+
+*Recorded on the user's third correction, and it is the largest of the three.*
+
+A scoring-only census reads the 95 as irrelevant. They are not: **they are how an
+item is reached.** An item does not appear bare — it sits inside a `Sequential`,
+behind a `NextReveal`, on a `Tabs` page, in a `Carousel`, inside a `Collapsible`,
+gated by an `IntakeGate`, ordered by a `Navigator`, or inside a `MasteryBank` that
+repeats it until mastery. The intake program must infer **which of these to use**
+from teacher materials, exactly as it must infer which grader to use.
+
+| category | n | what it carries |
+|---|---|---|
+| `layout` | 20 | `Carousel`, `Collapsible`, `CompactPopout`, `DynamicList`, `Hidden`, `IntakeGate`, `Navigator` (+4 detail/preview variants), `Noop`, `Sequential`, `SideBarPanel`, `SplitPanel`, `SplitTest`, `Tabs`, `TimedContainer`, `Vertical` |
+| `display` | 16 | prose, math, media and feedback surfaces items are explained by |
+| `action` | 10 | `LLMAction`, `LLMFeedback`, `ActionButton`, `HintButton`, `ShowAnswerButton`, `SetFieldAction`, `CopyFieldAction`, `PrintAction`, `Flash` — item BEHAVIOUR, and the path by which `SlotSheetGrader` is fed |
+| `scenario` | 6 | `Chat`, `Cast`, `CastEditor`, `CharacterBuilder`, `AvatarEditor`, `NextReveal` |
+| `reference` | 5 | `AggregatedInputs`, `AnswerDistribution`, `Ref`, `UseDynamic`, `UseHistory` — cross-item and cross-student structure |
+| `grading` | 5 | `Correctness`, `DerivedChecks`, `Rule`, `ScoreTable`, `SheetValue` — grading machinery that is not itself a grader |
+| `input` | 4 | `Key`, `Distractor`, `SimpleMatching`, `SimpleSortable` — the PARTS an item is built from |
+| `language-arts` | 4 | `Annotate`, `SimpleTextSelection`, `WordUsage`, `WritingRhythmPlot` |
+| `specialized` | 4 | `MasteryBank`, `DigitSpanTask`, `LiquidTemplate`, `PEGDevBlock` |
+| `media` | 3 | `Video`, `VideoPlayer`, `Transcript` |
+| `CapaProblem`/`MarkupProblem` | 3 | two self-contained gradable problem families |
+| `utility` | 2 | `ErrorNode`, `Spinner` |
+| `authoring` | 10 | **not intake targets** — `Studio`, `Catalog`, `BlockDoc`, `DocsBrowser` and friends are the authoring environment, not course content |
+| `_test` | 3 | **not intake targets** |
+
+So the intake program's target space is roughly **109 blocks**, not the 30 that
+score. Subtracting the 13 authoring and test blocks is itself an inference the
+program will have to encode, since nothing in a teacher's document says which
+blocks are course content.
+
+**This is what makes the intake program hard, and it is not a scoring problem.**
+Choosing `MatchingGrader` over `CheckboxGrader` is a local decision about one
+item. Choosing `Sequential` over `Tabs` over `MasteryBank`, or deciding that a
+worksheet's three parts are one `Carousel` and not three pages, is a decision
+about the SHAPE OF THE COURSE, inferred from documents that never mention any of
+it. The shape inventory (item 1) therefore has to cover the structural space as
+well as the scoring space, or the intake program has a target for its items and
+none for the course that holds them.
+
 ##### SCORING WITHOUT THIS ENGINE IS FINE — the intake program is what must be general
 
 *Recorded on the user's correction, and it decides the scope of everything above.*
