@@ -3170,6 +3170,44 @@ which is precisely why the check exists. `coursedata.course_id()` is the third
 accessor added in response, and each one narrows the boundary the check is
 defending.
 
+#### C1b's gold exporter — built, verified, and NOT installed
+
+`gold_export.py`: **16 gold declaration tables, 77 entries, 6 per-handout
+participant fields. Every table round-trips exactly.** Tested to a scratch path;
+the install under `$COURSE_DATA` waits for the write-scope restriction to lift.
+
+These are not the graders' marks — those are in the three workbooks and `gold.py`
+reads them. These are the **declarations ABOUT gold**: which cells are corrected
+and why, which diverge, which ceilings are unreachable, which slots cannot be
+mapped. They are participant-keyed because a judgement is about one person's
+answer, and that is exactly why C1b puts them outside a public repository.
+
+##### The round-trip assertion earned itself immediately
+
+`PER_ITEM_EXCLUDE` is `{item: {16: {...}}}` — **integer keys two levels down**.
+JSON has string keys only, so `16` came back `"16"`: a silent type change in the
+one field that identifies a person. Dicts with non-string keys are now tagged
+`{"__dict__": [[k, v], …]}` and rebuild exactly.
+
+##### A refusal that could not fire, and the write it failed to stop
+
+The first guard refused when there was no course-data root. **That is
+unreachable** — `data_root()` falls back to `paths.DATA`, which always has a
+value — so it was a sentence, not a protection.
+
+While replacing it, `editguard` rejected the edit and the test ran anyway:
+`--out ../courses/<id>/gold.json` **wrote 97 KB of participant-keyed declarations
+into the repository.** It was deleted immediately, unstaged, uncommitted, never
+in the index — verified all three ways.
+
+The guard is now by **PATH**, not by intention: any destination inside the repo
+is refused, and the exact command that succeeded before now exits 2. *A
+'Participant ID NNN' filename is not de-identification* is this repository's own
+rule, and the check enforces it rather than restating it.
+
+**`gold.json` is also not in `.gitignore`.** Adding it is owed — a guard in one
+tool does not protect against a file arriving by another route.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
