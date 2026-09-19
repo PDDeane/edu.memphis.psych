@@ -674,3 +674,94 @@ APP_ONLY_SLOTS: dict[tuple[str, str], str] = {
         "Wiring it into the rubric would add a slot that can never change a "
         "number, which is the opposite of what the rubric is for.",
 }
+
+
+# ---------------------------------------------------------------------------
+# STAGE 4, from `score.py` and `agreement_app.py`. Per-item notes the PAPER
+# scorer carries, and the component-id -> context map the app builds jobs
+# from. Both are course content; `CONTEXT_SOURCE` is the same shape as the
+# `_H*_CTX` maps already moved, keyed by component rather than by item.
+# ---------------------------------------------------------------------------
+PAPER_ITEM_NOTES: dict[str, str] = {
+    # JUDGE EACH ANSWER ON ITS OWN LABELLED PART. Q3's paper divergences were
+    # one error: an answer credited from text belonging to a DIFFERENT answer,
+    # with the evidence quoting the wrong heading verbatim -- p8 credited
+    # action_oriented while quoting [[corpus Q3/p8 specific 10:80 sha=2aaae6fc2b69]]. The web cannot make this error: each answer
+    # has its own box.
+    #
+    # MEASURED HERE AND NOWHERE ELSE: paper 16.5 -> 17.8 over six runs, the gap
+    # to the web -3.4 -> -2.1, cross-aspect evidence quoting 6/598 -> 1/600.
+    #
+    # WHY Q3 AND NOT THE OTHER EIGHT >=2-ANSWER ITEMS. It keys on the student
+    # LABELLING their parts, and the label rate decides whether it can act at
+    # all -- Q3 19/20, 2a 15/20, 1c 7/19, Q4c 2/20, and Q4b, Q6, Q5 and `3` at
+    # ZERO of ~20. Shipped to all nine on 2026-09-10 it cost about four cells:
+    # Q4b -2, Q5 -1, 2a -1, with Q4c, 1c and `3` flat and Q6 unchanged at 10/20.
+    # On the four zero-label items it is INERT BY CONSTRUCTION -- its own
+    # fallback is "read the whole response for each" -- so what it bought there
+    # was a hundred words of instruction that cannot apply, and the picks
+    # drifted under them: Q4b/p12 lost its occasional `activity` and stuck at
+    # 3.5, while p6 and p20 gained one and started over-crediting.
+    #
+    # 2a AND 1c ARE THE UNMEASURED CANDIDATES, at 15/20 and 7/19 labels. 2a lost
+    # a cell in that sweep but also took the deixis change, so its loss is not
+    # attributed. Add either only with its own six runs.
+    "Q3": (
+        "Where the student has labelled parts of their answer to match the "
+        "names above, judge each answer on the part they labelled for it, and "
+        "never on what they wrote for another -- a sentence that opens by "
+        "naming a different one of these answers belongs to that one. Where "
+        "they label nothing, read the whole response for each.\n\n"
+        "The evidence you quote for an answer must come from that answer's own "
+        "part of the response."
+    ),
+}
+
+# PAPER-ONLY text an item needs because of how a PAPER submission arrives.
+# The mirror of `olx_prompts.ITEM_NOTES`, which does the same job for the web
+# and says of itself: "Web-only text an item needs because of how its screen is
+# built. Additions, not paraphrases: they say something about the web that the
+# rubric cannot know." There was no paper counterpart, so a paper-side
+# instruction had nowhere to live except an id list gating a mechanism -- which
+# is the thing that must never vary by item.
+#
+# THE MECHANISM IS UNIFORM AND THE CONTENT IS PER ITEM. Every item is offered
+# the same slot; what goes in it differs because the ITEMS differ, exactly as
+# `guidance`, `credit` and `maps` differ. That is content, and content may vary.
+# An id list that switches a mechanism on and off is not, and
+# `enforcement.check_engine_mechanisms_are_not_item_dependent` still refuses it.
+#
+# EACH ENTRY IS A DECLARED WEB/PAPER DIVERGENCE and needs its own measurement.
+# WHY EACH ENTRY IS PAPER-ONLY. Required beside every key below, for the same
+# reason its web twin requires one: a note earns a side table only by saying
+# something true of THIS side and not the other. Anything sayable to both is
+# rubric content and belongs in `guidance`.
+PAPER_ITEM_NOTES_WHY: dict[str, str] = {
+    "Q3": "Tells the grader to judge each answer on the part the student "
+          "labelled for it. The WEB CANNOT NEED THIS: there each answer has "
+          "its own input box, so the partition is structural and no "
+          "instruction can improve it. Paper receives one continuous block and "
+          "must infer the partition, which is the divergence this note exists "
+          "for -- and the defect it treats was measured only here (16.5 -> "
+          "17.8 over six runs).",
+}
+
+CONTEXT_SOURCE = {
+    "bmod_h1_q1_response":      ("section", "Q1"),
+    "bmod_h1_q2_response":      ("section", "Q2"),
+    "bmod_h1_q4a_first":        ("scorer", "Q4a", "antecedent_1"),
+    "bmod_h1_q4a_second":       ("scorer", "Q4a", "antecedent_2"),
+    "bmod_h1_q4b_first":        ("scorer", "Q4b", "behavior_1"),
+    "bmod_h1_q4b_second":       ("scorer", "Q4b", "behavior_2"),
+    "bmod_h1_q4c_first":        ("scorer", "Q4c", "consequence_1"),
+    "bmod_h1_q4c_second":       ("scorer", "Q4c", "consequence_2"),
+    "bmod_h2_t1":               ("section", "T1"),
+    "bmod_h2_d1":               ("section", "D1"),
+    "bmod_h2_t2":               ("section", "T2"),
+    "bmod_h2_d2":               ("section", "D2"),
+    "bmod_h3_overview_response": ("section", "1a"),
+    "bmod_h3_success_verdict":  ("scorer", "2a", "verdict"),
+    "bmod_h3_success_how1":     ("scorer", "2a", "how_1"),
+    "bmod_h3_success_how2":     ("scorer", "2a", "how_2"),
+    "bmod_h3_assessment_response": ("section", "2b"),
+}

@@ -1115,25 +1115,30 @@ CONTEXT_FALLBACK = {
     "bmod_h1_utb_observed": "bmod_h1_utb",
 }
 
-CONTEXT_SOURCE = {
-    "bmod_h1_q1_response":      ("section", "Q1"),
-    "bmod_h1_q2_response":      ("section", "Q2"),
-    "bmod_h1_q4a_first":        ("scorer", "Q4a", "antecedent_1"),
-    "bmod_h1_q4a_second":       ("scorer", "Q4a", "antecedent_2"),
-    "bmod_h1_q4b_first":        ("scorer", "Q4b", "behavior_1"),
-    "bmod_h1_q4b_second":       ("scorer", "Q4b", "behavior_2"),
-    "bmod_h1_q4c_first":        ("scorer", "Q4c", "consequence_1"),
-    "bmod_h1_q4c_second":       ("scorer", "Q4c", "consequence_2"),
-    "bmod_h2_t1":               ("section", "T1"),
-    "bmod_h2_d1":               ("section", "D1"),
-    "bmod_h2_t2":               ("section", "T2"),
-    "bmod_h2_d2":               ("section", "D2"),
-    "bmod_h3_overview_response": ("section", "1a"),
-    "bmod_h3_success_verdict":  ("scorer", "2a", "verdict"),
-    "bmod_h3_success_how1":     ("scorer", "2a", "how_1"),
-    "bmod_h3_success_how2":     ("scorer", "2a", "how_2"),
-    "bmod_h3_assessment_response": ("section", "2b"),
-}
+# ---------------------------------------------------------------------------
+# STAGE 4. These tables were module-level course data here and are read from the
+# course file now. The authored copies live in `declaration_source.py`, outside
+# the scoring path, because the export must read them from somewhere that does
+# not read the file it is writing.
+# ---------------------------------------------------------------------------
+def _declaration(name: str) -> dict:
+    import coursedata
+
+    return coursedata.declaration(name)
+
+
+# TUPLE VALUES, RESTORED HERE. JSON has no tuple, so `("section", "Q1")` comes
+# back as `["section", "Q1"]`. The keys round-trip because `coursedata.
+# declaration` restores those; the VALUES do not, and nothing in the file records
+# that they were tuples.
+#
+# The module that knows the contract restores it. This one does: the pairs are
+# unpacked positionally and a tuple is what this table has always held. It was
+# found by comparing the table against its authored copy after the migration --
+# NOT by the behavioural test, which built 26 paper prompts identically while
+# this table's shape had quietly changed, because no paper prompt reads it.
+CONTEXT_SOURCE = {k: tuple(v) if isinstance(v, list) else v
+                  for k, v in _declaration("CONTEXT_SOURCE").items()}
 
 
 def context_targets(item: str) -> list[str]:
