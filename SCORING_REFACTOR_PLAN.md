@@ -2757,6 +2757,42 @@ authoring step into the builder, which is the Stage 5 model and correct — but 
 changes a procedure a person follows, and that is not a thing to change
 unreviewed overnight.
 
+#### `table_sensitivity.py` — the test a move needs BEFORE it happens
+
+Built 2026-09-19 to answer the question that stopped the enforcement migration:
+**would we notice if it went wrong?** For each table it empties the table,
+re-runs only the checks that consume it, and reports whether any of them moved.
+
+`8 of 13 tables are SENSITIVE.`
+
+| sensitive — safe to migrate, the loss would be reported | |
+|---|---|
+| `PROSE_ONLY_SLOTS` (27), `PROSE_ONLY_JUDGED_AGAINST` (27), `MULTI_BLOCK_DECLARED` (11), `DESIGNED_TEXT` (6), `DECOMPOSITION_DIVERGENCES` (12), `CONSENSUS_OVERLAP_BACKLOG` (2), `UNCHARGED_VERDICTS` (1), `APP_ONLY_SLOTS` (1) | |
+
+| NOT sensitive — nothing would report the loss | |
+|---|---|
+| `SLOT_STRUCTURE_FAMILIES`, `HAND_AUTHORED_ATTRS`, `COUNTABLE_EXEMPT`, `PROBE_UNREACHABLE_PAIRS`, `PROBE_PROVOCATIONS` | |
+
+**A "not sensitive" result is not one thing**, and the tool refuses to guess
+between the two: the table may be genuinely inert — every entry describing a
+condition that no longer arises, which makes it a candidate for DELETION rather
+than migration — or it is load-bearing and the check that reads it is passing for
+unrelated reasons, which makes the CHECK the weak instrument. Either way it may
+not be migrated on the strength of a check that would not notice its loss.
+
+##### The scan reported a false discovery first
+
+Looking only inside each `check_*` body, it found `SLOT_STRUCTURE_FAMILIES` and
+`PROBE_PROVOCATIONS` read by **no check at all** — which reads as a finding about
+two dead tables. Both are read by module-level HELPERS that checks call, and both
+are registered with the table watcher. Following one hop through helpers corrects
+it, and the remaining bound is stated rather than hidden: a table reached through
+two helpers would still be reported as unconsumed.
+
+`check_engines_send_the_same_request` is excluded — it caches a 672 KB capture
+under `$COURSE_DATA/out`, and nothing here is worth a write outside the tree
+being worked on.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
