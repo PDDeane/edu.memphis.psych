@@ -73,15 +73,11 @@ SEPARATE_SURFACES = {
 # Auto-discovery is a glob with extra steps. Which trees count as evidence is a
 # judgement about what is DISTINCT, and nothing in the filesystem encodes it, so
 # it is declared here with a reason each and overridden by `COURSE_ROOTS`.
-DECLARED_ROOTS = {
-    "~/code/update/lo-blocks":
-        "the engine: component demos and the 295 documented examples",
-    "~/code/update/edu.memphis.writing":
-        "a real second course -- journals, chat scripts and casts",
-    "~/code/update/edu.mtsu.transitional-reading":
-        "a real third course -- readings",
-    "~/code/interdisciplinary":
-        "a real fourth course -- SBA parts, a library and artifacts",
+DECLARED_ROOTS_WHY = {
+    "engine": "the engine: component demos and the 295 documented examples",
+    "writing": "a real second course -- journals, chat scripts and casts",
+    "reading": "a real third course -- readings",
+    "interdisciplinary": "a real fourth course -- SBA parts, a library, artifacts",
 }
 
 
@@ -91,9 +87,14 @@ def declared_roots() -> list[tuple[str, str, bool]]:
     A corpus that silently shrinks when a checkout moves reports smaller
     coverage and calls it a result.
     """
+    import paths
+
     out = []
-    for raw, why in sorted(DECLARED_ROOTS.items()):
-        path = os.path.abspath(os.path.expanduser(raw))
+    for name, why in sorted(DECLARED_ROOTS_WHY.items()):
+        resolve = paths.CORPUS_ROOTS.get(name)
+        if resolve is None:                       # pragma: no cover
+            continue
+        path = os.path.abspath(str(resolve()))
         out.append((path, why, os.path.isdir(path)))
     return out
 
