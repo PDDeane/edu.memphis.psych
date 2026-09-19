@@ -111,6 +111,36 @@ def default_roots() -> list[str]:
     return roots
 
 
+def roots_inside_the_data_store() -> list[str]:
+    """A declared corpus root that sits inside $COURSE_DATA. Refused.
+
+    THE DATA ROOT HOLDS COPIES OF THE SOURCE. Measured 2026-09-18:
+    `$MOLLY_DATA` carries 63 `.py` files and six `.olx` -- `migration_reference/`
+    preserves a whole engine half and three rubric `.olx`, and
+    `pre_scrub_backup_.../psychology/` holds three course files and a PARTIAL,
+    STALE copy of `scoring/` (20 files identical to the live tree, five
+    differing).
+
+    Nothing reads them today: every walk into the data store is scoped to `out/`
+    with an explicit `*.runs.json` or `*.json` pattern. But this is exactly the
+    shape that has already cost this project twice -- `lo-blocks/.stage/content`
+    counted as a second course, and three parallel checkouts counted as three
+    more -- and the third time should be prevented rather than diagnosed.
+    """
+    data = os.environ.get("COURSE_DATA") or os.environ.get("MOLLY_DATA")
+    if not data:
+        return []
+    data = os.path.abspath(os.path.expanduser(data))
+    bad = []
+    for path, why, ok in declared_roots():
+        if ok and (path == data or path.startswith(data + os.sep)):
+            bad.append(f"{path} ({why}) is a declared corpus root INSIDE the data "
+                       f"store {data} -- that tree holds stale copies of the "
+                       f"source and of course content, and mining a copy as "
+                       f"evidence is how .stage came to count as a second course")
+    return bad
+
+
 def missing_roots() -> list[str]:
     """Declared trees that are not there. Reported by the gate, not ignored."""
     return [f"{p} ({why}) is declared corpus and is not present -- the corpus "
