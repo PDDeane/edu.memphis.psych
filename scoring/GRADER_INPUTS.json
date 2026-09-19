@@ -1,0 +1,602 @@
+{
+ "schema_version": 1,
+ "declared": {
+  "CheckboxGrader": {
+   "mechanism": "nested",
+   "inputs": [
+    "CheckboxInput"
+   ],
+   "parts": [
+    "Key",
+    "Distractor"
+   ],
+   "why": "multi-select: the input's value is a list of chosen option ids, and the Keys among its Key/Distractor children are the answer"
+  },
+  "CorrectGrader": {
+   "mechanism": "nested",
+   "inputs": [
+    "CheckboxInput",
+    "ChoiceInput"
+   ],
+   "parts": [
+    "Key"
+   ],
+   "why": "scores whichever selection input it wraps against the Key children, single- or multi-select alike"
+  },
+  "KeyGrader": {
+   "mechanism": "nested",
+   "inputs": [
+    "ChoiceInput",
+    "DropdownInput"
+   ],
+   "parts": [
+    "Key",
+    "Distractor"
+   ],
+   "why": "single-select from a Key/Distractor set, whether the set is rendered as radios or as a dropdown"
+  },
+  "MatchingGrader": {
+   "mechanism": "nested",
+   "inputs": [
+    "MatchingInput"
+   ],
+   "parts": [],
+   "why": "scores a set of left-right pairings; only MatchingInput produces that value shape"
+  },
+  "SortableGrader": {
+   "mechanism": "nested",
+   "inputs": [
+    "SortableInput"
+   ],
+   "parts": [],
+   "why": "scores an ORDER; declares inputType 'single' and only SortableInput produces an ordering"
+  },
+  "TabularMCQGrader": {
+   "mechanism": "nested",
+   "inputs": [
+    "TabularMCQ"
+   ],
+   "parts": [],
+   "why": "scores a row->column selection grid, which only TabularMCQ produces"
+  },
+  "TextSelectionGrader": {
+   "mechanism": "nested",
+   "inputs": [
+    "TextSelectionInput"
+   ],
+   "parts": [],
+   "why": "scores selected spans, a list of offsets only TextSelectionInput produces"
+  },
+  "NumericalGrader": {
+   "mechanism": "nested",
+   "inputs": [
+    "NumberInput",
+    "ComplexInput",
+    "LineInput"
+   ],
+   "parts": [],
+   "why": "compares a parsed number against `answer` within `tolerance`, so it takes any input whose text parses as a number -- which is why LineInput appears here and is not a mistake"
+  },
+  "RatioGrader": {
+   "mechanism": "nested",
+   "inputs": [
+    "NumberInput",
+    "ComplexInput"
+   ],
+   "parts": [],
+   "why": "dict mode: scores several named numeric parts as a ratio"
+  },
+  "FormulaGrader": {
+   "mechanism": "nested",
+   "inputs": [
+    "FormulaInput"
+   ],
+   "parts": [],
+   "why": "compares expressions symbolically; FormulaInput is what produces an expression"
+  },
+  "StringGrader": {
+   "mechanism": "nested",
+   "inputs": [
+    "LineInput"
+   ],
+   "parts": [],
+   "why": "exact or case-folded text match against `answer`, which suits a single line and not a paragraph"
+  },
+  "RulesGrader": {
+   "mechanism": "nested",
+   "inputs": [
+    "LineInput"
+   ],
+   "parts": [],
+   "why": "applies Rule children (the generated *Match variants) to a text response"
+  },
+  "DefaultGrader": {
+   "mechanism": "nested",
+   "inputs": [
+    "LineInput"
+   ],
+   "parts": [],
+   "why": "the fallback when an input is graded with no grader named"
+  },
+  "LLMGrader": {
+   "mechanism": "nested",
+   "inputs": [
+    "LineInput",
+    "TextArea"
+   ],
+   "parts": [],
+   "doc_only": {
+    "TextArea": "grading/LLMGrader.ts usage note"
+   },
+   "why": "THE SECOND LLM-BASED GRADER, and the simple one. It wraps a constructed response and judges it asynchronously against `question` + `rubric` (+ optional `answer`), returning ONE correctness verdict. Its own usage note wraps a TextArea, the shipped demo wraps a LineInput, and both are declared because both are authored. Contrast SlotSheetGrader, which scores a STRUCTURED sheet of slots and counts an LLMAction produced -- multi-slot and point-weighted, which is what a rubric needs and what one verdict cannot express. It is declared in the `org.mitros.dev` NAMESPACE, which is a namespace and not a gate"
+  },
+  "SlotSheetGrader": {
+   "mechanism": "targeted",
+   "inputs": [],
+   "parts": [],
+   "targets": [
+    "LLMFeedback"
+   ],
+   "why": "`infer: false`. It scores the verdict sheet an LLMAction published into an LLMFeedback, so its target is not a student input at all. Every scored psych item is reached this way"
+  },
+  "CustomGrader": {
+   "mechanism": "targeted",
+   "inputs": [],
+   "parts": [],
+   "targets": [],
+   "why": "`infer: false` and an author-supplied function; what it accepts is decided by that function, so no pairing can be declared here. UNDEMONSTRATED in the corpora scanned"
+  }
+ },
+ "response_sources": {
+  "ChoiceInput": {
+   "kind": "selected",
+   "prefers": [
+    "KeyGrader",
+    "CorrectGrader"
+   ],
+   "llm_fallback": true,
+   "why": "one of the author's Key/Distractor options; a model adds cost and doubt to a lookup"
+  },
+  "CheckboxInput": {
+   "kind": "selected",
+   "prefers": [
+    "CheckboxGrader",
+    "CorrectGrader"
+   ],
+   "llm_fallback": true,
+   "why": "several of the author's options"
+  },
+  "DropdownInput": {
+   "kind": "selected",
+   "prefers": [
+    "KeyGrader"
+   ],
+   "llm_fallback": true,
+   "why": "one of the author's options, rendered compactly"
+  },
+  "MatchingInput": {
+   "kind": "selected",
+   "prefers": [
+    "MatchingGrader"
+   ],
+   "llm_fallback": true,
+   "why": "pairings among author-supplied sides"
+  },
+  "SortableInput": {
+   "kind": "selected",
+   "prefers": [
+    "SortableGrader"
+   ],
+   "llm_fallback": true,
+   "why": "an ordering of author-supplied items"
+  },
+  "TabularMCQ": {
+   "kind": "selected",
+   "prefers": [
+    "TabularMCQGrader"
+   ],
+   "llm_fallback": true,
+   "why": "a row->column grid over author-supplied options"
+  },
+  "NumberInput": {
+   "kind": "constructed",
+   "prefers": [
+    "NumericalGrader",
+    "RatioGrader"
+   ],
+   "llm_fallback": false,
+   "why": "the student writes a number; `tolerance` settles it exactly and a model cannot do better"
+  },
+  "FormulaInput": {
+   "kind": "constructed",
+   "prefers": [
+    "FormulaGrader"
+   ],
+   "llm_fallback": false,
+   "why": "the student writes an expression; compared symbolically, which is a stronger test than judgement"
+  },
+  "ComplexInput": {
+   "kind": "constructed",
+   "prefers": [
+    "NumericalGrader",
+    "RatioGrader"
+   ],
+   "llm_fallback": true,
+   "why": "mixed authored content; demonstrated under the numeric graders"
+  },
+  "TextSelectionInput": {
+   "kind": "constructed",
+   "prefers": [
+    "TextSelectionGrader"
+   ],
+   "llm_fallback": true,
+   "why": "spans picked out of running text. The options are not enumerated by the author, so this is authored selection -- gradeable against marked spans, or judgeable when the spans are open"
+  },
+  "LineInput": {
+   "kind": "constructed",
+   "prefers": [
+    "StringGrader",
+    "RulesGrader",
+    "NumericalGrader",
+    "DefaultGrader"
+   ],
+   "llm_fallback": true,
+   "why": "a line the student writes -- SHORT IS NOT SELECTED. Deterministic when the expected answer is fixed text, a rule or a number; the LLM path when the line is open-ended"
+  },
+  "TextArea": {
+   "kind": "constructed",
+   "prefers": [
+    "LLMAction -> LLMFeedback -> SlotSheetGrader, or LLMGrader"
+   ],
+   "llm_fallback": false,
+   "why": "a paragraph. All 26 scored psych items are reached this way"
+  },
+  "Freewrite": {
+   "kind": "constructed",
+   "prefers": [
+    "LLMAction -> LLMFeedback -> SlotSheetGrader, or LLMGrader"
+   ],
+   "llm_fallback": false,
+   "why": "timed free writing; no deterministic grader exists for it"
+  },
+  "CodeInput": {
+   "kind": "constructed",
+   "prefers": [
+    "LLMAction -> LLMFeedback -> SlotSheetGrader, or LLMGrader"
+   ],
+   "llm_fallback": false,
+   "why": "code the student writes; lo-blocks ships no code grader"
+  },
+  "Annotate": {
+   "kind": "constructed",
+   "prefers": [
+    "LLMAction -> LLMFeedback -> SlotSheetGrader, or LLMGrader"
+   ],
+   "llm_fallback": false,
+   "why": "annotations the student writes ONTO an author-supplied text. No grader wraps it, and scoring annotations is judgement by nature"
+  },
+  "Chat": {
+   "kind": "constructed",
+   "prefers": [
+    "LLMAction -> LLMFeedback -> SlotSheetGrader, or LLMGrader"
+   ],
+   "llm_fallback": false,
+   "why": "a conversation the student holds. Collects student work while declaring no `input(`, and a transcript can only be judged"
+  },
+  "AvatarEditor": {
+   "kind": "constructed",
+   "prefers": [
+    "LLMAction -> LLMFeedback -> SlotSheetGrader, or LLMGrader",
+    "ungraded"
+   ],
+   "llm_fallback": false,
+   "why": "a figure the student configures; often expressive rather than assessed"
+  },
+  "CastEditor": {
+   "kind": "constructed",
+   "prefers": [
+    "LLMAction -> LLMFeedback -> SlotSheetGrader, or LLMGrader",
+    "ungraded"
+   ],
+   "llm_fallback": false,
+   "why": "a cast the student assembles"
+  },
+  "CharacterBuilder": {
+   "kind": "constructed",
+   "prefers": [
+    "LLMAction -> LLMFeedback -> SlotSheetGrader, or LLMGrader",
+    "ungraded"
+   ],
+   "llm_fallback": false,
+   "why": "a character the student builds"
+  },
+  "DigitSpanTask": {
+   "kind": "constructed",
+   "prefers": [
+    "self-measuring"
+   ],
+   "llm_fallback": false,
+   "why": "an instrument, not a question: it produces a span measurement, and nothing grades it"
+  }
+ },
+ "self_grading": {
+  "CapaProblem": "an Open edX-style problem carrying its own inputs and grading; graders appear INSIDE it, not around it",
+  "MarkupProblem": "a self-contained problem family, as CapaProblem"
+ },
+ "llm_reachable": "any block holding a value, via <Ref target= field=> inside an LLMAction prompt body -- a capability, NOT a recommendation; see llm_fallback",
+ "evidence": {
+  "files_scanned": 319,
+  "pairs": {
+   "KeyGrader|ChoiceInput": {
+    "n": 97,
+    "files": [
+     "AggregatedInputs.olx",
+     "CapaProblemChoice.olx",
+     "CapaProblemImmediate.olx",
+     "ChoiceInputExample.olx",
+     "ChoiceInputGraded.olx",
+     "ChoiceInputMCQ.olx",
+     "ChoiceInputTrueFalse.olx",
+     "IntakeGateMath.olx",
+     "KeyGrader.olx",
+     "MasteryBank.olx",
+     "OlxSlotLLM.olx",
+     "Sequential.olx",
+     "SequentialLearning.olx",
+     "UseDynamic.olx",
+     "UseHistory.olx",
+     "VerticalBranching.olx",
+     "bmod_h2_scenarios.olx",
+     "idlist.pegjs.preview.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part4.olx"
+    ]
+   },
+   "KeyGrader|Key": {
+    "n": 97,
+    "files": [
+     "AggregatedInputs.olx",
+     "CapaProblemChoice.olx",
+     "CapaProblemImmediate.olx",
+     "ChoiceInputExample.olx",
+     "ChoiceInputGraded.olx",
+     "ChoiceInputMCQ.olx",
+     "ChoiceInputTrueFalse.olx",
+     "IntakeGateMath.olx",
+     "KeyGrader.olx",
+     "MasteryBank.olx",
+     "OlxSlotLLM.olx",
+     "Sequential.olx",
+     "SequentialLearning.olx",
+     "UseDynamic.olx",
+     "UseHistory.olx",
+     "VerticalBranching.olx",
+     "bmod_h2_scenarios.olx",
+     "idlist.pegjs.preview.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part4.olx"
+    ]
+   },
+   "KeyGrader|Distractor": {
+    "n": 270,
+    "files": [
+     "AggregatedInputs.olx",
+     "CapaProblemChoice.olx",
+     "CapaProblemImmediate.olx",
+     "ChoiceInputExample.olx",
+     "ChoiceInputGraded.olx",
+     "ChoiceInputMCQ.olx",
+     "ChoiceInputTrueFalse.olx",
+     "IntakeGateMath.olx",
+     "KeyGrader.olx",
+     "MasteryBank.olx",
+     "OlxSlotLLM.olx",
+     "Sequential.olx",
+     "SequentialLearning.olx",
+     "UseDynamic.olx",
+     "UseHistory.olx",
+     "VerticalBranching.olx",
+     "bmod_h2_scenarios.olx",
+     "idlist.pegjs.preview.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part4.olx"
+    ]
+   },
+   "NumericalGrader|NumberInput": {
+    "n": 22,
+    "files": [
+     "CapaProblem.olx",
+     "CapaProblemModes.olx",
+     "CapaProblemMultipart.olx",
+     "CapaProblemNumerical.olx",
+     "Correctness.olx",
+     "Explanation.olx",
+     "ExplanationExamples.olx",
+     "NumberInputGraded.olx",
+     "NumericalGrader.olx",
+     "NumericalGraderExample.olx",
+     "SequentialAdaptive.olx"
+    ]
+   },
+   "StringGrader|LineInput": {
+    "n": 7,
+    "files": [
+     "DemandHints.olx",
+     "LineInputGraded.olx",
+     "StringGrader.olx",
+     "StringGraderCaseInsensitive.olx",
+     "StringGraderRegExp.olx",
+     "Trigger.olx"
+    ]
+   },
+   "NumericalGrader|ComplexInput": {
+    "n": 7,
+    "files": [
+     "CapaProblemImmediate.olx",
+     "ComplexInputExamples.olx",
+     "ExplanationExamples.olx",
+     "NumericalGraderBasic.olx",
+     "NumericalGraderPercentage.olx"
+    ]
+   },
+   "MatchingGrader|MatchingInput": {
+    "n": 7,
+    "files": [
+     "MatchingGrader.olx",
+     "MatchingInputGraded.olx",
+     "MatchingInputHistorical.olx",
+     "MatchingInputInitialPosition.olx",
+     "MatchingInputLanguage.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "SortableGrader|SortableInput": {
+    "n": 15,
+    "files": [
+     "SortableGrader.olx",
+     "SortableInputBasic.olx",
+     "SortableInputChronological.olx",
+     "SortableInputGraded.olx",
+     "SortableInputHandleMode.olx",
+     "SortableInputMultiline.olx",
+     "SortableInputPrepositioned.olx",
+     "psych_sba_activities_part1.olx"
+    ]
+   },
+   "TabularMCQGrader|TabularMCQ": {
+    "n": 7,
+    "files": [
+     "TabularMCQFreireFull.olx",
+     "TabularMCQGrader.olx",
+     "TabularMCQGraderCheckbox.olx",
+     "psych_sba_activities_part3auto.olx"
+    ]
+   },
+   "KeyGrader|DropdownInput": {
+    "n": 1,
+    "files": [
+     "DropdownInputGraded.olx"
+    ]
+   },
+   "CheckboxGrader|CheckboxInput": {
+    "n": 9,
+    "files": [
+     "CapaProblemCheckbox.olx",
+     "CheckboxGrader.olx",
+     "CheckboxInputExample.olx",
+     "CheckboxInputGraded.olx",
+     "CheckboxInputPartial.olx",
+     "psych_sba_activities_part3.olx"
+    ]
+   },
+   "CheckboxGrader|Key": {
+    "n": 28,
+    "files": [
+     "CapaProblemCheckbox.olx",
+     "CheckboxGrader.olx",
+     "CheckboxInputExample.olx",
+     "CheckboxInputGraded.olx",
+     "CheckboxInputPartial.olx",
+     "psych_sba_activities_part3.olx"
+    ]
+   },
+   "CheckboxGrader|Distractor": {
+    "n": 28,
+    "files": [
+     "CapaProblemCheckbox.olx",
+     "CheckboxGrader.olx",
+     "CheckboxInputExample.olx",
+     "CheckboxInputGraded.olx",
+     "CheckboxInputPartial.olx",
+     "psych_sba_activities_part3.olx"
+    ]
+   },
+   "TextSelectionGrader|TextSelectionInput": {
+    "n": 6,
+    "files": [
+     "SimpleTextSelectionDemo.olx",
+     "TextSelectionGrader.olx",
+     "TextSelectionGraderFeedback.olx",
+     "TextSelectionGraderImmediate.olx",
+     "TextSelectionInputGraded.olx",
+     "TextSelectionInputOptional.olx"
+    ]
+   },
+   "RulesGrader|LineInput": {
+    "n": 7,
+    "files": [
+     "CapaProblemText.olx",
+     "DefaultGraderAsMatch.olx",
+     "RulesGrader.olx",
+     "RulesGraderCaseInsensitive.olx",
+     "RulesGraderExample.olx",
+     "RulesGraderWithRule.olx",
+     "StringGraderRules.olx"
+    ]
+   },
+   "DefaultGrader|LineInput": {
+    "n": 2,
+    "files": [
+     "DefaultGrader.olx",
+     "DefaultGraderPartial.olx"
+    ]
+   },
+   "RatioGrader|NumberInput": {
+    "n": 4,
+    "files": [
+     "RatioGrader.olx",
+     "RatioGraderSlots.olx"
+    ]
+   },
+   "RatioGrader|ComplexInput": {
+    "n": 2,
+    "files": [
+     "RatioGraderEquivalent.olx"
+    ]
+   },
+   "CorrectGrader|CheckboxInput": {
+    "n": 5,
+    "files": [
+     "CorrectGrader.olx",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "CorrectGrader|Key": {
+    "n": 47,
+    "files": [
+     "CorrectGrader.olx",
+     "bmod_handout1.olx",
+     "bmod_handout2.olx",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "LLMGrader|LineInput": {
+    "n": 1,
+    "files": [
+     "LLMGrader.olx"
+    ]
+   },
+   "FormulaGrader|FormulaInput": {
+    "n": 1,
+    "files": [
+     "FormulaGrader.olx"
+    ]
+   },
+   "NumericalGrader|LineInput": {
+    "n": 1,
+    "files": [
+     "StatusText.olx"
+    ]
+   },
+   "CorrectGrader|ChoiceInput": {
+    "n": 6,
+    "files": [
+     "bmod_handout1.olx",
+     "bmod_handout2.olx"
+    ]
+   }
+  }
+ }
+}

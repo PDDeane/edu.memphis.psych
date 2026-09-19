@@ -860,6 +860,8 @@ def enforcement_audit():
         findings.append(("-", "MIGRATED MODULE HOLDS COURSE DATA", bad))
     for bad in ENF.check_no_module_is_named_for_a_course_artifact():
         findings.append(("-", "MODULE NAMED FOR A COURSE ARTIFACT", bad))
+    for bad in ENF.check_grader_input_pairings_are_declared():
+        findings.append(("-", "GRADER/INPUT PAIRING UNDECLARED", bad))
     for bad in ENF.check_every_enforcement_check_is_registered():
         findings.append(("-", "ENFORCEMENT CHECK NOT REGISTERED", bad))
     for iid, h, mx, label in uncovered_cli_items():
