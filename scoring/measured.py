@@ -1085,6 +1085,9 @@ def web_code_parts(kind: str = "ask", item: str | None = None) -> dict:
     return out
 
 
+_WEB_CODE_SHA_MEMO: dict = {}
+
+
 def web_code_sha(kind: str = "ask", item: str | None = None) -> str:
     """Fingerprint of the APP's own schema/scoring code, 12 hex.
 
@@ -1101,11 +1104,29 @@ def web_code_sha(kind: str = "ask", item: str | None = None) -> str:
     verdict, and why lo-blocks b6d3f070 went flat when it stopped asking for one.
     """
     import hashlib
+    import os
 
     import paths
 
     if kind not in ("ask", "score", "render"):
         raise SystemExit(f"web_code_sha: unknown kind {kind!r}")
+
+    # MEMOIZED ON THE FILE, NOT ON THE ARGUMENTS. This was 6.3s of a 48s
+    # enforcement audit across 1,262 calls, every one of them re-reading
+    # slotSheet.ts and re-deriving the same behaviour from it. The key carries
+    # the file's mtime and size, so an edit to the app's scoring code moves the
+    # fingerprint on the very next call -- which is the entire point of this
+    # function and the one thing a cache here must not break.
+    try:
+        st = os.stat(paths.SLOTSHEET_TS)
+        stamp = (st.st_mtime_ns, st.st_size)
+    except OSError:                                 # pragma: no cover
+        stamp = None
+    if stamp is not None:
+        hit = _WEB_CODE_SHA_MEMO.get((kind, item, stamp))
+        if hit is not None:
+            return hit
+
     src = Path(paths.SLOTSHEET_TS).read_text()
     names = _web_parts(kind, item)
     parts = [_ts_behaviour(_ts_top_fn(src, n)) for n in names]
@@ -1133,7 +1154,10 @@ def web_code_sha(kind: str = "ask", item: str | None = None) -> str:
                             break
                     k += 1
                 parts.append(_ts_behaviour(text[m.start():k + 1]))
-    return hashlib.sha256("".join(parts).encode()).hexdigest()[:12]
+    out = hashlib.sha256("".join(parts).encode()).hexdigest()[:12]
+    if stamp is not None:
+        _WEB_CODE_SHA_MEMO[(kind, item, stamp)] = out
+    return out
 
 
 def era_stamp(items=None, model: str | None = None,

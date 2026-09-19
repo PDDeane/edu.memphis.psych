@@ -884,6 +884,8 @@ def enforcement_audit():
         findings.append(("-", "DECLARATION TABLE VERIFIED BY NOTHING", bad))
     for bad in ENF.check_migrated_tables_match_their_source():
         findings.append(("-", "MIGRATED TABLE DOES NOT MATCH ITS SOURCE", bad))
+    for bad in ENF.check_json_cache_is_not_mutated():
+        findings.append(("-", "ENFORCEMENT CHECK NOT REGISTERED", bad))
     for bad in ENF.check_source_cache_matches_the_stdlib():
         findings.append(("-", "ENFORCEMENT CHECK NOT REGISTERED", bad))
     for bad in ENF.check_every_enforcement_check_is_registered():
