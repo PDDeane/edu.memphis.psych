@@ -2566,6 +2566,71 @@ fields, behaviour becomes named strategies. The other three groups are handled
 elsewhere: `rubric_h2`'s 5 dissolve under **A1c**, `Q6`'s 4 move under **E1**, and
 the 28 self-test fixtures are exempt under **D2d** until Stage 8.
 
+#### STAGE 4 BEGUN 2026-09-19 — `olx_prompts.py`: 11 tables → 0, prompts byte-identical
+
+The first module through C2a, and the test that settles it is not a count: **the
+23 generated web prompts hash the same before and after** — `e814c89b50e6fe88`.
+A migration that changes what ships is not a migration.
+
+| | before | after |
+|---|---|---|
+| `olx_prompts.py` tables | 11 | **0** |
+| items carrying generator fields | 0 | **26 of 26** |
+| course-level generator values | — | 3 |
+
+**How the data moved.** Nine item-keyed tables became generator fields on the
+item entry (B2a), each prefixed `prompt_` — `CONTEXT` would otherwise land as
+`context`, which the rubric already uses for something else, and §9.2a forbids a
+field naming two groups. Two tables are lists about the course, not about any
+item, and are carried at course level: putting a course-wide list on 26 items
+would be 26 copies of one fact.
+
+**The names stay, the data leaves.** Eight modules reference `ACTION`,
+`RESPONSE`, `ITEM_NOTES` and the rest. They are now built by reading the course
+file, so every consumer keeps working and the move can be judged by output alone.
+
+**`generator_source.py` — a builder outside the pipeline.** The export must read
+the authored tables from somewhere, and reading them from `olx_prompts` would
+make regenerating the course file depend on the file being regenerated. Stage 5
+already anticipated this: *"Builders survive OUTSIDE the pipeline as the tool
+that generates the expanded canonical JSON."* Nothing in the scoring path imports
+it. The tables are carried VERBATIM, comments included, because a comment saying
+why an item is in a table is part of the authored record.
+
+##### Three guards caught three real things, none of them anticipated
+
+1. **editguard refused the write** and listed 76 vanishing table entries —
+   among them `CONTEXT['_utb']` and `CONTEXT['_wgb']`, the only two keys that are
+   **not item ids**. They are handout 2's section headings, and folding the table
+   onto item entries would have dropped both silently. They are now carried as a
+   declared residue, and an UNDECLARED non-item key is a REFUSAL, so the next
+   table to arrive with one must be decided rather than truncated.
+2. **`check_course_schema_is_complete` caught me on its first real use.** The new
+   `_generator_value` read `coursedata._load()["generator"]` — the raw-entry
+   escape its own Part B was written to find, committed by the first module to
+   try it. Fixed with a `generator_value()` accessor: a caller holding the whole
+   document can read anything in it, so the group boundary stops meaning anything
+   while the code still looks like it goes through the reader.
+3. **The ratchet refused a tightening** — `enforcement.py: 30 → 31` — and was
+   right to, which exposed a defect in T1.1.
+
+##### T1.1 counted integers as item ids: 106 literal ids → 57
+
+`str(c.value) in ids` rendered the **integer** `3` as `"3"` and matched handout
+3's item `3`. So **every `handout == 3` and every `{1: …, 2: …, 3: …}` counted as
+a course id embedded in engine code.** `enforcement.py` carried six of them;
+`olx_prompts` three.
+
+Item ids are strings and are compared and subscripted as strings; a bare integer
+is a handout number, an index or a count. Matching `isinstance(value, str)` takes
+the repo-wide count from **106 to 57**, and `enforcement.py` from 7 to 1.
+
+This is the third measurement in this plan to shrink sharply under scrutiny (53
+branches → ~13, 188 docstring words → ~30), and the second defect of exactly this
+shape today: **the property ratchet matched a name where a property was meant,
+and this matched a rendering where a value was meant.** Both were found by
+reading the hits rather than trusting the number.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
