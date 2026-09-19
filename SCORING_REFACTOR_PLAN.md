@@ -3075,6 +3075,34 @@ canonicaliser — a shared decoding bug would cancel out on both sides.
 All four of T5.1's negative controls still fire, including two new ones: a
 generator field altered, and a generator field removed.
 
+#### `agreement_app.JOBS` — the last clean non-gold table. 28 tables migrated.
+
+`agreement_app.py`: 2 tables → **0**. 26 job definitions, structure identical,
+and the per-table gate now covers **28** tables.
+
+##### A move and a reshape are separate changes
+
+`JOBS` composes its screen ids from `paths.NS`, so every one embeds the course
+id — `edu.memphis.psych/bmod_h1_q1` — which the course file **already carries in
+its own `course` field**. De-namespacing them is a real Goal-D improvement: a
+course id sitting inside a value is exactly what Goal D is about.
+
+It was NOT done here. A move and a reshape performed together cannot be
+attributed when one of them breaks, and the move had a test while the reshape
+would need its own. It is recorded as owed.
+
+##### Import order is part of the migration
+
+`JOBS` is defined at line 98 and the `_declaration` helper had been added further
+down when `CONTEXT_SOURCE` moved. Python runs top-down, so the module raised
+`NameError` on import — loudly, immediately, and before any test could report
+something subtler. The helper now sits above its first use.
+
+Worth noting because it is the third time tonight that **extraction left
+something behind**: `EQUIVALENCE_DEF` from `olx_prompts`, `_PRIMS_2026_08_29`
+from `enforcement`, and now a helper that existed but too late. Each failed
+loudly, which is the good case.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
