@@ -1150,7 +1150,14 @@ SELFTEST_EXPECTED = 71
 # plain-path case skips when the corpus holds no item outside the derive-path
 # branch, and a corpus is not a defect. Set to what the suite carries once the
 # two 2026-09-18 repairs land; lower it whenever the run says it can be lowered.
-SELFTEST_VACANT_MAX = 1
+# ZERO as of 2026-09-18: run6 reported `71 cases, 0 vacuous` and said so itself
+# -- "vacancy fell below the ratchet: lower SELFTEST_VACANT_MAX to 0 so the gain
+# is protected". It was 1 to hold the count-scaffold case, which had been vacuous
+# through TWO repairs: first skipping for want of a precondition, then reporting a
+# zero delta because the vacancy report scores against a baseline captured before
+# its fixture exists. The case now installs its fixture as the injection, and the
+# hole it hid in is closed.
+SELFTEST_VACANT_MAX = 0
 
 
 
