@@ -334,8 +334,44 @@
  },
  "llm_reachable": "any block holding a value, via <Ref target= field=> inside an LLMAction prompt body -- a capability, NOT a recommendation; see llm_fallback",
  "evidence": {
-  "files_scanned": 575,
+  "files_scanned": 599,
   "pairs": {
+   "TabularMCQGrader|TabularMCQ": {
+    "n": 10,
+    "files": [
+     "TabularMCQ.md#example5",
+     "TabularMCQFreireFull.olx",
+     "TabularMCQGrader.md#example1",
+     "TabularMCQGrader.olx",
+     "TabularMCQGraderCheckbox.olx",
+     "interdiscip_activities_part2.olx",
+     "psych_sba_activities_part3auto.olx",
+     "temperance_module_full_activities_part1.olx"
+    ]
+   },
+   "SortableGrader|SortableInput": {
+    "n": 23,
+    "files": [
+     "CapaProblem.md#example8",
+     "Sortable.md#example1",
+     "SortableGrader.md#example1",
+     "SortableGrader.md#example2",
+     "SortableGrader.md#example3",
+     "SortableGrader.md#example4",
+     "SortableGrader.md#example5",
+     "SortableGrader.olx",
+     "SortableInput.md#example1",
+     "SortableInput.md#example2",
+     "SortableInputBasic.olx",
+     "SortableInputChronological.olx",
+     "SortableInputGraded.olx",
+     "SortableInputHandleMode.olx",
+     "SortableInputMultiline.olx",
+     "SortableInputPrepositioned.olx",
+     "psych_sba_activities_part1.olx",
+     "writing_journal2_activities_part1.olx"
+    ]
+   },
    "KeyGrader|ChoiceInput": {
     "n": 75,
     "files": [
@@ -546,39 +582,6 @@
      "MatchingInputInitialPosition.olx",
      "MatchingInputLanguage.olx",
      "psych_sba_activities_part4auto.olx"
-    ]
-   },
-   "SortableGrader|SortableInput": {
-    "n": 20,
-    "files": [
-     "CapaProblem.md#example8",
-     "Sortable.md#example1",
-     "SortableGrader.md#example1",
-     "SortableGrader.md#example2",
-     "SortableGrader.md#example3",
-     "SortableGrader.md#example4",
-     "SortableGrader.md#example5",
-     "SortableGrader.olx",
-     "SortableInput.md#example1",
-     "SortableInput.md#example2",
-     "SortableInputBasic.olx",
-     "SortableInputChronological.olx",
-     "SortableInputGraded.olx",
-     "SortableInputHandleMode.olx",
-     "SortableInputMultiline.olx",
-     "SortableInputPrepositioned.olx",
-     "psych_sba_activities_part1.olx"
-    ]
-   },
-   "TabularMCQGrader|TabularMCQ": {
-    "n": 7,
-    "files": [
-     "TabularMCQ.md#example5",
-     "TabularMCQFreireFull.olx",
-     "TabularMCQGrader.md#example1",
-     "TabularMCQGrader.olx",
-     "TabularMCQGraderCheckbox.olx",
-     "psych_sba_activities_part3auto.olx"
     ]
    },
    "KeyGrader|DropdownInput": {

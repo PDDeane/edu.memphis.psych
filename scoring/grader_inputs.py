@@ -413,8 +413,8 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
 
     inv = _load_inventory(args.inventory)
-    roots = args.corpus or [str(paths.LO), os.path.join(HERE, "..", "psychology")]
-    roots = [r for r in roots if os.path.isdir(r)]
+    import olx_corpus
+    roots = args.corpus or olx_corpus.default_roots()
     ev = mine(roots, inv)
     bad = verify(inv, ev)
 

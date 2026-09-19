@@ -14827,12 +14827,16 @@ def check_grader_input_pairings_are_declared() -> list[str]:
                 f"agreeing with it"]
     import json as _json
     inv = _json.load(open(inv_path))
-    roots = [str(_paths.LO), os.path.join(_HERE_DIR, "..", "psychology")]
-    roots = [r for r in roots if os.path.isdir(r)]
+    import olx_corpus
+    roots = olx_corpus.default_roots()
+    gone = olx_corpus.missing_roots()
     if not roots:
         return ["no corpus to mine: neither the lo-blocks checkout nor the course "
                 "content is present, so the pairing table is unverifiable here"]
-    return GI.verify(inv, GI.mine(roots, inv))
+    # A DECLARED CORPUS THAT SHRANK IS A FINDING. Four course trees are declared;
+    # if one is not checked out the evidence base quietly narrows and the table
+    # passes against a smaller world than it claims to describe.
+    return gone + GI.verify(inv, GI.mine(roots, inv))
 
 
 def check_container_contents_are_declared() -> list[str]:
@@ -14862,11 +14866,11 @@ def check_container_contents_are_declared() -> list[str]:
                 f"table has nothing to check itself against -- which is not the "
                 f"same as agreeing with it"]
     inv = _json.load(open(inv_path))
-    roots = [str(_paths.LO), os.path.join(_HERE_DIR, "..", "psychology")]
-    roots = [r for r in roots if os.path.isdir(r)]
+    import olx_corpus
+    roots = olx_corpus.default_roots()
     if not roots:
         return ["no corpus to mine, so the containment table is unverifiable here"]
-    return SK.verify(inv, SK.mine(roots, inv))
+    return olx_corpus.missing_roots() + SK.verify(inv, SK.mine(roots, inv))
 
 
 if __name__ == "__main__":
