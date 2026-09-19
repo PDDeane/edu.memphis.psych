@@ -14873,6 +14873,42 @@ def check_container_contents_are_declared() -> list[str]:
     return olx_corpus.missing_roots() + SK.verify(inv, SK.mine(roots, inv))
 
 
+def check_peg_authoring_formats_are_declared() -> list[str]:
+    """The PEG content formats still agree with the engine's registry.
+
+    The authoring surface a teacher actually writes in. Unlike the grader and
+    containment tables, this mapping IS declared by the engine -- `generated/
+    parserRegistry.ts` gives every extension its grammar, a display name and a
+    `creatable` flag -- so the check reads that registry and holds three things
+    to it: that every registered format says what a teacher writes in it, that no
+    course uses an extension the engine does not register, and that no authored
+    peg file is left unreachable.
+
+    It caught `.textHighlightpeg` on its first run: three psych files in an
+    extension lo-blocks registers NOWHERE, each byte-identical to a
+    `.textSelectionpeg` beside it.
+    """
+    try:
+        import olx_corpus
+        import paths as _paths
+        import peg_formats as PF
+    except Exception as exc:                      # pragma: no cover
+        return [f"the PEG declaration cannot be read: {exc}"]
+    import os
+    roots = olx_corpus.default_roots()
+    if not roots:
+        return ["no corpus to mine, so the PEG table is unverifiable here"]
+    try:
+        reg = PF.registry(str(_paths.LO))
+    except SystemExit as exc:
+        return [str(exc)]
+    lo = os.path.abspath(str(_paths.LO))
+    course_roots = [r for r in roots if os.path.abspath(r) != lo]
+    return olx_corpus.missing_roots() + PF.verify(
+        reg, PF.course_files(roots), PF.referenced_files(roots),
+        PF.course_files(course_roots))
+
+
 if __name__ == "__main__":
     import json
     import sys
