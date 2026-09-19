@@ -308,8 +308,13 @@ def gold_declaration(name: str):
 
     EAGER AT THE CALL SITE, BY DESIGN. Every consumer binds these at module level
     -- `CORRECTED_GOLD = _gold_declaration("CORRECTED_GOLD")` -- so importing a
-    gold-consuming module without $COURSE_DATA now fails, where before the data
-    was inline and it did not. That cost was accepted over a lazy proxy for a
+    gold-consuming module now fails if the gold file is UNREACHABLE, where before
+    the data was inline and it did not. Unreachable, not "$COURSE_DATA is unset":
+    `data_root()` falls back to `paths.DATA`, so unsetting the variable alone
+    changes nothing. Measured: with gold genuinely absent, `coursedata` and
+    `rubric_export` still import and the four gold-consuming modules refuse with
+    a message naming the path they tried -- which is exactly the split C1b is
+    for. That cost was accepted over a lazy proxy for a
     measured reason: the twelve tables carry 96 references from INSIDE their own
     modules, and a module-level `__getattr__` (PEP 562) does not fire for a
     module's own global lookups. Lazy binding would therefore have raised
@@ -340,6 +345,33 @@ def gold_declaration(name: str):
     # as "not in the file" would send the reader to the exporter for a table the
     # exporter is carrying correctly.
     return _detag(copy.deepcopy(decls[name]))
+
+
+def gold_notes(table: str, key=None):
+    """The measured reasoning behind a gold entry, as the author wrote it.
+
+    These were 707 comment lines INSIDE the gold tables -- one run against each
+    entry it judged, recording the hypotheses that died on that cell, the call
+    counts, the probe verdicts. They moved here with the entries (C1b) because
+    they are course-specific gold reasoning, not engine documentation, and a
+    public repository is the wrong home for them.
+
+    THIS IS NOT DECORATION. What these lines record is the expensive half of the
+    record: a cell's note routinely represents several hundred grader calls, and
+    a reader who does not consult it will re-run an experiment that has already
+    been done and reverted. `read-the-record-first` exists because that has
+    happened.
+
+    With no `key`, every note for the table, keyed as the file holds the entry
+    (a JSON-encoded key: `'["1c", 11]'` for a tuple-keyed entry, an index for a
+    list). With a `key`, just that entry's -- pass the entry key itself, in its
+    python form, and it is encoded here.
+    """
+    per = _load_gold().get("declaration_notes", {}).get(table, {})
+    if key is None:
+        return copy.deepcopy(per)
+    slot = json.dumps(list(key) if isinstance(key, tuple) else key)
+    return list(per.get(slot, []))
 
 
 def handout_participants(handout: int | str, field: str) -> list:

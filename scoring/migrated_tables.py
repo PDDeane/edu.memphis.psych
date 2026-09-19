@@ -39,6 +39,19 @@ if HERE not in sys.path:
 BUILDERS = ("generator_source", "declaration_source")
 READER_CALLS = {"_declaration", "_generator_table", "_generator_value",
                 "_markers", "_context_refs"}
+# `_gold_declaration` IS DELIBERATELY NOT IN THAT SET. This module proves a
+# migrated table still equals its AUTHORED twin, and the twins live in the two
+# BUILDERS above -- inside this repository. Gold has no such twin and must not
+# grow one: a repo-resident `gold_source.py` would put participant-keyed scores
+# back into a public repository, which is the whole of what C1b moved them out
+# of. Adding the helper here would therefore report fifteen tables as having a
+# missing source, every run, forever.
+#
+# What replaced the check is not nothing. The fifteen were proved equal to their
+# pre-migration literals ONCE, order-sensitively, at the moment they moved; the
+# export refuses to rebuild afterwards (`gold_export.unmigrated`) so that proof
+# cannot be quietly invalidated; and the invariants that survive migration are
+# checked in `enforcement` against the gold file itself.
 
 
 def pairs() -> list[tuple[str, str]]:
