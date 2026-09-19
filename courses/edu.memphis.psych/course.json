@@ -5038,6 +5038,150 @@
     "why": "`requires` ties how_2 to `mechanism_named`, which carries no points of its own and costs something only by denying how_2. So the two share one 2-point charge: failing either costs 2 and failing both still costs 2, which is what makes the pair sublinear. The web reader takes that straight from the declared `requires` rule. The CLI probe cannot: `mechanism_named` is computed by `forbid` from three answered grounds, so it is not an answered field and no flip can set it, and the state that would reveal the pair is never constructed. Same shape as the NR entry above and the mirror of its cause -- there a conjunction was too wide for a pairwise probe, here an operand is not probeable at all. Teaching the probe to synthesise computed-operand states would mean a second implementation of `forbid` living inside the instrument, which is how an instrument starts disagreeing with the thing it measures."
    }
   ],
+  "SEGMENT_MARKERS": {
+   "1": [
+    [
+     "preamble",
+     "Choose an unwanted target behavior"
+    ],
+    [
+     "Q1",
+     "Define your unwanted target behavior and explain WHY"
+    ],
+    [
+     "Q2",
+     "Next,\\s*define your wanted goal behavior"
+    ],
+    [
+     "Q3",
+     "Use the SMART goal acronym"
+    ],
+    [
+     "_q4_intro",
+     "Perform a functional behaviora?l? analysis"
+    ],
+    [
+     "Q4a",
+     "^\\W*4a[.)]"
+    ],
+    [
+     "Q4b",
+     "^\\W*4b[.)]"
+    ],
+    [
+     "Q4c",
+     "^\\W*4c[.)]"
+    ],
+    [
+     "Q5",
+     "Why do you think that you continue to engage"
+    ],
+    [
+     "Q6",
+     "One way we can try to change our unwanted target behavior"
+    ]
+   ],
+   "2": [
+    [
+     "_utb",
+     "{{corpus:Q1/p3:response:0:27:sha=c8e59699d1a0:shape=C81008}} is"
+    ],
+    [
+     "_wgb",
+     "{{corpus:Q2/p3:response:0:23:sha=d743f1f68d1a:shape=C8408}} is"
+    ],
+    [
+     "PR",
+     "Example of Positive Reinforcement"
+    ],
+    [
+     "NR",
+     "Example of Negative Reinforcement"
+    ],
+    [
+     "PP",
+     "Example of Positive Punishment"
+    ],
+    [
+     "NP",
+     "Example of Negative Punishment"
+    ],
+    [
+     "T1",
+     "First type of Operant Conditioning"
+    ],
+    [
+     "D1",
+     "^\\W*Definition"
+    ],
+    [
+     "DAY1",
+     "^\\W*Daily Example"
+    ],
+    [
+     "WK1",
+     "^\\W*Weekly Example"
+    ],
+    [
+     "T2",
+     "Second type of Operant Conditioning"
+    ],
+    [
+     "D2",
+     "^\\W*Definition"
+    ],
+    [
+     "DAY2",
+     "^\\W*Daily Example"
+    ],
+    [
+     "WK2",
+     "^\\W*Weekly Example"
+    ]
+   ],
+   "3": [
+    [
+     "1a",
+     "^\\W*1\\W?a\\b"
+    ],
+    [
+     "1b",
+     "^\\W*1\\W?b\\b"
+    ],
+    [
+     "1c",
+     "^\\W*1\\W?c\\b"
+    ],
+    [
+     "2a",
+     "^\\W*2\\W?a\\b"
+    ],
+    [
+     "2b",
+     "^\\W*2\\W?b\\b"
+    ],
+    [
+     "3",
+     "^\\W*3[.)]|What could be done differently"
+    ],
+    [
+     "1b",
+     "EXAMPLE OF 1b"
+    ],
+    [
+     "1b",
+     "EXAMPLE OF 1c"
+    ],
+    [
+     "1b",
+     "YOUR 1b"
+    ],
+    [
+     "1c",
+     "YOUR 1c"
+    ]
+   ]
+  },
   "CONTEXT__non_item": {
    "_utb": [
     [

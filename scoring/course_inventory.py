@@ -301,7 +301,11 @@ def _tighten(inv: dict) -> int:
         old = json.loads(path.read_text()).get("modules", {})
     except (FileNotFoundError, ValueError):
         old = {}
-    grew = {m: (old[m], n) for m, n in counts.items() if m in old and n > old[m]}
+    # A DECLARED DATA MODULE IS WHERE COURSE DATA IS SUPPOSED TO GO, so its
+    # growth is the migration working. The gate skips it; so must the writer, or
+    # the two disagree and the budget can never be written again.
+    grew = {m: (old[m], n) for m, n in counts.items()
+            if m in old and n > old[m] and m not in ENF.DATA_MODULES}
     if grew:
         print("\n  REFUSING to tighten: these counts ROSE, and a ratchet that "
               "baselines a regression records history instead of enforcing it.")
@@ -313,6 +317,10 @@ def _tighten(inv: dict) -> int:
     doc = {"_what": "GOAL C / §10.7 categories 1-3 per module. Falls, never rises.",
            "exempt_d2d": dict(sorted(exempt.items())),
            "named_modules": named,
+           # Declared data modules: counted and recorded, but not ratcheted --
+           # they are where course data is SUPPOSED to accumulate.
+           "data_modules": {m: counts[m] for m in sorted(ENF.DATA_MODULES)
+                            if counts.get(m)},
            "modules": dict(sorted(counts.items()))}
     path.write_text(json.dumps(doc, indent=1) + "\n")
     lowered = sum(1 for m, n in counts.items() if m in old and n < old[m])
