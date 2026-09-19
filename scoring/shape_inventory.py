@@ -85,14 +85,25 @@ CATEGORY_ROLE = {
     "_test": "not_intake",
 }
 
-ITEM_PARTS = {"Key", "Distractor", "SimpleMatching", "SimpleSortable",
-              "SimpleTextSelection", "CapaFooter", "MainPane", "Sidebar"}
+# A part is a piece its PARENT parses -- Key and Distractor mean nothing alone.
+# The Simple* blocks were here and did not belong: each is a TERSE ONE-TAG
+# AUTHORING SYNTAX that EXPANDS TO A CapaProblem, which makes them whole items in
+# a compact spelling, not parts of one. Their own descriptions say so, and
+# reading the documentation is what caught it.
+ITEM_PARTS = {"Key", "Distractor", "CapaFooter", "MainPane", "Sidebar"}
 
 # Blocks whose role the rules above cannot decide, each named with its reason.
 # An UNCLASSIFIED block is a refusal, never a default -- a classifier that
 # silently bins the unknown reports full coverage of a space it never saw.
 ROLE_OVERRIDES = {
     "Course": ("structure", "the top-level course container"),
+    "SimpleMatching": ("gradable_item_family",
+                       "a terse one-tag PEG syntax that expands to a CapaProblem"),
+    "SimpleSortable": ("gradable_item_family",
+                       "a terse one-tag PEG syntax that expands to a CapaProblem"),
+    "SimpleTextSelection": ("gradable_item_family",
+                            "a text-highlighting problem in one tag, expanding to "
+                            "a CapaProblem"),
     "CapaProblem": ("gradable_item_family",
                     "a self-contained Open edX-style problem carrying its own "
                     "inputs and grading"),
