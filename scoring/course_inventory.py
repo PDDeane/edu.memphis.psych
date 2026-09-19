@@ -293,10 +293,10 @@ def _tighten(inv: dict) -> int:
 
     counts = ENF._course_data_counts(inv)
     by_name = {r["module"]: r for r in inv.get("modules", [])}
-    exempt = {f"{m}::{fn}": sum(1 for cat in ("tables", "literal_ids", "vocabulary")
-                                for e in (by_name.get(m) or {}).get(cat, [])
-                                if e.get("in") == fn)
-              for m, fn in ENF.D2D_EXEMPTION.items()}
+    # The D2d exemption's per-function count USED TO BE WRITTEN HERE, so that an
+    # exemption could not change size unnoticed. The exemption was removed on
+    # 2026-09-19 and its embeddings are counted like everyone else's, so there is
+    # nothing left to report separately.
     path = ENF.COURSE_DATA_BUDGET
     try:
         old = json.loads(path.read_text()).get("modules", {})
@@ -316,7 +316,6 @@ def _tighten(inv: dict) -> int:
     named = sorted({r["module"] for r in inv.get("modules", [])
                     if r.get("name_names_course")})
     doc = {"_what": "GOAL C / §10.7 categories 1-3 per module. Falls, never rises.",
-           "exempt_d2d": dict(sorted(exempt.items())),
            "named_modules": named,
            # Declared data modules: counted and recorded, but not ratcheted --
            # they are where course data is SUPPOSED to accumulate.
