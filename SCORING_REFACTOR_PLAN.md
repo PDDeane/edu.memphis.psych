@@ -2883,6 +2883,45 @@ That is the real limit of `table_sensitivity.py`, and it is now stated: **it can
 prove a table load-bearing, and it cannot distinguish "inert" from "declares the
 work itself".**
 
+#### Corruption testing: 11 of 13 declaration tables could hold WRONG VALUES unnoticed
+
+`table_sensitivity.py` now asks two questions instead of one, because they are
+different questions and a table can answer one and not the other:
+
+* **emptying** asks whether the table's PRESENCE is checked;
+* **corrupting one value** asks whether its CONTENT is checked.
+
+| | presence checked | content checked |
+|---|---|---|
+| `PROSE_ONLY_JUDGED_AGAINST`, `DESIGNED_TEXT` | yes | **yes** |
+| `PROSE_ONLY_SLOTS`, `MULTI_BLOCK_DECLARED`, `DECOMPOSITION_DIVERGENCES`, `CONSENSUS_OVERLAP_BACKLOG`, `UNCHARGED_VERDICTS`, `APP_ONLY_SLOTS` | yes | no |
+| `SLOT_STRUCTURE_FAMILIES`, `HAND_AUTHORED_ATTRS`, `PROBE_UNREACHABLE_PAIRS`, `PROBE_PROVOCATIONS` | **no** | **no** |
+| `COUNTABLE_EXEMPT` | its check cannot be called bare | — |
+
+**Only two of thirteen have their contents verified.** For the other eleven a
+wrong value passes: the check notices that the table is THERE and not what it
+says. That is a fact about the enforcement framework, not about the migration,
+and it is worth more than the migration that found it.
+
+##### The prediction I made last hour was wrong
+
+§ above argued `SLOT_STRUCTURE_FAMILIES` "cannot be tested by emptying at all"
+and needs corruption — the implication being that corruption would resolve it.
+**It does not.** Corrupting it moves nothing either. Four tables are verified by
+NEITHER test: their presence is not checked and their contents are not checked.
+
+##### What this does and does not prove
+
+The corruption is crude by design — reverse a string, increment a number, drop a
+set member — so a check may legitimately not care about the particular value
+mangled. **"Content not checked" is therefore suggestive and not proof**, and the
+honest reading is: *no evidence was found that anything validates these contents*,
+which is a reason to look, not a verdict.
+
+What it does prove is the positive direction. Where corruption DOES move a check,
+that table's contents are verified, and `DESIGNED_TEXT` — the table governing
+what prompt text ships — is one of the two.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
