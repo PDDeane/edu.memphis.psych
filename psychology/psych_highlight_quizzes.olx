@@ -1,0 +1,44 @@
+<!--
+---
+description: "Highlighting quizzes for Psychology Study Group: identify reinforcement and punishment in scenarios, distinguish the four operant quadrants, and pick out positive-reinforcement bedtime strategies."
+category: psychology
+lang: en-Latn-US
+authors:
+  - Mollie Blair Anderson
+  - Randy Floyd
+  - Emily N Srisarajivakul
+  - Kara Watkins
+  - Piotr Mitros
+  - Paul Deane
+license: AGPL
+---
+-->
+<Vertical id="psych_highlight_quizzes" title="Highlighting Practice">
+
+<Markdown id="psych_highlight_intro">
+## Highlighting Practice
+
+Read each passage and highlight the parts that match what the question asks for.
+These are for practice: you may check your answer and try again.
+</Markdown>
+
+<!-- Each quiz is authored as a `.textSelectionpeg` file -- prose with the
+     answers in square brackets -- and loaded here by `src`. The passage text
+     lives in the peg file so it stays editable without touching OLX. -->
+
+<SimpleTextSelection id="psych_q_reinforce_punish"
+                     title="Reinforcement or Punishment?"
+                     src="psych_reinforce_punish.textSelectionpeg"
+                     mode="graded" />
+
+<SimpleTextSelection id="psych_q_positive_negative"
+                     title="The Four Quadrants"
+                     src="psych_positive_negative.textSelectionpeg"
+                     mode="graded" />
+
+<SimpleTextSelection id="psych_q_bedtime_strategies"
+                     title="Bedtime Strategies"
+                     src="psych_bedtime_strategies.textSelectionpeg"
+                     mode="graded" />
+
+</Vertical>
