@@ -1588,6 +1588,51 @@ shape the fixture does not cover is an engine change that has not been tested.
   student-derived gold is how partially-scrubbed data reaches a public repo, and
   that has happened in this project once already.
 
+#### 10.6.1 · What "a fixture course" actually has to be — the INTAKE is the hard part
+
+*Added 2026-09-18 on the user's correction, and it resizes I1a.*
+
+The existing fixture is not the starting point it looks like. It is the **output
+of a process that already happened**: the class materials were read, and the
+forms, items, keys, gold scores and grader comments were found in them by hand.
+The fixture *program* was then written **once the format of THIS example was
+understood** — so it is fitted to one course's shapes, and the understanding it
+encodes is not written down anywhere the engine can read.
+
+That means "build a fixture course" is not one job but two, and the second is the
+one that carries the generality:
+
+1. **An inventory of the shapes an item can take.** The space is not open — it is
+   **defined by lo-blocks' components, especially the input and grader
+   components**. That inventory is what "sized by shape coverage" above has to be
+   measured against; without it, "every key-shape the engine claims to handle" has
+   no denominator and the coverage number means nothing.
+
+2. **A program that INFERS the course from unstructured material.** Real intake is
+   not a format. It is ordinary teacher-editable documents and spreadsheets —
+   handouts, answer keys, grading sheets — with no fixed structure, from which the
+   **course, its forms, its items, their keys and/or rubrics, and the gold scores
+   and comments** must be inferred, and then **mapped onto the space of
+   possibilities lo-blocks defines**.
+
+**Why this belongs to the refactor and not beside it.** I1a's recorded weakness is
+that the fixture is "written by the same hand that abstracts the engine, at the
+same time, so it will encode some of the assumptions it exists to test". An
+inferred fixture weakens that in a way an invented one cannot: the inference
+program is written against the **component space**, which nobody in this project
+chose, rather than against psychology's shapes. It does not reach I1b's standard —
+only a real course whose shapes were not chosen by us can falsify the abstraction
+— but it is the difference between a fixture that encodes our assumptions and one
+that encodes lo-blocks'.
+
+**Consequences for the sequence.** The shape inventory (1) is a measurement and
+can be taken early — it needs lo-blocks, not the migration, and it is a
+prerequisite for claiming any coverage number at all. The inference program (2) is
+substantial and is properly its own piece of work, not a step inside Stage 11. I2c
+still holds — the fixture is built LAST as acceptance — but what is being built
+last is now understood to include an intake program, and the plan should not let
+"invent a fixture course" stand in for it.
+
 #### I2 — when
 
 * **I2c · CHOSEN for stage one — the fixture is built LAST, as acceptance**, with
