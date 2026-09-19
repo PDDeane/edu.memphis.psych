@@ -13742,6 +13742,18 @@ def _bogus_key(sample):
 # Two entries below are NOT provocations but recorded limitations, and they are
 # the reason this work was worth doing rather than forcing every row green.
 PROBE_PROVOCATIONS: dict[str, object] = {
+    # A data-module exemption naming a file that does not exist: the verifier
+    # objects that an exemption for an absent file exempts nothing. Declared
+    # after `--probe-declarations` reported DATA_MODULES INERT -- emptying it
+    # changed nothing, because the budget records those modules' counts anyway,
+    # so the exemption had nothing to prove by its absence. It is proved by its
+    # CONTENTS instead.
+    # A (key, value) TUPLE, because the table is a dict -- the same shape
+    # `handouts.GOLD_CEILINGS` uses. A bare dict raised `not enough values to
+    # unpack` inside the probe: the format is per-table-type and is not guessable
+    # from the neighbouring list-valued entries.
+    "enforcement.DATA_MODULES": ("probe_no_such_module.py",
+                                 "probe: declared a data module, does not exist"),
     # A ceiling on an item recorded PERFECT: 1b is 20/20 on both sides, so
     # "cannot be perfect" is contradicted the moment it is claimed.
     "handouts.GOLD_CEILINGS": (("1", "1b"),
@@ -14194,6 +14206,26 @@ def check_module_has_no_course_data() -> list[str]:
             out.append(f"{mod} is declared MIGRATED ({claim}) but still holds "
                        f"course data: {detail}")
 
+    # ---- the exemption itself is checked ----------------------------------
+    # DATA_MODULES was INERT when `--probe-declarations` measured it: emptying it
+    # changed nothing, because the budget records the data modules' counts too,
+    # so removing the exemption found no growth to complain about. An exemption
+    # nothing verifies is an exemption anyone can widen.
+    #
+    # So its ENTRIES are checked: a declared data module must exist, and must
+    # actually carry course data -- otherwise the exemption is either stale or
+    # covering a module that never needed it.
+    for mod, why in sorted(DATA_MODULES.items()):
+        if mod not in counts:
+            out.append(f"{mod} is declared a DATA module ({why[:40]}...) and the "
+                       f"scan never saw it -- an exemption for a file that is not "
+                       f"there exempts nothing and hides that it is gone")
+        elif not counts[mod]:
+            out.append(f"{mod} is declared a DATA module and carries NO course "
+                       f"data. The declaration exists to keep authored content out "
+                       f"of the engine ratchet; a module with none does not need "
+                       f"it, and keeping it invites widening the exemption")
+
     # ---- the ratchet ------------------------------------------------------
     try:
         budget = _json.loads(COURSE_DATA_BUDGET.read_text())
@@ -14639,46 +14671,37 @@ def check_no_old_environment_names() -> list[str]:
 
 
 def check_declaration_tables_are_verified() -> list[str]:
-    """A declaration table that NO check validates cannot arrive quietly.
+    """RETIRED. `probe_declaration_tables` already answers this, and better.
 
-    Measured 2026-09-19 by `table_sensitivity.py`: of thirteen declaration
-    tables, **only two have their CONTENTS verified**. For the rest a wrong value
-    passes -- the check notices the table is there, not what it says -- and four
-    are verified by neither their presence nor their content.
+    This compared against a record produced by `table_sensitivity.py`, which was
+    written without noticing that the established probe existed. The probe solves
+    three defects that tool had, each named in its own comments:
 
-    This gates the direction rather than the state. The four are recorded in
-    `VERIFICATION_BUDGET.json` and the set may SHRINK and may not GROW, so a new
-    declaration table has to be checkable by something before it is added, and a
-    table that becomes unverifiable is reported.
+      * verifiers that TAKE ARGUMENTS -- it fills them from `all_items()`, where
+        the newer tool excluded them as "uncallable". Its comment is the bug
+        verbatim: "a raising verifier looks exactly like an unread table";
+      * comparison BY CONTENT, not by count -- "emptying a table produces
+        findings of its own ... a count comparison would read those as evidence
+        the table is read, which is the opposite of the truth". The newer tool
+        compared counts;
+      * emptying IN PLACE, not by `setattr` -- "a verifier may hold its own
+        reference to the object; setattr alone would leave that reference
+        pointing at the original and the probe would report a false INERT". The
+        newer tool used setattr.
 
-    THE EXPENSIVE HALF IS NOT HERE. Measuring sensitivity re-runs every consuming
-    check twice per table; doing that inside an audit that already runs 160
-    checks would add minutes to every commit. `table_sensitivity.py --tighten`
-    measures and records; this compares. A gate that could lower its own bar
-    would not be a ratchet.
+    It is also registry-driven, so it covers 61 tables across four modules where
+    the newer tool saw only `enforcement`; and it is re-entrancy guarded, because
+    two of the tables it probes are its own.
+
+    Measured difference: the newer tool reported four or five tables "verified by
+    nothing". The probe reports ONE, and it is `DATA_MODULES` -- added the same
+    night the newer tool was.
+
+    Run `python3 enforcement.py --probe-declarations`. It is deliberately not in
+    the default audit: three passes of every verifier over every table is
+    minutes, and the pre-commit path has to stay usable.
     """
-    import json
-    import os
-
-    path = os.path.join(_HERE_DIR, "VERIFICATION_BUDGET.json")
-    if not os.path.exists(path):
-        return [f"{os.path.basename(path)} is missing, so nothing records which "
-                f"declaration tables are verified -- which is not the same as all "
-                f"of them being verified. Run `table_sensitivity.py --tighten`."]
-    try:
-        doc = json.load(open(path))
-    except ValueError as exc:
-        return [f"{os.path.basename(path)} is unreadable: {exc}"]
-
-    recorded = set(doc.get("unverified", []))
-    out = []
-    for name in sorted(recorded):
-        if getattr(_HERE_MODULE, name, None) is None:
-            out.append(
-                f"{name} is recorded as an unverified declaration table and no "
-                f"longer exists -- re-tighten, so the record does not outlive the "
-                f"table it describes")
-    return out
+    return []
 
 
 def check_migrated_tables_match_their_source() -> list[str]:
