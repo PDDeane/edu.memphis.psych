@@ -3047,6 +3047,34 @@ finding in other tables.
 through a wrapper it does not recognise, and an authored copy edited to match a
 bad migration. It compares the two sides; it does not know which is right.
 
+#### The format change broke both equivalence proofs, and both were right to break
+
+Tagging tuples altered the file, and the two tools whose whole job is to police
+the file noticed within minutes.
+
+**T3.2** reported four handout-2 tables as `module ['DAY1', …] != reader
+{'__tuple__': ['DAY1', …]}`. `_group`, `declaration` and `generator_value` all
+untag; **`derived()`'s authored branch did not**, and it was the one path nothing
+had exercised since the change.
+
+**T5.1** reported 82 differences — every `prompt_*` field as `ONLY IN FILE`. That
+was not the tagging; it was **Stage 4**. T5.1 proves "the file reproduces the
+AUTHORED modules", and since Stage 4 the authored modules include the builders.
+It now checks the 74 generator fields against `generator_source`, which is the
+claim it was always making, correctly scoped.
+
+It names the builder's tables itself rather than importing
+`coursedata.GENERATOR_FIELDS` — **a proof that borrowed the reader would not be
+independent of it**, which is the rule T5.1 was designed around.
+
+It also had to learn to decode the tagging, and that is NOT the same borrowing:
+a tool that reads the file directly has to understand the file's format. It
+implements the decoding rather than importing it, for the reason it has its own
+canonicaliser — a shared decoding bug would cancel out on both sides.
+
+All four of T5.1's negative controls still fire, including two new ones: a
+generator field altered, and a generator field removed.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that

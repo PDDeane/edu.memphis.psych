@@ -44,6 +44,47 @@ HANDOUTS = (1, 2, 3)
 # thing it is proving the file against.
 DERIVED_BY_DESIGN = {"BY_ID", "TOTAL"}
 
+# Fields on an item entry that are AUTHORED SOMEWHERE ELSE. Stage 4 folded
+# `olx_prompts`' item-keyed tables onto the item entries as generator fields, so
+# a field like `prompt_action` is in the file, is correct, and is not in any
+# rubric module -- and this tool reported 82 of them as "ONLY IN FILE".
+#
+# The claim being proved is "the file reproduces the AUTHORED modules", and since
+# Stage 4 the authored modules include the builders. So those fields are checked
+# against `generator_source` instead of being called extra.
+#
+# Named by prefix rather than by importing `coursedata.GENERATOR_FIELDS`, which
+# would make this proof borrow the reader it exists to be independent of.
+GENERATOR_PREFIX = "prompt_"
+GENERATOR_BUILDER = "generator_source"
+# builder table -> the item field the export writes it to
+GENERATOR_FIELD_OF = {
+    "ACTION": "prompt_action", "RESPONSE": "prompt_response",
+    "CONTEXT": "prompt_context", "SHEET_ONLY": "prompt_sheet_only",
+    "EVIDENCE": "prompt_evidence", "OMIT_GUIDANCE": "prompt_omit_guidance",
+    "MATCH_DEF": "prompt_match_def", "ITEM_NOTES": "prompt_notes",
+    "ITEM_NOTES_WHY": "prompt_notes_why",
+}
+
+
+def _detag(x):
+    """Undo the export's tuple tagging: `{"__tuple__": [...]}` -> a tuple.
+
+    THIS IS FORMAT DECODING, NOT BORROWING THE READER. The file stores a tuple
+    tagged, because JSON has none, and a tool that reads the file DIRECTLY has to
+    understand the file's format -- that is not the same as reading through
+    `coursedata`, which is what this proof must not do. Implemented here rather
+    than imported, for the reason the canonicaliser is: a decoding bug shared
+    between the two sides would cancel out in both.
+    """
+    if isinstance(x, dict):
+        if set(x) == {"__tuple__"}:
+            return tuple(_detag(v) for v in x["__tuple__"])
+        return {k: _detag(v) for k, v in x.items()}
+    if isinstance(x, list):
+        return [_detag(v) for v in x]
+    return x
+
 
 def _canonical(x):
     """T2.1's pinned form: sorted keys within an entry, lists in place."""
@@ -81,7 +122,7 @@ def _diff(a, b, path="") -> list[str]:
 
 def compare(course_file: str) -> tuple[list[str], dict]:
     sys.path.insert(0, HERE)
-    doc = json.load(open(course_file))          # DIRECT. No reader.
+    doc = _detag(json.load(open(course_file)))  # DIRECT. No reader.
     by_id = {str(it["id"]): it for it in doc.get("items", [])}
     problems, counts = [], {"items": 0, "fields": 0, "authored_values": 0}
 
@@ -94,9 +135,31 @@ def compare(course_file: str) -> tuple[list[str], dict]:
                 problems.append(f"item {iid}: IN MODULE, ABSENT FROM FILE")
                 continue
             want = _canonical(it)
-            got = {k: v for k, v in _canonical(by_id[iid]).items() if k != "handout"}
+            entry = _canonical(by_id[iid])
+            got = {k: v for k, v in entry.items()
+                   if k != "handout" and not k.startswith(GENERATOR_PREFIX)}
             counts["fields"] += len(want)
             problems += _diff(want, got, f"item {iid}")
+
+            # the generator fields, against the BUILDER that authored them
+            builder = __import__(GENERATOR_BUILDER)
+            for table, field in sorted(GENERATOR_FIELD_OF.items()):
+                authored = (getattr(builder, table, None) or {}).get(iid)
+                stored = entry.get(field)
+                if authored is None and stored is None:
+                    continue
+                counts["generator_fields"] = counts.get("generator_fields", 0) + 1
+                if authored is None:
+                    problems.append(
+                        f"item {iid}.{field}: in the file and {table} does not "
+                        f"name this item -- a generator field with no author")
+                elif stored is None:
+                    problems.append(
+                        f"item {iid}.{field}: {table} names this item and the "
+                        f"file does not carry it -- the export lost it")
+                else:
+                    problems += _diff(_canonical(authored), _canonical(stored),
+                                      f"item {iid}.{field}")
 
         # the module-level authored values the export carried
         block = doc.get("handouts", {}).get(str(h), {}).get("authored", {})
@@ -135,6 +198,7 @@ def main(argv: list[str]) -> int:
 
     problems, counts = compare(args.course_file)
     print(f"  compared {counts['items']} items, {counts['fields']} item fields, "
+          f"{counts.get('generator_fields', 0)} generator fields, "
           f"{counts['authored_values']} module-level authored values")
     if not problems:
         print("  EQUIVALENT — the file reproduces the modules on every authored field.")
