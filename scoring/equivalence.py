@@ -19,7 +19,7 @@ declares those, with a reason each, and they are counted separately here as
 `omit`. Anything that is neither present nor declared IS a gap.
 """
 from __future__ import annotations
-import argparse, re, sys
+import argparse, os, re, sys
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from score import build_prompt, SYSTEM_TMPL
 from handouts import config
@@ -524,6 +524,242 @@ def _audit_findings_fresh() -> list[tuple]:
             return [tuple(f) for f in _json.loads(ln[len("FINDINGS:"):])]
     raise RuntimeError("the fresh-interpreter audit produced no findings line:\n"
                        + r.stdout[-800:] + r.stderr[-800:])
+
+
+# PARALLEL AUDITS ARE OPT-IN AND DEFAULT OFF, because they are FASTER and NOT
+# YET PROVED IDENTICAL. Forking at each injection takes the self-test from ~54
+# minutes to ~21, and three runs were compared case by case on ten fields:
+#
+#   serial vs serial   : 0 differences across all 71 cases
+#   serial vs parallel : 2, both in `a family with two codes is counted anyway`
+#
+# The suite is therefore deterministic and the remaining gap is caused by the
+# forking, not by noise. Both runs give that case the same VERDICT (ok); what
+# differs is which collateral findings appear among its 53-55 -- serial reports
+# PAPER AND WEB SCORE THE SAME JUDGMENTS DIFFERENTLY on Q4a/p13 and p14, and
+# parallel reports ENGINES SEND A DIFFERENT REQUEST on Q4c and Q6 instead.
+# Neither check shells out or touches the network on its main path, so the easy
+# explanation -- a race on the score-capture subprocess -- does not hold and the
+# real one is not yet known.
+#
+# Until it is, this stays off. A self-test is the instrument every other claim
+# in this project rests on, and "faster, and it disagrees with itself about one
+# case for reasons nobody has found" is not a trade worth taking by default.
+# `SELFTEST_WORKERS=8` turns it on for a run where speed matters more than
+# certification, and that run says so in its own output.
+_AUDIT_WORKERS = int(os.environ.get("SELFTEST_WORKERS", "1") or "1")
+_AUDIT_INFLIGHT: list = []
+
+
+class _AuditHandle:
+    """One audit running in a forked child, to be collected later."""
+
+    # THE RESULT IS CACHED ON THE HANDLE, because the pool drains the oldest
+    # child when it is full and that drain happens long before the reporting
+    # loop asks for it. The first version threw the drained findings away and
+    # the case they belonged to would have reported as detecting nothing.
+    __slots__ = ("pid", "path", "label", "done", "value")
+
+    def __init__(self, pid, path, label):
+        self.pid, self.path, self.label = pid, path, label
+        self.done, self.value = False, None
+
+
+# CASES WHOSE INJECTION IS ON DISK, and which therefore cannot overlap with any
+# forked audit. Declared rather than discovered, because the discovery comes too
+# late: `_writes_to_disk` can only tell us a case wrote a file by RUNNING it, and
+# by then every child already in flight has had a window in which to read the
+# modified tree. The barrier has to close before the injection, so the set has to
+# be known before it.
+#
+# MEASURED, TWICE, AND BOTH FAILURES ARE WHY THIS IS A SET AND NOT A GUESS. The
+# first parallel run reported these five VACUOUS -- their own injection was
+# reverted by the parent before the child could read it. The second run fixed
+# that and then reported 19 cases whose findings did not match the serial
+# reference: `GOALS RECORD DAMAGED` and `COUNT SCAFFOLD IS NOT ARITHMETIC`
+# turning up inside unrelated cases, because a child was auditing while one of
+# these five had GOALS.md or a scaffold file written to disk.
+#
+# The declaration is CHECKED: a case that writes and is not named here stops the
+# run and says so. That is the one direction the detector can still cover.
+_DISK_CASES = frozenset({
+    "a goal is closed without approval",
+    "a lesson is added to the guide unapproved",
+    "the guide grows a duplicate section label",
+    "a slot-set comparison drops its vocabulary guard",
+    "a count scaffold reports an impossible triple",
+})
+
+
+def _audit_drain():
+    """Wait for every forked audit still running. The barrier for a disk case."""
+    for h in list(_AUDIT_INFLIGHT):
+        _audit_resolve(h)
+
+
+def _writes_to_disk(fn) -> list:
+    """Run `fn`, reporting every path it WROTE. Used to decide fork vs serial.
+
+    FORK ISOLATES MEMORY, NOT THE FILESYSTEM -- which is the whole reason this
+    exists. A self-test case that injects by editing a table can be forked: the
+    child holds its own copy-on-write snapshot and the parent's restore cannot
+    reach it. A case that injects by WRITING A FILE cannot: parent and child
+    share one filesystem, so the parent's restore lands while the child is still
+    reading, and the child audits a tree with no injection in it.
+
+    Measured, not predicted: the first parallel run reported five cases VACUOUS
+    -- "injection moved nothing" -- and all five inject through `write_text` or
+    `unlink` (GOALS.md, QUALITY_CONTROL.md, measured.py, a count scaffold).
+
+    DETECTED RATHER THAN LISTED, because a hand-kept list of file-based cases is
+    a list someone forgets to add to. If a case writes through an API not
+    wrapped here it goes to the fork path and reports VACUOUS, which fails the
+    run loudly -- the same way these five did. That is the failure mode this is
+    allowed to have.
+    """
+    import builtins
+    import os as _os
+    import pathlib
+    import shutil
+
+    seen = []
+    P = pathlib.Path
+    saved = {
+        "wt": P.write_text, "wb": P.write_bytes, "ul": P.unlink,
+        "mk": P.mkdir, "rd": P.rmdir, "op": builtins.open,
+        "rm": _os.remove, "un": _os.unlink, "md": _os.makedirs,
+        "rt": shutil.rmtree, "cp": shutil.copyfile, "rn": _os.replace,
+    }
+
+    def note(target):
+        seen.append(str(target))
+
+    def wrap_self(orig):
+        def f(self, *a, **k):
+            note(self)
+            return orig(self, *a, **k)
+        return f
+
+    def wrap_first(orig):
+        def f(target, *a, **k):
+            note(target)
+            return orig(target, *a, **k)
+        return f
+
+    def op(file, mode="r", *a, **k):
+        if any(c in mode for c in "wax+"):
+            note(file)
+        return saved["op"](file, mode, *a, **k)
+
+    P.write_text, P.write_bytes = wrap_self(saved["wt"]), wrap_self(saved["wb"])
+    P.unlink, P.mkdir, P.rmdir = (wrap_self(saved["ul"]), wrap_self(saved["mk"]),
+                                  wrap_self(saved["rd"]))
+    builtins.open = op
+    _os.remove, _os.unlink = wrap_first(saved["rm"]), wrap_first(saved["un"])
+    _os.makedirs, _os.replace = wrap_first(saved["md"]), wrap_first(saved["rn"])
+    shutil.rmtree, shutil.copyfile = (wrap_first(saved["rt"]),
+                                      wrap_first(saved["cp"]))
+    try:
+        fn()
+    finally:
+        P.write_text, P.write_bytes, P.unlink = saved["wt"], saved["wb"], saved["ul"]
+        P.mkdir, P.rmdir, builtins.open = saved["mk"], saved["rd"], saved["op"]
+        _os.remove, _os.unlink, _os.makedirs = saved["rm"], saved["un"], saved["md"]
+        _os.replace, shutil.rmtree = saved["rn"], saved["rt"]
+        shutil.copyfile = saved["cp"]
+    return seen
+
+
+def _audit_now():
+    """The audit, in THIS process. For a case whose injection is on disk."""
+    return [f for f in enforcement_audit()[0]]
+
+
+def _audit_async(label: str = ""):
+    """Run `enforcement_audit()` in a CHILD and return without waiting.
+
+    WHY A FORK IS THE RIGHT SHAPE HERE. Every self-test case does the same three
+    things: mutate some in-memory table, run the audit, put the table back. The
+    audit is 36.6s and there are 41 of them, which is the whole ~54 minutes; the
+    mutations themselves are instant. Forking at the AUDIT means the child gets
+    a copy-on-write snapshot of the mutated state and the parent can restore and
+    move to the next case immediately -- the child's copy is unaffected by the
+    restore, because it is a different process.
+
+    It is also SAFER than running them in-process, which is the part worth
+    keeping. A case that fails to undo its own injection currently leaves the
+    parent's tables wrong for every case after it; three cases did exactly that
+    tonight by re-appending a dict key. An injection applied inside a child
+    cannot outlive it.
+
+    A TEMP FILE, NOT A PIPE. A pipe holds 64KB before it blocks, and the parent
+    does not read until it joins -- a case whose findings exceeded that would
+    deadlock the run rather than fail it.
+
+    `os._exit` IN THE CHILD, NEVER `sys.exit`. The parent registers an atexit
+    hook that RESTORES EVERY SOURCE FILE from its snapshot. Inheriting that and
+    running it on child exit would have each of 41 children rewrite the tree
+    underneath the run.
+    """
+    import pickle
+    import tempfile
+
+    if _AUDIT_WORKERS <= 1:                         # the serial path, kept usable
+        return [f for f in enforcement_audit()[0]]
+    while len(_AUDIT_INFLIGHT) >= _AUDIT_WORKERS:
+        _audit_resolve(_AUDIT_INFLIGHT[0])          # caches onto the handle
+    fd, path = tempfile.mkstemp(prefix="auditrun_", suffix=".pkl")
+    os.close(fd)
+    pid = os.fork()
+    if pid == 0:                                    # ---- child ----
+        try:
+            out = [f for f in enforcement_audit()[0]]
+            with open(path, "wb") as fh:
+                pickle.dump(out, fh)
+            os._exit(0)
+        except BaseException:
+            try:
+                import traceback
+                with open(path, "wb") as fh:
+                    pickle.dump({"__error__": traceback.format_exc()}, fh)
+            except BaseException:
+                pass
+            os._exit(3)
+    h = _AuditHandle(pid, path, label)
+    _AUDIT_INFLIGHT.append(h)
+    return h
+
+
+def _audit_resolve(found):
+    """The findings from a handle, or the list it already was. Idempotent."""
+    import pickle
+
+    if not isinstance(found, _AuditHandle):
+        return found
+    if found.done:
+        return found.value
+    _, status = os.waitpid(found.pid, 0)
+    if found in _AUDIT_INFLIGHT:
+        _AUDIT_INFLIGHT.remove(found)
+    try:
+        with open(found.path, "rb") as fh:
+            out = pickle.load(fh)
+    except Exception as exc:
+        raise SystemExit(
+            f"selftest: the audit child for {found.label!r} (pid {found.pid}, "
+            f"exit {status}) left no readable result at {found.path}: {exc}. A "
+            f"missing result is NOT an empty finding list -- treating it as one "
+            f"would report the case as undetected and blame the check.")
+    finally:
+        try:
+            os.unlink(found.path)
+        except OSError:
+            pass
+    if isinstance(out, dict) and "__error__" in out:
+        raise SystemExit(f"selftest: the audit child for {found.label!r} died:\n"
+                         f"{out['__error__']}")
+    found.done, found.value = True, out
+    return out
 
 
 def enforcement_audit():
@@ -1380,14 +1616,14 @@ def enforcement_selftest():
 
     saved = rubric_h1.BY_ID["Q6"].pop("cover")
     cases.append(("CLI Q6 loses `cover`", "COVER DIFFERS", "Q6",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     rubric_h1.BY_ID["Q6"]["cover"] = saved
 
     g = rubric_h1.BY_ID["Q6"]["cover"][0]
     vsaved = g["verdicts"]
     g["verdicts"] = [*g["labels"], "neither", "blank"]      # the web says `absent`
     cases.append(("CLI Q6 vocab drifts", "COVER VOCAB DIFFERS", "Q6",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     g["verdicts"] = vsaved
 
     # The coverage guard. Both misses so far were items the audits did not know
@@ -1403,7 +1639,7 @@ def enforcement_selftest():
     tsaved = dict(SHEET_ONLY)
     SHEET_ONLY.pop("T1")
     cases.append(("an item leaves the covered set", "SCORED ON PYTHON ONLY", "T1",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     SHEET_ONLY.clear()
     SHEET_ONLY.update(tsaved)
 
@@ -1412,7 +1648,7 @@ def enforcement_selftest():
     esaved = d1["equals"]
     d1["equals"] = [{**esaved[0], "lenient": []}]
     cases.append(("CLI D1 equals loses `unclear`", "EQUALS DIFFERS", "D1",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     d1["equals"] = esaved
 
     # The all-items guard: a olx-only enforcement rule on a plain-path item was
@@ -1427,7 +1663,7 @@ def enforcement_selftest():
             d.pop("web_computes")
             cases.append(("1b computed check loses its declaration",
                           "ASKED ON PYTHON ONLY", "1b",
-                          [f for f in enforcement_audit()[0]]))
+                          _audit_async()))
             d.clear()
             d.update(wsaved)
             break
@@ -1471,7 +1707,7 @@ def enforcement_selftest():
             cases.append(
                 (f"a computed check appears on plain-path {plain} undeclared",
                  "COMPUTED, UNDECLARED", plain,
-                 [f for f in enforcement_audit()[0]]))
+                 _audit_async()))
         finally:
             # Restored even if the audit raises: leaving an item stripped of its
             # derive key would corrupt every case after this one, and the
@@ -1500,7 +1736,7 @@ def enforcement_selftest():
         return _orig_cs(*a, **k)
     _o._checklist_section = _blind
     cases.append(("the generator forgets a primitive", "PRIMITIVE NOT HONOURED", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _o._checklist_section = _orig_cs
 
     # The code-reachability guard: a conversion that drops a verdict retires a
@@ -1521,7 +1757,7 @@ def enforcement_selftest():
         c["verdicts"] = ["met", "absent"]
         c["codes"] = {"absent": "A_ONLY_ONE"}
     cases.append(("a verdict is dropped, retiring its code", "CODE UNREACHABLE", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     for c, (v, k) in zip(slots, saved):
         c["verdicts"] = v; c["codes"] = k
 
@@ -1533,7 +1769,7 @@ def enforcement_selftest():
     _AG.build_schema = lambda slots, exclude=frozenset(): _real_build(slots)
     cases.append(("the harness stops excluding computed keys",
                   "HARNESS SCHEMA DIVERGES", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _AG.build_schema = _real_build
 
     _real_parse = _AG.parse_slots
@@ -1543,7 +1779,7 @@ def enforcement_selftest():
         for s in _real_parse(spec, defaults)]
     cases.append(("the harness stops stripping the @pts suffix",
                   "HARNESS SCHEMA DIVERGES", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _AG.parse_slots = _real_parse
 
     # The silent-miss guard. A derived field the refs cannot resolve reads as empty,
@@ -1574,7 +1810,7 @@ def enforcement_selftest():
     _H5.scores_as_exact = lambda item, g, p: abs(p - g) <= 1.5
     cases.append(("the unreachable-gold allowance becomes a tolerance",
                   "UNREACHABLE GOLD PENALISED", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _H5.scores_as_exact = _real_sae
 
     # The shared-vocabulary guard. A rule rendered into both prompts must not name
@@ -1598,7 +1834,7 @@ def enforcement_selftest():
         _site["rule"] = _saved_rule.replace("{fail}", "wrong_kind")
         cases.append(("a shared rule names one side's verdict token",
                       "SLOT RULE NAMES A VERDICT", "-",
-                      [f for f in enforcement_audit()[0]]))
+                      _audit_async()))
         _site["rule"] = _saved_rule
 
     # The OTHER prose source. The case above guards the rubric's `rule`, where
@@ -1651,7 +1887,7 @@ def enforcement_selftest():
         _O.SLOT_NOTES[_nk] = _saved_note + f" Answer `{_tok}` if unsure."
         cases.append(("prompt prose asks for a verdict the slot cannot return",
                       "PROMPT ASKS FOR AN IMPOSSIBLE VERDICT", "-",
-                      [f for f in enforcement_audit()[0]]))
+                      _audit_async()))
         _O.SLOT_NOTES[_nk] = _saved_note
 
     # The other half of that hazard: the rule uses `{fail}` correctly and the two
@@ -1674,7 +1910,7 @@ def enforcement_selftest():
     _sc1["rule"] = "Answer `{fail}` when the box names the wrong thing."
     cases.append(("the two prompts fill `{fail}` with different verdicts",
                   "SLOT RULE FAILS DIFFERENTLY", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _q6["cover"] = _saved_cover
     if _saved_codes is None:
         _sc1.pop("codes", None)
@@ -1708,7 +1944,7 @@ def enforcement_selftest():
         _a1["rule"] = f'A response reading "{_leak[1]}" counts.'
         cases.append(("a prompt quotes a counted participant verbatim",
                       "PROMPT QUOTES A COUNTED CELL", "-",
-                      [f for f in enforcement_audit()[0]]))
+                      _audit_async()))
         if _saved_a1 is None:
             _a1.pop("rule", None)
         else:
@@ -1723,7 +1959,7 @@ def enforcement_selftest():
     _R4.ITEMS.append(dict(_R4.BY_ID["Q6"]))
     cases.append(("a rubric item is duplicated",
                   "RUBRIC ITEMS NOT UNIQUE", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _R4.ITEMS.pop()
 
     # Two declared corrections for one box: the later silently wins.
@@ -1731,7 +1967,7 @@ def enforcement_selftest():
     _APP7.CONSENSUS_FIXES[("Q6", 9)].append(("set", "affect_c1", "duplicate"))
     cases.append(("two span fixes name the same box",
                   "TWO FIXES FOR ONE BOX", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _APP7.CONSENSUS_FIXES[("Q6", 9)].pop()
 
     # A box holding text gold says was never written. This is the one fixture
@@ -1754,7 +1990,7 @@ def enforcement_selftest():
     _E6._fixture_boxes = _filling
     cases.append(("a box holds text gold says was never written",
                   "FIXTURE CONTRADICTS GOLD", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _E6._fixture_boxes = _real_fb6
 
     # A box cut mid-clause. Two other fixture checks pass on these: the text is
@@ -1773,7 +2009,7 @@ def enforcement_selftest():
     _E5._fixture_boxes = _truncating
     cases.append(("a fixture box is cut mid-clause",
                   "FIXTURE CUTS MID-CLAUSE", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _E5._fixture_boxes = _real_fb
 
     # A reporter that crashes. Nothing else here executes `report()` — the
@@ -1850,7 +2086,7 @@ def enforcement_selftest():
             "sha the tree can never be at, so the check has a false claim to find.")
         cases.append(("a neutrality pair's target was never reached",
                       "SCORER-NEUTRALITY CLAIM IS FALSE", "-",
-                      [f for f in enforcement_audit()[0]]))
+                      _audit_async()))
     finally:
         _M10.SCORER_NEUTRAL.clear()
         _M10.SCORER_NEUTRAL.update(_nsaved)
@@ -1870,7 +2106,7 @@ def enforcement_selftest():
     _p9["why"] += " the error here is exactly +2.00."
     cases.append(("an exclusion states a point figure only in prose",
                   "EXCLUSION CLAIM IN PROSE", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _p9["expect_error"] = _saved_err
     _p9["why"] = _p9["why"][: -len(" the error here is exactly +2.00.")]
 
@@ -1883,7 +2119,7 @@ def enforcement_selftest():
     _OP2.SLOT_NOTES["Q4b:behavior_1"] = "x" * 400
     cases.append(("a slot rule is added to the web prompt only",
                   "SLOT RULE OLX ONLY", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     del _OP2.SLOT_NOTES["Q4b:behavior_1"]
 
     # The audit-read-anything guard. Every segment-reading check swallows its
@@ -1901,7 +2137,7 @@ def enforcement_selftest():
     ENF._SEGMENTS_MEMO = None
     cases.append(("the audit cannot read the corpus at all",
                   "AUDIT EXAMINED NOTHING", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     ENF._segment_as_scored = _real_seg
     ENF._SEGMENTS_MEMO = None
 
@@ -1928,7 +2164,7 @@ def enforcement_selftest():
     ENF._CONSENSUS_SOURCE = _dup.name
     cases.append(("two CONSENSUS_FIXES entries for one cell",
                   "TWO FIXES FOR ONE CELL", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     ENF._CONSENSUS_SOURCE = None
 
     # The corrected-gold guard. CORRECTED_GOLD rewrites the number a cell is
@@ -1941,7 +2177,7 @@ def enforcement_selftest():
     _H7.CORRECTED_GOLD[_k] = {**_real_cg[_k], "was": 9.75}
     cases.append(("a CORRECTED_GOLD entry no longer matches the sheet",
                   "CORRECTED GOLD STALE", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _H7.CORRECTED_GOLD.clear(); _H7.CORRECTED_GOLD.update(_real_cg)
 
     # The hand-split transcription guard. Q4b p7 had one sentence in two boxes
@@ -1958,7 +2194,7 @@ def enforcement_selftest():
     }}}
     cases.append(("a hand-split row puts one sentence in two boxes",
                   "HANDSPLIT ROW OVERLAPS", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     ENF._handsplit_tables = _real_hs
 
     # The stale-exclusion guard, in BOTH directions. An exclusion outlives the
@@ -1972,7 +2208,7 @@ def enforcement_selftest():
     _cp["Q4b"] = sorted(set(_cp.get("Q4b", [])) | {99})
     cases.append(("an exclusion outlives the citation that justified it",
                   "EXCLUSION UNJUSTIFIED", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _H4.HANDOUTS[1]["cited_participants"] = _saved_cp
 
     # The "did not answer" guard. Un-gating the collapse changes no score, so
@@ -1983,7 +2219,7 @@ def enforcement_selftest():
     _SC.derive_ledger = lambda item, raw, response="": _real_dl(item, raw, "")
     cases.append(("the blank-answer collapse stops checking for a blank answer",
                   "BLANK COLLAPSE UNGATED", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _SC.derive_ledger = _real_dl
 
     # The blind-graph-item guard. A backend that quietly stops forwarding tools
@@ -1993,7 +2229,7 @@ def enforcement_selftest():
     _B.LoBlocksBackend.SUPPORTS_TOOLS = True
     cases.append(("a tool-less backend claims it has tools",
                   "BACKEND DEVIATION UNDECLARED", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _B.LoBlocksBackend.SUPPORTS_TOOLS = _real_st
 
     import handouts as _H
@@ -2001,7 +2237,7 @@ def enforcement_selftest():
     _AG.PER_ITEM_EXCLUDE = {k: dict(v) for k, v in _real_tbl.items()}
     cases.append(("a harness keeps its own copy of the exclusions",
                   "EXCLUSIONS DIVERGE", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _AG.PER_ITEM_EXCLUDE = _real_tbl
 
     _d_item = _AG.BLOCKS[3]["bmod_h3_graph_llm"]
@@ -2013,7 +2249,7 @@ def enforcement_selftest():
     _d_item["refs"].pop(_d_field)
     cases.append(("a derived rule's field leaves the refs map",
                   "DERIVED FIELD UNREADABLE", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _d_item["refs"].clear()
     _d_item["refs"].update(_saved)
 
@@ -2025,7 +2261,7 @@ def enforcement_selftest():
     ksaved = q2.pop("counts")
     cases.append(("an item with a countable family stops counting it",
                   "PRIMITIVE APPLIED UNEVENLY", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     q2["counts"] = ksaved
 
     # The other direction: counting a family whose members carry DIFFERENT codes
@@ -2036,7 +2272,7 @@ def enforcement_selftest():
                       "slots": ["antecedent_1", "antecedent_2"]}]
     cases.append(("a family with two codes is counted anyway",
                   "PRIMITIVE APPLIED UNEVENLY", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     del q4a["counts"]
 
     # And the exemption itself, which is the part that rots: 1a is exempt because
@@ -2044,7 +2280,7 @@ def enforcement_selftest():
     ENF.COUNTABLE_EXEMPT[("2b", "sentence")] = "stale on purpose"
     cases.append(("a stale exemption outlives its conversion",
                   "PRIMITIVE APPLIED UNEVENLY", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     del ENF.COUNTABLE_EXEMPT[("2b", "sentence")]
 
     q = rubric_h3.BY_ID["2a"]["credit"][0]["codes"]
@@ -2052,7 +2288,7 @@ def enforcement_selftest():
     q["absent"] = "NO_VERDIKT"
     cases.append(("a slot points at a code that does not exist",
                   "RUBRIC REFERENCE BROKEN", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     q.clear(); q.update(csaved)
 
     # The mirror of the computed-check guard: a check moved into CLI code while the
@@ -2064,7 +2300,7 @@ def enforcement_selftest():
         return a
     globals()["_web_attrs"] = _drop_counts
     cases.append(("web Q1 loses `counts`", "ASKED ON OLX ONLY", "Q1",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     globals()["_web_attrs"] = _orig
 
     # The measurement guard: an item can be graded correctly on screen and
@@ -2072,7 +2308,7 @@ def enforcement_selftest():
     import agreement_app
     jsaved = agreement_app.JOBS.pop("1b")
     cases.append(("an item leaves JOBS", "NEVER MEASURED", "1b",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     agreement_app.JOBS["1b"] = jsaved
 
     # The allowlist guard: an enforcement attribute the audit does not forward is
@@ -2080,7 +2316,7 @@ def enforcement_selftest():
     ksaved = set(KNOWN_ACTION_ATTRS)
     KNOWN_ACTION_ATTRS.discard("derived")
     cases.append(("an attribute leaves the allowlist", "UNKNOWN ATTRIBUTE", "1c",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     KNOWN_ACTION_ATTRS.clear(); KNOWN_ACTION_ATTRS.update(ksaved)
 
     orig = globals()["_web_attrs"]
@@ -2094,7 +2330,7 @@ def enforcement_selftest():
             return a
         globals()["_web_attrs"] = drop
         cases.append((f"web {item} loses `{attr}`", want, item,
-                      [f for f in enforcement_audit()[0]]))
+                      _audit_async()))
         globals()["_web_attrs"] = orig
 
     # THE SCORED-SLOT CHECK READS ARTIFACTS, so blinding a SHEET cannot test it.
@@ -2131,7 +2367,7 @@ def enforcement_selftest():
     # injections that FIRE is what found it.
     cases.append(("olx is blinded to a scored slot",
                   "SCORED SLOT ANSWERED BY ONE ENGINE ONLY", "-",
-                  [f for f in enforcement_audit()[0]]))
+                  _audit_async()))
     _M._runs_doc = _runs_orig
 
     # ── INJECTIONS INTO THE SCORER, not into the sheet ───────────────────────
@@ -2175,10 +2411,28 @@ def enforcement_selftest():
             if not pre:
                 cases.append((label, want, ANY_ITEM, None))
                 return
-        install()
+        # WROTE TO DISK -> AUDIT HERE; TOUCHED ONLY MEMORY -> FORK. See
+        # `_writes_to_disk`: the parent's `restore()` below would land on a
+        # forked child's tree mid-audit, and five cases reported VACUOUS that
+        # way before this existed.
+        # A DISK CASE CLOSES THE BARRIER FIRST. Every child still auditing
+        # shares this filesystem, so the injection below would land in the
+        # middle of their runs -- that is exactly how 19 cases came back with
+        # another case's findings in them.
+        on_disk = label in _DISK_CASES
+        if on_disk:
+            _audit_drain()
+        wrote = _writes_to_disk(install)
+        if wrote and not on_disk:
+            raise SystemExit(
+                f"selftest: the case {label!r} wrote {wrote[0]} during its "
+                f"injection but is not in _DISK_CASES. A file-based injection "
+                f"cannot overlap a forked audit -- parent and child share one "
+                f"filesystem. Add it to that set so the barrier closes first.")
         try:
             cases.append((label, want, ANY_ITEM,
-                          [f for f in enforcement_audit()[0]], inverted))
+                          _audit_now() if on_disk else _audit_async(label),
+                          inverted))
         finally:
             restore()
 
@@ -2675,6 +2929,11 @@ def enforcement_selftest():
 
     _inverted_skips: list[tuple[str, str]] = []
     print("SELF-TEST — does the audit notice when a rule is removed?\n")
+    if _AUDIT_WORKERS > 1:
+        print(f"  *** PARALLEL ({_AUDIT_WORKERS} workers). This run is FAST and is "
+              f"NOT a certifying run:\n      a measured, unexplained divergence "
+              f"from the serial suite affects one case\n      (see _AUDIT_WORKERS). "
+              f"Re-run with SELFTEST_WORKERS=1 to certify.\n")
     baseline = _selftest_baseline
     bad = 0
     # Per-case record for the vacancy report. Built from data the suite ALREADY
@@ -2684,6 +2943,11 @@ def enforcement_selftest():
     _records = []
     for case in cases:
         label, want, item, found = case[0], case[1], case[2], case[3]
+        # COLLECT THE CHILD HERE. `_audit_async` forked at the injection and the
+        # parent has long since restored the table; this is where the findings
+        # that child computed are read back. Resolving in case order drains the
+        # pool in the order it was filled.
+        found = _audit_resolve(found)
         inverted = case[4] if len(case) > 4 else False
         if found is not None:
             _keys = {_finding_key(f) for f in found}
