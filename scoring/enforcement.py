@@ -1360,6 +1360,8 @@ def _declaration(name: str) -> dict:
 
 COUNTABLE_EXEMPT = _declaration("COUNTABLE_EXEMPT")
 PROBE_UNREACHABLE_PAIRS = _declaration("PROBE_UNREACHABLE_PAIRS")
+SLOT_STRUCTURE_FAMILIES = _declaration("SLOT_STRUCTURE_FAMILIES")
+HAND_AUTHORED_ATTRS = _declaration("HAND_AUTHORED_ATTRS")
 PROSE_ONLY_SLOTS = _declaration("PROSE_ONLY_SLOTS")
 # RAISED 25 -> 27 on 2026-09-12 for two slots the audit had been reporting as
 # UNDECLARED, not for two new prose rules: `1c.series_box_holds` and
@@ -1394,9 +1396,8 @@ PROSE_ONLY_JUDGED_AGAINST = _declaration("PROSE_ONLY_JUDGED_AGAINST")
 # same thing. Scoped by family rather than corpus-wide on purpose: `keyword`
 # legitimately differs between Q4a and Q4c (one deduction zeroed by decision, the
 # other declared unreachable), and 1a's week_* slots are not siblings of these.
-SLOT_STRUCTURE_FAMILIES: dict[str, tuple[str, ...]] = {
-    "h2-cadence-and-type": ("PR", "NR", "PP", "NP", "DAY1", "WK1", "DAY2", "WK2"),
-}
+# SLOT_STRUCTURE_FAMILIES IS BOUND FURTHER DOWN, after `_declaration` is defined. Its
+# entries live in the course file, authored in `declaration_source.py`.
 
 # A slot whose gate/points structure is deliberately not uniform in its family.
 # The budget ratchets: an entry is either a decision with a reason or a defect
@@ -4866,7 +4867,8 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
          "check_shipped_text_matches_design", "check_probed_fields_keep_their_text")),
     "enforcement.HAND_AUTHORED_ATTRS": (
         "sheet attributes written by hand rather than generated",
-        ("check_generated_attributes_have_a_declaration",)),
+        ("check_generated_attributes_have_a_declaration",
+         "check_hand_authored_attrs_still_suppress_something")),
     "enforcement.ITEM_GATED_MECHANISMS": (
         "mechanisms that vary by item, which the uniformity rule forbids",
         ("check_engine_mechanisms_are_not_item_dependent",)),
@@ -8856,18 +8858,8 @@ def check_scorer_neutrality_is_verified() -> list[str]:
 # see check_generated_attributes_have_a_declaration. Keep this table small: every
 # entry is a place where the rubric is NOT the single source, which is the thing
 # the generator conversions exist to remove.
-HAND_AUTHORED_ATTRS: dict[tuple[str, str], str] = {
-    ("PR", "expect"): "the four `demonstrates_type` rules stay authored in the "
-                      ".olx because the CLI reaches that fact through "
-                      "`expected_type` and REQUIRED_MOVE, both already rubric "
-                      "declarations -- declaring them again would be a SECOND "
-                      "source for one fact. olx_prompts.expect_attr_for says so "
-                      "in its own docstring.",
-    ("NR", "expect"): "same as PR: `demonstrates_type` reaches the CLI through "
-                      "REQUIRED_MOVE.",
-    ("PP", "expect"): "same as PR.",
-    ("NP", "expect"): "same as PR.",
-}
+# HAND_AUTHORED_ATTRS IS BOUND FURTHER DOWN, after `_declaration` is defined. Its
+# entries live in the course file, authored in `declaration_source.py`.
 
 
 def check_generated_attributes_have_a_declaration() -> list[str]:
@@ -13766,6 +13758,22 @@ PROBE_PROVOCATIONS: dict[str, object] = {
     # that the entry describes nothing. Emptying the table is invisible -- no
     # re-entry means nothing to be wrong about -- so it is proved by its
     # CONTENTS, exactly as DATA_MODULES is.
+    # HAND_AUTHORED_ATTRS IS EMPTY NOW -- its four entries were stale and were
+    # removed -- so the probe's usual lever, emptying it, does nothing. The
+    # provocation is an entry that excuses an attribute the RUBRIC ALREADY
+    # BACKS, which is exactly what the four removed entries had become and what
+    # `check_hand_authored_attrs_still_suppress_something` objects to.
+    # A family of two items that are NOT siblings: `3` and `Q5` both carry
+    # `example_1` and weight it differently (advisory @3 against advisory @2.5),
+    # so declaring them one family makes the check object that a shared slot
+    # name does not mean one thing. Found by trying every pair rather than by
+    # guessing -- the first guess, (Q1, 1a), shares no slot at all, so the check
+    # had nothing to compare and stayed silent, which reads exactly like a table
+    # nobody reads.
+    "enforcement.SLOT_STRUCTURE_FAMILIES": ("probe-family", ("3", "Q5")),
+    "enforcement.HAND_AUTHORED_ATTRS": (("NR", "expect"),
+                                        "probe: excuses an attribute the rubric "
+                                        "backs"),
     "enforcement.COURSE_DATA_REENTRY": ("probe_no_such_module.py",
                                         (1, "probe: a re-entry for a file that "
                                             "does not exist")),
@@ -14564,6 +14572,55 @@ def check_course_data_reentries_are_current() -> list[str]:
                        f"that has not been reviewed.")
         if not str(why).strip():
             out.append(f"the re-entry for {mod} carries no reason")
+    return out
+
+
+def check_hand_authored_attrs_still_suppress_something() -> list[str]:
+    """Every HAND_AUTHORED_ATTRS entry still excuses a finding that would fire.
+
+    An entry says: this generated attribute is authored by hand ON PURPOSE, so
+    do not report it as an orphan. It only means anything while the attribute is
+    PRESENT and the rubric does NOT back it. The moment a generator conversion
+    lands for that attribute, the rubric backs it, the entry suppresses nothing,
+    and what is left is a declaration asserting a state of affairs that ended.
+
+    THAT IS NOT HYPOTHETICAL AND IS WHY THIS EXISTS. All four entries -- PR, NR,
+    PP and NP's `expect` -- were stale when this was written: the rubric backs
+    every one of them. The table's own note says to keep it small because "every
+    entry is a place where the rubric is NOT the single source, which is the
+    thing the generator conversions exist to remove". The conversion happened
+    and the paperwork stayed, and nothing said so: emptying the whole table
+    changed no output, because none of its entries was doing any work.
+
+    A stale entry is worse than an untidy one. It is standing permission for an
+    orphan that nobody has re-examined, and it would silently swallow a REAL
+    orphan if one appeared at the same (item, attribute).
+    """
+    import re
+
+    import olx_prompts as OP
+
+    gen = dict(OP.GENERATED_ATTRS)
+    out = []
+    for (item_id, name), why in sorted(HAND_AUTHORED_ATTRS.items()):
+        if name not in gen:
+            out.append(f"HAND_AUTHORED_ATTRS names {item_id}/{name}, which is not "
+                       f"a generated attribute at all")
+            continue
+        try:
+            tag = OP._sheet_tag(OP.HANDOUT[item_id], OP.ACTION[item_id])
+        except Exception:
+            continue                        # a missing sheet is another check's
+        m = re.search(r'%s="([^"]*)"' % name, tag)
+        if m is None or not m.group(1).strip():
+            out.append(f"HAND_AUTHORED_ATTRS excuses {item_id}/{name}, and that "
+                       f"attribute is not present in the sheet -- the entry "
+                       f"excuses nothing")
+        elif gen[name](item_id) is not None:
+            out.append(f"HAND_AUTHORED_ATTRS excuses {item_id}/{name} as "
+                       f"hand-authored, but the RUBRIC NOW BACKS IT, so the entry "
+                       f"suppresses nothing. The generator conversion this table "
+                       f"exists to be removed by has happened; remove the entry.")
     return out
 
 

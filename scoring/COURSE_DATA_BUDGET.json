@@ -14,7 +14,7 @@
   "simulate_h3.py"
  ],
  "data_modules": {
-  "declaration_source.py": 13,
+  "declaration_source.py": 14,
   "generator_source.py": 17,
   "rubric_h1.py": 4,
   "rubric_h2.py": 21,
@@ -38,10 +38,10 @@
   "course_schema.py": 0,
   "coursedata.py": 0,
   "cross_path.py": 0,
-  "declaration_source.py": 13,
+  "declaration_source.py": 14,
   "docx_text.py": 1,
   "editguard.py": 0,
-  "enforcement.py": 13,
+  "enforcement.py": 11,
   "equivalence.py": 27,
   "faithful_probe.py": 0,
   "fixture_edits.py": 0,
