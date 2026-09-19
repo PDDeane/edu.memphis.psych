@@ -214,7 +214,7 @@ def data_root() -> str | None:
 
         return str(paths.DATA)
     except Exception:                             # pragma: no cover
-        return os.environ.get("MOLLY_DATA") or None
+        return os.environ.get("COURSE_DATA") or None
 
 
 def gold_path() -> str:

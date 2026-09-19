@@ -1519,22 +1519,22 @@ file inherits that, and putting it under the same `courses/<id>/` name OUTSIDE t
 repo keeps the two halves legible as one course without putting either in the
 wrong place.
 
-#### 10.5.3 · `MOLLY_DATA` should be renamed `COURSE_DATA`
+#### 10.5.3 · `COURSE_DATA` should be renamed `COURSE_DATA`
 
 **DECIDED.** The variable is named after one course's data set; under H1c it holds
 `courses/<id>/` for any number of them, so the name becomes wrong exactly when the
 refactor succeeds. `COURSE_DATA` says what it is.
 
-The rename is mechanical but not free — `MOLLY_DATA` appears in `paths.py`, in
+The rename is mechanical but not free — `COURSE_DATA` appears in `paths.py`, in
 runbooks, in shell environments and in this plan — so:
 
 * it is a SEPARATE step, not folded into another goal, because a rename touching
   environment variables fails in ways that look like missing data;
-* `MOLLY_DATA` is honoured as a fallback for a declared period, with the reader
+* `COURSE_DATA` is honoured as a fallback for a declared period, with the reader
   preferring `COURSE_DATA` and warning when it finds only the old name — an
   environment variable that silently stops being read gives an empty result
   rather than an error, and empty results here look like a clean pass;
-* `MOLLY_OUT` and any other `MOLLY_*` names are renamed in the same step, so the
+* `COURSE_OUT` and any other `MOLLY_*` names are renamed in the same step, so the
   repo does not end up with both vocabularies.
 
 ### 10.6 · GOAL I — the proof: a second dataset
@@ -2317,7 +2317,7 @@ the plan should say which part a new course is expected to provide.
 
 ##### The data root holds copies of the SOURCE — a third instance of one mistake
 
-`$MOLLY_DATA` carries **63 `.py` files and six `.olx`**. `migration_reference/`
+`$COURSE_DATA` carries **63 `.py` files and six `.olx`**. `migration_reference/`
 preserves a whole engine half plus three rubric `.olx`; `pre_scrub_backup_…/`
 holds three course `.olx` and a **partial, stale copy of `scoring/` — 20 files
 identical to the live tree and five differing**.
@@ -2732,7 +2732,7 @@ renamed and not generalised until one runs against a second handout.
 
 ### 11.10 · Stage 9 — the rename
 
-`MOLLY_DATA` → `COURSE_DATA` (§10.5.3), separately from everything else, with the
+`COURSE_DATA` → `COURSE_DATA` (§10.5.3), separately from everything else, with the
 old name honoured and warned about for a declared period.
 
 ### 11.11 · Stage 10 — the second course (**I1b**), when one exists
@@ -2907,7 +2907,7 @@ that were 30, and now a ratchet that counted one case twice.*
 
 #### The artifact it leaves
 
-`$MOLLY_OUT/selftest_cases.json` — per case: label, want, item, inverted, baseline
+`$COURSE_OUT/selftest_cases.json` — per case: label, want, item, inverted, baseline
 and found counts, and the findings added and removed. Written every run, consumed
 by the report, and reusable by anything later that wants to know what a case
 actually did.
@@ -3157,7 +3157,7 @@ and removes it in a `finally`.
 
 ##### A defect found on the way: `gold_path()` was silently relative
 
-`coursedata.gold_path()` read `$COURSE_DATA`/`$MOLLY_DATA` directly and fell back
+`coursedata.gold_path()` read `$COURSE_DATA`/`$COURSE_DATA` directly and fell back
 to `""`, so with the variable unset it returned **`courses/<id>/gold.json`** — a
 relative path resolving against whatever the working directory happened to be.
 It would have reported "gold is not available" while never having looked in the
@@ -3237,7 +3237,7 @@ comment), `BY_ID` to 8 keys for handout 1's 8 items.
 `rubric_for("Q1")["credit"][0]["pts"] = -999`, which reaches into the loaded
 document through a shared inner object. Both are tested; both hold.
 
-**Gold is genuinely independent.** With `COURSE_DATA` and `MOLLY_DATA` both unset,
+**Gold is genuinely independent.** With `COURSE_DATA` and `COURSE_DATA` both unset,
 `gold()` refuses with the variable and path it tried while `items()` still returns
 all 26 — which is the split T3.1's review asked for and T2.2 deliberately does not
 make.
@@ -4135,14 +4135,14 @@ reporting full coverage while the schema has grown a field is the failure mode.
 *Revised on review, 2026-09-18. Designed as a script; measuring the scope showed
 the script is the trivial part and the real work is elsewhere.*
 
-**Scope, measured 2026-09-18:** 16 files, 67 references — `MOLLY_DATA` 48,
-`MOLLY_OUT` 18, and **`MOLLY_MEDIA` 1**, which the first design did not know
+**Scope, measured 2026-09-18:** 16 files, 67 references — `COURSE_DATA` 48,
+`COURSE_OUT` 18, and **`COURSE_MEDIA` 1**, which the first design did not know
 existed. A pass that renames two of the three creates exactly the mixed vocabulary
 it exists to prevent, and the single occurrence is the easiest to miss.
 
 #### Part 1 — the fallback in `paths.py`, which is the actual deliverable
 
-`COURSE_DATA` preferred; `MOLLY_DATA` honoured when it is the only one set;
+`COURSE_DATA` preferred; `COURSE_DATA` honoured when it is the only one set;
 **a warning emitted ONCE PER PROCESS**, not per read — `paths.DATA` is read
 constantly and a per-read warning produces thousands of lines that get filtered,
 which is the same as no warning.
@@ -4155,8 +4155,8 @@ change a single one of those.
 #### Part 2 — the rename itself is a `sed` pass with review
 
 67 mechanical replacements across 16 files, every one visible in a diff. This does
-not want a program. All three names go in ONE pass — `MOLLY_DATA`, `MOLLY_OUT`,
-`MOLLY_MEDIA` — so the repo never holds both vocabularies even briefly.
+not want a program. All three names go in ONE pass — `COURSE_DATA`, `COURSE_OUT`,
+`COURSE_MEDIA` — so the repo never holds both vocabularies even briefly.
 
 #### Part 3 — a check, so the old name cannot come back
 
@@ -4164,6 +4164,33 @@ Per §12.0: after the rename, a check fails on any new `MOLLY_*` in the repo.
 Without it the old name returns by copy-paste from a runbook and nobody notices
 until the fallback is removed — at which point the failure is an empty result, and
 **empty results in this project look like clean passes.**
+
+#### DONE 2026-09-19 — 79 replacements, one pass, fallback verified four ways
+
+`MOLLY_DATA` → `COURSE_DATA`, `MOLLY_OUT` → `COURSE_OUT`, `MOLLY_MEDIA` →
+`COURSE_MEDIA`. **79 replacements across 18 files in ONE pass**, so the repo never
+held both vocabularies. Gated by `check_no_old_environment_names` (161 checks).
+
+**The fallback, verified on all four combinations** rather than asserted:
+
+| environment | result | warns |
+|---|---|---|
+| neither set | default `~/molly_data` | no |
+| old name only | honoured | **yes** |
+| new name only | used | no |
+| both set | **new wins** | no |
+
+The warning fires once per process by construction — `paths.DATA` is computed at
+import — which is what the design asked for and what a per-read warning could
+never deliver: thousands of filtered lines are the same as no warning.
+
+One place still knows the old names and must: `paths._RENAMED`, the table that
+honours them. It is declared in `OLD_ENV_NAMES_ALLOWED`, and the sed pass
+rewrote it along with everything else before it was restored — a table whose job
+is to remember the old name is exactly the thing a blanket rename destroys.
+
+The check demonstrably fires: a probe file containing `export MOLLY_DATA=…` is
+caught by name and path.
 
 #### The expiry needs a criterion, not a date
 

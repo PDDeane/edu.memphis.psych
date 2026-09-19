@@ -8,9 +8,9 @@
 # shell equivalent.
 export MIGRATION_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export LO_BLOCKS="${LO_BLOCKS:-/home/pdeane/code/update/lo-blocks}"
-export MOLLY_DATA="${MOLLY_DATA:-/home/pdeane/molly_data}"
-export MOLLY_OUT="${MOLLY_OUT:-$MOLLY_DATA/out}"
-export CORPUS_REFS="${CORPUS_REFS:-$MOLLY_DATA/corpus_refs.json}"
+export COURSE_DATA="${COURSE_DATA:-/home/pdeane/molly_data}"
+export COURSE_OUT="${COURSE_OUT:-$COURSE_DATA/out}"
+export CORPUS_REFS="${CORPUS_REFS:-$COURSE_DATA/corpus_refs.json}"
 export PYTHONPATH="$MIGRATION_ROOT/scoring:$MIGRATION_ROOT/migration"
 export MIGRATION_ENV="$MIGRATION_ROOT/migration/env.sh"
 

@@ -69,7 +69,7 @@ def rows():
 
     # 3 — the served prompt, against a dump that predates the work
     import agreement_app as A, olx_prompts as O
-    dumps = sorted(glob.glob(os.path.join(os.environ.get("MOLLY_OUT", ""), "*idmap*.json")),
+    dumps = sorted(glob.glob(os.path.join(os.environ.get("COURSE_OUT", ""), "*idmap*.json")),
                    key=os.path.getmtime)
     if not dumps:
         out.append(("idmap served-prompt", "NO DUMP FOUND -- not run, which is not a pass", False))
@@ -111,7 +111,7 @@ def rows():
     # thing. This one does: `e2e_session.sh` puts one participant through all 26
     # items and keeps each item's result, so a rubric that no longer produces a
     # cell shows up as a missing or not-ok result rather than as a clean diff.
-    sess = Path(os.environ.get("MOLLY_OUT", "")) / "e2e_session_p1"
+    sess = Path(os.environ.get("COURSE_OUT", "")) / "e2e_session_p1"
     files = sorted(sess.glob("*.json")) if sess.exists() else []
     if not files:
         out.append(("e2e session (scorer)",
@@ -134,7 +134,7 @@ def rows():
     # will not render, whose inputs refuse text, or whose feedback button
     # answers nothing. Each of those is how a student would actually meet a
     # broken release, and none of them is a byte difference.
-    js = Path(os.environ.get("MOLLY_OUT", "")) / "student_session.json"
+    js = Path(os.environ.get("COURSE_OUT", "")) / "student_session.json"
     if not js.exists():
         out.append(("student session (browser)",
                     "NOT RUN -- migration/student_session.sh; absence is not a pass", False))

@@ -11,8 +11,8 @@ set -u
 cd "$MIGRATION_ROOT/scoring"
 source "$MIGRATION_ENV"
 PID_=${1:-1}
-IDMAP="$MOLLY_OUT/e2e_idmap_8899.json"
-OUTDIR="$MOLLY_OUT/e2e_session_p$PID_"
+IDMAP="$COURSE_OUT/e2e_idmap_8899.json"
+OUTDIR="$COURSE_OUT/e2e_session_p$PID_"
 mkdir -p "$OUTDIR"
 ITEMS=$(python3 -c "import sys;sys.path.insert(0,'.');import agreement_app as A;print(' '.join(sorted(A.JOBS)))")
 echo "items: $ITEMS"

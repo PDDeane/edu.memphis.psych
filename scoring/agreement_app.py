@@ -672,7 +672,7 @@ class _ConsensusFixes:
     wrong clause in the wrong box, and typed the right clause out by hand.
 
     So `CONSENSUS_SPANS.json` names the spans and the text is read from
-    `$MOLLY_DATA` at build time. The same bytes reach the scorer; none of them
+    `$COURSE_DATA` at build time. The same bytes reach the scorer; none of them
     live here. `fixture_edits.py --verify` re-resolves every span, and each one
     carries the sha of the text it was written against, so a corpus that moves
     under a span is a refusal rather than a silent re-scoring.

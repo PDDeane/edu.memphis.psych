@@ -29,7 +29,7 @@
 set -u
 PORT=${1:-8899}
 cd "$LO_BLOCKS"
-OUT=${MOLLY_OUT:-$MOLLY_OUT}
+OUT=${COURSE_OUT:-$COURSE_OUT}
 mkdir -p "$OUT"
 JSON="$OUT/student_session.json"
 

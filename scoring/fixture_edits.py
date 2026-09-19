@@ -23,7 +23,7 @@ So the correction can name the SPAN instead of the words:
     ("slice", "change_a1", "Q6", 118, 291)   # section Q6, characters 118:291
                                              # ^ the same bytes, named not copied
 
-and the text is read from `$MOLLY_DATA` when the fixture is built. Identical
+and the text is read from `$COURSE_DATA` when the fixture is built. Identical
 input to the scorer, nothing quoted in the repo.
 
 WHY THE SHA IS NOT OPTIONAL. A span that still resolves but whose text has moved
