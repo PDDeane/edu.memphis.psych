@@ -14835,6 +14835,40 @@ def check_grader_input_pairings_are_declared() -> list[str]:
     return GI.verify(inv, GI.mine(roots, inv))
 
 
+def check_container_contents_are_declared() -> list[str]:
+    """The containment table still agrees with the corpora.
+
+    The structural half of the same problem `check_grader_input_pairings_are_
+    declared` gates: **no block declares what it may contain** -- there is no
+    `childTags`, no `allowedChildren`, no schema of permitted kids anywhere in
+    lo-blocks. Containment is decided by each block's parser and runtime, so the
+    declaration in `structure_kids.py` is made by hand against mined evidence and
+    has to be held to it.
+
+    It checks NESTING and REFERENCE separately. Conflating them made `Ref` look
+    like the largest container in the corpus -- 431 TextAreas "inside" a block
+    that holds nothing and points at everything.
+    """
+    try:
+        import paths as _paths
+        import structure_kids as SK
+    except Exception as exc:                      # pragma: no cover
+        return [f"the containment declaration cannot be read: {exc}"]
+    import json as _json
+    import os
+    inv_path = os.path.join(_HERE_DIR, "SHAPE_INVENTORY.json")
+    if not os.path.exists(inv_path):
+        return [f"{os.path.basename(inv_path)} is missing, so the containment "
+                f"table has nothing to check itself against -- which is not the "
+                f"same as agreeing with it"]
+    inv = _json.load(open(inv_path))
+    roots = [str(_paths.LO), os.path.join(_HERE_DIR, "..", "psychology")]
+    roots = [r for r in roots if os.path.isdir(r)]
+    if not roots:
+        return ["no corpus to mine, so the containment table is unverifiable here"]
+    return SK.verify(inv, SK.mine(roots, inv))
+
+
 if __name__ == "__main__":
     import json
     import sys
