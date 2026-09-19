@@ -4892,9 +4892,6 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.MIGRATED_MODULES": (
         "modules declared free of course data, and what makes the claim true",
         ("check_module_has_no_course_data",)),
-    "enforcement.D2D_EXEMPTION": (
-        "the one function exempted from the course-data rule, by decision D2d",
-        ("check_module_has_no_course_data",)),
     "enforcement.PARKED_UNDECLARED": (
         "findings deliberately deferred rather than declared",
         ("check_parked_entries_still_apply",)),
@@ -6019,12 +6016,20 @@ def check_side_notes_are_side_specific() -> list[str]:
 # frontmatter went with it -- so the page renders without the corpus again.
 # A park that outlives its finding is a declaration nobody reviewed.
 PARKED_UNDECLARED: dict[tuple[str, str], str] = {
-    # D2d's exemption expired on 2026-09-18, the day T4.1's check was written:
-    # both conditions it was conditional on -- the concurrency guard and the
-    # self-test's restore defect -- are closed, and the check says so rather than
-    # letting the exemption drift on unexamined. That is the mechanism working.
+    # D2d's exemption was REMOVED on 2026-09-19, not merely expired. Its two
+    # conditions -- the concurrency guard and the self-test's restore defect --
+    # closed on 2026-09-18, the expiry check reported it for a day, and then it
+    # went. The embeddings it excused did not go with it: `equivalence.py` rose
+    # from 0 to 27 and the ratchet refuses to baseline a rise, which is the
+    # finding this park now covers.
     #
-    # Parked, not declared, and the difference matters: this is not "the 30
+    # THE PARK IS THE SAME SIZE AS THE EXEMPTION WAS, and that is the point. The
+    # course data in `enforcement_selftest` has not changed; what changed is that
+    # it is counted, printed, and attached to the work that removes it instead of
+    # being subtracted before anyone looked. A park states the number and names
+    # its fix; an exemption states neither.
+    #
+    # Parked, not declared, and the difference matters: this is not "the 27
     # course-bound fixtures in `enforcement_selftest` are right", it is "they are
     # wrong and D2a is the scheduled work that fixes them". The finding stays
     # computed and printed with this reason attached.
@@ -6035,9 +6040,10 @@ PARKED_UNDECLARED: dict[tuple[str, str], str] = {
     # output. This park goes when D2a lands; `check_parked_entries_still_apply`
     # reports it if the finding disappears first.
     ("-", "MIGRATED MODULE HOLDS COURSE DATA"):
-        "D2d's two conditions closed 2026-09-18; D2a (shape-selected fixtures, "
-        "each reporting its chosen target) is owed and scheduled. The park goes "
-        "when D2a lands.",
+        "D2d's exemption was removed 2026-09-19; its 27 embeddings in "
+        "`equivalence.py::enforcement_selftest` are now counted rather than "
+        "excused, and D2a (shape-selected fixtures, each reporting its chosen "
+        "target) is owed and scheduled. The park goes when D2a lands.",
 }
 
 # Ratcheted like every other table here. A park is cheap to add and easy to
@@ -14114,9 +14120,27 @@ DATA_MODULES = {
         "for, and it grows as modules are migrated INTO it.",
 }
 
-# D2d's exemption: NAMED, SCOPED TO A FUNCTION, and carrying its own expiry.
-# `enforcement_selftest` only -- never `equivalence.py` as a whole.
-D2D_EXEMPTION = {"equivalence.py": "enforcement_selftest"}
+# D2d'S EXEMPTION IS GONE, removed 2026-09-19 after the expiry check had been
+# reporting it for a day. It excused the course-bound embeddings in
+# `equivalence.py::enforcement_selftest` from the course-data rule, conditional
+# on two self-test defects; both closed on 2026-09-18 and the check said so
+# rather than letting the exemption drift on unexamined.
+#
+# WHAT REPLACES IT IS NOT NOTHING, AND NOT A RE-BASELINE. Those embeddings are
+# still there -- D2a (fixtures that select their target BY SHAPE and report the
+# target they chose) is the work that removes them, and it is owed. So the count
+# is COUNTED now: `equivalence.py` rises from 0 to its real number, the ratchet
+# refuses to baseline a rise, and the resulting finding is PARKED with D2a named
+# as the scheduled fix. Exempt-and-invisible became counted-and-declared: the
+# same amount of course data, a different amount of honesty.
+#
+# THE LESSON FROM THE MECHANISM, KEPT BECAUSE IT OUTLIVES IT. `_exempt` began as
+# `entry.get("in") == <exemption>.get(module)`, and for any module NOT in the
+# exemption both sides were `None` -- so every module-level embedding in every
+# module compared equal and was excused. Measured when the totals refused to
+# reconcile: 117 of 230 embeddings silently exempt, in modules the exemption had
+# nothing to do with. A `None == None` comparison is how a narrow exemption
+# becomes a general one, and the next exemption written here should start there.
 
 
 _INVENTORY_MEMO: dict = {}
@@ -14174,24 +14198,6 @@ def _inventory_now() -> dict:
     return hit
 
 
-def _exempt(module: str, entry: dict) -> bool:
-    """Is this embedding inside the function D2d exempts?
-
-    Scoped by the ENCLOSING FUNCTION the scan records, not by module, so a course
-    id that appears anywhere else in `equivalence.py` is still a violation.
-
-    BOTH SIDES MUST BE REAL. The first version was
-    `entry.get("in") == D2D_EXEMPTION.get(module)`, and for any module NOT in the
-    exemption both sides are `None` -- so every module-level embedding in every
-    module compared equal and was excused. Measured when the totals refused to
-    reconcile: 117 of 230 embeddings silently exempt, in modules the exemption
-    has nothing to do with. A `None == None` comparison is how a narrow exemption
-    becomes a general one.
-    """
-    fn = D2D_EXEMPTION.get(module)
-    return fn is not None and entry.get("in") == fn
-
-
 def _course_data_counts(inv: dict) -> dict[str, int]:
     """Per module, how many category 1-3 embeddings survive the exemption."""
     out = {}
@@ -14199,67 +14205,11 @@ def _course_data_counts(inv: dict) -> dict[str, int]:
         mod = rec["module"]
         n = 0
         for cat in ("tables", "literal_ids", "vocabulary"):
-            n += sum(1 for e in rec.get(cat, []) if not _exempt(mod, e))
+            # EVERY embedding, with no exemption to subtract: see the note above
+            # `DATA_MODULES` for why D2d's is gone and what replaced it.
+            n += len(rec.get(cat, []))
         out[mod] = n
     return out
-
-
-def _d2d_conditions() -> dict[str, tuple[bool, str]]:
-    """D2d's two expiry conditions, each tested rather than asserted.
-
-    STRUCTURAL, AND SAYING SO. These read the source for the shape of each fix;
-    they do not re-run the behaviour. That is weaker than a behavioural proof and
-    is the same gap this project has already named once -- a state that builds is
-    not a state that runs. It is enough for an EXPIRY trigger, whose job is to
-    notice that the work was done and stop the exemption drifting onward, not to
-    re-certify the work itself.
-    """
-    src = ""
-    path = _HERE_DIR / "equivalence.py"
-    try:
-        src = path.read_text()
-    except OSError as exc:                       # pragma: no cover
-        return {"source unreadable": (False, f"{path}: {exc}")}
-
-    import ast as _ast
-    try:
-        tree = _ast.parse(src)
-    except SyntaxError as exc:                   # pragma: no cover
-        return {"source unparseable": (False, str(exc))}
-
-    body = None
-    for node in _ast.walk(tree):
-        if isinstance(node, _ast.FunctionDef) and node.name == "enforcement_selftest":
-            body = node
-            break
-    if body is None:                             # pragma: no cover
-        return {"enforcement_selftest present": (False, "the function is gone")}
-
-    names = {n.id for n in _ast.walk(body) if isinstance(n, _ast.Name)}
-    names |= {n.attr for n in _ast.walk(body) if isinstance(n, _ast.Attribute)}
-    top = {n.name for n in _ast.walk(tree) if isinstance(n, _ast.FunctionDef)}
-
-    # THE PUBLIC ENTRY POINT, NOT THE HELPER. The first version looked for
-    # `_selftest_in_flight`, which is what `refuse_if_selftest_running` calls
-    # INSIDE olx_prompts -- it never appears in equivalence.py at all, except in a
-    # comment. So the condition read False, the exemption looked alive, and the
-    # expiry silently did not fire: a false negative in the exact place this
-    # docstring warns that a structural test can have one.
-    _guard_names = {"refuse_if_selftest_running", "_selftest_in_flight"} & names
-    guard = bool(_guard_names)
-    net = ("_selftest_snapshot" in names and "_selftest_repair" in names
-           and {"_selftest_snapshot", "_selftest_repair"} <= top)
-    fails = "FAILED -- source moved" in src
-    return {
-        "the concurrency guard (entry condition 4)": (
-            guard, f"enforcement_selftest calls {sorted(_guard_names)[0]}"
-                   if guard else "no call to refuse_if_selftest_running"),
-        "the restore defect (a case that does not restore its injection)": (
-            net and fails,
-            "snapshot/repair net installed and a moved source FAILS"
-            if net and fails else
-            f"snapshot-and-repair net: {net}; moved source fails: {fails}"),
-    }
 
 
 def check_module_has_no_course_data() -> list[str]:
@@ -14341,21 +14291,6 @@ def check_module_has_no_course_data() -> list[str]:
             elif n > was:
                 out.append(f"{mod} course data grew {was} -> {n}; the ratchet only "
                            f"tightens")
-        # The exemption is REPORTED, not silent: its size is a committed number, so
-        # a change in what the self-test embeds shows up in the budget's diff
-        # rather than being absorbed.
-        want_ex = {f"{m}::{fn}": sum(
-                       1 for cat in ("tables", "literal_ids", "vocabulary")
-                       for e in (by_name.get(m) or {}).get(cat, [])
-                       if e.get("in") == fn)
-                   for m, fn in D2D_EXEMPTION.items()}
-        got_ex = budget.get("exempt_d2d", {})
-        for key, n in sorted(want_ex.items()):
-            if got_ex.get(key) != n:
-                out.append(f"the D2d exemption covers {n} embedding(s) at {key}, "
-                           f"but the budget records {got_ex.get(key)} -- the "
-                           f"exemption's size must stay visible, so re-tighten")
-
     # Report what the data modules hold, so excluding them from the ratchet does
     # not also hide them.
     held = {m: counts.get(m, 0) for m in sorted(DATA_MODULES) if counts.get(m)}
@@ -14366,17 +14301,6 @@ def check_module_has_no_course_data() -> list[str]:
                        f"records {recorded} -- re-tighten so the amount of course "
                        f"data and where it sits stays visible")
 
-    # ---- the exemption expires by MECHANISM, not by a sentence -------------
-    conds = _d2d_conditions()
-    if D2D_EXEMPTION and all(met for met, _ in conds.values()):
-        why = "; ".join(f"{name}: {ev}" for name, (met, ev) in sorted(conds.items()))
-        out.append(
-            "the D2d exemption has OUTLIVED ITS REASON. It was conditional on two "
-            "defects in the self-test, and both are now closed -- " + why + ". D2d "
-            "says the exemption expires when they close and D2a (shape-selected "
-            "fixtures, each REPORTING the target it chose) is the work that "
-            "replaces it. An exemption that outlives its reason is how `for now` "
-            "becomes `forever`.")
     return out
 
 
