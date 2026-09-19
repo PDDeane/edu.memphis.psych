@@ -14550,6 +14550,25 @@ COURSE_DATA_BUDGET = _HERE_DIR / "COURSE_DATA_BUDGET.json"
 # Empty at Stage 4's start, and that emptiness is why the ratchet below exists.
 MIGRATED_MODULES: dict[str, str] = {}
 
+# Modules that ARE authored course data, by design. The ratchet exists to stop
+# course content accumulating in ENGINE code; a declared data module is not
+# engine code, and counting it made the ratchet refuse the migration it was
+# written to enable -- `generator_source.py` went 11 -> 14 because three marker
+# tables arrived there FROM `segment.py`, which is the work succeeding.
+#
+# Their contents are still COUNTED and REPORTED, just not ratcheted: the point
+# is to see how much course data exists and where, not to pretend a data module
+# holds none.
+DATA_MODULES = {
+    "rubric_h1.py": "the handout 1 rubric, authored",
+    "rubric_h2.py": "the handout 2 rubric, authored",
+    "rubric_h3.py": "the handout 3 rubric, authored",
+    "generator_source.py":
+        "the Stage 4 builder: authored tables the export reads to WRITE the "
+        "course file, kept outside the scoring path. Course data is what it is "
+        "for, and it grows as modules are migrated INTO it.",
+}
+
 # D2d's exemption: NAMED, SCOPED TO A FUNCTION, and carrying its own expiry.
 # `enforcement_selftest` only -- never `equivalence.py` as a whole.
 D2D_EXEMPTION = {"equivalence.py": "enforcement_selftest"}
@@ -14698,6 +14717,8 @@ def check_module_has_no_course_data() -> list[str]:
     if budget is not None:
         base = budget.get("modules", {})
         for mod, n in sorted(counts.items()):
+            if mod in DATA_MODULES:
+                continue                          # counted, reported, not ratcheted
             was = base.get(mod)
             if was is None:
                 out.append(f"{mod} carries {n} course-data embedding(s) and is not "
@@ -14720,6 +14741,16 @@ def check_module_has_no_course_data() -> list[str]:
                 out.append(f"the D2d exemption covers {n} embedding(s) at {key}, "
                            f"but the budget records {got_ex.get(key)} -- the "
                            f"exemption's size must stay visible, so re-tighten")
+
+    # Report what the data modules hold, so excluding them from the ratchet does
+    # not also hide them.
+    held = {m: counts.get(m, 0) for m in sorted(DATA_MODULES) if counts.get(m)}
+    if held and budget is not None:
+        recorded = budget.get("data_modules", {})
+        if recorded != held:
+            out.append(f"the declared DATA modules hold {held}, and the budget "
+                       f"records {recorded} -- re-tighten so the amount of course "
+                       f"data and where it sits stays visible")
 
     # ---- the exemption expires by MECHANISM, not by a sentence -------------
     conds = _d2d_conditions()
