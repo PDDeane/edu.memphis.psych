@@ -952,6 +952,8 @@ def enforcement_audit():
         findings.append(("-", "COMPUTED-SLOT RECOVERY UNFAITHFUL", bad))
     for bad in ENF.check_count_scaffolds_are_arithmetic():
         findings.append(("-", "COUNT SCAFFOLD IS NOT ARITHMETIC", bad))
+    for bad in ENF.check_hand_authored_attrs_still_suppress_something():
+        findings.append(("-", "GENERATED ATTRIBUTE HAS NO DECLARATION", bad))
     for bad in ENF.check_generated_attributes_have_a_declaration():
         findings.append(("-", "GENERATED ATTRIBUTE HAS NO DECLARATION", bad))
     for bad in ENF.check_no_case_names_in_prompts():

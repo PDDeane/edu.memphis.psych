@@ -6205,6 +6205,24 @@
     "The web charges the pair once. `demonstrates_type` is DERIVED on NR -- the sheet declares `expect=\"demonstrates_type:observed_type=NR\"` -- so the CLI probe never fails it independently and the pair cannot appear in its arithmetic. Named in equivalence.py's selftest as a legitimate declared divergence since before this table existed; moved here so it is a decision with a reason rather than a remark. Declared 2026-09-16."
    ]
   ],
+  "SLOT_STRUCTURE_FAMILIES": [
+   [
+    "h2-cadence-and-type",
+    {
+     "__tuple__": [
+      "PR",
+      "NR",
+      "PP",
+      "NP",
+      "DAY1",
+      "WK1",
+      "DAY2",
+      "WK2"
+     ]
+    }
+   ]
+  ],
+  "HAND_AUTHORED_ATTRS": [],
   "PAPER_ITEM_NOTES": [
    [
     "Q3",
