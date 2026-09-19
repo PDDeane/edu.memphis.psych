@@ -1,0 +1,2763 @@
+{
+ "schema_version": 1,
+ "lo_blocks": "/home/pdeane/code/update/lo-blocks",
+ "blocks_registered": 134,
+ "by_role": {
+  "action": 14,
+  "display": 26,
+  "gradable_input": 15,
+  "gradable_item_family": 2,
+  "grader": 16,
+  "grading_support": 5,
+  "item_part": 6,
+  "not_intake": 13,
+  "structure": 37
+ },
+ "stale_sources": [],
+ "pairing_is_not_declared": "No grader declares which inputs it pairs with. A grader declares inputType (single/list) or slots (dict), and whether it infers inputs from children; compatibility is a value-schema question plus authoring convention written in prose. An intake program must decide the pairing; it is not derivable from declarations.",
+ "blocks": [
+  {
+   "name": "ActionButton",
+   "role": "action",
+   "why": "item BEHAVIOUR rather than structure -- the path by which a response is produced, scored or revealed (LLMAction feeds SlotSheetGrader this way)",
+   "category": "action",
+   "source": "packages/shared/components/blocks/action/ActionButton.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "label",
+     "describes": "Button text displayed to the user"
+    },
+    {
+     "attr": "target",
+     "describes": "Action block ID(s) to trigger, comma-separated (inferred from context if omitted)"
+    },
+    {
+     "attr": "action",
+     "describes": "Named action to invoke (currently unused; reserved for multi-action targets)"
+    },
+    {
+     "attr": "dependsOn",
+     "describes": "Prerequisite conditions (comma-separated element IDs with optional operators)"
+    },
+    {
+     "attr": "disabled",
+     "describes": "Explicitly disable the button (set to"
+    },
+    {
+     "attr": "confirm",
+     "describes": "Message shown in the confirmation dialog. Only reached by a button that"
+    },
+    {
+     "attr": "ignoreSubmitLock",
+     "describes": "Keep this button live after the surrounding activity is submitted (set"
+    }
+   ]
+  },
+  {
+   "name": "AggregatedInputs",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "reference",
+   "source": "packages/shared/components/blocks/reference/AggregatedInputs/AggregatedInputs.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "Comma-separated list of component IDs to aggregate"
+    },
+    {
+     "attr": "field",
+     "describes": "Field name to aggregate (default:"
+    },
+    {
+     "attr": "fallback",
+     "describes": "Fallback value when field is empty"
+    },
+    {
+     "attr": "heading",
+     "describes": "Heading text for the display"
+    }
+   ]
+  },
+  {
+   "name": "Annotate",
+   "role": "gradable_input",
+   "why": "collects student annotations; its value is a response even though it declares no `input(`",
+   "category": "language-arts",
+   "source": "packages/shared/components/blocks/language-arts/Annotate/Annotate.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": true
+   },
+   "attributes": [],
+   "collects": {
+    "value_schema": null
+   }
+  },
+  {
+   "name": "AnswerDistribution",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "reference",
+   "source": "packages/shared/components/blocks/reference/AnswerDistribution/AnswerDistribution.ts",
+   "authoring": {
+    "readme": false,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "Id of the input block whose answers to aggregate"
+    }
+   ]
+  },
+  {
+   "name": "AvatarEditor",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "scenario",
+   "source": "packages/shared/components/blocks/scenario/AvatarEditor/AvatarEditor.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "BadBlock",
+   "role": "not_intake",
+   "why": "the authoring environment or a test block -- never course content, and knowing that is itself an inference the intake program must encode",
+   "category": "_test",
+   "source": "packages/shared/components/blocks/_test/BadBlock.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "BlockDoc",
+   "role": "not_intake",
+   "why": "the authoring environment or a test block -- never course content, and knowing that is itself an inference the intake program must encode",
+   "category": "authoring",
+   "source": "packages/shared/components/blocks/authoring/BlockDoc/BlockDoc.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "block",
+     "describes": "Name of the block to document (e.g."
+    }
+   ]
+  },
+  {
+   "name": "BlockIndex",
+   "role": "not_intake",
+   "why": "the authoring environment or a test block -- never course content, and knowing that is itself an inference the intake program must encode",
+   "category": "authoring",
+   "source": "packages/shared/components/blocks/authoring/BlockIndex/BlockIndex.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "categories",
+     "describes": "Comma-separated block categories to list (e.g."
+    },
+    {
+     "attr": "blocks",
+     "describes": "Comma-separated block names to list (e.g."
+    }
+   ]
+  },
+  {
+   "name": "BlockMath",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/DisplayMath/BlockMath.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "CapaFooter",
+   "role": "item_part",
+   "why": "a piece an item is built FROM, not an item: Key, Distractor and the Simple* authoring shorthands are parsed by their parent",
+   "category": "CapaProblem",
+   "source": "packages/shared/components/blocks/CapaProblem/CapaFooter.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "Comma-separated grader IDs to trigger"
+    },
+    {
+     "attr": "hintsTarget",
+     "describes": "DemandHints ID for hint button"
+    },
+    {
+     "attr": "label",
+     "describes": "Override check button label"
+    },
+    {
+     "attr": "submitCount",
+     "describes": "Current submission count"
+    },
+    {
+     "attr": "correct",
+     "describes": "Current correctness state"
+    }
+   ]
+  },
+  {
+   "name": "CapaProblem",
+   "role": "gradable_item_family",
+   "why": "a self-contained Open edX-style problem carrying its own inputs and grading",
+   "category": "CapaProblem",
+   "source": "packages/shared/components/blocks/CapaProblem/CapaProblem.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "displayName",
+     "describes": "Display name for the problem"
+    },
+    {
+     "attr": "submitLabel",
+     "describes": "Override the check/submit button label (e.g."
+    }
+   ],
+   "collects": {
+    "value_schema": null
+   }
+  },
+  {
+   "name": "Carousel",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/Carousel/Carousel.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "wrap",
+     "describes": "Enable circular navigation (wrap around at ends)"
+    },
+    {
+     "attr": "readonly",
+     "describes": "Hide navigation arrows (view-only mode)"
+    },
+    {
+     "attr": "randomize",
+     "describes": "Shuffle item order (stored in Redux so it stays consistent)"
+    }
+   ]
+  },
+  {
+   "name": "Cast",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "scenario",
+   "source": "packages/shared/components/blocks/scenario/Cast/Cast.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": []
+  },
+  {
+   "name": "CastEditor",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "scenario",
+   "source": "packages/shared/components/blocks/scenario/CastEditor/CastEditor.ts",
+   "authoring": {
+    "readme": false,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "Catalog",
+   "role": "not_intake",
+   "why": "the authoring environment or a test block -- never course content, and knowing that is itself an inference the intake program must encode",
+   "category": "authoring",
+   "source": "packages/shared/components/blocks/authoring/Catalog/Catalog.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": []
+  },
+  {
+   "name": "CharacterBuilder",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "scenario",
+   "source": "packages/shared/components/blocks/scenario/CharacterBuilder/CharacterBuilder.ts",
+   "authoring": {
+    "readme": false,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "Chat",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "scenario",
+   "source": "packages/shared/components/blocks/scenario/Chat/Chat.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "clip",
+     "describes": "Clip range for dialogue section"
+    },
+    {
+     "attr": "history",
+     "describes": "History clip range to show before current clip"
+    },
+    {
+     "attr": "height",
+     "describes": "Container height (e.g.,"
+    }
+   ]
+  },
+  {
+   "name": "CheckboxGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/ChoiceInput/CheckboxGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "grades": {
+    "input_type": null,
+    "infers_inputs_from_children": true,
+    "creates_match_variant": true
+   }
+  },
+  {
+   "name": "CheckboxInput",
+   "role": "gradable_input",
+   "why": "collects a response: declares `...input(...)`, so it holds a student value",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/ChoiceInput/CheckboxInput.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "Comma-separated IDs of Key/Distractor children if not directly nested"
+    }
+   ],
+   "collects": {
+    "value_schema": "z.array(z.string()) })"
+   }
+  },
+  {
+   "name": "ChoiceInput",
+   "role": "gradable_input",
+   "why": "collects a response: declares `...input(...)`, so it holds a student value",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/ChoiceInput/ChoiceInput.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "Comma-separated IDs of Key/Distractor children if not directly nested"
+    }
+   ],
+   "collects": {
+    "value_schema": "z.string() })"
+   }
+  },
+  {
+   "name": "CodeInput",
+   "role": "gradable_input",
+   "why": "collects a response: declares `...input(...)`, so it holds a student value",
+   "category": "authoring",
+   "source": "packages/shared/components/blocks/authoring/CodeInput/CodeInput.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "collects": {
+    "value_schema": null
+   }
+  },
+  {
+   "name": "Collapsible",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/Collapsible/Collapsible.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "label",
+     "describes": "Header text for the collapsible section (alias for title)"
+    }
+   ]
+  },
+  {
+   "name": "CompactPopout",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/CompactPopout/CompactPopout.ts",
+   "authoring": {
+    "readme": false,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "label",
+     "describes": "Placeholder text shown when collapsed (e.g."
+    },
+    {
+     "attr": "autoOpen",
+     "describes": "If true, auto-expand on first render. Defaults to false."
+    },
+    {
+     "attr": "target",
+     "describes": "Component ID to repoint (mode="
+    },
+    {
+     "attr": "targetContent",
+     "describes": "Block ID to display in the target (mode="
+    }
+   ]
+  },
+  {
+   "name": "ComplexInput",
+   "role": "gradable_input",
+   "why": "collects a response: declares `...input(...)`, so it holds a student value",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/ComplexInput.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "placeholder",
+     "describes": "Placeholder text shown when empty"
+    }
+   ],
+   "collects": {
+    "value_schema": null
+   }
+  },
+  {
+   "name": "CopyFieldAction",
+   "role": "action",
+   "why": "item BEHAVIOUR rather than structure -- the path by which a response is produced, scored or revealed (LLMAction feeds SlotSheetGrader this way)",
+   "category": "action",
+   "source": "packages/shared/components/blocks/action/CopyFieldAction/CopyFieldAction.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "Source block.field to read from (default field: value)"
+    },
+    {
+     "attr": "output",
+     "describes": "Destination block.field(s) to write to, comma-separated (default field: value)"
+    }
+   ]
+  },
+  {
+   "name": "CorrectGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/CorrectGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "grades": {
+    "input_type": null,
+    "infers_inputs_from_children": true,
+    "creates_match_variant": false
+   }
+  },
+  {
+   "name": "Correctness",
+   "role": "grading_support",
+   "why": "grading machinery, not itself a grader",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/Correctness.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "Target grader ID"
+    }
+   ]
+  },
+  {
+   "name": "Course",
+   "role": "structure",
+   "why": "the top-level course container",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/Course/Course.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "CustomGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/CustomGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "Input block ID(s) to grade, comma-separated"
+    }
+   ],
+   "grades": {
+    "input_type": "list",
+    "infers_inputs_from_children": false,
+    "creates_match_variant": false
+   }
+  },
+  {
+   "name": "DefaultGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/DefaultGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "grades": {
+    "input_type": null,
+    "infers_inputs_from_children": true,
+    "creates_match_variant": true
+   }
+  },
+  {
+   "name": "DemandHints",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/DemandHints/DemandHints.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "DerivedChecks",
+   "role": "grading_support",
+   "why": "grading machinery, not itself a grader",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/DerivedChecks/DerivedChecks.ts",
+   "authoring": {
+    "readme": true,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": [
+    {
+     "attr": "slots",
+     "describes": "The checklist, same syntax as LLMAction:"
+    },
+    {
+     "attr": "verdicts",
+     "describes": "Default verdict vocabulary for checks that do not name their own, comma-separated."
+    },
+    {
+     "attr": "derived",
+     "describes": "Which checks are read off the page, and from where. Rules separated by"
+    },
+    {
+     "attr": "max",
+     "describes": "The item"
+    }
+   ]
+  },
+  {
+   "name": "DevProblem",
+   "role": "not_intake",
+   "why": "the authoring environment or a test block -- never course content, and knowing that is itself an inference the intake program must encode",
+   "category": "_test",
+   "source": "packages/shared/components/blocks/_test/DevProblem.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": []
+  },
+  {
+   "name": "DevQuestion",
+   "role": "not_intake",
+   "why": "the authoring environment or a test block -- never course content, and knowing that is itself an inference the intake program must encode",
+   "category": "_test",
+   "source": "packages/shared/components/blocks/_test/DevQuestion.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": [
+    {
+     "attr": "prompt",
+     "describes": "Question text shown above the options"
+    },
+    {
+     "attr": "options",
+     "describes": "Comma-separated option labels"
+    }
+   ]
+  },
+  {
+   "name": "DigitSpanTask",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "specialized",
+   "source": "packages/shared/components/blocks/specialized/DigitSpanTask/DigitSpanTask.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "Distractor",
+   "role": "item_part",
+   "why": "a piece an item is built FROM, not an item: Key, Distractor and the Simple* authoring shorthands are parsed by their parent",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/ChoiceInput/Distractor.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "value",
+     "describes": "Value submitted when selected; defaults to element ID"
+    }
+   ]
+  },
+  {
+   "name": "DocAttributes",
+   "role": "not_intake",
+   "why": "the authoring environment or a test block -- never course content, and knowing that is itself an inference the intake program must encode",
+   "category": "authoring",
+   "source": "packages/shared/components/blocks/authoring/DocAttributes/DocAttributes.ts",
+   "authoring": {
+    "readme": false,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "DocFields",
+   "role": "not_intake",
+   "why": "the authoring environment or a test block -- never course content, and knowing that is itself an inference the intake program must encode",
+   "category": "authoring",
+   "source": "packages/shared/components/blocks/authoring/DocFields/DocFields.ts",
+   "authoring": {
+    "readme": false,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "DocsBrowser",
+   "role": "not_intake",
+   "why": "the authoring environment or a test block -- never course content, and knowing that is itself an inference the intake program must encode",
+   "category": "authoring",
+   "source": "packages/shared/components/blocks/authoring/DocsBrowser/DocsBrowser.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "selected",
+     "describes": "Block name whose documentation shows in the main pane"
+    },
+    {
+     "attr": "internal",
+     "describes": "Show internal/system blocks by default \u2014 the authored default for"
+    }
+   ]
+  },
+  {
+   "name": "DropdownInput",
+   "role": "gradable_input",
+   "why": "collects a response: declares `...input(...)`, so it holds a student value",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/DropdownInput/DropdownInput.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "placeholder",
+     "describes": "Placeholder text for empty selection"
+    },
+    {
+     "attr": "options",
+     "describes": "Comma-separated options (e.g.,"
+    }
+   ],
+   "collects": {
+    "value_schema": "z.string() })"
+   }
+  },
+  {
+   "name": "DynamicList",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/DynamicList.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "min",
+     "describes": "Minimum number of items (default: 1)"
+    },
+    {
+     "attr": "max",
+     "describes": "Maximum number of items"
+    },
+    {
+     "attr": "start",
+     "describes": "Initial number of items (default: 3)"
+    }
+   ]
+  },
+  {
+   "name": "ErrorNode",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "utility",
+   "source": "packages/shared/components/blocks/utility/ErrorNode/ErrorNode.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "Explanation",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/Explanation/Explanation.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "Flash",
+   "role": "action",
+   "why": "item BEHAVIOUR rather than structure -- the path by which a response is produced, scored or revealed (LLMAction feeds SlotSheetGrader this way)",
+   "category": "action",
+   "source": "packages/shared/components/blocks/action/Flash/Flash.ts",
+   "authoring": {
+    "readme": false,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "Block ID to flash"
+    }
+   ]
+  },
+  {
+   "name": "FormulaGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/FormulaGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "additionalAnswers",
+     "describes": "Semicolon-separated alternative correct formulas"
+    },
+    {
+     "attr": "checkVariables",
+     "describes": "Set to"
+    }
+   ],
+   "grades": {
+    "input_type": null,
+    "infers_inputs_from_children": true,
+    "creates_match_variant": true
+   }
+  },
+  {
+   "name": "FormulaInput",
+   "role": "gradable_input",
+   "why": "collects a response: declares `...input(...)`, so it holds a student value",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/FormulaInput.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "variables",
+     "describes": "Comma-separated variable names allowed in expressions (e.g."
+    },
+    {
+     "attr": "functions",
+     "describes": "Comma-separated function names allowed in expressions (e.g."
+    },
+    {
+     "attr": "caseSensitive",
+     "describes": "Whether variable/function names are case-sensitive (default: false)"
+    },
+    {
+     "attr": "trailingText",
+     "describes": "Text shown after the input (e.g. units like"
+    },
+    {
+     "attr": "size",
+     "describes": "Input width in characters"
+    }
+   ],
+   "collects": {
+    "value_schema": null
+   }
+  },
+  {
+   "name": "Freewrite",
+   "role": "gradable_input",
+   "why": "collects a response: declares `...input(...)`, so it holds a student value",
+   "category": "language-arts",
+   "source": "packages/shared/components/blocks/language-arts/Freewrite/Freewrite.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "collects": {
+    "value_schema": null
+   }
+  },
+  {
+   "name": "HH",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/HH.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": []
+  },
+  {
+   "name": "HelloAction",
+   "role": "action",
+   "why": "item BEHAVIOUR rather than structure -- the path by which a response is produced, scored or revealed (LLMAction feeds SlotSheetGrader this way)",
+   "category": "action",
+   "source": "packages/shared/components/blocks/action/HelloAction.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "Hidden",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/Hidden.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "Hint",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/DemandHints/Hint.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": []
+  },
+  {
+   "name": "HintButton",
+   "role": "action",
+   "why": "item BEHAVIOUR rather than structure -- the path by which a response is produced, scored or revealed (LLMAction feeds SlotSheetGrader this way)",
+   "category": "action",
+   "source": "packages/shared/components/blocks/action/HintButton/HintButton.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "ID of DemandHints component; infers from parent/siblings if omitted"
+    }
+   ]
+  },
+  {
+   "name": "Html",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/Html/Html.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": []
+  },
+  {
+   "name": "Image",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/Image/Image.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "alt",
+     "describes": "Alternative text for accessibility"
+    },
+    {
+     "attr": "width",
+     "describes": "Image width in pixels or CSS value"
+    },
+    {
+     "attr": "height",
+     "describes": "Image height in pixels (not available in some contexts)"
+    }
+   ]
+  },
+  {
+   "name": "InlineMath",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/DisplayMath/InlineMath.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "IntakeGate",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/IntakeGate/IntakeGate.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "targets",
+     "describes": "Comma-separated TextSlot IDs to watch (shorthand for LLM flows)"
+    },
+    {
+     "attr": "ready",
+     "describes": "DSL expression \u2014 when truthy, show content (second child)"
+    },
+    {
+     "attr": "loading",
+     "describes": "DSL expression \u2014 when truthy and not ready, show loading spinner"
+    }
+   ]
+  },
+  {
+   "name": "Key",
+   "role": "item_part",
+   "why": "a piece an item is built FROM, not an item: Key, Distractor and the Simple* authoring shorthands are parsed by their parent",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/ChoiceInput/Key.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "value",
+     "describes": "Value submitted when selected; defaults to element ID"
+    }
+   ]
+  },
+  {
+   "name": "KeyGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/ChoiceInput/KeyGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "grades": {
+    "input_type": null,
+    "infers_inputs_from_children": true,
+    "creates_match_variant": true
+   }
+  },
+  {
+   "name": "LLMAction",
+   "role": "action",
+   "why": "item BEHAVIOUR rather than structure -- the path by which a response is produced, scored or revealed (LLMAction feeds SlotSheetGrader this way)",
+   "category": "action",
+   "source": "packages/shared/components/blocks/action/LLMAction.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "ID of the TextSlot or LLMFeedback to write output to"
+    },
+    {
+     "attr": "slots",
+     "describes": "Optional checklist the model must complete, as"
+    },
+    {
+     "attr": "verdicts",
+     "describes": "Comma-separated verdict values available to every slot (default"
+    },
+    {
+     "attr": "max",
+     "describes": "The item"
+    },
+    {
+     "attr": "cover",
+     "describes": "Checks that between them must COVER a set of labels, so the grader does the"
+    },
+    {
+     "attr": "equals",
+     "describes": "Checks the grader COMPUTES by comparing two others instead of asking. Rules"
+    },
+    {
+     "attr": "counts",
+     "describes": "A repeated element counted ONCE, with its member checks derived from the"
+    },
+    {
+     "attr": "derived",
+     "describes": "Checks whose verdict is read off the PAGE rather than asked of the model."
+    },
+    {
+     "attr": "choices",
+     "describes": "Named sets of categories an item asks about,"
+    },
+    {
+     "attr": "expect",
+     "describes": "A check COMPUTED by comparing one classification against an authored value:"
+    },
+    {
+     "attr": "onlyif",
+     "describes": "Checks that are only CHARGED when another check is satisfied, for rubrics"
+    },
+    {
+     "attr": "requires",
+     "describes": "Checks that are only CREDITED while another check holds. The mirror of"
+    },
+    {
+     "attr": "free",
+     "describes": "Verdicts that are NOT satisfying and still cost NOTHING, as"
+    },
+    {
+     "attr": "forbid",
+     "describes": "A check that FAILS on a named COMBINATION of other answers, for a code the"
+    },
+    {
+     "attr": "maps",
+     "describes": "A check COMPUTED by mapping one pick"
+    }
+   ]
+  },
+  {
+   "name": "LLMFeedback",
+   "role": "action",
+   "why": "item BEHAVIOUR rather than structure -- the path by which a response is produced, scored or revealed (LLMAction feeds SlotSheetGrader this way)",
+   "category": "action",
+   "source": "packages/shared/components/blocks/action/LLMFeedback.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "LLMGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/LLMGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "question",
+     "describes": "The question being asked (context for the grader)"
+    },
+    {
+     "attr": "rubric",
+     "describes": "Grading criteria the LLM applies"
+    }
+   ],
+   "grades": {
+    "input_type": null,
+    "infers_inputs_from_children": true,
+    "creates_match_variant": true
+   }
+  },
+  {
+   "name": "LineInput",
+   "role": "gradable_input",
+   "why": "collects a response: declares `...input(...)`, so it holds a student value",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/LineInput.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "min",
+     "describes": "Minimum allowed value (for numeric types)"
+    },
+    {
+     "attr": "max",
+     "describes": "Maximum allowed value (for numeric types)"
+    },
+    {
+     "attr": "step",
+     "describes": "Step increment (for numeric types)"
+    },
+    {
+     "attr": "type",
+     "describes": "HTML input type"
+    }
+   ],
+   "collects": {
+    "value_schema": "z.string() })"
+   }
+  },
+  {
+   "name": "LiquidTemplate",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "specialized",
+   "source": "packages/shared/components/blocks/specialized/LiquidTemplate/LiquidTemplate.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "data",
+     "describes": "Path to YAML/JSON data file"
+    },
+    {
+     "attr": "src",
+     "describes": "Path to .liquid template file"
+    }
+   ]
+  },
+  {
+   "name": "Markdown",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/Markdown/Markdown.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "MarkupProblem",
+   "role": "gradable_item_family",
+   "why": "a self-contained problem family, as CapaProblem",
+   "category": "MarkupProblem",
+   "source": "packages/shared/components/blocks/MarkupProblem/MarkupProblem.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "collects": {
+    "value_schema": null
+   }
+  },
+  {
+   "name": "MasteryBank",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "specialized",
+   "source": "packages/shared/components/blocks/specialized/MasteryBank/MasteryBank.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "goal",
+     "describes": "Number of correct answers in a row to achieve mastery"
+    }
+   ]
+  },
+  {
+   "name": "MatchingGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/Matching/MatchingGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "grades": {
+    "input_type": null,
+    "infers_inputs_from_children": true,
+    "creates_match_variant": true
+   }
+  },
+  {
+   "name": "MatchingInput",
+   "role": "gradable_input",
+   "why": "collects a response: declares `...input(...)`, so it holds a student value",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/Matching/MatchingInput.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "shuffle",
+     "describes": "Whether to shuffle right side items initially (default: true)"
+    }
+   ],
+   "collects": {
+    "value_schema": null
+   }
+  },
+  {
+   "name": "Mermaid",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/Mermaid/Mermaid.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "Navigator",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/Navigator/Navigator.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "preview",
+     "describes": "ID of block to use as preview template"
+    },
+    {
+     "attr": "detail",
+     "describes": "ID of block to use as detail template"
+    }
+   ]
+  },
+  {
+   "name": "NavigatorDefaultDetail",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/Navigator/NavigatorDefaultDetail.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": []
+  },
+  {
+   "name": "NavigatorDefaultPreview",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/Navigator/NavigatorDefaultPreview.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": []
+  },
+  {
+   "name": "NavigatorReadingDetail",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/Navigator/NavigatorReadingDetail.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": []
+  },
+  {
+   "name": "NavigatorTeamDetail",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/Navigator/NavigatorTeamDetail.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": []
+  },
+  {
+   "name": "NavigatorTeamPreview",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/Navigator/NavigatorTeamPreview.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": []
+  },
+  {
+   "name": "NextReveal",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "scenario",
+   "source": "packages/shared/components/blocks/scenario/NextReveal/NextReveal.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "Noop",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/Noop.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "Notice",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/Notice/Notice.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "content",
+     "describes": "Custom notice text (markdown); omit for the platform notice"
+    }
+   ]
+  },
+  {
+   "name": "NumberInput",
+   "role": "gradable_input",
+   "why": "collects a response: declares `...input(...)`, so it holds a student value",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/NumberInput.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "min",
+     "describes": "Minimum allowed value"
+    },
+    {
+     "attr": "max",
+     "describes": "Maximum allowed value"
+    },
+    {
+     "attr": "step",
+     "describes": "Step increment for value changes"
+    }
+   ],
+   "collects": {
+    "value_schema": null
+   }
+  },
+  {
+   "name": "NumericalGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/NumericalGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "grades": {
+    "input_type": null,
+    "infers_inputs_from_children": true,
+    "creates_match_variant": true
+   }
+  },
+  {
+   "name": "ObservablePlot",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/ObservablePlot/ObservablePlot.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "width",
+     "describes": "Plot width in pixels"
+    },
+    {
+     "attr": "height",
+     "describes": "Plot height in pixels"
+    }
+   ]
+  },
+  {
+   "name": "OlxSlot",
+   "role": "not_intake",
+   "why": "the authoring environment or a test block -- never course content, and knowing that is itself an inference the intake program must encode",
+   "category": "authoring",
+   "source": "packages/shared/components/blocks/authoring/OlxSlot/OlxSlot.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "OnChange",
+   "role": "action",
+   "why": "a trigger",
+   "category": "action",
+   "source": "packages/shared/components/blocks/action/OnChange/OnChange.ts",
+   "authoring": {
+    "readme": true,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": [
+    {
+     "attr": "watch",
+     "describes": "DSL expression whose VALUE is watched (e.g."
+    },
+    {
+     "attr": "target",
+     "describes": "Action block ID(s) to fire, comma-separated; inferred from context if omitted"
+    }
+   ]
+  },
+  {
+   "name": "OnShow",
+   "role": "action",
+   "why": "a trigger",
+   "category": "action",
+   "source": "packages/shared/components/blocks/action/OnShow/OnShow.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "PDFViewer",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/PDFViewer/PDFViewer.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "width",
+     "describes": "Viewer width (CSS value, e.g."
+    },
+    {
+     "attr": "height",
+     "describes": "Viewer height (CSS value, e.g."
+    }
+   ]
+  },
+  {
+   "name": "PEGDevBlock",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "specialized",
+   "source": "packages/shared/components/blocks/specialized/PEGDevBlock/PEGDevBlock.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "PrintAction",
+   "role": "action",
+   "why": "item BEHAVIOUR rather than structure -- the path by which a response is produced, scored or revealed (LLMAction feeds SlotSheetGrader this way)",
+   "category": "action",
+   "source": "packages/shared/components/blocks/action/PrintAction.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "RatioGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/RatioGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "grades": {
+    "input_type": "dict",
+    "infers_inputs_from_children": true,
+    "creates_match_variant": true
+   }
+  },
+  {
+   "name": "Ref",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "reference",
+   "source": "packages/shared/components/blocks/reference/Ref/Ref.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "ID of component to reference"
+    },
+    {
+     "attr": "field",
+     "describes": "Specific field to access from target"
+    },
+    {
+     "attr": "fallback",
+     "describes": "Fallback value when target is empty"
+    }
+   ]
+  },
+  {
+   "name": "RepoCard",
+   "role": "not_intake",
+   "why": "the authoring environment or a test block -- never course content, and knowing that is itself an inference the intake program must encode",
+   "category": "authoring",
+   "source": "packages/shared/components/blocks/authoring/Catalog/RepoCard.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": [
+    {
+     "attr": "origin",
+     "describes": "Repo origin (e.g. git+https://\u2026@branch or file:\u2026). Required when not passed as a direct React prop."
+    },
+    {
+     "attr": "compact",
+     "describes": "true (default) for compact, false for full view"
+    }
+   ]
+  },
+  {
+   "name": "Rule",
+   "role": "grading_support",
+   "why": "a RulesGrader rule, not a grader",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/Rule.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": [
+    {
+     "attr": "match",
+     "describes": "DSL expression to evaluate (e.g., stringMatch(input,"
+    },
+    {
+     "attr": "score",
+     "describes": "Score for this rule (0-1)"
+    },
+    {
+     "attr": "feedback",
+     "describes": "Feedback message when this rule matches"
+    },
+    {
+     "attr": "feedbackBlock",
+     "describes": "ID of a block to display as feedback"
+    }
+   ]
+  },
+  {
+   "name": "RulesGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/RulesGrader/RulesGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "grades": {
+    "input_type": null,
+    "infers_inputs_from_children": true,
+    "creates_match_variant": true
+   }
+  },
+  {
+   "name": "ScoreTable",
+   "role": "grading_support",
+   "why": "presents grading output",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/ScoreTable/ScoreTable.ts",
+   "authoring": {
+    "readme": true,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": [
+    {
+     "attr": "items",
+     "describes": "The rows, separated by"
+    },
+    {
+     "attr": "heading",
+     "describes": "Column heading for the first column (default"
+    }
+   ]
+  },
+  {
+   "name": "SelfMonitorPlot",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/SelfMonitorPlot/SelfMonitorPlot.ts",
+   "authoring": {
+    "readme": true,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": [
+    {
+     "attr": "chartTitle",
+     "describes": "Chart title (the base"
+    },
+    {
+     "attr": "xlabel",
+     "describes": "X-axis label"
+    },
+    {
+     "attr": "ylabel",
+     "describes": "Y-axis label"
+    },
+    {
+     "attr": "chartTitleTarget",
+     "describes": "Read the chart title from this input"
+    },
+    {
+     "attr": "xlabelTarget",
+     "describes": "Read the x-axis label from this input"
+    },
+    {
+     "attr": "ylabelTarget",
+     "describes": "Read the y-axis label from this input"
+    },
+    {
+     "attr": "width",
+     "describes": "Chart width in pixels"
+    },
+    {
+     "attr": "height",
+     "describes": "Chart height in pixels"
+    }
+   ]
+  },
+  {
+   "name": "Sequential",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/Sequential/Sequential.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "ServerPoll",
+   "role": "action",
+   "why": "fetches state; behaviour, not structure",
+   "category": "_test",
+   "source": "packages/shared/components/blocks/_test/ServerPoll.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": []
+  },
+  {
+   "name": "SetFieldAction",
+   "role": "action",
+   "why": "item BEHAVIOUR rather than structure -- the path by which a response is produced, scored or revealed (LLMAction feeds SlotSheetGrader this way)",
+   "category": "action",
+   "source": "packages/shared/components/blocks/action/SetFieldAction.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "SharedNotes",
+   "role": "structure",
+   "why": "shared workspace other blocks are reached in",
+   "category": "_test",
+   "source": "packages/shared/components/blocks/_test/SharedNotes.ts",
+   "authoring": {
+    "readme": false,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "SheetValue",
+   "role": "grading_support",
+   "why": "reads a value out of a graded sheet",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/SheetValue/SheetValue.ts",
+   "authoring": {
+    "readme": true,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "ID of the LLMFeedback (or DerivedChecks) whose published sheet to read"
+    },
+    {
+     "attr": "check",
+     "describes": "Which check in the sheet, by its slot key"
+    },
+    {
+     "attr": "fallback",
+     "describes": "ID of a component whose value to use until the sheet exists. Without one,"
+    }
+   ]
+  },
+  {
+   "name": "ShowAnswerButton",
+   "role": "action",
+   "why": "item BEHAVIOUR rather than structure -- the path by which a response is produced, scored or revealed (LLMAction feeds SlotSheetGrader this way)",
+   "category": "action",
+   "source": "packages/shared/components/blocks/action/ShowAnswerButton/ShowAnswerButton.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "Comma-separated grader IDs to toggle; infers from parent if omitted"
+    }
+   ]
+  },
+  {
+   "name": "SideBarPanel",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/SideBarPanel/SideBarPanel.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "SimpleMatching",
+   "role": "item_part",
+   "why": "a piece an item is built FROM, not an item: Key, Distractor and the Simple* authoring shorthands are parsed by their parent",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/Matching/SimpleMatching.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "SimpleSortable",
+   "role": "item_part",
+   "why": "a piece an item is built FROM, not an item: Key, Distractor and the Simple* authoring shorthands are parsed by their parent",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/Sortable/SimpleSortable.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "SimpleTextSelection",
+   "role": "item_part",
+   "why": "a piece an item is built FROM, not an item: Key, Distractor and the Simple* authoring shorthands are parsed by their parent",
+   "category": "language-arts",
+   "source": "packages/shared/components/blocks/language-arts/TextSelection/SimpleTextSelection.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "SlotSheetGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/SlotSheetGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "ID of the LLMFeedback whose published verdict sheet should be scored"
+    }
+   ],
+   "grades": {
+    "input_type": "list",
+    "infers_inputs_from_children": false,
+    "creates_match_variant": false
+   }
+  },
+  {
+   "name": "SortableGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/Sortable/SortableGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "grades": {
+    "input_type": "single",
+    "infers_inputs_from_children": true,
+    "creates_match_variant": true
+   }
+  },
+  {
+   "name": "SortableInput",
+   "role": "gradable_input",
+   "why": "collects a response: declares `...input(...)`, so it holds a student value",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/Sortable/SortableInput.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "shuffle",
+     "describes": "Whether to shuffle items initially (default: true)"
+    }
+   ],
+   "collects": {
+    "value_schema": null
+   }
+  },
+  {
+   "name": "Spinner",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "utility",
+   "source": "packages/shared/components/blocks/utility/Spinner.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "SplitPanel",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/SplitPanel/SplitPanel.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "sizes",
+     "describes": "Comma-separated percentage sizes (e.g.,"
+    }
+   ]
+  },
+  {
+   "name": "SplitTest",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/SplitTest/SplitTest.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": []
+  },
+  {
+   "name": "StateViewer",
+   "role": "not_intake",
+   "why": "the authoring environment or a test block -- never course content, and knowing that is itself an inference the intake program must encode",
+   "category": "authoring",
+   "source": "packages/shared/components/blocks/authoring/StateViewer/StateViewer.ts",
+   "authoring": {
+    "readme": false,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "ID of component whose state to display"
+    }
+   ]
+  },
+  {
+   "name": "StatusText",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/StatusText.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "ID of specific component to read from; infers from parent grader if omitted"
+    }
+   ]
+  },
+  {
+   "name": "StringGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "grading",
+   "source": "packages/shared/components/blocks/grading/StringGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "grades": {
+    "input_type": null,
+    "infers_inputs_from_children": true,
+    "creates_match_variant": true
+   }
+  },
+  {
+   "name": "Studio",
+   "role": "not_intake",
+   "why": "the authoring environment or a test block -- never course content, and knowing that is itself an inference the intake program must encode",
+   "category": "authoring",
+   "source": "packages/shared/components/blocks/authoring/Studio/Studio.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": []
+  },
+  {
+   "name": "Tabs",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/Tabs/Tabs.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "TabularMCQ",
+   "role": "gradable_input",
+   "why": "collects a response: declares `...input(...)`, so it holds a student value",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/TabularMCQ/TabularMCQ.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "collects": {
+    "value_schema": null
+   }
+  },
+  {
+   "name": "TabularMCQGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/TabularMCQ/TabularMCQGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "grades": {
+    "input_type": null,
+    "infers_inputs_from_children": true,
+    "creates_match_variant": true
+   }
+  },
+  {
+   "name": "TalkBubble",
+   "role": "display",
+   "why": "scenario dialogue presentation",
+   "category": "scenario",
+   "source": "packages/shared/components/blocks/scenario/TalkBubble/TalkBubble.js",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "TeamDirectory",
+   "role": "display",
+   "why": "presents team membership",
+   "category": "scenario",
+   "source": "packages/shared/components/blocks/scenario/TeamDirectory/TeamDirectory.js",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "TextArea",
+   "role": "gradable_input",
+   "why": "collects a response: declares `...input(...)`, so it holds a student value",
+   "category": "input",
+   "source": "packages/shared/components/blocks/input/TextArea.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "readonly",
+     "describes": "Make textarea read-only"
+    }
+   ],
+   "collects": {
+    "value_schema": "z.string() })"
+   }
+  },
+  {
+   "name": "TextBlock",
+   "role": "display",
+   "why": "text",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/TextBlock.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "TextSelectionGrader",
+   "role": "grader",
+   "why": "scores a response: registers as *Grader, or is built by createGrader",
+   "category": "language-arts",
+   "source": "packages/shared/components/blocks/language-arts/TextSelection/TextSelectionGrader.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "grades": {
+    "input_type": null,
+    "infers_inputs_from_children": true,
+    "creates_match_variant": true
+   }
+  },
+  {
+   "name": "TextSelectionInput",
+   "role": "gradable_input",
+   "why": "collects a response: declares `...input(...)`, so it holds a student value",
+   "category": "language-arts",
+   "source": "packages/shared/components/blocks/language-arts/TextSelection/TextSelectionInput.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [],
+   "collects": {
+    "value_schema": "z.array(z.number()) })"
+   }
+  },
+  {
+   "name": "TextSlot",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "display",
+   "source": "packages/shared/components/blocks/display/TextSlot/TextSlot.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "TimedContainer",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/TimedContainer/TimedContainer.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "duration",
+     "describes": "Time limit (e.g."
+    }
+   ]
+  },
+  {
+   "name": "Transcript",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "media",
+   "source": "packages/shared/components/blocks/media/Transcript/Transcript.ts",
+   "authoring": {
+    "readme": false,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "src",
+     "describes": "WebVTT transcript URL"
+    }
+   ]
+  },
+  {
+   "name": "Trigger",
+   "role": "action",
+   "why": "a trigger",
+   "category": "action",
+   "source": "packages/shared/components/blocks/action/Trigger/Trigger.ts",
+   "authoring": {
+    "readme": false,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "watch",
+     "describes": "DSL expression to watch (e.g.,"
+    }
+   ]
+  },
+  {
+   "name": "UseDynamic",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "reference",
+   "source": "packages/shared/components/blocks/reference/UseDynamic.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "Component ID to render dynamically"
+    },
+    {
+     "attr": "targetRef",
+     "describes": "ID of component whose value determines the target"
+    }
+   ]
+  },
+  {
+   "name": "UseHistory",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "reference",
+   "source": "packages/shared/components/blocks/reference/UseHistory/UseHistory.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "Component ID to track"
+    },
+    {
+     "attr": "targetRef",
+     "describes": "ID of component whose value determines the target"
+    },
+    {
+     "attr": "initial",
+     "describes": "Initial block to display before any repointing"
+    }
+   ]
+  },
+  {
+   "name": "Vertical",
+   "role": "structure",
+   "why": "carries other blocks: an item is reached THROUGH it, so an intake program must choose it from the teacher's materials like any other shape",
+   "category": "layout",
+   "source": "packages/shared/components/blocks/layout/Vertical/Vertical.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": []
+  },
+  {
+   "name": "Video",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "media",
+   "source": "packages/shared/components/blocks/media/Video/Video.ts",
+   "authoring": {
+    "readme": false,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "src",
+     "describes": "Video URL (e.g. /content/lecture.mp4)"
+    },
+    {
+     "attr": "poster",
+     "describes": "Image shown before playback starts"
+    }
+   ]
+  },
+  {
+   "name": "VideoPlayer",
+   "role": "display",
+   "why": "presents text, media or feedback; holds no response of its own",
+   "category": "media",
+   "source": "packages/shared/components/blocks/media/VideoPlayer/VideoPlayer.ts",
+   "authoring": {
+    "readme": false,
+    "demo": false,
+    "template": false,
+    "examples": false
+   },
+   "attributes": [
+    {
+     "attr": "src",
+     "describes": "Video URL (e.g. /content/lecture.mp4)"
+    },
+    {
+     "attr": "poster",
+     "describes": "Image shown before playback starts"
+    }
+   ]
+  },
+  {
+   "name": "WordUsage",
+   "role": "display",
+   "why": "language-arts presentation",
+   "category": "language-arts",
+   "source": "packages/shared/components/blocks/language-arts/WordUsage/WordUsage.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "ID of the block whose text to analyze"
+    }
+   ]
+  },
+  {
+   "name": "WritingRhythmPlot",
+   "role": "display",
+   "why": "plots a student's writing, does not collect",
+   "category": "language-arts",
+   "source": "packages/shared/components/blocks/language-arts/WritingRhythmPlot/WritingRhythmPlot.ts",
+   "authoring": {
+    "readme": true,
+    "demo": true,
+    "template": true,
+    "examples": true
+   },
+   "attributes": [
+    {
+     "attr": "target",
+     "describes": "ID of TextArea to analyze"
+    },
+    {
+     "attr": "xrange",
+     "describes": "Fix x-axis to this many sentence slots (for common axes across multiple plots)"
+    },
+    {
+     "attr": "yrange",
+     "describes": "Fix y-axis maximum (for common axes across multiple plots)"
+    },
+    {
+     "attr": "width",
+     "describes": "Chart width in pixels"
+    },
+    {
+     "attr": "height",
+     "describes": "Chart height in pixels"
+    }
+   ]
+  }
+ ],
+ "coverage": {
+  "olx_dir": "/home/pdeane/code/update/refactor_dry_run/edu.memphis.psych/psychology",
+  "present": true,
+  "used": {
+   "ActionButton": 11,
+   "CapaProblem": 9,
+   "Chat": 8,
+   "CheckboxGrader": 1,
+   "CheckboxInput": 8,
+   "ChoiceInput": 11,
+   "Collapsible": 1,
+   "CorrectGrader": 4,
+   "Course": 2,
+   "DemandHints": 1,
+   "DerivedChecks": 2,
+   "Distractor": 6,
+   "Explanation": 3,
+   "HH": 6,
+   "Hint": 1,
+   "Image": 4,
+   "IntakeGate": 7,
+   "Key": 13,
+   "KeyGrader": 3,
+   "LLMAction": 9,
+   "LLMFeedback": 9,
+   "LineInput": 2,
+   "LiquidTemplate": 4,
+   "Markdown": 15,
+   "MarkupProblem": 4,
+   "MasteryBank": 2,
+   "MatchingGrader": 1,
+   "MatchingInput": 1,
+   "Mermaid": 3,
+   "ObservablePlot": 3,
+   "OnChange": 2,
+   "PDFViewer": 2,
+   "PrintAction": 11,
+   "Ref": 11,
+   "ScoreTable": 3,
+   "SelfMonitorPlot": 1,
+   "Sequential": 3,
+   "SetFieldAction": 4,
+   "SheetValue": 1,
+   "SlotSheetGrader": 3,
+   "SortableGrader": 2,
+   "SortableInput": 2,
+   "SplitPanel": 17,
+   "Tabs": 7,
+   "TabularMCQ": 1,
+   "TabularMCQGrader": 1,
+   "TextArea": 11,
+   "UseDynamic": 4,
+   "UseHistory": 8,
+   "Vertical": 17
+  }
+ }
+}
