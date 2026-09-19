@@ -2949,6 +2949,42 @@ Both halves of the gate were exercised: a recorded table that no longer exists i
 caught, and a missing budget file fails rather than passing — *nothing recording
 which tables are verified is not the same as all of them being verified*.
 
+#### What is left in Stage 4, specified precisely
+
+##### The participant-key rule, corrected
+
+"Any integer in the key" flagged `handouts.HANDOUTS` as participant-keyed. Its
+keys are **1, 2, 3 — handout numbers**. That is the same crude-heuristic mistake
+T1.1 made counting the integer `3` as item `"3"`, in a second place.
+
+The sound rule is structural: **a participant id is an integer in a TUPLE key
+whose first element is an item id.** `DECLARED_CEILING_CELLS[("1c", 12)]` is
+participant 12; `HANDOUTS[2]` is handout 2. Both cases are now distinguished by
+shape rather than by type.
+
+##### `HANDOUTS` is three different things in one table, and cannot move whole
+
+| part | what it is | destination |
+|---|---|---|
+| `blurb`, `template`, `submissions`, `outdir`, `capture_tail`, `exemplar_items` | course data | the course file |
+| `gold` (a **function**), `rubric` (a **module**) | WIRING — not data at all, and not serialisable | stays in the engine |
+| `cited_participants`, `exemplar_participants` | participant references | the gold file, under C1b |
+
+So the table needs a three-way split before any of it moves, and the export would
+refuse it today: `_jsonable` raises on a function or a module, which is the right
+behaviour — *a field quietly dropped here is a field lost*.
+
+##### The rest, and why each is where it is
+
+* `score.PAPER_ITEM_NOTES`, `PAPER_ITEM_NOTES_WHY` — one entry each, keyed by
+  item. Movable, small, and needing only an equivalence test on the paper
+  scorer's output.
+* `agreement_app.JOBS` (26, item-keyed) and `CONTEXT_SOURCE` (17, component-keyed)
+  — movable; `CONTEXT_SOURCE` is the same shape as the `_H*_CTX` maps already
+  moved.
+* `measured.DECLARED_CEILING_CELLS`, `_1C_GATE_CEILING`, and the seven
+  `GOLD_SLOT_*` tables — gold or participant-keyed, so C1b's file, so blocked.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
