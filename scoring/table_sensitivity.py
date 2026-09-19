@@ -91,6 +91,52 @@ def consumers(tables: list[str]) -> dict[str, list[str]]:
     return out
 
 
+def _corrupt(value):
+    """The same table with ONE VALUE changed -- not removed.
+
+    EMPTYING AND CORRUPTING ASK DIFFERENT QUESTIONS, and a table can answer one
+    and not the other.
+
+    Emptying asks: is the table's PRESENCE checked? For a table that declares
+    its own subject -- `SLOT_STRUCTURE_FAMILIES` names the families to compare --
+    emptying removes the check's work rather than breaking it, and the answer is
+    zero findings either way. That is not evidence the table is inert.
+
+    Corrupting asks: is the table's CONTENT checked? A family whose members no
+    longer share a structure SHOULD fail, and if it does not, nothing verifies
+    what the table says.
+
+    The two together separate three states that emptying alone confuses: the
+    table is load-bearing; the table declares work that IS verified; the table is
+    verified by nothing.
+    """
+    if isinstance(value, dict) and value:
+        out = dict(value)
+        key = sorted(out, key=repr)[0]
+        out[key] = _mangle(out[key])
+        return out
+    if isinstance(value, (list, tuple)) and value:
+        out = list(value)
+        out[0] = _mangle(out[0])
+        return type(value)(out) if isinstance(value, tuple) else out
+    return _mangle(value)
+
+
+def _mangle(v):
+    """A value of the same type that says something different."""
+    if isinstance(v, str):
+        return v[::-1] if v else "__corrupted__"
+    if isinstance(v, bool):
+        return not v
+    if isinstance(v, (int, float)):
+        return v + 1
+    if isinstance(v, dict):
+        return {k: _mangle(x) for k, x in list(v.items())[:1]} or {"__x__": 1}
+    if isinstance(v, (list, tuple, set, frozenset)):
+        return type(v)(list(v)[:-1]) if len(v) > 1 else type(v)()
+    return "__corrupted__"
+
+
 def _empty_like(value):
     """An empty value of the same shape -- the loss a bad migration would cause."""
     if isinstance(value, dict):
@@ -142,21 +188,30 @@ def sensitivity(tables: list[str]) -> list[dict]:
                 before[name] = len(getattr(ENF, name)())
             except Exception as exc:
                 before[name] = f"<{type(exc).__name__}>"
-        setattr(ENF, table, _empty_like(original))
-        try:
-            after = {}
-            for name in checks:
-                try:
-                    after[name] = len(getattr(ENF, name)())
-                except Exception as exc:
-                    after[name] = f"<{type(exc).__name__}>"
-        finally:
-            setattr(ENF, table, original)
+        def run_with(replacement):
+            setattr(ENF, table, replacement)
+            try:
+                got = {}
+                for name in checks:
+                    try:
+                        got[name] = len(getattr(ENF, name)())
+                    except Exception as exc:
+                        got[name] = f"<{type(exc).__name__}>"
+                return got
+            finally:
+                setattr(ENF, table, original)
+
+        after = run_with(_empty_like(original))
+        mangled = run_with(_corrupt(original))
         moved = sorted(n for n in checks if before.get(n) != after.get(n))
+        moved_corrupt = sorted(n for n in checks
+                               if before.get(n) != mangled.get(n))
         rows.append({"table": table,
                      "entries": len(original) if hasattr(original, "__len__") else None,
                      "checks": checks, "uncallable": uncallable, "moved": moved,
+                     "moved_corrupt": moved_corrupt,
                      "sensitive": bool(moved),
+                     "content_checked": bool(moved_corrupt),
                      "before": before, "after": after})
     return rows
 
