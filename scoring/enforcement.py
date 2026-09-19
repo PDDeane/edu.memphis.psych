@@ -31,6 +31,7 @@ import pathlib
 import inspect
 import re
 import sys
+import jsoncache
 import sourcecache
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
@@ -5539,7 +5540,7 @@ def check_contains_matcher_agrees_across_engines() -> list[str]:
 
     path = P.LO / "packages/shared/lib/llm/containsCases.json"
     try:
-        cases = json.loads(path.read_text())
+        cases = jsoncache.load(path)
     except Exception as e:
         return [f"the shared `contains` case table cannot be read at {path}: "
                 f"{type(e).__name__}: {e} -- the TS side is still asserting "
@@ -6972,7 +6973,7 @@ def check_paper_feedback_explains_its_deductions() -> list[str]:
         by_what = {c["what"]: c for c in cfg.get("credit") or []}
         for path in _runs_files(root, f"*/{item}.runs.json"):
             try:
-                doc = json.loads(path.read_text())
+                doc = jsoncache.load(path)
             except Exception:
                 continue
             results = [r for run in (doc.get("runs") or [])
@@ -7120,7 +7121,7 @@ def check_students_see_what_each_check_decided() -> list[str]:
     for item in sorted(M._jobs()):
         for path in _runs_files(root, f"*/{item}.runs.json"):
             try:
-                doc = json.loads(path.read_text())
+                doc = jsoncache.load(path)
             except Exception:
                 continue
             if _artifact_prompt_state(doc, item) is False:
@@ -7223,7 +7224,7 @@ def _request_capture() -> tuple:
     cache = P.OUT / "request_capture.json"
     if cache.exists():
         try:
-            got = json.loads(cache.read_text())
+            got = jsoncache.load(cache)
             if got.get("key") == key:
                 return got.get("capture") or {}, ""
         except Exception:
@@ -7400,7 +7401,7 @@ def _app_scores(sheets: dict, payloads: list) -> tuple:
     cache = P.OUT / "score_capture.json"
     if cache.exists():
         try:
-            got = json.loads(cache.read_text())
+            got = jsoncache.load(cache)
             if got.get("key") == key:
                 return got.get("scores") or {}, ""
         except Exception:
@@ -8125,7 +8126,7 @@ def check_every_sweep_is_recorded() -> list[str]:
                 rp = pathlib.Path(recorded)
                 floor = rp.stat().st_mtime
                 try:
-                    rdoc = json.loads(rp.read_text())
+                    rdoc = jsoncache.load(rp)
                     at = ((rdoc.get("era") or {}).get("measured_at") or "")
                     if at:
                         import datetime as _dt
@@ -8143,7 +8144,7 @@ def check_every_sweep_is_recorded() -> list[str]:
             newer, incomplete = [], []
             for cand in _runs_files(P.OUT, f"*/{item}.runs.json"):
                 try:
-                    doc = json.loads(cand.read_text())
+                    doc = jsoncache.load(cand)
                     at = ((doc.get("era") or {}).get("measured_at") or "")
                     if at:
                         import datetime as _dt
@@ -10466,7 +10467,7 @@ def historical_map_divergences() -> list[str]:
     for item, _mod, s in _maps_specs():
         for path in _runs_files(root, f"*/{item}.runs.json"):
             try:
-                doc = json.loads(path.read_text())
+                doc = jsoncache.load(path)
                 if _artifact_prompt_state(doc, item) is not False:
                     continue              # current, or undatable: not historical
             except Exception:
@@ -10543,7 +10544,7 @@ def check_mapped_slots_agree_with_their_map() -> list[str]:
         if item not in by_item:
             continue
         try:
-            doc = json.loads(path.read_text())
+            doc = jsoncache.load(path)
         except Exception:
             continue
         # ATTRIBUTABLE TO TODAY'S APP CODE, OR NOT EVIDENCE OF TODAY'S BEHAVIOUR.
@@ -11155,7 +11156,7 @@ def check_count_scaffolds_are_arithmetic() -> list[str]:
         return []
     for path in _runs_files(root, "*/*.runs.json"):
         try:
-            doc = json.loads(path.read_text())
+            doc = jsoncache.load(path)
         except Exception:
             continue                      # an unreadable artifact is another check's
         # ATTRIBUTABLE TO TODAY'S APP CODE, as `check_mapped_slots_agree_with_
@@ -14317,7 +14318,7 @@ def check_module_has_no_course_data() -> list[str]:
 
     # ---- the ratchet ------------------------------------------------------
     try:
-        budget = _json.loads(COURSE_DATA_BUDGET.read_text())
+        budget = jsoncache.load(COURSE_DATA_BUDGET)
     except FileNotFoundError:
         out.append(f"{COURSE_DATA_BUDGET.name} is missing, so the ratchet cannot "
                    f"run -- and a ratchet that cannot run is not the same as one "
@@ -14403,7 +14404,7 @@ def check_no_module_is_named_for_a_course_artifact() -> list[str]:
     # gate nothing. Baselined instead: the population may shrink and may not grow.
     import json as _json
     try:
-        allowed = _json.loads(COURSE_DATA_BUDGET.read_text()).get("named_modules", [])
+        allowed = jsoncache.load(COURSE_DATA_BUDGET).get("named_modules", [])
     except (FileNotFoundError, ValueError):
         return out + [f"{COURSE_DATA_BUDGET.name} is missing or unreadable, so the "
                       f"course-named-module ratchet cannot run -- which is not the "
@@ -14544,6 +14545,34 @@ def check_source_cache_matches_the_stdlib() -> list[str]:
         out.append(f"the source-cache comparison only managed {checked} nodes -- "
                    f"it is not exercising the cache and proves nothing")
     return out
+
+
+def check_json_cache_is_not_mutated() -> list[str]:
+    """Nobody has written into a document `jsoncache` is still handing out.
+
+    `jsoncache.load` returns the SHARED parsed object rather than a copy -- that
+    sharing is the whole saving, since a deepcopy of these documents costs about
+    what parsing them costs. The price is that a caller which mutates what it
+    receives silently corrupts every later reader in the process, and the
+    corruption would surface as some unrelated check reporting something odd
+    much later.
+
+    So the read-only contract is checked instead of trusted, here, at the end of
+    an audit, where a mutation is attributed to the run that caused it.
+
+    SAMPLED, AND SAYING SO. Fingerprinting every held document means `json.dumps`
+    over 282 MB, which is what made an earlier version of this cache SLOWER than
+    no cache at all. One document in 32 is watched -- about 29 per audit -- and
+    the audit runs once per self-test case, so over a full run a mutation has
+    many chances to land on a watched document. That is detection, not proof: a
+    clean result here means no watched copy changed, not that none did.
+    """
+    import jsoncache
+
+    return [f"{path} was mutated after jsoncache handed it out -- jsoncache.load "
+            f"returns a SHARED object and its callers must treat it as read-only. "
+            f"Copy before writing, or read the file directly."
+            for path in jsoncache.mutated()]
 
 
 def check_every_enforcement_check_is_registered() -> list[str]:

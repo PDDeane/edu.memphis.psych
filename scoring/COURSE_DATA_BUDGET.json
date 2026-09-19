@@ -59,6 +59,7 @@
   "handouts.py": 1,
   "head_to_head.py": 1,
   "interim.py": 0,
+  "jsoncache.py": 0,
   "leakage.py": 2,
   "measured.py": 12,
   "migrate_verdicts.py": 0,
