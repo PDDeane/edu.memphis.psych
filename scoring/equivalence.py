@@ -856,6 +856,8 @@ def enforcement_audit():
     for bad in ENF.check_unreachable_gold_is_allowed():
         findings.append(("-", "UNREACHABLE GOLD PENALISED", bad))
     # GOAL C / §10.7 -- the migration's own gates (T4.1).
+    for bad in ENF.check_gold_shared_prose_has_not_drifted():
+        findings.append(("-", "MIGRATED MODULE HOLDS COURSE DATA", bad))
     for bad in ENF.check_module_has_no_course_data():
         findings.append(("-", "MIGRATED MODULE HOLDS COURSE DATA", bad))
     for bad in ENF.check_no_module_is_named_for_a_course_artifact():
