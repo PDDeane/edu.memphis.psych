@@ -31,6 +31,7 @@ import pathlib
 import inspect
 import re
 import sys
+import sourcecache
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 
@@ -6879,7 +6880,7 @@ def check_engine_mechanisms_are_not_item_dependent() -> list[str]:
                     and c.value in ids]
             if not lits:
                 continue
-            seg = ast.get_source_segment(src, node) or ""
+            seg = sourcecache.segment(src, node) or ""
             if '"id"' in seg or "'id'" in seg or ".id" in seg:
                 out.append(
                     f"{mod}.py:{node.lineno}: `{seg[:70]}` branches on a "
@@ -11555,7 +11556,7 @@ def check_gold_comparisons_share_an_alphabet() -> list[str]:
         for node in ast.walk(tree):
             if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
-            body = ast.get_source_segment(src, node) or ""
+            body = sourcecache.segment(src, node) or ""
             if GOLD.search(body) and OURS.search(body) and not GUARD.search(body):
                 hits.append((node.lineno, node.end_lineno, node.name))
         # innermost only: an enclosing function that merely CONTAINS a guarded
@@ -14117,10 +14118,59 @@ DATA_MODULES = {
 D2D_EXEMPTION = {"equivalence.py": "enforcement_selftest"}
 
 
+_INVENTORY_MEMO: dict = {}
+
+
 def _inventory_now() -> dict:
-    """T1.1's scan, run fresh. See the header: never the cached JSON."""
+    """T1.1's scan, run fresh. See the header: never the cached JSON.
+
+    STILL FRESH. The memo below is keyed on everything the scan reads, so it
+    returns a previous result only when re-running would produce the same one.
+    "Never the cached JSON" is about the artifact on disk, which can be stale
+    against the tree; this cannot, because a stale key cannot be hit.
+
+    WHY IT IS WORTH IT: the scan costs 4.5s and `enforcement_audit()` calls it
+    TWICE, so it was 9.1s of a 63s audit -- and the audit runs once per
+    self-test case, 71 times.
+
+    THE ID SET IS PART OF THE KEY, AND THAT IS THE WHOLE SUBTLETY. The scan
+    needs this course's item ids, and with no course file argument
+    `course_inventory.item_ids` falls back to `rubric_h*.BY_ID` -- IN-MEMORY
+    state, which is exactly what the self-test mutates when it injects. A memo
+    keyed on file mtimes alone would have served a pre-injection scan to a
+    post-injection audit, and the case would have gone undetected while
+    reporting clean. That is the one failure this instrument must never have,
+    so the ids are read (cheap: dict keys) and hashed into the key alongside
+    the source fingerprint.
+    """
+    import os
+
     import course_inventory
-    return course_inventory.inventory()
+
+    # NARROW, AND NOT `except Exception`. The first version of this caught
+    # everything and fell back to a full scan -- and the fallback fired every
+    # time, because the `os` helpers it called had never been defined. A
+    # NameError was swallowed into "the cache is disabled", the memo stayed
+    # empty, and the timing looked almost unchanged rather than broken. That is
+    # the same swallowed-NameError shape that made `keyrepr` report all fifteen
+    # gold keys unreadable earlier in this same migration. An unreadable tree is
+    # a real reason to fail open; a bug in this function is not.
+    fingerprint = []
+    try:
+        here = str(_HERE_DIR)
+        for name in sorted(f for f in os.listdir(here) if f.endswith(".py")):
+            st = os.stat(os.path.join(here, name))
+            fingerprint.append((name, st.st_mtime_ns, st.st_size))
+        key = (tuple(fingerprint), frozenset(course_inventory.item_ids()))
+    except OSError:                                 # pragma: no cover
+        return course_inventory.inventory()         # fail open: scan, never guess
+
+    hit = _INVENTORY_MEMO.get(key)
+    if hit is None:
+        hit = course_inventory.inventory()
+        _INVENTORY_MEMO.clear()                     # one entry: the current tree
+        _INVENTORY_MEMO[key] = hit
+    return hit
 
 
 def _exempt(module: str, entry: dict) -> bool:
@@ -14405,6 +14455,94 @@ def check_gold_shared_prose_has_not_drifted() -> list[str]:
                 f"string before the gold migration, so this is a copy that has "
                 f"drifted, not a separate declaration. Edit them together or "
                 f"make the difference deliberate and large.")
+    return out
+
+
+def check_source_cache_matches_the_stdlib() -> list[str]:
+    """`sourcecache.segment` still returns exactly what `ast.get_source_segment` does.
+
+    THE CACHE SITS UNDER SIX CHECKS THAT JUDGE CODE BY READING IT. If its
+    segments drift from the stdlib's by even a byte -- a `\r\n` split
+    differently, a column offset counted in characters instead of bytes -- those
+    checks start judging text that is not quite the code, and every one of them
+    would still pass. That is a worse failure than the 5,776x slowness the cache
+    removes, so the speedup is only acceptable while this holds.
+
+    ADVERSARIAL, NOT BULK, AND FOR A MEASURED REASON. The first version of this
+    sampled 500 nodes out of nine real modules and cost 13 SECONDS -- per audit,
+    times 71 self-test cases, which is fifteen minutes added to the run the cache
+    was written to shorten. A check that eats the saving it guards is not a
+    check, it is a tax. Volume was never what made this safe anyway: the ways
+    `segment` can diverge are all about ENCODING -- multibyte columns, `\r\n`
+    kept together, a form feed the parser ignores, an empty last line -- and
+    each is provoked by a few lines of source rather than found by chance in a
+    thousand well-behaved ones. The real-file tail stays small, just enough that
+    a wholesale breakage cannot hide behind tidy synthetic inputs.
+    """
+    import ast as _ast
+    import os as _os
+
+    import sourcecache
+
+    CASES = (
+        "x = 1\n",                                     # trivial
+        "x = 1",                                        # no trailing newline
+        "def f():\r\n    return 1\r\n",               # CRLF kept together
+        "def f():\n\x0c    return 1\n",                # form feed the parser ignores
+        "s = '\u00e9\u00e9\u00e9'\nt = s + '\u4e2d\u6587'\n",  # multibyte columns
+        "d = {\n 'a': 1,\n 'b': 2,\n}\n",              # multi-line, indented
+        "def g(a,\n      b):\n    return (a +\n            b)\n",
+        "class C:\n    x = [1,\n         2]\n    def m(self): pass\n",
+        "# leading comment\n\n\nq = f'{1 + 2}'\n",
+        "x = 1\n\n",                                   # empty final line
+    )
+    out = []
+    checked = 0
+    for text in CASES:
+        try:
+            tree = _ast.parse(text)
+        except SyntaxError:                         # pragma: no cover
+            out.append("the source-cache fixture does not parse -- fix the fixture")
+            continue
+        for node in _ast.walk(tree):
+            if not hasattr(node, "lineno"):
+                continue
+            for padded in (False, True):
+                checked += 1
+                if sourcecache.segment(text, node, padded=padded) != \
+                        _ast.get_source_segment(text, node, padded=padded):
+                    return [f"sourcecache.segment disagrees with the stdlib on "
+                            f"{text!r} at line {node.lineno} "
+                            f"({type(node).__name__}, padded={padded}) -- the six "
+                            f"checks that read code through it are judging text "
+                            f"that is not the code"]
+
+    # A REAL FILE TOO, small and bounded: the fixtures above are all tiny, and a
+    # cache that broke only past some size would pass every one of them.
+    try:
+        path = _os.path.join(str(_HERE_DIR), "enforcement.py")
+        text = open(path, errors="ignore").read()
+        tree = _ast.parse(text)
+    except (OSError, SyntaxError):                  # pragma: no cover
+        return out
+    # TWENTY, because each of these costs ~9ms: the stdlib call re-splits all
+    # 738KB every time, which is the very cost being removed. The fixtures above
+    # carry the correctness argument; this tail only has to notice a wholesale
+    # breakage, and twenty nodes from three places in the file does that.
+    nodes = [n for n in _ast.walk(tree) if isinstance(n, _ast.stmt)]
+    for node in nodes[:7] + nodes[len(nodes) // 2:len(nodes) // 2 + 7] + nodes[-6:]:
+        checked += 1
+        if sourcecache.segment(text, node) != _ast.get_source_segment(text, node):
+            return [f"sourcecache.segment disagrees with the stdlib on "
+                    f"enforcement.py:{node.lineno} -- the six checks that read "
+                    f"code through it are judging text that is not the code"]
+    # A FLOOR ON THE FIXTURES, not on the total. Ten synthetic sources yield
+    # ~106 node/padding pairs, so anything under a hundred means the loop above
+    # stopped early or the fixture list was emptied -- which is the failure this
+    # guards, a comparison that ran on nothing and reported clean.
+    if checked < 100:
+        out.append(f"the source-cache comparison only managed {checked} nodes -- "
+                   f"it is not exercising the cache and proves nothing")
     return out
 
 

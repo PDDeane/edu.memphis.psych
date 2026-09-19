@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import sourcecache
 import json
 import os
 import re
@@ -145,7 +146,7 @@ def scan_module(path: str, ids: set[str]) -> dict:
             target = getattr(node.target, "id", None)
         if not target:
             continue
-        seg = ast.get_source_segment(src, node) or ""
+        seg = sourcecache.segment(src, node) or ""
         named = sorted({i for i in ids if re.search(rf"[\"']{re.escape(i)}[\"']", seg)})
         if named:
             entry = {"name": target, "lines": (node.end_lineno or node.lineno)
