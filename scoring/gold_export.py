@@ -44,7 +44,11 @@ SCHEMA_VERSION = 3
 GOLD_TABLES = {
     "handouts": ("CORRECTED_GOLD", "GOLD_DIVERGENCES", "GOLD_CEILINGS",
                  "PER_ITEM_EXCLUDE"),
-    "measured": ("GOLD_SLOT_CHARGES", "GOLD_CODE_KNOWN",
+    # GOLD_CODE_CHARGES is here because it is gold's VOCABULARY: it maps the
+    # phrases the graders wrote in their workbook comments to the codes we
+    # charge against. The phrases are quoted from the marked-up sheets, so they
+    # are as much a product of the submissions as the scores are.
+    "measured": ("GOLD_CODE_CHARGES", "GOLD_SLOT_CHARGES", "GOLD_CODE_KNOWN",
                  "GOLD_SLOT_BOUNDS_KNOWN", "GOLD_SLOT_UNMAPPABLE",
                  "GOLD_SLOT_DISAGREEMENTS_KNOWN", "SILENT_GOLD_DIVERGENCES",
                  "DECLARED_CEILING_CELLS", "_1C_GATE_CEILING"),
@@ -348,13 +352,86 @@ def default_path() -> str | None:
     return os.path.join(root, "courses", coursedata.course_id(), "gold.json")
 
 
+def add_one(spec: str, out: str | None, dry_run: bool) -> int:
+    """Merge ONE table into the gold file, without rebuilding the rest.
+
+    The rebuild guard is right and this is why it needs a companion. A table
+    that is STILL a literal has never been exported, so there is nothing
+    circular about reading it -- but a full rebuild would also re-read the
+    fifteen that have migrated, find nothing in them, and write the file back
+    empty. This does the one table and leaves the others exactly as they are.
+
+    EXACTLY AS THEY ARE, asserted by comparing the serialized form of every
+    other table before and after. A merge that quietly reformatted a neighbour
+    would be indistinguishable from the rebuild the guard exists to prevent.
+    """
+    import importlib
+
+    mod_name, _, table = spec.partition(".")
+    if not table:
+        raise SystemExit(f"gold_export: --add wants MODULE.TABLE, got {spec!r}")
+    if table not in GOLD_TABLES.get(mod_name, ()):
+        raise SystemExit(
+            f"gold_export: {spec} is not declared in GOLD_TABLES. A table is "
+            f"added to that registry first, so that what counts as gold is a "
+            f"decision recorded in one place rather than a command-line "
+            f"argument.")
+    if spec not in unmigrated():
+        raise SystemExit(
+            f"gold_export: {spec} is not a literal in {mod_name}.py -- either it "
+            f"has already migrated, or it is computed. Nothing to extract.")
+
+    path = out or default_path()
+    if not path or not os.path.exists(path):
+        raise SystemExit(f"gold_export: no gold file at {path} to merge into.")
+    doc = json.loads(open(path).read())
+    before = {k: json.dumps(v) for k, v in doc["declarations"].items()}
+
+    value = getattr(importlib.import_module(mod_name), table)
+    doc["declarations"][table] = _jsonable(value)
+    per = interior_notes().get(table)
+    if per:
+        doc.setdefault("declaration_notes", {})[table] = per
+
+    # the neighbours, unchanged
+    after = {k: json.dumps(v) for k, v in doc["declarations"].items() if k != table}
+    changed = [k for k in before if k != table and before[k] != after.get(k)]
+    if changed:
+        raise SystemExit(f"gold_export: REFUSING -- merging {spec} would change "
+                         f"{len(changed)} other table(s): {changed[:4]}")
+    # and the new one round-trips, through the reader, order-sensitively
+    import coursedata
+    import migrated_tables
+    back = coursedata._detag(json.loads(_serialize(doc))["declarations"][table])
+    if isinstance(value, (set, frozenset)) and isinstance(back, list):
+        back = type(value)(back)
+    diffs = migrated_tables.same_shape(value, back)
+    if diffs:
+        raise SystemExit(f"gold_export: {spec} does not round-trip: {diffs[0]}")
+
+    n = len(per) if per else 0
+    if dry_run:
+        print(f"  would add {spec}: {len(before) + 1} tables, {n} annotated entries")
+        return 0
+    open(path, "w").write(_serialize(doc))
+    print(f"  added {spec} to {path} ({len(before) + 1} tables, "
+          f"{n} annotated entries); {len(before)} others byte-identical")
+    return 0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", default=None,
                     help="where to write; defaults to $COURSE_DATA/courses/<id>/")
     ap.add_argument("--dry-run", action="store_true",
                     help="build and verify, write nothing")
+    ap.add_argument("--add", metavar="MODULE.TABLE", default=None,
+                    help="merge ONE still-literal table into the existing gold "
+                         "file, leaving every other table byte-identical")
     args = ap.parse_args(argv)
+
+    if args.add:
+        return add_one(args.add, args.out, args.dry_run)
 
     doc = build()
     # THE REBUILD GUARD, and it fires from here rather than from `build()` so
