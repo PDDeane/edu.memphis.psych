@@ -4192,6 +4192,25 @@ is to remember the old name is exactly the thing a blanket rename destroys.
 The check demonstrably fires: a probe file containing `export MOLLY_DATA=…` is
 caught by name and path.
 
+##### The vocabulary gate caught its own author
+
+Re-tightening after the rename refused: `enforcement.py: 25 -> 26`. The new
+embedding was the word *psychology* — in the docstring of
+`check_general_prose_has_no_course_vocabulary` ("the course halves are supposed
+to be full of psychology") and in `check_property_vocabulary_has_not_grown`
+("the engine is psychology-shaped again in a new vocabulary").
+
+**The check that forbids course vocabulary in general prose used course
+vocabulary to explain itself**, and the ratchet noticed. Rephrased to
+*course-shaped* and *full of course vocabulary*, which is what T7.3 asks of
+everyone else and is more accurate besides: the point was never psychology
+specifically.
+
+`editguard` refused two attempts at that rephrasing before allowing it, both
+times correctly. Declaring `prose:psychology` as removed was false — the word
+survives elsewhere in the file — and a declaration that does not come true is
+exactly what its stale-declaration rule is for.
+
 #### The expiry needs a criterion, not a date
 
 "Honoured for a declared period" expires the way §10.1.2's and D2d's sentences

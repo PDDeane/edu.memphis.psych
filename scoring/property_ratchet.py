@@ -15,7 +15,7 @@ course id in code. The harm §10.1.1 names is different:
     the flag vocabulary then becomes the place where course shape accumulates
 
 One flag is harmless. Forty narrow booleans — `derives_from_series`,
-`needs_utb_gate`, `blank_code_applies` — mean the engine is psychology-shaped
+`needs_utb_gate`, `blank_code_applies` — mean the engine is course-shaped
 again in a new vocabulary, and a second course must set flags it cannot
 interpret. So the ratchet counts DISTINCT PROPERTIES REACHED IN A BRANCH: it may
 fall, and may not rise without a declaration naming the new property and saying

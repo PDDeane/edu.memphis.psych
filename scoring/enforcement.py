@@ -14995,7 +14995,7 @@ def check_property_vocabulary_has_not_grown() -> list[str]:
 
     A single branch on a property is not a defect -- `if caps["boxes"] == 8:`
     reads a value and a second course with six boxes works. The harm is
-    ACCUMULATION: forty narrow booleans mean the engine is psychology-shaped
+    ACCUMULATION: forty narrow booleans mean the engine is course-shaped
     again in a new vocabulary. So the count of DISTINCT properties reached in a
     branch may fall and may not rise without a declaration.
 
@@ -15072,7 +15072,7 @@ def check_general_prose_has_no_course_vocabulary() -> list[str]:
 
     INERT UNTIL STAGE 7'S SPLIT, and it says so rather than reporting clean:
     before the split there is no general half, and the course halves are supposed
-    to be full of psychology. It REFUSES outright if the changelog is missing,
+    to be full of course vocabulary. It REFUSES outright if the changelog is missing,
     because a gate that strips sentences while their destination is undefined
     produces deletions rather than moves.
 
