@@ -64,10 +64,18 @@ GRADER_INPUTS: dict[str, dict] = {
         "why": "multi-select: the input's value is a list of chosen option ids, "
                "and the Keys among its Key/Distractor children are the answer"},
     "CorrectGrader": {
-        "mechanism": NESTED, "inputs": ["CheckboxInput", "ChoiceInput"],
+        "mechanism": NESTED,
+        "inputs": ["CheckboxInput", "ChoiceInput", "LineInput", "TextArea"],
         "parts": ["Key"],
-        "why": "scores whichever selection input it wraps against the Key "
-               "children, single- or multi-select alike"},
+        # ITS OWN README SAYS SO: "CorrectGrader is input-agnostic. It works with
+        # CheckboxInput, ChoiceInput, LineInput, TextArea, or ...". The first
+        # declaration here listed two, because the corpus it was checked against
+        # excluded the documentation -- where both the statement and a worked
+        # TextArea example live.
+        "doc_only": {"LineInput": "grading/CorrectGrader.md, 'input-agnostic'"},
+        "why": "scores whichever input it wraps against the Key children. "
+               "Input-agnostic by design, which makes it the fallback when the "
+               "answer is enumerated but the widget is not yet chosen"},
     "KeyGrader": {
         "mechanism": NESTED, "inputs": ["ChoiceInput", "DropdownInput"],
         "parts": ["Key", "Distractor"],
@@ -111,8 +119,9 @@ GRADER_INPUTS: dict[str, dict] = {
         "why": "applies Rule children (the generated *Match variants) to a text "
                "response"},
     "DefaultGrader": {
-        "mechanism": NESTED, "inputs": ["LineInput"], "parts": [],
-        "why": "the fallback when an input is graded with no grader named"},
+        "mechanism": NESTED, "inputs": ["LineInput", "TextArea"], "parts": [],
+        "why": "the fallback when an input is graded with no grader named; the "
+               "TextArea pairing comes from its own documented example"},
     "LLMGrader": {
         "mechanism": NESTED, "inputs": ["LineInput", "TextArea"], "parts": [],
         # EVIDENCE OF A DIFFERENT CLASS. No .olx wraps a TextArea in an
@@ -272,46 +281,55 @@ SELF_GRADING = {
     "CapaProblem": "an Open edX-style problem carrying its own inputs and "
                    "grading; graders appear INSIDE it, not around it",
     "MarkupProblem": "a self-contained problem family, as CapaProblem",
+    # Each of these is a terse one-tag PEG syntax that EXPANDS to a CapaProblem,
+    # so the expansion carries the grading and the shorthand pairs with nothing.
+    # They sat in ITEM_PARTS until the documentation was read: their own
+    # descriptions say "expands to CapaProblem", which makes them whole items in
+    # a compact spelling rather than pieces of one.
+    "SimpleMatching": "a terse matching problem; expands to a CapaProblem that "
+                      "carries a MatchingGrader",
+    "SimpleSortable": "a terse ordering problem; expands to a CapaProblem",
+    "SimpleTextSelection": "a terse highlighting problem; expands to a CapaProblem",
 }
 
 _TAG = re.compile(r"<(/?)([A-Za-z][A-Za-z0-9_]*)([^>]*?)(/?)>", re.S)
 
 
 def mine(roots: list[str], inventory: dict) -> dict[str, dict]:
-    """Every (grader, nested block) pair actually present in the corpora.
+    """Every (grader, nested block) pair present in the corpus.
+
+    The corpus is `olx_corpus.texts`, which excludes build artifacts and INCLUDES
+    the 295 fenced examples in the block documentation. An earlier version globbed
+    `*.olx` and so mined the psych course twice -- once from its repo and once
+    from lo-blocks' `.stage` staging copy, nine of whose files were stale -- while
+    ignoring the documentation entirely.
 
     A lenient tag scanner, not an XML parse: OLX carries prose and generated
     prompt bodies, and a strict parser refuses files this has to read.
     """
+    import olx_corpus
+
     graders = {b["name"] for b in inventory["blocks"] if b["role"] == "grader"}
     wanted = {b["name"] for b in inventory["blocks"]
               if b["role"] in ("gradable_input", "gradable_item_family", "item_part")}
     found: dict[str, dict] = {}
     files = 0
-    for root in roots:
-        for dp, _dn, fns in os.walk(root):
-            if "node_modules" in dp or "/.git" in dp:
+    for label, text in olx_corpus.texts(roots):
+        files += 1
+        stack: list[str] = []
+        for m in _TAG.finditer(text):
+            close, name, _attrs, selfclose = m.groups()
+            if close:
+                while stack and stack.pop() != name:
+                    pass
                 continue
-            for fn in fns:
-                if not fn.endswith(".olx"):
-                    continue
-                files += 1
-                stack: list[str] = []
-                for m in _TAG.finditer(open(os.path.join(dp, fn),
-                                            errors="ignore").read()):
-                    close, name, _attrs, selfclose = m.groups()
-                    if close:
-                        while stack and stack.pop() != name:
-                            pass
-                        continue
-                    anc = [g for g in stack if g in graders]
-                    if name in wanted and anc:
-                        rec = found.setdefault(f"{anc[-1]}|{name}",
-                                               {"n": 0, "files": set()})
-                        rec["n"] += 1
-                        rec["files"].add(fn)
-                    if not selfclose:
-                        stack.append(name)
+            anc = [g for g in stack if g in graders]
+            if name in wanted and anc:
+                rec = found.setdefault(f"{anc[-1]}|{name}", {"n": 0, "files": set()})
+                rec["n"] += 1
+                rec["files"].add(label)
+            if not selfclose:
+                stack.append(name)
     for rec in found.values():
         rec["files"] = sorted(rec["files"])
     return {"files_scanned": files, "pairs": found}
