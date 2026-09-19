@@ -3456,6 +3456,47 @@ passed". So the known blind spots are listed in the check's own failure output, 
 the rule stays in §10.1.2 as a design principle that a reviewer applies — the gate
 enforces the enforceable part and says so.
 
+#### BUILT 2026-09-18 as `property_ratchet.py` — 11 of 30, and one defect caught by reading the hits
+
+`30 properties declared, 11 reached in a branch, across 55 modules.`
+`--self-test`: 10/10 forms behave as documented. Gated by
+`check_property_vocabulary_has_not_grown` (157 checks now).
+
+| property | sites |
+|---|---|
+| `id` | 23 |
+| `max` | 9 |
+| `credit` | 5 |
+| `handout` | 4 |
+| `question`, `cadence`, `cover`, `deductions`, `equals`, `expected_type`, … | 1–2 each |
+
+##### It matched the NAME, not the property — 11 of 44 hits were noise
+
+The first version matched attribute access as well as subscripts, and **every
+attribute hit was a false positive**: `args.handout` (7 sites — an argparse flag,
+not an item) and `node.value.id` / `t.id` (4 sites — Python's own AST API, where
+`.id` is a `Name` node's identifier). A quarter of the measurement was the check
+matching a *name*.
+
+That is not a cosmetic error in a ratchet. **Baselining noise lets real growth
+hide inside its churn**: a genuinely new property branch could arrive while an
+argparse flag was renamed away, and the count would not move.
+
+The fix is a rule with a premise rather than a convenience: **subscripts only,
+because `coursedata` returns dicts.** `items()` and `rubric_for()` hand back
+`_group(...)`, a dict copy, so a course property is read as `item["credit"]` and
+never as `item.credit`. `premise_holds()` checks that on every run and REFUSES if
+the reader ever starts returning objects — at which point attribute access
+becomes how properties are read and this check would have gone silently blind.
+
+##### The self-test asserts the blind spots too
+
+Ten forms, including **two that must NOT fire**: `n = c["boxes"]` (an assignment
+is not a branch) and `n = c["boxes"]; if n == 8:` (indirection through a local).
+A check that quietly caught the second would mean the docstring's claim of
+narrowness is wrong — so the blind spot is tested as a blind spot, and the three
+known ones are printed with every failure.
+
 #### Its self-test cases exercise what it claims
 
 Per §12.0 and T0.1, each case constructs its own condition and exercises a form the

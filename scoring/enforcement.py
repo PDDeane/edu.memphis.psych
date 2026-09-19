@@ -14959,6 +14959,32 @@ def check_gold_columns_are_the_item_labels() -> list[str]:
     return out
 
 
+def check_property_vocabulary_has_not_grown() -> list[str]:
+    """D1x-c's ratchet: how much course SHAPE the flag vocabulary carries.
+
+    A single branch on a property is not a defect -- `if caps["boxes"] == 8:`
+    reads a value and a second course with six boxes works. The harm is
+    ACCUMULATION: forty narrow booleans mean the engine is psychology-shaped
+    again in a new vocabulary. So the count of DISTINCT properties reached in a
+    branch may fall and may not rise without a declaration.
+
+    NARROW ON PURPOSE, and it says so in its own output. It matches subscripts
+    only, because `coursedata` returns dicts -- an earlier version matched
+    attributes too and every attribute hit was a false positive (`args.handout`,
+    Python's own `node.value.id`). It cannot see indirection through a local.
+    A gate that caught only naive violations while announcing the rule enforced
+    would turn "be careful here" into "the check passed".
+    """
+    try:
+        import property_ratchet as PR
+    except Exception as exc:                      # pragma: no cover
+        return [f"the property ratchet cannot be read: {exc}"]
+    premise = PR.premise_holds()
+    if premise:
+        return premise
+    return PR.verify(PR.scan())
+
+
 if __name__ == "__main__":
     import json
     import sys
