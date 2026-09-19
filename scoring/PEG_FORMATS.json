@@ -95,9 +95,7 @@
   "exprpeg": "a state-language expression -- engine internals",
   "templatepeg": "a {{placeholder}} template -- engine internals"
  },
- "unregistered": {
-  "textHighlightpeg": "DEAD. Three files in the psych course use it and lo-blocks registers it NOWHERE. Each is BYTE-IDENTICAL to a `.textSelectionpeg` beside it, so this is a renamed grammar whose old files were left behind. Nothing references either copy, and the manifest routes neither."
- },
+ "unregistered": {},
  "course_files": {
   "capapeg": [
    "packages/shared/components/blocks/specialized/peg_prototype/capa.pegjs.preview.capapeg",
@@ -168,11 +166,6 @@
    "packages/shared/components/blocks/input/Sortable/examples/planets.sortpeg",
    "packages/shared/components/blocks/input/Sortable/sort.pegjs.preview.sortpeg",
    "packages/shared/components/blocks/input/Sortable/sort.pegjs.template.sortpeg"
-  ],
-  "textHighlightpeg": [
-   "psych_bedtime_strategies.textHighlightpeg",
-   "psych_positive_negative.textHighlightpeg",
-   "psych_reinforce_punish.textHighlightpeg"
   ],
   "textSelectionpeg": [
    "packages/shared/components/blocks/language-arts/TextSelection/textSelection.pegjs.preview.textSelectionpeg",

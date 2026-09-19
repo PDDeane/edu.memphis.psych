@@ -63,35 +63,28 @@ AUTHORED_AS: dict[str, str] = {
 
 # Extensions found in course content that the engine does not register. Declared
 # so that "unknown format" is a decision rather than a silent skip.
-UNREGISTERED = {
-    "textHighlightpeg":
-        "DEAD. Three files in the psych course use it and lo-blocks registers it "
-        "NOWHERE. Each is BYTE-IDENTICAL to a `.textSelectionpeg` beside it, so "
-        "this is a renamed grammar whose old files were left behind. Nothing "
-        "references either copy, and the manifest routes neither.",
-}
+#
+# EMPTY as of 2026-09-18. It held `textHighlightpeg`: three psych files in an
+# extension lo-blocks registers NOWHERE, each a copy of a `.textSelectionpeg`
+# beside it -- a renamed grammar whose old files were left behind. The files are
+# deleted, and the check reported this entry the moment they were: "declared
+# unregistered and no course uses it any more -- drop the entry". Left empty
+# rather than removed, because the NEXT unregistered extension to appear in a
+# course should land here and be decided on, not skipped.
+UNREGISTERED: dict[str, str] = {}
 
 # Authored content no `src=` reaches, named with the reason. Declared rather
-# than tolerated: a NEW orphan must fail, and these six must not hide it.
-ORPHANED_CONTENT = {
-    # The three `.textSelectionpeg` quizzes were here and are now ROUTED --
-    # `psych_highlight_quizzes.olx` loads each by `src=` and the manifest serves
-    # it at `/practice/highlighting`. The entries were removed because the check
-    # reported them: "declared orphaned and something now references it". A
-    # declaration that outlives its reason is reported by the same rule that
-    # reports a new orphan, which is what makes the table self-retiring.
-    #
-    # These three CANNOT be routed. `.textHighlightpeg` is registered by no
-    # grammar, so nothing can parse them, and each is byte-identical to the
-    # `.textSelectionpeg` now in service. They are dead copies awaiting a
-    # deletion decision, not content awaiting a route.
-    "psych_reinforce_punish.textHighlightpeg":
-        "byte-identical dead twin of the routed .textSelectionpeg; unparseable",
-    "psych_positive_negative.textHighlightpeg":
-        "byte-identical dead twin; unparseable",
-    "psych_bedtime_strategies.textHighlightpeg":
-        "byte-identical dead twin; unparseable",
-}
+# than tolerated: a NEW orphan must fail, and a declaration whose file is routed
+# or gone is reported by the same rule.
+#
+# EMPTY as of 2026-09-18, and it emptied twice over in one sitting. The three
+# `.textSelectionpeg` quizzes were routed -- `psych_highlight_quizzes.olx` loads
+# each by `src=` and the manifest serves them at `/practice/highlighting` -- and
+# the check reported its own entries as outliving their reason. The three
+# `.textHighlightpeg` twins were then DELETED: registered by no grammar, so
+# unparseable by anything, and byte-identical to the quizzes now in service
+# except for the `---` separator added to make one of them parse.
+ORPHANED_CONTENT: dict[str, str] = {}
 
 _INFO = re.compile(r"'(\w+)':\s*\{\s*grammarName:\s*'(\w+)',\s*grammarDir:\s*'([^']+)'")
 _META = re.compile(r"'(\w+)':\s*\{\s*name:\s*\"([^\"]+)\",\s*creatable:\s*(true|false)")
@@ -230,8 +223,8 @@ def main(argv=None) -> int:
     unused = [e for e in creatable if not found.get(e)]
     print(f"  creatable but used by NO course ({len(unused)}): "
           f"{', '.join(unused) or 'none'}")
-    print(f"  {len(ORPHANED_CONTENT)} authored file(s) declared orphaned -- "
-          f"dead twins in an unregistered extension, awaiting deletion")
+    print(f"  {len(ORPHANED_CONTENT)} orphaned file(s) and "
+          f"{len(UNREGISTERED)} unregistered extension(s) declared")
 
     bad = verify(reg, found, referenced, course_only)
     if args.json:
