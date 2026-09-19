@@ -14,3 +14,8 @@ content_notice: >
   [GitHub](https://github.com/olxhub/edu.memphis.psych).
 routes:
   /: edu.memphis.psych/psych_course
+
+# Two namespaces live in this tree (edu.memphis.psych and, under defiance/,
+# edu.memphis.psych.defiance) — per-file namespace resolution must run.
+multi_namespace: true
+output: dist/psych
