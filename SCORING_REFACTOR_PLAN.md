@@ -2727,6 +2727,36 @@ findings, 1 parked, 9 live** — and seven of the nine were mine.
 The two remaining live findings are stale build artifacts in lo-blocks
 (`.stage/content` 40h older than its source), which predate tonight.
 
+#### The 13 enforcement declaration tables: analysed, and NOT moved — for want of a test
+
+`enforcement.py` holds **17 tables, 16 of them non-gold**, and §11.3 names two of
+them — `PROSE_ONLY_SLOTS`, `DESIGNED_TEXT` — among the hardest tables the schema
+must fit. They are course-specific scoring declarations and they belong in the
+course file. 682 lines across 13 tables were located and ready to move.
+
+**They were not moved, and the reason is the method rather than the hour.**
+
+Each of tonight's three completed migrations rested on a decisive equivalence
+test: `olx_prompts` on the 23 generated prompts hashing identically, `segment.py`
+on all 60 submissions segmenting identically, `agreement.py` on `BLOCKS`
+reassembling identically. **There is no such test for these thirteen.** They feed
+enforcement checks, and the audit currently returns **4 findings** — so a table
+silently emptied would produce the same 4 findings whenever the checks it feeds
+are already passing. That is T0.1's vacancy problem one level up: *4 findings
+cannot distinguish 13 faithful moves from 13 losses.*
+
+What the move needs first is a test that would fail if it went wrong — for
+instance, asserting each check's finding count against a deliberately emptied
+table, per table, before the move rather than after.
+
+**One further consequence found while preparing it.** `DESIGNED_TEXT` has a
+documented human procedure: `measured.py --accept-design-change ITEM SLOT FIELD`,
+which writes `DESIGNED_TEXT_SHA.json` while the table itself is hand-edited under
+the "register only with the build" rule. Moving the table relocates that
+authoring step into the builder, which is the Stage 5 model and correct — but it
+changes a procedure a person follows, and that is not a thing to change
+unreviewed overnight.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
