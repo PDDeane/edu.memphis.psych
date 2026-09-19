@@ -5209,6 +5209,12 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.ITEM_GATED_MECHANISMS": (
         "mechanisms that vary by item, which the uniformity rule forbids",
         ("check_engine_mechanisms_are_not_item_dependent",)),
+    "enforcement.DATA_MODULES": (
+        "modules that ARE authored course data, exempt from the engine ratchet",
+        ("check_module_has_no_course_data",)),
+    "enforcement.OLD_ENV_NAMES_ALLOWED": (
+        "the one place the pre-Stage-9 environment names may still appear",
+        ("check_no_old_environment_names",)),
     "enforcement.MIGRATED_MODULES": (
         "modules declared free of course data, and what makes the claim true",
         ("check_module_has_no_course_data",)),
@@ -15094,6 +15100,13 @@ def check_general_prose_has_no_course_vocabulary() -> list[str]:
 OLD_ENV_NAMES_ALLOWED = {
     "scoring/paths.py": "the fallback table itself -- it is what honours the old "
                         "names, so it has to know them",
+    "SCORING_REFACTOR_PLAN.md": "it DOCUMENTS the rename, so it has to name what "
+                                "was renamed. The same shape as the anchor gate "
+                                "failing on the plan's own `see: qc:NAME` "
+                                "example: a convention's specification uses the "
+                                "convention.",
+    "RUBRIC_MIGRATION_PLAN.md": "the earlier plan, a historical record of when "
+                                "the old names were current",
 }
 
 

@@ -92,6 +92,22 @@ def env_renamed(new: str, default=None):
     return default
 
 
+# The trees that count as CORPUS evidence, resolved here because this module is
+# where filesystem locations are resolved -- `check_filesystem_locations_come_
+# from_paths_py` caught them spelled into `olx_corpus.py`, and it was right to:
+# a literal path does not fail on the wrong tree, it SUCCEEDS on it.
+#
+# Which trees are distinct evidence is a judgement (see `olx_corpus`): three
+# attempts at discovering it automatically each counted copies as courses. So the
+# list is declared -- and resolved, and overridable by $COURSE_ROOTS.
+CODE = Path(os.environ.get("CODE_HOME", Path.home() / "code"))
+CORPUS_ROOTS = {
+    "engine": lambda: LO,
+    "writing": lambda: CODE / "update" / "edu.memphis.writing",
+    "reading": lambda: CODE / "update" / "edu.mtsu.transitional-reading",
+    "interdisciplinary": lambda: CODE / "interdisciplinary",
+}
+
 DATA = Path(env_renamed("COURSE_DATA", Path.home() / "molly_data"))
 OUT = Path(env_renamed("COURSE_OUT", DATA / "out"))
 
