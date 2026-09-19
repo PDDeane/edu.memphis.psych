@@ -13,19 +13,42 @@ set -u
 ALLOWED=(
   /home/pdeane/code/update/refactor_dry_run/edu.memphis.psych
   /home/pdeane/code/update/refactor_dry_run/lo-blocks
+  # 2026-09-19: $COURSE_DATA opened for SECONDARY records -- bookkeeping this
+  # project writes and rewrites -- but NOT for source documents and records.
+  # The distinction is the point: `out/` is where runs record themselves, and
+  # `courses/<id>/gold.json` is a file C1b creates. Neither is a source.
+  /home/pdeane/molly_data/out
+  /home/pdeane/molly_data/courses
+)
+
+# SOURCE DOCUMENTS AND RECORDS. Refused even inside an allowed tree, because
+# these are the primary data and the archives of it -- the submissions and the
+# graders' workbooks are the thing every measurement is ABOUT, and the migration
+# and scrub archives exist precisely so that a past state cannot be lost.
+FORBIDDEN=(
+  "/home/pdeane/molly_data/Handout Submissions with Scoring and Feedback"
+  /home/pdeane/molly_data/migration_reference
+  /home/pdeane/molly_data/migration_goldens
+  /home/pdeane/molly_data/retired_artifacts
+  /home/pdeane/molly_data/handsplit
+  /home/pdeane/molly_data/pre_scrub_backup_20260917_084827
+  /home/pdeane/molly_data/corpus_refs.json
 )
 rc=0
 for raw in "$@"; do
   p=$(readlink -m -- "$raw")
-  ok=0
+  ok=0; why=""
   for a in "${ALLOWED[@]}"; do
     case "$p" in "$a"|"$a"/*) ok=1 ;; esac
+  done
+  for f in "${FORBIDDEN[@]}"; do
+    case "$p" in "$f"|"$f"/*) ok=0; why="a SOURCE document or record" ;; esac
   done
   if [ "$ok" = 1 ]; then
     echo "  IN SCOPE   $p"
   else
     echo "  REFUSED    $p"
-    echo "             outside the dry run. Allowed tonight:"
+    echo "             ${why:-outside the dry run}. Allowed tonight:"
     printf '               %s\n' "${ALLOWED[@]}"
     rc=1
   fi
