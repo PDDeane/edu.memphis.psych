@@ -874,6 +874,8 @@ def enforcement_audit():
         findings.append(("-", "COURSE SCHEMA INCOMPLETE", bad))
     for bad in ENF.check_cross_file_anchors_resolve():
         findings.append(("-", "CROSS-FILE ANCHOR DANGLES", bad))
+    for bad in ENF.check_general_prose_has_no_course_vocabulary():
+        findings.append(("-", "COURSE VOCABULARY IN GENERAL PROSE", bad))
     for bad in ENF.check_every_enforcement_check_is_registered():
         findings.append(("-", "ENFORCEMENT CHECK NOT REGISTERED", bad))
     for iid, h, mx, label in uncovered_cli_items():
