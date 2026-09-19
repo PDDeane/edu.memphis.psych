@@ -1072,3 +1072,30 @@ JOBS = {
                    "members": ["example_1", "example_2"]}],
     },
 }
+
+
+# ---------------------------------------------------------------------------
+# STAGE 4, from `handouts.py`. THE THREE FIELDS OF `HANDOUTS` THAT ARE
+# COURSE DATA, and only those. The table holds five different kinds of
+# thing and only this kind belongs in the course file:
+#
+#   course data   blurb, capture_tail, exemplar_items,
+#                 repair_orphans, join_aware                <- here
+#   resolved path template, submissions, outdir            <- stay computed
+#                 from paths.py; storing a resolved path bakes in one
+#                 machine, which is what check_filesystem_locations_
+#                 come_from_paths_py exists to stop
+#   duplicate     markers, already in the course file as SEGMENT_MARKERS
+#                 and verified identical -- derived, never stored twice
+#   wiring        gold (a function), rubric (a module) -- not data at all
+#   participants  cited_participants, exemplar_participants,
+#                 suspect_participants                      -> the gold
+#                 file under C1b
+#
+# THE THREE HANDOUTS DO NOT SHARE A SCHEMA, which is why each was read
+# rather than one being taken as the pattern: h2 alone has
+# `repair_orphans` and `suspect_participants`, h3 alone has `join_aware`,
+# h1 alone has `exemplar_items`. Assuming uniformity would have left two
+# course-data flags behind and carried neither.
+# ---------------------------------------------------------------------------
+HANDOUT_FIELDS = {'1': {'blurb': 'Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.', 'capture_tail': False, 'exemplar_items': []}, '2': {'blurb': "Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.", 'capture_tail': True, 'repair_orphans': True}, '3': {'blurb': 'Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.', 'capture_tail': True, 'join_aware': True}}
