@@ -14909,6 +14909,54 @@ def check_peg_authoring_formats_are_declared() -> list[str]:
         PF.course_files(course_roots))
 
 
+def check_gold_columns_are_the_item_labels() -> list[str]:
+    """The gold sheets join to the rubric BY LABEL, and two tables say so.
+
+    Measured 2026-09-18 against the graders' workbooks: for all 26 items,
+    `label + " Score"` and `label + " Feedback"` are columns in that handout's
+    sheet -- 52 of 52. The rubric's `label` field IS the teacher's column
+    heading, which is how gold reaches an item at all.
+
+    `gold.HN_HEADER_TO_ITEM` states the same correspondence a second time, as a
+    hardcoded header->id table. The two agree today, in both directions, and
+    nothing makes them. A label edited for wording would leave the gold join
+    working off the old heading and nothing would say so -- the scores would
+    still load, against the item they used to describe.
+
+    Under A2a the header map is DERIVABLE and should not be a stored table at
+    all; until it is removed, this check holds the copy to the original.
+
+    It does NOT read a data row. Headers only: the workbooks hold student work,
+    and the participant ids beside it are the key that makes it identifiable.
+    """
+    try:
+        import coursedata as _C
+        import gold as _G
+    except Exception as exc:                      # pragma: no cover
+        return [f"the gold header tables cannot be read: {exc}"]
+
+    out = []
+    maps = {1: _G.H1_HEADER_TO_ITEM, 2: _G.H2_HEADER_TO_ITEM,
+            3: _G.H3_HEADER_TO_ITEM}
+    for handout, mapping in sorted(maps.items()):
+        labels = {it["label"]: it["id"] for it in _C.items()
+                  if it.get("handout") == handout and it.get("label")}
+        for header, item in sorted(mapping.items()):
+            if labels.get(header) != item:
+                out.append(
+                    f"h{handout}: gold header {header!r} maps to {item!r}, but the "
+                    f"rubric label for that heading is {labels.get(header)!r} -- "
+                    f"the gold join and the rubric disagree about which item a "
+                    f"grader's column scores")
+        for label, item in sorted(labels.items()):
+            if mapping.get(label) != item:
+                out.append(
+                    f"h{handout}: item {item!r} is labelled {label!r} and the gold "
+                    f"header map does not carry that heading -- its column would "
+                    f"be read as another item's, or not at all")
+    return out
+
+
 if __name__ == "__main__":
     import json
     import sys
