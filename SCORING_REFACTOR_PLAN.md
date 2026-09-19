@@ -1785,6 +1785,99 @@ declared attributes were extracted across 64 blocks; the other 70 declare none
 this reader can see, which bounds how much of the shape space is machine-readable
 at all.
 
+##### DECLARED 2026-09-18 — `grader_inputs.py`, and it is gated
+
+*On the user's instruction: "determine which graders can go with which inputs and
+create a hard declaration of that, because it will guide almost everything else."*
+
+`16 graders declared, 20 nested pairings, 20 response sources (14 constructed, 6
+selected). 319 .olx scanned. The declaration and the evidence agree, both ways.`
+Gated by `check_grader_input_pairings_are_declared`.
+
+**Three mechanisms, and the third is the one a nesting-shaped reading misses:**
+
+1. **nested** — the grader WRAPS the input and infers it from its children
+   (`infer: true`). All 24 demonstrated nestings are of this kind.
+2. **targeted** — the grader names its source by id (`infer: false`).
+   `SlotSheetGrader target=` points at an `LLMFeedback`, which is not a student
+   input at all.
+3. **referenced** — the input is read by an `LLMAction` through
+   `<Ref target="...">` **inside the prompt body**. Nothing links input to grader
+   by attribute; the link is a reference embedded in prose. **This is how all 26
+   scored psych items are reached**, and a reader looking only for nesting sees
+   none of it.
+
+##### There are TWO LLM graders, and they are not interchangeable
+
+* **`LLMGrader`** — nested, async, wraps one constructed response and judges it
+  against `question` + `rubric` (+ optional `answer`), returning **one**
+  correctness verdict. Declared in the `org.mitros.dev` namespace, which is a
+  namespace and not a gate.
+* **`SlotSheetGrader`** — targeted; scores the **structured** sheet of slots and
+  counts an `LLMAction` produced. Multi-slot and point-weighted, which is what a
+  rubric needs and what a single verdict cannot express.
+
+So the simple path exists and is much cheaper to author: for an item that needs
+one holistic judgement, `LLMGrader` is the answer and the whole `LLMAction →
+LLMFeedback → SlotSheetGrader` chain is unnecessary.
+
+##### "Could be scored by an LLM" is not "should be"
+
+*On the user's correction.* A `<Ref target= field=>` renders any component's
+value into a prompt, so nearly everything **could** be handed to a model. The
+table records that as `llm_fallback` and never as a preference: **asking a model
+to score a `ChoiceInput` is strictly worse than `KeyGrader`** — slower, costlier,
+non-deterministic, and wrong sometimes — when the answer is a set the author
+already enumerated. Nine of the twenty sources carry `llm_fallback: True` and
+prefer a deterministic grader; an intake program that read the capability as a
+recommendation would route an entire course through a model.
+
+Equally, **short is not selected**: a `LineInput` is constructed response. It
+prefers `StringGrader`/`RulesGrader`/`NumericalGrader` when the expected answer
+is fixed, and the LLM path when the line is open-ended.
+
+##### Not every response source is named `*Input`
+
+A census keyed on the name — or even on the `...input(` declaration — misses
+**`Chat`, `Annotate`, `AvatarEditor`, `CastEditor`, `CharacterBuilder`,
+`DigitSpanTask`** and `SimpleTextSelection`. They collect student work through
+ordinary state dispatch. **A conversation is constructed response**, and scoring
+annotations written onto a text is judgement by nature. All are declared, with
+the LLM chain as their preferred path and `ungraded`/`self-measuring` where that
+is the honest answer.
+
+##### The evidence classes are kept apart
+
+`LLMGrader ← TextArea` is declared and appears in no `.olx`; the both-ways check
+reported it and was right to. Its evidence is the block's **own usage note**, so
+it is declared as `doc_only` with the source named, rather than waved through.
+One pairing of twenty rests on documentation rather than on a shipped example,
+and the run says so.
+
+##### The intake program: an LLM reading materials onto ROLES, then components
+
+*Recorded on the user's architecture note.*
+
+The program that reads teacher materials will **use LLMs extensively** — Claude
+first, but the design stays model-general — and will need **tools**, because
+interpreting handouts, keys and grading spreadsheets is not a parse.
+
+**Its first decision is a correspondence between parts of the teacher material
+and the ROLES** in the shape inventory: this chunk is an item stem, this column
+is gold, this table is an answer key, this sequence is the structure of a form.
+Roles are a small, stable vocabulary — `grader`, `gradable_input`, `item_part`,
+`structure`, `action`, `display` — and that is what makes them a tractable first
+pass.
+
+**Choosing the specific component that fills a role is a SECOND-ORDER task, and
+will often be indeterminate.** Nothing in a worksheet says whether three parts
+are one `Carousel` or three pages, whether a list is a `Sortable` or a
+`Matching`, or whether an open line wants `StringGrader` or judgement. The
+pairing table above constrains the second pass — it says which components can
+fill a role and which grader each response source is FOR — but it cannot remove
+the indeterminacy, and the design should expect that decision to be provisional,
+revisable, and worth surfacing to the teacher rather than guessed silently.
+
 ##### SCORING WITHOUT THIS ENGINE IS FINE — the intake program is what must be general
 
 *Recorded on the user's correction, and it decides the scope of everything above.*
