@@ -254,6 +254,11 @@ DECLARATION_TABLES = ("PROSE_ONLY_SLOTS", "PROSE_ONLY_JUDGED_AGAINST",
                       # plainly authoring content: one names a family of this
                       # course's items, the other is keyed by (item, attribute).
                       "SLOT_STRUCTURE_FAMILIES", "HAND_AUTHORED_ATTRS",
+                      # BLOCKS moved 2026-09-19 WITHOUT its `refs`, which
+                      # `_context_refs` derives from the .olx -- storing that
+                      # would put a derived value in the course file and freeze
+                      # a map that changes whenever the .olx does.
+                      "BLOCKS",
                       # from score.py and agreement_app.py
                       "PAPER_ITEM_NOTES", "PAPER_ITEM_NOTES_WHY",
                       "CONTEXT_SOURCE", "JOBS", "HANDOUT_FIELDS")

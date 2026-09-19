@@ -1208,3 +1208,106 @@ HAND_AUTHORED_ATTRS: dict[tuple[str, str], str] = {
     # unnoticed -- a table doing no work looks exactly like a table doing its
     # job quietly.
 }
+
+
+# THE GRADABLE BLOCKS OF THIS COURSE: which screen holds which item, in which
+# .olx, and what KIND of grading it takes. Authored, not derivable -- handout
+# 3's screen names (`overview`, `success`, `assessment`, `improve`, `graph`)
+# map to items 1a, 2a, 2b, 3 and 1c by authorial choice and by nothing a reader
+# could work out.
+#
+# WITHOUT `refs`, AND THAT IS THE RESHAPE. Each entry used to carry the
+# handout's context map, which `_context_refs(N)` DERIVES from the .olx. Storing
+# it here would put a derived value in the course file, against A2a, and would
+# freeze a map that changes whenever the .olx does. The reader attaches it: an
+# entry with an `olx` gets its own handout's map, and one without gets none.
+# Measured across all 26 entries before the move -- "refs is empty" and "olx is
+# None" coincide exactly, and every olx-bearing entry used its own handout's
+# map, so the rule needs no extra field to record it.
+#
+# The three entries with `olx: None` are scored deterministically and have no
+# LLM call to measure: T1 and T2 are DerivedChecks sheets, and 1b is scored from
+# its gold column. They are here because omitting them reported handout 2 as ten
+# items of twelve while the web reported all twelve.
+BLOCKS: dict[int, dict[str, dict]] = {1: {'bmod_h1_q1_llm': {'item': 'Q1',
+                        'olx': 'bmod_handout1.olx',
+                        'kind': 'slots'},
+     'bmod_h1_q2_llm': {'item': 'Q2',
+                        'olx': 'bmod_handout1.olx',
+                        'kind': 'slots'},
+     'bmod_h1_q3_llm': {'item': 'Q3',
+                        'olx': 'bmod_handout1.olx',
+                        'kind': 'slots'},
+     'bmod_h1_q4a_llm': {'item': 'Q4a',
+                         'olx': 'bmod_handout1.olx',
+                         'kind': 'slots'},
+     'bmod_h1_q4b_llm': {'item': 'Q4b',
+                         'olx': 'bmod_handout1.olx',
+                         'kind': 'slots'},
+     'bmod_h1_q4c_llm': {'item': 'Q4c',
+                         'olx': 'bmod_handout1.olx',
+                         'kind': 'slots'},
+     'bmod_h1_q5_llm': {'item': 'Q5',
+                        'olx': 'bmod_handout1.olx',
+                        'kind': 'slots'},
+     'bmod_h1_q6_llm': {'item': 'Q6',
+                        'olx': 'bmod_handout1.olx',
+                        'kind': 'slots'}},
+ 2: {'bmod_h2_pr_llm': {'item': 'PR',
+                        'olx': 'bmod_handout2.olx',
+                        'kind': 'oc',
+                        'expected_type': 'PR'},
+     'bmod_h2_nr_llm': {'item': 'NR',
+                        'olx': 'bmod_handout2.olx',
+                        'kind': 'oc',
+                        'expected_type': 'NR'},
+     'bmod_h2_pp_llm': {'item': 'PP',
+                        'olx': 'bmod_handout2.olx',
+                        'kind': 'oc',
+                        'expected_type': 'PP'},
+     'bmod_h2_np_llm': {'item': 'NP',
+                        'olx': 'bmod_handout2.olx',
+                        'kind': 'oc',
+                        'expected_type': 'NP'},
+     'bmod_h2_day1_llm': {'item': 'DAY1',
+                          'olx': 'bmod_handout2.olx',
+                          'kind': 'oc_cadence',
+                          'cadence': 'daily'},
+     'bmod_h2_wk1_llm': {'item': 'WK1',
+                         'olx': 'bmod_handout2.olx',
+                         'kind': 'oc_cadence',
+                         'cadence': 'weekly'},
+     'bmod_h2_day2_llm': {'item': 'DAY2',
+                          'olx': 'bmod_handout2.olx',
+                          'kind': 'oc_cadence',
+                          'cadence': 'daily'},
+     'bmod_h2_wk2_llm': {'item': 'WK2',
+                         'olx': 'bmod_handout2.olx',
+                         'kind': 'oc_cadence',
+                         'cadence': 'weekly'},
+     'bmod_h2_d1_llm': {'item': 'D1',
+                        'olx': 'bmod_handout2.olx',
+                        'kind': 'slots'},
+     'bmod_h2_d2_llm': {'item': 'D2',
+                        'olx': 'bmod_handout2.olx',
+                        'kind': 'slots'},
+     '_t1_deterministic': {'item': 'T1', 'olx': None, 'kind': 'type_stated'},
+     '_t2_deterministic': {'item': 'T2', 'olx': None, 'kind': 'type_stated'}},
+ 3: {'bmod_h3_overview_llm': {'item': '1a',
+                              'olx': 'bmod_handout3.olx',
+                              'kind': 'slots'},
+     'bmod_h3_success_llm': {'item': '2a',
+                             'olx': 'bmod_handout3.olx',
+                             'kind': 'slots'},
+     'bmod_h3_assessment_llm': {'item': '2b',
+                                'olx': 'bmod_handout3.olx',
+                                'kind': 'slots'},
+     'bmod_h3_improve_llm': {'item': '3',
+                             'olx': 'bmod_handout3.olx',
+                             'kind': 'slots'},
+     'bmod_h3_graph_llm': {'item': '1c',
+                           'olx': 'bmod_handout3.olx',
+                           'kind': 'slots'},
+     '_1b_deterministic': {'item': '1b',
+                           'olx': None,
+                           'kind': 'data_presence'}}}
