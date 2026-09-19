@@ -280,8 +280,31 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
     # Course-level because they are keyed by COMPONENT, not by item.
     import declaration_source
 
+    # GOAL D: the course id comes OUT of the values. Every job's `screen` was
+    # stored as `edu.memphis.psych/bmod_h1_q1` and every job carried `ns` with the
+    # same course id -- twice over, in a file whose own `course` field already
+    # says it. `measured.py` then does `job["screen"].split("/")[-1]`, stripping
+    # back off what was put on.
+    #
+    # The FILE holds the bare id and no `ns`; the reader recomposes both from the
+    # course field, so runtime values are unchanged. A move and a reshape were
+    # kept apart deliberately: JOBS moved first, with a test, and this is the
+    # reshape with its own.
+    def _denamespace(jobs: dict) -> dict:
+        out = {}
+        for item, spec in jobs.items():
+            spec = dict(spec)
+            ns = spec.pop("ns", None)
+            screen = spec.get("screen")
+            if ns and isinstance(screen, str) and screen.startswith(f"{ns}/"):
+                spec["screen"] = screen[len(ns) + 1:]
+            out[item] = spec
+        return out
+
     doc["declarations"] = {
-        name: _jsonable(_pairs(getattr(declaration_source, name)),
+        name: _jsonable(_pairs(_denamespace(getattr(declaration_source, name))
+                               if name == "JOBS"
+                               else getattr(declaration_source, name)),
                         f"declarations.{name}")
         for name in DECLARATION_TABLES
         if getattr(declaration_source, name, None) is not None}

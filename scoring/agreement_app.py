@@ -127,7 +127,28 @@ RUNNER = paths.RUNNER
 
 # Which screen carries each item, and which paper section feeds each field.
 # Fixtures only — no judgement about what anything is worth.
-JOBS = _declaration("JOBS")
+def _namespaced_jobs() -> dict:
+    """JOBS with `ns` and the namespaced `screen` recomposed from the course id.
+
+    The file holds the bare screen id and no `ns`, because both repeated the
+    course id the file already carries -- and `measured.py` stripped the prefix
+    straight back off. Recomposed here so every consumer sees exactly what it saw
+    before: this is a change to what is STORED, not to what is read.
+    """
+    import coursedata
+
+    ns = coursedata.course_id()
+    out = {}
+    for item, spec in coursedata.declaration("JOBS").items():
+        spec = dict(spec)
+        spec["ns"] = ns
+        if isinstance(spec.get("screen"), str) and "/" not in spec["screen"]:
+            spec["screen"] = f"{ns}/{spec['screen']}"
+        out[item] = spec
+    return out
+
+
+JOBS = _namespaced_jobs()
 
 # The web version asks for the unwanted behaviour as a closed choice, so the
 # fixture has to carry one of its four values — not the paper student's prose,
