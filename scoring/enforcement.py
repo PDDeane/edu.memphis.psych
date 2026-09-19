@@ -6332,13 +6332,33 @@ def check_side_notes_are_side_specific() -> list[str]:
 # non-example is now invented, the reference is gone, and the `corpus_data:`
 # frontmatter went with it -- so the page renders without the corpus again.
 # A park that outlives its finding is a declaration nobody reviewed.
-PARKED_UNDECLARED: dict[tuple[str, str], str] = {}
+PARKED_UNDECLARED: dict[tuple[str, str], str] = {
+    # D2d's exemption expired on 2026-09-18, the day T4.1's check was written:
+    # both conditions it was conditional on -- the concurrency guard and the
+    # self-test's restore defect -- are closed, and the check says so rather than
+    # letting the exemption drift on unexamined. That is the mechanism working.
+    #
+    # Parked, not declared, and the difference matters: this is not "the 30
+    # course-bound fixtures in `enforcement_selftest` are right", it is "they are
+    # wrong and D2a is the scheduled work that fixes them". The finding stays
+    # computed and printed with this reason attached.
+    #
+    # D2a: each fixture selects its target BY SHAPE -- the first item with
+    # `counts`, the first `dealt` job -- and REPORTS the target it chose, so the
+    # coverage drift D2a is otherwise vulnerable to appears in the run's own
+    # output. This park goes when D2a lands; `check_parked_entries_still_apply`
+    # reports it if the finding disappears first.
+    ("-", "MIGRATED MODULE HOLDS COURSE DATA"):
+        "D2d's two conditions closed 2026-09-18; D2a (shape-selected fixtures, "
+        "each reporting its chosen target) is owed and scheduled. The park goes "
+        "when D2a lands.",
+}
 
 # Ratcheted like every other table here. A park is cheap to add and easy to
 # forget, which is the failure mode: a parking lot nobody empties becomes a
 # second declaration table with none of the review. Raise this only with the
 # entry, and lower it when one is retired.
-PARKED_BUDGET = 0
+PARKED_BUDGET = 1
 
 
 # How far a side's own verdicts may fail to reproduce its own score before the
@@ -14495,6 +14515,284 @@ def probe_declaration_tables() -> list[str]:
 # was invisible to it -- adding a flag that called one raised NameError, because a
 # script runs top to bottom and the guard fires before the rest of the file is
 # read. Nothing depended on its position.
+# ---------------------------------------------------------------------------
+# GOAL C / §10.7 -- a module declared MIGRATED holds no course data. (T4.1)
+#
+# C3c's gate half; T1.1 (`course_inventory`) is the metric half. Three checks,
+# because §10.7's four categories do not all belong to the same question:
+# categories 1-3 are about a module's CONTENTS and are gated per module here;
+# category 4 is about the repository's FILE LIST and is its own check, since
+# renaming `gold_slots_q6.py` changes the file's identity and no edit to its
+# contents could ever satisfy a rule about its name.
+#
+# THE SCAN IS RUN, NOT READ. An earlier draft had this read T1.1's JSON. A gate
+# reading a cached measurement passes while the thing it measures changes
+# underneath -- add a course table to a module and yesterday's JSON still says
+# zero. This project has already paid for that shape once: a dev server that
+# reloaded CONTENT but not CODE mis-scored every mapped slot for 19 observations
+# while looking healthy. So T1.1 is imported and called; its JSON stays the
+# interface for humans and for T3.2, and the gate never trusts it.
+# ---------------------------------------------------------------------------
+_HERE_DIR = pathlib.Path(__file__).resolve().parent
+COURSE_DATA_BUDGET = _HERE_DIR / "COURSE_DATA_BUDGET.json"
+
+# WHICH MODULES ARE DECLARED MIGRATED. This is engine STATE -- a fact about the
+# engine's own progress, not about psychology -- so it lives here beside the
+# check and never in the course file. §0's rule decides it: the course file may
+# not be where the engine records how far it has got.
+#
+# Empty at Stage 4's start, and that emptiness is why the ratchet below exists.
+MIGRATED_MODULES: dict[str, str] = {}
+
+# D2d's exemption: NAMED, SCOPED TO A FUNCTION, and carrying its own expiry.
+# `enforcement_selftest` only -- never `equivalence.py` as a whole.
+D2D_EXEMPTION = {"equivalence.py": "enforcement_selftest"}
+
+
+def _inventory_now() -> dict:
+    """T1.1's scan, run fresh. See the header: never the cached JSON."""
+    import course_inventory
+    return course_inventory.inventory()
+
+
+def _exempt(module: str, entry: dict) -> bool:
+    """Is this embedding inside the function D2d exempts?
+
+    Scoped by the ENCLOSING FUNCTION the scan records, not by module, so a course
+    id that appears anywhere else in `equivalence.py` is still a violation.
+
+    BOTH SIDES MUST BE REAL. The first version was
+    `entry.get("in") == D2D_EXEMPTION.get(module)`, and for any module NOT in the
+    exemption both sides are `None` -- so every module-level embedding in every
+    module compared equal and was excused. Measured when the totals refused to
+    reconcile: 117 of 230 embeddings silently exempt, in modules the exemption
+    has nothing to do with. A `None == None` comparison is how a narrow exemption
+    becomes a general one.
+    """
+    fn = D2D_EXEMPTION.get(module)
+    return fn is not None and entry.get("in") == fn
+
+
+def _course_data_counts(inv: dict) -> dict[str, int]:
+    """Per module, how many category 1-3 embeddings survive the exemption."""
+    out = {}
+    for rec in inv.get("modules", []):
+        mod = rec["module"]
+        n = 0
+        for cat in ("tables", "literal_ids", "vocabulary"):
+            n += sum(1 for e in rec.get(cat, []) if not _exempt(mod, e))
+        out[mod] = n
+    return out
+
+
+def _d2d_conditions() -> dict[str, tuple[bool, str]]:
+    """D2d's two expiry conditions, each tested rather than asserted.
+
+    STRUCTURAL, AND SAYING SO. These read the source for the shape of each fix;
+    they do not re-run the behaviour. That is weaker than a behavioural proof and
+    is the same gap this project has already named once -- a state that builds is
+    not a state that runs. It is enough for an EXPIRY trigger, whose job is to
+    notice that the work was done and stop the exemption drifting onward, not to
+    re-certify the work itself.
+    """
+    src = ""
+    path = _HERE_DIR / "equivalence.py"
+    try:
+        src = path.read_text()
+    except OSError as exc:                       # pragma: no cover
+        return {"source unreadable": (False, f"{path}: {exc}")}
+
+    import ast as _ast
+    try:
+        tree = _ast.parse(src)
+    except SyntaxError as exc:                   # pragma: no cover
+        return {"source unparseable": (False, str(exc))}
+
+    body = None
+    for node in _ast.walk(tree):
+        if isinstance(node, _ast.FunctionDef) and node.name == "enforcement_selftest":
+            body = node
+            break
+    if body is None:                             # pragma: no cover
+        return {"enforcement_selftest present": (False, "the function is gone")}
+
+    names = {n.id for n in _ast.walk(body) if isinstance(n, _ast.Name)}
+    names |= {n.attr for n in _ast.walk(body) if isinstance(n, _ast.Attribute)}
+    top = {n.name for n in _ast.walk(tree) if isinstance(n, _ast.FunctionDef)}
+
+    # THE PUBLIC ENTRY POINT, NOT THE HELPER. The first version looked for
+    # `_selftest_in_flight`, which is what `refuse_if_selftest_running` calls
+    # INSIDE olx_prompts -- it never appears in equivalence.py at all, except in a
+    # comment. So the condition read False, the exemption looked alive, and the
+    # expiry silently did not fire: a false negative in the exact place this
+    # docstring warns that a structural test can have one.
+    _guard_names = {"refuse_if_selftest_running", "_selftest_in_flight"} & names
+    guard = bool(_guard_names)
+    net = ("_selftest_snapshot" in names and "_selftest_repair" in names
+           and {"_selftest_snapshot", "_selftest_repair"} <= top)
+    fails = "FAILED -- source moved" in src
+    return {
+        "the concurrency guard (entry condition 4)": (
+            guard, f"enforcement_selftest calls {sorted(_guard_names)[0]}"
+                   if guard else "no call to refuse_if_selftest_running"),
+        "the restore defect (a case that does not restore its injection)": (
+            net and fails,
+            "snapshot/repair net installed and a moved source FAILS"
+            if net and fails else
+            f"snapshot-and-repair net: {net}; moved source fails: {fails}"),
+    }
+
+
+def check_module_has_no_course_data() -> list[str]:
+    """A module declared MIGRATED carries no course table, id or vocabulary.
+
+    TWO MECHANISMS, BECAUSE THEY CATCH DIFFERENT FAILURES. `MIGRATED_MODULES` is a
+    whitelist and whitelists rot: a module can be cleaned and never declared, and
+    nothing notices. So the counts are ALSO ratcheted, in the idiom
+    `STUDENT_TEXT_BUDGET.json` already uses here -- they may fall and may not rise.
+    The whitelist proves a specific module is done; the ratchet catches a
+    regression anywhere, including in the modules nobody has declared yet, which
+    is most of them for most of Stage 4.
+    """
+    import json as _json
+
+    out: list[str] = []
+    inv = _inventory_now()
+    counts = _course_data_counts(inv)
+    by_name = {r["module"]: r for r in inv.get("modules", [])}
+
+    # ---- the whitelist ----------------------------------------------------
+    for mod, claim in sorted(MIGRATED_MODULES.items()):
+        rec = by_name.get(mod)
+        if rec is None:
+            out.append(f"{mod} is declared MIGRATED but the scan never saw it -- "
+                       f"a declaration naming a file that is not there proves "
+                       f"nothing and hides that the module was never checked")
+            continue
+        if counts.get(mod):
+            detail = ", ".join(
+                f"{cat}={sum(1 for e in rec.get(cat, []) if not _exempt(mod, e))}"
+                for cat in ("tables", "literal_ids", "vocabulary")
+                if sum(1 for e in rec.get(cat, []) if not _exempt(mod, e)))
+            out.append(f"{mod} is declared MIGRATED ({claim}) but still holds "
+                       f"course data: {detail}")
+
+    # ---- the ratchet ------------------------------------------------------
+    try:
+        budget = _json.loads(COURSE_DATA_BUDGET.read_text())
+    except FileNotFoundError:
+        out.append(f"{COURSE_DATA_BUDGET.name} is missing, so the ratchet cannot "
+                   f"run -- and a ratchet that cannot run is not the same as one "
+                   f"that passes. Write it with `course_inventory.py --tighten`.")
+        budget = None
+    except ValueError as exc:
+        out.append(f"{COURSE_DATA_BUDGET.name} is unreadable: {exc}")
+        budget = None
+
+    if budget is not None:
+        base = budget.get("modules", {})
+        for mod, n in sorted(counts.items()):
+            was = base.get(mod)
+            if was is None:
+                out.append(f"{mod} carries {n} course-data embedding(s) and is not "
+                           f"in the budget -- a NEW module enters at its own count "
+                           f"or not at all; run `course_inventory.py --tighten`")
+            elif n > was:
+                out.append(f"{mod} course data grew {was} -> {n}; the ratchet only "
+                           f"tightens")
+        # The exemption is REPORTED, not silent: its size is a committed number, so
+        # a change in what the self-test embeds shows up in the budget's diff
+        # rather than being absorbed.
+        want_ex = {f"{m}::{fn}": sum(
+                       1 for cat in ("tables", "literal_ids", "vocabulary")
+                       for e in (by_name.get(m) or {}).get(cat, [])
+                       if e.get("in") == fn)
+                   for m, fn in D2D_EXEMPTION.items()}
+        got_ex = budget.get("exempt_d2d", {})
+        for key, n in sorted(want_ex.items()):
+            if got_ex.get(key) != n:
+                out.append(f"the D2d exemption covers {n} embedding(s) at {key}, "
+                           f"but the budget records {got_ex.get(key)} -- the "
+                           f"exemption's size must stay visible, so re-tighten")
+
+    # ---- the exemption expires by MECHANISM, not by a sentence -------------
+    conds = _d2d_conditions()
+    if D2D_EXEMPTION and all(met for met, _ in conds.values()):
+        why = "; ".join(f"{name}: {ev}" for name, (met, ev) in sorted(conds.items()))
+        out.append(
+            "the D2d exemption has OUTLIVED ITS REASON. It was conditional on two "
+            "defects in the self-test, and both are now closed -- " + why + ". D2d "
+            "says the exemption expires when they close and D2a (shape-selected "
+            "fixtures, each REPORTING the target it chose) is the work that "
+            "replaces it. An exemption that outlives its reason is how `for now` "
+            "becomes `forever`.")
+    return out
+
+
+def check_no_module_is_named_for_a_course_artifact() -> list[str]:
+    """§10.7 category 4 -- a generic engine has no module named for a question,
+    a handout or a course.
+
+    ITS OWN CHECK, NOT A CATEGORY FOLDED INTO THE ONE ABOVE. This rule is about
+    the repository's file list, not about any module's contents: `gold_slots_q6.py`
+    cannot satisfy it by editing itself, only by being renamed. Folded in, it
+    would make a per-module gate fail for a reason that module's own contents can
+    never fix.
+    """
+    inv = _inventory_now()
+    out = []
+    for rec in sorted(inv.get("modules", []), key=lambda r: r["module"]):
+        for hit in rec.get("name_names_course", []):
+            marker = hit.get("marker") if isinstance(hit, dict) else hit
+            out.append(f"{rec['module']} is named for a course artifact "
+                       f"({marker!r}) -- GOAL E; renaming is the only fix")
+    # RATCHETED, LIKE THE COUNTS. GOAL E is Stage 7 work and these nine modules
+    # are still named for questions and handouts today, so a check that simply
+    # reported them would fail the audit from the moment it was added -- which
+    # means it could only be added AFTER the work it exists to gate, and would
+    # gate nothing. Baselined instead: the population may shrink and may not grow.
+    import json as _json
+    try:
+        allowed = _json.loads(COURSE_DATA_BUDGET.read_text()).get("named_modules", [])
+    except (FileNotFoundError, ValueError):
+        return out + [f"{COURSE_DATA_BUDGET.name} is missing or unreadable, so the "
+                      f"course-named-module ratchet cannot run -- which is not the "
+                      f"same as passing"]
+    known = set(allowed)
+    fresh = [f for f in out if f.split(" is named")[0] not in known]
+    stale = sorted(known - {f.split(" is named")[0] for f in out})
+    return fresh + [f"{m} is in the course-named-module budget but no longer "
+                    f"matches -- re-tighten so the reduction cannot be undone"
+                    for m in stale]
+
+
+def check_every_enforcement_check_is_registered() -> list[str]:
+    """Every `check_*` defined here is actually called by the audit.
+
+    A check nobody calls is worse than no check: it reads as coverage, it passes
+    review, and it never runs. The two counts have matched by discipline alone --
+    nothing enforced it, and this module gained three checks on the day this was
+    written, any one of which could have been left unwired with nothing to notice.
+    """
+    import ast as _ast
+
+    out = []
+    here = _ast.parse((_HERE_DIR / "enforcement.py").read_text())
+    defined = {n.name for n in here.body
+               if isinstance(n, _ast.FunctionDef) and n.name.startswith("check_")}
+    try:
+        audit_src = (_HERE_DIR / "equivalence.py").read_text()
+    except OSError as exc:                       # pragma: no cover
+        return [f"cannot read equivalence.py to verify registration: {exc}"]
+    called = set(re.findall(r"ENF\.(check_\w+)", audit_src))
+    for name in sorted(defined - called):
+        out.append(f"{name} is defined but the audit never calls it -- an "
+                   f"unregistered check reads as coverage and never runs")
+    for name in sorted(called - defined):
+        out.append(f"the audit calls {name}, which is not defined here")
+    return out
+
+
 if __name__ == "__main__":
     import json
     import sys

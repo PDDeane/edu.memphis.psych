@@ -235,6 +235,10 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--dir", default=HERE)
     ap.add_argument("--course-file", default=None)
     ap.add_argument("--json", metavar="PATH")
+    ap.add_argument("--tighten", action="store_true",
+                    help="write COURSE_DATA_BUDGET.json at the CURRENT counts. "
+                         "The ratchet only tightens: a count that rose is refused "
+                         "here rather than quietly baselined.")
     args = ap.parse_args(argv)
 
     problems = self_test()
@@ -258,6 +262,53 @@ def main(argv: list[str]) -> int:
     if args.json:
         json.dump(inv, open(args.json, "w"), indent=1)
         print(f"\n  written: {args.json}")
+    if args.tighten:
+        return _tighten(inv)
+    return 0
+
+
+def _tighten(inv: dict) -> int:
+    """Write the ratchet file the enforcement gate reads.
+
+    THE WRITER IS HERE AND THE GATE IS THERE, deliberately. A gate that can lower
+    its own bar is not a ratchet, so `enforcement.check_module_has_no_course_data`
+    only ever READS this file; moving the bar is an explicit act with a person
+    behind it. This is the same split `STUDENT_TEXT_BUDGET.json` already uses.
+
+    It refuses a count that ROSE. Baselining a regression is how a ratchet
+    silently becomes a record of whatever happened to be true.
+    """
+    import enforcement as ENF
+
+    counts = ENF._course_data_counts(inv)
+    by_name = {r["module"]: r for r in inv.get("modules", [])}
+    exempt = {f"{m}::{fn}": sum(1 for cat in ("tables", "literal_ids", "vocabulary")
+                                for e in (by_name.get(m) or {}).get(cat, [])
+                                if e.get("in") == fn)
+              for m, fn in ENF.D2D_EXEMPTION.items()}
+    path = ENF.COURSE_DATA_BUDGET
+    try:
+        old = json.loads(path.read_text()).get("modules", {})
+    except (FileNotFoundError, ValueError):
+        old = {}
+    grew = {m: (old[m], n) for m, n in counts.items() if m in old and n > old[m]}
+    if grew:
+        print("\n  REFUSING to tighten: these counts ROSE, and a ratchet that "
+              "baselines a regression records history instead of enforcing it.")
+        for m, (was, now) in sorted(grew.items()):
+            print(f"    {m}: {was} -> {now}")
+        return 2
+    named = sorted({r["module"] for r in inv.get("modules", [])
+                    if r.get("name_names_course")})
+    doc = {"_what": "GOAL C / §10.7 categories 1-3 per module. Falls, never rises.",
+           "exempt_d2d": dict(sorted(exempt.items())),
+           "named_modules": named,
+           "modules": dict(sorted(counts.items()))}
+    path.write_text(json.dumps(doc, indent=1) + "\n")
+    lowered = sum(1 for m, n in counts.items() if m in old and n < old[m])
+    print(f"\n  budget written: {path.name} "
+          f"({len(counts)} modules, {sum(counts.values())} embeddings, "
+          f"{lowered} lowered)")
     return 0
 
 

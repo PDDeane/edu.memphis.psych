@@ -855,6 +855,13 @@ def enforcement_audit():
         findings.append(("-", "TWO FIXES FOR ONE BOX", bad))
     for bad in ENF.check_unreachable_gold_is_allowed():
         findings.append(("-", "UNREACHABLE GOLD PENALISED", bad))
+    # GOAL C / §10.7 -- the migration's own gates (T4.1).
+    for bad in ENF.check_module_has_no_course_data():
+        findings.append(("-", "MIGRATED MODULE HOLDS COURSE DATA", bad))
+    for bad in ENF.check_no_module_is_named_for_a_course_artifact():
+        findings.append(("-", "MODULE NAMED FOR A COURSE ARTIFACT", bad))
+    for bad in ENF.check_every_enforcement_check_is_registered():
+        findings.append(("-", "ENFORCEMENT CHECK NOT REGISTERED", bad))
     for iid, h, mx, label in uncovered_cli_items():
         findings.append((iid, "SCORED ON PYTHON ONLY",
                          f"H{h} {label} is worth {mx:g} on the CLI and is scored by "
