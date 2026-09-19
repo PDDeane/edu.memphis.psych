@@ -2106,6 +2106,74 @@ quiz above is one file, readable by anyone; the OLX it expands into is not. The
 intake program's preferred output space, and the OLX tables describe the
 fallback for everything those seven cannot express.
 
+##### 10.6.4 · THE INPUT SIDE — what teacher materials actually look like
+
+*On the user's pointer to `~/code/activities_materials`: "very partial, not as
+complete as what's in molly_data, but helpful. A few will partly match existing
+activities."*
+
+Everything in §10.6 so far describes the intake program's OUTPUT — the blocks,
+the pairings, the containers, the PEG formats. This is the first look at its
+INPUT, and it changes what the program has to be able to do. **17 files, `.docx`
+and `.pptx`, no other format.**
+
+**They span all four courses**, and the correspondence is measurable where the
+material carries text — keyword overlap against each course's OLX:
+
+| material | course | overlap |
+|---|---|---|
+| Psych SBA FBA2 prototype (×2 versions) | psych | 60/60 |
+| REVISIONS … SBA Interdisciplinary Reasoning Prototype | interdisciplinary | 59/60 |
+| Psych_SleepScenario_Draft2 | psych | 57/60 |
+| SBA FBA prototype DRAFT 11.26.24 | psych | 56/60 |
+| DCA SBA 1 | writing | 49/60 |
+| IRP SBA_ | interdisciplinary | 49/60 |
+
+The method discriminates well for the prototypes and **not at all** for the
+generic concept documents — `SBA concept` scores psych 48 / writing 48, which is
+a tie, not a match. Shared SBA vocabulary is most of the signal. So: filename and
+provenance carry information the text does not, and an intake program should not
+pretend otherwise.
+
+##### THREE KINDS OF MATERIAL, and only one is text
+
+1. **Prototype decks** — 255 to 1,731 text runs. Authorable: the items, prompts
+   and structure are in the text.
+2. **Plan documents** — `DCA SBA 1.docx` has a table of contents (Overview,
+   Scenario Outline, Graphic Organizer, Questions, Key Terms), **20 headings, 42
+   questions and 45 fill-in blanks**. The structure of a form, written as prose.
+3. **Screenshot decks** — `Survey 1`, `Survey 2`, `Writing Process Journal 1`:
+   **28 images and TWO text runs across 29 slides.** The activity is in the
+   pixels.
+
+**The third kind settles an open design question.** §10.6.1 says the intake
+program "will almost certainly have to use LLMs extensively, often using tools" —
+this is why. A third of the sample carries its content as images, and no parser,
+however good, will read it. Vision is not an enhancement here; without it the
+program cannot see the material at all.
+
+##### Versions, not duplicates
+
+`3 Psych SBA FBA2 prototype Share 10-7-25 (1).pptx` and
+`Psych SBA FBA2 prototype Share 10-7-25.pptx` differ by 121 KB of embedded media
+and are **textually identical** — a download duplicate. `SBA Final Feedback(1)`
+and `SBA Final Feedback` are **98.6% similar and not identical** — a genuine
+revision. And `SBA FBA prototype DRAFT 11.26.24` is an earlier dated version of
+the `Share 10-7-25` deck.
+
+So the input carries **three different same-ish relationships** — a byte-level
+duplicate, a near-identical revision, and a dated earlier draft — and they need
+different answers. Deciding which version is current is part of intake, not a
+preliminary to it, and nothing in the filenames reliably says.
+
+##### What this sample does NOT contain
+
+No gold scores, no grading sheets, no completed student work. `molly_data` holds
+the fuller materials (see `$COURSE_DATA`), and this set is explicitly partial. So
+it exercises **items, prompts and structure** and says nothing yet about how the
+intake program is to recover **gold and rubrics** — which §10.6.1 lists as part
+of its job and which remains unexamined.
+
 ##### The intake program: an LLM reading materials onto ROLES, then components
 
 *Recorded on the user's architecture note.*
