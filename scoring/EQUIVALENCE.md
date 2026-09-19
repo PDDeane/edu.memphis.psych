@@ -2877,7 +2877,7 @@ item strip theirs: 2a/p16's `"Sentence 3: "`, Q4c/p13 and p16, Q5/p1 and p16,
 Q3/p6's four `"- "` bullets, Q4b's fourteen `"1) "`/`"2) "`, Q6's five (p10,
 p18, p20). Class now closed — no box in the corpus opens with a marker. Q4b's
 and Q6's went through `CONSENSUS_FIXES` rather than their own sources, because
-those live in `MOLLY_DATA` and this table's note already records what editing
+those live in `COURSE_DATA` and this table's note already records what editing
 data outside the repo cost: a p7 fix invisible to anyone who clones the repo.
 It also leaves Q6's consensus frozen, which is the property it was frozen for.
 

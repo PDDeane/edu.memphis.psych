@@ -683,7 +683,7 @@ sheet-attribute registry.
 > are in `migration/goldens/` — **for diffing, not for acceptance**: re-freeze
 > from the current tree first (`DRIFT.md`, row A/B/C/E/G). Its final enforcement
 > state is `goldens/audit_baseline.json` (28 findings) and its selftest sentinel
-> is `$MOLLY_DATA/migration_reference/.selftest-passed` (`114 detected, 0 failed`). Run
+> is `$COURSE_DATA/migration_reference/.selftest-passed` (`114 detected, 0 failed`). Run
 > **§11.13 must be decided before this stage freezes anything** — the seven
 > `paths.OUT` fallbacks become part of the baseline on the day it is frozen.
 > `migration/preflight.py` before anything: it refuses while the rubric still
@@ -793,7 +793,7 @@ Pure leaf module in lo-blocks, options object, no block or React imports — the
 generator branches on a literal item id (checked 2026-09-14 by `stage02_assembler_surface.py`).
 
 > **Preserved for this stage, and it is the half that lives outside this repo.**
-> The assembler itself is `$MOLLY_DATA/migration_reference/engine/packages/shared/lib/llm/` —
+> The assembler itself is `$COURSE_DATA/migration_reference/engine/packages/shared/lib/llm/` —
 > `promptAssembler.ts` (327 lines) + `.types.ts` (282) + test, `attributeAssembler`
 > (222) + test, `materialiseRubric` (155) + `.md` + test, `itemTemplate` (141) +
 > `.md` + test. **These exist nowhere else**: the dry-run lo-blocks was copied
@@ -857,7 +857,7 @@ Two sub-steps, in this order, because the block types are **engine** and the rub
 **content** — O1 forbids landing them together.
 
 > **Preserved for this stage.** The whole rubric block family —
-> `$MOLLY_DATA/migration_reference/engine/packages/shared/components/blocks/rubric/`, **31 files**: Rubric,
+> `$COURSE_DATA/migration_reference/engine/packages/shared/components/blocks/rubric/`, **31 files**: Rubric,
 > Item, Slot, Segment, Verdicts, Deduction, Credit, Counts, Cover, Equals,
 > Expect, Forbid, Onlyif, Requires, Derived, Map, Frame, Param, Context,
 > Guidance, Question, ItemTemplate, plus tests and `.md`. Also
@@ -912,10 +912,10 @@ still assembles to its golden. Two copies exist and are asserted equal.
 > file from rubric prose, so this is the stage where the question arises.
 >
 > **Preserved for this stage.** `migration/stage04_migrate_rubric.py`,
-> `stage04_gate.py`. The dry run's output is `$MOLLY_DATA/migration_reference/olx/bmod_rubric.olx`,
+> `stage04_gate.py`. The dry run's output is `$COURSE_DATA/migration_reference/olx/bmod_rubric.olx`,
 > `bmod_rubric_pr.olx`, `bmod_course.olx` — **diff against them, do not install
 > them**: the first two carry 47 and 3 distinctive student 4-grams because they
-> predate corpus references. Scoring-side diff: `$MOLLY_DATA/migration_reference/migration_changes.patch`
+> predate corpus references. Scoring-side diff: `$COURSE_DATA/migration_reference/migration_changes.patch`
 > (33 files, ~12k lines, includes deleting `rubric_h1/h2/h3.py`).
 > **Re-freeze `goldens/prompt_oracles.json` first** — the `prompt_sha` slice now
 > holds references, so every family differs from a pre-rewrite baseline because
@@ -1051,7 +1051,7 @@ its own** — the condition the whole migration exists to reach, and the point a
 > **Preserved for this stage.** `migration/products/selftest_injections.py`
 > (the 28 injections — scanned clean, so it lives in this repo),
 > `stage06_freeze_rubric_oracle.py`, `stage06b_*`, `stage06c_*`, and
-> `$MOLLY_DATA/migration_reference/pre_selftest/` — six modules whose bytes are in **no commit**
+> `$COURSE_DATA/migration_reference/pre_selftest/` — six modules whose bytes are in **no commit**
 > (`enforcement.py` 13,381 lines, `equivalence.py`, `measured.py`,
 > `olx_prompts.py`, `probe.py`, `sweep_gate.py`), the only record of what they
 > looked like before this stage. Recompute `SELFTEST_EXPECTED` from the
@@ -1154,7 +1154,7 @@ is the rest of stage 01's list plus the prose. Add the EQUIVALENCE.md limit sect
 > strips corpus references BEFORE counting mentions, because a reference is a
 > citation, not a claim about where a structure lives, and "rebasing" one would
 > either resolve it or repoint it at the wrong cell. The dry run's decisions are
-> in `$MOLLY_DATA/migration_reference/products/RUBRIC_DECISIONS.md` (2,464 lines; outside this repo — 66
+> in `$COURSE_DATA/migration_reference/products/RUBRIC_DECISIONS.md` (2,464 lines; outside this repo — 66
 > distinctive student 4-grams).
 
 Update `QUALITY_CONTROL.md` and `GOALS.md` where they name moved structures.
@@ -1180,9 +1180,9 @@ cleared by sweeping at any price.
 > **Preserved for this stage.** `migration/stage08_acceptance.py` (six rows),
 > `e2e_session.sh`, `student_session.sh`, `student_session.spec.ts`. Certified
 > browser result: `migration/goldens/student_session_certified.json`; the dry
-> run's scorer-side evidence is `$MOLLY_DATA/migration_reference/sessions/e2e_session_p1/` (26 items).
+> run's scorer-side evidence is `$COURSE_DATA/migration_reference/sessions/e2e_session_p1/` (26 items).
 > The non-circular served-prompt claim needs a dump that PREDATES the work —
-> `$MOLLY_DATA/out/idmap_v145.json`, 2026-09-12, confirmed present.
+> `$COURSE_DATA/out/idmap_v145.json`, 2026-09-12, confirmed present.
 
 **AMENDED 2026-09-14 — 08's entry condition moved at 06.** Stage 06 moves the paper `scorer_sha`
 for the eight handout-2 columns named above, so §7a's instruments cannot be green until those are
@@ -2721,7 +2721,7 @@ in four kinds:
 |---|---|---|
 | **unconditional** | `agreement_app.py:1648`, `enforcement.py:4304` — `/home/pdeane/code/update/lo-blocks` | ignores `$LO_BLOCKS`; measures the wrong checkout in silence |
 | **UID baked in** | `score.py:1161`, `simulate_h3.py:65` — `MEDIA_DIR = "/tmp/claude-1000/..."` | correct for one account on one machine |
-| **duplicated resolution** | `self_graded_misses.py:39` — `os.environ.get("MOLLY_DATA", "~/molly_data")` | re-implements `paths.DATA`, and will drift from it |
+| **duplicated resolution** | `self_graded_misses.py:39` — `os.environ.get("COURSE_DATA", "~/molly_data")` | re-implements `paths.DATA`, and will drift from it |
 | **fallback** | `enforcement.py` ×5, `measured.py` ×2 | **the design question below** |
 
 The first three kinds are bugs and want fixing. **The seven fallbacks are a
@@ -2737,8 +2737,8 @@ behaviours are available and they are not equivalent:
 | | behaviour when `paths.OUT` is absent |
 |---|---|
 | **(a) as written** | silently read the developer's own artifact directory |
-| **(b) fail closed** | raise, naming `$MOLLY_OUT` — `paths.require()` already exists for this |
-| **(c) resolve** | `os.environ["MOLLY_OUT"]`, i.e. duplicate `paths.py` badly |
+| **(b) fail closed** | raise, naming `$COURSE_OUT` — `paths.require()` already exists for this |
+| **(c) resolve** | `os.environ["COURSE_OUT"]`, i.e. duplicate `paths.py` badly |
 
 **(a) is the least safe available behaviour and it is what ships.** A harness
 pointed at a sandbox, a second checkout, or the backup copy gets the developer's
@@ -2757,7 +2757,7 @@ the migration's own measurements can silently come from the wrong directory.
 now reports **0**. What changed:
 
 * `paths.out_root()` — for scripts. Uses the existing `require()`, which exits
-  naming `MOLLY_OUT`.
+  naming `COURSE_OUT`.
 * `paths.out_root_or_reason()` — **for checks, which must not exit the process.**
   It returns the reason, and the five call sites now report *"this check cannot
   run, which is NOT the same as passing."* This is the half that mattered: the
@@ -2767,7 +2767,7 @@ now reports **0**. What changed:
   in `score.py` and `simulate_h3.py`, which baked in a numeric UID and was
   correct for one account on one machine.
 * `agreement_app.LOBLOCKS`, `enforcement`'s lo-blocks literal, and
-  `self_graded_misses`' duplicated `MOLLY_DATA` resolution all now use `paths`.
+  `self_graded_misses`' duplicated `COURSE_DATA` resolution all now use `paths`.
 
 Two glob PATTERNS remain, declared in `ABSOLUTE_PATH_EXCEPTIONS` with their
 reason: they are the subject of a check, not locations it reads from.
@@ -3164,7 +3164,7 @@ told nobody the engines were never examined.
 *Mitigation.* Any script that calls `enforcement_audit()` chdirs to `scoring/`
 first. And when a count differs from a frozen baseline, check the ENVIRONMENT
 before the tree: the same four checks that read relative paths also read
-`$MOLLY_DATA` and `$LO_BLOCKS`, and `paths.py` refuses outright if those point
+`$COURSE_DATA` and `$LO_BLOCKS`, and `paths.py` refuses outright if those point
 outside the sandbox.
 
 ### T21 · Every acceptance instrument compared bytes, and none of them ran it

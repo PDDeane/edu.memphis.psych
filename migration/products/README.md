@@ -7,18 +7,18 @@ the whole student response space and carries none of it.
 
 ## The other three are NOT here, deliberately
 
-    $MOLLY_DATA/migration_reference/products/
+    $COURSE_DATA/migration_reference/products/
         RUBRIC_DECISIONS.md          66 distinctive student 4-grams
         rubric_reader.py              1
         FABRICATED.txt                0  (kept there for company)
         MEASURED.json.pre_fabrication
 
-    $MOLLY_DATA/migration_reference/olx/
+    $COURSE_DATA/migration_reference/olx/
         bmod_rubric.olx              47 distinctive student 4-grams
         bmod_rubric_pr.olx            3
         bmod_course.olx               0
 
-    $MOLLY_DATA/migration_reference/migration_changes.patch
+    $COURSE_DATA/migration_reference/migration_changes.patch
         the dry run's complete diff -- 33 files, ~12k lines, includes the
         deletion of rubric_h1/h2/h3.py, which quoted students verbatim
 
