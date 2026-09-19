@@ -212,7 +212,10 @@ def generator_fields_for(item_id: str) -> dict:
 DECLARATION_TABLES = ("PROSE_ONLY_SLOTS", "PROSE_ONLY_JUDGED_AGAINST",
                       "MULTI_BLOCK_DECLARED", "DESIGNED_TEXT",
                       "DECOMPOSITION_DIVERGENCES", "UNCHARGED_VERDICTS",
-                      "APP_ONLY_SLOTS")
+                      "APP_ONLY_SLOTS",
+                      # from score.py and agreement_app.py
+                      "PAPER_ITEM_NOTES", "PAPER_ITEM_NOTES_WHY",
+                      "CONTEXT_SOURCE")
 
 
 def _pairs(table: dict) -> list:
