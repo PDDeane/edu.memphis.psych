@@ -3208,9 +3208,41 @@ rule, and the check enforces it rather than restating it.
 **`gold.json` is also not in `.gitignore`.** Adding it is owed — a guard in one
 tool does not protect against a file arriving by another route.
 
-#### OPEN: a reproducible regression in `check_fixture_agrees_with_gold` I cannot explain
+#### SOLVED: the export was alphabetising dicts, and authored order was the data
 
-**Recorded unresolved, because a guess here would be worse than an open note.**
+**Found after the note below was written.** `_jsonable` sorted every dict it
+wrote — T2.1's "pinned order", chosen so the file would diff cleanly. That is
+right for a rubric item, whose field order carries nothing. It is **wrong the
+moment a table arrives whose order IS the data**: `JOBS[item]["fields"]` maps
+component id → paper section in the order the boxes are read, and alphabetising
+it changed what the fixture extracted. `Q6/p15 state_c2` came out EMPTY.
+
+The export now preserves insertion order. Determinism did not need sorting: the
+builders' own order is deterministic, so the same input still produces the same
+bytes — the file is byte-for-byte the same size as before.
+
+**Every equivalence re-verified afterwards**: 23 web prompts, 26 paper prompts,
+60 segmentations, 28 migrated tables, T5.1 EQUIVALENT, T3.2 EQUIVALENT, and
+`check_fixture_agrees_with_gold` back to 0.
+
+##### Why it took six wrong hypotheses
+
+`==` IGNORES DICT ORDER. Every comparison I reached for said the two tables were
+the same — value equality, recursive type walk, outer key lists — **because the
+order was the payload and equality does not see it.** The record of the wrong
+turns is kept below, because the shape of the search is the lesson: I ruled out
+six things that were genuinely ruled out, and the seventh was invisible to the
+tool I was ruling them out with.
+
+The check that caught it was not one of the migration's own gates.
+`migrated_tables.py` compares tables with `==` and passed throughout. It took a
+SCORING check — one that reads a fixture and compares it to gold — to notice,
+which is an argument for running the whole suite after a migration and not only
+the tests written for it.
+
+---
+
+*The original note, kept as the record of the search:*
 
 A sweep of all 163 checks (154 clean, 0 raised) turned up one finding that was
 not there before tonight:
