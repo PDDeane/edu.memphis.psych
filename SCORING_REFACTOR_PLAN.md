@@ -3208,6 +3208,58 @@ rule, and the check enforces it rather than restating it.
 **`gold.json` is also not in `.gitignore`.** Adding it is owed — a guard in one
 tool does not protect against a file arriving by another route.
 
+#### OPEN: a reproducible regression in `check_fixture_agrees_with_gold` I cannot explain
+
+**Recorded unresolved, because a guess here would be worse than an open note.**
+
+A sweep of all 163 checks (154 clean, 0 raised) turned up one finding that was
+not there before tonight:
+
+> `Q6/p15 state_c2 is EMPTY but gold marked it wrong rather than absent — either
+> the box has the wrong clause, or declare it in FIXTURE_GOLD_OVERRIDES`
+
+**Bisected to `ee81a27`**, the `JOBS` migration. 0 findings at the two commits
+before it, 1 at it and at every commit since. Reproducible in fresh processes and
+identical in a worktree, so it is not environmental.
+
+##### What is established
+
+The check reaches `agreement_app` through `_segment_as_scored`, so `JOBS` is on
+its path. And the trigger is **which object `agreement_app.JOBS` points at**:
+
+| `agreement_app.JOBS` | findings |
+|---|---|
+| built from the course file | **1** |
+| assigned `declaration_source.JOBS` | **0** |
+
+Both measured as the FIRST call in a fresh process, after an earlier
+two-calls-in-one-process test proved unreliable.
+
+##### What has been ruled out
+
+* **value** — `A.JOBS == D.JOBS` is `True`
+* **iteration order** — key lists identical
+* **types** — a recursive walk finds 0 type differences at any depth, so it is
+  not `True == 1` or `1 == 1.0`
+* **importing `declaration_source`** — importing it without touching `JOBS`
+  still gives 1
+* **mutation by the check** — no `JOBS` entry changes across a run
+* **a stale cache** — one call per fresh process, both ways
+
+##### Why it is not being patched
+
+Two dicts that are equal, same-ordered and same-typed at every depth produce
+different verdicts. Something reads `JOBS` in a way that distinguishes them, and
+until that is found any "fix" would be a coincidence. The finding itself may also
+be TRUE — Q6/p15 may genuinely disagree with gold, in which case the migration
+revealed it rather than caused it, and silencing it would be the worst outcome
+available.
+
+**Owed:** find what distinguishes the two objects. `FIXTURE_GOLD_OVERRIDES` is
+empty and is the declared place for a cell whose gold is deliberately accepted —
+but declaring it before understanding it would be exactly the "park it and move
+on" this plan keeps arguing against.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
