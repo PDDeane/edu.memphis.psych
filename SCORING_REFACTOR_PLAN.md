@@ -2229,6 +2229,69 @@ handout document — and `molly_data`'s wider contents (`migration_reference`,
 `handsplit`, `out`, and roughly 8,900 JSON artifacts). This pass covers where
 gold lives and how it binds to items, not how a response is found in a document.
 
+##### 10.6.6 · LOCATING A STUDENT ANSWER, AND FINDING THE KEY
+
+*Two questions that look alike and are not. **Structure only** — no submission
+text appears below.*
+
+###### Inside a submission: subtract the template, then match a marker per item
+
+`segment.py` already solves this, and its method is general. **Every submission
+is the blank handout with answers typed into it**, so the reliable way to isolate
+student text is to SUBTRACT THE TEMPLATE. Its docstring names the failure that
+forces this: Handout 1's template carries a worked "fruit-flavored water"
+example and Handout 3's carries an example data table AND an example graph — *"a
+scorer that reads those as student work scores them."*
+
+Subtraction alone gives undifferentiated text, so each item is then located by a
+**regex marker matching the handout's own printed prose**: 10 markers for h1, 14
+for h2, 10 for h3. They are of two kinds, and the difference matters:
+
+* **prose markers** — h1's `Define your unwanted target behavior and explain WHY`,
+  h2's `Example of Positive Reinforcement`. The question text IS the locator.
+* **positional markers** — h3's `^\W*1\W?a\b`: a numbered slot, no prose at all.
+
+Per-handout flags follow from the layout: h2 needs `capture_tail` because its
+answers are written **inline after the label**, and h1 must not use it because its
+marker lines carry only question prose.
+
+**What this costs an intake program.** The locator is the printed question, so
+*rewording the handout breaks the segmenter* — the module says so about its own
+section headings: "Reword either and the segmenter stops finding the section it
+names." A generated course avoids this entirely, because each response has an
+input with an id; the marker machinery exists only to read documents authored
+before any of that. It is **intake of legacy submissions**, not part of the
+engine, and should not be generalised — it should be made unnecessary.
+
+###### In the teacher materials: keys sit WITH the item, in no convention
+
+*On the user's note that answers appear "as keys with the items in various ways,
+not as gold sets".* Measured across the 17 materials: **no `(x)` markers, no
+`ANSWER:`/`KEY:` labels, nothing the engine's formats would recognise.** What is
+there instead:
+
+* **A parenthetical in prose.** The sleep-scenario deck writes the key directly
+  after the scenario: `… when he goes to bed when asked (correct answer is
+  positive reinforcement)`. Three such, one per scenario. The key is a sentence,
+  not a marker.
+* **Nothing at all**, for most items — they rely on the separate gold workbook
+  (§10.6.5).
+
+###### The bracket trap
+
+The FBA2 prototype uses `[...]` for **authoring notes**: `[insert new updated
+plan here]`, `[say something here about …]`, `[Carry over highlighted
+strategies…]`.
+
+In `.textSelectionpeg` the identical syntax means **the answer**:
+`[A child receives a sticker for completing homework on time]`.
+
+**The same bracket convention means opposite things in the two places an intake
+program will read.** A program keying on brackets would import a teacher's
+reminders-to-self as the answer key. This is the sharpest instance so far of
+§10.6.1's warning that the second-order decision is indeterminate: the syntax
+carries no signal, and only the surrounding document says which reading applies.
+
 ##### The intake program: an LLM reading materials onto ROLES, then components
 
 *Recorded on the user's architecture note.*
