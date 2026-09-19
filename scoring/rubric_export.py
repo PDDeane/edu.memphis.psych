@@ -225,7 +225,7 @@ DECLARATION_TABLES = ("PROSE_ONLY_SLOTS", "PROSE_ONLY_JUDGED_AGAINST",
                       "APP_ONLY_SLOTS",
                       # from score.py and agreement_app.py
                       "PAPER_ITEM_NOTES", "PAPER_ITEM_NOTES_WHY",
-                      "CONTEXT_SOURCE", "JOBS")
+                      "CONTEXT_SOURCE", "JOBS", "HANDOUT_FIELDS")
 
 
 def _pairs(table: dict) -> list:

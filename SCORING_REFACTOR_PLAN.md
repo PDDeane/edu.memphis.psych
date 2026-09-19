@@ -2962,7 +2962,7 @@ whose first element is an item id.** `DECLARED_CEILING_CELLS[("1c", 12)]` is
 participant 12; `HANDOUTS[2]` is handout 2. Both cases are now distinguished by
 shape rather than by type.
 
-##### `HANDOUTS` is three different things in one table, and cannot move whole
+##### `HANDOUTS` is FIVE different things in one table — split 2026-09-19
 
 | part | what it is | destination |
 |---|---|---|
@@ -3102,6 +3102,42 @@ Worth noting because it is the third time tonight that **extraction left
 something behind**: `EQUIVALENCE_DEF` from `olx_prompts`, `_PRIMS_2026_08_29`
 from `enforcement`, and now a helper that existed but too late. Each failed
 loudly, which is the good case.
+
+#### `handouts.HANDOUTS` split — nine fields moved, and four kinds stayed
+
+`handouts.config()` returns identically for all three handouts, and all 60
+submissions still segment to the same hashes.
+
+| kind | fields | where it went |
+|---|---|---|
+| course data | `blurb`, `capture_tail`, `exemplar_items`, `repair_orphans`, `join_aware` | the course file (9 values) |
+| resolved path | `template`, `submissions`, `outdir` | **stay computed** — storing a resolved path bakes in one machine |
+| shared reference | `markers` | **unchanged** — see below |
+| wiring | `gold` (a function), `rubric` (a module) | stays; not data at all |
+| participants | `cited_participants`, `exemplar_participants`, `suspect_participants` | the gold file, C1b |
+
+##### The three handouts do not share a schema
+
+Reading h1 and assuming the others matched would have left two course-data flags
+behind: **`repair_orphans` is h2 only, `join_aware` is h3 only, `exemplar_items`
+is h1 only.** Each handout was read rather than one being taken as the pattern.
+
+##### A "duplicate" that was a shared reference
+
+`markers` looked like a duplicate of the course file's `SEGMENT_MARKERS` and was
+verified identical to it — so the plan was to derive it. Checking how it arrives
+showed `handouts` imports `H1_MARKERS` **from `segment`**, which already reads the
+course file. The two were never separate copies; they are the same object.
+
+**Rewriting it would have added a second read path to replace a working one.**
+The check that established this is worth as much as the change it prevented.
+
+##### `gold` is a function, and a function's repr contains its address
+
+The verification reported all three handouts differing at `gold` — until the
+memory address was normalised, after which they were identical. **A baseline that
+captures `str(a_function)` compares addresses**, and addresses change every run,
+so that field could never have matched. The fix is in the test, not the code.
 
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
