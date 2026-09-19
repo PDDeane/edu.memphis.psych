@@ -3324,6 +3324,29 @@ restoration has to see the whole table, not the part that came from item entries
 All four behavioural hashes, T5.1, T3.2, the 28-table gate and the fixture check
 re-verified after every step.
 
+#### C1b INSTALLED 2026-09-19 — `$COURSE_DATA/courses/edu.memphis.psych/gold.json`
+
+97,734 bytes, 16 declaration tables, 77 entries, 6 per-handout participant
+fields, every table round-tripping exactly. The destination did not exist, so
+nothing was overwritten.
+
+Written under a narrowed permission: **secondary records yes, source documents
+and records no.** `writescope.sh` now encodes that distinction rather than
+leaving it to be remembered —
+
+| writable | refused |
+|---|---|
+| `$COURSE_DATA/out/**` — where runs record themselves | `Handout Submissions with Scoring and Feedback/**` — the submissions and the graders' workbooks |
+| `$COURSE_DATA/courses/**` — what C1b creates | `migration_reference/`, `migration_goldens/`, `retired_artifacts/`, `handsplit/`, `pre_scrub_backup_*/`, `corpus_refs.json` |
+
+The forbidden list is not "everything I was not told about": each entry is either
+the primary data every measurement is ABOUT, or an archive that exists precisely
+so a past state cannot be lost. The guard refuses those even though they sit
+inside an allowed tree.
+
+**This unblocks the rest of Stage 4.** Every remaining table is gold- or
+participant-keyed and had nowhere to go; the file they move to now exists.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
