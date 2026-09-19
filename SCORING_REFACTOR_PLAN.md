@@ -1653,9 +1653,9 @@ items of that one shape. Measured against this repository:
 | | |
 |---|---|
 | grader components in lo-blocks | **16** |
-| graders the psych course uses | 2 — `SlotSheetGrader`, `CorrectGrader` |
+| graders the psych course uses | **7** — `CheckboxGrader`, `CorrectGrader`, `KeyGrader`, `MatchingGrader`, `SlotSheetGrader`, `SortableGrader`, `TabularMCQGrader` (an earlier count of 2 tested only ten grader names and missed five) |
 | gradable inputs in lo-blocks | **14** (+ CapaProblem, MarkupProblem) |
-| inputs the psych course uses | 6 — TextArea 11, ChoiceInput 11, LineInput 2, Sortable 2, Matching 1, TabularMCQ 1 |
+| inputs the psych course uses | **7** of 15 — CheckboxInput, ChoiceInput, LineInput, MatchingInput, SortableInput, TabularMCQ, TextArea |
 | **scored items, all handouts** | **26** |
 | **of those, slot-sheet shaped** | **26 — every one** |
 
@@ -1720,6 +1720,70 @@ about the SHAPE OF THE COURSE, inferred from documents that never mention any of
 it. The shape inventory (item 1) therefore has to cover the structural space as
 well as the scoring space, or the intake program has a target for its items and
 none for the course that holds them.
+
+##### TAKEN 2026-09-18 — `shape_inventory.py` → `SHAPE_INVENTORY.json`
+
+`134 blocks registered. 121 intake targets. The psych course exercises 50 of them
+— 41%.` `--self-test`: 6/6 failure modes caught.
+
+**The registry is the population, not the directory tree.** The hand census two
+sections up got 122 and missed twelve, `Course` and `SlotSheetGrader` among them.
+This reads `blockMetadataAutogen.json`, which the lo-blocks build generates — so
+the tool also refuses (`--check-fresh`) when any component source is newer than
+the registry describing it, because a stale build artifact has cost this project
+19 observations once already.
+
+| role | n | intake target? |
+|---|---|---|
+| `structure` | 37 | yes — an item is reached THROUGH these |
+| `display` | 26 | yes |
+| `grader` | 16 | yes |
+| `gradable_input` | 15 | yes |
+| `action` | 14 | yes — `LLMAction` feeds `SlotSheetGrader` by this path |
+| `item_part` | 6 | yes — `Key`, `Distractor`, the `Simple*` shorthands |
+| `grading_support` | 5 | yes |
+| `gradable_item_family` | 2 | yes — `CapaProblem`, `MarkupProblem` |
+| `not_intake` | 13 | **no** — the authoring studio and test blocks |
+
+An `UNCLASSIFIED` block is a **refusal, not a bucket**: a classifier that bins the
+unknown reports coverage of a space it never saw. That refusal fired on the first
+run and was right — `TabularMCQ` writes `...blocks.input({`, namespaced, and the
+input detector was anchored on the bare spelling.
+
+##### What one course does NOT reach
+
+The course we have exercises 7 of 16 graders and 7 of 15 gradable inputs. Never
+used, and therefore never tested by anything in this repo:
+
+* **graders** — `CustomGrader`, `DefaultGrader`, `FormulaGrader`, `LLMGrader`,
+  `NumericalGrader`, `RatioGrader`, `RulesGrader`, `StringGrader`,
+  `TextSelectionGrader`
+* **inputs** — `Annotate`, `CodeInput`, `ComplexInput`, `DropdownInput`,
+  `FormulaInput`, `Freewrite`, `NumberInput`, `TextSelectionInput`
+* **24 of 37 structural blocks**, including `Carousel`, `NextReveal`,
+  `Navigator` (and its four detail/preview variants), `DynamicList`, `SplitTest`,
+  `TimedContainer`, `Hidden`, `CompactPopout`, `SharedNotes`, `MasteryBank`'s
+  neighbours `DigitSpanTask` and `PEGDevBlock`, and the whole `Cast`/`AvatarEditor`
+  character-building family
+
+**This is the denominator I1a lacked.** "Sized by shape coverage" can now be
+stated as a number, and the number says a fixture modelled on what we have seen
+would cover 41% of the intake space and report itself complete.
+
+##### The pairing is NOT declared, and the tool refuses to invent it
+
+No grader declares which inputs it pairs with. A grader declares `inputType`
+(`single`/`list`) or `slots` (dict mode) and whether it `infer`s its inputs from
+its children; compatibility with a given input is a value-schema question plus
+authoring convention, and the convention lives in prose and READMEs. The inventory
+records both sides' schemas and stops there.
+
+That is a finding, not a gap in the tool: **the intake program's hardest decision
+— which grader this item becomes — cannot be read off the declarations**, so it
+will have to be made from convention, from the READMEs, or from examples. 154
+declared attributes were extracted across 64 blocks; the other 70 declare none
+this reader can see, which bounds how much of the shape space is machine-readable
+at all.
 
 ##### SCORING WITHOUT THIS ENGINE IS FINE — the intake program is what must be general
 
