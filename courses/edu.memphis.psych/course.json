@@ -6179,6 +6179,32 @@
     "MEASURED, not preferred. The count WAS the design and it cost the item 5 of 20 cells: subgoal Q2 recorded one error profile -- `said 2, scored 6 against gold 4`, 29 of 29 -- while the DEDUCT guidance already described both shapes the graders charge. An aggregate answer never has to confront a particular box, so correct prose had nothing to bind to. The graders themselves judge per box and name it ('your third sentece'), against three labelled fields on screen that all 20 cells fill, so nothing relies on content spanning them. The FIXTURE no longer depends on the group either -- the dealing groups live in agreement_app.JOBS `dealt` -- which is what made this conversion testable at all."
    ]
   ],
+  "PROBE_UNREACHABLE_PAIRS": [
+   [
+    [
+     "2a",
+     {
+      "__frozenset__": [
+       "how_2",
+       "mechanism_named"
+      ]
+     }
+    ],
+    "The web charges the pair once. In the CLI ledger `mechanism_named` is already carried by the deduction that `how_2` triggers, so failing both loses exactly what failing one loses and the arithmetic shows no sublinearity for the probe to find. Declared 2026-09-16."
+   ],
+   [
+    [
+     "NR",
+     {
+      "__frozenset__": [
+       "barrier_is_not_this_type",
+       "demonstrates_type"
+      ]
+     }
+    ],
+    "The web charges the pair once. `demonstrates_type` is DERIVED on NR -- the sheet declares `expect=\"demonstrates_type:observed_type=NR\"` -- so the CLI probe never fails it independently and the pair cannot appear in its arithmetic. Named in equivalence.py's selftest as a legitimate declared divergence since before this table existed; moved here so it is a decision with a reason rather than a remark. Declared 2026-09-16."
+   ]
+  ],
   "PAPER_ITEM_NOTES": [
    [
     "Q3",
