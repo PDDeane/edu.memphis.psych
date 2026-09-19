@@ -1,7 +1,7 @@
 {
  "_what": "GOAL C / \u00a710.7 categories 1-3 per module. Falls, never rises.",
  "exempt_d2d": {
-  "equivalence.py::enforcement_selftest": 28
+  "equivalence.py::enforcement_selftest": 27
  },
  "named_modules": [
   "baseline_h1.py",
