@@ -114,6 +114,28 @@ def sensitivity(tables: list[str]) -> list[dict]:
             rows.append({"table": table, "checks": [], "sensitive": False,
                          "note": "not defined"})
             continue
+        # A CHECK THAT CANNOT BE CALLED IS NOT A CHECK THAT DID NOT MOVE.
+        # `check_countable_families_converted(items)` takes an argument, so
+        # calling it bare raised TypeError before AND after -- identical, and
+        # therefore scored as "not sensitive". That was the harness reporting on
+        # itself. Uncallable checks are now named and excluded from the verdict,
+        # the same distinction the self-test draws between a SKIP and a vacuous
+        # case.
+        import inspect
+
+        uncallable = []
+        callable_checks = []
+        for name in checks:
+            fn = getattr(ENF, name, None)
+            if fn is None:
+                continue
+            need = [p for p in inspect.signature(fn).parameters.values()
+                    if p.default is p.empty
+                    and p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
+            (uncallable if need else callable_checks).append(
+                f"{name}({', '.join(p.name for p in need)})" if need else name)
+        checks = callable_checks
+
         before = {}
         for name in checks:
             try:
@@ -131,8 +153,9 @@ def sensitivity(tables: list[str]) -> list[dict]:
         finally:
             setattr(ENF, table, original)
         moved = sorted(n for n in checks if before.get(n) != after.get(n))
-        rows.append({"table": table, "entries": len(original) if hasattr(original, "__len__") else None,
-                     "checks": checks, "moved": moved,
+        rows.append({"table": table,
+                     "entries": len(original) if hasattr(original, "__len__") else None,
+                     "checks": checks, "uncallable": uncallable, "moved": moved,
                      "sensitive": bool(moved),
                      "before": before, "after": after})
     return rows
@@ -158,8 +181,10 @@ def main(argv=None) -> int:
     print(f"  {'table':<28} {'n':>3}  {'checks':>6}  verdict")
     for r in rows:
         mark = "sensitive" if r.get("sensitive") else "NOT sensitive"
+        extra = (f"  [{len(r['uncallable'])} uncallable]"
+                 if r.get("uncallable") else "")
         print(f"  {r['table']:<28} {str(r.get('entries','-')):>3}  "
-              f"{len(r.get('checks') or []):>6}  {mark}"
+              f"{len(r.get('checks') or []):>6}  {mark}{extra}"
               + (f"  ({', '.join(x[6:36] for x in r['moved'][:2])})" if r.get("moved") else ""))
     blind = [r["table"] for r in rows if not r.get("sensitive")]
     if blind:
