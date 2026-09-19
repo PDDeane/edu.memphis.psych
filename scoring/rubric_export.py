@@ -234,6 +234,13 @@ DECLARATION_TABLES = ("PROSE_ONLY_SLOTS", "PROSE_ONLY_JUDGED_AGAINST",
                       "MULTI_BLOCK_DECLARED", "DESIGNED_TEXT",
                       "DECOMPOSITION_DIVERGENCES", "UNCHARGED_VERDICTS",
                       "APP_ONLY_SLOTS",
+                      # COUNTABLE_EXEMPT moved 2026-09-19. It was one of five
+                      # that `declaration_source` records as "did not move", on
+                      # a measurement from `table_sensitivity.py` -- a tool
+                      # retired the same day for reporting a verifier that
+                      # RAISES as an unread table. The established probe says
+                      # READ: emptying it changes the output.
+                      "COUNTABLE_EXEMPT",
                       # from score.py and agreement_app.py
                       "PAPER_ITEM_NOTES", "PAPER_ITEM_NOTES_WHY",
                       "CONTEXT_SOURCE", "JOBS", "HANDOUT_FIELDS")

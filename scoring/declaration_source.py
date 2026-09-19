@@ -12,11 +12,30 @@ WHY THEY STILL EXIST HERE, and it is the same reason `generator_source.py` does:
 reading them from `enforcement` -- which now reads the course file -- would make
 regenerating the file depend on the file being regenerated.
 
-THE FIVE THAT DID NOT MOVE. `table_sensitivity.py` measured whether emptying each
-table moves a check that reads it. Five do not: SLOT_STRUCTURE_FAMILIES,
-HAND_AUTHORED_ATTRS, COUNTABLE_EXEMPT, PROBE_UNREACHABLE_PAIRS,
-PROBE_PROVOCATIONS. They stay in `enforcement.py` until something would notice
-their loss, because a migration nothing can check is a migration nobody can trust.
+THE ONES THAT DID NOT MOVE, AND WHY THAT LIST SHRANK. This used to read: five
+tables stay in `enforcement.py` because `table_sensitivity.py` measured that
+emptying them moves no check. That tool was retired on 2026-09-19 and its
+figures withdrawn -- it reported a verifier that RAISES as an unread table,
+compared finding COUNTS instead of contents, and emptied by `setattr` where a
+verifier holding its own reference never saw the change. The established
+`--probe-declarations` had solved all three.
+
+Re-measured with it, of those five:
+
+    COUNTABLE_EXEMPT         READ -- emptying it changes the output. MOVED.
+    PROBE_UNREACHABLE_PAIRS  READ, and staying: its keys are FROZENSETS, and
+                             the pair-list encoding restores a stored list as a
+                             TUPLE. Migrating it would silently change every key
+                             type and break every lookup, which is a change to
+                             the encoder, not to this file.
+    PROBE_PROVOCATIONS       READ, and staying: it is the probe's own fixtures.
+                             It names items, but it is a fact about testing the
+                             engine, not a declaration about the course.
+    SLOT_STRUCTURE_FAMILIES  INCONCLUSIVE -- its verifier reports nothing on the
+    HAND_AUTHORED_ATTRS      real table, so emptying and corrupting cannot be
+                             told apart. The original caution stands for these
+                             two: a migration nothing can check is a migration
+                             nobody can trust.
 """
 from __future__ import annotations
 
@@ -1099,3 +1118,26 @@ JOBS = {
 # course-data flags behind and carried neither.
 # ---------------------------------------------------------------------------
 HANDOUT_FIELDS = {'1': {'blurb': 'Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.', 'capture_tail': False, 'exemplar_items': []}, '2': {'blurb': "Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.", 'capture_tail': True, 'repair_orphans': True}, '3': {'blurb': 'Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.', 'capture_tail': True, 'join_aware': True}}
+
+
+# Repeated families that are countable in shape but must NOT be converted, with
+# the reason, because an unexplained exemption is how the inconsistency below got
+# in. Keyed by (item, family stem).
+COUNTABLE_EXEMPT = {
+    ("1a", "week"): "the weeks are NAMED, not interchangeable. The guidance deducts "
+                    "only when a period is 'clearly and specifically absent' and names "
+                    "the observed case — an answer that opens at the intervention and "
+                    "never mentions baseline. `3 of 4` cannot say which is missing.",
+    ("2a", "how"): "MEASURED, not preferred. The count WAS the design and it cost "
+                   "the item 5 of 20 cells: subgoal Q2 recorded one error profile "
+                   "-- `said 2, scored 6 against gold 4`, 29 of 29 -- while the "
+                   "DEDUCT guidance already described both shapes the graders "
+                   "charge. An aggregate answer never has to confront a particular "
+                   "box, so correct prose had nothing to bind to. The graders "
+                   "themselves judge per box and name it ('your third sentece'), "
+                   "against three labelled fields on screen that all 20 cells "
+                   "fill, so nothing relies on content spanning them. The FIXTURE "
+                   "no longer depends on the group either -- the dealing groups "
+                   "live in agreement_app.JOBS `dealt` -- which is what made this "
+                   "conversion testable at all.",
+}

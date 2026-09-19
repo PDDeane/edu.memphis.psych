@@ -377,24 +377,9 @@ def check_codes_reachable(items: list[dict]) -> list[str]:
 # Repeated families that are countable in shape but must NOT be converted, with
 # the reason, because an unexplained exemption is how the inconsistency below got
 # in. Keyed by (item, family stem).
-COUNTABLE_EXEMPT = {
-    ("1a", "week"): "the weeks are NAMED, not interchangeable. The guidance deducts "
-                    "only when a period is 'clearly and specifically absent' and names "
-                    "the observed case — an answer that opens at the intervention and "
-                    "never mentions baseline. `3 of 4` cannot say which is missing.",
-    ("2a", "how"): "MEASURED, not preferred. The count WAS the design and it cost "
-                   "the item 5 of 20 cells: subgoal Q2 recorded one error profile "
-                   "-- `said 2, scored 6 against gold 4`, 29 of 29 -- while the "
-                   "DEDUCT guidance already described both shapes the graders "
-                   "charge. An aggregate answer never has to confront a particular "
-                   "box, so correct prose had nothing to bind to. The graders "
-                   "themselves judge per box and name it ('your third sentece'), "
-                   "against three labelled fields on screen that all 20 cells "
-                   "fill, so nothing relies on content spanning them. The FIXTURE "
-                   "no longer depends on the group either -- the dealing groups "
-                   "live in agreement_app.JOBS `dealt` -- which is what made this "
-                   "conversion testable at all.",
-}
+# COUNTABLE_EXEMPT IS BOUND FURTHER DOWN, immediately after `_declaration` is
+# defined -- a reader call cannot precede its reader. Its entries and their
+# reasons live in the course file, authored in `declaration_source.py`.
 
 
 def check_countable_families_converted(items: list[dict]) -> list[str]:
@@ -1373,6 +1358,7 @@ def _declaration(name: str) -> dict:
     return coursedata.declaration(name)
 
 
+COUNTABLE_EXEMPT = _declaration("COUNTABLE_EXEMPT")
 PROSE_ONLY_SLOTS = _declaration("PROSE_ONLY_SLOTS")
 # RAISED 25 -> 27 on 2026-09-12 for two slots the audit had been reporting as
 # UNDECLARED, not for two new prose rules: `1c.series_box_holds` and
@@ -4883,6 +4869,11 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.ITEM_GATED_MECHANISMS": (
         "mechanisms that vary by item, which the uniformity rule forbids",
         ("check_engine_mechanisms_are_not_item_dependent",)),
+    "enforcement.COURSE_DATA_REENTRY": (
+        "a count re-recorded once after an exemption was removed, with the "
+        "number it re-entered at and why",
+        ("check_course_data_reentries_are_current",
+         "check_module_has_no_course_data")),
     "enforcement.DATA_MODULES": (
         "modules that ARE authored course data, exempt from the engine ratchet",
         ("check_module_has_no_course_data",)),
@@ -13781,6 +13772,13 @@ PROBE_PROVOCATIONS: dict[str, object] = {
     # `handouts.GOLD_CEILINGS` uses. A bare dict raised `not enough values to
     # unpack` inside the probe: the format is per-table-type and is not guessable
     # from the neighbouring list-valued entries.
+    # A re-entry naming a module the scan never reports: the verifier objects
+    # that the entry describes nothing. Emptying the table is invisible -- no
+    # re-entry means nothing to be wrong about -- so it is proved by its
+    # CONTENTS, exactly as DATA_MODULES is.
+    "enforcement.COURSE_DATA_REENTRY": ("probe_no_such_module.py",
+                                        (1, "probe: a re-entry for a file that "
+                                            "does not exist")),
     "enforcement.DATA_MODULES": ("probe_no_such_module.py",
                                  "probe: declared a data module, does not exist"),
     # THE TWO NEUTRALITY TABLES, both empty and both reported CANNOT PROBE for
@@ -14120,6 +14118,31 @@ DATA_MODULES = {
         "for, and it grows as modules are migrated INTO it.",
 }
 
+# A COUNT THAT ROSE BECAUSE AN EXEMPTION WAS REMOVED, not because course data
+# was added. The ratchet refuses a rise, and it is right to: baselining a
+# regression records history instead of enforcing it. But removing D2d made
+# `equivalence.py` go 0 -> 27 without a single new embedding, and until that is
+# recorded the budget CANNOT BE WRITTEN AT ALL -- which blocks bookkeeping that
+# has nothing to do with it. It blocked this within the hour: migrating
+# COUNTABLE_EXEMPT grew `declaration_source.py` 11 -> 12, exactly the growth a
+# declared data module is supposed to show, and the write was refused.
+#
+# So a rise may be recorded ONCE, and only with a reason and a number stated
+# here. It is not an exemption: the 27 stay counted, stay printed, and the
+# ratchet resumes from them -- it can fall and never rise again without another
+# entry. An entry whose number no longer matches the count is reported, so this
+# cannot quietly become a second budget.
+COURSE_DATA_REENTRY: dict[str, tuple[int, str]] = {
+    "equivalence.py": (
+        27,
+        "D2d's exemption was removed 2026-09-19. These 27 embeddings were always "
+        "there and were subtracted before anyone looked; nothing was added. D2a "
+        "(fixtures that select their target by shape) is the work that removes "
+        "them, and the finding is parked under MIGRATED MODULE HOLDS COURSE DATA "
+        "until it lands."),
+}
+
+
 # D2d'S EXEMPTION IS GONE, removed 2026-09-19 after the expiry check had been
 # reporting it for a day. It excused the course-bound embeddings in
 # `equivalence.py::enforcement_selftest` from the course-data rule, conditional
@@ -14291,6 +14314,18 @@ def check_module_has_no_course_data() -> list[str]:
             elif n > was:
                 out.append(f"{mod} course data grew {was} -> {n}; the ratchet only "
                            f"tightens")
+    # A RE-ENTERED COUNT STAYS REPORTED. Recording `equivalence.py`'s 27 in the
+    # budget stopped the ratchet complaining -- and with that, the only thing
+    # saying those embeddings exist would have been a number in a JSON file.
+    # That is the exact condition the D2d exemption was removed to escape: the
+    # data subtracted before anyone looked. A declared re-entry buys the budget
+    # the right to be WRITTEN, not the right to go quiet.
+    for mod, (_declared, why) in sorted(COURSE_DATA_REENTRY.items()):
+        n = counts.get(mod, 0)
+        if n:
+            out.append(f"{mod} holds {n} course-data embedding(s) under a "
+                       f"declared re-entry -- {why}")
+
     # Report what the data modules hold, so excluding them from the ratchet does
     # not also hide them.
     held = {m: counts.get(m, 0) for m in sorted(DATA_MODULES) if counts.get(m)}
@@ -14497,6 +14532,49 @@ def check_json_cache_is_not_mutated() -> list[str]:
             f"returns a SHARED object and its callers must treat it as read-only. "
             f"Copy before writing, or read the file directly."
             for path in jsoncache.mutated()]
+
+
+def check_course_data_reentries_are_current() -> list[str]:
+    """Every declared re-entry still states the number the module actually holds.
+
+    `COURSE_DATA_REENTRY` lets a count be recorded once after an exemption is
+    removed, so that a rise nobody caused does not freeze the whole budget. That
+    is a hole in a ratchet, and a hole needs a door that closes: an entry whose
+    number has drifted from the real count is a second budget with none of the
+    review, and an entry whose count has fallen to zero is work that FINISHED
+    and left its paperwork behind.
+
+    Both directions are reported. The one that matters most is the fall: when
+    D2a lands and `equivalence.py` stops embedding course ids, this is what says
+    the entry can go.
+    """
+    import json as _json
+
+    reentry = COURSE_DATA_REENTRY
+    if not reentry:
+        return []
+    try:
+        counts = _course_data_counts(_inventory_now())
+    except Exception as exc:                        # pragma: no cover
+        return [f"cannot scan to verify the re-entry declarations: {exc}"]
+    out = []
+    for mod, (declared, why) in sorted(reentry.items()):
+        now = counts.get(mod)
+        if now is None:
+            out.append(f"COURSE_DATA_REENTRY names {mod}, which the scan does not "
+                       f"report at all -- the entry describes nothing")
+        elif now == 0:
+            out.append(f"COURSE_DATA_REENTRY still carries {mod}, whose count has "
+                       f"reached ZERO. The work it was waiting on is done; remove "
+                       f"the entry so the ratchet has no hole left in it.")
+        elif now != declared:
+            out.append(f"COURSE_DATA_REENTRY says {mod} holds {declared} "
+                       f"embedding(s) and it holds {now}. A re-entry records a "
+                       f"number ONCE; if the count moved, it moved for a reason "
+                       f"that has not been reviewed.")
+        if not str(why).strip():
+            out.append(f"the re-entry for {mod} carries no reason")
+    return out
 
 
 def check_every_enforcement_check_is_registered() -> list[str]:

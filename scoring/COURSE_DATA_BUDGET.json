@@ -1,8 +1,5 @@
 {
  "_what": "GOAL C / \u00a710.7 categories 1-3 per module. Falls, never rises.",
- "exempt_d2d": {
-  "equivalence.py::enforcement_selftest": 27
- },
  "named_modules": [
   "baseline_h1.py",
   "gold.py",
@@ -17,7 +14,7 @@
   "simulate_h3.py"
  ],
  "data_modules": {
-  "declaration_source.py": 11,
+  "declaration_source.py": 12,
   "generator_source.py": 17,
   "rubric_h1.py": 4,
   "rubric_h2.py": 21,
@@ -41,11 +38,11 @@
   "course_schema.py": 0,
   "coursedata.py": 0,
   "cross_path.py": 0,
-  "declaration_source.py": 11,
+  "declaration_source.py": 12,
   "docx_text.py": 1,
   "editguard.py": 0,
-  "enforcement.py": 15,
-  "equivalence.py": 0,
+  "enforcement.py": 14,
+  "equivalence.py": 27,
   "faithful_probe.py": 0,
   "fixture_edits.py": 0,
   "generator_source.py": 17,
