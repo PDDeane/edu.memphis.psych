@@ -1392,10 +1392,20 @@ def enforcement_selftest():
 
     # The coverage guard. Both misses so far were items the audits did not know
     # existed, so this one is checked by removing an item from the covered set.
-    tsaved = SHEET_ONLY.pop("T1")
+    # THE WHOLE MAPPING, NOT THE ONE KEY. `pop` then `d[k] = saved` puts the key
+    # back at the END, and dict order is data: `check_migrated_tables_match_their_source`
+    # compares order-sensitively, so a case that "restored" this way left a
+    # permanent mismatch behind. Three cases did it, and together they are the
+    # whole of "restored state is clean: False (7 finding(s), baseline 4)" on a
+    # run that detected all 71 injections. The comparison is right -- a table
+    # whose order moved is not the table that was authored -- so the restore is
+    # what changes.
+    tsaved = dict(SHEET_ONLY)
+    SHEET_ONLY.pop("T1")
     cases.append(("an item leaves the covered set", "SCORED ON PYTHON ONLY", "T1",
                   [f for f in enforcement_audit()[0]]))
-    SHEET_ONLY["T1"] = tsaved
+    SHEET_ONLY.clear()
+    SHEET_ONLY.update(tsaved)
 
     # The equals comparison, now that both sides declare it on the credit path.
     d1 = rubric_h2.BY_ID["D1"]
@@ -1413,11 +1423,13 @@ def enforcement_selftest():
     # The derive-path branch: the CLI asks for what the web computes.
     for d in _op.SCORING_DIVERGENCES:
         if "1b" in (d.get("web_computes") or {}):
-            wsaved = d.pop("web_computes")
+            wsaved = dict(d)        # the whole entry: see SHEET_ONLY above
+            d.pop("web_computes")
             cases.append(("1b computed check loses its declaration",
                           "ASKED ON PYTHON ONLY", "1b",
                           [f for f in enforcement_audit()[0]]))
-            d["web_computes"] = wsaved
+            d.clear()
+            d.update(wsaved)
             break
     # The plain-path branch. No live item exercises it now that T1/T2 and 1b are
     # derived, so one is injected onto a plain item — the guard has to stay tested
@@ -1997,11 +2009,13 @@ def enforcement_selftest():
     assert _d_field in _d_item["refs"], (
         f"selftest is stale: {_d_field} is not in 1c's refs, so removing it "
         f"cannot break anything")
-    _saved = _d_item["refs"].pop(_d_field)
+    _saved = dict(_d_item["refs"])   # the whole map: see SHEET_ONLY above
+    _d_item["refs"].pop(_d_field)
     cases.append(("a derived rule's field leaves the refs map",
                   "DERIVED FIELD UNREADABLE", "-",
                   [f for f in enforcement_audit()[0]]))
-    _d_item["refs"][_d_field] = _saved
+    _d_item["refs"].clear()
+    _d_item["refs"].update(_saved)
 
     # The evenness guard, in both directions. Q1 was counted and Q2 — the same item
     # with a different noun — was not, and every audit passed for as long as it took
@@ -2701,7 +2715,19 @@ def enforcement_selftest():
     # 1 on a run where all 39 injections were detected and nothing was left
     # behind. A selftest that fails when it passes gets ignored, which is how the
     # arity bug survived in the first place.
-    clean = len(enforcement_audit()[0])
+    _final_findings = enforcement_audit()[0]
+    clean = len(_final_findings)
+    # WHICH ONES, NOT HOW MANY. This reported "restored state is clean: False (7
+    # finding(s), baseline 4)" and nothing else, and that number cost an hour to
+    # turn into a cause: three cases restored a dict with `d[k] = saved`, which
+    # re-appends the key, and the order-sensitive migrated-table check then
+    # reported a mismatch that never went away. The baseline KEYS were already
+    # being collected a few hundred lines above for the vacancy report; naming
+    # the difference here is free and turns a count into the answer.
+    _new_findings = [f for f in _final_findings
+                     if _finding_key(f) not in _baseline_keys]
+    _gone_findings = ({k for k in _baseline_keys}
+                      - {_finding_key(f) for f in _final_findings})
 
     # SKIPS ARE COUNTED, not just printed. A case that degrades to SKIP still
     # exists on paper and tests nothing, and until the count was made explicit it
@@ -2808,6 +2834,10 @@ def enforcement_selftest():
     print(f"\n  restored state is clean: {clean == baseline}"
           f"{' (FAILED -- source moved, see above)' if moved else ''} "
           f"({clean} finding(s), baseline {baseline})")
+    for _f in _new_findings:
+        print(f"      LEFT BEHIND: {str(_f)[:150]}")
+    for _k in sorted(_gone_findings):
+        print(f"      NO LONGER FIRING: {str(_k)[:150]}")
 
     # THE DENOMINATOR DOES NOT FLOAT. It used to be `len(cases)`, so a case that
     # stopped being CONSTRUCTED took the denominator down with it and reported
