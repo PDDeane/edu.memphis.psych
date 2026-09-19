@@ -92,71 +92,60 @@ def primitive_attrs(excluding_keys: bool | None = None) -> list[str]:
 # read as the weaker thing. What backs it instead is
 # enforcement.check_engines_score_identical_verdicts_alike, over the verdict
 # signatures both engines have actually produced.
-PROBE_REACH_LIMITS = [
-    # NARROWED TO NR ALONE 2026-09-03. It listed NR, PR, PP and NP, and
-    # check_probe_reach_limits_still_apply found on its first run that only NR
-    # has the three-way `forbid` the excuse describes -- PR, PP and NP carry no
-    # forbid at all, raise no charge-once finding, and were being excused for
-    # nothing. An excuse wider than its justification silently claims the audit
-    # checked three items it never had to.
-    dict(items=["NR"],
-         enforcement=[("NR", "CHARGE-ONCE PROBE GAP (cli)")],
-         what="a three-way conjunction is invisible to the pairwise "
-              "charge-once probe",
-         why="`barrier_is_not_this_type` fails only when THREE readings coincide -- "
-             "`restriction_authored`=created, `trigger_expects`=gain, "
-             "`restricts`=other_thing -- and `onlyif` keeps it from charging on top "
-             "of `demonstrates_type`, so both sides charge 2 once. The web reader "
-             "sees that pair because it reads slot keys; the CLI probe discovers "
-             "charge-once by flipping answered fields in PAIRS, and no pair of flips "
-             "can satisfy a three-condition rule while the third field holds its "
-             "passing value. So the CLI probe never reaches it. "
-             "The behaviour is identical; what differs is what the instrument can "
-             "reach. The cadence items carry the same conjunction and raise no such "
-             "finding only because there it drives a GATE, and gates are discovered by "
-             "single flips. Widening the probe to triples would multiply its cost by "
-             "the number of inputs and is not worth it for one rule; this entry is "
-             "the cheaper honest option, and it will stop applying if the rule ever "
-             "becomes a gate."),
-    dict(items=["2a"],
-         enforcement=[("2a", "CHARGE-ONCE PROBE GAP (cli)")],
-         what="a COMPUTED operand cannot be flipped, so the pair it makes "
-              "sublinear is unreachable by probing",
-         why="`requires` ties how_2 to `mechanism_named`, which carries no points of "
-             "its own and costs something only by denying how_2. So the two share one "
-             "2-point charge: failing either costs 2 and failing both still costs 2, "
-             "which is what makes the pair sublinear. The web reader takes that "
-             "straight from the declared `requires` rule. The CLI probe cannot: "
-             "`mechanism_named` is computed by `forbid` from three answered grounds, "
-             "so it is not an answered field and no flip can set it, and the state "
-             "that would reveal the pair is never constructed. "
-             "Same shape as the NR entry above and the mirror of its cause -- there a "
-             "conjunction was too wide for a pairwise probe, here an operand is not "
-             "probeable at all. Teaching the probe to synthesise computed-operand "
-             "states would mean a second implementation of `forbid` living inside the "
-             "instrument, which is how an instrument starts disagreeing with the thing "
-             "it measures."),
-]
+# ---------------------------------------------------------------------------
+# STAGE 4 (B2a, A1c). Eleven tables were module-level DATA here -- 11 tables and
+# 190 item ids by T1.1's count, which is what made this module carry course
+# content. The data is now in the course file and is READ.
+#
+# THE NAMES STAY. Eight modules reference them -- enforcement, score,
+# agreement_app, handouts, precommit_gate, equivalence among them -- so moving
+# the data without moving the names keeps every consumer working, and lets the
+# move be judged by the only test that settles it: the 23 generated prompts must
+# come out byte-identical.
+#
+# The authored tables survive in `generator_source.py`, a builder OUTSIDE the
+# scoring path, because the export must read them from somewhere that does not
+# read the file it is writing.
+# ---------------------------------------------------------------------------
+def _generator_table(field: str, table: str = "") -> dict:
+    """{key: value} for one generator field. Absent keys stay ABSENT.
+
+    `SHEET_ONLY` names three items of twenty-six; the export omits the field on
+    the other twenty-three rather than storing null, so `in SHEET_ONLY` still
+    means what it meant.
+
+    `table` names a table with NON-ITEM keys to merge back -- `CONTEXT` carries
+    handout 2's two section headings as well as its items, kept at course level
+    because an item entry is the wrong home for a section.
+    """
+    import coursedata
+
+    out = {iid: gen[field]
+           for iid, gen in coursedata.generator_items().items()
+           if field in gen}
+    if table:
+        extra = coursedata.generator_value(f"{table}__non_item")
+        if extra:
+            out.update(extra)
+    return out
+
+
+def _generator_value(name: str):
+    """A course-level generator value -- a list about the course, not an item."""
+    import coursedata
+
+    return coursedata.generator_value(name)
+
+
+PROBE_REACH_LIMITS = _generator_value("PROBE_REACH_LIMITS")
 
 # Which rubric item each <LLMAction> carries. (equivalence.py holds the same
 # map; it imports this one so the two cannot drift.)
-ACTION = {
-    "Q1": "bmod_h1_q1_llm", "Q2": "bmod_h1_q2_llm", "Q3": "bmod_h1_q3_llm",
-    "Q4a": "bmod_h1_q4a_llm", "Q4b": "bmod_h1_q4b_llm", "Q4c": "bmod_h1_q4c_llm",
-    "Q5": "bmod_h1_q5_llm", "Q6": "bmod_h1_q6_llm",
-    "PR": "bmod_h2_pr_llm", "NR": "bmod_h2_nr_llm", "PP": "bmod_h2_pp_llm",
-    "NP": "bmod_h2_np_llm", "D1": "bmod_h2_d1_llm", "DAY1": "bmod_h2_day1_llm",
-    "WK1": "bmod_h2_wk1_llm", "D2": "bmod_h2_d2_llm", "DAY2": "bmod_h2_day2_llm",
-    "WK2": "bmod_h2_wk2_llm",
-    "1a": "bmod_h3_overview_llm", "1c": "bmod_h3_graph_llm",
-    "2a": "bmod_h3_success_llm", "2b": "bmod_h3_assessment_llm",
-    "3": "bmod_h3_improve_llm",
-}
+ACTION = _generator_table("prompt_action")
 # Items scored from a slot sheet with NO prompt: every verdict is derived from
 # the page, so there is no <LLMAction> and nothing for `--prompts` to compare.
 # They are still audited for arithmetic (`--scoring`) and enforcement.
-SHEET_ONLY = {"1b": "bmod_h3_data_checks",
-              "T1": "bmod_h2_t1_checks", "T2": "bmod_h2_t2_checks"}
+SHEET_ONLY = _generator_table("prompt_sheet_only")
 
 HANDOUT = {i: (1 if a.startswith("bmod_h1") else 2 if a.startswith("bmod_h2") else 3)
            for i, a in {**ACTION, **SHEET_ONLY}.items()}
@@ -251,88 +240,9 @@ def _check_rules_still_match() -> list[str]:
 # the same split explains `_utb` / `_wgb`.
 # ---------------------------------------------------------------------------
 
-RESPONSE: dict[str, list[tuple[str, str]]] = {
-    # item -> [(label shown above the field, component id)]
-    "Q1":  [("", "bmod_h1_q1_response")],
-    "Q2":  [("", "bmod_h1_q2_response")],
-    "Q3":  [("Specific", "bmod_h1_q3_specific"),
-            ("Measurable", "bmod_h1_q3_measurable"),
-            ("Action-Oriented", "bmod_h1_q3_action"),
-            ("Realistic", "bmod_h1_q3_realistic"),
-            ("Time-Bound", "bmod_h1_q3_timebound")],
-    "Q4a": [("First antecedent", "bmod_h1_q4a_first"),
-            ("Second antecedent", "bmod_h1_q4a_second")],
-    "Q4b": [("First active behavior", "bmod_h1_q4b_first"),
-            ("Second active behavior", "bmod_h1_q4b_second"),
-            ("Is it a good choice to modify, and why", "bmod_h1_q4b_modify")],
-    "Q4c": [("First consequence", "bmod_h1_q4c_first"),
-            ("Second consequence", "bmod_h1_q4c_second")],
-    "Q5":  [("First reason", "bmod_h1_q5_first"),
-            ("Second reason", "bmod_h1_q5_second")],
-    "Q6":  [("state_a1 — the first antecedent being changed", "bmod_h1_q6_state_a1"),
-            ("change_a1 — how it will be changed", "bmod_h1_q6_change_a1"),
-            ("state_c1 — the first consequence being affected", "bmod_h1_q6_state_c1"),
-            ("affect_c1 — how it will be affected", "bmod_h1_q6_affect_c1"),
-            ("state_a2 — the second antecedent being changed", "bmod_h1_q6_state_a2"),
-            ("change_a2 — how it will be changed", "bmod_h1_q6_change_a2"),
-            ("state_c2 — the second consequence being affected", "bmod_h1_q6_state_c2"),
-            ("affect_c2 — how it will be affected", "bmod_h1_q6_affect_c2")],
-    "PR":  [("", "bmod_h2_pr")],
-    "NR":  [("", "bmod_h2_nr")],
-    "PP":  [("", "bmod_h2_pp")],
-    "NP":  [("", "bmod_h2_np")],
-    "D1":  [("", "bmod_h2_d1")],
-    "DAY1": [("", "bmod_h2_day1")],
-    "WK1": [("", "bmod_h2_wk1")],
-    "D2":  [("", "bmod_h2_d2")],
-    "DAY2": [("", "bmod_h2_day2")],
-    "WK2": [("", "bmod_h2_wk2")],
-    "1a":  [("", "bmod_h3_overview_response")],
-    "1c":  [("Title", "bmod_h3_graph_title"),
-            ("X-axis label", "bmod_h3_graph_x"),
-            ("Y-axis label", "bmod_h3_graph_y"),
-            ("Legend — the series names they typed, comma-separated",
-             "bmod_h3_graph_series")],
-    "2a":  [("Verdict", "bmod_h3_success_verdict"),
-            ("How (1)", "bmod_h3_success_how1"),
-            ("How (2)", "bmod_h3_success_how2")],
-    "2b":  [("", "bmod_h3_assessment_response")],
-    "3":   [("First change", "bmod_h3_improve_first"),
-            ("Second change", "bmod_h3_improve_second")],
-}
+RESPONSE = _generator_table("prompt_response")
 
-CONTEXT: dict[str, list[tuple[str, str]]] = {
-    # rubric context key -> [(label, component id)]
-    # The behaviour as the student WROTE it, not the one they ticked. Every later
-    # item is graded against what they actually described — a student who picks
-    # "lack of sleep" and then writes about exercise is doing the exercise
-    # project, and Q4a's antecedents are antecedents of that. `bmod_h1_utb_observed`
-    # is a SheetValue over `utb_stated`'s evidence, and falls back to the choice
-    # until question 1 has been checked, so this line is never blank.
-    #
-    # Q1 itself is NOT routed through here: it keeps the raw choice, because
-    # comparing the two is its own `matches_selected` check.
-    "Q1":   [("Their unwanted target behavior, as they described it", "bmod_h1_utb_observed"),
-             ("What they wrote about it", "bmod_h1_q1_response")],
-    "Q2":   [("", "bmod_h1_q2_response")],
-    "Q4a":  [("First antecedent", "bmod_h1_q4a_first"),
-             ("Second antecedent", "bmod_h1_q4a_second")],
-    "Q4b":  [("First active behavior", "bmod_h1_q4b_first"),
-             ("Second active behavior", "bmod_h1_q4b_second")],
-    "Q4c":  [("First consequence", "bmod_h1_q4c_first"),
-             ("Second consequence", "bmod_h1_q4c_second")],
-    "_utb": [("", "bmod_h1_utb")],
-    "_wgb": [("", "bmod_h1_q2_response")],
-    "T1":   [("", "bmod_h2_t1")],
-    "D1":   [("", "bmod_h2_d1")],
-    "T2":   [("", "bmod_h2_t2")],
-    "D2":   [("", "bmod_h2_d2")],
-    "1a":   [("", "bmod_h3_overview_response")],
-    "2a":   [("Verdict", "bmod_h3_success_verdict"),
-             ("How (1)", "bmod_h3_success_how1"),
-             ("How (2)", "bmod_h3_success_how2")],
-    "2b":   [("", "bmod_h3_assessment_response")],
-}
+CONTEXT = _generator_table("prompt_context", "CONTEXT")
 
 # Q1 and Q2 are the two items where score.py adds a "## Weak hint" section,
 # read out of the .docx's underline formatting and correct in only 6 of 20
@@ -529,26 +439,7 @@ OMIT_CREDIT: dict[str, dict[str, str]] = {}
 # most common deduction on the item, and one of the three the web CAN judge —
 # while equivalence.py went on reporting zero gaps, because it read the same
 # indices. `resolve_guidance_omissions` now fails loudly instead.
-OMIT_GUIDANCE: dict[str, dict[str, str]] = {
-    "1c": {
-        "The bundle marks each piece of evidence":
-            "the CLI evidence bundle's student/template labels do not exist here",
-        "Shape-drawn graphs arrive as run-together text":
-            "shape-drawn graph text is a .docx artifact",
-        "A WRITTEN DESCRIPTION OF A GRAPH IS NOT A GRAPH":
-            "the web asks only for the labels; the plotted data comes from 1b",
-        # Now that `has_own_graph` is derived from the 1b data fields, this bullet
-        # asks the model to decide something it is no longer given a slot for —
-        # the same incoherence as a criterion with no verdict to report it in.
-        # Both of its halves are code: no plottable numbers is `absent`, the
-        # worked example's own numbers are `mismatch`. What survives is copied
-        # WORDING, which stays a judgement and is still described in ITEM_NOTES.
-        "FIRST DECIDE WHOSE GRAPH IT IS":
-            "the grader derives `has_own_graph` from the 1b data fields, so this is "
-            "not a judgement the prompt makes; copied wording is still judged on "
-            "the label checks",
-    },
-}
+OMIT_GUIDANCE = _generator_table("prompt_omit_guidance")
 
 
 def resolve_guidance_omissions(item_id: str, guidance: list[str]) -> dict[int, str]:
@@ -583,136 +474,7 @@ OMIT_DEDUCTION: dict[str, dict[str, str]] = {}
 # never folded into a prompt change.
 # ---------------------------------------------------------------------------
 
-SCORING_DIVERGENCES = [
-    # RETIRED 2026-08-28, the same day it was written. It declared that the
-    # INSTEAD-OF test was prose on both sides with no primitive for the audit to
-    # compare -- and that is no longer true: `behavior_1` and `behavior_2` are
-    # COMPUTED from one declared `maps` rule each, which the enforcement audit
-    # compares like any other primitive.
-    #
-    # Verified before retiring, 0 model calls: both engines return the same verdict
-    # for every classification -- activity>met, none>absent, and consequence /
-    # goal_behaviour / not_doing > wrong_kind -- and the codes follow, B_ONLY_ONE for
-    # an empty box and the repeatable B_NOT_ACTIVE for a wrong entry. The two paths
-    # no longer have a composite to read differently.
-    #
-    # WHAT IS NOT CLAIMED: that p4 and p12 now match gold. The classification is
-    # still a judgement, so the paths can still differ on it -- one named question
-    # instead of five weighed at once. That residual is declared as
-    # enforcement.PROSE_ONLY_SLOTS Q4b.b1_basis/b2_basis, and the sweep measures the
-    # numbers. REOPEN THIS if the sweep shows the two paths disagreeing on Q4b by
-    # more than the pick can explain.
-    #
-    # The referent test is deliberately NOT part of this: it was measured in prose
-    # form and rejected for three times the variance, and it stays subgoal 10 so the
-    # mechanism change and the accuracy experiment are not confounded.
-    {
-        "what": "the web COMPUTES the nothing-listed gate; the CLI asks the model",
-        "items": ["Q4a", "Q4c"],
-        "necessary": True,
-        "web_computes": {"Q4a": ["no_antecedents"], "Q4c": ["no_consequences"]},
-        "enforcement": "same gate, reached differently: computed on the web, asked on the CLI",
-        "why": "A_NONE and C_NONE -- 'no antecedents/consequences listed' -- take "
-               "the whole item and could not be charged at all: `absent` on both "
-               "entry slots maps to two -2 codes, so the item could not reach 0 "
-               "where gold's dictionary says 0. They are now wired with `forbid`, "
-               "which fails a check exactly when a COMBINATION holds: both entries "
-               "`absent`. That is distinct from entries written but of the wrong "
-               "kind, which the -2 codes charge -- Q4a/p20 is wrong_kind twice, "
-               "gold 1, and is untouched. "
-               "THE DIFFERENCE IS WHERE THE ANSWER COMES FROM, not what it does. "
-               "`forbid` keys are stripped from the web response schema, so the "
-               "web computes the check; the CLI's ledger is model-authored from "
-               "the rubric, so it asks for it. Both then gate the item to 0. Same "
-               "shape as 1b, T1/T2 and 1c, declared the same way. "
-               "The web gate is real, not modelled: lo-blocks' pickGate requires "
-               "`slot.gates && !sat[key] && charged[key]`, and chargedMap sets "
-               "every slot true unless an `onlyif` suppresses it -- neither item "
-               "has one -- so the third condition is a no-op here and the gate "
-               "fires. Verified by scoring a synthetic both-absent sheet: 0.0 on "
-               "both items. "
-               "MEASURED INERT on the corpus: all 180 recorded sheets rescored "
-               "through the new rules, 120 of 120 on Q4a and 60 of 60 on Q4c "
-               "unchanged. No cell has both entries `absent`.",
-    },
-    dict(items=["Q1"], what="a no-penalty check compares the prose against the UTB choice",
-         necessary=False,
-         why="the web asks 'Which behavior will you work on?' as a closed ChoiceInput "
-             "before the box, which the paper version has no equivalent of. But "
-             "`utb_stated` is still ASKED of the model on BOTH sides — the prose has to "
-             "name the target, and UTB_NOT_STATED costs the same 2 points for the same "
-             "reason — so the scoring does not diverge. What the web adds is "
-             "`matches_selected`, an UNSCORED check reporting whether the prose names "
-             "the same behaviour the student selected, shown first in the feedback. It "
-             "carries no points precisely so a mismatch prompts a rewording rather than "
-             "charging twice for one fact. "
-             "THIS ENTRY USED TO DECLARE THE OPPOSITE: that the web read utb_stated "
-             "from the choice and derived it, so the prose need not state it. That was "
-             "never implemented here — no version of the content back to the initial "
-             "import carries a `derived` rule for it — and the design was later settled "
-             "the other way. The audit had been reporting the declaration as stale ever "
-             "since; it was describing an intention, not the sheet."),
-
-    {
-        "items": ["1b"],
-        "what": "every check is derived from the data fields",
-        "necessary": True,
-        "web_computes": {"1b": ["baseline_data", "week_1_data",
-                                "week_2_data", "week_3_data"]},
-        "why": "1b scores a point per week of data present, which the rubric is explicit "
-               "is \"a presence check, not a quality judgement\". The CLI reads a .docx "
-               "and must judge presence from transcribed prose; the web has one field per "
-               "week, so presence is a property of the fields and is decided with the same "
-               "parser the chart draws with. There is no prompt and no LLM call. "
-               "Platform-forced in the same way as 1c's has_own_graph.",
-    },
-    {
-        "items": ["T1", "T2"],
-        "what": "NOT_A_TYPE (-2) is unreachable, and `type_stated` is derived",
-        "necessary": True,
-        "web_computes": {"T1": ["type_stated"], "T2": ["type_stated"]},
-        "why": "the web asks for the type as a closed ChoiceInput whose four options ARE "
-               "the four types, so a student cannot name something that is not one of "
-               "them — the same shape as Q1's UTB_NOT_ON_LIST. What remains reachable is "
-               "BLANK: the item is a `present` check over the choice field, worth the "
-               "same 2 points, so a student who answers scores 2 and one who does not "
-               "scores 0, exactly as on paper.",
-    },
-    {
-        "items": ["1c"],
-        "what": "`has_own_graph` is derived from the data fields, not asked of the model",
-        "necessary": True,
-        # The machine-checkable core of the prose below. `--enforcement` asserts
-        # the web really does compute these, so the declaration cannot outlive the
-        # thing it declares — a stale exemption is worse than none, because it
-        # silences the audit for a difference that has changed shape.
-        "web_computes": {"1c": ["has_own_graph"]},
-        "why": "the CLI reads a .docx — an embedded chart, an image, or prose describing "
-               "a graph that is not there — so whether the student produced one is a "
-               "judgement over document evidence. On the web the chart is DRAWN from the "
-               "four 1b fields, so the runtime already knows: no plottable numbers is "
-               "`absent`, and the worked example's own numbers (it sits on the same "
-               "screen) are `mismatch`. Both are computed with the chart's own parser, so "
-               "the grader cannot disagree with what the student sees. Copied WORDING is "
-               "still judged by the model, on the label checks. Platform-forced: there is "
-               "no way to ask the CLI's .docx the question the web's fields answer.\n\n"
-               "The kind is `complete`, not `plots`: it is satisfied only when EVERY "
-               "week is present, so a partial month fails the gate and costs the whole "
-               "item, which is what the paper rubric charges for not supplying a graph. "
-               "That recovers p15 (two of four weeks, gold 0) and keeps p18 (nothing at "
-               "all, gold 0). What it cannot recover is a student whose data is COMPLETE "
-               "and who simply never drew the chart — p4 and p19, both gold 0 — because "
-               "on the web that data draws it for them. Those two are excluded from the "
-               "web measurement as unreachable (agreement_app.PER_ITEM_EXCLUDE).",
-    },
-    dict(items=["1c"], what="a legend keyed by DAY cannot be reproduced",
-         necessary=True,
-         why="the web's chart has one orientation — series are the four weeks, "
-             "the x-axis is the seven days. A paper student who plotted it the "
-             "other way round has a legend naming days, which the graders "
-             "accepted (p11) and which the web scores as not naming the four "
-             "series. One corpus row, structural, not a prompt defect."),
-]
+SCORING_DIVERGENCES = _generator_value("SCORING_DIVERGENCES")
 
 # Web-only text an item needs because of how its screen is built. Additions,
 # not paraphrases: they say something about the web that the rubric cannot
@@ -723,136 +485,16 @@ SCORING_DIVERGENCES = [
 # be said to BOTH graders is not a side note at all -- it is rubric content,
 # and it belongs in `guidance` where both sides get it. Enforced by
 # enforcement.check_side_notes_are_side_specific.
-ITEM_NOTES_WHY: dict[str, str] = {
-    "Q1": "Governs the FIRST SENTENCE of the `feedback` field on a "
-          "`matches_selected` mismatch. Paper has neither: its schema has no "
-          "`feedback` property (score.compose_feedback builds feedback in code "
-          "from the deduction ledger) and `matches_selected` is not one of its "
-          "Q1 slots.",
-    "Q6": "Explains the web's TWO-FIELD encoding -- a `verdict` and a separate "
-          "`refers_to` that takes `first`/`second`/`none`. Paper has one field "
-          "and is told so in its own words by score._paper_vocab: 'Answer with "
-          "ONE value from `first`, `second`, `neither`, `absent` -- there is no "
-          "separate field on this side.' Mirrored in substance, not copied.",
-    "1c": "Describes SelfMonitorPlot drawing the chart live from 1b's data, and "
-          "the worked example sitting on the same screen. The paper student "
-          "draws their own figure; there is no component and no screen.",
-}
+ITEM_NOTES_WHY = _generator_table("prompt_notes_why")
 
-ITEM_NOTES: dict[str, str] = {
-    # A mismatch reframes everything after it: the rest of the feedback is about
-    # a behavior the student may not think they are being asked about, and a
-    # student who reads three paragraphs before being told which behavior was
-    # graded has to re-read all three. So it leads, and the checklist puts the
-    # check first for the same reason.
-    "Q1": (
-        "## Say this before anything else\n"
-        "If `matches_selected` is `differs`, the FIRST sentence of `feedback` says "
-        "so: name the behavior they ticked, name the one they wrote about, and say "
-        "that the rest of this feedback is about what they wrote. Then give the "
-        "normal feedback.\n\n"
-        "It is not a fault and nothing is deducted for it — most often they simply "
-        "changed their mind — so say it plainly and without warning them off. If it "
-        "is `matches`, say nothing about it at all: confirming a match the student "
-        "never doubted spends their attention on nothing.\n"
-    ),
-    # The eight boxes are POSITIONAL and the rubric's matching is not. The CLI
-    # reads one undivided block, so it pairs the student's antecedents against
-    # 4a's set-wise; splitting the answer into `state_a1`/`state_a2` makes
-    # position part of the test, which the rubric never asks for. p12 addressed
-    # both of 4c's consequences in the opposite order and lost 5 of 10 on four
-    # `mismatch` verdicts, where gold and the CLI both gave full marks — against
-    # this item's own rule that "Mismatch means a DIFFERENT item, not a reworded
-    # one". The final clause preserves the whole-missing-half rule.
-    # The paragraph below used to describe ONE answer with four values --
-    # first/second/neither/absent -- which is how this looked before the verdict
-    # and the identity were split into two fields. Post-split the web takes a
-    # verdict of met/absent/mismatch and a SEPARATE `refers_to` whose enum the app
-    # builds as [...labels, "none"], so `neither` and `absent` are values that
-    # field rejects and the model cannot emit them. It was telling the grader to
-    # answer in the CLI's vocabulary on the one channel every remaining Q6
-    # disagreement lives in.
-    #
-    # The CLI's vocabulary is NOT wrong and is not changed: rubric_h1's cover spec
-    # declares verdicts ["first","second","neither","absent"] because that is what
-    # the CLI accepts, and equivalence.py bridges it -- `neither` maps to
-    # `refers_to: none`, `absent` to `verdict: absent`. COVER VOCAB DIFFERS exists
-    # to police exactly that bridge. Only the web-facing instruction was at fault.
-    "Q6": (
-        "## What the four `state_` checks report\n"
-        "These four do NOT report a match. They report an IDENTITY, and they report "
-        "it in a FIELD OF ITS OWN, separate from the verdict. The two fields take "
-        "different values and neither accepts the other's.\n"
-        "`verdict` says whether the box names an antecedent (or a consequence) at "
-        "all: `met` if it does, `absent` if it does not.\n"
-        "`refers_to` says WHICH of the two listed items it is: `first`, `second`, or "
-        "`none`. `none` is the value for \"not either of the two\" -- it is the only "
-        "one, so do not answer `neither`, and do not put `absent` here. Those are "
-        "not values this field takes.\n\n"
-        "Say what you see and nothing more. Whether the pair covers both listed "
-        "items is worked out from your two answers by the grader, so you do not need "
-        "to reason about the other box, and a student who addresses 4a's second "
-        "antecedent first has still addressed it — report `second` and it will be "
-        "credited. One distinction matters for the feedback rather than the score: "
-        "`met` with `refers_to: none` says they named an antecedent but not one of "
-        "4a's, while `absent` says they named none at all. The points are the same "
-        "either way; the difference decides whether the student is told their "
-        "antecedent does not match 4a or that they did not state one.\n\n"
-        "ONE THING TO CARRY INTO `feedback`. Each of the two listed items can be "
-        "credited once, so if you report the SAME label for both boxes — `first` "
-        "twice, say — the student has named one antecedent twice and left the other "
-        "unaddressed, and only one of the two boxes can count. Your verdicts already "
-        "handle the scoring; what you must not do is congratulate them on both boxes "
-        "in that case. Say that the second repeats the first and name the item from "
-        "4a they have not yet addressed.\n"
-    ),
-    "1c": (
-        "## How this item reaches you\n"
-        "The student does not upload a figure. SelfMonitorPlot draws their chart live "
-        "from the four weeks of data they entered in 1b and the three labels they type "
-        "here. Everything the paper rubric asks of a graph is theirs: the data that "
-        "produces it, the three labels, and the legend — they name the four plotted "
-        "series themselves, and until they do their chart's key reads 'Series 1, "
-        "Series 2, ...', which is not a legend. Judge `legend` on the series names "
-        "only.\n\n"
-        "THE WORKED EXAMPLE IS ON THIS SCREEN, immediately above their boxes, and "
-        "reproducing it is the live form of the paper item's template failure. It is a "
-        "water-drinking chart titled 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=R27-0-27}}, with axes "
-        "'{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} and 'Ounces of Water per Day', plotting:\n"
-        "  Baseline 8, 10, 8, 12, 6, 10, 0\n"
-        "  Week 1   32, 20, 22, 28, 30, 32, 10\n"
-        "  Week 2   30, 28, 26, 30, 32, 32, 30\n"
-        "  Week 3   25, 26, 30, 32, 32, 28, 32\n"
-        "Two distinct failures come out of that, and only one of them is yours. If the "
-        "DATA is those numbers, the GRADER detects it: it compares the fields against "
-        "the example itself and sets `has_own_graph` to `mismatch`, zeroing the item "
-        "exactly as on paper. You are not asked about that, and you should not discuss "
-        "it. What IS yours is when only the WORDING is copied — a title of 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=S1-20220a202020202020202022,R38-0-27}} from a student who did not track water, or a y-axis of 'Ounces of "
-        "Water per Day' — that is `generic` on the label, like an untouched 'Chart "
-        "Title'. Their own graph names their own behaviour: hours of sleep, minutes of "
-        "exercise, servings.\n\n"
-        "The x-axis is the exception: '{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} is the example's label, the "
-        "placeholder, AND the correct answer for nearly every student, since all four "
-        "weeks are plotted Sunday to Saturday. Do not treat it as copied.\n"
-    ),
-}
+ITEM_NOTES = _generator_table("prompt_notes")
 
 # The web stand-in for score.py's graph_bundle. On the CLI, `has_own_graph` is
 # judged from an evidence bundle dug out of the .docx (chart XML, embedded
 # images, grouped shape text). Here the chart is generated, so the equivalent
 # evidence is the data it is generated FROM — blank or non-numeric weeks render
 # no graph. build_prompt puts this section last before the response; so do we.
-EVIDENCE: dict[str, tuple[str, list[tuple[str, str]]]] = {
-    "1c": (
-        "## Graph evidence for this submission\n"
-        "The four weeks of data the student entered in 1b. SelfMonitorPlot plots "
-        "exactly these, so they are what decides whether a graph exists at all.",
-        [("Baseline week", "bmod_h3_baseline"),
-         ("Week 1", "bmod_h3_wk1"),
-         ("Week 2", "bmod_h3_wk2"),
-         ("Week 3", "bmod_h3_wk3")],
-    ),
-}
+EVIDENCE = _generator_table("prompt_evidence")
 
 
 # ---------------------------------------------------------------------------
@@ -1700,46 +1342,7 @@ EQUIVALENCE_DEF = (
 )
 
 
-MATCH_DEF = {
-    "DAY1": ("## Definition of 'the same behaviour' below:\n"
-              + EQUIVALENCE_DEF + "\n"),
-    "DAY2": ("## Definition of 'the same behaviour' below:\n"
-              + EQUIVALENCE_DEF + "\n"),
-    "WK2": ("## Definition of 'the same behaviour' below:\n"
-              + EQUIVALENCE_DEF + "\n"),
-    "WK1": ("## Definition of 'the same activity' below:\n"
-            + EQUIVALENCE_DEF + "\n"
-            "Two phrases that are NOT equivalent by that test name two "
-            "activities, however close the connection between them. An activity "
-            "that another might cause, accompany, amount to, or be evidence of "
-            "is a SECOND thing, not a point on the same scale.\n"
-            "DEGREE AND DETAIL ARE NOT DIFFERENCES OF ACTIVITY. The same doing "
-            "with a different number, frequency, duration or extra particular "
-            "attached is still that doing. Compare WHAT IS BEING DONE, not how "
-            "much of it is being done or how precisely it is specified.\n"
-            "A phrase with NO CONTENT OF ITS OWN -- a pointer, such as \"my "
-            "goal\" or \"my target this week\" -- is not compared by this test "
-            "at all. Classify it by what it points at, as the check itself "
-            "directs.\n"),
-    "Q6": ("## Definition of 'matches' below:\n"
-           + EQUIVALENCE_DEF + "\n"
-           "A listed 4a or 4c entry often states one thing and then what follows "
-           "from it -- \"X, so I Y\". Decide which of THREE kinds Y is before you "
-           "compare, because it decides what the entry can be matched against.\n"
-           "1. Y RESTATES THE ANTECEDENT in other words. Part of the antecedent; a "
-           "box equivalent to Y matches that 4a entry.\n"
-           "2. Y IS AN INTERMEDIATE ANTECEDENT -- a further step that still LEADS "
-           "TO the unwanted behaviour rather than following from it. Also part of "
-           "the antecedent, described one link nearer; a box equivalent to Y "
-           "matches that 4a entry.\n"
-           "3. Y IS A CONSEQUENCE -- the unwanted behaviour itself, or something "
-           "that follows from it. Not part of the antecedent: a box equivalent to "
-           "Y does NOT match that 4a entry. It may still match a 4c entry that "
-           "lists that same consequence, and should be matched there.\n"
-           "The test between 2 and 3 is direction: does Y lead to the unwanted "
-           "behaviour, or follow from it? The unwanted behaviour is named in the "
-           "Q1 answer in the context below.\n"),
-}
+MATCH_DEF = _generator_table("prompt_match_def")
 
 # Items whose "## Credit components" section lists slots WITHOUT restating their
 # rules. The rules still ship — once, in the checklist, which is where the verdict
