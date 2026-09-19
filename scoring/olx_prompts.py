@@ -107,6 +107,19 @@ def primitive_attrs(excluding_keys: bool | None = None) -> list[str]:
 # scoring path, because the export must read them from somewhere that does not
 # read the file it is writing.
 # ---------------------------------------------------------------------------
+_FIELD_TO_TABLE = {
+    "prompt_action": "ACTION", "prompt_response": "RESPONSE",
+    "prompt_context": "CONTEXT", "prompt_sheet_only": "SHEET_ONLY",
+    "prompt_evidence": "EVIDENCE", "prompt_omit_guidance": "OMIT_GUIDANCE",
+    "prompt_match_def": "MATCH_DEF", "prompt_notes": "ITEM_NOTES",
+    "prompt_notes_why": "ITEM_NOTES_WHY",
+}
+
+
+def table_name(field: str) -> str:
+    return _FIELD_TO_TABLE.get(field, "")
+
+
 def _generator_table(field: str, table: str = "") -> dict:
     """{key: value} for one generator field. Absent keys stay ABSENT.
 
@@ -123,10 +136,22 @@ def _generator_table(field: str, table: str = "") -> dict:
     out = {iid: gen[field]
            for iid, gen in coursedata.generator_items().items()
            if field in gen}
+    # Restore the table's AUTHORED key order. The fields live on item entries, so
+    # the comprehension above walks items in rubric order -- a different order
+    # from the one the table was written in, which `==` cannot see and which the
+    # JOBS case showed can matter.
     if table:
         extra = coursedata.generator_value(f"{table}__non_item")
         if extra:
             out.update(extra)
+    # ORDER LAST, AFTER the non-item residue is merged. Applying it first put
+    # `_utb` and `_wgb` at the end, because `update` appends -- and CONTEXT's
+    # authored order interleaves them. The order restoration has to see the whole
+    # table, not the part that came from item entries.
+    order = (coursedata.generator_value("TABLE_ORDER") or {}).get(table_name(field))
+    if order:
+        out = {k: out[k] for k in order if k in out} | {
+            k: v for k, v in out.items() if k not in order}
     return out
 
 

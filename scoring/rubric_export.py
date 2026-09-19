@@ -331,6 +331,19 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
         for name in DECLARATION_TABLES
         if getattr(declaration_source, name, None) is not None}
 
+    # THE AUTHORED KEY ORDER OF EACH GENERATOR TABLE. The fields themselves live
+    # on the item entries, so rebuilding a table iterates items in RUBRIC order
+    # and loses the order the table was written in. For these three that turns
+    # out to be harmless -- CONTEXT is a keyed lookup, SHEET_ONLY is always
+    # `sorted()`, MATCH_DEF is never iterated -- but "harmless" was established by
+    # reading every consumer, and the JOBS case had just shown that a table's
+    # order can BE the data. Storing it costs three short lists and removes the
+    # need to keep being right about that.
+    doc["generator"]["TABLE_ORDER"] = {
+        table: [k for k in getattr(generator_source, table, {})]
+        for table in sorted(GENERATOR_TABLES)
+        if getattr(generator_source, table, None)}
+
     doc["generator"]["CONTEXT_REFS"] = {
         str(h): _jsonable(getattr(generator_source, f"_H{h}_CTX", None),
                           f"generator._H{h}_CTX")
