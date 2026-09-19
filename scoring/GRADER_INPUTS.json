@@ -16,12 +16,17 @@
    "mechanism": "nested",
    "inputs": [
     "CheckboxInput",
-    "ChoiceInput"
+    "ChoiceInput",
+    "LineInput",
+    "TextArea"
    ],
    "parts": [
     "Key"
    ],
-   "why": "scores whichever selection input it wraps against the Key children, single- or multi-select alike"
+   "doc_only": {
+    "LineInput": "grading/CorrectGrader.md, 'input-agnostic'"
+   },
+   "why": "scores whichever input it wraps against the Key children. Input-agnostic by design, which makes it the fallback when the answer is enumerated but the widget is not yet chosen"
   },
   "KeyGrader": {
    "mechanism": "nested",
@@ -113,10 +118,11 @@
   "DefaultGrader": {
    "mechanism": "nested",
    "inputs": [
-    "LineInput"
+    "LineInput",
+    "TextArea"
    ],
    "parts": [],
-   "why": "the fallback when an input is graded with no grader named"
+   "why": "the fallback when an input is graded with no grader named; the TextArea pairing comes from its own documented example"
   },
   "LLMGrader": {
    "mechanism": "nested",
@@ -321,28 +327,44 @@
  },
  "self_grading": {
   "CapaProblem": "an Open edX-style problem carrying its own inputs and grading; graders appear INSIDE it, not around it",
-  "MarkupProblem": "a self-contained problem family, as CapaProblem"
+  "MarkupProblem": "a self-contained problem family, as CapaProblem",
+  "SimpleMatching": "a terse matching problem; expands to a CapaProblem that carries a MatchingGrader",
+  "SimpleSortable": "a terse ordering problem; expands to a CapaProblem",
+  "SimpleTextSelection": "a terse highlighting problem; expands to a CapaProblem"
  },
  "llm_reachable": "any block holding a value, via <Ref target= field=> inside an LLMAction prompt body -- a capability, NOT a recommendation; see llm_fallback",
  "evidence": {
-  "files_scanned": 319,
+  "files_scanned": 575,
   "pairs": {
    "KeyGrader|ChoiceInput": {
-    "n": 97,
+    "n": 75,
     "files": [
      "AggregatedInputs.olx",
+     "CapaProblem.md#example10",
+     "CapaProblem.md#example6",
      "CapaProblemChoice.olx",
      "CapaProblemImmediate.olx",
+     "ChoiceInput.md#example1",
+     "ChoiceInput.md#example2",
+     "ChoiceInput.md#example3",
      "ChoiceInputExample.olx",
      "ChoiceInputGraded.olx",
      "ChoiceInputMCQ.olx",
      "ChoiceInputTrueFalse.olx",
+     "Explanation.md#example2",
+     "IntakeGate.md#example2",
      "IntakeGateMath.olx",
+     "KeyGrader.md#example1",
      "KeyGrader.olx",
+     "Markdown.md#example5",
      "MasteryBank.olx",
+     "NextReveal.md#example1",
      "OlxSlotLLM.olx",
+     "Sequential.md#example3",
      "Sequential.olx",
      "SequentialLearning.olx",
+     "SideBarPanel.md#example4",
+     "TextSlot.md#example3",
      "UseDynamic.olx",
      "UseHistory.olx",
      "VerticalBranching.olx",
@@ -353,21 +375,34 @@
     ]
    },
    "KeyGrader|Key": {
-    "n": 97,
+    "n": 75,
     "files": [
      "AggregatedInputs.olx",
+     "CapaProblem.md#example10",
+     "CapaProblem.md#example6",
      "CapaProblemChoice.olx",
      "CapaProblemImmediate.olx",
+     "ChoiceInput.md#example1",
+     "ChoiceInput.md#example2",
+     "ChoiceInput.md#example3",
      "ChoiceInputExample.olx",
      "ChoiceInputGraded.olx",
      "ChoiceInputMCQ.olx",
      "ChoiceInputTrueFalse.olx",
+     "Explanation.md#example2",
+     "IntakeGate.md#example2",
      "IntakeGateMath.olx",
+     "KeyGrader.md#example1",
      "KeyGrader.olx",
+     "Markdown.md#example5",
      "MasteryBank.olx",
+     "NextReveal.md#example1",
      "OlxSlotLLM.olx",
+     "Sequential.md#example3",
      "Sequential.olx",
      "SequentialLearning.olx",
+     "SideBarPanel.md#example4",
+     "TextSlot.md#example3",
      "UseDynamic.olx",
      "UseHistory.olx",
      "VerticalBranching.olx",
@@ -378,21 +413,34 @@
     ]
    },
    "KeyGrader|Distractor": {
-    "n": 270,
+    "n": 196,
     "files": [
      "AggregatedInputs.olx",
+     "CapaProblem.md#example10",
+     "CapaProblem.md#example6",
      "CapaProblemChoice.olx",
      "CapaProblemImmediate.olx",
+     "ChoiceInput.md#example1",
+     "ChoiceInput.md#example2",
+     "ChoiceInput.md#example3",
      "ChoiceInputExample.olx",
      "ChoiceInputGraded.olx",
      "ChoiceInputMCQ.olx",
      "ChoiceInputTrueFalse.olx",
+     "Explanation.md#example2",
+     "IntakeGate.md#example2",
      "IntakeGateMath.olx",
+     "KeyGrader.md#example1",
      "KeyGrader.olx",
+     "Markdown.md#example5",
      "MasteryBank.olx",
+     "NextReveal.md#example1",
      "OlxSlotLLM.olx",
+     "Sequential.md#example3",
      "Sequential.olx",
      "SequentialLearning.olx",
+     "SideBarPanel.md#example4",
+     "TextSlot.md#example3",
      "UseDynamic.olx",
      "UseHistory.olx",
      "VerticalBranching.olx",
@@ -403,46 +451,96 @@
     ]
    },
    "NumericalGrader|NumberInput": {
-    "n": 22,
+    "n": 37,
     "files": [
+     "CapaProblem.md#example1",
+     "CapaProblem.md#example2",
+     "CapaProblem.md#example4",
+     "CapaProblem.md#example9",
      "CapaProblem.olx",
      "CapaProblemModes.olx",
      "CapaProblemMultipart.olx",
      "CapaProblemNumerical.olx",
      "Correctness.olx",
+     "Explanation.md#example1",
+     "Explanation.md#example3",
      "Explanation.olx",
      "ExplanationExamples.olx",
+     "NumberInput.md#example1",
+     "NumberInput.md#example2",
+     "NumberInput.md#example3",
      "NumberInputGraded.olx",
+     "NumericalGrader.md#example1",
+     "NumericalGrader.md#example2",
+     "NumericalGrader.md#example4",
+     "NumericalGrader.md#example6",
+     "NumericalGrader.md#example7",
      "NumericalGrader.olx",
      "NumericalGraderExample.olx",
      "SequentialAdaptive.olx"
     ]
    },
-   "StringGrader|LineInput": {
-    "n": 7,
-    "files": [
-     "DemandHints.olx",
-     "LineInputGraded.olx",
-     "StringGrader.olx",
-     "StringGraderCaseInsensitive.olx",
-     "StringGraderRegExp.olx",
-     "Trigger.olx"
-    ]
-   },
    "NumericalGrader|ComplexInput": {
-    "n": 7,
+    "n": 9,
     "files": [
      "CapaProblemImmediate.olx",
+     "ComplexInput.md#example2",
+     "ComplexInput.md#example3",
      "ComplexInputExamples.olx",
      "ExplanationExamples.olx",
      "NumericalGraderBasic.olx",
      "NumericalGraderPercentage.olx"
     ]
    },
-   "MatchingGrader|MatchingInput": {
-    "n": 7,
+   "FormulaGrader|FormulaInput": {
+    "n": 5,
     "files": [
+     "FormulaGrader.md#example1",
+     "FormulaGrader.md#example2",
+     "FormulaGrader.md#example4",
+     "FormulaGrader.olx",
+     "FormulaInput.md#example2"
+    ]
+   },
+   "StringGrader|LineInput": {
+    "n": 12,
+    "files": [
+     "DemandHints.md#example1",
+     "DemandHints.olx",
+     "LineInput.md#example3",
+     "LineInputGraded.olx",
+     "StringGrader.md#example1",
+     "StringGrader.md#example2",
+     "StringGrader.md#example3",
+     "StringGrader.olx",
+     "StringGraderCaseInsensitive.olx",
+     "StringGraderRegExp.olx",
+     "Trigger.olx"
+    ]
+   },
+   "RatioGrader|NumberInput": {
+    "n": 10,
+    "files": [
+     "CapaProblem.md#example7",
+     "NumberInput.md#example4",
+     "RatioGrader.md#example1",
+     "RatioGrader.olx",
+     "RatioGraderSlots.olx"
+    ]
+   },
+   "MatchingGrader|MatchingInput": {
+    "n": 15,
+    "files": [
+     "MatchingGrader.md#example1",
+     "MatchingGrader.md#example2",
+     "MatchingGrader.md#example3",
      "MatchingGrader.olx",
+     "MatchingInput.md#example1",
+     "MatchingInput.md#example2",
+     "MatchingInput.md#example3",
+     "MatchingInput.md#example4",
+     "MatchingInput.md#example5",
+     "MatchingInput.md#example6",
      "MatchingInputGraded.olx",
      "MatchingInputHistorical.olx",
      "MatchingInputInitialPosition.olx",
@@ -451,9 +549,18 @@
     ]
    },
    "SortableGrader|SortableInput": {
-    "n": 15,
+    "n": 20,
     "files": [
+     "CapaProblem.md#example8",
+     "Sortable.md#example1",
+     "SortableGrader.md#example1",
+     "SortableGrader.md#example2",
+     "SortableGrader.md#example3",
+     "SortableGrader.md#example4",
+     "SortableGrader.md#example5",
      "SortableGrader.olx",
+     "SortableInput.md#example1",
+     "SortableInput.md#example2",
      "SortableInputBasic.olx",
      "SortableInputChronological.olx",
      "SortableInputGraded.olx",
@@ -466,23 +573,32 @@
    "TabularMCQGrader|TabularMCQ": {
     "n": 7,
     "files": [
+     "TabularMCQ.md#example5",
      "TabularMCQFreireFull.olx",
+     "TabularMCQGrader.md#example1",
      "TabularMCQGrader.olx",
      "TabularMCQGraderCheckbox.olx",
      "psych_sba_activities_part3auto.olx"
     ]
    },
    "KeyGrader|DropdownInput": {
-    "n": 1,
+    "n": 2,
     "files": [
+     "DropdownInput.md#example5",
      "DropdownInputGraded.olx"
     ]
    },
    "CheckboxGrader|CheckboxInput": {
-    "n": 9,
+    "n": 13,
     "files": [
      "CapaProblemCheckbox.olx",
+     "CheckboxGrader.md#example1",
+     "CheckboxGrader.md#example2",
+     "CheckboxGrader.md#example3",
      "CheckboxGrader.olx",
+     "CheckboxInput.md#example1",
+     "CheckboxInput.md#example2",
+     "CheckboxInput.md#example3",
      "CheckboxInputExample.olx",
      "CheckboxInputGraded.olx",
      "CheckboxInputPartial.olx",
@@ -490,10 +606,16 @@
     ]
    },
    "CheckboxGrader|Key": {
-    "n": 28,
+    "n": 42,
     "files": [
      "CapaProblemCheckbox.olx",
+     "CheckboxGrader.md#example1",
+     "CheckboxGrader.md#example2",
+     "CheckboxGrader.md#example3",
      "CheckboxGrader.olx",
+     "CheckboxInput.md#example1",
+     "CheckboxInput.md#example2",
+     "CheckboxInput.md#example3",
      "CheckboxInputExample.olx",
      "CheckboxInputGraded.olx",
      "CheckboxInputPartial.olx",
@@ -501,10 +623,16 @@
     ]
    },
    "CheckboxGrader|Distractor": {
-    "n": 28,
+    "n": 30,
     "files": [
      "CapaProblemCheckbox.olx",
+     "CheckboxGrader.md#example1",
+     "CheckboxGrader.md#example2",
+     "CheckboxGrader.md#example3",
      "CheckboxGrader.olx",
+     "CheckboxInput.md#example1",
+     "CheckboxInput.md#example2",
+     "CheckboxInput.md#example3",
      "CheckboxInputExample.olx",
      "CheckboxInputGraded.olx",
      "CheckboxInputPartial.olx",
@@ -512,21 +640,59 @@
     ]
    },
    "TextSelectionGrader|TextSelectionInput": {
-    "n": 6,
+    "n": 8,
     "files": [
      "SimpleTextSelectionDemo.olx",
+     "TextSelectionGrader.md#example1",
      "TextSelectionGrader.olx",
      "TextSelectionGraderFeedback.olx",
      "TextSelectionGraderImmediate.olx",
+     "TextSelectionInput.md#example1",
      "TextSelectionInputGraded.olx",
      "TextSelectionInputOptional.olx"
     ]
    },
+   "CorrectGrader|CheckboxInput": {
+    "n": 4,
+    "files": [
+     "CorrectGrader.md#example1",
+     "CorrectGrader.olx",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "CorrectGrader|Key": {
+    "n": 28,
+    "files": [
+     "CorrectGrader.md#example1",
+     "CorrectGrader.olx",
+     "bmod_handout1.olx",
+     "bmod_handout2.olx",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "CorrectGrader|TextArea": {
+    "n": 1,
+    "files": [
+     "CorrectGrader.md#example2"
+    ]
+   },
+   "DefaultGrader|TextArea": {
+    "n": 1,
+    "files": [
+     "DefaultGrader.md#example1"
+    ]
+   },
    "RulesGrader|LineInput": {
-    "n": 7,
+    "n": 11,
     "files": [
      "CapaProblemText.olx",
+     "DefaultGrader.md#example2",
      "DefaultGraderAsMatch.olx",
+     "RulesGrader.md#example1",
+     "RulesGrader.md#example2",
+     "RulesGrader.md#example3",
      "RulesGrader.olx",
      "RulesGraderCaseInsensitive.olx",
      "RulesGraderExample.olx",
@@ -541,47 +707,16 @@
      "DefaultGraderPartial.olx"
     ]
    },
-   "RatioGrader|NumberInput": {
-    "n": 4,
-    "files": [
-     "RatioGrader.olx",
-     "RatioGraderSlots.olx"
-    ]
-   },
-   "RatioGrader|ComplexInput": {
-    "n": 2,
-    "files": [
-     "RatioGraderEquivalent.olx"
-    ]
-   },
-   "CorrectGrader|CheckboxInput": {
-    "n": 5,
-    "files": [
-     "CorrectGrader.olx",
-     "psych_sba_activities_part4.olx",
-     "psych_sba_activities_part4auto.olx"
-    ]
-   },
-   "CorrectGrader|Key": {
-    "n": 47,
-    "files": [
-     "CorrectGrader.olx",
-     "bmod_handout1.olx",
-     "bmod_handout2.olx",
-     "psych_sba_activities_part4.olx",
-     "psych_sba_activities_part4auto.olx"
-    ]
-   },
    "LLMGrader|LineInput": {
     "n": 1,
     "files": [
      "LLMGrader.olx"
     ]
    },
-   "FormulaGrader|FormulaInput": {
-    "n": 1,
+   "RatioGrader|ComplexInput": {
+    "n": 2,
     "files": [
-     "FormulaGrader.olx"
+     "RatioGraderEquivalent.olx"
     ]
    },
    "NumericalGrader|LineInput": {
@@ -591,7 +726,7 @@
     ]
    },
    "CorrectGrader|ChoiceInput": {
-    "n": 6,
+    "n": 3,
     "files": [
      "bmod_handout1.olx",
      "bmod_handout2.olx"

@@ -1913,6 +1913,78 @@ Four containers are declared and **undemonstrated** — `SharedNotes`,
 `.olx` at all. They are recorded as declared-without-evidence rather than
 dropped, because absence from one corpus is not absence from the engine.
 
+##### CORRECTED 2026-09-18 — the corpus was wrong three ways, and the docs declare what I said nothing declares
+
+*On the user's questions: "have you looked at all the tasks in edu.memphis.psych?"
+and "double check all your mapping assumptions against the data provided there and
+in the demo content directory" and "look for useful info in the documentation."
+The honest answer to the first was no, and checking found four errors.*
+
+**1. A build artifact was counted as evidence.** `lo-blocks/.stage/content` holds
+**29 staged copies of the psych course, of which only 20 still match** — so the
+course was mined TWICE and a STALE copy contributed as though it were independent
+evidence. Every edge count involving psych content was inflated. The corpus is now
+chosen in `olx_corpus.py`, once, with `.stage`/`dist`/`build` excluded by name.
+**A corpus is a decision, not a glob.**
+
+**2. The documentation was ignored, and it is the largest evidence source there
+is.** 68 block readmes carry **295 fenced OLX examples** — a corpus the size of
+the standalone files, authored by the people who wrote the blocks. Mining it
+immediately produced five containment facts and two pairings no `.olx` shows,
+including **`Course` nests `Sequential`**, which this plan's own authored reason
+had asserted while the evidence-derived table said `display` only.
+
+**3. "No grader declares which inputs it pairs with" was too strong.** It is not
+declared in CODE, but it IS documented: `CorrectGrader.md` says outright *"is
+input-agnostic. It works with CheckboxInput, ChoiceInput, LineInput, TextArea,
+or…"*, and `NumericalGrader.md` says *"works with any input that outputs a
+number"*. The declaration now carries four inputs for `CorrectGrader` instead of
+two, and the claim is restated: **the pairing is not machine-readable, but it is
+authored prose, and prose written by the block's authors is evidence.**
+
+**4. `SimpleMatching`, `SimpleSortable` and `SimpleTextSelection` were
+misclassified as item PARTS.** Each is *"a terse one-tag PEG syntax that expands
+to a CapaProblem"* — whole items in a compact spelling, not pieces of one. Their
+own descriptions say so. They are now `gradable_item_family` and declared
+self-grading.
+
+After the corrections: **575 sources scanned** (280 files + 295 documented
+examples), 23 nested pairings, 27 containers, 242 nesting and 94 reference edges,
+all three gates clean.
+
+##### The repository holds far more than the three handouts
+
+`psychology/` carries a whole **SBA course** — parts 1–4 with activities, quizzes
+and auto variants — alongside the three `bmod_` handouts: 29 `.olx` in all, plus
+`function-questions` and `operant-questions` banks and an `operant-mastery` bank.
+
+##### A FIFTH authoring surface: the PEG formats
+
+And the course is not written only in OLX. It carries **`.chatpeg` (13),
+`.textSelectionpeg` (5), `.textHighlightpeg` (3), `.cast` (2), `.liquid` (2)** —
+compact, teacher-writable source formats that expand into blocks. lo-blocks
+defines the grammars behind them: `chat.pegjs`, `textSelection.pegjs`,
+`matching.pegjs`, `sort.pegjs`, `dropdown.pegjs`, `idlist.pegjs`, `capa.pegjs`,
+`dnd.pegjs`, `clip.pegjs`.
+
+A `.textSelectionpeg` is prose with the answers in brackets:
+
+```
+Look at each scenario below and highlight the examples that show [reinforcement].
+1. [A child receives a sticker for completing homework on time].
+```
+
+**This matters more to the intake program than anything else in this section.**
+The question "how does a teacher write an item without writing XML" already has
+answers in this engine, and they were built for exactly the materials the intake
+program will be reading. An intake program that emits OLX when a `.textSelectionpeg`
+would do is producing something no teacher can edit afterwards.
+
+They are deliberately NOT mined as OLX — `olx_corpus.SEPARATE_SURFACES` names
+them — because attributing a grammar's constructs to its expansion would put
+shapes in the inventory that no block declares. They need their own pass, and
+that is now owed.
+
 ##### The intake program: an LLM reading materials onto ROLES, then components
 
 *Recorded on the user's architecture note.*
