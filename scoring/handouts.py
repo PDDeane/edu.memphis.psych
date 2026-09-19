@@ -615,6 +615,22 @@ def _gold_loader(fn, handout: int):
     return load
 
 
+# ---------------------------------------------------------------------------
+# STAGE 4. `HANDOUTS` holds FIVE different kinds of thing and only one of them is
+# course data. The blurb and the parsing flags now come from the course file; the
+# paths stay COMPUTED, because storing a resolved path bakes in one machine; the
+# markers are read from the course file's own copy rather than duplicated here;
+# `gold` and `rubric` are wiring, not data; and the participant lists wait for
+# C1b's gold file.
+# ---------------------------------------------------------------------------
+def _course_field(handout: int, name: str, default=None):
+    """One of this handout's authored fields, from the course file."""
+    import coursedata
+
+    return coursedata.declaration("HANDOUT_FIELDS").get(str(handout), {}).get(
+        name, default)
+
+
 HANDOUTS: dict[int, dict] = {
     1: {
         "rubric": rubric_h1,
@@ -896,6 +912,23 @@ HANDOUTS: dict[int, dict] = {
         "cited_participants": {},
     },
 }
+
+
+# The authored fields come from the course file, applied here rather than
+# written into the table above so the DIFF stays readable: the table keeps its
+# shape and each value's origin is stated in one place.
+#
+# `markers` NEEDED NO CHANGE, and the check that established it is worth keeping:
+# this table takes them from `segment`, which already reads them from the course
+# file, so the two were never separate copies -- they are the same object. A
+# "duplicate" that is a shared reference is not a duplicate, and rewriting it
+# would have added a second read path to replace a working one.
+for _h, _cfg in HANDOUTS.items():
+    for _field in ("blurb", "capture_tail", "exemplar_items", "repair_orphans",
+                   "join_aware"):
+        if _field in _cfg:
+            _cfg[_field] = _course_field(_h, _field, _cfg[_field])
+
 
 
 def config(handout: int) -> dict:

@@ -6892,6 +6892,32 @@
      "screen": "edu.memphis.psych/bmod_h3_improve"
     }
    ]
+  ],
+  "HANDOUT_FIELDS": [
+   [
+    "1",
+    {
+     "blurb": "Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.",
+     "capture_tail": false,
+     "exemplar_items": []
+    }
+   ],
+   [
+    "2",
+    {
+     "blurb": "Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.",
+     "capture_tail": true,
+     "repair_orphans": true
+    }
+   ],
+   [
+    "3",
+    {
+     "blurb": "Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.",
+     "capture_tail": true,
+     "join_aware": true
+    }
+   ]
   ]
  }
 }
