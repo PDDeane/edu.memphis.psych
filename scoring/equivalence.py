@@ -880,6 +880,8 @@ def enforcement_audit():
         findings.append(("-", "OLD ENVIRONMENT NAME RETURNED", bad))
     for bad in ENF.check_declaration_tables_are_verified():
         findings.append(("-", "DECLARATION TABLE VERIFIED BY NOTHING", bad))
+    for bad in ENF.check_migrated_tables_match_their_source():
+        findings.append(("-", "MIGRATED TABLE DOES NOT MATCH ITS SOURCE", bad))
     for bad in ENF.check_every_enforcement_check_is_registered():
         findings.append(("-", "ENFORCEMENT CHECK NOT REGISTERED", bad))
     for iid, h, mx, label in uncovered_cli_items():
