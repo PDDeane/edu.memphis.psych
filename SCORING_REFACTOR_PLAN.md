@@ -2292,6 +2292,64 @@ reminders-to-self as the answer key. This is the sharpest instance so far of
 §10.6.1's warning that the second-order decision is indeterminate: the syntax
 carries no signal, and only the surrounding document says which reading applies.
 
+##### 10.6.7 · WHAT `$COURSE_DATA` ACTUALLY IS — four stores in one root
+
+*Surveying the rest of `molly_data`. This bears directly on **H1c**, which puts
+gold under `$COURSE_DATA` and renames the variable: the name says "course data",
+and 97% of the directory by size is something else.*
+
+**1.6 GB, and gold is 11 MB of it.**
+
+| store | size | what it is |
+|---|---|---|
+| `out/` | **1.6 G** | the run artifact store: **553 run directories, 1,010 `*.runs.json`, 8,821 JSON**, spanning 2026-07-30 to 09-15, plus 156 `idmap_*.json` and 107 logs at its top level |
+| `migration_reference/` | 18 M | dry-run material preserved when the sandbox was deleted — an engine half that "existed nowhere else" |
+| `Handout Submissions…/` | 11 M | **the actual course data**: 60 submissions and 3 gold workbooks |
+| `pre_scrub_backup_…/` | 7.3 M | a pre-scrub source backup |
+| `retired_artifacts/` | 2.8 M | artifacts deliberately moved OUT of the scanned tree |
+| `migration_goldens/` | 2.1 M | golden outputs for the migration verifiers |
+
+**The consequence for H1c.** `$COURSE_DATA` for a NEW course means the 11 MB —
+submissions and gold. The other 1.59 GB is this project's measurement history and
+migration archaeology, which no second course would have or want. The rename is
+right, but the directory it renames is **not a course-data directory today**, and
+the plan should say which part a new course is expected to provide.
+
+##### The data root holds copies of the SOURCE — a third instance of one mistake
+
+`$MOLLY_DATA` carries **63 `.py` files and six `.olx`**. `migration_reference/`
+preserves a whole engine half plus three rubric `.olx`; `pre_scrub_backup_…/`
+holds three course `.olx` and a **partial, stale copy of `scoring/` — 20 files
+identical to the live tree and five differing**.
+
+Nothing reads them today: every walk into the data store is scoped to `out/` with
+an explicit `*.runs.json` or `*.json` pattern, and `DECLARED_ROOTS` does not name
+it. But this is the third appearance of one mistake — `.stage/content` counted as
+a second course, three parallel checkouts counted as three more — so it is now
+**prevented rather than diagnosed**: `olx_corpus.roots_inside_the_data_store()`
+refuses any declared corpus root inside `$COURSE_DATA`, and both corpus gates
+carry it. Verified firing: pointed at a parent of three roots, it returns three
+refusals.
+
+##### Two stores are properly governed, and say so
+
+`retired_artifacts/README.md` is a model of the thing: superseded sweep artifacts
+moved out of the scanned tree, **kept not deleted** because "a fault superseded by
+a later sweep stays true of what was recorded"; it records that live-ledger
+sources were checked for and three were left in place; and it states the reversal
+— *"Move a file back into out/ to put it under the audit again."*
+`migration_reference/README.md` likewise says why each part cannot live in the
+public repo.
+
+##### And two accumulations that nobody governs
+
+**Ten `corpus_refs.json` variants** (`.bak`, `.pre_merge`, `.pre_seamsplit`,
+`.pre_residue`, `.pre_union`, `.pre_unwrap`, `.pre_unanchored`, `.pre_worktree`,
+`.with_first`) and **156 `idmap_*.json`**. Both are inert — nothing selects among
+them, the canonical `corpus_refs.json` is named exactly and an idmap is passed
+explicitly by `--idmap` — so this is dead weight, not a hazard. Worth noting only
+because the difference between the governed stores above and these is a README.
+
 ##### The intake program: an LLM reading materials onto ROLES, then components
 
 *Recorded on the user's architecture note.*
