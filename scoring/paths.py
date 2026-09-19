@@ -29,8 +29,8 @@ Override any root with an env var; the defaults assume the usual checkout
 layout:
 
     LO_BLOCKS=~/code/update/lo-blocks
-    MOLLY_DATA=~/molly_data
-    MOLLY_OUT=$MOLLY_DATA/out
+    COURSE_DATA=~/molly_data
+    COURSE_OUT=$COURSE_DATA/out
 """
 from __future__ import annotations
 
@@ -48,8 +48,52 @@ OLX_DIR = REPO / "psychology"
 MATERIALS = SCORING / "materials"
 
 LO = Path(os.environ.get("LO_BLOCKS", Path.home() / "code/update/lo-blocks"))
-DATA = Path(os.environ.get("MOLLY_DATA", Path.home() / "molly_data"))
-OUT = Path(os.environ.get("MOLLY_OUT", DATA / "out"))
+
+
+# ---------------------------------------------------------------------------
+# STAGE 9. `MOLLY_*` -> `COURSE_*`. THE FALLBACK IS THE DELIVERABLE, not a
+# transition courtesy, because these variables live where a repo-wide rename
+# cannot reach: shells, runbooks, cron entries, and the command lines of
+# background jobs already running. Renaming every reference in this repository
+# changes not one of those.
+#
+# THE WARNING FIRES ONCE PER PROCESS, not per read. `paths.DATA` is read
+# constantly, and a per-read warning produces thousands of lines that get
+# filtered -- which is the same as no warning, arrived at more expensively.
+#
+# EXPIRY IS A CRITERION, NOT A DATE. "Honoured for a declared period" expires the
+# way §10.1.2's and D2d's sentences would have: not at all. The fallback goes when
+# the warning HAS NOT FIRED in normal use across a stated stretch of work --
+# evidence that nothing still sets the old name -- and not on a date that passes
+# unnoticed.
+# ---------------------------------------------------------------------------
+# The OLD names, which the sed pass must not rewrite -- this table is the only
+# place in the repo that still has to know them, because it is what honours them.
+_RENAMED = {"COURSE_DATA": "MOLLY_DATA",
+            "COURSE_OUT": "MOLLY_OUT",
+            "COURSE_MEDIA": "MOLLY_MEDIA"}
+_WARNED: set = set()
+
+
+def env_renamed(new: str, default=None):
+    """Read `new`, falling back to the old name once and saying so once."""
+    value = os.environ.get(new)
+    if value:
+        return value
+    old = _RENAMED[new]
+    value = os.environ.get(old)
+    if value:
+        if old not in _WARNED:
+            _WARNED.add(old)
+            print(f"paths: ${old} is set and ${new} is not. The old name is "
+                  f"honoured and will stop being honoured once nothing sets it. "
+                  f"Set ${new} instead.", file=sys.stderr)
+        return value
+    return default
+
+
+DATA = Path(env_renamed("COURSE_DATA", Path.home() / "molly_data"))
+OUT = Path(env_renamed("COURSE_OUT", DATA / "out"))
 
 # The content namespace. Was "psych" when this content lived inside lo-blocks;
 # the standalone repo declares "edu.memphis.psych" in psychology/manifest.yaml,
@@ -93,7 +137,7 @@ def require(path: Path, what: str, env: str) -> Path:
 # Scratch space for generated media. NOT a literal: `/tmp/claude-1000/...`
 # bakes in a numeric UID, so it is correct for one account on one machine and
 # silently wrong (or unwritable) for every other.
-MEDIA = Path(os.environ.get("MOLLY_MEDIA",
+MEDIA = Path(os.environ.get("COURSE_MEDIA",
                             Path(tempfile.gettempdir()) / f"molly_scoring_media_{os.getuid()}"))
 
 
@@ -114,7 +158,7 @@ def out_root() -> Path:
     directory that does not exist yields no files, the check finds nothing, and
     reporting nothing reads as reporting clean.
     """
-    return require(OUT, "Artifact directory", "MOLLY_OUT")
+    return require(OUT, "Artifact directory", "COURSE_OUT")
 
 
 def out_root_or_reason() -> tuple[Path | None, str]:
@@ -126,11 +170,11 @@ def out_root_or_reason() -> tuple[Path | None, str]:
     passing, and must never be rendered as one.
     """
     return (OUT, "") if OUT.exists() else (
-        None, f"Artifact directory not found: {OUT}. Set MOLLY_OUT to point at it.")
+        None, f"Artifact directory not found: {OUT}. Set COURSE_OUT to point at it.")
 
 
 def data_root() -> Path:
-    return require(DATA, "Student corpus", "MOLLY_DATA")
+    return require(DATA, "Student corpus", "COURSE_DATA")
 
 
 def lo_root() -> Path:

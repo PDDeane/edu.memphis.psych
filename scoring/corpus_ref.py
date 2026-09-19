@@ -12,7 +12,7 @@ names in their OOXML metadata, so a participant number is not de-identification,
 and a quoted sentence travels wherever the file travels.
 
 So: keep the citation, drop the payload. A reference names WHERE the text is,
-and the text stays in `$MOLLY_DATA`.
+and the text stays in `$COURSE_DATA`.
 
     [[corpus Q5/p4 first 0:74 sha=da91999372f1]]
 
