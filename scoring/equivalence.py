@@ -884,6 +884,8 @@ def enforcement_audit():
         findings.append(("-", "DECLARATION TABLE VERIFIED BY NOTHING", bad))
     for bad in ENF.check_migrated_tables_match_their_source():
         findings.append(("-", "MIGRATED TABLE DOES NOT MATCH ITS SOURCE", bad))
+    for bad in ENF.check_source_cache_matches_the_stdlib():
+        findings.append(("-", "ENFORCEMENT CHECK NOT REGISTERED", bad))
     for bad in ENF.check_every_enforcement_check_is_registered():
         findings.append(("-", "ENFORCEMENT CHECK NOT REGISTERED", bad))
     for iid, h, mx, label in uncovered_cli_items():
@@ -2343,6 +2345,7 @@ def enforcement_selftest():
         # keys on -- a gold set, our set, and the guard -- and REFUSE to run if
         # the mutation would be a no-op, which is the failure mode that hid here.
         import ast
+        import sourcecache
         import re as _re
         _G = _re.compile(r"gold_charged_slots|gold_charge_bounds|gold_charged_code")
         _O = _re.compile(r"_our_failing_slots|_charging_slots")
@@ -2351,7 +2354,7 @@ def enforcement_selftest():
         for n in ast.walk(tree):
             if not isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
-            body = ast.get_source_segment(_orig_src, n) or ""
+            body = sourcecache.segment(_orig_src, n) or ""
             if _G.search(body) and _O.search(body) and "_gold_nameable_slots" in body:
                 cands.append((len(body), n.name, body))
         if not cands:

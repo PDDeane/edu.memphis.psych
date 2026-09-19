@@ -44,6 +44,7 @@ import hashlib
 import functools
 import json
 import os
+import sourcecache
 import re
 import sys
 from pathlib import Path
@@ -6834,7 +6835,7 @@ def slot_block(source: str, what: str) -> str | None:
         for key, val in zip(node.keys, node.values):
             if (isinstance(key, ast.Constant) and key.value == "what"
                     and isinstance(val, ast.Constant) and val.value == what):
-                return ast.get_source_segment(source, node)
+                return sourcecache.segment(source, node)
     return None
 
 
@@ -6885,7 +6886,7 @@ def set_slot_field(path: str, item: str, what: str, field: str,
         break
     if target is None:
         raise KeyError(f"no slot {what!r} found in {path}")
-    old = ast.get_source_segment(src, target)
+    old = sourcecache.segment(src, target)
     if old is None:
         raise ValueError("could not locate the field's source segment")
     # THE NODE ALREADY HOLDS THE JOINED VALUE. Implicitly-concatenated literals
