@@ -14836,7 +14836,8 @@ def check_grader_input_pairings_are_declared() -> list[str]:
     # A DECLARED CORPUS THAT SHRANK IS A FINDING. Four course trees are declared;
     # if one is not checked out the evidence base quietly narrows and the table
     # passes against a smaller world than it claims to describe.
-    return gone + GI.verify(inv, GI.mine(roots, inv))
+    return (gone + olx_corpus.roots_inside_the_data_store()
+            + GI.verify(inv, GI.mine(roots, inv)))
 
 
 def check_container_contents_are_declared() -> list[str]:
@@ -14870,7 +14871,8 @@ def check_container_contents_are_declared() -> list[str]:
     roots = olx_corpus.default_roots()
     if not roots:
         return ["no corpus to mine, so the containment table is unverifiable here"]
-    return olx_corpus.missing_roots() + SK.verify(inv, SK.mine(roots, inv))
+    return (olx_corpus.missing_roots() + olx_corpus.roots_inside_the_data_store()
+            + SK.verify(inv, SK.mine(roots, inv)))
 
 
 def check_peg_authoring_formats_are_declared() -> list[str]:
