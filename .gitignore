@@ -32,3 +32,8 @@ venv/
 # Frozen prompt oracles embed the responses they scored (433 student spans).
 # They live under $MOLLY_DATA; see migration/migration_paths.py GOLDENS.
 migration/goldens/
+
+# The gold file C1b defines lives under $COURSE_DATA, never here: it is keyed
+# by participant, and this repository is public. `gold_export.py` refuses a
+# destination inside the repo, and this refuses one that arrives another way.
+courses/*/gold.json
