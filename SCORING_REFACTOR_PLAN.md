@@ -3347,6 +3347,52 @@ inside an allowed tree.
 **This unblocks the rest of Stage 4.** Every remaining table is gold- or
 participant-keyed and had nowhere to go; the file they move to now exists.
 
+#### RETIRED: `table_sensitivity.py`. The established probe already did this, better.
+
+**`enforcement.probe_declaration_tables` existed the whole time**, reachable as
+`python3 enforcement.py --probe-declarations`, and it solves three defects the
+newer tool had — each named in its own comments, which is to say each had already
+been paid for once:
+
+| | the newer tool | `probe_declaration_tables` |
+|---|---|---|
+| verifiers taking arguments | excluded as "uncallable" | fills them from `all_items()` — *"a raising verifier looks exactly like an unread table"* |
+| comparison | **by count** | **by content** — *"emptying a table produces findings of its own … a count comparison would read those as evidence the table is read, which is the opposite of the truth"* |
+| emptying | **`setattr`** | **in place** — *"a verifier may hold its own reference; setattr alone would leave that reference pointing at the original and the probe would report a false INERT"* |
+| coverage | `enforcement` only | registry-driven: **61 tables across four modules** |
+| re-entrancy | none | guarded; two of the tables it probes are its own |
+
+**The measured difference is the point.** The newer tool reported four or five
+tables "verified by nothing". The probe reports **one** — `enforcement.DATA_MODULES`,
+added the same night the newer tool was. Every earlier figure from it
+(`8 of 13 sensitive`, `11 of 13 contents unchecked`) is withdrawn.
+
+It also already made the same cost decision, for the same reason: deliberately
+outside the default audit, because *"three passes of every verifier over every
+table is minutes, and the pre-commit path has to stay usable."*
+
+##### The one real finding, and the fix
+
+`DATA_MODULES` was INERT: emptying it changed nothing, because the budget records
+the data modules' counts anyway, so removing the exemption found no growth to
+complain about. **An exemption nothing verifies is an exemption anyone can
+widen.**
+
+Its ENTRIES are now checked — a declared data module must exist and must actually
+carry course data — and a provocation is declared so the probe can prove it.
+`0 of 61 registered declaration tables enforce nothing.`
+
+The provocation's shape is per-table-type: a `(key, value)` tuple for a dict
+table, where a bare dict raised `not enough values to unpack` inside the probe.
+Not guessable from the neighbouring list-valued entries; read `GOLD_CEILINGS`.
+
+##### What this cost, and the rule it re-teaches
+
+`check_declaration_tables_are_verified` reads `DECLARATION_TABLES` — **the
+registry was in my hands and I did not look at what else consumed it.** This
+project's own note says *read the record first*; the probe's docstring carried
+three lessons that were then rediscovered by hitting them.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
