@@ -1620,44 +1620,72 @@ one that carries the generality:
 *Added 2026-09-18 on the user's second correction, with the counts taken from the
 tree rather than estimated.*
 
-lo-blocks ships **ten grader components** —
-`CorrectGrader`, `CustomGrader`, `DefaultGrader`, `FormulaGrader`, `LLMGrader`,
-`NumericalGrader`, `RatioGrader`, `RulesGrader`, `SlotSheetGrader`,
-`StringGrader` (plus `Correctness`, `DerivedChecks`, `ScoreTable`, `SheetValue`
-and `Rule`/`stringMatch` as supporting machinery) — and **ten input components**:
-`ChoiceInput`, `ComplexInput`, `DropdownInput`, `FormulaInput`, `LineInput`,
-`Matching`, `NumberInput`, `Sortable`, `TabularMCQ`, `TextArea`.
+lo-blocks ships **sixteen grader components**, counted by registered name —
+eight built through `createGrader` (`CorrectGrader`, `CustomGrader`,
+`DefaultGrader`, `FormulaGrader`, `NumericalGrader`, `RatioGrader`,
+**`SlotSheetGrader`**, `StringGrader`) and eight declared directly
+(`CheckboxGrader`, `KeyGrader`, `LLMGrader`, `MatchingGrader`, `RulesGrader`,
+`SortableGrader`, `TabularMCQGrader`, `TextSelectionGrader`) — plus a generated
+`*Match` rule-variant per grader for use inside `RulesGrader`.
 
-**Only a few of those score CONSTRUCTED response, most notably `SlotSheetGrader`,
-which is fed by `LLMAction`. That one path is what this entire project has been
-about.** Everything built here — the rubric modules, `olx_prompts.py`'s generated
-prompts, the agreement sweeps, the gold comparison, all 152 enforcement checks —
-addresses items of that one shape.
+It ships **fourteen gradable inputs**: `CheckboxInput`, `ChoiceInput`,
+`CodeInput`, `ComplexInput`, `DropdownInput`, `FormulaInput`, `Freewrite`,
+`LineInput`, `MatchingInput`, `NumberInput`, `SortableInput`, `TabularMCQ`,
+`TextArea`, `TextSelectionInput` — and **`CapaProblem` and `MarkupProblem`**,
+two self-contained gradable problem families carrying their own grading.
 
-The measurement, taken against this repository:
+**A first count of this missed most of it**, and the way it missed is worth
+keeping: it read the `grading/` directory and the `input/` directory as though
+they were the population. `SortableGrader`, `MatchingGrader`, `TabularMCQGrader`
+and `CheckboxGrader` live beside their inputs, not in `grading/`;
+`TextSelectionInput` and `Freewrite` live under `language-arts/`; `CodeInput`
+lives under `authoring/`; and the eight `createGrader` graders register under a
+`base:` name that the grep for `name: '...Grader'` never sees. Directory
+structure is not a census.
+
+##### Only ONE of the sixteen is what this project has been about
+
+`SlotSheetGrader`, fed by `LLMAction`, scores constructed response. Everything
+built here — the rubric modules, `olx_prompts.py`'s generated prompts, the
+agreement sweeps, the gold comparison, all 152 enforcement checks — addresses
+items of that one shape. Measured against this repository:
 
 | | |
 |---|---|
-| grader components in lo-blocks | 10 |
-| graders the psych course uses | 2 — `SlotSheetGrader` (3 files), `CorrectGrader` (4) |
-| input components in lo-blocks | 10 |
+| grader components in lo-blocks | **16** |
+| graders the psych course uses | 2 — `SlotSheetGrader`, `CorrectGrader` |
+| gradable inputs in lo-blocks | **14** (+ CapaProblem, MarkupProblem) |
 | inputs the psych course uses | 6 — TextArea 11, ChoiceInput 11, LineInput 2, Sortable 2, Matching 1, TabularMCQ 1 |
 | **scored items, all handouts** | **26** |
 | **of those, slot-sheet shaped** | **26 — every one** |
 
-So the course itself already contains selected-response inputs in quantity —
-eleven files carry a `ChoiceInput` — and **not one of them is scored by this
-engine**. Our coverage of the grader space is one component of ten, and of the
-selected-response scoring paths it is zero.
+Eleven files in the course carry a `ChoiceInput` and **not one of those items is
+scored by this engine**.
 
-**What that does to "sized by shape coverage".** I1a's sizing rule was written as
-though the denominator were known. It is now known, and the engine has been
-exercised against a single cell of it. A fixture built only from what we have
-seen would reproduce that single cell and report full coverage — which is the
-I1a weakness already recorded, arriving through the shape inventory rather than
-through the invented content. **The general program must handle selected-response
-items too**, and until it does, "the engine is course-independent" is a claim
-about constructed response scored by one grader.
+##### SCORING WITHOUT THIS ENGINE IS FINE — the intake program is what must be general
+
+*Recorded on the user's correction, and it decides the scope of everything above.*
+
+The python scorer handling only `SlotSheetGrader` is **not a gap to close**. An
+item graded natively by `CheckboxGrader`, `MatchingGrader`, `NumericalGrader` or
+a `RulesGrader` rule is scored by lo-blocks itself and never needs this engine at
+all. The engine's narrow scope is a legitimate, permanent boundary, not a
+shortfall — and widening it is NOT implied by any of the above.
+
+What must be general is the **intake program** (item 2). Its output space is the
+whole of the sixteen graders, the fourteen inputs and the two problem families:
+reading teacher-editable documents and spreadsheets, it has to decide which
+scoring mechanism each item becomes — a `CheckboxGrader` here, a `MatchingGrader`
+there, a `SlotSheetGrader` with an `LLMAction` only where the response is
+genuinely constructed — and emit it. **Most of what it emits will never touch the
+python scorer.**
+
+So the shape inventory (item 1) is **a specification of the intake program's
+target space, not a to-do list for the scoring engine**. That is the sense in
+which "sized by shape coverage" has to be read, and it is why the inventory is
+worth taking early: it bounds a program that has not been written, rather than
+auditing one that has.
+
 
 **Why this belongs to the refactor and not beside it.** I1a's recorded weakness is
 that the fixture is "written by the same hand that abstracts the engine, at the
