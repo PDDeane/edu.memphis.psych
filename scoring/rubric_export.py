@@ -240,6 +240,13 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
     # The per-handout segmentation locators, ORDERED. Course-level because the
     # order is load-bearing and the lists carry non-item keys, so no item entry
     # can hold them.
+    # Per-handout reference maps: component id -> context handed to the grader.
+    # Course-level because they are keyed by COMPONENT, not by item.
+    doc["generator"]["CONTEXT_REFS"] = {
+        str(h): _jsonable(getattr(generator_source, f"_H{h}_CTX", None),
+                          f"generator._H{h}_CTX")
+        for h in HANDOUTS
+        if getattr(generator_source, f"_H{h}_CTX", None) is not None}
     doc["generator"]["SEGMENT_MARKERS"] = {
         str(h): _jsonable(getattr(generator_source, f"H{h}_MARKERS", None),
                           f"generator.H{h}_MARKERS")

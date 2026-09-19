@@ -2666,6 +2666,42 @@ The writer had to learn the same rule: `--tighten` kept refusing after the gate
 stopped complaining, because its own growth check still counted data modules. **A
 gate and its writer that disagree make a budget that can never be written again.**
 
+#### `agreement.py`: 6 tables → 3, and the rest of Stage 4 is BLOCKED ON GOLD
+
+The three per-handout reference maps moved — `_H1_CTX`, `_H2_CTX`, `_H3_CTX`,
+component id → the context handed to the grader. Carried course-level, **keyed by
+component and not by item**: one component is context for several items and one
+item draws on several components, so there is no item entry for such a map to
+live on. `BLOCKS` reassembles identically from the course file.
+
+##### What remains in Stage 4 is almost entirely GOLD, and gold cannot move tonight
+
+Ranked by what each module still carries, the remainder is dominated by gold
+declarations: `CORRECTED_GOLD`, `GOLD_DIVERGENCES`, `GOLD_CEILINGS`,
+`PER_ITEM_EXCLUDE` (handouts.py); `GOLD_SLOT_CHARGES`, `GOLD_CODE_KNOWN`,
+`GOLD_SLOT_BOUNDS_KNOWN`, `GOLD_SLOT_UNMAPPABLE`,
+`GOLD_SLOT_DISAGREEMENTS_KNOWN`, `SILENT_GOLD_DIVERGENCES`,
+`DECLARED_CEILING_CELLS` (measured.py); `GRAPH_UNREACHABLE_1C`,
+`UNSCORED_GOLD_CRITERIA` (agreement.py).
+
+**C1b puts gold in a SECOND file under `$COURSE_DATA`, outside this repository**,
+and that is exactly right for these: several are keyed by PARTICIPANT —
+`CORRECTED_GOLD[("NR", 4)]`, `GRAPH_UNREACHABLE_1C = (4, 19, 20)` — which is the
+kind of key the repository's own rule says makes a participant id meaningful.
+They should not move into `course.json`; they belong in the gold file.
+
+So this work is **put to one side, for a stated reason**: writing that file means
+writing under `$COURSE_DATA`, and the 2026-09-18 write-scope restriction makes
+everything outside the dry run read-only. The migration is designed and the
+destination is decided; only the write is deferred.
+
+**Two consequences worth holding on to.** First, C1b's second file is not a
+convenience — it is the only correct home for a table keyed by participant, and
+these tables currently sit in a PUBLIC repository. Second, Stage 4 cannot reach
+"all four counts zero" for `handouts.py`, `measured.py` or `agreement.py` until
+the gold file exists, so **Stage 5's deletion of the rubric modules is gated on
+C1b**, which the sequence in §11 does not currently say.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that

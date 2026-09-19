@@ -16,13 +16,13 @@
   "simulate_h3.py"
  ],
  "data_modules": {
-  "generator_source.py": 14,
+  "generator_source.py": 17,
   "rubric_h1.py": 4,
   "rubric_h2.py": 21,
   "rubric_h3.py": 3
  },
  "modules": {
-  "agreement.py": 12,
+  "agreement.py": 9,
   "agreement_app.py": 7,
   "backends.py": 0,
   "baseline.py": 0,
@@ -44,7 +44,7 @@
   "equivalence.py": 0,
   "faithful_probe.py": 0,
   "fixture_edits.py": 0,
-  "generator_source.py": 14,
+  "generator_source.py": 17,
   "goals.py": 1,
   "gold.py": 3,
   "gold_slots_q6.py": 3,

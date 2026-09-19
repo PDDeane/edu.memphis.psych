@@ -105,50 +105,32 @@ CONTINUED = "(continued above — this corpus stores the whole answer as one blo
 # from there). `refs` maps a lo-blocks field id, as it appears in a <Ref
 # target=...>, onto the segmented section that supplies its text.
 
-_H1_CTX = {
-    "bmod_h1_utb": "Q1",
-    "bmod_h1_q1_response": "Q1",
-    "bmod_h1_q2_response": "Q2",
-    # The five SMART boxes are one blob on paper; the first ref takes it and the
-    # rest say so (see CONTINUED).
-    "bmod_h1_q3_specific": "Q3", "bmod_h1_q3_measurable": "Q3",
-    "bmod_h1_q3_action": "Q3", "bmod_h1_q3_realistic": "Q3",
-    "bmod_h1_q3_timebound": "Q3",
-    "bmod_h1_q4a_first": "Q4a", "bmod_h1_q4a_second": "Q4a",
-    "bmod_h1_q4b_first": "Q4b", "bmod_h1_q4b_second": "Q4b",
-    "bmod_h1_q4b_modify": "Q4b",
-    "bmod_h1_q4c_first": "Q4c", "bmod_h1_q4c_second": "Q4c",
-    "bmod_h1_q5_first": "Q5", "bmod_h1_q5_second": "Q5",
-    "bmod_h1_q6_first": "Q6", "bmod_h1_q6_second": "Q6",
-}
+# ---------------------------------------------------------------------------
+# STAGE 4 (A1c). The per-handout reference maps were module-level DATA here --
+# component id -> the context handed to the grader for an item. They now live in
+# the course file, keyed by handout, and are READ.
+#
+# Course-level and not folded onto items: the maps are keyed by COMPONENT id, and
+# one component is context for several items while one item draws on several
+# components. A map keyed by something other than an item has no item entry to
+# live on.
+# ---------------------------------------------------------------------------
+def _context_refs(handout: int) -> dict:
+    """The handout's component-id -> context map, from the course file."""
+    import coursedata
 
-_H2_CTX = {
-    "bmod_h1_utb": "_utb",
-    "bmod_h1_q2_response": "_wgb",
-    "bmod_h2_t1": "T1", "bmod_h2_d1": "D1",
-    "bmod_h2_t2": "T2", "bmod_h2_d2": "D2",
-    "bmod_h2_pr": "PR", "bmod_h2_nr": "NR",
-    "bmod_h2_pp": "PP", "bmod_h2_np": "NP",
-    "bmod_h2_day1": "DAY1", "bmod_h2_wk1": "WK1",
-    "bmod_h2_day2": "DAY2", "bmod_h2_wk2": "WK2",
-}
+    return (coursedata.generator_value("CONTEXT_REFS") or {}).get(str(handout), {})
+
+
+_H1_CTX = _context_refs(1)
+
+_H2_CTX = _context_refs(2)
 
 # A value of the form "hN:ITEM" comes from a DIFFERENT handout's submission by
 # the same participant. Handout 3's assessment item asks the student to reflect
 # on the operant-conditioning types they chose back in handout 2, and on paper
 # those live in a different file.
-_H3_CTX = {
-    "bmod_h3_baseline": "1b", "bmod_h3_wk1": "1b",
-    "bmod_h3_wk2": "1b", "bmod_h3_wk3": "1b",
-    "bmod_h3_overview_response": "1a",
-    "bmod_h3_success_verdict": "2a", "bmod_h3_success_how1": "2a",
-    "bmod_h3_success_how2": "2a",
-    "bmod_h3_assessment_response": "2b",
-    "bmod_h3_improve_first": "3", "bmod_h3_improve_second": "3",
-    "bmod_h3_graph_title": "1c", "bmod_h3_graph_x": "1c", "bmod_h3_graph_y": "1c",
-    "bmod_h2_t1": "h2:T1", "bmod_h2_t2": "h2:T2",
-    "bmod_h1_q2_response": "h1:Q2",
-}
+_H3_CTX = _context_refs(3)
 
 
 def _h1(item, action):

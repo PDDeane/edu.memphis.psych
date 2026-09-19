@@ -5038,6 +5038,64 @@
     "why": "`requires` ties how_2 to `mechanism_named`, which carries no points of its own and costs something only by denying how_2. So the two share one 2-point charge: failing either costs 2 and failing both still costs 2, which is what makes the pair sublinear. The web reader takes that straight from the declared `requires` rule. The CLI probe cannot: `mechanism_named` is computed by `forbid` from three answered grounds, so it is not an answered field and no flip can set it, and the state that would reveal the pair is never constructed. Same shape as the NR entry above and the mirror of its cause -- there a conjunction was too wide for a pairwise probe, here an operand is not probeable at all. Teaching the probe to synthesise computed-operand states would mean a second implementation of `forbid` living inside the instrument, which is how an instrument starts disagreeing with the thing it measures."
    }
   ],
+  "CONTEXT_REFS": {
+   "1": {
+    "bmod_h1_q1_response": "Q1",
+    "bmod_h1_q2_response": "Q2",
+    "bmod_h1_q3_action": "Q3",
+    "bmod_h1_q3_measurable": "Q3",
+    "bmod_h1_q3_realistic": "Q3",
+    "bmod_h1_q3_specific": "Q3",
+    "bmod_h1_q3_timebound": "Q3",
+    "bmod_h1_q4a_first": "Q4a",
+    "bmod_h1_q4a_second": "Q4a",
+    "bmod_h1_q4b_first": "Q4b",
+    "bmod_h1_q4b_modify": "Q4b",
+    "bmod_h1_q4b_second": "Q4b",
+    "bmod_h1_q4c_first": "Q4c",
+    "bmod_h1_q4c_second": "Q4c",
+    "bmod_h1_q5_first": "Q5",
+    "bmod_h1_q5_second": "Q5",
+    "bmod_h1_q6_first": "Q6",
+    "bmod_h1_q6_second": "Q6",
+    "bmod_h1_utb": "Q1"
+   },
+   "2": {
+    "bmod_h1_q2_response": "_wgb",
+    "bmod_h1_utb": "_utb",
+    "bmod_h2_d1": "D1",
+    "bmod_h2_d2": "D2",
+    "bmod_h2_day1": "DAY1",
+    "bmod_h2_day2": "DAY2",
+    "bmod_h2_np": "NP",
+    "bmod_h2_nr": "NR",
+    "bmod_h2_pp": "PP",
+    "bmod_h2_pr": "PR",
+    "bmod_h2_t1": "T1",
+    "bmod_h2_t2": "T2",
+    "bmod_h2_wk1": "WK1",
+    "bmod_h2_wk2": "WK2"
+   },
+   "3": {
+    "bmod_h1_q2_response": "h1:Q2",
+    "bmod_h2_t1": "h2:T1",
+    "bmod_h2_t2": "h2:T2",
+    "bmod_h3_assessment_response": "2b",
+    "bmod_h3_baseline": "1b",
+    "bmod_h3_graph_title": "1c",
+    "bmod_h3_graph_x": "1c",
+    "bmod_h3_graph_y": "1c",
+    "bmod_h3_improve_first": "3",
+    "bmod_h3_improve_second": "3",
+    "bmod_h3_overview_response": "1a",
+    "bmod_h3_success_how1": "2a",
+    "bmod_h3_success_how2": "2a",
+    "bmod_h3_success_verdict": "2a",
+    "bmod_h3_wk1": "1b",
+    "bmod_h3_wk2": "1b",
+    "bmod_h3_wk3": "1b"
+   }
+  },
   "SEGMENT_MARKERS": {
    "1": [
     [
