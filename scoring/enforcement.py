@@ -37,6 +37,27 @@ sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from handouts import config
 from score import _computed_keys, build_schema, derive_ledger, derive_oc_ledger
 
+
+def _gold_declaration(name: str):
+    """One gold declaration, read from the gold file.
+
+    The gold twin of the `_declaration` helper, and separate from it because the
+    two files differ in AVAILABILITY: the course file ships inside this public
+    repository and is always present, gold does not (C1b). So this module now
+    fails to import when the gold file is UNREACHABLE, where before the data was
+    inline and it did not. See `coursedata.gold_declaration` for what that does
+    and does not mean.
+
+    The reasoning that used to sit INSIDE these tables as comments went with
+    them -- `coursedata.gold_notes(table, key)` returns it, per entry, verbatim.
+    It is course-specific gold reasoning and a public repository was the wrong
+    home for it; it is not gone, and it is not optional reading.
+    """
+    import coursedata
+
+    return coursedata.gold_declaration(name)
+
+
 # ---------------------------------------------------------------------------
 # The criteria sheet's inputs, and what makes each one fail.
 #
@@ -11908,9 +11929,20 @@ def check_gold_tables_have_no_duplicate_keys(src: str | None = None) -> list[str
 
     Same failure as `check_consensus_fixes_have_no_duplicate_cells`, on the
     tables that decide what a cell is measured against: GOLD_CEILINGS,
-    CORRECTED_GOLD and PER_ITEM_EXCLUDE. They are dict LITERALS, so Python
-    resolves a repeated key before any check runs — the later entry wins and the
-    earlier one vanishes. The loaded dict can never show it; only the source can.
+    CORRECTED_GOLD and PER_ITEM_EXCLUDE.
+
+    THE HAZARD MOVED WITH THE TABLES AND DID NOT GO AWAY. They were dict
+    LITERALS in handouts.py, so Python resolved a repeated key before any check
+    ran — the later entry won and the earlier vanished, invisible in the loaded
+    dict and findable only in the source. Since C1b they live in the gold file
+    as `{"__dict__": [[key, value], ...]}` pair-lists, and a pair-list carries
+    the same key twice just as easily; `json.load` collapses it the same way,
+    for the same reason.
+
+    So this reads the FILE, and reads the RAW PAIRS rather than the decoded
+    dict, because the decoded dict is the thing that has already lost the
+    evidence. When the tables migrated this check reported itself stale rather
+    than passing clean, which is the only reason the gap was visible.
 
     Not hypothetical, and the way it happened is the reason to check it. Q3
     already had a GOLD_CEILINGS entry for `action_oriented`, written from five
@@ -11920,44 +11952,75 @@ def check_gold_tables_have_no_duplicate_keys(src: str | None = None) -> list[str
     real ceiling, so nothing looked wrong: the file simply carried two accounts
     of one phenomenon and served whichever came last.
     """
-    import ast
+    import json
     import os
 
     # `src` is overridable for the same reason `_CONSENSUS_SOURCE` is: a check
     # that cannot be pointed at a deliberately broken copy has never been shown
     # to detect anything.
-    src = src or os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                              "handouts.py")
+    import coursedata
+
+    src = src or coursedata.gold_path()
+
+    # CAUGHT DURING THE PARSE, because afterwards there is nothing to catch.
+    # Two of these three are tuple-keyed and reach the file as `__dict__`
+    # pair-lists, where a repeat is still visible in the list. The third,
+    # PER_ITEM_EXCLUDE, has plain string keys and is written as a JSON OBJECT --
+    # and `json.load` resolves a repeated key exactly as a dict literal does,
+    # last-one-wins, before any check can look. An `object_pairs_hook` is the
+    # only place the duplicate still exists, so the detection has to happen
+    # there. This is the same defect the check was written for, one encoding
+    # further down; moving the tables to JSON did not fix it, it hid it.
+    dupes = []
+
+    def _hook(pairs):
+        seen = set()
+        for k, _v in pairs:
+            if k in seen:
+                dupes.append(k)
+            seen.add(k)
+        return dict(pairs)
+
     try:
-        tree = ast.parse(open(src).read())
+        doc = json.load(open(src), object_pairs_hook=_hook)
     except Exception as exc:                    # pragma: no cover
-        return [f"cannot parse handouts.py: {exc}"]
+        return [f"cannot read the gold file at {src}: {exc}"]
 
     WANT = ("GOLD_CEILINGS", "CORRECTED_GOLD", "PER_ITEM_EXCLUDE")
     problems = []
-    for stmt in ast.walk(tree):
-        targets = (getattr(stmt, "targets", []) or
-                   ([stmt.target] if hasattr(stmt, "target") else []))
-        for t in targets:
-            if not (isinstance(t, ast.Name) and t.id in WANT):
-                continue
-            node = stmt.value
-            if not isinstance(node, ast.Dict):
-                problems.append(f"{t.id} is not a dict literal — this check is stale")
-                continue
-            seen = set()
-            for k in node.keys:
-                try:
-                    key = ast.literal_eval(k)
-                except Exception:
-                    continue
-                if key in seen:
-                    problems.append(
-                        f"{t.id} has TWO entries for {key}. A dict literal keeps "
-                        f"only the last, so the other is silently doing nothing "
-                        f"— merge them, because two accounts of one ceiling read "
-                        f"as two ceilings")
-                seen.add(key)
+    for key in sorted(set(dupes)):
+        problems.append(
+            f"the gold file has TWO entries keyed {key!r} in one object. "
+            f"`json.load` keeps only the last, so the other is silently doing "
+            f"nothing — merge them, because two accounts of one ceiling read as "
+            f"two ceilings")
+    for name in WANT:
+        raw = doc.get("declarations", {}).get(name)
+        if raw is None:
+            problems.append(f"{name} is not in the gold file at all")
+            continue
+        pairs = (raw["__dict__"] if isinstance(raw, dict) and set(raw) == {"__dict__"}
+                 else raw if isinstance(raw, list)
+                 and all(isinstance(p, list) and len(p) == 2 for p in raw)
+                 else None)
+        if pairs is None:
+            continue                # a plain object; the parse hook covered it
+        seen = set()
+        for k, _v in pairs:
+            # THE KEY IS TAGGED TOO. Inside a `__dict__` pair-list a tuple key is
+            # `{"__tuple__": [...]}`, not a bare list, so eyeballing it gives an
+            # unhashable dict. `_detag` is the one decoder.
+            kk = coursedata._detag(k)
+            if isinstance(kk, list):
+                kk = tuple(kk)
+            if kk in seen:
+                problems.append(
+                    f"{name} has TWO entries for {kk}. Only the last survives "
+                    f"decoding, so the other is silently doing nothing — merge "
+                    f"them, because two accounts of one ceiling read as two "
+                    f"ceilings")
+            seen.add(kk)
+
     return problems
 
 
@@ -12588,44 +12651,8 @@ def _longest_unassigned(raw: str, boxes, n: int = 5) -> tuple[int, str]:
 # Cross-element containments in the Q6 consensus table that are FAITHFUL: the
 # student really did write the same words twice, so two boxes holding them is a
 # true transcription and the grader's own machinery handles it.
-CONSENSUS_OVERLAP_BACKLOG: dict[tuple, str] = {
-    # 2a/p20. One sentence, [[corpus 2a/p20 how1 0:137 sha=797bcfeaa08e]], states the outcome AND supplies the evidence for it. The
-    # `verdict` box holds its main clause; `how1` holds the whole sentence, so
-    # the containment is total. It is faithful for the reason the item's own
-    # rubric gives — "one compound sentence that states the outcome and explains
-    # it can carry two" — and the alternative was measured elsewhere and lost:
-    # `how1` used to hold ", {{corpus:2a/p20:how1:39:77:sha=781132f0280c}} ...", a
-    # comma-initial adjunct sliced out of the verdict's sentence, which is not a
-    # clause and cannot be judged as an explanation on its own. That is the
-    # fragment shape "Q6's overlapping fixture boxes are FAITHFUL" in
-    # EQUIVALENCE.md records as taking Q6 from 11/17 to 3/17.
-    # 2a/p18. Two sentences, and the first does verdict duty and how duty at
-    # once — "[[corpus 2a/p18 how1 0:65 sha=bc45c9fc7f7b]]
-    # by the data" — so `verdict` and `how1` hold it together. Same shape as p20
-    # below and licensed by the same guidance bullet, and gold's 6.0 credits
-    # both the verdict and two hows on those two sentences.
-    #
-    # It was exempt until now by SIDE EFFECT rather than by declaration: the
-    # cell was `unscoreable`, and this check skips those. Removing that
-    # exclusion (see handouts.PER_ITEM_EXCLUDE) is what surfaced the overlap,
-    # which is the argument for declaring rather than excluding — an exclusion
-    # silences whatever else happens to be wrong with the cell.
-    ("2a", 18, "how1", "verdict"): (
-        "one sentence doing verdict duty and how duty at once, in a two-sentence "
-        "response gold gives 6.0; the copied template verdict that join_aware "
-        "strips was never what carried the credit"),
-    ("2a", 20, "how1", "verdict"): (
-        "one sentence doing verdict duty and how duty at once; the verdict box "
-        "holds its main clause and how1 the whole sentence, so each can be "
-        "judged. Splitting it left how1 a comma-initial adjunct"),
-    # Otherwise empty. Its last entry recorded that Q6/p6's two `state_a`
-    # boxes hold the
-    # same conjoined phrase on purpose — which the SLOT SHEET already declares,
-    # in cover="state_a1,state_a2:first,second|...". Two boxes sharing a cover
-    # group are meant to be resolved by the grader naming which listed item each
-    # refers to; the check reads that declaration now rather than being told
-    # cell by cell.
-}
+# Entries and their reasoning: `coursedata.gold_notes("CONSENSUS_OVERLAP_BACKLOG", key)` (28 lines).
+CONSENSUS_OVERLAP_BACKLOG = _gold_declaration("CONSENSUS_OVERLAP_BACKLOG")
 
 
 def _cover_groups(item_id: str) -> list[set[str]]:
@@ -13039,14 +13066,8 @@ def check_fixture_follows_response_structure() -> list[str]:
 
 
 # Cells where gold's wording and the fixture legitimately disagree, with why.
-FIXTURE_GOLD_OVERRIDES: dict[tuple[str, int, str], str] = {
-    # Empty. The one entry that lived here — ("1c", 11, "baseline") — covered a
-    # box that holds a PARSED VALUE, and `_span_boxes` now keeps value boxes out
-    # of the locator-based checks entirely, so nothing is left to suppress. The
-    # substance of that note was never about the fixture: it asked whether p11
-    # belongs with 1c's unscoreable cells, and it now sits beside them as a
-    # documented open question in handouts.py's `unscoreable` block.
-}
+# Entries and their reasoning: `coursedata.gold_notes("FIXTURE_GOLD_OVERRIDES", key)` (6 lines).
+FIXTURE_GOLD_OVERRIDES = _gold_declaration("FIXTURE_GOLD_OVERRIDES")
 
 
 def check_consensus_fixes_are_unique() -> list[str]:
@@ -14325,6 +14346,48 @@ def check_no_module_is_named_for_a_course_artifact() -> list[str]:
     return fresh + [f"{m} is in the course-named-module budget but no longer "
                     f"matches -- re-tighten so the reduction cannot be undone"
                     for m in stale]
+
+
+def check_gold_shared_prose_has_not_drifted() -> list[str]:
+    """A gold note that was ONE string in python, and is now several in JSON.
+
+    `DECLARED_CEILING_CELLS` named `_1C_GATE_CEILING` in four of its five
+    entries, so python guaranteed by construction that the four said the same
+    thing. JSON has no names: the export writes the 492 characters out five
+    times over, and an edit to one copy leaves the others quietly stale. That is
+    a real loss of an invariant the migration could not carry, so it is checked
+    instead of assumed.
+
+    THE TEST IS NEAR-MISS, NOT EQUALITY. Requiring every entry to equal the
+    canonical text would be wrong -- the fifth entry is a different declaration
+    and always was. What cannot be legitimate is a value that is ALMOST the
+    canonical text: nobody writes 95% of a 492-character paragraph by accident,
+    so a close-but-unequal copy is a drifted one. An entry that shares nothing
+    with it is simply a different note and is not this check's business.
+    """
+    import difflib
+
+    try:
+        canonical = _gold_declaration("_1C_GATE_CEILING")
+        cells = _gold_declaration("DECLARED_CEILING_CELLS")
+    except Exception as exc:                        # pragma: no cover
+        return [f"cannot read the gold file to check shared prose: {exc}"]
+    if not isinstance(canonical, str):
+        return [f"_1C_GATE_CEILING is {type(canonical).__name__}, expected the "
+                f"shared prose string"]
+    out = []
+    for key, value in (cells or {}).items():
+        if not isinstance(value, str) or value == canonical:
+            continue
+        ratio = difflib.SequenceMatcher(None, canonical, value).ratio()
+        if ratio >= 0.90:
+            out.append(
+                f"DECLARED_CEILING_CELLS[{key!r}] is {ratio:.0%} identical to "
+                f"_1C_GATE_CEILING but not equal to it -- these were one named "
+                f"string before the gold migration, so this is a copy that has "
+                f"drifted, not a separate declaration. Edit them together or "
+                f"make the difference deliberate and large.")
+    return out
 
 
 def check_every_enforcement_check_is_registered() -> list[str]:

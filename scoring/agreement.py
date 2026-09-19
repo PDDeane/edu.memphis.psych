@@ -73,6 +73,27 @@ from handouts import (config, exemplar_drops, find_submissions, gold_ceiling,
 from segment import repair_orphans, segment
 import paths
 
+
+def _gold_declaration(name: str):
+    """One gold declaration, read from the gold file.
+
+    The gold twin of the `_declaration` helper, and separate from it because the
+    two files differ in AVAILABILITY: the course file ships inside this public
+    repository and is always present, gold does not (C1b). So this module now
+    fails to import when the gold file is UNREACHABLE, where before the data was
+    inline and it did not. See `coursedata.gold_declaration` for what that does
+    and does not mean.
+
+    The reasoning that used to sit INSIDE these tables as comments went with
+    them -- `coursedata.gold_notes(table, key)` returns it, per entry, verbatim.
+    It is course-specific gold reasoning and a public repository was the wrong
+    home for it; it is not gone, and it is not optional reading.
+    """
+    import coursedata
+
+    return coursedata.gold_declaration(name)
+
+
 OLX_DIR = str(paths.OLX_DIR)
 PRIMITIVES_JSON = paths.PRIMITIVES_JSON
 
@@ -1753,11 +1774,8 @@ PER_ITEM_EXCLUDE = _handouts.PER_ITEM_EXCLUDE
 # on it, and the paper's zero transfers intact.
 GRAPH_UNREACHABLE_1C = tuple(sorted(PER_ITEM_EXCLUDE["1c"]))
 
-UNSCORED_GOLD_CRITERIA = {
-    ("3", "1c"): "missing baseline data week (p11, -1) — the web draws the "
-                 "chart from the data, so a present baseline series cannot be "
-                 "absent from the graph; an absent one is already scored by 1b",
-}
+# Entries: the gold file.
+UNSCORED_GOLD_CRITERIA = _gold_declaration("UNSCORED_GOLD_CRITERIA")
 
 
 def gold_slots_1c(feedback: str) -> dict[str, bool]:
