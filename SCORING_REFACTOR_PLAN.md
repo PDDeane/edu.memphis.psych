@@ -2746,6 +2746,44 @@ anchors and turn on the **G1c** gate — danglers fail, orphans warn.
 Docstrings under **F1**: no course-derived sentence survives in general prose;
 incidents split, generic half stays, specific half to the changelog.
 
+#### Stage 7's split is MEASURED and deliberately not done: 3,832 sentences
+
+`prose_split.py` prepares the split as a worksheet — `PROSE_SPLIT_WORKSHEET.json`
+— and moves nothing.
+
+| file | sentences carrying course vocabulary |
+|---|---|
+| `GOALS.md` | **2,937** |
+| `EQUIVALENCE.md` | 341 |
+| `BACKLOG.md` | 313 |
+| `QUALITY_CONTROL.md` | 241 |
+| **total** | **3,832** |
+
+**All 31 sections of `QUALITY_CONTROL.md` carry course vocabulary**, so the split
+is a sentence-level rewrite of every section rather than a move of a few. That is
+the failure T7.1's design names — *a diff that touches every line cannot be
+reviewed* — and these files are read by five modules and by people. §10.3.2's
+three outcomes cannot be chosen by a word list; T7.3 says as much about itself.
+So the worksheet gathers the evidence for each decision and leaves the decision.
+
+Each row carries the terms that flagged the sentence and a SUGGESTION with its
+reason: a date or two measured numbers reads as an *incident*, because that is
+what the changelog keeps; an item or slot named without numbers reads as a
+*specification*; anything else is left **unclassified**, which is the honest
+answer — 166 of the 3,832 are.
+
+##### The first count was 956, and it was wrong by 93% of one file
+
+The worksheet skipped any line indented four spaces, on the usual Markdown
+convention that indentation means code. **`GOALS.md`'s prose is indented under
+its entries**: 15,640 of its 16,762 lines were discarded, 690 were examined, and
+the file reported 89 sentences. Fenced blocks are now tracked properly and
+indentation is not treated as code.
+
+The lesson is the one this plan keeps meeting: **a convention that holds
+everywhere else is still a measurement assumption**, and 89 sentences for a
+17,000-line prose file was the number that should have looked wrong immediately.
+
 ### 11.9 · Stage 8 — the fixture course (**I1a**, **I2c**)
 
 Sized by SHAPE COVERAGE — at least one item of each of the 19 key-shapes, coverage
