@@ -6,6 +6,7 @@
  "named_modules": [
   "baseline_h1.py",
   "gold.py",
+  "gold_export.py",
   "gold_slots_q6.py",
   "handouts.py",
   "q6_consensus.py",
@@ -51,6 +52,7 @@
   "goals.py": 1,
   "goals_restructure.py": 0,
   "gold.py": 3,
+  "gold_export.py": 0,
   "gold_slots_q6.py": 3,
   "grader_inputs.py": 0,
   "guide.py": 0,
