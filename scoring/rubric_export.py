@@ -237,6 +237,14 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
         name: _jsonable(getattr(generator_source, name, None), f"generator.{name}")
         for name in COURSE_LEVEL_GENERATOR
         if getattr(generator_source, name, None) is not None}
+    # The per-handout segmentation locators, ORDERED. Course-level because the
+    # order is load-bearing and the lists carry non-item keys, so no item entry
+    # can hold them.
+    doc["generator"]["SEGMENT_MARKERS"] = {
+        str(h): _jsonable(getattr(generator_source, f"H{h}_MARKERS", None),
+                          f"generator.H{h}_MARKERS")
+        for h in HANDOUTS
+        if getattr(generator_source, f"H{h}_MARKERS", None) is not None}
     for table, extra in sorted(residue.items()):
         doc["generator"][f"{table}__non_item"] = _jsonable(
             extra, f"generator.{table}__non_item")

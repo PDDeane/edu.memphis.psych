@@ -15,6 +15,12 @@
   "score_h1.py",
   "simulate_h3.py"
  ],
+ "data_modules": {
+  "generator_source.py": 14,
+  "rubric_h1.py": 4,
+  "rubric_h2.py": 21,
+  "rubric_h3.py": 3
+ },
  "modules": {
   "agreement.py": 12,
   "agreement_app.py": 7,
@@ -38,7 +44,7 @@
   "equivalence.py": 0,
   "faithful_probe.py": 0,
   "fixture_edits.py": 0,
-  "generator_source.py": 11,
+  "generator_source.py": 14,
   "goals.py": 1,
   "gold.py": 3,
   "gold_slots_q6.py": 3,
@@ -69,7 +75,7 @@
   "score.py": 8,
   "score_h1.py": 1,
   "scrub_metadata.py": 0,
-  "segment.py": 8,
+  "segment.py": 2,
   "self_graded_misses.py": 0,
   "shape_inventory.py": 1,
   "simulate_h3.py": 0,
