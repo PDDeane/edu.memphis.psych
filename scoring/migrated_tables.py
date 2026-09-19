@@ -54,6 +54,40 @@ READER_CALLS = {"_declaration", "_generator_table", "_generator_value",
 # checked in `enforcement` against the gold file itself.
 
 
+# A TABLE THE READER ENRICHES, and the field it adds. `agreement.BLOCKS` is
+# authored WITHOUT `refs`: that map is derived from the .olx by `_context_refs`
+# and is attached on read, because storing a derived value in the course file is
+# what A2a exists to prevent. The module value therefore cannot equal its
+# authored copy, and without this it reported as a mismatch on all 26 entries,
+# for ever.
+#
+# DECLARED RATHER THAN SNIFFED. "Ignore a key the module has and the source does
+# not" would hide the failure this check is for -- a migration that quietly
+# grew a field. The enrichment is named, with the reason, and only the named
+# field is set aside.
+ENRICHED = {
+    ("agreement", "BLOCKS"): ("refs", "derived by `_context_refs` from the .olx; "
+                                      "attached on read so the course file holds "
+                                      "no derived value (A2a)"),
+}
+
+
+def _strip_enrichment(mod: str, name: str, value):
+    """`value` with a declared enrichment field removed, at any depth of nesting."""
+    field = (ENRICHED.get((mod, name)) or (None, None))[0]
+    if field is None or not isinstance(value, dict):
+        return value
+
+    def strip(v):
+        if isinstance(v, dict):
+            return {k: strip(x) for k, x in v.items() if k != field}
+        if isinstance(v, list):
+            return [strip(x) for x in v]
+        return v
+
+    return strip(value)
+
+
 def pairs() -> list[tuple[str, str]]:
     """[(module, table)] for every table read back through a reader helper."""
     found = []
@@ -142,7 +176,7 @@ def verify() -> list[str]:
                 f"builder holds the authored copy -- so nothing can say whether "
                 f"the migration was faithful")
             continue
-        problems = same_shape(got, source)
+        problems = same_shape(_strip_enrichment(module_name, table, got), source)
         if problems:
             out.append(f"{module_name}.{table} does NOT match its authored copy: "
                        f"{problems[0]}"

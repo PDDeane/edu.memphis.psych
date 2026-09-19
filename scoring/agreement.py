@@ -156,76 +156,42 @@ _H3_CTX = _context_refs(3)
 
 def _h1(item, action):
     return {"item": item, "olx": "bmod_handout1.olx", "refs": _H1_CTX, "kind": "slots"}
+def _declaration(name: str) -> dict:
+    """One scoring declaration, read from the course file."""
+    import coursedata
+
+    return coursedata.declaration(name)
+
+
+# THE GRADABLE BLOCKS, read from the course file and given their `refs` here.
+# The authored half -- which screen holds which item, in which .olx, and what
+# kind of grading it takes -- lives in `declaration_source.py`. The `refs` half
+# is DERIVED by `_context_refs` from the .olx itself, so it is attached on read
+# rather than stored (A2a): an entry with an `olx` gets its own handout's
+# context map, and one without gets none. That rule was measured against all 26
+# entries before the move, not assumed.
+_CTX = {1: _H1_CTX, 2: _H2_CTX, 3: _H3_CTX}
+
+def _with_refs(handout: int, entry: dict) -> dict:
+    """One block entry with its context map put back WHERE IT WAS.
+
+    `{**entry, "refs": ...}` appends, and the authored order is item, olx, refs,
+    kind -- so appending moved `refs` to the end and `same_shape` reported the
+    reconstruction as different from the value it replaced. Key order is data
+    often enough in this project that the comparison is order-sensitive on
+    purpose; the cheap answer is to rebuild in the original order rather than to
+    argue that this particular dict does not care.
+    """
+    out = {"item": entry["item"], "olx": entry["olx"],
+           "refs": _CTX[handout] if entry["olx"] else {}}
+    out.update({k: v for k, v in entry.items() if k not in ("item", "olx")})
+    return out
 
 
 BLOCKS: dict[int, dict[str, dict]] = {
-    1: {
-        f"bmod_h1_{a}_llm": _h1(i, a)
-        for i, a in (("Q1", "q1"), ("Q2", "q2"), ("Q3", "q3"), ("Q4a", "q4a"),
-                     ("Q4b", "q4b"), ("Q4c", "q4c"), ("Q5", "q5"), ("Q6", "q6"))
-    },
-    2: {
-        f"bmod_h2_{k.lower()}_llm": {
-            "item": k, "olx": "bmod_handout2.olx", "refs": _H2_CTX,
-            "kind": "oc", "expected_type": k,
-        }
-        for k in ("PR", "NR", "PP", "NP")
-    } | {
-        f"bmod_h2_{k.lower()}_llm": {
-            "item": k, "olx": "bmod_handout2.olx", "refs": _H2_CTX,
-            "kind": "oc_cadence",
-            "cadence": "daily" if k.startswith("DAY") else "weekly",
-        }
-        for k in ("DAY1", "WK1", "DAY2", "WK2")
-    } | {
-        f"bmod_h2_{k.lower()}_llm": {
-            "item": k, "olx": "bmod_handout2.olx", "refs": _H2_CTX, "kind": "slots",
-        }
-        for k in ("D1", "D2")
-    } | {
-        # T1 and T2 have no LLM call on the web either — they are DerivedChecks
-        # sheets, `type_stated:present:bmod_h2_tN` — so there is no prompt here
-        # to measure. They are scored anyway, deterministically, for the same
-        # reason 1b is: they are scored items with a gold column, and omitting
-        # them left handout 2 reported over ten items of twelve while the web
-        # reported all twelve.
-        f"_{k.lower()}_deterministic": {
-            "item": k, "olx": None, "refs": {}, "kind": "type_stated",
-        }
-        for k in ("T1", "T2")
-    },
-    3: {
-        "bmod_h3_overview_llm": {"item": "1a", "olx": "bmod_handout3.olx",
-                                 "refs": _H3_CTX, "kind": "slots"},
-        "bmod_h3_success_llm": {"item": "2a", "olx": "bmod_handout3.olx",
-                                "refs": _H3_CTX, "kind": "slots"},
-        "bmod_h3_assessment_llm": {"item": "2b", "olx": "bmod_handout3.olx",
-                                   "refs": _H3_CTX, "kind": "slots"},
-        "bmod_h3_improve_llm": {"item": "3", "olx": "bmod_handout3.olx",
-                                "refs": _H3_CTX, "kind": "slots"},
-        # Item 1c, scored on all five of its slots, out of 10 — the same sheet
-        # the app grades, so the two columns need no rescaling to be compared.
-        #
-        # This used to take a 3-slot, 6-point label subtotal, on the reasoning
-        # that the web supplies the graph and the legend itself and so cannot
-        # fail `has_own_graph` or `legend`. It can, and does: over 17 web cells
-        # `has_own_graph` returned `absent` twice and `legend` failed four times.
-        # Dropping them measured the CLI on an easier item — including hiding a
-        # false `legend` deduction the web made on p11 — and left the sides on
-        # different scales. What IS unreachable on the web is the specific paper
-        # failure of the three participants in GRAPH_UNREACHABLE_1C, who are
-        # excluded here exactly as agreement_app.py excludes them.
-        "bmod_h3_graph_llm": {"item": "1c", "olx": "bmod_handout3.olx",
-                              "refs": _H3_CTX, "kind": "slots"},
-        # Item 1b has no LLM call in the web version and should not have one:
-        # it scores one point per week of data present, and four filled boxes is
-        # a fact about the fields, not a judgement about prose. It is measured
-        # here anyway, deterministically from the reconstructed fields, because
-        # it is a scored item with a gold column and leaving it out would mean
-        # claiming handout 3 was covered when five items of six were.
-        "_1b_deterministic": {"item": "1b", "olx": None,
-                              "refs": {}, "kind": "data_presence"},
-    },
+    handout: {screen: _with_refs(handout, entry)
+              for screen, entry in blocks.items()}
+    for handout, blocks in _declaration("BLOCKS").items()
 }
 
 
