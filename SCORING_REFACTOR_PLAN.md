@@ -2631,6 +2631,41 @@ shape today: **the property ratchet matched a name where a property was meant,
 and this matched a rendering where a value was meant.** Both were found by
 reading the hits rather than trusting the number.
 
+#### `segment.py`: 6 tables → 0, segmentation of all 60 submissions unchanged
+
+The second module through C2a, verified the same way: **all 60 submissions
+segment to the same hashes** — `5732df7063d35f9d` before and after.
+
+Two different migrations in one module, and the difference is A2a:
+
+* **`H1/H2/H3_MARKERS` are course CONTENT** — an ordered list of `(key, regex)`
+  matching the handout's own printed prose. They moved to the course file whole.
+  **Not folded onto item entries**, for two reasons: the order is load-bearing
+  (the segmenter walks them in sequence), and the lists carry keys that are not
+  items — `preamble` and `_q4_intro` in handout 1, `_utb` and `_wgb` in handout
+  2. An item entry cannot hold a position in a sequence it shares with non-items.
+* **`H1/H2/H3_ITEMS` are DERIVED and are now stored nowhere.** `H1_ITEMS` was the
+  literal `["Q1", "Q2", …]`; it is exactly handout 1's item ids in rubric order.
+  Verified equal for all three handouts, then deleted. That is A2a doing what it
+  is for.
+
+#### The ratchet refused the migration it exists to enable
+
+`generator_source.py: 11 -> 14` — because three marker tables arrived there FROM
+`segment.py`, which is the work succeeding. A count that rises in the DESTINATION
+is not a regression.
+
+So `DATA_MODULES` is declared: `rubric_h{1,2,3}.py` and `generator_source.py` are
+authored course data by design, and the ratchet exists to stop course content
+accumulating in ENGINE code. **Their contents are still counted and recorded** —
+the budget carries `data_modules: {generator_source.py: 14, rubric_h2.py: 21, …}`
+and a change there is reported — because the point is to see how much course data
+exists and where it sits, not to pretend a data module holds none.
+
+The writer had to learn the same rule: `--tighten` kept refusing after the gate
+stopped complaining, because its own growth check still counted data modules. **A
+gate and its writer that disagree make a budget that can never be written again.**
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that

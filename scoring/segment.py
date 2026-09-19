@@ -30,21 +30,45 @@ from docx_text import doc_lines
 
 # Section markers, in document order. The first regex that matches a line
 # opens that item; every non-template line after it belongs to that item.
-H1_MARKERS: list[tuple[str, str]] = [
-    ("preamble", r"Choose an unwanted target behavior"),
-    ("Q1", r"Define your unwanted target behavior and explain WHY"),
-    ("Q2", r"Next,\s*define your wanted goal behavior"),
-    ("Q3", r"Use the SMART goal acronym"),
-    ("_q4_intro", r"Perform a functional behaviora?l? analysis"),
-    ("Q4a", r"^\W*4a[.)]"),
-    ("Q4b", r"^\W*4b[.)]"),
-    ("Q4c", r"^\W*4c[.)]"),
-    ("Q5", r"Why do you think that you continue to engage"),
-    ("Q6", r"One way we can try to change our unwanted target behavior"),
-]
+# ---------------------------------------------------------------------------
+# STAGE 4 (A1c/A2a). The locators and the item lists were module-level DATA here.
+#
+# The MARKERS are course content: an ordered list of (key, regex) matching the
+# handout's own printed prose. They now live in the course file. The order is
+# load-bearing and the lists carry non-item keys -- `preamble`, `_q4_intro`,
+# `_utb`, `_wgb` -- so they are carried whole rather than folded onto items.
+#
+# The ITEM LISTS are DERIVED and are no longer stored anywhere. `H1_ITEMS` was a
+# literal `["Q1", "Q2", ...]`; it is exactly the ids of handout 1's items in
+# rubric order, which A2a says to recompute rather than keep. Verified equal for
+# all three handouts before the literals were removed.
+# ---------------------------------------------------------------------------
+def _markers(handout: int) -> list[tuple[str, str]]:
+    """The handout's locators, in order, as (key, regex) pairs.
+
+    Tuples, not the lists JSON gives back: every caller unpacks these as
+    `for item, rx in markers`, which works either way, but the type the module
+    has always exposed is a list of tuples and a reader should not change a
+    published shape while moving where it is stored.
+    """
+    import coursedata
+
+    raw = coursedata.generator_value("SEGMENT_MARKERS") or {}
+    return [tuple(pair) for pair in raw.get(str(handout), [])]
+
+
+def _handout_items(handout: int) -> list[str]:
+    """This handout's item ids, in rubric order. DERIVED, never stored."""
+    import coursedata
+
+    return [str(it["id"]) for it in coursedata.items()
+            if it.get("handout") == handout]
+
+
+H1_MARKERS: list[tuple[str, str]] = _markers(1)
 
 # Items the rubric actually scores (order = report order).
-H1_ITEMS = ["Q1", "Q2", "Q3", "Q4a", "Q4b", "Q4c", "Q5", "Q6"]
+H1_ITEMS = _handout_items(1)
 
 # Handout 2. Two structural differences from H1: the student's answer sits on
 # the SAME line as the prompt label ("Example of Positive Reinforcement: ..."),
@@ -55,24 +79,7 @@ H1_ITEMS = ["Q1", "Q2", "Q3", "Q4a", "Q4b", "Q4c", "Q5", "Q6"]
 # The typed submissions contain only this applied section — the 20 scenario
 # items from the paper handout were never transcribed (0 of 20 files) and are
 # ungraded in the gold workbook.
-H2_MARKERS: list[tuple[str, str]] = [
-    ("_utb", r"{{corpus:Q1/p3:response:0:27:sha=c8e59699d1a0:shape=C81008}} is"),
-    ("_wgb", r"{{corpus:Q2/p3:response:0:23:sha=d743f1f68d1a:shape=C8408}} is"),
-    ("PR", r"Example of Positive Reinforcement"),
-    ("NR", r"Example of Negative Reinforcement"),
-    ("PP", r"Example of Positive Punishment"),
-    ("NP", r"Example of Negative Punishment"),
-    # Loose on the trailing verb phrase: participant 9's transcription reads
-    # [[corpus 3/p9 second 7:30 sha=1dadc902fe5c]].
-    ("T1", r"First type of Operant Conditioning"),
-    ("D1", r"^\W*Definition"),
-    ("DAY1", r"^\W*Daily Example"),
-    ("WK1", r"^\W*Weekly Example"),
-    ("T2", r"Second type of Operant Conditioning"),
-    ("D2", r"^\W*Definition"),
-    ("DAY2", r"^\W*Daily Example"),
-    ("WK2", r"^\W*Weekly Example"),
-]
+H2_MARKERS: list[tuple[str, str]] = _markers(2)
 
 # Handout 3. Prose answers follow their prompts, but the DATA (1b) and the
 # GRAPH (1c) live at the end of the document under "YOUR 1b." / "YOUR 1c."
@@ -86,31 +93,11 @@ H2_MARKERS: list[tuple[str, str]] = [
 # three feed the same bucket, and template subtraction removes whatever of the
 # worked example the student left behind. The Q3 pattern does not require the
 # "3." prefix because participant 8's transcription dropped it.
-H3_MARKERS: list[tuple[str, str]] = [
-    # Tolerate "1.a" as well as "1a." — participant 16 rewrote the handout
-    # with the dot inside the numbering.
-    ("1a", r"^\W*1\W?a\b"),
-    ("1b", r"^\W*1\W?b\b"),
-    ("1c", r"^\W*1\W?c\b"),
-    ("2a", r"^\W*2\W?a\b"),
-    ("2b", r"^\W*2\W?b\b"),
-    ("3", r"^\W*3[.)]|What could be done differently"),
-    ("1b", r"EXAMPLE OF 1b"),
-    # Whatever survives template subtraction between "EXAMPLE OF 1c." and
-    # "YOUR 1c." is misplaced DATA, not a graph — participant 6 omitted the
-    # "YOUR 1b." heading and typed their four weeks of data here.
-    ("1b", r"EXAMPLE OF 1c"),
-    ("1b", r"YOUR 1b"),
-    ("1c", r"YOUR 1c"),
-]
+H3_MARKERS: list[tuple[str, str]] = _markers(3)
 
-H3_ITEMS = ["1a", "1b", "1c", "2a", "2b", "3"]
+H3_ITEMS = _handout_items(3)
 
-H2_ITEMS = [
-    "PR", "NR", "PP", "NP",
-    "T1", "D1", "DAY1", "WK1",
-    "T2", "D2", "DAY2", "WK2",
-]
+H2_ITEMS = _handout_items(2)
 
 _UNDERSCORE = re.compile(r"_+")
 _WS = re.compile(r"\s+")
