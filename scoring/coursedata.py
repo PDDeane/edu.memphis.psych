@@ -220,7 +220,12 @@ def derived(name: str, handout: int | None = None):
         if handout is not None and int(h) != handout:
             continue
         if name in block.get("authored", {}):
-            return copy.deepcopy(block["authored"][name])
+            # DETAGGED LIKE EVERY OTHER READ PATH. This one was missed when tuple
+            # tagging was added: `_group`, `declaration` and `generator_value`
+            # all untag, and `derived`'s authored branch did not, so a tuple-
+            # valued authored table came back as {"__tuple__": [...]}. T3.2
+            # caught it immediately -- four handout-2 tables at once.
+            return _detag(copy.deepcopy(block["authored"][name]))
     raise KeyError(
         f"coursedata: {name!r} is neither derivable here nor carried in the file. "
         f"If it should be rebuilt, add it to DERIVATIONS; if authored, the export "
