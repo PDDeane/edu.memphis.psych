@@ -245,6 +245,15 @@ DECLARATION_TABLES = ("PROSE_ONLY_SLOTS", "PROSE_ONLY_JUDGED_AGAINST",
                       # could hold a frozenset. Before that `json.dumps`
                       # refused it and the table could not be exported at all.
                       "PROBE_UNREACHABLE_PAIRS",
+                      # SLOT_STRUCTURE_FAMILIES and HAND_AUTHORED_ATTRS moved
+                      # 2026-09-19. They were held back because the probe calls
+                      # them INCONCLUSIVE -- but that verdict is about whether
+                      # their CONSUMING CHECK enforces them, not about whether a
+                      # bad migration would be noticed. `migrated_tables`
+                      # answers the second, order-sensitively, and both are
+                      # plainly authoring content: one names a family of this
+                      # course's items, the other is keyed by (item, attribute).
+                      "SLOT_STRUCTURE_FAMILIES", "HAND_AUTHORED_ATTRS",
                       # from score.py and agreement_app.py
                       "PAPER_ITEM_NOTES", "PAPER_ITEM_NOTES_WHY",
                       "CONTEXT_SOURCE", "JOBS", "HANDOUT_FIELDS")

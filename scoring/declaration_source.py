@@ -1181,3 +1181,30 @@ PROBE_UNREACHABLE_PAIRS: dict[tuple[str, frozenset], str] = {
         "declared divergence since before this table existed; moved here so it "
         "is a decision with a reason rather than a remark. Declared 2026-09-16.",
 }
+
+
+# Items built from ONE pattern, whose shared slot names should therefore mean the
+# same thing. Scoped by family rather than corpus-wide on purpose: `keyword`
+# legitimately differs between Q4a and Q4c (one deduction zeroed by decision, the
+# other declared unreachable), and 1a's week_* slots are not siblings of these.
+SLOT_STRUCTURE_FAMILIES: dict[str, tuple[str, ...]] = {
+    "h2-cadence-and-type": ("PR", "NR", "PP", "NP", "DAY1", "WK1", "DAY2", "WK2"),
+}
+
+
+# Generated attributes that are HAND-AUTHORED on purpose, with the reason. An
+# attribute in the .olx whose `*_attr_for` returns None is otherwise an ORPHAN --
+# see check_generated_attributes_have_a_declaration. Keep this table small: every
+# entry is a place where the rubric is NOT the single source, which is the thing
+# the generator conversions exist to remove.
+HAND_AUTHORED_ATTRS: dict[tuple[str, str], str] = {
+    # EMPTIED 2026-09-19, and the four entries that were here are the reason
+    # `check_hand_authored_attrs_still_suppress_something` now exists. PR, NR,
+    # PP and NP's `expect` were declared hand-authored because the CLI reached
+    # `demonstrates_type` through REQUIRED_MOVE. The generator conversion that
+    # this table's own note calls "the thing the generator conversions exist to
+    # remove" then landed: the rubric backs all four, so every entry suppressed
+    # nothing. Emptying the whole table changed no output, which is how it went
+    # unnoticed -- a table doing no work looks exactly like a table doing its
+    # job quietly.
+}
