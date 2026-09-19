@@ -9,7 +9,7 @@ human decision. It enforces the condition that makes F1 checkable, and claims no
 more than that.
 
 WHAT COUNTS AS GENERAL PROSE. Defined, because after Goal G's split the COURSE
-halves are supposed to be full of psychology and a gate reading them would fire
+halves are supposed to be full of course vocabulary and a gate reading them would fire
 on correct work:
 
   * the GENERAL half of each of the four split files, and
