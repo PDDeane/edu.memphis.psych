@@ -4848,11 +4848,7 @@ def _slots_are_not_comparable(item: str) -> bool:
 #
 # One table for all eight: they share a vocabulary, because they are the same
 # question asked about four operant types and two cadences.
-GOLD_CODE_CHARGES: list[tuple[str, str]] = [
-    (r"not operant conditioning", "NOT_OC"),
-    (r"this is (an example of )?(np|nr|pp|pr)\b", "WRONG_TYPE"),
-    (r"make sure the behavior you are targeting", "WRONG_BEHAVIOR"),
-]
+GOLD_CODE_CHARGES = _gold_declaration("GOLD_CODE_CHARGES")
 
 
 def _cell_scores(item: str, pid: int, side: str = DEFAULT_SIDE) -> list:
