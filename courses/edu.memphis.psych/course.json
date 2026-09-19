@@ -5194,6 +5194,102 @@
     "why": "`requires` ties how_2 to `mechanism_named`, which carries no points of its own and costs something only by denying how_2. So the two share one 2-point charge: failing either costs 2 and failing both still costs 2, which is what makes the pair sublinear. The web reader takes that straight from the declared `requires` rule. The CLI probe cannot: `mechanism_named` is computed by `forbid` from three answered grounds, so it is not an answered field and no flip can set it, and the state that would reveal the pair is never constructed. Same shape as the NR entry above and the mirror of its cause -- there a conjunction was too wide for a pairwise probe, here an operand is not probeable at all. Teaching the probe to synthesise computed-operand states would mean a second implementation of `forbid` living inside the instrument, which is how an instrument starts disagreeing with the thing it measures."
    }
   ],
+  "TABLE_ORDER": {
+   "ACTION": [
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4a",
+    "Q4b",
+    "Q4c",
+    "Q5",
+    "Q6",
+    "PR",
+    "NR",
+    "PP",
+    "NP",
+    "D1",
+    "DAY1",
+    "WK1",
+    "D2",
+    "DAY2",
+    "WK2",
+    "1a",
+    "1c",
+    "2a",
+    "2b",
+    "3"
+   ],
+   "CONTEXT": [
+    "Q1",
+    "Q2",
+    "Q4a",
+    "Q4b",
+    "Q4c",
+    "_utb",
+    "_wgb",
+    "T1",
+    "D1",
+    "T2",
+    "D2",
+    "1a",
+    "2a",
+    "2b"
+   ],
+   "EVIDENCE": [
+    "1c"
+   ],
+   "ITEM_NOTES": [
+    "Q1",
+    "Q6",
+    "1c"
+   ],
+   "ITEM_NOTES_WHY": [
+    "Q1",
+    "Q6",
+    "1c"
+   ],
+   "MATCH_DEF": [
+    "DAY1",
+    "DAY2",
+    "WK2",
+    "WK1",
+    "Q6"
+   ],
+   "OMIT_GUIDANCE": [
+    "1c"
+   ],
+   "RESPONSE": [
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4a",
+    "Q4b",
+    "Q4c",
+    "Q5",
+    "Q6",
+    "PR",
+    "NR",
+    "PP",
+    "NP",
+    "D1",
+    "DAY1",
+    "WK1",
+    "D2",
+    "DAY2",
+    "WK2",
+    "1a",
+    "1c",
+    "2a",
+    "2b",
+    "3"
+   ],
+   "SHEET_ONLY": [
+    "1b",
+    "T1",
+    "T2"
+   ]
+  },
   "CONTEXT_REFS": {
    "1": {
     "bmod_h1_utb": "Q1",

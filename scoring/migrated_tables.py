@@ -65,6 +65,47 @@ def pairs() -> list[tuple[str, str]]:
     return sorted(set(found))
 
 
+def same_shape(a, b, path="") -> list[str]:
+    """Equal AND in the same order, at every depth.
+
+    `==` IGNORES DICT ORDER, and that is not a detail here. The export
+    alphabetised every dict it wrote, `JOBS[item]["fields"]` maps component ->
+    paper section IN THE ORDER THE BOXES ARE READ, and the fixture extracted
+    different text as a result. This module compared with `==` throughout and
+    passed -- the gate written to catch silent drift was blind to the drift.
+
+    A scoring check found it instead. This closes the hole rather than relying on
+    that happening again.
+    """
+    out = []
+    if type(a) is not type(b):
+        return [f"{path or '<root>'}: {type(a).__name__} vs {type(b).__name__}"]
+    if isinstance(a, dict):
+        if list(a) != list(b):
+            only_a = [k for k in a if k not in b]
+            only_b = [k for k in b if k not in a]
+            if only_a or only_b:
+                out.append(f"{path or '<root>'}: keys differ -- only-read "
+                           f"{only_a[:3]}, only-authored {only_b[:3]}")
+            else:
+                out.append(f"{path or '<root>'}: SAME KEYS, DIFFERENT ORDER -- "
+                           f"read {list(a)[:4]}, authored {list(b)[:4]}. `==` "
+                           f"calls these equal; the order is the data.")
+            return out
+        for k in a:
+            out += same_shape(a[k], b[k], f"{path}.{k}")
+        return out
+    if isinstance(a, (list, tuple)):
+        if len(a) != len(b):
+            return [f"{path}: {len(a)} entries vs {len(b)}"]
+        for i, (x, y) in enumerate(zip(a, b)):
+            out += same_shape(x, y, f"{path}[{i}]")
+        return out
+    if a != b:
+        out.append(f"{path}: {a!r:.50} != {b!r:.50}")
+    return out
+
+
 def verify() -> list[str]:
     out = []
     builders = {}
@@ -88,19 +129,11 @@ def verify() -> list[str]:
                 f"builder holds the authored copy -- so nothing can say whether "
                 f"the migration was faithful")
             continue
-        if got != source:
-            detail = ""
-            if isinstance(got, dict) and isinstance(source, dict):
-                if set(got) != set(source):
-                    detail = (f" keys differ: only-read {sorted(set(got)-set(source))[:3]}, "
-                              f"only-authored {sorted(set(source)-set(got))[:3]}")
-                else:
-                    k = next(k for k in source if got[k] != source[k])
-                    detail = (f" at {k!r}: read {type(got[k]).__name__} "
-                              f"{got[k]!r:.60}, authored {type(source[k]).__name__} "
-                              f"{source[k]!r:.60}")
-            out.append(f"{module_name}.{table} does NOT match its authored copy."
-                       f"{detail}")
+        problems = same_shape(got, source)
+        if problems:
+            out.append(f"{module_name}.{table} does NOT match its authored copy: "
+                       f"{problems[0]}"
+                       + (f" (+{len(problems) - 1} more)" if len(problems) > 1 else ""))
     return out
 
 
