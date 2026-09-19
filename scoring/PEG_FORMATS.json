@@ -1,0 +1,185 @@
+{
+ "schema_version": 1,
+ "registry": {
+  "dropdownpeg": {
+   "grammar": "dropdown",
+   "dir": "@/components/blocks/input/DropdownInput",
+   "display": "Dropdown",
+   "creatable": true
+  },
+  "matchingpeg": {
+   "grammar": "matching",
+   "dir": "@/components/blocks/input/Matching",
+   "display": "Matching",
+   "creatable": true
+  },
+  "sortpeg": {
+   "grammar": "sort",
+   "dir": "@/components/blocks/input/Sortable",
+   "display": "Sort",
+   "creatable": true
+  },
+  "textSelectionpeg": {
+   "grammar": "textSelection",
+   "dir": "@/components/blocks/language-arts/TextSelection",
+   "display": "SimpleTextSelection",
+   "creatable": true
+  },
+  "chatpeg": {
+   "grammar": "chat",
+   "dir": "@/components/blocks/scenario/Chat",
+   "display": "Chat",
+   "creatable": true
+  },
+  "clippeg": {
+   "grammar": "clip",
+   "dir": "@/components/blocks/scenario/Chat",
+   "display": "Clip",
+   "creatable": false
+  },
+  "idlistpeg": {
+   "grammar": "idlist",
+   "dir": "@/components/blocks/specialized/MasteryBank",
+   "display": "Idlist",
+   "creatable": true
+  },
+  "demopeg": {
+   "grammar": "demo",
+   "dir": "@/components/blocks/specialized/PEGDevBlock",
+   "display": "Demo",
+   "creatable": false
+  },
+  "capapeg": {
+   "grammar": "capa",
+   "dir": "@/components/blocks/specialized/peg_prototype",
+   "display": "Capa",
+   "creatable": true
+  },
+  "dndpeg": {
+   "grammar": "dnd",
+   "dir": "@/components/blocks/specialized/peg_prototype",
+   "display": "Dnd",
+   "creatable": false
+  },
+  "grammarpeg": {
+   "grammar": "grammar",
+   "dir": "@/lib/grading/calc",
+   "display": "Grammar",
+   "creatable": false
+  },
+  "exprpeg": {
+   "grammar": "expr",
+   "dir": "@/lib/stateLanguage",
+   "display": "Expr",
+   "creatable": false
+  },
+  "templatepeg": {
+   "grammar": "template",
+   "dir": "@/lib/template",
+   "display": "Template",
+   "creatable": false
+  }
+ },
+ "authored_as": {
+  "textSelectionpeg": "prose with the answers in [square brackets]",
+  "matchingpeg": "two columns joined by a separator, one pair per line",
+  "sortpeg": "items in their correct order, one per line",
+  "dropdownpeg": "options in a list, the key marked",
+  "chatpeg": "a dialogue script: `::id [attrs]` turn markers and speech",
+  "idlistpeg": "a list of OLX ids, one per line -- an item bank",
+  "capapeg": "an Open edX-style markdown problem",
+  "clippeg": "a range notation for selecting part of another file",
+  "dndpeg": "drag-and-drop image labelling (prototype)",
+  "demopeg": "arithmetic, for grammar development",
+  "grammarpeg": "a calculation grammar -- engine internals, not content",
+  "exprpeg": "a state-language expression -- engine internals",
+  "templatepeg": "a {{placeholder}} template -- engine internals"
+ },
+ "unregistered": {
+  "textHighlightpeg": "DEAD. Three files in the psych course use it and lo-blocks registers it NOWHERE. Each is BYTE-IDENTICAL to a `.textSelectionpeg` beside it, so this is a renamed grammar whose old files were left behind. Nothing references either copy, and the manifest routes neither."
+ },
+ "course_files": {
+  "capapeg": [
+   "packages/shared/components/blocks/specialized/peg_prototype/capa.pegjs.preview.capapeg",
+   "packages/shared/components/blocks/specialized/peg_prototype/capa.pegjs.template.capapeg",
+   "packages/shared/components/blocks/specialized/peg_prototype/example.capapeg",
+   "packages/shared/components/blocks/specialized/peg_prototype/test-checkbox.capapeg",
+   "packages/shared/components/blocks/specialized/peg_prototype/test-comprehensive.capapeg",
+   "packages/shared/components/blocks/specialized/peg_prototype/test-demand-hints.capapeg",
+   "packages/shared/components/blocks/specialized/peg_prototype/test-dropdown.capapeg",
+   "packages/shared/components/blocks/specialized/peg_prototype/test-explanation.capapeg",
+   "packages/shared/components/blocks/specialized/peg_prototype/test-feedback.capapeg",
+   "packages/shared/components/blocks/specialized/peg_prototype/test-multi-question.capapeg",
+   "packages/shared/components/blocks/specialized/peg_prototype/test-numerical.capapeg",
+   "packages/shared/components/blocks/specialized/peg_prototype/test-text-input.capapeg"
+  ],
+  "cast": [
+   "characters.cast",
+   "characters.cast",
+   "characters.cast",
+   "defiance/characters.cast",
+   "mermaid/mermaid_cast.cast",
+   "sba-journals/consent.cast",
+   "sba-journals/tutorial/characters.cast",
+   "sba-journals/wj1/characters.cast",
+   "sba-journals/wj2/characters.cast"
+  ],
+  "chatpeg": [
+   "content/demos/assessment_dialogue.chatpeg",
+   "content/demos/silly_llm_authoring.chatpeg",
+   "defiance/psych_sba_part1.chatpeg",
+   "defiance/psych_sba_part2.chatpeg",
+   "interdisciplinary_dialogue_part1.chatpeg",
+   "interdisciplinary_dialogue_part2.chatpeg",
+   "mermaid/conclusion_john.chatpeg",
+   "mermaid/conclusion_piotr.chatpeg",
+   "mermaid/intro.chatpeg",
+   "packages/shared/components/blocks/scenario/Chat/chat.pegjs.preview.chatpeg",
+   "packages/shared/components/blocks/scenario/Chat/chat.pegjs.template.chatpeg",
+   "packages/shared/scripts/xml2json-testdata/broken.chatpeg",
+   "psych_sba_part1.chatpeg",
+   "psych_sba_part2.chatpeg",
+   "psych_sba_part3.chatpeg",
+   "psych_sba_part3auto.chatpeg",
+   "psych_sba_part4.chatpeg",
+   "psych_sba_part4auto.chatpeg",
+   "sba-journals/tutorial/tutorial_dialogue.chatpeg",
+   "sba-journals/wj1/writing_journal1_dialogue_part1.chatpeg",
+   "sba-journals/wj2/writing_journal2_dialogue_part1.chatpeg",
+   "temperance_module_full_dialogue_part1.chatpeg"
+  ],
+  "dropdownpeg": [
+   "packages/shared/components/blocks/input/DropdownInput/dropdown.pegjs.preview.dropdownpeg",
+   "packages/shared/components/blocks/input/DropdownInput/dropdown.pegjs.template.dropdownpeg"
+  ],
+  "idlistpeg": [
+   "packages/shared/components/blocks/specialized/MasteryBank/idlist.pegjs.preview.idlistpeg",
+   "packages/shared/components/blocks/specialized/MasteryBank/idlist.pegjs.template.idlistpeg"
+  ],
+  "liquid": [
+   "mcq-template.liquid",
+   "packages/shared/components/blocks/specialized/LiquidTemplate/LiquidTemplate.demo.liquid"
+  ],
+  "matchingpeg": [
+   "packages/shared/components/blocks/input/Matching/matching.pegjs.preview.matchingpeg",
+   "packages/shared/components/blocks/input/Matching/matching.pegjs.template.matchingpeg"
+  ],
+  "sortpeg": [
+   "packages/shared/components/blocks/input/Sortable/examples/planets.sortpeg",
+   "packages/shared/components/blocks/input/Sortable/sort.pegjs.preview.sortpeg",
+   "packages/shared/components/blocks/input/Sortable/sort.pegjs.template.sortpeg"
+  ],
+  "textHighlightpeg": [
+   "psych_bedtime_strategies.textHighlightpeg",
+   "psych_positive_negative.textHighlightpeg",
+   "psych_reinforce_punish.textHighlightpeg"
+  ],
+  "textSelectionpeg": [
+   "packages/shared/components/blocks/language-arts/TextSelection/textSelection.pegjs.preview.textSelectionpeg",
+   "packages/shared/components/blocks/language-arts/TextSelection/textSelection.pegjs.template.textSelectionpeg",
+   "psych_bedtime_strategies.textSelectionpeg",
+   "psych_positive_negative.textSelectionpeg",
+   "psych_reinforce_punish.textSelectionpeg"
+  ]
+ }
+}
