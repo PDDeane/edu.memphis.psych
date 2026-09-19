@@ -1574,7 +1574,10 @@ shape the fixture does not cover is an engine change that has not been tested.
   encode some of the assumptions it exists to test.** Shape coverage narrows that
   but does not remove it. A fixture that passes proves the engine handles the
   fixture.
-* **I1b · DEFERRED, not rejected — a real second course, when one is available.**
+* **I1b · NO LONGER DEFERRED — THREE real courses are checked out. See §10.6.2.**
+  The text below was written when none was known to be available; it is kept
+  because its reasoning still holds, but its premise is false.
+* **I1b · (as written) DEFERRED, not rejected — a real second course, when one is available.**
   Two exist as declared content sources in lo-blocks: `edu.memphis.writing`
   (public) and `edu.gsu.interdisciplinary` (non-public, needs a PAT). Neither is
   checked out here and neither is known to carry a scored assignment. A real course
@@ -1984,6 +1987,62 @@ They are deliberately NOT mined as OLX — `olx_corpus.SEPARATE_SURFACES` names
 them — because attributing a grammar's constructs to its expansion would put
 shapes in the inventory that no block declares. They need their own pass, and
 that is now owed.
+
+##### 10.6.2 · FOUR courses exist, and the corpus is now declared
+
+*On the user's corrections, arriving one at a time: `edu.memphis.writing`,
+`edu.mtsu.transitional-reading`, and `~/code/interdisciplinary`.*
+
+**I1b said a real second course was "not available". Three are, and all three are
+checked out.** That premise was wrong for the whole of this work, and every
+coverage number taken before now was quietly about one course while claiming to
+be about the engine.
+
+| course | intake shapes used, of 121 |
+|---|---|
+| psych | 50 |
+| edu.memphis.writing | 35 |
+| interdisciplinary | 35 |
+| edu.mtsu.transitional-reading | 20 |
+| **all four together** | **67 (55%)** |
+
+The four courses **overlap heavily**: 140 course-shape uses collapse to 67
+distinct shapes. And **54 intake shapes are used by no course at all**, including
+nine of the sixteen graders — `RulesGrader`, `NumericalGrader`, `StringGrader`,
+`FormulaGrader`, `RatioGrader`, `DefaultGrader`, `CustomGrader`, `LLMGrader`,
+`TextSelectionGrader` — which exist, are documented, and appear in no course
+anyone has written.
+
+##### A corpus is a decision, and three attempts to avoid making it failed
+
+Each failed differently and the sequence is the lesson:
+
+1. **`*.olx` under two roots** swept in `lo-blocks/.stage/content`, a staging
+   COPY of the psych course: mined twice, nine files stale, counted as
+   independent evidence.
+2. **Sibling directories named `edu.*`** found two of the three new courses and
+   missed `interdisciplinary`, which is neither named `edu.*` nor beside the
+   engine.
+3. **"Any directory containing OLX"** — evidence-based, and *worse*: nine roots
+   including three parallel checkouts of trees already listed, reporting **1171
+   files and 1155 documented examples where there are about 300 and 295
+   distinct.** Counting a second checkout as a second course is the `.stage`
+   error again, at repository scale.
+
+**Auto-discovery is a glob with extra steps.** Which trees are DISTINCT evidence
+is a judgement nothing in the filesystem encodes, so `olx_corpus.DECLARED_ROOTS`
+names five with a reason each, `COURSE_ROOTS` overrides, and **a declared root
+that is not present is a FINDING** — a corpus that silently shrinks reports
+smaller coverage and calls it a result.
+
+##### What the new courses changed in the declarations
+
+The pairing table survived all four courses unchanged, which is some evidence it
+is right. The containment table did not: `Cast` turns out to nest `Sequential`,
+`Tabs`, `SplitPanel` and `Vertical` — a real container, not the leaf it was
+declared; `Carousel` both NESTS and REFERENCES; `Ref` and `UseHistory` nest
+`IntakeGate`; and `Navigator` REFERENCES an `Annotate`, an item. Widened against
+evidence, gate clean.
 
 ##### The intake program: an LLM reading materials onto ROLES, then components
 
