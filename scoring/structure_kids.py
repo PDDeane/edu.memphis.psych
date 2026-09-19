@@ -67,8 +67,8 @@ CONTAINERS: dict[str, dict] = {
         "why": "reports how a cohort answered the item it names"},
     "Carousel": {
         "mechanism": REF_BODY,
-        "holds": [],
-        "references": ['display'],
+        "holds": ['structure'],
+        "references": ['display', 'structure'],
         "why": "its BODY is a comma- or newline-separated list of ids. It"
                "contains nothing syntactically, which is why a nesting-only"
                "scan called it childless across eight files"},
@@ -124,7 +124,7 @@ CONTAINERS: dict[str, dict] = {
     "Navigator": {
         "mechanism": REF_ATTR,
         "holds": [],
-        "references": ['display', 'structure'],
+        "references": ['display', 'item', 'structure'],
         "why": "`preview=` and `detail=` name template blocks by id, and its"
                "body carries its own YAML-ish entry list: data, not children"},
     "NextReveal": {
@@ -139,7 +139,7 @@ CONTAINERS: dict[str, dict] = {
         "why": "a transparent wrapper -- holds whatever it is given"},
     "Ref": {
         "mechanism": REF_ATTR,
-        "holds": ['action'],
+        "holds": ['action', 'display', 'structure'],
         "references": ['action', 'display', 'grading_support', 'item', 'structure'],
         "why": "names blocks by id and renders their value. It HOLDS almost"
                "nothing and REFERENCES almost everything -- 431 TextArea"
@@ -152,7 +152,7 @@ CONTAINERS: dict[str, dict] = {
         "why": "ordered steps revealed one at a time"},
     "Cast": {
         "mechanism": NESTED,
-        "holds": ['display'],
+        "holds": ['display', 'structure'],
         "references": [],
         "why": "declares characters as data, and nests the TeamDirectory that "
                "presents them -- found in a documented example, not in any .olx"},
@@ -200,7 +200,7 @@ CONTAINERS: dict[str, dict] = {
                "naming the items it fills in"},
     "UseHistory": {
         "mechanism": REF_ATTR,
-        "holds": [],
+        "holds": ['structure'],
         "references": ['display', 'item', 'structure'],
         "why": "names a block and renders that student's earlier values"},
     "Vertical": {
@@ -359,8 +359,8 @@ def main(argv=None) -> int:
     if not os.path.exists(args.inventory):
         raise SystemExit(f"structure_kids: no shape inventory at {args.inventory}")
     inv = json.load(open(args.inventory))
-    roots = args.corpus or [str(paths.LO), os.path.join(HERE, "..", "psychology")]
-    roots = [r for r in roots if os.path.isdir(r)]
+    import olx_corpus
+    roots = args.corpus or olx_corpus.default_roots()
     ev = mine(roots, inv)
     bad = verify(inv, ev)
 
