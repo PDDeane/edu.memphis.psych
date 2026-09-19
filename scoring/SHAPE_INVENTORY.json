@@ -6,10 +6,10 @@
   "action": 14,
   "display": 26,
   "gradable_input": 15,
-  "gradable_item_family": 2,
+  "gradable_item_family": 5,
   "grader": 16,
   "grading_support": 5,
-  "item_part": 6,
+  "item_part": 3,
   "not_intake": 13,
   "structure": 37
  },
@@ -2095,8 +2095,8 @@
   },
   {
    "name": "SimpleMatching",
-   "role": "item_part",
-   "why": "a piece an item is built FROM, not an item: Key, Distractor and the Simple* authoring shorthands are parsed by their parent",
+   "role": "gradable_item_family",
+   "why": "a terse one-tag PEG syntax that expands to a CapaProblem",
    "category": "input",
    "source": "packages/shared/components/blocks/input/Matching/SimpleMatching.ts",
    "authoring": {
@@ -2105,12 +2105,15 @@
     "template": true,
     "examples": true
    },
-   "attributes": []
+   "attributes": [],
+   "collects": {
+    "value_schema": null
+   }
   },
   {
    "name": "SimpleSortable",
-   "role": "item_part",
-   "why": "a piece an item is built FROM, not an item: Key, Distractor and the Simple* authoring shorthands are parsed by their parent",
+   "role": "gradable_item_family",
+   "why": "a terse one-tag PEG syntax that expands to a CapaProblem",
    "category": "input",
    "source": "packages/shared/components/blocks/input/Sortable/SimpleSortable.ts",
    "authoring": {
@@ -2119,12 +2122,15 @@
     "template": true,
     "examples": true
    },
-   "attributes": []
+   "attributes": [],
+   "collects": {
+    "value_schema": null
+   }
   },
   {
    "name": "SimpleTextSelection",
-   "role": "item_part",
-   "why": "a piece an item is built FROM, not an item: Key, Distractor and the Simple* authoring shorthands are parsed by their parent",
+   "role": "gradable_item_family",
+   "why": "a text-highlighting problem in one tag, expanding to a CapaProblem",
    "category": "language-arts",
    "source": "packages/shared/components/blocks/language-arts/TextSelection/SimpleTextSelection.ts",
    "authoring": {
@@ -2133,7 +2139,10 @@
     "template": true,
     "examples": true
    },
-   "attributes": []
+   "attributes": [],
+   "collects": {
+    "value_schema": null
+   }
   },
   {
    "name": "SlotSheetGrader",
@@ -2705,7 +2714,7 @@
   }
  ],
  "coverage": {
-  "olx_dir": "/home/pdeane/code/update/refactor_dry_run/edu.memphis.psych/psychology",
+  "olx_dir": "../psychology",
   "present": true,
   "used": {
    "ActionButton": 11,

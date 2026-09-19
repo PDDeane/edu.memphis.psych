@@ -44,7 +44,9 @@
     "item",
     "structure"
    ],
-   "references": [],
+   "references": [
+    "item"
+   ],
    "why": "a foldable region; items inside are optional detail"
   },
   "CompactPopout": {
@@ -58,7 +60,8 @@
   "Course": {
    "mechanism": "nested",
    "holds": [
-    "display"
+    "display",
+    "structure"
    ],
    "references": [],
    "why": "the top level; carries sections, not items directly"
@@ -86,6 +89,7 @@
    "mechanism": "nested",
    "holds": [
     "display",
+    "item",
     "not_intake",
     "structure"
    ],
@@ -163,6 +167,14 @@
    "references": [],
    "why": "ordered steps revealed one at a time"
   },
+  "Cast": {
+   "mechanism": "nested",
+   "holds": [
+    "display"
+   ],
+   "references": [],
+   "why": "declares characters as data, and nests the TeamDirectory that presents them -- found in a documented example, not in any .olx"
+  },
   "SharedNotes": {
    "mechanism": "nested",
    "holds": [],
@@ -205,7 +217,8 @@
    "mechanism": "nested",
    "holds": [
     "display",
-    "item"
+    "item",
+    "structure"
    ],
    "references": [],
    "why": "content under a clock -- the reason Freewrite appears insideone"
@@ -250,7 +263,6 @@
   "AvatarEditor": "an editor; its value is the figure, not children",
   "CastEditor": "an editor",
   "CharacterBuilder": "an editor",
-  "Cast": "declares characters as data",
   "DigitSpanTask": "an instrument",
   "PEGDevBlock": "a development block",
   "NavigatorDefaultPreview": "a Navigator template, named by attribute",
@@ -260,11 +272,24 @@
   "NavigatorTeamDetail": "a Navigator template"
  },
  "evidence": {
-  "files_scanned": 319,
+  "files_scanned": 575,
   "nested": {
-   "Vertical|Markdown": {
-    "n": 1384,
+   "DynamicList|TextArea": {
+    "n": 4,
     "files": [
+     "DynamicList.md#example1",
+     "DynamicList.md#example2",
+     "DynamicListStructured.olx",
+     "Ref.md#example4"
+    ]
+   },
+   "Vertical|Markdown": {
+    "n": 901,
+    "files": [
+     "ActionButton.md#example1",
+     "ActionButton.md#example3",
+     "ActionButton.md#example4",
+     "ActionButton.md#example5",
      "ActionButtonGrading.olx",
      "ActionButtonLLM.olx",
      "ActionButtonMultiple.olx",
@@ -273,11 +298,16 @@
      "AnswerDistribution.olx",
      "BadBlockVertical.olx",
      "BlockMathExamples.olx",
+     "Carousel.md#example1",
      "Carousel.olx",
+     "Chat.md#example3",
      "ChatEmbed.olx",
      "ChatTargetEmbed.olx",
      "ChatWithSidebarLegacy.olx",
+     "CodeInput.md#example3",
      "CodeInputWithSlot.olx",
+     "Collapsible.md#example2",
+     "Collapsible.md#example4",
      "ComplexInputExamples.olx",
      "CopyFieldAction.olx",
      "CorrectnessStandalone.olx",
@@ -286,24 +316,44 @@
      "DigitSpanTask.olx",
      "DocAttributes.olx",
      "DocFields.olx",
+     "DropdownInput.md#example1",
      "DropdownInputAttr.olx",
+     "DynamicList.md#example2",
+     "DynamicList.md#example3",
+     "DynamicList.md#example4",
      "DynamicList.olx",
      "DynamicListStructured.olx",
      "ErrorNode.olx",
      "ExplanationExamples.olx",
      "Flash.olx",
      "FlashColors.olx",
+     "FormulaInput.md#example1",
      "FreewriteChain.olx",
      "FreewriteDemo.olx",
      "FreewriteImage.olx",
      "FreewriteOverview.olx",
+     "Hidden.md#example1",
      "Hidden.olx",
      "InlineMathExamples.olx",
+     "IntakeGate.md#example1",
+     "IntakeGate.md#example2",
+     "IntakeGate.md#example3",
+     "IntakeGate.md#example4",
      "IntakeGate.olx",
      "IntakeGateExpr.olx",
      "IntakeGateMath.olx",
+     "LLMAction.md#example1",
+     "LLMAction.md#example8",
+     "LLMAction.md#example9",
      "LLMAction.olx",
+     "LLMFeedback.md#example1",
+     "LLMFeedback.md#example3",
+     "LLMFeedback.md#example4",
+     "LLMFeedback.md#example5",
      "LLMFeedback.olx",
+     "LineInput.md#example1",
+     "LineInput.md#example2",
+     "LineInput.md#example4",
      "MarkdownMadLibs.olx",
      "MarkdownSyntaxExample.olx",
      "MasteryBank.olx",
@@ -311,29 +361,64 @@
      "MermaidTarget.olx",
      "NavigatorExamples.olx",
      "NavigatorReadings.olx",
+     "NumberInput.md#example5",
      "NumericalGraderStandalone.olx",
+     "OlxSlot.md#example1",
+     "OlxSlot.md#example3",
      "OlxSlot.olx",
      "OlxSlotLLM.olx",
+     "OnShow.md#example1",
      "OnShow.olx",
      "PEGDevBlock.olx",
      "PrintAction.olx",
+     "Ref.md#example1",
+     "Ref.md#example4",
+     "Ref.md#example5",
+     "Ref.md#example6",
+     "Ref.md#example7",
      "Ref.olx",
      "RefComplex.olx",
      "RefExamples.olx",
      "RefField.olx",
      "RefMadLibs.olx",
+     "ScoreTable.md#example2",
+     "Sequential.md#example1",
+     "Sequential.md#example2",
+     "Sequential.md#example3",
+     "Sequential.md#example4",
      "SetFieldAction.olx",
      "SharedNotes.olx",
+     "SheetValue.md#example2",
      "SimpleTextSelectionDemo.olx",
      "Spinner.olx",
      "StateViewer.olx",
      "StatusText.olx",
+     "Tabs.md#example1",
+     "Tabs.md#example2",
+     "Tabs.md#example3",
+     "Tabs.md#example4",
+     "TabularMCQ.md#example1",
+     "TabularMCQ.md#example4",
+     "TabularMCQ.md#example6",
+     "TextArea.md#example1",
+     "TextArea.md#example2",
+     "TextArea.md#example3",
+     "TextArea.md#example4",
+     "TextArea.md#example5",
+     "TextArea.md#example6",
      "TextAreaReadonly.olx",
+     "TextSlot.md#example2",
+     "TextSlot.md#example4",
+     "TimedContainer.md#example2",
      "Transcript.olx",
      "Trigger.olx",
+     "UseDynamic.md#example2",
      "UseDynamic.olx",
+     "UseHistory.md#example2",
      "UseHistory.olx",
      "UseHistoryChat.olx",
+     "Vertical.md#example1",
+     "Vertical.md#example2",
      "Vertical.olx",
      "VerticalBranching.olx",
      "WordUsage.olx",
@@ -357,58 +442,104 @@
      "psych_sba_activities_part3auto.olx",
      "psych_sba_activities_part4.olx",
      "psych_sba_activities_part4auto.olx",
+     "ref-demo.xml",
      "tr.demo.olx",
      "uk.demo.olx",
      "zh-Hans.demo.olx"
     ]
    },
    "Vertical|DynamicList": {
-    "n": 3,
+    "n": 7,
     "files": [
+     "DynamicList.md#example2",
+     "DynamicList.md#example3",
+     "DynamicList.md#example4",
      "DynamicList.olx",
-     "DynamicListStructured.olx"
+     "DynamicListStructured.olx",
+     "Ref.md#example4"
     ]
    },
-   "DynamicList|TextArea": {
-    "n": 1,
+   "DynamicList|LineInput": {
+    "n": 2,
     "files": [
-     "DynamicListStructured.olx"
+     "DynamicList.md#example3",
+     "DynamicList.olx"
     ]
    },
    "DynamicList|Vertical": {
-    "n": 1,
+    "n": 2,
     "files": [
+     "DynamicList.md#example4",
      "DynamicListStructured.olx"
     ]
    },
    "Vertical|TextArea": {
-    "n": 237,
+    "n": 184,
     "files": [
+     "ActionButton.md#example1",
+     "ActionButton.md#example4",
+     "ActionButton.md#example5",
      "ActionButtonLLM.olx",
      "ActionButtonMultiple.olx",
+     "Chat.md#example3",
      "ChatEmbed.olx",
      "ChatTargetEmbed.olx",
      "ChatWithAgent.olx",
      "ChatWithSidebarLegacy.olx",
+     "CopyFieldAction.md#example1",
      "CopyFieldAction.olx",
+     "DynamicList.md#example4",
      "DynamicListStructured.olx",
+     "Hidden.md#example1",
      "Hidden.olx",
+     "IntakeGate.md#example1",
+     "IntakeGate.md#example2",
+     "IntakeGate.md#example4",
      "IntakeGate.olx",
      "IntakeGateExpr.olx",
      "IntakeGateMath.olx",
+     "LLMAction.md#example1",
+     "LLMAction.md#example8",
+     "LLMAction.md#example9",
      "LLMAction.olx",
+     "LLMFeedback.md#example1",
+     "LLMFeedback.md#example3",
+     "LLMFeedback.md#example5",
      "LLMFeedback.olx",
      "MermaidPublish.olx",
      "MermaidTarget.olx",
+     "OlxSlot.md#example1",
+     "OlxSlot.md#example3",
      "OlxSlot.olx",
      "OlxSlotLLM.olx",
+     "OnShow.md#example1",
      "OnShow.olx",
+     "Ref.md#example1",
+     "Ref.md#example4",
+     "Ref.md#example5",
      "RefExamples.olx",
      "RefField.olx",
+     "Sequential.md#example2",
+     "Sequential.md#example3",
+     "Sequential.md#example4",
+     "SetFieldAction.md#example1",
      "SetFieldAction.olx",
+     "SheetValue.md#example2",
+     "Tabs.md#example3",
+     "Tabs.md#example4",
+     "TextArea.md#example1",
+     "TextArea.md#example2",
+     "TextArea.md#example3",
+     "TextArea.md#example4",
+     "TextArea.md#example5",
+     "TextArea.md#example6",
      "TextAreaReadonly.olx",
+     "TextSlot.md#example2",
      "TextSlot.olx",
+     "TimedContainer.md#example2",
+     "UseHistory.md#example2",
      "UseHistoryChat.olx",
+     "Vertical.md#example2",
      "WordUsage.olx",
      "WordUsageDemo.olx",
      "WritingRhythmPlot.olx",
@@ -426,41 +557,26 @@
      "psych_sba_activities_part3auto.olx",
      "psych_sba_activities_part4.olx",
      "psych_sba_activities_part4auto.olx",
+     "ref-demo.xml",
      "tr.demo.olx",
      "uk.demo.olx",
      "zh-Hans.demo.olx"
     ]
    },
-   "DynamicList|LineInput": {
-    "n": 1,
-    "files": [
-     "DynamicList.olx"
-    ]
-   },
-   "Vertical|Vertical": {
-    "n": 202,
-    "files": [
-     "ChatEmbed.olx",
-     "Hidden.olx",
-     "LLMAction.olx",
-     "LLMFeedback.olx",
-     "psych_sba_activities_part1.olx",
-     "psych_sba_activities_part2.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part3auto.olx",
-     "psych_sba_activities_part4.olx",
-     "psych_sba_activities_part4auto.olx"
-    ]
-   },
    "Vertical|Hidden": {
-    "n": 12,
+    "n": 17,
     "files": [
+     "Carousel.md#example1",
+     "Chat.md#example3",
      "ChatTargetEmbed.olx",
      "ChatWithSidebarLegacy.olx",
+     "ChoiceInput.md#example4",
+     "Hidden.md#example1",
      "Hidden.olx",
      "Navigator.olx",
      "NavigatorExamples.olx",
      "NavigatorReadings.olx",
+     "UseDynamic.md#example2",
      "UseDynamic.olx",
      "UseHistory.olx",
      "UseHistoryChat.olx",
@@ -468,97 +584,113 @@
     ]
    },
    "Hidden|Markdown": {
-    "n": 14,
+    "n": 28,
     "files": [
+     "Carousel.md#example1",
      "ChatTargetEmbed.olx",
      "ChatWithSidebarLegacy.olx",
+     "ChoiceInput.md#example4",
+     "Hidden.md#example1",
      "Hidden.olx",
      "NavigatorReadings.olx",
+     "RulesGrader.md#example3",
+     "UseDynamic.md#example2",
      "UseDynamic.olx",
+     "UseHistory.md#example1",
+     "UseHistory.md#example2",
      "UseHistory.olx",
      "UseHistoryChat.olx"
     ]
    },
-   "Noop|Markdown": {
-    "n": 2,
+   "Vertical|LLMFeedback": {
+    "n": 67,
     "files": [
-     "Noop.olx"
-    ]
-   },
-   "CompactPopout|Markdown": {
-    "n": 1,
-    "files": [
-     "CompactPopout.olx"
-    ]
-   },
-   "TimedContainer|Markdown": {
-    "n": 4,
-    "files": [
-     "FreewriteChain.olx",
-     "TimedContainer.olx"
-    ]
-   },
-   "TimedContainer|TextArea": {
-    "n": 1,
-    "files": [
-     "TimedContainer.olx"
-    ]
-   },
-   "Vertical|IntakeGate": {
-    "n": 48,
-    "files": [
-     "IntakeGateExpr.olx",
-     "IntakeGateMath.olx",
-     "bmod_handout1.olx",
-     "bmod_handout2.olx",
-     "bmod_handout3.olx",
+     "ActionButton.md#example1",
+     "ActionButton.md#example4",
+     "ActionButton.md#example5",
+     "ActionButtonLLM.olx",
+     "ActionButtonMultiple.olx",
+     "Hidden.md#example1",
+     "LLMAction.md#example1",
+     "LLMAction.md#example8",
+     "LLMAction.md#example9",
+     "LLMAction.olx",
+     "LLMFeedback.md#example1",
+     "LLMFeedback.md#example3",
+     "LLMFeedback.md#example4",
+     "LLMFeedback.md#example5",
+     "LLMFeedback.olx",
+     "Ref.md#example5",
+     "RefExamples.olx",
+     "RefField.olx",
+     "TextArea.md#example5",
+     "ar.demo.olx",
+     "es.demo.olx",
+     "interactive.olx",
+     "pl.demo.olx",
+     "postcard-demo.olx",
+     "psych_sba_activities_part1.olx",
      "psych_sba_activities_part3.olx",
      "psych_sba_activities_part3auto.olx",
      "psych_sba_activities_part4.olx",
-     "psych_sba_activities_part4auto.olx"
-    ]
-   },
-   "IntakeGate|Vertical": {
-    "n": 46,
-    "files": [
-     "IntakeGate.olx",
-     "IntakeGateExpr.olx",
-     "IntakeGateMath.olx",
-     "OlxSlotLLM.olx",
-     "bmod_handout1.olx",
-     "bmod_handout2.olx",
-     "bmod_handout3.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part3auto.olx",
-     "psych_sba_activities_part4.olx",
-     "psych_sba_activities_part4auto.olx"
+     "psych_sba_activities_part4auto.olx",
+     "tr.demo.olx",
+     "uk.demo.olx",
+     "zh-Hans.demo.olx"
     ]
    },
    "Vertical|ActionButton": {
-    "n": 167,
+    "n": 127,
     "files": [
+     "ActionButton.md#example1",
+     "ActionButton.md#example3",
+     "ActionButton.md#example4",
+     "ActionButton.md#example5",
      "ActionButton.olx",
      "ActionButtonGrading.olx",
      "ActionButtonLLM.olx",
      "ActionButtonMultiple.olx",
      "ActionButtonStandalone.olx",
      "ChatWithSidebarLegacy.olx",
+     "CopyFieldAction.md#example1",
      "CopyFieldAction.olx",
      "CorrectnessStandalone.olx",
      "Flash.olx",
      "FlashColors.olx",
+     "Hidden.md#example1",
+     "IntakeGate.md#example1",
+     "IntakeGate.md#example2",
+     "IntakeGate.md#example3",
+     "IntakeGate.md#example4",
      "IntakeGate.olx",
      "IntakeGateMath.olx",
+     "LLMAction.md#example1",
+     "LLMAction.md#example8",
+     "LLMAction.md#example9",
      "LLMAction.olx",
+     "LLMFeedback.md#example1",
+     "LLMFeedback.md#example3",
+     "LLMFeedback.md#example4",
+     "LLMFeedback.md#example5",
      "LLMFeedback.olx",
      "MermaidPublish.olx",
      "NumericalGraderStandalone.olx",
+     "OlxSlot.md#example2",
+     "OlxSlot.md#example3",
      "OlxSlotLLM.olx",
      "PrintAction.olx",
+     "Ref.md#example5",
      "RefExamples.olx",
      "RefField.olx",
+     "SetFieldAction.md#example1",
      "SetFieldAction.olx",
+     "TextArea.md#example5",
+     "TextArea.md#example6",
      "TextAreaReadonly.olx",
+     "TextSlot.md#example1",
+     "TextSlot.md#example2",
+     "TextSlot.md#example3",
+     "TextSlot.md#example4",
      "TextSlot.olx",
      "UseHistoryChat.olx",
      "ar.demo.olx",
@@ -581,17 +713,43 @@
     ]
    },
    "ActionButton|LLMAction": {
-    "n": 268,
+    "n": 173,
     "files": [
+     "ActionButton.md#example1",
+     "ActionButton.md#example2",
+     "ActionButton.md#example4",
+     "ActionButton.md#example5",
      "ActionButtonLLM.olx",
      "ActionButtonMultiple.olx",
+     "Hidden.md#example1",
+     "IntakeGate.md#example1",
+     "IntakeGate.md#example2",
+     "IntakeGate.md#example3",
+     "IntakeGate.md#example4",
      "IntakeGate.olx",
      "IntakeGateMath.olx",
+     "LLMAction.md#example1",
+     "LLMAction.md#example6",
+     "LLMAction.md#example8",
+     "LLMAction.md#example9",
      "LLMAction.olx",
+     "LLMFeedback.md#example1",
+     "LLMFeedback.md#example2",
+     "LLMFeedback.md#example3",
+     "LLMFeedback.md#example4",
+     "LLMFeedback.md#example5",
      "LLMFeedback.olx",
+     "OlxSlot.md#example2",
+     "OlxSlot.md#example3",
      "OlxSlotLLM.olx",
+     "Ref.md#example5",
      "RefExamples.olx",
      "RefField.olx",
+     "TextArea.md#example5",
+     "TextSlot.md#example1",
+     "TextSlot.md#example2",
+     "TextSlot.md#example3",
+     "TextSlot.md#example4",
      "TextSlot.olx",
      "ar.demo.olx",
      "bmod_handout1.olx",
@@ -614,17 +772,39 @@
     ]
    },
    "LLMAction|Ref": {
-    "n": 549,
+    "n": 309,
     "files": [
+     "ActionButton.md#example1",
+     "ActionButton.md#example4",
+     "ActionButton.md#example5",
      "ActionButtonLLM.olx",
      "ActionButtonMultiple.olx",
+     "Hidden.md#example1",
+     "IntakeGate.md#example1",
+     "IntakeGate.md#example2",
+     "IntakeGate.md#example3",
+     "IntakeGate.md#example4",
      "IntakeGate.olx",
      "IntakeGateMath.olx",
+     "LLMAction.md#example1",
+     "LLMAction.md#example5",
+     "LLMAction.md#example7",
+     "LLMAction.md#example8",
+     "LLMAction.md#example9",
      "LLMAction.olx",
+     "LLMFeedback.md#example1",
+     "LLMFeedback.md#example2",
+     "LLMFeedback.md#example3",
+     "LLMFeedback.md#example4",
+     "LLMFeedback.md#example5",
      "LLMFeedback.olx",
+     "OlxSlot.md#example3",
      "OlxSlotLLM.olx",
+     "Ref.md#example5",
      "RefExamples.olx",
      "RefField.olx",
+     "TextArea.md#example5",
+     "TextSlot.md#example2",
      "TextSlot.olx",
      "ar.demo.olx",
      "bmod_handout1.olx",
@@ -646,6 +826,406 @@
      "zh-Hans.demo.olx"
     ]
    },
+   "Vertical|Vertical": {
+    "n": 104,
+    "files": [
+     "ChatEmbed.olx",
+     "Hidden.olx",
+     "LLMAction.olx",
+     "LLMFeedback.olx",
+     "psych_sba_activities_part1.olx",
+     "psych_sba_activities_part2.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part3auto.olx",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "Noop|Markdown": {
+    "n": 6,
+    "files": [
+     "Noop.md#example1",
+     "Noop.md#example2",
+     "Noop.olx"
+    ]
+   },
+   "CompactPopout|Markdown": {
+    "n": 1,
+    "files": [
+     "CompactPopout.olx"
+    ]
+   },
+   "TimedContainer|Markdown": {
+    "n": 7,
+    "files": [
+     "FreewriteChain.olx",
+     "TimedContainer.md#example1",
+     "TimedContainer.md#example2",
+     "TimedContainer.olx"
+    ]
+   },
+   "TimedContainer|TextArea": {
+    "n": 2,
+    "files": [
+     "TimedContainer.md#example1",
+     "TimedContainer.olx"
+    ]
+   },
+   "TimedContainer|Vertical": {
+    "n": 1,
+    "files": [
+     "TimedContainer.md#example2"
+    ]
+   },
+   "IntakeGate|Vertical": {
+    "n": 36,
+    "files": [
+     "IntakeGate.md#example1",
+     "IntakeGate.md#example2",
+     "IntakeGate.md#example3",
+     "IntakeGate.md#example4",
+     "IntakeGate.olx",
+     "IntakeGateExpr.olx",
+     "IntakeGateMath.olx",
+     "OlxSlot.md#example3",
+     "OlxSlotLLM.olx",
+     "TextSlot.md#example2",
+     "bmod_handout1.olx",
+     "bmod_handout2.olx",
+     "bmod_handout3.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part3auto.olx",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "Vertical|TextSlot": {
+    "n": 10,
+    "files": [
+     "IntakeGate.md#example1",
+     "IntakeGate.md#example3",
+     "IntakeGate.md#example4",
+     "IntakeGate.olx",
+     "TextSlot.md#example1",
+     "TextSlot.md#example2",
+     "TextSlot.md#example4",
+     "TextSlot.olx"
+    ]
+   },
+   "IntakeGate|CapaProblem": {
+    "n": 1,
+    "files": [
+     "IntakeGate.md#example2"
+    ]
+   },
+   "CapaProblem|TextSlot": {
+    "n": 2,
+    "files": [
+     "IntakeGate.md#example2",
+     "TextSlot.md#example3"
+    ]
+   },
+   "CapaProblem|Markdown": {
+    "n": 39,
+    "files": [
+     "CapaProblem.md#example3",
+     "CapaProblemTargeting.olx",
+     "ChoiceInputMCQ.olx",
+     "ChoiceInputTrueFalse.olx",
+     "CustomGrader.md#example1",
+     "CustomGrader.md#example2",
+     "CustomGrader.md#example3",
+     "CustomGrader.md#example4",
+     "CustomGrader.md#example5",
+     "CustomGrader.md#example6",
+     "CustomGrader.olx",
+     "DefaultGraderAsMatch.olx",
+     "DemandHints.olx",
+     "DerivedChecks.md#example1",
+     "DropdownInputGraded.olx",
+     "FormulaGrader.olx",
+     "IntakeGate.md#example2",
+     "LLMGrader.olx",
+     "OlxSlotLLM.olx",
+     "RatioGraderExample.olx",
+     "SlotSheetGrader.md#example1",
+     "SlotSheetGrader.md#example2",
+     "SlotSheetGrader.md#example3",
+     "TabularMCQ.md#example5",
+     "TabularMCQGrader.md#example1",
+     "TabularMCQGraderCheckbox.olx",
+     "psych_sba_activities_part1.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part3auto.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "CapaProblem|KeyGrader": {
+    "n": 77,
+    "files": [
+     "AggregatedInputs.olx",
+     "CapaProblem.md#example10",
+     "CapaProblem.md#example6",
+     "CapaProblemChoice.olx",
+     "CapaProblemImmediate.olx",
+     "ChoiceInput.md#example1",
+     "ChoiceInput.md#example2",
+     "ChoiceInput.md#example3",
+     "ChoiceInputExample.olx",
+     "ChoiceInputGraded.olx",
+     "ChoiceInputMCQ.olx",
+     "ChoiceInputTrueFalse.olx",
+     "DropdownInput.md#example5",
+     "DropdownInputGraded.olx",
+     "Explanation.md#example2",
+     "IntakeGate.md#example2",
+     "IntakeGateMath.olx",
+     "KeyGrader.md#example1",
+     "KeyGrader.olx",
+     "Markdown.md#example5",
+     "MasteryBank.olx",
+     "NextReveal.md#example1",
+     "OlxSlotLLM.olx",
+     "Sequential.md#example3",
+     "Sequential.olx",
+     "SequentialLearning.olx",
+     "SideBarPanel.md#example4",
+     "TextSlot.md#example3",
+     "UseDynamic.olx",
+     "UseHistory.olx",
+     "VerticalBranching.olx",
+     "bmod_h2_scenarios.olx",
+     "idlist.pegjs.preview.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part4.olx"
+    ]
+   },
+   "KeyGrader|ChoiceInput": {
+    "n": 75,
+    "files": [
+     "AggregatedInputs.olx",
+     "CapaProblem.md#example10",
+     "CapaProblem.md#example6",
+     "CapaProblemChoice.olx",
+     "CapaProblemImmediate.olx",
+     "ChoiceInput.md#example1",
+     "ChoiceInput.md#example2",
+     "ChoiceInput.md#example3",
+     "ChoiceInputExample.olx",
+     "ChoiceInputGraded.olx",
+     "ChoiceInputMCQ.olx",
+     "ChoiceInputTrueFalse.olx",
+     "Explanation.md#example2",
+     "IntakeGate.md#example2",
+     "IntakeGateMath.olx",
+     "KeyGrader.md#example1",
+     "KeyGrader.olx",
+     "Markdown.md#example5",
+     "MasteryBank.olx",
+     "NextReveal.md#example1",
+     "OlxSlotLLM.olx",
+     "Sequential.md#example3",
+     "Sequential.olx",
+     "SequentialLearning.olx",
+     "SideBarPanel.md#example4",
+     "TextSlot.md#example3",
+     "UseDynamic.olx",
+     "UseHistory.olx",
+     "VerticalBranching.olx",
+     "bmod_h2_scenarios.olx",
+     "idlist.pegjs.preview.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part4.olx"
+    ]
+   },
+   "ChoiceInput|Key": {
+    "n": 114,
+    "files": [
+     "AggregatedInputs.olx",
+     "CapaProblem.md#example10",
+     "CapaProblem.md#example6",
+     "CapaProblemChoice.olx",
+     "CapaProblemImmediate.olx",
+     "ChoiceInput.md#example1",
+     "ChoiceInput.md#example2",
+     "ChoiceInput.md#example3",
+     "ChoiceInput.md#example4",
+     "ChoiceInput.olx",
+     "ChoiceInputExample.olx",
+     "ChoiceInputGraded.olx",
+     "ChoiceInputMCQ.olx",
+     "ChoiceInputTrueFalse.olx",
+     "Distractor.md#example1",
+     "Distractor.md#example2",
+     "Distractor.olx",
+     "Explanation.md#example2",
+     "IntakeGate.md#example2",
+     "IntakeGateExpr.olx",
+     "IntakeGateMath.olx",
+     "Key.md#example1",
+     "Key.md#example2",
+     "Key.olx",
+     "KeyGrader.md#example1",
+     "KeyGrader.olx",
+     "Markdown.md#example5",
+     "MasteryBank.olx",
+     "NextReveal.md#example1",
+     "OlxSlotLLM.olx",
+     "Sequential.md#example3",
+     "Sequential.md#example4",
+     "Sequential.olx",
+     "SequentialLearning.olx",
+     "SideBarPanel.md#example4",
+     "TextSlot.md#example3",
+     "UseDynamic.md#example2",
+     "UseDynamic.olx",
+     "UseHistory.md#example1",
+     "UseHistory.olx",
+     "VerticalBranching.olx",
+     "bmod_h2_scenarios.olx",
+     "bmod_handout1.olx",
+     "bmod_handout2.olx",
+     "consent.olx",
+     "idlist.pegjs.preview.olx",
+     "psych_sba_activities_part1.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part3auto.olx",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "ChoiceInput|Distractor": {
+    "n": 229,
+    "files": [
+     "AggregatedInputs.olx",
+     "CapaProblem.md#example10",
+     "CapaProblem.md#example6",
+     "CapaProblemChoice.olx",
+     "CapaProblemImmediate.olx",
+     "ChoiceInput.md#example1",
+     "ChoiceInput.md#example2",
+     "ChoiceInput.md#example3",
+     "ChoiceInput.md#example4",
+     "ChoiceInput.olx",
+     "ChoiceInputExample.olx",
+     "ChoiceInputGraded.olx",
+     "ChoiceInputMCQ.olx",
+     "ChoiceInputTrueFalse.olx",
+     "Distractor.md#example1",
+     "Distractor.md#example2",
+     "Distractor.olx",
+     "Explanation.md#example2",
+     "IntakeGate.md#example2",
+     "IntakeGateMath.olx",
+     "Key.md#example1",
+     "Key.md#example2",
+     "Key.olx",
+     "KeyGrader.md#example1",
+     "KeyGrader.olx",
+     "Markdown.md#example5",
+     "MasteryBank.olx",
+     "NextReveal.md#example1",
+     "OlxSlotLLM.olx",
+     "Sequential.md#example3",
+     "Sequential.md#example4",
+     "Sequential.olx",
+     "SequentialLearning.olx",
+     "SideBarPanel.md#example4",
+     "TextSlot.md#example3",
+     "UseDynamic.md#example2",
+     "UseDynamic.olx",
+     "UseHistory.md#example1",
+     "UseHistory.olx",
+     "VerticalBranching.olx",
+     "bmod_h2_scenarios.olx",
+     "idlist.pegjs.preview.olx",
+     "psych_sba_activities_part1.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part3auto.olx",
+     "psych_sba_activities_part4.olx"
+    ]
+   },
+   "Vertical|ChoiceInput": {
+    "n": 12,
+    "files": [
+     "ChoiceInput.md#example4",
+     "IntakeGate.md#example3",
+     "IntakeGateExpr.olx",
+     "Sequential.md#example4",
+     "UseDynamic.md#example2",
+     "consent.olx",
+     "psych_sba_activities_part1.olx",
+     "psych_sba_activities_part3auto.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "Vertical|IntakeGate": {
+    "n": 25,
+    "files": [
+     "IntakeGateExpr.olx",
+     "IntakeGateMath.olx",
+     "bmod_handout1.olx",
+     "bmod_handout2.olx",
+     "bmod_handout3.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part3auto.olx",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "Vertical|Collapsible": {
+    "n": 33,
+    "files": [
+     "Collapsible.md#example2",
+     "Collapsible.md#example4",
+     "CollapsibleNested.olx",
+     "IntakeGateExpr.olx",
+     "Ref.md#example7",
+     "Sequential.md#example2",
+     "TextArea.md#example3",
+     "ar.demo.olx",
+     "es.demo.olx",
+     "interactive.olx",
+     "pl.demo.olx",
+     "postcard-demo.olx",
+     "psych_sba_activities_part3auto.olx",
+     "tr.demo.olx",
+     "uk.demo.olx",
+     "zh-Hans.demo.olx"
+    ]
+   },
+   "Collapsible|Markdown": {
+    "n": 43,
+    "files": [
+     "Collapsible.md#example1",
+     "Collapsible.md#example2",
+     "Collapsible.md#example3",
+     "Collapsible.md#example4",
+     "Collapsible.md#example5",
+     "Collapsible.olx",
+     "CollapsibleNested.olx",
+     "IntakeGateExpr.olx",
+     "Ref.md#example7",
+     "Sequential.md#example2",
+     "TextArea.md#example3",
+     "ar.demo.olx",
+     "es.demo.olx",
+     "interactive.olx",
+     "pl.demo.olx",
+     "postcard-demo.olx",
+     "psych_sba_activities_part3auto.olx",
+     "tr.demo.olx",
+     "uk.demo.olx",
+     "zh-Hans.demo.olx"
+    ]
+   },
+   "Collapsible|TextArea": {
+    "n": 3,
+    "files": [
+     "IntakeGateExpr.olx",
+     "psych_sba_activities_part3auto.olx"
+    ]
+   },
    "IntakeGate|Sequential": {
     "n": 1,
     "files": [
@@ -653,7 +1233,7 @@
     ]
    },
    "Sequential|Markdown": {
-    "n": 36,
+    "n": 21,
     "files": [
      "Course.olx",
      "IntakeGateMath.olx",
@@ -674,198 +1254,52 @@
      "SequentialLearning.olx"
     ]
    },
-   "CapaProblem|KeyGrader": {
-    "n": 98,
-    "files": [
-     "AggregatedInputs.olx",
-     "CapaProblemChoice.olx",
-     "CapaProblemImmediate.olx",
-     "ChoiceInputExample.olx",
-     "ChoiceInputGraded.olx",
-     "ChoiceInputMCQ.olx",
-     "ChoiceInputTrueFalse.olx",
-     "DropdownInputGraded.olx",
-     "IntakeGateMath.olx",
-     "KeyGrader.olx",
-     "MasteryBank.olx",
-     "OlxSlotLLM.olx",
-     "Sequential.olx",
-     "SequentialLearning.olx",
-     "UseDynamic.olx",
-     "UseHistory.olx",
-     "VerticalBranching.olx",
-     "bmod_h2_scenarios.olx",
-     "idlist.pegjs.preview.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part4.olx"
-    ]
-   },
    "KeyGrader|TextSlot": {
     "n": 3,
     "files": [
      "IntakeGateMath.olx"
     ]
    },
-   "KeyGrader|ChoiceInput": {
-    "n": 97,
-    "files": [
-     "AggregatedInputs.olx",
-     "CapaProblemChoice.olx",
-     "CapaProblemImmediate.olx",
-     "ChoiceInputExample.olx",
-     "ChoiceInputGraded.olx",
-     "ChoiceInputMCQ.olx",
-     "ChoiceInputTrueFalse.olx",
-     "IntakeGateMath.olx",
-     "KeyGrader.olx",
-     "MasteryBank.olx",
-     "OlxSlotLLM.olx",
-     "Sequential.olx",
-     "SequentialLearning.olx",
-     "UseDynamic.olx",
-     "UseHistory.olx",
-     "VerticalBranching.olx",
-     "bmod_h2_scenarios.olx",
-     "idlist.pegjs.preview.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part4.olx"
-    ]
-   },
-   "ChoiceInput|Key": {
-    "n": 153,
-    "files": [
-     "AggregatedInputs.olx",
-     "CapaProblemChoice.olx",
-     "CapaProblemImmediate.olx",
-     "ChoiceInput.olx",
-     "ChoiceInputExample.olx",
-     "ChoiceInputGraded.olx",
-     "ChoiceInputMCQ.olx",
-     "ChoiceInputTrueFalse.olx",
-     "Distractor.olx",
-     "IntakeGateExpr.olx",
-     "IntakeGateMath.olx",
-     "Key.olx",
-     "KeyGrader.olx",
-     "MasteryBank.olx",
-     "OlxSlotLLM.olx",
-     "Sequential.olx",
-     "SequentialLearning.olx",
-     "UseDynamic.olx",
-     "UseHistory.olx",
-     "VerticalBranching.olx",
-     "bmod_h2_scenarios.olx",
-     "bmod_handout1.olx",
-     "bmod_handout2.olx",
-     "consent.olx",
-     "idlist.pegjs.preview.olx",
-     "psych_sba_activities_part1.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part3auto.olx",
-     "psych_sba_activities_part4.olx",
-     "psych_sba_activities_part4auto.olx"
-    ]
-   },
-   "ChoiceInput|Distractor": {
-    "n": 306,
-    "files": [
-     "AggregatedInputs.olx",
-     "CapaProblemChoice.olx",
-     "CapaProblemImmediate.olx",
-     "ChoiceInput.olx",
-     "ChoiceInputExample.olx",
-     "ChoiceInputGraded.olx",
-     "ChoiceInputMCQ.olx",
-     "ChoiceInputTrueFalse.olx",
-     "Distractor.olx",
-     "IntakeGateMath.olx",
-     "Key.olx",
-     "KeyGrader.olx",
-     "MasteryBank.olx",
-     "OlxSlotLLM.olx",
-     "Sequential.olx",
-     "SequentialLearning.olx",
-     "UseDynamic.olx",
-     "UseHistory.olx",
-     "VerticalBranching.olx",
-     "bmod_h2_scenarios.olx",
-     "idlist.pegjs.preview.olx",
-     "psych_sba_activities_part1.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part3auto.olx",
-     "psych_sba_activities_part4.olx"
-    ]
-   },
    "KeyGrader|Explanation": {
-    "n": 45,
+    "n": 27,
     "files": [
      "ChoiceInputGraded.olx",
+     "DropdownInput.md#example5",
+     "Explanation.md#example2",
      "IntakeGateMath.olx",
      "KeyGrader.olx",
      "bmod_h2_scenarios.olx"
     ]
    },
-   "Vertical|TextSlot": {
-    "n": 2,
-    "files": [
-     "IntakeGate.olx",
-     "TextSlot.olx"
-    ]
-   },
-   "Vertical|ChoiceInput": {
-    "n": 15,
-    "files": [
-     "IntakeGateExpr.olx",
-     "consent.olx",
-     "psych_sba_activities_part1.olx",
-     "psych_sba_activities_part3auto.olx",
-     "psych_sba_activities_part4auto.olx"
-    ]
-   },
-   "Vertical|Collapsible": {
-    "n": 54,
-    "files": [
-     "CollapsibleNested.olx",
-     "IntakeGateExpr.olx",
-     "ar.demo.olx",
-     "es.demo.olx",
-     "interactive.olx",
-     "pl.demo.olx",
-     "postcard-demo.olx",
-     "psych_sba_activities_part3auto.olx",
-     "tr.demo.olx",
-     "uk.demo.olx",
-     "zh-Hans.demo.olx"
-    ]
-   },
-   "Collapsible|Markdown": {
-    "n": 55,
-    "files": [
-     "Collapsible.olx",
-     "CollapsibleNested.olx",
-     "IntakeGateExpr.olx",
-     "ar.demo.olx",
-     "es.demo.olx",
-     "interactive.olx",
-     "pl.demo.olx",
-     "postcard-demo.olx",
-     "psych_sba_activities_part3auto.olx",
-     "tr.demo.olx",
-     "uk.demo.olx",
-     "zh-Hans.demo.olx"
-    ]
-   },
-   "Collapsible|TextArea": {
+   "Course|Markdown": {
     "n": 5,
     "files": [
-     "IntakeGateExpr.olx",
-     "psych_sba_activities_part3auto.olx"
+     "Course.md#example2",
+     "Course.md#example5",
+     "Course.olx"
     ]
    },
-   "Course|Markdown": {
-    "n": 2,
+   "Course|Sequential": {
+    "n": 5,
     "files": [
-     "Course.olx"
+     "Course.md#example3",
+     "Course.md#example6"
+    ]
+   },
+   "Tabs|Vertical": {
+    "n": 64,
+    "files": [
+     "Tabs.md#example1",
+     "Tabs.md#example2",
+     "Tabs.md#example3",
+     "Tabs.md#example4",
+     "WritingRhythmPlotComparative.olx",
+     "bmod_handout3.olx",
+     "psych_sba_activities_part2.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part3auto.olx",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx"
     ]
    },
    "Tabs|Markdown": {
@@ -874,33 +1308,29 @@
      "Tabs.olx"
     ]
    },
+   "Hidden|NavigatorDefaultPreview": {
+    "n": 4,
+    "files": [
+     "Navigator.md#example1",
+     "Navigator.olx",
+     "NavigatorExamples.olx",
+     "NavigatorReadings.olx"
+    ]
+   },
+   "Hidden|NavigatorDefaultDetail": {
+    "n": 3,
+    "files": [
+     "Navigator.md#example1",
+     "Navigator.olx",
+     "NavigatorExamples.olx"
+    ]
+   },
    "Vertical|Navigator": {
     "n": 5,
     "files": [
      "Navigator.olx",
      "NavigatorExamples.olx",
      "NavigatorReadings.olx"
-    ]
-   },
-   "Hidden|NavigatorDefaultPreview": {
-    "n": 3,
-    "files": [
-     "Navigator.olx",
-     "NavigatorExamples.olx",
-     "NavigatorReadings.olx"
-    ]
-   },
-   "Hidden|NavigatorReadingDetail": {
-    "n": 1,
-    "files": [
-     "NavigatorReadings.olx"
-    ]
-   },
-   "Hidden|NavigatorDefaultDetail": {
-    "n": 2,
-    "files": [
-     "Navigator.olx",
-     "NavigatorExamples.olx"
     ]
    },
    "Hidden|NavigatorTeamPreview": {
@@ -915,11 +1345,28 @@
      "NavigatorExamples.olx"
     ]
    },
-   "Vertical|Sequential": {
-    "n": 19,
+   "Hidden|NavigatorReadingDetail": {
+    "n": 1,
     "files": [
+     "NavigatorReadings.olx"
+    ]
+   },
+   "Sequential|Vertical": {
+    "n": 144,
+    "files": [
+     "OnShow.md#example1",
+     "OnShow.olx",
+     "Sequential.md#example1",
+     "Sequential.md#example2",
+     "Sequential.md#example3",
+     "Sequential.md#example4",
      "SequentialLearning.olx",
+     "TextArea.md#example6",
+     "TextAreaReadonly.olx",
      "ar.demo.olx",
+     "bmod_handout1.olx",
+     "bmod_handout2.olx",
+     "bmod_handout3.olx",
      "es.demo.olx",
      "interactive.olx",
      "pl.demo.olx",
@@ -929,16 +1376,151 @@
      "zh-Hans.demo.olx"
     ]
    },
-   "Sequential|Vertical": {
-    "n": 250,
+   "Vertical|NumberInput": {
+    "n": 21,
     "files": [
-     "OnShow.olx",
-     "SequentialLearning.olx",
-     "TextAreaReadonly.olx",
-     "ar.demo.olx",
+     "ActionButton.md#example3",
+     "ActionButtonGrading.olx",
+     "ActionButtonStandalone.olx",
+     "AggregatedInputs.olx",
+     "ChatWithSidebarLegacy.olx",
+     "CorrectnessStandalone.olx",
+     "LLMFeedback.md#example4",
+     "NumberInput.md#example5",
+     "NumericalGraderStandalone.olx",
+     "ObservablePlot.md#example4",
+     "Ref.md#example7",
+     "RefExamples.olx",
+     "Sequential.md#example2",
+     "UseHistoryChat.olx"
+    ]
+   },
+   "Vertical|CapaProblem": {
+    "n": 84,
+    "files": [
+     "AggregatedInputs.olx",
+     "CapaProblemModes.olx",
+     "ComplexInputExamples.olx",
+     "CustomGrader.olx",
+     "ExplanationExamples.olx",
+     "MasteryBank.olx",
+     "ScoreTable.md#example2",
+     "Sequential.md#example3",
+     "SheetValue.md#example2",
+     "SimpleTextSelectionDemo.olx",
+     "StatusText.olx",
+     "StringGraderRegExp.olx",
+     "TextSlot.md#example3",
+     "Trigger.olx",
+     "UseDynamic.olx",
+     "UseHistory.olx",
+     "VerticalBranching.olx",
+     "bmod_h2_scenarios.olx",
      "bmod_handout1.olx",
      "bmod_handout2.olx",
-     "bmod_handout3.olx",
+     "psych_sba_activities_part1.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part3auto.olx",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "KeyGrader|Markdown": {
+    "n": 14,
+    "files": [
+     "CapaProblem.md#example10",
+     "CapaProblem.md#example6",
+     "ChoiceInput.md#example1",
+     "ChoiceInput.md#example2",
+     "ChoiceInput.md#example3",
+     "ChoiceInputGraded.olx",
+     "DropdownInput.md#example5",
+     "Explanation.md#example2",
+     "KeyGrader.md#example1",
+     "KeyGrader.olx",
+     "NextReveal.md#example1",
+     "Sequential.md#example3",
+     "psych_sba_activities_part3.olx"
+    ]
+   },
+   "Sequential|SplitPanel": {
+    "n": 1,
+    "files": [
+     "Sequential.olx"
+    ]
+   },
+   "CapaProblem|NumericalGrader": {
+    "n": 47,
+    "files": [
+     "CapaProblem.md#example1",
+     "CapaProblem.md#example2",
+     "CapaProblem.md#example4",
+     "CapaProblem.md#example9",
+     "CapaProblem.olx",
+     "CapaProblemImmediate.olx",
+     "CapaProblemModes.olx",
+     "CapaProblemMultipart.olx",
+     "CapaProblemNumerical.olx",
+     "ComplexInput.md#example2",
+     "ComplexInput.md#example3",
+     "ComplexInputExamples.olx",
+     "Correctness.olx",
+     "Explanation.md#example1",
+     "Explanation.md#example3",
+     "Explanation.olx",
+     "ExplanationExamples.olx",
+     "NumberInput.md#example1",
+     "NumberInput.md#example2",
+     "NumberInput.md#example3",
+     "NumberInputGraded.olx",
+     "NumericalGrader.md#example1",
+     "NumericalGrader.md#example2",
+     "NumericalGrader.md#example4",
+     "NumericalGrader.md#example6",
+     "NumericalGrader.md#example7",
+     "NumericalGrader.olx",
+     "NumericalGraderBasic.olx",
+     "NumericalGraderExample.olx",
+     "NumericalGraderPercentage.olx",
+     "SequentialAdaptive.olx",
+     "StatusText.olx"
+    ]
+   },
+   "NumericalGrader|NumberInput": {
+    "n": 37,
+    "files": [
+     "CapaProblem.md#example1",
+     "CapaProblem.md#example2",
+     "CapaProblem.md#example4",
+     "CapaProblem.md#example9",
+     "CapaProblem.olx",
+     "CapaProblemModes.olx",
+     "CapaProblemMultipart.olx",
+     "CapaProblemNumerical.olx",
+     "Correctness.olx",
+     "Explanation.md#example1",
+     "Explanation.md#example3",
+     "Explanation.olx",
+     "ExplanationExamples.olx",
+     "NumberInput.md#example1",
+     "NumberInput.md#example2",
+     "NumberInput.md#example3",
+     "NumberInputGraded.olx",
+     "NumericalGrader.md#example1",
+     "NumericalGrader.md#example2",
+     "NumericalGrader.md#example4",
+     "NumericalGrader.md#example6",
+     "NumericalGrader.md#example7",
+     "NumericalGrader.olx",
+     "NumericalGraderExample.olx",
+     "SequentialAdaptive.olx"
+    ]
+   },
+   "Vertical|Sequential": {
+    "n": 10,
+    "files": [
+     "SequentialLearning.olx",
+     "ar.demo.olx",
      "es.demo.olx",
      "interactive.olx",
      "pl.demo.olx",
@@ -954,104 +1536,58 @@
      "SequentialLearning.olx"
     ]
    },
-   "Sequential|SplitPanel": {
-    "n": 1,
-    "files": [
-     "Sequential.olx"
-    ]
-   },
-   "CapaProblem|NumericalGrader": {
-    "n": 30,
-    "files": [
-     "CapaProblem.olx",
-     "CapaProblemImmediate.olx",
-     "CapaProblemModes.olx",
-     "CapaProblemMultipart.olx",
-     "CapaProblemNumerical.olx",
-     "ComplexInputExamples.olx",
-     "Correctness.olx",
-     "Explanation.olx",
-     "ExplanationExamples.olx",
-     "NumberInputGraded.olx",
-     "NumericalGrader.olx",
-     "NumericalGraderBasic.olx",
-     "NumericalGraderExample.olx",
-     "NumericalGraderPercentage.olx",
-     "SequentialAdaptive.olx",
-     "StatusText.olx"
-    ]
-   },
-   "NumericalGrader|NumberInput": {
-    "n": 22,
-    "files": [
-     "CapaProblem.olx",
-     "CapaProblemModes.olx",
-     "CapaProblemMultipart.olx",
-     "CapaProblemNumerical.olx",
-     "Correctness.olx",
-     "Explanation.olx",
-     "ExplanationExamples.olx",
-     "NumberInputGraded.olx",
-     "NumericalGrader.olx",
-     "NumericalGraderExample.olx",
-     "SequentialAdaptive.olx"
-    ]
-   },
    "Vertical|LineInput": {
-    "n": 39,
+    "n": 34,
     "files": [
+     "LineInput.md#example1",
+     "LineInput.md#example2",
+     "LineInput.md#example4",
      "MarkdownMadLibs.olx",
+     "Ref.md#example1",
+     "Ref.md#example6",
      "Ref.olx",
      "RefExamples.olx",
      "RefField.olx",
      "RefMadLibs.olx",
      "StatusText.olx",
+     "Vertical.md#example1",
      "Vertical.olx",
      "psych_sba_activities_part2.olx"
     ]
    },
    "Vertical|Ref": {
-    "n": 16,
+    "n": 23,
     "files": [
+     "DropdownInput.md#example1",
      "DropdownInputAttr.olx",
+     "LineInput.md#example4",
+     "Ref.md#example1",
+     "Ref.md#example4",
+     "Ref.md#example6",
      "Ref.olx",
      "RefComplex.olx",
      "RefExamples.olx",
      "RefField.olx",
+     "Vertical.md#example1",
      "Vertical.olx",
      "psych_sba_activities_part2.olx",
-     "psych_sba_activities_part3.olx"
+     "psych_sba_activities_part3.olx",
+     "ref-demo.xml"
     ]
    },
-   "Vertical|CapaProblem": {
-    "n": 128,
+   "Vertical|DropdownInput": {
+    "n": 4,
     "files": [
-     "AggregatedInputs.olx",
-     "CapaProblemModes.olx",
-     "ComplexInputExamples.olx",
-     "CustomGrader.olx",
-     "ExplanationExamples.olx",
-     "MasteryBank.olx",
-     "SimpleTextSelectionDemo.olx",
-     "StatusText.olx",
-     "StringGraderRegExp.olx",
-     "Trigger.olx",
-     "UseDynamic.olx",
-     "UseHistory.olx",
-     "VerticalBranching.olx",
-     "bmod_h2_scenarios.olx",
-     "bmod_handout1.olx",
-     "bmod_handout2.olx",
-     "psych_sba_activities_part1.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part3auto.olx",
-     "psych_sba_activities_part4.olx",
-     "psych_sba_activities_part4auto.olx"
+     "AnswerDistribution.olx",
+     "DropdownInput.md#example1",
+     "DropdownInputAttr.olx",
+     "Vertical.md#example2"
     ]
    },
    "Vertical|Carousel": {
-    "n": 29,
+    "n": 16,
     "files": [
+     "Carousel.md#example1",
      "Carousel.olx",
      "ar.demo.olx",
      "es.demo.olx",
@@ -1063,37 +1599,218 @@
     ]
    },
    "Collapsible|Collapsible": {
-    "n": 2,
+    "n": 5,
     "files": [
+     "Collapsible.md#example5",
      "CollapsibleNested.olx"
     ]
    },
-   "CapaProblem|StringGrader": {
-    "n": 7,
+   "NumericalGrader|ComplexInput": {
+    "n": 9,
     "files": [
+     "CapaProblemImmediate.olx",
+     "ComplexInput.md#example2",
+     "ComplexInput.md#example3",
+     "ComplexInputExamples.olx",
+     "ExplanationExamples.olx",
+     "NumericalGraderBasic.olx",
+     "NumericalGraderPercentage.olx"
+    ]
+   },
+   "Vertical|FormulaInput": {
+    "n": 1,
+    "files": [
+     "FormulaInput.md#example1"
+    ]
+   },
+   "CapaProblem|FormulaGrader": {
+    "n": 5,
+    "files": [
+     "FormulaGrader.md#example1",
+     "FormulaGrader.md#example2",
+     "FormulaGrader.md#example4",
+     "FormulaGrader.olx",
+     "FormulaInput.md#example2"
+    ]
+   },
+   "FormulaGrader|Markdown": {
+    "n": 4,
+    "files": [
+     "FormulaGrader.md#example1",
+     "FormulaGrader.md#example2",
+     "FormulaGrader.md#example4",
+     "FormulaInput.md#example2"
+    ]
+   },
+   "FormulaGrader|FormulaInput": {
+    "n": 5,
+    "files": [
+     "FormulaGrader.md#example1",
+     "FormulaGrader.md#example2",
+     "FormulaGrader.md#example4",
+     "FormulaGrader.olx",
+     "FormulaInput.md#example2"
+    ]
+   },
+   "CapaProblem|StringGrader": {
+    "n": 12,
+    "files": [
+     "DemandHints.md#example1",
      "DemandHints.olx",
+     "LineInput.md#example3",
      "LineInputGraded.olx",
+     "StringGrader.md#example1",
+     "StringGrader.md#example2",
+     "StringGrader.md#example3",
      "StringGrader.olx",
      "StringGraderCaseInsensitive.olx",
      "StringGraderRegExp.olx",
      "Trigger.olx"
+    ]
+   },
+   "StringGrader|Markdown": {
+    "n": 1,
+    "files": [
+     "LineInput.md#example3"
     ]
    },
    "StringGrader|LineInput": {
-    "n": 7,
+    "n": 12,
     "files": [
+     "DemandHints.md#example1",
      "DemandHints.olx",
+     "LineInput.md#example3",
      "LineInputGraded.olx",
+     "StringGrader.md#example1",
+     "StringGrader.md#example2",
+     "StringGrader.md#example3",
      "StringGrader.olx",
      "StringGraderCaseInsensitive.olx",
      "StringGraderRegExp.olx",
      "Trigger.olx"
     ]
    },
-   "ActionButton|SetFieldAction": {
-    "n": 75,
+   "StringGrader|Explanation": {
+    "n": 1,
     "files": [
+     "LineInput.md#example3"
+    ]
+   },
+   "NumericalGrader|Markdown": {
+    "n": 17,
+    "files": [
+     "CapaProblem.md#example1",
+     "CapaProblem.md#example2",
+     "CapaProblem.md#example4",
+     "CapaProblem.md#example9",
+     "Explanation.md#example1",
+     "Explanation.md#example3",
+     "ExplanationExamples.olx",
+     "NumberInput.md#example1",
+     "NumberInput.md#example2",
+     "NumberInput.md#example3",
+     "NumericalGrader.md#example1",
+     "NumericalGrader.md#example2",
+     "NumericalGrader.md#example4",
+     "NumericalGrader.md#example6",
+     "NumericalGrader.md#example7"
+    ]
+   },
+   "CapaProblem|RatioGrader": {
+    "n": 9,
+    "files": [
+     "CapaProblem.md#example3",
+     "CapaProblem.md#example7",
+     "CapaProblemTargeting.olx",
+     "NumberInput.md#example4",
+     "RatioGrader.md#example1",
+     "RatioGrader.olx",
+     "RatioGraderEquivalent.olx",
+     "RatioGraderExample.olx",
+     "RatioGraderSlots.olx"
+    ]
+   },
+   "RatioGrader|Markdown": {
+    "n": 2,
+    "files": [
+     "CapaProblem.md#example7",
+     "NumberInput.md#example4"
+    ]
+   },
+   "RatioGrader|NumberInput": {
+    "n": 10,
+    "files": [
+     "CapaProblem.md#example7",
+     "NumberInput.md#example4",
+     "RatioGrader.md#example1",
+     "RatioGrader.olx",
+     "RatioGraderSlots.olx"
+    ]
+   },
+   "CapaProblem|DemandHints": {
+    "n": 33,
+    "files": [
+     "CapaProblemCheckbox.olx",
+     "CapaProblemChoice.olx",
+     "CapaProblemNumerical.olx",
+     "CapaProblemTargeting.olx",
+     "CapaProblemText.olx",
+     "CheckboxInputExample.olx",
+     "ChoiceInputExample.olx",
+     "DemandHints.md#example1",
+     "DemandHints.olx",
+     "NumberInputGraded.olx",
+     "NumericalGraderExample.olx",
+     "RatioGraderExample.olx",
+     "RulesGraderExample.olx",
+     "bmod_h2_scenarios.olx"
+    ]
+   },
+   "DemandHints|Hint": {
+    "n": 86,
+    "files": [
+     "CapaProblemCheckbox.olx",
+     "CapaProblemChoice.olx",
+     "CapaProblemNumerical.olx",
+     "CapaProblemTargeting.olx",
+     "CapaProblemText.olx",
+     "CheckboxInputExample.olx",
+     "ChoiceInputExample.olx",
+     "DemandHints.md#example1",
+     "DemandHints.olx",
+     "NumberInputGraded.olx",
+     "NumericalGraderExample.olx",
+     "RatioGraderExample.olx",
+     "RulesGraderExample.olx",
+     "bmod_h2_scenarios.olx"
+    ]
+   },
+   "CapaProblem|Explanation": {
+    "n": 28,
+    "files": [
+     "CapaProblemCheckbox.olx",
+     "CapaProblemChoice.olx",
+     "CapaProblemMultipart.olx",
+     "CapaProblemNumerical.olx",
+     "CapaProblemTargeting.olx",
+     "CapaProblemText.olx",
+     "CheckboxInputExample.olx",
+     "ChoiceInputExample.olx",
+     "NumberInputGraded.olx",
+     "NumericalGraderExample.olx",
+     "RatioGraderExample.olx",
+     "RulesGrader.md#example1",
+     "RulesGraderExample.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part4.olx"
+    ]
+   },
+   "ActionButton|SetFieldAction": {
+    "n": 41,
+    "files": [
+     "SetFieldAction.md#example1",
      "SetFieldAction.olx",
+     "TextArea.md#example6",
      "TextAreaReadonly.olx",
      "ar.demo.olx",
      "bmod_handout1.olx",
@@ -1108,75 +1825,19 @@
      "zh-Hans.demo.olx"
     ]
    },
-   "CapaProblem|DemandHints": {
-    "n": 52,
-    "files": [
-     "CapaProblemCheckbox.olx",
-     "CapaProblemChoice.olx",
-     "CapaProblemNumerical.olx",
-     "CapaProblemTargeting.olx",
-     "CapaProblemText.olx",
-     "CheckboxInputExample.olx",
-     "ChoiceInputExample.olx",
-     "DemandHints.olx",
-     "NumberInputGraded.olx",
-     "NumericalGraderExample.olx",
-     "RatioGraderExample.olx",
-     "RulesGraderExample.olx",
-     "bmod_h2_scenarios.olx"
-    ]
-   },
-   "DemandHints|Hint": {
-    "n": 143,
-    "files": [
-     "CapaProblemCheckbox.olx",
-     "CapaProblemChoice.olx",
-     "CapaProblemNumerical.olx",
-     "CapaProblemTargeting.olx",
-     "CapaProblemText.olx",
-     "CheckboxInputExample.olx",
-     "ChoiceInputExample.olx",
-     "DemandHints.olx",
-     "NumberInputGraded.olx",
-     "NumericalGraderExample.olx",
-     "RatioGraderExample.olx",
-     "RulesGraderExample.olx",
-     "bmod_h2_scenarios.olx"
-    ]
-   },
-   "CapaProblem|Explanation": {
-    "n": 42,
-    "files": [
-     "CapaProblemCheckbox.olx",
-     "CapaProblemChoice.olx",
-     "CapaProblemMultipart.olx",
-     "CapaProblemNumerical.olx",
-     "CapaProblemTargeting.olx",
-     "CapaProblemText.olx",
-     "CheckboxInputExample.olx",
-     "ChoiceInputExample.olx",
-     "NumberInputGraded.olx",
-     "NumericalGraderExample.olx",
-     "RatioGraderExample.olx",
-     "RulesGraderExample.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part4.olx"
-    ]
-   },
-   "NumericalGrader|ComplexInput": {
-    "n": 7,
-    "files": [
-     "CapaProblemImmediate.olx",
-     "ComplexInputExamples.olx",
-     "ExplanationExamples.olx",
-     "NumericalGraderBasic.olx",
-     "NumericalGraderPercentage.olx"
-    ]
-   },
    "CapaProblem|MatchingGrader": {
-    "n": 7,
+    "n": 15,
     "files": [
+     "MatchingGrader.md#example1",
+     "MatchingGrader.md#example2",
+     "MatchingGrader.md#example3",
      "MatchingGrader.olx",
+     "MatchingInput.md#example1",
+     "MatchingInput.md#example2",
+     "MatchingInput.md#example3",
+     "MatchingInput.md#example4",
+     "MatchingInput.md#example5",
+     "MatchingInput.md#example6",
      "MatchingInputGraded.olx",
      "MatchingInputHistorical.olx",
      "MatchingInputInitialPosition.olx",
@@ -1185,15 +1846,31 @@
     ]
    },
    "MatchingGrader|Markdown": {
-    "n": 1,
+    "n": 8,
     "files": [
+     "MatchingGrader.md#example1",
+     "MatchingInput.md#example1",
+     "MatchingInput.md#example2",
+     "MatchingInput.md#example3",
+     "MatchingInput.md#example4",
+     "MatchingInput.md#example5",
+     "MatchingInput.md#example6",
      "MatchingInputInitialPosition.olx"
     ]
    },
    "MatchingGrader|MatchingInput": {
-    "n": 7,
+    "n": 15,
     "files": [
+     "MatchingGrader.md#example1",
+     "MatchingGrader.md#example2",
+     "MatchingGrader.md#example3",
      "MatchingGrader.olx",
+     "MatchingInput.md#example1",
+     "MatchingInput.md#example2",
+     "MatchingInput.md#example3",
+     "MatchingInput.md#example4",
+     "MatchingInput.md#example5",
+     "MatchingInput.md#example6",
      "MatchingInputGraded.olx",
      "MatchingInputHistorical.olx",
      "MatchingInputInitialPosition.olx",
@@ -1202,14 +1879,29 @@
     ]
    },
    "MatchingInput|Markdown": {
-    "n": 66,
+    "n": 108,
     "files": [
+     "MatchingGrader.md#example1",
+     "MatchingGrader.md#example2",
+     "MatchingGrader.md#example3",
      "MatchingGrader.olx",
+     "MatchingInput.md#example1",
+     "MatchingInput.md#example2",
+     "MatchingInput.md#example3",
+     "MatchingInput.md#example4",
+     "MatchingInput.md#example5",
+     "MatchingInput.md#example6",
      "MatchingInputGraded.olx",
      "MatchingInputHistorical.olx",
      "MatchingInputInitialPosition.olx",
      "MatchingInputLanguage.olx",
      "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "CapaProblem|ActionButton": {
+    "n": 1,
+    "files": [
+     "MatchingGrader.md#example2"
     ]
    },
    "MatchingInput|TextBlock": {
@@ -1219,9 +1911,18 @@
     ]
    },
    "CapaProblem|SortableGrader": {
-    "n": 15,
+    "n": 20,
     "files": [
+     "CapaProblem.md#example8",
+     "Sortable.md#example1",
+     "SortableGrader.md#example1",
+     "SortableGrader.md#example2",
+     "SortableGrader.md#example3",
+     "SortableGrader.md#example4",
+     "SortableGrader.md#example5",
      "SortableGrader.olx",
+     "SortableInput.md#example1",
+     "SortableInput.md#example2",
      "SortableInputBasic.olx",
      "SortableInputChronological.olx",
      "SortableInputGraded.olx",
@@ -1229,12 +1930,31 @@
      "SortableInputMultiline.olx",
      "SortableInputPrepositioned.olx",
      "psych_sba_activities_part1.olx"
+    ]
+   },
+   "SortableGrader|Markdown": {
+    "n": 5,
+    "files": [
+     "CapaProblem.md#example8",
+     "Sortable.md#example1",
+     "SortableGrader.md#example1",
+     "SortableInput.md#example1",
+     "SortableInput.md#example2"
     ]
    },
    "SortableGrader|SortableInput": {
-    "n": 15,
+    "n": 20,
     "files": [
+     "CapaProblem.md#example8",
+     "Sortable.md#example1",
+     "SortableGrader.md#example1",
+     "SortableGrader.md#example2",
+     "SortableGrader.md#example3",
+     "SortableGrader.md#example4",
+     "SortableGrader.md#example5",
      "SortableGrader.olx",
+     "SortableInput.md#example1",
+     "SortableInput.md#example2",
      "SortableInputBasic.olx",
      "SortableInputChronological.olx",
      "SortableInputGraded.olx",
@@ -1244,9 +1964,39 @@
      "psych_sba_activities_part1.olx"
     ]
    },
-   "SortableInput|TextBlock": {
-    "n": 36,
+   "SortableInput|Markdown": {
+    "n": 43,
     "files": [
+     "CapaProblem.md#example8",
+     "Sortable.md#example1",
+     "Sortable.md#example3",
+     "Sortable.md#example4",
+     "Sortable.md#example5",
+     "SortableGrader.md#example1",
+     "SortableInput.md#example1",
+     "SortableInput.md#example2",
+     "psych_sba_activities_part1.olx"
+    ]
+   },
+   "SortableGrader|SortableGrader": {
+    "n": 3,
+    "files": [
+     "Sortable.md#example6"
+    ]
+   },
+   "SortableInput|SortableInput": {
+    "n": 2,
+    "files": [
+     "Sortable.md#example7"
+    ]
+   },
+   "SortableInput|TextBlock": {
+    "n": 52,
+    "files": [
+     "SortableGrader.md#example2",
+     "SortableGrader.md#example3",
+     "SortableGrader.md#example4",
+     "SortableGrader.md#example5",
      "SortableGrader.olx",
      "SortableInput.olx",
      "SortableInputBasic.olx",
@@ -1257,31 +2007,21 @@
      "SortableInputPrepositioned.olx"
     ]
    },
-   "CapaProblem|Markdown": {
-    "n": 32,
+   "Vertical|TabularMCQ": {
+    "n": 4,
     "files": [
-     "CapaProblemTargeting.olx",
-     "ChoiceInputMCQ.olx",
-     "ChoiceInputTrueFalse.olx",
-     "CustomGrader.olx",
-     "DefaultGraderAsMatch.olx",
-     "DemandHints.olx",
-     "DropdownInputGraded.olx",
-     "FormulaGrader.olx",
-     "LLMGrader.olx",
-     "OlxSlotLLM.olx",
-     "RatioGraderExample.olx",
-     "TabularMCQGraderCheckbox.olx",
-     "psych_sba_activities_part1.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part3auto.olx",
-     "psych_sba_activities_part4auto.olx"
+     "RefComplex.olx",
+     "TabularMCQ.md#example1",
+     "TabularMCQ.md#example4",
+     "TabularMCQ.md#example6"
     ]
    },
    "CapaProblem|TabularMCQGrader": {
     "n": 7,
     "files": [
+     "TabularMCQ.md#example5",
      "TabularMCQFreireFull.olx",
+     "TabularMCQGrader.md#example1",
      "TabularMCQGrader.olx",
      "TabularMCQGraderCheckbox.olx",
      "psych_sba_activities_part3auto.olx"
@@ -1290,41 +2030,58 @@
    "TabularMCQGrader|TabularMCQ": {
     "n": 7,
     "files": [
+     "TabularMCQ.md#example5",
      "TabularMCQFreireFull.olx",
+     "TabularMCQGrader.md#example1",
      "TabularMCQGrader.olx",
      "TabularMCQGraderCheckbox.olx",
      "psych_sba_activities_part3auto.olx"
     ]
    },
    "KeyGrader|DropdownInput": {
-    "n": 1,
+    "n": 2,
     "files": [
+     "DropdownInput.md#example5",
      "DropdownInputGraded.olx"
     ]
    },
-   "Vertical|DropdownInput": {
-    "n": 2,
-    "files": [
-     "AnswerDistribution.olx",
-     "DropdownInputAttr.olx"
-    ]
-   },
    "CapaProblem|CheckboxGrader": {
-    "n": 9,
+    "n": 13,
     "files": [
      "CapaProblemCheckbox.olx",
+     "CheckboxGrader.md#example1",
+     "CheckboxGrader.md#example2",
+     "CheckboxGrader.md#example3",
      "CheckboxGrader.olx",
+     "CheckboxInput.md#example1",
+     "CheckboxInput.md#example2",
+     "CheckboxInput.md#example3",
      "CheckboxInputExample.olx",
      "CheckboxInputGraded.olx",
      "CheckboxInputPartial.olx",
      "psych_sba_activities_part3.olx"
     ]
    },
+   "CheckboxGrader|Markdown": {
+    "n": 4,
+    "files": [
+     "CheckboxGrader.md#example1",
+     "CheckboxGrader.md#example3",
+     "CheckboxInput.md#example1",
+     "CheckboxInput.md#example3"
+    ]
+   },
    "CheckboxGrader|CheckboxInput": {
-    "n": 9,
+    "n": 13,
     "files": [
      "CapaProblemCheckbox.olx",
+     "CheckboxGrader.md#example1",
+     "CheckboxGrader.md#example2",
+     "CheckboxGrader.md#example3",
      "CheckboxGrader.olx",
+     "CheckboxInput.md#example1",
+     "CheckboxInput.md#example2",
+     "CheckboxInput.md#example3",
      "CheckboxInputExample.olx",
      "CheckboxInputGraded.olx",
      "CheckboxInputPartial.olx",
@@ -1332,14 +2089,23 @@
     ]
    },
    "CheckboxInput|Key": {
-    "n": 84,
+    "n": 80,
     "files": [
      "CapaProblemCheckbox.olx",
+     "CheckboxGrader.md#example1",
+     "CheckboxGrader.md#example2",
+     "CheckboxGrader.md#example3",
+     "CheckboxGrader.md#example4",
      "CheckboxGrader.olx",
+     "CheckboxInput.md#example1",
+     "CheckboxInput.md#example2",
+     "CheckboxInput.md#example3",
+     "CheckboxInput.md#example4",
      "CheckboxInput.olx",
      "CheckboxInputExample.olx",
      "CheckboxInputGraded.olx",
      "CheckboxInputPartial.olx",
+     "CorrectGrader.md#example1",
      "CorrectGrader.olx",
      "psych_sba_activities_part1.olx",
      "psych_sba_activities_part2.olx",
@@ -1350,16 +2116,50 @@
     ]
    },
    "CheckboxInput|Distractor": {
-    "n": 72,
+    "n": 55,
     "files": [
      "CapaProblemCheckbox.olx",
+     "CheckboxGrader.md#example1",
+     "CheckboxGrader.md#example2",
+     "CheckboxGrader.md#example3",
+     "CheckboxGrader.md#example4",
      "CheckboxGrader.olx",
+     "CheckboxInput.md#example1",
+     "CheckboxInput.md#example2",
+     "CheckboxInput.md#example3",
+     "CheckboxInput.md#example4",
      "CheckboxInput.olx",
      "CheckboxInputExample.olx",
      "CheckboxInputGraded.olx",
      "CheckboxInputPartial.olx",
      "psych_sba_activities_part1.olx",
      "psych_sba_activities_part3.olx"
+    ]
+   },
+   "CheckboxGrader|Explanation": {
+    "n": 5,
+    "files": [
+     "CheckboxGrader.md#example2",
+     "CheckboxGrader.olx",
+     "CheckboxInput.md#example2",
+     "CheckboxInputGraded.olx",
+     "CheckboxInputPartial.olx"
+    ]
+   },
+   "Explanation|Markdown": {
+    "n": 33,
+    "files": [
+     "CheckboxGrader.md#example2",
+     "CheckboxInput.md#example2",
+     "Explanation.md#example1",
+     "Explanation.md#example2",
+     "Explanation.md#example3",
+     "Explanation.olx",
+     "ExplanationExamples.olx",
+     "RulesGrader.md#example1",
+     "bmod_h2_scenarios.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part4.olx"
     ]
    },
    "CheckboxGrader|Hint": {
@@ -1369,48 +2169,46 @@
      "CheckboxInputGraded.olx"
     ]
    },
-   "CheckboxGrader|Explanation": {
-    "n": 3,
+   "Vertical|UseDynamic": {
+    "n": 21,
     "files": [
-     "CheckboxGrader.olx",
-     "CheckboxInputGraded.olx",
-     "CheckboxInputPartial.olx"
-    ]
-   },
-   "KeyGrader|Markdown": {
-    "n": 6,
-    "files": [
-     "ChoiceInputGraded.olx",
-     "KeyGrader.olx",
-     "psych_sba_activities_part3.olx"
-    ]
-   },
-   "CapaProblem|TextSelectionGrader": {
-    "n": 6,
-    "files": [
-     "SimpleTextSelectionDemo.olx",
-     "TextSelectionGrader.olx",
-     "TextSelectionGraderFeedback.olx",
-     "TextSelectionGraderImmediate.olx",
-     "TextSelectionInputGraded.olx",
-     "TextSelectionInputOptional.olx"
-    ]
-   },
-   "TextSelectionGrader|TextSelectionInput": {
-    "n": 6,
-    "files": [
-     "SimpleTextSelectionDemo.olx",
-     "TextSelectionGrader.olx",
-     "TextSelectionGraderFeedback.olx",
-     "TextSelectionGraderImmediate.olx",
-     "TextSelectionInputGraded.olx",
-     "TextSelectionInputOptional.olx"
+     "ChoiceInput.md#example4",
+     "UseDynamic.md#example2",
+     "UseDynamic.olx",
+     "psych_sba_activities_part1.olx",
+     "psych_sba_activities_part2.olx"
     ]
    },
    "Vertical|SimpleTextSelection": {
     "n": 3,
     "files": [
      "SimpleTextSelectionDemo.olx"
+    ]
+   },
+   "CapaProblem|TextSelectionGrader": {
+    "n": 8,
+    "files": [
+     "SimpleTextSelectionDemo.olx",
+     "TextSelectionGrader.md#example1",
+     "TextSelectionGrader.olx",
+     "TextSelectionGraderFeedback.olx",
+     "TextSelectionGraderImmediate.olx",
+     "TextSelectionInput.md#example1",
+     "TextSelectionInputGraded.olx",
+     "TextSelectionInputOptional.olx"
+    ]
+   },
+   "TextSelectionGrader|TextSelectionInput": {
+    "n": 8,
+    "files": [
+     "SimpleTextSelectionDemo.olx",
+     "TextSelectionGrader.md#example1",
+     "TextSelectionGrader.olx",
+     "TextSelectionGraderFeedback.olx",
+     "TextSelectionGraderImmediate.olx",
+     "TextSelectionInput.md#example1",
+     "TextSelectionInputGraded.olx",
+     "TextSelectionInputOptional.olx"
     ]
    },
    "Vertical|TimedContainer": {
@@ -1430,7 +2228,7 @@
     ]
    },
    "Vertical|Image": {
-    "n": 5,
+    "n": 3,
     "files": [
      "FreewriteImage.olx",
      "psych_sba_activities_part2.olx"
@@ -1450,7 +2248,7 @@
     ]
    },
    "Vertical|Tabs": {
-    "n": 37,
+    "n": 19,
     "files": [
      "WritingRhythmPlotComparative.olx",
      "ar.demo.olx",
@@ -1465,18 +2263,6 @@
      "tr.demo.olx",
      "uk.demo.olx",
      "zh-Hans.demo.olx"
-    ]
-   },
-   "Tabs|Vertical": {
-    "n": 101,
-    "files": [
-     "WritingRhythmPlotComparative.olx",
-     "bmod_handout3.olx",
-     "psych_sba_activities_part2.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part3auto.olx",
-     "psych_sba_activities_part4.olx",
-     "psych_sba_activities_part4auto.olx"
     ]
    },
    "Annotate|Markdown": {
@@ -1504,83 +2290,52 @@
      "SharedNotes.olx"
     ]
    },
+   "TalkBubble|Markdown": {
+    "n": 33,
+    "files": [
+     "NextReveal.md#example1",
+     "NextReveal.olx",
+     "TalkBubble.md#example1",
+     "TalkBubble.md#example2",
+     "TalkBubble.md#example3",
+     "TalkBubble.md#example4",
+     "TalkBubble.md#example5",
+     "TalkBubble.olx",
+     "linear-dialogue-demo.olx"
+    ]
+   },
+   "TalkBubble|Image": {
+    "n": 1,
+    "files": [
+     "TalkBubble.md#example5"
+    ]
+   },
    "Vertical|TalkBubble": {
     "n": 3,
     "files": [
      "TalkBubble.olx"
     ]
    },
-   "TalkBubble|Markdown": {
-    "n": 33,
-    "files": [
-     "NextReveal.olx",
-     "TalkBubble.olx",
-     "linear-dialogue-demo.olx"
-    ]
-   },
-   "Vertical|Chat": {
-    "n": 2,
-    "files": [
-     "ChatEmbed.olx",
-     "ChatWithAgent.olx"
-    ]
-   },
-   "Chat|Vertical": {
+   "Cast|TeamDirectory": {
     "n": 1,
     "files": [
-     "ChatEmbed.olx"
-    ]
-   },
-   "Markdown|TextArea": {
-    "n": 5,
-    "files": [
-     "ChatEmbed.olx",
-     "interactive.olx"
-    ]
-   },
-   "TextArea|MarkupProblem": {
-    "n": 1,
-    "files": [
-     "ChatEmbed.olx"
-    ]
-   },
-   "MarkupProblem|MarkupProblem": {
-    "n": 3,
-    "files": [
-     "ChatEmbed.olx",
-     "interactive.olx"
-    ]
-   },
-   "MarkupProblem|Markdown": {
-    "n": 1,
-    "files": [
-     "ChatEmbed.olx"
+     "TeamDirectory.md#example2"
     ]
    },
    "Hidden|Vertical": {
-    "n": 9,
+    "n": 13,
     "files": [
+     "Chat.md#example3",
      "ChatTargetEmbed.olx",
      "ChatWithSidebarLegacy.olx",
-     "UseHistoryChat.olx"
-    ]
-   },
-   "Vertical|NumberInput": {
-    "n": 12,
-    "files": [
-     "ActionButtonGrading.olx",
-     "ActionButtonStandalone.olx",
-     "AggregatedInputs.olx",
-     "ChatWithSidebarLegacy.olx",
-     "CorrectnessStandalone.olx",
-     "NumericalGraderStandalone.olx",
-     "RefExamples.olx",
+     "UseHistory.md#example2",
      "UseHistoryChat.olx"
     ]
    },
    "Vertical|SplitPanel": {
-    "n": 76,
+    "n": 41,
     "files": [
+     "Chat.md#example3",
      "ChatTargetEmbed.olx",
      "ChatWithSidebarLegacy.olx",
      "StateViewer.olx",
@@ -1594,108 +2349,79 @@
      "psych_sba_activities_part3auto.olx"
     ]
    },
-   "NextReveal|TalkBubble": {
-    "n": 30,
+   "Vertical|Chat": {
+    "n": 3,
     "files": [
+     "ChatEmbed.olx",
+     "ChatWithAgent.olx",
+     "test_error.xml"
+    ]
+   },
+   "Chat|Vertical": {
+    "n": 1,
+    "files": [
+     "ChatEmbed.olx"
+    ]
+   },
+   "Markdown|TextArea": {
+    "n": 3,
+    "files": [
+     "ChatEmbed.olx",
+     "interactive.olx"
+    ]
+   },
+   "TextArea|MarkupProblem": {
+    "n": 1,
+    "files": [
+     "ChatEmbed.olx"
+    ]
+   },
+   "MarkupProblem|MarkupProblem": {
+    "n": 2,
+    "files": [
+     "ChatEmbed.olx",
+     "interactive.olx"
+    ]
+   },
+   "MarkupProblem|Markdown": {
+    "n": 1,
+    "files": [
+     "ChatEmbed.olx"
+    ]
+   },
+   "NextReveal|TalkBubble": {
+    "n": 20,
+    "files": [
+     "NextReveal.md#example1",
      "NextReveal.olx",
      "linear-dialogue-demo.olx"
     ]
    },
-   "NextReveal|Markdown": {
-    "n": 3,
+   "NextReveal|CapaProblem": {
+    "n": 1,
     "files": [
-     "NextReveal.olx",
-     "linear-dialogue-demo.olx"
+     "NextReveal.md#example1"
     ]
    },
    "NextReveal|TextArea": {
-    "n": 1,
+    "n": 2,
     "files": [
+     "NextReveal.md#example1",
      "NextReveal.olx"
     ]
    },
-   "CapaProblem|RulesGrader": {
-    "n": 7,
-    "files": [
-     "CapaProblemText.olx",
-     "DefaultGraderAsMatch.olx",
-     "RulesGrader.olx",
-     "RulesGraderCaseInsensitive.olx",
-     "RulesGraderExample.olx",
-     "RulesGraderWithRule.olx",
-     "StringGraderRules.olx"
-    ]
-   },
-   "RulesGrader|LineInput": {
-    "n": 7,
-    "files": [
-     "CapaProblemText.olx",
-     "DefaultGraderAsMatch.olx",
-     "RulesGrader.olx",
-     "RulesGraderCaseInsensitive.olx",
-     "RulesGraderExample.olx",
-     "RulesGraderWithRule.olx",
-     "StringGraderRules.olx"
-    ]
-   },
-   "CapaProblem|DefaultGrader": {
+   "NextReveal|Markdown": {
     "n": 2,
     "files": [
-     "DefaultGrader.olx",
-     "DefaultGraderPartial.olx"
-    ]
-   },
-   "DefaultGrader|LineInput": {
-    "n": 2,
-    "files": [
-     "DefaultGrader.olx",
-     "DefaultGraderPartial.olx"
-    ]
-   },
-   "ActionButton|NumericalGrader": {
-    "n": 4,
-    "files": [
-     "ActionButtonGrading.olx",
-     "ActionButtonStandalone.olx",
-     "CorrectnessStandalone.olx",
-     "NumericalGraderStandalone.olx"
-    ]
-   },
-   "Vertical|Correctness": {
-    "n": 4,
-    "files": [
-     "ActionButtonGrading.olx",
-     "ActionButtonStandalone.olx",
-     "CorrectnessStandalone.olx",
-     "NumericalGraderStandalone.olx"
-    ]
-   },
-   "CapaProblem|RatioGrader": {
-    "n": 5,
-    "files": [
-     "CapaProblemTargeting.olx",
-     "RatioGrader.olx",
-     "RatioGraderEquivalent.olx",
-     "RatioGraderExample.olx",
-     "RatioGraderSlots.olx"
-    ]
-   },
-   "RatioGrader|NumberInput": {
-    "n": 4,
-    "files": [
-     "RatioGrader.olx",
-     "RatioGraderSlots.olx"
-    ]
-   },
-   "RatioGrader|ComplexInput": {
-    "n": 2,
-    "files": [
-     "RatioGraderEquivalent.olx"
+     "NextReveal.olx",
+     "linear-dialogue-demo.olx"
     ]
    },
    "CapaProblem|CorrectGrader": {
-    "n": 11,
+    "n": 8,
     "files": [
+     "CorrectGrader.md#example1",
+     "CorrectGrader.md#example2",
      "CorrectGrader.olx",
      "bmod_handout1.olx",
      "bmod_handout2.olx",
@@ -1704,23 +2430,119 @@
     ]
    },
    "CorrectGrader|CheckboxInput": {
-    "n": 5,
+    "n": 4,
     "files": [
+     "CorrectGrader.md#example1",
      "CorrectGrader.olx",
      "psych_sba_activities_part4.olx",
      "psych_sba_activities_part4auto.olx"
     ]
    },
-   "CapaProblem|LineInput": {
-    "n": 2,
+   "CorrectGrader|TextArea": {
+    "n": 1,
     "files": [
+     "CorrectGrader.md#example2"
+    ]
+   },
+   "NumericalGrader|Correctness": {
+    "n": 1,
+    "files": [
+     "Correctness.olx"
+    ]
+   },
+   "ActionButton|NumericalGrader": {
+    "n": 5,
+    "files": [
+     "ActionButton.md#example3",
+     "ActionButtonGrading.olx",
+     "ActionButtonStandalone.olx",
+     "CorrectnessStandalone.olx",
+     "NumericalGraderStandalone.olx"
+    ]
+   },
+   "Vertical|Correctness": {
+    "n": 5,
+    "files": [
+     "ActionButton.md#example3",
+     "ActionButtonGrading.olx",
+     "ActionButtonStandalone.olx",
+     "CorrectnessStandalone.olx",
+     "NumericalGraderStandalone.olx"
+    ]
+   },
+   "CapaProblem|LineInput": {
+    "n": 9,
+    "files": [
+     "CustomGrader.md#example1",
+     "CustomGrader.md#example2",
+     "CustomGrader.md#example3",
+     "CustomGrader.md#example4",
+     "CustomGrader.md#example5",
+     "CustomGrader.md#example6",
      "CustomGrader.olx"
     ]
    },
    "CapaProblem|CustomGrader": {
+    "n": 7,
+    "files": [
+     "CustomGrader.md#example1",
+     "CustomGrader.md#example2",
+     "CustomGrader.md#example3",
+     "CustomGrader.md#example4",
+     "CustomGrader.md#example5",
+     "CustomGrader.md#example6",
+     "CustomGrader.olx"
+    ]
+   },
+   "CapaProblem|DefaultGrader": {
+    "n": 3,
+    "files": [
+     "DefaultGrader.md#example1",
+     "DefaultGrader.olx",
+     "DefaultGraderPartial.olx"
+    ]
+   },
+   "DefaultGrader|TextArea": {
     "n": 1,
     "files": [
-     "CustomGrader.olx"
+     "DefaultGrader.md#example1"
+    ]
+   },
+   "CapaProblem|RulesGrader": {
+    "n": 9,
+    "files": [
+     "CapaProblemText.olx",
+     "DefaultGrader.md#example2",
+     "DefaultGraderAsMatch.olx",
+     "RulesGrader.md#example1",
+     "RulesGrader.olx",
+     "RulesGraderCaseInsensitive.olx",
+     "RulesGraderExample.olx",
+     "RulesGraderWithRule.olx",
+     "StringGraderRules.olx"
+    ]
+   },
+   "RulesGrader|LineInput": {
+    "n": 11,
+    "files": [
+     "CapaProblemText.olx",
+     "DefaultGrader.md#example2",
+     "DefaultGraderAsMatch.olx",
+     "RulesGrader.md#example1",
+     "RulesGrader.md#example2",
+     "RulesGrader.md#example3",
+     "RulesGrader.olx",
+     "RulesGraderCaseInsensitive.olx",
+     "RulesGraderExample.olx",
+     "RulesGraderWithRule.olx",
+     "StringGraderRules.olx"
+    ]
+   },
+   "DefaultGrader|LineInput": {
+    "n": 2,
+    "files": [
+     "DefaultGrader.olx",
+     "DefaultGraderPartial.olx"
     ]
    },
    "CapaProblem|LLMGrader": {
@@ -1735,29 +2557,56 @@
      "LLMGrader.olx"
     ]
    },
-   "CapaProblem|FormulaGrader": {
-    "n": 1,
+   "RatioGrader|ComplexInput": {
+    "n": 2,
     "files": [
-     "FormulaGrader.olx"
-    ]
-   },
-   "FormulaGrader|FormulaInput": {
-    "n": 1,
-    "files": [
-     "FormulaGrader.olx"
+     "RatioGraderEquivalent.olx"
     ]
    },
    "CapaProblem|NumberInput": {
-    "n": 4,
+    "n": 6,
     "files": [
+     "CapaProblem.md#example3",
      "CapaProblemTargeting.olx",
      "RatioGraderExample.olx"
     ]
    },
-   "NumericalGrader|Correctness": {
+   "CapaProblem|TextArea": {
+    "n": 12,
+    "files": [
+     "DerivedChecks.md#example1",
+     "ScoreTable.md#example2",
+     "SlotSheetGrader.md#example1",
+     "SlotSheetGrader.md#example2",
+     "SlotSheetGrader.md#example3"
+    ]
+   },
+   "CapaProblem|DerivedChecks": {
+    "n": 7,
+    "files": [
+     "DerivedChecks.md#example1",
+     "ScoreTable.md#example2",
+     "SheetValue.md#example2",
+     "SlotSheetGrader.md#example1",
+     "SlotSheetGrader.md#example2",
+     "SlotSheetGrader.md#example3"
+    ]
+   },
+   "CapaProblem|SlotSheetGrader": {
+    "n": 7,
+    "files": [
+     "DerivedChecks.md#example1",
+     "ScoreTable.md#example2",
+     "SheetValue.md#example2",
+     "SlotSheetGrader.md#example1",
+     "SlotSheetGrader.md#example2",
+     "SlotSheetGrader.md#example3"
+    ]
+   },
+   "Vertical|SheetValue": {
     "n": 1,
     "files": [
-     "Correctness.olx"
+     "SheetValue.md#example2"
     ]
    },
    "RulesGrader|Rule": {
@@ -1766,8 +2615,17 @@
      "RulesGraderWithRule.olx"
     ]
    },
+   "Vertical|ScoreTable": {
+    "n": 4,
+    "files": [
+     "ScoreTable.md#example2",
+     "bmod_handout1.olx",
+     "bmod_handout2.olx",
+     "bmod_handout3.olx"
+    ]
+   },
    "Vertical|MarkupProblem": {
-    "n": 177,
+    "n": 92,
     "files": [
      "MarkupProblemModes.olx",
      "interactive.olx",
@@ -1794,14 +2652,6 @@
      "Transcript.olx"
     ]
    },
-   "Vertical|UseDynamic": {
-    "n": 37,
-    "files": [
-     "UseDynamic.olx",
-     "psych_sba_activities_part1.olx",
-     "psych_sba_activities_part2.olx"
-    ]
-   },
    "Vertical|AggregatedInputs": {
     "n": 2,
     "files": [
@@ -1814,34 +2664,10 @@
      "AnswerDistribution.olx"
     ]
    },
-   "Vertical|TabularMCQ": {
-    "n": 1,
+   "Collapsible|Ref": {
+    "n": 3,
     "files": [
-     "RefComplex.olx"
-    ]
-   },
-   "Vertical|LLMFeedback": {
-    "n": 92,
-    "files": [
-     "ActionButtonLLM.olx",
-     "ActionButtonMultiple.olx",
-     "LLMAction.olx",
-     "LLMFeedback.olx",
-     "RefExamples.olx",
-     "RefField.olx",
-     "ar.demo.olx",
-     "es.demo.olx",
-     "interactive.olx",
-     "pl.demo.olx",
-     "postcard-demo.olx",
-     "psych_sba_activities_part1.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part3auto.olx",
-     "psych_sba_activities_part4.olx",
-     "psych_sba_activities_part4auto.olx",
-     "tr.demo.olx",
-     "uk.demo.olx",
-     "zh-Hans.demo.olx"
+     "Ref.md#example7"
     ]
    },
    "Vertical|Noop": {
@@ -1868,15 +2694,33 @@
      "UseHistory.olx"
     ]
    },
-   "OlxSlot|Markdown": {
+   "Vertical|OlxSlot": {
     "n": 9,
+    "files": [
+     "CodeInput.md#example2",
+     "CodeInput.md#example3",
+     "CodeInputWithSlot.olx",
+     "OlxSlot.md#example1",
+     "OlxSlot.md#example2",
+     "interactive.olx"
+    ]
+   },
+   "IntakeGate|OlxSlot": {
+    "n": 2,
+    "files": [
+     "OlxSlot.md#example3",
+     "OlxSlotLLM.olx"
+    ]
+   },
+   "OlxSlot|Markdown": {
+    "n": 5,
     "files": [
      "OlxSlot.olx",
      "interactive.olx"
     ]
    },
    "LLMAction|Sequential": {
-    "n": 9,
+    "n": 5,
     "files": [
      "OlxSlotLLM.olx",
      "bmod_handout1.olx",
@@ -1885,15 +2729,11 @@
      "interactive.olx"
     ]
    },
-   "IntakeGate|OlxSlot": {
-    "n": 1,
-    "files": [
-     "OlxSlotLLM.olx"
-    ]
-   },
    "Vertical|CodeInput": {
-    "n": 9,
+    "n": 7,
     "files": [
+     "CodeInput.md#example2",
+     "CodeInput.md#example3",
      "CodeInputWithSlot.olx",
      "interactive.olx"
     ]
@@ -1902,13 +2742,6 @@
     "n": 1,
     "files": [
      "CodeInputWithSlot.olx"
-    ]
-   },
-   "Vertical|OlxSlot": {
-    "n": 9,
-    "files": [
-     "CodeInputWithSlot.olx",
-     "interactive.olx"
     ]
    },
    "Vertical|DocAttributes": {
@@ -1921,6 +2754,12 @@
     "n": 1,
     "files": [
      "DocFields.olx"
+    ]
+   },
+   "NumericalGrader|BlockMath": {
+    "n": 1,
+    "files": [
+     "CapaProblem.md#example9"
     ]
    },
    "Vertical|PEGDevBlock": {
@@ -1973,25 +2812,11 @@
     ]
    },
    "NumericalGrader|Explanation": {
-    "n": 6,
+    "n": 9,
     "files": [
+     "Explanation.md#example1",
+     "Explanation.md#example3",
      "Explanation.olx",
-     "ExplanationExamples.olx"
-    ]
-   },
-   "Explanation|Markdown": {
-    "n": 49,
-    "files": [
-     "Explanation.olx",
-     "ExplanationExamples.olx",
-     "bmod_h2_scenarios.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part4.olx"
-    ]
-   },
-   "NumericalGrader|Markdown": {
-    "n": 1,
-    "files": [
      "ExplanationExamples.olx"
     ]
    },
@@ -2002,7 +2827,7 @@
     ]
    },
    "Markdown|MarkupProblem": {
-    "n": 5,
+    "n": 3,
     "files": [
      "MarkdownEmbedOLX.olx",
      "interactive.olx"
@@ -2026,8 +2851,16 @@
      "Notice.olx"
     ]
    },
+   "Vertical|ObservablePlot": {
+    "n": 5,
+    "files": [
+     "ObservablePlot.md#example4",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
    "Vertical|Mermaid": {
-    "n": 31,
+    "n": 17,
     "files": [
      "MermaidPublish.olx",
      "MermaidTarget.olx",
@@ -2037,8 +2870,9 @@
     ]
    },
    "ActionButton|CopyFieldAction": {
-    "n": 16,
+    "n": 10,
     "files": [
+     "CopyFieldAction.md#example1",
      "CopyFieldAction.olx",
      "MermaidPublish.olx",
      "ar.demo.olx",
@@ -2050,15 +2884,28 @@
      "zh-Hans.demo.olx"
     ]
    },
+   "ActionButton|ActionButton": {
+    "n": 1,
+    "files": [
+     "ActionButton.md#example6"
+    ]
+   },
    "ActionButton|HelloAction": {
-    "n": 2,
+    "n": 3,
     "files": [
      "ActionButton.olx",
+     "HelloAction.md#example1",
      "HelloAction.olx"
     ]
    },
+   "HelloAction|ActionButton": {
+    "n": 1,
+    "files": [
+     "HelloAction.md#example1"
+    ]
+   },
    "ActionButton|PrintAction": {
-    "n": 39,
+    "n": 20,
     "files": [
      "PrintAction.olx",
      "ar.demo.olx",
@@ -2080,20 +2927,23 @@
     ]
    },
    "Vertical|OnShow": {
-    "n": 1,
+    "n": 2,
     "files": [
+     "OnShow.md#example1",
      "OnShow.olx"
     ]
    },
    "OnShow|CopyFieldAction": {
-    "n": 1,
+    "n": 2,
     "files": [
+     "OnShow.md#example1",
      "OnShow.olx"
     ]
    },
    "OnShow|SetFieldAction": {
-    "n": 1,
+    "n": 2,
     "files": [
+     "OnShow.md#example1",
      "OnShow.olx"
     ]
    },
@@ -2116,14 +2966,26 @@
      "FlashColors.olx"
     ]
    },
-   "Vertical|SideBarPanel": {
+   "Sequential|TextArea": {
+    "n": 1,
+    "files": [
+     "learning-observer-course.olx"
+    ]
+   },
+   "Sequential|SideBarPanel": {
+    "n": 1,
+    "files": [
+     "learning-observer-course.olx"
+    ]
+   },
+   "NextReveal|Vertical": {
     "n": 2,
     "files": [
-     "text-changer-demo.olx"
+     "linear-dialogue-demo.olx"
     ]
    },
    "Tabs|LLMFeedback": {
-    "n": 70,
+    "n": 35,
     "files": [
      "ar.demo.olx",
      "es.demo.olx",
@@ -2134,312 +2996,321 @@
      "zh-Hans.demo.olx"
     ]
    },
-   "Sequential|TextArea": {
-    "n": 2,
+   "Vertical|SideBarPanel": {
+    "n": 1,
     "files": [
-     "learning-observer-course.olx"
-    ]
-   },
-   "Sequential|SideBarPanel": {
-    "n": 2,
-    "files": [
-     "learning-observer-course.olx"
-    ]
-   },
-   "NextReveal|Vertical": {
-    "n": 4,
-    "files": [
-     "linear-dialogue-demo.olx"
+     "text-changer-demo.olx"
     ]
    },
    "Sequential|MarkupProblem": {
-    "n": 8,
+    "n": 4,
     "files": [
      "interactive.olx"
     ]
    },
    "MarkupProblem|TextArea": {
-    "n": 2,
+    "n": 1,
     "files": [
      "interactive.olx"
     ]
    },
    "MarkupProblem|Vertical": {
-    "n": 2,
+    "n": 1,
     "files": [
      "interactive.olx"
     ]
    },
    "CodeInput|Sequential": {
-    "n": 6,
+    "n": 3,
     "files": [
      "interactive.olx"
     ]
    },
    "Markdown|Markdown": {
-    "n": 2,
+    "n": 1,
     "files": [
      "interactive.olx"
     ]
    },
    "Markdown|Vertical": {
-    "n": 2,
+    "n": 1,
     "files": [
      "interactive.olx"
     ]
    },
    "CodeInput|MarkupProblem": {
-    "n": 2,
+    "n": 1,
     "files": [
      "interactive.olx"
     ]
    },
    "Markdown|Sequential": {
-    "n": 2,
+    "n": 1,
     "files": [
      "interactive.olx"
     ]
    },
    "Sequential|Sequential": {
-    "n": 4,
+    "n": 2,
     "files": [
      "interactive.olx"
     ]
    },
    "TextArea|TextArea": {
-    "n": 2,
+    "n": 1,
     "files": [
      "interactive.olx"
     ]
    },
    "TextArea|Markdown": {
-    "n": 2,
+    "n": 1,
     "files": [
      "interactive.olx"
     ]
    },
-   "ActionButton|SlotSheetGrader": {
-    "n": 46,
-    "files": [
-     "bmod_handout1.olx",
-     "bmod_handout2.olx",
-     "bmod_handout3.olx"
-    ]
-   },
-   "Vertical|ScoreTable": {
-    "n": 6,
-    "files": [
-     "bmod_handout1.olx",
-     "bmod_handout2.olx",
-     "bmod_handout3.olx"
-    ]
-   },
-   "Vertical|SelfMonitorPlot": {
-    "n": 2,
-    "files": [
-     "bmod_handout3.olx"
-    ]
-   },
-   "Vertical|HH": {
-    "n": 252,
-    "files": [
-     "psych_sba_activities_part1.olx",
-     "psych_sba_activities_part2.olx",
-     "psych_sba_activities_part3auto.olx",
-     "psych_sba_activities_part4auto.olx"
-    ]
-   },
-   "Vertical|LiquidTemplate": {
-    "n": 6,
-    "files": [
-     "operant-mastery.olx",
-     "psych_sba_activities_part3auto.olx"
-    ]
-   },
-   "LiquidTemplate|MasteryBank": {
-    "n": 6,
-    "files": [
-     "operant-mastery.olx",
-     "psych_sba_activities_part3auto.olx"
-    ]
-   },
-   "Collapsible|HH": {
-    "n": 2,
-    "files": [
-     "psych_sba_activities_part3auto.olx"
-    ]
-   },
-   "Collapsible|ActionButton": {
-    "n": 4,
-    "files": [
-     "psych_sba_activities_part3auto.olx"
-    ]
-   },
-   "Collapsible|LLMFeedback": {
-    "n": 2,
-    "files": [
-     "psych_sba_activities_part3auto.olx"
-    ]
-   },
-   "Vertical|CheckboxInput": {
-    "n": 24,
-    "files": [
-     "psych_sba_activities_part1.olx",
-     "psych_sba_activities_part2.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part3auto.olx",
-     "psych_sba_activities_part4.olx",
-     "psych_sba_activities_part4auto.olx"
-    ]
-   },
-   "IntakeGate|Markdown": {
-    "n": 48,
-    "files": [
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part3auto.olx",
-     "psych_sba_activities_part4.olx",
-     "psych_sba_activities_part4auto.olx"
-    ]
-   },
-   "Vertical|ObservablePlot": {
-    "n": 8,
-    "files": [
-     "psych_sba_activities_part4.olx",
-     "psych_sba_activities_part4auto.olx"
-    ]
-   },
-   "CheckboxInput|Markdown": {
-    "n": 16,
-    "files": [
-     "psych_sba_activities_part1.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part4.olx"
-    ]
-   },
-   "IntakeGate|Tabs": {
-    "n": 4,
-    "files": [
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part4auto.olx"
-    ]
-   },
-   "SortableInput|Ref": {
-    "n": 8,
-    "files": [
-     "psych_sba_activities_part1.olx"
-    ]
-   },
-   "SortableInput|Markdown": {
-    "n": 24,
-    "files": [
-     "psych_sba_activities_part1.olx"
-    ]
-   },
-   "ChoiceInput|Markdown": {
-    "n": 4,
-    "files": [
-     "psych_sba_activities_part1.olx"
-    ]
-   },
-   "Vertical|PDFViewer": {
-    "n": 4,
-    "files": [
-     "psych_sba_activities_part1.olx"
-    ]
-   },
-   "UseDynamic|Vertical": {
-    "n": 4,
-    "files": [
-     "psych_sba_activities_part1.olx"
-    ]
-   },
    "Ref|LLMAction": {
-    "n": 2,
+    "n": 1,
     "files": [
      "bmod_handout1.olx"
     ]
    },
    "CorrectGrader|Markdown": {
-    "n": 6,
+    "n": 3,
     "files": [
      "bmod_handout1.olx",
      "bmod_handout2.olx"
     ]
    },
    "CorrectGrader|ChoiceInput": {
-    "n": 6,
+    "n": 3,
     "files": [
      "bmod_handout1.olx",
      "bmod_handout2.olx"
     ]
    },
+   "ActionButton|SlotSheetGrader": {
+    "n": 23,
+    "files": [
+     "bmod_handout1.olx",
+     "bmod_handout2.olx",
+     "bmod_handout3.olx"
+    ]
+   },
    "ActionButton|SheetValue": {
-    "n": 2,
+    "n": 1,
     "files": [
      "bmod_handout1.olx"
     ]
    },
    "Vertical|DerivedChecks": {
-    "n": 4,
+    "n": 2,
     "files": [
      "bmod_handout2.olx"
     ]
    },
    "Vertical|SlotSheetGrader": {
-    "n": 4,
+    "n": 2,
     "files": [
      "bmod_handout2.olx"
     ]
    },
    "Vertical|OnChange": {
-    "n": 4,
+    "n": 2,
     "files": [
      "bmod_handout2.olx"
+    ]
+   },
+   "Vertical|SelfMonitorPlot": {
+    "n": 1,
+    "files": [
+     "bmod_handout3.olx"
+    ]
+   },
+   "Vertical|LiquidTemplate": {
+    "n": 3,
+    "files": [
+     "operant-mastery.olx",
+     "psych_sba_activities_part3auto.olx"
+    ]
+   },
+   "LiquidTemplate|MasteryBank": {
+    "n": 3,
+    "files": [
+     "operant-mastery.olx",
+     "psych_sba_activities_part3auto.olx"
+    ]
+   },
+   "Vertical|HH": {
+    "n": 126,
+    "files": [
+     "psych_sba_activities_part1.olx",
+     "psych_sba_activities_part2.olx",
+     "psych_sba_activities_part3auto.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "SortableInput|Ref": {
+    "n": 4,
+    "files": [
+     "psych_sba_activities_part1.olx"
+    ]
+   },
+   "ChoiceInput|Markdown": {
+    "n": 2,
+    "files": [
+     "psych_sba_activities_part1.olx"
+    ]
+   },
+   "Vertical|CheckboxInput": {
+    "n": 12,
+    "files": [
+     "psych_sba_activities_part1.olx",
+     "psych_sba_activities_part2.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part3auto.olx",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "Vertical|PDFViewer": {
+    "n": 2,
+    "files": [
+     "psych_sba_activities_part1.olx"
+    ]
+   },
+   "CheckboxInput|Markdown": {
+    "n": 8,
+    "files": [
+     "psych_sba_activities_part1.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part4.olx"
+    ]
+   },
+   "UseDynamic|Vertical": {
+    "n": 2,
+    "files": [
+     "psych_sba_activities_part1.olx"
+    ]
+   },
+   "IntakeGate|Markdown": {
+    "n": 24,
+    "files": [
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part3auto.olx",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "IntakeGate|Tabs": {
+    "n": 2,
+    "files": [
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "Collapsible|HH": {
+    "n": 1,
+    "files": [
+     "psych_sba_activities_part3auto.olx"
+    ]
+   },
+   "Collapsible|ActionButton": {
+    "n": 2,
+    "files": [
+     "psych_sba_activities_part3auto.olx"
+    ]
+   },
+   "Collapsible|LLMFeedback": {
+    "n": 1,
+    "files": [
+     "psych_sba_activities_part3auto.olx"
     ]
    }
   },
   "referenced": {
    "Markdown|DynamicList": {
-    "n": 1,
-    "files": [
-     "DynamicList.olx"
-    ]
-   },
-   "Markdown|TextArea": {
-    "n": 5,
-    "files": [
-     "Hidden.olx",
-     "MermaidPublish.olx",
-     "OnShow.olx"
-    ]
-   },
-   "IntakeGate|TextSlot": {
     "n": 4,
     "files": [
-     "IntakeGate.olx",
-     "IntakeGateMath.olx"
+     "DynamicList.md#example2",
+     "DynamicList.md#example3",
+     "DynamicList.olx",
+     "Ref.md#example4"
     ]
    },
-   "LLMAction|TextSlot": {
-    "n": 5,
+   "LLMAction|LLMFeedback": {
+    "n": 150,
     "files": [
-     "IntakeGate.olx",
-     "IntakeGateMath.olx",
-     "TextSlot.olx"
+     "ActionButton.md#example1",
+     "ActionButton.md#example4",
+     "ActionButton.md#example5",
+     "ActionButtonLLM.olx",
+     "ActionButtonMultiple.olx",
+     "Hidden.md#example1",
+     "LLMAction.md#example1",
+     "LLMAction.md#example8",
+     "LLMAction.md#example9",
+     "LLMAction.olx",
+     "LLMFeedback.md#example1",
+     "LLMFeedback.md#example2",
+     "LLMFeedback.md#example3",
+     "LLMFeedback.md#example4",
+     "LLMFeedback.md#example5",
+     "LLMFeedback.olx",
+     "Ref.md#example5",
+     "RefExamples.olx",
+     "RefField.olx",
+     "TextArea.md#example5",
+     "ar.demo.olx",
+     "bmod_handout1.olx",
+     "bmod_handout2.olx",
+     "bmod_handout3.olx",
+     "es.demo.olx",
+     "interactive.olx",
+     "pl.demo.olx",
+     "postcard-demo.olx",
+     "psych_sba_activities_part1.olx",
+     "psych_sba_activities_part3.olx",
+     "psych_sba_activities_part3auto.olx",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx",
+     "text-changer-demo.olx",
+     "tr.demo.olx",
+     "uk.demo.olx",
+     "zh-Hans.demo.olx"
     ]
    },
    "Ref|TextArea": {
-    "n": 431,
+    "n": 250,
     "files": [
+     "ActionButton.md#example1",
+     "ActionButton.md#example4",
+     "ActionButton.md#example5",
      "ActionButtonLLM.olx",
      "ActionButtonMultiple.olx",
+     "Hidden.md#example1",
+     "IntakeGate.md#example1",
+     "IntakeGate.md#example2",
+     "IntakeGate.md#example4",
      "IntakeGate.olx",
      "IntakeGateMath.olx",
+     "LLMAction.md#example1",
+     "LLMAction.md#example8",
+     "LLMAction.md#example9",
      "LLMAction.olx",
+     "LLMFeedback.md#example1",
+     "LLMFeedback.md#example2",
+     "LLMFeedback.md#example3",
+     "LLMFeedback.md#example5",
      "LLMFeedback.olx",
+     "OlxSlot.md#example3",
      "OlxSlotLLM.olx",
+     "Ref.md#example2",
+     "Ref.md#example4",
+     "Ref.md#example5",
      "RefExamples.olx",
      "RefField.olx",
+     "TextArea.md#example5",
+     "TextSlot.md#example2",
      "TextSlot.olx",
      "ar.demo.olx",
      "bmod_handout1.olx",
@@ -2455,35 +3326,88 @@
      "psych_sba_activities_part3auto.olx",
      "psych_sba_activities_part4.olx",
      "psych_sba_activities_part4auto.olx",
+     "ref-demo.xml",
      "text-changer-demo.olx",
      "tr.demo.olx",
      "uk.demo.olx",
      "zh-Hans.demo.olx"
     ]
    },
-   "Navigator|NavigatorDefaultPreview": {
-    "n": 3,
+   "Ref|Markdown": {
+    "n": 5,
     "files": [
+     "Hidden.md#example1",
+     "psych_sba_activities_part4.olx",
+     "psych_sba_activities_part4auto.olx"
+    ]
+   },
+   "Markdown|TextArea": {
+    "n": 16,
+    "files": [
+     "ActionButton.md#example4",
+     "Hidden.olx",
+     "IntakeGate.md#example4",
+     "LLMFeedback.md#example5",
+     "MermaidPublish.olx",
+     "OnShow.md#example1",
+     "OnShow.olx",
+     "Ref.md#example1",
+     "Ref.md#example4",
+     "Sequential.md#example4",
+     "SideBarPanel.md#example1",
+     "SlotSheetGrader.md#example2",
+     "SplitPanel.md#example1"
+    ]
+   },
+   "IntakeGate|TextSlot": {
+    "n": 9,
+    "files": [
+     "IntakeGate.md#example1",
+     "IntakeGate.md#example2",
+     "IntakeGate.md#example3",
+     "IntakeGate.md#example4",
+     "IntakeGate.olx",
+     "IntakeGateMath.olx",
+     "TextSlot.md#example2"
+    ]
+   },
+   "LLMAction|TextSlot": {
+    "n": 18,
+    "files": [
+     "IntakeGate.md#example1",
+     "IntakeGate.md#example2",
+     "IntakeGate.md#example3",
+     "IntakeGate.md#example4",
+     "IntakeGate.olx",
+     "IntakeGateMath.olx",
+     "TextSlot.md#example1",
+     "TextSlot.md#example2",
+     "TextSlot.md#example3",
+     "TextSlot.md#example4",
+     "TextSlot.olx"
+    ]
+   },
+   "Ref|ChoiceInput": {
+    "n": 9,
+    "files": [
+     "IntakeGate.md#example3",
+     "bmod_handout1.olx",
+     "bmod_handout2.olx"
+    ]
+   },
+   "Navigator|NavigatorDefaultPreview": {
+    "n": 4,
+    "files": [
+     "Navigator.md#example1",
      "Navigator.olx",
      "NavigatorExamples.olx",
      "NavigatorReadings.olx"
     ]
    },
-   "Navigator|NavigatorReadingDetail": {
-    "n": 1,
-    "files": [
-     "NavigatorReadings.olx"
-    ]
-   },
-   "Navigator|Markdown": {
+   "Navigator|NavigatorDefaultDetail": {
     "n": 3,
     "files": [
-     "NavigatorReadings.olx"
-    ]
-   },
-   "Navigator|NavigatorDefaultDetail": {
-    "n": 2,
-    "files": [
+     "Navigator.md#example1",
      "Navigator.olx",
      "NavigatorExamples.olx"
     ]
@@ -2500,19 +3424,49 @@
      "NavigatorExamples.olx"
     ]
    },
-   "Ref|LineInput": {
-    "n": 13,
+   "Navigator|NavigatorReadingDetail": {
+    "n": 1,
     "files": [
+     "NavigatorReadings.olx"
+    ]
+   },
+   "Navigator|Markdown": {
+    "n": 3,
+    "files": [
+     "NavigatorReadings.olx"
+    ]
+   },
+   "Markdown|NumberInput": {
+    "n": 3,
+    "files": [
+     "NumberInput.md#example5",
+     "Sequential.md#example2"
+    ]
+   },
+   "Ref|LineInput": {
+    "n": 18,
+    "files": [
+     "LineInput.md#example4",
+     "Ref.md#example1",
+     "Ref.md#example6",
      "Ref.olx",
      "RefExamples.olx",
      "RefField.olx",
      "RefMadLibs.olx",
+     "Vertical.md#example1",
      "Vertical.olx"
     ]
    },
-   "Carousel|Markdown": {
-    "n": 381,
+   "Markdown|Carousel": {
+    "n": 2,
     "files": [
+     "Carousel.md#example1"
+    ]
+   },
+   "Carousel|Markdown": {
+    "n": 195,
+    "files": [
+     "Carousel.md#example1",
      "Carousel.olx",
      "ar.demo.olx",
      "es.demo.olx",
@@ -2529,11 +3483,27 @@
      "CollapsibleNested.olx"
     ]
    },
-   "SetFieldAction|TextArea": {
-    "n": 40,
+   "Markdown|CapaProblem": {
+    "n": 2,
     "files": [
+     "CapaProblem.md#example4",
+     "NumberInput.md#example4"
+    ]
+   },
+   "Collapsible|TextArea": {
+    "n": 1,
+    "files": [
+     "TextArea.md#example3"
+    ]
+   },
+   "SetFieldAction|TextArea": {
+    "n": 25,
+    "files": [
+     "OnShow.md#example1",
      "OnShow.olx",
+     "SetFieldAction.md#example1",
      "SetFieldAction.olx",
+     "TextArea.md#example6",
      "TextAreaReadonly.olx",
      "ar.demo.olx",
      "es.demo.olx",
@@ -2545,10 +3515,80 @@
      "zh-Hans.demo.olx"
     ]
    },
-   "Ref|DropdownInput": {
+   "ActionButton|MatchingGrader": {
     "n": 1,
     "files": [
+     "MatchingGrader.md#example2"
+    ]
+   },
+   "Markdown|SortableInput": {
+    "n": 1,
+    "files": [
+     "SortableInput.md#example1"
+    ]
+   },
+   "Markdown|TabularMCQ": {
+    "n": 1,
+    "files": [
+     "TabularMCQ.md#example6"
+    ]
+   },
+   "Markdown|DropdownInput": {
+    "n": 1,
+    "files": [
+     "DropdownInput.md#example1"
+    ]
+   },
+   "Ref|DropdownInput": {
+    "n": 2,
+    "files": [
+     "DropdownInput.md#example1",
      "DropdownInputAttr.olx"
+    ]
+   },
+   "Explanation|DropdownInput": {
+    "n": 2,
+    "files": [
+     "DropdownInput.md#example5"
+    ]
+   },
+   "Key|Markdown": {
+    "n": 5,
+    "files": [
+     "ChoiceInput.md#example4",
+     "UseDynamic.md#example2",
+     "UseDynamic.olx",
+     "UseHistory.md#example1",
+     "UseHistory.olx"
+    ]
+   },
+   "Distractor|Markdown": {
+    "n": 9,
+    "files": [
+     "ChoiceInput.md#example4",
+     "UseDynamic.md#example2",
+     "UseDynamic.olx",
+     "UseHistory.md#example1",
+     "UseHistory.olx"
+    ]
+   },
+   "UseDynamic|Markdown": {
+    "n": 3,
+    "files": [
+     "ChoiceInput.md#example4",
+     "UseDynamic.md#example2",
+     "UseDynamic.olx"
+    ]
+   },
+   "UseDynamic|ChoiceInput": {
+    "n": 7,
+    "files": [
+     "ChoiceInput.md#example4",
+     "Distractor.md#example2",
+     "Key.md#example2",
+     "UseDynamic.md#example2",
+     "UseDynamic.olx",
+     "psych_sba_activities_part1.olx"
     ]
    },
    "WritingRhythmPlot|TextArea": {
@@ -2563,6 +3603,31 @@
     "files": [
      "WordUsage.olx",
      "WordUsageDemo.olx"
+    ]
+   },
+   "UseHistory|Vertical": {
+    "n": 3,
+    "files": [
+     "Chat.md#example3",
+     "ChatWithSidebarLegacy.olx",
+     "UseHistoryChat.olx"
+    ]
+   },
+   "UseHistory|Markdown": {
+    "n": 4,
+    "files": [
+     "ChatTargetEmbed.olx",
+     "UseHistory.md#example1",
+     "UseHistory.md#example2",
+     "UseHistory.olx"
+    ]
+   },
+   "Chat|TextArea": {
+    "n": 7,
+    "files": [
+     "ChatWithAgent.olx",
+     "ChatWithSidebarLegacy.olx",
+     "UseHistoryChat.olx"
     ]
    },
    "Markdown|Vertical": {
@@ -2592,14 +3657,6 @@
      "UseHistoryChat.olx"
     ]
    },
-   "Chat|TextArea": {
-    "n": 7,
-    "files": [
-     "ChatWithAgent.olx",
-     "ChatWithSidebarLegacy.olx",
-     "UseHistoryChat.olx"
-    ]
-   },
    "Chat|UseHistory": {
     "n": 6,
     "files": [
@@ -2621,23 +3678,10 @@
      "UseHistoryChat.olx"
     ]
    },
-   "UseHistory|Vertical": {
-    "n": 2,
-    "files": [
-     "ChatWithSidebarLegacy.olx",
-     "UseHistoryChat.olx"
-    ]
-   },
-   "UseHistory|Markdown": {
-    "n": 2,
-    "files": [
-     "ChatTargetEmbed.olx",
-     "UseHistory.olx"
-    ]
-   },
    "NumericalGrader|NumberInput": {
-    "n": 4,
+    "n": 5,
     "files": [
+     "ActionButton.md#example3",
      "ActionButtonGrading.olx",
      "ActionButtonStandalone.olx",
      "CorrectnessStandalone.olx",
@@ -2645,25 +3689,67 @@
     ]
    },
    "Correctness|NumericalGrader": {
-    "n": 4,
+    "n": 5,
     "files": [
+     "ActionButton.md#example3",
      "ActionButtonGrading.olx",
      "ActionButtonStandalone.olx",
      "CorrectnessStandalone.olx",
      "NumericalGraderStandalone.olx"
     ]
    },
-   "CustomGrader|LineInput": {
-    "n": 5,
+   "Markdown|LineInput": {
+    "n": 4,
     "files": [
+     "CustomGrader.md#example1",
+     "CustomGrader.md#example5",
+     "Ref.md#example1",
+     "Ref.md#example6"
+    ]
+   },
+   "CustomGrader|LineInput": {
+    "n": 12,
+    "files": [
+     "CustomGrader.md#example1",
+     "CustomGrader.md#example2",
+     "CustomGrader.md#example3",
+     "CustomGrader.md#example4",
+     "CustomGrader.md#example5",
+     "CustomGrader.md#example6",
      "CustomGrader.olx"
     ]
    },
    "RatioGrader|NumberInput": {
-    "n": 4,
+    "n": 6,
     "files": [
+     "CapaProblem.md#example3",
      "CapaProblemTargeting.olx",
      "RatioGraderExample.olx"
+    ]
+   },
+   "SlotSheetGrader|DerivedChecks": {
+    "n": 10,
+    "files": [
+     "DerivedChecks.md#example1",
+     "ScoreTable.md#example2",
+     "SheetValue.md#example2",
+     "SlotSheetGrader.md#example1",
+     "SlotSheetGrader.md#example2",
+     "SlotSheetGrader.md#example3",
+     "bmod_handout2.olx",
+     "bmod_handout3.olx"
+    ]
+   },
+   "SheetValue|DerivedChecks": {
+    "n": 1,
+    "files": [
+     "SheetValue.md#example2"
+    ]
+   },
+   "SheetValue|TextArea": {
+    "n": 1,
+    "files": [
+     "SheetValue.md#example2"
     ]
    },
    "Transcript|VideoPlayer": {
@@ -2671,33 +3757,6 @@
     "files": [
      "Transcript.olx",
      "Video.olx"
-    ]
-   },
-   "Key|Markdown": {
-    "n": 2,
-    "files": [
-     "UseDynamic.olx",
-     "UseHistory.olx"
-    ]
-   },
-   "Distractor|Markdown": {
-    "n": 4,
-    "files": [
-     "UseDynamic.olx",
-     "UseHistory.olx"
-    ]
-   },
-   "UseDynamic|Markdown": {
-    "n": 1,
-    "files": [
-     "UseDynamic.olx"
-    ]
-   },
-   "UseDynamic|ChoiceInput": {
-    "n": 5,
-    "files": [
-     "UseDynamic.olx",
-     "psych_sba_activities_part1.olx"
     ]
    },
    "AggregatedInputs|NumberInput": {
@@ -2718,48 +3777,22 @@
      "AnswerDistribution.olx"
     ]
    },
+   "Ref|NumberInput": {
+    "n": 5,
+    "files": [
+     "LLMFeedback.md#example4",
+     "Ref.md#example7",
+     "RefExamples.olx"
+    ]
+   },
    "Ref|TabularMCQ": {
     "n": 1,
     "files": [
      "RefComplex.olx"
     ]
    },
-   "Ref|NumberInput": {
-    "n": 1,
-    "files": [
-     "RefExamples.olx"
-    ]
-   },
-   "LLMAction|LLMFeedback": {
-    "n": 256,
-    "files": [
-     "ActionButtonLLM.olx",
-     "ActionButtonMultiple.olx",
-     "LLMAction.olx",
-     "LLMFeedback.olx",
-     "RefExamples.olx",
-     "RefField.olx",
-     "ar.demo.olx",
-     "bmod_handout1.olx",
-     "bmod_handout2.olx",
-     "bmod_handout3.olx",
-     "es.demo.olx",
-     "interactive.olx",
-     "pl.demo.olx",
-     "postcard-demo.olx",
-     "psych_sba_activities_part1.olx",
-     "psych_sba_activities_part3.olx",
-     "psych_sba_activities_part3auto.olx",
-     "psych_sba_activities_part4.olx",
-     "psych_sba_activities_part4auto.olx",
-     "text-changer-demo.olx",
-     "tr.demo.olx",
-     "uk.demo.olx",
-     "zh-Hans.demo.olx"
-    ]
-   },
    "Ref|LLMFeedback": {
-    "n": 6,
+    "n": 4,
     "files": [
      "RefField.olx",
      "psych_sba_activities_part4.olx",
@@ -2767,8 +3800,9 @@
     ]
    },
    "UseHistory|ChoiceInput": {
-    "n": 1,
+    "n": 2,
     "files": [
+     "UseHistory.md#example1",
      "UseHistory.olx"
     ]
    },
@@ -2791,26 +3825,32 @@
     ]
    },
    "OlxSlot|TextArea": {
-    "n": 1,
+    "n": 2,
     "files": [
+     "OlxSlot.md#example1",
      "OlxSlot.olx"
     ]
    },
-   "IntakeGate|OlxSlot": {
-    "n": 1,
+   "LLMAction|OlxSlot": {
+    "n": 3,
     "files": [
+     "OlxSlot.md#example2",
+     "OlxSlot.md#example3",
      "OlxSlotLLM.olx"
     ]
    },
-   "LLMAction|OlxSlot": {
-    "n": 1,
+   "IntakeGate|OlxSlot": {
+    "n": 2,
     "files": [
+     "OlxSlot.md#example3",
      "OlxSlotLLM.olx"
     ]
    },
    "OlxSlot|CodeInput": {
-    "n": 9,
+    "n": 7,
     "files": [
+     "CodeInput.md#example2",
+     "CodeInput.md#example3",
      "CodeInputWithSlot.olx",
      "interactive.olx"
     ]
@@ -2841,10 +3881,12 @@
     ]
    },
    "CopyFieldAction|TextArea": {
-    "n": 33,
+    "n": 23,
     "files": [
+     "CopyFieldAction.md#example1",
      "CopyFieldAction.olx",
      "MermaidPublish.olx",
+     "OnShow.md#example1",
      "OnShow.olx",
      "ar.demo.olx",
      "es.demo.olx",
@@ -2861,6 +3903,21 @@
      "MermaidPublish.olx"
     ]
    },
+   "SelfMonitorPlot|TextArea": {
+    "n": 23,
+    "files": [
+     "SelfMonitorPlot.md#example1",
+     "SelfMonitorPlot.md#example2",
+     "SelfMonitorPlot.md#example3",
+     "bmod_handout3.olx"
+    ]
+   },
+   "ActionButton|HelloAction": {
+    "n": 1,
+    "files": [
+     "HelloAction.md#example1"
+    ]
+   },
    "Flash|Markdown": {
     "n": 5,
     "files": [
@@ -2869,8 +3926,15 @@
      "Trigger.olx"
     ]
    },
+   "LLMAction|TextArea": {
+    "n": 4,
+    "files": [
+     "bmod_handout3.olx",
+     "learning-observer-course.olx"
+    ]
+   },
    "Ref|Carousel": {
-    "n": 28,
+    "n": 14,
     "files": [
      "ar.demo.olx",
      "es.demo.olx",
@@ -2882,7 +3946,7 @@
     ]
    },
    "SetFieldAction|Carousel": {
-    "n": 28,
+    "n": 14,
     "files": [
      "ar.demo.olx",
      "es.demo.olx",
@@ -2893,134 +3957,100 @@
      "zh-Hans.demo.olx"
     ]
    },
-   "LLMAction|TextArea": {
-    "n": 8,
-    "files": [
-     "bmod_handout3.olx",
-     "learning-observer-course.olx"
-    ]
-   },
    "MarkupProblem|TextArea": {
-    "n": 12,
+    "n": 6,
     "files": [
      "interactive.olx"
     ]
    },
    "LLMAction|CodeInput": {
-    "n": 2,
+    "n": 1,
     "files": [
      "interactive.olx"
     ]
    },
    "Ref|CodeInput": {
-    "n": 4,
+    "n": 2,
     "files": [
      "interactive.olx"
     ]
    },
-   "SlotSheetGrader|DerivedChecks": {
-    "n": 6,
+   "SlotSheetGrader|LLMFeedback": {
+    "n": 23,
     "files": [
+     "bmod_handout1.olx",
+     "bmod_handout2.olx",
+     "bmod_handout3.olx"
+    ]
+   },
+   "SheetValue|LLMFeedback": {
+    "n": 1,
+    "files": [
+     "bmod_handout1.olx"
+    ]
+   },
+   "SheetValue|ChoiceInput": {
+    "n": 1,
+    "files": [
+     "bmod_handout1.olx"
+    ]
+   },
+   "Ref|SheetValue": {
+    "n": 7,
+    "files": [
+     "bmod_handout1.olx"
+    ]
+   },
+   "SetFieldAction|Sequential": {
+    "n": 3,
+    "files": [
+     "bmod_handout1.olx",
      "bmod_handout2.olx",
      "bmod_handout3.olx"
     ]
    },
    "OnChange|SlotSheetGrader": {
-    "n": 6,
+    "n": 3,
     "files": [
      "bmod_handout2.olx",
      "bmod_handout3.olx"
-    ]
-   },
-   "SelfMonitorPlot|TextArea": {
-    "n": 38,
-    "files": [
-     "bmod_handout3.olx"
-    ]
-   },
-   "SlotSheetGrader|LLMFeedback": {
-    "n": 46,
-    "files": [
-     "bmod_handout1.olx",
-     "bmod_handout2.olx",
-     "bmod_handout3.olx"
-    ]
-   },
-   "SetFieldAction|Sequential": {
-    "n": 6,
-    "files": [
-     "bmod_handout1.olx",
-     "bmod_handout2.olx",
-     "bmod_handout3.olx"
-    ]
-   },
-   "SetFieldAction|Markdown": {
-    "n": 2,
-    "files": [
-     "psych_sba_activities_part3auto.olx"
-    ]
-   },
-   "Mermaid|LLMFeedback": {
-    "n": 2,
-    "files": [
-     "psych_sba_activities_part3auto.olx"
-    ]
-   },
-   "Ref|Markdown": {
-    "n": 8,
-    "files": [
-     "psych_sba_activities_part4.olx",
-     "psych_sba_activities_part4auto.olx"
     ]
    },
    "UseDynamic|TextArea": {
-    "n": 4,
+    "n": 2,
     "files": [
      "psych_sba_activities_part1.olx"
     ]
    },
    "Ref|CheckboxInput": {
-    "n": 10,
+    "n": 5,
     "files": [
      "psych_sba_activities_part1.olx",
      "psych_sba_activities_part4auto.olx"
     ]
    },
    "UseDynamic|CapaProblem": {
-    "n": 8,
+    "n": 4,
     "files": [
      "psych_sba_activities_part1.olx"
     ]
    },
    "UseDynamic|CheckboxInput": {
-    "n": 8,
+    "n": 4,
     "files": [
      "psych_sba_activities_part1.olx"
     ]
    },
-   "Ref|ChoiceInput": {
-    "n": 16,
+   "SetFieldAction|Markdown": {
+    "n": 1,
     "files": [
-     "bmod_handout1.olx",
-     "bmod_handout2.olx"
+     "psych_sba_activities_part3auto.olx"
     ]
    },
-   "SheetValue|LLMFeedback": {
-    "n": 2,
+   "Mermaid|LLMFeedback": {
+    "n": 1,
     "files": [
-     "bmod_handout1.olx"
-    ]
-   },
-   "SheetValue|ChoiceInput": {
-    "n": 2,
-    "files": [
-     "bmod_handout1.olx"
-    ]
-   },
-   "Ref|SheetValue": {
-    "n": 14,
-    "files": [
-     "bmod_handout1.olx"
+     "psych_sba_activities_part3auto.olx"
     ]
    }
   },
@@ -3031,6 +4061,7 @@
    "AnswerDistribution",
    "CapaProblem",
    "Carousel",
+   "Cast",
    "Chat",
    "CheckboxGrader",
    "CheckboxInput",
@@ -3050,6 +4081,7 @@
    "Explanation",
    "Flash",
    "FormulaGrader",
+   "HelloAction",
    "Hidden",
    "IntakeGate",
    "Key",

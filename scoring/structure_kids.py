@@ -82,7 +82,7 @@ CONTAINERS: dict[str, dict] = {
     "Collapsible": {
         "mechanism": NESTED,
         "holds": ['action', 'display', 'item', 'structure'],
-        "references": [],
+        "references": ['item'],
         "why": "a foldable region; items inside are optional detail"},
     "CompactPopout": {
         "mechanism": NESTED,
@@ -91,7 +91,7 @@ CONTAINERS: dict[str, dict] = {
         "why": "an aside"},
     "Course": {
         "mechanism": NESTED,
-        "holds": ['display'],
+        "holds": ['display', 'structure'],
         "references": [],
         "why": "the top level; carries sections, not items directly"},
     "DynamicList": {
@@ -107,7 +107,7 @@ CONTAINERS: dict[str, dict] = {
                "is where Navigator's template blocks are defined"},
     "IntakeGate": {
         "mechanism": NESTED,
-        "holds": ['display', 'not_intake', 'structure'],
+        "holds": ['display', 'item', 'not_intake', 'structure'],
         "references": ['display', 'not_intake'],
         "why": "gates entry to what follows"},
     "LiquidTemplate": {
@@ -150,6 +150,12 @@ CONTAINERS: dict[str, dict] = {
         "holds": ['display', 'item', 'structure'],
         "references": [],
         "why": "ordered steps revealed one at a time"},
+    "Cast": {
+        "mechanism": NESTED,
+        "holds": ['display'],
+        "references": [],
+        "why": "declares characters as data, and nests the TeamDirectory that "
+               "presents them -- found in a documented example, not in any .olx"},
     "SharedNotes": {
         "mechanism": NESTED,
         "holds": [],
@@ -182,7 +188,7 @@ CONTAINERS: dict[str, dict] = {
         "why": "parallel pages; items sit inside the page bodies"},
     "TimedContainer": {
         "mechanism": NESTED,
-        "holds": ['display', 'item'],
+        "holds": ['display', 'item', 'structure'],
         "references": [],
         "why": "content under a clock -- the reason Freewrite appears inside"
                "one"},
@@ -211,7 +217,6 @@ LEAF_STRUCTURE = {
     "AvatarEditor": "an editor; its value is the figure, not children",
     "CastEditor": "an editor",
     "CharacterBuilder": "an editor",
-    "Cast": "declares characters as data",
     "DigitSpanTask": "an instrument",
     "PEGDevBlock": "a development block",
     "NavigatorDefaultPreview": "a Navigator template, named by attribute",
@@ -226,68 +231,62 @@ _ID = re.compile(r'\bid\s*=\s*"([^"]+)"')
 
 
 def mine(roots: list[str], inventory: dict) -> dict:
-    """Nesting edges, plus reference edges resolved against ids in the same file."""
+    """Nesting edges and reference edges, over the corrected corpus.
+
+    See `olx_corpus`: build artifacts out, the 295 documented examples in. The
+    first version of this globbed `*.olx` and mined the psych course twice.
+    """
+    import olx_corpus
+
     role = {b["name"]: b["role"] for b in inventory["blocks"]}
     known = set(role)
     nested: dict[str, dict] = {}
     referenced: dict[str, dict] = {}
     seen_parents: set[str] = set()
     files = 0
-    for root in roots:
-        for dp, _dn, fns in os.walk(root):
-            if "node_modules" in dp or "/.git" in dp:
+    for label, text in olx_corpus.texts(roots):
+        files += 1
+        owner = {}
+        for m in _TAG.finditer(text):
+            if m.group(1) or m.group(2) not in known:
                 continue
-            for fn in fns:
-                if not fn.endswith(".olx"):
-                    continue
-                files += 1
-                text = open(os.path.join(dp, fn), errors="ignore").read()
-                # id -> tag, for resolving references within this file
-                owner = {}
-                for m in _TAG.finditer(text):
-                    if m.group(1) or m.group(2) not in known:
-                        continue
-                    got = _ID.search(m.group(3) or "")
-                    if got:
-                        owner[got.group(1)] = m.group(2)
-                stack = []
-                for m in _TAG.finditer(text):
-                    close, name, attrs, selfclose = m.groups()
-                    if close:
-                        while stack and stack.pop() != name:
-                            pass
-                        continue
-                    if stack and name in known and stack[-1] in known:
-                        rec = nested.setdefault(f"{stack[-1]}|{name}",
-                                                {"n": 0, "files": set()})
-                        rec["n"] += 1
-                        rec["files"].add(fn)
-                        seen_parents.add(stack[-1])
-                    if name in known:
-                        # referenced-attribute: any attribute value that is an id
-                        for val in re.findall(r'"([^"]+)"', attrs or ""):
-                            for tok in re.split(r"[,\s]+", val.strip()):
-                                if tok in owner and owner[tok] != name:
-                                    rec = referenced.setdefault(
-                                        f"{name}|{owner[tok]}", {"n": 0, "files": set()})
-                                    rec["n"] += 1
-                                    rec["files"].add(fn)
-                                    seen_parents.add(name)
-                        # referenced-body: the text up to the closing tag
-                        if not selfclose:
-                            end = text.find(f"</{name}>", m.end())
-                            body = text[m.end():end] if end > 0 else ""
-                            if "<" not in body:
-                                for tok in re.split(r"[,\s]+", body.strip()):
-                                    if tok in owner and owner[tok] != name:
-                                        rec = referenced.setdefault(
-                                            f"{name}|{owner[tok]}",
-                                            {"n": 0, "files": set()})
-                                        rec["n"] += 1
-                                        rec["files"].add(fn)
-                                        seen_parents.add(name)
-                    if not selfclose:
-                        stack.append(name)
+            got = _ID.search(m.group(3) or "")
+            if got:
+                owner[got.group(1)] = m.group(2)
+        stack = []
+        for m in _TAG.finditer(text):
+            close, name, attrs, selfclose = m.groups()
+            if close:
+                while stack and stack.pop() != name:
+                    pass
+                continue
+            if stack and name in known and stack[-1] in known:
+                rec = nested.setdefault(f"{stack[-1]}|{name}", {"n": 0, "files": set()})
+                rec["n"] += 1
+                rec["files"].add(label)
+                seen_parents.add(stack[-1])
+            if name in known:
+                for val in re.findall(r'"([^"]+)"', attrs or ""):
+                    for tok in re.split(r"[,\s]+", val.strip()):
+                        if tok in owner and owner[tok] != name:
+                            rec = referenced.setdefault(f"{name}|{owner[tok]}",
+                                                        {"n": 0, "files": set()})
+                            rec["n"] += 1
+                            rec["files"].add(label)
+                            seen_parents.add(name)
+                if not selfclose:
+                    end_at = text.find(f"</{name}>", m.end())
+                    body = text[m.end():end_at] if end_at > 0 else ""
+                    if "<" not in body:
+                        for tok in re.split(r"[,\s]+", body.strip()):
+                            if tok in owner and owner[tok] != name:
+                                rec = referenced.setdefault(f"{name}|{owner[tok]}",
+                                                            {"n": 0, "files": set()})
+                                rec["n"] += 1
+                                rec["files"].add(label)
+                                seen_parents.add(name)
+            if not selfclose:
+                stack.append(name)
     for d in (nested, referenced):
         for rec in d.values():
             rec["files"] = sorted(rec["files"])
