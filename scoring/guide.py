@@ -212,7 +212,15 @@ def check(strict_identifiers: bool = True) -> list[str]:
 
 
 def renumber(write: bool = False) -> list[str]:
-    """Derive labels from document order; rewrite headings and every citation."""
+    """D
+    ANCHORS SURVIVE RENUMBERING. `renumber()` rewrites heading lines, and a
+    `<!-- qc:NAME -->` alias sits on or beside one, so without this a renumber
+    would destroy the very aliases that exist because renumbering moves labels.
+    The aliases are what a COURSE file points at, and a course file is a citer
+    `_cited_by()` cannot see -- which is the reason for anchors in the first
+    place. See `anchors.py`.
+
+erive labels from document order; rewrite headings and every citation."""
     text = GUIDE.read_text()
     mapping = {o: n for o, n in plan(text).items() if o != n}
     lines = [f"{len(mapping)} label(s) change:"] if mapping else ["labels already match document order"]
