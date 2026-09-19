@@ -3292,6 +3292,38 @@ empty and is the declared place for a cell whose gold is deliberately accepted �
 but declaring it before understanding it would be exactly the "park it and move
 on" this plan keeps arguing against.
 
+#### The verifier was blind to the class it exists to catch — and two more losses
+
+`migrated_tables.py` compared with `==` and passed while `JOBS` was scrambled.
+**The gate written to catch silent drift was blind to the drift**, because `==`
+ignores dict order. It now compares SHAPE: equal, same-typed, and **in the same
+order at every depth**.
+
+Its first run after the change found **two more order losses nobody had noticed**
+— `olx_prompts.MATCH_DEF` and `SHEET_ONLY` — plus `CONTEXT`. Three tables, from a
+different cause than the JOBS one: generator fields live on ITEM entries, so
+rebuilding a table walks items in rubric order and loses the order the table was
+written in.
+
+##### Harmless here, and that was established rather than assumed
+
+Every consumer was read: `CONTEXT` is a keyed lookup, `SHEET_ONLY` is always
+`sorted()`, `MATCH_DEF` is never iterated. So the lost order changed nothing.
+
+**It was preserved anyway.** The JOBS case had just demonstrated that a table's
+order can BE the data, and "harmless" here rests on three consumers staying the
+way they are. `generator.TABLE_ORDER` costs three short lists and removes the
+need to keep being right about that.
+
+##### Order restoration has to come LAST
+
+Applying it before merging `CONTEXT`'s non-item residue put `_utb` and `_wgb` at
+the end, because `update` appends — and the authored order interleaves them. The
+restoration has to see the whole table, not the part that came from item entries.
+
+All four behavioural hashes, T5.1, T3.2, the 28-table gate and the fixture check
+re-verified after every step.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
