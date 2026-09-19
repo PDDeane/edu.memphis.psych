@@ -207,6 +207,29 @@ def generator_fields_for(item_id: str) -> dict:
     return out
 
 
+# The scoring DECLARATIONS. Seven of eight moved; `CONSENSUS_OVERLAP_BACKLOG` is
+# keyed by participant and belongs in the gold file under C1b.
+DECLARATION_TABLES = ("PROSE_ONLY_SLOTS", "PROSE_ONLY_JUDGED_AGAINST",
+                      "MULTI_BLOCK_DECLARED", "DESIGNED_TEXT",
+                      "DECOMPOSITION_DIVERGENCES", "UNCHARGED_VERDICTS",
+                      "APP_ONLY_SLOTS")
+
+
+def _pairs(table: dict) -> list:
+    """A dict with TUPLE KEYS, as JSON can hold it: a list of [key, value].
+
+    Six of the seven declaration tables are keyed by tuples -- `("Q4a",
+    "antecedent_kind_1", "rule_addition")` -- and JSON has string keys only.
+    Joining the parts with a separator would be lossless only until a part
+    contained the separator, and would silently stop round-tripping on the day
+    one did. A list of pairs keeps the key as a LIST, which is what a tuple is.
+
+    `rubric_equivalence` and the reader both round-trip this, and the round trip
+    is asserted rather than assumed -- see `--verify-declarations`.
+    """
+    return [[list(k) if isinstance(k, tuple) else k, v] for k, v in table.items()]
+
+
 def build(course_id: str) -> tuple[dict, list[dict]]:
     doc = {"schema_version": SCHEMA_VERSION, "course": course_id,
            "handouts": {}, "items": []}
@@ -242,6 +265,14 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
     # can hold them.
     # Per-handout reference maps: component id -> context handed to the grader.
     # Course-level because they are keyed by COMPONENT, not by item.
+    import declaration_source
+
+    doc["declarations"] = {
+        name: _jsonable(_pairs(getattr(declaration_source, name)),
+                        f"declarations.{name}")
+        for name in DECLARATION_TABLES
+        if getattr(declaration_source, name, None) is not None}
+
     doc["generator"]["CONTEXT_REFS"] = {
         str(h): _jsonable(getattr(generator_source, f"_H{h}_CTX", None),
                           f"generator._H{h}_CTX")
