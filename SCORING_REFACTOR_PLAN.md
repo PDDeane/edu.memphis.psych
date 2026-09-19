@@ -2044,6 +2044,68 @@ declared; `Carousel` both NESTS and REFERENCES; `Ref` and `UseHistory` nest
 `IntakeGate`; and `Navigator` REFERENCES an `Annotate`, an item. Widened against
 evidence, gate clean.
 
+##### 10.6.3 · THE PEG AUTHORING FORMATS — `peg_formats.py`, gated
+
+*The surface a teacher actually writes in, and the closest thing in this engine
+to the intake program's intended output.*
+
+`13 PEG formats registered, 7 creatable by an author. All 7 are used by the
+courses.` Gated by `check_peg_authoring_formats_are_declared`.
+
+**This mapping IS declared**, unlike the grader and containment tables.
+`packages/shared/generated/parserRegistry.ts` gives every extension its grammar,
+its directory, a display name and a **`creatable`** flag — whether an author may
+make a file of that type. So `peg_formats.py` READS the registry rather than
+inventing a mapping, and declares only what the registry does not carry: **what
+the teacher writes**.
+
+| creatable format | block | what the teacher writes | files |
+|---|---|---|---|
+| `textSelectionpeg` | SimpleTextSelection | prose with the answers in `[brackets]` | 5 |
+| `matchingpeg` | Matching | two columns, one pair per line | 2 |
+| `sortpeg` | Sort | items in their correct order | 3 |
+| `dropdownpeg` | Dropdown | options in a list, the key marked | 2 |
+| `chatpeg` | Chat | a dialogue script, `::id [attrs]` turn markers | 22 |
+| `idlistpeg` | MasteryBank | a list of OLX ids — an item bank | 2 |
+| `capapeg` | Capa | an Open edX-style markdown problem | 12 |
+
+Six more are registered and **not** author-creatable — `clippeg`, `demopeg`,
+`dndpeg`, `exprpeg`, `grammarpeg`, `templatepeg` — engine internals and
+prototypes. That flag is the engine telling an intake program which formats are
+fair game, and it should be obeyed rather than re-derived.
+
+##### A SIXTH reference mechanism: a block naming a FILE
+
+`<Chat src="psych_sba_part2.chatpeg" cast="characters.cast" />`. The five
+mechanisms recorded so far relate blocks to blocks; this one relates a block to a
+FILE. Peg content is absent from `manifest.yaml`, reached only by `src=`, and
+**invisible to every block-level scan** — including all three of the earlier
+declarations, which is why this pass was owed.
+
+##### What the pass found
+
+* **`.textHighlightpeg` is registered NOWHERE.** Three psych files use it, and
+  each is **byte-identical** to a `.textSelectionpeg` beside it — a renamed
+  grammar whose old files were left behind. The check caught it on its first run.
+* **Six authored psych files are reached by nothing.** The three
+  `.textHighlightpeg` dead twins *and* their three live `.textSelectionpeg`
+  originals: three highlighting quizzes, written, parseable, routed nowhere.
+  Declared in `ORPHANED_CONTENT` with reasons so a NEW orphan fails rather than
+  hiding among them, and so a declaration about a deleted file is itself
+  reported.
+* **Orphans are a course question, not an engine one.** lo-blocks carries twelve
+  unreferenced `test-*.capapeg` fixtures and demo scripts, which is what they are
+  for. Counting them buried the six real ones among twenty-six.
+
+##### Why this matters more than the OLX tables
+
+An intake program that emits OLX where a `.textSelectionpeg` would do has
+produced something **the teacher cannot edit afterwards**. The bracketed-prose
+quiz above is one file, readable by anyone; the OLX it expands into is not. The
+`creatable` flag, the seven formats and their authored shapes are therefore the
+intake program's preferred output space, and the OLX tables describe the
+fallback for everything those seven cannot express.
+
 ##### The intake program: an LLM reading materials onto ROLES, then components
 
 *Recorded on the user's architecture note.*

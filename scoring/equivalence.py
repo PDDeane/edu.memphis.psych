@@ -864,6 +864,8 @@ def enforcement_audit():
         findings.append(("-", "GRADER/INPUT PAIRING UNDECLARED", bad))
     for bad in ENF.check_container_contents_are_declared():
         findings.append(("-", "CONTAINER CONTENTS UNDECLARED", bad))
+    for bad in ENF.check_peg_authoring_formats_are_declared():
+        findings.append(("-", "PEG AUTHORING FORMAT UNDECLARED", bad))
     for bad in ENF.check_every_enforcement_check_is_registered():
         findings.append(("-", "ENFORCEMENT CHECK NOT REGISTERED", bad))
     for iid, h, mx, label in uncovered_cli_items():
