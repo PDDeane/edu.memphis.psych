@@ -74,12 +74,23 @@ UNREGISTERED = {
 # Authored content no `src=` reaches, named with the reason. Declared rather
 # than tolerated: a NEW orphan must fail, and these six must not hide it.
 ORPHANED_CONTENT = {
-    "psych_reinforce_punish.textSelectionpeg": "psych highlighting quiz, unrouted",
-    "psych_positive_negative.textSelectionpeg": "psych highlighting quiz, unrouted",
-    "psych_bedtime_strategies.textSelectionpeg": "psych highlighting quiz, unrouted",
-    "psych_reinforce_punish.textHighlightpeg": "byte-identical dead twin of the above",
-    "psych_positive_negative.textHighlightpeg": "byte-identical dead twin",
-    "psych_bedtime_strategies.textHighlightpeg": "byte-identical dead twin",
+    # The three `.textSelectionpeg` quizzes were here and are now ROUTED --
+    # `psych_highlight_quizzes.olx` loads each by `src=` and the manifest serves
+    # it at `/practice/highlighting`. The entries were removed because the check
+    # reported them: "declared orphaned and something now references it". A
+    # declaration that outlives its reason is reported by the same rule that
+    # reports a new orphan, which is what makes the table self-retiring.
+    #
+    # These three CANNOT be routed. `.textHighlightpeg` is registered by no
+    # grammar, so nothing can parse them, and each is byte-identical to the
+    # `.textSelectionpeg` now in service. They are dead copies awaiting a
+    # deletion decision, not content awaiting a route.
+    "psych_reinforce_punish.textHighlightpeg":
+        "byte-identical dead twin of the routed .textSelectionpeg; unparseable",
+    "psych_positive_negative.textHighlightpeg":
+        "byte-identical dead twin; unparseable",
+    "psych_bedtime_strategies.textHighlightpeg":
+        "byte-identical dead twin; unparseable",
 }
 
 _INFO = re.compile(r"'(\w+)':\s*\{\s*grammarName:\s*'(\w+)',\s*grammarDir:\s*'([^']+)'")
@@ -219,8 +230,8 @@ def main(argv=None) -> int:
     unused = [e for e in creatable if not found.get(e)]
     print(f"  creatable but used by NO course ({len(unused)}): "
           f"{', '.join(unused) or 'none'}")
-    print(f"  {len(ORPHANED_CONTENT)} authored file(s) declared orphaned "
-          f"(3 unrouted quizzes + 3 dead twins in an unregistered extension)")
+    print(f"  {len(ORPHANED_CONTENT)} authored file(s) declared orphaned -- "
+          f"dead twins in an unregistered extension, awaiting deletion")
 
     bad = verify(reg, found, referenced, course_only)
     if args.json:

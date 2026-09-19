@@ -17,3 +17,4 @@ routes:
   /bmod/handout1: edu.memphis.psych/bmod_handout1
   /bmod/handout2: edu.memphis.psych/bmod_handout2
   /bmod/handout3: edu.memphis.psych/bmod_handout3
+  /practice/highlighting: edu.memphis.psych/psych_highlight_quizzes
