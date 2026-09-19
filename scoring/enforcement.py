@@ -14799,6 +14799,42 @@ def check_every_enforcement_check_is_registered() -> list[str]:
     return out
 
 
+def check_grader_input_pairings_are_declared() -> list[str]:
+    """The grader/input pairing table still agrees with the corpora, both ways.
+
+    lo-blocks declares no pairing -- a grader says `inputType` and whether it
+    infers from children, and nothing says which inputs it takes -- so the table
+    in `grader_inputs.py` is a hand declaration, and a hand declaration rots. It
+    is held to evidence in both directions: a pairing declared with no example
+    anywhere is a guess with a table around it, and a pairing DEMONSTRATED in a
+    course and absent from the table is new evidence being absorbed instead of
+    forcing a decision.
+
+    This is the table the intake program will be steered by, which is why it is
+    gated rather than left as a document.
+    """
+    try:
+        import grader_inputs as GI
+        import paths as _paths
+        import shape_inventory as _SI
+    except Exception as exc:                      # pragma: no cover
+        return [f"the pairing declaration cannot be read: {exc}"]
+    import os
+    inv_path = os.path.join(_HERE_DIR, "SHAPE_INVENTORY.json")
+    if not os.path.exists(inv_path):
+        return [f"{os.path.basename(inv_path)} is missing, so the pairing table "
+                f"has nothing to check itself against -- which is not the same as "
+                f"agreeing with it"]
+    import json as _json
+    inv = _json.load(open(inv_path))
+    roots = [str(_paths.LO), os.path.join(_HERE_DIR, "..", "psychology")]
+    roots = [r for r in roots if os.path.isdir(r)]
+    if not roots:
+        return ["no corpus to mine: neither the lo-blocks checkout nor the course "
+                "content is present, so the pairing table is unverifiable here"]
+    return GI.verify(inv, GI.mine(roots, inv))
+
+
 if __name__ == "__main__":
     import json
     import sys
