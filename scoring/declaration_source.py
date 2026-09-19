@@ -23,11 +23,15 @@ verifier holding its own reference never saw the change. The established
 Re-measured with it, of those five:
 
     COUNTABLE_EXEMPT         READ -- emptying it changes the output. MOVED.
-    PROBE_UNREACHABLE_PAIRS  READ, and staying: its keys are FROZENSETS, and
-                             the pair-list encoding restores a stored list as a
-                             TUPLE. Migrating it would silently change every key
-                             type and break every lookup, which is a change to
-                             the encoder, not to this file.
+    PROBE_UNREACHABLE_PAIRS  READ, and staying until the encoder can hold it:
+                             its keys are (item, FROZENSET) pairs, and
+                             `json.dumps` refuses a frozenset outright. Measured
+                             rather than assumed -- an earlier note here said it
+                             would "silently change every key type", which is
+                             what the RAW `_jsonable` path does; the declaration
+                             path raises TypeError and exports nothing. A loud
+                             failure, not a quiet one, and a change to the
+                             encoder rather than to this file.
     PROBE_PROVOCATIONS       READ, and staying: it is the probe's own fixtures.
                              It names items, but it is a fact about testing the
                              engine, not a declaration about the course.
@@ -1140,4 +1144,40 @@ COUNTABLE_EXEMPT = {
                    "no longer depends on the group either -- the dealing groups "
                    "live in agreement_app.JOBS `dealt` -- which is what made this "
                    "conversion testable at all.",
+}
+
+
+# Charge-once pairs the WEB reader declares and the CLI probe cannot discover.
+#
+# NOT A DIFFERENCE IN WHAT THE ENGINES SCORE. The probe finds a sublinear pair
+# by arithmetic: it fails each slot singly, then in pairs, and calls the pair
+# charge-once when `both < single[a] + single[b]`. A pair produces no observable
+# sublinearity when one side is already a gate, or ignored, or its loss is
+# masked by another deduction -- so the probe cannot see a rule the web declares
+# outright. The two engines agree; one instrument reaches the rule and the other
+# does not.
+#
+# DECLARED RATHER THAN TOLERATED IN A COMMENT. Both of these were accepted
+# already -- the selftest names NR's as a legitimate declared divergence when it
+# computes its clean baseline -- but that acceptance lived in a sentence inside
+# a different module. A reader meeting the finding could not tell an accepted
+# limit of the probe from a new defect, which is the distinction
+# DECOMPOSITION_DIVERGENCES exists to preserve, one instrument over.
+#
+# EACH ENTRY NAMES WHY THE PROBE CANNOT REACH IT, so a THIRD one shows up as
+# new rather than joining a list nobody re-reads. The table ratchets: it may
+# shrink, and an addition wants the same measurement these had.
+PROBE_UNREACHABLE_PAIRS: dict[tuple[str, frozenset], str] = {
+    ("2a", frozenset({"how_2", "mechanism_named"})):
+        "The web charges the pair once. In the CLI ledger `mechanism_named` is "
+        "already carried by the deduction that `how_2` triggers, so failing both "
+        "loses exactly what failing one loses and the arithmetic shows no "
+        "sublinearity for the probe to find. Declared 2026-09-16.",
+    ("NR", frozenset({"barrier_is_not_this_type", "demonstrates_type"})):
+        "The web charges the pair once. `demonstrates_type` is DERIVED on NR -- "
+        "the sheet declares `expect=\"demonstrates_type:observed_type=NR\"` -- so "
+        "the CLI probe never fails it independently and the pair cannot appear "
+        "in its arithmetic. Named in equivalence.py's selftest as a legitimate "
+        "declared divergence since before this table existed; moved here so it "
+        "is a decision with a reason rather than a remark. Declared 2026-09-16.",
 }
