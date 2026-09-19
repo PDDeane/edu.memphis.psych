@@ -305,8 +305,14 @@ def _tighten(inv: dict) -> int:
     # A DECLARED DATA MODULE IS WHERE COURSE DATA IS SUPPOSED TO GO, so its
     # growth is the migration working. The gate skips it; so must the writer, or
     # the two disagree and the budget can never be written again.
+    # A DECLARED RE-ENTRY IS NOT A REGRESSION. See `enforcement.COURSE_DATA_REENTRY`:
+    # a count that rose because an exemption was removed may be recorded once, at
+    # the number the declaration states. Any other rise, or a rise past that
+    # number, still refuses.
+    reentry = getattr(ENF, "COURSE_DATA_REENTRY", {})
     grew = {m: (old[m], n) for m, n in counts.items()
-            if m in old and n > old[m] and m not in ENF.DATA_MODULES}
+            if m in old and n > old[m] and m not in ENF.DATA_MODULES
+            and not (m in reentry and n == reentry[m][0])}
     if grew:
         print("\n  REFUSING to tighten: these counts ROSE, and a ratchet that "
               "baselines a regression records history instead of enforcing it.")
