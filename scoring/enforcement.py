@@ -1359,6 +1359,7 @@ def _declaration(name: str) -> dict:
 
 
 COUNTABLE_EXEMPT = _declaration("COUNTABLE_EXEMPT")
+PROBE_UNREACHABLE_PAIRS = _declaration("PROBE_UNREACHABLE_PAIRS")
 PROSE_ONLY_SLOTS = _declaration("PROSE_ONLY_SLOTS")
 # RAISED 25 -> 27 on 2026-09-12 for two slots the audit had been reporting as
 # UNDECLARED, not for two new prose rules: `1c.series_box_holds` and
@@ -6270,20 +6271,9 @@ def _run_grammar_script(name: str, what: str) -> list[str]:
 # EACH ENTRY NAMES WHY THE PROBE CANNOT REACH IT, so a THIRD one shows up as
 # new rather than joining a list nobody re-reads. The table ratchets: it may
 # shrink, and an addition wants the same measurement these had.
-PROBE_UNREACHABLE_PAIRS: dict[tuple[str, frozenset], str] = {
-    ("2a", frozenset({"how_2", "mechanism_named"})):
-        "The web charges the pair once. In the CLI ledger `mechanism_named` is "
-        "already carried by the deduction that `how_2` triggers, so failing both "
-        "loses exactly what failing one loses and the arithmetic shows no "
-        "sublinearity for the probe to find. Declared 2026-09-16.",
-    ("NR", frozenset({"barrier_is_not_this_type", "demonstrates_type"})):
-        "The web charges the pair once. `demonstrates_type` is DERIVED on NR -- "
-        "the sheet declares `expect=\"demonstrates_type:observed_type=NR\"` -- so "
-        "the CLI probe never fails it independently and the pair cannot appear "
-        "in its arithmetic. Named in equivalence.py's selftest as a legitimate "
-        "declared divergence since before this table existed; moved here so it "
-        "is a decision with a reason rather than a remark. Declared 2026-09-16.",
-}
+# PROBE_UNREACHABLE_PAIRS IS BOUND FURTHER DOWN, after `_declaration` is
+# defined. Entries and their measurements live in the course file, authored
+# in `declaration_source.py`.
 
 
 def check_probe_unreachable_pairs_still_apply() -> list[str]:
