@@ -13775,6 +13775,24 @@ PROBE_PROVOCATIONS: dict[str, object] = {
     # from the neighbouring list-valued entries.
     "enforcement.DATA_MODULES": ("probe_no_such_module.py",
                                  "probe: declared a data module, does not exist"),
+    # THE TWO NEUTRALITY TABLES, both empty and both reported CANNOT PROBE for
+    # want of a provocation. Emptiness is why they need one: a table with no
+    # entries cannot be emptied, so the probe's usual lever does nothing and the
+    # check behind it has never been shown to fire at all.
+    #
+    # A neutrality entry CLAIMS that scoring did not move between two
+    # fingerprints, and its verifier re-scores every cell the pair covers. A
+    # pair of shas no recorded item sits at is therefore a claim about nothing,
+    # which is exactly the objection the tables' own comments say it produces:
+    # the entry reads as SPENT the moment it is written. Measured 2026-09-14 by
+    # trying it, and that observation is what makes it a usable provocation
+    # rather than a guess.
+    "measured.SCORER_NEUTRAL": (("probe_sha_before", "probe_sha_after"),
+                                "probe: a neutrality claim for a pair no "
+                                "recorded item sits at"),
+    "measured.WEB_CODE_NEUTRAL": (("probe_sha_before", "probe_sha_after"),
+                                  "probe: a neutrality claim for a pair no "
+                                  "recorded item sits at"),
     # A ceiling on an item recorded PERFECT: 1b is 20/20 on both sides, so
     # "cannot be perfect" is contradicted the moment it is claimed.
     "handouts.GOLD_CEILINGS": (("1", "1b"),
