@@ -15062,6 +15062,33 @@ def check_cross_file_anchors_resolve() -> list[str]:
     return failures + A.anchors_are_renumber_safe()
 
 
+def check_general_prose_has_no_course_vocabulary() -> list[str]:
+    """F1's PRECONDITION: no course vocabulary in the engine's general prose.
+
+    It enforces the condition that makes F1 checkable, not F1 itself. §10.3.2
+    sorts a course-derived sentence into specification, incident or split, and a
+    word list cannot tell those apart -- which remedy applies is a human
+    decision.
+
+    INERT UNTIL STAGE 7'S SPLIT, and it says so rather than reporting clean:
+    before the split there is no general half, and the course halves are supposed
+    to be full of psychology. It REFUSES outright if the changelog is missing,
+    because a gate that strips sentences while their destination is undefined
+    produces deletions rather than moves.
+
+    `behaviour` must be unambiguous -- `code behaviour`, a named function's
+    behaviour. A bare `behaviour` is the single most likely course word to slip
+    through, and excluding it by WORD (as the measurement does) would be a false
+    negative exactly where the risk is highest.
+    """
+    try:
+        import prose_vocabulary as PV
+    except Exception as exc:                      # pragma: no cover
+        return [f"the prose vocabulary check cannot be read: {exc}"]
+    got = PV.check()
+    return got["blocked"] + got["findings"]
+
+
 if __name__ == "__main__":
     import json
     import sys

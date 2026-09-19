@@ -4001,6 +4001,47 @@ function's behaviour.** A bare `behaviour` in general prose fails the check and 
 rephrased. This costs a small rewording in ~35 places and removes a blind spot
 that would otherwise sit exactly where the risk is highest.
 
+#### BUILT 2026-09-19 as `prose_vocabulary.py`, with the changelog it required
+
+`160 checks registered.` The changelog exists at
+`courses/edu.memphis.psych/CHANGELOG.md`, created FIRST because this check
+refuses to run without it — a gate that strips sentences while their destination
+is undefined produces deletions, not moves.
+
+The check is **inert until Stage 7's split, and says so**:
+
+> `Stage 7's split has NOT run, so there is no general half to check. This is
+> inert by design, not clean: GOALS.md carries no <!-- general --> marker ...`
+
+That is the same shape T2.2 has, for the same reason: a check whose first real
+exercise is a stage away is one nobody has watched work, so it is exercised now
+on constructed input. Five controls, all behaving:
+
+| input | verdict |
+|---|---|
+| "the student's target **behaviour** is recorded" | fails — unqualified |
+| "the **parser's behaviour** is unchanged" | passes — software sense |
+| "scores **handout** 1 item **Q4b**" | fails — `handout`, `q4b` |
+| "the reader returns a copy of each entry" | passes |
+| "**reinforcement** and **punishment** are scored" | fails |
+
+The vocabulary is read FROM THE COURSE — item ids and label words out of
+`course.json` — plus a small declared set of psychology terms. A hand-written
+list would drift from the course it describes.
+
+##### The changelog's rules, written before it has entries
+
+Keep the date and the numbers, because a generic retelling loses the evidence
+that made the sentence worth moving. Name the cell, item or slot, so the entry is
+findable by someone looking at that cell. Say what was believed, what was true
+and how the gap closed — an incident with no resolution is an open defect and
+belongs in `GOALS.md`. One entry per incident, cross-referenced rather than
+merged.
+
+It lives under `courses/<course-id>/` because an incident in THIS course's
+scoring is course-specific by construction: another course would have its own,
+and the engine should carry neither.
+
 #### The changelog is CREATED in Stage 7 — DECIDED
 
 F1 sends incidents to "the project changelog". **No such file exists** — nothing in
