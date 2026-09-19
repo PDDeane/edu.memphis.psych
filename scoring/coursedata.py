@@ -190,6 +190,18 @@ def declaration(name: str) -> dict:
             for k, v in raw}
 
 
+def course_id() -> str:
+    """This course's id, as the file declares it. An accessor, not a raw read.
+
+    Added because `agreement_app` reached `_load()["course"]` to recompose job
+    namespaces, and `check_course_schema_is_complete` caught it -- the THIRD time
+    that raw-entry escape has been flagged, after `olx_prompts` and the
+    generator-value path. The escape keeps recurring because `_load()` is right
+    there and returns everything; that is exactly why the check exists.
+    """
+    return _load().get("course")
+
+
 def generator_value(name: str):
     """A course-level generator value, by name. An ACCESSOR, not a raw entry.
 

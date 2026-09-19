@@ -3139,6 +3139,37 @@ memory address was normalised, after which they were identical. **A baseline tha
 captures `str(a_function)` compares addresses**, and addresses change every run,
 so that field could never have matched. The fix is in the test, not the code.
 
+#### The JOBS reshape — the course id now appears ONCE in the course file
+
+`"edu.memphis.psych" occurrences in course.json: 1` — its own `course` field,
+down from 27. Runtime `JOBS` identical, and all 28 migrated tables still match
+their authored copies.
+
+Every job stored `screen` as `edu.memphis.psych/bmod_h1_q1` **and** carried `ns`
+with the same course id — twice over, in a file whose own `course` field already
+says it. And `measured.py` does `job["screen"].split("/")[-1]`, **stripping back
+off what was put on.**
+
+The file now holds the bare id and no `ns`; the reader recomposes both. This is a
+change to what is STORED, not to what is read, which is why it could be verified
+against the same baseline the move used.
+
+**Done as its own change, deliberately.** JOBS moved first with a test, and this
+reshaped it with another. Together they would have been one diff in which a
+failure could not be attributed to either.
+
+##### The raw-entry escape, caught a third time
+
+Recomposing the namespace needed the course id, and the obvious way to get it is
+`coursedata._load()["course"]` — which `check_course_schema_is_complete` flagged
+immediately, as it did for `olx_prompts` and for the generator-value path before
+that.
+
+**It keeps recurring because `_load()` is right there and returns everything**,
+which is precisely why the check exists. `coursedata.course_id()` is the third
+accessor added in response, and each one narrows the boundary the check is
+defending.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
