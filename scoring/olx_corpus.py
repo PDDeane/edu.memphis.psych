@@ -55,6 +55,68 @@ SEPARATE_SURFACES = {
 }
 
 
+# THE CORPUS IS A DECLARED LIST, and getting here took three wrong turns worth
+# recording, because each is the same mistake wearing a different hat.
+#
+#   1. `*.olx` under two roots -- swept in `lo-blocks/.stage/content`, a staging
+#      COPY of the psych course, so the course was mined twice and nine stale
+#      files counted as independent evidence.
+#   2. sibling directories named `edu.*` -- found edu.memphis.writing and
+#      edu.mtsu.transitional-reading, and missed `interdisciplinary`, which is
+#      neither named `edu.*` nor beside the engine.
+#   3. "any directory containing OLX" -- evidence-based, and WORSE: it found
+#      nine roots including three parallel checkouts of trees already listed,
+#      reporting 1171 files and 1155 documented examples where there are about
+#      300 and 295 distinct. Counting a second checkout as a second course is
+#      the `.stage` error again, at repository scale.
+#
+# Auto-discovery is a glob with extra steps. Which trees count as evidence is a
+# judgement about what is DISTINCT, and nothing in the filesystem encodes it, so
+# it is declared here with a reason each and overridden by `COURSE_ROOTS`.
+DECLARED_ROOTS = {
+    "~/code/update/lo-blocks":
+        "the engine: component demos and the 295 documented examples",
+    "~/code/update/edu.memphis.writing":
+        "a real second course -- journals, chat scripts and casts",
+    "~/code/update/edu.mtsu.transitional-reading":
+        "a real third course -- readings",
+    "~/code/interdisciplinary":
+        "a real fourth course -- SBA parts, a library and artifacts",
+}
+
+
+def declared_roots() -> list[tuple[str, str, bool]]:
+    """-> [(path, why, exists)]. Missing roots are REPORTED, never skipped.
+
+    A corpus that silently shrinks when a checkout moves reports smaller
+    coverage and calls it a result.
+    """
+    out = []
+    for raw, why in sorted(DECLARED_ROOTS.items()):
+        path = os.path.abspath(os.path.expanduser(raw))
+        out.append((path, why, os.path.isdir(path)))
+    return out
+
+
+def default_roots() -> list[str]:
+    """The declared roots that exist, plus this repo's own course content."""
+    override = os.environ.get("COURSE_ROOTS")
+    if override:
+        return [p for p in override.split(":") if os.path.isdir(p)]
+    roots = [p for p, _why, ok in declared_roots() if ok]
+    own = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                       "..", "psychology"))
+    if os.path.isdir(own) and not any(own.startswith(r + os.sep) for r in roots):
+        roots.append(own)
+    return roots
+
+
+def missing_roots() -> list[str]:
+    """Declared trees that are not there. Reported by the gate, not ignored."""
+    return [f"{p} ({why}) is declared corpus and is not present -- the corpus "
+            f"silently shrank" for p, why, ok in declared_roots() if not ok]
+
+
 def texts(roots: list[str], include_docs: bool = True):
     """Yield (label, olx_text). Artifacts excluded, documentation included."""
     for root in roots:
