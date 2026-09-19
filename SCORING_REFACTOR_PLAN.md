@@ -2174,6 +2174,61 @@ it exercises **items, prompts and structure** and says nothing yet about how the
 intake program is to recover **gold and rubrics** — which §10.6.1 lists as part
 of its job and which remains unexamined.
 
+##### 10.6.5 · GOLD AND SCORING MATERIALS — the other half of intake
+
+*On the user's pointer to `molly_data`. §10.6.4's sample carried no gold; this is
+where it lives. **Structure only below** — the workbooks sit beside student
+submissions whose participant ids are the key that identifies them, and nothing
+derived from them belongs in this public repository.*
+
+**The shape is uniform and simple.** Three handouts, each a directory of **20
+`.docx` submissions and ONE `.xlsx`** named `Handout N - Scoring & Feedback`. One
+sheet, one row per participant, and per item a **pair** of columns:
+
+```
+Participant ID | <item> Score | <item> Feedback | <item> Score | <item> Feedback | ...
+```
+
+20 data rows per sheet, 26 items across the three, 52 score/feedback columns.
+
+##### The column heading IS the rubric's `label`, and that is the join
+
+Three handouts use three different naming conventions — h1 `Question 4a`, h3
+`1a`, and h2 in **prose**: `First Type Definition`, `Second Weekly Example`. Not
+one of them is the item id (`Q4a`, `1a`, `D1`, `WK2`).
+
+**Measured: 52 of 52.** For every one of the 26 items, `label + " Score"` and
+`label + " Feedback"` are columns in that handout's sheet. The rubric's `label`
+field is not decoration — **it is the join key to the teacher's spreadsheet**,
+and it is the reason a grader's column can be found at all.
+
+That answers a question §10.6.1 left open. Recovering gold from teacher materials
+is not free-text inference: the correspondence is carried by a field the rubric
+already has. **An intake program producing a rubric must emit a `label` that
+matches the teacher's column heading, or the gold it recovers joins to nothing.**
+
+##### A duplicate declaration, now gated
+
+`gold.HN_HEADER_TO_ITEM` states the same correspondence a SECOND time, as three
+hardcoded header→id tables. They agree with the labels today, in both directions,
+and nothing made them agree.
+
+A label edited for wording would leave the gold join reading the old heading —
+and the scores would still load, against the item that heading used to describe.
+`check_gold_columns_are_the_item_labels` now holds the copy to the original.
+**Under A2a the header map is derivable and should not be a stored table at
+all**, which makes it a concrete Stage 4 deletion candidate the plan did not
+previously name.
+
+The check reads **headers only** and no data row.
+
+##### What is still unexamined
+
+The `.docx` submissions themselves — how a student's answer is located inside a
+handout document — and `molly_data`'s wider contents (`migration_reference`,
+`handsplit`, `out`, and roughly 8,900 JSON artifacts). This pass covers where
+gold lives and how it binds to items, not how a response is found in a document.
+
 ##### The intake program: an LLM reading materials onto ROLES, then components
 
 *Recorded on the user's architecture note.*
