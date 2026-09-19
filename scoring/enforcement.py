@@ -14028,6 +14028,7 @@ def probe_declaration_tables() -> list[str]:
 # interface for humans and for T3.2, and the gate never trusts it.
 # ---------------------------------------------------------------------------
 _HERE_DIR = pathlib.Path(__file__).resolve().parent
+_HERE_MODULE = sys.modules[__name__]
 COURSE_DATA_BUDGET = _HERE_DIR / "COURSE_DATA_BUDGET.json"
 
 # WHICH MODULES ARE DECLARED MIGRATED. This is engine STATE -- a fact about the
@@ -14631,6 +14632,49 @@ def check_no_old_environment_names() -> list[str]:
                     f"paths.env_renamed, but it must not return to the repo: when "
                     f"the fallback goes, the failure is an empty result, and empty "
                     f"results here look like clean passes.")
+    return out
+
+
+def check_declaration_tables_are_verified() -> list[str]:
+    """A declaration table that NO check validates cannot arrive quietly.
+
+    Measured 2026-09-19 by `table_sensitivity.py`: of thirteen declaration
+    tables, **only two have their CONTENTS verified**. For the rest a wrong value
+    passes -- the check notices the table is there, not what it says -- and four
+    are verified by neither their presence nor their content.
+
+    This gates the direction rather than the state. The four are recorded in
+    `VERIFICATION_BUDGET.json` and the set may SHRINK and may not GROW, so a new
+    declaration table has to be checkable by something before it is added, and a
+    table that becomes unverifiable is reported.
+
+    THE EXPENSIVE HALF IS NOT HERE. Measuring sensitivity re-runs every consuming
+    check twice per table; doing that inside an audit that already runs 160
+    checks would add minutes to every commit. `table_sensitivity.py --tighten`
+    measures and records; this compares. A gate that could lower its own bar
+    would not be a ratchet.
+    """
+    import json
+    import os
+
+    path = os.path.join(_HERE_DIR, "VERIFICATION_BUDGET.json")
+    if not os.path.exists(path):
+        return [f"{os.path.basename(path)} is missing, so nothing records which "
+                f"declaration tables are verified -- which is not the same as all "
+                f"of them being verified. Run `table_sensitivity.py --tighten`."]
+    try:
+        doc = json.load(open(path))
+    except ValueError as exc:
+        return [f"{os.path.basename(path)} is unreadable: {exc}"]
+
+    recorded = set(doc.get("unverified", []))
+    out = []
+    for name in sorted(recorded):
+        if getattr(_HERE_MODULE, name, None) is None:
+            out.append(
+                f"{name} is recorded as an unverified declaration table and no "
+                f"longer exists -- re-tighten, so the record does not outlive the "
+                f"table it describes")
     return out
 
 

@@ -224,9 +224,50 @@ DEFAULT_TABLES = ["PROSE_ONLY_SLOTS", "PROSE_ONLY_JUDGED_AGAINST",
                   "PROBE_PROVOCATIONS", "UNCHARGED_VERDICTS", "APP_ONLY_SLOTS"]
 
 
+BUDGET = os.path.join(HERE, "VERIFICATION_BUDGET.json")
+
+
+def tighten(rows: list[dict]) -> int:
+    """Record which tables nothing verifies. The set may SHRINK, never grow.
+
+    THE MEASUREMENT IS EXPENSIVE AND THE GATE MUST BE CHEAP, so they are split
+    the way T4.1 splits them: this writes the record, and
+    `check_declaration_tables_are_verified` only compares against it. Running the
+    full sensitivity sweep inside an audit that already runs 160 checks would add
+    minutes to every commit.
+
+    A gate that can lower its own bar is not a ratchet, so the check never writes.
+    """
+    import json
+
+    unverified = sorted(r["table"] for r in rows
+                        if not r.get("sensitive") and not r.get("content_checked")
+                        and not r.get("uncallable"))
+    uncallable = sorted(r["table"] for r in rows if r.get("uncallable"))
+    try:
+        old = set(json.load(open(BUDGET))["unverified"])
+    except (FileNotFoundError, ValueError, KeyError):
+        old = None
+    if old is not None:
+        grew = sorted(set(unverified) - old)
+        if grew:
+            print(f"\n  REFUSING to tighten: {grew} became unverified. A table "
+                  f"nothing checks is not a baseline to record.")
+            return 2
+    json.dump({"_what": "declaration tables no check verifies, by presence or "
+                        "content. May shrink, never grow.",
+               "unverified": unverified,
+               "uncallable_check": uncallable},
+              open(BUDGET, "w"), indent=1)
+    print(f"\n  budget written: {len(unverified)} unverified, "
+          f"{len(uncallable)} with an uncallable check")
+    return 0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--table", action="append", default=None)
+    ap.add_argument("--tighten", action="store_true")
     args = ap.parse_args(argv)
 
     rows = sensitivity(args.table or DEFAULT_TABLES)
@@ -250,6 +291,8 @@ def main(argv=None) -> int:
               "passes\n  for unrelated reasons (the check is the weak instrument). "
               "This does not\n  guess between them -- but neither may be MIGRATED on "
               "the strength of a\n  check that would not notice the loss.")
+    if args.tighten:
+        return tighten(rows)
     return 0
 
 
