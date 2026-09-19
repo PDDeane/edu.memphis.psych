@@ -1,0 +1,274 @@
+{
+ "schema_version": 1,
+ "modules_scanned": 55,
+ "properties_declared": 30,
+ "branched": {
+  "cadence": [
+   {
+    "file": "agreement.py",
+    "line": 1435,
+    "form": "Compare"
+   }
+  ],
+  "cover": [
+   {
+    "file": "equivalence.py",
+    "line": 935,
+    "form": "Compare"
+   }
+  ],
+  "credit": [
+   {
+    "file": "handouts.py",
+    "line": 2320,
+    "form": "Call"
+   },
+   {
+    "file": "score.py",
+    "line": 2050,
+    "form": "Compare"
+   },
+   {
+    "file": "score.py",
+    "line": 1818,
+    "form": "UnaryOp"
+   },
+   {
+    "file": "score_h1.py",
+    "line": 190,
+    "form": "Compare"
+   },
+   {
+    "file": "score_h1.py",
+    "line": 340,
+    "form": "Compare"
+   }
+  ],
+  "deductions": [
+   {
+    "file": "enforcement.py",
+    "line": 348,
+    "form": "Compare"
+   }
+  ],
+  "equals": [
+   {
+    "file": "equivalence.py",
+    "line": 1017,
+    "form": "Compare"
+   }
+  ],
+  "expected_type": [
+   {
+    "file": "agreement.py",
+    "line": 1399,
+    "form": "Compare"
+   }
+  ],
+  "guidance": [
+   {
+    "file": "score.py",
+    "line": 1856,
+    "form": "Subscript"
+   }
+  ],
+  "handout": [
+   {
+    "file": "head_to_head.py",
+    "line": 252,
+    "form": "BoolOp"
+   },
+   {
+    "file": "measured.py",
+    "line": 193,
+    "form": "comprehension"
+   },
+   {
+    "file": "measured.py",
+    "line": 3719,
+    "form": "comprehension"
+   },
+   {
+    "file": "measured.py",
+    "line": 4413,
+    "form": "comprehension"
+   }
+  ],
+  "id": [
+   {
+    "file": "baseline.py",
+    "line": 266,
+    "form": "comprehension"
+   },
+   {
+    "file": "baseline_h1.py",
+    "line": 165,
+    "form": "comprehension"
+   },
+   {
+    "file": "enforcement.py",
+    "line": 424,
+    "form": "BoolOp"
+   },
+   {
+    "file": "enforcement.py",
+    "line": 13713,
+    "form": "Call"
+   },
+   {
+    "file": "enforcement.py",
+    "line": 411,
+    "form": "Compare"
+   },
+   {
+    "file": "enforcement.py",
+    "line": 6285,
+    "form": "comprehension"
+   },
+   {
+    "file": "equivalence.py",
+    "line": 234,
+    "form": "Compare"
+   },
+   {
+    "file": "probe.py",
+    "line": 209,
+    "form": "comprehension"
+   },
+   {
+    "file": "probe.py",
+    "line": 330,
+    "form": "comprehension"
+   },
+   {
+    "file": "reader_equivalence.py",
+    "line": 299,
+    "form": "Compare"
+   },
+   {
+    "file": "reader_equivalence.py",
+    "line": 303,
+    "form": "BoolOp"
+   },
+   {
+    "file": "reader_equivalence.py",
+    "line": 313,
+    "form": "Compare"
+   },
+   {
+    "file": "reader_equivalence.py",
+    "line": 306,
+    "form": "comprehension"
+   },
+   {
+    "file": "score.py",
+    "line": 1909,
+    "form": "Compare"
+   },
+   {
+    "file": "score.py",
+    "line": 2144,
+    "form": "BoolOp"
+   },
+   {
+    "file": "score.py",
+    "line": 2181,
+    "form": "comprehension"
+   },
+   {
+    "file": "score.py",
+    "line": 2190,
+    "form": "comprehension"
+   },
+   {
+    "file": "score.py",
+    "line": 1967,
+    "form": "comprehension"
+   },
+   {
+    "file": "score_h1.py",
+    "line": 264,
+    "form": "BoolOp"
+   },
+   {
+    "file": "score_h1.py",
+    "line": 392,
+    "form": "BoolOp"
+   },
+   {
+    "file": "score_h1.py",
+    "line": 413,
+    "form": "comprehension"
+   },
+   {
+    "file": "score_h1.py",
+    "line": 422,
+    "form": "comprehension"
+   },
+   {
+    "file": "stale_check.py",
+    "line": 58,
+    "form": "Compare"
+   }
+  ],
+  "max": [
+   {
+    "file": "enforcement.py",
+    "line": 3616,
+    "form": "Compare"
+   },
+   {
+    "file": "enforcement.py",
+    "line": 7822,
+    "form": "Subscript"
+   },
+   {
+    "file": "enforcement.py",
+    "line": 7823,
+    "form": "Subscript"
+   },
+   {
+    "file": "enforcement.py",
+    "line": 3608,
+    "form": "Compare"
+   },
+   {
+    "file": "equivalence.py",
+    "line": 130,
+    "form": "Compare"
+   },
+   {
+    "file": "equivalence.py",
+    "line": 161,
+    "form": "BoolOp"
+   },
+   {
+    "file": "equivalence.py",
+    "line": 902,
+    "form": "comprehension"
+   },
+   {
+    "file": "measured.py",
+    "line": 5306,
+    "form": "BoolOp"
+   },
+   {
+    "file": "stale_check.py",
+    "line": 117,
+    "form": "Compare"
+   }
+  ],
+  "question": [
+   {
+    "file": "equivalence.py",
+    "line": 3049,
+    "form": "Subscript"
+   },
+   {
+    "file": "equivalence.py",
+    "line": 3052,
+    "form": "Subscript"
+   }
+  ]
+ }
+}

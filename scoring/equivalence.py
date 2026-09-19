@@ -868,6 +868,8 @@ def enforcement_audit():
         findings.append(("-", "PEG AUTHORING FORMAT UNDECLARED", bad))
     for bad in ENF.check_gold_columns_are_the_item_labels():
         findings.append(("-", "GOLD COLUMN IS NOT THE ITEM LABEL", bad))
+    for bad in ENF.check_property_vocabulary_has_not_grown():
+        findings.append(("-", "PROPERTY VOCABULARY GREW", bad))
     for bad in ENF.check_every_enforcement_check_is_registered():
         findings.append(("-", "ENFORCEMENT CHECK NOT REGISTERED", bad))
     for iid, h, mx, label in uncovered_cli_items():
