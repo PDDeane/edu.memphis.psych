@@ -1645,7 +1645,26 @@
    "unreachable_codes": [
     "UTB_NOT_ON_LIST"
    ],
-   "handout": 1
+   "handout": 1,
+   "prompt_action": "bmod_h1_q1_llm",
+   "prompt_context": [
+    [
+     "Their unwanted target behavior, as they described it",
+     "bmod_h1_utb_observed"
+    ],
+    [
+     "What they wrote about it",
+     "bmod_h1_q1_response"
+    ]
+   ],
+   "prompt_notes": "## Say this before anything else\nIf `matches_selected` is `differs`, the FIRST sentence of `feedback` says so: name the behavior they ticked, name the one they wrote about, and say that the rest of this feedback is about what they wrote. Then give the normal feedback.\n\nIt is not a fault and nothing is deducted for it \u2014 most often they simply changed their mind \u2014 so say it plainly and without warning them off. If it is `matches`, say nothing about it at all: confirming a match the student never doubted spends their attention on nothing.\n",
+   "prompt_notes_why": "Governs the FIRST SENTENCE of the `feedback` field on a `matches_selected` mismatch. Paper has neither: its schema has no `feedback` property (score.compose_feedback builds feedback in code from the deduction ledger) and `matches_selected` is not one of its Q1 slots.",
+   "prompt_response": [
+    [
+     "",
+     "bmod_h1_q1_response"
+    ]
+   ]
   },
   {
    "context": [
@@ -1807,7 +1826,20 @@
    "max": 5.0,
    "question": "Define your wanted goal behavior (WGB) that you hope to strengthen. Requires 1 sentence describing the WGB and at least 3 sentences explaining why you chose to strengthen it.",
    "reads_utb_choice": true,
-   "handout": 1
+   "handout": 1,
+   "prompt_action": "bmod_h1_q2_llm",
+   "prompt_context": [
+    [
+     "",
+     "bmod_h1_q2_response"
+    ]
+   ],
+   "prompt_response": [
+    [
+     "",
+     "bmod_h1_q2_response"
+    ]
+   ]
   },
   {
    "context": [
@@ -1926,7 +1958,30 @@
    "label": "Question 3",
    "max": 5.0,
    "question": "Use the SMART goal acronym to further define your WGB. Each aspect must be discussed AND labeled: Specific, Measurable, Actionable/Action-Oriented, Realistic, Time-Bound.",
-   "handout": 1
+   "handout": 1,
+   "prompt_action": "bmod_h1_q3_llm",
+   "prompt_response": [
+    [
+     "Specific",
+     "bmod_h1_q3_specific"
+    ],
+    [
+     "Measurable",
+     "bmod_h1_q3_measurable"
+    ],
+    [
+     "Action-Oriented",
+     "bmod_h1_q3_action"
+    ],
+    [
+     "Realistic",
+     "bmod_h1_q3_realistic"
+    ],
+    [
+     "Time-Bound",
+     "bmod_h1_q3_timebound"
+    ]
+   ]
   },
   {
    "context": [
@@ -2109,7 +2164,28 @@
    "max": 5.0,
    "question": "What are the ANTECEDENTS (triggers) for your engagement in your UTB? List and describe two examples. You must use the word antecedent or trigger.",
    "unreachable_codes": [],
-   "handout": 1
+   "handout": 1,
+   "prompt_action": "bmod_h1_q4a_llm",
+   "prompt_context": [
+    [
+     "First antecedent",
+     "bmod_h1_q4a_first"
+    ],
+    [
+     "Second antecedent",
+     "bmod_h1_q4a_second"
+    ]
+   ],
+   "prompt_response": [
+    [
+     "First antecedent",
+     "bmod_h1_q4a_first"
+    ],
+    [
+     "Second antecedent",
+     "bmod_h1_q4a_second"
+    ]
+   ]
   },
   {
    "context": [
@@ -2288,7 +2364,32 @@
    "unreachable_codes": [
     "B_NONE"
    ],
-   "handout": 1
+   "handout": 1,
+   "prompt_action": "bmod_h1_q4b_llm",
+   "prompt_context": [
+    [
+     "First active behavior",
+     "bmod_h1_q4b_first"
+    ],
+    [
+     "Second active behavior",
+     "bmod_h1_q4b_second"
+    ]
+   ],
+   "prompt_response": [
+    [
+     "First active behavior",
+     "bmod_h1_q4b_first"
+    ],
+    [
+     "Second active behavior",
+     "bmod_h1_q4b_second"
+    ],
+    [
+     "Is it a good choice to modify, and why",
+     "bmod_h1_q4b_modify"
+    ]
+   ]
   },
   {
    "context": [
@@ -2424,7 +2525,28 @@
    "unreachable_codes": [
     "C_NO_KEYWORD"
    ],
-   "handout": 1
+   "handout": 1,
+   "prompt_action": "bmod_h1_q4c_llm",
+   "prompt_context": [
+    [
+     "First consequence",
+     "bmod_h1_q4c_first"
+    ],
+    [
+     "Second consequence",
+     "bmod_h1_q4c_second"
+    ]
+   ],
+   "prompt_response": [
+    [
+     "First consequence",
+     "bmod_h1_q4c_first"
+    ],
+    [
+     "Second consequence",
+     "bmod_h1_q4c_second"
+    ]
+   ]
   },
   {
    "blank_code": "W_NONE",
@@ -2510,7 +2632,18 @@
    "label": "Question 5",
    "max": 5.0,
    "question": "Why do you think you continue to engage in the UTB even though it results in undesired consequences? (To gain something, to escape a task, to receive attention, or something else.) List and describe two examples.",
-   "handout": 1
+   "handout": 1,
+   "prompt_action": "bmod_h1_q5_llm",
+   "prompt_response": [
+    [
+     "First reason",
+     "bmod_h1_q5_first"
+    ],
+    [
+     "Second reason",
+     "bmod_h1_q5_second"
+    ]
+   ]
   },
   {
    "blank_code": "Q6_NONE",
@@ -2713,7 +2846,45 @@
      ]
     }
    ],
-   "handout": 1
+   "handout": 1,
+   "prompt_action": "bmod_h1_q6_llm",
+   "prompt_match_def": "## Definition of 'matches' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\nA listed 4a or 4c entry often states one thing and then what follows from it -- \"X, so I Y\". Decide which of THREE kinds Y is before you compare, because it decides what the entry can be matched against.\n1. Y RESTATES THE ANTECEDENT in other words. Part of the antecedent; a box equivalent to Y matches that 4a entry.\n2. Y IS AN INTERMEDIATE ANTECEDENT -- a further step that still LEADS TO the unwanted behaviour rather than following from it. Also part of the antecedent, described one link nearer; a box equivalent to Y matches that 4a entry.\n3. Y IS A CONSEQUENCE -- the unwanted behaviour itself, or something that follows from it. Not part of the antecedent: a box equivalent to Y does NOT match that 4a entry. It may still match a 4c entry that lists that same consequence, and should be matched there.\nThe test between 2 and 3 is direction: does Y lead to the unwanted behaviour, or follow from it? The unwanted behaviour is named in the Q1 answer in the context below.\n",
+   "prompt_notes": "## What the four `state_` checks report\nThese four do NOT report a match. They report an IDENTITY, and they report it in a FIELD OF ITS OWN, separate from the verdict. The two fields take different values and neither accepts the other's.\n`verdict` says whether the box names an antecedent (or a consequence) at all: `met` if it does, `absent` if it does not.\n`refers_to` says WHICH of the two listed items it is: `first`, `second`, or `none`. `none` is the value for \"not either of the two\" -- it is the only one, so do not answer `neither`, and do not put `absent` here. Those are not values this field takes.\n\nSay what you see and nothing more. Whether the pair covers both listed items is worked out from your two answers by the grader, so you do not need to reason about the other box, and a student who addresses 4a's second antecedent first has still addressed it \u2014 report `second` and it will be credited. One distinction matters for the feedback rather than the score: `met` with `refers_to: none` says they named an antecedent but not one of 4a's, while `absent` says they named none at all. The points are the same either way; the difference decides whether the student is told their antecedent does not match 4a or that they did not state one.\n\nONE THING TO CARRY INTO `feedback`. Each of the two listed items can be credited once, so if you report the SAME label for both boxes \u2014 `first` twice, say \u2014 the student has named one antecedent twice and left the other unaddressed, and only one of the two boxes can count. Your verdicts already handle the scoring; what you must not do is congratulate them on both boxes in that case. Say that the second repeats the first and name the item from 4a they have not yet addressed.\n",
+   "prompt_notes_why": "Explains the web's TWO-FIELD encoding -- a `verdict` and a separate `refers_to` that takes `first`/`second`/`none`. Paper has one field and is told so in its own words by score._paper_vocab: 'Answer with ONE value from `first`, `second`, `neither`, `absent` -- there is no separate field on this side.' Mirrored in substance, not copied.",
+   "prompt_response": [
+    [
+     "state_a1 \u2014 the first antecedent being changed",
+     "bmod_h1_q6_state_a1"
+    ],
+    [
+     "change_a1 \u2014 how it will be changed",
+     "bmod_h1_q6_change_a1"
+    ],
+    [
+     "state_c1 \u2014 the first consequence being affected",
+     "bmod_h1_q6_state_c1"
+    ],
+    [
+     "affect_c1 \u2014 how it will be affected",
+     "bmod_h1_q6_affect_c1"
+    ],
+    [
+     "state_a2 \u2014 the second antecedent being changed",
+     "bmod_h1_q6_state_a2"
+    ],
+    [
+     "change_a2 \u2014 how it will be changed",
+     "bmod_h1_q6_change_a2"
+    ],
+    [
+     "state_c2 \u2014 the second consequence being affected",
+     "bmod_h1_q6_state_c2"
+    ],
+    [
+     "affect_c2 \u2014 how it will be affected",
+     "bmod_h1_q6_affect_c2"
+    ]
+   ]
   },
   {
    "context": [
@@ -2786,7 +2957,14 @@
     }
    ],
    "question": "Write an example of Positive Reinforcement that you could use to attempt to change your behavior. (Positive Reinforcement = {{corpus:D1/p9:d1:0:38:sha=73aaf2022862}} a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.",
-   "handout": 2
+   "handout": 2,
+   "prompt_action": "bmod_h2_pr_llm",
+   "prompt_response": [
+    [
+     "",
+     "bmod_h2_pr"
+    ]
+   ]
   },
   {
    "context": [
@@ -2883,7 +3061,14 @@
     }
    ],
    "question": "Write an example of Negative Reinforcement that you could use to attempt to change your behavior. (Negative Reinforcement = taking away something undesirable to increase a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.",
-   "handout": 2
+   "handout": 2,
+   "prompt_action": "bmod_h2_nr_llm",
+   "prompt_response": [
+    [
+     "",
+     "bmod_h2_nr"
+    ]
+   ]
   },
   {
    "context": [
@@ -2954,7 +3139,14 @@
     }
    ],
    "question": "Write an example of Positive Punishment that you could use to attempt to change your behavior. (Positive Punishment = adding something undesirable {{corpus:D2/p11:d2:38:61:sha=2fcab0a48eee:shape=R23-0-29}} For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.",
-   "handout": 2
+   "handout": 2,
+   "prompt_action": "bmod_h2_pp_llm",
+   "prompt_response": [
+    [
+     "",
+     "bmod_h2_pp"
+    ]
+   ]
   },
   {
    "context": [
@@ -3025,7 +3217,14 @@
     }
    ],
    "question": "Write an example of Negative Punishment that you could use to attempt to change your behavior. (Negative Punishment = taking away something desirable {{corpus:D2/p11:d2:38:61:sha=2fcab0a48eee:shape=R23-0-29}} For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.",
-   "handout": 2
+   "handout": 2,
+   "prompt_action": "bmod_h2_np_llm",
+   "prompt_response": [
+    [
+     "",
+     "bmod_h2_np"
+    ]
+   ]
   },
   {
    "blank_code": "BLANK",
@@ -3072,7 +3271,14 @@
    "label": "First Type",
    "max": 2.0,
    "question": "State the first type of Operant Conditioning you plan to use in your actual behavior modification intervention.",
-   "handout": 2
+   "handout": 2,
+   "prompt_context": [
+    [
+     "",
+     "bmod_h2_t1"
+    ]
+   ],
+   "prompt_sheet_only": "bmod_h2_t1_checks"
   },
   {
    "blank_code": "BLANK",
@@ -3186,7 +3392,20 @@
    "label": "First Type Definition",
    "max": 2.0,
    "question": "Define the first type of Operant Conditioning you chose. A complete definition says whether something is being ADDED or TAKEN AWAY, and whether the behaviour is being INCREASED or DECREASED.",
-   "handout": 2
+   "handout": 2,
+   "prompt_action": "bmod_h2_d1_llm",
+   "prompt_context": [
+    [
+     "",
+     "bmod_h2_d1"
+    ]
+   ],
+   "prompt_response": [
+    [
+     "",
+     "bmod_h2_d1"
+    ]
+   ]
   },
   {
    "avoidance_scores": true,
@@ -3320,7 +3539,15 @@
     }
    ],
    "question": "Give a daily example of how you will use your first chosen type of Operant Conditioning during your intervention.",
-   "handout": 2
+   "handout": 2,
+   "prompt_action": "bmod_h2_day1_llm",
+   "prompt_match_def": "## Definition of 'the same behaviour' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\n",
+   "prompt_response": [
+    [
+     "",
+     "bmod_h2_day1"
+    ]
+   ]
   },
   {
    "cadence": "weekly",
@@ -3440,7 +3667,15 @@
     }
    ],
    "question": "Give a weekly example of how you will use your first chosen type of Operant Conditioning during your intervention.",
-   "handout": 2
+   "handout": 2,
+   "prompt_action": "bmod_h2_wk1_llm",
+   "prompt_match_def": "## Definition of 'the same activity' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\nTwo phrases that are NOT equivalent by that test name two activities, however close the connection between them. An activity that another might cause, accompany, amount to, or be evidence of is a SECOND thing, not a point on the same scale.\nDEGREE AND DETAIL ARE NOT DIFFERENCES OF ACTIVITY. The same doing with a different number, frequency, duration or extra particular attached is still that doing. Compare WHAT IS BEING DONE, not how much of it is being done or how precisely it is specified.\nA phrase with NO CONTENT OF ITS OWN -- a pointer, such as \"my goal\" or \"my target this week\" -- is not compared by this test at all. Classify it by what it points at, as the check itself directs.\n",
+   "prompt_response": [
+    [
+     "",
+     "bmod_h2_wk1"
+    ]
+   ]
   },
   {
    "blank_code": "BLANK",
@@ -3487,7 +3722,14 @@
    "label": "Second Type",
    "max": 2.0,
    "question": "State the second type of Operant Conditioning you plan to use in your actual behavior modification intervention.",
-   "handout": 2
+   "handout": 2,
+   "prompt_context": [
+    [
+     "",
+     "bmod_h2_t2"
+    ]
+   ],
+   "prompt_sheet_only": "bmod_h2_t2_checks"
   },
   {
    "blank_code": "BLANK",
@@ -3601,7 +3843,20 @@
    "label": "Second Type Definition",
    "max": 2.0,
    "question": "Define the second type of Operant Conditioning you chose. A complete definition says whether something is being ADDED or TAKEN AWAY, and whether the behaviour is being INCREASED or DECREASED.",
-   "handout": 2
+   "handout": 2,
+   "prompt_action": "bmod_h2_d2_llm",
+   "prompt_context": [
+    [
+     "",
+     "bmod_h2_d2"
+    ]
+   ],
+   "prompt_response": [
+    [
+     "",
+     "bmod_h2_d2"
+    ]
+   ]
   },
   {
    "cadence": "daily",
@@ -3735,7 +3990,15 @@
     }
    ],
    "question": "Give a daily example of how you will use your second chosen type of Operant Conditioning during your intervention.",
-   "handout": 2
+   "handout": 2,
+   "prompt_action": "bmod_h2_day2_llm",
+   "prompt_match_def": "## Definition of 'the same behaviour' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\n",
+   "prompt_response": [
+    [
+     "",
+     "bmod_h2_day2"
+    ]
+   ]
   },
   {
    "cadence": "weekly",
@@ -3873,7 +4136,15 @@
     }
    ],
    "question": "Give a weekly example of how you will use your second chosen type of Operant Conditioning during your intervention.",
-   "handout": 2
+   "handout": 2,
+   "prompt_action": "bmod_h2_wk2_llm",
+   "prompt_match_def": "## Definition of 'the same behaviour' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\n",
+   "prompt_response": [
+    [
+     "",
+     "bmod_h2_wk2"
+    ]
+   ]
   },
   {
    "blank_code": "BLANK",
@@ -3984,7 +4255,20 @@
    "label": "1a",
    "max": 8.0,
    "question": "Give a brief overview of the data you collected in at least 4 sentences. How did your behavior change over time? You do not need to discuss every day \u2014 one sentence per week is the expectation, covering the baseline week and the three intervention weeks.",
-   "handout": 3
+   "handout": 3,
+   "prompt_action": "bmod_h3_overview_llm",
+   "prompt_context": [
+    [
+     "",
+     "bmod_h3_overview_response"
+    ]
+   ],
+   "prompt_response": [
+    [
+     "",
+     "bmod_h3_overview_response"
+    ]
+   ]
   },
   {
    "blank_code": "BLANK",
@@ -4069,7 +4353,8 @@
    "label": "1b",
    "max": 4.0,
    "question": "Include the data you collected during the baseline period and each of the three intervention weeks, on its own page at the end of the handout.",
-   "handout": 3
+   "handout": 3,
+   "prompt_sheet_only": "bmod_h3_data_checks"
   },
   {
    "context": [],
@@ -4256,7 +4541,55 @@
    ],
    "max": 10.0,
    "question": "Present your data in a figure/graph at the end of the handout. The graph needs a title, both axis labels, and a legend.",
-   "handout": 3
+   "handout": 3,
+   "prompt_action": "bmod_h3_graph_llm",
+   "prompt_evidence": [
+    "## Graph evidence for this submission\nThe four weeks of data the student entered in 1b. SelfMonitorPlot plots exactly these, so they are what decides whether a graph exists at all.",
+    [
+     [
+      "Baseline week",
+      "bmod_h3_baseline"
+     ],
+     [
+      "Week 1",
+      "bmod_h3_wk1"
+     ],
+     [
+      "Week 2",
+      "bmod_h3_wk2"
+     ],
+     [
+      "Week 3",
+      "bmod_h3_wk3"
+     ]
+    ]
+   ],
+   "prompt_notes": "## How this item reaches you\nThe student does not upload a figure. SelfMonitorPlot draws their chart live from the four weeks of data they entered in 1b and the three labels they type here. Everything the paper rubric asks of a graph is theirs: the data that produces it, the three labels, and the legend \u2014 they name the four plotted series themselves, and until they do their chart's key reads 'Series 1, Series 2, ...', which is not a legend. Judge `legend` on the series names only.\n\nTHE WORKED EXAMPLE IS ON THIS SCREEN, immediately above their boxes, and reproducing it is the live form of the paper item's template failure. It is a water-drinking chart titled 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=R27-0-27}}, with axes '{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} and 'Ounces of Water per Day', plotting:\n  Baseline 8, 10, 8, 12, 6, 10, 0\n  Week 1   32, 20, 22, 28, 30, 32, 10\n  Week 2   30, 28, 26, 30, 32, 32, 30\n  Week 3   25, 26, 30, 32, 32, 28, 32\nTwo distinct failures come out of that, and only one of them is yours. If the DATA is those numbers, the GRADER detects it: it compares the fields against the example itself and sets `has_own_graph` to `mismatch`, zeroing the item exactly as on paper. You are not asked about that, and you should not discuss it. What IS yours is when only the WORDING is copied \u2014 a title of 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=R27-0-27}} from a student who did not track water, or a y-axis of 'Ounces of Water per Day' \u2014 that is `generic` on the label, like an untouched 'Chart Title'. Their own graph names their own behaviour: hours of sleep, minutes of exercise, servings.\n\nThe x-axis is the exception: '{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} is the example's label, the placeholder, AND the correct answer for nearly every student, since all four weeks are plotted Sunday to Saturday. Do not treat it as copied.\n",
+   "prompt_notes_why": "Describes SelfMonitorPlot drawing the chart live from 1b's data, and the worked example sitting on the same screen. The paper student draws their own figure; there is no component and no screen.",
+   "prompt_omit_guidance": {
+    "A WRITTEN DESCRIPTION OF A GRAPH IS NOT A GRAPH": "the web asks only for the labels; the plotted data comes from 1b",
+    "FIRST DECIDE WHOSE GRAPH IT IS": "the grader derives `has_own_graph` from the 1b data fields, so this is not a judgement the prompt makes; copied wording is still judged on the label checks",
+    "Shape-drawn graphs arrive as run-together text": "shape-drawn graph text is a .docx artifact",
+    "The bundle marks each piece of evidence": "the CLI evidence bundle's student/template labels do not exist here"
+   },
+   "prompt_response": [
+    [
+     "Title",
+     "bmod_h3_graph_title"
+    ],
+    [
+     "X-axis label",
+     "bmod_h3_graph_x"
+    ],
+    [
+     "Y-axis label",
+     "bmod_h3_graph_y"
+    ],
+    [
+     "Legend \u2014 the series names they typed, comma-separated",
+     "bmod_h3_graph_series"
+    ]
+   ]
   },
   {
    "blank_code": "BLANK",
@@ -4393,7 +4726,36 @@
      ]
     }
    ],
-   "handout": 3
+   "handout": 3,
+   "prompt_action": "bmod_h3_success_llm",
+   "prompt_context": [
+    [
+     "Verdict",
+     "bmod_h3_success_verdict"
+    ],
+    [
+     "How (1)",
+     "bmod_h3_success_how1"
+    ],
+    [
+     "How (2)",
+     "bmod_h3_success_how2"
+    ]
+   ],
+   "prompt_response": [
+    [
+     "Verdict",
+     "bmod_h3_success_verdict"
+    ],
+    [
+     "How (1)",
+     "bmod_h3_success_how1"
+    ],
+    [
+     "How (2)",
+     "bmod_h3_success_how2"
+    ]
+   ]
   },
   {
    "blank_code": "BLANK",
@@ -4470,7 +4832,20 @@
    "label": "2b",
    "max": 6.0,
    "question": "Write an overall assessment of your intervention: which aspects were effective and which were not, including personal observations about your execution (for example, how your reinforcements or punishments worked). At least 3 sentences.",
-   "handout": 3
+   "handout": 3,
+   "prompt_action": "bmod_h3_assessment_llm",
+   "prompt_context": [
+    [
+     "",
+     "bmod_h3_assessment_response"
+    ]
+   ],
+   "prompt_response": [
+    [
+     "",
+     "bmod_h3_assessment_response"
+    ]
+   ]
   },
   {
    "blank_code": "BLANK",
@@ -4538,7 +4913,144 @@
    "label": "3",
    "max": 6.0,
    "question": "What could be done differently next time to improve your intervention plan? Give at least 2 specific examples. ('Nothing would change' is not acceptable \u2014 every intervention can be improved.)",
-   "handout": 3
+   "handout": 3,
+   "prompt_action": "bmod_h3_improve_llm",
+   "prompt_response": [
+    [
+     "First change",
+     "bmod_h3_improve_first"
+    ],
+    [
+     "Second change",
+     "bmod_h3_improve_second"
+    ]
+   ]
   }
- ]
+ ],
+ "generator": {
+  "SCORING_DIVERGENCES": [
+   {
+    "enforcement": "same gate, reached differently: computed on the web, asked on the CLI",
+    "items": [
+     "Q4a",
+     "Q4c"
+    ],
+    "necessary": true,
+    "web_computes": {
+     "Q4a": [
+      "no_antecedents"
+     ],
+     "Q4c": [
+      "no_consequences"
+     ]
+    },
+    "what": "the web COMPUTES the nothing-listed gate; the CLI asks the model",
+    "why": "A_NONE and C_NONE -- 'no antecedents/consequences listed' -- take the whole item and could not be charged at all: `absent` on both entry slots maps to two -2 codes, so the item could not reach 0 where gold's dictionary says 0. They are now wired with `forbid`, which fails a check exactly when a COMBINATION holds: both entries `absent`. That is distinct from entries written but of the wrong kind, which the -2 codes charge -- Q4a/p20 is wrong_kind twice, gold 1, and is untouched. THE DIFFERENCE IS WHERE THE ANSWER COMES FROM, not what it does. `forbid` keys are stripped from the web response schema, so the web computes the check; the CLI's ledger is model-authored from the rubric, so it asks for it. Both then gate the item to 0. Same shape as 1b, T1/T2 and 1c, declared the same way. The web gate is real, not modelled: lo-blocks' pickGate requires `slot.gates && !sat[key] && charged[key]`, and chargedMap sets every slot true unless an `onlyif` suppresses it -- neither item has one -- so the third condition is a no-op here and the gate fires. Verified by scoring a synthetic both-absent sheet: 0.0 on both items. MEASURED INERT on the corpus: all 180 recorded sheets rescored through the new rules, 120 of 120 on Q4a and 60 of 60 on Q4c unchanged. No cell has both entries `absent`."
+   },
+   {
+    "items": [
+     "Q1"
+    ],
+    "necessary": false,
+    "what": "a no-penalty check compares the prose against the UTB choice",
+    "why": "the web asks 'Which behavior will you work on?' as a closed ChoiceInput before the box, which the paper version has no equivalent of. But `utb_stated` is still ASKED of the model on BOTH sides \u2014 the prose has to name the target, and UTB_NOT_STATED costs the same 2 points for the same reason \u2014 so the scoring does not diverge. What the web adds is `matches_selected`, an UNSCORED check reporting whether the prose names the same behaviour the student selected, shown first in the feedback. It carries no points precisely so a mismatch prompts a rewording rather than charging twice for one fact. THIS ENTRY USED TO DECLARE THE OPPOSITE: that the web read utb_stated from the choice and derived it, so the prose need not state it. That was never implemented here \u2014 no version of the content back to the initial import carries a `derived` rule for it \u2014 and the design was later settled the other way. The audit had been reporting the declaration as stale ever since; it was describing an intention, not the sheet."
+   },
+   {
+    "items": [
+     "1b"
+    ],
+    "necessary": true,
+    "web_computes": {
+     "1b": [
+      "baseline_data",
+      "week_1_data",
+      "week_2_data",
+      "week_3_data"
+     ]
+    },
+    "what": "every check is derived from the data fields",
+    "why": "1b scores a point per week of data present, which the rubric is explicit is \"a presence check, not a quality judgement\". The CLI reads a .docx and must judge presence from transcribed prose; the web has one field per week, so presence is a property of the fields and is decided with the same parser the chart draws with. There is no prompt and no LLM call. Platform-forced in the same way as 1c's has_own_graph."
+   },
+   {
+    "items": [
+     "T1",
+     "T2"
+    ],
+    "necessary": true,
+    "web_computes": {
+     "T1": [
+      "type_stated"
+     ],
+     "T2": [
+      "type_stated"
+     ]
+    },
+    "what": "NOT_A_TYPE (-2) is unreachable, and `type_stated` is derived",
+    "why": "the web asks for the type as a closed ChoiceInput whose four options ARE the four types, so a student cannot name something that is not one of them \u2014 the same shape as Q1's UTB_NOT_ON_LIST. What remains reachable is BLANK: the item is a `present` check over the choice field, worth the same 2 points, so a student who answers scores 2 and one who does not scores 0, exactly as on paper."
+   },
+   {
+    "items": [
+     "1c"
+    ],
+    "necessary": true,
+    "web_computes": {
+     "1c": [
+      "has_own_graph"
+     ]
+    },
+    "what": "`has_own_graph` is derived from the data fields, not asked of the model",
+    "why": "the CLI reads a .docx \u2014 an embedded chart, an image, or prose describing a graph that is not there \u2014 so whether the student produced one is a judgement over document evidence. On the web the chart is DRAWN from the four 1b fields, so the runtime already knows: no plottable numbers is `absent`, and the worked example's own numbers (it sits on the same screen) are `mismatch`. Both are computed with the chart's own parser, so the grader cannot disagree with what the student sees. Copied WORDING is still judged by the model, on the label checks. Platform-forced: there is no way to ask the CLI's .docx the question the web's fields answer.\n\nThe kind is `complete`, not `plots`: it is satisfied only when EVERY week is present, so a partial month fails the gate and costs the whole item, which is what the paper rubric charges for not supplying a graph. That recovers p15 (two of four weeks, gold 0) and keeps p18 (nothing at all, gold 0). What it cannot recover is a student whose data is COMPLETE and who simply never drew the chart \u2014 p4 and p19, both gold 0 \u2014 because on the web that data draws it for them. Those two are excluded from the web measurement as unreachable (agreement_app.PER_ITEM_EXCLUDE)."
+   },
+   {
+    "items": [
+     "1c"
+    ],
+    "necessary": true,
+    "what": "a legend keyed by DAY cannot be reproduced",
+    "why": "the web's chart has one orientation \u2014 series are the four weeks, the x-axis is the seven days. A paper student who plotted it the other way round has a legend naming days, which the graders accepted (p11) and which the web scores as not naming the four series. One corpus row, structural, not a prompt defect."
+   }
+  ],
+  "PROBE_REACH_LIMITS": [
+   {
+    "enforcement": [
+     [
+      "NR",
+      "CHARGE-ONCE PROBE GAP (cli)"
+     ]
+    ],
+    "items": [
+     "NR"
+    ],
+    "what": "a three-way conjunction is invisible to the pairwise charge-once probe",
+    "why": "`barrier_is_not_this_type` fails only when THREE readings coincide -- `restriction_authored`=created, `trigger_expects`=gain, `restricts`=other_thing -- and `onlyif` keeps it from charging on top of `demonstrates_type`, so both sides charge 2 once. The web reader sees that pair because it reads slot keys; the CLI probe discovers charge-once by flipping answered fields in PAIRS, and no pair of flips can satisfy a three-condition rule while the third field holds its passing value. So the CLI probe never reaches it. The behaviour is identical; what differs is what the instrument can reach. The cadence items carry the same conjunction and raise no such finding only because there it drives a GATE, and gates are discovered by single flips. Widening the probe to triples would multiply its cost by the number of inputs and is not worth it for one rule; this entry is the cheaper honest option, and it will stop applying if the rule ever becomes a gate."
+   },
+   {
+    "enforcement": [
+     [
+      "2a",
+      "CHARGE-ONCE PROBE GAP (cli)"
+     ]
+    ],
+    "items": [
+     "2a"
+    ],
+    "what": "a COMPUTED operand cannot be flipped, so the pair it makes sublinear is unreachable by probing",
+    "why": "`requires` ties how_2 to `mechanism_named`, which carries no points of its own and costs something only by denying how_2. So the two share one 2-point charge: failing either costs 2 and failing both still costs 2, which is what makes the pair sublinear. The web reader takes that straight from the declared `requires` rule. The CLI probe cannot: `mechanism_named` is computed by `forbid` from three answered grounds, so it is not an answered field and no flip can set it, and the state that would reveal the pair is never constructed. Same shape as the NR entry above and the mirror of its cause -- there a conjunction was too wide for a pairwise probe, here an operand is not probeable at all. Teaching the probe to synthesise computed-operand states would mean a second implementation of `forbid` living inside the instrument, which is how an instrument starts disagreeing with the thing it measures."
+   }
+  ],
+  "CONTEXT__non_item": {
+   "_utb": [
+    [
+     "",
+     "bmod_h1_utb"
+    ]
+   ],
+   "_wgb": [
+    [
+     "",
+     "bmod_h1_q2_response"
+    ]
+   ]
+  }
+ }
 }

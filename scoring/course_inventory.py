@@ -158,13 +158,23 @@ def scan_module(path: str, ids: set[str]) -> dict:
 
     for node in ast.walk(tree):
         found = None
+        # A STRING LITERAL, NOT A RENDERING OF ONE. `str(c.value) in ids` turned
+        # the integer 3 into "3" and matched handout 3's item `3`, so every
+        # `handout == 3` and every `{1: ..., 2: ..., 3: ...}` counted as a course
+        # id embedded in code. enforcement.py alone carried six, and the ratchet
+        # refused a legitimate tightening because of them.
+        #
+        # Item ids are strings -- `"1a"`, `"Q4b"`, `"3"` -- and are subscripted
+        # and compared as strings. A bare integer is a handout number, an index
+        # or a count, and is none of this scan's business.
         if isinstance(node, ast.Compare):
             for c in [node.left] + list(node.comparators):
-                if isinstance(c, ast.Constant) and str(c.value) in ids:
-                    found = str(c.value)
+                if isinstance(c, ast.Constant) and isinstance(c.value, str) \
+                        and c.value in ids:
+                    found = c.value
         if isinstance(node, ast.Subscript) and isinstance(node.slice, ast.Constant) \
-                and str(node.slice.value) in ids:
-            found = str(node.slice.value)
+                and isinstance(node.slice.value, str) and node.slice.value in ids:
+            found = node.slice.value
         if found:
             literals.append({"id": found, "line": node.lineno,
                              "in": owner.get(node.lineno, "<module level>")})
