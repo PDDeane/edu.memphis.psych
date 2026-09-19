@@ -118,15 +118,30 @@ def _load() -> dict:
 
 
 def _detag(x):
-    """Undo the export's tuple tagging. `{"__tuple__": [...]}` -> a tuple.
+    """Undo the export's tagging: `__tuple__` -> a tuple, `__dict__` -> a dict.
 
     The counterpart of `rubric_export._jsonable`'s tagging. Without it a tuple
     survives a round trip as a list, which is a shape change consumers do not
     expect and behavioural tests need not notice.
+
+    `__dict__` WAS MISSING HERE and its only inverse lived inside
+    `gold_export.round_trip`, as a local function. That was survivable exactly as
+    long as nothing but the exporter read a tagged dict: the course file has no
+    `__dict__` in it, because all seven of its declarations are string-keyed, so
+    `declaration()` never met one. Gold does -- `PER_ITEM_EXCLUDE` nests
+    participant ids two levels down -- and the tag reached a consumer the moment
+    gold got a reader of its own. A decoder that inverts only some of what the
+    encoder writes is the same defect as no decoder at all, found later.
     """
     if isinstance(x, dict):
         if set(x) == {"__tuple__"}:
             return tuple(_detag(v) for v in x["__tuple__"])
+        if set(x) == {"__dict__"}:
+            # KEYS GO THROUGH `_detag` TOO. This tag exists because the key was
+            # not a string -- a participant id, or a (item, cell) tuple -- so
+            # decoding the value and leaving the key encoded would restore the
+            # half that was never the problem.
+            return {_detag(k): _detag(v) for k, v in x["__dict__"]}
         return {k: _detag(v) for k, v in x.items()}
     if isinstance(x, list):
         return [_detag(v) for v in x]
@@ -275,6 +290,72 @@ def gold_path() -> str:
         return os.path.join("<COURSE_DATA-unset>", "courses",
                             "edu.memphis.psych", "gold.json")
     return os.path.join(root, "courses", "edu.memphis.psych", "gold.json")
+
+
+def _load_gold() -> dict:
+    return gold()
+
+
+def gold_declaration(name: str):
+    """A GOLD declaration table, with its tuple keys restored.
+
+    The gold twin of `declaration()`, and deliberately a SEPARATE accessor rather
+    than a `source=` argument on that one. The two files have different
+    availability: the course file ships inside this public repository and is
+    always there, while gold lives outside it and may legitimately be absent
+    (C1b). One accessor spanning both would answer a caller that asked for a
+    rubric table and got a gold failure, and the error would name the wrong file.
+
+    EAGER AT THE CALL SITE, BY DESIGN. Every consumer binds these at module level
+    -- `CORRECTED_GOLD = _gold_declaration("CORRECTED_GOLD")` -- so importing a
+    gold-consuming module without $COURSE_DATA now fails, where before the data
+    was inline and it did not. That cost was accepted over a lazy proxy for a
+    measured reason: the twelve tables carry 96 references from INSIDE their own
+    modules, and a module-level `__getattr__` (PEP 562) does not fire for a
+    module's own global lookups. Lazy binding would therefore have raised
+    NameError internally, or -- worse -- resolved once some other module's access
+    had cached the name into globals(), making correctness depend on import
+    order. A dict subclass filling on first read fails differently and no better:
+    `json.dumps`, `dict(x)` and `{**x}` iterate at C level and would have seen an
+    EMPTY table without calling the override, which is the silent-wrong failure
+    this whole migration exists to prevent.
+
+    So the modules that consume gold now require gold, which is what they mean.
+    `coursedata` itself, and `rubric_for()` with it, still import without it.
+    """
+    decls = _load_gold().get("declarations", {})
+    if name not in decls:
+        raise KeyError(
+            f"coursedata: no gold declaration {name!r} in {gold_path()}. If it is "
+            f"a new table, `gold_export.py` must carry it; if it was removed, the "
+            f"reader of it must go too.")
+    # `_detag` ALONE, and no pair-list inversion. Unlike the course file's seven
+    # declarations, these sixteen are not all mappings -- `GOLD_DIVERGENCES` is a
+    # list, `GRAPH_UNREACHABLE_1C` a tuple, `_1C_GATE_CEILING` a prose string --
+    # so there is no shape to impose here. The export tags what it writes and
+    # this inverts the tags; anything else comes back as it went in.
+    #
+    # MEMBERSHIP, NOT `.get() is None`: a declaration may legitimately BE None or
+    # empty (`FIXTURE_GOLD_OVERRIDES` carries nothing today), and reporting that
+    # as "not in the file" would send the reader to the exporter for a table the
+    # exporter is carrying correctly.
+    return _detag(copy.deepcopy(decls[name]))
+
+
+def handout_participants(handout: int | str, field: str) -> list:
+    """One handout's participant list, by field.
+
+    These lived inside `handouts.HANDOUTS` and were left there when the rest of
+    that table was split, because they are the one part of it that names people.
+    """
+    hp = _load_gold().get("handout_participants", {}).get(str(handout))
+    if hp is None:
+        raise KeyError(f"coursedata: no participants for handout {handout!r} in "
+                       f"{gold_path()}.")
+    if field not in hp:
+        raise KeyError(f"coursedata: handout {handout!r} has no participant field "
+                       f"{field!r}; it carries {sorted(hp)}.")
+    return _detag(copy.deepcopy(hp[field]))
 
 
 def gold() -> dict:
