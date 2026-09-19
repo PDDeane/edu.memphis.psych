@@ -67,7 +67,23 @@ RUBRIC_FIELDS = {
     "derived", "reads_utb_choice", "requires", "cover", "move_pick",
     "avoidance_scores", "graph_item",
 }
-GENERATOR_FIELDS: set[str] = set()
+# STAGE 4, olx_prompts.py's item-keyed tables (B2a: generator fields live on the
+# item entry). Every name is PREFIXED `prompt_`, and that is not decoration:
+# `CONTEXT` would land as `context`, which RUBRIC_FIELDS already uses for a
+# different thing, and §9.2a forbids a field naming two groups. The prefix also
+# says what the field is FOR -- these are inputs to prompt generation, not
+# scoring rules.
+GENERATOR_FIELDS: set[str] = {
+    "prompt_action",         # ACTION
+    "prompt_response",       # RESPONSE
+    "prompt_context",        # CONTEXT
+    "prompt_sheet_only",     # SHEET_ONLY
+    "prompt_evidence",       # EVIDENCE
+    "prompt_omit_guidance",  # OMIT_GUIDANCE
+    "prompt_match_def",      # MATCH_DEF
+    "prompt_notes",          # ITEM_NOTES
+    "prompt_notes_why",      # ITEM_NOTES_WHY
+}
 
 _LOCK = threading.Lock()
 _DOC = None
@@ -125,6 +141,32 @@ def generator_for(item_id: str) -> dict:
         if str(it.get("id")) == str(item_id):
             return _group(it, GENERATOR_FIELDS)
     raise KeyError(f"coursedata: no item {item_id!r} in {course_path()}")
+
+
+def generator_items() -> dict[str, dict]:
+    """{item_id: generator fields}. KEYED BY ID, so `id` is not a field.
+
+    `items()` returns a list because rubric order matters. This returns a dict
+    because a generator table is looked up by item and has no order of its own --
+    and because keying by id keeps `id` out of the VALUE, which matters under
+    §9.2a: a field may name only one group, and `id` is the key both groups are
+    reached by rather than a member of either.
+    """
+    return {str(it["id"]): _group(it, GENERATOR_FIELDS)
+            for it in _load()["items"]}
+
+
+def generator_value(name: str):
+    """A course-level generator value, by name. An ACCESSOR, not a raw entry.
+
+    Added because `olx_prompts` reached `coursedata._load()["generator"]`
+    directly and `check_course_schema_is_complete` caught it -- the raw-entry
+    escape its Part B was written for, found on the first module to try it. The
+    escape matters because a caller holding the whole document can read anything
+    in it, so the group boundary stops meaning anything while the code still
+    looks like it is going through the reader.
+    """
+    return copy.deepcopy(_load().get("generator", {}).get(name))
 
 
 def derived(name: str, handout: int | None = None):

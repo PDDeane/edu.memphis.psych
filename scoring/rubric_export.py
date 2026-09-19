@@ -117,6 +117,96 @@ def _jsonable(x, path="") -> object:
         f"quietly dropped here is a field lost.")
 
 
+# STAGE 4 (B2a). `olx_prompts.py`'s item-keyed tables become GENERATOR FIELDS on
+# the item entry. The names are prefixed `prompt_` because `CONTEXT` would
+# otherwise land as `context`, which the rubric already uses for something else,
+# and §9.2a forbids a field naming two groups.
+#
+# The two NON item-keyed tables -- SCORING_DIVERGENCES and PROBE_REACH_LIMITS --
+# are lists about the course as a whole, not about any item, so they are carried
+# as course-level authored values and not folded onto entries. Putting a
+# course-wide list on 26 items would be 26 copies of one fact.
+GENERATOR_TABLES = {
+    "ACTION": "prompt_action",
+    "RESPONSE": "prompt_response",
+    "CONTEXT": "prompt_context",
+    "SHEET_ONLY": "prompt_sheet_only",
+    "EVIDENCE": "prompt_evidence",
+    "OMIT_GUIDANCE": "prompt_omit_guidance",
+    "MATCH_DEF": "prompt_match_def",
+    "ITEM_NOTES": "prompt_notes",
+    "ITEM_NOTES_WHY": "prompt_notes_why",
+}
+COURSE_LEVEL_GENERATOR = ("SCORING_DIVERGENCES", "PROBE_REACH_LIMITS")
+
+# Keys in an item-keyed table that are NOT item ids, declared with what they are.
+# `CONTEXT` carries context for handout 2's two SECTION headings as well as for
+# its items, and folding the table onto item entries would have dropped both
+# without a word. editguard caught it -- the write that removed the tables listed
+# `CONTEXT['_utb']` and `CONTEXT['_wgb']` among the 76 entries it was about to
+# take, and they were the only two that had nowhere to land.
+#
+# An UNDECLARED non-item key is now a REFUSAL, not a silent drop: the next table
+# to arrive with one must be decided on rather than quietly truncated.
+NON_ITEM_KEYS = {
+    "CONTEXT": {
+        "_utb": "handout 2's '{{corpus:Q1/p3:response:0:27:sha=c8e59699d1a0:shape=C81008}} is' section",
+        "_wgb": "handout 2's '{{corpus:Q2/p3:response:0:23:sha=d743f1f68d1a:shape=C8408}} is' section",
+    },
+}
+
+
+def non_item_residue(item_ids: set[str]) -> tuple[dict, list[str]]:
+    """-> (residue to carry at course level, refusals).
+
+    Everything in an item-keyed table whose key is not an item. Declared keys are
+    carried; undeclared ones REFUSE, because a table silently losing its
+    non-item rows is indistinguishable from a table that never had them.
+    """
+    import generator_source
+
+    residue, bad = {}, []
+    for table in sorted(GENERATOR_TABLES):
+        data = getattr(generator_source, table, None) or {}
+        extra = {k: v for k, v in data.items() if k not in item_ids}
+        if not extra:
+            continue
+        declared = NON_ITEM_KEYS.get(table, {})
+        undeclared = sorted(set(extra) - set(declared))
+        if undeclared:
+            bad.append(
+                f"{table} has non-item key(s) {undeclared} and NON_ITEM_KEYS does "
+                f"not say what they are. Folding the table onto item entries "
+                f"would drop them. Declare them, or move the table to course "
+                f"level.")
+            continue
+        residue[table] = extra
+    return residue, bad
+
+
+def generator_fields_for(item_id: str) -> dict:
+    """The generator fields this item carries, read from the incumbent module.
+
+    Absent keys are OMITTED, never written as null: `SHEET_ONLY` names three
+    items of twenty-six, and storing `prompt_sheet_only: null` on the other
+    twenty-three would turn "this item is not in that table" into "this item has
+    an empty value", which is a different claim and one the reader would have to
+    undo.
+    """
+    # THE BUILDER, NOT THE PIPELINE MODULE. `olx_prompts` now READS the course
+    # file, so sourcing the tables from it would make regenerating the file
+    # depend on the file being regenerated. `generator_source` is the authored
+    # input, kept outside the scoring path for exactly this reason.
+    import generator_source
+
+    out = {}
+    for table, field in sorted(GENERATOR_TABLES.items()):
+        data = getattr(generator_source, table, None) or {}
+        if item_id in data:
+            out[field] = data[item_id]
+    return out
+
+
 def build(course_id: str) -> tuple[dict, list[dict]]:
     doc = {"schema_version": SCHEMA_VERSION, "course": course_id,
            "handouts": {}, "items": []}
@@ -132,7 +222,24 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
         for it in items:                       # RUBRIC order, deliberately
             entry = _jsonable(it, f"h{h}.{it.get('id')}")
             entry["handout"] = h
+            gen = generator_fields_for(str(it.get("id")))
+            if gen:
+                entry.update(_jsonable(gen, f"h{h}.{it.get('id')}.generator"))
             doc["items"].append(entry)
+
+    import generator_source
+
+    ids = {str(it.get("id")) for it in doc["items"]}
+    residue, refusals = non_item_residue(ids)
+    if refusals:
+        raise SystemExit("rubric_export: " + "\n  ".join(refusals))
+    doc["generator"] = {
+        name: _jsonable(getattr(generator_source, name, None), f"generator.{name}")
+        for name in COURSE_LEVEL_GENERATOR
+        if getattr(generator_source, name, None) is not None}
+    for table, extra in sorted(residue.items()):
+        doc["generator"][f"{table}__non_item"] = _jsonable(
+            extra, f"generator.{table}__non_item")
     return doc, full_report
 
 
