@@ -1854,6 +1854,65 @@ it is declared as `doc_only` with the source named, rather than waved through.
 One pairing of twenty rests on documentation rather than on a shipped example,
 and the run says so.
 
+##### THE STRUCTURAL HALF — `structure_kids.py`, also gated
+
+`26 containers declared, 11 leaves. 319 .olx scanned: 215 nesting edges, 81
+reference edges. The containment declaration and the evidence agree.`
+Gated by `check_container_contents_are_declared`.
+
+**No block declares what it may contain.** There is no `childTags`, no
+`allowedChildren`, no schema of permitted kids anywhere in lo-blocks —
+containment is decided by each block's parser and its runtime. So the same
+approach as the pairings: declare by hand, mine the corpora, and gate both.
+
+**Four mechanisms, and three are invisible to a nesting scan:**
+
+1. **nested** — children are nested tags. `Vertical`, `Sequential`,
+   `Collapsible`, `Hidden`, `NextReveal`, `TimedContainer`, `DynamicList`,
+   `Tabs`, `Course`.
+2. **slotted** — nested into NAMED REGIONS marked by stub blocks: `SideBarPanel`
+   takes `MainPane` and `Sidebar`, which the parent parses rather than rendering
+   as components.
+3. **referenced-body** — the body is a LIST OF IDS:
+   `<Carousel wrap="true">ctt, irt, rasch</Carousel>`,
+   `<MasteryBank goal="3">demo_q1 demo_q2 demo_q3</MasteryBank>`. These contain
+   nothing syntactically, and a first pass here reported `Carousel` and
+   `MasteryBank` as "never seen as a parent" while they appear in twelve files.
+4. **referenced-attribute** — attributes name blocks by id: `Navigator preview=
+   detail=`, `AggregatedInputs`, `AnswerDistribution`, `UseHistory`, and every
+   grader's `target=`.
+
+##### The decision an intake program actually faces
+
+| relation | containers |
+|---|---|
+| **NESTS an item** | `Collapsible`, `DynamicList`, `Hidden`, `NextReveal`, `Sequential`, `TimedContainer`, `Vertical` |
+| **REFERENCES an item** | `AggregatedInputs`, `AnswerDistribution`, `Chat`, `MasteryBank`, `Ref`, `UseDynamic`, `UseHistory` |
+
+**Choosing the container decides the shape of the document, not an attribute of
+it.** A `Sequential` of three items and a `MasteryBank` of the same three are
+different files: in the first the items are written inside, in the second they
+are written separately and named. That is the second-order choice §10.6.1
+predicts will often be indeterminate, and it is not a formatting decision.
+
+`Vertical` is the general-purpose body — it nests every role there is, including
+`grading_support` and `item_part` — and is what an intake program should default
+to when nothing more specific is implied.
+
+##### REFERENCE IS NOT CONTAINMENT
+
+Conflating them made `Ref` the largest container in the corpus: **431 `TextArea`s
+"inside" a block that holds nothing and points at everything.** The two relations
+are declared and checked separately. This is the same distinction the grader
+table draws between a nested grader and a targeted one, and it keeps reappearing
+because it is how lo-blocks is built: *structure is expressed by naming at least
+as often as by nesting.*
+
+Four containers are declared and **undemonstrated** — `SharedNotes`,
+`SideBarPanel`, `SplitPanel`, `SplitTest` — with `SplitTest` appearing in no
+`.olx` at all. They are recorded as declared-without-evidence rather than
+dropped, because absence from one corpus is not absence from the engine.
+
 ##### The intake program: an LLM reading materials onto ROLES, then components
 
 *Recorded on the user's architecture note.*
