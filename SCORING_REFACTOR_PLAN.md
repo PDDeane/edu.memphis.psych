@@ -1615,6 +1615,50 @@ one that carries the generality:
    and comments** must be inferred, and then **mapped onto the space of
    possibilities lo-blocks defines**.
 
+##### The shape space, MEASURED — and how little of it we have touched
+
+*Added 2026-09-18 on the user's second correction, with the counts taken from the
+tree rather than estimated.*
+
+lo-blocks ships **ten grader components** —
+`CorrectGrader`, `CustomGrader`, `DefaultGrader`, `FormulaGrader`, `LLMGrader`,
+`NumericalGrader`, `RatioGrader`, `RulesGrader`, `SlotSheetGrader`,
+`StringGrader` (plus `Correctness`, `DerivedChecks`, `ScoreTable`, `SheetValue`
+and `Rule`/`stringMatch` as supporting machinery) — and **ten input components**:
+`ChoiceInput`, `ComplexInput`, `DropdownInput`, `FormulaInput`, `LineInput`,
+`Matching`, `NumberInput`, `Sortable`, `TabularMCQ`, `TextArea`.
+
+**Only a few of those score CONSTRUCTED response, most notably `SlotSheetGrader`,
+which is fed by `LLMAction`. That one path is what this entire project has been
+about.** Everything built here — the rubric modules, `olx_prompts.py`'s generated
+prompts, the agreement sweeps, the gold comparison, all 152 enforcement checks —
+addresses items of that one shape.
+
+The measurement, taken against this repository:
+
+| | |
+|---|---|
+| grader components in lo-blocks | 10 |
+| graders the psych course uses | 2 — `SlotSheetGrader` (3 files), `CorrectGrader` (4) |
+| input components in lo-blocks | 10 |
+| inputs the psych course uses | 6 — TextArea 11, ChoiceInput 11, LineInput 2, Sortable 2, Matching 1, TabularMCQ 1 |
+| **scored items, all handouts** | **26** |
+| **of those, slot-sheet shaped** | **26 — every one** |
+
+So the course itself already contains selected-response inputs in quantity —
+eleven files carry a `ChoiceInput` — and **not one of them is scored by this
+engine**. Our coverage of the grader space is one component of ten, and of the
+selected-response scoring paths it is zero.
+
+**What that does to "sized by shape coverage".** I1a's sizing rule was written as
+though the denominator were known. It is now known, and the engine has been
+exercised against a single cell of it. A fixture built only from what we have
+seen would reproduce that single cell and report full coverage — which is the
+I1a weakness already recorded, arriving through the shape inventory rather than
+through the invented content. **The general program must handle selected-response
+items too**, and until it does, "the engine is course-independent" is a claim
+about constructed response scored by one grader.
+
 **Why this belongs to the refactor and not beside it.** I1a's recorded weakness is
 that the fixture is "written by the same hand that abstracts the engine, at the
 same time, so it will encode some of the assumptions it exists to test". An
