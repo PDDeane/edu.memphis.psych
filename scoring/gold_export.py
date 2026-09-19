@@ -33,7 +33,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 # module -> the gold declarations it holds. Named rather than discovered: a
 # table's being about gold is a judgement, and `GOLD` in the name is a
@@ -82,12 +82,21 @@ def _jsonable(x, path=""):
         f"declaration quietly dropped is a declaration lost.")
 
 
-def _pairs(table):
-    """A dict with tuple keys as JSON can hold it: a list of [key, value]."""
-    if not isinstance(table, dict):
-        return _jsonable(table)
-    return [[list(k) if isinstance(k, tuple) else k, _jsonable(v)]
-            for k, v in table.items()]
+# `_pairs` WAS HERE, AND WAS LOSSY. It turned a tuple-keyed dict into a bare
+# list of [key, value] -- which is indistinguishable from a table that was
+# AUTHORED as a list. Three of these sixteen are not mappings at all
+# (`GOLD_DIVERGENCES` is a list of dicts, `GRAPH_UNREACHABLE_1C` a tuple,
+# `_1C_GATE_CEILING` a prose string), so a reader inverting the pair-list form
+# had no way to know which it was holding, and the round-trip raised
+# "too many values to unpack" on the first table that was genuinely a list.
+#
+# `_jsonable` already encodes every one of these shapes self-describingly: it
+# tags tuples `__tuple__` and non-string-key dicts `__dict__`, and preserves
+# insertion order for the rest. `_pairs` was redundant with it -- its own
+# fallthrough called it for anything that was not a dict -- so the encoder is
+# now `_jsonable` alone and the decoder is `coursedata._detag`, which already
+# inverts both tags. The course file keeps its bare pair-lists: all seven of its
+# declarations ARE mappings, so the ambiguity this removes cannot arise there.
 
 
 def build() -> dict:
@@ -104,7 +113,7 @@ def build() -> dict:
             value = getattr(mod, name, None)
             if value is None:
                 continue
-            doc["declarations"][name] = _pairs(value)
+            doc["declarations"][name] = _jsonable(value)
     import handouts
 
     for h, cfg in sorted(handouts.HANDOUTS.items()):
@@ -115,20 +124,52 @@ def build() -> dict:
     return doc
 
 
-def round_trip(doc: dict) -> list[str]:
-    """Every table comes back exactly what it was. Asserted, not assumed."""
-    import importlib
+def _serialize(doc: dict) -> str:
+    """The bytes that go to disk. ONE definition, used by the writer and by the
+    assertion that the writer is faithful.
 
-    def detag(x):
-        if isinstance(x, dict):
-            if set(x) == {"__tuple__"}:
-                return tuple(detag(v) for v in x["__tuple__"])
-            if set(x) == {"__dict__"}:
-                return {detag(k): detag(v) for k, v in x["__dict__"]}
-            return {k: detag(v) for k, v in x.items()}
-        if isinstance(x, list):
-            return [detag(v) for v in x]
-        return x
+    NO `sort_keys`. AUTHORED ORDER IS DATA -- the same rule `rubric_export`
+    already carries, and this file was the unfixed twin. It wrote
+    `sort_keys=True` while `round_trip` compared the IN-MEMORY doc, which is
+    built in insertion order, so the assertion passed and the file on disk was
+    alphabetised anyway. Four tables came back reordered to an independent
+    reader while the exporter reported "every table round-trips exactly".
+
+    That gap is why this function exists rather than a second `json.dumps` call:
+    a round-trip proved against anything other than the actual bytes is proof
+    about a thing nobody reads.
+    """
+    return json.dumps(doc, indent=1, sort_keys=False) + "\n"
+
+
+def round_trip(doc: dict) -> list[str]:
+    """Every table comes back exactly what it was. Asserted, not assumed.
+
+    ONE DECODER, AND IT IS THE READER'S. This function used to carry its own
+    tag-inverter and its own shape reconstruction, so it proved that the stored
+    form inverts under THIS code -- not under `coursedata`, which is what
+    actually reads the file. The two drifted the moment the pair-list encoding
+    was retired: the exporter's copy still inverted pair-lists and raised "too
+    many values to unpack" on `GOLD_DIVERGENCES`, a table that was always a
+    list. Calling the real reader means a round-trip proved here is a round-trip
+    the consumer gets.
+
+    ORDER-SENSITIVE COMPARISON. The old test was `back != source`, and `==` on
+    dicts IGNORES KEY ORDER. That blindness has already cost this project a day:
+    `JOBS[item]["fields"]` decides the order boxes are read in, a sorted export
+    silently reordered it, and six hypotheses were ruled out before the
+    comparison itself turned out to be the thing that could not see it.
+    `same_shape` reports order differences as differences.
+    """
+    import importlib
+    import coursedata
+    import migrated_tables
+
+    # THE FILE, NOT THE DOCUMENT. Everything below compares against what
+    # `_serialize` produces, so a defect introduced on the way to disk -- key
+    # sorting, a tag that does not survive, a type JSON cannot hold -- is caught
+    # here rather than by whoever reads the file next.
+    written = json.loads(_serialize(doc))
 
     problems = []
     for module_name, names in sorted(GOLD_TABLES.items()):
@@ -137,21 +178,16 @@ def round_trip(doc: dict) -> list[str]:
             source = getattr(mod, name, None)
             if source is None:
                 continue
-            stored = doc["declarations"].get(name)
-            if isinstance(source, dict):
-                back = {tuple(k) if isinstance(k, list) else k: detag(v)
-                        for k, v in stored}
-            else:
-                back = detag(stored)
-                if isinstance(source, tuple):
-                    back = tuple(back)
-                elif isinstance(source, (set, frozenset)):
-                    back = type(source)(back)
-            if back != source:
-                problems.append(
-                    f"{module_name}.{name} does not round-trip: stored form "
-                    f"rebuilds to {type(back).__name__}, source is "
-                    f"{type(source).__name__}")
+            if name not in written["declarations"]:
+                problems.append(f"{module_name}.{name} is not in the export")
+                continue
+            back = coursedata._detag(written["declarations"][name])
+            # Tuples are restored by the tag. A set has no JSON form and is
+            # stored as a list, so its type is restored here, from the source.
+            if isinstance(source, (set, frozenset)) and isinstance(back, list):
+                back = type(source)(back)
+            for diff in migrated_tables.same_shape(source, back):
+                problems.append(f"{module_name}.{name} does not round-trip: {diff}")
     return problems
 
 
@@ -214,7 +250,7 @@ def main(argv=None) -> int:
         print(f"  dry run: would write {out}")
         return 0
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    open(out, "w").write(json.dumps(doc, indent=1, sort_keys=True) + "\n")
+    open(out, "w").write(_serialize(doc))
     print(f"  written: {out} ({os.path.getsize(out):,} bytes)")
     return 0
 
