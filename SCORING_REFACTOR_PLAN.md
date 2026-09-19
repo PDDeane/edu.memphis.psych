@@ -2830,6 +2830,59 @@ Extracting the tables left `_PRIMS_2026_08_29` behind and
 is a table, and the loud failure is the good case: the quiet one is a table that
 imports and is subtly wrong.
 
+#### The five insensitive tables, resolved into three different things
+
+Chasing them found a defect in the harness, a stale-looking declaration, and a
+category the harness cannot test at all.
+
+##### 1. The harness was reporting on itself — `COUNTABLE_EXEMPT`
+
+`check_countable_families_converted(items)` **takes an argument**, so calling it
+bare raised `TypeError` before AND after emptying the table. Identical results,
+scored as "not sensitive". That was the harness, not the table.
+
+Uncallable checks are now named and excluded from the verdict — the same
+distinction the self-test draws between a SKIP and a vacuous case, and the same
+mistake in a new place. One of the five was this.
+
+##### 2. An exemption nothing exempts — `HAND_AUTHORED_ATTRS`
+
+`check_generated_attributes_have_a_declaration` reports an attribute present in
+the `.olx` with **no rubric rule and no exemption**. Emptying the exemption
+therefore ought to make its four entries fail. It changes nothing — and all four
+now carry a rubric `expect`:
+
+| entry | rubric rule present |
+|---|---|
+| `PR.expect`, `NR.expect`, `PP.expect`, `NP.expect` | **yes, all four** |
+
+They have rules because `rubric_h2._EXPECT_SHIPPED` sets `_it["expect"]` at
+import time — the import-time scaffolding found earlier today while censusing
+module-level names. So the four are not orphans, with or without the exemption.
+
+**Whether that makes the exemption stale is a scoring judgement, not a mechanical
+one**, and it is left open: it turns on whether scaffolding that assigns `expect`
+counts as *the rubric declaring a rule*. If it does, the table has outlived its
+reason and should go the way the PEG orphan declarations went. If it does not,
+the CHECK is looking in the wrong place. **Either answer is a finding; guessing
+between them is not.**
+
+##### 3. A table that IS its check's input domain — `SLOT_STRUCTURE_FAMILIES`
+
+One entry, `h2-cadence-and-type`, consumed by
+`check_sibling_slots_share_their_structure`. Emptying it removes the check's
+SUBJECT rather than causing a failure: no families declared, nothing to compare,
+zero findings either way.
+
+**Such a table cannot be tested by emptying at all.** The test it needs is
+CORRUPTION — change a member so the family stops being consistent — which is a
+different harness and is not built. `PROBE_UNREACHABLE_PAIRS` and
+`PROBE_PROVOCATIONS` look like the same shape and are unexamined.
+
+That is the real limit of `table_sensitivity.py`, and it is now stated: **it can
+prove a table load-bearing, and it cannot distinguish "inert" from "declares the
+work itself".**
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that
