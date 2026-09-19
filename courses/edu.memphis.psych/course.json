@@ -6242,6 +6242,656 @@
      ]
     }
    ]
+  ],
+  "JOBS": [
+   [
+    "Q1",
+    {
+     "button": "Check my answer",
+     "feedback": "bmod_h1_q1_feedback",
+     "fields": {
+      "bmod_h1_q1_response": "Q1",
+      "bmod_h1_utb": "_utb_choice"
+     },
+     "grader": "bmod_h1_q1_grader",
+     "handout": 1,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h1_q1",
+     "split": {}
+    }
+   ],
+   [
+    "Q2",
+    {
+     "button": "Check my answer",
+     "feedback": "bmod_h1_q2_feedback",
+     "fields": {
+      "bmod_h1_q2_response": "Q2",
+      "bmod_h1_utb": "_utb_choice"
+     },
+     "grader": "bmod_h1_q2_grader",
+     "handout": 1,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h1_q2",
+     "split": {}
+    }
+   ],
+   [
+    "Q4a",
+    {
+     "button": "Check my antecedents",
+     "feedback": "bmod_h1_q4a_feedback",
+     "fields": {
+      "bmod_h1_utb": "_utb_choice"
+     },
+     "from_scorer": {
+      "bmod_h1_q4a_first": "antecedent_1",
+      "bmod_h1_q4a_second": "antecedent_2"
+     },
+     "grader": "bmod_h1_q4a_grader",
+     "handout": 1,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h1_q4a"
+    }
+   ],
+   [
+    "Q4c",
+    {
+     "button": "Check my consequences",
+     "feedback": "bmod_h1_q4c_feedback",
+     "fields": {
+      "bmod_h1_utb": "_utb_choice"
+     },
+     "from_scorer": {
+      "bmod_h1_q4c_first": "consequence_1",
+      "bmod_h1_q4c_second": "consequence_2"
+     },
+     "grader": "bmod_h1_q4c_grader",
+     "handout": 1,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h1_q4c"
+    }
+   ],
+   [
+    "Q5",
+    {
+     "button": "Check my answer",
+     "feedback": "bmod_h1_q5_feedback",
+     "fields": {
+      "bmod_h1_utb": "_utb_choice"
+     },
+     "from_scorer": {
+      "bmod_h1_q4c_first": "consequence_1",
+      "bmod_h1_q4c_second": "consequence_2",
+      "bmod_h1_q5_first": "example_1",
+      "bmod_h1_q5_second": "example_2"
+     },
+     "grader": "bmod_h1_q5_grader",
+     "handout": 1,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h1_q5"
+    }
+   ],
+   [
+    "Q6",
+    {
+     "button": "Check my answer",
+     "consensus": "/home/pdeane/molly_data/out/q6_consensus/consensus.json",
+     "feedback": "bmod_h1_q6_feedback",
+     "fields": {
+      "bmod_h1_utb": "_utb_choice"
+     },
+     "from_scorer": {
+      "bmod_h1_q6_affect_c1": "affect_c1",
+      "bmod_h1_q6_affect_c2": "affect_c2",
+      "bmod_h1_q6_change_a1": "change_a1",
+      "bmod_h1_q6_change_a2": "change_a2",
+      "bmod_h1_q6_state_a1": "state_a1",
+      "bmod_h1_q6_state_a2": "state_a2",
+      "bmod_h1_q6_state_c1": "state_c1",
+      "bmod_h1_q6_state_c2": "state_c2"
+     },
+     "grader": "bmod_h1_q6_grader",
+     "handout": 1,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h1_q6"
+    }
+   ],
+   [
+    "PR",
+    {
+     "button": "Check my Positive Reinforcement example",
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     },
+     "feedback": "bmod_h2_pr_feedback",
+     "fields": {
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h1_utb": "_utb",
+      "bmod_h2_pr": "PR"
+     },
+     "grader": "bmod_h2_pr_grader",
+     "handout": 2,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h2_pr_screen"
+    }
+   ],
+   [
+    "NR",
+    {
+     "button": "Check my Negative Reinforcement example",
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     },
+     "feedback": "bmod_h2_nr_feedback",
+     "fields": {
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h1_utb": "_utb",
+      "bmod_h2_nr": "NR"
+     },
+     "grader": "bmod_h2_nr_grader",
+     "handout": 2,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h2_nr_screen"
+    }
+   ],
+   [
+    "PP",
+    {
+     "button": "Check my Positive Punishment example",
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     },
+     "feedback": "bmod_h2_pp_feedback",
+     "fields": {
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h1_utb": "_utb",
+      "bmod_h2_pp": "PP"
+     },
+     "grader": "bmod_h2_pp_grader",
+     "handout": 2,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h2_pp_screen"
+    }
+   ],
+   [
+    "NP",
+    {
+     "button": "Check my Negative Punishment example",
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     },
+     "feedback": "bmod_h2_np_feedback",
+     "fields": {
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h1_utb": "_utb",
+      "bmod_h2_np": "NP"
+     },
+     "grader": "bmod_h2_np_grader",
+     "handout": 2,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h2_np_screen"
+    }
+   ],
+   [
+    "D1",
+    {
+     "button": "Check my definition",
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     },
+     "feedback": "bmod_h2_d1_feedback",
+     "fields": {
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h1_utb": "_utb",
+      "bmod_h2_d1": "D1",
+      "bmod_h2_t1": "T1"
+     },
+     "grader": "bmod_h2_d1_grader",
+     "handout": 2,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h2_d1_screen"
+    }
+   ],
+   [
+    "DAY1",
+    {
+     "button": "Check my daily example",
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     },
+     "feedback": "bmod_h2_day1_feedback",
+     "fields": {
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h1_utb": "_utb",
+      "bmod_h2_d1": "D1",
+      "bmod_h2_day1": "DAY1",
+      "bmod_h2_t1": "T1"
+     },
+     "grader": "bmod_h2_day1_grader",
+     "handout": 2,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h2_day1_screen"
+    }
+   ],
+   [
+    "WK1",
+    {
+     "button": "Check my weekly example",
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     },
+     "feedback": "bmod_h2_wk1_feedback",
+     "fields": {
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h1_utb": "_utb",
+      "bmod_h2_d1": "D1",
+      "bmod_h2_t1": "T1",
+      "bmod_h2_wk1": "WK1"
+     },
+     "grader": "bmod_h2_wk1_grader",
+     "handout": 2,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h2_wk1_screen"
+    }
+   ],
+   [
+    "D2",
+    {
+     "button": "Check my definition",
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     },
+     "feedback": "bmod_h2_d2_feedback",
+     "fields": {
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h1_utb": "_utb",
+      "bmod_h2_d2": "D2",
+      "bmod_h2_t2": "T2"
+     },
+     "grader": "bmod_h2_d2_grader",
+     "handout": 2,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h2_d2_screen"
+    }
+   ],
+   [
+    "DAY2",
+    {
+     "button": "Check my daily example",
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     },
+     "feedback": "bmod_h2_day2_feedback",
+     "fields": {
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h1_utb": "_utb",
+      "bmod_h2_d2": "D2",
+      "bmod_h2_day2": "DAY2",
+      "bmod_h2_t2": "T2"
+     },
+     "grader": "bmod_h2_day2_grader",
+     "handout": 2,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h2_day2_screen"
+    }
+   ],
+   [
+    "WK2",
+    {
+     "button": "Check my weekly example",
+     "fallback": {
+      "_utb": {
+       "__tuple__": [
+        1,
+        "Q1"
+       ]
+      },
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     },
+     "feedback": "bmod_h2_wk2_feedback",
+     "fields": {
+      "bmod_h1_q2_response": "_wgb",
+      "bmod_h1_utb": "_utb",
+      "bmod_h2_d2": "D2",
+      "bmod_h2_t2": "T2",
+      "bmod_h2_wk2": "WK2"
+     },
+     "grader": "bmod_h2_wk2_grader",
+     "handout": 2,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h2_wk2_screen"
+    }
+   ],
+   [
+    "Q3",
+    {
+     "anchored": true,
+     "button": "Check my SMART goal",
+     "feedback": "bmod_h1_q3_feedback",
+     "fields": {
+      "bmod_h1_q2_response": "Q2",
+      "bmod_h1_utb": "_utb_choice"
+     },
+     "from_scorer": {
+      "bmod_h1_q3_action": "action_oriented",
+      "bmod_h1_q3_measurable": "measurable",
+      "bmod_h1_q3_realistic": "realistic",
+      "bmod_h1_q3_specific": "specific",
+      "bmod_h1_q3_timebound": "time_bound"
+     },
+     "grader": "bmod_h1_q3_grader",
+     "handout": 1,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h1_q3"
+    }
+   ],
+   [
+    "Q4b",
+    {
+     "button": "Check my answer",
+     "feedback": "bmod_h1_q4b_feedback",
+     "fields": {
+      "bmod_h1_q2_response": "Q2",
+      "bmod_h1_utb": "_utb_choice"
+     },
+     "grader": "bmod_h1_q4b_grader",
+     "handout": 1,
+     "handsplit": "/home/pdeane/molly_data/handsplit/Q4b.json",
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h1_q4b",
+     "split": {
+      "Q4a": {
+       "__tuple__": [
+        "bmod_h1_q4a_first",
+        "bmod_h1_q4a_second"
+       ]
+      }
+     }
+    }
+   ],
+   [
+    "1a",
+    {
+     "button": "Check my overview",
+     "feedback": "bmod_h3_overview_feedback",
+     "fields": {
+      "bmod_h3_overview_response": "1a"
+     },
+     "grader": "bmod_h3_overview_grader",
+     "handout": 3,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h3_overview",
+     "sim": {
+      "bmod_h3_baseline": "baseline",
+      "bmod_h3_wk1": "week_1",
+      "bmod_h3_wk2": "week_2",
+      "bmod_h3_wk3": "week_3"
+     }
+    }
+   ],
+   [
+    "1c",
+    {
+     "button": "Check my labelling",
+     "fallback": {
+      "_wgb": {
+       "__tuple__": [
+        1,
+        "Q2"
+       ]
+      }
+     },
+     "feedback": "bmod_h3_graph_feedback",
+     "fields": {},
+     "from_scorer": {
+      "bmod_h3_graph_title": "title",
+      "bmod_h3_graph_x": "x_axis_label",
+      "bmod_h3_graph_y": "y_axis_label"
+     },
+     "grader": "bmod_h3_graph_grader",
+     "handout": 3,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h3_graph",
+     "sim": {
+      "bmod_h3_baseline": "baseline",
+      "bmod_h3_graph_series": "graph_series",
+      "bmod_h3_wk1": "week_1",
+      "bmod_h3_wk2": "week_2",
+      "bmod_h3_wk3": "week_3"
+     }
+    }
+   ],
+   [
+    "2a",
+    {
+     "button": "Check my answer",
+     "dealt": [
+      {
+       "count": "hows_given",
+       "members": [
+        "how_1",
+        "how_2"
+       ]
+      }
+     ],
+     "feedback": "bmod_h3_success_feedback",
+     "fields": {
+      "bmod_h3_overview_response": "1a"
+     },
+     "from_scorer": {
+      "bmod_h3_success_how1": "how_1",
+      "bmod_h3_success_how2": "how_2",
+      "bmod_h3_success_verdict": "verdict"
+     },
+     "grader": "bmod_h3_success_grader",
+     "handout": 3,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h3_success"
+    }
+   ],
+   [
+    "2b",
+    {
+     "button": "Check my assessment",
+     "fallback": {
+      "_t1": {
+       "__tuple__": [
+        2,
+        "T1"
+       ]
+      },
+      "_t2": {
+       "__tuple__": [
+        2,
+        "T2"
+       ]
+      }
+     },
+     "feedback": "bmod_h3_assessment_feedback",
+     "fields": {
+      "bmod_h2_t1": "_t1",
+      "bmod_h2_t2": "_t2",
+      "bmod_h3_assessment_response": "2b"
+     },
+     "grader": "bmod_h3_assessment_grader",
+     "handout": 3,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h3_assessment"
+    }
+   ],
+   [
+    "T1",
+    {
+     "feedback": "bmod_h2_t1_checks",
+     "fields": {
+      "bmod_h2_t1": "_type_choice:T1"
+     },
+     "grader": "bmod_h2_t1_sheet_grader",
+     "handout": 2,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h2_first"
+    }
+   ],
+   [
+    "T2",
+    {
+     "feedback": "bmod_h2_t2_checks",
+     "fields": {
+      "bmod_h2_t2": "_type_choice:T2"
+     },
+     "grader": "bmod_h2_t2_sheet_grader",
+     "handout": 2,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h2_second"
+    }
+   ],
+   [
+    "1b",
+    {
+     "feedback": "bmod_h3_data_checks",
+     "fields": {},
+     "grader": "bmod_h3_data_grader",
+     "handout": 3,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h3_data",
+     "sim": {
+      "bmod_h3_baseline": "baseline",
+      "bmod_h3_wk1": "week_1",
+      "bmod_h3_wk2": "week_2",
+      "bmod_h3_wk3": "week_3"
+     }
+    }
+   ],
+   [
+    "3",
+    {
+     "button": "Check my answer",
+     "dealt": [
+      {
+       "count": "changes_given",
+       "members": [
+        "example_1",
+        "example_2"
+       ]
+      }
+     ],
+     "feedback": "bmod_h3_improve_feedback",
+     "fields": {},
+     "from_scorer": {
+      "bmod_h3_improve_first": "example_1",
+      "bmod_h3_improve_second": "example_2"
+     },
+     "grader": "bmod_h3_improve_grader",
+     "handout": 3,
+     "ns": "edu.memphis.psych",
+     "screen": "edu.memphis.psych/bmod_h3_improve"
+    }
+   ]
   ]
  }
 }
