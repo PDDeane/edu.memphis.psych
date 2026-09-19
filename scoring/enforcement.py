@@ -10859,12 +10859,41 @@ def check_scored_slots_are_answered_by_both_engines() -> list[str]:
 APP_ONLY_SLOTS = _declaration("APP_ONLY_SLOTS")
 
 
-# THE EIGHT CRITERIA-DERIVED ITEMS. Subgoal E35 established that their rubric
-# holds COMPOSITES (`is_operant_conditioning`, `is_nr`) while the sheet
-# enumerates the sub-checks, so nearly every slot on them looks orphaned in the
-# reverse direction. That asymmetry is the design, not a defect, and a check
-# that does not know it is useless on a third of the corpus.
-_CRITERIA_DERIVED = ("DAY1", "DAY2", "WK1", "WK2", "PR", "NR", "PP", "NP")
+def _criteria_derived() -> frozenset:
+    """The criteria-derived items, READ FROM THE RUBRIC rather than listed.
+
+    Subgoal E35 established that these items' rubric holds COMPOSITES
+    (`is_operant_conditioning`, `is_nr`) while the sheet enumerates the
+    sub-checks, so nearly every slot on them looks orphaned in the reverse
+    direction. That asymmetry is the design, not a defect, and a check that does
+    not know it is useless on a third of the corpus.
+
+    IT WAS A LIST OF EIGHT IDS AND IT DID NOT NEED TO BE. The property that
+    makes an item criteria-derived is written on the item: its rubric entry
+    carries `derive_from_criteria`. Measured across all three rubric modules --
+    26 items -- the set carrying that field is exactly the eight that were
+    listed, and the four handout-2 items that are NOT in it (D1, D2, T1, T2)
+    carry `derive_from_credit` instead. So under A2a this is derived, not
+    stored: the engine stops naming this course's items, and an item that gains
+    or loses the field is picked up instead of drifting from a tuple nobody
+    revisits.
+
+    NOT CACHED, DELIBERATELY. `enforcement_selftest` injects by mutating
+    `rubric_h*.BY_ID` in memory, and a cache would hand back the pre-injection
+    answer -- the same shape that made the inventory memo serve a stale scan
+    until its key learned about the ids. This walks 26 entries; it is cheaper
+    than the list it replaces was to maintain.
+    """
+    out = set()
+    for name in ("rubric_h1", "rubric_h2", "rubric_h3"):
+        try:
+            mod = __import__(name)
+        except Exception:                           # pragma: no cover
+            continue
+        for item, entry in (getattr(mod, "BY_ID", {}) or {}).items():
+            if isinstance(entry, dict) and "derive_from_criteria" in entry:
+                out.add(str(item))
+    return frozenset(out)
 
 
 def check_sheet_slots_reach_the_rubric() -> list[str]:
@@ -10884,7 +10913,7 @@ def check_sheet_slots_reach_the_rubric() -> list[str]:
 
       `confident` -- present on all 22 items, a meta-slot with no rubric element
       and no points. By design.
-      THE EIGHT CRITERIA-DERIVED ITEMS -- see `_CRITERIA_DERIVED` above.
+      THE CRITERIA-DERIVED ITEMS -- see `_criteria_derived` above.
       ALIASED NAMES -- a CLI key need not carry its web name; `web_name` is the
       authority, as it is for E48.
 
@@ -10900,7 +10929,7 @@ def check_sheet_slots_reach_the_rubric() -> list[str]:
 
     out: list[str] = []
     for item_id, action in sorted(O.ACTION.items()):
-        if item_id in _CRITERIA_DERIVED:
+        if item_id in _criteria_derived():
             continue
         try:
             src = O._src(O.HANDOUT[item_id])
