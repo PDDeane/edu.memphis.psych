@@ -117,9 +117,25 @@ def _load() -> dict:
     return _DOC
 
 
+def _detag(x):
+    """Undo the export's tuple tagging. `{"__tuple__": [...]}` -> a tuple.
+
+    The counterpart of `rubric_export._jsonable`'s tagging. Without it a tuple
+    survives a round trip as a list, which is a shape change consumers do not
+    expect and behavioural tests need not notice.
+    """
+    if isinstance(x, dict):
+        if set(x) == {"__tuple__"}:
+            return tuple(_detag(v) for v in x["__tuple__"])
+        return {k: _detag(v) for k, v in x.items()}
+    if isinstance(x, list):
+        return [_detag(v) for v in x]
+    return x
+
+
 def _group(entry: dict, fields: set[str]) -> dict:
     """A COPY holding only this group's fields. The boundary, made of glass."""
-    return copy.deepcopy({k: v for k, v in entry.items() if k in fields})
+    return _detag(copy.deepcopy({k: v for k, v in entry.items() if k in fields}))
 
 
 def items() -> list[dict]:
@@ -170,7 +186,7 @@ def declaration(name: str) -> dict:
             f"coursedata: no declaration {name!r} in {course_path()}. If it is a "
             f"new table, the export must carry it; if it was removed, the reader "
             f"of it must go too.")
-    return {tuple(k) if isinstance(k, list) else k: copy.deepcopy(v)
+    return {tuple(k) if isinstance(k, list) else k: _detag(copy.deepcopy(v))
             for k, v in raw}
 
 
@@ -184,7 +200,7 @@ def generator_value(name: str):
     in it, so the group boundary stops meaning anything while the code still
     looks like it is going through the reader.
     """
-    return copy.deepcopy(_load().get("generator", {}).get(name))
+    return _detag(copy.deepcopy(_load().get("generator", {}).get(name)))
 
 
 def derived(name: str, handout: int | None = None):

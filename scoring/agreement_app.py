@@ -1138,8 +1138,12 @@ def _declaration(name: str) -> dict:
 # found by comparing the table against its authored copy after the migration --
 # NOT by the behavioural test, which built 26 paper prompts identically while
 # this table's shape had quietly changed, because no paper prompt reads it.
-CONTEXT_SOURCE = {k: tuple(v) if isinstance(v, list) else v
-                  for k, v in _declaration("CONTEXT_SOURCE").items()}
+# The per-consumer conversion that used to be here is gone: the export TAGS
+# tuples now and `coursedata` untags them, so the round trip is exact by
+# construction and no consumer has to remember its own value shapes. This was the
+# first place the drift was caught; `migrated_tables.py` then found four more in
+# `olx_prompts` that nobody had noticed.
+CONTEXT_SOURCE = _declaration("CONTEXT_SOURCE")
 
 
 def context_targets(item: str) -> list[str]:

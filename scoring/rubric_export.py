@@ -107,7 +107,17 @@ def _jsonable(x, path="") -> object:
     if isinstance(x, dict):
         return {str(k): _jsonable(v, f"{path}.{k}") for k, v in sorted(x.items(),
                                                                       key=lambda kv: str(kv[0]))}
-    if isinstance(x, (list, tuple)):
+    # A TUPLE IS TAGGED, NOT FLATTENED. JSON has no tuple, so an untagged tuple
+    # comes back a list -- and `("section", "Q1")` becoming `["section", "Q1"]`
+    # is a silent shape change that no behavioural test is obliged to notice.
+    # Four tables in `olx_prompts` and one in `agreement_app` had drifted this
+    # way before `migrated_tables.py` compared them against their authored copies.
+    #
+    # Tagging makes the round trip exact BY CONSTRUCTION rather than by each
+    # consumer remembering to convert its own values back.
+    if isinstance(x, tuple):
+        return {"__tuple__": [_jsonable(v, f"{path}[{i}]") for i, v in enumerate(x)]}
+    if isinstance(x, list):
         return [_jsonable(v, f"{path}[{i}]") for i, v in enumerate(x)]
     if isinstance(x, (str, int, float, bool)) or x is None:
         return x
