@@ -16,6 +16,7 @@
   "simulate_h3.py"
  ],
  "data_modules": {
+  "declaration_source.py": 10,
   "generator_source.py": 17,
   "rubric_h1.py": 4,
   "rubric_h2.py": 21,
@@ -23,7 +24,7 @@
  },
  "modules": {
   "agreement.py": 9,
-  "agreement_app.py": 7,
+  "agreement_app.py": 6,
   "anchors.py": 0,
   "backends.py": 0,
   "baseline.py": 0,
@@ -39,7 +40,7 @@
   "course_schema.py": 0,
   "coursedata.py": 0,
   "cross_path.py": 0,
-  "declaration_source.py": 7,
+  "declaration_source.py": 10,
   "docx_text.py": 1,
   "editguard.py": 0,
   "enforcement.py": 17,
@@ -77,7 +78,7 @@
   "rubric_h1.py": 4,
   "rubric_h2.py": 21,
   "rubric_h3.py": 3,
-  "score.py": 8,
+  "score.py": 6,
   "score_h1.py": 1,
   "scrub_metadata.py": 0,
   "segment.py": 2,

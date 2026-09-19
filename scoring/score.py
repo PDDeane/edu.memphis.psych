@@ -1506,50 +1506,21 @@ def _paper_vocab(item: dict, c: dict, text: str) -> str:
 # reason its web twin requires one: a note earns a side table only by saying
 # something true of THIS side and not the other. Anything sayable to both is
 # rubric content and belongs in `guidance`.
-PAPER_ITEM_NOTES_WHY: dict[str, str] = {
-    "Q3": "Tells the grader to judge each answer on the part the student "
-          "labelled for it. The WEB CANNOT NEED THIS: there each answer has "
-          "its own input box, so the partition is structural and no "
-          "instruction can improve it. Paper receives one continuous block and "
-          "must infer the partition, which is the divergence this note exists "
-          "for -- and the defect it treats was measured only here (16.5 -> "
-          "17.8 over six runs).",
-}
+# ---------------------------------------------------------------------------
+# STAGE 4. These tables were module-level course data here and are read from the
+# course file now. The authored copies live in `declaration_source.py`, outside
+# the scoring path, because the export must read them from somewhere that does
+# not read the file it is writing.
+# ---------------------------------------------------------------------------
+def _declaration(name: str) -> dict:
+    import coursedata
 
-PAPER_ITEM_NOTES: dict[str, str] = {
-    # JUDGE EACH ANSWER ON ITS OWN LABELLED PART. Q3's paper divergences were
-    # one error: an answer credited from text belonging to a DIFFERENT answer,
-    # with the evidence quoting the wrong heading verbatim -- p8 credited
-    # action_oriented while quoting [[corpus Q3/p8 specific 10:80 sha=2aaae6fc2b69]]. The web cannot make this error: each answer
-    # has its own box.
-    #
-    # MEASURED HERE AND NOWHERE ELSE: paper 16.5 -> 17.8 over six runs, the gap
-    # to the web -3.4 -> -2.1, cross-aspect evidence quoting 6/598 -> 1/600.
-    #
-    # WHY Q3 AND NOT THE OTHER EIGHT >=2-ANSWER ITEMS. It keys on the student
-    # LABELLING their parts, and the label rate decides whether it can act at
-    # all -- Q3 19/20, 2a 15/20, 1c 7/19, Q4c 2/20, and Q4b, Q6, Q5 and `3` at
-    # ZERO of ~20. Shipped to all nine on 2026-09-10 it cost about four cells:
-    # Q4b -2, Q5 -1, 2a -1, with Q4c, 1c and `3` flat and Q6 unchanged at 10/20.
-    # On the four zero-label items it is INERT BY CONSTRUCTION -- its own
-    # fallback is "read the whole response for each" -- so what it bought there
-    # was a hundred words of instruction that cannot apply, and the picks
-    # drifted under them: Q4b/p12 lost its occasional `activity` and stuck at
-    # 3.5, while p6 and p20 gained one and started over-crediting.
-    #
-    # 2a AND 1c ARE THE UNMEASURED CANDIDATES, at 15/20 and 7/19 labels. 2a lost
-    # a cell in that sweep but also took the deixis change, so its loss is not
-    # attributed. Add either only with its own six runs.
-    "Q3": (
-        "Where the student has labelled parts of their answer to match the "
-        "names above, judge each answer on the part they labelled for it, and "
-        "never on what they wrote for another -- a sentence that opens by "
-        "naming a different one of these answers belongs to that one. Where "
-        "they label nothing, read the whole response for each.\n\n"
-        "The evidence you quote for an answer must come from that answer's own "
-        "part of the response."
-    ),
-}
+    return coursedata.declaration(name)
+
+
+PAPER_ITEM_NOTES_WHY = _declaration("PAPER_ITEM_NOTES_WHY")
+
+PAPER_ITEM_NOTES = _declaration("PAPER_ITEM_NOTES")
 
 
 def _answer_inventory(item_id: str) -> str:

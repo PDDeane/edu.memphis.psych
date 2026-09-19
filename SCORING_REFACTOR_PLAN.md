@@ -2985,6 +2985,35 @@ behaviour — *a field quietly dropped here is a field lost*.
 * `measured.DECLARED_CEILING_CELLS`, `_1C_GATE_CEILING`, and the seven
   `GOLD_SLOT_*` tables — gold or participant-keyed, so C1b's file, so blocked.
 
+#### Three more tables moved — and the behavioural test did not catch the defect
+
+`score.PAPER_ITEM_NOTES`, `score.PAPER_ITEM_NOTES_WHY`,
+`agreement_app.CONTEXT_SOURCE`. All 26 paper prompts hash identically.
+
+##### JSON has no tuple, and the VALUES were tuples too
+
+`CONTEXT_SOURCE` holds `("section", "Q1")` and came back `["section", "Q1"]`.
+The KEYS round-trip — `coursedata.declaration` restores those — but the values do
+not, and nothing in the file records that they were tuples.
+
+**The behavioural test passed anyway.** 26 paper prompts built identically while
+this table's shape had quietly changed, because no paper prompt reads it. The
+defect was found by comparing each table against its authored copy — a check
+added out of habit, not because the plan asked for it.
+
+**The lesson is about test SCOPE, not about tuples.** One behavioural test was
+used for three tables from two modules, and it exercised one of them. A migration
+needs a test per table, or a test that demonstrably covers every table it claims
+to.
+
+The module that knows the contract restores it: `agreement_app` converts its
+values back, because it is the module that unpacks them positionally and it is
+where the knowledge that they are pairs lives.
+
+`declaration_source.py` also had to join `DATA_MODULES` — the ratchet refused
+`7 -> 10` on the builder that exists to receive exactly that growth, the same
+lesson `generator_source.py` taught two stages earlier.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that

@@ -14052,6 +14052,9 @@ DATA_MODULES = {
     "rubric_h1.py": "the handout 1 rubric, authored",
     "rubric_h2.py": "the handout 2 rubric, authored",
     "rubric_h3.py": "the handout 3 rubric, authored",
+    "declaration_source.py":
+        "the Stage 4 builder for scoring declarations: authored tables the export "
+        "reads to WRITE the course file, kept outside the scoring path",
     "generator_source.py":
         "the Stage 4 builder: authored tables the export reads to WRITE the "
         "course file, kept outside the scoring path. Course data is what it is "
