@@ -24,7 +24,7 @@
   "rubric_h3.py": 3
  },
  "modules": {
-  "agreement.py": 9,
+  "agreement.py": 8,
   "agreement_app.py": 5,
   "anchors.py": 0,
   "backends.py": 0,
@@ -44,7 +44,7 @@
   "declaration_source.py": 11,
   "docx_text.py": 1,
   "editguard.py": 0,
-  "enforcement.py": 17,
+  "enforcement.py": 15,
   "equivalence.py": 0,
   "faithful_probe.py": 0,
   "fixture_edits.py": 0,
@@ -56,11 +56,11 @@
   "gold_slots_q6.py": 3,
   "grader_inputs.py": 0,
   "guide.py": 0,
-  "handouts.py": 5,
+  "handouts.py": 1,
   "head_to_head.py": 1,
   "interim.py": 0,
   "leakage.py": 2,
-  "measured.py": 20,
+  "measured.py": 12,
   "migrate_verdicts.py": 0,
   "migrated_tables.py": 0,
   "oc_grid.py": 0,
@@ -89,11 +89,11 @@
   "shape_inventory.py": 1,
   "simulate_h3.py": 0,
   "slot_vocab.py": 1,
+  "sourcecache.py": 0,
   "stale_check.py": 0,
   "stamp_legacy_artifacts.py": 0,
   "structure_kids.py": 0,
   "sweep_gate.py": 0,
-  "sweep_readout.py": 0,
-  "table_sensitivity.py": 0
+  "sweep_readout.py": 0
  }
 }
