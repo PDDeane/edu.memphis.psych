@@ -105,8 +105,19 @@ def classify(mod) -> tuple[dict, list[dict]]:
 def _jsonable(x, path="") -> object:
     """Refuse silently dropping anything this cannot represent."""
     if isinstance(x, dict):
-        return {str(k): _jsonable(v, f"{path}.{k}") for k, v in sorted(x.items(),
-                                                                      key=lambda kv: str(kv[0]))}
+        # INSERTION ORDER, NOT SORTED. This sorted, on T2.1's "pinned order"
+        # reasoning: a canonical file gives reviewable diffs. That is right for a
+        # rubric item, whose field order carries nothing -- and WRONG the moment
+        # a table arrives whose order IS the data. `JOBS[item]["fields"]` maps
+        # component -> paper section in the order the boxes are read, and
+        # alphabetising it changed what the fixture extracted.
+        #
+        # It cost six wrong hypotheses to find, because the dicts compare EQUAL:
+        # `==` ignores order, so every value, type and outer-key check passed
+        # while the payload was scrambled. Determinism does not need sorting --
+        # the builders' own order is deterministic, so the same input still
+        # produces the same bytes.
+        return {str(k): _jsonable(v, f"{path}.{k}") for k, v in x.items()}
     # A TUPLE IS TAGGED, NOT FLATTENED. JSON has no tuple, so an untagged tuple
     # comes back a list -- and `("section", "Q1")` becoming `["section", "Q1"]`
     # is a silent shape change that no behavioural test is obliged to notice.
@@ -228,6 +239,17 @@ DECLARATION_TABLES = ("PROSE_ONLY_SLOTS", "PROSE_ONLY_JUDGED_AGAINST",
                       "CONTEXT_SOURCE", "JOBS", "HANDOUT_FIELDS")
 
 
+# NO `sort_keys`. AUTHORED ORDER IS DATA. Writing the file with
+# `sort_keys=True` alphabetised every nested dict, and `JOBS[item]["fields"]`
+# maps component id -> paper section in an order that decides which box is read
+# first. Alphabetising it changed what the fixture extracted, and
+# `check_fixture_agrees_with_gold` reported `Q6/p15 state_c2 is EMPTY` -- a
+# finding that survived six wrong hypotheses (value, outer order, types, import
+# side effects, mutation, cache) because the dicts compare EQUAL: `==` ignores
+# order, and the order was the payload.
+#
+# Determinism does not need sorting here: the source order is itself
+# deterministic, so the same builders produce the same bytes.
 def _pairs(table: dict) -> list:
     """A dict with TUPLE KEYS, as JSON can hold it: a list of [key, value].
 
