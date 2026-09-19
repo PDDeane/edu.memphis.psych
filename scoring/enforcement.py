@@ -15038,6 +15038,30 @@ def check_course_schema_is_complete() -> list[str]:
     return CS.check()["violations"]
 
 
+def check_cross_file_anchors_resolve() -> list[str]:
+    """G1c: a course file's pointer into the general prose still lands.
+
+    Anchors exist because `guide.renumber()` derives labels from DOCUMENT ORDER,
+    so inserting a section renumbers everything after it. `_cited_by()` finds and
+    fixes every citer it can see -- and a course file in `courses/<id>/` is a
+    citer it CANNOT see, so a renumber would silently invalidate its pointers.
+
+    A dangling `see: qc:NAME` FAILS. An unused alias is summarised, not failed:
+    one anchor per GOALS.md entry means "pointed at by nothing yet" is the normal
+    state until courses exist to do the pointing.
+
+    It also checks anchors sit on their OWN LINE, which is what makes them
+    survive renumbering -- a property that can be verified, rather than a promise
+    about `renumber()` that cannot.
+    """
+    try:
+        import anchors as A
+    except Exception as exc:                      # pragma: no cover
+        return [f"the anchor gate cannot be read: {exc}"]
+    failures, _warnings = A.verify(A.scan())
+    return failures + A.anchors_are_renumber_safe()
+
+
 if __name__ == "__main__":
     import json
     import sys
