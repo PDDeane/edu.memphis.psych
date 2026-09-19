@@ -60,6 +60,7 @@
   "leakage.py": 2,
   "measured.py": 20,
   "migrate_verdicts.py": 0,
+  "migrated_tables.py": 0,
   "oc_grid.py": 0,
   "olx_corpus.py": 1,
   "olx_prompts.py": 8,

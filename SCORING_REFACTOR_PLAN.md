@@ -3014,6 +3014,39 @@ where the knowledge that they are pairs lives.
 `7 -> 10` on the builder that exists to receive exactly that growth, the same
 lesson `generator_source.py` taught two stages earlier.
 
+#### `migrated_tables.py` — and it found four more silent shape changes at once
+
+163 checks. `check_migrated_tables_match_their_source` compares **all 27 migrated
+tables** against the authored copies they came from, and it found **four** that
+nothing had noticed: `olx_prompts.CONTEXT`, `RESPONSE`, `EVIDENCE` and
+`PROBE_REACH_LIMITS` had all turned tuples into lists.
+
+**Every behavioural test still passed while those four were wrong** — 23 web
+prompts, 26 paper prompts and 60 segmentations all hashed identically, because
+rendering a list and rendering a tuple produce the same text. A shape change that
+does not alter output is exactly what a behavioural test cannot see.
+
+##### The fix belonged in the encoding, not in each consumer
+
+The first repair converted values back inside `agreement_app`, which works for
+one table and asks every future consumer to remember its own shapes. Tuples are
+now **TAGGED** on export — `{"__tuple__": [...]}` — and untagged by the reader, so
+the round trip is exact **by construction** at any depth: a tuple inside a list
+inside a dict comes back a tuple. The per-consumer conversion is gone.
+
+##### The pairs are discovered, not listed
+
+A migrated table is an assignment whose value calls a reader helper
+(`_declaration`, `_generator_table`, `_generator_value`, `_markers`,
+`_context_refs`), so the 27 pairs come from an AST scan and a table moved
+tomorrow is covered tomorrow without editing anything. A hand list would drift
+from the migrations it describes — which is the failure this whole section keeps
+finding in other tables.
+
+**What it cannot see**, stated rather than left to be discovered: a table read
+through a wrapper it does not recognise, and an authored copy edited to match a
+bad migration. It compares the two sides; it does not know which is right.
+
 ### 11.6 · Stage 5 — the rubric becomes data (**A1c**)
 
 `rubric_h{1,2,3}.py` retire. Builders survive OUTSIDE the pipeline as the tool that

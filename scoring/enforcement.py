@@ -14681,6 +14681,29 @@ def check_declaration_tables_are_verified() -> list[str]:
     return out
 
 
+def check_migrated_tables_match_their_source() -> list[str]:
+    """Every table read from the course file equals the authored table it came from.
+
+    A MIGRATION NEEDS A TEST PER TABLE. Three tables moved on 2026-09-19 behind
+    ONE behavioural test -- 26 paper prompts, identical -- and it passed while
+    `agreement_app.CONTEXT_SOURCE`'s values had turned from tuples into lists,
+    because no paper prompt reads that table. Four more in `olx_prompts` had
+    drifted the same way and nothing had noticed.
+
+    The pairs are discovered by AST, not listed: a migrated table is an
+    assignment whose value calls one of the reader helpers, so a table moved
+    tomorrow is covered tomorrow without editing anything.
+
+    It compares the two sides and does not know which is right: an authored copy
+    edited to match a bad migration would pass.
+    """
+    try:
+        import migrated_tables as MT
+    except Exception as exc:                      # pragma: no cover
+        return [f"the migrated-table check cannot be read: {exc}"]
+    return MT.verify()
+
+
 if __name__ == "__main__":
     import json
     import sys
