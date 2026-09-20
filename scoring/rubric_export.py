@@ -288,6 +288,32 @@ def _comments_in(lines, lo, hi):
             for l in lines[lo:hi] if l.strip().startswith("#")]
 
 
+def _comment_runs(lines, lo, hi):
+    """The same lines, GROUPED INTO RUNS, a run being consecutive comment lines.
+
+    A flat list loses where one block ends and the next begins, and that
+    structure is load-bearing: the §2e hook prints the LAST few blocks about an
+    item and says how many earlier ones it is not showing. Q6 has twelve; a flat
+    327-line list would either flood the output or be cut at an arbitrary point.
+
+    Interleaved CODE ends a run. A blank line does not -- a comment paragraph
+    broken by a bare `#` is one block, and treating it as two would split
+    reasoning that was written as one argument.
+    """
+    runs, run = [], []
+    for l in lines[lo:hi]:
+        s = l.strip()
+        if s.startswith("#"):
+            run.append(s[1:].lstrip() if s[1:].strip() else "")
+        elif s:
+            if run:
+                runs.append(run)
+            run = []
+    if run:
+        runs.append(run)
+    return runs
+
+
 def rubric_notes() -> dict:
     """The rubric's REASONING, attributed to the item it is written about.
 
@@ -310,7 +336,7 @@ def rubric_notes() -> dict:
     """
     import ast
 
-    out = {"items": {}, "handouts": {}}
+    out = {"items": {}, "handouts": {}, "runs": {}}
     for handout in (1, 2, 3):
         mod = _load(handout)
         src = open(mod.__file__).read()
@@ -327,6 +353,7 @@ def rubric_notes() -> dict:
                   if l.strip().startswith("#"))
         cursor, got = node.lineno, 0
         for el in node.value.elts:
+            cursor_start = cursor
             run = _comments_in(lines, cursor, el.end_lineno)
             cursor = el.end_lineno
             if not run:
@@ -343,6 +370,8 @@ def rubric_notes() -> dict:
                     f"ITEMS belong to an entry with no readable `id`. They have "
                     f"nowhere to go, so the export stops rather than dropping them.")
             out["items"].setdefault(iid, []).extend(run)
+            out["runs"].setdefault(iid, []).extend(
+                _comment_runs(lines, cursor_start, el.end_lineno))
             got += len(run)
         tail = _comments_in(lines, cursor, node.end_lineno)
         got += len(tail)
@@ -496,6 +525,10 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
     _notes = rubric_notes()
     doc["item_notes"] = _notes["items"]
     doc["handout_notes"] = _notes["handouts"]
+    # AND THE RUN STRUCTURE. The §2e hook prints the LAST few blocks about an
+    # item and reports how many earlier ones it is not showing; a flat list
+    # cannot say where one block ends. See `_comment_runs`.
+    doc["item_note_runs"] = _notes["runs"]
     return doc, full_report
 
 
