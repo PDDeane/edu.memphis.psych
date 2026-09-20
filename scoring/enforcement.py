@@ -8940,11 +8940,12 @@ def check_generated_attributes_have_a_declaration() -> list[str]:
 def _maps_specs() -> list[tuple]:
     """(item, spec) for every `maps` entry in every rubric. Subgoal E46."""
     out = []
-    for name in ("rubric_h1", "rubric_h2", "rubric_h3"):
-        try:
-            mod = __import__(name)
-        except Exception:
-            continue
+    # THE VIEWS, NOT THE MODULES. `__import__(name)` with a constant is a third
+    # spelling of the same dependence, and one the consumer ratchet cannot see:
+    # it counts a FILE, and this file already counted once for the source-reading
+    # check that cannot be converted. Three of these loops were hiding behind
+    # that single tally.
+    for mod in _rubric_views():
         for item, specs in (getattr(mod, "MAPS", None) or {}).items():
             for s in specs:
                 out.append((item, mod, s))
@@ -10272,11 +10273,12 @@ def check_maps_tables_are_attached() -> list[str]:
     depend on someone having written the same assertion by hand.
     """
     out: list[str] = []
-    for name in ("rubric_h1", "rubric_h2", "rubric_h3"):
-        try:
-            mod = __import__(name)
-        except Exception:
-            continue
+    # THE VIEWS, NOT THE MODULES. `__import__(name)` with a constant is a third
+    # spelling of the same dependence, and one the consumer ratchet cannot see:
+    # it counts a FILE, and this file already counted once for the source-reading
+    # check that cannot be converted. Three of these loops were hiding behind
+    # that single tally.
+    for mod in _rubric_views():
         maps = getattr(mod, "MAPS", None) or {}
         by_id = getattr(mod, "BY_ID", None) or {}
         for item in sorted(maps):
@@ -10898,11 +10900,10 @@ def _criteria_derived() -> frozenset:
     than the list it replaces was to maintain.
     """
     out = set()
-    for name in ("rubric_h1", "rubric_h2", "rubric_h3"):
-        try:
-            mod = __import__(name)
-        except Exception:                           # pragma: no cover
-            continue
+    # The views: see `_rubric_views`. This function was written hours before the
+    # rubric channel moved and reached for the modules directly, which made it a
+    # NEW dependence on the files Stage 5 deletes -- added while clearing others.
+    for mod in _rubric_views():
         for item, entry in (getattr(mod, "BY_ID", {}) or {}).items():
             if isinstance(entry, dict) and "derive_from_criteria" in entry:
                 out.add(str(item))
@@ -14777,27 +14778,32 @@ def check_only_builders_read_the_rubric() -> list[str]:
             tree = _ast.parse(open(_os.path.join(here, fn), errors="ignore").read())
         except (OSError, SyntaxError):
             continue
-        hit = False
+        # EVERY SITE, NOT THE FIRST. This counted a FILE and stopped at its first
+        # import, so three `__import__` loops inside `enforcement.py` hid behind
+        # the one source-reading import that file is allowed to keep -- the
+        # count read 1 with four dependencies live. That is the SECOND blind
+        # spot this check has had: it also missed the whole
+        # `config(h)["rubric"]` channel, 101 sites, until that was measured by
+        # hand. A number nobody can hide behind is the only kind worth ratcheting.
+        sites = 0
         for n in _ast.walk(tree):
             if isinstance(n, _ast.Import):
-                hit |= any(a.name in RUBRIC for a in n.names)
+                sites += sum(1 for a in n.names if a.name in RUBRIC)
             elif isinstance(n, _ast.ImportFrom):
-                hit |= n.module in RUBRIC
+                sites += 1 if n.module in RUBRIC else 0
             elif isinstance(n, _ast.Call):
                 fname = (n.func.id if isinstance(n.func, _ast.Name)
                          else getattr(n.func, "attr", None))
                 if fname in ("__import__", "import_module") and n.args:
                     a = n.args[0]
                     if isinstance(a, _ast.Constant) and a.value in RUBRIC:
-                        hit = True
+                        sites += 1
                     elif isinstance(a, _ast.JoinedStr) and any(
                             isinstance(v, _ast.Constant) and "rubric_h" in str(v.value)
                             for v in a.values):
-                        hit = True
-            if hit:
-                break
-        if hit and fn not in RUBRIC_BUILDERS:
-            consumers.append(fn)
+                        sites += 1
+        if sites and fn not in RUBRIC_BUILDERS:
+            consumers.extend([fn] * sites)
 
     # AND THE INDIRECT CHANNEL, which counting imports alone does not see.
     # `handouts.config(h)["rubric"]` used to hand out the MODULE OBJECT, and 101
@@ -14824,13 +14830,14 @@ def check_only_builders_read_the_rubric() -> list[str]:
     n = len(consumers)
     if n > RUBRIC_CONSUMER_BUDGET:
         out.append(
-            f"{n} scoring-path module(s) import the rubric against a budget of "
+            f"{n} rubric import SITE(S) outside the builders, against a budget "
+            f"of "
             f"{RUBRIC_CONSUMER_BUDGET} -- a NEW dependence on modules Stage 5 "
             f"deletes: {', '.join(sorted(set(consumers))[:6])}")
     elif n < RUBRIC_CONSUMER_BUDGET:
         out.append(
-            f"only {n} scoring-path module(s) still import the rubric, against a "
-            f"budget of {RUBRIC_CONSUMER_BUDGET} -- one was converted and the "
+            f"only {n} rubric import site(s) remain, against a budget of "
+            f"{RUBRIC_CONSUMER_BUDGET} -- one was converted and the "
             f"ceiling was not lowered, which leaves room for a replacement to "
             f"arrive unnoticed")
     for fn in RUBRIC_BUILDERS:
