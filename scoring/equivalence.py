@@ -538,10 +538,16 @@ def _audit_findings_fresh() -> list[tuple]:
 #
 # `agreement._fixture_cached` and `enforcement._fixture_built` are not
 # invalidated by an injection, so an audit's findings depend on what ran in that
-# process before it. Measured on the case that diverges: the same injection
-# yields 52 findings with warm fixture caches and 54 with cold ones, and the two
-# extra are exactly the ones parallel reported -- ENGINES SEND A DIFFERENT
-# REQUEST on Q4c and Q6.
+# process before it. Measured on the case that diverges: clearing EITHER cache
+# adds exactly two findings to the injected audit, and they are the two parallel
+# reported -- ENGINES SEND A DIFFERENT REQUEST on Q4c and Q6.
+#
+# THE DELTA IS STABLE AND THE ABSOLUTE COUNT IS NOT. Two runs of the same
+# sequence gave 52 -> 54 and 223 -> 225; the +2 reproduces, the base does not.
+# An earlier version of this note quoted 52 and 54 as if they were fixed, which
+# they are not -- and the instability is itself the finding, because an injected
+# audit whose total depends on process history is exactly what a cache that no
+# injection invalidates produces.
 #
 # In serial, case N's audit runs with caches warmed by the 70 cases before it.
 # In parallel, every child forks from a parent whose only audit was the
