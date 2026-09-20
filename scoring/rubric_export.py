@@ -58,8 +58,21 @@ from coursedata import DERIVATIONS          # noqa: E402  (after sys.path)
 
 
 def _load(handout: int):
+    """The rubric module for one handout, or None once its file is gone.
+
+    Stage 5 deletes rubric_h1.py and rubric_h3.py: their data is the course
+    file's now and is authored there. This used to raise ModuleNotFoundError,
+    which meant the deletion made the course file UNREGENERATABLE -- h2's
+    builders could not be re-expanded either, because the loop stopped at the
+    first missing module. That is the one consequence that must not be found
+    after the fact, so it returns None and `build` carries that handout forward
+    from the file it is rewriting.
+    """
     sys.path.insert(0, HERE)
-    return __import__(f"rubric_h{handout}")
+    try:
+        return __import__(f"rubric_h{handout}")
+    except ModuleNotFoundError:
+        return None
 
 
 def _exports(mod) -> dict:
@@ -339,6 +352,12 @@ def rubric_notes() -> dict:
     out = {"items": {}, "handouts": {}, "runs": {}}
     for handout in (1, 2, 3):
         mod = _load(handout)
+        if mod is None:
+            # Its file is gone and its notes are already in the course file;
+            # `build` merges them forward. Lifting them from a module that does
+            # not exist is not a fallback, it is a crash -- which is what this
+            # did on the first deletion rehearsal after the notes were carried.
+            continue
         src = open(mod.__file__).read()
         lines = src.splitlines()
         tree = ast.parse(src)
@@ -426,12 +445,52 @@ def _key(k):
     return k
 
 
+_CARRIED_FORWARD: list = []
+
+
+def _prior_doc():
+    """The course file as it stands, for handouts whose module is gone."""
+    import json as _json
+
+    try:
+        import coursedata
+
+        path = coursedata.course_path()
+        return _json.load(open(path))
+    except Exception:
+        return None
+
+
 def build(course_id: str) -> tuple[dict, list[dict]]:
     doc = {"schema_version": SCHEMA_VERSION, "course": course_id,
            "handouts": {}, "items": []}
     full_report = []
     for h in HANDOUTS:
         mod = _load(h)
+        if mod is None:
+            # AUTHORED IN THE FILE NOW. Carry this handout's items, its authored
+            # block and its notes forward EXACTLY as they stand, so regenerating
+            # for another handout cannot quietly rewrite one whose source is
+            # gone. Refuses rather than emitting a course file with a handout
+            # missing, which would read as "this course has two handouts".
+            prior = _prior_doc()
+            if prior is None:
+                raise SystemExit(
+                    f"rubric_export: rubric_h{h}.py is gone and there is no course "
+                    f"file to carry handout {h} forward from. Its items exist "
+                    f"nowhere -- refusing to write a course file that silently "
+                    f"drops a handout.")
+            kept = [it for it in prior.get("items", [])
+                    if str(it.get("handout")) == str(h)]
+            if not kept:
+                raise SystemExit(
+                    f"rubric_export: rubric_h{h}.py is gone and the course file "
+                    f"carries no items for handout {h}. Refusing to write a "
+                    f"course file that drops it.")
+            doc["handouts"][str(h)] = prior.get("handouts", {}).get(str(h), {})
+            doc["items"].extend(kept)
+            _CARRIED_FORWARD.append(h)
+            continue
         items = list(getattr(mod, "ITEMS", []) or [])
         carried, report = classify(mod)
         for r in report:
@@ -523,6 +582,21 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
     # 548 in the three module headers. Exporting the values alone and deleting
     # the modules would take all of it.
     _notes = rubric_notes()
+    # MERGE, DO NOT REPLACE. A handout whose module is gone contributes no notes
+    # here, and assigning wholesale would delete the very record that was
+    # carried into this file so the module could go.
+    _prior = _prior_doc() or {}
+    for _h in _CARRIED_FORWARD:
+        _ids = {str(it.get("id")) for it in doc["items"]
+                if str(it.get("handout")) == str(_h)}
+        for _key, _dest in (("item_notes", _notes["items"]),
+                            ("item_note_runs", _notes["runs"])):
+            for _iid, _v in (_prior.get(_key) or {}).items():
+                if str(_iid) in _ids:
+                    _dest.setdefault(_iid, _v)
+        _hn = (_prior.get("handout_notes") or {}).get(str(_h))
+        if _hn is not None:
+            _notes["handouts"].setdefault(str(_h), _hn)
     doc["item_notes"] = _notes["items"]
     doc["handout_notes"] = _notes["handouts"]
     # AND THE RUN STRUCTURE. The §2e hook prints the LAST few blocks about an
