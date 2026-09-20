@@ -1116,7 +1116,7 @@ was wrong about the text:
 |---|---|
 | Q45, `targets_goal_behavior` clause | target cell 5/12 → **5/12**; the clause never fired |
 | Q47's 11th, `change_a*_does` pick | fired, answered sensibly, sorted both targets into CREDITING categories |
-| Q19, `repeats_antecedent` value | target answered `activity` **12/12**; the new value never chosen |
+| Q19, the repeats_antecedent value | target answered `activity` **12/12**; the new value never chosen, and it was reverted -- the name is unbackticked here because it no longer exists |
 
 Each diagnosis was sound. Each cost a sweep to discover that the grader had a
 competing true reading and preferred it. A probe would have shown that for a
