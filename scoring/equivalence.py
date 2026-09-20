@@ -533,18 +533,36 @@ def _audit_findings_fresh() -> list[tuple]:
 #   serial vs serial   : 0 differences across all 71 cases
 #   serial vs parallel : 2, both in `a family with two codes is counted anyway`
 #
-# The suite is therefore deterministic and the remaining gap is caused by the
-# forking, not by noise. Both runs give that case the same VERDICT (ok); what
-# differs is which collateral findings appear among its 53-55 -- serial reports
-# PAPER AND WEB SCORE THE SAME JUDGMENTS DIFFERENTLY on Q4a/p13 and p14, and
-# parallel reports ENGINES SEND A DIFFERENT REQUEST on Q4c and Q6 instead.
-# Neither check shells out or touches the network on its main path, so the easy
-# explanation -- a race on the score-capture subprocess -- does not hold and the
-# real one is not yet known.
+# The suite is therefore deterministic and the gap is caused by the forking.
+# THE CAUSE IS NOW KNOWN, and it is not the forking's fault.
 #
-# Until it is, this stays off. A self-test is the instrument every other claim
-# in this project rests on, and "faster, and it disagrees with itself about one
-# case for reasons nobody has found" is not a trade worth taking by default.
+# `agreement._fixture_cached` and `enforcement._fixture_built` are not
+# invalidated by an injection, so an audit's findings depend on what ran in that
+# process before it. Measured on the case that diverges: the same injection
+# yields 52 findings with warm fixture caches and 54 with cold ones, and the two
+# extra are exactly the ones parallel reported -- ENGINES SEND A DIFFERENT
+# REQUEST on Q4c and Q6.
+#
+# In serial, case N's audit runs with caches warmed by the 70 cases before it.
+# In parallel, every child forks from a parent whose only audit was the
+# baseline. Same injection, different cache history, different collateral
+# findings.
+#
+# THE TWO ARE REAL AND THE WARM PATH HIDES THEM. With no injection at all, cold
+# and warm agree exactly (3 findings, and neither reports that check) -- so
+# these are downstream consequences OF the injection: changing `counts` changes
+# the fixture, which changes the prompt, which makes the engines send different
+# requests. Stale fixtures mask the chain. Nothing here is a defect in the
+# corpus, and the case's VERDICT is `ok` either way.
+#
+# Clearing the fixture caches before every audit makes the two paths agree
+# exactly -- measured, 54 findings from either history -- and costs 13s per
+# audit, about fifteen minutes on a full run. That trade is available and is not
+# taken by default.
+#
+# This stays off for a narrower reason than before: serial is what every
+# recorded result was measured against, and changing what the certifying run
+# reports is a bigger decision than making it faster.
 # `SELFTEST_WORKERS=8` turns it on for a run where speed matters more than
 # certification, and that run says so in its own output.
 _AUDIT_WORKERS = int(os.environ.get("SELFTEST_WORKERS", "1") or "1")
