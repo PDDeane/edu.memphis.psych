@@ -1098,6 +1098,8 @@ def enforcement_audit():
         findings.append(("-", "MIGRATED MODULE HOLDS COURSE DATA", bad))
     for bad in ENF.check_course_data_reentries_are_current():
         findings.append(("-", "MIGRATED MODULE HOLDS COURSE DATA", bad))
+    for bad in ENF.check_named_fixtures_still_name_something():
+        findings.append(("-", "MIGRATED MODULE HOLDS COURSE DATA", bad))
     for bad in ENF.check_only_builders_read_the_rubric():
         findings.append(("-", "MIGRATED MODULE HOLDS COURSE DATA", bad))
     for bad in ENF.check_module_has_no_course_data():
@@ -2389,12 +2391,22 @@ def enforcement_selftest():
     # with a different noun — was not, and every audit passed for as long as it took
     # someone to ask whether the primitives were applied evenly.
     rubric_h3 = _rubric_view(3)
-    q2 = rubric_h1.BY_ID["Q2"]
-    ksaved = q2.pop("counts")
-    cases.append(("an item with a countable family stops counting it",
-                  "PRIMITIVE APPLIED UNEVENLY", "-",
-                  _audit_async()))
-    q2["counts"] = ksaved
+    # BY SHAPE, and D2a names this one: "the first item with `counts`".
+    _cnt_item = _pick("an item with a countable family stops counting it",
+                      sorted(i for i, e in rubric_h1.BY_ID.items() if e.get("counts")),
+                      "the first h1 item with a `counts` family")
+    if _cnt_item is None:
+        _shape_skips.append(("an item with a countable family stops counting it",
+                             "no h1 item counts a family any more"))
+    else:
+        q2 = rubric_h1.BY_ID[_cnt_item]
+        _cnt_saved = dict(q2)
+        q2.pop("counts")
+        cases.append(("an item with a countable family stops counting it",
+                      "PRIMITIVE APPLIED UNEVENLY", "-",
+                      _audit_async()))
+        q2.clear()
+        q2.update(_cnt_saved)
 
     # The other direction: counting a family whose members carry DIFFERENT codes
     # keeps one and silently retires the rest — the shape that lost A_NOT_ANTECEDENT

@@ -1311,3 +1311,64 @@ BLOCKS: dict[int, dict[str, dict]] = {1: {'bmod_h1_q1_llm': {'item': 'Q1',
      '_1b_deterministic': {'item': '1b',
                            'olx': None,
                            'kind': 'data_presence'}}}
+
+
+# FIXTURES THAT NAME THEIR TARGET, AND WHY EACH IS NAMED RATHER THAN DERIVED.
+#
+# D2a converted eleven of twelve case clusters in `enforcement_selftest` to pick
+# by shape -- the first item with `counts`, the first job with a `dealt` group.
+# These nine did not convert, and the reason matters more than the count: a
+# named fixture with a stated justification is honest, while a contrived
+# predicate that selects the wrong cell passes quietly on the wrong thing.
+#
+# THAT IS NOT HYPOTHETICAL. One conversion picked "the first cell carrying a
+# consensus fix", landed on a cell whose fixes named other boxes, and detected
+# NOTHING while looking exactly like a passing case. A case that names its
+# target at least breaks loudly when the target changes shape.
+#
+# Each entry is checked: the id must still be an item this course has. A
+# fixture naming something that no longer exists is the drift D2a was written
+# to catch, and it is caught here for the nine that stayed behind.
+SELFTEST_NAMED_FIXTURES: dict[tuple[str, str], str] = {
+    ("a cover slot's rule is hidden", "Q6"):
+        "the case injects BOTH halves -- a rule ON a cover slot and the cover "
+        "group hidden -- because no cover slot need carry a rule at any moment. "
+        "Q6 is the item where that pairing exists; picking `the first item with "
+        "a cover group` would find one with no rule to hide and test nothing.",
+    ("the paper scorer's per-cell stub", "Q6"):
+        "a FILTER inside a stub, not a target: the stub answers differently for "
+        "one item so the case can tell the two paths apart. The id is a "
+        "discriminator in fake code, and deriving it would only move the "
+        "constant.",
+    ("a box holds text gold says is absent", "Q6"):
+        "GOLD-BOUND, not rubric-bound: p9 is a cell where gold reports the box "
+        "empty, which is a fact about the marked-up workbook. Deriving it means "
+        "reading gold to find such a cell -- possible, and considerably more "
+        "expensive than the fixture it would replace.",
+    ("a box holds a different student's words", "Q6"):
+        "gold-bound in the same way: p1's `state_a1` is the cell this shape was "
+        "found on. See the entry above.",
+    ("a family with two codes is counted anyway", "Q4a"):
+        "the CONTENT of the test is that `antecedent_1` and `antecedent_2` carry "
+        "DIFFERENT codes. That is a property of Q4a's slots, not an incidental "
+        "choice of item, and an item without it tests nothing.",
+    ("web loses `counts`", "Q1"):
+        "paired with the CLI-side case above it, which tests the mirror. The two "
+        "must name the SAME item for the pair to mean anything, and the CLI side "
+        "picks by shape -- so this one follows it rather than choosing "
+        "independently.",
+    ("an item leaves JOBS", "1b"):
+        "NOT ARBITRARY, and measured: removing the first job instead raises "
+        "KeyError inside `check_ref_targets_resolve`, which indexes JOBS for "
+        "that item unconditionally. The safe targets are the ones nothing else "
+        "indexes, which is not a property this fixture can state.",
+    ("the OLX-side stub", "1a"):
+        "a FILTER inside a stub, like the paper-scorer entry: the stub answers "
+        "differently for one item and side so the case can tell the paths "
+        "apart.",
+    ("the evenness exemption is stale", "2b"):
+        "the exemption injected is `(2b, sentence)`, and 2b is the item whose "
+        "sentences are the countable family the exemption would be about. A "
+        "stale exemption for an item with no such family would be rejected for "
+        "the wrong reason.",
+}

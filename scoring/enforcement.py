@@ -1359,6 +1359,7 @@ def _declaration(name: str) -> dict:
 
 
 COUNTABLE_EXEMPT = _declaration("COUNTABLE_EXEMPT")
+SELFTEST_NAMED_FIXTURES = _declaration("SELFTEST_NAMED_FIXTURES")
 PROBE_UNREACHABLE_PAIRS = _declaration("PROBE_UNREACHABLE_PAIRS")
 SLOT_STRUCTURE_FAMILIES = _declaration("SLOT_STRUCTURE_FAMILIES")
 HAND_AUTHORED_ATTRS = _declaration("HAND_AUTHORED_ATTRS")
@@ -4881,6 +4882,10 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.ITEM_GATED_MECHANISMS": (
         "mechanisms that vary by item, which the uniformity rule forbids",
         ("check_engine_mechanisms_are_not_item_dependent",)),
+    "enforcement.SELFTEST_NAMED_FIXTURES": (
+        "the self-test fixtures that name their target, each with the reason it "
+        "is named rather than picked by shape",
+        ("check_named_fixtures_still_name_something",)),
     "enforcement.RUBRIC_BUILDERS": (
         "the modules allowed to import the rubric -- the builder that writes "
         "the course file and the two tools that prove it reproduces them",
@@ -13850,6 +13855,12 @@ PROBE_PROVOCATIONS: dict[str, object] = {
     # names no file. Emptying the table is ALSO visible -- every builder then
     # counts as a consumer and the budget is exceeded -- so this one is proved
     # from both directions.
+    # A fixture naming an item this course does not have: the verifier objects
+    # that the case injects into nothing. Emptying the table is visible too --
+    # nine declarations disappearing is nine named fixtures with no stated
+    # reason -- so it is proved from both directions.
+    "enforcement.SELFTEST_NAMED_FIXTURES": (("probe: a fixture", "NO_SUCH_ITEM"),
+                                            "probe: names an item that is gone"),
     "enforcement.RUBRIC_BUILDERS": ("probe_no_such_builder.py",
                                     "probe: a builder that does not exist"),
     "enforcement.COURSE_DATA_REENTRY": ("probe_no_such_module.py",
@@ -14194,6 +14205,27 @@ DATA_MODULES = {
         "for, and it grows as modules are migrated INTO it.",
 }
 
+# FIXTURES THAT NAME THEIR TARGET, AND WHY EACH IS NAMED RATHER THAN DERIVED.
+#
+# D2a converted eleven of twelve case clusters in `enforcement_selftest` to pick
+# by shape -- the first item with `counts`, the first job with a `dealt` group.
+# These nine did not convert, and the reason matters more than the count: a
+# named fixture with a stated justification is honest, while a contrived
+# predicate that selects the wrong cell passes quietly on the wrong thing.
+#
+# THAT IS NOT HYPOTHETICAL. One conversion picked "the first cell carrying a
+# consensus fix", landed on a cell whose fixes named other boxes, and detected
+# NOTHING while looking exactly like a passing case. A case that names its
+# target at least breaks loudly when the target changes shape.
+#
+# Each entry is checked: the id must still be an item this course has. A
+# fixture naming something that no longer exists is the drift D2a was written
+# to catch, and it is caught here for the nine that stayed behind.
+# Entries and their reasons: the course file. Authored in
+# `declaration_source.py`, which is what the export reads.
+# BOUND BELOW, after `_declaration` is defined.
+
+
 # WHO MAY IMPORT THE RUBRIC MODULES, and why. A1c keeps `rubric_h*` as an
 # AUTHORING tool that generates the course file; Stage 5 deletes them as scoring
 # inputs. The difference between those two sentences is this table: a builder
@@ -14278,7 +14310,17 @@ COURSE_DATA_REENTRY: dict[str, tuple[int, str]] = {
         # `expect_error` -- a case that had ALREADY drifted once, from Q6/p9 to
         # Q4c/p16, and was re-pointed by hand), and the unjustified-citation
         # case (the item is incidental; pid 99 is what makes it unjustified).
-        10,
+        # 27 -> 9 over 2026-09-20. D2a is DONE, and it did not reach zero:
+        # eleven of twelve case clusters now pick their target by shape, and the
+        # 9 that remain are NAMED ON PURPOSE, each with its reason in
+        # `SELFTEST_NAMED_FIXTURES` and each checked to still name a real item.
+        #
+        # Stopping here is the finding, not a shortfall. One forced predicate
+        # already picked a cell where the injection created no duplicate and the
+        # case detected nothing while reporting PASS. A named fixture with a
+        # stated reason fails loudly; a contrived predicate fails silently, and
+        # silence is what D2a exists to remove.
+        9,
         "D2d's exemption was removed 2026-09-19. These 27 embeddings were always "
         "there and were subtracted before anyone looked; nothing was added. D2a "
         "(fixtures that select their target by shape) is the work that removes "
@@ -14863,6 +14905,38 @@ def check_only_builders_read_the_rubric() -> list[str]:
     for fn in RUBRIC_BUILDERS:
         if not _os.path.exists(_os.path.join(here, fn)):
             out.append(f"RUBRIC_BUILDERS names {fn}, which does not exist")
+    return out
+
+
+def check_named_fixtures_still_name_something() -> list[str]:
+    """Every fixture that names its target names an item this course still has.
+
+    D2a's point is that a fixture naming a target stops testing anything the day
+    that target changes, and says nothing. Nine fixtures stayed named, each for
+    a reason recorded in `SELFTEST_NAMED_FIXTURES` -- a gold-bound cell, a
+    filter inside a stub, a pairing that must match its mirror. The reasons are
+    good; the exposure is the same. This is what closes it for them.
+
+    THE WEAKER CHECK ON PURPOSE. It asks whether the id is still an item, not
+    whether the item still has the shape the case needs -- that varies per case
+    and is what the shape-picked conversions express directly. An id that has
+    stopped existing is the failure that actually happened here: a case
+    hard-coded a site, a conversion removed it, and the suite died before its
+    first case.
+    """
+    import olx_prompts as OP
+
+    known = set(OP.ACTION) | set(OP.SHEET_ONLY)
+    out = []
+    for (label, item), why in sorted(SELFTEST_NAMED_FIXTURES.items()):
+        if item not in known:
+            out.append(f"the fixture {label!r} names item {item!r}, which this "
+                       f"course no longer has -- the case is injecting into "
+                       f"nothing and would report PASS for it")
+        if not str(why).strip():
+            out.append(f"the fixture {label!r} names {item!r} with no reason "
+                       f"given; a named target without a justification is the "
+                       f"thing D2a set out to remove")
     return out
 
 
