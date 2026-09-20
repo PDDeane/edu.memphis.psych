@@ -64,7 +64,41 @@ REPORTS is a larger decision than making it faster.
 
 ---
 
-## 3. Two stale build artifacts, in a tree this session cannot write
+## 3. The staleness check is now GREEN AND UNINFORMATIVE — rebuilt 2026-09-20
+
+**Read this before trusting `check_no_unresolved_reference_reaches_the_page`.**
+It reports 0 findings and that is not evidence of anything.
+
+The check compares MTIMES: the newest `.olx` under `paths.OLX_DIR` against the
+newest file under `paths.LO`. In a normal checkout those are one tree. Here they
+are not:
+
+    source it measures : refactor_dry_run/edu.memphis.psych/psychology   (dry run)
+    artifacts it reads : update/lo-blocks/.stage/content                 (live)
+    what the build staged from
+                       : /home/pdeane/code/edu.memphis.psych             (live)
+
+On 2026-09-20 the live artifacts were rebuilt from LIVE content. That made them
+newer than the dry run's `.olx` files, so the mtime comparison is satisfied and
+the check fell silent — while the artifacts do not contain the dry run's content
+at all. `.stage/content` holds `psych_bedtime_strategies.*`, which exists only in
+the live tree, and lacks `psych_highlight_quizzes.olx`, which exists only in the
+dry run and is the newest file — the one that made the check fire in the first
+place.
+
+So the green is the mtime heuristic being satisfied, not the artifacts becoming
+evidence. I predicted this outcome for one remedy, refused that remedy for it,
+and then produced it by another route because I had assumed the check compared
+more than dates. It does not.
+
+**What would make it informative again:** rebuild after pointing lo-blocks'
+`config/content-sources.local.yaml` at the dry run's content, or merge the dry
+run so the two trees are one again. Until then this check says nothing about the
+tree it is run from, in either direction.
+
+The two findings it used to report were real and are not fixed; they are hidden.
+
+## 3b. The original note, kept — two stale build artifacts
 
     .stage/content                        40h older than the newest .olx
     apps/static/public/static-content     52h older
