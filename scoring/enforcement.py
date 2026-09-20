@@ -14965,6 +14965,16 @@ def check_rubric_notes_match_the_modules() -> list[str]:
 
     import rubric_export as RX
 
+    # STANDS DOWN WHEN THE MODULES GO, which is what "retires with them" has to
+    # mean in code. It read them through `rubric_notes` and so crashed with
+    # ModuleNotFoundError on the first deletion rehearsal -- a check whose whole
+    # purpose is to expire, failing loudly at the moment it should fall silent.
+    import os as _os
+
+    present = [h for h in (1, 2, 3)
+               if _os.path.exists(_os.path.join(str(_HERE_DIR), f"rubric_h{h}.py"))]
+    if not present:
+        return []
     try:
         carried = RX.rubric_notes()
     except SystemExit as exc:                       # its own no-loss assertion
