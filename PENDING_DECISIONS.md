@@ -1,0 +1,85 @@
+# Three decisions the work is waiting on
+
+Written 2026-09-20 at the end of the overnight refactor session. The commit log
+records what was DONE; this records what is not mine to decide, with the
+measurement behind each so the choice can be made without re-deriving it.
+
+---
+
+## 1. Stage 5 — delete `rubric_h1.py` and `rubric_h3.py`?
+
+**Everything mechanical is done.** No scoring-path module reads the rubric: one
+import site remains and it is `check_selectors_govern_something`, which reads
+rubric_h2's SOURCE and is retired WITH the modules rather than converted. Both
+equivalence gates are EQUIVALENT and their last run is recorded in
+`scoring/STAGE5_LICENCE.md`, because after the modules go there is no oracle and
+that result cannot be reproduced.
+
+**The measurement that divides the plan's two sentences.** "Stage 5 deletes the
+rubric modules" and A1c's "the builders survive" do not conflict:
+
+    rubric_h1.py  2,948 lines  0 builder functions   pure data
+    rubric_h3.py    829 lines  0 builder functions   pure data
+    rubric_h2.py  1,355 lines  4 builder functions   _example_item, _type_item,
+                                                     _definition_item,
+                                                     _example_use_item
+
+The data is deleted and the builders survive; all four builders happen to live
+in one file.
+
+**Nothing is lost either way, and that took work to become true.** The rubric was
+49% comments in h1 and 25% in h3. 1,567 lines written about specific items and
+548 of module header prose are now carried in the course file, readable through
+`coursedata.rubric_notes(item)` and `handout_notes(h)`. Measured after the
+export: ZERO authored comment lines from h1 or h3's ITEMS are unretrievable.
+`check_rubric_notes_match_the_modules` keeps the two copies honest and retires
+with the modules.
+
+**So the question is only this:** are handout 1 and 3 rubrics acceptable to edit
+as JSON, with `rubric_notes()` as the commentary channel? If not, Stage 5 is a
+CONVERSION for them rather than a deletion, and the plan's wording needs
+amending rather than executing.
+
+---
+
+## 2. Should the certifying self-test reset fixture caches?
+
+`agreement._fixture_cached` and `enforcement._fixture_built` are not invalidated
+by an injection, so an INJECTED audit's findings depend on what ran in that
+process before it. Clearing either adds exactly two findings to the case that
+diverges, and they are the two the parallel mode reported.
+
+**What reproduces:** the +2, and which two findings. **What does not:** the
+absolute count -- two runs of the same sequence gave 52 -> 54 and 223 -> 225.
+
+**What is NOT affected:** the clean audit. Five alternating cold/warm runs gave
+3 findings every time. Nothing recorded against the serial suite is touched by
+this; the staleness reaches only the collateral findings of an injected state,
+which exist solely inside the self-test.
+
+Resetting before each audit makes the paths agree exactly and costs ~13s per
+audit, about fifteen minutes on a full run. Not taken by default: serial is what
+every recorded result was measured against, and changing what the certifying run
+REPORTS is a larger decision than making it faster.
+
+---
+
+## 3. Two stale build artifacts, in a tree this session cannot write
+
+    .stage/content                        40h older than the newest .olx
+    apps/static/public/static-content     52h older
+
+Both are under `/home/pdeane/code/update/lo-blocks`, which the overnight write
+scope forbids; `scoring/writescope.sh` refuses the path. They need a content
+rebuild there by someone who is allowed to run it. Until then
+`check_no_unresolved_reference_reaches_the_page` reports them, and that is the
+check working rather than a defect to absorb.
+
+---
+
+## State at the end of the session
+
+171 checks: 169 clean, 2 with findings -- both of them item 3. 0 errored.
+Probe: 49 READ, 0 INERT, 0 of 63 registered declaration tables enforce nothing.
+Self-test: 71 detected, 0 failed, 0 skipped, 0 vacuous, restored state clean.
+Both Stage 5 gates EQUIVALENT.
