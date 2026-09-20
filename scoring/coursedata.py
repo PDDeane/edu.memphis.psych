@@ -329,6 +329,17 @@ def rubric_notes(item: str) -> list:
     return list(_load().get("item_notes", {}).get(str(item), []))
 
 
+def rubric_note_runs(item: str) -> list:
+    """The same reasoning, GROUPED INTO BLOCKS as it was written.
+
+    `rubric_notes` flattens; this keeps the boundaries. The §2e hook needs them:
+    it prints the last few blocks about an item and says how many earlier ones
+    it is not showing, and Q6 has eleven. A flat 327-line list would either
+    flood that output or be cut somewhere arbitrary.
+    """
+    return [list(r) for r in _load().get("item_note_runs", {}).get(str(item), [])]
+
+
 def handout_notes(handout) -> list:
     """The prose OUTSIDE a rubric module's `ITEMS` -- its header.
 
