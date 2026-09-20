@@ -14267,7 +14267,12 @@ COURSE_DATA_REENTRY: dict[str, tuple[int, str]] = {
         #
         # Reviewed here each time rather than re-baselined silently -- which is
         # what this check is for, and it has now caught the drop twice.
-        17,
+        # 27 -> 24 -> 17 -> 13 on 2026-09-20. Added since: the `cover` and
+        # cover-vocabulary cases (first h1 item with a labelled `cover` rule),
+        # the duplicated-item case (any item proves it; the first h1 item), and
+        # the two-fixes case (first cell carrying a consensus fix, duplicating a
+        # box THAT CELL already fixes rather than a name typed into the case).
+        13,
         "D2d's exemption was removed 2026-09-19. These 27 embeddings were always "
         "there and were subtracted before anyone looked; nothing was added. D2a "
         "(fixtures that select their target by shape) is the work that removes "
