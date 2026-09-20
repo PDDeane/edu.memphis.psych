@@ -429,11 +429,13 @@ def score_impact(item_id: str, pid: int, slot: str, verdict,
                 job, act = j, A.load_action(j["olx"], aid)
     if job is None or act is None:
         raise KeyError(f"{item_id}: no sheet to score against")
-    rubric = M.config(job["handout"])["rubric"] if hasattr(M, "config") else None
-    if rubric is None:
-        import importlib
-        rubric = importlib.import_module(
-            f"rubric_h{M._jobs()[item_id]['handout']}")
+        # ONE PATH, NOT TWO. The fallback imported `rubric_h{h}` when `M`
+        # had no `config`; since 2026-09-19 `config(h)["rubric"]` is a view
+        # onto the course file, so the fallback reaches `handouts` for the
+        # same object rather than the module Stage 5 deletes.
+        import handouts as _H_R
+        rubric = (M.config(job["handout"])["rubric"] if hasattr(M, "config")
+                  else _H_R.config(M._jobs()[item_id]["handout"])["rubric"])
     spec = dict(job, slots=act["slots"], cover=act["cover"],
                 requires=act["requires"])
     scorer = A.SCORERS[job["kind"]]

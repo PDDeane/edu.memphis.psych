@@ -100,14 +100,23 @@ def item_ids(source: str | None = None) -> set[str]:
     if source and os.path.exists(source):
         doc = json.load(open(source))
         return {str(i["id"]) for i in doc.get("items", []) if "id" in i}
+    # THE COURSE FILE, THROUGH THE READER. This used to import `rubric_h{1,2,3}`
+    # and take their BY_ID keys, which made the tool that measures how much
+    # course data the engine embeds depend on the very modules Stage 5 deletes.
+    # The docstring already said "the rubric modules until then"; the course
+    # file exists, both equivalence gates report it reproduces the modules on
+    # every authored field, and so `then` has arrived.
+    #
+    # The refusal below is UNCHANGED and still the point: an empty id set makes
+    # every module scan clean, which is not the same as clean.
     ids: set[str] = set()
     sys.path.insert(0, HERE)
-    for h in (1, 2, 3):
-        try:
-            mod = __import__(f"rubric_h{h}")
-        except Exception:
-            continue
-        ids |= {str(k) for k in (getattr(mod, "BY_ID", {}) or {})}
+    try:
+        import coursedata
+
+        ids = {str(it["id"]) for it in coursedata.items() if "id" in it}
+    except Exception:
+        ids = set()
     if not ids:
         raise SystemExit(
             "course_inventory: no item ids available. The rubric modules did not "

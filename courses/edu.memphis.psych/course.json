@@ -557,6 +557,7 @@
       "PR"
      ]
     },
+    "OC_FRAME": "Operant conditioning has exactly four types, defined by two questions: is the target behaviour being INCREASED (reinforcement) or DECREASED (punishment), and is a stimulus being ADDED (positive) or TAKEN AWAY (negative)?\n  - Positive Reinforcement: add something desirable to increase a behaviour.\n  - Negative Reinforcement: take away something undesirable to increase a behaviour.\n  - Positive Punishment: {{corpus:D1/p8:d1:32:60:sha=60e5588ab7ff}} decrease a behaviour.\n  - Negative Punishment: take away something desirable to decrease a behaviour.",
     "OC_GATES": {
      "WK1": [
       {

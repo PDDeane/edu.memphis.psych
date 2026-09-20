@@ -87,7 +87,14 @@ MOVE_PICK_ITEMS = ('PR',)
 
 
 # The four operant-conditioning types, as the course defines them.
-_OC_FRAME = (
+# PUBLIC, AND NOT FOR TIDINESS. This prose is the course's own definition of
+# operant conditioning. It is composed into four items' `guidance`, and
+# `leakage.py` also reads it WHOLE, to tell the course's own vocabulary apart
+# from a student's. A leading underscore said "nobody outside this module reads
+# this", which was not true, and the export skips private names -- so at Stage 5
+# the modules go, leakage's read fails, and its `except Exception: pass`
+# swallows it. The leak check would quietly get weaker and nothing would say so.
+OC_FRAME = (
     "Operant conditioning has exactly four types, defined by two questions: is "
     "the target behaviour being INCREASED (reinforcement) or DECREASED "
     "(punishment), and is a stimulus being ADDED (positive) or TAKEN AWAY "
@@ -302,7 +309,7 @@ def _example_item(item_id: str, label: str, type_name: str, abbrev: str, definit
         # BARRIER_PICK_ITEMS without this put the slots on NR's sheet and left the
         # conjunction unable to fire -- measured, at 16 probe calls, p14 scoring 4
         # in both runs with the slots present and their meanings absent.
-        "guidance": [_OC_FRAME] + _EXAMPLE_RULES
+        "guidance": [OC_FRAME] + _EXAMPLE_RULES
         + ([_MOVE_RULE] if item_id in MOVE_PICK_ITEMS else [])
         + ([_EXPECTS_RULE, _AUTHORED_RULE, _RESTRICTS_RULE]
            if item_id in BARRIER_PICK_ITEMS else []) + [
@@ -349,7 +356,7 @@ def _type_item(item_id: str, label: str, ordinal: str) -> dict:
             },
         ],
         "guidance": [
-            _OC_FRAME,
+            OC_FRAME,
             "This item asks only that a type be NAMED. Any of the four, spelled out or "
             "abbreviated, in any capitalisation, earns the full 2 points. Whether the "
             "choice is well matched to the student's behaviour is judged on the "
@@ -480,7 +487,7 @@ def _definition_item(item_id: str, label: str, ordinal: str, type_ctx: str) -> d
             },
         ],
         "guidance": [
-            _OC_FRAME,
+            OC_FRAME,
             "INCOMPLETE_DEFINITION is for a definition that is right as far as it goes "
             "but omits one of the two halves — e.g. says something is removed but never "
             "says the behaviour decreases.",
@@ -666,7 +673,7 @@ def _example_use_item(
                 ),
             },
         ],
-        "guidance": [_OC_FRAME] + _EXAMPLE_RULES + [
+        "guidance": [OC_FRAME] + _EXAMPLE_RULES + [
             f"The example must match the type named in {type_ctx}. A correct example of a "
             "DIFFERENT one of the four types is TYPE_MISMATCH (-2), not NOT_OC. Apply "
             "test 3 above before crediting the match — do not assume the student's example "

@@ -31,7 +31,12 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from backends import BackendError, make_backend
-from rubric_h1 import BY_ID, ITEMS
+# The rubric through `handouts`, not the module: `config(h)["rubric"]` serves a
+# view onto the course file, so this keeps working when Stage 5 deletes
+# `rubric_h*`. The names below are bound from it, so every use is unchanged.
+import handouts as _H_RUBRIC
+_RUBRIC = _H_RUBRIC.config(1)["rubric"]
+BY_ID, ITEMS = _RUBRIC.BY_ID, _RUBRIC.ITEMS
 from segment import H1_MARKERS, segment, utb_hint
 import paths
 
