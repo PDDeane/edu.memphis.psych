@@ -14258,7 +14258,12 @@ RUBRIC_CONSUMER_BUDGET = 1
 # cannot quietly become a second budget.
 COURSE_DATA_REENTRY: dict[str, tuple[int, str]] = {
     "equivalence.py": (
-        27,
+        # 27 -> 24 on 2026-09-20: D2a began. The `dealt` case now selects its
+        # target BY SHAPE -- the first job with a `dealt` group -- instead of
+        # naming 2a, so three literal ids left with it. The number is reviewed
+        # here rather than re-baselined silently, which is what this check is
+        # for; each further D2a conversion lowers it again.
+        24,
         "D2d's exemption was removed 2026-09-19. These 27 embeddings were always "
         "there and were subtracted before anyone looked; nothing was added. D2a "
         "(fixtures that select their target by shape) is the work that removes "

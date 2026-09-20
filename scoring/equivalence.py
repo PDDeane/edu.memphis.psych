@@ -1580,6 +1580,30 @@ def _rubric_view(handout: int):
     return handouts.config(handout)["rubric"]
 
 
+_PICKED: list = []
+
+
+def _pick(what: str, candidates, why: str):
+    """Choose a fixture's target BY SHAPE, and record which one it chose.
+
+    D2a. A case that names its target -- `JOBS["2a"]`, `BY_ID["Q6"]` -- tests
+    the rule on one item for as long as that item keeps the shape the case
+    needs, and stops testing anything the moment it does not. Nothing says so:
+    the case still runs, still passes, and covers nothing. That is how the
+    `{fail}` case died once already, when a conversion removed the `rule` key it
+    had hard-coded a site for.
+
+    So the target is a PROPERTY -- the first job with `dealt`, the first item
+    with `counts` -- and the choice is REPORTED in the run's own output. If the
+    corpus stops having one, `candidates` is empty and the caller SKIPs rather
+    than passing vacuously; if it starts choosing a different item, the run says
+    which, and a reader can see the coverage move.
+    """
+    chosen = next(iter(candidates), None)
+    _PICKED.append((what, chosen, why))
+    return chosen
+
+
 def enforcement_selftest():
     """Break each rule on purpose and confirm the audit says so.
 
@@ -1621,6 +1645,13 @@ def enforcement_selftest():
     # is the commonest form of it. This cannot be prevented from inside the
     # process, so it is DETECTED and the verdict is voided rather than reported as
     # a failure: a check that cries wolf about its own baseline gets ignored.
+    # SKIPS FROM SHAPE-PICKED CASES, collected here because `_inverted_skips` is
+    # not defined until the reporting section, hundreds of lines below the cases
+    # that need it. Appending there from a case raised NameError -- and only on
+    # the path where the corpus has STOPPED having the shape, which is the exact
+    # moment the skip is the thing worth reporting.
+    _shape_skips: list[tuple[str, str]] = []
+
     _inputs = _selftest_input_fingerprint()
     # BOTH, at the same instant: the hashes say whether the tree moved, the bytes
     # put it back. The atexit hook covers the paths a `finally` does not -- an
@@ -2751,19 +2782,29 @@ def enforcement_selftest():
         _AG._fixture_cached.cache_clear()
         ENF._fixture_built.cache_clear()
 
-    _real_dealt = _APP.JOBS["2a"].get("dealt")
+    # BY SHAPE: the first job that DEALS a counted group, whichever item that is.
+    # D2a names this one directly. It was `JOBS["2a"]`, which tested the rule for
+    # exactly as long as 2a kept its `dealt` key.
+    _dealt_item = _pick("the fixture stops dealing a counted group",
+                        sorted(i for i, j in _APP.JOBS.items() if j.get("dealt")),
+                        "the first job with a `dealt` group")
+    if _dealt_item is None:
+        _shape_skips.append(("the fixture stops dealing a counted group",
+                             "no job deals a counted group any more"))
+    else:
+        _real_dealt = _APP.JOBS[_dealt_item].get("dealt")
 
-    def _drop_dealt():
-        _APP.JOBS["2a"].pop("dealt", None)
-        _fx_reset()
+        def _drop_dealt():
+            _APP.JOBS[_dealt_item].pop("dealt", None)
+            _fx_reset()
 
-    def _put_dealt():
-        _APP.JOBS["2a"]["dealt"] = _real_dealt
-        _fx_reset()
+        def _put_dealt():
+            _APP.JOBS[_dealt_item]["dealt"] = _real_dealt
+            _fx_reset()
 
-    _scorer_case("the fixture stops dealing a counted group",
-                 _drop_dealt, _put_dealt,
-                 want="FIXTURE BOX IS NOT THE STUDENT'S WORDS")
+        _scorer_case("the fixture stops dealing a counted group",
+                     _drop_dealt, _put_dealt,
+                     want="FIXTURE BOX IS NOT THE STUDENT'S WORDS")
 
     # OWNERSHIP, which had no case until 2026-09-02 even though the check is
     # what keeps a wrong cell from being buried in a median. Emptying the owner
@@ -3048,7 +3089,7 @@ def enforcement_selftest():
     # So the conditional skips (`plain`, `_site`) are added -- they are NOT in
     # `cases` -- and the inverted skips are printed but not re-counted.
     _conditional_skips = list(skips)
-    skips = skips + _inverted_skips
+    skips = skips + _inverted_skips + _shape_skips
     for label, why in skips:
         print(f"  SKIP  {label:<28} -> {why}")
 
@@ -3120,6 +3161,15 @@ def enforcement_selftest():
               f"injection.")
         for f in moved:
             print(f"        changed: {f}")
+    # WHAT EACH SHAPE-PICKED CASE CHOSE. D2a's second half: selecting by
+    # property stops a case silently testing nothing, but only if the choice is
+    # VISIBLE -- otherwise the coverage can drift from item to item between runs
+    # and no one sees it move.
+    if _PICKED:
+        print(f"\n  shape-picked targets ({len(_PICKED)}):")
+        for _what, _chosen, _why in _PICKED:
+            print(f"      {_what[:46]:<46} -> {str(_chosen):<6} ({_why})")
+
     print(f"\n  restored state is clean: {clean == baseline}"
           f"{' (FAILED -- source moved, see above)' if moved else ''} "
           f"({clean} finding(s), baseline {baseline})")
