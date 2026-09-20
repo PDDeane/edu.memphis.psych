@@ -14327,7 +14327,12 @@ COURSE_DATA_REENTRY: dict[str, tuple[int, str]] = {
         # case detected nothing while reporting PASS. A named fixture with a
         # stated reason fails loudly; a contrived predicate fails silently, and
         # silence is what D2a exists to remove.
-        9,
+        # 9 -> 7 on 2026-09-20, after the nine declared reasons were tested as
+        # CLAIMS rather than re-read. Two did not survive: one said its item was
+        # the only one with a shape the case actually INJECTS, and one said it
+        # "follows" a case it merely coincided with. Both are shape-picked now.
+        # Five of the remaining seven were confirmed by measurement.
+        7,
         "D2d's exemption was removed 2026-09-19. These 27 embeddings were always "
         "there and were subtracted before anyone looked; nothing was added. D2a "
         "(fixtures that select their target by shape) is the work that removes "
