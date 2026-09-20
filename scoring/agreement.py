@@ -2240,7 +2240,8 @@ def main() -> int:
     if args.handout == 2 and not args.force_leakage:
         try:
             import leakage as _leak
-            import rubric_h2 as _R
+            import handouts as _H_R
+            _R = _H_R.config(2)["rubric"]
             targets = tuple(args.items) if args.items else tuple(_R.BY_ID)
             if _leak.gate(targets):
                 print("Re-run with --force-leakage only if the sweep is what "

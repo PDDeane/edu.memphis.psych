@@ -6769,11 +6769,10 @@ def _pick_slots(item_id: str) -> frozenset:
     pick.
     """
     import olx_prompts as O
-    import rubric_h1
-    import rubric_h2
-    import rubric_h3
+    import handouts as _H_R
 
-    for mod in (rubric_h1, rubric_h2, rubric_h3):
+    for mod in (_H_R.config(1)["rubric"], _H_R.config(2)["rubric"],
+                _H_R.config(3)["rubric"]):
         spec = (getattr(mod, "SLOT_SPEC", {}) or {}).get(item_id)
         if spec:
             return frozenset(d["key"] for d in spec if O.pick_set(d.get("seg")))

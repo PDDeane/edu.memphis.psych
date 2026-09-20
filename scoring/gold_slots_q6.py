@@ -127,7 +127,8 @@ def reconcile(withheld: set[str], score: float) -> str | None:
     Q6/p4 is the case -- gold says 6.00 on an item moving in steps of 1.25, so
     the reading is against 6.25 and three withheld slots, not 4.00 worth of them.
     """
-    import handouts as _H, rubric_h1 as _R
+    import handouts as _H
+    _R = _H.config(1)["rubric"]
     item = _R.BY_ID["Q6"]
     targets = _H.nearest_attainable(item, float(score)) or {float(score)}
     implied = round(1.25 * len(withheld), 2)
@@ -145,7 +146,8 @@ def unresolved_slots(feedback: str, score: float) -> tuple[int, set[str]]:
     withheld slots is recoverable and one identity is not. Reported rather than
     apportioned: an arbitrary pick would read downstream as gold's own verdict.
     """
-    import handouts as _H, rubric_h1 as _R
+    import handouts as _H
+    _R = _H.config(1)["rubric"]
     named, _ = gold_slots_q6(feedback)
     item = _R.BY_ID["Q6"]
     targets = _H.nearest_attainable(item, float(score)) or {float(score)}
