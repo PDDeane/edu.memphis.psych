@@ -365,7 +365,31 @@ def self_test():
     return 0 if caught == len(cases) else 1
 
 
+def _modules_present() -> list:
+    """Which rubric modules still exist. Stage 5 deletes h1 and h3.
+
+    T3.2 compares the course file against the MODULES, so once they are gone
+    it has no oracle and cannot run. It used to find that out as a
+    ModuleNotFoundError traceback; the last run that still had an oracle is
+    recorded in STAGE5_LICENCE.md, and that record is what licenses the
+    deletion. Saying so is the difference between a retired tool and a broken
+    one.
+    """
+    import os
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    return [h for h in (1, 2, 3)
+            if os.path.exists(os.path.join(here, f"rubric_h{h}.py"))]
+
+
 def main(argv=None):
+    if not _modules_present():
+        print("  the rubric modules are gone, so this tool has no oracle to "
+              "compare against.\n  Its last run with one is recorded in "
+              "STAGE5_LICENCE.md, and that run is what\n  licensed removing "
+              "them. Nothing to do.")
+        return 0
+
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--json", metavar="PATH", help="write the full report")
     ap.add_argument("--inventory", metavar="PATH",
@@ -381,7 +405,12 @@ def main(argv=None):
 
     total, all_findings, accounted = 0, [], {}
     all_module_ids = set()
-    for h in HANDOUTS:
+    # ONLY THE HANDOUTS THAT STILL HAVE A MODULE. Stage 5 deletes h1 and h3 and
+    # KEEPS h2, whose four builders A1c preserves -- so "all gone" and "all
+    # present" are both easier than the state this actually lands in. Checking
+    # for a total absence and otherwise iterating (1, 2, 3) crashed on exactly
+    # the configuration Stage 5 produces.
+    for h in _modules_present():
         compared, findings, acc, ids = verify(h, reader)
         total += compared
         all_findings.extend(findings)
@@ -390,9 +419,15 @@ def main(argv=None):
 
     # THE REVERSE DIRECTION IS ASKED ONCE, ACROSS ALL HANDOUTS. Asked per
     # handout it accused every handout of the other two handouts' items.
-    for iid in sorted({str(it["id"]) for it in reader.items()} - all_module_ids):
-        all_findings.append(
-            f"item {iid}: SERVED BY THE READER, ABSENT FROM EVERY MODULE")
+    # ONLY WHILE EVERY MODULE IS STILL THERE. "The reader serves an item no
+    # module has" is a real finding when all three exist and a tautology once
+    # Stage 5 deletes two of them -- it accused Q4c, Q5 and Q6 of being orphans
+    # the moment rubric_h1.py went, which is the tool calling a successful
+    # migration a defect.
+    if len(_modules_present()) == 3:
+        for iid in sorted({str(it["id"]) for it in reader.items()} - all_module_ids):
+            all_findings.append(
+                f"item {iid}: SERVED BY THE READER, ABSENT FROM EVERY MODULE")
 
     pending = not_yet_migrated(args.inventory)
     n_pending = "unknown (pass --inventory)" if pending is None else len(pending)
