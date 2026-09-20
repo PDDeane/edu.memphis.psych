@@ -4872,6 +4872,10 @@ DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "enforcement.ITEM_GATED_MECHANISMS": (
         "mechanisms that vary by item, which the uniformity rule forbids",
         ("check_engine_mechanisms_are_not_item_dependent",)),
+    "enforcement.RUBRIC_BUILDERS": (
+        "the modules allowed to import the rubric -- the builder that writes "
+        "the course file and the two tools that prove it reproduces them",
+        ("check_only_builders_read_the_rubric",)),
     "enforcement.COURSE_DATA_REENTRY": (
         "a count re-recorded once after an exemption was removed, with the "
         "number it re-entered at and why",
@@ -13803,6 +13807,12 @@ PROBE_PROVOCATIONS: dict[str, object] = {
     "enforcement.HAND_AUTHORED_ATTRS": (("NR", "expect"),
                                         "probe: excuses an attribute the rubric "
                                         "backs"),
+    # A builder that does not exist: the verifier objects that the permission
+    # names no file. Emptying the table is ALSO visible -- every builder then
+    # counts as a consumer and the budget is exceeded -- so this one is proved
+    # from both directions.
+    "enforcement.RUBRIC_BUILDERS": ("probe_no_such_builder.py",
+                                    "probe: a builder that does not exist"),
     "enforcement.COURSE_DATA_REENTRY": ("probe_no_such_module.py",
                                         (1, "probe: a re-entry for a file that "
                                             "does not exist")),
@@ -14144,6 +14154,40 @@ DATA_MODULES = {
         "course file, kept outside the scoring path. Course data is what it is "
         "for, and it grows as modules are migrated INTO it.",
 }
+
+# WHO MAY IMPORT THE RUBRIC MODULES, and why. A1c keeps `rubric_h*` as an
+# AUTHORING tool that generates the course file; Stage 5 deletes them as scoring
+# inputs. The difference between those two sentences is this table: a builder
+# and the tools that PROVE the build may read them, and the scoring path may
+# not.
+#
+# The boundary is declared rather than assumed because the plan's own sequence
+# does not say it. Stage 5's deletion is gated on C1b, which landed 2026-09-19,
+# so the gate is open and what is left is consumers -- and a consumer that
+# cannot be found is a consumer that breaks on the day the files go.
+RUBRIC_BUILDERS = {
+    "rubric_export.py":
+        "THE builder: it reads the modules to WRITE the course file. A1c -- the "
+        "builders survive outside the pipeline.",
+    "rubric_equivalence.py":
+        "T5.1, the licensing tool: it proves the file reproduces the modules "
+        "while they are still the oracle. Its last run is what permits the "
+        "deletion, so it must read both sides until then.",
+    "reader_equivalence.py":
+        "T3.2, the same proof through `coursedata`. Reads both sides for the "
+        "same reason and for exactly as long.",
+}
+
+# Scoring-path modules that STILL import the rubric, which is the remaining
+# Stage 5 work. A number, not a list of excuses: it may fall and it may not
+# rise, and when it reaches zero the modules can go.
+#
+# `course_inventory.py` is in here rather than in RUBRIC_BUILDERS deliberately.
+# It reads the modules only to learn this course's item ids, and it already
+# prefers a course file when given one -- `_inventory_now()` simply does not
+# pass one. That makes it the cheapest of the twelve, not an exception to them.
+RUBRIC_CONSUMER_BUDGET = 13
+
 
 # A COUNT THAT ROSE BECAUSE AN EXEMPTION WAS REMOVED, not because course data
 # was added. The ratchet refuses a rise, and it is right to: baselining a
@@ -14650,6 +14694,75 @@ def check_hand_authored_attrs_still_suppress_something() -> list[str]:
                        f"hand-authored, but the RUBRIC NOW BACKS IT, so the entry "
                        f"suppresses nothing. The generator conversion this table "
                        f"exists to be removed by has happened; remove the entry.")
+    return out
+
+
+def check_only_builders_read_the_rubric() -> list[str]:
+    """The scoring path's remaining dependence on `rubric_h*`, counted.
+
+    Stage 5 deletes the rubric modules as scoring inputs. Everything that still
+    imports them breaks on that day, so the number is tracked the way every
+    other debt here is: declared, ratcheted, and allowed to fall only.
+
+    FOUND BY AST, NOT BY GREP. Four of these import dynamically --
+    `__import__(f"rubric_h{h}")` and `importlib.import_module(f"rubric_h{h}")`
+    -- which a `rubric_h[123]` pattern never matches. Counting by grep gave 11
+    and the real number was 16. A migration sized against the smaller number
+    would have declared victory with four importers still live.
+    """
+    import ast as _ast
+    import os as _os
+
+    RUBRIC = {"rubric_h1", "rubric_h2", "rubric_h3"}
+    here = str(_HERE_DIR)
+    consumers = []
+    try:
+        names = sorted(f for f in _os.listdir(here) if f.endswith(".py"))
+    except OSError as exc:                          # pragma: no cover
+        return [f"cannot list {here}: {exc}"]
+    for fn in names:
+        try:
+            tree = _ast.parse(open(_os.path.join(here, fn), errors="ignore").read())
+        except (OSError, SyntaxError):
+            continue
+        hit = False
+        for n in _ast.walk(tree):
+            if isinstance(n, _ast.Import):
+                hit |= any(a.name in RUBRIC for a in n.names)
+            elif isinstance(n, _ast.ImportFrom):
+                hit |= n.module in RUBRIC
+            elif isinstance(n, _ast.Call):
+                fname = (n.func.id if isinstance(n.func, _ast.Name)
+                         else getattr(n.func, "attr", None))
+                if fname in ("__import__", "import_module") and n.args:
+                    a = n.args[0]
+                    if isinstance(a, _ast.Constant) and a.value in RUBRIC:
+                        hit = True
+                    elif isinstance(a, _ast.JoinedStr) and any(
+                            isinstance(v, _ast.Constant) and "rubric_h" in str(v.value)
+                            for v in a.values):
+                        hit = True
+            if hit:
+                break
+        if hit and fn not in RUBRIC_BUILDERS:
+            consumers.append(fn)
+
+    out = []
+    n = len(consumers)
+    if n > RUBRIC_CONSUMER_BUDGET:
+        out.append(
+            f"{n} scoring-path module(s) import the rubric against a budget of "
+            f"{RUBRIC_CONSUMER_BUDGET} -- a NEW dependence on modules Stage 5 "
+            f"deletes: {', '.join(sorted(set(consumers))[:6])}")
+    elif n < RUBRIC_CONSUMER_BUDGET:
+        out.append(
+            f"only {n} scoring-path module(s) still import the rubric, against a "
+            f"budget of {RUBRIC_CONSUMER_BUDGET} -- one was converted and the "
+            f"ceiling was not lowered, which leaves room for a replacement to "
+            f"arrive unnoticed")
+    for fn in RUBRIC_BUILDERS:
+        if not _os.path.exists(_os.path.join(here, fn)):
+            out.append(f"RUBRIC_BUILDERS names {fn}, which does not exist")
     return out
 
 
