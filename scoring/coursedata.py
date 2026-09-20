@@ -313,6 +313,31 @@ def _load_gold() -> dict:
     return gold()
 
 
+def rubric_notes(item: str) -> list:
+    """The reasoning written about one item, as its author wrote it.
+
+    `rubric_h1.py` is 49% comments and `rubric_h3.py` 25% -- which hypotheses
+    died on a rule, what they cost, why a verdict list is the length it is.
+    Those lines live inside the `ITEMS` literal, attached to the entry they
+    describe, and they are carried here so that deleting the modules at Stage 5
+    takes the DATA and not the record of why it is that data.
+
+    NOT DECORATION, and the same argument as `gold_notes`: a reader who does not
+    consult it will re-run an experiment that has already been done and
+    reverted.
+    """
+    return list(_load().get("item_notes", {}).get(str(item), []))
+
+
+def handout_notes(handout) -> list:
+    """The prose OUTSIDE a rubric module's `ITEMS` -- its header.
+
+    What the handout is, how its items are built, what the module as a whole is
+    for. 548 lines across the three, and lost with the files if not carried.
+    """
+    return list(_load().get("handout_notes", {}).get(str(handout), []))
+
+
 def gold_declaration(name: str):
     """A GOLD declaration table, with its tuple keys restored.
 

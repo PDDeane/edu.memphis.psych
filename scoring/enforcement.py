@@ -14940,6 +14940,53 @@ def check_named_fixtures_still_name_something() -> list[str]:
     return out
 
 
+def check_rubric_notes_match_the_modules() -> list[str]:
+    """The reasoning carried in the course file is still what the modules say.
+
+    1,567 comment lines from the rubric's `ITEMS` literals, and 548 from the
+    module headers, now live in the course file so that Stage 5 takes the DATA
+    and not the record of why it is that data. Until the modules go, the same
+    words exist in two places -- and two copies of anything drift.
+
+    THIS RETIRES WITH THE MODULES, and deliberately: once `rubric_h1.py` and
+    `rubric_h3.py` are gone there is nothing to compare against and the file is
+    the only copy, which is the whole point of carrying them. While both exist,
+    a comment edited in the module and not re-exported is exactly the silent
+    divergence the export was written to prevent.
+    """
+    import ast as _ast
+
+    import rubric_export as RX
+
+    try:
+        carried = RX.rubric_notes()
+    except SystemExit as exc:                       # its own no-loss assertion
+        return [f"the rubric notes cannot be lifted: {exc}"]
+    except Exception as exc:                        # pragma: no cover
+        return [f"rubric_export.rubric_notes raised {type(exc).__name__}: {exc}"]
+
+    import coursedata
+
+    # THROUGH THE ACCESSORS, not `_load()`. Reaching into the raw document is
+    # the escape `check_course_schema_is_complete` exists to catch, and it
+    # caught this one the first time it ran -- the third module to try it.
+    out = []
+    for iid, lines in sorted(carried["items"].items()):
+        got = coursedata.rubric_notes(iid)
+        if not got:
+            out.append(f"the course file carries no notes for {iid}, and the "
+                       f"rubric module has {len(lines)} line(s) of them")
+        elif list(got) != list(lines):
+            out.append(f"the notes for {iid} differ between the rubric module "
+                       f"({len(lines)} lines) and the course file ({len(got)}) "
+                       f"-- a comment was edited and not re-exported")
+    for h, lines in sorted(carried["handouts"].items()):
+        if list(coursedata.handout_notes(h)) != list(lines):
+            out.append(f"handout {h}'s header prose differs between the module "
+                       f"and the course file -- re-export")
+    return out
+
+
 def check_every_enforcement_check_is_registered() -> list[str]:
     """Every `check_*` defined here is actually called by the audit.
 
