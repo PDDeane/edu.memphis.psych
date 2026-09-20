@@ -1860,7 +1860,14 @@ def check_prior_record_reaches_every_item() -> list[str]:
                        f"failure, so its output reads as 'nothing recorded' when the "
                        f"record may be there")
             continue
-        blocks = [l for l in text.splitlines() if ".py:" in l and "rubric_h" in l]
+        # EITHER SOURCE COUNTS. The hook reads the course file for items whose
+        # record was carried there and the module's factory bodies for the rest,
+        # so asserting the `rubric_hN.py:` label alone would report every
+        # carried item as having no record -- and would start doing so on the
+        # day Stage 5 deletes the files, which is precisely when this check is
+        # the thing standing between §2e and silence.
+        blocks = [l for l in text.splitlines()
+                  if (".py:" in l and "rubric_h" in l) or "course file," in l]
         if not blocks and item not in NO_RUBRIC_COMMENTS:
             out.append(f"§2e finds no rubric comment block for {item}. Either the "
                        f"lookup broke for its rubric's shape, or the item genuinely "
