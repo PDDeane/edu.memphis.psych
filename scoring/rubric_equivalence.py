@@ -126,7 +126,12 @@ def compare(course_file: str) -> tuple[list[str], dict]:
     by_id = {str(it["id"]): it for it in doc.get("items", [])}
     problems, counts = [], {"items": 0, "fields": 0, "authored_values": 0}
 
-    for h in HANDOUTS:
+    # ONLY THE HANDOUTS THAT STILL HAVE A MODULE. Stage 5 deletes h1 and h3 and
+    # KEEPS h2, whose four builders A1c preserves -- so "all gone" and "all
+    # present" are both easier than the state this actually lands in. Checking
+    # for a total absence and otherwise iterating (1, 2, 3) crashed on exactly
+    # the configuration Stage 5 produces.
+    for h in _modules_present():
         mod = __import__(f"rubric_h{h}")
         for it in list(getattr(mod, "ITEMS", []) or []):
             iid = str(it["id"])
@@ -178,14 +183,42 @@ def compare(course_file: str) -> tuple[list[str], dict]:
                 continue
             problems += _diff(_canonical(value), _canonical(block[name]), f"h{h}.{name}")
 
-    extra = set(by_id) - {str(it["id"]) for h in HANDOUTS
+    # The reverse direction over the modules that remain: an id the file holds
+    # and no SURVIVING module does is only a finding if every module survives.
+    extra = set(by_id) - {str(it["id"]) for h in _modules_present()
                           for it in (getattr(__import__(f"rubric_h{h}"), "ITEMS", []) or [])}
+    if len(_modules_present()) < 3:
+        extra = set()
     for iid in sorted(extra):
         problems.append(f"item {iid}: IN FILE, ABSENT FROM MODULES")
     return problems, counts
 
 
+def _modules_present() -> list:
+    """Which rubric modules still exist. Stage 5 deletes h1 and h3.
+
+    T5.1 compares the course file against the MODULES, so once they are gone
+    it has no oracle and cannot run. It used to find that out as a
+    ModuleNotFoundError traceback; the last run that still had an oracle is
+    recorded in STAGE5_LICENCE.md, and that record is what licenses the
+    deletion. Saying so is the difference between a retired tool and a broken
+    one.
+    """
+    import os
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    return [h for h in (1, 2, 3)
+            if os.path.exists(os.path.join(here, f"rubric_h{h}.py"))]
+
+
 def main(argv: list[str]) -> int:
+    if not _modules_present():
+        print("  the rubric modules are gone, so this tool has no oracle to "
+              "compare against.\n  Its last run with one is recorded in "
+              "STAGE5_LICENCE.md, and that run is what\n  licensed removing "
+              "them. Nothing to do.")
+        return 0
+
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--course-file", default=os.path.join(
         HERE, "..", "courses", "edu.memphis.psych", "course.json"))
