@@ -1098,6 +1098,8 @@ def enforcement_audit():
         findings.append(("-", "MIGRATED MODULE HOLDS COURSE DATA", bad))
     for bad in ENF.check_course_data_reentries_are_current():
         findings.append(("-", "MIGRATED MODULE HOLDS COURSE DATA", bad))
+    for bad in ENF.check_only_builders_read_the_rubric():
+        findings.append(("-", "MIGRATED MODULE HOLDS COURSE DATA", bad))
     for bad in ENF.check_module_has_no_course_data():
         findings.append(("-", "MIGRATED MODULE HOLDS COURSE DATA", bad))
     for bad in ENF.check_no_module_is_named_for_a_course_artifact():
