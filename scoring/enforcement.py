@@ -279,7 +279,7 @@ def _sheet_slots() -> dict:
     the check went on reporting all ten names as unknown. Nothing distinguished
     that from a real finding.
     """
-    import rubric_h1, rubric_h2, rubric_h3
+    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
     out = {}
     for mod in (rubric_h1, rubric_h2, rubric_h3):
         for iid, spec in (getattr(mod, "SLOT_SPEC", {}) or {}).items():
@@ -960,7 +960,7 @@ def check_blank_collapse_is_gated() -> list[str]:
     six items that were behaving perfectly. A guard that cannot tell its own bugs
     from the code's is worse than none.
     """
-    import rubric_h1, rubric_h2, rubric_h3
+    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
     from score import derive_ledger
 
     problems = []
@@ -1052,7 +1052,7 @@ def check_citations_match_exclusions() -> list[str]:
     compared against the merged set and reported both of those as faults — two
     false alarms out of two findings, on a corpus with no real ones.
     """
-    import rubric_h1, rubric_h2, rubric_h3
+    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
     from handouts import HANDOUTS
 
     problems = []
@@ -1807,7 +1807,7 @@ def check_computed_rules_do_not_share_a_key() -> list[str]:
     comment because the loop reads correct.
     """
     import collections
-    import rubric_h1, rubric_h2, rubric_h3
+    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
 
     out = []
     for h, mod in ((1, rubric_h1), (2, rubric_h2), (3, rubric_h3)):
@@ -2269,7 +2269,7 @@ def check_prose_only_slots_are_declared() -> list[str]:
     slot that no longer qualifies -- it was converted to a primitive, or its rule
     was removed, and the list is rotting. And the count against its budget.
     """
-    import rubric_h1, rubric_h2, rubric_h3
+    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
 
     actual = {}
     for mod in (rubric_h1, rubric_h2, rubric_h3):
@@ -2421,7 +2421,7 @@ def check_slot_rules_reach_both_prompts() -> list[str]:
     exemption at a known price.
     """
     import olx_prompts as OP
-    import rubric_h1, rubric_h2, rubric_h3
+    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
     import score as SC
 
     MAPPING_MAX = 220        # a "see criterion N" pointer, not a rule
@@ -2806,7 +2806,7 @@ def check_slot_rules_are_vocabulary_neutral() -> list[str]:
     Rules must therefore use the `{fail}` placeholder, which each generator
     fills with the verdict IT offers. This checks for the literal tokens.
     """
-    import rubric_h1, rubric_h2, rubric_h3
+    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
     from slot_vocab import KNOWN_VERDICTS
 
     # RESTORED 2026-08-30 to its original strictness, after being weakened
@@ -2903,7 +2903,7 @@ def check_rule_fail_tokens_agree() -> list[str]:
          every extra means something was written and is wrong. They can never
          be the same instruction.
     """
-    import rubric_h1, rubric_h2, rubric_h3
+    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
     import olx_prompts as O
     from score import _fail_verdict
 
@@ -4246,6 +4246,15 @@ def check_selectors_govern_something() -> list[str]:
     import inspect
     import agreement as A
     import olx_prompts as O
+    # THE MODULE, NOT A VIEW, and this is the one place that is right. This
+    # check reads rubric_h2's SOURCE -- it looks for selector tuples that are
+    # still defined and no longer consulted -- so it is a check about the
+    # AUTHORING ARTIFACT, not about the rubric data. `inspect.getsource` on a
+    # view raises TypeError, which is how this was found: converting it with the
+    # other nine broke the whole audit.
+    #
+    # It therefore dies WITH the modules at Stage 5 rather than being converted:
+    # when there is no module source, there are no stale selectors in it to find.
     import rubric_h2 as R2
     import score as S
 
@@ -5399,7 +5408,7 @@ def check_divergence_arithmetic_is_still_true() -> list[str]:
 
     import agreement_app as _A
     import olx_prompts as _OP
-    import rubric_h1, rubric_h2, rubric_h3
+    rubric_h1, rubric_h2, rubric_h3 = _rubric_views()
 
     RB = {1: rubric_h1, 2: rubric_h2, 3: rubric_h3}
     olx = {f.name: f.read_text() for f in
@@ -11052,15 +11061,44 @@ def check_rubric_slots_reach_the_sheet() -> list[str]:
     return out
 
 
+def _rubric_views():
+    """The three rubrics as the rest of the audit sees them: views, not modules.
+
+    Nine checks in this file did `import rubric_h1, rubric_h2, rubric_h3` and
+    read them directly -- a path neither the `config(h)["rubric"]` swap nor the
+    self-test's rebinding touched. Two cases went straight to FAIL because of
+    it: a case mutated the view and `check_slot_rules_are_vocabulary_neutral`
+    read the module, so the injection was real and the check was looking
+    somewhere else.
+
+    There were FIVE paths to the rubric in this codebase and I found them one
+    failure at a time. This is the fourth; `_rubric_module` was the third.
+    """
+    import handouts as _H
+
+    return tuple(_H.config(h)["rubric"] for h in (1, 2, 3))
+
+
 def _rubric_module(item_id: str):
-    """The rubric module that defines an item. Subgoal E48."""
-    for name in ("rubric_h1", "rubric_h2", "rubric_h3"):
+    """The rubric an item is defined in. Subgoal E48.
+
+    A VIEW ONTO THE COURSE FILE, not the `rubric_h*` module. This imported the
+    modules directly, which made it a THIRD path to the rubric alongside the
+    `import` statements and `handouts.config(h)["rubric"]` -- and the one that
+    kept the self-test's injections working after the other two moved. Popping
+    `cover` through the view changed nothing the checks using this function
+    could see, so the case would have reported VACUOUS: an injection that lands
+    somewhere nothing reads.
+    """
+    import handouts as _H
+
+    for handout in (1, 2, 3):
         try:
-            mod = __import__(name)
+            view = _H.config(handout)["rubric"]
         except Exception:
             continue
-        if item_id in getattr(mod, "BY_ID", {}):
-            return mod
+        if item_id in getattr(view, "BY_ID", {}):
+            return view
     return None
 
 
@@ -14186,7 +14224,14 @@ RUBRIC_BUILDERS = {
 # It reads the modules only to learn this course's item ids, and it already
 # prefers a course file when given one -- `_inventory_now()` simply does not
 # pass one. That makes it the cheapest of the twelve, not an exception to them.
-RUBRIC_CONSUMER_BUDGET = 13
+# 11, NOT 10. `enforcement.py` still imports `rubric_h2` in ONE place --
+# `check_selectors_govern_something` reads the module's SOURCE to find selector
+# tuples that are defined and no longer consulted. That is a check about the
+# authoring artifact, and `inspect.getsource` on a data view raises TypeError.
+# It is not convertible and is not meant to be: it dies with the modules at
+# Stage 5, because a check for stale selectors in a file that no longer exists
+# has nothing to find.
+RUBRIC_CONSUMER_BUDGET = 11
 
 
 # A COUNT THAT ROSE BECAUSE AN EXEMPTION WAS REMOVED, not because course data
@@ -14747,7 +14792,28 @@ def check_only_builders_read_the_rubric() -> list[str]:
         if hit and fn not in RUBRIC_BUILDERS:
             consumers.append(fn)
 
+    # AND THE INDIRECT CHANNEL, which counting imports alone does not see.
+    # `handouts.config(h)["rubric"]` used to hand out the MODULE OBJECT, and 101
+    # call sites in 18 modules reach the rubric through it. This check, counting
+    # `import` statements, would have read ZERO with every one of those still
+    # live. The channel now serves a view onto the course file; this makes sure
+    # it stays that way, because re-pointing one dict entry at a module would
+    # silently restore all 101 dependencies and move no number.
     out = []
+    try:
+        import handouts as _H
+
+        for _h in (1, 2, 3):
+            served = _H.config(_h)["rubric"]
+            if getattr(served, "__name__", "").startswith("rubric_h"):
+                out.append(
+                    f"handouts.config({_h})['rubric'] serves the MODULE "
+                    f"{served.__name__} again, not a view onto the course file. "
+                    f"That is 101 call sites depending on a module Stage 5 "
+                    f"deletes, and not one of them says so.")
+    except Exception as exc:                        # pragma: no cover
+        out.append(f"cannot check what config()['rubric'] serves: {exc}")
+
     n = len(consumers)
     if n > RUBRIC_CONSUMER_BUDGET:
         out.append(

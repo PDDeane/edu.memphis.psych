@@ -7,9 +7,6 @@ import os
 import re
 
 import gold as gold_mod
-import rubric_h1
-import rubric_h2
-import rubric_h3
 from segment import H1_MARKERS, H2_MARKERS, H3_MARKERS
 
 import paths
@@ -151,9 +148,94 @@ def _course_field(handout: int, name: str, default=None):
         name, default)
 
 
+class _RubricView:
+    """One handout's rubric, served from the COURSE FILE, shaped like the module.
+
+    `config(h)["rubric"]` used to hand out the `rubric_h{h}` MODULE OBJECT, and
+    101 call sites across 18 modules reach the rubric through it --
+    `config(h)["rubric"].BY_ID[item]`, `.ITEMS`, `.SLOT_SPEC`. That is the real
+    dependence on the modules Stage 5 deletes; the thirteen `import rubric_h*`
+    statements are the smaller half. Converting the importers alone would take
+    the ratchet to zero and leave 101 sites to break on the day the files go.
+
+    So the channel is converted instead of the callers. Every one of those sites
+    keeps its spelling and starts reading the course file. Measured before the
+    swap: BY_ID, ITEMS and SLOT_SPEC reproduce EXACTLY for all three handouts,
+    order-sensitively, once the export's synthesised `handout` field is set
+    aside -- an item does not record which handout it is in, because the module
+    it was written in WAS the handout.
+
+    MATERIALISED AND MUTABLE, WHICH IS NOT AN OVERSIGHT. `enforcement_selftest`
+    injects by mutating `BY_ID` in memory and expects the checks to notice. A
+    view that recomputed from the file on every read would make all eleven of
+    those injections invisible -- the cases would report VACUOUS, which is what
+    happened when forked audits were given their own copy of the tree. Each name
+    is built once, on first access, and handed back as the same mutable object.
+    """
+
+    __slots__ = ("_handout", "_cache")
+
+    def __init__(self, handout: int):
+        self._handout = handout
+        self._cache: dict = {}
+
+    def __repr__(self):
+        return f"<rubric h{self._handout} from the course file>"
+
+    def __getattr__(self, name):
+        if name.startswith("_"):
+            raise AttributeError(name)
+        cache = object.__getattribute__(self, "_cache")
+        if name in cache:
+            return cache[name]
+        import coursedata
+
+        h = object.__getattribute__(self, "_handout")
+        if name in ("BY_ID", "ITEMS"):
+            # ONE SET OF ENTRIES, SHARED BY BOTH NAMES. In the modules,
+            # `BY_ID[item] IS` the corresponding element of `ITEMS` -- BY_ID is
+            # built from ITEMS -- and code relies on it: the self-test pops a
+            # key from `BY_ID["Q6"]` and `cli_signatures`, which reads `ITEMS`,
+            # is expected to notice. Building the two independently made them
+            # value-equal and identity-distinct, so the injection landed on a
+            # copy nothing read and the case reported VACUOUS.
+            #
+            # `same_shape` compares VALUES and cannot see an aliasing
+            # difference, which is why this was found by an injection going
+            # quiet rather than by the equivalence check passing wrongly.
+            items = [{k: v for k, v in it.items() if k != "handout"}
+                     for it in coursedata.items()
+                     if str(it.get("handout")) == str(h)]
+            cache["ITEMS"] = items
+            cache["BY_ID"] = {str(it["id"]): it for it in items}
+            return cache[name]
+        else:
+            # Any other module-level authored value the export carried. Raising
+            # AttributeError for an absent one is deliberate: `getattr(rub,
+            # "SLOT_SPEC", {})` is a real call site and must keep working.
+            try:
+                value = coursedata.derived(name, h)
+            except Exception:
+                raise AttributeError(name) from None
+            if value is None:
+                raise AttributeError(name)
+        cache[name] = value
+        return value
+
+
+_RUBRIC_VIEWS: dict = {}
+
+
+def _rubric(handout: int) -> _RubricView:
+    """The view for one handout, built once."""
+    if handout not in _RUBRIC_VIEWS:
+        _RUBRIC_VIEWS[handout] = _RubricView(handout)
+    return _RUBRIC_VIEWS[handout]
+
+
 HANDOUTS: dict[int, dict] = {
     1: {
-        "rubric": rubric_h1,
+        "rubric": _rubric(1),
         "template": f"{MATERIALS}/BMod Handout #1 - Defining Behaviors, ABCs, and SMART Goals.docx",
         "submissions": f"{SUBS}/Handout 1 Submissions with Scoring and Feedback",
         "markers": H1_MARKERS,
@@ -360,7 +442,7 @@ HANDOUTS: dict[int, dict] = {
         },
     },
     2: {
-        "rubric": rubric_h2,
+        "rubric": _rubric(2),
         "template": (
             f"{MATERIALS}/BMod Handout #2 - Learning Operant Conditioning and "
             "Applying It to Behavior Change.docx"
@@ -382,7 +464,7 @@ HANDOUTS: dict[int, dict] = {
         "suspect_participants": [2, 3],
     },
     3: {
-        "rubric": rubric_h3,
+        "rubric": _rubric(3),
         "template": (
             f"{MATERIALS}/BMod Handout #3 - Presenting Data, Graphing Data, "
             "&amp_ Analyzing Your Intervention.docx"
