@@ -152,19 +152,6 @@ _RESTRICTS_RULE = (
                "This is about WHICH thing, not about whether the plan works."
 )
 
-_HELD_BACK_RULE = (
-    "WHAT IS HELD BACK, AND IS IT WANTED? If the plan withholds, blocks or puts "
-    "something out of reach, answer `held_back_is` about THAT thing: is it "
-    "DESIRABLE to the student -- something they want or enjoy -- or UNDESIRABLE, "
-    "something they would rather avoid? Answer about the thing held back, not "
-    "about the behaviour and not about whether the plan is a good one. If the "
-    "plan withholds nothing, either answer will do.\n"
-    "Read it off the thing itself. A phone, a snack, an evening out, music are "
-    "wanted; a chore, an early start, an obligation are not. The grader compares "
-    "your answer with what this type of conditioning requires, so do not adjust "
-    "it to fit the type -- answer what the thing is."
-)
-
 _MOVE_RULE = (
     "WHICH WAY, AND IS IT WANTED? `stimulus_move` is one answer combining two "
     "readings of the SAME thing -- the thing your example adds or takes away.\n"

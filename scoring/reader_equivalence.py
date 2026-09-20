@@ -83,14 +83,16 @@ JUSTIFIED = {
         "authored prose composed into item guidance at import time.",
     (2, "_MOVE_RULE"):
         "authored prose composed into item guidance at import time.",
-    (2, "_HELD_BACK_RULE"):
-        "DEAD. Defined once at rubric_h2.py:155 and referenced nowhere; its "
-        "text appears in no item, and no item uses the `held_back_is` slot it "
-        "was written for. Carried by nothing because it ships nowhere. Left in "
-        "place and reported rather than deleted here -- a migration tool is the "
-        "wrong place to decide that authored text is dead.",
 }
-DEAD = {(2, "_HELD_BACK_RULE")}
+# EMPTY, AND THE ENTRY THAT WAS HERE IS WHY THE SET STAYS. `_HELD_BACK_RULE` was
+# reported dead by this tool and LEFT IN PLACE, on the principle that a
+# migration tool is the wrong place to decide that authored text is dead. It was
+# deleted from `rubric_h2.py` on 2026-09-19, by a person, after both claims
+# behind the verdict were checked independently: no item uses the
+# `held_back_is` slot it was written for, and its text appears in no handout's
+# OLX. Reporting it and deleting it are different acts by different parties, and
+# this tool still only does the first.
+DEAD: set = set()
 
 # Fields the EXPORT synthesises, which no module can hold. `handout` is the one:
 # an item does not record which handout it belongs to because the module it is
