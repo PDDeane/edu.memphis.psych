@@ -769,8 +769,15 @@ SCORER_PARTS = tuple(dict.fromkeys(
     + tuple(part for parts in _BY_PRIMITIVE.values() for part in parts)))
 
 
+@functools.lru_cache(maxsize=4096)
 def _behaviour_src(src: str) -> str:
     """A function's source with its PROSE removed, so only behaviour is hashed.
+
+    MEMOISED ON THE SOURCE TEXT, which is the whole of its input: this is a pure
+    function, and it was 2,419 of the 3,268 `ast.parse` calls in one enforcement
+    audit -- 74% of them -- because the same function bodies are re-hashed for
+    every item and every side. Keying on the text means changed source is a
+    different key automatically, so there is no staleness to reason about.
 
     This codebase documents heavily, and a fingerprint that moves on a docstring
     is a fingerprint that cries wolf. Correcting one comment in `parse_counts` --
