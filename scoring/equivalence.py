@@ -1739,12 +1739,16 @@ def enforcement_selftest():
     # CLI counterpart at all), 1b is derive-path (the CLI asks for it).
     import olx_prompts as _op
     # The derive-path branch: the CLI asks for what the web computes.
+    _wc_item = _pick("a computed check loses its declaration",
+                     sorted({i for d in _op.SCORING_DIVERGENCES
+                             for i in (d.get("web_computes") or {})}),
+                     "the first item a divergence says the web computes")
     for d in _op.SCORING_DIVERGENCES:
-        if "1b" in (d.get("web_computes") or {}):
+        if _wc_item is not None and _wc_item in (d.get("web_computes") or {}):
             wsaved = dict(d)        # the whole entry: see SHEET_ONLY above
             d.pop("web_computes")
-            cases.append(("1b computed check loses its declaration",
-                          "ASKED ON PYTHON ONLY", "1b",
+            cases.append(("a computed check loses its declaration",
+                          "ASKED ON PYTHON ONLY", _wc_item,
                           _audit_async()))
             d.clear()
             d.update(wsaved)
@@ -2212,7 +2216,18 @@ def enforcement_selftest():
     # now the cell carrying an `expect_error`, and the check is about the shape of
     # an exclusion rationale, not about which cell holds it.
     import handouts as _H6
-    _p9 = _H6.PER_ITEM_EXCLUDE["Q4c"][16]
+    # BY SHAPE, and this case has drifted ONCE ALREADY: it was Q6/p9 until that
+    # exclusion became a CORRECTED_GOLD entry, and a person re-pointed it at
+    # Q4c/p16 by hand. The comment above says the check is about the shape of an
+    # exclusion rationale, not about which cell holds it -- so the cell is now
+    # chosen by that shape and the next drift needs no one to notice it.
+    _err_cell = _pick("an exclusion states a point figure only in prose",
+                      sorted((i, p) for i, per in _H6.PER_ITEM_EXCLUDE.items()
+                             for p, e in per.items()
+                             if isinstance(e, dict) and e.get("expect_error") is not None),
+                      "the first exclusion cell carrying an `expect_error`")
+    _p9 = (None if _err_cell is None
+           else _H6.PER_ITEM_EXCLUDE[_err_cell[0]][_err_cell[1]])
     _saved_err = _p9["expect_error"]
     _p9["expect_error"] = None            # not pop(): popping reorders the dict
     _p9["why"] += " the error here is exactly +2.00."
@@ -2317,7 +2332,12 @@ def enforcement_selftest():
     import handouts as _H4
     _cp = _H4.HANDOUTS[1]["cited_participants"]
     _saved_cp = dict(_cp)
-    _cp["Q4b"] = sorted(set(_cp.get("Q4b", [])) | {99})
+    # The ITEM is incidental -- what makes the citation unjustified is pid 99,
+    # which no cohort contains and no exclusion names. Picked by shape so the
+    # case does not quietly depend on Q4b still existing.
+    _cite_item = _pick("an exclusion outlives the citation that justified it",
+                       sorted(rubric_h1.BY_ID), "the first h1 item, alphabetically")
+    _cp[_cite_item] = sorted(set(_cp.get(_cite_item, [])) | {99})
     cases.append(("an exclusion outlives the citation that justified it",
                   "EXCLUSION UNJUSTIFIED", "-",
                   _audit_async()))

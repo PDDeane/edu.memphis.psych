@@ -14272,7 +14272,13 @@ COURSE_DATA_REENTRY: dict[str, tuple[int, str]] = {
         # the duplicated-item case (any item proves it; the first h1 item), and
         # the two-fixes case (first cell carrying a consensus fix, duplicating a
         # box THAT CELL already fixes rather than a name typed into the case).
-        13,
+        # 27 -> 24 -> 17 -> 13 -> 10 on 2026-09-20. Added since: the
+        # computed-check case (first item a divergence says the web computes),
+        # the exclusion-prose case (first exclusion cell carrying an
+        # `expect_error` -- a case that had ALREADY drifted once, from Q6/p9 to
+        # Q4c/p16, and was re-pointed by hand), and the unjustified-citation
+        # case (the item is incidental; pid 99 is what makes it unjustified).
+        10,
         "D2d's exemption was removed 2026-09-19. These 27 embeddings were always "
         "there and were subtracted before anyone looked; nothing was added. D2a "
         "(fixtures that select their target by shape) is the work that removes "
