@@ -259,6 +259,13 @@ DECLARATION_TABLES = ("PROSE_ONLY_SLOTS", "PROSE_ONLY_JUDGED_AGAINST",
                       # would put a derived value in the course file and freeze
                       # a map that changes whenever the .olx does.
                       "BLOCKS",
+                      # SELFTEST_NAMED_FIXTURES moved 2026-09-20. Declaring the
+                      # nine named fixtures in `enforcement.py` MOVED this
+                      # course's item ids into the engine rather than removing
+                      # them -- the ratchet caught the rise 10 -> 11 at once.
+                      # It is a declaration ABOUT this course's items, like
+                      # COUNTABLE_EXEMPT, so it belongs in the course file.
+                      "SELFTEST_NAMED_FIXTURES",
                       # from score.py and agreement_app.py
                       "PAPER_ITEM_NOTES", "PAPER_ITEM_NOTES_WHY",
                       "CONTEXT_SOURCE", "JOBS", "HANDOUT_FIELDS")
