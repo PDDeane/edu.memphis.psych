@@ -1330,12 +1330,23 @@ BLOCKS: dict[int, dict[str, dict]] = {1: {'bmod_h1_q1_llm': {'item': 'Q1',
 # fixture naming something that no longer exists is the drift D2a was written
 # to catch, and it is caught here for the nine that stayed behind.
 SELFTEST_NAMED_FIXTURES: dict[tuple[str, str], str] = {
-    ("a cover slot's rule is hidden", "Q6"):
-        "the case injects BOTH halves -- a rule ON a cover slot and the cover "
-        "group hidden -- because no cover slot need carry a rule at any moment. "
-        "Q6 is the item where that pairing exists; picking `the first item with "
-        "a cover group` would find one with no rule to hide and test nothing.",
-    ("the paper scorer's per-cell stub", "Q6"):
+    # TWO ENTRIES CAME OUT ON 2026-09-20, and both reasons were wrong rather
+    # than merely stale -- which is the argument for testing a declaration's
+    # CLAIM and not just its key.
+    #
+    # ("a cover slot's rule is hidden", "Q6") said Q6 is "the item where that
+    # pairing exists" and that shape-picking would find an item with no rule to
+    # hide. No Q6 cover slot carries a rule at all -- its cover keys are
+    # `state_*` and its ruled slots `affect_*` -- and the case INJECTS the rule
+    # itself, so it never needed one. Only one h1 item has a cover group, so
+    # there was nothing else to find either. It picks by shape now.
+    #
+    # ("web loses `counts`", "Q1") said this case "follows" the CLI-side one.
+    # It did not: the CLI side shape-picks and this named Q1, and they agreed
+    # only because sorted(['Q1','Q2'])[0] is Q1. It follows it now, which is
+    # what the reason always claimed.
+
+        ("the paper scorer's per-cell stub", "Q6"):
         "a FILTER inside a stub, not a target: the stub answers differently for "
         "one item so the case can tell the two paths apart. The id is a "
         "discriminator in fake code, and deriving it would only move the "
@@ -1352,12 +1363,7 @@ SELFTEST_NAMED_FIXTURES: dict[tuple[str, str], str] = {
         "the CONTENT of the test is that `antecedent_1` and `antecedent_2` carry "
         "DIFFERENT codes. That is a property of Q4a's slots, not an incidental "
         "choice of item, and an item without it tests nothing.",
-    ("web loses `counts`", "Q1"):
-        "paired with the CLI-side case above it, which tests the mirror. The two "
-        "must name the SAME item for the pair to mean anything, and the CLI side "
-        "picks by shape -- so this one follows it rather than choosing "
-        "independently.",
-    ("an item leaves JOBS", "1b"):
+        ("an item leaves JOBS", "1b"):
         "NOT ARBITRARY, and measured: removing the first job instead raises "
         "KeyError inside `check_ref_targets_resolve`, which indexes JOBS for "
         "that item unconditionally. The safe targets are the ones nothing else "

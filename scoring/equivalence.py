@@ -2020,8 +2020,20 @@ def enforcement_selftest():
     # halves are injected — a rule ON a cover slot, and the cover group hidden —
     # because no cover slot need carry a rule at any given moment, and a probe
     # that depends on one being there stops testing anything the day it goes.
-    _q6 = _R1.BY_ID["Q6"]
-    _sc1 = [x for x in _q6["credit"] if x["what"] == "state_c1"][0]
+    # BY SHAPE. The declaration for this case claimed Q6 is "the item where that
+    # pairing exists" -- a cover group AND a rule on a cover slot -- and that
+    # shape-picking would find an item with no rule to hide. Both halves were
+    # wrong: NO Q6 cover slot carries a rule (its cover keys are state_*, its
+    # ruled slots affect_* and link_c2), and the case INJECTS the rule itself,
+    # so it never needed one to pre-exist. Only one h1 item has a cover group at
+    # all, so there was nothing else to find either.
+    _cov_item = _pick("the two prompts fill `{fail}` with different verdicts",
+                      sorted(i for i, e in _R1.BY_ID.items()
+                             if (e.get("cover") or [{}])[0].get("keys")),
+                      "the first h1 item with a keyed `cover` group")
+    _q6 = _R1.BY_ID[_cov_item]
+    _cov_key = _q6["cover"][0]["keys"][0]
+    _sc1 = [x for x in _q6["credit"] if x["what"] == _cov_key][0]
     _saved_cover, _had_rule = _q6["cover"], _sc1.get("rule")
     # All THREE vocabulary homes are emptied. `codes` included: once
     # score._fail_verdict learned to read it, hiding only the cover group left the
@@ -2467,13 +2479,20 @@ def enforcement_selftest():
 
     # The mirror of the computed-check guard: a check moved into CLI code while the
     # web still asks for it. Without this, Q1's count derivation looked clean.
+    # FOLLOWS THE CLI SIDE, which is what its declaration always claimed and
+    # what the code did not do. The CLI case shape-picks the first h1 item with
+    # a `counts` family; this named Q1. They agreed only because sorted(['Q1',
+    # 'Q2'])[0] happens to be Q1 -- the day Q1 lost `counts` the pair would have
+    # tested two different items and said nothing.
+    _web_cnt_item = _cnt_item
+
     def _drop_counts(i):
         a = _orig(i)
-        if i == "Q1":
+        if i == _web_cnt_item:
             a["counts"] = ""
         return a
     globals()["_web_attrs"] = _drop_counts
-    cases.append(("web Q1 loses `counts`", "ASKED ON OLX ONLY", "Q1",
+    cases.append(("web loses `counts`", "ASKED ON OLX ONLY", _web_cnt_item,
                   _audit_async()))
     globals()["_web_attrs"] = _orig
 
