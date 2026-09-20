@@ -19,7 +19,12 @@ import statistics
 
 from gold import load_h1
 from handouts import gold_ceiling, gold_divergence_cells
-from rubric_h1 import BY_ID, ITEMS
+# The rubric through `handouts`, not the module: `config(h)["rubric"]` serves a
+# view onto the course file, so this keeps working when Stage 5 deletes
+# `rubric_h*`. The names below are bound from it, so every use is unchanged.
+import handouts as _H_RUBRIC
+_RUBRIC = _H_RUBRIC.config(1)["rubric"]
+BY_ID, ITEMS = _RUBRIC.BY_ID, _RUBRIC.ITEMS
 from stale_check import audit as stale_audit
 import paths
 
