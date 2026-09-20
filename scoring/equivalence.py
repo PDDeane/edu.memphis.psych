@@ -1670,17 +1670,36 @@ def enforcement_selftest():
     _baseline_keys = {_finding_key(f) for f in _baseline_findings}
     cases = []
 
-    saved = rubric_h1.BY_ID["Q6"].pop("cover")
-    cases.append(("CLI Q6 loses `cover`", "COVER DIFFERS", "Q6",
-                  _audit_async()))
-    rubric_h1.BY_ID["Q6"]["cover"] = saved
+    _cover_item = _pick("CLI loses `cover`",
+                        sorted(i for i, e in rubric_h1.BY_ID.items()
+                               if (e.get("cover") or [{}])[0].get("labels")),
+                        "the first h1 item with a labelled `cover` rule")
+    if _cover_item is None:
+        _shape_skips.append(("CLI loses `cover`",
+                             "no h1 item carries a labelled `cover` rule"))
+        _shape_skips.append(("CLI cover vocab drifts",
+                             "no h1 item carries a labelled `cover` rule"))
+    else:
+        _cover_entry = rubric_h1.BY_ID[_cover_item]
+        # IN PLACE, NOT BY REPLACEMENT. `pop` then `d["cover"] = saved` puts the
+        # key back at the END -- the order-lossy restore that left three
+        # permanent mismatches behind when it was done elsewhere. Replacing the
+        # whole entry would be worse still: `BY_ID[item] IS` its `ITEMS`
+        # element, and rebinding the name would break that aliasing, which is
+        # what `cli_signatures` relies on to see an injection at all.
+        _cover_saved = dict(_cover_entry)
+        _cover_entry.pop("cover")
+        cases.append((f"CLI loses `cover`", "COVER DIFFERS", _cover_item,
+                      _audit_async()))
+        _cover_entry.clear()
+        _cover_entry.update(_cover_saved)
 
-    g = rubric_h1.BY_ID["Q6"]["cover"][0]
-    vsaved = g["verdicts"]
-    g["verdicts"] = [*g["labels"], "neither", "blank"]      # the web says `absent`
-    cases.append(("CLI Q6 vocab drifts", "COVER VOCAB DIFFERS", "Q6",
-                  _audit_async()))
-    g["verdicts"] = vsaved
+        g = _cover_entry["cover"][0]
+        vsaved = g["verdicts"]
+        g["verdicts"] = [*g["labels"], "neither", "blank"]  # the web says `absent`
+        cases.append(("CLI cover vocab drifts", "COVER VOCAB DIFFERS", _cover_item,
+                      _audit_async()))
+        g["verdicts"] = vsaved
 
     # The coverage guard. Both misses so far were items the audits did not know
     # existed, so this one is checked by removing an item from the covered set.
@@ -2026,19 +2045,42 @@ def enforcement_selftest():
     # the one it changed, and every audit here stayed green because they all read
     # through BY_ID. Injected by appending a copy of Q6 to ITEMS.
     _R4 = _rubric_view(1)
-    _R4.ITEMS.append(dict(_R4.BY_ID["Q6"]))
-    cases.append(("a rubric item is duplicated",
-                  "RUBRIC ITEMS NOT UNIQUE", "-",
-                  _audit_async()))
-    _R4.ITEMS.pop()
+    # ANY item duplicated proves the point; the case named Q6 for no reason
+    # beyond being the item in hand. The first h1 item is chosen by shape so
+    # that the case survives Q6 changing, and the run says which it used.
+    _dup_item = _pick("a rubric item is duplicated",
+                      sorted(_R4.BY_ID), "the first h1 item, alphabetically")
+    if _dup_item is None:
+        _shape_skips.append(("a rubric item is duplicated", "h1 has no items"))
+    else:
+        _R4.ITEMS.append(dict(_R4.BY_ID[_dup_item]))
+        cases.append(("a rubric item is duplicated",
+                      "RUBRIC ITEMS NOT UNIQUE", "-",
+                      _audit_async()))
+        _R4.ITEMS.pop()
 
     # Two declared corrections for one box: the later silently wins.
     import agreement_app as _APP7
-    _APP7.CONSENSUS_FIXES[("Q6", 9)].append(("set", "affect_c1", "duplicate"))
-    cases.append(("two span fixes name the same box",
-                  "TWO FIXES FOR ONE BOX", "-",
-                  _audit_async()))
-    _APP7.CONSENSUS_FIXES[("Q6", 9)].pop()
+    # ANY cell that already carries a fix will do -- the case tests that a SECOND
+    # fix for one box is caught, not anything about Q6/p9. Picked by shape so it
+    # survives that cell's fixes being resolved.
+    _fix_cell = _pick("two span fixes name the same box",
+                      sorted(k for k, v in _APP7.CONSENSUS_FIXES.items() if v),
+                      "the first cell carrying a consensus fix")
+    if _fix_cell is None:
+        _shape_skips.append(("two span fixes name the same box",
+                             "no cell carries a consensus fix any more"))
+    else:
+        # THE BOX COMES FROM THE CELL, not from a name typed here. The check
+        # fires on TWO fixes for ONE box, so appending a fix for `affect_c1` to
+        # a cell whose fixes name other boxes creates no duplicate at all -- the
+        # case ran and detected nothing when the cell moved off Q6/p9.
+        _fix_box = _APP7.CONSENSUS_FIXES[_fix_cell][0][1]
+        _APP7.CONSENSUS_FIXES[_fix_cell].append(("set", _fix_box, "duplicate"))
+        cases.append(("two span fixes name the same box",
+                      "TWO FIXES FOR ONE BOX", "-",
+                      _audit_async()))
+        _APP7.CONSENSUS_FIXES[_fix_cell].pop()
 
     # A box holding text gold says was never written. This is the one fixture
     # check that reaches OUTSIDE the response — the others compare the boxes
