@@ -6573,6 +6573,31 @@ def check_no_unresolved_reference_reaches_the_page() -> list[str]:
         newest_src = max(newest_src, f.stat().st_mtime)
 
     out = []
+
+    # WAS IT BUILT FROM *THIS* TREE? The mtime test below asks only whether the
+    # artifacts are NEWER, and that is satisfied by any rebuild from any source.
+    # Measured on 2026-09-20: the live artifacts were rebuilt from the live psych
+    # tree, became newer than this tree's .olx, and the check fell silent --
+    # while `.stage/content` held a file that exists only in the live tree and
+    # lacked `psych_highlight_quizzes.olx`, the newest file here and the one that
+    # had made the check fire. A green that means "someone ran a build
+    # somewhere" is worse than the finding it replaced.
+    #
+    # ONE DIRECTION ONLY. A staged file this tree does not have is ordinary --
+    # the stage carries demos and other courses, 12 of them here. A file THIS
+    # TREE HAS and the stage does not means the stage is not about this tree.
+    staged_names = {f.name for f in (lo / ".stage/content").rglob("*.olx")}
+    if staged_names:
+        missing = sorted({f.name for f in _p.OLX_DIR.glob("*.olx")} - staged_names)
+        if missing:
+            out.append(
+                f".stage/content was built from a DIFFERENT content tree: "
+                f"{len(missing)} .olx file(s) in {_p.OLX_DIR.name}/ are absent "
+                f"from it ({', '.join(missing[:3])}"
+                f"{' ...' if len(missing) > 3 else ''}). Its age says nothing "
+                f"about this tree -- rebuild with lo-blocks pointed here, or "
+                f"read the finding as 'not evidence' rather than as clean.")
+
     for rel, what in ((".stage/content", "the resolver's staged output"),
                       ("apps/static/public/static-content", "the JSON the page loads")):
         root = lo / rel
