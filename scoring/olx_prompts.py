@@ -3085,6 +3085,16 @@ def _items_whose_prompt_changed(handout: int, old: str, new: str) -> list[str]:
     return out
 
 
+class _CarriedAlready(Exception):
+    """The item's record came from the course file, so do not scan the module.
+
+    A sentinel rather than a flag because the source scan is one long `try`
+    whose `except` prints "no recorded comments found" -- the message §2e exists
+    to make impossible. Skipping the block without touching that handler keeps
+    the two paths from growing into each other.
+    """
+
+
 def prior_record(item: str) -> str:
     """Everything already RECORDED about an item, printed where a rule is changed.
 
@@ -3121,7 +3131,44 @@ def prior_record(item: str) -> str:
     # A comment counts as being about this item when the item is named within a few
     # lines below it -- which covers a comment above a dict entry, above an
     # `if item_id == "DAY1"` branch, and above a declaration table keyed by id.
+    # THE COURSE FILE FIRST, where the record has been carried. Stage 5 deletes
+    # rubric_h1.py and rubric_h3.py, and this hook reads their SOURCE -- so a
+    # deletion rehearsal had it reporting "no recorded comments found" for
+    # thirteen items, which is the precise failure §2e exists to prevent: an
+    # empty output that reads as "nothing recorded".
+    #
+    # rubric_h2 is NOT carried and does not need to be: its items are built by
+    # the four factories A1c preserves, their record lives in those factory
+    # bodies, and that module survives. So this path serves the handouts whose
+    # files go, and the source scan below still serves the one that stays.
+    _runs = []
     try:
+        import coursedata as _cd
+
+        _runs = _cd.rubric_note_runs(item)
+    except Exception:
+        _runs = []
+    if _runs:
+        SHOWN = 3
+        skipped = _runs[:-SHOWN] if len(_runs) > SHOWN else []
+        if skipped:
+            lines.append(f"    {len(skipped)} EARLIER block(s) not shown, carried in "
+                         f"the course file. A later comment often assumes an earlier "
+                         f"one, so read them for context:")
+            lines.append(f"      python3 -c \"import coursedata as c; "
+                         f"print(chr(10).join(c.rubric_notes('{item}')))\"")
+        for k, b in enumerate(_runs[-SHOWN:], len(_runs) - len(_runs[-SHOWN:]) + 1):
+            lines.append(f"    course file, {item} block {k} of {len(_runs)} —")
+            for t in b[:8]:
+                lines.append(f"      {t[:96]}")
+            if len(b) > 8:
+                lines.append(f"      ... {len(b)-8} more lines: python3 -c "
+                             f"\"import coursedata as c; "
+                             f"print(chr(10).join(c.rubric_note_runs('{item}')[{k-1}]))\"")
+
+    try:
+        if _runs:
+            raise _CarriedAlready                   # sections 2 and 3 still run
         src = (paths.SCORING / f"rubric_h{h}.py").read_text().splitlines()
         quoted = (f'"{item}"', f"'{item}'")
         mentions = {i for i, l in enumerate(src) if any(q in l for q in quoted)}
@@ -3209,6 +3256,8 @@ def prior_record(item: str) -> str:
             if len(b) > 8:
                 lines.append(f"      ... {len(b)-8} more lines: "
                              f"sed -n '{n0},{n1}p' rubric_h{h}.py")
+    except _CarriedAlready:
+        pass                                        # printed from the course file
     except Exception as e:
         lines.append(f"    (no recorded comments found in rubric_h{h}.py for "
                      f"{item}: {type(e).__name__}: {e})")
