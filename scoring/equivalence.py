@@ -1561,6 +1561,25 @@ def _vacancy_report(records, skips):
     return rows
 
 
+def _rubric_view(handout: int):
+    """The rubric for one handout, as the CHECKS see it.
+
+    The self-test injects by mutating `BY_ID` and expects the audit to notice.
+    The audit reaches the rubric through `handouts.config(h)["rubric"]`, which
+    since 2026-09-19 is a view onto the course file rather than the
+    `rubric_h{h}` module -- so mutating the MODULE now changes nothing the
+    checks read, and every one of these cases would report VACUOUS while
+    appearing to inject. Measured before converting them, not after.
+
+    Binding the view to the module's own name keeps each case's spelling --
+    `rubric_h1.BY_ID["Q6"].pop("cover")` -- so what a case does is unchanged and
+    only where it lands moves.
+    """
+    import handouts
+
+    return handouts.config(handout)["rubric"]
+
+
 def enforcement_selftest():
     """Break each rule on purpose and confirm the audit says so.
 
@@ -1588,7 +1607,7 @@ def enforcement_selftest():
     import olx_prompts as _OP_GUARD_ST
     _OP_GUARD_ST.refuse_if_selftest_running("this enforcement self-test")
 
-    import rubric_h1, rubric_h2
+    rubric_h1, rubric_h2 = _rubric_view(1), _rubric_view(2)
     # THE INPUTS ARE FINGERPRINTED FIRST. This run takes ~15 minutes and compares
     # a restored state against a baseline captured at the start, so anything that
     # edits the source underneath it makes the comparison meaningless -- and the
@@ -1747,7 +1766,7 @@ def enforcement_selftest():
 
     # The code-reachability guard: a conversion that drops a verdict retires a
     # deduction code at identical points, so no accuracy number moves.
-    import rubric_h1
+    rubric_h1 = _rubric_view(1)
     # BOTH antecedent slots, since either one keeps the code alive — the reason the
     # first version of this injection fired nothing.
     # `startswith("antecedent_")` ALSO MATCHES THE PICKS. Subgoal Q33 added
@@ -1831,7 +1850,7 @@ def enforcement_selftest():
     # taken out by a conversion it was not watching. Any rule carrying the
     # placeholder tests the same thing, so it now finds one; when the last such
     # rule is converted this SKIPs, the way the plain-path case already does.
-    import rubric_h1 as _R1, rubric_h2 as _R2, rubric_h3 as _R3
+    _R1, _R2, _R3 = _rubric_view(1), _rubric_view(2), _rubric_view(3)
     _site = next((c for _m in (_R1, _R2, _R3) for _it in _m.ITEMS
                   for c in (_it.get("credit") or [])
                   if "`{fail}`" in (c.get("rule") or "")), None)
@@ -1961,7 +1980,7 @@ def enforcement_selftest():
     # second copy, so the next edit was verified against a different dict than
     # the one it changed, and every audit here stayed green because they all read
     # through BY_ID. Injected by appending a copy of Q6 to ITEMS.
-    import rubric_h1 as _R4
+    _R4 = _rubric_view(1)
     _R4.ITEMS.append(dict(_R4.BY_ID["Q6"]))
     cases.append(("a rubric item is duplicated",
                   "RUBRIC ITEMS NOT UNIQUE", "-",
@@ -2262,7 +2281,7 @@ def enforcement_selftest():
     # The evenness guard, in both directions. Q1 was counted and Q2 — the same item
     # with a different noun — was not, and every audit passed for as long as it took
     # someone to ask whether the primitives were applied evenly.
-    import rubric_h3
+    rubric_h3 = _rubric_view(3)
     q2 = rubric_h1.BY_ID["Q2"]
     ksaved = q2.pop("counts")
     cases.append(("an item with a countable family stops counting it",
@@ -2787,7 +2806,7 @@ def enforcement_selftest():
     # is clean, so removing a declaration while its attribute stays in the .olx
     # makes the finding appear. That is the exact shape of the 2026-09-05 revert
     # that left three orphans and cost eight sweeps their turn.
-    import rubric_h2 as _R2E44
+    _R2E44 = _rubric_view(2)
     _real_expect_wk1 = _R2E44.BY_ID["WK1"].get("expect")
     def _drop_wk1_expect():
         _R2E44.EXPECT.pop("WK1", None)
