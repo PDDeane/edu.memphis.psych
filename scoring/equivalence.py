@@ -3239,7 +3239,20 @@ def enforcement_selftest():
     #
     # So the conditional skips (`plain`, `_site`) are added -- they are NOT in
     # `cases` -- and the inverted skips are printed but not re-counted.
-    _conditional_skips = list(skips)
+    # A SHAPE SKIP IS COUNTED TOO -- it is in NEITHER `cases` NOR `skips`.
+    # The rule this line implements is "count what `len(cases)` does not", and
+    # `_shape_skips` was missed by it: a shape-picked case that skips appends
+    # nothing to `cases`, so `built` falls by one and nothing puts it back.
+    # `total` then comes out one SHORT and the two-sided ratchet prints THE
+    # SUITE LOST 1 CASE(S) -- the message for a case someone deleted, aimed at a
+    # corpus that merely stopped carrying a shape. The inverted skips are still
+    # excluded here, and for the opposite reason: they ARE in `cases`, holding
+    # found=None, and counting them twice is how SELFTEST_EXPECTED came to be 72
+    # for a suite of 71.
+    #
+    # A no-op today (13 shapes picked, 0 absent, suite reads 71/71), which is
+    # why it has never fired. It is arithmetic, not a measurement.
+    _conditional_skips = list(skips) + _shape_skips
     skips = skips + _inverted_skips + _shape_skips
     for label, why in skips:
         print(f"  SKIP  {label:<28} -> {why}")
