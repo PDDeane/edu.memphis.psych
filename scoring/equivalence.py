@@ -1700,12 +1700,19 @@ def enforcement_selftest():
     SHEET_ONLY.update(tsaved)
 
     # The equals comparison, now that both sides declare it on the credit path.
-    d1 = rubric_h2.BY_ID["D1"]
-    esaved = d1["equals"]
-    d1["equals"] = [{**esaved[0], "lenient": []}]
-    cases.append(("CLI D1 equals loses `unclear`", "EQUALS DIFFERS", "D1",
-                  _audit_async()))
-    d1["equals"] = esaved
+    _eq_item = _pick("CLI equals loses `unclear`",
+                     sorted(i for i, e in rubric_h2.BY_ID.items() if e.get("equals")),
+                     "the first h2 item with an `equals` rule")
+    if _eq_item is None:
+        _shape_skips.append(("CLI equals loses `unclear`",
+                             "no h2 item declares `equals` any more"))
+    else:
+        d1 = rubric_h2.BY_ID[_eq_item]
+        esaved = d1["equals"]
+        d1["equals"] = [{**esaved[0], "lenient": []}]
+        cases.append(("CLI equals loses `unclear`", "EQUALS DIFFERS", _eq_item,
+                      _audit_async()))
+        d1["equals"] = esaved
 
     # The all-items guard: a olx-only enforcement rule on a plain-path item was
     # invisible until the audit covered those too.
@@ -1806,8 +1813,15 @@ def enforcement_selftest():
     # first time the self-test ran after them. The filter meant the two SCORED
     # antecedent slots; requiring `codes` says so, and stays right if another
     # `antecedent_*` reporting slot is added later.
-    slots = [c for c in rubric_h1.BY_ID["Q4a"]["credit"]
-             if c["what"].startswith("antecedent_") and c.get("codes")]
+    _ante_item = _pick("a verdict is dropped, retiring its code",
+                       sorted(i for i, e in rubric_h1.BY_ID.items()
+                              if [c for c in (e.get("credit") or [])
+                                  if c["what"].startswith("antecedent_")
+                                  and c.get("codes")]),
+                       "the first h1 item with coded `antecedent_*` slots")
+    slots = [] if _ante_item is None else [
+        c for c in rubric_h1.BY_ID[_ante_item]["credit"]
+        if c["what"].startswith("antecedent_") and c.get("codes")]
     saved = [(list(c["verdicts"]), dict(c["codes"])) for c in slots]
     for c in slots:
         c["verdicts"] = ["met", "absent"]
@@ -2339,7 +2353,11 @@ def enforcement_selftest():
                   _audit_async()))
     del ENF.COUNTABLE_EXEMPT[("2b", "sentence")]
 
-    q = rubric_h3.BY_ID["2a"]["credit"][0]["codes"]
+    _code_item = _pick("a slot points at a code that does not exist",
+                       sorted(i for i, e in rubric_h3.BY_ID.items()
+                              if (e.get("credit") or [{}])[0].get("codes")),
+                       "the first h3 item whose first credit rule carries codes")
+    q = rubric_h3.BY_ID[_code_item]["credit"][0]["codes"]
     csaved = dict(q)
     q["absent"] = "NO_VERDIKT"
     cases.append(("a slot points at a code that does not exist",
@@ -2848,16 +2866,30 @@ def enforcement_selftest():
     # makes the finding appear. That is the exact shape of the 2026-09-05 revert
     # that left three orphans and cost eight sweeps their turn.
     _R2E44 = _rubric_view(2)
-    _real_expect_wk1 = _R2E44.BY_ID["WK1"].get("expect")
+    _exp_item = _pick("a rubric declaration is removed, its attribute is not",
+                      sorted(i for i, e in _R2E44.BY_ID.items()
+                             if e.get("expect") and i in _R2E44.EXPECT),
+                      "the first h2 item with both an `expect` rule and an "
+                      "EXPECT entry")
+    # THE REAL VALUE, NOT A COPY OF IT. The restore used to write a hard-coded
+    # literal back into EXPECT -- correct today, and silently wrong on the day
+    # the rubric changed, because nothing compared them.
+    _real_expect = (None if _exp_item is None
+                    else _R2E44.BY_ID[_exp_item].get("expect"))
+    import copy as _copy
+
+    _real_EXPECT = (None if _exp_item is None
+                    else _copy.deepcopy(_R2E44.EXPECT.get(_exp_item)))
+
     def _drop_wk1_expect():
-        _R2E44.EXPECT.pop("WK1", None)
-        _R2E44.BY_ID["WK1"].pop("expect", None)
+        _R2E44.EXPECT.pop(_exp_item, None)
+        _R2E44.BY_ID[_exp_item].pop("expect", None)
+
     def _restore_wk1_expect():
-        _R2E44.EXPECT["WK1"] = [{"key": "targets_own_behavior",
-                                 "left": "trigger_behavior",
-                                 "value": "utb", "lenient": ["wgb"]}]
-        if _real_expect_wk1 is not None:
-            _R2E44.BY_ID["WK1"]["expect"] = _real_expect_wk1
+        if _real_EXPECT is not None:
+            _R2E44.EXPECT[_exp_item] = _real_EXPECT
+        if _real_expect is not None:
+            _R2E44.BY_ID[_exp_item]["expect"] = _real_expect
     _scorer_case("a rubric declaration is removed, its attribute is not",
                  _drop_wk1_expect, _restore_wk1_expect,
                  want="GENERATED ATTRIBUTE HAS NO DECLARATION")
