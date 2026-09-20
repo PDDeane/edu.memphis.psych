@@ -282,6 +282,84 @@ DECLARATION_TABLES = ("PROSE_ONLY_SLOTS", "PROSE_ONLY_JUDGED_AGAINST",
 #
 # Determinism does not need sorting here: the source order is itself
 # deterministic, so the same builders produce the same bytes.
+def _comments_in(lines, lo, hi):
+    """Every comment line in [lo, hi), de-indented. NOTHING IS DROPPED."""
+    return [l.strip()[1:].lstrip() if l.strip()[1:].strip() else ""
+            for l in lines[lo:hi] if l.strip().startswith("#")]
+
+
+def rubric_notes() -> dict:
+    """The rubric's REASONING, attributed to the item it is written about.
+
+    `rubric_h1.py` is 49% comments -- 1,448 lines -- and `rubric_h3.py` 25%.
+    Exporting the values alone and then deleting the modules would destroy that,
+    and it is the expensive half: a rule's comment routinely records which
+    hypotheses died on it and what they cost to kill. The same loss was caught
+    on the gold side, where 707 lines came within one commit of going.
+
+    BY SPAN, NOT BY ADJACENCY, which is the lesson from that one: a comment
+    belongs to the item whose entry ENCLOSES it, because these entries are
+    multi-line dicts whose comments sit inside the value they describe.
+    Attributing by "the run immediately before an entry" lost 333 of 707 there,
+    and the totals are asserted here so the question is answered by counting.
+
+    `rubric_h2` yields nothing and that is correct: its items are built by the
+    four factories A1c preserves, so its comments sit around the factory calls
+    rather than inside the ITEMS literal -- and that module survives as the
+    builder, so they are not at risk.
+    """
+    import ast
+
+    out = {"items": {}, "handouts": {}}
+    for handout in (1, 2, 3):
+        mod = _load(handout)
+        src = open(mod.__file__).read()
+        lines = src.splitlines()
+        tree = ast.parse(src)
+        node = next((n for n in tree.body
+                     if (isinstance(n, ast.Assign) and isinstance(n.targets[0], ast.Name)
+                         and n.targets[0].id == "ITEMS")
+                     or (isinstance(n, ast.AnnAssign) and isinstance(n.target, ast.Name)
+                         and n.target.id == "ITEMS")), None)
+        if node is None or not isinstance(node.value, (ast.List, ast.Tuple)):
+            continue
+        had = sum(1 for l in lines[node.lineno - 1:node.end_lineno]
+                  if l.strip().startswith("#"))
+        cursor, got = node.lineno, 0
+        for el in node.value.elts:
+            run = _comments_in(lines, cursor, el.end_lineno)
+            cursor = el.end_lineno
+            if not run:
+                continue
+            iid = None
+            if isinstance(el, ast.Dict):
+                for k, v in zip(el.keys, el.values):
+                    if (isinstance(k, ast.Constant) and k.value == "id"
+                            and isinstance(v, ast.Constant)):
+                        iid = str(v.value)
+            if iid is None:
+                raise SystemExit(
+                    f"rubric_export: {len(run)} comment line(s) in rubric_h{handout}'s "
+                    f"ITEMS belong to an entry with no readable `id`. They have "
+                    f"nowhere to go, so the export stops rather than dropping them.")
+            out["items"].setdefault(iid, []).extend(run)
+            got += len(run)
+        tail = _comments_in(lines, cursor, node.end_lineno)
+        got += len(tail)
+        if got != had:
+            raise SystemExit(
+                f"rubric_export: rubric_h{handout}'s ITEMS holds {had} comment "
+                f"line(s) and {got} were lifted. The reasoning is the expensive "
+                f"half of this record; it does not get dropped on the way out.")
+        # AND THE PROSE OUTSIDE `ITEMS`: the module header, which explains what
+        # the handout IS. 54 lines in h1 and 34 in h3, lost with the file.
+        outside = (_comments_in(lines, 0, node.lineno - 1)
+                   + _comments_in(lines, node.end_lineno, len(lines)))
+        if outside:
+            out["handouts"][str(handout)] = outside
+    return out
+
+
 def _pairs(table: dict) -> list:
     """A dict with TUPLE KEYS, as JSON can hold it: a list of [key, value].
 
@@ -411,6 +489,13 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
     for table, extra in sorted(residue.items()):
         doc["generator"][f"{table}__non_item"] = _jsonable(
             extra, f"generator.{table}__non_item")
+    # THE REASONING, carried beside the values. See `rubric_notes`: 1,567 lines
+    # of it are written INSIDE the ITEMS literals of h1 and h3, and a further
+    # 548 in the three module headers. Exporting the values alone and deleting
+    # the modules would take all of it.
+    _notes = rubric_notes()
+    doc["item_notes"] = _notes["items"]
+    doc["handout_notes"] = _notes["handouts"]
     return doc, full_report
 
 
