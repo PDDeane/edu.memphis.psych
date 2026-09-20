@@ -1923,6 +1923,38 @@ So: inject the breakage the check exists for, confirm the finding appears, resto
 confirm it clears. Add a self-test case so the retirement path is tested too. A
 check nobody has watched fail is a comment.
 
+## 2n. A DECLARATION'S KEY AND ITS REASON GO STALE SEPARATELY
+
+**Check the claim, not just the key.** A declaration names something and says why.
+Checks read the name: `check_named_fixtures_still_name_something` asks whether the
+item still exists, `check_course_data_reentries_are_current` asks whether the
+number still matches. Nothing reads the sentence, and the sentence is where the
+thinking is.
+
+Two of the nine self-test fixture declarations were tested as CLAIMS on
+2026-09-20, and both were false while their keys were perfectly valid:
+
+* One said its item was **the only one carrying a shape the case needs** — a cover
+  group with a rule on one of its slots. No cover slot on that item carries a rule
+  at all, and the case INJECTS the rule itself, so it never needed one. It was
+  declared unconvertible on a reason that had never been true.
+* One said it **"follows"** a paired case that picks its target by shape. It did
+  not; it named the item outright. The two agreed only because the shape-pick
+  happened to choose the same one. On the day that item lost the property, the two
+  halves of a paired test would have tested different things and said nothing.
+
+Both passed every check that reads them. Neither could have been caught by adding
+another check that reads keys.
+
+So when a declaration is relied on — before citing it, before deciding something
+cannot be converted, before letting it silence a finding — read what it claims and
+ask whether that is still so. Where the claim is about a measurable property,
+measure it: five of the seven surviving reasons were confirmed that way in minutes.
+Where it is not measurable, say so in the entry, so the next reader knows it rests
+on inspection rather than on a check nobody wrote.
+
+A reason nobody has re-read is an assumption with a citation.
+
 ## 3. Building the model
 
 **READ THE CREDITED ROWS, NOT JUST THE MISSES. `python3 measured.py
