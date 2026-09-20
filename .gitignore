@@ -37,3 +37,4 @@ migration/goldens/
 # by participant, and this repository is public. `gold_export.py` refuses a
 # destination inside the repo, and this refuses one that arrives another way.
 courses/*/gold.json
+.lo-blocks

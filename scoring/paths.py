@@ -47,7 +47,35 @@ SCORING = REPO / "scoring"
 OLX_DIR = REPO / "psychology"
 MATERIALS = SCORING / "materials"
 
-LO = Path(os.environ.get("LO_BLOCKS", Path.home() / "code/update/lo-blocks"))
+def _lo_blocks_root() -> Path:
+    """Where THIS checkout's lo-blocks is.
+
+    `LO` was one absolute path, so a COPY of this repo audited the ORIGINAL's
+    build artifacts -- the dry run read live lo-blocks, and on 2026-09-20 a
+    rebuild from live content made an artifact check go green about a tree it
+    had never seen. A checkout that ships its own lo-blocks should audit it.
+
+    A MARKER FILE, NOT A SIBLING GUESS. Deriving `REPO.parent/"lo-blocks"` looks
+    tidier and is wrong: `~/code/lo-blocks` exists, so live would silently stop
+    resolving `~/code/update/lo-blocks` and start reading something else.
+    Checked before writing this, which is the only reason it is not the shipped
+    version. The marker is opt-in: a tree without one behaves exactly as before.
+
+    Precedence: the environment wins (a one-off run, and what the build scripts
+    already set), then the marker, then the historical default.
+    """
+    env = os.environ.get("LO_BLOCKS")
+    if env:
+        return Path(env)
+    marker = REPO / ".lo-blocks"
+    if marker.is_file():
+        named = marker.read_text().strip()
+        if named:
+            return Path(named).expanduser()
+    return Path.home() / "code/update/lo-blocks"
+
+
+LO = _lo_blocks_root()
 
 
 # ---------------------------------------------------------------------------
