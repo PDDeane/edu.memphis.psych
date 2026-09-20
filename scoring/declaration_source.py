@@ -1330,6 +1330,26 @@ BLOCKS: dict[int, dict[str, dict]] = {1: {'bmod_h1_q1_llm': {'item': 'Q1',
 # fixture naming something that no longer exists is the drift D2a was written
 # to catch, and it is caught here for the nine that stayed behind.
 SELFTEST_NAMED_FIXTURES: dict[tuple[str, str], str] = {
+    # HOW EACH REASON WAS CHECKED, 2026-09-20. A reason is a claim and goes
+    # stale like any other; `check_named_fixtures_still_name_something` verifies
+    # the ID still exists, and both entries removed below named ids that DO
+    # exist. What was false was the sentence saying why.
+    #
+    #   MEASURED, and confirmed:
+    #     Q4a  antecedent_1 and antecedent_2 still carry different codes
+    #     1b   removing the FIRST job still raises KeyError inside
+    #          check_ref_targets_resolve, so the target is still not arbitrary
+    #     2b   still carries the sentence family its exemption is about
+    #     Q6/p9  gold still reports boxes empty there (affect_c2, change_a2,
+    #            state_a2, state_c2)
+    #     Q6/p1  still has a non-empty `state_a1`
+    #
+    #   STRUCTURAL, and not mechanically checkable: the two stub filters. The id
+    #   is a discriminator inside fake code -- `if item == "1a" and side ==
+    #   "olx"` -- so there is nothing about the corpus for a check to read. They
+    #   are true by inspection or not at all, which is worth saying rather than
+    #   leaving them looking unexamined.
+    #
     # TWO ENTRIES CAME OUT ON 2026-09-20, and both reasons were wrong rather
     # than merely stale -- which is the argument for testing a declaration's
     # CLAIM and not just its key.
