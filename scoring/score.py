@@ -35,9 +35,17 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from backends import BackendError, make_backend
 from handouts import config, find_submissions
 from olx_prompts import _criteria_section
-from rubric_h2 import (BARRIER_PICK_ITEMS, CADENCE_BARRIER_ITEMS,
-                       CONTINGENCY_GATE_ITEMS, MOVE_PICK_ITEMS,
-                       POLARITY_GATE_ITEMS, REQUIRED_MOVE)
+# The rubric through `handouts`, not the module: `config(h)["rubric"]` serves a
+# view onto the course file, so this keeps working when Stage 5 deletes
+# `rubric_h*`. The names below are bound from it, so every use is unchanged.
+import handouts as _H_RUBRIC
+_RUBRIC2 = _H_RUBRIC.config(2)["rubric"]
+BARRIER_PICK_ITEMS = _RUBRIC2.BARRIER_PICK_ITEMS
+CADENCE_BARRIER_ITEMS = _RUBRIC2.CADENCE_BARRIER_ITEMS
+CONTINGENCY_GATE_ITEMS = _RUBRIC2.CONTINGENCY_GATE_ITEMS
+MOVE_PICK_ITEMS = _RUBRIC2.MOVE_PICK_ITEMS
+POLARITY_GATE_ITEMS = _RUBRIC2.POLARITY_GATE_ITEMS
+REQUIRED_MOVE = _RUBRIC2.REQUIRED_MOVE
 from docx_text import extract_media, graph_evidence
 from segment import repair_orphans, segment, utb_hint
 
@@ -272,7 +280,7 @@ def _slot_options(slot: str) -> list:
     answer anything and the engine would compare it against values it never
     offered.
     """
-    from rubric_h2 import SLOT_OPTIONS
+    SLOT_OPTIONS = _RUBRIC2.SLOT_OPTIONS
     try:
         return list(SLOT_OPTIONS[slot])
     except KeyError:

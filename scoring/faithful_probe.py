@@ -144,11 +144,11 @@ def main() -> int:
         import collections
 
         import enforcement as ENF
-        import importlib
+        import handouts as _H_R
 
         want = [x.strip() for x in a.slots.split(",") if x.strip()]
-        rubric = importlib.import_module(
-            f"rubric_h{M._jobs()[a.item]['handout']}")
+        # The view, not the module: see `handouts._RubricView`.
+        rubric = _H_R.config(M._jobs()[a.item]["handout"])["rubric"]
         credit = rubric.BY_ID[a.item].get("credit") or []
         first = {c["what"]: (c.get("verdicts") or [None])[0] for c in credit}
         # AN UNSCORED SLOT HAS NO GAIN OR LOSS TO CLASSIFY. `reasons_failing`

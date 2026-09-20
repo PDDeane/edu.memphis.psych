@@ -14231,7 +14231,14 @@ RUBRIC_BUILDERS = {
 # It is not convertible and is not meant to be: it dies with the modules at
 # Stage 5, because a check for stale selectors in a file that no longer exists
 # has nothing to find.
-RUBRIC_CONSUMER_BUDGET = 11
+# ONE, and it is the one that cannot be converted:
+# `check_selectors_govern_something` reads rubric_h2's SOURCE to find selector
+# tuples that are defined and no longer consulted. `inspect.getsource` on a data
+# view raises TypeError, and a check about the authoring artifact has nothing to
+# read once the artifact is gone -- so it is deleted WITH the modules at Stage 5
+# rather than converted. Every other consumer now reaches the rubric through
+# `handouts.config(h)["rubric"]`, a view onto the course file.
+RUBRIC_CONSUMER_BUDGET = 1
 
 
 # A COUNT THAT ROSE BECAUSE AN EXEMPTION WAS REMOVED, not because course data

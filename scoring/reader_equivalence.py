@@ -71,7 +71,7 @@ JUSTIFIED = {
     (2, "_BARRIER_CONDS"):
         "authored conditions spliced into item `onlyif` clauses at import time; "
         "carried inside the item fields.",
-    (2, "_OC_FRAME"):
+    (2, "OC_FRAME"):
         "authored prose composed into item guidance at import time.",
     (2, "_EXAMPLE_RULES"):
         "authored prose composed into item guidance at import time.",

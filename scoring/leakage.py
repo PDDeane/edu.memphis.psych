@@ -488,8 +488,8 @@ def _domain_words(items: tuple[str, ...]) -> set[str]:
     specs = _specs()
     txt = " ".join(str((specs.get(i) or {}).get("question") or "") for i in items)
     try:
-        import rubric_h2 as R2
-        txt += " " + R2._OC_FRAME
+        import handouts as _H_L
+        txt += " " + _H_L.config(2)["rubric"].OC_FRAME
     except Exception:
         pass
     return set(_content(txt))
