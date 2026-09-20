@@ -566,12 +566,56 @@ def _audit_findings_fresh() -> list[tuple]:
 # audit, about fifteen minutes on a full run. That trade is available and is not
 # taken by default.
 #
-# This stays off for a narrower reason than before: serial is what every
+# It stayed off for a narrower reason than before: serial is what every
 # recorded result was measured against, and changing what the certifying run
 # reports is a bigger decision than making it faster.
+#
+# TAKEN 2026-09-20, on the user's decision. The certifying run now clears both
+# caches before EVERY audit it takes, so what it reports no longer depends on
+# what ran in the process before it. The cost is the measured one -- ~13s per
+# audit, roughly fifteen minutes on a full run -- and it buys the property the
+# note above establishes: an injection's downstream consequences are visible
+# instead of masked by a fixture a previous case warmed.
+#
+# RECORDED RESULTS ARE NOT INVALIDATED, they are superseded: the warm path was
+# not wrong, it was blind in a way that varied by run order (52 -> 54 and
+# 223 -> 225 from the same sequence). A suite whose absolute count depends on
+# process history cannot certify anything, and that is the defect being paid off.
+#
+# `SELFTEST_WARM_FIXTURES=1` restores the old behaviour for a comparison run.
+# Only the SELF-TEST's audits go cold; `--enforcement` on its own is untouched,
+# so nothing outside certification pays the 13s.
 # `SELFTEST_WORKERS=8` turns it on for a run where speed matters more than
 # certification, and that run says so in its own output.
 _AUDIT_WORKERS = int(os.environ.get("SELFTEST_WORKERS", "1") or "1")
+_AUDIT_WARM = os.environ.get("SELFTEST_WARM_FIXTURES") == "1"
+
+
+def _fixture_reset() -> None:
+    """Drop both fixture caches, so the next audit reflects THIS state.
+
+    Neither cache is invalidated by an injection -- `agreement._fixture_cached`
+    is keyed on `(item, pid)` alone -- so without this an audit reports what a
+    previous case's fixture made true.
+    """
+    if _AUDIT_WARM:
+        return
+    import agreement as _AG_fx
+    import enforcement as _ENF_fx
+    _AG_fx._fixture_cached.cache_clear()
+    _ENF_fx._fixture_built.cache_clear()
+
+
+def _audit_cold():
+    """`enforcement_audit()` with the fixture caches dropped first.
+
+    EVERY audit the self-test takes goes through here -- baseline, each case,
+    the inverted preconditions and the final restored-state check. A baseline
+    taken warm and a case taken cold would differ by the caches rather than by
+    the injection, which is the comparison the whole suite rests on.
+    """
+    _fixture_reset()
+    return [f for f in enforcement_audit()[0]]
 _AUDIT_INFLIGHT: list = []
 
 
@@ -696,7 +740,7 @@ def _writes_to_disk(fn) -> list:
 
 def _audit_now():
     """The audit, in THIS process. For a case whose injection is on disk."""
-    return [f for f in enforcement_audit()[0]]
+    return _audit_cold()
 
 
 def _audit_async(label: str = ""):
@@ -729,7 +773,7 @@ def _audit_async(label: str = ""):
     import tempfile
 
     if _AUDIT_WORKERS <= 1:                         # the serial path, kept usable
-        return [f for f in enforcement_audit()[0]]
+        return _audit_cold()
     while len(_AUDIT_INFLIGHT) >= _AUDIT_WORKERS:
         _audit_resolve(_AUDIT_INFLIGHT[0])          # caches onto the handle
     fd, path = tempfile.mkstemp(prefix="auditrun_", suffix=".pkl")
@@ -737,7 +781,7 @@ def _audit_async(label: str = ""):
     pid = os.fork()
     if pid == 0:                                    # ---- child ----
         try:
-            out = [f for f in enforcement_audit()[0]]
+            out = _audit_cold()
             with open(path, "wb") as fh:
                 pickle.dump(out, fh)
             os._exit(0)
@@ -1693,7 +1737,7 @@ def enforcement_selftest():
     # nothing from one that added a finding and removed another -- both leave the
     # total where it was. The vacancy report (below) needs to know whether the
     # injection moved ANYTHING, so it compares sets.
-    _baseline_findings = enforcement_audit()[0]
+    _baseline_findings = _audit_cold()
     _selftest_baseline = len(_baseline_findings)
     _baseline_keys = {_finding_key(f) for f in _baseline_findings}
     cases = []
@@ -2599,7 +2643,7 @@ def enforcement_selftest():
             # vacuous: a check that never fires would "pass" it. Assert the
             # precondition and record it, so a corpus that stops carrying the
             # violation degrades to a SKIP rather than to a silent PASS.
-            pre = [f for f in enforcement_audit()[0]
+            pre = [f for f in _audit_cold()
                    if f[0] == ANY_ITEM and f[1] == want]
             if not pre:
                 cases.append((label, want, ANY_ITEM, None))
@@ -3196,7 +3240,7 @@ def enforcement_selftest():
     # 1 on a run where all 39 injections were detected and nothing was left
     # behind. A selftest that fails when it passes gets ignored, which is how the
     # arity bug survived in the first place.
-    _final_findings = enforcement_audit()[0]
+    _final_findings = _audit_cold()
     clean = len(_final_findings)
     # WHICH ONES, NOT HOW MANY. This reported "restored state is clean: False (7
     # finding(s), baseline 4)" and nothing else, and that number cost an hour to
