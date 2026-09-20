@@ -656,6 +656,7 @@ _DISK_CASES = frozenset({
     "the guide grows a duplicate section label",
     "a slot-set comparison drops its vocabulary guard",
     "a count scaffold reports an impossible triple",
+    "a content file never reaches the build",
 })
 
 
@@ -1473,7 +1474,7 @@ def uncompared_web_rules():
 # 72 as of 2026-09-16: the scored-slot check gained a case. It reads
 # ARTIFACTS rather than sheets, so it is blinded by dropping a slot from one
 # engine's recorded runs -- see the case for why a check at zero needs one.
-SELFTEST_EXPECTED = 71
+SELFTEST_EXPECTED = 72
 
 # HOW MANY CASES ARE ALLOWED TO TEST NOTHING. A two-sided ratchet in the same
 # idiom as SELFTEST_EXPECTED: vacancy may FALL freely and may not RISE.
@@ -2882,6 +2883,37 @@ def enforcement_selftest():
                           ENF.GOLD_ALPHABET_EXEMPT.clear(),
                           ENF.GOLD_ALPHABET_EXEMPT.update(_real_alpha)),
                  want="SLOT SETS COMPARED ACROSS ALPHABETS")
+
+    # A CONTENT FILE THAT NEVER REACHES THE BUILD. Owed since 2026-09-20 and
+    # unwritable until the same day: the headline fired at BASELINE while
+    # lo-blocks was built from a DIFFERENT checkout, so a case keyed on it would
+    # have reported itself detected while testing nothing -- the vacuous shape
+    # that let the neutrality case run empty under `72 of 72 expected`. It
+    # became writable when this tree grew its own lo-blocks and `.lo-blocks`
+    # pointed at it.
+    #
+    # THE INJECTION IS A NEW SOURCE FILE, which is the defect's real shape:
+    # content the staged output has never seen. It trips both arms -- absent
+    # from the stage, and newer than the artifacts.
+    #
+    # THE PRECONDITION IS ASSERTED, not assumed. If the artifacts stop being
+    # about this tree the headline returns to the baseline and this case stops
+    # being able to fail, so it degrades to a COUNTED skip rather than a silent
+    # pass. That it stays counted is what the `_shape_skips` fix bought.
+    import paths as _P_prov
+    _prov_want = "AN UNRESOLVED REFERENCE REACHED THE BUILT PAGE"
+    if any(f[1] == _prov_want for f in _baseline_findings):
+        _shape_skips.append((
+            "a content file never reaches the build",
+            "the headline already fires at baseline -- the build artifacts are "
+            "not about this tree, so the case could not fail"))
+    else:
+        _prov_file = _P_prov.OLX_DIR / "_selftest_provenance.olx"
+        _scorer_case("a content file never reaches the build",
+                     lambda: _prov_file.write_text(
+                         "<Course><Vertical/></Course>\n"),
+                     lambda: _prov_file.unlink(missing_ok=True),
+                     want=_prov_want)
 
     # READING GOLD BY HANDOUT INSTEAD OF BY ITEM, added 2026-09-03 after the
     # mistake was made live: item 1a was looked up against the handout ONE
