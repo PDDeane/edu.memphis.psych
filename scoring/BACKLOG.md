@@ -78,12 +78,23 @@ the module is imported**. `probe.control_gate` is the guard that voided two
 probes for measuring their own envelopes; run `probe.py` directly and it is not
 there at all.
 
-**Not fixed yet, deliberately.** Adopting the rewritten history replaces the
-working tree, so an edit made now is discarded. The fix is mechanical — move
-each definition above the guard, which strictly adds availability and changes
-nothing for importers — and it should land **immediately after the rewrite is
-adopted**, because until it does the audit carries five findings that the
-migration's neutrality comparison would otherwise have to absorb as noise.
+**FIXED 2026-09-16 — this entry was simply never updated.** All five moved above
+their guards the same day they were found; both modules carry a
+`MOVED ABOVE THE MAIN GUARD` note saying so. The guards now sit at
+`guide.py:517` and `probe.py:717`, below every one of the five, and
+`check_no_module_defines_names_after_its_main_guard` reports 0.
+
+The deferral argument above never applied to the dry run in any case: it is a
+separate tree whose commits travel with the refactor rather than being replaced.
+
+READ THIS BEFORE TRUSTING THE NEXT BACKLOG ENTRY. Checked 2026-09-20 by grepping
+for the names and comparing line numbers against the string
+`if __name__ == "__main__":` — and the lines that matched were the COMMENT
+quoting that string inside the fix's own note, not the guards. The reading said
+"all five still sit below their guards", which is the opposite of the truth. What
+caught it was this entry claiming the audit carries five findings while the
+measured baseline is 1: two instruments disagreeing, and the wrong one was the
+fresh reading, not the old record.
 
 
 ## Nine hard-coded paths that `paths.py` already resolves
@@ -110,8 +121,23 @@ The seven fallbacks deserve a second look rather than a mechanical fix: if
 `paths` has no `OUT`, silently reading the developer's own artifact directory is
 the least safe available behaviour. Failing closed is the right default.
 
-**Not fixed yet**, for the same reason as the main-guard findings: adopting the
-rewritten history replaces the working tree. Land both immediately after.
+**DONE 2026-09-20.** All nine are gone. The last two were
+`check_ref_grammars.py` and `check_slot_grammars.py`, each carrying its own copy
+of `paths.LO` as it stood before the `.lo-blocks` marker — so this checkout's
+gate read TypeScript out of the LIVE tree and ran live's `node_modules/.bin/tsx`
+with `cwd` at the live root, right only because both checkouts happened to sit at
+the same commit. The only `molly_data/out` strings left are inside the check's own
+docstring and its message-building logic, declared in `ABSOLUTE_PATH_EXCEPTIONS`.
+`check_filesystem_locations_come_from_paths_py` reports 0.
+
+AND THE CHECK HAD A HOLE THAT HID TWO OF THEM: it scanned string constants
+beginning `/home/`, `/Users/`, `/tmp/`, `~/`, while
+`Path.home() / "code/update/lo-blocks"` spells an absolute location whose only
+literal is RELATIVE. A new arm matches `<x>.home() / "literal"`. It did not work
+when first written — placed at function level, after the per-file loop, where
+`tree` and `path` hold whatever the last file left — and the 0 it returned looked
+like a pass. Found by injecting a probe carrying the exact pattern rather than by
+reading the 0 as proof.
 
 ## Generalise the per-slot gold summary to every item
 
