@@ -6,9 +6,49 @@ the lesson: adoption went first and the gates second, and every defect after tha
 was found by putting those back the right way round.
 
     live psych      aab5476   509 commits
-    dry run         06983d7   614 commits, descends from live
-    live lo-blocks  c2c282d0  main + our 9 branches
+    dry run         463fdfb   615 commits, descends from live
+    live lo-blocks  542bbb9c  590 commits, main + our 9 branches
     corpus export   2,586 spans (was 2,575), backed up
+    bundles         ~/backups/{psych,loblocks,dryrun}-FINAL-20260921
+
+## lo-blocks, finished separately -- two decisions and one more defect
+
+RE-RUN WITH THE BACKFILLS OFF. `BACKFILL_CONTENT` and `BACKFILL_PLOTS` repair
+historical states so they parse with the CURRENT engine, and for psych they earn
+it: `tier2_build.sh` builds those states and they fail without it. lo-blocks' own
+old states ARE built and tested -- `sweep_lo_states.sh` runs 54 of them -- so the
+question was real. Measured: 29 states carry 3,463 old-style chatpeg arrows, and
+13 test/script files mention a `.chatpeg` path, but ALL 13 are path handling
+(fileTypes, contentPaths, loadContentTree listing the tree, xml2json with its own
+fixtures). Nothing parses a chatpeg with the grammar. The fix would have bought
+nothing at the cost of 746 declared-irreversible differences against a history
+that otherwise carries 23. Off: scrubbed drops 81 -> 2.
+
+A `D <dir>` THAT WIPES AN `M` FROM THE SAME COMMIT. `fast-import` applies a
+commit's operations IN ORDER and `fast-export` emitted the write first:
+
+    M 100644 <sha> content/linear-algebra/eigenvalues/lesson1.xml
+    D content
+
+-- a move out of `public/` whose directory delete then erased the file the line
+above had just written. It vanished for six commits and returned when something
+next touched it. The source repository has no such gap; git's tree model resolves
+that commit differently from a literal replay, so this is an export/import
+round-trip artifact rather than anything the rewrite introduced. Scoped before
+fixing: ONE occurrence in lo-blocks' 534 commits, NONE in psych's 509, so psych
+needed no re-run. `rewrite_filter` now emits every D before every M within a
+commit, order preserved inside each group.
+
+A THIRD INSTRUMENT FAILURE, same shape as the two below. `prove_loblocks.py`
+reported 729 mismatches; it knew the four declared irreversible series but not
+`CONTENT_FIXES`/`PLOT_MAP`, so every declared arrow repair counted as a failure.
+Applying the same maps to the original side -- which `prove_sha_paired` does --
+took it to 0.
+
+AND AN ARGUMENT THAT WAS RIGHT FOR THE WRONG REASON. The case for disabling the
+backfills was first made on the premise that lo-blocks' old states are never
+built. They are, 54 of them. The conclusion survived; the reasoning did not, and
+was replaced with the measurement above.
 
 ## The four defects, in the order each was exposed
 
