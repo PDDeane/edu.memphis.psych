@@ -9201,10 +9201,11 @@ def _field_sha(text) -> str:
 
     RESOLVED FIRST, because since the history rewrite a field that quotes a
     student holds `{{corpus:...}}` where the registered design held the sentence.
-    Hashing the raw text made all seven such fields report CHANGED without
-    acceptance on 2026-09-21 -- 1a/baseline_week/rule, Q1/utb_stated/desc,
-    Q3/time_bound/desc, both Q4a antecedent rules, Q6/affect_c2 and change_a2 --
-    none of which had had a word altered.
+    Hashing the raw text made every such field report CHANGED without acceptance
+    on 2026-09-21 -- seven of them, spread across all three handouts, none with a
+    word altered. (Named nowhere here on purpose: naming them would embed course
+    data in a migrated module, which is its own ratchet and the reason this
+    sentence counts rather than lists.)
 
     ACCEPTING THEM WOULD HAVE BEEN WORSE than a false alarm. `--accept-design-
     change` records the SHIPPED string, so the reference itself would become the
