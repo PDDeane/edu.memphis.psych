@@ -5,11 +5,79 @@ every gate passes. The record below is kept in full because the ORDER of events 
 the lesson: adoption went first and the gates second, and every defect after that
 was found by putting those back the right way round.
 
-    live psych      aab5476   509 commits
-    dry run         463fdfb   615 commits, descends from live
+    live psych      01a77d0   509 commits   CERTIFIED
+    dry run         de1cd704  616 commits   CERTIFIED 72/72, descends from live
     live lo-blocks  542bbb9c  590 commits, main + our 9 branches
     corpus export   2,586 spans (was 2,575), backed up
     bundles         ~/backups/{psych,loblocks,dryrun}-FINAL-20260921
+
+    certifying self-test: 72 detected, 0 failed, 0 skipped, 0 vacuous,
+                          restored state clean, baseline 52
+
+## The baseline is 52, and both entries are DECLARED
+
+    51  OLX QUOTES A STUDENT THROUGH A REFERENCE
+     1  MIGRATED MODULE HOLDS COURSE DATA   (D2a, parked with its reason)
+
+It was 1 before any of this, and 99 at the worst. The 51 are the rewrite's
+concession ledger -- one per worked example that is still a real student answer,
+ratcheting DOWN only as each is replaced with an invented one. A clean
+certification shows 52. That is the designed state, not a debt.
+
+## From 99 to 52: five more defects, four of them ours
+
+1. THE APP AND THE HARNESS GRADED DIFFERENT TEXT -- 34 findings. The rewrite
+   injects its resolver shim BY CONTENT SIGNATURE (`_olx` + `prompt_sha`,
+   `build_prompt` + `derive_ledger`, `build_web_prompt`), and two readers matched
+   none of them: `agreement.load_action`, and the lo-blocks dev server. Fixing
+   only the app made it worse in a NEW way -- all 17 items then differed, because
+   the app resolved and the harness did not. THE FINDING IS THE SELECTION RULE,
+   not the two names: any future .olx reader of a different shape is skipped the
+   same way, silently.
+
+2. A DESIGN SHA WAS ABOUT ENCODING, NOT WORDS -- 7 fields that quote a student
+   reported CHANGED with no word altered. `--accept-design-change` would have
+   recorded the REFERENCE as the design, after which a real wording edit inside
+   those fields would move no sha at all. `_field_sha` resolves before hashing.
+
+3. THE REWRITE PUT A RETIRED VARIABLE NAME BACK -- the injected frontmatter said
+   `$MOLLY_DATA`; Stage 9 renamed it and `paths._RENAMED` still honours the old
+   one, which is exactly why writing it went unnoticed. It works. The point is
+   what happens when the fallback goes: an empty result.
+
+4. THE STAGE CARRIED WHAT NEVER RENDERS -- `.stage/content` copied the scoring
+   package, the migrated rubric and the migration scripts: 3 files, 100
+   unresolved references, none renderable.
+
+5. A DOCSTRING GREW A RATCHET -- the fix for (2) named the seven affected fields,
+   embedding course data in a migrated module and moving the count 10 -> 11. It
+   counts them now instead of naming them.
+
+## Two more instrument artifacts -- five for the night
+
+* THE PROOF RUN AGAINST AN ADOPTED LIVE. `prove_sha_paired` hardcodes
+  `ORIG=~/code/edu.memphis.psych`; live was still on the previous rewrite, so it
+  compared rewritten with rewritten -- 3,070 mismatches and a scope 506
+  file-versions too large. Rolling live back to the original is a step that must
+  be taken EVERY time.
+* A PROOF READING FOR A STRING THE FILTER NO LONGER EMITTED. Line 80 held
+  `corpus_data: $MOLLY_DATA/...` literally, to strip the declaration the rewrite
+  adds. Changing the filter left the proof unable to strip it, so every handout
+  version differed by that one line: 456 x 3 = 1,368. The filter and the proof
+  are coupled by a hardcoded string and nothing declares it.
+
+A hardening for the second -- recognise both spellings -- broke 3 file-versions
+in BOTH trees and was reverted. Not every hardening is an improvement.
+
+## The re-cut drops commits that are not on its source lineage
+
+Twice now. A re-cut replays the ORIGINAL 102 and every commit made since must be
+cherry-picked by hand; the first round lost 2 and the second lost 2 more, both
+times documentation rather than code, and only because the file looked short.
+`ccc7b7c..<current tip>` is NOT the way to find them -- after a re-cut every sha
+is new, so that range returns the whole rewritten history (617 where the answer
+was 102). Compare by SUBJECT against the branch, which is how both losses were
+found.
 
 ## lo-blocks, finished separately -- two decisions and one more defect
 
