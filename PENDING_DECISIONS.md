@@ -6,7 +6,21 @@ measurement behind each so the choice can be made without re-deriving it.
 
 ---
 
-## 1. Stage 5 — delete `rubric_h1.py` and `rubric_h3.py`?
+## 1. Stage 5 — ~~delete `rubric_h1.py` and `rubric_h3.py`?~~ **DONE 2026-09-20, commit 9e603be**
+
+DECIDED: delete. Rehearsed first by moving both modules aside and running the
+whole procedure, so the real run had no surprises — every number matched,
+including `course.json`'s byte count (561,179). Certified in the deleted state:
+72 detected, 0 failed, 0 skipped, 72 of 72, 0 vacuous.
+
+The evidence that mattered was not the pass. All 13 shape-picked targets chose
+the SAME items with the modules gone, including four that select by handout 1
+and 3 shape — Q6, Q4a, Q1 (three cases) and 1a. Those predicates interrogate h1
+and h3 content and answered from the course file. Zero skipped is the other
+half: an incomplete migration would have left them finding nothing and
+degrading to counted shape-skips.
+
+The question below is kept as it was asked.
 
 **Everything mechanical is done.** No scoring-path module reads the rubric: one
 import site remains and it is `check_selectors_govern_something`, which reads
@@ -42,7 +56,15 @@ amending rather than executing.
 
 ---
 
-## 2. Should the certifying self-test reset fixture caches?
+## 2. ~~Should the certifying self-test reset fixture caches?~~ **YES — DONE 2026-09-20, commit 52301ad**
+
+DECIDED: reset. All six audits the suite takes now clear both caches first, so a
+case is compared against a baseline measured the same way. Measured cost: 49s
+against 37s warm, +12s per audit versus the 13s the note predicted. The
+uninjected baseline is unchanged at 2 findings, exactly as the note said it
+would be. `SELFTEST_WARM_FIXTURES=1` restores the old behaviour.
+
+The question below is kept as it was asked.
 
 `agreement._fixture_cached` and `enforcement._fixture_built` are not invalidated
 by an injection, so an INJECTED audit's findings depend on what ran in that
@@ -64,7 +86,18 @@ REPORTS is a larger decision than making it faster.
 
 ---
 
-## 3. The staleness check is now GREEN AND UNINFORMATIVE — rebuilt 2026-09-20
+## 3. ~~The staleness check is GREEN AND UNINFORMATIVE~~ **CLOSED 2026-09-20, commits 361e463 + d8b3b5b**
+
+CLOSED TWO WAYS, and the first is the one that mattered: the check now tests
+PROVENANCE, not just age — every `.olx` in `OLX_DIR` must appear by name in the
+staged output. That made it honest again without rebuilding anything. Then the
+dry run grew its own lo-blocks (`npm install` + build) and `paths.LO` learned to
+read a `.lo-blocks` marker, so the check now passes because all 23 source files
+are staged, `psych_highlight_quizzes.olx` among them.
+
+The record of how the green came to be misleading is kept below, because the
+mistake — predicting a false pass for one remedy, refusing it, then producing
+the same false pass by another route — is the useful part.
 
 **Read this before trusting `check_no_unresolved_reference_reaches_the_page`.**
 It reports 0 findings and that is not evidence of anything.
@@ -118,7 +151,15 @@ This does not close the section. The mtime half is still satisfied by any build
 from any tree, and the remedies above are still the remedies. What changed is
 that the check can no longer be silent about the split while the split exists.
 
-## 4. Owed: a self-test case for the provenance branch
+## 4. ~~Owed: a self-test case for the provenance branch~~ **WRITTEN 2026-09-20, commit d8b3b5b**
+
+It could not fail while the headline was firing at baseline; once §3 closed, it
+could. Written with its precondition ASSERTED, so if the artifacts ever go
+cross-tree again it degrades to a COUNTED skip rather than a silent pass — which
+is what the `_shape_skips` counting fix (3cd569d) bought. `SELFTEST_EXPECTED`
+71 -> 72, and the suite reports 0 vacuous, so it tests something.
+
+The reasoning for deferring it is kept below.
 
 NOT WRITTEN, deliberately, and this is the reason rather than an oversight.
 
