@@ -24,7 +24,15 @@ reporting success it has not earned.
 import json, os, re, subprocess, sys, tempfile, pathlib
 
 HERE = pathlib.Path(__file__).resolve().parent
-TS = pathlib.Path(os.environ.get("LO_BLOCKS", pathlib.Path.home() / "code/update/lo-blocks"))
+# THROUGH paths.LO, NOT A SECOND COPY OF IT. This line was `paths.LO` as it
+# stood before 2026-09-20, duplicated here -- so it honours $LO_BLOCKS but
+# knows nothing of the `.lo-blocks` marker, and this checkout's gate read
+# TypeScript out of the LIVE tree while everything else read its own. It
+# also RAN live's `node_modules/.bin/tsx` with cwd set to the live root.
+# Identical bytes at the time, so nothing was wrong -- right by coincidence,
+# which is the thing `paths.py` exists to stop.
+import paths as _paths
+TS = _paths.LO
 TS_FILE = TS / "packages/shared/scripts/resolveCorpusRefs.ts"
 
 
