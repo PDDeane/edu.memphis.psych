@@ -6750,6 +6750,36 @@ def check_filesystem_locations_come_from_paths_py() -> list[str]:
             out.append(f"{path.name}:{n.lineno} spells a filesystem location "
                        f"{v!r} -- use {hint}, or declare it in "
                        f"ABSOLUTE_PATH_EXCEPTIONS with a reason")
+
+        # INSIDE THIS LOOP, not after it. Placed at function level the first
+        # time, where `tree` and `path` still hold whatever the LAST file left:
+        # it ran once, over one arbitrary module, and a probe carrying the exact
+        # pattern went unreported. Caught by injecting that probe instead of
+        # reading the 0 as proof.
+        # AN ABSOLUTE PATH WITH NO ABSOLUTE LITERAL. `Path.home() / "code/update/..."`
+        # spells a location exactly as `"/home/<user>/code/update/..."` does, and the
+        # prefix scan above cannot see it: the only literal is RELATIVE. Measured
+        # 2026-09-20 -- this check reported 0 findings while two modules resolved
+        # lo-blocks themselves, so the dry run's own gate read the live tree.
+        #
+        # NARROW ON PURPOSE: only `<something>.home() / "literal"`. `expanduser(var)`
+        # normalising an input is not this defect, and a guard that cries wolf is one
+        # people learn to ignore.
+        for n in ast.walk(tree):
+            if not (isinstance(n, ast.BinOp) and isinstance(n.op, ast.Div)):
+                continue
+            left, right = n.left, n.right
+            if not (isinstance(right, ast.Constant) and isinstance(right.value, str)):
+                continue
+            if not (isinstance(left, ast.Call) and isinstance(left.func, ast.Attribute)
+                    and left.func.attr == "home"):
+                continue
+            if n.lineno in prose:
+                continue
+            out.append(f"{path.name}:{n.lineno} composes an absolute path from "
+                       f"`.home() / {right.value!r}` -- no literal starts with a root, "
+                       f"so the prefix scan cannot see it. Use paths.py.")
+
     return out
 
 
