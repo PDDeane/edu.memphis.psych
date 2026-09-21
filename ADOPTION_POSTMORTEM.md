@@ -1,4 +1,106 @@
-# Adopting the rewritten history broke the scorer — 2026-09-21
+# Adopting the rewritten history — what broke, and how it was fixed
+
+**RESOLVED 2026-09-21.** All three trees now carry revised, scrubbed histories and
+every gate passes. The record below is kept in full because the ORDER of events is
+the lesson: adoption went first and the gates second, and every defect after that
+was found by putting those back the right way round.
+
+    live psych      aab5476   509 commits
+    dry run         06983d7   614 commits, descends from live
+    live lo-blocks  c2c282d0  main + our 9 branches
+    corpus export   2,586 spans (was 2,575), backed up
+
+## The four defects, in the order each was exposed
+
+A fix never revealed itself until the one before it stopped hiding it.
+
+1. **Text-level substitution cannot see syntax.** `MEASURED.json` took a reference
+   in a bare JSON array element -- the repo's OWN sweep counts, matched because
+   seven of 1,635 table keys are pure digit runs with no lexical anchor. LOUD: the
+   file stopped parsing, and `enforcement_audit` raised before its first finding.
+   12 dict keys took one SILENTLY, 11 of them in `precommit_gate`, the gate that
+   keeps student text out of the repository.
+   FIX: a position-aware rule -- substitute inside string literals and comments,
+   never a bare token, never a dict key -- plus `# corpus-refs-resolved` resolvers
+   in `precommit_gate` and `agreement_app`, which hold needles rather than prose.
+
+2. **The replays were hand-rolled.** They applied the substitution table in a loop
+   instead of calling `rewrite_filter.scrub()`, and so reproduced the substitution
+   and NONE of the passes around it -- above all the `corpus_data:` frontmatter
+   declaration, without which the content build refuses every handout. MINE, and a
+   bug `rewrite_filter` had already fixed once and documented.
+   FIX: every replay goes through `scrub()`.
+
+3. **A merged literal run swallowed a seam.** Allowing a match to span adjacent
+   string literals let a single reference encode the seam in its `shape=`, so
+   expansion restored a quote-newline-indent into the string VALUE where the
+   original had only syntax. `generator_source.ITEM_NOTES['1c']` went from 1,789
+   chars matching its migrated copy exactly to 1,973 against 1,945 -- while the
+   file still compiled. Also MINE, introduced by the fix for (1).
+   FIX: a seam-crossing entry is confined to a single literal unless its value
+   keeps the seam, which is what `_SEAM_IN_KEY` already decided for the retry path.
+
+4. **`split_seams` could not split 10 entries.** With (3) in place those 10 stopped
+   being substituted at all, leaving 12 student 8-grams in `agreement_app.py`. The
+   locator was failing for two reasons: 9 because the SOURCE writes an escape where
+   the CORPUS holds the character, 1 because a part captured a source delimiter.
+   FIX: locate with normalised variants while building the shape against the
+   ORIGINAL part, so the reference still expands to the exact bytes. 456/466 -> 466/466.
+
+## What each attempt measured
+
+                  seams        student grams   ITEM_NOTES
+    psych38       swallowed          0          corrupted
+    psych39       intact            12          correct
+    psych40       intact             0          correct
+
+## Why seven instruments reported clean
+
+Unchanged from the original finding, and the reason this took four rewrites:
+
+* the byte proof compares bytes AFTER expansion, and expansion was always exact --
+  41,861 of 41,861 file-versions passed while `MEASURED.json` would not parse;
+* corpus scans use WORD 8-grams, and `"10, 11, 11, 11"` yields none;
+* every substitution was reversible, so each was "correct" by every definition the
+  rewrite had;
+* the self-test could not start, so it reported nothing rather than a failure;
+* `enforcement_audit` raised before its first finding.
+
+Expansion fidelity and USABILITY are different properties. Only the first was ever
+tested. `check_rewritten_artifacts_still_parse` now asks the second.
+
+## The gates that now run BEFORE adoption
+
+    every .json parses, every .py compiles
+    corpus_data: frontmatter wherever references exist
+    no shape= reference crossing a literal boundary
+    per-version byte proof against the original lineage
+    corpus scan with a control that must FIRE
+    check_migrated_tables_match_their_source   (2 -> 1 -> 0)
+
+## Two diagnoses that were wrong, kept because they cost the most
+
+* **"Adoption broke the scorer."** 34 findings said the app and the harness send
+  different prompts. They compare against a CACHED DUMP of the app's output, which
+  adoption invalidated; the check's own message says to re-take it before reading
+  it as a divergence. A causal story was built on it before it was tested.
+* **"The re-cut stalled on a `tail` pipe."** Twice. `rewrite_filter` runs its main
+  loop AT IMPORT, reading fast-export from stdin, so importing it as a library with
+  a live stdin blocks forever -- `fd 0 -> socket`, `wchan -> unix_stream_data_wait`.
+  The `[0.0s] blobs=0 ... DONE` line in every earlier test WAS that loop hitting
+  EOF. The evidence was present from the first run and read as noise. Import it
+  with stdin closed.
+
+## Note for anyone running the package
+
+`corpus_refs.json` gained 11 spans for the newly split seam references, so the
+scoring package now REQUIRES `$COURSE_DATA` or `$CORPUS_REFS`. A bare run fails at
+import with a message naming the variable. The repo and that export must travel
+together.
+
+---
+
+## The original record, written while it was still broken
 
 The histories are sound. The WORKING TREES built from them are not. Both facts
 are established by measurement and neither cancels the other.
