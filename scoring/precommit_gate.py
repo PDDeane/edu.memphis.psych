@@ -335,6 +335,49 @@ COINCIDENTAL_TEXT: dict[str, str] = {
 }
 
 
+# corpus-refs-resolved
+#
+# THE KEYS OF THE THREE TABLES ABOVE MAY BE CORPUS REFERENCES, AND ARE RESOLVED
+# HERE. Each key is a NEEDLE: the gate matches it against a file being committed
+# and against the corpus. A `{{corpus:...}}` reference left unresolved matches
+# nothing, so every exemption it carries silently stops applying -- and this is
+# the gate that keeps student text OUT of the repository, so a silent failure
+# here is the worst-placed one in the package.
+#
+# IT HAPPENED. The 2026-09-21 adoption of the rewritten history put references
+# into 11 of these keys, and nothing reported it: the file still parsed, still
+# imported, and the gate still ran -- against needles that could not match.
+#
+# NOT CIRCULAR, WHICH IS WHY THIS IS THE RIGHT PLACE FOR IT. The gate already
+# calls `corpus_ref._index()` in three checks; resolving its own needles asks the
+# same source for the same data it was always going to load.
+#
+# FAILS LOUDLY. A reference that cannot be resolved raises rather than leaving a
+# needle that matches nothing -- the alternative is the silent failure above.
+def _resolve_needles(table: dict) -> dict:
+    """Expand any corpus reference standing in a table KEY."""
+    if not any("{{corpus:" in k for k in table):
+        return table
+    import corpus_resolve as _CR
+    out = {}
+    for k, why in table.items():
+        if "{{corpus:" in k:
+            expanded = _CR.expand(k)
+            if "{{corpus:" in expanded:
+                raise SystemExit(
+                    f"precommit_gate: a needle carries a corpus reference that "
+                    f"does not resolve: {k[:60]!r}. The gate would run with a "
+                    f"needle that matches nothing, so it refuses to run at all.")
+            k = expanded
+        out[k] = why
+    return out
+
+
+NOT_STUDENT_TEXT = _resolve_needles(NOT_STUDENT_TEXT)
+ACCEPTED_STUDENT_TEXT = _resolve_needles(ACCEPTED_STUDENT_TEXT)
+COINCIDENTAL_TEXT = _resolve_needles(COINCIDENTAL_TEXT)
+
+
 def _implausible_coincidence(idx=None) -> list:
     """Any COINCIDENTAL_TEXT entry too long to be a coincidence, or not in the
     corpus at all.

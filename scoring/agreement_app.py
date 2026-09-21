@@ -161,6 +161,27 @@ UTB_CHOICES = {
         "electronic", "phone", "screen", "device", "social media", "tiktok", "video game"),
 }
 
+# corpus-refs-resolved
+#
+# A KEY HERE IS RETURNED AS A VALUE. `detect_utb` hands the matching key back as
+# the fixture the web block receives, and the block accepts one of four closed
+# choices -- so a key carrying an unresolved `{{corpus:...}}` reference feeds the
+# block a reference instead of a choice, and the app and the harness then send
+# different prompts. Measured 2026-09-21: 34 scorer-equivalence findings, Q1 at
+# 15,493 chars against 15,606, traced to exactly this key.
+#
+# The harness resolves references because the rewrite shims `measured.py`,
+# `score.py` and `olx_prompts.py`. Nothing shims this module, and this is the one
+# place in it where a reference is load-bearing rather than illustrative.
+if any("{{corpus:" in _k for _k in UTB_CHOICES):
+    import corpus_resolve as _CR
+    UTB_CHOICES = {(_CR.expand(_k) if "{{corpus:" in _k else _k): _v
+                   for _k, _v in UTB_CHOICES.items()}
+    if any("{{corpus:" in _k for _k in UTB_CHOICES):
+        raise SystemExit("agreement_app: a UTB_CHOICES key carries a corpus "
+                         "reference that does not resolve; detect_utb would hand "
+                         "the block a reference instead of a choice.")
+
 
 def detect_utb(path: str, q1: str) -> str:
     """Which of the four choices this student picked.
