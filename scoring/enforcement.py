@@ -6539,6 +6539,71 @@ def check_every_reference_has_the_data_that_resolves_it() -> list[str]:
     return out
 
 
+def check_rewritten_artifacts_still_parse() -> list[str]:
+    """Every .json parses and every .py compiles. Reference-substitution is
+    text-level, and text-level replacement can land where syntax matters.
+
+    FOUND BY THIS BEING ABSENT, 2026-09-21. A substitution replaced
+    `run_totals: [8, 10, 11, 11, 11, 13]` -- the repo's own sweep counts -- with a
+    corpus reference, because the digit run coincidentally matched a student's
+    week-2 series. The reference went in as a BARE JSON ARRAY ELEMENT, so
+    `MEASURED.json` stopped parsing and `measured.load()` raised before the
+    self-test could run one case.
+
+    WHY NOTHING ELSE SEES IT, and why this is a separate question rather than a
+    stronger version of an existing one:
+
+      * the byte proof compares bytes AFTER expansion, and `expand()` restores
+        the digits exactly -- 41,861 of 41,861 file-versions passed while the
+        file would not parse;
+      * corpus scans use WORD 8-grams, and `"10, 11, 11, 11"` yields none;
+      * the substitution itself is reversible and therefore "correct" by every
+        definition the rewrite had.
+
+    Expansion fidelity and USABILITY are different properties. This asks the
+    second one: can the code that reads the artifact still read it?
+
+    SEVEN OF 1,635 TABLE ENTRIES ARE PURE DIGIT RUNS (`0, 0, 30, 0,` and the
+    like). They are genuine student series and belong in the table, but as search
+    keys they carry no lexical anchor, so they match any file holding those
+    numbers in that order. Measured the same day: references from those keys
+    reached five other files -- agreement.py, enforcement.py, handouts.py,
+    GOALS.md, course.json -- and were harmless in every one, because they landed
+    inside strings and prose. Placement is the whole difference, and only a
+    parser can tell.
+    """
+    import json as _json
+
+    import paths as _paths_pp
+    out = []
+    root = _paths_pp.REPO
+    for f in sorted(root.rglob("*.json")):
+        if ".git" in f.parts or "node_modules" in f.parts:
+            continue
+        try:
+            _json.loads(f.read_text(encoding="utf-8"))
+        except UnicodeDecodeError:
+            continue
+        except OSError:
+            continue
+        except ValueError as exc:
+            out.append(f"{f.relative_to(root)} does not parse as JSON: {exc}. "
+                       f"A substitution most likely landed in a structural "
+                       f"position -- a bare number or key -- rather than inside "
+                       f"a string.")
+    for f in sorted(root.rglob("*.py")):
+        if ".git" in f.parts or "node_modules" in f.parts:
+            continue
+        try:
+            compile(f.read_text(encoding="utf-8"), str(f), "exec")
+        except (UnicodeDecodeError, OSError):
+            continue
+        except SyntaxError as exc:
+            out.append(f"{f.relative_to(root)} does not compile: line "
+                       f"{exc.lineno}: {exc.msg}.")
+    return out
+
+
 def check_no_unresolved_reference_reaches_the_page() -> list[str]:
     """No `{{corpus:...}}` may survive into what a student is served.
 

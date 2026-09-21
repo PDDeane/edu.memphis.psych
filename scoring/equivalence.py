@@ -1071,6 +1071,8 @@ def enforcement_audit():
         findings.append(("-", "A DECLARED PROBE GAP NO LONGER APPLIES", bad))
     for bad in ENF.check_no_unresolved_reference_reaches_the_page():
         findings.append(("-", "AN UNRESOLVED REFERENCE REACHED THE BUILT PAGE", bad))
+    for bad in ENF.check_rewritten_artifacts_still_parse():
+        findings.append(("-", "A REWRITTEN ARTIFACT NO LONGER PARSES", bad))
     for bad in ENF.check_every_reference_has_the_data_that_resolves_it():
         findings.append(("-", "A REFERENCE WITHOUT THE DATA THAT RESOLVES IT", bad))
     for bad in ENF.check_no_file_points_into_a_developers_notes():
