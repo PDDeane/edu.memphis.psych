@@ -9197,8 +9197,33 @@ def check_every_prompt_field_is_designed() -> list[str]:
 
 
 def _field_sha(text) -> str:
+    """Fingerprint a prompt field by its WORDS, not by how they are encoded.
+
+    RESOLVED FIRST, because since the history rewrite a field that quotes a
+    student holds `{{corpus:...}}` where the registered design held the sentence.
+    Hashing the raw text made all seven such fields report CHANGED without
+    acceptance on 2026-09-21 -- 1a/baseline_week/rule, Q1/utb_stated/desc,
+    Q3/time_bound/desc, both Q4a antecedent rules, Q6/affect_c2 and change_a2 --
+    none of which had had a word altered.
+
+    ACCEPTING THEM WOULD HAVE BEEN WORSE than a false alarm. `--accept-design-
+    change` records the SHIPPED string, so the reference itself would become the
+    design: a later wording edit inside that field would move no sha at all,
+    because the reference would not change. The check would go quiet exactly
+    where it is most needed.
+
+    Same correction as `migrated_tables.same_shape`, and for the same reason:
+    compare what the text MEANS, not how it is spelled.
+    """
     import hashlib
-    return hashlib.sha256(re.sub(r"\s+", " ", str(text)).strip().encode()).hexdigest()[:12]
+    t = str(text)
+    if "{{corpus:" in t:
+        try:
+            import corpus_resolve as _CR
+            t = _CR.expand(t)
+        except Exception:                   # no export configured: hash it raw
+            pass
+    return hashlib.sha256(re.sub(r"\s+", " ", t).strip().encode()).hexdigest()[:12]
 
 
 def check_no_definition_vanished() -> list[str]:

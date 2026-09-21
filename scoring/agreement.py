@@ -262,6 +262,24 @@ def load_action(olx_file: str, action_id: str) -> dict:
     path = os.path.join(OLX_DIR, olx_file)
     with open(path) as fh:
         src = _COMMENT.sub("", fh.read())
+    # CORPUS REFERENCES ARE RESOLVED HERE, so the harness grades the same text the
+    # app serves. Since the history rewrite the .olx carry `{{corpus:...}}` where a
+    # slot description quotes a student, and the shim the rewrite injects went to
+    # `measured.py`, `score.py`, `olx_prompts.py` and `score_h1.py` -- chosen by
+    # CONTENT SIGNATURE (`_olx` + `prompt_sha`, `build_prompt` + `derive_ledger`,
+    # `build_web_prompt`). `load_action` reads the .olx too and matched none of
+    # them, so it was omitted silently.
+    #
+    # Measured 2026-09-21: with the app resolving and this not, all 17 items
+    # differed -- 1a on one line, where the app showed `in the first week of my
+    # plan` and the harness showed `in {{corpus:1a/p6:response:7:27:...}} plan`.
+    # Both sides raw agreed on that line and hid it; both sides resolved is the
+    # direction that matches what a model actually grades.
+    try:
+        import corpus_resolve as _CR
+        src = _CR.expand(src)
+    except Exception:                       # no export configured: leave it raw
+        pass
     for el in _LLM_ACTION.findall(src):
         open_tag = re.match(r"<LLMAction\b[^>]*?>", el, re.S).group(0)
         if f'id="{action_id}"' not in open_tag:
