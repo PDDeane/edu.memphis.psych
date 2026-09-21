@@ -14225,9 +14225,7 @@ MIGRATED_MODULES: dict[str, str] = {}
 # is to see how much course data exists and where, not to pretend a data module
 # holds none.
 DATA_MODULES = {
-    "rubric_h1.py": "the handout 1 rubric, authored",
     "rubric_h2.py": "the handout 2 rubric, authored",
-    "rubric_h3.py": "the handout 3 rubric, authored",
     "declaration_source.py":
         "the Stage 4 builder for scoring declarations: authored tables the export "
         "reads to WRITE the course file, kept outside the scoring path",
