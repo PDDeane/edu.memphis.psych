@@ -965,13 +965,6 @@
    "show",
    "tokens"
   ],
-  "rubric_h1.py": [
-   "BY_ID",
-   "ITEMS",
-   "MAPS",
-   "READS_UTB_CHOICE",
-   "TOTAL"
-  ],
   "rubric_h2.py": [
    "AVOIDANCE_SCORES",
    "BARRIER_PICK_ITEMS",
@@ -997,12 +990,6 @@
    "_example_item",
    "_example_use_item",
    "_type_item"
-  ],
-  "rubric_h3.py": [
-   "BY_ID",
-   "ITEMS",
-   "MAPS",
-   "TOTAL"
   ],
   "score.py": [
    "DERIVED_KINDS_IMPLEMENTED",
