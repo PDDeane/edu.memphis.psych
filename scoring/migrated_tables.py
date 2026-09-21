@@ -149,6 +149,30 @@ def same_shape(a, b, path="") -> list[str]:
             out += same_shape(x, y, f"{path}[{i}]")
         return out
     if a != b:
+        # TWO COPIES OF ONE STRING, SUBSTITUTED INDEPENDENTLY, STOP BEING
+        # COMPARABLE. The history rewrite replaces a student's sentence with a
+        # `{{corpus:...}}` reference wherever it appears, and the reference records
+        # the WHITESPACE SHAPE of the span it replaced -- which differs between a
+        # .py dict value and a JSON string holding the same sentence at a different
+        # indent. Measured 2026-09-21: MULTI_BLOCK_DECLARED and ITEM_NOTES both
+        # reported a mismatch at the first `shape=` suffix, `:shape=R28-0-275d}}`
+        # against `}}`, with every other byte identical.
+        #
+        # Each substitution is individually correct and both expand to the same
+        # text; only the encodings differ. So compare what they MEAN -- expand both
+        # and re-test -- rather than what they spell.
+        #
+        # THE CHECK KEEPS ITS TEETH. Expansion is applied to BOTH sides and only
+        # when a reference is present, so a genuine drift between the copies still
+        # differs after expanding. This forgives a difference in encoding, not a
+        # difference in content.
+        if "{{corpus:" in f"{a}{b}":
+            try:
+                import corpus_resolve as _CR
+                if _CR.expand(str(a)) == _CR.expand(str(b)):
+                    return out
+            except Exception:
+                pass
         out.append(f"{path}: {a!r:.50} != {b!r:.50}")
     return out
 
