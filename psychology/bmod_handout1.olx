@@ -132,7 +132,7 @@ continuing it.
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h1_q1_btn" label="Check my answer">
-      <LLMAction id="bmod_h1_q1_llm" free="utb_stated:unclear" target="bmod_h1_q1_feedback"
+      <LLMAction rubricDef="Q1" id="bmod_h1_q1_llm" free="utb_stated:unclear" target="bmod_h1_q1_feedback"
                  slots="matches_selected:Same behavior you selected above:matches/differs|utb_stated:Your unwanted target behavior stated explicitly:unclear@2|harms_listed:How many statements name a negative effect of the behavior:count(3)|benefits_listed:How many name a benefit you expect from changing:count(3)|benefits_failing:How many of those are not a benefit but the goal named again:count(3)|reasons_given:How many separate reasons you give:count(3)|reason_1:First reason — a negative effect of the behavior:unclear@1|reason_2:Second reason:unclear@1|reason_3:Third reason:unclear@1|confident:All judgments confident"
                  counts="reasons_given:reason_1,reason_2,reason_3">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
@@ -276,7 +276,7 @@ one.
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h1_q2_btn" label="Check my answer">
-      <LLMAction id="bmod_h1_q2_llm" target="bmod_h1_q2_feedback"
+      <LLMAction rubricDef="Q2" id="bmod_h1_q2_llm" target="bmod_h1_q2_feedback"
                  choices="wgb_kind:doing,own_state,general_state,outcome_measure,other_activity,none"
                  maps="wgb_inverts_utb:wgb_names:doing~met,own_state~met,*~absent"
                  slots="!wgb_is_counterpart:Goal behavior is the opposite of your unwanted behavior:unclear|wgb_names:What kind of thing your goal names:pick(wgb_kind)|wgb_inverts_utb:Goal behavior states the opposite of your unwanted behavior@2|reasons_listed:How many statements you offer as reasons:count(3)|reasons_failing:How many of those are not a benefit of the goal:count(3)|reasons_given:How many separate benefits you give:count(3)|reason_1:First benefit of the goal behavior:unclear@1|reason_2:Second benefit:unclear@1|reason_3:Third benefit:unclear@1|confident:All judgments confident"
@@ -446,7 +446,7 @@ counting the number of ounces I drink."*
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h1_q3_btn" label="Check my SMART goal">
-      <LLMAction id="bmod_h1_q3_llm" target="bmod_h1_q3_feedback"
+      <LLMAction rubricDef="Q3" id="bmod_h1_q3_llm" target="bmod_h1_q3_feedback"
                  slots="specific:Specific — a quantified daily or weekly goal:unclear@1|measurable:Measurable — names a tracking method or place:unclear@1|action_oriented:Action-Oriented — something you will physically do:unclear@1|realistic:Realistic — why it is achievable for you:unclear@1|time_bound:Time-Bound — four weeks, one baseline plus three:unclear@1|confident:All judgments confident">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -600,7 +600,7 @@ You must use the word **antecedent** or **trigger** in your answer.
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h1_q4a_btn" label="Check my antecedents">
-      <LLMAction derived="keyword:contains:bmod_h1_q4a_first,bmod_h1_q4a_second:antecedent,trigger" forbid="no_antecedents:antecedent_1=absent,antecedent_2=absent" id="bmod_h1_q4a_llm" target="bmod_h1_q4a_feedback"
+      <LLMAction rubricDef="Q4a" derived="keyword:contains:bmod_h1_q4a_first,bmod_h1_q4a_second:antecedent,trigger" forbid="no_antecedents:antecedent_1=absent,antecedent_2=absent" id="bmod_h1_q4a_llm" target="bmod_h1_q4a_feedback"
                  choices="ant_kind:before,unlinked,aftermath,not_doing,already_a_consequence,none"
                  maps="antecedent_1:antecedent_kind_1:before~met,none~absent,*~not_antecedent|antecedent_2:antecedent_kind_2:before~met,none~absent,*~not_antecedent"
                  slots="antecedent_kind_1:What kind of thing your first box names:pick(ant_kind)|antecedent_1:First antecedent is a genuine trigger:wrong_kind@2|antecedent_kind_2:What kind of thing your second box names:pick(ant_kind)|antecedent_2:Second antecedent is a genuine trigger:wrong_kind@2|keyword:Uses the word antecedent or trigger|confident:All judgments confident|!no_antecedents:Nothing was listed at all:met/absent"
@@ -767,7 +767,7 @@ Your antecedents from 4a were:
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h1_q4b_btn" label="Check my answer">
-      <LLMAction id="bmod_h1_q4b_llm" target="bmod_h1_q4b_feedback"
+      <LLMAction rubricDef="Q4b" id="bmod_h1_q4b_llm" target="bmod_h1_q4b_feedback"
                  maps="behavior_1:b1_basis:activity~met,none~absent,*~wrong_kind|behavior_2:b2_basis:activity~met,none~absent,*~wrong_kind"
                  choices="instead_of_basis:activity,consequence,goal_behaviour,not_doing,none|besides_kind:an_act,a_result,nothing"
                  slots="behavior_1:First example is something done INSTEAD OF the goal behavior:wrong_kind@1.5|behavior_2:Second example is something done INSTEAD OF the goal behavior:wrong_kind@1.5|b1_basis:What the first example IS:pick(instead_of_basis)|b2_names_besides:Besides the absence, what else the second box names:pick(besides_kind)|b2_basis:What the second example IS:pick(instead_of_basis)|modify_stated:Says whether it is a good choice to modify@2|modify_why:Gives a reason why@1|confident:All judgments confident"
@@ -923,7 +923,7 @@ You must use the word **consequence** or **consequences** in your answer.
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h1_q4c_btn" label="Check my consequences">
-      <LLMAction derived="keyword:contains:bmod_h1_q4c_first,bmod_h1_q4c_second:consequence" forbid="no_consequences:consequence_1=absent,consequence_2=absent" id="bmod_h1_q4c_llm" target="bmod_h1_q4c_feedback"
+      <LLMAction rubricDef="Q4c" derived="keyword:contains:bmod_h1_q4c_first,bmod_h1_q4c_second:consequence" forbid="no_consequences:consequence_1=absent,consequence_2=absent" id="bmod_h1_q4c_llm" target="bmod_h1_q4c_feedback"
                  slots="consequence_1:First consequence follows from the behavior:wrong_kind/duplicate@2|consequence_2:Second consequence follows from the behavior:wrong_kind/duplicate@2|keyword:Uses the word consequence|confident:All judgments confident|!no_consequences:Nothing was listed at all:met/absent"
                  max="5">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
@@ -1069,7 +1069,7 @@ good, and I get my sugar fix."*
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h1_q5_btn" label="Check my answer">
-      <LLMAction id="bmod_h1_q5_llm" target="bmod_h1_q5_feedback"
+      <LLMAction rubricDef="Q5" id="bmod_h1_q5_llm" target="bmod_h1_q5_feedback"
                  slots="example_1:First reason you keep doing it:wrong_kind/duplicate@2.5|example_2:Second, different reason:wrong_kind/duplicate@2.5|reasons_substantial:Both reasons are substantial|confident:All judgments confident"
                  showChecks="false">
 You are an experienced teaching assistant grading Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.
@@ -1294,7 +1294,7 @@ have extra money {{corpus:PR/p2:pr:49:68:sha=043d19084034}} with friends (new C)
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h1_q6_btn" label="Check my answer">
-      <LLMAction id="bmod_h1_q6_llm" target="bmod_h1_q6_feedback"
+      <LLMAction rubricDef="Q6" id="bmod_h1_q6_llm" target="bmod_h1_q6_feedback"
                  cover="state_a1,state_a2:first,second|state_c1,state_c2:first,second"
                  requires="state_c2:link_c2:unclear|affect_c2:link_c2:unclear"
                  slots="state_a1:First antecedent named and matching 4a:mismatch@1.25|change_a1:How the first antecedent will be changed:incomplete@1.25|state_a2:Second antecedent named and matching 4a:mismatch@1.25|change_a2:How the second antecedent will be changed:incomplete@1.25|state_c1:First consequence named and matching 4c:mismatch@1.25|affect_c1:How the first consequence is affected:incomplete@1.25|state_c2:Second consequence named and matching 4c:mismatch@1.25|affect_c2:How {{corpus:Q4c/p19:second:0:25:sha=d4d526f38996:shape=C1}} affected:incomplete@1.25|link_c2:The second consequence pair is about a DIFFERENT consequence from the first:unclear|confident:All judgments confident">

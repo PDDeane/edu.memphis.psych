@@ -313,6 +313,12 @@ def load_action(olx_file: str, action_id: str) -> dict:
             # its category list without `choices`. Both were missing here, which
             # made the expect branch below dead code in the real harness.
             "choices": olx_prompts.parse_choices(_attr(open_tag, "choices")),
+            # THE RUBRIC ENTRY THIS SHEET IS A PROJECTION OF. Carried so a
+            # consumer can derive from the SOURCE instead of restating it --
+            # `check_sheet_matches_the_rubric_it_names` compares the two, which
+            # is the whole reason the attribute exists: naming the source is what
+            # makes drift detectable rather than invisible.
+            "rubric_def": _attr(open_tag, "rubricDef"),
             "expect": olx_prompts.parse_expect(_attr(open_tag, "expect")),
             "forbid": olx_prompts.parse_forbid(_attr(open_tag, "forbid")),
             # Verdicts that cost NOTHING, so both engines stop defaulting in

@@ -1954,7 +1954,13 @@ def _primitives_with_live_app_evidence() -> dict:
         try:
             import measured as _M
             was = rec.get("prompt_sha")
-            return bool(was) and was == _M.prompt_sha(item)
+            # THE SAME DEMOTION, THROUGH THE SAME PREDICATE. This compared
+            # `prompt_sha` itself, which made it a THIRD place deciding
+            # is-it-current and so a third way to get it wrong: a tag-only edit
+            # made every live artifact read as history here, while
+            # `_artifact_prompt_state` had already been taught the difference.
+            return bool(was) and (was == _M.prompt_sha(item)
+                                  or _ask_equivalent(item, "olx", was))
         except Exception:
             return False        # cannot prove it is current, so do not claim it
 
@@ -4839,6 +4845,10 @@ def check_items_are_measured_as_configured() -> list[str]:
 # 5" outlived the fix that made it false, with the whole audit green: no check
 # owned it, and nothing said one was missing.
 DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
+    "enforcement.ASK_EQUIVALENT_PROMPTS": (
+        "prompts whose served tag moved while the model's question did not, so "
+        "artifacts stamped with the superseded sha are still evidence",
+        ("check_ask_equivalences_still_hold",)),
     "enforcement.PROBE_UNREACHABLE_PAIRS": (
         "charge-once pairs the web declares and the CLI probe cannot discover",
         ("check_probe_unreachable_pairs_still_apply",)),
@@ -10561,6 +10571,64 @@ def _same_verdict(a, b) -> bool:
     return False
 
 
+# A TAG-ONLY EDIT DOES NOT SUPERSEDE AN ARTIFACT, and the rows live in the course
+# file because they name this course's items. `prompt_sha` hashes the served
+# `.olx` tag ENTIRE, attributes included, so adding an attribute moves it for every
+# item while the model's question is byte for byte what it was. `ask_sha` exists
+# for that distinction and `_staleness_lines` already demoted on it; artifact
+# attribution did not, and one question-neutral edit made 181 live artifacts read
+# as history, producing 45 findings whose implied remedy was a re-sweep that could
+# not change a number. The same fault on the other instrument cost ~3,100 calls on
+# 2026-09-14: "a measurement instrument moving is not evidence about what students
+# saw."
+ASK_EQUIVALENT_PROMPTS = _declaration("ASK_EQUIVALENT_PROMPTS")
+
+
+def _ask_equivalent(item_id: str, side: str, stamp: str) -> bool:
+    """Is `stamp` a superseded prompt whose QUESTION is still the current one?
+
+    SELF-CHECKING, NOT TRUSTED: the row carries the `ask_sha` observed when it was
+    declared and is honoured only while the current one still equals it.
+    """
+    import measured as M
+    for key in ASK_EQUIVALENT_PROMPTS:
+        it, sd, was, ask = key
+        if it == item_id and sd == side and was == stamp:
+            try:
+                return M.ask_sha(item_id, side) == ask
+            except Exception:
+                return False
+    return False
+
+
+def check_ask_equivalences_still_hold() -> list[str]:
+    """Every declared tag-only edit still has the question it was declared for.
+
+    The declaration says "this superseded prompt asked the same thing". That is
+    true when written and can stop being true: change the wording afterwards and
+    the row would go on excusing artifacts recorded against a DIFFERENT question.
+    `_ask_equivalent` already refuses such a row silently; this says so out loud,
+    because a declaration that has quietly stopped applying is one nobody removes.
+    """
+    import measured as M
+    out = []
+    for key, why in sorted(ASK_EQUIVALENT_PROMPTS.items()):
+        item, side, was, ask = key
+        try:
+            now = M.ask_sha(item, side)
+        except Exception as exc:
+            out.append(f"{item}/{side}: cannot re-derive ask_sha to check the "
+                       f"declared equivalence for {was}: {type(exc).__name__}")
+            continue
+        if now != ask:
+            out.append(
+                f"{item}/{side}: the equivalence declared for prompt {was} names "
+                f"ask_sha {ask}, but the question is now {now} -- the row no "
+                f"longer applies and artifacts stamped {was} are genuinely "
+                f"history. Remove it ({why}).")
+    return out
+
+
 def _artifact_prompt_state(doc: dict, item_id: str):
     """Is this artifact's prompt the CURRENT one FOR THE SIDE THAT WROTE IT?
 
@@ -10602,7 +10670,9 @@ def _artifact_prompt_state(doc: dict, item_id: str):
     if not stamp:
         return None
     try:
-        return stamp == M.prompt_sha(item_id, side)
+        if stamp == M.prompt_sha(item_id, side):
+            return True
+        return _ask_equivalent(item_id, side, stamp) or False
     except Exception:
         return None
 
@@ -15495,6 +15565,78 @@ OLD_ENV_NAMES_ALLOWED = {
         "tracked files, because an allowlist entry is visible and a silent scope "
         "change is not.",
 }
+
+
+def check_sheet_matches_the_rubric_it_names() -> list[str]:
+    """Each `<LLMAction rubricDef=>` names a rubric entry, and they agree.
+
+    The generated sheet and the rubric component are TWO PROJECTIONS of one
+    definition. The attribute names the source so a consumer can derive its own
+    projection instead of restating it -- and this is the consumer that makes the
+    naming worth anything: it compares the sheet's slot keys against the rubric
+    entry's, and reports a divergence rather than letting two descriptions of one
+    rule drift apart in silence.
+
+    IT READS THE STAGED, EXPANDED RUBRIC, not the authored file. Templates are
+    expanded by the build on purpose -- "a second implementation of one rule is
+    the drift this whole model exists to end" -- so a reader that understood the
+    template grammar would be that second implementation.
+
+    A MISSING BUILD IS NOT A PASS. If the artifact has not been staged this says
+    so and returns a finding, because a reader that quietly finds nothing is how
+    an empty result comes to look like a clean one.
+    """
+    out = []
+    try:
+        import agreement as A
+        import olx_prompts as O
+        import rubric_component as RC
+    except Exception as exc:                            # pragma: no cover
+        return [f"cannot compare the sheet against the rubric: "
+                f"{type(exc).__name__}: {exc}"]
+    try:
+        rubric = RC.load()
+    except FileNotFoundError:
+        return [f"the rubric component has not been staged ({RC.staged_path()}); "
+                f"run `npm run build:stage-content` -- an unbuilt artifact is not "
+                f"evidence that the sheet and the rubric agree"]
+    except Exception as exc:
+        return [f"the staged rubric component will not parse: "
+                f"{type(exc).__name__}: {exc}"]
+    # A SKIP IS NOT A PASS, and the first version of this check was proof. It said
+    # `HANDOUT[item]`, which does not exist in this module -- the name lives in
+    # `olx_prompts` -- so every item raised NameError, a bare `except: continue`
+    # swallowed it, and the check reported 0 findings while comparing NOTHING. Two
+    # injected failures, a dropped slot and a rubricDef naming no item, both came
+    # back clean. So the exception is REPORTED now: an item whose action cannot be
+    # loaded is a finding, because the alternative is a check that cannot fail.
+    for item in sorted(O.ACTION):
+        try:
+            act = A.load_action(f"bmod_handout{O.HANDOUT[item]}.olx", O.ACTION[item])
+        except Exception as exc:
+            out.append(f"{item}: cannot load its action to compare against the "
+                       f"rubric: {type(exc).__name__}: {exc}")
+            continue
+        named = act.get("rubric_def")
+        if not named:
+            out.append(f"{item}: its <LLMAction> names no rubricDef, so nothing "
+                       f"ties the sheet to a rubric entry")
+            continue
+        entry = rubric.get(named)
+        if entry is None:
+            out.append(f"{item}: rubricDef={named!r} names no <Item> in the "
+                       f"staged rubric -- the sheet points at nothing")
+            continue
+        sheet = {s.get("key") for s in (act.get("slots") or [])
+                 if isinstance(s, dict) and s.get("key")}
+        declared = {s.get("key") for s in entry.get("slots", []) if s.get("key")}
+        if sheet and declared and sheet != declared:
+            only_sheet = sorted(sheet - declared)
+            only_rubric = sorted(declared - sheet)
+            out.append(
+                f"{item}: the sheet and rubric entry {named!r} describe different "
+                f"slots -- sheet only {only_sheet}, rubric only {only_rubric}")
+    return out
 
 
 def check_the_course_links_the_rubric_and_every_handout() -> list[str]:

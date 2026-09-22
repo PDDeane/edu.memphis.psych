@@ -251,7 +251,8 @@ def generator_fields_for(item_id: str) -> dict:
 
 # The scoring DECLARATIONS. Seven of eight moved; `CONSENSUS_OVERLAP_BACKLOG` is
 # keyed by participant and belongs in the gold file under C1b.
-DECLARATION_TABLES = ("PROSE_ONLY_SLOTS", "PROSE_ONLY_JUDGED_AGAINST",
+DECLARATION_TABLES = ("ASK_EQUIVALENT_PROMPTS",
+                      "PROSE_ONLY_SLOTS", "PROSE_ONLY_JUDGED_AGAINST",
                       "MULTI_BLOCK_DECLARED", "DESIGNED_TEXT",
                       "DECOMPOSITION_DIVERGENCES", "UNCHARGED_VERDICTS",
                       "APP_ONLY_SLOTS",

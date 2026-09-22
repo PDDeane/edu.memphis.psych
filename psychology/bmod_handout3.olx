@@ -269,7 +269,7 @@ Your data:
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h3_overview_btn" label="Check my overview">
-      <LLMAction id="bmod_h3_overview_llm" target="bmod_h3_overview_feedback"
+      <LLMAction rubricDef="1a" id="bmod_h3_overview_llm" target="bmod_h3_overview_feedback"
                  slots="!distinguishes_periods:Separates the time periods at all:unclear|baseline_week:Covers the baseline week:unclear@2|week_1:Covers week 1:unclear@2|week_2:Covers week 2:unclear@2|week_3:Covers week 3:unclear@2|confident:All judgments confident">
 You are an experienced teaching assistant grading Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -513,7 +513,7 @@ include it with your handout in Canvas, or screenshot the chart.
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h3_graph_btn" label="Check my labelling">
-      <LLMAction id="bmod_h3_graph_llm" target="bmod_h3_graph_feedback"
+      <LLMAction rubricDef="1c" id="bmod_h3_graph_llm" target="bmod_h3_graph_feedback"
                  choices="series_kind:period_names,other_real_names,software_placeholders,nothing"
                  maps="legend:series_box_holds:period_names~met,other_real_names~met,software_placeholders~incomplete,nothing~absent,*~absent"
                  slots="!has_own_graph:Your 1b data produces a graph of your own:mismatch@2|title:Title saying what is measured and over what period:generic@2|x_axis_label:X-axis label naming what the axis represents:tick_values@2|y_axis_label:Y-axis label naming what the axis represents:tick_values/generic@2|series_box_holds:What your series box holds:pick(series_kind)|legend:Legend naming all four series you plotted:incomplete@2|confident:All judgments confident"
@@ -688,7 +688,7 @@ account of something that did not work is worth exactly as much as a success.
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h3_success_btn" label="Check my answer">
-      <LLMAction id="bmod_h3_success_llm" target="bmod_h3_success_feedback"
+      <LLMAction rubricDef="2a" id="bmod_h3_success_llm" target="bmod_h3_success_feedback"
                  slots="verdict:States whether the plan worked:unclear@2|how_1:Whether the How (1) box explains how:unclear@2|how_2:Whether the How (2) box explains how:unclear@2|names_enabler:Whether the response names something put in place:unclear|states_size:Whether the response states the size or direction of the change:unclear|names_plan_content:Whether the response says anything about the plan beyond the behaviour:unclear|mechanism_named:Whether any mechanism ground holds|confident:All judgments confident"
                  forbid="mechanism_named:names_enabler=absent,states_size=absent,names_plan_content=absent"
                  requires="how_2:mechanism_named:unclear">
@@ -832,7 +832,7 @@ The two types of operant conditioning you planned to use:
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h3_assessment_btn" label="Check my assessment">
-      <LLMAction id="bmod_h3_assessment_llm" target="bmod_h3_assessment_feedback"
+      <LLMAction rubricDef="2b" id="bmod_h3_assessment_llm" target="bmod_h3_assessment_feedback"
                  slots="sentences_given:How many substantive assessment sentences you give:count(3)|sentence_1:First substantive assessment sentence:unclear@2|sentence_2:Second substantive sentence:unclear@2|sentence_3:Third substantive sentence:unclear@2|confident:All judgments confident"
                  counts="sentences_given:sentence_1,sentence_2,sentence_3"
                  showChecks="false">
@@ -959,7 +959,7 @@ is not an acceptable answer.
       </StartPane>
       <EndPane>
     <ActionButton id="bmod_h3_improve_btn" label="Check my answer">
-      <LLMAction id="bmod_h3_improve_llm" target="bmod_h3_improve_feedback"
+      <LLMAction rubricDef="3" id="bmod_h3_improve_llm" target="bmod_h3_improve_feedback"
                  slots="changes_given:How many distinct changes you propose:count(2)|example_1:First specific change:unclear@3|example_2:Second, different change:unclear@3|confident:All judgments confident"
                  counts="changes_given:example_1,example_2"
                  showChecks="false">

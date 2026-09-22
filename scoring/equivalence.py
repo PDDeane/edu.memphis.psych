@@ -1195,6 +1195,10 @@ def enforcement_audit():
         findings.append(("-", "CROSS-FILE ANCHOR DANGLES", bad))
     for bad in ENF.check_general_prose_has_no_course_vocabulary():
         findings.append(("-", "COURSE VOCABULARY IN GENERAL PROSE", bad))
+    for bad in ENF.check_sheet_matches_the_rubric_it_names():
+        findings.append(("-", "SHEET AND RUBRIC DESCRIBE DIFFERENT SLOTS", bad))
+    for bad in ENF.check_ask_equivalences_still_hold():
+        findings.append(("-", "ASK EQUIVALENCE NO LONGER HOLDS", bad))
     for bad in ENF.check_the_course_links_the_rubric_and_every_handout():
         findings.append(("-", "COURSE DOES NOT LINK THE RUBRIC OR A HANDOUT", bad))
     for bad in ENF.check_the_rubric_component_is_current():

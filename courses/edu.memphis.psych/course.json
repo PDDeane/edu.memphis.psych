@@ -5581,6 +5581,215 @@
   }
  },
  "declarations": {
+  "ASK_EQUIVALENT_PROMPTS": [
+   [
+    [
+     "1a",
+     "olx",
+     "89137e99f2de",
+     "819f5dfd948e"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "1c",
+     "olx",
+     "b04e7f8c59e0",
+     "19cf15f49b1e"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "2a",
+     "olx",
+     "2e02173a40de",
+     "451962488c08"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "2b",
+     "olx",
+     "ff12408f6d76",
+     "db52c04f721c"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "3",
+     "olx",
+     "5ab233254952",
+     "9e733b0f5181"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "D1",
+     "olx",
+     "385c91cae672",
+     "a950b916b79e"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "D2",
+     "olx",
+     "d157ef618d52",
+     "b3ef10d9f675"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "DAY1",
+     "olx",
+     "d92726a40ca3",
+     "7e17b983c3f7"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "DAY2",
+     "olx",
+     "7a9a9909f863",
+     "daff6d8e7174"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "NP",
+     "olx",
+     "d69e03991431",
+     "238a243c8f8c"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "NR",
+     "olx",
+     "fc5a95b9524e",
+     "744fdd2b0489"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "PP",
+     "olx",
+     "16620edaa2f2",
+     "dec987801464"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "PR",
+     "olx",
+     "f7fdcdb77979",
+     "f1469aa0fdef"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q1",
+     "olx",
+     "7bc511629036",
+     "42d78f494b00"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q2",
+     "olx",
+     "fb9c948040ae",
+     "7faa63c647ee"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q3",
+     "olx",
+     "200e1305205e",
+     "9e1ff510476c"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q4a",
+     "olx",
+     "02c2b528ea6d",
+     "1a4321b4689a"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q4b",
+     "olx",
+     "ebd92b544df4",
+     "7572458d27a1"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q4c",
+     "olx",
+     "fb1e21a2dd16",
+     "f71b5b09d9a2"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q5",
+     "olx",
+     "f933e0876c3b",
+     "06385281d64c"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "Q6",
+     "olx",
+     "3b72b21974a0",
+     "8a4a124a57b4"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "WK1",
+     "olx",
+     "80ab1897c42f",
+     "68b26853cfac"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "WK2",
+     "olx",
+     "308fdab3343e",
+     "7a7fc009456c"
+    ],
+    "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ]
+  ],
   "PROSE_ONLY_SLOTS": [
    [
     [

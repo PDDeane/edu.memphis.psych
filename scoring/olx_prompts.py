@@ -2748,7 +2748,31 @@ def parse_free(spec: str) -> dict[str, list[str]]:
     return out
 
 
-GENERATED_ATTRS = (("free", free_attr_for), ("forbid", forbid_attr_for), ("expect", expect_attr_for),
+def rubric_def_for(item_id: str) -> str | None:
+    """`rubricDef="Q1"` -- the rubric entry this generated sheet is a projection OF.
+
+    The sheet's slots, verdicts and codes are one reading of a rubric item; the
+    rubric component carries another. Naming the source lets a second consumer
+    derive its own projection instead of restating this one, which is the only
+    way the two cannot drift. `LLMAction` accepts the attribute and IGNORES it
+    until content sets it -- the engine deliberately landed a stage early,
+    because the engine and the content version separately and no step can land in
+    both at once. This is the content half.
+
+    THE VALUE IS THE ITEM ID, because that is already the rubric entry's identity:
+    the component writes `<Item scores="Q1">`, with no separate element id to
+    name. `check_every_rubric_def_names_a_rubric_item` holds the two together, so
+    the attribute cannot quietly point at nothing -- which is exactly what E44
+    cost when `expect=` outlived the rule it named.
+
+    Every item in ACTION has a rubric entry, so this never returns None in
+    practice; the signature matches its siblings, which may.
+    """
+    return item_id
+
+
+GENERATED_ATTRS = (("rubricDef", rubric_def_for),
+                   ("free", free_attr_for), ("forbid", forbid_attr_for), ("expect", expect_attr_for),
                    ("maps", maps_attr_for),
                    ("choices", choices_attr_for),
                    ("counts", counts_attr_for),
