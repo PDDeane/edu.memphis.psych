@@ -76,7 +76,7 @@ def _slots_for(authored: dict, item_id: str) -> list:
     return _seq((authored.get("SLOT_SPEC") or {}).get(item_id) or [])
 
 
-def _conditions_for(authored: dict, item_id: str) -> str | None:
+def _conditions_for(authored: dict, item_id: str, item: dict | None = None) -> str | None:
     """Selector tuples become declared conditions on the items they select.
 
     `CONTINGENCY_GATE_ITEMS = ("DAY1", "WK1", ...)` is the rubric saying "these
@@ -85,13 +85,14 @@ def _conditions_for(authored: dict, item_id: str) -> str | None:
     subject vocabulary out of the engine.
     """
     names = []
-    if item_id in _CADENCE_OF:
-        names.append(_CADENCE_OF[item_id])
     for key, val in sorted(authored.items()):
         if not key.endswith("_ITEMS"):
             continue
         if item_id in _seq(val):
             names.append(key[: -len("_ITEMS")].lower())
+    cond = _cadence_cond(item or {})
+    if cond:
+        names.insert(0, cond)
     return "|".join(names) or None
 
 
@@ -103,7 +104,7 @@ def render_item(item: dict, authored: dict, indent: str = "  ") -> list[str]:
         ("label", item.get("label")),
         ("increment", item.get("increment")),
         ("deriveFromCredit", item.get("derive_from_credit")),
-        ("conditions", _conditions_for(authored, item.get("id"))),
+        ("conditions", _conditions_for(authored, item.get("id"), item)),
         ("blankCode", item.get("blank_code")),
         ("expectedType", item.get("expected_type")),
         ("deriveFromClauses", item.get("derive_from_criteria")),
@@ -132,7 +133,7 @@ def render_item(item: dict, authored: dict, indent: str = "  ") -> list[str]:
         ]) + f">{_text(d.get('text') or '')}</Deduction>")
     for g in _seq(item.get("guidance") or []):
         out.append(f"{i2}<Guidance>{_text(g)}</Guidance>")
-    if item.get("id") in FRAME_ITEMS:
+    if _takes_frame(item):
         out.append(f'{i2}<Guidance use="@oc_criteria"/>')
     # THE SCORING PRIMITIVES, one element each. These are per-item fields in the
     # course file and purpose-built elements in OLX, so the mapping is direct --
@@ -226,11 +227,19 @@ description: The behaviour-modification scoring rubric, as a component. Generate
 # cross-references the other cadence ("not a weekly plan"). A whole-word swap does
 # NOT reproduce the WK block; it was tried and compared, and it fails. Two exact
 # segments need no substitution and can be checked byte for byte.
-CADENCE_DAILY = "cadence_daily"
-CADENCE_WEEKLY = "cadence_weekly"
-FRAME_ITEMS = ("PR", "NR", "PP", "NP", "DAY1", "DAY2", "WK1", "WK2")
-_CADENCE_OF = {"DAY1": CADENCE_DAILY, "DAY2": CADENCE_DAILY,
-               "WK1": CADENCE_WEEKLY, "WK2": CADENCE_WEEKLY}
+# NO ITEM IDS IN THIS MODULE. The first version listed the eight operant items
+# and which cadence each took, and the audit called it what it was: course data
+# in a scoring module, the exact embedding this migration removes. The rubric
+# already says both things -- `derive_from_criteria` marks the items that take
+# the criteria frame, and `cadence` says which one -- so it is asked instead of
+# told. A ninth item joining the frame then needs no edit here.
+def _takes_frame(item: dict) -> bool:
+    return bool(item.get("derive_from_criteria"))
+
+
+def _cadence_cond(item: dict) -> str | None:
+    c = item.get("cadence")
+    return f"cadence_{c}" if c else None
 
 
 def criteria_frame(base: str, daily_block: str, weekly_block: str,
@@ -238,8 +247,8 @@ def criteria_frame(base: str, daily_block: str, weekly_block: str,
     i2 = indent + "  "
     out = [f'{indent}<Frame name="oc_criteria">']
     out.append(f"{i2}<Segment>{_text(base)}</Segment>")
-    out.append(f'{i2}<Segment ifDeclared="{CADENCE_DAILY}">{_text(daily_block)}</Segment>')
-    out.append(f'{i2}<Segment ifDeclared="{CADENCE_WEEKLY}">{_text(weekly_block)}</Segment>')
+    out.append(f'{i2}<Segment ifDeclared="cadence_daily">{_text(daily_block)}</Segment>')
+    out.append(f'{i2}<Segment ifDeclared="cadence_weekly">{_text(weekly_block)}</Segment>')
     out.append(f"{indent}</Frame>")
     return out
 
@@ -257,10 +266,13 @@ def frame_text():
     try:
         import handouts as _H
         import olx_prompts as _O
-        items = {i["id"]: i for i in _H.config(2)["rubric"].ITEMS}
-        base = _O._criteria_section(items["PR"])
-        daily = _O._criteria_section(items["DAY1"])
-        weekly = _O._criteria_section(items["WK1"])
+        rows = [i for i in _H.config(2)["rubric"].ITEMS if _takes_frame(i)]
+        plain = next(i for i in rows if not i.get("cadence"))
+        day = next(i for i in rows if i.get("cadence") == "daily")
+        week = next(i for i in rows if i.get("cadence") == "weekly")
+        base = _O._criteria_section(plain)
+        daily = _O._criteria_section(day)
+        weekly = _O._criteria_section(week)
     except Exception:
         return None
     if not (daily.startswith(base) and weekly.startswith(base)):

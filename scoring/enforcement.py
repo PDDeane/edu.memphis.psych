@@ -15497,6 +15497,81 @@ OLD_ENV_NAMES_ALLOWED = {
 }
 
 
+def check_the_course_links_the_rubric_and_every_handout() -> list[str]:
+    """The rubric is IN the course, beside the three handouts it scores.
+
+    This is the shape the migration exists to reach, and it is one `<Use ref>`
+    away from silently not holding. The handouts reached students as three
+    independent routes for months while `course.json` described them as one
+    course -- the data said "course" and the content said "three activities", and
+    nothing compared the two. A rubric that is not linked still builds, still
+    resolves, and still scores nothing.
+    """
+    import os as _os
+    import re as _re
+    course = _os.path.join(_os.path.dirname(str(_HERE_DIR)), "psychology",
+                           "bmod_course.olx")
+    if not _os.path.exists(course):
+        return [f"there is no {_os.path.relpath(course)}: the rubric and the three "
+                f"handouts are not assembled into a course at all"]
+    text = open(course, errors="ignore").read()
+    refs = set(_re.findall(r'<Use\s+ref="([^"]+)"', text))
+    want = {"bmod_rubric", "bmod_handout1", "bmod_handout2", "bmod_handout3"}
+    missing = sorted(want - refs)
+    if missing:
+        return [f"bmod_course.olx does not link {', '.join(missing)} -- the course "
+                f"must hold the rubric AND every handout it scores"]
+    return []
+
+
+def check_the_rubric_component_is_current() -> list[str]:
+    """`bmod_rubric.olx` is what `rubric_export --olx` would write right now.
+
+    The rubric reaches the scorer through a chain, and every link has gone stale
+    at least once in this project's history: the source, the course file, the
+    generated .olx, the served idmap. This is the link the component adds. A
+    rubric edit that is not re-emitted leaves a file that parses, resolves and
+    renders -- and describes the rubric as it was.
+
+    It compares the RENDER, not a timestamp: mtime says a file was written, not
+    that it was written from this rubric.
+
+    THIS CHECK HAS A DEFINED LIFETIME, AND IT IS SHORTER THAN THE MIGRATION'S.
+    Generation is scaffolding: `bmod_rubric.olx` eventually becomes the
+    HAND-AUTHORED artifact and the Python builders retire, with handout 2's four
+    factories becoming `<ItemTemplate>` elements in the authored file. On that
+    day this check is not merely obsolete, it is WRONG -- it would refuse the
+    first hand edit, which is the entire point of the change. Retire it in the
+    same commit that stops generating the file.
+
+    Written down because the last check to carry an expiry --
+    `check_selectors_govern_something`, "it dies with the modules at Stage 5" --
+    is the reason anyone noticed its premise had changed. An unwritten expiry is
+    just a check that will one day be wrong for a reason nobody remembers.
+    """
+    import os as _os
+    out = []
+    path = _os.path.join(_os.path.dirname(str(_HERE_DIR)), "psychology",
+                         "bmod_rubric.olx")
+    if not _os.path.exists(path):
+        return [f"{_os.path.relpath(path)} is missing: the rubric is not a "
+                f"component in the content"]
+    try:
+        import coursedata as _CD
+        import rubric_olx as _RO
+        want = _RO.render(_CD._load())
+    except Exception as exc:                            # pragma: no cover
+        return [f"cannot re-render the rubric component to check it: "
+                f"{type(exc).__name__}: {exc}"]
+    have = open(path, errors="ignore").read()
+    if have != want:
+        out.append(
+            f"{_os.path.relpath(path)} is not what `rubric_export.py --olx` would "
+            f"write ({len(have):,} bytes on disk, {len(want):,} rendered). The "
+            f"rubric moved and the component did not: re-emit it.")
+    return out
+
+
 def check_no_old_environment_names() -> list[str]:
     """`MOLLY_*` does not come back after Stage 9's rename.
 

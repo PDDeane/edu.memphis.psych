@@ -618,6 +618,13 @@ def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--course", default="edu.memphis.psych")
     ap.add_argument("--out", required=True)
+    # THE RUBRIC'S OWN OUTPUT. The course file is metadata and wiring; the RUBRIC
+    # belongs in the content, as a component the course links beside the three
+    # handouts. Emitting it here rather than from a script run by hand is what
+    # makes it a build product: one program, one pass, both artifacts from the
+    # same `build()` result, so they cannot describe different rubrics.
+    ap.add_argument("--olx", metavar="PATH", help=(
+        "also write the rubric as a <Rubric> component (bmod_rubric.olx)"))
     args = ap.parse_args(argv)
 
     doc, report = build(args.course)
@@ -637,6 +644,23 @@ def main(argv: list[str]) -> int:
         json.dump(doc, fh, indent=1, sort_keys=False)
         fh.write("\n")
     print(f"\n  written: {args.out} ({os.path.getsize(args.out):,} bytes)")
+
+    if args.olx:
+        import rubric_olx
+        text = rubric_olx.render(doc)
+        # A RUBRIC WITH NO ITEMS IS NOT A RUBRIC, it is a silent truncation, and
+        # this writes over a file the build reads. Refusing beats emitting an
+        # empty component that parses perfectly and scores nothing.
+        n = text.count("<Item ")
+        if n != len(doc["items"]):
+            print(f"  REFUSING to write {args.olx}: rendered {n} <Item> from "
+                  f"{len(doc['items'])} items", file=sys.stderr)
+            return 1
+        os.makedirs(os.path.dirname(os.path.abspath(args.olx)) or ".", exist_ok=True)
+        with open(args.olx, "w") as fh:
+            fh.write(text)
+        print(f"  written: {args.olx} ({os.path.getsize(args.olx):,} bytes, "
+              f"{n} items)")
     return 0
 
 

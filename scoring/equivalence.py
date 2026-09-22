@@ -1195,6 +1195,10 @@ def enforcement_audit():
         findings.append(("-", "CROSS-FILE ANCHOR DANGLES", bad))
     for bad in ENF.check_general_prose_has_no_course_vocabulary():
         findings.append(("-", "COURSE VOCABULARY IN GENERAL PROSE", bad))
+    for bad in ENF.check_the_course_links_the_rubric_and_every_handout():
+        findings.append(("-", "COURSE DOES NOT LINK THE RUBRIC OR A HANDOUT", bad))
+    for bad in ENF.check_the_rubric_component_is_current():
+        findings.append(("-", "RUBRIC COMPONENT IS STALE", bad))
     for bad in ENF.check_no_old_environment_names():
         findings.append(("-", "OLD ENVIRONMENT NAME RETURNED", bad))
     for bad in ENF.check_declaration_tables_are_verified():
