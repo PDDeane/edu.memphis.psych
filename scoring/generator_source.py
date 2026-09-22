@@ -626,9 +626,20 @@ H1_MARKERS: list[tuple[str, str]] = [
 # The typed submissions contain only this applied section — the 20 scenario
 # items from the paper handout were never transcribed (0 of 20 files) and are
 # ungraded in the gold workbook.
+# THESE TWO ARE LITERALS ON PURPOSE, and were corpus references until 2026-09-22.
+# They are the handout's OWN section headings -- authored text, in
+# "Handout 2 - Scoring & Feedback Dictionary_.docx" -- and the history rewrite
+# substituted them because a student had copied the heading verbatim, so the span
+# matched. A marker is matched against the .docx as a LITERAL: `segment.py` does no
+# reference resolution, so the substituted marker matched nothing, handout 2's box
+# split fell back to the whole response, and `bmod_h1_utb` started carrying the
+# student's entire Q1 answer instead of the extracted phrase. Nothing failed; the
+# wrong text was simply fed to the model. Stage 08's frozen oracle caught it as a
+# single moved sha (WK2), and restoring these two literals restores that sha
+# exactly. A marker must never be a reference.
 H2_MARKERS: list[tuple[str, str]] = [
-    ("_utb", r"{{corpus:Q1/p3:response:0:27:sha=c8e59699d1a0:shape=C81008}} is"),
-    ("_wgb", r"{{corpus:Q2/p3:response:0:23:sha=d743f1f68d1a:shape=C8408}} is"),
+    ("_utb", r"My Unwanted Target Behavior is"),
+    ("_wgb", r"My Wanted Goal Behavior is"),
     ("PR", r"Example of Positive Reinforcement"),
     ("NR", r"Example of Negative Reinforcement"),
     ("PP", r"Example of Positive Punishment"),
