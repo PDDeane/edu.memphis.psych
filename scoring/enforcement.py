@@ -4261,9 +4261,15 @@ def check_selectors_govern_something() -> list[str]:
     # view raises TypeError, which is how this was found: converting it with the
     # other nine broke the whole audit.
     #
-    # It therefore dies WITH the modules at Stage 5 rather than being converted:
-    # when there is no module source, there are no stale selectors in it to find.
-    import rubric_h2 as R2
+    # IT WAS PLANNED TO DIE WITH THE MODULES AT STAGE 5, on the reasoning that
+    # when there is no module source there are no stale selectors in it to find.
+    # That premise did not survive Stage 6c. Handout 2's module was not deleted,
+    # it was RENAMED to `rubric_h2_source.py` and moved out of the scoring path,
+    # because `rubric_export` has to read its four factories to write the course
+    # file. The authoring artifact still exists, so stale selectors in it are
+    # still possible and this check still has something to find -- it is
+    # repointed rather than retired. It expires when that file does, not before.
+    import rubric_h2_source as R2
     import score as S
 
     problems = []
@@ -4280,13 +4286,15 @@ def check_selectors_govern_something() -> list[str]:
     consulting = re.sub(r"^[A-Z][A-Z0-9_]*_ITEMS\s*=.*$", "", src_r2, flags=re.M)
     for mod in (S, O, A):
         text = inspect.getsource(mod)
-        text = re.sub(r"from rubric_h2 import \([^)]*\)", "", text)
-        text = re.sub(r"from rubric_h2 import .*$", "", text, flags=re.M)
+        text = re.sub(r"from rubric_h2(?:_source)? import \([^)]*\)", "", text)
+        text = re.sub(r"from rubric_h2(?:_source)? import .*$", "", text,
+                      flags=re.M)
         consulting += text
     for name in sorted(selectors):
         if name not in consulting:
             problems.append(
-                f"rubric_h2.{name} = {selectors[name]} is defined and imported but "
+                f"{R2.__name__}.{name} = {selectors[name]} is defined and "
+                f"imported but "
                 f"consulted nowhere: it governs no slot and no paragraph. Either "
                 f"the thing it selected was deleted -- in which case a measured "
                 f"cell may have gone with it -- or the tuple is dead and should go")
@@ -14346,7 +14354,13 @@ MIGRATED_MODULES: dict[str, str] = {}
 # is to see how much course data exists and where, not to pretend a data module
 # holds none.
 DATA_MODULES = {
-    "rubric_h2.py": "the handout 2 rubric, authored",
+    # RENAMED, NOT ADDED. Stage 6c moved this file to `rubric_h2_source.py` and
+    # out of the scoring path, joining the two builders below. Its data is the
+    # course file's and is served from there; what stays here is the four
+    # factories `rubric_export` reads to WRITE that file.
+    "rubric_h2_source.py":
+        "handout 2's rubric, authored: the four factories the export reads to "
+        "WRITE the course file, kept outside the scoring path",
     "declaration_source.py":
         "the Stage 4 builder for scoring declarations: authored tables the export "
         "reads to WRITE the course file, kept outside the scoring path",
@@ -14408,20 +14422,23 @@ RUBRIC_BUILDERS = {
 # It reads the modules only to learn this course's item ids, and it already
 # prefers a course file when given one -- `_inventory_now()` simply does not
 # pass one. That makes it the cheapest of the twelve, not an exception to them.
-# 11, NOT 10. `enforcement.py` still imports `rubric_h2` in ONE place --
-# `check_selectors_govern_something` reads the module's SOURCE to find selector
-# tuples that are defined and no longer consulted. That is a check about the
-# authoring artifact, and `inspect.getsource` on a data view raises TypeError.
-# It is not convertible and is not meant to be: it dies with the modules at
-# Stage 5, because a check for stale selectors in a file that no longer exists
-# has nothing to find.
 # ONE, and it is the one that cannot be converted:
-# `check_selectors_govern_something` reads rubric_h2's SOURCE to find selector
-# tuples that are defined and no longer consulted. `inspect.getsource` on a data
-# view raises TypeError, and a check about the authoring artifact has nothing to
-# read once the artifact is gone -- so it is deleted WITH the modules at Stage 5
-# rather than converted. Every other consumer now reaches the rubric through
-# `handouts.config(h)["rubric"]`, a view onto the course file.
+# `check_selectors_govern_something` reads handout 2's module SOURCE to find
+# selector tuples that are defined and no longer consulted. `inspect.getsource`
+# on a data view raises TypeError, so it is a check about the AUTHORING
+# ARTIFACT, not about the rubric data. Every other consumer reaches the rubric
+# through `handouts.config(h)["rubric"]`, a view onto the course file.
+#
+# IT WAS TO BE DELETED WITH THE MODULES AT STAGE 5, on the reasoning that a
+# check for stale selectors in a file that no longer exists has nothing to find.
+# Stage 6c falsified the premise rather than the check: handout 2's module was
+# RENAMED to `rubric_h2_source.py`, not deleted, because `rubric_export` reads
+# its four factories to write the course file. The artifact still exists, so
+# this budget stays at 1 and the import it counts is now that name. That required
+# adding `rubric_h2_source` to the RUBRIC set the counter matches on: the set
+# holds EXACT module names, not a `rubric_h` substring, so without it the count
+# fell to 0 and this ceiling would have sat un-lowered over a guard that had
+# stopped counting anything. The audit caught it; the assumption did not.
 RUBRIC_CONSUMER_BUDGET = 1
 
 
@@ -14984,7 +15001,14 @@ def check_only_builders_read_the_rubric() -> list[str]:
     import ast as _ast
     import os as _os
 
-    RUBRIC = {"rubric_h1", "rubric_h2", "rubric_h3"}
+    # `rubric_h2_source` IS IN THIS SET, and leaving it out was a real bug for
+    # the length of one audit. Stage 6c renamed handout 2's module rather than
+    # deleting it, and this set matches EXACT names -- so the count silently fell
+    # from 1 to 0 and the audit reported the ceiling as un-lowered. Lowering it to
+    # 0 was the wrong repair: the renamed module still holds the whole handout 2
+    # rubric, so a scoring module importing it is precisely the regression this
+    # budget exists to catch. Counting the new name keeps that guard live.
+    RUBRIC = {"rubric_h1", "rubric_h2", "rubric_h3", "rubric_h2_source"}
     here = str(_HERE_DIR)
     consumers = []
     try:

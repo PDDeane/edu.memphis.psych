@@ -3169,7 +3169,17 @@ def prior_record(item: str) -> str:
     try:
         if _runs:
             raise _CarriedAlready                   # sections 2 and 3 still run
-        src = (paths.SCORING / f"rubric_h{h}.py").read_text().splitlines()
+        # WHICHEVER NAME THE AUTHORED FILE HAS. Stage 6c renamed handout 2's
+        # module to `rubric_h2_source.py`; reading the old name only would have
+        # degraded this section to "no recorded comments found" for every H2
+        # item -- the empty output that reads as "nothing recorded", which is
+        # the precise failure the note above exists to prevent.
+        _src_file = next((f for f in (paths.SCORING / f"rubric_h{h}.py",
+                                      paths.SCORING / f"rubric_h{h}_source.py")
+                          if f.exists()), None)
+        if _src_file is None:
+            raise LookupError(f"no authored rubric_h{h} file to scan")
+        src = _src_file.read_text().splitlines()
         quoted = (f'"{item}"', f"'{item}'")
         mentions = {i for i, l in enumerate(src) if any(q in l for q in quoted)}
         if not mentions:

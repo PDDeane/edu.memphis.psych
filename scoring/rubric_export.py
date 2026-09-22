@@ -67,12 +67,20 @@ def _load(handout: int):
     first missing module. That is the one consequence that must not be found
     after the fact, so it returns None and `build` carries that handout forward
     from the file it is rewriting.
+
+    TWO NAMES, ONE MODULE. Stage 6c renamed handout 2's module to
+    `rubric_h2_source.py` -- same file, moved out of the scoring path to sit with
+    `declaration_source` and `generator_source`. It is tried second rather than
+    instead, so this keeps working whichever name a tree has, and a handout whose
+    module truly went still returns None by falling through both.
     """
     sys.path.insert(0, HERE)
-    try:
-        return __import__(f"rubric_h{handout}")
-    except ModuleNotFoundError:
-        return None
+    for name in (f"rubric_h{handout}", f"rubric_h{handout}_source"):
+        try:
+            return __import__(name)
+        except ModuleNotFoundError:
+            continue
+    return None
 
 
 def _exports(mod) -> dict:

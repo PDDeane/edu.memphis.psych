@@ -1,4 +1,28 @@
-"""Handout 2 rubric as data: 12 scored items, 40 points.
+"""Handout 2's rubric, as authored — a BUILDER, outside the scoring pipeline.
+
+STAGE 6c. This file was `rubric_h2.py`, the last rubric module the scoring path
+could import. Its data is the course file's now and is served from there: every
+one of its module-level values was checked against `handouts.config(2)["rubric"]`
+before the move and all fifteen compared EQUAL, so nothing in the scoring path
+loses a source it was reading.
+
+WHY IT SURVIVES AT ALL, where `rubric_h1.py` and `rubric_h3.py` were deleted at
+Stage 5: those two held literal dicts and nothing else, so the course file is a
+complete record of them. This one BUILDS its twelve items from four factories,
+and `rubric_export.py` has to read them to WRITE the course file. A1c said so
+from the start -- "rubric_h2's four builders survive as an AUTHORING tool that
+GENERATES this file" -- and `olx_prompts.py`'s comment-provenance scan says the
+same from the other side: the course file carries no notes for handout 2 because
+the record lives in these factory bodies, "and that module survives".
+
+So it joins `declaration_source.py` and `generator_source.py`: authored input the
+export reads, kept OUT of the scoring path. The rename is what puts it there --
+`rubric_h{h}` was an importable name any check could reach for, and three did.
+
+WHAT THIS IS NOT. It is not the rubric of record. Readers take handout 2 from the
+course file through `coursedata`, never from here. If the two disagree, the course
+file is what scores and this file is what is wrong.
+
 
 Sources, same priority as Handout 1:
   1. "Handout 2 - Scoring & Feedback Dictionary_.docx" — point splits and the

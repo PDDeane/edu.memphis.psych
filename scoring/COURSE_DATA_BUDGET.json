@@ -7,14 +7,14 @@
   "gold_slots_q6.py",
   "handouts.py",
   "q6_consensus.py",
-  "rubric_h2.py",
+  "rubric_h2_source.py",
   "score_h1.py",
   "simulate_h3.py"
  ],
  "data_modules": {
   "declaration_source.py": 16,
   "generator_source.py": 17,
-  "rubric_h2.py": 21
+  "rubric_h2_source.py": 21
  },
  "modules": {
   "agreement.py": 7,
@@ -72,7 +72,7 @@
   "reader_equivalence.py": 4,
   "rubric_equivalence.py": 0,
   "rubric_export.py": 0,
-  "rubric_h2.py": 21,
+  "rubric_h2_source.py": 21,
   "score.py": 6,
   "score_h1.py": 1,
   "scrub_metadata.py": 0,

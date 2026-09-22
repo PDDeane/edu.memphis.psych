@@ -59,7 +59,7 @@ EXEMPT = {
         "chooses accessor paths by field. Gating it would fail the one module that "
         "has to do this.",
     "rubric_h1.py": "rubric DATA, not engine code",
-    "rubric_h2.py": "rubric DATA, not engine code",
+    "rubric_h2_source.py": "rubric DATA, not engine code",
     "rubric_h3.py": "rubric DATA, not engine code",
     "rubric_export.py":
         "the export decides what to carry BY field, which is branching on the "

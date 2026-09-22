@@ -965,7 +965,7 @@
    "show",
    "tokens"
   ],
-  "rubric_h2.py": [
+  "rubric_h2_source.py": [
    "AVOIDANCE_SCORES",
    "BARRIER_PICK_ITEMS",
    "BY_ID",
