@@ -1555,6 +1555,24 @@ def check_idmap_is_current(idmap: str, item_id: str) -> None:
             f"this is a real failure, not an item without one. Refusing rather "
             f"than measuring against an unchecked dump -- see this check's "
             f"docstring for the sweep that cost.")
+    # A CORPUS REFERENCE IS RESOLVED BEFORE IT IS SERVED, exactly as a `REF:`
+    # marker is, so the generated text cannot appear in a dump verbatim either.
+    # The docstring already made this argument for `REF:` and the reasoning did
+    # not reach `{{corpus:...}}`, which arrived later with the history rewrite --
+    # so from that day this check could only pass for an item whose prompt
+    # happened to contain no reference. It read 6 of 23 current against a dump
+    # taken minutes earlier from a freshly started server.
+    #
+    # RESOLVED, NOT SKIPPED. Skipping the line would blind the check to a real
+    # change in it, and this is the check whose own docstring records that an
+    # unverified dump cost a whole sweep. Expanding compares what the server
+    # actually serves, which is the question being asked.
+    if "{{corpus:" in want:
+        try:
+            import corpus_resolve as _CR
+            want = _CR.expand(want)
+        except Exception:                                   # pragma: no cover
+            pass                                            # compare raw rather than not at all
     lines = [ln.strip() for ln in want.split("\n")
              if 40 < len(ln.strip()) < 130
              and "REF:" not in ln and "<Ref" not in ln]
