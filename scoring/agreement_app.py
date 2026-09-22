@@ -662,7 +662,7 @@ def anchored_split(raw: str, spans: list[tuple[str, str]]) -> dict[str, str]:
         # located quote — and the docstring's claim that "nothing the student
         # wrote is dropped" was false whenever the scorer gave no quote for the
         # aspect the student happened to write first. On Q3/p3 that discarded the
-        # opening 110 characters, the whole "{{corpus:Q3/p1:specific:10:37:sha=32a1b1a0f56c:shape=C800}} ..."
+        # opening 110 characters, the whole "My goal is Specific because ..."
         # sentence, and the same prefix loss runs through nine of Q3's twenty
         # cells. The two defects compound: a missing `specific` quote moves the
         # first anchor to `measurable`, which puts the specific text in the
@@ -774,7 +774,7 @@ def split_labelled(text: str, labels: list[tuple[str, str]]) -> dict[str, str]:
     """Cut one block into its labelled parts, LINE BY LINE.
 
     Students write these two ways, and both are common. Some label explicitly
-    ("Specific: my goal is..."); others put one aspect per line as prose ("{{corpus:Q3/p1:specific:10:29:sha=ce92eedf2d96:shape=S0-0a20202020}} because..."). An earlier version required a colon after the
+    ("Specific: my goal is..."); others put one aspect per line as prose ("My goal is specific because..."). An earlier version required a colon after the
     aspect word and so found nothing in the prose form — which left four of five
     fields empty for 12 of 20 participants, while a greedy pattern quietly
     assigned one aspect's line to the previous field.
@@ -796,7 +796,7 @@ def split_labelled(text: str, labels: list[tuple[str, str]]) -> dict[str, str]:
                 hit, at = field, m.start()
         if hit:
             current = hit
-            # keep the whole line: "{{corpus:Q3/p1:specific:10:37:sha=32a1b1a0f56c}} X" is the answer,
+            # keep the whole line: "My goal is specific because X" is the answer,
             # not just the tail after the word
             out[current].append(line)
         elif current:

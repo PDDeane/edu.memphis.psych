@@ -2974,7 +2974,7 @@
    "label": "PR Example",
    "max": 4.0,
    "increment": 2.0,
-   "question": "Write an example of Positive Reinforcement that you could use to attempt to change your behavior. (Positive Reinforcement = {{corpus:D1/p9:d1:0:38:sha=73aaf2022862}} a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.",
+   "question": "Write an example of Positive Reinforcement that you could use to attempt to change your behavior. (Positive Reinforcement = adding something desirable to increase a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.",
    "derive_from_criteria": true,
    "expected_type": "PR",
    "credit": [
@@ -2998,7 +2998,7 @@
     {
      "code": "WRONG_TYPE",
      "pts": 2.0,
-     "text": "This is not Positive Reinforcement. Remember, Positive Reinforcement involves {{corpus:D1/p9:d1:0:38:sha=73aaf2022862}} a behavior. (Correct example of one of the four types, just not PR.)"
+     "text": "This is not Positive Reinforcement. Remember, Positive Reinforcement involves adding something desirable to increase a behavior. (Correct example of one of the four types, just not PR.)"
     },
     {
      "code": "NOT_EXTERNAL_STIMULUS",

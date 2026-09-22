@@ -28790,7 +28790,7 @@
    ],
    "suggested": "specification",
    "why": "names behaviour (unqualified) and states a rule rather than an event",
-   "text": "'{{corpus:Q1/p3:response:0:30:sha=c5fd6758ccc7}} ...' or 'I chose ...' and did not find\" it"
+   "text": "'My unwanted target behavior is ...' or 'I chose ...' and did not find\" it"
   },
   {
    "line": 16036,

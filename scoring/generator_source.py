@@ -519,7 +519,7 @@ ITEM_NOTES: dict[str, str] = {
         "DATA is those numbers, the GRADER detects it: it compares the fields against "
         "the example itself and sets `has_own_graph` to `mismatch`, zeroing the item "
         "exactly as on paper. You are not asked about that, and you should not discuss "
-        "it. What IS yours is when only the WORDING is copied — a title of 'Water {{corpus:1c/p5:title:5:21:sha=39f1f7fdd115:shape=R16-0-20}}"
+        "it. What IS yours is when only the WORDING is copied — a title of 'Water Consumption Over "
         "{{corpus:1c/p5:title:22:32:sha=65ebb904a388:shape=R10-0-27}} from a student who did not track water, or a y-axis of 'Ounces of "
         "Water per Day' — that is `generic` on the label, like an untouched 'Chart "
         "Title'. Their own graph names their own behaviour: hours of sleep, minutes of "

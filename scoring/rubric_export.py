@@ -192,8 +192,8 @@ COURSE_LEVEL_GENERATOR = ("SCORING_DIVERGENCES", "PROBE_REACH_LIMITS")
 # to arrive with one must be decided on rather than quietly truncated.
 NON_ITEM_KEYS = {
     "CONTEXT": {
-        "_utb": "handout 2's '{{corpus:Q1/p3:response:0:27:sha=c8e59699d1a0:shape=C81008}} is' section",
-        "_wgb": "handout 2's '{{corpus:Q2/p3:response:0:23:sha=d743f1f68d1a:shape=C8408}} is' section",
+        "_utb": "handout 2's 'My Unwanted Target Behavior is' section",
+        "_wgb": "handout 2's 'My Wanted Goal Behavior is' section",
     },
 }
 

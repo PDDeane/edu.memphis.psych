@@ -399,7 +399,7 @@ deduction codes, no point values, no score, and no check keys.
 # Rubric item PR — 4 points
 
 ## Question asked of the student
-Write an example of Positive Reinforcement that you could use to attempt to change your behavior. (Positive Reinforcement = {{corpus:D1/p9:d1:0:38:sha=73aaf2022862}} a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.
+Write an example of Positive Reinforcement that you could use to attempt to change your behavior. (Positive Reinforcement = adding something desirable to increase a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.
 
 ## How to judge this item
 Do NOT output a score or a deduction list. Fill in the criteria sheet; the score is computed from it.
@@ -417,7 +417,7 @@ Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is c
 
 ## Deduction codes — the course's canonical wording for each gap
 - `NOT_OC` (-4): This example is not Operant Conditioning.
-- `WRONG_TYPE` (-2): This is not Positive Reinforcement. Remember, Positive Reinforcement involves {{corpus:D1/p9:d1:0:38:sha=73aaf2022862}} a behavior. (Correct example of one of the four types, just not PR.)
+- `WRONG_TYPE` (-2): This is not Positive Reinforcement. Remember, Positive Reinforcement involves adding something desirable to increase a behavior. (Correct example of one of the four types, just not PR.)
 - `NOT_EXTERNAL_STIMULUS` (-4): Remember that what you add or take away after your behavior has to be easily controlled by you and be an outside stimulus.
 - `BLANK` (-4): did not answer
 

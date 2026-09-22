@@ -48,11 +48,11 @@ SLOTSHEET = TS / "packages/shared/lib/llm/slotSheet.ts"
 PROBES = [
     "utb_stated:States the behaviour:met/absent@1",
     "harms_listed:How many harms:3/2/1/0@2",
-    "modify_stated:Says whether it is {{corpus:Q4b/p20:modify:17:40:sha=f3f224b807af}}:met/absent@2",
+    "modify_stated:Says whether it is a good choice to modify:met/absent@2",
     "reason_1:First reason {{corpus:Q5/p4:first:0:53:sha=e4fd18eaab99}}:met/absent",
     "a:b:met/absent",
     "goal_specific:A goal with a colon: like this:met/absent@1.5",
-    "two_refs:{{corpus:Q1/p1:response:0:41:sha=c874ac86a7b2}} and {{corpus:Q1/p3:response:0:27:sha=c8e59699d1a0}}:met/absent",
+    "two_refs:{{corpus:Q1/p1:response:0:41:sha=c874ac86a7b2}} and My unwanted target behavior:met/absent",
 ]
 
 DRIVER = """

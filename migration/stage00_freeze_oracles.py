@@ -91,7 +91,7 @@ def leak_gate(frozen: dict) -> list[str]:
     pre-cut into a set so the membership test stays O(1).
 
     UNIQUENESS ALONE IS STILL NOT ENOUGH, also measured. It left one finding
-    standing -- Q1/p12's "{{corpus:Q1/p12:response:31:69:sha=67aefa440274}} vegetables" --
+    standing -- Q1/p12's "insufficient consumption of fruits and vegetables" --
     which is a CANNED target-behaviour option that only p12 happened to pick. One
     student choosing an option does not make the option their writing.
 

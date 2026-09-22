@@ -934,7 +934,7 @@ def _example_use_item(
 
 ITEMS: list[dict] = [
     _example_item("PR", "PR Example", "Positive Reinforcement", "PR",
-                  "{{corpus:D1/p9:d1:0:38:sha=73aaf2022862}} a behavior"),
+                  "adding something desirable to increase a behavior"),
     _example_item("NR", "NR Example", "Negative Reinforcement", "NR",
                   "taking away something undesirable to increase a behavior"),
     _example_item("PP", "PP Example", "Positive Punishment", "PP",

@@ -171,7 +171,7 @@ NOT_STUDENT_TEXT: dict[str, str] = {
     "My goal is specific because":
         "THE HANDOUT'S OWN SENTENCE STARTER, and the only place it survives the "
         "history rewrite is a code comment describing the SHAPE a response "
-        "takes -- written with a placeholder, `\"{{corpus:Q3/p1:specific:10:37:sha=32a1b1a0f56c}} X\"`, "
+        "takes -- written with a placeholder, `\"My goal is specific because X\"`, "
         "precisely so it names no one's completion. It is the stem printed on "
         "the page for every student, not anything a student added to it",
     "instead of drinking water, I am drinking soda":

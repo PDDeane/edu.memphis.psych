@@ -9,7 +9,7 @@ AND an example graph. A scorer that reads those as student work scores them.
 
 # THE SECTION HEADINGS BELOW ARE NOT REFERENCED, AND CANNOT BE.
 #
-# `{{corpus:Q1/p3:response:0:27:sha=c8e59699d1a0:shape=C81008}} is` and `{{corpus:Q2/p3:response:0:23:sha=d743f1f68d1a:shape=C8408}} is` are the
+# `My Unwanted Target Behavior is` and `My Wanted Goal Behavior is` are the
 # handout's own headings: this module matches them to split a submission, and
 # they ship in the .olx because the student reads them. Reword either and the
 # segmenter stops finding the section it names.
@@ -390,7 +390,7 @@ def utb_hint(submission_path: str) -> str | None:
     choices = [
         "lack of sleep",
         "lack of exercise",
-        "{{corpus:Q1/p12:response:31:69:sha=67aefa440274}} vegetables",
+        "insufficient consumption of fruits and vegetables",
         "spending too much time on electronic devices",
     ]
     for txt in marked_runs(submission_path, lambda f: f["u"] or f["highlight"] or f["b"]):
