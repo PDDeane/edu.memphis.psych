@@ -1567,7 +1567,7 @@
      "free": [
       "unclear"
      ],
-     "desc": "{{corpus:Q1/p10:response:0:31:sha=f748d9d9ddd6}} identified as the student's own target, not merely mentioned as the cause of some effect. Judge ONLY the response text the student wrote. Where the UTB also appears in this prompt as a separate field or context line, that does NOT satisfy this check \u2014 the question is whether the RESPONSE names the behaviour as its target. The test is OWNERSHIP, not first-person pronouns, and it can be satisfied anywhere in the response: naming the behaviour as theirs (\"{{corpus:Q1/p3:response:0:30:sha=c5fd6758ccc7}} X\"), choosing it (\"I chose X\"), or saying what they want instead of it. A clause that says only what the behaviour DOES TO them \u2014 it makes them tired, it leaves them behind \u2014 is an EFFECT and is not ownership, however many times \"me\" appears in it. A response built entirely of such clauses is `absent`."
+     "desc": "{{corpus:Q1/p10:response:0:31:sha=f748d9d9ddd6}} identified as the student's own target, not merely mentioned as the cause of some effect. Judge ONLY the response text the student wrote. Where the UTB also appears in this prompt as a separate field or context line, that does NOT satisfy this check \u2014 the question is whether the RESPONSE names the behaviour as its target. The test is OWNERSHIP, not first-person pronouns, and it can be satisfied anywhere in the response: naming the behaviour as theirs (\"My unwanted target behavior is X\"), choosing it (\"I chose X\"), or saying what they want instead of it. A clause that says only what the behaviour DOES TO them \u2014 it makes them tired, it leaves them behind \u2014 is an EFFECT and is not ownership, however many times \"me\" appears in it. A response built entirely of such clauses is `absent`."
     },
     {
      "what": "harms_listed",
@@ -1643,7 +1643,7 @@
     {
      "code": "UTB_NOT_ON_LIST",
      "pts": 5.0,
-     "text": "You did not choose an UTB from the provided list (lack of sleep, lack of exercise, {{corpus:Q1/p12:response:31:69:sha=67aefa440274}} vegetables, spending too much time on electronics). Please choose one of these behaviors for you to modify."
+     "text": "You did not choose an UTB from the provided list (lack of sleep, lack of exercise, insufficient consumption of fruits and vegetables, spending too much time on electronics). Please choose one of these behaviors for you to modify."
     },
     {
      "code": "UTB_NOT_STATED",
