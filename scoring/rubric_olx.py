@@ -85,6 +85,8 @@ def _conditions_for(authored: dict, item_id: str) -> str | None:
     subject vocabulary out of the engine.
     """
     names = []
+    if item_id in _CADENCE_OF:
+        names.append(_CADENCE_OF[item_id])
     for key, val in sorted(authored.items()):
         if not key.endswith("_ITEMS"):
             continue
@@ -127,6 +129,8 @@ def render_item(item: dict, authored: dict, indent: str = "  ") -> list[str]:
         ]) + f">{_text(d.get('text') or '')}</Deduction>")
     for g in _seq(item.get("guidance") or []):
         out.append(f"{i2}<Guidance>{_text(g)}</Guidance>")
+    if item.get("id") in FRAME_ITEMS:
+        out.append(f'{i2}<Guidance use="@oc_criteria"/>')
     for c in _seq(item.get("counts") or []):
         out.append(f"{i2}<Counts" + _attrs([
             ("key", c.get("key")),
@@ -156,10 +160,71 @@ description: The behaviour-modification scoring rubric, as a component. Generate
 -->"""
 
 
+# THE SHARED CRITERIA FRAME, and why it is three exact segments rather than one
+# parameterised one.
+#
+# `olx_prompts._criteria_section` builds this text for the eight operant items and
+# yields three distinct results: a base that PR/NR/PP/NP get, and that base plus a
+# cadence block for DAY1/DAY2 and for WK1/WK2. The base is a clean PREFIX of the
+# other two, so the block splits off exactly.
+#
+# THE OBVIOUS PARAMETERISATION IS WRONG. DAY and WK differ only in `day`/`week`
+# and `daily`/`weekly`, which reads like `params="cadence=day"` and a placeholder
+# -- but the DAY text already contains "week" once and "daily" twice, because it
+# cross-references the other cadence ("not a weekly plan"). A whole-word swap does
+# NOT reproduce the WK block; it was tried and compared, and it fails. Two exact
+# segments need no substitution and can be checked byte for byte.
+CADENCE_DAILY = "cadence_daily"
+CADENCE_WEEKLY = "cadence_weekly"
+FRAME_ITEMS = ("PR", "NR", "PP", "NP", "DAY1", "DAY2", "WK1", "WK2")
+_CADENCE_OF = {"DAY1": CADENCE_DAILY, "DAY2": CADENCE_DAILY,
+               "WK1": CADENCE_WEEKLY, "WK2": CADENCE_WEEKLY}
+
+
+def criteria_frame(base: str, daily_block: str, weekly_block: str,
+                   indent: str = "  ") -> list[str]:
+    i2 = indent + "  "
+    out = [f'{indent}<Frame name="oc_criteria">']
+    out.append(f"{i2}<Segment>{_text(base)}</Segment>")
+    out.append(f'{i2}<Segment ifDeclared="{CADENCE_DAILY}">{_text(daily_block)}</Segment>')
+    out.append(f'{i2}<Segment ifDeclared="{CADENCE_WEEKLY}">{_text(weekly_block)}</Segment>')
+    out.append(f"{indent}</Frame>")
+    return out
+
+
+def frame_text():
+    """(base, daily block, weekly block), or None if they cannot be derived.
+
+    READ FROM `olx_prompts` FOR NOW, AND THAT IS THE POINT OF THE REMAINING WORK.
+    The criteria prose lives at `olx_prompts._criteria_section` -- course content
+    inside engine code, which is exactly what this migration exists to end. Taking
+    it from there keeps ONE copy while the rubric moves: two copies of a rule are
+    two rules, and this file's own history records a drift in three places when
+    that happened before. When the prose moves out, this function is what changes.
+    """
+    try:
+        import handouts as _H
+        import olx_prompts as _O
+        items = {i["id"]: i for i in _H.config(2)["rubric"].ITEMS}
+        base = _O._criteria_section(items["PR"])
+        daily = _O._criteria_section(items["DAY1"])
+        weekly = _O._criteria_section(items["WK1"])
+    except Exception:
+        return None
+    if not (daily.startswith(base) and weekly.startswith(base)):
+        # The split is only exact while the base is a prefix of both. If that
+        # stops holding, emitting anyway would silently ship a different prompt.
+        return None
+    return base, daily[len(base):], weekly[len(base):]
+
+
 def render(doc: dict, rubric_id: str = "bmod_rubric",
            title: str = "Behaviour-modification scoring rubric") -> str:
     lines = [FRONTMATTER,
              f'<Rubric id="{_attr(rubric_id)}" title="{_attr(title)}">']
+    frame = frame_text()
+    if frame:
+        lines += criteria_frame(*frame)
     for item in doc.get("items", []):
         authored = ((doc.get("handouts") or {}).get(str(item.get("handout"))) or {}).get("authored") or {}
         lines += render_item(item, authored)
