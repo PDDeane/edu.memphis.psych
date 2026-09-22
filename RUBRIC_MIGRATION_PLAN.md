@@ -92,16 +92,131 @@ course:
 
 The residue has no course in it, which is the goal stated from the other side.
 
-**Reading it.** `coursedata` reads the build's staged, EXPANDED rubric and keeps
-serving `config(h)["rubric"]`, so all 102 call sites across 18 modules keep their
-spelling -- the channel is converted, not the callers, exactly as when the modules
-went at Stage 5. The reader takes the staged file because templates are expanded
-by the build on purpose: a reader that understood the template grammar would be
-the second implementation that expansion exists to prevent.
+**Reading it.** `coursedata` keeps serving `config(h)["rubric"]`, so all 102 call
+sites across 18 modules keep their spelling -- the channel is converted, not the
+callers, exactly as when the modules went at Stage 5.
 
-**The consequence to accept.** Scoring then depends on a build having run. Today
-`score.py` needs no npm. Afterwards a stale `.stage` silently means a stale
-rubric, so it needs a freshness check with the same teeth as the idmap's.
+**CORRECTED 2026-09-22, after measuring.** This section said the reader takes the
+build's staged, EXPANDED copy, on the reasoning that a reader which understood the
+template grammar would be the second implementation expansion exists to prevent.
+That reasoning still holds, but the staged copy cannot be the source: its corpus
+references are RESOLVED, and `olx_prompts` writes this prose back into the shipped
+`.olx`. Pointing `coursedata.items()` at it made all three handouts read OUT OF
+DATE, and the diff was every `{{corpus:...}}` replaced by the span it protects --
+which would have undone the scrub in a public repository, silently. So the reader
+takes the AUTHORED file.
+
+**Which leaves a build artifact owed.** What the reader actually wants is
+EXPANDED BUT UNRESOLVED -- neither the authored file nor `.stage/content`, and it
+does not exist. The authored file serves today only because nothing uses
+`<ItemTemplate>` yet, so an `<ItemTemplate>` landing before that artifact does is
+a silent wrong answer. `check_the_staged_rubric_is_current` watches for it. This
+is the one piece of build work hand-authoring still owes, and it is named again
+in §0b.
+
+**The consequence to accept.** Once that artifact exists, scoring depends on a
+build having run -- today `score.py` needs no npm -- and a stale build silently
+means a stale rubric, so it needs a freshness check with the same teeth as the
+idmap's.
+
+## 0b · Steps 3d and 4 — what inspection found before either was written
+
+Both were inspected on 2026-09-22 while step 3c's certification ran. Each turned
+out to be larger than its one-line description, and each carries a defect that is
+harmless today and wrong the moment the step lands. Remediation is part of the
+step, not follow-up work.
+
+### Step 3d — delete the rubric fields from `course.json`
+
+**It is 28 fields, not 30.** `RUBRIC_FIELDS` has 30 members and all 30 are on
+`items[]`, but two must SURVIVE: `id`, the join key, and `handout`, which is
+course structure the `<Item>` schema refuses and `handouts.config` selects on.
+Deleting either breaks the join step 3c just built.
+
+**Four readers do not follow the component and will go quiet, not loud:**
+
+1. `coursedata.rubric_for(item_id)` still reads `_load()["items"]` through
+   `_group(RUBRIC_FIELDS)`. After 3d it returns `{}` for every item, silently.
+   It must follow `items()` to the component or be retired.
+2. `coursedata.py`'s pool `_group(...)` at the same shape. Same fix.
+3. `course_schema.py` declares `{"rubric": RUBRIC_FIELDS}`. With the fields gone
+   these become "declared member that does not exist" -- CLEANUP findings, not
+   violations. Either trim the declaration or expect the cleanup lines, but say
+   which BEFORE the run, because a changed finding count that nobody predicted is
+   indistinguishable from a regression.
+4. `reader_equivalence.py` and `property_ratchet.py` both build comparison sets
+   from `RUBRIC_FIELDS | GENERATOR_FIELDS`. Check each for vacuity: a comparison
+   over an empty set passes.
+
+**The fallback must RAISE, not return an empty list.** `items()` currently falls
+back to the course file. Its own docstring says the fallback ceasing to find
+anything "is the point at which the component is the only source". An empty
+fallback is the vacuity trap this project has hit before -- prove the raise by
+moving the `.olx` aside, not by reading the code.
+
+**Retire in the same commit:** `rubric_export --olx`,
+`check_the_rubric_component_is_current`, and
+`check_the_component_reproduces_the_view` with `rubric_equivalence.py`'s course-file
+read. That last one compares the component against `items[]`; after 3d there is
+nothing on the course side to compare against, so leaving it PASSING would be
+leaving a check that tests nothing.
+
+### Step 4 — move the criteria prose into the rubric
+
+**Half of it is already staged, and the direction is backwards.**
+`<Frame name="oc_criteria">` is in the built rubric with three segments -- a base,
+`ifDeclared="cadence_daily"` and `ifDeclared="cadence_weekly"` -- but
+`rubric_olx.frame_text()` BUILDS them by calling `olx_prompts._criteria_section()`.
+The prose still lives in Python and the `.olx` is derived from it.
+`frame_text()`'s own docstring says what step 4 is: "When the prose moves out,
+this function is what changes." So: the segments become authored text,
+`_criteria_section` reads them back through `rubric_component`, and `rubric_olx`
+stops emitting the Frame.
+
+**A defect that is latent now and live the moment the reader flips.**
+`_criteria_section` SUPPRESSES one sentence of criterion 7 when `avoidance_scores`
+holds -- "This never changes the score; it flags the answer for a phrasing
+comment. " The web call site passes it from the item; `frame_text()` does not pass
+it at all, so every emitted segment is the `avoidance_scores=False` variant.
+**DAY1 is `derive_from_criteria` AND `avoidance_scores=True`, the only one of the
+eight**, so the shipped `oc_criteria` base does not reproduce DAY1's real prompt.
+Harmless while nothing reads the frame. Wrong as soon as something does.
+
+Remediation: that sentence becomes its own segment carrying
+`ifDeclared="!avoidance_scores"`. Negation is implemented on both sides
+(`itemTemplate.ts:77`, `promptAssembler.ts:319`), and `Segment`'s RAW text parser
+preserves the leading space that joins it to the sentence in front -- which is the
+reason that parser was chosen. Confirm the item declares `avoidance_scores` as a
+CONDITION name: a segment matches `conditions=`, not an arbitrary rubric field.
+
+**Two branches cannot move, and the decision must be explicit.** `score.py` passes
+`trigger_slot` and `consequence_slot` derived from the CLI's ANSWER SHEET, not from
+the item. `ifDeclared` matches names the ITEM declares, so side-conditioned prose
+has no expression in a Frame. Either a second frame or those two stay in Python --
+decide it in the open rather than letting the keyboard settle it. The CLI's
+`_BOX_WORD.sub(_as_answer, ...)` post-transform is an adapter concern and stays.
+
+**The web does not read the frame, and nothing here changes that.**
+`promptAssembler.renderFrame` implements exactly this rule, but nothing builds its
+`FrameSegment[]` from a parsed `<Frame>`, and `materialiseRubric.ts` -- the only
+rubric-OLX consumer -- never touches Frame. Step 4's reader is the PYTHON one.
+Written down so nobody later concludes the web already consumes it.
+
+**Naming is settled: the attribute is `ifDeclared`, not `when`.** `Segment.ts`
+records why -- `when` is a BASE attribute that gates RENDERING by expression, and
+reusing it would make one attribute mean two things depending on the tag it sits
+on. `renderFrame`'s `when` is an internal TS field name, not the OLX attribute.
+(`Item.md` gets this wrong in the same table that miscalls `scores` as `ref`;
+both are tracked in lo-blocks' `DOCUMENTATION_PLAN.md`.)
+
+### Verification both steps share
+
+* cold audit back to the frozen **45**, re-derived, never quoted from memory
+* `enforcement_selftest` 72/72, 0 vacuous
+* `ask_sha` unchanged; `prompt_sha` moving is EXPECTED wherever a tag changed
+* for 3d, prove the missing-component raise by moving the file aside
+* for 4, DAY1's prompt reproduced exactly, with the sentence suppressed
+
 
 ## 0 · What changed since the first draft
 
