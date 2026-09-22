@@ -14,20 +14,24 @@ that has grown up around the current arrangement.
 
 ### Baseline numbers — re-derive, never quote from memory
 
-Every figure below was measured on **2026-09-13** and each carries the command that reproduces it.
+Every figure below was re-measured on **2026-09-22** and each carries the command that reproduces it.
+The audit rows moved for reasons that are NOT the migration: the 28 findings frozen at stage 00 were
+scoring-agreement defects and the agreement work closed every one of them, while the history rewrite
+added a concession ledger of references into the `.olx`. The two sets are nearly disjoint, so the
+difference is not a regression and not migration drift -- see the freeze commit for the accounting.
 They are the migration's control: stage 00 freezes them, and every later stage's gate is stated
 against them. A stale number here is worse than no number, because a gate written against it
 passes for the wrong reason.
 
 | figure | value | how to re-derive |
 |---|---|---|
-| audit, undeclared | **27** | `python3 equivalence.py --enforcement \| grep UNDECLARED` |
-| audit, raw finding set | **32** | `enforcement_audit()[0]` — 27 undeclared + 3 documented + 2 declared |
+| audit, undeclared | **45** | `python3 equivalence.py --enforcement \| grep UNDECLARED` |
+| audit, raw finding set | **46** | `enforcement_audit()[0]` — the frozen set in `goldens/audit_baseline.json` |
 | declared in `SCORING_DIVERGENCES` | 6 | same headline line |
 | documented recording gaps | 3 | same headline line |
-| `SELFTEST_EXPECTED` | **69** | `grep SELFTEST_EXPECTED equivalence.py` |
-| enforcement checks | 135 | `grep -c '^def check_' enforcement.py` |
-| registered declaration tables | 54 | `len(enforcement.DECLARATION_TABLES)` |
+| `SELFTEST_EXPECTED` | **72** | `grep SELFTEST_EXPECTED equivalence.py` |
+| enforcement checks | 172 | `grep -c '^def check_' enforcement.py` |
+| registered declaration tables | 63 | `len(enforcement.DECLARATION_TABLES)` |
 | `enforcement.py` lines | 13,351 | `wc -l enforcement.py` |
 
 **The raw set and the headline differ, and gates must say which they mean.** The printed line

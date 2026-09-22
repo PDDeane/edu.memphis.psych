@@ -15475,6 +15475,25 @@ OLD_ENV_NAMES_ALLOWED = {
                                 "convention.",
     "RUBRIC_MIGRATION_PLAN.md": "the earlier plan, a historical record of when "
                                 "the old names were current",
+    "ADOPTION_POSTMORTEM.md": "it RECORDS a defect whose symptom was the literal "
+                              "the old data-directory variable appearing where "
+                              "it should not -- one "
+                              "instrument hardcoded it and one frontmatter line "
+                              "carried it. Rewriting those two mentions to "
+                              "COURSE_* would make the post-mortem describe a bug "
+                              "that could not have happened. Same shape as "
+                              "SCORING_REFACTOR_PLAN.md above.",
+    "migration/goldens/audit_baseline.json": "THE FREEZE CANNOT PASS ITS OWN "
+        "CHECK. This file is the frozen finding SET, stored verbatim, and the "
+        "findings quote the paths and names they are about -- including this "
+        "check's own message, which necessarily spells the old name out. So "
+        "writing "
+        "the baseline CREATED a finding that the baseline does not contain, and "
+        "the number was stale the instant it was written: 52 frozen against a tree "
+        "that then read 53. It is also gitignored, so 'must not return to the "
+        "repo' was never about it. Declared rather than scoping the walk to "
+        "tracked files, because an allowlist entry is visible and a silent scope "
+        "change is not.",
 }
 
 
