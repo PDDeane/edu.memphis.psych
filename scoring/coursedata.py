@@ -158,7 +158,57 @@ def _group(entry: dict, fields: set[str]) -> dict:
 
 
 def items() -> list[dict]:
-    """Every item, rubric fields only, in rubric order."""
+    """Every item, rubric fields only, in rubric order -- from the COMPONENT.
+
+    THE RUBRIC LIVES IN THE CONTENT NOW, as a `<Rubric>` the course links beside
+    the three handouts, and this is the single place that reads it. Everything
+    else keeps its spelling: `handouts.config(h)["rubric"]` still serves the view,
+    and the 102 call sites across 18 modules are untouched. The CHANNEL is
+    converted, not the callers -- the same move that let Stage 5 delete the
+    modules without breaking a single site.
+
+    IT READS THE AUTHORED FILE, NOT THE BUILD'S STAGED COPY, and the difference is
+    not stylistic. The staged copy has its corpus references RESOLVED, and
+    `olx_prompts` writes this prose back into the shipped `.olx` -- so feeding it
+    resolved text would replace every `{{corpus:...}}` with the span it protects
+    and undo the scrub, in a public repository, silently. Measured 2026-09-22:
+    pointing this function at the staged copy made all three handouts read OUT OF
+    DATE, and the diff was the reference replaced by its expansion.
+    `rubric_component.authored_path` carries the full reasoning.
+
+    SCORING THEREFORE DOES NOT YET DEPEND ON A BUILD HAVING RUN. It will: the
+    artifact this should read is EXPANDED BUT UNRESOLVED, which is neither the
+    authored file nor `.stage/content` and does not exist yet. The authored file
+    serves today only because nothing uses `<ItemTemplate>` -- a template landing
+    before that build step is what `check_the_staged_rubric_is_current` watches
+    for, and it is the one piece of build work hand-authoring still owes.
+
+    FALLS BACK TO THE COURSE FILE only while `items[]` still carries the rubric
+    fields, and says nothing when it does -- the two are proven identical by
+    `check_the_component_reproduces_the_view`. When those fields are deleted the
+    fallback stops finding anything, which is the point at which the component is
+    the only source and the check above is the only thing that licensed it.
+    """
+    try:
+        import rubric_component
+        rows = rubric_component.as_view_items(
+            rubric_component.authored_path())
+        if rows:
+            # `handout` IS JOINED FROM THE COURSE FILE, not carried by the
+            # rubric. `Item`'s schema refuses the attribute, and rightly: which
+            # handout an item belongs to is course structure. `handouts.config`
+            # selects on it before serving, so it has to be here.
+            where = {str(it.get("id")): it.get("handout")
+                     for it in _load()["items"]}
+            for r in rows:
+                h = where.get(str(r.get("id")))
+                if h is not None:
+                    r["handout"] = h
+            return rows
+    except FileNotFoundError:
+        pass                    # not built yet; the staleness check reports it
+    except Exception:
+        pass                    # malformed; the equality check reports it
     return [_group(it, RUBRIC_FIELDS) for it in _load()["items"]]
 
 

@@ -50,10 +50,36 @@ _COMMENT = re.compile(r"<!--.*?-->", re.S)
 
 
 def staged_path() -> str:
-    """Where the build leaves the expanded, resolved rubric."""
+    """Where the build leaves the expanded, RESOLVED rubric."""
     import paths
     return os.path.join(str(paths.LO), ".stage", "content", paths.NS,
                         "psychology", "bmod_rubric.olx")
+
+
+def authored_path() -> str:
+    """The authored rubric, templates unexpanded and references INTACT.
+
+    TWO CONSUMERS WANT DIFFERENT THINGS, and reading the wrong one is not a
+    stylistic mistake. The SCORER wants references resolved -- it judges the text
+    a student saw. The GENERATOR must keep them: `olx_prompts` writes the rubric's
+    prose into the shipped `.olx`, so feeding it resolved text would replace every
+    `{{corpus:...}}` with the span it protects and undo the scrub, in a public
+    repository, silently. Measured 2026-09-22: pointing `coursedata.items()` at
+    the staged copy made all three handouts read OUT OF DATE, and the diff was the
+    reference replaced by its expansion.
+
+    So the rubric of record for READING is this file, and resolution stays where
+    it already lives -- `agreement.load_action`, `_field_sha`, `check_idmap_is_current`
+    each expand at the point of comparison.
+
+    WHEN TEMPLATES ARRIVE THIS NEEDS A BUILD STEP. The authored file is expanded
+    today only because nothing uses `<ItemTemplate>` yet. The artifact this
+    function should return is EXPANDED BUT UNRESOLVED -- which is neither the
+    authored file nor `.stage/content`, and does not exist yet. That is the one
+    piece of build work the hand-authoring step still owes.
+    """
+    import paths
+    return os.path.join(str(paths.REPO), "psychology", "bmod_rubric.olx")
 
 
 def _text(el) -> str:

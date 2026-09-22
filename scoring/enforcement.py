@@ -15567,6 +15567,74 @@ OLD_ENV_NAMES_ALLOWED = {
 }
 
 
+def check_the_staged_rubric_is_current() -> list[str]:
+    """The rubric the scorer reads is the rubric that was authored.
+
+    `coursedata.items()` reads the build's STAGED copy, so scoring now depends on
+    a build having run -- which it did not before. A stale `.stage` therefore
+    means a stale rubric, silently: every item still parses, every slot still
+    reads, and the scores describe a rubric nobody is editing any more.
+
+    IT COMPARES AGAINST THE AUTHORED FILE, not against the view. While `items[]`
+    still carries the rubric fields, `check_the_component_reproduces_the_view`
+    would catch a stale stage as a difference from the course file -- but the
+    moment those fields are deleted, that check compares the component against
+    itself and goes quiet. This one keeps working after the deletion, which is
+    exactly when it is needed.
+
+    THE AUTHORED SIDE IS RESOLVED BEFORE COMPARING, because the staged copy has
+    had its corpus references expanded and the authored one has not. Comparing raw
+    would report every referenced span as a difference.
+    """
+    import os as _os
+    out = []
+    try:
+        import corpus_resolve as CR
+        import rubric_component as RC
+    except Exception as exc:                            # pragma: no cover
+        return [f"cannot check the staged rubric: {type(exc).__name__}: {exc}"]
+
+    authored = _os.path.join(_os.path.dirname(str(_HERE_DIR)), "psychology",
+                             "bmod_rubric.olx")
+    if not _os.path.exists(authored):
+        return [f"{_os.path.relpath(authored)} is missing: there is no authored "
+                f"rubric to stage"]
+    staged = RC.staged_path()
+    if not _os.path.exists(staged):
+        return [f"the rubric has not been staged ({staged}); run "
+                f"`npm run build:stage-content`. The scorer reads the staged copy, "
+                f"so an unbuilt tree scores against nothing"]
+
+    def resolved(x):
+        if isinstance(x, str):
+            return CR.expand(x) if "{{corpus:" in x else x
+        if isinstance(x, list):
+            return [resolved(v) for v in x]
+        if isinstance(x, dict):
+            return {k: resolved(v) for k, v in x.items()}
+        return x
+
+    try:
+        want = [resolved(i) for i in RC.as_view_items(authored)]
+        have = RC.as_view_items(staged)
+    except Exception as exc:
+        return [f"cannot compare the authored rubric with the staged one: "
+                f"{type(exc).__name__}: {exc}"]
+    if [i["id"] for i in want] != [i["id"] for i in have]:
+        return [f"the staged rubric holds different items from the authored one "
+                f"({len(have)} staged, {len(want)} authored) -- rebuild"]
+    byid = {i["id"]: i for i in have}
+    for w in want:
+        h = byid.get(w["id"])
+        if h != w:
+            diff = sorted(k for k in set(w) | set(h) if w.get(k) != h.get(k))
+            out.append(
+                f"{w['id']}: the staged rubric differs from the authored one on "
+                f"{diff[:4]} -- the scorer is reading a rubric that was edited "
+                f"since the last build. Run `npm run build:stage-content`.")
+    return out
+
+
 def check_the_component_reproduces_the_view() -> list[str]:
     """The rubric component serves exactly what `config(h)["rubric"]` serves.
 
@@ -15619,20 +15687,35 @@ def check_the_component_reproduces_the_view() -> list[str]:
         return [f"the staged rubric component will not parse: "
                 f"{type(exc).__name__}: {exc}"]
 
+    # THE COURSE FILE DIRECTLY, NOT THROUGH THE VIEW. `coursedata.items()` now
+    # READS the component, so comparing against the view compared the component
+    # with itself -- the check went vacuous the moment the channel was re-pointed,
+    # which is precisely when it mattered. It reads `items[]` off the file so the
+    # two sources stay genuinely independent for as long as both exist.
     want, by_id = [], {}
-    for h in (1, 2, 3):
-        try:
-            rub = config(h)["rubric"]
-            for it in rub.ITEMS:
-                rec = {k: resolved(v) for k, v in it.items() if k != "handout"}
-                want.append(rec)
-                by_id[rec["id"]] = rec
-        except Exception as exc:
-            out.append(f"handout {h}: cannot read the view to compare it: "
-                       f"{type(exc).__name__}: {exc}")
-    if out:
-        return out
+    try:
+        import coursedata as _CD
+        raw = _CD._load()["items"]
+    except Exception as exc:
+        return [f"cannot read the course file to compare it: "
+                f"{type(exc).__name__}: {exc}"]
+    for it in raw:
+        rec = {k: resolved(v) for k, v in it.items()
+               if k != "handout" and k in _CD.RUBRIC_FIELDS}
+        if not rec.get("id"):
+            continue
+        want.append(rec)
+        by_id[rec["id"]] = rec
+    if not want:
+        return ["the course file carries no rubric fields to compare against; "
+                "if `items[]` has been reduced to generator fields, this check "
+                "has done its job and should be retired with a note saying so"]
 
+    # `handout` IS SET ASIDE ON BOTH SIDES. The view strips it before serving
+    # (handouts.py selects on it, then drops it); the component carries it so the
+    # view can select at all. Comparing one against the other reported all 26
+    # items as differing on a field neither side disagrees about.
+    got_items = [{k: v for k, v in i.items() if k != "handout"} for i in got_items]
     got = {i["id"]: i for i in got_items}
     if [w["id"] for w in want] != [i["id"] for i in got_items]:
         out.append("the component serves the items in a different ORDER from the "

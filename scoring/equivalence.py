@@ -1195,6 +1195,8 @@ def enforcement_audit():
         findings.append(("-", "CROSS-FILE ANCHOR DANGLES", bad))
     for bad in ENF.check_general_prose_has_no_course_vocabulary():
         findings.append(("-", "COURSE VOCABULARY IN GENERAL PROSE", bad))
+    for bad in ENF.check_the_staged_rubric_is_current():
+        findings.append(("-", "THE STAGED RUBRIC IS NOT THE AUTHORED ONE", bad))
     for bad in ENF.check_the_component_reproduces_the_view():
         findings.append(("-", "COMPONENT DOES NOT REPRODUCE THE RUBRIC VIEW", bad))
     for bad in ENF.check_sheet_matches_the_rubric_it_names():

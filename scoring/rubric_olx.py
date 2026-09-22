@@ -117,6 +117,13 @@ def render_item(item: dict, authored: dict, indent: str = "  ") -> list[str]:
     out = []
     out.append(f"{indent}<Item" + _attrs([
         ("scores", item.get("id")),
+        # NO `handout` HERE. It was added and the build refused it -- 27 x
+        # ATTRIBUTE_VALIDATION, because `Item`'s schema is strict and does not
+        # carry one. That refusal is right: which handout an item belongs to is
+        # course STRUCTURE, not rubric content, and Stage 5 said as much -- "an
+        # item does not record which handout it is in, because the module it was
+        # written in WAS the handout". `coursedata.items()` joins it from the
+        # course file, where the structural wiring lives.
         ("max", item.get("max")),
         ("label", item.get("label")),
         ("increment", item.get("increment")),
