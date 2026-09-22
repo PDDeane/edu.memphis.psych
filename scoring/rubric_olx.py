@@ -48,12 +48,21 @@ import json
 
 
 def _attr(v) -> str:
-    """One attribute value, XML-escaped. Booleans render as the strings the schema takes."""
+    """One attribute value, XML-escaped, with line breaks preserved.
+
+    XML NORMALISES WHITESPACE IN ATTRIBUTE VALUES: a literal newline becomes a
+    space before any parser hands the value back. `rule` texts are multi-line, so
+    writing them literally loses every break silently -- the file still parses,
+    the value still reads, and the prose has quietly been reflowed. Character
+    references are NOT normalised, so the breaks are written as `&#10;` and come
+    back exactly as authored.
+    """
     if isinstance(v, bool):
         return "true" if v else "false"
     if isinstance(v, float) and v == int(v):
         v = int(v)
-    return html.escape(str(v), quote=True)
+    s = html.escape(str(v), quote=True)
+    return s.replace("\r\n", "&#10;").replace("\n", "&#10;").replace("\t", "&#9;")
 
 
 def _attrs(pairs) -> str:
@@ -85,6 +94,14 @@ def _conditions_for(authored: dict, item_id: str, item: dict | None = None) -> s
     subject vocabulary out of the engine.
     """
     names = []
+    # A NAMED BOOLEAN ON THE ITEM IS A CONDITION. `conditions` and `params` are
+    # "names the engine matches and substitutes -- never interprets", and the
+    # generator this model replaced "carried a named boolean per condition, which
+    # put subject vocabulary into the engine's own interface and meant every new
+    # variant needed engine code". These are those booleans.
+    for flag in ("avoidance_scores", "graph_item", "move_pick", "reads_utb_choice"):
+        if (item or {}).get(flag):
+            names.append(flag)
     for key, val in sorted(authored.items()):
         if not key.endswith("_ITEMS"):
             continue
@@ -105,31 +122,63 @@ def render_item(item: dict, authored: dict, indent: str = "  ") -> list[str]:
         ("increment", item.get("increment")),
         ("deriveFromCredit", item.get("derive_from_credit")),
         ("conditions", _conditions_for(authored, item.get("id"), item)),
+        ("params", _params_for(item)),
         ("blankCode", item.get("blank_code")),
         ("expectedType", item.get("expected_type")),
         ("deriveFromClauses", item.get("derive_from_criteria")),
-        ("unreachableCodes", ",".join(_seq(item.get("unreachable_codes") or []))),
+        # EMITTED ONLY WHEN THE ITEM DECLARES IT. An item that omits the key is a
+        # different item from one declaring it holds none, and `",".join([])` is
+        # "" -- which would have written the attribute onto all 26 items.
+        ("unreachableCodes",
+         ",".join(_seq(item["unreachable_codes"]))
+         if "unreachable_codes" in item else None),
     ]) + ">")
     i2 = indent + "  "
     if item.get("question"):
         out.append(f"{i2}<Question>{_text(item['question'])}</Question>")
+    # A GATE IS A SLOT, and all three of its parts live on the slot: that it
+    # gates, the code it charges, and the sentence saying why. Reconstructing a
+    # gate from a slot plus a deduction would lose the `because` text, which is
+    # the gate's own message and not the deduction's generic one.
+    gates = {g.get("key"): g for g in _seq(item.get("oc_gates") or [])}
     for s in _slots_for(authored, item.get("id")):
+        g = gates.get(s.get("key")) or {}
         out.append(f"{i2}<Slot" + _attrs([
             ("key", s.get("key")), ("label", s.get("label")),
             ("seg", s.get("seg")), ("pts", s.get("pts")),
+            # `gate` IS THE SLOT'S OWN FLAG, on 60 slots, and is not the same
+            # thing as having an oc_gate. Setting it only for gated items wrote
+            # it onto 5. The gate's code and message come from `oc_gates`; that
+            # a slot gates at all comes from the slot.
+            ("gate", "true" if (s.get("gate") or g) else None),
+            ("charge", g.get("code")),
+            ("because", g.get("text")),
         ]) + "/>")
     for c in _seq(item.get("credit") or []):
         body = c.get("desc") or c.get("text") or ""
         out.append(f"{i2}<Credit" + _attrs([
-            ("what", c.get("what")), ("pts", c.get("pts")),
+            ("what", c.get("what")),
+            # PRESENT-WITH-NO-VALUE is a third case, after absent and empty: a
+            # credit row can declare `pts: None`, meaning it carries no points but
+            # is still a scored component. An empty attribute says that; omitting
+            # it would say the row never mentioned points.
+            ("pts", ("" if c["pts"] is None else c["pts"]) if "pts" in c else None),
             ("verdicts", "|".join(_seq(c.get("verdicts") or [])) or None),
-            ("codes", "|".join(f"{k}={v}" for k, v in sorted((c.get("codes") or {}).items())) or None),
-            ("free", c.get("free")), ("rule", c.get("rule")),
+            # PRESENT-BUT-EMPTY AGAIN: Q4c declares `codes: {}`, which is not the
+            # same as a row that never mentions codes. `or None` erased the
+            # difference.
+            ("codes",
+             "|".join(f"{k}={v}" for k, v in sorted((c["codes"] or {}).items()))
+             if "codes" in c else None),
+            ("free", "|".join(_seq(c.get("free"))) if c.get("free") else None),
+            ("rule", c.get("rule")),
             ("reported", c.get("reported")),
+            ("gates", "true" if c.get("gates") else None),
         ]) + (f">{_text(body)}</Credit>" if body else "/>"))
     for d in _seq(item.get("deductions") or []):
         out.append(f"{i2}<Deduction" + _attrs([
             ("code", d.get("code")), ("pts", d.get("pts")),
+            ("repeatable", "true" if d.get("repeatable") else None),
         ]) + f">{_text(d.get('text') or '')}</Deduction>")
     for g in _seq(item.get("guidance") or []):
         out.append(f"{i2}<Guidance>{_text(g)}</Guidance>")
@@ -154,6 +203,7 @@ def render_item(item: dict, authored: dict, indent: str = "  ") -> list[str]:
     for e in _seq(item.get("expect") or []):
         out.append(f"{i2}<Expect" + _attrs([
             ("key", e.get("key")), ("left", e.get("left")), ("value", e.get("value")),
+            ("lenient", "|".join(_seq(e.get("lenient"))) if e.get("lenient") else None),
         ]) + "/>")
     for e in _seq(item.get("equals") or []):
         out.append(f"{i2}<Equals" + _attrs([
@@ -172,8 +222,17 @@ def render_item(item: dict, authored: dict, indent: str = "  ") -> list[str]:
     for dv in _seq(item.get("derived") or []):
         out.append(f"{i2}<Derived" + _attrs([
             ("key", dv.get("key")), ("kind", dv.get("kind")),
-            ("fields", ",".join(_seq(dv.get("fields") or []))),
-            ("words", ",".join(_seq(dv.get("words") or []))),
+            # `or None` HERE, unlike `codes` and `unreachableCodes`: those two are
+            # declared-empty in the source and must survive as empty; these are
+            # simply absent, and an absent list must not become `words=""`.
+            ("fields", ",".join(_seq(dv.get("fields") or [])) or None),
+            ("words", ",".join(_seq(dv.get("words") or [])) or None),
+            # JSON, because the value is nested numeric data -- 1c's graph
+            # template is a list of series. An attribute can hold it losslessly
+            # and the reader parses it back; inventing a flat encoding for one
+            # field would be a private format nobody else can read.
+            ("template", json.dumps(dv["template"], separators=(",", ":"))
+                         if dv.get("template") is not None else None),
         ]) + "/>")
     for cv in _seq(item.get("cover") or []):
         out.append(f"{i2}<Cover" + _attrs([
@@ -237,6 +296,19 @@ def _takes_frame(item: dict) -> bool:
     return bool(item.get("derive_from_criteria"))
 
 
+def _params_for(item: dict) -> str | None:
+    """`params="cadence=daily"` -- values for the frame's placeholders.
+
+    The cadence block differs between the daily and weekly items only in wording,
+    and the frame is authored with placeholders so that only the intended
+    occurrences substitute. A blind whole-word swap does NOT reproduce the other
+    variant -- the text cross-references the opposite cadence -- which is why the
+    value is supplied rather than derived.
+    """
+    c = item.get("cadence")
+    return f"cadence={c}" if c else None
+
+
 def _cadence_cond(item: dict) -> str | None:
     c = item.get("cadence")
     return f"cadence_{c}" if c else None
@@ -289,6 +361,16 @@ def render(doc: dict, rubric_id: str = "bmod_rubric",
     frame = frame_text()
     if frame:
         lines += criteria_frame(*frame)
+    # THE OTHER FRAME. `OC_FRAME` is the four-types definition, a handout-level
+    # value the view serves by name. The 2026-09-16 reference inlined its text
+    # once per item, twelve times over; a frame says it once and lets the items
+    # cite it, which is what a frame is for.
+    for hk in sorted((doc.get("handouts") or {})):
+        oc = ((doc["handouts"][hk] or {}).get("authored") or {}).get("OC_FRAME")
+        if oc:
+            lines.append(f'  <Frame name="oc_frame">')
+            lines.append(f"    <Segment>{_text(oc)}</Segment>")
+            lines.append(f"  </Frame>")
     # ANSWER VOCABULARIES, named once and shared. `SLOT_OPTIONS` is
     # {slot: [values]}; the 2026-09-16 reference gave each vocabulary a human name
     # ("authorship" for relieved|created|neither) and had slots cite it. The slot's

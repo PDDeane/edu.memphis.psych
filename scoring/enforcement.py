@@ -15567,6 +15567,104 @@ OLD_ENV_NAMES_ALLOWED = {
 }
 
 
+def check_the_component_reproduces_the_view() -> list[str]:
+    """The rubric component serves exactly what `config(h)["rubric"]` serves.
+
+    THIS IS THE PROOF THAT LICENSES THE DELETION, and it is only runnable while
+    BOTH sources exist. 102 call sites across 18 modules reach the rubric through
+    the view; the plan is to re-point the channel at the component and then drop
+    `items[]` from the course file. Stage 5 did the same thing and said so: "BY_ID,
+    ITEMS and SLOT_SPEC reproduce EXACTLY for all three handouts,
+    order-sensitively". Until this passes, the duplication is what makes the
+    deletion provable, and removing it early would throw away the evidence.
+
+    COMPARED AFTER RESOLUTION, because the view carries `{{corpus:...}}` and the
+    staged component has had them expanded. Comparing raw reports a difference
+    that is two spellings of one string -- the mistake that cost a day on
+    2026-09-22.
+
+    `handout` IS SET ASIDE, as it was at Stage 5: the export synthesises it and an
+    item does not record which handout it is in, "because the module it was
+    written in WAS the handout".
+
+    IT REPORTS ITS OWN FAILURES rather than skipping them. A check that cannot run
+    is not a check that passed -- a sibling here returned a clean zero for two
+    injected faults because a bare `except: continue` hid a NameError.
+    """
+    out = []
+    try:
+        import corpus_resolve as CR
+        import rubric_component as RC
+    except Exception as exc:                            # pragma: no cover
+        return [f"cannot compare the rubric component against the view: "
+                f"{type(exc).__name__}: {exc}"]
+
+    def resolved(x):
+        if isinstance(x, str):
+            return CR.expand(x) if "{{corpus:" in x else x
+        if isinstance(x, list):
+            return [resolved(v) for v in x]
+        if isinstance(x, dict):
+            return {k: resolved(v) for k, v in x.items()}
+        return x
+
+    try:
+        got_items = RC.as_view_items()
+        got_slots = RC.as_view_slot_spec()
+    except FileNotFoundError:
+        return [f"the rubric component is not staged ({RC.staged_path()}); run "
+                f"`npm run build:stage-content`. An unbuilt artifact is not "
+                f"evidence that it reproduces the view"]
+    except Exception as exc:
+        return [f"the staged rubric component will not parse: "
+                f"{type(exc).__name__}: {exc}"]
+
+    want, by_id = [], {}
+    for h in (1, 2, 3):
+        try:
+            rub = config(h)["rubric"]
+            for it in rub.ITEMS:
+                rec = {k: resolved(v) for k, v in it.items() if k != "handout"}
+                want.append(rec)
+                by_id[rec["id"]] = rec
+        except Exception as exc:
+            out.append(f"handout {h}: cannot read the view to compare it: "
+                       f"{type(exc).__name__}: {exc}")
+    if out:
+        return out
+
+    got = {i["id"]: i for i in got_items}
+    if [w["id"] for w in want] != [i["id"] for i in got_items]:
+        out.append("the component serves the items in a different ORDER from the "
+                   "view; rubric order is how a person reads it")
+    for w in want:
+        g = got.get(w["id"])
+        if g is None:
+            out.append(f"{w['id']}: the component serves no such item")
+            continue
+        for k in sorted(set(w) | set(g)):
+            if w.get(k) != g.get(k):
+                out.append(
+                    f"{w['id']}.{k}: the component does not reproduce the view "
+                    f"({str(w.get(k))[:60]!r} vs {str(g.get(k))[:60]!r})")
+    for h in (1, 2, 3):
+        try:
+            spec = {k: resolved(v)
+                    for k, v in (config(h)["rubric"].SLOT_SPEC or {}).items()}
+        except Exception:
+            continue
+        for iid, rows in spec.items():
+            if rows != got_slots.get(iid):
+                out.append(f"SLOT_SPEC[{iid}]: the component does not reproduce it")
+    try:
+        oc = resolved(config(2)["rubric"].OC_FRAME)
+        if oc and oc != RC.as_view_frame("oc_frame"):
+            out.append("OC_FRAME: the component does not reproduce it")
+    except Exception:
+        pass
+    return out
+
+
 def check_sheet_matches_the_rubric_it_names() -> list[str]:
     """Each `<LLMAction rubricDef=>` names a rubric entry, and they agree.
 

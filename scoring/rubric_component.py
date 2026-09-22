@@ -26,6 +26,7 @@ returns nothing is how an empty result comes to look like a clean pass.
 """
 from __future__ import annotations
 
+import json
 import os
 import re
 import xml.etree.ElementTree as ET
@@ -92,6 +93,231 @@ def slot_keys(item_id: str, path: str | None = None) -> list[str]:
     """The slot keys the rubric declares for one item, in rubric order."""
     entry = load(path).get(item_id) or {}
     return [s.get("key") for s in entry.get("slots", []) if s.get("key")]
+
+
+
+
+# ---------------------------------------------------------------- view shape --
+#
+# THE VIEW'S SHAPE IS THE CONTRACT, not this module's convenience. 102 call sites
+# across 18 modules reach the rubric through `config(h)["rubric"]`, spelled
+# `.BY_ID[item]`, `.ITEMS`, `.SLOT_SPEC`. When the modules went at Stage 5 the
+# CHANNEL was converted and every site kept its spelling; the same applies here.
+# So these functions rebuild exactly what the view serves -- parsed types, the
+# same keys, the same order -- and `check_the_component_reproduces_the_view`
+# holds them to it while both sources still exist. That window is the only time
+# the equality is provable, which is why the duplication is worth keeping until
+# the proof is green.
+
+_TRUE = ("true", "True", "1")
+
+
+class _Declared:
+    """Marker: the attribute was written with no value, so the key exists as None."""
+
+
+def _num(v, cast=float):
+    if v == "":
+        return _Declared            # declared, valueless -- not the same as absent
+    try:
+        return cast(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def _list(v, sep=","):
+    return [x for x in (v or "").split(sep) if x] if v else []
+
+
+def _pairs(v):
+    """`a~met,b~absent` -> [{"value": "a", "verdict": "met"}, ...]"""
+    out = []
+    for part in _list(v):
+        if "~" in part:
+            val, _, verd = part.partition("~")
+            out.append({"value": val, "verdict": verd})
+    return out
+
+
+def _conds(v):
+    """`slot=value,slot=value` -> [{"slot": ..., "value": ...}]"""
+    out = []
+    for part in _list(v):
+        if "=" in part:
+            slot, _, val = part.partition("=")
+            out.append({"slot": slot, "value": val})
+    return out
+
+
+def _codes(v):
+    out = {}
+    for part in _list(v, "|"):
+        if "=" in part:
+            k, _, val = part.partition("=")
+            out[k] = val
+    return out
+
+
+def _el_attrs(el, spec):
+    """One element's attributes, cast per `spec`, omitting what it does not carry."""
+    rec = {}
+    for name, key, cast in spec:
+        raw = el.get(name)
+        if raw is None:
+            continue
+        val = cast(raw) if cast else raw
+        # THE ATTRIBUTE WAS WRITTEN, SO IT IS PART OF THE RECORD. An empty value
+        # that was emitted means the source declared it empty -- `codes: {}` is
+        # not the same as a row with no codes at all -- and the emitter only
+        # writes what the source declared.
+        if val is _Declared:
+            rec[key] = None
+        elif val is not None:
+            rec[key] = val
+    return rec
+
+
+def as_view_items(path: str | None = None) -> list[dict]:
+    """The rubric as `config(h)["rubric"].ITEMS` serves it, in rubric order."""
+    p = path or staged_path()
+    with open(p, encoding="utf8") as fh:
+        text = _COMMENT.sub("", fh.read())
+    root = ET.fromstring(text)
+    items = []
+    for el in root.iter("Item"):
+        iid = el.get("scores")
+        if not iid:
+            continue
+        conds = set(_list(el.get("conditions"), "|"))
+        params = dict(kv.split("=", 1) for kv in _list(el.get("params"), "|")
+                      if "=" in kv)
+        it: dict = {"id": iid}
+        if el.get("max") is not None:
+            it["max"] = _num(el.get("max"))
+        if el.get("label"):
+            it["label"] = el.get("label")
+        if el.get("increment") is not None:
+            it["increment"] = _num(el.get("increment"))
+        if el.get("deriveFromCredit") in _TRUE:
+            it["derive_from_credit"] = True
+        if el.get("deriveFromClauses") in _TRUE:
+            it["derive_from_criteria"] = True
+        if el.get("blankCode"):
+            it["blank_code"] = el.get("blankCode")
+        if el.get("expectedType"):
+            it["expected_type"] = el.get("expectedType")
+        # PRESENT-BUT-EMPTY IS NOT ABSENT. Q4a carries `unreachable_codes: []`,
+        # and an item that omits the key is a different item from one that
+        # declares it holds none.
+        if el.get("unreachableCodes") is not None:
+            it["unreachable_codes"] = _list(el.get("unreachableCodes"))
+        # the named booleans, recovered from the conditions they were written as
+        for flag in ("avoidance_scores", "graph_item", "move_pick",
+                     "reads_utb_choice"):
+            if flag in conds:
+                it[flag] = True
+        if params.get("cadence"):
+            it["cadence"] = params["cadence"]
+        q = el.find("Question")
+        it["question"] = _text(q) if q is not None else ""
+        it["credit"] = [
+            dict(_el_attrs(c, [("what", "what", None), ("pts", "pts", _num),
+                               ("rule", "rule", None),
+                               ("reported", "reported", lambda v: v in _TRUE),
+                               ("verdicts", "verdicts", lambda v: _list(v, "|")),
+                               ("free", "free", lambda v: _list(v, "|")),
+                               ("gates", "gates", lambda v: v in _TRUE),
+                               ("codes", "codes", _codes)]),
+                 **({"desc": _text(c)} if _text(c) else {}))
+            for c in el.findall("Credit")]
+        it["deductions"] = [
+            dict(_el_attrs(d, [("code", "code", None), ("pts", "pts", _num),
+                               ("repeatable", "repeatable",
+                                lambda v: v in _TRUE)]),
+                 **({"text": _text(d)} if _text(d) else {}))
+            for d in el.findall("Deduction")]
+        it["guidance"] = [_text(g) for g in el.findall("Guidance")
+                          if not g.get("use")]
+        counts = [_el_attrs(c, [("key", "key", None),
+                                ("slots", "slots", _list)])
+                  for c in el.findall("Counts")]
+        if counts:
+            it["counts"] = counts
+        it["context"] = [c.get("item") for c in el.findall("Context")
+                         if c.get("item")]
+        for tag, key, spec in (
+            ("Map", "maps", [("key", "key", None), ("pick", "pick", None),
+                             ("pairs", "pairs", _pairs),
+                             ("fallback", "fallback", None)]),
+            ("Forbid", "forbid", [("key", "key", None),
+                                  ("conds", "conds", _conds)]),
+            ("Expect", "expect", [("key", "key", None), ("left", "left", None),
+                                  ("value", "value", None),
+                                  ("lenient", "lenient", lambda v: _list(v, "|"))]),
+            ("Equals", "equals", [("key", "key", None), ("left", "left", None),
+                                  ("right", "right", None),
+                                  ("lenient", "lenient", lambda v: _list(v, "|"))]),
+            ("Onlyif", "onlyif", [("key", "key", None), ("cond", "cond", None)]),
+            ("Requires", "requires", [("key", "key", None), ("cond", "cond", None),
+                                      ("lenient", "lenient", lambda v: _list(v, "|"))]),
+            ("Derived", "derived", [("key", "key", None), ("kind", "kind", None),
+                                    ("fields", "fields", _list),
+                                    ("words", "words", _list),
+                                    ("template", "template", json.loads)]),
+            ("Cover", "cover", [("checks", "keys", _list),
+                                ("labels", "labels", _list),
+                                ("item", "of", None),
+                                ("verdicts", "verdicts", lambda v: _list(v, "|"))]),
+        ):
+            rows = [_el_attrs(e, spec) for e in el.findall(tag)]
+            if rows:
+                it[key] = rows
+        # AN OC_GATE IS A SLOT THAT CHARGES, not merely one that gates. 60 slots
+        # carry `gate`; 5 carry a code and a reason. Collecting on `gate` alone
+        # invented a gate on 15 items with `code: null`.
+        gates = [{"key": s.get("key"), "code": s.get("charge"),
+                  "text": s.get("because")}
+                 for s in el.findall("Slot")
+                 if s.get("gate") in _TRUE and s.get("charge")]
+        if gates:
+            it["oc_gates"] = gates
+        items.append(it)
+    return items
+
+
+def as_view_slot_spec(path: str | None = None) -> dict:
+    """`SLOT_SPEC` as the view serves it: {item: [{key, label, seg, pts}]}."""
+    p = path or staged_path()
+    with open(p, encoding="utf8") as fh:
+        root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    out = {}
+    for el in root.iter("Item"):
+        iid = el.get("scores")
+        if not iid:
+            continue
+        rows = []
+        for s in el.findall("Slot"):
+            rec = {"key": s.get("key")}
+            for a in ("label", "seg", "pts"):
+                if s.get(a) is not None:
+                    rec[a] = s.get(a)
+            if s.get("gate") in _TRUE:
+                rec["gate"] = True
+            rows.append(rec)
+        if rows:
+            out[iid] = rows
+    return out
+
+
+def as_view_frame(name: str = "oc_frame", path: str | None = None) -> str:
+    """A named frame's text, e.g. `OC_FRAME`."""
+    p = path or staged_path()
+    with open(p, encoding="utf8") as fh:
+        root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    for fr in root.iter("Frame"):
+        if fr.get("name") == name:
+            return "".join(_text(s) for s in fr.findall("Segment"))
+    return ""
 
 
 if __name__ == "__main__":
