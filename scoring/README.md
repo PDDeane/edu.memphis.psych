@@ -49,9 +49,8 @@ table on a biased sample. Keep `--workers` at 4 or below.
 |---|---|
 | `docx_text.py` | Stdlib OOXML text extraction; also reads chart title/axis/legend out of `word/charts/*.xml` for a future Handout 3 item 1c |
 | `segment.py` | Splits a submission into `{item_id: student text}` by subtracting the blank template |
-| `rubric_h1.py` | Handout 1's 8 items as data: point splits, deduction codes, canonical feedback wording, cross-item guidance |
-| `rubric_h2.py` | Handout 2's 12 items; example items are criteria-derived (see below) |
-| `rubric_h3.py` | Handout 3's 6 items, including the graph item 1c |
+| `coursedata.py` | Reads the course file, which is the rubric of record for all three handouts. Everything that scores reads the rubric through here |
+| `rubric_h2_source.py` | Handout 2's 12 items **as authored** — the four factories `rubric_export.py` reads to WRITE the course file. Outside the scoring path; it is not what scores. Handouts 1 and 3 have no such file: they held literal dicts, so the course file is a complete record of them and the modules were deleted at Stage 5 |
 | `handouts.py` | Per-handout wiring: paths, markers, gold loader, exclusions |
 | `backends.py` | `ClaudeCliBackend` (default, no API key needed) and `AnthropicApiBackend` (official SDK, `claude-opus-5`) |
 | `score.py` | The engine: builds a per-item prompt, gets a deduction ledger, computes the score |
@@ -117,8 +116,9 @@ The `vN` tables in this section and the two below are HISTORY — each column is
 past calibration pass, kept so a later change can be checked against what it
 replaced. **The current numbers are the table at the top of this file**, and they
 have moved well past the last `vN` column: handout 1 in particular went 80% -> 87%
-after the reasons-counting and guidance-placement work described in
-`rubric_h1.py`.
+after the reasons-counting and guidance-placement work described in the comments
+`rubric_h1.py` carried. That module was deleted at Stage 5 and its comments were
+carried into the course file with it: `coursedata.rubric_note_runs('Q1')`.
 
 Two calibration passes, each tightening `guidance` against observed
 disagreements: pass 1 on Q1/Q4a/Q4b, pass 2 on Q2/Q4c/Q6.
@@ -249,8 +249,9 @@ and **demonstrative** (show worked verdict sheets). The three that failed were
 all **prose rules**. v9's diagnosis was sound — every residual disagreement is
 a consequence slot, and it did move slot detection 37 → 39 of 41 and bias
 +0.31 → +0.16 — but the extra failures landed on the wrong slots, costing two
-cells and gaining none. Both failed attempts are kept as comments in
-`rubric_h1.py`.
+cells and gaining none. Both failed attempts are kept as comments. They were
+carried out of `rubric_h1.py`, which was deleted at Stage 5, into the course file:
+`coursedata.rubric_note_runs('Q6')`.
 
 v10 tested the last plausible lever: a fourth exemplar demonstrating the one
 failure mode the other three do not show — an answer whose antecedents are all

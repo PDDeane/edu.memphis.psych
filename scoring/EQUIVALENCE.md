@@ -236,7 +236,8 @@ Guidance omissions are keyed by the bullet's **opening text**, never by its
 position in the list, and `resolve_guidance_omissions` raises if a fragment
 matches zero or two bullets. An index-keyed draft would have moved the omission
 set onto the axis-titles bullet — the item's most common deduction and one the
-olx can judge — on any insertion into `rubric_h3.py`'s guidance, while
+olx can judge — on any insertion into handout 3's guidance (then `rubric_h3.py`,
+now the course file), while
 `equivalence.py` went on reporting zero gaps because it read the same indices.
 
 This makes 1c worth 6 on the olx against 10 in the python. It is the one item where
@@ -2117,7 +2118,8 @@ p19.
 
 Acting on the finding below — that both implementations credit a `change_*` slot
 when the described change is really a plan to do the goal behaviour — the fix went
-into `rubric_h1.py`, NOT into a prompt. That is the right place: the python and the
+into the rubric's `guidance` — then `rubric_h1.py`, now the course file — NOT into
+a prompt. That is the right place: the python and the
 generated olx prompt both read it, so equivalence is preserved by construction
 and `equivalence.py` still reports 9/9 guidance verbatim.
 

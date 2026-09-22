@@ -1,5 +1,24 @@
 """Per-handout wiring: where the files are, how to split them, what scores them."""
 
+# `RUBRIC_SOURCE` IS RETIRED, and this is the declaration 11.6 asks for.
+#
+# It was an environment switch choosing where the rubric came from -- "module" for
+# the `rubric_h{1,2,3}` modules, "object" for the course file -- so the two could be
+# run against each other while both existed. 11.6 said it retires in the same change
+# that removes the modules, "since after that it is a switch with one working
+# position". Stage 5 deleted h1 and h3, Stage 6c moved h2 out of the scoring path as
+# `rubric_h2_source.py`, and that position is now the only one: every reader takes
+# the rubric from the course file through `coursedata`.
+#
+# NOTHING IN `scoring/` READS IT. What remain are SETTERS in the migration harness
+# -- stage04_migrate_rubric.py, stage06_freeze_rubric_oracle.py and stage05_gate.py
+# -- and they are now inert. That matters for one of them: stage05_gate runs a
+# comparison with the switch at "module" and again at "object" expecting the two to
+# differ, and with no reader left those are the same run twice. It cannot fail on
+# that axis any more. Stage 5 is already certified, so this is RECORDED rather than
+# acted on -- but a gate that still sets a switch nobody reads is measuring nothing
+# by that means, and the next person to trust that row should know it.
+
 from __future__ import annotations
 
 import glob

@@ -293,7 +293,7 @@ current configuration. Neutral, as this entry predicted it would be --
 no counted cell exercises a refusal, so what the fix buys is the distinction
 being drawable, not a different score.
 
-`not_reason` in `rubric_h1.py:979` is NOT part of this — that is the paper
+`not_reason`, a deduction code on handout 1's Q5, is NOT part of this — that is the paper
 scorer's own vocabulary, bridged by `enforcement.ALIAS`, and it is correct there.
 
 ## 2a: what the fixture audit left behind
@@ -330,9 +330,9 @@ target: a rule that can only refuse a `how` cannot disturb the twelve cells that
 already agree.
 
 The hypothesis the readout supports is POSITIONAL, not a wording problem.
-`rubric_h3.py:342` opens the guidance with "COUNT CONTENT, NOT SENTENCES ... Two
+2a's carried notes open with "COUNT CONTENT, NOT SENTENCES ... Two
 sentences can earn all six points, and three shapes did", enumerates the three
-shapes that earned 6/6, and only then, at `rubric_h3.py:352`, says to DEDUCT for
+shapes that earned 6/6, and only then says to DEDUCT for
 a stretch that does not bear on how the plan succeeded. That is the shape
 QUALITY_CONTROL.md §3 names twice over — a categorical instruction that
 pre-emptively dismisses the exception, sitting above the components that need
@@ -428,7 +428,11 @@ current 12/13 are different denominators, not a change in the item.
 `antecedent_1` comes back `wrong_kind` in **6 of 6 passes**, every one citing
 "{{corpus:Q4a/p19:first:23:58:sha=ca9d4ea70d5d:shape=S4-20}}" — which is the phrase the item's own
 guidance lists in its ACCEPT bullet, in the sentence that says those examples
-"all earned full credit" (`rubric_h1.py:683`). So this is not an
+"all earned full credit" (then `rubric_h1.py:683`). **That wording no longer
+exists**: Q4a's guidance was rewritten after this entry, and its ACCEPT bullet now
+states a general rule — "a mood, a belief about the behaviour" — instead of listing
+the examples. p19's phrase is arguably still covered, but not verbatim, so the
+claim below needs re-verifying before it is acted on. So this is not an
 under-specified criterion. The grader is refusing an example the prompt tells
 it to accept, verbatim, and the cell loses exactly the 2 points that refusal
 costs.
