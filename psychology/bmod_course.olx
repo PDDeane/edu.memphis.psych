@@ -1,0 +1,6 @@
+<Course id="bmod_course" title="Behaviour Modification" launchable="course">
+  <Use ref="bmod_rubric"/>
+  <Use ref="bmod_handout1"/>
+  <Use ref="bmod_handout2"/>
+  <Use ref="bmod_handout3"/>
+</Course>

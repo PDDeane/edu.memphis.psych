@@ -136,9 +136,30 @@ def render_item(item: dict, authored: dict, indent: str = "  ") -> list[str]:
     return out
 
 
+# A FILE THAT CARRIES REFERENCES MUST SAY WHERE THEY RESOLVE FROM. The build
+# refuses one that does not -- "carries {{corpus:...}} references and no
+# `corpus_data:` in its frontmatter" -- rather than render an unresolved marker
+# to a student. The rubric inherits its references from the rubric of record, so
+# it needs the same declaration the handouts carry.
+#
+# The marker syntax is deliberately not spelled out in the comment body, for the
+# reason the handouts give: a comment containing it reads as a reference to
+# anything scanning by substring.
+FRONTMATTER = """<!--
+---
+# Where the referenced spans live. The build resolves this file's corpus
+# references against it, and refuses rather than render an unresolved one.
+corpus_data: $COURSE_DATA/corpus_refs.json
+description: The behaviour-modification scoring rubric, as a component. Generated
+  by `rubric_olx.py` from the rubric of record; do not hand-edit.
+---
+-->"""
+
+
 def render(doc: dict, rubric_id: str = "bmod_rubric",
            title: str = "Behaviour-modification scoring rubric") -> str:
-    lines = [f'<Rubric id="{_attr(rubric_id)}" title="{_attr(title)}">']
+    lines = [FRONTMATTER,
+             f'<Rubric id="{_attr(rubric_id)}" title="{_attr(title)}">']
     for item in doc.get("items", []):
         authored = ((doc.get("handouts") or {}).get(str(item.get("handout"))) or {}).get("authored") or {}
         lines += render_item(item, authored)
