@@ -42,6 +42,11 @@ Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is c
 
 </Segment>
   </Frame>
+  <Verdicts name="restriction_authored" values="relieved|created|neither"/>
+  <Verdicts name="restricts" values="target_behavior|other_thing"/>
+  <Verdicts name="stimulus_move" values="given_desirable|given_undesirable|taken_desirable|taken_undesirable"/>
+  <Verdicts name="trigger_behavior" values="utb|wgb|other"/>
+  <Verdicts name="trigger_expects" values="gain|loss|none"/>
   <Item scores="Q1" max="5" label="Question 1" increment="1" deriveFromCredit="true" unreachableCodes="UTB_NOT_ON_LIST">
     <Question>Define your unwanted target behavior (UTB) and explain WHY you chose this particular UTB for intervention. Requires 1 sentence describing the UTB and at least 3 sentences explaining why you chose to change this behavior.</Question>
     <Slot key="matches_selected" label="Same behavior you selected above" seg="matches/differs"/>
@@ -98,6 +103,8 @@ Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is c
     <Deduction code="WGB_UNRELATED" pts="5">Your WGB should be the opposite of your UTB. You also need three reasons why you chose the WGB.</Deduction>
     <Deduction code="WGB_NOT_OPPOSITE" pts="2">What is your WGB? This needs to be explicitly stated. Your WGB should be the opposite of your UTB (e.g., UTB = not drinking enough water; WGB = drinking more water).</Deduction>
     <Deduction code="REASON_MISSING" pts="1">You did not provide 3 separate reasons as to why you chose to strengthen this WGB. These should be the benefits of engaging in the WGB.</Deduction>
+    <Map key="wgb_inverts_utb" pick="wgb_names" pairs="doing~met,own_state~met" fallback="absent"/>
+    <Context item="Q1"/>
     <Counts key="reasons_given" slots="reason_1,reason_2,reason_3"/>
   </Item>
   <Item scores="Q3" max="5" label="Question 3" increment="1" deriveFromCredit="true" unreachableCodes="">
@@ -121,6 +128,8 @@ Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is c
     <Guidance>Award each of the five letters independently, 1 point each.</Guidance>
     <Guidance>Time-Bound has a near-verbatim expected answer: four weeks total, one week of baseline data collection and three weeks of intervention data collection. Any other duration loses the point.</Guidance>
     <Guidance>IMPLICIT (from gold): Measurable must name a tracking METHOD or LOCATION (a notebook, a phone app). Restating the goal is not measuring it. Specific must carry a NUMBER.</Guidance>
+    <Context item="Q1"/>
+    <Context item="Q2"/>
   </Item>
   <Item scores="Q4a" max="5" label="Question 4a" increment="1" deriveFromCredit="true" unreachableCodes="">
     <Question>What are the ANTECEDENTS (triggers) for your engagement in your UTB? List and describe two examples. You must use the word antecedent or trigger.</Question>
@@ -157,6 +166,11 @@ Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is c
     <Guidance>ACCEPT generously when the example precedes the UTB and a reader can see how it leads there. A circumstance or a state of mind qualifies as readily as an event — a mood, a belief about the behaviour, an unstructured stretch of time, an interruption from someone else. Do not demand an elaborate causal chain; plausible precedence is enough. But PRECEDENCE IS THE TEST, and it depends on which UTB the example is offered for: the same words can be a trigger for one behaviour and an aftermath of another, so check the direction against the student's own UTB before crediting.</Guidance>
     <Guidance>A RIVAL ACTIVITY THE STUDENT TURNS TO IS AN ANTECEDENT HERE. That the same activity would also answer 4b does not disqualify it: the graders credited entries naming what the student does instead, and refused only entries naming the goal behaviour NOT HAPPENING, which is a different thing from naming something else they did.</Guidance>
     <Guidance>Where the link is genuinely opaque rather than merely brief, the graders did deduct. The test they applied was whether a reader can see how this leads to THIS behaviour: a mood or an omission that could precede almost anything is opaque, and asking "how does that lead to the UTB?" of the entry is the check. Brevity alone is not opacity.</Guidance>
+    <Map key="antecedent_1" pick="antecedent_kind_1" pairs="before~met,none~absent" fallback="not_antecedent"/>
+    <Map key="antecedent_2" pick="antecedent_kind_2" pairs="before~met,none~absent" fallback="not_antecedent"/>
+    <Forbid key="no_antecedents" conds="antecedent_1=absent,antecedent_2=absent"/>
+    <Derived key="keyword" kind="contains" fields="bmod_h1_q4a_first,bmod_h1_q4a_second" words="antecedent,trigger"/>
+    <Context item="Q1"/>
   </Item>
   <Item scores="Q4b" max="5" label="Question 4b" increment="0.5" deriveFromCredit="true" unreachableCodes="B_NONE">
     <Question>What ARE you actively doing during your unwanted target BEHAVIOR? List and describe two examples. Additionally, state whether this behavior is a good choice for you to modify AND why.</Question>
@@ -190,6 +204,12 @@ The cases, unchanged: (1) (1) The entry names a CONSEQUENCE of the unwanted beha
     <Guidance>THE TEST IS THE DICTIONARY'S, and it is one question: what is the student doing INSTEAD OF engaging in their wanted goal behaviour? The dictionary puts it that way and gives its own example — "instead of drinking water, I am drinking soda". Their goal behaviour is quoted above from question 2; read each entry against THAT. An entry earns its 1.5 points when it names something they do in the time the goal behaviour would have taken.</Guidance>
     <Guidance>ACCEPT — and accept broadly, once that test is met. Three kinds all earn full credit. ORDINARY ACTIVITIES that occupied the time: "I am playing cards with my roommates", "I am reorganising my desk". INTERNAL STATES AND THOUGHTS, where the state or the thought is itself what occupied them instead of the goal behaviour: "my head keeps telling me to get up but I cannot make myself move", "I lie there wishing I had started earlier". These count even though nothing was physically done, and it does not matter whether the state was chosen or simply arrived — what matters is that the entry names what filled that time rather than a consequence of the behaviour. And COPING BEHAVIOURS standing in for the goal behaviour, where something is consumed or leaned on to get through the day the goal behaviour was supposed to serve: "I lean on energy drinks to make it to the evening". Do not judge how insightful the entry is; judge only whether it is an alternative to the goal behaviour.</Guidance>
     <Guidance>REJECT when the entry is not something the student did INSTEAD OF the goal behaviour. Two shapes. (a) It is not an example of doing anything at all — meta-commentary about whether the behaviour is worth modifying, or a recital of consequences. (b) It names something the unwanted behaviour CAUSED rather than something that REPLACED the goal behaviour — a state they ended up in, or something they then had to do. The test is substitution, not grammar: "I am yawning through my morning classes" names an activity but is what the lost sleep left them with, while "I am watching TV" genuinely replaces the workout. Ask of each entry: could they have done this INSTEAD of the goal behaviour, or did it happen BECAUSE they did not? When neither entry is an example, deduct B_NOT_ACTIVE twice rather than B_ONLY_ONE.</Guidance>
+    <Map key="behavior_1" pick="b1_basis" pairs="activity~met,none~absent" fallback="wrong_kind"/>
+    <Map key="behavior_2" pick="b2_basis" pairs="activity~met,none~absent" fallback="wrong_kind"/>
+    <Onlyif key="modify_why" cond="modify_stated"/>
+    <Context item="Q1"/>
+    <Context item="Q2"/>
+    <Context item="Q4a"/>
   </Item>
   <Item scores="Q4c" max="5" label="Question 4c" increment="1" deriveFromCredit="true" unreachableCodes="C_NO_KEYWORD">
     <Question>What are the CONSEQUENCES of engaging in your UTB? List and describe two examples. You must use the word consequence(s).</Question>
@@ -212,8 +232,13 @@ The cases, unchanged: (1) (1) The entry names a CONSEQUENCE of the unwanted beha
     <Guidance>REJECT a statement that is really a BENEFIT of the goal behaviour rather than a result of the UTB. Naming the healthy weight, fitness or wellbeing the student would have HAD by doing the goal behaviour describes what they forfeited, not what engaging in the UTB produced, and two such statements cost a whole item.</Guidance>
     <Guidance>DEDUCT when the causal link is left for the reader to guess: a consequence that is real but whose connection to THIS unwanted behaviour the reader has to supply. An entry that restates the behaviour in other words, without saying what it COSTS the student, is the usual shape — the grader's question there is what the restated phrase actually means for them.</Guidance>
     <Guidance>The two consequences must be distinct; listing the same one twice costs the second.</Guidance>
+    <Forbid key="no_consequences" conds="consequence_1=absent,consequence_2=absent"/>
+    <Derived key="keyword" kind="contains" fields="bmod_h1_q4c_first,bmod_h1_q4c_second" words="consequence"/>
+    <Context item="Q1"/>
+    <Context item="Q4a"/>
+    <Context item="Q4b"/>
   </Item>
-  <Item scores="Q5" max="5" label="Question 5" increment="2.5" deriveFromCredit="true" unreachableCodes="">
+  <Item scores="Q5" max="5" label="Question 5" increment="2.5" deriveFromCredit="true" blankCode="W_NONE" unreachableCodes="">
     <Question>Why do you think you continue to engage in the UTB even though it results in undesired consequences? (To gain something, to escape a task, to receive attention, or something else.) List and describe two examples.</Question>
     <Slot key="example_1" label="First reason you keep doing it" seg="wrong_kind/duplicate" pts="2.5"/>
     <Slot key="example_2" label="Second, different reason" seg="wrong_kind/duplicate" pts="2.5"/>
@@ -232,8 +257,10 @@ The cases, unchanged: (1) (1) The entry names a CONSEQUENCE of the unwanted beha
     <Guidance>THE LINE BETWEEN THIN AND ABSENT. The two rules above overlap, and the example just given has perfect form, so apply this test per entry and in this order. Deduct W_NOT_REASON ONLY when the statement (a) names a CONSEQUENCE of the unwanted behaviour rather than something gained by continuing it, or (b) is about a DIFFERENT behaviour than the UTB. Everything else that is present — vague, circular, shallow, clumsily worded, or a reason you find unconvincing — is THIN: credit it and write an advisory. Vagueness is never a deduction on this item; only the wrong KIND of statement is.</Guidance>
     <Guidance>W_ONLY_ONE also covers two statements that collapse into the SAME reason — two entries that both amount to escaping the same effort or discomfort are one reason described twice, and the row reads "missing a reason you {{corpus:Q5/p10:first:10:35:sha=4d4cf14b5775:shape=R22-0-5b}} UTB]".</Guidance>
     <Guidance>If the response is empty, this is W_NONE and the feedback is exactly 'did not answer'.</Guidance>
+    <Context item="Q1"/>
+    <Context item="Q4c"/>
   </Item>
-  <Item scores="Q6" max="10" label="Question 6" increment="1.25" deriveFromCredit="true" unreachableCodes="">
+  <Item scores="Q6" max="10" label="Question 6" increment="1.25" deriveFromCredit="true" blankCode="Q6_NONE" unreachableCodes="">
     <Question>Describe how you could change each of your two antecedents (from 4a) to get closer to your WGB. Then include how those changes may impact your consequences (from 4c).</Question>
     <Slot key="state_a1" label="First antecedent named and matching 4a" seg="mismatch" pts="1.25"/>
     <Slot key="change_a1" label="How the first antecedent will be changed" seg="incomplete" pts="1.25"/>
@@ -264,8 +291,16 @@ The cases, unchanged: (1) (1) The entry names a CONSEQUENCE of the unwanted beha
     <Guidance>The dictionary offers students this framing, and it is the shape most answers take: "I can change my first antecedent of ___ by ___. This will impact my first consequence of ___ by ___. I can change my second antecedent of ___ by ___. This will impact my second consequence of ___ by ___."</Guidance>
     <Guidance>The question asks about EACH OF THE TWO antecedents from 4a and EACH OF THE TWO consequences from 4c. Report which of the two listed items each box names; the grader pairs them. A response that names the same one twice has addressed one and left the other out.</Guidance>
     <Guidance>HOW TO READ A 4a OR 4c ENTRY WHEN YOU MATCH AGAINST IT. Students often write the element and then what it leads to, in one entry: "my trigger is X; I end up Y", "my antecedent is X, so I Y", "X, which leads to Y". WHEN Y IS OF THE THIRD KIND in the definition at the top of this item — a consequence, meaning the unwanted behaviour itself or something following from it — match the Q6 box against X, not against Y. A box naming that kind of Y has named the consequence of the trigger rather than the trigger, so it does not refer to that 4a entry, and that holds however closely the wording of Y is echoed. Echoing Y closely is exactly the case to watch for. It is also the case to match against 4c instead, where that consequence is listed. Kinds 1 and 2 are not affected: a Y that restates the antecedent, or that still leads to the unwanted behaviour, IS part of the antecedent, and the definition at the top governs. Decide the kind first. The same reading applies to a 4c entry that names a consequence and then what follows from it.</Guidance>
+    <Requires key="state_c2" cond="link_c2" lenient="unclear"/>
+    <Requires key="affect_c2" cond="link_c2" lenient="unclear"/>
+    <Cover checks="state_a1,state_a2" labels="first,second" item="4a" verdicts="first|second|neither|absent"/>
+    <Cover checks="state_c1,state_c2" labels="first,second" item="4c" verdicts="first|second|neither|absent"/>
+    <Context item="Q1"/>
+    <Context item="Q2"/>
+    <Context item="Q4a"/>
+    <Context item="Q4c"/>
   </Item>
-  <Item scores="PR" max="4" label="PR Example" increment="2" conditions="move_pick" unreachableCodes="">
+  <Item scores="PR" max="4" label="PR Example" increment="2" conditions="move_pick" expectedType="PR" deriveFromClauses="true" unreachableCodes="">
     <Question>Write an example of Positive Reinforcement that you could use to attempt to change your behavior. (Positive Reinforcement = adding something desirable to increase a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear"/>
@@ -305,8 +340,12 @@ Then answer the one option combining the two: `given_desirable`, `given_undesira
 Answer what the sentence describes. The grader works out from your answer which of the four types this is, so do not reason backwards from the type the question asks about -- that is the arithmetic's job, not yours.</Guidance>
     <Guidance>Award the two credit components separately: a valid contingency that names the wrong type keeps its first 2 points and loses the second (WRONG_TYPE). Something that is not a contingency at all loses all 4 (NOT_OC or NOT_EXTERNAL_STIMULUS — use whichever the grader would have written).</Guidance>
     <Guidance use="@oc_criteria"/>
+    <Expect key="demonstrates_type" left="stimulus_move" value="given_desirable"/>
+    <Onlyif key="targets_goal_behavior" cond="demonstrates_type"/>
+    <Context item="_utb"/>
+    <Context item="_wgb"/>
   </Item>
-  <Item scores="NR" max="4" label="NR Example" increment="2" conditions="barrier_pick" unreachableCodes="">
+  <Item scores="NR" max="4" label="NR Example" increment="2" conditions="barrier_pick" expectedType="NR" deriveFromClauses="true" unreachableCodes="">
     <Question>Write an example of Negative Reinforcement that you could use to attempt to change your behavior. (Negative Reinforcement = taking away something undesirable to increase a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear"/>
@@ -355,8 +394,14 @@ This is a reading of the condition, not a judgement of the plan.</Guidance>
 This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>Award the two credit components separately: a valid contingency that names the wrong type keeps its first 2 points and loses the second (WRONG_TYPE). Something that is not a contingency at all loses all 4 (NOT_OC or NOT_EXTERNAL_STIMULUS — use whichever the grader would have written).</Guidance>
     <Guidance use="@oc_criteria"/>
+    <Forbid key="barrier_is_not_this_type" conds="restriction_authored=created,trigger_expects=gain,restricts=other_thing"/>
+    <Expect key="demonstrates_type" left="observed_type" value="NR"/>
+    <Onlyif key="targets_goal_behavior" cond="demonstrates_type"/>
+    <Onlyif key="barrier_is_not_this_type" cond="demonstrates_type"/>
+    <Context item="_utb"/>
+    <Context item="_wgb"/>
   </Item>
-  <Item scores="PP" max="4" label="PP Example" increment="2" unreachableCodes="">
+  <Item scores="PP" max="4" label="PP Example" increment="2" expectedType="PP" deriveFromClauses="true" unreachableCodes="">
     <Question>Write an example of Positive Punishment that you could use to attempt to change your behavior. (Positive Punishment = adding something undesirable to decrease a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear"/>
@@ -387,8 +432,12 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>SAFETY: flag, but do not deduct for, any example whose arrangement could harm the student or put their wellbeing at stake — going without something the body needs, forgoing care, or using the goal behaviour itself as a punishment are the common shapes, but the judgement is whether the plan could do harm, not whether it matches that list. Say so in the feedback and leave the score at full: the graders did exactly this, flagging the arrangement while awarding every point.</Guidance>
     <Guidance>Award the two credit components separately: a valid contingency that names the wrong type keeps its first 2 points and loses the second (WRONG_TYPE). Something that is not a contingency at all loses all 4 (NOT_OC or NOT_EXTERNAL_STIMULUS — use whichever the grader would have written).</Guidance>
     <Guidance use="@oc_criteria"/>
+    <Expect key="demonstrates_type" left="observed_type" value="PP"/>
+    <Onlyif key="targets_unwanted_behavior" cond="demonstrates_type"/>
+    <Context item="_utb"/>
+    <Context item="_wgb"/>
   </Item>
-  <Item scores="NP" max="4" label="NP Example" increment="2" unreachableCodes="">
+  <Item scores="NP" max="4" label="NP Example" increment="2" expectedType="NP" deriveFromClauses="true" unreachableCodes="">
     <Question>Write an example of Negative Punishment that you could use to attempt to change your behavior. (Negative Punishment = taking away something desirable to decrease a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear"/>
@@ -419,8 +468,12 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>SAFETY: flag, but do not deduct for, any example whose arrangement could harm the student or put their wellbeing at stake — going without something the body needs, forgoing care, or using the goal behaviour itself as a punishment are the common shapes, but the judgement is whether the plan could do harm, not whether it matches that list. Say so in the feedback and leave the score at full: the graders did exactly this, flagging the arrangement while awarding every point.</Guidance>
     <Guidance>Award the two credit components separately: a valid contingency that names the wrong type keeps its first 2 points and loses the second (WRONG_TYPE). Something that is not a contingency at all loses all 4 (NOT_OC or NOT_EXTERNAL_STIMULUS — use whichever the grader would have written).</Guidance>
     <Guidance use="@oc_criteria"/>
+    <Expect key="demonstrates_type" left="observed_type" value="NP"/>
+    <Onlyif key="targets_unwanted_behavior" cond="demonstrates_type"/>
+    <Context item="_utb"/>
+    <Context item="_wgb"/>
   </Item>
-  <Item scores="T1" max="2" label="First Type" increment="2" deriveFromCredit="true" unreachableCodes="">
+  <Item scores="T1" max="2" label="First Type" increment="2" deriveFromCredit="true" blankCode="BLANK" unreachableCodes="">
     <Question>State the first type of Operant Conditioning you plan to use in your actual behavior modification intervention.</Question>
     <Credit what="type_stated" pts="2" verdicts="met|absent|not_a_type" codes="absent=BLANK|not_a_type=NOT_A_TYPE">Names one of the four operant-conditioning types</Credit>
     <Deduction code="BLANK" pts="2">did not answer</Deduction>
@@ -432,8 +485,10 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
   - Negative Punishment: take away something desirable to decrease a behaviour.</Guidance>
     <Guidance>This item asks only that a type be NAMED. Any of the four, spelled out or abbreviated, in any capitalisation, earns the full 2 points. Whether the choice is well matched to the student's behaviour is judged on the definition and example items, not here.</Guidance>
     <Guidance>Do not deduct here for a definition or example that contradicts the named type — that is scored on those items.</Guidance>
+    <Context item="_utb"/>
+    <Context item="_wgb"/>
   </Item>
-  <Item scores="D1" max="2" label="First Type Definition" increment="1" deriveFromCredit="true" unreachableCodes="">
+  <Item scores="D1" max="2" label="First Type Definition" increment="1" deriveFromCredit="true" blankCode="BLANK" unreachableCodes="">
     <Question>Define the first type of Operant Conditioning you chose. A complete definition says whether something is being ADDED or TAKEN AWAY, and whether the behaviour is being INCREASED or DECREASED.</Question>
     <Slot key="defines_type" label="Which type this definition describes" seg="pick(operant_or_unclear)"/>
     <Slot key="named_type" label="Which type you chose" seg="pick(operant_or_unclear)"/>
@@ -456,8 +511,12 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
   - Negative Punishment: take away something desirable to decrease a behaviour.</Guidance>
     <Guidance>INCOMPLETE_DEFINITION is for a definition that is right as far as it goes but omits one of the two halves — e.g. says something is removed but never says the behaviour decreases.</Guidance>
     <Guidance>IMPLICIT (from gold): graders accepted textbook phrasing and the student's own words equally. A definition given in the course's technical register — naming the stimulus, its removal, and the behaviour it follows — earned full credit, and so did the same idea in ordinary words. Do not require the course's exact wording.</Guidance>
+    <Equals key="matches_chosen_type" left="defines_type" right="named_type" lenient="unclear"/>
+    <Context item="_utb"/>
+    <Context item="_wgb"/>
+    <Context item="T1"/>
   </Item>
-  <Item scores="DAY1" max="4" label="First Daily Example" increment="1" conditions="cadence_daily|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" unreachableCodes="">
+  <Item scores="DAY1" max="4" label="First Daily Example" increment="1" conditions="cadence_daily|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" deriveFromClauses="true" unreachableCodes="">
     <Question>Give a daily example of how you will use your first chosen type of Operant Conditioning during your intervention.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear"/>
@@ -524,8 +583,14 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour from the student's UTB/WGB: the plan would change some other habit entirely, and carrying it out would leave the stated goal untouched. Do not deduct it merely because the phrasing is loose or the link is indirect. In particular, a plan that gates the unwanted activity itself on completing some other task IS controlling the target behaviour, even though the other task is what the sentence foregrounds. It stacks with TYPE_MISMATCH when both are true.</Guidance>
     <Guidance>IMPLICIT (from gold): advisory notes without deduction are common on these items — "I suggest changing your punisher to something not related to exercise" was written on a 4.0. Put that kind of remark in advisory_note.</Guidance>
     <Guidance use="@oc_criteria"/>
+    <Forbid key="consequence_not_a_setup" conds="restriction_authored=created,trigger_expects=gain,restricts=other_thing"/>
+    <Equals key="matches_chosen_type" left="observed_type" right="named_type" lenient="unclear"/>
+    <Context item="_utb"/>
+    <Context item="_wgb"/>
+    <Context item="T1"/>
+    <Context item="D1"/>
   </Item>
-  <Item scores="WK1" max="4" label="First Weekly Example" increment="1" conditions="cadence_weekly|type_match" unreachableCodes="">
+  <Item scores="WK1" max="4" label="First Weekly Example" increment="1" conditions="cadence_weekly|type_match" deriveFromClauses="true" unreachableCodes="">
     <Question>Give a weekly example of how you will use your first chosen type of Operant Conditioning during your intervention.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear"/>
@@ -576,8 +641,14 @@ Answer `absent` in these cases.
     <Guidance>WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour from the student's UTB/WGB: the plan would change some other habit entirely, and carrying it out would leave the stated goal untouched. Do not deduct it merely because the phrasing is loose or the link is indirect. In particular, a plan that gates the unwanted activity itself on completing some other task IS controlling the target behaviour, even though the other task is what the sentence foregrounds. It stacks with TYPE_MISMATCH when both are true.</Guidance>
     <Guidance>IMPLICIT (from gold): advisory notes without deduction are common on these items — "I suggest changing your punisher to something not related to exercise" was written on a 4.0. Put that kind of remark in advisory_note.</Guidance>
     <Guidance use="@oc_criteria"/>
+    <Expect key="targets_own_behavior" left="trigger_behavior" value="utb"/>
+    <Equals key="matches_chosen_type" left="observed_type" right="named_type" lenient="unclear"/>
+    <Context item="_utb"/>
+    <Context item="_wgb"/>
+    <Context item="T1"/>
+    <Context item="D1"/>
   </Item>
-  <Item scores="T2" max="2" label="Second Type" increment="2" deriveFromCredit="true" unreachableCodes="">
+  <Item scores="T2" max="2" label="Second Type" increment="2" deriveFromCredit="true" blankCode="BLANK" unreachableCodes="">
     <Question>State the second type of Operant Conditioning you plan to use in your actual behavior modification intervention.</Question>
     <Credit what="type_stated" pts="2" verdicts="met|absent|not_a_type" codes="absent=BLANK|not_a_type=NOT_A_TYPE">Names one of the four operant-conditioning types</Credit>
     <Deduction code="BLANK" pts="2">did not answer</Deduction>
@@ -589,8 +660,10 @@ Answer `absent` in these cases.
   - Negative Punishment: take away something desirable to decrease a behaviour.</Guidance>
     <Guidance>This item asks only that a type be NAMED. Any of the four, spelled out or abbreviated, in any capitalisation, earns the full 2 points. Whether the choice is well matched to the student's behaviour is judged on the definition and example items, not here.</Guidance>
     <Guidance>Do not deduct here for a definition or example that contradicts the named type — that is scored on those items.</Guidance>
+    <Context item="_utb"/>
+    <Context item="_wgb"/>
   </Item>
-  <Item scores="D2" max="2" label="Second Type Definition" increment="1" deriveFromCredit="true" unreachableCodes="">
+  <Item scores="D2" max="2" label="Second Type Definition" increment="1" deriveFromCredit="true" blankCode="BLANK" unreachableCodes="">
     <Question>Define the second type of Operant Conditioning you chose. A complete definition says whether something is being ADDED or TAKEN AWAY, and whether the behaviour is being INCREASED or DECREASED.</Question>
     <Slot key="defines_type" label="Which type this definition describes" seg="pick(operant_or_unclear)"/>
     <Slot key="named_type" label="Which type you chose" seg="pick(operant_or_unclear)"/>
@@ -613,8 +686,12 @@ Answer `absent` in these cases.
   - Negative Punishment: take away something desirable to decrease a behaviour.</Guidance>
     <Guidance>INCOMPLETE_DEFINITION is for a definition that is right as far as it goes but omits one of the two halves — e.g. says something is removed but never says the behaviour decreases.</Guidance>
     <Guidance>IMPLICIT (from gold): graders accepted textbook phrasing and the student's own words equally. A definition given in the course's technical register — naming the stimulus, its removal, and the behaviour it follows — earned full credit, and so did the same idea in ordinary words. Do not require the course's exact wording.</Guidance>
+    <Equals key="matches_chosen_type" left="defines_type" right="named_type" lenient="unclear"/>
+    <Context item="_utb"/>
+    <Context item="_wgb"/>
+    <Context item="T2"/>
   </Item>
-  <Item scores="DAY2" max="4" label="Second Daily Example" increment="1" conditions="cadence_daily|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" unreachableCodes="">
+  <Item scores="DAY2" max="4" label="Second Daily Example" increment="1" conditions="cadence_daily|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" deriveFromClauses="true" unreachableCodes="">
     <Question>Give a daily example of how you will use your second chosen type of Operant Conditioning during your intervention.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear"/>
@@ -681,8 +758,14 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour from the student's UTB/WGB: the plan would change some other habit entirely, and carrying it out would leave the stated goal untouched. Do not deduct it merely because the phrasing is loose or the link is indirect. In particular, a plan that gates the unwanted activity itself on completing some other task IS controlling the target behaviour, even though the other task is what the sentence foregrounds. It stacks with TYPE_MISMATCH when both are true.</Guidance>
     <Guidance>IMPLICIT (from gold): advisory notes without deduction are common on these items — "I suggest changing your punisher to something not related to exercise" was written on a 4.0. Put that kind of remark in advisory_note.</Guidance>
     <Guidance use="@oc_criteria"/>
+    <Forbid key="consequence_not_a_setup" conds="restriction_authored=created,trigger_expects=gain,restricts=other_thing"/>
+    <Equals key="matches_chosen_type" left="observed_type" right="named_type" lenient="unclear"/>
+    <Context item="_utb"/>
+    <Context item="_wgb"/>
+    <Context item="T2"/>
+    <Context item="D2"/>
   </Item>
-  <Item scores="WK2" max="4" label="Second Weekly Example" increment="1" conditions="cadence_weekly|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" unreachableCodes="">
+  <Item scores="WK2" max="4" label="Second Weekly Example" increment="1" conditions="cadence_weekly|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" deriveFromClauses="true" unreachableCodes="">
     <Question>Give a weekly example of how you will use your second chosen type of Operant Conditioning during your intervention.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear"/>
@@ -750,8 +833,14 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>WRONG_BEHAVIOR (-1) is for an example aimed at a CLEARLY DIFFERENT behaviour from the student's UTB/WGB: the plan would change some other habit entirely, and carrying it out would leave the stated goal untouched. Do not deduct it merely because the phrasing is loose or the link is indirect. In particular, a plan that gates the unwanted activity itself on completing some other task IS controlling the target behaviour, even though the other task is what the sentence foregrounds. It stacks with TYPE_MISMATCH when both are true.</Guidance>
     <Guidance>IMPLICIT (from gold): advisory notes without deduction are common on these items — "I suggest changing your punisher to something not related to exercise" was written on a 4.0. Put that kind of remark in advisory_note.</Guidance>
     <Guidance use="@oc_criteria"/>
+    <Forbid key="consequence_not_a_setup" conds="restriction_authored=created,trigger_expects=gain,restricts=other_thing"/>
+    <Equals key="matches_chosen_type" left="observed_type" right="named_type" lenient="unclear"/>
+    <Context item="_utb"/>
+    <Context item="_wgb"/>
+    <Context item="T2"/>
+    <Context item="D2"/>
   </Item>
-  <Item scores="1a" max="8" label="1a" increment="2" deriveFromCredit="true" unreachableCodes="">
+  <Item scores="1a" max="8" label="1a" increment="2" deriveFromCredit="true" blankCode="BLANK" unreachableCodes="">
     <Question>Give a brief overview of the data you collected in at least 4 sentences. How did your behavior change over time? You do not need to discuss every day — one sentence per week is the expectation, covering the baseline week and the three intervention weeks.</Question>
     <Slot key="distinguishes_periods" label="Separates the time periods at all" seg="unclear"/>
     <Slot key="baseline_week" label="Covers the baseline week" seg="unclear" pts="2"/>
@@ -771,7 +860,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>THE BAR IS THE ARC, NOT A SENTENCE COUNT. This item is graded generously. If the answer gives the BEFORE state and then describes how the behaviour changed across the intervention, award all four slots — even when the weeks are not enumerated one per sentence. All of these earned full marks: a before-and-after pair giving one range for the baseline and another for the intervention; a baseline average followed by each later week's figure given in turn; and a summary that names two weeks and states the direction they moved without a figure for either. A week referred to collectively ("after I began, it increased") counts when the others are named.</Guidance>
     <Guidance>DEDUCT A WEEK only when a period is clearly and specifically absent. The observed case is an answer that opens at the intervention and never mentions the before/baseline state at all — it begins with the first week of data collection and carries no sentence about how things stood beforehand, which costs the baseline week's 2 points.</Guidance>
   </Item>
-  <Item scores="1b" max="4" label="1b" increment="1" deriveFromCredit="true" unreachableCodes="">
+  <Item scores="1b" max="4" label="1b" increment="1" deriveFromCredit="true" blankCode="BLANK" unreachableCodes="">
     <Question>Include the data you collected during the baseline period and each of the three intervention weeks, on its own page at the end of the handout.</Question>
     <Credit what="baseline_data" pts="1" verdicts="met|absent" codes="absent=MISSING_WEEK_DATA|unclear=MISSING_WEEK_DATA">Baseline week's data present</Credit>
     <Credit what="week_1_data" pts="1" verdicts="met|absent" codes="absent=MISSING_WEEK_DATA|unclear=MISSING_WEEK_DATA">Week 1 data present</Credit>
@@ -782,6 +871,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>One point per week of data present: {{corpus:1c/p1:series:0:32:sha=d1f3e922817c:shape=C4040401}}.</Guidance>
     <Guidance>This is a presence check, not a quality judgement. Any legible daily figures for a week earn its point — hours, minutes, ounces, servings, tallies, a table, or a prose list. Do not deduct for formatting, units, or gaps within a week.</Guidance>
     <Guidance>The text you are shown has already had the template's worked example data (the 'oz' water figures) subtracted, so anything here is the student's own. If a week's heading is present but its days are empty, that week is missing.</Guidance>
+    <Context item="1a"/>
   </Item>
   <Item scores="1c" max="10" label="1c" increment="2" deriveFromCredit="true" unreachableCodes="">
     <Question>Present your data in a figure/graph at the end of the handout. The graph needs a title, both axis labels, and a legend.</Question>
@@ -814,8 +904,10 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>Shape-drawn graphs arrive as run-together text with the axis tick values jammed against the labels ('Excersing Over Four Weeks2.521.510.50 Sunday Monday...'). Read the title and any series names out of it; series names (Baseline / Week 1 / Week 2 / Week 3) appearing together indicate a legend.</Guidance>
     <Guidance>A WRITTEN DESCRIPTION OF A GRAPH IS NOT A GRAPH. Tidy label prose — a 'Title:' line, an 'X-axis label:' line, a 'Y-axis label:' line, a 'Legend:' line, each with its value written after it — is the student listing what their graph WOULD contain, with no plotted data, and the graders scored that 'did not include'. A real shape-drawn graph carries numeric tick values run together with the labels; a description carries none. If the only evidence is such a description, `has_own_graph` is `absent`.</Guidance>
     <Guidance>If a slot cannot be determined from the evidence, mark it `absent` and set escalate — do not guess in the student's favour.</Guidance>
+    <Map key="legend" pick="series_box_holds" pairs="period_names~met,other_real_names~met,software_placeholders~incomplete,nothing~absent" fallback="absent"/>
+    <Derived key="has_own_graph" kind="complete" fields="bmod_h3_baseline,bmod_h3_wk1,bmod_h3_wk2,bmod_h3_wk3" words=""/>
   </Item>
-  <Item scores="2a" max="6" label="2a" increment="2" deriveFromCredit="true" unreachableCodes="">
+  <Item scores="2a" max="6" label="2a" increment="2" deriveFromCredit="true" blankCode="BLANK" unreachableCodes="">
     <Question>Did the implementation of your behavior modification plan successfully modify your behavior? Answer in 1 sentence, then describe HOW it was successfully or unsuccessfully modified in at least 2 further sentences. The level of success does not affect the grade.</Question>
     <Slot key="verdict" label="States whether the plan worked" seg="unclear" pts="2"/>
     <Slot key="how_1" label="Whether the How (1) box explains how" seg="unclear" pts="2"/>
@@ -840,8 +932,11 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>ONE COMBINATION IS ALSO ABSENT, and it must be read as a conjunction rather than as either half. A box is absent when what it reports is a bodily or personal state rather than the behaviour, AND the condition it attaches that state to is the behaviour NOT being done. NEITHER HALF WORKS ALONE, which is why the pair is stated: a state attributed to DOING the behaviour is an explanation and the graders credit it, and a box that says when things went badly is an explanation too whenever its subject is the behaviour, which the graders also credit. Only the two together — a symptom, tied to not doing the thing — fail to say how the plan itself fared.</Guidance>
     <Guidance>DEDUCT ONLY WHEN A BOX OFFERS NEITHER — no reason and no measure. Two shapes were charged. A sentence reporting a bodily or circumstantial detail that explains nothing about the plan working: the graders wrote 'your third sentence does not explain how your plan was successful' and took 2 points. And an answer that cannot settle whether it worked at all, hedging the verdict instead of explaining either outcome: 'need more explanation on how it was or was not successful', also 2.</Guidance>
     <Guidance>Success or failure is irrelevant to the score; only whether it is stated and explained.</Guidance>
+    <Forbid key="mechanism_named" conds="names_enabler=absent,states_size=absent,names_plan_content=absent"/>
+    <Requires key="how_2" cond="mechanism_named" lenient="unclear"/>
+    <Context item="1a"/>
   </Item>
-  <Item scores="2b" max="6" label="2b" increment="2" deriveFromCredit="true" unreachableCodes="">
+  <Item scores="2b" max="6" label="2b" increment="2" deriveFromCredit="true" blankCode="BLANK" unreachableCodes="">
     <Question>Write an overall assessment of your intervention: which aspects were effective and which were not, including personal observations about your execution (for example, how your reinforcements or punishments worked). At least 3 sentences.</Question>
     <Slot key="sentences_given" label="How many substantive assessment sentences you give" seg="count(3)"/>
     <Slot key="sentence_1" label="First substantive assessment sentence" seg="unclear" pts="2"/>
@@ -856,9 +951,10 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Deduction code="MISSING_SENTENCE" pts="2">-2 pts: missing a sentence</Deduction>
     <Guidance>Three 2-point slots, one per assessment sentence. This item is graded generously: the graders counted substantive sentences about the intervention and deducted only when fewer than three were present.</Guidance>
     <Guidance>Sentences about what worked, what did not, and how the student executed the plan all count. Do not deduct for quality of insight.</Guidance>
+    <Context item="2a"/>
     <Counts key="sentences_given" slots="sentence_1,sentence_2,sentence_3"/>
   </Item>
-  <Item scores="3" max="6" label="3" increment="3" deriveFromCredit="true" unreachableCodes="">
+  <Item scores="3" max="6" label="3" increment="3" deriveFromCredit="true" blankCode="BLANK" unreachableCodes="">
     <Question>What could be done differently next time to improve your intervention plan? Give at least 2 specific examples. ('Nothing would change' is not acceptable — every intervention can be improved.)</Question>
     <Slot key="changes_given" label="How many distinct changes you propose" seg="count(2)"/>
     <Slot key="example_1" label="First specific change" seg="unclear" pts="3"/>
@@ -872,6 +968,8 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>Two 3-point slots. Count DISTINCT proposed changes, generously — a change to the reinforcer and a change to the schedule are two, even in one sentence.</Guidance>
     <Guidance>A statement that nothing needs changing is not a proposed change, and does not add to the count.</Guidance>
     <Guidance>IMPLICIT (from gold): the graders accepted any concrete alternative the student would try; they did not require justification or feasibility.</Guidance>
+    <Context item="2a"/>
+    <Context item="2b"/>
     <Counts key="changes_given" slots="example_1,example_2"/>
   </Item>
 </Rubric>

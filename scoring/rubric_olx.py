@@ -104,6 +104,9 @@ def render_item(item: dict, authored: dict, indent: str = "  ") -> list[str]:
         ("increment", item.get("increment")),
         ("deriveFromCredit", item.get("derive_from_credit")),
         ("conditions", _conditions_for(authored, item.get("id"))),
+        ("blankCode", item.get("blank_code")),
+        ("expectedType", item.get("expected_type")),
+        ("deriveFromClauses", item.get("derive_from_criteria")),
         ("unreachableCodes", ",".join(_seq(item.get("unreachable_codes") or []))),
     ]) + ">")
     i2 = indent + "  "
@@ -131,6 +134,55 @@ def render_item(item: dict, authored: dict, indent: str = "  ") -> list[str]:
         out.append(f"{i2}<Guidance>{_text(g)}</Guidance>")
     if item.get("id") in FRAME_ITEMS:
         out.append(f'{i2}<Guidance use="@oc_criteria"/>')
+    # THE SCORING PRIMITIVES, one element each. These are per-item fields in the
+    # course file and purpose-built elements in OLX, so the mapping is direct --
+    # the only work is the joined-attribute spellings the schema uses.
+    for m in _seq(item.get("maps") or []):
+        out.append(f"{i2}<Map" + _attrs([
+            ("key", m.get("key")), ("pick", m.get("pick")),
+            ("pairs", ",".join(f"{q.get('value')}~{q.get('verdict')}"
+                               for q in _seq(m.get("pairs") or []))),
+            ("fallback", m.get("fallback")),
+        ]) + "/>")
+    for f in _seq(item.get("forbid") or []):
+        out.append(f"{i2}<Forbid" + _attrs([
+            ("key", f.get("key")),
+            ("conds", ",".join(f"{c.get('slot')}={c.get('value')}"
+                               for c in _seq(f.get("conds") or []))),
+        ]) + "/>")
+    for e in _seq(item.get("expect") or []):
+        out.append(f"{i2}<Expect" + _attrs([
+            ("key", e.get("key")), ("left", e.get("left")), ("value", e.get("value")),
+        ]) + "/>")
+    for e in _seq(item.get("equals") or []):
+        out.append(f"{i2}<Equals" + _attrs([
+            ("key", e.get("key")), ("left", e.get("left")), ("right", e.get("right")),
+            ("lenient", "|".join(_seq(e.get("lenient") or [])) or None),
+        ]) + "/>")
+    for o in _seq(item.get("onlyif") or []):
+        out.append(f"{i2}<Onlyif" + _attrs([
+            ("key", o.get("key")), ("cond", o.get("cond")),
+        ]) + "/>")
+    for r in _seq(item.get("requires") or []):
+        out.append(f"{i2}<Requires" + _attrs([
+            ("key", r.get("key")), ("cond", r.get("cond")),
+            ("lenient", "|".join(_seq(r.get("lenient") or [])) or None),
+        ]) + "/>")
+    for dv in _seq(item.get("derived") or []):
+        out.append(f"{i2}<Derived" + _attrs([
+            ("key", dv.get("key")), ("kind", dv.get("kind")),
+            ("fields", ",".join(_seq(dv.get("fields") or []))),
+            ("words", ",".join(_seq(dv.get("words") or []))),
+        ]) + "/>")
+    for cv in _seq(item.get("cover") or []):
+        out.append(f"{i2}<Cover" + _attrs([
+            ("checks", ",".join(_seq(cv.get("keys") or []))),
+            ("labels", ",".join(_seq(cv.get("labels") or []))),
+            ("item", cv.get("of")),
+            ("verdicts", "|".join(_seq(cv.get("verdicts") or [])) or None),
+        ]) + "/>")
+    for ctx in _seq(item.get("context") or []):
+        out.append(f'{i2}<Context item="{_attr(ctx)}"/>')
     for c in _seq(item.get("counts") or []):
         out.append(f"{i2}<Counts" + _attrs([
             ("key", c.get("key")),
@@ -225,6 +277,16 @@ def render(doc: dict, rubric_id: str = "bmod_rubric",
     frame = frame_text()
     if frame:
         lines += criteria_frame(*frame)
+    # ANSWER VOCABULARIES, named once and shared. `SLOT_OPTIONS` is
+    # {slot: [values]}; the 2026-09-16 reference gave each vocabulary a human name
+    # ("authorship" for relieved|created|neither) and had slots cite it. The slot's
+    # own name is used here instead -- same vocabulary, same values, and no naming
+    # table to keep in step with a second copy.
+    for hk in sorted((doc.get("handouts") or {})):
+        opts = ((doc["handouts"][hk] or {}).get("authored") or {}).get("SLOT_OPTIONS") or {}
+        for name in sorted(opts):
+            vals = "|".join(_seq(opts[name]))
+            lines.append(f'  <Verdicts name="{_attr(name)}" values="{_attr(vals)}"/>')
     for item in doc.get("items", []):
         authored = ((doc.get("handouts") or {}).get(str(item.get("handout"))) or {}).get("authored") or {}
         lines += render_item(item, authored)
