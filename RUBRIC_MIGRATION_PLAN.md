@@ -48,6 +48,61 @@ three cases were added for the checks of that day and the constant went **66 →
 
 ---
 
+## 0a · THE END STATE, decided 2026-09-22
+
+The rubric lives IN the content, as a `<Rubric>` component the course links beside
+the three handouts:
+
+```
+<Course id="bmod_course" title="Behaviour Modification" launchable="course">
+  <Use ref="bmod_rubric"/>
+  <Use ref="bmod_handout1"/>
+  <Use ref="bmod_handout2"/>
+  <Use ref="bmod_handout3"/>
+</Course>
+```
+
+`bmod_rubric.olx` is GENERATED today and becomes HAND-AUTHORED, with handout 2's
+four factories becoming `<ItemTemplate>` elements and the Python builders retiring.
+Generation is scaffolding; `check_the_rubric_component_is_current` retires in the
+same commit that stops generating, and says so in its own docstring.
+
+**What moves into the OLX.** The rubric and everything genuinely about it: items,
+slots, credit, deductions, guidance, the scoring primitives, the per-handout
+`authored` tables, and the criteria frame that is still inside `olx_prompts.py`.
+The carried notes (`item_notes`, `handout_notes`, `item_note_runs`) become OLX
+COMMENTS -- they were comments in the Python modules and were carried as data only
+because there was nowhere else to put them, so they stop being data at all.
+
+**What does NOT move, and why it is not an exception to the goal.** Three kinds of
+thing survive as instrument configuration, because none of them is about this
+course:
+
+* **Measurement bookkeeping** -- `ASK_EQUIVALENT_PROMPTS` and its kin are
+  `prompt_sha` and `ask_sha` values. They record THIS repository's measurement
+  history. Copy the rubric to a new course and they are meaningless hashes.
+* **Submission parsing** -- `SEGMENT_MARKERS`, `CONTEXT_REFS`, `TABLE_ORDER`
+  describe the shape of the .docx students typed into, which is upstream of
+  anything the rubric says. `segment.py` reads the markers long before a rubric is
+  consulted, and two corrupted marker entries silently broke handout 2's box split
+  on 2026-09-22.
+* **Gold** -- the graders' scores live outside the repository on purpose.
+  Declarations ABOUT gold may move; gold itself does not, and keeping that
+  boundary visible is the point.
+
+The residue has no course in it, which is the goal stated from the other side.
+
+**Reading it.** `coursedata` reads the build's staged, EXPANDED rubric and keeps
+serving `config(h)["rubric"]`, so all 102 call sites across 18 modules keep their
+spelling -- the channel is converted, not the callers, exactly as when the modules
+went at Stage 5. The reader takes the staged file because templates are expanded
+by the build on purpose: a reader that understood the template grammar would be
+the second implementation that expansion exists to prevent.
+
+**The consequence to accept.** Scoring then depends on a build having run. Today
+`score.py` needs no npm. Afterwards a stale `.stage` silently means a stale
+rubric, so it needs a freshness check with the same teeth as the idmap's.
+
 ## 0 · What changed since the first draft
 
 The original plan (2026-08-14, executed: none of it) described a codebase that no longer exists in
