@@ -225,8 +225,26 @@ def anchors_are_renumber_safe(root: str | None = None) -> list[str]:
         path = _prose_path(name, root)
         if not os.path.exists(path):
             continue
-        for n, line in enumerate(open(path, errors="ignore").read().split("\n"), 1):
+        prose = open(path, errors="ignore").read().split("\n")
+        for n, line in enumerate(prose, 1):
             if not ANCHOR.search(line):
+                continue
+            # AND NOT INSIDE A PARAGRAPH. An anchor is a comment in the source but
+            # it SURVIVES INTO THE COMPOSED DOCUMENT, so one placed between two
+            # lines of running prose splits that paragraph in the rendered output.
+            # Found by doing it: anchoring the last line of the fixture-audit rule
+            # put `<!-- qc:EQ.fixtures -->` in the middle of a sentence. The test is
+            # that the line above is blank OR ITSELF A HEADING -- the second half
+            # matters, because the established arrangement puts the anchor between
+            # `### E1` and the entry it names, and a blank-only rule called all 113
+            # of those a defect.
+            above = prose[n - 2] if n > 1 else ""
+            if above.strip() and not re.match(r"^#{1,6} ", above):
+                bad.append(
+                    f"{name}:{n} puts an anchor INSIDE a paragraph -- the line "
+                    f"above it is prose, not a break. Anchors survive into the "
+                    f"composed document, so this one splits a paragraph in the "
+                    f"rendered output. Move it above the heading or entry it names")
                 continue
             if ANCHOR.sub("", line).strip():
                 bad.append(

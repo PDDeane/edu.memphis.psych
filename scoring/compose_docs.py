@@ -51,6 +51,14 @@ SPLIT_DOCS: tuple[str, ...] = (
 ANCHOR = re.compile(r"^<!--\s*qc:([A-Za-z0-9_.-]+)\s*-->\s*$")
 # A block in the specific half opens with the reference naming where it belongs.
 BLOCK_OPENS = re.compile(r"^see:\s*qc:([A-Za-z0-9_.-]+)\s*$")
+# AND THE SECOND PLACEMENT, which the documents' own shape forced. `see: qc:NAME`
+# puts a case directly after the anchored heading, which is right when the whole
+# section below it is that case. It cannot express "after this section" -- and a
+# generic subsection sitting BETWEEN two course ones is the normal arrangement in
+# these files, not an exception. Without this form each such spot needs an invented
+# connective heading in the generic half, which is prose written to satisfy a tool.
+BLOCK_OPENS_END = re.compile(r"^see:\s*qc:([A-Za-z0-9_.-]+)\s+end\s*$")
+HEADING = re.compile(r"^(#{1,6}) ")
 
 
 def generic_path(name: str) -> str:
@@ -95,14 +103,16 @@ def _blocks(text: str) -> dict:
     it belongs to no anchor, and dropping it silently is how a split loses content.
     """
     out: dict = {}
-    current = ""
+    current: object = ""
     buf: list = []
     for line in text.splitlines(keepends=True):
-        m = BLOCK_OPENS.match(line.rstrip("\n"))
+        bare = line.rstrip("\n")
+        m = BLOCK_OPENS_END.match(bare) or BLOCK_OPENS.match(bare)
         if m:
             if buf:
                 out.setdefault(current, []).append("".join(buf))
-            current, buf = m.group(1), []
+            mode = "end" if BLOCK_OPENS_END.match(bare) else "line"
+            current, buf = (m.group(1), mode), []
             continue
         buf.append(line)
     if buf:
@@ -125,7 +135,22 @@ def compose(name: str) -> str:
     out: list = []
     pending: str | None = None
     placed = 0
+    # An `end` block waits for the anchored section to FINISH: (anchor, level),
+    # emptied at the next heading of that level or higher, or at EOF.
+    holding: list = []
     for line in generic.splitlines(keepends=True):
+        h = HEADING.match(line)
+        if h and holding:
+            level = len(h.group(1))
+            keep = []
+            for anchor, at in holding:
+                if level <= at:
+                    for block in blocks.get((anchor, "end"), ()):
+                        out.append(block)
+                        placed += 1
+                else:
+                    keep.append((anchor, at))
+            holding = keep
         out.append(line)
         m = ANCHOR.match(line.rstrip("\n"))
         if m:
@@ -134,9 +159,12 @@ def compose(name: str) -> str:
         # Place a case after the anchored section's own line, not after the anchor
         # comment: the anchor sits above the heading or entry it names.
         if pending is not None and line.strip():
-            for block in blocks.get(pending, ()):
+            for block in blocks.get((pending, "line"), ()):
                 out.append(block)
                 placed += 1
+            if (pending, "end") in blocks:
+                hm = HEADING.match(line)
+                holding.append((pending, len(hm.group(1)) if hm else 6))
             pending = None
     # A TRAILING ANCHOR STILL RECEIVES ITS BLOCKS. When everything below an anchor
     # moves out, the anchor ends the generic half and no section line follows it --
@@ -144,7 +172,15 @@ def compose(name: str) -> str:
     # silently. That is the exact shape of the first real split, so it is handled
     # rather than discovered.
     if pending is not None:
-        for block in blocks.get(pending, ()):
+        for block in blocks.get((pending, "line"), ()):
+            out.append(block)
+            placed += 1
+        for block in blocks.get((pending, "end"), ()):
+            out.append(block)
+            placed += 1
+        holding = [x for x in holding if x[0] != pending]
+    for anchor, _at in holding:
+        for block in blocks.get((anchor, "end"), ()):
             out.append(block)
             placed += 1
 
@@ -153,7 +189,7 @@ def compose(name: str) -> str:
     # actually emitted, which is the error the composer makes. A split that loses a
     # paragraph is invisible in the result -- the document still reads whole -- so
     # it is caught here by arithmetic instead of by someone noticing prose missing.
-    want = sum(len(v) for k, v in blocks.items() if k)
+    want = sum(len(v) for k, v in blocks.items() if k and k[0])
     if placed != want:
         raise SystemExit(
             f"compose_docs: {name} composed {placed} of {want} block(s); "
@@ -173,14 +209,15 @@ def unplaced(name: str) -> list:
         have = {m.group(1) for m in (ANCHOR.match(l.rstrip("\n"))
                                      for l in fh) if m}
     bad = []
-    for anchor in sorted(blocks):
+    for key in sorted(blocks, key=lambda k: (k if isinstance(k, str) else k[0])):
+        anchor = key if isinstance(key, str) else key[0]
         if anchor == "":
             bad.append(f"{name}: the course half has text before its first "
                        f"`see: qc:` line, which belongs to no anchor and would be "
                        f"dropped")
         elif anchor not in have:
             bad.append(f"{name}: the course half cites `qc:{anchor}`, which the "
-                       f"generic half does not anchor -- {len(blocks[anchor])} "
+                       f"generic half does not anchor -- {len(blocks[key])} "
                        f"block(s) would be dropped")
     return bad
 

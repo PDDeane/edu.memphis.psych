@@ -256,6 +256,8 @@
    "ACCUMULATING",
    "ANCHOR",
    "BLOCK_OPENS",
+   "BLOCK_OPENS_END",
+   "HEADING",
    "HERE",
    "SPLIT_DOCS",
    "_blocks",

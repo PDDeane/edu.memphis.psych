@@ -1775,3 +1775,59 @@ recovered by the re-run.
 
 Tuning is unblocked. Re-measure against this table, not against the 83%.
 
+see: qc:EQ.fixtures end
+
+The whole corpus's fixtures were read out one cell at a time against the
+submissions, finishing what `--fixture` was built for. Six items had never been
+declared (2a, Q4a, Q4c, Q5, 3, 1c); five had been declared without being read
+(Q3, Q4b, Q6, 1a, 1b), and three of those five were carrying defects. All 26
+items now pass every fixture check and none is undeclared.
+
+**Nothing here is measured yet, and that is the first thing to know.** This
+session changed served text in nine items. Every stored number for a repaired
+cell describes a fixture that is no longer served, and the list of what owes a
+re-baseline is in `scoring/BACKLOG.md`. One of them is expected to MOVE rather
+than sit still — see 1c below.
+
+### What was wrong, by class
+
+**Scaffolding served as the student's words — 30 boxes, 7 items.** A student's
+own list marker or field label, kept in the box while most cells of the same
+item strip theirs: 2a/p16's `"Sentence 3: "`, Q4c/p13 and p16, Q5/p1 and p16,
+Q3/p6's four `"- "` bullets, Q4b's fourteen `"1) "`/`"2) "`, Q6's five (p10,
+p18, p20). Class now closed — no box in the corpus opens with a marker. Q4b's
+and Q6's went through `CONSENSUS_FIXES` rather than their own sources, because
+those live in `COURSE_DATA` and this table's note already records what editing
+data outside the repo cost: a p7 fix invisible to anyone who clones the repo.
+It also leaves Q6's consensus frozen, which is the property it was frozen for.
+
+**A box holding a neighbour's clause — 8 boxes.** Item 3's five cells opened
+`second` with a sentence elaborating the FIRST change (p4's "I hate school!"
+and four more), and 2a/p20's `how1` was a comma-initial adjunct sliced out of
+the verdict's own sentence. In every case the union of the pair was asserted
+unchanged, so the repair moves a boundary and nothing else.
+
+see: qc:EQ.readouts end
+### What the readouts said about the items themselves
+
+Three findings that are not fixture defects at all, and are the reason to read
+a fixture out even when it turns out clean:
+
+* **Q4a's one counted miss is an accept the prompt quotes.** `antecedent_1`
+  returns `wrong_kind` 6/6 on "{{corpus:Q4a/p19:first:23:58:sha=ca9d4ea70d5d:shape=S4-20}}", which the
+  item's own ACCEPT bullet lists as an example that "all earned full credit".
+  The phrase is six words, under `check_rule_examples_are_not_corpus`'s 8-word
+  floor. And `antecedent_1`/`antecedent_2` carry no `rule` field at all, so
+  every accept and reject test for the item sits in `guidance`, far below the
+  components that apply it.
+* **A perfect counted rate can measure half an item.** Q4c is 12/12 and Q5 is
+  14/14, and in both cases nearly every counted cell is a full-credit row: no
+  counted cell in Q4c requires REFUSING a stated consequence, and none in Q5
+  requires refusing a reason or calling two the same. Every cell that tests
+  those criteria is excluded. Read as diagnostics they separate cleanly — Q4c's
+  category test fires on the exact text its REJECT bullet quotes, and its
+  sufficiency test does not fire on the exact text its DEDUCT bullet quotes.
+* **2a's error is one shape.** Every miss but one is +2.0 for a second `how`
+  gold withheld, which makes it a one-directional target: a rule that can only
+  refuse a `how` cannot disturb the twelve cells that agree.
+
