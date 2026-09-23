@@ -15570,17 +15570,17 @@ OLD_ENV_NAMES_ALLOWED = {
 def check_the_staged_rubric_is_current() -> list[str]:
     """The rubric the scorer reads is the rubric that was authored.
 
-    `coursedata.items()` reads the build's STAGED copy, so scoring now depends on
-    a build having run -- which it did not before. A stale `.stage` therefore
-    means a stale rubric, silently: every item still parses, every slot still
-    reads, and the scores describe a rubric nobody is editing any more.
+    THIS ONE WATCHES THE SERVED COPY, the one a learner's page is built from.
+    `coursedata.items()` reads the EXPANDED, UNRESOLVED artifact instead --
+    `check_the_expanded_rubric_is_current` is the check on that link. Both exist
+    because the two copies go stale independently: a build that expands but does
+    not resolve leaves the pages stale, and the reverse leaves the scorer stale.
 
-    IT COMPARES AGAINST THE AUTHORED FILE, not against the view. While `items[]`
-    still carries the rubric fields, `check_the_component_reproduces_the_view`
-    would catch a stale stage as a difference from the course file -- but the
-    moment those fields are deleted, that check compares the component against
-    itself and goes quiet. This one keeps working after the deletion, which is
-    exactly when it is needed.
+    IT COMPARES AGAINST THE AUTHORED FILE, not against the view. It is now one of
+    only two checks on this chain: `check_the_component_reproduces_the_view`
+    retired at step 3d with the course file's rubric fields, because a check
+    comparing the component against a copy that no longer exists reports zero and
+    tests nothing.
 
     THE AUTHORED SIDE IS RESOLVED BEFORE COMPARING, because the staged copy has
     had its corpus references expanded and the authored one has not. Comparing raw
@@ -15635,117 +15635,75 @@ def check_the_staged_rubric_is_current() -> list[str]:
     return out
 
 
-def check_the_component_reproduces_the_view() -> list[str]:
-    """The rubric component serves exactly what `config(h)["rubric"]` serves.
+def check_the_expanded_rubric_is_current() -> list[str]:
+    """The rubric the SCORER reads is the rubric that was authored.
 
-    THIS IS THE PROOF THAT LICENSES THE DELETION, and it is only runnable while
-    BOTH sources exist. 102 call sites across 18 modules reach the rubric through
-    the view; the plan is to re-point the channel at the component and then drop
-    `items[]` from the course file. Stage 5 did the same thing and said so: "BY_ID,
-    ITEMS and SLOT_SPEC reproduce EXACTLY for all three handouts,
-    order-sensitively". Until this passes, the duplication is what makes the
-    deletion provable, and removing it early would throw away the evidence.
+    `coursedata.items()` reads `.stage/expanded`, which is a build product, so
+    scoring now depends on a build having run -- it did not before, and
+    RUBRIC_MIGRATION_PLAN's END STATE accepted that when it named this
+    artifact as owed.
+    A stale expansion means a stale rubric silently: every item still parses,
+    every slot still reads, and the scores describe a rubric nobody is editing.
 
-    COMPARED AFTER RESOLUTION, because the view carries `{{corpus:...}}` and the
-    staged component has had them expanded. Comparing raw reports a difference
-    that is two spellings of one string -- the mistake that cost a day on
-    2026-09-22.
+    IT COMPARES THE BYTES, and that is exact only while no template exists. With
+    nothing to expand, `materialiseRubrics` copies the file through unchanged --
+    it is written not to reformat, and its own test asserts byte-identity -- so
+    any difference at all is staleness.
 
-    `handout` IS SET ASIDE, as it was at Stage 5: the export synthesises it and an
-    item does not record which handout it is in, "because the module it was
-    written in WAS the handout".
-
-    IT REPORTS ITS OWN FAILURES rather than skipping them. A check that cannot run
-    is not a check that passed -- a sibling here returned a clean zero for two
-    injected faults because a bare `except: continue` hid a NameError.
+    THE COMPARISON EXPIRES THE DAY A TEMPLATE LANDS, and says so rather than
+    quietly becoming wrong: an expanded file SHOULD differ from its source then,
+    and this check would read that as staleness on every run. Upgrading it means
+    running the expander and comparing its output, which is a node call from
+    python -- deliberately not built today, because a check nothing exercises is
+    a check nobody finds out is broken. The refusal below is what makes the
+    upgrade unavoidable instead of merely noted.
     """
-    out = []
+    import os as _os
     try:
-        import corpus_resolve as CR
         import rubric_component as RC
     except Exception as exc:                            # pragma: no cover
-        return [f"cannot compare the rubric component against the view: "
-                f"{type(exc).__name__}: {exc}"]
+        return [f"cannot check the expanded rubric: {type(exc).__name__}: {exc}"]
 
-    def resolved(x):
-        if isinstance(x, str):
-            return CR.expand(x) if "{{corpus:" in x else x
-        if isinstance(x, list):
-            return [resolved(v) for v in x]
-        if isinstance(x, dict):
-            return {k: resolved(v) for k, v in x.items()}
-        return x
+    authored = _os.path.join(_os.path.dirname(str(_HERE_DIR)), "psychology",
+                             "bmod_rubric.olx")
+    if not _os.path.exists(authored):
+        return [f"{_os.path.relpath(authored)} is missing: there is no authored "
+                f"rubric to expand"]
+    expanded = RC.expanded_path()
+    if not _os.path.exists(expanded):
+        return [f"the rubric has not been expanded ({expanded}); run "
+                f"`npm run build:expand-rubrics`. The scorer reads the expanded "
+                f"copy, so an unbuilt tree scores against nothing"]
+    src = open(authored, errors="ignore").read()
+    if "<ItemTemplate" in src:
+        return [f"{_os.path.relpath(authored)} declares an <ItemTemplate>, and "
+                f"this check compares bytes -- which was exact only while nothing "
+                f"expanded. It must now run the expander and compare its output, "
+                f"or it will call every correct expansion stale. Upgrade it."]
+    have = open(expanded, errors="ignore").read()
+    if have != src:
+        return [f"the expanded rubric is not the authored one "
+                f"({len(have):,} bytes expanded, {len(src):,} authored), and with "
+                f"no template to expand they must match byte for byte. The rubric "
+                f"was edited since the last build: run "
+                f"`npm run build:expand-rubrics`."]
+    return []
 
-    try:
-        got_items = RC.as_view_items()
-        got_slots = RC.as_view_slot_spec()
-    except FileNotFoundError:
-        return [f"the rubric component is not staged ({RC.staged_path()}); run "
-                f"`npm run build:stage-content`. An unbuilt artifact is not "
-                f"evidence that it reproduces the view"]
-    except Exception as exc:
-        return [f"the staged rubric component will not parse: "
-                f"{type(exc).__name__}: {exc}"]
 
-    # THE COURSE FILE DIRECTLY, NOT THROUGH THE VIEW. `coursedata.items()` now
-    # READS the component, so comparing against the view compared the component
-    # with itself -- the check went vacuous the moment the channel was re-pointed,
-    # which is precisely when it mattered. It reads `items[]` off the file so the
-    # two sources stay genuinely independent for as long as both exist.
-    want, by_id = [], {}
-    try:
-        import coursedata as _CD
-        raw = _CD._load()["items"]
-    except Exception as exc:
-        return [f"cannot read the course file to compare it: "
-                f"{type(exc).__name__}: {exc}"]
-    for it in raw:
-        rec = {k: resolved(v) for k, v in it.items()
-               if k != "handout" and k in _CD.RUBRIC_FIELDS}
-        if not rec.get("id"):
-            continue
-        want.append(rec)
-        by_id[rec["id"]] = rec
-    if not want:
-        return ["the course file carries no rubric fields to compare against; "
-                "if `items[]` has been reduced to generator fields, this check "
-                "has done its job and should be retired with a note saying so"]
-
-    # `handout` IS SET ASIDE ON BOTH SIDES. The view strips it before serving
-    # (handouts.py selects on it, then drops it); the component carries it so the
-    # view can select at all. Comparing one against the other reported all 26
-    # items as differing on a field neither side disagrees about.
-    got_items = [{k: v for k, v in i.items() if k != "handout"} for i in got_items]
-    got = {i["id"]: i for i in got_items}
-    if [w["id"] for w in want] != [i["id"] for i in got_items]:
-        out.append("the component serves the items in a different ORDER from the "
-                   "view; rubric order is how a person reads it")
-    for w in want:
-        g = got.get(w["id"])
-        if g is None:
-            out.append(f"{w['id']}: the component serves no such item")
-            continue
-        for k in sorted(set(w) | set(g)):
-            if w.get(k) != g.get(k):
-                out.append(
-                    f"{w['id']}.{k}: the component does not reproduce the view "
-                    f"({str(w.get(k))[:60]!r} vs {str(g.get(k))[:60]!r})")
-    for h in (1, 2, 3):
-        try:
-            spec = {k: resolved(v)
-                    for k, v in (config(h)["rubric"].SLOT_SPEC or {}).items()}
-        except Exception:
-            continue
-        for iid, rows in spec.items():
-            if rows != got_slots.get(iid):
-                out.append(f"SLOT_SPEC[{iid}]: the component does not reproduce it")
-    try:
-        oc = resolved(config(2)["rubric"].OC_FRAME)
-        if oc and oc != RC.as_view_frame("oc_frame"):
-            out.append("OC_FRAME: the component does not reproduce it")
-    except Exception:
-        pass
-    return out
+# `check_the_component_reproduces_the_view` STOOD HERE AND RETIRED AT STEP 3D,
+# on the expiry its own docstring set: "only runnable while BOTH sources exist".
+# It compared the component field-for-field against `course.json`'s `items[]`,
+# after resolution, and passing is what licensed deleting those fields. With them
+# gone there is nothing on the course side to compare against, so keeping it would
+# have left a check that runs, reports zero, and tests nothing -- the vacuity this
+# file fails a ratchet over. Its last passing run is the one recorded in the
+# commit that re-pointed `coursedata`.
+#
+# WHAT GUARDS THE COMPONENT NOW. Not a second copy -- there isn't one, which was
+# the point. `check_the_staged_rubric_is_current` watches the build link,
+# `check_the_course_links_the_rubric_and_every_handout` the structure, and the
+# scoring equivalence suite exercises the rubric through 5,668 re-scored responses
+# and 3,120 paper-vs-web cells: a rubric that changed meaning changes scores.
 
 
 def check_sheet_matches_the_rubric_it_names() -> list[str]:
@@ -15847,52 +15805,18 @@ def check_the_course_links_the_rubric_and_every_handout() -> list[str]:
     return []
 
 
-def check_the_rubric_component_is_current() -> list[str]:
-    """`bmod_rubric.olx` is what `rubric_export --olx` would write right now.
-
-    The rubric reaches the scorer through a chain, and every link has gone stale
-    at least once in this project's history: the source, the course file, the
-    generated .olx, the served idmap. This is the link the component adds. A
-    rubric edit that is not re-emitted leaves a file that parses, resolves and
-    renders -- and describes the rubric as it was.
-
-    It compares the RENDER, not a timestamp: mtime says a file was written, not
-    that it was written from this rubric.
-
-    THIS CHECK HAS A DEFINED LIFETIME, AND IT IS SHORTER THAN THE MIGRATION'S.
-    Generation is scaffolding: `bmod_rubric.olx` eventually becomes the
-    HAND-AUTHORED artifact and the Python builders retire, with handout 2's four
-    factories becoming `<ItemTemplate>` elements in the authored file. On that
-    day this check is not merely obsolete, it is WRONG -- it would refuse the
-    first hand edit, which is the entire point of the change. Retire it in the
-    same commit that stops generating the file.
-
-    Written down because the last check to carry an expiry --
-    `check_selectors_govern_something`, "it dies with the modules at Stage 5" --
-    is the reason anyone noticed its premise had changed. An unwritten expiry is
-    just a check that will one day be wrong for a reason nobody remembers.
-    """
-    import os as _os
-    out = []
-    path = _os.path.join(_os.path.dirname(str(_HERE_DIR)), "psychology",
-                         "bmod_rubric.olx")
-    if not _os.path.exists(path):
-        return [f"{_os.path.relpath(path)} is missing: the rubric is not a "
-                f"component in the content"]
-    try:
-        import coursedata as _CD
-        import rubric_olx as _RO
-        want = _RO.render(_CD._load())
-    except Exception as exc:                            # pragma: no cover
-        return [f"cannot re-render the rubric component to check it: "
-                f"{type(exc).__name__}: {exc}"]
-    have = open(path, errors="ignore").read()
-    if have != want:
-        out.append(
-            f"{_os.path.relpath(path)} is not what `rubric_export.py --olx` would "
-            f"write ({len(have):,} bytes on disk, {len(want):,} rendered). The "
-            f"rubric moved and the component did not: re-emit it.")
-    return out
+# `check_the_rubric_component_is_current` STOOD HERE AND RETIRED AT STEP 3D, on
+# the expiry it wrote for itself: "Retire it in the same commit that stops
+# generating the file... On that day this check is not merely obsolete, it is
+# WRONG -- it would refuse the first hand edit, which is the entire point of the
+# change." `rubric_export --olx` retired in the same commit, and the course file
+# it rendered from no longer carries a rubric, so the check could only have
+# compared the component against an empty render of itself.
+#
+# Kept as a note because the last check to carry an expiry --
+# `check_selectors_govern_something`, "it dies with the modules at Stage 5" -- is
+# the reason anyone noticed its premise had changed. An expiry that is honoured
+# silently teaches nothing.
 
 
 def check_no_old_environment_names() -> list[str]:

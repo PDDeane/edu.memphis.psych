@@ -612,6 +612,22 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
     # item and reports how many earlier ones it is not showing; a flat list
     # cannot say where one block ends. See `_comment_runs`.
     doc["item_note_runs"] = _notes["runs"]
+
+    # THE RUBRIC FIELDS DO NOT GO IN THE COURSE FILE ANY MORE (step 3d). They
+    # live in `bmod_rubric.olx`, which `coursedata` reads and which is the single
+    # source. Emitting them here would put a SECOND copy back on every rebuild --
+    # and handout 2's source module is still present, so this is not hypothetical:
+    # a plain `rubric_export` run would have restored twelve items' worth of
+    # rubric silently, and the deletion would have lasted until someone rebuilt.
+    #
+    # `id` and `handout` survive because they are not rubric data: `id` is the key
+    # both groups are reached by, and `handout` is course structure the `<Item>`
+    # schema refuses. Handouts whose module is gone are carried forward from the
+    # prior file and are projected here too, so both routes agree.
+    import coursedata as _CD
+    _keep = {"id", "handout"} | set(_CD.GENERATOR_FIELDS)
+    doc["items"] = [{k: v for k, v in it.items() if k in _keep}
+                    for it in doc["items"]]
     return doc, full_report
 
 
@@ -624,8 +640,14 @@ def main(argv: list[str]) -> int:
     # handouts. Emitting it here rather than from a script run by hand is what
     # makes it a build product: one program, one pass, both artifacts from the
     # same `build()` result, so they cannot describe different rubrics.
-    ap.add_argument("--olx", metavar="PATH", help=(
-        "also write the rubric as a <Rubric> component (bmod_rubric.olx)"))
+    # `--olx` WAS HERE AND RETIRED AT STEP 3D. It rendered `bmod_rubric.olx`
+    # from this builder's output, which made the component a build product. The
+    # component is now the SOURCE -- `coursedata` reads it and the course file no
+    # longer carries a rubric to render from -- so regenerating it could only
+    # overwrite the source with a projection of itself. The next step is authoring
+    # it by hand, which `check_the_rubric_component_is_current`'s own docstring
+    # named as this flag's expiry: "retire it in the same commit that stops
+    # generating the file".
     args = ap.parse_args(argv)
 
     doc, report = build(args.course)
@@ -646,22 +668,6 @@ def main(argv: list[str]) -> int:
         fh.write("\n")
     print(f"\n  written: {args.out} ({os.path.getsize(args.out):,} bytes)")
 
-    if args.olx:
-        import rubric_olx
-        text = rubric_olx.render(doc)
-        # A RUBRIC WITH NO ITEMS IS NOT A RUBRIC, it is a silent truncation, and
-        # this writes over a file the build reads. Refusing beats emitting an
-        # empty component that parses perfectly and scores nothing.
-        n = text.count("<Item ")
-        if n != len(doc["items"]):
-            print(f"  REFUSING to write {args.olx}: rendered {n} <Item> from "
-                  f"{len(doc['items'])} items", file=sys.stderr)
-            return 1
-        os.makedirs(os.path.dirname(os.path.abspath(args.olx)) or ".", exist_ok=True)
-        with open(args.olx, "w") as fh:
-            fh.write(text)
-        print(f"  written: {args.olx} ({os.path.getsize(args.olx):,} bytes, "
-              f"{n} items)")
     return 0
 
 

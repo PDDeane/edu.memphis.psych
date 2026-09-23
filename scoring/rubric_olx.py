@@ -1,6 +1,21 @@
 #!/usr/bin/env python3
 """Render the rubric of record as a `<Rubric>` OLX component.
 
+NOTHING CALLS THIS ANY MORE, as of step 3d. Both consumers retired in that
+commit: `rubric_export --olx`, which made the component a build product, and
+`check_the_rubric_component_is_current`, which held the file to this render.
+`bmod_rubric.olx` is now the SOURCE -- the course file it rendered from no longer
+carries a rubric, so a render could only overwrite the source with an empty
+projection of itself.
+
+IT IS KEPT UNTIL STEP 4, and only until then, for what `frame_text()` and the
+comments around `criteria_frame()` record: that the obvious parameterisation of
+the cadence block -- `params="cadence=day"` and a placeholder -- WAS TRIED AND
+FAILS, because the DAY text cross-references the other cadence ("not a weekly
+plan") and a whole-word swap does not reproduce the WK block. Step 4 moves that
+prose into the authored rubric and deletes this module. Deleting it first would
+throw away a measured negative result and invite the same attempt again.
+
 WHY OLX AND NOT JSON. The rubric belongs IN the content, as a lo-blocks component
 the course links beside the three handouts:
 

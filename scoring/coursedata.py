@@ -59,6 +59,18 @@ DERIVATIONS = {
 # until Stage 4 brings `olx_prompts.py`'s tables across under B2a -- and that
 # emptiness is the reason T2.2's check cannot prove anything yet, which T2.2's own
 # design says out loud rather than letting the check pass while vacuous.
+#
+# SINCE 3D THESE NAMES ARE NOT COURSE-FILE FIELDS. They were deleted from
+# `course.json`'s `items[]` when the rubric became a component, and this set is no
+# longer a SELECTOR over course entries -- `_group(entry, RUBRIC_FIELDS)` has no
+# callers left, and only GENERATOR_FIELDS is still selected with.
+#
+# IT IS KEPT WHOLE, and deliberately. It is the rubric's field VOCABULARY, which
+# is what its two remaining readers want: `property_ratchet` scans for these names
+# as subscripts, and `course_schema` classifies a field by which group declares it
+# -- now over the component's rows AND the course file's, since the fields live on
+# different sides of that split. Trimming it to the two names left in `items[]`
+# would have shrunk the ratchet's vocabulary and let real growth hide inside it.
 RUBRIC_FIELDS = {
     "id", "handout", "label", "max", "increment", "question", "guidance",
     "context", "credit", "deductions", "counts", "derive_from_credit",
@@ -157,15 +169,56 @@ def _group(entry: dict, fields: set[str]) -> dict:
     return _detag(copy.deepcopy({k: v for k, v in entry.items() if k in fields}))
 
 
+def _rubric_rows() -> list[dict]:
+    """Every item's rubric fields, from the COMPONENT, in rubric order.
+
+    THE ONE PLACE THE RUBRIC IS READ. `items()`, `rubric_for()` and `derived()`'s
+    pool all come through here, so there is exactly one answer to "where does a
+    rubric field come from" and exactly one place to change when the artifact it
+    reads changes.
+
+    IT RAISES WHEN THE COMPONENT IS UNREADABLE, and that is the whole design.
+    Until 3d this fell back to `course.json`'s `items[]`, which was safe only
+    while those fields were still there and proven identical. They are gone, so a
+    fallback would return rows with no rubric on them -- every gate unsatisfied,
+    every deduction absent, every check comparing nothing and passing. A raise is
+    the only honest answer, and the failure it replaces is the exact vacuity trap
+    this project has hit before.
+    """
+    import rubric_component
+    # THE EXPANDED, UNRESOLVED ARTIFACT -- not the authored file and not the
+    # served one. `rubric_component.expanded_path` carries why each of the other
+    # two is wrong for this reader. It is a BUILD PRODUCT, so scoring now depends
+    # on a build having run, which it did not before: that is the consequence
+    # RUBRIC_MIGRATION_PLAN's END STATE accepted when it named this artifact
+    # as owed.
+    rows = rubric_component.as_view_items(rubric_component.expanded_path())
+    if not rows:
+        raise RuntimeError(
+            f"coursedata: the rubric component at "
+            f"{rubric_component.expanded_path()} yielded no items. The rubric "
+            f"fields are no longer in course.json, so there is nothing to fall "
+            f"back to -- fix the component rather than the reader.")
+    # `handout` IS JOINED FROM THE COURSE FILE, not carried by the rubric.
+    # `Item`'s schema refuses the attribute, and rightly: which handout an item
+    # belongs to is course structure. `handouts.config` selects on it before
+    # serving, so it has to be here.
+    where = {str(it.get("id")): it.get("handout") for it in _load()["items"]}
+    for r in rows:
+        h = where.get(str(r.get("id")))
+        if h is not None:
+            r["handout"] = h
+    return rows
+
+
 def items() -> list[dict]:
     """Every item, rubric fields only, in rubric order -- from the COMPONENT.
 
     THE RUBRIC LIVES IN THE CONTENT NOW, as a `<Rubric>` the course links beside
-    the three handouts, and this is the single place that reads it. Everything
-    else keeps its spelling: `handouts.config(h)["rubric"]` still serves the view,
-    and the 102 call sites across 18 modules are untouched. The CHANNEL is
-    converted, not the callers -- the same move that let Stage 5 delete the
-    modules without breaking a single site.
+    the three handouts. Everything else keeps its spelling:
+    `handouts.config(h)["rubric"]` still serves the view, and the 102 call sites
+    across 18 modules are untouched. The CHANNEL is converted, not the callers --
+    the same move that let Stage 5 delete the modules without breaking a site.
 
     IT READS THE AUTHORED FILE, NOT THE BUILD'S STAGED COPY, and the difference is
     not stylistic. The staged copy has its corpus references RESOLVED, and
@@ -182,42 +235,22 @@ def items() -> list[dict]:
     serves today only because nothing uses `<ItemTemplate>` -- a template landing
     before that build step is what `check_the_staged_rubric_is_current` watches
     for, and it is the one piece of build work hand-authoring still owes.
-
-    FALLS BACK TO THE COURSE FILE only while `items[]` still carries the rubric
-    fields, and says nothing when it does -- the two are proven identical by
-    `check_the_component_reproduces_the_view`. When those fields are deleted the
-    fallback stops finding anything, which is the point at which the component is
-    the only source and the check above is the only thing that licensed it.
     """
-    try:
-        import rubric_component
-        rows = rubric_component.as_view_items(
-            rubric_component.authored_path())
-        if rows:
-            # `handout` IS JOINED FROM THE COURSE FILE, not carried by the
-            # rubric. `Item`'s schema refuses the attribute, and rightly: which
-            # handout an item belongs to is course structure. `handouts.config`
-            # selects on it before serving, so it has to be here.
-            where = {str(it.get("id")): it.get("handout")
-                     for it in _load()["items"]}
-            for r in rows:
-                h = where.get(str(r.get("id")))
-                if h is not None:
-                    r["handout"] = h
-            return rows
-    except FileNotFoundError:
-        pass                    # not built yet; the staleness check reports it
-    except Exception:
-        pass                    # malformed; the equality check reports it
-    return [_group(it, RUBRIC_FIELDS) for it in _load()["items"]]
+    return _rubric_rows()
 
 
 def rubric_for(item_id: str) -> dict:
-    """One item's RUBRIC fields. Never the raw entry, never generator fields."""
-    for it in _load()["items"]:
+    """One item's RUBRIC fields. Never the raw entry, never generator fields.
+
+    THROUGH THE COMPONENT, like `items()`. Until 3d this read `course.json`'s
+    `items[]` directly; with the rubric fields deleted from there it would have
+    returned `{}` for every item and raised nothing -- the quiet failure 3d's
+    plan names, and the reason both readers now share `_rubric_rows()`.
+    """
+    for it in _rubric_rows():
         if str(it.get("id")) == str(item_id):
-            return _group(it, RUBRIC_FIELDS)
-    raise KeyError(f"coursedata: no item {item_id!r} in {course_path()}")
+            return it
+    raise KeyError(f"coursedata: no item {item_id!r} in the rubric component")
 
 
 def generator_for(item_id: str) -> dict:
@@ -305,11 +338,15 @@ def derived(name: str, handout: int | None = None):
     precisely because nothing could prove it derivable.
     """
     doc = _load()
-    pool = [it for it in doc["items"]
+    # THE POOL COMES FROM THE COMPONENT TOO. `TOTAL` sums `it["max"]`, so a pool
+    # of raw course entries stripped of their rubric fields would have raised a
+    # KeyError here -- loud, but for the wrong reason, and only for the
+    # derivations that happen to read a deleted field.
+    pool = [it for it in _rubric_rows()
             if handout is None or it.get("handout") == handout]
     fn = DERIVATIONS.get(name)
     if fn is not None:
-        return fn([_group(it, RUBRIC_FIELDS) for it in pool])
+        return fn(pool)
     for h, block in doc.get("handouts", {}).items():
         if handout is not None and int(h) != handout:
             continue

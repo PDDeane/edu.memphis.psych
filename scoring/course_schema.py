@@ -170,7 +170,13 @@ def check(directory: str | None = None) -> dict:
 
     directory = directory or HERE
     declared = groups()
-    entries = coursedata._load()["items"]
+    # BOTH SIDES OF THE SPLIT, since 3d. The rubric fields left `course.json`
+    # when the rubric became a component, so `items[]` alone no longer shows
+    # where a declared field lives -- comparing against it would have reported
+    # all 28 rubric names as stale declarations, which is the opposite of true.
+    # `coursedata.items()` serves the component's rows and `_load()["items"]`
+    # the generator's, and a field declared in neither really is stale.
+    entries = list(coursedata._load()["items"]) + list(coursedata.items())
     violations, cleanups = part_a(entries, declared)
     return {"violations": violations + part_b(directory, declared) + gold_check(),
             "cleanups": cleanups,

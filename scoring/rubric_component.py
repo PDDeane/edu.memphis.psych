@@ -56,6 +56,30 @@ def staged_path() -> str:
                         "psychology", "bmod_rubric.olx")
 
 
+def expanded_path() -> str:
+    """The expanded, UNRESOLVED rubric -- what the scorer reads.
+
+    THE THIRD ARTIFACT, and until 2026-09-22 it did not exist. The other two each
+    fail this reader in a different way:
+
+      authored         templates unexpanded -- reading it would mean implementing
+                       the template grammar a second time, which is the drift
+                       `materialiseRubric` opens by refusing.
+      .stage/content   references RESOLVED -- `olx_prompts` writes this prose back
+                       into a PUBLIC repository, so reading resolved text would
+                       replace every `{{corpus:...}}` with the span it protects.
+                       Measured: it made all three handouts read OUT OF DATE, and
+                       the diff was the reference replaced by its expansion.
+
+    `npm run build:expand-rubrics` writes it, before resolution and from the same
+    staged set of files, so expansion is structural and resolution is textual and
+    neither has to know about the other.
+    """
+    import paths
+    return os.path.join(str(paths.LO), ".stage", "expanded", paths.NS,
+                        "psychology", "bmod_rubric.olx")
+
+
 def authored_path() -> str:
     """The authored rubric, templates unexpanded and references INTACT.
 
@@ -130,10 +154,11 @@ def slot_keys(item_id: str, path: str | None = None) -> list[str]:
 # `.BY_ID[item]`, `.ITEMS`, `.SLOT_SPEC`. When the modules went at Stage 5 the
 # CHANNEL was converted and every site kept its spelling; the same applies here.
 # So these functions rebuild exactly what the view serves -- parsed types, the
-# same keys, the same order -- and `check_the_component_reproduces_the_view`
-# holds them to it while both sources still exist. That window is the only time
-# the equality is provable, which is why the duplication is worth keeping until
-# the proof is green.
+# same keys, the same order. `check_the_component_reproduces_the_view` held them
+# to it while both sources existed and retired at step 3d with the second copy;
+# that window was the only time the equality was PROVABLE, which is why the
+# duplication was kept until the proof was green. What holds the shape now is use:
+# every one of those 102 sites reads through it on every scoring run.
 
 _TRUE = ("true", "True", "1")
 

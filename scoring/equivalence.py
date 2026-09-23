@@ -1197,16 +1197,14 @@ def enforcement_audit():
         findings.append(("-", "COURSE VOCABULARY IN GENERAL PROSE", bad))
     for bad in ENF.check_the_staged_rubric_is_current():
         findings.append(("-", "THE STAGED RUBRIC IS NOT THE AUTHORED ONE", bad))
-    for bad in ENF.check_the_component_reproduces_the_view():
-        findings.append(("-", "COMPONENT DOES NOT REPRODUCE THE RUBRIC VIEW", bad))
+    for bad in ENF.check_the_expanded_rubric_is_current():
+        findings.append(("-", "THE EXPANDED RUBRIC IS NOT THE AUTHORED ONE", bad))
     for bad in ENF.check_sheet_matches_the_rubric_it_names():
         findings.append(("-", "SHEET AND RUBRIC DESCRIBE DIFFERENT SLOTS", bad))
     for bad in ENF.check_ask_equivalences_still_hold():
         findings.append(("-", "ASK EQUIVALENCE NO LONGER HOLDS", bad))
     for bad in ENF.check_the_course_links_the_rubric_and_every_handout():
         findings.append(("-", "COURSE DOES NOT LINK THE RUBRIC OR A HANDOUT", bad))
-    for bad in ENF.check_the_rubric_component_is_current():
-        findings.append(("-", "RUBRIC COMPONENT IS STALE", bad))
     for bad in ENF.check_no_old_environment_names():
         findings.append(("-", "OLD ENVIRONMENT NAME RETURNED", bad))
     for bad in ENF.check_declaration_tables_are_verified():
