@@ -16,8 +16,8 @@
   "rubric_h2_source.py": 21
  },
  "modules": {
-  "agreement.py": 7,
-  "agreement_app.py": 5,
+  "agreement.py": 6,
+  "agreement_app.py": 4,
   "anchors.py": 0,
   "backends.py": 0,
   "baseline.py": 0,

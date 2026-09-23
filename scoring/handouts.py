@@ -895,6 +895,107 @@ def attainable_scores(item: dict) -> list[float]:
     return sorted(out)
 
 
+def _scored_credit(item: dict) -> list[dict]:
+    """The credit slots that carry points, in authored order.
+
+    `series_box_holds` carries none -- it is a PICK that the `legend` slot's rule
+    reads, not a slot that scores -- so a reader counting "every credit entry"
+    would invent a sixth 2-point element that does not exist.
+    """
+    return [c for c in item.get("credit", ()) if c.get("pts") is not None]
+
+
+def gold_labels(item: dict, feedback: str) -> dict[str, bool]:
+    """The grader's verdict on each of `item`'s scored slots, from their comment.
+
+    A MISSING MENTION MEANS THE CRITERION PASSED: these graders itemise what they
+    took off and leave the cell blank at full credit, so the absence of "-2 pts:
+    missing legend" is evidence the legend was there.
+
+    The slots, their point values, the gate and the deduction codes all come from
+    the RUBRIC; only the phrases come from `GOLD_COMMENT_PHRASES`, and a code the
+    rubric declares with no phrase here is a REFUSAL rather than a slot that
+    quietly never fails. Both previous copies hard-coded five keys, so a sixth
+    element added to the rubric would have been ignored by both without a word.
+    """
+    import coursedata
+
+    phrases = coursedata.declaration("GOLD_COMMENT_PHRASES")
+    f = " ".join((feedback or "").lower().split())
+    out, gate_ok = {}, True
+    for slot in _scored_credit(item):
+        codes = [c for c in (slot.get("codes") or {}).values()]
+        missing = [c for c in codes if c not in phrases]
+        if missing:
+            raise SystemExit(
+                f"handouts.gold_labels: {item['id']} slot {slot.get('what')!r} "
+                f"maps to deduction code(s) {sorted(set(missing))}, which "
+                f"GOLD_COMMENT_PHRASES does not know how to find in a comment. "
+                f"Add the phrase graders write for it -- an unknown code would "
+                f"otherwise read as 'this element never fails'.")
+        hit = any(re.search(pat, f)
+                  for c in codes for pat in phrases[c])
+        ok = not hit
+        if slot.get("gates"):
+            gate_ok = ok
+        out[str(slot.get("what"))] = ok
+    if not gate_ok:
+        # On a failed gate nothing else was assessed, so the rest ride on it --
+        # which is what a gate means anyway.
+        out = {k: False for k in out}
+    return out
+
+
+def rebuild_gold_from_comment(gold: dict, item: dict) -> tuple[dict, list[int]]:
+    """Restate an item's gold from the grader's itemised deductions.
+
+    WHY THE RAW SCORE CANNOT BE USED for 1c, the only item that needs this:
+    p11's row reads `-2 x-axis -2 y-axis -1 missing baseline data week` against a
+    score of 7.0, which is neither 10-4 nor 10-5, and the baseline-week point maps
+    to no slot on either side. Rebuilding from the verdicts drops that improvised
+    charge cleanly, where subtracting from the total could not.
+
+    ONE IMPLEMENTATION, replacing two. `agreement.py` and `agreement_app.py` each
+    held a copy under a comment saying "the two must agree" with nothing
+    enforcing it, and by 2026-09-23 they had drifted apart in one way that
+    mattered: `agreement_app` matched "missing (the )?legend" while `agreement`
+    matched only the short form. It was invisible because no comment in the
+    corpus says "missing the legend" -- the divergence was real and simply had
+    not been reached yet.
+
+    NOT everything that looked like drift was drift, and the difference is worth
+    recording. Their exclusion sources -- `GRAPH_UNREACHABLE_1C` and
+    `PER_ITEM_EXCLUDE["1c"]` -- read as two tables agreeing by luck, but
+    `agreement.py` DERIVES the first from the second ("not repeated, so the two
+    drops cannot disagree"): already fixed, by someone who had met this before.
+    The slot-name difference (`x_axis_label` vs `x`) was cosmetic, since the
+    rebuild only counts falses. One real divergence, not three.
+
+    The arithmetic now comes from the rubric -- `max` and each slot's own `pts` --
+    so it cannot drift from the sheet it is meant to mirror either.
+    """
+    unreachable = set(PER_ITEM_EXCLUDE.get(item["id"], {}))
+    dropped: list[int] = []
+    for pid, items in gold.items():
+        cell = items.get(item["id"])
+        if not cell:
+            continue
+        if pid in unreachable:
+            items[item["id"]] = {"score": None, "feedback": cell.get("feedback", "")}
+            dropped.append(pid)
+            continue
+        labels = gold_labels(item, cell.get("feedback"))
+        gate = next((c for c in _scored_credit(item) if c.get("gates")), None)
+        if gate is not None and not labels[str(gate.get("what"))]:
+            score = 0.0
+        else:
+            lost = sum(float(c["pts"]) for c in _scored_credit(item)
+                       if not labels[str(c.get("what"))])
+            score = round(float(item["max"]) - lost, 4)
+        items[item["id"]] = {"score": score, "feedback": cell.get("feedback", "")}
+    return gold, sorted(dropped)
+
+
 def nearest_attainable(item: dict, gold: float) -> set[float]:
     """The reachable score(s) closest to `gold` — the whole tie, if it is one.
 

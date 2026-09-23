@@ -1146,6 +1146,30 @@ JOBS = {
 # Repeated families that are countable in shape but must NOT be converted, with
 # the reason, because an unexplained exemption is how the inconsistency below got
 # in. Keyed by (item, family stem).
+# WHAT A GRADER ACTUALLY WROTE for each deduction code, keyed by the code the
+# RUBRIC declares -- not by a slot name invented here.
+#
+# THE DICTIONARY TEXT IS NOT WHAT THEY TYPED, which is why this table cannot be
+# derived from the rubric and has to be measured. The rubric carries NO_LEGEND as
+# "-2 pts: missing the legend"; every grader wrote "missing legend". The same
+# shortening happened to all four labelling codes ("missing x-axis" for "missing
+# the x-axis label"). A reader built from the dictionary strings verbatim would
+# match NOTHING, and would score every row full marks in silence.
+#
+# So each pattern accepts BOTH forms. That is a generalisation of the one fix
+# `agreement_app` had made to `legend` alone: the two copies of this reader
+# disagreed on exactly that clause, and the disagreement was invisible only
+# because no comment in the corpus says "missing the legend" today.
+GOLD_COMMENT_PHRASES: dict[str, tuple[str, ...]] = {
+    "NO_GRAPH":            (r"did not include",),
+    "TEMPLATE_GRAPH_ONLY": (r"did not provide a graph",),
+    "NO_TITLE":            (r"missing (?:the )?graph title",),
+    "NO_X_AXIS":           (r"missing (?:the )?x-axis",),
+    "NO_Y_AXIS":           (r"missing (?:the )?y-axis",),
+    "NO_LEGEND":           (r"missing (?:the )?legend",),
+}
+
+
 COUNTABLE_EXEMPT = {
     ("1a", "week"): "the weeks are NAMED, not interchangeable. The guidance deducts "
                     "only when a period is 'clearly and specifically absent' and names "

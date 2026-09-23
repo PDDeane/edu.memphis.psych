@@ -1775,62 +1775,31 @@ GRAPH_UNREACHABLE_1C = tuple(sorted(PER_ITEM_EXCLUDE["1c"]))
 UNSCORED_GOLD_CRITERIA = _gold_declaration("UNSCORED_GOLD_CRITERIA")
 
 
-def gold_slots_1c(feedback: str) -> dict[str, bool]:
-    """The grader's verdict on all five of 1c's slots, read out of their comment.
-
-    Scored over the full 10 points, not the three labels. An earlier version
-    took a 6-point label subtotal on the grounds that the web "cannot fail"
-    has_own_graph or legend. Measurement says otherwise: across 17 web cells
-    has_own_graph came back `absent` twice and legend failed four times
-    (`absent` x3, `incomplete` x1) — and one of those, p11's legend, is a false
-    deduction the CLI could not see because it was not scoring the slot. A
-    subtotal that omits the item's only gate is an easier item, not a fairer
-    comparison.
-
-    A missing mention means the criterion passed: these graders itemise what
-    they took off and leave the cell blank at full credit, so absence of
-    "-2 pts: missing legend" is evidence the legend was there.
-    """
-    f = (feedback or "").lower()
-    no_graph = "did not include" in f or "did not provide a graph" in f
-    return {
-        # The gate. On a no-graph row nothing else was assessed, so the other
-        # four ride on it — which is what a gate means anyway.
-        "has_own_graph": not no_graph,
-        "title": not no_graph and "missing graph title" not in f,
-        "x_axis_label": not no_graph and "missing x-axis" not in f,
-        "y_axis_label": not no_graph and "missing y-axis" not in f,
-        "legend": not no_graph and "missing legend" not in f,
-    }
-
-
 def rebuild_gold_1c(gold: dict) -> tuple[dict, list[int]]:
-    """Restate gold's 1c score as the slot sheet's own five checks, out of 10.
+    """1c's gold, restated from the grader's itemised deductions.
 
-    The workbook's raw 1c score cannot be used directly: p11's row reads
-    `-2 x-axis -2 y-axis -1 missing baseline data week` against a score of 7.0,
-    which is neither 10-5 nor 10-4, and the baseline-week point maps to no slot
-    on either side. Deriving the score from the itemised deductions instead
-    keeps gold on the same five criteria both systems actually report.
+    DELEGATES to `handouts.rebuild_gold_1c`, which is now the only
+    implementation. This module and `agreement_app` each carried their own copy
+    until 2026-09-23, under a comment saying "the two must agree" with nothing
+    enforcing it -- and by then they HAD diverged, in one way that mattered: the
+    `legend` clause here matched only "missing legend", where the other side had
+    been fixed to accept the dictionary's "missing the legend" too. No comment in
+    the corpus uses the longer form, so nothing reported it. (The exclusion
+    tables were NOT a divergence: `GRAPH_UNREACHABLE_1C` is derived from
+    `PER_ITEM_EXCLUDE` a few lines above, precisely so they cannot disagree.)
+    BACKLOG.md had already asked for this shape --
+    "whether `gold_slots_1c` should be ... its own module both harnesses import".
 
-    Also reports which participants dropped out, so the run can say so instead
-    of quietly measuring 17 rows and calling it 20.
+    `gold_slots_1c` went with the copy. It was read by nothing except the rebuild
+    above it, and the surviving reader is `handouts.gold_labels`, which takes its
+    slots, points, gate and deduction codes from the rubric.
+
+    Kept as a named entry point because `check_gold_accounting_is_uniform`
+    verifies BY IMPORT that a module comparing predictions to gold reaches the
+    rebuild, and because callers reach it through this module.
     """
-    dropped = []
-    for pid, items in gold.items():
-        cell = items.get("1c")
-        if not cell:
-            continue
-        if pid in GRAPH_UNREACHABLE_1C:
-            items["1c"] = {"score": None, "feedback": cell.get("feedback", "")}
-            dropped.append(pid)
-            continue
-        slots = gold_slots_1c(cell.get("feedback"))
-        # The gate takes the whole item, exactly as score_slots computes it.
-        score = 0.0 if not slots["has_own_graph"] else \
-            10.0 - 2.0 * sum(1 for ok in slots.values() if not ok)
-        items["1c"] = {"score": score, "feedback": cell.get("feedback", "")}
-    return gold, sorted(dropped)
+    item = {i["id"]: i for i in _handouts.config(3)["rubric"].ITEMS}["1c"]
+    return _handouts.rebuild_gold_from_comment(gold, item)
 
 
 def tolerance(item: dict) -> float:

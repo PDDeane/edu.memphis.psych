@@ -2612,6 +2612,56 @@
   }
  },
  "declarations": {
+  "GOLD_COMMENT_PHRASES": [
+   [
+    "NO_GRAPH",
+    {
+     "__tuple__": [
+      "did not include"
+     ]
+    }
+   ],
+   [
+    "TEMPLATE_GRAPH_ONLY",
+    {
+     "__tuple__": [
+      "did not provide a graph"
+     ]
+    }
+   ],
+   [
+    "NO_TITLE",
+    {
+     "__tuple__": [
+      "missing (?:the )?graph title"
+     ]
+    }
+   ],
+   [
+    "NO_X_AXIS",
+    {
+     "__tuple__": [
+      "missing (?:the )?x-axis"
+     ]
+    }
+   ],
+   [
+    "NO_Y_AXIS",
+    {
+     "__tuple__": [
+      "missing (?:the )?y-axis"
+     ]
+    }
+   ],
+   [
+    "NO_LEGEND",
+    {
+     "__tuple__": [
+      "missing (?:the )?legend"
+     ]
+    }
+   ]
+  ],
   "ASK_EQUIVALENT_PROMPTS": [
    [
     [

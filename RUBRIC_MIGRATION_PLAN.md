@@ -3718,6 +3718,63 @@ four things separating a published rate from a naive comparison -- so the rebuil
 is load-bearing and must keep working byte-for-byte through the move. Same proof
 obligation as everything else tonight.
 
+#### F1 DONE 2026-09-23 -- one implementation, arithmetic from the rubric
+
+WHAT THE DUPLICATE ACTUALLY WAS, measured rather than taken from this entry's own
+write-up. `agreement.gold_slots_1c` and `agreement_app.gold_labels_1c` differed in
+three places, and only ONE was a divergence:
+
+  * REAL, and latent: `agreement_app` matched `missing (the )?legend`, `agreement`
+    only the short form. The rubric's dictionary text IS "missing the legend", so
+    the app's was correct and the other would mis-score any row using the
+    dictionary's wording. No comment in the corpus does, which is the only reason
+    nothing reported it.
+  * NOT a divergence, and this entry had it wrong: the two exclusion sources looked
+    independent, but `agreement.GRAPH_UNREACHABLE_1C` is DERIVED from
+    `PER_ITEM_EXCLUDE["1c"]` -- "not repeated, so the two drops cannot disagree".
+    Someone had already met this and fixed it.
+  * Cosmetic: `x_axis_label`/`y_axis_label` against `x`/`y`. The rebuild only counts
+    falses, so the names never reached the arithmetic.
+
+WHAT THE RUBRIC TURNED OUT TO HOLD, which decided the shape: `max` 10.0, an
+`increment` of 2.0, five `credit` slots each with their own `pts`, the gate marked
+`gates: true`, and every slot's deduction `codes`. So the whole arithmetic is
+rubric-derived and no longer written down anywhere. `series_box_holds` carries no
+`pts` and is correctly excluded -- a reader counting "every credit entry" would
+have invented a sixth 2-point element.
+
+WHAT THE RUBRIC COULD NOT SUPPLY, and the reason the phrases are still authored:
+the dictionary text is NOT what graders typed. The rubric says "-2 pts: missing the
+x-axis label"; every grader wrote "missing x-axis". A reader built from the
+dictionary strings verbatim would match nothing and score every row full marks in
+silence. So `GOLD_COMMENT_PHRASES` is a DECLARATION, keyed by the deduction code
+the rubric declares, accepting both wordings for all four labelling codes -- the
+legend fix generalised to its siblings, since the same shortening had happened to
+every one of them and only that one had been noticed.
+
+  handouts.gold_labels(item, feedback)              general, names no item
+  handouts.rebuild_gold_from_comment(gold, item)    general, names no item
+  declaration_source.GOLD_COMMENT_PHRASES           course data, exported
+  agreement/agreement_app.rebuild_gold_1c           two-line wrappers, kept
+      because `check_gold_accounting_is_uniform` verifies BY IMPORT that a module
+      comparing predictions to gold reaches the rebuild, and eight modules call it
+      through those names.
+
+A CODE WITH NO PHRASE IS NOW A REFUSAL, where both copies hard-coded five keys and
+would have ignored a sixth element without a word. Fire-tested.
+
+PROVED BY THE 20 ROWS: both sides reproduce the frozen pre-change baseline exactly,
+scores and dropped-list. Audit 44 with the finding set IDENTICAL to the pre-D
+baseline. `COURSE_DATA_BUDGET` fell 132 -> 130, so this REMOVED item-specific
+content rather than relocating it -- the first attempt put the phrase table and the
+"1c" lookup in `handouts.py` and the ratchet caught it growing 1 -> 2, which is how
+the current shape was arrived at.
+
+F2, STILL OPEN: the fact that 1c's gold must be rebuilt at all is declared nowhere.
+The two wrappers still name the item. Declaring it on `<Item>` in the rubric is what
+would retire the last of it, and needs `Item.ts` before the `.olx` -- the ordering
+`family=` taught earlier this session.
+
 ### H · Regularize WHERE THINGS LIVE, one home per category
 
 Filed 2026-09-23 on the user's instruction. The ten categories of

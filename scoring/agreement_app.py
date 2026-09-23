@@ -676,75 +676,22 @@ def anchored_split(raw: str, spans: list[tuple[str, str]]) -> dict[str, str]:
     return out
 
 
-def gold_labels_1c(feedback: str) -> dict[str, bool]:
-    """The grader's verdict on all five of 1c's slots, from their comment.
-
-    Includes the graph gate, and no longer returns None for a row that zeroed on
-    it. The previous version dropped all five zero rows on the grounds that they
-    "state no labelling verdicts" — but its own reasoning said the web can reach
-    zero "where the data is absent", and p15 and p18 are exactly that: their 1b
-    data is incomplete, the `has_own_graph` gate fires on it, and both systems
-    score them 0.00 against a gold of 0.00. Excluding them threw away two cells
-    the comparison can use, and left 1c measured over 15 cells on this side
-    against 17 on the CLI's.
-
-    The three rows that genuinely cannot fail here — data complete, no figure on
-    paper — are p4, p19 and p20, and they are dropped upstream by
-    PER_ITEM_EXCLUDE["1c"], which never puts them in the work list at all. This
-    function no longer needs to know about them.
-
-    Mirrors gold_slots_1c in agreement.py. The two must agree: a row scored on
-    one side and dropped on the other is not a comparison.
-    """
-    f = (feedback or "").lower()
-    no_graph = "did not include" in f or "did not provide a graph" in f
-    return {
-        "has_own_graph": not no_graph,
-        "title": not no_graph and "missing graph title" not in f,
-        "x": not no_graph and "missing x-axis" not in f,
-        # The dictionary text is "missing the legend"; the graders wrote
-        # "missing legend". Match either.
-        "y": not no_graph and "missing y-axis" not in f,
-        "legend": not no_graph and re.search(r"missing (the )?legend", f) is None,
-    }
-
-
 def rebuild_gold_1c(gold: dict) -> tuple[dict, list[int]]:
-    """Restate gold's 1c from its labelling verdicts, on the same 10 points.
+    """1c's gold, restated from the grader's itemised deductions.
 
-    The paper item is 10: having a graph, a title, two axis labels and a legend,
-    2 each. The web sheet now carries all five, so the totals agree and this no
-    longer rescales anything — a row that states labelling verdicts is scored
-    10 minus 2 per element the grader faulted.
+    DELEGATES to `handouts.rebuild_gold_1c`. See the note on the same name in
+    `agreement.py` for what the two copies had diverged on.
 
-    It still exists because p11's gold carries an improvised "-1 pt: missing
-    baseline data week" that no slot on either side scores; rebuilding from the
-    verdicts drops it cleanly, where subtracting from the raw score would not.
-    (p11's row does not self-reconcile anyway: it itemises -2/-2/-1 against a
-    score of 7.0.) It no longer drops anything — a gate failure is a score of
-    zero, not an absent gold — and the rows that cannot fail on the web are held
-    out upstream by PER_ITEM_EXCLUDE["1c"].
+    THIS SIDE'S READER IS THE ONE THAT SURVIVED, in substance: it matched
+    "missing (the )?legend" where the other matched only the short form. That was
+    the single real divergence between the two copies -- their exclusion sources
+    only LOOKED independent, since `agreement.GRAPH_UNREACHABLE_1C` is derived
+    from `PER_ITEM_EXCLUDE`. `handouts.gold_labels` generalises the legend fix to
+    all four labelling codes, because the same shortening had happened to every
+    one of them and only this one had been noticed.
     """
-    # Nulled as well as held out of the work list, matching agreement.py: the
-    # work-list drop stops the call, and nulling the gold stops the row counting
-    # if that drop is bypassed — which `--exclude` with explicit values does.
-    # Read off PER_ITEM_EXCLUDE so the two drops cannot disagree.
-    unreachable = set(PER_ITEM_EXCLUDE.get("1c", {}))
-    dropped: list[int] = []
-    for pid, items in gold.items():
-        cell = items.get("1c")
-        if not cell:
-            continue
-        if pid in unreachable:
-            items["1c"] = {"score": None, "feedback": cell.get("feedback", "")}
-            dropped.append(pid)
-            continue
-        labels = gold_labels_1c(cell.get("feedback"))
-        # The gate takes the whole item, exactly as scoreSlotSheet computes it.
-        score = 0.0 if not labels["has_own_graph"] else \
-            10.0 - 2.0 * sum(1 for ok in labels.values() if not ok)
-        items["1c"] = {"score": score, "feedback": cell.get("feedback", "")}
-    return gold, sorted(dropped)
+    item = {i["id"]: i for i in _handouts.config(3)["rubric"].ITEMS}["1c"]
+    return _handouts.rebuild_gold_from_comment(gold, item)
 
 
 def sections_for(handout: int, pid: int) -> dict[str, str]:

@@ -141,7 +141,19 @@ reading the 0 as proof.
 
 ## Generalise the per-slot gold summary to every item
 
-`agreement.gold_slots_1c(feedback)` reads the grader's verdict on all five of
+DONE IN PART, 2026-09-23. The duplicate is gone: `agreement.gold_slots_1c` and
+`agreement_app.gold_labels_1c` were two copies of one reader under a comment
+saying "the two must agree" with nothing enforcing it, and they HAD diverged --
+one matched "missing (the )?legend", the other only the short form, invisible
+because no comment in the corpus uses the longer wording. Both now delegate to
+`handouts.rebuild_gold_from_comment`, which takes its slots, points, gate and
+deduction codes FROM THE RUBRIC and names no item; the phrases graders actually
+write moved to `declaration_source.GOLD_COMMENT_PHRASES`, keyed by deduction
+code, so a code the rubric declares with no phrase REFUSES instead of reading as
+"this element never fails". What remains of this entry is the question below --
+whether the reading generalises to items other than 1c.
+
+`agreement.gold_slots_1c(feedback)` read the grader's verdict on all five of
 1c's slots out of their comment, on the principle that these graders itemise what
 they took off, so a criterion they never mention passed. It exists for 1c only.
 `gold_slots_q6.py` did the same for Q6 until it was DELETED on 2026-09-23 --
