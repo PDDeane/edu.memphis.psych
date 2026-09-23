@@ -36,7 +36,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-BUILDERS = ("generator_source", "declaration_source")
+# THE AUTHORED-TABLE MODULES, and the list of record for them: `rubric_export`
+# imports this rather than keeping a second copy, so a builder added here is
+# found by the exporter and by this check at once. It was two names until
+# 2026-09-23, when each of those modules was split along the category seam --
+# and the split is exactly what proved a hard-coded pair to be a liability:
+# moving eight tables into new modules made this check report all of them as
+# having "NO builder", because it was looking in the wrong two files.
+BUILDERS = ("generator_source", "declaration_source",
+            "course_metadata_source", "submission_markers_source")
 READER_CALLS = {"_declaration", "_generator_table", "_generator_value",
                 "_markers", "_context_refs"}
 # `_gold_declaration` IS DELIBERATELY NOT IN THAT SET. This module proves a

@@ -686,15 +686,95 @@ def accept(module: str, name: str) -> str:
     return f"accepted removal of {module}:{name}"
 
 
+# Modules deliberately OUTSIDE the inventory, each with the reason. Empty, and
+# that is the intended state: the default is tracked, and an exemption has to
+# argue for itself the way every other exemption in this package does. It exists
+# so that "not tracked" is always a decision on the record rather than the
+# absence of one -- which is what it was for 33 modules until 2026-09-23.
+UNTRACKED_BY_DESIGN: dict[str, str] = {}
+
+
+def untracked() -> list[str]:
+    """Modules on disk that the inventory does not record, and has not excused.
+
+    The COMPLEMENT of `vanished()`, and the reason that one could read clean
+    while a third of the package was unwatched: `vanished()` iterates the
+    INVENTORY's keys, so a module absent from it cannot report a loss -- it is
+    silent, which is indistinguishable from intact. Reported by
+    `enforcement.check_every_module_is_tracked`.
+    """
+    inv = _inventory()
+    if not inv:
+        return ["DEFINITIONS.json is missing or unreadable -- run "
+                "`python3 editguard.py --seed` to write the inventory of record"]
+    out = []
+    for path in modules():
+        if path.name in inv or path.name in UNTRACKED_BY_DESIGN:
+            continue
+        try:
+            n = len(definitions(path.read_text()))
+        except ValueError:
+            n = -1
+        out.append(
+            f"{path.name} is not in the inventory"
+            + (f" and defines {n} name(s)" if n >= 0 else " and does not parse")
+            + " -- nothing would report a definition lost from it. Add it with "
+              "`python3 editguard.py --track`, or excuse it in "
+              "UNTRACKED_BY_DESIGN with the reason")
+    return out
+
+
+def track_new() -> str:
+    """Add modules the inventory does not yet record. Touches no existing entry.
+
+    DELIBERATELY NOT `seed(force=True)`. That rewrites every entry from whatever
+    the tree currently says, so it would bless a definition already lost from a
+    TRACKED module as though it had never been there -- laundering the exact
+    failure the inventory exists to catch. This only ever ADDS keys, and it
+    refuses to run at all while any tracked module is already reporting a loss,
+    because adding coverage is not the moment to be carrying an unexplained one.
+    """
+    try:
+        doc = json.loads(INVENTORY.read_text())
+    except Exception as e:
+        return f"cannot read {INVENTORY.name}: {e}"
+    inv = doc.get("modules")
+    if inv is None:
+        return f"{INVENTORY.name} has no `modules` map"
+    standing = vanished()
+    if standing:
+        return ("REFUSING to add modules while the inventory already reports "
+                f"{len(standing)} loss(es). Resolve or accept them first -- "
+                f"the first is: {standing[0]}")
+    added = {}
+    for path in modules():
+        if path.name in inv or path.name in UNTRACKED_BY_DESIGN:
+            continue
+        try:
+            added[path.name] = sorted(definitions(path.read_text()))
+        except ValueError as e:
+            return f"REFUSING to add {path.name}: {e}"
+    if not added:
+        return "every module is already tracked or excused -- nothing to add"
+    inv.update(added)
+    INVENTORY.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
+    n = sum(len(v) for v in added.values())
+    return (f"tracked {len(added)} new module(s), {n} definition(s): "
+            + ", ".join(sorted(added)))
+
+
 def main(argv: list) -> int:
     if len(argv) >= 2 and argv[1] == "--seed":
         print("  " + seed(force="--force" in argv))
+        return 0
+    if len(argv) >= 2 and argv[1] == "--track":
+        print("  " + track_new())
         return 0
     if len(argv) == 4 and argv[1] == "--accept":
         msg = accept(argv[2], argv[3])
         print("  " + msg)
         return 1 if msg.startswith(("REFUS", "cannot")) else 0
-    bad = vanished()
+    bad = vanished() + untracked()
     for b in bad:
         print(f"  {b}")
     print(f"  {len(bad)} finding(s)")

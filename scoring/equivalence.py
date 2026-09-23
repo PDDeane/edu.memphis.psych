@@ -1055,6 +1055,8 @@ def enforcement_audit():
         findings.append(("-", "CEILING RECORDED ONLY IN PROSE", bad))
     for bad in ENF.check_no_definition_vanished():
         findings.append(("-", "DEFINITION VANISHED FROM THE PACKAGE", bad))
+    for bad in ENF.check_every_module_is_tracked():
+        findings.append(("-", "MODULE IS NOT IN THE INVENTORY", bad))
     for bad in ENF.check_no_module_shadow_in_scratchpad():
         findings.append(("-", "A SCRATCHPAD COPY SHADOWS A PACKAGE MODULE", bad))
     for bad in ENF.check_no_module_defines_names_after_its_main_guard():
@@ -1164,6 +1166,10 @@ def enforcement_audit():
         findings.append(("-", "TWO FIXES FOR ONE BOX", bad))
     for bad in ENF.check_unreachable_gold_is_allowed():
         findings.append(("-", "UNREACHABLE GOLD PENALISED", bad))
+    for bad in ENF.check_gold_scores_are_attainable():
+        findings.append(("-", "GOLD SCORE IS OFF THE GRID", bad))
+    for bad in ENF.check_gold_corrections_land_on_attainable_scores():
+        findings.append(("-", "CORRECTION LANDS OFF THE GRID", bad))
     # GOAL C / §10.7 -- the migration's own gates (T4.1).
     for bad in ENF.check_gold_shared_prose_has_not_drifted():
         findings.append(("-", "MIGRATED MODULE HOLDS COURSE DATA", bad))

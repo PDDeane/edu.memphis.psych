@@ -4,7 +4,6 @@
   "baseline_h1.py",
   "gold.py",
   "gold_export.py",
-  "gold_slots_q6.py",
   "handouts.py",
   "q6_consensus.py",
   "rubric_h2_source.py",
@@ -12,8 +11,8 @@
   "simulate_h3.py"
  ],
  "data_modules": {
-  "declaration_source.py": 15,
-  "generator_source.py": 16,
+  "declaration_source.py": 14,
+  "generator_source.py": 10,
   "rubric_h2_source.py": 21
  },
  "modules": {
@@ -31,22 +30,22 @@
   "corpus_ref.py": 0,
   "corpus_resolve.py": 0,
   "course_inventory.py": 0,
+  "course_metadata_source.py": 4,
   "course_schema.py": 0,
   "coursedata.py": 0,
   "cross_path.py": 0,
-  "declaration_source.py": 15,
+  "declaration_source.py": 14,
   "docx_text.py": 1,
   "editguard.py": 0,
   "enforcement.py": 10,
   "equivalence.py": 7,
   "faithful_probe.py": 0,
   "fixture_edits.py": 0,
-  "generator_source.py": 16,
+  "generator_source.py": 10,
   "goals.py": 1,
   "goals_restructure.py": 0,
   "gold.py": 3,
   "gold_export.py": 0,
-  "gold_slots_q6.py": 3,
   "grader_inputs.py": 0,
   "guide.py": 0,
   "handouts.py": 1,
@@ -87,6 +86,7 @@
   "stale_check.py": 0,
   "stamp_legacy_artifacts.py": 0,
   "structure_kids.py": 0,
+  "submission_markers_source.py": 3,
   "sweep_gate.py": 0,
   "sweep_readout.py": 0
  }

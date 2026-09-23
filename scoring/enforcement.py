@@ -9271,6 +9271,37 @@ def check_no_definition_vanished() -> list[str]:
     return editguard.vanished()
 
 
+def check_every_module_is_tracked() -> list[str]:
+    """A module the inventory does not record, and has not excused.
+    Reported as MODULE IS NOT IN THE INVENTORY.
+
+    THE COMPLEMENT OF `check_no_definition_vanished`, and the reason that one
+    could read clean while a third of this package was unwatched. `vanished()`
+    iterates the INVENTORY's keys: a module absent from it cannot report a loss.
+    It is silent, and silence is indistinguishable from intact -- the same
+    "unwired check reads as coverage" failure that retired `gold_slots_q6.py`,
+    reached by a different route.
+
+    MEASURED WHEN THIS WAS WRITTEN, 2026-09-23: 40 modules of 73 were tracked,
+    leaving 33 modules and 400 definitions watched by nothing -- among them
+    `coursedata.py`, `rubric_export.py` and `rubric_component.py`. Nothing is
+    known to have been lost from them, and that is exactly the point: nobody
+    could have said so either way.
+
+    Found because splitting `declaration_source` and `generator_source` created
+    two modules and NEITHER entered the inventory. New modules never did. This
+    check is what stops the gap reopening on the next new file, which is why it
+    ships with the seeding rather than after it -- a one-off cleanup with nothing
+    holding it is a gap with a date on it.
+
+    An exemption is legitimate but must be declared, with its reason, in
+    `editguard.UNTRACKED_BY_DESIGN`. That table is empty today, deliberately.
+    """
+    import editguard
+
+    return editguard.untracked()
+
+
 VERDICT_HEDGES = {"unclear"}
 """Verdicts offered so a grader can decline, which carry no charge either side.
 
@@ -13840,6 +13871,98 @@ def check_unreachable_gold_is_allowed() -> list[str]:
     return problems
 
 
+def check_gold_corrections_land_on_attainable_scores() -> list[str]:
+    """Every CORRECTED_GOLD entry sets a score the item can actually produce.
+
+    An item's score is its max minus a subset of its component costs, so only
+    certain values exist. `check_unreachable_gold_is_allowed` covers the OTHER
+    side of that fact -- a harness must FORGIVE a gold the item cannot produce --
+    and nothing covered this one. A correction is the one place we choose a gold
+    number ourselves, and choosing an unreachable one writes a score no scorer
+    can ever match while reading as a fix.
+
+    Three of the entries exist BECAUSE gold was off-grid: 1c/p11 at 7.00,
+    Q4a/p17 at 4.00, and Q6/p4 at 6.00 on an item that moves in steps of 1.25.
+    Landing the correction back on the grid is the point of those three, so the
+    rule they are held to is the rule they were written to satisfy.
+
+    The costs come from the RUBRIC, so this names no item and fires on every
+    entry written later. That is the whole reason it replaces a Q6-shaped check:
+    an item-specific one never fires for content written after it.
+    """
+    import handouts as H
+
+    items = {}
+    for h in (1, 2, 3):
+        for it in H.config(h)["rubric"].ITEMS:
+            items[it["id"]] = (h, it)
+
+    out = []
+    for (item_id, pid), fix in sorted(H.CORRECTED_GOLD.items()):
+        pair = items.get(item_id)
+        if pair is None:
+            continue          # a stale key is check_corrected_gold_still_corrects'
+        h, item = pair
+        score = float(fix["score"])
+        if not H.nearest_attainable(item, score):
+            continue          # empty means the score IS attainable
+        out.append(
+            f"H{h} {item_id}/p{pid}: the correction sets gold to {score:g}, which "
+            f"the item cannot produce -- its reachable values near there are "
+            f"{', '.join(f'{v:g}' for v in sorted(H.nearest_attainable(item, score)))}. "
+            f"A correction that lands off the grid replaces one unmatchable gold "
+            f"with another")
+    return out
+
+
+def check_gold_scores_are_attainable() -> list[str]:
+    """After corrections, every gold cell lands on a score its item can produce.
+
+    The REPORTING half of `check_unreachable_gold_is_allowed`. That check makes
+    the three harnesses forgive an off-grid gold so their rates stay comparable;
+    forgiveness with nothing reporting it means the next one is absorbed in
+    silence and never looked at -- which is the same failure as a check nobody
+    calls, arriving by a different route. The allowance was built for one known
+    cell; it does not know how to say when it has acquired a second.
+
+    Measured when this was written: 519 gold cells carry a score and 0 are
+    off-grid, because the three that were are the three corrections above. So
+    this is a ratchet at zero, not a backlog -- it fires on new content only.
+
+    Reads the rubric's costs and gold's numbers, and nothing else.
+    """
+    import handouts as H
+
+    out = []
+    for h in (1, 2, 3):
+        cfg = H.config(h)
+        items = {it["id"]: it for it in cfg["rubric"].ITEMS}
+        rows = cfg["gold"]()          # corrections applied by handouts._gold_loader
+        for pid in sorted(rows):
+            for item_id, cell in sorted(rows[pid].items()):
+                item = items.get(item_id)
+                if item is None or not isinstance(cell, dict):
+                    continue
+                raw = cell.get("score")
+                if raw is None:
+                    continue
+                try:
+                    score = float(raw)
+                except (TypeError, ValueError):
+                    continue
+                near = H.nearest_attainable(item, score)
+                if not near:
+                    continue
+                out.append(
+                    f"H{h} {item_id}/p{pid}: gold is {score:g}, which the item "
+                    f"cannot produce -- nearest reachable "
+                    f"{', '.join(f'{v:g}' for v in sorted(near))}. Either the "
+                    f"sheet's arithmetic is off-grid and belongs in "
+                    f"CORRECTED_GOLD, or the item's costs are wrong; leaving it "
+                    f"relies on scores_as_exact() to absorb it silently")
+    return out
+
+
 def check_empty_fields_are_absent() -> list[str]:
     """An empty input field must be `absent`, with nothing quoted against it.
 
@@ -14395,7 +14518,7 @@ def probe_declaration_tables() -> list[str]:
 # because §10.7's four categories do not all belong to the same question:
 # categories 1-3 are about a module's CONTENTS and are gated per module here;
 # category 4 is about the repository's FILE LIST and is its own check, since
-# renaming `gold_slots_q6.py` changes the file's identity and no edit to its
+# renaming `q6_consensus.py` changes the file's identity and no edit to its
 # contents could ever satisfy a rule about its name.
 #
 # THE SCAN IS RUN, NOT READ. An earlier draft had this read T1.1's JSON. A gate
@@ -14777,7 +14900,7 @@ def check_no_module_is_named_for_a_course_artifact() -> list[str]:
     a handout or a course.
 
     ITS OWN CHECK, NOT A CATEGORY FOLDED INTO THE ONE ABOVE. This rule is about
-    the repository's file list, not about any module's contents: `gold_slots_q6.py`
+    the repository's file list, not about any module's contents: `q6_consensus.py`
     cannot satisfy it by editing itself, only by being renamed. Folded in, it
     would make a per-module gate fail for a reason that module's own contents can
     never fix.

@@ -197,6 +197,52 @@ NON_ITEM_KEYS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# WHERE THE AUTHORED TABLES LIVE. Four modules since 2026-09-23, split by the
+# categories in `MATERIAL_CLASSIFICATION.md`: `course_metadata_source` (II, the
+# tables headed for the OLX and course.json), `submission_markers_source` (IX,
+# how a paper submission is taken apart), and `declaration_source` /
+# `generator_source`, which kept their names and their category-III contents.
+#
+# RESOLVED BY NAME, not by naming a module at each site, because this exporter
+# groups tables by SHAPE -- item-keyed vs course-level -- and that grouping cuts
+# ACROSS the categories. `GENERATOR_TABLES` alone spans both: RESPONSE, CONTEXT
+# and SHEET_ONLY are metadata while EVIDENCE, OMIT_GUIDANCE, MATCH_DEF and the
+# two ITEM_NOTES are cross-scorer devices. A name-list entry therefore cannot say
+# which module holds it, and hard-coding one per site would have to be revisited
+# every time a table changes category -- which is the whole point of the split.
+#
+# TWO CLAIMANTS IS A REFUSAL. A split's characteristic failure is a table copied
+# rather than moved: both modules define it, the export silently takes whichever
+# module is listed first, and the two drift. That cannot pass here.
+# ONE LIST, TWO CONSUMERS. `migrated_tables.BUILDERS` already had to know which
+# modules hold authored tables, for the check that every migrated table still
+# equals its source. A second copy here would be a list that can disagree with
+# the one the audit uses -- and the audit would then pass while this exporter
+# read a module it never verified.
+def _source_modules() -> tuple[str, ...]:
+    import migrated_tables
+
+    return tuple(migrated_tables.BUILDERS)
+
+
+def _authored(name: str, default=None):
+    """The authored table `name`, from whichever source module defines it."""
+    import importlib
+
+    found = []
+    for mod in _source_modules():
+        value = getattr(importlib.import_module(mod), name, None)
+        if value is not None:
+            found.append((mod, value))
+    if len(found) > 1:
+        raise SystemExit(
+            f"rubric_export: `{name}` is defined in {[m for m, _ in found]} -- two "
+            f"source modules claim it, so which one the export carries would "
+            f"depend on the order they are listed in. Move it, do not copy it.")
+    return found[0][1] if found else default
+
+
 def non_item_residue(item_ids: set[str]) -> tuple[dict, list[str]]:
     """-> (residue to carry at course level, refusals).
 
@@ -204,11 +250,9 @@ def non_item_residue(item_ids: set[str]) -> tuple[dict, list[str]]:
     carried; undeclared ones REFUSE, because a table silently losing its
     non-item rows is indistinguishable from a table that never had them.
     """
-    import generator_source
-
     residue, bad = {}, []
     for table in sorted(GENERATOR_TABLES):
-        data = getattr(generator_source, table, None) or {}
+        data = _authored(table) or {}
         extra = {k: v for k, v in data.items() if k not in item_ids}
         if not extra:
             continue
@@ -238,11 +282,9 @@ def generator_fields_for(item_id: str) -> dict:
     # file, so sourcing the tables from it would make regenerating the file
     # depend on the file being regenerated. `generator_source` is the authored
     # input, kept outside the scoring path for exactly this reason.
-    import generator_source
-
     out = {}
     for table, field in sorted(GENERATOR_TABLES.items()):
-        data = getattr(generator_source, table, None) or {}
+        data = _authored(table) or {}
         if item_id in data:
             out[field] = data[item_id]
     return out
@@ -513,23 +555,19 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
                 entry.update(_jsonable(gen, f"h{h}.{it.get('id')}.generator"))
             doc["items"].append(entry)
 
-    import generator_source
-
     ids = {str(it.get("id")) for it in doc["items"]}
     residue, refusals = non_item_residue(ids)
     if refusals:
         raise SystemExit("rubric_export: " + "\n  ".join(refusals))
     doc["generator"] = {
-        name: _jsonable(getattr(generator_source, name, None), f"generator.{name}")
+        name: _jsonable(_authored(name), f"generator.{name}")
         for name in COURSE_LEVEL_GENERATOR
-        if getattr(generator_source, name, None) is not None}
+        if _authored(name) is not None}
     # The per-handout segmentation locators, ORDERED. Course-level because the
     # order is load-bearing and the lists carry non-item keys, so no item entry
     # can hold them.
     # Per-handout reference maps: component id -> context handed to the grader.
     # Course-level because they are keyed by COMPONENT, not by item.
-    import declaration_source
-
     # GOAL D: the course id comes OUT of the values. Every job's `screen` was
     # stored as `edu.memphis.psych/bmod_h1_q1` and every job carried `ns` with the
     # same course id -- twice over, in a file whose own `course` field already
@@ -552,12 +590,12 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
         return out
 
     doc["declarations"] = {
-        name: _jsonable(_pairs(_denamespace(getattr(declaration_source, name))
+        name: _jsonable(_pairs(_denamespace(_authored(name))
                                if name == "JOBS"
-                               else getattr(declaration_source, name)),
+                               else _authored(name)),
                         f"declarations.{name}")
         for name in DECLARATION_TABLES
-        if getattr(declaration_source, name, None) is not None}
+        if _authored(name) is not None}
 
     # THE AUTHORED KEY ORDER OF EACH GENERATOR TABLE. The fields themselves live
     # on the item entries, so rebuilding a table iterates items in RUBRIC order
@@ -568,20 +606,18 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
     # order can BE the data. Storing it costs three short lists and removes the
     # need to keep being right about that.
     doc["generator"]["TABLE_ORDER"] = {
-        table: [k for k in getattr(generator_source, table, {})]
+        table: [k for k in _authored(table, {})]
         for table in sorted(GENERATOR_TABLES)
-        if getattr(generator_source, table, None)}
+        if _authored(table)}
 
     doc["generator"]["CONTEXT_REFS"] = {
-        str(h): _jsonable(getattr(generator_source, f"_H{h}_CTX", None),
-                          f"generator._H{h}_CTX")
+        str(h): _jsonable(_authored(f"_H{h}_CTX"), f"generator._H{h}_CTX")
         for h in HANDOUTS
-        if getattr(generator_source, f"_H{h}_CTX", None) is not None}
+        if _authored(f"_H{h}_CTX") is not None}
     doc["generator"]["SEGMENT_MARKERS"] = {
-        str(h): _jsonable(getattr(generator_source, f"H{h}_MARKERS", None),
-                          f"generator.H{h}_MARKERS")
+        str(h): _jsonable(_authored(f"H{h}_MARKERS"), f"generator.H{h}_MARKERS")
         for h in HANDOUTS
-        if getattr(generator_source, f"H{h}_MARKERS", None) is not None}
+        if _authored(f"H{h}_MARKERS") is not None}
     for table, extra in sorted(residue.items()):
         doc["generator"][f"{table}__non_item"] = _jsonable(
             extra, f"generator.{table}__non_item")

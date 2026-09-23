@@ -132,6 +132,19 @@
    "split_n",
    "split_two"
   ],
+  "anchors.py": [
+   "ANCHOR",
+   "DECLARED_ORPHANS",
+   "HERE",
+   "PROSE_FILES",
+   "REFERENCE",
+   "_BARE_REFERENCE",
+   "_scan_text",
+   "anchors_are_renumber_safe",
+   "main",
+   "scan",
+   "verify"
+  ],
   "backends.py": [
    "AnthropicApiBackend",
    "AnthropicApiBackend.SUPPORTS_TOOLS",
@@ -184,6 +197,24 @@
    "rename_options",
    "split_slot"
   ],
+  "check_ref_grammars.py": [
+   "HERE",
+   "TS",
+   "TS_FILE",
+   "_fields",
+   "check",
+   "cross_check"
+  ],
+  "check_slot_grammars.py": [
+   "DRIVER",
+   "HERE",
+   "PROBES",
+   "SLOTSHEET",
+   "TS",
+   "main",
+   "python_side",
+   "ts_side"
+  ],
   "compare_runs.py": [
    "PROBED",
    "_LOADERS",
@@ -196,6 +227,108 @@
    "probed_cells",
    "record_probe",
    "tally"
+  ],
+  "corpus_ref.py": [
+   "HERE",
+   "OLX_REF",
+   "REF",
+   "_index",
+   "_repo_refs",
+   "check",
+   "expand",
+   "expand_prose",
+   "export_olx_data",
+   "find",
+   "main",
+   "make_ref",
+   "resolve",
+   "sha12"
+  ],
+  "corpus_resolve.py": [
+   "ENV",
+   "OLX",
+   "PROSE",
+   "apply_shape",
+   "expand",
+   "export_path",
+   "load",
+   "main",
+   "refs_in",
+   "sha12",
+   "to_olx"
+  ],
+  "course_inventory.py": [
+   "EXCLUDED",
+   "HERE",
+   "NAME_MARKERS",
+   "SCHEMA_VERSION",
+   "VOCABULARY",
+   "_ambiguous",
+   "_enclosing",
+   "_tighten",
+   "inventory",
+   "item_ids",
+   "main",
+   "scan_module",
+   "self_test"
+  ],
+  "course_metadata_source.py": [
+   "CONTEXT",
+   "CONTEXT_SOURCE",
+   "HANDOUT_FIELDS",
+   "RESPONSE",
+   "SHEET_ONLY"
+  ],
+  "course_schema.py": [
+   "ACCESSORS",
+   "EXEMPT_MODULES",
+   "HERE",
+   "RAW_ENTRY",
+   "SCHEMA_VERSION",
+   "_accessor_of",
+   "check",
+   "gold_check",
+   "groups",
+   "main",
+   "part_a",
+   "part_b",
+   "self_test"
+  ],
+  "coursedata.py": [
+   "DERIVATIONS",
+   "GENERATOR_FIELDS",
+   "HERE",
+   "RUBRIC_FIELDS",
+   "SCHEMA_VERSION",
+   "_DOC",
+   "_GOLD",
+   "_LOCK",
+   "_detag",
+   "_detag_key",
+   "_group",
+   "_load",
+   "_load_gold",
+   "_rubric_rows",
+   "course_id",
+   "course_path",
+   "data_root",
+   "declaration",
+   "derived",
+   "generator_for",
+   "generator_items",
+   "generator_value",
+   "gold",
+   "gold_declaration",
+   "gold_notes",
+   "gold_path",
+   "gradable_blocks",
+   "handout_notes",
+   "handout_participants",
+   "items",
+   "rubric_for",
+   "rubric_note_runs",
+   "rubric_notes",
+   "slot_structure_families"
   ],
   "cross_path.py": [
    "_BASIS_CACHE",
@@ -214,6 +347,24 @@
    "main",
    "result_cell",
    "slot_basis"
+  ],
+  "declaration_source.py": [
+   "APP_ONLY_SLOTS",
+   "ASK_EQUIVALENT_PROMPTS",
+   "COUNTABLE_EXEMPT",
+   "DECOMPOSITION_DIVERGENCES",
+   "DESIGNED_TEXT",
+   "HAND_AUTHORED_ATTRS",
+   "JOBS",
+   "MULTI_BLOCK_DECLARED",
+   "PAPER_ITEM_NOTES",
+   "PAPER_ITEM_NOTES_WHY",
+   "PROBE_UNREACHABLE_PAIRS",
+   "PROSE_ONLY_JUDGED_AGAINST",
+   "PROSE_ONLY_SLOTS",
+   "SELFTEST_NAMED_FIXTURES",
+   "UNCHARGED_VERDICTS",
+   "_PRIMS_2026_08_29"
   ],
   "docx_text.py": [
    "A",
@@ -491,6 +642,33 @@
    "web_prompt",
    "web_signatures"
   ],
+  "faithful_probe.py": [
+   "HERE",
+   "main"
+  ],
+  "fixture_edits.py": [
+   "HERE",
+   "SPANS",
+   "_sections",
+   "generate",
+   "main",
+   "resolve",
+   "sha12",
+   "verify"
+  ],
+  "generator_source.py": [
+   "EQUIVALENCE_DEF",
+   "EVIDENCE",
+   "ITEM_NOTES",
+   "ITEM_NOTES_WHY",
+   "MATCH_DEF",
+   "OMIT_GUIDANCE",
+   "PROBE_REACH_LIMITS",
+   "SCORING_DIVERGENCES",
+   "_H1_CTX",
+   "_H2_CTX",
+   "_H3_CTX"
+  ],
   "goals.py": [
    "CITE",
    "CLOSURES_APPROVED",
@@ -513,6 +691,22 @@
    "rank",
    "stale_slot_claims"
   ],
+  "goals_restructure.py": [
+   "ANCHOR",
+   "BOLD",
+   "ENTRY",
+   "GOALS",
+   "HERE",
+   "LINEREF",
+   "SECTION",
+   "_line_agnostic",
+   "_title",
+   "live_results",
+   "main",
+   "pairs",
+   "restructure",
+   "verify"
+  ],
   "gold.py": [
    "COLS",
    "H1_HEADER_TO_ITEM",
@@ -528,20 +722,36 @@
    "load_h2",
    "load_h3"
   ],
-  "gold_slots_q6.py": [
-   "AFAM",
-   "CFAM",
-   "CORRECTED_FAMILY",
-   "PER_BOX",
-   "SLOTS",
-   "_BOILER",
-   "_BOILER_SPLIT",
-   "_clauses",
-   "check_corrected_slots_account_for_the_totals",
-   "gold_slots_q6",
-   "gold_view",
-   "reconcile",
-   "unresolved_slots"
+  "gold_export.py": [
+   "GOLD_TABLES",
+   "HANDOUT_PARTICIPANT_FIELDS",
+   "HERE",
+   "SCHEMA_VERSION",
+   "_jsonable",
+   "_serialize",
+   "add_one",
+   "build",
+   "comments_in",
+   "default_path",
+   "interior_notes",
+   "keyrepr",
+   "main",
+   "round_trip",
+   "unmigrated"
+  ],
+  "grader_inputs.py": [
+   "GRADER_INPUTS",
+   "HERE",
+   "LLM_CHAIN",
+   "LLM_REACHABLE",
+   "RESPONSE_SOURCES",
+   "SCHEMA_VERSION",
+   "SELF_GRADING",
+   "_TAG",
+   "_load_inventory",
+   "main",
+   "mine",
+   "verify"
   ],
   "guide.py": [
    "GUIDE",
@@ -620,6 +830,19 @@
    "paper_opus",
    "paper_run",
    "shipped"
+  ],
+  "jsoncache.py": [
+   "_BYTES",
+   "_CACHE",
+   "_INSERTS",
+   "_MAX_BYTES",
+   "_ORDER",
+   "_SAMPLE_EVERY",
+   "_fingerprint",
+   "clear",
+   "load",
+   "mutated",
+   "stats"
   ],
   "leakage.py": [
    "CADENCE",
@@ -802,10 +1025,34 @@
    "shorten",
    "slot_table"
   ],
+  "migrated_tables.py": [
+   "BUILDERS",
+   "ENRICHED",
+   "HERE",
+   "READER_CALLS",
+   "_strip_enrichment",
+   "main",
+   "pairs",
+   "same_shape",
+   "verify"
+  ],
   "oc_grid.py": [
    "BASE",
    "GATE_KEYS",
    "out"
+  ],
+  "olx_corpus.py": [
+   "ARTIFACT_DIRS",
+   "DECLARED_ROOTS_WHY",
+   "OLX_SUFFIXES",
+   "SEPARATE_SURFACES",
+   "_FENCE",
+   "census",
+   "declared_roots",
+   "default_roots",
+   "missing_roots",
+   "roots_inside_the_data_store",
+   "texts"
   ],
   "olx_prompts.py": [
    "ACTION",
@@ -923,6 +1170,21 @@
    "lo_root",
    "require"
   ],
+  "peg_formats.py": [
+   "AUTHORED_AS",
+   "HERE",
+   "ORPHANED_CONTENT",
+   "SCHEMA_VERSION",
+   "UNREGISTERED",
+   "_INFO",
+   "_META",
+   "_SRC",
+   "course_files",
+   "main",
+   "referenced_files",
+   "registry",
+   "verify"
+  ],
   "precommit_gate.py": [
    "HERE",
    "LOG",
@@ -948,6 +1210,47 @@
    "receipts",
    "write_receipt"
   ],
+  "property_ratchet.py": [
+   "BLIND_SPOTS",
+   "BUDGET",
+   "EXEMPT",
+   "HERE",
+   "SCHEMA_VERSION",
+   "_names_in",
+   "main",
+   "premise_holds",
+   "properties",
+   "scan",
+   "self_test",
+   "tighten",
+   "verify"
+  ],
+  "prose_split.py": [
+   "DATE",
+   "FILES",
+   "HERE",
+   "NUMBER",
+   "SENTENCE",
+   "main",
+   "suggest",
+   "worksheet"
+  ],
+  "prose_vocabulary.py": [
+   "BEHAVIOUR_ANY",
+   "BEHAVIOUR_OK",
+   "COURSE_MARKER",
+   "EXTRA_TERMS",
+   "GENERAL_MARKER",
+   "HERE",
+   "SPLIT_FILES",
+   "changelog_path",
+   "check",
+   "course_terms",
+   "docstrings_outside_courses",
+   "main",
+   "offences",
+   "split_state"
+  ],
   "q6_consensus.py": [
    "OUT",
    "RUNS",
@@ -961,6 +1264,85 @@
    "report",
    "show",
    "tokens"
+  ],
+  "reader_equivalence.py": [
+   "DEAD",
+   "EXPORT_ADDED",
+   "HANDOUTS",
+   "HERE",
+   "JUSTIFIED",
+   "_canon",
+   "_diff",
+   "_justification",
+   "_module_names",
+   "_modules_present",
+   "_mutations",
+   "_strip_added",
+   "main",
+   "not_yet_migrated",
+   "self_test",
+   "verify"
+  ],
+  "rubric_component.py": [
+   "_COMMENT",
+   "_Declared",
+   "_TRUE",
+   "_codes",
+   "_conds",
+   "_el_attrs",
+   "_list",
+   "_num",
+   "_pairs",
+   "_text",
+   "as_view_frame",
+   "as_view_items",
+   "as_view_notes",
+   "as_view_slot_spec",
+   "authored_path",
+   "expanded_path",
+   "load",
+   "slot_keys",
+   "staged_path"
+  ],
+  "rubric_equivalence.py": [
+   "DERIVED_BY_DESIGN",
+   "GENERATOR_BUILDER",
+   "GENERATOR_FIELD_OF",
+   "GENERATOR_PREFIX",
+   "HANDOUTS",
+   "HERE",
+   "_canonical",
+   "_detag",
+   "_diff",
+   "_modules_present",
+   "compare",
+   "main"
+  ],
+  "rubric_export.py": [
+   "COURSE_LEVEL_GENERATOR",
+   "DECLARATION_TABLES",
+   "GENERATOR_TABLES",
+   "HANDOUTS",
+   "HERE",
+   "NON_ITEM_KEYS",
+   "SCHEMA_VERSION",
+   "_CARRIED_FORWARD",
+   "_authored",
+   "_comment_runs",
+   "_comments_in",
+   "_exports",
+   "_jsonable",
+   "_key",
+   "_load",
+   "_pairs",
+   "_prior_doc",
+   "_source_modules",
+   "build",
+   "classify",
+   "generator_fields_for",
+   "main",
+   "non_item_residue",
+   "rubric_notes"
   ],
   "rubric_h2_source.py": [
    "AVOIDANCE_SCORES",
@@ -987,6 +1369,22 @@
    "_example_item",
    "_example_use_item",
    "_type_item"
+  ],
+  "rubric_olx.py": [
+   "FRONTMATTER",
+   "_attr",
+   "_attrs",
+   "_cadence_cond",
+   "_conditions_for",
+   "_params_for",
+   "_seq",
+   "_slots_for",
+   "_takes_frame",
+   "_text",
+   "criteria_frame",
+   "frame_text",
+   "render",
+   "render_item"
   ],
   "score.py": [
    "DERIVED_KINDS_IMPLEMENTED",
@@ -1073,6 +1471,26 @@
    "main",
    "self_graded_cells"
   ],
+  "shape_inventory.py": [
+   "CATEGORY_ROLE",
+   "HERE",
+   "ITEM_PARTS",
+   "ROLE_OVERRIDES",
+   "ROLE_RULES",
+   "SCHEMA_VERSION",
+   "_ATTR",
+   "_BASE",
+   "_NAME",
+   "_read",
+   "_registry_path",
+   "course_coverage",
+   "describe",
+   "inventory",
+   "load_registry",
+   "main",
+   "self_test",
+   "staleness"
+  ],
   "simulate_h3.py": [
    "DAYS",
    "MEDIA_DIR",
@@ -1098,12 +1516,45 @@
    "SHARED_EXTRAS",
    "WEB_EXTRAS"
   ],
+  "sourcecache.py": [
+   "_CACHE",
+   "_MAX",
+   "_ORDER",
+   "clear",
+   "lines_of",
+   "segment",
+   "stats"
+  ],
   "stale_check.py": [
    "_CRITERIA_CACHE",
    "audit",
    "expected_criteria_checks",
    "main",
    "weight"
+  ],
+  "stamp_legacy_artifacts.py": [
+   "BACKEND_LINE",
+   "backend_of",
+   "main",
+   "observed_mapping"
+  ],
+  "structure_kids.py": [
+   "CONTAINERS",
+   "HERE",
+   "ITEM_ROLES",
+   "LEAF_STRUCTURE",
+   "SCHEMA_VERSION",
+   "_ID",
+   "_TAG",
+   "_role_of",
+   "main",
+   "mine",
+   "verify"
+  ],
+  "submission_markers_source.py": [
+   "H1_MARKERS",
+   "H2_MARKERS",
+   "H3_MARKERS"
   ],
   "sweep_gate.py": [
    "gate"

@@ -708,10 +708,13 @@ APP_ONLY_SLOTS: dict[tuple[str, str], str] = {
 
 
 # ---------------------------------------------------------------------------
-# STAGE 4, from `score.py` and `agreement_app.py`. Per-item notes the PAPER
-# scorer carries, and the component-id -> context map the app builds jobs
-# from. Both are course content; `CONTEXT_SOURCE` is the same shape as the
-# `_H*_CTX` maps already moved, keyed by component rather than by item.
+# STAGE 4, from `score.py`. Per-item notes the PAPER scorer carries.
+#
+# This header used to introduce `CONTEXT_SOURCE` as well -- the component-id ->
+# context map the app builds jobs from, described here as "both are course
+# content". That was the tell: it IS course content (category II) and these
+# notes are not, so on 2026-09-23 it moved to `course_metadata_source.py` and
+# this header now covers only what is left.
 # ---------------------------------------------------------------------------
 PAPER_ITEM_NOTES: dict[str, str] = {
     # JUDGE EACH ANSWER ON ITS OWN LABELLED PART. Q3's paper divergences were
@@ -838,27 +841,6 @@ ASK_EQUIVALENT_PROMPTS: dict[tuple[str, str, str, str], str] = {
         "rubricDef= added 2026-09-22; the tag moved, the question did not",
     ("WK2", "olx", "308fdab3343e", "7a7fc009456c"):
         "rubricDef= added 2026-09-22; the tag moved, the question did not",
-}
-
-
-CONTEXT_SOURCE = {
-    "bmod_h1_q1_response":      ("section", "Q1"),
-    "bmod_h1_q2_response":      ("section", "Q2"),
-    "bmod_h1_q4a_first":        ("scorer", "Q4a", "antecedent_1"),
-    "bmod_h1_q4a_second":       ("scorer", "Q4a", "antecedent_2"),
-    "bmod_h1_q4b_first":        ("scorer", "Q4b", "behavior_1"),
-    "bmod_h1_q4b_second":       ("scorer", "Q4b", "behavior_2"),
-    "bmod_h1_q4c_first":        ("scorer", "Q4c", "consequence_1"),
-    "bmod_h1_q4c_second":       ("scorer", "Q4c", "consequence_2"),
-    "bmod_h2_t1":               ("section", "T1"),
-    "bmod_h2_d1":               ("section", "D1"),
-    "bmod_h2_t2":               ("section", "T2"),
-    "bmod_h2_d2":               ("section", "D2"),
-    "bmod_h3_overview_response": ("section", "1a"),
-    "bmod_h3_success_verdict":  ("scorer", "2a", "verdict"),
-    "bmod_h3_success_how1":     ("scorer", "2a", "how_1"),
-    "bmod_h3_success_how2":     ("scorer", "2a", "how_2"),
-    "bmod_h3_assessment_response": ("section", "2b"),
 }
 
 
@@ -1159,33 +1141,6 @@ JOBS = {
                    "members": ["example_1", "example_2"]}],
     },
 }
-
-
-# ---------------------------------------------------------------------------
-# STAGE 4, from `handouts.py`. THE THREE FIELDS OF `HANDOUTS` THAT ARE
-# COURSE DATA, and only those. The table holds five different kinds of
-# thing and only this kind belongs in the course file:
-#
-#   course data   blurb, capture_tail, exemplar_items,
-#                 repair_orphans, join_aware                <- here
-#   resolved path template, submissions, outdir            <- stay computed
-#                 from paths.py; storing a resolved path bakes in one
-#                 machine, which is what check_filesystem_locations_
-#                 come_from_paths_py exists to stop
-#   duplicate     markers, already in the course file as SEGMENT_MARKERS
-#                 and verified identical -- derived, never stored twice
-#   wiring        gold (a function), rubric (a module) -- not data at all
-#   participants  cited_participants, exemplar_participants,
-#                 suspect_participants                      -> the gold
-#                 file under C1b
-#
-# THE THREE HANDOUTS DO NOT SHARE A SCHEMA, which is why each was read
-# rather than one being taken as the pattern: h2 alone has
-# `repair_orphans` and `suspect_participants`, h3 alone has `join_aware`,
-# h1 alone has `exemplar_items`. Assuming uniformity would have left two
-# course-data flags behind and carried neither.
-# ---------------------------------------------------------------------------
-HANDOUT_FIELDS = {'1': {'blurb': 'Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.', 'capture_tail': False, 'exemplar_items': []}, '2': {'blurb': "Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.", 'capture_tail': True, 'repair_orphans': True}, '3': {'blurb': 'Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.', 'capture_tail': True, 'join_aware': True}}
 
 
 # Repeated families that are countable in shape but must NOT be converted, with

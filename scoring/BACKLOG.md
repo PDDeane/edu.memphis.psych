@@ -144,8 +144,15 @@ reading the 0 as proof.
 `agreement.gold_slots_1c(feedback)` reads the grader's verdict on all five of
 1c's slots out of their comment, on the principle that these graders itemise what
 they took off, so a criterion they never mention passed. It exists for 1c only.
-`gold_slots_q6.py` now does the same for Q6. **Both are per-item, and the pattern
-should be one function that works for any item.**
+`gold_slots_q6.py` did the same for Q6 until it was DELETED on 2026-09-23 --
+unwired since the day it was written, and item-specific, which is course content
+in analytic machinery. **The pattern should be one function that works for any
+item**, and everything below is what that function has to handle: it is the
+measured residue of building the Q6 one, and it is the reason the deletion costs
+no knowledge. What replaced the module's own check is two GENERAL checks reading
+slot costs from the rubric -- `check_gold_corrections_land_on_attainable_scores`
+and `check_gold_scores_are_attainable` -- which fire on every item and on content
+written later, where the Q6 check never could.
 
 Why it is worth doing: gold ships `score` plus deduction prose and nothing else,
 so without this there is no way to ask WHICH slot a disagreement is on — only
