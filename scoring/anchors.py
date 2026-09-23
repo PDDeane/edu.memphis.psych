@@ -44,7 +44,14 @@ if HERE not in sys.path:
 # different module whose heading sensitivity T7.1 had to discover -- so this is
 # one rule over four documents rather than an extension of `guide.py`, which is
 # shaped around exactly one.
-PROSE_FILES = ("GOALS.md", "QUALITY_CONTROL.md", "BACKLOG.md", "EQUIVALENCE.md")
+# README.md JOINED THIS LIST WHEN IT WAS SPLIT. Its absence was invisible while it
+# had no anchors; the moment it had three, the scan read its course half for
+# REFERENCES (every split document's course half is scanned for those) while never
+# reading its generic half for the anchors those references name -- so all three
+# came out as pointers to nothing. A file that can be split is a file that can
+# define anchors.
+PROSE_FILES = ("GOALS.md", "QUALITY_CONTROL.md", "BACKLOG.md", "EQUIVALENCE.md",
+               "README.md")
 
 ANCHOR = re.compile(r"<!--\s*qc:([A-Za-z0-9_.-]+)\s*-->")
 # REJECTED, and kept as the record of why. Matching a bare `qc:NAME` made every
