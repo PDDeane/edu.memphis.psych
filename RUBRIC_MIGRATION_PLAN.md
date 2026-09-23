@@ -106,13 +106,25 @@ DATE, and the diff was every `{{corpus:...}}` replaced by the span it protects -
 which would have undone the scrub in a public repository, silently. So the reader
 takes the AUTHORED file.
 
-**Which leaves a build artifact owed.** What the reader actually wants is
-EXPANDED BUT UNRESOLVED -- neither the authored file nor `.stage/content`, and it
-does not exist. The authored file serves today only because nothing uses
-`<ItemTemplate>` yet, so an `<ItemTemplate>` landing before that artifact does is
-a silent wrong answer. `check_the_staged_rubric_is_current` watches for it. This
-is the one piece of build work hand-authoring still owes, and it is named again
-in §0b.
+**The third artifact now EXISTS** (2026-09-22). `npm run build:expand-rubrics`
+writes `.stage/expanded` -- templates expanded, `{{corpus:...}}` intact -- and
+`coursedata` reads it through `rubric_component.expanded_path()`. Expansion runs
+BEFORE resolution because expansion is structural and resolution textual; one
+pass would make the only artifact that can safely be read the one that cannot
+exist. It does not reformat: a file with no template is copied byte for byte, and
+in a file with one, every unchanged element is emitted from its own SOURCE SPAN,
+identified by the identity `materialiseRubric` preserves when it passes a node
+through.
+
+`check_the_expanded_rubric_is_current` watches the link, and REFUSES rather than
+answers once an `<ItemTemplate>` appears: it compares bytes, exact only while
+nothing expands, and would otherwise call every correct expansion stale. The
+refusal is what makes the upgrade unavoidable instead of merely noted.
+
+One staging rule, not two: `resolveCorpusRefs` already staged the MOUNTED
+sources, so that loop was extracted as `stageSources()` and both steps call it.
+Without it the new step saw 12 `.olx` instead of 44 and reported a clean zero --
+which is what a tree with no templates also looks like.
 
 **The consequence to accept.** Once that artifact exists, scoring depends on a
 build having run -- today `score.py` needs no npm -- and a stale build silently
@@ -208,6 +220,49 @@ reusing it would make one attribute mean two things depending on the tag it sits
 on. `renderFrame`'s `when` is an internal TS field name, not the OLX attribute.
 (`Item.md` gets this wrong in the same table that miscalls `scores` as `ref`;
 both are tracked in lo-blocks' `DOCUMENTATION_PLAN.md`.)
+
+### What 3d actually turned out to be — three corrections to the above
+
+1. **The builder would have put the fields back.** `rubric_export.build()` reads
+   handout 2 from `rubric_h2_source.py`, which is still present, so a plain
+   rebuild would have restored twelve items' worth of rubric silently and the
+   deletion would have lasted until someone rebuilt. `build()` now projects every
+   item to `id + handout + GENERATOR_FIELDS`. **This was not predicted here, and
+   without it 3d does not hold.**
+2. **`reader_equivalence` needed nothing.** `_modules_present()` looks for
+   `rubric_h{h}.py` and only `rubric_h2_source.py` exists, so it has had no
+   oracle since Stage 5: its `RUBRIC_FIELDS` use is dead, not vacuous.
+3. **`RUBRIC_FIELDS` is kept WHOLE**, against the "trim it or expect the cleanup
+   lines" above. Trimming would have shrunk `property_ratchet`'s scanning
+   vocabulary and let real growth hide inside it. What made the cleanups zero is
+   `course_schema` comparing against BOTH sides of the split.
+
+### Step 4, measured — and one correction to the fix
+
+Measured at the last moment the generator still existed (it retired in the 3d
+commit): all three `oc_criteria` segments are byte-identical to what
+`_criteria_section` returns -- base 2410, daily 1662, weekly 1665 -- and the
+prefix split is still exact. **Step 4 may treat the shipped segments as
+authoritative and need not re-render before authoring them.**
+
+The fix above says the `avoidance_scores` sentence "becomes its own segment".
+Measured, the split is **inside** the base segment rather than at its edge: 74
+characters at offset 2248 of 2410. So the base becomes THREE segments --
+`[0:2248]`, the 74 characters under `ifDeclared="!avoidance_scores"`, and
+`[2322:2410]` -- and `Segment`'s RAW text parser is what makes that legal, since
+the sentence carries its own trailing space and a trimming parser would close the
+gap on both sides. That is the reason `Segment.ts` gives for choosing
+`parsers.text.raw()`, and this is the sentence it was chosen for.
+
+### A discipline note, written from getting it wrong
+
+The first 3d certification was **VOID**: *"THE SOURCE MOVED UNDER THIS RUN --
+changed: `coursedata.py`"*. The tree had been declared frozen and was then edited
+forty minutes into a sixty-five minute run, so the baseline and the restored
+state were never comparable and the 72/72 it printed certified nothing. **A
+certifying run owns the tree until it returns.** Fingerprint before launching and
+after finishing; "one small comment" is exactly the edit that reads as innocuous
+and is not.
 
 ### Verification both steps share
 
