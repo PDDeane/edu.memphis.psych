@@ -91,6 +91,65 @@ NAME_MARKERS: dict[str, str] = {
 }
 
 
+# DOCUMENTS DECLARED TO CARRY NO COURSE CONTENT, checked by
+# `enforcement.check_generic_documents_are_generic`. Paths are relative to the
+# repository root; lo-blocks paths are resolved against `paths.LO`.
+#
+# SEEDED WITH WHAT IS ALREADY CLEAN, not left empty to be filled later: a check
+# with nothing to hold proves nothing on the day it ships, and item G's lesson is
+# that a gap with a date on it is still a gap. Item G2 adds each generic half to
+# this set as it splits one out, and the set is how "the split is finished" stops
+# being a judgement.
+GENERIC_DOCS: tuple[str, ...] = (
+    "README.md",
+    "PENDING_DECISIONS.md",
+    "STAGE5_RUNBOOK.md",
+    "ADOPTION_POSTMORTEM.md",
+    "AGENDA_FROM_CLASSIFICATION.md",
+    "VERDICT_VOCABULARY_PLAN.md",
+    "courses/edu.memphis.psych/CHANGELOG.md",
+    "migration/RUNBOOK.md",
+    "migration/products/README.md",
+    "scoring/STAGE5_LICENCE.md",
+)
+
+
+def _course_prose_signals(ids: set) -> dict:
+    """Patterns that mean COURSE CONTENT in free prose, with none of the collisions.
+
+    AN ITEM ID ALONE IS NOT ONE OF THEM, and that is the whole design. Several of
+    a course's item ids can be ordinary words in a generic document: a two-letter
+    id collides with the abbreviations an engine doc lists in a `verdicts=`
+    attribute, and a short question id reads as "question one" in any layout
+    example. Scanning lo-blocks for bare ids reported seven clean documentation
+    files as contaminated. A check that cries wolf is worse than none, because it
+    trains its readers to wave it through.
+
+    These four do not collide, measured across both trees: they fire some 6,800
+    times in this repository's own records and NOT ONCE anywhere in lo-blocks.
+    """
+    alt = "|".join(sorted((re.escape(i) for i in ids), key=len, reverse=True))
+    return {
+        # a resolvable reference to a student's own words
+        "corpus_ref": re.compile(r"\{\{corpus:|\[\[corpus "),
+        # an item id and a participant number in the same clause
+        "item_and_participant": re.compile(
+            r"\b(?:%s)\b[^.\n]{0,40}?\bp\d{1,2}\b|\bp\d{1,2}\b[^.\n]{0,40}?\b(?:%s)\b"
+            % (alt, alt)),
+        # the cell notation this project writes everywhere
+        "cell": re.compile(r"\b(?:%s)/p\d{1,2}\b" % alt),
+        # a measured rate over a known run count
+        "run_score": re.compile(r"\b\d{1,2}\s*/\s*(?:6|12|20)\b"),
+    }
+
+
+def course_prose(text: str, ids: set | None = None) -> dict:
+    """{signal: count} for the course content in a piece of prose."""
+    ids = ids if ids is not None else {i for i in item_ids() if not _ambiguous(i)}
+    return {k: len(r.findall(text)) for k, r in _course_prose_signals(ids).items()
+            if r.findall(text)}
+
+
 def item_ids(source: str | None = None) -> set[str]:
     """This course's item ids, from DATA. Never a pattern.
 

@@ -41,17 +41,30 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 STATE_ONLY = ("ITEM UNMEASURED AS CONFIGURED",)
-LOG = os.path.join(HERE, "OVERRIDES.md")
+def _log_path() -> str:
+    """Where the override log lives: `$COURSE_DATA`, never the repository."""
+    import coursedata
+
+    return coursedata.overrides_path()
 
 
 def _record(blocking: list[str], state: list[str], reason: str) -> str:
-    """Append the override to OVERRIDES.md and stage it. Returns a status line.
+    """Append the override to the log in `$COURSE_DATA`. Returns a status line.
 
-    Staging is deliberate: an override recorded in the WORKING TREE only would be
-    committed later, or never, and would drift away from the change it excuses.
-    If staging fails the commit still proceeds -- refusing here would turn a
-    bookkeeping problem into a blocked commit, which is the wrong trade -- but it
-    says so loudly, because an unrecorded override is the state this exists to end.
+    IT IS NO LONGER STAGED, AND NO LONGER CAN BE. This used to write into
+    `scoring/` and `git add` the file, so the record landed in the same commit it
+    excused. That binding was belt-and-braces: every entry already records
+    `(parent <sha>)`, which ties it to the commit far more precisely than
+    co-staging did, and survives a rebase that co-staging would not.
+
+    What the move buys is that the log stops growing the repository. Append-only
+    and machine-written, it had reached 80 versions and 2,838 MB of history -- 82%
+    of every blob ever stored here -- and a blob is permanent once committed.
+
+    A failure to record still does not block the commit, for the reason it never
+    did: refusing here turns a bookkeeping problem into a blocked commit, which is
+    the wrong trade. It says so loudly instead, because an unrecorded override is
+    the state this exists to end.
     """
     head = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
                           capture_output=True, text=True, cwd=HERE).stdout.strip()
@@ -63,9 +76,11 @@ def _record(blocking: list[str], state: list[str], reason: str) -> str:
     if state:
         entry.append(f"\n{len(state)} non-blocking measurement-state flag(s) also "
                      f"present; those are excluded by design and are not overrides.\n")
+    log = _log_path()
     try:
-        new = not os.path.exists(LOG)
-        with open(LOG, "a") as fh:
+        os.makedirs(os.path.dirname(log), exist_ok=True)
+        new = not os.path.exists(log)
+        with open(log, "a") as fh:
             if new:
                 fh.write("# Overrides of the enforcement gate\n\nEvery commit that "
                          "used `ALLOW_UNDECLARED`, with the findings it waved through "
@@ -78,10 +93,7 @@ def _record(blocking: list[str], state: list[str], reason: str) -> str:
                          "editing an entry to make it right afterwards would destroy "
                          "the only evidence that anyone was ever mistaken.\n")
             fh.writelines(entry)
-        add = subprocess.run(["git", "add", LOG], capture_output=True, text=True, cwd=HERE)
-        if add.returncode:
-            return f"WARNING: recorded in {os.path.basename(LOG)} but could not stage it"
-        return f"recorded in {os.path.basename(LOG)} and staged into this commit"
+        return f"recorded in {log} (parent {head or 'unknown'})"
     except OSError as exc:
         return f"WARNING: could NOT record this override ({exc})"
 

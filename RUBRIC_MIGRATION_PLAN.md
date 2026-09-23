@@ -4267,6 +4267,97 @@ thing a file is from where it sits, without asking.
   3. the results of certifications, sweeps, and the ledger and accounting files
      that track them
 
+WHERE RECORDS LIVE, decided 2026-09-23 and TIGHTENED. The small ledgers stay in
+`scoring/` and stay VERSIONED -- `MEASURED.json`, `PROBED.json`,
+`PROBE_RECEIPTS.json`, `DESIGNED_TEXT_SHA.json`, `LEAKAGE_REVIEWED.json`,
+`GOALS.md`, `OVERRIDES.md`. Their diffs are how a sweep's effect is reviewed and
+how `git log -p OVERRIDES.md` reads as the history of what the audit was asked to
+excuse; outside git they would lose that. BULK RUN ARTIFACTS NEVER ENTER THE
+REPOSITORY, which is already true -- `$COURSE_DATA/out` holds 826 of them, 1.66 GB,
+and not one is tracked here.
+
+AND THAT IS AN INTERIM ANSWER, not a settled one. An append-only log inside git
+grows without bound, and DELETION DOES NOT RECLAIM: every version ever committed is
+a permanent blob. Measured on this repository 2026-09-23:
+
+    tracked content in the working tree      18 MB
+    .git                                    362 MB
+    OVERRIDES.md, all versions in history    80 blobs, 2,838 MB uncompressed
+                                             -- 82% of every blob ever committed
+
+So one machine-appended log is most of the repository's entire history, and
+today's cleanup (48 MB -> 3.3 MB in the working tree) recovers NONE of it. The
+file will resume doubling in history the next time it is appended to, because
+each append rewrites the whole blob.
+
+THE FIX IS CHOSEN, and revised the same day: DECISION LOG DATA GOES TO
+`$COURSE_DATA`, with fallbacks so that a reader finding no records starts from a
+CLEAN SLATE rather than failing. That is the C1b pattern already proven here --
+gold lives outside the repository and may legitimately be absent, and the modules
+that need it refuse with a message naming the path they tried while the rubric side
+carries on. A log is a better fit for that pattern than gold is: an absent log
+means "nothing has been excused yet", which is a perfectly good starting state.
+
+IT SOLVES THE GROWTH AT THE ROOT. A log outside the repository cannot bloat git
+history at all, so the question stops being how to rotate or cap and becomes simply
+where the file lives. `OVERRIDES.md` is the clear first case, being machine-appended
+and read only through `git log -p`; whether `GOALS.md` and `MEASURED.json` follow is
+a judgement about whether their DIFFS are part of the code's contract or merely a
+record of runs, and should be decided per file rather than by the class name.
+
+THE POPULATION, DERIVED FROM HISTORY RATHER THAN FROM FILENAMES. Ranking every
+tracked file by the history it has generated, and by SIZE PER WRITE -- which is what
+makes growth unbounded, since a 600 KB source file edited 400 times is normal and a
+35 MB log appended 80 times is not:
+
+    scoring/OVERRIDES.md    2,837.7 MB   80 ver   35.47 MB/version   MOVED
+    scoring/GOALS.md          128.3 MB  414 ver    0.31 MB/version   owed
+    scoring/MEASURED.json       3.7 MB   83 ver    0.05 MB/version   stays
+    everything else below 0.5 MB/version, which is ordinary code churn
+
+OVERRIDES.md AND GOALS.md TOGETHER ARE 2,966 OF 3,452 MB -- 86% of every blob this
+repository has ever stored, against 18 MB of tracked content.
+
+`OVERRIDES.md` IS DONE: it resolves through `coursedata.overrides_path()` to
+`$COURSE_DATA/courses/<id>/OVERRIDES.md`, beside `gold.json`, and the gate no longer
+stages it -- it cannot, and never needed to, because every entry records
+`(parent <sha>)`, which ties it to its commit more precisely than co-staging did and
+survives a rebase that co-staging would not. Copied, verified byte-identical, THEN
+removed, per this item's own protocol.
+
+`GOALS.md` IS THE SAME PROBLEM AND A BIGGER JOB, not done here. Six modules read it,
+each computing the path from `__file__`'s parent -- the same self-location pattern
+that makes the tooling move above dangerous -- and one of the six is a SELF-TEST CASE
+(`equivalence.py`) that injects a fault into it. So moving it touches the
+certification machinery, which is a different class of change from OVERRIDES.md,
+which nothing parsed. It needs its own step and its own certification.
+
+`MEASURED.json` STAYS, measured rather than assumed: its content is BOUNDED. Each
+item/side carries `previous` holding exactly ONE prior state, not a chain, so the
+file does not grow with run count -- 46 KB per version across 83 versions. The
+ledger accumulating runs was the obvious suspicion and the file does not do it.
+
+AND THE RECURRENCE GUARD IS CHEAP, because there is exactly ONE append-mode write in
+the entire package -- `precommit_gate`'s, now pointed outside the repository. Every
+other record is rewritten wholesale and therefore bounded by its key space (items,
+slots, cells) rather than by time. A check that no module opens a repository path in
+append mode would keep it that way, and has one case to permit today: none.
+
+AND THE WINDOW FOR REPAIRING THE PAST IS OPEN, WHICH IT WILL NOT ALWAYS BE.
+`OVERRIDES.md` HAS NEVER BEEN PUSHED: the only ref known on the public remote is
+`origin/main`, and `scoring/OVERRIDES.md` is not in its tree -- the branch carrying
+it has no remote-tracking ref at all. (Read from local refs, so it reflects the last
+fetch: strong evidence, not proof.) So the 80 blobs and 2,838 MB are private, and a
+history rewrite would reclaim them cheaply and harm no one.
+
+THAT STOPS BEING TRUE ON THE FIRST PUSH OF THIS BRANCH. After it, the blobs are in
+a public repository that others may have cloned, and reclaiming them means asking
+everyone to re-clone -- the reason this project treats its earlier history rewrite
+as a scar rather than a tool. SO THE ORDER MATTERS: move the log out, then rewrite
+the history that carried it, THEN push. Doing it in any other order either leaves
+2,838 MB in a public repository forever or rewrites a history that is about to grow
+again.
+
 THE SUPPORTING SCRIPTS GET THEIR OWN SUBDIRECTORY, inside `scoring/` -- the user's
 instruction 2026-09-23. They stay (they support audits and certification, which is
 category 1 of the three `scoring/` may hold), but they stop being shelved among the

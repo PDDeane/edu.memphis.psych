@@ -9271,6 +9271,67 @@ def check_no_definition_vanished() -> list[str]:
     return editguard.vanished()
 
 
+def check_generic_documents_are_generic() -> list[str]:
+    """A document declared to carry no course content carries some.
+    Reported as COURSE CONTENT IN A GENERIC DOCUMENT.
+
+    THE PROSE HALF OF `check_module_has_no_course_data`, and it did not exist:
+    `course_inventory` parses with `ast` and therefore sees only `.py`, so 25
+    markdown files had never been examined at all. Item G2 splits the procedure
+    documents from the course written through them; this is what says when a
+    split is FINISHED, rather than leaving it to someone's reading.
+
+    IT NEVER KEYS ON A BARE ITEM ID. Several of a course's ids can be ordinary
+    words in a generic document -- a two-letter id collides with the abbreviations
+    an engine doc lists in a `verdicts=` attribute, and a short question id reads
+    as "question one" in a layout example -- and an id scan reported seven clean
+    lo-blocks files as contaminated.
+    The four signals it does use (a corpus reference, an item beside a participant
+    number, the `ITEM/pNN` cell notation, a rate over a known run count) fire
+    thousands of times in this repository's records and NOT ONCE in lo-blocks.
+
+    LO-BLOCKS IS IN SCOPE, every markdown file of it, and not by declaration: the
+    engine is course-neutral by constitution (C2), so ANY course content in its
+    documentation is a finding wherever it appears. THIS repository is checked
+    against the declared `GENERIC_DOCS` set instead, because most of its documents
+    are SUPPOSED to carry course content.
+    """
+    import course_inventory as CI
+    import paths
+
+    out = []
+    try:
+        ids = {i for i in CI.item_ids() if not CI._ambiguous(i)}
+    except Exception as exc:                      # pragma: no cover
+        return [f"cannot read the item ids: {type(exc).__name__}: {exc}"]
+
+    repo = pathlib.Path(str(_HERE_DIR)).parent
+    for rel in CI.GENERIC_DOCS:
+        f = repo / rel
+        if not f.exists():
+            out.append(f"{rel} is declared generic in course_inventory.GENERIC_DOCS "
+                       f"and does not exist -- drop the entry or restore the file")
+            continue
+        hits = CI.course_prose(f.read_text(errors="ignore"), ids)
+        if hits:
+            out.append(f"{rel} is declared generic and carries course content: "
+                       + ", ".join(f"{k} x{v}" for k, v in sorted(hits.items())))
+
+    lo = pathlib.Path(str(paths.LO))
+    if lo.exists():
+        for f in sorted(lo.rglob("*.md")):
+            sp = str(f)
+            if "/node_modules/" in sp or "/.git/" in sp or "/.stage/" in sp:
+                continue
+            hits = CI.course_prose(f.read_text(errors="ignore"), ids)
+            if hits:
+                out.append(f"{f.relative_to(lo)} is ENGINE documentation and carries "
+                           f"course content: "
+                           + ", ".join(f"{k} x{v}" for k, v in sorted(hits.items()))
+                           + ". The engine is course-neutral by constitution (C2)")
+    return out
+
+
 def check_every_definition_is_recorded() -> list[str]:
     """A definition the tree defines and the inventory does not record.
     Reported as DEFINITION IS NOT IN THE INVENTORY.

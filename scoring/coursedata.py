@@ -454,6 +454,30 @@ def data_root() -> str | None:
         return os.environ.get("COURSE_DATA") or None
 
 
+def overrides_path() -> str:
+    """The enforcement gate's override log, OUTSIDE the repository.
+
+    IT USED TO LIVE IN `scoring/` AND THAT WAS THE MISTAKE. It is append-only and
+    machine-written, so every commit rewrote the whole blob: 80 versions, 2,838 MB
+    of git history, 82% of every blob this repository has ever stored, against 18
+    MB of tracked content. Deleting it from the working tree reclaims none of that
+    -- a blob is permanent once committed. A log that grows with COURSE WORK
+    therefore cannot live in a repository that must not grow with it.
+
+    Beside `gold.json` for the same reason gold is there: it is per-course
+    bookkeeping this project writes and rewrites, not part of the code's contract.
+
+    ABSENT IS A CLEAN SLATE, not an error. No records means nothing has been
+    excused yet, which is a perfectly good starting state -- the same shape as
+    C1b's treatment of gold, and a better fit for a log than for gold.
+    """
+    root = data_root()
+    if root is None:
+        return os.path.join("<COURSE_DATA-unset>", "courses",
+                            "edu.memphis.psych", "OVERRIDES.md")
+    return os.path.join(root, "courses", "edu.memphis.psych", "OVERRIDES.md")
+
+
 def gold_path() -> str:
     root = data_root()
     if root is None:
