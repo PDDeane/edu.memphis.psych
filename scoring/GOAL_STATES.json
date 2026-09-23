@@ -1,0 +1,450 @@
+{
+ "E1": [
+  "x",
+  "**Declare the mechanical flags -- or wire them up.** Three findings, all"
+ ],
+ "E10": [
+  "x",
+  "**A FIX that retires Q4b's declaration, not just the declaration.** DONE, declaration RE"
+ ],
+ "E11": [
+  "x",
+  "**Empty SLOT_RULE_BACKLOG: thirteen rules the paper scorer cannot see.** DONE"
+ ],
+ "E12": [
+  "x",
+  "**`--selftest` without `--enforcement` silently scores nothing.** DONE"
+ ],
+ "E13": [
+  "x",
+  "**The self-test degrades silently: a lost case looks like a passing run.** DONE"
+ ],
+ "E14": [
+  "x",
+  "**`forbid` and `maps` cannot score on the APP at all. Seven items.** FIXED"
+ ],
+ "E15": [
+  "x",
+  "**`requires` is implemented on BOTH engines and bound to nothing. Q6 is why it exists.**"
+ ],
+ "E19": [
+  "x",
+  "**Re-test PROSE_ONLY_SLOTS' \"NOT CONVERTIBLE\" claims when the primitive set changes.**"
+ ],
+ "E2": [
+  "x",
+  "**A full two-sided sweep: every item, six runs, BOTH scorers.** DONE"
+ ],
+ "E25": [
+  "x",
+  "**The `keyword` check is 100% accurate and cannot move a score. Convert it to `derived`."
+ ],
+ "E26": [
+  "x",
+  "**Sibling items sharing a slot NAME should share its gate structure, or declare why not."
+ ],
+ "E27": [
+  "x",
+  "**The two scorers' verdict vocabularies differ BY DESIGN. Audit what respects that.** DO"
+ ],
+ "E28": [
+  " ",
+  "**A paper sweep the ledger can record, on either model.**"
+ ],
+ "E29": [
+  "x",
+  "**`error_profile` ignores cell exclusions, and its one-sided flag lied.** DONE"
+ ],
+ "E3": [
+  "x",
+  "**Seven scoring rules the two sides implement separately.** Widened"
+ ],
+ "E30": [
+  "x",
+  "**Nothing compares OUR failing slots against GOLD's charged slots. Only totals.** DONE"
+ ],
+ "E31": [
+  "x",
+  "**RAW_GOLD_READERS is inert: nothing reads it, and it is registered as checked.** DONE"
+ ],
+ "E32": [
+  "x",
+  "**A registered verifier can enforce nothing about its table. Test it behaviourally.** DO"
+ ],
+ "E33": [
+  "x",
+  "**An exclusion added after the last sweep is unwatched until the next one.** DONE"
+ ],
+ "E34": [
+  "x",
+  "**Gold charges a CATEGORY; our sheet charges members. No mechanism expresses that.** REF"
+ ],
+ "E35": [
+  "x",
+  "**The eight criteria-derived items are outside the slot-level accounting entirely.** DON"
+ ],
+ "E36": [
+  "x",
+  "**The unregistered-table scan covers two modules of four.** DONE"
+ ],
+ "E37": [
+  "x",
+  "**Every wrong cell must have a live owner, and the audit must say so every run.**"
+ ],
+ "E38": [
+  "x",
+  "**The python side's staleness fingerprint ignores five attributes it reads.**"
+ ],
+ "E39": [
+  "x",
+  "**Nothing compares the two engines' verdicts by FREQUENCY. Eight cells hide there.**"
+ ],
+ "E4": [
+  "x",
+  "**Hash the scoring-path helpers, then re-stamp.** DONE. The three named"
+ ],
+ "E40": [
+  "x",
+  "**Cell ownership misses cells written as bare `pN`, so the audit's"
+ ],
+ "E41": [
+  "x",
+  "**The numerator contains coin flips: 63 cells the per-cell median"
+ ],
+ "E42": [
+  "x",
+  "**Nothing records what band a cell was in when a change was measured.**"
+ ],
+ "E43": [
+  "x",
+  "**The reasons scaffold reported an impossible triple, and nothing"
+ ],
+ "E44": [
+  "x",
+  "**A GENERATED attribute is never cleared when its rubric declaration"
+ ],
+ "E45": [
+  "x",
+  "**An UNSTABLE cell needs an owner too, and nothing asks. Ten have none.**"
+ ],
+ "E46": [
+  "x",
+  "**A mapped slot's RECORDED verdict need not be the one that scored,"
+ ],
+ "E47": [
+  "x",
+  "**Eleven places re-typed the same artifact reader, and two of them"
+ ],
+ "E48": [
+  "x",
+  "**A rubric slot with no entry in `slots=`: the prompt tells the grader"
+ ],
+ "E49": [
+  "x",
+  "**The slot correspondence is checked in ONE direction only. The other"
+ ],
+ "E5": [
+  "x",
+  "**The enforcement audit cannot see a rule written as guidance prose.**"
+ ],
+ "E50": [
+  "x",
+  "**No cohort case name may appear in a shipped prompt.** DELIVERED"
+ ],
+ "E51": [
+  "x",
+  "**\"Any perfect cell that moved\" is a noise detector, not a"
+ ],
+ "E52": [
+  "x",
+  "**The mapped-slot checks were reading the rubric, and the grader"
+ ],
+ "E53": [
+  "x",
+  "**A slot the sheet declares, the app is asked, and the app never"
+ ],
+ "E54": [
+  "x",
+  "**leakage.py scans four kinds of prose and the shipped prompt is"
+ ],
+ "E55": [
+  "x",
+  "**Retire the decomposition divergences: make both engines cut the"
+ ],
+ "E56": [
+  "x",
+  "**What is DESIGNED must be what SHIPS, and what was PROBED must be"
+ ],
+ "E57": [
+  "x",
+  "**The two-tier reason rule gives `harms_listed` ZERO TOLERANCE: one"
+ ],
+ "E6": [
+  "x",
+  "**The criteria prose was written twice, and the copies had drifted.**"
+ ],
+ "E7": [
+  "x",
+  "**§2e's recorded-comment lookup is blind to all twelve H2 items.** FIXED"
+ ],
+ "E8": [
+  "x",
+  "**Clear the seven entries left in HANDCODED_ITEM_RULES.** DONE, table EMPTY, budget 0. S"
+ ],
+ "E9": [
+  "x",
+  "**Q4b's `behavior_1`/`behavior_2`: convert the referent test to `forbid`.**"
+ ],
+ "Q1": [
+  "x",
+  "**Q3's `action` criterion.** The clearest target on the board. Five"
+ ],
+ "Q10": [
+  "x",
+  "**Q3/p10: we credit `measurable` where gold docks it.** (The title"
+ ],
+ "Q11": [
+  "x",
+  "**Q3/p13: `realistic` over-charged.** We charge where gold passed the"
+ ],
+ "Q12": [
+  "x",
+  "**Q1's exclusion failures: p6, p10, p16.** Not a counting problem, and"
+ ],
+ "Q13": [
+  "x",
+  "**Q1/p17: `utb_stated` is a coin flip.** CLOSED BY DECISION, not by"
+ ],
+ "Q14": [
+  "x",
+  "**Q1/p10: a restatement of the goal counted as a reason.** Lifted out of subgoal Q12's"
+ ],
+ "Q16": [
+  "x",
+  "**Diagnose Q1's wrong calls: `utb_stated`, `reason_2`, `reason_3`.**"
+ ],
+ "Q17": [
+  "x",
+  "**Q2/p16 and Q2/p17: the residue after (a)-(d). SCOPED DOWN"
+ ],
+ "Q18": [
+  "x",
+  "**Q4b: the `not_doing` classification on the SECOND box.**"
+ ],
+ "Q19": [
+  "x",
+  "**The LATER-BOX gradient, corpus-wide. Read this before any numbered slot.**"
+ ],
+ "Q2": [
+  "x",
+  "**2a over-credits `hows_given`: one rule, five cells, 29 of 29 errors.**"
+ ],
+ "Q20": [
+  "x",
+  "**The SHEET CANNOT REFUSE: gold objects to something no check asks about.**"
+ ],
+ "Q21": [
+  "x",
+  "**NR: a 4-point GATE running at 71% precision.**"
+ ],
+ "Q22": [
+  "x",
+  "**`cadence_is_daily`: a 4-point gate that FLIPS -- RE-SCOPED 2026-09-03"
+ ],
+ "Q23": [
+  "x",
+  "**`matches_chosen_type` on WK2, and across the cadence family.**"
+ ],
+ "Q24": [
+  "x",
+  "**Q4a's ceiling: two cells, both `antecedent_1`, deterministic and opposite.**"
+ ],
+ "Q26": [
+  "x",
+  "**DAY1 alone gates on `phrased_directly`. One `!`, undeclared, eight sibling items.**"
+ ],
+ "Q27": [
+  "x",
+  "**DAY1/p1 scores 0.0 against a gold of 4.0, deterministically, on both sides.**"
+ ],
+ "Q28": [
+  "x",
+  "**Q6/p5: the python's one miss is `state_a1` refers_to drift, not a rule.**"
+ ],
+ "Q29": [
+  "x",
+  "**Q2's `wgb_is_counterpart` GATES for 5 where gold charges 2, and it flips.**"
+ ],
+ "Q3": [
+  "x",
+  "**Re-measure the 3-run items at six runs, cheapest-first.** CLOSED"
+ ],
+ "Q30": [
+  "x",
+  "**Where we charge MORE than gold: Q5/p4, 1c/p11 and Q3/p13, against a corpus that is oth"
+ ],
+ "Q31": [
+  "x",
+  "**SILENT FULL MARKS: nine cells where gold wrote nothing and we deduct.**"
+ ],
+ "Q32": [
+  "x",
+  "**ONE engine divergence and four unstable cells the median disguised.**"
+ ],
+ "Q33": [
+  "x",
+  "**Q4a on the PAPER scorer: four cells the other two engines get right.**"
+ ],
+ "Q34": [
+  "x",
+  "**NEVER RIGHT on a row gold passed in silence: six cells, and the false-positive test.**"
+ ],
+ "Q35": [
+  "x",
+  "**SOMETIMES RIGHT on a row gold passed in silence: variance, not strictness.**"
+ ],
+ "Q36": [
+  "x",
+  "**1a's week-presence rule: we credit a baseline week that is not there"
+ ],
+ "Q37": [
+  "x",
+  "**THE SLOT PROFILE WAS BLIND TO GATES, AND TO THE APP'S COUNTS."
+ ],
+ "Q4": [
+  "x",
+  "**The leakage detector's shared-prose blind spot.** Found twice today:"
+ ],
+ "Q40": [
+  "x",
+  "**`aimed_correctly`: a 4-point gate that exists on WK2 alone, and the"
+ ],
+ "Q41": [
+  "x",
+  "**A gate's SCORING consequence, written into its JUDGING prompt, is"
+ ],
+ "Q43": [
+  "x",
+  "**Q2/p18: the inversion boundary that three rule formulations could"
+ ],
+ "Q44": [
+  " ",
+  "**Q2/p6 is right 8 times in 12 and never once for the right reason."
+ ],
+ "Q45": [
+  "x",
+  "**The four example items look finished and eleven of their cells are"
+ ],
+ "Q46": [
+  "x",
+  "**DAY2/p7: `targets_own_behavior` credits a reward that IS the"
+ ],
+ "Q47": [
+  "x",
+  "**Q6: `change_a1`/`change_a2` credit a change that does not address the"
+ ],
+ "Q48": [
+  "x",
+  "**Q4c/p20: gold's only explanation charge in twenty cells.** CLOSED"
+ ],
+ "Q49": [
+  "x",
+  "**Q6's seven unstable cells: the drift is in the MATCHING channel, and"
+ ],
+ "Q5": [
+  "x",
+  "**Q4b/p12's declared divergence.** Accurate today, but its stated reason"
+ ],
+ "Q50": [
+  " ",
+  "**The variable-cell register: cells that answer differently on"
+ ],
+ "Q51": [
+  "x",
+  "**Q4a/p3: we credit two antecedents where gold charges one for being"
+ ],
+ "Q52": [
+  "x",
+  "**Q5/p4: the effect-vs-payoff rule, and the only cell in the corpus"
+ ],
+ "Q53": [
+  "x",
+  "**Five wrong cells orphaned by the 2026-09-07 closures, and the"
+ ],
+ "Q54": [
+  " ",
+  "**Q1: nine of twenty cells imperfect, the two slots responsible are"
+ ],
+ "Q55": [
+  "x",
+  "**WK2's `named_type` reads `unclear` at a low rate on eight cells,"
+ ],
+ "Q56": [
+  " ",
+  "**Two wrong cells orphaned by subgoal Q19's closure, and they are"
+ ],
+ "Q57": [
+  "x",
+  "**Handout 2: a whole-item GATE that fires differently on identical input, and the 2-poin"
+ ],
+ "Q58": [
+  " ",
+  "**1c/`legend`: one slot, one item, eight cells. The cleanest single-slot cluster in the "
+ ],
+ "Q59": [
+  "x",
+  "**Q5: `example_2` and `reasons_substantial` move TOGETHER on five cells. Two slots, one "
+ ],
+ "Q6": [
+  "x",
+  "**Make the `reasons_given` rewrite live, then measure it.** DRAFTED,"
+ ],
+ "Q60": [
+  "x",
+  "**Q1 and Q2: the +-1 counting drift. Thirteen cells, one mechanism, and it is variance r"
+ ],
+ "Q61": [
+  " ",
+  "**Q4a: four cells where several antecedent slots move at once.**"
+ ],
+ "Q62": [
+  " ",
+  "**Q4b: six cells of behaviour-slot variance, distinct from the repeat criterion.**"
+ ],
+ "Q63": [
+  " ",
+  "**Q6: six cells in the consequence-matching slots -- the residue of an otherwise reliabl"
+ ],
+ "Q64": [
+  "x",
+  "**The SAME-THING criterion class: `named_type` ships the EMPTY STRING on three items, an"
+ ],
+ "Q65": [
+  " ",
+  "**The cells a closure orphaned: handout 2's sixteen, from subgoal Q57.**"
+ ],
+ "Q66": [
+  " ",
+  "**The paper scorer's nine unowned wrong cells: eight on gpt-5-mini, one on Opus.**"
+ ],
+ "Q67": [
+  " ",
+  "**Q4a/p3: gold charges one antecedent slot, we charge none, and the paper scorer already"
+ ],
+ "Q68": [
+  " ",
+  "**Q4c/p4: gold charges one consequence slot, we charge none; `consequence_1` fires in a "
+ ],
+ "Q7": [
+  "x",
+  "**Q4b's per-cell instability, which the item median hides.** Two cells"
+ ],
+ "Q8": [
+  "x",
+  "**A count slot outside the rubric's `counts` records nothing.**"
+ ],
+ "Q9": [
+  "x",
+  "**Q3/p19: actionability grounded in measurability.** CLOSED"
+ ]
+}

@@ -28,6 +28,7 @@ nowhere is a rule that depends on whoever reads it last.
 
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
@@ -399,6 +400,56 @@ def entries(text: str) -> dict[str, tuple[str, str]]:
     return out
 
 
+# THE PRIOR STATE, TRACKED. The ledger itself lives outside the repository -- it
+# grows with course work, and `coursedata.overrides_path` records what that costs a
+# repository in git history. But two of the checks below compare against the entries
+# AS THEY STOOD, and that comparison used to be `git show HEAD`, which the move
+# would have turned off in silence: no committed file means no prior state, and a
+# check with no prior state passes every time.
+#
+# So the STATE is versioned even though the prose is not. This file is labels and
+# their open/closed flags -- some 15 KB, rewritten when a goal is opened or closed
+# rather than on every edit to an entry's text. It is the same arrangement
+# `DEFINITIONS.json` already uses for definitions: the record is tracked, the thing
+# it records need not be.
+STATES = HERE / "GOAL_STATES.json"
+
+
+def recorded() -> dict | None:
+    """{label: (state, title)} as last recorded, or None if there is no record."""
+    if not STATES.exists():
+        return None
+    try:
+        raw = json.loads(STATES.read_text())
+    except (OSError, ValueError):
+        return None
+    return {k: (v[0], v[1]) for k, v in raw.items()}
+
+
+def record(text: str | None = None) -> int:
+    """Write today's labels and states as the new prior state.
+
+    A DELIBERATE ACT, never automatic. Recording is what says "this closure was
+    agreed and this deletion was intended", so a module that recorded on every run
+    would certify its own changes -- exactly what committing the file used to mean,
+    and the reason this is a command rather than a side effect.
+    """
+    now = entries(text if text is not None else GOALS.read_text())
+    STATES.write_text(json.dumps(
+        {k: [v[0], v[1]] for k, v in sorted(now.items())},
+        indent=1, ensure_ascii=False) + "\n")
+    return len(now)
+
+
+def _before() -> dict | None:
+    """The entries to compare against: the record, or git while one is in-repo."""
+    was = recorded()
+    if was is not None:
+        return was
+    text = _committed()
+    return entries(text) if text is not None else None
+
+
 def _committed() -> str | None:
     try:
         r = subprocess.run(["git", "show", "HEAD:./" + _TRACKED.name],
@@ -466,10 +517,9 @@ def check() -> list[str]:
                         f"entry in {GOALS.name} — the label is wrong, or the entry "
                         f"was deleted rather than closed")
 
-    before_text = _committed()
-    if before_text is None:
+    before = _before()
+    if before is None:
         return bad
-    before = entries(before_text)
 
     # 3. DELETIONS. A goal is closed, never removed: its number is cited
     #    elsewhere and its record is the reason the work is not redone.
@@ -485,8 +535,8 @@ def check() -> list[str]:
                     f"refile that points nowhere is a deletion with a note on it")
                 continue
             bad.append(
-                f"{GOALS.name}: goal {label} ('{title[:60]}') was in the committed "
-                f"file and is GONE. Goals are closed with `- [x]`, never deleted — "
+                f"{GOALS.name}: goal {label} ('{title[:60]}') was in the recorded "
+                f"state and is GONE. Goals are closed with `- [x]`, never deleted — "
                 f"the entry is what stops the work being redone, and its number is "
                 f"cited elsewhere. Restore it")
 
@@ -534,6 +584,10 @@ def main(argv: list[str]) -> int:
     if "--list" in argv:
         for label, (state, title) in entries(GOALS.read_text()).items():
             print(f"  [{state}] {label:5} {title[:70]}")
+        return 0
+    if "--record" in argv:
+        n = record()
+        print(f"  recorded {n} goal label(s) and their states in {STATES.name}")
         return 0
     if "--rank" in argv:
         for i, (lab, _f, why) in enumerate(rank(), 1):

@@ -253,6 +253,7 @@
    "tally"
   ],
   "compose_docs.py": [
+   "ACCUMULATING",
    "ANCHOR",
    "BLOCK_OPENS",
    "HERE",
@@ -899,11 +900,13 @@
    "REFILED",
    "SERIES_SECTION",
    "SERIES_TEST",
+   "STATES",
    "_COUNT",
    "_HISTORICAL",
    "_PROFILE_TOKENS",
    "_STAMP",
    "_TRACKED",
+   "_before",
    "_committed",
    "_slot_keys",
    "check",
@@ -914,6 +917,8 @@
    "misfiled_series",
    "next_label",
    "rank",
+   "record",
+   "recorded",
    "stale_slot_claims"
   ],
   "goals_restructure.py": [

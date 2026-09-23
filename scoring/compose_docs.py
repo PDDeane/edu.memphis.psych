@@ -58,8 +58,32 @@ def generic_path(name: str) -> str:
     return os.path.join(HERE, name)
 
 
+# SPECIFIC HALVES THAT ACCUMULATE, which is a different thing from a specific half
+# that is merely long. A guide's course half is AUTHORED: it changes when someone
+# rewrites it, and its history is worth keeping. A ledger's course half is a LOG --
+# it grows with course work, is rewritten whole on every entry, and its history is
+# the cost the override log already demonstrated at 2,838 MB, 82% of every blob this
+# repository has ever stored. A log that grows with course work cannot live in a
+# repository that must not grow with it, so these go beside `gold.json` and
+# `OVERRIDES.md` instead of into the course tree.
+#
+# WHAT IS GIVEN UP, and what replaces it. Outside git there is no committed prior
+# state, and `goals.check()` compared against exactly that to catch a deleted entry
+# and an unapproved closure. Both now compare against `GOAL_STATES.json`, which is
+# tracked: 112 labels and their states, some 15 KB, rewritten only when a goal is
+# opened or closed rather than on every prose edit. The state stays versioned; the
+# prose stops being.
+ACCUMULATING: tuple[str, ...] = ("GOALS.md",)
+
+
 def specific_path(name: str) -> str:
-    """The half that carries this course's cases: tracked, with the course."""
+    """The half that carries this course's cases.
+
+    Tracked with the course, unless it ACCUMULATES -- see above, and `coursedata.
+    overrides_path` for the measurement that set this rule.
+    """
+    if name in ACCUMULATING:
+        return os.path.join(str(paths.DATA), "courses", paths.NS, name)
     return os.path.join(str(paths.COURSE_LOCATION), name)
 
 
