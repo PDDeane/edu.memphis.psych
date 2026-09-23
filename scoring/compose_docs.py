@@ -139,7 +139,70 @@ def unplaced(name: str) -> list:
     return bad
 
 
+def composed_path(name: str) -> str:
+    """The built document: what every READER opens."""
+    return os.path.join(str(paths.COMPOSED_DOCS), name)
+
+
+def build() -> list:
+    """Write every composed document. Returns what was written."""
+    os.makedirs(str(paths.COMPOSED_DOCS), exist_ok=True)
+    out = []
+    for name in SPLIT_DOCS:
+        if not os.path.exists(generic_path(name)):
+            continue
+        bad = unplaced(name)
+        if bad:
+            raise SystemExit("compose_docs: refusing to build -- " + "; ".join(bad))
+        text = compose(name)
+        dest = composed_path(name)
+        prior = None
+        if os.path.exists(dest):
+            with open(dest, encoding="utf-8") as fh:
+                prior = fh.read()
+        if prior != text:
+            with open(dest, "w", encoding="utf-8") as fh:
+                fh.write(text)
+        out.append((name, len(text.splitlines()), prior != text))
+    return out
+
+
+def stale() -> list:
+    """Composed documents that no longer match their sources.
+
+    A STALE COMPOSITION IS SILENT, which is why this exists rather than being
+    left to whoever remembers to rebuild: every reader still opens a whole,
+    well-formed document and every check still runs -- against prose nobody is
+    editing. The rubric's own expansion carries the same check for the same
+    reason, and its docstring says what the failure looks like: "every item still
+    parses, every slot still reads, and the scores describe a rubric nobody is
+    editing".
+    """
+    out = []
+    for name in SPLIT_DOCS:
+        if not os.path.exists(generic_path(name)):
+            continue
+        dest = composed_path(name)
+        if not os.path.exists(dest):
+            out.append(f"{name} has never been composed ({dest}); run "
+                       f"`python3 compose_docs.py --build`. Readers open the "
+                       f"composed copy, so an unbuilt one is a document that does "
+                       f"not exist")
+            continue
+        with open(dest, encoding="utf-8") as fh:
+            have = fh.read()
+        if have != compose(name):
+            out.append(f"{name} was composed from sources that have since "
+                       f"changed -- the composed copy is stale, and every reader "
+                       f"is reading prose nobody is editing. Rebuild it")
+    return out
+
+
 def main(argv: list) -> int:
+    if "--build" in argv:
+        for name, n, changed in build():
+            print(f"  {name:<24} {n:>6} lines  {'written' if changed else 'unchanged'}")
+        return 0
     for name in SPLIT_DOCS:
         if not os.path.exists(generic_path(name)):
             print(f"  {name:<24} absent")

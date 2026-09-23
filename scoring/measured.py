@@ -4714,7 +4714,9 @@ def main() -> int:
         # The active objective, printed wherever the gate is consulted. A goal
         # kept only in someone's head is a goal that gets swapped for a
         # different one mid-task without anything noticing.
-        goals = LEDGER.parent / "GOALS.md"
+        import compose_docs
+
+        goals = Path(compose_docs.composed_path("GOALS.md"))
         if goals.exists():
             lines = goals.read_text().splitlines()
             for i, line in enumerate(lines):
@@ -6151,7 +6153,9 @@ def _live_subgoal_owners(excluding: str = '') -> dict:
     import re
 
     try:
-        text = (Path(__file__).resolve().parent / "GOALS.md").read_text()
+        import compose_docs
+
+        text = Path(compose_docs.composed_path("GOALS.md")).read_text()
     except OSError:
         return {"any": {}, "title": {}, "subject": {}, "by_side": {}}
     # TWO KINDS OF MENTION, and the asymmetry between them is the point.

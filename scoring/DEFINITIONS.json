@@ -257,10 +257,13 @@
    "HERE",
    "SPLIT_DOCS",
    "_blocks",
+   "build",
    "compose",
+   "composed_path",
    "generic_path",
    "main",
    "specific_path",
+   "stale",
    "unplaced"
   ],
   "corpus_ref.py": [
@@ -618,6 +621,7 @@
    "check_closed_goals_that_changed_code_were_exercised",
    "check_closure_ceilings_are_declared",
    "check_codes_reachable",
+   "check_composed_documents_are_current",
    "check_computed_rules_do_not_share_a_key",
    "check_computed_slot_recovery_is_faithful",
    "check_consensus_fixes_are_unique",
@@ -1465,6 +1469,7 @@
   ],
   "paths.py": [
    "CODE",
+   "COMPOSED_DOCS",
    "CORPUS_ROOTS",
    "COURSE_LOCATION",
    "DATA",

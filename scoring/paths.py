@@ -167,6 +167,14 @@ NS = "edu.memphis.psych"
 COURSE_LOCATION = Path(os.environ.get("COURSE_LOCATION",
                                       REPO / "psychology" / "bmod"))
 
+# WHERE COMPOSED DOCUMENTS ARE BUILT. A composed document is DERIVED -- the generic
+# half spliced with this course's cases -- so it is neither authored nor
+# accumulated and belongs in neither the content repository nor the run archive.
+# It is per-course because its course half is, and it is rebuilt rather than
+# edited: editing it edits nothing, since the next build overwrites it.
+COMPOSED_DOCS = Path(os.environ.get(
+    "COMPOSED_DOCS", DATA / "courses" / NS / "composed"))
+
 # ── Derived paths ────────────────────────────────────────────────────────────
 
 # Generated content (Class B: intra-repo since the move).

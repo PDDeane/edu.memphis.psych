@@ -2171,7 +2171,9 @@ def check_closed_goals_that_changed_code_were_exercised() -> list[str]:
     import pathlib
     import re as _re
 
-    goals = pathlib.Path(__file__).resolve().parent / "GOALS.md"
+    import compose_docs
+
+    goals = pathlib.Path(compose_docs.composed_path("GOALS.md"))
     try:
         text = goals.read_text()
     except OSError:
@@ -2244,7 +2246,9 @@ def check_convertible_prose_rules_have_subgoals() -> list[str]:
     """
     import pathlib
 
-    goals = pathlib.Path(__file__).resolve().parent / "GOALS.md"
+    import compose_docs
+
+    goals = pathlib.Path(compose_docs.composed_path("GOALS.md"))
     try:
         text = goals.read_text()
     except OSError as e:
@@ -9338,6 +9342,26 @@ def check_no_module_appends_to_the_repository() -> list[str]:
                 f"bound and cannot be reclaimed -- every version is a permanent "
                 f"blob. Write it under $COURSE_DATA and resolve the path there")
     return out
+
+
+def check_composed_documents_are_current() -> list[str]:
+    """A composed document no longer matches the halves it was built from.
+    Reported as A COMPOSED DOCUMENT IS STALE.
+
+    Every reader of a split document opens the COMPOSED copy, so a stale one is
+    read by everything and noticed by nothing: the document is whole, every check
+    runs, and they all run against prose nobody is editing. The rubric's expansion
+    carries the same check for the same reason, and states the failure exactly --
+    "every item still parses, every slot still reads, and the scores describe a
+    rubric nobody is editing".
+
+    It also reports a document that has NEVER been composed, which is the same
+    failure on a fresh checkout: readers open the composed copy, so an unbuilt one
+    is a document that does not exist.
+    """
+    import compose_docs
+
+    return compose_docs.stale()
 
 
 def check_generic_documents_are_generic() -> list[str]:

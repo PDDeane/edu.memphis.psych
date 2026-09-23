@@ -1063,6 +1063,8 @@ def enforcement_audit():
         findings.append(("-", "DEFINITION IS NOT IN THE INVENTORY", bad))
     for bad in ENF.check_generic_documents_are_generic():
         findings.append(("-", "COURSE CONTENT IN A GENERIC DOCUMENT", bad))
+    for bad in ENF.check_composed_documents_are_current():
+        findings.append(("-", "A COMPOSED DOCUMENT IS STALE", bad))
     for bad in ENF.check_no_module_appends_to_the_repository():
         findings.append(("-", "AN APPEND-ONLY LOG IS BEING WRITTEN INTO THE REPOSITORY", bad))
     for bad in ENF.check_no_module_shadow_in_scratchpad():
