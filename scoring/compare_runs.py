@@ -12,7 +12,7 @@ six implementations and two printed answers).
 So the arithmetic lives here, and it calls the project's own definitions rather
 than re-deriving them: `scored_exactly` for whether a cell is right,
 `apply_corrected_gold` for which gold row is authoritative, `cell_exclusions`
-for the denominator, `rebuild_gold_1c` for the one item whose gold is rebuilt.
+for the denominator, `rebuild_declared_gold` for the one item whose gold is rebuilt.
 
 The part that matters more than the arithmetic: this tool does NOT print a
 directional verdict for a cell that moved, at all. It prints PROBE REQUIRED and
@@ -127,7 +127,7 @@ def gold_for(handout: int, item: str) -> dict:
     g = H.apply_corrected_gold(_LOADERS[handout](), handout)
     if item == "1c":
         import agreement_app as APP
-        g, _ = APP.rebuild_gold_1c({p: dict(v) for p, v in g.items()})
+        g, _ = APP.rebuild_declared_gold({p: dict(v) for p, v in g.items()})
     return g
 
 

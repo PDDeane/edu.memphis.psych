@@ -1057,6 +1057,8 @@ def enforcement_audit():
         findings.append(("-", "DEFINITION VANISHED FROM THE PACKAGE", bad))
     for bad in ENF.check_every_module_is_tracked():
         findings.append(("-", "MODULE IS NOT IN THE INVENTORY", bad))
+    for bad in ENF.check_no_definition_is_named_for_an_item():
+        findings.append(("-", "DEFINITION IS NAMED FOR AN ITEM", bad))
     for bad in ENF.check_no_module_shadow_in_scratchpad():
         findings.append(("-", "A SCRATCHPAD COPY SHADOWS A PACKAGE MODULE", bad))
     for bad in ENF.check_no_module_defines_names_after_its_main_guard():

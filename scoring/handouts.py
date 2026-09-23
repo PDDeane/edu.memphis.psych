@@ -516,7 +516,7 @@ HANDOUTS: dict[int, dict] = {
         #         nothing else. Counts as a miss now.
         # 1c  p8  2/3 -> 2/3, unchanged. An unchanged cell needs no probe: the
         #         comparison IS the answer.
-        #     p4, p20  gold withdrawn by rebuild_gold_1c, so they leave the
+        #     p4, p20  gold withdrawn by rebuild_declared_gold, so they leave the
         #         denominator on their own and never needed a citation to do it.
         # 2a  p1  1/3 -> 0/3 and p14 2/3 -> 0/3. These are the first two cells in
         #         33 tests whose citation was genuinely load-bearing — and they
@@ -725,7 +725,7 @@ def gold_ceiling(handout: int, item: str) -> tuple[str, ...]:
 #   the web always plots it, and with baseline data absent 1b already takes the
 #   point, so the slot could only double-count or misfire. Note also that p11's
 #   row does not self-reconcile — it itemises -2/-2/-1 against a score of 7.0 —
-#   so rebuild_gold_1c derives from the itemised deductions, not the total.
+#   so rebuild_declared_gold derives from the itemised deductions, not the total.
 # Cells where the gold row cannot be scored on the item it sits in, dropped from
 # that item only. Mirrors PER_ITEM_EXCLUDE in agreement_app.py; the two sides
 # must drop the SAME cells or the item's two columns stop being a comparison.

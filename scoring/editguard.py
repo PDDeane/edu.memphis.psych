@@ -694,6 +694,68 @@ def accept(module: str, name: str) -> str:
 UNTRACKED_BY_DESIGN: dict[str, str] = {}
 
 
+# Definitions that name a course artifact ON PURPOSE, each with the reason.
+# §10.7 category 4 says a generic engine has no MODULE named for a question, a
+# handout or a course; this is the same rule for the names INSIDE the files, and
+# `enforcement.check_no_definition_is_named_for_an_item` reports it.
+#
+# THE DISTINCTION THAT DECIDES AN ENTRY: a DECLARATION ABOUT one cell may name
+# that cell -- it is a statement about that cell and nothing else. A FUNCTION may
+# not, once it no longer has anything to do with it. That is why
+# `rebuild_gold_1c` was renamed to `rebuild_declared_gold` (it rebuilds whatever
+# the rubric declares, and 1c is merely the only item declaring it today) and why
+# the entry below stays.
+ITEM_NAMED_BY_DESIGN: dict[str, str] = {
+    "measured._1C_GATE_CEILING":
+        "a gold DECLARATION about one cell, and entitled to name it. Renaming it "
+        "would also be a data migration rather than a rename: it is read through "
+        "`_gold_declaration` and carried by `gold_export`, so the name is a key "
+        "in the gold file.",
+}
+
+
+def item_named() -> list:
+    """Definitions whose NAME contains a course item id, minus the declared ones.
+
+    ITEM IDS ONLY, and that is not a shortcut. Running this with
+    `course_inventory.NAME_MARKERS` as well returns 79 definitions and nearly all
+    are noise: `gold` is a generic term for reference scores (`gold_path`,
+    `RAW_GOLD_READERS`, `check_gold_is_read_by_item` ...) and `h1`/`h2`/`h3` name
+    handouts, which is course STRUCTURE rather than an item. Those markers were
+    written for MODULE names and over-fire on definitions.
+    """
+    import re
+
+    try:
+        import course_inventory
+    except Exception as exc:                      # pragma: no cover
+        return [f"cannot read the item ids: {type(exc).__name__}: {exc}"]
+    ids = {i for i in course_inventory.item_ids()
+           if not course_inventory._ambiguous(i)}
+    out = []
+    for path in modules():
+        try:
+            names = definitions(path.read_text())
+        except ValueError:
+            continue
+        for n in sorted(names):
+            low = n.lower()
+            for i in sorted(ids, key=len, reverse=True):
+                if not re.search(r"(?:^|_)" + re.escape(i.lower()) + r"(?:_|$)", low):
+                    continue
+                key = f"{path.stem}.{n}"
+                if key in ITEM_NAMED_BY_DESIGN:
+                    break
+                out.append(
+                    f"{path.name}: `{n}` is named for item {i}. A name that carries "
+                    f"an item id outlives its reason -- the function it describes "
+                    f"changes and the name does not. Rename it for what it does, or "
+                    f"declare it in editguard.ITEM_NAMED_BY_DESIGN with why the item "
+                    f"belongs in the name")
+                break
+    return out
+
+
 def untracked() -> list[str]:
     """Modules on disk that the inventory does not record, and has not excused.
 

@@ -1764,10 +1764,10 @@ PER_ITEM_EXCLUDE = _handouts.PER_ITEM_EXCLUDE
 UNSCORED_GOLD_CRITERIA = _gold_declaration("UNSCORED_GOLD_CRITERIA")
 
 
-def rebuild_gold_1c(gold: dict) -> tuple[dict, list[int]]:
+def rebuild_declared_gold(gold: dict) -> tuple[dict, list[int]]:
     """1c's gold, restated from the grader's itemised deductions.
 
-    DELEGATES to `handouts.rebuild_gold_1c`, which is now the only
+    DELEGATES to `handouts.rebuild_declared_gold`, which is now the only
     implementation. This module and `agreement_app` each carried their own copy
     until 2026-09-23, under a comment saying "the two must agree" with nothing
     enforcing it -- and by then they HAD diverged, in one way that mattered: the
@@ -2283,9 +2283,9 @@ def main() -> int:
     # that had already died looked identical to one still working — which is how
     # a three-day-dead shell and a crashed run both got reported as "in progress".
     gold = config(args.handout)["gold"]()
-    dropped_1c = []
+    dropped_rebuilt = []
     if args.handout == 3:
-        gold, dropped_1c = rebuild_gold_1c(gold)
+        gold, dropped_rebuilt = rebuild_declared_gold(gold)
 
     def one_pass() -> tuple[list[dict], list[tuple]]:
         results: list[dict] = []
@@ -2394,8 +2394,8 @@ def main() -> int:
                   f"cannot resolve a difference smaller than that")
 
     if args.handout == 3:
-        if dropped_1c:
-            print(f"(item 1c: participants {dropped_1c} scored 0 on paper for "
+        if dropped_rebuilt:
+            print(f"(item 1c: participants {dropped_rebuilt} scored 0 on paper for "
                   f"providing no graph, but supplied four complete weeks of data, "
                   f"which on the web DRAWS the chart — the failure is unreachable "
                   f"rather than missed, so they are dropped from 1c only. p15 and "

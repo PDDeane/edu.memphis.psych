@@ -3736,6 +3736,61 @@ place to record that would fire on it forever and be waved through -- which is h
 a check stops being read. Write the table with the check, not after it, and put
 the reason above in it: a declaration about a cell may name the cell.
 
+##### G(a) DONE 2026-09-23
+
+`rebuild_gold_1c` -> `rebuild_declared_gold` in `agreement.py` and
+`agreement_app.py`, across 24 code sites in 8 modules, with
+`check_gold_accounting_is_uniform`'s `CANON` entry moved in the same write -- the
+part that was not a find-and-replace, since that table names the string as one of
+the four things separating a published rate from a naive comparison.
+
+THE PROSE WAS SPLIT BY WHAT IT DESCRIBES, not renamed wholesale. `EQUIVALENCE.md`'s
+two mentions describe CURRENT behaviour and were renamed; `GOALS.md` (6) and
+`BACKLOG.md` (1) are RECORDS of what was done at the time, and renaming inside them
+would make them describe a function that did not exist then. Same principle as the
+declared exception below.
+
+AND IT FIXED STALENESS F2 HAD LEFT: both wrappers' docstrings still said "DELEGATES
+to `handouts.rebuild_gold_1c`", a function F2 had removed from `handouts`. A rename
+pass reads every site, which is how that surfaced.
+
+SHIPPED WITH ITS CHECK AND ITS EXCEPTION TABLE, because the exception set was
+already non-empty. `enforcement.check_no_definition_is_named_for_an_item` reads
+`editguard.item_named()`; `editguard.ITEM_NAMED_BY_DESIGN` carries
+`measured._1C_GATE_CEILING` with the reason -- a DECLARATION ABOUT one cell may name
+that cell, where a FUNCTION that no longer touches it may not. Fire-tested:
+withdrawing the exception surfaces it, restoring silences it. The check reads 0 and
+names item ids ONLY, for the measured reason that adding `NAME_MARKERS` returns 79
+where 3 are real.
+
+Audit 44, finding set identical to baseline. Both sides still reproduce the frozen
+20-row F baseline.
+
+##### G(b) · 350 DEFINITIONS ARE LIVE AND UNRECORDED -- OPEN, found 2026-09-23
+
+THE LEDGER TRACKS A FROZEN NAME SET PER MODULE. `safe_write` reports `added` but
+does not record it, `accept` only removes, and `track_new` adds MODULES, not names.
+So every definition created since the original seed is unprotected -- `vanished()`
+can only miss what it never knew.
+
+    definitions live in the tree   1769
+    definitions in the ledger      1419
+    LIVE BUT UNRECORDED             350   across 21 modules
+
+    enforcement.py 130   measured.py 46   olx_prompts.py 26   equivalence.py 22
+    score.py 22   precommit_gate.py 19   agreement_app.py 17   editguard.py 15
+
+`editguard.py`'s own 15 include `UNTRACKED_BY_DESIGN` and `track_new`, added by
+item G hours earlier -- so G closed the module gap and opened this one in the same
+act, which is the clearest possible statement of the shape.
+
+THIS IS G'S GAP ONE LEVEL DOWN and the fix is the same shape: a definition is
+tracked or it is declared. The likely form is `safe_write` recording what it
+reports as `added`, plus a one-time additive backfill under the same refusal
+`track_new` carries -- never a reseed, which would bless whatever is currently
+there. Not done here because G(a) was a rename and this is a mechanism; filed so it
+is not rediscovered a third time.
+
 ### F · `1c`'s gold rebuild -- 16 embeddings, implemented TWICE, no owner
 
 Measured with `course_inventory.py` (the prepared tool; it reports populations and

@@ -1739,7 +1739,7 @@ def record(item: str, runs_path: str, side: str = DEFAULT_SIDE) -> None:
     g = H.apply_corrected_gold(
         {1: gold.load_h1, 2: gold.load_h2, 3: gold.load_h3}[h](), h)
     if item == "1c":
-        g, _ = APP.rebuild_gold_1c({p: dict(v) for p, v in g.items()})
+        g, _ = APP.rebuild_declared_gold({p: dict(v) for p, v in g.items()})
     ex = set(exclusions(item))
     per: dict[int, list[bool]] = {}
     exc: dict[int, list[bool]] = {}
@@ -2174,7 +2174,7 @@ def declaration_conflicts() -> list[str]:
         # Does gold even have a score for the cell? Without one no measurement can
         # ever agree or disagree, so the exclusion is unfalsifiable BY DESIGN
         # rather than merely unmeasured -- 1c's p4/p19/p20 are this, because
-        # rebuild_gold_1c removes their gold rows. Reporting those as "unmeasured"
+        # rebuild_declared_gold removes their gold rows. Reporting those as "unmeasured"
         # every run would nag forever about cells nothing can settle.
         try:
             import gold as _g
@@ -2183,7 +2183,7 @@ def declaration_conflicts() -> list[str]:
                 job["handout"])
             if item == "1c":
                 import agreement_app as _APP
-                _gold_rows, _ = _APP.rebuild_gold_1c(
+                _gold_rows, _ = _APP.rebuild_declared_gold(
                     {p_: dict(v) for p_, v in _gold_rows.items()})
         except Exception:
             _gold_rows = {}
@@ -2199,7 +2199,7 @@ def declaration_conflicts() -> list[str]:
                 # missing gold score is the declaration and the evidence agreeing.
                 # Reporting it would nag forever about cells nothing can settle,
                 # and would train the reader to skip this check. 1c's p4/p19/p20
-                # are exactly this: rebuild_gold_1c removes their gold rows and the
+                # are exactly this: rebuild_declared_gold removes their gold rows and the
                 # exclusion says they are unscoreable. Consistent, so silent.
                 #
                 # Any OTHER kind with no gold row is a real inconsistency: the
@@ -3202,7 +3202,7 @@ def error_profile(item: str, runs_path: str) -> str:
         # `1c +9` into a corpus-wide over-credit ranking before the per-cell
         # readout contradicted it.
         import agreement_app as _APP
-        g, _ = _APP.rebuild_gold_1c({p: dict(v) for p, v in g.items()})
+        g, _ = _APP.rebuild_declared_gold({p: dict(v) for p, v in g.items()})
     runs = json.loads(Path(runs_path).read_text())["runs"]
 
     # EXCLUDED cells are skipped, the same ones `record` leaves out of the
@@ -3782,7 +3782,7 @@ def gold_rows_that_do_not_reconcile() -> list[str]:
                 if not named:
                     continue
                 # 1c's gold is RESTATED FROM ITS VERDICTS by
-                # agreement_app.rebuild_gold_1c before anything scores against
+                # agreement_app.rebuild_declared_gold before anything scores against
                 # it, precisely so p11's improvised "-1 pt: missing baseline
                 # data week" -- a charge no slot on either side prices -- is
                 # dropped rather than subtracted. Reading the raw row here
@@ -3862,7 +3862,7 @@ def fixture_suspects() -> list[str]:
             continue
         if item == "1c":
             import agreement_app as APP
-            g, _ = APP.rebuild_gold_1c({p: dict(v) for p, v in g.items()})
+            g, _ = APP.rebuild_declared_gold({p: dict(v) for p, v in g.items()})
         top = max(((g.get(p) or {}).get(item) or {}).get("score") or 0 for p in g)
         # Union of cells any side got wrong in every run, with the side that
         # said so -- so a olx-only miss is examined instead of skipped.
@@ -5276,7 +5276,7 @@ def _corrected_gold(handout: int, rebuild_1c: bool = False):
         {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[handout](), handout)
     if rebuild_1c:
         import agreement_app as _APP
-        g, _ = _APP.rebuild_gold_1c({p_: dict(v) for p_, v in g.items()})
+        g, _ = _APP.rebuild_declared_gold({p_: dict(v) for p_, v in g.items()})
     return g
 
 

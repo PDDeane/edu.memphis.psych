@@ -62,8 +62,8 @@ def gold_for(handout: int) -> dict:
     g = config(handout)["gold"]()
     if handout == 3:
         try:
-            from agreement import rebuild_gold_1c
-            g, _ = rebuild_gold_1c(g)
+            from agreement import rebuild_declared_gold
+            g, _ = rebuild_declared_gold(g)
         except Exception:
             pass
     return g

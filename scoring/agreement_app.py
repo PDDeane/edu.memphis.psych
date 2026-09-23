@@ -676,10 +676,10 @@ def anchored_split(raw: str, spans: list[tuple[str, str]]) -> dict[str, str]:
     return out
 
 
-def rebuild_gold_1c(gold: dict) -> tuple[dict, list[int]]:
+def rebuild_declared_gold(gold: dict) -> tuple[dict, list[int]]:
     """1c's gold, restated from the grader's itemised deductions.
 
-    DELEGATES to `handouts.rebuild_gold_1c`. See the note on the same name in
+    DELEGATES to `handouts.rebuild_declared_gold`. See the note on the same name in
     `agreement.py` for what the two copies had diverged on.
 
     THIS SIDE'S READER IS THE ONE THAT SURVIVED, in substance: it matched

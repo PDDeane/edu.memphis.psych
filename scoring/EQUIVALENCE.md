@@ -184,7 +184,7 @@ made this check unanswerable in an earlier revision. The slot carries
 `met/absent/incomplete @2` and the rubric's legend bullet is back, verbatim.
 
 **So 1c now totals 10 on both sides, with all five components and all six
-deduction codes live.** Nothing about its scoring diverges. `rebuild_gold_1c`
+deduction codes live.** Nothing about its scoring diverges. `rebuild_declared_gold`
 rebuilds gold from the grader's own verdicts on the same 10 rather than
 rescaling, because two rows need it: p11 carries an improvised "-1 pt: missing
 baseline data week" that belongs to 1b, and the graph-gate rows state no
@@ -220,7 +220,7 @@ Verified end to end after the change: p1 (full reconstructed data) →
 `has_own_graph=met`, 6/6 against gold 6; p18 (all four weeks absent) →
 `has_own_graph=absent`, grader 0 against gold 0 ("did not include").
 
-**Open, and deliberately not done in the same step:** `rebuild_gold_1c` still
+**Open, and deliberately not done in the same step:** `rebuild_declared_gold` still
 drops p4, p15, p18, p19 and p20 as incomparable, because gold zeroed them on the
 graph gate and so states no label verdicts. p18 is now reproduced exactly and
 p15 (baseline and week 3 absent) probably is too, so both are candidates to

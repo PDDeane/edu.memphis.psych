@@ -2031,7 +2031,7 @@ def check_gold_accounting_is_uniform() -> list[str]:
     """Does every prediction-vs-gold comparison use the SAME accounting?
 
     Four things separate a published rate from a naive comparison:
-    `apply_corrected_gold`, `rebuild_gold_1c` for 1c, `scored_exactly` (which
+    `apply_corrected_gold`, `rebuild_declared_gold` for 1c, `scored_exactly` (which
     carries the unreachable-gold allowance), and the ledger's exclusions. A tool
     that skips any of them produces numbers that look authoritative and disagree
     with the ledger about the same artifact.
@@ -2057,7 +2057,7 @@ def check_gold_accounting_is_uniform() -> list[str]:
     import re
 
     CANON = (("apply_corrected_gold", "corrected gold rows"),
-             ("rebuild_gold_1c", "1c's rebuilt gold"),
+             ("rebuild_declared_gold", "1c's rebuilt gold"),
              ("scored_exactly", "the unreachable-gold allowance"))
     LOADER = re.compile(r"\bload_h[123]?\b")
     here = pathlib.Path(__file__).resolve().parent
@@ -9271,6 +9271,29 @@ def check_no_definition_vanished() -> list[str]:
     return editguard.vanished()
 
 
+def check_no_definition_is_named_for_an_item() -> list[str]:
+    """A definition named for a course item, undeclared.
+    Reported as DEFINITION IS NAMED FOR AN ITEM.
+
+    `check_no_module_is_named_for_a_course_artifact` is §10.7 category 4 over the
+    repository's FILE LIST. This is the same rule over the names INSIDE the files,
+    and nothing enforced it: item F removed the last item-id LOOKUPS from
+    `agreement.py` and `agreement_app.py` and what survived was the item-id NAME.
+    `rebuild_gold_1c` no longer rebuilt 1c -- it rebuilt whatever the rubric
+    declared -- so the name described the caller's history rather than the
+    function's behaviour.
+
+    THE EXCEPTION SET IS NOT EMPTY, which is why the declaration table ships with
+    the check rather than after it: `measured._1C_GATE_CEILING` stays by decision,
+    because a DECLARATION ABOUT one cell may name that cell where a FUNCTION that
+    no longer touches it may not. A check with nowhere to record that would fire
+    on it forever and be waved through, which is how a check stops being read.
+    """
+    import editguard
+
+    return editguard.item_named()
+
+
 def check_every_module_is_tracked() -> list[str]:
     """A module the inventory does not record, and has not excused.
     Reported as MODULE IS NOT IN THE INVENTORY.
@@ -12712,7 +12735,7 @@ def check_fixture_covers_the_response() -> list[str]:
                     continue               # too short for a gap to mean anything
                 if H.cell_exclusions(h, iid).get(pid, ("", ""))[0] == "unscoreable":
                     # No gold to corrupt. An `unscoreable` cell has had its gold
-                    # withdrawn — rebuild_gold_1c nulls 1c/p20 outright — so it
+                    # withdrawn — rebuild_declared_gold nulls 1c/p20 outright — so it
                     # reaches no comparison and a fixture gap in it cannot move a
                     # number. 1c/p20 was carrying a backlog entry that restated,
                     # word for word, the exclusion already recorded against it.

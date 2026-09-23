@@ -500,7 +500,7 @@ def _gold_scores() -> dict:
     # THE SAME ACCOUNTING THE LEDGER USES, not a second reading of the same
     # files. Raw gold is not what any rate in this project is computed against:
     # `apply_corrected_gold` replaces rows a human re-read and corrected, and 1c
-    # needs `rebuild_gold_1c` on top -- without it 1c reads as 18 over-credits
+    # needs `rebuild_declared_gold` on top -- without it 1c reads as 18 over-credits
     # when it has none, which is exactly how a wrong figure reached a corpus-wide
     # ranking once already.
     import handouts as _H
@@ -509,7 +509,7 @@ def _gold_scores() -> dict:
         try:
             rows = _H.apply_corrected_gold(loader(), h)
             if h == 3:
-                rows, _ = _APP.rebuild_gold_1c({p: dict(v) for p, v in rows.items()})
+                rows, _ = _APP.rebuild_declared_gold({p: dict(v) for p, v in rows.items()})
         except Exception:
             continue
         for pid, items in rows.items():
