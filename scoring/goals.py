@@ -33,8 +33,23 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import compose_docs
+
 HERE = Path(__file__).resolve().parent
-GOALS = HERE / "GOALS.md"
+
+# THE COMPOSED DOCUMENT, not the generic half beside this module. GOALS.md is split:
+# the rules that would govern any course's ledger stay in `scoring/`, and THIS
+# course's 112 entries live with the course. Every reader opens the composed copy,
+# so this module sees the whole document exactly as it always did -- which is why
+# the split needed no change to any of the checks below.
+GOALS = Path(compose_docs.composed_path("GOALS.md"))
+
+# WHERE THE ENTRIES ARE VERSIONED, which is no longer where this module lives. The
+# deletion check below compares today's entries against the committed ones, and it
+# must ask git about the half that HOLDS entries; asking about the generic half
+# would compare an empty set against an empty set and pass while a goal vanished.
+_TRACKED = Path(compose_docs.specific_path("GOALS.md"))
 
 # `- [ ] Q22. **title**` / `- [x] E30. **title**`. A CAPITAL prefix and an
 # INTEGER, unlike the guide's lowercase-letter suffixes -- the two files are
@@ -386,7 +401,8 @@ def entries(text: str) -> dict[str, tuple[str, str]]:
 
 def _committed() -> str | None:
     try:
-        r = subprocess.run(["git", "show", "HEAD:./GOALS.md"], cwd=HERE,
+        r = subprocess.run(["git", "show", "HEAD:./" + _TRACKED.name],
+                           cwd=_TRACKED.parent,
                            capture_output=True, text=True, timeout=30)
         return r.stdout if r.returncode == 0 else None
     except Exception:

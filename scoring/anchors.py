@@ -90,13 +90,34 @@ def _citer_root() -> str:
     return str(paths.COURSE_LOCATION)
 
 
+def _prose_path(name: str, root: str | None) -> str:
+    """Where to READ a prose file's anchors from.
+
+    A SPLIT DOCUMENT'S ANCHORS LIVE IN BOTH HALVES, so neither half is the thing
+    to scan: the generic half defines the anchors a course cites, and the specific
+    half carries the entry anchors that moved out with the entries. Scanning only
+    `scoring/` after the GOALS split saw 1 anchor where the document has 113, and
+    an anchor this scan cannot see is one a rename can break in silence -- which is
+    the single failure the whole convention exists to prevent.
+
+    So a split document is read COMPOSED, exactly as every other reader reads it.
+    An explicit `root` still wins, because the tests build a tree and scan it.
+    """
+    if root is not None:
+        return os.path.join(root, name)
+    import compose_docs
+
+    if name in compose_docs.SPLIT_DOCS:
+        return compose_docs.composed_path(name)
+    return os.path.join(HERE, name)
+
+
 def scan(root: str | None = None) -> dict:
     """Anchors defined in the prose files; references made from anywhere."""
-    root = root or HERE
     anchors: dict[str, str] = {}
     refs: dict[str, set[str]] = {}
     for name in PROSE_FILES:
-        path = os.path.join(root, name)
+        path = _prose_path(name, root)
         if not os.path.exists(path):
             continue
         found, _ = _scan_text(open(path, errors="ignore").read())
@@ -116,7 +137,9 @@ def scan(root: str | None = None) -> dict:
     # Adding a root keeps the specification unscanned, which widening would not:
     # the hazard above is avoided rather than worked around.
     base = _citer_root()
-    repo = os.path.dirname(os.path.abspath(root))
+    # `root` stays None when unset so `_prose_path` can route a split document to
+    # its composed copy; only the citer walk needs a concrete directory.
+    repo = os.path.dirname(os.path.abspath(root or HERE))
     for dirpath, dirnames, filenames in os.walk(base):
         dirnames[:] = [d for d in dirnames if d not in (".git", "node_modules")]
         for fn in filenames:
@@ -178,10 +201,9 @@ def anchors_are_renumber_safe(root: str | None = None) -> list[str]:
     that is what is verified: off the heading line, a rewrite cannot reach them,
     and no promise about `renumber()` has to be trusted.
     """
-    root = root or HERE
     bad = []
     for name in PROSE_FILES:
-        path = os.path.join(root, name)
+        path = _prose_path(name, root)
         if not os.path.exists(path):
             continue
         for n, line in enumerate(open(path, errors="ignore").read().split("\n"), 1):
@@ -198,7 +220,11 @@ def anchors_are_renumber_safe(root: str | None = None) -> list[str]:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--dir", default=HERE)
+    # DEFAULT None, not HERE: a concrete root makes `_prose_path` scan that
+    # directory literally, which for a split document is one half of it. Leaving it
+    # unset is what routes GOALS.md to its composed copy -- and the CLI was the one
+    # caller passing a root, so the CLI was the one caller seeing 1 anchor of 113.
+    ap.add_argument("--dir", default=None)
     args = ap.parse_args(argv)
 
     found = scan(args.dir)

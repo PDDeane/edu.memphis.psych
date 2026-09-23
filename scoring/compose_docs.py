@@ -100,6 +100,7 @@ def compose(name: str) -> str:
 
     out: list = []
     pending: str | None = None
+    placed = 0
     for line in generic.splitlines(keepends=True):
         out.append(line)
         m = ANCHOR.match(line.rstrip("\n"))
@@ -111,7 +112,28 @@ def compose(name: str) -> str:
         if pending is not None and line.strip():
             for block in blocks.get(pending, ()):
                 out.append(block)
+                placed += 1
             pending = None
+    # A TRAILING ANCHOR STILL RECEIVES ITS BLOCKS. When everything below an anchor
+    # moves out, the anchor ends the generic half and no section line follows it --
+    # and the loop above would carry `pending` off the end and drop the blocks
+    # silently. That is the exact shape of the first real split, so it is handled
+    # rather than discovered.
+    if pending is not None:
+        for block in blocks.get(pending, ()):
+            out.append(block)
+            placed += 1
+
+    # NO BLOCK IS EVER DROPPED. unplaced() reports an anchor the generic half never
+    # defines, which is the error a person makes; this counts what composition
+    # actually emitted, which is the error the composer makes. A split that loses a
+    # paragraph is invisible in the result -- the document still reads whole -- so
+    # it is caught here by arithmetic instead of by someone noticing prose missing.
+    want = sum(len(v) for k, v in blocks.items() if k)
+    if placed != want:
+        raise SystemExit(
+            f"compose_docs: {name} composed {placed} of {want} block(s); "
+            f"{want - placed} would have vanished")
     return "".join(out)
 
 
