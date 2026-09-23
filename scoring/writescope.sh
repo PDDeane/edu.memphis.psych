@@ -33,6 +33,14 @@ FORBIDDEN=(
   /home/pdeane/molly_data/handsplit
   /home/pdeane/molly_data/pre_scrub_backup_20260917_084827
   /home/pdeane/molly_data/corpus_refs.json
+  # 2026-09-23: the EVENT PIPELINE. Excluded by the user from reading, writing AND
+  # deleting for the rest of this session -- it stays in `scripts/` and this work
+  # does not touch it. Listed here rather than left to the ALLOWED list's silence:
+  # it is already outside that list, but an omission stops protecting the moment
+  # the list widens, and a named refusal does not. This guard can only enforce the
+  # WRITE half; the read exclusion is a standing instruction, recorded here because
+  # this file is where the session's boundaries are written down.
+  /home/pdeane/code/scripts
 )
 rc=0
 for raw in "$@"; do

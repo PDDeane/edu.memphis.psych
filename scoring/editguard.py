@@ -582,6 +582,79 @@ def safe_write(path, new_text: str, dropping=(),
     return out
 
 
+def unrecorded() -> list:
+    """Definitions the tree defines and the inventory does not record.
+
+    The third gap in the same family: `vanished()` asks whether a RECORDED name
+    still exists, `untracked()` whether a MODULE is recorded at all, and this
+    whether a module's recorded set is CURRENT. A name outside it cannot be
+    reported lost, because nothing knows it was ever there.
+    """
+    inv = _inventory()
+    if not inv:
+        return ["DEFINITIONS.json is missing or unreadable"]
+    out = []
+    for path in modules():
+        recorded = inv.get(path.name)
+        if recorded is None:
+            continue                              # untracked() reports this
+        try:
+            live = definitions(path.read_text())
+        except ValueError:
+            continue
+        gap = sorted(live - set(recorded))
+        if gap:
+            out.append(
+                f"{path.name}: {len(gap)} definition(s) are defined but not "
+                f"recorded -- {', '.join(gap[:4])}"
+                + (" ..." if len(gap) > 4 else "")
+                + ". Nothing would report them lost. Run "
+                  "`python3 editguard.py --backfill`")
+    return out
+
+
+def backfill() -> str:
+    """Record every live definition the inventory does not yet know.
+
+    ADDITIVE, like `track_new`, and refusing on the same condition: it will not
+    run while a tracked name is already reporting lost, because adding coverage
+    is not the moment to be carrying an unexplained loss. It never removes, so
+    it cannot launder one.
+    """
+    standing = vanished()
+    if standing:
+        return ("REFUSING to backfill while the inventory already reports "
+                f"{len(standing)} loss(es). Resolve or accept them first -- "
+                f"the first is: {standing[0]}")
+    try:
+        doc = json.loads(INVENTORY.read_text())
+    except Exception as e:
+        return f"cannot read {INVENTORY.name}: {e}"
+    inv = doc.get("modules")
+    if inv is None:
+        return f"{INVENTORY.name} has no `modules` map"
+    added = 0
+    touched = []
+    for path in modules():
+        recorded = inv.get(path.name)
+        if recorded is None:
+            continue
+        try:
+            live = definitions(path.read_text())
+        except ValueError as e:
+            return f"REFUSING to backfill: {path.name} {e}"
+        gap = live - set(recorded)
+        if gap:
+            inv[path.name] = sorted(set(recorded) | live)
+            added += len(gap)
+            touched.append(path.name)
+    if not added:
+        return "every live definition is already recorded -- nothing to add"
+    INVENTORY.write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
+    return (f"recorded {added} definition(s) across {len(touched)} module(s): "
+            + ", ".join(sorted(touched)))
+
+
 def _atomic(p, text: str) -> dict:
     """Write via tempfile + fsync + replace, for the same reason
     `measured.save()` does: a half-written module that still parses is the worst
@@ -832,11 +905,14 @@ def main(argv: list) -> int:
     if len(argv) >= 2 and argv[1] == "--track":
         print("  " + track_new())
         return 0
+    if len(argv) >= 2 and argv[1] == "--backfill":
+        print("  " + backfill())
+        return 0
     if len(argv) == 4 and argv[1] == "--accept":
         msg = accept(argv[2], argv[3])
         print("  " + msg)
         return 1 if msg.startswith(("REFUS", "cannot")) else 0
-    bad = vanished() + untracked()
+    bad = vanished() + untracked() + unrecorded()
     for b in bad:
         print(f"  {b}")
     print(f"  {len(bad)} finding(s)")

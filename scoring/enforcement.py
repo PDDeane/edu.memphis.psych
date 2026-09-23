@@ -9271,6 +9271,32 @@ def check_no_definition_vanished() -> list[str]:
     return editguard.vanished()
 
 
+def check_every_definition_is_recorded() -> list[str]:
+    """A definition the tree defines and the inventory does not record.
+    Reported as DEFINITION IS NOT IN THE INVENTORY.
+
+    THE THIRD GAP IN ONE FAMILY, and each was invisible to the others.
+    `check_no_definition_vanished` asks whether a RECORDED name still exists.
+    `check_every_module_is_tracked` asks whether a MODULE is recorded at all.
+    This asks whether a tracked module's recorded set is CURRENT -- because a
+    name outside it cannot be reported lost, nothing having known it was there.
+
+    MEASURED WHEN THIS WAS WRITTEN: 1769 definitions live, 1419 recorded, 350
+    unguarded across 21 modules -- `enforcement.py` 130, `measured.py` 46,
+    `olx_prompts.py` 26. The ledger had been frozen at its seed because
+    `safe_write` reported what it added and recorded none of it.
+
+    The sharpest instance: `editguard.py`'s own `track_new` and
+    `UNTRACKED_BY_DESIGN`, added by item G to close the MODULE gap, were
+    themselves unrecorded. A cleanup with nothing holding it is a gap with a
+    date on it, which is why this check ships with the mechanism that fixes it
+    rather than after.
+    """
+    import editguard
+
+    return editguard.unrecorded()
+
+
 def check_no_definition_is_named_for_an_item() -> list[str]:
     """A definition named for a course item, undeclared.
     Reported as DEFINITION IS NAMED FOR AN ITEM.

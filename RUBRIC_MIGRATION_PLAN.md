@@ -3162,6 +3162,31 @@ of classifying every material in the two trees against the ten-category scheme i
 found something sitting in the wrong category, or a module whose two halves belong
 to different ones.
 
+**THE ORDER OF WORK, set by the user 2026-09-23.**
+
+    G(a)  ->  G(b)  ->  G2  ->  C  ->  H  ->  B  ->  I
+
+It honours both dependencies this plan states. G2 BEFORE H, because "H assigns one
+home per category, and it cannot until each file belongs to one". C BEFORE B,
+because they are the two answers to one question -- who produces the handout -- and
+C is the cheaper, with B then scoped to the PAGE parts rather than the whole.
+
+C BEFORE H WAS THE ONE GENUINE TOSS-UP and is the user's call, not an inference.
+Nothing in this plan settles it. The argument taken: C's proof obligation is
+byte-exact reproduction of 23 bodies and 26 attribute sets, which is delicate work,
+and doing it on a freshly reorganised tree adds risk that has nothing to do with C.
+The argument against, recorded because it is real: H is blocked only by G2, and
+doing H earlier means later work lands in its final home instead of being moved
+twice.
+
+I IS LAST BECAUSE IT IS INDEPENDENT, not because it is least valuable. Its two
+mentions of G2 are methodological -- the false-positive lesson, and "course content
+in engine documentation is what G2 removes" -- and neither is a dependency. Its cost
+is the four prerequisites in its own section, which are build work.
+
+G(a) -> G(b) is not a preference: G(b) was found BY G(a), and it repairs the very
+ledger G(a) writes to.
+
 **State at the time of folding.** D and E are DONE and recorded in place. A, B, C
 and F are open. C is the largest and is not new work -- §13 C(i) records what the
 prior dry run already built for it. F is ranked above D was, for the reason given
@@ -3766,7 +3791,7 @@ where 3 are real.
 Audit 44, finding set identical to baseline. Both sides still reproduce the frozen
 20-row F baseline.
 
-##### G(b) · 350 DEFINITIONS ARE LIVE AND UNRECORDED -- OPEN, found 2026-09-23
+##### G(b) · 350 DEFINITIONS WERE LIVE AND UNRECORDED -- DONE 2026-09-23
 
 THE LEDGER TRACKS A FROZEN NAME SET PER MODULE. `safe_write` reports `added` but
 does not record it, `accept` only removes, and `track_new` adds MODULES, not names.
@@ -3783,6 +3808,43 @@ can only miss what it never knew.
 `editguard.py`'s own 15 include `UNTRACKED_BY_DESIGN` and `track_new`, added by
 item G hours earlier -- so G closed the module gap and opened this one in the same
 act, which is the clearest possible statement of the shape.
+
+WHAT SHIPPED. `editguard.unrecorded()` reports a tracked module whose recorded set
+is stale; `editguard.backfill()` and `--backfill` close it, additively and refusing
+on the same condition `track_new` uses -- it will not run while a tracked name is
+already reporting lost, so it cannot launder a loss. `check_every_definition_is_
+recorded` is the backstop, registered in the audit as DEFINITION IS NOT IN THE
+INVENTORY.
+
+`safe_write` WAS DELIBERATELY NOT TOUCHED, and the first design did touch it. The
+plan was to record additions automatically as they were written. That would have
+made the writer IMPURE: a write-then-revert through `safe_write` -- a speculative
+edit, a fixture, a fire test -- would leave a phantom name in the ledger that
+`vanished()` then reports forever, and the report would be true of the ledger and
+false of the tree. Recording stays an explicit act, which is also the idiom already
+here: `--accept` for a removal, `--track` for a module, `--backfill` for a name.
+
+(The question that found it was whether the SELF-TEST would pollute the ledger,
+since it renames definitions to inject faults -- `_gold_nameable_slots` to `_NOPE_`.
+It would not: it injects through `Path.write_text` directly, never through
+`safe_write`. But asking exposed the worse case in the design itself.)
+
+NOT SEPARATELY CERTIFIED, decided by the user 2026-09-23, and recorded here because
+in this project everything certifies and an exception belongs on the record rather
+than in the gaps. The reasoning: `equivalence.py` contains ZERO references to
+`editguard`, so none of the 72 self-test cases exercise it -- they install faults in
+the SCORER. Editguard reaches the audit only through `check_no_definition_vanished`,
+which the two-minute COLD AUDIT exercises fully. With `safe_write` untouched, G(b)
+is two read-only functions and a CLI flag, so nothing every later edit depends on
+passes through it. Verified by cold audit and fire test; G2's certification covers
+the commit.
+
+THE FAMILY IS NOW COMPLETE, and each member was invisible to the others:
+
+    check_no_definition_vanished        is a RECORDED name still defined?
+    check_every_module_is_tracked       is a MODULE recorded at all?
+    check_every_definition_is_recorded  is a module's recorded set CURRENT?
+
 
 THIS IS G'S GAP ONE LEVEL DOWN and the fix is the same shape: a definition is
 tracked or it is declared. The likely form is `safe_write` recording what it
@@ -4205,6 +4267,69 @@ thing a file is from where it sits, without asking.
   3. the results of certifications, sweeps, and the ledger and accounting files
      that track them
 
+THE SUPPORTING SCRIPTS GET THEIR OWN SUBDIRECTORY, inside `scoring/` -- the user's
+instruction 2026-09-23. They stay (they support audits and certification, which is
+category 1 of the three `scoring/` may hold), but they stop being shelved among the
+analytic machinery they serve. `editguard.py` is the named example.
+
+TOOLING THAT TOUCHES COURSE CONTENT STILL GOES HERE, and getting that wrong is easy
+-- the first discriminator tried was "a CLI tool importing NO course-data module",
+and it is wrong in BOTH directions. It over-selects: `rubric_equivalence`,
+`migrated_tables` and `shape_inventory` are analytic checks that merely happen not to
+import course data. And it under-selects, which is worse: it would EXCLUDE
+`course_inventory.py`, the clearest piece of tooling in the package after
+`editguard`, because that module imports `coursedata` to fetch the item ids it
+measures against.
+
+THE SIGNAL IS NOT WHAT A MODULE READS, IT IS WHAT IT ENCODES -- which is the same
+distinction this whole migration turns on. A tool may read every byte of course data
+and still know nothing about this course:
+
+    measured.py           12 embedded item ids, reads course data   -> machinery
+    olx_prompts.py         8                                        -> machinery
+    course_inventory.py    0 embedded item ids, reads course data   -> TOOLING
+    corpus_ref.py          0                                        -> TOOLING
+
+So the rule is: a module that ENCODES course knowledge is machinery (`scoring/`) or,
+if the knowledge is about mapping paper to web, a fixture (`bmod_fixture/`). A module
+that merely PROCESSES course data, carrying none of it, is a supporting tool and goes
+in the subdirectory whatever it reads. Nothing is lost by touching course content;
+what decides the home is whether the course is IN the module.
+
+EMBEDDED-ID COUNT IS NECESSARY BUT NOT SUFFICIENT, and the residue has to be settled
+by hand: `cross_path.py`, `faithful_probe.py` and `self_graded_misses.py` carry zero
+ids and are still analytic -- they produce measurements ABOUT the course rather than
+operating on the repository. The second question, after "does it encode the course",
+is "does it produce a finding or maintain the tree". Settle both before moving
+anything; do not move by intuition and declare the rule afterwards.
+
+AND THE MOVE HAS A SILENT FAILURE MODE, which is the reason this is recorded here
+rather than treated as shelving. Every one of these tools locates the package it
+inspects from its OWN position:
+
+    editguard.py         HERE = pathlib.Path(__file__).parent
+    course_inventory.py  HERE = os.path.dirname(os.path.abspath(__file__))
+    out_inventory.py     pathlib.Path(__file__).resolve().parent / "MEASURED.json"
+
+`editguard.HERE` is what `modules()` globs and what `INVENTORY` resolves against.
+Move the file into `scoring/tools/` and it inventories `scoring/tools/*.py` and looks
+for `scoring/tools/DEFINITIONS.json`. IT DOES NOT ERROR. It reports a clean, tiny,
+entirely wrong inventory -- and `check_every_module_is_tracked` and
+`check_every_definition_is_recorded` would both go quiet at the same moment, since
+both ask editguard what the package contains.
+
+So the relocation must repoint those locations FIRST, at the package root rather
+than at `__file__`'s parent. The lever already exists:
+`check_filesystem_locations_come_from_paths_py` requires filesystem locations to
+resolve in `paths.py`, on the reasoning that "a literal path does not fail on the
+wrong tree, it SUCCEEDS on it" -- which is precisely this failure, stated in advance.
+
+THE IMPORT CHURN IS SMALL, measured: `editguard` is imported by 1 module,
+`course_inventory` by 2, `guide` by 1, `anchors` by 1, `out_inventory` by 0. The
+cost is not the imports. It is the three `HERE`s and the two ledgers keyed by bare
+module filename (`DEFINITIONS.json`, `COURSE_DATA_BUDGET.json`), which a move
+rekeys.
+
 IX IS THE INTERESTING CASE and the reason it gets its own folder rather than a
 move out of the repo: the fixture code maps responses and gold comments between
 the paper and web forms, so it is COURSE-SPECIFIC — but it is executable
@@ -4303,6 +4428,120 @@ needed for documentation are deletable at H. The discipline that applies is the
 one this project already has: ENUMERATE THE POPULATION FIRST and state the rule
 that selects it, so a deletion set is never assembled from the instances someone
 happened to notice. `fixset_coverage.py` exists for exactly this.
+
+#### THREE BODIES OF WORK THE CATEGORIES DO NOT COVER
+
+Found by enumerating every `.py`/`.sh`/`.ts`/`.js` in the repo rather than trusting
+the ten categories to be exhaustive. They were not.
+
+1. `migration/` -- 52 SCRIPT FILES, AND CATEGORY X IS WRONG ABOUT THEM.
+
+   X files them as "the migration harness itself" under "everything else: triaged,
+   relocated by the same logic, or DELETED". THAT CONTRADICTS THIS PLAN'S OWN TEXT,
+   which says "**Preserved for this stage.**" of `migration/stage00_*.py`,
+   `stage01_*`, `stage04_*`, `stage05_*` and more, at four places in section 7.
+
+   They are also LIVE, not spent: newest file 2026-09-22, and
+   `enforcement.py` names `migration/goldens/audit_baseline.json` as something the
+   freeze cannot pass without. AND ITEM C DEPENDS ON THEM DIRECTLY -- C(i) records
+   that "the harness and the gate already exist in `migration/`:
+   `stage02_assembler_surface.py`, `stage02_gate.py`, `stage03a_gate.py`,
+   `stage03b_gate.py`". Deleting or shelving them would remove the acceptance
+   instrument for the item ranked fourth in this queue.
+
+   DECIDED 2026-09-23: DELETE THEM WHEN THEY ARE NOT NEEDED -- which is a retirement
+   CONDITION, not a date, and the condition is what H must record. A stage's scripts
+   are spent when the stage they gate is complete AND nothing still reads their
+   output. Today that is false of at least three:
+
+       stage02_assembler_surface.py, stage02_gate.py, stage03a/b_gate.py
+           item C's acceptance instrument. C is fourth in the queue; these go when
+           C is done, not before.
+       migration/goldens/audit_baseline.json
+           named by `enforcement.py` as something the freeze cannot pass without.
+           It goes when nothing names it.
+
+   So `migration/` is not a residue to sweep and not a monument to keep. It is
+   machinery with an expiry that each stage sets for itself, and the deletion rule
+   is per-stage: gate complete, output unread, then delete -- stated as a rule and
+   run against every stage, never by eyeballing which look old.
+
+2. `scoring/*.sh` -- LOAD-BEARING SHELL THE RULE DOES NOT MENTION.
+
+   H says `scoring/` holds "the analytic PYTHON that supports audits and
+   certification". The sweep drivers are shell and are referenced from python:
+
+       sweep_app.sh     8 referrers, incl. measured.py, head_to_head.py, paper_runs.py
+       sweep_cli.sh     6 referrers, incl. measured.py, head_to_head.py
+       sweep_paper.sh   5 referrers, incl. enforcement.py, score.py, measured.py
+
+   DECIDED 2026-09-23: THE SWEEP DRIVERS ARE TOOLS and go to the tools
+   subdirectory with `editguard` and the inventories. They drive the work rather
+   than producing a finding about the course, which is the second of the two
+   questions this item uses to place a module. `writescope.sh` is the one genuinely
+   disposable member, being a fixture of one session's write scope.
+
+   NOTE WHAT THAT COSTS: five python modules reference these by bare filename
+   (`measured.py`, `enforcement.py`, `score.py`, `head_to_head.py`,
+   `paper_runs.py`), so the move rewrites those references, and any that build the
+   path from `__file__`'s directory hits the same silent redirection as the three
+   `HERE`s above.
+
+3. THE EVENT PIPELINE -- OUTSIDE THIS PLAN, AND UNDER NO VERSION CONTROL AT ALL.
+
+   WHAT IT IS, since the name is not self-explanatory. `~/code/scripts/` holds 18
+   scripts, four of which are a chain that turns raw lo-blocks LEARNER ACTIVITY
+   CAPTURES into readable per-form logs:
+
+       process_events.py         14,922 lines. Rewrites a lo-blocks events .jsonl
+                                 stream into a readable log. The raw capture is
+                                 optimised to RECOVER STATE for exact replays and
+                                 only makes sense replayed against the runtime
+                                 state machine; this makes it readable by scanning
+                                 events alone.
+       consolidate_user_events.py  per-session .json -> one file per USER, time
+                                 ordered across sessions, SESSION_BREAK between.
+       forms_by_users.py         re-parcels a user's log BY FORM: one file per
+                                 (user, form), timeline preserved.
+       run_pipeline.sh           runs the three end to end.
+
+   AND IT IS IN NO REPOSITORY, which is worse than being in a different one.
+   Neither `~/code` nor `~/code/scripts` is a git repository -- the only repos under
+   `~/code` are `edu.memphis.psych` and `lo-blocks`. `process_events.py` also exists
+   as two older loose copies:
+
+       ~/Documents/process_events.py      6,962 lines   2026-07-01
+       ~/Desktop/process_events.py       12,719 lines   2026-07-14
+       ~/code/scripts/process_events.py  14,922 lines   2026-07-29   <- the live one
+
+   So the largest single program in this ecosystem has no history, no diff against
+   its own past, and two divergent snapshots beside it.
+
+   DECIDED 2026-09-23: IT STAYS IN `scripts/`, AND THIS SESSION DOES NOT TOUCH IT --
+   not reading, not writing, not deleting. H does not relocate it, does not
+   annex it, and does not propose a home for it. `scoring/writescope.sh` now names
+   `/home/pdeane/code/scripts` in FORBIDDEN rather than relying on the ALLOWED
+   list's silence, because an omission stops protecting the moment that list
+   widens.
+
+   H STILL NAMES IT, though, for the reason this section exists: a reader checking
+   coverage against the ten categories would otherwise conclude the pipeline had
+   been considered and placed. It was considered and deliberately left alone, which
+   is a different fact and a better one to have written down. The versioning
+   observation above is left as an observation -- someone else's call, not this
+   plan's.
+
+   IT IS NOT SCORING TOOLING. It processes what a learner did on screen in ANY
+   lo-blocks activity; this project grades handout responses. The two touch at
+   exactly one point: the pipeline is the only consumer of `olx_string_idmaps.ts`
+   (item E). The other 14 scripts there are operational -- sweep drivers, failure
+   clustering, wait helpers.
+
+   H should NOT quietly annex it -- it is outside this session's write scope and may
+   have its own home. But it must be NAMED, because "the categories cover
+   everything in the two directories" is true and misleading: the pipeline is
+   neither, and a reader checking coverage against this plan would conclude it was
+   considered when it was not.
 
 #### PARKED AND STAGED WORK -- H had no plan for this, and it is the larger half
 
