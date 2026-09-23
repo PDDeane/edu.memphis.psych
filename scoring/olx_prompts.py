@@ -968,31 +968,12 @@ def _ref(action: str, target: str, minted: dict) -> str:
     return _REF % (rid, target)
 
 
-# What "matches" means, stated once, before the first component that uses the
-# word. Per item, because only the items whose components say "matches" need it.
-# Semantic equivalence, stated once. Q6 asks whether a box MATCHES a listed entry
-# and WK1 asks whether a trigger names the SAME ACTIVITY the student chose; those
-# are one operation, and two definitions of it would drift. Kept here so it can be
-# placed EARLY on either prompt shape.
-#
-# The parity framing is what this adds, and it is measured: "semantically
-# equivalent" on its own licenses open judgement, and WK1/p7 held 3/3 under this
-# closed construction where an open test fenced after the fact held only 1/3.
-EQUIVALENCE_DEF = (
-    "The two things being compared are semantically equivalent. That "
-    "includes equivalence established by combinations of negations and "
-    "antonyms: failing to do a thing early is doing it late, forgetting "
-    "to do a thing is not doing it, not suffering a bad state is being in "
-    "the good one.\n"
-    "ANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE "
-    "ENDS OF ONE SCALE -- more and less of a single property, so that naming one "
-    "and negating it gives you the other. Early and late are one scale. Poor "
-    "health and good health are one scale. Words that are merely both "
-    "unpleasant, or both pleasant, or that name DIFFERENT properties, are not "
-    "antonyms and do not establish equivalence: being tired and being cheerful "
-    "are two properties, not two ends of one. Ask what single property is being "
-    "measured before you call two words opposites."
-)
+# `EQUIVALENCE_DEF` STOOD HERE AND WAS DEAD. It was a byte-identical second
+# copy of `generator_source.EQUIVALENCE_DEF` -- 832 characters, read by
+# NOTHING in this module, with no check tying the two. The comment above it
+# said "two definitions of it would drift", and there were two. A leftover
+# from when the table moved to `generator_source`, where `MATCH_DEF` is built
+# from the live one.
 
 
 MATCH_DEF = _generator_table("prompt_match_def")

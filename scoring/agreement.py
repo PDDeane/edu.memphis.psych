@@ -1389,7 +1389,7 @@ def score_oc(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     if "demonstrates_type" in {s["key"] for s in spec["slots"]}:
         if not yes("demonstrates_type"):
             return max(0.0, item["max"] - codes["WRONG_TYPE"]), 1
-    elif observed != spec["expected_type"]:
+    elif observed != item["expected_type"]:
         return max(0.0, item["max"] - codes["WRONG_TYPE"]), 1
     if not yes(aimed_key):
         return max(0.0, item["max"] - codes["WRONG_TYPE"]), 1
@@ -1425,7 +1425,11 @@ def score_oc_cadence(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     # mutually exclusive across the sheets, so the order is not load-bearing --
     # but the fallback is, and it is the FIRST candidate so an item whose sheet
     # has neither still raises on a missing slot instead of silently ungating.
-    _cad = ("cadence_is_daily", "cadence_is_daily_counted") if spec["cadence"] == "daily" else ("cadence_is_weekly",)
+    # FROM THE RUBRIC, NOT FROM THE BLOCK ENTRY. Both facts were carried on the
+    # BLOCKS declaration too, agreeing with the rubric on all eight items --
+    # which is the state a drift starts from. `item` here IS the rubric row.
+    _cad = (("cadence_is_daily", "cadence_is_daily_counted")
+            if item["cadence"] == "daily" else ("cadence_is_weekly",))
     _have = {s["key"] for s in spec["slots"]}
     cadence_key = next((k for k in _cad if k in _have), _cad[0])
     if not yes(cadence_key):

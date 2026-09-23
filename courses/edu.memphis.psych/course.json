@@ -3564,50 +3564,42 @@
      "bmod_h2_pr_llm": {
       "item": "PR",
       "olx": "bmod_handout2.olx",
-      "kind": "oc",
-      "expected_type": "PR"
+      "kind": "oc"
      },
      "bmod_h2_nr_llm": {
       "item": "NR",
       "olx": "bmod_handout2.olx",
-      "kind": "oc",
-      "expected_type": "NR"
+      "kind": "oc"
      },
      "bmod_h2_pp_llm": {
       "item": "PP",
       "olx": "bmod_handout2.olx",
-      "kind": "oc",
-      "expected_type": "PP"
+      "kind": "oc"
      },
      "bmod_h2_np_llm": {
       "item": "NP",
       "olx": "bmod_handout2.olx",
-      "kind": "oc",
-      "expected_type": "NP"
+      "kind": "oc"
      },
      "bmod_h2_day1_llm": {
       "item": "DAY1",
       "olx": "bmod_handout2.olx",
-      "kind": "oc_cadence",
-      "cadence": "daily"
+      "kind": "oc_cadence"
      },
      "bmod_h2_wk1_llm": {
       "item": "WK1",
       "olx": "bmod_handout2.olx",
-      "kind": "oc_cadence",
-      "cadence": "weekly"
+      "kind": "oc_cadence"
      },
      "bmod_h2_day2_llm": {
       "item": "DAY2",
       "olx": "bmod_handout2.olx",
-      "kind": "oc_cadence",
-      "cadence": "daily"
+      "kind": "oc_cadence"
      },
      "bmod_h2_wk2_llm": {
       "item": "WK2",
       "olx": "bmod_handout2.olx",
-      "kind": "oc_cadence",
-      "cadence": "weekly"
+      "kind": "oc_cadence"
      },
      "bmod_h2_d1_llm": {
       "item": "D1",

@@ -1274,6 +1274,11 @@ HAND_AUTHORED_ATTRS: dict[tuple[str, str], str] = {
 }
 
 
+# NO `expected_type` AND NO `cadence` HERE, since 2026-09-23. Eight entries
+# carried one of those two, every one of them agreeing with the RUBRIC's field
+# of the same name -- which is the state a drift starts from, and nothing read
+# them off a block entry anyway. The rubric says what an item expects and what
+# cadence it takes; this table says where its screen is.
 # THE GRADABLE BLOCKS OF THIS COURSE: which screen holds which item, in which
 # .olx, and what KIND of grading it takes. Authored, not derivable -- handout
 # 3's screen names (`overview`, `success`, `assessment`, `improve`, `graph`)
@@ -1319,36 +1324,28 @@ BLOCKS: dict[int, dict[str, dict]] = {1: {'bmod_h1_q1_llm': {'item': 'Q1',
                         'kind': 'slots'}},
  2: {'bmod_h2_pr_llm': {'item': 'PR',
                         'olx': 'bmod_handout2.olx',
-                        'kind': 'oc',
-                        'expected_type': 'PR'},
+                        'kind': 'oc'},
      'bmod_h2_nr_llm': {'item': 'NR',
                         'olx': 'bmod_handout2.olx',
-                        'kind': 'oc',
-                        'expected_type': 'NR'},
+                        'kind': 'oc'},
      'bmod_h2_pp_llm': {'item': 'PP',
                         'olx': 'bmod_handout2.olx',
-                        'kind': 'oc',
-                        'expected_type': 'PP'},
+                        'kind': 'oc'},
      'bmod_h2_np_llm': {'item': 'NP',
                         'olx': 'bmod_handout2.olx',
-                        'kind': 'oc',
-                        'expected_type': 'NP'},
+                        'kind': 'oc'},
      'bmod_h2_day1_llm': {'item': 'DAY1',
                           'olx': 'bmod_handout2.olx',
-                          'kind': 'oc_cadence',
-                          'cadence': 'daily'},
+                          'kind': 'oc_cadence'},
      'bmod_h2_wk1_llm': {'item': 'WK1',
                          'olx': 'bmod_handout2.olx',
-                         'kind': 'oc_cadence',
-                         'cadence': 'weekly'},
+                         'kind': 'oc_cadence'},
      'bmod_h2_day2_llm': {'item': 'DAY2',
                           'olx': 'bmod_handout2.olx',
-                          'kind': 'oc_cadence',
-                          'cadence': 'daily'},
+                          'kind': 'oc_cadence'},
      'bmod_h2_wk2_llm': {'item': 'WK2',
                          'olx': 'bmod_handout2.olx',
-                         'kind': 'oc_cadence',
-                         'cadence': 'weekly'},
+                         'kind': 'oc_cadence'},
      'bmod_h2_d1_llm': {'item': 'D1',
                         'olx': 'bmod_handout2.olx',
                         'kind': 'slots'},
