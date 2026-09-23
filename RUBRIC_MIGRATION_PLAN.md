@@ -3411,6 +3411,52 @@ than the prior run's was, because the WORDS have since moved into the rubric and
 independently ("reproduce byte for byte before the python producer retires") is
 the gate that was already built for it.
 
+#### C(ii) · BASELINE MEASURED 2026-09-23, before any code was written
+
+Five facts, each measured in this tree rather than carried over from the prior
+run's notes.
+
+1. THE 23/26 SPLIT STILL HOLDS EXACTLY. A naive count says 26 `<LLMAction>` in
+   the handouts, which would contradict the prior gate; three of those are the
+   phrase `<LLMAction>` inside each file's own header comment. 23 real bodies,
+   26 rubric items. The acceptance criterion is intact and unchanged.
+
+2. THE PRODUCER AGREES WITH DISK TODAY. `olx_prompts.py --check` reports all
+   three handouts up to date. That is the invariant C must preserve: the
+   assembler has to reproduce what is on disk now, and `prompt_sha` will say so.
+
+3. THE RUBRIC ALREADY CARRIES THE ITEM CONTENT and none of the scaffolding.
+   `bmod_rubric.olx` holds Credit (134), Deduction (107), Guidance (193),
+   Question (34), Slot (217) and Frame (58). It holds ZERO of the section
+   headers -- "## Credit components", "## Deduction codes", "## Grading
+   guidance", "## The checklist to return" -- and no system prompt. Those are
+   still literals in `olx_prompts.py`, which is exactly what `promptAssembler`
+   refuses to default: "the KEYS are engine concepts; the WORDS are not".
+
+4. THE MISSING INPUT IS 27 NAMED FRAGMENTS, and the prior run's set is CURRENT.
+   Checked against the shipped bodies rather than against the generator's source
+   -- python wraps long literals across lines, so searching the source reports
+   drift that is not there, and a first probe did exactly that and said 16 of 27
+   had changed. Against the generated text, 25 of 27 appear verbatim, and a 26th
+   (`derivedPresent`) is present in the bodies with the probe's wildcard too
+   tight to match it. So step 2 of C is bounded and small: move 27 fragments
+   into the rubric.
+
+5. THE ASSEMBLERS STILL HAVE NO CALLERS outside their own tests, and the prior
+   run's harness is READABLE in `pre_scrub_backup_*/migration/verify/`. Two
+   drivers matter: `bodies.ts` proves the assembler against frozen generator
+   inputs, and `all26_from_rubric.test.ts` is the one C actually wants -- it
+   sources `max, question, credit, deductions, guidance, deriveFromClauses,
+   conditions, frameParams` and the shared frame from the emitted rubric, and it
+   PRINTS what it did not source: `fragments, contextRefs, responseRefs,
+   slotOptions, notes, itemNotes, termDefinition`. That printed list is C's
+   remaining work, and item 4 above is the first entry on it.
+
+NEXT CONCRETE STEP: port `all26_from_rubric` into this tree as a real test --
+driven from THIS rubric and diffed against THESE handouts, not the prior run's
+frozen `expected` -- and report BYTE_EQUAL of 23. Everything after that is
+moving entries off the FROM_OLD_SOURCE list one at a time.
+
 ### D · `gold_slots_q6.py` -- a CHECK that nothing runs
 
 Separate from C, and it predates the migration: the prior run's patch touches it
