@@ -169,7 +169,6 @@ def _jsonable(x, path="") -> object:
 # as course-level authored values and not folded onto entries. Putting a
 # course-wide list on 26 items would be 26 copies of one fact.
 GENERATOR_TABLES = {
-    "ACTION": "prompt_action",
     "RESPONSE": "prompt_response",
     "CONTEXT": "prompt_context",
     "SHEET_ONLY": "prompt_sheet_only",

@@ -264,6 +264,11 @@ def as_view_items(path: str | None = None) -> list[dict]:
             it["asks"] = el.get("asks")
         if el.get("grading"):
             it["grading"] = el.get("grading")
+        # THE PATTERN THIS ITEM WAS BUILT FROM. Items sharing a family share slot
+        # NAMES, so those names must mean the same thing across it -- which is a
+        # fact about the item, not a list an enforcement module should hold.
+        if el.get("family"):
+            it["family"] = el.get("family")
         # PRESENT-BUT-EMPTY IS NOT ABSENT. Q4a carries `unreachable_codes: []`,
         # and an item that omits the key is a different item from one that
         # declares it holds none.

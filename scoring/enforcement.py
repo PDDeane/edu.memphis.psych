@@ -1361,7 +1361,11 @@ def _declaration(name: str) -> dict:
 COUNTABLE_EXEMPT = _declaration("COUNTABLE_EXEMPT")
 SELFTEST_NAMED_FIXTURES = _declaration("SELFTEST_NAMED_FIXTURES")
 PROBE_UNREACHABLE_PAIRS = _declaration("PROBE_UNREACHABLE_PAIRS")
-SLOT_STRUCTURE_FAMILIES = _declaration("SLOT_STRUCTURE_FAMILIES")
+import coursedata as _CD
+
+# FROM THE RUBRIC since 4a: `<Item family="...">`. It was a declaration naming
+# eight item ids, which is course content in an enforcement module.
+SLOT_STRUCTURE_FAMILIES = _CD.slot_structure_families()
 HAND_AUTHORED_ATTRS = _declaration("HAND_AUTHORED_ATTRS")
 PROSE_ONLY_SLOTS = _declaration("PROSE_ONLY_SLOTS")
 # RAISED 25 -> 27 on 2026-09-12 for two slots the audit had been reporting as

@@ -158,3 +158,25 @@ AUDIT / EQUIVALENCE / SELF-TEST
    working: the repo is public, so it holds readers and references and no student
    text. The corpus-reference mechanism is what makes category VI citable without
    being present.
+
+## CORRECTION 2026-09-23 (2): HANDOUT_FIELDS and CONTEXT_SOURCE are ALREADY HOME
+
+Both were listed as "can move to the course OLX". Measured: both are already
+PUBLISHED INTO `course.json` as declarations, and `HANDOUT_FIELDS` states its own
+placement rule -- "the table holds five different kinds of thing and only this
+kind belongs in the course file: course data -- blurb, capture_tail,
+exemplar_items, repair_orphans, join_aware <- here".
+
+Under the model settled today -- rubric OLX holds what is judged and which
+component judges it; course.json holds where an item sits and the fields that
+shape its prompt -- both are course METADATA and course.json is their home. Moving
+them into OLX would need new structure elements and would not make them righter.
+
+SO THE MOVABLE SET IS EXHAUSTED. Of the five originally listed:
+    BLOCKS                    DERIVED from <Item asks/grading>   (3b, certified)
+    SLOT_STRUCTURE_FAMILIES   DERIVED from <Item family>         (3c)
+    MULTI_BLOCK_DECLARED      STAYS -- audit records, and not derivable
+    HANDOUT_FIELDS            ALREADY HOME in course.json
+    CONTEXT_SOURCE            ALREADY HOME in course.json
+plus `prompt_action`, which was not in that list and went anyway (4a), because it
+was `asks` restated.

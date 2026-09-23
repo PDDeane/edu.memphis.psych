@@ -164,9 +164,17 @@ def _generator_value(name: str):
 
 PROBE_REACH_LIMITS = _generator_value("PROBE_REACH_LIMITS")
 
-# Which rubric item each <LLMAction> carries. (equivalence.py holds the same
-# map; it imports this one so the two cannot drift.)
-ACTION = _generator_table("prompt_action")
+# Which rubric item each <LLMAction> carries -- FROM THE RUBRIC, since 4a.
+# `<Item asks="...">` names the component an item judges, and this is the inverse
+# of that map. It was `prompt_action` in `course.json` until now, and the two
+# agreed on all 23 items with nothing tying them: one fact, written twice.
+# (equivalence.py holds the same map; it imports this one so those cannot drift.)
+def _action_from_rubric() -> dict:
+    import coursedata as _CD
+    return {str(it["id"]): it["asks"] for it in _CD.items() if it.get("asks")}
+
+
+ACTION = _action_from_rubric()
 # Items scored from a slot sheet with NO prompt: every verdict is derived from
 # the page, so there is no <LLMAction> and nothing for `--prompts` to compare.
 # They are still audited for arithmetic (`--scoring`) and enforcement.

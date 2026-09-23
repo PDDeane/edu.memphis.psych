@@ -1535,7 +1535,6 @@
   {
    "id": "Q1",
    "handout": 1,
-   "prompt_action": "bmod_h1_q1_llm",
    "prompt_context": [
     {
      "__tuple__": [
@@ -1564,7 +1563,6 @@
   {
    "id": "Q2",
    "handout": 1,
-   "prompt_action": "bmod_h1_q2_llm",
    "prompt_context": [
     {
      "__tuple__": [
@@ -1585,7 +1583,6 @@
   {
    "id": "Q3",
    "handout": 1,
-   "prompt_action": "bmod_h1_q3_llm",
    "prompt_response": [
     {
      "__tuple__": [
@@ -1622,7 +1619,6 @@
   {
    "id": "Q4a",
    "handout": 1,
-   "prompt_action": "bmod_h1_q4a_llm",
    "prompt_context": [
     {
      "__tuple__": [
@@ -1655,7 +1651,6 @@
   {
    "id": "Q4b",
    "handout": 1,
-   "prompt_action": "bmod_h1_q4b_llm",
    "prompt_context": [
     {
      "__tuple__": [
@@ -1694,7 +1689,6 @@
   {
    "id": "Q4c",
    "handout": 1,
-   "prompt_action": "bmod_h1_q4c_llm",
    "prompt_context": [
     {
      "__tuple__": [
@@ -1727,7 +1721,6 @@
   {
    "id": "Q5",
    "handout": 1,
-   "prompt_action": "bmod_h1_q5_llm",
    "prompt_response": [
     {
      "__tuple__": [
@@ -1746,7 +1739,6 @@
   {
    "id": "Q6",
    "handout": 1,
-   "prompt_action": "bmod_h1_q6_llm",
    "prompt_notes": "## What the four `state_` checks report\nThese four do NOT report a match. They report an IDENTITY, and they report it in a FIELD OF ITS OWN, separate from the verdict. The two fields take different values and neither accepts the other's.\n`verdict` says whether the box names an antecedent (or a consequence) at all: `met` if it does, `absent` if it does not.\n`refers_to` says WHICH of the two listed items it is: `first`, `second`, or `none`. `none` is the value for \"not either of the two\" -- it is the only one, so do not answer `neither`, and do not put `absent` here. Those are not values this field takes.\n\nSay what you see and nothing more. Whether the pair covers both listed items is worked out from your two answers by the grader, so you do not need to reason about the other box, and a student who addresses 4a's second antecedent first has still addressed it \u2014 report `second` and it will be credited. One distinction matters for the feedback rather than the score: `met` with `refers_to: none` says they named an antecedent but not one of 4a's, while `absent` says they named none at all. The points are the same either way; the difference decides whether the student is told their antecedent does not match 4a or that they did not state one.\n\nONE THING TO CARRY INTO `feedback`. Each of the two listed items can be credited once, so if you report the SAME label for both boxes \u2014 `first` twice, say \u2014 the student has named one antecedent twice and left the other unaddressed, and only one of the two boxes can count. Your verdicts already handle the scoring; what you must not do is congratulate them on both boxes in that case. Say that the second repeats the first and name the item from 4a they have not yet addressed.\n",
    "prompt_notes_why": "Explains the web's TWO-FIELD encoding -- a `verdict` and a separate `refers_to` that takes `first`/`second`/`none`. Paper has one field and is told so in its own words by score._paper_vocab: 'Answer with ONE value from `first`, `second`, `neither`, `absent` -- there is no separate field on this side.' Mirrored in substance, not copied.",
    "prompt_match_def": "## Definition of 'matches' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\nA listed 4a or 4c entry often states one thing and then what follows from it -- \"X, so I Y\". Decide which of THREE kinds Y is before you compare, because it decides what the entry can be matched against.\n1. Y RESTATES THE ANTECEDENT in other words. Part of the antecedent; a box equivalent to Y matches that 4a entry.\n2. Y IS AN INTERMEDIATE ANTECEDENT -- a further step that still LEADS TO the unwanted behaviour rather than following from it. Also part of the antecedent, described one link nearer; a box equivalent to Y matches that 4a entry.\n3. Y IS A CONSEQUENCE -- the unwanted behaviour itself, or something that follows from it. Not part of the antecedent: a box equivalent to Y does NOT match that 4a entry. It may still match a 4c entry that lists that same consequence, and should be matched there.\nThe test between 2 and 3 is direction: does Y lead to the unwanted behaviour, or follow from it? The unwanted behaviour is named in the Q1 answer in the context below.\n",
@@ -1804,7 +1796,6 @@
   {
    "id": "PR",
    "handout": 2,
-   "prompt_action": "bmod_h2_pr_llm",
    "prompt_response": [
     {
      "__tuple__": [
@@ -1817,7 +1808,6 @@
   {
    "id": "NR",
    "handout": 2,
-   "prompt_action": "bmod_h2_nr_llm",
    "prompt_response": [
     {
      "__tuple__": [
@@ -1830,7 +1820,6 @@
   {
    "id": "PP",
    "handout": 2,
-   "prompt_action": "bmod_h2_pp_llm",
    "prompt_response": [
     {
      "__tuple__": [
@@ -1843,7 +1832,6 @@
   {
    "id": "NP",
    "handout": 2,
-   "prompt_action": "bmod_h2_np_llm",
    "prompt_response": [
     {
      "__tuple__": [
@@ -1869,7 +1857,6 @@
   {
    "id": "D1",
    "handout": 2,
-   "prompt_action": "bmod_h2_d1_llm",
    "prompt_context": [
     {
      "__tuple__": [
@@ -1890,7 +1877,6 @@
   {
    "id": "DAY1",
    "handout": 2,
-   "prompt_action": "bmod_h2_day1_llm",
    "prompt_match_def": "## Definition of 'the same behaviour' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\n",
    "prompt_response": [
     {
@@ -1904,7 +1890,6 @@
   {
    "id": "WK1",
    "handout": 2,
-   "prompt_action": "bmod_h2_wk1_llm",
    "prompt_match_def": "## Definition of 'the same activity' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\nTwo phrases that are NOT equivalent by that test name two activities, however close the connection between them. An activity that another might cause, accompany, amount to, or be evidence of is a SECOND thing, not a point on the same scale.\nDEGREE AND DETAIL ARE NOT DIFFERENCES OF ACTIVITY. The same doing with a different number, frequency, duration or extra particular attached is still that doing. Compare WHAT IS BEING DONE, not how much of it is being done or how precisely it is specified.\nA phrase with NO CONTENT OF ITS OWN -- a pointer, such as \"my goal\" or \"my target this week\" -- is not compared by this test at all. Classify it by what it points at, as the check itself directs.\n",
    "prompt_response": [
     {
@@ -1931,7 +1916,6 @@
   {
    "id": "D2",
    "handout": 2,
-   "prompt_action": "bmod_h2_d2_llm",
    "prompt_context": [
     {
      "__tuple__": [
@@ -1952,7 +1936,6 @@
   {
    "id": "DAY2",
    "handout": 2,
-   "prompt_action": "bmod_h2_day2_llm",
    "prompt_match_def": "## Definition of 'the same behaviour' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\n",
    "prompt_response": [
     {
@@ -1966,7 +1949,6 @@
   {
    "id": "WK2",
    "handout": 2,
-   "prompt_action": "bmod_h2_wk2_llm",
    "prompt_match_def": "## Definition of 'the same behaviour' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\n",
    "prompt_response": [
     {
@@ -1980,7 +1962,6 @@
   {
    "id": "1a",
    "handout": 3,
-   "prompt_action": "bmod_h3_overview_llm",
    "prompt_context": [
     {
      "__tuple__": [
@@ -2006,7 +1987,6 @@
   {
    "id": "1c",
    "handout": 3,
-   "prompt_action": "bmod_h3_graph_llm",
    "prompt_evidence": {
     "__tuple__": [
      "## Graph evidence for this submission\nThe four weeks of data the student entered in 1b. SelfMonitorPlot plots exactly these, so they are what decides whether a graph exists at all.",
@@ -2076,7 +2056,6 @@
   {
    "id": "2a",
    "handout": 3,
-   "prompt_action": "bmod_h3_success_llm",
    "prompt_context": [
     {
      "__tuple__": [
@@ -2121,7 +2100,6 @@
   {
    "id": "2b",
    "handout": 3,
-   "prompt_action": "bmod_h3_assessment_llm",
    "prompt_context": [
     {
      "__tuple__": [
@@ -2142,7 +2120,6 @@
   {
    "id": "3",
    "handout": 3,
-   "prompt_action": "bmod_h3_improve_llm",
    "prompt_response": [
     {
      "__tuple__": [
@@ -2275,31 +2252,6 @@
    }
   ],
   "TABLE_ORDER": {
-   "ACTION": [
-    "Q1",
-    "Q2",
-    "Q3",
-    "Q4a",
-    "Q4b",
-    "Q4c",
-    "Q5",
-    "Q6",
-    "PR",
-    "NR",
-    "PP",
-    "NP",
-    "D1",
-    "DAY1",
-    "WK1",
-    "D2",
-    "DAY2",
-    "WK2",
-    "1a",
-    "1c",
-    "2a",
-    "2b",
-    "3"
-   ],
    "CONTEXT": [
     "Q1",
     "Q2",
@@ -3492,23 +3444,6 @@
      }
     ],
     "The web charges the pair once. `demonstrates_type` is DERIVED on NR -- the sheet declares `expect=\"demonstrates_type:observed_type=NR\"` -- so the CLI probe never fails it independently and the pair cannot appear in its arithmetic. Named in equivalence.py's selftest as a legitimate declared divergence since before this table existed; moved here so it is a decision with a reason rather than a remark. Declared 2026-09-16."
-   ]
-  ],
-  "SLOT_STRUCTURE_FAMILIES": [
-   [
-    "h2-cadence-and-type",
-    {
-     "__tuple__": [
-      "PR",
-      "NR",
-      "PP",
-      "NP",
-      "DAY1",
-      "WK1",
-      "DAY2",
-      "WK2"
-     ]
-    }
    ]
   ],
   "HAND_AUTHORED_ATTRS": [],

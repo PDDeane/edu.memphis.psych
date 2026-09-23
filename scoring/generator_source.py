@@ -113,21 +113,11 @@ PROBE_REACH_LIMITS = [
 ]
 
 
-# Which rubric item each <LLMAction> carries. (equivalence.py holds the same
-# map; it imports this one so the two cannot drift.)
-ACTION = {
-    "Q1": "bmod_h1_q1_llm", "Q2": "bmod_h1_q2_llm", "Q3": "bmod_h1_q3_llm",
-    "Q4a": "bmod_h1_q4a_llm", "Q4b": "bmod_h1_q4b_llm", "Q4c": "bmod_h1_q4c_llm",
-    "Q5": "bmod_h1_q5_llm", "Q6": "bmod_h1_q6_llm",
-    "PR": "bmod_h2_pr_llm", "NR": "bmod_h2_nr_llm", "PP": "bmod_h2_pp_llm",
-    "NP": "bmod_h2_np_llm", "D1": "bmod_h2_d1_llm", "DAY1": "bmod_h2_day1_llm",
-    "WK1": "bmod_h2_wk1_llm", "D2": "bmod_h2_d2_llm", "DAY2": "bmod_h2_day2_llm",
-    "WK2": "bmod_h2_wk2_llm",
-    "1a": "bmod_h3_overview_llm", "1c": "bmod_h3_graph_llm",
-    "2a": "bmod_h3_success_llm", "2b": "bmod_h3_assessment_llm",
-    "3": "bmod_h3_improve_llm",
-}
-
+# `ACTION` STOOD HERE AND IS DERIVED NOW -- `olx_prompts._action_from_rubric()`.
+# It named the <LLMAction> each item is asked through, which is exactly what
+# `<Item asks=...>` says in the rubric. The two agreed on all 23 items and
+# nothing tied them, so one of them had to go; the rubric keeps it, because
+# which component an item judges is a fact about the ITEM.
 
 # Items scored from a slot sheet with NO prompt: every verdict is derived from
 # the page, so there is no <LLMAction> and nothing for `--prompts` to compare.

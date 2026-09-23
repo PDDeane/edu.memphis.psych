@@ -1247,14 +1247,10 @@ PROBE_UNREACHABLE_PAIRS: dict[tuple[str, frozenset], str] = {
 }
 
 
-# Items built from ONE pattern, whose shared slot names should therefore mean the
-# same thing. Scoped by family rather than corpus-wide on purpose: `keyword`
-# legitimately differs between Q4a and Q4c (one deduction zeroed by decision, the
-# other declared unreachable), and 1a's week_* slots are not siblings of these.
-SLOT_STRUCTURE_FAMILIES: dict[str, tuple[str, ...]] = {
-    "h2-cadence-and-type": ("PR", "NR", "PP", "NP", "DAY1", "WK1", "DAY2", "WK2"),
-}
-
+# `SLOT_STRUCTURE_FAMILIES` STOOD HERE AND IS DERIVED NOW --
+# `coursedata.slot_structure_families()`, from `<Item family="...">`.
+# It named eight item ids, which is course content in a declaration module.
+# Which pattern an item was built from is a fact about the ITEM.
 
 # Generated attributes that are HAND-AUTHORED on purpose, with the reason. An
 # attribute in the .olx whose `*_attr_for` returns None is otherwise an ORPHAN --

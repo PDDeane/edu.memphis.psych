@@ -82,7 +82,9 @@ RUBRIC_FIELDS = {
     # were `declaration_source.BLOCKS` until then, where the first of them was a
     # second copy of `prompt_action`. RUBRIC and not GENERATOR because the engine
     # reads them through the rubric view like every other field here.
-    "asks", "grading",
+    # `family` joins them at 4a: which pattern an item was built from, which
+    # was `declaration_source.SLOT_STRUCTURE_FAMILIES` naming eight item ids.
+    "asks", "grading", "family",
 }
 # STAGE 4, olx_prompts.py's item-keyed tables (B2a: generator fields live on the
 # item entry). Every name is PREFIXED `prompt_`, and that is not decoration:
@@ -91,7 +93,9 @@ RUBRIC_FIELDS = {
 # says what the field is FOR -- these are inputs to prompt generation, not
 # scoring rules.
 GENERATOR_FIELDS: set[str] = {
-    "prompt_action",         # ACTION
+    # `prompt_action` LEFT THIS SET AT 4A. It named the component an item is
+    # asked through, which is `<Item asks=...>` in the rubric -- one fact that
+    # was written in both places and tied by nothing.
     "prompt_response",       # RESPONSE
     "prompt_context",        # CONTEXT
     "prompt_sheet_only",     # SHEET_ONLY
@@ -309,6 +313,26 @@ def gradable_blocks() -> dict:
             "kind": grading,
         }
     return out
+
+
+def slot_structure_families() -> dict:
+    """`{family: (item id, ...)}` -- DERIVED from the rubric's `<Item family=...>`.
+
+    Items built from ONE pattern share slot NAMES, so those names must mean the
+    same thing across the family. That is a fact about each item, and it was a
+    table in `declaration_source.py` naming eight item ids -- course content in
+    analytic machinery, which is the embedding this migration removes.
+
+    ORDER IS PRESERVED because the rubric's order is, and the check that reads
+    this compares siblings pairwise; a reordering would change which pair is
+    reported first and make a stable finding look like a new one.
+    """
+    out: dict = {}
+    for it in items():
+        fam = it.get("family")
+        if fam:
+            out.setdefault(fam, []).append(str(it.get("id")))
+    return {k: tuple(v) for k, v in out.items()}
 
 
 def declaration(name: str) -> dict:
