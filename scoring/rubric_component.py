@@ -257,6 +257,13 @@ def as_view_items(path: str | None = None) -> list[dict]:
             it["blank_code"] = el.get("blankCode")
         if el.get("expectedType"):
             it["expected_type"] = el.get("expectedType")
+        # WHAT THE ITEM IS ASKED THROUGH, and which rule scores it. Both were in
+        # `declaration_source.BLOCKS` until 3b, where the component-to-item link
+        # was written a second time and agreed with `prompt_action` only by habit.
+        if el.get("asks"):
+            it["asks"] = el.get("asks")
+        if el.get("grading"):
+            it["grading"] = el.get("grading")
         # PRESENT-BUT-EMPTY IS NOT ABSENT. Q4a carries `unreachable_codes: []`,
         # and an item that omits the key is a different item from one that
         # declares it holds none.

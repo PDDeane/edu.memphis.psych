@@ -163,9 +163,10 @@ def _declaration(name: str) -> dict:
     return coursedata.declaration(name)
 
 
-# THE GRADABLE BLOCKS, read from the course file and given their `refs` here.
-# The authored half -- which screen holds which item, in which .olx, and what
-# kind of grading it takes -- lives in `declaration_source.py`. The `refs` half
+# THE GRADABLE BLOCKS, DERIVED FROM THE RUBRIC and given their `refs` here.
+# The authored half -- which component an item is asked through, and which rule
+# scores it -- is `<Item asks=... grading=...>`; it was a declaration until 3b,
+# and the declaration said the same thing `prompt_action` already said. The `refs` half
 # is DERIVED by `_context_refs` from the .olx itself, so it is attached on read
 # rather than stored (A2a): an entry with an `olx` gets its own handout's
 # context map, and one without gets none. That rule was measured against all 26
@@ -188,10 +189,12 @@ def _with_refs(handout: int, entry: dict) -> dict:
     return out
 
 
+import coursedata as _CD
+
 BLOCKS: dict[int, dict[str, dict]] = {
     handout: {screen: _with_refs(handout, entry)
               for screen, entry in blocks.items()}
-    for handout, blocks in _declaration("BLOCKS").items()
+    for handout, blocks in _CD.gradable_blocks().items()
 }
 
 

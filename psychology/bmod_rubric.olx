@@ -148,7 +148,7 @@ Answer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label w
   <Verdicts name="stimulus_move" values="given_desirable|given_undesirable|taken_desirable|taken_undesirable"/>
   <Verdicts name="trigger_behavior" values="utb|wgb|other"/>
   <Verdicts name="trigger_expects" values="gain|loss|none"/>
-  <Item scores="Q1" max="5" label="Question 1" increment="1" deriveFromCredit="true" conditions="reads_utb_choice" unreachableCodes="UTB_NOT_ON_LIST">
+  <Item scores="Q1" max="5" label="Question 1" increment="1" deriveFromCredit="true" conditions="reads_utb_choice" unreachableCodes="UTB_NOT_ON_LIST" asks="bmod_h1_q1_llm" grading="slots">
     <Question>Define your unwanted target behavior (UTB) and explain WHY you chose this particular UTB for intervention. Requires 1 sentence describing the UTB and at least 3 sentences explaining why you chose to change this behavior.</Question>
     <Slot key="matches_selected" label="Same behavior you selected above" seg="matches/differs"/>
     <Slot key="utb_stated" label="Your unwanted target behavior stated explicitly" seg="unclear" pts="2"/>
@@ -174,7 +174,7 @@ Answer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label w
     <Guidance>The UTB must be one of the four from the closed list.</Guidance>
     <Counts key="reasons_given" slots="reason_1,reason_2,reason_3"/>
   </Item>
-  <Item scores="Q2" max="5" label="Question 2" increment="1" deriveFromCredit="true" conditions="reads_utb_choice">
+  <Item scores="Q2" max="5" label="Question 2" increment="1" deriveFromCredit="true" conditions="reads_utb_choice" asks="bmod_h1_q2_llm" grading="slots">
     <Question>Define your wanted goal behavior (WGB) that you hope to strengthen. Requires 1 sentence describing the WGB and at least 3 sentences explaining why you chose to strengthen it.</Question>
     <Slot key="wgb_is_counterpart" label="Goal behavior is the opposite of your unwanted behavior" seg="unclear" gate="true"/>
     <Slot key="wgb_names" label="What kind of thing your goal names" seg="pick(wgb_kind)"/>
@@ -202,7 +202,7 @@ Answer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label w
     <Context item="Q1"/>
     <Counts key="reasons_given" slots="reason_1,reason_2,reason_3"/>
   </Item>
-  <Item scores="Q3" max="5" label="Question 3" increment="1" deriveFromCredit="true">
+  <Item scores="Q3" max="5" label="Question 3" increment="1" deriveFromCredit="true" asks="bmod_h1_q3_llm" grading="slots">
     <Question>Use the SMART goal acronym to further define your WGB. Each aspect must be discussed AND labeled: Specific, Measurable, Actionable/Action-Oriented, Realistic, Time-Bound.</Question>
     <Slot key="specific" label="Specific — a quantified daily or weekly goal" seg="unclear" pts="1"/>
     <Slot key="measurable" label="Measurable — names a tracking method or place" seg="unclear" pts="1"/>
@@ -226,7 +226,7 @@ Answer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label w
     <Context item="Q1"/>
     <Context item="Q2"/>
   </Item>
-  <Item scores="Q4a" max="5" label="Question 4a" increment="1" deriveFromCredit="true" unreachableCodes="">
+  <Item scores="Q4a" max="5" label="Question 4a" increment="1" deriveFromCredit="true" unreachableCodes="" asks="bmod_h1_q4a_llm" grading="slots">
     <Question>What are the ANTECEDENTS (triggers) for your engagement in your UTB? List and describe two examples. You must use the word antecedent or trigger.</Question>
     <Slot key="antecedent_kind_1" label="What kind of thing your first box names" seg="pick(ant_kind)"/>
     <Slot key="antecedent_1" label="First antecedent is a genuine trigger" seg="wrong_kind" pts="2"/>
@@ -255,7 +255,7 @@ Answer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label w
     <Derived key="keyword" kind="contains" fields="bmod_h1_q4a_first,bmod_h1_q4a_second" words="antecedent,trigger"/>
     <Context item="Q1"/>
   </Item>
-  <Item scores="Q4b" max="5" label="Question 4b" increment="0.5" deriveFromCredit="true" unreachableCodes="B_NONE">
+  <Item scores="Q4b" max="5" label="Question 4b" increment="0.5" deriveFromCredit="true" unreachableCodes="B_NONE" asks="bmod_h1_q4b_llm" grading="slots">
     <Question>What ARE you actively doing during your unwanted target BEHAVIOR? List and describe two examples. Additionally, state whether this behavior is a good choice for you to modify AND why.</Question>
     <Slot key="behavior_1" label="First example is something done INSTEAD OF the goal behavior" seg="wrong_kind" pts="1.5"/>
     <Slot key="behavior_2" label="Second example is something done INSTEAD OF the goal behavior" seg="wrong_kind" pts="1.5"/>
@@ -287,7 +287,7 @@ Answer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label w
     <Context item="Q2"/>
     <Context item="Q4a"/>
   </Item>
-  <Item scores="Q4c" max="5" label="Question 4c" increment="1" deriveFromCredit="true" unreachableCodes="C_NO_KEYWORD">
+  <Item scores="Q4c" max="5" label="Question 4c" increment="1" deriveFromCredit="true" unreachableCodes="C_NO_KEYWORD" asks="bmod_h1_q4c_llm" grading="slots">
     <Question>What are the CONSEQUENCES of engaging in your UTB? List and describe two examples. You must use the word consequence(s).</Question>
     <Slot key="consequence_1" label="First consequence follows from the behavior" seg="wrong_kind/duplicate" pts="2"/>
     <Slot key="consequence_2" label="Second consequence follows from the behavior" seg="wrong_kind/duplicate" pts="2"/>
@@ -314,7 +314,7 @@ Answer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label w
     <Context item="Q4a"/>
     <Context item="Q4b"/>
   </Item>
-  <Item scores="Q5" max="5" label="Question 5" increment="2.5" deriveFromCredit="true" blankCode="W_NONE">
+  <Item scores="Q5" max="5" label="Question 5" increment="2.5" deriveFromCredit="true" blankCode="W_NONE" asks="bmod_h1_q5_llm" grading="slots">
     <Question>Why do you think you continue to engage in the UTB even though it results in undesired consequences? (To gain something, to escape a task, to receive attention, or something else.) List and describe two examples.</Question>
     <Slot key="example_1" label="First reason you keep doing it" seg="wrong_kind/duplicate" pts="2.5"/>
     <Slot key="example_2" label="Second, different reason" seg="wrong_kind/duplicate" pts="2.5"/>
@@ -336,7 +336,7 @@ Answer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label w
     <Context item="Q1"/>
     <Context item="Q4c"/>
   </Item>
-  <Item scores="Q6" max="10" label="Question 6" increment="1.25" deriveFromCredit="true" blankCode="Q6_NONE">
+  <Item scores="Q6" max="10" label="Question 6" increment="1.25" deriveFromCredit="true" blankCode="Q6_NONE" asks="bmod_h1_q6_llm" grading="slots">
     <Question>Describe how you could change each of your two antecedents (from 4a) to get closer to your WGB. Then include how those changes may impact your consequences (from 4c).</Question>
     <Slot key="state_a1" label="First antecedent named and matching 4a" seg="mismatch" pts="1.25"/>
     <Slot key="change_a1" label="How the first antecedent will be changed" seg="incomplete" pts="1.25"/>
@@ -376,7 +376,7 @@ Answer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label w
     <Context item="Q4a"/>
     <Context item="Q4c"/>
   </Item>
-  <Item scores="PR" max="4" label="PR Example" increment="2" conditions="move_pick|move_pick" expectedType="PR" deriveFromClauses="true">
+  <Item scores="PR" max="4" label="PR Example" increment="2" conditions="move_pick|move_pick" expectedType="PR" deriveFromClauses="true" asks="bmod_h2_pr_llm" grading="oc">
     <Question>Write an example of Positive Reinforcement that you could use to attempt to change your behavior. (Positive Reinforcement = adding something desirable to increase a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
@@ -421,7 +421,7 @@ Answer what the sentence describes. The grader works out from your answer which 
     <Context item="_utb"/>
     <Context item="_wgb"/>
   </Item>
-  <Item scores="NR" max="4" label="NR Example" increment="2" conditions="barrier_pick" expectedType="NR" deriveFromClauses="true">
+  <Item scores="NR" max="4" label="NR Example" increment="2" conditions="barrier_pick" expectedType="NR" deriveFromClauses="true" asks="bmod_h2_nr_llm" grading="oc">
     <Question>Write an example of Negative Reinforcement that you could use to attempt to change your behavior. (Negative Reinforcement = taking away something undesirable to increase a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
@@ -477,7 +477,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Context item="_utb"/>
     <Context item="_wgb"/>
   </Item>
-  <Item scores="PP" max="4" label="PP Example" increment="2" expectedType="PP" deriveFromClauses="true">
+  <Item scores="PP" max="4" label="PP Example" increment="2" expectedType="PP" deriveFromClauses="true" asks="bmod_h2_pp_llm" grading="oc">
     <Question>Write an example of Positive Punishment that you could use to attempt to change your behavior. (Positive Punishment = adding something undesirable to decrease a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
@@ -513,7 +513,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Context item="_utb"/>
     <Context item="_wgb"/>
   </Item>
-  <Item scores="NP" max="4" label="NP Example" increment="2" expectedType="NP" deriveFromClauses="true">
+  <Item scores="NP" max="4" label="NP Example" increment="2" expectedType="NP" deriveFromClauses="true" asks="bmod_h2_np_llm" grading="oc">
     <Question>Write an example of Negative Punishment that you could use to attempt to change your behavior. (Negative Punishment = taking away something desirable to decrease a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
@@ -549,7 +549,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Context item="_utb"/>
     <Context item="_wgb"/>
   </Item>
-  <Item scores="T1" max="2" label="First Type" increment="2" deriveFromCredit="true" blankCode="BLANK">
+  <Item scores="T1" max="2" label="First Type" increment="2" deriveFromCredit="true" blankCode="BLANK" grading="type_stated">
     <Question>State the first type of Operant Conditioning you plan to use in your actual behavior modification intervention.</Question>
     <Credit what="type_stated" pts="2" verdicts="met|absent|not_a_type" codes="absent=BLANK|not_a_type=NOT_A_TYPE">Names one of the four operant-conditioning types</Credit>
     <Deduction code="BLANK" pts="2">did not answer</Deduction>
@@ -564,7 +564,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Context item="_utb"/>
     <Context item="_wgb"/>
   </Item>
-  <Item scores="D1" max="2" label="First Type Definition" increment="1" deriveFromCredit="true" blankCode="BLANK">
+  <Item scores="D1" max="2" label="First Type Definition" increment="1" deriveFromCredit="true" blankCode="BLANK" asks="bmod_h2_d1_llm" grading="slots">
     <Question>Define the first type of Operant Conditioning you chose. A complete definition says whether something is being ADDED or TAKEN AWAY, and whether the behaviour is being INCREASED or DECREASED.</Question>
     <Slot key="defines_type" label="Which type this definition describes" seg="pick(operant_or_unclear)"/>
     <Slot key="named_type" label="Which type you chose" seg="pick(operant_or_unclear)"/>
@@ -592,7 +592,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Context item="_wgb"/>
     <Context item="T1"/>
   </Item>
-  <Item scores="DAY1" max="4" label="First Daily Example" increment="1" conditions="cadence_daily|avoidance_scores|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" params="cadence=daily" deriveFromClauses="true">
+  <Item scores="DAY1" max="4" label="First Daily Example" increment="1" conditions="cadence_daily|avoidance_scores|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" params="cadence=daily" deriveFromClauses="true" asks="bmod_h2_day1_llm" grading="oc_cadence">
     <Question>Give a daily example of how you will use your first chosen type of Operant Conditioning during your intervention.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
@@ -666,7 +666,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Context item="T1"/>
     <Context item="D1"/>
   </Item>
-  <Item scores="WK1" max="4" label="First Weekly Example" increment="1" conditions="cadence_weekly|type_match" params="cadence=weekly" deriveFromClauses="true">
+  <Item scores="WK1" max="4" label="First Weekly Example" increment="1" conditions="cadence_weekly|type_match" params="cadence=weekly" deriveFromClauses="true" asks="bmod_h2_wk1_llm" grading="oc_cadence">
     <Question>Give a weekly example of how you will use your first chosen type of Operant Conditioning during your intervention.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
@@ -724,7 +724,7 @@ Answer `absent` in these cases.
     <Context item="T1"/>
     <Context item="D1"/>
   </Item>
-  <Item scores="T2" max="2" label="Second Type" increment="2" deriveFromCredit="true" blankCode="BLANK">
+  <Item scores="T2" max="2" label="Second Type" increment="2" deriveFromCredit="true" blankCode="BLANK" grading="type_stated">
     <Question>State the second type of Operant Conditioning you plan to use in your actual behavior modification intervention.</Question>
     <Credit what="type_stated" pts="2" verdicts="met|absent|not_a_type" codes="absent=BLANK|not_a_type=NOT_A_TYPE">Names one of the four operant-conditioning types</Credit>
     <Deduction code="BLANK" pts="2">did not answer</Deduction>
@@ -739,7 +739,7 @@ Answer `absent` in these cases.
     <Context item="_utb"/>
     <Context item="_wgb"/>
   </Item>
-  <Item scores="D2" max="2" label="Second Type Definition" increment="1" deriveFromCredit="true" blankCode="BLANK">
+  <Item scores="D2" max="2" label="Second Type Definition" increment="1" deriveFromCredit="true" blankCode="BLANK" asks="bmod_h2_d2_llm" grading="slots">
     <Question>Define the second type of Operant Conditioning you chose. A complete definition says whether something is being ADDED or TAKEN AWAY, and whether the behaviour is being INCREASED or DECREASED.</Question>
     <Slot key="defines_type" label="Which type this definition describes" seg="pick(operant_or_unclear)"/>
     <Slot key="named_type" label="Which type you chose" seg="pick(operant_or_unclear)"/>
@@ -767,7 +767,7 @@ Answer `absent` in these cases.
     <Context item="_wgb"/>
     <Context item="T2"/>
   </Item>
-  <Item scores="DAY2" max="4" label="Second Daily Example" increment="1" conditions="cadence_daily|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" params="cadence=daily" deriveFromClauses="true">
+  <Item scores="DAY2" max="4" label="Second Daily Example" increment="1" conditions="cadence_daily|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" params="cadence=daily" deriveFromClauses="true" asks="bmod_h2_day2_llm" grading="oc_cadence">
     <Question>Give a daily example of how you will use your second chosen type of Operant Conditioning during your intervention.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
@@ -841,7 +841,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Context item="T2"/>
     <Context item="D2"/>
   </Item>
-  <Item scores="WK2" max="4" label="Second Weekly Example" increment="1" conditions="cadence_weekly|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" params="cadence=weekly" deriveFromClauses="true">
+  <Item scores="WK2" max="4" label="Second Weekly Example" increment="1" conditions="cadence_weekly|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" params="cadence=weekly" deriveFromClauses="true" asks="bmod_h2_wk2_llm" grading="oc_cadence">
     <Question>Give a weekly example of how you will use your second chosen type of Operant Conditioning during your intervention.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
@@ -916,7 +916,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Context item="T2"/>
     <Context item="D2"/>
   </Item>
-  <Item scores="1a" max="8" label="1a" increment="2" deriveFromCredit="true" blankCode="BLANK">
+  <Item scores="1a" max="8" label="1a" increment="2" deriveFromCredit="true" blankCode="BLANK" asks="bmod_h3_overview_llm" grading="slots">
     <Question>Give a brief overview of the data you collected in at least 4 sentences. How did your behavior change over time? You do not need to discuss every day — one sentence per week is the expectation, covering the baseline week and the three intervention weeks.</Question>
     <Slot key="distinguishes_periods" label="Separates the time periods at all" seg="unclear" gate="true"/>
     <Slot key="baseline_week" label="Covers the baseline week" seg="unclear" pts="2"/>
@@ -936,7 +936,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>THE BAR IS THE ARC, NOT A SENTENCE COUNT. This item is graded generously. If the answer gives the BEFORE state and then describes how the behaviour changed across the intervention, award all four slots — even when the weeks are not enumerated one per sentence. All of these earned full marks: a before-and-after pair giving one range for the baseline and another for the intervention; a baseline average followed by each later week's figure given in turn; and a summary that names two weeks and states the direction they moved without a figure for either. A week referred to collectively ("after I began, it increased") counts when the others are named.</Guidance>
     <Guidance>DEDUCT A WEEK only when a period is clearly and specifically absent. The observed case is an answer that opens at the intervention and never mentions the before/baseline state at all — it begins with the first week of data collection and carries no sentence about how things stood beforehand, which costs the baseline week's 2 points.</Guidance>
   </Item>
-  <Item scores="1b" max="4" label="1b" increment="1" deriveFromCredit="true" blankCode="BLANK">
+  <Item scores="1b" max="4" label="1b" increment="1" deriveFromCredit="true" blankCode="BLANK" grading="data_presence">
     <Question>Include the data you collected during the baseline period and each of the three intervention weeks, on its own page at the end of the handout.</Question>
     <Credit what="baseline_data" pts="1" verdicts="met|absent" codes="absent=MISSING_WEEK_DATA|unclear=MISSING_WEEK_DATA">Baseline week's data present</Credit>
     <Credit what="week_1_data" pts="1" verdicts="met|absent" codes="absent=MISSING_WEEK_DATA|unclear=MISSING_WEEK_DATA">Week 1 data present</Credit>
@@ -949,7 +949,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>The text you are shown has already had the template's worked example data (the 'oz' water figures) subtracted, so anything here is the student's own. If a week's heading is present but its days are empty, that week is missing.</Guidance>
     <Context item="1a"/>
   </Item>
-  <Item scores="1c" max="10" label="1c" increment="2" deriveFromCredit="true" conditions="graph_item">
+  <Item scores="1c" max="10" label="1c" increment="2" deriveFromCredit="true" conditions="graph_item" asks="bmod_h3_graph_llm" grading="slots">
     <Question>Present your data in a figure/graph at the end of the handout. The graph needs a title, both axis labels, and a legend.</Question>
     <Slot key="has_own_graph" label="Your 1b data produces a graph of your own" seg="mismatch" pts="2" gate="true"/>
     <Slot key="title" label="Title saying what is measured and over what period" seg="generic" pts="2"/>
@@ -979,7 +979,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Map key="legend" pick="series_box_holds" pairs="period_names~met,other_real_names~met,software_placeholders~incomplete,nothing~absent" fallback="absent"/>
     <Derived key="has_own_graph" kind="complete" fields="bmod_h3_baseline,bmod_h3_wk1,bmod_h3_wk2,bmod_h3_wk3" template="[[8,10,8,12,6,10,0],[32,20,22,28,30,32,10],[30,28,26,30,32,32,30],[25,26,30,32,32,28,32]]"/>
   </Item>
-  <Item scores="2a" max="6" label="2a" increment="2" deriveFromCredit="true" blankCode="BLANK">
+  <Item scores="2a" max="6" label="2a" increment="2" deriveFromCredit="true" blankCode="BLANK" asks="bmod_h3_success_llm" grading="slots">
     <Question>Did the implementation of your behavior modification plan successfully modify your behavior? Answer in 1 sentence, then describe HOW it was successfully or unsuccessfully modified in at least 2 further sentences. The level of success does not affect the grade.</Question>
     <Slot key="verdict" label="States whether the plan worked" seg="unclear" pts="2"/>
     <Slot key="how_1" label="Whether the How (1) box explains how" seg="unclear" pts="2"/>
@@ -1008,7 +1008,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Requires key="how_2" cond="mechanism_named" lenient="unclear"/>
     <Context item="1a"/>
   </Item>
-  <Item scores="2b" max="6" label="2b" increment="2" deriveFromCredit="true" blankCode="BLANK">
+  <Item scores="2b" max="6" label="2b" increment="2" deriveFromCredit="true" blankCode="BLANK" asks="bmod_h3_assessment_llm" grading="slots">
     <Question>Write an overall assessment of your intervention: which aspects were effective and which were not, including personal observations about your execution (for example, how your reinforcements or punishments worked). At least 3 sentences.</Question>
     <Slot key="sentences_given" label="How many substantive assessment sentences you give" seg="count(3)"/>
     <Slot key="sentence_1" label="First substantive assessment sentence" seg="unclear" pts="2"/>
@@ -1026,7 +1026,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Context item="2a"/>
     <Counts key="sentences_given" slots="sentence_1,sentence_2,sentence_3"/>
   </Item>
-  <Item scores="3" max="6" label="3" increment="3" deriveFromCredit="true" blankCode="BLANK">
+  <Item scores="3" max="6" label="3" increment="3" deriveFromCredit="true" blankCode="BLANK" asks="bmod_h3_improve_llm" grading="slots">
     <Question>What could be done differently next time to improve your intervention plan? Give at least 2 specific examples. ('Nothing would change' is not acceptable — every intervention can be improved.)</Question>
     <Slot key="changes_given" label="How many distinct changes you propose" seg="count(2)"/>
     <Slot key="example_1" label="First specific change" seg="unclear" pts="3"/>

@@ -78,6 +78,11 @@ RUBRIC_FIELDS = {
     "forbid", "equals", "onlyif", "expect", "maps", "cadence", "oc_gates",
     "derived", "reads_utb_choice", "requires", "cover", "move_pick",
     "avoidance_scores", "graph_item",
+    # SINCE 3B: what the item is ASKED THROUGH, and which rule scores it. They
+    # were `declaration_source.BLOCKS` until then, where the first of them was a
+    # second copy of `prompt_action`. RUBRIC and not GENERATOR because the engine
+    # reads them through the rubric view like every other field here.
+    "asks", "grading",
 }
 # STAGE 4, olx_prompts.py's item-keyed tables (B2a: generator fields live on the
 # item entry). Every name is PREFIXED `prompt_`, and that is not decoration:
@@ -272,6 +277,38 @@ def generator_items() -> dict[str, dict]:
     """
     return {str(it["id"]): _group(it, GENERATOR_FIELDS)
             for it in _load()["items"]}
+
+
+def gradable_blocks() -> dict:
+    """`{handout: {component id: {item, olx, kind}}}` -- DERIVED from the rubric.
+
+    IT WAS A DECLARATION UNTIL 3B, and the declaration said the same thing twice:
+    its component-to-item mapping agreed with that item's `prompt_action` on 23 of
+    23 LLM items, with no check tying them. `<Item asks=...>` now carries the link
+    once and this rebuilds the shape its ten readers expect.
+
+    THE THREE SYNTHETIC KEYS are items scored without a component of their own --
+    deterministic items, which have a grading rule and nothing on the page to ask.
+    Their key is a name, not an id, and `olx` is None because there is no file to
+    point at; that is exactly what the declaration held for them too.
+
+    `olx` follows the handout, which is how the content is laid out: handout N is
+    `bmod_handoutN.olx`. Proven against the declaration on all 26 entries before
+    it was deleted, not assumed.
+    """
+    out: dict = {}
+    for it in items():
+        iid = str(it.get("id"))
+        handout, grading = it.get("handout"), it.get("grading")
+        if handout is None or not grading:
+            continue
+        asks = it.get("asks")
+        out.setdefault(handout, {})[asks or f"_{iid.lower()}_deterministic"] = {
+            "item": iid,
+            "olx": f"bmod_handout{handout}.olx" if asks else None,
+            "kind": grading,
+        }
+    return out
 
 
 def declaration(name: str) -> dict:
