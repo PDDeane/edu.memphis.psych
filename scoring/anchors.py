@@ -66,6 +66,30 @@ def _scan_text(text: str) -> tuple[set[str], set[str]]:
     return set(ANCHOR.findall(text)), set(REFERENCE.findall(text))
 
 
+def _citer_root() -> str:
+    """Where a citer lives: `paths.COURSE_LOCATION`, and nowhere else.
+
+    ONE LOCATION, NOT A LIST OF PLACES TO LOOK. The course-specific half of every
+    split document lives in the course's own folder in the content tree, so that
+    is the only tree a `see: qc:NAME` can legitimately come from. An accumulating
+    list of roots -- the repository's old `courses/`, `$COURSE_DATA`, the content
+    tree -- would make "where does course-specific material live" answerable three
+    ways, which is the question `COURSE_LOCATION` exists to settle.
+
+    NOT the repository at large, and that has a measured reason: the convention is
+    specified in prose that USES the convention, so a repo-wide walk reads
+    `see: qc:NAME` in a specification sentence as a live pointer to a section
+    called NAME. Eleven such sentences exist today.
+
+    Absent is not an error. No course folder means no citers, which is the same
+    clean slate the override log and the goal record use, and is the state on any
+    checkout before the split lands.
+    """
+    import paths
+
+    return str(paths.COURSE_LOCATION)
+
+
 def scan(root: str | None = None) -> dict:
     """Anchors defined in the prose files; references made from anywhere."""
     root = root or HERE
@@ -80,13 +104,20 @@ def scan(root: str | None = None) -> dict:
             anchors[a] = name
     # CITERS ARE COURSE FILES, which is the whole reason anchors exist: a course
     # file is a citer `guide.renumber()` cannot see, so a renumber silently
-    # invalidates its pointers. Scoped here rather than repo-wide because the
-    # SPECIFICATION of the convention uses the convention -- the plan writes
-    # "a `see: qc:NAME` with no matching anchor FAILS", and a repo-wide scan read
-    # that sentence as a live pointer to a section called NAME.
+    # invalidates its pointers. Scoped to the course trees rather than repo-wide
+    # because the SPECIFICATION of the convention uses the convention -- the plan
+    # writes "a `see: qc:NAME` with no matching anchor FAILS", and a repo-wide
+    # scan read that sentence as a live pointer to a section called NAME. Eleven
+    # such sentences exist today, so the scoping is not hypothetical.
+    #
+    # TWO ROOTS SINCE 2026-09-23, and the second is where citers are heading. The
+    # course-specific half of each split document lives in `$COURSE_DATA`, beside
+    # `gold.json` and the override log, and points INTO the generic half here.
+    # Adding a root keeps the specification unscanned, which widening would not:
+    # the hazard above is avoided rather than worked around.
+    base = _citer_root()
     repo = os.path.dirname(os.path.abspath(root))
-    courses = os.path.join(repo, "courses")
-    for dirpath, dirnames, filenames in os.walk(courses):
+    for dirpath, dirnames, filenames in os.walk(base):
         dirnames[:] = [d for d in dirnames if d not in (".git", "node_modules")]
         for fn in filenames:
             if not fn.endswith((".py", ".md", ".olx", ".json")):

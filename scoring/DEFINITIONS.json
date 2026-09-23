@@ -160,6 +160,7 @@
    "PROSE_FILES",
    "REFERENCE",
    "_BARE_REFERENCE",
+   "_citer_root",
    "_scan_text",
    "anchors_are_renumber_safe",
    "main",
@@ -1453,6 +1454,7 @@
   "paths.py": [
    "CODE",
    "CORPUS_ROOTS",
+   "COURSE_LOCATION",
    "DATA",
    "HANDSPLIT",
    "LO",

@@ -144,6 +144,29 @@ OUT = Path(env_renamed("COURSE_OUT", DATA / "out"))
 # and the runner resolves nothing if these disagree.
 NS = "edu.memphis.psych"
 
+# THE COURSE LOCATION: where THIS course's own material lives, inside the content
+# tree. Declared 2026-09-23.
+#
+# `psychology/` is a COLLECTION, not a course -- it holds this handout course (six
+# `bmod_*.olx`) alongside the psychology SBA work and the assets both use, 42
+# entries in all. A course needs a folder of its own before anything can be said to
+# belong to it, and the course-specific half of every split document belongs here:
+# in the repository, TRACKED, because `edu.memphis.psych` IS the psychology course
+# repository and course material belongs in it.
+#
+# THE LINE THIS DRAWS, and it is the one worth remembering: CONTENT in the content
+# repository, DATA outside it. The test is whether a file is AUTHORED or
+# ACCUMULATED -- `course.json` and a course-specific document half are authored and
+# live here; `gold.json`, the override log and 826 run artifacts are accumulated and
+# live under `$COURSE_DATA`.
+#
+# Overridable so a second course is a variable and not an edit, and resolved here
+# rather than at each call site, for the reason
+# `check_filesystem_locations_come_from_paths_py` exists: "a literal path does not
+# fail on the wrong tree, it SUCCEEDS on it".
+COURSE_LOCATION = Path(os.environ.get("COURSE_LOCATION",
+                                      REPO / "psychology" / "bmod"))
+
 # ── Derived paths ────────────────────────────────────────────────────────────
 
 # Generated content (Class B: intra-repo since the move).
