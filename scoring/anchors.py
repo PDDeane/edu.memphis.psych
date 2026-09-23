@@ -68,6 +68,23 @@ REFERENCE = re.compile(r"see:\s*qc:([A-Za-z0-9_.-]+)")
 # a list of exemptions: each entry says why the section is anchored anyway.
 DECLARED_ORPHANS: dict[str, str] = {}
 
+# TWO POPULATIONS OF ANCHOR, and only one of them may be unpointed.
+#
+# An ENTRY ALIAS is `<!-- qc:Q22 -->` above a goal entry. T7.1 put one above every
+# entry so that ANY of them can be cited without a later renumber breaking the
+# citation, which makes "pointed at by nothing" the normal and intended state
+# there: 112 of the 113 in GOALS.md are unpointed, and always were.
+#
+# A SECTION ANCHOR is one the SPLIT created -- `qc:EQ.sweep`, `qc:RM.measured`.
+# It exists BECAUSE a course half points at it. Unpointed, it means the split did
+# not connect: a generic section is waiting for a case that never arrives, and
+# composition is silently producing a shorter document than the author intended.
+# That is a failure, and it is the failure this convention was built to catch.
+#
+# The two are told apart by SHAPE, not by a list that would need maintaining: an
+# entry alias is a goal label -- capitals then digits, nothing else.
+ENTRY_ALIAS = re.compile(r"^[A-Z]+\d+$")
+
 
 def _scan_text(text: str) -> tuple[set[str], set[str]]:
     return set(ANCHOR.findall(text)), set(REFERENCE.findall(text))
@@ -193,8 +210,17 @@ def verify(found: dict) -> tuple[list[str], list[str]]:
     # warnings would bury the danglers that matter.
     unused: dict[str, int] = {}
     for name in sorted(anchors):
-        if name not in refs and name not in DECLARED_ORPHANS:
+        if name in refs or name in DECLARED_ORPHANS:
+            continue
+        if ENTRY_ALIAS.match(name):
             unused[anchors[name]] = unused.get(anchors[name], 0) + 1
+        else:
+            failures.append(
+                f"`qc:{name}` is anchored in {anchors[name]} and NOTHING points at "
+                f"it. A section anchor exists because a course half cites it, so an "
+                f"unpointed one means the split did not connect -- the generic "
+                f"section is waiting for a case that never arrives, and composition "
+                f"is quietly producing a shorter document than was intended")
     warnings = [
         f"{n} of {sum(1 for a in anchors.values() if a == f)} alias(es) in {f} "
         f"are pointed at by nothing yet"

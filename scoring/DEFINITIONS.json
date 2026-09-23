@@ -156,6 +156,7 @@
   "anchors.py": [
    "ANCHOR",
    "DECLARED_ORPHANS",
+   "ENTRY_ALIAS",
    "HERE",
    "PROSE_FILES",
    "REFERENCE",

@@ -4235,6 +4235,59 @@ half must contain everything the original did, checked mechanically rather than 
 reading -- no sentence lost, every anchor still resolving, every consumer still
 finding what it came for, and the audit's finding set unchanged across the split.
 
+#### DONE 2026-09-23 — what actually moved, and what measurement changed the plan
+
+The composer is `scoring/compose_docs.py`. Every reader opens a COMPOSED
+artifact built at `$COURSE_DATA/courses/<ns>/composed/`; writers keep the real
+source. Composition is identity while a document is unsplit, so it was proved
+against all four before a paragraph moved, and each move is checked the same
+way: compose the halves and require the result to equal the document as it
+stood.
+
+  GOALS.md       53 generic / 16720 course   the charter, and this course's ledger
+  EQUIVALENCE.md 877 / 2199                  five stages
+  README.md      170 / 462                   three blocks
+  QUALITY_CONTROL.md   NOT SPLIT             measured already generic
+  BACKLOG.md, Q6_MATCHING_CEILING.md         moved whole
+
+TWO RULES, and they are not the same rule. For CODE the test is what the control
+flow assumes. For PROSE it is: A SECTION MOVES IF IT IS A RECORD; IT STAYS IF IT
+IS A RULE, ILLUSTRATIONS INCLUDED. Settled by trying the code test on prose and
+watching it fail -- "Lessons that generalise" puts each lesson and its evidence
+on the same LINE, so stripping the course ids leaves bare assertions. Where a
+record does carry a rule in passing, the rule is LIFTED VERBATIM into the
+generic half, never paraphrased.
+
+THE PLANNED ORDER WAS BACKWARDS, and one measurement says so. Bare item ids per
+100 lines: EQUIVALENCE.md 20.5 before splitting and 10.7 after; README.md 28.1;
+QUALITY_CONTROL.md 7.0. QUALITY_CONTROL.md is already more generic than the half
+five stages of work produced, and README.md -- scheduled last -- was the densest
+document in the set.
+
+STORAGE FOLLOWS WHETHER A DOCUMENT ACCUMULATES, not whether it is long. A
+guide's course half is authored and stays tracked with the course; a ledger's
+grows with course work and is rewritten whole on every entry, so GOALS.md's and
+BACKLOG.md's course halves live beside `gold.json`. GOALS.md alone was 1.2 MB
+rewritten 414 times. What that cost: `goals.check()` compared against `git show
+HEAD` to catch a deleted entry and an unapproved closure, and outside the
+repository that returns None and both rules passed silently. `GOAL_STATES.json`
+replaces it -- 112 labels and their states, 15 KB, tracked.
+
+THE DEFECTS THIS FOUND ARE THE REASON TO TRUST THE RESULT. A code fence read as
+a heading; a trailing anchor dropping its blocks; an `end` block flushing after
+the next section's anchor; a block attaching mid-paragraph; a wrapped heading; a
+rule COPIED instead of moved so the document said it twice; README.md absent
+from `anchors.PROSE_FILES`; and `olx_prompts`' written-record scan reading the
+53-line charter and reporting NO RECORD for every item while the composed
+document held 249 mentions of Q6. Every one is now a check with a fire test, and
+every one surfaced by running the composer on real prose rather than by reading
+it.
+
+The unpointed-anchor warning is now a FAILURE for section anchors -- an
+unpointed one means the split did not connect -- and stays a warning for the 112
+GOALS.md entry aliases, which exist so that any entry CAN be cited and are
+unpointed by design.
+
 ### H · Regularize WHERE THINGS LIVE, one home per category
 
 Filed 2026-09-23 on the user's instruction. The ten categories of
