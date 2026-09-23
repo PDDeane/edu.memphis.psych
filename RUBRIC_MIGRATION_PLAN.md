@@ -3154,6 +3154,771 @@ retired in §12 — verified complete, owes no sweep, not a dependency.*
 
 ---
 
+## 13 · Agenda arising from the material classification, 2026-09-23
+
+Folded in from `AGENDA_FROM_CLASSIFICATION.md`, which now points here. It came out
+of classifying every material in the two trees against the ten-category scheme in
+`MATERIAL_CLASSIFICATION.md`; each item below is a place where that classification
+found something sitting in the wrong category, or a module whose two halves belong
+to different ones.
+
+**State at the time of folding.** D and E are DONE and recorded in place. A, B, C
+and F are open. C is the largest and is not new work -- §13 C(i) records what the
+prior dry run already built for it. F is ranked above D was, for the reason given
+under it.
+
+### A · Split `declaration_source.py` and `generator_source.py` along the seam
+
+Each file holds TWO categories, and that is why every "does this move to the OLX?"
+question needed a per-table answer instead of a per-file one.
+
+  declaration_source.py
+    -> COURSE METADATA (II):  HANDOUT_FIELDS, CONTEXT_SOURCE,
+                              SLOT_STRUCTURE_FAMILIES
+    -> DEVIATION RECORDS (II(a)/III): UNCHARGED_VERDICTS,
+       DECOMPOSITION_DIVERGENCES, PROSE_ONLY_SLOTS, APP_ONLY_SLOTS,
+       COUNTABLE_EXEMPT, PROSE_ONLY_JUDGED_AGAINST, HAND_AUTHORED_ATTRS,
+       MULTI_BLOCK_DECLARED
+    -> MEASUREMENT HISTORY (III): ASK_EQUIVALENT_PROMPTS, DESIGNED_TEXT, JOBS,
+       STAGE, SELFTEST_NAMED_FIXTURES, PROBE_UNREACHABLE_PAIRS, PAPER_ITEM_NOTES*
+
+  generator_source.py
+    -> COURSE METADATA (II):  ACTION, RESPONSE, CONTEXT, SHEET_ONLY
+    -> CROSS-SCORER DEVICES (III): EVIDENCE, OMIT_GUIDANCE, ITEM_NOTES,
+       ITEM_NOTES_WHY, MATCH_DEF/EQUIVALENCE_DEF, SCORING_DIVERGENCES,
+       PROBE_REACH_LIMITS
+    -> SUBMISSION PARSING (IX): H1_MARKERS, H2_MARKERS, H3_MARKERS
+
+Once split, the rule becomes mechanical: category II moves toward the OLX/
+course.json, category III stays, category IX stays. No table needs arguing about
+twice. `COURSE_DATA_BUDGET.json` counts per module, so the split changes those
+counts and the ratchet must be re-tightened deliberately in the same commit.
+
+#### DONE 2026-09-23 -- proved by a byte-identical export
+
+FOUR MODULES, EIGHT TABLES MOVED. `course_metadata_source.py` takes category II
+(`HANDOUT_FIELDS`, `CONTEXT_SOURCE` from declaration; `RESPONSE`, `CONTEXT`,
+`SHEET_ONLY` from generator). `submission_markers_source.py` takes category IX
+(`H1/H2/H3_MARKERS`). The two originals keep their names and their category-III
+contents, so nothing that cites them churns.
+
+`_H*_CTX` deliberately did NOT move. The agenda assigned only the MARKERS to IX,
+and those maps are component-id -> item context handed to the grader, which is a
+cross-scorer device: being per-handout is not the same as being about parsing.
+
+THE PROOF IS THE EXPORT. Only `rubric_export.py` imports these modules -- every
+other consumer reads the exported `course.json` through `coursedata` -- so a
+byte-identical export means nothing downstream can have changed. Captured before
+the first edit and compared after: sha256 `b884f54e4427c959...`, 375,655 bytes,
+identical, and equal to the live course file both times. Belt and braces on top:
+all 8 moved tables compared value-identical in their new homes, and all 27 that
+stayed compared unchanged.
+
+ONE RESOLVER, NOT A MODULE NAME PER SITE. The exporter groups tables by SHAPE --
+item-keyed vs course-level -- and that grouping cuts ACROSS the categories:
+`GENERATOR_TABLES` alone spans metadata (`RESPONSE`, `CONTEXT`, `SHEET_ONLY`) and
+cross-scorer devices (`EVIDENCE`, `OMIT_GUIDANCE`, `MATCH_DEF`, both
+`ITEM_NOTES`). A name-list entry therefore cannot say which module holds it, so
+`_authored(name)` resolves across the builders and REFUSES a name two modules
+claim -- the characteristic failure of a split being a table copied rather than
+moved, which would otherwise be settled silently by module order. Fire-tested.
+
+THE SPLIT FOUND A REAL COUPLING, which is the part worth keeping. The audit rose
+44 -> 51: seven `MIGRATED TABLE DOES NOT MATCH ITS SOURCE` findings, one per moved
+table, because `migrated_tables.BUILDERS` was a hard-coded pair and the check was
+looking in the wrong two files. Fixed at the root rather than by adding two names
+in a second place: `BUILDERS` is now the list of record and `rubric_export` reads
+it, so a builder added later is found by the exporter and by the audit at once.
+Audit back to 44 with a finding set IDENTICAL to the pre-D baseline, not merely
+the same count.
+
+`COURSE_DATA_BUDGET.json` re-tightened in the same pass, as this item required:
+15 + 16 embeddings became 14 + 10 + 4 + 3 -- 31 before, 31 after, so the
+embeddings moved with their tables and none were created or lost.
+
+AND IT EXPOSED ITEM G: neither new module entered `DEFINITIONS.json`, because
+new modules never do.
+
+### B · The handouts should be AUTHORED, not generated
+
+Today `bmod_handout1|2|3.olx` are BUILD PRODUCTS of `olx_prompts.py`. That is why
+category I currently contains both a source and a build product, and why "the OLX
+is the source" is true of the rubric but not of the handouts.
+
+Target: the handouts are hand-authored OLX, and `course.json` says which items
+belong to each handout, keyed to the OLX ids, so a scorer can find what to score.
+
+What that requires, in the order it has to happen:
+  1. the generated prose in the handouts (`<LLMAction>` prompt bodies and the
+     sheet attributes) has to come from somewhere at RUN time rather than being
+     baked in at generate time -- or be accepted as authored and checked against
+     the rubric instead of rewritten from it
+  2. `olx_prompts --write` stops writing the handouts, and
+     `check_idmap_is_current` / the prompt-freshness checks change meaning from
+     "regenerate matches disk" to "disk agrees with the rubric"
+  3. `prompt_sha` currently hashes the SERVED tag; a hand edit to a handout then
+     moves it legitimately, so the freshness story needs restating
+  4. course.json keeps item -> handout (it already does) and item -> OLX id
+
+### RESOLVED: the item-to-component link lives in the RUBRIC
+
+Decided 2026-09-23. `<Item asks="bmod_h1_q1_llm">` stays where step 3b put it, and
+step B's fourth bullet is corrected to match: **course.json keeps item -> handout
+and nothing more**; the item -> OLX id link is the rubric's `asks`.
+
+The question was live because the alternative had a real precedent behind it --
+`handout` was deliberately kept OFF `<Item>` on the ground that "which handout an
+item belongs to is course structure", and the same argument could be made of a
+component id. It does not hold, and the reason is worth keeping:
+
+  WHICH HANDOUT an item sits in is a fact about the COURSE -- move the item to a
+  different handout and nothing about how it is judged changes. WHICH COMPONENT it
+  judges is a fact about the ITEM: change it and the item is judging different
+  text. The first is placement, the second is identity, and only the second
+  belongs beside the checks that do the judging.
+
+It also keeps the property 3b bought: with `asks` authored on the item, `BLOCKS`
+is DERIVED rather than declared, and the link that used to be written twice --
+once in `BLOCKS`, once as `prompt_action` -- is written once.
+
+So the division of labour is:
+    rubric OLX    what is judged, how, and WHICH COMPONENT it judges  (`asks`)
+    course.json   where the item sits in the course                   (`handout`)
+                  plus the generator fields that shape the prompt
+
+
+### C · No part of OLX prompt generation may depend on python
+
+Stated 2026-09-23. For the OLX scorer, what shapes a prompt belongs either (a) in
+the OLX rubric, or (b) in a generation chain run by `npm build` -- not in python.
+
+WHERE THE DEPENDENCY ACTUALLY IS, stated precisely because it is narrower than it
+sounds: at RUN time the OLX scorer needs no python, because the prompt bodies are
+already baked into `bmod_handout*.olx`. The dependency is at BUILD time --
+`olx_prompts.py` is what bakes them. So this is not a runtime coupling to break,
+it is a PRODUCER to replace.
+
+THE TS HALF ALREADY EXISTS AND IS UNWIRED, which is the important discovery:
+
+    packages/shared/lib/llm/promptAssembler.ts     327 lines -- the prose half
+    packages/shared/lib/llm/attributeAssembler.ts  222 lines -- the scoring half
+    packages/shared/lib/llm/slotSheet.ts           the answer schema
+    packages/shared/lib/llm/materialiseRubric.ts   template expansion -- WIRED
+                                                   2026-09-23 as build:expand-rubrics
+
+`promptAssembler` and `attributeAssembler` have NO CALLERS outside their own
+tests. They are in exactly the state `materialiseRubric` was in this morning:
+written, tested, and producing nothing. Meanwhile `olx_prompts.py` (~3,000 lines)
+is what actually writes the shipped prompts. That is one rule with two
+implementations, and the python one wins by being the only one plugged in.
+
+WHY IT IS NOW TRACTABLE, and it was not before tonight:
+  * the WORDS moved into the rubric -- oc_criteria's frame, the 27 `note:` frames,
+    guidance, questions, credit and deduction text. `promptAssembler`'s design
+    already assumes this: `Fragments` is supplied by the CALLER and NEVER
+    defaulted, because "the KEYS are engine concepts; the WORDS are not".
+  * `.stage/expanded` exists -- templates expanded, references intact -- which is
+    the artifact an assembler has to read.
+  * `renderFrame` in TS and `as_view_frame` in python already implement the SAME
+    selection rule, deliberately spelled the same way.
+
+THE SHAPE OF THE WORK
+  1. a build step -- `build:assemble-prompts` -- that reads `.stage/expanded`,
+     runs the two assemblers, and writes the handouts' `<LLMAction>` bodies and
+     sheet attributes
+  2. the fragments (the prose keys the assembler needs) sourced from the rubric,
+     not from a TS default -- the assembler already refuses to default them
+  3. `olx_prompts.py` keeps ONLY what feeds the PAPER scorer; its OLX-generation
+     role retires
+  4. the freshness checks change meaning with it, exactly as in item B:
+     `prompt_sha` hashes the SERVED tag, so "regenerate matches disk" becomes
+     "disk agrees with what the assembler produces from the rubric"
+
+RELATION TO ITEM B. B asked for hand-authored handouts; C asks for npm-generated
+ones. They are the two answers to the same question -- who produces the handout --
+and both satisfy "no python". C is the cheaper one, because the TS assembler is
+already written and the rubric already holds the words. B remains right for the
+parts of a handout that are PAGE (layout, prose, figures) rather than PROMPT.
+The likely end state is both: authored pages, assembled prompts.
+
+PROOF OBLIGATION, and it is the same one used all night: the assembler's output
+must reproduce the current handouts byte for byte before the python producer is
+retired. Anything else is a prompt change wearing a refactor's clothes, and
+`prompt_sha` will say so.
+
+### C(i) · WHAT THE PRIOR DRY RUN ALREADY SETTLED about item C
+
+Checked in `migration_reference` on the user's prompt, and it changes C from "new
+work" to "work that was designed, built, and never wired".
+
+THE PRIOR RUN'S README SAYS IT OUTRIGHT:
+    "This is stages 02 and 03. The rubric moves into `.olx` as these blocks, and
+     `promptAssembler` is what rebuilds the 26 prompt bodies from them byte-exact.
+     Without it the migration cannot run at all."
+
+So `promptAssembler.ts` and `attributeAssembler.ts` are not speculative utilities
+that happened to go unused. They ARE the designed producer, and the reason they
+sit unwired in our tree is that we ported the block family and the assemblers but
+never the wiring that drives them.
+
+THE HARNESS AND THE GATE ALREADY EXIST in `migration/`:
+    stage02_assembler_surface.py   measures what the assembler must be GIVEN:
+        "THE INTERFACE IS NOT A DESIGN CHOICE, it is a measurement... its input is
+         whatever the current generator reads -- no more, and provably no less."
+        It also feeds stage 03: every `item[...]` key it finds is a field the
+        rubric object must carry, "or the assembler cannot be driven from the
+        rubric at all".
+    stage02_gate.py                the byte oracle
+    stage03a_gate.py / stage03b_gate.py   blocks parse and validate; the engine
+        stays content-neutral
+
+THE ACCEPTANCE CRITERION, from the gate's own docstring, and it is exact:
+    23 BODIES AND 26 ITEMS' ATTRIBUTES -- three items carry no `<LLMAction>`.
+    And WHICH bytes: the GENERATOR's output, not the .olx element text, because
+    the element carries a leading newline from the XML.
+That 23/26 split is the same one measured independently tonight: 23 items carry
+`asks`, 3 are deterministic.
+
+WHAT THIS MEANS FOR SEQUENCING. C is not a new design. It is: run stage 02, then
+03a/03b, against the rubric as it now stands -- which is in better shape for it
+than the prior run's was, because the WORDS have since moved into the rubric and
+`.stage/expanded` exists for the assembler to read. The proof obligation I wrote
+independently ("reproduce byte for byte before the python producer retires") is
+the gate that was already built for it.
+
+### D · `gold_slots_q6.py` -- a CHECK that nothing runs
+
+Separate from C, and it predates the migration: the prior run's patch touches it
+by only 8 lines, so it was already there.
+
+277 lines, imported by nothing. It defines `gold_slots_q6()`, `gold_view()`,
+`unresolved_slots()`, `reconcile()` -- and
+`check_corrected_slots_account_for_the_totals()`, whose docstring reads:
+    "Each row's family changes plus its grid term must explain its total exactly.
+     Signed, so a row that RAISES gold is checked as strictly as one that lowers
+     it -- Q6/p4 is the only raising row and it is the one most in need of the
+     check, since its correction mixes a slot (+1.25) with an off-grid regrade."
+Referenced 0 times in equivalence.py, enforcement.py and precommit_gate.py.
+
+A check that is not wired reports nothing forever, which is indistinguishable from
+passing -- the exact failure this project fails a vacancy ratchet over. And its
+subject is Q6, the item with the known matching ceiling, where the SAME PRINCIPLE
+is wired for item 1c (`agreement.gold_slots_1c`, called at agreement.py:1828).
+
+RESOLVED 2026-09-23: GENERALISE IT, do not wire it as it stands.
+
+The first recommendation here was "wire the check as-is, scoped to Q6, which is
+what it always was", on the measurement that only 2 of 15 CORRECTED_GOLD entries
+carry itemised amounts and 4 of the 15 are Q6 -- so generalising appeared to buy
+nothing. That reasoning was wrong, and the correction is the principle:
+
+    AN ITEM-SPECIFIC CHECK IS ITEM CONTENT IN ANALYTIC MACHINERY. It is the same
+    embedding this migration removes everywhere else, and `course_inventory`
+    already counts it -- gold_slots_q6.py scores 3 ids and 2 named modules. The
+    payoff is not today's coverage: a GENERAL check fires for content written
+    later, and an item-specific one never will. Writing the specific one is
+    choosing to miss the next item silently.
+
+WHAT IT CAN BE MADE GENERAL ON, without inventing a declaration nobody fills in:
+
+  (i) A CORRECTION MUST MOVE GOLD TO A REACHABLE VALUE. An item's score is max
+      minus a subset of its component costs, so only certain values exist -- which
+      `check_unreachable_gold_is_allowed` already relies on, for the OTHER side of
+      the same fact (harnesses must forgive an unreachable gold). Nothing checks
+      that a CORRECTION lands on a reachable one. The costs come from the rubric,
+      so the check reads no item ids at all and fires on all 15 entries and on
+      every future one. Q6/p4 is the case that motivated it: gold 6.00 on an item
+      moving in steps of 1.25, corrected to 6.25.
+
+  (ii) WHERE A CORRECTION STATES AMOUNTS, THEY MUST EXPLAIN ITS DELTA. This is the
+      Q6 check's actual content, generalised: parse the amounts out of the
+      reasoning the declaration already carries, and require them to sum. It
+      covers 2 entries today and costs nothing per new entry.
+
+  Both read slot costs FROM THE RUBRIC, which is now the single source for them --
+  so this is only possible after tonight's work, and was not before.
+
+THE Q6-SPECIFIC PARTS GO: `CORRECTED_FAMILY` (a table of Q6 pids), and the
+per-slot reading (`gold_slots_q6`, `gold_view`, `unresolved_slots`). The reading
+solves a problem Q6 does not have -- its wired analogue `gold_slots_1c` exists
+because 1c's gold must be REBUILT from feedback, one of the four accounting steps
+`check_gold_accounting_is_uniform` names. Q6's gold is taken from the sheet and
+corrected where unreachable; there is nothing to rebuild.
+
+So: delete the module, add the two general checks, and record the deletion reason.
+
+#### DONE 2026-09-23 -- and check (ii) was REFUTED BY MEASUREMENT, not built
+
+SHIPPED, both in `enforcement.py`, both registered in `equivalence.py`, both
+fire-tested (positive on injected breakage, back to zero on restore):
+
+  check_gold_corrections_land_on_attainable_scores
+      every CORRECTED_GOLD entry sets a score the item can produce. 15 entries,
+      0 findings. Three of the fifteen exist BECAUSE gold was off-grid -- 1c/p11
+      at 7.00, Q4a/p17 at 4.00, Q6/p4 at 6.00 on an item stepping by 1.25 -- so
+      the rule is the one those corrections were written to satisfy.
+
+  check_gold_scores_are_attainable
+      the REPORTING half of `check_unreachable_gold_is_allowed`, which forgives
+      an off-grid gold and never says it did. 519 gold cells carry a score and 0
+      are off-grid, because those same three corrections are what regularised
+      the corpus. A ratchet at zero that fires on new content only.
+
+Both read slot costs FROM THE RUBRIC and name no item, which is the point.
+
+CHECK (ii) AS SKETCHED ABOVE IS WRONG AND WAS NOT BUILT. The sketch said "parse
+the amounts out of the reasoning and require them to sum [to the delta]". The
+amounts in these declarations are THE GRADER'S DEDUCTIONS, and they bear on the
+corrected SCORE (max minus their sum), never on the delta. Built as written it
+would have fired falsely on at least five entries.
+
+And the deeper reason no parse can work, which is what closes this off: THESE
+DECLARATIONS STATE NUMBERS IN ORDER TO REJECT THEM, as routinely as they state
+the ones they adopt. Measured, three times over:
+    Q4a/p19  "the strict reading ... gives 1.00" -- explicitly "not proposed"
+    Q6/p9    quotes the grader's "-2.5 pt" to refuse that reading; delta -1.25
+    Q6/p17   quotes "-5 pt"; delta -1.25
+No regex separates an adopted figure from a refused one, and a check that
+cannot tell them apart reports the declaration's own reasoning as an error.
+The third option -- a structured `charges` field -- is refused by this item's
+own constraint, "without inventing a declaration nobody fills in", and the
+entries live in the gold file behind an exporter, not in python.
+
+So the second check is the one measured above instead: same family, no prose.
+
+BOOKKEEPING DONE WITH THE DELETION: 13 definitions accepted through
+`editguard.accept`, the empty module key dropped from `DEFINITIONS.json`
+(`editguard.vanished()` reads clean), `COURSE_DATA_BUDGET.json` re-tightened via
+`course_inventory.py --tighten` (the module's `named_modules` entry and its 3
+data embeddings both gone), and the two enforcement comments that used the file
+as their worked example re-pointed at `q6_consensus.py`, which is still there.
+`BACKLOG.md`'s "generalise the per-slot gold summary" note KEEPS its design
+lessons -- they are the measured residue of building the Q6 parser and say what
+a general version must handle -- and now records the deletion above them.
+
+AUDIT IMPACT: none. 44 undeclared findings before and after, measured by running
+the audit at HEAD on the real tree (a git-worktree copy reports 0 and is not a
+valid comparison -- it has no built artifacts). The certification's "45" is these
+44 plus the 1 PARKED finding.
+
+### E · `olx_string_idmaps.ts` -- where do the 99 lines belong?
+
+RESOLVED 2026-09-23: THEY STAY IN LO-BLOCKS, and the premise of the question was
+wrong -- this file is not an unwired module.
+
+THE MEASUREMENT THAT SETTLED IT. The file has 0 in-repo references, which is why
+it was grouped with the other "written but producing nothing" modules. But it
+HAS a caller: `process_events.py` spawns it with `npx tsx` against a lo-blocks
+installation root (`_OLX_STRINGS_SCRIPT`, `build_parser_idmaps_for_olx`). It is
+load-bearing for the event pipeline -- it is what resolves ids for dynamic OLX,
+the content an OlxSlot renders from a runtime-authored string, which never lives
+in the content/ tree and so is invisible to `xml2json.ts`.
+
+WHY LO-BLOCKS IS THE RIGHT HOME, and the reason is the one this migration keeps
+applying elsewhere. The whole point of the script is that the ids it mints MATCH
+THE RUNTIME IDS the event stream carries, which it achieves by calling the very
+same `parseOLX` with the same provenance and namespace as `_OlxSlot.tsx`. Move
+it out and there are only two options: reach into lo-blocks' internals from
+another repository, or reimplement the parse -- a second implementation of one
+rule, which is exactly the shape retired from `oc_criteria`, from `SLOT_NOTES`,
+and the shape item F is filed to retire from `rebuild_gold_1c`. Its companion
+`xml2json.ts` already lives here for the same reason.
+
+WHY THE COUPLING ARGUMENT IS STRONGER THAN CODE REUSE, which is what the first
+version of this entry missed. The ids are a PRODUCT OF THE PARSE -- `createId()`
+hashes the parsed node -- so a second implementation would not drift over time,
+it would be WRONG IMMEDIATELY, minting ids that match nothing in the event
+stream. And it would fail SILENTLY: no exception, no empty output, just
+resolutions that stop happening. That makes this a VERSION-COUPLING argument.
+The wrapper must ship from the same build as the parser it wraps, which rules
+out moving it to a tools package that depends on lo-blocks as a library.
+
+WHAT WAS ACTUALLY WRONG was not the file's location but that NOTHING EXERCISED
+IT. `lib/llm/runner.test.ts` has the identical shape -- lo-blocks code whose only
+caller is an external harness -- and is at least wired into the test suite; this
+file had no in-repo caller, no test, and no package.json entry, so lo-blocks'
+own verification could not see it and the python enforcement framework cannot
+see inside it. A header comment fixes legibility and not that.
+
+DELIVERED 2026-09-23:
+  * `packages/shared/scripts/olx_string_idmaps.test.ts` -- three tests. (1) the
+    script's WHOLE idMap equals a runtime-shaped `parseOLX` call; (2) an
+    unparseable string is omitted rather than emitted with an empty map, which is
+    the caller's actual fallback contract; (3) a drift guard reading BOTH call
+    sites, because test 1 computes its own expectation and so cannot notice
+    `_OlxSlot.tsx` itself changing.
+  * `package.json` gains `olx-string-idmaps`, beside `xml2json` and `xml2graph`.
+  * `packages/shared/scripts/olx_string_idmaps.md`, following the
+    `lib/llm/*.md` sibling-doc convention.
+  * the header seam note naming `process_events.py` as the caller.
+
+FIRE-TESTED, and the fire test IMPROVED THE TEST, which is the part worth
+keeping. Injecting a wrong namespace failed test 1 as expected. But injecting a
+changed provenance ref (`validate://` -> `dynamic://`) left the minted ids
+IDENTICAL and passed test 1, caught only by the drift guard -- because the first
+version compared key sets, and provenance rides in each entry's `source`. Test 1
+now compares the whole map and catches both. A key-set comparison would have
+shipped looking sufficient.
+
+Full lo-blocks unit suite green after the change: 108 files, 2562 tests.
+
+POPULATION ENUMERATED, not fixed at the instance. Of 18 scripts in
+`packages/shared/scripts`, five have no in-repo reference. Three are `.test.ts`
+and are collected by vitest's glob, so the count is expected and means nothing.
+That leaves two, and only one of them is this file.
+
+  ONE RESIDUAL, NOT PART OF E: `parse-peg.ts` has no in-repo reference AND no
+  external caller in the pipeline scripts or in scoring. It is the only script in
+  the tree that is unreferenced on both sides, so it is the one that genuinely
+  needs a disposition -- wire it, document its caller, or delete it. Filed here
+  rather than guessed at.
+
+### G · `DEFINITIONS.json` tracks 40 modules of 73, and new ones never enter
+
+Filed 2026-09-23, on the user's instruction, after item A created two modules and
+NEITHER appeared in the ledger. That is not a bug in the split; it is how the
+ledger has always behaved, and the split is only what made it visible.
+
+MEASURED, not estimated:
+
+    modules on disk                    73
+    tracked by DEFINITIONS.json        40
+    UNTRACKED                          33   holding 400 definitions
+    ghost entries (tracked, no file)    0
+
+The untracked 33 are not peripheral. They include `coursedata.py` (34
+definitions), `rubric_export.py` (24), `rubric_component.py` (19),
+`shape_inventory.py` (18), `reader_equivalence.py` (16) and both halves of the
+module A just split.
+
+WHAT IS AND IS NOT EXPOSED, because the two guards are easy to conflate:
+
+  * `editguard.safe_write` compares the file's own before/after text and refuses
+    an undeclared vanishing. It works on ANY module, tracked or not, and it
+    worked throughout A -- it is what caught the `CONTEXT_SOURCE` prose edit that
+    had not landed, and what refused the two slices during the Q6 work.
+  * `DEFINITIONS.json` + `editguard.vanished()` + `check_no_definition_vanished`
+    are the SECOND net: they catch a definition lost by any route that did not go
+    through `safe_write` -- a hand edit, another tool, a bad merge, a file
+    replaced wholesale.
+
+So the exposure is precisely: on 33 of 73 modules, only edits made through
+`safe_write` are guarded, and nothing is watching the rest. `vanished()` iterates
+the INVENTORY's keys, so an untracked module cannot report a loss -- it reports
+clean, which is indistinguishable from being intact. That is the same
+"unwired check reads as coverage" failure item D was filed for, arriving by a
+different route.
+
+THE WORK, and the order matters:
+
+  1. Inventory the 33 and seed them. NOT with `seed(force=True)`: that rewrites
+     the whole file from whatever the tree currently says, which would silently
+     bless any definition already lost from the tracked 40 as well. The seed must
+     be ADDITIVE -- add modules absent from the inventory, touch no existing
+     entry -- and `seed()` today refuses to overwrite at all, so this needs a
+     new, narrower entry point.
+  2. Make a NEW module enter automatically, or refuse. Today a module can be
+     added and tracked by nothing, forever, with no signal. The check to write is
+     the complement of `vanished()`: every `*.py` in the package is either in the
+     inventory or declared as deliberately outside it. That check is what makes
+     step 1 stay true; without it the gap simply reopens on the next new file.
+  3. Decide whether anything is LEGITIMATELY untracked, and declare it rather
+     than leaving it to the absence of an entry. Candidates to consider are
+     one-shot scripts (`stamp_legacy_artifacts.py`) and tools that regenerate
+     themselves -- but the default should be tracked, and an exemption should
+     have to say why, the way every other exemption in this project does.
+
+WHY IT IS NOT URGENT AND SHOULD STILL BE DONE SOON: nothing is known to have been
+lost, and `safe_write` has covered the edits this project actually makes. The cost
+is that no one can SAY that about the untracked 33 -- and the whole argument for
+the ledger, written in its own `_README`, is that a file which parses tells you
+nothing about whether it still defines what it did yesterday.
+
+#### DONE 2026-09-23 -- all 73 modules tracked, and a check that keeps it so
+
+Done ahead of B, C and F on the user's instruction, and the ordering is the
+point: each of those MOVES CODE, and an unwatched definition lost during a move
+is the exact failure this ledger exists to catch. Widening the net before the
+next move is worth more than widening it after.
+
+    modules on disk   73        tracked before   40      after   73
+    definitions       1420      untracked before 33      after    0
+
+THE SEED IS ADDITIVE, and that is the whole design. `seed(force=True)` rewrites
+every entry from whatever the tree currently says, so on a package already
+carrying a loss it would record the damage as the definitions of record --
+laundering the failure the inventory exists to catch. `editguard.track_new()`
+only ever ADDS keys, and it REFUSES to run at all while any tracked module is
+reporting a loss, because adding coverage is not the moment to be carrying an
+unexplained one. Fire-tested: with a phantom name planted in the inventory it
+refused and named the loss; with the plant removed it ran.
+
+Precondition checked before seeding rather than assumed: `vanished()` read 0
+across the tracked 40, so nothing was blessed by being added around it.
+
+`check_every_module_is_tracked` -- reported as MODULE IS NOT IN THE INVENTORY,
+registered in the audit -- is the complement of `check_no_definition_vanished`,
+and it is what stops the gap reopening on the next new file. A one-off cleanup
+with nothing holding it is a gap with a date on it. Fire-tested both ways: a new
+module is reported; declaring it in `editguard.UNTRACKED_BY_DESIGN` silences it;
+deleting it restores zero.
+
+`UNTRACKED_BY_DESIGN` ships EMPTY, deliberately. Nothing was found that deserved
+an exemption, and the table exists so that "not tracked" is always a decision on
+the record rather than the absence of one -- which is what it had been for 33
+modules. `editguard.py --track` adds; `editguard.py` with no arguments now
+reports both halves.
+
+Audit unchanged: 44 findings, and the set IDENTICAL to the pre-D baseline.
+
+### F · `1c`'s gold rebuild -- 16 embeddings, implemented TWICE, no owner
+
+Measured with `course_inventory.py` (the prepared tool; it reports populations and
+refuses to guess them). Item ids embedded in ANALYTIC machinery, outside the three
+declared DATA modules:
+
+    1c   16      <- this item
+    Q6    8      3 in gold_slots_q6.py (item D); 4 in enforcement_selftest (D2a)
+    Q1    4      reader_equivalence._mutations                          (D2a)
+    Q4a/1b/1a  1 each   equivalence.py                                  (D2a)
+
+MOST OF IT IS ALREADY OWNED. `equivalence.py`'s seven ARE the audit's one parked
+finding -- "D2a (fixtures that select their target by shape) is the work that
+removes them" -- and `reader_equivalence._mutations` is the same class: a
+fault-injection fixture NAMING its target instead of selecting it by shape.
+
+`1c` HAS NO OWNER, and it is the worst-shaped of the set:
+
+    agreement.py       gold_slots_1c()  +  rebuild_gold_1c()
+    agreement_app.py   rebuild_gold_1c()  AGAIN
+
+and `agreement_app`'s copy says so itself:
+    "Mirrors gold_slots_1c in agreement.py. The two must agree: a row scored on
+     one side and dropped on the other is not a comparison."
+
+A comment asserting that two implementations must agree, with nothing enforcing
+it, is the exact shape removed from `oc_criteria` and from `SLOT_NOTES` tonight.
+The remaining hits -- `GRAPH_UNREACHABLE_1C`, and `1c` in measured.py,
+enforcement.py, compare_runs.py, olx_prompts.py -- are that special case leaking
+outward across six modules.
+
+IT GENERALISES EXACTLY AS ITEM D DOES. The fact is "this item's gold must be
+REBUILT from the grader's itemisation, because the sheet's number cannot be
+trusted for it". That is an item property -> it belongs in the rubric. The
+arithmetic (`10.0 - 2.0 * failures`) is slot costs -> the rubric now holds those.
+So: one rebuild, declared on the item, driven from the rubric, serving both
+engines -- replacing two hand-kept copies and a comment hoping they agree.
+
+RANK IT ABOVE D: the same generalisation, four times the footprint, and unlike D
+it currently sits astride the two scorers' comparison, which is the one place a
+silent divergence is most expensive.
+
+`check_gold_accounting_is_uniform` already names `rebuild_gold_1c` as one of the
+four things separating a published rate from a naive comparison -- so the rebuild
+is load-bearing and must keep working byte-for-byte through the move. Same proof
+obligation as everything else tonight.
+
+### H · Regularize WHERE THINGS LIVE, one home per category
+
+Filed 2026-09-23 on the user's instruction. The ten categories of
+`MATERIAL_CLASSIFICATION.md` were a survey; this turns them into an address. The
+test is a human one: someone opening the tree should be able to say what kind of
+thing a file is from where it sits, without asking.
+
+#### The destinations
+
+| cat | what it is | home |
+|---|---|---|
+| — | the generic OLX engine | `lo-blocks` — already home |
+| I | this course's OLX | `edu.memphis.psych/psychology/` — already home |
+| II | course metadata (`course.json`) | `edu.memphis.psych/psychology/`, beside the handout OLX |
+| II(a) | deviations between scoring versions | `scoring/` — they are declarations the audit reads |
+| III | analytic machinery | `scoring/` — stays, and becomes most of what is there |
+| IV | structured gold, web + python scorers | a named `$COURSE_DATA` subfolder |
+| V | structured gold, paper scorer | a named `$COURSE_DATA` subfolder, separate from IV |
+| VI | the original responses and gold comments | a named `$COURSE_DATA` subfolder |
+| VII | materials the RUBRIC was derived from | a named `$COURSE_DATA` subfolder |
+| VIII | materials the COURSE DESIGN was derived from | a named `$COURSE_DATA` subfolder |
+| IX | fixture programs, paper form -> web form | `edu.memphis.psych/bmod_fixture/` |
+| X | everything else | triaged: relocated by the same logic, or DELETED |
+
+`scoring/` ends up holding exactly three kinds of thing, and nothing else:
+
+  1. the analytic python that supports audits and certification, together with
+     the `QUALITY_CONTROL.md` / `GOALS.md` cycle that governs it
+  2. metadata about scorer versions
+  3. the results of certifications, sweeps, and the ledger and accounting files
+     that track them
+
+IX IS THE INTERESTING CASE and the reason it gets its own folder rather than a
+move out of the repo: the fixture code maps responses and gold comments between
+the paper and web forms, so it is COURSE-SPECIFIC — but it is executable
+machinery with an audit attached, so it cannot live in `$COURSE_DATA` with the
+documents. `bmod_fixture/` names it for what it is and keeps it in the repo.
+
+#### `course.json` moves WITHIN the repo, and that is what keeps C1b intact
+
+Decided 2026-09-23: it goes to `psychology/`, with the handout and rubric `.olx`
+it describes — NOT to `$COURSE_DATA`. An earlier draft of this item proposed the
+latter and had to raise a conflict against it; the decision removes the conflict
+rather than trading against it, so the conflict is recorded here only as the
+reason the placement is right.
+
+WHAT WOULD HAVE BROKEN. `coursedata.gold_declaration` rests on the two files
+having DIFFERENT availability — "the course file ships inside this public
+repository and is always there, while gold lives outside it and may legitimately
+be absent (C1b)" — with the measured consequence that with gold absent,
+`coursedata` and `rubric_for()` still import and only the four gold-consuming
+modules refuse. Putting `course.json` under `$COURSE_DATA` collapses that: the
+rubric half stops working without the data directory too, and the error stops
+naming which file is missing, which is precisely what C1b's two separate
+accessors exist to prevent. Staying in the repo preserves all of it, and no
+copy, no sync and no equality check are needed.
+
+AND IT PUTS THE METADATA BESIDE THE CONTENT IT DESCRIBES, which is this item's
+whole test: `psychology/` already holds `bmod_rubric.olx`, the three handouts and
+39 other course files, and `course.json` is the metadata for exactly those.
+
+`courses/` THEN RETIRES. It holds two files and nothing else: `course.json`, and
+`CHANGELOG.md` — which is the course's changelog and follows it to `psychology/`.
+The directory goes.
+
+BEWARE THE SURVIVING HOMONYM. `courses/` continues to exist under `$COURSE_DATA`,
+where `gold.json` lives (`$COURSE_DATA/courses/<course-id>/gold.json`,
+`coursedata.gold_path` and `gold_export`). After this move the name means one
+thing instead of two, which is an improvement — but anything reading "courses"
+must be checked for WHICH of the two it meant, not assumed.
+
+FOUR IN-REPO HARDCODERS, and A's rule applies: one resolver, never four copies.
+
+    scoring/coursedata.py:116        course_path() -- the one that should stay
+    scoring/rubric_equivalence.py:224
+    scoring/anchors.py:88
+    scoring/prose_vocabulary.py:99
+
+`course_path()` already honours a `$COURSE_FILE` override, so the move is one
+line there plus three call sites routed through it. Three modules independently
+recomputing the same path is the same shape as `migrated_tables.BUILDERS` being
+a second copy of the builder list, which §13 A had to fix mid-flight.
+
+#### What actually moves, counted
+
+`scoring/` today: 73 `.py`, 16 `.json`, 8 `.md`, 4 `.sh`, plus `materials/`,
+`drafts/`, `__pycache__/`.
+
+  -> `bmod_fixture/` (IX): `segment.py`, `docx_text.py`, `prose_split.py`,
+     `fixture_edits.py`, `canonicalise_verdicts.py`, `migrate_verdicts.py`,
+     `grader_inputs.py`, `stamp_legacy_artifacts.py`, `paper_runs.py`, with
+     `PROSE_SPLIT_WORKSHEET.json` and `GRADER_INPUTS.json`, and the fixture audit
+     that goes with them. The exact set is to be re-derived from the tree at the
+     time, not from this list — §13 A is the precedent: the agenda's table list
+     was three entries stale by the time it was executed.
+  -> `$COURSE_DATA` (VII, VIII): all of `scoring/materials/` — the scoring and
+     feedback dictionaries to the rubric-sources folder, the handouts, decks,
+     syllabus and schedule to the design-sources folder.
+  -> DELETED: `scoring/drafts/` (two interim notes), `__pycache__/`,
+     `writescope.sh` (a fixture of this session's scope, not of the project), and
+     the interim planning documents named in category X once their content is
+     either folded in or genuinely spent.
+
+DELETION IS LICENSED BUT NOT CASUAL. The user's standing instruction is that
+planning documents live on in committed history and temp scripts and outputs not
+needed for documentation are deletable at H. The discipline that applies is the
+one this project already has: ENUMERATE THE POPULATION FIRST and state the rule
+that selects it, so a deletion set is never assembled from the instances someone
+happened to notice. `fixset_coverage.py` exists for exactly this.
+
+#### Write scope H requires, and why it is bigger than any step so far
+
+H CANNOT RUN UNDER THE STANDING OVERNIGHT SCOPE. That scope allows the two dry-run
+repos plus `$COURSE_DATA/out/**` and `$COURSE_DATA/courses/**`, and it names as
+NEVER writable the source documents and records — "Handout Submissions with
+Scoring and Feedback" (the submissions and the graders' workbooks),
+`migration_reference`, `migration_goldens`, `retired_artifacts`, `handsplit`,
+`pre_scrub_backup_*`, `corpus_refs.json`.
+
+Those are exactly the things categories V and VI say must move into named
+subfolders. So H needs an EXPLICIT, DELIBERATE scope amendment covering the new
+`$COURSE_DATA` subfolders for IV, V, VI, VII and VIII — and it must be granted as
+its own decision, not inherited. `writescope.sh` encodes the current rule and
+refuses the rest; it has to be updated in the same act, so that the tool and the
+permission never disagree.
+
+THE MATERIAL BEING MOVED IS THE IRREPLACEABLE KIND. The repo can be rebuilt from
+git. Student submissions and graders' workbooks cannot be rebuilt from anything.
+Everything below exists because of that asymmetry.
+
+#### The move protocol: copy, verify, and only then remove
+
+NEVER `mv`. NEVER a rename. Copy, prove the copy, and only then remove the
+original — in that order, for every file, with no exceptions and no batching that
+hides a failure.
+
+  1. **Freeze a manifest of the source set** before touching anything: relative
+     path, byte size, and sha256 for every file. Written to disk, not held in a
+     variable, and the count recorded. This is the thing the move is checked
+     against, and it cannot be regenerated afterwards from the destination —
+     that would be marking one's own homework.
+  2. **Copy** to the destination. Refuse outright if the destination already
+     exists with different content; an overwrite during a reorganisation is
+     indistinguishable from a loss.
+  3. **Verify against the manifest, exhaustively**: every path present, every
+     sha256 equal, every size equal, the counts equal on both sides, and NO extra
+     files at the destination. A verification that only checks the files it
+     copied cannot see one it forgot to copy.
+  4. **Verify the READERS still work**, which is a different question from the
+     bytes being intact: the `course.json` export still byte-identical, the audit
+     finding set unchanged, the certification green. Files can arrive perfectly
+     and still be in a place nothing looks.
+  5. **Only then remove the source**, and re-run step 3 against the destination
+     afterwards to confirm the removal took nothing with it.
+
+`$COURSE_DATA` GETS A STRICTER RULE STILL. For the submissions and the graders'
+workbooks — categories V and VI — the source is NOT removed in the same pass at
+all. Copy, verify, run the scorers against the new location, and leave the
+original standing until the user confirms the move is good. `pre_scrub_backup_*`
+exists in that tree precisely because this project has already decided once that
+irreplaceable inputs get a backup before a bulk operation; H is a bulk operation
+over the same class of data.
+
+A DRY RUN FIRST, ALWAYS: the whole protocol with the copy and the removal
+disabled, reporting exactly what it would move, from where, to where, and what it
+would delete. The enumeration discipline applies to the deletion set as much as
+the move set — state the rule that selects it and show every match, never a set
+assembled from what someone happened to notice.
+
+IF ANY STEP FAILS, STOP AND REPORT. Do not continue with the remaining
+categories, do not "clean up" a partial move, and do not delete anything to tidy
+the state. A half-finished move with both copies present is recoverable; a
+half-finished move that has already started deleting is not.
+
+#### What this will break, and the proof obligation
+
+  * **`paths.py` is the chokepoint.** Every constant naming a moved file moves
+    with it, and nothing may keep a second copy of a path — the A precedent:
+    one list, two consumers, never two lists.
+  * **The ledger does not follow a file out of `scoring/`.** `editguard.modules()`
+    globs `HERE/*.py` and nothing else, so a module moved to `bmod_fixture/`
+    leaves `DEFINITIONS.json` AND leaves item G's `check_every_module_is_tracked`
+    — both go quiet together, which is the worst possible combination and
+    precisely the silence G was filed to end. `modules()` must learn the new
+    directory IN THE SAME COMMIT as the first file that moves there.
+  * **`COURSE_DATA_BUDGET.json` is keyed by module filename**, so every move
+    rekeys it; it ratchets down only, and re-tightening is deliberate (A).
+  * **`check_no_module_is_named_for_a_course_artifact`** must be told what
+    `bmod_fixture/` is. A directory named for the course is the correct answer
+    here, not a violation — but it has to be declared, not assumed.
+  * **Write scope and the move protocol** have their own sections above; nothing
+    in H may begin until the scope amendment is granted explicitly.
+
+THE PROOF IS THE ONE A USED, and it is available here for the same reason: the
+artifacts are the interface. A byte-identical `course.json` export, an identical
+audit finding set, and a green certification across the move together mean the
+relocation changed where things are and nothing else. Anything less is a
+reorganisation that also did something, and nobody will know what.
+
+---
+
 # Appendix · THE DRY RUN AS EXECUTED, and the traps it walked into
 
 Carried over verbatim from `~/code/migration_dryrun/psych/RUBRIC_MIGRATION_PLAN.md`
