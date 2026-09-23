@@ -114,9 +114,7 @@ def _prose_path(name: str, root: str | None) -> str:
         return os.path.join(root, name)
     import compose_docs
 
-    if name in compose_docs.SPLIT_DOCS:
-        return compose_docs.composed_path(name)
-    return os.path.join(HERE, name)
+    return compose_docs.doc_path(name)
 
 
 def scan(root: str | None = None) -> dict:

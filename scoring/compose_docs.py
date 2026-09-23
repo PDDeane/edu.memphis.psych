@@ -85,7 +85,12 @@ def generic_path(name: str) -> str:
 # tracked: 112 labels and their states, some 15 KB, rewritten only when a goal is
 # opened or closed rather than on every prose edit. The state stays versioned; the
 # prose stops being.
-ACCUMULATING: tuple[str, ...] = ("GOALS.md",)
+ACCUMULATING: tuple[str, ...] = ("GOALS.md", "BACKLOG.md")
+
+# Documents that live ENTIRELY with the course: no generic half, nothing to
+# compose. A split document has a rule in it worth keeping behind; these do not --
+# they are this course's outstanding work and one item's measured dead ends.
+WHOLE_DOCS: tuple[str, ...] = ("BACKLOG.md", "Q6_MATCHING_CEILING.md")
 
 
 def specific_path(name: str) -> str:
@@ -240,6 +245,44 @@ def unplaced(name: str) -> list:
                        f"generic half does not anchor -- {len(blocks[key])} "
                        f"block(s) would be dropped")
     return bad
+
+
+def doc_path(name: str) -> str:
+    """WHERE A DOCUMENT ACTUALLY IS. Every reader should ask this rather than
+    joining a name onto `scoring/`.
+
+    Moving a document does not break its readers loudly; it breaks them QUIETLY,
+    because a reader that joins a name onto a directory gets a path that simply
+    does not exist, and the well-behaved ones skip a missing file. Measured: after
+    GOALS.md was split, `olx_prompts`' "anything naming this item in the written
+    record" scan went on reading `scoring/GOALS.md` -- by then the 53-line charter
+    -- and reported NO RECORD for every item. The composed document has 249
+    mentions of Q6 alone. Nothing failed; the record just went blank.
+    """
+    if name in SPLIT_DOCS:
+        return composed_path(name)
+    if name in WHOLE_DOCS:
+        return specific_path(name)
+    return os.path.join(HERE, name)
+
+
+def missing() -> list:
+    """Documents a reader would look for and not find.
+
+    The other half of doc_path's lesson: a resolver only helps the readers that
+    use it, and a document that is simply GONE -- moved by hand, lost in a
+    checkout -- reads as an empty record to every one of them.
+    """
+    out = []
+    for name in sorted(set(SPLIT_DOCS) | set(WHOLE_DOCS)):
+        if name in SPLIT_DOCS and not os.path.exists(generic_path(name)):
+            continue                     # not split here; nothing to find
+        path = doc_path(name)
+        if not os.path.exists(path):
+            out.append(f"{name} is not at {path}, where its readers look. A reader "
+                       f"that cannot find a document does not fail -- it reports an "
+                       f"empty record")
+    return out
 
 
 def composed_path(name: str) -> str:

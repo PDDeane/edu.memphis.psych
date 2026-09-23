@@ -9358,6 +9358,23 @@ def check_no_composed_document_repeats_itself() -> list[str]:
     return compose_docs.duplicated()
 
 
+def check_every_document_is_where_its_readers_look() -> list[str]:
+    """A document named by a reader is not at the path that reader resolves.
+    Reported as A DOCUMENT IS NOT WHERE ITS READERS LOOK.
+
+    MOVING A DOCUMENT BREAKS ITS READERS QUIETLY. A reader joins a name onto a
+    directory, the path does not exist, and the well-behaved ones skip it -- so the
+    record reads as empty rather than as broken. Measured twice in one sitting:
+    `olx_prompts`' written-record scan reported NO RECORD for every item after
+    GOALS.md was split, while the composed document held 249 mentions of Q6 alone;
+    and `goals`' citation check would have stopped reading BACKLOG.md, which cites
+    dozens of subgoals, the moment it moved.
+    """
+    import compose_docs
+
+    return compose_docs.missing()
+
+
 def check_composed_documents_are_current() -> list[str]:
     """A composed document no longer matches the halves it was built from.
     Reported as A COMPOSED DOCUMENT IS STALE.

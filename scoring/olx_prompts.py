@@ -32,6 +32,7 @@ import argparse
 import difflib
 import functools
 import os
+import pathlib
 import re
 import sys
 
@@ -2859,8 +2860,16 @@ def prior_record(item: str) -> str:
                      f"{item}: {type(e).__name__}: {e})")
 
     # 2. Anything naming this item in the written record.
+    # THROUGH THE RESOLVER, because two of these three no longer live beside this
+    # module and a missing path here is a SILENT empty record -- see
+    # `compose_docs.doc_path`, which was written after this scan was measured
+    # reporting no record for every item while the composed GOALS.md held 249
+    # mentions of Q6 alone.
+    import compose_docs
+
     for where in ("drafts", "BACKLOG.md", "GOALS.md"):
-        p = paths.SCORING / where
+        p = pathlib.Path(paths.SCORING / where if where == "drafts"
+                         else compose_docs.doc_path(where))
         if not p.exists():
             continue
         try:

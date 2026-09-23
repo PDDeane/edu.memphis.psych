@@ -29,6 +29,7 @@ nowhere is a rule that depends on whoever reads it last.
 from __future__ import annotations
 
 import json
+import pathlib
 import re
 import subprocess
 import sys
@@ -502,7 +503,12 @@ def check() -> list[str]:
     now = entries(text)
 
     # 2. DANGLING CITATIONS, across the tree.
-    for path in sorted(list(HERE.glob("*.md")) + list(HERE.glob("*.py"))):
+    # THE COURSE'S OWN DOCUMENTS CITE SUBGOALS TOO, and they are no longer under
+    # HERE. BACKLOG.md alone cites dozens; globbing `scoring/` after the move would
+    # check the modules and quietly stop checking the record.
+    cited_in = [pathlib.Path(compose_docs.doc_path(n))
+                for n in sorted(set(compose_docs.SPLIT_DOCS) | set(compose_docs.WHOLE_DOCS))]
+    for path in sorted(set(list(HERE.glob("*.md")) + list(HERE.glob("*.py")) + cited_in)):
         if path.name == "goals.py":
             continue
         try:

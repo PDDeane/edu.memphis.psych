@@ -41,7 +41,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-FILES = ("GOALS.md", "QUALITY_CONTROL.md", "BACKLOG.md", "EQUIVALENCE.md")
+FILES = ("GOALS.md", "QUALITY_CONTROL.md", "BACKLOG.md", "EQUIVALENCE.md",
+         "README.md")
 SENTENCE = re.compile(r"(?<=[.!?])\s+(?=[A-Z`*])")
 DATE = re.compile(r"\b20\d\d-\d\d-\d\d\b")
 NUMBER = re.compile(r"\b\d+(?:/\d+|%|\.\d+)?\b")
@@ -103,7 +104,13 @@ def main(argv=None) -> int:
     ap.add_argument("--json", metavar="PATH")
     args = ap.parse_args(argv)
 
-    files = args.file or [f for f in FILES if os.path.exists(os.path.join(HERE, f))]
+    # RESOLVED, not joined onto HERE: three of these five now live with the course.
+    # Joining the name here would silently shorten the list to the ones that have
+    # not moved yet, which is a smaller job reported as a finished one.
+    import compose_docs
+
+    files = args.file or [compose_docs.doc_path(f) for f in FILES
+                          if os.path.exists(compose_docs.doc_path(f))]
     everything = {}
     for name in files:
         rows = worksheet(os.path.join(HERE, name))
