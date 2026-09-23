@@ -2176,7 +2176,7 @@ def check_closed_goals_that_changed_code_were_exercised() -> list[str]:
         text = goals.read_text()
     except OSError:
         return ["GOALS.md cannot be read, so closed goals cannot be checked for "
-                "a live exercise"]
+                "a live run"]
 
     from olx_prompts import primitives
     attrs = {p["attr"] for p in primitives()["primitives"]}
@@ -2249,7 +2249,7 @@ def check_convertible_prose_rules_have_subgoals() -> list[str]:
         text = goals.read_text()
     except OSError as e:
         return [f"GOALS.md cannot be read, so CONVERTIBLE prose rules cannot be "
-                f"checked for a subgoal: {e}"]
+                f"checked: {e}"]
 
     out = []
     for (item, slot), why in sorted(PROSE_ONLY_SLOTS.items()):
@@ -9269,6 +9269,75 @@ def check_no_definition_vanished() -> list[str]:
     import editguard
 
     return editguard.vanished()
+
+
+def check_no_module_appends_to_the_repository() -> list[str]:
+    """A module opens a repository path in APPEND mode.
+    Reported as AN APPEND-ONLY LOG IS BEING WRITTEN INTO THE REPOSITORY.
+
+    WHY THIS EXISTS, in one measurement. The gate's override log lived in
+    `scoring/` and was machine-appended, so every commit rewrote the whole blob:
+    80 versions, 2,838 MB of history, 82 PER CENT of every blob this repository
+    had ever stored -- against 18 MB of tracked content. A blob is permanent once
+    committed, so deleting the file reclaims nothing. The log now lives in
+    `$COURSE_DATA`; this keeps the next one from starting.
+
+    APPEND MODE IS THE SIGNAL, and it is a precise one. A record REWRITTEN whole
+    is bounded by its key space -- items, slots, cells -- and cannot grow with
+    time; `MEASURED.json` carries one `previous` per item and side, not a chain,
+    and sits at 46 KB per version across 83 of them. A record APPENDED to is
+    bounded by nothing. When this was written the package contained exactly ONE
+    append-mode write, and it had already produced the problem above.
+
+    It reads the source rather than running anything: an `open(..., "a")` whose
+    path is built from a module-relative anchor. A log written to `$COURSE_DATA`
+    is fine and is the point -- what is refused is appending INSIDE the tree.
+    """
+    import ast as _ast
+    import pathlib as _pl
+
+    out = []
+    for path in sorted(_pl.Path(str(_HERE_DIR)).glob("*.py")):
+        try:
+            tree = _ast.parse(path.read_text())
+        except (SyntaxError, OSError):
+            continue
+        for node in _ast.walk(tree):
+            if not (isinstance(node, _ast.Call)
+                    and isinstance(node.func, _ast.Name) and node.func.id == "open"):
+                continue
+            mode = None
+            if len(node.args) > 1 and isinstance(node.args[1], _ast.Constant):
+                mode = node.args[1].value
+            for kw in node.keywords:
+                if kw.arg == "mode" and isinstance(kw.value, _ast.Constant):
+                    mode = kw.value.value
+            if not (isinstance(mode, str) and "a" in mode):
+                continue
+            target = _ast.unparse(node.args[0]) if node.args else "?"
+            # A path resolved through `coursedata`/`paths` leaves the repository;
+            # anything anchored on this module's own directory does not. FOLLOW A
+            # BARE NAME to the expression it was assigned from: the first version
+            # of this check read the CALL SITE only, so `open(log, "a")` was
+            # reported even though `log = _log_path()` two lines above resolves
+            # under $COURSE_DATA. A variable defeated the whole test.
+            resolved = target
+            if isinstance(node.args[0] if node.args else None, _ast.Name):
+                want = node.args[0].id
+                for other in _ast.walk(tree):
+                    if (isinstance(other, _ast.Assign) and len(other.targets) == 1
+                            and isinstance(other.targets[0], _ast.Name)
+                            and other.targets[0].id == want):
+                        resolved = _ast.unparse(other.value)
+            if any(t in resolved for t in
+                   ("coursedata.", "paths.", "_log_path", "OUT", "DATA")):
+                continue
+            out.append(
+                f"{path.name}:{node.lineno} opens {target} in mode {mode!r}. An "
+                f"append-only file inside the repository grows its history without "
+                f"bound and cannot be reclaimed -- every version is a permanent "
+                f"blob. Write it under $COURSE_DATA and resolve the path there")
+    return out
 
 
 def check_generic_documents_are_generic() -> list[str]:

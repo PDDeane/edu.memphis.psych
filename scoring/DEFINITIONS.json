@@ -691,6 +691,7 @@
    "check_no_definition_vanished",
    "check_no_file_points_into_a_developers_notes",
    "check_no_judging_field_states_what_a_verdict_costs",
+   "check_no_module_appends_to_the_repository",
    "check_no_module_defines_names_after_its_main_guard",
    "check_no_module_is_named_for_a_course_artifact",
    "check_no_module_shadow_in_scratchpad",
