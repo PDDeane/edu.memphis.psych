@@ -45,7 +45,8 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
 GOALS = os.path.join(HERE, "GOALS.md")
-ENTRY = re.compile(r"^- \[([ x])\] ([A-Z]+)(\d+)\. (.*)$")
+# The stamp is excluded from the title group; see `goals._STAMP`.
+ENTRY = re.compile(r"^- \[([ x])\] ([A-Z]+)(\d+)\. (.*?)(?:\s*<!--@\d{4}-\d\d-\d\d-->)?$")
 SECTION = re.compile(r"^## (.*)$")
 ANCHOR = re.compile(r"^<!-- qc:([A-Za-z0-9_]+) -->$")
 BOLD = re.compile(r"\*\*(.+?)\*\*")

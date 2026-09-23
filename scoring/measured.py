@@ -3336,6 +3336,28 @@ def _goals_record_lines() -> set:
     import re as _re
     import subprocess
 
+    # STAMPS FIRST, blame only as the fallback -- see `goals.line_times`. Dating
+    # the record must not depend on where the record is stored, and this reader's
+    # own note below says what losing the dates costs: no exemption, which errs
+    # toward reporting.
+    try:
+        import goals as _goals
+
+        rows = _goals.line_times()
+        if rows:
+            entry = _re.compile(r"^- \[([ x])\] \*?\*?(Q|E)(\d+)")
+            out, state = set(), " "
+            for n, (when, text) in enumerate(rows, 1):
+                m = entry.match(text)
+                if m:
+                    state = m.group(1)
+                if state == "x":
+                    out.add(n)
+                    continue
+                out.add(("when", n, when))
+            return out
+    except Exception:
+        pass
     try:
         bl = subprocess.run(["git", "blame", "--line-porcelain", "GOALS.md"],
                             cwd=str(Path(__file__).parent), capture_output=True,

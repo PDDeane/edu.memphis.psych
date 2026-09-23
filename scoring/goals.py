@@ -39,7 +39,37 @@ GOALS = HERE / "GOALS.md"
 # `- [ ] Q22. **title**` / `- [x] E30. **title**`. A CAPITAL prefix and an
 # INTEGER, unlike the guide's lowercase-letter suffixes -- the two files are
 # deliberately not interchangeable.
-ENTRY = re.compile(r"^- \[([ x])\] ([A-Z]+)(\d+)\. (.*)$", re.M)
+ENTRY = re.compile(r"^- \[([ x])\] ([A-Z]+)(\d+)\. (.*?)(?:\s*<!--@\d{4}-\d\d-\d\d-->)?$", re.M)
+
+# THE DATE AN ENTRY WAS WRITTEN, carried IN the entry rather than inferred from git.
+# `<!--@YYYY-MM-DD-->` at the end of an entry line: invisible in rendered markdown,
+# and excluded from the title by the `ENTRY` pattern above.
+#
+# WHY IT EXISTS. Two readers -- this module and `measured` -- dated entries with
+# `git blame --line-porcelain GOALS.md`, which works only while the file is TRACKED.
+# That made the record's own history a dependency on its STORAGE, and this file is
+# 1.2 MB rewritten 414 times -- 128 MB of git history, second only to the override
+# log. Moving it out of the repository, as that log already moved, would have
+# silently cost both readers their dates; `measured`'s own comment states the price:
+# "no blame available means no exemption, which errs toward reporting".
+#
+# BLAME REMAINS THE FALLBACK, so the two agree while both are available and nothing
+# breaks on an unstamped line. The stamps were harvested FROM blame while the file
+# was still tracked, which was the only moment they could be.
+_STAMP = re.compile(r"\s*<!--@(\d{4}-\d\d-\d\d)-->\s*$")
+
+
+def entry_dates(text: str | None = None) -> dict:
+    """{label: 'YYYY-MM-DD'} for every entry carrying a stamp."""
+    src = text if text is not None else GOALS.read_text()
+    out = {}
+    for line in src.splitlines():
+        m = ENTRY.match(line)
+        s = _STAMP.search(line)
+        if m and s:
+            out[f"{m.group(2)}{m.group(3)}"] = s.group(1)
+    return out
+
 
 # How a goal is cited. The `subgoal `/`goal ` prefix is REQUIRED, and that is not
 # pedantry: `Q1`, `Q2`, `Q4a` are also RUBRIC ITEM ids, so a bare `Q1` in prose
@@ -599,21 +629,9 @@ def stale_slot_claims(instrument_at: int | None = None) -> list[str]:
             return []
         instrument_at = max(stamps)
 
-    try:
-        bl = subprocess.run(["git", "blame", "--line-porcelain", "GOALS.md"],
-                            cwd=HERE, capture_output=True, text=True, timeout=120)
-        if bl.returncode != 0:
-            return []
-    except Exception:
+    lines = line_times()                       # (write_time, text), stamps first
+    if not lines:
         return []
-
-    lines: list[tuple[int, str]] = []          # (author_time, text)
-    at = 0
-    for row in bl.stdout.splitlines():
-        if row.startswith("author-time "):
-            at = int(row.split()[1])
-        elif row.startswith("\t"):
-            lines.append((at, row[1:]))
 
     out: list[str] = []
     label, state = None, "x"
@@ -947,6 +965,51 @@ def rank() -> list[tuple[str, dict, str]]:
             why.append(f"~{f['sweeps']} sweep(s) to settle")
         out.append((lab, f, "; ".join(why) or "no wrong cell currently attributed"))
     return out
+
+
+def line_times(text: str | None = None) -> list:
+    """[(epoch, line)] for GOALS.md -- from the STAMPS, blame as the fallback.
+
+    A line inherits the date of the entry it belongs to, which is the granularity
+    both readers actually walk: each already tracks the current entry as it scans.
+    Blame gave per-line times, which was finer than anything used them for.
+
+    STAMPS FIRST, BLAME SECOND, so this works whether or not the file is tracked.
+    That is the point: dating the record must not depend on where the record is
+    stored. Blame stays as the fallback rather than being deleted, so the two can
+    be compared while both are available.
+    """
+    import datetime
+    import subprocess
+
+    src = text if text is not None else GOALS.read_text()
+    dates = entry_dates(src)
+    if dates:
+        rows, cur = [], 0
+        for line in src.splitlines():
+            m = ENTRY.match(line)
+            if m:
+                d = dates.get(f"{m.group(2)}{m.group(3)}")
+                if d:
+                    y, mo, dy = (int(x) for x in d.split("-"))
+                    cur = int(datetime.datetime(y, mo, dy).timestamp())
+            rows.append((cur, line))
+        return rows
+    try:
+        bl = subprocess.run(["git", "blame", "--line-porcelain", GOALS.name],
+                            cwd=str(GOALS.parent), capture_output=True,
+                            text=True, timeout=300)
+        if bl.returncode != 0:
+            return []
+    except Exception:
+        return []
+    rows, at = [], 0
+    for row in bl.stdout.splitlines():
+        if row.startswith("author-time "):
+            at = int(row.split()[1])
+        elif row.startswith("\t"):
+            rows.append((at, row[1:]))
+    return rows
 
 
 if __name__ == "__main__":
