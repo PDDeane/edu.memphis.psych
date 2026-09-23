@@ -1143,6 +1143,12 @@
    "resolve_options",
    "sheet_id"
   ],
+  "out_inventory.py": [
+   "_bytes_and_files",
+   "cited_dirs",
+   "inventory",
+   "main"
+  ],
   "paper_runs.py": [
    "collect",
    "write"

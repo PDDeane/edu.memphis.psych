@@ -3671,6 +3671,71 @@ reports both halves.
 
 Audit unchanged: 44 findings, and the set IDENTICAL to the pre-D baseline.
 
+#### G(a) · Definitions named for a course artifact -- OPEN, filed 2026-09-23
+
+G's main body is DONE. This is a substep filed after it, on the user's
+instruction, and it belongs here because it is
+`check_no_module_is_named_for_a_course_artifact` -- §10.7 category 4, "a generic
+engine has no module named for a question, a handout or a course" -- APPLIED ONE
+LEVEL DOWN. That check reasons about the repository's file list; nothing reasons
+about the names inside the files.
+
+WHY IT SURFACED NOW: item F removed the last item-id LOOKUPS from `agreement.py`
+and `agreement_app.py`, and what survived was the item-id NAME. `rebuild_gold_1c`
+no longer rebuilds 1c -- it rebuilds whatever the rubric declares
+`gold_from_deductions` on, and 1c is merely the only item that declares it today.
+The name now describes the caller's history rather than the function's behaviour,
+which is the precise defect this substep is for.
+
+THE POPULATION, ENUMERATED -- three, all `1c`:
+
+    agreement.py        rebuild_gold_1c
+    agreement_app.py    rebuild_gold_1c
+    measured.py         _1C_GATE_CEILING
+
+AND THE SCAN THAT FINDS THEM MUST BE ITEM-ID-ONLY. Running it with
+`course_inventory.NAME_MARKERS` as well returns 79 definitions and nearly all are
+noise: `gold` is a generic term for reference scores (`check_gold_is_read_by_item`,
+`RAW_GOLD_READERS`, `gold_path` ...) and `h1`/`h2`/`h3` name handouts, which is
+course STRUCTURE rather than an item. Those markers were written for MODULE names
+and over-fire on definitions -- the same false-positive shape as the `.md` scan in
+G2, where `PR|NR|PP|NP` turned out to be generic verdict abbreviations. Item ids
+alone give three, and three is the real answer.
+
+THE RENAME, and what it costs:
+
+  `rebuild_gold_1c` -> a name for what it does. It now delegates to
+      `handouts.rebuild_declared_gold(gold, handout)`, so `rebuild_declared_gold`
+      is the honest name on both sides. 22 call sites across 8 modules
+      (`measured.py` holds six), and -- the part that is not a find-and-replace --
+      `enforcement.check_gold_accounting_is_uniform` names the string
+      `"rebuild_gold_1c"` in its `CANON` table as one of the FOUR things that
+      separate a published rate from a naive comparison. The table entry must move
+      with the name, in the same commit, or the check goes quiet about one of its
+      four while still reporting that it ran.
+
+  `_1C_GATE_CEILING` -> LEFT AS IS. Decided by the user 2026-09-23, and the
+      reasoning is the distinction this substep turns on: a DECLARATION ABOUT one
+      cell is entitled to name that cell, where a FUNCTION that no longer has
+      anything to do with it is not. It is also a gold declaration, read through
+      `_gold_declaration` and carried by `gold_export.py`, so its name is a key in
+      the gold file -- renaming it would be a data migration rather than a rename,
+      for no gain.
+
+      So the rename is ONE name in TWO modules, and this becomes the first
+      declared exception rather than an open question.
+
+THE CHECK THIS WANTS. Doing the rename without one leaves the next such name to
+be found by hand. The general form is the module check's sibling: no definition in
+a MIGRATED module is named for an item id, with an `UNTRACKED_BY_DESIGN`-style
+declaration carrying the exceptions and their reasons.
+
+THE DECLARATION MECHANISM IS NOT OPTIONAL HERE, because the exception set is
+already non-empty: `_1C_GATE_CEILING` stays by decision, so a check without a
+place to record that would fire on it forever and be waved through -- which is how
+a check stops being read. Write the table with the check, not after it, and put
+the reason above in it: a declaration about a cell may name the cell.
+
 ### F · `1c`'s gold rebuild -- 16 embeddings, implemented TWICE, no owner
 
 Measured with `course_inventory.py` (the prepared tool; it reports populations and
@@ -3887,6 +3952,66 @@ matched, and ALL SEVEN ARE FALSE POSITIVES: `verdicts="PR|NR|PP|NP"` in
 abbreviations, and `Noop.md`'s `Q1`/`Q2` are "question one" and "question two" in
 a layout example. They collide with this course's ids because its operant items
 ARE named PR/NR/PP/NP.
+
+#### G2 OWNS THE RUN-TO-DECISION LINK that item H found missing
+
+Consolidated here on the user's instruction 2026-09-23, because the two items meet
+on the same files and the fix has only one sensible home.
+
+H FOUND THE GAP: `$COURSE_DATA/out` holds 826 runs, and the link between a decision
+and the run that supported it was never recorded -- `goals.py` cites the FINDING
+("measured 12 configurations: 1/6, 3/6, 6/6 ...") and never the artifact, so 32 of
+826 runs are named anywhere at all. H can archive the data but cannot say what any
+of it supported.
+
+THE LINK BELONGS ON THE COURSE-SPECIFIC DECISION RECORD, which is the thing G2
+creates. It is not a separate mechanism and must not become one: a decision and the
+runs behind it are the same record, and splitting them across two items would
+recreate the very orphaning H is complaining about.
+
+AND `goals.py` IS A G2 TARGET, which the original framing missed. This item was
+scoped to `.md` files, but `CLOSURES_APPROVED` is 52 entries and 107,619 characters
+of course-specific decision narrative held as FLAT PROSE STRINGS inside an analytic
+module -- `course_inventory` already scores it as a course-data table. Same defect,
+`.py` form. The generic half is the CLOSURE PROCEDURE; the course-specific half is
+these 52 records.
+
+WHICH IS ALSO WHY THE LINK CANNOT BE ADDED TODAY: a flat string has nowhere to put
+a `runs` field. Structuring these records is the enabling step, and it is the same
+step this item already proposes for the `.md` files -- "it may be appropriate to
+reframe the course-specific information as json records under appropriate keys".
+The run link is simply one of those keys.
+
+NOTE THE GRANULARITY, because an existing field looks like it already does this and
+does not. `MEASURED.json`'s `items[item][side].out` links ITEM x SIDE -> run, which
+is what the ledger needs. The missing link is DECISION -> run, which is coarser and
+belongs to the subgoal, not the cell. Both should exist; only the first does.
+
+THE BACKFILL IS PART OF THE SPLIT, NOT A FOLLOW-UP -- the user's instruction, and
+it is the cheapest the work will ever be. Splitting a decision record means READING
+IT to decide which half each sentence belongs in, and the narrative is the only
+place that says what was measured. So the run is identified at the moment someone
+already has the record open and the inventory to hand. Do it later and all 52
+records must be read a second time, for the one question that could have been
+answered during the first pass.
+
+WHAT MAKES THE MATCH POSSIBLE even though no name was recorded: the inventory
+carries each run's DATE, size and file count, and the decision records carry dates
+and item ids. A closure dated 2026-09-06 discussing Q50 narrows to the runs of that
+week touching that item -- usually to one. That is a judgement a reader can make
+while reading and a script cannot make at all, which is exactly why it belongs in
+the manual pass rather than in a later automated sweep.
+
+AND WHERE THE MATCH FAILS, RECORD THAT TOO. A decision whose supporting run cannot
+be identified should say so in its record, rather than leaving a silent absence that
+the next reader mistakes for "not looked for". An explicit "run not identified" is
+what stops this question being reopened every time someone looks at the archive.
+
+THE PAYOFF IS WHAT MAKES THE ARCHIVE WORTH KEEPING. H's conclusion is "archive
+everything, because nothing can say what mattered". With the link, the next such
+question is a query -- and "the history of rubric revision", which the user named as
+a keep criterion, stops being 107 KB of prose nobody can search and becomes the
+index of the archive.
 
 #### Which means the general check cannot be an id scan
 
@@ -4124,6 +4249,113 @@ one this project already has: ENUMERATE THE POPULATION FIRST and state the rule
 that selects it, so a deletion set is never assembled from the instances someone
 happened to notice. `fixset_coverage.py` exists for exactly this.
 
+#### PARKED AND STAGED WORK -- H had no plan for this, and it is the larger half
+
+Everything above is about FILES IN THE REPO. The run artifacts are not in the repo
+and are bigger than everything else H moves put together:
+
+    $COURSE_DATA/out/        826 entries    1.6 GB    2026-07-30 .. 2026-09-22
+
+They are sweep and probe runs -- `after_1.json`, `WK1.runs.json`, per-item
+directories, A/B pairs -- two months of them. Some are the evidence behind recorded
+findings; most are superseded attempts. The user's framing is the right one: some
+is still valid, "like goals related work for specific items", and a lot is junk.
+
+THE LICENCE FOR DELETING PLANNING DOCUMENTS DOES NOT REACH HERE, and this is the
+single most important thing in this section. That licence rested on the documents
+being recoverable: "The planning documents will be in the committed history if we
+need to go back to them." `$COURSE_DATA` IS NOT A GIT REPOSITORY -- checked, there
+is no `.git` anywhere above `out/`. Deleting a run destroys the only copy of a
+measurement that cost real grader calls. Nothing here is recoverable, so nothing
+here may be deleted on the same reasoning.
+
+THE INVENTORY EXISTS NOW, written 2026-09-23 before anything was deleted, because
+"a lot will be junk" is an impression and a list is a fact. `build_out_inventory.py`
+is READ-ONLY and decides nothing: per entry it records size, file count, mtime, and
+which LEDGER ENTRIES name it through the ledger's own reference field --
+`MEASURED.json`'s `items[item][side].out`, which is the only such field any ledger
+carries today.
+
+    entries   826        1.66 GB        2026-07 .. 2026-09
+    cited      17          49.2 MB      3% of the volume
+    uncited   809        1614.2 MB     97%
+
+    uncited by month:  2026-07  17    2026-08  463    2026-09  329
+
+AND THE FIRST NUMBER I QUOTED WAS WRONG, which is the lesson worth carrying more
+than the figure. A substring scan of four ledgers reported 26 referenced; the
+ledger's own reference field reports 17. The scan matched directory names inside
+unrelated text. That is the FOURTH time in this session a crude pattern over
+structured content produced a confident wrong answer -- G2's prose scan called seven
+clean lo-blocks docs contaminated, G(a)'s `NAME_MARKERS` returned 79 definitions
+where 3 were real, and item I's `{param}` probe reported sharing going DOWN, which
+is arithmetically impossible. The rule that keeps being relearned: ASK THE STRUCTURE,
+NOT THE TEXT. Here that meant reading the field the ledger actually stores.
+
+#### The goal, stated by the user, and what the measurements say about reaching it
+
+"Prepare for making the data that supported a decision or affects current states
+and goals ARCHIVAL, cleaning up anything truly irrelevant to the current state of
+the system or the history of rubric revision."
+
+That is a better axis than space or tidiness, and it gives a per-entry test: did
+this run SUPPORT A DECISION, does it bear on CURRENT STATE OR GOALS, or is it part
+of the HISTORY OF RUBRIC REVISION? Any yes -> archive. Only a no to all three is
+deletable.
+
+THE TEST CANNOT BE APPLIED MECHANICALLY, and this is the central finding. The link
+between a decision and the run that supported it WAS NEVER RECORDED. `goals.py` is
+16,765 lines of decision narrative citing measurements constantly -- "measured 12
+configurations: 1/6, 3/6, 6/6 ..." -- and it cites the FINDING, never the artifact.
+Searching every distinctive run name across `goals.py`, `BACKLOG.md`,
+`QUALITY_CONTROL.md`, `EQUIVALENCE.md`, `measured.py`, `declaration_source.py` and
+`README.md` finds 18 named in prose; the ledger names 17; together 32 OF 826. The
+other 743 distinctive names appear nowhere at all. (51 names are too short or
+wordlike to match safely and were not attempted -- the same restraint the prose scan
+in G2 needed.)
+
+So there is no query that separates "supported a decision" from "superseded
+attempt". The data to answer it was never written down.
+
+WHICH IS WHY THE ANSWER IS TO ARCHIVE THE LOT. Measured compression on three
+representative runs: 16.7x, 20.6x, 22.9x. JSON run artifacts compress
+extraordinarily well, so
+
+    1.66 GB of out/   ->   roughly 70-100 MB compressed
+
+At that size the question stops being worth adjudicating. Archiving everything costs
+under a tenth of a gigabyte and cannot destroy a measurement that cost hundreds of
+grader calls; adjudicating 826 entries against a link that does not exist can, and
+would take far longer than compressing them.
+
+THE PROVABLY DELETABLE SET IS TINY, and needs no judgement at all:
+
+    26 entries with no files          a run that created a directory and nothing else
+    28 entries of zero bytes
+    15 entries holding ONLY logs      0.1 MB -- a run that produced no results
+
+That is the whole of "truly irrelevant" that can be established without guessing.
+Everything else is archived, not deleted.
+
+THE DURABLE FIX IS THE LINK, AND IT IS G2'S, NOT THIS ITEM'S. Consolidated there
+on the user's instruction: a decision and the runs behind it are ONE record, and G2
+is what gives that record a structure to hold them. Specifying a second mechanism
+here would orphan the link the same way the runs are orphaned now. See G2's section
+"G2 owns the run-to-decision link".
+
+Two things H contributes to it. `MEASURED.json` already carries
+`items[item][side].out`, populated for 17 runs -- but that is ITEM x SIDE -> run,
+the ledger's granularity, where the missing link is DECISION -> run. And the
+inventory built for this item is what a backfill would work from: it is the only
+list of what exists.
+
+RECOMMENDED SHAPE, then:
+  1. compress every entry in place, one archive per run, keeping the names;
+  2. delete only the ~69 empty / zero-byte / log-only entries, listed in full first;
+  3. stamp `out` on every future sweep, and backfill it wherever a decision record
+     makes the run obvious;
+  4. revisit deletion only once (3) has made the question answerable.
+
 #### Write scope H requires, and why it is bigger than any step so far
 
 H CANNOT RUN UNDER THE STANDING OVERNIGHT SCOPE. That scope allows the two dry-run
@@ -4327,6 +4559,38 @@ So the template writes itself from the evidence: a shared core of seven slots,
 that differs only in period. That is precisely the shape `materialiseRubric.md`
 documents and nothing has ever exercised.
 
+THE MECHANISM WAS CHECKED AGAINST ITS IMPLEMENTATION BEFORE PLANNING ANY OF THIS,
+because the plan otherwise rests on a documentation page for a feature no content
+has ever used. It supports what the family needs:
+
+  * `{name}` substitution works INSIDE ATTRIBUTE VALUES, which is what lets a slot
+    KEY vary (`key="is_{abbrev}"`), not just its prose;
+  * `ifDeclared="x"` on a child includes it only where the item declares `x`, and
+    `!x` inverts -- which is how the family's `cadence_daily` / `type_match` /
+    `barrier_pick` gating would be expressed;
+  * expansion CONSUMES `ifDeclared` and preserves every other attribute, so a
+    child's own `cond=` (real data on `<Onlyif>`) survives untouched;
+  * the expander that actually runs is `lib/llm/materialiseRubric.ts` via the
+    `build:expand-rubrics` script -- not a second implementation.
+
+AND IT HAS A DESIGN RATIONALE WORTH TEACHING, from `ItemTemplate.ts` itself: "A
+frame varies WORDS; this varies WHAT THE SHEET ASKS." Measured on a twelve-item
+handout built from four helper functions -- the pairs were 92-100% identical once
+serialised, yet three of four differed in their SLOT KEYS. That is the distinction
+between `Frame` and `ItemTemplate` that a guide has to make, and it comes with
+evidence attached even though this course has none.
+
+ONE DEFECT FOUND WHILE CHECKING, and it is the silent kind. `ItemTemplate.ts`'s own
+header example writes `<Forbid key="excluded" cond="hasExtra"/>`. The authored
+attribute is `ifDeclared`; `cond` is only the INTERNAL field name in
+`itemTemplate.ts`, kept deliberately distinct because `cond` is real data on
+`<Onlyif key="x" cond="y">`. An author following the block's own source would get a
+child that is ALWAYS INCLUDED -- `ifDeclared` absent, so the internal `cond` is
+undefined, and the selector returns true -- with no error anywhere.
+`ItemTemplate.md` and `materialiseRubric.md` both have it right; only the
+implementation's header is wrong. Fix it as part of this item: it is one line, and
+it is the first thing a reader of the code meets.
+
 PHASE 1 -- CRIB, IN A SCRATCH COPY, AND PROVE IT BY DIFF.
 Work on a copy of `bmod_rubric.olx`, never the shipped one. Replace the eight
 items with `<ItemTemplate name="oc_item">` plus eight `<Item use="@oc_item" ...>`
@@ -4366,20 +4630,175 @@ read `.stage/content` -- would read unexpanded templates. That switch is part of
 promotion, not a follow-up: templating without it means the generator writes
 `<Item use="@...">` into the shipped handouts.
 
-MORE THAN ONE TEMPLATE, PROBABLY TWO -- the user's point, and the measurement
-agrees. The family splits:
+#### How many templates, and what each one carries
 
-    group                      common within group   union   variable
-    type     PR NR PP NP              9               16        7
-    cadence  DAY1 WK1 DAY2 WK2       11               24       13
-    shared by BOTH                    7
+TWO -- one per group. The shapes WITHIN a group are conditional children, not extra
+templates, and that distinction matters because "three shapes" reads like "three
+templates" and is not: a shape that differs by a declared condition is precisely
+what ONE template with `ifDeclared` exists to express.
 
-`demonstrates_type` is unique to the type group; `consequence_asserted`,
-`matches_chosen_type`, `named_type` and `targets_own_behavior` to the cadence group.
-So two templates capture 9 and 11 slots where a single shared one captures 7. Start
-from two and let the diff decide -- and if the two turn out to share enough to want
-a core plus specialisations, first establish whether `ItemTemplate` composes at all,
-which nothing in this corpus has ever tested.
+    type group     1 template   body = the plain PP/NP shape;
+                                PR's extras gated `ifDeclared="move_pick"`,
+                                NR's gated `ifDeclared="barrier_pick"`
+    cadence group  1 template   body = the 30 children common to all four;
+                                the rest gated on the conditions they declare
+
+IS THE FAMILY TEMPLATABLE AT ALL? Measured, because slot-key overlap is not the
+question -- slots are only part of an item, and if the `Credit`, `Deduction`,
+`Guidance` and `Question` bodies all differ a template factors little. Counting
+children that are VERBATIM IDENTICAL across every member of a group:
+
+    type     PR NR PP NP          92 of 131 children shared (70%)   23 distinct
+    cadence  DAY1 WK1 DAY2 WK2   120 of 206 children shared (58%)   30 distinct
+
+212 of 337 children -- 63% -- are exact duplicates today. The shared set is not
+just slots: `type` shares 8 Slots, 9 Guidance, 3 Deduction, 2 Context, 1 Credit;
+`cadence` shares 10 Slots, 10 Guidance, 5 Deduction, 2 Credit, 2 Context, 1 Equals.
+The duplication is real and the family is worth templating.
+
+THE TYPE GROUP HAS THREE SHAPES, AND THE ITEMS ALREADY DECLARE THEM:
+
+    plain        PP, NP    30 children each   no conditions
+    move-pick    PR        32                 one extra pick slot, and an
+                                              `Expect` keyed on `stimulus_move`
+    barrier      NR        39                 five extra slots, a `Forbid` with a
+                                              three-way `conds=`, an `Onlyif`, and
+                                              three extra `Guidance` blocks
+
+PR carries `conditions="move_pick"`, NR carries `conditions="barrier_pick"`, PP and
+NP carry none -- exactly the selectors `ifDeclared` consumes. THE RUBRIC WAS ALREADY
+WRITTEN AS IF THE TEMPLATE EXISTED, so one template covers all four and neither PR
+nor NR needs handling of its own.
+
+THE CADENCE GROUP WORKS THE SAME WAY:
+
+    DAY1  53 children   cadence_daily|avoidance_scores|barrier_pick|cadence_barrier|
+                        contingency_gate|polarity_gate|type_match
+    WK1   46            cadence_weekly|type_match
+    DAY2  53            cadence_daily + the barrier/contingency/polarity set
+    WK2   54            cadence_weekly + the same set
+
+WK1 is this group's outlier -- two conditions where the others carry six or seven.
+The children unique to a SINGLE item are few (4, 5, 4, 3), so nearly all variation
+is children shared by SOME, which is the `ifDeclared` case again. What remains is
+pure `{param}`: `Question` varies only as daily/weekly x first/second, and
+`cadence_is_daily` vs `cadence_is_daily_counted` is a KEY difference, which
+substitution reaches because it works inside attribute values.
+
+LEFT OPEN DELIBERATELY: only 30 of ~52 children are common to all four cadence
+items (58%), so that template is a smallish body carrying many conditional extras.
+Splitting `DAY2 + WK2` into their own template may be tighter -- they are the
+closest pair in the family. Decide while writing, where the diff shows the cost.
+
+#### The pairwise evidence, and two things in it that cut against the naming
+
+Jaccard over verbatim children:
+
+              PR    NR    PP    NP  DAY1   WK1  DAY2   WK2
+    PR         -  0.54  0.59  0.59  0.27  0.32  0.29  0.28
+    NR      0.54     -  0.50  0.50  0.35  0.29  0.37  0.37
+    PP      0.59  0.50     -  0.71  0.28  0.33  0.30  0.29
+    NP      0.59  0.50  0.71     -  0.28  0.33  0.30  0.29
+    DAY1    0.27  0.35  0.28  0.28     -  0.57  0.68  0.62
+    WK1     0.32  0.29  0.33  0.33  0.57     -  0.46  0.56
+    DAY2    0.29  0.37  0.30  0.30  0.68  0.46     -  0.75
+    WK2     0.28  0.37  0.29  0.29  0.62  0.56  0.75     -
+
+The block structure confirms the two-group split: within either group 0.46-0.75,
+across them 0.27-0.37.
+
+THE ORDINAL CLUSTERS HARDER THAN THE PERIOD. `DAY2 + WK2` (both "second") share
+0.75, while `DAY1 + DAY2` (both "daily") share 0.68 and `WK1 + WK2` only 0.56. So
+the obvious `{cadence}` parameter is NOT the main axis of variation -- first/second
+is. A template built on the naming would factor the weaker split.
+
+PR SITS CLOSER TO PP/NP (0.59) THAN TO NR (0.54), which looks wrong until the three
+shapes above explain it: PR is the plain shape plus one pick, NR is the plain shape
+plus a subsystem. NR is the outlier because it carries the most machinery, not
+because it is a different kind of item.
+
+AND THE JACCARD FIGURES UNDERSTATE THE FIT -- they must not be read as a ceiling.
+They count a conditional child as a DIFFERENCE between two items when it is declared
+variation one template expresses once. 0.54 between PR and NR does not mean "these
+barely match"; it means "these differ by exactly the children their own
+`conditions=` already name".
+
+EVEN A TWO-ITEM TEMPLATE IS WORTH WRITING. 46 shared children between DAY2 and WK2
+is 46 lines that stop being edited twice. There is no threshold below which a
+template does not pay; the only question is whether the shared part is real.
+
+#### Two cautions, and two defects found while measuring
+
+DO NOT ESTIMATE THE `{param}` GAIN IN ADVANCE. A probe that substituted the type
+names and cadence words before comparing reported sharing going DOWN -- 70% to 58%,
+58% to 40% -- which is impossible, since merging children cannot split them. The
+probe used a DIFFERENT substitution table per item, so `pts="1"` became `pts="{N}"`
+in DAY1 and stayed `pts="1"` in DAY2, splitting children that had been identical.
+The verbatim 70%/58% is a FLOOR; the true figure comes out of writing the template.
+Same class of error as G2's prose scan and G(a)'s `NAME_MARKERS` over-fire: a crude
+pattern over content that looks regular and is not.
+
+`ItemTemplate` COMPOSITION IS UNTESTED. If the cadence template later wants a core
+plus specialisations, establish first whether templates can reference each other at
+all -- nothing in this corpus has ever tried it.
+
+DEFECT 1, and it is the silent kind: `ItemTemplate.ts`'s own header example writes
+`<Forbid key="excluded" cond="hasExtra"/>`. The authored attribute is `ifDeclared`;
+`cond` is only the INTERNAL field name in `itemTemplate.ts`, kept deliberately
+distinct because `cond` is real data on `<Onlyif key="x" cond="y">`. An author
+following the block's own source gets a child that is ALWAYS INCLUDED -- `ifDeclared`
+absent, internal `cond` undefined, selector returns true -- with no error anywhere.
+`ItemTemplate.md` and `materialiseRubric.md` are both right; only the
+implementation's header is wrong. One line, and it is the first thing a reader of
+the code meets.
+
+DEFECT 2: PR reads `conditions="move_pick|move_pick"`, the only duplicated condition
+in the rubric. Inert -- both readers parse conditions into a set -- but wrong, and
+misleading to anything that ever counts them.
+
+WHAT A CLOSER LOOK CHANGED, and it makes the promotion dearer than the byte-diff
+made it appear. Three things, all found by reading the expander and the checks
+rather than the docs:
+
+  1. THE BYTE-IDENTICAL PROOF DOES NOT SURVIVE `serialise()`. `materialiseRubrics`
+     emits an UNTOUCHED element as its own source bytes -- so unexpanded items
+     reproduce exactly -- but an EXPANDED one is re-serialised canonically:
+     attributes in parse order, two-space indents, self-closing when empty, text
+     re-escaped. Hand-authored formatting will not round-trip through that by
+     accident. So the gate cannot be "the expanded file is byte-identical". It has
+     to be THE PARSED RUBRIC IS IDENTICAL and `prompt_sha` IS UNCHANGED -- which is
+     the proof F2 used, and it worked. Byte-identity is a bonus if it happens, not
+     the test.
+
+  2. `check_the_expanded_rubric_is_current` COMPARES BYTES AND EXPIRES ON THE DAY A
+     TEMPLATE LANDS -- its own words. It REFUSES rather than quietly becoming
+     wrong, and says why: "Upgrading it means running the expander and comparing
+     its output, which is a node call from python -- deliberately not built today,
+     because a check nothing exercises is a check nobody finds out is broken. The
+     refusal below is what makes the upgrade unavoidable instead of merely noted."
+     So the first template in this repository REQUIRES building that python->node
+     call. That is not a side quest; the audit will not pass without it.
+
+  3. `check_the_staged_rubric_is_current` COMPARES AGAINST THE AUTHORED FILE. Once
+     items carry `use=`, the authored side parses without the slots the staged
+     side has, so it fires on every templated item forever. The fix has an exact
+     precedent INSIDE THE CHECK: it already RESOLVES the authored side before
+     comparing, because the staged copy has its corpus references expanded. It must
+     now EXPAND it as well, for the same reason and in the same place.
+
+TOGETHER WITH `authored_path()`, THAT IS FOUR PREREQUISITES, not one, and three of
+them were invisible until the code was read. The honest cost of promotion is: the
+template itself, a python->node expander call, two check upgrades, and the
+`authored_path` switch. Still worth doing -- eight items sharing seven slots is real
+duplication, and every one of these four is owed anyway the first time ANY template
+lands -- but it should be planned as a piece of build work with a documentation
+example falling out of it, not as a documentation task that happens to touch a
+rubric.
+
+AND THE SEQUENCING FOLLOWS: build the four first, against the CURRENT untemplated
+rubric where every check still passes and the expander is a no-op. Then the template
+is the only variable when it lands. Doing it the other way round means diagnosing a
+new template and three newly-expired checks at the same time.
 
 PHASE 2 -- GENERALISE, then let the suite hold it.
 With a template proven to reproduce real items exactly, rewrite it with invented
