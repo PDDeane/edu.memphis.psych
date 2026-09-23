@@ -27,6 +27,7 @@
   "check_ref_grammars.py": 0,
   "check_slot_grammars.py": 0,
   "compare_runs.py": 1,
+  "compose_docs.py": 0,
   "corpus_ref.py": 0,
   "corpus_resolve.py": 0,
   "course_inventory.py": 0,

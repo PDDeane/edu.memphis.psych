@@ -251,6 +251,18 @@
    "record_probe",
    "tally"
   ],
+  "compose_docs.py": [
+   "ANCHOR",
+   "BLOCK_OPENS",
+   "HERE",
+   "SPLIT_DOCS",
+   "_blocks",
+   "compose",
+   "generic_path",
+   "main",
+   "specific_path",
+   "unplaced"
+  ],
   "corpus_ref.py": [
    "HERE",
    "OLX_REF",
