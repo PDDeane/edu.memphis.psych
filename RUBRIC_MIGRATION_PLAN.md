@@ -3775,6 +3775,162 @@ The two wrappers still name the item. Declaring it on `<Item>` in the rubric is 
 would retire the last of it, and needs `Item.ts` before the `.olx` -- the ordering
 `family=` taught earlier this session.
 
+### G2 · Split the procedure documents from the course they were written against
+
+Filed 2026-09-23 on the user's instruction. Several `.md` files state GENERAL
+procedure and are then heavily annotated with this course's items, participants,
+gold comments and measured runs. The general half belongs in `scoring/`; the
+course-specific half belongs beside the handout OLX in `psychology/`, INCLUDING
+the general text by reference rather than quoting it.
+
+THIS IS ITEM A APPLIED TO PROSE, and it is worth seeing that way. A split
+`declaration_source.py` and `generator_source.py` because each held two
+categories, which is why every "does this move?" question needed a per-table
+answer. These documents have the same defect: `QUALITY_CONTROL.md` is category III
+machinery AND category II/IV course annotation in one file, so item H cannot file
+it anywhere. G2 runs BEFORE H for exactly that reason -- H assigns one home per
+category, and it cannot until each file belongs to one.
+
+#### The population, from the prepared classifier and not a regex
+
+Measured with `course_inventory.item_ids()` -- the authoritative id set, read from
+DATA -- over every `.md` in BOTH trees. The first attempt at this table used a
+hand-rolled pattern over prose and got different numbers; the rule this project
+already has is to use the prepared classifier, and it applies to prose as much as
+to code.
+
+| file | lines | id hits | python readers |
+|---|---|---|---|
+| `scoring/OVERRIDES.md` | 257,216 | 255,546 | 4 |
+| `scoring/GOALS.md` | 16,765 | 3,947 | 12 |
+| `scoring/EQUIVALENCE.md` | 3,036 | 623 | 10 |
+| `scoring/BACKLOG.md` | 1,885 | 283 | 9 |
+| `scoring/QUALITY_CONTROL.md` | 2,702 | 190 | 15 |
+| `scoring/README.md` | 629 | 177 | 1 |
+| `SCORING_REFACTOR_PLAN.md` | 5,011 | 133 | -- |
+| `RUBRIC_MIGRATION_PLAN.md` | 4,397 | 107 | -- |
+| `scoring/drafts/q1q2_reasons_rule.md` | 555 | 32 | -- |
+| `scoring/Q6_MATCHING_CEILING.md` | 216 | 30 | 3 |
+| `VERDICT_VOCABULARY_PLAN.md` | 301 | 27 | -- |
+| + 6 more under 10 hits (`PENDING_DECISIONS`, `ADOPTION_POSTMORTEM`, `STAGE5_RUNBOOK`, `MATERIAL_CLASSIFICATION`, `migration/RUNBOOK`, `drafts/subgoal8`) | | | |
+
+THE SET IS WIDER THAN `scoring/`: the root-level plans carry course content too,
+and so do `scoring/drafts/`. H sends the interim plans to deletion and the drafts
+with them, so those need no split -- but they must be DISPOSED of rather than
+quietly left, which is H's enumeration rule, not something G2 may assume.
+
+LO-BLOCKS IS CLEAN, and proving it is the useful part. Seven of its `.md` files
+matched, and ALL SEVEN ARE FALSE POSITIVES: `verdicts="PR|NR|PP|NP"` in
+`Equals.md`, `Expect.md` and `LLMAction.md` uses those tokens as generic type
+abbreviations, and `Noop.md`'s `Q1`/`Q2` are "question one" and "question two" in
+a layout example. They collide with this course's ids because its operant items
+ARE named PR/NR/PP/NP.
+
+#### Which means the general check cannot be an id scan
+
+This is the design finding, and it has to be settled before the check is written.
+`course_inventory` does not have this problem for code because it reads AST
+subscripts and string literals IN CODE CONTEXT, and carries `_ambiguous()`,
+`VOCABULARY` and `NAME_MARKERS` for precisely this class of collision. Free prose
+has no such context, and this course's ids are ordinary words in a generic
+document.
+
+So a prose check keyed on ids alone would report the engine's own documentation as
+course-contaminated, every run, forever -- and a check that cries wolf is worse
+than none, because it trains its readers to wave it through. The signals that do
+not collide are the ones to build on: a corpus reference (`{{corpus:ITEM/pN:...}}`),
+a participant reference (`pNN` beside an item), a quoted gold comment, a measured
+run figure. An id ALONE should at most be a candidate, never a finding.
+
+THE CHECK IS A DELIVERABLE OF G2, confirmed 2026-09-23. There is no general check
+for course-specific content in FREE PROSE today -- `course_inventory` parses with
+`ast` and sees only `.py`, which is why 25 markdown files were never examined and
+why this whole item went unnoticed until someone looked by hand. G2 ships the
+check, and ships it with the false-positive discipline above; without it, G2's own
+split cannot be verified to have finished, because nothing could say whether a
+general document still had course content in it.
+
+#### They are three different kinds of thing, not one
+
+  1. SPLIT (the real G2 targets): `QUALITY_CONTROL.md`, `EQUIVALENCE.md`,
+     `README.md`, `BACKLOG.md`. Each is a procedure with the course written
+     through it.
+  2. MOVE WHOLE, do not split: `GOALS.md` is a subgoal HISTORY -- 3,947 id hits in
+     16,765 lines is not annotation, it is the record itself; and
+     `Q6_MATCHING_CEILING.md` is named for an item. Splitting these would leave a
+     general husk with nothing in it.
+  3. NOT A G2 TARGET AT ALL: `OVERRIDES.md` is GENERATED -- "Written by
+     precommit_gate.py; do not edit by hand" -- an append-only ledger of every
+     gate override. It is certification output, which H already assigns to
+     `scoring/`. Its quarter-million id hits are records, not prose.
+     `STAGE5_LICENCE.md` (39 lines, 0 hits) is already purely general.
+
+So G2 is FOUR splits and TWO moves, plus a disposition list H inherits.
+
+#### The course-specific half may be better as JSON than as prose
+
+The user's suggestion, and there is precedent for it: `GOALS.md`'s subgoal entries
+are already carried as structured records in `goals.py`, keyed by subgoal id, with
+the prose as the value. Where the course-specific half of a document is a TABLE OF
+CASES -- this cell, this measurement, this verdict -- it should become records
+under a key in `course.json` rather than prose in a second markdown file, because
+then it is queryable by the tools that already read the course file and it cannot
+drift from its own index. Where it is genuinely narrative, it stays prose in
+`psychology/`.
+
+Decide this per document, not once for all four. The test: could a reader ask a
+question of it that a `grep` cannot answer?
+
+#### `$COURSE_LOCATION` does not exist, and what does
+
+Checked rather than assumed. `paths.py` declares `COURSE_DATA`, `COURSE_OUT`,
+`COURSE_MEDIA`, `COURSE_ROOTS`, `CODE_HOME`, `LO_BLOCKS`, and `coursedata` honours
+`COURSE_FILE`. NONE of them names the course's own content directory:
+
+  * `COURSE_ROOTS` overrides `CORPUS_ROOTS`, which is the list of OTHER courses
+    that count as corpus evidence -- a different question entirely, and an easy
+    one to mistake for this.
+  * `COURSE_FILE` points at `course.json` alone.
+  * the content namespace is a HARD-CODED constant, `NS = "edu.memphis.psych"`.
+
+CONFIRMED NEEDED, 2026-09-23. It is not a maybe: the split gives the same document
+two homes, and every consumer must be told which tree it is reading from. The
+pattern to follow already exists: Stage 9
+renamed `MOLLY_* -> COURSE_*` with a `_RENAMED` table and `env_renamed()` honouring
+the old names, and `check_filesystem_locations_come_from_paths_py` REQUIRES every
+filesystem location to resolve in `paths.py` -- it has already caught paths spelled
+into `olx_corpus.py`, on the reasoning that "a literal path does not fail on the
+wrong tree, it SUCCEEDS on it". That check is what makes this enforceable rather
+than a convention.
+
+Every program that reads a split document must then be given the variable when it
+is called. The sweep and gate shell scripts, the pipeline, and anything invoked
+from a harness all need it, not just the python entry points.
+
+#### What will break, and the failure mode to design against
+
+THE CONSUMER COUNT IS THE WORK. 15 python modules read `QUALITY_CONTROL.md`, 12
+read `GOALS.md`, 10 read `EQUIVALENCE.md`, 9 read `BACKLOG.md`. Every one must be
+pointed at the half it actually wants, and the split is not done until they are.
+
+AND THE FAILURE IS SILENT, which is what makes this dangerous rather than tedious:
+a reader that opens the GENERAL file looking for course-specific content does not
+error -- it finds nothing and reports nothing, exactly like the unwired check item
+D retired. The guard has to be positive: each consumer asserts that what it read
+contains what it came for, or the split is a way of losing content quietly.
+
+ANCHORS ARE THE SHARP EDGE. These documents are cited by section anchor -- the
+`see: qc:NAME` convention, with `anchors.py` reading all of them and a gate over
+it. Splitting a file moves anchors between files; every citation must be
+re-pointed, and the anchor gate must be made to check ACROSS the pair rather than
+within one file. An anchor that resolves to the wrong half is worse than one that
+does not resolve, because it reads as a working citation.
+
+THE PROOF, same shape as A and F: the general document plus its course-specific
+half must contain everything the original did, checked mechanically rather than by
+reading -- no sentence lost, every anchor still resolving, every consumer still
+finding what it came for, and the audit's finding set unchanged across the split.
+
 ### H · Regularize WHERE THINGS LIVE, one home per category
 
 Filed 2026-09-23 on the user's instruction. The ten categories of
@@ -3878,6 +4034,27 @@ a second copy of the builder list, which §13 A had to fix mid-flight.
      the interim planning documents named in category X once their content is
      either folded in or genuinely spent.
 
+     TWO ARE NAMED AND CONFIRMED DEAD by the user, 2026-09-23, to be deleted when
+     H is implemented -- and each carries a declaration that must go in the SAME
+     act, because a declaration naming a file that no longer exists is the shape
+     this project has already been bitten by (`RAW_GOLD_READERS` named a check
+     that did not exist, and the exemption was legitimate while its name had been
+     wrong for as long as nobody looked):
+
+       `SCORING_REFACTOR_PLAN.md`  (5,011 lines, 133 id hits) -- no longer live.
+           It is an entry in `enforcement.OLD_ENV_NAMES_ALLOWED`, exempted there
+           BECAUSE it documents the `MOLLY_* -> COURSE_*` rename. Delete the file
+           and that entry goes with it; leaving it would declare an exemption for
+           nothing. `MATERIAL_CLASSIFICATION.md` also lists it.
+
+       `VERDICT_VOCABULARY_PLAN.md` (301 lines, 27 id hits) -- no longer live, and
+           already declared RETIRED in §12 of this plan. Cited from
+           `scoring/BACKLOG.md:270` and from §12's own closing paragraph; both
+           citations become dangling and must be resolved rather than left.
+
+     The rule from item G2 applies to both: the deletion set is stated as a RULE
+     with every match shown, never assembled from the files someone remembered.
+
 DELETION IS LICENSED BUT NOT CASUAL. The user's standing instruction is that
 planning documents live on in committed history and temp scripts and outputs not
 needed for documentation are deletable at H. The discipline that applies is the
@@ -3973,6 +4150,220 @@ artifacts are the interface. A byte-identical `course.json` export, an identical
 audit finding set, and a green certification across the move together mean the
 relocation changed where things are and nothing else. Anything less is a
 reorganisation that also did something, and nobody will know what.
+
+### I · Documentation thorough enough to AUTHOR from, for the two components that carry the load
+
+Filed 2026-09-23 on the user's instruction. `SlotSheetGrader` and the `Rubric`
+family carry most of the heavy lift for new functionality, and the test for their
+documentation is not "is each element described" but: COULD A NEW AUTHOR, READING
+ONLY THIS, WRITE RULES FOR A WIDE RANGE OF CASES? Today they could not, and the
+reason is structural rather than a matter of length.
+
+WHAT EXISTS IS REFERENCE; WHAT IS NEEDED IS A GUIDE. There are 22 rubric block
+documents, 22-90 lines each, one playground apiece -- one element, one example,
+no interaction. `SlotSheetGrader.md` is 140 lines with 4. Reference tells you what
+`Forbid` is. It does not tell you that `Forbid` plus `Equals` is how three of
+these items express a contradiction, or when to reach for `Onlyif` instead.
+
+#### The population to cover, measured from the rubric itself
+
+26 items, and the shape of the corpus is lopsided in a way that decides the work:
+
+| tier | primitives | reach |
+|---|---|---|
+| in every item | `Credit`, `Deduction`, `Question` | 26/26 |
+| near-universal | `Guidance` 25, `Slot` 23, `Context` 23 | |
+| DISCRIMINATING, and rare | `Forbid` 7, `Equals` 6, `Onlyif` 5, `Expect` 5, `Map` 4, `Counts` 4, `Derived` 3, `Requires` 2, `Cover` **1** | |
+
+**17 distinct shapes across 26 items.** The four most common:
+
+    x3  Context+Credit+Deduction+Expect+Guidance+Onlyif+Question+Slot
+    x3  Context+Credit+Deduction+Guidance+Question            <- NO Slot at all
+    x3  Context+Credit+Deduction+Equals+Forbid+Guidance+Question+Slot
+    x2  Context+Counts+Credit+Deduction+Guidance+Question+Slot
+
+THE NO-SLOT SHAPE IS A BASE CASE, not an oddity: three items are scored
+deterministically from the page with no `<LLMAction>` at all (the `SHEET_ONLY`
+set). A guide that opens with slots has already skipped one of the two ways to
+build an item.
+
+AND THE TEMPLATE LAYER IS A SECOND AXIS, which a scan of `<Item>` children misses
+entirely -- noted by the user, and the first version of this table did miss it:
+
+    Frame        29 uses      Segment    39 uses
+    conditions=  11 distinct names, most used by 2-4 items
+    params=      on 4 items
+    ItemTemplate  0 uses      Param (element)  0 uses
+
+So the conditional layer in THIS course is `Frame`/`Segment`/`conditions=`, and
+`ItemTemplate` -- a documented primitive with a 78-line reference page and its own
+test -- is exercised by nothing at all.
+
+AND IT NEVER HAS BEEN, which is worth knowing before writing its guide. Checked
+against `migration_reference`: the PRIOR dry run's rubric also carries zero
+`<ItemTemplate>`. It was built alongside `Frame`, `Param`, `Context`, `Guidance`
+and `Question` in that run's block family, shipped with a test and a `.md`, and no
+content has ever needed it. So its documentation cannot be written by reading what
+someone did with it -- there is nothing to read, and the guide's examples for it
+will be the first use it has ever had.
+
+A SECOND MECHANISM IS UNEXERCISED HERE AND WAS NOT THERE. The prior run's items
+declared `use="@oc_criteria"` eight times -- a reference to a `<Frame>`, not to an
+ItemTemplate. Ours declare it zero times: we carry the same `oc_criteria` frame,
+but the items hold `conditions=`/`params=` and the CONSUMER calls
+`as_view_frame(name, conditions, params)` by name instead. The declaration moved
+out of the content and into the reader. Whether that was deliberate is not
+recorded anywhere, and the guide should not describe `use=` as the way frames are
+reached until it is settled -- documenting a mechanism this rubric does not use,
+as though it were the norm, is how a guide teaches the wrong thing.
+
+CONSEQUENCE FOR THE BUILD STEP: `build:expand-rubrics` is a no-op today.
+`.stage/expanded/.../bmod_rubric.olx` is BYTE-IDENTICAL to the authored file, 1,047
+lines each. The expansion machinery is wired and has no input -- which is fine
+while nothing templates, and is the reason nobody would notice if it broke.
+
+#### Which is exactly where the invented examples are owed
+
+The user's instruction covers combinations the corpus misses but which have an
+obvious use case. Measurement says which those are, so the list is derived rather
+than guessed:
+
+    ItemTemplate + Param   0 items   documented, never once used. An author
+                                     reading the page has no worked case showing
+                                     when templating beats writing items out.
+    Cover                  1 item    the single hardest primitive to reason about
+                                     and the thinnest evidence in the corpus.
+    Requires               2 items
+    Derived                3 items
+
+Those four need examples built for the guide, not lifted from the handouts --
+which is a different and slower kind of work than documenting what is already
+there, and should be planned as such.
+
+#### How to build the `ItemTemplate` examples, since there is nothing to copy
+
+Instructed 2026-09-23: crib the first instance off REAL items, prove it works,
+and only then make the content generic. That ordering matters because it converts
+the hard question -- "does this template actually do what the page claims?" --
+from a judgement into a diff.
+
+THE CRIB IS ALREADY PICKED OUT BY THE RUBRIC ITSELF. `family=` declares which
+items share slot structure, and one family is large enough to be worth templating:
+
+    h2-cadence-and-type    8 items    PR, NR, PP, NP, DAY1, WK1, DAY2, WK2
+
+Measured across those eight: SEVEN slot keys appear in all eight -- `names_behavior`,
+`names_stimulus`, `contingent`, `follows_behavior`, `you_arrange_it`,
+`observed_type`, `confident` -- with `phrased_directly` in seven. The rest arrive in
+fours and twos, gated by the conditions those items already carry
+(`cadence_daily`, `cadence_weekly`, `type_match`, `barrier_pick`,
+`contingency_gate`, ...). And four of them ALREADY carry `params="cadence=daily"`
+or `cadence=weekly`.
+
+So the template writes itself from the evidence: a shared core of seven slots,
+`ifDeclared=` on the gated additions, and `{cadence}` substitution for the pair
+that differs only in period. That is precisely the shape `materialiseRubric.md`
+documents and nothing has ever exercised.
+
+PHASE 1 -- CRIB, IN A SCRATCH COPY, AND PROVE IT BY DIFF.
+Work on a copy of `bmod_rubric.olx`, never the shipped one. Replace the eight
+items with `<ItemTemplate name="oc_item">` plus eight `<Item use="@oc_item" ...>`
+carrying their existing `conditions=` and `params=`. Then run
+`build:expand-rubrics` and require:
+
+    expand(templated copy)  ==  today's authored rubric,  BYTE FOR BYTE
+
+The baseline for that comparison already exists and is already confirmed: today
+`.stage/expanded/.../bmod_rubric.olx` is byte-identical to the authored file, 1,047
+lines each. So the test is exact, mechanical, and needs no judgement about whether
+the template "looks right". If the bytes differ, the template is wrong, and the
+diff says where.
+
+PROMOTE IT IF THE BYTES HOLD -- authorised by the user 2026-09-23: if the family
+can be templated WITHOUT CHANGING ANY SHA, phase 1's output goes into the real
+rubric rather than staying a scratch example.
+
+AND THE CONDITION IS SATISFIABLE BY CONSTRUCTION, which is what makes this safe.
+The scorer reads `expanded_path()`, never the authored file -- reading the authored
+one "would mean implementing the template grammar a second time, which is the drift
+`materialiseRubric` opens by refusing". So if `expand(templated) == today's
+expanded` byte for byte, every reader downstream sees IDENTICAL BYTES, and
+`course.json` and `prompt_sha` follow necessarily rather than by luck. The byte
+diff is not evidence for the sha claim; it entails it.
+
+ONE PREREQUISITE, AND IT IS ALREADY WRITTEN DOWN. `authored_path()`'s docstring
+says: "WHEN TEMPLATES ARRIVE THIS NEEDS A BUILD STEP. The authored file is expanded
+today only because nothing uses `<ItemTemplate>` yet. The artifact this function
+should return is EXPANDED BUT UNRESOLVED -- which is neither the authored file nor
+`.stage/content`, and does not exist yet." IT EXISTS NOW: `.stage/expanded`, built
+2026-09-22/23 as `build:expand-rubrics`, is exactly expanded-but-unresolved.
+
+So the moment the family is templated, `authored_path()` must point at it, or the
+GENERATOR -- `olx_prompts`, which needs `{{corpus:...}}` intact and therefore cannot
+read `.stage/content` -- would read unexpanded templates. That switch is part of the
+promotion, not a follow-up: templating without it means the generator writes
+`<Item use="@...">` into the shipped handouts.
+
+MORE THAN ONE TEMPLATE, PROBABLY TWO -- the user's point, and the measurement
+agrees. The family splits:
+
+    group                      common within group   union   variable
+    type     PR NR PP NP              9               16        7
+    cadence  DAY1 WK1 DAY2 WK2       11               24       13
+    shared by BOTH                    7
+
+`demonstrates_type` is unique to the type group; `consequence_asserted`,
+`matches_chosen_type`, `named_type` and `targets_own_behavior` to the cadence group.
+So two templates capture 9 and 11 slots where a single shared one captures 7. Start
+from two and let the diff decide -- and if the two turn out to share enough to want
+a core plus specialisations, first establish whether `ItemTemplate` composes at all,
+which nothing in this corpus has ever tested.
+
+PHASE 2 -- GENERALISE, then let the suite hold it.
+With a template proven to reproduce real items exactly, rewrite it with invented
+content for the guide: same STRUCTURE, none of this course's slots, behaviours or
+wording. The structure is what was validated; the words were never the point, and
+leaving them in would put course content in engine documentation -- which is the
+thing item G2 exists to remove.
+
+The generic version then goes in as an `olx:playground` fence, and
+`docPlaygrounds.test.ts` renders it on every run. That is the only guard these
+particular examples get: every other combination in this guide can be checked
+against real content, and `ItemTemplate`'s cannot, because there is none. So the
+playground IS the test, and a template example that is not a rendering playground
+is an unverified claim.
+
+PHASE 3 -- the same two phases for `Cover`, `Requires` and `Derived`, which have
+one, two and three real instances respectively. They are thin rather than absent,
+so the crib is smaller but the method is identical: reproduce a real item exactly,
+then strip it to structure.
+
+#### What the guide has to do, per combination
+
+For each shape: what the combination DOES, and WHEN TO PREFER IT over the
+alternatives that could express the same judgement. The second half is the part
+reference documentation never carries and the part an author actually needs --
+`Equals` vs `Expect`, `Onlyif` vs `Forbid`, `Counts` vs enumerated slots,
+`Cover` vs independent slots. Each of those pairs is a real decision someone made
+26 times in this rubric, and the reasoning is currently nowhere.
+
+Start from the base configuration -- a slot sheet of independent checks, nothing
+else -- and add one primitive at a time, so the guide reads as a progression
+rather than a catalogue.
+
+#### Playgrounds are the cost, and they are also the guarantee
+
+24 playground fences exist across the whole rubric family today. This item needs
+many more -- plausibly one per combination, which is 17 shapes plus the four
+invented cases, before counting the progression's intermediate steps.
+
+THEY ARE NOT FREE AND THEY ARE NOT DECORATIVE: `docPlaygrounds.test.ts` RENDERS
+every one, so each new example is a test that must pass. That suite was
+strengthened earlier this session precisely because three playgrounds were found
+that the engine rejects while the assertion let them through. So a large example
+set is a large test set -- which is the argument FOR doing it this way, since a
+guide whose examples are executed cannot rot into describing an engine that no
+longer exists.
 
 ---
 

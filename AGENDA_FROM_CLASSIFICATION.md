@@ -16,9 +16,11 @@ Edit §13 of the plan, not this file. The items were:
 | C(i) | what the prior dry run already settled about C | record |
 | D | `gold_slots_q6.py` -- a check nothing ran | **done 2026-09-23** |
 | E | `olx_string_idmaps.ts` -- where the 99 lines belong | **done 2026-09-23** |
-| F | `1c`'s gold rebuild -- implemented twice, no owner | open, ranked above D |
+| F | `1c`'s gold rebuild -- implemented twice, no owner | **F1 done 2026-09-23**; F2 open |
 | G | `DEFINITIONS.json` tracked 40 modules of 73; new ones never entered | **done 2026-09-23** |
+| G2 | split procedure docs from the course they were written against | open, filed 2026-09-23 |
 | H | regularize where things live -- one home per category | open, filed 2026-09-23 |
+| I | documentation thorough enough to author from (SlotSheetGrader, Rubric) | open, filed 2026-09-23 |
 
 Also decided along the way, and recorded in §13: the item-to-component link lives
 in the RUBRIC (`<Item asks=...>`), so `course.json` keeps item -> handout only.
