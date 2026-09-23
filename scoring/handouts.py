@@ -996,6 +996,28 @@ def rebuild_gold_from_comment(gold: dict, item: dict) -> tuple[dict, list[int]]:
     return gold, sorted(dropped)
 
 
+def rebuild_declared_gold(gold: dict, handout: int) -> tuple[dict, list[int]]:
+    """Rebuild every item in `handout` whose RUBRIC declares `gold_from_deductions`.
+
+    The item-agnostic entry point, and the reason the flag exists. Which items
+    need their gold rebuilt is a property OF THE ITEM -- p11's 1c row itemises
+    -2/-2/-1 against a recorded 7.0, so the total cannot be trusted and the
+    verdicts can -- and an item property belongs on the item, not in a lookup
+    written into two analytic modules.
+
+    Today exactly one item declares it. That is not an argument for hard-coding
+    that item: a general rule fires for content written later and a specific one
+    never does, which is the principle that retired `gold_slots_q6.py`.
+    """
+    dropped: list[int] = []
+    for item in config(handout)["rubric"].ITEMS:
+        if not item.get("gold_from_deductions"):
+            continue
+        gold, d = rebuild_gold_from_comment(gold, item)
+        dropped.extend(d)
+    return gold, sorted(set(dropped))
+
+
 def nearest_attainable(item: dict, gold: float) -> set[float]:
     """The reachable score(s) closest to `gold` — the whole tie, if it is one.
 

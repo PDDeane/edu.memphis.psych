@@ -690,8 +690,7 @@ def rebuild_gold_1c(gold: dict) -> tuple[dict, list[int]]:
     all four labelling codes, because the same shortening had happened to every
     one of them and only this one had been noticed.
     """
-    item = {i["id"]: i for i in _handouts.config(3)["rubric"].ITEMS}["1c"]
-    return _handouts.rebuild_gold_from_comment(gold, item)
+    return _handouts.rebuild_declared_gold(gold, 3)
 
 
 def sections_for(handout: int, pid: int) -> dict[str, str]:
@@ -1826,18 +1825,25 @@ def main() -> int:
     # .json for per-slot verdicts was reading a different run than the scores it
     # was being compared against.
     gold = config(handout)["gold"]()
-    dropped_1c: list[int] = []
-    if args.item == "1c":
-        gold, dropped_1c = rebuild_gold_1c(gold)
-        print("(item 1c is compared on all five slots, 10 points — the graph gate, "
-              "the title, both axis labels and the legend. It was once a 3-slot "
-              "6-point subtotal on the reasoning that the web cannot fail "
-              "has_own_graph or legend; it can, and does)", file=sys.stderr)
-        if dropped_1c:
-            print(f"(excluding {dropped_1c} from 1c — gold 0 for no graph, but four "
-                  f"complete weeks of data, which on the web DRAWS the chart, so the "
-                  f"failure is unreachable rather than missed. p15 and p18 are KEPT: "
-                  f"their data is incomplete and the gate does fire)", file=sys.stderr)
+    # WHETHER TO REBUILD IS THE RUBRIC'S ANSWER, not this branch's. It used to read
+    # `if args.item == "1c"`, which is the item-specific shape this project removes
+    # everywhere else -- and its message named 1c's own five slots, so a second
+    # item declaring the same thing would have been described as if it were 1c.
+    # Both now come from the item.
+    _spec = next((i for i in config(handout)["rubric"].ITEMS
+                  if str(i.get("id")) == args.item), None)
+    dropped_rebuilt: list[int] = []
+    if _spec is not None and _spec.get("gold_from_deductions"):
+        gold, dropped_rebuilt = _handouts.rebuild_declared_gold(gold, handout)
+        _slots = [str(c.get("what")) for c in _handouts._scored_credit(_spec)]
+        print(f"(item {args.item} is compared on all {len(_slots)} slots, "
+              f"{_spec['max']:g} points — {', '.join(_slots)}. Its gold is REBUILT "
+              f"from the grader's itemised deductions: the recorded total cannot be "
+              f"trusted for it, and the verdicts can)", file=sys.stderr)
+        if dropped_rebuilt:
+            print(f"(excluding {dropped_rebuilt} from {args.item} — the paper failure "
+                  f"is unreachable on the web, so the row is withdrawn rather than "
+                  f"counted as missed; see PER_ITEM_EXCLUDE)", file=sys.stderr)
 
     def tabulate(res):
         """-> (comparable rows, real failures, cells with no gold to compare to).

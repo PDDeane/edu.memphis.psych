@@ -11,7 +11,6 @@
    "CliBackend.calls",
    "CliBackend.complete",
    "CliBackend.name",
-   "GRAPH_UNREACHABLE_1C",
    "LO_ENDPOINT",
    "LoBlocksBackend",
    "LoBlocksBackend.__init__",

@@ -114,7 +114,8 @@ def _conditions_for(authored: dict, item_id: str, item: dict | None = None) -> s
     # generator this model replaced "carried a named boolean per condition, which
     # put subject vocabulary into the engine's own interface and meant every new
     # variant needed engine code". These are those booleans.
-    for flag in ("avoidance_scores", "graph_item", "move_pick", "reads_utb_choice"):
+    for flag in ("avoidance_scores", "graph_item", "move_pick", "reads_utb_choice",
+                 "gold_from_deductions"):
         if (item or {}).get(flag):
             names.append(flag)
     for key, val in sorted(authored.items()):

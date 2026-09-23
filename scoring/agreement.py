@@ -1760,17 +1760,6 @@ def measure_one(backend, handout: int, spec: dict, action_id: str, path: str, pi
 # GRAPH_UNREACHABLE_1C and the report below both read it.
 PER_ITEM_EXCLUDE = _handouts.PER_ITEM_EXCLUDE
 
-# Derived from PER_ITEM_EXCLUDE, not repeated, so the two drops cannot disagree.
-# Both are applied: the work list stops the call being made, and nulling the gold
-# stops the row counting if the work-list drop is bypassed — which `--exclude`
-# with explicit values does exactly.
-#
-# The distinction that matters: these three supplied four complete weeks of data,
-# which on the web DRAWS the chart, so "Did not provide a graph" is unreachable.
-# p15 and p18 are NOT here — their data is incomplete, the gate can and does fire
-# on it, and the paper's zero transfers intact.
-GRAPH_UNREACHABLE_1C = tuple(sorted(PER_ITEM_EXCLUDE["1c"]))
-
 # Entries: the gold file.
 UNSCORED_GOLD_CRITERIA = _gold_declaration("UNSCORED_GOLD_CRITERIA")
 
@@ -1798,8 +1787,7 @@ def rebuild_gold_1c(gold: dict) -> tuple[dict, list[int]]:
     verifies BY IMPORT that a module comparing predictions to gold reaches the
     rebuild, and because callers reach it through this module.
     """
-    item = {i["id"]: i for i in _handouts.config(3)["rubric"].ITEMS}["1c"]
-    return _handouts.rebuild_gold_from_comment(gold, item)
+    return _handouts.rebuild_declared_gold(gold, 3)
 
 
 def tolerance(item: dict) -> float:

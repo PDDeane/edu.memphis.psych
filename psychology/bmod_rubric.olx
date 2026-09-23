@@ -949,7 +949,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Guidance>The text you are shown has already had the template's worked example data (the 'oz' water figures) subtracted, so anything here is the student's own. If a week's heading is present but its days are empty, that week is missing.</Guidance>
     <Context item="1a"/>
   </Item>
-  <Item scores="1c" max="10" label="1c" increment="2" deriveFromCredit="true" conditions="graph_item" asks="bmod_h3_graph_llm" grading="slots">
+  <Item scores="1c" max="10" label="1c" increment="2" deriveFromCredit="true" conditions="graph_item|gold_from_deductions" asks="bmod_h3_graph_llm" grading="slots">
     <Question>Present your data in a figure/graph at the end of the handout. The graph needs a title, both axis labels, and a legend.</Question>
     <Slot key="has_own_graph" label="Your 1b data produces a graph of your own" seg="mismatch" pts="2" gate="true"/>
     <Slot key="title" label="Title saying what is measured and over what period" seg="generic" pts="2"/>

@@ -3775,6 +3775,68 @@ The two wrappers still name the item. Declaring it on `<Item>` in the rubric is 
 would retire the last of it, and needs `Item.ts` before the `.olx` -- the ordering
 `family=` taught earlier this session.
 
+#### F2 DONE 2026-09-23 -- the item declares it, and no analytic module names it
+
+`<Item scores="1c" ... conditions="graph_item|gold_from_deductions">`. The fact that
+an item's gold must be rebuilt from the grader's itemised deductions is a property
+OF THE ITEM, so it is declared on the item; `handouts.rebuild_declared_gold(gold,
+handout)` rebuilds whatever carries the flag and knows nothing else.
+
+NO `Item.ts` CHANGE WAS NEEDED, which is why this was cheaper than planned. Flags
+are not schema attributes -- they ride in the existing `conditions=` and are
+recovered by membership, the way `graph_item`, `move_pick`, `avoidance_scores` and
+`reads_utb_choice` already were. So the `family=` ordering trap did not apply.
+
+THE RISK WAS THAT `conditions` IS OVERLOADED: the same attribute drives
+`as_view_frame` and `_item_conditions`, which gate shared prose in the criteria
+frames and the 27 slot notes. A brand-new condition name SHOULD be inert because
+no segment references it -- and that was the claim under test, not an assumption.
+MEASURED: `prompt_sha` unchanged for all 26 items on BOTH sides, against a
+baseline frozen before the edit.
+
+RESULT, from `course_inventory`:
+
+    agreement.py       literals []   tables []
+    agreement_app.py   literals []   tables []
+
+Both analytic modules now carry ZERO item ids. Three sites went:
+  * the `["1c"]` lookup in each wrapper -> `rebuild_declared_gold(gold, handout)`
+  * `agreement_app.main`'s `if args.item == "1c"` -> the item's own flag. Its
+    message named 1c's five slots, so a second item declaring the same thing would
+    have been described as if it were 1c; it is now built from the item's own
+    scored credit and max.
+  * `GRAPH_UNREACHABLE_1C`, dead since F1 moved the rebuild out -- referenced only
+    from comments afterwards. Accepted through `editguard`.
+
+`COURSE_DATA_BUDGET` 130 -> 125.
+
+THE RATCHET CAUGHT ME AGAIN, and it is worth recording twice: the first version of
+the `RUBRIC_FIELDS` comment said "the two wrappers that used to name `1c`", which
+put an item id into `coursedata.py`, a module that had none. `coursedata.py 0 -> 1`,
+refused to tighten, reworded. F1's first attempt made the same class of mistake in
+`handouts.py`. A module gains course data most easily through PROSE.
+
+BUILD ARTIFACTS ARE PART OF THE EDIT, not a follow-up. Editing the `.olx` made
+three downstream products stale and the audit said so in three separate findings:
+`.stage/expanded` (rebuilt with `build:expand-rubrics`), `.stage/content`
+(`build:stage-content` -- which needs `$COURSE_DATA` set or it dies on an
+unresolved reference), and `apps/static/public/static-content`
+(`build:static-content`). The scorer reads the staged rubric, so an un-rebuilt
+stage means it is reading a rubric that no longer exists.
+
+Fire-tested: with the flag, 17 rows rebuilt and 3 withdrawn; with the flag removed,
+nothing is rebuilt and gold is untouched; restored, back to 17 and 3.
+
+Audit 44, finding set identical to the pre-D baseline. Both sides reproduce the
+frozen 20-row F1 baseline exactly.
+
+WHAT F LEAVES BEHIND: `rebuild_gold_1c` survives as the NAME of the two wrappers,
+because `check_gold_accounting_is_uniform` verifies by import that a module
+comparing predictions to gold reaches it, and eight modules call it through that
+name. The name is the last item-specific thing in the family, and it is a name
+rather than a lookup -- renaming it means touching that enforcement table and
+every caller, which is its own change.
+
 ### G2 · Split the procedure documents from the course they were written against
 
 Filed 2026-09-23 on the user's instruction. Several `.md` files state GENERAL

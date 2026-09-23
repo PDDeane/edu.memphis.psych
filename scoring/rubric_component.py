@@ -276,7 +276,8 @@ def as_view_items(path: str | None = None) -> list[dict]:
             it["unreachable_codes"] = _list(el.get("unreachableCodes"))
         # the named booleans, recovered from the conditions they were written as
         for flag in ("avoidance_scores", "graph_item", "move_pick",
-                     "reads_utb_choice"):
+                     "reads_utb_choice",
+                     "gold_from_deductions"):
             if flag in conds:
                 it[flag] = True
         if params.get("cadence"):

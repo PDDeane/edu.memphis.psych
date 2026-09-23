@@ -78,6 +78,12 @@ RUBRIC_FIELDS = {
     "forbid", "equals", "onlyif", "expect", "maps", "cadence", "oc_gates",
     "derived", "reads_utb_choice", "requires", "cover", "move_pick",
     "avoidance_scores", "graph_item",
+    # SINCE F2: the item's gold cannot be taken from the sheet total and must be
+    # REBUILT from the grader's itemised deductions. An item property, so it is
+    # declared on the item -- `handouts.rebuild_gold_from_comment` reads the
+    # arithmetic from the same rubric entry, and the two analytic wrappers that
+    # used to name their item now find it by this flag instead.
+    "gold_from_deductions",
     # SINCE 3B: what the item is ASKED THROUGH, and which rule scores it. They
     # were `declaration_source.BLOCKS` until then, where the first of them was a
     # second copy of `prompt_action`. RUBRIC and not GENERATOR because the engine
