@@ -1831,3 +1831,33 @@ a fixture out even when it turns out clean:
   gold withheld, which makes it a one-directional target: a rule that can only
   refuse a `how` cannot disturb the twelve cells that agree.
 
+see: qc:EQ.no-image
+
+score.py's handout-3 prompt asks the model to **Read the student's graph as an
+image**, because on paper a graph is a picture. `ClaudeCliBackend` forwards
+`allow_tools=["Read"]`; `LoBlocksBackend` sends `"tools": []` unconditionally,
+because that is the shipped route and the app gives the grader no tools.
+
+So paper+gpt-5-mini scores 1c blind, and blind on a graph item is not noise — it
+is a systematic zero. It returned **0.00 on 11 of 20 cells where gold is 6–10**,
+which reads as 5/17 for the model until you find the cause.
+
+**This is a deviation of the PAPER scorer only.** The olx and python never look at
+an image: 1c is scored from the four weeks of data the student TYPED, through
+
+```
+derived="has_own_graph:complete:bmod_h3_baseline,bmod_h3_wk1,bmod_h3_wk2,bmod_h3_wk3:…"
+```
+
+and `web_v8` scores it **16/17 (94%)** with no tool involved. Only baseline.py
+consults `not_comparable_items()`; agreement.py and agreement_app.py must not be
+filtered by it, and are not.
+
+**1c is therefore not comparable between the paper scorer on a tool-less backend
+and anything else** — not between paper+mini and paper+Opus, and not between
+paper+mini and the olx. It is excluded from paper+mini's rate entirely and
+printed under `NOT COMPARABLE`, rather than counted as a score.
+
+see: qc:EQ.no-image end
+With 1c out, paper+mini measures **88.3%** against paper+Opus's **90.9%**.
+

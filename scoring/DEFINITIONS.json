@@ -259,6 +259,7 @@
    "BLOCK_OPENS_END",
    "HEADING",
    "HERE",
+   "SECTION_LINE",
    "SPLIT_DOCS",
    "_blocks",
    "build",

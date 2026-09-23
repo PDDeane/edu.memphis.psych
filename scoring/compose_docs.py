@@ -59,6 +59,10 @@ BLOCK_OPENS = re.compile(r"^see:\s*qc:([A-Za-z0-9_.-]+)\s*$")
 # connective heading in the generic half, which is prose written to satisfy a tool.
 BLOCK_OPENS_END = re.compile(r"^see:\s*qc:([A-Za-z0-9_.-]+)\s+end\s*$")
 HEADING = re.compile(r"^(#{1,6}) ")
+# WHAT A BLOCK MAY ATTACH TO. A heading, or a list entry -- GOALS.md anchors
+# `- [x] E1.` lines, so headings alone would be too narrow. Anything else is a line
+# of running prose, and attaching there inserts the case INSIDE a paragraph.
+SECTION_LINE = re.compile(r"^(?:#{1,6} |\s*(?:[-*+]|\d+\.) )")
 
 
 def generic_path(name: str) -> str:
@@ -159,6 +163,17 @@ def compose(name: str) -> str:
         # Place a case after the anchored section's own line, not after the anchor
         # comment: the anchor sits above the heading or entry it names.
         if pending is not None and line.strip():
+            # REFUSE A MID-PARAGRAPH ATTACHMENT. Putting the anchor BELOW its
+            # heading instead of above it makes the next paragraph's first line the
+            # section line, and the case then lands between that line and the rest
+            # of its own sentence. Done once; the composed output read as a heading
+            # followed by half a sentence, and nothing else reported it.
+            if blocks.get((pending, "line")) and not SECTION_LINE.match(line):
+                raise SystemExit(
+                    f"compose_docs: {name} anchors `qc:{pending}` above a line of "
+                    f"prose -- {line.strip()[:50]!r}. A case placed there splits "
+                    f"that paragraph. Move the anchor above the heading or entry "
+                    f"it names")
             for block in blocks.get((pending, "line"), ()):
                 out.append(block)
                 placed += 1
