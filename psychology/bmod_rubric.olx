@@ -31,27 +31,20 @@ Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is c
    (b) the trigger names no endpoint at all, so no amount of the record ever settles it.
    A stretch of time attached to the CONSEQUENCE never decides this: a trigger settled each day whose reward then runs on for a week is still daily. A trigger that states NO period is settled by the question itself and passes. When it could be read either way, it passes.
    A trigger that POINTS AT the student's own goal without restating that goal's schedule states no period of its own. Reading what the goal says elsewhere does not make the goal's schedule the trigger's: such a trigger is settled by the question itself and passes, exactly as one that names no period at all.
-10. `t</Segment>
+</Segment>
     <Segment ifDeclared="cadence_weekly">8. `named_type` — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly (a definition reading "something they would rather avoid turns up each time the behaviour appears" states Positive Punishment). Use `unclear` only when neither says. Reported, never scored — but the grader compares it against the type the example actually is, so report it accurately rather than helpfully.
 9. `cadence_ok` — can the TRIGGER be settled inside ONE week? It can whenever a single week of the student's own record decides it, however short the behaviour or its window. There are exactly TWO ways it cannot, and nothing else sets this false:
    (a) the contingency is PLAINLY SETTLED ON THE OTHER SCHEDULE — a weekly slot answered with a whole-period tally;
    (b) the trigger names no endpoint at all, so no amount of the record ever settles it.
    A stretch of time attached to the CONSEQUENCE never decides this: a trigger settled each day whose reward then runs on for a week is still daily. A trigger that states NO period is settled by the question itself and passes. When it could be read either way, it passes.
    A trigger that POINTS AT the student's own goal without restating that goal's schedule states no period of its own. Reading what the goal says elsewhere does not make the goal's schedule the trigger's: such a trigger is settled by the question itself and passes, exactly as one that names no period at all.
-10. `t</Segment>
-    <Segment ifDeclared="criterion_10_plain">argets_own_behavior` — is it aimed at this student's own UTB/WGB rather than some clearly different behaviour?</Segment>
-    <Segment ifDeclared="criterion_10_trigger">rigger_behavior` — name which behaviour has to happen, or fail to happen, before the consequence arrives — quote it — then classify it `utb`, `wgb` or `other`. Decide by WHAT KIND OF PHRASE it is.
-  * A POINTER — "my goal", "my daily goal", "my target this week", "my plan" — has no content of its own. Classify it as whatever it points at: `wgb` for a goal they are building, `utb` for the behaviour they are cutting.
-  * A NAMED ACTIVITY — "tidying the kitchen", "walking the dog", "{{corpus:Q4c/p8:second:23:39:sha=eddaae950aa8}}" — has content, so judge it on its own terms against the behaviour the student CHOSE. Their paragraph also explains why they chose it, and the causes, effects and knock-on habits it mentions are not the chosen behaviour: a student explaining what their behaviour costs them will name several other activities in passing, and a plan triggered on one of THOSE is `other`. Being mentioned in that paragraph does not make an activity theirs; being the behaviour they chose does.
-  DO THIS BEFORE YOU CLASSIFY, and put it in `behavior`: quote the words THE STUDENT used for the behaviour, from their own unwanted-behaviour or goal statement, beside the trigger you quoted, and say whether they are equivalent by the definition given above. If they are not, answer `other`.</Segment>
+</Segment>
+    <Segment ifDeclared="criterion_10_plain">10. `targets_own_behavior` — is it aimed at this student's own UTB/WGB rather than some clearly different behaviour?</Segment>
+    <Segment ifDeclared="criterion_10_trigger">{criterion_10_trigger}</Segment>
     <Segment ifDeclared="has_cadence">
 
 </Segment>
-    <Segment ifDeclared="asks_consequence_asserted">11. `consequence_asserted` — the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. Two facts strung together with a bare AND — the behaviour performed, the reward taken — are false; the same two facts joined by SO, or by any word that makes the reward follow FROM the behaviour, are true. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is true — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is true here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded</Segment>
-    <Segment ifDeclared="c11_scoring_clause">, and it never changes the score</Segment>
-    <Segment ifDeclared="asks_consequence_asserted">.
-
-</Segment>
+    <Segment ifDeclared="asks_consequence_asserted">{criterion_11}</Segment>
   </Frame>
   <Frame name="oc_frame">
     <Segment>Operant conditioning has exactly four types, defined by two questions: is the target behaviour being INCREASED (reinforcement) or DECREASED (punishment), and is a stimulus being ADDED (positive) or TAKEN AWAY (negative)?
@@ -104,7 +97,9 @@ Answer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label w
     <Segment>`absent` if any judgement above was a close call — this is rule 8's channel</Segment>
   </Frame>
   <Frame name="note:consequence_asserted">
-    <Segment>one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. Two facts strung together with a bare AND — the behaviour performed, the reward taken — are `no`; the same two facts joined by SO, or by any word that makes the reward follow FROM the behaviour, are `yes`. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded, and it never changes the score</Segment>
+    <Segment>one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. Two facts strung together with a bare AND — the behaviour performed, the reward taken — are `no`; the same two facts joined by SO, or by any word that makes the reward follow FROM the behaviour, are `yes`. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded</Segment>
+    <Segment ifDeclared="!avoidance_scores">, and it never changes the score</Segment>
+    <Segment></Segment>
   </Frame>
   <Frame name="note:contingent">
     <Segment>criterion 3 (`contingent`)</Segment>

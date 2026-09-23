@@ -1277,48 +1277,62 @@ def _as_criterion(note: str) -> str:
                 .replace("`yes`", "true").replace("`no`", "false"))
 
 
-_C10_TRIGGER = "10. `trigger_behavior` — " + _as_criterion(SLOT_NOTES["trigger_behavior"]) + "\n"
 
 
-# Where avoidance framing is declared to COST the item, the base note's closing
-# promise that criterion 7 "never changes the score" is false -- and it was false
-# on BOTH sides, the same defect as in criterion 7 itself but in a second place.
-# Written as a per-item SLOT_NOTES override so the web's checklist picks it up
-# through the lookup it already does, and read from the rubric declaration rather
-# than from an item id.
+# THE LOOP THAT STOOD HERE IS GONE, and the rule it carried is in the rubric.
+# Where avoidance framing is declared to COST the item, the note's closing promise
+# that criterion 7 "never changes the score" is false -- it was false on BOTH
+# sides before anyone noticed, the same defect as in criterion 7 itself but in a
+# second place.
 #
-# THIS LOOP IS WRONG WHERE IT STANDS, AND IS THE NEXT THING TO FIX. It DERIVES ONE
-# PIECE OF COURSE TEXT FROM ANOTHER, in engine code, which is the shape this whole
-# migration exists to end -- it is no better for being short, and "the text moved
-# but the rule that edits the text did not" is a half-move. Everything it needs
-# already exists: the store is a `<Frame>`, frames carry conditional segments, and
-# `ifDeclared="!avoidance_scores"` is the exact mechanism `oc_criteria` uses for
-# the SAME suppression on criterion 7. The note becomes two segments and this loop
-# is deleted; the reader then needs the item's conditions at lookup time, which is
-# the only real work in it. Recorded rather than done here because it is a prompt-
-# affecting edit and this round is already one, and two unmeasured changes in one
-# certification cannot be told apart.
-for _it in config(2)["rubric"].ITEMS:
-    if _it.get("avoidance_scores"):
-        SLOT_NOTES[f"{_it['id']}:consequence_asserted"] = (
-            SLOT_NOTES["consequence_asserted"].replace(
-                ", and it never changes the score", ""))
+# It used to be repaired by a python loop that rewrote one note into another at
+# import. That DERIVED one piece of course text from another, in engine code,
+# which is the shape this migration exists to end -- and it was no better for
+# being five lines: the text had moved to the rubric and the rule that edits the
+# text had not, which is a half-move. `<Frame name="note:consequence_asserted">`
+# now carries the clause as its own segment under `ifDeclared="!avoidance_scores"`,
+# the same mechanism `oc_criteria` already uses for the identical suppression on
+# criterion 7, and `slot_note()` renders it against the item's conditions.
 
 
-# The SLOT_NOTES keys the CLI renders too, via _C10_TRIGGER and _criterion_11.
+def _item_conditions(item: dict) -> set:
+    """The condition names an item declares, for a frame or a note to select on.
+
+    ONE PLACE, because two callers now need the same set and a second copy of
+    "what does this item declare" is how they would come to disagree.
+    """
+    conditions = set()
+    if item.get("avoidance_scores"):
+        conditions.add("avoidance_scores")
+    cadence = item.get("cadence")
+    if cadence:
+        conditions.add(f"cadence_{cadence}")
+        conditions.add("has_cadence")
+    return conditions
+
+
+def slot_note(item: dict, key: str) -> str | None:
+    """This item's note for `key`, or None -- the rubric's note store, resolved.
+
+    ITEM-SCOPED FIRST, THEN SHARED, which is the order the prompt has always used;
+    what changed is that the shared one is now rendered against the item's own
+    conditions, so a note whose clause belongs only where a condition holds no
+    longer needs a hand-written second copy under an item-scoped key.
+    """
+    import rubric_component
+    store = rubric_component.as_view_notes(_item_conditions(item))
+    iid = str(item.get("id"))
+    return store.get(f"{iid}:{key}") or store.get(key)
+
+
+# The note keys the CLI renders too. `_criteria_section` composes both from the
+# note store -- `_C10_TRIGGER` and `_criterion_11` used to stand here and were
+# deleted when the criteria frame stopped restating what the notes already say.
 # check_slot_rules_reach_both_prompts exempts these, and it needs a declaration
 # rather than a list of its own: its whole premise is that SLOT_NOTES is olx-only,
 # which is true of every key EXCEPT the ones named here, and a check carrying its
 # own copy of that exception would go stale the moment this list changed.
 CLI_CRITERIA_NOTES = ("trigger_behavior", "consequence_asserted")
-
-
-def _criterion_11(item: dict) -> str:
-    """The CLI's eleventh criterion, from the web's note for THIS item."""
-    note = (SLOT_NOTES.get(f"{item['id']}:consequence_asserted")
-            or SLOT_NOTES["consequence_asserted"])
-    return ("11. `consequence_asserted` — " + _as_criterion(
-        note.replace("one point, and it charges ONLY this: ", "")) + ".\n")
 
 
 def _criteria_section(item: dict, trigger_slot: bool = False,
@@ -1352,28 +1366,44 @@ def _criteria_section(item: dict, trigger_slot: bool = False,
     halves. The alternative was a conjunction grammar in the frame, which is a
     second expression language for one use.
     """
-    conditions = set()
+    import rubric_component
+    conditions = set(_item_conditions(item))
     if avoidance_scores:
         conditions.add("avoidance_scores")
-    cadence = item.get("cadence")
-    if cadence:
-        conditions.add(f"cadence_{cadence}")
-        conditions.add("has_cadence")
+    else:
+        conditions.discard("avoidance_scores")
+    if item.get("cadence"):
         conditions.add("criterion_10_trigger" if trigger_slot
                        else "criterion_10_plain")
     if consequence_slot:
         conditions.add("asks_consequence_asserted")
-        # THE SAME SUPPRESSION AS CRITERION 7's, in a second place. Where
-        # avoidance framing is declared to COST the item, the closing promise that
-        # criterion 7 "never changes the score" is false -- it was false on both
-        # sides before anyone noticed. It was ALREADY keyed on the declaration
-        # rather than on an item id, by the loop that synthesises the per-item
-        # SLOT_NOTES override; this moves the rule into the rubric without
-        # changing what decides it.
-        if not avoidance_scores:
-            conditions.add("c11_scoring_clause")
-    import rubric_component
-    return rubric_component.as_view_frame("oc_criteria", conditions=conditions)
+    # THE TWO CRITERIA THE FRAME DOES NOT RESTATE. Criterion 10's trigger form and
+    # criterion 11 are the NOTES `trigger_behavior` and `consequence_asserted`,
+    # rendered for a numbered criteria sheet instead of a checklist. The frame
+    # carries a placeholder and they are composed here, so the text exists once.
+    #
+    # WHY THE TRANSFORM MAY LIVE HERE WHEN THE DERIVATION LOOP MAY NOT.
+    # `_as_criterion` maps one grader's answer VOCABULARY onto another's --
+    # `yes`/`no` become true/false, `evidence` becomes `behavior`. It translates
+    # tokens between two sheets. The loop that was deleted EDITED COURSE TEXT,
+    # which is a different act, and that is the line.
+    #
+    # Criterion 11's own conditionality went with it: the clause that is false
+    # where avoidance framing scores is a segment of the NOTE now, so
+    # `slot_note` returns the right variant and nothing here decides it.
+    params = {}
+    notes = rubric_component.as_view_notes(_item_conditions(item))
+    if trigger_slot and item.get("cadence"):
+        params["criterion_10_trigger"] = (
+            "10. `trigger_behavior` — " + _as_criterion(notes["trigger_behavior"]))
+    if consequence_slot:
+        note = slot_note(item, "consequence_asserted") or ""
+        params["criterion_11"] = (
+            "11. `consequence_asserted` — "
+            + _as_criterion(note.replace("one point, and it charges ONLY this: ", ""))
+            + ".\n\n")
+    return rubric_component.as_view_frame("oc_criteria", conditions=conditions,
+                                          params=params)
 
 
 def _checklist_section(item: dict, slots: list[dict], item_id: str,
@@ -1479,8 +1509,7 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
         # the web and CLI and silently leaves the paper scorer behind. That is
         # exactly what happened to Q4b's five substitution tests.
         note = (rule.get(s["key"])
-                or SLOT_NOTES.get(f"{item_id}:{s['key']}")
-                or SLOT_NOTES.get(s["key"])
+                or slot_note(item, s["key"])
                 or desc.get(s["key"]))
         gate = " **GATE**" if s["gates"] else ""
         if s.get("picks") is not None:

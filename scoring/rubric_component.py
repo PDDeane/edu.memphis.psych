@@ -360,7 +360,7 @@ def as_view_slot_spec(path: str | None = None) -> dict:
     return out
 
 
-def as_view_notes(path: str | None = None) -> dict:
+def as_view_notes(conditions=(), path: str | None = None) -> dict:
     """The shared note store: `{slot key: text}`, from `<Frame name="note:KEY">`.
 
     WHAT A NOTE IS, and why it is not the slot's `rule`. They sit at different
@@ -383,13 +383,28 @@ def as_view_notes(path: str | None = None) -> dict:
     p = path or expanded_path()
     with open(p, encoding="utf8") as fh:
         root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    have = set(conditions or ())
     out = {}
     for fr in root.iter("Frame"):
         name = fr.get("name") or ""
         if not name.startswith("note:"):
             continue
-        out[name[5:]] = "".join(
-            "".join(seg.itertext()) for seg in fr.findall("Segment"))
+        parts = []
+        for seg in fr.findall("Segment"):
+            # SAME SELECTION RULE AS A FRAME'S, because a note IS one -- the
+            # store is `<Frame>` precisely so a note can carry a clause that
+            # belongs only where a condition holds, instead of a second copy of
+            # the note with the clause removed by hand.
+            cond = seg.get("ifDeclared")
+            if cond:
+                negated = cond.startswith("!")
+                if (cond[1:] if negated else cond) in have:
+                    if negated:
+                        continue
+                elif not negated:
+                    continue
+            parts.append("".join(seg.itertext()))
+        out[name[5:]] = "".join(parts)
     return out
 
 
