@@ -360,15 +360,84 @@ def as_view_slot_spec(path: str | None = None) -> dict:
     return out
 
 
-def as_view_frame(name: str = "oc_frame", path: str | None = None) -> str:
-    """A named frame's text, e.g. `OC_FRAME`."""
-    p = path or staged_path()
+def as_view_notes(path: str | None = None) -> dict:
+    """The shared note store: `{slot key: text}`, from `<Frame name="note:KEY">`.
+
+    WHAT A NOTE IS, and why it is not the slot's `rule`. They sit at different
+    heights in one precedence -- `rule` is what BOTH graders are told, a note is
+    what a checklist-style grader is told where the credit rule does not already
+    say, and `desc` is the fallback. Promoting a note to `rule` would put text in
+    front of a grader that has never seen it, which is a scoring change wearing a
+    refactor's clothes. This moves where a note is STORED and nothing else.
+
+    NAMED, NOT COPIED PER SLOT. Measured on this corpus: 28 notes cover 102 slot
+    sites -- `confident` alone is reached by 23 -- so resolving them into the
+    slots would write 102 copies of 28 texts, and every copy is a place the next
+    edit can miss. A slot that needs its own wording carries `note="..."`; one
+    that shares carries `note="@name"`, the same two forms `verdicts` takes.
+
+    ITEM-SCOPED KEYS KEEP THEIR SHAPE. `Q6:state_a1` is stored under that exact
+    name, so the lookup order the prompt already uses -- item-scoped, then bare --
+    needs no translation and no new rule.
+    """
+    p = path or expanded_path()
     with open(p, encoding="utf8") as fh:
         root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    out = {}
     for fr in root.iter("Frame"):
-        if fr.get("name") == name:
-            return "".join(_text(s) for s in fr.findall("Segment"))
-    return ""
+        name = fr.get("name") or ""
+        if not name.startswith("note:"):
+            continue
+        out[name[5:]] = "".join(
+            "".join(seg.itertext()) for seg in fr.findall("Segment"))
+    return out
+
+
+def as_view_frame(name: str = "oc_frame", conditions=(), params=None,
+                  path: str | None = None) -> str:
+    """A named frame, assembled for one item: its segments, in order.
+
+    `ifDeclared` SELECTS, and `!` inverts -- the same rule lo-blocks'
+    `renderFrame` applies, and deliberately the same spelling, because two
+    implementations of one selection rule is what the rubric model exists to
+    prevent. What a condition MEANS is never known here: it is a name the caller
+    declares, matched literally.
+
+    NOTHING IS STRIPPED. A segment is spliced between two others and the space
+    before "This never changes..." is what joins it to the sentence in front --
+    which is the reason `Segment` uses lo-blocks' RAW text parser, recorded in
+    `Segment.ts`. Trimming here would close that gap and make byte-exact prose
+    impossible, silently, in the one place nothing else checks.
+
+    IT READS THE EXPANDED ARTIFACT by default, like every other reader here:
+    `expanded_path` carries why the authored file and the staged copy are each
+    wrong for a scorer.
+
+    `params` substitutes `{name}` -- and only names actually supplied, so prose
+    that happens to contain a brace is left alone rather than half-substituted.
+    """
+    p = path or expanded_path()
+    with open(p, encoding="utf8") as fh:
+        root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    have = set(conditions or ())
+    out = []
+    for fr in root.iter("Frame"):
+        if fr.get("name") != name:
+            continue
+        for seg in fr.findall("Segment"):
+            cond = seg.get("ifDeclared")
+            if cond:
+                negated = cond.startswith("!")
+                if (cond[1:] if negated else cond) in have:
+                    if negated:
+                        continue
+                elif not negated:
+                    continue
+            out.append("".join(seg.itertext()))
+    text = "".join(out)
+    for k, v in (params or {}).items():
+        text = text.replace("{" + k + "}", v)
+    return text
 
 
 if __name__ == "__main__":

@@ -264,6 +264,57 @@ certifying run owns the tree until it returns.** Fingerprint before launching an
 after finishing; "one small comment" is exactly the edit that reads as innocuous
 and is not.
 
+### OWED, and named as wrong: the derivation loop in `olx_prompts`
+
+`SLOT_NOTES` moved into the rubric as `<Frame name="note:KEY">` and every prompt
+stayed byte-identical. One thing did NOT move, and keeping it was a mistake worth
+stating plainly rather than filing as a nicety:
+
+```python
+for _it in config(2)["rubric"].ITEMS:
+    if _it.get("avoidance_scores"):
+        SLOT_NOTES[f"{_it['id']}:consequence_asserted"] = (
+            SLOT_NOTES["consequence_asserted"].replace(
+                ", and it never changes the score", ""))
+```
+
+This DERIVES one piece of course text from another, in engine code. That is the
+shape this migration exists to end, and it is no better for being five lines: the
+text moved and the rule that edits the text stayed, which is a half-move, and a
+half-move is the state most likely to be mistaken for a finished one.
+
+**The fix needs nothing new.** The store is a `<Frame>`; frames carry conditional
+segments; `ifDeclared="!avoidance_scores"` is already the mechanism `oc_criteria`
+uses for the SAME suppression on criterion 7. The note becomes two segments and
+the loop is deleted. The only real work is that the note lookup then needs the
+item's conditions at read time, where today it needs nothing.
+
+**Why it was not done in the same round.** It is a prompt-affecting edit and this
+round is already one, and two unmeasured changes inside one certification cannot
+be told apart afterwards. It is the FIRST thing after this round, not a backlog
+entry.
+
+### The same fix owes a second thing: `oc_criteria` RESTATES two notes
+
+`<Frame name="oc_criteria">`'s `criterion_10_trigger` and criterion-11 segments
+hold text that is also in `note:trigger_behavior` and `note:consequence_asserted`.
+Before this round one was DERIVED from the other at import
+(`_C10_TRIGGER = "10. ..." + _as_criterion(SLOT_NOTES["trigger_behavior"])`); now
+both are literal, so the derivation was replaced by a copy.
+
+It is better than it was -- both copies are course content in one file of record,
+rather than one in a module and one in content -- but two copies of a rule are two
+rules, and this file's own history says what happens next: they agree until one is
+edited.
+
+**The fix is the same shape as the loop's.** A segment should REFERENCE the note
+store rather than restate it, which is what `@name` already means everywhere else
+in this rubric. What makes it more than a rename is the transform: the criteria
+form differs from the checklist form by `_as_criterion` (`\`yes\`` becomes `true`,
+`evidence` becomes `behavior`) and by the numbering prefix, so the reference has
+to carry that or the two forms have to converge. Decide which BEFORE writing it;
+converging them is a prompt change and carrying the transform is not.
+
 ### Verification both steps share
 
 * cold audit back to the frozen **45**, re-derived, never quoted from memory

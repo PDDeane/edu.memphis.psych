@@ -924,402 +924,30 @@ def parse_slots(spec: str, defaults: list[str]) -> list[dict]:
 # things on different items.
 _CADENCE_NOUN = {"daily": "day", "weekly": "week"}
 
-SLOT_NOTES = {
-    # WK2's `aimed_correctly` GATE, given text 2026-09-07 (subgoal Q40). It had
-    # NONE: absent from WK2's rubric credit list, no desc, no rule, no note -- so
-    # `probe.question_for` returned the empty string and the shipped prompt line
-    # was the identifier alone. A 4-point gate inferring its own meaning from its
-    # name, which is why it ran at 95% precision and wobbled on exactly the cell
-    # where the name is ambiguous (WK2/p11: aimed correctly FOR THE TYPE CHOSEN,
-    # or aimed correctly AS AN ARRANGEMENT?).
-    # IT REACHES BOTH MEASURED ENGINES AND NOT `paper`: this table is read by the
-    # web and CLI generators, not by score.py. Paper has no number on 24 of 26
-    # items (subgoal E28), so nothing measured is left behind today -- but it is a
-    # real asymmetry and is why the text is ALSO in enforcement.DESIGNED_TEXT,
-    # where a reader will find it from the slot.
-    "WK2:aimed_correctly": "Does the consequence point the RIGHT WAY for the arrangement this answer actually describes -- something added or taken away AFTER the behaviour, in the direction that would change it? Answer `absent` when it is pointed the wrong way: an aversive for MEETING the goal, or a reward for MISSING it.\nJUDGE THE ARRANGEMENT DESCRIBED, NOT THE TYPE THE STUDENT NAMED. An answer that describes a sound arrangement but labels it with the wrong type is `met` here. The mismatch between the two is a different check's charge, and taking the whole item for it here would charge one fault twice.\nAnswer `unclear` only when the answer names no consequence to judge at all.",
-    # WK2's `named_type`, given text 2026-09-07 (subgoal Q55). Like
-    # `aimed_correctly` above it shipped the EMPTY STRING -- sha e3b0c44298fc
-    # -- so the prompt line was the identifier and its five verdicts alone.
-    # D1 and D2 carry text for the same key (sha 726c3d975e02) and WK2 and
-    # DAY1 do not, which is the asymmetry that hid it.
-    # THE DEFECT IT FIXES, measured: WK2/p15's TYPE box is blank while its
-    # DEFINITION box names Positive Punishment by defining it. With no text,
-    # the slot answers `unclear` in 5 of 12 runs, and `unclear` CANCELS a
-    # charge gold makes -- `matches_chosen_type` then reads `met` and the cell
-    # scores 4.00 against gold's 2.00. The correlation is exact: `PP` -> 2.00 =
-    # gold (7 runs), `unclear` -> 4.00 wrong (5 runs).
-    # NOTE WHAT D1/D2's TEXT WOULD HAVE DONE: it says "`unclear` only if it is
-    # blank or unreadable", which on p15 prescribes the WRONG answer. Copying
-    # the sibling text would have entrenched the defect, so this is written
-    # from the cells, not from the sibling.
-    # PROBED AND GATED before shipping: 72 calls, 18 cells (p2 and p3 dropped
-    # by exclusions), every cell unanimous 4 of 4 -- target p15 reads PP, the
-    # genuinely-blank pair p10/p18 keep `unclear`, all ten full-marks cells
-    # keep their type. `probe.control_gate` reproduces the ledger on 17 of 18
-    # cell-slots (p14 skipped: the ledger itself wobbles). It is the one probe
-    # of that day the control gate did not void.
-    # REACHES the web and CLI generators, NOT score.py -- same asymmetry as
-    # `aimed_correctly`, and `paper` has no WK2 number to lose (subgoal E28).
-    # NAMED, NOT COUNTED. This used to open its second sentence by telling the
-    # grader to read both boxes, and WK2 has ONE box -- so the phrase pointed
-    # outside the box structure. The two things meant are the TYPE the student
-    # named and the DEFINITION they wrote, which reach WK2 as CONTEXT from T2
-    # and D2. `score._describe_boxes` had always flagged this shape as needing
-    # rewording rather than substitution: translating it on the paper side gave
-    # "READ BOTH ANSWERS", which kept the arithmetic wrong because paper has one
-    # answer here too, and check_paper_prompt_has_no_box_deixis reported it.
-    # Naming the two makes the note true on BOTH sides and needs no translation.
-    "WK2:named_type": "WHICH of the four types the student CLAIMS -- not whether the claim is right, which another check decides.\nREAD BOTH THE TYPE THEY NAMED AND THE DEFINITION THEY WROTE. The type may be named outright, or it may be named only by the DEFINITION: a definition that describes adding an unpleasant thing after a behaviour, or taking a wanted thing away, names a type as surely as writing its name does. Where the two disagree, report what the NAMED TYPE says.\nAnswer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label with nothing after it. A blank type is not by itself an absent type.",
-    "confident": "`absent` if any judgement above was a close call — this is rule 8's channel",
-    # Web-only, and unscored on purpose. The web asks for the unwanted target
-    # behavior twice — once as a closed choice before question 1, once in the
-    # student's own words inside it — so the two can disagree in a way the paper
-    # version cannot. The rubric has no deduction for that because on paper there
-    # is nothing to disagree with, so this reports the fact and costs nothing.
-    "Q1:matches_selected":
-        "`matches` if the behavior the student writes about is the one they picked "
-        "from the list above, `differs` if they write about a different behavior. "
-        "Judge the BEHAVIOR, not the wording: '{{corpus:Q1/p19:response:46:70:sha=f4d8dbbfd800:shape=C1}}' matches "
-        "the choice 'lack of sleep'. This check carries no points and never changes "
-        "another verdict — everything else is judged on what they WROTE, whichever "
-        "box they ticked",
-    # The other half of the same defect the note above describes. This slot charges
-    # WGB_NOT_OPPOSITE — tier (b) — but asked only "WGB explicitly stated", which
-    # every answer satisfies, so tier (b) was UNREACHABLE: `wgb_inverts_utb` — then named `wgb_stated`, which is the whole defect — came back
-    # `met` on 20 of 20 cells on both sides while gold deducted for "opposite of
-    # your UTB" on three. That is the whole of Q2's positive bias, the largest in
-    # handout 1. The rule was never missing — guidance tiers (a)/(b)/(c) name p10
-    # and p7 with their own words — it was asked of the wrong question.
-    # An "instead of" clause was TRIED HERE AND REVERTED. p7 says "restart reading
-    # {{corpus:Q2/p7:response:114:153:sha=053f7e52ad9f:shape=C1bf800}} games", naming the UTB only as the
-    # thing displaced; a clause saying so is the obvious fix and it does work on
-    # the cell it targets. It still did not pay:
-    #
-    #                       item mean exact (20 cells, 3 runs)      p7
-    #   shipped-prompt CLI   18.3 -> 18.3  (no change)            9/12 -> 15/15
-    #   web                  19.0 -> 18.3  (worse)                2/3  -> 3/3
-    #
-    # On the web it bought p7 and lost p17: "{{corpus:Q2/p17:response:10:42:sha=efb4fb832473}} stay
-    # fit" started coming back `met` (1/3, from 3/3). That is the p17/p18 pair —
-    # the carve-out below says a STATE of the same behaviour passes, and any extra
-    # pressure on the different-activity side leaks across to make p17 a state too.
-    # The two cells are close enough that this slot cannot be tightened for one
-    # without loosening the other.
-    #
-    # A first draft also carried a general cue ("judge what the goal asks the
-    # student to do, not what it mentions"), which bled TWO SLOTS AWAY into the
-    # reasons count: p20 went 3,2,3 -> 2,2,2 and the CLI item mean 18.3 -> 17.3.
-    # A general strictness cue in one slot's note does not stay in that slot.
-    #
-    # p7 does not need it: 9 of 12 single-cell CLI runs are already correct, and
-    # score.py reaches p7 through the GATE instead, 8 of 8 (see rubric_h1.py).
-    # These four answer TWO things, in two fields. The verdict says whether an
-    # antecedent (or consequence) is named at all; `refers_to` says WHICH of the
-    # earlier item's two it is. They used to share one field, which is why the
-    # verdict list read `first/second/neither/absent` — a set of pointers where
-    # every other check has a judgement.
-    'Q6:state_a1':
-        "`met` if this box names an antecedent at all, `absent` if it names none. "
-        "Then set `refers_to` to WHICH of 4a's two it is — `first`, `second`, or "
-        "`none` if it is neither of them",
-    'Q6:state_a2':
-        'same for the other box. `second` is the expected `refers_to` but `first` '
-        'is credited too if that is what it names, because the grader pairs them',
-    'Q6:state_c1':
-        "`met` if this box names a consequence at all, `absent` if it names none. "
-        "Then set `refers_to` to WHICH of 4c's two it is — `first`, `second`, or "
-        "`none` if it is neither of them",
-    'Q6:state_c2':
-        "same for the other box — either label is credited; the grader checks that "
-        "between the two boxes both of 4c's consequences are named",
-    # The operant-conditioning criteria sheet, slot by slot.
-    # "quote such a behavior" alone reads too literally, and this is a GATE, so a
-    # literal reading costs the whole item. Students routinely point at the
-    # behaviour instead of restating it — it is already named elsewhere on the
-    # handout — and the graders accept that: participant 15's [[corpus WK1/p15 wk1 0:87 sha=a4d75ace1105]]
-    # earned full credit on WK1, and their [[corpus WK2/p15 wk2 0:58 sha=9f0ac2991a93]] lost 2 on WK2 for being the wrong TYPE, not for
-    # failing to name a behaviour. Left literal, the verdict is a coin flip: the
-    # same answer drew `no` from one run and `yes` from another, and each `no`
-    # zeroed 4 points.
-    "names_behavior": "criterion 1 (`behavior`) — `yes` when you can quote such a behavior; "
-                      "put the quote in `evidence`. A REFERENCE to the student's own "
-                      "behaviour counts as naming it: \"my goal\", \"my target behavior\", "
-                      "\"my UTB\", \"my weekly goal\" all satisfy this, because the behaviour "
-                      "is named elsewhere on the handout and the student is pointing at it. "
-                      "Quote the reference. Answer `no` only when NO behaviour of the "
-                      "student's is identified at all, even by reference",
-    "names_stimulus": "criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`",
-    # Left as bare cross-references DELIBERATELY, having tried the alternative.
-    #
-    # TEST 1 and TEST 2 were relocated into these two lines from the guidance
-    # block, on the hypothesis that moving a rule to the point of decision is what
-    # fixed 1a p14. It does not transfer. Measured over all eight items that share
-    # these gates, pooled exact went 129/144 -> 128/144, and the composition is the
-    # reason to stop rather than tune: of four verdicts that moved, ONE was the
-    # intended target (DAY2 p13, `contingent` yes->no, which corrected it to gold
-    # 0.0) and three were collateral on checks the edit never mentioned — DAY2 p12
-    # `you_arrange_it`, PP p6 `observed_type`, WK1 p19 `targets_own_behavior`, all
-    # breaking a previously correct cell. The added strictness bled sideways.
-    # `follows_behavior`'s half did not move its own target (p14) at all.
-    #
-    # Two lessons worth keeping. Relocation is not a general lever: it worked on 1a
-    # where the slot text was silent on a case the guidance covered, and failed here
-    # where the guidance is already emphatic and the gates already fire often. And
-    # these five definitional gates are coupled — emphasis on any one of them shifts
-    # the others, so they cannot be calibrated singly. If this is retried, isolate
-    # ONE gate, and measure all eight items, because DAY2 alone reports no change.
-    "contingent": "criterion 3 (`contingent`)",
-    "follows_behavior": "criterion 4 (`follows_behavior`)",
-    "you_arrange_it": "criterion 5 (`stimulus_is_arranged`)",
-    "observed_type": "criterion 6 (`observed_type`) — which of the four it ACTUALLY is, "
-                     "independently of what the student called it. Report what you see; "
-                     "which one the item wanted is stated by the rule that reads this, not "
-                     "by the order these are listed in",
-    # The same criterion on the four example screens, where the type asked for is
-    # AUTHORED — each screen names it — so there is nothing to identify against
-    # and the check is an ordinary judgement. It used to be spelled as the
-    # identity with the expected type placed first, which made the option ORDER
-    # the answer key.
-    #
-    # The diagnosis that the identity carried is not dropped, it moves to prose:
-    # `wrong_kind` is told to name the type the example actually shows, which is
-    # what a student needs to read anyway.
-    # Computed by `expect` now, so it is not asked and carries no note of its
-    # own — the DO NOT ANSWER block generated for the rule says what it means and
-    # names the expected type out loud. Left here as a marker so the next person
-    # does not re-add a note for a check the model never sees.
-    # DAY1's GATED variant. Same judgement, opposite consequence, so it cannot
-    # share the note below: that one closes with "never changes a verdict", which
-    # was rendered under a "**GATE**" heading on DAY1 until the slot was renamed
-    # on 2026-09-04. rubric_h2.AVOIDANCE_SCORES declares the costing and stays;
-    # this is the prose that had to agree with it.
-    "phrased_directly_gate": "criterion 7 (the CLI calls this input `avoidance_frame`) — "
-                        "`absent` when the contingency is phrased by what is AVOIDED, `met` "
-                        "when it is phrased directly. ON THIS ITEM IT COSTS THE WHOLE ITEM: "
-                        "the guidance for this screen says avoidance framing takes the item "
-                        "and the graders scored those zero, so unlike its siblings this check "
-                        "is not advisory. It is the ONLY check that judges this phrasing: no "
-                        "other check may fail an answer for it",
-    "phrased_directly": "criterion 7 (the CLI calls this input `avoidance_frame`) — `absent` "
-                        "when the contingency is phrased by what is AVOIDED, `met` when it is "
-                        "phrased directly. Never changes a verdict; it earns a comment on "
-                        "phrasing. It is the ONLY check that judges this phrasing: no other "
-                        "check may fail an answer for it",
-    # These two carry the SECOND half of WRONG_TYPE. The rubric charges that code
-    # once, for either cause: an example of the wrong type, OR the right type
-    # aimed at the wrong behaviour (score.py:derive_oc_ledger uses `elif`, so at
-    # most one -2 lands). Two scored checks would charge it twice.
-    #
-    # This used to be handled by telling the model "if `observed_type` is not the
-    # type this item asks for, set this `yes`" — buying the arithmetic with a
-    # verdict that is false about the student's answer, and shown to the student
-    # in the checklist. The grader now suppresses the charge itself (the sheet's
-    # `onlyif` attribute), so both checks are answered honestly.
-    "targets_goal_behavior":
-        "is the plan aimed at INCREASING their wanted goal behavior, rather than "
-        "reinforcing the unwanted one? "
-        "Answer what is true of the example even if it "
-        "turned out to be a different type than this item asks for — where that makes "
-        "this finding redundant the grader drops it, and it charges nothing twice",
-    "targets_unwanted_behavior":
-        "is the plan aimed at DECREASING their unwanted target behavior, rather than "
-        "the wrong behaviour? Answer what is true of the example even if it turned out "
-        "to be a different type than this item asks for — where that makes this finding "
-        "redundant the grader drops it, and it charges nothing twice",
-            "D1:named_type": "which of the four the student chose, read from the type slot in the "
-                     "context below. `unclear` only if it is blank or unreadable",
-    "D2:named_type": "which of the four the student chose, read from the type slot in the "
-                     "context below. `unclear` only if it is blank or unreadable",
-    # The rubric will not charge a mismatch it cannot establish: derive_oc_ledger
-    # guards TYPE_MISMATCH with `named != "unclear"`, so an unreadable type slot
-    # costs nothing. Without this the web charges 2 for the model's own hedge.
-    "targets_own_behavior": "criterion 10 (`targets_own_behavior`)",
-    # Version C. Two earlier drafts each fixed one cell and broke the other, and
-    # the reason was an authoring bug rather than a limit on the grader: the
-    # second said to answer `other` ONLY when the trigger names an activity "not
-    # pointing at either", which contradicted the first draft's own worked
-    # example, where a cause named in the UTB paragraph IS `other`. The model
-    # followed the more absolute clause, which is the right thing to do with
-    # contradictory rules.
-    #
-    # The two cases differ in the KIND of expression, not in degree, so one rule
-    # with two branches covers both and no `only` is needed.
-    "trigger_behavior":
-        "name which behaviour has to happen, or fail to happen, before the "
-        "consequence arrives — quote it — then classify it `utb`, `wgb` or "
-        "`other`. Decide by WHAT KIND OF PHRASE it is.\n"
-        "  * A POINTER — \"my goal\", \"my daily goal\", \"my target this "
-        "week\", \"my plan\" — has no content of its own. Classify it as "
-        "whatever it points at: `wgb` for a goal they are building, `utb` for "
-        "the behaviour they are cutting.\n"
-        "  * A NAMED ACTIVITY — \"tidying the kitchen\", \"walking the dog\", "
-        "\"{{corpus:Q4c/p8:second:23:39:sha=eddaae950aa8}}\" — has content, so judge it on its own terms "
-        "against the behaviour the student CHOSE. Their paragraph also explains "
-        "why they chose it, and the causes, effects and knock-on habits it "
-        "mentions are not the chosen behaviour: a student explaining what their "
-        "behaviour costs them will name several other activities in passing, "
-        "and a plan triggered on one of THOSE is `other`. Being mentioned in "
-        "that paragraph does not make an activity theirs; being the behaviour "
-        "they chose does.\n"
-        "  DO THIS BEFORE YOU CLASSIFY, and put it in `evidence`: quote the "
-        "words THE STUDENT used for the behaviour, from their own unwanted-behaviour or goal statement, beside the trigger you quoted, and say "
-        "whether they are equivalent by the definition given above. If they are "
-        "not, answer `other`.",
-    # `trigger_settles` WAS HERE AND IS GONE, reverted 2026-09-05 the day it was
-    # written. The pick answered `week_end` in 7 of 12 on DAY2/p8 -- a trigger
-    # stating no period, the exact reading it was written to stop -- and split
-    # 7/5 on DAY1/p9, subgoal Q22's declared proof case, which had answered
-    # `absent` 12 of 12 as a boolean. Naming the kinds did not make the reading
-    # easier; it gave a sharper instrument to a question that was not the
-    # problem. See rubric_h2.EXPECT for the full measurement.
-    "reasons_listed":
-        "how many statements the response OFFERS as reasons, counted off the page "
-        "before judging any of them. This is not scored; it is the first half of "
-        "the count below",
+# THE NOTES LIVE IN THE RUBRIC NOW, as `<Frame name="note:KEY">`. What stood here
+# was 394 lines of judging prose inside a prompt generator -- course content in
+# engine code, which is what this migration removes. The TABLE moved; the
+# precedence that reads it did not, and neither did any prompt.
+#
+# WHY A NOTE IS NOT A `rule`, and why this is a re-point rather than a promotion.
+# `rule` is what BOTH graders are told; a note is what a checklist-style grader is
+# told where the credit rule does not already say. Folding notes into `rule` would
+# put text in front of the paper grader that it has never seen -- a scoring change
+# wearing a refactor's clothes. `migration_reference` classifies this move as a
+# RE-POINT for exactly that reason: "the check's question is unchanged, only its
+# source moves".
+#
+# SHARED BY NAME, NOT COPIED PER SLOT. Measured: 28 notes cover 102 slot sites and
+# `confident` alone is reached by 23, so resolving them into the slots would write
+# 102 copies of 28 texts, every copy a place the next edit can miss. A slot that
+# needs its own wording carries `note="..."`; one that shares carries `note="@name"`
+# -- the two forms `verdicts` already takes.
+def _slot_notes() -> dict:
+    import rubric_component
+    return rubric_component.as_view_notes()
 
-    # Narrow on purpose, and the pattern is quoted because near-twins of it earn
-    # full credit: [[corpus DAY1/p15 day1 85:120 sha=c7b3bbb7cac7]] is `yes`, so nothing about withholding or about "until"/"when"
-    # may trigger this. Only bare juxtaposition does.
-    #
-    # It USED to charge a second pattern — a "consequence" that is only the absence
-    # of a penalty, quoting p8's "[[corpus DAY1/p8 day1 104:140 sha=3851fd4fde26]]". That was withdrawn, because it collided with criterion 7:
-    # `avoidance_frame` claims the same shape. ITS DECISION IS NO LONGER "FLAG AND
-    # NEVER DEDUCT", and this comment said so until 2026-09-04: never-deduct was
-    # the decision handouts.GOLD_DIVERGENCES declared as ADDED_AVERSIVE_NAMED, and
-    # that declaration was RETIRED IN FULL on 2026-08-24 precisely BECAUSE the
-    # check was made to GATE on DAY1 — which is what fixed DAY1/p8. So on DAY1 it
-    # deducts the whole item, and on its seven siblings it still never deducts.
-    # The stale half of this sentence nearly got the `!` read as a typo (subgoal
-    # Q26). Renamed from AVOIDANCE_FRAMING and
-    # narrowed on 2026-08-24, WK2 having been removed because gold is right there
-    # ("score.py flags for review and never deducts, and the
-    # lo-blocks sheet reaches the same verdict"). With the same sentence serving as
-    # the worked example for two criteria with opposite outcomes, the two
-    # implementations split on it: the web answered `yes` on all three runs while
-    # the CLI charged the point, which both broke equivalence and made score.py
-    # contradict its own declared divergence. The exclusion below is now explicit,
-    # and the pushups example appears under criterion 7 ONLY.
-    "consequence_asserted":
-        "one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour "
-        "and consequence without asserting one follows from the other. Two facts "
-        "strung together with a bare AND — the behaviour performed, the reward "
-        "taken — are `no`; the same two facts joined by SO, or by any word that "
-        "makes the reward follow FROM the behaviour, are `yes`. Anything with "
-        "if / when / for each / every time / until / once, naming something actually "
-        "given or taken away, is `yes` — including withholding a reward until the "
-        "behaviour happens, which is a normal reinforcement shape. This check does NOT "
-        "judge phrasing: a consequence stated by what is AVOIDED asserts the link "
-        "perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only "
-        "place that phrasing is recorded, and it never changes the score",
-    # Criterion 9's caveat is repeated here, not just pointed at. This gate takes
-    # the WHOLE item, and the measured failure was the model reading "till the end
-    # of the week" as a weekly cadence on a plainly daily trigger — the exact case
-    # the criterion pre-empts. The criteria section is far from the point of
-    # decision; the checklist is where the verdict is committed.
-    # DAY1 KEEPS THIS RULE, UNCHANGED, AND THAT IS THE POINT. The daily gate was
-    # split on 2026-09-05: DAY2 carries `cadence_is_daily_counted` below, DAY1 this.
-    # DAY1 stands at 18/18 on both sides (p2/p3 suspect, excluded), so a shared
-    # rewording had no upside here and a measured downside: the reverted cadence
-    # edit took DAY1 to 17/18 on both sides, breaking p9 (perfect -> 3/6) and
-    # p15 (perfect -> 1/6 python, -> 0/6 olx).
-    #
-    # p15 IS THE REASON THE SPLIT IS STRUCTURAL RATHER THAN TIDINESS. This gate
-    # answers `met` on p15 in all six baseline runs and never refuses it, yet p15
-    # collapsed anyway when the wording changed. The blast radius of a reword is
-    # NOT the cells the gate refuses -- it is every cell on the item. That is the
-    # `Q6_MATCHING_CEILING.md` result (prose does not steer where it names) reproduced
-    # here, and it is why sharing one rule across two items is unsafe and not
-    # merely unnecessary.
-    #
-    # The four cadence items are DELIBERATELY not parallel and this is the fifth
-    # such divergence, not a break from the pattern: agent_delivers_consequence is
-    # WK1 alone, aimed_correctly WK2 alone, avoidance_frame gates on DAY1 alone as
-    # phrased_directly_gate, states_a_contingency is on all but WK1, and
-    # CONTINGENCY/POLARITY/CADENCE_BARRIER_ITEMS in rubric_h2 all exclude WK1.
-    # check_sibling_slots_share_their_structure reports nothing on any of them.
-    "cadence_is_daily":
-        "criterion 9 (`cadence_ok`). Can the TRIGGER be settled inside ONE day? "
-        "Answer `no` in exactly two cases: the contingency is plainly settled on "
-        "the WEEKLY schedule — a daily slot answered with a whole-week tally — or "
-        "the trigger names no endpoint at all. Everything else is `yes` — "
-        "including a trigger that states no "
-        "period, and one whose CONSEQUENCE runs on for a week. This gate takes the "
-        "whole item; when it could be read either way, answer `yes`",
-    # NARROWED TO BLANKS ONLY, 2026-09-06, on a readout of every refusal this
-    # gate makes on DAY2. It has NEVER ONCE correctly refused a non-blank answer
-    # on this item:
-    #     p10, p18   BLANK, gold 0.00, refused 12/12   correct
-    #     p8         gold 4.00, refused 9/12           WRONG, costs 4
-    #     p9         gold 4.00, refused 8/12           WRONG, costs 4
-    # Those two cells account for SEVENTEEN of DAY2's wrong runs -- every one of
-    # them -- and the item has no cell where refusing real text is right.
-    #
-    # DAY1 IS THE OPPOSITE AND KEEPS ITS COUNTING CLAUSE: it refuses p6 and p9,
-    # both genuine multi-day counts, both gold 0.00, both correct. That is the
-    # asymmetry every shared wording was hiding, and it is why the split had to
-    # come first -- narrowing a SHARED slot would have stripped DAY1's clause and
-    # cost it two cells.
-    #
-    # THE COUNTING PROSE DID NOT STEER WHERE IT NAMED. The removed text told the
-    # grader in as many words that a period on the CONSEQUENCE is not the
-    # trigger, and p8 -- [[corpus DAY2/p8 day2 45:107 sha=484b5850d00e]] -- was refused anyway 9 times in 12. A clause that names its own
-    # counter-example and is ignored is not fixed by more clauses.
-    #
-    # p7 IS NOT THIS SLOT'S AND NEVER WAS. It is gold 3.00 of 4.00 -- a ONE point
-    # charge -- and this gate takes the whole item, so refusing it would score
-    # 0.00 and be further from gold than the 4.00 we already give. It belongs to
-    # subgoal Q46 and `targets_own_behavior`, which costs exactly 1.
-    #
-    # THE EXPOSURE, STATED: a DAY2 answer that IS a multi-day tally would now
-    # pass. No such cell exists in the measured corpus. This is narrowing on
-    # evidence with the risk named, not a claim that it cannot occur.
-    # DAY2 ONLY. See the DAY1 entry above for why this is a separate slot.
-    #
-    # THE SPLIT REMOVES THE CONSTRAINT THAT DEFEATED THE EARLIER ATTEMPTS. The
-    # refuting pair below is one participant on two items, and while a single
-    # shared rule had to separate them, no wording could. It no longer has to:
-    # DAY1/p9 is judged by DAY1's rule, which already refuses it correctly in all
-    # six baseline runs at gold 0.00. Only DAY2/p9 is this rule's to win.
-    # SUBGOAL Q22, written 2026-09-05 from the revision its own entry designed and
-    # read against all 72 valid cells before anything was written. THE QUESTION IS
-    # COUNTING, NOT SETTLEMENT TIME, and that distinction is the whole rule: an
-    # earlier attempt asked WHEN the trigger could be settled and had to be
-    # reverted, because "out of the week" reads as a weekly settlement either way
-    # and it could not separate the refuting pair.
-    #
-    # THE REFUTING PAIR IS THE SAME PARTICIPANT ON TWO ITEMS, which is why no
-    # coarseness test survives:
-    #     DAY1/p9  "{{corpus:DAY1/p9:day1:22:65:sha=415d56dd1b38}}"   gold 0.00
-    #     DAY2/p9  "out of the 5 days"                             gold 4.00
-    # "5 times" cannot be judged until occurrences have been COUNTED across the
-    # week. "out of the 5 days" names no count and can be judged on any one day.
-    #
-    # THE GATE'S WHOLE ERROR SURFACE IS TWO CELLS. Measured over the pre-edit
-    # artifacts, `cadence_is_daily` refuses on FOUR of DAY2's eighteen counted
-    # cells: p10 and p18 are blank answers at gold 0.00 and correct, and p8 and p9
-    # are gold 4.00 and wrong. Fourteen cells never see it refuse. A rule wider
-    # than this is aimed at nothing.
-    "cadence_is_daily_counted":
-        "criterion 9 (`cadence_ok`). IS THERE A TRIGGER TO CHECK AT ALL? Answer "
-        "`no` in ONE case only: the answer names no condition whatever, so there "
-        "is nothing that could ever be decided. Everything else is `yes`. "
-        "DO NOT REFUSE AN ANSWER OVER HOW OFTEN IT WOULD BE CHECKED. A condition "
-        "that names a tally, a span of days, a target the student is working "
-        "towards, or no period at all is `yes` here, and so is one whose reward "
-        "runs on for a week. None of that belongs to this check on this screen. "
-        "This gate takes the whole item; when it could be read either way, "
-        "answer `yes`",
-    "cadence_is_weekly":
-        "criterion 9 (`cadence_ok`). Can the TRIGGER be settled inside ONE week? "
-        "Answer `no` in exactly two cases: the contingency is plainly settled on "
-        "the DAILY schedule, or the trigger names no endpoint at all. Everything "
-        "else is `yes` — including a count that completes inside the week, a "
-        "trigger settled more often "
-        "than weekly, one that states no period, and one whose CONSEQUENCE runs on "
-        "past the week. This gate takes the whole item; when it could be read either "
-        "way, answer `yes`",
-}
+
+SLOT_NOTES = _slot_notes()
 
 
 # ---------------------------------------------------------------------------
@@ -1658,6 +1286,18 @@ _C10_TRIGGER = "10. `trigger_behavior` — " + _as_criterion(SLOT_NOTES["trigger
 # Written as a per-item SLOT_NOTES override so the web's checklist picks it up
 # through the lookup it already does, and read from the rubric declaration rather
 # than from an item id.
+#
+# THIS LOOP IS WRONG WHERE IT STANDS, AND IS THE NEXT THING TO FIX. It DERIVES ONE
+# PIECE OF COURSE TEXT FROM ANOTHER, in engine code, which is the shape this whole
+# migration exists to end -- it is no better for being short, and "the text moved
+# but the rule that edits the text did not" is a half-move. Everything it needs
+# already exists: the store is a `<Frame>`, frames carry conditional segments, and
+# `ifDeclared="!avoidance_scores"` is the exact mechanism `oc_criteria` uses for
+# the SAME suppression on criterion 7. The note becomes two segments and this loop
+# is deleted; the reader then needs the item's conditions at lookup time, which is
+# the only real work in it. Recorded rather than done here because it is a prompt-
+# affecting edit and this round is already one, and two unmeasured changes in one
+# certification cannot be told apart.
 for _it in config(2)["rubric"].ITEMS:
     if _it.get("avoidance_scores"):
         SLOT_NOTES[f"{_it['id']}:consequence_asserted"] = (
@@ -1686,150 +1326,54 @@ def _criteria_section(item: dict, trigger_slot: bool = False,
                       avoidance_scores: bool = False) -> str:
     """The criteria prose, for BOTH scorers. score.py:build_prompt calls this.
 
+    THE PROSE IS IN THE RUBRIC NOW, as `<Frame name="oc_criteria">`. What is left
+    here is the conditions under which each segment belongs -- engine work --
+    against the words themselves, which are course content. Until step 4 this held
+    both, and 150 lines of judging prose sat in a module whose job is generating
+    prompts.
+
     It used to be a hand-kept copy of score.py's block -- the docstring said
     "verbatim" -- and it had drifted in three places (criterion 5's example,
-    criterion 7's example, criterion 10's WK1 rule). Two copies of a rule are
-    two rules, so score.py now calls this instead of holding the second one.
+    criterion 7's example, criterion 10's WK1 rule). Two copies of a rule are two
+    rules, so score.py calls this instead of holding the second one, and
+    `check_criteria_prose_has_one_source` fails the build if a copy grows back.
 
-    The flags exist because the CLI collects a different ANSWER SHEET, not
-    because it grades differently: it asks `trigger_behavior` where the web
-    asks `targets_own_behavior`, it carries `consequence_asserted` as an
-    eleventh criterion rather than a checklist slot, and on DAY1 its avoidance
-    reading gates the item. Defaults reproduce the web's text exactly, so the
-    measured web prompts do not move.
+    THE FLAGS ARE FACTS ABOUT THE SHEET, NOT ABOUT THE SIDE, which is why they can
+    be conditions at all. The CLI asks `trigger_behavior` where the web asks
+    `targets_own_behavior`, and carries `consequence_asserted` as an eleventh
+    criterion rather than a checklist slot. Naming the conditions after what the
+    sheet ASKS rather than after the scorer keeps the rubric free of any knowledge
+    that there are two scorers: a `<Frame>` selects on names, and what a name
+    means is never known there.
+
+    THE COMBINATIONS ARE COMPUTED HERE for the same reason. `ifDeclared` takes one
+    name, so "a cadence item whose sheet asks trigger_behavior" cannot be written
+    as a condition -- but it can be DECLARED as one by the caller that knows both
+    halves. The alternative was a conjunction grammar in the frame, which is a
+    second expression language for one use.
     """
-    parts = [
-        "## How to judge this item\n"
-        "Do NOT output a score or a deduction list. Fill in the criteria sheet; the "
-        "score is computed from it.\n\n"
-        "Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR "
-        "is changed by a CONSEQUENCE that is contingent on it. Answer these in order "
-        "and answer them literally about what the student wrote:\n"
-        "1. `behavior` — quote the voluntary behaviour of the student that the plan "
-        "acts on. If the answer names no behaviour of theirs, leave this an empty "
-        "string.\n"
-        "2. `stimulus` — quote the thing being added or taken away. Empty string if "
-        "none is named.\n"
-        "3. `contingent` — is the stimulus delivered BECAUSE of that behaviour (or its "
-        "absence)? A statement of something the student will just do, with no link to "
-        "performing the behaviour, is not contingent.\n"
-        "4. `follows_behavior` — does the CONSEQUENCE EVENT (gaining or losing the "
-        "thing) occur after the behaviour? Judge the delivery, not the wording. "
-        "\"I am not allowed X until I do B\" DOES satisfy this: X is delivered once B "
-        "happens, which is the ordinary shape of a reinforcement contingency. It fails "
-        "only when nothing is ever delivered contingent on the behaviour — the plan is "
-        "purely to remove a temptation or set up the environment in advance, which is "
-        "an antecedent manipulation rather than a consequence.\n"
-        "5. `stimulus_is_arranged` — is the consequence something the student arranges, "
-        "as opposed to the behaviour's own automatic result? Removing an obligation or "
-        "chore IS arranged; a rested body, or fitness itself, following the behaviour that produces it is not.\n"
-        "6. `observed_type` — given increase-or-decrease and add-or-remove, which of "
-        "PR/NR/PP/NP is it actually? Use `none` only if 1-4 fail.\n"
-        "   DUAL DESCRIPTIONS: an arrangement of the form \"I am not allowed X until I "
-        "do B\" is genuinely describable two ways — as PR of B (X is granted once B "
-        "happens) and as NP of not-B (X is withheld while B is absent). Both are "
-        "correct readings. When the arrangement admits both and one of them is the "
-        "type under discussion, report that one; do not mark it a mismatch.\n"
-        # A SECOND QUOTATION, REMOVED 2026-09-06 (subgoal Q22). The example that
-        # stood here was DAY1/p8's own answer almost word for word -- p8 wrote "so
-        # I don[[corpus DAY1/p8 day1 98:140 sha=1a3cc263964d]] and this said "so I
-        # don[[corpus DAY1/p8 day1 116:140 sha=456d55015056]]. leakage.py's OWN DOCSTRING
-        # names that leak as one of the two it was built after and treats it as
-        # fixed. It was fixed in the prose the tool SCANS and survived here, in
-        # `_criteria_section`, which is not in `authored()`'s corpus -- so the
-        # repair and the blind spot were the same event. Replacement checked
-        # against every handout-2 response, whole and by fragment.
-        "7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED "
-        "when the behaviour occurs (\"so I do not owe the jar a dollar when I slip\") "
-        "rather than by what is added or removed after it. "
-        # Suppressed where the reading gates the item: saying it never changes the
-        # score there contradicts the guidance, which says it takes the whole item.
-        + ("" if avoidance_scores else
-           "This never changes the score; it flags the answer for a phrasing comment. ")
-        + "It is the ONLY criterion "
-        "that judges this phrasing — no other check may deduct for it.\n"
-    ]
-    if item.get("cadence"):
-        parts.append(
-            # THE TWO SIDES EACH HELD HALF, until 2026-08-29 (E11). This criterion
-            # carried the worked example and the WEB's SLOT_NOTES entry carried the
-            # closing clause -- so the paper scorer was never told WHY to report
-            # this accurately, and the web was never given the example. Merged
-            # here, in the one place both generators read, and the note deleted so
-            # the web renders it once.
-            # THE WORKED EXAMPLE WAS A QUOTATION AND IS NOW INVENTED. Subgoal Q22,
-            # 2026-09-06: the phrase that used to sit here was a VERBATIM substring
-            # of ONE student's definition field -- the same field this criterion
-            # reads, on the item where that cell is the one wrong cell. So the
-            # prompt showed the grader the answer to the cell it was grading, and
-            # the runs that answered this slot "correctly" may have been matching
-            # the example rather than reading. WHY leakage.gate() SCORED IT 0 --
-            # and the first explanation written here was wrong, so it is corrected
-            # rather than deleted: it is NOT that the phrase is built from common
-            # words. leakage.py compares BIGRAMS and its own docstring names "a
-            # RUN of shared bigrams concentrated in a single student" as the tell
-            # for a quotation, which is exactly this leak's shape; it would have
-            # caught it at once. It never looked. `authored()` collects rubric
-            # guidance, rubric rules, credit desc/rule and SLOT_NOTES, and this
-            # text is none of those -- it is built by `_criteria_section`, which
-            # reaches the shipped prompt and is outside the scanned corpus. Filed
-            # as its own goal. The replacement was checked against every
-            # handout-2 response, whole and by fragment.
-            "8. `named_type` — which of the four the student SAID they would use. Read "
-            "the type slot in the context below; if it is blank or garbled, fall back to "
-            "their DEFINITION, which usually states the type plainly (a definition "
-            "reading \"something they would rather avoid turns up each time the "
-            "behaviour appears\" states Positive Punishment). Use `unclear` only when "
-            "neither says. Reported, never "
-            "scored — but the grader compares it against the type the example actually "
-            "is, so report it accurately rather than helpfully.\n"
-            f"9. `cadence_ok` — can the TRIGGER be settled inside ONE "
-            f"{_CADENCE_NOUN[item['cadence']]}? It can whenever a single "
-            f"{_CADENCE_NOUN[item['cadence']]} of the student's own record decides "
-            "it, however short the behaviour or its window. There are exactly TWO "
-            "ways it cannot, and nothing else sets this false:\n"
-            f"   (a) the contingency is PLAINLY SETTLED ON THE OTHER SCHEDULE — a "
-            f"{item['cadence']} slot answered with a whole-period tally;\n"
-            "   (b) the trigger names no endpoint at all, so no amount of the "
-            "record ever settles it.\n"
-            "   A stretch of time attached to the CONSEQUENCE never decides this: a "
-            "trigger settled each day whose reward then runs on for a week is still "
-            "daily. A trigger that states NO period is settled by the question "
-            "itself and passes. When it could be read either way, it passes.\n"
-            # SUBGOAL Q22, 2026-09-06. ONE SENTENCE, AND ITS SCOPE IS PROVABLE
-            # BEFORE IT IS MEASURED. Twenty-one cells across the four items have
-            # a trigger that POINTS AT the student's own goal, and the gate
-            # answers `met` 12 of 12 on EIGHTEEN of them -- it handles the
-            # construction right 86% of the time. All eighteen RESTATE A PERIOD
-            # beside the reference ([[corpus DAY1/p2 day1 11:36 sha=0f7b2a982187]] / [[corpus DAY1/p3 day1 11:36 sha=0f7b2a982187]], [[corpus DAY2/p1 day2 16:44 sha=b87716a5a0da]], "my WEEKLY goal", "{{corpus:WK1/p12:wk1:18:44:sha=4406e9756267:shape=C3b778fb}}
-            # WEEK"), so this sentence cannot reach them. The two that do not
-            # restate one are DAY2/p8 and WK2/p15, and they are exactly the two
-            # cells where the gate refuses what gold credits.
-            #
-            # THE SIGNATURE THAT IDENTIFIES THE FAULT: the two fail in OPPOSITE
-            # directions -- p8 imports a WEEKLY goal onto a daily item, p15 a
-            # DAILY goal onto a weekly one. No bias toward either schedule could
-            # produce both; only resolving the reference can.
-            #
-            # NOT A NEW CATEGORY, DELIBERATELY. A `trigger_settles` pick was
-            # built for this gate and REVERTED on 2026-09-05, failing on DAY2/p8
-            # itself: it asked WHAT PERIOD settles the trigger without fixing
-            # WHICH SPAN the trigger is, and inherited the same confusion. This
-            # names the span instead, and adds no option to a judgement that is
-            # already right on eighteen of twenty-one.
-            "   A trigger that POINTS AT the student's own goal without "
-            "restating that goal's schedule states no period of its own. Reading "
-            "what the goal says elsewhere does not make the goal's schedule the "
-            "trigger's: such a trigger is settled by the question itself and "
-            "passes, exactly as one that names no period at all.\n"
-            + (_C10_TRIGGER if trigger_slot else
-               "10. `targets_own_behavior` — is it aimed at this student's own UTB/WGB "
-               "rather than some clearly different behaviour?\n")
-        )
+    conditions = set()
+    if avoidance_scores:
+        conditions.add("avoidance_scores")
+    cadence = item.get("cadence")
+    if cadence:
+        conditions.add(f"cadence_{cadence}")
+        conditions.add("has_cadence")
+        conditions.add("criterion_10_trigger" if trigger_slot
+                       else "criterion_10_plain")
     if consequence_slot:
-        parts.append(_criterion_11(item))
-    parts.append("")
-    return "\n".join(parts)
+        conditions.add("asks_consequence_asserted")
+        # THE SAME SUPPRESSION AS CRITERION 7's, in a second place. Where
+        # avoidance framing is declared to COST the item, the closing promise that
+        # criterion 7 "never changes the score" is false -- it was false on both
+        # sides before anyone noticed. It was ALREADY keyed on the declaration
+        # rather than on an item id, by the loop that synthesises the per-item
+        # SLOT_NOTES override; this moves the rule into the rubric without
+        # changing what decides it.
+        if not avoidance_scores:
+            conditions.add("c11_scoring_clause")
+    import rubric_component
+    return rubric_component.as_view_frame("oc_criteria", conditions=conditions)
 
 
 def _checklist_section(item: dict, slots: list[dict], item_id: str,

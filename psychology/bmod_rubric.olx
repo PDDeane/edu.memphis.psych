@@ -20,7 +20,9 @@ Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is c
 5. `stimulus_is_arranged` — is the consequence something the student arranges, as opposed to the behaviour's own automatic result? Removing an obligation or chore IS arranged; a rested body, or fitness itself, following the behaviour that produces it is not.
 6. `observed_type` — given increase-or-decrease and add-or-remove, which of PR/NR/PP/NP is it actually? Use `none` only if 1-4 fail.
    DUAL DESCRIPTIONS: an arrangement of the form "I am not allowed X until I do B" is genuinely describable two ways — as PR of B (X is granted once B happens) and as NP of not-B (X is withheld while B is absent). Both are correct readings. When the arrangement admits both and one of them is the type under discussion, report that one; do not mark it a mismatch.
-7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED when the behaviour occurs ("so I do not owe the jar a dollar when I slip") rather than by what is added or removed after it. This never changes the score; it flags the answer for a phrasing comment. It is the ONLY criterion that judges this phrasing — no other check may deduct for it.
+7. `avoidance_frame` — true if the contingency is phrased by what is AVOIDED when the behaviour occurs ("so I do not owe the jar a dollar when I slip") rather than by what is added or removed after it. </Segment>
+    <Segment ifDeclared="!avoidance_scores">This never changes the score; it flags the answer for a phrasing comment. </Segment>
+    <Segment>It is the ONLY criterion that judges this phrasing — no other check may deduct for it.
 
 </Segment>
     <Segment ifDeclared="cadence_daily">8. `named_type` — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly (a definition reading "something they would rather avoid turns up each time the behaviour appears" states Positive Punishment). Use `unclear` only when neither says. Reported, never scored — but the grader compares it against the type the example actually is, so report it accurately rather than helpfully.
@@ -29,16 +31,25 @@ Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is c
    (b) the trigger names no endpoint at all, so no amount of the record ever settles it.
    A stretch of time attached to the CONSEQUENCE never decides this: a trigger settled each day whose reward then runs on for a week is still daily. A trigger that states NO period is settled by the question itself and passes. When it could be read either way, it passes.
    A trigger that POINTS AT the student's own goal without restating that goal's schedule states no period of its own. Reading what the goal says elsewhere does not make the goal's schedule the trigger's: such a trigger is settled by the question itself and passes, exactly as one that names no period at all.
-10. `targets_own_behavior` — is it aimed at this student's own UTB/WGB rather than some clearly different behaviour?
-
-</Segment>
+10. `t</Segment>
     <Segment ifDeclared="cadence_weekly">8. `named_type` — which of the four the student SAID they would use. Read the type slot in the context below; if it is blank or garbled, fall back to their DEFINITION, which usually states the type plainly (a definition reading "something they would rather avoid turns up each time the behaviour appears" states Positive Punishment). Use `unclear` only when neither says. Reported, never scored — but the grader compares it against the type the example actually is, so report it accurately rather than helpfully.
 9. `cadence_ok` — can the TRIGGER be settled inside ONE week? It can whenever a single week of the student's own record decides it, however short the behaviour or its window. There are exactly TWO ways it cannot, and nothing else sets this false:
    (a) the contingency is PLAINLY SETTLED ON THE OTHER SCHEDULE — a weekly slot answered with a whole-period tally;
    (b) the trigger names no endpoint at all, so no amount of the record ever settles it.
    A stretch of time attached to the CONSEQUENCE never decides this: a trigger settled each day whose reward then runs on for a week is still daily. A trigger that states NO period is settled by the question itself and passes. When it could be read either way, it passes.
    A trigger that POINTS AT the student's own goal without restating that goal's schedule states no period of its own. Reading what the goal says elsewhere does not make the goal's schedule the trigger's: such a trigger is settled by the question itself and passes, exactly as one that names no period at all.
-10. `targets_own_behavior` — is it aimed at this student's own UTB/WGB rather than some clearly different behaviour?
+10. `t</Segment>
+    <Segment ifDeclared="criterion_10_plain">argets_own_behavior` — is it aimed at this student's own UTB/WGB rather than some clearly different behaviour?</Segment>
+    <Segment ifDeclared="criterion_10_trigger">rigger_behavior` — name which behaviour has to happen, or fail to happen, before the consequence arrives — quote it — then classify it `utb`, `wgb` or `other`. Decide by WHAT KIND OF PHRASE it is.
+  * A POINTER — "my goal", "my daily goal", "my target this week", "my plan" — has no content of its own. Classify it as whatever it points at: `wgb` for a goal they are building, `utb` for the behaviour they are cutting.
+  * A NAMED ACTIVITY — "tidying the kitchen", "walking the dog", "{{corpus:Q4c/p8:second:23:39:sha=eddaae950aa8}}" — has content, so judge it on its own terms against the behaviour the student CHOSE. Their paragraph also explains why they chose it, and the causes, effects and knock-on habits it mentions are not the chosen behaviour: a student explaining what their behaviour costs them will name several other activities in passing, and a plan triggered on one of THOSE is `other`. Being mentioned in that paragraph does not make an activity theirs; being the behaviour they chose does.
+  DO THIS BEFORE YOU CLASSIFY, and put it in `behavior`: quote the words THE STUDENT used for the behaviour, from their own unwanted-behaviour or goal statement, beside the trigger you quoted, and say whether they are equivalent by the definition given above. If they are not, answer `other`.</Segment>
+    <Segment ifDeclared="has_cadence">
+
+</Segment>
+    <Segment ifDeclared="asks_consequence_asserted">11. `consequence_asserted` — the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. Two facts strung together with a bare AND — the behaviour performed, the reward taken — are false; the same two facts joined by SO, or by any word that makes the reward follow FROM the behaviour, are true. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is true — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is true here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded</Segment>
+    <Segment ifDeclared="c11_scoring_clause">, and it never changes the score</Segment>
+    <Segment ifDeclared="asks_consequence_asserted">.
 
 </Segment>
   </Frame>
@@ -48,6 +59,94 @@ Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is c
   - Negative Reinforcement: take away something undesirable to increase a behaviour.
   - Positive Punishment: {{corpus:D1/p8:d1:32:60:sha=60e5588ab7ff}} decrease a behaviour.
   - Negative Punishment: take away something desirable to decrease a behaviour.</Segment>
+  </Frame>
+  <Frame name="note:D1:named_type">
+    <Segment>which of the four the student chose, read from the type slot in the context below. `unclear` only if it is blank or unreadable</Segment>
+  </Frame>
+  <Frame name="note:D2:named_type">
+    <Segment>which of the four the student chose, read from the type slot in the context below. `unclear` only if it is blank or unreadable</Segment>
+  </Frame>
+  <Frame name="note:Q1:matches_selected">
+    <Segment>`matches` if the behavior the student writes about is the one they picked from the list above, `differs` if they write about a different behavior. Judge the BEHAVIOR, not the wording: '{{corpus:Q1/p19:response:46:70:sha=f4d8dbbfd800:shape=C1}}' matches the choice 'lack of sleep'. This check carries no points and never changes another verdict — everything else is judged on what they WROTE, whichever box they ticked</Segment>
+  </Frame>
+  <Frame name="note:Q6:state_a1">
+    <Segment>`met` if this box names an antecedent at all, `absent` if it names none. Then set `refers_to` to WHICH of 4a's two it is — `first`, `second`, or `none` if it is neither of them</Segment>
+  </Frame>
+  <Frame name="note:Q6:state_a2">
+    <Segment>same for the other box. `second` is the expected `refers_to` but `first` is credited too if that is what it names, because the grader pairs them</Segment>
+  </Frame>
+  <Frame name="note:Q6:state_c1">
+    <Segment>`met` if this box names a consequence at all, `absent` if it names none. Then set `refers_to` to WHICH of 4c's two it is — `first`, `second`, or `none` if it is neither of them</Segment>
+  </Frame>
+  <Frame name="note:Q6:state_c2">
+    <Segment>same for the other box — either label is credited; the grader checks that between the two boxes both of 4c's consequences are named</Segment>
+  </Frame>
+  <Frame name="note:WK2:aimed_correctly">
+    <Segment>Does the consequence point the RIGHT WAY for the arrangement this answer actually describes -- something added or taken away AFTER the behaviour, in the direction that would change it? Answer `absent` when it is pointed the wrong way: an aversive for MEETING the goal, or a reward for MISSING it.
+JUDGE THE ARRANGEMENT DESCRIBED, NOT THE TYPE THE STUDENT NAMED. An answer that describes a sound arrangement but labels it with the wrong type is `met` here. The mismatch between the two is a different check's charge, and taking the whole item for it here would charge one fault twice.
+Answer `unclear` only when the answer names no consequence to judge at all.</Segment>
+  </Frame>
+  <Frame name="note:WK2:named_type">
+    <Segment>WHICH of the four types the student CLAIMS -- not whether the claim is right, which another check decides.
+READ BOTH THE TYPE THEY NAMED AND THE DEFINITION THEY WROTE. The type may be named outright, or it may be named only by the DEFINITION: a definition that describes adding an unpleasant thing after a behaviour, or taking a wanted thing away, names a type as surely as writing its name does. Where the two disagree, report what the NAMED TYPE says.
+Answer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label with nothing after it. A blank type is not by itself an absent type.</Segment>
+  </Frame>
+  <Frame name="note:cadence_is_daily">
+    <Segment>criterion 9 (`cadence_ok`). Can the TRIGGER be settled inside ONE day? Answer `no` in exactly two cases: the contingency is plainly settled on the WEEKLY schedule — a daily slot answered with a whole-week tally — or the trigger names no endpoint at all. Everything else is `yes` — including a trigger that states no period, and one whose CONSEQUENCE runs on for a week. This gate takes the whole item; when it could be read either way, answer `yes`</Segment>
+  </Frame>
+  <Frame name="note:cadence_is_daily_counted">
+    <Segment>criterion 9 (`cadence_ok`). IS THERE A TRIGGER TO CHECK AT ALL? Answer `no` in ONE case only: the answer names no condition whatever, so there is nothing that could ever be decided. Everything else is `yes`. DO NOT REFUSE AN ANSWER OVER HOW OFTEN IT WOULD BE CHECKED. A condition that names a tally, a span of days, a target the student is working towards, or no period at all is `yes` here, and so is one whose reward runs on for a week. None of that belongs to this check on this screen. This gate takes the whole item; when it could be read either way, answer `yes`</Segment>
+  </Frame>
+  <Frame name="note:cadence_is_weekly">
+    <Segment>criterion 9 (`cadence_ok`). Can the TRIGGER be settled inside ONE week? Answer `no` in exactly two cases: the contingency is plainly settled on the DAILY schedule, or the trigger names no endpoint at all. Everything else is `yes` — including a count that completes inside the week, a trigger settled more often than weekly, one that states no period, and one whose CONSEQUENCE runs on past the week. This gate takes the whole item; when it could be read either way, answer `yes`</Segment>
+  </Frame>
+  <Frame name="note:confident">
+    <Segment>`absent` if any judgement above was a close call — this is rule 8's channel</Segment>
+  </Frame>
+  <Frame name="note:consequence_asserted">
+    <Segment>one point, and it charges ONLY this: the answer merely JUXTAPOSES behaviour and consequence without asserting one follows from the other. Two facts strung together with a bare AND — the behaviour performed, the reward taken — are `no`; the same two facts joined by SO, or by any word that makes the reward follow FROM the behaviour, are `yes`. Anything with if / when / for each / every time / until / once, naming something actually given or taken away, is `yes` — including withholding a reward until the behaviour happens, which is a normal reinforcement shape. This check does NOT judge phrasing: a consequence stated by what is AVOIDED asserts the link perfectly well and is `yes` here. Criterion 7 (`avoidance_frame`) is the only place that phrasing is recorded, and it never changes the score</Segment>
+  </Frame>
+  <Frame name="note:contingent">
+    <Segment>criterion 3 (`contingent`)</Segment>
+  </Frame>
+  <Frame name="note:follows_behavior">
+    <Segment>criterion 4 (`follows_behavior`)</Segment>
+  </Frame>
+  <Frame name="note:names_behavior">
+    <Segment>criterion 1 (`behavior`) — `yes` when you can quote such a behavior; put the quote in `evidence`. A REFERENCE to the student's own behaviour counts as naming it: "my goal", "my target behavior", "my UTB", "my weekly goal" all satisfy this, because the behaviour is named elsewhere on the handout and the student is pointing at it. Quote the reference. Answer `no` only when NO behaviour of the student's is identified at all, even by reference</Segment>
+  </Frame>
+  <Frame name="note:names_stimulus">
+    <Segment>criterion 2 (`stimulus`) — `yes` when you can quote it; put the quote in `evidence`</Segment>
+  </Frame>
+  <Frame name="note:observed_type">
+    <Segment>criterion 6 (`observed_type`) — which of the four it ACTUALLY is, independently of what the student called it. Report what you see; which one the item wanted is stated by the rule that reads this, not by the order these are listed in</Segment>
+  </Frame>
+  <Frame name="note:phrased_directly">
+    <Segment>criterion 7 (the CLI calls this input `avoidance_frame`) — `absent` when the contingency is phrased by what is AVOIDED, `met` when it is phrased directly. Never changes a verdict; it earns a comment on phrasing. It is the ONLY check that judges this phrasing: no other check may fail an answer for it</Segment>
+  </Frame>
+  <Frame name="note:phrased_directly_gate">
+    <Segment>criterion 7 (the CLI calls this input `avoidance_frame`) — `absent` when the contingency is phrased by what is AVOIDED, `met` when it is phrased directly. ON THIS ITEM IT COSTS THE WHOLE ITEM: the guidance for this screen says avoidance framing takes the item and the graders scored those zero, so unlike its siblings this check is not advisory. It is the ONLY check that judges this phrasing: no other check may fail an answer for it</Segment>
+  </Frame>
+  <Frame name="note:reasons_listed">
+    <Segment>how many statements the response OFFERS as reasons, counted off the page before judging any of them. This is not scored; it is the first half of the count below</Segment>
+  </Frame>
+  <Frame name="note:targets_goal_behavior">
+    <Segment>is the plan aimed at INCREASING their wanted goal behavior, rather than reinforcing the unwanted one? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice</Segment>
+  </Frame>
+  <Frame name="note:targets_own_behavior">
+    <Segment>criterion 10 (`targets_own_behavior`)</Segment>
+  </Frame>
+  <Frame name="note:targets_unwanted_behavior">
+    <Segment>is the plan aimed at DECREASING their unwanted target behavior, rather than the wrong behaviour? Answer what is true of the example even if it turned out to be a different type than this item asks for — where that makes this finding redundant the grader drops it, and it charges nothing twice</Segment>
+  </Frame>
+  <Frame name="note:trigger_behavior">
+    <Segment>name which behaviour has to happen, or fail to happen, before the consequence arrives — quote it — then classify it `utb`, `wgb` or `other`. Decide by WHAT KIND OF PHRASE it is.
+  * A POINTER — "my goal", "my daily goal", "my target this week", "my plan" — has no content of its own. Classify it as whatever it points at: `wgb` for a goal they are building, `utb` for the behaviour they are cutting.
+  * A NAMED ACTIVITY — "tidying the kitchen", "walking the dog", "{{corpus:Q4c/p8:second:23:39:sha=eddaae950aa8}}" — has content, so judge it on its own terms against the behaviour the student CHOSE. Their paragraph also explains why they chose it, and the causes, effects and knock-on habits it mentions are not the chosen behaviour: a student explaining what their behaviour costs them will name several other activities in passing, and a plan triggered on one of THOSE is `other`. Being mentioned in that paragraph does not make an activity theirs; being the behaviour they chose does.
+  DO THIS BEFORE YOU CLASSIFY, and put it in `evidence`: quote the words THE STUDENT used for the behaviour, from their own unwanted-behaviour or goal statement, beside the trigger you quoted, and say whether they are equivalent by the definition given above. If they are not, answer `other`.</Segment>
+  </Frame>
+  <Frame name="note:you_arrange_it">
+    <Segment>criterion 5 (`stimulus_is_arranged`)</Segment>
   </Frame>
   <Verdicts name="restriction_authored" values="relieved|created|neither"/>
   <Verdicts name="restricts" values="target_behavior|other_thing"/>
