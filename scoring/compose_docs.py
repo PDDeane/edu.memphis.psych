@@ -144,8 +144,13 @@ def compose(name: str) -> str:
     holding: list = []
     for line in generic.splitlines(keepends=True):
         h = HEADING.match(line)
-        if h and holding:
-            level = len(h.group(1))
+        # AN ANCHOR BELONGS TO THE SECTION BELOW IT, so it ends the section above
+        # just as a heading does. Without this a pending `end` block is emitted
+        # AFTER the next section's anchor line -- the case lands between the anchor
+        # and the heading it names, which reads as the wrong section's content.
+        is_anchor = ANCHOR.match(line.rstrip("\n")) is not None
+        if (h or is_anchor) and holding:
+            level = len(h.group(1)) if h else 1
             keep = []
             for anchor, at in holding:
                 if level <= at:

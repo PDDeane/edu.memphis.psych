@@ -150,88 +150,8 @@ Consequences of this deviation:
   sheet uses `generic` / `tick_values`. The generated checklist reads the real
   verdict set instead.
 
-### 4. 1c reaches the student as fields, not a file (3 declared omissions)
-
-`SelfMonitorPlot` draws the chart live from the four weeks of data in 1b and the
-labelling fields in 1c. The python grades a `.docx` and gets a graph-evidence bundle
-(chart XML, embedded images, grouped shape text).
-
-**The bundle has a olx analogue, and 1c is passed it.** The chart is generated
-*from the 1b data*, so the data is what decides whether a graph exists and whose
-it is. `olx_prompts.EVIDENCE` puts the four fields under `## Graph evidence for
-this submission`, in the position `build_prompt` gives the bundle, and the sheet
-opens with a `!has_own_graph` GATE carrying both of the paper item's whole-item
-findings:
-
-* `absent` = NO_GRAPH. Blank or non-numeric weeks render no chart. Deliberately
-  generous — fail it only when the data is plainly missing or plainly not
-  numbers, since a whole-item gate should not turn on a miscount and
-  `SelfMonitorPlot` already warns under the chart about a short or unreadable
-  week.
-* `mismatch` = TEMPLATE_GRAPH_ONLY. A student can type the worked example's own
-  numbers into 1b and get the example's chart back — the paper failure of
-  leaving the template in place, reproduced exactly. `ITEM_NOTES["1c"]` gives
-  the prompt those numbers so it can recognise them.
-
-**The legend is scored, because the student writes it.** They type the four
-series names into their own box and `SelfMonitorPlot` keys the chart off them
-(`labelsTarget`), with a second box for the legend's heading
-(`legendTitleTarget`). Crucially `labelsTarget` does *not* fall back to the
-authored `labels` when empty: a student who has not named their series sees
-`Series 1, Series 2, …` on their own chart, which is what an unlabelled key
-looks like and is scored as no legend. Handing them correct series names is what
-made this check unanswerable in an earlier revision. The slot carries
-`met/absent/incomplete @2` and the rubric's legend bullet is back, verbatim.
-
-**So 1c now totals 10 on both sides, with all five components and all six
-deduction codes live.** Nothing about its scoring diverges. `rebuild_declared_gold`
-rebuilds gold from the grader's own verdicts on the same 10 rather than
-rescaling, because two rows need it: p11 carries an improvised "-1 pt: missing
-baseline data week" that belongs to 1b, and the graph-gate rows state no
-labelling verdicts at all.
-
-What is still dropped, with `olx_prompts.OMIT_GUIDANCE` recording each, is three
-guidance bullets describing `.docx` evidence that does not exist here: the
-bundle's student/template labels, shape-drawn run-together text, and
-description-is-not-a-graph.
-
-**The worked example is on the 1c screen**, rendered by `ObservablePlot`
-immediately above the student's boxes, carrying exactly the strings the rubric
-names as the template's: *Water Consumption Over Four Weeks*, *Days of the
-Week*, *Ounces of Water per Day*. Copying it is easier here than on paper. Two
-distinct failures come out of that and the prompt separates them: copied DATA is
-the gate's `mismatch` (whole item), copied WORDING is `generic` on the label
-(2 points). `y_axis_label` gained `generic` alongside `title` so the sheet can
-say which — score-neutral, since any verdict but the first already costs the
-slot's 2 points. The x-axis is exempt: *Days of the Week* is the example's
-label, the placeholder, and the right answer for nearly every student.
-
-**A trap removed.** 1b's placeholders used to read "e.g. 8, 10, 8, 12, 6, 10, 0"
-and "e.g. 32, 20, 22, 28, 30, 32, 10" — the worked example's baseline and week 1,
-verbatim. That invited the copying the gate now scores. They are now plainly
-different numbers. Keep any future placeholder distinct from the water data.
-
-**A measurement dependency, easy to miss.** `JOBS["1c"]` must seed the four 1b
-fields (it now carries the same `sim` block as 1a). Unseeded, they arrive empty,
-the gate fires on every cell, and the whole item reads as zero — which looks
-like a prompt collapse and is not.
-
-Verified end to end after the change: p1 (full reconstructed data) →
-`has_own_graph=met`, 6/6 against gold 6; p18 (all four weeks absent) →
-`has_own_graph=absent`, grader 0 against gold 0 ("did not include").
-
-**Open, and deliberately not done in the same step:** `rebuild_declared_gold` still
-drops p4, p15, p18, p19 and p20 as incomparable, because gold zeroed them on the
-graph gate and so states no label verdicts. p18 is now reproduced exactly and
-p15 (baseline and week 3 absent) probably is too, so both are candidates to
-bring back into the comparison. p4, p19 and p20 are gold 0 for a paper-specific
-reason — a template chart, or a written description instead of a figure — and
-their data reconstructs fine, so the olx correctly does not zero them; they must
-go on being dropped. The rule would be "a gold-zeroed row is comparable iff the
-reconstruction has no data", which is a fact about the submission rather than
-about the prediction. Widening the gold set is a measurement change and belongs
-in its own step, not stacked on the sheet change.
-
+<!-- qc:EQ.dev4 -->
+### 4. A file stimulus arrives as fields, with declared omissions
 Guidance omissions are keyed by the bullet's **opening text**, never by its
 position in the list, and `resolve_guidance_omissions` raises if a fragment
 matches zero or two bullets. An index-keyed draft would have moved the omission
@@ -240,58 +160,15 @@ olx can judge — on any insertion into handout 3's guidance (then `rubric_h3.py
 now the course file), while
 `equivalence.py` went on reporting zero gaps because it read the same indices.
 
-This makes 1c worth 6 on the olx against 10 in the python. It is the one item where
-the two are not measuring the same thing, and its rows are not comparable.
-
+<!-- qc:EQ.dev5 -->
 ### 5. OLX-only context that the rubric does not ask for, removed
 
 The hand-written prompts passed material the rubric's `context` list does not.
 Extra context is exactly the kind of unattributable difference this work exists
 to remove, so it is gone; re-add any of it deliberately, with a measurement.
 `olx_prompts.py --refs` reports the set.
-
-| item | removed | rubric `context` |
-| --- | --- | --- |
-| D2 | the FIRST chosen type (`bmod_h2_t1`) | `_utb`, `_wgb`, `T2` |
-| 1a | the four weeks of data from 1b | `[]` |
-| 1c | the student's goal behavior | `[]` |
-| 2b | both chosen OC types | `2a` |
-
-Conversely, context the rubric DOES ask for and the olx was not passing has been
-added: Q1's prose into Q2/Q3/Q4a/Q4b/Q4c/Q5/Q6, Q2's into Q4b/Q6, the UTB choice
-into Q4b/Q6/D1/D2, the WGB into D1/D2, 2a's three fields into 2b and 3, and 2b
-into 3. The paper Q1 block holds both the chosen UTB and the prose about it, so
-the rubric key `Q1` maps to the closed choice *and* the text area; `_utb` /
-`_wgb` are the same split.
-
-### 6. Q1's "weak hint" is replaced by the closed choice; later items use the described behavior
-
-`build_prompt` adds a `## Weak hint` section for Q1 and Q2, read from the .docx's
-underline formatting and correct in only 6 of 20 transcriptions. The olx asks
-for the UTB as a closed `ChoiceInput` before question 1, so the same fact
-arrives authoritatively as `## The behavior they chose`.
-
-**Q1 only.** Everywhere after it, the olx sends the behavior the student
-DESCRIBED in question 1 rather than the one they ticked — `bmod_h1_utb_observed`,
-a `SheetValue` over `utb_stated`'s evidence, falling back to the choice until
-question 1 has been checked. Seven prompts carry it (Q2, Q3, Q4a, Q4b, Q4c, Q5,
-Q6), labelled "as they described it".
-
-The reason is that the two can disagree, and everything after question 1 is
-graded against what the student actually wrote: someone who ticks "lack of
-sleep" and then writes about exercise is doing the exercise project, and Q4a's
-antecedents are antecedents of *that*. On paper the question cannot arise —
-there is one handwritten answer and nothing to disagree with it — so the python
-keeps sending the underlined hint and this is a olx-only refinement, not a
-divergence in what is being judged.
-
-Q2 was also dropped from `UTB_CHOICE` as part of this. It had been getting the
-raw choice under "the behavior they chose" *and* the described behavior under
-context — two different answers to the same question under two headings. The
-`seen` guard in `build_web_prompt` exists to stop exactly that, but it keys on
-component id, so pointing context at a different component walked past it. Q1
-keeps the section, because comparing the two is its own `matches_selected` check.
-
+<!-- qc:EQ.dev6 -->
+### 6. A hint read from document formatting is replaced by an explicit input
 ### 7. Per-check notes on the items whose checklist is shown
 
 A consequence of deviation 3. Where the student SEES the sheet, the feedback is
@@ -491,98 +368,17 @@ false for them. They are exempted through `olx_prompts.CLI_CRITERIA_NOTES` rathe
 than through a list inside the check, and `consequence_asserted` left that
 check's BACKLOG by being fixed rather than by rotting.
 
+<!-- qc:EQ.divergences -->
 ## Scoring divergences (arithmetic, not prompt text)
 
     python3 equivalence.py --scoring
 
-All 23 items were walked: the python's ledger (`score_item`, `derive_ledger`,
-`derive_oc_ledger` and each item's deduction costs) against the olx's
-`scoreSlotSheet` over the authored `slots=`. Sixteen items are **exactly
-equivalent** — every deduction cost is reachable by the right check, whole-item
-codes land on gates, and the totals agree: Q2, Q3, Q5, Q6, D1/D2 (totals),
-DAY1, WK1, DAY2, WK2, 1a, 1c, 2a, 2b, 3. `increment` on a rubric record is
-documentation; no scoring code reads it.
+`increment` on a rubric record is documentation; no scoring code reads it.
+Where a divergence is **forced** there is nothing left that could be brought
+into line, and it is declared in `olx_prompts.SCORING_DIVERGENCES`. A
+retracted finding is as worth recording as a fixed one, so withdrawals are
+written up beside fixes.
 
-Three divergences remain, declared in `olx_prompts.SCORING_DIVERGENCES`, and
-**all three are forced** — there is nothing left that could be brought into
-line. One earlier entry was fixed and one was withdrawn as not real; both are
-written up below, because a retracted finding is as worth recording as a fixed
-one.
-
-| divergence | items | forced? |
-| --- | --- | --- |
-| a legend keyed by DAY, not by week | 1c | yes — the olx's chart has one orientation |
-| `UTB_NOT_ON_LIST` (−5) unreachable | Q1 | yes — closed `ChoiceInput` |
-| the "−5, none listed" code has no gate | Q4a Q4b Q4c | yes — see below |
-
-**`targets_*` unscored — FIXED.** `derive_oc_ledger` charges WRONG_TYPE (−2)
-when the type is right but the plan aims at the wrong behaviour; the olx charged
-nothing, because `targets_goal_behavior` / `targets_unwanted_behavior` carried no
-`@n`. They now carry `@2`.
-
-The rubric charges that code **once**, for either cause — `derive_oc_ledger`
-uses `elif`, so a wrong-type example that also aims wrong still loses only 2.
-Two scored checks could charge it twice, so the exclusion is stated on the check
-itself: *answer this only when `observed_type` is the type this item asks for;
-if it is not, set it `yes`, because the mismatch is already recorded there.*
-Verified on three constructed NR cases:
-
-| case | observed_type | targets | score |
-| --- | --- | --- | --- |
-| NR aimed at the unwanted behaviour | NR | no | 2/4 (was 4/4) |
-| wrong type *and* wrong target | NP | yes | 2/4 — not double-charged |
-| correct | NR | yes | 4/4 |
-
-Then measured on the whole NR item, 18 cells, which is where gold has the most
-rows in the −2 band. It changed exactly **one** cell: p11, from 4 to 2 against a
-gold of 2. Worth reading, because it is the `elif` in miniature — the grader
-wrote "-2 pts: This is an example of NP", the olx called it NR aimed at the
-wrong behaviour, and both land on the same single −2. That is precisely the case
-only one scored check could not express. No row double-charged.
-
-NR after the fix: 15/18 exact, MAE 0.44, bias −0.22; before it, on the same
-verdict sheets, 14/18. **Do not read that as an accuracy gain** — one cell at
-n=18 is far inside the noise floor this file sets (~15 points). The
-justification is that the rule now matches; the cell is a bystander. The three
-remaining NR misses (p4, p14, p20) all have `targets = yes` and are untouched by
-this change: p4 and p14 are type judgements, p20 is a `you_arrange_it` gate
-misfire.
-
-**The "none listed" gate is now recorded as forced, not fixable.** A_NONE /
-B_NONE / C_NONE cost the whole item and the olx reaches 0 only when every check
-fails, so a response listing nothing that still uses the keyword keeps a point.
-But **zero of the 20 gold rows sits at 0 on Q4a, Q4b or Q4c** — the python can zero
-them; the graders never did. A gate would fire on no observed case, against a
-reading (the keyword point is separately earned) that is arguably the more
-faithful one.
-
-**`INCOMPLETE_DEFINITION` on D1/D2 — WITHDRAWN, this was never a divergence.**
-It was listed on the reasoning that a definition missing both halves costs 2 on
-the olx (two failed checks) and 1 on the python, because the code is not
-`repeatable`. Three things say otherwise:
-
-* The rubric scopes the code to a one-half omission — *"right as far as it goes
-  but omits one of the two halves"*. A definition stating neither is not that
-  code; it is WRONG_DEFINITION (−2) or BLANK, which is −2 on both sides.
-* `repeatable` is a statement in the prompt, not an arithmetic cap. The plain
-  path in `score_item` sums whatever codes the model returns with no dedup, and
-  two entries do not trip the `over_specified` clamp on a two-component item —
-  so the python can reach −2 by that route too.
-* No corpus row exercises it. Every −1 row on either item omits exactly one
-  half: p13 D1 *[[corpus D1/p13 d1 0:41 sha=0b432b4eca1b]]*, p16 D1 *[[corpus D1/p16 d1 0:27 sha=0bedbac96df6]]*, p9 D2 *[[corpus D2/p9 d2 0:69 sha=033f3485e11c]]* The olx scores each of those 1, matching gold.
-
-**The day-keyed legend** is structural. The olx's chart has one orientation —
-series are the four weeks, the x-axis is the seven days. A paper student who
-plotted it the other way round has a legend naming days, which the graders
-accepted and the olx scores as not naming the four series. Confirmed on p11:
-gold 6, olx 4. One row, and not a prompt defect.
-
-What `--scoring` can and cannot do: it checks totals and whether each deduction
-cost is *reachable at all* by some combination of checks, so it catches a
-deleted `max="4"` (PR's −4 codes become unreachable) or a slot whose points
-match no code. It cannot tell whether the RIGHT check fires — that is what the
-declared list is for. Clean output means "nothing drifted since that list was
-written", not "the two agree".
 
 ## Fixtures — settled, do not re-litigate
 
