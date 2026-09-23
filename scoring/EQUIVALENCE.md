@@ -333,21 +333,11 @@ prefix and trailing period are not the same characters. Nothing else differs:
 191 of 200 python criteria sentences are verbatim olx text after the substitutions,
 and each of the other 9 was confirmed character-identical in its rule BODY.
 
-### The one place the olx was clearly wrong
+<!-- qc:EQ.olx-wrong -->
+### Where the olx is not authoritative
 
 OLX wording wins wherever the two differ. The exception is where the olx is
-plainly self-contradictory, and DAY1 was, in two places at once. Criterion 7 said
-the avoidance reading "never changes the score; it flags the answer for a
-phrasing comment", and the `consequence_asserted` note repeated it — while DAY1's
-own guidance said "AVOIDANCE FRAMING TAKES THE WHOLE ITEM HERE. An answer whose
-only claim is about dodging a penalty ... the graders scored those zero." The python
-had suppressed the false half; the olx shipped both halves and contradicted
-itself.
-
-That is now `rubric_h2.AVOIDANCE_SCORES` — declared once, on the rubric, read by
-both generators. DAY1 is the only member, DAY2 is unaffected, and DAY1's is the
-only olx prompt this work moved; the other 22 are byte-unchanged.
-
+plainly self-contradictory.
 ### What keeps it from growing back
 
 `enforcement.check_criteria_prose_has_one_source` fails the build if that branch
@@ -487,64 +477,15 @@ five were caught by an audit only after another fix removed whatever was masking
 them, which is the argument for running the audits after every stage rather than
 at the end.
 
+<!-- qc:EQ.prompt-leak -->
 ## Prompts that give the answer away
 
-`exemplar_items` existed for one shape of self-grading: a response reproduced in
-full as a worked example, which handout 1 does on Q6 for p10/p8/p6. Auditing
-every item's prompt-bearing text for a participant cited BY NUMBER found a
-second shape, nine times more common and entirely unregistered.
-
-The citations read like this, from Q4b:
-
-> falling asleep in the car or {{corpus:Q6/p20:affect_c2:46:65:sha=f4404254ef89}} cost participant 20 three
-> [points]
-
-> Participant 7 offered one sentence about why it {{corpus:Q4b/p7:modify:21:38:sha=1fa4115cf4a6}} and one
-> about procrastination consequences, and the grader took 3 points
-
-Each quotes the student's answer AND states the grader's decision. For that
-participant on that item it is an answer key, so scoring them there measures
-recall, not judgement. `guidance` is copied verbatim into both the paper prompt
-and the OLX, so both scorers see it.
-
-Ten items cite participants this way — 53 item-cells:
-
-| handout | item | cited |
-| --- | --- | --- |
-| 1 | Q1  | 1, 2, 6, 9, 10, 16 |
-| 1 | Q2  | 3, 6, 7, 10 |
-| 1 | Q4a | 3, 4, 6, 9, 14, 15, 17 |
-| 1 | Q4b | 2, 4, 6, 7, 13, 15, 19, 20 |
-| 1 | Q4c | 4, 9, 11, 12, 15, 17, 20 |
-| 1 | Q5  | 4, 6, 8, 9, 19, 20 |
-| 1 | Q6  | 2, 3, 5, 10, 11, 17, 19 |
-| 3 | 1a  | 1, 6, 15 |
-| 3 | 1c  | 4, 8, 20 |
-| 3 | 2a  | 1, 14 |
-
-Only Q4b is registered, in `cited_participants` — a per-item map, because the
-sets differ item by item and the handout-wide `exemplar_participants` list
-cannot express that. Q6's own citation list is also wider than the three
-few-shot bodies already registered for it.
-
-**It matters to a published comparison.** Q4b was the largest olx/paper gap in
-the corpus, and most of that gap was the citations:
-
-| | before | after dropping the 8 cited |
-| --- | --- | --- |
-| olx | 13/19 (68%) | 9/12 (75%) |
-| paper+Opus | 17/19 (89%) | 10/12 (83%) |
-
-A 21-point gap becomes 8. Across the whole corpus, dropping all ten items'
-citations moves olx 89.3% -> 91.8% and paper+Opus 90.9% -> 92.1%, closing a
-1.6-point difference to 0.3. Reading either scorer as better than the other on
-these numbers is largely reading which one memorised its own prompt better —
-and Opus, the stronger model, is the one that exploits them: it scored every
-cited Q4b cell correctly, while the olx missed three.
-
-The other nine are deliberately NOT registered here. It is a measurement-policy
-change that moves every denominator in the project, so it wants to be a decision
-rather than a side effect of fixing Q4b.
+Reading either scorer as better than the other on cells whose answers its own
+prompt carries is largely reading which one memorised its own prompt better --
+and the stronger model is the one that exploits them. Registering the
+citations is a measurement-policy change that moves every denominator in the
+project, so it wants to be a decision rather than a side effect of fixing one
+item.
 
 ## Excluded cells are run, not skipped
 
@@ -701,6 +642,7 @@ prediction down, because a wrong prediction is a finding — the token fix that
 to be inert. And re-run an unchanged configuration when a result surprises you:
 Q4b's p6-for-p20 trade looked like noise and reproduced exactly.
 
+<!-- qc:EQ.scored-exactly -->
 ### "Scored exactly right" had six implementations, and two disagreed in print
 
 One table printed both 67% and 58% for the same twelve cells — the per-item row
@@ -731,50 +673,6 @@ What it changed, on data already measured: Q6's baseline is [7, 8, 8] across its
 three runs, not the [7, 8, 7] the strict path reported. Any `3 runs — exact ...`
 line published before this was understating, and every per-run count quoted in
 this document has been re-derived through `scored_exactly`.
-
-### Q6's `affect_c*` never fired, so gold's own charge was unreachable
-
-Measured over the cohort, `affect_c1`/`affect_c2` copied `state_c1`/`state_c2`'s
-verdict in **18 of 20 responses**, and their "named but not described" verdict
-fired **zero** times — while the same verdict on `change_a1`/`change_a2` fired
-five. The consequence side had collapsed to a binary mirror of its sibling.
-
-Two causes. The `state_c*` and `affect_c*` fixture boxes hold OVERLAPPING text,
-which is faithful and must not be split; and `change_a*` carries a worked
-operational test ("judge WHAT THE CHANGE ACTS ON") where `affect_c*` carried a
-one-line desc. The same text twice, with nothing to separate the questions, gets
-the same answer twice.
-
-The consequence: gold's commonest charge on this item — "did not clarify the
-[first/second] consequence being affected" — is exactly an `affect_c*` failure
-with the consequence named, and was therefore MECHANICALLY UNREACHABLE. Two
-counted cells could not be scored right by any run.
-
-This is also why an earlier attempt made it worse. That rule asked `affect_c*`
-whether the 4c consequence was IDENTIFIED — `state_c*`'s question restated — so
-it pushed the two slots to agree harder. The rule that worked asks about
-MECHANISM, which is what the deduction code already said and the desc had
-dropped: "how the consequence will be affected BY CHANGING THE ANTECEDENT". Both
-observed failure shapes are named in it: a bare good outcome, and the plan
-restated.
-
-The rule was measured, reverted, and is worth reading for HOW it was measured.
-Its first run scored [8, 8, 8] against a baseline of [7, 8, 8], with p15 and p16
-both landing on gold. That result was an artefact: the rule illustrated its own
-test with examples lifted from the corpus — a positive example verbatim from
-p14, a counted cell scoring exact, and a negative example that described p15's
-answer, p15's own 4c AND the verdict. An answer key for one of the two cells it
-was measured as fixing.
-
-Re-measured with invented examples, verified absent from every submission: [8,
-7, 7]. **p16 is genuinely fixed** — 8.75 in all three runs, where baseline gave
-10.00 — so the diagnosis holds and the mechanism test does reach a cell nothing
-else could. p15 never moved, and p1 and p18 broke. +1 for −2, so the rule came
-out and the item stayed at baseline.
-
-The diagnosis is the durable part: the `affect_c*` slots cannot express gold's
-commonest charge, and any future attempt has to make that verdict fire without
-disturbing the cells that legitimately credit it.
 
 ### Examples in a prompt must be INVENTED, and the audit now checks it
 

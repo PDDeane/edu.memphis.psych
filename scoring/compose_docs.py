@@ -270,6 +270,60 @@ def build() -> list:
     return out
 
 
+# A SENTENCE, beginning like prose rather than like a row of data. The length floor
+# is 30 CHARACTERS, measured rather than guessed: the seam scoping does the work of
+# excluding coincidence, so the floor only has to exclude fragments, and at 30, 40,
+# 50, 60 and 80 the false-positive count across every split document is the same --
+# zero. A floor of 80 was tried first and missed the real case, whose two sentences
+# are 40 and 61 characters.
+_SENTENCE = re.compile(r"(?<=[.!?])\s+")
+_PROSE_LINE = re.compile(r"^[A-Za-z*`\[(]")
+
+
+def _sentences(text: str) -> set:
+    flat = re.sub(r"\s+", " ", text)
+    return {s.strip() for s in _SENTENCE.split(flat)
+            if len(s.strip()) > 30 and _PROSE_LINE.match(s.strip())}
+
+
+def duplicated() -> list:
+    """Prose that the split left in BOTH halves.
+
+    LIFTING A RULE OUT OF A RECORD IS A MOVE, AND IT IS EASY TO MAKE IT A COPY.
+    When a section is mostly record but states a general rule in passing, the rule
+    belongs in the generic half and the record in the course half -- and if the
+    sentence is not also deleted from the record, the composed document says it
+    twice. That reads as emphasis rather than as a mistake. Three passages were
+    duplicated this way in one sitting.
+
+    SCOPED TO THE SEAM, and that is what makes it usable. Checking the composed
+    document for repeated prose reports eight sentences in GOALS.md, every one a
+    deliberate cross-reference between ledger entries -- a log restating an earlier
+    finding is not a defect. A sentence present in BOTH HALVES cannot arise that
+    way: the halves are disjoint by construction, so an overlap is always a copy
+    that should have been a move.
+
+    Compared after collapsing whitespace, because the two copies are wrapped
+    differently -- the lifted one is re-wrapped in its new home. A line-window
+    version of this check missed all three real cases for exactly that reason.
+    """
+    out = []
+    for name in SPLIT_DOCS:
+        sp = specific_path(name)
+        if not os.path.exists(generic_path(name)) or not os.path.exists(sp):
+            continue
+        with open(generic_path(name), encoding="utf-8") as fh:
+            g = _sentences(fh.read())
+        with open(sp, encoding="utf-8") as fh:
+            c = _sentences(fh.read())
+        for sent in sorted(g & c):
+            out.append(f"{name} has this sentence in BOTH halves -- {sent[:70]!r}..."
+                       f" A rule lifted out of a record must be DELETED from the "
+                       f"record; copied instead of moved, the composed document "
+                       f"says it twice and it reads as emphasis")
+    return out
+
+
 def stale() -> list:
     """Composed documents that no longer match their sources.
 

@@ -9344,6 +9344,20 @@ def check_no_module_appends_to_the_repository() -> list[str]:
     return out
 
 
+def check_no_composed_document_repeats_itself() -> list[str]:
+    """A composed document states the same prose twice.
+    Reported as A COMPOSED DOCUMENT SAYS IT TWICE.
+
+    The failure mode of splitting a section that is mostly record but states a rule
+    in passing: the rule is lifted into the generic half and the record moves, and
+    if the sentence is not deleted from the record the document says it twice.
+    Nothing else reports it, because the result reads as emphasis.
+    """
+    import compose_docs
+
+    return compose_docs.duplicated()
+
+
 def check_composed_documents_are_current() -> list[str]:
     """A composed document no longer matches the halves it was built from.
     Reported as A COMPOSED DOCUMENT IS STALE.
