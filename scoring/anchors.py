@@ -153,6 +153,25 @@ def scan(root: str | None = None) -> dict:
             _a, found = _scan_text(text)
             for r in found:
                 refs.setdefault(r, set()).add(os.path.relpath(path, repo))
+
+    # THE SPECIFIC HALVES ARE CITERS TOO, and one of them is not under the walk
+    # above. A split document's course half is a run of `see: qc:NAME` blocks -- it
+    # is the single largest source of references in the tree -- and an ACCUMULATING
+    # half lives beside `gold.json`, outside every root this walks. Missing it
+    # reported 0 references where there is 1, which turns every anchor into an
+    # orphan and would fail the whole document the moment orphans stop being a
+    # warning. This is not another root: these are the files the split itself
+    # created, enumerated by the composer that created them.
+    if root is None:
+        import compose_docs
+
+        for name in compose_docs.SPLIT_DOCS:
+            path = compose_docs.specific_path(name)
+            if not os.path.exists(path):
+                continue
+            _a, found = _scan_text(open(path, errors="ignore").read())
+            for r in found:
+                refs.setdefault(r, set()).add(path)
     return {"anchors": anchors, "references": {k: sorted(v) for k, v in refs.items()}}
 
 
