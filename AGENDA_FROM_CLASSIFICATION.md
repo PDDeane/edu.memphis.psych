@@ -21,6 +21,7 @@ Edit §13 of the plan, not this file. The items were:
 | G2 | split procedure docs from the course they were written against | open, filed 2026-09-23 |
 | H | regularize where things live -- one home per category | open, filed 2026-09-23 |
 | I | documentation thorough enough to author from (SlotSheetGrader, Rubric) | open, filed 2026-09-23 |
+| J | `scoring/` should become its own repository | open, filed 2026-09-23 |
 
 Also decided along the way, and recorded in §13: the item-to-component link lives
 in the RUBRIC (`<Item asks=...>`), so `course.json` keeps item -> handout only.

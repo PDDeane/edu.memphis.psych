@@ -4421,6 +4421,49 @@ cost is not the imports. It is the three `HERE`s and the two ledgers keyed by ba
 module filename (`DEFINITIONS.json`, `COURSE_DATA_BUDGET.json`), which a move
 rekeys.
 
+#### WHAT MAKES A MODULE GENERIC, and it is not what a scan can tell you
+
+This is the test every placement decision in this item turns on, and it was got
+wrong twice before it was stated properly.
+
+NOT "does it embed course data". `course_inventory` reports ZERO item ids across
+all nine fixture modules, and on that basis they were called generic. They are not:
+they were written to parse THIS course's handouts, tuned against THESE graders'
+documents, and have never been run on anything else. Absence of literal ids is weak
+evidence, and reading it as proof is the same over-reach that made a bare-id scan
+call seven clean lo-blocks files contaminated.
+
+NOT "has it worked for another course" either, however much one would like it. There
+is no second course, so the question cannot be asked, and a test that cannot be run
+decides nothing.
+
+THE TEST IS WHAT THE CONTROL FLOW ASSUMES, and it is inspectable today, per module,
+by reading:
+
+    GENERIC BY CONSTRUCTION   the shape arrives as INPUT. Markers, field lists,
+                              item structure come from declarations or data, and
+                              the code would meet a different shape unedited.
+    FINE-TUNED TO THIS DATA   the shape is IN THE LOGIC. "the answer sits on the
+                              same line as its label", "there are three handouts",
+                              "the boxes come in this order", a regex adjusted
+                              until it matched these particular documents.
+
+No scan answers this. It is a judgement made by reading the code, one module at a
+time, and it is the only honest basis for deciding what may leave the course behind.
+
+#### IX REVISED: THE FIXTURE GOES UNDER `$COURSE_LOCATION`
+
+Decided 2026-09-23, reversing this item's own earlier text. The fixture machinery
+maps THIS course's paper forms to THIS course's web forms; it looks generic and is
+not, by the test above. So it goes to the course's own folder with the rest of the
+course's material, rather than to a `bmod_fixture/` at the repository root -- which
+would have left it belonging to neither the machinery nor the content.
+
+What travels with it is the course-bearing fixture DATA:
+`PROSE_SPLIT_WORKSHEET.json` (1.2 MB, 3,352 course signals) and
+`CONSENSUS_SPANS.json` (74). `GRADER_INPUTS.json` and `STRUCTURE_KIDS.json` carry
+none and are decided by the same test as everything else, by reading them.
+
 IX IS THE INTERESTING CASE and the reason it gets its own folder rather than a
 move out of the repo: the fixture code maps responses and gold comments between
 the paper and web forms, so it is COURSE-SPECIFIC — but it is executable
@@ -5230,6 +5273,38 @@ that the engine rejects while the assertion let them through. So a large example
 set is a large test set -- which is the argument FOR doing it this way, since a
 guide whose examples are executed cannot rot into describing an engine that no
 longer exists.
+
+### J · `scoring/` should become its own repository
+
+Filed 2026-09-23 on the user's instruction, and it is the logical end of this
+section's own argument: if `edu.memphis.psych` IS the psychology course repository,
+then course material belongs in it and the analytic machinery -- which knows nothing
+about psychology and is meant to serve any course -- does not.
+
+IT IS A CLAIM BEFORE IT IS A PLAN, and the difference matters. "Move `scoring/` to
+its own repository" presumes exactly what has to be established first: that what
+moves is GENERIC BY CONSTRUCTION, by the test in item H. Some of it plainly is --
+`editguard` guards edits to any package, `course_inventory` counts whatever ids the
+data supplies. Some plainly is not -- anything whose logic is shaped around three
+handouts and twenty participants. Most of it has never been asked.
+
+SO THE PRECONDITION IS AN AUDIT, module by module, reading control flow rather than
+scanning for ids: does this module take the course's shape as input, or does it
+assume it? Everything that assumes it goes to `$COURSE_LOCATION` with the fixture;
+everything that takes it as input can leave. Until that audit exists there is no
+list of what would move, and a repository split without such a list would carry the
+course-specific parts along with it and call them generic by relocation.
+
+WHAT THE AUDIT WILL PROBABLY FIND, stated as an expectation to be tested rather than
+a conclusion: the machinery was written against this course too. The rubric reader,
+the sweep tooling and the enforcement checks were all shaped by one corpus, and the
+migration has been moving course DATA out of them for weeks precisely because it was
+in them. That work is what makes J reachable at all, and its remaining items -- A's
+successors, C, F's residue -- are the same audit under another name.
+
+ORDERING: after H and I. H puts every file in the home its category implies, and I
+makes the engine documentation good enough to author from; both are prerequisites
+for handing the machinery to someone who does not have this course.
 
 ---
 
