@@ -175,11 +175,30 @@ COURSE_LOCATION = Path(os.environ.get("COURSE_LOCATION",
 COMPOSED_DOCS = Path(os.environ.get(
     "COMPOSED_DOCS", DATA / "courses" / NS / "composed"))
 
-# THE COURSE FILE, BESIDE THE OLX IT DESCRIBES. Goal H, category II: it is course
-# metadata, so it belongs with the course's content and not in a `courses/`
-# directory of its own inside the machinery. Overridable by `COURSE_FILE`, which
-# `coursedata` already honoured and which the certification's fixtures use.
-COURSE_FILE = Path(os.environ.get("COURSE_FILE", REPO / "psychology" / "course.json"))
+# WHERE COURSE METADATA LIVES, and it is NOT the content tree. A third root,
+# after one was refused and the refusal reconsidered on evidence.
+#
+# WHAT THE EVIDENCE WAS. `$COURSE_LOCATION` is inside the tree lo-blocks stages,
+# and the engine's `copyTree` stages content by copying EVERYTHING minus a
+# hardcoded list of top-level directory names -- `scoring`, `courses`,
+# `migration`. That list protects by NAME and by POSITION, not by content, so a
+# file is excluded because of where it sits. Moving `course.json` and the
+# changelog into `psychology/` therefore put them in the build's copy set: 92 KB
+# staged twice on every build, silently, as a side effect of a move that was
+# about legibility. The fixture would have taken 1.2 MB of worksheet with it.
+#
+# NOT A LEAK, and the distinction is worth keeping straight: `.stage/` is
+# gitignored with zero tracked files, and the static build emits three parsed
+# artifacts and copies nothing raw. The cost is that metadata stops being
+# STRUCTURALLY excludable -- the only lever left would be teaching the engine
+# another course-specific directory name.
+#
+# So metadata gets a root of its own, outside the content tree and outside the
+# machinery: course.json, the scoring changelog, and the fixture data that
+# belongs to the course rather than to either.
+COURSE_METADATA = Path(os.environ.get("COURSE_METADATA", REPO / "course_metadata"))
+
+COURSE_FILE = Path(os.environ.get("COURSE_FILE", COURSE_METADATA / "course.json"))
 
 # THE COURSE'S SCORING CHANGELOG, beside the course file for the same reason: it
 # is this course's record of incidents, not the engine's. F1 sends an incident
@@ -187,7 +206,7 @@ COURSE_FILE = Path(os.environ.get("COURSE_FILE", REPO / "psychology" / "course.j
 # produces deletions rather than moves -- so the destination is named in one
 # place.
 COURSE_CHANGELOG = Path(os.environ.get(
-    "COURSE_CHANGELOG", REPO / "psychology" / "CHANGELOG.md"))
+    "COURSE_CHANGELOG", COURSE_METADATA / "CHANGELOG.md"))
 
 # ── Derived paths ────────────────────────────────────────────────────────────
 
