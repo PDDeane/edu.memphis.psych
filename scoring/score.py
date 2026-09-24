@@ -1899,7 +1899,7 @@ def build_prompt(
     # prompt must hold the words, or the model is asked to judge a placeholder.
     out = "\n".join(parts)
     if "[[corpus " in out:
-        import corpus_ref
+        from tools import corpus_ref
         out = corpus_ref.expand_prose(out)
     return out
 

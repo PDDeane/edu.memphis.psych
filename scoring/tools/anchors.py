@@ -31,12 +31,28 @@ an exemption list.
 """
 from __future__ import annotations
 
+# THE PACKAGE ROOT ON THE PATH, for the direct-script spelling. `tools/__init__`
+# does this for `from tools import ...`, and a file run as `python3
+# tools/NAME.py` never executes it -- so the import of a sibling fails at the
+# first line that needs one. Both spellings are used, so both are made to work.
+import os as _os
+import sys as _sys
+
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+
+
 import argparse
 import os
 import re
+
+import paths
 import sys
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+# THE PACKAGE ROOT, not this file's parent -- the same hazard goal H makes the
+# rest of this move wait for. From `tools/` this resolved to `tools/`, and the
+# read it feeds failed loudly here only because the file it wants is a
+# document; a glob would have returned an empty set and said nothing.
+HERE = str(paths.SCORING)
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 

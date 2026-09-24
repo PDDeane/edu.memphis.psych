@@ -4669,6 +4669,42 @@ cost is not the imports. It is the three `HERE`s and the two ledgers keyed by ba
 module filename (`DEFINITIONS.json`, `COURSE_DATA_BUDGET.json`), which a move
 rekeys.
 
+#### H(2) · DONE 2026-09-24 -- the six settled tools are in `scoring/tools/`
+
+    anchors.py  corpus_ref.py  course_inventory.py  editguard.py  guide.py
+    out_inventory.py
+
+These are the six this item already settles by name. The remaining 37 zero-data
+modules are NOT moved: goal H's second question -- does it produce a FINDING or
+MAINTAIN the tree -- has to be answered by reading each one, and this item says
+so ("do not move by intuition and declare the rule afterwards").
+
+THE SELF-LOCATION HAZARD WAS REAL AND IT BIT TWICE MORE, both times exactly as
+this item predicted and both times silently:
+  * `guide.HERE` resolved to `tools/` and looked for QUALITY_CONTROL.md there.
+    That one failed LOUDLY only because the thing it wanted is a document; a
+    glob would have returned an empty set and said nothing.
+  * `guide`'s own tree scan globbed the root alone, so it stopped seeing
+    `corpus_ref` the moment it moved and reported its function as "renamed or
+    removed" -- a finding about the scan, delivered as a finding about the tree.
+    It reads `editguard.modules()` now, the one inventory that knows the
+    package's shape.
+
+`editguard.modules()` covers root AND tools, because a glob that misses a
+directory is a ledger that misses its modules, and that ledger feeds both
+`check_every_module_is_tracked` and `check_every_definition_is_recorded`.
+
+BOTH SPELLINGS WORK. `tools/__init__` puts the package root on the path for
+`from tools import X`, and each tool repeats it for `python3 tools/X.py`,
+because a file run as a script never executes the package `__init__`.
+
+ONE EDIT WAS REVERTED RATHER THAN WORKED AROUND. Repointing the invocation
+strings changed a line inside an APPROVED LESSON in QUALITY_CONTROL.md, and
+lessons are approved by the sha of their prose precisely so they cannot be
+reworded without agreement. Self-approving would have defeated the gate, so the
+doc still says `python3 editguard.py`; correcting it needs the user, and it is
+recorded here rather than silently fixed.
+
 #### WHAT MAKES A MODULE GENERIC, and it is not what a scan can tell you
 
 This is the test every placement decision in this item turns on, and it was got

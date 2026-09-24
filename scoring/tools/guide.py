@@ -13,20 +13,37 @@ and rewrites every reference in the tree to match, and `check()` refuses a guide
 whose structure has drifted. Inserting a section is then: paste it where it
 belongs with any placeholder label, run --renumber --write, commit.
 
-    python3 guide.py --check                 structure + references + identifiers
-    python3 guide.py --renumber              dry run: print the mapping
-    python3 guide.py --renumber --write      apply it, rewriting references too
+    python3 tools/guide.py --check                 structure + references + identifiers
+    python3 tools/guide.py --renumber              dry run: print the mapping
+    python3 tools/guide.py --renumber --write      apply it, rewriting references too
 """
 
 from __future__ import annotations
 
+# THE PACKAGE ROOT ON THE PATH, for the direct-script spelling. `tools/__init__`
+# does this for `from tools import ...`, and a file run as `python3
+# tools/NAME.py` never executes it -- so the import of a sibling fails at the
+# first line that needs one. Both spellings are used, so both are made to work.
+import os as _os
+import sys as _sys
+
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+
+
 import hashlib
 import re
+
+import editguard
+import paths
 import subprocess
 import sys
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
+# THE PACKAGE ROOT, not this file's parent -- the same hazard goal H makes the
+# rest of this move wait for. From `tools/` this resolved to `tools/`, and the
+# read it feeds failed loudly here only because the file it wants is a
+# document; a glob would have returned an empty set and said nothing.
+HERE = paths.SCORING
 GUIDE = HERE / "QUALITY_CONTROL.md"
 
 # `## 2a. TITLE` / `## 2b2. TITLE` / `## 3. TITLE`. The label is what other files
@@ -41,7 +58,11 @@ REF = re.compile(r"(§ ?|QUALITY_CONTROL(?:\.md)? |[Ss]ection )(\d+[a-z][0-9a-z]
 # its own sections.
 def _cited_by() -> list[Path]:
     return sorted(
-        [p for p in HERE.glob("*.py") if p.name != "guide.py"]
+        # ROOT AND TOOLS, through the one inventory that knows the package's
+        # shape. Globbing the root alone stopped seeing `corpus_ref` the moment it
+        # moved into `tools/`, and reported its function as renamed or removed --
+        # a finding about the scan, delivered as a finding about the tree.
+        [p for p in editguard.modules() if p.name != "guide.py"]
         + list(HERE.glob("*.md"))
         + list((HERE.parent / "psychology").glob("*.olx"))
     )
@@ -131,7 +152,7 @@ def check(strict_identifiers: bool = True) -> list[str]:
             bad.append(
                 f"{GUIDE.name}: duplicate section label `{label}` — "
                 f"'{seen[label]}' and '{title}'. A citation of §{label} is "
-                f"ambiguous; run `python3 guide.py --renumber --write`")
+                f"ambiguous; run `python3 tools/guide.py --renumber --write`")
         else:
             seen[label] = title
 
@@ -148,7 +169,7 @@ def check(strict_identifiers: bool = True) -> list[str]:
                 f"{GUIDE.name}: section {parent}'s subsections are out of order — "
                 f"{' '.join(suffixes)}, which under the ordering policy should be "
                 f"{' '.join(sorted(suffixes, key=suffix_key))}. Run "
-                f"`python3 guide.py --renumber --write`, or move the sections")
+                f"`python3 tools/guide.py --renumber --write`, or move the sections")
 
     # 3. REFERENCES. Every citation anywhere in the tree must resolve.
     known = set(labels)

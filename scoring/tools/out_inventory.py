@@ -23,6 +23,16 @@ names matched inside unrelated text. Ask the structure, not the text.
 """
 from __future__ import annotations
 
+# THE PACKAGE ROOT ON THE PATH, for the direct-script spelling. `tools/__init__`
+# does this for `from tools import ...`, and a file run as `python3
+# tools/NAME.py` never executes it -- so the import of a sibling fails at the
+# first line that needs one. Both spellings are used, so both are made to work.
+import os as _os
+import sys as _sys
+
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+
+
 import collections
 import datetime
 import json

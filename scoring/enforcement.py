@@ -9285,8 +9285,7 @@ def check_no_definition_vanished() -> list[str]:
     script bypasses the writer and not this. See `editguard.py` for the full
     account and `DEFINITIONS.json` for the inventory.
     """
-    import editguard
-
+    from tools import editguard
     return editguard.vanished()
 
 
@@ -9435,7 +9434,7 @@ def check_generic_documents_are_generic() -> list[str]:
     against the declared `GENERIC_DOCS` set instead, because most of its documents
     are SUPPOSED to carry course content.
     """
-    import course_inventory as CI
+    from tools import course_inventory as CI
     import paths
 
     out = []
@@ -9492,8 +9491,7 @@ def check_every_definition_is_recorded() -> list[str]:
     date on it, which is why this check ships with the mechanism that fixes it
     rather than after.
     """
-    import editguard
-
+    from tools import editguard
     return editguard.unrecorded()
 
 
@@ -9515,8 +9513,7 @@ def check_no_definition_is_named_for_an_item() -> list[str]:
     no longer touches it may not. A check with nowhere to record that would fire
     on it forever and be waved through, which is how a check stops being read.
     """
-    import editguard
-
+    from tools import editguard
     return editguard.item_named()
 
 
@@ -9546,8 +9543,7 @@ def check_every_module_is_tracked() -> list[str]:
     An exemption is legitimate but must be declared, with its reason, in
     `editguard.UNTRACKED_BY_DESIGN`. That table is empty today, deliberately.
     """
-    import editguard
-
+    from tools import editguard
     return editguard.untracked()
 
 
@@ -12031,7 +12027,7 @@ def check_guide_lessons_are_approved() -> list[str]:
     only adding or rewriting a lesson's own claim does.
     """
     try:
-        import guide
+        from tools import guide
     except Exception as e:
         return [f"guide.py will not import: {type(e).__name__}: {e}"]
     return guide.unapproved_lessons()
@@ -12054,12 +12050,12 @@ def check_guide_structure_is_sound() -> list[str]:
     and emphasis balance per PARAGRAPH (per LINE reported 140 issues in a
     hard-wrapped document and every one was the checker's).
 
-    `python3 guide.py --renumber --write` is the repair: it derives labels from
+    `python3 tools/guide.py --renumber --write` is the repair: it derives labels from
     document order and rewrites every citation to match, so inserting a section
     no longer requires anyone to know what the labels currently are.
     """
     try:
-        import guide
+        from tools import guide
     except Exception as e:
         return [f"guide.py will not import: {type(e).__name__}: {e}"]
     return guide.check()
@@ -14998,8 +14994,7 @@ def _inventory_now() -> dict:
     """
     import os
 
-    import course_inventory
-
+    from tools import course_inventory
     # NARROW, AND NOT `except Exception`. The first version of this caught
     # everything and fell back to a full scan -- and the fallback fired every
     # time, because the `os` helpers it called had never been defined. A
@@ -15932,7 +15927,7 @@ def check_cross_file_anchors_resolve() -> list[str]:
     about `renumber()` that cannot.
     """
     try:
-        import anchors as A
+        from tools import anchors as A
     except Exception as exc:                      # pragma: no cover
         return [f"the anchor gate cannot be read: {exc}"]
     failures, _warnings = A.verify(A.scan())

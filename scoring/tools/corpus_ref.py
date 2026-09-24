@@ -43,11 +43,20 @@ a reader without corpus access:
     the first entry names the GOAL behaviour, not the unwanted one, and offers a
     general benefit as its because-clause [[corpus Q5/p4 first 0:74 sha=da9199...]]
 
-    python3 corpus_ref.py --find "<paste the sentence>"             # locate it
-    python3 corpus_ref.py --resolve "Q5/p4 first 0:74"               # read it
-    python3 corpus_ref.py --expand scoring/GOALS.md                  # read in place
-    python3 corpus_ref.py --check                                    # do they still resolve?
+    python3 tools/corpus_ref.py --find "<paste the sentence>"             # locate it
+    python3 tools/corpus_ref.py --resolve "Q5/p4 first 0:74"               # read it
+    python3 tools/corpus_ref.py --expand scoring/GOALS.md                  # read in place
+    python3 tools/corpus_ref.py --check                                    # do they still resolve?
 """
+# THE PACKAGE ROOT ON THE PATH, for the direct-script spelling. `tools/__init__`
+# does this for `from tools import ...`, and a file run as `python3
+# tools/NAME.py` never executes it -- so the import of a sibling fails at the
+# first line that needs one. Both spellings are used, so both are made to work.
+import os as _os
+import sys as _sys
+
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+
 import argparse
 import hashlib
 import pathlib

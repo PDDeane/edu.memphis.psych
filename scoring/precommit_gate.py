@@ -402,7 +402,7 @@ def _implausible_coincidence(idx=None) -> list:
     """
     if idx is None:
         sys.path.insert(0, HERE)
-        import corpus_ref as CR
+        from tools import corpus_ref as CR
         idx = CR._index()
     bad = []
     for needle, why in COINCIDENTAL_TEXT.items():
@@ -430,7 +430,7 @@ def _miscategorised(idx=None) -> list:
     """
     if idx is None:
         sys.path.insert(0, HERE)
-        import corpus_ref as CR
+        from tools import corpus_ref as CR
         idx = CR._index()
     bad = []
     for needle, why in ACCEPTED_STUDENT_TEXT.items():
@@ -488,7 +488,7 @@ def _launders(idx=None) -> list:
     """
     if idx is None:
         sys.path.insert(0, HERE)
-        import corpus_ref as CR
+        from tools import corpus_ref as CR
         idx = CR._index()
     # AUTHORED TEXT STAYS AUTHORED WHEN A STUDENT COPIES IT BACK. A handout
     # heading is in the corpus for a reason that has nothing to do with
@@ -616,7 +616,7 @@ def _classifier():
     """
     try:
         sys.path.insert(0, HERE)
-        import corpus_ref as CR
+        from tools import corpus_ref as CR
         idx = CR._index()
     except Exception as e:
         return None, f"corpus unreadable ({type(e).__name__}); flagging every candidate"

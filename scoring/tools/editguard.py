@@ -42,6 +42,16 @@ design-sha file has no bulk accept either.
 """
 from __future__ import annotations
 
+# THE PACKAGE ROOT ON THE PATH, for the direct-script spelling. `tools/__init__`
+# does this for `from tools import ...`, and a file run as `python3
+# tools/NAME.py` never executes it -- so the import of a sibling fails at the
+# first line that needs one. Both spellings are used, so both are made to work.
+import os as _os
+import sys as _sys
+
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+
+
 import ast
 import json
 import os
@@ -66,8 +76,22 @@ INVENTORY = HERE / "DEFINITIONS.json"
 # Modules whose definitions are inventoried. The whole package: a helper deleted
 # out of a one-off script is as capable of silently changing a measurement as one
 # deleted out of `measured.py`, and the check costs milliseconds.
+# The package is TWO directories now: the analytic machinery at the root and the
+# supporting tools beside it. Goal H splits them so a reader can tell what kind of
+# thing a file is from where it sits.
+TOOLS = "tools"
+
+
 def modules() -> list:
-    return sorted(p for p in HERE.glob("*.py"))
+    """Every module in the package, ROOT AND TOOLS.
+
+    A GLOB THAT MISSES A DIRECTORY IS A LEDGER THAT MISSES ITS MODULES, and this
+    one feeds `check_every_module_is_tracked` and `check_every_definition_is_
+    recorded`. Moving a file into `tools/` without widening this would take it out
+    of both checks silently -- the same shape of failure as the self-locating
+    `HERE` that goal H makes this move wait for, one level up.
+    """
+    return sorted(list(HERE.glob("*.py")) + list((HERE / TOOLS).glob("*.py")))
 
 
 def definitions(text: str) -> set:
@@ -620,7 +644,7 @@ def unrecorded() -> list:
                 f"recorded -- {', '.join(gap[:4])}"
                 + (" ..." if len(gap) > 4 else "")
                 + ". Nothing would report them lost. Run "
-                  "`python3 editguard.py --backfill`")
+                  "`python3 tools/editguard.py --backfill`")
     return out
 
 
@@ -701,7 +725,7 @@ def vanished() -> list:
     inv = _inventory()
     if not inv:
         return ["DEFINITIONS.json is missing or unreadable -- run "
-                "`python3 editguard.py --seed` to write the inventory of record"]
+                "`python3 tools/editguard.py --seed` to write the inventory of record"]
     out = []
     live = {}
     for p in modules():
@@ -721,7 +745,7 @@ def vanished() -> list:
                 f"{name}: {len(lost)} definition(s) VANISHED -- "
                 f"{', '.join(sorted(lost))}. Nothing here says the file is "
                 f"broken; it parses. Either the removal was deliberate (accept "
-                f"it: `python3 editguard.py --accept {name} <NAME>`) or a slice "
+                f"it: `python3 tools/editguard.py --accept {name} <NAME>`) or a slice "
                 f"took more than it was aimed at")
     return out
 
@@ -736,7 +760,7 @@ def seed(force: bool = False) -> str:
         "a slice-bounded edit that ate a neighbouring declaration gets caught at "
         "the next gate instead of at the next NameError. Removing a definition "
         "on purpose is fine -- accept it one name at a time with "
-        "`python3 editguard.py --accept MODULE NAME`. There is no bulk "
+        "`python3 tools/editguard.py --accept MODULE NAME`. There is no bulk "
         "regenerate, deliberately: an inventory that agrees with the tree "
         "whatever the tree says enforces nothing."),
         "modules": {}}
@@ -852,7 +876,7 @@ def untracked() -> list[str]:
     inv = _inventory()
     if not inv:
         return ["DEFINITIONS.json is missing or unreadable -- run "
-                "`python3 editguard.py --seed` to write the inventory of record"]
+                "`python3 tools/editguard.py --seed` to write the inventory of record"]
     out = []
     for path in modules():
         if path.name in inv or path.name in UNTRACKED_BY_DESIGN:
@@ -865,7 +889,7 @@ def untracked() -> list[str]:
             f"{path.name} is not in the inventory"
             + (f" and defines {n} name(s)" if n >= 0 else " and does not parse")
             + " -- nothing would report a definition lost from it. Add it with "
-              "`python3 editguard.py --track`, or excuse it in "
+              "`python3 tools/editguard.py --track`, or excuse it in "
               "UNTRACKED_BY_DESIGN with the reason")
     return out
 

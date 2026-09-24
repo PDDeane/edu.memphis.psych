@@ -91,7 +91,7 @@ def _olx(handout: int) -> str:
     import paths
     text = (paths.OLX_DIR / f"bmod_handout{handout}.olx").read_text()
     if "{{corpus:" in text:
-        import corpus_ref
+        from tools import corpus_ref
         text = corpus_ref.expand(text)
     return text
 

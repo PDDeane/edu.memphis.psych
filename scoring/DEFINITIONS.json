@@ -1,6 +1,9 @@
 {
  "_README": "The definitions of record for this package: top-level names and Class.method, per module. enforcement.check_no_definition_vanished() refuses a sweep when a recorded name is no longer defined, which is how a slice-bounded edit that ate a neighbouring declaration gets caught at the next gate instead of at the next NameError. Removing a definition on purpose is fine -- accept it one name at a time with `python3 editguard.py --accept MODULE NAME`. There is no bulk regenerate, deliberately: an inventory that agrees with the tree whatever the tree says enforces nothing.",
  "modules": {
+  "__init__.py": [
+   "_ROOT"
+  ],
   "agreement.py": [
    "BLOCKS",
    "COMPUTABLE",
@@ -449,6 +452,7 @@
    "INVENTORY",
    "ITEM_NAMED_BY_DESIGN",
    "LABEL_MIN",
+   "TOOLS",
    "UNTRACKED_BY_DESIGN",
    "_atomic",
    "_contiguous_deletion",
