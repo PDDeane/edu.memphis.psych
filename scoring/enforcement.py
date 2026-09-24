@@ -4853,6 +4853,11 @@ def check_items_are_measured_as_configured() -> list[str]:
 # 5" outlived the fix that made it false, with the whole audit green: no check
 # owned it, and nothing said one was missing.
 DECLARATION_TABLES: dict[str, tuple[str, tuple[str, ...]]] = {
+    "enforcement.CARRIED_NOTES": (
+        "the shape of the recorded reasoning carried out of the rubric modules "
+        "and now living as OLX comments -- runs and lines per tag, so an edit is "
+        "free and a loss is reported",
+        ("check_carried_notes_are_intact",)),
     "enforcement.ASK_EQUIVALENT_PROMPTS": (
         "prompts whose served tag moved while the model's question did not, so "
         "artifacts stamped with the superseded sha are still evidence",
@@ -15561,6 +15566,55 @@ def check_named_fixtures_still_name_something() -> list[str]:
     return out
 
 
+# WHERE THE CARRIED-NOTE RATCHET LIVES, and it is a FILE rather than a table here
+# for a measured reason: the tags are item ids, so a dict of them in this module
+# is course data in engine code, and `course_inventory` said so the moment it was
+# written -- "course data grew 10 -> 11; the ratchet only tightens". The counts
+# belong beside the other budgets, in JSON, for the same reason
+# `COURSE_DATA_BUDGET.json` is not a literal either.
+CARRIED_NOTES = _HERE_DIR / "CARRIED_NOTES.json"
+
+
+def check_carried_notes_are_intact() -> list[str]:
+    """The carried commentary lost a block, or a tag.
+    Reported as CARRIED COMMENTARY IS MISSING.
+
+    THE SUCCESSOR TO `check_rubric_notes_match_the_modules`, which retired with
+    the modules it compared against. Its subject moved; its purpose did not.
+
+    SHAPE, NOT CONTENT. Recording the prose would make this a second copy and put
+    it straight back in the position the move just ended. Recording the counts
+    makes editing a note free -- which it should be, these are comments -- while a
+    block that disappears is reported by name.
+
+    FEWER IS A FAILURE AND MORE IS FINE: new reasoning gets written, and a check
+    that objected to that would train its readers to update the number without
+    reading why it moved.
+    """
+    import rubric_component
+
+    import json
+
+    got = rubric_component.as_view_carried()
+    with open(CARRIED_NOTES, encoding="utf-8") as fh:
+        want = json.load(fh)
+    out = []
+    for tag, (runs, lines) in sorted(want.items()):
+        rs = got.get(tag)
+        if not rs:
+            out.append(f"{tag} carried {runs} block(s) of recorded reasoning and "
+                       f"now carries NONE. These are comments in the rubric "
+                       f"(`<!-- carried:{tag} k/n -->`); a marker that stops "
+                       f"matching reads exactly like prose nobody wrote")
+            continue
+        have_lines = sum(len(r) for r in rs)
+        if len(rs) < runs or have_lines < lines:
+            out.append(f"{tag} carried {runs} block(s)/{lines} line(s) and now has "
+                       f"{len(rs)}/{have_lines}. A block a later one assumes is "
+                       f"gone, and nothing else would report it")
+    return out
+
+
 def check_rubric_notes_match_the_modules() -> list[str]:
     """The reasoning carried in the course file is still what the modules say.
 
@@ -15583,6 +15637,14 @@ def check_rubric_notes_match_the_modules() -> list[str]:
     # mean in code. It read them through `rubric_notes` and so crashed with
     # ModuleNotFoundError on the first deletion rehearsal -- a check whose whole
     # purpose is to expire, failing loudly at the moment it should fall silent.
+    #
+    # IT HAS EXPIRED, and its purpose has NOT. The modules are gone, so this
+    # returns nothing on every run; the two copies it compared became one when the
+    # commentary moved into `bmod_rubric.olx` as comments, which ends the drift it
+    # watched for by construction. What survives the move is the other half of the
+    # risk -- 2,115 lines of recorded reasoning going missing -- and
+    # `check_carried_notes_are_intact` is where that lives now. A check whose
+    # subject is deleted must hand its purpose on rather than take it with it.
     import os as _os
 
     present = [h for h in (1, 2, 3)

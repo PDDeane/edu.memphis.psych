@@ -642,12 +642,17 @@ def build(course_id: str) -> tuple[dict, list[dict]]:
         _hn = (_prior.get("handout_notes") or {}).get(str(_h))
         if _hn is not None:
             _notes["handouts"].setdefault(str(_h), _hn)
-    doc["item_notes"] = _notes["items"]
-    doc["handout_notes"] = _notes["handouts"]
-    # AND THE RUN STRUCTURE. The §2e hook prints the LAST few blocks about an
-    # item and reports how many earlier ones it is not showing; a flat list
-    # cannot say where one block ends. See `_comment_runs`.
-    doc["item_note_runs"] = _notes["runs"]
+    # THE CARRIED COMMENTARY DOES NOT GO IN THE COURSE FILE ANY MORE, for the
+    # same reason the rubric fields stopped: it is CONTENT, and the content is
+    # authored in the .olx. These 2,115 lines were comments in the rubric modules
+    # and became data only because the modules were being deleted and there was
+    # nowhere else to put them. `bmod_rubric.olx` is that home -- they are
+    # `<!-- carried:TAG k/n -->` there, read by `rubric_component.as_view_carried`
+    # and served through the same three `coursedata` accessors as before.
+    #
+    # 227 KB OF 329 was this, and 98 KB of it was the SAME PROSE TWICE:
+    # `item_notes` is `item_note_runs` flattened, which the accessor now does in
+    # one line instead of the export storing both.
 
     # THE RUBRIC FIELDS DO NOT GO IN THE COURSE FILE ANY MORE (step 3d). They
     # live in `bmod_rubric.olx`, which `coursedata` reads and which is the single

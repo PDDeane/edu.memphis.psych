@@ -491,6 +491,27 @@ def _load_gold() -> dict:
     return gold()
 
 
+def _carried() -> dict:
+    """The carried commentary, FROM THE .olx, where it is a comment again.
+
+    IT WAS DATA ONLY FOR LACK OF A HOME. These lines were comments in the rubric
+    modules; carrying them into the course file was what stopped Stage 5 taking
+    the record of WHY along with the data. The rubric is authored OLX now, so they
+    are comments there -- `<!-- carried:TAG k/n -->` -- and the course file no
+    longer holds content that belongs in the content.
+
+    ONE ARTIFACT, so the drift this used to be checked for cannot happen. The
+    retired `check_rubric_notes_match_the_modules` compared a module's comments
+    against the course file's copy and reported "a comment was edited and not
+    re-exported". There is no copy now; the note and its source are the same
+    bytes. What IS still possible is LOSS, and that is what
+    `check_carried_notes_are_intact` watches.
+    """
+    import rubric_component
+
+    return rubric_component.as_view_carried()
+
+
 def rubric_notes(item: str) -> list:
     """The reasoning written about one item, as its author wrote it.
 
@@ -504,7 +525,7 @@ def rubric_notes(item: str) -> list:
     consult it will re-run an experiment that has already been done and
     reverted.
     """
-    return list(_load().get("item_notes", {}).get(str(item), []))
+    return [ln for run in rubric_note_runs(item) for ln in run]
 
 
 def rubric_note_runs(item: str) -> list:
@@ -515,7 +536,7 @@ def rubric_note_runs(item: str) -> list:
     it is not showing, and Q6 has eleven. A flat 327-line list would either
     flood that output or be cut somewhere arbitrary.
     """
-    return [list(r) for r in _load().get("item_note_runs", {}).get(str(item), [])]
+    return _carried().get(str(item), [])
 
 
 def handout_notes(handout) -> list:
@@ -524,7 +545,8 @@ def handout_notes(handout) -> list:
     What the handout is, how its items are built, what the module as a whole is
     for. 548 lines across the three, and lost with the files if not carried.
     """
-    return list(_load().get("handout_notes", {}).get(str(handout), []))
+    return [ln for run in _carried().get("handout:" + str(handout), [])
+            for ln in run]
 
 
 def gold_declaration(name: str):

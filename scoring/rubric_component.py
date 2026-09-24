@@ -421,6 +421,37 @@ def as_view_notes(conditions=(), path: str | None = None) -> dict:
     return out
 
 
+_CARRIED = re.compile(
+    r"<!--\s*carried:(\S+)\s+(\d+)/(\d+)\s*\n(.*?)\n\s*-->", re.S)
+
+
+def as_view_carried(path: str | None = None) -> dict:
+    """The carried commentary: `{tag: [run, ...]}`, from `<!-- carried:TAG k/n -->`.
+
+    PROSE THAT WAS COMMENTS IN THE RUBRIC MODULES and became DATA only because the
+    modules were being deleted and it had nowhere else to live. It has somewhere
+    now, so it is a comment again -- invisible to the parser and to the page, read
+    as text by the tooling that shows it to a person.
+
+    READ FROM THE RAW FILE, not the parsed tree, and that is the point rather than
+    a limitation: `_COMMENT` strips these before anything parses, so they cannot
+    reach a prompt, a score or a rendered page however wrong they are. A comment
+    that the parser could see would be a field with a comment's discipline.
+
+    THE RUNS ARE THE BLOCKS. A later block often assumes an earlier one, so the
+    grouping is content and not formatting -- it is what lets a reader be told
+    "block 3 of 7" instead of being handed 200 undifferentiated lines.
+    """
+    p = path or expanded_path()
+    with open(p, encoding="utf8") as fh:
+        raw = fh.read()
+    out: dict = {}
+    for tag, k, _n, body in _CARRIED.findall(raw):
+        lines = [ln[2:] if ln.startswith("  ") else ln for ln in body.split("\n")]
+        out.setdefault(tag, []).append((int(k), lines))
+    return {t: [ln for _k, ln in sorted(rs)] for t, rs in out.items()}
+
+
 def as_view_fragments(path: str | None = None) -> dict:
     """The prompt's own prose: `{key: text}`, from `<Frame name="fragment:KEY">`.
 

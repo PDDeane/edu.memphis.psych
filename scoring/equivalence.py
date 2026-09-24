@@ -1067,6 +1067,8 @@ def enforcement_audit():
         findings.append(("-", "A COMPOSED DOCUMENT IS STALE", bad))
     for bad in ENF.check_every_document_is_where_its_readers_look():
         findings.append(("-", "A DOCUMENT IS NOT WHERE ITS READERS LOOK", bad))
+    for bad in ENF.check_carried_notes_are_intact():
+        findings.append(("-", "CARRIED COMMENTARY IS MISSING", bad))
     for bad in ENF.check_no_composed_document_repeats_itself():
         findings.append(("-", "A COMPOSED DOCUMENT SAYS IT TWICE", bad))
     for bad in ENF.check_no_module_appends_to_the_repository():
