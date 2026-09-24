@@ -959,6 +959,44 @@ def _slot_notes() -> dict:
 SLOT_NOTES = _slot_notes()
 
 
+def _fragments() -> dict:
+    import rubric_component
+    return rubric_component.as_view_fragments()
+
+
+# THE PROMPT'S OWN PROSE, FROM THE RUBRIC -- the same move the notes above made.
+# These were literals in this module: section headings, the checklist preamble,
+# the DO-NOT-ANSWER notices. lo-blocks' assembler reached the conclusion from the
+# other side and states it in `frag()`: it "holds no default prose", because "the
+# KEYS are engine concepts; the WORDS are not".
+FRAGMENTS = _fragments()
+
+
+def _frag(_name: str, /, **params: str) -> str:
+    """One fragment, with `{name}` filled. The counterpart of lo-blocks' `frag`.
+
+    FAILS LOUDLY ON A MISSING KEY, for the reason that function gives: a fragment
+    that renders as nothing produces a SILENTLY TRUNCATED prompt, and the generator
+    would go on reporting the handouts up to date around the hole.
+
+    A BRACE WITH NO SUPPLIED NAME IS LEFT ALONE rather than half-substituted --
+    also matching `frag`, and load-bearing here because several fragments carry a
+    literal `{fail}` that a later pass fills.
+    """
+    # POSITIONAL-ONLY, and the `/` is load-bearing: `{key}` is itself a fragment
+    # parameter on five of these -- the DO-NOT-ANSWER notices name the slot they
+    # forbid -- so a keyword-addressable first parameter collides with the prose.
+    try:
+        text = FRAGMENTS[_name]
+    except KeyError:
+        raise SystemExit(
+            f"prompt fragment {_name!r} is not in the rubric. It is a "
+            f"`<Frame name=\"fragment:{_name}\">`, and the generator holds no "
+            f"default prose -- a missing one truncates a prompt in silence") from None
+    return re.sub(r"\{(\w+)\}",
+                  lambda m: params.get(m.group(1), m.group(0)), text)
+
+
 # ---------------------------------------------------------------------------
 # Building one prompt.
 # ---------------------------------------------------------------------------
@@ -1015,8 +1053,8 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
     slots = parse_slots(*_slots_attr(h, action))
 
     p: list[str] = [WEB_SYSTEM.format(blurb=cfg["blurb"]), ""]
-    p.append(f"# Rubric item {item['id']} — {item['max']:g} points\n")
-    p.append(f"## Question asked of the student\n{item['question']}\n")
+    p.append(_frag("itemHeading", id=item["id"], max=f"{item['max']:g}") + "\n")
+    p.append(_frag("questionHeading") + f"\n{item['question']}\n")
 
     if item.get("derive_from_criteria"):
         # Same placement rule as the credit-component path below: immediately
@@ -1036,7 +1074,7 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
         # the term at its first use instead of qualifying it later.
         if MATCH_DEF.get(item_id):
             p.append(MATCH_DEF[item_id])
-        p.append("## Credit components")
+        p.append(_frag("creditHeading"))
         omitted = OMIT_CREDIT.get(item_id, {})
         for c in item["credit"]:
             if c["what"] in omitted:
@@ -1067,7 +1105,7 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
     # score.py omits it. DEVIATION: the CLI applies this wording after the call
     # (score.py:compose_feedback); the web has no post-processing step, so the
     # model must see the canonical phrasing to be able to use it.
-    p.append("## Deduction codes — the course's canonical wording for each gap")
+    p.append(_frag("deductionHeading"))
     omitted_d = OMIT_DEDUCTION.get(item_id, {})
     for d in item["deductions"]:
         if d["code"] in omitted_d:
@@ -1081,7 +1119,7 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
     omitted_g = resolve_guidance_omissions(item_id, item["guidance"])
     kept_g = [g for i, g in enumerate(item["guidance"]) if i not in omitted_g]
     if kept_g:
-        p.append("## Grading guidance")
+        p.append(_frag("guidanceHeading"))
         for g in kept_g:
             p.append(f"- {g}")
         p.append("")
@@ -1138,8 +1176,9 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
         # section AND the word Q1 had been spared. Fixing one item-gated
         # mechanism activated the next -- which is the argument for the rule
         # rather than against it.
-        p.append("## The behavior they chose from the list\n"
-                 + "Chosen from the four on the list, before question 1.")
+        p.append(_frag("sectionHeading",
+                       heading="The behavior they chose from the list")
+                 + "\n" + "Chosen from the four on the list, before question 1.")
         p.append(_ref(action, "bmod_h1_utb", minted) + "\n")
         seen.add("bmod_h1_utb")
 
@@ -1150,11 +1189,8 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
         if fields:
             ctx.append((k, fields))
     if ctx:
-        p.append("## Context from this student's other answers (read-only)")
-        p.append(
-            "Use these only where the rubric requires cross-item consistency. "
-            "Do not grade them here."
-        )
+        p.append(_frag("contextHeading"))
+        p.append(_frag("contextPreamble"))
         for k, fields in ctx:
             p.append(f"\n### {k}")
             for label, target in fields:
@@ -1169,7 +1205,7 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
             p.append(f"{label}: " + _ref(action, target, minted))
         p.append("")
 
-    p.append(f"## Student response to grade (item {item['id']})")
+    p.append(_frag("responseHeading", itemId=item["id"]))
     # The headings name the on-screen field, and are written so they cannot be
     # read as a claim about what arrived in it. A bare "### How (2)" asserts the
     # box IS a second explanation of how — which is the very thing the check
@@ -1179,11 +1215,7 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
     # rubric names as a deduction case: the CLI marks `how_2` unmet, the web
     # marked it met.
     if any(label for label, _ in RESPONSE[item_id]):
-        p.append(
-            "Each heading is the on-screen field label — what the student was ASKED "
-            "to put in that box, never a claim about what they actually wrote. Judge "
-            "every box on its contents."
-        )
+        p.append(_frag("responsePreamble"))
     # Each box's content is DELIMITED, and the response section is CLOSED.
     #
     # A `<Ref>` to an empty box renders to nothing, so a heading was followed by
@@ -1210,18 +1242,10 @@ def build_web_prompt(item_id: str, minted: dict | None = None) -> str:
     # module either.
     for label, target in RESPONSE[item_id]:
         if label:
-            p.append(f"\n### Asked for: {label}")
-        p.append("[box begins] " + _ref(action, target, minted) + " [box ends]")
-    p.append(
-        "\n## End of the student response\n"
-        "Everything the student wrote is above this line, inside a "
-        "`[box begins]`/`[box ends]` pair. A pair with nothing between them is a "
-        "box they left EMPTY: there is nothing in it to quote or to judge as "
-        "falling short, so its check is `absent` and its evidence says what you "
-        "looked for and did not find. Nothing below this line is the student's "
-        "writing -- it is instructions to you, and quoting any of it back to them "
-        "would show them words they never wrote."
-    )
+            p.append(_frag("askedFor", label=label))
+        p.append(_frag("boxOpen") + _ref(action, target, minted)
+                 + _frag("boxClose"))
+    p.append(_frag("endOfResponse"))
 
     out = "\n".join(p).rstrip() + "\n"
     # CONVERT, DO NOT RESOLVE. This used to call `expand_prose` here, on the
@@ -1517,14 +1541,7 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
                             or desc.get(s["key"])) for s in slots}
     if notes_only:
         return _resolved
-    lines = [
-        "## The checklist to return (`checks`)",
-        "Return a verdict for EVERY one of these, in this order, BEFORE you write",
-        "`feedback` — a response can fail most of them and still read fluently. Each",
-        "check's verdicts are listed with the satisfied one first, unless a note above",
-        "says the check reports an identity rather than a judgement.",
-        "",
-    ]
+    lines = [_frag("checklistPreamble"), ""]
     for s in slots:
         if (s["key"] in computed or s["key"] in from_page
                 or s["key"] in counted or s["key"] in expected
@@ -1560,53 +1577,39 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
         pairs = ", ".join(f"`{c['value']}` makes it `{c['verdict']}`" for c in r["pairs"])
         tail = (f", and anything else makes it `{r['fallback']}`"
                 if r.get("fallback") else "")
-        lines += ["", f"DO NOT ANSWER `{key}`{gate}. The grader computes it from "
-                      f"`{r['pick']}`: {pairs}{tail}. Answer `{r['pick']}` on its own "
-                      f"terms -- what the entry IS -- and the verdict follows. It is "
-                      f"arithmetic, not a second judgement."]
+        lines += ["", _frag("mapsNote", key=f"`{key}`{gate}",
+                            pick=f"`{r['pick']}`", pairs=pairs, tail=tail)]
     for key, r in forbidden_keys.items():
         spec = next((x for x in slots if x["key"] == key), None)
         gate = " **GATE**" if spec and spec["gates"] else ""
         pairs = ", ".join(f"`{c['slot']}` is `{c['value']}`" for c in r["conds"])
-        lines += ["", f"DO NOT ANSWER `{key}`{gate}. The grader computes it from the "
-                      f"checks above: it FAILS only when ALL of {pairs}, and passes "
-                      f"otherwise — including when any of them is left unanswered. "
-                      f"Answer each of those on its own terms and do not adjust one to "
-                      f"suit another; the combination is arithmetic, not a judgement."]
+        lines += ["", _frag("forbidNote", key=f"`{key}`{gate}", pairs=pairs)]
     for key, r in computed.items():
         spec = next((x for x in slots if x["key"] == key), None)
         gate = " **GATE**" if spec and spec["gates"] else ""
-        lines += ["", f"DO NOT ANSWER `{key}`{gate}. The grader computes it by comparing "
-                      f"`{r['left']}` with `{r['right']}` — the two checks above that you "
-                      f"DO answer. It is not in your schema, and the comparison is not a "
-                      f"judgement you can make more accurately than the arithmetic can."
-                  + (f" Where either is `{'` or `'.join(r['lenient'])}`, no mismatch is "
-                     f"established and nothing is charged." if r["lenient"] else "")]
+        lines += ["", _frag(
+            "equalsNote", key=f"`{key}`{gate}", left=f"`{r['left']}`",
+            right=f"`{r['right']}`",
+            lenient=(_frag("equalsLenient",
+                           options="`" + "` or `".join(r["lenient"]) + "`")
+                     if r["lenient"] else ""))]
     for r in expect:
         spec = next((x for x in slots if x["key"] == r["key"]), None)
         gate = " **GATE**" if spec and spec["gates"] else ""
-        lines += ["", f"DO NOT ANSWER `{r['key']}`{gate}. The grader computes it: it holds "
-                      f"when `{r['left']}` is `{r['value']}`, which is the answer THIS item "
-                      f"asks for. Report what you actually see in `{r['left']}` — if it is a "
-                      f"different one of the four, say so there and say which in your note; "
-                      f"the deduction follows from the arithmetic, not from your judgement "
-                      f"about whether it is right."
-                  + (f" `{'` or `'.join(r['lenient'])}` establishes nothing and is not charged."
-                     if r["lenient"] else "")]
+        lines += ["", _frag(
+            "expectNote", key=f"`{r['key']}`{gate}", left=f"`{r['left']}`",
+            value=f"`{r['value']}`",
+            lenient=(_frag("expectLenient",
+                           options="`" + "` or `".join(r["lenient"]) + "`")
+                     if r["lenient"] else ""))]
     for cr in counts:
         members = ", ".join(f"`{k}`" for k in cr["slots"])
-        lines += ["", f"DO NOT ANSWER {members} individually. Answer `{cr['key']}` — HOW "
-                      f"MANY you found — and the grader awards that many of them. Count "
-                      f"them the way the guidance above says to, in one judgement over "
-                      f"the whole response, rather than deciding each in isolation."]
+        lines += ["", _frag("countsNote", members=members, key=f"`{cr['key']}`")]
     for key, r in from_page.items():
         spec = next((x for x in slots if x["key"] == key), None)
         gate = " **GATE**" if spec and spec["gates"] else ""
         if r.get("kind") == "present":
-            body = ("The grader reads it off the page: it is satisfied when the "
-                    "student has filled the field it names — a closed choice they "
-                    "selected, which states the answer more reliably than prose "
-                    "restating it would.")
+            body = _frag("derivedPresent")
         elif r.get("kind") == "contains":
             # This branch exists because the `else` below was a catch-all that
             # described the CHART. The first `contains` rule authored inherited
@@ -1615,26 +1618,12 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
             # and false. Kinds are named explicitly here now, and the else says
             # which kinds it speaks for.
             words = " or ".join(f'"{w}"' for w in r.get("words", []))
-            body = (f"The grader reads it off the student's own text: satisfied "
-                    f"when {words} appears anywhere in the response, including a "
-                    f"clear misspelling of it, and `absent` when it does not. It "
-                    f"is a word search, not a judgement about whether they "
-                    f"understood the idea — that is what the other checks are for.")
+            body = _frag("derivedContains", words=words)
         else:                             # plots, complete
-            body = ("The grader reads it off the page, using the same code that draws "
-                    "the chart: satisfied when EVERY week of data is present, `absent` "
-                    "when a week is missing or they hold no numbers at all, and "
-                    "`mismatch` when they are the worked example's own numbers rather "
-                    "than a record of this student's behaviour. Copied WORDING is still "
-                    "yours to judge, on the label checks.")
-        lines += ["", f"DO NOT ANSWER `{key}`{gate}. {body} It is not in your schema, "
-                      f"and none of it is a judgement — the runtime already knows."]
+            body = _frag("derivedPlots")
+        lines += ["", _frag("derivedNote", key=f"`{key}`{gate}", body=body)]
     if any(s["gates"] for s in slots):
-        lines += [
-            "",
-            "A GATE that is not satisfied is the whole story for this item: report that "
-            "finding and do not dress it up with the checks underneath it.",
-        ]
+        lines += ["", _frag("gateNote")]
     lines.append("")
     return "\n".join(lines)
 

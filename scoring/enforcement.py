@@ -5412,6 +5412,16 @@ _NOT_DECLARATIONS: dict[str, str] = {
                               "and carries the budget. The BACKLOG is the "
                               "declaration and this is the data it declares, so "
                               "registering both would be two names for one claim",
+    "olx_prompts.FRAGMENTS": "the prompt's own prose, READ from the rubric -- "
+                             "`<Frame name=\"fragment:KEY\">` -- and not a claim "
+                             "about this course at all. A declaration says "
+                             "something is knowingly true of these items; this "
+                             "says what a section heading is called. Nothing here "
+                             "can be right or wrong about the corpus, so there is "
+                             "no check that could re-test it. It is the same "
+                             "shape as SLOT_NOTES above and exempt for a "
+                             "DIFFERENT reason: that one IS declared elsewhere, "
+                             "this one is not a declaration",
     "rubric_h1.ITEMS": "the rubric itself", "rubric_h2.ITEMS": "the rubric itself",
     "rubric_h3.ITEMS": "the rubric itself",
     "rubric_h1.BY_ID": "an index of the rubric",
