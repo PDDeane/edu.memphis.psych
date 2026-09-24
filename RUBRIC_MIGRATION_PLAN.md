@@ -4754,6 +4754,50 @@ the paper and web forms, so it is COURSE-SPECIFIC — but it is executable
 machinery with an audit attached, so it cannot live in `$COURSE_DATA` with the
 documents. `bmod_fixture/` names it for what it is and keeps it in the repo.
 
+#### H(4) · CATEGORY IX READ MODULE BY MODULE, and the reading corrects the list
+
+Goal H requires this ("a judgement made by reading the code, one module at a
+time") and the result DIFFERS FROM ITS OWN CATEGORY IX LISTING. The listing was
+a survey; the test is what the control flow assumes. Per module:
+
+  segment.py            FIXTURE. The shape is in the logic: "Handout 1's
+                        template carries a worked fruit-flavored water example
+                        and Handout 3's carries an example data table AND an
+                        example graph". It would not meet a different handout
+                        unedited.
+  fixture_edits.py      FIXTURE. Corrections as spans over THIS corpus.
+  grader_inputs.py      FIXTURE. The table the intake program is steered by --
+                        which grader a chunk of teacher material becomes.
+
+  docx_text.py          NOT FIXTURE, against the listing. "Stdlib-only OOXML
+                        text extraction"; it reads paragraphs, tables and chart
+                        parts. Item 1c is named as the REASON chart parts are
+                        extracted, not as an assumption the code makes. It would
+                        meet a different .docx unedited -> generic machinery.
+  paper_runs.py         NOT FIXTURE. It folds a paper sweep into the ledger's
+                        runs shape -- analytic plumbing between two artifact
+                        formats, with no paper-to-web mapping in it.
+  prose_split.py        NOT FIXTURE. Its subject is this repository's DOCUMENTS,
+                        sorting sentences into specification/incident/split. It
+                        maintains the tree -> tooling.
+  canonicalise_verdicts.py   MIGRATIONS, not fixtures. Each is a one-off rename
+  migrate_verdicts.py        over the vocabulary, already run, and the user's
+  stamp_legacy_artifacts.py  instruction is to DELETE migration scripts when
+                             they are no longer needed rather than rehome them.
+
+SO CATEGORY IX IS THREE MODULES, not nine, and the other six sort into three
+different homes. Recording this before moving anything is the discipline this
+item asks for -- "do not move by intuition and declare the rule afterwards".
+
+AND THE MOVE ITSELF RAISES A STRUCTURAL QUESTION THE DECISION DID NOT SETTLE.
+`$COURSE_LOCATION` is `psychology/bmod`, inside the CONTENT tree, and
+`build:stage-content` copies that tree wholesale -- python modules included. It
+is harmless today (the static build emits three parsed artifacts and copies
+nothing raw), but it means `import segment` would resolve through a content
+directory, and `segment` is imported by four modules. That is a python import
+path running through content, which is a different kind of coupling from where
+the file sits. The fixture DATA has no such problem.
+
 #### `course.json` moves WITHIN the repo, and that is what keeps C1b intact
 
 Decided 2026-09-23: it goes to `psychology/`, with the handout and rubric `.olx`
