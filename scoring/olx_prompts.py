@@ -3059,6 +3059,13 @@ def assembler_inputs() -> dict:
             ev = {"note": note,
                   "refs": [dict(label=l, **ref(t)) for l, t in refs]}
         out[item_id] = {
+            # WHERE THE BODY GOES. A consumer that assembles a body has to put it
+            # back into the element it came from, and the mapping from item to
+            # handout file lives only in this module's `OLX` template and
+            # `HANDOUT`. Recomputing it on the other side would be a second
+            # source for a fact that has one.
+            "handoutFile": os.path.basename(OLX % h),
+            "action": action,
             "blurb": cfg["blurb"],
             "webSystem": WEB_SYSTEM,
             "item": {
