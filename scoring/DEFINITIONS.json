@@ -1670,6 +1670,7 @@
    "_num",
    "_pairs",
    "_text",
+   "as_view_fragments",
    "as_view_frame",
    "as_view_items",
    "as_view_notes",

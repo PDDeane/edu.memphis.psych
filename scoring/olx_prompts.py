@@ -3016,7 +3016,18 @@ def assembler_inputs() -> dict:
             _frame.append({"text": (_seg.text or ""),
                            "when": _seg.get("ifDeclared")})
 
-    out: dict = {"_frame": _frame}
+    # THE PROMPT'S PROSE, FROM THE RUBRIC. These 27 strings were literals in this
+    # module; they are `<Frame name="fragment:KEY">` now, for the reason the notes
+    # moved before them -- course wording does not belong in a prompt generator,
+    # and lo-blocks' assembler had already reached that from the other side by
+    # refusing to default them.
+    #
+    # THE LITERALS HERE HAVE NOT GONE YET, and this is what checks them. This
+    # module's OLX-generation role retires with item C; until it does, the words
+    # exist in two places. `verify-assembled-prompts` assembles from the RUBRIC
+    # copy and diffs against THIS module's output, so any divergence between them
+    # drops BYTE_EQUAL below 23 rather than going unnoticed.
+    out: dict = {"_frame": _frame, "_fragments": _rc.as_view_fragments()}
     for item_id, action in sorted(ACTION.items()):
         if not action:
             continue

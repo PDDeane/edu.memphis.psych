@@ -421,6 +421,39 @@ def as_view_notes(conditions=(), path: str | None = None) -> dict:
     return out
 
 
+def as_view_fragments(path: str | None = None) -> dict:
+    """The prompt's own prose: `{key: text}`, from `<Frame name="fragment:KEY">`.
+
+    THE SAME MOVE THE NOTES MADE, for the same reason. These are the section
+    headings and standing sentences a prompt body is built from -- "## Credit
+    components", "## The checklist to return", the DO-NOT-ANSWER notices. They sat
+    as literals in `olx_prompts.py`, which is course wording inside a prompt
+    generator, and lo-blocks' assembler had already reached the conclusion from
+    the other side: it takes them as `fragments` and REFUSES TO DEFAULT THEM,
+    because "the KEYS are engine concepts; the WORDS are not".
+
+    NO CONDITIONS HERE, deliberately. A note carries clauses that belong only
+    where a condition holds; a fragment is one string and every caller wants all
+    of it. Reading `ifDeclared` would invent a selection rule no fragment uses and
+    make the store answer differently depending on who asked.
+
+    `{name}` IS LEFT UNSUBSTITUTED. Filling a parameter needs the item, and this
+    is a store, not a renderer -- `frag()` on the TS side and `_frag()` on this
+    one do the substitution, and both leave a brace alone when no name is
+    supplied rather than half-filling it.
+    """
+    p = path or expanded_path()
+    with open(p, encoding="utf8") as fh:
+        root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    out = {}
+    for fr in root.iter("Frame"):
+        name = fr.get("name") or ""
+        if name.startswith("fragment:"):
+            out[name[len("fragment:"):]] = "".join(
+                "".join(seg.itertext()) for seg in fr.findall("Segment"))
+    return out
+
+
 def as_view_frame(name: str = "oc_frame", conditions=(), params=None,
                   path: str | None = None) -> str:
     """A named frame, assembled for one item: its segments, in order.

@@ -3,8 +3,12 @@
 # Where the referenced spans live. The build resolves this file's corpus
 # references against it, and refuses rather than render an unresolved one.
 corpus_data: $COURSE_DATA/corpus_refs.json
-description: The behaviour-modification scoring rubric, as a component. Generated
-  by `rubric_olx.py` from the rubric of record; do not hand-edit.
+description: The behaviour-modification scoring rubric, as a component. This file
+  is the SOURCE and is hand-authored. `rubric_olx.py` rendered it once and
+  retired at step 3d -- the course file it rendered from no longer carries a
+  rubric, so a render could only overwrite this with an empty projection of
+  itself. The "generated, do not hand-edit" line this replaces was stale and
+  pointed the next reader away from the only place these words live.
 ---
 -->
 <Rubric id="bmod_rubric" title="Behaviour-modification scoring rubric">
@@ -52,6 +56,104 @@ Operant conditioning means: the future probability of a VOLUNTARY BEHAVIOUR is c
   - Negative Reinforcement: take away something undesirable to increase a behaviour.
   - Positive Punishment: {{corpus:D1/p8:d1:32:60:sha=60e5588ab7ff}} decrease a behaviour.
   - Negative Punishment: take away something desirable to decrease a behaviour.</Segment>
+  </Frame>
+  <!-- THE PROMPT'S OWN PROSE, one frame per named fragment.
+
+       The assembler takes these as `fragments` and REFUSES TO DEFAULT THEM:
+       its own comment says why -- "the KEYS are engine concepts; the WORDS are
+       not". A heading like "## Credit components" is this course's wording of
+       a prompt section, not a property of the engine that renders it, so it
+       belongs with the course exactly as the judging notes did.
+
+       `{name}` is substituted by the caller; a brace with no supplied name is
+       left alone rather than half-substituted. -->
+  <Frame name="fragment:askedFor">
+    <Segment>
+### Asked for: {label}</Segment>
+  </Frame>
+  <Frame name="fragment:boxClose">
+    <Segment> [box ends]</Segment>
+  </Frame>
+  <Frame name="fragment:boxOpen">
+    <Segment>[box begins] </Segment>
+  </Frame>
+  <Frame name="fragment:checklistPreamble">
+    <Segment>## The checklist to return (`checks`)
+Return a verdict for EVERY one of these, in this order, BEFORE you write
+`feedback` — a response can fail most of them and still read fluently. Each
+check's verdicts are listed with the satisfied one first, unless a note above
+says the check reports an identity rather than a judgement.</Segment>
+  </Frame>
+  <Frame name="fragment:contextHeading">
+    <Segment>## Context from this student's other answers (read-only)</Segment>
+  </Frame>
+  <Frame name="fragment:contextPreamble">
+    <Segment>Use these only where the rubric requires cross-item consistency. Do not grade them here.</Segment>
+  </Frame>
+  <Frame name="fragment:countsNote">
+    <Segment>DO NOT ANSWER {members} individually. Answer {key} — HOW MANY you found — and the grader awards that many of them. Count them the way the guidance above says to, in one judgement over the whole response, rather than deciding each in isolation.</Segment>
+  </Frame>
+  <Frame name="fragment:creditHeading">
+    <Segment>## Credit components</Segment>
+  </Frame>
+  <Frame name="fragment:deductionHeading">
+    <Segment>## Deduction codes — the course's canonical wording for each gap</Segment>
+  </Frame>
+  <Frame name="fragment:derivedContains">
+    <Segment>The grader reads it off the student's own text: satisfied when {words} appears anywhere in the response, including a clear misspelling of it, and `absent` when it does not. It is a word search, not a judgement about whether they understood the idea — that is what the other checks are for.</Segment>
+  </Frame>
+  <Frame name="fragment:derivedNote">
+    <Segment>DO NOT ANSWER {key}. {body} It is not in your schema, and none of it is a judgement — the runtime already knows.</Segment>
+  </Frame>
+  <Frame name="fragment:derivedPlots">
+    <Segment>The grader reads it off the page, using the same code that draws the chart: satisfied when EVERY week of data is present, `absent` when a week is missing or they hold no numbers at all, and `mismatch` when they are the worked example's own numbers rather than a record of this student's behaviour. Copied WORDING is still yours to judge, on the label checks.</Segment>
+  </Frame>
+  <Frame name="fragment:derivedPresent">
+    <Segment>The grader reads it off the page: it is satisfied when the student has filled the field it names — a closed choice they selected, which states the answer more reliably than prose restating it would.</Segment>
+  </Frame>
+  <Frame name="fragment:endOfResponse">
+    <Segment>
+## End of the student response
+Everything the student wrote is above this line, inside a `[box begins]`/`[box ends]` pair. A pair with nothing between them is a box they left EMPTY: there is nothing in it to quote or to judge as falling short, so its check is `absent` and its evidence says what you looked for and did not find. Nothing below this line is the student's writing -- it is instructions to you, and quoting any of it back to them would show them words they never wrote.</Segment>
+  </Frame>
+  <Frame name="fragment:equalsLenient">
+    <Segment> Where either is {options}, no mismatch is established and nothing is charged.</Segment>
+  </Frame>
+  <Frame name="fragment:equalsNote">
+    <Segment>DO NOT ANSWER {key}. The grader computes it by comparing {left} with {right} — the two checks above that you DO answer. It is not in your schema, and the comparison is not a judgement you can make more accurately than the arithmetic can.{lenient}</Segment>
+  </Frame>
+  <Frame name="fragment:expectLenient">
+    <Segment> {options} establishes nothing and is not charged.</Segment>
+  </Frame>
+  <Frame name="fragment:expectNote">
+    <Segment>DO NOT ANSWER {key}. The grader computes it: it holds when {left} is {value}, which is the answer THIS item asks for. Report what you actually see in {left} — if it is a different one of the four, say so there and say which in your note; the deduction follows from the arithmetic, not from your judgement about whether it is right.{lenient}</Segment>
+  </Frame>
+  <Frame name="fragment:forbidNote">
+    <Segment>DO NOT ANSWER {key}. The grader computes it from the checks above: it FAILS only when ALL of {pairs}, and passes otherwise — including when any of them is left unanswered. Answer each of those on its own terms and do not adjust one to suit another; the combination is arithmetic, not a judgement.</Segment>
+  </Frame>
+  <Frame name="fragment:gateNote">
+    <Segment>A GATE that is not satisfied is the whole story for this item: report that finding and do not dress it up with the checks underneath it.</Segment>
+  </Frame>
+  <Frame name="fragment:guidanceHeading">
+    <Segment>## Grading guidance</Segment>
+  </Frame>
+  <Frame name="fragment:itemHeading">
+    <Segment># Rubric item {id} — {max} points</Segment>
+  </Frame>
+  <Frame name="fragment:mapsNote">
+    <Segment>DO NOT ANSWER {key}. The grader computes it from {pick}: {pairs}{tail}. Answer {pick} on its own terms -- what the entry IS -- and the verdict follows. It is arithmetic, not a second judgement.</Segment>
+  </Frame>
+  <Frame name="fragment:questionHeading">
+    <Segment>## Question asked of the student</Segment>
+  </Frame>
+  <Frame name="fragment:responseHeading">
+    <Segment>## Student response to grade (item {itemId})</Segment>
+  </Frame>
+  <Frame name="fragment:responsePreamble">
+    <Segment>Each heading is the on-screen field label — what the student was ASKED to put in that box, never a claim about what they actually wrote. Judge every box on its contents.</Segment>
+  </Frame>
+  <Frame name="fragment:sectionHeading">
+    <Segment>## {heading}</Segment>
   </Frame>
   <Frame name="note:D1:named_type">
     <Segment>which of the four the student chose, read from the type slot in the context below. `unclear` only if it is blank or unreadable</Segment>
