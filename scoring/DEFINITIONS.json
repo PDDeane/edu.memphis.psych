@@ -1405,6 +1405,7 @@
    "_check_rules_still_match",
    "_checklist_section",
    "_choices_attr",
+   "_choices_inputs",
    "_counts_attr",
    "_criteria_section",
    "_derived_attr",

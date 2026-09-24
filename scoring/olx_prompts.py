@@ -2972,6 +2972,31 @@ def _changed_sections(old: str, new: str) -> list[str]:
     return hit
 
 
+def _choices_inputs(item_id: str, handout: int, action: str) -> dict:
+    """What `choicesAttr` must be given: declared, users, sourced.
+
+    Mirrors `choices_attr_for`'s own reads -- the element's current `choices=`,
+    the `pick(set)` bindings in its `slots=`, and the rubric verdicts behind each
+    binding. Kept beside the dump rather than inside `choices_attr_for` so that
+    function's behaviour is untouched by being measured.
+    """
+    try:
+        tag = _sheet_tag(handout, action)
+    except BaseException:
+        return {"choicesDeclared": {}, "choicesUsers": {}, "choicesSourced": {}}
+    declared = _choices_attr(handout, action) or {}
+    users: dict = {}
+    m = re.search(r'\bslots="([^"]*)"', tag)
+    for part in (m.group(1).split("|") if m else []):
+        pick = re.search(r"pick\(([^)]+)\)", part)
+        if pick:
+            users.setdefault(pick.group(1), []).append(_split_keeping_refs(part)[0])
+    sourced = {slot: _pick_verdicts(item_id, slot)
+               for slots in users.values() for slot in slots}
+    return {"choicesDeclared": declared, "choicesUsers": users,
+            "choicesSourced": sourced}
+
+
 def assembler_inputs() -> dict:
     """What `promptAssembler` must be GIVEN, for every item that has a body.
 
@@ -3016,7 +3041,17 @@ def assembler_inputs() -> dict:
     # exist in two places. `verify-assembled-prompts` assembles from the RUBRIC
     # copy and diffs against THIS module's output, so any divergence between them
     # drops BYTE_EQUAL below 23 rather than going unnoticed.
-    out: dict = {"_frame": _frame, "_fragments": _rc.as_view_fragments()}
+    # ATTRIBUTES THE GENERATOR DOES NOT OWN, even though it generates their name.
+    # `enforcement.HAND_AUTHORED_ATTRS` is EMPTY today, which is exactly why it is
+    # passed rather than assumed: a consumer that clears every unsourced attribute
+    # works perfectly until the first entry is added, and then silently drops a
+    # rule from the web. The writer's own comment records the standing case -- the
+    # four `demonstrates_type` rules on PR/NR/PP/NP.
+    import enforcement as _enf
+
+    out: dict = {"_frame": _frame, "_fragments": _rc.as_view_fragments(),
+                 "_handAuthoredAttrs": sorted(
+                     [list(k) for k in _enf.HAND_AUTHORED_ATTRS])}
     for item_id, action in sorted(ACTION.items()):
         if not action:
             continue
@@ -3113,6 +3148,44 @@ def assembler_inputs() -> dict:
             "evidence": ev,
             "response": [dict(label=l, **ref(t)) for l, t in RESPONSE[item_id]],
             "expected": build_web_prompt(item_id),
+            # THE SHEET'S GENERATED ATTRIBUTES, with the rubric they come from.
+            # `attrs` is what this module writes into the open tag today, so it is
+            # the oracle a TS port is measured against, exactly as `expected` is
+            # for the body. `rubricItem` is the declaration each is derived FROM --
+            # counts, cover, requires and the rest are rubric fields, not
+            # attributes of the element, which is the whole reason they can be
+            # generated rather than hand-authored.
+            "attrs": {name: fn(item_id) for name, fn in GENERATED_ATTRS},
+            # THE DECLARATIONS EACH ATTRIBUTE IS DERIVED FROM, named one by one
+            # rather than by handing over the whole rubric entry. An assembler
+            # given the entry would have to know which field feeds which
+            # attribute, which is this module's knowledge and would become a
+            # second copy of it the moment a field was renamed.
+            "attrInputs": {
+                "counts": item.get("counts") or [],
+                "cover": item.get("cover") or [],
+                "requires": item.get("requires") or [],
+                "equals": item.get("equals") or [],
+                "onlyif": item.get("onlyif") or [],
+                "forbid": item.get("forbid") or [],
+                "maps": item.get("maps") or [],
+                "derived": item.get("derived") or [],
+                "expect": item.get("expect") or [],
+                # CHOICES NEEDS THE SHIPPED ATTRIBUTE, which is why it is not a
+                # function of the rubric alone: a set the rubric cannot source
+                # keeps the .olx's own membership verbatim. The three parts are
+                # passed separately -- what the element DECLARES, which slots USE
+                # each set, and what the rubric SOURCES for each of those slots --
+                # so the assembler is still pure and the .olx-dependence is an
+                # input rather than a hidden read.
+                **_choices_inputs(item_id, h, action),
+                "credit": item.get("credit") or [],
+                "max": item.get("max"),
+                "maxPresent": 'max="' in _sheet_tag(h, action),
+                "slotSpec": (getattr(cfg["rubric"], "SLOT_SPEC", {}) or {}
+                             ).get(item_id) or [],
+            },
+            "rubricItem": item,
         }
     return out
 
@@ -3136,8 +3209,13 @@ def main() -> int:
         import json as _json
 
         with open(a.assembler_inputs, "w", encoding="utf-8") as fh:
-            _json.dump(assembler_inputs(), fh, indent=1, ensure_ascii=False,
-                       sort_keys=True)
+            # NOT sort_keys: several of these structures are ORDERED, and the
+            # order is the thing being reproduced. `choices=` keeps the element's
+            # own declaration order for sets the rubric cannot source, and sorting
+            # the dump reported all five choices attributes as differing when only
+            # their order had been destroyed in transit. Items are already emitted
+            # in sorted order by the loop, so the file stays diffable.
+            _json.dump(assembler_inputs(), fh, indent=1, ensure_ascii=False)
         _n = sum(1 for k in assembler_inputs() if not k.startswith("_"))
         print(f"  wrote assembler inputs for {_n} item(s) to {a.assembler_inputs}")
         return 0
