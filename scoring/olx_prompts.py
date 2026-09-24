@@ -1325,9 +1325,27 @@ def slot_note(item: dict, key: str) -> str | None:
 CLI_CRITERIA_NOTES = ("trigger_behavior", "consequence_asserted")
 
 
+def criteria_selection(item: dict, trigger_slot: bool = False,
+                       consequence_slot: bool = False,
+                       avoidance_scores: bool = False) -> dict:
+    """The conditions and params that select this item's criteria segments.
+
+    SEPARATE FROM `_item_conditions`, and the difference is the whole point. That
+    function returns what the ITEM declares; four more conditions are computed
+    HERE from the sheet -- criterion 10's plain or trigger form,
+    `asks_consequence_asserted`, and avoidance framing -- along with two params
+    composed from notes. An assembler handed only the item's own conditions
+    renders a criteria list that stops at criterion 9, which is how this was
+    found: measured, not reasoned.
+    """
+    return _criteria_section(item, trigger_slot, consequence_slot,
+                             avoidance_scores, selection_only=True)
+
+
 def _criteria_section(item: dict, trigger_slot: bool = False,
                       consequence_slot: bool = False,
-                      avoidance_scores: bool = False) -> str:
+                      avoidance_scores: bool = False,
+                      selection_only: bool = False) -> str | dict:
     """The criteria prose, for BOTH scorers. score.py:build_prompt calls this.
 
     THE PROSE IS IN THE RUBRIC NOW, as `<Frame name="oc_criteria">`. What is left
@@ -1392,8 +1410,22 @@ def _criteria_section(item: dict, trigger_slot: bool = False,
             "11. `consequence_asserted` — "
             + _as_criterion(note.replace("one point, and it charges ONLY this: ", ""))
             + ".\n\n")
+    if selection_only:
+        return {"conditions": sorted(conditions), "params": params}
     return rubric_component.as_view_frame("oc_criteria", conditions=conditions,
                                           params=params)
+
+
+def resolved_slot_notes(item: dict, slots: list[dict]) -> dict:
+    """{slot key: the note the checklist renders}, by the generator's own order.
+
+    The precedence is the rubric's per-component `rule` (with `{fail}` filled),
+    then `SLOT_NOTES[item:slot]`, then `SLOT_NOTES[slot]`, then the credit
+    component's `desc`. Only `_checklist_section` knew it; `assembler_inputs` now
+    needs the same answer, and the TS assembler will not re-derive it -- its
+    parameter is documented as ALREADY RESOLVED for this reason.
+    """
+    return _checklist_section(item, slots, item["id"], notes_only=True)
 
 
 def _checklist_section(item: dict, slots: list[dict], item_id: str,
@@ -1403,7 +1435,8 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
                        choices: dict[str, list[str]] | None = None,
                        expect: list[dict] | None = None,
                        forbid: list[dict] | None = None,
-                       maps: list[dict] | None = None) -> str:
+                       maps: list[dict] | None = None,
+                       notes_only: bool = False) -> str | dict:
     """The sheet the model must fill, generated from the .olx `slots` attribute.
 
     Checks the grader COMPUTES are listed separately and explicitly NOT asked for:
@@ -1480,6 +1513,10 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
 
     rule = {c["what"]: _fill_fail(c["rule"], c["what"])
             for c in item["credit"] if c.get("rule")}
+    _resolved = {s["key"]: (rule.get(s["key"]) or slot_note(item, s["key"])
+                            or desc.get(s["key"])) for s in slots}
+    if notes_only:
+        return _resolved
     lines = [
         "## The checklist to return (`checks`)",
         "Return a verdict for EVERY one of these, in this order, BEFORE you write",
@@ -1498,9 +1535,14 @@ def _checklist_section(item: dict, slots: list[dict], item_id: str,
         # is read by both — SLOT_NOTES is olx-only, so a rule parked there reaches
         # the web and CLI and silently leaves the paper scorer behind. That is
         # exactly what happened to Q4b's five substitution tests.
-        note = (rule.get(s["key"])
-                or slot_note(item, s["key"])
-                or desc.get(s["key"]))
+        # ONE PLACE FOR THE PRECEDENCE, because a second reader now needs the
+        # same answer. `assembler_inputs` must hand the TS assembler notes that
+        # are ALREADY RESOLVED -- the assembler says so in its own docstring, and
+        # warns that a port implementing two of the four sources "silently drops
+        # the note on every slot the other two cover". Re-deriving the order
+        # there is exactly how that happens, so it is derived once, here, and
+        # read from `_resolved`.
+        note = _resolved.get(s["key"])
         gate = " **GATE**" if s["gates"] else ""
         if s.get("picks") is not None:
             members = "/".join("`%s`" % o for o in choices.get(s["picks"], []))
@@ -2941,6 +2983,133 @@ def _changed_sections(old: str, new: str) -> list[str]:
     return hit
 
 
+def assembler_inputs() -> dict:
+    """What `promptAssembler` must be GIVEN, for every item that has a body.
+
+    NOT A DESIGN, A MEASUREMENT. The TS assembler is the designed producer for
+    these bodies and has never been wired; before it can replace `build_web_prompt`
+    the question "what does the current generator actually read?" has to be
+    answered from the generator, not from a specification. This function is that
+    answer -- the same sources `build_web_prompt` reads, in the shape the
+    assembler's own parameters take.
+
+    `expected` COMES FROM THE GENERATOR ITSELF, which is what makes the harness
+    self-checking: `--check` reports the handouts up to date, so `expected` is what
+    ships, and any field this function gets wrong shows up as a byte difference
+    rather than as a quiet pass.
+    """
+    # THE SHARED FRAME, FROM THE RUBRIC, and it is the reason this is sourced here
+    # rather than from a snapshot: the frame the prior migration froze has FIVE
+    # segments and this rubric's `oc_criteria` has NINE. Driving the assembler from
+    # the stale copy silently truncated the criteria list on all four cadence
+    # items, which reads as an assembler defect and is a stale input.
+    import xml.etree.ElementTree as _ET
+    import rubric_component as _rc
+
+    _raw = re.sub(r"<!--.*?-->", "", open(_rc.expanded_path(), encoding="utf8").read(),
+                  flags=re.S)
+    _frame: list = []
+    for _f in _ET.fromstring(_raw).iter("Frame"):
+        if _f.get("name") != "oc_criteria":
+            continue
+        for _seg in list(_f):
+            _frame.append({"text": (_seg.text or ""),
+                           "when": _seg.get("ifDeclared")})
+
+    out: dict = {"_frame": _frame}
+    for item_id, action in sorted(ACTION.items()):
+        if not action:
+            continue
+        h = HANDOUT[item_id]
+        cfg = config(h)
+        item = cfg["rubric"].BY_ID[item_id]
+        slots = parse_slots(*_slots_attr(h, action))
+        _sel = (criteria_selection(
+                    item, avoidance_scores=bool(item.get("avoidance_scores")))
+                if item.get("derive_from_criteria")
+                else {"conditions": sorted(_item_conditions(item)), "params": {}})
+        minted: dict = {}
+
+        def ref(target: str, action=action, minted=minted) -> dict:
+            """A FieldRef as the assembler takes it: label filled by the caller."""
+            rid = REF_IDS.get(action, {}).get(target)
+            if rid is None:
+                base = (action[: -len("_llm")] if action.endswith("_llm") else action)
+                rid = "%s_ref_%s" % (base, re.sub(r"^bmod_h\d_", "", target))
+            return {"refId": rid, "target": target}
+
+        seen: set = set()
+        sections = []
+        if item.get("reads_utb_choice"):
+            sections.append({
+                "heading": "The behavior they chose from the list",
+                "body": "Chosen from the four on the list, before question 1.",
+                "field": _REF % (ref("bmod_h1_utb")["refId"], "bmod_h1_utb")})
+            seen.add("bmod_h1_utb")
+        ctx = []
+        for k in item["context"]:
+            fields = [(l, t) for l, t in CONTEXT.get(k, ()) if t not in seen]
+            seen.update(t for _, t in fields)
+            if fields:
+                ctx.append({"heading": k, "lines": [
+                    dict(label=l, **ref(t)) for l, t in fields]})
+        ev = None
+        if item_id in EVIDENCE:
+            note, refs = EVIDENCE[item_id]
+            ev = {"note": note,
+                  "refs": [dict(label=l, **ref(t)) for l, t in refs]}
+        out[item_id] = {
+            "blurb": cfg["blurb"],
+            "webSystem": WEB_SYSTEM,
+            "item": {
+                "id": item["id"],
+                "max": item["max"],
+                "question": item["question"],
+                "credit": item["credit"],
+                "deductions": item["deductions"],
+                "guidance": list(item.get("guidance") or []),
+                "deriveFromClauses": bool(item.get("derive_from_criteria")),
+                "itemNotes": ITEM_NOTES.get(item_id),
+                "termDefinition": MATCH_DEF.get(item_id),
+                # INDICES, not the text fragments OMIT_GUIDANCE is keyed by:
+                # `assembleBodyPrefix` filters `guidance` BY POSITION. Handing it
+                # the fragments dropped nothing, and 1c emitted a guidance bullet
+                # the web prompt omits -- the one difference left at 22 of 23.
+                "omitGuidance": sorted(
+                    resolve_guidance_omissions(item_id, list(item.get("guidance") or []))),
+                "omitCredit": list(OMIT_CREDIT.get(item_id) or []),
+                # FROM `criteria_selection`, not `_item_conditions`: the web path
+                # calls `_criteria_section` with neither slot flag, and that call
+                # adds criterion 10's plain form. Handing over the item's own
+                # conditions truncated all four cadence items at criterion 9.
+                "conditions": _sel["conditions"],
+                "frameParams": _sel["params"],
+            },
+            "slots": slots,
+            # ALREADY RESOLVED, by the generator's own precedence -- see
+            # `resolved_slot_notes`. Handing over raw SLOT_NOTES would drop every
+            # note that comes from a `rule` or a credit `desc`, which is most of
+            # them: on Q1 all ten slots carry one and only three are in SLOT_NOTES.
+            "notes": {k: v for k, v in resolved_slot_notes(item, slots).items()
+                      if v},
+            "rules": {
+                "counts": _counts_attr(h, action),
+                "maps": _maps_attr(h, action),
+                "forbid": _forbid_attr(h, action),
+                "equals": _equals_attr(h, action),
+                "expect": _expect_attr(h, action),
+                "derived": _derived_attr(h, action),
+                "choices": _choices_attr(h, action),
+            },
+            "sections": sections,
+            "context": ctx,
+            "evidence": ev,
+            "response": [dict(label=l, **ref(t)) for l, t in RESPONSE[item_id]],
+            "expected": build_web_prompt(item_id),
+        }
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--print", dest="show", choices=sorted(ACTION),
@@ -2949,11 +3118,22 @@ def main() -> int:
                     help="exit 1 if the .olx files differ from what this generates")
     ap.add_argument("--write", action="store_true", help="rewrite the three .olx files")
     ap.add_argument("--diff", action="store_true", help="show what --write would change")
+    ap.add_argument("--assembler-inputs", metavar="PATH",
+                    help="write what promptAssembler must be given, as JSON")
     ap.add_argument("--refs", action="store_true",
                     help="report <Ref> ids this generation drops, adds or duplicates")
     ap.add_argument("--force", action="store_true",
                     help="write even while a measurement is running (see the refusal)")
     a = ap.parse_args()
+    if a.assembler_inputs:
+        import json as _json
+
+        with open(a.assembler_inputs, "w", encoding="utf-8") as fh:
+            _json.dump(assembler_inputs(), fh, indent=1, ensure_ascii=False,
+                       sort_keys=True)
+        _n = sum(1 for k in assembler_inputs() if not k.startswith("_"))
+        print(f"  wrote assembler inputs for {_n} item(s) to {a.assembler_inputs}")
+        return 0
 
     # A --write while a run is IN FLIGHT silently splits that run across two
     # prompts. The cells already sent used the old text and the rest use the new,

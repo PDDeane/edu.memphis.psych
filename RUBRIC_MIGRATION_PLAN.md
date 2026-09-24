@@ -3457,6 +3457,31 @@ driven from THIS rubric and diffed against THESE handouts, not the prior run's
 frozen `expected` -- and report BYTE_EQUAL of 23. Everything after that is
 moving entries off the FROM_OLD_SOURCE list one at a time.
 
+#### C(iii) · BYTE_EQUAL=23/23, measured 2026-09-23
+
+`npm run verify:assembled-prompts` in lo-blocks, driven by `olx_prompts.py
+--assembler-inputs`. Every shipped body is reproduced by `promptAssembler`. The
+proof obligation this item was filed with is met; what remains is sourcing.
+
+FOUR DEFECTS ON THE WAY, none in the assembler:
+  * the migration's frozen `criteria_frame.json` has 5 segments where this
+    rubric's `oc_criteria` has 9 -- a stale input that reads as an assembler
+    defect. The frame is sourced from the rubric now.
+  * `_item_conditions` is not the frame's condition set: `_criteria_section`
+    computes four more from the sheet. Exposed as `criteria_selection`.
+  * `omitGuidance` is INDICES to the assembler and text fragments in python.
+  * notes must arrive RESOLVED -- the precedence is now `resolved_slot_notes`,
+    read by the generator and the dump alike.
+
+Both extractions are byte-neutral: `--check` still reports three handouts up to
+date.
+
+WHAT IS STILL NOT SOURCED FROM THE RUBRIC: `fragments`, the 27 prose keys
+measured in C(ii). Everything else the assembler needs now comes either from the
+rubric or from the handout's own attributes. Moving those 27 into the rubric is
+the last step before `build:assemble-prompts` can replace the python producer,
+and the gate for that step already exists and passes.
+
 ### D · `gold_slots_q6.py` -- a CHECK that nothing runs
 
 Separate from C, and it predates the migration: the prior run's patch touches it
