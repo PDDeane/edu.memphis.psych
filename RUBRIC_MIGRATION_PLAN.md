@@ -3482,6 +3482,45 @@ rubric or from the handout's own attributes. Moving those 27 into the rubric is
 the last step before `build:assemble-prompts` can replace the python producer,
 and the gate for that step already exists and passes.
 
+#### C(iv) · `course.json` HOLDS CONTENT THAT OUGHT TO BE AUTHORED IN THE OLX
+
+Stated by the user 2026-09-23, and measured the same hour. The good news first:
+`course.json`'s items carry NO question, credit, deductions or guidance. Those
+already live in `bmod_rubric.olx`, so the rubric is not duplicated -- which was
+the risk worth checking before anything else.
+
+What remains is 329 KB, and most of it is not bookkeeping:
+
+    item_notes       98 KB   carried commentary
+    item_note_runs   98 KB   THE SAME PROSE AGAIN, grouped into runs
+    handout_notes    37 KB   carried commentary
+    declarations     48 KB   measurement bookkeeping -- STAYS OUT by §0a
+    handouts         27 KB   the per-handout `authored` tables -- MOVE IN
+    generator        12 KB   prompt_context / prompt_response / prompt_notes
+    items            17 KB   the generator fields above, keyed by item
+
+TWO FINDINGS.
+
+  * 227 KB OF 329 IS CARRIED COMMENTARY. §0a already decided where it goes:
+    "The carried notes become OLX COMMENTS -- they were comments in the modules
+    and were data only for lack of a home." They now have a home, so this is a
+    move that is decided and not yet done, not an open question.
+  * `item_notes` AND `item_note_runs` ARE THE SAME PROSE TWICE. Flattening the
+    runs reproduces `item_notes` exactly for 14 of 14 items. One is a grouped
+    view of the other, stored rather than derived -- 98 KB of the 329.
+
+WHAT THIS MEANS FOR C. The remaining python dependence in prompt generation is
+NOT what a first reading of the dump suggested. `CONTEXT`, `RESPONSE`,
+`EVIDENCE`, `ITEM_NOTES`, `MATCH_DEF` and `OMIT_GUIDANCE` are not python
+literals; they are read from `course.json` through `coursedata`, and python is
+the reader rather than the source. So "no python" does not require porting
+tables -- it requires those fields to be reachable by a TS consumer, and the
+right destination is the OLX rather than `course.json`.
+
+`WEB_SYSTEM` was the last prompt PROSE actually written in a module, and it has
+moved: `<Frame name="fragment:webSystem">`, 2,416 characters, `{blurb}` filled
+from the handout's own authored field. 28 fragments now.
+
 ### D · `gold_slots_q6.py` -- a CHECK that nothing runs
 
 Separate from C, and it predates the migration: the prior run's patch touches it

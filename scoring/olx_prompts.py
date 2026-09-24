@@ -209,43 +209,50 @@ VERBATIM_RULES = [
         "   credit, but a required element that is absent is absent."),
 ]
 
-WEB_SYSTEM = """You are an experienced teaching assistant grading {blurb}
-This is PSYC 1030 (General Psychology, intro level, first-year students).
+def _fragments() -> dict:
+    import rubric_component
+    return rubric_component.as_view_fragments()
 
-You grade ONE rubric item at a time against the rubric supplied below, and you
-write the feedback the student reads. Return the JSON object the schema
-requires: the `checks` sheet first, then `feedback`.
 
-Rules you must follow:
-1. Judge the item check by check. For every check on the sheet below, decide
-   its verdict and quote the span of the response that settles it in that
-   check's `evidence`. Quote verbatim; never paraphrase into the evidence
-   field. For an unsatisfied check, say briefly what you looked for.
-2. The deduction table below is the course's canonical wording for each way
-   this item goes wrong. It is not a ledger for you to fill in — name any gap
-   in `feedback` using that table's own words, so a student who fixes what you
-   flagged meets the same phrasing if the same gap is graded later. The CODE
-   beside each entry is an internal label: use the wording, and never put the
-   code or its point value in front of the student.
-3. Do NOT output a score. The score is computed from your checks.
-4. `feedback` must be consistent with `checks`: do not praise something you
-   marked unsatisfied, and do not fault something you marked satisfied.
-5. Grade what is written, generously but not charitably: these are first-year
-   students, so clumsy phrasing that clearly conveys the required idea earns
-   credit, but a required element that is absent is absent.
-6. If the response is empty, mark every check unsatisfied and say so plainly.
-7. If the student describes something that could harm them (skipping meals,
-   punishing themselves by withholding food or sleep, etc.), say so warmly in
-   `feedback` and suggest a safer version. That is a safety note, not a fault
-   in their work, and it never changes a verdict.
-8. Where the grading guidance below tells you to set `escalate` or to write an
-   `advisory_note`, there is no such field here: put the remark in `feedback`
-   instead, and where the sheet carries a `confident` check, set it to `absent`.
+# THE PROMPT'S OWN PROSE, FROM THE RUBRIC -- the same move the notes above made.
+# These were literals in this module: section headings, the checklist preamble,
+# the DO-NOT-ANSWER notices. lo-blocks' assembler reached the conclusion from the
+# other side and states it in `frag()`: it "holds no default prose", because "the
+# KEYS are engine concepts; the WORDS are not".
+FRAGMENTS = _fragments()
 
-Write `feedback` to the student, in the second person, warm and specific. Say
-which requirements are met, name any that are missing, and quote their own
-words when you point something out. It must read as prose written to them: no
-deduction codes, no point values, no score, and no check keys."""
+
+def _frag(_name: str, /, **params: str) -> str:
+    """One fragment, with `{name}` filled. The counterpart of lo-blocks' `frag`.
+
+    FAILS LOUDLY ON A MISSING KEY, for the reason that function gives: a fragment
+    that renders as nothing produces a SILENTLY TRUNCATED prompt, and the generator
+    would go on reporting the handouts up to date around the hole.
+
+    A BRACE WITH NO SUPPLIED NAME IS LEFT ALONE rather than half-substituted --
+    also matching `frag`, and load-bearing here because several fragments carry a
+    literal `{fail}` that a later pass fills.
+    """
+    # POSITIONAL-ONLY, and the `/` is load-bearing: `{key}` is itself a fragment
+    # parameter on five of these -- the DO-NOT-ANSWER notices name the slot they
+    # forbid -- so a keyword-addressable first parameter collides with the prose.
+    try:
+        text = FRAGMENTS[_name]
+    except KeyError:
+        raise SystemExit(
+            f"prompt fragment {_name!r} is not in the rubric. It is a "
+            f"`<Frame name=\"fragment:{_name}\">`, and the generator holds no "
+            f"default prose -- a missing one truncates a prompt in silence") from None
+    return re.sub(r"\{(\w+)\}",
+                  lambda m: params.get(m.group(1), m.group(0)), text)
+
+
+# THE SYSTEM PROMPT IS IN THE RUBRIC, as `<Frame name="fragment:webSystem">`.
+# It was the last piece of prompt PROSE still written in this module: 2,416
+# characters of course wording -- the subject, the level, what the grader is
+# for -- inside a generator. `{blurb}` is filled from the handout's own
+# authored field, which already came from the course file.
+WEB_SYSTEM = _frag("webSystem")
 
 
 def _check_rules_still_match() -> list[str]:
@@ -959,42 +966,6 @@ def _slot_notes() -> dict:
 SLOT_NOTES = _slot_notes()
 
 
-def _fragments() -> dict:
-    import rubric_component
-    return rubric_component.as_view_fragments()
-
-
-# THE PROMPT'S OWN PROSE, FROM THE RUBRIC -- the same move the notes above made.
-# These were literals in this module: section headings, the checklist preamble,
-# the DO-NOT-ANSWER notices. lo-blocks' assembler reached the conclusion from the
-# other side and states it in `frag()`: it "holds no default prose", because "the
-# KEYS are engine concepts; the WORDS are not".
-FRAGMENTS = _fragments()
-
-
-def _frag(_name: str, /, **params: str) -> str:
-    """One fragment, with `{name}` filled. The counterpart of lo-blocks' `frag`.
-
-    FAILS LOUDLY ON A MISSING KEY, for the reason that function gives: a fragment
-    that renders as nothing produces a SILENTLY TRUNCATED prompt, and the generator
-    would go on reporting the handouts up to date around the hole.
-
-    A BRACE WITH NO SUPPLIED NAME IS LEFT ALONE rather than half-substituted --
-    also matching `frag`, and load-bearing here because several fragments carry a
-    literal `{fail}` that a later pass fills.
-    """
-    # POSITIONAL-ONLY, and the `/` is load-bearing: `{key}` is itself a fragment
-    # parameter on five of these -- the DO-NOT-ANSWER notices name the slot they
-    # forbid -- so a keyword-addressable first parameter collides with the prose.
-    try:
-        text = FRAGMENTS[_name]
-    except KeyError:
-        raise SystemExit(
-            f"prompt fragment {_name!r} is not in the rubric. It is a "
-            f"`<Frame name=\"fragment:{_name}\">`, and the generator holds no "
-            f"default prose -- a missing one truncates a prompt in silence") from None
-    return re.sub(r"\{(\w+)\}",
-                  lambda m: params.get(m.group(1), m.group(0)), text)
 
 
 # ---------------------------------------------------------------------------
