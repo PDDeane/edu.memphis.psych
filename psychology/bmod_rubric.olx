@@ -566,6 +566,14 @@ description: The behaviour-modification scoring rubric, as a component. This fil
   ORDER IS PART OF THE DESIGN and is the order of this list -- see the
   SLOT_OPTIONS note above; a reorder is a real prompt change with its own sweep.
   -->
+  <!-- THE MENUS A pick() SLOT OFFERS where the rubric declares them
+       rather than the sheet. `SLOT_OPTIONS` in the deleted rubric_h2:
+       a set whose members are a rubric fact, not an element's. -->
+  <Choices name="restriction_authored" options="relieved,created,neither"/>
+  <Choices name="restricts" options="target_behavior,other_thing"/>
+  <Choices name="stimulus_move" options="given_desirable,given_undesirable,taken_desirable,taken_undesirable"/>
+  <Choices name="trigger_behavior" options="utb,wgb,other"/>
+  <Choices name="trigger_expects" options="gain,loss,none"/>
   <Frame name="oc_criteria">
     <Segment>## How to judge this item
 Do NOT output a score or a deduction list. Fill in the criteria sheet; the score is computed from it.
@@ -2637,7 +2645,7 @@ Answer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label w
     <Context item="Q4a"/>
     <Context item="Q4c"/>
   </Item>
-  <Item scores="PR" max="4" label="PR Example" increment="2" conditions="move_pick|move_pick" expectedType="PR" deriveFromClauses="true" asks="bmod_h2_pr_llm" grading="oc" family="h2-cadence-and-type">
+  <Item scores="PR" requiredMove="given_desirable" max="4" label="PR Example" increment="2" conditions="move_pick|move_pick" expectedType="PR" deriveFromClauses="true" asks="bmod_h2_pr_llm" grading="oc" family="h2-cadence-and-type">
     <Question>Write an example of Positive Reinforcement that you could use to attempt to change your behavior. (Positive Reinforcement = adding something desirable to increase a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
@@ -2682,7 +2690,7 @@ Answer what the sentence describes. The grader works out from your answer which 
     <Context item="_utb"/>
     <Context item="_wgb"/>
   </Item>
-  <Item scores="NR" max="4" label="NR Example" increment="2" conditions="barrier_pick" expectedType="NR" deriveFromClauses="true" asks="bmod_h2_nr_llm" grading="oc" family="h2-cadence-and-type">
+  <Item scores="NR" requiredMove="taken_undesirable" max="4" label="NR Example" increment="2" conditions="barrier_pick" expectedType="NR" deriveFromClauses="true" asks="bmod_h2_nr_llm" grading="oc" family="h2-cadence-and-type">
     <Question>Write an example of Negative Reinforcement that you could use to attempt to change your behavior. (Negative Reinforcement = taking away something undesirable to increase a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
@@ -2738,7 +2746,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Context item="_utb"/>
     <Context item="_wgb"/>
   </Item>
-  <Item scores="PP" max="4" label="PP Example" increment="2" expectedType="PP" deriveFromClauses="true" asks="bmod_h2_pp_llm" grading="oc" family="h2-cadence-and-type">
+  <Item scores="PP" requiredMove="given_undesirable" max="4" label="PP Example" increment="2" expectedType="PP" deriveFromClauses="true" asks="bmod_h2_pp_llm" grading="oc" family="h2-cadence-and-type">
     <Question>Write an example of Positive Punishment that you could use to attempt to change your behavior. (Positive Punishment = adding something undesirable to decrease a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
@@ -2774,7 +2782,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Context item="_utb"/>
     <Context item="_wgb"/>
   </Item>
-  <Item scores="NP" max="4" label="NP Example" increment="2" expectedType="NP" deriveFromClauses="true" asks="bmod_h2_np_llm" grading="oc" family="h2-cadence-and-type">
+  <Item scores="NP" requiredMove="taken_desirable" max="4" label="NP Example" increment="2" expectedType="NP" deriveFromClauses="true" asks="bmod_h2_np_llm" grading="oc" family="h2-cadence-and-type">
     <Question>Write an example of Negative Punishment that you could use to attempt to change your behavior. (Negative Punishment = taking away something desirable to decrease a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
     <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
     <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>

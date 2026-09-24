@@ -280,6 +280,16 @@ def as_view_items(path: str | None = None) -> list[dict]:
                      "gold_from_deductions"):
             if flag in conds:
                 it[flag] = True
+        # AND THE CONDITIONS THEMSELVES, which the five above are a hand-kept
+        # subset of. The item-set tables the modules carried -- barrier_pick,
+        # cadence_barrier, contingency_gate, polarity_gate, type_match -- are
+        # exactly "the items declaring this condition", and they were unreachable
+        # only because that list names five of twelve. Exposing the set means the
+        # next condition needs no edit here to be readable.
+        if conds:
+            it["conditions"] = sorted(conds)
+        if el.get("requiredMove"):
+            it["required_move"] = el.get("requiredMove")
         if params.get("cadence"):
             it["cadence"] = params["cadence"]
         q = el.find("Question")
@@ -370,6 +380,55 @@ def as_view_slot_spec(path: str | None = None) -> dict:
             rows.append(rec)
         if rows:
             out[iid] = rows
+    return out
+
+
+def as_view_choices(path: str | None = None) -> dict:
+    """`{set name: [option, ...]}` from `<Choices name= options=/>`.
+
+    THE MENUS A `pick()` SLOT OFFERS, where the set's membership is a rubric fact
+    rather than an element's. `SLOT_OPTIONS` in the deleted `rubric_h2`, and the
+    last of its tables with no per-item home: a set is named by several slots and
+    belongs to none of them.
+    """
+    p = path or expanded_path()
+    with open(p, encoding="utf8") as fh:
+        root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    return {el.get("name"): _list(el.get("options"))
+            for el in root.iter("Choices") if el.get("name")}
+
+
+def as_view_slots(path: str | None = None) -> dict:
+    """`{item id: [slot clause, ...]}` from each item's `<Slot>` elements.
+
+    THE SLOT SHEET, in rubric order. This is what the modules carried as
+    `SLOT_SPEC` and what `slots=` on an `<LLMAction>` is generated FROM -- the
+    element is the source and the attribute the projection, which is why the two
+    reproduce each other clause for clause on all 23 items.
+
+    ORDER IS CONTENT. `slots=` is emitted in this order and the checklist is
+    rendered in it, so the list is built from document order and never sorted.
+    """
+    p = path or expanded_path()
+    with open(p, encoding="utf8") as fh:
+        root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    out: dict = {}
+    for el in root.iter("Item"):
+        iid = el.get("scores")
+        clauses = []
+        for sl in el.iter("Slot"):
+            c: dict = {"key": sl.get("key")}
+            if sl.get("label") is not None:
+                c["label"] = sl.get("label")
+            if sl.get("seg") is not None:
+                c["seg"] = sl.get("seg")
+            if sl.get("pts") is not None:
+                c["pts"] = sl.get("pts")
+            if sl.get("gate") in _TRUE:
+                c["gate"] = True
+            clauses.append(c)
+        if iid and clauses:
+            out[iid] = clauses
     return out
 
 

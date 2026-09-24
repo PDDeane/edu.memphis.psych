@@ -50,10 +50,89 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # lets the export drop one more value on its next run, with T5.1 proving the JSON
 # still reproduces the modules. Two of twelve today.
 # ---------------------------------------------------------------------------
+def _cond_items(pool: list, cond: str) -> tuple:
+    """The items declaring one condition, IN RUBRIC ORDER.
+
+    The `*_ITEMS` selectors the modules carried are exactly this: "the items that
+    declare X". They were unreachable from the component only because its reader
+    recovered five named booleans out of twelve conditions, so the other seven
+    sets had nowhere to come from.
+
+    ORDER IS NOT CONTENT HERE, checked rather than assumed: every consumer takes
+    membership, `score.py` re-exports them without indexing, and
+    `check_selectors_govern_something` reads the module's own `vars`. The authored
+    tuples were in module order and these are in rubric order; two of them differ.
+    """
+    return tuple(it["id"] for it in pool if cond in (it.get("conditions") or []))
+
+
+def _field_table(pool: list, field: str) -> dict:
+    """`{item id: value}` for one per-item rubric field, for the items that carry
+    it. An item that omits the field is ABSENT, not present-and-empty."""
+    return {it["id"]: copy.deepcopy(it[field]) for it in pool if field in it}
+
+
+# WHAT THE READER CAN REBUILD FROM THE COMPONENT. Every name here was a
+# module-level table the export carried into `handouts[h].authored` when the
+# rubric modules were deleted; each is now read from `bmod_rubric.olx`, where it
+# was already sitting, because the export carried a SECOND COPY of data the
+# component holds.
+#
+# AN EMPTY RESULT MEANS "NOT THIS HANDOUT", and `derived` treats it as absent
+# rather than as an answer. Handout 1 has no `OC_GATES`, and before these
+# derivations existed it raised AttributeError through `_RubricView.__getattr__`
+# -- which `getattr(rub, "OC_GATES", {})` call sites rely on. A derivation that
+# returned `{}` for every handout would silently convert that into a present,
+# empty table.
 DERIVATIONS = {
     "BY_ID": lambda items: {it["id"]: it for it in items},
     "TOTAL": lambda items: sum(it["max"] for it in items),
+    "SLOT_SPEC": lambda items: {
+        i: v for i, v in _slots().items() if i in {x["id"] for x in items}},
+    "MAPS": lambda items: _field_table(items, "maps"),
+    "FORBID": lambda items: _field_table(items, "forbid"),
+    "OC_GATES": lambda items: _field_table(items, "oc_gates"),
+    "OC_FRAME": lambda items: _oc_frame(items),
+    "AVOIDANCE_SCORES": lambda items: _cond_items(items, "avoidance_scores"),
+    "MOVE_PICK_ITEMS": lambda items: _cond_items(items, "move_pick"),
+    "READS_UTB_CHOICE": lambda items: _cond_items(items, "reads_utb_choice"),
+    "BARRIER_PICK_ITEMS": lambda items: _cond_items(items, "barrier_pick"),
+    "CADENCE_BARRIER_ITEMS": lambda items: _cond_items(items, "cadence_barrier"),
+    "CONTINGENCY_GATE_ITEMS": lambda items: _cond_items(items, "contingency_gate"),
+    "POLARITY_GATE_ITEMS": lambda items: _cond_items(items, "polarity_gate"),
+    "TYPE_MATCH_ITEMS": lambda items: _cond_items(items, "type_match"),
+    "REQUIRED_MOVE": lambda items: {it["id"]: it["required_move"]
+                                    for it in items if "required_move" in it},
+    "SLOT_OPTIONS": lambda items: _choices(items),
 }
+
+
+def _slots() -> dict:
+    import rubric_component
+
+    return rubric_component.as_view_slots()
+
+
+def _choices(items: list) -> dict:
+    """The declared menus, for the handout that uses them. Only handout 2 carries
+    any, and an empty result reads as absent -- see DERIVATIONS."""
+    import rubric_component
+
+    if not any("cadence" in (it.get("conditions") or []) or it.get("cadence")
+               for it in items):
+        return {}
+    return rubric_component.as_view_choices()
+
+
+def _oc_frame(items: list) -> str:
+    """The shared frame, for the handout that uses it. Empty elsewhere, which
+    `derived` reads as absent -- handouts 1 and 3 never carried one."""
+    import rubric_component
+
+    if not any("cadence" in (it.get("conditions") or []) or it.get("cadence")
+               for it in items):
+        return ""
+    return rubric_component.as_view_frame("oc_frame")
 
 # Which group each item field belongs to (§9.2a obligation 1). GENERATOR is empty
 # until Stage 4 brings `olx_prompts.py`'s tables across under B2a -- and that
@@ -78,6 +157,13 @@ RUBRIC_FIELDS = {
     "forbid", "equals", "onlyif", "expect", "maps", "cadence", "oc_gates",
     "derived", "reads_utb_choice", "requires", "cover", "move_pick",
     "avoidance_scores", "graph_item",
+    # THE CONDITIONS THEMSELVES, and one attribute recovered from the rubric that
+    # the modules carried as a table. `conditions` is the set the five named
+    # booleans above are a hand-kept subset of -- exposing it is what let the
+    # seven `*_ITEMS` selectors be DERIVED instead of carried. `required_move` is
+    # `rubric_h2.REQUIRED_MOVE`, which had no per-item home until it was written
+    # as one.
+    "conditions", "required_move",
     # SINCE F2: the item's gold cannot be taken from the sheet total and must be
     # REBUILT from the grader's itemised deductions. An item property, so it is
     # declared on the item -- `handouts.rebuild_gold_from_comment` reads the
@@ -413,7 +499,10 @@ def derived(name: str, handout: int | None = None):
             if handout is None or it.get("handout") == handout]
     fn = DERIVATIONS.get(name)
     if fn is not None:
-        return fn(pool)
+        value = fn(pool)
+        # EMPTY IS ABSENT, not an answer -- see DERIVATIONS' own note.
+        if value or name in ("TOTAL", "BY_ID"):
+            return value
     for h, block in doc.get("handouts", {}).items():
         if handout is not None and int(h) != handout:
             continue

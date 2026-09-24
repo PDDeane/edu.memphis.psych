@@ -5613,6 +5613,53 @@ behind and reported NOT RUN when absent, because absence is not a pass);
 LOG rather than re-derived -- the same rule as
 `stage06b_gate.py` and `stage07_gate.py`. See T20 for why it chdirs first.
 
+### K · How much of the enforcement machinery can be a lo-blocks test suite?
+
+Filed 2026-09-23 on the user's instruction, AFTER H, I and J. The question is
+not "can we port 188 checks" -- it is how many of them are asking something the
+ENGINE could answer natively, and would answer for every course rather than this
+one.
+
+WHY IT IS NOW WORTH ASKING, and it was not before tonight. The subject of most
+of these checks has moved. The rubric is an authored OLX component; the prompt
+fragments, the criteria frame, the carried commentary, the slot sheets and all
+but one of the authored tables are in it. A check over `bmod_rubric.olx` is a
+check over CONTENT, and lo-blocks already validates content.
+
+THE EVIDENCE THAT THIS IS REAL rather than speculative arrived during the move
+that prompted it. Adding `requiredMove=` to four items was accepted by every
+python reader -- `coursedata`, `derived`, the rubric view, the audit at 44 -- and
+REFUSED by the engine:
+
+    ❌ ATTRIBUTE_VALIDATION: Invalid attributes for <Item ...>:
+       - : Unrecognized key(s) in object: 'requiredMove'
+
+The engine's own Zod schema caught an attribute the rubric had no business
+carrying until it was declared. Nothing in `scoring/` noticed, because nothing in
+`scoring/` knows what an `<Item>` may hold -- the engine does, and it is the only
+side that does.
+
+WHAT TO SORT INTO, and the sorting is the goal rather than the porting:
+  * SCHEMA -- what an element may carry, which values are legal, what a
+    reference must resolve to. The engine already does this and does it for any
+    course; every check in `scoring/` doing it by hand is a second opinion.
+  * STRUCTURE -- a slot with no menu, a gate with no text, a code nothing can
+    charge, a declaration whose key no longer exists. Answerable from the rubric
+    alone, so answerable in a .ts test suite over the component.
+  * MEASUREMENT -- everything comparing runs, rates, medians, gold and the two
+    scorers. NOT portable, and not a candidate: it is about this corpus's
+    numbers, needs the run ledger, and stays in python.
+
+THE PRIZE, stated so it can be checked later: a structural check written in
+lo-blocks runs on `npm run build`, fails the build rather than an audit nobody
+ran, and applies to the next course for free. A structural check written here
+runs when someone runs it and knows only about this one.
+
+THE OBLIGATION IS THE SAME ONE USED ALL NIGHT: a ported check must FIRE on the
+case its python original fires on, proved by the same fire test, before the
+original retires. A check that moves and stops catching anything is worse than
+the check that stayed.
+
 ### T27 · Compare the finding SET, and against the RIGHT baseline
 
 06c deleted the rubric modules and the audit read 28 where §0 recorded 32. Four
