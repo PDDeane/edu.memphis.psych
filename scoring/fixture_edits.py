@@ -39,11 +39,15 @@ the right response to "the corpus moved" is a person reading the cell.
 import argparse
 import hashlib
 import json
+
+import paths
 import pathlib
 import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
-SPANS = HERE / "CONSENSUS_SPANS.json"
+# UNDER THE METADATA ROOT: spans over this corpus are course data, not
+# machinery, and not content either.
+SPANS = paths.COURSE_FIXTURE / "CONSENSUS_SPANS.json"
 
 
 def sha12(s: str) -> str:

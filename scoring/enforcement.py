@@ -4668,8 +4668,12 @@ def check_consensus_fixes_have_no_duplicate_cells() -> list[str]:
     import os
     import re as _re
 
-    src = _CONSENSUS_SOURCE or os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "CONSENSUS_SPANS.json")
+    import paths
+
+    # `_CONSENSUS_SOURCE` STAYS: it is the selftest's injection point, and
+    # dropping it while repointing the default would have removed a fire test
+    # rather than a path.
+    src = _CONSENSUS_SOURCE or str(paths.COURSE_FIXTURE / "CONSENSUS_SPANS.json")
     try:
         raw = open(src).read()
     except Exception as exc:                    # pragma: no cover

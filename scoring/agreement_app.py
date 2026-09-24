@@ -539,9 +539,13 @@ class _ConsensusFixes:
             yield self[key]
 
 
+# THROUGH `paths`, and it was a SECOND copy of the location -- `fixture_edits`
+# holds the other. A filename grep found that one and missed this, because this
+# builds the path from `__file__` instead of naming the file beside a constant.
+# The move broke it at run time rather than at edit time, which is the whole
+# argument for locations living in one module.
 CONSENSUS_FIXES = _ConsensusFixes(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                  "CONSENSUS_SPANS.json"))
+    str(paths.COURSE_FIXTURE / "CONSENSUS_SPANS.json"))
 
 
 def _unclaimed_tail(raw: str, boxes: list[str]) -> str:

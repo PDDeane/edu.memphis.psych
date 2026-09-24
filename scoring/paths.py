@@ -208,6 +208,13 @@ COURSE_FILE = Path(os.environ.get("COURSE_FILE", COURSE_METADATA / "course.json"
 COURSE_CHANGELOG = Path(os.environ.get(
     "COURSE_CHANGELOG", COURSE_METADATA / "CHANGELOG.md"))
 
+# THE FIXTURE'S OWN DATA, under the metadata root. Spans over this corpus, the
+# split worksheet, and the two shape exports: course-bearing by construction, and
+# none of it content -- so it belongs where the course file does rather than
+# beside the .olx, where staging would copy 1.2 MB of it on every build.
+COURSE_FIXTURE = Path(os.environ.get(
+    "COURSE_FIXTURE", COURSE_METADATA / "fixture"))
+
 # ── Derived paths ────────────────────────────────────────────────────────────
 
 # Generated content (Class B: intra-repo since the move).
