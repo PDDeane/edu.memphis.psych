@@ -1931,9 +1931,30 @@ def expect_attr_for(item_id: str) -> str | None:
     """The `expect=` attribute value for an item, from the RUBRIC declaration.
 
     Format is parse_expect's: `key:left=value:lenient,lenient`, rules joined by
-    `|`. Only WK1 declares one; the four `demonstrates_type` rules stay authored
-    in the .olx because the CLI reaches that fact through `expected_type` and
-    REQUIRED_MOVE, so declaring them here would be a second source for one fact.
+    `|`.
+
+    WHAT THIS DOCSTRING USED TO SAY IS NO LONGER TRUE, and it is quoted rather
+    than deleted because it sent a reader down an hour-long wrong turn: "Only WK1
+    declares one; the four `demonstrates_type` rules stay authored in the .olx
+    because the CLI reaches that fact through `expected_type` and REQUIRED_MOVE,
+    so declaring them here would be a second source for one fact."
+
+    The rubric declares ALL FIVE now, so all five are generated here, and
+    `HAND_AUTHORED_ATTRS` -- the mechanism that was meant to protect the four --
+    is EMPTY, consistent with that. Nothing reported the prose going stale,
+    because prose is not a declaration.
+
+    THE WARNING IT ENDED ON IS STILL LIVE, and measured: exactly ONE rule states
+    a fact the type vocabulary already states. The item whose sheet carries a
+    `stimulus_move` slot expects that slot to equal the move its
+    `expected_type` requires -- the same string on both sides of a lookup
+    `score.py` performs anyway. The other three expect `observed_type` to equal
+    the type, which is a different claim and not a duplicate.
+
+    THE AUDIT WAS NEVER WRONG ABOUT ANY OF THIS.
+    `check_generated_attributes_have_a_declaration` asks THIS function whether
+    the rubric backs an attribute, so all five are correctly backed. The stale
+    prose misled a reader, not a check.
     """
     item = config(HANDOUT[item_id])["rubric"].BY_ID[item_id]
     rules = item.get("expect") or []

@@ -288,8 +288,6 @@ def as_view_items(path: str | None = None) -> list[dict]:
         # next condition needs no edit here to be readable.
         if conds:
             it["conditions"] = sorted(conds)
-        if el.get("requiredMove"):
-            it["required_move"] = el.get("requiredMove")
         if params.get("cadence"):
             it["cadence"] = params["cadence"]
         q = el.find("Question")
@@ -381,6 +379,25 @@ def as_view_slot_spec(path: str | None = None) -> dict:
         if rows:
             out[iid] = rows
     return out
+
+
+def as_view_type_moves(path: str | None = None) -> dict:
+    """`{type: required move}` from `<TypeMove type= move=/>`.
+
+    KEYED BY TYPE, NOT BY ITEM, and a course can make the two indistinguishable.
+    The consumer looks it up by the item's `expected_type`, so it is a fact about
+    the VOCABULARY -- what each type requires -- and not about the item that asks
+    for it. Where a course names its items after the types they ask for, every
+    item id equals its own `expected_type` and an item-keyed copy answers every
+    lookup correctly while meaning something else. That is how it was first
+    written here, and no check could tell: there was no case in the corpus where
+    the two keys differ.
+    """
+    p = path or expanded_path()
+    with open(p, encoding="utf8") as fh:
+        root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    return {el.get("type"): el.get("move")
+            for el in root.iter("TypeMove") if el.get("type")}
 
 
 def as_view_choices(path: str | None = None) -> dict:

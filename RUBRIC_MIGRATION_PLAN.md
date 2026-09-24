@@ -3521,6 +3521,49 @@ right destination is the OLX rather than `course.json`.
 moved: `<Frame name="fragment:webSystem">`, 2,416 characters, `{blurb}` filled
 from the handout's own authored field. 28 fragments now.
 
+#### C(v) · EXPECT vs the component's `expect`, settled 2026-09-23
+
+The user refused to trust the audit until this was explained. It is explained,
+and the audit was right; a DOCSTRING was wrong and a MODELLING ERROR of mine was
+hiding behind a coincidence.
+
+1. THE AUDIT IS SOUND. `check_generated_attributes_have_a_declaration` asks
+   `expect_attr_for` whether the rubric backs an attribute, and that function
+   reads the COMPONENT. All five `expect=` attributes are backed. The authored
+   `EXPECT` table is not consulted by any check.
+
+2. THE TABLE HAS ONE CONSUMER LEFT, and it is a test: E44's selftest picks its
+   subject with `i in EXPECT`. Narrow or wide, the case still fires -- it would
+   simply choose a different item.
+
+3. THE DOCSTRING WAS STALE AND COST AN HOUR. `expect_attr_for` said "Only WK1
+   declares one; the four `demonstrates_type` rules stay authored in the .olx".
+   The rubric declares all five, so all five are generated, and
+   `HAND_AUTHORED_ATTRS` -- the mechanism meant to protect the four -- is EMPTY,
+   consistent with that. Nothing reported the prose going stale, because prose is
+   not a declaration. It is quoted in place now rather than deleted.
+
+4. THE WARNING IT ENDED ON IS LIVE, measured at exactly one rule: the item whose
+   sheet carries a `stimulus_move` slot expects that slot to equal the move its
+   `expected_type` requires -- the same string on both sides of a lookup
+   `score.py` performs anyway. The other three expect `observed_type` to equal
+   the type, a different claim. Recorded, not changed: it reaches scoring.
+
+5. AND I HAD ENCODED `REQUIRED_MOVE` WRONG. It is keyed by TYPE -- `score.py`
+   reads `REQUIRED_MOVE.get(item["expected_type"])` -- and I wrote it into the
+   rubric as a per-ITEM attribute. On this course the four items are NAMED after
+   the four types, so every id equals its own `expected_type` and the item-keyed
+   copy answered every lookup correctly. BYTE_EQUAL, ATTRS, `--check` and the
+   whole audit passed. No check could have caught it: there is no case in this
+   corpus where the two keys differ. It is `<TypeMove type= move=/>` now, a fact
+   about the vocabulary rather than about an item.
+
+WHAT THIS SAYS ABOUT GOAL K. The engine's schema caught `requiredMove` as an
+attribute `<Item>` may not carry, which is the kind of thing this project's 188
+python checks do not ask. It did NOT catch -- and could not have -- that the
+attribute was on the wrong noun. Schema validation answers "may this element
+carry this?", not "is this the right place for this fact?".
+
 ### D · `gold_slots_q6.py` -- a CHECK that nothing runs
 
 Separate from C, and it predates the migration: the prior run's patch touches it

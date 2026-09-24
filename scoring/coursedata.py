@@ -101,8 +101,7 @@ DERIVATIONS = {
     "CONTINGENCY_GATE_ITEMS": lambda items: _cond_items(items, "contingency_gate"),
     "POLARITY_GATE_ITEMS": lambda items: _cond_items(items, "polarity_gate"),
     "TYPE_MATCH_ITEMS": lambda items: _cond_items(items, "type_match"),
-    "REQUIRED_MOVE": lambda items: {it["id"]: it["required_move"]
-                                    for it in items if "required_move" in it},
+    "REQUIRED_MOVE": lambda items: _type_moves(items),
     "SLOT_OPTIONS": lambda items: _choices(items),
 }
 
@@ -111,6 +110,22 @@ def _slots() -> dict:
     import rubric_component
 
     return rubric_component.as_view_slots()
+
+
+def _type_moves(items: list) -> dict:
+    """The type->move table, for the handout whose items declare a type.
+
+    NOT PER-ITEM, though on this corpus it is indistinguishable from per-item:
+    handout 2's four items are named after the four types they ask for, so their
+    ids equal their `expected_type` values. `score.py` looks it up BY TYPE --
+    `REQUIRED_MOVE.get(item["expected_type"])` -- and an item-keyed table answers
+    every lookup correctly here while meaning something else.
+    """
+    import rubric_component
+
+    if not any(it.get("expected_type") for it in items):
+        return {}
+    return rubric_component.as_view_type_moves()
 
 
 def _choices(items: list) -> dict:
@@ -163,7 +178,7 @@ RUBRIC_FIELDS = {
     # seven `*_ITEMS` selectors be DERIVED instead of carried. `required_move` is
     # `rubric_h2.REQUIRED_MOVE`, which had no per-item home until it was written
     # as one.
-    "conditions", "required_move",
+    "conditions",
     # SINCE F2: the item's gold cannot be taken from the sheet total and must be
     # REBUILT from the grader's itemised deductions. An item property, so it is
     # declared on the item -- `handouts.rebuild_gold_from_comment` reads the
