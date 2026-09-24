@@ -816,7 +816,7 @@ deletion until proven otherwise.
 other route, so `DEFINITIONS.json` holds the inventory of record (1044 names
 across 43 modules) and `enforcement.check_no_definition_vanished()` **refuses a
 sweep** when a recorded name is gone. Removing something on purpose is one
-command per name: `python3 editguard.py --accept MODULE NAME`, which itself
+command per name: `python3 tools/editguard.py --accept MODULE NAME`, which itself
 refuses if the name is still defined. There is no bulk regenerate, for the same
 reason `DESIGNED_TEXT_SHA.json` has none.
 

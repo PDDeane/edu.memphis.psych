@@ -33,7 +33,12 @@ _sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)
 import hashlib
 import re
 
-import editguard
+# A SIBLING TOOL, and both spellings have to reach it: as `tools.guide` the
+# PACKAGE is what is on the path, and as `python3 tools/guide.py` the bootstrap
+# above puts the package ROOT there. A bare-name import works only in the
+# second, which is how this module ran cleanly as a script and failed as a
+# package member -- the one failure a script-only check could not see.
+from tools import editguard
 import paths
 import subprocess
 import sys
@@ -320,6 +325,18 @@ def main(argv: list[str]) -> int:
 # to the guide should be enforced, not rely on you to remember." So it is state,
 # not a habit. To approve a lesson, paste the sha the finding prints.
 LESSONS_APPROVED: dict[str, str] = {
+    # APPROVED 2026-09-24 ON THE USER'S EXPLICIT INSTRUCTION ("fix the editguard
+    # quality control path"), and it is a PATH correction, not a claim: goal H
+    # moved `editguard.py` into `scoring/tools/`, so the lesson's one command
+    # named a file that is no longer there. The lead's sha changed because the
+    # lead holds the command; the claim it makes -- that removing a name is one
+    # declared command per name, with no bulk regenerate -- is unchanged.
+    #
+    # THE GATE WAS NOT WORKED AROUND WHILE IT WAITED. The correction was made and
+    # REVERTED once, and the doc carried the stale path until the user agreed,
+    # because a lesson is approved by the sha of its prose precisely so it cannot
+    # be reworded without agreement, and self-approving would defeat that.
+    "c4ccef24f98e": "the editguard command's path, after tools/ -- user, 2026-09-24",
     # Keyed on the LEAD PARAGRAPH, which is what _lesson_leads hashes: the lead
     # carries the claim, so editing it lapses the approval while re-wrapping the
     # supporting paragraphs does not.

@@ -40,9 +40,22 @@ therefore not one decision but two: which MECHANISM, then which component.
 """
 from __future__ import annotations
 
+# THE MACHINERY ON THE PATH, for the direct-script spelling. `paths` puts THIS
+# directory on the path for importers; a fixture module run as a script needs the
+# reverse -- its own siblings in `scoring/` -- and never executes anything that
+# would have done it.
+import os as _os
+import sys as _sys
+
+_sys.path.insert(0, _os.path.join(
+    _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))),
+    "scoring"))
+
 import argparse
 import json
 import os
+
+import paths
 import re
 import sys
 
@@ -395,7 +408,11 @@ def verify(inventory: dict, evidence: dict) -> list[str]:
 
 
 def _load_inventory(path: str | None) -> dict:
-    path = path or os.path.join(HERE, "SHAPE_INVENTORY.json")
+    # FROM THE MACHINERY, not from beside this file. The shape inventory is an
+    # artifact of `shape_inventory.py` and lives with it; `HERE` became the
+    # fixture directory when this module moved, and the error message then
+    # instructed a reader to write the inventory into the course's data.
+    path = path or str(paths.SCORING / "SHAPE_INVENTORY.json")
     if not os.path.exists(path):
         raise SystemExit(f"grader_inputs: no shape inventory at {path}; run "
                          f"shape_inventory.py --json {path}")

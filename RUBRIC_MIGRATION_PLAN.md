@@ -5778,6 +5778,30 @@ behind and reported NOT RUN when absent, because absence is not a pass);
 LOG rather than re-derived -- the same rule as
 `stage06b_gate.py` and `stage07_gate.py`. See T20 for why it chdirs first.
 
+#### REVIEW BEFORE K, and each entry is a thing deliberately left standing
+
+Not defects to fix in passing -- decisions deferred because they reach scoring or
+the user's judgement, and K rewrites the machinery that would have to encode
+them. Settle these first or K will port them as they are.
+
+1. THE `EXPECT` DUPLICATION. One rule states a fact the type vocabulary already
+   states: the item whose sheet carries a `stimulus_move` slot expects that slot
+   to equal the move its `expected_type` requires, and `score.py` performs that
+   lookup anyway. The other three expect `observed_type` to equal the type, which
+   is a different claim. Both are plain `<Expect>` elements in the rubric, so the
+   distinction the old `EXPECT` table encoded has no expression there. Collapsing
+   it changes what `equivalence.py:3100` selects, from one item to five.
+
+2. THE AUTHORED `EXPECT` TABLE ITSELF, the last entry in `handouts.authored`. It
+   is not the component's per-item `expect` -- the component carries five, the
+   table names one -- and its only consumer is E44's selftest picking a subject.
+   Deriving it would change that subject; deleting it needs (1) settled first.
+
+3. THE 37 UNCLASSIFIED MODULES. Goal H's second question -- produces a FINDING or
+   maintains the TREE -- is answered for the six tools and for category IX. The
+   rest are unread, and K's sorting (schema / structure / measurement) needs the
+   same reading to know what may leave python at all.
+
 ### K · How much of the enforcement machinery can be a lo-blocks test suite?
 
 Filed 2026-09-23 on the user's instruction, AFTER H, I and J. The question is

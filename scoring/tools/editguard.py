@@ -91,7 +91,8 @@ def modules() -> list:
     of both checks silently -- the same shape of failure as the self-locating
     `HERE` that goal H makes this move wait for, one level up.
     """
-    return sorted(list(HERE.glob("*.py")) + list((HERE / TOOLS).glob("*.py")))
+    return sorted(list(HERE.glob("*.py")) + list((HERE / TOOLS).glob("*.py"))
+                  + list(paths.COURSE_FIXTURE.glob("*.py")))
 
 
 def definitions(text: str) -> set:

@@ -23,6 +23,17 @@ AND an example graph. A scorer that reads those as student work scores them.
 
 from __future__ import annotations
 
+# THE MACHINERY ON THE PATH, for the direct-script spelling. `paths` puts THIS
+# directory on the path for importers; a fixture module run as a script needs the
+# reverse -- its own siblings in `scoring/` -- and never executes anything that
+# would have done it.
+import os as _os
+import sys as _sys
+
+_sys.path.insert(0, _os.path.join(
+    _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))),
+    "scoring"))
+
 import difflib
 import re
 

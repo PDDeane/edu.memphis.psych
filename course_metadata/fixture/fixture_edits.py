@@ -36,6 +36,16 @@ the right response to "the corpus moved" is a person reading the cell.
     python3 fixture_edits.py --verify      # every span still yields its text
     python3 fixture_edits.py --show Q6 2   # what a cell's corrections resolve to
 """
+# THE MACHINERY ON THE PATH, for the direct-script spelling. `paths` puts THIS
+# directory on the path for importers; a fixture module run as a script needs the
+# reverse -- its own siblings in `scoring/` -- and never executes anything that
+# would have done it.
+import os as _os
+import sys as _sys
+
+_sys.path.insert(0, _os.path.join(
+    _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))),
+    "scoring"))
 import argparse
 import hashlib
 import json

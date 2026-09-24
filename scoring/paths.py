@@ -215,6 +215,15 @@ COURSE_CHANGELOG = Path(os.environ.get(
 COURSE_FIXTURE = Path(os.environ.get(
     "COURSE_FIXTURE", COURSE_METADATA / "fixture"))
 
+# AND IT IS IMPORTABLE. The fixture modules are course data -- they map THIS
+# course's paper forms to its web forms -- but they are also imported by name
+# from the machinery (`segment` by four modules). Putting the directory on the
+# path here, in the module every other one already imports for its locations,
+# keeps `import segment` working unchanged rather than rewriting each call site
+# to know where the course keeps its fixture.
+if str(COURSE_FIXTURE) not in sys.path:
+    sys.path.insert(0, str(COURSE_FIXTURE))
+
 # ── Derived paths ────────────────────────────────────────────────────────────
 
 # Generated content (Class B: intra-repo since the move).
