@@ -34,6 +34,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
+
+import paths
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -220,8 +222,7 @@ def main(argv: list[str]) -> int:
         return 0
 
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--course-file", default=os.path.join(
-        HERE, "..", "courses", "edu.memphis.psych", "course.json"))
+    ap.add_argument("--course-file", default=str(paths.COURSE_FILE))
     args = ap.parse_args(argv)
 
     if not os.path.exists(args.course_file):

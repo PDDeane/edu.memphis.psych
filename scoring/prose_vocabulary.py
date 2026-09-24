@@ -96,8 +96,9 @@ def split_state() -> tuple[bool, list[str]]:
 
 
 def changelog_path() -> str:
-    return os.path.join(os.path.dirname(HERE), "courses", "edu.memphis.psych",
-                        "CHANGELOG.md")
+    import paths
+
+    return str(paths.COURSE_CHANGELOG)
 
 
 def docstrings_outside_courses(directory: str | None = None) -> list[tuple[str, str]]:

@@ -175,6 +175,20 @@ COURSE_LOCATION = Path(os.environ.get("COURSE_LOCATION",
 COMPOSED_DOCS = Path(os.environ.get(
     "COMPOSED_DOCS", DATA / "courses" / NS / "composed"))
 
+# THE COURSE FILE, BESIDE THE OLX IT DESCRIBES. Goal H, category II: it is course
+# metadata, so it belongs with the course's content and not in a `courses/`
+# directory of its own inside the machinery. Overridable by `COURSE_FILE`, which
+# `coursedata` already honoured and which the certification's fixtures use.
+COURSE_FILE = Path(os.environ.get("COURSE_FILE", REPO / "psychology" / "course.json"))
+
+# THE COURSE'S SCORING CHANGELOG, beside the course file for the same reason: it
+# is this course's record of incidents, not the engine's. F1 sends an incident
+# here, and a gate that strips sentences while their destination is undefined
+# produces deletions rather than moves -- so the destination is named in one
+# place.
+COURSE_CHANGELOG = Path(os.environ.get(
+    "COURSE_CHANGELOG", REPO / "psychology" / "CHANGELOG.md"))
+
 # ── Derived paths ────────────────────────────────────────────────────────────
 
 # Generated content (Class B: intra-repo since the move).

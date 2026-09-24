@@ -219,8 +219,9 @@ _GOLD = None
 
 
 def course_path() -> str:
-    return os.environ.get("COURSE_FILE") or os.path.join(
-        HERE, "..", "courses", "edu.memphis.psych", "course.json")
+    import paths
+
+    return str(paths.COURSE_FILE)
 
 
 def _load() -> dict:

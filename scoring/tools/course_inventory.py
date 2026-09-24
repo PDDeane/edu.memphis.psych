@@ -122,7 +122,7 @@ GENERIC_DOCS: tuple[str, ...] = (
     "ADOPTION_POSTMORTEM.md",
     "AGENDA_FROM_CLASSIFICATION.md",
     "VERDICT_VOCABULARY_PLAN.md",
-    "courses/edu.memphis.psych/CHANGELOG.md",
+    "psychology/CHANGELOG.md",
     "migration/RUNBOOK.md",
     "migration/products/README.md",
     "scoring/STAGE5_LICENCE.md",
