@@ -3312,6 +3312,36 @@ So the division of labour is:
                   plus the generator fields that shape the prompt
 
 
+#### B RE-READ AFTER C, 2026-09-24: three of its four steps are done
+
+B and C were two answers to one question -- who produces the handout -- and C
+answered it. What B still asks for is smaller than its own text suggests:
+
+  1. THE GENERATED PROSE COMES FROM THE RUBRIC. Done, at BUILD time rather than
+     run time: `build:assemble-prompts` reads the rubric and writes the bodies
+     and the sheet attributes. B offered "or be accepted as authored and checked
+     against the rubric instead of rewritten from it" as the alternative; the
+     assembler does the stronger thing, since a difference is a failed build.
+  2. `olx_prompts --write` STOPS WRITING. Done -- it refuses and names the npm
+     script.
+  4. course.json KEEPS item -> handout AND NOTHING MORE, with item -> OLX id on
+     the rubric's `asks`. Done, and unchanged by the moves since.
+
+  3. THE FRESHNESS STORY IS THE RESIDUE, and it is one check. `prompt_sha` hashes
+     the SERVED tag, and `olx_prompts.py --check` still compares disk against
+     what PYTHON's `render()` would write -- a second opinion from the producer
+     that just retired. The audit already asks the better question for
+     ATTRIBUTES ("is every attribute PRODUCED BY A GENERATOR from the rubric? An
+     attribute nobody generates passes --check forever"). The same question for
+     BODIES is now answerable by the assembler, which exits non-zero on any
+     difference.
+
+AND THE PAGE IS ALREADY AUTHORED. B's title asks for hand-authored handouts; the
+only generated parts are 23 `<LLMAction>` bodies and 109 attribute values. The
+layout, prose, figures and refs around them were never generated. So "authored
+pages, assembled prompts" -- the end state C predicted -- is what the tree holds
+today.
+
 ### C · No part of OLX prompt generation may depend on python
 
 Stated 2026-09-23. For the OLX scorer, what shapes a prompt belongs either (a) in
@@ -5778,6 +5808,30 @@ behind and reported NOT RUN when absent, because absence is not a pass);
 LOG rather than re-derived -- the same rule as
 `stage06b_gate.py` and `stage07_gate.py`. See T20 for why it chdirs first.
 
+#### H(7) · `scoring/materials/` STAYS, against this item's own category table
+
+Categories VII and VIII send "materials the rubric/course design was derived
+from" to a named `$COURSE_DATA` subfolder. `paths.py` already carries a decision
+that says otherwise, and it is the better-reasoned of the two:
+
+    MATERIALS is deliberately NOT part of DATA: the blank handout templates are
+    course teaching materials and ship with the code, because `segment.py`
+    subtracts the template from a submission to isolate student text, and a
+    scorer that cannot find its templates cannot score anything. Only the
+    filled-in submissions are sensitive.
+
+The templates are a SCORING DEPENDENCY, not merely a source document. Moving
+them would make scoring fail wherever `$COURSE_DATA` is absent -- which is a
+supported state everywhere else, by design, because gold and the logs may
+legitimately be missing.
+
+THE DIRECTORY COULD BE SPLIT -- the three handout templates are the dependency;
+the three decks and the scoring dictionaries are pure source. It is 4.1 MB
+either way, static, and splitting a directory on "which of these does segment.py
+open" trades a clear rule for a subtle one. Left whole, recorded here, and
+raised rather than done quietly: the category table and the code disagreed, and
+the code had measured a reason.
+
 #### REVIEW BEFORE K, and each entry is a thing deliberately left standing
 
 Not defects to fix in passing -- decisions deferred because they reach scoring or
@@ -5801,6 +5855,47 @@ them. Settle these first or K will port them as they are.
    maintains the TREE -- is answered for the six tools and for category IX. The
    rest are unread, and K's sorting (schema / structure / measurement) needs the
    same reading to know what may leave python at all.
+
+### L · `$COURSE_DATA` ON SHARED STORAGE -- feasible, and the hard part is not technical
+
+Raised by the user 2026-09-24, to be taken up AFTER K. `$COURSE_DATA` cannot go
+in a repository and everyone on the project needs it. There is a Drive folder
+holding the raw original materials:
+https://drive.google.com/drive/folders/1JMqB0-XOCm1uY3k3Ww-IPcPo8ag04kDe
+
+CAN IT BE READ PROGRAMMATICALLY? YES, by MOUNTING rather than by API. Every
+reader here uses ordinary `open()` against a path that already resolves through
+`paths.DATA` and an environment variable -- so a Drive-for-Desktop or `rclone`
+mount needs NO code change at all: `COURSE_DATA=/mnt/drive/molly_data` and the
+package is pointed at it. Going through the Drive API instead would mean
+rewriting every read behind a client, which is a different and much larger job
+for no gain over a mount.
+
+FOUR THINGS TO MEASURE BEFORE COMMITTING, each a real risk here rather than a
+generic caveat:
+
+  1. SIZE. `out/` is 1.6 GB across 827 entries. A sync that pulls it all is slow;
+     a streaming mount makes every ledger read a network round trip.
+  2. MTIME. Four modules already decide freshness by modification time --
+     `jsoncache`, `shape_inventory`, `goals`, `cross_path` -- and the audit's
+     build-freshness checks compare "older than the newest .olx". Sync tools
+     rewrite mtimes on their own schedule, so a cache could serve stale content
+     or a check could fire for no reason. This is the failure most likely to be
+     silent.
+  3. CONCURRENT APPEND. `OVERRIDES.md` is machine-appended, and Drive resolves a
+     write conflict by KEEPING BOTH as "file (1).md". Two people running the gate
+     at once would not collide loudly; the log would quietly split in two.
+  4. WHO CAN READ IT. `corpus_refs.json` and the submissions hold student
+     writing. Moving them to shared storage is a DISCLOSURE decision about who
+     may read students' words, not a storage decision, and it is the one part of
+     this that no measurement settles.
+
+A HYBRID IS LIKELY THE ANSWER: gold, the rubric-side records and the small
+ledgers are the things people actually need to share, and they are megabytes.
+`out/` is bulk run artifacts that only the machine that produced them reads.
+Splitting on that line gets the sharing without the 1.6 GB or most of the mtime
+exposure -- but it should be decided against a measurement of what is actually
+read by more than one person, not by this paragraph.
 
 ### K · How much of the enforcement machinery can be a lo-blocks test suite?
 

@@ -9393,6 +9393,57 @@ def check_every_document_is_where_its_readers_look() -> list[str]:
     return compose_docs.missing()
 
 
+def check_the_handouts_agree_with_the_assembler() -> list[str]:
+    """A shipped prompt body or sheet attribute is not what the rubric produces.
+    Reported as A HANDOUT DISAGREES WITH THE RUBRIC.
+
+    GOAL B'S FRESHNESS STEP, and the reason it had to change. `olx_prompts.py
+    --check` compares the handouts against what PYTHON's `render()` would write --
+    a second opinion from the producer that retired with item C. It answers "would
+    this generator write what is on disk", which is no longer the question. The
+    question is whether the handouts agree with THE RUBRIC, and the assembler is
+    what answers it: `build:assemble-prompts` reads the rubric, assembles all 23
+    bodies and 109 attribute values, and exits non-zero on any difference.
+
+    IT SHELLS OUT, like the two grammar checks, and for the same reason they do:
+    the thing being compared is produced by the other language, and re-implementing
+    it here would make this a third opinion rather than a check.
+
+    CANNOT RUN IS NOT THE SAME AS PASSING. A missing lo-blocks, a missing
+    node_modules, a build error -- each returns a FINDING naming what could not be
+    done, never silence. The grammar checks state that rule; this one obeys it.
+    """
+    import re
+    import subprocess
+
+    import paths as _p
+
+    lo = _p.LO
+    if not (lo / "package.json").exists():
+        return [f"no lo-blocks at {lo}, so the handouts were NOT compared against "
+                f"the rubric -- which is not the same as their agreeing"]
+    try:
+        r = subprocess.run(["npm", "run", "--silent", "build:assemble-prompts"],
+                           cwd=str(lo), capture_output=True, text=True, timeout=1800)
+    except Exception as exc:                        # pragma: no cover
+        return [f"the assembler could not be run ({type(exc).__name__}: {exc}), so "
+                f"the handouts were NOT compared against the rubric"]
+    out = (r.stdout or "") + (r.stderr or "")
+    m = re.search(r"BODIES: (\d+) identical, (\d+) differing\s+ATTRS: (\d+) "
+                  r"identical, (\d+) differing", out)
+    if not m:
+        return [f"the assembler produced no verdict, so the handouts were NOT "
+                f"compared against the rubric: {out.strip()[-160:]}"]
+    _, bodies_bad, _, attrs_bad = (int(x) for x in m.groups())
+    if bodies_bad or attrs_bad:
+        return [f"{bodies_bad} prompt body(ies) and {attrs_bad} attribute value(s) "
+                f"on disk differ from what the rubric produces. The handout is a "
+                f"projection of the rubric; where they disagree the rubric is right "
+                f"and the handout is stale -- `npm run build:assemble-prompts -- "
+                f"--write` in {lo}"]
+    return []
+
+
 def check_composed_documents_are_current() -> list[str]:
     """A composed document no longer matches the halves it was built from.
     Reported as A COMPOSED DOCUMENT IS STALE.

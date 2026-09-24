@@ -228,6 +228,36 @@ def _el_attrs(el, spec):
     return rec
 
 
+_PARSED: dict = {}
+
+
+def _root(path: str):
+    """The parsed rubric, CACHED ON (path, mtime).
+
+    EVERY READER HERE RE-PARSED THE WHOLE FILE. That was affordable while one or
+    two of them were called per run; it stopped being so when `coursedata.derived`
+    began rebuilding `SLOT_SPEC`, `MAPS`, `OC_GATES`, `SLOT_OPTIONS` and
+    `REQUIRED_MOVE` from the component instead of reading them out of a dict.
+    Measured: ONE `measured.record` parsed this file 837 times and took 98
+    seconds, so a 79-entry re-record would have run for six hours.
+
+    KEYED ON MTIME, not on the path alone, so an edit during a session is picked
+    up. A cache that could serve a stale rubric would be worse than the parse it
+    saves: the whole point of reading the component is that it is the source.
+    """
+    try:
+        key = (path, os.stat(path).st_mtime_ns)
+    except OSError:
+        key = (path, None)
+    hit = _PARSED.get(key)
+    if hit is None:
+        with open(path, encoding="utf8") as fh:
+            hit = ET.fromstring(_COMMENT.sub("", fh.read()))
+        _PARSED.clear()                 # one rubric at a time; never unbounded
+        _PARSED[key] = hit
+    return hit
+
+
 def as_view_items(path: str | None = None) -> list[dict]:
     """The rubric as `config(h)["rubric"].ITEMS` serves it, in rubric order."""
     p = path or staged_path()
@@ -360,8 +390,7 @@ def as_view_items(path: str | None = None) -> list[dict]:
 def as_view_slot_spec(path: str | None = None) -> dict:
     """`SLOT_SPEC` as the view serves it: {item: [{key, label, seg, pts}]}."""
     p = path or staged_path()
-    with open(p, encoding="utf8") as fh:
-        root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    root = _root(p)
     out = {}
     for el in root.iter("Item"):
         iid = el.get("scores")
@@ -394,8 +423,7 @@ def as_view_type_moves(path: str | None = None) -> dict:
     the two keys differ.
     """
     p = path or expanded_path()
-    with open(p, encoding="utf8") as fh:
-        root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    root = _root(p)
     return {el.get("type"): el.get("move")
             for el in root.iter("TypeMove") if el.get("type")}
 
@@ -409,8 +437,7 @@ def as_view_choices(path: str | None = None) -> dict:
     belongs to none of them.
     """
     p = path or expanded_path()
-    with open(p, encoding="utf8") as fh:
-        root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    root = _root(p)
     return {el.get("name"): _list(el.get("options"))
             for el in root.iter("Choices") if el.get("name")}
 
@@ -427,8 +454,7 @@ def as_view_slots(path: str | None = None) -> dict:
     rendered in it, so the list is built from document order and never sorted.
     """
     p = path or expanded_path()
-    with open(p, encoding="utf8") as fh:
-        root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    root = _root(p)
     out: dict = {}
     for el in root.iter("Item"):
         iid = el.get("scores")
@@ -470,8 +496,7 @@ def as_view_notes(conditions=(), path: str | None = None) -> dict:
     needs no translation and no new rule.
     """
     p = path or expanded_path()
-    with open(p, encoding="utf8") as fh:
-        root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    root = _root(p)
     have = set(conditions or ())
     out = {}
     for fr in root.iter("Frame"):
@@ -550,8 +575,7 @@ def as_view_fragments(path: str | None = None) -> dict:
     supplied rather than half-filling it.
     """
     p = path or expanded_path()
-    with open(p, encoding="utf8") as fh:
-        root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    root = _root(p)
     out = {}
     for fr in root.iter("Frame"):
         name = fr.get("name") or ""
@@ -585,8 +609,7 @@ def as_view_frame(name: str = "oc_frame", conditions=(), params=None,
     that happens to contain a brace is left alone rather than half-substituted.
     """
     p = path or expanded_path()
-    with open(p, encoding="utf8") as fh:
-        root = ET.fromstring(_COMMENT.sub("", fh.read()))
+    root = _root(p)
     have = set(conditions or ())
     out = []
     for fr in root.iter("Frame"):

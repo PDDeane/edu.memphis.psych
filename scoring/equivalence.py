@@ -1065,6 +1065,8 @@ def enforcement_audit():
         findings.append(("-", "COURSE CONTENT IN A GENERIC DOCUMENT", bad))
     for bad in ENF.check_composed_documents_are_current():
         findings.append(("-", "A COMPOSED DOCUMENT IS STALE", bad))
+    for bad in ENF.check_the_handouts_agree_with_the_assembler():
+        findings.append(("-", "A HANDOUT DISAGREES WITH THE RUBRIC", bad))
     for bad in ENF.check_every_document_is_where_its_readers_look():
         findings.append(("-", "A DOCUMENT IS NOT WHERE ITS READERS LOOK", bad))
     for bad in ENF.check_carried_notes_are_intact():

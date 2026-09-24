@@ -289,10 +289,23 @@ def scan_module(path: str, ids: set[str]) -> dict:
 
 
 def inventory(directory: str | None = None, course_file: str | None = None) -> dict:
-    directory = directory or HERE
     ids = item_ids(course_file)
-    mods = sorted(f for f in os.listdir(directory) if f.endswith(".py"))
-    per = [scan_module(os.path.join(directory, f), ids) for f in mods]
+    # THE WHOLE PACKAGE, through the one inventory that knows its shape. Listing a
+    # single directory measured 66 modules of 75 the moment `tools/` and the
+    # fixture moved: a RATCHET that silently stops counting nine modules reads as
+    # a tightening rather than as a smaller measurement, which is the failure mode
+    # this file exists to prevent one level up.
+    if directory:
+        mods = sorted(os.path.join(directory, f)
+                      for f in os.listdir(directory) if f.endswith(".py"))
+    else:
+        # A SIBLING TOOL: `tools.editguard` as a package member, not by bare
+        # name -- the bare spelling resolves only under the script bootstrap, the
+        # same trap `tools.guide` fell into.
+        from tools import editguard
+
+        mods = [str(x) for x in editguard.modules() if x.name != "__init__.py"]
+    per = [scan_module(f, ids) for f in mods]
     totals = {k: sum(m.get("counts", {}).get(k, 0) for m in per)
               for k in ("tables", "literal_ids", "vocabulary", "named",
                         "unclassified")}
@@ -326,7 +339,12 @@ def self_test() -> list[str]:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--dir", default=HERE)
+    # DEFAULT None, not HERE: a concrete directory takes the single-directory
+    # branch and measures 66 modules of 75. Leaving it unset is what scans the
+    # whole package -- and the CLI was the one caller passing a directory, so
+    # the CLI was the one caller seeing the short count. The same shape as
+    # `anchors.py --dir`, which had the identical bug for the identical reason.
+    ap.add_argument("--dir", default=None)
     ap.add_argument("--course-file", default=None)
     ap.add_argument("--json", metavar="PATH")
     ap.add_argument("--tighten", action="store_true",
