@@ -46,10 +46,21 @@ import ast
 import json
 import os
 import pathlib
+
+import paths
 import sys
 import tempfile
 
-HERE = pathlib.Path(__file__).parent
+# THE PACKAGE ROOT, NOT THIS FILE'S PARENT. `modules()` globs HERE and
+# `INVENTORY` resolves against it, so a module that locates itself decides what
+# the whole inventory contains. Moving this file into a subdirectory would make it
+# glob that subdirectory and look for a DEFINITIONS.json beside itself -- and it
+# would NOT error. It would report a clean, tiny, entirely wrong inventory, and
+# `check_every_module_is_tracked` and `check_every_definition_is_recorded` would
+# both go quiet in the same moment, because both ask this module what the package
+# contains. Goal H states that failure in advance; `paths.SCORING` is the fix, and
+# it has to land BEFORE anything moves rather than with it.
+HERE = paths.SCORING
 INVENTORY = HERE / "DEFINITIONS.json"
 
 # Modules whose definitions are inventoried. The whole package: a helper deleted

@@ -36,11 +36,16 @@ import ast
 import sourcecache
 import json
 import os
+
+import paths
 import re
 import sys
 
 SCHEMA_VERSION = 1
-HERE = os.path.dirname(os.path.abspath(__file__))
+# THE PACKAGE ROOT, for the reason `editguard.HERE` carries: a scanner that
+# locates the tree from its own position measures the wrong tree from a new one,
+# and reports a clean result while doing it.
+HERE = str(paths.SCORING)
 
 # Every term carries its justification. A term added without one fails
 # `self_test()` -- the vocabulary is the part of this tool most able to invent a
