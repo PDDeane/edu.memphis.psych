@@ -3564,6 +3564,48 @@ python checks do not ask. It did NOT catch -- and could not have -- that the
 attribute was on the wrong noun. Schema validation answers "may this element
 carry this?", not "is this the right place for this fact?".
 
+#### C · DONE 2026-09-23 -- the producer is npm, and nothing in it is python
+
+    npm run build:assemble-prompts            expand, build inputs, check
+    npm run build:assemble-prompts -- --write  ... and write
+
+PROVED BEFORE IT REPLACED ANYTHING, which was the whole obligation this item was
+filed with: 23 of 23 bodies byte-identical, 322 of 322 attribute values, 109
+attribute values written back with all three handouts unchanged and git
+reporting no diff. `olx_prompts.py --write` now refuses and points at the npm
+script; `OLX_LEGACY_WRITE=1` keeps the old path for one case only -- the npm
+build is broken and a handout must be regenerated to reach a known tree.
+
+THE SHAPE OF THE WORK, AS DONE:
+  1. the assembler reproduced the shipped bodies from a python DUMP (23/23)
+  2. the attributes followed (322/322), which needed `expectAttr` and
+     `rubricDefAttr` written and `choicesAttr` proved portable after all
+  3. the 27 prompt fragments moved into the rubric, and the literals left
+     olx_prompts.py, so the words exist once
+  4. the dump itself was replaced: `build:rubric-inputs` reads the rubric,
+     course.json and the handouts directly
+  5. python's OLX-generation role retired
+
+WHAT IS STILL PYTHON, and correctly so: `olx_prompts.py` keeps the PAPER
+scorer's half, and `--check` still compares its own generator against disk. That
+is a second opinion now rather than the authority, and deleting the generator
+code is a separate, larger deletion than this item asked for.
+
+THE DEFECTS THIS FOUND, all caught by bytes and none by reading:
+  * a frozen criteria frame with 5 segments where the rubric has 9
+  * an item's own conditions are not the frame's -- four more are computed
+  * `omitGuidance` is indices to the assembler and text fragments in python
+  * notes must arrive RESOLVED, by a four-source precedence
+  * `<Question>`/`<Guidance>` carry no attributes and a space-demanding pattern
+    read that as an item with no question
+  * HANDOUT_FIELDS is a pair list, not an object
+  * attribute values are escaped, so a judging `rule=` kept its entities
+  * `context` is `<Context item=/>` children, not an attribute
+  * `pts=""` is not zero
+  * AND `slotSheet.parseSlots` emits `countMax` while `promptAssembler` read
+    `count_max` -- the engine's own parser could not drive its own assembler,
+    unnoticed because only the python dump had ever fed it
+
 ### D · `gold_slots_q6.py` -- a CHECK that nothing runs
 
 Separate from C, and it predates the migration: the prior run's patch touches it

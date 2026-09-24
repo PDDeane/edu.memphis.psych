@@ -10067,7 +10067,7 @@ def check_olx_attributes_are_all_generated() -> list[str]:
                 out.append(
                     f"{item}: `{name}=` DIVERGED from the rubric -- the .olx has "
                     f"{have[:60]!r} and the generator produces {str(gen)[:60]!r}. "
-                    f"Run `olx_prompts.py --write` (it may need two passes) and "
+                    f"Run `npm run build:assemble-prompts -- --write` and "
                     f"confirm the rendered body, not just the attribute.")
     return out
 
@@ -10179,7 +10179,7 @@ def check_pick_choices_match_rubric() -> list[str]:
                     f"{item}/{slot} picks from '{setname}': the rubric declares "
                     f"{sorted(want)} but the .olx offers {sorted(have)}. The "
                     f"grader cannot answer what it is not offered -- run "
-                    f"`olx_prompts.py --write` and confirm the checklist head "
+                    f"`npm run build:assemble-prompts -- --write` and confirm the checklist head "
                     f"lists it.")
     return out
 
@@ -12224,7 +12224,7 @@ def check_written_rules_reach_the_shipped_prompt() -> list[str]:
                 f"{item}: the rubric generates {len(missing)} prompt line(s) the "
                 f"shipped .olx does not carry, so its recorded number describes a "
                 f"prompt the rubric has moved past. Deliver it with "
-                f"`python3 olx_prompts.py --write`, re-dump the idmap, and sweep. "
+                f"`npm run build:assemble-prompts -- --write`, re-dump the idmap, and sweep. "
                 f"First missing line: {missing[0][:90]!r}")
     return out
 

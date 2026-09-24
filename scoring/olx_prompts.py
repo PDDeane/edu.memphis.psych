@@ -3221,6 +3221,23 @@ def main() -> int:
     # runs to clear for precisely this reason: 1a's baseline was 40 cells old
     # prompt and 20 new, and the two items behind it in the queue would have
     # measured the NEW prompt as their baseline. All three discarded.
+    if a.write and not os.environ.get("OLX_LEGACY_WRITE"):
+        print(
+            "  olx_prompts.py NO LONGER WRITES THE HANDOUTS.\n"
+            "\n"
+            "  The bodies and the sheet attributes are produced by lo-blocks now:\n"
+            "      npm run build:assemble-prompts -- --write\n"
+            "\n"
+            "  That producer was proved against this one before it replaced it --\n"
+            "  23 of 23 bodies and 322 of 322 attribute values byte-identical, and\n"
+            "  a --write that leaves all three handouts unchanged. Item C's rule is\n"
+            "  that no part of OLX prompt generation depends on python; this module\n"
+            "  keeps the PAPER scorer's half and nothing else.\n"
+            "\n"
+            "  `OLX_LEGACY_WRITE=1` still runs the old path, for the one case it is\n"
+            "  for: the npm build is broken and a handout has to be regenerated to\n"
+            "  get back to a known tree. It is not a second producer.")
+        return 1
     if a.write:
         busy = _measurements_in_flight()
         if busy and not a.force:
