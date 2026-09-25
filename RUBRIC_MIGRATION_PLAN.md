@@ -8966,6 +8966,31 @@ cannot be recreated without re-running the sweeps that produced it. And the
 column is not idle: `rescore_recorded` drives this scorer, and it is what
 verified the 26 provenance findings at no call cost this session.
 
+### WHAT THE TWO REMAINING SIDES WOULD BE FOR (user, 2026-09-24)
+
+**"With the retirement of the python web scorer there is a simple functional
+difference between the paper and web scorers: the PAPER scorer scores
+teacher-provided artifacts, often in only implicitly structured formats, whereas
+the WEB scorer scores the OLX version of the same content after it has been
+structured for effective web delivery."**
+
+That reframes what survives. `python` and `olx` are two implementations of ONE
+job -- score this slot sheet -- and the 55 checks below exist to keep them from
+drifting apart. `paper` and `web` are not that. They score DIFFERENT INPUTS: one
+reads what a teacher actually wrote, in whatever shape they wrote it; the other
+reads the same content after it has been given structure for delivery.
+
+Two consequences worth stating before anyone retires anything:
+
+* **A paper/web disagreement is not automatically a bug.** Where `python` vs
+  `olx` differing always meant one implementation was wrong, paper vs web can
+  differ because the STRUCTURING changed what is legible -- which is a finding
+  about the OLX authoring, not about either scorer.
+* **The comparison that remains answers a different question**, and the
+  machinery built for the first one should not be pointed at the second without
+  saying so. A check that reads "these two must agree" is true of the retired
+  pair and is an open question for the surviving one.
+
 ### THE ENFORCEMENT MACHINERY IS BUILT ON THE TWO SIDES BEING COMPARABLE (user)
 
 **"A LOT of the enforcement machinery deals with keeping the python and olx web
@@ -9295,3 +9320,61 @@ members, `<Forbid>`-computed slots, and the cadence gate (which moved INTO the
 declared loop rather than being excluded from it). That is the shape of the
 answer M was looking for -- not "declare everything", but "a slot is an
 independent gate only when nothing else decides it".
+
+## K · FIRST-PASS SORT, FILED AND STOPPED (2026-09-24, user: "not yet")
+
+Work on K stopped on the user's instruction. What was found in the first pass is
+filed here so the next attempt starts from it rather than repeating it.
+
+### The sort, and it is NOT yet trustworthy
+
+191 `check_*` functions, classified by what each READS and what its question is
+ABOUT:
+
+    MEASUREMENT (stays)                        41   21%
+    ABOUT OUR PYTHON (stays, or dies with it)  44   23%
+    CONTENT ONLY (portable to lo-blocks)       58   30%
+    UNCLASSIFIED (needs eyes)                  48   25%
+
+**Treat these numbers as a starting point, not a result.** Two earlier passes
+over the same 191 checks disagreed violently -- one put 75% in MEASUREMENT, the
+next 19% -- because both keyed on names appearing anywhere in the body, and a
+structural check that merely mentions `prompt_sha` is not a measurement check.
+A third of the population is still unclassified. A hand-written detector over
+prose was the wrong instrument and is the documented wrong instrument.
+
+### What reading a sample showed, which the sort could not
+
+The decisive distinction is NOT which modules a check reads -- it is **what its
+question is about**. Both of these read the rubric and the slot sheet:
+
+  * `check_rubric_slots_reach_the_sheet` -- "a rubric slot with no entry in its
+    item's `slots=`". Content against content. **Portable.**
+  * `check_weighted_slots_are_scored` -- "does every point-bearing slot reach a
+    scorer?" It reads the same declarations, but the subject is OUR PYTHON
+    SCORER'S SOURCE. **Not portable; it dies with the thing it interrogates.**
+
+So the criterion that matters is the SUBJECT, and the usable proxy found for it
+is whether the check reads python source (`inspect.getsource`,
+`_source_through_delegates`, `_oc_scorer()`, `SCORERS`/`DEDUCERS`). That is what
+the 44 in the second bucket have in common, and several of them are checks this
+session repaired precisely because reading source is fragile.
+
+### What to do next, when K is taken up
+
+1. **Classify by SUBJECT, by reading, not by grep.** The population is 191 and
+   the docstrings are excellent; the sort is a day of reading, not a script.
+   Every automated attempt so far has been wrong in a way only reading found.
+2. **The 58 in CONTENT ONLY are candidates, not a work list.** They have not
+   been checked individually, and the sample above shows the false-positive rate
+   is real.
+3. **The obligation the goal already states stands:** a ported check must FIRE
+   on the case its python original fires on, proved by the same fire test,
+   before the original retires.
+4. **K and O are entangled.** 44 checks are ABOUT our python, and O would retire
+   part of what they interrogate. Sorting K before deciding O risks porting
+   checks that are about to become moot -- and O's own answer depends on what
+   survives K.
+
+Raw sorts kept at `scratchpad/k_sorted.json` for the next pass; they are inputs
+to a reading, not a conclusion.
