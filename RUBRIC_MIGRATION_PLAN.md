@@ -9435,3 +9435,74 @@ read what the item says it asks.
 
 `rubric_olx` now round-trips the note, so regenerating the rubric cannot silently
 destroy the wording -- the failure `gate=` already had once today.
+
+## O · ANSWERED WITH THE EXPERIMENT, NOT THE ARGUMENT (2026-09-24)
+
+O said "revisit when M step 4 lands". It has, so this is the revisit.
+
+### Precondition 1 is substantially met
+
+`agreement.score_sheet` is a 67-line PURE INTERPRETER. Its only string literals
+are `cond, counts, free, gates, onlyif, slots, verdict` -- structural field
+names. No rules, no codes, no item ids. It cannot drift on RULES any more; it can
+still drift on ARITHMETIC, because it is a second implementation of
+`scoreSlotSheet` -- and `mirror_self_control` tests exactly that continuously,
+currently olx 2,760/2,760 and python 2,908/2,908.
+
+### THE 29% FIGURE WAS WRONG, and the experiment says so
+
+Static analysis said 55 of 191 checks reach the python side. **Running it says
+the audit barely notices.** Every runnable check was executed twice -- once
+normally, once with every recorded python artifact suppressed AND the python
+ledger column removed:
+
+    checks run   185
+    UNCHANGED    182
+    changed        3   (one of which RAISES)
+
+The 55 was counting checks that need the mirror's CODE, which retirement does not
+remove. That is the fourth hand-written detector over source to give a confident
+wrong number in one session.
+
+### What actually changes, all three
+
+| check | effect | is it a loss? |
+|---|---|---|
+| `check_items_are_measured_as_configured` | 26 findings | **No** -- it asks whether each item's number matches the CURRENT setup. Stop configuring a python column and it stops firing. A configuration statement, not a capability. |
+| `check_computed_slot_recovery_is_faithful` | 1 finding | **Partly** -- loses one side's worth of input for "does recovering an unrecorded slot reproduce the recorded one?" |
+| `check_scored_slots_are_answered_by_both_engines` | **RAISES** | **Yes, definitionally** -- "a slot the sheet gives POINTS to, answered by one engine and never the other" has no subject with one engine. |
+
+**So the audit survives.** The honest cost is ONE check that loses its subject and
+one that loses half its input -- not 29% of the machinery.
+
+### THE RECOMMENDATION: retire the MEASUREMENT, keep the RUNS and the CODE
+
+The framing that makes this answerable is the user's own -- retirement means
+"dropping a column from the ledger and the associated runs". Those are separable,
+and separating them gets the benefit without the destruction:
+
+1. **STOP SWEEPING the python column.** This is the entire benefit the question
+   was asked for -- "we have to sweep a lot fewer cells" -- and it costs nothing
+   but a configuration change.
+2. **KEEP the 2,908 recorded runs as history.** They cannot be recreated without
+   re-running the sweeps that produced them, they currently reproduce their
+   stored scores exactly, and keeping them costs disk.
+3. **KEEP `agreement.py`'s mirror as an INSTRUMENT.** `rescore_recorded` drives
+   it, and that is what verified the 26 provenance findings at no call cost this
+   session. It is not the column; it survives the column.
+
+That leaves exactly one real question for the user, and it is not a refactoring
+question: **is the olx-vs-python axis worth its sweep cost going forward?** It is
+the only SAME-INPUT comparison -- the user's own note establishes that paper and
+web score DIFFERENT inputs, so no surviving pair can separate a prompt difference
+from a model difference. Today that axis detects nothing
+(`check_engine_rate_divergence` reports 0), which is what two agreeing
+implementations look like and is not by itself evidence it is useless.
+
+### A DEFECT FOUND BY THE EXPERIMENT, worth fixing either way
+
+`check_scored_slots_are_answered_by_both_engines` **raises** `TypeError` on a
+missing side rather than reporting. A check that crashes on absent input cannot
+tell "nothing to compare" from "comparison failed" -- the same failure class as
+the false-clean gate this session opened with, and it would fire the moment any
+side is missing for any reason, not only retirement.

@@ -11445,10 +11445,22 @@ def check_scored_slots_are_answered_by_both_engines() -> list[str]:
         docs = {}
         for side in ("python", "olx"):
             try:
-                docs[side] = M._runs_doc(item, side)
+                got = M._runs_doc(item, side)
             except Exception:
                 docs = {}
                 break
+            # ABSENT IS None, NOT AN EXCEPTION, and the guard below counted it.
+            # `_runs_doc` returns None for an artifact that is not there, so a
+            # missing side left `docs` with two KEYS and a None VALUE, `len() ==
+            # 2` passed, and `doc["runs"]` raised TypeError. Found by simulating
+            # the retirement of the python column (goal O): the check did not
+            # report that it could not compare, it CRASHED -- and it would do
+            # that for any item missing a side for any reason, which is why it
+            # is fixed here rather than left to that decision.
+            if got is None:
+                docs = {}
+                break
+            docs[side] = got
         if len(docs) != 2:
             continue
         keys: set[str] = set()
