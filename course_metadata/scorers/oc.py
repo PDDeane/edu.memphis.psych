@@ -192,17 +192,23 @@ def derive_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], list[s
         {"what": "stimulus_is_arranged", "met": arranged, "evidence": ""},
     ]
 
-    # THE TWO DEFINITIONAL GATES, through the generic interpreter. Goal M-3.
-    # Both are conjunctions of declared booleans, which is the shape M calls
-    # generic; what stays here is WHICH checks they read and what they say.
+    # THE DEFINITIONAL GATES ARE DECLARED NOW. Goal M step 3. What stayed here
+    # after M-3 was WHICH checks each conjunction reads and what it says; both
+    # are `<Conjunction code= note= list= over=/>` on the item, so adding or
+    # moving a definitional reading is an edit to the OLX and nothing else.
+    #
+    # The declaration names the SLOTS -- the same ones the web's sheet is
+    # generated from -- and `check_named` resolves each to the check this scorer
+    # records, through the course's own `SIDE_ALIAS`. Declaring them in the
+    # paper's vocabulary would have made the rubric speak a language only one of
+    # the two engines uses.
     import scorer_criteria as _crit
-    for _over, _code, _note, _list in (
-            (["operant_behavior", "stimulus", "contingent_on_behavior",
-              "follows_behavior"], "NOT_OC", "Missing: ", True),
-            (["stimulus_is_arranged"], "NOT_EXTERNAL_STIMULUS",
-             "The consequence is the behaviour's own automatic result.", False)):
+    for _c in (item.get("oc_conjunctions") or ()):
+        _have = {c["what"] for c in checks}
+        _over = [check_named(k, _have) for k in _c["over"]]
         _led, _unk, _stop = _crit.apply_conjunction_gate(
-            checks, _over, _code, codes, note=_note, list_missing=_list)
+            checks, _over, _c["code"], codes,
+            note=_c["note"], list_missing=_c["list"])
         if _stop:
             ledger.extend(_led)
             unknown.extend(_unk)
@@ -812,6 +818,44 @@ def declared_names(mine: str) -> tuple:
     if theirs is None:
         return (mine,)
     return tuple([theirs] if isinstance(theirs, str) else theirs)
+
+
+def check_named(theirs: str, among=()) -> str:
+    """The CHECK name this scorer records for the other side's slot key.
+
+    The inverse of `declared_names`, and it exists for the same reason: the
+    rubric declares its conjunctions over the SLOTS it also generates the web's
+    sheet from (`names_behavior`, `contingent`, `you_arrange_it`), while this
+    scorer records `operant_behavior`, `contingent_on_behavior`,
+    `stimulus_is_arranged`. One declaration, two vocabularies, and the course
+    already states the mapping.
+
+    THE INVERSE IS AMBIGUOUS AND `among` IS HOW IT IS RESOLVED. Two of this
+    scorer's names alias to one of the web's: `behavior` AND `operant_behavior`
+    both map to `names_behavior` -- the first is the FACT the model answers, the
+    second is the CHECK this scorer records from it. Returning whichever came
+    first in the table dropped `operant_behavior` from the conjunction, and the
+    feedback stopped naming a missing reading it had always named. Resolving
+    against the names actually present picks the one the caller can use.
+
+    Falls through to the name given, which is right for the several facts both
+    sides call the same thing -- `follows_behavior` among them.
+    """
+    import coursedata
+
+    pool = set(among)
+    fallback = None
+    for mine, theirs_names in coursedata.declaration("SIDE_ALIAS").items():
+        names = [theirs_names] if isinstance(theirs_names, str) else theirs_names
+        if theirs not in names:
+            continue
+        if mine in pool:
+            return mine
+        if fallback is None:
+            fallback = mine
+    if theirs in pool:
+        return theirs
+    return fallback or theirs
 
 
 def resolve_operand(a: dict, key: str):

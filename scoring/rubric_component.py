@@ -417,12 +417,33 @@ def as_view_items(path: str | None = None) -> list[dict]:
         # it. Deliberately NOT a precedence number: two positions exist because
         # they mean two different things, and a number would be a mechanism with
         # no meaning attached.
+        # THE DEFINITIONAL CONJUNCTIONS. A group of checks that gate TOGETHER
+        # under one code, listing every missing member rather than charging the
+        # first: "Missing: operant_behavior, stimulus" is one finding about four
+        # readings, and four independent gates cannot say it.
+        conj = [{"code": c.get("code"), "note": c.get("note") or "",
+                 "list": c.get("list") in _TRUE,
+                 "over": _list(c.get("over"), ",")}
+                for c in el.findall("Conjunction") if c.get("code")]
+        if conj:
+            it["oc_conjunctions"] = conj
+
+        # A MEMBER OF A CONJUNCTION IS NOT ALSO AN INDEPENDENT GATE. Both read
+        # the same slot, so leaving it in both charges the same failure twice --
+        # and worse, the singles charge the FIRST failure while the conjunction
+        # reports ALL of them, so the two disagree about what the feedback says.
+        # Measured on 2026-09-24: declaring `charge=` on these slots (so the WEB
+        # could name the code it charges) made DAY1 report "Missing: ...
+        # follows_behavior" on answers where that fact was TRUE. Excluding them
+        # here is what lets a gate carry a code for the web without the paper
+        # scorer double-handling it.
+        _members = {k for c in conj for k in c["over"]}
         gates = [{"key": s.get("key"), "code": s.get("charge"),
                   "text": s.get("because"),
                   "stage": "final" if s.get("gate") == "final" else "definitional"}
                  for s in el.findall("Slot")
                  if (s.get("gate") in _TRUE or s.get("gate") == "final")
-                 and s.get("charge")]
+                 and s.get("charge") and s.get("key") not in _members]
         if gates:
             it["oc_gates"] = gates
         items.append(it)

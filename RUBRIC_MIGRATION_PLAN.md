@@ -8953,6 +8953,19 @@ drift: this session found `onlyif` dead on the web path, and `charge`/`because`
 parsed by the runtime but never generated. Both were caught, both by machinery
 that depends on there being two implementations to compare.
 
+### WHAT RETIRING IT ACTUALLY COSTS (user, 2026-09-24)
+
+**It means dropping a COLUMN from the ledger and the associated RUNS.** Not only
+"no future sweep can be compared on that axis" -- the recorded measurements go
+too. Concretely, that is `python` across 26 items: **2,908 recorded cell-runs**,
+every one of which currently reproduces its stored score.
+
+That reframes the trade. The upkeep argument for retiring it is that a
+hand-written mirror drifts; the cost is destroying measurement history that
+cannot be recreated without re-running the sweeps that produced it. And the
+column is not idle: `rescore_recorded` drives this scorer, and it is what
+verified the 26 provenance findings at no call cost this session.
+
 **Revisit when M step 4 lands.** A generated mirror cannot drift, and a copy that
 cannot drift is a different question from this one.
 
@@ -9129,3 +9142,77 @@ differed: which keys, in what order, with what values.
 Worth keeping because the failure is instructive: a check that compares an
 AUTHORED table against its MIGRATED projection catches a half-finished edit that
 no single-file review would, and it was right to insist on order.
+
+## M STEP 3: THE DEFINITIONAL GATES ARE DECLARED (2026-09-24)
+
+`derive_ledger`'s definitional half -- the conjunction that decides whether an
+answer is operant conditioning at all -- was a hardcoded tuple naming four
+checks, a code and a note. It is now
+`<Conjunction code="NOT_OC" note="Missing: " list="true" over="..."/>` on each of
+the eight items, plus the `NOT_EXTERNAL_STIMULUS` one beside it. Adding or moving
+a definitional reading is an edit to the OLX and nothing else.
+
+**The declaration names the SLOTS**, the same ones the web's sheet is generated
+from, and `check_named` resolves each to the check this scorer records through
+the course's `SIDE_ALIAS`. Declaring them in the paper's vocabulary would have
+made the rubric speak a language only one engine uses.
+
+    fingerprint reproduces over all 115,200 cases
+    CERTIFIED load-bearing: deleting <Conjunction> changes the ledger
+
+**The inverse alias is ambiguous, and that cost a wrong answer first.** TWO of
+this scorer's names map to one of the web's -- `behavior` AND `operant_behavior`
+both alias to `names_behavior`, the first being the FACT the model answers and
+the second the CHECK recorded from it. Returning whichever came first dropped
+`operant_behavior` from the conjunction, and 5,800 of DAY1's 6,400 rows quietly
+stopped naming a missing reading they had always named. `check_named` now
+resolves against the names actually present.
+
+### It unblocked half of what it was meant to
+
+With conjunction members excluded from `oc_gates` -- a member and an independent
+gate read the same slot, and the singles charge the FIRST failure while the
+conjunction reports ALL of them -- the definitional gates can now carry a
+`charge` for the web without the paper scorer double-handling it. The generic
+deducer went from 55/131 states agreeing to **124/131**, fingerprint unchanged.
+
+**The remaining 7 are the rules still hand-written in `derive_ledger`:**
+`CADENCE_MISMATCH` (4 states) is `apply_fact_gate` on `cadence_ok`, and one
+`NOT_OC` on each cadence item is the `consequence_not_a_setup` forbid. Declaring
+a charge on those slots reproduces the original collision, because the paper
+scorer still applies them by hand. They are the same shape as the avoidance gate
+M-3 migrated, with one extra question: `CADENCE_MISMATCH` SHORT-CIRCUITS before
+`TYPE_MISMATCH`, so moving it into the declared loop moves it relative to the
+type rules and the order is load-bearing.
+
+So `DEDUCERS` stays split for now. Routing it through the generic deducer today
+would name fewer codes than the artifacts already carry.
+
+### A NEW RUBRIC ELEMENT IS A BLOCK, AND THE BUILD SAID SO TWICE
+
+`<Conjunction>` was authored before it existed as a block, and two checks caught
+that in the order they should:
+
+**1. `COURSE SCHEMA INCOMPLETE: 'oc_conjunctions' belongs to no declared group.`**
+A new ITEM FIELD must name the group the engine reads it through -- §9.2a makes
+it FAIL rather than default. Added to `RUBRIC_FIELDS` beside `oc_gates`, which is
+how the scorer reads it.
+
+**2. `DUPLICATE_ID` x14, and the static build ABORTED.** An unregistered tag is
+loaded as a generic block with a CONTENT-DERIVED id, and every operant item
+declares the same definitional conjunction -- so eight identical elements
+collided, twice over. The remedy was already written down on `Onlyif`:
+`requiresUniqueId: false`, because "two items carrying the same guidance line,
+the same slot or the same deduction text collide -- and that is not a conflict,
+it is the same statement made twice."
+
+So `Conjunction.ts` and `Conjunction.md` now sit beside the other rubric blocks,
+and the registry was REGENERATED (`npm run build:gen-block-registry`) rather than
+hand-edited -- the file says DO NOT EDIT MANUALLY at the top, and the generator
+also writes the metadata, css and i18n registries that would otherwise drift.
+
+**This is the same shape as `gate="final"` this morning**, and the lesson held:
+adding a value or an element to the rubric grammar means teaching every reader,
+and the LOUD reader -- the schema, the content loader -- is the one that makes
+the set findable. Four silent readers were found by enumeration that morning;
+here the build refused outright and named the count.

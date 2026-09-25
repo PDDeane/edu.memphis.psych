@@ -1402,6 +1402,7 @@
    "_ded",
    "_probe_value",
    "_side_map",
+   "check_named",
    "check_names",
    "declared_names",
    "derive_ledger",

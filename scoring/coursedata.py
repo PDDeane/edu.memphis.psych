@@ -175,6 +175,10 @@ RUBRIC_FIELDS = {
     "context", "credit", "deductions", "counts", "derive_from_credit",
     "derive_from_criteria", "unreachable_codes", "blank_code", "expected_type",
     "forbid", "equals", "onlyif", "expect", "maps", "cadence", "oc_gates",
+    # The DEFINITIONAL conjunctions: a group of checks that gate together under
+    # one code, listing every missing member. Read by the scorer, like the gates
+    # beside it, so it belongs to the rubric group and not the generator's.
+    "oc_conjunctions",
     "derived", "reads_utb_choice", "requires", "cover", "move_pick",
     "avoidance_scores", "graph_item",
     # THE CONDITIONS THEMSELVES, and one attribute recovered from the rubric that

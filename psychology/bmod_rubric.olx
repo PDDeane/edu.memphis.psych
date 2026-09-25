@@ -2657,17 +2657,19 @@ Answer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label w
   </Item>
   <Item scores="PR" max="4" label="PR Example" increment="2" conditions="move_pick|move_pick" expectedType="PR" deriveFromClauses="true" asks="bmod_h2_pr_llm" grading="oc" family="h2-cadence-and-type">
     <Question>Write an example of Positive Reinforcement that you could use to attempt to change your behavior. (Positive Reinforcement = adding something desirable to increase a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
-    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
-    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
-    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true"/>
-    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true"/>
-    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" gate="true"/>
+    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" gate="true" charge="NOT_EXTERNAL_STIMULUS"/>
     <Slot key="observed_type" label="Which of the four types this example shows" seg="pick(operant_or_none)"/>
     <Slot key="demonstrates_type" label="Your example demonstrates Positive Reinforcement" pts="2" charge="WRONG_TYPE"/>
     <Slot key="targets_goal_behavior" label="Aimed at increasing your goal behavior" pts="2" charge="WRONG_TYPE"/>
     <Slot key="stimulus_move" label="Whether the thing is given or taken away, and whether it is wanted" seg="pick(move)"/>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="confident" label="All judgments confident"/>
+    <Conjunction code="NOT_OC" note="Missing: " list="true" over="names_behavior,names_stimulus,contingent,follows_behavior"/>
+    <Conjunction code="NOT_EXTERNAL_STIMULUS" note="The consequence is the behaviour&apos;s own automatic result." over="you_arrange_it"/>
     <Credit what="is_operant_conditioning" pts="2">Describes a real operant-conditioning contingency: an external stimulus added or removed after the behaviour</Credit>
     <Credit what="is_pr" pts="2">That contingency is specifically Positive Reinforcement</Credit>
     <Deduction code="NOT_OC" pts="4">This example is not Operant Conditioning.</Deduction>
@@ -2702,11 +2704,11 @@ Answer what the sentence describes. The grader works out from your answer which 
   </Item>
   <Item scores="NR" max="4" label="NR Example" increment="2" conditions="barrier_pick" expectedType="NR" deriveFromClauses="true" asks="bmod_h2_nr_llm" grading="oc" family="h2-cadence-and-type">
     <Question>Write an example of Negative Reinforcement that you could use to attempt to change your behavior. (Negative Reinforcement = taking away something undesirable to increase a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
-    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
-    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
-    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true"/>
-    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true"/>
-    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" gate="true"/>
+    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" gate="true" charge="NOT_EXTERNAL_STIMULUS"/>
     <Slot key="observed_type" label="Which of the four types this example shows" seg="pick(operant_or_none)"/>
     <Slot key="demonstrates_type" label="Your example demonstrates Negative Reinforcement" pts="2" charge="WRONG_TYPE"/>
     <Slot key="targets_goal_behavior" label="Aimed at increasing your goal behavior" pts="2" charge="WRONG_TYPE"/>
@@ -2716,6 +2718,8 @@ Answer what the sentence describes. The grader works out from your answer which 
     <Slot key="barrier_is_not_this_type" label="Not a restriction the plan sets up that your success then lifts" pts="2" charge="WRONG_TYPE"/>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="confident" label="All judgments confident"/>
+    <Conjunction code="NOT_OC" note="Missing: " list="true" over="names_behavior,names_stimulus,contingent,follows_behavior"/>
+    <Conjunction code="NOT_EXTERNAL_STIMULUS" note="The consequence is the behaviour&apos;s own automatic result." over="you_arrange_it"/>
     <Credit what="is_operant_conditioning" pts="2">Describes a real operant-conditioning contingency: an external stimulus added or removed after the behaviour</Credit>
     <Credit what="is_nr" pts="2">That contingency is specifically Negative Reinforcement</Credit>
     <Deduction code="NOT_OC" pts="4">This example is not Operant Conditioning.</Deduction>
@@ -2758,16 +2762,18 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
   </Item>
   <Item scores="PP" max="4" label="PP Example" increment="2" expectedType="PP" deriveFromClauses="true" asks="bmod_h2_pp_llm" grading="oc" family="h2-cadence-and-type">
     <Question>Write an example of Positive Punishment that you could use to attempt to change your behavior. (Positive Punishment = adding something undesirable to decrease a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
-    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
-    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
-    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true"/>
-    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true"/>
-    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" gate="true"/>
+    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" gate="true" charge="NOT_EXTERNAL_STIMULUS"/>
     <Slot key="observed_type" label="Which of the four types this example shows" seg="pick(operant_or_none)"/>
     <Slot key="demonstrates_type" label="Your example demonstrates Positive Punishment" pts="2" charge="WRONG_TYPE"/>
     <Slot key="targets_unwanted_behavior" label="Aimed at decreasing your unwanted behavior" pts="2" charge="WRONG_TYPE"/>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="confident" label="All judgments confident"/>
+    <Conjunction code="NOT_OC" note="Missing: " list="true" over="names_behavior,names_stimulus,contingent,follows_behavior"/>
+    <Conjunction code="NOT_EXTERNAL_STIMULUS" note="The consequence is the behaviour&apos;s own automatic result." over="you_arrange_it"/>
     <Credit what="is_operant_conditioning" pts="2">Describes a real operant-conditioning contingency: an external stimulus added or removed after the behaviour</Credit>
     <Credit what="is_pp" pts="2">That contingency is specifically Positive Punishment</Credit>
     <Deduction code="NOT_OC" pts="4">This example is not Operant Conditioning.</Deduction>
@@ -2794,16 +2800,18 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
   </Item>
   <Item scores="NP" max="4" label="NP Example" increment="2" expectedType="NP" deriveFromClauses="true" asks="bmod_h2_np_llm" grading="oc" family="h2-cadence-and-type">
     <Question>Write an example of Negative Punishment that you could use to attempt to change your behavior. (Negative Punishment = taking away something desirable to decrease a behavior.) For reinforcement examples the student should be trying to increase their wanted goal behaviour; for punishment examples, to decrease their unwanted target behaviour.</Question>
-    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
-    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
-    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true"/>
-    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true"/>
-    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" gate="true"/>
+    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" gate="true" charge="NOT_EXTERNAL_STIMULUS"/>
     <Slot key="observed_type" label="Which of the four types this example shows" seg="pick(operant_or_none)"/>
     <Slot key="demonstrates_type" label="Your example demonstrates Negative Punishment" pts="2" charge="WRONG_TYPE"/>
     <Slot key="targets_unwanted_behavior" label="Aimed at decreasing your unwanted behavior" pts="2" charge="WRONG_TYPE"/>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="confident" label="All judgments confident"/>
+    <Conjunction code="NOT_OC" note="Missing: " list="true" over="names_behavior,names_stimulus,contingent,follows_behavior"/>
+    <Conjunction code="NOT_EXTERNAL_STIMULUS" note="The consequence is the behaviour&apos;s own automatic result." over="you_arrange_it"/>
     <Credit what="is_operant_conditioning" pts="2">Describes a real operant-conditioning contingency: an external stimulus added or removed after the behaviour</Credit>
     <Credit what="is_np" pts="2">That contingency is specifically Negative Punishment</Credit>
     <Deduction code="NOT_OC" pts="4">This example is not Operant Conditioning.</Deduction>
@@ -2873,11 +2881,11 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
   </Item>
   <Item scores="DAY1" max="4" label="First Daily Example" increment="1" conditions="cadence_daily|avoidance_scores|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" params="cadence=daily" deriveFromClauses="true" asks="bmod_h2_day1_llm" grading="oc_cadence" family="h2-cadence-and-type">
     <Question>Give a daily example of how you will use your first chosen type of Operant Conditioning during your intervention.</Question>
-    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
-    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
-    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true"/>
-    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true"/>
-    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" seg="unclear" gate="true"/>
+    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" seg="unclear" gate="true" charge="NOT_EXTERNAL_STIMULUS"/>
     <Slot key="observed_type" label="Which of the four types this actually is" seg="pick(operant_or_none)"/>
     <Slot key="phrased_directly_gate" label="Phrased directly rather than by what is avoided" gate="final" charge="NOT_OC" because="The consequence is stated only as something avoided."/>
     <Slot key="named_type" label="Which of the four you said you would use" seg="pick(operant_or_unclear)"/>
@@ -2891,6 +2899,8 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1" charge="WRONG_BEHAVIOR"/>
     <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1" charge="LINK_NOT_ASSERTED"/>
     <Slot key="confident" label="All judgments confident"/>
+    <Conjunction code="NOT_OC" note="Missing: " list="true" over="names_behavior,names_stimulus,contingent,follows_behavior"/>
+    <Conjunction code="NOT_EXTERNAL_STIMULUS" note="The consequence is the behaviour&apos;s own automatic result." over="you_arrange_it"/>
     <Credit what="is_operant_conditioning" pts="2">A real contingency: external stimulus added or removed after the behaviour</Credit>
     <Credit what="matches_chosen_type" pts="1">Matches the type named in T1</Credit>
     <Credit what="targets_own_behavior" pts="1">Targets the student's own UTB or WGB</Credit>
@@ -2947,11 +2957,11 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
   </Item>
   <Item scores="WK1" max="4" label="First Weekly Example" increment="1" conditions="cadence_weekly|type_match" params="cadence=weekly" deriveFromClauses="true" asks="bmod_h2_wk1_llm" grading="oc_cadence" family="h2-cadence-and-type">
     <Question>Give a weekly example of how you will use your first chosen type of Operant Conditioning during your intervention.</Question>
-    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
-    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
-    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true"/>
-    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true"/>
-    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" seg="unclear" gate="true"/>
+    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" seg="unclear" gate="true" charge="NOT_EXTERNAL_STIMULUS"/>
     <Slot key="observed_type" label="Which of the four types this actually is" seg="pick(operant_or_none)"/>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="named_type" label="Which of the four you said you would use" seg="pick(operant_or_unclear)"/>
@@ -2962,6 +2972,8 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1" charge="WRONG_BEHAVIOR"/>
     <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1" charge="LINK_NOT_ASSERTED"/>
     <Slot key="confident" label="All judgments confident"/>
+    <Conjunction code="NOT_OC" note="Missing: " list="true" over="names_behavior,names_stimulus,contingent,follows_behavior"/>
+    <Conjunction code="NOT_EXTERNAL_STIMULUS" note="The consequence is the behaviour&apos;s own automatic result." over="you_arrange_it"/>
     <Credit what="is_operant_conditioning" pts="2">A real contingency: external stimulus added or removed after the behaviour</Credit>
     <Credit what="matches_chosen_type" pts="1">Matches the type named in T1</Credit>
     <Credit what="targets_own_behavior" pts="1">Targets the student's own UTB or WGB</Credit>
@@ -3048,11 +3060,11 @@ Answer `absent` in these cases.
   </Item>
   <Item scores="DAY2" max="4" label="Second Daily Example" increment="1" conditions="cadence_daily|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" params="cadence=daily" deriveFromClauses="true" asks="bmod_h2_day2_llm" grading="oc_cadence" family="h2-cadence-and-type">
     <Question>Give a daily example of how you will use your second chosen type of Operant Conditioning during your intervention.</Question>
-    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
-    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
-    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true"/>
-    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true"/>
-    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" seg="unclear" gate="true"/>
+    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" seg="unclear" gate="true" charge="NOT_EXTERNAL_STIMULUS"/>
     <Slot key="observed_type" label="Which of the four types this actually is" seg="pick(operant_or_none)"/>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="named_type" label="Which of the four you said you would use" seg="pick(operant_or_unclear)"/>
@@ -3066,6 +3078,8 @@ Answer `absent` in these cases.
     <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1" charge="WRONG_BEHAVIOR"/>
     <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1" charge="LINK_NOT_ASSERTED"/>
     <Slot key="confident" label="All judgments confident"/>
+    <Conjunction code="NOT_OC" note="Missing: " list="true" over="names_behavior,names_stimulus,contingent,follows_behavior"/>
+    <Conjunction code="NOT_EXTERNAL_STIMULUS" note="The consequence is the behaviour&apos;s own automatic result." over="you_arrange_it"/>
     <Credit what="is_operant_conditioning" pts="2">A real contingency: external stimulus added or removed after the behaviour</Credit>
     <Credit what="matches_chosen_type" pts="1">Matches the type named in T2</Credit>
     <Credit what="targets_own_behavior" pts="1" rule="Does the plan bear on the student&#x27;s own unwanted behaviour? Answer `met` in two cases. FIRST, the CONDITION names the unwanted behaviour itself — doing it, or failing to stop doing it. SECOND, the CONDITION names the student&#x27;s goal behaviour AND that goal is the unwanted behaviour TURNED AROUND: the same behaviour, with more of it or less of it. The unwanted behaviour and the goal are both on this screen; compare what they name. Answer `absent` when the condition names a DIFFERENT PURSUIT from the one the unwanted behaviour names — one that would crowd it out rather than reverse it. Taking up more of another pursuit is not doing less of this one, however sensible the plan is. This check is worth ONE point and never takes the whole item.">Targets the student's own UTB or WGB</Credit>
@@ -3122,11 +3136,11 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
   </Item>
   <Item scores="WK2" max="4" label="Second Weekly Example" increment="1" conditions="cadence_weekly|barrier_pick|cadence_barrier|contingency_gate|polarity_gate|type_match" params="cadence=weekly" deriveFromClauses="true" asks="bmod_h2_wk2_llm" grading="oc_cadence" family="h2-cadence-and-type">
     <Question>Give a weekly example of how you will use your second chosen type of Operant Conditioning during your intervention.</Question>
-    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true"/>
-    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true"/>
-    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true"/>
-    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true"/>
-    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" seg="unclear" gate="true"/>
+    <Slot key="names_behavior" label="Names a behavior of yours the plan acts on" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="names_stimulus" label="Names what is added or taken away" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="contingent" label="The consequence depends on that behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true" charge="NOT_OC"/>
+    <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" seg="unclear" gate="true" charge="NOT_EXTERNAL_STIMULUS"/>
     <Slot key="observed_type" label="Which of the four types this actually is" seg="pick(operant_or_none)"/>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="named_type" label="Which of the four you said you would use" seg="pick(operant_or_unclear)"/>
@@ -3141,6 +3155,8 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1" charge="WRONG_BEHAVIOR"/>
     <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1" charge="LINK_NOT_ASSERTED"/>
     <Slot key="confident" label="All judgments confident"/>
+    <Conjunction code="NOT_OC" note="Missing: " list="true" over="names_behavior,names_stimulus,contingent,follows_behavior"/>
+    <Conjunction code="NOT_EXTERNAL_STIMULUS" note="The consequence is the behaviour&apos;s own automatic result." over="you_arrange_it"/>
     <Credit what="is_operant_conditioning" pts="2">A real contingency: external stimulus added or removed after the behaviour</Credit>
     <Credit what="matches_chosen_type" pts="1">Matches the type named in T2</Credit>
     <Credit what="targets_own_behavior" pts="1">Targets the student's own UTB or WGB</Credit>
