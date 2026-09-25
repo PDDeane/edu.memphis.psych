@@ -80,6 +80,9 @@ def _attr(v) -> str:
     return s.replace("\r\n", "&#10;").replace("\n", "&#10;").replace("\t", "&#9;")
 
 
+import rubric_component as _rc  # noqa: E402
+
+
 def _attrs(pairs) -> str:
     return "".join(f' {k}="{_attr(v)}"' for k, v in pairs if v is not None and v != [])
 
@@ -178,8 +181,10 @@ def render_item(item: dict, authored: dict, indent: str = "  ") -> list[str]:
             # moves the rule earlier and changes which code a cell charges --
             # authored data lost by regenerating the file it was authored in.
             # The stage is carried on the oc_gate, so read it from there.
-            ("gate", (("final" if (g.get("stage") == "final"
-                                   or s.get("gate") == "final") else "true")
+            # THE STAGE SURVIVES THE ROUND TRIP, and the vocabulary is
+            # `rubric_component`'s to know, not this writer's.
+            ("gate", ((_rc.GATE_STAGES.get(g.get("stage"))
+                       or _rc.GATE_STAGES.get(s.get("gate")) or "true")
                       if (s.get("gate") or g) else None)),
             ("charge", g.get("code")),
             ("because", g.get("text")),

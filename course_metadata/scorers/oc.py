@@ -239,8 +239,20 @@ def derive_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], list[s
         # The first short-circuits on a fact that is deliberately not a recorded
         # check; the second is an enum comparison whose `"unclear"` naming is a
         # declared lenient value that must not charge.
-        _led, _unk, _stop = _crit.apply_fact_gate(a, "cadence_ok",
-                                                  "CADENCE_MISMATCH", codes)
+        # THE CADENCE GATE IS DECLARED, at the stage that says where it runs:
+        # `<Slot key="cadence_is_daily" gate="scope" charge="CADENCE_MISMATCH"/>`.
+        # `scope` asks whether the answer addresses THIS item's own terms -- a
+        # weekly answer to a daily question is not a wrong TYPE, it is an answer
+        # to a different question -- and it runs BEFORE the type comparison. That
+        # order was load-bearing and implicit in this function's layout: running
+        # it after would leave TYPE_MISMATCH in the ledger beside it, two codes
+        # for one fault.
+        #
+        # The operand is the web's slot key and resolves to this scorer's
+        # `cadence_ok` through the course's SIDE_ALIAS, which already maps it to
+        # all three cadence slot names.
+        _led, _unk, _stop = _crit.apply_declared_gates(
+            item, a, checks, codes, stage="scope", answer=resolve_operand)
         ledger.extend(_led); unknown.extend(_unk)
         if _stop:
             return ledger, checks, unknown, advisory

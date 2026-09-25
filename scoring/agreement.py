@@ -1559,24 +1559,23 @@ SCORERS = {"slots": score_sheet, "oc": score_sheet, "oc_cadence": score_sheet}
 # hand-written operant deducers over 131 synthetic states -- every single-slot
 # failure on all eight items plus all-pass and all-fail -- agreeing on both the
 # CODES and the POINTS in all 131.
-# THE DEDUCERS ARE NOT YET ONE, AND THE REASON IS A REAL COUPLING, not an
-# oversight. The generic deducer names every code the hand-written operant ones
-# do -- verified, 131 of 131 synthetic states agreeing on codes AND points --
-# but ONLY once each gate declares its `charge`. And declaring a charge on a
-# GATE slot also creates an `oc_gates` entry, which the PAPER scorer's declared
-# loop then applies on top of its own hand-written definitional gates: measured,
-# that left DAY1's feedback saying "Missing: ... follows_behavior" on answers
-# where `follows_behavior` was TRUE. Codes for the web cannot be declared until
-# `derive_ledger`'s definitional half is an interpreter too, which is M step 3's
-# remaining work.
+# ONE DEDUCER, as of the cadence and forbid migrations. Every kind reads the
+# same declarations the scorer does: a gate's `charge` names the code it charges,
+# a scored slot's names the code its points answer to, and a credit component's
+# `codes` names one per failing verdict.
 #
-# So the charges stay on the SCORED slots, where they feed the web and leave the
-# paper ledger alone, and the operant deducers stay hand-written until then.
-# Routing them through the generic one today would name FEWER codes than the
-# artifacts already carry, which is a regression dressed as a simplification.
-DEDUCERS = {"slots": slot_deductions,
-            "oc": getattr(_OC, "web_deductions", None),
-            "oc_cadence": getattr(_OC, "web_deductions_cadence", None)}
+# WHAT IT TOOK, because the blocker was real and is worth remembering: a code
+# could not be declared on a gate while `derive_ledger` ALSO applied that gate by
+# hand -- the two charged the same failure twice and disagreed about the wording.
+# Three exclusions close it, each naming a rule that computes the slot elsewhere:
+# conjunction members, `<Forbid>`-computed slots, and now the cadence gate, which
+# moved into the declared loop at its own `scope` stage.
+#
+# Verified over 131 synthetic operant states -- every single-slot failure on all
+# eight items plus all-pass and all-fail -- agreeing with the hand-written
+# deducers on both the CODES and the POINTS in all 131.
+DEDUCERS = {"slots": slot_deductions, "oc": slot_deductions,
+            "oc_cadence": slot_deductions}
 
 # Items scored over a subset of the paper item's points. Empty since 1c moved to
 # its full five slots; kept because the mechanism is the honest way to declare a

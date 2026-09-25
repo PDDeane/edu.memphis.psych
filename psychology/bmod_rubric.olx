@@ -2889,12 +2889,12 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Slot key="observed_type" label="Which of the four types this actually is" seg="pick(operant_or_none)"/>
     <Slot key="phrased_directly_gate" label="Phrased directly rather than by what is avoided" gate="final" charge="NOT_OC" because="The consequence is stated only as something avoided."/>
     <Slot key="named_type" label="Which of the four you said you would use" seg="pick(operant_or_unclear)"/>
-    <Slot key="cadence_is_daily" label="Checked each day rather than against the week" gate="true"/>
+    <Slot key="cadence_is_daily" label="Checked each day rather than against the week" gate="scope" charge="CADENCE_MISMATCH"/>
     <Slot key="matches_chosen_type" label="Matches your first chosen type" pts="2" charge="TYPE_MISMATCH"/>
     <Slot key="states_a_contingency" label="A condition on your behavior, a clause granting or withholding something, and the consequence delivered afterwards" gate="true" charge="NOT_OC" because="No contingency is stated: nothing is granted or withheld on a condition."/>
     <Slot key="trigger_expects" label="Which way a working plan would run from your condition" seg="pick(valence_or_none)"/>
     <Slot key="restriction_authored" label="Whether the undesirable thing was created by the plan or was already there" seg="pick(authorship)"/>
-    <Slot key="consequence_not_a_setup" label="Not a restriction the plan sets up that your success then lifts" gate="true"/>
+    <Slot key="consequence_not_a_setup" label="Not a restriction the plan sets up that your success then lifts" gate="true" charge="NOT_OC"/>
     <Slot key="restricts" label="What the plan holds back, if it holds anything back" seg="pick(restriction_target)"/>
     <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1" charge="WRONG_BEHAVIOR"/>
     <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1" charge="LINK_NOT_ASSERTED"/>
@@ -2965,7 +2965,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Slot key="observed_type" label="Which of the four types this actually is" seg="pick(operant_or_none)"/>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="named_type" label="Which of the four you said you would use" seg="pick(operant_or_unclear)"/>
-    <Slot key="cadence_is_weekly" label="Checked against the week rather than each day" gate="true"/>
+    <Slot key="cadence_is_weekly" label="Checked against the week rather than each day" gate="scope" charge="CADENCE_MISMATCH"/>
     <Slot key="matches_chosen_type" label="Matches your first chosen type" pts="2" charge="TYPE_MISMATCH"/>
     <Slot key="agent_delivers_consequence" label="A person is named who adds or removes the thing" gate="true" charge="NOT_OC" because="No one is named as adding or removing anything: the consequence clause has no agent."/>
     <Slot key="trigger_behavior" label="Which behaviour must happen, or fail to happen, for the consequence to arrive" seg="pick(trigger_target)"/>
@@ -3068,12 +3068,12 @@ Answer `absent` in these cases.
     <Slot key="observed_type" label="Which of the four types this actually is" seg="pick(operant_or_none)"/>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="named_type" label="Which of the four you said you would use" seg="pick(operant_or_unclear)"/>
-    <Slot key="cadence_is_daily_counted" label="Checked each day rather than against the week" gate="true"/>
+    <Slot key="cadence_is_daily_counted" label="Checked each day rather than against the week" gate="scope" charge="CADENCE_MISMATCH"/>
     <Slot key="matches_chosen_type" label="Matches your second chosen type" pts="2" charge="TYPE_MISMATCH"/>
     <Slot key="states_a_contingency" label="A condition on your behavior, a clause granting or withholding something, and the consequence delivered afterwards" gate="true" charge="NOT_OC" because="No contingency is stated: nothing is granted or withheld on a condition."/>
     <Slot key="trigger_expects" label="Which way a working plan would run from your condition" seg="pick(valence_or_none)"/>
     <Slot key="restriction_authored" label="Whether the undesirable thing was created by the plan or was already there" seg="pick(authorship)"/>
-    <Slot key="consequence_not_a_setup" label="Not a restriction the plan sets up that your success then lifts" gate="true"/>
+    <Slot key="consequence_not_a_setup" label="Not a restriction the plan sets up that your success then lifts" gate="true" charge="NOT_OC"/>
     <Slot key="restricts" label="What the plan holds back, if it holds anything back" seg="pick(restriction_target)"/>
     <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1" charge="WRONG_BEHAVIOR"/>
     <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1" charge="LINK_NOT_ASSERTED"/>
@@ -3144,13 +3144,13 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Slot key="observed_type" label="Which of the four types this actually is" seg="pick(operant_or_none)"/>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="named_type" label="Which of the four you said you would use" seg="pick(operant_or_unclear)"/>
-    <Slot key="cadence_is_weekly" label="Checked against the week rather than each day" gate="true"/>
+    <Slot key="cadence_is_weekly" label="Checked against the week rather than each day" gate="scope" charge="CADENCE_MISMATCH"/>
     <Slot key="matches_chosen_type" label="Matches your second chosen type" pts="2" charge="TYPE_MISMATCH"/>
     <Slot key="aimed_correctly" label="The consequence points the right way for the type chosen" seg="unclear" gate="true" charge="NOT_OC" because="The consequence is pointed the wrong way: an aversive for meeting the goal, or a reward for missing it."/>
     <Slot key="states_a_contingency" label="A condition on your behavior, a clause granting or withholding something, and the consequence delivered afterwards" gate="true" charge="NOT_OC" because="No contingency is stated: nothing is granted or withheld on a condition."/>
     <Slot key="trigger_expects" label="Which way a working plan would run from your condition" seg="pick(valence_or_none)"/>
     <Slot key="restriction_authored" label="Whether the undesirable thing was created by the plan or was already there" seg="pick(authorship)"/>
-    <Slot key="consequence_not_a_setup" label="Not a restriction the plan sets up that your success then lifts" gate="true"/>
+    <Slot key="consequence_not_a_setup" label="Not a restriction the plan sets up that your success then lifts" gate="true" charge="NOT_OC"/>
     <Slot key="restricts" label="What the plan holds back, if it holds anything back" seg="pick(restriction_target)"/>
     <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1" charge="WRONG_BEHAVIOR"/>
     <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1" charge="LINK_NOT_ASSERTED"/>

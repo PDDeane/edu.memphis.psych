@@ -1761,6 +1761,7 @@
    "verify"
   ],
   "rubric_component.py": [
+   "GATE_STAGES",
    "_CARRIED",
    "_COMMENT",
    "_Declared",
@@ -1769,6 +1770,7 @@
    "_codes",
    "_conds",
    "_el_attrs",
+   "_gate_stages",
    "_list",
    "_num",
    "_pairs",
@@ -1785,6 +1787,8 @@
    "as_view_type_moves",
    "authored_path",
    "expanded_path",
+   "gate_stage",
+   "is_gate",
    "load",
    "slot_keys",
    "staged_path"

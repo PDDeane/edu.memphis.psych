@@ -266,6 +266,44 @@ def _root(path: str):
     return hit
 
 
+# THE GATE ATTRIBUTE'S VOCABULARY, IN ONE PLACE. `gate=` started as a boolean
+# and has grown STAGES: `true` is definitional (is this an instance at all?),
+# `final` is presentational (how is it phrased?), `scope` asks whether the answer
+# addresses THIS item's own terms and runs before the type rules.
+#
+# It lives here because the first stage value cost four readers that each tested
+# `in _TRUE` and silently stopped seeing a gate -- one of them wrote the
+# regression into a shipped handout. A second value must not repeat that, so
+# every reader asks these two functions instead of spelling the literals again.
+def _gate_stages() -> dict:
+    """The stage values, FROM THE SHARED REGISTRY -- `primitives.json`.
+
+    Not a second copy. That file exists because "adding one has to be taught to
+    FIVE consumers and every hand-maintained mirror of them has rotted at least
+    once", and the gate stages proved the point twice in one day: `final` was
+    added to the grammar and four readers went on testing `in _TRUE`, then
+    `scope` did it again in the TypeScript reader before the list lived there.
+    """
+    import json
+    import paths
+
+    with open(paths.PRIMITIVES_JSON) as fh:
+        return {s: s for s in json.load(fh).get("gateStages", ())}
+
+
+GATE_STAGES = _gate_stages()
+
+
+def is_gate(value) -> bool:
+    """Does this `gate=` value mark the slot as gating? Any stage does."""
+    return value in _TRUE or value in GATE_STAGES
+
+
+def gate_stage(value) -> str:
+    """Which stage the gate runs in. A bare truthy value is definitional."""
+    return GATE_STAGES.get(value, "definitional")
+
+
 def as_view_items(path: str | None = None) -> list[dict]:
     """The rubric as `config(h)["rubric"].ITEMS` serves it, in rubric order."""
     p = path or staged_path()
@@ -437,12 +475,21 @@ def as_view_items(path: str | None = None) -> list[dict]:
         # follows_behavior" on answers where that fact was TRUE. Excluding them
         # here is what lets a gate carry a code for the web without the paper
         # scorer double-handling it.
-        _members = {k for c in conj for k in c["over"]}
+        # A SLOT A `<Forbid>` COMPUTES IS NOT AN INDEPENDENTLY ANSWERED GATE
+        # either, and it is excluded for the same reason as a conjunction
+        # member: the forbid decides the value from its conditions, so a gate
+        # over the same key records a SECOND check under one name and the two
+        # disagree. `consequence_not_a_setup` is the case -- gate-marked on the
+        # cadence items and computed by their forbid rule. Excluding it is what
+        # lets the slot carry a `charge` so the WEB can name the code it
+        # charges, while the paper scorer goes on computing it from the rule.
+        _computed = {f.get("key") for f in el.findall("Forbid") if f.get("key")}
+        _members = {k for c in conj for k in c["over"]} | _computed
         gates = [{"key": s.get("key"), "code": s.get("charge"),
                   "text": s.get("because"),
-                  "stage": "final" if s.get("gate") == "final" else "definitional"}
+                  "stage": gate_stage(s.get("gate"))}
                  for s in el.findall("Slot")
-                 if (s.get("gate") in _TRUE or s.get("gate") == "final")
+                 if is_gate(s.get("gate"))
                  and s.get("charge") and s.get("key") not in _members]
         if gates:
             it["oc_gates"] = gates
@@ -476,7 +523,7 @@ def as_view_slot_spec(path: str | None = None) -> dict:
             # it would have stopped gating there while still gating on paper.
             # That is the exact paper/web divergence this project exists to
             # close, arriving as a quiet omission rather than a failure.
-            if s.get("gate") in _TRUE or s.get("gate") == "final":
+            if is_gate(s.get("gate")):
                 rec["gate"] = True
             rows.append(rec)
         if rows:
@@ -550,7 +597,7 @@ def as_view_slots(path: str | None = None) -> dict:
                     c[a] = sl.get(a)
             # BOTH STAGES, as in `as_view_slot_spec` -- the THIRD projection
             # of the same flag, and it had the same omission.
-            if sl.get("gate") in _TRUE or sl.get("gate") == "final":
+            if is_gate(sl.get("gate")):
                 c["gate"] = True
             clauses.append(c)
         if iid and clauses:

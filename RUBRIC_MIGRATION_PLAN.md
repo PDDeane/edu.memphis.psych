@@ -8966,6 +8966,39 @@ cannot be recreated without re-running the sweeps that produced it. And the
 column is not idle: `rescore_recorded` drives this scorer, and it is what
 verified the 26 provenance findings at no call cost this session.
 
+### THE ENFORCEMENT MACHINERY IS BUILT ON THE TWO SIDES BEING COMPARABLE (user)
+
+**"A LOT of the enforcement machinery deals with keeping the python and olx web
+scorers in sync, so there will have to be a very thorough check that it still
+works after the python web scorer is retired, without losing the checks that keep
+the scorer from going off the rails on the web, olx or paper side."**
+
+Measured rather than estimated, scanning each `check_*` for the names the python
+side is reached by:
+
+    enforcement checks total        191
+    checks reaching the python side  55   (29%)
+
+    by hook:  agreement 51 | "python" 7 | score_slots 3 | SCORERS 2
+              score_web 2 | web_deductions 2 | paper_scorer_agreement 2
+              mirror_self_control 2 | rescore_recorded 2
+
+So retiring the column is not one deletion and a ledger edit: **29% of the audit
+reaches that side**, and some of those checks are not ABOUT the comparison at all
+-- `check_app_and_harness_send_the_same_prompt`,
+`check_computed_slot_recovery_is_faithful`,
+`check_both_engines_compute_the_same_primitives` -- they USE the harness as the
+instrument that makes a property observable. Each would have to be re-homed onto
+an instrument that still exists, or be retired with a statement of what stops
+being watched.
+
+**This is the strongest argument yet for the default the goal already states.**
+A measurement axis stays until someone can say what it is no longer needed for,
+and 55 checks currently answer that question in the other direction. Retiring the
+column means auditing all 55 first -- which is a larger piece of work than the
+retirement itself, and the honest order: prove the audit survives BEFORE dropping
+the runs, not after.
+
 **Revisit when M step 4 lands.** A generated mirror cannot drift, and a copy that
 cannot drift is a different question from this one.
 
@@ -9216,3 +9249,49 @@ adding a value or an element to the rubric grammar means teaching every reader,
 and the LOUD reader -- the schema, the content loader -- is the one that makes
 the set findable. Four silent readers were found by enumeration that morning;
 here the build refused outright and named the count.
+
+## THE LAST TWO RULES ARE DECLARED, AND `DEDUCERS` IS ONE FUNCTION (2026-09-24)
+
+`CADENCE_MISMATCH` and the `consequence_not_a_setup` forbid were the 7 states
+keeping the generic deducer from matching. Both are now declarations, and the
+deducer gap is **131 of 131 states agreeing on codes AND points**, so `DEDUCERS`
+is one function for every kind -- which is what M step 4 promised and could not
+deliver until these moved.
+
+| rule | how |
+|---|---|
+| `consequence_not_a_setup` | NO code change. A gate slot a `<Forbid>` COMPUTES is excluded from `oc_gates`, so it carries a `charge` for the web while the paper goes on computing it from the rule |
+| `CADENCE_MISMATCH` | `<Slot gate="scope" charge="CADENCE_MISMATCH"/>` -- a THIRD stage |
+
+**`scope` is a meaning, not a precedence number** -- M rejected numbers, and
+rightly. It says the gate asks whether the answer addresses THIS ITEM'S OWN
+TERMS: a weekly answer to a daily question is not a wrong TYPE, it is an answer
+to a different question, and it must run BEFORE the type comparison. That order
+was load-bearing and implicit in `derive_ledger`'s layout -- running it after
+would leave `TYPE_MISMATCH` in the ledger beside it, two codes for one fault.
+
+Measured against the previous tree via `git stash`, which is the only comparison
+that could settle it: **DAY1's ledger and advisory identical on all 14,400
+rows**, 450 rows gaining a recorded `cadence_is_daily` check that
+`apply_fact_gate` deliberately never wrote. `mirror_self_control` holds at
+olx 2,760/2,760 and python 2,908/2,908.
+
+### THE GATE VOCABULARY NOW LIVES IN THE SHARED REGISTRY, because it reoffended
+
+`gate="final"` cost four silent readers this morning. Adding `gate="scope"`
+IMMEDIATELY repeated it: `rubric-inputs.ts` still tested `=== 'final'` by hand,
+dropped the `!` from the shipped `slots=` attribute, and the deducer gap sat at
+127/131 until that was found.
+
+So the stages are in `primitives.json` -- the file whose own header says
+"adding one has to be taught to FIVE consumers and every hand-maintained mirror
+of them has rotted at least once" -- as `gateStages`. Both languages read it:
+`rubric_component.is_gate`/`gate_stage` in Python, `isGate` in TypeScript.
+Spelling a stage literal anywhere else is now the bug.
+
+**Three exclusions now keep a declared code from colliding with a hand-written
+rule, and each names a rule that computes the slot elsewhere:** conjunction
+members, `<Forbid>`-computed slots, and the cadence gate (which moved INTO the
+declared loop rather than being excluded from it). That is the shape of the
+answer M was looking for -- not "declare everything", but "a slot is an
+independent gate only when nothing else decides it".
