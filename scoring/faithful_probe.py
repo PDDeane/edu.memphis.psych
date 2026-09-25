@@ -60,7 +60,7 @@ def main() -> int:
     ap.add_argument("item")
     ap.add_argument("cells", help="comma-separated participant ids")
     ap.add_argument("--runs", type=int, default=4)
-    ap.add_argument("--side", default="python", choices=["python"])
+    ap.add_argument("--side", default="olx", choices=["olx"])
     ap.add_argument("--slots", default="",
                     help="comma-separated slots to print per cell")
     ap.add_argument("--force-checks", dest="force_checks", action="store_true",
@@ -170,7 +170,7 @@ def main() -> int:
                 continue
             for pid in cells:
                 c = collections.Counter()
-                for side in ("olx", "python"):
+                for side in ("olx",):
                     try:
                         doc = M._runs_doc(a.item, side)
                     except Exception:

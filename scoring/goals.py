@@ -863,7 +863,7 @@ def rank() -> list[tuple[str, dict, str]]:
         # scorer") claimed Q4a/p14 and Q4a/p19 the moment bare-`pN` resolution
         # landed, and rose to second place on cells that are wrong on a side it
         # is not about.
-        for_side = {l for s in ("olx+python",)
+        for_side = {l for s in ("olx",)
                     for l in (owned["by_side"].get(cell, {}).get(s) or [])}
         subj = [l for l in dict.fromkeys(owned["subject"].get(cell, []))
                 if l in open_labels and l in for_side]
@@ -895,7 +895,7 @@ def rank() -> list[tuple[str, dict, str]]:
 
     def _measured_on(item: str, side: str) -> bool:
         try:
-            if side == "olx+python":
+            if side == "olx":
                 return any(item in M.records(s) for s in M.POOLED_OLX_PROMPT)
             return item in M.records(side)
         except Exception:

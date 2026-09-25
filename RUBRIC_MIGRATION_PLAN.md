@@ -9379,6 +9379,560 @@ session repaired precisely because reading source is fragile.
 Raw sorts kept at `scratchpad/k_sorted.json` for the next pass; they are inputs
 to a reading, not a conclusion.
 
+## THE CONFIRMATION SWEEPS (2026-09-25): WHAT THEY CONFIRMED AND WHAT THEY BROKE
+
+One run per item on each side, asked for as a check that the scorers still work
+after M, O and the gate-stage changes -- not as a measurement. **One run is not
+a measurement**, and nothing here may be quoted as one: Q3 has been seen at
+16/20, 12/20 and 15/20 across three runs of identical code. So each item is
+read against the RANGE its own recorded runs have already produced, and only an
+item outside that range is a question.
+
+### The paper side (gpt-5-mini): clean, and it found a real bug
+
+**Handout 2 lost a participant to a race in the scorer registry.**
+`scorers._course_scorer` registered a module in `sys.modules` BEFORE running it,
+and `score.py` scores participants in a `ThreadPoolExecutor`. A second worker
+reaching the cache check during the first worker's `exec_module` was handed a
+module whose body had not run, and died on `module '_course_scorer_oc' has no
+attribute 'schema_fragment'` -- while the other nineteen scored, and while the
+module imports perfectly in isolation. A failure that depends on WHICH
+participant is what a race looks like.
+
+Fixed by publishing only after `exec_module` completes, under a lock, and
+verified cold in five fresh processes at 12 threads. Re-running handout 2 gave
+0 failures and 20 participants, and every handout-2 item went from 19 cells back
+to 20.
+
+    24 of 26 items inside their recorded range.
+    DAY2  19 (range 16-18)  -- one ABOVE
+    Q1    17 (range 18-19)  -- one BELOW
+
+Both are one cell outside a six-run range, which is what a single draw does.
+
+### The web side: 26 of 26 items inside their own recorded range
+
+    1a  19/20 (18-20)   1b  20/20 (20-20)   1c  17/17 (16-17)
+    2a  19/20 (18-20)   2b  20/20 (20-20)   3   20/20 (19-20)
+    D1  18/18 (18-18)   D2  18/18 (18-18)   DAY1 18/18 (13-18)
+    DAY2 18/18 (11-18)  NP  17/18 (14-18)   NR  17/18 (15-18)
+    PP  18/18 (15-18)   PR  18/18 (15-18)   Q1  18/20 (15-19)
+    Q2  18/20 (17-20)   Q3  20/20 (19-20)   Q4a 19/20 (17-19)
+    Q4b 18/19 (16-18)   Q4c 16/19 (15-17)   Q5  19/20 (17-19)
+    Q6  16/20 (14-18)   T1  18/18 (18-18)   T2  18/18 (18-18)
+    WK1 18/18 (15-18)   WK2 17/18 (16-18)
+
+**Not one item fell outside the range its own recorded runs have already
+produced.** That is the whole claim, and it is the claim the question deserves:
+the scorer still behaves as the ledger says it behaves. It is NOT a measurement
+and none of these numbers may be quoted as one.
+
+### THE SWEEP WAS SENDING ITS LLM CALLS TO THE LIVE TREE'S SERVER
+
+Found while checking write scope, and it is a defect in the harness rather than
+an accident of how one sweep was launched. Two independent defaults point at
+8888:
+
+    backends.py:238         ENDPOINT = "http://localhost:8888/api/llm/chat/completions"
+    runner.test.ts:58       const SERVER = process.env.LO_SERVER || 'http://localhost:8888'
+
+8888 is the LIVE tree's dev server (`~/code/update/lo-blocks`). So a sweep run
+entirely from the dry-run tree -- dry-run idmap, dry-run vitest, dry-run
+scoring code -- still had its requests SHAPED by the live tree's
+`routes/llm.ts`, which is twelve days older. Scoring was never affected; request
+shaping was, and nothing said so.
+
+It also made the live server write ~2,800 rate-limiter files inside a tree this
+session is forbidden to write to. That is reported separately to the user.
+
+Fixed for the run by exporting `LO_SERVER=http://localhost:8899`; the nine items
+already swept through 8888 were set aside under `via_8888/` and re-run, so the
+confirmation uses ONE transport path end to end. **The defaults themselves are
+still 8888 and should be changed** -- a dry-run tree that silently borrows the
+live tree's request path is the same class of fault as the stale dev server of
+2026-09-09, and `agreement_app.server_code_is_stale` does not cover it.
+
+### The preflight refused twenty items mid-sweep, and was right to
+
+Between those two passes the remaining twenty items refused with
+
+    REFUSING to sweep: the instruments disagree with the code.
+        DEFINITION VANISHED FROM THE PACKAGE ... _app_envelope, _harness_envelope
+
+because a programmatic edit to `enforcement.py` had eaten `_app_envelope` and
+`_harness_envelope` while the sweep was running. **The guard cost time and saved data**: not one item
+produced a number against a broken tree. Repaired, the sweep resumed on the
+items it had skipped.
+
+THE EDIT'S OWN LESSON, since it is a fourth instance of a known class: the
+script did `tree = ast.parse(src)` ONCE and then replaced two functions in a
+loop, reassigning `src` between them. `ast.get_source_segment` uses offsets from
+the ORIGINAL text, so the second cut landed mid-way through a different function
+-- duplicating one definition and swallowing two. The file parsed. Re-parse
+after every write, or collect every exact old string before the first one.
+
+### AND THE AUDIT HAD BEEN STOPPING EARLY, UNNOTICED
+
+Both audits run earlier on 2026-09-25 ended in an `AttributeError` at
+`engine_interpretation_line` and were read as complete. They were not: they had
+reported about two thirds of their findings.
+
+`check_engines_read_a_response_the_same_way` was retired in goal O, but three
+things that SERVED it were not -- `_recorded_payloads` (which still selected
+items by the eliminated `agreement.SCORERS`), `_interpretation_comparison_cached`
+(which still called it), and equivalence.py's fire case for it. A retirement is
+not finished until its callers and its fire cases go with it. All three are
+retired now and the audit runs to the end.
+
+**The first complete audit reports 96 lines in exactly three classes:**
+
+    44  OLX QUOTES A STUDENT THROUGH A REFERENCE   -- the standing baseline
+    26  WEB COLUMN IS NOT STAMPED BY THE APP'S OWN CODE
+    26  A SWEEP ON DISK WAS NEVER RECORDED
+
+and one line worth reading beside them: *paper-vs-web arithmetic: 6268 of 6268
+cells score IDENTICALLY when the web's own judgments are run through the paper
+scorer.* Holding the judgments fixed removes the model; what is left is the
+arithmetic, and it agrees exactly.
+
+### Why the two new classes were not cleared, and what would clear them
+
+**26 unstamped web columns.** The declared cost of retiring `WEB_CODE_NEUTRAL`
+with the python engine, compounded by O's unfinished tail (above). The app's
+scoring code genuinely changed tonight, so every recorded column predates it.
+Only a real multi-run re-sweep clears these; a 1-run confirmation cannot, and
+the instrument that used to settle such a pair by re-scoring recorded answers
+went with the engine by the user's own decision.
+
+**26 unrecorded sweeps.** Tonight's artifacts, deliberately not recorded.
+`--append` refuses them because `stale_sides` calls the column stale, and
+`--record` would replace a 12-run column with a single run -- discarding the
+pooled python-era runs the user explicitly asked to keep. Neither is right, so
+the artifacts sit on disk and the audit says so, which is true.
+
+## K: THE CRITERION WAS WRONG, AND THE PORTABLE SURFACE IS FOUR TIMES LARGER (2026-09-25)
+
+### What the user corrected
+
+This plan filed ~32 of 171 checks as portable, on the reasoning that MEASUREMENT
+and DECLARATION TABLES are python's by nature. That was wrong. The user's
+correction: *"there may be parts of the code in the measurement that can and
+should be ported to typescript, and it may be possible to move the access code
+for declaration tables to typescript too (with the content of course living in
+$COURSE_METADATA, and the access code being relativized to need that
+specified)... for a course that uses SlotSheetGrader (which is what sets our
+handout course apart from the other psychology SBAs)."*
+
+That is this project's own GENERICITY TEST, which asks what the CONTROL FLOW
+assumes rather than what data it touches. "Did this run judge anything at all?"
+is a question about the SHAPE of a recorded result; it is generic for any course
+scored by `SlotSheetGrader`, and only the data is ours.
+
+### The access layer, and whose discipline it copies
+
+`enforce/courseData.ts` reaches `$COURSE_DATA` and `$COURSE_METADATA` exactly as
+`resolveCorpusRefs.corpusDataPath` already does: the location is SUPPLIED, never
+assumed, and an unset variable THROWS. It also refuses a path that resolves
+outside the named root -- a rule that can read any file is not a rule about this
+course. Both refusals are fire-tested.
+
+**A refusal is never a finding of zero.** Every failure path throws, so a caller
+cannot mistake "I could not read the corpus" for "the corpus is clean".
+
+### Five ported, and they cover all four shapes
+
+    no_case_names_in_prompts                 a regex over shipped prompts
+    prompt_prose_names_only_offered_verdicts  real logic, two arms, pick groups
+    computed_rules_do_not_share_a_key         structural collision over the rubric
+    no_cell_is_both_corrected_and_declared    DECLARATION TABLES ($COURSE_METADATA)
+    no_recorded_run_is_verdictless            MEASUREMENT ($COURSE_DATA)
+
+plus two probes (`resolve_corpus_refs`, `parse_slot_specs`) that replaced the
+ad-hoc TypeScript those two grammar scripts wrote to a temp file at run time,
+and `score_recorded_sheets`, which is itself a measurement-side port -- it reads
+recorded artifacts and re-derives scores through the shipped scorer.
+
+36 vitest fixtures, a wire self-test, and an end-to-end fire through the live
+python path for every rule. That last one keeps earning its place: the
+offered-verdicts fire got NOTHING first time, because the slot it aimed at has
+since migrated to a `rule` and is correctly skipped. The case was wrong, not the
+port, and only a test against the live tree could tell those apart.
+
+### The disposition of all 171, and what it is worth
+
+    132  PORTABLE
+          40  now, self-contained
+          32  now, content only
+          33  via courseData ($COURSE_DATA -- measurement)
+          27  via courseData ($COURSE_METADATA -- declaration tables)
+     34  PYTHON-ONLY
+          21  read our own source (inspect.getsource and kin)
+          13  about our documents and inventory
+      5  DONE
+
+**TREAT THIS AS EVIDENCE, NOT A RESULT.** It is a machine disposition keyed on
+what each check IMPORTS, and this plan has already recorded that every automated
+attempt at this sort was wrong in a way only reading found -- two earlier passes
+disagreed violently, 75% against 19%. The buckets are a work list to READ
+against, and the one number in them that is certain is the 5.
+
+The 21 that read our own source are the only ones that die with the python they
+interrogate. The 13 about documents could move if the documents did, which is a
+different goal. Everything else is a day of reading and a port each, and the
+mechanism for the port now exists and is proven on all four shapes.
+
+## THE CONFIRMATION RUNS ARE POOLED (2026-09-25): 26 + 26 FINDINGS DOWN TO 11
+
+The chain the user authorised, and what each step actually proved.
+
+### The rescore: 5,668 of 5,668
+
+`lo_rescore.py` reconstructs what the model ANSWERED for every recorded web
+cell and runs it back through the SHIPPED `scoreSlotSheet` -- the goal-K bridge,
+calling the app's own scorer with the eleven arguments `SlotSheetGrader:115`
+passes. Holding the answers fixed removes the model, so what is left is
+arithmetic:
+
+    control (+0.5 on every recorded value): 5668/5668 moved
+    reproduce exactly: 5668   differ: 0
+
+**The control is not ceremony.** A comparison that cannot fail is not evidence
+of agreement, and this family has failed exactly that way before: an options bag
+reached `explicitMax`, every score came back NaN, `Math.abs(NaN - x) > 1e-9` is
+FALSE, and every cell "matched". `lo_rescore` REFUSES to report unless +0.5
+moves every cell.
+
+THREE ITEMS ARE NOT COVERED AND SAY SO. `1b`, `T1` and `T2` are
+`data_presence`/`type_stated`: their slot sheet is not an `<LLMAction>`, so
+`load_action` -- which assembles its nine tables from an `<LLMAction>` opening
+tag -- has nothing to read. Mirroring its assembly for three items would be a
+SECOND sheet reader, which is the divergence class this project exists to close.
+They were refused at append time rather than waved through on the argument that
+they are deterministic.
+
+### What replaced WEB_CODE_NEUTRAL
+
+`measured.staleness_is_answered` accepts exactly two answers and refuses the
+rest:
+
+  * the scorer moved and EVERY recorded cell re-scores identically, evidenced by
+    `$COURSE_DATA/out/rescore_evidence.json`, which must name THIS column's
+    recorded sha as `from` and today's as `to`;
+  * the prompt TAG moved and the ASK did not -- which `status` already
+    distinguishes, and about which it already says "re-record, do not re-sweep".
+
+The difference from the table it replaces is that the claim is DERIVED. An entry
+was previously a person asserting two shas were score-neutral; it is now a
+measurement that names the cells it covers and the control that proves it could
+have failed.
+
+### THE APPEND LOST DATA ON ITS FIRST ATTEMPT
+
+`append_runs` read `_runs_path` -- the artifact the ledger POINTS AT -- and
+those columns are the union of two files, because goal O folded the eliminated
+engine's runs in via `folded_from`. So appending one run to 1a read the primary
+file's six, wrote seven, and `record` replaced a TWELVE-run column with it.
+The ledger read `runs: 7` where it had said 12.
+
+Caught on the run-count readout one command later and restored from a backup
+taken one command earlier. **Nothing was lost, and only because the backup
+existed.** `append_runs` now pools `_runs_doc` -- the column as it is actually
+counted -- and the story is its comment.
+
+### Where the ledger stands
+
+    23 web columns  12 -> 13 runs      (1b, T1, T2 refused: no rescore evidence)
+    18 paper columns    +1 run         (8 refused: paper scorer stale since before tonight)
+    total olx runs      323 -> 334
+
+    WEB COLUMN IS NOT STAMPED BY THE APP'S OWN CODE   26 -> 3
+    A SWEEP ON DISK WAS NEVER RECORDED                26 -> 8
+
+### TWO FINDINGS THE APPEND CREATED, AND THEY ARE THE USER'S TO SETTLE
+
+Adding a thirteenth run moved two medians, and the accounting noticed:
+
+  * **Q4a/p3** is named by OPEN subgoal Q67 and now scores RIGHT at the median
+    on every side. Q67 is entirely ABOUT that cell, and it cites medians
+    (`olx 4.00 / python 5.00 / paper 3.00`) that no longer exist -- the python
+    column was eliminated and the numbers have moved.
+  * **1c/p7** is wrong on paper (gold 10, we record 8) and no open subgoal names
+    it. More data made it wrong; that is information, not damage.
+
+NEITHER WAS ACTED ON, deliberately. `goals.CLOSURES_APPROVED` records every
+closure in this project as "closed ... **on the user's instruction**", and the
+check's alternative -- "drop the cell" -- would gut a subgoal whose whole
+content is that cell. Filing a new subgoal for 1c/p7 is the same kind of call.
+Both are reported rather than decided.
+
+## WHERE THE DATA FILES BELONG (2026-09-25)
+
+`scoring/` held fifteen `.json` files. Classified by WHAT THEIR KEYS ARE, not by
+their names -- `GOAL_STATES.json` has six keys that pattern-match an item id and
+is not course data at all.
+
+### Six are course data and move to `$COURSE_METADATA`
+
+    MEASURED.json           `items` keyed by the 26 course items
+    CARRIED_NOTES.json      keyed `1a`, `Q4b`, `handout:2`
+    PROBED.json             records of {item, cells, artifact, runs}
+    PROBE_RECEIPTS.json     {item, slot, question} -- probed text per course slot
+    DESIGNED_TEXT_SHA.json  keys `1a|baseline_week|desc` -- shas of shipped course prose
+    LEAKAGE_REVIEWED.json   keyed by sha of course prose, labels naming `Q5 credit.rule`
+
+Each gets a `paths.COURSE_*` constant in the shape `COURSE_FILE` and
+`COURSE_FIXTURE` already use, so there is ONE spelling per file. There were
+NINE path constructions across six files, in four different idioms --
+`Path(__file__).parent`, `_HERE_DIR`, `os.path.join(HERE, ...)` and
+`paths.SCORING` -- and `enforcement.py:1914` built `MEASURED.json`'s path
+independently of `measured.LEDGER`, so it would have gone on reading the old
+location after any move. That second spelling was a latent bug before this.
+
+### Six are engine data and stay
+
+`DEFINITIONS.json` (module inventory), `COURSE_DATA_BUDGET.json`,
+`PROPERTY_BUDGET.json`, `PROPERTY_BUDGET_REPORT.json`,
+`STUDENT_TEXT_BUDGET.json` (keyed by OUR document paths), `GOAL_STATES.json`
+(keyed by our subgoal labels).
+
+### Three are neither, and are DEFERRED with a decision recorded
+
+`GRADER_INPUTS.json`, `PEG_FORMATS.json`, `SHAPE_INVENTORY.json` describe
+LO-BLOCKS' OWN REGISTRIES -- which inputs each grader block pairs with, which
+authoring formats exist, which blocks are registered. `SlotSheetGrader` appears
+in two of them as ONE ENTRY among many block types, not as their subject: the
+sentence that mentions it is drawing a contrast ("Contrast SlotSheetGrader,
+which scores a STRUCTURED sheet of slots"). None measures anything.
+
+**AND ALL THREE ARE GENERATED EXPORTS.** `grader_inputs.py:454` dumps the
+python `GRADER_INPUTS` dict and `json["declared"] == GRADER_INPUTS` exactly;
+`peg_formats.py:231` dumps its registry the same way. Moving an export to a new
+directory looks like progress and changes nothing.
+
+THE USER'S DECISION, 2026-09-25: *"We should be simply getting exports when we
+need them rather than storing a copy for convenience."* So the work is not a
+move at all -- it is to DERIVE these when a check needs them and stop keeping a
+stored copy that can go stale. A stored export is a second source of truth, and
+this project already has a name for what that does.
+
+One genuinely course-specific slice is buried in `SHAPE_INVENTORY.json`:
+`coverage/used` records which blocks THIS course uses. That is a split, not a
+move, and it belongs with the derive-on-demand work rather than before it.
+
+## O'S UNFINISHED TAIL (2026-09-25): THE WEB COLUMN IS FINGERPRINTED AGAINST A SCORER THAT NO LONGER SCORES IT
+
+Found while asking why a 1-run additive web sweep could not be recorded. It is
+the cause of every `STALE SCORER` verdict on the `olx` column, and it is not a
+measurement problem -- it is the last piece of the python web engine.
+
+### The evidence, not the argument
+
+`measured.scorer_sha(item, "olx")` hashes the closure of `_parts_for(item)`,
+and that table still names the eliminated engine:
+
+    _BY_KIND = {"slots":      ("agreement", "score_slots"),
+                "oc":         ("agreement", "score_oc"),
+                "oc_cadence": ("agreement", "score_oc_cadence")}
+
+* `agreement.score_oc` and `agreement.score_oc_cadence` **no longer exist.**
+  `_scoped_closure` cannot resolve them, so the fingerprint hashes the literal
+  string `<missing agreement.score_oc>`. Eight items are stamped this way:
+  DAY1, DAY2, NP, NR, PP, PR, WK1, WK2.
+* `agreement.score_slots` **exists and has no call sites.** Verified: the only
+  occurrences outside its own definition are docstrings and `_BY_KIND` itself.
+  It is the python mirror of `scoreSlotSheet`, kept alive solely so that a sha
+  can be taken of it.
+
+So the ledger's answer to "has the code this item's score depends on changed?"
+is computed from a function that does not score it, and for a third of the
+corpus from a function that does not exist.
+
+### What follows, and what does not
+
+**It does not mean the recorded numbers are wrong.** Nothing here touched a
+score. `check_web_code_is_stamped_by_its_own_sha` has been tracking the app's
+real scoring code all along, separately and correctly, and its 26 findings say
+what is actually true: the columns were recorded against app code that has
+since changed.
+
+**It does mean two signals are reporting the same fact, one of them wrongly.**
+`STALE SCORER` on the `olx` row is noise; the web-code stamp is the signal.
+
+**And it is why `--append` refuses the confirmation sweep.** `append_runs`
+consults `stale_sides`, correctly: runs may be pooled only when they sample the
+same prompt, scorer and cells. It refuses on a verdict derived from the dead
+mirror rather than on the real one.
+
+### The fix, and why it was NOT done on the night it was found
+
+The `olx` column's number is produced by lo-blocks' `scoreSlotSheet`, compared
+to gold by `handouts.scores_as_exact` / `attainable_scores`, with unrecorded
+computed slots recovered through `agreement.satisfied_map` / `apply_computed`.
+Those are the parts that belong in its fingerprint. `_BY_KIND` is not one of
+them for this side, and `web_code_sha("score", item)` is.
+
+Three reasons it was filed rather than applied at 01:10:
+
+1. **A 5-hour sweep was in flight.** `era_stamp` writes `scorer_sha` into every
+   artifact as it is produced; changing the function mid-sweep stamps the first
+   items differently from the last, which is the inconsistency the era stamp
+   exists to prevent.
+2. **It changes ledger semantics, not one call site.** `status`, `stale_sides`,
+   `append_runs`, `record` and several checks all read it.
+3. **It would not have changed tonight's outcome.** Every recorded row holds a
+   PYTHON scorer_sha; after the repoint, current would be a web sha and every
+   row would still read stale -- correctly this time, because the app's scoring
+   code genuinely did change tonight. The append stays refused either way. The
+   fix buys a true signal, not a clear audit, and buying it under a running
+   sweep is the wrong trade.
+
+Next session's first item, and it should carry the retirement of
+`agreement.score_slots` and of `oc.score_web` / `score_web_cadence` /
+`web_deductions` / `web_deductions_cadence` with it -- the same corpse, in the
+course scorer. Note that `enforcement.py:3997-4073` reads `oc.score_web`'s
+SOURCE through `_source_through_delegates`; those checks need dispositioning in
+the same pass, not deleting around.
+
+## K IN PROGRESS (2026-09-25): THE BRIDGE EXISTS AND TWO RULES HAVE CROSSED IT
+
+The first pass stopped at a sort nobody trusted. This pass did not re-sort. It
+built the MECHANISM the goal needs and proved it on two real checks, because a
+classification with no way to act on it is what the last pass already produced.
+
+### What "moved to lo-blocks" now means, concretely
+
+The user's framing: *python programs that do the work of the existing scripts,
+but with as much of that work as possible moved to testing functions inside
+lo-blocks, called by the python functions.* Applied to a `check_*`, that splits
+it in two:
+
+  * **Python keeps the FETCH and the REPORT.** It knows where the inputs live
+    (`olx_prompts`, the rubric view, `paths`), and `equivalence.py` invokes it.
+  * **TypeScript takes the JUDGEMENT**, as a pure function in
+    `packages/shared/lib/llm/enforce/`, next to the code it is judging and
+    exercised by vitest against its own fixtures.
+
+    scoring/lo_enforce.py            -- the bridge: one tsx process per call
+    lib/llm/enforce/runner.ts        -- stdin {check,payload} -> stdout {findings}
+    lib/llm/enforce/index.ts         -- RULES, the name registry python dispatches on
+    lib/llm/enforce/enforce.test.ts  -- the FIRE tests
+
+`runner.ts` reads stdin rather than argv because a payload can carry every
+shipped prompt in the corpus, and a check that silently truncates its input
+reports clean for the wrong reason. Every failure path in `lo_enforce.run` --
+missing `tsx`, a throw, a timeout, an unknown rule name -- returns a FINDING
+saying the rule could not be RUN. A check that reports clean because it never
+ran is the defect this audit exists to prevent.
+
+### The two that crossed, and what each one cost to port faithfully
+
+**`no_case_names_in_prompts`.** A regex over every shipped prompt. The first
+draft of the port wrote `\bp\d{1,3}\b` for python's `(?<![\w/])p\d{1,2}\b` and
+would have passed a corpus-only test suite, because BOTH report zero against a
+clean corpus. The two details are the whole rule: `(?<![\w/])` excludes the
+`p10` inside a corpus-reference PATH, and `{1,2}` is a cohort of twenty.
+
+**`prompt_prose_names_only_offered_verdicts`.** Real logic -- two arms, a
+`pick(NAME)` group resolved out of `choices=`, and a `rule` precedence that
+hands the slot to a different check. Python still resolves the four views; TS
+decides.
+
+### THE OBLIGATION IS NOT SATISFIED BY VITEST ALONE
+
+Goal K's standing rule is that a ported check must FIRE on the case its python
+original fires on. Both ports report ZERO against the live corpus -- so does a
+rule deleted to `return []`, and so would a broken bridge. Three separate
+proofs are therefore kept:
+
+  1. vitest fire fixtures (14), including the two details above;
+  2. `lo_enforce.self_test()` -- that a finding raised in TypeScript ARRIVES in
+     python, that clean input arrives as silence, and that an unknown rule name
+     is a finding rather than a pass;
+  3. an end-to-end fire through the real python path, by injecting the fault
+     into the live inputs: 23 findings for a case name pushed into every
+     prompt, 1 for an unofferable token in `Q5:example_1`'s note, 0 once
+     restored -- with python's original finding wording reproduced exactly, so
+     a baseline diff cannot mistake a port for a new fault.
+
+The third proof is the one that caught something: the first attempt fired on
+`Q5:example_2` and got nothing, because that note has since migrated to `rule`
+and is correctly skipped. The fire case was wrong, not the port -- but only a
+test that runs against the live tree could tell those apart.
+
+### The sort, redone by reading (2026-09-25)
+
+171 live checks, classified by the criterion the first pass arrived at -- what
+the QUESTION is about, not which modules the body imports. The imports were used
+only as evidence, one line per check beside its own first docstring line.
+
+    CONTENT (the rule can live in lo-blocks)          ~32   19%
+    CROSS-SIDE (two paths must agree)                  18   11%
+    MEASUREMENT (recorded runs, the ledger, gold)     ~28   16%
+    DECLARATION TABLES (our claims, re-tested)        ~30   18%
+    OUR PYTHON (source, inventory, documents)         ~63   37%
+
+**~32 CONTENT, not the first pass's 58.** That pass called its 58 "candidates,
+not a work list" and warned the false-positive rate was real. It is: the
+difference is almost entirely checks whose subject turns out to be a
+DECLARATION TABLE of ours that happens to be *about* content, which is our
+python's business and not the app's.
+
+### THE CROSS-SIDE BUCKET, AND WHETHER O LEFT IT STANDING ON AIR
+
+Eighteen checks ask "do the two X agree". The python web SCORER was eliminated,
+so the first question is whether they now compare something against nothing.
+**They do not.** What O removed was the scoring mirror -- `SCORERS`, `DEDUCERS`,
+`score_sheet`, `slot_deductions`, `measure_one`. The ASK paths all survived and
+are all still called:
+
+  * `agreement.build_schema` / `apply_computed` / `satisfied_map` are live --
+    `measured.py` uses them to RECOVER a computed slot that was not recorded
+    (measured.py:1497, 5565), and enforcement calls them in three places. A
+    divergence between the app's schema and that one would silently corrupt the
+    recovery, which is exactly what these checks are for.
+  * `score.py` (the paper/CLI prompt) is live and is one side of four of them.
+
+So the eighteen compare app-vs-harness or CLI-vs-app, and both sides of each
+are reachable code. **What IS stale is the vocabulary.** "The two engines" meant
+two SCORERS when these were written and now means two ASK paths, and a reader
+who takes the phrase at face value will conclude the check is dead.
+
+`check_mapped_slots_have_no_unreachable_verdict` was the first case found and
+is fixed: it argued the orphan verdict was "dead on the python mirror, live on
+the app", and the invariant survives the mirror perfectly well -- the sheet
+offers an answer the map has no rule for. Rationale rewritten 2026-09-25, logic
+untouched, still reports 0.
+
+**The remaining seventeen have not been reread.** That is the next unit of K
+work, and it is a rewrite of prose, not of logic: for each, say which two live
+paths it compares and why they must agree, so the check survives the next
+reader. A SECOND question is owed for each and was not answered tonight --
+whether it still examines a non-empty set. Both sides being live code does not
+prove the loop between them iterates, and a check that compares nothing reports
+clean. Proving that needs a perturbation per check, which is a day's work of
+its own and must not be guessed at.
+
+### What is NOT done, and the honest size of the rest
+
+169 of the 171 live checks have not moved. The first pass's warning stands:
+sorting them is a day of READING, and three automated attempts have each been
+wrong in a way only reading found. This pass deliberately spent its time on the
+mechanism instead, so that the reading, when it happens, has somewhere to land.
+
+Two things learned here that the sort will need:
+
+  * **A rule is portable only if its INPUTS are serialisable.**
+    `check_prompts_carry_no_process_history` looks portable from its docstring
+    and is not: it delegates to `leakage.process_findings`, which carries a
+    declared conventions table and a kind taxonomy. Porting it means porting
+    `leakage`, which is a goal of its own.
+  * **Some checks became partly moot when O landed.**
+    `check_mapped_slots_have_no_unreachable_verdict` argues from "the python
+    mirror derives this slot and can never answer that" -- and the mirror was
+    eliminated. The INVARIANT survives (a slot offering what its map cannot
+    emit is still incoherent); the RATIONALE needs rewriting. K's first pass
+    predicted exactly this entanglement.
+
 ## M STEPS 1 AND 2: THE ENUM COMPARISON IS DECLARED (2026-09-24)
 
 `TYPE_MISMATCH` was the last rule stated twice. It is now stated once:
@@ -9506,3 +10060,62 @@ missing side rather than reporting. A check that crashes on absent input cannot
 tell "nothing to compare" from "comparison failed" -- the same failure class as
 the false-clean gate this session opened with, and it would fire the moment any
 side is missing for any reason, not only retirement.
+
+## O EXECUTED: THE PYTHON WEB ENGINE IS ELIMINATED (user, 2026-09-24)
+
+**Decision: option 2 -- eliminate, and let `WEB_CODE_NEUTRAL` retire with it.**
+
+The instrument question settled it. A first attempt REPLACED the mirror with a
+TypeScript re-scorer (`rescoreRecorded.ts`) so `rescore_recorded` could keep
+answering "did a lo-blocks change move a recorded number?" at no call cost. That
+was reverted on the user's correction:
+
+> "Except we shouldn't HAVE a new instrument. That's the whole point."
+
+Eliminating an engine and rebuilding it in another language is not elimination.
+
+### What the user's compensation is, and why the cost is not real
+
+> "We should still be able to identify changes that only affect the logic by
+> rescoring, and if we keep an ARCHIVAL COPY of each prompt instead of just
+> calculating shas, we will be able to tell if engine changes change the
+> prompts. So no cost really."
+
+That is the right trade and it is better than what it replaces. A `prompt_sha`
+says SOMETHING changed; an archived prompt says WHAT. The whole
+`ASK_EQUIVALENT_PROMPTS` apparatus -- 31 rows declaring "this superseded prompt
+asked the same thing", each self-checked against a second sha -- exists because
+a hash cannot distinguish a tag-only edit from a changed question. With the
+prompt itself on disk, that is a diff.
+
+### What retires with the engine, sorted honestly
+
+**Dead weight, exactly as O's own text predicted** ("a check that exists to catch
+drift between two implementations is dead weight once there is one
+implementation"):
+
+  * `check_mirror_reproduces_its_own_scores`
+  * `check_engines_score_identical_verdicts_alike`
+  * `check_scored_slots_are_answered_by_both_engines`
+  * `check_paper_scorer_agrees_on_identical_verdicts`
+
+**Would have gone VACUOUS, and this is the pile that matters.**
+`check_web_scorer_exercises_its_sheet` and `check_recorded_answers_are_complete`
+GUARD on `SCORERS` membership and SKIP. With the registry gone they return 0
+findings and look clean while checking nothing -- and the experiment that ran
+every check with the engine removed counted them as "unchanged" for exactly that
+reason. They are retired explicitly rather than left to skip.
+
+**Retired with the mechanism:** `WEB_CODE_NEUTRAL` and
+`check_web_code_neutrality_is_verified`. A neutrality claim that cannot be
+verified should not stand unverified.
+
+**Also going:** the two self-test fire cases that break `SCORERS["slots"]` on
+purpose, and `probe.py`'s use of the registry.
+
+### What STAYS, and is not the web engine
+
+`apply_computed`, `build_schema`, `satisfied_map`, `answer_of`, `load_action`,
+`expand_counted`, `BLOCKS`, `fixture_for`, `cheap_checks_gate`. `score.py` and
+`oc.py` -- the PAPER scorer -- import these directly. They live in `agreement.py`
+because that is where the module grew, not because they belong to the web column.

@@ -2775,23 +2775,18 @@ def enforcement_selftest():
                  lambda: setattr(_A, "satisfied_map", _no_cover),
                  lambda: setattr(_A, "satisfied_map", _real_sat))
 
-    # A gating slot demoted to an ordinary one: the item's whole value stops
-    # depending on the check that is supposed to decide it.
-    _real_slots = _A.SCORERS["slots"]
-    def _ungated(spec, item, checks):
-        return _real_slots(dict(spec, slots=[{**sl, "gates": False}
-                                             for sl in spec["slots"]]), item, checks)
-    _scorer_case("the scorer stops honouring a gate",
-                 lambda: _A.SCORERS.__setitem__("slots", _ungated),
-                 lambda: _A.SCORERS.__setitem__("slots", _real_slots))
-
-    # `onlyif` ignored: the guarded check is charged alongside its failed
-    # condition. This is the regression that shipped.
-    def _no_onlyif(spec, item, checks):
-        return _real_slots(spec, {k: v for k, v in item.items() if k != "onlyif"}, checks)
-    _scorer_case("the scorer stops honouring `onlyif`",
-                 lambda: _A.SCORERS.__setitem__("slots", _no_onlyif),
-                 lambda: _A.SCORERS.__setitem__("slots", _real_slots))
+    # TWO FIRE CASES RETIRED 2026-09-24 with the python web engine (goal O).
+    #
+    # They broke `agreement.SCORERS["slots"]` on purpose -- demoting a gate, and
+    # ignoring `onlyif` -- and required the audit to notice. The scorer they
+    # broke was the PYTHON MIRROR of `scoreSlotSheet`; there is nothing left to
+    # inject into.
+    #
+    # THE RULES ARE STILL FIRE-TESTED, on the side that ships. `gate` and
+    # `onlyif` each have their own suite in lo-blocks (`slotSheet.test.ts`,
+    # `onlyif.test.ts`), and `web_signatures` drives `probe.test.ts` to report
+    # what each sheet actually ENFORCES. What went is the injection into the
+    # copy, not the coverage of the rule.
 
     # The ledger's own guard. A fingerprint that moves on prose is the failure
     # that put twenty-one items on the sweep list for a corrected comment.
@@ -3275,22 +3270,26 @@ def enforcement_selftest():
                  lambda: setattr(_ENFX, "_app_envelope", _real_env),
                  want="ENGINES PUT A DIFFERENT REQUEST ON THE WIRE")
 
-    # One recorded response read to two different scores. Patched at the
-    # COMPARISON rather than the scorer, because driving the app's scorer for
-    # 5,668 payloads costs minutes and the thing under test here is whether a
-    # difference is REPORTED once found.
-    _real_interp = _ENFX._interpretation_comparison
-
-    def _interp_with_a_difference():
-        d = dict(_real_interp())
-        d["differ"] = list(d.get("differ") or []) + [("Q1", 17, "olx", 3.0, 5.0)]
-        return d
-
-    _scorer_case("the engines read one response to different scores",
-                 lambda: setattr(_ENFX, "_interpretation_comparison",
-                                 _interp_with_a_difference),
-                 lambda: setattr(_ENFX, "_interpretation_comparison", _real_interp),
-                 want="ENGINES READ ONE RESPONSE DIFFERENTLY")
+    # A THIRD FIRE CASE RETIRED 2026-09-25, and it should have gone with the
+    # other two above.
+    #
+    # It fabricated a difference in `_interpretation_comparison` -- one recorded
+    # response read to two different scores -- and required the audit to report
+    # it. `check_engines_read_a_response_the_same_way` was retired with the
+    # python mirror in goal O, so the case tested a check that now returns [].
+    #
+    # IT WAS NOT HARMLESS. The comparison it patched still selected items by
+    # `agreement.SCORERS`, so `engine_interpretation_line` raised
+    # `AttributeError` and STOPPED THE AUDIT EARLY -- two runs on 2026-09-25
+    # were read as complete when they had reported about two thirds of their
+    # findings. A retirement is not finished until its callers and its fire
+    # cases go with it.
+    #
+    # WHAT STILL COVERS THE QUESTION. Whether the two paths put the same thing
+    # on the wire is `check_engines_send_the_same_request` and
+    # `check_app_and_harness_send_the_same_prompt`, both live and both
+    # comparing sides that still exist. What went is the comparison of two
+    # SCORERS, because there is one.
 
     _inverted_skips: list[tuple[str, str]] = []
     print("SELF-TEST — does the audit notice when a rule is removed?\n")

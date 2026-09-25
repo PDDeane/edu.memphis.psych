@@ -47,7 +47,7 @@ def cited_dirs() -> dict:
     """Directories named by a ledger, through the ledger's own reference field."""
     out: dict = collections.defaultdict(set)
     # FROM `paths`, not from this file's position -- see `editguard.HERE`.
-    ledger = paths.SCORING / "MEASURED.json"
+    ledger = paths.COURSE_LEDGER
     doc = json.loads(ledger.read_text())
     for item, sides in (doc.get("items") or {}).items():
         for side, v in (sides or {}).items():

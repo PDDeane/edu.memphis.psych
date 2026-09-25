@@ -1613,10 +1613,17 @@ def run_jobs(jobs: list[dict], idmap: str, on_cell=None) -> list[dict]:
     jf, rf = os.path.join(tmp, "jobs.json"), os.path.join(tmp, "results.json")
     with open(jf, "w") as fh:
         json.dump(jobs, fh)
+    # THE SERVER IS PASSED, NEVER DEFAULTED. `runner.test.ts` used to fall
+    # back to `localhost:8888` -- the LIVE tree's server -- so a dry-run
+    # sweep borrowed the live request path silently. Python resolves it
+    # through `paths` and hands it over, and the runner now REFUSES
+    # rather than guessing.
     env = {
         **os.environ, "RUN_LLM_RUNNER": "1",
         "JOBS_JSON": jf, "RESULTS_JSON": rf, "IDMAP_JSON": idmap,
+        "LO_SERVER": paths.LO_SERVER,
     }
+    print(f"  requests shaped by {paths.LO_SERVER}", file=sys.stderr)
     print(f"driving {len(jobs)} cell(s) through the app", file=sys.stderr)
     # STREAMED, not captured. `subprocess.run(capture_output=True)` held the
     # runner's stdout in memory until vitest exited, so the per-cell "[runner]"

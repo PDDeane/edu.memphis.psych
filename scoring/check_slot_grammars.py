@@ -55,16 +55,13 @@ PROBES = [
     "two_refs:{{corpus:Q1/p1:response:0:41:sha=c874ac86a7b2}} and My unwanted target behavior:met/absent",
 ]
 
-DRIVER = """
-import { parseSlots } from '%s';
-const probes = JSON.parse(process.argv[2]);
-const out = probes.map((s: string) => {
-  const r = parseSlots(s, ['met', 'absent']);
-  return r.map((d: any) => ({ key: d.key ?? null, label: d.label ?? null,
-                              options: d.options ?? null, points: d.points ?? null }));
-});
-console.log(JSON.stringify(out));
-"""
+# THE DRIVER MOVED TO lo-blocks. Goal K, 2026-09-25. It was a TypeScript
+# literal written to a temp file at run time: `tsc --noEmit` never saw it,
+# no test exercised it, and it imported slotSheet by ABSOLUTE path. A
+# driver that will not compile reports as "the TypeScript driver failed",
+# which is indistinguishable from the divergence this check exists to
+# find. It is now `enforce/probes.parseSlotSpecs`, typechecked and under
+# vitest, reached by name through `lo_enforce.probe`.
 
 
 def python_side():
@@ -80,23 +77,19 @@ def python_side():
 
 
 def ts_side():
-    tsx = TS / "node_modules/.bin/tsx"
-    if not tsx.exists():
-        return None, (f"tsx is not installed at {tsx}; this check cannot compare "
-                      f"the two parsers, which is NOT the same as their agreeing")
-    if not SLOTSHEET.exists():
-        return None, f"{SLOTSHEET} does not exist"
-    with tempfile.TemporaryDirectory() as d:
-        drv = pathlib.Path(d) / "probe_slots.ts"
-        drv.write_text(DRIVER % str(SLOTSHEET).replace(".ts", ""))
-        r = subprocess.run([str(tsx), str(drv), json.dumps(PROBES)],
-                           cwd=str(TS), capture_output=True, text=True, timeout=600)
-        if r.returncode != 0:
-            return None, f"the TypeScript driver failed: {(r.stderr or '').strip()[:200]}"
-        try:
-            return json.loads(r.stdout.strip().splitlines()[-1]), ""
-        except Exception as e:
-            return None, f"could not read the TypeScript output ({e}): {r.stdout[:150]}"
+    """The TypeScript parse of the same probes, or why it could not be had."""
+    sys.path.insert(0, str(HERE))
+    import lo_enforce
+
+    try:
+        return lo_enforce.probe("parse_slot_specs",
+                                {"specs": PROBES,
+                                 "defaults": ["met", "absent"]}), ""
+    except lo_enforce.ProbeFailed as e:
+        # REPORTED, NOT SWALLOWED. Being unable to ask the other parser is not
+        # the same as the two parsers agreeing, and this check has always said
+        # so in as many words.
+        return None, str(e)
 
 
 def main() -> int:

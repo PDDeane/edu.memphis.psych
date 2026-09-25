@@ -42,8 +42,13 @@ DATA = str(paths.OUT)
 # `sweep` dirs hold <item>.json. Missing ones are skipped, so this runs against
 # whatever has finished.
 SOURCES = [
-    ("olx",        "sweep", f"{DATA}/web_v9"),
-    ("python",     "sweep", f"{DATA}/cli_v8"),
+    # BOTH OF THESE ARE THE WEB COLUMN. They were labelled by ENGINE -- `olx`
+    # for the app, `python` for the harness that mirrored it -- until the python
+    # web engine was eliminated (goal O) and its runs were folded into `olx`.
+    # They are labelled by SWEEP now, because that is the only thing that still
+    # distinguishes them.
+    ("olx web_v9", "sweep", f"{DATA}/web_v9"),
+    ("olx cli_v8", "sweep", f"{DATA}/cli_v8"),
     ("paper+mini", "paper", f"{DATA}/paper_mini_v8/r1"),
     ("paper+opus", "paper", f"{DATA}/paper_opus_v8/r1"),
 ]

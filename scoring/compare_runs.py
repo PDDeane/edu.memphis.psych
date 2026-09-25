@@ -45,7 +45,9 @@ _LOADERS = {1: gold.load_h1, 2: gold.load_h2, 3: gold.load_h3}
 
 
 
-PROBED = os.path.join(os.path.dirname(os.path.abspath(__file__)), "PROBED.json")
+import paths as _paths_probed
+
+PROBED = str(_paths_probed.COURSE_PROBED)
 
 
 def _probe_ledger() -> list[dict]:

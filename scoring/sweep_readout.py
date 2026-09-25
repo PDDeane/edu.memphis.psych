@@ -105,7 +105,7 @@ def readout(item: str, before: dict) -> int:
     # script's own pre-registration named the honest baseline as 16/19 and 17/19
     # -- against which the item had FALLEN 3. The tool did what it was told; the
     # instruction was wrong, and nothing was positioned to say so.
-    for side in ("python", "olx"):
+    for side in ("olx",):
         snap = (before or {}).get(side) or {}
         was = snap.get("prompt_sha")
         if not was:
@@ -141,11 +141,14 @@ def readout(item: str, before: dict) -> int:
         if not g or g.get("score") is None:
             continue
         per = {}
-        for side in ("python", "olx"):
+        for side in ("olx",):
             s = [x for x in M._pooled_cell_scores(item, pid, side) if x is not None]
             per[side] = (sum(1 for x in s if abs(x - g["score"]) < 1e-9), len(s))
-        now = per["python"][0] + per["olx"][0]
-        tot = per["python"][1] + per["olx"][1]
+        # ONE WEB COLUMN. `olx` already carries the retired python engine's
+        # runs -- they were folded into it (goal O) -- so adding a second side
+        # here would have counted nothing and raised on a missing key.
+        now = per["olx"][0]
+        tot = per["olx"][1]
         was = before.get(str(pid), before.get(pid))
         rows.append((pid, g["score"], was, now, tot, per))
         if was is None or now >= was:
@@ -155,7 +158,7 @@ def readout(item: str, before: dict) -> int:
         # half of the old pooled count -- the only comparison available when the
         # `before` table is pooled.
         half = was / 2.0
-        both = per["python"][0] < half and per["olx"][0] < half
+        both = per["olx"][0] < half
         why = []
         if drop < MIN_POOLED_DROP:
             why.append(f"drop {drop} < {MIN_POOLED_DROP}")
@@ -163,12 +166,14 @@ def readout(item: str, before: dict) -> int:
             why.append("one side only")
         watch.append((pid, was, now, ", ".join(why) or f"drop {drop}, both sides"))
 
-    print(f"  cell  gold   before  after   python  olx")
+    # ONE WEB COLUMN. The table had a column per engine; `olx` carries the
+    # retired python engine's runs now (goal O), so there is one to print.
+    print(f"  cell  gold   before  after   olx")
     for pid, gold, was, now, tot, per in rows:
         w = f"{was:>2}/12" if was is not None else "   -"
         print(f"  p{pid:<4} {gold:>5}  {w}  {now:>2}/{tot:<3}  "
-              f"{per['python'][0]}/{per['python'][1]}    {per['olx'][0]}/{per['olx'][1]}")
-    for side in ("python", "olx"):
+              f"{per['olx'][0]}/{per['olx'][1]}")
+    for side in ("olx",):
         try:
             e = M.records(side)[item]
             print(f"  {side:<7} {e['numerator']}/{e['denominator']}")
@@ -182,11 +187,10 @@ def readout(item: str, before: dict) -> int:
     # threshold low enough to catch a real regression can exclude it. Item totals
     # are the stabler statistic: across the same pair Q2 held 19/20 python and
     # went 18 -> 19 olx, correctly reading as no harm.
-    py_now = ol_now = py_was = ol_was = None
+    ol_now = ol_was = None
     try:
-        py_now = M.records("python")[item]["numerator"]
+        # The web column is `olx` and there is one of it.
         ol_now = M.records("olx")[item]["numerator"]
-        py_was = (M.records("python")[item].get("previous") or {}).get("numerator")
         ol_was = (M.records("olx")[item].get("previous") or {}).get("numerator")
     except Exception:
         pass
@@ -197,19 +201,23 @@ def readout(item: str, before: dict) -> int:
     # side being flat is not "both fell". A side holding still does not pay for
     # the other side losing two cells. The test is the NET across both sides,
     # which is the quantity an edit is supposed to move.
+    # ONE SIDE NOW, so the NET is that side's movement. It used to sum both web
+    # columns -- the test being the net an edit moves rather than either column
+    # alone -- and the python column's runs are inside `olx` since goal O, so
+    # the same quantity is being read from one row.
     net = None
-    if None not in (py_now, ol_now, py_was, ol_was):
-        net = (py_now - py_was) + (ol_now - ol_was)
+    if None not in (ol_now, ol_was):
+        net = ol_now - ol_was
     lost_both = net is not None and net < 0
     if watch:
         print("\n  MOVED, BUT INSIDE THE NOISE FLOOR — reported, not charged "
               f"({NOISE_NOTE}):")
         for pid, was, now, why in watch:
             print(f"    p{pid}: {was}/12 -> {now}/12   [{why}]")
-    if None not in (py_now, ol_now, py_was, ol_was):
-        print(f"\n  ITEM TOTALS: python {py_was} -> {py_now}, olx {ol_was} -> {ol_now}")
+    if None not in (ol_now, ol_was):
+        print(f"\n  ITEM TOTALS: olx {ol_was} -> {ol_now}")
     if net is not None:
-        print(f"  NET across both sides: {net:+d}")
+        print(f"  NET: {net:+d}")
     print("  VERDICT: " + (
         "REVERT -- the net across both sides is negative. The cells above say "
         "where to look, but the totals are what carries it"
@@ -266,13 +274,12 @@ def slot_profile(item: str, slots: tuple, cells: tuple = ()) -> int:
         g = M.gold_cell(item, pid)
         if not g or g.get("score") is None:
             continue
-        sc = [x for x in (M._pooled_cell_scores(item, pid, "python")
-                          + M._pooled_cell_scores(item, pid, "olx")) if x is not None]
+        sc = [x for x in M._pooled_cell_scores(item, pid, "olx") if x is not None]
         if not sc:
             continue
         right = sum(1 for x in sc if abs(x - g["score"]) < 1e-9)
         combos: collections.Counter = collections.Counter()
-        for side in ("python", "olx"):
+        for side in ("olx",):
             try:
                 doc = M._runs_doc(item, side)
             except Exception:
@@ -343,8 +350,7 @@ def cell_texts(item: str, cells: tuple = (), fields: tuple = ()) -> int:
             fx = A.fixture_for(item, pid) or {}
         except Exception:
             continue
-        sc = [x for x in (M._pooled_cell_scores(item, pid, "python")
-                          + M._pooled_cell_scores(item, pid, "olx")) if x is not None]
+        sc = [x for x in M._pooled_cell_scores(item, pid, "olx") if x is not None]
         right = sum(1 for x in sc if abs(x - g["score"]) < 1e-9)
         print(f"\n  {item}/p{pid}  gold {g['score']}  right {right}/{len(sc)}")
         fb = g.get("feedback")

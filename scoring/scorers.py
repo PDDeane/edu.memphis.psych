@@ -25,6 +25,10 @@ from __future__ import annotations
 import importlib
 import importlib.util
 import sys
+import threading
+
+# Serialises course-scorer loading. See `_course_scorer`.
+_LOAD_LOCK = threading.Lock()
 
 
 class ScorerError(RuntimeError):
@@ -79,10 +83,29 @@ def _course_scorer(name: str):
     spec = importlib.util.spec_from_file_location(mod_name, path)
     if spec is None or spec.loader is None:
         raise ScorerError(f"scorer {name!r} at {path} could not be loaded")
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[mod_name] = mod
-    spec.loader.exec_module(mod)
-    return mod
+    # PUBLISHED ONLY ONCE IT IS BUILT, AND UNDER A LOCK. `score.py` scores
+    # participants in a ThreadPoolExecutor, and this registered the module in
+    # `sys.modules` BEFORE executing it -- so a second worker reaching the cache
+    # check above during the first worker's `exec_module` was handed a module
+    # whose body had not run yet. It got as far as `schema_fragment` not
+    # existing and reported the participant as FAILED.
+    #
+    # MEASURED, not reasoned: the 2026-09-25 paper sweep lost handout 2's
+    # participant 3 to exactly this -- "module '_course_scorer_oc' has no
+    # attribute 'schema_fragment'" -- while the other nineteen scored, and the
+    # module imports perfectly in isolation. A race is what a failure that
+    # depends on WHICH participant looks like.
+    #
+    # Registering after `exec_module` costs the ability to satisfy a module that
+    # imports ITSELF by name mid-body; no scorer does, and a half-built module
+    # handed to another thread is the worse of the two failures.
+    with _LOAD_LOCK:
+        if mod_name in sys.modules:                 # won by another worker
+            return sys.modules[mod_name]
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        sys.modules[mod_name] = mod
+        return mod
 
 
 def resolve(name: str):

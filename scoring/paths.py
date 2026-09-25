@@ -84,6 +84,40 @@ def _lo_blocks_root() -> Path:
 LO = _lo_blocks_root()
 
 
+def _lo_server() -> str:
+    """The LLM endpoint belonging to THIS checkout's lo-blocks.
+
+    A SECOND MARKER, FOR THE SAME REASON AS `.lo-blocks`. That one stops a copy
+    of this repo auditing the original's build artifacts; this one stops a copy
+    sending its LLM traffic to the original's SERVER. Both failures look like
+    success: the sweep runs, the numbers come out, and nothing says the requests
+    were shaped by a tree twelve days older than the one being measured.
+
+    MEASURED, not anticipated. The 2026-09-25 confirmation sweep ran wholly from
+    the dry-run tree -- dry-run idmap, dry-run vitest, dry-run scoring code --
+    and every LLM call went to `localhost:8888`, the live tree's server, because
+    `backends.py` and `runner.test.ts` each spelled that literally. It was found
+    by a write-scope check noticing the live server writing rate-limiter state,
+    not by anything that watches measurements.
+
+    Precedence matches `_lo_blocks_root` exactly: the environment wins, then the
+    marker, then the historical default. A tree without a marker behaves as
+    before.
+    """
+    env = os.environ.get("LO_SERVER")
+    if env:
+        return env.rstrip("/")
+    marker = REPO / ".lo-server"
+    if marker.is_file():
+        named = marker.read_text().strip()
+        if named:
+            return named.rstrip("/")
+    return "http://localhost:8888"
+
+
+LO_SERVER = _lo_server()
+
+
 # ---------------------------------------------------------------------------
 # STAGE 9. `MOLLY_*` -> `COURSE_*`. THE FALLBACK IS THE DELIVERABLE, not a
 # transition courtesy, because these variables live where a repo-wide rename
@@ -316,6 +350,32 @@ COURSE_CHANGELOG = Path(os.environ.get(
 # beside the .olx, where staging would copy 1.2 MB of it on every build.
 COURSE_FIXTURE = Path(os.environ.get(
     "COURSE_FIXTURE", COURSE_METADATA / "fixture"))
+
+# ---------------------------------------------------------------------------
+# THE COURSE'S OWN RECORDS. Every key in these is one of this course's items,
+# slots or prose spans: the ledger of measured rates, what has been probed and
+# what the probe asked, the shas of the designed prompt text, the per-span
+# leakage verdicts. They lived in `scoring/` -- the ENGINE's directory -- which
+# is precisely what `check_module_has_no_course_data` exists to push out, and
+# what goal E did for `scorer_oc` and goal P for `PROBE_PASS`.
+#
+# ONE SPELLING EACH, which is the other half of the fix. These six files had
+# NINE path constructions between them in four different idioms, and
+# `enforcement.py` built the ledger's path independently of `measured.LEDGER`
+# -- so a move would have left it reading the old location and reporting from a
+# stale ledger with no sign anything was wrong.
+COURSE_LEDGER = Path(os.environ.get(
+    "COURSE_LEDGER", COURSE_METADATA / "MEASURED.json"))
+COURSE_CARRIED_NOTES = Path(os.environ.get(
+    "COURSE_CARRIED_NOTES", COURSE_METADATA / "CARRIED_NOTES.json"))
+COURSE_PROBED = Path(os.environ.get(
+    "COURSE_PROBED", COURSE_METADATA / "PROBED.json"))
+COURSE_PROBE_RECEIPTS = Path(os.environ.get(
+    "COURSE_PROBE_RECEIPTS", COURSE_METADATA / "PROBE_RECEIPTS.json"))
+COURSE_DESIGNED_TEXT_SHA = Path(os.environ.get(
+    "COURSE_DESIGNED_TEXT_SHA", COURSE_METADATA / "DESIGNED_TEXT_SHA.json"))
+COURSE_LEAKAGE_REVIEWED = Path(os.environ.get(
+    "COURSE_LEAKAGE_REVIEWED", COURSE_METADATA / "LEAKAGE_REVIEWED.json"))
 
 # THE FIXTURE'S DATA, WHICH IS NOT ITS CODE. Goal N.
 #

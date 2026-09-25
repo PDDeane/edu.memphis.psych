@@ -261,6 +261,23 @@ def default_verdicts() -> list[str]:
     return out
 
 
+# THE PYTHON WEB ENGINE IS GONE. Goal O, 2026-09-24.
+#
+# `SCORERS`, `DEDUCERS`, `score_sheet` and `slot_deductions` were a SECOND
+# IMPLEMENTATION of `scoreSlotSheet`, kept so a python column could score the
+# same sheets the app scores. Once every rule was a declaration the two engines
+# read alike (goal M), the copy stopped carrying any rule of its own -- and a
+# copy that carries no rules is a copy of arithmetic, which the app already does.
+#
+# WHAT WENT WITH IT: the `python` measurement column, the checks that existed
+# only to compare it against `olx`, and `WEB_CODE_NEUTRAL` -- a neutrality claim
+# that cannot be verified should not stand unverified.
+#
+# WHAT STAYED, and was never the web engine: `load_action`, `apply_computed`,
+# `build_schema`, `satisfied_map`, `answer_of`, `expand_counted`, `fixture_for`,
+# `BLOCKS`, `cheap_checks_gate`. `score.py` and the oc scorer -- the PAPER side --
+# import these directly.
+
 def load_action(olx_file: str, action_id: str) -> dict:
     """Pull one <LLMAction> out of the .olx: prompt body, slots, verdicts."""
     path = os.path.join(OLX_DIR, olx_file)
@@ -1259,151 +1276,6 @@ def expand_counted(item: dict, checks: dict) -> dict:
     return out
 
 
-def slot_deductions(spec: dict, item: dict, checks: dict) -> list[dict]:
-    """The CODED deductions a slot sheet charges -- mirror of `scoreSlotSheet`.
-
-    NOT the same set as `score_slots`'s count, and the difference is deliberate
-    on both sides: a slot with points but no `charge` still costs its points and
-    names no code, so `failed` counts it and this does not. Reading one as the
-    other is how "nothing was charged" and "this rubric named no code" get
-    confused.
-
-    A FAILED GATE COSTS THE WHOLE ITEM, so its charge is the item max -- the same
-    arithmetic the score line already does, named rather than implied.
-    """
-    by_key = {s["key"]: s for s in spec["slots"]}
-    sat = satisfied_map(spec, checks)
-
-    def deduct(slot, pts, comp=None):
-        """One coded entry, or none when the rubric names no code.
-
-        TWO PLACES DECLARE A CODE and both are read. A GATE names it on the slot
-        (`charge=`, with `because=` for the wording). A SCORED component names it
-        per failing verdict (`<Credit codes="absent=UTB_NOT_STATED">`) -- which is
-        the form the paper ledger has always read, so reading only `charge` here
-        would have left all nineteen slot-sheet items recording an empty list
-        while their ledger side named a code for every charge.
-        """
-        code = slot.get("charge")
-        note = slot.get("because")
-        if not code and comp:
-            verdict = str((checks.get(slot["key"]) or {}).get("verdict") or "").strip()
-            code = (comp.get("codes") or {}).get(verdict)
-        if not code:
-            return []
-        out = {"code": code, "pts": pts}
-        if note:
-            out["note"] = note
-        return [out]
-
-    for slot in spec["slots"]:
-        if slot.get("gates") and not sat[slot["key"]]:
-            return deduct(slot, float(item["max"]))
-
-    charged = {sl["key"]: True for sl in spec["slots"]}
-    for rule in item.get("onlyif", []):
-        if rule["cond"] in sat:
-            charged[rule["key"]] = bool(sat[rule["cond"]])
-
-    # THE SCORED SLOTS, on the same basis the score is computed from. This
-    # walked `item["credit"]` and looked slots up by the component's name, which
-    # is exactly the coupling that made the eight operant items need a scorer of
-    # their own: PR's credits are `is_operant_conditioning` and `is_pr`, so a
-    # loop over credits never reaches the `demonstrates_type` slot that carries
-    # the code. Measured: 9 of 131 operant states named WRONG_TYPE on the
-    # hand-written side and nothing here.
-    checks = expand_counted(dict(item, _slots=spec["slots"]), checks)
-    counted = {cr["key"] for cr in item.get("counts", [])}
-    sat = satisfied_map(spec, checks)
-    charged = {sl["key"]: True for sl in spec["slots"]}
-    for rule in (item.get("onlyif") or []):
-        if rule["cond"] in sat:
-            charged[rule["key"]] = bool(sat[rule["cond"]])
-    by_what = {c["what"]: c for c in item.get("credit", [])}
-    out = []
-    for slot in spec["slots"]:
-        if slot.get("pts") is None or slot["key"] in counted:
-            continue
-        if sat.get(slot["key"]):
-            continue
-        v = str((checks.get(slot["key"]) or {}).get("verdict") or "").strip()
-        if v and v in (slot.get("free") or []):
-            continue
-        if not charged.get(slot["key"], True):
-            continue
-        out.extend(deduct(slot, float(slot["pts"]), by_what.get(slot["key"])))
-    return out
-
-
-def score_sheet(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
-    """THE ONE WEB MIRROR: `scoreSlotSheet`, scored from the SLOT SHEET. M step 4.
-
-    Every item goes through this, including the eight operant ones that had
-    hand-written mirrors of their own. Those existed for a single reason:
-    `score_slots` scores from the rubric's CREDIT components, and on those eight
-    the credits and the slots are different sets -- DAY1's credits sum to 5
-    against a 4-point sheet, NR's slots sum to 6 against a max of 4. The app has
-    never had operant-specific code; it reads the sheet. So does this.
-
-    WHAT MAKES IT UNABLE TO DRIFT. There is no rule here that a rubric does not
-    state: the gates, their charges, `onlyif`, `expect`, `forbid`, `equals`,
-    `counts`, `cover`, `requires`, `maps` and the free verdicts are all read from
-    the declarations the same build generates the web's attributes from. Adding a
-    rule to an item is an edit to the OLX and nothing else -- which is what
-    retires the source-reading comparison: there is no hand-written body left for
-    it to read.
-
-    `explicitMax ?? sum(scored)`, exactly as the TS does: eleven actions carry
-    `max=` and the rest are the sum of their scored slots.
-    """
-    scored = [s for s in spec["slots"] if s.get("pts") is not None]
-    # THE DENOMINATOR IS THE RUBRIC'S, and that is not a shortcut: the TS takes
-    # `explicitMax ?? sum(scored)`, and both resolve to `item["max"]` here.
-    # Eleven actions carry `max=` and `check_olx_attributes_are_generated` holds
-    # it equal to the rubric on all eleven; for the other twelve the scored slots
-    # sum to the rubric max exactly (verified across all of them). Reading the
-    # slot sum instead would score NR against 6 -- its three 2-point findings,
-    # only one of which `onlyif` ever lets charge -- where the item is worth 4.
-    mx = float(item["max"])
-    if not scored:
-        return 0.0, 0                      # the TS returns null; nothing to score
-
-    # A FAILED GATE COSTS THE WHOLE ITEM, and `failedGate` walks EVERY slot --
-    # gating slots carry no points of their own.
-    gate_sat = satisfied_map(spec, checks)
-    for slot in spec["slots"]:
-        if slot.get("gates") and not gate_sat[slot["key"]]:
-            return 0.0, 1
-
-    # A counted family is answered ONCE, so its members carry no verdict of their
-    # own. Expanded with the SAME prepared helper `score_slots` uses, and the
-    # family read off the ITEM, because a hand-rolled expansion here would be a
-    # second copy of a rule that has already been got wrong twice.
-    checks = expand_counted(dict(item, _slots=spec["slots"]), checks)
-    counted = {cr["key"] for cr in item.get("counts", [])}
-
-    sat = satisfied_map(spec, checks)
-    charged = {sl["key"]: True for sl in spec["slots"]}
-    for rule in (item.get("onlyif") or []):
-        if rule["cond"] in sat:
-            charged[rule["key"]] = bool(sat[rule["cond"]])
-
-    lost, failed = 0.0, 0
-    for slot in scored:
-        if slot["key"] in counted:
-            continue                      # the counter itself carries no points
-        if sat.get(slot["key"]):
-            continue
-        v = str((checks.get(slot["key"]) or {}).get("verdict") or "").strip()
-        if v and v in (slot.get("free") or []):
-            continue                      # a declared-free verdict costs nothing
-        if not charged.get(slot["key"], True):
-            continue                      # `onlyif` suppressed this charge
-        failed += 1
-        lost += float(slot["pts"])
-    return max(0.0, min(mx, mx - lost)), failed
-
-
 def score_slots(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     """Uniform slot sheet: one unmet component, one deduction.
 
@@ -1548,7 +1420,6 @@ _OC = _scorers.optional("oc")
 # identically to the three scorers it replaces, and 131 synthetic operant states
 # (every single-slot failure on all eight items, plus all-pass and all-fail)
 # agree exactly.
-SCORERS = {"slots": score_sheet, "oc": score_sheet, "oc_cadence": score_sheet}
 
 # THE SAME ENUMERATION, READ FOR ITS NAMES. Each entry is the deductions
 # function its `SCORERS` counterpart derives its score from, so a recorded run
@@ -1574,8 +1445,6 @@ SCORERS = {"slots": score_sheet, "oc": score_sheet, "oc_cadence": score_sheet}
 # Verified over 131 synthetic operant states -- every single-slot failure on all
 # eight items plus all-pass and all-fail -- agreeing with the hand-written
 # deducers on both the CODES and the POINTS in all 131.
-DEDUCERS = {"slots": slot_deductions, "oc": slot_deductions,
-            "oc_cadence": slot_deductions}
 
 # Items scored over a subset of the paper item's points. Empty since 1c moved to
 # its full five slots; kept because the mechanism is the honest way to declare a
@@ -1802,73 +1671,21 @@ def recorded_answer(slot: dict, checks: dict) -> str:
     return verdict_of(checks, slot["key"])
 
 
-def measure_one(backend, handout: int, spec: dict, action_id: str, path: str, pid: int) -> dict:
-    cfg = config(handout)
-    item = cfg["rubric"].BY_ID[spec["item"]]
+def measure_one(*_a, **_k):
+    """RETIRED with the python web engine. Goal O, 2026-09-24.
 
-    if spec["kind"] == "data_presence":
-        return measure_data_presence(handout, spec, pid)
-    if spec["kind"] == "type_stated":
-        return measure_type_stated(handout, spec, pid)
+    This drove the `python` measurement column: call the model, score the answer
+    with the python mirror of `scoreSlotSheet`, record the cell. The mirror is
+    gone, so there is nothing here to score with -- and the column it fed is
+    retired, not broken.
 
-    action = load_action(spec["olx"], action_id)
-    # Handout 3 no longer needs its own branch: build_jobs applies the simulation
-    # for the items that declare one, along with every other reconstruction.
-    fixture = fixture_for(spec["item"], pid)
-    prompt = build_prompt(action["body"], fixture) + checklist_guidance(action["show_checks"])
-    raw = backend.complete(prompt, build_schema(action["slots"], action["excluded"],
-                                                action["show_checks"],
-                                                action["cover"], action["choices"]))
-    checks = apply_computed(action, raw.get("checks") or {}, fixture)
-
-    merged = dict(spec, slots=action["slots"], cover=action["cover"],
-                  requires=action["requires"])
-    score, n_failed = SCORERS[spec["kind"]](merged, item, checks)
-    # AFTER the scorer, deliberately: `score_slots` expands a counted family in
-    # place, so reading the deductions from the same `checks` object is reading
-    # the state that was actually scored rather than the state it started from.
-    _deduce = DEDUCERS.get(spec["kind"])
-    _deductions = _deduce(merged, item, checks) if _deduce else []
-    recorded = expand_counted(dict(item, _slots=action["slots"]), checks)
-    return {
-        "participant_id": pid,
-        "item": spec["item"],
-        "score": round(score, 2),
-        "max": MAX_OVERRIDE.get((str(handout), spec["item"]), item["max"]),
-        "failed_slots": n_failed,
-        # WHICH RULES CHARGED, beside how many. `failed_slots` is a count and
-        # says nothing about what was broken; the paper ledger has always
-        # recorded codes and this side recorded none, so a disagreement between
-        # them could only ever be compared as two totals. Not the same set as
-        # `failed_slots` -- see DEDUCERS.
-        "deductions": _deductions,
-        # From the EXPANDED sheet, so what is recorded is what was scored.
-        "checks": {s["key"]: recorded_answer(s, recorded) for s in action["slots"]},
-        # What each check ANSWERED, and why, kept beside the verdicts.
-        #
-        # A pick answers `refers_to` and carries no verdict, so it stored as an
-        # empty string and three experiments on pick-valued slots were
-        # uninterpretable: `observed_type`, `named_type` and a `trigger_behavior`
-        # classification all read "" in every cell of every run, and there was no
-        # way to tell a slot the model answered wrongly from one it never
-        # answered. `evidence` matters for the same reason — apply_computed
-        # writes the operands of every `equals` and `expect` rule into it
-        # ("trigger_behavior=other, wanted utb"), which is the one record of what
-        # a derived check was derived FROM.
-        #
-        # Both were computed at run time and discarded at write time. Only keys
-        # that carry something are stored, so the artifacts do not grow for the
-        # items that use neither.
-        "answers": {s["key"]: answer_of(checks, s["key"]) for s in action["slots"]
-                    if answer_of(checks, s["key"])
-                    and answer_of(checks, s["key"]) != verdict_of(checks, s["key"])},
-        "evidence": {s["key"]: (checks.get(s["key"]) or {}).get("evidence", "")
-                     for s in action["slots"]
-                     if isinstance(checks.get(s["key"]), dict)
-                     and (checks[s["key"]] or {}).get("evidence")},
-        "feedback": raw.get("feedback", ""),
-        "response_chars": len((sections_for(handout, pid).get(spec["item"]) or "").strip()),
-    }
+    It RAISES rather than returning an empty result, because a sweep that
+    silently produced no column would look like a sweep that found nothing.
+    """
+    raise SystemExit(
+        "agreement.measure_one: the python web engine was eliminated (goal O). "
+        "The `olx` column is swept by agreement_app.py, which drives the real "
+        "app; the `paper` columns by score.py. There is no python web column.")
 
 
 # The canonical table lives in handouts.py so this side, the web and

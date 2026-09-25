@@ -64,34 +64,34 @@ def check() -> list:
 
 
 def cross_check(cases_path=None) -> list:
-    """Both implementations, same input, compared. Needs tsx."""
+    """Both implementations, same input, compared. Needs tsx.
+
+    THE TYPESCRIPT HALF MOVED TO lo-blocks. Goal K, 2026-09-25. It was a driver
+    written to a temp file at run time, importing `resolveCorpusRefs.ts` by
+    ABSOLUTE path and never seen by `tsc --noEmit` -- so a driver that would not
+    compile reported as "the TypeScript resolver would not run", which reads
+    exactly like the environment problem it is not. It is now
+    `enforce/probes.resolveCorpusRefs`, typechecked with the rest of the
+    package and reached by name.
+    """
     sys.path.insert(0, str(HERE))
     import corpus_resolve as CR
-    tsx = TS / "node_modules/.bin/tsx"
-    if not tsx.exists():
-        return [f"tsx is not installed at {tsx}; the text-equality half of this "
-                f"check did not run"]
+    import lo_enforce
+
     data = CR.load()
     cases = [k for k in data][:60]
     refs = [f"{{{{corpus:{k}:sha={CR.sha12(data[k])}}}}}" for k in cases]
     refs += [f"{{{{corpus:{k}:sha={CR.sha12(data[k])}:shape=C1}}}}" for k in cases[:20]]
-    with tempfile.TemporaryDirectory() as td:
-        inp = pathlib.Path(td) / "in.json"
-        inp.write_text(json.dumps({"data": data, "cases": [{"ref": r} for r in refs]}))
-        drv = pathlib.Path(td) / "d.ts"
-        drv.write_text(
-            "import { readFileSync } from 'fs';\n"
-            f"import {{ resolve }} from '{TS_FILE}';\n"
-            "const i = JSON.parse(readFileSync(process.argv[2], 'utf8'));\n"
-            "const o: string[] = [];\n"
-            "for (const c of i.cases) { try { o.push(resolve(c.ref, i.data, 't')); }\n"
-            "  catch (e: any) { o.push('ERROR'); } }\n"
-            "process.stdout.write(JSON.stringify(o));\n")
-        r = subprocess.run([str(tsx), str(drv), str(inp)], capture_output=True,
-                           text=True, cwd=str(TS), timeout=300)
-        if r.returncode != 0:
-            return [f"the TypeScript resolver would not run: {r.stderr[:160]}"]
-        ts_out = json.loads(r.stdout)
+    try:
+        ts_out = lo_enforce.probe("resolve_corpus_refs",
+                                  {"data": data, "refs": refs})
+    except lo_enforce.ProbeFailed as e:
+        # SAID, NOT SWALLOWED: not being able to ask the other resolver is not
+        # the same as the two resolvers agreeing.
+        return [f"the text-equality half of this check did not run -- {e}"]
+    if not isinstance(ts_out, list) or len(ts_out) != len(refs):
+        return [f"the TypeScript resolver answered {len(ts_out or [])} of "
+                f"{len(refs)} reference(s); the halves cannot be compared"]
     bad = []
     for ref, got in zip(refs, ts_out):
         try:

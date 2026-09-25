@@ -59,7 +59,9 @@ import warnings
 warnings.filterwarnings("ignore")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-REVIEWS = os.path.join(HERE, "LEAKAGE_REVIEWED.json")
+import paths as _paths_rev
+
+REVIEWS = str(_paths_rev.COURSE_LEAKAGE_REVIEWED)
 
 CADENCE = ("DAY1", "DAY2", "WK1", "WK2")
 VERDICTS = ("vocabulary", "coincidence", "rewritten")

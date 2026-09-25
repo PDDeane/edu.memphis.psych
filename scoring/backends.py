@@ -17,6 +17,8 @@ Two interchangeable paths, both returning a validated dict:
 from __future__ import annotations
 
 import json
+
+import paths as _paths
 import random
 import re
 import subprocess
@@ -235,7 +237,10 @@ class LoBlocksBackend:
     own max_completion_tokens — exactly what agreement.py relies on.
     """
 
-    ENDPOINT = "http://localhost:8888/api/llm/chat/completions"
+    # THE TREE'S OWN SERVER, not whatever is on 8888. See paths._lo_server:
+    # this was a literal, and a dry-run sweep sent every call to the LIVE
+    # tree's server without saying so.
+    ENDPOINT = _paths.LO_SERVER + "/api/llm/chat/completions"
 
     def __init__(self, endpoint: str | None = None, timeout: int = 600,
                  retries: int = 6):

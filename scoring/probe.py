@@ -67,7 +67,9 @@ import sys
 import paths as _p7   # J-7b: this course's handout file names
 
 HERE = pathlib.Path(__file__).parent
-RECEIPTS = HERE / "PROBE_RECEIPTS.json"
+import paths as _paths_rec
+
+RECEIPTS = _paths_rec.COURSE_PROBE_RECEIPTS
 
 # The header `_criteria_section` emits above the answerable checklist. The probe
 # must read THIS section and no other: a slot's text is printed twice in the
@@ -389,100 +391,21 @@ def question_for(item_id: str, slot: str) -> dict:
             "prompt_sha": field_sha(prompt)}
 
 
-def score_impact(item_id: str, pid: int, slot: str, verdict,
-                 side: str = "olx") -> dict:
-    """What a VERDICT FLIP does to the SCORE. Zero calls: re-scores recorded runs.
+def score_impact(*_a, **_k):
+    """RETIRED 2026-09-24 with the python web engine.
 
-    THE ERROR THIS EXISTS TO STOP, made twice on 2026-09-08 in hand-written
-    probe scripts, both times producing a confident wrong verdict:
+    It answered "what does flipping this verdict do to the score?" by
+    re-scoring recorded runs through the python mirror of `scoreSlotSheet`, at
+    zero call cost. The mirror is gone (goal O) and was deliberately NOT
+    replaced -- rebuilding it in TypeScript would be the same instrument in
+    another language.
 
-      Q4b's eighth attempt: the probe reported 11 hard-negative "misses". Only
-      SIX charged anything -- `onlyif` suppresses the repeat wherever
-      `behavior_N` already fails, so five of the eleven were inert and the
-      damage was over-counted by five.
-
-      `you_arrange_it`: the probe reported 6 NEW LOSSES and printed DO NOT
-      BUILD. All six were gold-0.00 cells already perfect by other means, where
-      a refusing gate gives the RIGHT score. There were no losses at all, and
-      the real result was five cells of stability gain.
-
-    Both scripts counted a verdict CHANGE instead of scoring it. A flip is inert
-    whenever the slot carries no `pts`, or `onlyif` suppresses its charge, or the
-    cell already sits at the floor because another gate zeroes it -- and none of
-    those is visible in the verdict alone.
-
-    SO THIS DOES NOT REASON ABOUT IT. It takes a RECORDED run's verdict set,
-    substitutes the proposed answer, and re-runs THE REAL SCORER, returning the
-    before and after. `apply_computed` runs too, so a flip that feeds `maps`,
-    `expect` or `equals` is priced through the same path production uses.
-
-    Returns {before, after, gold, delta, changed, right_before, right_after}.
-    `changed` False means the flip cannot move this cell and must not be counted
-    for or against a candidate.
+    RAISES rather than returning an empty impact: a tool that silently reports
+    "no effect" would be read as evidence that a slot does not matter.
     """
-    import agreement as A
-    import measured as M
-
-    job = act = None
-    for _h, blocks in A.BLOCKS.items():
-        for aid, j in blocks.items():
-            if j.get("item") == item_id and j.get("olx"):
-                job, act = j, A.load_action(j["olx"], aid)
-    if job is None or act is None:
-        raise KeyError(f"{item_id}: no sheet to score against")
-        # ONE PATH, NOT TWO. The fallback imported `rubric_h{h}` when `M`
-        # had no `config`; since 2026-09-19 `config(h)["rubric"]` is a view
-        # onto the course file, so the fallback reaches `handouts` for the
-        # same object rather than the module Stage 5 deletes.
-        import handouts as _H_R
-        rubric = (M.config(job["handout"])["rubric"] if hasattr(M, "config")
-                  else _H_R.config(M._jobs()[item_id]["handout"])["rubric"])
-    spec = dict(job, slots=act["slots"], cover=act["cover"],
-                requires=act["requires"])
-    scorer = A.SCORERS[job["kind"]]
-    item = rubric.BY_ID[item_id]
-    gold = (M.gold_cell(item_id, pid) or {}).get("score")
-
-    # THE RAW ANSWERS AS RECORDED, not reconstructed. `apply_computed` strips and
-    # refills the computed keys, so feeding it a row that already carries them
-    # would make a rule unobservable -- the mistake enforcement's own sheet probe
-    # documents.
-    import cross_path as X
-    raw = None
-    doc = M._runs_doc(item_id, side)
-    for run in (doc or {}).get("runs") or []:
-        for r in run.get("results") or []:
-            got = X.result_cell(r)
-            if got and got[1] == pid:
-                # A COUNT GOES IN `count`, decided by the slot spec. The
-                # artifact flattens `count` and `verdict` into one column, so
-                # rebuilding everything as `verdict` leans on expand_counted's
-                # legacy fallback to read a count back -- and a reconstruction
-                # that needs that fallback reads every counted member as ABSENT
-                # the moment it is removed. Measured 2026-09-13: Q1 scored 0 of
-                # 120 that way.
-                _counted = {sl["key"] for sl in act["slots"]
-                            if sl.get("count_max") is not None}
-                raw = {k: (v if isinstance(v, dict)
-                           else {("count" if k in _counted else "verdict"): v})
-                       for k, v in (got[3] or {}).items() if v is not None}
-                break
-        if raw:
-            break
-    if raw is None:
-        raise KeyError(f"{item_id}/p{pid}: no recorded run on side {side!r}")
-
-    fx = A.fixture_for(item_id, pid) or {}
-    before = scorer(spec, item, A.apply_computed(act, dict(raw), fx))[0]
-    after = scorer(spec, item,
-                   A.apply_computed(act, dict(raw, **{slot: {"verdict": verdict}}),
-                                    fx))[0]
-    ok = lambda s: (gold is not None and s is not None
-                    and abs(s - gold) < 1e-9)
-    return {"before": before, "after": after, "gold": gold,
-            "delta": None if None in (before, after) else after - before,
-            "changed": before != after,
-            "right_before": ok(before), "right_after": ok(after)}
+    raise SystemExit(
+        "probe.score_impact: retired with the python web engine (goal O). The "
+        "effect of a verdict on a score is now read from the app itself.")
 
 
 def write_receipt(item_id: str, slot: str, q: dict, cells: dict | None = None,
@@ -594,7 +517,7 @@ def recorded_answers(item: str, slots: tuple, cells: tuple = ()) -> dict:
     M.warn_if_stale(item, where="probe control")
     want = set(cells) if cells else None
     out: dict = collections.defaultdict(collections.Counter)
-    for side in ("python", "olx"):
+    for side in ("olx",):
         try:
             doc = M._runs_doc(item, side)
         except Exception:
