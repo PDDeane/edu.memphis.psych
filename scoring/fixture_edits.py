@@ -37,15 +37,14 @@ the right response to "the corpus moved" is a person reading the cell.
     python3 fixture_edits.py --show Q6 2   # what a cell's corrections resolve to
 """
 # THE MACHINERY ON THE PATH, for the direct-script spelling. `paths` puts THIS
-# directory on the path for importers; a fixture module run as a script needs the
-# reverse -- its own siblings in `scoring/` -- and never executes anything that
-# would have done it.
+# directory on the path for importers. Goal N moved this module INTO `scoring/`,
+# so its siblings are now its own directory -- the old bootstrap walked three
+# parents up and appended "scoring", which from here lands outside the repo
+# entirely and would have failed only when run as a script.
 import os as _os
 import sys as _sys
 
-_sys.path.insert(0, _os.path.join(
-    _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))),
-    "scoring"))
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
 import argparse
 import hashlib
 import json
@@ -57,7 +56,9 @@ import sys
 HERE = pathlib.Path(__file__).resolve().parent
 # UNDER THE METADATA ROOT: spans over this corpus are course data, not
 # machinery, and not content either.
-SPANS = paths.COURSE_FIXTURE / "CONSENSUS_SPANS.json"
+# THE DATA MOVED TO $COURSE_DATA (goal N): it is keyed `item/participant` and
+# is a record about individual students, which does not belong in a repo.
+SPANS = paths.COURSE_FIXTURE_DATA / "CONSENSUS_SPANS.json"
 
 
 def sha12(s: str) -> str:

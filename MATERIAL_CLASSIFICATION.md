@@ -74,7 +74,7 @@ AUDIT / EQUIVALENCE / SELF-TEST
        check_ref_grammars.py, check_slot_grammars.py, peg_formats.py
   the ratchets and frozen records: COURSE_DATA_BUDGET.json, DEFINITIONS.json,
        DESIGNED_TEXT_SHA.json, PROPERTY_BUDGET*.json, SHAPE_INVENTORY.json,
-       STRUCTURE_KIDS.json, STUDENT_TEXT_BUDGET.json, PEG_FORMATS.json,
+       STUDENT_TEXT_BUDGET.json, PEG_FORMATS.json,
        GRADER_INPUTS.json, LEAKAGE_REVIEWED.json, CONSENSUS_SPANS.json
   scoring/writescope.sh                    the scope guard on this session
   scoring/paths.py, backends.py, jsoncache.py, sourcecache.py, interim.py  (plumbing)
@@ -110,7 +110,7 @@ AUDIT / EQUIVALENCE / SELF-TEST
 ## IX · Fixture programs: paper form -> web form
   scoring/segment.py            splits a submission into boxes (SEGMENT_MARKERS)
   scoring/docx_text.py          reads .docx paragraphs/tables
-  scoring/prose_split.py, PROSE_SPLIT_WORKSHEET.json
+  scoring/prose_split.py
   scoring/fixture_edits.py      corrections as SPANS over the corpus, never copies
   scoring/canonicalise_verdicts.py, migrate_verdicts.py
   scoring/grader_inputs.py, stamp_legacy_artifacts.py, paper_runs.py
@@ -118,6 +118,10 @@ AUDIT / EQUIVALENCE / SELF-TEST
 ## X · Everything else
   scoring/__pycache__, migration/__pycache__        build droppings
   scoring/drafts/*.md                               two interim notes
+  scoring/drafts/PROSE_SPLIT_WORKSHEET.json, STRUCTURE_KIDS.json
+      MOVED HERE 2026-09-24. Planning inputs for a generic course-construction
+      capability that does not exist yet -- not this course's fixture, not
+      ratchets, and read by nothing. See scoring/drafts/README.md.
   RUBRIC_MIGRATION_PLAN.md, SCORING_REFACTOR_PLAN.md, VERDICT_VOCABULARY_PLAN.md,
   STAGE5_RUNBOOK.md, PENDING_DECISIONS.md           interim plans
   ADOPTION_POSTMORTEM.md                            INTERIM, settled on the

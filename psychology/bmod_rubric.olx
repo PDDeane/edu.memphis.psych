@@ -2879,7 +2879,7 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true"/>
     <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" seg="unclear" gate="true"/>
     <Slot key="observed_type" label="Which of the four types this actually is" seg="pick(operant_or_none)"/>
-    <Slot key="phrased_directly_gate" label="Phrased directly rather than by what is avoided" gate="true"/>
+    <Slot key="phrased_directly_gate" label="Phrased directly rather than by what is avoided" gate="final" charge="NOT_OC" because="The consequence is stated only as something avoided."/>
     <Slot key="named_type" label="Which of the four you said you would use" seg="pick(operant_or_unclear)"/>
     <Slot key="cadence_is_daily" label="Checked each day rather than against the week" gate="true"/>
     <Slot key="matches_chosen_type" label="Matches your first chosen type" pts="2"/>

@@ -37,6 +37,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import compose_docs
+import paths as _p7   # J-7b: this course's handout file names
 
 HERE = Path(__file__).resolve().parent
 
@@ -653,7 +654,7 @@ def _slot_keys() -> frozenset:
     keys: set = set()
     for item, job in AA.JOBS.items():
         try:
-            spec = A.load_action(f"bmod_handout{job['handout']}.olx", O.ACTION[item])
+            spec = A.load_action(_p7.handout_olx(job['handout']), O.ACTION[item])
         except Exception:
             continue
         keys |= {s["key"] for s in spec.get("slots") or []}

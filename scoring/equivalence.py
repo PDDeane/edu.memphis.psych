@@ -867,6 +867,10 @@ def enforcement_audit():
         findings.append(("-", "CODE UNREACHABLE", bad))
     for bad in ENF.check_countable_families_converted(ENF.all_items()):
         findings.append(("-", "PRIMITIVE APPLIED UNEVENLY", bad))
+    for bad in ENF.check_scorer_behaviour_is_unchanged():
+        findings.append(("-", "SCORER BEHAVIOUR MOVED", bad))
+    for bad in ENF.check_criteria_primitives_hold_their_contracts():
+        findings.append(("-", "CRITERIA PRIMITIVE BROKE ITS CONTRACT", bad))
     for bad in ENF.check_primitive_conformance():
         findings.append(("-", "PRIMITIVE NOT HONOURED", bad))
     for bad in ENF.check_harness_schema_conformance():
@@ -1568,6 +1572,38 @@ _SELFTEST_REPAIR_MAX = 4_000_000          # bytes; OVERRIDES.md is ~50MB and is
 # the run did not break is not a safety net, it is a second writer (T5).
 _SELFTEST_INJECTS = ("agreement.py", "measured.py", "GOALS.md", "QUALITY_CONTROL.md")
 
+# WHERE A CASE INJECTS IS WHERE THE CHECK UNDER TEST READS, and for the two split
+# documents those are DIFFERENT PLACES. enforcement's goal checks read the
+# COMPOSED GOALS.md (`compose_docs.composed_path`), while `tools.guide` reads the
+# GENERIC half of QUALITY_CONTROL.md beside this module (`paths.SCORING`).
+#
+# Resolving both by `__file__` is what broke. G2 split GOALS.md into a 53-line
+# generic half here and the real 16,722-line document under $COURSE_DATA; the
+# GOALS case then searched the stub for `- [ ] Q\d+.`, matched nothing, and died
+# on `NoneType.group` -- which aborts the suite, so the 59 cases after it never
+# ran and the run reported 18 lines instead of 95. Had the regex matched, it
+# would have injected into a file the check does not read, and the case would
+# have reported a MISS instead. A resolver that is wrong is worse than absent.
+_SELFTEST_DOC_HOME = {"GOALS.md": "composed"}      # default: beside this module
+
+# QUALITY_CONTROL.md IS DELIBERATELY NOT HERE, and the reason is the whole
+# lesson of the G2 split: after it, ONE DOCUMENT HAS TWO CONSUMERS THAT READ
+# DIFFERENT FILES. `guide.check()` validates the COMPOSED document, because a
+# citation or identifier can live in either half; `guide.unapproved_lessons()`
+# reads the AUTHORED half, because it diffs against what git committed. A
+# per-DOCUMENT mapping can only serve one of them, and pointing it at composed
+# made the lesson case MISS -- proved by fire test, not assumed. So the two
+# cases resolve their own target below.
+
+
+def _selftest_doc(name: str):
+    """The file a self-test case injects into, and the snapshot protects."""
+    import pathlib
+    if _SELFTEST_DOC_HOME.get(name) == "composed":
+        import compose_docs
+        return pathlib.Path(compose_docs.composed_path(name))
+    return pathlib.Path(__file__).resolve().parent / name
+
 
 def _selftest_snapshot() -> dict:
     """The BYTES of every file a case could inject into, kept for repair.
@@ -1576,11 +1612,9 @@ def _selftest_snapshot() -> dict:
     purpose: a run must be able to say the tree moved AND leave it as it found
     it, because reporting damage is not the same as not doing it.
     """
-    import pathlib
-    here = pathlib.Path(__file__).resolve().parent
     out = {}
     for name in _SELFTEST_INJECTS:
-        f = here / name
+        f = _selftest_doc(name)
         try:
             if f.exists() and f.stat().st_size <= _SELFTEST_REPAIR_MAX:
                 out[str(f.resolve())] = f.read_bytes()
@@ -2821,7 +2855,7 @@ def enforcement_selftest():
     # A GOAL CLOSED WITHOUT THE USER AGREEING, added 2026-09-04. GOALS.md states
     # that rule itself and nothing enforced it; it was broken once by closing a
     # subgoal inside a recording step. The injection flips one open checkbox.
-    _gl = _pl2.Path(__file__).resolve().parent / "GOALS.md"
+    _gl = _selftest_doc("GOALS.md")
     _goals_src = _gl.read_text()
 
     def _close_one():
@@ -2851,7 +2885,9 @@ def enforcement_selftest():
     # sections produced three duplicate labels and an out-of-order section 2.
     # Nothing caught it; it was found by eye. The injection duplicates a label,
     # which is the exact failure.
-    _gp = _pl2.Path(__file__).resolve().parent / "QUALITY_CONTROL.md"
+    # STRUCTURE is checked on the COMPOSED document, so inject there.
+    from tools import guide as _guide_mod
+    _gp = _guide_mod._composed_guide()
     _guide_src = _gp.read_text()
 
     def _dup_label():

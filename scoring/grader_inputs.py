@@ -41,15 +41,14 @@ therefore not one decision but two: which MECHANISM, then which component.
 from __future__ import annotations
 
 # THE MACHINERY ON THE PATH, for the direct-script spelling. `paths` puts THIS
-# directory on the path for importers; a fixture module run as a script needs the
-# reverse -- its own siblings in `scoring/` -- and never executes anything that
-# would have done it.
+# directory on the path for importers. Goal N moved this module INTO `scoring/`,
+# so its siblings are now its own directory -- the old bootstrap walked three
+# parents up and appended "scoring", which from here lands outside the repo
+# entirely and would have failed only when run as a script.
 import os as _os
 import sys as _sys
 
-_sys.path.insert(0, _os.path.join(
-    _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))),
-    "scoring"))
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
 
 import argparse
 import json

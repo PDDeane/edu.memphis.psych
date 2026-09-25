@@ -2848,7 +2848,18 @@
     {
      "blurb": "Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.",
      "capture_tail": false,
-     "exemplar_items": []
+     "cited_participants": {
+      "Q5": []
+     },
+     "exemplar_items": [],
+     "exemplar_participants": [
+      10,
+      8,
+      6
+     ],
+     "outdir_name": "h1",
+     "submissions_dir": "Handout 1 Submissions with Scoring and Feedback",
+     "template_file": "BMod Handout #1 - Defining Behaviors, ABCs, and SMART Goals.docx"
     }
    ],
    [
@@ -2856,7 +2867,15 @@
     {
      "blurb": "Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.",
      "capture_tail": true,
-     "repair_orphans": true
+     "exemplar_participants": [],
+     "outdir_name": "h2",
+     "repair_orphans": true,
+     "submissions_dir": "Handout 2 Submissions with Scoring and Feedback",
+     "suspect_participants": [
+      2,
+      3
+     ],
+     "template_file": "BMod Handout #2 - Learning Operant Conditioning and Applying It to Behavior Change.docx"
     }
    ],
    [
@@ -2864,8 +2883,285 @@
     {
      "blurb": "Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.",
      "capture_tail": true,
-     "join_aware": true
+     "cited_participants": {},
+     "exemplar_participants": [],
+     "join_aware": true,
+     "outdir_name": "h3",
+     "submissions_dir": "Handout 3 Submissions with Scoring and Feedback",
+     "template_file": "BMod Handout #3 - Presenting Data, Graphing Data, &amp_ Analyzing Your Intervention.docx"
     }
+   ]
+  ],
+  "SIDE_ALIAS": [
+   [
+    "avoidance_frame",
+    [
+     "phrased_directly_gate",
+     "phrased_directly"
+    ]
+   ],
+   [
+    "baseline",
+    [
+     "baseline",
+     "baseline_data"
+    ]
+   ],
+   [
+    "behavior",
+    "names_behavior"
+   ],
+   [
+    "cadence_ok",
+    [
+     "cadence_is_daily",
+     "cadence_is_daily_counted",
+     "cadence_is_weekly"
+    ]
+   ],
+   [
+    "contingent_on_behavior",
+    "contingent"
+   ],
+   [
+    "is_np",
+    "demonstrates_type"
+   ],
+   [
+    "is_nr",
+    "demonstrates_type"
+   ],
+   [
+    "is_pp",
+    "demonstrates_type"
+   ],
+   [
+    "is_pr",
+    "demonstrates_type"
+   ],
+   [
+    "observed_type",
+    [
+     "demonstrates_type",
+     "observed_type"
+    ]
+   ],
+   [
+    "operant_behavior",
+    "names_behavior"
+   ],
+   [
+    "stimulus",
+    "names_stimulus"
+   ],
+   [
+    "stimulus_is_arranged",
+    "you_arrange_it"
+   ],
+   [
+    "stimulus_move",
+    [
+     "demonstrates_type",
+     "stimulus_move"
+    ]
+   ],
+   [
+    "targets_intended_behavior",
+    [
+     "targets_goal_behavior",
+     "targets_unwanted_behavior"
+    ]
+   ],
+   [
+    "week_1",
+    [
+     "week_1",
+     "week_1_data"
+    ]
+   ],
+   [
+    "week_2",
+    [
+     "week_2",
+     "week_2_data"
+    ]
+   ],
+   [
+    "week_3",
+    [
+     "week_3",
+     "week_3_data"
+    ]
+   ]
+  ],
+  "SIDE_INVERTED": [
+   [
+    "avoidance_frame",
+    true
+   ]
+  ],
+  "PROBE_PASS": [
+   [
+    "agent_delivers_consequence",
+    true
+   ],
+   [
+    "aimed_correctly",
+    true
+   ],
+   [
+    "avoidance_frame",
+    false
+   ],
+   [
+    "behavior",
+    "walking to class"
+   ],
+   [
+    "cadence_ok",
+    true
+   ],
+   [
+    "consequence_asserted",
+    true
+   ],
+   [
+    "contingent",
+    true
+   ],
+   [
+    "follows_behavior",
+    true
+   ],
+   [
+    "restriction_authored",
+    "relieved"
+   ],
+   [
+    "restricts",
+    "target_behavior"
+   ],
+   [
+    "states_a_contingency",
+    true
+   ],
+   [
+    "stimulus",
+    "a coffee"
+   ],
+   [
+    "stimulus_is_arranged",
+    true
+   ],
+   [
+    "stimulus_move",
+    {
+     "NP": "taken_desirable",
+     "NR": "taken_undesirable",
+     "PP": "given_undesirable",
+     "PR": "given_desirable"
+    }
+   ],
+   [
+    "targets_intended_behavior",
+    true
+   ],
+   [
+    "targets_own_behavior",
+    true
+   ],
+   [
+    "trigger_expects",
+    "gain"
+   ]
+  ],
+  "PROBE_FAIL": [
+   [
+    "agent_delivers_consequence",
+    false
+   ],
+   [
+    "aimed_correctly",
+    false
+   ],
+   [
+    "avoidance_frame",
+    true
+   ],
+   [
+    "behavior",
+    ""
+   ],
+   [
+    "cadence_ok",
+    false
+   ],
+   [
+    "consequence_asserted",
+    false
+   ],
+   [
+    "contingent",
+    false
+   ],
+   [
+    "follows_behavior",
+    false
+   ],
+   [
+    "restriction_authored",
+    "created"
+   ],
+   [
+    "restricts",
+    "target_behavior"
+   ],
+   [
+    "states_a_contingency",
+    false
+   ],
+   [
+    "stimulus",
+    ""
+   ],
+   [
+    "stimulus_is_arranged",
+    false
+   ],
+   [
+    "stimulus_move",
+    {
+     "NP": "taken_undesirable",
+     "NR": "taken_desirable",
+     "PP": "given_desirable",
+     "PR": "given_undesirable"
+    }
+   ],
+   [
+    "targets_intended_behavior",
+    false
+   ],
+   [
+    "targets_own_behavior",
+    false
+   ],
+   [
+    "trigger_expects",
+    "loss"
+   ]
+  ],
+  "PROBE_TYPE_FIELDS": [
+   [
+    "observed_type",
+    true
+   ],
+   [
+    "named_type",
+    true
+   ],
+   [
+    "trigger_behavior",
+    true
    ]
   ]
  }

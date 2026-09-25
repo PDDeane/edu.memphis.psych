@@ -56,6 +56,90 @@ EXEMPT_MODULES = {
 }
 
 
+# ---------------------------------------------------------------------------
+# J-6. THE TYPE AND PRESENCE CONTRACT of the course file.
+#
+# It was undocumented, which meant a course author learned it by hitting the
+# failure -- and the failures are not uniform, because the three regions of the
+# file do not share a convention.
+#
+# THE GENERATOR TABLES ARE MIXED, and deliberately: a table keyed by something
+# is a dict, a table that is a sequence of records is a list. There is no rule
+# that derives one from the other, so it is written down.
+GENERATOR_TABLE_TYPES = {
+    "TABLE_ORDER":         dict,
+    "CONTEXT_REFS":        dict,
+    "SEGMENT_MARKERS":     dict,
+    "CONTEXT__non_item":   dict,
+    "SCORING_DIVERGENCES": list,
+    "PROBE_REACH_LIMITS":  list,
+}
+
+# THE DECLARATIONS ARE UNIFORM. All eighteen are lists, because the file stores
+# every declaration as `[[key, value], ...]` -- JSON has string keys only and six
+# of the tables are keyed by tuples. `coursedata.declaration()` restores them.
+DECLARATION_TYPE = list
+
+# PER-ITEM OPTIONAL FIELDS, AND WHY PRESENCE IS THE POINT.
+#
+# **An absent field and an empty one are different facts**, and this is the trap
+# the stub builder fell into. `prompt_sheet_only` holds a block-id STRING; an
+# empty list there does not mean "no blocks", it reaches `.startswith()` and
+# raises. The real course OMITS a field an item does not use, and a generated
+# course file must omit it too rather than emitting a typed empty.
+#
+# So this table is not "these fields may be empty" -- it is "these fields may be
+# ABSENT, and when present they hold THIS type".
+OPTIONAL_ITEM_FIELD_TYPES = {
+    "prompt_context":       list,
+    "prompt_response":      list,
+    "prompt_evidence":      dict,
+    "prompt_omit_guidance": dict,
+    "prompt_match_def":     str,
+    "prompt_notes":         str,
+    "prompt_notes_why":     str,
+    "prompt_sheet_only":    str,
+}
+
+
+def type_check(doc: dict | None = None,
+               entries: list[dict] | None = None) -> list[str]:
+    """The J-6 contract, checked against the course file. -> violations.
+
+    INJECTABLE, so `self_test` can construct each violation rather than wait for
+    a tree that happens to contain one. Same reason the four conditions above are
+    built here: a check whose first real exercise is elsewhere is one nobody has
+    watched fail.
+    """
+    import coursedata
+
+    bad: list[str] = []
+    doc = coursedata._load() if doc is None else doc
+
+    gen = doc.get("generator", {})
+    for name, want in sorted(GENERATOR_TABLE_TYPES.items()):
+        if name in gen and not isinstance(gen[name], want):
+            bad.append(f"generator table {name} is {type(gen[name]).__name__}, "
+                       f"declared {want.__name__}")
+
+    for name, value in sorted(doc.get("declarations", {}).items()):
+        if not isinstance(value, DECLARATION_TYPE):
+            bad.append(f"declaration {name} is {type(value).__name__}, declared "
+                       f"{DECLARATION_TYPE.__name__} -- the file stores every "
+                       f"declaration as [[key, value], ...]")
+
+    if entries is None:
+        entries = list(doc.get("items", [])) + list(coursedata.items())
+    for e in entries:
+        for name, want in OPTIONAL_ITEM_FIELD_TYPES.items():
+            if name in e and not isinstance(e[name], want):
+                bad.append(f"item {e.get('id')!r} field {name} is "
+                           f"{type(e[name]).__name__}, declared {want.__name__}"
+                           + ("  -- an EMPTY value is not how absence is spelled; "
+                              "omit the field" if not e[name] else ""))
+    return bad
+
+
 def groups() -> dict[str, set[str]]:
     import coursedata
 
@@ -178,7 +262,8 @@ def check(directory: str | None = None) -> dict:
     # the generator's, and a field declared in neither really is stale.
     entries = list(coursedata._load()["items"]) + list(coursedata.items())
     violations, cleanups = part_a(entries, declared)
-    return {"violations": violations + part_b(directory, declared) + gold_check(),
+    return {"violations": violations + part_b(directory, declared) + gold_check()
+                          + type_check(),
             "cleanups": cleanups,
             "fields_declared": sum(len(v) for v in declared.values()),
             "generator_fields": len(declared["generator"])}
@@ -236,6 +321,25 @@ def self_test() -> int:
              next((x for x in mine if "RAW" in x), ""))
     finally:
         os.unlink(probe)
+
+    # 5-8 the J-6 TYPE AND PRESENCE contract, each shape constructed here.
+    note("a generator dict table given a LIST",
+         any("TABLE_ORDER" in x for x in
+             type_check({"generator": {"TABLE_ORDER": []}}, [])))
+    note("a declaration given a DICT",
+         any("HANDOUT_FIELDS" in x for x in
+             type_check({"declarations": {"HANDOUT_FIELDS": {}}}, [])))
+    # THE ONE THAT MATTERS: absence is spelled by OMITTING the field. An empty
+    # list in `prompt_sheet_only` is not "no blocks" -- it reaches `.startswith`
+    # and raises, and it joins the item to a table it should stay out of.
+    note("prompt_sheet_only as an EMPTY LIST, not omitted",
+         any("prompt_sheet_only" in x for x in
+             type_check({}, [{"id": "X", "prompt_sheet_only": []}])),
+         next((x for x in type_check({}, [{"id": "X", "prompt_sheet_only": []}])), ""))
+    note("a course file that honours the contract -> SILENT",
+         not type_check({"generator": {"TABLE_ORDER": {}},
+                         "declarations": {"HANDOUT_FIELDS": []}},
+                        [{"id": "X", "prompt_notes": "n"}]))
 
     print(f"\n  {ok}/{len(cases)} conditions behave as designed")
     return 0 if ok == len(cases) else 1

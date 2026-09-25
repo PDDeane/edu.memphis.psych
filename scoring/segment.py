@@ -1,12 +1,22 @@
-"""Segment a submission into {item_id: student_response} by diffing the template.
+#!/usr/bin/env python3
+"""Document SEGMENTATION: one .docx plus its blank template -> student text.
 
-Every submission in this corpus is the blank handout with typed answers
-inserted, so the reliable way to isolate student text is to subtract the
-template. This matters beyond tidiness: Handout 1's template carries a worked
-"fruit-flavored water" example and Handout 3's carries an example data table
-AND an example graph. A scorer that reads those as student work scores them.
+MOVED HERE FROM `$COURSE_METADATA/fixture/` BY GOAL N. It had been 413 lines in
+COURSE territory of which ~26 were course-specific, imported by seven engine
+modules -- generic machinery in the course, which is the inverse of every other
+finding in the migration plan and is why it went unnoticed. A second course could
+not be scored without shipping a copy of it, and the stub silently borrowed this
+course's.
+
+WHAT STAYED BEHIND, in `course_metadata/fixture/course_segment.py`: `utb_hint`,
+which hardcodes this course's four target behaviours, and the `H1/H2/H3_MARKERS`
+and `_ITEMS` aliases, whose value is the per-handout REASONING in the comments
+around them. Nothing here names a handout number or a subject.
+
+`_markers` and `_handout_items` already read the COURSE FILE, so the mechanism
+for keeping the course half out was built and working before this move -- it had
+simply never been applied to the module's own location.
 """
-
 # THE SECTION HEADINGS BELOW ARE NOT REFERENCED, AND CANNOT BE.
 #
 # `My Unwanted Target Behavior is` and `My Wanted Goal Behavior is` are the
@@ -76,10 +86,8 @@ def _handout_items(handout: int) -> list[str]:
             if it.get("handout") == handout]
 
 
-H1_MARKERS: list[tuple[str, str]] = _markers(1)
 
 # Items the rubric actually scores (order = report order).
-H1_ITEMS = _handout_items(1)
 
 # Handout 2. Two structural differences from H1: the student's answer sits on
 # the SAME line as the prompt label ("Example of Positive Reinforcement: ..."),
@@ -90,7 +98,6 @@ H1_ITEMS = _handout_items(1)
 # The typed submissions contain only this applied section — the 20 scenario
 # items from the paper handout were never transcribed (0 of 20 files) and are
 # ungraded in the gold workbook.
-H2_MARKERS: list[tuple[str, str]] = _markers(2)
 
 # Handout 3. Prose answers follow their prompts, but the DATA (1b) and the
 # GRAPH (1c) live at the end of the document under "YOUR 1b." / "YOUR 1c."
@@ -104,15 +111,31 @@ H2_MARKERS: list[tuple[str, str]] = _markers(2)
 # three feed the same bucket, and template subtraction removes whatever of the
 # worked example the student left behind. The Q3 pattern does not require the
 # "3." prefix because participant 8's transcription dropped it.
-H3_MARKERS: list[tuple[str, str]] = _markers(3)
 
-H3_ITEMS = _handout_items(3)
 
-H2_ITEMS = _handout_items(2)
 
 _UNDERSCORE = re.compile(r"_+")
 _WS = re.compile(r"\s+")
 _BULLET = re.compile(r"^[-•·*]\s*")
+
+
+def course_hook(name: str, default=None):
+    """A callable the COURSE supplies, or `default`. Goal N.
+
+    The engine used to import `utb_hint` from the course directly, which meant a
+    course shipping no such helper could not import the engine AT ALL. A hook is
+    optional by definition: absent means "this course offers no hint", which is a
+    real answer and not a failure.
+
+    Deliberately NOT a registry like `scorers`: a scorer is REQUIRED once an item
+    names one, and its absence must refuse. A hint that nobody supplies costs
+    nothing.
+    """
+    try:
+        import course_segment
+    except ImportError:
+        return default
+    return getattr(course_segment, name, default)
 
 
 def clean(line: str) -> str:
@@ -249,7 +272,17 @@ def segment(
     Handout 2 needs this (answers are written inline after the label);
     Handout 1 must not use it (its marker lines carry only question prose).
     """
-    markers = markers or H1_MARKERS
+    # NO DEFAULT. `markers or H1_MARKERS` silently substituted THIS COURSE's
+    # handout 1, and `check_fixture_segmentation_matches_the_scorer` records what
+    # that cost: four bare `segment()` calls "judged fixtures against text no
+    # scorer ever sees", and "every accusation that followed was false" -- D2/p19,
+    # 1c/p11 and 1c/p20 reported for text no student wrote. A wrong answer, not an
+    # error. Every real caller passes markers explicitly; this refuses the rest.
+    if not markers:
+        raise ValueError(
+            "segment() needs the handout's markers -- pass config(h)['markers']. "
+            "There is no default: substituting one handout's markers for "
+            "another's produces confident, wrong segmentation.")
     compiled = [(item, re.compile(rx, re.I)) for item, rx in markers]
     # Tail-scan variants: several markers are anchored with ^\W* so they only
     # fire at the start of a line. When chasing a second label further along
@@ -390,23 +423,3 @@ def repair_orphans(
     return sections, repairs
 
 
-def utb_hint(submission_path: str) -> str | None:
-    """Formatting-marked UTB choice, when the transcription preserved it.
-
-    Present in only 6 of 20 Handout 1 files, so this is a hint for the
-    prompt, never a substitute for reading the UTB out of Q1's prose.
-    """
-    from docx_text import marked_runs
-
-    choices = [
-        "lack of sleep",
-        "lack of exercise",
-        "insufficient consumption of fruits and vegetables",
-        "spending too much time on electronic devices",
-    ]
-    for txt in marked_runs(submission_path, lambda f: f["u"] or f["highlight"] or f["b"]):
-        low = txt.strip().lower()
-        for c in choices:
-            if low.startswith(c[:18]):
-                return c
-    return None

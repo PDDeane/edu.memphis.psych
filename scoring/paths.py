@@ -19,11 +19,16 @@ content repo it generates for, which splits those paths three ways:
                    participant IDs meaningful, and out/ quotes student text
                    verbatim as scoring evidence. This repo is public.
 
-MATERIALS is deliberately NOT part of DATA: the blank handout templates are
-course teaching materials and ship with the code, because `segment.py`
-subtracts the template from a submission to isolate student text, and a
-scorer that cannot find its templates cannot score anything. Only the filled-in
-submissions are sensitive.
+MATERIALS MOVED INTO DATA on 2026-09-24, superseding the argument that stood
+here. That argument was from SENSITIVITY -- the templates are blank, only the
+filled-in submissions are sensitive -- and it is still true. It is no longer the
+operative one. Goal J makes `scoring/` its own repository, and course teaching
+materials may not live in engine territory whether or not they are sensitive: a
+second course cannot be served by a repo carrying the first one's handouts. The
+findability worry the old text raised -- "a scorer that cannot find its
+templates cannot score anything" -- is answered by this constant pointing at
+$COURSE_DATA rather than by shipping the files. Two of the eleven were never
+templates at all: the PSYC 1030 syllabus and course schedule.
 
 Override any root with an env var; the defaults assume the usual checkout
 layout:
@@ -45,7 +50,8 @@ REPO = Path(__file__).resolve().parent.parent
 SCORING = REPO / "scoring"
 
 OLX_DIR = REPO / "psychology"
-MATERIALS = SCORING / "materials"
+# MATERIALS is defined further down, AFTER `DATA` and `NS`, which it is now
+# built from. It was here when it was `SCORING / "materials"`.
 
 def _lo_blocks_root() -> Path:
     """Where THIS checkout's lo-blocks is.
@@ -137,12 +143,108 @@ CORPUS_ROOTS = {
 }
 
 DATA = Path(env_renamed("COURSE_DATA", Path.home() / "molly_data"))
-OUT = Path(env_renamed("COURSE_OUT", DATA / "out"))
 
 # The content namespace. Was "psych" when this content lived inside lo-blocks;
 # the standalone repo declares "edu.memphis.psych" in psychology/manifest.yaml,
 # and the runner resolves nothing if these disagree.
-NS = "edu.memphis.psych"
+def _manifest(key: str, default: str, env: str = "") -> str:
+    """One fact the CONTENT COLLECTION declares about itself, or `default`.
+
+    J-7. The same three-step resolution `_namespace` uses -- environment, then
+    the manifest beside the content, then a fallback -- generalised, because the
+    namespace was not the only fact the engine was holding a second copy of.
+    """
+    if env:
+        override = os.environ.get(env)
+        if override:
+            return override
+    try:
+        import yaml
+        man = OLX_DIR / "manifest.yaml"
+        if man.is_file():
+            declared = (yaml.safe_load(man.read_text()) or {}).get(key)
+            if declared:
+                return str(declared)
+    except Exception:
+        pass                      # an unreadable manifest is not a reason to die
+    return default
+
+
+def _namespace() -> str:
+    """The content namespace, from the COURSE rather than from the engine.
+
+    J-1. This was a literal namespace string, which admitted exactly one course
+    by construction -- and the comment above it already said the standalone repo
+    declares its namespace in the content collection's `manifest.yaml`, "and the
+    runner resolves nothing if these disagree". Two sources of one fact, with the
+    engine holding the copy that cannot be right for a second course.
+
+    Order: an explicit `COURSE_NS`, then the manifest beside the content, then the
+    stub's namespace. The last is a FALLBACK, not a default to score against --
+    a run that reached it has no course, which is what the stub exists to make
+    survivable rather than fatal.
+    """
+    env = os.environ.get("COURSE_NS")
+    if env:
+        return env
+    try:
+        import yaml
+        man = OLX_DIR / "manifest.yaml"
+        if man.is_file():
+            declared = (yaml.safe_load(man.read_text()) or {}).get("namespace")
+            if declared:
+                return str(declared)
+    except Exception:
+        pass                      # an unreadable manifest is not a reason to die
+    return "stub"
+
+
+NS = _namespace()
+
+
+def _course_manifest(key: str, default):
+    """One fact from the manifest, but ONLY if that manifest is THIS course's.
+
+    J-4d. `_manifest` above reads whatever manifest sits beside `OLX_DIR`, which
+    is the ENGINE REPO's content directory -- it does not change when `COURSE_NS`
+    does. So a bare manifest key leaks: running as the stub, `OLX_DIR` still
+    points at this course's `psychology/`, and the stub would inherit a flag
+    declared for a course it is not.
+
+    Matching the manifest's own `namespace` against the active `NS` is what makes
+    the key per-course. A course whose manifest is not loaded gets `default`,
+    which is the modern layout -- the legacy one is opt-in, so a NEW course
+    cannot fall into it by accident. That is the J-4c lesson applied again: an
+    undeclared fact must not resolve to another course's answer.
+    """
+    try:
+        import yaml
+        man = OLX_DIR / "manifest.yaml"
+        if man.is_file():
+            doc = yaml.safe_load(man.read_text()) or {}
+            if str(doc.get("namespace") or "") == NS and key in doc:
+                return doc[key]
+    except Exception:
+        pass                      # an unreadable manifest is not a reason to die
+    return default
+
+
+# THE PRE-NAMESPACING DATA LAYOUT. Before J-4d, `SUBS` and `OUT` were SHARED
+# roots: every course would have read submissions from one directory and written
+# results into one `out/`, where the handout number was the only separation, so a
+# second course OVERWROTE the first's output instead of sitting beside it.
+#
+# Declared in the manifest rather than detected, because detection cannot work:
+# the legacy directory exists whichever course is loaded, so "use it if present"
+# hands a NEW course the old course's data -- the exact bug J-4c closed.
+_SHARED_DATA_LAYOUT = bool(_course_manifest("shared_data_layout", False))
+
+OUT = Path(env_renamed("COURSE_OUT",
+                       DATA / "out" if _SHARED_DATA_LAYOUT
+                       else DATA / "courses" / NS / "out"))
+
+MATERIALS = Path(os.environ.get("COURSE_MATERIALS",
+                                DATA / "courses" / NS / "materials"))
 
 # THE COURSE LOCATION: where THIS course's own material lives, inside the content
 # tree. Declared 2026-09-23.
@@ -215,6 +317,17 @@ COURSE_CHANGELOG = Path(os.environ.get(
 COURSE_FIXTURE = Path(os.environ.get(
     "COURSE_FIXTURE", COURSE_METADATA / "fixture"))
 
+# THE FIXTURE'S DATA, WHICH IS NOT ITS CODE. Goal N.
+#
+# `CONSENSUS_SPANS.json` is keyed `item/participant` -- a record ABOUT individual
+# students, even where it holds offsets rather than their sentences. It was in
+# the repository; student-derived material belongs in $COURSE_DATA beside the
+# submissions and `corpus_refs.json`, which is where everything else of its kind
+# already lives. The fixture CODE stays in the repo: it names this course's
+# subject but says nothing about any student.
+COURSE_FIXTURE_DATA = Path(os.environ.get(
+    "COURSE_FIXTURE_DATA", DATA / "courses" / NS / "fixture"))
+
 # AND IT IS IMPORTABLE. The fixture modules are course data -- they map THIS
 # course's paper forms to its web forms -- but they are also imported by name
 # from the machinery (`segment` by four modules). Putting the directory on the
@@ -227,7 +340,45 @@ if str(COURSE_FIXTURE) not in sys.path:
 # ── Derived paths ────────────────────────────────────────────────────────────
 
 # Generated content (Class B: intra-repo since the move).
-OLX = str(OLX_DIR / "bmod_handout%d.olx")
+# One handout's CONTENT FILE, as the content collection names it. J-7b.
+# 44 sites spelled `f"bmod_handout{h}.olx"` or globbed `bmod_handout*.olx`
+# themselves, which put one course's file stems in engine code -- the same
+# problem J-7a fixed for the rubric component, at fourteen times the scale.
+# The pattern is a `%d` template so the glob can be derived from it rather than
+# written twice and drifting.
+HANDOUT_OLX = _manifest("handout_olx", "bmod_handout%d.olx", "COURSE_HANDOUT_OLX")
+
+OLX = str(OLX_DIR / HANDOUT_OLX)
+
+
+def handout_olx(handout) -> str:
+    """This course's content FILE NAME for one handout, e.g. for `load_action`."""
+    return HANDOUT_OLX % int(handout)
+
+
+def handout_olx_glob() -> str:
+    """A glob matching every handout's content file.
+
+    DERIVED from the pattern, not written beside it: the two were the same fact
+    and a course changing one would have left the other matching nothing.
+    """
+    return HANDOUT_OLX.replace("%d", "*")
+
+
+def handout_olx_path(handout):
+    """The full path to one handout's content file."""
+    return OLX_DIR / handout_olx(handout)
+
+# The RUBRIC COMPONENT's file name, as the content collection declares it. J-7.
+# `rubric_component.py` built this from the literal "bmod_rubric.olx", which is
+# one course's stem in engine code and is what stopped the stub course from
+# importing: it ships `stub_rubric.olx` and nothing could name it. The default
+# keeps every existing tree reading the file it already reads.
+#
+# The HANDOUT stems above are the same problem and are NOT fixed here -- they
+# reach 67 sites across 16 modules, which is J-7's remainder.
+RUBRIC_COMPONENT = _manifest("rubric_component", "bmod_rubric.olx",
+                             "COURSE_RUBRIC_COMPONENT")
 
 # The engine contract (Class C: still cross-repo).
 PRIMITIVES_JSON = LO / "packages/shared/lib/llm/primitives.json"
@@ -236,7 +387,10 @@ RUNNER = "packages/shared/lib/llm/runner.test.ts"
 PROBE = "packages/shared/lib/llm/probe.test.ts"
 
 # The corpus (local only).
-SUBS = DATA / "Handout Submissions with Scoring and Feedback"
+SUBS = Path(os.environ.get(
+    "COURSE_SUBS",
+    DATA / "Handout Submissions with Scoring and Feedback" if _SHARED_DATA_LAYOUT
+    else DATA / "courses" / NS / "submissions"))
 HANDSPLIT = DATA / "handsplit"
 
 

@@ -181,8 +181,22 @@ ACTION = _action_from_rubric()
 # They are still audited for arithmetic (`--scoring`) and enforcement.
 SHEET_ONLY = _generator_table("prompt_sheet_only")
 
-HANDOUT = {i: (1 if a.startswith("bmod_h1") else 2 if a.startswith("bmod_h2") else 3)
-           for i, a in {**ACTION, **SHEET_ONLY}.items()}
+# J-2. WAS: `1 if a.startswith("bmod_h1") else 2 if a.startswith("bmod_h2")
+# else 3` -- the handout inferred from this course's OLX BLOCK-ID PREFIX. A
+# course whose ids are not `bmod_*` fell to the `else 3` and was SILENTLY
+# CLASSIFIED HANDOUT 3: a wrong answer, not an error, which is the quiet
+# direction. Every item already declares `handout` in the course file (26 of 26
+# here), so the fact is read rather than parsed out of a name.
+def _item_handouts() -> dict:
+    """{item id: handout}, as the COURSE FILE declares it."""
+    import coursedata
+    return {str(it["id"]): int(it["handout"])
+            for it in coursedata.items() if it.get("handout") is not None}
+
+
+_ITEM_HANDOUT = _item_handouts()
+HANDOUT = {i: _ITEM_HANDOUT[i]
+           for i in {**ACTION, **SHEET_ONLY} if i in _ITEM_HANDOUT}
 
 
 def sheet_id(item: str) -> str:
@@ -2197,6 +2211,45 @@ def slots_attr_for(item_id: str) -> str | None:
     return "|".join(out)
 
 
+def _slot_pairs_attr(item_id: str, field: str) -> str | None:
+    """`key:value|key:value` over the slots declaring `field`, from the RUBRIC.
+
+    Shared by `charge` and `because` because they are the same shape and the web
+    parses both with `parseCharge` -- first colon splits, so a value may contain
+    colons of its own, which every `because` sentence does.
+    """
+    spec = getattr(config(HANDOUT[item_id])["rubric"], "SLOT_SPEC", {}) or {}
+    out = [f"{f['key']}:{f[field]}" for f in (spec.get(item_id) or [])
+           if f.get(field)]
+    return "|".join(out) or None
+
+
+def charge_attr_for(item_id: str) -> str | None:
+    """`charge="slot:CODE|slot:CODE"` -- WHICH deduction each gate charges.
+
+    THE RUBRIC DECLARED THIS AND NOTHING CARRIED IT. `slotSheet.ts` has parsed
+    `charge`/`because` and returned coded deductions since the engine gained
+    them, but no generator ever emitted the attribute, so across all three
+    handouts the count of `charge=` was ZERO: the paper ledger read the code and
+    the web charged the same points under no name at all.
+
+    It is REPORTING, not arithmetic. `scoreSlotSheet` computes `score`, `max` and
+    `failed` without consulting `charge`; the attribute only populates
+    `deductions[]`. So emitting it tells the student and the comparison WHICH
+    rule was broken without moving a single score.
+    """
+    return _slot_pairs_attr(item_id, "charge")
+
+
+def because_attr_for(item_id: str) -> str | None:
+    """`because="slot:text|slot:text"` -- the wording that explains a charge.
+
+    Paired with `charge`: the code says what was broken and this says why, so
+    feedback can be written from the declaration rather than from the engine.
+    """
+    return _slot_pairs_attr(item_id, "because")
+
+
 def equals_attr_for(item_id: str) -> str | None:
     """`equals="key:left,right:lenient,..."`, '|'-separated, from the RUBRIC."""
     rules = config(HANDOUT[item_id])["rubric"].BY_ID[item_id].get("equals") or []
@@ -2334,6 +2387,24 @@ def parse_free(spec: str) -> dict[str, list[str]]:
     return out
 
 
+def parse_charge(spec: str) -> dict[str, str]:
+    """`slot:VALUE|slot:VALUE` -> {slot: value}. Mirror of `parseCharge`.
+
+    SPLITS ON THE FIRST COLON ONLY, which is what lets `because` carry ordinary
+    prose: "No contingency is stated: nothing is granted or withheld on a
+    condition." keeps its own colon and arrives whole.
+    """
+    out: dict[str, str] = {}
+    for entry in (spec or "").split("|"):
+        entry = entry.strip()
+        if not entry or ":" not in entry:
+            continue
+        key, _, value = entry.partition(":")
+        if key.strip() and value.strip():
+            out[key.strip()] = value.strip()
+    return out
+
+
 def rubric_def_for(item_id: str) -> str | None:
     """`rubricDef="Q1"` -- the rubric entry this generated sheet is a projection OF.
 
@@ -2368,6 +2439,8 @@ GENERATED_ATTRS = (("rubricDef", rubric_def_for),
                    ("onlyif", onlyif_attr_for),
                    ("max", max_attr_for),
                    ("slots", slots_attr_for),
+                   ("charge", charge_attr_for),
+                   ("because", because_attr_for),
                    ("derived", derived_attr_for))
 
 

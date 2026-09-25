@@ -26,7 +26,11 @@ import os
 import re
 
 import gold as gold_mod
-from segment import H1_MARKERS, H2_MARKERS, H3_MARKERS
+# BY HANDOUT, not by name. Goal N: the engine imported `H1_MARKERS,
+# H2_MARKERS, H3_MARKERS` from the COURSE -- three per-handout names crossing the
+# boundary in the wrong direction, and a fourth handout could not be expressed at
+# all. `_markers(h)` reads the course file, which is where they always came from.
+from segment import _markers
 
 import paths
 
@@ -257,7 +261,7 @@ HANDOUTS: dict[int, dict] = {
         "rubric": _rubric(1),
         "template": f"{MATERIALS}/BMod Handout #1 - Defining Behaviors, ABCs, and SMART Goals.docx",
         "submissions": f"{SUBS}/Handout 1 Submissions with Scoring and Feedback",
-        "markers": H1_MARKERS,
+        "markers": (),
         "capture_tail": False,
         "outdir": f"{OUT}/h1",
         "gold": _gold_loader(gold_mod.load_h1, 1),
@@ -467,7 +471,7 @@ HANDOUTS: dict[int, dict] = {
             "Applying It to Behavior Change.docx"
         ),
         "submissions": f"{SUBS}/Handout 2 Submissions with Scoring and Feedback",
-        "markers": H2_MARKERS,
+        "markers": (),
         "capture_tail": True,
         "repair_orphans": True,
         "outdir": f"{OUT}/h2",
@@ -489,7 +493,7 @@ HANDOUTS: dict[int, dict] = {
             "&amp_ Analyzing Your Intervention.docx"
         ),
         "submissions": f"{SUBS}/Handout 3 Submissions with Scoring and Feedback",
-        "markers": H3_MARKERS,
+        "markers": (),
         "capture_tail": True,
         "join_aware": True,
         "outdir": f"{OUT}/h3",
@@ -544,12 +548,115 @@ HANDOUTS: dict[int, dict] = {
 # file, so the two were never separate copies -- they are the same object. A
 # "duplicate" that is a shared reference is not a duplicate, and rewriting it
 # would have added a second read path to replace a working one.
+# The PATH fields are assembled, not overlaid. The course file stores a LEAF --
+# `template_file`, `submissions_dir`, `outdir_name` -- and the base comes from
+# `paths`, because the base says where THIS MACHINE keeps course data and the
+# leaf is the course's own fact. A course file holding absolute paths could not
+# survive $COURSE_DATA moving.
+_PATH_FIELDS = {"template":    ("template_file",   MATERIALS),
+                "submissions": ("submissions_dir", SUBS),
+                "outdir":      ("outdir_name",     OUT)}
+
 for _h, _cfg in HANDOUTS.items():
     for _field in ("blurb", "capture_tail", "exemplar_items", "repair_orphans",
-                   "join_aware"):
+                   "join_aware", "exemplar_participants", "cited_participants",
+                   "suspect_participants"):
         if _field in _cfg:
             _cfg[_field] = _course_field(_h, _field, _cfg[_field])
+    for _field, (_key, _base) in _PATH_FIELDS.items():
+        if _field in _cfg:
+            _leaf = _course_field(_h, _key)
+            # ABSENT LEAVES THE DEFAULT STANDING, and an empty one does too: a
+            # course file that names no template has not asked for `{BASE}/`.
+            if _leaf:
+                _cfg[_field] = f"{_base}/{_leaf}"
 
+
+
+# ── The COURSE FILE decides which handouts exist, and owns its own data ──────
+# J-4b and J-4c, both found by running the engine as the stub course.
+#
+# J-4 moved every handout FIELD into the course file and left the table's KEYS
+# as the literal 1, 2, 3, so `declared()` -- whose docstring says "every handout
+# this course declares" -- answered for the ENGINE. A two-handout course got
+# three, and `score.py --help` offered `--handout {1,2,3}` against it.
+#
+# J-4c is the worse half. The hardcoded values were kept as "documented
+# defaults", which sounds conservative and is not: an UNDECLARED field did not
+# come back empty, it came back as THIS COURSE'S. The stub -- which exists so
+# that starting a project does not mean borrowing a real cohort -- resolved
+# `submissions` to the real cohort's directory, and that path EXISTS, so nothing
+# failed. A wrong answer, not an error.
+#
+# So a course-data field is ABSENT when the course does not declare it. The
+# engine FLAGS keep their defaults: `capture_tail` is a fact about how the
+# engine reads a document, not about whose course it is.
+_COURSE_DATA_FIELDS = {
+    "template":              "template_file",
+    "submissions":           "submissions_dir",
+    "outdir":                "outdir_name",
+    "blurb":                 "blurb",
+    "exemplar_participants": "exemplar_participants",
+    "exemplar_items":        "exemplar_items",
+    "cited_participants":    "cited_participants",
+    "suspect_participants":  "suspect_participants",
+}
+
+
+# THROUGH THE ACCESSOR, not `_load()`. This read the raw document itself until
+# `course_schema`'s Part B caught it: a raw entry defeats the group boundary
+# while appearing to honour it, because the code still calls into `coursedata`.
+# `coursedata.declared_handouts()` was added there rather than exempting this
+# module -- if no accessor exists for what you need, add one.
+#
+# Empty means THE READER CANNOT TELL, so the engine table is left alone --
+# refusing to guess is not the same as deleting every handout.
+import coursedata as _cd_fields
+
+_DECLARED = _cd_fields.declared_handouts()
+if _DECLARED:
+    for _h in [h for h in HANDOUTS if h not in _DECLARED]:
+        del HANDOUTS[_h]
+
+# MARKERS, SET HERE RATHER THAN IN THE TABLE. Goal N moved these off the
+# `H1/H2/H3_MARKERS` aliases onto `_markers(h)`, which reads the course file --
+# but calling it INSIDE the literal made `migrated_tables` read `HANDOUTS` itself
+# as a migrated table and demand an authored twin no builder holds. The reader
+# call belongs in the assembly step, beside every other course-sourced field.
+for _h, _cfg in HANDOUTS.items():
+    _cfg["markers"] = _markers(_h)
+
+for _h, _cfg in HANDOUTS.items():
+    # WHICH KEYS THE COURSE DECLARED, not which values are truthy -- a course
+    # that declares an empty exemplar list has ANSWERED, and must not be given
+    # another course's list for it.
+    _have = set(_cd_fields.declaration("HANDOUT_FIELDS").get(str(_h), {}))
+    for _field, _key in _COURSE_DATA_FIELDS.items():
+        if _field in _cfg and _key not in _have:
+            _cfg[_field] = None
+
+def declared() -> tuple:
+    """Every handout this course declares, in order. J-3.
+
+    The engine had no way to ask this: ten modules wrote `config(1)`,
+    `config(2)` or the literal `(1, 2, 3)`, so a four-handout course met an
+    engine that knew about three. `HANDOUTS` is the declaration; this is how to
+    read it.
+    """
+    return tuple(sorted(HANDOUTS))
+
+
+def carrying(field: str) -> tuple:
+    """The handouts whose items declare `field`, in order. J-3.
+
+    Five of the hardcoded `config(2)` sites did not want HANDOUT TWO -- they
+    wanted "the handout with the criteria items", which is handout 2 only in this
+    course. Asking for the PROPERTY is what makes them portable, and it is the
+    same move as `item.get("graph_item")` replacing `item == "1c"`.
+    """
+    import coursedata
+    return tuple(sorted({int(it["handout"]) for it in coursedata.items()
+                         if it.get("handout") is not None and it.get(field)}))
 
 
 def config(handout: int) -> dict:

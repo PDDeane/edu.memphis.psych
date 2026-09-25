@@ -64,6 +64,7 @@ import json
 import pathlib
 import re
 import sys
+import paths as _p7   # J-7b: this course's handout file names
 
 HERE = pathlib.Path(__file__).parent
 RECEIPTS = HERE / "PROBE_RECEIPTS.json"
@@ -277,7 +278,7 @@ def _derivation(item_id: str, slot: str) -> dict | None:
                 labels.append(clause.strip())
     if not found:
         return None
-    sheet = f"bmod_handout{handout}.olx"
+    sheet = _p7.handout_olx(handout)
     question = "\n".join(f'{attr}="{clause}"' for attr, clause in found)
     return {"item": item_id, "slot": slot, "kind": "derived",
             "head": labels[0] if labels else "", "question": question,

@@ -266,6 +266,18 @@ def doc_path(name: str) -> str:
     return os.path.join(HERE, name)
 
 
+# A SPLIT DOCUMENT WITH NO COURSE HALF, declared rather than sniffed.
+#
+# `missing()` checked only that the COMPOSED path existed, so "no course half
+# because nothing moved" and "course half lost in a checkout" were
+# indistinguishable -- the exact failure that function's own docstring says it
+# exists to prevent. Declaring the absence makes silence mean something again.
+#
+# EMPTY TODAY, and that is the point: all four split documents have a course
+# half, so this is a pure ratchet. An entry may only be added with a reason.
+NO_COURSE_HALF: dict[str, str] = {}
+
+
 def missing() -> list:
     """Documents a reader would look for and not find.
 
@@ -277,6 +289,13 @@ def missing() -> list:
     for name in sorted(set(SPLIT_DOCS) | set(WHOLE_DOCS)):
         if name in SPLIT_DOCS and not os.path.exists(generic_path(name)):
             continue                     # not split here; nothing to find
+        if name in SPLIT_DOCS and not os.path.exists(specific_path(name)) \
+                and name not in NO_COURSE_HALF:
+            out.append(f"{name} is split here but has NO COURSE HALF at "
+                       f"{specific_path(name)}, and its absence is not declared. "
+                       f"Either the split moved nothing -- say so in "
+                       f"NO_COURSE_HALF with the reason -- or the half is gone "
+                       f"and the composed document is quietly the generic one")
         path = doc_path(name)
         if not os.path.exists(path):
             out.append(f"{name} is not at {path}, where its readers look. A reader "

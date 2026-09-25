@@ -717,7 +717,15 @@ def _student_text_gate() -> int:
         with open(BUDGET) as fh:
             base = _json.load(fh)
     except FileNotFoundError:
-        return 0                      # not yet baselined; `--baseline` writes it
+        # A MISSING BUDGET DISABLES THIS GATE, and that is the dangerous half of
+        # the branch: `return 0` lets every commit through, so deleting the file
+        # is indistinguishable from passing. It is kept because a tree that has
+        # never been baselined must not be blocked by a file nobody has written
+        # yet -- but the file exists now, and there is no `--baseline` flag to
+        # rewrite it (this comment claimed one for months; there is only
+        # `--audit-exemptions`). Re-baselining is a hand edit, and the entries
+        # may fall and may not rise.
+        return 0
     now = _staged_counts()
     grew = {f: (base.get(f, 0), n) for f, n in now.items() if n > base.get(f, 0)}
     if grew:
@@ -788,7 +796,35 @@ def main() -> int:
     reason = (os.environ.get("ALLOW_UNDECLARED") or "").strip()
     r = subprocess.run([sys.executable, os.path.join(HERE, "equivalence.py"),
                         "--enforcement"], capture_output=True, text=True, cwd=HERE)
-    lines = [l for l in (r.stdout + r.stderr).splitlines() if l.startswith("! ")]
+    _out = r.stdout + r.stderr
+
+    # THE AUDIT MUST HAVE COMPLETED, and that is not what the exit code says.
+    #
+    # This gate reads the subprocess's "! " lines and treats "no such lines" as
+    # CLEAN. A crashed audit emits none, so until 2026-09-24 a traceback inside
+    # `equivalence.py` printed "enforcement audit clean" and returned 0. It was
+    # found when a 44-finding baseline dropped to zero after an unrelated edit
+    # broke `olx_corpus.default_roots()` with a NameError -- the audit never
+    # reached a single check, and the gate passed the commit.
+    #
+    # THE EXIT CODE CANNOT SEPARATE THE TWO: `print_enforcement` returns
+    # `1 if findings else 0`, and an uncaught exception also exits 1, so
+    # "non-zero means crashed" would refuse every ordinary run that found
+    # something. The test is therefore POSITIVE LIVENESS -- did the audit print
+    # the banner it prints before any finding? -- plus the traceback itself.
+    # Absence of evidence was being read as evidence of absence.
+    _ran = "ENFORCEMENT — what each side actually does" in _out
+    if not _ran or "Traceback (most recent call last)" in _out:
+        print("REFUSING the commit: the enforcement audit did not COMPLETE, so "
+              "'no findings' means nothing.\n", file=sys.stderr)
+        for l in _out.splitlines()[-25:]:
+            print(f"    {l}", file=sys.stderr)
+        print("\nFix the audit and run it again. This is NOT overridable by "
+              "ALLOW_UNDECLARED: that declares a known divergence, and an audit "
+              "that did not run has not found one.", file=sys.stderr)
+        return 1
+
+    lines = [l for l in _out.splitlines() if l.startswith("! ")]
     blocking = [l for l in lines if not any(k in l for k in STATE_ONLY)]
     if not blocking:
         state = len(lines) - len(blocking)

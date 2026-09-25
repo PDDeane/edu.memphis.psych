@@ -173,7 +173,14 @@ def render_item(item: dict, authored: dict, indent: str = "  ") -> list[str]:
             # thing as having an oc_gate. Setting it only for gated items wrote
             # it onto 5. The gate's code and message come from `oc_gates`; that
             # a slot gates at all comes from the slot.
-            ("gate", "true" if (s.get("gate") or g) else None),
+            # THE STAGE SURVIVES THE ROUND TRIP. Writing "true" for a slot
+            # declared `gate="final"` silently DEMOTES it to definitional, which
+            # moves the rule earlier and changes which code a cell charges --
+            # authored data lost by regenerating the file it was authored in.
+            # The stage is carried on the oc_gate, so read it from there.
+            ("gate", (("final" if (g.get("stage") == "final"
+                                   or s.get("gate") == "final") else "true")
+                      if (s.get("gate") or g) else None)),
             ("charge", g.get("code")),
             ("because", g.get("text")),
         ]) + "/>")
@@ -361,7 +368,9 @@ def frame_text():
     try:
         import handouts as _H
         import olx_prompts as _O
-        rows = [i for i in _H.config(2)["rubric"].ITEMS if _takes_frame(i)]
+        # J-3. WAS config(2) -- the frame-taking items are the criteria ones.
+        _h = _H.carrying("derive_from_criteria")[0]
+        rows = [i for i in _H.config(_h)["rubric"].ITEMS if _takes_frame(i)]
         plain = next(i for i in rows if not i.get("cadence"))
         day = next(i for i in rows if i.get("cadence") == "daily")
         week = next(i for i in rows if i.get("cadence") == "weekly")

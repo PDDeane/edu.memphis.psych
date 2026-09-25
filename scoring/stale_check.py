@@ -47,7 +47,16 @@ import json
 import os
 
 from handouts import HANDOUTS, config
-from score import oc_check_names
+# THROUGH THE REGISTRY. Goal E step 5: `score.oc_check_names` was an alias for
+# the plugin's `check_names`, and the aliases are gone now that nothing needs
+# them. A course with no `oc` scorer has no criteria checks to expect, which is
+# what the empty list means here.
+import scorers as _scorers
+
+
+def oc_check_names(spec: dict) -> list:
+    _oc = _scorers.optional("oc")
+    return _oc.check_names(spec) if _oc is not None else []
 
 
 _CRITERIA_CACHE: dict[str, list[str]] = {}

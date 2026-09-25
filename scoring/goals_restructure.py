@@ -44,7 +44,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-GOALS = os.path.join(HERE, "GOALS.md")
+# THE COMPOSED DOCUMENT, not the generic half beside this module -- the same
+# resolution `goals.py:48` uses, and for the same reason. After the G2 split
+# `os.path.join(HERE, "GOALS.md")` named the 53-line GENERIC half while the real
+# document (16,722 lines) sat in $COURSE_DATA, so this tool reported "54 lines,
+# 0 entries, round trip clean" over the wrong file: a FALSE CLEAN. A tool that
+# resolves a split document by `__file__` cannot see the split.
+import compose_docs
+
+GOALS = compose_docs.composed_path("GOALS.md")
 # The stamp is excluded from the title group; see `goals._STAMP`.
 ENTRY = re.compile(r"^- \[([ x])\] ([A-Z]+)(\d+)\. (.*?)(?:\s*<!--@\d{4}-\d\d-\d\d-->)?$")
 SECTION = re.compile(r"^## (.*)$")

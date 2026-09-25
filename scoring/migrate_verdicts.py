@@ -36,6 +36,7 @@ from pathlib import Path
 import paths
 
 import olx_prompts  # for the vocabulary, read from slotSheet.ts
+import paths as _p7   # J-7b: this course's handout file names
 
 # Read, never copied — the same reason olx_prompts reads them.
 ENGINE_DEFAULT = olx_prompts.default_verdicts()
@@ -153,7 +154,7 @@ def main() -> int:
     ap.add_argument("--write", action="store_true", help="rewrite in place")
     args = ap.parse_args()
 
-    files = sorted((paths.OLX_DIR).glob("bmod_handout*.olx"))
+    files = sorted((paths.OLX_DIR).glob(_p7.handout_olx_glob()))
     if not files:
         print(f"no handouts under {paths.OLX_DIR}", file=sys.stderr)
         return 2

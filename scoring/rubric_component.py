@@ -53,7 +53,7 @@ def staged_path() -> str:
     """Where the build leaves the expanded, RESOLVED rubric."""
     import paths
     return os.path.join(str(paths.LO), ".stage", "content", paths.NS,
-                        "psychology", "bmod_rubric.olx")
+                        paths.OLX_DIR.name, paths.RUBRIC_COMPONENT)
 
 
 def expanded_path() -> str:
@@ -76,8 +76,16 @@ def expanded_path() -> str:
     neither has to know about the other.
     """
     import paths
+    # NAMED DIRECTLY, for content that is not in the staged layout at all. J-7.
+    # The stub course ships its rubric beside its `course.json` in lo-blocks and
+    # is never staged, so no combination of namespace and component name reaches
+    # it. This is the escape a course uses to say "my rubric is THAT file", and
+    # it is what makes the stub runnable by an outsider.
+    override = os.environ.get("COURSE_RUBRIC_OLX")
+    if override:
+        return override
     return os.path.join(str(paths.LO), ".stage", "expanded", paths.NS,
-                        "psychology", "bmod_rubric.olx")
+                        paths.OLX_DIR.name, paths.RUBRIC_COMPONENT)
 
 
 def authored_path() -> str:
@@ -103,7 +111,7 @@ def authored_path() -> str:
     piece of build work the hand-authoring step still owes.
     """
     import paths
-    return os.path.join(str(paths.REPO), "psychology", "bmod_rubric.olx")
+    return os.path.join(str(paths.OLX_DIR), paths.RUBRIC_COMPONENT)
 
 
 def _text(el) -> str:
@@ -283,6 +291,16 @@ def as_view_items(path: str | None = None) -> list[dict]:
             it["derive_from_credit"] = True
         if el.get("deriveFromClauses") in _TRUE:
             it["derive_from_criteria"] = True
+        # WHICH SCORER, as opposed to WHICH KIND OF ITEM. Goal E step 3.
+        # `deriveFromClauses` says "this item is scored from criteria rather than
+        # from a credit list" -- a property of the ITEM, which `handouts.carrying`
+        # and `score._criteria_rubric` both read. `deriveFrom` says which SCORER
+        # grades it, which is a different question with a different answer per
+        # course: two courses can both have criteria items and share no scorer.
+        # Conflating them is what made `derive_from_criteria` mean "operant
+        # conditioning" by accident.
+        if el.get("deriveFrom"):
+            it["derive_from"] = el.get("deriveFrom")
         if el.get("blankCode"):
             it["blank_code"] = el.get("blankCode")
         if el.get("expectedType"):
@@ -377,10 +395,34 @@ def as_view_items(path: str | None = None) -> list[dict]:
         # AN OC_GATE IS A SLOT THAT CHARGES, not merely one that gates. 60 slots
         # carry `gate`; 5 carry a code and a reason. Collecting on `gate` alone
         # invented a gate on 15 items with `code: null`.
-        gates = [{"key": s.get("key"), "code": s.get("charge"),
-                  "text": s.get("because")}
+        # THE ITEM'S OWN ANSWER MENUS, so a scorer is a function of its ITEM.
+        # M-3b. `SLOT_OPTIONS` is rubric-wide and keyed by set name -- "a set is
+        # named by several slots and belongs to none of them" -- and a scorer
+        # receives only an item dict, so an enum comparison could be hardcoded
+        # and not declared. Attaching the menus this item's OWN slots name keeps
+        # the plugin contract `(item, raw)`, which is what makes the ledger a
+        # pure function and the 51,200-case fingerprint meaningful.
+        _menus = as_view_choices(p)
+        _opts = {s.get("key"): _menus[s.get("key")]
                  for s in el.findall("Slot")
-                 if s.get("gate") in _TRUE and s.get("charge")]
+                 if s.get("key") in _menus}
+        if _opts:
+            it["slot_options"] = _opts
+        # TWO STAGES, DECLARED. A gate answers one of two questions and the
+        # scorer runs them at different points: `gate="true"` is DEFINITIONAL --
+        # is this an instance at all -- and runs before the type rules;
+        # `gate="final"` is PRESENTATIONAL -- how is it phrased -- and runs after
+        # them. That ordering was implicit in Python control flow, which M
+        # records as load-bearing and undeclared; this is the shape that declares
+        # it. Deliberately NOT a precedence number: two positions exist because
+        # they mean two different things, and a number would be a mechanism with
+        # no meaning attached.
+        gates = [{"key": s.get("key"), "code": s.get("charge"),
+                  "text": s.get("because"),
+                  "stage": "final" if s.get("gate") == "final" else "definitional"}
+                 for s in el.findall("Slot")
+                 if (s.get("gate") in _TRUE or s.get("gate") == "final")
+                 and s.get("charge")]
         if gates:
             it["oc_gates"] = gates
         items.append(it)
@@ -399,10 +441,21 @@ def as_view_slot_spec(path: str | None = None) -> dict:
         rows = []
         for s in el.findall("Slot"):
             rec = {"key": s.get("key")}
-            for a in ("label", "seg", "pts"):
+            # `charge`/`because` ride along so the WEB can be given the
+            # deduction code the rubric already declares. Until now this reader
+            # dropped them, which is why no handout carried a `charge=`
+            # attribute and the web scored every gate anonymously.
+            for a in ("label", "seg", "pts", "charge", "because"):
                 if s.get(a) is not None:
                     rec[a] = s.get(a)
-            if s.get("gate") in _TRUE:
+            # BOTH STAGES ARE GATES HERE. `gate="final"` is a gate that runs
+            # late, not a non-gate: this reader knew only `gate="true"` when the
+            # stage attribute was added, so the first `final` gate declared
+            # SILENTLY LOST its flag in the view -- the WEB reads this spec, so
+            # it would have stopped gating there while still gating on paper.
+            # That is the exact paper/web divergence this project exists to
+            # close, arriving as a quiet omission rather than a failure.
+            if s.get("gate") in _TRUE or s.get("gate") == "final":
                 rec["gate"] = True
             rows.append(rec)
         if rows:
@@ -467,7 +520,16 @@ def as_view_slots(path: str | None = None) -> dict:
                 c["seg"] = sl.get("seg")
             if sl.get("pts") is not None:
                 c["pts"] = sl.get("pts")
-            if sl.get("gate") in _TRUE:
+            # THE DEDUCTION CODE AND ITS WORDING. `SLOT_SPEC` is built from THIS
+            # reader (`coursedata._slots` -> `as_view_slots`), not from
+            # `as_view_slot_spec`, so the generators that emit the web's
+            # attributes see only what is added here.
+            for a in ("charge", "because"):
+                if sl.get(a) is not None:
+                    c[a] = sl.get(a)
+            # BOTH STAGES, as in `as_view_slot_spec` -- the THIRD projection
+            # of the same flag, and it had the same omission.
+            if sl.get("gate") in _TRUE or sl.get("gate") == "final":
                 c["gate"] = True
             clauses.append(c)
         if iid and clauses:

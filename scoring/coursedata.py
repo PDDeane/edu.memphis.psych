@@ -36,6 +36,7 @@ import copy
 import json
 import os
 import threading
+import paths as _p7   # J-7b: this course's handout file names
 
 SCHEMA_VERSION = 1
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -166,6 +167,10 @@ def _oc_frame(items: list) -> str:
 # different sides of that split. Trimming it to the two names left in `items[]`
 # would have shrunk the ratchet's vocabulary and let real growth hide inside it.
 RUBRIC_FIELDS = {
+    # M-3b. The answer menus this item's own slots name, so a scorer can compare
+    # against a DECLARED vocabulary instead of a hardcoded one. Rubric data: it
+    # comes from `<Choices>` in the component, like every other field here.
+    "slot_options",
     "id", "handout", "label", "max", "increment", "question", "guidance",
     "context", "credit", "deductions", "counts", "derive_from_credit",
     "derive_from_criteria", "unreachable_codes", "blank_code", "expected_type",
@@ -356,6 +361,27 @@ def items() -> list[dict]:
     return _rubric_rows()
 
 
+def declared_handouts() -> tuple:
+    """Every handout the course declares, in order. J-4b.
+
+    THE ACCESSOR EXISTS SO CALLERS DO NOT REACH PAST THE READER. `handouts.py`
+    first asked this by reading `_load()["handouts"]` itself, and
+    `course_schema`'s Part B caught it: taking a raw entry "defeats the boundary
+    while appearing to honour it, because the code still calls into
+    `coursedata`". The answer is a named accessor here, not an exemption there.
+
+    The `handouts` block first -- it is the course's own statement of what it
+    has -- then the items' `handout` fields, for a file written before the block
+    existed. An empty result means THIS READER CANNOT TELL, and the caller is
+    expected to leave its own table alone rather than treat it as "no handouts".
+    """
+    hs = {int(h) for h in _load().get("handouts", {})}
+    if not hs:
+        hs = {int(it["handout"]) for it in items()
+              if it.get("handout") is not None}
+    return tuple(sorted(hs))
+
+
 def rubric_for(item_id: str) -> dict:
     """One item's RUBRIC fields. Never the raw entry, never generator fields.
 
@@ -417,7 +443,7 @@ def gradable_blocks() -> dict:
         asks = it.get("asks")
         out.setdefault(handout, {})[asks or f"_{iid.lower()}_deterministic"] = {
             "item": iid,
-            "olx": f"bmod_handout{handout}.olx" if asks else None,
+            "olx": _p7.handout_olx(handout) if asks else None,
             "kind": grading,
         }
     return out

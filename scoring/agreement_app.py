@@ -36,7 +36,11 @@ import tempfile
 import simulate_h3
 import handouts as _handouts
 from handouts import config, exemplar_drops, find_submissions, suspect
-from segment import repair_orphans, segment, utb_hint
+from segment import repair_orphans, segment
+from segment import course_hook
+
+# OPTIONAL, because it is the COURSE's. Absent -> no hint, which is an answer.
+utb_hint = course_hook("utb_hint", lambda _path: None)
 import paths
 
 
@@ -545,7 +549,7 @@ class _ConsensusFixes:
 # The move broke it at run time rather than at edit time, which is the whole
 # argument for locations living in one module.
 CONSENSUS_FIXES = _ConsensusFixes(
-    str(paths.COURSE_FIXTURE / "CONSENSUS_SPANS.json"))
+    str(paths.COURSE_FIXTURE_DATA / "CONSENSUS_SPANS.json"))
 
 
 def _unclaimed_tail(raw: str, boxes: list[str]) -> str:

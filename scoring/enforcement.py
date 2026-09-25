@@ -37,7 +37,22 @@ import sourcecache
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 
 from handouts import config
-from score import _computed_keys, build_schema, derive_ledger, derive_oc_ledger
+from score import _computed_keys, build_schema, derive_ledger
+
+
+def _oc_scorer():
+    """This course's CRITERIA scorer, through the registry. Goal E step 4.
+
+    Was `from score import derive_oc_ledger` -- an import of a name the engine
+    no longer owns. The scorer is course-supplied now, so it is RESOLVED, and a
+    course that ships none gets None here rather than an ImportError at the top
+    of the audit. The checks below turn that None into their own refusal, which
+    is the designed message ("is gone -- retarget this check") rather than a
+    traceback that the gate would have to interpret.
+    """
+    import scorers
+    return scorers.optional("oc")
+import paths as _p7   # J-7b: this course's handout file names
 
 
 def _gold_declaration(name: str):
@@ -67,147 +82,64 @@ def _gold_declaration(name: str):
 # `check_criteria_table_is_complete` asserts it covers EXACTLY the schema's
 # required properties, so adding an oc_analysis field without deciding how it
 # fails breaks the audit instead of being silently unprobed.
-_PASS = {
-    "behavior": "walking to class",
-    "stimulus": "a coffee",
-    "contingent": True,
-    "follows_behavior": True,
-    "stimulus_is_arranged": True,
-    "avoidance_frame": False,
-    "cadence_ok": True,
-    "targets_own_behavior": True,
-    "targets_intended_behavior": True,
-    "consequence_asserted": True,
-    "states_a_contingency": True,
-    # WK2 only: the consequence points the right way for the type chosen.
-    "aimed_correctly": True,
-    # WK1 only: the consequence clause has an agent subject and a transfer verb.
-    "agent_delivers_consequence": True,
-    # The two halves of the direction test. Neither has a "passing" value on its
-    # own — it is the PAIR that passes or fails — so the passing state is any
-    # matched pair, and the failing state below mismatches exactly one of them.
-    "trigger_expects": "gain",
-    # Diagnostic only: gates nothing, scores nothing, so it has no failing
-    # value. Both tables name the same one, which is what "this field cannot
-    # cost the item anything" looks like to the probe.
-    "restriction_authored": "relieved",
-    "restricts": "target_behavior",
-    # The type is derived from this pair, so the PASSING value is the pair each
-    # type IS. Per item, and a flat value would make the baseline charge on three
-    # of the four screens.
-    "stimulus_move": {"PR": "given_desirable", "NR": "taken_undesirable",
-                      "PP": "given_undesirable", "NP": "taken_desirable"},
-}
-_FAIL = {
-    "behavior": "",
-    "stimulus": "",
-    "contingent": False,
-    "follows_behavior": False,
-    "stimulus_is_arranged": False,
-    "avoidance_frame": True,          # advisory only; must show zero loss
-    # Each must MISMATCH the other's _PASS value, since `direction_ok` fails on
-    # the pair rather than on either field. Setting this one to "gain" — a match
-    # against _PASS's "gain" — made the probe report GATE WEB ONLY, because the
-    # CLI correctly saw no mismatch and did not zero.
-    "trigger_expects": "loss",       # a gain for doing badly
-    # Mismatched against _PASS so the derived `consequence_not_a_setup`
-    # fires: created + success-lifts-it is the forbidden pair.
-    "restriction_authored": "created",
-    # Non-firing on its own, like the other operands: the gate needs all three.
-    "restricts": "target_behavior",
-    "cadence_ok": False,
-    "targets_own_behavior": False,
-    "targets_intended_behavior": False,
-    "consequence_asserted": False,
-    "states_a_contingency": False,
-    # WK2 only, and it GATES there — an aversive delivered for meeting the goal.
-    # False is the failing value, and on that item it takes the whole 4.
-    "aimed_correctly": False,
-    # WK1 only, and it GATES — no agent, or no verb of giving or taking.
-    "agent_delivers_consequence": False,
-    # A pair the type is NOT, so `demonstrates_type` fails. Each is the same
-    # direction with the wrong valence, which is the live confusion: a phone lock
-    # is taken-away-DESIRABLE, which is NP, not the NR it claims to be.
-    "stimulus_move": {"PR": "given_undesirable", "NR": "taken_desirable",
-                      "PP": "given_desirable", "NP": "taken_undesirable"},
-}
+# THE PROBE FIXTURES AND THE SIDE MAP ARE THE COURSE'S. Goal P, 2026-09-24.
+#
+# These four tables named ten of this course's facts -- `avoidance_frame`,
+# `cadence_ok`, `targets_own_behavior` and seven more -- in ENGINE code. A second
+# course met an engine that already knew this course's psychology: the
+# `bmod_handout1` defect one level in, naming not a file but a question the model
+# is asked. They now live in the course file, and the reasoning for every value
+# travels with them in `course_metadata_source.py`.
+#
+# Read ONCE at import, as before, so nothing downstream changes shape.
+def _course_vocab(name: str):
+    """A course-declared vocabulary table, with its TUPLE VALUES restored.
+
+    JSON HAS NO TUPLE, and that is not cosmetic here. `ALIAS` maps a name to
+    EITHER one alternative (a string) or several (a tuple), and `web_name` does
+    `if cand in web_keys` over them -- a list is unhashable, so the audit died
+    with `TypeError: unhashable type: 'list'` the first time it ran after these
+    tables moved to the course file. `segment._markers` records the same rule for
+    the same reason: "Tuples, not the lists JSON gives back ... a reader should
+    not change a published shape while moving where it is stored."
+
+    The equality check that was supposed to catch this could not: comparing
+    through `json.dumps(..., default=str)` serialises a tuple and a list
+    identically, so it reported the tables IDENTICAL while the types had changed.
+    """
+    import coursedata
+
+    raw = coursedata.declaration(name)
+    if isinstance(raw, dict):
+        return {k: (tuple(v) if isinstance(v, list) else v) for k, v in raw.items()}
+    return raw
+
+
+_PASS = _course_vocab("PROBE_PASS")
+_FAIL = _course_vocab("PROBE_FAIL")
 # The two type fields are handled separately: their failing value depends on the
 # other one, and a naive flip can make them agree again.
-_TYPE_FIELDS = ("observed_type", "named_type", "trigger_behavior")
+_TYPE_FIELDS = tuple(_course_vocab("PROBE_TYPE_FIELDS"))
 
 # The same rule wears different names on the two sides. Kept explicit and small;
 # an unmapped key is REPORTED, never assumed equivalent.
-ALIAS = {
-    # 1b's FOUR PERIOD SLOTS, declared 2026-09-06 (subgoal E53). The mirror
-    # records `baseline`/`week_1`/`week_2`/`week_3` and the app records the same
-    # four judgements as `..._data`. Measured before declaring: 1b is 20/20 on
-    # BOTH sides with the medians identical on all twenty cells, so this is a
-    # naming difference and nothing more. It went unnoticed because every check
-    # in the audit read declarations rather than artifacts; E53's is the first to
-    # compare what the two engines actually answered, and these were four of its
-    # findings.
-    "baseline": ("baseline", "baseline_data"),
-    "week_1": ("week_1", "week_1_data"),
-    "week_2": ("week_2", "week_2_data"),
-    "week_3": ("week_3", "week_3_data"),
-    "behavior": "names_behavior",
-    # The paper scorer's operant vocabulary, declared 2026-09-11. These six were
-    # the whole of `paper_scorer_agreement`'s 840 "not comparable" errors, and
-    # they are names, not rules: the first two appear on ALL EIGHT operant items
-    # and the four `is_*` each appear ONLY on their own item (PR x96, NR x90,
-    # PP x51, NP x48, and never on another), so nothing here needs an item id to
-    # resolve. Declared with the aliases and then MEASURED, the way the 1b four
-    # were -- if any of these named a different rule, driving the paper verdicts
-    # through the web arithmetic would disagree on score, and it does not.
-    "operant_behavior": "names_behavior",
-    "contingent_on_behavior": "contingent",
-    # Paper asks the type question by name ("is this positive reinforcement?"),
-    # the web asks it as one slot. Same judgement, one per item.
-    "is_pr": "demonstrates_type",
-    "is_nr": "demonstrates_type",
-    "is_pp": "demonstrates_type",
-    "is_np": "demonstrates_type",
-    # The web renamed this to say the good state, and inverted it to match the
-    # rest of the vocabulary: `met` is phrased directly. The CLI input keeps the
-    # old name and its boolean sense (True = phrased by what is avoided).
-    # A TUPLE, not a rename, because the two sheets no longer share a name and
-    # the CLI still has ONE input. web_name() tries each candidate against the
-    # item's own web_keys, so DAY1 resolves to the gated name and the other seven
-    # to the plain one, with no item id anywhere. Same mechanism `observed_type`
-    # uses below, and the alias stays AUTHORITATIVE: if neither candidate is
-    # present the answer is None and the audit reports it.
-    "avoidance_frame": ("phrased_directly_gate", "phrased_directly"),
-    # The four example screens ask about ONE authored type, so the web judges
-    # "is it this type" where the CLI identifies which of the four it is. Same
-    # deduction, different shape — see EQUIVALENCE.md.
-    # Order matters, and the identity candidate comes LAST on purpose. Since
-    # `pick`, `observed_type` names a web slot too — but there it is the
-    # classification the student's answer is sorted into, not the check that
-    # carries the deduction. That check is `demonstrates_type`, computed from
-    # the pick by `expect`. Resolving to the pick would compare a CLI deduction
-    # against a web slot that costs nothing.
-    "observed_type": ("demonstrates_type", "observed_type"),
-    "stimulus": "names_stimulus",
-    "stimulus_is_arranged": "you_arrange_it",
-    "targets_intended_behavior": ("targets_goal_behavior", "targets_unwanted_behavior"),
-    # THREE candidates, not two: the daily gate is split. DAY1 keeps the plain
-    # name, DAY2 carries the counted variant. Mutually exclusive per sheet, so
-    # web_name resolves each item to exactly one and the order is free.
-    "cadence_ok": ("cadence_is_daily", "cadence_is_daily_counted", "cadence_is_weekly"),
-    "stimulus_move": ("demonstrates_type", "stimulus_move"),
-}
+# The same rule under its two names. An unmapped key is REPORTED, never assumed
+# equivalent -- that rule stays HERE because it is about how to treat a gap, not
+# about which names exist.
+ALIAS = _course_vocab("SIDE_ALIAS")
 
 
-def _tbl(table: dict, key: str, item_id: str):
-    """A probe-table value, resolved per item where the table says so.
+# `_tbl`, `_oc_baseline` and `_oc_fail` MOVED TO THE COURSE SCORER. Goal P.
+# They built this course's hypothetical answers -- naming `observed_type`,
+# `named_type` and the PR/NR/PP/NP taxonomy -- so the audit could only construct
+# a probe for a subject it already knew. They are `probe_baseline`, `probe_fail`
+# and `_probe_value` in `COURSE_METADATA/scorers/oc.py` now, beside the tables
+# they read, and are reached the same way the scorer is: through the registry.
 
-    Most fields have one passing value everywhere. The valence fields do not:
-    what a type REQUIRES differs by screen, so a flat value would make the
-    probe's own all-satisfied baseline charge on some of them. A dict value is
-    read as {item_id: value}.
-    """
-    v = table[key]
-    return v.get(item_id) if isinstance(v, dict) else v
+
+def _oc_probe():
+    """This course's probe builders, or None when it ships no criteria scorer."""
+    return _oc_scorer()
 
 
 def web_name(cli_key: str, web_keys: set[str]) -> str | None:
@@ -436,6 +368,61 @@ def check_countable_families_converted(items: list[dict]) -> list[str]:
     return problems
 
 
+def check_scorer_behaviour_is_unchanged() -> list[str]:
+    """Sweep the criteria scorer's whole input space against its recorded digest.
+
+    TRACKED IS NOT PROTECTED. This lived in a scratchpad for the whole of goals E
+    and M -- fourteen rules moved between modules with the ledger held identical
+    at every step -- which meant the only thing standing between a refactor and a
+    silent scoring change was a file that would not survive the session. The
+    definition inventory would report it VANISHING; nothing at all would report
+    it FAILING.
+
+    1.9 seconds for 51,200 cases, because the ledger is a pure function of
+    `(item, raw)` and needs no model call. That is cheap enough to run every time
+    rather than when someone remembers to.
+
+    Its comparison goes through `evidence.certify` with a live control, so
+    "identical" can only be reported by a test that was capable of saying
+    otherwise -- the property whose absence produced three wrong answers on
+    2026-09-24.
+    """
+    try:
+        from tools import scorer_fingerprint      # the package form, like editguard
+    except Exception as exc:                      # pragma: no cover
+        return [f"the scorer fingerprint cannot be imported: {exc}"]
+    return scorer_fingerprint.check()
+
+
+def check_criteria_primitives_hold_their_contracts() -> list[str]:
+    """Run `scorer_criteria`'s own contract cases. M-3b.
+
+    THE SELF-TEST WAS TRACKED BUT NOT RUN, which is only half of protected: the
+    definition inventory would report it VANISHING, and nothing at all would
+    report it FAILING. A check nobody runs rots silently, and this one guards the
+    claims a SECOND COURSE relies on -- an undeclared code charging nothing, an
+    absent fact that cannot fail, a lenient verdict that must not charge, a
+    charge that must not short-circuit. The 51,200-case fingerprint proves none
+    of those, because the OC scorer never sends them.
+
+    Output is captured: a check reports findings, it does not print.
+    """
+    import contextlib
+    import io
+
+    try:
+        import scorer_criteria
+    except Exception as exc:                      # pragma: no cover
+        return [f"the criteria interpreter cannot be imported: {exc}"]
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = scorer_criteria.self_test()
+    if not rc:
+        return []
+    return [f"scorer_criteria contract case failed -- {l.strip()}"
+            for l in buf.getvalue().splitlines() if l.strip().startswith("FAIL")]
+
+
 def check_primitive_conformance() -> list[str]:
     """Does the PROMPT honour every schema-excluding primitive on every live sheet?
 
@@ -510,7 +497,7 @@ def check_harness_schema_conformance() -> list[str]:
         if item not in ACTION:
             continue          # a DerivedChecks sheet: no model call, so no schema
         try:
-            action = AG.load_action(f"bmod_handout{HANDOUT[item]}.olx", sheet_id(item))
+            action = AG.load_action(_p7.handout_olx(HANDOUT[item]), sheet_id(item))
         except SystemExit as e:
             problems.append(f"{item}: the harness cannot read its own sheet — {e}")
             continue
@@ -623,30 +610,8 @@ def all_items() -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
-def _oc_baseline(item: dict) -> dict:
-    """An analysis that earns full marks."""
-    req = set(build_schema(item)["properties"]["oc_analysis"]["required"])
-    a = {k: _tbl(_PASS, k, item["id"]) for k in _PASS if k in req}
-    if item.get("cadence"):
-        a["observed_type"] = "PR"
-        a["named_type"] = "PR"          # agreeing, so no mismatch
-    else:
-        a["observed_type"] = item["expected_type"]
-    return a
 
 
-def _oc_fail(item: dict, a: dict, key: str, other: str = "") -> dict:
-    """`a` with `key` failing. Type fields fail to a value that stays wrong."""
-    a = dict(a)
-    if key in _TYPE_FIELDS:
-        # Pick a type that differs from the one the item wants AND from whatever
-        # the co-field was flipped to, so flipping both does not re-agree.
-        wrong = [t for t in ("PR", "NR", "PP", "NP")
-                 if t != a.get("observed_type") and t != a.get("named_type")]
-        a[key] = wrong[1] if (other in _TYPE_FIELDS and len(wrong) > 1) else wrong[0]
-    else:
-        a[key] = _tbl(_FAIL, key, item["id"])
-    return a
 
 
 def _score(item: dict, raw: dict) -> float:
@@ -655,8 +620,9 @@ def _score(item: dict, raw: dict) -> float:
     # would collapse to the item's blank_code and score the same 0 for a reason
     # the probe is not testing. Leaving the argument out would default to "" and
     # do exactly that.
-    if item.get("derive_from_criteria"):
-        ledger, *_ = derive_oc_ledger(item, raw)
+    _oc = _oc_scorer()
+    if item.get("derive_from_criteria") and _oc is not None:
+        ledger, *_ = _oc.derive_ledger(item, raw)
     else:
         ledger, *_ = derive_ledger(item, raw, response="(probe answer)")
     off = sum(d["pts"] for d in ledger)
@@ -733,14 +699,17 @@ def signature(item: dict) -> dict:
     """What this item enforces, read off its behaviour."""
     criteria = bool(item.get("derive_from_criteria"))
     if criteria:
-        base = _oc_baseline(item)
+        _p = _oc_probe()
+        if _p is None:
+            return {"inputs": [], "note": "this course ships no criteria scorer"}
+        base = _p.probe_baseline(item)
         inputs = sorted(build_schema(item)["properties"]["oc_analysis"]["required"])
         mk_base = lambda: {"oc_analysis": base}
-        mk_one = lambda k: {"oc_analysis": _oc_fail(item, base, k)}
+        mk_one = lambda k: {"oc_analysis": _p.probe_fail(item, base, k)}
 
         def mk_two(a, b):
-            x = _oc_fail(item, base, a, other=b)
-            return {"oc_analysis": _oc_fail(item, x, b, other=a)}
+            x = _p.probe_fail(item, base, a, other=b)
+            return {"oc_analysis": _p.probe_fail(item, x, b, other=a)}
     else:
         base = _credit_baseline(item)
         # A computed slot is NOT a model input — it is excluded from the schema, so
@@ -1431,8 +1400,8 @@ def _family_slot_structure() -> dict:
     import agreement_app as _A
 
     olx = {f.name: f.read_text() for f in
-           _pl.Path(__file__).resolve().parent.parent.joinpath("psychology")
-           .glob("bmod_handout*.olx")}
+           _p7.OLX_DIR
+           .glob(_p7.handout_olx_glob())}
     out: dict = {}
     for fam, items in SLOT_STRUCTURE_FAMILIES.items():
         for item in items:
@@ -1746,7 +1715,9 @@ def check_both_engines_compute_the_same_primitives() -> list[str]:
     # the other way: `counts` is expanded by agreement.expand_counted, not by
     # apply_computed, so a single-function scan reports a mismatch that is not one.
     WEB_FNS = ("apply_computed", "expand_counted")
-    CLI_FNS = ("derive_ledger", "derive_oc_ledger")
+    # THE ENGINE'S OWN DERIVER, plus the plugin's, read from where each now
+    # lives. Goal E step 4: `derive_oc_ledger` is not a `score` name any more.
+    CLI_FNS = ("derive_ledger",)
 
     def _src(mod, names):
         out = []
@@ -1766,6 +1737,14 @@ def check_both_engines_compute_the_same_primitives() -> list[str]:
     cli, err = _src(S, CLI_FNS)
     if err:
         return [err]
+    _oc = _oc_scorer()
+    if _oc is None:
+        return ["this course ships no `oc` scorer, so the criteria side of the "
+                "comparison is missing -- retarget this check"]
+    oc_src, err = _src(_oc, ("derive_ledger",))
+    if err:
+        return [err]
+    cli = cli + "\n" + oc_src
 
     out = []
     for attr in OP.primitive_attrs(excluding_keys=True):
@@ -1924,8 +1903,8 @@ def _primitives_with_live_app_evidence() -> dict:
 
     attrs = {q["attr"] for q in _prims()["primitives"]}
     olx = [f.read_text() for f in
-           _pl.Path(__file__).resolve().parent.parent.joinpath("psychology")
-           .glob("bmod_handout*.olx")]
+           _p7.OLX_DIR
+           .glob(_p7.handout_olx_glob())]
     try:
         led = _json.loads((_pl.Path(__file__).resolve().parent
                            / "MEASURED.json").read_text())["items"]
@@ -2557,7 +2536,7 @@ def _olx_slot_verdicts(item_id: str, slot: str) -> set:
     if not g:
         return set()
     act = g.replace("_grader", "_llm")
-    for f in _pl.Path(__file__).resolve().parent.parent.joinpath("psychology").glob("bmod_handout*.olx"):
+    for f in _p7.OLX_DIR.glob(_p7.handout_olx_glob()):
         txt = f.read_text()
         m = _re.search(r"<LLMAction\b(?:(?!</?LLMAction)[^>])*?(?:^|\s)id=\"" +
                        _re.escape(act) + r"\"(?:(?!</?LLMAction)[^>])*>", txt, _re.S)
@@ -3169,6 +3148,51 @@ def _attr(handout: int, item_id: str, attr: str) -> str:
     return m.group(1) if m else ""
 
 
+def _prose_source_of_the_scorer() -> list[str]:
+    """The same two rules, applied where the composing call actually lives.
+
+    A scorer composing its own section must still SOURCE the prose from
+    `_criteria_section` and hold no block of authored text of its own. Reading
+    the RESOLVED scorer rather than a fixed path keeps this working for a course
+    that ships its own.
+    """
+    import ast
+    import inspect
+
+    import scorers
+
+    oc = scorers.optional("oc")
+    if oc is None or not hasattr(oc, "prompt_section"):
+        return ["the resolved scorer has no prompt_section, so the criteria "
+                "prose has no traceable source -- retarget this check"]
+    try:
+        tree = ast.parse(inspect.getsource(oc.prompt_section))
+    except Exception as exc:                        # pragma: no cover
+        return [f"the scorer's prompt_section cannot be read: {exc}"]
+    calls = {ast.unparse(n.func) for n in ast.walk(tree) if isinstance(n, ast.Call)}
+    bad = []
+    if not any("_criteria_section" in c for c in calls):
+        bad.append("the scorer's prompt_section does not call _criteria_section "
+                   "-- the criteria prose has a second source again")
+    # THE DOCSTRING IS NOT AUTHORED PROMPT TEXT. The original rule counted
+    # literals inside an `if` BRANCH, where no docstring can appear; a whole
+    # function has one, and counting it made this fire at 421 characters on a
+    # `prompt_section` that pastes nothing. Same error as reading prose as code,
+    # one level up -- strip it before measuring.
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.body \
+           and isinstance(node.body[0], ast.Expr) \
+           and isinstance(node.body[0].value, ast.Constant) \
+           and isinstance(node.body[0].value.value, str):
+            node.body.pop(0)
+    total = sum(len(n.value) for n in ast.walk(tree)
+                if isinstance(n, ast.Constant) and isinstance(n.value, str))
+    if total > 300:
+        bad.append(f"the scorer's prompt_section holds {total} characters of "
+                   f"authored text -- a pasted-back copy looks exactly like this")
+    return bad
+
+
 def check_criteria_prose_has_one_source() -> list[str]:
     """Is the criteria prose still stated ONCE, or has a second copy grown back?
 
@@ -3222,10 +3246,20 @@ def check_criteria_prose_has_one_source() -> list[str]:
     # first time it ran.
     body = [n for stmt in branch.body for n in ast.walk(stmt)]
     calls = {ast.unparse(n.func) for n in body if isinstance(n, ast.Call)}
-    if not any("_criteria_section" in c for c in calls):
+    # FOLLOW THE DELEGATION. Goal P moved the composing call out of this branch
+    # and into the SCORER's `prompt_section`, because which slots a course asks
+    # is the scorer's choice and the engine was making it by name. The invariant
+    # is unchanged -- the prose must have ONE source -- so this FOLLOWS rather
+    # than relaxes: the branch may call `_criteria_section` directly or delegate
+    # to a scorer that does, and that scorer's body is then held to the same two
+    # rules, delegation and the literal budget.
+    delegated = any("prompt_section" in c for c in calls)
+    if not any("_criteria_section" in c for c in calls) and not delegated:
         out.append("score.py's derive_from_criteria branch no longer calls "
                    "_criteria_section -- the criteria prose has a second source "
                    "again, and the two copies will drift the way they did before")
+    if delegated:
+        out += _prose_source_of_the_scorer()
 
     # TOTAL authored text in the branch, not the longest single literal. Adjacent
     # string literals are concatenated at parse time, so the original block was
@@ -4133,8 +4167,7 @@ def check_action_attributes_are_declared_in_the_block() -> list[str]:
     declared.add("target")
 
     used: dict[str, set] = {}
-    for f in sorted(pathlib.Path(__file__).resolve().parent.parent
-                    .joinpath("psychology").glob("bmod_handout*.olx")):
+    for f in sorted(_p7.OLX_DIR.glob(_p7.handout_olx_glob())):
         try:
             txt = f.read_text()
         except OSError:
@@ -4330,8 +4363,12 @@ def check_selectors_govern_something() -> list[str]:
                     emitted |= {r["key"] for r in parse(_attr(h, iid, attr))}
                 except Exception:
                     continue
+    _oc = _oc_scorer()
+    if _oc is None:
+        return ["this course ships no `oc` scorer, so the three-way source "
+                "comparison has nothing to read -- retarget this check"]
     scorer_src = "".join(inspect.getsource(f) for f in
-                         (A.score_oc, A.score_oc_cadence, S.derive_oc_ledger))
+                         (_oc.score_web, _oc.score_web_cadence, _oc.derive_ledger))
     # Only the two unambiguous slot accessors, so a `.get` on some other dict
     # cannot be mistaken for a check being read.
     read = set(re.findall(r'yes\("(\w+)"\)', scorer_src))
@@ -4342,6 +4379,37 @@ def check_selectors_govern_something() -> list[str]:
             f"more -- a deleted slot still being consulted, so its deduction is "
             f"silently never charged")
     return problems
+
+
+def _source_through_delegates(fns, module, depth: int = 3) -> str:
+    """Source of `fns` plus every module-level function they reach, transitively.
+
+    A check that greps a scorer's body for the names it consults is one refactor
+    away from reading a wrapper and finding nothing. Following the delegation
+    makes the check about WHAT THE SCORER DOES rather than about how its body
+    happens to be split up today.
+    """
+    import inspect
+
+    seen, out, queue = set(), [], list(fns)
+    while queue and depth >= 0:
+        nxt = []
+        for fn in queue:
+            name = getattr(fn, "__name__", None)
+            if not name or name in seen:
+                continue
+            seen.add(name)
+            try:
+                body = inspect.getsource(fn)
+            except (OSError, TypeError):
+                continue
+            out.append(body)
+            for ident in set(re.findall(r"\b([A-Za-z_]\w*)\s*\(", body)):
+                got = getattr(module, ident, None)
+                if inspect.isfunction(got) and ident not in seen:
+                    nxt.append(got)
+        queue, depth = nxt, depth - 1
+    return "\n".join(out)
 
 
 def check_weighted_slots_are_scored() -> list[str]:
@@ -4359,7 +4427,18 @@ def check_weighted_slots_are_scored() -> list[str]:
     import inspect
     import agreement as A
     import olx_prompts as O
-    src = inspect.getsource(A.score_oc) + inspect.getsource(A.score_oc_cadence)
+    _oc = _oc_scorer()
+    if _oc is None:
+        return ["this course ships no `oc` scorer, so its web mirrors cannot be "
+                "read -- retarget this check"]
+    # THROUGH THE DELEGATION, not just the entry point. `score_web` used to hold
+    # the rules; it now derives its pair from `web_deductions`, so reading only
+    # the wrapper found NO slot name and reported all 21 weighted slots
+    # unscored. That is the same wrapper-shaped blindness that made
+    # `check_selectors_govern_something` pass vacuously on 112 characters --
+    # here it failed loudly instead, which is the better direction, but the
+    # remedy is the same: follow the calls.
+    src = _source_through_delegates((_oc.score_web, _oc.score_web_cadence), _oc)
     problems = []
     for h in (1, 2, 3):
         for item in config(h)["rubric"].ITEMS:
@@ -4673,7 +4752,7 @@ def check_consensus_fixes_have_no_duplicate_cells() -> list[str]:
     # `_CONSENSUS_SOURCE` STAYS: it is the selftest's injection point, and
     # dropping it while repointing the default would have removed a fire test
     # rather than a path.
-    src = _CONSENSUS_SOURCE or str(paths.COURSE_FIXTURE / "CONSENSUS_SPANS.json")
+    src = _CONSENSUS_SOURCE or str(paths.COURSE_FIXTURE_DATA / "CONSENSUS_SPANS.json")
     try:
         raw = open(src).read()
     except Exception as exc:                    # pragma: no cover
@@ -5469,8 +5548,8 @@ def check_divergence_arithmetic_is_still_true() -> list[str]:
 
     RB = {1: rubric_h1, 2: rubric_h2, 3: rubric_h3}
     olx = {f.name: f.read_text() for f in
-           _pl.Path(__file__).resolve().parent.parent.joinpath("psychology")
-           .glob("bmod_handout*.olx")}
+           _p7.OLX_DIR
+           .glob(_p7.handout_olx_glob())}
 
     def _maxes(item):
         J = _A.JOBS.get(item) or {}
@@ -6425,11 +6504,11 @@ def check_every_item_has_a_findable_slot_sheet() -> list[str]:
         return ["no item-to-element mapping at all; ACTION and SHEET_ONLY are both "
                 "empty, so every sheet-reading check is looking at nothing"]
 
-    base = _pl.Path(__file__).resolve().parent.parent / "psychology"
+    base = _p7.OLX_DIR
     blob = ""
     for h in (1, 2, 3):
         try:
-            blob += (base / f"bmod_handout{h}.olx").read_text()
+            blob += (base / _p7.handout_olx(h)).read_text()
         except OSError:
             continue
     if not blob:
@@ -6727,7 +6806,7 @@ def check_no_unresolved_reference_reaches_the_page() -> list[str]:
         # staged in `--out` mode. So `.stage/content` can be spotless and say
         # nothing whatever about these handouts. Reporting that as clean is the
         # exact shape of failure this check exists to catch, one level up.
-        ours = [h.stem for h in _p.OLX_DIR.glob("bmod_handout*.olx")]
+        ours = [h.stem for h in _p.OLX_DIR.glob(_p7.handout_olx_glob())]
         if ours and not any(
                 o in q.name or o in q.read_text(errors="replace")[:200000]
                 for q in root.rglob("*") if q.is_file()
@@ -8120,7 +8199,7 @@ def check_engines_send_the_same_request() -> list[str]:
         try:
             pid = int(pid_s.lstrip("p"))
             h = O.HANDOUT[item]
-            act = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+            act = A.load_action(_p7.handout_olx(h), O.ACTION[item])
             mine = (A.build_prompt(act["body"], A.fixture_for(item, pid))
                     + A.checklist_guidance(act["show_checks"]))
             my_schema = A.build_schema(act["slots"], act["excluded"],
@@ -8219,7 +8298,7 @@ def check_engines_offer_the_same_verdicts() -> list[str]:
             app_slots = {s["key"]: s.get("options") or []
                          for s in O.parse_slots(spec.group(1), app_defaults)}
             py_slots = {s["key"]: s.get("options") or []
-                        for s in A.load_action(f"bmod_handout{h}.olx", action_id)["slots"]}
+                        for s in A.load_action(_p7.handout_olx(h), action_id)["slots"]}
         except Exception as e:
             out.append(f"{item}: cannot compare verdict lists: {type(e).__name__}: {e}")
             continue
@@ -8232,7 +8311,7 @@ def check_engines_offer_the_same_verdicts() -> list[str]:
         # offered, 13 of them on slots that carry points. Reporting the 19 would
         # be claiming a difference in a question nobody is asked.
         try:
-            excluded = set(A.load_action(f"bmod_handout{h}.olx", action_id)["excluded"])
+            excluded = set(A.load_action(_p7.handout_olx(h), action_id)["excluded"])
         except Exception:
             excluded = set()
         silent = 0
@@ -8424,6 +8503,17 @@ def check_web_code_neutrality_is_verified() -> list[str]:
                 if M.web_code_sha("score", item) != now:
                     continue              # a different pair's business
             except Exception:
+                continue
+            # NO WEB SHEET IS NOT "UNVERIFIED", IT IS NOT APPLICABLE. `1b`, `T1`
+            # and `T2` carry no `<LLMAction>` at all -- they are scored
+            # deterministically from the fixture, never by `scoreSlotSheet` --
+            # so a change to the app's SHEET-SCORING code cannot move their
+            # numbers. Reporting them as unverifiable would demand evidence that
+            # cannot exist and would make a true neutrality claim look unproven.
+            # An item that HAS a sheet and still fails to compare is a finding,
+            # which is the branch below.
+            import olx_prompts as _O
+            if not _O.ACTION.get(item):
                 continue
             n, moved, why_not = M.rescore_recorded(item, "olx")
             covered += n
@@ -8872,7 +8962,7 @@ def check_app_and_harness_send_the_same_prompt() -> list[str]:
             continue                     # item not in this dump; --prompts covers that
         try:
             h = OP.HANDOUT[item]
-            mine = AG.load_action(f"bmod_handout{h}.olx", action)["body"]
+            mine = AG.load_action(_p7.handout_olx(h), action)["body"]
         except Exception as e:
             out.append(f"{item}: cannot read the harness body: {type(e).__name__}: {e}")
             continue
@@ -11259,11 +11349,11 @@ def check_scored_slots_are_answered_by_both_engines() -> list[str]:
         import olx_prompts as _O
         want = {**{i: e for i, e in _O.ACTION.items()},
                 **{i: e for i, e in getattr(_O, "SHEET_ONLY", {}).items()}}
-        base = pathlib.Path(__file__).resolve().parent.parent.joinpath("psychology")
+        base = _p7.OLX_DIR
         blob = ""
         for h in (1, 2, 3):
             try:
-                blob += base.joinpath(f"bmod_handout{h}.olx").read_text()
+                blob += base.joinpath(_p7.handout_olx(h)).read_text()
             except Exception:
                 continue
         out = {}
@@ -11868,7 +11958,7 @@ def check_computed_slot_recovery_is_faithful() -> list[str]:
     for item in sorted(MEAS._jobs()):
         h = MEAS._jobs()[item]["handout"]
         try:
-            spec = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+            spec = A.load_action(_p7.handout_olx(h), O.ACTION[item])
         except Exception:
             continue
         recover = set(MEAS._computed_slots(spec)) | {
@@ -11947,7 +12037,7 @@ def computed_recovery_line() -> str:
     for item in sorted(MEAS._jobs()):
         h = MEAS._jobs()[item]["handout"]
         try:
-            spec = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+            spec = A.load_action(_p7.handout_olx(h), O.ACTION[item])
         except Exception:
             continue
         recover = set(MEAS._computed_slots(spec)) | {
@@ -12003,7 +12093,7 @@ def check_probe_reach_limits_still_apply() -> list[str]:
             if h is None:
                 continue
             try:
-                spec = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+                spec = A.load_action(_p7.handout_olx(h), O.ACTION[item])
             except Exception:
                 continue
             wide = any(len(r.get("conds") or ()) >= 3
@@ -16077,7 +16167,7 @@ def check_the_staged_rubric_is_current() -> list[str]:
     except Exception as exc:                            # pragma: no cover
         return [f"cannot check the staged rubric: {type(exc).__name__}: {exc}"]
 
-    authored = _os.path.join(_os.path.dirname(str(_HERE_DIR)), "psychology",
+    authored = _os.path.join(str(_p7.OLX_DIR),
                              "bmod_rubric.olx")
     if not _os.path.exists(authored):
         return [f"{_os.path.relpath(authored)} is missing: there is no authored "
@@ -16147,7 +16237,7 @@ def check_the_expanded_rubric_is_current() -> list[str]:
     except Exception as exc:                            # pragma: no cover
         return [f"cannot check the expanded rubric: {type(exc).__name__}: {exc}"]
 
-    authored = _os.path.join(_os.path.dirname(str(_HERE_DIR)), "psychology",
+    authored = _os.path.join(str(_p7.OLX_DIR),
                              "bmod_rubric.olx")
     if not _os.path.exists(authored):
         return [f"{_os.path.relpath(authored)} is missing: there is no authored "
@@ -16234,7 +16324,7 @@ def check_sheet_matches_the_rubric_it_names() -> list[str]:
     # loaded is a finding, because the alternative is a check that cannot fail.
     for item in sorted(O.ACTION):
         try:
-            act = A.load_action(f"bmod_handout{O.HANDOUT[item]}.olx", O.ACTION[item])
+            act = A.load_action(_p7.handout_olx(O.HANDOUT[item]), O.ACTION[item])
         except Exception as exc:
             out.append(f"{item}: cannot load its action to compare against the "
                        f"rubric: {type(exc).__name__}: {exc}")
@@ -16273,7 +16363,7 @@ def check_the_course_links_the_rubric_and_every_handout() -> list[str]:
     """
     import os as _os
     import re as _re
-    course = _os.path.join(_os.path.dirname(str(_HERE_DIR)), "psychology",
+    course = _os.path.join(str(_p7.OLX_DIR),
                            "bmod_course.olx")
     if not _os.path.exists(course):
         return [f"there is no {_os.path.relpath(course)}: the rubric and the three "

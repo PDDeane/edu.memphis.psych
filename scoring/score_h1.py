@@ -37,7 +37,11 @@ from backends import BackendError, make_backend
 import handouts as _H_RUBRIC
 _RUBRIC = _H_RUBRIC.config(1)["rubric"]
 BY_ID, ITEMS = _RUBRIC.BY_ID, _RUBRIC.ITEMS
-from segment import H1_MARKERS, segment, utb_hint
+from segment import _markers, segment
+from segment import course_hook
+
+# OPTIONAL, because it is the COURSE's. Absent -> no hint, which is an answer.
+utb_hint = course_hook("utb_hint", lambda _path: None)
 import paths
 
 TEMPLATE = f"{paths.MATERIALS}/BMod Handout #1 - Defining Behaviors, ABCs, and SMART Goals.docx"
@@ -379,7 +383,7 @@ def score_participant(
     """Score one participant. `only` re-scores a subset of items and merges the
     results into that participant's existing file, so a guidance change can be
     re-measured without paying to re-run items it did not touch."""
-    sections = segment(path, TEMPLATE, H1_MARKERS)
+    sections = segment(path, TEMPLATE, _markers(1))
     hint = utb_hint(path)
     results: dict[str, dict] = {}
 

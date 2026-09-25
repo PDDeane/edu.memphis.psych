@@ -53,6 +53,7 @@ run stops rather than printing a plausible-looking table over half the cohort.
 from __future__ import annotations
 
 import argparse
+import paths as _p7   # J-7b: this course's handout file names
 import html
 import functools
 import json
@@ -155,7 +156,7 @@ _H3_CTX = _context_refs(3)
 
 
 def _h1(item, action):
-    return {"item": item, "olx": "bmod_handout1.olx", "refs": _H1_CTX, "kind": "slots"}
+    return {"item": item, "olx": _p7.handout_olx(1), "refs": _H1_CTX, "kind": "slots"}
 def _declaration(name: str) -> dict:
     """One scoring declaration, read from the course file."""
     import coursedata
@@ -301,9 +302,19 @@ def load_action(olx_file: str, action_id: str) -> dict:
         # ON THE SLOT, mirroring SlotSpec.free in slotSheet.ts. Carried with the
         # slots rather than beside them because every scorer is handed `slots`
         # and the mirrors rebuild their spec without sheet-level keys.
+        # `charge`/`because` ride on the slot for the same reason `free` does,
+        # and mirror `SlotSpec.charge`/`.because`. The web says WHICH rule an
+        # answer broke; a mirror that dropped the code would reproduce the
+        # number and lose the only field that says what the number is for.
+        _charge = olx_prompts.parse_charge(_attr(open_tag, "charge"))
+        _because = olx_prompts.parse_charge(_attr(open_tag, "because"))
         for _s in _slots:
             if _free.get(_s["key"]):
                 _s["free"] = list(_free[_s["key"]])
+            if _charge.get(_s["key"]):
+                _s["charge"] = _charge[_s["key"]]
+            if _because.get(_s["key"]):
+                _s["because"] = _because[_s["key"]]
         return {
             "body": body,
             "slots": _slots,
@@ -1240,6 +1251,68 @@ def expand_counted(item: dict, checks: dict) -> dict:
     return out
 
 
+def slot_deductions(spec: dict, item: dict, checks: dict) -> list[dict]:
+    """The CODED deductions a slot sheet charges -- mirror of `scoreSlotSheet`.
+
+    NOT the same set as `score_slots`'s count, and the difference is deliberate
+    on both sides: a slot with points but no `charge` still costs its points and
+    names no code, so `failed` counts it and this does not. Reading one as the
+    other is how "nothing was charged" and "this rubric named no code" get
+    confused.
+
+    A FAILED GATE COSTS THE WHOLE ITEM, so its charge is the item max -- the same
+    arithmetic the score line already does, named rather than implied.
+    """
+    by_key = {s["key"]: s for s in spec["slots"]}
+    sat = satisfied_map(spec, checks)
+
+    def deduct(slot, pts, comp=None):
+        """One coded entry, or none when the rubric names no code.
+
+        TWO PLACES DECLARE A CODE and both are read. A GATE names it on the slot
+        (`charge=`, with `because=` for the wording). A SCORED component names it
+        per failing verdict (`<Credit codes="absent=UTB_NOT_STATED">`) -- which is
+        the form the paper ledger has always read, so reading only `charge` here
+        would have left all nineteen slot-sheet items recording an empty list
+        while their ledger side named a code for every charge.
+        """
+        code = slot.get("charge")
+        note = slot.get("because")
+        if not code and comp:
+            verdict = str((checks.get(slot["key"]) or {}).get("verdict") or "").strip()
+            code = (comp.get("codes") or {}).get(verdict)
+        if not code:
+            return []
+        out = {"code": code, "pts": pts}
+        if note:
+            out["note"] = note
+        return [out]
+
+    for slot in spec["slots"]:
+        if slot.get("gates") and not sat[slot["key"]]:
+            return deduct(slot, float(item["max"]))
+
+    charged = {sl["key"]: True for sl in spec["slots"]}
+    for rule in item.get("onlyif", []):
+        if rule["cond"] in sat:
+            charged[rule["key"]] = bool(sat[rule["cond"]])
+
+    out = []
+    for comp in item["credit"]:
+        if comp.get("pts") is None:
+            continue
+        slot = by_key.get(comp["what"])
+        if slot is None or sat.get(slot["key"]):
+            continue
+        _v = str((checks.get(slot["key"]) or {}).get("verdict") or "").strip()
+        if _v and _v in (slot.get("free") or []):
+            continue
+        if not charged.get(slot["key"], True):
+            continue
+        out.extend(deduct(slot, comp["pts"], comp))
+    return out
+
+
 def score_slots(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     """Uniform slot sheet: one unmet component, one deduction.
 
@@ -1354,123 +1427,33 @@ def score_slots(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
     return max(0.0, min(item["max"], item["max"] - lost)), failed
 
 
-def score_oc(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
-    """The four 'write an example of X' items.
-
-    Mirrors derive_oc_ledger(): the definitional criteria gate everything — fail
-    any and the answer is not operant conditioning whatever it looks like — then
-    the type is checked, and an avoidance frame never deducts.
-    """
-    # Satisfaction is read through satisfied_map, NOT by comparing the verdict to
-    # a literal. This compared it to "yes", which was the vocabulary before the
-    # verdicts were standardised on met/absent — so after that change every
-    # definitional criterion read as unmet, `is_oc` was false for every student,
-    # and all four items charged NOT_OC in full and scored 0. cli_v7 predates the
-    # standardisation, which is why the last CLI sweep did not show it.
-    #
-    # Asking satisfied_map is what stops it happening again: it mirrors
-    # isSatisfied(), so the rule is "whatever the web counts as satisfied",
-    # whatever the vocabulary becomes.
-    sat = satisfied_map(spec, checks)
-    yes = lambda k: bool(sat.get(k))
-    codes = {d["code"]: d["pts"] for d in item["deductions"]}
-
-    is_oc = yes("names_behavior") and yes("names_stimulus") and yes("contingent") and yes("follows_behavior")
-    if not is_oc:
-        return max(0.0, item["max"] - codes["NOT_OC"]), 1
-    if not yes("you_arrange_it"):
-        return max(0.0, item["max"] - codes["NOT_EXTERNAL_STIMULUS"]), 1
-
-    # The classification answers `refers_to` since pick(); reading the verdict
-    # returned "" and made every example look like the wrong type.
-    observed = answer_of(checks, "observed_type")
-    aimed_key = "targets_goal_behavior" if "targets_goal_behavior" in {s["key"] for s in spec["slots"]} \
-        else "targets_unwanted_behavior"
-    # `demonstrates_type` is now derived from `stimulus_move`, so read the
-    # SATISFACTION of the derived check rather than comparing a classification.
-    # Asking satisfied_map keeps this correct whichever primitive computes it.
-    if "demonstrates_type" in {s["key"] for s in spec["slots"]}:
-        if not yes("demonstrates_type"):
-            return max(0.0, item["max"] - codes["WRONG_TYPE"]), 1
-    elif observed != item["expected_type"]:
-        return max(0.0, item["max"] - codes["WRONG_TYPE"]), 1
-    if not yes(aimed_key):
-        return max(0.0, item["max"] - codes["WRONG_TYPE"]), 1
-    # A weighted slot this hand-written mirror does not name is INVISIBLE here:
-    # the model answers it, the sheet records it, and the score ignores it. That
-    # is how `barrier_is_not_this_type` fired 6/6 on NR/p14 and the cell still
-    # read 4.0. Guarded on presence in the sheet, because absent means the slot
-    # is not authored on this item, not that it failed.
-    keys = {s["key"] for s in spec["slots"]}
-    if "barrier_is_not_this_type" in keys and not yes("barrier_is_not_this_type"):
-        return max(0.0, item["max"] - codes["WRONG_TYPE"]), 1
-    return item["max"], 0
+# THE WEB MIRRORS MOVED TO `scorer_oc.py` WITH THE SCORER THEY MIRROR. Goal E.
+# `enforcement.py` compares these against `derive_oc_ledger` by reading all three
+# sources; moving one side and not the other would have broken the comparison the
+# project rests on, so both went together and these names alias to the plugin.
+# THE PLUGIN, resolved once. Goal E step 5 removed the `score_oc` /
+# `score_oc_cadence` aliases; `SCORERS` below reads the mirrors off `_OC`
+# directly, and `enforcement` resolves them through the registry.
+import scorers as _scorers                                    # noqa: E402
+_OC = _scorers.optional("oc")
 
 
-def score_oc_cadence(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
-    """The daily/weekly example items — as above plus cadence, and the type is
-    whatever the student chose rather than a fixed one."""
-    sat = satisfied_map(spec, checks)          # see score_oc: never a literal
-    yes = lambda k: bool(sat.get(k))
-    codes = {d["code"]: d["pts"] for d in item["deductions"]}
 
-    is_oc = yes("names_behavior") and yes("names_stimulus") and yes("contingent") and yes("follows_behavior")
-    if not is_oc:
-        return max(0.0, item["max"] - codes["NOT_OC"]), 1
-    if not yes("you_arrange_it"):
-        return max(0.0, item["max"] - codes["NOT_EXTERNAL_STIMULUS"]), 1
+# THE PLUGIN'S MIRRORS, straight from the registry. Goal E step 5 -- the
+# `score_oc` / `score_oc_cadence` aliases existed only so `enforcement` could
+# reach them by name, and step 4 pointed it at the scorer instead.
+SCORERS = {"slots": score_slots,
+           "oc": getattr(_OC, "score_web", None),
+           "oc_cadence": getattr(_OC, "score_web_cadence", None)}
 
-    # Resolved against the item's OWN slot keys rather than named outright,
-    # the same mechanism enforcement.web_name uses for the avoidance_frame and
-    # observed_type aliases, and for the same reason: the daily pair no longer
-    # shares one name. DAY1 keeps `cadence_is_daily`; DAY2 carries
-    # `cadence_is_daily_counted`, which asks the counting question. Candidates are
-    # mutually exclusive across the sheets, so the order is not load-bearing --
-    # but the fallback is, and it is the FIRST candidate so an item whose sheet
-    # has neither still raises on a missing slot instead of silently ungating.
-    # FROM THE RUBRIC, NOT FROM THE BLOCK ENTRY. Both facts were carried on the
-    # BLOCKS declaration too, agreeing with the rubric on all eight items --
-    # which is the state a drift starts from. `item` here IS the rubric row.
-    _cad = (("cadence_is_daily", "cadence_is_daily_counted")
-            if item["cadence"] == "daily" else ("cadence_is_weekly",))
-    _have = {s["key"] for s in spec["slots"]}
-    cadence_key = next((k for k in _cad if k in _have), _cad[0])
-    if not yes(cadence_key):
-        return max(0.0, item["max"] - codes["CADENCE_MISMATCH"]), 1
-
-    # Any OTHER slot the sheet marks as gating, honoured generically. lo-blocks'
-    # failedGate walks every slot and zeroes the item on the first unsatisfied
-    # gate, so a `!` added to a slots= list changes the app's behaviour with no
-    # code change anywhere — while this mirror knew only the gates hardcoded
-    # above and would have scored the same answer differently. The three keys
-    # already handled are excluded because each maps to its OWN deduction code,
-    # which is the distinction this function exists to make.
-    _handled = {"names_behavior", "names_stimulus", "contingent",
-                "follows_behavior", "you_arrange_it", cadence_key}
-    for _s in spec["slots"]:
-        if _s.get("gates") and _s["key"] not in _handled and not yes(_s["key"]):
-            return max(0.0, item["max"] - codes["NOT_OC"]), 1
-
-    lost = 0.0
-    n = 0
-    if not yes("matches_chosen_type"):
-        lost += codes["TYPE_MISMATCH"]
-        n += 1
-    if not yes("targets_own_behavior"):
-        lost += codes["WRONG_BEHAVIOR"]
-        n += 1
-    # The item's fourth point, previously reachable only by a gate. `scoreSlotSheet`
-    # charges this automatically from the sheet's `@1`, so omitting it here would
-    # make the two sides score the same verdicts differently — the exact class of
-    # divergence this harness exists to detect.
-    if "consequence_asserted" in {s["key"] for s in spec["slots"]} \
-            and not yes("consequence_asserted"):
-        lost += codes["LINK_NOT_ASSERTED"]
-        n += 1
-    return max(0.0, min(item["max"], item["max"] - lost)), n
-
-
-SCORERS = {"slots": score_slots, "oc": score_oc, "oc_cadence": score_oc_cadence}
+# THE SAME ENUMERATION, READ FOR ITS NAMES. Each entry is the deductions
+# function its `SCORERS` counterpart derives its score from, so a recorded run
+# can say WHICH rule charged it and not only how much was lost. Parallel rather
+# than merged because the two answers are genuinely different sets: a slot with
+# points but no declared `charge` costs its points and names no code.
+DEDUCERS = {"slots": slot_deductions,
+            "oc": getattr(_OC, "web_deductions", None),
+            "oc_cadence": getattr(_OC, "web_deductions_cadence", None)}
 
 # Items scored over a subset of the paper item's points. Empty since 1c moved to
 # its full five slots; kept because the mechanism is the honest way to declare a
@@ -1719,6 +1702,11 @@ def measure_one(backend, handout: int, spec: dict, action_id: str, path: str, pi
     merged = dict(spec, slots=action["slots"], cover=action["cover"],
                   requires=action["requires"])
     score, n_failed = SCORERS[spec["kind"]](merged, item, checks)
+    # AFTER the scorer, deliberately: `score_slots` expands a counted family in
+    # place, so reading the deductions from the same `checks` object is reading
+    # the state that was actually scored rather than the state it started from.
+    _deduce = DEDUCERS.get(spec["kind"])
+    _deductions = _deduce(merged, item, checks) if _deduce else []
     recorded = expand_counted(dict(item, _slots=action["slots"]), checks)
     return {
         "participant_id": pid,
@@ -1726,6 +1714,12 @@ def measure_one(backend, handout: int, spec: dict, action_id: str, path: str, pi
         "score": round(score, 2),
         "max": MAX_OVERRIDE.get((str(handout), spec["item"]), item["max"]),
         "failed_slots": n_failed,
+        # WHICH RULES CHARGED, beside how many. `failed_slots` is a count and
+        # says nothing about what was broken; the paper ledger has always
+        # recorded codes and this side recorded none, so a disagreement between
+        # them could only ever be compared as two totals. Not the same set as
+        # `failed_slots` -- see DEDUCERS.
+        "deductions": _deductions,
         # From the EXPANDED sheet, so what is recorded is what was scored.
         "checks": {s["key"]: recorded_answer(s, recorded) for s in action["slots"]},
         # What each check ANSWERED, and why, kept beside the verdicts.
@@ -2229,7 +2223,8 @@ def main() -> int:
         try:
             import leakage as _leak
             import handouts as _H_R
-            _R = _H_R.config(2)["rubric"]
+            # J-3. WAS config(2) -- see handouts.carrying().
+            _R = _H_R.config(_H_R.carrying("derive_from_criteria")[0])["rubric"]
             targets = tuple(args.items) if args.items else tuple(_R.BY_ID)
             if _leak.gate(targets):
                 print("Re-run with --force-leakage only if the sweep is what "

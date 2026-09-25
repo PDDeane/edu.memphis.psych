@@ -39,15 +39,50 @@ from olx_prompts import _criteria_section
 # view onto the course file, so this keeps working when Stage 5 deletes
 # `rubric_h*`. The names below are bound from it, so every use is unchanged.
 import handouts as _H_RUBRIC
-_RUBRIC2 = _H_RUBRIC.config(2)["rubric"]
-BARRIER_PICK_ITEMS = _RUBRIC2.BARRIER_PICK_ITEMS
-CADENCE_BARRIER_ITEMS = _RUBRIC2.CADENCE_BARRIER_ITEMS
-CONTINGENCY_GATE_ITEMS = _RUBRIC2.CONTINGENCY_GATE_ITEMS
-MOVE_PICK_ITEMS = _RUBRIC2.MOVE_PICK_ITEMS
-POLARITY_GATE_ITEMS = _RUBRIC2.POLARITY_GATE_ITEMS
-REQUIRED_MOVE = _RUBRIC2.REQUIRED_MOVE
+def _criteria_rubric():
+    """The rubric of the handout carrying the CRITERIA items. J-3.
+
+    WAS `config(2)`. It never meant "handout two" -- it meant "the handout whose
+    items are scored from criteria rather than from a credit list", which is
+    handout 2 only in this course. REFUSES rather than guessing when the course
+    declares none or several: falling back to a number is how an engine scores
+    the wrong handout and says nothing.
+    """
+    hs = _H_RUBRIC.carrying("derive_from_criteria")
+    if len(hs) != 1:
+        raise SystemExit(
+            f"score.py: expected exactly ONE handout with `derive_from_criteria` "
+            f"items, found {hs or 'none'}. The criteria scorer binds one rubric at "
+            f"import; a course with several needs that binding made per-handout "
+            f"first (goal E moves this out entirely).")
+    return _H_RUBRIC.config(hs[0])["rubric"]
+
+
+_RUBRIC2 = _criteria_rubric()
+# GUARDED, per `_RubricView`'s documented contract. J-5. `__getattr__` RAISES on
+# an absent name by design -- `getattr(rub, "SLOT_SPEC", {})` is a real call site
+# and the raise is what makes a typo findable -- so reading these bare made every
+# course declare every derivation even when it uses none of them. That is what
+# the stub course was forced to do.
+#
+# THE DEFAULT IS AN ANSWER HERE, not a shrug. Each of these names a set of items
+# of some kind, so "the course declared none" and "no item is of that kind" are
+# the same fact, and empty is the truthful reading. That is NOT so for
+# `coursedata.derived()`, where empty means ABSENT and falls through to the
+# authored value; do not carry this default across to that.
+BARRIER_PICK_ITEMS = getattr(_RUBRIC2, "BARRIER_PICK_ITEMS", ())
+CADENCE_BARRIER_ITEMS = getattr(_RUBRIC2, "CADENCE_BARRIER_ITEMS", ())
+CONTINGENCY_GATE_ITEMS = getattr(_RUBRIC2, "CONTINGENCY_GATE_ITEMS", ())
+MOVE_PICK_ITEMS = getattr(_RUBRIC2, "MOVE_PICK_ITEMS", ())
+POLARITY_GATE_ITEMS = getattr(_RUBRIC2, "POLARITY_GATE_ITEMS", ())
+REQUIRED_MOVE = getattr(_RUBRIC2, "REQUIRED_MOVE", {})
 from docx_text import extract_media, graph_evidence
-from segment import repair_orphans, segment, utb_hint
+from segment import repair_orphans, segment
+from segment import course_hook
+
+# OPTIONAL, because it is the COURSE's. Absent -> no hint, which is an answer.
+utb_hint = course_hook("utb_hint", lambda _path: None)
+import paths as _p7   # J-7b: this course's handout file names
 
 SYSTEM_TMPL = """You are an experienced teaching assistant grading {blurb}
 This is PSYC 1030 (General Psychology, intro level, first-year students).
@@ -339,7 +374,7 @@ def _web_vocab(item_id: str, key: str) -> tuple:
 
     try:
         h = _O.HANDOUT[item_id]
-        spec = _A.load_action(f"bmod_handout{h}.olx", _O.ACTION[item_id])
+        spec = _A.load_action(_p7.handout_olx(h), _O.ACTION[item_id])
     except Exception:
         return ()
     opts = next((s.get("options") for s in spec["slots"] if s["key"] == key), None)
@@ -365,116 +400,14 @@ def build_schema(item: dict) -> dict:
     constraint. (Q6's failure mode in baseline v3 was exactly that: gold
     implied 50 failed slots across the cohort and the model volunteered 31.)
     """
-    if item.get("derive_from_criteria"):
-        # The five definitional criteria are REQUIRED schema properties, so the
-        # model cannot credit an example without first stating what the
-        # behaviour is, what the stimulus is, and whether the stimulus is
-        # contingent, subsequent, and arranged. Participant 13 was credited for
-        # [[corpus WK1/p13 wk1 0:51 sha=848ae9e56f72]] — no behaviour,
-        # no contingency — precisely because prose guidance let that step be
-        # skipped.
-        props = {
-            "behavior": {"type": "string"},
-            "stimulus": {"type": "string"},
-            "contingent": {"type": "boolean"},
-            "follows_behavior": {"type": "boolean"},
-            "stimulus_is_arranged": {"type": "boolean"},
-            "observed_type": {
-                "type": "string",
-                "enum": ["PR", "NR", "PP", "NP", "none"],
-            },
-            "avoidance_frame": {"type": "boolean"},
-        }
-        # The three barrier readings, on whichever items answer them. Hoisted
-        # OUT of the cadence branch: NR needs the same readings, and leaving them
-        # inside meant widening the selector changed nothing.
-        # ASK FOR WHAT THE DECLARATIONS CONSUME. The three barrier readings are
-        # exactly the slots this item's `forbid` conjunction names in its
-        # conditions, so the sheet follows the rule instead of a tuple of item ids
-        # -- and the old failure it guards against cannot recur: scoping the third
-        # reading differently from the other two left NR answering two of three
-        # and the conjunction never firing, and a conjunction now brings its own
-        # operands.
-        for _slot in _forbid_operands(item):
-            props[_slot] = {"type": "string", "enum": _slot_options(_slot)}
-
-        if item.get("cadence"):
-            props["named_type"] = {
-                "type": "string",
-                "enum": ["PR", "NR", "PP", "NP", "unclear"],
-            }
-            props["cadence_ok"] = {"type": "boolean"}
-            # WK1 derives this from a CLASSIFICATION, mirroring
-            # the web's pick + expect: the model names which behaviour the trigger
-            # identifies and the engine compares it against the student's own.
-            # Judged directly, the slot answered `met` on every pass of the cells
-            # gold charges, because their own behaviour is in the sentence as the
-            # PRIZE rather than as the trigger. It was WK1 alone until 2026-09-05,
-            # which left the other three declaring WRONG_BEHAVIOR at 1.0 with no
-            # answer able to reach it — DAY2/p7 is that gap, measured at 0/12.
-            # DAY2 only. Derived by reading all 64 counted cadence answers: the
-            # nine over-credited cells that are not valence inversions share one
-            # property — they state no contingency. They describe what the
-            # student will do, or why, or offer one activity instead of another.
-            # Every credited cell states a condition on the behaviour AND a
-            # clause in which something is granted or withheld.
-            if "states_a_contingency" in _gate_keys(item):
-                props["states_a_contingency"] = {"type": "boolean"}
-            # The two halves of the direction test, answered separately. The
-            # engine compares them; the model is never asked to weigh both at
-            # once, which is what the composite clause did and why it never
-            # fired. Mirrors the web's pick(valence) + pick(valence_or_none)
-            # and its `equals` rule, lenient on `none`.
-            _parsed = _expect_operand(item, "targets_own_behavior")
-            if _parsed:
-                props[_parsed] = {"type": "string", "enum": _slot_options(_parsed)}
-            else:
-                props["targets_own_behavior"] = {"type": "boolean"}
-            # WK2 only, mirroring a question the TYPE items have always asked and
-            # the cadence items never did. There, `targets_intended_behavior`
-            # charges WRONG_TYPE when the arrangement is the right type but
-            # pointed the wrong way; here, `targets_own_behavior` asks only WHOSE
-            # behaviour it is. So an answer that delivers an aversive for SUCCESS
-            # — punishing the goal behaviour — passes every check on the sheet.
-            if "aimed_correctly" in _gate_keys(item):
-                props["aimed_correctly"] = {"type": "boolean"}
-            # WK1 only, and asked as a PARSE rather than a judgement — see the
-            # guidance in rubric_h2. Two earlier versions asked "is a consequence
-            # delivered?" and the model answered inconsistently on the two cells
-            # that matter; the cue it can actually apply is syntactic.
-            if "agent_delivers_consequence" in _gate_keys(item):
-                props["agent_delivers_consequence"] = {"type": "boolean"}
-            # The item's fourth point. rubric_h2 has carried this slot and its
-            # LINK_NOT_ASSERTED deduction for a while, but nothing here asked for
-            # it, so on the paper-scorer path it was inert: 0 of 80 cadence cells
-            # scored it and the deduction was never charged once. The web app and
-            # agreement.py both charge it from the OLX sheet's `@1`, so leaving it
-            # out made the two implementations score identical answers
-            # differently — the divergence class this project exists to close.
-            props["consequence_asserted"] = {"type": "boolean"}
-        else:
-            props["targets_intended_behavior"] = {"type": "boolean"}
-            # The type is a two-bit function -- added/taken x desirable/not -- so
-            # ask for the pair and derive it. A single pick makes it impossible to
-            # assert a type contradicting the reading it rests on, which is what
-            # `observed_type` kept doing: NP/p14 answered "taken away" and
-            # "desirable" and then called the example PR.
-            if item.get("move_pick"):
-                props["stimulus_move"] = {
-                    "type": "string", "enum": _slot_options("stimulus_move")}
-        schema = json.loads(json.dumps(SCHEMA))
-        del schema["properties"]["credit_checks"]
-        del schema["properties"]["deductions"]
-        schema["properties"]["oc_analysis"] = {
-            "type": "object",
-            "properties": props,
-            "required": list(props),
-            "additionalProperties": False,
-        }
-        schema["required"] = [
-            r for r in schema["required"] if r not in ("credit_checks", "deductions")
-        ] + ["oc_analysis"]
-        return schema
+    # THE PLUGIN'S SCHEMA, THROUGH THE REGISTRY. Goal E step 2. 110 lines of
+    # operant-conditioning fact vocabulary lived here, in a function every item's
+    # prompt goes through. `for_item` returns None for the engine's own `credit`
+    # path, and REFUSES on a name it cannot resolve rather than falling back.
+    import scorers
+    _plugin = scorers.for_item(item)
+    if _plugin is not None:
+        return _plugin.schema_fragment(item)
 
     if not item.get("derive_from_credit"):
         return SCHEMA
@@ -933,278 +866,39 @@ def _forbid_rule(item: dict, key: str) -> tuple[tuple[str, str], ...] | None:
     return None
 
 
-def derive_oc_ledger(item: dict, raw: dict) -> tuple[list[dict], list[dict], list[str], str | None]:
-    """Turn the criteria sheet into a deduction ledger.
-
-    Criteria 1-3 of the definition (an operant, a contingency, correct temporal
-    order) plus the arranged-stimulus rule gate everything: fail any and the
-    answer is not operant conditioning, whatever it looks like. Only if it
-    passes do we ask which of the four types it is.
-    """
-    a = raw.get("oc_analysis") or {}
-    codes = {d["code"]: d for d in item["deductions"]}
-    ledger, unknown = [], []
-    advisory = None
-
-    def add(code: str, note: str = "") -> None:
-        spec = codes.get(code)
-        if spec is None:
-            unknown.append(code)
-            return
-        ledger.append({"code": spec["code"], "pts": spec["pts"], "note": note})
-
-    has_behavior = bool((a.get("behavior") or "").strip())
-    has_stimulus = bool((a.get("stimulus") or "").strip())
-    is_oc = (
-        has_behavior
-        and has_stimulus
-        and bool(a.get("contingent"))
-        and bool(a.get("follows_behavior"))
-    )
-    arranged = bool(a.get("stimulus_is_arranged"))
-
-    checks = [
-        {"what": "operant_behavior", "met": has_behavior, "evidence": a.get("behavior", "")},
-        {"what": "stimulus", "met": has_stimulus, "evidence": a.get("stimulus", "")},
-        {"what": "contingent_on_behavior", "met": bool(a.get("contingent")), "evidence": ""},
-        {"what": "follows_behavior", "met": bool(a.get("follows_behavior")), "evidence": ""},
-        {"what": "stimulus_is_arranged", "met": arranged, "evidence": ""},
-    ]
-
-    if not is_oc:
-        missing = [c["what"] for c in checks[:4] if not c["met"]]
-        add("NOT_OC", f"Missing: {', '.join(missing)}.")
-        return ledger, checks, unknown, advisory
-    if not arranged:
-        add("NOT_EXTERNAL_STIMULUS", "The consequence is the behaviour's own automatic result.")
-        return ledger, checks, unknown, advisory
-
-    observed = a.get("observed_type", "none")
-    if item.get("cadence"):
-        named = a.get("named_type", "unclear")
-        # RECORD WHAT IS CHARGED. `met` was a bare `observed == named`, which
-        # contradicts the very next branch: an `unclear` naming is deliberately
-        # NOT charged (no type was chosen, so nothing can mismatch), yet the
-        # check went on record as failed. The web says the same thing the other
-        # way round -- its `equals` rule carries `lenient: ["unclear"]` on all
-        # four cadence items and resolves the slot to `met` -- so both engines
-        # already agreed to excuse it and only this line dissented.
-        #
-        # It cost exactly one cell, WK1/p6, and it read as the two scoring
-        # implementations disagreeing 4 against 2 when they do not disagree at
-        # all. The leniency stays visible in `evidence`, which names both types.
-        lenient_type = named == "unclear"
-        checks.append({"what": "matches_chosen_type",
-                       "met": lenient_type or observed == named,
-                       "verdict": "met" if (lenient_type or observed == named)
-                                  else "absent",
-                       "evidence": f"observed {observed}, named {named}"
-                                   + (" (unclear: not charged)" if lenient_type else "")})
-        if not a.get("cadence_ok", True):
-            add("CADENCE_MISMATCH")
-            return ledger, checks, unknown, advisory
-        if named != "unclear" and observed != named:
-            add("TYPE_MISMATCH", f"This example is {observed}, but you chose {named}.")
-        # `targets_own_behavior` is either ASKED as a boolean or COMPUTED from a
-        # parse of which behaviour the trigger names -- WK1 does the latter,
-        # declared as `expect` in rubric_h2 and generated into the web's sheet
-        # from the same declaration. Asked as a parse because two earlier versions
-        # asked the judgement directly and the model answered inconsistently on
-        # the two cells that matter; the cue it can apply is syntactic.
-        spec = _expect_rule(item, "targets_own_behavior")
-        if spec:
-            left, value, lenient = spec
-            got = str(a.get(left, value)).strip()
-            aimed = got == value or got in lenient
-        else:
-            aimed = a.get("targets_own_behavior", True)
-        checks.append({"what": "targets_own_behavior", "met": bool(aimed),
-                       "evidence": ""})
-        if not aimed:
-            add("WRONG_BEHAVIOR")
-        # Charged additively alongside TYPE_MISMATCH and WRONG_BEHAVIOR, and in
-        # the same order as agreement.py's score_oc_cadence, so the two paths
-        # reach the same total from the same criteria sheet.
-        # WK2 only, and it GATES, because gold's charge on the cell that
-        # exposed the gap is the whole 4 and nothing smaller reaches it: the
-        # scored slots on this item top out at 2 + 1 + 1.
-        #
-        # The gap: an aversive delivered for SUCCESS punishes the goal behaviour,
-        # which is not a usable arrangement whatever else is well-formed about
-        # it — and every other check passes such an answer. The behaviour is the
-        # student's own, the consequence is arranged, contingent and subsequent,
-        # and the cadence is right. The TYPE items have always asked this
-        # question as `targets_intended_behavior`; the cadence items never did.
-        # THE ITEM'S DECLARED GATES, in declared order. This replaced three
-        # `if item["id"] == ...` branches that did the same thing for
-        # `aimed_correctly` (WK2), `agent_delivers_consequence` (WK1) and
-        # `states_a_contingency` (DAY1/DAY2/WK2). Each check is marked `!` on the
-        # sheet for the web, so the rule was a declaration on one side and code on
-        # the other -- and the enforcement audit compares declarations, so nothing
-        # compared them. See rubric_h2.OC_GATES.
-        #
-        # `a.get(key, True)` keeps the old default: a gate the model was not asked
-        # cannot fail. Order and short-circuiting are preserved exactly, which the
-        # synthetic grid in oc_grid.py checks against the pre-change scorer.
-        for g in item.get("oc_gates") or []:
-            ok = a.get(g["key"], True)
-            checks.append({"what": g["key"], "met": bool(ok), "evidence": ""})
-            if not ok:
-                add(g["code"], g["text"])
-                return ledger, checks, unknown, advisory
-
-        spec = _forbid_rule(item, "consequence_not_a_setup")
-        if spec:
-            # IS the web's `forbid` primitive now, from the same rubric
-            # declaration that generates the web's attribute: FAILS only when
-            # every named condition holds, and passes when any operand is
-            # unanswered. A deprivation the plan CREATES is not a fault on its
-            # own — an ordinary punishment contingency creates one too — it is a
-            # fault only when the student's SUCCESS is what lifts it. The
-            # conditions, and gold's `other_thing` exception, are documented
-            # where they are declared: rubric_h2.FORBID.
-            conds = spec
-            hit = all((a.get(k) or "") == v for k, v in conds)
-            checks.append({"what": "consequence_not_a_setup", "met": not hit,
-                           "evidence": ", ".join(
-                               f"{k}={a.get(k) or '?'}" for k, _ in conds)})
-            if hit:
-                add("NOT_OC", "The plan sets up a restriction that performing "
-                              "the behaviour removes. That restriction stands in "
-                              "front of the behaviour rather than following it.")
-                return ledger, checks, unknown, advisory
-
-        # Reported, never scored: the reading the conjunction above consumed,
-        # surfaced so the sheet shows what it was given. Selected by the same
-        # declaration, so it cannot drift away from the rule it reports on.
-        if _forbid_rule(item, "consequence_not_a_setup") and a.get("restriction_authored"):
-            checks.append({"what": "restriction_authored", "met": True,
-                           "reported": True,
-                           "evidence": a["restriction_authored"]})
-
-        asserted = a.get("consequence_asserted", True)
-        checks.append({"what": "consequence_asserted", "met": bool(asserted),
-                       "evidence": ""})
-        if not asserted:
-            add("LINK_NOT_ASSERTED")
-    else:
-        expected = item.get("expected_type")
-        want_move = REQUIRED_MOVE.get(str(expected))
-        move = a.get("stimulus_move")
-        # Derived, not judged: the reading decides the type rather than the type
-        # deciding the reading.
-        demonstrates = (move == want_move) if (want_move and move) else (observed == expected)
-        checks.append({"what": f"is_{str(expected).lower()}", "met": demonstrates,
-                       "evidence": f"move {move or observed}, {expected} needs {want_move}"})
-        # The cadence barrier conjunction, on NR. Same three independent readings
-        # as the cadence items, different charge: there a created barrier is not
-        # operant conditioning and zeroes the item; here it is simply not
-        # NEGATIVE REINFORCEMENT, which needs an UNDESIRABLE thing taken away,
-        # and gold charges 2. Guarded by `demonstrates` so it cannot stack on top
-        # of a WRONG_TYPE already charged for the same reading -- two charges
-        # would take the cell to 0 where gold says 2.
-        # NR/p8 is spared because its chore pre-exists the plan, so
-        # `restriction_authored` reads `relieved` rather than `created`.
-        spec = _forbid_rule(item, "barrier_is_not_this_type")
-        if spec:
-            conds = spec
-            hit = all((a.get(k) or "") == v for k, v in conds)
-            checks.append({"what": "barrier_is_not_this_type", "met": not hit,
-                           "evidence": ", ".join(
-                               f"{k}={a.get(k) or '?'}" for k, _ in conds)})
-            if hit and demonstrates:
-                add("WRONG_TYPE", "The plan sets up a restriction that performing "
-                                  "the behaviour removes; that is not "
-                                  f"{expected}, which needs an undesirable thing "
-                                  "taken away.")
-
-        aimed = a.get("targets_intended_behavior", True)
-        checks.append({"what": "targets_intended_behavior", "met": bool(aimed), "evidence": ""})
-        if not demonstrates:
-            add("WRONG_TYPE", f"The thing is {move or observed}; "
-                                f"{expected} needs {want_move}.")
-        elif not aimed:
-            # Right type, wrong target: the handout says reinforcement examples
-            # increase the WGB and punishment examples decrease the UTB. An NR
-            # that reinforces the unwanted behaviour is not a usable answer.
-            add("WRONG_TYPE", "This reinforces the unwanted behaviour rather than the goal behaviour.")
-
-    if a.get("avoidance_frame") and item.get("avoidance_scores"):
-        # Reads rubric_h2.AVOIDANCE_SCORES, which is also what decides whether
-        # the criteria prose promises this reading "never changes the score" --
-        # so the prompt and the arithmetic cannot disagree about it again. DAY1
-        # is the only member; the behaviour below is unchanged.
-        # DAY1 GATES on this, and the CLI must gate with it or the two
-        # implementations score the same answer differently — the divergence
-        # class this project exists to close, and the one `equivalence.py` flags
-        # as GATE WEB ONLY.
-        #
-        # The standing decision was to flag and never deduct: an avoidance-framed
-        # contingency is structurally sound, so zeroing it looked like punishing
-        # phrasing. The cohort disagrees on THIS item. Of the five DAY1 cells
-        # where the web's `phrased_directly_gate` ever answers `absent`, gold scores
-        # four of them 0 and the fifth we already miss for other reasons, so
-        # `absent` predicts gold's zero and honouring it costs nothing. Measured:
-        # DAY1 15/18 -> 16/18, p8 from wrong in every run to right in six of six
-        # probe passes, p14 recovering to 6/6, both controls holding.
-        #
-        # Deliberately NOT extended to the other items. WK1's p8 answer is not
-        # avoidance-framed at all and stays declared; PR/NR/PP/NP were never
-        # measured for this and three of them are perfect as they stand.
-        add("NOT_OC", "The consequence is stated only as something avoided.")
-        return ledger, checks, unknown, advisory
-
-    if a.get("avoidance_frame"):
-        # Everywhere else, the original decision stands: valid contingency,
-        # stated as avoidance ("so I don't have to X if I miss"). Structurally
-        # sound but easy to misread. Flag for review, never deduct.
-        advisory = (
-            "This is stated as an avoidance contingency — the consequence is framed by "
-            "what is avoided when the behaviour occurs, rather than what is added or "
-            "removed after it. It is a valid arrangement, but state it directly "
-            "(\"if I miss my goal, I will add ___\") so the type is unambiguous."
-        )
-    return ledger, checks, unknown, advisory
+# THE OC SCORER MOVED TO `scorer_oc.py`. Goal E step 1.
+#
+# These three names are kept as ALIASES, not for compatibility in the abstract
+# but because `enforcement` reaches them BY NAME to compare the two engines:
+# `check_both_engines_compute_the_same_primitives` looks up
+# `score.derive_oc_ledger` and refuses with "is gone -- retarget this check" if
+# it cannot find it, and `check_selectors_govern_something` reads its SOURCE.
+# `inspect.getsource` follows the function object, so the comparison now reads
+# the plugin's text, which is the same text.
+#
+# Step 5 of E deletes these, once the registry is the only route in.
+# REBOUND, NOT WRAPPED, and this is load-bearing. A wrapper
+# `def derive_oc_ledger(...): return scorer_oc.derive_ledger(...)` passes every
+# behavioural test and BREAKS THE AUDIT SILENTLY: `inspect.getsource` returns the
+# WRAPPER's three lines, so `check_selectors_govern_something` greps an empty
+# scorer, finds no slot reads and reports nothing -- passing vacuously -- while
+# `check_weighted_slots_are_scored` correctly reported 21 weighted slots reaching
+# no scorer at all. Measured: the source it reads went from 13,424 characters to
+# 112. Binding the FUNCTION OBJECT makes `getsource` return the real body.
+# THE ALIASES ARE GONE. Goal E step 5.
+#
+# `derive_oc_ledger`, `oc_passing_sheet` and `oc_check_names` lived here only so
+# that `enforcement` and `stale_check` could reach the OC scorer by name off
+# `score`. Step 4 pointed both at the registry, so nothing reaches through this
+# module any more and the engine no longer names another course's subject.
+#
+# What remains here is `derive_ledger` -- the CREDIT path, which is slot-sheet
+# driven and subject-neutral, and is not a plugin.
 
 
 MEDIA_DIR = str(paths.media_dir())
 
 
-def oc_passing_sheet(item: dict) -> dict:
-    """A criteria sheet for `item` on which nothing fails.
-
-    Built from `build_schema`'s own required properties, so a criterion added
-    there is covered here without being named twice.
-    """
-    req = build_schema(item)["properties"]["oc_analysis"]
-    a: dict = {}
-    for key, prop in req["properties"].items():
-        if key in ("observed_type", "named_type"):
-            continue                        # set together below, so they agree
-        if prop["type"] == "string":
-            a[key] = f"a {key}"
-        else:
-            # avoidance_frame is advisory: True costs nothing but adds a note, so
-            # False keeps this sheet a clean pass.
-            a[key] = key != "avoidance_frame"
-    kind = item.get("expected_type") or "PR"
-    a["observed_type"] = kind
-    if "named_type" in req["properties"]:
-        a["named_type"] = kind
-    return a
-
-
-def oc_check_names(item: dict) -> list[str]:
-    """The credit_checks names `derive_oc_ledger` writes when nothing fails.
-
-    Obtained by running the real ledger over a passing sheet rather than by
-    listing the names, because a hand-kept list is exactly what went wrong
-    before: stale_check.py could not audit these items at all, assumed the
-    rubric's credit list stood in for them, and reported all eight of handout
-    2's operant-conditioning items as stale when none were.
-    """
-    _, checks, _, _ = derive_oc_ledger(item, {"oc_analysis": oc_passing_sheet(item)})
-    return [c["what"] for c in checks]
 
 
 def graph_bundle(path: str, pid: int, shape_text: str) -> str:
@@ -1714,12 +1408,13 @@ def build_prompt(
         # BOXES" and reached the paper grader untouched: the criteria items do
         # not go through `_slot_body`, so translating the slots left this whole
         # family standing. Same residual rule as everywhere else.
-        parts.append(_BOX_WORD.sub(_as_answer, _criteria_section(
-            item,
-            trigger_slot="trigger_behavior" in asked,
-            consequence_slot="consequence_asserted" in asked,
-            avoidance_scores=bool(item.get("avoidance_scores")),
-        )))
+        # THE SCORER'S OWN SECTION. Goal P: which slots this course asks, and
+        # whether the item gates on an avoidance frame, are the SCORER's choices
+        # -- the engine was making them by name. `_criteria_section` is still
+        # shared with the web, so the two still cannot drift.
+        import scorers as _sc
+        _plugin = _sc.for_item(item)
+        parts.append(_BOX_WORD.sub(_as_answer, _plugin.prompt_section(item, asked)))
         # PER-SLOT JUDGING TEXT FOR THE OC SHEET. The criteria section carries
         # the numbered criteria; it does not carry text parked against an
         # individual oc_analysis slot, so anything in SLOT_NOTES for one of them
@@ -2001,8 +1696,19 @@ def score_item(
         raw = backend.complete(system, prompt, build_schema(item))
 
     forced_advisory = None
-    if item.get("derive_from_criteria"):
-        ledger, checks, unknown, forced_advisory = derive_oc_ledger(item, raw)
+    # THE SAME REGISTRY as `build_schema`, so an item's schema and its ledger can
+    # never come from different scorers -- which is the failure a second dispatch
+    # site invites.
+    import scorers
+    _plugin = scorers.for_item(item)
+    # WHAT THE SCORER CONTRIBUTES BACK. Goal P. A scorer with no advisory concept
+    # of its own contributes nothing, so the record simply lacks the key rather
+    # than carrying another course's vocabulary set to False.
+    _plugin_fields = (_plugin.record_fields(item, raw)
+                      if _plugin is not None and hasattr(_plugin, "record_fields")
+                      else {})
+    if _plugin is not None:
+        ledger, checks, unknown, forced_advisory = _plugin.derive_ledger(item, raw)
     elif item.get("derive_from_credit"):
         ledger, checks, unknown = derive_ledger(item, raw, response)
     else:
@@ -2064,12 +1770,12 @@ def score_item(
             {
                 "deductions": ledger,
                 "advisory_note": forced_advisory or raw.get("advisory_note"),
-        "avoidance_frame": bool((raw.get("oc_analysis") or {}).get("avoidance_frame")),
+        **(_plugin_fields),
                 "safety_flag": raw.get("safety_flag"),
             },
         ),
         "advisory_note": forced_advisory or raw.get("advisory_note"),
-        "avoidance_frame": bool((raw.get("oc_analysis") or {}).get("avoidance_frame")),
+        **_plugin_fields,
         "safety_flag": bool(raw.get("safety_flag")),
         "over_specified": over_specified,
         "escalate": (

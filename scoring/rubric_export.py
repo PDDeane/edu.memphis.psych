@@ -332,7 +332,11 @@ DECLARATION_TABLES = ("GOLD_COMMENT_PHRASES",
                       "SELFTEST_NAMED_FIXTURES",
                       # from score.py and agreement_app.py
                       "PAPER_ITEM_NOTES", "PAPER_ITEM_NOTES_WHY",
-                      "CONTEXT_SOURCE", "JOBS", "HANDOUT_FIELDS")
+                      "CONTEXT_SOURCE", "JOBS", "HANDOUT_FIELDS",
+                      # goal P: the operant vocabulary's side map and probe
+                      # fixtures, moved out of `enforcement.py`.
+                      "SIDE_ALIAS", "SIDE_INVERTED", "PROBE_PASS",
+                      "PROBE_FAIL", "PROBE_TYPE_FIELDS")
 
 
 # NO `sort_keys`. AUTHORED ORDER IS DATA. Writing the file with

@@ -1,0 +1,5 @@
+{
+ "sha256": "938b0f4f6e978b4ad3dcd5d4d3db8122ae9f7971ef79d7ab05afa9db05c9c050",
+ "cases": 115200,
+ "moved": "demonstrates_type now reads the item's OWN <Expect> operand instead of a hardcoded move-first preference. The rubric is not uniform -- PR declares left=stimulus_move, NR/PP/NP declare left=observed_type -- and the old form always preferred the move, agreeing only because stimulus_move is asked on PR alone. PROVEN A NO-OP ON REACHABLE STATES: 0 of 57,600 rows change once the sweep stops feeding items facts their own schema forbids. ALSO in this record: the sweep now filters each answer to the item's declared properties (_asked), because feeding stimulus_move to NR/PP/NP made this fix look like a 5,760-row change when every changed row was unreachable."
+}

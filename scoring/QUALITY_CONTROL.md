@@ -1,8 +1,8 @@
 # Building a first-version scoring model: a quality-control guide
 
-Written 2026-08-20 after a full QC pass on one item, H1 Q6, which went from a
-partly-understood 16/20 to 17/20 with every remaining disagreement declared and
-explained. The point of that pass was not the score. It was to get the FIXTURE
+Written after a full QC pass on a single item, which gained a cell
+and ended with every remaining disagreement declared and explained. The point of
+that pass was not the score. It was to get the FIXTURE
 exactly right, build a scoring model that works for the right reasons, and
 correct gold only where the submission itself contradicts it.
 
@@ -11,6 +11,7 @@ one**. Everything below is about how to spend that small sample well.
 
 ---
 
+<!-- qc:QC.0 -->
 ## 0. The order of operations
 
 Work in this order. Most of the wasted effort in the session that produced this
@@ -24,27 +25,19 @@ guide came from doing step 3 while step 1 was still wrong.
 4. **Declare** whatever is left.
 5. **Reduce** the declarations, on the schedule in section 5.
 
-**`leakage.py` runs before every sweep, and `agreement.py` REFUSES to sweep
-handout 2 while any rule block echoes the cohort without a recorded verdict.**
+**`leakage.py` runs before every sweep, and `agreement.py` REFUSES to sweep the
+handout its gate is armed for while any rule block echoes the cohort without a
+recorded verdict.**
 A rule that borrows a student's sentence scores the cell it was copied from and
 proves nothing about the criterion; worse, the sentence is almost always taken
 from the very cell the rule was written to fix, so the gain it reports is
-circular. This is not hypothetical here. Two recorded gains were found to rest
-on quoted prose *after* they had been measured, reported and committed:
+circular.
 
-* DAY1's avoidance-framing rule contained [[corpus DAY1/p8 day1 75:104 sha=3d615ba39d28]] — DAY1/p8 with "30 pushups" changed to
-  "the extra chore". p8 is the cell that rule took from 0/9 to 9/9.
-* WK1's agent rule contained [[corpus WK1/p1 wk1 48:87 sha=9acb583a85f7]], which is
-  WK1/p1 verbatim, and "the extra laps will keep stacking up", which is WK1/p8
-  with the noun swapped. The item had been recorded as perfect on that rule.
-
-The two cases then came apart under measurement, and the difference is the
-lesson. DAY1 held its number with the borrowed sentence replaced by an invented
-one: that rule was a real criterion. WK1 did not — it lost p7, and p7 is the
-cell whose configuration a `trigger_behavior` note had described in PARAPHRASE.
-p1, whose sentence was reproduced word for word, held. So the verbatim quote was
-not the load-bearing one; the described cell was. That is the form neither the
-n-gram check nor the bigram check can see, and it is the one that mattered.
+Re-measure such a gain with the borrowed sentence replaced by an invented one.
+A rule that holds its number was a real criterion; a rule that loses a cell was
+not. And the load-bearing cell can be the one a note DESCRIBED in PARAPHRASE
+rather than the one reproduced word for word — the form neither the n-gram check
+nor the bigram check can see, and the one that matters.
 
 Neither was noticed by reading. Both are obvious the moment the prose and the
 responses are diffed, which is all the tool does.
@@ -52,19 +45,17 @@ responses are diffed, which is all the tool does.
 A PHRASE-LEVEL REWRITE IS NOT A FIX. The instrument now runs three checks — a
 6-gram exact match, a shared-bigram check, and a SINGLE-WORD check — and the
 third was added because the first two passed prose the second rewrite had left
-half-borrowed. WK1's agent rule had "the extra laps will keep stacking up"
-swapped in for the student's noun, and "stacking" is WK1/p8's own verb, in the
-verb list the gate matches on, in the cell the gate was built for. The same
-sweep found "my brother will..." (DAY2/p12) and "procrastinating" (the word
-whose paraphrase had already cost WK1/p7). Change the object and the borrowed
-WORD survives, which is the part the model keys on.
+half-borrowed. Swapping the student's noun out leaves the student's VERB in
+place — and that verb is typically in the list the gate matches on, in the cell
+the gate was built for. Change the object and the borrowed WORD survives, which
+is the part the model keys on.
 
 The single-word check flags a word that (a) appears in a few students' answers,
 (b) is absent from the handout and the type definitions, and (c) appears nowhere
-else in our own prose — that last clause being what separates "phone" from
-"activity". It is noisier than the bigram check by design: of 26 blocks flagged
-on its first run, 2 were faults and 24 were ordinary English or the instrument's
-own examples. Triage is cheap and mechanical — phrase-check the block's example
+else in our own prose — that last clause being what separates a word the cohort
+supplied from one the assignment did. It is noisier than the bigram check by
+design, and most of what it flags is ordinary English or the instrument's own
+examples. Triage is cheap and mechanical — phrase-check the block's example
 sentences against the cohort, and a sentence that appears in no response
 exonerates every word in it.
 
@@ -77,18 +68,16 @@ is the property that matters, because a rule gets re-worded at exactly the
 moment someone is tempted to paste a student's sentence into it.
 
 The worst form is not a quoted phrase but a described cell WITH ITS GRADE
-attached: "against a screen-time goal, gating the screen activity on finishing
-coursework earned full credit", or "cost participant 10 two points". That tells
-the grader the answer for one identifiable row. State the criterion, never the
-row.
+attached — a sentence that recounts one participant's configuration and what it
+earned. That tells the grader the answer for one identifiable row. State the
+criterion, never the row.
 
 A DELETION IS A CHANGE, AND NOTHING WAS WATCHING FOR IT. Every instrument here
-polices what the prompts SAY. None watched what they stopped saying, and that is
-how NR/p14 was lost: `barrier_is_not_this_type` was added in the morning to win
-that cell (14 -> 16), removed the same day as superseded by `stimulus_move`, and
-the cell fell from 6/6 to 0/6 with every remaining check on its sheet passing. No
-verdict was wrong. No gate fired. The loss appeared only as a median two cells
-down, three sweeps later.
+polices what the prompts SAY. None watched what they stopped saying. A slot
+added in the morning to win a cell and removed the same day as superseded takes
+the cell with it, with every remaining check on its sheet passing: no verdict
+wrong, no gate fired, and the loss appearing only as a median two cells down,
+several sweeps later.
 
 `check_selectors_govern_something` now catches it from both ends: a selector
 tuple consulted nowhere, and a slot key the scorers still read that no sheet
@@ -98,8 +87,8 @@ Two things found while building it, each worse than the bug:
 
 * **`python3 enforcement.py` does not run the audit.** It prints
   `cli_signatures()` and exits 0. The audit is `python3 equivalence.py
-  --enforcement`. Exit 0 from the wrong command was reported as a clean gate
-  more than once in this project.
+  --enforcement`. Exit 0 from the wrong command is reported as a clean gate
+  more than once before anyone notices.
 * **Six checks were never invoked at all** — defined, documented, maintained,
   wired to nothing. Among them `check_weighted_slots_are_scored`, written the
   same morning to catch a weighted slot the arithmetic ignored, silent through
@@ -125,16 +114,16 @@ Two of its detectors are worth knowing about, since both were built from
 mistakes made here:
 
 - **Fixture suspects.** A cell wrong in every run where we award NOTHING against
-  full-marks gold, or award something against gold 0. Every other stable miss in
-  this corpus is off by one deduction step, which is what a criterion boundary
+  full-marks gold, or award something against gold 0. Every other stable miss is
+  typically off by one deduction step, which is what a criterion boundary
   looks like; these two shapes are what a box holding the wrong text looks like.
   It consults EVERY artifact before flagging, because a cell that was ever right
   is unstable rather than mis-parsed, and reading its fixture will find nothing.
-  That check removed four of seven candidates on first run, including one this
-  session had already called a probable fixture defect out loud.
+  That check removes candidates on its first run, including ones a session has
+  already called a probable fixture defect out loud.
 - **Non-reconciling gold rows.** Where a grader itemises their arithmetic, the
-  itemisation can be checked against the score. It found three rows nobody had
-  looked at, after D2/p11 and DAY2/WK1 p7 were found by hand.
+  itemisation can be checked against the score. It finds rows nobody has looked
+  at, after the first few are found by hand.
 
 Every step that edits prompt prose ends with a sweep of the items it touched,
 compared against the last baseline on the same denominator, BEFORE the commit —
@@ -153,14 +142,13 @@ easy to conflate and the cost of conflating them is one-directional: you spend
 the session improving a rate computed over cells that were chosen to make it
 look good.
 
-It happened on 2026-08-23, on this guide, by someone who had read it. Seven
-handout-1 items were worked and closed — two criteria rewritten and measured,
-five declared — before any exclusion was retested. The audit then took minutes,
-because excluded cells are still run and still scored, and found EIGHT cells
-across five items that were wrong in 3 of 3 runs with the answer and the
-grader's decision sitting in their prompt. Q4c and Q5 had been reported as
-perfect items; they are 12/14 and 14/15. Every number reported before the audit
-was computed over a denominator the audit shrank.
+It has happened on this guide, to someone who had read it: a run of items
+worked and closed — criteria rewritten and measured, others declared — before
+any exclusion was retested. The audit then takes minutes, because excluded cells
+are still run and still scored, and it finds cells that were wrong in every run
+with the answer and the grader's decision sitting in their prompt. Items
+reported as perfect stop being perfect. Every number reported before such an
+audit was computed over a denominator the audit shrinks.
 
 **Both questions only apply to exclusions that are claims about the MODEL.**
 `cell_exclusions` returns a kind with every cell, and the kind decides whether
@@ -173,7 +161,7 @@ measurement can say anything at all:
 | `suspect` | the submission was mis-transcribed; the input is another participant's data | **no, ever** |
 
 A suspect cell is also **never evidence in a declaration's reasoning** — not for
-gold and not against it. A `CORRECTED_GOLD` entry was once argued partly on the
+gold and not against it. A `CORRECTED_GOLD` entry has been argued partly on the
 grounds that an item's gold was incoherent, citing the very byte-identical pair
 whose contradiction is *why* both are excluded.
 `enforcement.check_no_declaration_cites_a_suspect_cell` now scans declaration
@@ -187,9 +175,9 @@ is not what the student wrote. No number of passes can retire it — only
 re-transcribing the submission can.
 
 This was not hypothetical for long. The expired-declaration check went in and
-within minutes offered to un-exclude PR/p2, a known mis-transcription, because
-it scored 3 of 3. The check now reads the kind and skips `suspect` entirely;
-`unscoreable` and `self_graded` still fire, verified both ways at 6/6.
+within minutes offered to un-exclude a known mis-transcription, because it
+scored full marks. The check now reads the kind and skips `suspect` entirely;
+`unscoreable` and `self_graded` still fire, verified both ways.
 
 **For the two kinds that ARE claims about the model, step 0 asks TWO questions,
 and the second is the one that gets skipped: is this exclusion CORRECT, and is
@@ -229,36 +217,31 @@ you left them, either. They accumulate in two places — a rubric `desc` or a
 `guidance` bullet, and `olx_prompts.SLOT_NOTES`, which is a second source of
 prompt prose that a scan of the rubric alone will not see.
 
-Measured the hard way on 2026-08-24. Un-excluding Q1/p1 and Q2/p6 lit up quotes
-that had sat there legally for months. Fixing the rubric copy surfaced a second
-copy in SLOT_NOTES; fixing that surfaced a THIRD copy of the same student's
-sentence in a different note. Three passes of the same check to reach clean, on
-one exclusion change. So: run the check as the last step of every exclusion
+Measured the hard way. Un-excluding two cells lit up quotes that had sat there
+legally for months. Fixing the rubric copy surfaced a second copy in
+SLOT_NOTES; fixing that surfaced a THIRD copy of the same student's sentence in
+a different note. Three passes of the same check to reach clean, on one
+exclusion change. So: run the check as the last step of every exclusion
 change, not the first, and run it again after each fix.
 
-**Measured on Q1, and it is worth knowing which direction the answer went.**
-Its five citations were bare attributions with a decision attached —
-"(participant 1)", "which is what participant 6 scored", "which is how
-participants 10 and 16 were credited". Deleting the attributions left every
-rule intact, which is the common shape and the reason the test is usually
-cheap. Three runs with the citations gone:
+**Measure it, and know which direction the answer went.** A citation is usually
+a bare attribution with a decision attached — a participant number, and what
+they scored — and deleting it leaves every rule intact. That is the
+common shape, and the reason the test is usually cheap. Run the item three times
+with the citations gone and compare three populations: the cells already
+counted, the cited cells, and the whole item.
 
-| | before | after |
-|---|---|---|
-| the 15 cells already counted | 13, 13, 13 | 13, 13, 13 |
-| the five cited cells | 3/3 each | four still 3/3 |
-| the whole item, 20 cells | not measurable | **18, 17, 18** |
-
-So the citations were load-bearing for nothing, and the honest rate is 18/20
-against a reported 13/15. **Five cells we score correctly had been subtracted
-from every rate on an untested claim.** An audit that only looks for exclusions
-hiding misses would never have found them, because there was no miss to find.
+Where the citations turn out to be load-bearing for nothing, the honest rate is
+the whole item's, and it can be HIGHER than the rate that was being reported.
+Cells we score correctly had been subtracted from every rate on an untested
+claim. An audit that only looks for exclusions hiding misses would never have
+found them, because there was no miss to find.
 
 **Why this half gets skipped, stated plainly so the next reader recognises
 it.** A wrong-and-excluded cell eventually attracts attention: the item reads
 as perfect and someone asks why. A right-and-excluded cell produces no symptom
 at all — the rate is merely smaller than it should be, and a smaller
-denominator looks like rigour. Of 34 exclusions audited on 2026-08-23, the 8
+denominator looks like rigour. Of 34 exclusions audited in one pass, the 8
 hiding misses were found and fixed the same hour; the 21 that were merely
 unnecessary were dismissed in a sentence, and finding them took a second pass
 and a second prompt.
@@ -273,11 +256,12 @@ opened.
 
 ---
 
+<!-- qc:QC.what-is-computed -->
 ### What is COMPUTED is likelier to be right than what is WRITTEN
 
-**The reliable/unreliable line in this project does not fall between the scorer
-and the reporter. It falls between what a program computes and what a language
-model writes.** Everything on the computed side -- the arithmetic, the ledger, the
+**The reliable/unreliable line does not fall between the scorer and the
+reporter. It falls between what a program computes and what a language model
+writes.** Everything on the computed side -- the arithmetic, the ledger, the
 per-check tables, the enforcement checks -- has been right nearly every time it
 was doubted. Everything written in prose has been the weak half, and that includes
 BOTH halves of the work: the scoring model's judgements are wrong at a few percent
@@ -304,6 +288,7 @@ either. That is why the fixes that earn their keep here make honest figures
 fixture preflight in both harnesses, the prose-number ratchet that reads GOALS.md
 against the ledger.
 
+<!-- qc:QC.1 -->
 ## 1. Fixture first
 
 **Read the boxes out one at a time against the document.** This finds defects
@@ -320,32 +305,36 @@ Never sample a response with a line-limited command, never quote from the first
 sentence, and never let a table of one-line excerpts stand in for the text. The
 `--fixture ITEM:PID` readout prints every line for exactly this reason.
 
-The failure is not hypothetical and it is not cheap. On 2026-08-24 a survey of
-WK1 was built with `sed -n '7p'` — the first response line of each cell — and
-p5 came back as [[corpus WK1/p5 wk1 0:61 sha=0b73ad1bff21]]
-On that basis it was reported as an answer gold credits with 4 while stating no
-consequence, no conditional and no contingency at all, and that single "fact"
-was used to argue that gold on this item was not reproducible by any rule, that
-no gate could ever match it, and that a declared divergence was therefore
-correct. The argument was written up and stated to the user.
+The failure is not hypothetical and it is not cheap. A survey built with
+`sed -n '7p'` — the first response line of each cell — returns a truncated
+answer, and on that basis a cell can be reported as one gold credits while
+satisfying none of the criterion's parts at all. That single
+"fact" is then enough to argue that gold on the item is not reproducible by any
+rule, that no gate could ever match it, and that a declared divergence is
+therefore correct — an argument written up and stated to the user.
 
-p5 has a second sentence: [[corpus WK1/p5 wk1 61:164 sha=6473c5fa76bc]] A textbook weekly
-contingency. Read in full, the item's ten gold-bearing cells separate PERFECTLY
-on a single feature, and the rule that had just been declared unreachable was
-sitting in plain view.
+Read in full, the truncated cell has a second sentence that makes it a textbook
+instance, the item's gold-bearing cells separate PERFECTLY on a single feature,
+and the rule that had just been declared unreachable is sitting in plain view.
 
 So: the cost of a truncated readout is not a missed detail, it is a confident
 conclusion in the wrong direction, defended with evidence that does not exist.
 If a response is worth reading, it is worth reading to the end.
 
 **An item answered with a chart or a table is read by PROVENANCE, not by
-position.** There is no prose to locate a box in, so the question changes from
-"is this box cut in the right place" to "is this the student's value, or is it
-somebody's account of their value". 1c's three label boxes held the paper
-scorer's sentence about the label — `"Weeks" appears as a bolded axis title
-centred beneath the day tick values.` — in ten of twenty cells, which is the
-answer to the grader's own question sitting in the field it reads. Ask of every
-parsed or extracted box: could this text only have come from the student?
+position.** The on-screen boxes are a RECONSTRUCTION: the paper assignment asks
+one complex question, the lo-blocks version presents it as one or more
+subquestions, and the fixture has to deal that single original response out
+among them. Where the response is prose, a box can be located in the text and
+the question is whether it was cut in the right place. Where the answer is a
+chart or a table there is no prose to cut, so whatever fills a box got there by
+somebody's judgement, and the question changes to "is this the student's value,
+or is it somebody's account of their value".
+
+A label box is the common trap: it can hold the PAPER SCORER's sentence
+describing the label rather than the student's own — which is the answer to the
+grader's own question sitting in the field it reads. Ask of every parsed or
+extracted box: could this text only have come from the student?
 
 **Suspect the fixture before gold or the model.** Three cells once written up
 as "a criterion gold decides inconsistently" or "a borderline flip" were our
@@ -384,10 +373,10 @@ readout retested and found stale, (3) the re-baseline the repairs themselves
 require, since every stored number for a repaired cell now describes a fixture
 that is no longer served, (4) published claims about the item the readout
 contradicts, and (5) the shape the remaining error has, if it has one. The last
-is the one worth the most and the one a per-cell fix list loses: 2a's audit
-repaired two boxes and its real finding was that every miss left in the item is
-the same +2.0 over-credit, which is a one-directional target rather than three
-unrelated cells.
+is the one worth the most and the one a per-cell fix list loses: an audit may
+repair a handful of boxes and still find that every miss left in the item has
+the SAME SHAPE — all over-credit, all in one direction — which is a single
+target rather than a scatter of unrelated cells.
 
 **Seed the fallbacks the OLX declares.** A `<SheetValue>` resolves from a
 graded sheet and falls back to a plain component; a harness that grades one
@@ -396,18 +385,19 @@ nothing after it — a harness artifact that looks exactly like a prompt defect.
 
 ---
 
+<!-- qc:QC.a-rubric-edit-can -->
 ### A RUBRIC EDIT CAN CHANGE THE INPUT, NOT ONLY THE SCORING
 
-**Handout 3's on-screen boxes are a reconstruction, and the rubric drives it.**
-The answer is one prose block; `score.py`'s counted-group distribution pulls the
+**Where on-screen boxes are a RECONSTRUCTION, the rubric drives it.** When the
+answer is one prose block, `score.py`'s counted-group distribution pulls the
 quoted spans out of the count slot's evidence and deals them to the members,
 writing the placeholder `f"{n} found"` where there are fewer spans than the count.
 So the fixture depends on the item declaring `counts`.
 
-2a's first structural attempt removed that group. The distribution stopped, the
-placeholders were never overwritten, and five cells' boxes became the literal
-string `"2 found"`. A 120-call sweep then measured the item at 10 of 20 against a
-baseline of 15 and the change read as refuted — **it had never been tested.**
+A structural attempt that removes that group stops the distribution. The
+placeholders are never overwritten, cells' boxes become the literal string
+`"N found"`, and a sweep then measures the item well below its baseline so the
+change reads as refuted — **when it had never been tested.**
 
 Two things follow, and both are now enforced rather than remembered:
 
@@ -425,6 +415,7 @@ box beside a long unassigned run, and a box holding a placeholder is not empty.
 corruption in one stroke. **The dealing groups now live in the FIXTURE layer, as
 `dealt` in `agreement_app.JOBS`, so a scoring change cannot reach the input.**
 
+<!-- qc:QC.2 -->
 ## 2. Measurement discipline
 
 **MODEL NOTHING YOU CAN EXERCISE. A scorer is checked by RUNNING it on
@@ -471,8 +462,8 @@ measuring nothing:
 2. **Do not answer the computed keys.** `equals`, `derived`, `expect` and
    `forbid` are stripped from the response schema and filled by
    `apply_computed`. A sheet that pre-answers them makes the rule unobservable.
-   Pre-filling `matches_chosen_type` produced a confident report of a dead
-   `equals` on D1/D2, and a "fix" to a scorer that was correct throughout -- the
+   Pre-filling a type-match key produces a confident report of a dead
+   `equals`, and a "fix" to a scorer that was correct throughout -- the
    gate zeroes the item, as `before_after.py` then showed by refusing to call an
    identical result evidence.
 3. **Make the control earn full marks.** `score_oc` gates on four definitional
@@ -486,7 +477,7 @@ measuring nothing:
    report an item where that cannot be reached rather than probing past it.
 
 And count the probes. Zero probes reads exactly like zero faults: two pick slots
-with empty `options` once made this check run no probes at all on D1 and D2 while
+with empty `options` once made this check run no probes at all on two items while
 reporting clean. The count and the per-primitive tally are asserted, not assumed.
 
 **THE SELFTEST INJECTS INTO THE SCORER TOO.** Thirty-nine cases removed
@@ -563,18 +554,18 @@ and are not the target separate a SPECIFIC regression from item-wide wobble: if
 the target moves and the controls hold, the change did it; if everything
 wobbles, the item's variance did, and the target was never the story.
 
-Both errors happened here on the same day. Q1's baseline had p17 wrong in 3 of
-3 and a criterion rewrite was drafted for it; six passes said 4 of 6, the
-rubric had already recorded that cell as a model limit, and the "fix" would
-have re-litigated a settled question against an unlucky draw. In the other
-direction, Q4a's numerator fell by one in one run of three after eight
-citations were removed, on a single cell — small enough to wave through, except
-that this item's baseline spread was 0 cells, which makes a stable-right cell
-going 2 of 3 a change in the item's STABILITY rather than in its score.
+Both errors have happened here on the same day. A baseline had a cell wrong in
+3 of 3 and a criterion rewrite was drafted for it; six passes said 4 of 6, the
+rubric had already recorded that cell as a model limit, and the "fix" would have
+re-litigated a settled question against an unlucky draw. In the other direction,
+an item's numerator fell by one in one run of three after citations were
+removed, on a single cell — small enough to wave through, except that the item's
+baseline spread was 0 cells, which makes a stable-right cell going 2 of 3 a
+change in the item's STABILITY rather than in its score.
 
 Knowing the rule is not complying with it, and the way it fails is through the
-output format of whatever script did the comparison. On 2026-08-24 a scratch
-comparison of 1a printed `<-- LOST` for a cell that went 3/3 to 2/3 and
+output format of whatever script did the comparison. A scratch
+comparison once printed `<-- LOST` for a cell that went 3/3 to 2/3 and
 `<-- gained` for one that went 1/3 to 3/3, and both were written up
 immediately — one as "a wobble inside the item's variance band", the other as
 "the rewrite fixed it" — with no probe run and this paragraph already in the
@@ -590,9 +581,9 @@ rather than writing the tally inline — that is also how the two definitions of
 **A clean 3/3-to-0/3 flip is not decisive either, and that exemption is the
 dangerous one.** `compare_runs.py` shipped with one: a cell uniform before and
 uniform after was reported as REGRESSED or FIXED without a probe, on the
-reasoning that three-and-three is more than a rate. Q2's p17 retired it within
-the hour. Across six sweeps that cell scores 10 of 18, and it has produced 0/3,
-2/3 and 3/3 in both directions — three consecutive identical runs each way. A
+reasoning that three-and-three is more than a rate. One cell retired it within
+the hour: across six sweeps it scores 10 of 18, having produced 0/3, 2/3 and 3/3
+in both directions — three consecutive identical runs each way. A
 coin throws uniform triples about a quarter of the time, so uniformity is
 precisely what three passes cannot separate from a real flip, and the exemption
 sat exactly where acting on noise is most tempting, because a clean flip is what
@@ -601,15 +592,15 @@ have gone to hunting a regression in a prompt that never caused one.
 
 **Quote the ledger's number, not the run table's best line.** `--record`
 publishes the median run; reading a three-run table by eye invites the best one,
-especially when it agrees with the change just made. 1a was reported at 18/20
-off a sweep whose runs were 17, 17, 18 — the median was 17, and 18 was the
+especially when it agrees with the change just made. An item was reported a cell
+high off a sweep whose runs were 17, 17, 18 — the median was 17, and 18 was the
 flattering pick. A same-prompt repeat then produced 18, 18, 19, so the figure
 happened to survive; the reasoning did not, and it is the same optimistic-read
 reflex that put a decisive-move exemption in `compare_runs.py`.
 
 Corollary worth its own line: **check a suspicious cell against every artifact
-that ever measured it, not just the previous sweep.** p17's six-sweep history
-took one query and settled in seconds what a fresh probe would have spent 24
+that ever measured it, not just the previous sweep.** A cell's six-sweep history
+takes one query and settles in seconds what a fresh probe would have spent 24
 calls on — and it answers a question a probe cannot, which is whether the cell
 was ever stable in the first place.
 
@@ -628,10 +619,10 @@ whose answer the change must NOT alter. Controls caught what totals hid, twice:
 a rule that looked clean on its targets had broken a cell no error list named.
 
 **Compare against the RECORDED state, not only the old baseline.** A diff
-against a stale baseline cannot see a gain being undone: DAY2/p8 was 0 of 3 in
-the baseline, was fixed to 5 of 6 by a committed change, and was knocked back to
-0 of 3 by a later edit that never mentioned the gate it moved — and the
-comparison read "no change", because both ends were 0 of 3. `compare_runs.py`
+against a stale baseline cannot see a gain being undone: a cell can be 0 of 3 in
+the baseline, fixed to 5 of 6 by a committed change, and knocked back to 0 of 3
+by a later edit that never mentioned the gate it moved — and the comparison
+reads "no change", because both ends were 0 of 3. `compare_runs.py`
 now diffs against the ledger's recorded run as well, and prints REGRESSION
 AGAINST THE RECORDED STATE for any cell an earlier change had already won.
 
@@ -644,29 +635,28 @@ is exactly the statistic that hides it.
 a rule that works and the same rule that wobbles, and it cost eight attempts on
 one cell to find.
 
-A question about the PLAN invites the model to weigh the whole answer: "is a
-consequence delivered?", "does this target the student's own behaviour?", "is
-this really operant conditioning?". On easy cells it agrees with you; on the
+A question about the PLAN invites the model to weigh the whole answer: "is the
+required element delivered?", "does this target the right thing?", "is this
+really an instance of the concept?". On easy cells it agrees with you; on the
 cells that matter it returns different verdicts run to run, because the question
 has no procedure in it. A question about the SENTENCE has one: "find the clause
-that states the consequence; is a person in its subject position, and does its
-verb say that person brings the thing about or takes it away?" That is a parse,
-and parses do not wobble.
+that states the element; is a person in its subject position, and does its verb
+say that person brings the thing about or takes it away?" That is a parse, and
+parses do not wobble.
 
-Measured on WK1/p8. Four semantic framings failed, including a well-formed
-binary gate that still flipped the two decisive cells — the target read
-delivered two times in three, and a correct neighbour read undelivered one time
-in three. The same criterion asked syntactically put the target at 6 of 6 and
-the neighbour at 6 of 6, both correct, controls holding, and the item went 15/18
-to 17/18. Nothing about the criterion changed; only what the model was asked to
-look at.
+Measured. Four semantic framings failed, including a well-formed binary gate
+that still flipped the two decisive cells — the target read delivered two times
+in three, and a correct neighbour read undelivered one time in three. The same
+criterion asked syntactically put both at 6 of 6, correct, controls holding, and
+the item gained two cells. Nothing about the criterion changed; only what the
+model was asked to look at.
 
 Two corollaries worth the words:
 
 - **A closed list in a rule is a boundary you are promising to defend.** The
   first syntactic version listed transfer verbs — give, buy, treat, withhold —
-  and so excluded [[corpus WK1/p1 wk1 48:87 sha=9acb583a85f7]], a student granting
-  themselves a privilege, putting a correct cell at 3 of 6. The case had been
+  and so excluded a student granting themselves a privilege, putting a correct
+  cell at 3 of 6. The case had been
   noticed on paper, marked "marginal", and waved through. Widening from "is the
   verb on this list" to "does a person make the thing happen or stop happening"
   fixed it at 6 of 6. Prefer the criterion the list was approximating.
@@ -700,10 +690,10 @@ steady while the count of cells you actually get right falls — the arithmetic
 hides the loss exactly where you are least likely to look for it. State the
 threshold as a count, before measuring: "the numerator must not fall below 12."
 
-Worked, 2026-08-23. Eight `self_graded` exclusions were removed and the
-citations that justified them came out of the prompts, which meant deleting
-worked examples from Q4a, Q4c and Q5. Re-deriving from the pre-change runs put
-the numerators at 12, 12 and 14 — unchanged BY CONSTRUCTION, since the newly
+Worked. Eight `self_graded` exclusions were removed and the citations that
+justified them came out of the prompts, which meant deleting worked examples
+from three items. Re-deriving from the pre-change runs left their numerators
+unchanged BY CONSTRUCTION, since the newly
 counted cells were the ones already known to be wrong. That number could not
 answer the only question that mattered: whether the deleted examples had been
 doing work for the OTHER cells. Only a fresh sweep of the three items can say,
@@ -717,9 +707,9 @@ records nothing about it. It reads exactly like a clean measurement, and it is
 the one contamination that cannot be detected afterwards — the before and the
 after differ by an unknown mixture.
 
-Done on 2026-08-24, by someone who had deliberately waited for two earlier runs
-to clear for precisely this reason. Handout 3's 1a baseline was 40 cells of old
-prompt and 20 of new, and the two items queued behind it would have measured
+Done once by someone who had deliberately waited for two earlier runs
+to clear for precisely this reason. An item's baseline came out as 40 cells of
+old prompt and 20 of new, and the two items queued behind it would have measured
 the NEW prompt as their baseline. All three discarded.
 
 `olx_prompts.py --write` now REFUSES while a harness process is scoring cells,
@@ -740,10 +730,10 @@ whether the replacement still teaches the rule.
 This bites hardest on exactly the edits that look safest. Swapping a real quote
 for an invented one of the same shape is a rewrite of the only concrete example
 the grader has for that slot, and concrete examples are what these prompts run
-on — handout 1's Q4b lost six cells to a rewrite that replaced examples with
-abstractions, and got them back only when invented examples went in. Cleaning
-three leaked quotes out of 1a's period slots is the same operation on an item
-whose own code comment records those slots as variance-sensitive.
+on — an item can lose six cells to a rewrite that replaces examples with
+abstractions, and get them back only when invented examples go in. Cleaning
+leaked quotes out of a slot is the same operation, and it lands hardest where a
+code comment already records those slots as variance-sensitive.
 
 So: sweep, compare numerators, THEN commit. If the numbers drop, the leak still
 has to go — but it goes together with a rewrite that holds, or with the loss
@@ -764,7 +754,7 @@ exact exclusion set the number was computed over, and
 since — so a rewritten rule or a removed exclusion turns the item's recorded
 number red instead of leaving it to be noticed.
 
-It exists because it was needed. Q1 had five exclusions removed and six
+It exists because it was needed. An item had five exclusions removed and six
 citations rewritten into rules in one commit and was never swept afterwards; its
 number was carried forward by re-derivation from a sweep that predated both
 changes, and an audit five commits later is what found it. Nothing looked wrong,
@@ -772,8 +762,7 @@ because nothing WAS visibly wrong: a removed exclusion deletes the record that
 the cell was ever in question, and a rule rewrite is one diff among many.
 
 An item may declare `pending` with a reason instead of a measurement — the usual
-bargain in this project. What it may not be is absent, which is the state Q1 was
-in, and the state the check refuses.
+bargain. What it may not be is absent, which is the state the check refuses.
 
 **Validate the served prompt every run.** The prompt reaches the grader through
 three stages — rubric, generated OLX, dumped idmap — and only the third is what
@@ -788,6 +777,7 @@ occasionally.
 
 ---
 
+<!-- qc:QC.2a-1 -->
 ## 2a-1. NEVER LET A SLICE-BOUNDED EDIT CHOOSE ITS OWN END
 
 **Every programmatic edit to a `.py` file in this package goes through
@@ -801,7 +791,7 @@ it was aimed.
 
 | the edit | what it ate | how it was found |
 |---|---|---|
-| rewrite `GOLD_CODE_KNOWN`'s NR/11 entry, sliced to "the next dict key" | the closing brace, a comment, and `GOLD_SLOT_BOUNDS_KNOWN`'s declaration | a NameError in `--preflight`, days later |
+| rewrite one `GOLD_CODE_KNOWN` entry, sliced to "the next dict key" | the closing brace, a comment, and `GOLD_SLOT_BOUNDS_KNOWN`'s declaration | a NameError in `--preflight`, days later |
 | the same slice | `GOLD_SLOT_BOUNDS_BUDGET` | the next `--preflight` run, after the table had been "restored" |
 | replace `probe.py`'s helpers, sliced by index to the next anchor | `_slot_aliases`, `_OPERANT_GATE` | seconds, by luck: the next command imported the module |
 
@@ -825,6 +815,7 @@ guarded by `assert s.count(exact_old) == 1` cannot run past its own end. Reach
 for index arithmetic only when the region has no unique boundary, and then read
 what sits between the two ends before writing.
 
+<!-- qc:QC.2a-4 -->
 ## 2a-4. BEFORE CLOSING A GOAL, ASK WHAT THE CLOSURE WOULD DROP
 
 **Run `measured.orphans_if_closed("<label>")` BEFORE the closure, re-home whatever
@@ -836,37 +827,37 @@ one that can prove it is gone.
 `unstable_cells_without_an_owner` ask whether an OPEN subgoal names a cell. The
 entry you are about to close is still open and still naming its cells, so both
 read ZERO and the closure looks clean -- then they name the orphans a minute
-later, once the record is already inconsistent. This caught the same person twice
-on 2026-09-07: subgoal E45's closure dropped Q5/p9 that way, and subgoal Q19's
-dropped six cells, TWO OF THEM WRONG.
+later, once the record is already inconsistent. This has caught the same person
+twice in one day: one closure dropped a cell that way, and another dropped six,
+TWO OF THEM WRONG.
 
 **And do not answer it with a regex over the entry's prose.** Tried the same day,
-repeatedly, and wrong every time: a pattern over `Item/pN` citations said Q16,
-Q18 and Q33 named 1, 2 and 6 cells and that none of ten at-risk cells was among
-them -- preflight named all ten within minutes; it said only WK2/p15 was
-sole-owned by E55 and missed PR/p15, a WRONG cell; and it said WK2/p8 was
-sole-owned by Q40 when subgoal Q55 names it too. Entries cite cells in per-item
+repeatedly, and wrong every time: a pattern over `Item/pN` citations reported
+that NONE of the at-risk cells was owned, when preflight named every one of them
+within minutes; it missed a WRONG cell entirely; and it reported a cell as
+sole-owned when a second subgoal names it too. Entries cite cells in per-item
 tables the pattern cannot see (§2b-3).
 
-**A cell can also be orphaned by getting BETTER.** Q4b/p1 improved from 6 of 12 to
-11 of 12 in a re-sweep and lost its owner, because the entries discussing it were
-discussing a 6-of-12 cell. The checks ask "is anyone responsible", not "did the
+**A cell can also be orphaned by getting BETTER.** A cell that improves from 6 of
+12 to 11 of 12 in a re-sweep loses its owner, because the entries discussing it
+were discussing a 6-of-12 cell. The checks ask "is anyone responsible", not "did the
 reason someone was responsible go away", so a re-sweep is a second moment to run
 them.
 
+<!-- qc:QC.2a-3 -->
 ## 2a-3. USE THE PREPARED CLASSIFIER, NOT A NONCE ONE
 
 **If a function in this package already answers the question, call it. Do not
 write a regex over prose to re-derive what a checked, fire-tested reader already
-computes.** The user made this standing procedure on 2026-09-07, after three
-nonce classifiers of mine were wrong in a single afternoon and each one produced
-a confident, actionable, false answer:
+computes.** The user made this standing procedure after three nonce classifiers
+of mine were wrong in a single afternoon and each one produced a confident,
+actionable, false answer:
 
 | nonce classifier | what it said | what was true |
 |---|---|---|
-| regex for gold's change-box charges (`did not say how`) | Q6/p1 and p6 are charged on that axis | neither is -- p1's four charges are all about CONSEQUENCES, p6's are matching-4a. p6 is the exact cell a clause of mine had broken, and the classifier would have justified breaking it |
-| regex for "avoidance wording" in Q4b's behaviour boxes | 14 of 19 cells name an avoidance | the item's own TEMPLATE is "When I am not exercising, I am ..." -- the flag was matching the scaffold, not the entry |
-| regex for `Item/pN` citations, to find which goal owns a cell | Q16, Q18 and Q33 named 1, 2 and 6 cells, none of them the ten at risk | entries cite cells in per-item TABLES ("p10  gold ...") under an item heading, which the pattern cannot see. Closing those three orphaned TEN cells, and `--preflight` step 5e named all ten within minutes |
+| regex for gold's change-box charges | two cells are charged on that axis | neither is -- their charges are about a different axis entirely. One was the exact cell a clause of mine had broken, and the classifier would have justified breaking it |
+| regex for wording in an item's response boxes | most cells name it | the item's own TEMPLATE contains the phrase -- the flag was matching the scaffold, not the entry |
+| regex for `Item/pN` citations, to find which goal owns a cell | three goals named a handful of cells, none of them the ones at risk | entries cite cells in per-item TABLES ("pN  gold ...") under an item heading, which the pattern cannot see. Closing those three orphaned TEN cells, and `--preflight` step 5e named all ten within minutes |
 
 **The prepared readers, and what each is the authority on:**
 
@@ -886,20 +877,19 @@ a confident, actionable, false answer:
 | does prose in the repo still match the ledger | `measured.prose_claims()` |
 
 **A PRE-REGISTERED SET IS A CLASSIFIER TOO, and typing it out by hand is the
-nonce version.** Added 2026-09-07, after a Q4c probe hand-typed its own falsifier set
-and its own excluded list as literals in the script and got two things wrong at once:
+nonce version.** Added after a probe hand-typed its own falsifier set and its own
+excluded list as literals in the script and got two things wrong at once:
 
-* It called **`handouts.suspect(1)`** for the dropped cells. That reader answers
-  *"participants whose input cannot be trusted, **whatever the item**"* and
-  returns `[]`. Q4c/p16 is dropped PER ITEM, and only `exclusions(item)` sees it,
-  so the probe ran 20 cells while calling it 19 and quoted an excluded cell.
-  **Across all of handout 1, Q4c is the only item where the two readers disagree**
-  — which is exactly why this survived: it is invisible on every other item.
-* It listed **Q4c/p4's first box as gold-credited**, so the rule firing there read
-  as a cost. Gold charges that box in its own words — *"specify what spending too
-  much time awake means as a consequence"* — and we already answer `wrong_kind`
-  on it 9 of 12 runs. Refusing it is **agreement**, and the probe reported it as
-  damage.
+* It called **`handouts.suspect(H)`** for the dropped cells. That reader answers
+  *"participants whose input cannot be trusted, **whatever the item**"* and often
+  returns `[]`. A per-ITEM drop is seen only by `exclusions(item)`, so the probe
+  ran the full cell count while calling it one fewer, and quoted an excluded cell.
+  **Typically ONE item in a handout is where the two readers disagree** — which is
+  exactly why this survives: it is invisible on every other item.
+* It listed a **gold-CHARGED box as gold-credited**, so the rule firing there read
+  as a cost. Gold charges that box in its own words, and we already answer
+  `wrong_kind` on it in most runs. Refusing it is **agreement**, and the probe
+  reported it as damage.
 
 `gold_box_status(item)` now classifies every cell as `excluded`, `no_gold`,
 `full_marks`, `charged_slots_known` or `charged_box_unknown`, and the last of
@@ -909,8 +899,8 @@ because we do not know. An empty set means "we do not know", never "gold charged
 nothing" — the same distinction `gold_charged_slots` keeps by returning `None`.
 
 **Pass the slot.** `probe_falsifiers(item)` alone still lists the TARGET cell
-whenever some *other* slot of it is credited — Q4c/p9 is a key there, because gold
-charges both consequence boxes while its two remaining slots are fine. Read the
+whenever some *other* slot of it is credited — which happens when gold charges
+both boxes of one group while the cell's remaining slots are fine. Read the
 pid list from `probe_falsifiers(item, slot)` instead.
 
 **Why a nonce classifier is worse than no classifier.** It answers in the same
@@ -921,6 +911,7 @@ because a prepared check contradicted them afterwards. If no prepared reader
 exists and the question is worth asking twice, WRITE ONE and fire-test it, which
 is what `declarations_for` was on the same day.
 
+<!-- qc:QC.2a-1c -->
 ## 2a-1c. CLEAN UP THE SCRATCHPAD AS A STAGE OF THE CYCLE, NOT AFTERWARDS
 
 **A scratchpad copy of a package module is live ammunition.** A file named
@@ -928,8 +919,8 @@ exactly `enforcement.py` or `agreement.py` in a working directory will be
 imported instead of the real one by any script that puts that directory first on
 `sys.path` — and it will not error, it will quietly answer with old code.
 
-**What it cost, 2026-09-07.** A script listing the queued probes did
-`sys.path.insert(0, SCRATCHPAD)` then `import enforcement`, and got a 09-05 copy
+**What it cost.** A script listing the queued probes did
+`sys.path.insert(0, SCRATCHPAD)` then `import enforcement`, and got a stale copy
 **1425 lines shorter** than the live module. `DESIGNED_TEXT` was added after that
 copy was taken, so the traceback read *"module 'enforcement' has no attribute
 'DESIGNED_TEXT'"* — which looks exactly like a table someone had clobbered. Four
@@ -959,6 +950,7 @@ a cycle may hold one open until it keeps or reverts. An EXACT basename match nev
 may. `enforcement.check_no_module_shadow_in_scratchpad` reports exact matches
 only, and is wired into the sweep gate: a sweep will not start while one exists.
 
+<!-- qc:QC.2a-1b -->
 ## 2a-1b. A PROBE MUST REPRODUCE THE LEDGER BEFORE ITS RESULT MEANS ANYTHING
 
 **Run the UNMODIFIED text in the probe's own envelope first, and require it to
@@ -970,30 +962,29 @@ observed, runs=)` — 0 to trust, 1 to refuse — against
 **Every other control in this package asks "is this the right STRING?"** —
 `DESIGNED_TEXT_SHA` (designed == shipped), `question_for` + `field_sha` (probed ==
 shipped), `prompt_sha` (baseline == measured). **None of them asks "is this the
-right PROMPT."** On Q4c the shipped assembled prompt is 9438 characters carrying
-twelve checklist lines — both consequence slots, the `keyword` advisory, the
-`no_consequences` gate, five deduction codes including the `C_NOT_CONSEQUENCE`
-charge gold actually levies on the target cell, and a `confident` slot. The
-`consequence_1` rule text is 1085 of those characters: **eleven per cent.** A
-probe that hand-builds an envelope around the correct string is asking a
-different question, and it will answer it confidently.
+right PROMPT."** A shipped assembled prompt runs to thousands of characters
+carrying a dozen checklist lines — every slot of the group, the advisories, the
+gates, the deduction codes including the charge gold actually levies on the
+target cell, and a `confident` slot. One slot's rule text can be **as little as a
+tenth of that.** A probe that hand-builds an envelope around the correct string
+is asking a different question, and it will answer it confidently.
 
-**What it cost before the guard existed, all on 2026-09-07.** A retrospective
+**What it cost before the guard existed, all in one day.** A retrospective
 gate over the recent probes (`scratchpad/retro_gate.py`, no calls) put **six of
 seven readable ones VOID**:
 
 | probe | non-target cell-slots that disagree with the ledger |
 |---|---|
-| Q44 route 5, subtract duplicate reasons | 8 of 19 — and the TARGET too: its envelope counted p6 at 4 where the shipped prompt counts 3 (8/12), so "does subtracting one duplicate take p6 from 3 to 2" was untestable in it |
-| Q44 earlier, the reasons count | 3 of 19, two at 12/12 |
-| Q40's `aimed_correctly` first text | 2 of 17, both at 12/12 — **but a SWEEP settled Q40** (WK2/p11 4/11 → 12/12), so the conclusion stands on sweep evidence, not on this probe |
-| Q47 engagement wording, 1st | 4 of 38 |
-| Q47 engagement wording, 2nd | 2 of 38 |
-| Q47 `change_a*` mirroring `affect_c*` | 2 of 10 |
-| Q47 engagement wording, 3rd | **0 of 38 — clean** |
-| Q56's habit head | 1 of 38 — p11/`consequence_2` `met` against the ledger's `duplicate` 12/12, on a cell no candidate touched. Independent of the A/B that first exposed it |
-| Q19's consequence boundary | 1 of 17 — the same p11 duplicate |
-| Q19's two Q4b report-slot arms | **NOT GATEABLE** — they probe CANDIDATE slots reverted out of the tree, so the ledger has no baseline (36 cell-slots of `None`). A probe of a NEW slot must be gated on an EXISTING slot measured in the same call |
+| a subtract-duplicates route | 8 of 19 — and the TARGET too: its envelope counted the target cell higher than the shipped prompt does, so the question the probe was built to ask was untestable in it |
+| the same probe earlier, counting reasons | 3 of 19, two at 12/12 |
+| a gate's first text | 2 of 17, both at 12/12 — **but a SWEEP settled that subgoal**, so the conclusion stands on sweep evidence, not on this probe |
+| a wording candidate, 1st | 4 of 38 |
+| a wording candidate, 2nd | 2 of 38 |
+| one slot group mirroring another | 2 of 10 |
+| a wording candidate, 3rd | **0 of 38 — clean** |
+| a habit-head candidate | 1 of 38 — one cell/slot reading `met` against the ledger's `duplicate` 12/12, on a cell no candidate touched. Independent of the A/B that first exposed it |
+| a boundary candidate on one slot group | 1 of 17 — the same duplicate |
+| two report-slot arms | **NOT GATEABLE** — they probe CANDIDATE slots reverted out of the tree, so the ledger has no baseline (36 cell-slots of `None`). A probe of a NEW slot must be gated on an EXISTING slot measured in the same call |
 
 **`None` is absence, not a verdict.** `measured.slot_answer` returns `None` for a
 slot the shipped prompt never answered, and an early version of the gate stringified
@@ -1015,34 +1006,33 @@ Passing means *not disqualified*.
 
 **A VOID probe's verdict cannot be cited for or against anything, and that
 includes DEAD ON REACH** — an unfaithful envelope is exactly what manufactures a
-false negative. Q44's fifth route is **unmeasured, not dead**.
+false negative. A route a VOID probe never reached is **unmeasured, not dead**.
 
+<!-- qc:QC.2a-2 -->
 ## 2a-2. CHECK A PROPOSED RULE AGAINST ALL VALID GOLDS, BEFORE THE PROBE
 
 **Read gold's charge on EVERY valid cell of the item and write the two sets down
 -- the cells gold charges on your criterion, and the cells it credits -- before
 you word anything.** It costs no calls, it is the only thing that tells you what
-the rule is allowed to do, and on 2026-09-07 the user made it standing
-procedure after three edits in one day were measured against hand-picked cell
-sets.
+the rule is allowed to do, and the user made it standing procedure after three
+edits in one day were measured against hand-picked cell sets.
 
-**What a hand-picked set hides.** Q19's report slot was probed on six cells,
-passed, swept, and fired on FOUR MORE the probe had never looked at -- p13, p16,
-p20, p8 -- one of which (p13) fell 4/12 to 0/12. The all-cells probe that found
-them cost 76 calls; the sweep that would have found them cost ~230. And the same
-free readout showed gold names that criterion exactly ONCE in the item, on p4,
-which is a standard no probe can give you.
+**What a hand-picked set hides.** A report slot was probed on six cells, passed,
+swept, and fired on FOUR MORE the probe had never looked at -- one of which fell
+4/12 to 0/12. The all-cells probe that found them cost 76 calls; the sweep that
+would have found them cost ~230. And the same free readout showed gold names that
+criterion exactly ONCE in the whole item, which is a standard no probe can give
+you.
 
 **Read the FULL gold text, never a summary and never a keyword match.** Two
 errors in one hour, both mine, both from not doing this:
-* Reading truncated one-line notes, I told the user "gold never charges that the
-  change is inadequate" on Q6 -- and Q6/p2's full note says the opposite in
-  gold's own words: *"{{corpus:Q6/p2:affect_c2:3:39:sha=7bc493d62ecd:shape=C1}} does not change your
-  {{corpus:Q6/p2:state_a2:17:69:sha=e9b581bb54c5}} stop."*
-* A regex for change-box charges matched `"did not say how"`, which also appears
-  in CONSEQUENCE charges, so p1 and p6 were reported as charged when neither is.
-  p6 is the exact cell a clause of mine had broken; the classifier would have
-  justified breaking it.
+* Reading truncated one-line notes, I told the user that gold never charges a
+  particular ground on an item -- and the cell's full note says the opposite
+  outright.
+* A regex for one group's charges matched a phrase that also appears in another
+  group's, so two cells were reported as charged when neither is. One of them was
+  the exact cell a clause of mine had broken; the classifier would have justified
+  breaking it.
 
 **READ EACH CELL IN THE LIGHT OF THE DECLARATIONS, NOT AGAINST RAW GOLD.** The
 standard is gold AS AMENDED, and two tables amend it in opposite directions:
@@ -1053,13 +1043,13 @@ standard is gold AS AMENDED, and two tables amend it in opposite directions:
 | `measured.GOLD_SLOT_DISAGREEMENTS_KNOWN` | recorded and ratcheted: acknowledged, NOT endorsed. Still a live target |
 | `CORRECTED_GOLD`, `GOLD_CODE_KNOWN`, `GOLD_SLOT_BOUNDS_KNOWN`, `SILENT_GOLD_DIVERGENCES`, `GOLD_CEILINGS` | each replaces or bounds the expectation for the cells it names -- read them all before writing the table |
 
-**Bought on 2026-09-07, in the same hour.** A rescore was proposed for Q6/p8 to
-bring it to gold's 2.5 -- and `A_NO_CHANGE` already declares OUR credit to be the
+**Bought in the same hour.** A rescore was proposed for a cell to bring it to
+gold's figure -- and a standing declaration already records OUR credit as the
 reading we endorse, gold having applied the item's pedagogical point beyond the
-literal text. The proposal would have contradicted a standing declaration to
-chase a number, and it would have made a declared cell into a defect. Its
-neighbour p2 IS live, because p2 sits only in the ratchet table, which records a
-disagreement rather than blessing it. Same item, same criterion, opposite
+literal text. The proposal would have contradicted that declaration to chase a
+number, and it would have made a declared cell into a defect. A NEIGHBOURING cell
+IS live, because it sits only in the ratchet table, which records a disagreement
+rather than blessing it. Same item, same criterion, opposite
 dispositions -- and nothing in the raw gold distinguishes them.
 
 **The output is a table, and it is the pre-registration.** One row per valid
@@ -1072,6 +1062,7 @@ than quietly dropped.
 **Then probe on all valid cells, not on the interesting ones.** The probe's cell
 set should be the same set the table covers, so a fire anywhere shows up.
 
+<!-- qc:QC.2a -->
 ## 2a. PROBE BEFORE YOU SWEEP
 
 **Before spending a sweep on a new rule, slot or pick, ask the grader the
@@ -1084,7 +1075,7 @@ died of.
 **GET THE QUESTION FROM `probe.question_for(item, slot)`. Never retype it.**
 That function lifts the string out of `olx_prompts.build_web_prompt()` -- the
 same call the sweep renders from -- so a probe cannot ask something the sweep
-will not. Retyping is what cost the Q19 sweep: a probe passed 23 of 24, the slot
+will not. Retyping is what cost a whole sweep: a probe passed 23 of 24, the slot
 then shipped with a `desc` that dropped the question's comparison clause and
 turned a yes/no into a which-one, and the sweep over-fired on nine cells.
 Reconstructing the string by hand is not safer for being careful -- the checklist
@@ -1108,15 +1099,15 @@ records the sha of the string actually asked, and
 probe measured text that no longer ships. A stale probe is worse than no probe,
 because it reads as evidence.
 
-**The failure a probe catches is REACH, and it is the common one.** On
-2026-09-06 three edits were measured and reverted in one day, and none of them
-was wrong about the text:
+**The failure a probe catches is REACH, and it is the common one.** Three edits
+were once measured and reverted in a single day, and none of them was wrong
+about the text:
 
 | edit | what happened |
 |---|---|
-| Q45, `targets_goal_behavior` clause | target cell 5/12 → **5/12**; the clause never fired |
-| Q47's 11th, `change_a*_does` pick | fired, answered sensibly, sorted both targets into CREDITING categories |
-| Q19, the repeats_antecedent value | target answered `activity` **12/12**; the new value never chosen, and it was reverted -- the name is unbackticked here because it no longer exists |
+| a clause added to a gate | target cell 5/12 → **5/12**; the clause never fired |
+| a new pick offered on a slot | fired, answered sensibly, sorted both targets into CREDITING categories |
+| a new value added to an existing pick | target answered its old value **12/12**; the new value never chosen, and it was reverted |
 
 Each diagnosis was sound. Each cost a sweep to discover that the grader had a
 competing true reading and preferred it. A probe would have shown that for a
@@ -1146,13 +1137,13 @@ target too.
   does not predict it.
 
 **PROBE THE EXACT STRING THAT WILL SHIP — not a paraphrase of the same
-question.** This is the one rule here bought with a wasted sweep. On 2026-09-06
-subgoal Q19's report slot was probed with a carefully written question and then
-built with a `desc` that dropped its comparison clause and turned a yes/no into
-a which-one. The probe passed 23 of 24; the sweep over-fired on nine cells and
-cost ~230 calls; and a re-probe with the SHIPPED string reproduced the failure
-standalone in 24. The probe was honest about the question it asked and the
-question it asked was not the one that shipped.
+question.** This is the one rule here bought with a wasted sweep. A report slot
+was probed with a carefully written question and then built with a `desc` that
+dropped its comparison clause and turned a yes/no into a which-one. The probe
+passed 23 of 24; the sweep over-fired on nine cells and cost ~230 calls; and a
+re-probe with the SHIPPED string reproduced the failure standalone in 24. The
+probe was honest about the question it asked and the question it asked was not
+the one that shipped.
 
 So build the slot FIRST, render the prompt, and probe the rendered text — or at
 minimum diff the probe's string against the `desc` the checklist will show. And
@@ -1166,33 +1157,34 @@ the cell against its siblings, and check the prediction against the text — a
 prediction that fails on paper never needed a probe either. The order is:
 read, predict, probe, sweep.
 
+<!-- qc:QC.2b -->
 ## 2b. TRY THE STRUCTURAL FIX FIRST
 
 **When a cell resists, change the SHAPE of what the model is asked, not the
-wording of the question. Structural fixes have worked in this project; wording
-changes mostly have not.** Reach for prose only after a structural option has
-been tried or ruled out, and say which.
+wording of the question. Structural fixes have worked; wording changes mostly
+have not.** Reach for prose only after a structural option has been tried or
+ruled out, and say which.
 
 The record is one-sided:
 
-* **Q6** was fixed by ADDING A REQUIRED SLOT, after prose attempts failed. The
+* An item **fixed by ADDING A REQUIRED SLOT**, after prose attempts failed. The
   README's own recommendation.
-* **DAY1's `you_arrange_it`** absorbed four measured prose attempts, all neutral,
-  all reverted. BACKLOG.md records the untried lever as "add a NEW required slot
+* A gate that **absorbed four measured prose attempts**, all neutral, all
+  reverted. BACKLOG.md records the untried lever as "add a NEW required slot
   rather than re-describing an existing gate".
-* **DAY2/p14** was fixed by the `forbid` PRIMITIVE -- a new rule shape -- not by
+* A cell **fixed by the `forbid` PRIMITIVE** -- a new rule shape -- not by
   re-describing the judgement.
-* **Q1's `reasons_given`** cost EIGHT configurations and ~550 calls of wording
-  changes. p14 was won early (v1, 2/6 -> 6/6) and p9 never landed: 1/6, 3/6, 6/6,
-  3/6, 4/6, 2/6, 1/6, 1/6. Three "isolate the mechanism" probes all scored WORSE
-  than the baseline they were derived from, and the one 6/6 was never replicated.
-  The structural option -- ask `reason_1/2/3` SEPARATELY instead of collapsing
-  them into one count -- sat unexamined the whole time.
+* A counted slot that **cost EIGHT configurations and ~550 calls** of wording
+  changes. One cell was won early (2/6 -> 6/6) and another never landed: 1/6,
+  3/6, 6/6, 3/6, 4/6, 2/6, 1/6, 1/6. Three "isolate the mechanism" probes all
+  scored WORSE than the baseline they were derived from, and the one 6/6 was
+  never replicated. The structural option -- ask the repeats SEPARATELY instead
+  of collapsing them into one count -- sat unexamined the whole time.
 
 Why it works, when it does: prose can only move a threshold on a judgement the
 model is already making in one step. A structural change alters WHICH judgements
-are made. Q1 is the clearest case: `counts=` forces one aggregate answer, so two
-cells needing opposite thresholds cannot both be satisfied by any wording --
+are made. A counted group is the clearest case: `counts=` forces one aggregate
+answer, so two cells needing opposite thresholds cannot both be satisfied by any wording --
 that is arithmetic, not rhetoric. Asked per slot, each candidate is judged on its
 own eligibility, and "is this DIFFERENT from what I already credited" becomes a
 local comparison instead of a global counting principle.
@@ -1203,13 +1195,14 @@ added? Can an aggregate be split? Can a derived check replace a judgement? If th
 answer to all of those is no, then write prose -- and note in the commit that the
 structural options were considered.
 
-* **2a** is now the longest record of this, and it confirms the rule while
-  correcting two things about how to apply it. Seven measured attempts took the
-  item from 15 of 20 to a 19.7 mean. The structural moves carried it: splitting
+* **One item** is now the longest record of this, and it confirms the rule while
+  correcting two things about how to apply it. Seven measured attempts took it
+  from 15 of 20 to a 19.7 mean. The structural moves carried it: splitting
   the `counts` aggregate into per-box slots (+2 cells), a `forbid` conjunction
   for one cell, an operand slot tied by `requires` (+2). The prose-only attempts
   moved one cell each at best.
 
+<!-- qc:QC.the-recipe-book-which -->
 ### The recipe book: which primitive expresses which logical shape
 
 **Most structural fixes were missed not because prose was preferred but because
@@ -1233,8 +1226,9 @@ that expresses it, the OLX attribute syntax, and the measured pitfall.
 | a failure that takes the whole item | a GATE | `!key` in `slots=` |
 
 **The OR recipe is the one worth spelling out**, because it is not obvious and it
-is what 2a needed. There is no disjunction primitive. You get one by De Morgan:
-declare an operand slot, and `forbid` it only when EVERY ground is absent —
+is what a compound slot holding ALTERNATIVE grounds needs. There is no
+disjunction primitive. You get one by De Morgan: declare an operand slot, and
+`forbid` it only when EVERY ground is absent —
 `NOT(A or B or C)` is `(NOT A) and (NOT B) and (NOT C)`. The operand then reads
 `met` whenever any single ground holds, and `requires` ties the scored slot to it:
 
@@ -1243,40 +1237,43 @@ declare an operand slot, and `forbid` it only when EVERY ground is absent —
     requires="scored_slot:mech:unclear"
 
 That is three simple questions plus two declared rules, in place of one compound
-judgement. On 2a it produced the item's best measured result.
+judgement. Where it has been used it produced the item's best measured result.
 
+<!-- qc:QC.choosing-between-them-and -->
 ### Choosing between them, and the pitfalls each one has
 
 * **`counts` versus separate slots.** `counts` asks ONE aggregate question, so two
   cells needing opposite thresholds can never both be satisfied by any wording —
-  arithmetic, not rhetoric. It cost Q1 eight configurations and ~550 calls and 2a
-  five cells. Use it only where the repeats really are interchangeable AND no cell
-  needs a different threshold from another. **And on handout 3 it also drives the
-  FIXTURE**: score.py's counted-group distribution rebuilds the on-screen boxes,
+  arithmetic, not rhetoric. It has cost one item eight configurations and ~550
+  calls, and another five cells. Use it only where the repeats really are
+  interchangeable AND no cell needs a different threshold from another. **Where
+  the answer is one prose block it also drives the FIXTURE**: score.py's
+  counted-group distribution rebuilds the on-screen boxes,
   so removing a `counts` group changes the INPUT. See §1.
 * **`onlyif` caps the floor.** It stops a second slot charging on top of a first,
   which is right when gold charges one fault once — but it also makes the summed
-  deduction unreachable. On 2a it made `BLANK`'s −6 impossible and the arithmetic
-  audit reported `CANNOT ZERO`. Check the floor after adding one.
+  deduction unreachable. It has made a `BLANK` deduction impossible, and the
+  arithmetic audit reported `CANNOT ZERO`. Check the floor after adding one.
 * **`requires` versus `forbid` on a slot the MODEL judges.** `forbid` computes the
   verdict and so strips the key from the schema — layer it on a judged slot and
   the model stops being asked. `requires` conditions a verdict the model still
-  gives. This is the single distinction that cost 2a an attempt.
+  gives. This is the single distinction that has cost an item a whole attempt.
 * **`expect` and `equals` need an operand that is answered.** Both read
   `refers_to` in preference to `verdict`, so the operand must be a classification
   slot, and a blank operand is handled by `lenient` rather than by failing.
 * **`derived` kinds are fixed**: `plots`, `complete`, `present`, `contains`. A rule
   naming any other kind is dropped silently on both sides.
-* **Check the item's MARGIN before trusting a slot's stability.** Every gold row
-  on 2a is 6 or 4, so a gold-4 cell tolerates exactly ONE charge: a second one
-  overshoots however defensible it is. p14's `verdict` slot is 83% stable and that
-  was enough to lose the cell in 2 of 12 runs, because `how_2` was already
+* **Check the item's MARGIN before trusting a slot's stability.** Where every
+  gold row is one of two values, a cell at the lower one tolerates exactly ONE
+  charge: a second overshoots however defensible it is. A slot that is 83% stable
+  is enough to lose such a cell in 2 of 12 runs, when a sibling slot is already
   correctly charged. On an item with no margin, slot stability and item accuracy
   are the same question; on an item with several increments they are not.
 * **A gate is discovered by single flips; a conjunction is not.** That asymmetry is
   why the same three-way rule raises a probe-reach finding when it drives a slot
   and none when it drives a gate — see `olx_prompts.PROBE_REACH_LIMITS`.
 
+<!-- qc:QC.read-the-excludeskeys-column -->
 ### Read the `excludesKeys` column before concluding a primitive cannot compose
 
 **A primitive that COMPUTES a verdict strips its key from the web schema; one
@@ -1286,7 +1283,7 @@ and `maps` all compute an answer, so asking the model for it too would give one
 slot two sources of truth. `cover`, `onlyif` and `requires` constrain an answer
 the model still gives.
 
-On 2a I needed to add a computed condition to a slot the model judges, reached
+I once needed to add a computed condition to a slot the model judges, reached
 for `forbid`, found it would stop the model being asked that slot at all, and
 concluded the composition was impossible -- then fell back on prose. It was not
 impossible. `requires` is documented in the registry as the mirror of `onlyif`,
@@ -1294,6 +1291,7 @@ does exactly that composition, and I had used its twin two steps earlier without
 noticing the pair. **Generalising a limitation from one primitive to the
 mechanism cost an attempt and a prose fallback taken on a false premise.**
 
+<!-- qc:QC.a-disjunction-is-not -->
 ### A DISJUNCTION is not a conjunction: split only what is independently statable
 
 `parse_forbid`'s docstring makes the case for splitting a compound judgement:
@@ -1301,9 +1299,9 @@ mechanism cost an attempt and a prose fallback taken on a false premise.**
 resolved the tension by re-reading which clause was which." That argument is
 about a **conjunction of conditions**, which is what `forbid` exists for.
 
-2a's compound slot held a **disjunction of three alternative grounds**, and
+A compound slot held a **disjunction of three alternative grounds**, and
 splitting it made the item WORSE the first time -- 20 to 19, with effective
-`how_2` accuracy falling from 96.7% to 93.3%, twelve false denials against six.
+one ground's accuracy falling from 96.7% to 93.3%, twelve false denials against six.
 Asking "is there ANY mechanism" is an easier question than three separate
 near-misses. But the eventual fix WAS the split, once one ground's wording was
 repaired. The rule that survives both results:
@@ -1313,6 +1311,7 @@ repaired. The rule that survives both results:
 > observations is not a criterion the model can apply; it is the reason the
 > split failed.
 
+<!-- qc:QC.2c -->
 ## 2c. PROFILE THE ERRORS BY SLOT AFTER EVERY SWEEP
 
 **A median says how many cells are wrong. It never says which JUDGEMENT is
@@ -1332,9 +1331,9 @@ Three tables, three different questions:
   High drift means the prompt asks something the model cannot answer twice the
   same way.
 
-The case that produced this rule: Q1 was worked for a day on its merge rule,
-across eleven configurations and roughly 900 calls, because three misses looked
-like merge failures. The profile over the SAME artifact that was sitting there
+The case that produced this rule: an item was worked for a day on its merge
+rule, across eleven configurations and roughly 900 calls, because three misses
+looked like merge failures. The profile over the SAME artifact that was sitting there
 the whole time:
 
     DIRECTION   correct 101 (84%)   over-credit 16 (13%)   under 3 (2%)
@@ -1355,13 +1354,14 @@ almost all of it in CORRECT cells is not the problem however much it dominates
 the eye (`confident`, 99 unmet, 83 of them in cells scored right), and DRIFT
 identifies cells that no wording can fix before calls are spent trying.
 
+<!-- qc:QC.and-profile-the-grounds -->
 ### And profile the GROUNDS, not just the slots — the item total lies about why
 
 **When a rule offers several grounds, measure each ground's own met-rate. The
 item total cannot tell you which one failed, and reading only the total will make
 you revert the right change.**
 
-2a is the case, and it cost two attempts. A three-way split of one compound
+One item is the case, and it cost two attempts. A three-way split of one compound
 ground took the item from 20 to 19, so I reverted it and recorded that the split
 had failed on principle. The per-ground data — which was in the same artifact —
 said something different:
@@ -1370,13 +1370,13 @@ said something different:
     states_size          43.8% met     <- the actual defect
     names_plan_content   49.2% met
 
-    p16 (gold 4, must be charged):  absent 12/12 on EVERY ground
-    p10 (gold 6, must be credited): 3/11, 1/12, 4/12 — no ground at all
+    cell A (gold 4, must be charged):  absent 12/12 on EVERY ground
+    cell B (gold 6, must be credited): 3/11, 1/12, 4/12 — no ground at all
 
-Asked separately the model was **unanimous and correct** about p16, which the
-compound question got wrong 5 times in 12. What the split actually cost was p10,
-whose only real ground is a bare directional change that `states_size` did not
-admit. One ground's wording, not the split.
+Asked separately the model was **unanimous and correct** about cell A, which the
+compound question got wrong 5 times in 12. What the split actually cost was cell
+B, whose only real ground is a bare directional change that one ground's wording
+did not admit. One ground's wording, not the split.
 
 Worse, reading the total led me to tell the user the boundary between two cells
 was "at the noise floor" and to recommend stopping. The per-ground data showed one
@@ -1387,16 +1387,17 @@ cell-runs in 240.**
 So after a sweep of a multi-ground rule, print three things per ground: its
 met-rate over all observations, its answer distribution on the cells the rule
 exists to decide, and whether any cell that must be CREDITED has no ground at
-all. That last one is the p10 check, and it is the one that says a split is unsafe
+all. That last one is the cell-B check, and it is the one that says a split is unsafe
 before it costs a cell.
 
+<!-- qc:QC.its-companion-refusals-which -->
 ### Its companion: `--refusals`, which asks a different question
 
 `--errors` asks which slots are unmet in cells that scored wrong. That is not the
 same as asking whether a refusal was WRONG, and the difference is not academic: a
 refusal can sit in a wrong cell while being correct, because the cell is wrong for
-the opposite reason. Q4c's second box had 15 refusals and all 15 sat in wrong
-cells, which reads as a rule that never fires correctly — but 12 of them are one
+the opposite reason. A box can have 15 refusals all sitting in wrong cells,
+which reads as a rule that never fires correctly — but most of them may be one
 participant where gold charges BOTH boxes, so the refusal is right and merely
 incomplete, and crediting the box moves the cell further from gold.
 
@@ -1407,11 +1408,12 @@ itemised at all. Undecidable is reported separately rather than folded into
 either, for the same reason `gold_charged_slots` returns None instead of an empty
 set — not knowing is not the same as knowing there was nothing.
 
-Run it before using a precision figure to justify a rule. On Q4a, Q4b and Q4c it
-returns ZERO contradicted refusals: every refusal gold has an opinion about, gold
+Run it before using a precision figure to justify a rule. On three items it has
+returned ZERO contradicted refusals: every refusal gold has an opinion about, gold
 agrees with, and the apparent collapse is entirely gradient cells plus silent
 full-marks rows.
 
+<!-- qc:QC.2d -->
 ## 2d. REPORT THE SPREAD; THE HEADLINE IS A PER-CELL MEDIAN
 
 **The ledger's item figure is a median taken PER CELL and then counted, so a cell
@@ -1419,7 +1421,7 @@ right in seven runs of twelve is recorded as simply right.** On an item with
 several unstable cells that overstates badly, and it is the most flattering
 summary available — which is why it is the one that gets quoted.
 
-2a recorded **20 of 20** on a sweep whose twelve runs scored
+An item recorded **20 of 20** on a sweep whose twelve runs scored
 `18 18 18 18 18 18 19 19 20 20 20 20`: median over actual runs **18.5**, mean
 **18.8**, six runs at 18, only four perfect, and two cells right in 7 of 12. In
 one session the same mistake was made three times — a single-side median of
@@ -1440,16 +1442,16 @@ honest figures arrive with the headline rather than on request:
 
 Four rules that block the three mistakes above:
 
-1. **Quote the range and the mean beside any median.** They differ by 1.2 cells
-   on 2a, and the mean is what a student would actually get.
+1. **Quote the range and the mean beside any median.** They can differ by more
+   than a cell, and the mean is what a student would actually get.
 2. **The median it prints is over ACTUAL RUN SCORES.** Both figures are medians;
    only one describes outcomes that occurred.
 3. **Never quote a single-side median.** `_EVALUATED_SIDES` is
    `(olx+python, paper, paper_opus)`; a six-run median of a 3–3 split lands on a
    value no run produced.
 4. **When a change "gains a cell", ask whether it gained a STABLE cell or pushed a
-   coin flip across the median line.** The second is not a gain. 2a's honest
-   progression is 15 → 18.8 mean, not 15 → 20.
+   coin flip across the median line.** The second is not a gain. The honest
+   progression above is 15 → 18.8 mean, not 15 → 20.
 
 Per-check accuracy is claimed only where gold determines it — gold awarded the
 maximum, so every check must be met, or its comment itemises. Cells where gold
@@ -1465,28 +1467,29 @@ is measured, and that is also where a gate false-positive costs a whole item. A
 gate reading 125/132 is therefore 132 observations drawn from fewer cells than
 the same figure on a scored slot.
 
+<!-- qc:QC.2e -->
 ## 2e. READ WHAT IS ALREADY RECORDED BEFORE FORMING A HYPOTHESIS
 
 **Before touching a rule, read the comments around it, the draft for that item,
 and the goal entry. Prior measured work lives next to the thing it measured, and
 it is usually more specific than anything you are about to guess.**
 
-The case: Q1's `reasons_given` absorbed ELEVEN configurations and ~900 calls in
+The case: one counted slot absorbed ELEVEN configurations and ~900 calls in
 one day, aimed at a merge rule. The comment block directly above the component
 already said, from earlier measured work:
 
-* gold's rule is **CONDITIONAL** -- reasons are HARMS of the unwanted behaviour,
-  and stated benefits are credited only where a response offers no harms at all;
-* every cell with gold < 3 was already classified: "p6 has exactly one harm among
-  four background statements and two goal-benefits and scores 1; p9/p10 have no
-  harms and 2 benefits each and score 2; p16 has none and one benefit and scores
-  1";
-* **p9 was already diagnosed and not as a merge problem** -- "the model reads
-  'have unwanted complications...' as a harm, so `harms_listed` is 1 and tier one
+* gold's rule is **CONDITIONAL** -- one kind of reason is credited outright, and
+  a second kind only where the response offers none of the first;
+* every cell with gold < 3 was already classified: one has exactly one harm among
+  four background statements and two goal-benefits and scores 1; two have no
+  harms and 2 benefits each and score 2; one has none and one benefit and scores
+  1;
+* **one of them was already diagnosed, and not as a merge problem** -- "the model reads
+  a background statement as one of the counted items, so the count is 1 and tier one
   applies, giving 1 where gold wants 2".
 
 The first change of the day replaced that conditional with a flat sum, which is
-why p6 went 4/6 -> 0/6 and never recovered under any later wording: a measured
+why one cell went 4/6 -> 0/6 and never recovered under any later wording: a measured
 reconstruction of gold's structure was deleted as if it were a defect. Six
 further configurations then argued with the consequences.
 
@@ -1518,6 +1521,7 @@ Of the three disciplines in this section, only §2c and §2e are machine-enforce
 §2b rides along on §2e's hook (the inventory is printed with the record) but
 nothing checks that the inventory was ACTED on; that remains a judgement.
 
+<!-- qc:QC.2f -->
 ## 2f. EVERY WRONG CELL HAS AN OWNER, AND THE AUDIT CHECKS IT
 
 §2c profiles the errors after a sweep. This is what to do with the profile: every
@@ -1538,16 +1542,16 @@ failure §2e describes for prose, and the same one
 
 **The hand pass had a defect care would not have caught.** It compared every cell
 at the python median, because that is the default side. Its first automated run
-found five cells the python gets right and the OLX gets wrong — DAY2/p8, PR/p15,
-Q2/p18, Q4a/p9, WK2/p8, all six runs on each side — which no amount of diligence
-on a one-sided reading could have surfaced. They are now Q32. Read BOTH sides;
-`measured.SIDES` is the list, and a cell wrong on either is a cell we get wrong.
+found five cells the python gets right and the OLX gets wrong, all six runs on
+each side — which no amount of diligence on a one-sided reading could have
+surfaced. They became their own subgoal. Read BOTH sides; `measured.SIDES` is
+the list, and a cell wrong on either is a cell we get wrong.
 
 **Both directions are reported**, because the accounting rots in both:
 
 * a wrong cell no OPEN subgoal names — work with nowhere to be recorded;
 * a cell a subgoal is ABOUT that now scores RIGHT — evidence that moved out from
-  under a subgoal still being worked. This arm closed Q11, whose `realistic`
+  under a subgoal still being worked. This arm closed a subgoal whose
   over-charge had gone.
 
 **Three exemptions, each a real distinction rather than a way of reaching zero:**
@@ -1559,8 +1563,8 @@ on a one-sided reading could have surfaced. They are now Q32. Read BOTH sides;
    slot accounting exists; retiring them on a matching total would discard
    precisely the cells that exist because the total hides them.
 3. Only a TITLE mention makes a subgoal ABOUT a cell. Body mentions are
-   routinely history or controls — Q19 names 1a/p15, Q4a/p20 and Q4b/p8 BECAUSE
-   we score them right — so the strict form is used for the "evidence has moved"
+   routinely history or controls — an entry names cells BECAUSE we score them
+   right — so the strict form is used for the "evidence has moved"
    arm and the generous form for ownership.
 
 **It must stay cheap.** It reads the recorded ledger and GOALS.md, spawns
@@ -1574,6 +1578,7 @@ seam the self-test can replace, as `_handsplit_tables` does.
 subgoal that owns it, or declare it with a reason. Silencing it is not on the
 list.
 
+<!-- qc:QC.2g -->
 ## 2g. A python/OLX DIFFERENCE AT THE MEDIAN IS NOT YET A DIVERGENCE
 
 Two sides are compared at their recorded medians, and the median over six runs is
@@ -1583,15 +1588,15 @@ the wrong one — so a single observation decides which engine is recorded as
 correct, and the ledger shows a clean "python right, olx wrong" for a cell where the
 two engines are behaving identically.
 
-This is not hypothetical. Q32 was filed as "five cells the python gets right and the
-olx gets wrong" and measured out as ONE divergence and four coin flips:
+This is not hypothetical. A subgoal was filed as "five cells the python gets right
+and the olx gets wrong" and measured out as ONE divergence and four coin flips:
 
-    cell        gold   python matches   olx matches   medians
-    DAY2/p8      4.0      3 of 6        2 of 6     python 4 / olx 0
-    PR/p15       4.0      3 of 6        2 of 6     python 4 / olx 2
-    Q2/p18       4.0      3 of 6        2 of 6     python 4 / olx 2
-    WK2/p8       0.0      5 of 6        3 of 6     python 0 / olx 2
-    Q4a/p9       3.0      0 of 6        6 of 6     python 5 / olx 3
+    cell   gold   python matches   olx matches   medians
+    A       4.0      3 of 6         2 of 6     python 4 / olx 0
+    B       4.0      3 of 6         2 of 6     python 4 / olx 2
+    C       4.0      3 of 6         2 of 6     python 4 / olx 2
+    D       0.0      5 of 6         3 of 6     python 0 / olx 2
+    E       3.0      0 of 6         6 of 6     python 5 / olx 3
 
 Three differ by ONE observation. Only the last is a real engine difference, and it
 is obvious once the rate is read rather than the median: 0 of 6 against 6 of 6.
@@ -1603,20 +1608,21 @@ is at fault and the cell belongs to whichever subgoal owns its unstable slot —
 
 Two traps inside that check:
 
-* **Compare `refers_to` as well as the verdicts.** WK2/p8's olx runs have
+* **Compare `refers_to` as well as the verdicts.** Cell D's olx runs have
   IDENTICAL verdicts and scores of 0, 0, 2, 0, 2, 4: the movement is entirely in
-  the classification answers, `observed_type` and `restriction_authored`. A flip
+  the classification answers rather than the verdicts. A flip
   detector reading only `verdicts` reports the cell as stable and turns a
   scoring-path question into a mystery.
-* **The direction can invert.** Q4a/p9 was python-right/olx-wrong until an unrelated
-  slot left the sheet under E25, and is now olx-right/python-wrong, 6/6 stable both
-  ways. A recorded direction is a fact about a measurement, not a property of the
+* **The direction can invert.** Cell E was python-right/olx-wrong until an
+  unrelated slot left the sheet, and is now olx-right/python-wrong, 6/6 stable
+  both ways. A recorded direction is a fact about a measurement, not a property of the
   cell.
 
 The ownership check in 2d reports a cell wrong on EITHER side, which is right —
 the cell is still not being scored correctly. What this section governs is the
 diagnosis that follows, not whether the cell gets an owner.
 
+<!-- qc:QC.2h -->
 ## 2h. SPEND NOTHING ON WHAT A FREE CHECK CAN SETTLE FIRST
 
 **Every rule in this guide that can be tested without model calls belongs in the
@@ -1627,8 +1633,8 @@ anything spends, run everything that can run for free, and treat a finding as a
 refusal rather than a note.
 
 This is implemented, not aspirational. `agreement.cheap_checks_gate` is the
-structural suite and both harnesses now run it -- the app side did NOT until
-2026-09-03, which meant a finding that stopped one engine silently let the other
+structural suite and both harnesses now run it -- the app side did NOT at first,
+which meant a finding that stopped one engine silently let the other
 through. Alongside it, `check_idmap_is_current` refuses a dump that predates the
 current prompt, `check_fixture_is_not_corrupt` refuses a fixture whose boxes are
 not the student's words, and the leakage and probe gates refuse before the first
@@ -1654,6 +1660,7 @@ already settles it -- the artifacts, gold's comments, the responses themselves.
 Several findings in this record were established from artifacts alone, with no
 calls spent, after being proposed as sweeps.
 
+<!-- qc:QC.2i -->
 ## 2i. RE-READ EVERY CELL A SUBGOAL OWNS BEFORE ACTING ON IT
 
 **A subgoal's cell list is a claim, and it decays.** Cells get corrected gold,
@@ -1663,7 +1670,7 @@ against current data and ask of each one: *is this still an instance of this
 problem?* The ones that are not go to another subgoal with a stated reason.
 
 It is worth the pass because it changes the rule, not just the bookkeeping. On
-Q22 the list of eighteen cells where the gate fired turned out to be:
+one item the list of eighteen cells where the gate fired turned out to be:
 
 * THIRTEEN that cost nothing -- eight blank answers where every check fails
   together, five structural failures where gold also gives zero. They were most
@@ -1678,12 +1685,12 @@ Reading them narrowed the target and produced the discriminator the rule was
 eventually written on. A precision figure computed over the unfiltered list was
 measuring the blanks.
 
-**NAME THE CELL AND THE SLOT, NOT THE COUNT.** A subgoal entry that says "we
-fail `you_arrange_it` on p11" cannot go stale. One that says "34 refusals, 71%
-precision" always can, because it is a claim about what a program computed and
-the program changes. Fourteen such figures in this project were left standing by
-a single instrument fix, and the only record of why they were suspect was a
-paragraph inside one subgoal -- which would have died when that subgoal closed.
+**NAME THE CELL AND THE SLOT, NOT THE COUNT.** A subgoal entry that names the
+slot it fails and the cell it fails on cannot go stale. One that quotes a refusal
+count and a precision figure always can, because it is a claim about what a
+program computed and the program changes. Such figures are left standing by a
+single instrument fix, and the only record of why they were suspect can be a
+paragraph inside one subgoal -- which dies when that subgoal closes.
 
 So quote a count only where the count IS the finding, and where you do, expect to
 re-derive it. The readouts exist for that: `measured.py --errors ITEM ARTIFACT`
@@ -1699,10 +1706,10 @@ checking it.
 
 **And read gold's CHARGE, not gold's ADVICE.** A grader comment often docks for
 one thing and then tells the student what a right answer would look like. Every
-feature named in that second half is instruction, not a charge. Reading
-"you should state what you take away at the end of the week" as a cadence
-objection invented a false negative that was not there; the charge was "this is
-not an example of operant conditioning" and nothing else. When a comment both
+feature named in that second half is instruction, not a charge. Reading a
+closing sentence that told the student to state something WEEKLY as a TIMING
+objection invented a false negative that was not there; the charge was that the
+answer did not instantiate the concept, and nothing else. When a comment both
 charges and advises, the charge is the part with the points attached.
 
 ## 2j. A SWEEP DEFAULTS TO python + olx. LAUNCH BOTH UNLESS ASKED FOR ONE
@@ -1739,6 +1746,7 @@ because that gap once silently re-measured a reverted change for a whole sweep.
 Re-dump, confirm the new wording is present and the old wording gone, and let the
 preflight confirm it.
 
+<!-- qc:QC.2k -->
 ## 2k. KNOW WHICH SOURCE YOU CONSULTED, AND CHECK IT IS THE RIGHT ONE
 
 **The question is not whether a lookup can come back empty. It is whether you
@@ -1746,7 +1754,7 @@ established that the thing you looked in is the thing that holds the answer.**
 Empty returns are one symptom of getting that wrong; agreeing-by-accident is
 another, and worse, because nothing about it looks like a failure.
 
-This project keeps most of its facts in several parallel sources of the same
+A project like this keeps most of its facts in several parallel sources of the same
 shape -- three gold sheets, four ledger sides, two scoring artifacts, a rubric and
 the .olx generated from it and the idmap dumped from that. Every one of those is a
 valid source of SOMETHING. Consult the wrong member of the family and it answers
@@ -1772,6 +1780,7 @@ both have caught real errors.
 Then, and only then, an empty result means what it says. The raise is the
 consequence of knowing the source, not the point.
 
+<!-- qc:QC.2l -->
 ## 2l. VALIDATE A CANDIDATE RULE AGAINST EVERY VALID CELL BEFORE WRITING IT
 
 **Not against the cells that motivated it, and not against the cells where gold
@@ -1791,20 +1800,19 @@ thinking about:
             prose suggests.
   BREAKS    cells it changes from RIGHT to wrong. The reason for the pass.
 
-**Q22's cadence rule died in the BREAKS column, on the fourth item read.** The
-rule was "a period coarser than the item's frame contradicts it; a finer one does
-not; a period on the consequence is not the behaviour's cadence; no period stated
-is not a contradiction". It was derived from the eight cells where gold's comment
-speaks to cadence and it classified all eight correctly -- which is exactly why it
-looked finished. Over all 72 valid cells it also:
+**A candidate rule died in the BREAKS column, on the fourth item read.** It was
+a four-clause rule about when one feature of an answer contradicts another,
+derived from the eight cells where gold's comment speaks to that criterion, and
+it classified all eight correctly -- which is exactly why it looked finished.
+Over all 72 valid cells it also:
 
-* broke **DAY2/p9** ([[corpus DAY2/p9 day2 0:95 sha=4f42e6b8fa63]]), where gold gives FULL credit and the
-  current check answers `met` in 12 of 12. The rule reads "out of the 5 days" as
-  coarser than daily and would refuse it -- turning a perfect cell into a wrong
-  one. Its near-twin DAY1/p9, by the SAME participant, is the rule's proof case.
-  The current prose already tells those two apart, 12 of 12 both ways.
-* risked **WK1/p6**, right in 12 of 12 today and held there by a cadence refusal
-  gold never asked for -- gold objects to the contingency's direction. Stop the
+* broke a cell where gold gives FULL credit and the current check answers `met`
+  in 12 of 12. The rule read that cell as violating the criterion and would
+  refuse it -- turning a perfect cell into a wrong one. Its near-twin, by
+  the SAME participant on another item, is the rule's proof case. The current
+  prose already tells those two apart, 12 of 12 both ways.
+* risked a second cell, right in 12 of 12 today and held there by a refusal gold
+  never asked for -- gold objects on an entirely different ground. Stop the
   misfire and the cell falls to whatever else refuses it, which is a gate running
   at 8 of 12. Right for the wrong reason is a category the totals cannot show you.
 
@@ -1823,11 +1831,11 @@ the one that knows what the rule got wrong -- so before narrowing anything, ask
 what single statement would account for the WHOLE distribution including the
 refuters.
 
-On Q22 that question had an answer, and it took about ten minutes. The
-directional rule died on DAY2/p9 against DAY1/p9 -- and those two cells are the
-SAME PARTICIPANT writing on two items, which is what made the comparison sharp.
-"5 times out of the week" cannot be judged until occurrences are COUNTED across
-the week; "out of the 5 days" names no count and is judgeable on any one day. So
+There that question had an answer, and it took about ten minutes. The directional
+rule died on one cell against its twin -- and those two cells are the SAME
+PARTICIPANT writing on two items, which is what made the comparison sharp. A
+phrase naming a frequency cannot be judged until occurrences are COUNTED across
+the frame; one naming only a window is judgeable on any single day. So
 the discriminator was never how coarse the period is, it is whether the TRIGGER
 can be evaluated inside one instance of the item's period. That version
 classifies all 72 cells with no contradiction, keeps both refuters, and covers a
@@ -1841,6 +1849,7 @@ If revision genuinely fails, then narrow -- and the losses go into the
 pre-registration as expected, with their cell ids, BEFORE the sweep. A sweep that
 loses a cell nobody predicted cannot be told apart from a sweep that went wrong.
 
+<!-- qc:QC.2m -->
 ## 2m. A GATE'S REFUSAL IS INFORMATION, AND A NEW CHECK MUST BE SHOWN TO FIRE
 
 **When a gate refuses, read it before working around it.** Not because refusals
@@ -1858,8 +1867,8 @@ work they interrupted:
   two cells the rule was written to charge. Enumerating examples of the failing
   shape had quietly copied the answers being graded. Rewriting abstractly was
   both safer and a better rule.
-* **the arithmetic audit refused an `onlyif`** with `2a CANNOT ZERO`: the guard
-  capped the slot floor so `BLANK`'s −6 became unreachable. The guard went, and
+* **the arithmetic audit refused an `onlyif`** with `CANNOT ZERO`: the guard
+  capped the slot floor so a `BLANK` deduction became unreachable. The guard went, and
   the cell it protected turned out not to need it.
 * **the side contract refused three artifacts** that could not say which model
   produced them, which is why two items' ledger entries had to be re-swept rather
@@ -1870,7 +1879,7 @@ work they interrupted:
 **And refusals that turned out to be the CHECK being wrong**, which is the other
 half and the reason the sentence above is not "trust the gate":
 
-* the slot-set audit reported `1a/p15` as disagreeing with gold on a GATE that
+* the slot-set audit reported a cell as disagreeing with gold on a GATE that
   gold's phrase table cannot name -- a difference guaranteed before the cell was
   read (see §2k). Declaring it would have recorded an artefact of our own reader
   as a disagreement with a grader.
@@ -1885,9 +1894,9 @@ In all three the refusal still pointed at something real; it just was not what i
 said. That is why the rule is READ it, not obey it.
 
 **A GATE'S SILENCE IS NOT A CLEARANCE, which is the converse and the easier half
-to forget.** On 2026-09-04 two examples were written into the cadence rule that
-paraphrased the very two cells the rule targets — a numeral spelled out, a
-preposition swapped — and `leakage.py` passed them. They were removed on
+to forget.** Two examples were once written into a rule that paraphrased the
+very two cells the rule targets — a numeral spelled out, a preposition swapped —
+and `leakage.py` passed them. They were removed on
 judgement, not on the gate's verdict, and then the matcher was measured to find
 out why it missed them. Four independent reasons, none of them a bug:
 
@@ -1923,6 +1932,7 @@ So: inject the breakage the check exists for, confirm the finding appears, resto
 confirm it clears. Add a self-test case so the retirement path is tested too. A
 check nobody has watched fail is a comment.
 
+<!-- qc:QC.2n -->
 ## 2n. A DECLARATION'S KEY AND ITS REASON GO STALE SEPARATELY
 
 **Check the claim, not just the key.** A declaration names something and says why.
@@ -1931,8 +1941,8 @@ item still exists, `check_course_data_reentries_are_current` asks whether the
 number still matches. Nothing reads the sentence, and the sentence is where the
 thinking is.
 
-Two of the nine self-test fixture declarations were tested as CLAIMS on
-2026-09-20, and both were false while their keys were perfectly valid:
+Two of the nine self-test fixture declarations were tested as CLAIMS, and both
+were false while their keys were perfectly valid:
 
 * One said its item was **the only one carrying a shape the case needs** — a cover
   group with a rule on one of its slots. No cover slot on that item carries a rule
@@ -1955,6 +1965,7 @@ on inspection rather than on a check nobody wrote.
 
 A reason nobody has re-read is an assumption with a citation.
 
+<!-- qc:QC.3 -->
 ## 3. Building the model
 
 **READ THE CREDITED ROWS, NOT JUST THE MISSES. `python3 measured.py
@@ -1963,26 +1974,24 @@ discipline.** A criterion is a line, and a line needs both sides. The cells we
 MISS tell you the criterion is wrong; only the cells gold CREDITS tell you where
 it should fall, and the two answers are usually different.
 
-Q3's `action_oriented` is the case that earned the rule. The three misses --
-p8 "hours I can make", p16 "hours I have", p19 grounds it in measurability --
-all justify actionability with something that is not a doing, which points
-straight at demanding a doing. That change would have cost THREE cells: p9 is
-credited on "a car", p14 on [[corpus Q3/p14 action 90:114 sha=d4443bb53f34]], p18 on "{{corpus:Q3/p18:action:71:97:sha=4b1ed59f418c:shape=S2-0a}} gym", none of which names a doing either. The sixteen credited rows
-are what contain the actual rule -- an activity OR access to a place or thing,
-never available time -- and narrowing to that took the item from 16/20 to 18/20
-with all five guards holding at 6/6.
+One slot is the case that earned the rule. Its three misses all justified the
+property with something outside the category, which pointed straight at
+demanding the category. That change would have cost THREE cells, each credited
+on something that does not name the category either. The sixteen CREDITED rows
+are what contained the actual rule -- a broader disjunction than the misses
+suggested -- and narrowing to that took the item from 16/20 to 18/20 with all
+five guards holding at 6/6.
 
-The same reading was what closed Q4a: gold's rejections there quote their own
-test ("how does grumpy emotions LEAD TO lack of sleep?"), and it was the
-credited rows that showed p14 and p19 to be gold departing from that test in
-opposite directions -- a pair no criterion can satisfy, so a declaration rather
-than a rule.
+The same reading closed another item: gold's rejections there quote their own
+test, and it was the credited rows that showed two cells to be gold departing
+from that test in opposite directions -- a pair no criterion can satisfy, so a
+declaration rather than a rule.
 
 Two things the command does that the eye does not. It prints OUR verdict beside
 gold's, so a criterion that is right on the misses and wrong on the credits
 shows up as a column of disagreements rather than a hunch. And it prints the
 grader's comment, because the grouping is a heuristic on the criterion's own
-words: Q4a/p17 says 'did not use the word "antecedent"' and lands in the
+words: a comment that says only 'did not use the word X' lands in the
 CHARGED group while being a KEYWORD charge. A visible mis-group is harmless; an
 invisible one sends the next hour in the wrong direction.
 
@@ -1995,14 +2004,13 @@ placed immediately BEFORE those components did what none of the rewrites could
 **WORKING HYPOTHESIS: the coupling tax scales with VOLUME, not content.** That
 adding prose to one slot moves gates the text never mentions has been observed
 repeatedly here, and was treated as an unavoidable toll on any edit. One
-measurement suggests it is a toll on SIZE. The `restricts` block, about twelve
-lines, cost DAY1/p11 and DAY1/p14 a run each. Removing `consequence_valence` and
-the twenty-line put-on/taken-off block that existed to answer it gave both back —
-2/3 to 3/3 each — and moved WK2/p15 1/3 to 2/3 as well. The cells that recovered
-were the same ones the earlier addition had cost, and neither block mentions
-them or anything they turn on.
+measurement suggests it is a toll on SIZE. One block of about twelve lines cost
+two cells a run each. Removing an unrelated slot and the twenty-line block that
+existed to answer it gave both back — 2/3 to 3/3 each — and moved a third cell
+1/3 to 2/3 as well. The cells that recovered were the same ones the earlier
+addition had cost, and neither block mentions them or anything they turn on.
 
-If it holds, it inverts the usual move. Every failed attempt on the four cadence
+If it holds, it inverts the usual move. Every failed attempt on one family of
 items added words; the change that finally recovered two cells removed them. So
 before writing a new rule, ask what can come OUT — a gate a later one subsumes,
 a diagnostic whose question is answered, an operand with no consumer — and
@@ -2037,51 +2045,52 @@ immune rather than merely lucky.
 
 **Distinguish three kinds of "and then what follows" in a reference entry.**
 For "X, so I Y": Y restating X, Y an INTERMEDIATE step that still leads to the
-unwanted behaviour, or Y a consequence. The first two are part of X. The third
-is not, and should be matched against the consequence list instead. Getting
-this wrong in either direction costs cells.
+same outcome, or Y a genuine consequence. The first two are part of X. The third
+is not, and should be matched against the consequence list instead. Getting this
+wrong in either direction costs cells.
 
 **Structural changes beat judgement changes.** Changes to what the grader SEES
 have worked and stuck. Changes to how it JUDGES mostly have not.
 
 **A quote is necessary and not sufficient; the equivalence rule must be CLOSED.**
-WK1/p7 took five measured versions and the sequence is the lesson. Its trigger is
-"{{corpus:WK1/p7:wk1:12:43:sha=5e1f6a6d53e1}}"; the student's UTB {{corpus:Q1/p15:response:28:56:sha=05cc40e7a636:shape=R3-1-2253}}
-electric devices"; gold charges -1 and says so outright. `trigger_behavior`
-answered `utb` for eleven attempts.
+One cell took five measured versions and the sequence is the lesson. Its trigger
+phrase and the student's own stated target are near-paraphrases; gold
+charges for it and says so outright. The slot answered the wrong way for eleven
+attempts.
 
   v3, a flat refusal -- answer `other` unless you can quote words of theirs, "and
-  answer it even when you judge the two to mean the same thing". p7 3/3, WK1
-  18/18. It works by forbidding the question, so it rejects genuine paraphrase
+  answer it even when you judge the two to mean the same thing". Target 3/3,
+  item 18/18. It works by forbidding the question, so it rejects genuine paraphrase
   too, and the sentence in it permitting paraphrase is dead text no cell reads.
 
   v4, an OPEN test fenced afterwards -- "are these the same activity, but not if
-  one could happen without the other". p7 1/3. The grader QUOTED BOTH PHRASES
+  one could happen without the other". Target 1/3. The grader QUOTED BOTH PHRASES
   CORRECTLY in all three runs and then overrode its own quote in two of them. The
   quoting step is not what forces the answer.
 
   v6, a CLOSED construction: equivalence is what negation and same-scale antonyms
   establish when the reversals CANCEL -- an even number, zero included. Two
   negations cancel; a negation and an antonym cancel; two antonyms cancel; an odd
-  number leaves the opposite, not a paraphrase. p7 3/3 -- the first version to
+  number leaves the opposite, not a paraphrase. Target 3/3 -- the first version to
   hold the cell while admitting paraphrase. But hoisted to the front of the prompt
-  it reached criteria it should not govern and cost three cells: "{{corpus:WK1/p17:wk1:18:42:sha=a4f361ff9914:shape=S1-0a2020}}" stopped matching "exercising 3-4 times a week", and it swallowed
-  the pointer rule whole.
+  it reached criteria it should not govern and cost three cells: a student's
+  frequency phrase stopped matching the activity they had chosen, and it
+  swallowed the pointer rule whole.
 
   v7, the same with two carve-outs -- degree and detail are not differences of
   activity, and a pointer with no content of its own is not compared by this test
-  at all. 18/18, no cell changed against v3, p7 3/3.
+  at all. 18/18, no cell changed against v3, target 3/3.
 
 So: define equivalence through a construction with a FIXED number of admissible
 moves, never as "means the same thing" with exceptions bolted on. Then say what
 the test does NOT govern, because a definition placed early enough to work is
 also placed early enough to capture rules that were doing their own job.
 
-**Placement cuts both ways.** Section 3 has long said position beats content, on
-Q6's evidence. WK1 shows the cost side: `MATCH_DEF` is emitted immediately before
-the components that use the term, and moving the equivalence rule there from a
-slot note is what let it override the pointer rule. Early placement raises a rule
-to govern everything after it, which is the point and also the risk.
+**Placement cuts both ways.** Section 3 has long said position beats content.
+The cost side: a shared definition is emitted immediately before the components
+that use the term, and moving an equivalence rule there from a slot note is what
+let it override the pointer rule. Early placement raises a rule to govern
+everything after it, which is the point and also the risk.
 
 **A verdict now REQUIRES probe evidence, in code.** `compare_runs` has always
 printed PROBE REQUIRED and exited 2 on a moved cell, and that was not enough: a
@@ -2098,16 +2107,16 @@ safe default. File a probe with `compare_runs.py --record-probe ITEM
 OUT/<probe>/ITEM.runs.json`; `measured.py --preflight` lists unprobed movers as
 step 7, beside unread fixtures and unreconciled gold.
 
-What it caught immediately: of eight moved cells across DAY1/DAY2/WK2, six came
+What it caught immediately: of eight moved cells across three items, six came
 back 4/6 to 6/6 -- noise -- one improved from 0/3 to 4/6, and the only genuinely
 unstable one had measured 3/6 under the PREVIOUS configuration too. Two
 "regressions" of 3/3 to 2/3 were 6/6 on probing. Nothing had actually regressed.
 
-**State a matching rule ONCE.** `olx_prompts.EQUIVALENCE_DEF` is now shared:
-Q6 asking whether a box matches a listed entry and WK1 asking whether a trigger
-names the activity the student chose are one operation. Two definitions of it
-drift. Q6 is not yet migrated onto it -- that changes a measured prompt and needs
-its own sweep.
+**State a matching rule ONCE.** `olx_prompts.EQUIVALENCE_DEF` is now shared: one
+item asking whether a box matches a listed entry and another asking whether a
+trigger names the activity the student chose are one operation. Two definitions
+of it drift. Not every item is migrated onto it -- that changes a measured prompt
+and needs its own sweep.
 
 **Editing a long slot note has non-local effects.** Clauses with airtight
 logical scope moved cells whose preconditions they could not satisfy. An
@@ -2118,16 +2127,13 @@ text — and worse, it is dead text on the channel you are trying to influence.
 
 ---
 
+<!-- qc:QC.4 -->
 ## 4. Correcting gold
 
 The bar is a **fact established in the submission**, not a difference of
 judgement. Four caveat kinds already exist for the rest: declare a deliberate
 disagreement, a criterion gold decides inconsistently, a criterion neither side
 scores, or drop the cell.
-
-**Qualifies:** a second antecedent that does not exist in the document; an
-antecedent appearing in no listed entry; a consequence equivalence supplied by
-the student's own answer.
 
 **Does not qualify:** a rubric-design opinion. Gold applies
 **no-double-jeopardy** — it charges a naming miss once and does not re-charge
@@ -2136,8 +2142,8 @@ never named. Verified across all twenty rows: every effect slot gold withholds
 is one whose box describes no effect. "We would charge this differently" is a
 divergence, not a correction.
 
-**Gold's ordinals are tallies, not indices.** "Second antecedent" means "the
-second one you named", not "box 2". One cell needs opposite index readings for
+**Gold's ordinals are tallies, not indices.** "Second X" means "the second one
+you named", not "box 2". One cell needs opposite index readings for
 its two families to make gold true; as tallies both are ordinary. Compare
 per-family COUNTS, which is also what a cover group scores. Box-level
 attribution invents disagreements gold never asserted — it manufactured four
@@ -2155,6 +2161,7 @@ outlive the row it corrects.
 
 ---
 
+<!-- qc:QC.read-the-declaration-tables -->
 ### Read the declaration tables BEFORE writing a correction
 
 **A cell cannot be both corrected and declared.** `CORRECTED_GOLD` says gold's
@@ -2162,11 +2169,11 @@ number was wrong against the dictionary or the graders' own practice;
 `GOLD_DIVERGENCES` says gold's number STANDS, that it is coherent, and that we
 knowingly differ. Booking a cell in both counts one finding twice.
 
-Three of five corrections written in one session landed on cells already declared:
-DAY1/p1 in `BEHAVIOR_NEVER_STATED`, NR/p4 in `NP_SHAPE_CREDITED_AS_NR`, Q4a/p19 in
-two entries. Each correction was built from comparator evidence by someone who did
-not read the declaration tables first — and `NP_SHAPE_CREDITED_AS_NR` is *named*
-for the finding the NR/p4 correction wrote up at length as new.
+Three of five corrections written in one session landed on cells already
+declared, one of them in two entries at once. Each correction was built from
+comparator evidence by someone who did not read the declaration tables first —
+and one of those tables is *named* for the very finding a correction wrote up at
+length as new.
 
 **Nothing caught it for a day, and the reason generalises.** Every other
 declaration check compares a table against RECORDED data, so while the ledger held
@@ -2177,22 +2184,23 @@ and needs no run data, so it fires the moment the second entry is written.
 
 ## 5. Reducing exclusions
 
+<!-- qc:QC.nothing-can-host-this -->
 ### "Nothing can host this" does not mean "this cannot move"
 
 **An audit finding names what is missing, not what is impossible. Before writing
 "cannot" into a subgoal, test the capability separately from the plumbing.**
 
-This is the most repeated error in this project's records, and it always looks
+This is the most repeated error in these records, and it always looks
 like a finished piece of reasoning:
 
 * `forbid` and `maps` broke seven items, and the note read "the app cannot score
   these". The app was fine; one zod schema did not DECLARE two attributes.
-* `keyword` was to be converted to `derived`, and the note read "score.py cannot
-  compute a keyword match". It never reads `item["derived"]` — but
-  `derive_ledger` takes the response text and already inspects it. A missing
-  dispatch, not a missing capability.
-* `named_type` was recorded as unmigratable because "no credit component exists
-  to carry a `rule`". True, and irrelevant: `CLI_CRITERIA_NOTES` plus a criterion
+* A slot was to be converted to `derived`, and the note read "score.py cannot
+  compute that match". It never reads `item["derived"]` — but `derive_ledger`
+  takes the response text and already inspects it. A missing dispatch, not a
+  missing capability.
+* Another was recorded as unmigratable because "no credit component exists to
+  carry a `rule`". True, and irrelevant: `CLI_CRITERIA_NOTES` plus a criterion
   renderer already carries two other notes to the paper scorer by a different
   route.
 
@@ -2213,9 +2221,10 @@ So when an audit says a rule has nowhere to go:
    costs a prompt change on a measured item". That is a schedule, not a wall —
    and saying so lets someone decide, where "cannot" ends the conversation.
 
-Write the price into the subgoal. "Migratable, costs a re-measurement of Q5" is
-a decision someone can take; "blocked" is one they cannot.
+Write the price into the subgoal. "Migratable, costs a re-measurement of one
+item" is a decision someone can take; "blocked" is one they cannot.
 
+<!-- qc:QC.the-rule-every-declaration -->
 ### The rule every declaration has to satisfy
 
 **A declaration that asserts something mechanically checkable must carry that
@@ -2230,8 +2239,8 @@ standing reason not to fix something that is already fixed.
 
 Two of those surfaced in one day, which is what prompted writing this down:
 
-* `SCORING_DIVERGENCES` declared "Q4a's assignable slot points sum to 4 against
-  an item max of 5" for hours after `max="5"` made it false. Its own
+* `SCORING_DIVERGENCES` declared that an item's assignable slot points fell
+  short of its max for hours after a `max=` edit made it false. Its own
   `enforcement` field said `"none"`, so no check owned it and nothing reported
   that none did.
 * Outside the audit entirely, a shell mitigation armed against the `forbid`
@@ -2243,8 +2252,8 @@ So, concretely, when you write a declaration:
 
 1. **If it names a number, put the number in a field.** An exclusion whose
    reason cites a point figure must declare `expect_error`; `check_exclusion_
-   claims_are_data` enforces it. Q6/p9 read "the error here is exactly -2.50"
-   through every run that measured -1.25.
+   claims_are_data` enforces it. One exclusion read "the error here is exactly
+   -2.50" through every run that measured -1.25.
 2. **If it asserts a structural fact** — a max, a slot sum, which side computes
    what — say it in a form the audit can recompute. Prose may explain the
    number; it may not be the only place the number lives.
@@ -2292,8 +2301,8 @@ principled disagreement for any number of duller reasons:
   boundary, so the two sides are not judging the same answer at all;
 - the box the rule reads is empty, or holds a neighbour's words;
 - gold's row does not reconcile with its own comment, making it a wrong NUMBER
-  rather than a different judgement — D2/p11, DAY2/p7 and WK1/p7 were all found
-  this way, and two of them had been declared or ceilinged first;
+  rather than a different judgement — three cells were found this way, and two of
+  them had been declared or ceilinged first;
 - the criterion is unreachable as written — a verdict token the slot does not
   offer, a rule parked where only one generator reads it;
 - the item's own scoring layer makes the rule inert, which no amount of prose
@@ -2307,37 +2316,37 @@ whether what remains is a genuine disagreement.
 
 The in-full requirement earns its capitals here specifically. A truncated
 readout does not merely fail to find the answer; it manufactures an argument FOR
-declaring. WK1's divergence was defended on the strength of a neighbouring cell
-that appeared to have no contingency, read from its first line alone — and that
-cell's second sentence is a textbook contingency. Read whole, the item's cells
+declaring. A divergence was defended on the strength of a neighbouring cell that
+appeared to lack the required feature, read from its first line alone — and that
+cell's second sentence supplies it plainly. Read whole, the item's cells
 separated perfectly and the rule was obvious. A declaration argued from partial
 text is the worst outcome this section exists to prevent, because it is
 indistinguishable, afterwards, from a declaration that was earned.
 
-The cost of skipping this is not hypothetical. p7's DAY2 and WK1 cells were
-carried through four measured attempts and 0 of 36 passes, and looked exactly
-like a divergence. What the reading actually produced was better: gold's rows
-did not reconcile and became CORRECTED_GOLD, the criterion turned out to be
-present but unreachable on one layer, and PR/NP were found not to carry
-`targets_own_behavior` at all — which dissolved an apparent gold inconsistency
-that a divergence would have enshrined as ours.
+The cost of skipping this is not hypothetical. One participant's cells on two
+items were carried through four measured attempts and 0 of 36 passes, and looked
+exactly like a divergence. What the reading actually produced was better: gold's
+rows did not reconcile and became CORRECTED_GOLD, the criterion turned out to be
+present but unreachable on one layer, and two item types were found not to carry
+the slot at all — which dissolved an apparent gold inconsistency that a
+divergence would have enshrined as ours.
 
 **An exclusion on a cell the scorer gets WRONG must be removed.** That is
 exactly the exclusion buying accuracy nobody earned, and it is the one that
 will never remove itself, because the cell it hides is the cell that would
 otherwise ask for work. There are two honest ways out and neither keeps the
 exclusion: if the miss is ours, take it and let it show; if it is gold's, name
-it — a correction, a divergence, a ceiling — so the cell counts again. Q6/p9
-was `PER_ITEM_EXCLUDE` with `expect_error` -1.25 and became
-`CORRECTED_GOLD[("Q6", 9)]`, because the exclusion "dropped a perfectly
-scoreable cell from every rate in order to absorb an error that was gold's".
-Its measured behaviour did not change at all; the rate went up because a cell
-we score correctly finally counted.
+it — a correction, a divergence, a ceiling — so the cell counts again. One cell
+was `PER_ITEM_EXCLUDE` with an `expect_error` and became a `CORRECTED_GOLD`
+entry, because the exclusion "dropped a perfectly scoreable cell from every rate
+in order to absorb an error that was gold's". Its measured behaviour did not
+change at all; the rate went up because a cell we score correctly finally
+counted.
 
 **Declaring beats excluding wherever the choice exists, because an exclusion
-silences questions nobody asked it to.** 2a/p18 was `unscoreable`, and
-`check_consensus_spans_are_disjoint` skips those — so its `verdict`/`how1`
-overlap sat exempt for as long as the exclusion stood, never judged by anyone.
+silences questions nobody asked it to.** A cell marked `unscoreable` is skipped
+by `check_consensus_spans_are_disjoint` — so an overlap between two of its spans
+sat exempt for as long as the exclusion stood, never judged by anyone.
 Removing the exclusion surfaced it the same minute, and it turned out to be
 faithful and declarable. An exclusion is written about the SCORE; it silences
 every other question about the cell.
@@ -2346,15 +2355,15 @@ every other question about the cell.
 removed.** It is not doing the job it was opened for, so what remains is the
 claim, and the claim is now false in a way that misleads in the expensive
 direction: a stale ceiling reports unwinnable ground where there is none, and
-hides real headroom behind it. Q6/p4 left `GOLD_CEILINGS` for precisely that
+hides real headroom behind it. A cell left `GOLD_CEILINGS` for precisely that
 reason once `scores_as_exact` credited its off-grid gold — "a note here would
 tell a reader there is unwinnable ground where there is none."
 
 **The retest trigger is a change, not a calendar.** In practice an exclusion is
 retired by work done for some other reason, so retest every excluded cell that
 a prompt or fixture change could plausibly reach, and sweep the whole set when
-an item closes out. The ceiling on Q6/p9 was retired by a definition written
-for the item as a whole: the cell went from 56% at nine passes to 9 of 9, and
+an item closes out. One ceiling was retired by a definition written for the item
+as a whole: the cell went from 56% at nine passes to 9 of 9, and
 "it was never an unwinnable criterion; it was an undefined term."
 
 **Retesting is already free — the machinery exists, so use it.** Excluded cells
@@ -2379,6 +2388,7 @@ no rule, not evidence that no rule exists.
 
 ---
 
+<!-- qc:QC.every-declaration-table-needs -->
 ### Every declaration table needs a RATCHET, or its entries outlive their reason
 
 **A stale declaration is worse than none: it silently claims the audit checked
@@ -2386,12 +2396,12 @@ something it did not, and it subtracts itself from every rate with no trace.**
 
 `GOLD_SLOT_DISAGREEMENTS_KNOWN` had a ratchet — an entry whose cell stops
 disagreeing is reported, and the table's size may only fall.
-`GOLD_SLOT_BOUNDS_KNOWN` had none, and it showed: three 2a entries stood asserting
-"gold charges one how_* slot; we charge none" on the very day the rule made us
-charge the box gold NAMED in 12 of 12 runs, and two of them said only "same as
-2a/p1" so the stale claim propagated by cross-reference. Adding the ratchet
-retired those three and then found **two more that had been stale for longer** —
-Q4a/p6 and Q4a/p9, where Q20's own text already recorded that p6 agreed while this
+`GOLD_SLOT_BOUNDS_KNOWN` had none, and it showed: three entries on one item stood
+asserting "gold charges one slot of the group; we charge none" on the very day
+the rule made us charge the box gold NAMED in 12 of 12 runs, and two of them said
+only "same as the first" so the stale claim propagated by cross-reference. Adding
+the ratchet retired those three and then found **two more that had been stale for
+longer** — cells where a subgoal's own text already recorded agreement while this
 table was never updated to match. Table 8 → 3, budget 8 → 3.
 
 The same thing happened again the same day with a brand-new table:
@@ -2409,6 +2419,7 @@ So when adding a declaration table:
    it. An unregistered table is reported, and so is a check that is **defined but
    never invoked** — both guards fired during this work.
 
+<!-- qc:QC.6 -->
 ## 6. What wastes time
 
 - Tuning a rule while the fixture is wrong.
@@ -2423,10 +2434,11 @@ is bad.
 - Running an experiment whose predicted outcome is failure without saying so
 first.
 - **Concluding a distinction is unstatable after testing only SINGLE features.**
-Twice on 2a. p1's two boxes matched on every individual predicate — payload type,
-causal link, direction, subject — and I reported that no clause could separate
-them. A CONJUNCTION of two of those features did, and the item gained a cell.
-Then p5 versus p16 was called "a boundary at the noise floor" and stopping was
+Twice on one item. A cell's two boxes matched on every individual predicate —
+payload type, causal link, direction, subject — and I reported that no clause
+could separate them. A CONJUNCTION of two of those features did, and the item
+gained a cell. Then one cell against another was called "a boundary at the noise
+floor" and stopping was
 recommended; the per-ground data showed one of the two was answered correctly
 12 times out of 12 when asked on its own. **Before writing "no rule can express
 this", test at least one conjunction and one contrast framing, and read the
@@ -2435,8 +2447,8 @@ per-ground rates.**
 failure. Its real defect was one ground's wording, which the per-ground data named
 and the total could not. Re-running the same split with that ground repaired gave
 the best result the item has had.
-- **Refreshing a ledger on one side only.** Re-recording DAY1's olx half while its
-python artifact was refused manufactured a path asymmetry the audit immediately
+- **Refreshing a ledger on one side only.** Re-recording an item's olx half while
+its python artifact was refused manufactured a path asymmetry the audit immediately
 reported as a declaration true on one path and false on the other. A uniformly
 stale ledger is better than a half-refreshed one; roll back and re-sweep both.
 - **Naming a finding for what it looks like rather than what it is.**
@@ -2531,18 +2543,8 @@ Two corollaries, both paid for:
 * **A green run on a configuration that cannot exercise the claim is not
   evidence about the claim.** Record which half was exercised.
 
+<!-- qc:QC.6c -->
 ## 6c. A SCAN CAN ONLY FIND WHAT ITS REFERENCE SET CONTAINS
-
-The history rewrite reported **0 student sentences remaining**, twice, by two
-instruments that looked independent. Scanned against the whole student response
-space afterwards, it still carried **915 distinct student 4-grams** (3123 in the
-original — so it had removed 71%, not all).
-
-*Those are the numbers from the rewrite that was current when this was written.
-Rebuilding the table against the whole response space took the same history to
-**27** against a control of **2107**. The figures below are kept as measured,
-because the lesson is what they showed at the time; the residue itself has
-moved.*
 
 **The reference set was the defect.** The substitution table was seeded from the
 quotes our own prose had CITED. Both leak scans then matched against that same
@@ -2551,13 +2553,6 @@ already knew about are gone"* — a true statement that answers a different
 question. `corpus_refs.json` is the same trap in data form: it holds the **715
 cited spans (40,766 chars)**, while the response space is `corpus_ref._index()`
 — **1023 boxes, 118,804 chars**.
-
-What it missed was not an edge case but the normal shape of the data: the repo
-carries whole student *responses*, so replacing the cited fragments left the
-student's connecting sentences sitting verbatim between the references:
-
-    {{corpus:Q6/p8:state_a1:0:103}} Which then makes me wish I would have just
-    gone to the gym. {{corpus:Q6/p8:change_a1:0:53}} {{corpus:Q6/p8:change_a1:54:108:sha=bc805c563129:shape=S6-0a20202020}} {{corpus:Q6/p8:state_a2:0:47:sha=ce81132d390c:shape=S7-0a20202020}} {{corpus:Q6/p8:state_a2:48:67}}, {{corpus:Q6/p8:state_a2:69:98:sha=86e03b170080}} ...
 
 **Three rules, each of which would have caught it.**
 
@@ -2588,12 +2583,10 @@ distinctive**. About 30% of the raw signal is function-word noise — enough to
 argue a real residue away with, in either direction.
 
 A later correction, from the same rule: **a numeral is not a content word.**
-Handout 3 asks for a week of counts, so student fields hold runs like
-`3, 4, 2, 5, 3, 4, 6`, and those match ordinary code — a ten-character span of
-one student's baseline data was substituted into `errs, exact, within, esc, n =
-[], {}, 0, 0, 0`, breaking `baseline.py` at eight commits and the generator at
-108 states. Digits still take part in the MATCH; they cannot be what makes a run
-distinctive.
+Where an assignment asks for a series of counts, student fields hold bare runs of
+digits, and those match ordinary code — a ten-character span of one student's
+data can be substituted into an initialiser and break a module. Digits still take
+part in the MATCH; they cannot be what makes a run distinctive.
 
 The rule must govern the SCRUBBER and the SCAN alike. Two components disagreeing
 about what counts as a quotation is the same failure as two instruments sharing
@@ -2606,20 +2599,20 @@ student's sentence in an `.olx` is a disclosure. The corpus-reference mechanism
 exists so the FILE can hold a citation while the PAGE shows the words. It works,
 and it is still the second-best answer.
 
+<!-- qc:QC.first-can-the-example -->
 ### First: can the example be invented instead?
 
-**Usually yes, and that is the fix.** Handout 2 taught that a reinforcer must be
-an outside thing you control, and its worked NON-example was a real student's
-sentence, carried in by reference. The reference kept the words out of the file
-and still made a student's writing the thing every reader is taught from — and
-made the page unrenderable without the corpus. It was replaced with an invented
+**Usually yes, and that is the fix.** A handout taught a definitional point, and
+its worked NON-example was a real student's sentence, carried in by reference.
+The reference kept the words out of the file and still made a student's writing
+the thing every reader is taught from — and made the page unrenderable without
+the corpus. It was replaced with an invented
 sentence carrying the same defect, and the reference went away entirely.
 
-**And the quote came from a question in that same handout.** `PR/p1` is
-participant 1's answer to the Positive Reinforcement item — `bmod_h2_pr`, whose
-box sits twenty-five lines BELOW the instructions that quoted it. So every later
-student met a classmate's answer to the question they were about to answer, on
-the page where they answered it. That is worse than a disclosure in two ways:
+**And the quote came from a question in that same handout.** It was one
+participant's answer to an item whose own box sits twenty-five lines BELOW the
+instructions that quoted it. So every later student met a classmate's answer to
+the question they were about to answer, on the page where they answered it. That is worse than a disclosure in two ways:
 it is the tightest re-identification context available, and it contaminates the
 instrument, because answers written after that text went in are not independent
 of it.
@@ -2627,16 +2620,16 @@ of it.
 **So check the provenance, not just the words.** Before quoting, ask which
 question the sentence answered and whether the reader is about to answer it.
 A replacement must clear the same bar: the invented sentence that replaced this
-one is a sleep example, while the box it precedes asks "{{corpus:NR/p1:nr:0:20:sha=2850093cabf3}}
-will..." — it does not pattern the answer to its own question.
+one draws on a different domain from the box it precedes — it does not pattern
+the answer to its own question.
 
 **Check an invented replacement for collisions before using it.** A sentence you
 made up can coincide with one a student wrote. Scan the candidate against the
 whole response space with course text subtracted
 (`scripts/history_rewrite/scan_full_corpus.py`); three candidates were checked
-for that handout and all three came back clean, which is what licensed picking
-one. A near-paraphrase of the original is NOT a replacement — it still derives
-from that student's writing.
+and all three came back clean, which is what licensed picking one. A
+near-paraphrase of the original is NOT a replacement — it still derives from
+that student's writing.
 
 ### If a real quotation is genuinely required
 
@@ -2683,9 +2676,10 @@ or a corrected row — and the seventh explained. That is a finished first model
 Do not stop because a rule failed. Sixteen failures on one channel turned out
 to be sixteen instances of one mistake about where the text went.
 
+<!-- qc:QC.and-do-not-stop -->
 ### And do not stop on a median
 
-2a was proposed for closure at "20 of 20" while its mean was 18.8, six of twelve
+An item was proposed for closure at "20 of 20" while its mean was 18.8, six of twelve
 runs scored 18, and the two cells that decided the boundary sat at 7 of 12 in
 OPPOSITE directions. That is not a finished item; it is a coin flip rounded up.
 Three attempts later the same item closed at **median 20, mean 19.7, range 19–20,
@@ -2697,6 +2691,7 @@ The closing question is therefore not "is the median at ceiling" but:
 1. Do the **range, median and mean** agree?
 2. Is every unstable cell either **near-unanimous** or **owned by a subgoal**?
 3. Does every remaining wrong cell have an **owner or a declaration**, so closing
-   orphans nothing? 2a/p14 went to Q35 before Q2 closed for exactly this reason.
+   orphans nothing? A cell was reassigned to another subgoal before its own
+   closed, for exactly this reason.
 4. Are the per-check accuracies claimed only where **gold determines them**, with
    the rest reported INDETERMINATE?

@@ -489,7 +489,9 @@ def _domain_words(items: tuple[str, ...]) -> set[str]:
     txt = " ".join(str((specs.get(i) or {}).get("question") or "") for i in items)
     try:
         import handouts as _H_L
-        txt += " " + _H_L.config(2)["rubric"].OC_FRAME
+        # J-3. WAS config(2); OC_FRAME lives on the criteria handout.
+        _h = _H_L.carrying("derive_from_criteria")[0]
+        txt += " " + _H_L.config(_h)["rubric"].OC_FRAME
     except Exception:
         pass
     return set(_content(txt))

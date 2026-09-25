@@ -92,7 +92,14 @@ def modules() -> list:
     `HERE` that goal H makes this move wait for, one level up.
     """
     return sorted(list(HERE.glob("*.py")) + list((HERE / TOOLS).glob("*.py"))
-                  + list(paths.COURSE_FIXTURE.glob("*.py")))
+                  + list(paths.COURSE_FIXTURE.glob("*.py"))
+                  # COURSE-SUPPLIED SCORERS, since goal E step 3. Moving
+                  # `scorer_oc.py` out of the package to `COURSE_METADATA/
+                  # scorers/oc.py` took its six definitions out of BOTH checks
+                  # -- exactly the silent failure this docstring warns about, one
+                  # directory further out. The scorer is course-supplied but it
+                  # is still code this ledger depends on.
+                  + list((paths.COURSE_METADATA / "scorers").glob("*.py")))
 
 
 def definitions(text: str) -> set:

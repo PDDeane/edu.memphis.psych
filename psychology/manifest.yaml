@@ -4,6 +4,14 @@
 
 title: Psychology Study Group
 namespace: edu.memphis.psych
+
+# THE PRE-NAMESPACING DATA LAYOUT (J-4d, 2026-09-24). This course's submissions
+# and outputs live at the SHARED roots -- $COURSE_DATA/"Handout Submissions with
+# Scoring and Feedback" and $COURSE_DATA/out -- rather than under
+# $COURSE_DATA/courses/<namespace>/. It is declared here, and read only when this
+# manifest's own `namespace` matches the course being run, so that a second
+# course cannot inherit the layout by accident. A new course should NOT set this.
+shared_data_layout: true
 classes:
   - no-translanguaging
 content_notice: >

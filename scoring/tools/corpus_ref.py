@@ -303,7 +303,17 @@ def export_olx_data(out_path: str, olx_dir: str | None = None) -> int:
             return 1
     except Exception:
         pass
-    root = pathlib.Path(olx_dir) if olx_dir else (HERE.parent / "psychology")
+    if olx_dir:
+        root = pathlib.Path(olx_dir)
+    else:
+        # J-7b, AND A BUG THIS FOUND. The default was `HERE.parent /
+        # "psychology"`, and `HERE` is this file's own directory -- `tools/` --
+        # so the fallback resolved to `scoring/psychology`, WHICH DOES NOT
+        # EXIST. Any caller that omitted `olx_dir` scanned nothing and reported
+        # an empty corpus rather than failing. `paths.OLX_DIR` is the content
+        # directory the parameter names, resolved one way for everyone.
+        import paths
+        root = paths.OLX_DIR
     idx = _index()
     data, seen = {}, 0
     # BOTH FORMS, AND THE WHOLE TREE. The export feeds `corpus_resolve.py`, which

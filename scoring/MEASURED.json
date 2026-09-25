@@ -60,7 +60,7 @@
           "runs": 6,
           "scorer_sha": "12aae8965f1b"
         },
-        "prompt_sha": "89137e99f2de",
+        "prompt_sha": "a2f0ab8a6c33",
         "run_totals": [
           18,
           19,
@@ -70,7 +70,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "12aae8965f1b"
+        "scorer_sha": "439ea55abb93"
       },
       "paper": {
         "ask_sha": "",
@@ -202,7 +202,7 @@
           "runs": 6,
           "scorer_sha": "12aae8965f1b"
         },
-        "prompt_sha": "0dea69c98eb0",
+        "prompt_sha": "3d95e4532e75",
         "run_totals": [
           19,
           20,
@@ -212,7 +212,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "12aae8965f1b"
+        "scorer_sha": "439ea55abb93"
       }
     },
     "1b": {
@@ -285,7 +285,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "8479c5e0961e"
+        "scorer_sha": "a3e726f47b7d"
       },
       "paper": {
         "ask_sha": "",
@@ -427,7 +427,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "8479c5e0961e"
+        "scorer_sha": "a3e726f47b7d"
       }
     },
     "1c": {
@@ -488,7 +488,7 @@
           "runs": 6,
           "scorer_sha": "3757da63f6b7"
         },
-        "prompt_sha": "b04e7f8c59e0",
+        "prompt_sha": "e5533fdd7529",
         "run_totals": [
           16,
           16,
@@ -498,7 +498,7 @@
           17
         ],
         "runs": 6,
-        "scorer_sha": "3757da63f6b7"
+        "scorer_sha": "228656dcd140"
       },
       "paper": {
         "ask_sha": "",
@@ -695,7 +695,7 @@
           "runs": 6,
           "scorer_sha": "3757da63f6b7"
         },
-        "prompt_sha": "d93243ef7c18",
+        "prompt_sha": "df98232455bd",
         "run_totals": [
           16,
           16,
@@ -705,7 +705,7 @@
           17
         ],
         "runs": 6,
-        "scorer_sha": "3757da63f6b7"
+        "scorer_sha": "228656dcd140"
       }
     },
     "2a": {
@@ -768,7 +768,7 @@
           "runs": 6,
           "scorer_sha": "c5b1fc1de757"
         },
-        "prompt_sha": "2e02173a40de",
+        "prompt_sha": "c1c38cd7c9d5",
         "run_totals": [
           19,
           19,
@@ -778,7 +778,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "c5b1fc1de757"
+        "scorer_sha": "34c9d98bcc20"
       },
       "paper": {
         "ask_sha": "",
@@ -910,7 +910,7 @@
           "runs": 6,
           "scorer_sha": "c5b1fc1de757"
         },
-        "prompt_sha": "5d708dca8e68",
+        "prompt_sha": "30778a06db64",
         "run_totals": [
           18,
           19,
@@ -920,7 +920,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "c5b1fc1de757"
+        "scorer_sha": "34c9d98bcc20"
       }
     },
     "2b": {
@@ -983,7 +983,7 @@
           "runs": 6,
           "scorer_sha": "186094e6de77"
         },
-        "prompt_sha": "ff12408f6d76",
+        "prompt_sha": "6f9104b39bbc",
         "run_totals": [
           20,
           20,
@@ -993,7 +993,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "186094e6de77"
+        "scorer_sha": "ae64cbbc9f91"
       },
       "paper": {
         "ask_sha": "",
@@ -1125,7 +1125,7 @@
           "runs": 6,
           "scorer_sha": "6526989cd34f"
         },
-        "prompt_sha": "7ad04c548d60",
+        "prompt_sha": "1e47fd14145e",
         "run_totals": [
           20,
           20,
@@ -1135,7 +1135,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "186094e6de77"
+        "scorer_sha": "ae64cbbc9f91"
       }
     },
     "3": {
@@ -1198,7 +1198,7 @@
           "runs": 6,
           "scorer_sha": "29a76b0416e1"
         },
-        "prompt_sha": "5ab233254952",
+        "prompt_sha": "1643f7387efa",
         "run_totals": [
           19,
           19,
@@ -1208,7 +1208,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "186094e6de77"
+        "scorer_sha": "ae64cbbc9f91"
       },
       "paper": {
         "ask_sha": "",
@@ -1340,7 +1340,7 @@
           "runs": 6,
           "scorer_sha": "6526989cd34f"
         },
-        "prompt_sha": "de0ef1444dde",
+        "prompt_sha": "605d69d50314",
         "run_totals": [
           19,
           19,
@@ -1350,7 +1350,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "186094e6de77"
+        "scorer_sha": "ae64cbbc9f91"
       }
     },
     "D1": {
@@ -1415,7 +1415,7 @@
           "runs": 6,
           "scorer_sha": "a6e935ca32bd"
         },
-        "prompt_sha": "385c91cae672",
+        "prompt_sha": "87cb9038709e",
         "run_totals": [
           18,
           18,
@@ -1425,7 +1425,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "57632a935796"
+        "scorer_sha": "589b1d40f25d"
       },
       "paper": {
         "ask_sha": "",
@@ -1561,7 +1561,7 @@
           "runs": 6,
           "scorer_sha": "a6e935ca32bd"
         },
-        "prompt_sha": "70e332f7047b",
+        "prompt_sha": "f24fc84b461f",
         "run_totals": [
           18,
           18,
@@ -1571,7 +1571,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "57632a935796"
+        "scorer_sha": "589b1d40f25d"
       }
     },
     "D2": {
@@ -1636,7 +1636,7 @@
           "runs": 6,
           "scorer_sha": "a6e935ca32bd"
         },
-        "prompt_sha": "d157ef618d52",
+        "prompt_sha": "1dcd9feac5e4",
         "run_totals": [
           18,
           18,
@@ -1646,7 +1646,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "57632a935796"
+        "scorer_sha": "589b1d40f25d"
       },
       "paper": {
         "ask_sha": "",
@@ -1782,7 +1782,7 @@
           "runs": 6,
           "scorer_sha": "a6e935ca32bd"
         },
-        "prompt_sha": "ddb2ea894ad8",
+        "prompt_sha": "4255a3a67b50",
         "run_totals": [
           18,
           18,
@@ -1792,7 +1792,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "57632a935796"
+        "scorer_sha": "589b1d40f25d"
       }
     },
     "DAY1": {
@@ -1857,7 +1857,7 @@
           "runs": 6,
           "scorer_sha": "639ce88fed28"
         },
-        "prompt_sha": "d92726a40ca3",
+        "prompt_sha": "1e570f0a600e",
         "run_totals": [
           18,
           18,
@@ -1867,7 +1867,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "35997b90bfc9"
+        "scorer_sha": "f8863565257a"
       },
       "paper": {
         "ask_sha": "",
@@ -2003,7 +2003,7 @@
           "runs": 6,
           "scorer_sha": "639ce88fed28"
         },
-        "prompt_sha": "03d6c21d4dbe",
+        "prompt_sha": "b4f5972253b7",
         "run_totals": [
           17,
           18,
@@ -2013,7 +2013,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "35997b90bfc9"
+        "scorer_sha": "f8863565257a"
       }
     },
     "DAY2": {
@@ -2078,7 +2078,7 @@
           "runs": 6,
           "scorer_sha": "639ce88fed28"
         },
-        "prompt_sha": "7a9a9909f863",
+        "prompt_sha": "12c9ce3c9fdb",
         "run_totals": [
           16,
           17,
@@ -2088,7 +2088,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "35997b90bfc9"
+        "scorer_sha": "f8863565257a"
       },
       "paper": {
         "ask_sha": "",
@@ -2224,7 +2224,7 @@
           "runs": 6,
           "scorer_sha": "639ce88fed28"
         },
-        "prompt_sha": "3573c1a83d6a",
+        "prompt_sha": "a5cf72b3db55",
         "run_totals": [
           16,
           17,
@@ -2234,7 +2234,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "35997b90bfc9"
+        "scorer_sha": "f8863565257a"
       }
     },
     "NP": {
@@ -2299,7 +2299,7 @@
           "runs": 6,
           "scorer_sha": "6ab6f1fe76ce"
         },
-        "prompt_sha": "d69e03991431",
+        "prompt_sha": "a7dc63e40cb9",
         "run_totals": [
           17,
           17,
@@ -2309,7 +2309,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "ec7e3866ecae"
+        "scorer_sha": "0448d8c68774"
       },
       "paper": {
         "ask_sha": "",
@@ -2445,7 +2445,7 @@
           "runs": 6,
           "scorer_sha": "6ab6f1fe76ce"
         },
-        "prompt_sha": "7feebf5ba1a2",
+        "prompt_sha": "f0dbbcd26fa7",
         "run_totals": [
           17,
           18,
@@ -2455,7 +2455,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "ec7e3866ecae"
+        "scorer_sha": "0448d8c68774"
       }
     },
     "NR": {
@@ -2520,7 +2520,7 @@
           "runs": 6,
           "scorer_sha": "dcc26dbd0cf8"
         },
-        "prompt_sha": "fc5a95b9524e",
+        "prompt_sha": "8e247e1f7a46",
         "run_totals": [
           16,
           17,
@@ -2530,7 +2530,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "ba0cef73dbba"
+        "scorer_sha": "cf711a5f4150"
       },
       "paper": {
         "ask_sha": "",
@@ -2666,7 +2666,7 @@
           "runs": 5,
           "scorer_sha": "dcc26dbd0cf8"
         },
-        "prompt_sha": "015ad184bbb5",
+        "prompt_sha": "e258128c19a4",
         "run_totals": [
           17,
           17,
@@ -2675,7 +2675,7 @@
           18
         ],
         "runs": 5,
-        "scorer_sha": "ba0cef73dbba"
+        "scorer_sha": "cf711a5f4150"
       }
     },
     "PP": {
@@ -2740,7 +2740,7 @@
           "runs": 6,
           "scorer_sha": "6ab6f1fe76ce"
         },
-        "prompt_sha": "16620edaa2f2",
+        "prompt_sha": "cbda6b00b070",
         "run_totals": [
           18,
           18,
@@ -2750,7 +2750,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "ec7e3866ecae"
+        "scorer_sha": "0448d8c68774"
       },
       "paper": {
         "ask_sha": "",
@@ -2886,7 +2886,7 @@
           "runs": 6,
           "scorer_sha": "6ab6f1fe76ce"
         },
-        "prompt_sha": "71aa8b0d0155",
+        "prompt_sha": "a89d42ac2465",
         "run_totals": [
           17,
           18,
@@ -2896,7 +2896,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "ec7e3866ecae"
+        "scorer_sha": "0448d8c68774"
       }
     },
     "PR": {
@@ -2961,7 +2961,7 @@
           "runs": 6,
           "scorer_sha": "6ab6f1fe76ce"
         },
-        "prompt_sha": "f7fdcdb77979",
+        "prompt_sha": "3ce2ffc9257e",
         "run_totals": [
           17,
           17,
@@ -2971,7 +2971,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "ec7e3866ecae"
+        "scorer_sha": "0448d8c68774"
       },
       "paper": {
         "ask_sha": "",
@@ -3107,7 +3107,7 @@
           "runs": 6,
           "scorer_sha": "6ab6f1fe76ce"
         },
-        "prompt_sha": "ae5813da1211",
+        "prompt_sha": "48f1b215481e",
         "run_totals": [
           17,
           17,
@@ -3117,7 +3117,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "ec7e3866ecae"
+        "scorer_sha": "0448d8c68774"
       }
     },
     "Q1": {
@@ -3125,11 +3125,11 @@
         "ask_sha": "42d78f494b00",
         "bands_before": {
           "1": "perfect",
-          "10": "wrong_by_median",
+          "10": "on_the_line",
           "11": "perfect",
           "12": "perfect",
           "13": "perfect",
-          "14": "perfect",
+          "14": "unstable_counted_right",
           "15": "perfect",
           "16": "perfect",
           "17": "on_the_line",
@@ -3140,7 +3140,7 @@
           "3": "perfect",
           "4": "perfect",
           "5": "perfect",
-          "6": "wrong_by_median",
+          "6": "unstable_counted_right",
           "7": "unstable_counted_right",
           "8": "perfect",
           "9": "wrong_by_median"
@@ -3175,12 +3175,12 @@
         "previous": {
           "denominator": 20,
           "numerator": 17,
-          "out": "q1_render_0914",
-          "prompt_sha": "7bc511629036",
+          "out": "full_0912_olx",
+          "prompt_sha": "047b8326850e",
           "runs": 6,
-          "scorer_sha": "29a76b0416e1"
+          "scorer_sha": "ae64cbbc9f91"
         },
-        "prompt_sha": "7bc511629036",
+        "prompt_sha": "047b8326850e",
         "run_totals": [
           15,
           15,
@@ -3190,17 +3190,17 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "186094e6de77"
+        "scorer_sha": "ae64cbbc9f91"
       },
       "paper": {
         "ask_sha": "",
         "bands_before": {
           "1": "perfect",
-          "10": "wrong_by_median",
+          "10": "on_the_line",
           "11": "perfect",
           "12": "perfect",
           "13": "perfect",
-          "14": "perfect",
+          "14": "unstable_counted_right",
           "15": "perfect",
           "16": "perfect",
           "17": "on_the_line",
@@ -3211,7 +3211,7 @@
           "3": "perfect",
           "4": "perfect",
           "5": "perfect",
-          "6": "wrong_by_median",
+          "6": "unstable_counted_right",
           "7": "unstable_counted_right",
           "8": "perfect",
           "9": "wrong_by_median"
@@ -3267,11 +3267,11 @@
         "ask_sha": "42d78f494b00",
         "bands_before": {
           "1": "perfect",
-          "10": "wrong_by_median",
+          "10": "on_the_line",
           "11": "perfect",
           "12": "perfect",
           "13": "perfect",
-          "14": "perfect",
+          "14": "unstable_counted_right",
           "15": "perfect",
           "16": "perfect",
           "17": "on_the_line",
@@ -3282,7 +3282,7 @@
           "3": "perfect",
           "4": "perfect",
           "5": "perfect",
-          "6": "wrong_by_median",
+          "6": "unstable_counted_right",
           "7": "unstable_counted_right",
           "8": "perfect",
           "9": "wrong_by_median"
@@ -3322,7 +3322,7 @@
           "runs": 6,
           "scorer_sha": "29a76b0416e1"
         },
-        "prompt_sha": "328b1de9fd00",
+        "prompt_sha": "66275c6aa1fd",
         "run_totals": [
           17,
           17,
@@ -3332,7 +3332,7 @@
           19
         ],
         "runs": 6,
-        "scorer_sha": "186094e6de77"
+        "scorer_sha": "ae64cbbc9f91"
       }
     },
     "Q2": {
@@ -3395,7 +3395,7 @@
           "runs": 6,
           "scorer_sha": "29a76b0416e1"
         },
-        "prompt_sha": "fb9c948040ae",
+        "prompt_sha": "a053536135b1",
         "run_totals": [
           19,
           19,
@@ -3405,7 +3405,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "186094e6de77"
+        "scorer_sha": "ae64cbbc9f91"
       },
       "paper": {
         "ask_sha": "",
@@ -3537,7 +3537,7 @@
           "runs": 6,
           "scorer_sha": "29a76b0416e1"
         },
-        "prompt_sha": "e1978d153375",
+        "prompt_sha": "565b4e5ea9bb",
         "run_totals": [
           17,
           18,
@@ -3547,7 +3547,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "186094e6de77"
+        "scorer_sha": "ae64cbbc9f91"
       }
     },
     "Q3": {
@@ -3610,7 +3610,7 @@
           "runs": 6,
           "scorer_sha": "86ef29a09d7f"
         },
-        "prompt_sha": "200e1305205e",
+        "prompt_sha": "8bde98816b36",
         "run_totals": [
           20,
           20,
@@ -3620,7 +3620,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "12aae8965f1b"
+        "scorer_sha": "439ea55abb93"
       },
       "paper": {
         "ask_sha": "",
@@ -3752,7 +3752,7 @@
           "runs": 6,
           "scorer_sha": "86ef29a09d7f"
         },
-        "prompt_sha": "f53ec970e021",
+        "prompt_sha": "c63c6d1ee23b",
         "run_totals": [
           19,
           20,
@@ -3762,7 +3762,7 @@
           20
         ],
         "runs": 6,
-        "scorer_sha": "12aae8965f1b"
+        "scorer_sha": "439ea55abb93"
       }
     },
     "Q4a": {
@@ -3825,7 +3825,7 @@
           "runs": 6,
           "scorer_sha": "19d6bf7a0198"
         },
-        "prompt_sha": "02c2b528ea6d",
+        "prompt_sha": "b2c119b056eb",
         "run_totals": [
           18,
           18,
@@ -3835,7 +3835,7 @@
           19
         ],
         "runs": 6,
-        "scorer_sha": "f2875216c5ec"
+        "scorer_sha": "7c81b22b0efd"
       },
       "paper": {
         "ask_sha": "",
@@ -3967,7 +3967,7 @@
           "runs": 6,
           "scorer_sha": "19d6bf7a0198"
         },
-        "prompt_sha": "5cb2736d16a7",
+        "prompt_sha": "8a5ea1e063fb",
         "run_totals": [
           17,
           17,
@@ -3977,7 +3977,7 @@
           19
         ],
         "runs": 6,
-        "scorer_sha": "f2875216c5ec"
+        "scorer_sha": "7c81b22b0efd"
       }
     },
     "Q4b": {
@@ -4038,7 +4038,7 @@
           "runs": 6,
           "scorer_sha": "22c8c11e0fe0"
         },
-        "prompt_sha": "ebd92b544df4",
+        "prompt_sha": "d888af0847e6",
         "run_totals": [
           16,
           17,
@@ -4048,7 +4048,7 @@
           17
         ],
         "runs": 6,
-        "scorer_sha": "3cc72a4e4e87"
+        "scorer_sha": "9d565226376f"
       },
       "paper": {
         "ask_sha": "",
@@ -4176,7 +4176,7 @@
           "runs": 6,
           "scorer_sha": "22c8c11e0fe0"
         },
-        "prompt_sha": "3d38d258ebc0",
+        "prompt_sha": "a6d43f578b40",
         "run_totals": [
           16,
           16,
@@ -4186,7 +4186,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "3cc72a4e4e87"
+        "scorer_sha": "9d565226376f"
       }
     },
     "Q4c": {
@@ -4251,7 +4251,7 @@
           "runs": 6,
           "scorer_sha": "19d6bf7a0198"
         },
-        "prompt_sha": "fb1e21a2dd16",
+        "prompt_sha": "8e543d3cd9c0",
         "run_totals": [
           16,
           16,
@@ -4261,7 +4261,7 @@
           17
         ],
         "runs": 6,
-        "scorer_sha": "f2875216c5ec"
+        "scorer_sha": "7c81b22b0efd"
       },
       "paper": {
         "ask_sha": "",
@@ -4397,7 +4397,7 @@
           "runs": 6,
           "scorer_sha": "19d6bf7a0198"
         },
-        "prompt_sha": "f581e8dda7c3",
+        "prompt_sha": "12a518cf4318",
         "run_totals": [
           15,
           16,
@@ -4407,7 +4407,7 @@
           17
         ],
         "runs": 6,
-        "scorer_sha": "f2875216c5ec"
+        "scorer_sha": "7c81b22b0efd"
       }
     },
     "Q5": {
@@ -4470,7 +4470,7 @@
           "runs": 6,
           "scorer_sha": "86ef29a09d7f"
         },
-        "prompt_sha": "f933e0876c3b",
+        "prompt_sha": "64300f247fdb",
         "run_totals": [
           18,
           18,
@@ -4480,7 +4480,7 @@
           19
         ],
         "runs": 6,
-        "scorer_sha": "12aae8965f1b"
+        "scorer_sha": "439ea55abb93"
       },
       "paper": {
         "ask_sha": "",
@@ -4612,7 +4612,7 @@
           "runs": 6,
           "scorer_sha": "86ef29a09d7f"
         },
-        "prompt_sha": "403ceabeb5f9",
+        "prompt_sha": "8789799336e4",
         "run_totals": [
           17,
           17,
@@ -4622,7 +4622,7 @@
           19
         ],
         "runs": 6,
-        "scorer_sha": "12aae8965f1b"
+        "scorer_sha": "439ea55abb93"
       }
     },
     "Q6": {
@@ -4685,7 +4685,7 @@
           "runs": 6,
           "scorer_sha": "10401a8c5ba7"
         },
-        "prompt_sha": "3b72b21974a0",
+        "prompt_sha": "7f621724ef5c",
         "run_totals": [
           15,
           16,
@@ -4695,7 +4695,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "58bab0a5b69f"
+        "scorer_sha": "8a26521488a9"
       },
       "paper": {
         "ask_sha": "",
@@ -4827,7 +4827,7 @@
           "runs": 6,
           "scorer_sha": "10401a8c5ba7"
         },
-        "prompt_sha": "ee48e032d3a1",
+        "prompt_sha": "0a332cc6d564",
         "run_totals": [
           14,
           15,
@@ -4837,7 +4837,7 @@
           17
         ],
         "runs": 6,
-        "scorer_sha": "58bab0a5b69f"
+        "scorer_sha": "8a26521488a9"
       }
     },
     "T1": {
@@ -4912,7 +4912,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "8479c5e0961e"
+        "scorer_sha": "a3e726f47b7d"
       },
       "paper": {
         "ask_sha": "",
@@ -5058,7 +5058,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "8479c5e0961e"
+        "scorer_sha": "a3e726f47b7d"
       }
     },
     "T2": {
@@ -5133,7 +5133,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "8479c5e0961e"
+        "scorer_sha": "a3e726f47b7d"
       },
       "paper": {
         "ask_sha": "",
@@ -5279,7 +5279,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "8479c5e0961e"
+        "scorer_sha": "a3e726f47b7d"
       }
     },
     "WK1": {
@@ -5344,7 +5344,7 @@
           "runs": 6,
           "scorer_sha": "b98a3c3c508c"
         },
-        "prompt_sha": "80ab1897c42f",
+        "prompt_sha": "20852f7c36e6",
         "run_totals": [
           17,
           17,
@@ -5354,7 +5354,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "0e68da1210a7"
+        "scorer_sha": "b9d0fbcecd23"
       },
       "paper": {
         "ask_sha": "",
@@ -5490,7 +5490,7 @@
           "runs": 6,
           "scorer_sha": "b98a3c3c508c"
         },
-        "prompt_sha": "20840bba16cc",
+        "prompt_sha": "ea0f43735d6c",
         "run_totals": [
           15,
           17,
@@ -5500,7 +5500,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "0e68da1210a7"
+        "scorer_sha": "b9d0fbcecd23"
       }
     },
     "WK2": {
@@ -5565,7 +5565,7 @@
           "runs": 6,
           "scorer_sha": "639ce88fed28"
         },
-        "prompt_sha": "308fdab3343e",
+        "prompt_sha": "71c290065df9",
         "run_totals": [
           17,
           17,
@@ -5575,7 +5575,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "35997b90bfc9"
+        "scorer_sha": "f8863565257a"
       },
       "paper": {
         "ask_sha": "",
@@ -5711,7 +5711,7 @@
           "runs": 6,
           "scorer_sha": "639ce88fed28"
         },
-        "prompt_sha": "d39df39bdf90",
+        "prompt_sha": "a06ad2fb770f",
         "run_totals": [
           16,
           17,
@@ -5721,7 +5721,7 @@
           18
         ],
         "runs": 6,
-        "scorer_sha": "35997b90bfc9"
+        "scorer_sha": "f8863565257a"
       }
     }
   },

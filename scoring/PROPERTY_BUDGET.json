@@ -1,12 +1,10 @@
 {
  "_what": "D1x-c: declared properties reached in a branch condition. Falls, never rises without a declaration.",
  "branched": [
-  "cadence",
   "cover",
   "credit",
   "deductions",
   "equals",
-  "expected_type",
   "guidance",
   "handout",
   "id",

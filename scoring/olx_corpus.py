@@ -105,8 +105,9 @@ def default_roots() -> list[str]:
     if override:
         return [p for p in override.split(":") if os.path.isdir(p)]
     roots = [p for p, _why, ok in declared_roots() if ok]
-    own = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                       "..", "psychology"))
+    # J-7b: THIS COURSE's content directory, resolved once in `paths`.
+    import paths
+    own = os.path.abspath(str(paths.OLX_DIR))
     if os.path.isdir(own) and not any(own.startswith(r + os.sep) for r in roots):
         roots.append(own)
     return roots

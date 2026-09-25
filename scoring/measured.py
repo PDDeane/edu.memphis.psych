@@ -48,6 +48,7 @@ import sourcecache
 import re
 import sys
 from pathlib import Path
+import paths as _p7   # J-7b: this course's handout file names
 
 
 def _gold_declaration(name: str):
@@ -89,7 +90,7 @@ def _olx(handout: int) -> str:
     about the served prompt had changed.
     """
     import paths
-    text = (paths.OLX_DIR / f"bmod_handout{handout}.olx").read_text()
+    text = (paths.OLX_DIR / _p7.handout_olx(handout)).read_text()
     if "{{corpus:" in text:
         from tools import corpus_ref
         text = corpus_ref.expand(text)
@@ -682,7 +683,11 @@ _BY_PRIMITIVE = {
 # and derive_ledger + _hedges.
 PAPER_SIDES = ("paper", "paper_opus")
 _PAPER_BY_BRANCH = {
-    "derive_from_criteria": (("score", "derive_oc_ledger"),
+    # THE PLUGIN'S DERIVER, not `score`'s. Goal E moved the criteria scorer to
+    # `COURSE_METADATA/scorers/oc.py`; this pair is (module, function) and is
+    # resolved dynamically, which is why a grep for the call site does not find
+    # it -- the module name is DATA here.
+    "derive_from_criteria": (("scorers:oc", "derive_ledger"),
                              ("score", "_expect_rule")),
     "derive_from_credit": (("score", "derive_ledger"),),
 }
@@ -724,7 +729,7 @@ def harness_ask_sha() -> str:
     out = []
     for mod, name in _scoped_closure(_HARNESS_ASK_FNS):
         try:
-            got = inspect.getsource(getattr(importlib.import_module(mod), name))
+            got = inspect.getsource(getattr(_part_module(mod), name))
             out.append(_behaviour_src(got))
         except Exception:
             out.append(f"<missing {mod}.{name}>")
@@ -740,11 +745,29 @@ def paper_render_sha(item: str | None = None) -> str:
     out = []
     for mod, name in _scoped_closure(_PAPER_RENDER_FNS):
         try:
-            got = inspect.getsource(getattr(importlib.import_module(mod), name))
+            got = inspect.getsource(getattr(_part_module(mod), name))
             out.append(_behaviour_src(got))
         except Exception:
             out.append(f"<missing {mod}.{name}>")
     return hashlib.sha256("".join(out).encode()).hexdigest()[:12]
+
+
+def _part_module(mod: str):
+    """The module named by a (module, function) pair, resolving SCORER refs.
+
+    Goal E. These pairs are DATA -- the module name is a string in a table, which
+    is why a grep for the call site does not find it and why moving the OC scorer
+    broke `paper_scorer_agreement` 960 times before this was written. A plugin
+    cannot be named by an import path, because which file implements `oc` is the
+    COURSE's answer, so a `scorers:<name>` reference is resolved through the
+    registry and anything else is imported as before.
+    """
+    import importlib
+
+    if mod.startswith("scorers:"):
+        import scorers
+        return scorers.optional(mod.split(":", 1)[1])
+    return importlib.import_module(mod)
 
 
 def _paper_parts(item: str | None) -> tuple:
@@ -818,7 +841,7 @@ def _local_callees(mod_name: str, fn_name: str) -> list[tuple[str, str]]:
         return bool(f) and _P(f).resolve().parent == here
 
     try:
-        mod = importlib.import_module(mod_name)
+        mod = _part_module(mod_name)
         fn = getattr(mod, fn_name)
         tree = ast.parse(textwrap.dedent(inspect.getsource(fn)))
     except Exception:
@@ -1322,7 +1345,7 @@ def ask_sha(item: str, side: str | None = None) -> str:
         import olx_prompts as O
 
         job = _jobs()[item]
-        act = A.load_action(f"bmod_handout{job['handout']}.olx", O.ACTION[item])
+        act = A.load_action(_p7.handout_olx(job['handout']), O.ACTION[item])
         schema = A.build_schema(act["slots"], act["excluded"], act["show_checks"],
                                 act["cover"], act["choices"])
         parts = [_json.dumps(schema, sort_keys=True)]
@@ -1365,7 +1388,7 @@ def scorer_sha(item: str | None = None, side: str | None = None) -> str:
     roots = _paper_parts(item) if side in PAPER_SIDES else _parts_for(item)
     for mod, name in _scoped_closure(roots):
         try:
-            got = inspect.getsource(getattr(importlib.import_module(mod), name))
+            got = inspect.getsource(getattr(_part_module(mod), name))
             src.append(_behaviour_src(got))
         except Exception:
             src.append(f"<missing {mod}.{name}>")
@@ -1888,7 +1911,7 @@ def sweep_summary(item: str) -> str:
     h = _jobs()[item]["handout"]
     g = _corrected_gold(h)
     try:
-        spec = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+        spec = A.load_action(_p7.handout_olx(h), O.ACTION[item])
         # GATES INCLUDED. They carry no points and can zero the item, so a
         # per-check table without them omits its most expensive checks -- see
         # _charging_slots. What they cannot do is be compared against a PARTIAL
@@ -2384,7 +2407,20 @@ def _ENF():
 # its boolean sense (True = phrased by what is avoided)." The NAME mapping is
 # machine-readable there; the inversion is not, so it is named here and nowhere
 # else.
-_INVERTED_SENSE = frozenset({"avoidance_frame"})
+def _inverted_sense() -> frozenset:
+    """Fields whose SENSE flips between the sides, as the COURSE declares them.
+
+    Goal P. This was `frozenset({"avoidance_frame"})` -- the engine naming one of
+    this course's facts, with a comment saying it was named "here and nowhere
+    else" precisely because the inversion was the half the alias map could not
+    carry. `SIDE_INVERTED` carries it now, beside `SIDE_ALIAS`, so both halves of
+    the same fact travel together and neither is in engine code.
+    """
+    import coursedata
+    return frozenset(coursedata.declaration("SIDE_INVERTED"))
+
+
+_INVERTED_SENSE = _inverted_sense()
 
 
 def _web_slot_names(item_id: str, handout: int) -> set:
@@ -2394,7 +2430,7 @@ def _web_slot_names(item_id: str, handout: int) -> set:
 
     if item_id in O.SHEET_ONLY:
         return {s["key"] for s in O.parse_slots(*O._slots_attr(handout, O.SHEET_ONLY[item_id]))}
-    spec = A.load_action(f"bmod_handout{handout}.olx", O.ACTION[item_id])
+    spec = A.load_action(_p7.handout_olx(handout), O.ACTION[item_id])
     return {s["key"] for s in spec["slots"]}
 
 
@@ -2554,7 +2590,11 @@ def web_judgments_through_paper() -> dict:
                 try:
                     if item.get("derive_from_criteria"):
                         raw = {"oc_analysis": _web_oc_analysis(item, verd or {}, picks, web_keys)}
-                        led, _c, _u, _adv = SC.derive_oc_ledger(item, raw)
+                        import scorers as _sc
+                        _oc = _sc.optional("oc")
+                        if _oc is None:
+                            continue        # no criteria scorer: nothing to compare
+                        led, _c, _u, _adv = _oc.derive_ledger(item, raw)
                     else:
                         slots = _web_credit_slots(item, verd or {}, picks, web_keys)
                         if not slots:
@@ -2731,7 +2771,7 @@ def paper_scorer_agreement() -> dict:
             out["skipped"].append(item)
             continue
         try:
-            action = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+            action = A.load_action(_p7.handout_olx(h), O.ACTION[item])
             spec = dict(job, slots=action["slots"], cover=action["cover"],
                         requires=action["requires"])
             rub = H.config(h)["rubric"].BY_ID[item]
@@ -3093,7 +3133,7 @@ def refusal_precision(item: str, side: str = DEFAULT_SIDE) -> str:
     import olx_prompts as O
 
     try:
-        spec = A.load_action(f"bmod_handout{_jobs()[item]['handout']}.olx",
+        spec = A.load_action(_p7.handout_olx(_jobs()[item]['handout']),
                              O.ACTION[item])
         scored = _charging_slots(spec)
     except Exception as e:
@@ -3264,7 +3304,7 @@ def error_profile(item: str, runs_path: str) -> str:
 
     # Which slots are unsatisfied, and do they track the errors?
     try:
-        spec = A.load_action(f"bmod_handout{h}.olx", __import__("olx_prompts").ACTION[item])
+        spec = A.load_action(_p7.handout_olx(h), __import__("olx_prompts").ACTION[item])
         slots = spec["slots"]
     except Exception:
         slots = []
@@ -3507,7 +3547,19 @@ def derived_verdicts(item: str, result: dict) -> dict:
         _h, tag = None, None
         import probe as _P
 
-        _h, tag = _P._element(item, "observed_type")
+        # ANY DECLARED SLOT WILL DO -- this is a HANDLE for finding the item's
+        # element, not a fact being read. Goal P: it was `"observed_type"`, one
+        # of this course's facts hardcoded in the engine, and measurement shows
+        # the argument is IGNORED for every item that has an `ACTION` (all eight
+        # criteria items among them) and resolves to the SAME element for the
+        # rest. So the item's own first declared slot is exactly as good and
+        # names no subject.
+        import rubric_component as _rc
+
+        _rows = _rc.as_view_slot_spec().get(item) or []
+        if not _rows:
+            return {}
+        _h, tag = _P._element(item, _rows[0]["key"])
     except Exception:
         return {}
     if not tag:
@@ -4025,6 +4077,14 @@ def _scores_for(item: str, pid: int, runs_path: str | None) -> list:
 # was wrong it says which cell, and if the app's scoring changes again the
 # fingerprints move and the pair stops matching on its own.
 WEB_CODE_NEUTRAL: dict[tuple[str, str], str] = {
+    ("36f9f2bf5c02", "6275a4a81f56"):
+        "the app gained CODED DEDUCTIONS -- slotSheet.ts now parses charge/because and scoreSlotSheet returns a deductions[] -- which is REPORTING, not arithmetic: score, max and failed are computed without consulting it. VERIFIED 2026-09-24 by re-scoring every recorded olx cell through the APP'S OWN CODE (tsx over slotSheet.scoreSlotSheet, verdicts and picks lifted with cross_path.result_cell/result_picks so the fraction-of-sheet_max conversion is not re-derived): 2,760 cells, 0 moved, 0 errors, 0 non-finite. Controls: shifting every stored score by +0.5 moves all 2,760, and flipping one met->absent per cell moves 1,736 -- so the comparison can fail and the zero is evidence. An earlier run of the same harness reported 0 moved VACUOUSLY because an options bag was passed as `explicitMax`, making every score NaN, and Math.abs(NaN-x)>1e-9 is false; the +0.5 control is what exposed it.",
+    ("416cb4828bb5", "7653b7e33a3c"):
+        "the app gained CODED DEDUCTIONS -- slotSheet.ts now parses charge/because and scoreSlotSheet returns a deductions[] -- which is REPORTING, not arithmetic: score, max and failed are computed without consulting it. VERIFIED 2026-09-24 by re-scoring every recorded olx cell through the APP'S OWN CODE (tsx over slotSheet.scoreSlotSheet, verdicts and picks lifted with cross_path.result_cell/result_picks so the fraction-of-sheet_max conversion is not re-derived): 2,760 cells, 0 moved, 0 errors, 0 non-finite. Controls: shifting every stored score by +0.5 moves all 2,760, and flipping one met->absent per cell moves 1,736 -- so the comparison can fail and the zero is evidence. An earlier run of the same harness reported 0 moved VACUOUSLY because an options bag was passed as `explicitMax`, making every score NaN, and Math.abs(NaN-x)>1e-9 is false; the +0.5 control is what exposed it.",
+    ("214b69c01f19", "2b7948cd1344"):
+        "the app gained CODED DEDUCTIONS -- slotSheet.ts now parses charge/because and scoreSlotSheet returns a deductions[] -- which is REPORTING, not arithmetic: score, max and failed are computed without consulting it. VERIFIED 2026-09-24 by re-scoring every recorded olx cell through the APP'S OWN CODE (tsx over slotSheet.scoreSlotSheet, verdicts and picks lifted with cross_path.result_cell/result_picks so the fraction-of-sheet_max conversion is not re-derived): 2,760 cells, 0 moved, 0 errors, 0 non-finite. Controls: shifting every stored score by +0.5 moves all 2,760, and flipping one met->absent per cell moves 1,736 -- so the comparison can fail and the zero is evidence. An earlier run of the same harness reported 0 moved VACUOUSLY because an options bag was passed as `explicitMax`, making every score NaN, and Math.abs(NaN-x)>1e-9 is false; the +0.5 control is what exposed it.",
+    ("2913aa2b95b7", "8fad3e0c4f5f"):
+        "the app gained CODED DEDUCTIONS -- slotSheet.ts now parses charge/because and scoreSlotSheet returns a deductions[] -- which is REPORTING, not arithmetic: score, max and failed are computed without consulting it. VERIFIED 2026-09-24 by re-scoring every recorded olx cell through the APP'S OWN CODE (tsx over slotSheet.scoreSlotSheet, verdicts and picks lifted with cross_path.result_cell/result_picks so the fraction-of-sheet_max conversion is not re-derived): 2,760 cells, 0 moved, 0 errors, 0 non-finite. Controls: shifting every stored score by +0.5 moves all 2,760, and flipping one met->absent per cell moves 1,736 -- so the comparison can fail and the zero is evidence. An earlier run of the same harness reported 0 moved VACUOUSLY because an options bag was passed as `explicitMax`, making every score NaN, and Math.abs(NaN-x)>1e-9 is false; the +0.5 control is what exposed it.",
 }
 
 
@@ -5554,7 +5614,7 @@ def rescore_recorded(item: str, side: str) -> tuple[int, list[str], str | None]:
     except KeyError:
         return 0, [], "not in the job table"
     try:
-        spec = A.load_action(f"bmod_handout{h}.olx", O.ACTION[item])
+        spec = A.load_action(_p7.handout_olx(h), O.ACTION[item])
         rub = H.config(h)["rubric"].BY_ID[item]
         scorer = A.SCORERS[spec.get("kind") or "slots"]
     except Exception as e:
@@ -5674,7 +5734,7 @@ def _our_failing_slots(item: str, pid: int, side: str = DEFAULT_SIDE):
     if doc is None:
         return []
     try:
-        spec = A.load_action(f"bmod_handout{_jobs()[item]['handout']}.olx",
+        spec = A.load_action(_p7.handout_olx(_jobs()[item]['handout']),
                             O.ACTION[item])
         runs = doc["runs"]
     except Exception:
@@ -5880,7 +5940,7 @@ def gold_slot_disagreements() -> list[str]:
             g = H.apply_corrected_gold(
                 {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}[h](), h)
             spec = __import__("agreement").load_action(
-                f"bmod_handout{h}.olx", O.ACTION[item])
+                _p7.handout_olx(h), O.ACTION[item])
         except Exception:
             continue
         pts = {s["key"]: s["pts"] for s in spec["slots"] if s.get("pts") is not None}
@@ -6804,8 +6864,9 @@ def _pick_slots(item_id: str) -> frozenset:
     import olx_prompts as O
     import handouts as _H_R
 
-    for mod in (_H_R.config(1)["rubric"], _H_R.config(2)["rubric"],
-                _H_R.config(3)["rubric"]):
+    # J-3. WAS config(1)/config(2)/config(3) written out, so a four-handout
+    # course would have been audited on three of them and said nothing.
+    for mod in (_H_R.config(h)["rubric"] for h in _H_R.declared()):
         spec = (getattr(mod, "SLOT_SPEC", {}) or {}).get(item_id)
         if spec:
             return frozenset(d["key"] for d in spec if O.pick_set(d.get("seg")))

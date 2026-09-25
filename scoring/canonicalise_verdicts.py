@@ -49,6 +49,7 @@ import sys
 
 import olx_prompts
 import paths
+import paths as _p7   # J-7b: this course's handout file names
 
 MET, ABSENT = "met", "absent"
 
@@ -197,7 +198,7 @@ def main() -> int:
     args = ap.parse_args()
 
     total = 0
-    for f in sorted(paths.OLX_DIR.glob("bmod_handout*.olx")):
+    for f in sorted(paths.OLX_DIR.glob(_p7.handout_olx_glob())):
         src = f.read_text()
         out, notes, problems, deferred = process(src)
         if problems:

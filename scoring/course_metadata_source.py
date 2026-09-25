@@ -67,7 +67,49 @@ CONTEXT_SOURCE = {
 # h1 alone has `exemplar_items`. Assuming uniformity would have left two
 # course-data flags behind and carried neither.
 # ---------------------------------------------------------------------------
-HANDOUT_FIELDS = {'1': {'blurb': 'Handout 1 of the Behavior Modification Assignment: defining behaviours, the ABCs of a functional behavioural analysis, and SMART goals.', 'capture_tail': False, 'exemplar_items': []}, '2': {'blurb': "Handout 2 of the Behavior Modification Assignment: applying the four types of operant conditioning to the student's own behaviour-change plan.", 'capture_tail': True, 'repair_orphans': True}, '3': {'blurb': 'Handout 3 of the Behavior Modification Assignment: presenting and graphing the data collected during the intervention, and analysing the result.', 'capture_tail': True, 'join_aware': True}}
+# Handout-level course facts. J-4 widened this from three fields to eight:
+# the three PATH fields are stored as LEAVES -- the file name and the
+# directory name -- because the bases (`MATERIALS`, `SUBS`, `OUT`) are where
+# THIS MACHINE keeps course data, not a fact about the course. `handouts.py`
+# joins them. Storing absolute paths would mean relocating $COURSE_DATA
+# required a course-file edit.
+#
+# `markers` is deliberately NOT here: `handouts.py` takes it from `segment`,
+# which already reads it from the course file, so the two are the same
+# object rather than two copies.
+HANDOUT_FIELDS = {'1': {'blurb': 'Handout 1 of the Behavior Modification Assignment: defining '
+                'behaviours, the ABCs of a functional behavioural analysis, '
+                'and SMART goals.',
+       'capture_tail': False,
+       'cited_participants': {'Q5': []},
+       'exemplar_items': [],
+       'exemplar_participants': [10, 8, 6],
+       'outdir_name': 'h1',
+       'submissions_dir': 'Handout 1 Submissions with Scoring and Feedback',
+       'template_file': 'BMod Handout #1 - Defining Behaviors, ABCs, and '
+                        'SMART Goals.docx'},
+ '2': {'blurb': 'Handout 2 of the Behavior Modification Assignment: applying '
+                "the four types of operant conditioning to the student's own "
+                'behaviour-change plan.',
+       'capture_tail': True,
+       'exemplar_participants': [],
+       'outdir_name': 'h2',
+       'repair_orphans': True,
+       'submissions_dir': 'Handout 2 Submissions with Scoring and Feedback',
+       'suspect_participants': [2, 3],
+       'template_file': 'BMod Handout #2 - Learning Operant Conditioning and '
+                        'Applying It to Behavior Change.docx'},
+ '3': {'blurb': 'Handout 3 of the Behavior Modification Assignment: '
+                'presenting and graphing the data collected during the '
+                'intervention, and analysing the result.',
+       'capture_tail': True,
+       'cited_participants': {},
+       'exemplar_participants': [],
+       'join_aware': True,
+       'outdir_name': 'h3',
+       'submissions_dir': 'Handout 3 Submissions with Scoring and Feedback',
+       'template_file': 'BMod Handout #3 - Presenting Data, Graphing Data, '
+                        '&amp_ Analyzing Your Intervention.docx'}}
 
 
 # Items scored from a slot sheet with NO prompt: every verdict is derived from
@@ -173,3 +215,95 @@ CONTEXT: dict[str, list[tuple[str, str]]] = {
              ("How (2)", "bmod_h3_success_how2")],
     "2b":   [("", "bmod_h3_assessment_response")],
 }
+
+# ── The operant vocabulary's SIDE MAP and PROBE FIXTURES (goal P) ────────────
+#
+# Moved out of `enforcement.py` 2026-09-24. They were engine code naming THIS
+# COURSE'S FACTS -- `avoidance_frame`, `cadence_ok`, `targets_own_behavior` and
+# seven more, across 60 code sites in five engine modules. A second course would
+# have met an engine that already knew this course's psychology, which is the
+# `bmod_handout1` defect one level in: not a file name this time, but the name of
+# a thing the model is asked.
+#
+# The ENGINE may not name a fact. A COURSE must, and this is where it does it.
+#
+# SIDE_ALIAS: the same rule under its two names, web value second. An unmapped
+# key is REPORTED, never assumed equivalent -- that rule stays in the engine
+# because it is about how to treat a gap, not about which names exist.
+SIDE_ALIAS = {'avoidance_frame': ('phrased_directly_gate', 'phrased_directly'),
+ 'baseline': ('baseline', 'baseline_data'),
+ 'behavior': 'names_behavior',
+ 'cadence_ok': ('cadence_is_daily',
+                'cadence_is_daily_counted',
+                'cadence_is_weekly'),
+ 'contingent_on_behavior': 'contingent',
+ 'is_np': 'demonstrates_type',
+ 'is_nr': 'demonstrates_type',
+ 'is_pp': 'demonstrates_type',
+ 'is_pr': 'demonstrates_type',
+ 'observed_type': ('demonstrates_type', 'observed_type'),
+ 'operant_behavior': 'names_behavior',
+ 'stimulus': 'names_stimulus',
+ 'stimulus_is_arranged': 'you_arrange_it',
+ 'stimulus_move': ('demonstrates_type', 'stimulus_move'),
+ 'targets_intended_behavior': ('targets_goal_behavior',
+                               'targets_unwanted_behavior'),
+ 'week_1': ('week_1', 'week_1_data'),
+ 'week_2': ('week_2', 'week_2_data'),
+ 'week_3': ('week_3', 'week_3_data')}
+
+# The one field whose SENSE flips between the sides. `SIDE_ALIAS` carries the
+# NAME mapping and always could; the inversion was the half that was not
+# machine-readable, so it was named in `measured.py` "here and nowhere else".
+# Declared beside the names it belongs with, so both halves travel together.
+SIDE_INVERTED = ['avoidance_frame']
+
+# The synthetic probe sheets: the value of each fact on an answer that PASSES and
+# on one that FAILS. The enforcement audit builds hypothetical sheets from these
+# to prove a rule fires -- so they are this course's answers to this course's
+# questions, and the comments explaining each choice travel with them.
+PROBE_PASS = {'agent_delivers_consequence': True,
+ 'aimed_correctly': True,
+ 'avoidance_frame': False,
+ 'behavior': 'walking to class',
+ 'cadence_ok': True,
+ 'consequence_asserted': True,
+ 'contingent': True,
+ 'follows_behavior': True,
+ 'restriction_authored': 'relieved',
+ 'restricts': 'target_behavior',
+ 'states_a_contingency': True,
+ 'stimulus': 'a coffee',
+ 'stimulus_is_arranged': True,
+ 'stimulus_move': {'NP': 'taken_desirable',
+                   'NR': 'taken_undesirable',
+                   'PP': 'given_undesirable',
+                   'PR': 'given_desirable'},
+ 'targets_intended_behavior': True,
+ 'targets_own_behavior': True,
+ 'trigger_expects': 'gain'}
+
+PROBE_FAIL = {'agent_delivers_consequence': False,
+ 'aimed_correctly': False,
+ 'avoidance_frame': True,
+ 'behavior': '',
+ 'cadence_ok': False,
+ 'consequence_asserted': False,
+ 'contingent': False,
+ 'follows_behavior': False,
+ 'restriction_authored': 'created',
+ 'restricts': 'target_behavior',
+ 'states_a_contingency': False,
+ 'stimulus': '',
+ 'stimulus_is_arranged': False,
+ 'stimulus_move': {'NP': 'taken_undesirable',
+                   'NR': 'taken_desirable',
+                   'PP': 'given_desirable',
+                   'PR': 'given_undesirable'},
+ 'targets_intended_behavior': False,
+ 'targets_own_behavior': False,
+ 'trigger_expects': 'loss'}
+
+# Handled separately by the audit: their failing value depends on the other, and
+# a naive flip can make them agree again.
+PROBE_TYPE_FIELDS = ['observed_type', 'named_type', 'trigger_behavior']

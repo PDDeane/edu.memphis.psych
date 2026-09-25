@@ -5856,7 +5856,1251 @@ them. Settle these first or K will port them as they are.
    rest are unread, and K's sorting (schema / structure / measurement) needs the
    same reading to know what may leave python at all.
 
-### L · `$COURSE_DATA` ON SHARED STORAGE -- feasible, and the hard part is not technical
+
+#### J · PREPARED WORK, 2026-09-24 (measured, not applied)
+
+Folded in from the working notes so it lives with its goal.
+
+Written 2026-09-24 while the post-split certification ran. Everything here is
+DESIGNED, not applied. Items 4–6 execute the moment certification lands; J and L
+wait on the user's say-so.
+
+---
+
+## 1. The EXPECT duplication — eliminate it by retiring a STALE PREMISE
+
+**What the duplication actually is.** Two tables in `rubric_h2_source.py` —
+`EXPECT` (line 1106, WK1's `targets_own_behavior`) and `_EXPECT_SHIPPED`
+(line 1191, NP/NR/PP/PR's `demonstrates_type`) — together hold exactly the five
+`<Expect>` elements in `psychology/bmod_rubric.olx`. They match perfectly: no
+extra on either side, no drift. `expect` never reaches `course.json`.
+
+**Why it exists.** It is a MIGRATION-VERIFICATION PAIR, not redundancy:
+
+| | role |
+|---|---|
+| builder tables | the DECLARATION — what was authored |
+| `.olx` `expect=` | the GENERATED artifact |
+| `check_olx_attributes_are_all_generated` | every generated attribute traces to a declaration |
+| selftest case `a rubric declaration is removed, its attribute is not` | picks an item with BOTH, drops both, asserts `GENERATED ATTRIBUTE HAS NO DECLARATION` fires |
+
+**Why it can now go.** Goal C is complete — *python no longer produces the OLX*.
+The OLX is hand-authored and IS the source. A check that every generated
+attribute has a declaration is asking about a generation that no longer happens.
+**The stale thing is the check's premise, not the data**, which is why deleting
+the tables naively would look like vandalism and why nothing has removed them.
+
+**The change, in order. Each step leaves the tree certifiable.**
+
+1. Add `EXPECT` to `coursedata.DERIVATIONS`, reading `<Expect>` off the rubric
+   component — the pattern already used for SLOT_SPEC, MAPS, FORBID, OC_GATES,
+   the seven `*_ITEMS` tables, REQUIRED_MOVE and SLOT_OPTIONS.
+2. Point the PAPER path at it: `score.py` reads `item["expect"]` (lines 308, 916)
+   from items built by the component rather than by the builder.
+3. Prove equality BEFORE deleting anything — assert the component-derived table
+   equals the builder's two tables, all five entries, for one full certification.
+   This is `migrated_tables.py`'s own discipline applied to itself.
+4. Retire the two builder tables with `editguard.safe_write(..., dropping=[...])`.
+5. **Re-point the selftest case, do not delete it.** With one source, "a
+   declaration removed while its attribute stays" is no longer a reachable state.
+   The case becomes: remove the rubric's `<Expect>` and assert BOTH engines stop
+   seeing it — which tests the property that now matters, that the two sides read
+   one source. Deleting the case would retire coverage rather than re-aim it.
+6. Re-point `check_olx_attributes_are_all_generated` the same way, or declare it
+   expired with the reason, as `enforcement.py:4281` did for its own repointing.
+
+**Do not skip step 3.** The two tables agreeing today is what makes this safe;
+that agreement is the thing to verify, not assume.
+
+---
+
+## 2. The handout-set revision — 67 sites, population reconciled
+
+`handouts.HANDOUTS` is the declared set; `baseline.py` already reads it correctly
+(`choices=sorted(HANDOUTS)`). Everywhere else the literal `(1, 2, 3)` is inline.
+
+**FIX SET — 67**
+- 59 × `for h|hh|handout in (1, 2, 3)` — enforcement (39), measured (5), probe (2),
+  sweep_readout (3), olx_prompts (3), self_graded_misses (2), precommit_gate (2),
+  rubric_export, score, leakage, handouts, equivalence
+- 3 × a module-level `HANDOUTS = (1, 2, 3)` of its own — `rubric_export.py:44`,
+  `rubric_equivalence.py:42`, `reader_equivalence.py:55`. None imports
+  `handouts`, so this is the same fact declared independently four times
+- 3 × `for hnd|_h in (1, 2, 3)` — enforcement 12454, 12465, 15557
+- 2 × head_to_head (`for _h`, and `("ALL", (1, 2, 3))` in a label table)
+
+**MUST NOT CHANGE — 7.** A blind replacement corrupts these:
+- `probe.py:242,243`, `declaration_source.py:651,663` — `for n in (1, 2, 3)` is a
+  SENTENCE index (`sentence_{n}`), not a handout
+- `measured.py:4615` — `len(a) in (1, 2, 3)` is an argument count
+- `rubric_equivalence.py:134`, `reader_equivalence.py:411` — prose in comments
+
+67 + 7 = 74, the full population. Rule: the set comes from
+`sorted(handouts.HANDOUTS)`; a literal handout tuple is a finding. Add a
+`check_*` once converted, or it grows back. Needs its own certification cycle.
+
+---
+
+## 5. `tools/guide.py` — split the resolution, do not repoint it
+
+NOW UNBLOCKED: zero lessons await approval, so the approval machinery can move.
+
+`GUIDE` feeds two consumers with opposite requirements:
+
+| consumer | needs | why |
+|---|---|---|
+| `check()` — lines 146, 250, 305 | the **composed** document | it validates what READERS see, and a §-citation or backticked identifier can live in either half |
+| `unapproved_lessons()` — line 535 | the **generic** half | it diffs against `git show HEAD:./QUALITY_CONTROL.md`, and only the generic half is tracked there |
+
+Repointing `GUIDE` wholesale — the one-line "fix" — would make the lesson check
+compare the composed document against the HEAD-committed generic half and flag
+every course-half lesson as newly added.
+
+**Change:** give `check()` a `composed_path()` resolution and leave
+`unapproved_lessons()` on `paths.SCORING`. At the same time add
+`"QUALITY_CONTROL.md": "composed"` to `equivalence._SELFTEST_DOC_HOME`, so the
+two QC injection cases land where `check()` now reads — the same lockstep the
+GOALS.md fix established. Verify: the two QC selftest cases must still DETECT,
+not MISS.
+
+**Live gap this closes:** the course half already carries a `§2k` citation and
+dozens of backticked identifiers that nothing validates.
+
+---
+
+## 6. `compose_docs.missing()` — it cannot see a lost course half
+
+It checks only that the COMPOSED path exists, so "no course half because nothing
+moved" and "course half lost in a checkout" are indistinguishable — the exact
+failure its own docstring says it exists to prevent.
+
+**Change, in the project's idiom (`migrated_tables.py`: DECLARED RATHER THAN
+SNIFFED):** a split document with no course half must declare that fact, e.g.
+`NO_COURSE_HALF = frozenset({...})`. `missing()` then reports a split doc whose
+specific half is absent and undeclared. Today every one of the four has a course
+half, so the declared set is EMPTY and the check is pure ratchet.
+
+---
+
+## J. `scoring/` becomes its own repository
+
+**Blocker cleared today:** the 4.2 MB of course materials are copied to
+`$COURSE_DATA/courses/edu.memphis.psych/materials/` and verified byte-identical;
+`paths.MATERIALS` and the removal land when certification does.
+
+**What the module audit established** (`scoring/MODULE_AUDIT.md`), 76 modules:
+
+| category | modules | loc | course signal |
+|---|---:|---:|---:|
+| COURSE-CONTENT (`*_source.py` builders) | 5 | 3,547 | 53 |
+| SEAM (paths, coursedata, handouts, rubric_*) | 6 | 3,742 | 2 |
+| ONE-OFF / migration | 14 | 3,341 | 4 |
+| ENGINE | 51 | 53,268 | 74 |
+
+**Order of work:**
+1. Finish the materials move; re-certify.
+2. Resolve the five builder modules — they are course content by nature. Either
+   they move to `$COURSE_METADATA` with the rest of the authoring artifacts, or
+   they retire once the rubric is the sole source (item 1 is the first instance
+   of exactly that question, and its answer sets the pattern).
+3. Convert the 67 handout-set sites (item 2), so the engine stops assuming three
+   handouts.
+4. Triage the 14 one-offs — two are already self-documenting tombstones
+   (`rubric_equivalence`, `reader_equivalence`) and must keep their pointer to
+   `STAGE5_LICENCE.md`.
+5. Then split the repository: `scoring/` + `scoring/tools/` move; `psychology/`,
+   `course_metadata/` and `$COURSE_DATA` stay with the course.
+6. `paths.py` is the whole seam. After the split its roots are found by env var
+   with no in-repo defaults, because the engine no longer knows where a course is.
+
+**Precondition not yet met:** the 74 course-signal units still in ENGINE modules,
+43 of them in five files (measured, enforcement, olx_prompts, equivalence, score).
+Most is docstring prose, which the ratchet counts and a reader would forgive —
+but J should not ship with the engine's own documentation naming this course's
+items. Measure with `tools/course_inventory.py` and drive it to zero.
+
+---
+
+## L. `$COURSE_DATA` on shared storage, with write locking
+
+**Goal:** `$COURSE_DATA` cannot live in a repository but must be reachable by
+everyone working on the project. Target is the existing Drive folder holding the
+raw materials.
+
+**Access.** `rclone mount` with a service account is the only option that makes
+`$COURSE_DATA` a real POSIX path, which every reader here assumes (`paths.py`
+hands out `Path` objects and modules `open()` them). Google Drive for Desktop is
+per-user and interactive, so it fails in cron and headless runs — the same class
+of failure as the MCP caveat on workflow agents. The Drive API without a mount
+would mean rewriting every reader, which is out of proportion.
+
+**The locking requirement, which is the substance.** Drive has no POSIX advisory
+locks and `rclone mount` does not provide `flock` semantics, so locking must be
+implemented in the project, not borrowed from the filesystem.
+
+Design — a lock DIRECTORY, not a lock file:
+
+* `mkdir` is atomic on the underlying store in a way `O_EXCL` on a file is not
+  once a network filesystem is between you and it. The winner is whoever's
+  `mkdir` succeeds.
+* the directory holds `holder.json`: user, host, pid, ISO timestamp, and the
+  operation being performed, so a blocked writer can SAY who it is waiting for
+  rather than just hanging.
+* **block until clear**, as asked, with a ceiling: poll with backoff, and after a
+  declared timeout FAIL LOUDLY naming the holder. A wait that never ends is
+  indistinguishable from a hang, which is the `wait_loop_self_match` lesson.
+* **stale-lock policy must be declared, not inferred.** A holder that died leaves
+  the directory behind. Do not auto-break on age alone — print the holder and
+  require `--break-lock`, because silently stealing a lock from a live slow
+  writer is worse than waiting.
+* scope: one lock per WRITE TARGET (`out/`, `courses/<ns>/`), not one global
+  lock, so a sweep writing `out/` does not block a document rebuild.
+
+**Where it goes.** A single `paths.locked_write(target)` context manager, since
+`paths.py` is already the one module that owns filesystem locations and
+`check_filesystem_locations_come_from_paths_py` enforces that. Every writer to
+`$COURSE_DATA` acquires through it; a writer that does not is a finding.
+
+**Verify before trusting:** two processes racing the same target, one must block
+and then proceed; a killed holder must leave a lock that is REPORTED, not
+silently broken; and a reader must never block, because reads outnumber writes
+hugely and blocking them would make the mount unusable.
+
+---
+
+## J precondition, measured: 78 course-signal units in 26 ENGINE modules
+
+`tools/course_inventory.py`, 2026-09-24. By kind: vocabulary 39, literal_ids 22,
+tables 11, named 6.
+
+### The 22 literal_ids are TWO patterns, not twenty-two problems
+
+**(a) `item == "1c"` — ten sites, four modules.** The single biggest cluster:
+`measured.py` ×7 (1741, 2184, 3003, 3196, 3815, 3885, 6449), `compare_runs.py:128`,
+`enforcement.py:13225`, `olx_prompts.py:1868`. Two of them pass
+`rebuild_1c=(item == "1c")` into `_corrected_gold`, so the item id has reached a
+PARAMETER NAME.
+
+This is the graph item, and **the rubric already declares the property**:
+`handouts.py:846` refers to `derived="has_own_graph:complete:..."` in the OLX. So
+the fix is a property test — *does this item declare a derived graph?* — read
+from the rubric component, exactly as `coursedata.DERIVATIONS` does for the other
+tables. Ten sites collapse to one predicate, and the engine stops knowing that
+this course's graph item is called `1c`.
+
+**(b) selftest and test-fixture item picks — eleven sites.**
+`equivalence.py` ×7 inside `enforcement_selftest`, `reader_equivalence.py` ×4 in
+`_mutations`, `q6_consensus.py` ×1. The suite ALREADY HAS the right mechanism:
+`_pick(label, candidates, why)` chooses a target dynamically and records why —
+it is used for the GOALS case and the `cover`-group case. These eleven hardcode
+what `_pick` exists to select. Converting them is mechanical and removes the
+"first h1 item with a keyed cover group" class of hidden assumption.
+
+### The 11 tables
+
+| module | table | lines | note |
+|---|---|---:|---|
+| `goals.py` | `CLOSURES_APPROVED` | 234 | an ACCUMULATING record of approved closures — belongs in `$COURSE_DATA` with GOALS.md, by the rule that already moved the ledger |
+| `precommit_gate.py` | `NOT_STUDENT_TEXT` | 153 | only ONE item id in 153 lines; check whether it is course data at all before moving it |
+| `enforcement.py` | `PROBE_PROVOCATIONS` | 113 | course data |
+| `enforcement.py` | `_PASS` / `_FAIL` | 31 / 33 | the oc_analysis probe tables, keyed by type |
+| `probe.py` | `ANSWERED_UNDER` | 18 | course data |
+| `gold.py` | `H1/H2/H3_HEADER_TO_ITEM` | 28 | maps grader-workbook column headers to item ids — pure course data, and the clearest candidate for `$COURSE_METADATA` |
+| `slot_vocab.py` | `RUBRIC_EXTRAS` | 10 | course data |
+| `leakage.py` | `CADENCE` | 1 | course data |
+
+### The 6 NAMED modules
+
+`baseline_h1.py`, `score_h1.py` (h1), `simulate_h3.py` (h3), `q6_consensus.py`
+(Q6), `gold.py`, `gold_export.py` (gold). Engine modules named for a course
+artifact. Renaming is cosmetic but the ratchet counts it, and
+`check_no_module_is_named_for_a_course_artifact` already exists — so these are
+either renamed or declared, not left silent.
+
+### Order
+
+1. `item == "1c"` → a declared property. Biggest win, ten sites, and it removes an
+   item id from a parameter name.
+2. The eleven selftest picks → `_pick`. Mechanical, and the mechanism is already there.
+3. `CLOSURES_APPROVED` → `$COURSE_DATA`, following GOALS.md.
+4. The remaining tables → `$COURSE_METADATA`, starting with `gold.py`'s three.
+5. The six module names → rename or declare.
+6. The 39 vocabulary units are docstring prose; sweep last, since they are
+   documentation rather than behaviour and the ratchet's vocabulary arm reads
+   DOCSTRINGS ONLY (see MODULE_AUDIT.md F1).
+
+---
+
+## J, revised: the blocker is a MISSING DEFAULT COURSE, not eager loading
+
+**A wrong turn, recorded because the reasoning matters.** I measured that 7 of 18
+engine modules `SystemExit` at import against an empty `$COURSE_DATA`, and
+proposed making the 51 eager module-level course loads lazy. That was wrong twice:
+
+* **The user's correction:** a scorer needing course data to load is a LOGICAL
+  NECESSITY — there is nothing to score without it. Laziness defers the failure
+  rather than fixing it. The real problem is the BOOTSTRAP case: starting a new
+  project should not mean borrowing someone's real course.
+* **The code's own record:** `coursedata.gold_declaration`'s docstring says
+  *"EAGER AT THE CALL SITE, BY DESIGN ... importing a gold-consuming module now
+  fails if the gold file is UNREACHABLE, where before the data was inline and it
+  did not"*, and names subgoal C1b. The eagerness is measured, declared work.
+  Making it lazy would have quietly undone it. (See the standing lesson: the
+  comment above a rule usually holds prior measured work.)
+
+### The fix: ship a STUB COURSE with the engine
+
+A minimal course the engine falls back to when `$COURSE_DATA` points at no real
+one — enough to initialise, and meant to be modified or repointed.
+
+It buys three things laziness could not:
+1. the engine repo becomes testable, lintable and CI-able on its own;
+2. a new project starts from a template instead of a real cohort's data;
+3. **"what must a course provide?" becomes answerable** instead of folklore.
+
+### The stub's contract, derived from the 51 load sites
+
+`declaration(name)` raises `KeyError` when a name is absent — *"if it is a new
+table, the export must carry it; if it was removed, the reader of it must go
+too."* So every key must EXIST; almost all may be EMPTY.
+
+| provider | count | names |
+|---|---:|---|
+| `_gold_declaration` | 16 | CORRECTED_GOLD, GOLD_DIVERGENCES, GOLD_CEILINGS, PER_ITEM_EXCLUDE, GOLD_SLOT_CHARGES, GOLD_CODE_KNOWN, GOLD_SLOT_BOUNDS_KNOWN, GOLD_SLOT_UNMAPPABLE, GOLD_SLOT_DISAGREEMENTS_KNOWN, GOLD_CODE_CHARGES, SILENT_GOLD_DIVERGENCES, UNSCORED_GOLD_CRITERIA, CONSENSUS_OVERLAP_BACKLOG, DECLARED_CEILING_CELLS, FIXTURE_GOLD_OVERRIDES, `_1C_GATE_CEILING` |
+| `_declaration` | 15 | APP_ONLY_SLOTS, ASK_EQUIVALENT_PROMPTS, CONTEXT_SOURCE, COUNTABLE_EXEMPT, DECOMPOSITION_DIVERGENCES, DESIGNED_TEXT, HAND_AUTHORED_ATTRS, MULTI_BLOCK_DECLARED, PAPER_ITEM_NOTES, PAPER_ITEM_NOTES_WHY, PROBE_UNREACHABLE_PAIRS, PROSE_ONLY_JUDGED_AGAINST, PROSE_ONLY_SLOTS, SELFTEST_NAMED_FIXTURES, UNCHARGED_VERDICTS |
+| `_generator_table` | 8 | prompt_context, prompt_evidence, prompt_match_def, prompt_notes, prompt_notes_why, prompt_omit_guidance, prompt_response, prompt_sheet_only |
+| `_generator_value` | 2 | PROBE_REACH_LIMITS, SCORING_DIVERGENCES |
+| `_context_refs`, `_markers` | 3 each | one per declared handout |
+| `config` | 2 | a rubric per handout it declares |
+| `_field_table` | 1 | `items` |
+
+**A defect this surfaced:** `_1C_GATE_CEILING` is a GOLD DECLARATION TABLE NAMED
+FOR AN ITEM (`measured.py:6588`). A stub cannot supply it without inheriting this
+course's item `1c`, and `check_no_definition_is_named_for_an_item` exists. It
+should be renamed before the stub is built, or the stub is course-shaped on day
+one.
+
+### Build order
+
+1. **Rename `_1C_GATE_CEILING`** — it blocks a course-neutral stub by construction.
+2. **Build the stub** at `scoring/stub_course/` (ships with the engine): one
+   handout, one item, one slot, all 31 tables present and empty, and a rubric
+   that parses. It is a FIXTURE, so it may be tiny.
+3. **`paths.py` falls back to it** when no course is found — declared, printed at
+   startup, never silent. A run that scored the stub without noticing would be
+   worse than a crash.
+4. **Verify by the test that found this:** all 18 modules import against a
+   `$COURSE_DATA` holding only the stub, zero `SystemExit`.
+5. **Then the 786 course references** (`item == "1c"` → property test, the 11
+   selftest picks → `_pick`, the tables → `$COURSE_METADATA`).
+6. `olx_prompts.REF_IDS` (161 lines): check whether it is DEAD post-goal-C before
+   moving it — its comment says it exists "so component ids stay stable across the
+   rewrite", and the rewrite is done.
+
+**The stub doubles as the J completion test.** When the engine can score the stub
+end to end with no real course present, it is separable. That is a sharper
+criterion than driving a ratchet to zero — and the ratchet under-reports anyway:
+78 units by `course_inventory`, 786 distinct code lines by a twelve-class scan.
+
+---
+
+## J: the prepared fix set, derived by BUILDING the stub
+
+The stub now imports all eight engine modules with no real course present
+(`scratchpad/stub_course/`, regenerated by `build_stub_course.py`). Getting there
+falsified three of my own proposed fixes and produced six real ones.
+
+### THREE NON-FIXES — deliberate design the stub must SATISFY, not change
+
+| behaviour | the record |
+|---|---|
+| 51 eager module-level course loads | `coursedata.gold_declaration`: *"EAGER AT THE CALL SITE, BY DESIGN"*, subgoal C1b. Making them lazy would undo measured work |
+| `derived()` treats empty as absent | *"EMPTY IS ABSENT, not an answer"* — it is the fallback to the authored value, the migration safety net |
+| `_RubricView.__getattr__` raises on absent | *"Raising AttributeError for an absent one is deliberate: `getattr(rub, "SLOT_SPEC", {})` is a real call site"* |
+
+**The stub satisfies all three** by declaring the 15 non-structural derivations as
+AUTHORED-EMPTY under each handout, using the export's own fallback path. No
+engine change. This is the pattern for any future course that does not use a
+given primitive.
+
+### SIX REAL FIXES, in dependency order
+
+**J-1. `paths.NS` is a hardcoded constant** (`paths.py:145`, `"edu.memphis.psych"`).
+The engine resolves exactly one namespace. Its own comment says the standalone
+repo declares the namespace in `psychology/manifest.yaml` "and the runner
+resolves nothing if these disagree" — so the manifest is already the source of
+truth and `paths.py` duplicates it. *Fix:* read NS from the manifest, env
+override, stub's namespace as the final fallback.
+
+**J-2. `olx_prompts.py:184` infers the handout from a block-id prefix.**
+`HANDOUT = {i: (1 if a.startswith("bmod_h1") else 2 if a.startswith("bmod_h2") else 3) ...}`.
+A course whose ids are not `bmod_*` is **silently classified handout 3** — a
+wrong answer, not an error. *Fix:* every item already carries `"handout": N` in
+the course file; read the declared field. One line, and it removes this course's
+namespace from engine code.
+
+**J-3. Ten modules hardcode a handout number** — `config(1)`/`config(2)`/`config(3)`
+in `score.py:42`, `agreement.py:2232`, `leakage.py:492`, `measured.py:6807-6808`,
+`baseline_h1.py:26`, `score_h1.py:38`, `q6_consensus.py:146`, `rubric_olx.py:364`,
+`oc_grid.py:16`, and a comment in `rubric_h2_source.py`. This is why a
+one-handout stub failed: `score.py` demands handout 2 EXIST. *Fix:* iterate
+`sorted(handouts.HANDOUTS)`; where a module genuinely serves one handout, take it
+as a parameter. Overlaps the 67-site `(1, 2, 3)` revision — do them together.
+
+**J-4. `handouts.HANDOUTS` is 281 hardcoded lines** (`handouts.py:255-535`), 3 x 11
+keys, ~7 per handout being course data: template path, submissions path, outdir,
+blurb, exemplar_participants, exemplar_items / suspect_participants,
+cited_participants. Only `capture_tail`, `repair_orphans`, `join_aware` are
+engine flags. `course.json` ALREADY has a `handouts` key, holding only
+`{"authored": {}}` — the structure exists and is unused. *Fix:* move the course
+keys into it; `handouts.py` assembles `HANDOUTS` from the file plus the flags.
+**This is what makes a second course possible at all** — today, adding one means
+editing engine code.
+
+**J-4 DONE** (2026-09-24), behaviour-preserving. The mechanism was already half
+built and unfinished: `HANDOUT_FIELDS` existed in `course_metadata_source.py`,
+was exported at `rubric_export.py:335`, read back by `handouts._course_field`,
+and OVERLAID onto the table at `handouts.py:545` — but it carried only three of
+the nine course keys. J-4 widened it to eight and extended the overlay, so every
+course key in `HANDOUTS` is now driven by the course file.
+
+The three PATH keys are stored as LEAVES (`template_file`, `submissions_dir`,
+`outdir_name`) and joined to `MATERIALS`/`SUBS`/`OUT` in `handouts.py`. A course
+file holding absolute paths could not survive $COURSE_DATA moving. `markers`
+needed no change and deliberately stays out — `handouts.py` takes it from
+`segment`, which already reads the course file, so they are one object.
+
+The hardcoded table STAYS, as documented defaults. Its remaining bulk is the
+reasoning comments attached to the values (the unstable-p6 exemplar note and the
+rest), which are provenance; deleting the values would strip their anchors. The
+portability goal is met by the overlay, not by the line count.
+
+Verified three ways: `HANDOUTS` identical field-by-field to a baseline captured
+before the change; a fire test proving all seven newly-moved fields are actually
+driven by the course file (an identity check alone would also pass on dead code);
+and the authoring source checked equal to the course file. Gate: 44 findings, all
+the pre-existing corpus-reference class, matching J-1/J-2/J-3. `_PATH_FIELDS`
+backfilled into the inventory.
+
+**A blocker was found and NOT fixed here:** `rubric_export.py` no longer
+reproduces `course.json`. Handout 2 is the only handout whose builder still
+exists, and the rubric content it derived from has moved to the OLX, so all seven
+of its derivable tables now recompute to `()`; `classify()` correctly reads that
+as "differed" and re-carries them as authored data. Re-exporting would therefore
+REGRESS the file by restoring duplication the migration removed. No live bug —
+`coursedata.derived()` reads the OLX and returns the right answer for all seven
+(verified) — but it is why J-4 patched the course file surgically instead of
+regenerating it. Belongs with the export work. Noted in passing: `derived()` is
+set-equal but not order-equal to the authored tuples.
+
+**J-5. `score.py:43+` reads derived values UNGUARDED** — `BARRIER_PICK_ITEMS =
+_RUBRIC2.BARRIER_PICK_ITEMS` and a run of siblings, where the documented contract
+is `getattr(rub, NAME, default)`. *Fix:* use the guarded form at these call
+sites. Without it, every course must declare every derivation even when it uses
+none of them — which is what the stub is currently forced to do.
+
+**J-6. The course-file TYPE and PRESENCE contract is undocumented.**
+- generator tables are MIXED: `TABLE_ORDER`, `CONTEXT_REFS`, `SEGMENT_MARKERS`,
+  `CONTEXT__non_item` are dicts; `SCORING_DIVERGENCES`, `PROBE_REACH_LIMITS` are lists
+- declarations are uniformly lists
+- per-item `prompt_*` fields: **presence is meaningful**. `prompt_sheet_only`
+  holds a block-id STRING; an empty list there reaches `.startswith()` and
+  raises. The real course omits fields an item does not use.
+
+*Fix:* declare this in `course_schema.py`, which already exists for exactly this
+purpose ("every item field belongs to a declared group"), and have the stub
+builder read the schema rather than hardcode the shapes.
+
+**J-5 DONE** (2026-09-24). The six reads in `score.py` now use
+`getattr(_RUBRIC2, NAME, default)` -- five tuples default `()`, `REQUIRED_MOVE`
+defaults `{}`. The defaults are an ANSWER, not a shrug: each name is a set of
+items of some kind, so "the course declared none" and "no item is of that kind"
+are the same fact. That reasoning does NOT carry to `coursedata.derived()`, where
+empty means ABSENT and falls through to the authored value, and the comment at
+the call sites says so to stop the default being copied there.
+
+The population was enumerated by PROPERTY -- "reads a rubric table by name,
+however the base is spelled" -- rather than by grepping the spellings already
+seen, and cross-checked two ways. Outside the six, exactly **two** bare reads
+exist, and BOTH are correct as they stand:
+
+* `leakage.py:494` (`OC_FRAME`) is already inside `try/except Exception: pass`;
+  absence is tolerated by construction and `getattr` would add nothing.
+* `score.py:313` (`SLOT_OPTIONS`) raises DELIBERATELY, and its docstring says
+  why: *"a silent empty enum would let the model answer anything and the engine
+  would compare it against values it never offered."*
+
+`BY_ID` and `ITEMS` are excluded as core -- always served, and guarding them
+would hide a real breakage. Gate: 44, baseline.
+
+**J-6 DONE** (2026-09-24). `course_schema.py` now carries the contract as three
+declarations -- `GENERATOR_TABLE_TYPES` (4 dicts, 2 lists; mixed deliberately,
+since a table keyed by something is a dict and a sequence of records is a list),
+`DECLARATION_TYPE` (uniformly `list`, because the file stores every declaration
+as `[[key, value], ...]`), and `OPTIONAL_ITEM_FIELD_TYPES` (8 fields) -- checked
+by `type_check()` and wired into `check()`. Every shape was MEASURED against the
+live course file, not transcribed from this plan.
+
+The table's point is presence, not emptiness: **an absent field and an empty one
+are different facts.** `_generator_table` collects `{iid: gen[field] ... if field
+in gen}` and its docstring states the contract outright -- *"Absent keys stay
+ABSENT ... so `in SHEET_ONLY` still means what it meant."*
+
+Fire-tested on all three arms plus a clean control, per this module's own rule
+that a check nobody has watched fail proves nothing.
+
+*This found a real defect in the stub builder.* It emitted `"prompt_context": []`
+and three siblings on every item, which would have JOINED the stub's items to the
+RESPONSE and CONTEXT tables with empty values instead of leaving them out. The
+builder's own docstring already said items should omit unused fields; a stale
+comment above the code claimed the opposite and the code followed the comment.
+The reader is the contract, so the fields are now omitted and the stale comment
+is gone. Verified import-neutral against the previous stub.
+
+**J-4b. The handout SET is still hardcoded, and J-4 did not fix it.** Found
+2026-09-24 while testing the stub. J-4 moved every handout FIELD into the course
+file, but `HANDOUTS`'s KEYS are still the literal `1, 2, 3`. So `declared()` --
+the J-3 accessor whose docstring says "every handout this course declares" --
+reports the ENGINE's set, not the course's. Measured against the stub, which
+declares two: `handouts.declared()` returns `(1, 2, 3)` while
+`coursedata.items()` and the course file's `handouts` block both say `[1, 2]`.
+`score.py --help` offers `--handout {1,2,3}` against a two-handout course. *Fix:*
+build `HANDOUTS` over the handouts the COURSE FILE declares, not over a literal.
+
+**J-4c. Absent declarations silently inherit THIS course's data. SECURITY-ISH,
+and it defeats the stub's whole purpose.** J-4 kept the hardcoded table as
+"documented defaults", with the course file overlaid on top. That reads as
+conservative and is not: a course that declares nothing does not get *no* value,
+it gets **edu.memphis.psych's** value. Measured against the stub, whose
+`HANDOUT_FIELDS` is `{}`:
+
+    h1 submissions -> .../Handout Submissions with Scoring and Feedback/...   EXISTS
+
+The stub -- which exists precisely so "starting a new project does not mean
+borrowing a real cohort's course" -- resolves to the real cohort's submissions
+directory, and the path is present on disk, so nothing fails loudly. A wrong
+answer, not an error, which is the failure mode this plan keeps naming.
+
+*This corrects the J-4 note above.* "The portability goal is met by the overlay"
+is FALSE as written: the overlay makes a declared field course-driven, and leaves
+an UNDECLARED field silently course-contaminated. *Fix:* a data path must have no
+engine-side default -- absent means absent, and a course that does not declare
+its submissions directory has none. Keep defaults only for the engine FLAGS.
+
+**J-4d. `SUBS` and `OUT` are not namespaced, so two courses collide.** J-1
+namespaced `MATERIALS` (`$COURSE_DATA/courses/<ns>/materials`) but not its
+siblings. Measured under `COURSE_NS=stub`:
+
+    MATERIALS  .../courses/stub/materials        namespaced
+    SUBS       .../Handout Submissions ...       SHARED
+    OUT        .../out                           SHARED
+
+Two courses therefore read submissions from one root and write results into one
+`out/`, where `h1`/`h2`/`h3` are the only separation -- so a second course
+OVERWRITES the first's output rather than sitting beside it. *Fix:* namespace
+both the way `MATERIALS` already is. Small, and it belongs with J-4c since both
+are about a course's data being reachable only by accident.
+
+**J-4b, J-4c and J-4d DONE** (2026-09-24), all three gate-clean at 44 findings
+with a set identical to baseline, and the real course's `HANDOUTS` still
+byte-identical to the pre-J-4 snapshot.
+
+* **J-4b.** `coursedata.declared_handouts()` is the accessor; `handouts.py`
+  builds the table over what the COURSE FILE declares. Stub reports 2 handouts,
+  real course 3. *The first attempt read `_load()` directly and `course_schema`'s
+  Part B caught it* -- "a raw entry defeats the boundary while appearing to
+  honour it, because the code still calls into `coursedata`". The answer was to
+  ADD THE ACCESSOR to the boundary module, not to exempt the caller.
+* **J-4c.** A course-data field the course does not declare is now `None`. The
+  stub's `submissions` went from the real cohort's directory to absent. Engine
+  FLAGS keep defaults: `capture_tail` describes how the engine reads a document,
+  not whose course it is. The test is WHICH KEYS WERE DECLARED, not which values
+  are truthy -- a course declaring an empty exemplar list has answered.
+* **J-4d.** `SUBS` and `OUT` are namespaced, with the legacy shared layout
+  declared as `shared_data_layout: true` in `psychology/manifest.yaml`.
+
+  **The manifest key needed scoping to work at all.** `_manifest()` reads
+  whatever manifest sits beside `OLX_DIR` -- the ENGINE REPO's content directory,
+  which does not change when `COURSE_NS` does -- so a bare key leaked to the stub
+  and would have re-created J-4c. `_course_manifest()` honours a key only when
+  that manifest's own `namespace` equals the active `NS`. Legacy is opt-in, so a
+  new course cannot fall into it; NO DATA MOVED, and this course's paths resolve
+  exactly as before. `OUT` moved below `NS` since its default now depends on the
+  namespace -- checked first that nothing reads it in between, which is the
+  ordering trap that broke `paths.py` earlier in this session.
+
+**J-7. Course content paths are hardcoded in engine code.** *Found while testing
+the stub.* `psychology/` and the `bmod_*` stems are THIS course's names, living
+in engine code, concentrated in `enforcement.py` and `measured.py`.
+
+**The counts below are reconciled, because the first one was wrong.** An initial
+scan reported "67 code sites"; it counted a line once per matching SPELLING, so
+a line naming both `psychology/` and a `bmod_handout` stem was counted twice.
+Counting LINES gives 58 matching, 56 of them code. Both numbers described the
+same tree -- state the unit, or the size of the job moves when nothing has.
+
+    before J-7a/J-7b   58 lines match, 56 code
+    after  J-7a/J-7b   27 lines match, 17 code
+
+The 17 that remain are the declarations in `paths.py`, an authored OLX template's
+`<Use ref>` lines, a domain-vocabulary word list and a check's expected-stem set
+-- enumerated under J-7b, and correct where they are.
+
+**J-7a DONE** (2026-09-24) — the RUBRIC COMPONENT half, which is what blocked the
+stub. `paths._manifest(key, default, env)` generalises the three-step resolution
+`_namespace` already used (environment, then the content collection's
+`manifest.yaml`, then a fallback), and `paths.RUBRIC_COMPONENT` resolves the
+component's file name through it. `rubric_component.py`'s three literals now read
+`paths.OLX_DIR.name` and `paths.RUBRIC_COMPONENT`, so no course stem remains in
+that module. `COURSE_RUBRIC_OLX` names the file outright, for content that is not
+in the staged layout at all -- the stub ships its rubric beside its `course.json`
+and is never staged, so no combination of namespace and component name reaches
+it. Defaults keep every existing tree reading the file it already read: verified
+identical `staged_path()`/`expanded_path()`, 26 items, 8/8 modules importing.
+
+**J-7b DONE** (2026-09-24) — the HANDOUT stems and the globs over them. Gate
+clean: 44 findings, SET identical to baseline, nothing added or removed.
+
+`paths.HANDOUT_OLX` is manifest-declared (`handout_olx`, default
+`bmod_handout%d.olx`), with `handout_olx(h)`, `handout_olx_glob()` and
+`handout_olx_path(h)` beside it. **The glob is DERIVED from the pattern** rather
+than written next to it: they were one fact in two places, and a course changing
+the pattern would have left the glob matching nothing.
+
+45 of 58 sites converted:
+
+| class | count | now reads |
+|---|---|---|
+| `f"bmod_handout{h}.olx"` | 25 | `paths.handout_olx(h)` |
+| `.glob("bmod_handout*.olx")` | 8 | `paths.handout_olx_glob()` |
+| content dir built from `__file__` | 12 | `paths.OLX_DIR` |
+
+The remaining 13 are correct where they are, and are listed so nobody re-opens
+them: three are docstring prose, three are the definitions in `paths.py`, three
+are `<Use ref="bmod_handout1"/>` inside an AUTHORED OLX template, one is a
+domain-vocabulary word list (a different class entirely), one is a check's
+expected-stem set, and the rest are comments.
+
+### Three defects this found, none of them in the plan
+
+1. **`agreement.py:158` would have raised `NameError` at call time.** The
+   substitution landed in a module that received no `paths` import, and the
+   module still IMPORTED CLEANLY because `_h1` is not called during import.
+   "8/8 modules import" did not cover it; checking the import BINDING did.
+2. **`olx_corpus.default_roots()` — the same bug, and my audit missed it**
+   because that substitution used the name `paths` while the audit looked for
+   `_p7`. *The search reproduced the blind spot of the fix.* Re-run by PROPERTY
+   -- "a Name loaded in a function body that is bound nowhere reachable" -- over
+   every touched file: 4 candidates, all pre-existing and unrelated.
+3. **`tools/corpus_ref.py` had a DEAD default path.** Its fallback was
+   `HERE.parent / "psychology"`, but `HERE` is `tools/`, so it resolved to
+   `scoring/psychology`, WHICH DOES NOT EXIST. Any caller omitting `olx_dir`
+   scanned nothing and reported an empty corpus instead of failing. Recorded at
+   the site, because it is a behaviour change and not a pure refactor.
+
+### The gate was reporting CLEAN while the audit crashed
+
+Found the same day, and it is the finding that matters most, because it was
+MASKING the two above.
+
+`precommit_gate.main()` runs `equivalence.py --enforcement` as a subprocess and
+keeps the lines starting with `! `. A crashed audit emits none, so `blocking` was
+empty, and the gate printed **"enforcement audit clean"** and returned 0. Any
+crash in the audit read as a pass. It surfaced only because a 44-finding baseline
+dropped to zero -- had the break left a few findings standing, the drop would not
+have been obvious.
+
+**Refusing on a non-zero exit does not work, and that was the first instinct.**
+`print_enforcement` returns `1 if findings else 0`, and an uncaught exception
+also exits 1, so "non-zero means crashed" would refuse every ordinary run that
+found something -- including today's baseline. The exit code cannot separate the
+two.
+
+The test is therefore POSITIVE LIVENESS: did the audit print the banner it emits
+BEFORE any finding? Plus the traceback as a second signal. The bug was reading
+absence of evidence as evidence of absence, and an exit-code check would have
+kept doing that in a different shape. Fire-tested on four arms:
+
+| induced | result |
+|---|---|
+| traceback, no banner | refuses -- "did not COMPLETE" |
+| no banner, no traceback (killed by a signal) | refuses |
+| banner, no findings | passes clean |
+| banner + findings | refuses with the original divergence message |
+
+The third row is why liveness beats the exit code twice over: a signal-killed
+subprocess prints no traceback at all.
+
+NOT OVERRIDABLE by `ALLOW_UNDECLARED`: that flag declares a KNOWN divergence, and
+an audit that did not run has not found one.
+
+### The completion test
+
+**First half MET** (2026-09-24): **8/8 modules import against the stub with no
+real course present** -- `coursedata`, `handouts`, `olx_prompts`, `score`,
+`course_schema`, `leakage`, `measured`, `agreement`, under `COURSE_FILE`,
+`COURSE_NS=stub` and `COURSE_RUBRIC_OLX`. Reaching it took four distinct
+failures, each of which was a real defect in the stub rather than in the engine:
+
+1. the rubric path named one course's stem (J-7a);
+2. **the stub rubric parsed but READ AS EMPTY.** It was written to a guessed
+   schema -- `<Item id=... handout=...>`, `verdicts="met,absent"`, `points="1"` --
+   while `as_view_items` keys on `el.get("scores")` and skips an Item without it.
+   *A rubric that parses is not a rubric that reads.* The vocabulary is now taken
+   from the real component and the builder records it;
+3. **prompt fragments were missing.** `olx_prompts` refuses one it cannot find,
+   because "a missing one truncates a prompt in silence". All **28** are
+   enumerated from the real component's `<Frame name="fragment:...">`
+   declarations -- not discovered one failure at a time, which is what keeps the
+   list complete when a fragment is added;
+4. the stub declared NO criteria handout, so J-3's own refusal in
+   `score._criteria_rubric()` fired -- correctly. The stub now declares exactly
+   one (`CRITERIA_HANDOUT = 2`) and exercises that path rather than dodging it.
+
+**Second half MET** (2026-09-24). `score.main()` runs both handouts against the
+stub with no real course present and writes results:
+
+    H1: scoring 1 participant(s) x 1 items
+      [1/1] participant  1:  1.00/1
+    H2: scoring 1 participant(s) x 1 items
+      [1/1] participant  1:  1.00/1  (1 escalated)
+    -> courses/stub/out/h{1,2}/participant_001.json
+
+The whole path is real engine code: CLI -> course file -> rubric component ->
+find submissions -> segment the .docx -> build the prompt -> parse -> derive the
+ledger -> write results with provenance (`backend`, `supports_tools`, `era`).
+
+**THE MODEL CALL IS CANNED, and that is the one qualification.** There is no
+offline backend -- `cli`, `api` and `lo` each call a model or a server -- so
+`score.make_backend` is replaced by a fixed, schema-shaped response. Everything
+on both sides of that call is real. The model is not what J tests; a run against
+a live backend is a separate, paid step and has NOT been taken.
+
+Three things were needed, and the third was a defect:
+
+1. **The stub declares its own data** -- `template_file`, `submissions_dir`,
+   `outdir_name`, `blurb`, `capture_tail`. That is J-4c working as designed, not
+   a workaround: undeclared is absent, so a stub that wants to be scored must say
+   where its data lives.
+2. **A data fixture**, `make_stub_fixture.py`: a blank template and one
+   submission per handout, written as hand-built zips (`docx_text` reads a .docx
+   with `zipfile` + `ElementTree`, so no python-docx), into
+   `$COURSE_DATA/courses/stub/` -- outside any repository, where course data
+   belongs.
+3. **The stub was scoring an EMPTY RESPONSE.** The first successful run reported
+   `1.00/1` with **`response_chars: 0`**: no `SEGMENT_MARKERS` were declared, so
+   `segment()` returned `{}` and the model was being asked to grade nothing while
+   the totals looked perfect. *A stub that scores nothing is not a stub that
+   scores.* With markers declared, `response_chars` is 47, and the student's text
+   reaching the prompt was verified directly rather than inferred from the score.
+
+### The escalate on H2, traced: the stub demonstrates M
+
+`escalate` is `raw.escalate or unknown or over_specified or forced_advisory`. The
+term that fires is **`unknown == ['NOT_OC']`**.
+
+S2 declares `derive_from_criteria`, so `derive_oc_ledger` runs -- and **goal M
+below already records why that is course-specific** (the fact vocabulary, the
+gate structure, the type taxonomy). This is not a new finding; it is M observed
+RUNNING, on a course that has no operant conditioning in it. Two things it adds
+to what M already says:
+
+1. **`derive_from_criteria` is the trigger, so the flag itself carries the
+   frame.** It does not mean "score this item from criteria"; it means "score it
+   through the operant-conditioning frame". A second course declaring the flag
+   inherits psychology's domain model without naming it.
+2. **An undeclared code is SILENTLY DROPPED.** `add()` looks the code up in the
+   item's declared deductions and, on a miss, appends to `unknown` and returns
+   without charging:
+
+        spec = codes.get(code)
+        if spec is None:
+            unknown.append(code)
+            return
+
+   The stub kept its 1.00/1 ONLY because its rubric does not declare `NOT_OC`. A
+   course that happened to declare that code would be charged for failing
+   criteria it never authored; one that does not is silently not charged.
+   Neither is a correct answer, and `escalate` is the only surviving signal --
+   which is why this reads as noise until it is traced.
+
+**When M is taken up, the stub is part of it** (user, 2026-09-24): the stub must
+score its criteria item WITHOUT inheriting a frame it never declared, and
+`escalate` on a clean stub run is the acceptance test. See M's own note.
+
+
+
+`lo-blocks/packages/shared/lib/grading/stub_course/` (it moved there, so the
+scorer can reach it as its default) + all eight modules importing is the gate,
+and it is
+sharper than a ratchet: an outsider can run it. Full J is met when the engine
+SCORES the stub end to end with no real course present.
+
+---
+
+# The 786 course references: a disposition plan
+
+**Measured, not estimated.** `course_inventory` reports 78 units; a twelve-class
+scan over CODE lines (comments excluded) finds **786 distinct lines across 39
+modules in 393 contiguous blocks**. The ratchet under-reports ~10x because it
+counts four things — module-level tables naming item ids, item ids in
+comparisons, vocabulary IN DOCSTRINGS ONLY, and module names — and does not look
+at rubric slot keys, deduction codes, OLX block ids, corpus refs in code, or
+domain vocabulary outside docstrings.
+
+**Every reference falls into one of seven dispositions.** Counted in blocks, not
+lines: 393 blocks is the honest size, because one 161-line table is one decision.
+
+---
+
+## A — MOVE the table to course data (8 tables, ~548 lines)
+
+Pure course data sitting in engine modules. Each moves whole.
+
+| module | table | lines | destination |
+|---|---|---:|---|
+| `olx_prompts.py` | `REF_IDS` | 161 | `course.json` generator section |
+| `precommit_gate.py` | `NOT_STUDENT_TEXT` | 153 | **audit first** — 153 lines carrying ONE item id; it may be generic prose the scan mis-flagged |
+| `enforcement.py` | `PROBE_PROVOCATIONS` | 113 | course data |
+| `enforcement.py` | `_PASS` / `_FAIL` | 64 | course data (the oc_analysis probe pair) |
+| `gold.py` | `H1/H2/H3_HEADER_TO_ITEM` | 28 | `$COURSE_METADATA` — maps grader-workbook column headers to item ids |
+| `probe.py` | `ANSWERED_UNDER` | 18 | course data |
+| `slot_vocab.py` | `RUBRIC_EXTRAS` | 10 | course data |
+| `leakage.py` | `CADENCE` | 1 | course data |
+
+**`REF_IDS` IS LIVE — do not delete it.** I assumed goal C had made it dead; it
+is read at `olx_prompts.py:979` and `:3062` and registered in enforcement as
+"minted `<Ref>` ids, generated and checked by `--refs`". It moves.
+
+## B — MOVE to `$COURSE_DATA` as an accumulating record (1 table, 234 lines)
+
+`goals.CLOSURES_APPROVED` — subgoal closure notes, thick with cell ids and corpus
+references, and it GROWS with course work. Follows `GOALS.md` by the rule already
+applied to the ledger and `OVERRIDES.md`: a record that accumulates leaves the
+repository.
+
+## C — REPLACE with a declared property (11 sites)
+
+| pattern | sites | replacement |
+|---|---:|---|
+| `item == "1c"` | 10 | the rubric already declares `derived="has_own_graph:complete:..."` — test the property. Two sites pass `rebuild_1c=(item == "1c")`, so the id has reached a PARAMETER NAME |
+| `a.startswith("bmod_h1")` | 1 | every item carries `"handout": N`; read the declared field (J-2) |
+
+Ten sites collapse to one predicate. This is the highest value-per-edit in the set.
+
+## D — REPLACE with dynamic selection (11 sites)
+
+`equivalence.py` x7 in `enforcement_selftest`, `reader_equivalence.py` x4 in
+`_mutations`, `q6_consensus.py` x1. The suite ALREADY has `_pick(label,
+candidates, why)`, which chooses a target and records the reason — used for the
+GOALS case and the cover-group case. These eleven hardcode what it exists to
+select. Mechanical.
+
+## E — EXTRACT as a course-specific SCORER (~2,187 lines, upper bound)
+
+**The largest and most consequential disposition, and it is not "data in code".**
+It is this course's subject matter implemented as code:
+
+| module | loc | OC loc | % | biggest |
+|---|---:|---:|---:|---|
+| `stale_check.py` | 243 | 140 | **57%** | `audit` (140) |
+| `rubric_olx.py` | 417 | 203 | **48%** | `render_item` (144) |
+| `score.py` | 2307 | 775 | **33%** | `derive_oc_ledger` (232) |
+| `rubric_component.py` | 640 | 127 | 19% | `as_view_items` (127) |
+| `olx_prompts.py` | 3384 | 302 | 8% | `assembler_inputs` (191) |
+| `measured.py` | 7048 | 254 | 3% | `paper_scorer_agreement` (220) |
+| `enforcement.py` | 16417 | 256 | 1% | `check_selectors_govern_something` (103) |
+| `agreement.py` | 2460 | 112 | 4% | `score_oc_cadence` (61) |
+
+`score.py`'s `derive_oc_ledger` computes `is_oc` from `has_behavior`,
+`has_stimulus`, `contingent`, `follows_behavior`, `stimulus_is_arranged` — the
+definitional structure of operant conditioning, not a table about it.
+
+**Treat this figure as an UPPER BOUND.** It counts every function with three or
+more OC references, so generic machinery that merely NAMES oc fields
+(`as_view_items`, `check_selectors_govern_something`) is included. The real
+extractable core is `derive_oc_ledger` + `oc_passing_sheet` + `oc_check_names` +
+the OC half of `build_schema`, plus `oc_grid.py` entire.
+
+**The decision this forces, and it is the user's:** a scorer for a different
+subject cannot reuse this logic. Either
+(a) it moves to the course side as a course-supplied scorer,
+(b) it becomes a PLUGIN the engine loads by declaration — which fits the existing
+    design, since `_forbid_rule(item, "consequence_not_a_setup")` already reads
+    the rubric rather than hardcoding, so the seam exists, or
+(c) it stays and the engine is honestly "a scorer for behaviour-modification
+    courses", which is a legitimate answer but should be stated rather than
+    implied.
+
+**Recommend (b).** It preserves the two-engine comparison the whole project rests
+on, and the plugin boundary is already half-built.
+
+## F — RENAME (7 names)
+
+Six modules named for course artifacts — `baseline_h1`, `score_h1` (h1),
+`simulate_h3` (h3), `q6_consensus` (Q6), `gold`, `gold_export` — plus the gold
+declaration key `_1C_GATE_CEILING`, which blocks a course-neutral stub by
+construction. `check_no_module_is_named_for_a_course_artifact` exists but does
+not catch the gold KEY, because it is not a module-level definition.
+
+## G — KEEP (generic, verify individually)
+
+Ordinary English and engine vocabulary the scan flags: `consequence` and
+`behaviour` in their plain senses, `verdict`, `confident`, `BLANK`. The
+QUALITY_CONTROL split judged 20 such hits one at a time and kept 8 — the same
+per-site judgement is needed here, not a blanket rule.
+
+---
+
+## Order, and why
+
+1. **F (renames)** — cheapest, and `_1C_GATE_CEILING` blocks the stub.
+2. **C (property test)** — 10 sites to 1 predicate, removes an id from a parameter name.
+3. **D (dynamic picks)** — mechanical, mechanism already exists.
+4. **A + B (tables)** — bulk data movement, ~782 lines, each verifiable by equality before deletion (`migrated_tables.py`'s discipline).
+5. **G (judgement pass)** — per site, after the mechanical work stops moving the target.
+6. **E (the scorer)** — LAST, and only after the user chooses (a), (b) or (c). It is the one disposition that changes what the engine IS, and doing it before the rest would churn everything else.
+
+**Verification at each step:** the stub must still import all eight modules, and
+the twelve-class scan must fall monotonically. Neither alone is sufficient — the
+scan under-reports by construction and the stub proves only initialisation.
+
+---
+
+# E, decided: the OC scorer becomes a PLUGIN
+
+User's decision, 2026-09-24. The design below is built from the seam that already
+exists rather than an invented one.
+
+## The boundary is already there, and it is already declaration-driven
+
+`score.py` dispatches on a rubric flag:
+
+```python
+if item.get("derive_from_criteria"):
+    ledger, checks, unknown, forced_advisory = derive_oc_ledger(item, raw)
+elif item.get("derive_from_credit"):
+    ledger, checks, unknown = derive_ledger(item, raw, response)
+```
+
+The rubric ALREADY says which scorer each item uses, and the split is exact:
+
+| path | items | disposition |
+|---|---|---|
+| `derive_from_criteria` | PR, NR, PP, NP, DAY1, WK1, DAY2, WK2 (8) | becomes the **oc plugin** |
+| `derive_from_credit` | Q1-Q6, T1, T2, D1, D2 (12) | stays as the engine's generic path |
+
+So this is not a new architecture. It is naming a boundary that exists, and
+moving one side of it out.
+
+## The contract
+
+A scorer plugin supplies five functions. All five already exist; four are in
+`score.py` and one pair is the web mirror in `agreement.py`.
+
+| plugin function | today | lines |
+|---|---|---:|
+| `derive_ledger(item, raw)` -> `(ledger, checks, unknown, advisory)` | `score.derive_oc_ledger` | 232 |
+| `schema_fragment(item)` -> schema properties | the OC half of `score.build_schema` | ~100 of 197 |
+| `passing_sheet(item)` -> a full-marks answer | `score.oc_passing_sheet` | 22 |
+| `check_names(item)` -> `[str]` | `score.oc_check_names` | 11 |
+| `score_web(...)`, `score_web_cadence(...)` | `agreement.score_oc`, `score_oc_cadence` | 112 |
+
+Plus `oc_grid.py` (38 lines) entire, which exercises the ledger and belongs with
+it.
+
+## Resolution
+
+1. The rubric declares the scorer by NAME: `derive_from="oc"`, with today's
+   `derive_from_criteria` kept as an alias until the OLX is rewritten.
+2. The engine resolves the name through a registry, looking first at the course
+   (`$COURSE_METADATA/scorers/`) and then at built-ins, so a course can ship or
+   override a scorer without an engine change.
+3. `credit` stays built in: it is slot-sheet driven and subject-neutral.
+4. An unresolvable name is a REFUSAL naming the item and the scorer, never a
+   silent fallback to `credit` -- a wrong scorer that runs is worse than one that
+   does not.
+
+## What this must not break, and how each is kept
+
+* **The two-engine comparison.** `enforcement.py:4334` compares
+  `agreement.score_oc`, `agreement.score_oc_cadence` and `score.derive_oc_ledger`
+  BY READING THEIR SOURCE, and `check_slot_rules_reach_both_prompts` depends on
+  it. Both sides move together into the plugin, and the comparison resolves
+  through the registry instead of by import. **This is the thing most likely to
+  break silently**, because a source-reading check that cannot find its target
+  can pass vacuously -- so its finding must be asserted before and after.
+* **`enforcement.py:40`** imports `derive_oc_ledger` directly. That becomes a
+  registry lookup.
+* **`CLI_FNS = ("derive_ledger", "derive_oc_ledger")`** (`enforcement.py:1749`)
+  names both paths; it becomes the registry's members.
+* **The selftest's OC cases** inject into OC fixtures. They move with the plugin,
+  or they are re-aimed at the generic path -- decided per case, not in bulk.
+
+## Order within E
+
+1. Extract the five functions + `oc_grid.py` into one module, still imported
+   directly. **Prove identical behaviour before moving anything**: the ledger for
+   every `derive_from_criteria` item, every cell, must be byte-identical.
+2. Introduce the registry and the `derive_from` name; keep `derive_from_criteria`
+   working as an alias.
+3. Move the module to the course side.
+4. Re-point `enforcement`'s three touchpoints and assert its findings are
+   unchanged -- including that the source-reading comparison still FIRES, not
+   merely passes.
+5. Only then delete the aliases.
+
+**Step 1 is the whole safety of this.** The comparison machinery reads source
+text, so a move that changes formatting can change a check's answer without
+changing behaviour. Byte-identical ledgers first, structure second.
+
+## E IS DONE (2026-09-24). All five steps, gate clean at 44 findings, set identical
+
+`COURSE_METADATA/scorers/oc.py` holds the operant-conditioning scorer;
+`scorers.py` is the registry; `BUILTIN` is `{}`. **The engine ships no subject's
+scorer and names no course's subject.**
+
+| step | what landed |
+|---|---|
+| 1 | five functions + `oc_grid` extracted, verbatim |
+| 2 | registry, `derive_from` name, legacy flags as one-way aliases |
+| 3 | module moved to the course side, `BUILTIN` emptied |
+| 4 | `enforcement`'s FIVE touchpoints repointed (the plan said three) |
+| 5 | aliases deleted; `stale_check` and `agreement.SCORERS` repointed first |
+
+**The proof throughout was a 51,200-case behavioural fingerprint** -- the ledger
+is a pure function of `(item, raw)`, so the input space was swept rather than the
+cells, which would have needed model calls. sha256 `1971e534...` before step 1
+and after step 5, unchanged.
+
+### Three traps sprang, and each was caught by a different guard
+
+**1. A wrapper passes every behavioural test and breaks the audit silently.**
+Step 1 first bound the old names as `def derive_oc_ledger(...): return
+scorer_oc.derive_ledger(...)`. `inspect.getsource` returns the WRAPPER, so the
+source `check_selectors_govern_something` greps went from **13,424 characters to
+112** -- it found no slot reads and reported nothing, passing vacuously, while
+`check_weighted_slots_are_scored` correctly flagged 21 weighted slots reaching no
+scorer. **Bind the function OBJECT, never a wrapper**, and the comment at the
+site says so because a future reader will want to "tidy" it back.
+
+**2. The population was truncated by my own `head -4`.** Checking what still used
+the aliases, the grep was piped through `head -4`, so two live users in
+`measured.py` never appeared. Deleting the aliases then broke
+`paper_scorer_agreement` **960 times**. The rule was followed and the TOOL
+defeated it: the rule was followed and the TOOL broke it. A truncated scan
+is not a scan, and `head` on a population check is a defect in the check.
+
+**3. A module name that is DATA cannot be found by grepping for the call.**
+`_PAPER_BY_BRANCH` holds `("score", "derive_oc_ledger")` as a STRING PAIR,
+resolved later by `importlib.import_module`. No call site names the function, so
+nothing greppable existed. Worse, the first fix wrote `"scorers:oc"` into the
+table without checking the consumer -- `import_module("scorers:oc")` throws into
+an `except: return []` and is recorded as "missing", so it would have LOOKED
+fixed. `_part_module()` now resolves `scorers:<name>` through the registry,
+because **which file implements `oc` is the course's answer and cannot be an
+import path**.
+
+### What the ratchets required
+
+* `modules()` did not glob the scorers directory, so moving the file took its six
+  definitions out of the inventory entirely -- the exact silent failure its own
+  docstring warns about, one directory further out. Widened.
+* The property budget tightened **11 -> 9**: `cadence` and `expected_type` are no
+  longer branched on in engine code, because that branching left with the scorer.
+  The ratchet made the improvement permanent rather than merely observed.
+
+### The verification harnesses had to move too
+
+The controls patched `score.derive_oc_ledger` and the fingerprint called it. Left
+alone, the controls would have reported INERT and the fingerprint would have
+crashed -- **a control that cannot find its target is the vacuity it exists to
+detect, one level up**. Both retargeted at the plugin: 3/3 controls fire, sha
+unchanged.
+
+## What E buys
+
+The engine stops knowing what operant conditioning is. A second course supplies
+its own scorer, or uses `credit` alone, and the stub uses `credit` -- which is
+why the stub could import with zero OC items and no OC declarations.
+
+---
+
+
+### P · THE ENGINE NAMES THIS COURSE'S FACTS (filed 2026-09-24, user)
+
+**Found by the user challenging a name.** Reviewing the converged vocabulary, the
+user observed that `cadence_ok` and `targets_intended_behavior` "don't sound
+quite generic -- they still use behavior and cadence, which is still psych
+language." Chasing that found something wider than the two names.
+
+**Measured: 60 code sites across five ENGINE modules name 10 of this course's
+facts.** Docstrings excluded -- these are in code:
+
+| module | code sites | distinct facts |
+|---|---:|---:|
+| `enforcement.py` | 35 | 10 |
+| `goals.py` | 17 | 5 |
+| `score.py` | 5 | 2 |
+| `measured.py` | 2 | 2 |
+| `precommit_gate.py` | 1 | 1 |
+
+The facts: `avoidance_frame`, `cadence_ok`, `observed_type`, `named_type`,
+`stimulus_move`, `stimulus_is_arranged`, `targets_own_behavior`,
+`targets_intended_behavior`, `consequence_asserted`, `restriction_authored`.
+
+## P IN PROGRESS (2026-09-24): enforcement is at ZERO; six sites remain
+
+**THE FILED COUNT OF 60 WAS WRONG.** The honest figure, excluding prose inside
+string literals, is **12 code sites**. `goals.py` and `precommit_gate.py` have
+NONE -- their seventeen "sites" were subgoal closure notes recording what was
+measured, which is history, not logic. The detector stripped docstrings but still
+counted ordinary strings, so it read text that MENTIONS a name as text that USES
+one.
+
+### Moved to the course file
+
+Five tables, with 52 declared table-entry removals, each verified identical
+afterwards: `SIDE_ALIAS`, `SIDE_INVERTED`, `PROBE_PASS`, `PROBE_FAIL`,
+`PROBE_TYPE_FIELDS`. The reasoning for every value travelled with them.
+
+`SIDE_INVERTED` is the one worth noting: `measured.py` held
+`frozenset({"avoidance_frame"})` with a comment saying it was named "here and
+nowhere else" BECAUSE the alias map could not carry an inversion. Both halves of
+that fact now travel together and neither is in engine code.
+
+### Moved to the course SCORER (user's instruction)
+
+`_tbl`, `_oc_baseline` and `_oc_fail` are `_probe_value`, `probe_baseline` and
+`probe_fail` in `scorers/oc.py`, reached through the registry like the scorer
+itself. They built this course's hypothetical answers -- naming `observed_type`,
+`named_type` and the PR/NR/PP/NP taxonomy -- so the audit could only construct a
+probe for a subject it already knew. `signature()` over all eight criteria items
+is byte-identical, sha `e39b41fe...`.
+
+**`enforcement.py` is now at ZERO course-fact sites.**
+
+### THE MOVE BROKE THE AUDIT, AND THE HARDENED GATE CAUGHT IT
+
+`ALIAS` maps a name to EITHER one alternative (a string) or several (a tuple),
+and **JSON has no tuple**: `("baseline", "baseline_data")` returned as a list and
+`cand in web_keys` died with `TypeError: unhashable type: 'list'`.
+
+Two things this proves, both worth more than the move:
+
+1. **The gate refused instead of passing.** It printed *"the enforcement audit did
+   not COMPLETE, so 'no findings' means nothing"* -- the hardening added earlier
+   the same day, arriving within hours of being written. Before it, a crashed
+   audit read as a clean one.
+2. **The equality check that should have caught it was blind.** It compared with
+   `json.dumps(..., default=str)`, which serialises a tuple and a list
+   IDENTICALLY -- so it reported the tables identical while the types changed
+   underneath. `segment._markers` records the same rule for the same reason:
+   *"Tuples, not the lists JSON gives back ... a reader should not change a
+   published shape while moving where it is stored."*
+
+`_course_vocab` now restores tuple values, and the comparison preserves types.
+
+### The six that remain need the PLUGIN CONTRACT to grow
+
+| site | what it is |
+|---|---|
+| `score.py:1414` | composes this course's criteria PROMPT SECTION (`consequence_slot=`, `avoidance_scores=`) |
+| `score.py:1766,1771` | emits `avoidance_frame` as an output RECORD FIELD |
+| `measured.py:3550` | `_P._element(item, "observed_type")` |
+
+All three are "what a scorer contributes BACK" -- a prompt section and extra
+record fields -- which the contract expresses nowhere. That is a design step, not
+a move, and it belongs with the vocabulary convergence rather than before it.
+
+## The distinction, because two questions were being conflated
+
+**Where a fact name is LEGITIMATE.** Under M's design the facts are DECLARED BY
+THE COURSE in its rubric. A behaviour-modification course calling a fact
+`targets_intended_behavior` is correct -- that is its subject matter, in its own
+file. `course_metadata/scorers/oc.py` naming them is equally correct: it is the
+course's scorer.
+
+**Where it is NOT.** `enforcement`, `goals`, `score`, `measured` and
+`precommit_gate` are ENGINE. Naming `avoidance_frame` in their code is the same
+defect class as `bmod_handout1` in J-7b: a second course meets an engine that
+already knows this course's psychology.
+
+**`scorer_criteria.py` is the proof the boundary can hold.** It names
+`cadence_ok` ONCE, in a docstring explaining why `apply_fact_gate` exists, and
+has ZERO course tokens in code -- verified with docstrings stripped. That is
+H(4)'s own test, the one it applied to `docx_text.py`: *"named as the REASON ...
+not as an assumption the code makes."*
+
+## Why this changes the vocabulary work rather than following it
+
+A better-sounding name does not fix this. Renaming `cadence_ok` to something
+subject-neutral would still leave the engine KNOWING A FACT NAME AT ALL, which is
+the actual defect. What those five modules should ask is the rubric -- "which
+facts does this item declare?" -- exactly as `scorer_criteria` does.
+
+So **converging the two vocabularies and removing them from engine code are one
+job**. Doing the rename first would touch all ten names twice, and would move the
+item-specificity out while leaving the subject-specificity sitting in the engine
+-- which is precisely what the user heard in the name.
+
+## DECIDED: the converged names are the COURSE'S choice
+
+Once the engine no longer names them, what they are called is the course's
+business, and this plan should stop legislating it. The constraint that remains
+is structural, not lexical: ONE name per fact across both engines, and no
+item-specificity in the name (`cadence_is_daily` vs `cadence_is_daily_counted`
+for two items that are both daily is the shape J-7b removed).
+
+*Sequencing:* P before the rename, and both before the 960-cell re-sweep, so the
+sweep is spent once on a settled vocabulary.
+
+### O · IS THE PYTHON WEB SCORER STILL NECESSARY? (filed 2026-09-24, CONSIDER LAST)
+
+Raised by the user while M-3 was in progress, and it follows directly from M step
+4. To be taken up LAST, after M, because the answer depends on M's outcome and
+because this is the measurement apparatus the whole project has been judged by.
+
+**The question.** `agreement.py` drives the OLX prompts from Python -- the
+`python` column of the ledger (`olx_python` in `measured.SIDE_CONTRACT`), as
+distinct from `olx` (the web app) and `paper`/`paper_opus` (`score.py`). Its OC
+half, `score_oc` / `score_oc_cadence`, is a HAND-WRITTEN MIRROR of
+`derive_oc_ledger`. If M step 4 GENERATES that mirror from the same declarations
+the paper scorer interprets, the mirror can no longer drift -- and a copy that
+cannot drift raises the question of why there are two.
+
+**What it would retire if the answer is no.** `enforcement.py`'s three-way
+source-reading comparison, which goal E had to preserve with unusual care and
+which sprang its vacuity trap once during E: the wrapper that made
+`check_selectors_govern_something` grep 112 characters instead of 13,424 and
+report nothing. A check that exists to catch drift between two implementations is
+dead weight once there is one implementation.
+
+**What it would COST, and this is why it goes last.**
+
+* **A ledger column.** `python` is one of four sides, and the cross-path
+  comparison `olx` vs `python` is what separates a PROMPT difference from a MODEL
+  difference. Losing it does not just remove a scorer; it removes the ability to
+  ask that question of any future change.
+* **The measurement history.** Every recorded cell was measured against these
+  sides. Retiring one does not invalidate the record, but it does mean no future
+  sweep can be compared against the old one on that axis.
+* **`agreement_app.py`** is the human review surface and reads the same path.
+
+**What would have to be true first**, none of which is true today:
+
+1. M step 4 lands -- the mirror is generated, not written.
+2. The OLX path is genuinely pure (M's "pure OLX" end state), so `olx` alone
+   answers what `olx` and `python` together answer now.
+3. Someone states what the `olx`-vs-`python` comparison is FOR in the future, and
+   whether any open question still needs it. If the answer is "nothing since
+   2026-09", that is evidence; if it is "the next prompt change", it stays.
+
+**Do not treat this as a cleanup.** It is a decision about what the project can
+still measure, and the honest default is that a measurement axis stays until
+someone can say what it is no longer needed for.
+
+### L · `$COURSE_DATA` AND `$COURSE_METADATA` ON SHARED STORAGE
 
 Raised by the user 2026-09-24, to be taken up AFTER K. `$COURSE_DATA` cannot go
 in a repository and everyone on the project needs it. There is a Drive folder
@@ -5870,6 +7114,51 @@ mount needs NO code change at all: `COURSE_DATA=/mnt/drive/molly_data` and the
 package is pointed at it. Going through the Drive API instead would mean
 rewriting every read behind a client, which is a different and much larger job
 for no gain over a mount.
+
+## `$COURSE_METADATA` MOVES TOO (user, 2026-09-24)
+
+L was written about `$COURSE_DATA` alone. The user's instruction widens it: the
+metadata root is **also** to live in the shared private location. Both roots
+move; they stay SEPARATE roots that happen to share a home, which is not the same
+as merging metadata into `$COURSE_DATA`.
+
+After J and N, `$COURSE_METADATA` holds four files and they are not alike:
+
+| | what it is | consequence of mounting it |
+|---|---|---|
+| `course.json` | the course file | read at IMPORT by everything; a slow or absent mount stops the engine starting, not just a run |
+| `CHANGELOG.md` | this course's incident record | ordinary document |
+| `scorers/oc.py` | the OC scorer (goal E) | **executable code, imported at run time** |
+| `fixture/course_segment.py` | this course's segmentation hook | **executable code** |
+
+**TWO OF THE FOUR ARE CODE, AND THAT IS NEW SINCE L WAS WRITTEN.** Goal E moved
+the scorer here and goal N moved the segmentation hook here, so mounting this
+root means the engine IMPORTS PYTHON FROM SHARED STORAGE. That is a different
+risk from reading documents:
+
+* **Trust.** Anyone who can write the share can change what the scorer computes.
+  `$COURSE_DATA` holds inputs; this holds behaviour. The four things L already
+  measures -- latency, locking, partial reads, who can read it -- need a FIFTH:
+  who may WRITE executable code there, which is not the same question as who may
+  read students' words.
+* **Import semantics.** `scorers._course_scorer` loads by file path and caches in
+  `sys.modules`; a file that changes mid-session is not re-read. On a local disk
+  that is a non-issue; on a synced mount a file can change under a running
+  process.
+* **The audit follows it.** `editguard.modules()` now globs
+  `COURSE_METADATA/scorers/*.py` (widened during E, for exactly the reason that
+  moving code out of the package took it out of the inventory). Mounting the root
+  puts the definition ledger's own inputs on the share, so an unavailable mount
+  makes the guard report definitions VANISHED rather than report nothing.
+
+*Option worth weighing when L is taken up:* keep the two CODE files in the
+repository and move only `course.json` and `CHANGELOG.md`. That splits on the
+same line N and E already drew -- data and declarations travel, executable
+machinery stays where it can be reviewed and version-controlled -- and it is the
+distinction the fixture decision of 2026-09-23 made for the same reason
+("executable machinery with an audit attached"). The user's instruction is to
+move the directory; this records what moving the code half costs, so the choice
+is made knowingly rather than discovered later.
 
 FOUR THINGS TO MEASURE BEFORE COMMITTING, each a real risk here rather than a
 generic caveat:
@@ -5896,6 +7185,49 @@ ledgers are the things people actually need to share, and they are megabytes.
 Splitting on that line gets the sharing without the 1.6 GB or most of the mtime
 exposure -- but it should be decided against a measurement of what is actually
 read by more than one person, not by this paragraph.
+
+#### THE MODULE AUDIT J AND K BOTH WAIT ON -- first pass, 2026-09-24
+
+J says it plainly: "a repository split without such a list would carry the
+course-specific parts along with it and call them generic by relocation." K needs
+the same list to know what may leave python. This is the first pass.
+
+**THE FIXTURE'S COURSE HALF COMES WITH IT** (user, 2026-09-24). L had this gap:
+it discusses who may READ student data but never said that
+`course_metadata/fixture/` currently holds ~1.3 MB of student-derived records --
+`CONSENSUS_SPANS.json` is keyed `item/participant` -- inside a REPOSITORY. Goal N
+separates the generic machinery from the course-specific implementation; what
+remains of the course half is `$COURSE_DATA` material and moves with everything
+else L is placing. See N's "Where the course half goes". N must therefore be
+settled before L's inventory of what lives on shared storage is complete.
+
+ALREADY SETTLED by goal H, by reading: six tools (maintain the tree), three
+fixture modules (segment, fixture_edits, grader_inputs -- the shape is in the
+logic), and six more read and placed elsewhere (docx_text and paper_runs generic,
+prose_split tooling, three migrations).
+
+THIRTY REMAIN, and a scan of LIVE CODE -- not comments -- for the course's shape
+finds it in FIVE:
+
+    cross_path.py           if h == 3:
+    rubric_equivalence.py   for h in (1, 2, 3)
+    rubric_export.py        for handout in (1, 2, 3)
+    self_graded_misses.py   if handout == 3:  and  for h in (1, 2, 3)
+    sweep_readout.py        for h in (1, 2, 3)   (three sites)
+
+AND ALL FIVE ARE THE USER'S THIRD VERDICT, not the second: course-specific NOW,
+but they OUGHT to be generic, so the action is a REVISION rather than a
+relocation. The evidence is that a source of truth already exists --
+`handouts.HANDOUTS` is keyed 1/2/3 and the course file declares the same set --
+so `(1, 2, 3)` is a literal standing in for a list the course could supply.
+Replacing it is small and makes each module meet a four-handout course unedited.
+
+THE OTHER 25 SHOW NO SHAPE ASSUMPTION IN LIVE CODE, and that is EVIDENCE RATHER
+THAN PROOF -- goal H is explicit that absence of a literal is weak, and the
+fixture modules scanned clean on ids while being tuned to these documents. What
+it does establish is where the remaining reading should go: five modules with a
+known defect and a known fix, and twenty-five that need the control-flow question
+asked one at a time before anything is promised about them.
 
 ### K · How much of the enforcement machinery can be a lo-blocks test suite?
 
@@ -5943,6 +7275,952 @@ THE OBLIGATION IS THE SAME ONE USED ALL NIGHT: a ported check must FIRE on the
 case its python original fires on, proved by the same fire test, before the
 original retires. A check that moves and stops catching anything is worse than
 the check that stayed.
+
+### N · `segment.py` is ENGINE MACHINERY living in COURSE territory
+
+**Filed 2026-09-24, found by pointing the stub at its own `COURSE_METADATA`.
+The user's instruction: fix this BEFORE M.**
+
+Every other finding in this plan is course-specific code sitting in the engine.
+This is the INVERSE, and it is why it went unnoticed: generic machinery sitting
+in the course, where the engine reaches in to import it.
+
+`$COURSE_METADATA/fixture/segment.py` is **413 lines, of which ~20 (4%) are
+course-specific** -- `utb_hint` (20 lines, and "UTB" is this course's vocabulary)
+plus the three `H1/H2/H3_MARKERS` aliases. The other 96% is subject-neutral
+document segmentation:
+
+    clean  norm  strip_orphan_head  template_index  strip_template_prefix
+    _is_boilerplate  segment (119 lines)  repair_orphans (31 lines)
+
+`_markers` and `_handout_items` already read the COURSE FILE, so the mechanism
+for keeping the course half out is built and working -- it was simply never
+applied to the module's location.
+
+## Seven engine modules import it from the course
+
+    agreement.py  agreement_app.py  handouts.py  q6_consensus.py
+    score.py      score_h1.py       simulate_h3.py
+
+`handouts.py:29` is the sharpest: `from segment import H1_MARKERS, H2_MARKERS,
+H3_MARKERS` -- the ENGINE importing three per-handout names from the COURSE, the
+same course-shaped coupling J-7b removed for file stems, one level worse because
+it crosses the boundary in the wrong direction.
+
+## What it costs, measured
+
+**A second course cannot be scored without shipping a copy of 413 lines of
+generic segmentation.** The stub proved it: with `COURSE_METADATA` pointed at the
+stub, `import handouts` dies with `ModuleNotFoundError: No module named
+'segment'` before any scoring can begin.
+
+**And until then the stub silently BORROWS this course's.** That is the J-4c
+class again -- it was invisible for as long as `COURSE_METADATA` defaulted to
+this repo, which is to say every run before this one. The stub's E step 3 run had
+to keep `COURSE_FIXTURE` pointed at this course's fixture to isolate the scorer
+question; that leak is still open.
+
+## The rest of the fixture, enumerated
+
+Not only `segment.py`, so the fix is not "move one file":
+
+| file | lines | what it is |
+|---|---:|---|
+| `segment.py` | 413 | 96% generic; imported by SEVEN engine modules |
+| `grader_inputs.py` | 472 | imported by `enforcement.py` |
+| `fixture_edits.py` | 271 | imported by `agreement_app.py` |
+| `*.json` (4 files) | -- | genuine course DATA; stays |
+
+The three `.py` files are 1,156 lines total. The `.json` files are course data and
+belong exactly where they are -- this finding is about CODE in the fixture, not
+about the fixture existing.
+
+## N-1 vs the 2026-09-23 judgement: the premise changed, the judgement did not
+
+**H(4) read `segment.py` module by module and called it FIXTURE** -- "the shape
+is in the logic: Handout 1's template carries a worked fruit-flavored water
+example and Handout 3's carries an example data table AND an example graph. It
+would not meet a different handout unedited." N-1 moves it to the engine, which
+is the opposite disposition, so the disagreement is recorded rather than quietly
+resolved in the newer entry's favour.
+
+**That judgement was right when it was made, and its premise has since been
+removed by another goal.** `segment.py` then held the markers and item lists as
+LITERALS; the module's own comment records the change -- *"`H1_ITEMS` was a
+literal `["Q1", "Q2", ...]` ... Verified equal for all three handouts before the
+literals were removed."* Once the tables moved to the course file and `_markers`
+/ `_handout_items` became READERS, the coupling H(4) identified was gone.
+
+Measured today, with comments and docstrings stripped: **157 lines of code and
+ZERO course-specific tokens** -- no `fruit`, no `EXAMPLE OF`, no handout number,
+no item id. What remained was `utb_hint` and the aliases, and N-1 moved those to
+`course_segment.py`.
+
+**The course-specificity that made H(4) right is now entirely in the PROSE.** The
+docstrings carry this course's evidence -- handout 3 item 3's punctuation, "47
+boxes across 13 items", a corpus reference -- explaining why a generic regex
+exists. That is provenance worth keeping, and it is not a coupling: a docstring
+naming the case that motivated a rule does not make the rule specific to it. The
+same distinction H(4) itself drew for `docx_text.py`: *"Item 1c is named as the
+REASON chart parts are extracted, not as an assumption the code makes."*
+
+**N-1 also settles the structural question H(4) left open.** It observed that
+`$COURSE_LOCATION` sits inside the CONTENT tree, which `build:stage-content`
+copies wholesale, so `import segment` would resolve through a content directory
+-- "a python import path running through content". Moving the machinery to
+`scoring/` removes that path entirely rather than relocating it.
+
+## N-1 DONE (2026-09-24): `segment.py` split, gate clean at 44, set identical
+
+`scoring/segment.py` is the engine's now -- 407 lines, nothing in it naming a
+handout number or a subject. `course_metadata/fixture/course_segment.py` keeps
+the 74 lines that are about THIS COURSE: `utb_hint`, which hardcodes the four
+target behaviours, and the per-handout aliases whose value is the REASONING in
+the comments around them.
+
+**Proved by a segmentation fingerprint over the whole real corpus** -- every
+handout, every participant, `{item: student text}` hashed. Deterministic and
+file-driven, so no sampling and no model. sha256 `c990b59d...` before and after,
+and `HANDOUTS` still identical to its pre-J-4 baseline.
+
+Three things beyond the move:
+
+1. **`handouts.py` stopped importing `H1/H2/H3_MARKERS`** and asks `_markers(h)`,
+   which reads the course file where they always came from. Three per-handout
+   names crossed the boundary in the wrong direction, and a FOURTH handout could
+   not be expressed at all.
+2. **`segment()`'s default is gone.** It was `markers = markers or H1_MARKERS` --
+   silently substituting this course's handout 1. The record says what that cost:
+   four bare `segment()` calls "judged fixtures against text no scorer ever
+   sees", and "every accusation that followed was false" (D2/p19, 1c/p11,
+   1c/p20 reported for text no student wrote). It now REFUSES.
+3. **`utb_hint` is an optional HOOK**, via `segment.course_hook`. Importing it
+   from the course meant a course shipping no such helper could not import the
+   engine at all. Deliberately NOT a registry like `scorers`: a scorer is
+   required once an item names one and its absence must refuse; a hint nobody
+   supplies costs nothing.
+
+**N's completion test PASSES**: the stub scores end to end with `COURSE_METADATA`
+AND `COURSE_FIXTURE` both pointed at itself, borrowing nothing. An empty
+`fixture/` directory sufficed, which is the measure of how much of that directory
+was never the course's.
+
+### Two checks fired on the move, and both were right
+
+* `migrated_tables` read `HANDOUTS` as a migrated table demanding an authored
+  twin, because `_markers` is in `READER_CALLS` and the call sat INSIDE the table
+  literal. Moved into the assembly step beside every other course-sourced field.
+  That check's own comment records the same confusion from an earlier move.
+* A plan edit cited a developer's private notes by wiki-link. There is a check
+  for that, and it is right: a document in this repository must not point at
+  something only one person can read.
+
+## THE $COURSE_DATA QUESTION FOR FIXTURE DATA: SETTLED (2026-09-24)
+
+Settled on the user's instruction to settle it before M, and settled by
+MEASURING rather than by declaring a policy.
+
+**What moved, and where it ended:**
+
+| | |
+|---|---|
+| `CONSENSUS_SPANS.json` | `$COURSE_DATA/courses/<ns>/fixture/` -- the only participant-keyed record |
+| `GRADER_INPUTS.json` | `scoring/` -- platform evidence, **no participant ids in it** |
+| `PROSE_SPLIT_WORKSHEET.json`, `STRUCTURE_KIDS.json` | `scoring/drafts/` -- planning for a future generic capability |
+| `fixture_edits.py`, `grader_inputs.py` | `scoring/` -- generic control flow |
+| `course_segment.py` | stays: the ONLY file left in `course_metadata/fixture/` |
+
+`paths.COURSE_FIXTURE_DATA` names the data root, separately from
+`COURSE_FIXTURE`, which now holds code and no data at all.
+
+**The repository holds NO inline student text.** Measured with the project's own
+classifier (`precommit_gate._classifier` + `_quotes`), across all nine files the
+budget names, in BOTH the dry-run and the live tree: every count is 0. The scrub
+replaced quoted sentences with `{{corpus:...}}` references that resolve against
+`$COURSE_DATA`, which is why the 44 standing findings are all "OLX QUOTES A
+STUDENT THROUGH A REFERENCE" and none is "quotes a student directly".
+
+**A uniform zero was not taken at face value.** Two accessor traps came first:
+`_staged_counts()` reads the GIT INDEX, so in a non-git tree it reports 0 for
+everything and would have "proved" anything; and the classifier itself was
+positive-controlled against a real student span (classified student: True) and a
+engine sentence (False) before the zeros were believed.
+
+### The budget was 15 instances of pure slack, and is now 0
+
+`STUDENT_TEXT_BUDGET.json` permitted 15 instances across 9 files. Two of those
+files no longer exist; the other seven measure 0. **The gate only refuses GROWTH**
+(`n > base.get(f, 0)`) and never tightens, so 15 sentences could have been
+reintroduced silently -- into `GOALS.md`, `README.md`, `enforcement.py` -- and
+the gate would have permitted every one.
+
+That is contrary to the rule the codebase states about this very file: *"they may
+fall and may not rise"*. Tightened to `{}`. A single reintroduced sentence now
+REFUSES, verified. This is the same move the property ratchet required after E
+(11 -> 9): an improvement that is only observed can be undone, and one that is
+recorded cannot.
+
+## N-2 DONE (2026-09-24): the rest of the fixture, dispositioned and moved
+
+`course_metadata/fixture/` now holds ONE file, `course_segment.py`. That was the
+test proposed for whether the split was cut in the right place, and it holds.
+
+### The two remaining modules went to the ENGINE, reversing H(4) knowingly
+
+`fixture_edits.py` and `grader_inputs.py` were read against the genericity test
+-- what the CONTROL FLOW assumes, not what the prose names:
+
+* **`fixture_edits.py`**: spans, SHA verification, engine accessors. Its only
+  course token is `handout`, read as a DECLARED FIELD
+  (`_jobs()[item]["handout"]`), never a literal. H(4) called it FIXTURE for
+  "corrections as spans over THIS corpus" -- which is about the DATA, and that
+  data is now in `$COURSE_DATA`. Same shape as its `segment.py` call: right about
+  the material at the time, describing the subject rather than the control flow.
+* **`grader_inputs.py`**: `GRADER_INPUTS` is keyed by LO-BLOCKS GRADER CLASS
+  NAMES -- 19 of them -- and exists because *"no grader declares the inputs it
+  pairs with"*, a fact about the platform, true for every course. `mine(roots,
+  inventory)` takes roots as a PARAMETER. Its three `psych` mentions are evidence
+  provenance in prose, which is H(4)'s own `docx_text.py` distinction: *"named as
+  the REASON ... not as an assumption the code makes."*
+
+`GRADER_INPUTS.json` went with it: checked, and it carries NO participant ids.
+
+### Verified firing, not merely passing
+
+|  | before | after |
+|---|---|---|
+| `fixture_edits.py --verify` | 102 spans, 0 broken | same |
+| `grader_inputs.py` | declaration and evidence agree both ways | same |
+| `check_grader_input_pairings_are_declared` | 0 findings | 0 findings |
+| the same check with the table emptied | **fires, 60** | **fires, 60** |
+| a span with a corrupted sha | -- | **fires**, SHA MISMATCH |
+
+The second consumer needed its control fixed first: it called `scorer_evidence`
+with the wrong signature and reported a `TypeError`, which proved nothing.
+Exercised through the real path (`FE._sections` -> `FE.resolve`) it resolves 3/3
+spans and refuses a corrupted one.
+
+**A silent break was avoided by looking.** Both modules carried a `sys.path`
+bootstrap walking THREE parents up and appending `"scoring"` -- correct from the
+fixture, but from inside `scoring/` it lands outside the repo. It would have
+failed only when run as a SCRIPT, so the checks would have kept passing while
+both CLIs broke. Both now insert their own directory.
+
+### The two planning worksheets
+
+`PROSE_SPLIT_WORKSHEET.json` and `STRUCTURE_KIDS.json` are planning inputs for a
+generic course-construction capability that does not exist yet (user,
+2026-09-24), so they are in `scoring/drafts/` with a README. Both are on-demand
+outputs -- `--json PATH` -- and nothing reads the checked-in copies. Two
+classifications in `MATERIAL_CLASSIFICATION.md` were corrected: `STRUCTURE_KIDS`
+was filed under "ratchets and frozen records" and is neither, and
+`PROSE_SPLIT_WORKSHEET` was filed under "fixture programs" although H(4) had
+already ruled its producer NOT a fixture program.
+
+## Shape of the fix
+
+1. Split `segment.py`: the 96% moves to the engine beside `docx_text.py`; the
+   ~20 course-specific lines become either a course-supplied hook or
+   declarations, the way `_markers` already is.
+2. `handouts.py` stops importing `H1/H2/H3_MARKERS` by name. They are already
+   derivable -- `_markers(h)` reads the course file -- so this is the J-3 move
+   applied once more: ask for the property, not the numbered name.
+3. Audit `grader_inputs.py` and `fixture_edits.py` the same way before moving
+   either; neither has been measured for its generic share yet.
+4. The completion test is the stub's: `COURSE_METADATA` and `COURSE_FIXTURE` both
+   pointed at the stub, and the engine still scores it end to end.
+
+## WHERE THE COURSE HALF GOES: `$COURSE_DATA`, not the repo
+
+Raised by the user 2026-09-24, and it changes N's destination rather than only
+its shape. **The fixture's course half is STUDENT-DERIVED, so it cannot stay in a
+repository at all** -- splitting generic machinery out of `segment.py` and
+leaving the rest in `course_metadata/fixture/` would only make the remainder
+smaller, not correctly placed.
+
+Measured, in the tree today:
+
+| file | size | what it is |
+|---|---:|---|
+| `PROSE_SPLIT_WORKSHEET.json` | 1.2 MB | keyed by document, references p1-p20 |
+| `CONSENSUS_SPANS.json` | 8 KB | **keyed `item/participant`** (`1c/p20`, `2a/p1`) |
+| `STRUCTURE_KIDS.json` | 108 KB | structure evidence |
+| `GRADER_INPUTS.json` | 20 KB | grader wiring |
+
+`CONSENSUS_SPANS.json` holds span OFFSETS rather than prose -- checked, no
+student sentences in it -- but it is keyed by participant and describes
+individual answers, which makes it a record ABOUT students even where it does
+not quote them. `$COURSE_DATA` is where the submissions and `corpus_refs.json`
+already live for exactly this reason, and this is the same class of material one
+step removed.
+
+So N's split has THREE destinations, not two:
+
+    generic machinery      -> the engine, beside `docx_text.py`
+    course-specific CODE   -> the course's own scorers/hooks (repo is fine:
+                              `utb_hint` names a concept, not a student)
+    student-derived DATA   -> $COURSE_DATA, out of every repository
+
+The third is the one that was not previously stated anywhere, and the one that
+has to be settled BEFORE the split, because "where does the remainder live"
+decides how the split is cut.
+
+**Why before M.** M rewrites the criteria scorer and proves itself ON THE STUB
+(M step 5). A stub that cannot run without borrowing this course's fixture cannot
+prove anything about generality, so N is a precondition for M's own acceptance
+test rather than a parallel tidy-up.
+
+### M · Generalise the criteria scorer (filed 2026-09-24, not for today)
+
+**Filed by the user while deciding E.** The plugin (E) puts the OC scorer behind
+a registry so the engine stops knowing about operant conditioning. But it parks a
+REUSABLE CAPABILITY inside a course-specific wrapper: what `derive_oc_ledger`
+does is generic, and only what it does it TO is not.
+
+This is the genericity test's THIRD VERDICT -- *course-specific now but ought to
+be generic* -- which is a revision task, not a relocation. E and M are therefore
+complementary, not alternatives: **E moves it out, M makes it reusable.** Doing E
+first is right, because M is a big lift and E unblocks J.
+
+## What is generic in it
+
+A criteria scorer that:
+
+1. asks the model for structured FACTS rather than judgements (the shape §3
+   recommends: "a question about the SENTENCE has a procedure in it");
+2. computes definitional GATES as conjunctions of those facts;
+3. SHORT-CIRCUITS at the first definitional failure, so a rule below an unmet
+   gate is never consulted -- which is why a control that already fails one gate
+   makes everything under it invisible;
+4. emits DEDUCTION CODES from the gate that failed;
+5. returns `(ledger, checks, unknown, advisory)` -- with `unknown` and `advisory`
+   distinguishing "could not tell" from "did not meet", which is the distinction
+   the whole project keeps insisting on.
+
+None of that is about behaviour modification. Any rubric asking *does this answer
+instantiate concept X* has the same shape.
+
+## What is course-specific in it
+
+| | |
+|---|---|
+| the FACT VOCABULARY | 14 answer fields: `behavior`, `stimulus`, `contingent`, `follows_behavior`, `stimulus_is_arranged`, `observed_type`, `named_type`, `stimulus_move`, `targets_own_behavior`, `targets_intended_behavior`, `restriction_authored`, `consequence_asserted`, `avoidance_frame`, `cadence_ok` |
+| the GATE STRUCTURE | which conjunctions constitute "is an instance" |
+| the TYPE TAXONOMY | PR / NR / PP / NP and the moves between them |
+
+## The path is half-built already
+
+`derive_oc_ledger` reads SIX fields from the item -- `oc_gates`, `expected_type`,
+`cadence`, `avoidance_scores`, `deductions`, `id` -- so the gates are ALREADY
+partly declared, and `OC_GATES` is already in `coursedata.DERIVATIONS`. The rubric
+also already carries `<Forbid>`, `<Onlyif>`, `<Requires>`, `<Equals>`, `<Expect>`
+primitives, which express exactly the conjunctions this logic hardcodes.
+
+So M is not "write a new engine". It is: finish moving the gate structure and the
+fact vocabulary into declarations the rubric already has shapes for, until what
+remains is a subject-neutral interpreter.
+
+## Why it is a big lift anyway
+
+* **The 14 fact fields are a SCHEMA the model answers**, so changing how they are
+  declared changes every prompt on the 8 criteria items -- a measured change, not
+  a refactor. Every step needs a sweep.
+* **`agreement.score_oc` / `score_oc_cadence` are hand-written MIRRORS** of this
+  logic on the web side, and `enforcement.py:4334` compares them by reading
+  source. Generalising one side without the other breaks the comparison the
+  project rests on; generalising both doubles the work.
+* **The short-circuit ORDER is load-bearing** and currently implicit in Python
+  control flow. Declaring it means declaring precedence, which the rubric has no
+  shape for yet.
+* It touches the most-measured code in the project. `derive_oc_ledger`'s
+  behaviour is baked into the ledger for 8 items x 20 cells x 12 runs.
+
+## The STUB is part of M (user, 2026-09-24)
+
+Added after the stub scored end to end and its criteria item escalated. The stub
+is where M's success is VISIBLE, because it is the only course in the tree with
+no operant conditioning in it:
+
+* Today S2 declares `derive_from_criteria`, `derive_oc_ledger` runs, and the
+  hardcoded `NOT_OC` charge lands in `unknown` because the stub's rubric does not
+  declare that code. The stub keeps full marks by accident, not by judgement.
+* **Acceptance test for M:** the stub scores its criteria item through ITS OWN
+  declared facts and gates, and a clean stub run reports `escalate: False`. That
+  is a one-command check an outsider can run, and it fails today for exactly the
+  reason M exists.
+* When the fact vocabulary and gates move into the rubric (steps 1-2 below), the
+  stub's `stub_rubric.olx` needs a `<Facts>` block and gates of its own -- two or
+  three facts, not fourteen. `build_stub_course.py` is where they go, so the stub
+  tracks the contract instead of drifting from it.
+
+Do NOT relax this by declaring `NOT_OC` in the stub's rubric. That would silence
+the signal while leaving the frame imposed, which is the opposite of the fix.
+
+## M-1/M-2 DONE (2026-09-24): the generic interpreter exists and the STUB uses it
+
+Gate clean at 44, set identical. `oc.py` UNTOUCHED and byte-identical to its
+pre-E baseline (sha `1971e534...`, 51,200 cases, 3/3 controls firing).
+
+`scoring/scorer_criteria.py` is the subject-neutral criteria scorer: it reads
+FACTS and GATES from the rubric, short-circuits at the first failed gate in
+DECLARATION ORDER, emits that gate's code, and returns the
+`(ledger, checks, unknown, advisory)` contract. Registered as
+`BUILTIN = {"criteria": "scorer_criteria"}` -- which is what goal E reserved that
+table for when it emptied it: *"if the engine ever gains a genuinely
+subject-neutral scorer, this is where it goes."*
+
+**NO NEW VOCABULARY WAS INVENTED.** A course declares:
+
+    <Slot key="answered" gate="true" charge="STUB_MISS" because="Nothing was answered."/>
+
+which is exactly what `rubric_component` already parsed into `oc_gates` -- *"an
+oc_gate is a SLOT THAT CHARGES, not merely one that gates"*. The declaration
+shape M needed was already in the file; what was missing was something that read
+it without knowing a subject.
+
+**ORDER IS DECLARATION ORDER.** M records the short-circuit order as load-bearing
+and "currently implicit in Python control flow". Here the rubric's own order is
+the precedence, visible in the file a person edits.
+
+### M step 5 -- the completion test -- IS MET
+
+`scorers/stub.py` is deleted. The stub scores end to end with **no Python at
+all**, which is step 5 verbatim: *"a second, trivial criteria scorer declared
+entirely in a rubric, scoring the stub's one item, with no Python at all."*
+
+    h1: S1 score=1.0 escalate=False unknown=[] deductions=[]
+    h2: S2 score=0.0 escalate=False unknown=[] deductions=['STUB_MISS']
+
+Compare the state this goal was filed in: `escalate=True`, `unknown=['NOT_OC']`,
+and full marks kept BY ACCIDENT because the stub's rubric did not declare the
+foreign code. The acceptance test in "The STUB is part of M" -- `escalate: False`
+on a clean stub run, scoring through its OWN declared facts and gates -- passes,
+and it passes without the shortcut that section warned against (declaring
+`NOT_OC` in the stub's rubric, which "would silence the signal while leaving the
+frame imposed").
+
+### The limit, stated in the code rather than discovered later
+
+The interpreter derives its facts FROM THE GATES. A rubric's non-gating `<Slot>`s
+are served in the rubric view's `SLOT_SPEC`, keyed by item, NOT on the item dict
+a scorer receives -- so it can only see a fact some gate reads. That is sound as
+far as it goes (a fact no gate consults cannot change the ledger, so asking the
+model for it would discard the answer), and it is why this is M-1/M-2 and not all
+of M. `item.get("facts")` is honoured first, so an explicit declaration can land
+later without that function changing again.
+
+## M-3: what migrating OC actually requires, mapped
+
+`derive_ledger`'s decision structure, read: **two of its gates are conjunctions
+of booleans and the rest are not.**
+
+| rule | shape | migratable today |
+|---|---|---|
+| `is_oc` -> NOT_OC | AND of 4 booleans | **yes** |
+| `arranged` -> NOT_EXTERNAL_STIMULUS | 1 boolean | **yes** |
+| the declared `oc_gates` loop | 1 boolean each | **already declared** |
+| `observed != named` -> TYPE_MISMATCH | ENUM COMPARISON | no |
+| cadence -> CADENCE_MISMATCH | enum + counted reading | no |
+| `move_pick` -> WRONG_TYPE | enum over `stimulus_move` | no |
+| avoidance -> NOT_OC / advisory | boolean + per-item SCORES table | no |
+
+So M-3 is not one migration. The definitional half can move as soon as the
+interpreter expresses an AND-of-facts gate; the typed and counted half needs a
+declaration form for ENUM VOCABULARIES and their comparisons, which is the same
+`SLOT_OPTIONS` access the limit above describes.
+
+**Every step must hold the 51,200-case fingerprint byte-identical**, which is
+what makes this tractable at all: the ledger is a pure function of `(item, raw)`,
+so a migration either reproduces it exactly or is visibly wrong.
+
+## M-3 IN PROGRESS (2026-09-24): five rules migrated, fingerprint held at every step
+
+`oc.py` now runs five of its rules from `scorer_criteria`. The 51,200-case
+fingerprint is sha `1971e534...` before the first migration and after the last --
+checked between EVERY step, not once at the end, because a migration that
+reproduces the ledger exactly is the only kind that is safe here.
+
+| primitive | what moved | shape |
+|---|---|---|
+| `apply_declared_gates` | the `oc_gates` loop | declared booleans, short-circuit |
+| `apply_conjunction_gate` | `is_oc` -> `NOT_OC`; `arranged` -> `NOT_EXTERNAL_STIMULUS` | AND of checks, short-circuit |
+| `apply_charge` | `WRONG_BEHAVIOR`, `LINK_NOT_ASSERTED` | one check, NO short-circuit |
+
+### Two corrections the code forced, and M's analysis was wrong about the second
+
+1. **The interpreter had the wrong default for an absent fact.** It failed them;
+   `oc.py` uses `a.get(key, True)` -- *"a gate the model was not asked cannot
+   fail"*. Charging for a question nobody put is plainly wrong, and the OC
+   default is the considered one. Found by reading `oc.py` BEFORE delegating to
+   it. Now pinned by a three-way test: facts true -> no charge, false -> charge,
+   ABSENT -> no charge.
+
+2. **`WRONG_BEHAVIOR` and `LINK_NOT_ASSERTED` are not gates.** They look like
+   single-boolean gates and this plan listed them as such. Both are
+   `if not x: add(...)` with **no `return`** -- they charge and scoring
+   continues, which their own comment states: *"charged additively alongside
+   TYPE_MISMATCH and WRONG_BEHAVIOR, and in the same order as agreement.py's
+   score_oc_cadence."* Migrating them as gates would have truncated every ledger
+   that reached them.
+
+   **This is a gap in M's own "what is generic" list**, which names
+   short-circuiting and never names its opposite. GATES STOP; CHARGES ACCUMULATE.
+   `apply_charge` exists to keep them apart, with the reasoning at the site.
+
+## M-3b DONE (2026-09-24): the enum rules migrated, and two corrections to this plan
+
+Gate clean at 44, set identical. OC fingerprint byte-identical at every step
+(sha `1971e534...`). **Nine of `derive_ledger`'s rules now run from the
+interpreter**; what is left is five charge sites whose CONDITIONS are one
+course's, reached through shared primitives.
+
+### The prerequisite, done first
+
+Items now carry `slot_options` -- the answer menus their own slots name, attached
+by `rubric_component` from the `<Choices>` the rubric already declared, and added
+to `RUBRIC_FIELDS` so `course_schema` accepts the field. That keeps a scorer a
+function of `(item, raw)`, which is what makes the ledger pure and the
+fingerprint meaningful. Without it an enum comparison could only be hardcoded.
+
+### Primitives now in `scorer_criteria`
+
+| primitive | shape | sites |
+|---|---|---|
+| `charge` | look a code up; UNDECLARED -> `unknown`, charges nothing | 5 |
+| `apply_declared_gates` | declared booleans, short-circuit | 2 |
+| `apply_conjunction_gate` | AND of checks, lists the missing, short-circuit | 2 rules |
+| `apply_charge` | one check, ADDITIVE | 2 |
+| `apply_fact_gate` | gates on a fact that is not a recorded check | 1 |
+| `apply_enum_mismatch` | two enums disagree; LENIENT values first-class | 1 |
+| `forbid_hit` | the rubric's `forbid` conjunction | 2 |
+
+### THIS PLAN WAS WRONG TWICE, and the corrections matter more than the migration
+
+**1. "The type taxonomy is course-specific, so its rules stay."** That conflated
+the TAXONOMY with the code that consults it. `REQUIRED_MOVE` is a declared course
+table and `expected_type` a declared item field; looking a value up in one and
+comparing is no more about operant conditioning than any other comparison. The
+same distinction this plan drew correctly for the fact vocabulary, not applied
+one level further in until the user asked whether it really held. It did not.
+
+**2. `WRONG_BEHAVIOR` and `LINK_NOT_ASSERTED` are not gates** -- they charge
+without returning. Migrating them as gates would have truncated every ledger
+beneath them. M's "what is generic" list names short-circuiting and never names
+its opposite: **GATES STOP; CHARGES ACCUMULATE.**
+
+### And one primitive was BUILT AND THEN REMOVED
+
+`meets_expectation(a, fact, want, fallback_fact, fallback_want)` lasted one
+commit. One caller, and a signature encoding THAT rule's shape under a general
+name -- which is worse than inline code, because a primitive advertises a
+contract a second course can meet. Reverted, with the reasoning left at the site
+so it is not helpfully re-extracted.
+
+**The standard that fell out is not call-count.** `apply_conjunction_gate` has one
+call site and serves two rules; `apply_fact_gate` and `apply_enum_mismatch` have
+one each and fully general signatures. The test is: *does the signature
+generalise, or does it encode one rule's shape?*
+
+The same question retired a duplicate: `apply_charge` and `oc.py`'s local `add()`
+both implemented "charge or report an undeclared code". That is the SUBTLE rule --
+the silent drop that let the stub keep full marks by accident before E -- and two
+copies of it agree until one is edited. `codes.get(` now appears ONCE in the
+module.
+
+### The primitives are tested against their contracts, not just their usage
+
+`scorer_criteria.py --self-test`: **19 cases, all passing**, shipped with the
+module for the reason `course_schema` gives about its own -- a check whose cases
+live elsewhere is one nobody has watched fail. The fingerprint proves the OC
+scorer's USAGE reproduces; it says nothing about an undeclared code, an absent
+fact, a lenient value, or a charge that must not short-circuit, and those are
+exactly what a second course would rely on.
+
+Proven non-vacuous: breaking `charge` fails 7 cases, breaking `forbid_hit` fails
+1.
+
+## DECIDED (2026-09-24): `avoidance_scores` becomes NOTHING -- it is deleted
+
+The rubric ALREADY declares the distinction it encodes, and declares it twice:
+
+    DAY1                        <Slot key="phrased_directly_gate" ... gate="true"/>
+    PR NR PP NP WK1 DAY2 WK2    <Slot key="phrased_directly"      ... (no gate)/>
+
+DAY1 gates on an avoidance frame; every other criteria item treats it as
+advisory. `avoidance_scores: true` -- declared on DAY1 and nowhere else -- is a
+PYTHON-SIDE DUPLICATE of `gate="true"`, and `oc.py`'s own comment says why it had
+to exist: *"DAY1 GATES on this, and the CLI must gate with it or the two
+implementations score the same answer differently."* The flag was needed only
+because a gate had no way to say WHICH CODE it charges, which the OLX engine's
+new `charge`/`because` attributes now fix.
+
+So the mapping is: put `charge="NOT_OC" because="The consequence is stated only
+as something avoided."` on DAY1's gate slot, and delete the flag and the
+hand-written block. `rubric_component` already collects gate-slots-that-charge
+into `oc_gates`, and `apply_declared_gates` already handles them -- no new code.
+
+### BLOCKER 2 ANSWERED (2026-09-24): the build invocation, inside the dry run
+
+`materialiseRubrics` FOLLOWS SYMLINKS because "a content tree mounts other
+repositories by symlink, and the plain form walks straight past a mounted course
+and reports a clean zero". Neither `lo-blocks/content` -- dry-run OR live --
+mounts the psych course, so `npm run build:expand-rubrics` was never how this
+course's artifacts were made. The invocation is:
+
+    ./node_modules/.bin/tsx packages/shared/scripts/materialiseRubrics.ts \
+        --content <course root> --out .stage/expanded/<namespace>
+
+Verified by building to a TEMP directory and comparing: the output is
+BYTE-IDENTICAL to the staged artifact the scorer reads. The namespace level comes
+from `--out`, not from the content tree. Second stage is
+`resolveCorpusRefs --content .stage/expanded --out .stage/content --no-mount`.
+
+**It is a pass-through today**: authored `bmod_rubric.olx` == staged, because
+nothing uses `<ItemTemplate>` yet. So a rubric edit propagates by re-running the
+above, entirely within the dry-run branch, touching no live tree.
+
+### BLOCKER 1, PROPOSED SHAPE: two STAGES, not an ordering number
+
+The avoidance gate must run AFTER the type rules; the declared-gates loop runs
+before them. Rather than an arbitrary precedence integer, declare the KIND of
+gate, which is what the code's two positions already mean:
+
+    gate="true"    definitional -- is this an instance at all?   (early, today)
+    gate="final"   presentational -- how is it phrased?          (late)
+
+`apply_declared_gates(item, a, checks, codes, stage=...)` filters by stage and
+`oc.py` calls it twice, once at each existing position. Order WITHIN a stage
+stays declaration order. This reproduces today's behaviour exactly -- avoidance
+is the only late gate -- so the 51,200-case fingerprint verifies it rather than a
+reviewer having to reason about it.
+
+### TWO BLOCKERS, both real, neither worked around
+
+**1. ORDER. This is M's undeclared-precedence gap, arriving.** The hand-written
+avoidance charge is the LAST rule in `derive_ledger` (line ~250); the declared-
+gates loop runs at line ~140, with `LINK_NOT_ASSERTED` between them. Moving the
+charge into the loop moves it earlier, so a DAY1 cell that is both
+avoidance-framed and missing its asserted link would charge a different code.
+M records this exactly: *"the short-circuit ORDER is load-bearing and currently
+implicit in Python control flow. Declaring it means declaring precedence, which
+the rubric has no shape for yet."* This is the case that forces it.
+
+**2. THE BUILD PATH IS NOT REACHABLE IN THIS TREE.** The scorer reads BUILD
+PRODUCTS -- `as_view_items` from `.stage/expanded/<ns>/psychology/`,
+`as_view_slot_spec` from `.stage/content/` -- produced by
+`npm run build:expand-rubrics`, which runs `materialiseRubrics --content
+./content`. In this dry-run `lo-blocks/content` holds only `demos/`: the psych
+rubric is not reachable from it. So an edit to the authored
+`psychology/bmod_rubric.olx` cannot be propagated to the artifacts the scorer
+actually reads, and running the build as documented would regenerate nothing for
+this course rather than fail loudly. **Not worked around**: guessing an
+invocation against the artifacts the scorer depends on is how a tree gets
+silently corrupted.
+
+## TWO-STAGE GATES DONE; THE MAPPING IS BLOCKED ON ONE VOCABULARY (2026-09-24)
+
+**Done, byte-identical:** a gate declares its stage -- `gate="true"`
+definitional, `gate="final"` presentational -- `rubric_component` carries it,
+`apply_declared_gates(..., stage=...)` filters, and `oc.py` calls the loop twice,
+at the two positions its control flow already used. An entry with no stage is
+definitional, so nothing written before this behaves differently. Fingerprint
+`1971e534...` unchanged; self-test 19/19.
+
+**Then the mapping stopped, and the reason is the finding.** The two engines ASK
+DIFFERENT QUESTIONS for the same concepts:
+
+| concept | paper asks | web asks |
+|---|---|---|
+| behaviour named | `behavior` | `names_behavior` |
+| stimulus named | `stimulus` | `names_stimulus` |
+| arranged | `stimulus_is_arranged` | `you_arrange_it` |
+| avoidance | `avoidance_frame` | `phrased_directly_gate` (INVERTED) |
+| cadence | `cadence_ok` | `cadence_is_daily` |
+| type match | computed | `matches_chosen_type` |
+
+Declaring the avoidance gate on the web's `phrased_directly_gate` makes the paper
+scorer read a fact it never asks: `a.get("phrased_directly_gate", True)` is
+absent, so the gate silently never fires -- the ledger would look unchanged while
+the rule stopped existing. The alternative, declaring it on `avoidance_frame`,
+leaves the WEB unable to read it and inverts the sense.
+
+**So the last five rules cannot be mapped onto shared declarations until the two
+FACT VOCABULARIES are reconciled into one.** That is M step 1 done properly --
+"declare the FACT VOCABULARY in the rubric" -- and it is a MEASURED change, not a
+refactor: it alters what the model is asked on all eight criteria items, so it
+needs a sweep and cannot be proved by the fingerprint. The fingerprint proves the
+ledger is unchanged for a GIVEN answer; it cannot prove the answers stay the same
+when the question changes.
+
+*What this does not block:* the two-stage machinery, the coded deductions in the
+OLX engine, and the nine rules already migrated all stand, and none of them
+changes a prompt.
+
+## THE CONSOLIDATION IS WITHDRAWN (user, 2026-09-24) -- THE ALIAS ALREADY IS IT
+
+**Withdrawn before it was built, on the user's question: "I thought we had
+already decided that courses name their slots?"** They had, and goal P delivered
+it -- the engine is at zero. The consolidation below would then have rewritten
+COURSE-AUTHORED TEACHING PROSE to satisfy an engine-side convenience, which is
+the opposite of what P established.
+
+**And it was never needed.** The blocker was that the declared rules name the
+WEB's slots (`phrased_directly_gate`, `targets_goal_behavior`,
+`demonstrates_type`) while the paper scorer asks its own. `SIDE_ALIAS` -- which
+P had just moved INTO the course file, and which carries `SIDE_INVERTED` beside
+it -- maps every one of them:
+
+    phrased_directly_gate     -> avoidance_frame            (INVERTED, declared)
+    targets_goal_behavior     -> targets_intended_behavior
+    demonstrates_type         -> stimulus_move
+    barrier_is_not_this_type  -> already shared / computed
+    consequence_not_a_setup   -> already shared / computed
+
+So the last five rules map by RESOLVING OPERANDS THROUGH THE ALIAS, and nothing
+about what the model is asked changes.
+
+### What that cancels
+
+| was planned | now |
+|---|---|
+| ~90 prose edits in `bmod_rubric.olx` and `bmod_handout2.olx` | none |
+| a 2,068-cell RE-SWEEP | none for the rename |
+| the `behavior`/`stimulus` judgement over 275 prose sites | none |
+| a changed `criteria_slice.json` golden | unchanged |
+
+The 26 provenance findings still need one re-sweep, for the `slotSheet.ts` hash;
+that is a different and smaller debt.
+
+### What it cost to find, and what nearly happened
+
+The rename was measured before it was applied, which is the only reason it was
+caught. The counts showed the fact names live in AUTHORED PROSE -- *"5.
+`stimulus_is_arranged` -- is the consequence something the student arranges"* --
+and that `behavior` appears 113 times in the rubric, overwhelmingly as the
+ENGLISH WORD rather than the fact name. A substitution rename would have mangled
+the teaching text; a careful one meant judging 275 sites, which is the
+mention-versus-use error that had already produced three wrong figures that day,
+at ten times the scale.
+
+**The decision that actually mattered was made earlier and not followed
+through:** once the course names its slots, two names for one fact is the
+COURSE's business, and the engine's job is to resolve them -- which is what the
+alias is for, and why moving it into the course file was the right move rather
+than an incidental one.
+
+*The vocabulary table below is kept as the record of what was decided and why it
+was not needed. It is NOT a plan.*
+
+## THE CONVERGED FACT VOCABULARY (decided 2026-09-24, SUPERSEDED -- see above)
+
+Verified first: the two sides DO converge. The same five paper facts and six web
+facts diverge on ALL EIGHT criteria items -- identical every time, which is
+itself evidence they describe one thing rather than two.
+
+User's decisions: **the web's slot starts asking for TEXT**, and **generic names
+beat item-specific ones, however that shakes out.** That resolves every case:
+
+| concept | converged name | from | why |
+|---|---|---|---|
+| behaviour named | `names_behavior`, TEXT-BEARING | web | web's name, paper's evidence |
+| stimulus named | `names_stimulus`, TEXT-BEARING | web | same |
+| arranged | `you_arrange_it` | web | pure rename |
+| avoidance | `phrased_directly` | web | inversion handled at the gate |
+| cadence | `cadence_ok` | **paper** | generic beats `cadence_is_daily` / `_weekly` / `_daily_counted` |
+| targets | `targets_intended_behavior` | **paper** | generic beats `targets_goal_behavior` / `targets_unwanted_behavior` |
+| confidence | `confident` | web | web-only, no paper counterpart |
+
+The two that keep the PAPER's name are the two where the web encodes the item in
+the FACT NAME. It is not even derivable: DAY1 and DAY2 are BOTH daily, and use
+`cadence_is_daily` and `cadence_is_daily_counted`. That is the `bmod_handout1`
+shape -- an item's identity inside a name -- which J-7b spent a day removing.
+
+## THE COST: 2,068 CELLS BECOME HISTORICAL, AND MUST BE RE-SWEPT NOT RESCORED
+
+Measured: **2,068 of 9,628 recorded cells, across all eight criteria items**,
+carry a verdict keyed by a name this rename retires.
+
+    olx          3120 recorded    960 affected
+    python       3268 recorded   1108 affected
+    paper        3120 recorded      0
+    paper_opus    120 recorded      0
+
+**THE FIRST COUNT SAID 960 AND WAS WRONG BY MORE THAN HALF.** It scanned for
+`verdicts` and `slots` -- the OLX shape -- and the python side stores `checks`
+and `answers`, so it reported ZERO affected on a side that drives the same OLX
+prompts. It read as "python is unaffected" when it meant "wrong accessor". One
+whole side coming back clean is never a data finding; it is the tell for reading
+the wrong key, and it cost a figure that had already been written into this plan.
+
+**They cannot be migrated, and should not be.** `migrate_verdicts.py` renames
+over the RUBRIC and states the rule this falls under: *"a rewrite that would
+change what the model is asked does not get written; it gets reported."*
+Rewriting a recorded verdict's KEY would claim the model was asked
+`cadence_ok` when it was asked `cadence_is_daily`. That is falsifying the record,
+and this project keeps superseded measurements precisely because "a fault
+superseded by a later sweep stays true of what was recorded".
+
+So the eight criteria items need a RE-SWEEP -- new model calls -- not a rescore.
+A rescore replays recorded answers; this changes the question, so there are no
+answers to replay. Budget it as 960 cells, and expect the ledger's history on
+those items to end at this line rather than continue through it.
+
+## O COMES BEFORE THE RE-SWEEP (user, 2026-09-24)
+
+The user's sequencing, and the numbers back it: **the python side is 1,108 of the
+2,068 cells -- 53% of the re-sweep.** If it can validly be retired, the sweep is
+halved, and there is no sense in spending model calls re-measuring a column that
+is about to be deleted.
+
+The rationale is not only economic. **The python web scorer only ever existed as
+a CROSSCHECK** -- `olx_python` against `olx_app`, separating a prompt difference
+from a model difference. After P (the engine stops naming this course's facts)
+and M step 4 (the mirror is GENERATED from the declarations rather than
+hand-written), the two sides cannot drift by construction, and a crosscheck
+between implementations that cannot differ is measuring nothing.
+
+So the order is: **P -> vocabulary convergence -> the last five rules -> generate
+the mirror -> O -> ONE re-sweep**, of whatever columns survive O.
+
+O's own entry lists three things that must be true first; the mirror being
+generated is the one that does the work, and it is now scheduled before O rather
+than after.
+
+**This is the first step in the whole migration that cannot be proved by the
+fingerprint.** Everything else -- E's five steps, M's nine rules, the two-stage
+gates, the OLX engine's coded deductions -- held sha `1971e534...` because the
+question never changed. This one changes it, so only measurement can say whether
+accuracy moved.
+
+## PERFORMANCE vs THE CURRENT LEDGER: no change on either side
+
+Asked directly, and answered with evidence rather than argument.
+
+**PYTHON: no behavioural change, proven.** Every migration step -- nine rules
+moved onto the interpreter, across E and M -- held the 51,200-case fingerprint at
+sha `1971e534...`, checked BETWEEN steps, not once at the end. The ledger is a
+pure function of `(item, raw)`, so identical output over the whole input space is
+identical behaviour.
+
+**OLX: cannot alter a score.** `git diff` removes exactly THREE lines from
+`slotSheet.ts`, none of them arithmetic:
+
+    -                           freeAttr?: string): SlotSpec[] {
+    -): { score: number; max: number; failed: string[] } | null {
+    -  if (gate) return { score: 0, max, failed: [gate.key] };
+
+The first two are a signature and a return type; the third returns the SAME
+values plus the new key. `score: Math.max(0, Math.min(max, max - lost))` and the
+`failed` computation are untouched. `deductions` is additive and empty unless a
+slot declares `charge`, which no rubric yet does -- 0 deductions across all 3,120
+recorded cells.
+
+**So the exposure is PROVENANCE, not performance.** Changing `slotSheet.ts`
+changed the hash every recorded web cell was stamped against, which is why the
+gate reports 26 "WEB COLUMN IS NOT STAMPED BY THE APP'S OWN CODE" findings. The
+declared remedy is `measured.WEB_CODE_NEUTRAL`, and `SCORER_NEUTRAL`'s precedent
+demands a RE-SCORE as evidence ("VERIFIED 2026-09-04 by re-scoring 2776 recorded
+cells"), not a reasoned case.
+
+**A first re-score attempt was made and is NOT usable.** It reported 554 of 3,120
+cells differing -- and the harness was at fault, not the engine: it invented
+`options: ["met","absent"]` for slots that record none, and passed none of
+`cover/equals/onlyif/counts/expect/requires/forbid/maps`, which are exactly what
+decide satisfaction. A cell whose gate should zero it came back at 6. Recorded
+artifacts do not carry enough to reconstruct the call; a faithful re-score has to
+assemble the sheet the way `agreement.py` does. Recorded here so the 554 is not
+mistaken for a finding by whoever picks this up.
+
+## What finishing M still needs, in order
+
+**M-3b. Four charge sites remain, and all four need an ENUM VOCABULARY.** They
+are not conjunctions of booleans, which is why they could not move with the rest:
+
+| site | what it compares |
+|---|---|
+| `TYPE_MISMATCH` | `observed_type` vs `named_type` -- enum equality, with `"unclear"` a LENIENT value that is deliberately not charged |
+| `CADENCE_MISMATCH` | `cadence_ok`, a counted reading, and it SHORT-CIRCUITS before `TYPE_MISMATCH` |
+| `WRONG_TYPE` x3 | `stimulus_move` against `REQUIRED_MOVE[expected_type]`, plus a forbid-rule condition |
+| `NOT_OC` (avoidance) | `avoidance_frame` against the item's `avoidance_scores` TABLE |
+
+The prerequisite is the same one the interpreter's stated limit names: a scorer
+receives an ITEM DICT, and slot vocabularies live in the rubric view's
+`SLOT_SPEC`, keyed by item. Until a scorer can read those, an enum comparison
+cannot be declared -- only hardcoded.
+
+So the order is:
+
+1. **Give a scorer access to its slot vocabularies.** Either pass `SLOT_SPEC`
+   into the plugin contract or expose an accessor; this is the single change that
+   unblocks the remaining four.
+2. **Declare enum comparisons**, with lenient values first-class -- `"unclear"`
+   is not an edge case here, it is a declared verdict that must not charge.
+3. **Migrate the four sites**, holding the fingerprint at each.
+4. **M step 4, the web mirror.** `score_web`/`score_web_cadence` are hand-written
+   mirrors of exactly these rules. Once the rules are declarations, GENERATE the
+   mirror from them rather than migrating it -- which is what retires the
+   source-reading comparison in `enforcement` that goal E had to preserve so
+   carefully, and with it a whole class of divergence check.
+5. **Re-run the item sweeps.** Steps 2-3 change no behaviour if done right, but
+   M's own warning stands: the 14 fact fields are a SCHEMA THE MODEL ANSWERS, so
+   any step that changes what is asked needs a sweep, not just a fingerprint.
+
+**What is already true and should not be re-litigated:** the engine ships a
+subject-neutral criteria scorer, the stub uses it with no Python, and `escalate`
+on a clean stub run is `False`. M's completion test is met; what remains is
+moving the REST of one course's scorer onto the thing that test proved works.
+
+## Suggested shape when it is taken up
+
+1. Declare the FACT VOCABULARY in the rubric (a `<Facts>` block per scorer),
+   replacing `build_schema`'s hardcoded OC half.
+2. Declare the GATES and their ORDER, extending `oc_gates` to carry precedence.
+3. Reduce `derive_oc_ledger` to an interpreter over those two declarations.
+4. Do the same to the web mirror, or generate the mirror from the declarations so
+   the two cannot drift -- which would retire a whole class of divergence check.
+5. Prove it on the stub: a second, trivial criteria scorer declared entirely in a
+   rubric, scoring the stub's one item, with no Python at all.
+
+Step 5 is the completion test, and it is the same shape as J's: the capability is
+generic when something OTHER than this course uses it.
+
+---
+
+## CORRECTION: `_1C_GATE_CEILING` is NOT to be renamed
+
+Filed as step 1 of the stub work and as disposition F. **Both were wrong**, and
+the record says so in two places.
+
+`editguard.ITEM_NAMED_BY_DESIGN` carries it explicitly:
+
+> *"a gold DECLARATION about one cell, and entitled to name it. Renaming it would
+> also be a data migration rather than a rename: it is read through
+> `_gold_declaration` and carried by `gold_export`, so the name is a key in the
+> gold file."*
+
+and `enforcement.py:9566` records the principle:
+
+> *"a DECLARATION ABOUT one cell may name that cell where a FUNCTION that no
+> longer touches it may not. A check with nowhere to record that would fire on it
+> forever and be waved through, which is how a check stops being read."*
+
+The distinction is real: `rebuild_gold_1c` was renamed because the FUNCTION
+outlived the item and the name described its caller's history. A declaration
+about one cell is a different thing.
+
+**The stub's actual fix.** The symptom was right -- a course-neutral stub should
+not carry a table named for another course's item -- but the remedy is not a
+rename. The stub simply DOES NOT DECLARE IT, and the consumer at
+`measured.py:6588` reads it guarded. That is **J-5** (unguarded derived reads),
+not a rename. `_1C_GATE_CEILING` leaves disposition F and the stub build order.
+
+**FOURTH instance today** of proposing a change to deliberate, documented design
+-- after the eager module-level loads (C1b), `derived()`'s "EMPTY IS ABSENT", and
+`_RubricView.__getattr__` raising on absent. In this codebase an oddity that
+looks like an oversight usually has a comment above it saying why it is not, and
+the exception sets (`ITEM_NAMED_BY_DESIGN`, `SCORING_DIVERGENCES`,
+`LESSONS_APPROVED`) exist precisely so those decisions are findable rather than
+folklore. **Read the exception table before proposing to fix what it exempts.**
 
 ### T27 · Compare the finding SET, and against the RIGHT baseline
 
@@ -6221,3 +8499,507 @@ NODE, where `CSS` does not exist, so the first radio screen of every handout
 died with `ReferenceError: CSS is not defined` — reported as a handout failure.
 The ternary was meaningless anyway (`CSS.escape ? name : name`).
 
+## M-3 CONTINUED (2026-09-24): THE AVOIDANCE RULE IS DECLARED, AND `gate="final"` WAS BROKEN IN FIVE PLACES
+
+**Rule 1 of five is migrated, end to end and measured.** DAY1's avoidance charge
+is now `<Slot key="phrased_directly_gate" gate="final" charge="NOT_OC"
+because="The consequence is stated only as something avoided."/>`, applied by the
+generic final-stage loop. The operand is the WEB's name and the scorer reads it
+from its own `avoidance_frame`, INVERTED, through the course's `SIDE_ALIAS` --
+the route the withdrawn consolidation was going to rewrite ~90 sites of authored
+prose to avoid needing.
+
+Declaring it on DAY1 alone is exactly what `item.get("avoidance_scores")`
+selected: that condition is declared on DAY1 and on no other item (verified
+against all eight). The "not extended to the other items" decision is now
+enforced by the declaration's ABSENCE rather than by an `if`.
+
+### What it cost, measured rather than asserted
+
+| check | result |
+|---|---|
+| ledger over DAY1's 6400 swept answers | **identical** |
+| advisory, unknown-list | **identical** |
+| `checks` | **100 rows gain a recorded `phrased_directly_gate` entry** |
+| other 7 criteria items | unchanged |
+| the 217 shipping slot prompts | **all identical -> NO SWEEP NEEDED** |
+
+The only behaviour change is that the judgement behind a NOT_OC charge is now
+RECORDED on the paper side, which is the side that was missing it. Fingerprint
+re-recorded as `f7a6341615a27177` with that account attached.
+
+### BLOCKER 2 WAS WRONG, AND IT WAS MY ERROR
+
+The plan recorded that the build path "is not reachable in this tree" because
+`lo-blocks/content` holds only `demos/`. **It holds only demos because the course
+is MOUNTED BY SYMLINK, and this dry-run simply had no symlink.** One
+`ln -s` later the build runs, and `materialiseRubrics` announces "staged mounted
+source edu.memphis.psych". The enforcement check at `enforcement.py:6768`
+describes the mounting rule in its own comment; I filed the blocker without
+reading it.
+
+Before trusting the restored path I rebuilt to a SCRATCH directory and diffed:
+both stages reproduce today's artifacts byte-for-byte (`.stage/expanded` and
+`.stage/content`), so the build is derived from this tree and not a copy of the
+live one.
+
+### `gate="final"` WAS NEVER TAUGHT TO ANY READER BUT THE ONE THAT DEFINED IT
+
+The two-stage gate landed earlier today in `rubric_component.as_view_items`.
+FIVE other places read the same attribute, and every one of them was still
+written for `true`/`false` only. The first `final` gate ever declared found all
+five:
+
+| reader | what it did | consequence |
+|---|---|---|
+| `rubric_component.as_view_slot_spec` | `gate in _TRUE` | slot silently stops being a gate **for the web** |
+| `rubric_component` (third projection) | `gate in _TRUE` | same, in a third place |
+| `rubric_olx.py` round-trip | wrote `gate="true"` | **demotes a final gate to definitional on regeneration** -- authored data lost by rewriting the file it was authored in |
+| `rubric-inputs.ts` | `TRUE.has(x.gate)` | dropped the `!` from the generated `slots=`; **it wrote that regression into `bmod_handout2.olx`, and stripped `**GATE**` from the body**, leaving the prose and the attribute contradicting each other |
+| `Slot.ts` zod schema | `z.enum(['true','false'])` | the content loader REFUSED the value and **aborted the static build** |
+
+All five fixed. Four failed SILENTLY and one failed loudly; the loud one is the
+only reason the set was ever completed, which is the argument for the schema
+being the strictest reader rather than the most permissive.
+
+**The lesson is the one already in the ledger and not applied:** I fixed the
+instance I noticed (`as_view_slot_spec`), and only then enumerated the
+population. Two of the five were found after that enumeration and one after the
+build failed. A new attribute VALUE is a fix-set problem exactly like a new
+identifier class.
+
+### THE WEB DOES NOT RECEIVE ANY DEDUCTION CODE AT ALL -- OPEN
+
+`slotSheet.ts` parses `charge`/`because` and `scoreSlotSheet` returns coded
+deductions, but **no `charge=` attribute is generated onto any LLMAction in any
+handout** (0 occurrences across all three). DAY1's action carries `slots`,
+`forbid`, `equals`, `choices`, `max` -- and no `charge`. So the coded-deduction
+work is plumbed at the runtime and unconnected at the generator: the rubric
+declares the code, the paper scorer reads it, and the web still charges nothing
+by code. This affects `states_a_contingency` too, which was migrated before
+today.
+
+That is the next step for "the OLX engine has coded deductions", and it CHANGES
+WHAT SHIPS, so it wants its own verification rather than being folded in here.
+
+### The remaining four rules, honestly
+
+`consequence_not_a_setup` and `barrier_is_not_this_type` need no alias and are
+already declared (`<Forbid>`) and already run on the shared `forbid_hit`
+primitive -- the plan's own table said "already shared / computed".
+
+`demonstrates_type` and `targets_goal_behavior` are declared as slots and are
+charged CONDITIONALLY: `if not demonstrates: WRONG_TYPE elif not aimed:
+WRONG_TYPE`, one charge for either cause, never two. That is the web's `onlyif`
+primitive, which `slotSheet.ts` already implements and documents against
+`score.py:derive_oc_ledger` by name -- and which the paper interpreter does not
+have. Porting `onlyif` as a SHARED primitive is the honest next move and matches
+"we want to make sure we're using the same primitives across all engines".
+
+**And one divergence found while reading them:** the rubric declares
+`<Expect key="demonstrates_type" left="observed_type" value="NR"/>`, comparing
+OBSERVED_TYPE, while `oc.py` computes the same fact from `stimulus_move` against
+the declared `<TypeMove>` table and falls back to `observed == expected` only
+when the move is missing. **The two sides compute one named fact from different
+answers.** Not yet measured for how often they disagree; recorded here rather
+than fixed, because a fix changes scoring.
+
+## M-3: RULES 3 AND 4 MIGRATED -- `onlyif` IS A SHARED PRIMITIVE NOW (2026-09-24)
+
+**All five rules were declared in the rubric the whole time.** Rules 3 and 4 are
+`<Onlyif key="targets_goal_behavior" cond="demonstrates_type"/>` on PR/NR and
+`<Onlyif key="targets_unwanted_behavior" .../>` on PP/NP -- and the handouts
+already carry the generated `onlyif=` attribute, so the WEB has been applying
+them. Only the paper scorer hand-wrote the rule, as `if not demonstrates: ...
+elif not aimed: ...`, with the precedence living in Python control flow.
+
+I did not find them at first because I grepped `OnlyIf\|onlyif` and the element
+is spelled **`<Onlyif>`** -- neither pattern matches. A detector built from a
+guessed spelling reported "not declared" about something declared six times.
+
+`scorer_criteria.charge_suppressed` is the primitive, and it is the same rule
+`slotSheet.ts` implements -- that file documents itself against
+`score.py:derive_oc_ledger` BY NAME. Both engines now read one declaration.
+
+### THREE FINDINGS FROM THE VERIFICATION, none of which the fingerprint alone gave
+
+**1. A guard bolted onto the `elif` was DEAD, and looked fine.** `elif not aimed
+and not charge_suppressed(...)` can never fire the suppression: reaching the
+`elif` already implies `demonstrates`, which is the condition. The fingerprint
+reproduced, because nothing changed. What caught it was the CONTROL -- deleting
+`<Onlyif>` from the item and finding the ledger identical, i.e. the declaration
+was not being read. Migrating it properly meant making the two charges
+INDEPENDENT `if`s and letting the declaration do the suppressing.
+
+**2. One fact, two declared names, and a single-name lookup double-charges.** The
+course declares `targets_intended_behavior -> ['targets_goal_behavior',
+'targets_unwanted_behavior']` because reinforcement items aim at the GOAL
+behaviour and punishment items at the UNWANTED one. Asking suppression under one
+name left PP and NP unsuppressed, so both causes charged, 2 + 2 against a max of
+4. The fingerprint caught this one immediately.
+
+**3. THE FINGERPRINT WAS BLIND TO EVERY `forbid` RULE.** `forbid_hit` fired on
+**0 of NR's 6400 swept answers**: the sweep never varied `trigger_expects` or
+`restricts`, and fed `restriction_authored` True/False when the fact is a PICK
+over strings. So it LOOKED covered -- the fact was being varied, over values the
+rule can never match. A migration of `barrier_is_not_this_type` or
+`consequence_not_a_setup` could have changed the ledger with the guard still
+reporting "reproduces". The sweep now carries all 18 pick-combinations; case
+count 51,200 -> 115,200, runtime 1.9s -> 4.8s. What it still does not cover is
+stated in the docstring rather than left to be inferred.
+
+This is the third time today a comparison was trusted because it came back the
+way it was expected to. `evidence.certify` now guards this one: the declaration
+is CERTIFIED load-bearing, meaning deleting it provably changes the ledger.
+
+### Where the five rules stand
+
+| rule | state |
+|---|---|
+| avoidance (`phrased_directly_gate`) | **declared**, final-stage gate, alias-resolved |
+| `targets_goal_behavior` / `targets_unwanted_behavior` | **declared**, `<Onlyif>`, alias-resolved |
+| `barrier_is_not_this_type` | **declared**, `<Onlyif>` + `<Forbid>`, NR only |
+| `consequence_not_a_setup` | already `<Forbid>` on the shared `forbid_hit` |
+| `demonstrates_type` | computed; see the divergence below |
+
+**M-3 is done for the rules the alias governs.** What remains under M is step 4
+(generate the web mirror from declarations) and the two open items below.
+
+### STILL OPEN
+
+1. **The web receives no deduction CODE at all** -- no `charge=` attribute is
+   generated onto any LLMAction (0 across all three handouts), though
+   `slotSheet.ts` parses it and `scoreSlotSheet` returns coded deductions. The
+   rubric declares the code, the paper scorer reads it, the web charges nothing
+   by code. Changes what ships; wants its own verification.
+2. **`demonstrates_type` -- RESOLVED, AND THE 13% FIGURE I REPORTED WAS WRONG.**
+
+   The earlier entry said the two sides compute this fact differently and
+   disagree on 13% of recorded answers. **That described history, not the shipped
+   scorer, and the reasoning behind it was wrong twice over.**
+
+   *What is actually declared -- and this is the real finding.* The rubric is not
+   uniform: `PR` declares `<Expect key="demonstrates_type" left="stimulus_move"
+   value="given_desirable"/>` while `NR`, `PP` and `NP` declare
+   `left="observed_type"`. One named check, computed from a different fact on
+   different items. Correspondingly, only `PR` declares a
+   `<Slot key="stimulus_move">` at all.
+
+   *What the scorer does.* `oc.py` asks `stimulus_move` only
+   `if item.get("move_pick")`, and PR is the only item carrying that condition.
+   So on NR/PP/NP the move is never asked, `move` is None, and the computation
+   falls back to `observed == expected` -- **exactly what those items declare.**
+   Verified directly: NR with `observed_type=PR` charges WRONG_TYPE (-2), with
+   `observed_type=NR` charges nothing. There is no live divergence.
+
+   *Why the measurement said otherwise.* It was taken over recorded `.runs.json`
+   artifacts, which PREDATE the `move_pick` gating -- they carry `stimulus_move`
+   answers on NR/PP/NP because the scorer used to ask for it everywhere. Reading
+   current behaviour off stale artifacts is what produced the 13%.
+
+   *And the first reading of those artifacts was wrong too*: the check is stored
+   as the STRING `"met"`/`"absent"`, and `bool()` on it is True either way, which
+   collapsed every row to "met" and made the table meaningless until the shape
+   was checked. Suspect the reader first -- twice on one question.
+
+   **What remains, and it is small:** `oc.py` still PREFERS the move whenever the
+   fact is present, so if `stimulus_move` ever reached NR/PP/NP -- it cannot
+   today, since it is not asked -- the scorer would silently diverge from those
+   items' declarations. Latent, not active. The honest fix is for the computation
+   to read the item's OWN `<Expect>` operand instead of hardcoding a preference
+   order: the same "read the declaration" move as the rest of M-3.
+
+   *Accuracy cost: none.* `demonstrates_type` scores 191/191, 94/94, 188/188 and
+   188/191 against gold on PR/NR/PP/NP -- 100% on three and 98.4% on NP.
+
+### PYTHON vs OLX ON THE FOUR TYPE ITEMS -- NO PERFORMANCE DIFFERENCE
+
+| | python | olx |
+|---|---|---|
+| ledger headline | 70/72 (97.2%) | 71/72 (98.6%) |
+| pooled mean cells/run (of 18) | **17.522** | **17.542** |
+| worst / best single run | 17 / 18 | **16** / 18 |
+
+**The gap is +0.02 cells per run -- 0.11 percentage points -- on n=23 vs n=24.**
+The whole headline difference is ONE cell on NR, where python has 5 runs
+([17,17,17,17,18], median 17) and olx has 6 ([16,17,18,18,18,18], median 18):
+the median falling either side of a sample that straddles 17/18. `sweep_summary`
+pools the two sides as ONE sample for exactly this reason, because they share the
+OLX prompt.
+
+The direction also flips by item -- olx +0.30 on NR, python +0.33 on NP,
+identical on PR, olx +0.17 on PP -- and olx produced the single worst run in the
+set (16) while python never fell below 17.
+
+**Bearing on O:** on these four items there is no accuracy argument either way
+for retiring the python web scorer. That case has to rest on something else.
+
+## THE OLX ENGINE HAS CODED DEDUCTIONS NOW (2026-09-24)
+
+**The rubric declared the code, the paper ledger read it, and nothing ever
+carried it to the web:** `charge=` appeared ZERO times across all three
+handouts, while `slotSheet.ts` had parsed `charge`/`because` and returned coded
+deductions since the engine gained them. Every web gate charged the right points
+under no name at all.
+
+Five places had to learn the two fields, which is the same shape as the
+`gate="final"` sweep earlier today:
+
+| | what it needed |
+|---|---|
+| `rubric_component.as_view_slots` | carry `charge`/`because` -- and it is THIS reader `SLOT_SPEC` is built from (via `coursedata._slots`), not `as_view_slot_spec`, which was the wrong one I edited first |
+| `olx_prompts` | `charge_attr_for` / `because_attr_for`, registered in `GENERATED_ATTRS` |
+| `rubric-inputs.ts` | carry both into `slotSpec` |
+| `attributeAssembler.ts` | `slotPairsAttr(rules, field)` -- one emitter, since the runtime parses both with `parseCharge` |
+| `assemble-prompts.ts` | register both in `attrsFor` |
+
+Plus a HAND EDIT the generator refuses to do for you: it will not invent an
+attribute slot (*"a tag with no `name=` to write into is python's hard error, not
+something to invent here"*), so `charge="" because=""` was added by hand to the
+four `<LLMAction>` tags that need it and the generator then filled all eight
+values. That refusal is a good design and it reported exactly what was missing.
+
+### It is REPORTING, not arithmetic -- certified, not assumed
+
+`scoreSlotSheet` computes `score`, `max` and `failed` without ever consulting
+`charge`; the field only populates `deductions[]`. Verified by scoring every
+single-slot failure on all four items BOTH WAYS, with and without the attribute:
+
+    cases compared        : 74
+    same score AND failed : 74
+    DIFFERENT score       : 0
+    cases gaining a code  : 6
+
+So the web now says WHICH rule it broke and why -- e.g.
+`{"code":"NOT_OC","note":"The consequence is stated only as something avoided."}`
+-- with no score moving anywhere. Fingerprint unchanged, self-test 19/19, static
+content rebuilds clean.
+
+### HOW DID THE TWO SIDES EVER AGREE, THEN?
+
+Worth writing down, because the answer is the reason this mattered. **They
+reached the same total by different accounting.** DAY1:
+
+| web subtracts | paper charges |
+|---|---|
+| slot `matches_chosen_type` -2 | `TYPE_MISMATCH` -2 |
+| slot `targets_own_behavior` -1 | `WRONG_BEHAVIOR` -1 |
+| slot `consequence_asserted` -1 | `LINK_NOT_ASSERTED` -1 |
+| any of 9 gates -> 0 | `NOT_OC` / `CADENCE_MISMATCH` / `BLANK` / `NOT_EXTERNAL_STIMULUS` -4 |
+
+The code was never needed to compute the NUMBER -- only to say what the number
+was FOR. The web subtracts a failing slot's `pts`; the ledger charges a named
+code worth the same. They agree exactly as long as the two enumerations stay
+COMPLEMENTS, and nothing enforced that: it was maintained by hand, in the rubric,
+by whoever authored both columns.
+
+Two ways that had already bitten:
+
+1. **A verdict neither enumeration expected.** The engines default in opposite
+   directions -- the web fails anything non-satisfying, the ledger charges only
+   what a code names -- so an unforeseen third verdict costs points on one side
+   and nothing on the other. `free_attr_for` exists for this, and records that
+   Q1's `utb_stated` ran **62 observations** before the model answered `unclear`
+   and exposed it.
+
+2. **Many slots, one code.** On NR, THREE slots at -2 map to a single
+   `WRONG_TYPE` -2. The arithmetic only matches if at most one ever charges,
+   which is exactly what `<Onlyif>` is for -- and exactly where PP and NP were
+   charging 2+2 against a max of 4 until the fix earlier today. That bug existed
+   BECAUSE the correspondence was implicit.
+
+With the code carried across, the two sides agree by construction rather than by
+coincidence, and a future divergence is a mismatch in a named field instead of a
+silent difference of two totals.
+
+### THE AUDIT CAUGHT THE HALF I HAD NOT DONE
+
+Emitting the attribute produced 10 new findings, all correct, in two classes:
+
+**`UNKNOWN ATTRIBUTE` (8).** `KNOWN_ACTION_ATTRS` is derived from the SHARED
+registry `primitives.json`, whose own comment says adding a primitive "has to be
+taught to FIVE consumers and every hand-maintained mirror of them has rotted at
+least once". `charge`/`because` now sit in `sheetAttributes` there, so every
+consumer sees them from one place.
+
+**`OLX ATTRIBUTE UNREAD` (2), and this was the real one.** *"<LLMAction> authors
+`charge=`, and neither agreement.py nor any rubric item carries it."* Correct:
+I had given the WEB the code and left the harness's python mirror reproducing the
+number without it. An attribute that only one of two mirrors reads is precisely
+the failure that check exists for.
+
+So `agreement.py` now carries `charge`/`because` on the slot -- the same way it
+already carried `free`, and mirroring `SlotSpec` -- and `slot_deductions()`
+mirrors `scoreSlotSheet`'s `deduct`. Verified against the TS engine on the same
+sheet and answer, both produce the identical object:
+
+    [{"code": "NOT_OC", "pts": 4.0,
+      "note": "The consequence is stated only as something avoided."}]
+
+`olx_prompts.parse_charge` is the python mirror of `parseCharge`, splitting on
+the FIRST colon only -- which is what lets a `because` sentence keep its own
+colon and arrive whole.
+
+### THE CODES ARE RECORDED IN THE RUN ARTIFACTS (user, same session)
+
+`.runs.json` results now carry a `deductions` field beside `failed_slots`, which
+is a COUNT and says nothing about what was broken. The paper ledger has always
+recorded codes; this side recorded none, so a disagreement between them could
+only ever be compared as two totals.
+
+**The web mirrors already knew the codes and threw them away at the `return`.**
+`score_web` and `score_web_cadence` computed
+`max(0.0, item["max"] - codes["WRONG_TYPE"])` and returned `(score, 1)` -- the
+name was right there in the expression. Both now derive their pair FROM a
+deductions list (`web_deductions`, `web_deductions_cadence`), so the number and
+the name cannot drift apart. Verified behaviour-preserving over every
+single-slot failure on all eight items plus the all-pass and all-fail corners:
+**131 rows, 0 differing.**
+
+**Two places declare a code, and both are read.** A GATE names it on the slot
+(`charge=`/`because=`); a SCORED component names it per failing verdict
+(`<Credit codes="absent=UTB_NOT_STATED">`), which is the form the paper ledger
+has always used. Reading only `charge` would have left all nineteen slot-sheet
+items recording an empty list while their ledger side named a code for every
+charge -- so `slot_deductions` reads both. Q1 now records
+`[{UTB_NOT_STATED, 2.0}, {REASON_MISSING, 1.0}]` where it recorded nothing.
+
+Reconciliation checked rather than assumed: over 123 OC cells, `sum(deduction
+pts)` accounts for the score in every one.
+
+The generic gate loop in `score_web_cadence` also stopped hardcoding `NOT_OC`
+for any gate it did not recognise and now reads the slot's own declared charge.
+Identical today -- all six declared charges are `NOT_OC` -- and correct when a
+future gate declares something else.
+
+### AND THE REFACTOR BLINDED A CHECK, WHICH SAID SO
+
+Moving the rules out of `score_web` into `web_deductions` left the entry point a
+thin wrapper, and `check_weighted_slots_are_scored` greps the scorer's SOURCE for
+the slot names it consults. It found none and reported all 21 weighted slots
+unscored.
+
+That is the third appearance of the same shape today -- a check reading a
+WRAPPER instead of the body -- after `check_selectors_govern_something` passed
+vacuously on 112 characters and `check_criteria_prose_has_one_source` had to be
+pointed through its delegation. Here it failed loudly rather than quietly, which
+is the better direction, but the remedy is the same and is now GENERIC:
+`_source_through_delegates(fns, module)` gathers a function's source plus every
+module-level function it reaches, transitively. A check about what a scorer DOES
+stops depending on how its body happens to be split up.
+
+Certified rather than assumed, because a check that has just stopped firing is
+exactly the thing to distrust:
+
+    source gathered            8,028 chars (the wrapper alone is ~400)
+    contains the four slot names   yes
+    against a stub naming nothing  21 findings -- still live
+
+**Note the asymmetry is deliberate on both sides:** `failed_slots` and
+`deductions` are different sets. A slot with points but no declared code costs
+its points and names none, so the count includes it and the list does not.
+
+Note `score_slots`'s count and `slot_deductions`'s list are deliberately NOT the
+same set, on both sides: a slot with points but no `charge` costs its points and
+names no code, so `failed` counts it and the deduction list does not.
+
+### What this does NOT do
+
+The four cadence items carry charges because they are the only ones whose gates
+declare a code. `PR/NR/PP/NP` declare none, so they emit no `charge=` and the web
+still reports their deductions namelessly. That is a rubric-authoring gap rather
+than an engine one, and closing it means deciding the code for each gate -- a
+content decision, not a refactor.
+
+## O · DECIDED: THE PYTHON WEB SCORER STAYS (2026-09-24)
+
+O asked for a decision, and the plan set the bar: *"the honest default is that a
+measurement axis stays until someone can say what it is no longer needed for."*
+It can now be said what it IS needed for, so it stays.
+
+### Precondition 1 has not landed
+
+M step 4 -- the mirror GENERATED rather than written -- is not done. The mirror
+is closer than it was (it reads `onlyif`, `charge`, `because` and the declared
+gates from the rubric) but `web_deductions` and `web_deductions_cadence` are
+still hand-written. The precondition the goal itself set is unmet.
+
+### Precondition 3 is answered, and the answer is concrete and current
+
+**`measured.rescore_recorded` drives `agreement.SCORERS` -- the python mirror --
+and it is the mechanism that verifies a lo-blocks code change moved no recorded
+score, from artifacts already on disk, at no call cost.** That is not a
+historical use: it is what cleared the 26 provenance findings this session,
+instead of a sweep.
+
+Retiring the mirror would leave two options for the next such question: re-run
+the app over every recorded cell, or accept the findings unverified. The first is
+what the mirror exists to avoid; the second is what the audit exists to prevent.
+
+### On quality there is no argument either way
+
+Measured over the four type items: python 17.522 mean cells/run, olx 17.542 --
+**+0.02 of 18, 0.11 percentage points.** The headline 70/72 vs 71/72 is one cell
+on NR, a median falling either side of a sample that straddles 17/18.
+
+### And the mirror is currently EXACT, so its upkeep is self-checking
+
+`mirror_self_control`: **olx 2,760/2,760 and python 2,908/2,908** recorded scores
+reproduced from recorded verdicts. A mirror that drifts stops reproducing, which
+is a test that runs in the audit rather than a promise anyone has to keep.
+
+**The honest case against** is that this is a HAND-WRITTEN mirror and it does
+drift: this session found `onlyif` dead on the web path, and `charge`/`because`
+parsed by the runtime but never generated. Both were caught, both by machinery
+that depends on there being two implementations to compare.
+
+**Revisit when M step 4 lands.** A generated mirror cannot drift, and a copy that
+cannot drift is a different question from this one.
+
+## THE RE-SWEEP IS NOT NEEDED -- THE DEBT WAS VERIFIABLE, NOT MEASURABLE
+
+The 26 `WEB COLUMN IS NOT STAMPED BY THE APP'S OWN CODE` findings have been
+carried for days as "needs one re-sweep". They did not. The finding's own remedy
+says so -- *"re-score, and declare the pair in measured.WEB_CODE_NEUTRAL if every
+recorded cell reproduces"* -- and every recorded cell does.
+
+**Verified with the app's own code, not with the mirror.** `rescore_recorded`
+drives the python mirror, which cannot see a TypeScript-only change; so the
+recorded verdicts were run through `slotSheet.scoreSlotSheet` itself under `tsx`.
+Verdicts and picks were lifted with `cross_path.result_cell` / `result_picks`
+rather than read by hand -- that accessor exists because **the app stores
+`grader.score` as a FRACTION of `sheet_max`** while every other writer stores
+absolute points, and a second copy of that conversion is a second chance to
+forget the multiply.
+
+    2,760 recorded olx cells    0 moved    0 errors    0 non-finite
+
+Four `(recorded -> now)` pairs declared in `WEB_CODE_NEUTRAL`, covering all 26
+items. Both checks now return zero.
+
+### THE HARNESS LIED FIRST, AND THE CONTROL CAUGHT IT
+
+The first run of that harness reported **0 moved across all 2,760 cells** and was
+worthless. `scoreSlotSheet` takes POSITIONAL arguments and an options bag was
+passed as `explicitMax`, so `max` became an object, every score came back `NaN`,
+and `Math.abs(NaN - x) > 1e-9` is **false** -- every cell silently "matched".
+
+What exposed it was the control, not the result: shifting every stored score by
++0.5 should move all 2,760 and moved only 286. A second control (flip one
+`met`->`absent` per cell) now moves 1,736. With the signature fixed, control A
+moves 2,760 of 2,760 -- the comparison can fail, so the zero means something.
+
+**The same bug was in the charge-additivity test reported earlier**, which also
+passed `{}` as `explicitMax`. Re-run correctly: 74 cases, 0 score/failed
+differences, 6 gaining a code, all finite. The conclusion held; the measurement
+behind it did not, and was replaced.
+
+### One check corrected, not excused
+
+`check_web_code_neutrality_is_verified` treated "this item has no web sheet" as
+"cannot be verified". `1b`, `T1` and `T2` carry no `<LLMAction>` -- they are
+scored deterministically from the fixture and `scoreSlotSheet` never runs for
+them -- so a sheet-scoring change cannot move their numbers. That is NOT
+APPLICABLE, not unproven; demanding evidence that cannot exist would make a true
+claim look unverified. An item that HAS a sheet and still fails to compare is
+still a finding.

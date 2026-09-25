@@ -1,5 +1,7 @@
 import itertools, json
-import score, handouts as H
+# THE PLUGIN, not `score`. Goal E: this grid exercises the OC ledger, so it
+# belongs with the scorer it exercises rather than with the engine.
+import scorers, handouts as H
 
 GATE_KEYS = ("states_a_contingency", "agent_delivers_consequence",
              "aimed_correctly", "avoidance_frame", "targets_own_behavior")
@@ -13,7 +15,8 @@ BASE = {"behavior": "b", "stimulus": "s", "contingent": True,
 
 out = []
 for iid in ("DAY1", "DAY2", "WK1", "WK2", "NR", "PR", "PP", "NP"):
-    item = H.config(2)["rubric"].BY_ID[iid]
+    # J-3. WAS config(2) -- the criteria handout, by property.
+    item = H.config(H.carrying("derive_from_criteria")[0])["rubric"].BY_ID[iid]
     a0 = dict(BASE)
     a0["observed_type"] = item.get("expected_type") or "NR"
     a0["named_type"] = a0["observed_type"]
@@ -28,7 +31,7 @@ for iid in ("DAY1", "DAY2", "WK1", "WK2", "NR", "PR", "PP", "NP"):
     for label, over in variants:
         a = dict(a0); a.update(over)
         try:
-            ledger, checks, unknown, advisory = score.derive_oc_ledger(item, {"oc_analysis": a})
+            ledger, checks, unknown, advisory = scorers.resolve("oc").derive_ledger(item, {"oc_analysis": a})
             codes = [l.get("code") for l in ledger]
             met = {c["what"]: c["met"] for c in checks}
         except Exception as e:
