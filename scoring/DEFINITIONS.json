@@ -1174,6 +1174,7 @@
    "ProbeFailed",
    "RUNNER",
    "TIMEOUT",
+   "_bridge_env",
    "available",
    "probe",
    "run",

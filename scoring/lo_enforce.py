@@ -31,6 +31,30 @@ RUNNER = "packages/shared/lib/llm/enforce/runner.ts"
 TIMEOUT = 300
 
 
+def _bridge_env() -> dict:
+    """The environment the TypeScript side is handed.
+
+    ONE RESOLUTION, NOT TWO. `paths` resolves the course roots -- environment,
+    then the rubric's own declaration, then the historical fallback -- and the
+    bridge passes the ANSWER across rather than letting the other side work it
+    out again. `courseData.ts` can read the rubric itself, and does when it is
+    run standalone, but in the normal path it is told; two resolvers that agree
+    today are two resolvers that can stop agreeing, which is the divergence
+    class this whole package exists to close.
+
+    `COURSE_REPO` is passed because the TypeScript side has no `__file__` to
+    anchor on: python knows where the repository is, so it says.
+    """
+    import os
+
+    import paths
+
+    return {**os.environ,
+            "COURSE_DATA": str(paths.DATA),
+            "COURSE_METADATA": str(paths.COURSE_METADATA),
+            "COURSE_REPO": str(paths.REPO)}
+
+
 def available() -> str:
     """"" if the bridge can run, else why it cannot."""
     import paths
@@ -61,7 +85,7 @@ def run(check: str, payload) -> list[str]:
         r = subprocess.run(
             [str(paths.LO / "node_modules/.bin/tsx"), RUNNER],
             cwd=str(paths.LO), input=req, capture_output=True, text=True,
-            timeout=TIMEOUT)
+            timeout=TIMEOUT, env=_bridge_env())
     except subprocess.TimeoutExpired:
         return [f"the lo-blocks rule {check!r} did not answer within {TIMEOUT}s, "
                 f"so it was not asked"]
@@ -107,7 +131,7 @@ def probe(name: str, payload):
         r = subprocess.run(
             [str(paths.LO / "node_modules/.bin/tsx"), RUNNER],
             cwd=str(paths.LO), input=req, capture_output=True, text=True,
-            timeout=TIMEOUT)
+            timeout=TIMEOUT, env=_bridge_env())
     except Exception as e:
         raise ProbeFailed(f"the lo-blocks probe {name!r} could not be run: "
                           f"{type(e).__name__}: {e}") from e

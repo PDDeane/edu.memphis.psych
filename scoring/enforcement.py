@@ -5391,9 +5391,43 @@ def check_recorded_sides_are_readable() -> list[str]:
     deeper), and the ownership check reported a clean corpus with five Q4a cells
     wrong. Readability is therefore asserted, not inferred from silence.
     """
-    import measured as MEAS
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K, and this one answers the user's
+    # correction directly: a MEASUREMENT question can be generic. "Is the
+    # artifact behind a recorded column readable?" is about the shape of what
+    # was recorded, not about this course.
+    #
+    # PYTHON STILL RESOLVES WHICH ARTIFACT. The ledger owns that -- its `out`
+    # pointer and goal O's `folded_from` -- and a second resolver in TypeScript
+    # is the divergence this project exists to close. TS reads the file through
+    # `courseData`, which refuses a path outside $COURSE_DATA.
+    import os
 
-    return MEAS.sides_recorded_but_unreadable()
+    import lo_enforce
+    import measured as M
+    import paths as _pth
+
+    root = str(_pth.OUT.parent)
+    sides = []
+    for item, rec in sorted((M.load().get("items") or {}).items()):
+        for side in M.SIDES:
+            e = (rec or {}).get(side)
+            if not e or e.get("pending") or e.get("numerator") is None:
+                continue
+            p = os.path.join(str(_pth.OUT), str(e.get("out")), f"{item}.runs.json")
+            sides.append({"item": item, "side": side,
+                          "numerator": e.get("numerator"),
+                          "denominator": e.get("denominator"),
+                          "out": str(e.get("out")),
+                          "path": os.path.relpath(p, root)})
+    if not sides:
+        # NOT SILENCE. No recorded column means nothing was examined.
+        return ["no recorded column could be read from the ledger, so none was "
+                "checked for having a findable artifact"]
+    # NAMED, because roots are resolved PER COURSE now: one global
+    # $COURSE_DATA cannot mean two courses at once.
+    return lo_enforce.run("recorded_sides_are_readable",
+                          {"sides": sides, "ns": _pth.NS})
+
 
 
 @functools.lru_cache(maxsize=4)
@@ -9452,7 +9486,8 @@ def check_no_recorded_run_is_verdictless() -> list[str]:
         # NOT SILENCE. No artifact resolved means nothing was examined.
         return ["no recorded artifact could be resolved, so no run was checked "
                 "for having judged nothing"]
-    return lo_enforce.run("no_recorded_run_is_verdictless", {"artifacts": arts})
+    return lo_enforce.run("no_recorded_run_is_verdictless",
+                          {"artifacts": arts, "ns": _pth.NS})
 
 
 

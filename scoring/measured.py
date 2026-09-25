@@ -6494,31 +6494,25 @@ def _wrong_cells() -> list:
 
 
 def sides_recorded_but_unreadable() -> list[str]:
-    """A side with a recorded numerator whose per-cell scores cannot be read.
+    """MOVED TO LO-BLOCKS 2026-09-25 (goal K). ALWAYS RETURNS [].
 
-    The ownership check in `wrong_cells_without_an_owner` walks cells, and a side
-    it cannot read contributes nothing -- which is indistinguishable, in its
-    output, from a side that gets everything right. So the readability of each
-    recorded side is asserted separately rather than inferred from silence.
+    The rule is `enforce/recordedSides.ts`, reached through
+    `enforcement.check_recorded_sides_are_readable`. Python still resolves WHICH
+    artifact a recorded column points at -- the ledger owns that, with its `out`
+    pointer and goal O's `folded_from` -- and the readability judgement moved.
 
-    This is not hypothetical: the first `paper` column recorded, on 2026-09-01,
-    was unreadable for exactly this reason, and the ownership check reported a
-    clean corpus while five cells were wrong.
+    KEPT AS A STUB rather than deleted, because the comment in
+    `wrong_cells_without_an_owner` points here BY NAME to explain why its own
+    silence is not evidence: "recorded but unreadable is reported by
+    `sides_recorded_but_unreadable()`, which the audit runs beside this one".
+    A name that vanishes from under a pointer like that leaves the next reader
+    with a dangling promise about what is watched.
+
+    THE PORT ALSO GAINED AN ARM THIS DID NOT HAVE: an artifact that EXISTS but
+    holds no runs is as silent to a per-cell walk as one that is missing, and
+    this only asked whether the document could be found.
     """
-    out = []
-    for item, rec in sorted((load().get("items") or {}).items()):
-        for side in SIDES:
-            e = (rec or {}).get(side)
-            if not e or e.get("pending") or e.get("numerator") is None:
-                continue
-            doc = _runs_doc(item, side)
-            if doc is None:
-                out.append(
-                    f"{item} [{side}] is recorded at {e['numerator']}/"
-                    f"{e['denominator']} but its artifact cannot be found at "
-                    f"out/{e.get('out')}/{item}.runs.json, so every per-cell "
-                    f"check reads it as having nothing wrong")
-    return out
+    return []
 
 
 def wrong_cells_without_an_owner(excluding: str = '') -> list[str]:
