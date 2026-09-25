@@ -6089,40 +6089,31 @@ def check_every_item_has_a_findable_slot_sheet() -> list[str]:
     sheet cannot be found is not a scoring fault; it is a hole in what every
     sheet-reading check can see, and it should be loud rather than silent.
     """
-    import pathlib as _pl
-    import re as _re
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K. Python supplies the item-to-
+    # element map and the handout text; `enforce/sheetDiscovery.ts` looks for
+    # each id. An empty corpus is a REFUSAL there, not a pass.
+    import lo_enforce
+
     try:
         import olx_prompts as _O
     except Exception as e:
         return [f"olx_prompts will not import ({type(e).__name__}), so no item's "
                 f"sheet can be located -- this check cannot run, which is not a pass"]
-
     want = dict(_O.ACTION)
     want.update(getattr(_O, "SHEET_ONLY", {}) or {})
     if not want:
         return ["no item-to-element mapping at all; ACTION and SHEET_ONLY are both "
                 "empty, so every sheet-reading check is looking at nothing"]
-
-    base = _p7.OLX_DIR
     blob = ""
     for h in (1, 2, 3):
         try:
-            blob += (base / _p7.handout_olx(h)).read_text()
+            blob += (_p7.OLX_DIR / _p7.handout_olx(h)).read_text()
         except OSError:
             continue
-    if not blob:
-        return ["no handout .olx could be read; sheet discovery cannot run"]
+    return lo_enforce.run("every_item_has_a_findable_slot_sheet", {
+        "sheets": [{"item": i, "elementId": e} for i, e in sorted(want.items())],
+        "olx": blob})
 
-    out = []
-    for item, eid in sorted(want.items()):
-        m = _re.search(r'<\w+\b[^>]*id="%s"[^>]*>' % _re.escape(eid), blob, _re.S)
-        if not m:
-            out.append(f"{item}: no element with id={eid!r} in any handout -- every "
-                       f"check that reads slot sheets is blind to this item")
-        elif 'slots="' not in m.group(0):
-            out.append(f"{item}: element id={eid!r} exists but carries no `slots=` "
-                       f"attribute, so the item has no readable sheet")
-    return out
 
 
 def check_no_file_points_into_a_developers_notes() -> list[str]:
@@ -8657,34 +8648,36 @@ def check_generated_attributes_have_a_declaration() -> list[str]:
     The reverse -- a rule with no attribute to write into -- is already a hard
     error in the writer, and drift between the two is what `--check` compares.
     """
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K. Python must stay on this side of
+    # "is it backed?": the answer comes from calling the GENERATOR for the item,
+    # which is python. What moves is the judgement -- an owned attribute with no
+    # rule behind it, and not exempt, is an orphan.
     import re
 
+    import lo_enforce
     import olx_prompts as OP
 
-    out: list[str] = []
+    attrs = []
     for item_id, action in sorted(OP.ACTION.items()):
-        handout = OP.HANDOUT[item_id]
         try:
-            tag = OP._sheet_tag(handout, action)
+            tag = OP._sheet_tag(OP.HANDOUT[item_id], action)
         except SystemExit:
             continue                      # a missing sheet is another check's
         for name, fn in OP.GENERATED_ATTRS:
             m = re.search(r'%s="([^"]*)"' % name, tag)
-            if m is None or not m.group(1).strip():
-                continue                  # absent, or an empty placeholder
-            if fn(item_id) is not None:
-                continue                  # the rubric backs it
-            if (item_id, name) in HAND_AUTHORED_ATTRS:
+            if m is None:
                 continue
-            out.append(
-                f"{item_id} carries a `{name}=` attribute the generator OWNS, and "
-                f"no rubric rule produces it: {m.group(1)[:70]!r}. Either the "
-                f"declaration was removed and this is an ORPHAN pointing at "
-                f"operands that may no longer exist -- `--write` will not clear "
-                f"it, and `--check` will call the file up to date -- or it is "
-                f"hand-authored on purpose, which belongs in "
-                f"enforcement.HAND_AUTHORED_ATTRS with the reason")
-    return out
+            attrs.append({"item": item_id, "name": name, "value": m.group(1),
+                          "backed": fn(item_id) is not None,
+                          "exempt": (item_id, name) in HAND_AUTHORED_ATTRS})
+    if not attrs:
+        # NOT SILENCE. No sheet carried a generated attribute at all, which
+        # means nothing was examined rather than nothing being wrong.
+        return ["no generated attribute was found on any sheet, so none was "
+                "checked for having a rubric rule behind it"]
+    return lo_enforce.run("generated_attributes_have_a_declaration",
+                          {"attrs": attrs})
+
 
 
 def _maps_specs() -> list[tuple]:
@@ -9986,27 +9979,30 @@ def check_every_designed_entry_ships() -> list[str]:
     call `probe.question_for` and the sweep render from, so what is checked is
     what ships rather than a copy of it.
     """
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K. Python builds each item's shipped
+    # prompt -- that is `olx_prompts`' job -- and `enforce/designedText.ts`
+    # decides whether the designed wording is in it. An item whose prompt cannot
+    # be built is REPORTED there, not skipped.
+    import lo_enforce
     import olx_prompts as OP
 
-    out = []
+    entries, prompts = [], {}
     for key in sorted(DESIGNED_TEXT):
         item, slot, field = key
-        want = " ".join(DESIGNED_TEXT[key].split())
-        try:
-            shipped = " ".join(OP.build_web_prompt(item).split())
-        except Exception as exc:
-            out.append(
-                f"{item}/{slot}.{field}: cannot build {item}'s prompt to check "
-                f"its design against -- {type(exc).__name__}: {exc}")
+        entries.append({"item": item, "slot": slot, "field": field,
+                        "want": DESIGNED_TEXT[key]})
+        if item in prompts:
             continue
-        if want not in shipped:
-            out.append(
-                f"{item}/{slot}.{field}: DESIGNED_TEXT holds {len(want)} chars "
-                f"that are NOT in {item}'s shipped prompt. Either the revert that "
-                f"retired this design never dropped its entry, or a build did not "
-                f"land -- drop the entry if the attempt was reverted, rebuild if "
-                f"it was not")
-    return out
+        try:
+            prompts[item] = OP.build_web_prompt(item)
+        except Exception:
+            pass                          # absent -> reported by the rule
+    if not entries:
+        return ["DESIGNED_TEXT is empty, so no designed wording was checked "
+                "against what ships"]
+    return lo_enforce.run("every_designed_entry_ships",
+                          {"entries": entries, "prompts": prompts})
+
 
 
 def check_designed_text_is_the_measured_text() -> list[str]:
@@ -14812,32 +14808,32 @@ def check_hand_authored_attrs_still_suppress_something() -> list[str]:
     orphan that nobody has re-examined, and it would silently swallow a REAL
     orphan if one appeared at the same (item, attribute).
     """
+    # THE RULE LIVES IN LO-BLOCKS NOW. Goal K. Python reads the sheet and the
+    # generator registry; the judgement -- an exemption for an attribute that is
+    # not there excuses nothing -- is generic.
     import re
 
+    import lo_enforce
     import olx_prompts as OP
 
     gen = dict(OP.GENERATED_ATTRS)
-    out = []
+    entries = []
     for (item_id, name), why in sorted(HAND_AUTHORED_ATTRS.items()):
-        if name not in gen:
-            out.append(f"HAND_AUTHORED_ATTRS names {item_id}/{name}, which is not "
-                       f"a generated attribute at all")
-            continue
-        try:
-            tag = OP._sheet_tag(OP.HANDOUT[item_id], OP.ACTION[item_id])
-        except Exception:
-            continue                        # a missing sheet is another check's
-        m = re.search(r'%s="([^"]*)"' % name, tag)
-        if m is None or not m.group(1).strip():
-            out.append(f"HAND_AUTHORED_ATTRS excuses {item_id}/{name}, and that "
-                       f"attribute is not present in the sheet -- the entry "
-                       f"excuses nothing")
-        elif gen[name](item_id) is not None:
-            out.append(f"HAND_AUTHORED_ATTRS excuses {item_id}/{name} as "
-                       f"hand-authored, but the RUBRIC NOW BACKS IT, so the entry "
-                       f"suppresses nothing. The generator conversion this table "
-                       f"exists to be removed by has happened; remove the entry.")
-    return out
+        present = False
+        if name in gen:
+            try:
+                tag = OP._sheet_tag(OP.HANDOUT[item_id], OP.ACTION[item_id])
+                m = re.search(r'%s="([^"]*)"' % name, tag)
+                present = bool(m and m.group(1).strip())
+            except Exception:
+                continue                  # a missing sheet is another check's
+        entries.append({"item": item_id, "name": name, "why": str(why),
+                        "isGenerated": name in gen, "present": present})
+    if not entries:
+        return []                         # an empty exemption table excuses nothing
+    return lo_enforce.run("hand_authored_attrs_still_suppress_something",
+                          {"entries": entries})
+
 
 
 def check_only_builders_read_the_rubric() -> list[str]:
