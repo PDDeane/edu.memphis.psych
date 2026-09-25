@@ -9003,3 +9003,129 @@ them -- so a sheet-scoring change cannot move their numbers. That is NOT
 APPLICABLE, not unproven; demanding evidence that cannot exist would make a true
 claim look unverified. An item that HAS a sheet and still fails to compare is
 still a finding.
+
+## M STEP 4: THE SCORE MIRROR IS ONE FUNCTION; THE DEDUCTION HALF IS BLOCKED, AND THE BLOCKER IS REAL
+
+### Done: `agreement.score_sheet` replaces all three scorers
+
+`SCORERS` was `score_slots` plus two hand-written operant mirrors. It is now ONE
+function for every kind, reading the slot sheet the way `scoreSlotSheet` does.
+
+**Why the operant mirrors existed at all, which nothing had written down:**
+`score_slots` scored from the rubric's CREDIT components, and on those eight
+items the credits and the slots are DIFFERENT SETS -- DAY1's credits sum to 5
+against a 4-point sheet, NR's slots sum to 6 against a max of 4 (its three
+2-point findings, only one of which `onlyif` ever lets charge). The app has never
+had operant-specific code; it reads the sheet. Scoring from the sheet removes the
+reason the mirrors existed, rather than migrating them.
+
+Verified BEFORE the swap:
+
+| | |
+|---|---|
+| `mirror_self_control`, olx | **2,760/2,760** |
+| `mirror_self_control`, python | **2,908/2,908** |
+| 131 synthetic operant states | **0 differing** |
+| paper fingerprint / 217 prompts | unchanged |
+
+Two defects were found by that verification and fixed before it passed: the
+denominator (the TS takes `explicitMax ?? sum(scored)`, and `merged` carries no
+`sheet_max`, so NR scored against 6) and the counted-family expansion, which now
+uses the same prepared `expand_counted` helper `score_slots` used rather than a
+second copy of a rule already got wrong twice.
+
+### NOT done: one DEDUCER, and the reason is a coupling worth recording
+
+The generic deducer reproduces the hand-written operant ones EXACTLY -- 131 of
+131 states agreeing on codes AND points -- but only once every gate declares its
+`charge`. And **declaring a charge on a GATE slot also creates an `oc_gates`
+entry, which the PAPER scorer's declared loop then applies on top of its own
+hand-written definitional gates.** Measured: DAY1's feedback began reading
+"Missing: ... follows_behavior" on answers where `follows_behavior` was TRUE --
+the same code and the same points, and a note that tells a student a fact was
+absent that the model judged present.
+
+So the 68 gate charges were reverted and 21 remain on the SCORED slots, where
+they feed the web and leave the paper ledger untouched. The operant deducers stay
+hand-written until `derive_ledger`'s definitional half is an interpreter too,
+which is M step 3's remaining work. Routing them through the generic one today
+would name FEWER codes than the artifacts already carry -- a regression dressed
+as a simplification.
+
+**This is the honest state of step 4:** the promise was "generate the mirror from
+the declarations so the two cannot drift". The SCORE mirror is there. The
+DEDUCTION mirror is one rubric edit away and that edit is blocked on the paper
+scorer, which is a finding about sequencing, not a failure of the approach.
+
+### The source-reading comparison is NOT retired, and it nearly died quietly
+
+Step 4 promised to retire `enforcement`'s source-reading comparison. It cannot
+be: `web_deductions`/`web_deductions_cadence` are still hand-written, so there is
+still a body to read.
+
+Worse, that comparison had ALREADY gone blind. `check_selectors_govern_something`
+scans the operant scorers for `yes("...")` reads; those moved into
+`web_deductions*` when the mirrors were split so the score could be derived from
+the coded deductions, and the check reads the ENTRY POINTS. Measured: **0 slot
+names found, against 10 through delegation** -- and because its finding branch is
+`read - emitted`, an empty `read` reports nothing and looks clean. It is the same
+check the plan already records as springing this trap during goal E.
+
+**Fourth instance of the wrapper shape in one day.** It now uses
+`_source_through_delegates`, and it is CERTIFIED live: planting one unemitted key
+in the scanned source produces exactly one finding, while the live tree is
+genuinely clean. The first control attempted was invalid -- functions defined in
+a heredoc have no readable source, so `inspect.getsource` failed and the control
+"passed" for a reason that had nothing to do with the check.
+
+### AND THE TAG EDIT DEMOTED EVERY LIVE-RUN CLAIM, WHICH IS THE POINT OF THAT CHECK
+
+Adding `charge=`/`because=` to eight `<LLMAction>` tags moved their
+`prompt_sha`, and `_primitives_with_live_app_evidence` requires a recorded web
+run to be CURRENT before it counts as having exercised a primitive. So twelve
+closed goals -- E3, E8, E10, E44, E48, E53, E55, E56, Q21, Q22, Q57, Q64 --
+reported `GOAL RETIRED WITHOUT A LIVE RUN` for `expect`, which had simply
+stopped having a live artifact.
+
+That check is behaving exactly as designed; the function's own comment records
+the case ("a tag-only edit made every live artifact read as history here"), and
+the remedy is the declaration it points at.
+
+**And the fingerprints separate the two questions cleanly, which is the part
+worth keeping.** The edit moved `prompt_sha` (the whole tag) and left `ask_sha`
+untouched on all eight items -- recorded and current are byte-identical --
+because `charge` and `because` are never ASKED: they are read after the model
+has answered, and `scoreSlotSheet` computes score, max and failed without
+consulting them. Independently: all 217 slot prompts hash identically across the
+edit.
+
+So eight rows in `ASK_EQUIVALENT_PROMPTS` (23 -> 31), each carrying that reason,
+each self-checked against the current `ask_sha` so it stops applying the moment
+the question does change. `check_ask_equivalences_still_hold` and
+`check_closed_goals_that_changed_code_were_exercised` both return zero.
+
+### THE DECLARATION HAS TWO COPIES, AND ORDER IS PART OF THEM
+
+Declaring the eight rows took three attempts, each caught by a check comparing
+two things that must agree:
+
+1. Edited `course.json` (the MIGRATED copy) only. `MIGRATED TABLE DOES NOT MATCH
+   ITS SOURCE` named the three rows it could see: the authored copy lives in
+   `declaration_source.py`.
+2. Added them to the authored copy and checked with `set(a) == set(b)`. Still a
+   finding: **"SAME KEYS, DIFFERENT ORDER -- `==` calls these equal; the order is
+   the data."** I had prepended in one file and appended in the other, and my own
+   comparison was blind in exactly the dimension that mattered -- the same shape
+   as the NaN comparison earlier today, and the reason `evidence.certify` exists.
+3. Moved them to the end so both copies read in the same order. STILL a
+   finding: the two copies carried DIFFERENT REASON TEXT for the same key, and
+   the check compares values as well as keys and order. The migrated copy now
+   takes its strings verbatim from the authored one.
+
+Four attempts, and the check was right every time -- it was reading a
+projection against its source and refusing to call them equal on any axis that
+differed: which keys, in what order, with what values.
+
+Worth keeping because the failure is instructive: a check that compares an
+AUTHORED table against its MIGRATED projection catches a half-finished edit that
+no single-file review would, and it was right to insist on order.

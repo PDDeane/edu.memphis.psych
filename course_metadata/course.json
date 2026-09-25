@@ -43,7 +43,7 @@
      ]
     }
    ],
-   "prompt_notes": "## Say this before anything else\nIf `matches_selected` is `differs`, the FIRST sentence of `feedback` says so: name the behavior they ticked, name the one they wrote about, and say that the rest of this feedback is about what they wrote. Then give the normal feedback.\n\nIt is not a fault and nothing is deducted for it — most often they simply changed their mind — so say it plainly and without warning them off. If it is `matches`, say nothing about it at all: confirming a match the student never doubted spends their attention on nothing.\n",
+   "prompt_notes": "## Say this before anything else\nIf `matches_selected` is `differs`, the FIRST sentence of `feedback` says so: name the behavior they ticked, name the one they wrote about, and say that the rest of this feedback is about what they wrote. Then give the normal feedback.\n\nIt is not a fault and nothing is deducted for it \u2014 most often they simply changed their mind \u2014 so say it plainly and without warning them off. If it is `matches`, say nothing about it at all: confirming a match the student never doubted spends their attention on nothing.\n",
    "prompt_notes_why": "Governs the FIRST SENTENCE of the `feedback` field on a `matches_selected` mismatch. Paper has neither: its schema has no `feedback` property (score.compose_feedback builds feedback in code from the deduction ledger) and `matches_selected` is not one of its Q1 slots.",
    "prompt_response": [
     {
@@ -233,55 +233,55 @@
   {
    "id": "Q6",
    "handout": 1,
-   "prompt_notes": "## What the four `state_` checks report\nThese four do NOT report a match. They report an IDENTITY, and they report it in a FIELD OF ITS OWN, separate from the verdict. The two fields take different values and neither accepts the other's.\n`verdict` says whether the box names an antecedent (or a consequence) at all: `met` if it does, `absent` if it does not.\n`refers_to` says WHICH of the two listed items it is: `first`, `second`, or `none`. `none` is the value for \"not either of the two\" -- it is the only one, so do not answer `neither`, and do not put `absent` here. Those are not values this field takes.\n\nSay what you see and nothing more. Whether the pair covers both listed items is worked out from your two answers by the grader, so you do not need to reason about the other box, and a student who addresses 4a's second antecedent first has still addressed it — report `second` and it will be credited. One distinction matters for the feedback rather than the score: `met` with `refers_to: none` says they named an antecedent but not one of 4a's, while `absent` says they named none at all. The points are the same either way; the difference decides whether the student is told their antecedent does not match 4a or that they did not state one.\n\nONE THING TO CARRY INTO `feedback`. Each of the two listed items can be credited once, so if you report the SAME label for both boxes — `first` twice, say — the student has named one antecedent twice and left the other unaddressed, and only one of the two boxes can count. Your verdicts already handle the scoring; what you must not do is congratulate them on both boxes in that case. Say that the second repeats the first and name the item from 4a they have not yet addressed.\n",
+   "prompt_notes": "## What the four `state_` checks report\nThese four do NOT report a match. They report an IDENTITY, and they report it in a FIELD OF ITS OWN, separate from the verdict. The two fields take different values and neither accepts the other's.\n`verdict` says whether the box names an antecedent (or a consequence) at all: `met` if it does, `absent` if it does not.\n`refers_to` says WHICH of the two listed items it is: `first`, `second`, or `none`. `none` is the value for \"not either of the two\" -- it is the only one, so do not answer `neither`, and do not put `absent` here. Those are not values this field takes.\n\nSay what you see and nothing more. Whether the pair covers both listed items is worked out from your two answers by the grader, so you do not need to reason about the other box, and a student who addresses 4a's second antecedent first has still addressed it \u2014 report `second` and it will be credited. One distinction matters for the feedback rather than the score: `met` with `refers_to: none` says they named an antecedent but not one of 4a's, while `absent` says they named none at all. The points are the same either way; the difference decides whether the student is told their antecedent does not match 4a or that they did not state one.\n\nONE THING TO CARRY INTO `feedback`. Each of the two listed items can be credited once, so if you report the SAME label for both boxes \u2014 `first` twice, say \u2014 the student has named one antecedent twice and left the other unaddressed, and only one of the two boxes can count. Your verdicts already handle the scoring; what you must not do is congratulate them on both boxes in that case. Say that the second repeats the first and name the item from 4a they have not yet addressed.\n",
    "prompt_notes_why": "Explains the web's TWO-FIELD encoding -- a `verdict` and a separate `refers_to` that takes `first`/`second`/`none`. Paper has one field and is told so in its own words by score._paper_vocab: 'Answer with ONE value from `first`, `second`, `neither`, `absent` -- there is no separate field on this side.' Mirrored in substance, not copied.",
    "prompt_match_def": "## Definition of 'matches' below:\nThe two things being compared are semantically equivalent. That includes equivalence established by combinations of negations and antonyms: failing to do a thing early is doing it late, forgetting to do a thing is not doing it, not suffering a bad state is being in the good one.\nANTONYMS, precisely. Two words are antonyms when they name the OPPOSITE ENDS OF ONE SCALE -- more and less of a single property, so that naming one and negating it gives you the other. Early and late are one scale. Poor health and good health are one scale. Words that are merely both unpleasant, or both pleasant, or that name DIFFERENT properties, are not antonyms and do not establish equivalence: being tired and being cheerful are two properties, not two ends of one. Ask what single property is being measured before you call two words opposites.\nA listed 4a or 4c entry often states one thing and then what follows from it -- \"X, so I Y\". Decide which of THREE kinds Y is before you compare, because it decides what the entry can be matched against.\n1. Y RESTATES THE ANTECEDENT in other words. Part of the antecedent; a box equivalent to Y matches that 4a entry.\n2. Y IS AN INTERMEDIATE ANTECEDENT -- a further step that still LEADS TO the unwanted behaviour rather than following from it. Also part of the antecedent, described one link nearer; a box equivalent to Y matches that 4a entry.\n3. Y IS A CONSEQUENCE -- the unwanted behaviour itself, or something that follows from it. Not part of the antecedent: a box equivalent to Y does NOT match that 4a entry. It may still match a 4c entry that lists that same consequence, and should be matched there.\nThe test between 2 and 3 is direction: does Y lead to the unwanted behaviour, or follow from it? The unwanted behaviour is named in the Q1 answer in the context below.\n",
    "prompt_response": [
     {
      "__tuple__": [
-      "state_a1 — the first antecedent being changed",
+      "state_a1 \u2014 the first antecedent being changed",
       "bmod_h1_q6_state_a1"
      ]
     },
     {
      "__tuple__": [
-      "change_a1 — how it will be changed",
+      "change_a1 \u2014 how it will be changed",
       "bmod_h1_q6_change_a1"
      ]
     },
     {
      "__tuple__": [
-      "state_c1 — the first consequence being affected",
+      "state_c1 \u2014 the first consequence being affected",
       "bmod_h1_q6_state_c1"
      ]
     },
     {
      "__tuple__": [
-      "affect_c1 — how it will be affected",
+      "affect_c1 \u2014 how it will be affected",
       "bmod_h1_q6_affect_c1"
      ]
     },
     {
      "__tuple__": [
-      "state_a2 — the second antecedent being changed",
+      "state_a2 \u2014 the second antecedent being changed",
       "bmod_h1_q6_state_a2"
      ]
     },
     {
      "__tuple__": [
-      "change_a2 — how it will be changed",
+      "change_a2 \u2014 how it will be changed",
       "bmod_h1_q6_change_a2"
      ]
     },
     {
      "__tuple__": [
-      "state_c2 — the second consequence being affected",
+      "state_c2 \u2014 the second consequence being affected",
       "bmod_h1_q6_state_c2"
      ]
     },
     {
      "__tuple__": [
-      "affect_c2 — how it will be affected",
+      "affect_c2 \u2014 how it will be affected",
       "bmod_h1_q6_affect_c2"
      ]
     }
@@ -512,7 +512,7 @@
      ]
     ]
    },
-   "prompt_notes": "## How this item reaches you\nThe student does not upload a figure. SelfMonitorPlot draws their chart live from the four weeks of data they entered in 1b and the three labels they type here. Everything the paper rubric asks of a graph is theirs: the data that produces it, the three labels, and the legend — they name the four plotted series themselves, and until they do their chart's key reads 'Series 1, Series 2, ...', which is not a legend. Judge `legend` on the series names only.\n\nTHE WORKED EXAMPLE IS ON THIS SCREEN, immediately above their boxes, and reproducing it is the live form of the paper item's template failure. It is a water-drinking chart titled 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=R27-0-27}}, with axes '{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} and 'Ounces of Water per Day', plotting:\n  Baseline 8, 10, 8, 12, 6, 10, 0\n  Week 1   32, 20, 22, 28, 30, 32, 10\n  Week 2   30, 28, 26, 30, 32, 32, 30\n  Week 3   25, 26, 30, 32, 32, 28, 32\nTwo distinct failures come out of that, and only one of them is yours. If the DATA is those numbers, the GRADER detects it: it compares the fields against the example itself and sets `has_own_graph` to `mismatch`, zeroing the item exactly as on paper. You are not asked about that, and you should not discuss it. What IS yours is when only the WORDING is copied — a title of 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=R27-0-27}} from a student who did not track water, or a y-axis of 'Ounces of Water per Day' — that is `generic` on the label, like an untouched 'Chart Title'. Their own graph names their own behaviour: hours of sleep, minutes of exercise, servings.\n\nThe x-axis is the exception: '{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} is the example's label, the placeholder, AND the correct answer for nearly every student, since all four weeks are plotted Sunday to Saturday. Do not treat it as copied.\n",
+   "prompt_notes": "## How this item reaches you\nThe student does not upload a figure. SelfMonitorPlot draws their chart live from the four weeks of data they entered in 1b and the three labels they type here. Everything the paper rubric asks of a graph is theirs: the data that produces it, the three labels, and the legend \u2014 they name the four plotted series themselves, and until they do their chart's key reads 'Series 1, Series 2, ...', which is not a legend. Judge `legend` on the series names only.\n\nTHE WORKED EXAMPLE IS ON THIS SCREEN, immediately above their boxes, and reproducing it is the live form of the paper item's template failure. It is a water-drinking chart titled 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=R27-0-27}}, with axes '{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} and 'Ounces of Water per Day', plotting:\n  Baseline 8, 10, 8, 12, 6, 10, 0\n  Week 1   32, 20, 22, 28, 30, 32, 10\n  Week 2   30, 28, 26, 30, 32, 32, 30\n  Week 3   25, 26, 30, 32, 32, 28, 32\nTwo distinct failures come out of that, and only one of them is yours. If the DATA is those numbers, the GRADER detects it: it compares the fields against the example itself and sets `has_own_graph` to `mismatch`, zeroing the item exactly as on paper. You are not asked about that, and you should not discuss it. What IS yours is when only the WORDING is copied \u2014 a title of 'Water {{corpus:1c/p5:title:5:32:sha=97ca3baaf650:shape=R27-0-27}} from a student who did not track water, or a y-axis of 'Ounces of Water per Day' \u2014 that is `generic` on the label, like an untouched 'Chart Title'. Their own graph names their own behaviour: hours of sleep, minutes of exercise, servings.\n\nThe x-axis is the exception: '{{corpus:1c/p2:x:0:16:sha=f1f5ac605348:shape=R12-1-57,R16-0-27}} is the example's label, the placeholder, AND the correct answer for nearly every student, since all four weeks are plotted Sunday to Saturday. Do not treat it as copied.\n",
    "prompt_notes_why": "Describes SelfMonitorPlot drawing the chart live from 1b's data, and the worked example sitting on the same screen. The paper student draws their own figure; there is no component and no screen.",
    "prompt_omit_guidance": {
     "The bundle marks each piece of evidence": "the CLI evidence bundle's student/template labels do not exist here",
@@ -541,7 +541,7 @@
     },
     {
      "__tuple__": [
-      "Legend — the series names they typed, comma-separated",
+      "Legend \u2014 the series names they typed, comma-separated",
       "bmod_h3_graph_series"
      ]
     }
@@ -656,7 +656,7 @@
     ],
     "what": "a no-penalty check compares the prose against the UTB choice",
     "necessary": false,
-    "why": "the web asks 'Which behavior will you work on?' as a closed ChoiceInput before the box, which the paper version has no equivalent of. But `utb_stated` is still ASKED of the model on BOTH sides — the prose has to name the target, and UTB_NOT_STATED costs the same 2 points for the same reason — so the scoring does not diverge. What the web adds is `matches_selected`, an UNSCORED check reporting whether the prose names the same behaviour the student selected, shown first in the feedback. It carries no points precisely so a mismatch prompts a rewording rather than charging twice for one fact. THIS ENTRY USED TO DECLARE THE OPPOSITE: that the web read utb_stated from the choice and derived it, so the prose need not state it. That was never implemented here — no version of the content back to the initial import carries a `derived` rule for it — and the design was later settled the other way. The audit had been reporting the declaration as stale ever since; it was describing an intention, not the sheet."
+    "why": "the web asks 'Which behavior will you work on?' as a closed ChoiceInput before the box, which the paper version has no equivalent of. But `utb_stated` is still ASKED of the model on BOTH sides \u2014 the prose has to name the target, and UTB_NOT_STATED costs the same 2 points for the same reason \u2014 so the scoring does not diverge. What the web adds is `matches_selected`, an UNSCORED check reporting whether the prose names the same behaviour the student selected, shown first in the feedback. It carries no points precisely so a mismatch prompts a rewording rather than charging twice for one fact. THIS ENTRY USED TO DECLARE THE OPPOSITE: that the web read utb_stated from the choice and derived it, so the prose need not state it. That was never implemented here \u2014 no version of the content back to the initial import carries a `derived` rule for it \u2014 and the design was later settled the other way. The audit had been reporting the declaration as stale ever since; it was describing an intention, not the sheet."
    },
    {
     "items": [
@@ -689,7 +689,7 @@
       "type_stated"
      ]
     },
-    "why": "the web asks for the type as a closed ChoiceInput whose four options ARE the four types, so a student cannot name something that is not one of them — the same shape as Q1's UTB_NOT_ON_LIST. What remains reachable is BLANK: the item is a `present` check over the choice field, worth the same 2 points, so a student who answers scores 2 and one who does not scores 0, exactly as on paper."
+    "why": "the web asks for the type as a closed ChoiceInput whose four options ARE the four types, so a student cannot name something that is not one of them \u2014 the same shape as Q1's UTB_NOT_ON_LIST. What remains reachable is BLANK: the item is a `present` check over the choice field, worth the same 2 points, so a student who answers scores 2 and one who does not scores 0, exactly as on paper."
    },
    {
     "items": [
@@ -702,7 +702,7 @@
       "has_own_graph"
      ]
     },
-    "why": "the CLI reads a .docx — an embedded chart, an image, or prose describing a graph that is not there — so whether the student produced one is a judgement over document evidence. On the web the chart is DRAWN from the four 1b fields, so the runtime already knows: no plottable numbers is `absent`, and the worked example's own numbers (it sits on the same screen) are `mismatch`. Both are computed with the chart's own parser, so the grader cannot disagree with what the student sees. Copied WORDING is still judged by the model, on the label checks. Platform-forced: there is no way to ask the CLI's .docx the question the web's fields answer.\n\nThe kind is `complete`, not `plots`: it is satisfied only when EVERY week is present, so a partial month fails the gate and costs the whole item, which is what the paper rubric charges for not supplying a graph. That recovers p15 (two of four weeks, gold 0) and keeps p18 (nothing at all, gold 0). What it cannot recover is a student whose data is COMPLETE and who simply never drew the chart — p4 and p19, both gold 0 — because on the web that data draws it for them. Those two are excluded from the web measurement as unreachable (agreement_app.PER_ITEM_EXCLUDE)."
+    "why": "the CLI reads a .docx \u2014 an embedded chart, an image, or prose describing a graph that is not there \u2014 so whether the student produced one is a judgement over document evidence. On the web the chart is DRAWN from the four 1b fields, so the runtime already knows: no plottable numbers is `absent`, and the worked example's own numbers (it sits on the same screen) are `mismatch`. Both are computed with the chart's own parser, so the grader cannot disagree with what the student sees. Copied WORDING is still judged by the model, on the label checks. Platform-forced: there is no way to ask the CLI's .docx the question the web's fields answer.\n\nThe kind is `complete`, not `plots`: it is satisfied only when EVERY week is present, so a partial month fails the gate and costs the whole item, which is what the paper rubric charges for not supplying a graph. That recovers p15 (two of four weeks, gold 0) and keeps p18 (nothing at all, gold 0). What it cannot recover is a student whose data is COMPLETE and who simply never drew the chart \u2014 p4 and p19, both gold 0 \u2014 because on the web that data draws it for them. Those two are excluded from the web measurement as unreachable (agreement_app.PER_ITEM_EXCLUDE)."
    },
    {
     "items": [
@@ -710,7 +710,7 @@
     ],
     "what": "a legend keyed by DAY cannot be reproduced",
     "necessary": true,
-    "why": "the web's chart has one orientation — series are the four weeks, the x-axis is the seven days. A paper student who plotted it the other way round has a legend naming days, which the graders accepted (p11) and which the web scores as not naming the four series. One corpus row, structural, not a prompt defect."
+    "why": "the web's chart has one orientation \u2014 series are the four weeks, the x-axis is the seven days. A paper student who plotted it the other way round has a legend naming days, which the graders accepted (p11) and which the web scores as not naming the four series. One corpus row, structural, not a prompt defect."
    }
   ],
   "PROBE_REACH_LIMITS": [
@@ -1363,6 +1363,78 @@
      "7a7fc009456c"
     ],
     "rubricDef= added 2026-09-22; the tag moved, the question did not"
+   ],
+   [
+    [
+     "DAY1",
+     "olx",
+     "1e570f0a600e",
+     "7e17b983c3f7"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ],
+   [
+    [
+     "DAY2",
+     "olx",
+     "12c9ce3c9fdb",
+     "daff6d8e7174"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ],
+   [
+    [
+     "NP",
+     "olx",
+     "a7dc63e40cb9",
+     "238a243c8f8c"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ],
+   [
+    [
+     "NR",
+     "olx",
+     "8e247e1f7a46",
+     "744fdd2b0489"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ],
+   [
+    [
+     "PP",
+     "olx",
+     "cbda6b00b070",
+     "dec987801464"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ],
+   [
+    [
+     "PR",
+     "olx",
+     "3ce2ffc9257e",
+     "f1469aa0fdef"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ],
+   [
+    [
+     "WK1",
+     "olx",
+     "20852f7c36e6",
+     "68b26853cfac"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
+   ],
+   [
+    [
+     "WK2",
+     "olx",
+     "71c290065df9",
+     "7a7fc009456c"
+    ],
+    "charge=/because= added 2026-09-24; the tag moved, the question did not -- neither is asked, both are read after the model has answered"
    ]
   ],
   "PROSE_ONLY_SLOTS": [
@@ -1750,11 +1822,11 @@
   "MULTI_BLOCK_DECLARED": [
    [
     "Q6",
-    "eight boxes: two antecedents, each with its change, consequence and effect. Every cell read out and corrected; all fixture checks clean. p18's two antecedent boxes are DECLARED as sentence fragments and are correct that way: `state_a1` ends on its comma ([[corpus Q6/p18 state_a1 0:50 sha=c9250d345b28]]) and `state_a2` opens lowercase ([[corpus Q6/p18 state_a2 0:60 sha=c6293ae612e6]]), because p18 names each antecedent in a subordinate clause and puts the change in the main one. A clause-level split has to cut there; both boxes name their antecedent, which is what `state_a*` is scored on; and gold's 7.5 charges only the second consequence's fate. Both halves of one sentence being fragments is fine — do not re-cut them. Not in FIXTURE_STRUCTURE_OVERRIDES because no check fires on it, and an entry there that stops firing is reported stale"
+    "eight boxes: two antecedents, each with its change, consequence and effect. Every cell read out and corrected; all fixture checks clean. p18's two antecedent boxes are DECLARED as sentence fragments and are correct that way: `state_a1` ends on its comma ([[corpus Q6/p18 state_a1 0:50 sha=c9250d345b28]]) and `state_a2` opens lowercase ([[corpus Q6/p18 state_a2 0:60 sha=c6293ae612e6]]), because p18 names each antecedent in a subordinate clause and puts the change in the main one. A clause-level split has to cut there; both boxes name their antecedent, which is what `state_a*` is scored on; and gold's 7.5 charges only the second consequence's fate. Both halves of one sentence being fragments is fine \u2014 do not re-cut them. Not in FIXTURE_STRUCTURE_OVERRIDES because no check fires on it, and an entry there that stops firing is reported stale"
    ],
    [
     "Q3",
-    "five boxes, one per SMART aspect, and the students label them themselves. Anchored on the aspect's own name where the scorer gave no quote; 9 cells with an empty box reduced to 1, and that one is correct — p9 never mentions realistic. NOT read box by box when it was declared, and p19 is what that cost: `measurable` held the printed instruction \"You must discuss and label each aspect of the SMART goal for full credit.\" and `specific` held the printed question plus two aspects, with the student's own measurable sentence inside it. Repaired; the two lines of template scaffolding now belong to no box. p6 still opens all four of its boxes with the student's \"- \" bullet, which is the corpus-wide residue and enumerator work in scoring/BACKLOG.md"
+    "five boxes, one per SMART aspect, and the students label them themselves. Anchored on the aspect's own name where the scorer gave no quote; 9 cells with an empty box reduced to 1, and that one is correct \u2014 p9 never mentions realistic. NOT read box by box when it was declared, and p19 is what that cost: `measurable` held the printed instruction \"You must discuss and label each aspect of the SMART goal for full credit.\" and `specific` held the printed question plus two aspects, with the student's own measurable sentence inside it. Repaired; the two lines of template scaffolding now belong to no box. p6 still opens all four of its boxes with the student's \"- \" bullet, which is the corpus-wide residue and enumerator work in scoring/BACKLOG.md"
    ],
    [
     "Q4b",
@@ -1762,35 +1834,35 @@
    ],
    [
     "1c",
-    "eight boxes and not one of them a quotation, which is why the box-by-box readout is BLIND here: 18 of 20 cells have no prose at all, so `--fixture 1c` prints \"empty response\" and shows nothing. Audited by reading the eight boxes against the chart instead. Four come from `sim` (the four weeks of data) plus `series`, all parsed values; three — title/x/y — are read off the GRAPH by the paper scorer. Those three were the defect: in 10 of 20 cells they held the scorer's own sentence about the label (\"Weeks\" appears as a bolded axis title centred beneath the day tick values.) or its extracted text RUNS (['Time', ' {{corpus:1c/p6:title:5:33:sha=90d22ddc95fc}}']) instead of the label. Fixed in `_quoted_span`, not per cell, and verified against the served fixtures of all 26 items: exactly 20 boxes move, all of them 1c's. p15 and p18 are empty by right (gold \"did not include\"), and p11's day-name `series` is the student's own legend"
+    "eight boxes and not one of them a quotation, which is why the box-by-box readout is BLIND here: 18 of 20 cells have no prose at all, so `--fixture 1c` prints \"empty response\" and shows nothing. Audited by reading the eight boxes against the chart instead. Four come from `sim` (the four weeks of data) plus `series`, all parsed values; three \u2014 title/x/y \u2014 are read off the GRAPH by the paper scorer. Those three were the defect: in 10 of 20 cells they held the scorer's own sentence about the label (\"Weeks\" appears as a bolded axis title centred beneath the day tick values.) or its extracted text RUNS (['Time', ' {{corpus:1c/p6:title:5:33:sha=90d22ddc95fc}}']) instead of the label. Fixed in `_quoted_span`, not per cell, and verified against the served fixtures of all 26 items: exactly 20 boxes move, all of them 1c's. p15 and p18 are empty by right (gold \"did not include\"), and p11's day-name `series` is the student's own legend"
    ],
    [
     "3",
-    "two boxes, one proposed change each, and the count is judged over the whole response, so an empty `second` costs nothing by itself. All 20 read out; five repaired (p4, p6, p9, p16, p19), all one defect — `second` opened with a sentence elaborating the FIRST change, so box 2 began before change 2 did. Boundaries moved to the sentence that opens change 2; the union of each pair is unchanged. Four cells hold everything in `first` with `second` empty: p5, p8 and p15 propose one change or none, which is what gold charges, but p3 is a real gap — its two changes sit in ONE sentence and no anchor separates them, so a 6.0 is being earned from box 1 alone. 15 of 20 `first` boxes still open with the printed question's own \") \", which is template residue and NOT the student's word; it is corpus-wide and fixed upstream, not here (see scoring/BACKLOG.md)"
+    "two boxes, one proposed change each, and the count is judged over the whole response, so an empty `second` costs nothing by itself. All 20 read out; five repaired (p4, p6, p9, p16, p19), all one defect \u2014 `second` opened with a sentence elaborating the FIRST change, so box 2 began before change 2 did. Boundaries moved to the sentence that opens change 2; the union of each pair is unchanged. Four cells hold everything in `first` with `second` empty: p5, p8 and p15 propose one change or none, which is what gold charges, but p3 is a real gap \u2014 its two changes sit in ONE sentence and no anchor separates them, so a 6.0 is being earned from box 1 alone. 15 of 20 `first` boxes still open with the printed question's own \") \", which is template residue and NOT the student's word; it is corpus-wide and fixed upstream, not here (see scoring/BACKLOG.md)"
    ],
    [
     "Q5",
-    "two boxes, one reason each. All 20 read out; three boxes repaired, the same enumerator defect as Q4c — p1 kept \"1) \"/\"2) \" and p16 the \"2. \" it alone writes. Two cells are BLANK (p13, p17), so both boxes are empty and gold's \"did not answer\" is what the split reproduces. Three cells are run-ons split where the student's own sentence boundary is missing (p9, p15, and p3, whose orphaned full stop is left where the scorer's quote ended). p5 and p6 keep each reason's parenthetical function label (\"(Gaining something.)\", [[corpus Q5/p6 first 118:142 sha=9a07ac713b57]]) with the reason it labels, which is what the question asks the student to supply. p4's first box reads \"{{corpus:Q5/p4:first:0:1:sha=a83dd0ccbffe:shape=R1-0-20}}{{corpus:Q5/p4:first:2:23:sha=400cd580a803}}\" — checked against the submission, that is the student's own missing negation, not a transcription loss"
+    "two boxes, one reason each. All 20 read out; three boxes repaired, the same enumerator defect as Q4c \u2014 p1 kept \"1) \"/\"2) \" and p16 the \"2. \" it alone writes. Two cells are BLANK (p13, p17), so both boxes are empty and gold's \"did not answer\" is what the split reproduces. Three cells are run-ons split where the student's own sentence boundary is missing (p9, p15, and p3, whose orphaned full stop is left where the scorer's quote ended). p5 and p6 keep each reason's parenthetical function label (\"(Gaining something.)\", [[corpus Q5/p6 first 118:142 sha=9a07ac713b57]]) with the reason it labels, which is what the question asks the student to supply. p4's first box reads \"{{corpus:Q5/p4:first:0:1:sha=a83dd0ccbffe:shape=R1-0-20}}{{corpus:Q5/p4:first:2:23:sha=400cd580a803}}\" \u2014 checked against the submission, that is the student's own missing negation, not a transcription loss"
    ],
    [
     "Q4c",
-    "two boxes, one consequence each, and like Q4a the student usually does the splitting. All 20 read out; three boxes repaired, all one defect — p13's `first` and both of p16's kept the enumerator inside them while the item's other eight enumerated cells strip theirs. Three cells are split with no marker at all, and each is a run-on where the student's sentence boundary is simply missing (p5, p6, p15); p9's is the one genuine judgement — one comma, and \"while not exercising\" is left with the clause the comma attaches it to. p13's `second` is empty and faithful: gold charges the missing second consequence. p11's boxes follow DOCUMENT order, not the student's own labels, which run \"Another\" then \"One\""
+    "two boxes, one consequence each, and like Q4a the student usually does the splitting. All 20 read out; three boxes repaired, all one defect \u2014 p13's `first` and both of p16's kept the enumerator inside them while the item's other eight enumerated cells strip theirs. Three cells are split with no marker at all, and each is a run-on where the student's sentence boundary is simply missing (p5, p6, p15); p9's is the one genuine judgement \u2014 one comma, and \"while not exercising\" is left with the clause the comma attaches it to. p13's `second` is empty and faithful: gold charges the missing second consequence. p11's boxes follow DOCUMENT order, not the student's own labels, which run \"Another\" then \"One\""
    ],
    [
     "Q4a",
-    "two boxes, one antecedent each, and in 12 of 20 cells the STUDENT does the splitting — \"1)\"/\"2)\", \"1.\"/\"2.\", or \"My first antecedent\"/\"My second trigger\". All 20 read out; no repairs. The only text belonging to no box anywhere in the item is enumerators and OCR debris (\"1)_\", \"2 )_\", \"-\", a bare \"o\", a leading \"_\"), and every box is whole sentences in document order. p15 is the one cell split with no marker at all — one run-on line, cut before its second antecedent — and both halves are phrases the item's own guidance quotes as accepts. p18 is a DECLARED DIVERGENCE from verbatim reproduction, not an oversight: it wrote one antecedent and repeated it word for word as its second, and the fixture deliberately leaves `second` EMPTY rather than serving the duplicate. Gold charges the missing one, so `_gold_corroborates_absence` licenses the gap on every run and no check fires; the divergence is from faithfulness, not from gold, which is why it is not in GOLD_DIVERGENCES. Filling the box would invite the grader to credit two antecedents on one, against a cell that agrees with gold at 3.0 in 6 of 6 passes. The keyword point survives every split, including the three cells that misspell it in one box and spell \"trigger\" in the other"
+    "two boxes, one antecedent each, and in 12 of 20 cells the STUDENT does the splitting \u2014 \"1)\"/\"2)\", \"1.\"/\"2.\", or \"My first antecedent\"/\"My second trigger\". All 20 read out; no repairs. The only text belonging to no box anywhere in the item is enumerators and OCR debris (\"1)_\", \"2 )_\", \"-\", a bare \"o\", a leading \"_\"), and every box is whole sentences in document order. p15 is the one cell split with no marker at all \u2014 one run-on line, cut before its second antecedent \u2014 and both halves are phrases the item's own guidance quotes as accepts. p18 is a DECLARED DIVERGENCE from verbatim reproduction, not an oversight: it wrote one antecedent and repeated it word for word as its second, and the fixture deliberately leaves `second` EMPTY rather than serving the duplicate. Gold charges the missing one, so `_gold_corroborates_absence` licenses the gap on every run and no check fires; the divergence is from faithfulness, not from gold, which is why it is not in GOLD_DIVERGENCES. Filling the box would invite the grader to credit two antecedents on one, against a cell that agrees with gold at 3.0 in 6 of 6 passes. The keyword point survives every split, including the three cells that misspell it in one box and spell \"trigger\" in the other"
    ],
    [
     "2a",
-    "three boxes: the verdict and two explanations, which the screen asks for as three separate fields. All 20 cells read out against the response. Two repaired here — p16's how2 still carried the \"Sentence 3:\" label the other two boxes had stripped, and p20's how1 was a comma-initial adjunct sliced out of the verdict's own sentence (now the whole sentence, overlap declared). Everything else confirmed, including the boxes that hold text gold says is not an explanation: p13's how2 holds its \"{{corpus:2a/p13:how2:0:28:sha=2fa2e12271d7:shape=R28-0-20}}{{corpus:2a/p13:how2:29:46:sha=aaccc09e897f}}\" because the student wrote it, and gold charges that sentence rather than a missing one. The item's remaining error is almost all one shape and none of it is the fixture: 14-16 of 18 counted over six passes, and every miss but one is +2.0 for a second how gold withheld. The exception is p18, which flipped to 4.0 in one pass of six once its exclusion was removed"
+    "three boxes: the verdict and two explanations, which the screen asks for as three separate fields. All 20 cells read out against the response. Two repaired here \u2014 p16's how2 still carried the \"Sentence 3:\" label the other two boxes had stripped, and p20's how1 was a comma-initial adjunct sliced out of the verdict's own sentence (now the whole sentence, overlap declared). Everything else confirmed, including the boxes that hold text gold says is not an explanation: p13's how2 holds its \"{{corpus:2a/p13:how2:0:28:sha=2fa2e12271d7:shape=R28-0-20}}{{corpus:2a/p13:how2:29:46:sha=aaccc09e897f}}\" because the student wrote it, and gold charges that sentence rather than a missing one. The item's remaining error is almost all one shape and none of it is the fixture: 14-16 of 18 counted over six passes, and every miss but one is +2.0 for a second how gold withheld. The exception is p18, which flipped to 4.0 in one pass of six once its exclusion was removed"
    ],
    [
     "1a",
-    "five boxes, but only ONE is this item's own response — a single field. The other four are the shared data table, `sim`-parsed values carried as context. Nothing here was split"
+    "five boxes, but only ONE is this item's own response \u2014 a single field. The other four are the shared data table, `sim`-parsed values carried as context. Nothing here was split"
    ],
    [
     "1b",
-    "four boxes, all four `sim`-parsed values: the student's weekly data read out of a table, not spans cut from prose. p15 shows the shape — `wk1` is `8, {{corpus:1a/p15:wk1:3:19:sha=7b2512f124b3}} 9` for a table reading \"Sunday - 8 hours Monday - 11 hours ...\", and its empty `baseline`/`wk3` are the student's own \"none\" and \"Week Three Data: Lost\", which gold's 2.0 agrees with"
+    "four boxes, all four `sim`-parsed values: the student's weekly data read out of a table, not spans cut from prose. p15 shows the shape \u2014 `wk1` is `8, {{corpus:1a/p15:wk1:3:19:sha=7b2512f124b3}} 9` for a table reading \"Sunday - 8 hours Monday - 11 hours ...\", and its empty `baseline`/`wk3` are the student's own \"none\" and \"Week Three Data: Lost\", which gold's 2.0 agrees with"
    ]
   ],
   "DESIGNED_TEXT": [
@@ -1816,7 +1888,7 @@
      "reasons_given",
      "desc"
     ],
-    "HOW MANY of the listed statements are a real benefit of the GOAL behaviour: `reasons_listed` minus `reasons_failing`. A statement that restates the harm of the unwanted behaviour is not a benefit of the goal — \"not exercising makes me feel lazy\" is a reason to drop the UTB, not a benefit of exercising. What decides this is what the statement NAMES: one whose subject is the unwanted behaviour, or going without the goal behaviour, and whose predicate is a cost of that, names no benefit. One that NAMES a good the goal behaviour brings and then supports it by the cost avoided has named its benefit and COUNTS. Two goods in one area of life are still two. Whether one sentence holds one benefit or two is STRUCTURAL: a second half that is a knock-on effect of the first is ONE (a benefit, then \"WHICH WILL\" and what follows from it), while two independent benefits merely joined by \"and\" are TWO -- BUT ONLY WHERE EACH HALF NAMES A GOOD OF ITS OWN, its own subject with its own predicate, as the counting rule below requires. A second half that names no thing of its own, and only says matters will generally improve, extends the first half, and the pair is ONE. A restatement of the PROBLEM the goal solves is not a benefit of it either: a remark attributing their present condition to not having done the goal behaviour names the harm again and earns nothing. Two things resemble that and are NOT it. A good does not become a restatement by being described as LASTING: saying a benefit will continue, or that the behaviour will become settled practice, says how long the good holds, and a benefit that lasts is still a benefit. Nor does a good become a restatement by being a CHANGE IN THE STUDENT rather than in their circumstances: a capacity or a disposition the behaviour builds in the one who does it is a benefit the graders credited. Statements about why the UTB is bad belong to Q1 and earn nothing here either — a response whose reasons are all of that kind scores 0. Answer 3 for three or more"
+    "HOW MANY of the listed statements are a real benefit of the GOAL behaviour: `reasons_listed` minus `reasons_failing`. A statement that restates the harm of the unwanted behaviour is not a benefit of the goal \u2014 \"not exercising makes me feel lazy\" is a reason to drop the UTB, not a benefit of exercising. What decides this is what the statement NAMES: one whose subject is the unwanted behaviour, or going without the goal behaviour, and whose predicate is a cost of that, names no benefit. One that NAMES a good the goal behaviour brings and then supports it by the cost avoided has named its benefit and COUNTS. Two goods in one area of life are still two. Whether one sentence holds one benefit or two is STRUCTURAL: a second half that is a knock-on effect of the first is ONE (a benefit, then \"WHICH WILL\" and what follows from it), while two independent benefits merely joined by \"and\" are TWO -- BUT ONLY WHERE EACH HALF NAMES A GOOD OF ITS OWN, its own subject with its own predicate, as the counting rule below requires. A second half that names no thing of its own, and only says matters will generally improve, extends the first half, and the pair is ONE. A restatement of the PROBLEM the goal solves is not a benefit of it either: a remark attributing their present condition to not having done the goal behaviour names the harm again and earns nothing. Two things resemble that and are NOT it. A good does not become a restatement by being described as LASTING: saying a benefit will continue, or that the behaviour will become settled practice, says how long the good holds, and a benefit that lasts is still a benefit. Nor does a good become a restatement by being a CHANGE IN THE STUDENT rather than in their circumstances: a capacity or a disposition the behaviour builds in the one who does it is a benefit the graders credited. Statements about why the UTB is bad belong to Q1 and earn nothing here either \u2014 a response whose reasons are all of that kind scores 0. Answer 3 for three or more"
    ],
    [
     [
@@ -1954,7 +2026,7 @@
      "1a",
      "week"
     ],
-    "the weeks are NAMED, not interchangeable. The guidance deducts only when a period is 'clearly and specifically absent' and names the observed case — an answer that opens at the intervention and never mentions baseline. `3 of 4` cannot say which is missing."
+    "the weeks are NAMED, not interchangeable. The guidance deducts only when a period is 'clearly and specifically absent' and names the observed case \u2014 an answer that opens at the intervention and never mentions baseline. `3 of 4` cannot say which is missing."
    ],
    [
     [

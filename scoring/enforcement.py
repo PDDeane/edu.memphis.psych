@@ -4367,8 +4367,14 @@ def check_selectors_govern_something() -> list[str]:
     if _oc is None:
         return ["this course ships no `oc` scorer, so the three-way source "
                 "comparison has nothing to read -- retarget this check"]
-    scorer_src = "".join(inspect.getsource(f) for f in
-                         (_oc.score_web, _oc.score_web_cadence, _oc.derive_ledger))
+    # THROUGH THE DELEGATION. The `yes("...")` reads this scans for moved into
+    # `web_deductions`/`web_deductions_cadence` when the mirrors were split so
+    # the score could be DERIVED from the coded deductions; reading the entry
+    # points alone found ZERO slot names against ten, and a check whose input is
+    # empty reports nothing and looks clean. Fourth instance of that shape in one
+    # day, which is why the helper exists rather than another hand-listed tuple.
+    scorer_src = _source_through_delegates(
+        (_oc.score_web, _oc.score_web_cadence, _oc.derive_ledger), _oc)
     # Only the two unambiguous slot accessors, so a `.get` on some other dict
     # cannot be mistaken for a check being read.
     read = set(re.findall(r'yes\("(\w+)"\)', scorer_src))

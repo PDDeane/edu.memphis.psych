@@ -2663,8 +2663,8 @@ Answer `unclear` ONLY when NEITHER names a type -- both empty, or a bare label w
     <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true"/>
     <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" gate="true"/>
     <Slot key="observed_type" label="Which of the four types this example shows" seg="pick(operant_or_none)"/>
-    <Slot key="demonstrates_type" label="Your example demonstrates Positive Reinforcement" pts="2"/>
-    <Slot key="targets_goal_behavior" label="Aimed at increasing your goal behavior" pts="2"/>
+    <Slot key="demonstrates_type" label="Your example demonstrates Positive Reinforcement" pts="2" charge="WRONG_TYPE"/>
+    <Slot key="targets_goal_behavior" label="Aimed at increasing your goal behavior" pts="2" charge="WRONG_TYPE"/>
     <Slot key="stimulus_move" label="Whether the thing is given or taken away, and whether it is wanted" seg="pick(move)"/>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="confident" label="All judgments confident"/>
@@ -2708,12 +2708,12 @@ Answer what the sentence describes. The grader works out from your answer which 
     <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true"/>
     <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" gate="true"/>
     <Slot key="observed_type" label="Which of the four types this example shows" seg="pick(operant_or_none)"/>
-    <Slot key="demonstrates_type" label="Your example demonstrates Negative Reinforcement" pts="2"/>
-    <Slot key="targets_goal_behavior" label="Aimed at increasing your goal behavior" pts="2"/>
+    <Slot key="demonstrates_type" label="Your example demonstrates Negative Reinforcement" pts="2" charge="WRONG_TYPE"/>
+    <Slot key="targets_goal_behavior" label="Aimed at increasing your goal behavior" pts="2" charge="WRONG_TYPE"/>
     <Slot key="restriction_authored" label="Whether the undesirable thing was created by the plan or was already there" seg="pick(authorship)"/>
     <Slot key="trigger_expects" label="Which way a working plan would run from your condition" seg="pick(valence_or_none)"/>
     <Slot key="restricts" label="What the plan holds back, if it holds anything back" seg="pick(restriction_target)"/>
-    <Slot key="barrier_is_not_this_type" label="Not a restriction the plan sets up that your success then lifts" pts="2"/>
+    <Slot key="barrier_is_not_this_type" label="Not a restriction the plan sets up that your success then lifts" pts="2" charge="WRONG_TYPE"/>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="confident" label="All judgments confident"/>
     <Credit what="is_operant_conditioning" pts="2">Describes a real operant-conditioning contingency: an external stimulus added or removed after the behaviour</Credit>
@@ -2764,8 +2764,8 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true"/>
     <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" gate="true"/>
     <Slot key="observed_type" label="Which of the four types this example shows" seg="pick(operant_or_none)"/>
-    <Slot key="demonstrates_type" label="Your example demonstrates Positive Punishment" pts="2"/>
-    <Slot key="targets_unwanted_behavior" label="Aimed at decreasing your unwanted behavior" pts="2"/>
+    <Slot key="demonstrates_type" label="Your example demonstrates Positive Punishment" pts="2" charge="WRONG_TYPE"/>
+    <Slot key="targets_unwanted_behavior" label="Aimed at decreasing your unwanted behavior" pts="2" charge="WRONG_TYPE"/>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="confident" label="All judgments confident"/>
     <Credit what="is_operant_conditioning" pts="2">Describes a real operant-conditioning contingency: an external stimulus added or removed after the behaviour</Credit>
@@ -2800,8 +2800,8 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Slot key="follows_behavior" label="The consequence arrives after the behavior" seg="unclear" gate="true"/>
     <Slot key="you_arrange_it" label="Something you arrange, not an automatic result" gate="true"/>
     <Slot key="observed_type" label="Which of the four types this example shows" seg="pick(operant_or_none)"/>
-    <Slot key="demonstrates_type" label="Your example demonstrates Negative Punishment" pts="2"/>
-    <Slot key="targets_unwanted_behavior" label="Aimed at decreasing your unwanted behavior" pts="2"/>
+    <Slot key="demonstrates_type" label="Your example demonstrates Negative Punishment" pts="2" charge="WRONG_TYPE"/>
+    <Slot key="targets_unwanted_behavior" label="Aimed at decreasing your unwanted behavior" pts="2" charge="WRONG_TYPE"/>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="confident" label="All judgments confident"/>
     <Credit what="is_operant_conditioning" pts="2">Describes a real operant-conditioning contingency: an external stimulus added or removed after the behaviour</Credit>
@@ -2882,14 +2882,14 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Slot key="phrased_directly_gate" label="Phrased directly rather than by what is avoided" gate="final" charge="NOT_OC" because="The consequence is stated only as something avoided."/>
     <Slot key="named_type" label="Which of the four you said you would use" seg="pick(operant_or_unclear)"/>
     <Slot key="cadence_is_daily" label="Checked each day rather than against the week" gate="true"/>
-    <Slot key="matches_chosen_type" label="Matches your first chosen type" pts="2"/>
+    <Slot key="matches_chosen_type" label="Matches your first chosen type" pts="2" charge="TYPE_MISMATCH"/>
     <Slot key="states_a_contingency" label="A condition on your behavior, a clause granting or withholding something, and the consequence delivered afterwards" gate="true" charge="NOT_OC" because="No contingency is stated: nothing is granted or withheld on a condition."/>
     <Slot key="trigger_expects" label="Which way a working plan would run from your condition" seg="pick(valence_or_none)"/>
     <Slot key="restriction_authored" label="Whether the undesirable thing was created by the plan or was already there" seg="pick(authorship)"/>
     <Slot key="consequence_not_a_setup" label="Not a restriction the plan sets up that your success then lifts" gate="true"/>
     <Slot key="restricts" label="What the plan holds back, if it holds anything back" seg="pick(restriction_target)"/>
-    <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1"/>
-    <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1"/>
+    <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1" charge="WRONG_BEHAVIOR"/>
+    <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1" charge="LINK_NOT_ASSERTED"/>
     <Slot key="confident" label="All judgments confident"/>
     <Credit what="is_operant_conditioning" pts="2">A real contingency: external stimulus added or removed after the behaviour</Credit>
     <Credit what="matches_chosen_type" pts="1">Matches the type named in T1</Credit>
@@ -2956,11 +2956,11 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="named_type" label="Which of the four you said you would use" seg="pick(operant_or_unclear)"/>
     <Slot key="cadence_is_weekly" label="Checked against the week rather than each day" gate="true"/>
-    <Slot key="matches_chosen_type" label="Matches your first chosen type" pts="2"/>
+    <Slot key="matches_chosen_type" label="Matches your first chosen type" pts="2" charge="TYPE_MISMATCH"/>
     <Slot key="agent_delivers_consequence" label="A person is named who adds or removes the thing" gate="true" charge="NOT_OC" because="No one is named as adding or removing anything: the consequence clause has no agent."/>
     <Slot key="trigger_behavior" label="Which behaviour must happen, or fail to happen, for the consequence to arrive" seg="pick(trigger_target)"/>
-    <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1"/>
-    <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1"/>
+    <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1" charge="WRONG_BEHAVIOR"/>
+    <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1" charge="LINK_NOT_ASSERTED"/>
     <Slot key="confident" label="All judgments confident"/>
     <Credit what="is_operant_conditioning" pts="2">A real contingency: external stimulus added or removed after the behaviour</Credit>
     <Credit what="matches_chosen_type" pts="1">Matches the type named in T1</Credit>
@@ -3057,14 +3057,14 @@ Answer `absent` in these cases.
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="named_type" label="Which of the four you said you would use" seg="pick(operant_or_unclear)"/>
     <Slot key="cadence_is_daily_counted" label="Checked each day rather than against the week" gate="true"/>
-    <Slot key="matches_chosen_type" label="Matches your second chosen type" pts="2"/>
+    <Slot key="matches_chosen_type" label="Matches your second chosen type" pts="2" charge="TYPE_MISMATCH"/>
     <Slot key="states_a_contingency" label="A condition on your behavior, a clause granting or withholding something, and the consequence delivered afterwards" gate="true" charge="NOT_OC" because="No contingency is stated: nothing is granted or withheld on a condition."/>
     <Slot key="trigger_expects" label="Which way a working plan would run from your condition" seg="pick(valence_or_none)"/>
     <Slot key="restriction_authored" label="Whether the undesirable thing was created by the plan or was already there" seg="pick(authorship)"/>
     <Slot key="consequence_not_a_setup" label="Not a restriction the plan sets up that your success then lifts" gate="true"/>
     <Slot key="restricts" label="What the plan holds back, if it holds anything back" seg="pick(restriction_target)"/>
-    <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1"/>
-    <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1"/>
+    <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1" charge="WRONG_BEHAVIOR"/>
+    <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1" charge="LINK_NOT_ASSERTED"/>
     <Slot key="confident" label="All judgments confident"/>
     <Credit what="is_operant_conditioning" pts="2">A real contingency: external stimulus added or removed after the behaviour</Credit>
     <Credit what="matches_chosen_type" pts="1">Matches the type named in T2</Credit>
@@ -3131,15 +3131,15 @@ This is about WHICH thing, not about whether the plan works.</Guidance>
     <Slot key="phrased_directly" label="Phrased directly rather than by what is avoided"/>
     <Slot key="named_type" label="Which of the four you said you would use" seg="pick(operant_or_unclear)"/>
     <Slot key="cadence_is_weekly" label="Checked against the week rather than each day" gate="true"/>
-    <Slot key="matches_chosen_type" label="Matches your second chosen type" pts="2"/>
+    <Slot key="matches_chosen_type" label="Matches your second chosen type" pts="2" charge="TYPE_MISMATCH"/>
     <Slot key="aimed_correctly" label="The consequence points the right way for the type chosen" seg="unclear" gate="true" charge="NOT_OC" because="The consequence is pointed the wrong way: an aversive for meeting the goal, or a reward for missing it."/>
     <Slot key="states_a_contingency" label="A condition on your behavior, a clause granting or withholding something, and the consequence delivered afterwards" gate="true" charge="NOT_OC" because="No contingency is stated: nothing is granted or withheld on a condition."/>
     <Slot key="trigger_expects" label="Which way a working plan would run from your condition" seg="pick(valence_or_none)"/>
     <Slot key="restriction_authored" label="Whether the undesirable thing was created by the plan or was already there" seg="pick(authorship)"/>
     <Slot key="consequence_not_a_setup" label="Not a restriction the plan sets up that your success then lifts" gate="true"/>
     <Slot key="restricts" label="What the plan holds back, if it holds anything back" seg="pick(restriction_target)"/>
-    <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1"/>
-    <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1"/>
+    <Slot key="targets_own_behavior" label="Aimed at your own target or goal behavior" pts="1" charge="WRONG_BEHAVIOR"/>
+    <Slot key="consequence_asserted" label="The consequence is asserted to follow from the behavior" pts="1" charge="LINK_NOT_ASSERTED"/>
     <Slot key="confident" label="All judgments confident"/>
     <Credit what="is_operant_conditioning" pts="2">A real contingency: external stimulus added or removed after the behaviour</Credit>
     <Credit what="matches_chosen_type" pts="1">Matches the type named in T2</Credit>

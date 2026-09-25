@@ -841,6 +841,30 @@ ASK_EQUIVALENT_PROMPTS: dict[tuple[str, str, str, str], str] = {
         "rubricDef= added 2026-09-22; the tag moved, the question did not",
     ("WK2", "olx", "308fdab3343e", "7a7fc009456c"):
         "rubricDef= added 2026-09-22; the tag moved, the question did not",
+    ("DAY1", "olx", "1e570f0a600e", "7e17b983c3f7"):
+        "charge=/because= added 2026-09-24; the tag moved, the question did not "
+        "-- neither is asked, both are read after the model has answered",
+    ("DAY2", "olx", "12c9ce3c9fdb", "daff6d8e7174"):
+        "charge=/because= added 2026-09-24; the tag moved, the question did not "
+        "-- neither is asked, both are read after the model has answered",
+    ("NP", "olx", "a7dc63e40cb9", "238a243c8f8c"):
+        "charge=/because= added 2026-09-24; the tag moved, the question did not "
+        "-- neither is asked, both are read after the model has answered",
+    ("NR", "olx", "8e247e1f7a46", "744fdd2b0489"):
+        "charge=/because= added 2026-09-24; the tag moved, the question did not "
+        "-- neither is asked, both are read after the model has answered",
+    ("PP", "olx", "cbda6b00b070", "dec987801464"):
+        "charge=/because= added 2026-09-24; the tag moved, the question did not "
+        "-- neither is asked, both are read after the model has answered",
+    ("PR", "olx", "3ce2ffc9257e", "f1469aa0fdef"):
+        "charge=/because= added 2026-09-24; the tag moved, the question did not "
+        "-- neither is asked, both are read after the model has answered",
+    ("WK1", "olx", "20852f7c36e6", "68b26853cfac"):
+        "charge=/because= added 2026-09-24; the tag moved, the question did not "
+        "-- neither is asked, both are read after the model has answered",
+    ("WK2", "olx", "71c290065df9", "7a7fc009456c"):
+        "charge=/because= added 2026-09-24; the tag moved, the question did not "
+        "-- neither is asked, both are read after the model has answered",
 }
 
 

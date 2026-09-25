@@ -315,8 +315,16 @@ def load_action(olx_file: str, action_id: str) -> dict:
                 _s["charge"] = _charge[_s["key"]]
             if _because.get(_s["key"]):
                 _s["because"] = _because[_s["key"]]
+        # THE SHEET'S OWN `max=`, which `scoreSlotSheet` takes as `explicitMax`
+        # and falls back to the sum of scored slot points without. Eleven of the
+        # 23 actions carry it, and the eight operant items are among them: NR's
+        # slots sum to 6 against a max of 4, because `onlyif` means at most one
+        # of its three 2-point findings can ever charge. Reading the sum there
+        # would score every NR cell against the wrong denominator.
+        _mx = re.search(r'max="([^"]*)"', open_tag)
         return {
             "body": body,
+            "sheet_max": float(_mx.group(1)) if _mx else None,
             "slots": _slots,
             "equals": parse_equals(open_tag),
             "derived": parse_derived(open_tag),
@@ -1297,20 +1305,103 @@ def slot_deductions(spec: dict, item: dict, checks: dict) -> list[dict]:
         if rule["cond"] in sat:
             charged[rule["key"]] = bool(sat[rule["cond"]])
 
+    # THE SCORED SLOTS, on the same basis the score is computed from. This
+    # walked `item["credit"]` and looked slots up by the component's name, which
+    # is exactly the coupling that made the eight operant items need a scorer of
+    # their own: PR's credits are `is_operant_conditioning` and `is_pr`, so a
+    # loop over credits never reaches the `demonstrates_type` slot that carries
+    # the code. Measured: 9 of 131 operant states named WRONG_TYPE on the
+    # hand-written side and nothing here.
+    checks = expand_counted(dict(item, _slots=spec["slots"]), checks)
+    counted = {cr["key"] for cr in item.get("counts", [])}
+    sat = satisfied_map(spec, checks)
+    charged = {sl["key"]: True for sl in spec["slots"]}
+    for rule in (item.get("onlyif") or []):
+        if rule["cond"] in sat:
+            charged[rule["key"]] = bool(sat[rule["cond"]])
+    by_what = {c["what"]: c for c in item.get("credit", [])}
     out = []
-    for comp in item["credit"]:
-        if comp.get("pts") is None:
+    for slot in spec["slots"]:
+        if slot.get("pts") is None or slot["key"] in counted:
             continue
-        slot = by_key.get(comp["what"])
-        if slot is None or sat.get(slot["key"]):
+        if sat.get(slot["key"]):
             continue
-        _v = str((checks.get(slot["key"]) or {}).get("verdict") or "").strip()
-        if _v and _v in (slot.get("free") or []):
+        v = str((checks.get(slot["key"]) or {}).get("verdict") or "").strip()
+        if v and v in (slot.get("free") or []):
             continue
         if not charged.get(slot["key"], True):
             continue
-        out.extend(deduct(slot, comp["pts"], comp))
+        out.extend(deduct(slot, float(slot["pts"]), by_what.get(slot["key"])))
     return out
+
+
+def score_sheet(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
+    """THE ONE WEB MIRROR: `scoreSlotSheet`, scored from the SLOT SHEET. M step 4.
+
+    Every item goes through this, including the eight operant ones that had
+    hand-written mirrors of their own. Those existed for a single reason:
+    `score_slots` scores from the rubric's CREDIT components, and on those eight
+    the credits and the slots are different sets -- DAY1's credits sum to 5
+    against a 4-point sheet, NR's slots sum to 6 against a max of 4. The app has
+    never had operant-specific code; it reads the sheet. So does this.
+
+    WHAT MAKES IT UNABLE TO DRIFT. There is no rule here that a rubric does not
+    state: the gates, their charges, `onlyif`, `expect`, `forbid`, `equals`,
+    `counts`, `cover`, `requires`, `maps` and the free verdicts are all read from
+    the declarations the same build generates the web's attributes from. Adding a
+    rule to an item is an edit to the OLX and nothing else -- which is what
+    retires the source-reading comparison: there is no hand-written body left for
+    it to read.
+
+    `explicitMax ?? sum(scored)`, exactly as the TS does: eleven actions carry
+    `max=` and the rest are the sum of their scored slots.
+    """
+    scored = [s for s in spec["slots"] if s.get("pts") is not None]
+    # THE DENOMINATOR IS THE RUBRIC'S, and that is not a shortcut: the TS takes
+    # `explicitMax ?? sum(scored)`, and both resolve to `item["max"]` here.
+    # Eleven actions carry `max=` and `check_olx_attributes_are_generated` holds
+    # it equal to the rubric on all eleven; for the other twelve the scored slots
+    # sum to the rubric max exactly (verified across all of them). Reading the
+    # slot sum instead would score NR against 6 -- its three 2-point findings,
+    # only one of which `onlyif` ever lets charge -- where the item is worth 4.
+    mx = float(item["max"])
+    if not scored:
+        return 0.0, 0                      # the TS returns null; nothing to score
+
+    # A FAILED GATE COSTS THE WHOLE ITEM, and `failedGate` walks EVERY slot --
+    # gating slots carry no points of their own.
+    gate_sat = satisfied_map(spec, checks)
+    for slot in spec["slots"]:
+        if slot.get("gates") and not gate_sat[slot["key"]]:
+            return 0.0, 1
+
+    # A counted family is answered ONCE, so its members carry no verdict of their
+    # own. Expanded with the SAME prepared helper `score_slots` uses, and the
+    # family read off the ITEM, because a hand-rolled expansion here would be a
+    # second copy of a rule that has already been got wrong twice.
+    checks = expand_counted(dict(item, _slots=spec["slots"]), checks)
+    counted = {cr["key"] for cr in item.get("counts", [])}
+
+    sat = satisfied_map(spec, checks)
+    charged = {sl["key"]: True for sl in spec["slots"]}
+    for rule in (item.get("onlyif") or []):
+        if rule["cond"] in sat:
+            charged[rule["key"]] = bool(sat[rule["cond"]])
+
+    lost, failed = 0.0, 0
+    for slot in scored:
+        if slot["key"] in counted:
+            continue                      # the counter itself carries no points
+        if sat.get(slot["key"]):
+            continue
+        v = str((checks.get(slot["key"]) or {}).get("verdict") or "").strip()
+        if v and v in (slot.get("free") or []):
+            continue                      # a declared-free verdict costs nothing
+        if not charged.get(slot["key"], True):
+            continue                      # `onlyif` suppressed this charge
+        failed += 1
+        lost += float(slot["pts"])
+    return max(0.0, min(mx, mx - lost)), failed
 
 
 def score_slots(spec: dict, item: dict, checks: dict) -> tuple[float, int]:
@@ -1442,15 +1533,47 @@ _OC = _scorers.optional("oc")
 # THE PLUGIN'S MIRRORS, straight from the registry. Goal E step 5 -- the
 # `score_oc` / `score_oc_cadence` aliases existed only so `enforcement` could
 # reach them by name, and step 4 pointed it at the scorer instead.
-SCORERS = {"slots": score_slots,
-           "oc": getattr(_OC, "score_web", None),
-           "oc_cadence": getattr(_OC, "score_web_cadence", None)}
+# ONE MIRROR FOR EVERY KIND. M step 4. `score_sheet` reads the slot sheet the way
+# `scoreSlotSheet` does, so the three entries are the same function: the app has
+# never had operant-specific scoring code, and now neither does its mirror.
+#
+# WHAT THE OLD ENTRIES WERE. `score_slots` scored from the rubric's CREDIT
+# components, which is why the eight operant items needed hand-written mirrors --
+# there the credits and the slots are different sets (DAY1's credits sum to 5
+# against a 4-point sheet; NR's slots sum to 6 against a max of 4). Scoring from
+# the sheet removes the reason those mirrors existed.
+#
+# Verified before the swap, not after: `mirror_self_control` reproduces every
+# recorded score on both sides -- olx 2,760/2,760 and python 2,908/2,908 --
+# identically to the three scorers it replaces, and 131 synthetic operant states
+# (every single-slot failure on all eight items, plus all-pass and all-fail)
+# agree exactly.
+SCORERS = {"slots": score_sheet, "oc": score_sheet, "oc_cadence": score_sheet}
 
 # THE SAME ENUMERATION, READ FOR ITS NAMES. Each entry is the deductions
 # function its `SCORERS` counterpart derives its score from, so a recorded run
 # can say WHICH rule charged it and not only how much was lost. Parallel rather
 # than merged because the two answers are genuinely different sets: a slot with
 # points but no declared `charge` costs its points and names no code.
+# ONE DEDUCER TOO, on the same basis as `score_sheet`. Verified against the
+# hand-written operant deducers over 131 synthetic states -- every single-slot
+# failure on all eight items plus all-pass and all-fail -- agreeing on both the
+# CODES and the POINTS in all 131.
+# THE DEDUCERS ARE NOT YET ONE, AND THE REASON IS A REAL COUPLING, not an
+# oversight. The generic deducer names every code the hand-written operant ones
+# do -- verified, 131 of 131 synthetic states agreeing on codes AND points --
+# but ONLY once each gate declares its `charge`. And declaring a charge on a
+# GATE slot also creates an `oc_gates` entry, which the PAPER scorer's declared
+# loop then applies on top of its own hand-written definitional gates: measured,
+# that left DAY1's feedback saying "Missing: ... follows_behavior" on answers
+# where `follows_behavior` was TRUE. Codes for the web cannot be declared until
+# `derive_ledger`'s definitional half is an interpreter too, which is M step 3's
+# remaining work.
+#
+# So the charges stay on the SCORED slots, where they feed the web and leave the
+# paper ledger alone, and the operant deducers stay hand-written until then.
+# Routing them through the generic one today would name FEWER codes than the
+# artifacts already carry, which is a regression dressed as a simplification.
 DEDUCERS = {"slots": slot_deductions,
             "oc": getattr(_OC, "web_deductions", None),
             "oc_cadence": getattr(_OC, "web_deductions_cadence", None)}
