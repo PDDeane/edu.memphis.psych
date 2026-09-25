@@ -164,6 +164,26 @@ def web_name(cli_key: str, web_keys: set[str]) -> str | None:
     return None
 
 
+def _forms() -> tuple:
+    """Which forms this course has -- never a count written out here.
+
+    `(1, 2, 3)` appeared at 39 sites in this file alone: THIS COURSE'S SHAPE,
+    spelled inside the audit. `course.json` declares it, and
+    `handouts.declared()` reads that declaration and REFUSES rather than
+    returning an empty tuple -- a loop handed `()` runs zero times, finds
+    nothing and reports clean, which is the failure this whole file exists to
+    prevent.
+
+    A function rather than a module constant because the import is local: this
+    module has no module-level `handouts` import and 28 function-local ones, so
+    a constant would have to pick a moment to resolve and every site would then
+    depend on import order.
+    """
+    import handouts as _H
+
+    return _H.declared()
+
+
 def check_criteria_table_is_complete(items: list[dict]) -> list[str]:
     """Every oc_analysis property must have a pass and a fail value.
 
@@ -606,7 +626,7 @@ def check_ref_targets_resolve() -> list[str]:
 
 
 def all_items() -> list[dict]:
-    return [it for h in (1, 2, 3) for it in config(h)["rubric"].ITEMS]
+    return [it for h in _forms() for it in config(h)["rubric"].ITEMS]
 
 
 # ---------------------------------------------------------------------------
@@ -778,7 +798,7 @@ def signature(item: dict) -> dict:
 def cli_signatures() -> dict[str, dict]:
     """Every item whose score the CLI derives from checks."""
     out = {}
-    for h in (1, 2, 3):
+    for h in _forms():
         for it in config(h)["rubric"].ITEMS:
             if it.get("derive_from_criteria") or it.get("derive_from_credit"):
                 out[it["id"]] = signature(it)
@@ -786,7 +806,7 @@ def cli_signatures() -> dict[str, dict]:
 
 
 def all_derive_items() -> list[dict]:
-    return [it for h in (1, 2, 3) for it in config(h)["rubric"].ITEMS
+    return [it for h in _forms() for it in config(h)["rubric"].ITEMS
             if it.get("derive_from_criteria") or it.get("derive_from_credit")]
 
 
@@ -892,7 +912,7 @@ def check_backend_deviations_declared() -> list[str]:
 
     # And the derivation must actually find the items, or the deviation is empty
     # and nothing is ever excluded.
-    for h in (1, 2, 3):
+    for h in _forms():
         items = [it["id"] for it in H.config(h)["rubric"].ITEMS if it.get("graph_item")]
         got = H.not_comparable_items(h, supports_tools=False)
         if set(items) != set(got):
@@ -1615,7 +1635,7 @@ def _authored_derived_kinds() -> set:
     import olx_prompts as OP
 
     out = set()
-    for handout in (1, 2, 3):
+    for handout in _forms():
         src = OP._src(handout)
         for m in re.finditer(r'\bderived="([^"]*)"', src, re.S):
             for entry in m.group(1).split("|"):
@@ -2948,7 +2968,7 @@ def _corpus_cells() -> dict[tuple[str, int], str]:
             warnings.simplefilter("ignore")
             from agreement import fixture_for
             import handouts as H
-            for h in (1, 2, 3):
+            for h in _forms():
                 for item in H.config(h)["rubric"].ITEMS:
                     for pid in range(1, 21):
                         try:
@@ -3075,7 +3095,7 @@ def check_rule_examples_are_not_corpus() -> list[str]:
 
     problems = []
     seen_backlog: set[tuple[str, int]] = set()
-    for h in (1, 2, 3):
+    for h in _forms():
         for item in H.config(h)["rubric"].ITEMS:
             iid = item["id"]
             # Prompt-bearing text, MINUS the worked examples: an item's
@@ -3885,7 +3905,7 @@ def check_olx_attributes_are_read() -> list[str]:
     # alarm cost 140 calls, so the second source is consulted here.
     import olx_prompts as O
     rubric_keys = set()
-    for hh in (1, 2, 3):
+    for hh in _forms():
         try:
             for it in config(hh)["rubric"].ITEMS:
                 rubric_keys |= {k for k, v in it.items() if v}
@@ -3893,7 +3913,7 @@ def check_olx_attributes_are_read() -> list[str]:
             continue
 
     problems = []
-    for h in (1, 2, 3):
+    for h in _forms():
         try:
             text = pathlib.Path(O.OLX % h).read_text()
         except Exception:
@@ -3985,7 +4005,7 @@ def check_selectors_govern_something() -> list[str]:
 
     # B. every slot key the scorers read must still be emitted by some sheet.
     emitted = set()
-    for h in (1, 2, 3):
+    for h in _forms():
         for item in config(h)["rubric"].ITEMS:
             iid = item["id"]
             if iid not in O.ACTION:
@@ -4083,7 +4103,7 @@ def check_weighted_slots_are_scored() -> list[str]:
     # remedy is the same: follow the calls.
     src = _source_through_delegates((_oc.score_web, _oc.score_web_cadence), _oc)
     problems = []
-    for h in (1, 2, 3):
+    for h in _forms():
         for item in config(h)["rubric"].ITEMS:
             iid = item["id"]
             if not item.get("derive_from_criteria") or iid not in O.ACTION:
@@ -4145,7 +4165,7 @@ def check_rubric_items_are_unique() -> list[str]:
     import handouts as H
 
     problems = []
-    for h in (1, 2, 3):
+    for h in _forms():
         mod = H.config(h)["rubric"]
         ids = [it["id"] for it in mod.ITEMS]
         for iid, n in sorted(collections.Counter(ids).items()):
@@ -4224,7 +4244,7 @@ def check_single_box_fixtures_are_verbatim() -> list[str]:
     problems, multi = [], {}
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        for h in (1, 2, 3):
+        for h in _forms():
             cfg = H.config(h)
             try:
                 subs = dict(H.find_submissions(h))
@@ -4339,7 +4359,7 @@ def check_olx_corpus_references() -> list[str]:
 
     import olx_prompts as _O
     out = []
-    for h in (1, 2, 3):
+    for h in _forms():
         try:
             src = _O._src(h)
         except Exception as exc:                       # pragma: no cover
@@ -4462,7 +4482,7 @@ def check_citation_necessity_is_recorded() -> list[str]:
     from handouts import HANDOUTS
 
     problems = []
-    for h in (1, 2, 3):
+    for h in _forms():
         registry = (HANDOUTS[h].get("cited_participants") or {})
         for item, pids in sorted(registry.items()):
             for pid in sorted(pids):
@@ -4483,7 +4503,7 @@ def check_citation_necessity_is_recorded() -> list[str]:
     for stale in sorted(CITATION_NECESSITY):
         item, pid = stale
         if not any(pid in (HANDOUTS[h].get("cited_participants") or {}).get(item, [])
-                   for h in (1, 2, 3)):
+                   for h in _forms()):
             problems.append(
                 f"CITATION_NECESSITY lists {item}/p{pid}, which is no longer "
                 f"registered in cited_participants. Remove it")
@@ -6139,7 +6159,7 @@ def check_every_item_has_a_findable_slot_sheet() -> list[str]:
         return ["no item-to-element mapping at all; ACTION and SHEET_ONLY are both "
                 "empty, so every sheet-reading check is looking at nothing"]
     blob = ""
-    for h in (1, 2, 3):
+    for h in _forms():
         try:
             blob += (_p7.OLX_DIR / _p7.handout_olx(h)).read_text()
         except OSError:
@@ -6767,7 +6787,7 @@ def check_engine_mechanisms_are_not_item_dependent() -> list[str]:
 
     import handouts as _H
 
-    ids = {it["id"] for h in (1, 2, 3) for it in _H.config(h)["rubric"].ITEMS}
+    ids = {it["id"] for h in _forms() for it in _H.config(h)["rubric"].ITEMS}
     out, found = [], set()
     for mod in _ENGINE_MODULES:
         try:
@@ -7154,7 +7174,7 @@ def _request_capture() -> tuple:
         key = hashlib.sha256("|".join([
             M.web_code_sha("ask"), str(idmap), str(int(idmap.stat().st_mtime)),
             *(str(int((P.OLX % h and __import__("pathlib").Path(P.OLX % h)).stat().st_mtime))
-              for h in (1, 2, 3)),
+              for h in _forms()),
         ]).encode()).hexdigest()[:16]
     except Exception as e:
         return {}, f"the capture key cannot be computed: {type(e).__name__}: {e}"
@@ -8431,7 +8451,7 @@ def check_app_and_harness_send_the_same_prompt() -> list[str]:
     # than to pre-empt the comparison: if every body matches, a dump older than
     # the .olx has told us what we needed anyway.
     dump_at = pathlib.Path(newest).stat().st_mtime
-    olx_at = max(pathlib.Path(P.OLX % h).stat().st_mtime for h in (1, 2, 3))
+    olx_at = max(pathlib.Path(P.OLX % h).stat().st_mtime for h in _forms())
     stale_dump = dump_at < olx_at
     try:
         st = pathlib.Path(newest).stat()
@@ -8443,7 +8463,7 @@ def check_app_and_harness_send_the_same_prompt() -> list[str]:
     # `<Ref id=... target=...>` straight from the authored OLX, which is what
     # tells us which field a ref block in the dump resolves to.
     refmap = {}
-    for h in (1, 2, 3):
+    for h in _forms():
         try:
             refmap.update(dict(_re.findall(
                 r'<Ref\s+id="([^"]+)"\s+target="([^"]+)"',
@@ -8813,7 +8833,7 @@ def check_every_prompt_field_is_designed() -> list[str]:
     import handouts as H
     want = _designed_shas()
     live: dict[str, str] = {}
-    for h in (1, 2, 3):
+    for h in _forms():
         try:
             items = H.config(h)["rubric"].ITEMS
         except Exception:
@@ -9721,7 +9741,7 @@ def check_no_judging_field_states_what_a_verdict_costs() -> list[str]:
         r"costs the whole item|the whole item is that finding|zeroes the item|"
         r"is charged \d|worth \d(?! of)", re.I)
     out = []
-    for h in (1, 2, 3):
+    for h in _forms():
         for item in config(h)["rubric"].ITEMS:
             for c in item.get("credit") or []:
                 for field in ("desc", "rule"):
@@ -10240,7 +10260,7 @@ def check_shipped_text_matches_design() -> list[str]:
     out: list[str] = []
     for (item, slot, field), want in sorted(DESIGNED_TEXT.items()):
         spec = None
-        for h in (1, 2, 3):
+        for h in _forms():
             try:
                 spec = H.config(h)["rubric"].BY_ID.get(item)
             except Exception:
@@ -10360,7 +10380,7 @@ def check_maps_tables_are_attached() -> list[str]:
     import lo_enforce
 
     entries = []
-    for h, mod in zip((1, 2, 3), _rubric_views()):
+    for h, mod in zip(_forms(), _rubric_views()):
         maps = getattr(mod, "MAPS", None) or {}
         by_id = getattr(mod, "BY_ID", None) or {}
         for item in sorted(maps):
@@ -11022,7 +11042,7 @@ def _rubric_views():
     """
     import handouts as _H
 
-    return tuple(_H.config(h)["rubric"] for h in (1, 2, 3))
+    return tuple(_H.config(h)["rubric"] for h in _forms())
 
 
 def _rubric_module(item_id: str):
@@ -11038,7 +11058,7 @@ def _rubric_module(item_id: str):
     """
     import handouts as _H
 
-    for handout in (1, 2, 3):
+    for handout in _forms():
         try:
             view = _H.config(handout)["rubric"]
         except Exception:
@@ -11843,7 +11863,7 @@ def check_no_declaration_cites_a_suspect_cell() -> list[str]:
     import measured as M
 
     home_of: dict[str, int] = {}
-    for hnd in (1, 2, 3):
+    for hnd in _forms():
         try:
             for it in H.config(hnd)["rubric"].ITEMS:
                 # ITEMS holds dicts, not id strings. Writing str(it) here keyed
@@ -11854,7 +11874,7 @@ def check_no_declaration_cites_a_suspect_cell() -> list[str]:
                     home_of.setdefault(str(iid), hnd)
         except Exception:
             continue
-    suspect = {hnd: set(H.suspect(hnd)) for hnd in (1, 2, 3)}
+    suspect = {hnd: set(H.suspect(hnd)) for hnd in _forms()}
 
     def cited(why: str, home: str) -> set[tuple[str, int]]:
         out: set[tuple[str, int]] = set()
@@ -12116,7 +12136,7 @@ def check_the_audit_read_the_corpus() -> list[str]:
     the control — when it is absent there is nothing to assert and this passes.
     """
     present = []
-    for h in (1, 2, 3):
+    for h in _forms():
         try:
             import handouts as H
 
@@ -12384,7 +12404,7 @@ def check_fixture_covers_the_response() -> list[str]:
 
     problems = []
     seen: set[tuple[str, int]] = set()
-    for h in (1, 2, 3):
+    for h in _forms():
         cfg = H.config(h)
         try:
             subs = H.find_submissions(h)
@@ -12696,7 +12716,7 @@ def _cover_groups(item_id: str) -> list[set[str]]:
     import paths
 
     boxes = set(_fixture_boxes(item_id, 1)) or set()
-    for h in (1, 2, 3):
+    for h in _forms():
         try:
             src = open(paths.OLX % h).read()
         except Exception:
@@ -12913,7 +12933,7 @@ def _fixture_cells():
         segs_by_cell = []
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            for h in (1, 2, 3):
+            for h in _forms():
                 cfg = H.config(h)
                 try:
                     subs = dict(H.find_submissions(h))
@@ -13232,7 +13252,7 @@ def _handout_of(item: str) -> int:
     spec = APP.JOBS.get(item) or {}
     if spec.get("handout"):
         return int(spec["handout"])
-    for h in (1, 2, 3):
+    for h in _forms():
         try:
             if any(i["id"] == item for i in H.config(h)["rubric"].ITEMS):
                 return h
@@ -13550,7 +13570,7 @@ def check_unreachable_gold_is_allowed() -> list[str]:
     # And the helper must stay an allowance for UNREACHABLE gold only. If it ever
     # forgives a near miss on a reachable one it becomes a tolerance, and every
     # rate in the project silently loosens.
-    for h in (1, 2, 3):
+    for h in _forms():
         for item in H.config(h)["rubric"].ITEMS:
             scores = H.attainable_scores(item)
             if len(scores) < 2:
@@ -13585,7 +13605,7 @@ def check_gold_corrections_land_on_attainable_scores() -> list[str]:
     import handouts as H
 
     items = {}
-    for h in (1, 2, 3):
+    for h in _forms():
         for it in H.config(h)["rubric"].ITEMS:
             items[it["id"]] = (h, it)
 
@@ -13626,7 +13646,7 @@ def check_gold_scores_are_attainable() -> list[str]:
     import handouts as H
 
     out = []
-    for h in (1, 2, 3):
+    for h in _forms():
         cfg = H.config(h)
         items = {it["id"]: it for it in cfg["rubric"].ITEMS}
         rows = cfg["gold"]()          # corrections applied by handouts._gold_loader
@@ -14946,7 +14966,7 @@ def check_only_builders_read_the_rubric() -> list[str]:
     try:
         import handouts as _H
 
-        for _h in (1, 2, 3):
+        for _h in _forms():
             served = _H.config(_h)["rubric"]
             if getattr(served, "__name__", "").startswith("rubric_h"):
                 out.append(
@@ -15092,7 +15112,7 @@ def check_rubric_notes_match_the_modules() -> list[str]:
     # subject is deleted must hand its purpose on rather than take it with it.
     import os as _os
 
-    present = [h for h in (1, 2, 3)
+    present = [h for h in _forms()
                if _os.path.exists(_os.path.join(str(_HERE_DIR), f"rubric_h{h}.py"))]
     if not present:
         return []

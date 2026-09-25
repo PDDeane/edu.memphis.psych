@@ -463,7 +463,7 @@ def accept_design_change(item: str, slot: str, field: str) -> int:
     import handouts as H
     import enforcement as E
     spec = None
-    for h in (1, 2, 3):
+    for h in H.declared():
         try:
             spec = H.config(h)["rubric"].BY_ID.get(item)
         except Exception:
@@ -3820,7 +3820,7 @@ def gold_rows_that_do_not_reconcile() -> list[str]:
     out: list[str] = []
     loaders = {1: _gold.load_h1, 2: _gold.load_h2, 3: _gold.load_h3}
     jobs = _jobs()
-    for h in (1, 2, 3):
+    for h in H.declared():
         try:
             g = loaders[h]()
         except Exception:
@@ -4535,7 +4535,7 @@ def report() -> str:
 
     lines: list[str] = []
     totals = {s: [0, 0] for s in per_side}
-    for h in (1, 2, 3):
+    for h in H.declared():
         items = [i for i in sorted(_jobs()) if _jobs()[i]["handout"] == h]
         lines.append(f"Handout {h}")
         for item in items:
@@ -6704,7 +6704,7 @@ def unstable_cells_without_an_owner(excluding: str = '') -> list[str]:
 
 def _handout_of(item: str) -> int:
     """Which handout an item belongs to, for the suspect list. Subgoal E45."""
-    for h in (1, 2, 3):
+    for h in H.declared():
         try:
             if item in _handout_gold_items(h):
                 return h

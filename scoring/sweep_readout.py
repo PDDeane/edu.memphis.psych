@@ -124,7 +124,7 @@ def readout(item: str, before: dict) -> int:
             return 1
 
     handout = None
-    for h in (1, 2, 3):
+    for h in H.declared():
         try:
             if item in M._handout_gold_items(h):
                 handout = h
@@ -257,7 +257,7 @@ def slot_profile(item: str, slots: tuple, cells: tuple = ()) -> int:
     import measured as M
 
     handout = None
-    for h in (1, 2, 3):
+    for h in H.declared():
         try:
             if item in M._handout_gold_items(h):
                 handout = h
@@ -330,7 +330,7 @@ def cell_texts(item: str, cells: tuple = (), fields: tuple = ()) -> int:
     import measured as M
 
     handout = None
-    for h in (1, 2, 3):
+    for h in H.declared():
         try:
             if item in M._handout_gold_items(h):
                 handout = h

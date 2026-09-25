@@ -68,6 +68,7 @@ import paths as _p7   # J-7b: this course's handout file names
 
 HERE = pathlib.Path(__file__).parent
 import paths as _paths_rec
+import handouts as _handouts   # forms are declared by the course, not counted here
 
 RECEIPTS = _paths_rec.COURSE_PROBE_RECEIPTS
 
@@ -208,7 +209,7 @@ def _element(item_id: str, slot: str):
     import olx_prompts as O
     from handouts import config
 
-    hs = [h for h in (1, 2, 3)
+    hs = [h for h in _handouts.declared()
           for it in config(h)["rubric"].ITEMS if it["id"] == item_id] or [1, 2, 3]
     for h in hs:
         if item_id in O.ACTION:
@@ -329,7 +330,7 @@ def question_for(item_id: str, slot: str) -> dict:
         # at all", including for slots that ARE on the sheet and merely derived.
         # That is the more useful of the two messages, and it was unreachable.
         from handouts import config
-        known = [c["what"] for h in (1, 2, 3)
+        known = [c["what"] for h in _handouts.declared()
                  for it in config(h)["rubric"].ITEMS if it["id"] == item_id
                  for c in it.get("credit", [])]
         # A rubric criterion the SHEET decomposes differently -- Q1/Q2's three

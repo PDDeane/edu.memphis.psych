@@ -40,6 +40,7 @@ sys.path.insert(0, __file__.rsplit("/", 1)[0])
 
 from handouts import config
 import paths
+import handouts as _handouts   # forms are declared by the course, not counted here
 
 # The `{fail}` placeholder in a shared `rule`, bare or slot-qualified. ONE
 # definition, imported by score.py rather than restated: the two generators must
@@ -1845,7 +1846,7 @@ def check_scorer_voice_in_labels() -> list[str]:
     scorer_facing = ("confident", "uncertain")
     second_person = re.compile(r"\b(you|your|yours|yourself)\b", re.I)
     out = []
-    for h in (1, 2, 3):
+    for h in _handouts.declared():
         src = _src(h)
         for m in re.finditer(r'slots="([^"]*)"', src, re.S):
             for entry in m.group(1).split("|"):
@@ -3338,7 +3339,7 @@ def main() -> int:
         return 0
 
     if a.refs:
-        for h in (1, 2, 3):
+        for h in _handouts.declared():
             dropped, added, dupes = ref_delta(h)
             print(f"--- H{h}")
             for r in dropped:
@@ -3353,7 +3354,7 @@ def main() -> int:
         ap.error("one of --print, --check, --write, --diff, --refs is required")
 
     rc = 0
-    for h in (1, 2, 3):
+    for h in _handouts.declared():
         new, minted, cleared = render(h)
         old = _src(h)
         if minted:

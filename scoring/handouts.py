@@ -614,6 +614,34 @@ _COURSE_DATA_FIELDS = {
 import coursedata as _cd_fields
 
 _DECLARED = _cd_fields.declared_handouts()
+
+def declared() -> tuple:
+    """Which forms this course has, from the course's own declaration.
+
+    THE ENGINE MUST NOT COUNT THEM. `(1, 2, 3)` was written out at 70 sites
+    across 15 modules, plus three separate `HANDOUTS = (1, 2, 3)` constants --
+    this course's shape, spelled inside machinery whose whole purpose is to know
+    no course. `course.json` declares it and `coursedata.declared_handouts()`
+    reads it; exactly one module was calling that.
+
+    IT REFUSES RATHER THAN RETURNING EMPTY, and that is the whole reason this
+    exists instead of the accessor being called directly. `declared_handouts()`
+    answers `()` when it cannot tell, and `HANDOUTS` above is deliberately left
+    alone in that case -- refusing to guess is not the same as deleting every
+    form. But a LOOP handed `()` does not refuse; it runs zero times, finds
+    nothing, and reports clean. Sixty-five loops silently examining nothing is a
+    worse failure than a crash, and it is the exact shape this package keeps
+    paying for: a check that reports zero because it never looked.
+    """
+    d = _DECLARED or tuple(sorted(HANDOUTS))
+    if not d:
+        raise SystemExit(
+            "handouts.declared(): the course declares no forms and the engine "
+            "table is empty, so there is nothing to iterate. Refusing rather "
+            "than returning () -- a loop over () examines nothing and reports "
+            "clean, which is indistinguishable from a corpus with no faults.")
+    return tuple(d)
+
 if _DECLARED:
     for _h in [h for h in HANDOUTS if h not in _DECLARED]:
         del HANDOUTS[_h]
@@ -902,7 +930,7 @@ def scored_exactly(item_id: str, gold: float, pred: float) -> bool:
     string "scores_as_exact" appeared in each file, and it did — in the one code
     path that used it.
     """
-    for h in (1, 2, 3):
+    for h in declared():
         rec = config(h)["rubric"].BY_ID.get(item_id)
         if rec is not None:
             return scores_as_exact(rec, gold, pred)

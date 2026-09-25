@@ -37,9 +37,10 @@ import os
 
 import paths
 import sys
+import handouts as _handouts   # forms are declared by the course, not counted here
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-HANDOUTS = (1, 2, 3)
+HANDOUTS = _handouts.declared()
 
 # Rebuilt by the reader rather than stored, so their absence from the file is
 # correct. Named here INDEPENDENTLY of the reader: this tool must not import the
@@ -209,7 +210,7 @@ def _modules_present() -> list:
     import os
 
     here = os.path.dirname(os.path.abspath(__file__))
-    return [h for h in (1, 2, 3)
+    return [h for h in _handouts.declared()
             if os.path.exists(os.path.join(here, f"rubric_h{h}.py"))]
 
 

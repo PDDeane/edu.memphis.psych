@@ -38,6 +38,7 @@ import re as _re
 import subprocess
 import sys
 import time
+import handouts as _handouts   # forms are declared by the course, not counted here
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 STATE_ONLY = ("ITEM UNMEASURED AS CONFIGURED",)
@@ -500,7 +501,7 @@ def _launders(idx=None) -> list:
     course = ""
     try:
         import olx_prompts as _O
-        course = " ".join(_O._src(h) for h in (1, 2, 3)).lower()
+        course = " ".join(_O._src(h) for h in _handouts.declared()).lower()
     except Exception:
         course = ""
     bad = []
@@ -626,7 +627,7 @@ def _classifier():
     cells = {k: norm(v) for k, v in idx.items()}
     try:
         import olx_prompts as _O
-        course = norm(" ".join(_O._src(h) for h in (1, 2, 3)))
+        course = norm(" ".join(_O._src(h) for h in _handouts.declared()))
     except Exception:
         course = ""
 

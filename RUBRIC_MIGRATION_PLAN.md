@@ -6056,6 +6056,48 @@ Design — a lock DIRECTORY, not a lock file:
 * scope: one lock per WRITE TARGET (`out/`, `courses/<ns>/`), not one global
   lock, so a sweep writing `out/` does not block a document rebuild.
 
+**Durability is part of L, not a separate task (added 2026-09-25, subgoal E59).**
+This section plans ACCESS and LOCKING and says nothing about what happens when
+data is LOST rather than contended, and the move changes that risk in both
+directions.
+
+What is actually at stake, measured rather than asserted:
+
+    $COURSE_DATA/courses/<ns>/GOALS.md   1.2 MB   the goal ledger's BODIES
+    $COURSE_DATA/courses/<ns>/gold.json  152 KB   the grading targets
+    $COURSE_DATA/courses/<ns>/BACKLOG.md 112 KB
+    $COURSE_DATA/out/**                           every sweep artifact
+
+and none of it is in a repository, deliberately: it is course-specific data and
+cannot go on a public one. The user's framing settles the shape of the answer --
+*"we're talking data here, not code"* -- so this wants snapshots, an append
+journal or versioned object storage, NOT commit semantics.
+
+**THE INDEX IS ALREADY SAFE AND THE BODIES ARE NOT.** `GOAL_STATES.json` is 11 KB,
+in the repo and tracked, and holds `{label: (state, title)}` for all 112 entries
+-- which is what `check_goals_record_is_intact` compares against. Losing the
+ledger would not lose which goals exist, their state, or their titles. It would
+lose the measurements, the reasoning and the closure notes. That is most of the
+value and it is a narrower claim than "the record is unprotected".
+
+**THREE THINGS TO SETTLE BEFORE THE MOVE, and the first is a measurement:**
+
+* **Does an `rclone mount` write produce a Drive REVISION?** Drive keeps version
+  history for files edited through its own clients; whether a POSIX write
+  through a mount creates one -- for every file type, and for how long -- is a
+  question with an answer, and the plan should carry the measured answer rather
+  than the hope. If it does, recoverability largely comes free with the move
+  and this section is short. If it does not, the move makes things WORSE: one
+  copy becomes one copy that more people can delete.
+* **Shared storage multiplies writers, which is the other half of the locking
+  problem.** The lock stops two writers corrupting a file; it does nothing about
+  one writer deleting it. A retention or trash policy has to be named.
+* **`out/**` is regenerable and the course records are not.** They are pooled
+  here under one `$COURSE_DATA` and want different policies: a lost sweep costs
+  calls, a lost ledger costs the reasoning behind every decision this project
+  has made. Whatever is chosen should distinguish them.
+
+
 **Where it goes.** A single `paths.locked_write(target)` context manager, since
 `paths.py` is already the one module that owns filesystem locations and
 `check_filesystem_locations_come_from_paths_py` enforces that. Every writer to

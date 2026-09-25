@@ -38,10 +38,11 @@ import argparse
 import json
 import os
 import sys
+import handouts as _handouts   # forms are declared by the course, not counted here
 
 SCHEMA_VERSION = 1
 HERE = os.path.dirname(os.path.abspath(__file__))
-HANDOUTS = (1, 2, 3)
+HANDOUTS = _handouts.declared()
 
 # THE DERIVATIONS LIVE IN THE READER. Imported, never redefined: the export
 # decides what to DROP and `coursedata.py` REBUILDS it, which is one question
@@ -405,7 +406,7 @@ def rubric_notes() -> dict:
     import ast
 
     out = {"items": {}, "handouts": {}, "runs": {}}
-    for handout in (1, 2, 3):
+    for handout in _handouts.declared():
         mod = _load(handout)
         if mod is None:
             # Its file is gone and its notes are already in the course file;

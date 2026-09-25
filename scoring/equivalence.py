@@ -229,7 +229,7 @@ def uncovered_cli_items():
     """
     covered = {**ACTION, **SHEET_ONLY}
     out = []
-    for h in (1, 2, 3):
+    for h in handouts.declared():
         for it in config(h)["rubric"].ITEMS:
             if it["id"] not in covered:
                 out.append((it["id"], h, it["max"], it["label"]))

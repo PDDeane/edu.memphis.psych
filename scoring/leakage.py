@@ -239,7 +239,7 @@ def _specs() -> dict[str, dict]:
     """Every rubric item across the three handouts, keyed by id."""
     import handouts as H
     out: dict[str, dict] = {}
-    for h in (1, 2, 3):
+    for h in H.declared():
         try:
             for item in H.config(h)["rubric"].ITEMS:
                 out[item["id"]] = item

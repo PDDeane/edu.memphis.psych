@@ -1656,7 +1656,7 @@ def fingerprint_text(item_id: str) -> str:
 
     import handouts as H
 
-    for h in (1, 2, 3):
+    for h in _H_RUBRIC.declared():
         cfg = H.config(h)
         item = next((i for i in cfg["rubric"].ITEMS if i["id"] == item_id), None)
         if item is None:

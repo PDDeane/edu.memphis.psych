@@ -47,12 +47,13 @@ import json
 import os
 import sys
 import types
+import handouts as _handouts   # forms are declared by the course, not counted here
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-HANDOUTS = (1, 2, 3)
+HANDOUTS = _handouts.declared()
 
 # Names that need no carriage, each with the reason. Keyed by (handout, name):
 # a new private name in a new module must be examined on its own, not inherit a
@@ -378,7 +379,7 @@ def _modules_present() -> list:
     import os
 
     here = os.path.dirname(os.path.abspath(__file__))
-    return [h for h in (1, 2, 3)
+    return [h for h in _handouts.declared()
             if os.path.exists(os.path.join(here, f"rubric_h{h}.py"))]
 
 
